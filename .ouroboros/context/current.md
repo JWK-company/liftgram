@@ -6,6 +6,7 @@
 |------|------|
 | 완료 — 풀 기획 파이프라인 (plan→requirement→design→decision→trace) ✓ | 2026-06-23 |
 | 구현 착수 — Phase 0 코어(RM-001) RN 앱 스캐폴딩·핵심 구현 ✓ | 2026-06-25 |
+| 기획 정정 — 웹 우선(PWA) 전환: ADR-012 발급(supersedes ADR-001), 브라우저 렌더 확인 ✓ | 2026-06-25 |
 
 > PLM 바인딩: `health-practice-wbi` @ https://jwk-plm.shoi.ch — 토큰 설정됨, 자동 동기(plm-sync) 활성. (2026-06-23)
 > ⚠️→✅ 초기 자동 동기 전건 실패(401): `plm_lib.sh`가 토큰을 `. <(grep …)` 프로세스치환으로 로딩했는데 이 실행환경(/dev/fd 제한)에선 무음 실패 → 빈 토큰. here-string 소싱으로 수정 후 **전건 재동기 완료**: 아티팩트 59 + 관계 98 (derives_from 22·elaborates 11·refs 16·informs 26·covers 23). (2026-06-23)
@@ -15,7 +16,7 @@
 
 | 이름 | 단계 | 비고 |
 |------|------|------|
-| 헬스앱 (Hevy 클론 → 차별화) | /trace 완료 (전 단계 완료) | 추적 매트릭스 산출. G1·G2 pass, orphan 0·dangling 0. 노드 59 (URS8·UCS8·SRS15·SAD10·ADR11·RM7) |
+| 헬스앱 (Hevy 클론 → 차별화) | 구현(Phase 0) + 기획 정정 진행 | G1·G2 pass, orphan 0·dangling 0. 노드 60 (URS8·UCS8·SRS15·SAD10·ADR12·RM7) · ADR-012(웹우선) 추가 → /trace 재검증 |
 
 ## 작업 범위 (발급 예정/진행 요구사항)
 
@@ -34,7 +35,7 @@
 - SAD (10): SAD-001 시스템개요/스택 · SAD-002 기록코어 · SAD-003 분석엔진 · SAD-004 오프라인싱크 · SAD-005 소셜·책임감 · SAD-006 AI프로그래밍 · SAD-007 자동카운팅 · SAD-008 한국로컬 · SAD-009 수익화 · SAD-010 웰니스가드레일
 
 **발급된 결정 (ADR)**
-- ADR (11): ADR-001 RN채택 · ADR-002 오프라인싱크/충돌 · ADR-003 로컬DB(WatermelonDB) · ADR-004 AI하이브리드 · ADR-005 카운팅 온디바이스 · ADR-006 웰니스강제·카피게이트 · ADR-007 좁은부족 책임감해자 · ADR-008 무료+그룹가치 수익화 · ADR-009 구독 RevenueCat · ADR-010 1RM Epley · ADR-011 모듈러모놀리스
+- ADR (12): ADR-001 RN채택(→ADR-012가 supersede) · ADR-002 오프라인싱크/충돌 · ADR-003 로컬DB(WatermelonDB·어댑터 분기) · ADR-004 AI하이브리드 · ADR-005 카운팅 온디바이스 · ADR-006 웰니스강제·카피게이트 · ADR-007 좁은부족 책임감해자 · ADR-008 무료+그룹가치 수익화 · ADR-009 구독 RevenueCat · ADR-010 1RM Epley · ADR-011 모듈러모놀리스 · **ADR-012 웹우선(PWA)·Expo Web**
 
 ## 게이트 (요구→설계)
 
@@ -54,8 +55,9 @@
 - 구현 범위: 운동DB(SRS-001)·루틴빌더(SRS-002)·세트로깅/세션(SRS-003/004)·분석(SRS-005)·프로필/인증스텁(SRS-006)·웰니스 가드레일(SRS-015 라벨).
 - 검증: `npm run typecheck` 0 에러 · `npm test` 도메인 15/15 통과 · 적대적 코드리뷰(6 리뷰어)→확정 결함 6건 수정(반응성·중복생성·단위변환·워밍업리셋·미들·picker).
 - 빌드 검증: `npx expo export --platform ios` 성공(1291 모듈→3.1MB Hermes 번들). 번들링이 잡은 빌드버그 2건 수정 → ① `babel-preset-expo` 직접 의존성 추가 ② WatermelonDB 데코레이터용 class-properties loose 모드(babel.config.js).
-- 네이티브 실행/렌더는 미실행 — 이 환경엔 **CocoaPods 미설치**라 iOS dev client(pod install) 빌드 불가. 사용자 머신에서 `npx expo prebuild && npx expo run:ios`(CocoaPods 설치 후).
-- 추적성: 소스 `// @plm SRS-NNN` 주석 다수 → 빌드 후 `/plm-hub:codescan`으로 PLM 코드 딥링크 생성 예정(아직 미실행).
+- **웹 우선(PWA) 전환·실행 확인 (ADR-012)**: DB 어댑터 플랫폼 분기(웹=LokiJS/IndexedDB `adapter.web.ts`, 네이티브=SQLite/JSI `adapter.ts`) → `expo export --platform web` 번들 성공, **브라우저 렌더 확인**(홈·기록·분석·운동선택 36종 시드 정상). Xcode/CocoaPods 불필요. 웹 후속: `Alert.alert` no-op → 웹 모달 교체.
+- 네이티브(iOS/Android)는 후순위 옵션 — `expo prebuild` 시 simdjson pod 중복·full Xcode 필요 등 별도 정비 필요.
+- 추적성: 소스 `// @plm SRS-NNN` 주석 다수 → `/plm-hub:codescan`으로 PLM 코드 딥링크 동기(이번 사이클 실행).
 - Phase1+ 미구현: 동기 엔진·결제(RevenueCat)·AI프로그래밍(SRS-009/010)·소셜/책임감(SRS-007/008/011)·자동카운팅(SRS-012)·한국로컬 심화(SRS-013).
 
 ## 차단 요소
