@@ -26,16 +26,32 @@ cd app
 npm install
 ```
 
-WatermelonDB는 네이티브 모듈(JSI)이라 **Expo Go·웹에서 동작하지 않는다.** dev client를 빌드해야 한다:
+### 웹 (Phase 0 기본 타깃 · PWA)
 
 ```bash
-npx expo prebuild            # ios/ android/ 생성 (app.json plugins 적용: build-properties, watermelondb)
-npx expo run:ios             # 또는: npx expo run:android  (Xcode/Android SDK 필요)
+npx expo start --web         # 개발 서버
+# 또는 정적 빌드:
+npx expo export --platform web   # dist 산출 → 정적 호스팅(Vercel/Netlify/CF Pages)·PWA
 ```
 
-> 이 저장소를 만든 환경에는 Xcode/CocoaPods가 없어 네이티브 실행은 사용자 머신에서 수행한다. 코드는 그에 맞춰 작성됨.
+웹에서는 DB가 **LokiJS(IndexedDB)** 어댑터로 동작한다(`src/db/adapter.web.ts`). Xcode·CocoaPods 불필요.
+주의: `Alert.alert`는 react-native-web에서 no-op이라 확인/오류 다이얼로그는 웹용 모달로 교체 예정(폴리시).
 
-### 검증 (네이티브 불필요)
+### 네이티브 (iOS/Android · 후순위 옵션)
+
+WatermelonDB는 네이티브에서 SQLite+JSI(`src/db/adapter.ts`)를 쓰므로 **dev client 빌드**가 필요하다(Expo Go 불가):
+
+```bash
+npx expo prebuild            # ios/ android/ 생성
+npx expo run:ios             # CocoaPods·full Xcode 필요 / run:android (Android SDK 필요)
+```
+
+### 검증
+
+```bash
+npm run typecheck   # tsc --noEmit  (전체 0 에러 유지)
+npm test            # 순수 도메인 단위테스트 (Epley·볼륨·PR·플레이트·단위)
+```
 
 ```bash
 npm run typecheck   # tsc --noEmit  (전체 0 에러 유지)
