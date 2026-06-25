@@ -12,3 +12,5 @@ context/.pull_backup/
 context/.last_*
 # 하이브리드 sync 상태 (detect 워크리스트 + sync 스냅샷)
 context/.sync_state.json
+# 게이트/세션 런타임 상태 — gate-check hook이 매 턴 재생성(파생물 → 추적 제외)
+context/state.json
