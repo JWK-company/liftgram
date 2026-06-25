@@ -1,0 +1,16 @@
+{
+  "enabledPlugins": {
+    "plan@jwk-platform": true,
+    "code@jwk-platform": true,
+    "plm-hub@jwk-platform": true,
+    "plm-channel@jwk-platform": true
+  },
+  "extraKnownMarketplaces": {
+    "jwk-platform": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/woobi/Desktop/tarae/health-practice"
+      }
+    }
+  }
+}

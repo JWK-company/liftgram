@@ -1,0 +1,22 @@
+# ── 비밀/환경 (절대 커밋 금지) ──
+.ouroboros/env/.env
+.ouroboros/env/*.env
+.ouroboros/config/plm.json
+*.local
+
+# ── 의존성 (app 하위는 app/.gitignore가 별도 처리) ──
+**/node_modules/
+
+# ── RN/Expo 생성물 (안전망) ──
+app/ios/
+app/android/
+**/.expo/
+**/dist/
+**/build/
+
+# ── OS / 로그 / 임시 ──
+.DS_Store
+**/.DS_Store
+Thumbs.db
+*.log
+*.tmp

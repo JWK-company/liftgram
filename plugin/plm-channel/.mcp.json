@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "plm-channel": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/relay/plm-channel.mjs"]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "ouroboros": {
+      "type": "http",
+      "url": "${OURO_MCP_URL:-https://jwk-ouro.shoi.ch/mcp}",
+      "oauth": {
+        "clientId": "claude-code-mcp"
+      }
+    },
+    "plm": {
+      "type": "http",
+      "url": "${PLM_MCP_URL:-https://jwk-plm.shoi.ch/mcp}",
+      "oauth": {
+        "clientId": "claude-code-mcp"
+      }
+    }
+  }
+}

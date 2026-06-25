@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/context-reminder.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/plm-sync.sh" },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/plm-codesync.sh" },
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/body-lint.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/plm-gate.sh" }
+        ]
+      }
+    ]
+  }
+}

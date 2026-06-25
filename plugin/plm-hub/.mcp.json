@@ -1,0 +1,4 @@
+{
+  "_comment": "plm MCP 서버는 프로젝트 .ouroboros/config 기반 .mcp.json이 인스턴스별로 등록(자가호스팅 URL 단일 출처). 플러그인은 커맨드·hook만 제공하고 인스턴스 URL을 하드코딩하지 않는다.",
+  "mcpServers": {}
+}

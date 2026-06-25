@@ -1,0 +1,9 @@
+{
+  "active_skill": null,
+  "skill_step": null,
+  "active_artifact": null,
+  "gates": { "G1": "pending", "G2": "pending" },
+  "last_gate_check": null,
+  "last_sync": null,
+  "last_updated": null
+}

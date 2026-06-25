@@ -1,0 +1,28 @@
+{
+  "name": "jwk-platform",
+  "owner": {
+    "name": "JWK-company workflow plugins"
+  },
+  "plugins": [
+    {
+      "name": "plan",
+      "description": "기획 워크플로우 — 요구·설계·의사결정·로드맵 산출물 + 요구→설계 추적성(G1/G2). 거버넌스 백엔드=PLM(plm-hub 플러그인). 사용: plan:<command>",
+      "source": "./plugin/plan"
+    },
+    {
+      "name": "code",
+      "description": "코딩 워크플로우 — 5-Tier 복잡도(spec/execute), 전문가 패널 QA, 점진 디버깅(fix), 회고·온보딩·메모리. 사용: code:<command>",
+      "source": "./plugin/code"
+    },
+    {
+      "name": "plm-hub",
+      "description": "PLM 거버넌스 브리지 — 원격 PLM MCP(14도구, OAuth) 등록 + plan/code의 .ouroboros/docs/*.md를 PLM에 자동 동기(Edit hook)·게이트(G1~G3) 표면화(Stop hook). 사용: plm-hub:<command>",
+      "source": "./plugin/plm-hub"
+    },
+    {
+      "name": "plm-channel",
+      "description": "PLM 채널 — 웹 대시보드 [Sync] 버튼 → 이 터미널 Claude 세션으로 작업 push(claude/channel 로컬 릴레이, 백엔드 SSE 구독). 설치: claude plugin install + make channels(managed-settings allowlist) + /plm-hub:link(토큰). 사용: claude --channels plugin:plm-channel@jwk-platform",
+      "source": "./plugin/plm-channel"
+    }
+  ]
+}

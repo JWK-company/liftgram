@@ -1,0 +1,14 @@
+# .ouroboros 런타임 상태 — 비밀/캐시 제외 (프로젝트로 복사되는 시드에 동봉)
+
+# 환경/비밀 — 실제 토큰이 든 .env 는 절대 커밋 금지
+env/.env
+*.env
+!*.env.example
+
+context/.sync_status
+context/.sync_hashes
+context/.sync_snapshot.json
+context/.pull_backup/
+context/.last_*
+# 하이브리드 sync 상태 (detect 워크리스트 + sync 스냅샷)
+context/.sync_state.json

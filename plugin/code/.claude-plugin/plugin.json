@@ -1,0 +1,7 @@
+{
+  "name": "code",
+  "version": "0.2.1",
+  "description": "코딩 워크플로우 — 5-Tier 복잡도(spec/execute) + 용도별 분석단위(feature/refactor/bugfix/perf/infra/research/design/game) + 추적성 분석(plan 아티팩트 정합·G0 요구선행·@plm 딥링크), 전문가 패널 QA, 점진 디버깅(fix), reflect/onboarding/등. 명령: code:<command>.",
+  "author": { "name": "plan-db workflow templates" },
+  "keywords": ["coding", "spec", "qa", "debug", "memory", "ouroboros", "traceability", "plm", "workflow"]
+}

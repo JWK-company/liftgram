@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# 시크릿 커밋 차단 게이트 (platform-build) — gitleaks staged + 노출값 denylist.
+# 활성화: repo 클론 후 1회 `bash scripts/setup-hooks.sh`
+set -uo pipefail
+GL="$(command -v gitleaks || echo "$HOME/.local/bin/gitleaks")"
+if [ -x "$GL" ]; then
+  "$GL" protect --staged --no-banner --redact || { echo "[pre-commit] gitleaks 검출 — 커밋 차단"; exit 1; }
+fi
+DENY="$(git rev-parse --show-toplevel)/.githooks/secret-denylist.txt"
+if [ -f "$DENY" ]; then
+  PATTERNS="$(grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$DENY" 2>/dev/null || true)"
+  if [ -n "$PATTERNS" ] && git diff --cached -U0 | grep -qF "$PATTERNS"; then
+    echo "[pre-commit] 노출 시크릿 denylist 매치 — 커밋 차단"; exit 1
+  fi
+fi
+exit 0

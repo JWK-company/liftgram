@@ -1,0 +1,15 @@
+**/node_modules/**
+**/target/**
+**/.next/**
+**/dist/**
+**/build/**
+.ref/**
+.serena/**
+**/.git/**
+# Expo / React Native generated dirs (app/) — keep codescan scanning app/src/** @plm
+# comments, but exclude generated native/build output so it never yields phantom Code artifacts.
+**/.expo/**
+**/ios/Pods/**
+**/android/.gradle/**
+**/android/build/**
+**/android/app/build/**

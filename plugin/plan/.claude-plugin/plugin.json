@@ -1,0 +1,8 @@
+{
+  "name": "plan",
+  "version": "0.3.1",
+  "description": "기획(planning) 워크플로우 — 요구사항·설계·의사결정·로드맵 산출물 + 요구→설계 추적성(G1/G2). 거버넌스 백엔드=PLM(plm-hub 플러그인, 자동 동기). 명령: plan:plan, plan:requirement, plan:design, plan:decision, plan:trace, plan:reflect, plan:report.",
+  "author": { "name": "plan-db workflow templates" },
+  "keywords": ["planning", "requirements", "traceability", "plm", "v-model", "prd", "roadmap"],
+  "homepage": "https://example.com/plan-db"
+}
