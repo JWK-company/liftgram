@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Repset",
+    "slug": "repset",
+    "scheme": "repset",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.repset.app"
+    },
+    "android": {
+      "package": "com.repset.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0E1116",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": { "deploymentTarget": "16.4" },
+          "android": { "minSdkVersion": 24 }
+        }
+      ],
+      "@morrowdigital/watermelondb-expo-plugin"
+    ]
+  }
+}

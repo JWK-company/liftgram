@@ -1,0 +1,38 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
+    "@morrowdigital/watermelondb-expo-plugin": "^2.3.3",
+    "@nozbe/watermelondb": "^0.28.0",
+    "@react-navigation/bottom-tabs": "^7.18.3",
+    "@react-navigation/native": "^7.3.4",
+    "@react-navigation/native-stack": "^7.17.6",
+    "expo": "~56.0.12",
+    "expo-build-properties": "~56.0.19",
+    "expo-secure-store": "~56.0.4",
+    "expo-status-bar": "~56.0.4",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.29.7",
+    "@types/node": "^26.0.1",
+    "@types/react": "~19.2.2",
+    "babel-preset-expo": "~56.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/domain/__tests__/*.test.ts"
+  },
+  "private": true
+}
