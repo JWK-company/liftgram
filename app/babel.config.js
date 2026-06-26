@@ -14,6 +14,8 @@ module.exports = function (api) {
       ['@babel/plugin-transform-class-properties', { loose: true }],
       ['@babel/plugin-transform-private-methods', { loose: true }],
       ['@babel/plugin-transform-private-property-in-object', { loose: true }],
+      // react-native-reanimated v4 worklets — 반드시 마지막 plugin (드래그 reorder용).
+      'react-native-worklets/plugin',
     ],
   };
 };

@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler'; // gesture-handler: 엔트리 최상단 import 필수
 import { registerRootComponent } from 'expo';
 
 import App from './App';

@@ -1,8 +1,13 @@
-// @plm SRS-002  루틴 빌더 — 종목 추가/순서/대체/슈퍼셋/세트·반복·휴식 목표 편집
+// @plm SRS-002  루틴 빌더 — 종목 추가/순서(드래그·화살표)/대체/슈퍼셋/세트·반복·휴식 목표 편집
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ReorderableList, {
+  useReorderableDrag,
+  useIsActive,
+  type ReorderableListReorderEvent,
+} from 'react-native-reorderable-list';
 import {
   Button,
   IconButton,
@@ -152,6 +157,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
 
+  // 화살표 버튼 reorder (드래그 폴백)
   async function move(index: number, dir: -1 | 1) {
     const target = index + dir;
     if (target < 0 || target >= exercises.length) return;
@@ -164,6 +170,15 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     } catch (e) {
       Alert.alert('오류', String(e));
     }
+  }
+
+  // 드래그 reorder
+  function handleReorder({ from, to }: ReorderableListReorderEvent) {
+    if (from === to) return;
+    const ids = exercises.map((e) => e.id);
+    const [moved] = ids.splice(from, 1);
+    ids.splice(to, 0, moved);
+    routineRepo.reorderRoutineExercises(ids).catch((e) => Alert.alert('오류', String(e)));
   }
 
   function removeExercise(re: RoutineExercise) {
@@ -239,11 +254,72 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     return (
       <SafeAreaView style={styles.loader}>
         <AppText variant="body" color="textMuted">
-          준비 중…
+          불러오는 중…
         </AppText>
       </SafeAreaView>
     );
   }
+
+  // 리스트 헤더(루틴 메타 + 슈퍼셋 바) — 안정적인 element로 전달해 TextInput 리마운트/키보드 끊김 방지.
+  const listHeader = (
+    <View>
+      <TextField
+        label="루틴 이름"
+        value={name}
+        onChangeText={setName}
+        onBlur={saveName}
+        onSubmitEditing={saveName}
+        placeholder="예: 상체 A"
+        returnKeyType="done"
+      />
+      <TextField label="폴더 (선택)" value={folder} onChangeText={setFolder} onBlur={saveFolder} placeholder="예: 푸시/풀/레그" />
+      <TextField label="메모 (선택)" value={notes} onChangeText={setNotes} onBlur={saveNotes} placeholder="루틴 메모" multiline />
+
+      <Divider />
+
+      <SectionHeader
+        title="종목"
+        right={
+          exercises.length >= 2 ? (
+            <Button
+              title={selecting ? '선택 취소' : '슈퍼셋 편집'}
+              size="sm"
+              variant="ghost"
+              fullWidth={false}
+              onPress={() => {
+                setSelecting((s) => !s);
+                setSelectedIds([]);
+              }}
+            />
+          ) : undefined
+        }
+      />
+
+      {exercises.length >= 2 && !selecting ? (
+        <AppText variant="caption" color="textFaint" style={{ marginBottom: spacing.sm }}>
+          ☰ 핸들을 잡고 드래그하거나 ▲▼로 순서를 바꿀 수 있어요.
+        </AppText>
+      ) : null}
+
+      {selecting ? (
+        <View style={styles.supersetBar}>
+          <AppText variant="caption" color="textMuted" style={{ flex: 1 }}>
+            종목 2개 이상 선택 후 묶거나, 묶인 종목을 선택해 해제하세요. ({selectedIds.length}개 선택됨)
+          </AppText>
+          <Button title="묶기" size="sm" fullWidth={false} disabled={selectedIds.length < 2} onPress={groupSuperset} />
+          <Button title="해제" size="sm" variant="secondary" fullWidth={false} disabled={selectedIds.length === 0} onPress={ungroupSuperset} />
+        </View>
+      ) : null}
+    </View>
+  );
+
+  const listFooter = (
+    <View>
+      <Button title="운동 추가" icon="add" variant="secondary" onPress={addExercise} style={{ marginTop: spacing.md }} />
+      <Divider />
+      <Button title="루틴 삭제" variant="danger" onPress={deleteRoutine} style={{ marginTop: spacing.sm }} />
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
@@ -253,105 +329,31 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
         <Button title="완료" size="sm" variant="ghost" fullWidth={false} onPress={() => navigation.goBack()} />
       </View>
 
-      <ScrollView
+      <ReorderableList
+        data={exercises}
+        keyExtractor={(item) => item.id}
+        onReorder={handleReorder}
+        ListHeaderComponent={listHeader}
+        ListFooterComponent={listFooter}
+        ListEmptyComponent={<EmptyState title="종목이 없습니다" message="아래 버튼으로 운동을 추가하세요." />}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-      >
-        <TextField
-          label="루틴 이름"
-          value={name}
-          onChangeText={setName}
-          onBlur={saveName}
-          onSubmitEditing={saveName}
-          placeholder="예: 상체 A"
-          returnKeyType="done"
-        />
-        <TextField
-          label="폴더 (선택)"
-          value={folder}
-          onChangeText={setFolder}
-          onBlur={saveFolder}
-          placeholder="예: 푸시/풀/레그"
-        />
-        <TextField
-          label="메모 (선택)"
-          value={notes}
-          onChangeText={setNotes}
-          onBlur={saveNotes}
-          placeholder="루틴 메모"
-          multiline
-        />
-
-        <Divider />
-
-        <SectionHeader
-          title="종목"
-          right={
-            exercises.length >= 2 ? (
-              <Button
-                title={selecting ? '선택 취소' : '슈퍼셋 편집'}
-                size="sm"
-                variant="ghost"
-                fullWidth={false}
-                onPress={() => {
-                  setSelecting((s) => !s);
-                  setSelectedIds([]);
-                }}
-              />
-            ) : undefined
-          }
-        />
-
-        {selecting ? (
-          <View style={styles.supersetBar}>
-            <AppText variant="caption" color="textMuted" style={{ flex: 1 }}>
-              종목 2개 이상 선택 후 묶거나, 묶인 종목을 선택해 해제하세요. ({selectedIds.length}개 선택됨)
-            </AppText>
-            <Button
-              title="묶기"
-              size="sm"
-              fullWidth={false}
-              disabled={selectedIds.length < 2}
-              onPress={groupSuperset}
-            />
-            <Button
-              title="해제"
-              size="sm"
-              variant="secondary"
-              fullWidth={false}
-              disabled={selectedIds.length === 0}
-              onPress={ungroupSuperset}
-            />
-          </View>
-        ) : null}
-
-        {exercises.length === 0 ? (
-          <EmptyState title="종목이 없습니다" message="아래 버튼으로 운동을 추가하세요." />
-        ) : (
-          exercises.map((re, index) => (
-            <ExerciseEditRow
-              key={re.id}
-              re={re}
-              index={index}
-              total={exercises.length}
-              selecting={selecting}
-              selected={selectedIds.includes(re.id)}
-              onToggleSelect={() => toggleSelect(re.id)}
-              onMoveUp={() => move(index, -1)}
-              onMoveDown={() => move(index, 1)}
-              onSwap={() => swap(re)}
-              onRemove={() => removeExercise(re)}
-            />
-          ))
+        renderItem={({ item, index }) => (
+          <ExerciseEditRow
+            re={item}
+            index={index}
+            total={exercises.length}
+            selecting={selecting}
+            selected={selectedIds.includes(item.id)}
+            onToggleSelect={() => toggleSelect(item.id)}
+            onMoveUp={() => move(index, -1)}
+            onMoveDown={() => move(index, 1)}
+            onSwap={() => swap(item)}
+            onRemove={() => removeExercise(item)}
+          />
         )}
-
-        <Button title="운동 추가" icon="add" variant="secondary" onPress={addExercise} style={{ marginTop: spacing.md }} />
-
-        <Divider />
-
-        <Button title="루틴 삭제" variant="danger" onPress={deleteRoutine} style={{ marginTop: spacing.sm }} />
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 }
@@ -379,6 +381,9 @@ function ExerciseEditRow({
   onSwap: () => void;
   onRemove: () => void;
 }) {
+  const drag = useReorderableDrag();
+  const isActive = useIsActive();
+
   // 로컬 편집 상태(스테퍼 즉시 반영) + 영속화.
   const [sets, setSets] = useState(re.targetSets);
   const [repsMin, setRepsMin] = useState(re.targetRepsMin ?? 0);
@@ -405,25 +410,21 @@ function ExerciseEditRow({
   }, [repsMin, repsMax]);
 
   return (
-    <Card style={[styles.exCard, selected && styles.exCardSelected]}>
+    <Card style={[styles.exCard, selected && styles.exCardSelected, isActive && styles.exCardActive]}>
       <View style={styles.exHeader}>
         {selecting ? (
-          <Pressable onPress={onToggleSelect} hitSlop={8} style={styles.checkbox}>
-            <Ionicons
-              name={selected ? 'checkbox' : 'square-outline'}
-              size={22}
-              color={selected ? colors.primary : colors.textMuted}
-            />
+          <Pressable onPress={onToggleSelect} hitSlop={8} style={styles.handle}>
+            <Ionicons name={selected ? 'checkbox' : 'square-outline'} size={22} color={selected ? colors.primary : colors.textMuted} />
           </Pressable>
         ) : (
-          <AppText variant="label" color="textFaint" style={styles.orderNum}>
-            {index + 1}
-          </AppText>
+          <Pressable onPressIn={drag} hitSlop={8} style={styles.handle}>
+            <Ionicons name="reorder-three" size={24} color={colors.textMuted} />
+          </Pressable>
         )}
         <View style={styles.exTitle}>
           <ExerciseName exerciseId={re.exerciseId} variant="body" />
           <AppText variant="caption" color="textMuted">
-            {repsLabel} · 휴식 {rest}초
+            {index + 1}. {repsLabel} · 휴식 {rest}초
           </AppText>
         </View>
         {re.supersetGroup ? <Tag label="슈퍼셋" tone="primary" /> : null}
@@ -493,13 +494,7 @@ function ExerciseEditRow({
 
       <View style={styles.rowActions}>
         <IconButton icon="arrow-up" size={18} color="textMuted" disabled={index === 0} onPress={onMoveUp} />
-        <IconButton
-          icon="arrow-down"
-          size={18}
-          color="textMuted"
-          disabled={index === total - 1}
-          onPress={onMoveDown}
-        />
+        <IconButton icon="arrow-down" size={18} color="textMuted" disabled={index === total - 1} onPress={onMoveDown} />
         <View style={{ flex: 1 }} />
         <Button title="대체" size="sm" variant="ghost" fullWidth={false} onPress={onSwap} />
         <IconButton icon="trash-outline" size={18} color="danger" onPress={onRemove} />
@@ -521,17 +516,12 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
-  supersetBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-  },
+  supersetBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   exCard: { marginBottom: spacing.md, gap: spacing.md },
   exCardSelected: { borderColor: colors.primary, borderWidth: 1 },
+  exCardActive: { borderColor: colors.primary, borderWidth: 1, opacity: 0.95 },
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  checkbox: { width: 28, alignItems: 'center' },
-  orderNum: { width: 20, textAlign: 'center' },
+  handle: { width: 28, alignItems: 'center' },
   exTitle: { flex: 1, gap: 2 },
   fieldRow: { flexDirection: 'row', gap: spacing.lg },
   field: { flex: 1 },
