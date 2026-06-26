@@ -56,7 +56,8 @@
 - 검증: `npm run typecheck` 0 에러 · `npm test` 도메인 15/15 통과 · 적대적 코드리뷰(6 리뷰어)→확정 결함 6건 수정(반응성·중복생성·단위변환·워밍업리셋·미들·picker).
 - 빌드 검증: `npx expo export --platform ios` 성공(1291 모듈→3.1MB Hermes 번들). 번들링이 잡은 빌드버그 2건 수정 → ① `babel-preset-expo` 직접 의존성 추가 ② WatermelonDB 데코레이터용 class-properties loose 모드(babel.config.js).
 - **웹 우선(PWA) 전환·실행 확인 (ADR-012)**: DB 어댑터 플랫폼 분기(웹=LokiJS/IndexedDB `adapter.web.ts`, 네이티브=SQLite/JSI `adapter.ts`) → `expo export --platform web` 번들 성공, **브라우저 렌더 확인**(홈·기록·분석·운동선택 36종 시드 정상). Xcode/CocoaPods 불필요.
-- **웹 confirm 버그 수정·검증(2026-06-26)**: react-native-web의 `Alert.alert`가 confirm 콜백 미동작 → 테마 모달 호스트(`components/AlertHost.tsx`)로 라우팅(`utils/alert.installWebAlert`, 호출부 무수정). 브라우저에서 운동완료(완료→요약 이동) end-to-end 검증, 취소·삭제·로그아웃·루틴삭제·세트메뉴 일괄 해소. 언어 토글은 i18n 미도입(Phase1+)이라 '준비 중' 비활성 처리. 잔여 폴리시: 대체운동 시드 보강·드래그 reorder.
+- **웹 confirm 버그 수정·검증(2026-06-26)**: react-native-web의 `Alert.alert`가 confirm 콜백 미동작 → 테마 모달 호스트(`components/AlertHost.tsx`)로 라우팅(`utils/alert.installWebAlert`, 호출부 무수정). 브라우저에서 운동완료(완료→요약 이동) end-to-end 검증, 취소·삭제·로그아웃·루틴삭제·세트메뉴 일괄 해소. 언어 토글은 i18n 미도입(Phase1+)이라 '준비 중' 비활성 처리.
+- **카탈로그 확장·드래그 reorder(2026-06-26)**: 운동 시드 36→116종(멱등 top-up — 기존 IndexedDB도 보강). 루틴 종목 순서변경에 reanimated v4 + `react-native-reorderable-list` 드래그 핸들(☰, onPressIn) 추가, 화살표(▲▼) 폴백 유지. tsc 0·웹 번들·렌더·콘솔에러 0 검증. ⚠️ 실제 드래그 제스처는 헤드리스 자동화로 트리거 불가 → 실기기/마우스 테스트 필요(화살표는 보장 동작). 미적용: 대체운동 큐레이션 substituteIds(현재 같은 근육군 폴백).
 - 네이티브(iOS/Android)는 후순위 옵션 — `expo prebuild` 시 simdjson pod 중복·full Xcode 필요 등 별도 정비 필요.
 - 추적성: 소스 `// @plm SRS-NNN` 주석 다수 → `/plm-hub:codescan`으로 PLM 코드 딥링크 동기(이번 사이클 실행).
 - Phase1+ 미구현: 동기 엔진·결제(RevenueCat)·AI프로그래밍(SRS-009/010)·소셜/책임감(SRS-007/008/011)·자동카운팅(SRS-012)·한국로컬 심화(SRS-013).
