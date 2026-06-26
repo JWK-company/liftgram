@@ -55,7 +55,8 @@
 - 구현 범위: 운동DB(SRS-001)·루틴빌더(SRS-002)·세트로깅/세션(SRS-003/004)·분석(SRS-005)·프로필/인증스텁(SRS-006)·웰니스 가드레일(SRS-015 라벨).
 - 검증: `npm run typecheck` 0 에러 · `npm test` 도메인 15/15 통과 · 적대적 코드리뷰(6 리뷰어)→확정 결함 6건 수정(반응성·중복생성·단위변환·워밍업리셋·미들·picker).
 - 빌드 검증: `npx expo export --platform ios` 성공(1291 모듈→3.1MB Hermes 번들). 번들링이 잡은 빌드버그 2건 수정 → ① `babel-preset-expo` 직접 의존성 추가 ② WatermelonDB 데코레이터용 class-properties loose 모드(babel.config.js).
-- **웹 우선(PWA) 전환·실행 확인 (ADR-012)**: DB 어댑터 플랫폼 분기(웹=LokiJS/IndexedDB `adapter.web.ts`, 네이티브=SQLite/JSI `adapter.ts`) → `expo export --platform web` 번들 성공, **브라우저 렌더 확인**(홈·기록·분석·운동선택 36종 시드 정상). Xcode/CocoaPods 불필요. 웹 후속: `Alert.alert` no-op → 웹 모달 교체.
+- **웹 우선(PWA) 전환·실행 확인 (ADR-012)**: DB 어댑터 플랫폼 분기(웹=LokiJS/IndexedDB `adapter.web.ts`, 네이티브=SQLite/JSI `adapter.ts`) → `expo export --platform web` 번들 성공, **브라우저 렌더 확인**(홈·기록·분석·운동선택 36종 시드 정상). Xcode/CocoaPods 불필요.
+- **웹 confirm 버그 수정·검증(2026-06-26)**: react-native-web의 `Alert.alert`가 confirm 콜백 미동작 → 테마 모달 호스트(`components/AlertHost.tsx`)로 라우팅(`utils/alert.installWebAlert`, 호출부 무수정). 브라우저에서 운동완료(완료→요약 이동) end-to-end 검증, 취소·삭제·로그아웃·루틴삭제·세트메뉴 일괄 해소. 언어 토글은 i18n 미도입(Phase1+)이라 '준비 중' 비활성 처리. 잔여 폴리시: 대체운동 시드 보강·드래그 reorder.
 - 네이티브(iOS/Android)는 후순위 옵션 — `expo prebuild` 시 simdjson pod 중복·full Xcode 필요 등 별도 정비 필요.
 - 추적성: 소스 `// @plm SRS-NNN` 주석 다수 → `/plm-hub:codescan`으로 PLM 코드 딥링크 동기(이번 사이클 실행).
 - Phase1+ 미구현: 동기 엔진·결제(RevenueCat)·AI프로그래밍(SRS-009/010)·소셜/책임감(SRS-007/008/011)·자동카운팅(SRS-012)·한국로컬 심화(SRS-013).

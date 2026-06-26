@@ -8,7 +8,11 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
-import { AppText } from './src/components';
+import { AppText, AlertHost } from './src/components';
+import { installWebAlert } from './src/utils/alert';
+
+// 웹에서 RN Alert.alert(no-op)를 테마 모달 호스트로 라우팅(확인/취소 콜백 정상화).
+installWebAlert();
 
 const navTheme: Theme = {
   ...DarkTheme,
@@ -67,6 +71,7 @@ export default function App() {
           </NavigationContainer>
         </SessionProvider>
       </UserProvider>
+      <AlertHost />
     </SafeAreaProvider>
   );
 }

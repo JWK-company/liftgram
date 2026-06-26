@@ -131,8 +131,8 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
 
         <Divider />
 
-        {/* 언어 */}
-        <SettingRow label="언어" caption="앱 표시 언어 (Phase 0: 저장만)">
+        {/* 언어 — 다국어(i18n)는 다음 단계 작업. Phase 0는 한국어 고정이라 토글 비활성. */}
+        <SettingRow label="언어" caption="다국어는 준비 중입니다 (현재 한국어)">
           <Segmented<Language>
             options={[
               { value: 'ko', label: '한국어' },
@@ -140,7 +140,7 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
             ]}
             value={language}
             onChange={onSetLanguage}
-            disabled={busy}
+            disabled
           />
         </SettingRow>
 
