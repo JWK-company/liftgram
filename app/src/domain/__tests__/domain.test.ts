@@ -19,6 +19,8 @@ import {
   containsMedicalClaim,
   suggestNextSet,
   detectStall,
+  generateProgram,
+  type CatalogExercise,
   type LoggedSet,
 } from '../index';
 
@@ -162,4 +164,68 @@ test('detectStall: 최근 3세션 향상 없음 → 정체', () => {
 
 test('detectStall: 최근 향상 있으면 정체 아님', () => {
   assert.equal(detectStall([100, 100, 110], 3).stalled, false);
+});
+
+// ── 규칙기반 프로그램 생성 (SRS-009) ─────────────────────────────────
+const CAT: CatalogExercise[] = [
+  { id: 'bp', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
+  { id: 'db_bp', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'dumbbell' },
+  { id: 'fly', primaryMuscles: ['chest'], secondaryMuscles: [], equipment: 'cable' },
+  { id: 'ohp', primaryMuscles: ['shoulders'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
+  { id: 'lat_raise', primaryMuscles: ['shoulders'], secondaryMuscles: [], equipment: 'dumbbell' },
+  { id: 'pushdown', primaryMuscles: ['triceps'], secondaryMuscles: [], equipment: 'cable' },
+  { id: 'skull', primaryMuscles: ['triceps'], secondaryMuscles: [], equipment: 'barbell' },
+  { id: 'row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'barbell' },
+  { id: 'pulldown', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'cable' },
+  { id: 'pullup', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'bodyweight' },
+  { id: 'curl', primaryMuscles: ['biceps'], secondaryMuscles: [], equipment: 'dumbbell' },
+  { id: 'hammer', primaryMuscles: ['biceps'], secondaryMuscles: [], equipment: 'dumbbell' },
+  { id: 'shrug', primaryMuscles: ['traps'], secondaryMuscles: [], equipment: 'barbell' },
+  { id: 'squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'barbell' },
+  { id: 'legpress', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'machine' },
+  { id: 'rdl', primaryMuscles: ['hamstrings'], secondaryMuscles: ['glutes'], equipment: 'barbell' },
+  { id: 'hipthrust', primaryMuscles: ['glutes'], secondaryMuscles: [], equipment: 'barbell' },
+  { id: 'calf', primaryMuscles: ['calves'], secondaryMuscles: [], equipment: 'machine' },
+  { id: 'plank', primaryMuscles: ['abs'], secondaryMuscles: [], equipment: 'bodyweight' },
+];
+
+test('program: 3일 → PPL 3일, 경력별 종목수, 근비대 스킴', () => {
+  const p = generateProgram({ goal: 'hypertrophy', experience: 'intermediate', daysPerWeek: 3, equipment: [] }, CAT);
+  assert.equal(p.days.length, 3);
+  assert.deepEqual(p.days.map((d) => d.templateKey), ['push', 'pull', 'legs']);
+  for (const d of p.days) {
+    assert.equal(d.slots.length, 5); // intermediate=5
+    for (const s of d.slots) {
+      assert.equal(s.targetRepsMin, 8);
+      assert.equal(s.targetRepsMax, 12);
+      assert.equal(s.targetSets, 4);
+    }
+    // 하루 내 종목 중복 없음
+    const ids = d.slots.map((s) => s.exerciseId);
+    assert.equal(new Set(ids).size, ids.length);
+  }
+});
+
+test('program: 컴파운드 우선 선택(가슴 첫 슬롯 = 바벨 벤치)', () => {
+  const p = generateProgram({ goal: 'strength', experience: 'beginner', daysPerWeek: 3, equipment: [] }, CAT);
+  const push = p.days[0];
+  assert.equal(push.slots.length, 4); // beginner=4
+  assert.equal(push.slots[0].exerciseId, 'bp'); // chest 컴파운드 바벨 우선
+  assert.equal(push.slots[0].targetSets, 4); // strength 5 - beginner 1
+  assert.equal(push.slots[0].targetRepsMax, 5);
+});
+
+test('program: 가용 장비 필터 — 바벨 제외 시 바벨 종목 미선택', () => {
+  const p = generateProgram({ goal: 'hypertrophy', experience: 'advanced', daysPerWeek: 3, equipment: ['dumbbell', 'cable', 'machine', 'bodyweight'] }, CAT);
+  const allIds = p.days.flatMap((d) => d.slots.map((s) => s.exerciseId));
+  const barbellIds = ['bp', 'ohp', 'skull', 'row', 'shrug', 'squat', 'rdl', 'hipthrust'];
+  for (const id of allIds) assert.equal(barbellIds.includes(id), false);
+});
+
+test('program: 6일 → PPL 2회전, 대체 후보 존재', () => {
+  const p = generateProgram({ goal: 'hypertrophy', experience: 'intermediate', daysPerWeek: 6, equipment: [] }, CAT);
+  assert.equal(p.days.length, 6);
+  assert.deepEqual(p.days.map((d) => d.templateKey), ['push', 'pull', 'legs', 'push', 'pull', 'legs']);
+  // 일부 슬롯엔 대체 후보가 있다(가슴은 3종).
+  assert.ok(p.days[0].slots[0].alternatives.length >= 1);
 });

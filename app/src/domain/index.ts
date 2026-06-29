@@ -7,5 +7,6 @@ export * from './oneRepMax';
 export * from './volume';
 export * from './personalRecords';
 export * from './progression';
+export * from './programGenerator';
 export * from './plateCalculator';
 export * from './wellness';

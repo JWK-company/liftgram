@@ -7,6 +7,7 @@ import ExerciseListScreen from '../features/exercises/ExerciseListScreen';
 import ExerciseDetailScreen from '../features/exercises/ExerciseDetailScreen';
 import ExerciseFormScreen from '../features/exercises/ExerciseFormScreen';
 import RoutineEditorScreen from '../features/routines/RoutineEditorScreen';
+import ProgramGeneratorScreen from '../features/routines/ProgramGeneratorScreen';
 import ActiveWorkoutScreen from '../features/session/ActiveWorkoutScreen';
 import WorkoutSummaryScreen from '../features/session/WorkoutSummaryScreen';
 import WorkoutDetailScreen from '../features/analytics/WorkoutDetailScreen';
@@ -32,6 +33,7 @@ export function RootNavigator() {
       <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} options={{ title: t('nav.exerciseDetail') }} />
       <Stack.Screen name="ExerciseForm" component={ExerciseFormScreen} options={{ title: t('nav.exerciseForm'), presentation: 'modal' }} />
       <Stack.Screen name="RoutineEditor" component={RoutineEditorScreen} options={{ title: t('nav.routineEditor') }} />
+      <Stack.Screen name="ProgramGenerator" component={ProgramGeneratorScreen} options={{ title: t('program.title') }} />
       <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} options={{ title: t('nav.workoutDetail') }} />

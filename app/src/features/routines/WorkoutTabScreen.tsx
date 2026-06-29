@@ -122,6 +122,14 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
           icon="flash"
           loading={busy}
           onPress={startBlank}
+          style={{ marginBottom: spacing.sm }}
+        />
+
+        <Button
+          title={t('program.title')}
+          icon="sparkles"
+          variant="secondary"
+          onPress={() => navigation.navigate('ProgramGenerator')}
           style={{ marginBottom: spacing.lg }}
         />
 

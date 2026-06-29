@@ -4,6 +4,7 @@ export * as routineRepo from './routineRepository';
 export * as workoutRepo from './workoutRepository';
 export * as analyticsRepo from './analyticsRepository';
 export * as userRepo from './userRepository';
+export * as programRepo from './programRepository';
 
 export type { ExerciseFilter, CustomExerciseInput } from './exerciseRepository';
 export type { RoutineExerciseInput } from './routineRepository';
@@ -16,3 +17,4 @@ export type {
   WorkoutExerciseDetail,
 } from './analyticsRepository';
 export type { UserSettingsPatch } from './userRepository';
+export type { AdoptRoutineInput } from './programRepository';

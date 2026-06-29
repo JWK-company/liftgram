@@ -15,6 +15,7 @@ export type RootStackParamList = {
   ExerciseDetail: { exerciseId: string }; // SRS-001
   ExerciseForm: { exerciseId?: string } | undefined; // SRS-001 커스텀 등록/수정
   RoutineEditor: { routineId?: string } | undefined; // SRS-002 (없으면 신규)
+  ProgramGenerator: undefined; // SRS-009 규칙기반 프로그램 생성
   ActiveWorkout: { workoutId: string }; // SRS-003/004
   WorkoutSummary: { workoutId: string }; // SRS-004
   WorkoutDetail: { workoutId: string }; // SRS-005 히스토리 상세
