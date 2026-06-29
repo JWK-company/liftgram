@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -17,6 +17,7 @@ export const mySchema = appSchema({
         { name: 'auth_provider', type: 'string' }, // 'local' | 'email' | 'google' | 'apple'
         { name: 'preferred_language', type: 'string' }, // 'ko' | 'en'
         { name: 'weight_unit', type: 'string' }, // 'kg' | 'lb'
+        { name: 'available_equipment', type: 'string', isOptional: true }, // JSON EquipmentType[] (가용 기구 — 빈/미설정=전체)
         { name: 'bar_weight_kg', type: 'number' },
         { name: 'last_sync_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

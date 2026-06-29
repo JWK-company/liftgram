@@ -15,12 +15,14 @@ import { colors, spacing, radius, fontWeight } from '../../theme';
 import type { TabScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
-import { WELLNESS, fromKg, toKg, type WeightUnit } from '../../domain';
+import { fromKg, toKg, ALL_EQUIPMENT, equipmentLabel, type WeightUnit, type EquipmentType } from '../../domain';
+import { useT } from '../../i18n';
 
 type Language = 'ko' | 'en';
 
 export default function ProfileTabScreen({ navigation }: TabScreenProps<'ProfileTab'>) {
-  const { user, weightUnit, language, barWeightKg, refresh } = useUser();
+  const { t, lang } = useT();
+  const { user, weightUnit, language, barWeightKg, availableEquipment, refresh } = useUser();
   const [busy, setBusy] = useState(false);
 
   if (!user) {
@@ -42,7 +44,7 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       await fn();
       await refresh();
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     } finally {
       setBusy(false);
     }
@@ -62,11 +64,18 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
     void patch(() => userRepo.updateUserSettings(userId, { barWeightKg: toKg(displayValue, weightUnit) }));
   }
 
+  function onToggleEquipment(eq: EquipmentType) {
+    const next = availableEquipment.includes(eq)
+      ? availableEquipment.filter((e) => e !== eq)
+      : [...availableEquipment, eq];
+    void patch(() => userRepo.updateUserSettings(userId, { availableEquipment: next }));
+  }
+
   function onSignOut() {
-    Alert.alert('로그아웃', '로그아웃하시겠어요? 로컬에 저장된 운동 기록은 그대로 유지됩니다.', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('profile.signOut'), t('profile.signOutConfirmMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '로그아웃',
+        text: t('profile.signOut'),
         style: 'destructive',
         onPress: () => void patch(() => userRepo.signOutLocal(userId)),
       },
@@ -80,7 +89,7 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
   return (
     <Screen scroll>
       <AppText variant="display" style={{ marginBottom: spacing.lg }}>
-        프로필
+        {t('profile.title')}
       </AppText>
 
       {/* 신원 카드 */}
@@ -91,19 +100,19 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
           </View>
           <View style={styles.identityText}>
             <AppText variant="heading" numberOfLines={1}>
-              {isAuthed ? user.displayName || user.email : '게스트'}
+              {isAuthed ? user.displayName || user.email : t('profile.guest')}
             </AppText>
             <AppText variant="caption" color="textMuted" numberOfLines={1} style={{ marginTop: 2 }}>
-              {isAuthed ? user.email : '로그인하지 않은 로컬 사용자'}
+              {isAuthed ? user.email : t('profile.guestCaption')}
             </AppText>
           </View>
         </View>
         <View style={{ marginTop: spacing.lg }}>
           {isAuthed ? (
-            <Button title="로그아웃" variant="danger" icon="log-out-outline" onPress={onSignOut} disabled={busy} />
+            <Button title={t('profile.signOut')} variant="danger" icon="log-out-outline" onPress={onSignOut} disabled={busy} />
           ) : (
             <Button
-              title="로그인 / 가입"
+              title={t('profile.loginOrSignup')}
               variant="primary"
               icon="log-in-outline"
               onPress={() => navigation.navigate('Auth')}
@@ -113,11 +122,11 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       </Card>
 
       {/* 설정 */}
-      <SectionHeader title="설정" />
+      <SectionHeader title={t('profile.settings')} />
 
       <Card style={styles.settingsCard}>
         {/* 단위 */}
-        <SettingRow label="단위" caption="무게 표시·입력 단위">
+        <SettingRow label={t('profile.unit')} caption={t('profile.unitCaption')}>
           <Segmented<WeightUnit>
             options={[
               { value: 'kg', label: 'kg' },
@@ -131,16 +140,15 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
 
         <Divider />
 
-        {/* 언어 — 다국어(i18n)는 다음 단계 작업. Phase 0는 한국어 고정이라 토글 비활성. */}
-        <SettingRow label="언어" caption="다국어는 준비 중입니다 (현재 한국어)">
+        {/* 언어 — i18n 토글. 선택 언어가 userContext SSOT에 반영되어 즉시 리렌더. */}
+        <SettingRow label={t('profile.language')} caption={t('profile.languageCaption')}>
           <Segmented<Language>
             options={[
-              { value: 'ko', label: '한국어' },
-              { value: 'en', label: 'English' },
+              { value: 'ko', label: t('profile.languageKorean') },
+              { value: 'en', label: t('profile.languageEnglish') },
             ]}
             value={language}
             onChange={onSetLanguage}
-            disabled
           />
         </SettingRow>
 
@@ -150,10 +158,10 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
         <View style={styles.stepperRow}>
           <View style={styles.stepperLabel}>
             <AppText variant="body" weight="medium">
-              바벨 무게
+              {t('profile.barWeight')}
             </AppText>
             <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-              플레이트 계산기 기본 바 무게
+              {t('profile.barWeightCaption')}
             </AppText>
           </View>
           <NumberStepper
@@ -164,10 +172,48 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
             suffix={weightUnit}
           />
         </View>
+
+        <Divider />
+
+        {/* 가용 기구 (SRS-013) — 선택 시 대체운동을 보유 기구로 필터. 미선택=전체. */}
+        <View style={styles.equipBlock}>
+          <AppText variant="body" weight="medium">
+            {t('profile.availableEquipment')}
+          </AppText>
+          <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+            {t('profile.availableEquipmentCaption')}
+          </AppText>
+          <View style={styles.equipChips}>
+            {ALL_EQUIPMENT.map((eq) => {
+              const active = availableEquipment.includes(eq);
+              return (
+                <Pressable
+                  key={eq}
+                  onPress={() => !busy && onToggleEquipment(eq)}
+                  style={({ pressed }) => [
+                    styles.equipChip,
+                    active && styles.equipChipActive,
+                    { opacity: busy ? 0.6 : pressed ? 0.8 : 1 },
+                  ]}
+                >
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color: active ? colors.onPrimary : colors.textMuted,
+                      fontWeight: active ? fontWeight.bold : fontWeight.medium,
+                    }}
+                  >
+                    {equipmentLabel(eq, lang)}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
       </Card>
 
       {/* 동기화 상태 */}
-      <SectionHeader title="동기화" />
+      <SectionHeader title={t('profile.sync')} />
       <Card style={styles.syncCard}>
         {/* @phase-1-sync — 기기 간 동기화는 Phase 1 백엔드 연동에서 제공 */}
         <View style={styles.syncRow}>
@@ -176,10 +222,10 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
           </View>
           <View style={{ flex: 1 }}>
             <AppText variant="body" weight="medium">
-              오프라인 모드 · 로컬 저장됨
+              {t('profile.offlineMode')}
             </AppText>
             <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-              기기 간 동기화는 다음 단계(Phase 1)에서 제공됩니다.
+              {t('profile.syncComingSoon')}
             </AppText>
           </View>
         </View>
@@ -188,10 +234,10 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       {/* 푸터 — 웰니스 고지 */}
       <View style={styles.footer}>
         <AppText variant="caption" color="textFaint">
-          {WELLNESS.noMedicalClaimNotice}
+          {t('wellness.noMedicalClaimNotice')}
         </AppText>
         <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.sm }}>
-          {WELLNESS.safetyNotice}
+          {t('wellness.safetyNotice')}
         </AppText>
       </View>
     </Screen>
@@ -298,6 +344,17 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   stepperLabel: { flex: 1 },
+  equipBlock: { paddingVertical: spacing.sm },
+  equipChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.md },
+  equipChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  equipChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
   segmented: {
     flexDirection: 'row',
     backgroundColor: colors.surfaceAlt,

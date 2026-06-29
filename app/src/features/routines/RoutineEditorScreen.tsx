@@ -27,8 +27,10 @@ import { requestExercisePick } from '../../utils/picker';
 import type RoutineExercise from '../../db/models/RoutineExercise';
 import { ExerciseName } from './ExerciseName';
 import { colors, spacing } from '../../theme';
+import { useT } from '../../i18n';
 
 export default function RoutineEditorScreen({ route, navigation }: RootStackScreenProps<'RoutineEditor'>) {
+  const { t } = useT();
   const paramRoutineId = route.params?.routineId;
   const [routineId, setRoutineId] = useState<string | null>(paramRoutineId ?? null);
   const [creating, setCreating] = useState(!paramRoutineId);
@@ -49,7 +51,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     if (!paramRoutineId && !createdRef.current) {
       createdRef.current = true;
       routineRepo
-        .createRoutine({ name: '새 루틴' })
+        .createRoutine({ name: t('routines.newRoutineName') })
         .then((r) => {
           if (!alive) return;
           setRoutineId(r.id);
@@ -58,7 +60,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
           setCreating(false);
         })
         .catch((e) => {
-          if (alive) Alert.alert('오류', String(e));
+          if (alive) Alert.alert(t('common.error'), String(e));
         });
     }
     return () => {
@@ -74,7 +76,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     const unsub = navigation.addListener('beforeRemove', () => {
       if (paramRoutineId || !routineId) return; // 기존 루틴은 보존
       const trimmed = nameRef.current.trim();
-      if (trimmed && trimmed !== '새 루틴') return; // 이름을 바꿨으면 보존
+      if (trimmed && trimmed !== t('routines.newRoutineName')) return; // 이름을 바꿨으면 보존
       routineRepo
         .queryRoutineExercises(routineId)
         .fetchCount()
@@ -100,7 +102,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
           setLoadedMeta(true);
         })
         .catch((e) => {
-          if (alive) Alert.alert('오류', String(e));
+          if (alive) Alert.alert(t('common.error'), String(e));
         });
     }
     return () => {
@@ -120,7 +122,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     try {
       await routineRepo.updateRoutine(routineId, { name: trimmed });
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
@@ -129,7 +131,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     try {
       await routineRepo.updateRoutine(routineId, { notes: notes.trim() || null });
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
@@ -138,21 +140,21 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     try {
       await routineRepo.updateRoutine(routineId, { folder: folder.trim() || null });
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
   function addExercise() {
     if (!routineId) return;
     requestExercisePick((exId) => {
-      routineRepo.addExerciseToRoutine(routineId, exId).catch((e) => Alert.alert('오류', String(e)));
+      routineRepo.addExerciseToRoutine(routineId, exId).catch((e) => Alert.alert(t('common.error'), String(e)));
     });
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
 
   function swap(re: RoutineExercise) {
     requestExercisePick((exId) => {
-      routineRepo.swapRoutineExercise(re.id, exId).catch((e) => Alert.alert('오류', String(e)));
+      routineRepo.swapRoutineExercise(re.id, exId).catch((e) => Alert.alert(t('common.error'), String(e)));
     });
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
@@ -168,7 +170,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     try {
       await routineRepo.reorderRoutineExercises(ordered);
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
@@ -178,21 +180,21 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     const ids = exercises.map((e) => e.id);
     const [moved] = ids.splice(from, 1);
     ids.splice(to, 0, moved);
-    routineRepo.reorderRoutineExercises(ids).catch((e) => Alert.alert('오류', String(e)));
+    routineRepo.reorderRoutineExercises(ids).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
   function removeExercise(re: RoutineExercise) {
-    Alert.alert('종목 삭제', '이 종목을 루틴에서 제거할까요?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('routines.removeExerciseTitle'), t('routines.removeExerciseMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '삭제',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await routineRepo.removeRoutineExercise(re.id);
             setSelectedIds((prev) => prev.filter((id) => id !== re.id));
           } catch (e) {
-            Alert.alert('오류', String(e));
+            Alert.alert(t('common.error'), String(e));
           }
         },
       },
@@ -205,7 +207,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
 
   async function groupSuperset() {
     if (selectedIds.length < 2) {
-      Alert.alert('슈퍼셋', '2개 이상의 종목을 선택하세요.');
+      Alert.alert(t('routines.supersetTitle'), t('routines.supersetSelectAtLeastTwo'));
       return;
     }
     try {
@@ -213,13 +215,13 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
       setSelecting(false);
       setSelectedIds([]);
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
   async function ungroupSuperset() {
     if (selectedIds.length === 0) {
-      Alert.alert('슈퍼셋 해제', '해제할 종목을 선택하세요.');
+      Alert.alert(t('routines.ungroupSupersetTitle'), t('routines.ungroupSelectExercises'));
       return;
     }
     try {
@@ -227,23 +229,23 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
       setSelecting(false);
       setSelectedIds([]);
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
   function deleteRoutine() {
     if (!routineId) return;
-    Alert.alert('루틴 삭제', '이 루틴을 삭제할까요? 되돌릴 수 없습니다.', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('routines.deleteRoutineTitle'), t('routines.deleteRoutineMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '삭제',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await routineRepo.deleteRoutine(routineId);
             navigation.goBack();
           } catch (e) {
-            Alert.alert('오류', String(e));
+            Alert.alert(t('common.error'), String(e));
           }
         },
       },
@@ -254,7 +256,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     return (
       <SafeAreaView style={styles.loader}>
         <AppText variant="body" color="textMuted">
-          불러오는 중…
+          {t('common.loading')}
         </AppText>
       </SafeAreaView>
     );
@@ -264,25 +266,25 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
   const listHeader = (
     <View>
       <TextField
-        label="루틴 이름"
+        label={t('routines.nameLabel')}
         value={name}
         onChangeText={setName}
         onBlur={saveName}
         onSubmitEditing={saveName}
-        placeholder="예: 상체 A"
+        placeholder={t('routines.namePlaceholder')}
         returnKeyType="done"
       />
-      <TextField label="폴더 (선택)" value={folder} onChangeText={setFolder} onBlur={saveFolder} placeholder="예: 푸시/풀/레그" />
-      <TextField label="메모 (선택)" value={notes} onChangeText={setNotes} onBlur={saveNotes} placeholder="루틴 메모" multiline />
+      <TextField label={t('routines.folderLabel')} value={folder} onChangeText={setFolder} onBlur={saveFolder} placeholder={t('routines.folderPlaceholder')} />
+      <TextField label={t('routines.notesLabel')} value={notes} onChangeText={setNotes} onBlur={saveNotes} placeholder={t('routines.notesPlaceholder')} multiline />
 
       <Divider />
 
       <SectionHeader
-        title="종목"
+        title={t('routines.exercisesSection')}
         right={
           exercises.length >= 2 ? (
             <Button
-              title={selecting ? '선택 취소' : '슈퍼셋 편집'}
+              title={selecting ? t('routines.cancelSelection') : t('routines.editSuperset')}
               size="sm"
               variant="ghost"
               fullWidth={false}
@@ -297,17 +299,17 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
 
       {exercises.length >= 2 && !selecting ? (
         <AppText variant="caption" color="textFaint" style={{ marginBottom: spacing.sm }}>
-          ☰ 핸들을 잡고 드래그하거나 ▲▼로 순서를 바꿀 수 있어요.
+          {t('routines.reorderHint')}
         </AppText>
       ) : null}
 
       {selecting ? (
         <View style={styles.supersetBar}>
           <AppText variant="caption" color="textMuted" style={{ flex: 1 }}>
-            종목 2개 이상 선택 후 묶거나, 묶인 종목을 선택해 해제하세요. ({selectedIds.length}개 선택됨)
+            {t('routines.supersetBarHint', { count: selectedIds.length })}
           </AppText>
-          <Button title="묶기" size="sm" fullWidth={false} disabled={selectedIds.length < 2} onPress={groupSuperset} />
-          <Button title="해제" size="sm" variant="secondary" fullWidth={false} disabled={selectedIds.length === 0} onPress={ungroupSuperset} />
+          <Button title={t('routines.group')} size="sm" fullWidth={false} disabled={selectedIds.length < 2} onPress={groupSuperset} />
+          <Button title={t('routines.ungroup')} size="sm" variant="secondary" fullWidth={false} disabled={selectedIds.length === 0} onPress={ungroupSuperset} />
         </View>
       ) : null}
     </View>
@@ -315,9 +317,9 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
 
   const listFooter = (
     <View>
-      <Button title="운동 추가" icon="add" variant="secondary" onPress={addExercise} style={{ marginTop: spacing.md }} />
+      <Button title={t('routines.addExercise')} icon="add" variant="secondary" onPress={addExercise} style={{ marginTop: spacing.md }} />
       <Divider />
-      <Button title="루틴 삭제" variant="danger" onPress={deleteRoutine} style={{ marginTop: spacing.sm }} />
+      <Button title={t('routines.deleteRoutineTitle')} variant="danger" onPress={deleteRoutine} style={{ marginTop: spacing.sm }} />
     </View>
   );
 
@@ -325,8 +327,8 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       <View style={styles.topBar}>
         <IconButton icon="chevron-back" onPress={() => navigation.goBack()} />
-        <AppText variant="heading">루틴 편집</AppText>
-        <Button title="완료" size="sm" variant="ghost" fullWidth={false} onPress={() => navigation.goBack()} />
+        <AppText variant="heading">{t('routines.editorTitle')}</AppText>
+        <Button title={t('common.done')} size="sm" variant="ghost" fullWidth={false} onPress={() => navigation.goBack()} />
       </View>
 
       <ReorderableList
@@ -335,7 +337,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
         onReorder={handleReorder}
         ListHeaderComponent={listHeader}
         ListFooterComponent={listFooter}
-        ListEmptyComponent={<EmptyState title="종목이 없습니다" message="아래 버튼으로 운동을 추가하세요." />}
+        ListEmptyComponent={<EmptyState title={t('routines.editorEmptyTitle')} message={t('routines.editorEmptyMessage')} />}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -381,6 +383,7 @@ function ExerciseEditRow({
   onSwap: () => void;
   onRemove: () => void;
 }) {
+  const { t } = useT();
   const drag = useReorderableDrag();
   const isActive = useIsActive();
 
@@ -397,17 +400,17 @@ function ExerciseEditRow({
   useEffect(() => setRest(re.restSeconds), [re.restSeconds]);
 
   const persist = (patch: Parameters<typeof routineRepo.updateRoutineExercise>[1]) => {
-    routineRepo.updateRoutineExercise(re.id, patch).catch((e) => Alert.alert('오류', String(e)));
+    routineRepo.updateRoutineExercise(re.id, patch).catch((e) => Alert.alert(t('common.error'), String(e)));
   };
 
   const repsLabel = useMemo(() => {
     const min = repsMin > 0 ? repsMin : null;
     const max = repsMax > 0 ? repsMax : null;
-    if (min && max) return `${min}–${max}회`;
-    if (min) return `${min}회+`;
-    if (max) return `~${max}회`;
-    return '반복 미설정';
-  }, [repsMin, repsMax]);
+    if (min && max) return t('routines.repsRange', { min, max });
+    if (min) return t('routines.repsMin', { min });
+    if (max) return t('routines.repsMax', { max });
+    return t('routines.repsUnset');
+  }, [repsMin, repsMax, t]);
 
   return (
     <Card style={[styles.exCard, selected && styles.exCardSelected, isActive && styles.exCardActive]}>
@@ -424,16 +427,16 @@ function ExerciseEditRow({
         <View style={styles.exTitle}>
           <ExerciseName exerciseId={re.exerciseId} variant="body" />
           <AppText variant="caption" color="textMuted">
-            {index + 1}. {repsLabel} · 휴식 {rest}초
+            {t('routines.exerciseRowSummary', { index: index + 1, reps: repsLabel, rest })}
           </AppText>
         </View>
-        {re.supersetGroup ? <Tag label="슈퍼셋" tone="primary" /> : null}
+        {re.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
       </View>
 
       <View style={styles.fieldRow}>
         <View style={styles.field}>
           <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
-            세트
+            {t('routines.setsLabel')}
           </AppText>
           <NumberStepper
             value={sets}
@@ -447,7 +450,7 @@ function ExerciseEditRow({
         </View>
         <View style={styles.field}>
           <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
-            휴식(초)
+            {t('routines.restLabel')}
           </AppText>
           <NumberStepper
             value={rest}
@@ -464,7 +467,7 @@ function ExerciseEditRow({
       <View style={styles.fieldRow}>
         <View style={styles.field}>
           <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
-            최소 반복
+            {t('routines.minRepsLabel')}
           </AppText>
           <NumberStepper
             value={repsMin}
@@ -478,7 +481,7 @@ function ExerciseEditRow({
         </View>
         <View style={styles.field}>
           <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
-            최대 반복
+            {t('routines.maxRepsLabel')}
           </AppText>
           <NumberStepper
             value={repsMax}
@@ -496,7 +499,7 @@ function ExerciseEditRow({
         <IconButton icon="arrow-up" size={18} color="textMuted" disabled={index === 0} onPress={onMoveUp} />
         <IconButton icon="arrow-down" size={18} color="textMuted" disabled={index === total - 1} onPress={onMoveDown} />
         <View style={{ flex: 1 }} />
-        <Button title="대체" size="sm" variant="ghost" fullWidth={false} onPress={onSwap} />
+        <Button title={t('routines.swap')} size="sm" variant="ghost" fullWidth={false} onPress={onSwap} />
         <IconButton icon="trash-outline" size={18} color="danger" onPress={onRemove} />
       </View>
     </Card>

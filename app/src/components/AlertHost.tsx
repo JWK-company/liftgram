@@ -5,8 +5,10 @@ import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from './primitives';
 import { colors, radius, spacing } from '../theme';
 import { _setAlertListener, type AlertButton, type AlertRequest } from '../utils/alert';
+import { useT } from '../i18n';
 
 export function AlertHost() {
+  const { t } = useT();
   const [req, setReq] = useState<AlertRequest | null>(null);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export function AlertHost() {
                               : colors.primary,
                       }}
                     >
-                      {b.text ?? '확인'}
+                      {b.text ?? t('common.ok')}
                     </AppText>
                   </Pressable>
                 ))}

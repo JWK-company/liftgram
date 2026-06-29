@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { AppText } from '../../components';
 import { exerciseRepo } from '../../data';
+import { exerciseDisplayName } from '../../domain';
+import { useT } from '../../i18n';
 import type Exercise from '../../db/models/Exercise';
 
 type Variant = 'body' | 'title' | 'heading' | 'caption' | 'label';
@@ -16,6 +18,7 @@ export function ExerciseName({
   variant?: Variant;
   color?: 'text' | 'textMuted' | 'textFaint';
 }) {
+  const { lang } = useT();
   const [ex, setEx] = useState<Exercise | null>(null);
   useEffect(() => {
     let alive = true;
@@ -31,7 +34,7 @@ export function ExerciseName({
   }, [exerciseId]);
   return (
     <AppText variant={variant} color={color} numberOfLines={1}>
-      {ex ? ex.nameKo : '…'}
+      {ex ? exerciseDisplayName(ex, lang) : '…'}
     </AppText>
   );
 }

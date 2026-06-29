@@ -7,6 +7,7 @@ import WorkoutTabScreen from '../features/routines/WorkoutTabScreen';
 import HistoryTabScreen from '../features/analytics/HistoryTabScreen';
 import StatsTabScreen from '../features/analytics/StatsTabScreen';
 import ProfileTabScreen from '../features/profile/ProfileTabScreen';
+import { useT } from '../i18n';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -18,6 +19,7 @@ const ICONS: Record<keyof TabParamList, keyof typeof Ionicons.glyphMap> = {
 };
 
 export function TabNavigator() {
+  const { t } = useT();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -30,10 +32,10 @@ export function TabNavigator() {
         tabBarIcon: ({ color, size }) => <Ionicons name={ICONS[route.name]} size={size} color={color} />,
       })}
     >
-      <Tab.Screen name="WorkoutTab" component={WorkoutTabScreen} options={{ title: '운동' }} />
-      <Tab.Screen name="HistoryTab" component={HistoryTabScreen} options={{ title: '기록' }} />
-      <Tab.Screen name="StatsTab" component={StatsTabScreen} options={{ title: '분석' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileTabScreen} options={{ title: '프로필' }} />
+      <Tab.Screen name="WorkoutTab" component={WorkoutTabScreen} options={{ title: t('nav.workout') }} />
+      <Tab.Screen name="HistoryTab" component={HistoryTabScreen} options={{ title: t('nav.history') }} />
+      <Tab.Screen name="StatsTab" component={StatsTabScreen} options={{ title: t('nav.stats') }} />
+      <Tab.Screen name="ProfileTab" component={ProfileTabScreen} options={{ title: t('nav.profile') }} />
     </Tab.Navigator>
   );
 }

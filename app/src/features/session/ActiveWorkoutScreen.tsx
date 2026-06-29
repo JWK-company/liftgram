@@ -12,6 +12,7 @@ import { useModelData, useQueryData } from '../../db/hooks';
 import { workoutRepo } from '../../data';
 import type { Workout, WorkoutExercise } from '../../db/models';
 import { requestExercisePick } from '../../utils/picker';
+import { useT } from '../../i18n';
 import { ExerciseBlock } from './ExerciseBlock';
 
 function formatClock(totalSeconds: number): string {
@@ -28,6 +29,7 @@ function elapsedSeconds(w: Workout, now: number): number {
 }
 
 export default function ActiveWorkoutScreen({ navigation, route }: RootStackScreenProps<'ActiveWorkout'>) {
+  const { t } = useT();
   const { workoutId } = route.params;
   const { weightUnit, barWeightKg } = useUser();
   const { setActiveWorkoutId } = useSession();
@@ -47,7 +49,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
       .then((w) => {
         if (alive) setBase(w);
       })
-      .catch((e) => Alert.alert('오류', String(e)));
+      .catch((e) => Alert.alert(t('common.error'), String(e)));
     return () => {
       alive = false;
     };
@@ -67,22 +69,22 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
       if (workout.state === 'paused') await workoutRepo.resumeWorkout(workoutId);
       else await workoutRepo.pauseWorkout(workoutId);
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
   function handleAddExercise() {
     requestExercisePick((exId) => {
-      workoutRepo.addExerciseToWorkout(workoutId, exId).catch((e) => Alert.alert('오류', String(e)));
+      workoutRepo.addExerciseToWorkout(workoutId, exId).catch((e) => Alert.alert(t('common.error'), String(e)));
     });
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
 
   function confirmFinish() {
-    Alert.alert('운동 종료', '이번 세션을 종료하고 요약을 볼까요?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('session.finishWorkout.title'), t('session.finishWorkout.message'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '종료',
+        text: t('session.finishWorkout.confirm'),
         onPress: async () => {
           setFinishing(true);
           try {
@@ -91,7 +93,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
             navigation.replace('WorkoutSummary', { workoutId });
           } catch (e) {
             setFinishing(false);
-            Alert.alert('오류', String(e));
+            Alert.alert(t('common.error'), String(e));
           }
         },
       },
@@ -99,10 +101,10 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   }
 
   function confirmDiscard() {
-    Alert.alert('운동 취소', '이 세션을 삭제할까요? 기록한 세트가 모두 사라집니다.', [
-      { text: '계속하기', style: 'cancel' },
+    Alert.alert(t('session.discardWorkout.title'), t('session.discardWorkout.message'), [
+      { text: t('session.discardWorkout.keepGoing'), style: 'cancel' },
       {
-        text: '삭제',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -110,7 +112,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
             setActiveWorkoutId(null);
             navigation.navigate('Tabs');
           } catch (e) {
-            Alert.alert('오류', String(e));
+            Alert.alert(t('common.error'), String(e));
           }
         },
       },
@@ -120,7 +122,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   if (!workout) {
     return (
       <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
-        <EmptyState title="세션 불러오는 중" />
+        <EmptyState title={t('session.loading')} />
       </SafeAreaView>
     );
   }
@@ -137,11 +139,11 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
             {formatClock(elapsed)}
           </AppText>
           <AppText variant="label" color={paused ? 'warning' : 'textMuted'}>
-            {paused ? '일시정지됨' : workout.name ?? '진행 중'}
+            {paused ? t('session.paused') : workout.name ?? t('session.inProgress')}
           </AppText>
         </View>
         <IconButton icon={paused ? 'play' : 'pause'} color="text" filled onPress={togglePause} />
-        <Button title="완료" size="sm" fullWidth={false} onPress={confirmFinish} loading={finishing} style={styles.finishBtn} />
+        <Button title={t('session.done')} size="sm" fullWidth={false} onPress={confirmFinish} loading={finishing} style={styles.finishBtn} />
       </View>
 
       <ScrollView
@@ -151,8 +153,8 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
       >
         {exercises.length === 0 ? (
           <EmptyState
-            title="종목이 없습니다"
-            message="아래 버튼으로 운동을 추가해 세트를 기록하세요."
+            title={t('session.noExercises.title')}
+            message={t('session.noExercises.message')}
           />
         ) : (
           exercises.map((we) => (
@@ -166,10 +168,10 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           ))
         )}
 
-        <Button title="운동 추가" icon="add" variant="secondary" onPress={handleAddExercise} style={{ marginTop: spacing.sm }} />
+        <Button title={t('session.addExercise')} icon="add" variant="secondary" onPress={handleAddExercise} style={{ marginTop: spacing.sm }} />
 
         <Button
-          title="운동 취소(삭제)"
+          title={t('session.discardWorkoutButton')}
           variant="danger"
           icon="trash-outline"
           onPress={confirmDiscard}

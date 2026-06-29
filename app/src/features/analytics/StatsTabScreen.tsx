@@ -17,15 +17,16 @@ import type { TabScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
 import { analyticsRepo } from '../../data';
 import type { AnalyticsOverview, TrendPoint, RecentPR } from '../../data';
-import { formatWeight, muscleLabel, WELLNESS, type MuscleGroup } from '../../domain';
+import { formatWeight, muscleLabel, type MuscleGroup } from '../../domain';
 import { colors, spacing } from '../../theme';
+import { useT, type TransKey } from '../../i18n';
 
 type Period = 'week' | 'month' | 'all';
 
-const PERIODS: { key: Period; label: string }[] = [
-  { key: 'week', label: '이번주' },
-  { key: 'month', label: '이번달' },
-  { key: 'all', label: '전체' },
+const PERIODS: { key: Period; labelKey: TransKey }[] = [
+  { key: 'week', labelKey: 'analytics.periodWeek' },
+  { key: 'month', labelKey: 'analytics.periodMonth' },
+  { key: 'all', labelKey: 'analytics.periodAll' },
 ];
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -38,6 +39,7 @@ function sinceForPeriod(period: Period): number | undefined {
 }
 
 export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
+  const { t, lang } = useT();
   const { weightUnit } = useUser();
   const [period, setPeriod] = useState<Period>('week');
   const [loading, setLoading] = useState(true);
@@ -77,7 +79,7 @@ export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
   return (
     <Screen scroll>
       <AppText variant="title" style={{ marginBottom: spacing.lg }}>
-        분석
+        {t('analytics.title')}
       </AppText>
 
       <PeriodSelector period={period} onChange={setPeriod} />
@@ -88,24 +90,24 @@ export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
         </View>
       ) : !hasData ? (
         <EmptyState
-          title="아직 기록이 없어요"
-          message="운동 세션을 완료하면 볼륨·추정 1RM·근육군 분포가 여기에 표시됩니다."
+          title={t('analytics.emptyTitle')}
+          message={t('analytics.emptyMessage')}
         />
       ) : (
         <>
           {/* 개요 */}
           <View style={styles.tilesRow}>
-            <StatTile label="총 볼륨" value={formatWeight(overview!.totalVolumeKg, weightUnit)} />
-            <StatTile label="세션 수" value={String(overview!.sessionCount)} />
-            <StatTile label="워킹 세트" value={String(overview!.workingSets)} />
+            <StatTile label={t('analytics.totalVolume')} value={formatWeight(overview!.totalVolumeKg, weightUnit)} />
+            <StatTile label={t('analytics.sessionCount')} value={String(overview!.sessionCount)} />
+            <StatTile label={t('analytics.workingSets')} value={String(overview!.workingSets)} />
           </View>
 
           {/* 추정 1RM Top */}
           <Card style={styles.section}>
-            <SectionHeader title={WELLNESS.oneRepMaxLabel} />
+            <SectionHeader title={t('wellness.oneRepMaxLabel')} />
             {overview!.topOneRM.length === 0 ? (
               <AppText variant="caption" color="textFaint">
-                워킹 세트 기록이 쌓이면 표시됩니다.
+                {t('analytics.topOneRMEmpty')}
               </AppText>
             ) : (
               overview!.topOneRM.map((row, i) => (
@@ -123,13 +125,13 @@ export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
               ))
             )}
             <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.sm }}>
-              {WELLNESS.oneRepMaxCaption}
+              {t('wellness.oneRepMaxCaption')}
             </AppText>
           </Card>
 
           {/* 주간 볼륨 추세 */}
           <Card style={styles.section}>
-            <SectionHeader title="주간 볼륨 추세" />
+            <SectionHeader title={t('analytics.weeklyVolumeTrend')} />
             <SimpleBarChart
               data={trend.map((t) => ({ label: t.label, value: t.value }))}
               formatValue={(v) => Math.round(v) + ''}
@@ -138,19 +140,19 @@ export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
 
           {/* 근육군 분포 */}
           <Card style={styles.section}>
-            <SectionHeader title="근육군 분포" />
+            <SectionHeader title={t('analytics.muscleDistribution')} />
             <DistributionBars
-              data={dist.map((d) => ({ label: muscleLabel(d.muscle), value: d.volumeKg }))}
+              data={dist.map((d) => ({ label: muscleLabel(d.muscle, lang), value: d.volumeKg }))}
               formatValue={(v) => formatWeight(v, weightUnit)}
             />
           </Card>
 
           {/* 최근 PR */}
           <Card style={styles.section}>
-            <SectionHeader title="최근 PR" />
+            <SectionHeader title={t('analytics.recentPRs')} />
             {recentPRs.length === 0 ? (
               <AppText variant="caption" color="textFaint">
-                아직 갱신된 추정 1RM 기록이 없어요.
+                {t('analytics.recentPRsEmpty')}
               </AppText>
             ) : (
               recentPRs.map((pr, i) => (
@@ -169,7 +171,7 @@ export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
                       <AppText variant="body" weight="bold">
                         {formatWeight(pr.estimated1RM, weightUnit)}
                       </AppText>
-                      <Tag label="추정치" tone="pr" />
+                      <Tag label={t('analytics.estimateTag')} tone="pr" />
                     </View>
                   </View>
                 </View>
@@ -180,13 +182,14 @@ export default function StatsTabScreen(_props: TabScreenProps<'StatsTab'>) {
       )}
 
       <AppText variant="caption" color="textFaint" center style={styles.disclaimer}>
-        {WELLNESS.noMedicalClaimNotice}
+        {t('wellness.noMedicalClaimNotice')}
       </AppText>
     </Screen>
   );
 }
 
 function PeriodSelector({ period, onChange }: { period: Period; onChange: (p: Period) => void }) {
+  const { t } = useT();
   return (
     <View style={styles.chips}>
       {PERIODS.map((p) => {
@@ -200,7 +203,7 @@ function PeriodSelector({ period, onChange }: { period: Period; onChange: (p: Pe
             onPress={() => onChange(p.key)}
             style={[styles.chip, active ? styles.chipActive : styles.chipIdle]}
           >
-            {p.label}
+            {t(p.labelKey)}
           </AppText>
         );
       })}

@@ -7,6 +7,7 @@ import { colors, spacing, radius, fontWeight } from '../../theme';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
+import { useT } from '../../i18n';
 
 type Mode = 'login' | 'signup';
 
@@ -14,6 +15,7 @@ type Mode = 'login' | 'signup';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>) {
+  const { t } = useT();
   const { user, refresh } = useUser();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
@@ -26,16 +28,16 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
   async function onSubmit() {
     const trimmedEmail = email.trim();
     if (!EMAIL_RE.test(trimmedEmail)) {
-      Alert.alert('오류', '올바른 이메일 형식을 입력해 주세요.');
+      Alert.alert(t('common.error'), t('auth.invalidEmail'));
       return;
     }
     // @phase-1-backend — 비밀번호는 실제로 검증·저장되지 않습니다. 서버 인증은 Phase 1.
     if (!password) {
-      Alert.alert('오류', '비밀번호를 입력해 주세요.');
+      Alert.alert(t('common.error'), t('auth.passwordRequired'));
       return;
     }
     if (!user) {
-      Alert.alert('오류', '사용자 프로필을 불러오지 못했습니다.');
+      Alert.alert(t('common.error'), t('auth.profileLoadFailed'));
       return;
     }
     setBusy(true);
@@ -48,7 +50,7 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
       await refresh();
       navigation.goBack();
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     } finally {
       setBusy(false);
     }
@@ -61,22 +63,22 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
           <Ionicons name="barbell" size={28} color={colors.primary} />
         </View>
         <AppText variant="display" center style={{ marginTop: spacing.md }}>
-          {isSignup ? '가입' : '로그인'}
+          {isSignup ? t('auth.signup') : t('auth.login')}
         </AppText>
         <AppText variant="caption" color="textMuted" center style={{ marginTop: spacing.xs }}>
-          Repset · 근력 운동 기록
+          {t('auth.tagline')}
         </AppText>
       </View>
 
       {/* 모드 토글 (외형용) */}
       <View style={styles.modeToggle}>
-        <ModeTab label="로그인" active={!isSignup} onPress={() => setMode('login')} />
-        <ModeTab label="가입" active={isSignup} onPress={() => setMode('signup')} />
+        <ModeTab label={t('auth.login')} active={!isSignup} onPress={() => setMode('login')} />
+        <ModeTab label={t('auth.signup')} active={isSignup} onPress={() => setMode('signup')} />
       </View>
 
       <Card style={styles.formCard}>
         <TextField
-          label="이메일"
+          label={t('auth.emailLabel')}
           value={email}
           onChangeText={setEmail}
           placeholder="you@example.com"
@@ -86,26 +88,26 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
           textContentType="emailAddress"
         />
         <TextField
-          label="비밀번호"
+          label={t('auth.passwordLabel')}
           value={password}
           onChangeText={setPassword}
-          placeholder="비밀번호"
+          placeholder={t('auth.passwordLabel')}
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
         />
         {isSignup ? (
           <TextField
-            label="표시 이름 (선택)"
+            label={t('auth.displayNameLabel')}
             value={displayName}
             onChangeText={setDisplayName}
-            placeholder="닉네임"
+            placeholder={t('auth.displayNamePlaceholder')}
             autoCapitalize="none"
           />
         ) : null}
 
         <Button
-          title={isSignup ? '가입하기' : '로그인'}
+          title={isSignup ? t('auth.signupButton') : t('auth.login')}
           icon="arrow-forward"
           onPress={onSubmit}
           loading={busy}
@@ -117,7 +119,7 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
       <View style={styles.note}>
         <Ionicons name="shield-checkmark-outline" size={18} color={colors.textMuted} />
         <AppText variant="caption" color="textMuted" style={{ flex: 1, marginLeft: spacing.sm }}>
-          오프라인에서도 모든 기록이 저장됩니다. 서버 동기화는 곧 제공됩니다.
+          {t('auth.offlineNote')}
         </AppText>
       </View>
     </Screen>

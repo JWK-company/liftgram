@@ -13,9 +13,11 @@ import {
   type EquipmentType,
 } from '../../domain';
 import { colors, spacing } from '../../theme';
+import { useT } from '../../i18n';
 import { Chip } from './Chip';
 
 export default function ExerciseFormScreen({ navigation, route }: RootStackScreenProps<'ExerciseForm'>) {
+  const { t, lang } = useT();
   const exerciseId = route.params?.exerciseId;
   const isEdit = !!exerciseId;
 
@@ -43,7 +45,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
         setEquipment(ex.equipment);
         setCategory(ex.category ?? '');
       } catch (e) {
-        Alert.alert('오류', String(e));
+        Alert.alert(t('common.error'), String(e));
       } finally {
         if (alive) setLoading(false);
       }
@@ -54,8 +56,8 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
   }, [exerciseId]);
 
   useEffect(() => {
-    navigation.setOptions({ title: isEdit ? '운동 수정' : '커스텀 운동' });
-  }, [navigation, isEdit]);
+    navigation.setOptions({ title: isEdit ? t('exercises.editTitle') : t('exercises.customTitle') });
+  }, [navigation, isEdit, t]);
 
   const toggle = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>) => (v: T) =>
     setter((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]));
@@ -95,7 +97,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
       }
       navigation.goBack();
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     } finally {
       setSaving(false);
     }
@@ -114,45 +116,45 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
   return (
     <Screen scroll>
       <TextField
-        label="이름 (한글) *"
-        placeholder="예: 인클라인 덤벨 프레스"
+        label={t('exercises.nameKoLabel')}
+        placeholder={t('exercises.nameKoPlaceholder')}
         value={nameKo}
         onChangeText={setNameKo}
       />
       <TextField
-        label="이름 (영문)"
-        placeholder="예: Incline Dumbbell Press"
+        label={t('exercises.nameEnLabel')}
+        placeholder={t('exercises.nameEnPlaceholder')}
         value={nameEn}
         onChangeText={setNameEn}
         autoCapitalize="words"
         autoCorrect={false}
       />
 
-      <FieldLabel text="주 근육군 *" hint="하나 이상 선택" />
+      <FieldLabel text={t('exercises.primaryMusclesLabel')} hint={t('exercises.selectOneOrMoreHint')} />
       <ChipGrid>
         {ALL_MUSCLE_GROUPS.map((m) => (
-          <Chip key={m} label={muscleLabel(m)} active={primary.includes(m)} onPress={() => togglePrimary(m)} />
+          <Chip key={m} label={muscleLabel(m, lang)} active={primary.includes(m)} onPress={() => togglePrimary(m)} />
         ))}
       </ChipGrid>
 
-      <FieldLabel text="보조 근육군" hint="선택" />
+      <FieldLabel text={t('exercises.secondaryMusclesLabel')} hint={t('exercises.optionalHint')} />
       <ChipGrid>
         {ALL_MUSCLE_GROUPS.map((m) => (
           <Chip
             key={m}
-            label={muscleLabel(m)}
+            label={muscleLabel(m, lang)}
             active={secondary.includes(m)}
             onPress={() => toggleSecondary(m)}
           />
         ))}
       </ChipGrid>
 
-      <FieldLabel text="기구 *" hint="하나 선택" />
+      <FieldLabel text={t('exercises.equipmentLabel')} hint={t('exercises.selectOneHint')} />
       <ChipGrid>
         {ALL_EQUIPMENT.map((eq) => (
           <Chip
             key={eq}
-            label={equipmentLabel(eq)}
+            label={equipmentLabel(eq, lang)}
             active={equipment === eq}
             onPress={() => setEquipment((prev) => (prev === eq ? null : eq))}
           />
@@ -160,15 +162,15 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
       </ChipGrid>
 
       <TextField
-        label="분류"
-        placeholder="예: 상체, 컴파운드 (선택)"
+        label={t('exercises.categoryLabel')}
+        placeholder={t('exercises.categoryPlaceholder')}
         value={category}
         onChangeText={setCategory}
         containerStyle={{ marginTop: spacing.lg }}
       />
 
       <Button
-        title={isEdit ? '저장' : '추가'}
+        title={isEdit ? t('common.save') : t('common.add')}
         onPress={onSave}
         disabled={!valid}
         loading={saving}

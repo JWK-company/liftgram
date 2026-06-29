@@ -14,15 +14,17 @@ import type { RootStackScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
 import { analyticsRepo } from '../../data';
 import type { WorkoutDetail, WorkoutExerciseDetail } from '../../data';
-import { formatWeight, WELLNESS, type WeightUnit } from '../../domain';
+import { formatWeight, type WeightUnit } from '../../domain';
 import { colors, spacing } from '../../theme';
+import { t, useT } from '../../i18n';
 
 function formatDuration(seconds: number | null): string {
   if (!seconds || seconds <= 0) return '-';
-  return `${Math.round(seconds / 60)}분`;
+  return t('common.minutesShort', { minutes: Math.round(seconds / 60) });
 }
 
 export default function WorkoutDetailScreen({ route }: RootStackScreenProps<'WorkoutDetail'>) {
+  const { t } = useT();
   const { workoutId } = route.params;
   const { weightUnit } = useUser();
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function WorkoutDetailScreen({ route }: RootStackScreenProps<'Wor
   if (!detail) {
     return (
       <Screen>
-        <EmptyState title="세션을 찾을 수 없어요" message="기록이 삭제되었거나 존재하지 않습니다." />
+        <EmptyState title={t('analytics.sessionNotFoundTitle')} message={t('analytics.sessionNotFoundMessage')} />
       </Screen>
     );
   }
@@ -73,19 +75,19 @@ export default function WorkoutDetailScreen({ route }: RootStackScreenProps<'Wor
   return (
     <Screen scroll>
       <AppText variant="title" numberOfLines={2}>
-        {workout.name || '운동'}
+        {workout.name || t('analytics.workoutFallbackName')}
       </AppText>
       <AppText variant="caption" color="textMuted" style={{ marginTop: spacing.xs }}>
         {dateStr}
       </AppText>
 
       <View style={styles.tilesRow}>
-        <StatTile label="총 볼륨" value={formatWeight(detail.totalVolumeKg, weightUnit)} />
-        <StatTile label="소요시간" value={formatDuration(workout.durationSeconds)} />
+        <StatTile label={t('analytics.totalVolumeLabel')} value={formatWeight(detail.totalVolumeKg, weightUnit)} />
+        <StatTile label={t('analytics.durationLabel')} value={formatDuration(workout.durationSeconds)} />
       </View>
 
       {detail.exercises.length === 0 ? (
-        <EmptyState title="기록된 세트가 없어요" />
+        <EmptyState title={t('analytics.noSetsTitle')} />
       ) : (
         detail.exercises.map((ex) => (
           <ExerciseCard key={ex.workoutExerciseId} ex={ex} weightUnit={weightUnit} />
@@ -96,6 +98,7 @@ export default function WorkoutDetailScreen({ route }: RootStackScreenProps<'Wor
 }
 
 function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUnit: WeightUnit }) {
+  const { t } = useT();
   return (
     <Card style={styles.exCard}>
       <AppText variant="heading" numberOfLines={1}>
@@ -104,10 +107,10 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
 
       <View style={styles.setHead}>
         <AppText variant="label" color="textFaint" style={styles.colSet}>
-          세트
+          {t('analytics.setColumnHeader')}
         </AppText>
         <AppText variant="label" color="textFaint" style={styles.colWeight}>
-          무게 × 횟수
+          {t('analytics.weightRepsColumnHeader')}
         </AppText>
         <AppText variant="label" color="textFaint" style={styles.colRpe}>
           RPE
@@ -125,8 +128,8 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
               {formatWeight(s.weightKg, weightUnit)} × {s.reps}
             </AppText>
             <View style={styles.setTags}>
-              {s.isWarmup ? <Tag label="웜업" tone="muted" /> : null}
-              {s.isFailed ? <Tag label="실패" tone="default" /> : null}
+              {s.isWarmup ? <Tag label={t('analytics.warmupTag')} tone="muted" /> : null}
+              {s.isFailed ? <Tag label={t('analytics.failedTag')} tone="default" /> : null}
             </View>
           </View>
           <AppText variant="body" color="textMuted" style={styles.colRpe}>
@@ -138,7 +141,7 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
       <Divider />
       <View style={styles.summaryRow}>
         <AppText variant="caption" color="textMuted">
-          볼륨
+          {t('analytics.volumeLabel')}
         </AppText>
         <AppText variant="body" weight="medium">
           {formatWeight(ex.volumeKg, weightUnit)}
@@ -146,14 +149,14 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
       </View>
       <View style={styles.summaryRow}>
         <AppText variant="caption" color="textMuted">
-          {WELLNESS.oneRepMaxLabel}
+          {t('wellness.oneRepMaxLabel')}
         </AppText>
         <AppText variant="body" weight="bold">
           {formatWeight(ex.bestEstimated1RM, weightUnit)}
         </AppText>
       </View>
       <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
-        {WELLNESS.oneRepMaxCaption}
+        {t('wellness.oneRepMaxCaption')}
       </AppText>
     </Card>
   );

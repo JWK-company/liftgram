@@ -16,8 +16,10 @@ import { useQueryData } from '../../db/hooks';
 import { routineRepo, workoutRepo } from '../../data';
 import type Routine from '../../db/models/Routine';
 import { colors, spacing } from '../../theme';
+import { useT } from '../../i18n';
 
 export default function WorkoutTabScreen({ navigation }: TabScreenProps<'WorkoutTab'>) {
+  const { t } = useT();
   const { activeWorkoutId, setActiveWorkoutId } = useSession();
   const [busy, setBusy] = useState(false);
 
@@ -31,7 +33,7 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
       setActiveWorkoutId(w.id);
       navigation.navigate('ActiveWorkout', { workoutId: w.id });
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     } finally {
       setBusy(false);
     }
@@ -45,23 +47,23 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
       setActiveWorkoutId(w.id);
       navigation.navigate('ActiveWorkout', { workoutId: w.id });
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     } finally {
       setBusy(false);
     }
   }
 
   function confirmDelete(routine: Routine) {
-    Alert.alert('루틴 삭제', `'${routine.name}' 루틴을 삭제할까요?`, [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('routines.deleteTitle'), t('routines.deleteConfirm', { routineName: routine.name }), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '삭제',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           try {
             await routineRepo.deleteRoutine(routine.id);
           } catch (e) {
-            Alert.alert('오류', String(e));
+            Alert.alert(t('common.error'), String(e));
           }
         },
       },
@@ -72,16 +74,16 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
     try {
       await routineRepo.duplicateRoutine(routine.id);
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     }
   }
 
   function openActions(routine: Routine) {
     Alert.alert(routine.name, undefined, [
-      { text: '편집', onPress: () => navigation.navigate('RoutineEditor', { routineId: routine.id }) },
-      { text: '복제', onPress: () => duplicate(routine) },
-      { text: '삭제', style: 'destructive', onPress: () => confirmDelete(routine) },
-      { text: '취소', style: 'cancel' },
+      { text: t('routines.edit'), onPress: () => navigation.navigate('RoutineEditor', { routineId: routine.id }) },
+      { text: t('routines.duplicate'), onPress: () => duplicate(routine) },
+      { text: t('common.delete'), style: 'destructive', onPress: () => confirmDelete(routine) },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
 
@@ -89,9 +91,9 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
     <Screen padded={false}>
       <View style={styles.container}>
         <View style={styles.headerRow}>
-          <AppText variant="display">운동</AppText>
+          <AppText variant="display">{t('routines.title')}</AppText>
           <Button
-            title="새 루틴"
+            title={t('routines.newRoutine')}
             icon="add"
             size="sm"
             variant="secondary"
@@ -102,12 +104,12 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
 
         {activeWorkoutId ? (
           <Card style={styles.resumeCard}>
-            <AppText variant="heading">진행 중인 운동</AppText>
+            <AppText variant="heading">{t('routines.activeWorkout')}</AppText>
             <AppText variant="caption" color="textMuted" style={{ marginTop: spacing.xs }}>
-              이전에 시작한 운동 세션이 있습니다.
+              {t('routines.resumePrompt')}
             </AppText>
             <Button
-              title="이어서 운동하기"
+              title={t('routines.resumeWorkout')}
               icon="play"
               style={{ marginTop: spacing.md }}
               onPress={() => navigation.navigate('ActiveWorkout', { workoutId: activeWorkoutId })}
@@ -116,14 +118,14 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
         ) : null}
 
         <Button
-          title="빠른 운동 시작"
+          title={t('routines.quickStart')}
           icon="flash"
           loading={busy}
           onPress={startBlank}
           style={{ marginBottom: spacing.lg }}
         />
 
-        <SectionHeader title="내 루틴" />
+        <SectionHeader title={t('routines.myRoutines')} />
 
         <FlatList
           data={routines}
@@ -140,11 +142,11 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
           )}
           ListEmptyComponent={
             <EmptyState
-              title="루틴이 없습니다"
-              message="자주 하는 운동을 루틴으로 만들어 빠르게 시작하세요."
+              title={t('routines.listEmptyTitle')}
+              message={t('routines.listEmptyMessage')}
               action={
                 <Button
-                  title="새 루틴 만들기"
+                  title={t('routines.createRoutine')}
                   icon="add"
                   fullWidth={false}
                   onPress={() => navigation.navigate('RoutineEditor')}
@@ -169,6 +171,7 @@ function RoutineRow({
   onStart: () => void;
   onActions: () => void;
 }) {
+  const { t } = useT();
   const exercises = useQueryData(() => routineRepo.queryRoutineExercises(routine.id), [routine.id]);
   return (
     <Card style={styles.routineCard}>
@@ -178,11 +181,11 @@ function RoutineRow({
         </AppText>
         <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
           {routine.folder ? `${routine.folder} · ` : ''}
-          종목 {exercises.length}개
+          {t('routines.exerciseCount', { count: exercises.length })}
         </AppText>
       </View>
       <View style={styles.routineActions}>
-        <Button title="시작" size="sm" fullWidth={false} disabled={busy} onPress={onStart} />
+        <Button title={t('routines.start')} size="sm" fullWidth={false} disabled={busy} onPress={onStart} />
         <IconButton icon="ellipsis-vertical" color="textMuted" onPress={onActions} />
       </View>
     </Card>

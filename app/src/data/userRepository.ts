@@ -4,7 +4,7 @@ import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { UserProfile } from '../db/models';
 import { DEFAULT_BAR_KG } from '../domain';
-import type { AppLanguage, WeightUnit } from '../domain';
+import type { AppLanguage, EquipmentType, WeightUnit } from '../domain';
 
 const profiles = () => database.get<UserProfile>('user_profiles');
 
@@ -18,6 +18,7 @@ export async function getOrCreateLocalUser(): Promise<UserProfile> {
       u.preferredLanguage = 'ko';
       u.weightUnit = 'kg';
       u.barWeightKg = DEFAULT_BAR_KG;
+      u.availableEquipment = [];
       u.email = null;
       u.displayName = null;
       u.serverId = null;
@@ -36,6 +37,7 @@ export interface UserSettingsPatch {
   preferredLanguage?: AppLanguage;
   barWeightKg?: number;
   displayName?: string | null;
+  availableEquipment?: EquipmentType[];
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
@@ -46,6 +48,7 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.preferredLanguage !== undefined) rec.preferredLanguage = patch.preferredLanguage;
       if (patch.barWeightKg !== undefined) rec.barWeightKg = patch.barWeightKg;
       if (patch.displayName !== undefined) rec.displayName = patch.displayName;
+      if (patch.availableEquipment !== undefined) rec.availableEquipment = patch.availableEquipment;
     });
   });
 }

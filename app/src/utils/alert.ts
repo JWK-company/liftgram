@@ -2,6 +2,7 @@
 // 웹: react-native-web의 Alert.alert는 콜백을 호출하지 않는 no-op이므로 installWebAlert()로 대체.
 // 네이티브: 기본 RN Alert 유지(showAlert를 직접 쓰면 호스트 모달로도 가능). @plm SRS-003 SRS-004
 import { Alert, Platform } from 'react-native';
+import { t } from '../i18n';
 
 export type AlertButtonStyle = 'default' | 'cancel' | 'destructive';
 
@@ -27,7 +28,7 @@ export function _setAlertListener(l: Listener | null): void {
 
 // RN Alert.alert 호환. 마운트된 AlertHost로 라우팅. 호스트 미마운트(부팅 직후) 시 웹 네이티브 폴백.
 export function showAlert(title: string, message?: string, buttons?: AlertButton[]): void {
-  const btns: AlertButton[] = buttons && buttons.length ? buttons : [{ text: '확인' }];
+  const btns: AlertButton[] = buttons && buttons.length ? buttons : [{ text: t('common.ok') }];
   if (listener) {
     listener({ title, message, buttons: btns });
     return;

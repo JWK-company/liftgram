@@ -1,6 +1,8 @@
 // @plm SRS-003  세션 종목 행에서 exerciseId → 종목명 표시 (지연 로드)
 import React, { useEffect, useState } from 'react';
 import { exerciseRepo } from '../../data';
+import { exerciseDisplayName } from '../../domain';
+import { useT } from '../../i18n';
 import type { Exercise } from '../../db/models';
 import { AppText } from '../../components';
 
@@ -12,6 +14,7 @@ interface ExerciseNameProps {
 
 // exerciseId만 가진 행(WorkoutExercise 등)에서 종목명을 비동기로 가져와 표시.
 export function ExerciseName({ exerciseId, variant = 'heading', color = 'text' }: ExerciseNameProps) {
+  const { lang } = useT();
   const [ex, setEx] = useState<Exercise | null>(null);
   useEffect(() => {
     let alive = true;
@@ -29,7 +32,7 @@ export function ExerciseName({ exerciseId, variant = 'heading', color = 'text' }
   }, [exerciseId]);
   return (
     <AppText variant={variant} color={color} numberOfLines={1}>
-      {ex ? ex.nameKo : '...'}
+      {ex ? exerciseDisplayName(ex, lang) : '...'}
     </AppText>
   );
 }

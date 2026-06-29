@@ -10,13 +10,15 @@ import { Workout } from '../../db/models';
 import { useQueryData } from '../../db/hooks';
 import { formatWeight, type WeightUnit } from '../../domain';
 import { colors, spacing } from '../../theme';
+import { useT, t } from '../../i18n';
 
 function formatDuration(seconds: number | null): string {
   if (!seconds || seconds <= 0) return '-';
-  return `${Math.round(seconds / 60)}분`;
+  return t('common.minutesShort', { minutes: Math.round(seconds / 60) });
 }
 
 export default function HistoryTabScreen({ navigation }: TabScreenProps<'HistoryTab'>) {
+  const { t } = useT();
   const { weightUnit } = useUser();
   const workouts = useQueryData(() => analyticsRepo.queryWorkoutHistory(), []);
 
@@ -34,7 +36,7 @@ export default function HistoryTabScreen({ navigation }: TabScreenProps<'History
   return (
     <Screen padded={false}>
       <View style={styles.header}>
-        <AppText variant="title">기록</AppText>
+        <AppText variant="title">{t('analytics.historyTitle')}</AppText>
       </View>
       <FlatList
         data={workouts}
@@ -43,8 +45,8 @@ export default function HistoryTabScreen({ navigation }: TabScreenProps<'History
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <EmptyState
-            title="완료한 세션이 없어요"
-            message="운동을 시작하고 완료하면 여기에 기록이 쌓입니다."
+            title={t('analytics.historyEmptyTitle')}
+            message={t('analytics.historyEmptyMessage')}
           />
         }
       />
@@ -61,6 +63,7 @@ function HistoryRow({
   weightUnit: WeightUnit;
   onPress: () => void;
 }) {
+  const { t } = useT();
   const dateStr = workout.completedAt
     ? new Date(workout.completedAt).toLocaleDateString('ko-KR')
     : '';
@@ -70,7 +73,7 @@ function HistoryRow({
         <View style={styles.cardTop}>
           <View style={styles.titleCol}>
             <AppText variant="heading" numberOfLines={1}>
-              {workout.name || '운동'}
+              {workout.name || t('analytics.workoutNameFallback')}
             </AppText>
             <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
               {dateStr}
@@ -82,8 +85,8 @@ function HistoryRow({
           </View>
         </View>
         <View style={styles.metaRow}>
-          <Meta label="볼륨" value={formatWeight(workout.totalVolumeKg, weightUnit)} />
-          <Meta label="소요" value={formatDuration(workout.durationSeconds)} />
+          <Meta label={t('analytics.metaVolume')} value={formatWeight(workout.totalVolumeKg, weightUnit)} />
+          <Meta label={t('analytics.metaDuration')} value={formatDuration(workout.durationSeconds)} />
         </View>
       </Card>
     </Pressable>

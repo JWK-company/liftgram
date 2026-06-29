@@ -26,6 +26,7 @@ import {
   type WeightUnit,
 } from '../../domain';
 import { ExerciseName } from './ExerciseName';
+import { useT } from '../../i18n';
 
 interface ExerciseBlockProps {
   we: WorkoutExercise;
@@ -41,6 +42,7 @@ function defaultWeightDisplay(prevKg: number | null, unit: WeightUnit, step: num
 }
 
 export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: ExerciseBlockProps) {
+  const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
   // 마지막 working 세트(없으면 마지막 세트)를 자동채움 기준으로.
@@ -86,18 +88,18 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
     if (restRemaining == null) return;
     if (restRemaining <= 0) {
       setRestRemaining(null);
-      Alert.alert('휴식 종료', '다음 세트를 시작하세요.');
+      Alert.alert(t('session.restOverTitle'), t('session.restOverMessage'));
       return;
     }
-    const t = setTimeout(() => setRestRemaining((r) => (r == null ? null : r - 1)), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setRestRemaining((r) => (r == null ? null : r - 1)), 1000);
+    return () => clearTimeout(timer);
   }, [restRemaining]);
 
   const currentWeightKg = toKg(weightDisplay, weightUnit);
 
   async function handleLog() {
     if (reps <= 0) {
-      Alert.alert('확인', '횟수는 1 이상이어야 합니다.');
+      Alert.alert(t('common.confirm'), t('session.repsMinError'));
       return;
     }
     setLogging(true);
@@ -114,7 +116,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
       setIsWarmup(false); // 다음 세트는 기본 워킹 세트로(워밍업 플래그 잔류 방지)
       setRestRemaining(restSeconds); // 휴식 타이머 시작/리셋
     } catch (e) {
-      Alert.alert('오류', String(e));
+      Alert.alert(t('common.error'), String(e));
     } finally {
       setLogging(false);
     }
@@ -123,28 +125,28 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
   function handlePlates() {
     const bd = calcPlates(currentWeightKg, { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG });
     if (!bd.perSide.length) {
-      Alert.alert('플레이트 계산', `바(${formatWeight(barWeightKg, weightUnit)})만으로 충분합니다.`);
+      Alert.alert(t('session.plateCalcTitle'), t('session.plateBarOnly', { barWeight: formatWeight(barWeightKg, weightUnit) }));
       return;
     }
     const perSide = bd.perSide
       .map((p) => `${p.plateKg}${p.count > 1 ? `×${p.count}` : ''}`)
       .join(' + ');
     const lines = [
-      `목표: ${formatWeight(currentWeightKg, weightUnit)}`,
-      `한쪽: ${perSide}kg`,
-      bd.leftoverKg > 0.01 ? `※ ${formatWeight(bd.leftoverKg, weightUnit)} 부족(가능 ${formatWeight(bd.achievableKg, weightUnit)})` : null,
+      t('session.plateTarget', { targetWeight: formatWeight(currentWeightKg, weightUnit) }),
+      t('session.platePerSide', { perSide }),
+      bd.leftoverKg > 0.01 ? t('session.plateLeftover', { shortWeight: formatWeight(bd.leftoverKg, weightUnit), achievableWeight: formatWeight(bd.achievableKg, weightUnit) }) : null,
     ].filter(Boolean);
-    Alert.alert('플레이트 계산 (한쪽)', lines.join('\n'));
+    Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
   }
 
   function confirmRemove() {
-    Alert.alert('운동 삭제', '이 종목과 기록한 세트를 모두 삭제할까요?', [
-      { text: '취소', style: 'cancel' },
+    Alert.alert(t('session.removeExerciseTitle'), t('session.removeExerciseMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: '삭제',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: () => {
-          workoutRepo.removeWorkoutExercise(we.id).catch((e) => Alert.alert('오류', String(e)));
+          workoutRepo.removeWorkoutExercise(we.id).catch((e) => Alert.alert(t('common.error'), String(e)));
         },
       },
     ]);
@@ -157,7 +159,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
           {we.prevWeightKg != null ? (
             <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
-              이전: {formatWeight(we.prevWeightKg, weightUnit)} × {we.prevReps ?? 0}
+              {t('session.prevRecord', { prevWeight: formatWeight(we.prevWeightKg, weightUnit), prevReps: we.prevReps ?? 0 })}
             </AppText>
           ) : null}
         </View>
@@ -172,7 +174,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
         </View>
       ) : (
         <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.sm }}>
-          아직 기록된 세트가 없습니다.
+          {t('session.noSetsLogged')}
         </AppText>
       )}
 
@@ -182,13 +184,13 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
       <View style={styles.inputGrid}>
         <View style={styles.inputCol}>
           <AppText variant="label" color="textMuted">
-            무게 ({weightUnit})
+            {t('session.weightLabel', { weightUnit })}
           </AppText>
           <NumberStepper value={weightDisplay} onChange={(v) => { touched.current = true; setWeightDisplay(v); }} step={weightStep} min={0} />
         </View>
         <View style={styles.inputCol}>
           <AppText variant="label" color="textMuted">
-            횟수
+            {t('session.repsLabel')}
           </AppText>
           <NumberStepper value={reps} onChange={(v) => { touched.current = true; setReps(v); }} step={1} min={0} />
         </View>
@@ -197,17 +199,17 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
       <View style={styles.inputGrid}>
         <View style={styles.inputCol}>
           <AppText variant="label" color="textMuted">
-            RPE (0=없음)
+            {t('session.rpeLabel')}
           </AppText>
           <NumberStepper value={rpe} onChange={setRpe} step={0.5} min={0} max={10} />
         </View>
         <View style={[styles.inputCol, styles.toggleCol]}>
-          <ToggleChip label="워밍업" active={isWarmup} onPress={() => setIsWarmup((v) => !v)} />
-          <ToggleChip label="실패" active={isFailed} tone="danger" onPress={() => setIsFailed((v) => !v)} />
+          <ToggleChip label={t('session.warmup')} active={isWarmup} onPress={() => setIsWarmup((v) => !v)} />
+          <ToggleChip label={t('session.failed')} active={isFailed} tone="danger" onPress={() => setIsFailed((v) => !v)} />
         </View>
       </View>
 
-      <Button title="세트 기록" icon="checkmark" onPress={handleLog} loading={logging} style={{ marginTop: spacing.sm }} />
+      <Button title={t('session.logSet')} icon="checkmark" onPress={handleLog} loading={logging} style={{ marginTop: spacing.sm }} />
 
       {/* 휴식 타이머 */}
       <View style={styles.restRow}>
@@ -215,20 +217,20 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
           <>
             <Ionicons name="timer-outline" size={18} color={colors.primary} />
             <AppText variant="body" color="primary" weight="bold" style={{ marginLeft: spacing.xs }}>
-              휴식 {formatClock(restRemaining)}
+              {t('session.restCountdown', { clock: formatClock(restRemaining) })}
             </AppText>
             <Pressable hitSlop={8} onPress={() => setRestRemaining(null)} style={{ marginLeft: spacing.md }}>
               <AppText variant="caption" color="textMuted">
-                건너뛰기
+                {t('session.skip')}
               </AppText>
             </Pressable>
           </>
         ) : (
           <View style={styles.restSetRow}>
             <AppText variant="caption" color="textMuted">
-              휴식 시간
+              {t('session.restTime')}
             </AppText>
-            <NumberStepper value={restSeconds} onChange={setRestSeconds} step={15} min={0} max={600} suffix="초" />
+            <NumberStepper value={restSeconds} onChange={setRestSeconds} step={15} min={0} max={600} suffix={t('session.secondsSuffix')} />
           </View>
         )}
       </View>
@@ -236,7 +238,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
       <Pressable onPress={handlePlates} style={styles.plateBtn} hitSlop={6}>
         <Ionicons name="barbell-outline" size={16} color={colors.textMuted} />
         <AppText variant="caption" color="textMuted" style={{ marginLeft: spacing.xs }}>
-          플레이트 계산
+          {t('session.plateCalcTitle')}
         </AppText>
       </Pressable>
     </Card>
@@ -245,37 +247,38 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
 
 // ── 기록된 세트 1행 (수정/삭제) ────────────────────────────────────
 function SetRow({ set, weightUnit }: { set: SetLog; weightUnit: WeightUnit }) {
+  const { t } = useT();
   function handlePress() {
-    Alert.alert(`세트 ${set.setNumber}`, undefined, [
+    Alert.alert(t('session.setNumber', { setNumber: set.setNumber }), undefined, [
       {
-        text: set.isFailed ? '실패 해제' : '실패 표시',
+        text: set.isFailed ? t('session.unmarkFailed') : t('session.markFailed'),
         onPress: () =>
-          workoutRepo.updateSetLog(set.id, { isFailed: !set.isFailed }).catch((e) => Alert.alert('오류', String(e))),
+          workoutRepo.updateSetLog(set.id, { isFailed: !set.isFailed }).catch((e) => Alert.alert(t('common.error'), String(e))),
       },
       {
-        text: set.isWarmup ? '워밍업 해제' : '워밍업 표시',
+        text: set.isWarmup ? t('session.unmarkWarmup') : t('session.markWarmup'),
         onPress: () =>
-          workoutRepo.updateSetLog(set.id, { isWarmup: !set.isWarmup }).catch((e) => Alert.alert('오류', String(e))),
+          workoutRepo.updateSetLog(set.id, { isWarmup: !set.isWarmup }).catch((e) => Alert.alert(t('common.error'), String(e))),
       },
       {
-        text: '삭제',
+        text: t('common.delete'),
         style: 'destructive',
-        onPress: () => workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert('오류', String(e))),
+        onPress: () => workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert(t('common.error'), String(e))),
       },
-      { text: '취소', style: 'cancel' },
+      { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
   return (
     <Pressable onPress={handlePress} style={styles.setRow}>
       <AppText variant="caption" color="textMuted" style={{ width: 52 }}>
-        세트 {set.setNumber}
+        {t('session.setNumber', { setNumber: set.setNumber })}
       </AppText>
       <AppText variant="body" style={{ flex: 1 }}>
         {formatWeight(set.weightKg, weightUnit)} × {set.reps}
         {set.rpe != null ? `  RPE ${set.rpe}` : ''}
       </AppText>
-      {set.isWarmup ? <Tag label="워밍업" tone="muted" /> : null}
-      {set.isFailed ? <Tag label="실패" tone="default" /> : null}
+      {set.isWarmup ? <Tag label={t('session.warmup')} tone="muted" /> : null}
+      {set.isFailed ? <Tag label={t('session.failed')} tone="default" /> : null}
     </Pressable>
   );
 }

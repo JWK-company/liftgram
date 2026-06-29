@@ -19,7 +19,8 @@ import { useUser } from '../../state/userContext';
 import { analyticsRepo, workoutRepo } from '../../data';
 import type { WorkoutDetail } from '../../data';
 import type { Workout } from '../../db/models';
-import { formatWeight, WELLNESS, type WeightUnit } from '../../domain';
+import { formatWeight, type WeightUnit } from '../../domain';
+import { useT } from '../../i18n';
 
 function formatDuration(durationSeconds: number | null): string {
   const s = Math.max(0, Math.round(durationSeconds ?? 0));
@@ -36,6 +37,7 @@ function workingSetCount(detail: WorkoutDetail): number {
 }
 
 export default function WorkoutSummaryScreen({ navigation, route }: RootStackScreenProps<'WorkoutSummary'>) {
+  const { t } = useT();
   const { workoutId } = route.params;
   const { weightUnit } = useUser();
 
@@ -68,7 +70,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
   if (loading) {
     return (
       <Screen>
-        <EmptyState title="요약 불러오는 중" />
+        <EmptyState title={t('session.summaryLoading')} />
       </Screen>
     );
   }
@@ -77,8 +79,8 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
     return (
       <Screen>
         <EmptyState
-          title="요약을 불러오지 못했습니다"
-          action={<Button title="완료" onPress={() => navigation.navigate('Tabs')} />}
+          title={t('session.summaryLoadError')}
+          action={<Button title={t('common.done')} onPress={() => navigation.navigate('Tabs')} />}
         />
       </Screen>
     );
@@ -92,7 +94,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
       <View style={styles.hero}>
         <Ionicons name="trophy" size={40} color={colors.pr} />
         <AppText variant="display" center style={{ marginTop: spacing.sm }}>
-          운동 완료!
+          {t('session.workoutComplete')}
         </AppText>
         <AppText variant="caption" color="textMuted" center style={{ marginTop: spacing.xs }}>
           {new Date(workout.completedAt ?? workout.startedAt).toLocaleDateString('ko-KR')}
@@ -100,25 +102,25 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         </AppText>
         {prCount > 0 ? (
           <View style={{ marginTop: spacing.md }}>
-            <Tag label={`PR 갱신 ${prCount}회`} tone="pr" />
+            <Tag label={t('session.prCount', { count: prCount })} tone="pr" />
           </View>
         ) : null}
       </View>
 
       {/* 핵심 지표 */}
       <View style={styles.statRow}>
-        <StatTile label="총 볼륨" value={formatWeight(workout.totalVolumeKg, weightUnit)} />
-        <StatTile label="소요시간" value={formatDuration(workout.durationSeconds)} />
-        <StatTile label="세트 수" value={String(workingSetCount(detail))} />
+        <StatTile label={t('session.totalVolume')} value={formatWeight(workout.totalVolumeKg, weightUnit)} />
+        <StatTile label={t('session.duration')} value={formatDuration(workout.durationSeconds)} />
+        <StatTile label={t('session.setCount')} value={String(workingSetCount(detail))} />
       </View>
 
       {/* 종목별 분해 */}
       <AppText variant="heading" style={{ marginTop: spacing.xl, marginBottom: spacing.md }}>
-        종목별 기록
+        {t('session.perExerciseRecords')}
       </AppText>
       {detail.exercises.length === 0 ? (
         <AppText variant="caption" color="textMuted">
-          기록된 종목이 없습니다.
+          {t('session.noExercisesRecorded')}
         </AppText>
       ) : (
         detail.exercises.map((ex) => (
@@ -133,10 +135,10 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         ))
       )}
 
-      <Button title="완료" onPress={() => navigation.navigate('Tabs')} style={{ marginTop: spacing.xl }} />
+      <Button title={t('common.done')} onPress={() => navigation.navigate('Tabs')} style={{ marginTop: spacing.xl }} />
 
       <AppText variant="caption" color="textFaint" center style={{ marginTop: spacing.lg }}>
-        {WELLNESS.safetyNotice}
+        {t('wellness.safetyNotice')}
       </AppText>
     </Screen>
   );
@@ -155,25 +157,26 @@ function ExerciseSummaryCard({
   bestEstimated1RM: number;
   weightUnit: WeightUnit;
 }) {
+  const { t } = useT();
   return (
     <Card style={{ marginBottom: spacing.md }}>
       <AppText variant="heading" numberOfLines={1}>
         {name}
       </AppText>
       <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-        {setCount}세트 · 볼륨 {formatWeight(volumeKg, weightUnit)}
+        {t('session.exerciseSetsVolume', { count: setCount, volume: formatWeight(volumeKg, weightUnit) })}
       </AppText>
       {bestEstimated1RM > 0 ? (
         <>
           <Divider />
           <AppText variant="label" color="textMuted">
-            {WELLNESS.oneRepMaxLabel}
+            {t('wellness.oneRepMaxLabel')}
           </AppText>
           <AppText variant="title" color="primary" style={{ marginTop: 2 }}>
             {formatWeight(bestEstimated1RM, weightUnit)}
           </AppText>
           <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
-            {WELLNESS.oneRepMaxCaption}
+            {t('wellness.oneRepMaxCaption')}
           </AppText>
         </>
       ) : null}

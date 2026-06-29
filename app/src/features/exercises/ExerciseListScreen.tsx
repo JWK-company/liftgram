@@ -16,10 +16,13 @@ import {
   type EquipmentType,
 } from '../../domain';
 import { resolveExercisePick, cancelExercisePick } from '../../utils/picker';
+import { exerciseDisplayName, exerciseAltName } from '../../domain';
 import { colors, spacing } from '../../theme';
+import { useT } from '../../i18n';
 import { Chip } from './Chip';
 
 export default function ExerciseListScreen({ navigation, route }: RootStackScreenProps<'ExerciseList'>) {
+  const { t, lang } = useT();
   const mode = route.params?.mode ?? 'browse';
   const [search, setSearch] = useState('');
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
@@ -33,7 +36,7 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
   // 헤더 우측: 커스텀 운동 추가
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: mode === 'pick' ? '운동 선택' : '운동',
+      title: mode === 'pick' ? t('exercises.pickTitle') : t('exercises.title'),
       headerRight: () => (
         <Pressable
           onPress={() => navigation.navigate('ExerciseForm')}
@@ -41,12 +44,12 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1, paddingHorizontal: spacing.sm })}
         >
           <AppText variant="caption" weight="bold" color="primary">
-            + 커스텀 운동
+            {t('exercises.addCustom')}
           </AppText>
         </Pressable>
       ),
     });
-  }, [navigation, mode]);
+  }, [navigation, mode, t]);
 
   // pick 모드에서 선택 없이 화면을 떠나면 대기 중인 picker 핸들러를 취소(stale 핸들러 오발 방지).
   const pickedRef = useRef(false);
@@ -73,29 +76,29 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
     <Screen padded={false}>
       <View style={styles.header}>
         <TextField
-          placeholder="운동 검색"
+          placeholder={t('exercises.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
           autoCorrect={false}
           containerStyle={{ marginBottom: spacing.sm }}
         />
 
-        <FilterRow label="근육군">
+        <FilterRow label={t('exercises.muscleFilter')}>
           {ALL_MUSCLE_GROUPS.map((m) => (
             <Chip
               key={m}
-              label={muscleLabel(m)}
+              label={muscleLabel(m, lang)}
               active={muscle === m}
               onPress={() => setMuscle((prev) => (prev === m ? null : m))}
             />
           ))}
         </FilterRow>
 
-        <FilterRow label="기구">
+        <FilterRow label={t('exercises.equipmentFilter')}>
           {ALL_EQUIPMENT.map((eq) => (
             <Chip
               key={eq}
-              label={equipmentLabel(eq)}
+              label={equipmentLabel(eq, lang)}
               active={equipment === eq}
               onPress={() => setEquipment((prev) => (prev === eq ? null : eq))}
             />
@@ -111,8 +114,8 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
         renderItem={({ item }) => <ExerciseRow item={item} onPress={() => onPickRow(item)} />}
         ListEmptyComponent={
           <EmptyState
-            title="결과가 없어요"
-            message="검색어나 필터를 바꿔보거나, 커스텀 운동을 추가하세요."
+            title={t('exercises.emptyTitle')}
+            message={t('exercises.emptyMessage')}
           />
         }
       />
@@ -139,24 +142,26 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
 }
 
 function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void }) {
+  const { t, lang } = useT();
+  const altName = exerciseAltName(item, lang);
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
       <Card style={styles.row}>
         <View style={styles.rowMain}>
           <AppText variant="heading" numberOfLines={1}>
-            {item.nameKo}
+            {exerciseDisplayName(item, lang)}
           </AppText>
-          {item.nameEn ? (
+          {altName ? (
             <AppText variant="caption" color="textFaint" numberOfLines={1} style={{ marginTop: 2 }}>
-              {item.nameEn}
+              {altName}
             </AppText>
           ) : null}
           <View style={styles.tags}>
             {item.primaryMuscles.map((m) => (
-              <Tag key={m} label={muscleLabel(m)} tone="primary" />
+              <Tag key={m} label={muscleLabel(m, lang)} tone="primary" />
             ))}
-            <Tag label={equipmentLabel(item.equipment)} />
-            {item.isCustom ? <Tag label="커스텀" tone="muted" /> : null}
+            <Tag label={equipmentLabel(item.equipment, lang)} />
+            {item.isCustom ? <Tag label={t('exercises.customTag')} tone="muted" /> : null}
           </View>
         </View>
         <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />

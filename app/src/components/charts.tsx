@@ -4,6 +4,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { AppText } from './primitives';
 import { colors, radius, spacing } from '../theme';
+import { useT } from '../i18n';
 
 export interface ChartDatum {
   label: string;
@@ -21,10 +22,11 @@ export function SimpleBarChart({
   height?: number;
   formatValue?: (v: number) => string;
 }) {
+  const { t } = useT();
   if (!data.length) {
     return (
       <AppText variant="caption" color="textFaint" center>
-        데이터가 아직 없어요
+        {t('analytics.chartEmpty')}
       </AppText>
     );
   }
@@ -69,10 +71,11 @@ export function DistributionBars({
   data: ChartDatum[];
   formatValue?: (v: number) => string;
 }) {
+  const { t } = useT();
   if (!data.length) {
     return (
       <AppText variant="caption" color="textFaint" center>
-        데이터가 아직 없어요
+        {t('analytics.chartEmpty')}
       </AppText>
     );
   }

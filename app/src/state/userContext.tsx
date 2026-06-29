@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { userRepo } from '../data';
 import { UserProfile } from '../db/models';
 import { useModelData } from '../db/hooks';
-import { DEFAULT_BAR_KG, type WeightUnit, type AppLanguage } from '../domain';
+import { DEFAULT_BAR_KG, type WeightUnit, type AppLanguage, type EquipmentType } from '../domain';
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -11,6 +11,7 @@ interface UserContextValue {
   weightUnit: WeightUnit;
   language: AppLanguage;
   barWeightKg: number;
+  availableEquipment: EquipmentType[];
   refresh: () => Promise<void>;
 }
 
@@ -43,6 +44,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     weightUnit: user?.weightUnit ?? 'kg',
     language: user?.preferredLanguage ?? 'ko',
     barWeightKg: user?.barWeightKg ?? DEFAULT_BAR_KG,
+    availableEquipment: user?.availableEquipment ?? [],
     refresh,
   };
 

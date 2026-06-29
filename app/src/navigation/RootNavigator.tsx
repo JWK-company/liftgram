@@ -11,10 +11,12 @@ import ActiveWorkoutScreen from '../features/session/ActiveWorkoutScreen';
 import WorkoutSummaryScreen from '../features/session/WorkoutSummaryScreen';
 import WorkoutDetailScreen from '../features/analytics/WorkoutDetailScreen';
 import AuthScreen from '../features/profile/AuthScreen';
+import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
+  const { t } = useT();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -26,14 +28,14 @@ export function RootNavigator() {
       }}
     >
       <Stack.Screen name="Tabs" component={TabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: '운동 선택', presentation: 'modal' }} />
-      <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} options={{ title: '운동 상세' }} />
-      <Stack.Screen name="ExerciseForm" component={ExerciseFormScreen} options={{ title: '커스텀 운동', presentation: 'modal' }} />
-      <Stack.Screen name="RoutineEditor" component={RoutineEditorScreen} options={{ title: '루틴' }} />
+      <Stack.Screen name="ExerciseList" component={ExerciseListScreen} options={{ title: t('nav.exerciseList'), presentation: 'modal' }} />
+      <Stack.Screen name="ExerciseDetail" component={ExerciseDetailScreen} options={{ title: t('nav.exerciseDetail') }} />
+      <Stack.Screen name="ExerciseForm" component={ExerciseFormScreen} options={{ title: t('nav.exerciseForm'), presentation: 'modal' }} />
+      <Stack.Screen name="RoutineEditor" component={RoutineEditorScreen} options={{ title: t('nav.routineEditor') }} />
       <Stack.Screen name="ActiveWorkout" component={ActiveWorkoutScreen} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} options={{ headerShown: false, presentation: 'modal' }} />
-      <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} options={{ title: '세션 상세' }} />
-      <Stack.Screen name="Auth" component={AuthScreen} options={{ title: '로그인', presentation: 'modal' }} />
+      <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} options={{ title: t('nav.workoutDetail') }} />
+      <Stack.Screen name="Auth" component={AuthScreen} options={{ title: t('nav.auth'), presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }
