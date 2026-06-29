@@ -17,7 +17,7 @@ import type { RootStackScreenProps } from '../../navigation/types';
 import { exerciseRepo, analyticsRepo } from '../../data';
 import type { TrendPoint } from '../../data';
 import type { Exercise } from '../../db/models';
-import { muscleLabel, equipmentLabel, formatWeight, exerciseDisplayName, exerciseAltName } from '../../domain';
+import { muscleLabel, equipmentLabel, formatWeight, exerciseDisplayName, exerciseAltName, detectStall } from '../../domain';
 import { useUser } from '../../state/userContext';
 import { useT } from '../../i18n';
 import { colors, spacing } from '../../theme';
@@ -108,6 +108,9 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
   const filterActive = !!availableSet && myEquipmentOnly;
   const shownSubs = filterActive ? substitutes.filter((s) => availableSet!.has(s.equipment)) : substitutes;
 
+  // 정체 감지(SRS-010): 추정 1RM 추세가 최근 정체면 디로드/회복 권고(웰니스 — 진단 없음).
+  const stall = detectStall(trend.map((p) => p.value));
+
   return (
     <Screen scroll>
       {/* 헤더 */}
@@ -171,6 +174,14 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
           <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.sm }}>
             {t('wellness.oneRepMaxCaption')}
           </AppText>
+          {stall.stalled ? (
+            <View style={styles.stallNote}>
+              <Ionicons name="information-circle-outline" size={15} color={colors.warning} />
+              <AppText variant="caption" color="warning" style={{ marginLeft: spacing.xs, flex: 1 }}>
+                {t('progression.reason.stall')}
+              </AppText>
+            </View>
+          ) : null}
         </Card>
       ) : null}
 
@@ -247,5 +258,6 @@ const styles = StyleSheet.create({
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   subRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
   eqToggle: { flexDirection: 'row', alignItems: 'center' },
+  stallNote: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm },
   actions: { marginTop: spacing.xl, gap: spacing.sm },
 });

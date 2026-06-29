@@ -6,5 +6,6 @@ export * from './units';
 export * from './oneRepMax';
 export * from './volume';
 export * from './personalRecords';
+export * from './progression';
 export * from './plateCalculator';
 export * from './wellness';

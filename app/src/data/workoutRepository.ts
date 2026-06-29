@@ -67,6 +67,24 @@ export async function getPreviousExerciseSnapshot(
   return null;
 }
 
+// 세션이 시작된 루틴의 종목별 목표 반복범위(점진 제안용 — SRS-010). 블랭크 세션이면 빈 맵.
+export async function getWorkoutExerciseTargets(
+  workoutId: string,
+): Promise<Map<string, { repMin: number; repMax: number }>> {
+  const map = new Map<string, { repMin: number; repMax: number }>();
+  const w = await workouts().find(workoutId);
+  if (!w.routineId) return map;
+  const res = await routineExercises().query(Q.where('routine_id', w.routineId)).fetch();
+  for (const re of res) {
+    const min = re.targetRepsMin ?? 0;
+    const max = re.targetRepsMax ?? 0;
+    if (min > 0 || max > 0) {
+      map.set(re.exerciseId, { repMin: min || max, repMax: max || min });
+    }
+  }
+  return map;
+}
+
 // ── 세션 시작 ──────────────────────────────────────────────────────
 export async function startWorkoutFromRoutine(routineId: string): Promise<Workout> {
   const routine = await routines().find(routineId);

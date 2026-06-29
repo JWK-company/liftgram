@@ -22,17 +22,23 @@ import {
   formatWeight,
   fromKg,
   roundToIncrement,
+  suggestNextSet,
   toKg,
   type WeightUnit,
 } from '../../domain';
 import { ExerciseName } from './ExerciseName';
-import { useT } from '../../i18n';
+import { useT, type TransKey } from '../../i18n';
+
+// 목표 반복범위 미설정(블랭크/목표없음) 시 더블 프로그레션 기본 범위.
+const DEFAULT_REP_MIN = 8;
+const DEFAULT_REP_MAX = 12;
 
 interface ExerciseBlockProps {
   we: WorkoutExercise;
   weightUnit: WeightUnit;
   weightStep: number;
   barWeightKg: number;
+  target?: { repMin: number; repMax: number }; // 점진 제안용 루틴 목표(SRS-010)
 }
 
 // 사용자 입력 표시값(unit)으로 정규화. weightStep 단위에 맞춰 라운드.
@@ -41,7 +47,7 @@ function defaultWeightDisplay(prevKg: number | null, unit: WeightUnit, step: num
   return roundToIncrement(fromKg(baseKg, unit), step);
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, target }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -50,6 +56,21 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
     const working = sets.filter((s) => !s.isWarmup && !s.isFailed);
     return working.length ? working[working.length - 1] : sets[sets.length - 1] ?? null;
   }, [sets]);
+
+  // 점진 과부하 제안(SRS-010): 직전 세션 수행 + 목표 반복범위 → 다음 목표. 이력 없으면 null.
+  const repMin = target?.repMin ?? DEFAULT_REP_MIN;
+  const repMax = target?.repMax ?? DEFAULT_REP_MAX;
+  const suggestion = useMemo(
+    () =>
+      suggestNextSet({
+        lastWeightKg: we.prevWeightKg,
+        lastReps: we.prevReps,
+        repMin,
+        repMax,
+        incrementKg: toKg(weightStep, weightUnit),
+      }),
+    [we.prevWeightKg, we.prevReps, repMin, repMax, weightStep, weightUnit],
+  );
 
   const [weightDisplay, setWeightDisplay] = useState<number>(() =>
     defaultWeightDisplay(we.prevWeightKg, weightUnit, weightStep),
@@ -179,6 +200,29 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
       )}
 
       <Divider />
+
+      {/* 점진 과부하 제안(SRS-010) — 탭하면 입력에 적용 */}
+      {suggestion ? (
+        <Pressable
+          onPress={() => {
+            touched.current = true;
+            setWeightDisplay(roundToIncrement(fromKg(suggestion.weightKg, weightUnit), weightStep));
+            setReps(suggestion.reps);
+          }}
+          hitSlop={6}
+          style={styles.suggestRow}
+        >
+          <Ionicons name="trending-up" size={15} color={colors.primary} />
+          <View style={styles.suggestText}>
+            <AppText variant="caption" color="primary" weight="bold">
+              {t('progression.nextTarget')}: {formatWeight(suggestion.weightKg, weightUnit)} × {suggestion.reps}
+            </AppText>
+            <AppText variant="caption" color="textFaint">
+              {t(suggestion.reasonKey as TransKey, { inc: weightStep, unit: weightUnit })}
+            </AppText>
+          </View>
+        </Pressable>
+      ) : null}
 
       {/* 입력 행 */}
       <View style={styles.inputGrid}>
@@ -327,6 +371,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     gap: spacing.xs,
   },
+  suggestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+  },
+  suggestText: { marginLeft: spacing.xs, flex: 1 },
   inputGrid: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm },
   inputCol: { flex: 1, gap: spacing.xs },
   toggleCol: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm, flexWrap: 'wrap' },

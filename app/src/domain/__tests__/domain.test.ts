@@ -17,6 +17,8 @@ import {
   formatWeight,
   roundToIncrement,
   containsMedicalClaim,
+  suggestNextSet,
+  detectStall,
   type LoggedSet,
 } from '../index';
 
@@ -121,4 +123,43 @@ test('단위: 반올림 증분 + 포맷', () => {
 test('웰니스: 의료 단정 표현 검출', () => {
   assert.equal(containsMedicalClaim('이 운동으로 질병을 치료할 수 있습니다'), true);
   assert.equal(containsMedicalClaim('이번 주 총 볼륨 12,400kg'), false);
+});
+
+// ── 점진적 과부하 (SRS-010) ──────────────────────────────────────────
+test('progression: 상한 도달 → 무게 증가·반복 하한 리셋', () => {
+  const s = suggestNextSet({ lastWeightKg: 60, lastReps: 12, repMin: 8, repMax: 12, incrementKg: 2.5 });
+  assert.equal(s?.action, 'increaseWeight');
+  assert.equal(s?.weightKg, 62.5);
+  assert.equal(s?.reps, 8);
+});
+
+test('progression: 범위 내 → 같은 무게 +1 반복', () => {
+  const s = suggestNextSet({ lastWeightKg: 60, lastReps: 9, repMin: 8, repMax: 12, incrementKg: 2.5 });
+  assert.equal(s?.action, 'addRep');
+  assert.equal(s?.weightKg, 60);
+  assert.equal(s?.reps, 10);
+});
+
+test('progression: 하한 미달 → 무게 유지(hold)', () => {
+  const s = suggestNextSet({ lastWeightKg: 60, lastReps: 5, repMin: 8, repMax: 12, incrementKg: 2.5 });
+  assert.equal(s?.action, 'hold');
+  assert.equal(s?.weightKg, 60);
+  assert.equal(s?.reps, 8);
+});
+
+test('progression: 이력 없으면 제안 없음', () => {
+  assert.equal(suggestNextSet({ lastWeightKg: null, lastReps: null, repMin: 8, repMax: 12, incrementKg: 2.5 }), null);
+  assert.equal(suggestNextSet({ lastWeightKg: 0, lastReps: 10, repMin: 8, repMax: 12, incrementKg: 2.5 }), null);
+});
+
+test('detectStall: 세션 부족 → 정체 아님', () => {
+  assert.equal(detectStall([100, 105], 3).stalled, false);
+});
+
+test('detectStall: 최근 3세션 향상 없음 → 정체', () => {
+  assert.equal(detectStall([100, 120, 120, 120], 3).stalled, true);
+});
+
+test('detectStall: 최근 향상 있으면 정체 아님', () => {
+  assert.equal(detectStall([100, 100, 110], 3).stalled, false);
 });
