@@ -86,10 +86,12 @@ export async function archiveExercise(id: string): Promise<void> {
   });
 }
 
-// 대체운동: 명시적 substituteIds 우선, 없으면 같은 주근육군 후보로 폴백 (SRS-001).
+// 대체운동: 명시적 substituteIds 우선(큐레이션 랭킹 순서 보존), 없으면 같은 주근육군 후보로 폴백 (SRS-001).
 export async function getSubstitutes(exercise: Exercise): Promise<Exercise[]> {
   if (exercise.substituteIds.length) {
-    return exercises().query(Q.where('id', Q.oneOf(exercise.substituteIds))).fetch();
+    const found = await exercises().query(Q.where('id', Q.oneOf(exercise.substituteIds))).fetch();
+    const byId = new Map(found.map((e) => [e.id, e]));
+    return exercise.substituteIds.map((id) => byId.get(id)).filter((x): x is Exercise => !!x);
   }
   const primary = exercise.primaryMuscles[0];
   if (!primary) return [];
