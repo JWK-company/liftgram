@@ -48,7 +48,7 @@ export const en: Record<TransKey, string> = {
   "auth.profileLoadFailed": "Failed to load your user profile.",
   "auth.signup": "Sign Up",
   "auth.signupButton": "Sign Up",
-  "auth.tagline": "Repset · Strength Training Log",
+  "auth.tagline": "Liftgram · Strength Training Log",
   "common.add": "Add",
   "common.cancel": "Cancel",
   "common.confirm": "Confirm",

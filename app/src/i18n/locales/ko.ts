@@ -46,7 +46,7 @@ export const ko = {
   "auth.profileLoadFailed": "사용자 프로필을 불러오지 못했습니다.",
   "auth.signup": "가입",
   "auth.signupButton": "가입하기",
-  "auth.tagline": "Repset · 근력 운동 기록",
+  "auth.tagline": "Liftgram · 근력 운동 기록",
   "common.add": "추가",
   "common.cancel": "취소",
   "common.confirm": "확인",

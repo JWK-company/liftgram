@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Repset",
-    "slug": "repset",
-    "scheme": "repset",
+    "name": "Liftgram",
+    "slug": "liftgram",
+    "scheme": "liftgram",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,10 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.repset.app"
+      "bundleIdentifier": "com.liftgram.app"
     },
     "android": {
-      "package": "com.repset.app",
+      "package": "com.liftgram.app",
       "adaptiveIcon": {
         "backgroundColor": "#0E1116",
         "foregroundImage": "./assets/android-icon-foreground.png",
