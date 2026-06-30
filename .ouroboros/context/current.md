@@ -12,6 +12,7 @@
 | 구현(코어 마감/한국로컬) — ①i18n(ko/en) 도입·언어 토글 활성화(전 UI t() 외부화 266키·운동명 KO/EN·웰니스 다국어) ②대체운동 큐레이션(116종·평균4.76) ③가용기구 기반 추천 필터(SRS-013, 스키마v2). 결제 구현은 앱 완성 후 보류(기획만 유지) | 2026-06-29 |
 | 구현(온디바이스 차별화) — ④점진적 과부하(SRS-010 더블 프로그레션·정체감지) ⑤규칙기반 프로그램 생성(SRS-009 목표·경력·장비·일수→요일별 루틴). 도메인테스트 26/26·typecheck·웹export·잔여한글0 PASS. SRS-012 자동카운팅은 센서/CV·네이티브 의존이라 보류(모바일 우선순위 때) | 2026-06-29 |
 | 기획 보완 — 소셜 고도화(인스타 통합): Hevy 피드 + 인스타식 DM(PT문의·만남)·미디어·스토리·탐색·알림. /plan→/requirement→/design→/decision→/trace 풀 파이프라인. PRD 보완·RM-008 발급. 신규 URS-010·UCS-010/011·SRS-017~020·SAD-011/012·ADR-014~017 + SRS-007/008 갱신. 베이스=운동앱 유지·ADR-007 좁은부족 해자 보존(ADR-014 하이브리드). 구현은 백엔드 페이즈 편성 | 2026-06-30 |
+| 백엔드 준비·착수 — 기획: SAD-013(결제 아키텍처)·ADR-018(스택 Node/TS+Postgres). 구현: `server/` 스캐폴드(NestJS 모듈러 모놀리스 + PostgreSQL/Prisma) — 계정·인증(JWT)·오프라인-우선 동기(ADR-002 last-write-wins) 토대. E2E(health/signup/login/me/sync push·pull/401) 전부 통과 | 2026-06-30 |
 
 > PLM 바인딩: `health-practice-wbi` @ https://jwk-plm.shoi.ch — 토큰 설정됨, 자동 동기(plm-sync) 활성. (2026-06-23)
 > ⚠️→✅ 초기 자동 동기 전건 실패(401): `plm_lib.sh`가 토큰을 `. <(grep …)` 프로세스치환으로 로딩했는데 이 실행환경(/dev/fd 제한)에선 무음 실패 → 빈 토큰. here-string 소싱으로 수정 후 **전건 재동기 완료**: 아티팩트 59 + 관계 98 (derives_from 22·elaborates 11·refs 16·informs 26·covers 23). (2026-06-23)
@@ -89,6 +90,12 @@
 - **점진적 과부하 (2026-06-29, SRS-010)**: 순수 도메인 `progression.ts` — 더블 프로그레션 제안(직전 수행+목표 반복범위→다음 무게/반복, reasonKey로 투명 설명) + 정체 감지(최근 추정1RM 향상 없음→디로드/회복 권고, 웰니스 범위·진단 없음). 라이브 세션 ExerciseBlock에 '다음 목표' 탭형 제안 칩(입력 자동적용), ExerciseDetail에 정체 노트. 루틴 목표 미설정 시 기본범위(8~12). 검증: 도메인테스트 22/22(점진 7건)·typecheck·웹export·잔여한글0 PASS. (멀티주차 프로그램 자동 디로드 편성은 SRS-009 프로그램 구조와 함께 — 후속)
 - **규칙기반 프로그램 생성 (2026-06-29, SRS-009)**: LLM 없이 온디바이스 결정적 생성 — 목표(근력/근비대/체중관리)·경력·가용장비·주당일수 → 분할(2일 전신·3일 PPL·4일 상하체·5일 PPL+상하체·6일 PPL2회전) + 근육군별 컴파운드 우선·장비필터 종목 선택 + 목표별 세트/반복/휴식 스킴. 순수 도메인 `programGenerator.ts`(카탈로그 주입). 화면: 폼→편집가능 미리보기(교체=대체후보 회전·제외)→채택(folder로 묶어 요일별 Routine 생성, 스키마 무변경). 점진 과부하는 세션별 progression(SRS-010)으로 실현. 웰니스: 고정 카피·'의학적 조언 아님' 명시. 검증: 도메인테스트 26/26(프로그램 4건)·typecheck·웹export·잔여한글0 PASS.
 - 네이티브(iOS/Android)는 후순위 옵션 — `expo prebuild` 시 simdjson pod 중복·full Xcode 필요 등 별도 정비 필요.
+
+### 백엔드 착수 (2026-06-30, `server/` · SRS-006·ADR-002·ADR-018)
+- **스택**: Node.js/TS **NestJS 모듈러 모놀리스 + PostgreSQL(Prisma)** (ADR-018). 모노레포 `server/`(app/과 동일 repo).
+- **모듈**(토대): `health`(DB 포함) · `auth`(로컬 email/password + JWT — 매니지드 어댑터 교체 예정) · `users`(me) · `sync`(오프라인-우선 push/pull·**last-write-wins** ADR-002·SAD-004). Prisma: User/Device/RefreshToken/SyncRecord.
+- **검증**: `nest build` 0에러 · E2E(임시 로컬 Postgres): health=`db:up`·signup/login=JWT·users.me·sync push(`applied:1`)·pull(레코드 반환)·무토큰 401 **전부 동작**. 커밋 `69d5c17`(32파일·prisma 마이그레이션 포함).
+- **후속**: refresh 토큰 회전 · 매니지드 인증(ADR-018) · social(SAD-011)/media(SAD-012)/payments(SAD-013)/notifications(SRS-020) 모듈 · 앱(app/) 동기 클라이언트 연동(현재 앱은 로컬 전용). 실행: `server/README.md`.
 - 추적성: 소스 `// @plm SRS-NNN` 주석 다수 → `/plm-hub:codescan`으로 PLM 코드 딥링크 동기(이번 사이클 실행).
 - AI프로그래밍(SRS-009/010) 온디바이스 완료(규칙기반 생성 + 점진 과부하). 한국로컬(SRS-013)은 i18n·운동명 KO/EN·대체운동 큐레이션·가용기구 추천 필터 완료(잔여=오운완 인증, 소셜 의존).
 - Phase1+ 미구현(백엔드/하드웨어 의존): 동기 엔진(ADR-002)·결제(MoR/구독풀 — 앱 완성 후 보류)·소셜/책임감(SRS-007/008/011)·자동카운팅(SRS-012 — 센서/CV·네이티브 의존, 보류). 이후는 동기 엔진(토대) 결정이 갈림길.
