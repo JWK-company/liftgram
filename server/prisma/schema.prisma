@@ -1,0 +1,64 @@
+// 헬스앱 백엔드 스키마 — 계정·인증·동기 토대. @plm SRS-006
+// 동기 모델은 오프라인-우선 last-write-wins(ADR-002·SAD-004). Phase 0 도메인(운동·루틴·세션)은
+// 서버에선 불투명 JSON(SyncRecord.payload)으로 보관·동기(스키마 권위=클라이언트 WatermelonDB), 추후 정규화.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String?        @unique
+  displayName   String?
+  passwordHash  String? // 로컬 인증 토대 — 매니지드 전환 시 null (ADR-018)
+  authProvider  String         @default("local") // local|email|google|apple|managed
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  devices       Device[]
+  refreshTokens RefreshToken[]
+  syncRecords   SyncRecord[]
+}
+
+model Device {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String?
+  platform   String? // web|ios|android
+  lastSyncAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// 오프라인-우선 동기 레코드 (ADR-002 · SAD-004). 클라이언트 push/pull 대상.
+model SyncRecord {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collection String // exercises|routines|workouts|...
+  recordId   String // 클라이언트 레코드 id
+  payload    Json
+  version    Int      @default(1)
+  deleted    Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, collection, recordId])
+  @@index([userId, collection, updatedAt])
+}
