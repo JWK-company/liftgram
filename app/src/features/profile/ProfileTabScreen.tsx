@@ -17,6 +17,7 @@ import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
 import { fromKg, toKg, ALL_EQUIPMENT, equipmentLabel, type WeightUnit, type EquipmentType } from '../../domain';
 import { useT } from '../../i18n';
+import { ServerSyncCard } from './ServerSyncCard';
 
 type Language = 'ko' | 'en';
 
@@ -215,20 +216,8 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       {/* 동기화 상태 */}
       <SectionHeader title={t('profile.sync')} />
       <Card style={styles.syncCard}>
-        {/* @phase-1-sync — 기기 간 동기화는 Phase 1 백엔드 연동에서 제공 */}
-        <View style={styles.syncRow}>
-          <View style={styles.syncIcon}>
-            <Ionicons name="cloud-offline-outline" size={20} color={colors.textMuted} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <AppText variant="body" weight="medium">
-              {t('profile.offlineMode')}
-            </AppText>
-            <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-              {t('profile.syncComingSoon')}
-            </AppText>
-          </View>
-        </View>
+        {/* @plm SRS-006 — 실제 서버 동기(JWT + WatermelonDB synchronize) */}
+        <ServerSyncCard />
       </Card>
 
       {/* 푸터 — 웰니스 고지 */}
