@@ -17,10 +17,13 @@
 
 ## 실행
 ```bash
-cp .env.example .env          # 값 확인(특히 JWT_SECRET)
+cp .env.example .env          # JWT_SECRET 등 확인
 npm install
-npm run db:up                 # docker로 PostgreSQL(:5433) 기동
-npm run prisma:migrate        # 스키마 마이그레이션(+client 생성)
+# --- DB 택1 ---
+# A) Docker:          npm run db:up   (PostgreSQL :5433)
+# B) 로컬 PostgreSQL:  pgAdmin/psql로 DB 'repset' 생성 후, .env의 DATABASE_URL을 본인 접속정보로.
+#    예: postgresql://postgres:<비번>@localhost:5432/repset?schema=public
+npm run prisma:migrate        # 스키마 마이그레이션(+ Prisma client 생성)
 npm run start:dev             # http://localhost:3000/api
 ```
 
@@ -31,11 +34,20 @@ npm run start:dev             # http://localhost:3000/api
 | POST | `/api/auth/signup` | — | `{email,password,displayName?}` → `{accessToken}` |
 | POST | `/api/auth/login` | — | `{email,password}` → `{accessToken}` |
 | GET | `/api/users/me` | Bearer | 내 프로필 |
-| GET | `/api/sync/pull?since=<ISO>` | Bearer | 변경분 |
-| POST | `/api/sync/push` | Bearer | `{changes:[{collection,recordId,payload,version,deleted?}]}` |
+| GET | `/api/sync/pull?lastPulledAt=<ms>` | Bearer | `{changes:{table:{created,updated,deleted}}, timestamp}` (WatermelonDB) |
+| POST | `/api/sync/push` | Bearer | body `{changes:{table:{created,updated,deleted}}}` (WatermelonDB) |
 
 ## 동기 모델 (ADR-002)
 Phase 0 도메인(운동·루틴·세션)은 서버에서 `SyncRecord.payload`(JSON)로 **불투명 보관** — 스키마 권위는 클라이언트(WatermelonDB). 충돌은 `version` 기준 **last-write-wins**. 추후 서버측 정규화·도메인 검증으로 확장.
+
+## pgAdmin4로 확인
+1. pgAdmin → 서버 등록: Host=`localhost`, Port=`5432`(로컬)/`5433`(docker), DB=`repset`, User/비번=본인.
+2. Schemas → public → Tables: `User`·`Device`·`RefreshToken`·`SyncRecord`.
+3. 앱에서 로그인·동기 후 `SyncRecord`(collection·recordId·payload) 행이 쌓이면 → 앱→서버→DB 흐름 검증.
+
+## 앱 연동 (`../app`)
+- 서버 URL: 앱 `src/config.ts`(기본 `http://localhost:3000/api`). 실기기는 `EXPO_PUBLIC_SERVER_URL`로 머신 LAN IP.
+- 앱 → **프로필 → 서버 동기** 카드: 로그인/가입 → **지금 동기** → WatermelonDB `synchronize()`가 로컬 변경 push + 서버 변경 pull.
 
 ## 다음
 - refresh token 회전·세션 영속
