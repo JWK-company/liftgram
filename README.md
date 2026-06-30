@@ -1,72 +1,162 @@
-# jwk-platform — 통합 관리 플랫폼 (infra + auth + db + mcp-server + plugin + workflow)
+# Liftgram
 
-PLM·Ouroboros·Claude 워크플로우를 **6개 도메인 repo + git submodule 우산**으로 통합 관리한다. 셀프호스트 배포(infra: k0s + terraform + cloudflare)부터 로컬 Claude Code 워크플로우(plugin: plan/code/plm-hub)까지 한 트리에서 재현한다.
+운동 기록 + 소셜을 통합한 피트니스 앱. **Hevy식 운동 트래킹**(루틴·세션·점진 과부하)에 **인스타그램식 소셜**(피드·DM·스토리·탐색·PT 문의/만남)을 결합한다. **오프라인-우선**(로컬에서 즉시 동작 후 서버 동기), **한국어/영어**, **웹(PWA) 우선** 멀티플랫폼.
 
-세 개의 Claude Code 플러그인을 한 로컬 마켓플레이스(`jwk-platform`)로 제공한다.
-- **plan** (`plan:<cmd>`): 요구·설계·의사결정·로드맵 등 **기획 산출물** + 요구→설계 **추적성(G1/G2)**.
-- **code** (`code:<cmd>`): 5-Tier 복잡도(spec/execute), 전문가 패널 **QA**, 점진 디버깅(fix), 회고·온보딩·메모리 등 **코딩 워크플로우**.
-- **plm-hub** (`plm-hub:<cmd>`): **PLM 거버넌스 브리지** — 원격 PLM MCP(14도구, OAuth) 등록 + 기획 `.md`를 PLM에 자동 동기(Edit hook)·게이트(G1~G3) 표면화(Stop hook).
+> 이 저장소는 **모노레포**다: 실제 제품(`app/` 앱 · `server/` 백엔드) + 기획·거버넌스 워크플로우(`.ouroboros/`, `plugin/` — [§기획·거버넌스](#기획거버넌스) 참고).
 
-> **거버넌스 백엔드는 PLM-Hub**(라이브: `plm.shoi.ch`)가 기본. **Notion 동기화는 선택(레거시).**
-> 세 플러그인은 `.ouroboros/` 컨텍스트를 공유한다.
+---
 
 ## 구조
 
 ```
-jwk-platform/                       ← 우산 repo (git submodule로 6 도메인 핀)
-├─ infra/                           [submodule] 셀프호스트 인프라 — k0s + terraform(3-state) + cloudflare edge
-├─ auth/                            [submodule] Keycloak(인증) 구성·realm
-├─ db/                              [submodule] PostgreSQL+Hasura · Neo4j · ClickHouse 스택
-├─ mcp-server/                      [submodule] PLM-Hub(Rust) · Ouroboros(Rust) MCP 서버 + 대시보드
-│  └─ plm-hub/                      DEPLOY.md · mcp-server(crates) · dashboard · db/migrations
-├─ plugin/                          [submodule] Claude 플러그인 3종
-│  ├─ plan/                         기획 플러그인 (plan:<cmd>) — commands · templates · seed
-│  ├─ code/                         코딩 플러그인 (code:<cmd>) — commands · scripts
-│  └─ plm-hub/                      PLM 브리지 (plm-hub:<cmd>) + hooks(plm-sync·plm-gate) + HOOKS.md
-├─ workflow/                        [submodule] 워크플로우 템플릿 · installer · docs/guide(HTML 설명서)
-├─ .ouroboros/                      ← 기획 산출물·컨텍스트·PLM 바인딩 (프로젝트 상태 · 로컬 SSOT)
-├─ .claude-plugin/marketplace.json  로컬 마켓플레이스 'jwk-platform' (source → ./plugin/{plan,code,plm-hub}) → make plugin-install
-├─ .gitmodules                      6 submodule 핀(상대 URL `../<repo>.git` — clone 프로토콜 상속)
-├─ .mcp.json                        커스텀 MCP 2종: ouroboros(메모리/KG) + plm(거버넌스) — 원격 HTTP OAuth
-└─ Makefile · CLAUDE.md · README.md · INSTALL.md
+health-practice/
+├─ app/         Expo / React Native (TypeScript) 앱 — WatermelonDB(로컬-우선), web-first
+├─ server/      NestJS + PostgreSQL + Prisma 백엔드 — 계정·인증(JWT)·동기
+├─ .ouroboros/  기획 산출물(URS/UCS/SRS/SAD/ADR/Roadmap)·컨텍스트·PLM 바인딩
+├─ plugin/      Claude Code 기획/거버넌스 플러그인 (plan · plm-hub)
+├─ reference/   리서치·리스크 노트
+└─ CLAUDE.md    기획 워크플로우 가이드(거버넌스 권위 문서)
 ```
 
-> **분리 원칙**: 6 도메인 submodule = 재사용 소스(각자 독립 repo·버전), `.ouroboros/` = 이 우산의 기획·거버넌스 상태(로컬 SSOT). 소스와 프로젝트 상태가 섞이지 않는다.
-> **체크아웃**: `git clone --recursive <umbrella>` 또는 clone 후 `git submodule update --init --recursive`.
+핵심 흐름: **앱(로컬 WatermelonDB)** 에서 모든 기능이 오프라인으로 동작 → **프로필 → 서버 동기** 로 `server/`(NestJS)에 push/pull → **PostgreSQL**에 적재. 충돌은 last-write-wins (ADR-002).
 
-## 빠른 시작 (A — 호스팅 PLM 사용)
+---
 
-1. **`make setup`** — 기본 MCP 플러그인 3종(chrome·context7·serena) + **plan·code·plm-hub 플러그인**(`make plugin-install`) + `.ouroboros` 시드 + Ouroboros `.env` + 가이드 열기를 한 번에.
-2. **Claude 재실행 → 프로젝트 신뢰 승인** → `.mcp.json`의 **ouroboros + plm MCP가 OAuth로 인증**(API Key 불필요).
-3. **PLM 프로젝트 바인딩**: `plm-hub:link <project-id>` → `.ouroboros/config/plm.json` 생성(`api_url` 기본 `https://plm.shoi.ch`). hook 푸시용 쓰기 토큰(`PLM_API_TOKEN`)은 link가 **SSO 인증으로 자동 발급·기입**(본인 realm 역할, 없으면 editor).
-4. 기획: `plan:plan` → `plan:requirement` → `plan:design` → `plan:decision` → `plan:trace`.
-   코딩: `code:spec` → `code:execute` → `code:qa` → (필요시 `code:fix`) → `code:reflect`.
-5. 기획 `.md` 편집 시 **Edit hook(plm-sync)** 이 frontmatter+본문+관계를 PLM에 즉시 upsert, **Stop hook(plm-gate)** 이 게이트(G1~G3 orphan)를 경고. 대시보드 `https://plm-dash.shoi.ch`에서 확인.
-6. **딥링크 추적**: 구현 코드에 `// @plm SRS-NNN` 역링크 주석을 달고 **`plm-hub:codescan`** 실행 → 요구↔코드 양방향 연결(Code 아티팩트·`loc:path:line`·문서 `code_refs` 역기재). 대시보드 편집분은 **`plm-hub:pull`** 로 로컬에 회수.
+## 사전 준비
 
-## 빠른 시작 (B — 자체 PLM 스택 기동, drop-in)
+| 도구 | 버전 | 비고 |
+|------|------|------|
+| Node.js | ≥ 20 | app·server 공통 |
+| npm | ≥ 9 | |
+| PostgreSQL | 16 | 로컬 설치 **또는** Docker |
+| pgAdmin 4 | (선택) | DB 시각 확인 |
 
-Docker 필요. 자기 인스턴스를 띄우려면:
+---
+
+## 1. 백엔드 세팅 & 실행 (`server/`)
+
+### 1-1. 데이터베이스 준비 (택1)
+
+**A) 로컬 PostgreSQL (권장 — pgAdmin 확인 쉬움)**
+
+pgAdmin 또는 psql로 **`postgres` 슈퍼유저** 접속 후, 롤과 DB를 **각각 따로** 생성한다 (`CREATE DATABASE`는 다른 문과 같은 트랜잭션에서 못 돈다):
+
+```sql
+CREATE ROLE wbi WITH LOGIN PASSWORD 'wbi' SUPERUSER CREATEDB;
+```
+```sql
+CREATE DATABASE liftgram OWNER wbi;
+```
+
+**B) Docker**
+
 ```bash
-cd mcp-server/plm-hub
-make bootstrap P=my-app NAME="My App"   # .env 생성 + docker 스택 기동 + 프로젝트 생성
-make urls                                # API:16780 · 대시보드:16700 · Hasura:16781
+cd server && npm run db:up      # docker compose — PostgreSQL :5433
 ```
-이후 `.ouroboros/config/plm.json`의 `api_url`을 `http://localhost:16780`으로 바꾸면 hook/플러그인이 로컬 PLM을 가리킨다. (OIDC 기본 off → dev 토큰으로 즉시 동작.)
 
-> **레이어 구성**: 커스텀 MCP 2종(ouroboros·plm, `.mcp.json`·OAuth) + 플러그인 3종(slash 커맨드·hook, `make plugin-install`) + 공식 MCP 3종(chrome·context7·serena, `make plugins` 런타임 설치). MCP는 도구만 주므로 커맨드·hook은 플러그인이 담당.
-> **Notion(선택/레거시)**: `make notion-plugin` + `make notion` → `plan:notion-setup/push/pull`. PLM과 병행 가능.
+### 1-2. 환경변수
 
-## 핵심 개념
+```bash
+cd server
+cp .env.example .env
+```
+`.env`의 `DATABASE_URL`을 본인 환경에 맞춘다:
+- 로컬 PG: `postgresql://wbi:wbi@127.0.0.1:5432/liftgram?schema=public`
+- Docker:  `postgresql://liftgram:liftgram@localhost:5433/liftgram?schema=public`
 
-- **SSOT 분리**: 본문·관계·ID = 로컬 마크다운 frontmatter(권위) / Status·게이트·대시보드 = PLM(레거시 모드는 Notion).
-- **추적 백본**: `UCS→URS`, `SRS→URS`, `SAD→SRS`, `ADR→SRS/SAD`, `Roadmap→URS/SRS` (owner=로컬 작성 측).
-- **게이트**: G1(모든 SRS가 URS에 연결)·G2(모든 SAD가 SRS에 연결)·G3(구현 갭/재검토) — 소프트 경고.
-- **PLM MCP 14도구**: artifact_issue/get/update/delete/links · relation_link/unlink/rules · search · gates · review_queue · project_create · export · import.
-- **딥링크 추적(아티팩트↔실제 문서/코드)**: 문서 위치=결정적 규약 `docs/{type→dir}/{code}.md` · 코드 역링크=소스 `@plm <CODE>` 주석 → `plm-hub:codescan`이 Code 아티팩트(`loc:path:line`)+`realizes` 생성 + 대상 `.md`에 `code_refs` 역기재. 양방향: plm-sync(로컬→PLM)·codescan(코드→PLM)·`plm-hub:pull`(PLM→로컬).
+`JWT_SECRET`은 임의 문자열로 바꾼다(개발 기본값 `dev-change-me`).
 
-## 보안 & 신뢰
+### 1-3. 설치 · 마이그레이션 · 기동
 
-- 인증 분리: **hook = token_hash 토큰**(셸, `.env`의 `PLM_API_TOKEN`), **Claude MCP = OAuth**(Keycloak, 사용자 승인). 모든 hook은 exit 0 graceful.
-- 민감 기획은 frontmatter `sync: false`로 본문 반출 제외. `.env`는 절대 커밋 금지(.gitignore 포함).
-- 상세 설치·보안 범위는 [INSTALL.md](INSTALL.md), **셀프호스트 배포(k0s + terraform + cloudflare edge)** 는 [infra/README.md](infra/README.md), **Keycloak 인증 구성**은 [auth/README.md](auth/README.md), 서버 소스·dev 기동은 [mcp-server/README.md](mcp-server/README.md), hook 설계는 [plugin/plm-hub/HOOKS.md](plugin/plm-hub/HOOKS.md) 참조.
+```bash
+npm install
+npx prisma migrate deploy      # 기존 마이그레이션 적용(테이블 생성). 신규 변경 개발 시엔 npm run prisma:migrate
+npm run start:dev              # http://localhost:3000/api  (watch 모드)
+```
+
+확인:
+```bash
+curl http://localhost:3000/api/health      # → {"status":"ok","db":"up",...}
+```
+
+---
+
+## 2. 앱 세팅 & 실행 (`app/`)
+
+```bash
+cd app
+npm install
+npm run web                    # 웹(PWA) — http://localhost:8081
+```
+
+기타 실행:
+- `npm start` — Expo Dev 서버(QR·기기 선택)
+- `npm run ios` / `npm run android` — 네이티브 빌드(추가 정비 필요 — 후순위 옵션)
+- `npm run typecheck` — 타입 점검 · `npm test` — 도메인 단위 테스트
+
+서버 주소 바꾸기: 환경변수 **`EXPO_PUBLIC_SERVER_URL`**(기본 `http://localhost:3000/api`).
+실기기에서 접속하려면 `localhost` 대신 **개발 머신의 LAN IP**로 지정한다. 예:
+```bash
+EXPO_PUBLIC_SERVER_URL=http://192.168.0.10:3000/api npm run web
+```
+
+---
+
+## 3. 앱 ↔ 서버 동기
+
+1. `server`를 기동(§1-3)하고 `app`을 실행(§2)한다.
+2. 앱에서 **프로필 → 서버 동기** 카드 → **가입/로그인**(이메일·비밀번호) → **지금 동기**.
+3. WatermelonDB `synchronize()`가 로컬 변경을 서버로 **push**, 서버 변경을 **pull** 한다(오프라인-우선, last-write-wins).
+4. 데이터는 PostgreSQL `SyncRecord` 테이블에 `payload`(JSONB)로 적재된다.
+
+---
+
+## 4. DB 확인 (pgAdmin 4)
+
+서버 등록 → 연결 탭:
+
+| 필드 | 값 |
+|------|-----|
+| 호스트 | `127.0.0.1` (또는 `localhost`) |
+| 포트 | `5432` (Docker면 `5433`) |
+| 데이터베이스 | `liftgram` |
+| 사용자 | `wbi` |
+| 비밀번호 | `wbi` |
+
+테이블(**Databases → liftgram → Schemas → public → Tables**):
+- **`User`** — 계정(비밀번호는 bcrypt 해시)
+- **`SyncRecord`** — 동기 핵심: `userId · collection · recordId · payload(JSONB) · version · deleted · updatedAt`, 유니크 `(userId, collection, recordId)`
+- `Device` · `RefreshToken` — 기기·토큰
+- 행 보기: `SyncRecord` 우클릭 → **데이터 보기/편집 → 모든 행**
+
+---
+
+## API (요약)
+
+베이스: `http://localhost:3000/api`
+
+| 메서드 | 경로 | 인증 | 설명 |
+|--------|------|------|------|
+| GET | `/health` | — | 상태·DB |
+| POST | `/auth/signup` | — | `{email,password,displayName?}` → `{accessToken}` |
+| POST | `/auth/login` | — | `{email,password}` → `{accessToken}` |
+| GET | `/users/me` | Bearer | 내 프로필 |
+| GET | `/sync/pull?lastPulledAt=<ms>` | Bearer | `{changes:{table:{created,updated,deleted}}, timestamp}` (WatermelonDB) |
+| POST | `/sync/push` | Bearer | body `{changes:{...}}` (WatermelonDB) |
+
+상세: [server/README.md](server/README.md)
+
+---
+
+## 아키텍처 메모
+
+- **오프라인-우선 (ADR-002 · SAD-004)**: 스키마 권위는 **앱(WatermelonDB)**. 서버는 도메인(운동·루틴·세션)을 `SyncRecord.payload`로 **불투명 보관**하고 충돌은 **last-write-wins** — 앱 도메인이 확장돼도 서버 스키마 변경 없이 흡수.
+- **앱**: web-first PWA(LokiJS/IndexedDB) + 네이티브(SQLite) 어댑터 분기 · i18n(ko/en) · 온디바이스 결정적 프로그램 생성/점진 과부하(SRS-009/010).
+- **백엔드**: NestJS 모듈러 모놀리스(ADR-018) — `health · auth · users · sync` 모듈. 인증은 현재 로컬 email/password + JWT(추후 매니지드 인증 어댑터로 교체).
+- **후속(백엔드 페이즈)**: refresh 토큰 회전 · 소셜(SAD-011) · 미디어/스토리(SAD-012) · 결제(SAD-013) · 알림(SRS-020).
+
+---
+
+## 기획·거버넌스
+
+제품 코드와 별개로, 이 repo는 **ouroboros/PLM 기획 워크플로우**로 관리된다. 요구·설계·의사결정·로드맵 산출물은 `.ouroboros/docs/`에 있고, 추적성(요구→설계→코드)·게이트(G1~G3)는 PLM(`jwk-plm.shoi.ch`)이 거버넌스한다. 규칙·스킬 전문은 **[CLAUDE.md](CLAUDE.md)** 참고. (이 워크플로우는 제품 실행과 무관 — 위 §1~4만으로 앱·서버가 구동된다.)

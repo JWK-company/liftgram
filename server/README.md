@@ -21,8 +21,8 @@ cp .env.example .env          # JWT_SECRET 등 확인
 npm install
 # --- DB 택1 ---
 # A) Docker:          npm run db:up   (PostgreSQL :5433)
-# B) 로컬 PostgreSQL:  pgAdmin/psql로 DB 'repset' 생성 후, .env의 DATABASE_URL을 본인 접속정보로.
-#    예: postgresql://postgres:<비번>@localhost:5432/repset?schema=public
+# B) 로컬 PostgreSQL:  pgAdmin/psql로 DB 'liftgram' 생성 후, .env의 DATABASE_URL을 본인 접속정보로.
+#    예: postgresql://postgres:<비번>@localhost:5432/liftgram?schema=public
 npm run prisma:migrate        # 스키마 마이그레이션(+ Prisma client 생성)
 npm run start:dev             # http://localhost:3000/api
 ```
@@ -41,7 +41,7 @@ npm run start:dev             # http://localhost:3000/api
 Phase 0 도메인(운동·루틴·세션)은 서버에서 `SyncRecord.payload`(JSON)로 **불투명 보관** — 스키마 권위는 클라이언트(WatermelonDB). 충돌은 `version` 기준 **last-write-wins**. 추후 서버측 정규화·도메인 검증으로 확장.
 
 ## pgAdmin4로 확인
-1. pgAdmin → 서버 등록: Host=`localhost`, Port=`5432`(로컬)/`5433`(docker), DB=`repset`, User/비번=본인.
+1. pgAdmin → 서버 등록: Host=`localhost`, Port=`5432`(로컬)/`5433`(docker), DB=`liftgram`, User/비번=본인.
 2. Schemas → public → Tables: `User`·`Device`·`RefreshToken`·`SyncRecord`.
 3. 앱에서 로그인·동기 후 `SyncRecord`(collection·recordId·payload) 행이 쌓이면 → 앱→서버→DB 흐름 검증.
 
