@@ -57,6 +57,7 @@ model SyncRecord {
   payload    Json
   version    Int      @default(1)
   deleted    Boolean  @default(false)
+  createdAt  DateTime @default(now()) // created/updated 구분(WatermelonDB pull)
   updatedAt  DateTime @updatedAt
 
   @@unique([userId, collection, recordId])
