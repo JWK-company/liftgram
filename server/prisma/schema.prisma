@@ -15,6 +15,7 @@ model User {
   id            String         @id @default(uuid())
   email         String?        @unique
   displayName   String?
+  avatarUrl     String? // 프로필 아바타(업로드 미디어 URL)
   passwordHash  String? // 로컬 인증 토대 — 매니지드 전환 시 null (ADR-018)
   authProvider  String         @default("local") // local|email|google|apple|managed
   createdAt     DateTime       @default(now())

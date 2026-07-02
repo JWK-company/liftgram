@@ -7,7 +7,7 @@ import { CreatePostDto } from './dto/social.dto';
 
 export interface PostView {
   id: string;
-  author: { id: string; displayName: string | null };
+  author: { id: string; displayName: string | null; avatarUrl: string | null };
   kind: string;
   caption: string | null;
   data: unknown;
@@ -26,6 +26,7 @@ export interface CommentView {
 export interface PublicProfile {
   id: string;
   displayName: string | null;
+  avatarUrl: string | null;
   counts: { followers: number; following: number; posts: number };
   isFollowing: boolean;
   isSelf: boolean;
@@ -33,6 +34,7 @@ export interface PublicProfile {
 export interface DiscoverUser {
   id: string;
   displayName: string | null;
+  avatarUrl: string | null;
   isFollowing: boolean;
 }
 export interface StoryView {
@@ -56,7 +58,7 @@ type PostRow = {
   data: Prisma.JsonValue | null;
   visibility: string;
   createdAt: Date;
-  author: { id: string; displayName: string | null };
+  author: { id: string; displayName: string | null; avatarUrl: string | null };
   _count: { likes: number; comments: number };
   likes: { id: string }[];
 };
@@ -64,7 +66,7 @@ type PostRow = {
 // 포스트 조회 include — 작성자 + 좋아요/댓글 수 + 뷰어의 좋아요 여부.
 const postInclude = (viewerId: string) =>
   ({
-    author: { select: { id: true, displayName: true } },
+    author: { select: { id: true, displayName: true, avatarUrl: true } },
     _count: { select: { likes: true, comments: true } },
     likes: { where: { userId: viewerId }, select: { id: true } },
   }) satisfies Prisma.PostInclude;
@@ -76,7 +78,7 @@ export class SocialService {
   private toView(p: PostRow): PostView {
     return {
       id: p.id,
-      author: { id: p.author.id, displayName: p.author.displayName },
+      author: { id: p.author.id, displayName: p.author.displayName, avatarUrl: p.author.avatarUrl },
       kind: p.kind,
       caption: p.caption,
       data: p.data,
@@ -90,7 +92,7 @@ export class SocialService {
 
   // 미디어 참조 검증 — /media/file/<key> 형태 + 해당 MediaAsset가 이 사용자 소유여야(외부 URL·무단 참조 차단).
   private async assertOwnedMedia(mediaUrl: string, ownerId: string): Promise<void> {
-    const m = /\/media\/file\/([A-Za-z0-9._-]+)$/.exec(mediaUrl);
+    const m = /^\/media\/file\/([A-Za-z0-9._-]+)$/.exec(mediaUrl); // ^앵커 — 외부 호스트 URL 차단
     if (!m) throw new BadRequestException('invalid media url');
     const asset = await this.prisma.mediaAsset.findUnique({ where: { key: m[1] } });
     if (!asset || asset.ownerId !== ownerId) {
@@ -221,6 +223,7 @@ export class SocialService {
     return {
       id: u.id,
       displayName: u.displayName,
+      avatarUrl: u.avatarUrl,
       counts: { followers, following, posts },
       isFollowing,
       isSelf,
@@ -246,6 +249,7 @@ export class SocialService {
     return users.map((u) => ({
       id: u.id,
       displayName: u.displayName,
+      avatarUrl: u.avatarUrl,
       isFollowing: followingSet.has(u.id),
     }));
   }

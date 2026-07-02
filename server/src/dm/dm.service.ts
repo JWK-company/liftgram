@@ -49,7 +49,7 @@ export class DmService {
 
   // 미디어 참조 검증 — /media/file/<key> + 이 사용자 소유 MediaAsset(외부 URL·무단 참조 차단).
   private async assertOwnedMedia(mediaUrl: string, ownerId: string): Promise<void> {
-    const m = /\/media\/file\/([A-Za-z0-9._-]+)$/.exec(mediaUrl);
+    const m = /^\/media\/file\/([A-Za-z0-9._-]+)$/.exec(mediaUrl); // ^앵커 — 외부 호스트 URL 차단
     if (!m) throw new BadRequestException('invalid media url');
     const asset = await this.prisma.mediaAsset.findUnique({ where: { key: m[1] } });
     if (!asset || asset.ownerId !== ownerId) {
