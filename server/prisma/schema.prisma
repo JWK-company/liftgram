@@ -1,7 +1,7 @@
-// 헬스앱 백엔드 스키마 — 계정·인증·동기 토대 + 소셜(팔로우·포스트). @plm SRS-006 @plm SRS-018 @plm SRS-007
+// 헬스앱 백엔드 스키마 — 계정·인증·동기 + 소셜(팔로우·포스트) + 미디어. @plm SRS-006 @plm SRS-018 @plm SRS-007 @plm SRS-019
 // 동기 모델은 오프라인-우선 last-write-wins(ADR-002·SAD-004). Phase 0 도메인(운동·루틴·세션)은
 // 서버에선 불투명 JSON(SyncRecord.payload)으로 보관·동기(스키마 권위=클라이언트 WatermelonDB), 추후 정규화.
-// 소셜(Follow·Post)은 크로스유저 공유 데이터 → 서버 관계형 권위 + REST(온라인). 오프라인-우선 개인 코어 위 옵트인 공개 레이어(ADR-014·SAD-011).
+// 소셜(Follow·Post)·미디어(MediaAsset)는 크로스유저 공유 데이터 → 서버 관계형 권위 + REST(온라인). 옵트인 공개 레이어(ADR-014·SAD-011/012).
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,6 +25,7 @@ model User {
   following     Follow[]       @relation("following") // 내가 팔로우하는 관계
   followers     Follow[]       @relation("followers") // 나를 팔로우하는 관계
   posts         Post[]
+  mediaAssets   MediaAsset[]
 }
 
 model Device {
@@ -81,18 +82,33 @@ model Follow {
   @@index([followeeId])
 }
 
-// 피드 게시물 (SRS-007 · SAD-011). 첫 슬라이스는 텍스트/운동(미디어 없음 — SAD-012는 후속).
+// 피드 게시물 (SRS-007 · SAD-011). 텍스트/운동 + 이미지(data.mediaUrl). 스토리·영상은 후속(SAD-012).
 model Post {
   id         String   @id @default(uuid())
   authorId   String
   author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  kind       String   @default("text") // text|workout
+  kind       String   @default("text") // text|workout|image
   caption    String?
-  data       Json? // 운동 요약 등 부가 데이터(불투명). 미디어 자산은 SAD-012에서.
+  data       Json? // 운동 요약·이미지 URL 등 부가 데이터(불투명).
   visibility String   @default("public") // public|followers|private
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@index([authorId, createdAt])
   @@index([createdAt])
+}
+
+// 미디어 자산 (SRS-019 · SAD-012). 저장은 StorageProvider(로컬 디스크 기본 · 클라우드 드롭인 ADR-016).
+model MediaAsset {
+  id          String   @id @default(uuid())
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  key         String   @unique // 스토리지 키(파일명)
+  url         String // 접근 URL(로컬 서브 라우트 또는 CDN)
+  contentType String
+  kind        String   @default("image") // image | video(후속)
+  bytes       Int
+  createdAt   DateTime @default(now())
+
+  @@index([ownerId])
 }
