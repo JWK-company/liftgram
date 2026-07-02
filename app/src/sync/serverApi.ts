@@ -107,6 +107,36 @@ export interface StoryGroup {
   stories: StoryItem[];
 }
 
+// --- 유저 / DM (SRS-017) ---
+export interface PublicUser {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+}
+export interface DmMessage {
+  id: string;
+  conversationId: string;
+  sender: { id: string; displayName: string | null };
+  kind: string;
+  body: string | null;
+  mediaUrl: string | null;
+  createdAt: string;
+}
+export interface DmConversation {
+  id: string;
+  isGroup: boolean;
+  title: string | null;
+  participants: { id: string; displayName: string | null }[];
+  lastMessage: DmMessage | null;
+  unreadCount: number;
+  updatedAt: string;
+}
+export interface SendMessageInput {
+  kind?: string;
+  body?: string;
+  mediaUrl?: string;
+}
+
 export const serverApi = {
   async signUp(email: string, password: string, displayName?: string): Promise<void> {
     const { accessToken, refreshToken } = await request<AuthTokens>('/auth/signup', {
@@ -182,5 +212,32 @@ export const serverApi = {
   },
   createStory(mediaUrl: string, caption?: string): Promise<StoryItem> {
     return request<StoryItem>('/social/stories', { method: 'POST', body: { mediaUrl, caption }, auth: true });
+  },
+  // --- 유저 ---
+  me(): Promise<PublicUser> {
+    return request<PublicUser>('/users/me', { auth: true });
+  },
+  // --- DM ---
+  conversations(): Promise<DmConversation[]> {
+    return request<DmConversation[]>('/dm/conversations', { auth: true });
+  },
+  createConversation(userId: string): Promise<DmConversation> {
+    return request<DmConversation>('/dm/conversations', { method: 'POST', body: { userId }, auth: true });
+  },
+  dmMessages(conversationId: string, before?: string): Promise<DmMessage[]> {
+    return request<DmMessage[]>(
+      `/dm/conversations/${conversationId}/messages${before ? `?before=${encodeURIComponent(before)}` : ''}`,
+      { auth: true },
+    );
+  },
+  sendMessage(conversationId: string, input: SendMessageInput): Promise<DmMessage> {
+    return request<DmMessage>(`/dm/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: input,
+      auth: true,
+    });
+  },
+  markRead(conversationId: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/dm/conversations/${conversationId}/read`, { method: 'POST', auth: true });
   },
 };

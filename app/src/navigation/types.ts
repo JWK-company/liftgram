@@ -22,6 +22,8 @@ export type RootStackParamList = {
   WorkoutDetail: { workoutId: string }; // SRS-005 히스토리 상세
   Auth: undefined; // SRS-006 로그인/가입 스텁
   Discover: undefined; // SRS-018 사람 찾기·팔로우
+  Conversations: undefined; // SRS-017 DM 대화 목록
+  Conversation: { conversationId: string; title?: string }; // SRS-017 DM 쓰레드
 };
 
 // 화면 컴포넌트 타입 헬퍼

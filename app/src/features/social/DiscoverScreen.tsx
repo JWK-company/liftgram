@@ -1,19 +1,21 @@
 // @plm SRS-018  발견 — 사람 검색·팔로우/언팔로우 (SAD-011).
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Screen, Card, AppText, Button, TextField, EmptyState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DiscoverUser } from '../../sync/serverApi';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 
-export default function DiscoverScreen(_props: RootStackScreenProps<'Discover'>) {
+export default function DiscoverScreen({ navigation }: RootStackScreenProps<'Discover'>) {
   const { t } = useT();
   const [q, setQ] = useState('');
   const [users, setUsers] = useState<DiscoverUser[]>([]);
   const [loading, setLoading] = useState(false);
   const reqIdRef = useRef(0);
   const pendingRef = useRef<Set<string>>(new Set());
+  const dmPendingRef = useRef<Set<string>>(new Set());
 
   const load = useCallback(async (query: string) => {
     const id = reqIdRef.current + 1;
@@ -47,6 +49,25 @@ export default function DiscoverScreen(_props: RootStackScreenProps<'Discover'>)
     }
   }, []);
 
+  const startDm = useCallback(
+    async (u: DiscoverUser) => {
+      if (dmPendingRef.current.has(u.id)) return; // 중복 탭 방지(서버 directKey와 이중 방어)
+      dmPendingRef.current.add(u.id);
+      try {
+        const conv = await serverApi.createConversation(u.id);
+        navigation.navigate('Conversation', {
+          conversationId: conv.id,
+          title: u.displayName || t('discover.unnamed'),
+        });
+      } catch {
+        // ignore
+      } finally {
+        dmPendingRef.current.delete(u.id);
+      }
+    },
+    [navigation, t],
+  );
+
   return (
     <Screen padded={false}>
       <View style={styles.search}>
@@ -63,7 +84,9 @@ export default function DiscoverScreen(_props: RootStackScreenProps<'Discover'>)
       <FlatList
         data={users}
         keyExtractor={(u) => u.id}
-        renderItem={({ item }) => <UserRow user={item} onToggle={() => toggle(item)} />}
+        renderItem={({ item }) => (
+          <UserRow user={item} onToggle={() => toggle(item)} onMessage={() => startDm(item)} />
+        )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(q)} tintColor={colors.primary} />}
         ListEmptyComponent={!loading ? <EmptyState title={t('discover.empty')} /> : null}
@@ -72,7 +95,15 @@ export default function DiscoverScreen(_props: RootStackScreenProps<'Discover'>)
   );
 }
 
-function UserRow({ user, onToggle }: { user: DiscoverUser; onToggle: () => void }) {
+function UserRow({
+  user,
+  onToggle,
+  onMessage,
+}: {
+  user: DiscoverUser;
+  onToggle: () => void;
+  onMessage: () => void;
+}) {
   const { t } = useT();
   const name = user.displayName || t('discover.unnamed');
   return (
@@ -85,6 +116,9 @@ function UserRow({ user, onToggle }: { user: DiscoverUser; onToggle: () => void 
       <AppText variant="body" weight="medium" numberOfLines={1} style={styles.name}>
         {name}
       </AppText>
+      <Pressable onPress={onMessage} hitSlop={8} style={{ marginRight: spacing.sm }}>
+        <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.primary} />
+      </Pressable>
       <Button
         title={user.isFollowing ? t('discover.following') : t('discover.follow')}
         size="sm"

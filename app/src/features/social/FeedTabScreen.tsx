@@ -61,9 +61,14 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable onPress={() => navigation.navigate('Discover')} hitSlop={8} style={styles.headerBtn}>
-          <Ionicons name="person-add-outline" size={22} color={colors.primary} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable onPress={() => navigation.navigate('Conversations')} hitSlop={8}>
+            <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('Discover')} hitSlop={8}>
+            <Ionicons name="person-add-outline" size={22} color={colors.primary} />
+          </Pressable>
+        </View>
       ),
     });
   }, [navigation]);
@@ -223,7 +228,7 @@ function PostCard({ post }: { post: FeedPost }) {
 }
 
 const styles = StyleSheet.create({
-  headerBtn: { paddingHorizontal: spacing.md },
+  headerActions: { flexDirection: 'row', gap: spacing.lg, paddingRight: spacing.md },
   compose: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
