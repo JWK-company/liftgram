@@ -1,6 +1,7 @@
-// 헬스앱 백엔드 스키마 — 계정·인증·동기 토대. @plm SRS-006
+// 헬스앱 백엔드 스키마 — 계정·인증·동기 토대 + 소셜(팔로우·포스트). @plm SRS-006 @plm SRS-018 @plm SRS-007
 // 동기 모델은 오프라인-우선 last-write-wins(ADR-002·SAD-004). Phase 0 도메인(운동·루틴·세션)은
 // 서버에선 불투명 JSON(SyncRecord.payload)으로 보관·동기(스키마 권위=클라이언트 WatermelonDB), 추후 정규화.
+// 소셜(Follow·Post)은 크로스유저 공유 데이터 → 서버 관계형 권위 + REST(온라인). 오프라인-우선 개인 코어 위 옵트인 공개 레이어(ADR-014·SAD-011).
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,6 +22,9 @@ model User {
   devices       Device[]
   refreshTokens RefreshToken[]
   syncRecords   SyncRecord[]
+  following     Follow[]       @relation("following") // 내가 팔로우하는 관계
+  followers     Follow[]       @relation("followers") // 나를 팔로우하는 관계
+  posts         Post[]
 }
 
 model Device {
@@ -62,4 +66,33 @@ model SyncRecord {
 
   @@unique([userId, collection, recordId])
   @@index([userId, collection, updatedAt])
+}
+
+// 소셜 그래프 (SRS-018 · SAD-011). 방향 = follower → followee.
+model Follow {
+  id         String   @id @default(uuid())
+  followerId String
+  followeeId String
+  follower   User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
+  followee   User     @relation("followers", fields: [followeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([followerId, followeeId])
+  @@index([followeeId])
+}
+
+// 피드 게시물 (SRS-007 · SAD-011). 첫 슬라이스는 텍스트/운동(미디어 없음 — SAD-012는 후속).
+model Post {
+  id         String   @id @default(uuid())
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  kind       String   @default("text") // text|workout
+  caption    String?
+  data       Json? // 운동 요약 등 부가 데이터(불투명). 미디어 자산은 SAD-012에서.
+  visibility String   @default("public") // public|followers|private
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([authorId, createdAt])
+  @@index([createdAt])
 }
