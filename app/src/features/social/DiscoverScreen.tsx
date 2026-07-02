@@ -1,5 +1,5 @@
 // @plm SRS-018  발견 — 사람 검색·팔로우/언팔로우 (SAD-011).
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { Screen, Card, AppText, Button, TextField, EmptyState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
@@ -12,15 +12,20 @@ export default function DiscoverScreen(_props: RootStackScreenProps<'Discover'>)
   const [q, setQ] = useState('');
   const [users, setUsers] = useState<DiscoverUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const reqIdRef = useRef(0);
+  const pendingRef = useRef<Set<string>>(new Set());
 
   const load = useCallback(async (query: string) => {
+    const id = reqIdRef.current + 1;
+    reqIdRef.current = id;
     setLoading(true);
     try {
-      setUsers(await serverApi.discover(query.trim() || undefined));
+      const result = await serverApi.discover(query.trim() || undefined);
+      if (id === reqIdRef.current) setUsers(result); // 최신 요청만 반영(경합 방지)
     } catch {
-      setUsers([]);
+      if (id === reqIdRef.current) setUsers([]);
     } finally {
-      setLoading(false);
+      if (id === reqIdRef.current) setLoading(false);
     }
   }, []);
 
@@ -29,12 +34,16 @@ export default function DiscoverScreen(_props: RootStackScreenProps<'Discover'>)
   }, [load]);
 
   const toggle = useCallback(async (u: DiscoverUser) => {
+    if (pendingRef.current.has(u.id)) return; // 같은 유저 중복 탭 방지
+    pendingRef.current.add(u.id);
     setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, isFollowing: !x.isFollowing } : x)));
     try {
       if (u.isFollowing) await serverApi.unfollowUser(u.id);
       else await serverApi.followUser(u.id);
     } catch {
       setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, isFollowing: u.isFollowing } : x)));
+    } finally {
+      pendingRef.current.delete(u.id);
     }
   }, []);
 

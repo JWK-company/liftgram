@@ -292,6 +292,7 @@ export const en: Record<TransKey, string> = {
   "session.warmup": "Warm-up",
   "session.weightLabel": "Weight ({weightUnit})",
   "session.workoutComplete": "Workout complete!",
+  "story.myStory": "My story",
   "wellness.noMedicalClaimNotice": "This app is a workout-tracking and wellness tool and is not intended to diagnose, treat, or prevent any disease.",
   "wellness.oneRepMaxCaption": "Estimate based on the Epley formula, not a measured value",
   "wellness.oneRepMaxLabel": "Estimated 1RM",

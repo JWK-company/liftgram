@@ -95,6 +95,17 @@ export interface PickedImage {
   fileName?: string | null;
   mimeType?: string | null;
 }
+export interface StoryItem {
+  id: string;
+  mediaUrl: string;
+  caption: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+export interface StoryGroup {
+  author: { id: string; displayName: string | null };
+  stories: StoryItem[];
+}
 
 export const serverApi = {
   async signUp(email: string, password: string, displayName?: string): Promise<void> {
@@ -164,5 +175,12 @@ export const serverApi = {
       form.append('file', { uri: image.uri, name, type } as unknown as Blob);
     }
     return request<MediaUpload>('/media/upload', { method: 'POST', body: form, auth: true });
+  },
+  // --- 스토리 (SAD-012) ---
+  stories(): Promise<StoryGroup[]> {
+    return request<StoryGroup[]>('/social/stories', { auth: true });
+  },
+  createStory(mediaUrl: string, caption?: string): Promise<StoryItem> {
+    return request<StoryItem>('/social/stories', { method: 'POST', body: { mediaUrl, caption }, auth: true });
   },
 };

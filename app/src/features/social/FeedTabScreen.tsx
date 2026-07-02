@@ -1,23 +1,37 @@
-// @plm SRS-007 @plm SRS-019  소셜 피드 탭 — 팔로우한 사람 + 내 게시물, 텍스트/이미지 (SAD-011/012).
+// @plm SRS-007 @plm SRS-019  소셜 피드 탭 — 스토리 트레이 + 피드(텍스트/이미지 게시) (SAD-011/012).
 import React, { useCallback, useLayoutEffect, useState } from 'react';
 import { FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { Screen, Card, AppText, Tag, Button, TextField, EmptyState } from '../../components';
+import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, Divider } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
-import { serverApi, type FeedPost, type PickedImage } from '../../sync/serverApi';
+import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
+import { resolveMediaUrl } from '../../config';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
+import { StoryTray, StoryViewer } from './Stories';
+
+async function pickImageAsset(): Promise<PickedImage | null> {
+  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+  if (!result.canceled && result.assets && result.assets[0]) {
+    const a = result.assets[0];
+    return { uri: a.uri, fileName: a.fileName, mimeType: a.mimeType };
+  }
+  return null;
+}
 
 export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>) {
   const { t } = useT();
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
+  const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const [loading, setLoading] = useState(false);
   const [caption, setCaption] = useState('');
   const [picked, setPicked] = useState<PickedImage | null>(null);
   const [posting, setPosting] = useState(false);
+  const [storyBusy, setStoryBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -26,7 +40,11 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     try {
       const logged = await serverApi.isLoggedIn();
       setAuthed(logged);
-      if (logged) setPosts(await serverApi.feed());
+      if (logged) {
+        const [feed, stories] = await Promise.all([serverApi.feed(), serverApi.stories()]);
+        setPosts(feed);
+        setStoryGroups(stories);
+      }
     } catch (e) {
       setError(String(e));
     } finally {
@@ -50,11 +68,20 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     });
   }, [navigation]);
 
-  async function pickImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-    if (!result.canceled && result.assets && result.assets[0]) {
-      const a = result.assets[0];
-      setPicked({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType });
+  async function onAddStory() {
+    if (storyBusy) return;
+    const asset = await pickImageAsset();
+    if (!asset) return;
+    setStoryBusy(true);
+    setError(null);
+    try {
+      const media = await serverApi.uploadImage(asset);
+      await serverApi.createStory(media.url);
+      setStoryGroups(await serverApi.stories());
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setStoryBusy(false);
     }
   }
 
@@ -97,6 +124,8 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
 
   return (
     <Screen padded={false}>
+      <StoryTray groups={storyGroups} onAdd={onAddStory} onOpen={setViewing} busy={storyBusy} />
+      <Divider style={{ marginVertical: 0 }} />
       <View style={styles.compose}>
         <TextField
           value={caption}
@@ -120,7 +149,10 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             variant="secondary"
             size="sm"
             fullWidth={false}
-            onPress={pickImage}
+            onPress={async () => {
+              const a = await pickImageAsset();
+              if (a) setPicked(a);
+            }}
           />
           <View style={{ flex: 1 }} />
           <Button
@@ -149,6 +181,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           !loading ? <EmptyState title={t('feed.emptyTitle')} message={t('feed.emptyMessage')} /> : null
         }
       />
+      <StoryViewer group={viewing} onClose={() => setViewing(null)} />
     </Screen>
   );
 }
@@ -179,7 +212,7 @@ function PostCard({ post }: { post: FeedPost }) {
         </View>
         {post.kind === 'workout' ? <Tag label={t('feed.workoutBadge')} tone="primary" /> : null}
       </View>
-      {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.postImage} resizeMode="cover" /> : null}
+      {imageUrl ? <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.postImage} resizeMode="cover" /> : null}
       {post.caption ? (
         <AppText variant="body" style={{ marginTop: spacing.sm }}>
           {post.caption}

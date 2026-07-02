@@ -290,6 +290,7 @@ export const ko = {
   "session.warmup": "워밍업",
   "session.weightLabel": "무게 ({weightUnit})",
   "session.workoutComplete": "운동 완료!",
+  "story.myStory": "내 스토리",
   "wellness.noMedicalClaimNotice": "본 앱은 운동 기록·웰니스 도구이며 질병의 진단·치료·예방을 목적으로 하지 않습니다.",
   "wellness.oneRepMaxCaption": "Epley 공식 기반 추정치 · 실측값 아님",
   "wellness.oneRepMaxLabel": "추정 1RM",
