@@ -3,7 +3,7 @@ import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/co
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/jwt.strategy';
-import { CreateConversationDto, SendMessageDto } from './dto/dm.dto';
+import { CreateConversationDto, CreateGroupDto, SendMessageDto } from './dto/dm.dto';
 import { ConversationView, DmService, MessageView } from './dm.service';
 
 const clampLimit = (v: string | undefined, def: number, max: number): number => {
@@ -19,6 +19,11 @@ export class DmController {
   @Post('conversations')
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateConversationDto): Promise<ConversationView> {
     return this.dm.getOrCreateDirect(user.userId, dto.userId);
+  }
+
+  @Post('groups')
+  createGroup(@CurrentUser() user: AuthUser, @Body() dto: CreateGroupDto): Promise<ConversationView> {
+    return this.dm.createGroup(user.userId, dto.userIds, dto.title);
   }
 
   @Get('conversations')
@@ -48,5 +53,10 @@ export class DmController {
   @Post('conversations/:id/read')
   read(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
     return this.dm.markRead(user.userId, id);
+  }
+
+  @Post('conversations/:id/leave')
+  leave(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.dm.leaveConversation(user.userId, id);
   }
 }

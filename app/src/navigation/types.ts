@@ -23,7 +23,8 @@ export type RootStackParamList = {
   Auth: undefined; // SRS-006 로그인/가입 스텁
   Discover: undefined; // SRS-018 사람 찾기·팔로우
   Conversations: undefined; // SRS-017 DM 대화 목록
-  Conversation: { conversationId: string; title?: string }; // SRS-017 DM 쓰레드
+  Conversation: { conversationId: string; title?: string; isGroup?: boolean }; // SRS-017 DM 쓰레드
+  NewGroup: undefined; // SRS-017 그룹 만들기
   Comments: { postId: string }; // SRS-007 댓글
   UserProfile: { userId: string }; // SRS-008 공개 프로필
   Notifications: undefined; // SRS-020 알림 센터

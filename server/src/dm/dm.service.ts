@@ -127,6 +127,52 @@ export class DmService {
     return this.toConversationView(userId, conv.id);
   }
 
+  // 그룹 대화 생성 — 생성자 + 지정 멤버. 1:1과 달리 directKey 없음.
+  // 프라이버시: 그룹은 "내가 팔로우한 사람"만 추가 가능(낯선 사람 대량 강제 편입 차단).
+  // 1:1(getOrCreateDirect)은 PT 문의 등 열린 접점이라 게이트하지 않음 — 그룹만 팔로우 요구.
+  async createGroup(userId: string, userIds: string[], title?: string): Promise<ConversationView> {
+    const others = [...new Set(userIds)].filter((id) => id !== userId);
+    if (others.length === 0) throw new BadRequestException('group needs at least one other member');
+    if (others.length > 50) throw new BadRequestException('too many members');
+    const found = await this.prisma.user.count({ where: { id: { in: others } } });
+    if (found !== others.length) throw new NotFoundException('some users not found');
+    const followed = await this.prisma.follow.count({
+      where: { followerId: userId, followeeId: { in: others } },
+    });
+    if (followed !== others.length) {
+      throw new ForbiddenException('can only add users you follow');
+    }
+    const conv = await this.prisma.conversation.create({
+      data: {
+        isGroup: true,
+        title: title?.trim() || null,
+        participants: { create: [userId, ...others].map((uid) => ({ userId: uid })) },
+      },
+      select: { id: true },
+    });
+    return this.toConversationView(userId, conv.id);
+  }
+
+  // 그룹 나가기 — 내 참여자 행 삭제(1:1 대화는 나갈 수 없음).
+  async leaveConversation(userId: string, conversationId: string): Promise<{ ok: true }> {
+    await this.assertParticipant(userId, conversationId);
+    const conv = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: { isGroup: true },
+    });
+    if (!conv?.isGroup) throw new BadRequestException('cannot leave a direct conversation');
+    // 내 참여자 행 삭제 후, 남은 멤버가 0이면 대화 자체 삭제(메시지는 onDelete:Cascade로 정리).
+    // 단일 트랜잭션 — 동시 마지막-나가기 경합에서 대화 고아/이중삭제 방지.
+    await this.prisma.$transaction(async (tx) => {
+      await tx.conversationParticipant.deleteMany({ where: { conversationId, userId } });
+      const remaining = await tx.conversationParticipant.count({ where: { conversationId } });
+      if (remaining === 0) {
+        await tx.conversation.delete({ where: { id: conversationId } });
+      }
+    });
+    return { ok: true };
+  }
+
   async listConversations(userId: string): Promise<ConversationView[]> {
     const convs = await this.prisma.conversation.findMany({
       where: { participants: { some: { userId } } },

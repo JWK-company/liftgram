@@ -18,6 +18,7 @@ import ConversationScreen from '../features/social/ConversationScreen';
 import CommentsScreen from '../features/social/CommentsScreen';
 import UserProfileScreen from '../features/social/UserProfileScreen';
 import NotificationsScreen from '../features/social/NotificationsScreen';
+import NewGroupScreen from '../features/social/NewGroupScreen';
 import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -47,6 +48,7 @@ export function RootNavigator() {
       <Stack.Screen name="Discover" component={DiscoverScreen} options={{ title: t('discover.title'), presentation: 'modal' }} />
       <Stack.Screen name="Conversations" component={ConversationsScreen} options={{ title: t('dm.title') }} />
       <Stack.Screen name="Conversation" component={ConversationScreen} options={{ title: t('dm.title') }} />
+      <Stack.Screen name="NewGroup" component={NewGroupScreen} options={{ title: t('group.title'), presentation: 'modal' }} />
       <Stack.Screen name="Comments" component={CommentsScreen} options={{ title: t('comments.title'), presentation: 'modal' }} />
       <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ title: t('profile.userTitle') }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: t('notif.title') }} />

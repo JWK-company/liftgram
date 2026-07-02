@@ -1,6 +1,7 @@
 // @plm SRS-017  DM 대화 목록 (SAD-011).
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Screen, Card, AppText, EmptyState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
@@ -33,6 +34,20 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
     }, [load]),
   );
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => navigation.navigate('NewGroup')}
+          hitSlop={8}
+          style={{ paddingHorizontal: spacing.md }}
+        >
+          <Ionicons name="people-outline" size={22} color={colors.primary} />
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
+
   const titleOf = useCallback(
     (c: DmConversation): string => {
       if (c.title) return c.title;
@@ -51,7 +66,11 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
         renderItem={({ item }) => {
           const title = titleOf(item);
           return (
-            <Pressable onPress={() => navigation.navigate('Conversation', { conversationId: item.id, title })}>
+            <Pressable
+              onPress={() =>
+                navigation.navigate('Conversation', { conversationId: item.id, title, isGroup: item.isGroup })
+              }
+            >
               <Card style={styles.row}>
                 <View style={styles.avatar}>
                   <AppText variant="body" weight="bold" style={{ color: colors.onPrimary }}>

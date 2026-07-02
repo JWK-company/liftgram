@@ -1,6 +1,7 @@
 // @plm SRS-017  DM 쓰레드 — 메시지 조회·전송·읽음. 간이 폴링(실시간 전송은 ADR-015 후속). (SAD-011)
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { FlatList, Image, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { FlatList, Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppText, Button, Screen, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
@@ -10,7 +11,7 @@ import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
 export default function ConversationScreen({ route, navigation }: RootStackScreenProps<'Conversation'>) {
-  const { conversationId, title } = route.params;
+  const { conversationId, title, isGroup } = route.params;
   const { t } = useT();
   const [messages, setMessages] = useState<DmMessage[]>([]);
   const [meId, setMeId] = useState<string | null>(null);
@@ -20,9 +21,28 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
   const reqIdRef = useRef(0);
   const listRef = useRef<FlatList<DmMessage>>(null);
 
+  async function leave() {
+    setError(null);
+    try {
+      await serverApi.leaveConversation(conversationId);
+      navigation.goBack();
+    } catch {
+      setError(t('dm.leaveFailed'));
+    }
+  }
+
   useLayoutEffect(() => {
-    navigation.setOptions({ title: title || t('dm.title') });
-  }, [navigation, title, t]);
+    navigation.setOptions({
+      title: title || t('dm.title'),
+      headerRight: isGroup
+        ? () => (
+            <Pressable onPress={leave} hitSlop={8} style={{ paddingHorizontal: spacing.md }}>
+              <Ionicons name="exit-outline" size={22} color={colors.danger} />
+            </Pressable>
+          )
+        : undefined,
+    });
+  }, [navigation, title, t, isGroup]);
 
   // 폴링 경합 방지 — 최신 요청 결과만 반영.
   const fetchMessages = useCallback(async () => {
@@ -83,7 +103,7 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
           ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
-          renderItem={({ item }) => <Bubble msg={item} mine={item.sender.id === meId} />}
+          renderItem={({ item }) => <Bubble msg={item} mine={item.sender.id === meId} showSender={!!isGroup} />}
           contentContainerStyle={styles.list}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
@@ -115,11 +135,16 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
   );
 }
 
-function Bubble({ msg, mine }: { msg: DmMessage; mine: boolean }) {
+function Bubble({ msg, mine, showSender }: { msg: DmMessage; mine: boolean; showSender: boolean }) {
   const imageUrl = msg.kind === 'image' && msg.mediaUrl ? msg.mediaUrl : undefined;
   return (
     <View style={[styles.bubbleRow, mine ? styles.rowMine : styles.rowOther]}>
       <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
+        {showSender && !mine && msg.sender.displayName ? (
+          <AppText variant="label" color="primary" style={{ marginBottom: 2 }}>
+            {msg.sender.displayName}
+          </AppText>
+        ) : null}
         {imageUrl ? (
           <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.bubbleImage} resizeMode="cover" />
         ) : null}

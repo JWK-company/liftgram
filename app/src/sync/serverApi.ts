@@ -285,6 +285,12 @@ export const serverApi = {
   createConversation(userId: string): Promise<DmConversation> {
     return request<DmConversation>('/dm/conversations', { method: 'POST', body: { userId }, auth: true });
   },
+  createGroup(userIds: string[], title?: string): Promise<DmConversation> {
+    return request<DmConversation>('/dm/groups', { method: 'POST', body: { userIds, title }, auth: true });
+  },
+  leaveConversation(conversationId: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/dm/conversations/${conversationId}/leave`, { method: 'POST', auth: true });
+  },
   dmMessages(conversationId: string, before?: string): Promise<DmMessage[]> {
     return request<DmMessage[]>(
       `/dm/conversations/${conversationId}/messages${before ? `?before=${encodeURIComponent(before)}` : ''}`,
