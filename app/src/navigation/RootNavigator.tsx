@@ -12,6 +12,7 @@ import ActiveWorkoutScreen from '../features/session/ActiveWorkoutScreen';
 import WorkoutSummaryScreen from '../features/session/WorkoutSummaryScreen';
 import WorkoutDetailScreen from '../features/analytics/WorkoutDetailScreen';
 import AuthScreen from '../features/profile/AuthScreen';
+import DiscoverScreen from '../features/social/DiscoverScreen';
 import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -38,6 +39,7 @@ export function RootNavigator() {
       <Stack.Screen name="WorkoutSummary" component={WorkoutSummaryScreen} options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} options={{ title: t('nav.workoutDetail') }} />
       <Stack.Screen name="Auth" component={AuthScreen} options={{ title: t('nav.auth'), presentation: 'modal' }} />
+      <Stack.Screen name="Discover" component={DiscoverScreen} options={{ title: t('discover.title'), presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }

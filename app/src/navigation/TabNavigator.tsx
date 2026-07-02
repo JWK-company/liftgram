@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { TabParamList } from './types';
 import { colors } from '../theme';
 import WorkoutTabScreen from '../features/routines/WorkoutTabScreen';
+import FeedTabScreen from '../features/social/FeedTabScreen';
 import HistoryTabScreen from '../features/analytics/HistoryTabScreen';
 import StatsTabScreen from '../features/analytics/StatsTabScreen';
 import ProfileTabScreen from '../features/profile/ProfileTabScreen';
@@ -13,6 +14,7 @@ const Tab = createBottomTabNavigator<TabParamList>();
 
 const ICONS: Record<keyof TabParamList, keyof typeof Ionicons.glyphMap> = {
   WorkoutTab: 'barbell',
+  FeedTab: 'people',
   HistoryTab: 'time',
   StatsTab: 'stats-chart',
   ProfileTab: 'person',
@@ -33,6 +35,7 @@ export function TabNavigator() {
       })}
     >
       <Tab.Screen name="WorkoutTab" component={WorkoutTabScreen} options={{ title: t('nav.workout') }} />
+      <Tab.Screen name="FeedTab" component={FeedTabScreen} options={{ title: t('nav.feed') }} />
       <Tab.Screen name="HistoryTab" component={HistoryTabScreen} options={{ title: t('nav.history') }} />
       <Tab.Screen name="StatsTab" component={StatsTabScreen} options={{ title: t('nav.stats') }} />
       <Tab.Screen name="ProfileTab" component={ProfileTabScreen} options={{ title: t('nav.profile') }} />

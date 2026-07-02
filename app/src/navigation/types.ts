@@ -4,6 +4,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 export type TabParamList = {
   WorkoutTab: undefined; // 루틴 목록 + 세션 시작 (routines 피처)
+  FeedTab: undefined; // 소셜 피드 (social 피처, SRS-007)
   HistoryTab: undefined; // 완료 세션 히스토리 (analytics 피처)
   StatsTab: undefined; // 분석 대시보드 (analytics 피처)
   ProfileTab: undefined; // 프로필·설정 (profile 피처)
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   WorkoutSummary: { workoutId: string }; // SRS-004
   WorkoutDetail: { workoutId: string }; // SRS-005 히스토리 상세
   Auth: undefined; // SRS-006 로그인/가입 스텁
+  Discover: undefined; // SRS-018 사람 찾기·팔로우
 };
 
 // 화면 컴포넌트 타입 헬퍼
