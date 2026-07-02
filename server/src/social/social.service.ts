@@ -1,6 +1,6 @@
 // @plm SRS-007 @plm SRS-008 @plm SRS-018  소셜 그래프·피드 (SAD-011).
 // 크로스유저 공유 데이터 → 서버 관계형 권위 + REST(온라인). 오프라인-우선 개인 코어 위 옵트인 공개 레이어(ADR-014).
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/social.dto';
@@ -12,6 +12,15 @@ export interface PostView {
   caption: string | null;
   data: unknown;
   visibility: string;
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  likedByMe: boolean;
+}
+export interface CommentView {
+  id: string;
+  author: { id: string; displayName: string | null };
+  body: string;
   createdAt: string;
 }
 export interface PublicProfile {
@@ -40,13 +49,31 @@ export interface StoryGroup {
 
 const STORY_TTL_MS = 24 * 60 * 60 * 1000; // 24시간
 
-type PostWithAuthor = Prisma.PostGetPayload<{ include: { author: true } }>;
+type PostRow = {
+  id: string;
+  kind: string;
+  caption: string | null;
+  data: Prisma.JsonValue | null;
+  visibility: string;
+  createdAt: Date;
+  author: { id: string; displayName: string | null };
+  _count: { likes: number; comments: number };
+  likes: { id: string }[];
+};
+
+// 포스트 조회 include — 작성자 + 좋아요/댓글 수 + 뷰어의 좋아요 여부.
+const postInclude = (viewerId: string) =>
+  ({
+    author: { select: { id: true, displayName: true } },
+    _count: { select: { likes: true, comments: true } },
+    likes: { where: { userId: viewerId }, select: { id: true } },
+  }) satisfies Prisma.PostInclude;
 
 @Injectable()
 export class SocialService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private toView(p: PostWithAuthor): PostView {
+  private toView(p: PostRow): PostView {
     return {
       id: p.id,
       author: { id: p.author.id, displayName: p.author.displayName },
@@ -55,6 +82,9 @@ export class SocialService {
       data: p.data,
       visibility: p.visibility,
       createdAt: p.createdAt.toISOString(),
+      likeCount: p._count.likes,
+      commentCount: p._count.comments,
+      likedByMe: p.likes.length > 0,
     };
   }
 
@@ -102,7 +132,7 @@ export class SocialService {
         data: dto.data ? (dto.data as Prisma.InputJsonValue) : undefined,
         visibility: dto.visibility ?? 'public',
       },
-      include: { author: true },
+      include: postInclude(authorId),
     });
     return this.toView(post);
   }
@@ -126,7 +156,7 @@ export class SocialService {
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
-      include: { author: true },
+      include: postInclude(userId),
     });
     return posts.map((p) => this.toView(p));
   }
@@ -146,9 +176,9 @@ export class SocialService {
         : ['public'];
     const posts = await this.prisma.post.findMany({
       where: { authorId: targetId, visibility: { in: allowed } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
-      include: { author: true },
+      include: postInclude(viewerId),
     });
     return posts.map((p) => this.toView(p));
   }
@@ -249,5 +279,83 @@ export class SocialService {
     const arr = [...groups.values()];
     arr.sort((a, b) => (a.author.id === userId ? -1 : b.author.id === userId ? 1 : 0));
     return arr;
+  }
+
+  // 포스트 가시성 검증 — 좋아요/댓글은 볼 수 있는 포스트(본인·공개·팔로워)에만.
+  private async assertCanViewPost(postId: string, viewerId: string): Promise<void> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true, visibility: true },
+    });
+    if (!post) throw new NotFoundException('post not found');
+    if (post.authorId === viewerId || post.visibility === 'public') return;
+    if (post.visibility === 'followers') {
+      const f = await this.prisma.follow.findUnique({
+        where: { followerId_followeeId: { followerId: viewerId, followeeId: post.authorId } },
+      });
+      if (f) return;
+    }
+    throw new ForbiddenException('cannot access this post');
+  }
+
+  async likePost(userId: string, postId: string): Promise<{ ok: true; likeCount: number }> {
+    await this.assertCanViewPost(postId, userId);
+    await this.prisma.postLike.upsert({
+      where: { postId_userId: { postId, userId } },
+      create: { postId, userId },
+      update: {},
+    });
+    const likeCount = await this.prisma.postLike.count({ where: { postId } });
+    return { ok: true, likeCount };
+  }
+
+  async unlikePost(userId: string, postId: string): Promise<{ ok: true; likeCount: number }> {
+    await this.assertCanViewPost(postId, userId);
+    await this.prisma.postLike.deleteMany({ where: { postId, userId } });
+    const likeCount = await this.prisma.postLike.count({ where: { postId } });
+    return { ok: true, likeCount };
+  }
+
+  async listComments(userId: string, postId: string, limit: number): Promise<CommentView[]> {
+    await this.assertCanViewPost(postId, userId);
+    const comments = await this.prisma.comment.findMany({
+      where: { postId },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit,
+      include: { author: { select: { id: true, displayName: true } } },
+    });
+    return comments.map((c) => ({
+      id: c.id,
+      author: { id: c.author.id, displayName: c.author.displayName },
+      body: c.body,
+      createdAt: c.createdAt.toISOString(),
+    }));
+  }
+
+  async addComment(userId: string, postId: string, body: string): Promise<CommentView> {
+    await this.assertCanViewPost(postId, userId);
+    const text = body.trim();
+    if (!text) throw new BadRequestException('empty comment');
+    const c = await this.prisma.comment.create({
+      data: { postId, authorId: userId, body: text },
+      include: { author: { select: { id: true, displayName: true } } },
+    });
+    return {
+      id: c.id,
+      author: { id: c.author.id, displayName: c.author.displayName },
+      body: c.body,
+      createdAt: c.createdAt.toISOString(),
+    };
+  }
+
+  async deleteComment(userId: string, commentId: string): Promise<{ ok: true }> {
+    const c = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { authorId: true },
+    });
+    if (!c) throw new NotFoundException('comment not found');
+    if (c.authorId !== userId) throw new ForbiddenException('not your comment');
+    await this.prisma.comment.delete({ where: { id: commentId } });
+    return { ok: true };
   }
 }

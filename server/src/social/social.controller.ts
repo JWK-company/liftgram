@@ -3,8 +3,9 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/jwt.strategy';
-import { CreatePostDto, CreateStoryDto } from './dto/social.dto';
+import { AddCommentDto, CreatePostDto, CreateStoryDto } from './dto/social.dto';
 import {
+  CommentView,
   DiscoverUser,
   PostView,
   PublicProfile,
@@ -35,6 +36,39 @@ export class SocialController {
   @Post('posts')
   createPost(@CurrentUser() user: AuthUser, @Body() dto: CreatePostDto): Promise<PostView> {
     return this.social.createPost(user.userId, dto);
+  }
+
+  @Post('posts/:id/like')
+  like(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true; likeCount: number }> {
+    return this.social.likePost(user.userId, id);
+  }
+
+  @Delete('posts/:id/like')
+  unlike(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true; likeCount: number }> {
+    return this.social.unlikePost(user.userId, id);
+  }
+
+  @Get('posts/:id/comments')
+  comments(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<CommentView[]> {
+    return this.social.listComments(user.userId, id, clampLimit(limit, 50, 100));
+  }
+
+  @Post('posts/:id/comments')
+  addComment(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: AddCommentDto,
+  ): Promise<CommentView> {
+    return this.social.addComment(user.userId, id, dto.body);
+  }
+
+  @Delete('comments/:id')
+  deleteComment(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.social.deleteComment(user.userId, id);
   }
 
   @Post('stories')

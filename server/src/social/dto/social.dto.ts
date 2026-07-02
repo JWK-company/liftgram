@@ -29,3 +29,9 @@ export class CreateStoryDto {
   @MaxLength(500)
   caption?: string;
 }
+
+export class AddCommentDto {
+  @IsString()
+  @MaxLength(2000)
+  body!: string;
+}

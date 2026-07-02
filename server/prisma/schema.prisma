@@ -29,6 +29,8 @@ model User {
   stories       Story[]
   conversations ConversationParticipant[]
   messages      Message[]
+  postLikes     PostLike[]
+  comments      Comment[]
 }
 
 model Device {
@@ -96,6 +98,8 @@ model Post {
   visibility String   @default("public") // public|followers|private
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  likes      PostLike[]
+  comments   Comment[]
 
   @@index([authorId, createdAt])
   @@index([createdAt])
@@ -169,4 +173,30 @@ model Message {
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
+}
+
+// 좋아요 (SRS-007). 포스트당 사용자 1개.
+model PostLike {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
+
+// 댓글 (SRS-007).
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
 }
