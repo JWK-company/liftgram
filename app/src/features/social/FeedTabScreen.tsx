@@ -34,6 +34,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [storyBusy, setStoryBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const likePending = useRef<Set<string>>(new Set());
+  const [unread, setUnread] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,6 +54,10 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           });
         });
         setStoryGroups(stories);
+        serverApi
+          .notificationsUnread()
+          .then((r) => setUnread(r.count))
+          .catch(() => {});
       }
     } catch (e) {
       setError(String(e));
@@ -71,6 +76,16 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     navigation.setOptions({
       headerRight: () => (
         <View style={styles.headerActions}>
+          <Pressable onPress={() => navigation.navigate('Notifications')} hitSlop={8}>
+            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+            {unread > 0 ? (
+              <View style={styles.badge}>
+                <AppText variant="label" style={styles.badgeText}>
+                  {unread > 9 ? '9+' : unread}
+                </AppText>
+              </View>
+            ) : null}
+          </Pressable>
           <Pressable onPress={() => navigation.navigate('Conversations')} hitSlop={8}>
             <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
           </Pressable>
@@ -80,7 +95,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
         </View>
       ),
     });
-  }, [navigation]);
+  }, [navigation, unread]);
 
   async function onAddStory() {
     if (storyBusy) return;
@@ -303,6 +318,19 @@ function PostCard({
 
 const styles = StyleSheet.create({
   headerActions: { flexDirection: 'row', gap: spacing.lg, paddingRight: spacing.md },
+  badge: {
+    position: 'absolute',
+    top: -5,
+    right: -7,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { color: colors.onPrimary, fontSize: 9 },
   compose: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

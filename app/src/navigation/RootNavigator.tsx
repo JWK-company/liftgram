@@ -17,6 +17,7 @@ import ConversationsScreen from '../features/social/ConversationsScreen';
 import ConversationScreen from '../features/social/ConversationScreen';
 import CommentsScreen from '../features/social/CommentsScreen';
 import UserProfileScreen from '../features/social/UserProfileScreen';
+import NotificationsScreen from '../features/social/NotificationsScreen';
 import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -48,6 +49,7 @@ export function RootNavigator() {
       <Stack.Screen name="Conversation" component={ConversationScreen} options={{ title: t('dm.title') }} />
       <Stack.Screen name="Comments" component={CommentsScreen} options={{ title: t('comments.title'), presentation: 'modal' }} />
       <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ title: t('profile.userTitle') }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: t('notif.title') }} />
     </Stack.Navigator>
   );
 }

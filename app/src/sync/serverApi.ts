@@ -92,6 +92,14 @@ export interface SocialProfile {
   isFollowing: boolean;
   isSelf: boolean;
 }
+export interface NotificationItem {
+  id: string;
+  type: string; // follow | like | comment
+  actor: { id: string; displayName: string | null };
+  postId: string | null;
+  read: boolean;
+  createdAt: string;
+}
 export interface CreatePostInput {
   kind?: string;
   caption?: string;
@@ -228,6 +236,16 @@ export const serverApi = {
   },
   userPosts(userId: string): Promise<FeedPost[]> {
     return request<FeedPost[]>(`/social/users/${userId}/posts`, { auth: true });
+  },
+  // --- 알림 (SRS-020) ---
+  notifications(): Promise<NotificationItem[]> {
+    return request<NotificationItem[]>('/notifications', { auth: true });
+  },
+  notificationsUnread(): Promise<{ count: number }> {
+    return request<{ count: number }>('/notifications/unread-count', { auth: true });
+  },
+  markNotificationsRead(): Promise<{ ok: true }> {
+    return request<{ ok: true }>('/notifications/read', { method: 'POST', auth: true });
   },
   // --- 미디어 ---
   async uploadImage(image: PickedImage): Promise<MediaUpload> {
