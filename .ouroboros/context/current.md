@@ -92,7 +92,8 @@
 - **앱↔서버 동기 연동 (2026-06-30)**: 서버 sync를 WatermelonDB 프로토콜로 개편(pull→`{changes,timestamp}`·비삭제 전부 updated·push upsert). 앱 `src/sync/`(tokenStore 플랫폼분기·serverApi JWT·`synchronize()` sendCreatedAsUpdated) + ProfileTab `ServerSyncCard`(로그인/가입·지금 동기). 앱 typecheck·웹export·잔여한글0 PASS. 서버를 사용자 로컬 PG16(`127.0.0.1:5432`·role `wbi`·DB `liftgram`)에 연결·기동, 전체 서버 E2E(signup→push→pull) PASS·데이터 5432 `SyncRecord` 적재 확인. 앱 UI 동기 최종 확인은 사용자(pgAdmin).
 - **앱 가명 = Liftgram (2026-06-30)**: app.json(name/slug/scheme/bundleId `com.liftgram.app`)·i18n 태그라인 반영, 서버 DB명 `repset`→`liftgram` 통일. 내부 저장 식별자(WatermelonDB `dbName`·토큰 키)는 로컬 데이터 보존 위해 `repset` 유지. 루트 `README.md`를 제품·구동(백엔드 DB 생성→마이그레이션→기동, 앱 실행, 동기, pgAdmin 확인) 중심으로 재작성.
 - **소셜 코어 착수 (2026-07-02, `feat/social-core` · SAD-011)**: 크로스유저 공유 데이터 → **서버 관계형+REST**(ADR-014 옵트인 공개 레이어, 오프라인-우선 개인 코어와 분리). Prisma `Follow`/`Post` + `social` 모듈(follow·createPost·feed·discover·profile) 마이그레이션·빌드 0에러. 서버 E2E(2유저 팔로우→포스트→피드 노출→언팔 사라짐→무토큰401) PASS. 앱: `serverApi` 소셜 메서드 + **피드 탭**(작성·새로고침) + **발견 스크린**(검색·팔로우) + 네비 연결. typecheck·웹export PASS. 미디어(SAD-012)·DM(실시간, SRS-017)은 후속.
-- **후속**: refresh 토큰 회전 · 매니지드 인증(ADR-018) · 시드 멀티기기 dedup · media(SAD-012)/DM(SRS-017)/notifications(SRS-020)/payments(SAD-013). 실행: `server/README.md`.- Phase1+ 미구현(백엔드/하드웨어 의존): 동기 엔진(ADR-002)·결제(MoR/구독풀 — 앱 완성 후 보류)·소셜/책임감(SRS-007/008/011)·자동카운팅(SRS-012 — 센서/CV·네이티브 의존, 보류). 이후는 동기 엔진(토대) 결정이 갈림길.
+- **백엔드 토대 마감 (2026-07-02, `feat/backend-hardening`)**: **refresh 토큰 회전**(login/signup→access+refresh 발급·`/auth/refresh` 회전=옛 토큰 폐기·`/auth/logout`·앱 401 시 자동 재발급) + **시드 멀티기기 dedup**(운동 시드 결정적 id=nameEn 슬러그 → 동기 recordId 병합). 서버 refresh E2E(회전→옛토큰401·logout→401)·소셜 회귀·앱 typecheck·웹export PASS.
+- **후속/미구현**: 매니지드 인증(ADR-018) · media(SAD-012) · DM(SRS-017) · notifications(SRS-020) · 결제(SAD-013, 앱 완성 후) · 자동카운팅(SRS-012, 센서/CV·네이티브 보류). 실행: `server/README.md`.
 
 ## 차단 요소
 
