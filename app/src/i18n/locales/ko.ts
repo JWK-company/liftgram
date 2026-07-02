@@ -78,6 +78,7 @@ export const ko = {
   "dm.send": "전송",
   "dm.sendFailed": "전송 실패 — 다시 시도해주세요",
   "dm.title": "메시지",
+  "dm.typing": "입력 중…",
   "exercises.addCustom": "+ 커스텀 운동",
   "exercises.archive": "보관",
   "exercises.archiveHide": "보관(숨김)",

@@ -1,11 +1,12 @@
 // @plm SRS-017  DM 대화 목록 (SAD-011).
-import React, { useCallback, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Screen, Card, AppText, EmptyState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DmConversation } from '../../sync/serverApi';
+import { onDmMessage } from '../../sync/realtime';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
@@ -14,6 +15,8 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
   const [convs, setConvs] = useState<DmConversation[]>([]);
   const [meId, setMeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const meIdRef = useRef<string | null>(null);
+  const convIdsRef = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -21,6 +24,8 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
       const [list, me] = await Promise.all([serverApi.conversations(), serverApi.me()]);
       setConvs(list);
       setMeId(me.id);
+      meIdRef.current = me.id;
+      convIdsRef.current = new Set(list.map((c) => c.id));
     } catch {
       // ignore
     } finally {
@@ -31,6 +36,27 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
   useFocusEffect(
     useCallback(() => {
       load();
+      // 실시간 목록 갱신 — 새 메시지로 lastMessage·unread·정렬 즉시 반영.
+      const unsub = onDmMessage((m) => {
+        if (meIdRef.current === null) return; // 신원 로드 전 — 초기 load()가 권위 반영
+        if (!convIdsRef.current.has(m.conversationId)) {
+          load(); // 목록에 없는 대화(신규) → 재조회
+          return;
+        }
+        setConvs((prev) => {
+          const idx = prev.findIndex((c) => c.id === m.conversationId);
+          if (idx === -1) return prev;
+          const c = prev[idx];
+          const mine = m.sender.id === meIdRef.current;
+          const updated: DmConversation = {
+            ...c,
+            lastMessage: m,
+            unreadCount: mine ? c.unreadCount : c.unreadCount + 1,
+          };
+          return [updated, ...prev.filter((_, i) => i !== idx)];
+        });
+      });
+      return unsub;
     }, [load]),
   );
 

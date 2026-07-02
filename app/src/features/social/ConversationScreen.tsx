@@ -9,6 +9,7 @@ import { serverApi, type DmMessage } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
+import { onDmMessage, onDmTyping, emitTyping } from '../../sync/realtime';
 
 export default function ConversationScreen({ route, navigation }: RootStackScreenProps<'Conversation'>) {
   const { conversationId, title, isGroup } = route.params;
@@ -20,6 +21,9 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
   const [error, setError] = useState<string | null>(null);
   const reqIdRef = useRef(0);
   const listRef = useRef<FlatList<DmMessage>>(null);
+  const [typing, setTyping] = useState(false);
+  const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef(0);
 
   async function leave() {
     setError(null);
@@ -49,7 +53,15 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
     const rid = ++reqIdRef.current;
     try {
       const data = await serverApi.dmMessages(conversationId);
-      if (rid === reqIdRef.current) setMessages(data);
+      if (rid !== reqIdRef.current) return;
+      // 폴백 폴 결과를 병합(id union·시간순) — 라이브로 먼저 도착한 메시지를 덮어쓰지 않도록.
+      setMessages((prev) => {
+        const map = new Map(prev.map((m) => [m.id, m]));
+        for (const m of data) map.set(m.id, m);
+        return [...map.values()].sort((a, b) =>
+          a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : 1,
+        );
+      });
     } catch {
       // ignore
     }
@@ -68,13 +80,38 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
         await fetchMessages();
         serverApi.markRead(conversationId).catch(() => {});
       })();
-      const id = setInterval(fetchMessages, 3000); // 간이 폴링
+      // 실시간 수신 — 이 대화 메시지를 즉시 반영(id 중복 방지) + 읽음 처리.
+      const unsubMsg = onDmMessage((m) => {
+        if (m.conversationId !== conversationId) return;
+        setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+        serverApi.markRead(conversationId).catch(() => {});
+      });
+      // 타이핑 — 서버가 나 외 참여자에게만 relay하므로 수신=상대가 입력 중.
+      const unsubTyping = onDmTyping((e) => {
+        if (e.conversationId !== conversationId) return;
+        setTyping(true);
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
+        typingClearRef.current = setTimeout(() => setTyping(false), 3000);
+      });
+      const id = setInterval(fetchMessages, 15000); // WS 폴백 — 느린 재동기
       return () => {
         mounted = false;
         clearInterval(id);
+        unsubMsg();
+        unsubTyping();
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
       };
     }, [conversationId, fetchMessages]),
   );
+
+  function onChangeText(v: string) {
+    setText(v);
+    const now = Date.now();
+    if (now - lastTypingSentRef.current > 1500) {
+      lastTypingSentRef.current = now;
+      emitTyping(conversationId);
+    }
+  }
 
   async function send() {
     const body = text.trim();
@@ -107,6 +144,11 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
           contentContainerStyle={styles.list}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
+        {typing ? (
+          <AppText variant="caption" color="textMuted" style={styles.typing}>
+            {t('dm.typing')}
+          </AppText>
+        ) : null}
         {error ? (
           <AppText variant="caption" color="danger" style={styles.error}>
             {error}
@@ -115,7 +157,7 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
         <View style={styles.composer}>
           <TextField
             value={text}
-            onChangeText={setText}
+            onChangeText={onChangeText}
             placeholder={t('dm.messagePlaceholder')}
             multiline
             containerStyle={{ flex: 1, marginBottom: 0 }}
@@ -168,6 +210,7 @@ const styles = StyleSheet.create({
   bubbleOther: { backgroundColor: colors.surfaceAlt, borderBottomLeftRadius: radius.sm },
   bubbleImage: { width: 200, height: 200, borderRadius: radius.md, marginBottom: spacing.xs },
   error: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xs, color: colors.danger },
+  typing: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xs },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',

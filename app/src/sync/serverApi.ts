@@ -3,6 +3,7 @@ import type { SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
 import { Platform } from 'react-native';
 import { SERVER_URL } from '../config';
 import { clearTokens, loadRefreshToken, loadToken, saveTokens } from './tokenStore';
+import { disconnectRealtime } from './realtime';
 
 interface RequestOptions {
   method?: string;
@@ -202,6 +203,7 @@ export const serverApi = {
       }
     }
     await clearTokens();
+    disconnectRealtime(); // 실시간 소켓 정리
   },
   async isLoggedIn(): Promise<boolean> {
     return (await loadToken()) != null;

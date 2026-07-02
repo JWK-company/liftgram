@@ -9,6 +9,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SendMessageDto } from './dto/dm.dto';
+import { DmGateway } from './dm.gateway';
 
 export interface MessageView {
   id: string;
@@ -33,7 +34,10 @@ type MessageWithSender = Prisma.MessageGetPayload<{ include: { sender: true } }>
 
 @Injectable()
 export class DmService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gateway: DmGateway,
+  ) {}
 
   private toMessageView(m: MessageWithSender): MessageView {
     return {
@@ -217,7 +221,17 @@ export class DmService {
       }),
       this.prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
     ]);
-    return this.toMessageView(msg);
+    const view = this.toMessageView(msg);
+    // 실시간 push — 대화 참여자 전원(발신자 포함, 클라이언트가 id로 dedupe).
+    const parts = await this.prisma.conversationParticipant.findMany({
+      where: { conversationId },
+      select: { userId: true },
+    });
+    this.gateway.emitMessage(
+      parts.map((p) => p.userId),
+      view,
+    );
+    return view;
   }
 
   async markRead(userId: string, conversationId: string): Promise<{ ok: true }> {

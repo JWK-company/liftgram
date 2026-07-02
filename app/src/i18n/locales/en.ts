@@ -80,6 +80,7 @@ export const en: Record<TransKey, string> = {
   "dm.send": "Send",
   "dm.sendFailed": "Failed to send — try again",
   "dm.title": "Messages",
+  "dm.typing": "typing…",
   "exercises.addCustom": "+ Custom Exercise",
   "exercises.archive": "Archive",
   "exercises.archiveHide": "Archive (Hide)",

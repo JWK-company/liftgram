@@ -23,7 +23,8 @@
     "react-native-reorderable-list": "^0.18.0",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.29.7",
