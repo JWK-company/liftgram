@@ -98,15 +98,28 @@ export class SocialService {
     }
   }
 
+  // 알림 생성 (SRS-020) — 팔로우/좋아요/댓글. best-effort: 실패해도 본 액션(like/follow/comment)을 깨지 않음.
+  private async notify(userId: string, actorId: string, type: string, postId?: string): Promise<void> {
+    try {
+      await this.prisma.notification.create({
+        data: { userId, actorId, type, postId: postId ?? null },
+      });
+    } catch {
+      // 알림은 부수적 fan-out — 조용히 무시.
+    }
+  }
+
   async follow(followerId: string, followeeId: string): Promise<{ ok: true }> {
     if (followerId === followeeId) throw new BadRequestException('cannot follow yourself');
     const target = await this.prisma.user.findUnique({ where: { id: followeeId } });
     if (!target) throw new NotFoundException('user not found');
-    await this.prisma.follow.upsert({
-      where: { followerId_followeeId: { followerId, followeeId } },
-      create: { followerId, followeeId },
-      update: {},
-    });
+    try {
+      await this.prisma.follow.create({ data: { followerId, followeeId } });
+      await this.notify(followeeId, followerId, 'follow');
+    } catch (e) {
+      // 이미 팔로우 중(unique 위반)이면 알림 재생성 안 함.
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+    }
     return { ok: true };
   }
 
@@ -290,29 +303,31 @@ export class SocialService {
   }
 
   // 포스트 가시성 검증 — 좋아요/댓글은 볼 수 있는 포스트(본인·공개·팔로워)에만.
-  private async assertCanViewPost(postId: string, viewerId: string): Promise<void> {
+  private async assertCanViewPost(postId: string, viewerId: string): Promise<{ authorId: string }> {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
       select: { authorId: true, visibility: true },
     });
     if (!post) throw new NotFoundException('post not found');
-    if (post.authorId === viewerId || post.visibility === 'public') return;
+    if (post.authorId === viewerId || post.visibility === 'public') return { authorId: post.authorId };
     if (post.visibility === 'followers') {
       const f = await this.prisma.follow.findUnique({
         where: { followerId_followeeId: { followerId: viewerId, followeeId: post.authorId } },
       });
-      if (f) return;
+      if (f) return { authorId: post.authorId };
     }
     throw new ForbiddenException('cannot access this post');
   }
 
   async likePost(userId: string, postId: string): Promise<{ ok: true; likeCount: number }> {
-    await this.assertCanViewPost(postId, userId);
-    await this.prisma.postLike.upsert({
-      where: { postId_userId: { postId, userId } },
-      create: { postId, userId },
-      update: {},
-    });
+    const { authorId } = await this.assertCanViewPost(postId, userId);
+    try {
+      await this.prisma.postLike.create({ data: { postId, userId } });
+      if (authorId !== userId) await this.notify(authorId, userId, 'like', postId);
+    } catch (e) {
+      // 이미 좋아요(unique 위반)면 알림 재생성 안 함.
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+    }
     const likeCount = await this.prisma.postLike.count({ where: { postId } });
     return { ok: true, likeCount };
   }
@@ -341,13 +356,14 @@ export class SocialService {
   }
 
   async addComment(userId: string, postId: string, body: string): Promise<CommentView> {
-    await this.assertCanViewPost(postId, userId);
+    const { authorId } = await this.assertCanViewPost(postId, userId);
     const text = body.trim();
     if (!text) throw new BadRequestException('empty comment');
     const c = await this.prisma.comment.create({
       data: { postId, authorId: userId, body: text },
       include: { author: { select: { id: true, displayName: true } } },
     });
+    if (authorId !== userId) await this.notify(authorId, userId, 'comment', postId);
     return {
       id: c.id,
       author: { id: c.author.id, displayName: c.author.displayName },

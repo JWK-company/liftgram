@@ -29,8 +29,10 @@ model User {
   stories       Story[]
   conversations ConversationParticipant[]
   messages      Message[]
-  postLikes     PostLike[]
-  comments      Comment[]
+  postLikes         PostLike[]
+  comments          Comment[]
+  notifications     Notification[] @relation("notifications")
+  notificationsSent Notification[] @relation("notificationsActor")
 }
 
 model Device {
@@ -199,4 +201,19 @@ model Comment {
   createdAt DateTime @default(now())
 
   @@index([postId, createdAt])
+}
+
+// 알림 (SRS-020). 팔로우·좋아요·댓글 이벤트 fan-out. DM은 unread 배지로 별도.
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String // 수신자
+  user      User      @relation("notifications", fields: [userId], references: [id], onDelete: Cascade)
+  type      String // follow | like | comment
+  actorId   String // 유발자
+  actor     User      @relation("notificationsActor", fields: [actorId], references: [id], onDelete: Cascade)
+  postId    String? // like/comment 대상
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
 }
