@@ -219,6 +219,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             post={item}
             onLike={onLike}
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
+            onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
           />
         )}
         contentContainerStyle={styles.list}
@@ -236,10 +237,12 @@ function PostCard({
   post,
   onLike,
   onComment,
+  onOpenProfile,
 }: {
   post: FeedPost;
   onLike: (p: FeedPost) => void;
   onComment: (p: FeedPost) => void;
+  onOpenProfile: (userId: string) => void;
 }) {
   const { t } = useT();
   const name = post.author.displayName || t('discover.unnamed');
@@ -250,7 +253,7 @@ function PostCard({
       : undefined;
   return (
     <Card style={styles.card}>
-      <View style={styles.postHead}>
+      <Pressable style={styles.postHead} onPress={() => onOpenProfile(post.author.id)}>
         <View style={styles.avatar}>
           <AppText variant="body" weight="bold" style={{ color: colors.onPrimary }}>
             {name.slice(0, 1).toUpperCase()}
@@ -265,7 +268,7 @@ function PostCard({
           </AppText>
         </View>
         {post.kind === 'workout' ? <Tag label={t('feed.workoutBadge')} tone="primary" /> : null}
-      </View>
+      </Pressable>
       {imageUrl ? <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.postImage} resizeMode="cover" /> : null}
       {post.caption ? (
         <AppText variant="body" style={{ marginTop: spacing.sm }}>

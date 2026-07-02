@@ -85,6 +85,13 @@ export interface DiscoverUser {
   displayName: string | null;
   isFollowing: boolean;
 }
+export interface SocialProfile {
+  id: string;
+  displayName: string | null;
+  counts: { followers: number; following: number; posts: number };
+  isFollowing: boolean;
+  isSelf: boolean;
+}
 export interface CreatePostInput {
   kind?: string;
   caption?: string;
@@ -215,6 +222,12 @@ export const serverApi = {
   },
   unfollowUser(id: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/follow/${id}`, { method: 'DELETE', auth: true });
+  },
+  profile(userId: string): Promise<SocialProfile> {
+    return request<SocialProfile>(`/social/users/${userId}`, { auth: true });
+  },
+  userPosts(userId: string): Promise<FeedPost[]> {
+    return request<FeedPost[]>(`/social/users/${userId}/posts`, { auth: true });
   },
   // --- 미디어 ---
   async uploadImage(image: PickedImage): Promise<MediaUpload> {

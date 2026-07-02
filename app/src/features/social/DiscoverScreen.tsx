@@ -85,7 +85,12 @@ export default function DiscoverScreen({ navigation }: RootStackScreenProps<'Dis
         data={users}
         keyExtractor={(u) => u.id}
         renderItem={({ item }) => (
-          <UserRow user={item} onToggle={() => toggle(item)} onMessage={() => startDm(item)} />
+          <UserRow
+            user={item}
+            onToggle={() => toggle(item)}
+            onMessage={() => startDm(item)}
+            onOpenProfile={() => navigation.navigate('UserProfile', { userId: item.id })}
+          />
         )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(q)} tintColor={colors.primary} />}
@@ -99,23 +104,27 @@ function UserRow({
   user,
   onToggle,
   onMessage,
+  onOpenProfile,
 }: {
   user: DiscoverUser;
   onToggle: () => void;
   onMessage: () => void;
+  onOpenProfile: () => void;
 }) {
   const { t } = useT();
   const name = user.displayName || t('discover.unnamed');
   return (
     <Card style={styles.userCard}>
-      <View style={styles.avatar}>
-        <AppText variant="body" weight="bold" style={{ color: colors.onPrimary }}>
-          {name.slice(0, 1).toUpperCase()}
+      <Pressable style={styles.userMain} onPress={onOpenProfile}>
+        <View style={styles.avatar}>
+          <AppText variant="body" weight="bold" style={{ color: colors.onPrimary }}>
+            {name.slice(0, 1).toUpperCase()}
+          </AppText>
+        </View>
+        <AppText variant="body" weight="medium" numberOfLines={1} style={styles.name}>
+          {name}
         </AppText>
-      </View>
-      <AppText variant="body" weight="medium" numberOfLines={1} style={styles.name}>
-        {name}
-      </AppText>
+      </Pressable>
       <Pressable onPress={onMessage} hitSlop={8} style={{ marginRight: spacing.sm }}>
         <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.primary} />
       </Pressable>
@@ -140,6 +149,7 @@ const styles = StyleSheet.create({
   },
   list: { padding: spacing.lg, paddingTop: spacing.md, flexGrow: 1 },
   userCard: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+  userMain: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: {
     width: 36,
     height: 36,

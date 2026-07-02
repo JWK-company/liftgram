@@ -25,6 +25,7 @@ export type RootStackParamList = {
   Conversations: undefined; // SRS-017 DM 대화 목록
   Conversation: { conversationId: string; title?: string }; // SRS-017 DM 쓰레드
   Comments: { postId: string }; // SRS-007 댓글
+  UserProfile: { userId: string }; // SRS-008 공개 프로필
 };
 
 // 화면 컴포넌트 타입 헬퍼
