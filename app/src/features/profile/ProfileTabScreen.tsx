@@ -18,6 +18,7 @@ import { userRepo } from '../../data';
 import { fromKg, toKg, ALL_EQUIPMENT, equipmentLabel, type WeightUnit, type EquipmentType } from '../../domain';
 import { useT } from '../../i18n';
 import { ServerSyncCard } from './ServerSyncCard';
+import { ProfileEditCard } from './ProfileEditCard';
 
 type Language = 'ko' | 'en';
 
@@ -219,6 +220,9 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
         {/* @plm SRS-006 — 실제 서버 동기(JWT + WatermelonDB synchronize) */}
         <ServerSyncCard />
       </Card>
+
+      {/* 내 프로필 편집 (로그인 시만 표시) */}
+      <ProfileEditCard />
 
       {/* 푸터 — 웰니스 고지 */}
       <View style={styles.footer}>

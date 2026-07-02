@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, Card, AppText, Button, TextField, EmptyState } from '../../components';
+import { Screen, Card, AppText, Button, TextField, EmptyState, Avatar } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DiscoverUser } from '../../sync/serverApi';
 import { colors, spacing, radius } from '../../theme';
@@ -116,11 +116,7 @@ function UserRow({
   return (
     <Card style={styles.userCard}>
       <Pressable style={styles.userMain} onPress={onOpenProfile}>
-        <View style={styles.avatar}>
-          <AppText variant="body" weight="bold" style={{ color: colors.onPrimary }}>
-            {name.slice(0, 1).toUpperCase()}
-          </AppText>
-        </View>
+        <Avatar name={user.displayName} url={user.avatarUrl} size={36} />
         <AppText variant="body" weight="medium" numberOfLines={1} style={styles.name}>
           {name}
         </AppText>

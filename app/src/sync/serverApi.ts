@@ -64,7 +64,7 @@ export interface PullResponse {
 // --- 소셜 (SAD-011) ---
 export interface FeedPost {
   id: string;
-  author: { id: string; displayName: string | null };
+  author: { id: string; displayName: string | null; avatarUrl: string | null };
   kind: string;
   caption: string | null;
   data: unknown;
@@ -83,11 +83,13 @@ export interface Comment {
 export interface DiscoverUser {
   id: string;
   displayName: string | null;
+  avatarUrl: string | null;
   isFollowing: boolean;
 }
 export interface SocialProfile {
   id: string;
   displayName: string | null;
+  avatarUrl: string | null;
   counts: { followers: number; following: number; posts: number };
   isFollowing: boolean;
   isSelf: boolean;
@@ -136,6 +138,7 @@ export interface PublicUser {
   id: string;
   email: string | null;
   displayName: string | null;
+  avatarUrl: string | null;
 }
 export interface DmMessage {
   id: string;
@@ -271,6 +274,9 @@ export const serverApi = {
   // --- 유저 ---
   me(): Promise<PublicUser> {
     return request<PublicUser>('/users/me', { auth: true });
+  },
+  updateProfile(input: { displayName?: string; avatarUrl?: string }): Promise<PublicUser> {
+    return request<PublicUser>('/users/me', { method: 'PATCH', body: input, auth: true });
   },
   // --- DM ---
   conversations(): Promise<DmConversation[]> {

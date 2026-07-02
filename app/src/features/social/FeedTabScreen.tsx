@@ -4,7 +4,7 @@ import { FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 're
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, Divider } from '../../components';
+import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, Divider, Avatar } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -300,11 +300,7 @@ function PostCard({
   return (
     <Card style={styles.card}>
       <Pressable style={styles.postHead} onPress={() => onOpenProfile(post.author.id)}>
-        <View style={styles.avatar}>
-          <AppText variant="body" weight="bold" style={{ color: colors.onPrimary }}>
-            {name.slice(0, 1).toUpperCase()}
-          </AppText>
-        </View>
+        <Avatar name={post.author.displayName} url={post.author.avatarUrl} size={36} />
         <View style={{ flex: 1, marginLeft: spacing.sm }}>
           <AppText variant="body" weight="medium" numberOfLines={1}>
             {name}

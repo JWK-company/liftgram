@@ -5,4 +5,5 @@ export { IconButton } from './IconButton';
 export { TextField, NumberStepper } from './inputs';
 export { SimpleBarChart, DistributionBars, type ChartDatum } from './charts';
 export { AppText, Card, Tag, Divider, SectionHeader, StatTile, EmptyState } from './primitives';
+export { Avatar } from './Avatar';
 export { AlertHost } from './AlertHost';

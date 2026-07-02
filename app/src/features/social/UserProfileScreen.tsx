@@ -3,7 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Button, Card, EmptyState, Screen } from '../../components';
+import { AppText, Avatar, Button, Card, EmptyState, Screen } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type SocialProfile } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -81,11 +81,7 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
 
   const header = profile ? (
     <View style={styles.header}>
-      <View style={styles.avatar}>
-        <AppText variant="display" style={{ color: colors.onPrimary }}>
-          {(profile.displayName || '?').slice(0, 1).toUpperCase()}
-        </AppText>
-      </View>
+      <Avatar name={profile.displayName} url={profile.avatarUrl} size={84} />
       <AppText variant="title" center style={{ marginTop: spacing.md }}>
         {profile.displayName || t('discover.unnamed')}
       </AppText>
