@@ -70,6 +70,15 @@ export interface FeedPost {
   data: unknown;
   visibility: string;
   createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  likedByMe: boolean;
+}
+export interface Comment {
+  id: string;
+  author: { id: string; displayName: string | null };
+  body: string;
+  createdAt: string;
 }
 export interface DiscoverUser {
   id: string;
@@ -180,6 +189,21 @@ export const serverApi = {
   },
   createPost(input: CreatePostInput): Promise<FeedPost> {
     return request<FeedPost>('/social/posts', { method: 'POST', body: input, auth: true });
+  },
+  likePost(postId: string): Promise<{ ok: true; likeCount: number }> {
+    return request<{ ok: true; likeCount: number }>(`/social/posts/${postId}/like`, { method: 'POST', auth: true });
+  },
+  unlikePost(postId: string): Promise<{ ok: true; likeCount: number }> {
+    return request<{ ok: true; likeCount: number }>(`/social/posts/${postId}/like`, { method: 'DELETE', auth: true });
+  },
+  comments(postId: string): Promise<Comment[]> {
+    return request<Comment[]>(`/social/posts/${postId}/comments`, { auth: true });
+  },
+  addComment(postId: string, body: string): Promise<Comment> {
+    return request<Comment>(`/social/posts/${postId}/comments`, { method: 'POST', body: { body }, auth: true });
+  },
+  deleteComment(commentId: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/social/comments/${commentId}`, { method: 'DELETE', auth: true });
   },
   discover(q?: string): Promise<DiscoverUser[]> {
     return request<DiscoverUser[]>(`/social/users${q ? `?q=${encodeURIComponent(q)}` : ''}`, {

@@ -24,6 +24,7 @@ export type RootStackParamList = {
   Discover: undefined; // SRS-018 사람 찾기·팔로우
   Conversations: undefined; // SRS-017 DM 대화 목록
   Conversation: { conversationId: string; title?: string }; // SRS-017 DM 쓰레드
+  Comments: { postId: string }; // SRS-007 댓글
 };
 
 // 화면 컴포넌트 타입 헬퍼

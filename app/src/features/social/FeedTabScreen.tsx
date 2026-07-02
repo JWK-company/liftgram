@@ -1,5 +1,5 @@
 // @plm SRS-007 @plm SRS-019  소셜 피드 탭 — 스토리 트레이 + 피드(텍스트/이미지 게시) (SAD-011/012).
-import React, { useCallback, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -33,6 +33,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [posting, setPosting] = useState(false);
   const [storyBusy, setStoryBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const likePending = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -42,7 +43,15 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       setAuthed(logged);
       if (logged) {
         const [feed, stories] = await Promise.all([serverApi.feed(), serverApi.stories()]);
-        setPosts(feed);
+        // 진행 중인 좋아요는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
+        setPosts((prev) => {
+          if (!likePending.current.size) return feed;
+          const byId = new Map(prev.map((p) => [p.id, p]));
+          return feed.map((p) => {
+            const opt = likePending.current.has(p.id) ? byId.get(p.id) : undefined;
+            return opt ? { ...p, likedByMe: opt.likedByMe, likeCount: opt.likeCount } : p;
+          });
+        });
         setStoryGroups(stories);
       }
     } catch (e) {
@@ -113,6 +122,32 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     }
   }
 
+  const onLike = useCallback(async (post: FeedPost) => {
+    if (likePending.current.has(post.id)) return; // 같은 포스트 연타 방지
+    likePending.current.add(post.id);
+    const liked = post.likedByMe;
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === post.id ? { ...p, likedByMe: !liked, likeCount: p.likeCount + (liked ? -1 : 1) } : p,
+      ),
+    );
+    try {
+      const r = liked ? await serverApi.unlikePost(post.id) : await serverApi.likePost(post.id);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, likeCount: r.likeCount, likedByMe: !liked } : p)),
+      );
+    } catch {
+      // 델타 롤백(현재 상태 기준 — 캡처된 절대값 복원 시 드리프트).
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id ? { ...p, likedByMe: liked, likeCount: p.likeCount + (liked ? 1 : -1) } : p,
+        ),
+      );
+    } finally {
+      likePending.current.delete(post.id);
+    }
+  }, []);
+
   if (authed === false) {
     return (
       <Screen>
@@ -179,7 +214,13 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       <FlatList
         data={posts}
         keyExtractor={(p) => p.id}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => (
+          <PostCard
+            post={item}
+            onLike={onLike}
+            onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
+          />
+        )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={
@@ -191,7 +232,15 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   );
 }
 
-function PostCard({ post }: { post: FeedPost }) {
+function PostCard({
+  post,
+  onLike,
+  onComment,
+}: {
+  post: FeedPost;
+  onLike: (p: FeedPost) => void;
+  onComment: (p: FeedPost) => void;
+}) {
   const { t } = useT();
   const name = post.author.displayName || t('discover.unnamed');
   const when = new Date(post.createdAt).toLocaleDateString('ko-KR');
@@ -223,6 +272,28 @@ function PostCard({ post }: { post: FeedPost }) {
           {post.caption}
         </AppText>
       ) : null}
+      <View style={styles.actions}>
+        <Pressable onPress={() => onLike(post)} hitSlop={8} style={styles.action}>
+          <Ionicons
+            name={post.likedByMe ? 'heart' : 'heart-outline'}
+            size={22}
+            color={post.likedByMe ? colors.danger : colors.textMuted}
+          />
+          {post.likeCount > 0 ? (
+            <AppText variant="caption" color="textMuted">
+              {post.likeCount}
+            </AppText>
+          ) : null}
+        </Pressable>
+        <Pressable onPress={() => onComment(post)} hitSlop={8} style={styles.action}>
+          <Ionicons name="chatbubble-outline" size={20} color={colors.textMuted} />
+          {post.commentCount > 0 ? (
+            <AppText variant="caption" color="textMuted">
+              {post.commentCount}
+            </AppText>
+          ) : null}
+        </Pressable>
+      </View>
     </Card>
   );
 }
@@ -258,4 +329,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     backgroundColor: colors.surfaceAlt,
   },
+  actions: { flexDirection: 'row', gap: spacing.xl, marginTop: spacing.md },
+  action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
 });
