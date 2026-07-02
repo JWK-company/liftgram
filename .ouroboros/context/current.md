@@ -93,8 +93,8 @@
 - **앱 가명 = Liftgram (2026-06-30)**: app.json(name/slug/scheme/bundleId `com.liftgram.app`)·i18n 태그라인 반영, 서버 DB명 `repset`→`liftgram` 통일. 내부 저장 식별자(WatermelonDB `dbName`·토큰 키)는 로컬 데이터 보존 위해 `repset` 유지. 루트 `README.md`를 제품·구동(백엔드 DB 생성→마이그레이션→기동, 앱 실행, 동기, pgAdmin 확인) 중심으로 재작성.
 - **소셜 코어 착수 (2026-07-02, `feat/social-core` · SAD-011)**: 크로스유저 공유 데이터 → **서버 관계형+REST**(ADR-014 옵트인 공개 레이어, 오프라인-우선 개인 코어와 분리). Prisma `Follow`/`Post` + `social` 모듈(follow·createPost·feed·discover·profile) 마이그레이션·빌드 0에러. 서버 E2E(2유저 팔로우→포스트→피드 노출→언팔 사라짐→무토큰401) PASS. 앱: `serverApi` 소셜 메서드 + **피드 탭**(작성·새로고침) + **발견 스크린**(검색·팔로우) + 네비 연결. typecheck·웹export PASS. 미디어(SAD-012)·DM(실시간, SRS-017)은 후속.
 - **백엔드 토대 마감 (2026-07-02, `feat/backend-hardening`)**: **refresh 토큰 회전**(login/signup→access+refresh 발급·`/auth/refresh` 회전=옛 토큰 폐기·`/auth/logout`·앱 401 시 자동 재발급) + **시드 멀티기기 dedup**(운동 시드 결정적 id=nameEn 슬러그 → 동기 recordId 병합). 서버 refresh E2E(회전→옛토큰401·logout→401)·소셜 회귀·앱 typecheck·웹export PASS. **인증 어댑터 추상화**(ADR-018 — `AuthProvider` 포트·`LocalAuthProvider` 기본·config `AUTH_PROVIDER` 선택·`/auth/exchange` 매니지드 확장 지점; 세션=우리 JWT+refresh 유지, 신원 소스만 교체 가능). 로컬 회귀·exchange→501 확인. 매니지드 제공자 실연동은 계정·키 준비 후 드롭인.
-- **후속/미구현**: 매니지드 인증 제공자 선택·실연동(어댑터 준비됨) · media(SAD-012) · DM(SRS-017) · notifications(SRS-020) · 결제(SAD-013, 앱 완성 후) · 자동카운팅(SRS-012, 센서/CV·네이티브 보류). 실행: `server/README.md`.
+- **미디어 파이프라인 착수 (2026-07-02, `feat/media-pipeline` · SAD-012)**: **스토리지 어댑터**(`StorageProvider` 포트·`LocalStorageProvider` 디스크 기본·config `STORAGE_PROVIDER`·클라우드 S3/R2 드롭인 ADR-016) + `MediaAsset` 모델 + `media` 모듈(`POST /media/upload` 멀티파트·이미지검증·10MB·`GET /media/file/:key` 공개 서브). 서버 E2E(업로드→URL 서브 바이트일치→이미지 포스트→피드 노출→비이미지400) PASS. 앱: `serverApi.uploadImage`(웹 Blob/네이티브 FormData 분기) + 피드 탭 **사진 첨부·업로드·이미지 렌더**(expo-image-picker). typecheck·웹export PASS. 스토리(24h)·트랜스코딩·모더레이션은 후속.
+- **후속/미구현**: 매니지드 인증 제공자 실연동(어댑터 준비됨) · 미디어 스토리/모더레이션(SAD-012) · DM(SRS-017) · notifications(SRS-020) · 결제(SAD-013, 앱 완성 후) · 자동카운팅(SRS-012, 보류). 실행: `server/README.md`.
 
 ## 차단 요소
-
 (없음) — IP 귀속 점검(reference/risks.md)은 코딩 착수 전 별도 진행 권고.
