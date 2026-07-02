@@ -1,7 +1,7 @@
-// 서버 API 클라이언트 — 인증(JWT) + 동기 raw 호출 + 소셜(SAD-011). @plm SRS-006 @plm SRS-007
+// 서버 API 클라이언트 — 인증(JWT + refresh 회전) + 동기 + 소셜(SAD-011). @plm SRS-006 @plm SRS-007
 import type { SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
 import { SERVER_URL } from '../config';
-import { clearToken, loadToken, saveToken } from './tokenStore';
+import { clearTokens, loadRefreshToken, loadToken, saveTokens } from './tokenStore';
 
 interface RequestOptions {
   method?: string;
@@ -9,7 +9,29 @@ interface RequestOptions {
   auth?: boolean;
 }
 
-async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+// refresh 토큰으로 새 토큰쌍 획득. 실패(만료/폐기) 시 저장 토큰 정리. request() 재귀 방지 위해 직접 fetch.
+async function tryRefresh(): Promise<boolean> {
+  const refreshToken = await loadRefreshToken();
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(`${SERVER_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    if (!res.ok) {
+      await clearTokens();
+      return false;
+    }
+    const { accessToken, refreshToken: next } = (await res.json()) as AuthTokens;
+    await saveTokens(accessToken, next);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function request<T>(path: string, opts: RequestOptions = {}, retried = false): Promise<T> {
   const headers: Record<string, string> = { 'content-type': 'application/json' };
   if (opts.auth) {
     const token = await loadToken();
@@ -20,12 +42,17 @@ async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
     headers,
     body: opts.body != null ? JSON.stringify(opts.body) : undefined,
   });
+  // access 토큰 만료 → refresh로 1회 자동 재시도(투명).
+  if (res.status === 401 && opts.auth && !retried && (await tryRefresh())) {
+    return request<T>(path, opts, true);
+  }
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return (res.status === 204 ? (undefined as T) : ((await res.json()) as T));
 }
 
 export interface AuthTokens {
   accessToken: string;
+  refreshToken: string;
 }
 export interface PullResponse {
   changes: SyncDatabaseChangeSet;
@@ -56,21 +83,29 @@ export interface CreatePostInput {
 
 export const serverApi = {
   async signUp(email: string, password: string, displayName?: string): Promise<void> {
-    const { accessToken } = await request<AuthTokens>('/auth/signup', {
+    const { accessToken, refreshToken } = await request<AuthTokens>('/auth/signup', {
       method: 'POST',
       body: { email, password, displayName },
     });
-    await saveToken(accessToken);
+    await saveTokens(accessToken, refreshToken);
   },
   async login(email: string, password: string): Promise<void> {
-    const { accessToken } = await request<AuthTokens>('/auth/login', {
+    const { accessToken, refreshToken } = await request<AuthTokens>('/auth/login', {
       method: 'POST',
       body: { email, password },
     });
-    await saveToken(accessToken);
+    await saveTokens(accessToken, refreshToken);
   },
   async logout(): Promise<void> {
-    await clearToken();
+    const refreshToken = await loadRefreshToken();
+    if (refreshToken) {
+      try {
+        await request('/auth/logout', { method: 'POST', body: { refreshToken } });
+      } catch {
+        // best-effort — 서버 실패해도 로컬 토큰은 정리
+      }
+    }
+    await clearTokens();
   },
   async isLoggedIn(): Promise<boolean> {
     return (await loadToken()) != null;

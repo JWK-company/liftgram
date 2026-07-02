@@ -17,6 +17,7 @@ export async function seedExercisesIfNeeded(): Promise<number> {
       await database.batch(
         ...missing.map((seed) =>
           exercises.prepareCreate((e) => {
+            e._raw.id = seedId(seed.nameEn); // 결정적 id → 멀티기기 동기 시 중복 방지 (SRS-001)
             e.nameKo = seed.nameKo;
             e.nameEn = seed.nameEn ?? null;
             e.primaryMuscles = seed.primaryMuscles;
@@ -58,6 +59,16 @@ async function syncSubstitutes(): Promise<void> {
       ),
     );
   });
+}
+
+// 시드 종목의 결정적 id — nameEn 슬러그 기반. 여러 기기가 같은 종목을 같은 id로 생성하므로
+// 동기 시 recordId 일치로 병합돼 중복이 생기지 않는다(신규 설치에 적용; 기존 랜덤 id 레코드는 유지).
+function seedId(nameEn: string): string {
+  const slug = nameEn
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return `seed-${slug}`;
 }
 
 function arraysEqual(a: string[], b: string[]): boolean {
