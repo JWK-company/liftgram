@@ -26,6 +26,7 @@ model User {
   followers     Follow[]       @relation("followers") // 나를 팔로우하는 관계
   posts         Post[]
   mediaAssets   MediaAsset[]
+  stories       Story[]
 }
 
 model Device {
@@ -111,4 +112,18 @@ model MediaAsset {
   createdAt   DateTime @default(now())
 
   @@index([ownerId])
+}
+
+// 스토리 (SRS-019 · SAD-012). 24h 후 만료 — 만료는 조회 시 expiresAt 필터(정리 잡은 후속).
+model Story {
+  id        String   @id @default(uuid())
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  mediaUrl  String
+  caption   String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([authorId, expiresAt])
+  @@index([expiresAt])
 }

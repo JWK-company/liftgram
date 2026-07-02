@@ -1,4 +1,5 @@
 // @plm SRS-019  로컬 디스크 스토리지 (dev 기본). 업로드를 MEDIA_DIR에 저장, /media/file/:key로 서브. ADR-016.
+// URL은 호스트 없는 상대경로(`/media/file/<key>`)로 반환 — 관계형 행에 호스트를 굳히지 않아 실기기/CDN 전환에 안전.
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
@@ -17,12 +18,9 @@ const EXT: Record<string, string> = {
 export class LocalStorageProvider implements StorageProvider {
   readonly name = 'local';
   private readonly dir: string;
-  private readonly publicUrl: string;
 
   constructor(config: ConfigService) {
     this.dir = resolve(config.get<string>('MEDIA_DIR', 'uploads'));
-    // 미디어 URL 베이스(글로벌 프리픽스 /api 포함). 실기기/CDN 전환 시 교체.
-    this.publicUrl = config.get<string>('MEDIA_PUBLIC_URL', 'http://localhost:3000/api');
     mkdirSync(this.dir, { recursive: true });
   }
 
@@ -30,7 +28,8 @@ export class LocalStorageProvider implements StorageProvider {
     const ext = EXT[contentType] ?? 'bin';
     const key = `${randomBytes(16).toString('hex')}.${ext}`;
     writeFileSync(join(this.dir, key), data);
-    return { key, url: `${this.publicUrl}/media/file/${key}`, bytes: data.length };
+    // 상대경로 — 클라이언트가 SERVER_URL로 해소. (클라우드 어댑터는 절대 CDN URL 반환)
+    return { key, url: `/media/file/${key}`, bytes: data.length };
   }
 
   resolvePath(key: string): string {

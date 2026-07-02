@@ -77,17 +77,28 @@ export class AuthService {
 
   // 회전: 유효한 refresh 토큰 → 기존 것 폐기(revoke) + 새 토큰쌍 발급. 재사용/만료/폐기 토큰은 401.
   async refresh(rawToken: string): Promise<AuthTokens> {
-    const rec = await this.prisma.refreshToken.findUnique({
-      where: { tokenHash: this.hashToken(rawToken) },
-      include: { user: true },
-    });
-    if (!rec || rec.revokedAt || rec.expiresAt < new Date()) {
-      throw new UnauthorizedException('invalid refresh token');
-    }
-    await this.prisma.refreshToken.update({
-      where: { id: rec.id },
+    const tokenHash = this.hashToken(rawToken);
+    // 원자적 회전 — revokedAt=null & 미만료인 것만 revoke. count===1이면 이 요청이 소비 성공(동시 이중사용 방지).
+    const revoked = await this.prisma.refreshToken.updateMany({
+      where: { tokenHash, revokedAt: null, expiresAt: { gt: new Date() } },
       data: { revokedAt: new Date() },
     });
+    if (revoked.count === 0) {
+      // 이미 폐기된 토큰의 재사용이면 재사용 공격으로 간주 → 해당 유저 토큰 전부 폐기(패밀리 무효화).
+      const existing = await this.prisma.refreshToken.findUnique({ where: { tokenHash } });
+      if (existing?.revokedAt) {
+        await this.prisma.refreshToken.updateMany({
+          where: { userId: existing.userId, revokedAt: null },
+          data: { revokedAt: new Date() },
+        });
+      }
+      throw new UnauthorizedException('invalid refresh token');
+    }
+    const rec = await this.prisma.refreshToken.findUnique({
+      where: { tokenHash },
+      include: { user: true },
+    });
+    if (!rec) throw new UnauthorizedException('invalid refresh token');
     return this.issue(rec.userId, rec.user.email);
   }
 
@@ -106,7 +117,7 @@ export class AuthService {
     const accessToken = await this.jwt.signAsync(
       { sub: userId, email },
       {
-        secret: this.config.get<string>('JWT_SECRET', 'dev-change-me'),
+        secret: this.config.getOrThrow<string>('JWT_SECRET'),
         expiresIn: this.config.get<string>('JWT_EXPIRES_IN', '15m'),
       },
     );

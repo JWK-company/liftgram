@@ -3,8 +3,15 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/jwt.strategy';
-import { CreatePostDto } from './dto/social.dto';
-import { DiscoverUser, PostView, PublicProfile, SocialService } from './social.service';
+import { CreatePostDto, CreateStoryDto } from './dto/social.dto';
+import {
+  DiscoverUser,
+  PostView,
+  PublicProfile,
+  SocialService,
+  StoryGroup,
+  StoryView,
+} from './social.service';
 
 const clampLimit = (v: string | undefined, def: number, max: number): number => {
   const n = v ? parseInt(v, 10) : def;
@@ -28,6 +35,16 @@ export class SocialController {
   @Post('posts')
   createPost(@CurrentUser() user: AuthUser, @Body() dto: CreatePostDto): Promise<PostView> {
     return this.social.createPost(user.userId, dto);
+  }
+
+  @Post('stories')
+  createStory(@CurrentUser() user: AuthUser, @Body() dto: CreateStoryDto): Promise<StoryView> {
+    return this.social.createStory(user.userId, dto.mediaUrl, dto.caption);
+  }
+
+  @Get('stories')
+  stories(@CurrentUser() user: AuthUser): Promise<StoryGroup[]> {
+    return this.social.getActiveStories(user.userId);
   }
 
   @Get('users')

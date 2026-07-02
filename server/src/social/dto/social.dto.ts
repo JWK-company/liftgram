@@ -19,3 +19,13 @@ export class CreatePostDto {
   @IsIn(['public', 'followers', 'private'])
   visibility?: string;
 }
+
+export class CreateStoryDto {
+  @IsString()
+  mediaUrl!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  caption?: string;
+}

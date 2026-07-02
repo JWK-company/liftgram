@@ -17,7 +17,7 @@ import { LocalAuthProvider } from './provider/local-auth.provider';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET', 'dev-change-me'),
+        secret: config.getOrThrow<string>('JWT_SECRET'),
       }),
     }),
   ],

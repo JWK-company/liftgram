@@ -26,6 +26,19 @@ export interface DiscoverUser {
   displayName: string | null;
   isFollowing: boolean;
 }
+export interface StoryView {
+  id: string;
+  mediaUrl: string;
+  caption: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+export interface StoryGroup {
+  author: { id: string; displayName: string | null };
+  stories: StoryView[];
+}
+
+const STORY_TTL_MS = 24 * 60 * 60 * 1000; // 24시간
 
 type PostWithAuthor = Prisma.PostGetPayload<{ include: { author: true } }>;
 
@@ -43,6 +56,16 @@ export class SocialService {
       visibility: p.visibility,
       createdAt: p.createdAt.toISOString(),
     };
+  }
+
+  // 미디어 참조 검증 — /media/file/<key> 형태 + 해당 MediaAsset가 이 사용자 소유여야(외부 URL·무단 참조 차단).
+  private async assertOwnedMedia(mediaUrl: string, ownerId: string): Promise<void> {
+    const m = /\/media\/file\/([A-Za-z0-9._-]+)$/.exec(mediaUrl);
+    if (!m) throw new BadRequestException('invalid media url');
+    const asset = await this.prisma.mediaAsset.findUnique({ where: { key: m[1] } });
+    if (!asset || asset.ownerId !== ownerId) {
+      throw new BadRequestException('media not found or not owned');
+    }
   }
 
   async follow(followerId: string, followeeId: string): Promise<{ ok: true }> {
@@ -63,6 +86,14 @@ export class SocialService {
   }
 
   async createPost(authorId: string, dto: CreatePostDto): Promise<PostView> {
+    if (dto.kind === 'image') {
+      const imageUrl =
+        dto.data && typeof dto.data === 'object'
+          ? (dto.data as { imageUrl?: string }).imageUrl
+          : undefined;
+      if (!imageUrl) throw new BadRequestException('image post requires data.imageUrl');
+      await this.assertOwnedMedia(imageUrl, authorId);
+    }
     const post = await this.prisma.post.create({
       data: {
         authorId,
@@ -76,20 +107,24 @@ export class SocialService {
     return this.toView(post);
   }
 
-  // 피드 = 내가 팔로우하는 사람 + 나의 게시물(공개/팔로워), 최신순 커서 페이지네이션.
+  // 피드 = 내 게시물(공개범위 무관 전부) + 팔로우한 사람의 공개/팔로워 게시물, 최신순(id 타이브레이크).
   async getFeed(userId: string, limit: number, before?: string): Promise<PostView[]> {
     const follows = await this.prisma.follow.findMany({
       where: { followerId: userId },
       select: { followeeId: true },
     });
-    const authorIds = [...follows.map((f) => f.followeeId), userId];
+    const followeeIds = follows.map((f) => f.followeeId);
+    const beforeDate = before ? new Date(before) : undefined;
+    const validBefore = beforeDate && !Number.isNaN(beforeDate.getTime()) ? beforeDate : undefined;
     const posts = await this.prisma.post.findMany({
       where: {
-        authorId: { in: authorIds },
-        visibility: { in: ['public', 'followers'] },
-        ...(before ? { createdAt: { lt: new Date(before) } } : {}),
+        OR: [
+          { authorId: userId },
+          { authorId: { in: followeeIds }, visibility: { in: ['public', 'followers'] } },
+        ],
+        ...(validBefore ? { createdAt: { lt: validBefore } } : {}),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: { author: true },
     });
@@ -146,14 +181,8 @@ export class SocialService {
     const users = await this.prisma.user.findMany({
       where: {
         id: { not: viewerId },
-        ...(q
-          ? {
-              OR: [
-                { displayName: { contains: q, mode: 'insensitive' } },
-                { email: { contains: q, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
+        // 공개 식별자(displayName)만 검색 — 이메일 substring 매칭은 계정 열거 위험이라 제외.
+        ...(q ? { displayName: { contains: q, mode: 'insensitive' } } : {}),
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -168,5 +197,57 @@ export class SocialService {
       displayName: u.displayName,
       isFollowing: followingSet.has(u.id),
     }));
+  }
+
+  // 스토리 생성 — 24h 후 만료. 미디어는 사전 업로드된 mediaUrl 참조(SRS-019 · SAD-012).
+  async createStory(authorId: string, mediaUrl: string, caption?: string): Promise<StoryView> {
+    await this.assertOwnedMedia(mediaUrl, authorId);
+    const story = await this.prisma.story.create({
+      data: {
+        authorId,
+        mediaUrl,
+        caption: caption ?? null,
+        expiresAt: new Date(Date.now() + STORY_TTL_MS),
+      },
+    });
+    return {
+      id: story.id,
+      mediaUrl: story.mediaUrl,
+      caption: story.caption,
+      createdAt: story.createdAt.toISOString(),
+      expiresAt: story.expiresAt.toISOString(),
+    };
+  }
+
+  // 활성 스토리 — 팔로우한 사람 + 나, 만료 전(expiresAt > now). 작성자별 그룹(내 그룹 먼저).
+  async getActiveStories(userId: string): Promise<StoryGroup[]> {
+    const follows = await this.prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followeeId: true },
+    });
+    const authorIds = [...follows.map((f) => f.followeeId), userId];
+    const stories = await this.prisma.story.findMany({
+      where: { authorId: { in: authorIds }, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'asc' },
+      include: { author: true },
+    });
+    const groups = new Map<string, StoryGroup>();
+    for (const s of stories) {
+      let g = groups.get(s.authorId);
+      if (!g) {
+        g = { author: { id: s.author.id, displayName: s.author.displayName }, stories: [] };
+        groups.set(s.authorId, g);
+      }
+      g.stories.push({
+        id: s.id,
+        mediaUrl: s.mediaUrl,
+        caption: s.caption,
+        createdAt: s.createdAt.toISOString(),
+        expiresAt: s.expiresAt.toISOString(),
+      });
+    }
+    const arr = [...groups.values()];
+    arr.sort((a, b) => (a.author.id === userId ? -1 : b.author.id === userId ? 1 : 0));
+    return arr;
   }
 }
