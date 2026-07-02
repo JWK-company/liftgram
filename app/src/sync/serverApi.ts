@@ -341,6 +341,9 @@ export const serverApi = {
     });
   },
   // --- 푸시 알림 (SRS-020 · ADR-015) ---
+  getVapidPublicKey(): Promise<{ publicKey: string }> {
+    return request<{ publicKey: string }>('/push/vapid-public-key', {});
+  },
   registerPushToken(token: string, platform: string): Promise<{ ok: true }> {
     return request<{ ok: true }>('/push/tokens', { method: 'POST', body: { token, platform }, auth: true });
   },
