@@ -1,5 +1,6 @@
-// 서버 API 클라이언트 — 인증(JWT + refresh 회전) + 동기 + 소셜(SAD-011). @plm SRS-006 @plm SRS-007
+// 서버 API 클라이언트 — 인증(JWT + refresh 회전) + 동기 + 소셜(SAD-011) + 미디어(SAD-012). @plm SRS-006 @plm SRS-007 @plm SRS-019
 import type { SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
+import { Platform } from 'react-native';
 import { SERVER_URL } from '../config';
 import { clearTokens, loadRefreshToken, loadToken, saveTokens } from './tokenStore';
 
@@ -32,7 +33,8 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 async function request<T>(path: string, opts: RequestOptions = {}, retried = false): Promise<T> {
-  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  const isForm = typeof FormData !== 'undefined' && opts.body instanceof FormData;
+  const headers: Record<string, string> = isForm ? {} : { 'content-type': 'application/json' };
   if (opts.auth) {
     const token = await loadToken();
     if (token) headers.authorization = `Bearer ${token}`;
@@ -40,7 +42,7 @@ async function request<T>(path: string, opts: RequestOptions = {}, retried = fal
   const res = await fetch(`${SERVER_URL}${path}`, {
     method: opts.method ?? 'GET',
     headers,
-    body: opts.body != null ? JSON.stringify(opts.body) : undefined,
+    body: opts.body != null ? (isForm ? (opts.body as FormData) : JSON.stringify(opts.body)) : undefined,
   });
   // access 토큰 만료 → refresh로 1회 자동 재시도(투명).
   if (res.status === 401 && opts.auth && !retried && (await tryRefresh())) {
@@ -79,6 +81,19 @@ export interface CreatePostInput {
   caption?: string;
   data?: unknown;
   visibility?: string;
+}
+
+// --- 미디어 (SAD-012) ---
+export interface MediaUpload {
+  id: string;
+  url: string;
+  kind: string;
+  contentType: string;
+}
+export interface PickedImage {
+  uri: string;
+  fileName?: string | null;
+  mimeType?: string | null;
 }
 
 export const serverApi = {
@@ -135,5 +150,19 @@ export const serverApi = {
   },
   unfollowUser(id: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/follow/${id}`, { method: 'DELETE', auth: true });
+  },
+  // --- 미디어 ---
+  async uploadImage(image: PickedImage): Promise<MediaUpload> {
+    const type = image.mimeType ?? 'image/jpeg';
+    const name = image.fileName ?? `photo.${type.split('/')[1] ?? 'jpg'}`;
+    const form = new FormData();
+    if (Platform.OS === 'web') {
+      const blob = await (await fetch(image.uri)).blob();
+      form.append('file', blob, name);
+    } else {
+      // RN FormData는 {uri,name,type} 형태를 파일로 처리.
+      form.append('file', { uri: image.uri, name, type } as unknown as Blob);
+    }
+    return request<MediaUpload>('/media/upload', { method: 'POST', body: form, auth: true });
   },
 };
