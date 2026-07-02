@@ -8,6 +8,8 @@ import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, Divider } fr
 import type { TabScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
+import { useUser } from '../../state/userContext';
+import { formatWeight } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { StoryTray, StoryViewer } from './Stories';
@@ -248,6 +250,24 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   );
 }
 
+function formatWorkoutDuration(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function WStat({ label, value }: { label: string; value: string }) {
+  return (
+    <View>
+      <AppText variant="label" color="textFaint">
+        {label}
+      </AppText>
+      <AppText variant="body" weight="medium">
+        {value}
+      </AppText>
+    </View>
+  );
+}
+
 function PostCard({
   post,
   onLike,
@@ -260,11 +280,22 @@ function PostCard({
   onOpenProfile: (userId: string) => void;
 }) {
   const { t } = useT();
+  const { weightUnit } = useUser();
   const name = post.author.displayName || t('discover.unnamed');
   const when = new Date(post.createdAt).toLocaleDateString('ko-KR');
   const imageUrl =
     post.kind === 'image' && post.data && typeof post.data === 'object'
       ? (post.data as { imageUrl?: string }).imageUrl
+      : undefined;
+  const workout =
+    post.kind === 'workout' && post.data && typeof post.data === 'object'
+      ? (post.data as {
+          name?: string | null;
+          volumeKg?: number;
+          durationSeconds?: number;
+          prCount?: number;
+          setCount?: number;
+        })
       : undefined;
   return (
     <Card style={styles.card}>
@@ -284,6 +315,20 @@ function PostCard({
         </View>
         {post.kind === 'workout' ? <Tag label={t('feed.workoutBadge')} tone="primary" /> : null}
       </Pressable>
+      {workout ? (
+        <View style={styles.workoutBox}>
+          {workout.name ? (
+            <AppText variant="heading" numberOfLines={1}>
+              {workout.name}
+            </AppText>
+          ) : null}
+          <View style={styles.workoutStats}>
+            <WStat label={t('session.totalVolume')} value={formatWeight(workout.volumeKg ?? 0, weightUnit)} />
+            <WStat label={t('session.duration')} value={formatWorkoutDuration(workout.durationSeconds ?? 0)} />
+            <WStat label={t('session.setCount')} value={String(workout.setCount ?? 0)} />
+          </View>
+        </View>
+      ) : null}
       {imageUrl ? <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.postImage} resizeMode="cover" /> : null}
       {post.caption ? (
         <AppText variant="body" style={{ marginTop: spacing.sm }}>
@@ -362,4 +407,6 @@ const styles = StyleSheet.create({
   },
   actions: { flexDirection: 'row', gap: spacing.xl, marginTop: spacing.md },
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  workoutBox: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
+  workoutStats: { flexDirection: 'row', gap: spacing.xl, marginTop: spacing.sm },
 });

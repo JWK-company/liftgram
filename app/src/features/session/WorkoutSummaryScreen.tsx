@@ -12,6 +12,7 @@ import {
   Screen,
   StatTile,
   Tag,
+  TextField,
 } from '../../components';
 import { colors, spacing } from '../../theme';
 import type { RootStackScreenProps } from '../../navigation/types';
@@ -20,6 +21,7 @@ import { analyticsRepo, workoutRepo } from '../../data';
 import type { WorkoutDetail } from '../../data';
 import type { Workout } from '../../db/models';
 import { formatWeight, type WeightUnit } from '../../domain';
+import { serverApi } from '../../sync/serverApi';
 import { useT } from '../../i18n';
 
 function formatDuration(durationSeconds: number | null): string {
@@ -44,6 +46,10 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [detail, setDetail] = useState<WorkoutDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [caption, setCaption] = useState('');
+  const [sharing, setSharing] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -66,6 +72,37 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
       alive = false;
     };
   }, [workoutId]);
+
+  // 오운완 → 피드 공유 (SRS-007). 원시 kg/초/카운트를 저장, 뷰어가 자기 단위로 렌더.
+  async function shareToFeed() {
+    if (!workout || !detail || sharing || shared) return;
+    setSharing(true);
+    setShareError(null);
+    try {
+      if (!(await serverApi.isLoggedIn())) {
+        setShareError(t('session.shareLoginRequired'));
+        return;
+      }
+      await serverApi.createPost({
+        kind: 'workout',
+        caption: caption.trim() || undefined,
+        data: {
+          name: workout.name ?? null,
+          volumeKg: workout.totalVolumeKg,
+          durationSeconds: workout.durationSeconds ?? 0,
+          prCount: workout.prCount,
+          setCount: workingSetCount(detail),
+          exerciseCount: detail.exercises.length,
+        },
+      });
+      setShared(true);
+      setCaption('');
+    } catch (e) {
+      setShareError(String(e));
+    } finally {
+      setSharing(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -113,6 +150,39 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         <StatTile label={t('session.duration')} value={formatDuration(workout.durationSeconds)} />
         <StatTile label={t('session.setCount')} value={String(workingSetCount(detail))} />
       </View>
+
+      {/* 오운완 공유 */}
+      <Card style={{ marginTop: spacing.xl }}>
+        {shared ? (
+          <View style={styles.sharedRow}>
+            <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+            <AppText variant="body" weight="medium" style={{ marginLeft: spacing.sm }}>
+              {t('session.sharedToFeed')}
+            </AppText>
+          </View>
+        ) : (
+          <>
+            <TextField
+              value={caption}
+              onChangeText={setCaption}
+              placeholder={t('session.shareCaptionPlaceholder')}
+              multiline
+              containerStyle={{ marginBottom: spacing.sm }}
+            />
+            <Button
+              title={t('session.shareToFeed')}
+              icon="share-social-outline"
+              loading={sharing}
+              onPress={shareToFeed}
+            />
+            {shareError ? (
+              <AppText variant="caption" style={{ color: colors.danger, marginTop: spacing.sm }}>
+                {shareError}
+              </AppText>
+            ) : null}
+          </>
+        )}
+      </Card>
 
       {/* 종목별 분해 */}
       <AppText variant="heading" style={{ marginTop: spacing.xl, marginBottom: spacing.md }}>
@@ -187,4 +257,5 @@ function ExerciseSummaryCard({
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingVertical: spacing.lg },
   statRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+  sharedRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
 });
