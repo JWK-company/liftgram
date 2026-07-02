@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService, AuthTokens } from './auth.service';
-import { LoginDto, RefreshDto, SignUpDto } from './dto/auth.dto';
+import { ExchangeDto, LoginDto, RefreshDto, SignUpDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -14,6 +14,12 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginDto): Promise<AuthTokens> {
     return this.auth.login(dto);
+  }
+
+  // 매니지드 인증 확장 지점 — 제공자 토큰 → 우리 세션 발급 (로컬 제공자는 501).
+  @Post('exchange')
+  exchange(@Body() dto: ExchangeDto): Promise<AuthTokens> {
+    return this.auth.exchange(dto.providerToken);
   }
 
   @Post('refresh')

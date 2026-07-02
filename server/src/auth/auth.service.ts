@@ -1,11 +1,12 @@
-// @plm SRS-006  계정·인증 (로컬 email/password + JWT + refresh 토큰 회전). ADR-018: 추후 매니지드 인증 어댑터로 교체.
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+// @plm SRS-006  계정·인증 — 세션(JWT access + refresh 회전) 소유. 신원 확립은 AuthProvider 어댑터에 위임(ADR-018).
+import { Inject, Injectable, NotImplementedException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'crypto';
+import type { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, SignUpDto } from './dto/auth.dto';
+import { AUTH_PROVIDER, type AuthProvider, type ExternalIdentity } from './provider/auth-provider';
 
 const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30일
 
@@ -21,29 +22,57 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    @Inject(AUTH_PROVIDER) private readonly provider: AuthProvider,
   ) {}
 
   async signUp(dto: SignUpDto): Promise<AuthTokens> {
-    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (existing) throw new ConflictException('email already registered');
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        passwordHash,
-        displayName: dto.displayName ?? null,
-        authProvider: 'email',
-      },
-    });
+    this.assertPasswordAuth();
+    const identity = await this.provider.registerPassword(dto.email, dto.password, dto.displayName);
+    const user = await this.mapToUser(identity);
     return this.issue(user.id, user.email);
   }
 
   async login(dto: LoginDto): Promise<AuthTokens> {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (!user || !user.passwordHash) throw new UnauthorizedException('invalid credentials');
-    const ok = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!ok) throw new UnauthorizedException('invalid credentials');
+    this.assertPasswordAuth();
+    const identity = await this.provider.verifyPassword(dto.email, dto.password);
+    const user = await this.mapToUser(identity);
     return this.issue(user.id, user.email);
+  }
+
+  // 매니지드 인증 확장 지점 — 클라이언트가 제공자에서 받은 토큰 → 검증 → 우리 세션 발급.
+  // 로컬 제공자는 verifyToken 미구현(501). 매니지드 어댑터 바인딩 시 활성화.
+  async exchange(providerToken: string): Promise<AuthTokens> {
+    const identity = await this.provider.verifyToken(providerToken);
+    const user = await this.mapToUser(identity);
+    return this.issue(user.id, user.email);
+  }
+
+  private assertPasswordAuth(): void {
+    if (!this.provider.supportsPasswordAuth) {
+      throw new NotImplementedException(
+        `auth provider '${this.provider.name}' uses hosted login — use POST /auth/exchange`,
+      );
+    }
+  }
+
+  // 신원 → 로컬 User. local: subject=우리 User.id. 매니지드: email 기준 find-or-create(프로비저닝).
+  // (매니지드 실연동 시 provider subject 저장 필드 추가 예정 — 지금은 email 매핑.)
+  private async mapToUser(identity: ExternalIdentity): Promise<User> {
+    if (identity.provider === 'local') {
+      const user = await this.prisma.user.findUnique({ where: { id: identity.subject } });
+      if (!user) throw new UnauthorizedException('user not found');
+      return user;
+    }
+    if (!identity.email) throw new UnauthorizedException('managed identity missing email');
+    return this.prisma.user.upsert({
+      where: { email: identity.email },
+      create: {
+        email: identity.email,
+        displayName: identity.displayName ?? null,
+        authProvider: identity.provider,
+      },
+      update: {},
+    });
   }
 
   // 회전: 유효한 refresh 토큰 → 기존 것 폐기(revoke) + 새 토큰쌍 발급. 재사용/만료/폐기 토큰은 401.

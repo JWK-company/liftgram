@@ -25,3 +25,8 @@ export class RefreshDto {
   @IsString()
   refreshToken!: string;
 }
+
+export class ExchangeDto {
+  @IsString()
+  providerToken!: string;
+}
