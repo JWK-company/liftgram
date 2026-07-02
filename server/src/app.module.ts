@@ -7,9 +7,10 @@ import { UsersModule } from './users/users.module';
 import { SyncModule } from './sync/sync.module';
 import { SocialModule } from './social/social.module';
 import { MediaModule } from './media/media.module';
+import { DmModule } from './dm/dm.module';
 
 // 모듈러 모놀리스 루트 (ADR-011/ADR-018). 도메인 모듈을 한 배포 단위로 묶는다.
-// 현재: health · auth · users · sync(오프라인-우선 동기) · social(팔로우·피드, SAD-011) · media(SAD-012).
+// 현재: health · auth · users · sync · social(팔로우·피드·스토리, SAD-011) · media(SAD-012) · dm(SRS-017).
 // 후속: payments(SAD-013) · notifications(SRS-020).
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { MediaModule } from './media/media.module';
     SyncModule,
     SocialModule,
     MediaModule,
+    DmModule,
   ],
 })
 export class AppModule {}

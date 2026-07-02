@@ -27,6 +27,8 @@ model User {
   posts         Post[]
   mediaAssets   MediaAsset[]
   stories       Story[]
+  conversations ConversationParticipant[]
+  messages      Message[]
 }
 
 model Device {
@@ -126,4 +128,45 @@ model Story {
 
   @@index([authorId, expiresAt])
   @@index([expiresAt])
+}
+
+// DM 대화 (SRS-017 · SAD-011). 1:1 기본(isGroup=false), 그룹은 후속. 실시간 전송은 ADR-015(후속·현재 REST).
+model Conversation {
+  id           String                    @id @default(uuid())
+  isGroup      Boolean                   @default(false)
+  directKey    String?                   @unique // 1:1 정규화 키(정렬된 유저쌍) — 동시 생성 시 중복 대화 방지
+  title        String?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([updatedAt])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  kind           String       @default("text") // text|image
+  body           String?
+  mediaUrl       String?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }
