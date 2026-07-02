@@ -7,6 +7,7 @@ import { colors, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { syncWithServer } from '../../sync/syncEngine';
+import { registerPushToken, unregisterPushToken } from '../../push/push';
 
 type Mode = 'login' | 'signup';
 
@@ -34,6 +35,7 @@ export function ServerSyncCard() {
       else await serverApi.login(email.trim(), password);
       setLoggedIn(true);
       setPassword('');
+      void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
     } catch (e) {
       setStatus(String(e));
       setError(true);
@@ -59,6 +61,7 @@ export function ServerSyncCard() {
   }
 
   async function onDisconnect() {
+    await unregisterPushToken(); // 인증 유효할 때 토큰 제거 먼저
     await serverApi.logout();
     setLoggedIn(false);
     setStatus(null);

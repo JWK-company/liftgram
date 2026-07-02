@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 
 const ACCESS_KEY = 'repset_auth_token';
 const REFRESH_KEY = 'repset_refresh_token';
+const PUSH_KEY = 'repset_push_token';
 const isWeb = Platform.OS === 'web';
 
 async function setItem(key: string, value: string): Promise<void> {
@@ -45,4 +46,15 @@ export async function loadRefreshToken(): Promise<string | null> {
 export async function clearTokens(): Promise<void> {
   await delItem(ACCESS_KEY);
   await delItem(REFRESH_KEY);
+}
+
+// 푸시 토큰 영속 — 콜드스타트 후에도 로그아웃 시 서버에서 제거 가능(인메모리 유실 대비). @plm SRS-020
+export async function savePushToken(token: string): Promise<void> {
+  await setItem(PUSH_KEY, token);
+}
+export async function loadPushToken(): Promise<string | null> {
+  return getItem(PUSH_KEY);
+}
+export async function clearPushToken(): Promise<void> {
+  await delItem(PUSH_KEY);
 }

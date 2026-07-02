@@ -13,6 +13,8 @@ import { AppText, AlertHost } from './src/components';
 import { installWebAlert } from './src/utils/alert';
 import { LanguageSync } from './src/i18n/LanguageSync';
 import { t } from './src/i18n';
+import { serverApi } from './src/sync/serverApi';
+import { registerPushToken } from './src/push/push';
 
 // 웹에서 RN Alert.alert(no-op)를 테마 모달 호스트로 라우팅(확인/취소 콜백 정상화).
 installWebAlert();
@@ -43,6 +45,16 @@ export default function App() {
         setReady(true);
       }
     })();
+  }, []);
+
+  // 이미 로그인된 상태면 앱 시작 시 푸시 토큰 갱신(네이티브·graceful).
+  useEffect(() => {
+    serverApi
+      .isLoggedIn()
+      .then((yes) => {
+        if (yes) void registerPushToken();
+      })
+      .catch(() => {});
   }, []);
 
   if (!ready) {

@@ -340,4 +340,11 @@ export const serverApi = {
       auth: true,
     });
   },
+  // --- 푸시 알림 (SRS-020 · ADR-015) ---
+  registerPushToken(token: string, platform: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>('/push/tokens', { method: 'POST', body: { token, platform }, auth: true });
+  },
+  unregisterPushToken(token: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>('/push/tokens', { method: 'DELETE', body: { token }, auth: true });
+  },
 };

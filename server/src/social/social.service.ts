@@ -4,6 +4,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/social.dto';
+import { PushService } from '../push/push.service';
 
 export interface PostView {
   id: string;
@@ -73,7 +74,10 @@ const postInclude = (viewerId: string) =>
 
 @Injectable()
 export class SocialService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly push: PushService,
+  ) {}
 
   private toView(p: PostRow): PostView {
     return {
@@ -109,6 +113,30 @@ export class SocialService {
       });
     } catch {
       // 알림은 부수적 fan-out — 조용히 무시.
+    }
+    void this.dispatchPush(userId, actorId, type); // best-effort 푸시(비차단)
+  }
+
+  // 알림 이벤트를 수신자 기기로 푸시(best-effort). 표시 텍스트는 KO 기본(서버는 수신자 언어 미보유).
+  private async dispatchPush(userId: string, actorId: string, type: string): Promise<void> {
+    try {
+      const actor = await this.prisma.user.findUnique({
+        where: { id: actorId },
+        select: { displayName: true },
+      });
+      const name = actor?.displayName ?? '누군가';
+      const bodyByType: Record<string, string> = {
+        follow: `${name}님이 회원님을 팔로우했어요`,
+        like: `${name}님이 회원님의 게시물을 좋아해요`,
+        comment: `${name}님이 회원님의 게시물에 댓글을 남겼어요`,
+      };
+      await this.push.sendToUsers([userId], {
+        title: 'Liftgram',
+        body: bodyByType[type] ?? '새 알림',
+        data: { type },
+      });
+    } catch {
+      // 무시
     }
   }
 

@@ -13,6 +13,7 @@
     "expo": "~56.0.12",
     "expo-build-properties": "~56.0.19",
     "expo-image-picker": "~56.0.19",
+    "expo-notifications": "~56.0.19",
     "expo-secure-store": "~56.0.4",
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",

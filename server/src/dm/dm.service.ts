@@ -10,6 +10,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SendMessageDto } from './dto/dm.dto';
 import { DmGateway } from './dm.gateway';
+import { PushService } from '../push/push.service';
 
 export interface MessageView {
   id: string;
@@ -37,7 +38,33 @@ export class DmService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gateway: DmGateway,
+    private readonly push: PushService,
   ) {}
+
+  // 새 메시지를 발신자 제외 참여자 기기로 푸시(best-effort·비차단).
+  private async dispatchDmPush(
+    senderId: string,
+    conversationId: string,
+    participantIds: string[],
+    kind: string,
+    body: string | null,
+  ): Promise<void> {
+    try {
+      const others = participantIds.filter((id) => id !== senderId);
+      if (others.length === 0) return;
+      const sender = await this.prisma.user.findUnique({
+        where: { id: senderId },
+        select: { displayName: true },
+      });
+      await this.push.sendToUsers(others, {
+        title: sender?.displayName ?? 'Liftgram',
+        body: kind === 'image' ? '사진을 보냈어요' : (body ?? '새 메시지'),
+        data: { type: 'dm', conversationId },
+      });
+    } catch {
+      // 무시
+    }
+  }
 
   private toMessageView(m: MessageWithSender): MessageView {
     return {
@@ -227,10 +254,9 @@ export class DmService {
       where: { conversationId },
       select: { userId: true },
     });
-    this.gateway.emitMessage(
-      parts.map((p) => p.userId),
-      view,
-    );
+    const ids = parts.map((p) => p.userId);
+    this.gateway.emitMessage(ids, view);
+    void this.dispatchDmPush(userId, conversationId, ids, kind, dto.body ?? null); // best-effort 푸시
     return view;
   }
 

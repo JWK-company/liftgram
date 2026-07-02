@@ -37,6 +37,7 @@ model User {
   notificationsSent Notification[] @relation("notificationsActor")
   reports           Report[]       @relation("reporter")
   reviewedReports   Report[]       @relation("reviewer")
+  pushTokens        PushToken[]
 }
 
 model Device {
@@ -254,4 +255,17 @@ model Report {
   @@unique([reporterId, targetType, targetId])
   @@index([targetType, targetId])
   @@index([status])
+}
+
+// 푸시 알림 디바이스 토큰 (SRS-020 · ADR-015). 발송은 PushProvider(noop 기본·Expo/FCM/WebPush 드롭인).
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String   @default("expo") // expo | web | fcm
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
