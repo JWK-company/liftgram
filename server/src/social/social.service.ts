@@ -67,7 +67,7 @@ type PostRow = {
 const postInclude = (viewerId: string) =>
   ({
     author: { select: { id: true, displayName: true, avatarUrl: true } },
-    _count: { select: { likes: true, comments: true } },
+    _count: { select: { likes: true, comments: { where: { moderationStatus: 'approved' } } } },
     likes: { where: { userId: viewerId }, select: { id: true } },
   }) satisfies Prisma.PostInclude;
 
@@ -91,13 +91,14 @@ export class SocialService {
   }
 
   // 미디어 참조 검증 — /media/file/<key> 형태 + 해당 MediaAsset가 이 사용자 소유여야(외부 URL·무단 참조 차단).
-  private async assertOwnedMedia(mediaUrl: string, ownerId: string): Promise<void> {
+  private async assertOwnedMedia(mediaUrl: string, ownerId: string): Promise<{ flagged: boolean }> {
     const m = /^\/media\/file\/([A-Za-z0-9._-]+)$/.exec(mediaUrl); // ^앵커 — 외부 호스트 URL 차단
     if (!m) throw new BadRequestException('invalid media url');
     const asset = await this.prisma.mediaAsset.findUnique({ where: { key: m[1] } });
     if (!asset || asset.ownerId !== ownerId) {
       throw new BadRequestException('media not found or not owned');
     }
+    return { flagged: asset.flagged };
   }
 
   // 알림 생성 (SRS-020) — 팔로우/좋아요/댓글. best-effort: 실패해도 본 액션(like/follow/comment)을 깨지 않음.
@@ -131,13 +132,14 @@ export class SocialService {
   }
 
   async createPost(authorId: string, dto: CreatePostDto): Promise<PostView> {
+    let flagged = false;
     if (dto.kind === 'image') {
       const imageUrl =
         dto.data && typeof dto.data === 'object'
           ? (dto.data as { imageUrl?: string }).imageUrl
           : undefined;
       if (!imageUrl) throw new BadRequestException('image post requires data.imageUrl');
-      await this.assertOwnedMedia(imageUrl, authorId);
+      ({ flagged } = await this.assertOwnedMedia(imageUrl, authorId));
     }
     const post = await this.prisma.post.create({
       data: {
@@ -146,6 +148,8 @@ export class SocialService {
         caption: dto.caption ?? null,
         data: dto.data ? (dto.data as Prisma.InputJsonValue) : undefined,
         visibility: dto.visibility ?? 'public',
+        // 자동 스캔 위반 미디어는 pending(숨김) — 모더레이터 승인 시 노출(ADR-017).
+        moderationStatus: flagged ? 'pending' : 'approved',
       },
       include: postInclude(authorId),
     });
@@ -163,6 +167,7 @@ export class SocialService {
     const validBefore = beforeDate && !Number.isNaN(beforeDate.getTime()) ? beforeDate : undefined;
     const posts = await this.prisma.post.findMany({
       where: {
+        moderationStatus: 'approved', // 제거/자동보류 콘텐츠 숨김
         OR: [
           { authorId: userId },
           { authorId: { in: followeeIds }, visibility: { in: ['public', 'followers'] } },
@@ -195,7 +200,7 @@ export class SocialService {
       }));
     const allowed = this.visibilityFor(isSelf, isFollowing);
     const posts = await this.prisma.post.findMany({
-      where: { authorId: targetId, visibility: { in: allowed } },
+      where: { authorId: targetId, visibility: { in: allowed }, moderationStatus: 'approved' },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: postInclude(viewerId),
@@ -218,7 +223,7 @@ export class SocialService {
       this.prisma.follow.count({ where: { followeeId: targetId } }),
       this.prisma.follow.count({ where: { followerId: targetId } }),
       // 게시물 수도 뷰어가 볼 수 있는 범위로 스코프 — 숨은 글 개수 누출 방지.
-      this.prisma.post.count({ where: { authorId: targetId, visibility: { in: allowed } } }),
+      this.prisma.post.count({ where: { authorId: targetId, visibility: { in: allowed }, moderationStatus: 'approved' } }),
     ]);
     return {
       id: u.id,
@@ -256,12 +261,14 @@ export class SocialService {
 
   // 스토리 생성 — 24h 후 만료. 미디어는 사전 업로드된 mediaUrl 참조(SRS-019 · SAD-012).
   async createStory(authorId: string, mediaUrl: string, caption?: string): Promise<StoryView> {
-    await this.assertOwnedMedia(mediaUrl, authorId);
+    const { flagged } = await this.assertOwnedMedia(mediaUrl, authorId);
     const story = await this.prisma.story.create({
       data: {
         authorId,
         mediaUrl,
         caption: caption ?? null,
+        // 자동 스캔 위반 미디어는 pending(숨김) — createPost와 동일(ADR-017).
+        moderationStatus: flagged ? 'pending' : 'approved',
         expiresAt: new Date(Date.now() + STORY_TTL_MS),
       },
     });
@@ -282,7 +289,7 @@ export class SocialService {
     });
     const authorIds = [...follows.map((f) => f.followeeId), userId];
     const stories = await this.prisma.story.findMany({
-      where: { authorId: { in: authorIds }, expiresAt: { gt: new Date() } },
+      where: { authorId: { in: authorIds }, expiresAt: { gt: new Date() }, moderationStatus: 'approved' },
       orderBy: { createdAt: 'asc' },
       include: { author: true },
     });
@@ -310,9 +317,11 @@ export class SocialService {
   private async assertCanViewPost(postId: string, viewerId: string): Promise<{ authorId: string }> {
     const post = await this.prisma.post.findUnique({
       where: { id: postId },
-      select: { authorId: true, visibility: true },
+      select: { authorId: true, visibility: true, moderationStatus: true },
     });
     if (!post) throw new NotFoundException('post not found');
+    // 제거/자동보류 포스트는 미존재로 취급 — 가시성 누출·좋아요/댓글 차단.
+    if (post.moderationStatus !== 'approved') throw new NotFoundException('post not found');
     if (post.authorId === viewerId || post.visibility === 'public') return { authorId: post.authorId };
     if (post.visibility === 'followers') {
       const f = await this.prisma.follow.findUnique({
@@ -346,7 +355,7 @@ export class SocialService {
   async listComments(userId: string, postId: string, limit: number): Promise<CommentView[]> {
     await this.assertCanViewPost(postId, userId);
     const comments = await this.prisma.comment.findMany({
-      where: { postId },
+      where: { postId, moderationStatus: 'approved' },
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       take: limit,
       include: { author: { select: { id: true, displayName: true } } },

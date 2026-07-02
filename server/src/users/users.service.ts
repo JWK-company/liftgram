@@ -8,6 +8,7 @@ export interface PublicUser {
   displayName: string | null;
   avatarUrl: string | null;
   authProvider: string;
+  role: string;
 }
 
 export interface UpdateProfileInput {
@@ -25,6 +26,7 @@ export class UsersService {
     displayName: string | null;
     avatarUrl: string | null;
     authProvider: string;
+    role: string;
   }): PublicUser {
     return {
       id: u.id,
@@ -32,6 +34,7 @@ export class UsersService {
       displayName: u.displayName,
       avatarUrl: u.avatarUrl,
       authProvider: u.authProvider,
+      role: u.role,
     };
   }
 

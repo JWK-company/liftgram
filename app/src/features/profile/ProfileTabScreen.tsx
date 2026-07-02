@@ -1,7 +1,8 @@
 // @plm SRS-006  프로필·설정 (단위/언어/바 무게/오프라인·로그인 스텁)
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Screen,
   Button,
@@ -17,6 +18,7 @@ import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
 import { fromKg, toKg, ALL_EQUIPMENT, equipmentLabel, type WeightUnit, type EquipmentType } from '../../domain';
 import { useT } from '../../i18n';
+import { serverApi } from '../../sync/serverApi';
 import { ServerSyncCard } from './ServerSyncCard';
 import { ProfileEditCard } from './ProfileEditCard';
 
@@ -26,6 +28,17 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
   const { t, lang } = useT();
   const { user, weightUnit, language, barWeightKg, availableEquipment, refresh } = useUser();
   const [busy, setBusy] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      serverApi
+        .isLoggedIn()
+        .then((logged) => (logged ? serverApi.me() : null))
+        .then((me) => setIsModerator(!!me && (me.role === 'moderator' || me.role === 'admin')))
+        .catch(() => setIsModerator(false));
+    }, []),
+  );
 
   if (!user) {
     return (
@@ -223,6 +236,17 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
 
       {/* 내 프로필 편집 (로그인 시만 표시) */}
       <ProfileEditCard />
+
+      {/* 모더레이션 큐 (모더레이터/관리자만) */}
+      {isModerator ? (
+        <Button
+          title={t('moderation.entry')}
+          icon="shield-checkmark-outline"
+          variant="secondary"
+          onPress={() => navigation.navigate('ModerationQueue')}
+          style={{ marginTop: spacing.md }}
+        />
+      ) : null}
 
       {/* 푸터 — 웰니스 고지 */}
       <View style={styles.footer}>

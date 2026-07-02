@@ -28,6 +28,7 @@ export type RootStackParamList = {
   Comments: { postId: string }; // SRS-007 댓글
   UserProfile: { userId: string }; // SRS-008 공개 프로필
   Notifications: undefined; // SRS-020 알림 센터
+  ModerationQueue: undefined; // SRS-020 모더레이션 큐(모더레이터)
 };
 
 // 화면 컴포넌트 타입 헬퍼

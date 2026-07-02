@@ -18,6 +18,7 @@ model User {
   avatarUrl     String? // 프로필 아바타(업로드 미디어 URL)
   passwordHash  String? // 로컬 인증 토대 — 매니지드 전환 시 null (ADR-018)
   authProvider  String         @default("local") // local|email|google|apple|managed
+  role          String         @default("user") // user|moderator|admin (모더레이션 권한 · ADR-017)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   devices       Device[]
@@ -34,6 +35,8 @@ model User {
   comments          Comment[]
   notifications     Notification[] @relation("notifications")
   notificationsSent Notification[] @relation("notificationsActor")
+  reports           Report[]       @relation("reporter")
+  reviewedReports   Report[]       @relation("reviewer")
 }
 
 model Device {
@@ -99,12 +102,16 @@ model Post {
   caption    String?
   data       Json? // 운동 요약·이미지 URL 등 부가 데이터(불투명).
   visibility String   @default("public") // public|followers|private
+  moderationStatus String @default("approved") // approved|pending|removed (ADR-017)
+  removedAt     DateTime?
+  removedReason String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   likes      PostLike[]
   comments   Comment[]
 
   @@index([authorId, createdAt])
+  @@index([moderationStatus])
   @@index([createdAt])
 }
 
@@ -118,6 +125,8 @@ model MediaAsset {
   contentType String
   kind        String   @default("image") // image | video(후속)
   bytes       Int
+  flagged     Boolean  @default(false) // 자동 스캔 위반 표시(ImageScanner · ADR-016/017)
+  flagReason  String?
   createdAt   DateTime @default(now())
 
   @@index([ownerId])
@@ -130,6 +139,9 @@ model Story {
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   mediaUrl  String
   caption   String?
+  moderationStatus String @default("approved") // approved|pending|removed (ADR-017)
+  removedAt     DateTime?
+  removedReason String?
   createdAt DateTime @default(now())
   expiresAt DateTime
 
@@ -199,6 +211,8 @@ model Comment {
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   body      String
+  moderationStatus String @default("approved") // approved|removed (ADR-017)
+  removedAt DateTime?
   createdAt DateTime @default(now())
 
   @@index([postId, createdAt])
@@ -217,4 +231,27 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, createdAt])
+}
+
+// 신고·모더레이션 (SAD-012 · ADR-017). 사용자 신고 → 모더레이터 큐 → 콘텐츠 소프트 제거.
+// 대상은 다형(post|story|comment) — targetType+targetId. 신고자당 대상 1건(멱등).
+model Report {
+  id          String    @id @default(uuid())
+  targetType  String // post | story | comment
+  targetId    String
+  reporterId  String
+  reporter    User      @relation("reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reason      String // spam|nudity|harassment|violence|self_harm|minor_safety|misinformation|other
+  details     String?
+  status      String    @default("pending") // pending | resolved | dismissed
+  reviewedBy  String?
+  reviewer    User?     @relation("reviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+  reviewedAt  DateTime?
+  actionTaken String? // removed | dismissed
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@index([status])
 }

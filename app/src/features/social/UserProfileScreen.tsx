@@ -1,6 +1,6 @@
 // @plm SRS-008  공개 프로필 — 사용자 정보·카운트·팔로우/DM·게시물 (SAD-011).
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppText, Avatar, Button, Card, EmptyState, Screen } from '../../components';
@@ -9,6 +9,7 @@ import { serverApi, type FeedPost, type SocialProfile } from '../../sync/serverA
 import { resolveMediaUrl } from '../../config';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
+import { ReportSheet } from './ReportSheet';
 
 export default function UserProfileScreen({ route, navigation }: RootStackScreenProps<'UserProfile'>) {
   const { userId } = route.params;
@@ -19,6 +20,19 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const dmPending = useRef(false);
+  const [reportId, setReportId] = useState<string | null>(null);
+
+  async function submitReport(reason: string) {
+    const id = reportId;
+    setReportId(null);
+    if (!id) return;
+    try {
+      await serverApi.report('post', id, reason);
+      Alert.alert(t('report.submitted'));
+    } catch {
+      Alert.alert(t('report.failed'));
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -129,12 +143,17 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
         keyExtractor={(p) => p.id}
         ListHeaderComponent={header}
         renderItem={({ item }) => (
-          <ProfilePost post={item} onPress={() => navigation.navigate('Comments', { postId: item.id })} />
+          <ProfilePost
+            post={item}
+            onPress={() => navigation.navigate('Comments', { postId: item.id })}
+            onReport={profile && !profile.isSelf ? () => setReportId(item.id) : undefined}
+          />
         )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={!loading && profile ? <EmptyState title={t('profile.noPosts')} /> : null}
       />
+      <ReportSheet visible={!!reportId} onClose={() => setReportId(null)} onSubmit={submitReport} />
     </Screen>
   );
 }
@@ -150,7 +169,7 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-function ProfilePost({ post, onPress }: { post: FeedPost; onPress: () => void }) {
+function ProfilePost({ post, onPress, onReport }: { post: FeedPost; onPress: () => void; onReport?: () => void }) {
   const imageUrl =
     post.kind === 'image' && post.data && typeof post.data === 'object'
       ? (post.data as { imageUrl?: string }).imageUrl
@@ -179,6 +198,12 @@ function ProfilePost({ post, onPress }: { post: FeedPost; onPress: () => void })
               {post.commentCount}
             </AppText>
           </View>
+          <View style={{ flex: 1 }} />
+          {onReport ? (
+            <Pressable onPress={onReport} hitSlop={8}>
+              <Ionicons name="flag-outline" size={15} color={colors.textFaint} />
+            </Pressable>
+          ) : null}
         </View>
       </Card>
     </Pressable>

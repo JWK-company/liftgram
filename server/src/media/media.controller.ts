@@ -2,6 +2,7 @@
 import {
   Controller,
   Get,
+  NotFoundException,
   Param,
   Post,
   Res,
@@ -39,6 +40,8 @@ export class MediaController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const asset = await this.media.findByKey(key);
+    // 모더레이션 제거·자동스캔 위반 미디어는 바이트도 서브하지 않음(제거=불가시 보장, ADR-017).
+    if (asset.flagged) throw new NotFoundException('media not found');
     res.setHeader('content-type', asset.contentType);
     res.setHeader('cache-control', 'public, max-age=31536000, immutable');
     return new StreamableFile(createReadStream(this.media.resolvePath(key)));

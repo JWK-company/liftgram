@@ -1,6 +1,6 @@
 // @plm SRS-007 @plm SRS-019  소셜 피드 탭 — 스토리 트레이 + 피드(텍스트/이미지 게시) (SAD-011/012).
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -13,6 +13,7 @@ import { formatWeight } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { StoryTray, StoryViewer } from './Stories';
+import { ReportSheet } from './ReportSheet';
 
 async function pickImageAsset(): Promise<PickedImage | null> {
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
@@ -37,6 +38,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [error, setError] = useState<string | null>(null);
   const likePending = useRef<Set<string>>(new Set());
   const [unread, setUnread] = useState(0);
+  const [meId, setMeId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,7 +47,12 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       const logged = await serverApi.isLoggedIn();
       setAuthed(logged);
       if (logged) {
-        const [feed, stories] = await Promise.all([serverApi.feed(), serverApi.stories()]);
+        const [feed, stories, me] = await Promise.all([
+          serverApi.feed(),
+          serverApi.stories(),
+          serverApi.me(),
+        ]);
+        setMeId(me.id);
         // 진행 중인 좋아요는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
         setPosts((prev) => {
           if (!likePending.current.size) return feed;
@@ -234,6 +241,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
         renderItem={({ item }) => (
           <PostCard
             post={item}
+            meId={meId}
             onLike={onLike}
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
             onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
@@ -245,7 +253,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           !loading ? <EmptyState title={t('feed.emptyTitle')} message={t('feed.emptyMessage')} /> : null
         }
       />
-      <StoryViewer group={viewing} onClose={() => setViewing(null)} />
+      <StoryViewer group={viewing} onClose={() => setViewing(null)} meId={meId} />
     </Screen>
   );
 }
@@ -270,17 +278,30 @@ function WStat({ label, value }: { label: string; value: string }) {
 
 function PostCard({
   post,
+  meId,
   onLike,
   onComment,
   onOpenProfile,
 }: {
   post: FeedPost;
+  meId: string | null;
   onLike: (p: FeedPost) => void;
   onComment: (p: FeedPost) => void;
   onOpenProfile: (userId: string) => void;
 }) {
   const { t } = useT();
   const { weightUnit } = useUser();
+  const [reporting, setReporting] = useState(false);
+  const canReport = !!meId && post.author.id !== meId;
+  async function submitReport(reason: string) {
+    setReporting(false);
+    try {
+      await serverApi.report('post', post.id, reason);
+      Alert.alert(t('report.submitted'));
+    } catch {
+      Alert.alert(t('report.failed'));
+    }
+  }
   const name = post.author.displayName || t('discover.unnamed');
   const when = new Date(post.createdAt).toLocaleDateString('ko-KR');
   const imageUrl =
@@ -310,6 +331,11 @@ function PostCard({
           </AppText>
         </View>
         {post.kind === 'workout' ? <Tag label={t('feed.workoutBadge')} tone="primary" /> : null}
+        {canReport ? (
+          <Pressable onPress={() => setReporting(true)} hitSlop={8} style={{ paddingLeft: spacing.sm }}>
+            <Ionicons name="ellipsis-horizontal" size={18} color={colors.textFaint} />
+          </Pressable>
+        ) : null}
       </Pressable>
       {workout ? (
         <View style={styles.workoutBox}>
@@ -353,6 +379,7 @@ function PostCard({
           ) : null}
         </Pressable>
       </View>
+      <ReportSheet visible={reporting} onClose={() => setReporting(false)} onSubmit={submitReport} />
     </Card>
   );
 }

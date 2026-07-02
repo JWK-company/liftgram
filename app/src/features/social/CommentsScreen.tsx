@@ -1,11 +1,12 @@
 // @plm SRS-007  댓글 화면 — 목록·작성·본인 삭제 (SAD-011).
 import React, { useCallback, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppText, Button, EmptyState, Screen, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type Comment } from '../../sync/serverApi';
+import { ReportSheet } from './ReportSheet';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
@@ -17,6 +18,19 @@ export default function CommentsScreen({ route }: RootStackScreenProps<'Comments
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reportId, setReportId] = useState<string | null>(null);
+
+  async function submitReport(reason: string) {
+    const id = reportId;
+    setReportId(null);
+    if (!id) return;
+    try {
+      await serverApi.report('comment', id, reason);
+      Alert.alert(t('report.submitted'));
+    } catch {
+      Alert.alert(t('report.failed'));
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -67,7 +81,12 @@ export default function CommentsScreen({ route }: RootStackScreenProps<'Comments
           data={comments}
           keyExtractor={(c) => c.id}
           renderItem={({ item }) => (
-            <CommentRow comment={item} mine={item.author.id === meId} onDelete={() => remove(item.id)} />
+            <CommentRow
+              comment={item}
+              mine={item.author.id === meId}
+              onDelete={() => remove(item.id)}
+              onReport={() => setReportId(item.id)}
+            />
           )}
           contentContainerStyle={styles.list}
           ListEmptyComponent={<EmptyState title={t('comments.empty')} />}
@@ -96,6 +115,7 @@ export default function CommentsScreen({ route }: RootStackScreenProps<'Comments
           />
         </View>
       </KeyboardAvoidingView>
+      <ReportSheet visible={!!reportId} onClose={() => setReportId(null)} onSubmit={submitReport} />
     </Screen>
   );
 }
@@ -104,10 +124,12 @@ function CommentRow({
   comment,
   mine,
   onDelete,
+  onReport,
 }: {
   comment: Comment;
   mine: boolean;
   onDelete: () => void;
+  onReport: () => void;
 }) {
   const { t } = useT();
   const name = comment.author.displayName || t('discover.unnamed');
@@ -130,7 +152,11 @@ function CommentRow({
         <Pressable onPress={onDelete} hitSlop={8}>
           <Ionicons name="trash-outline" size={18} color={colors.textFaint} />
         </Pressable>
-      ) : null}
+      ) : (
+        <Pressable onPress={onReport} hitSlop={8}>
+          <Ionicons name="flag-outline" size={16} color={colors.textFaint} />
+        </Pressable>
+      )}
     </View>
   );
 }

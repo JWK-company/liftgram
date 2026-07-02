@@ -139,6 +139,19 @@ export interface PublicUser {
   email: string | null;
   displayName: string | null;
   avatarUrl: string | null;
+  role: string; // user | moderator | admin (모더레이션 권한)
+}
+
+// --- 모더레이션 (SAD-012 · ADR-017) ---
+export interface ModerationQueueItem {
+  targetType: string; // post | story | comment
+  targetId: string;
+  source: string; // report | auto
+  reasons: string[];
+  reportCount: number;
+  author: { id: string; displayName: string | null } | null;
+  preview: { kind?: string; caption?: string | null; body?: string | null; mediaUrl?: string | null } | null;
+  createdAt: string;
 }
 export interface DmMessage {
   id: string;
@@ -306,5 +319,23 @@ export const serverApi = {
   },
   markRead(conversationId: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/dm/conversations/${conversationId}/read`, { method: 'POST', auth: true });
+  },
+  // --- 모더레이션 (SAD-012 · ADR-017) ---
+  report(targetType: string, targetId: string, reason: string, details?: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>('/moderation/reports', {
+      method: 'POST',
+      body: { targetType, targetId, reason, details },
+      auth: true,
+    });
+  },
+  moderationQueue(): Promise<ModerationQueueItem[]> {
+    return request<ModerationQueueItem[]>('/moderation/queue', { auth: true });
+  },
+  resolveReport(targetType: string, targetId: string, action: 'remove' | 'approve', reason?: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>('/moderation/resolve', {
+      method: 'POST',
+      body: { targetType, targetId, action, reason },
+      auth: true,
+    });
   },
 };

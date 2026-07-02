@@ -3,6 +3,7 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from '@nes
 import type { MediaAsset } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { STORAGE_PROVIDER, type StorageProvider } from './storage/storage-provider';
+import { IMAGE_SCANNER, type ImageScanner, type ScanResult } from './scanner/image-scanner';
 
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
@@ -18,12 +19,17 @@ export class MediaService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject(STORAGE_PROVIDER) private readonly storage: StorageProvider,
+    @Inject(IMAGE_SCANNER) private readonly scanner: ImageScanner,
   ) {}
 
   async upload(ownerId: string, file?: Express.Multer.File): Promise<MediaView> {
     if (!file) throw new BadRequestException('no file uploaded (field "file")');
     if (!ALLOWED.has(file.mimetype)) throw new BadRequestException(`unsupported type: ${file.mimetype}`);
     const stored = await this.storage.save(file.buffer, file.mimetype);
+    // 자동 스캔 — noop 기본(플래그 없음). 위반 시 flagged 기록 → 게시 시 pending 처리(ADR-016/017).
+    const scan = await this.scanner
+      .scan(file.buffer, file.mimetype)
+      .catch((): ScanResult => ({ flagged: false }));
     const asset = await this.prisma.mediaAsset.create({
       data: {
         ownerId,
@@ -32,6 +38,8 @@ export class MediaService {
         contentType: file.mimetype,
         kind: 'image',
         bytes: stored.bytes,
+        flagged: scan.flagged,
+        flagReason: scan.flagged ? (scan.reason ?? 'auto_scan') : null,
       },
     });
     return { id: asset.id, url: asset.url, kind: asset.kind, contentType: asset.contentType };

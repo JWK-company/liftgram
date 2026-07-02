@@ -1,12 +1,13 @@
 // @plm SRS-019  스토리 트레이 + 뷰어 (SAD-012). 24h 만료 스토리를 작성자별로 표시.
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '../../components';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
-import type { StoryGroup } from '../../sync/serverApi';
+import { serverApi, type StoryGroup } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
+import { ReportSheet } from './ReportSheet';
 
 export function StoryTray({
   groups,
@@ -50,15 +51,36 @@ export function StoryTray({
   );
 }
 
-export function StoryViewer({ group, onClose }: { group: StoryGroup | null; onClose: () => void }) {
+export function StoryViewer({
+  group,
+  onClose,
+  meId,
+}: {
+  group: StoryGroup | null;
+  onClose: () => void;
+  meId?: string | null;
+}) {
+  const { t } = useT();
   const [idx, setIdx] = useState(0);
+  const [reporting, setReporting] = useState(false);
   useEffect(() => {
     setIdx(0);
+    setReporting(false);
   }, [group]);
   if (!group) return null;
   const g = group;
   const story = g.stories[idx];
   if (!story) return null;
+  const canReport = !!meId && g.author.id !== meId;
+  async function submitReport(reason: string) {
+    setReporting(false);
+    try {
+      await serverApi.report('story', story.id, reason);
+      Alert.alert(t('report.submitted'));
+    } catch {
+      Alert.alert(t('report.failed'));
+    }
+  }
   const advance = () => {
     if (idx < g.stories.length - 1) setIdx(idx + 1);
     else onClose();
@@ -75,9 +97,16 @@ export function StoryViewer({ group, onClose }: { group: StoryGroup | null; onCl
           <AppText variant="body" weight="medium" style={{ color: '#fff' }}>
             {g.author.displayName || '?'}
           </AppText>
-          <Pressable onPress={onClose} hitSlop={12}>
-            <Ionicons name="close" size={28} color="#fff" />
-          </Pressable>
+          <View style={styles.viewerHeadActions}>
+            {canReport ? (
+              <Pressable onPress={() => setReporting(true)} hitSlop={12}>
+                <Ionicons name="flag-outline" size={22} color="#fff" />
+              </Pressable>
+            ) : null}
+            <Pressable onPress={onClose} hitSlop={12}>
+              <Ionicons name="close" size={28} color="#fff" />
+            </Pressable>
+          </View>
         </View>
         <Pressable style={styles.viewerBody} onPress={advance}>
           <Image source={{ uri: resolveMediaUrl(story.mediaUrl) }} style={styles.viewerImage} resizeMode="contain" />
@@ -87,6 +116,7 @@ export function StoryViewer({ group, onClose }: { group: StoryGroup | null; onCl
             {story.caption}
           </AppText>
         ) : null}
+        <ReportSheet visible={reporting} onClose={() => setReporting(false)} onSubmit={submitReport} />
       </View>
     </Modal>
   );
@@ -118,6 +148,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
+  viewerHeadActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   viewerBody: { flex: 1 },
   viewerImage: { flex: 1, width: '100%' },
   viewerCaption: { color: '#fff', paddingHorizontal: spacing.lg, paddingVertical: spacing.xl },
