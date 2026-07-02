@@ -162,18 +162,23 @@ export class SocialService {
   }
 
   // 특정 사용자 게시물 — 관계에 따른 공개범위 필터(본인=전체, 팔로워=공개+팔로워, 그 외=공개).
+  // 뷰어↔대상 관계에 따른 열람 가능 공개범위 (게시물 목록·카운트 공통).
+  private visibilityFor(isSelf: boolean, isFollowing: boolean): string[] {
+    return isSelf
+      ? ['public', 'followers', 'private']
+      : isFollowing
+        ? ['public', 'followers']
+        : ['public'];
+  }
+
   async getUserPosts(viewerId: string, targetId: string, limit: number): Promise<PostView[]> {
     const isSelf = viewerId === targetId;
-    const following =
+    const isFollowing =
       isSelf ||
       !!(await this.prisma.follow.findUnique({
         where: { followerId_followeeId: { followerId: viewerId, followeeId: targetId } },
       }));
-    const allowed = isSelf
-      ? ['public', 'followers', 'private']
-      : following
-        ? ['public', 'followers']
-        : ['public'];
+    const allowed = this.visibilityFor(isSelf, isFollowing);
     const posts = await this.prisma.post.findMany({
       where: { authorId: targetId, visibility: { in: allowed } },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -187,21 +192,24 @@ export class SocialService {
     const u = await this.prisma.user.findUnique({ where: { id: targetId } });
     if (!u) throw new NotFoundException('user not found');
     const isSelf = viewerId === targetId;
-    const [followers, following, posts, followRec] = await Promise.all([
+    const followRec = isSelf
+      ? null
+      : await this.prisma.follow.findUnique({
+          where: { followerId_followeeId: { followerId: viewerId, followeeId: targetId } },
+        });
+    const isFollowing = !!followRec;
+    const allowed = this.visibilityFor(isSelf, isFollowing);
+    const [followers, following, posts] = await Promise.all([
       this.prisma.follow.count({ where: { followeeId: targetId } }),
       this.prisma.follow.count({ where: { followerId: targetId } }),
-      this.prisma.post.count({ where: { authorId: targetId } }),
-      isSelf
-        ? Promise.resolve(null)
-        : this.prisma.follow.findUnique({
-            where: { followerId_followeeId: { followerId: viewerId, followeeId: targetId } },
-          }),
+      // 게시물 수도 뷰어가 볼 수 있는 범위로 스코프 — 숨은 글 개수 누출 방지.
+      this.prisma.post.count({ where: { authorId: targetId, visibility: { in: allowed } } }),
     ]);
     return {
       id: u.id,
       displayName: u.displayName,
       counts: { followers, following, posts },
-      isFollowing: !!followRec,
+      isFollowing,
       isSelf,
     };
   }
