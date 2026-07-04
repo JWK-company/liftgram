@@ -20,6 +20,18 @@ export class CreatePostDto {
   visibility?: string;
 }
 
+// 게시물 수정 (SRS-007) — 본인 캡션/가시성 편집. 미디어·kind는 불변.
+export class UpdatePostDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  caption?: string;
+
+  @IsOptional()
+  @IsIn(['public', 'followers', 'private'])
+  visibility?: string;
+}
+
 export class CreateStoryDto {
   @IsString()
   mediaUrl!: string;

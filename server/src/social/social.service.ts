@@ -3,7 +3,7 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePostDto } from './dto/social.dto';
+import { CreatePostDto, UpdatePostDto } from './dto/social.dto';
 import { PushService } from '../push/push.service';
 
 export interface PostView {
@@ -282,6 +282,63 @@ export class SocialService {
       });
     }
     return this.toView(post);
+  }
+
+  // 게시물 수정 (SRS-007) — 작성자만 캡션/가시성 편집. kind·미디어는 불변. 캡션 변경 시 해시태그 재동기.
+  async updatePost(userId: string, postId: string, dto: UpdatePostDto): Promise<PostView> {
+    const existing = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true },
+    });
+    if (!existing) throw new NotFoundException('post not found');
+    if (existing.authorId !== userId) throw new ForbiddenException('not your post');
+
+    const data: Prisma.PostUpdateInput = {};
+    const captionChanged = dto.caption !== undefined;
+    if (captionChanged) data.caption = dto.caption ?? null;
+    if (dto.visibility !== undefined) data.visibility = dto.visibility;
+
+    const post = await this.prisma.post.update({
+      where: { id: postId },
+      data,
+      include: postInclude(userId),
+    });
+
+    if (captionChanged) {
+      // 해시태그 재동기 — 기존 삭제 후 새 캡션에서 재추출(발견/트렌딩 정합).
+      // 원자적으로 묶어 delete 성공 후 create 실패 시 태그 인덱스가 비는 부분반영을 방지.
+      const tags = extractHashtags(dto.caption);
+      await this.prisma.$transaction([
+        this.prisma.postHashtag.deleteMany({ where: { postId } }),
+        ...(tags.length > 0
+          ? [
+              this.prisma.postHashtag.createMany({
+                data: tags.map((tag) => ({ postId, tag })),
+                skipDuplicates: true,
+              }),
+            ]
+          : []),
+      ]);
+    }
+    return this.toView(post);
+  }
+
+  // 게시물 삭제 (SRS-007) — 작성자만. 좋아요·댓글·해시태그는 FK Cascade로 자동 삭제,
+  // 참조 정합 위해 관련 알림·신고(FK 없음)는 명시적으로 정리.
+  async deletePost(userId: string, postId: string): Promise<{ ok: true }> {
+    const existing = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { authorId: true },
+    });
+    if (!existing) throw new NotFoundException('post not found');
+    if (existing.authorId !== userId) throw new ForbiddenException('not your post');
+
+    await this.prisma.$transaction([
+      this.prisma.notification.deleteMany({ where: { postId } }),
+      this.prisma.report.deleteMany({ where: { targetType: 'post', targetId: postId } }),
+      this.prisma.post.delete({ where: { id: postId } }),
+    ]);
+    return { ok: true };
   }
 
   // 피드 = 내 게시물(공개범위 무관 전부) + 팔로우한 사람의 공개/팔로워 게시물, 최신순(id 타이브레이크).

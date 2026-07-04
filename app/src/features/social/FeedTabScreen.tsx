@@ -15,6 +15,7 @@ import { useT } from '../../i18n';
 import { StoryTray, StoryViewer } from './Stories';
 import { ReportSheet } from './ReportSheet';
 import { HashtagText } from './HashtagText';
+import { OwnPostMenu } from './OwnPostMenu';
 
 async function pickImageAsset(): Promise<PickedImage | null> {
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
@@ -280,6 +281,8 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
             onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
             onTag={(tag) => navigation.navigate('Hashtag', { tag })}
+            onUpdated={(u) => setPosts((prev) => prev.map((p) => (p.id === u.id ? u : p)))}
+            onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
           />
         )}
         contentContainerStyle={styles.list}
@@ -340,6 +343,8 @@ function PostCard({
   onComment,
   onOpenProfile,
   onTag,
+  onUpdated,
+  onDeleted,
 }: {
   post: FeedPost;
   meId: string | null;
@@ -347,10 +352,13 @@ function PostCard({
   onComment: (p: FeedPost) => void;
   onOpenProfile: (userId: string) => void;
   onTag: (tag: string) => void;
+  onUpdated: (p: FeedPost) => void;
+  onDeleted: (id: string) => void;
 }) {
   const { t } = useT();
   const { weightUnit } = useUser();
   const [reporting, setReporting] = useState(false);
+  const isOwn = !!meId && post.author.id === meId;
   const canReport = !!meId && post.author.id !== meId;
   async function submitReport(reason: string) {
     setReporting(false);
@@ -390,7 +398,9 @@ function PostCard({
           </AppText>
         </View>
         {post.kind === 'workout' ? <Tag label={t('feed.workoutBadge')} tone="primary" /> : null}
-        {canReport ? (
+        {isOwn ? (
+          <OwnPostMenu post={post} onUpdated={onUpdated} onDeleted={onDeleted} />
+        ) : canReport ? (
           <Pressable onPress={() => setReporting(true)} hitSlop={8} style={{ paddingLeft: spacing.sm }}>
             <Ionicons name="ellipsis-horizontal" size={18} color={colors.textFaint} />
           </Pressable>

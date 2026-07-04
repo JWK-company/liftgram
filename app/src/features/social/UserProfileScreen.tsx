@@ -10,6 +10,7 @@ import { resolveMediaUrl } from '../../config';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { ReportSheet } from './ReportSheet';
+import { OwnPostMenu } from './OwnPostMenu';
 
 export default function UserProfileScreen({ route, navigation }: RootStackScreenProps<'UserProfile'>) {
   const { userId } = route.params;
@@ -213,6 +214,20 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
             post={item}
             onPress={() => navigation.navigate('Comments', { postId: item.id })}
             onReport={profile && !profile.isSelf ? () => setReportId(item.id) : undefined}
+            ownMenu={
+              profile?.isSelf ? (
+                <OwnPostMenu
+                  post={item}
+                  onUpdated={(u) => setPosts((prev) => prev.map((p) => (p.id === u.id ? u : p)))}
+                  onDeleted={(id) => {
+                    setPosts((prev) => prev.filter((p) => p.id !== id));
+                    setProfile((pr) =>
+                      pr ? { ...pr, counts: { ...pr.counts, posts: Math.max(0, pr.counts.posts - 1) } } : pr,
+                    );
+                  }}
+                />
+              ) : undefined
+            }
           />
         )}
         contentContainerStyle={styles.list}
@@ -265,7 +280,17 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-function ProfilePost({ post, onPress, onReport }: { post: FeedPost; onPress: () => void; onReport?: () => void }) {
+function ProfilePost({
+  post,
+  onPress,
+  onReport,
+  ownMenu,
+}: {
+  post: FeedPost;
+  onPress: () => void;
+  onReport?: () => void;
+  ownMenu?: React.ReactNode;
+}) {
   const imageUrl =
     post.kind === 'image' && post.data && typeof post.data === 'object'
       ? (post.data as { imageUrl?: string }).imageUrl
@@ -295,11 +320,12 @@ function ProfilePost({ post, onPress, onReport }: { post: FeedPost; onPress: () 
             </AppText>
           </View>
           <View style={{ flex: 1 }} />
-          {onReport ? (
-            <Pressable onPress={onReport} hitSlop={8}>
-              <Ionicons name="flag-outline" size={15} color={colors.textFaint} />
-            </Pressable>
-          ) : null}
+          {ownMenu ??
+            (onReport ? (
+              <Pressable onPress={onReport} hitSlop={8}>
+                <Ionicons name="flag-outline" size={15} color={colors.textFaint} />
+              </Pressable>
+            ) : null)}
         </View>
       </Card>
     </Pressable>

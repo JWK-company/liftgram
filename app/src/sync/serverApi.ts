@@ -242,6 +242,12 @@ export const serverApi = {
   createPost(input: CreatePostInput): Promise<FeedPost> {
     return request<FeedPost>('/social/posts', { method: 'POST', body: input, auth: true });
   },
+  updatePost(postId: string, input: { caption?: string; visibility?: string }): Promise<FeedPost> {
+    return request<FeedPost>(`/social/posts/${postId}`, { method: 'PATCH', body: input, auth: true });
+  },
+  deletePost(postId: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/social/posts/${postId}`, { method: 'DELETE', auth: true });
+  },
   likePost(postId: string): Promise<{ ok: true; likeCount: number }> {
     return request<{ ok: true; likeCount: number }>(`/social/posts/${postId}/like`, { method: 'POST', auth: true });
   },
