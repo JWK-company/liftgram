@@ -1,10 +1,10 @@
-// @plm SRS-018  발견(Explore) — 트렌딩 해시태그 + 추천 유저 + 인기 공개 포스트 (SAD-011).
-import React, { useCallback, useRef, useState } from 'react';
+// @plm SRS-018  발견(Explore) + 통합 검색 — 트렌딩·추천·인기 / 검색(유저·태그·포스트) (SAD-011).
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Screen, Card, AppText, Avatar, Button, EmptyState, SectionHeader } from '../../components';
+import { Screen, Card, AppText, Avatar, Button, EmptyState, SectionHeader, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
-import { serverApi, type DiscoverUser, type FeedPost, type TrendingTag } from '../../sync/serverApi';
+import { serverApi, type DiscoverUser, type FeedPost, type SearchResult, type TrendingTag } from '../../sync/serverApi';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { DiscoveryPostCard } from './DiscoveryPostCard';
@@ -15,11 +15,15 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
   const [tags, setTags] = useState<TrendingTag[]>([]);
   const [users, setUsers] = useState<DiscoverUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState('');
+  const [results, setResults] = useState<SearchResult | null>(null);
   const followPending = useRef<Set<string>>(new Set());
+  const searchReq = useRef(0);
+  const qRef = useRef('');
+  qRef.current = q;
 
   const load = useCallback(async () => {
     setLoading(true);
-    // 세 섹션은 독립 — 하나 실패해도 성공한 섹션은 렌더(allSettled).
     const [ex, tr, su] = await Promise.allSettled([
       serverApi.explore(),
       serverApi.trendingHashtags(),
@@ -37,42 +41,93 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
     }, [load]),
   );
 
+  // 검색(디바운스 300ms·경합 가드). 빈 쿼리는 발견 모드.
+  useEffect(() => {
+    const query = q.trim();
+    if (!query) {
+      searchReq.current++; // 진행 중 검색 무효화(클리어 시 stale 결과 방지)
+      setResults(null);
+      return;
+    }
+    const id = ++searchReq.current;
+    const timer = setTimeout(async () => {
+      try {
+        const r = await serverApi.search(query);
+        if (id === searchReq.current) setResults(r);
+      } catch {
+        if (id === searchReq.current) setResults(null);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [q]);
+
+  const searching = q.trim().length > 0;
   const openTag = (tag: string) => navigation.navigate('Hashtag', { tag });
   const openProfile = (userId: string) => navigation.navigate('UserProfile', { userId });
 
-  const follow = useCallback(async (u: DiscoverUser) => {
+  const follow = useCallback((u: DiscoverUser, source: 'discovery' | 'search') => {
     if (followPending.current.has(u.id)) return;
     followPending.current.add(u.id);
-    setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, isFollowing: true } : x)));
-    try {
-      await serverApi.followUser(u.id);
-    } catch {
-      setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, isFollowing: false } : x)));
-    } finally {
-      followPending.current.delete(u.id);
-    }
+    const setFollowing = (val: boolean) => {
+      if (source === 'search') {
+        setResults((r) => (r ? { ...r, users: r.users.map((x) => (x.id === u.id ? { ...x, isFollowing: val } : x)) } : r));
+      } else {
+        setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, isFollowing: val } : x)));
+      }
+    };
+    const startQ = qRef.current;
+    setFollowing(true);
+    void serverApi
+      .followUser(u.id)
+      // 검색 결과 롤백은 같은 쿼리일 때만 — 그 사이 재검색된 새 결과 오염 방지.
+      .catch(() => {
+        if (source === 'discovery' || qRef.current === startQ) setFollowing(false);
+      })
+      .finally(() => followPending.current.delete(u.id));
   }, []);
 
-  const header = (
+  const tagChips = (list: TrendingTag[]) => (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+      {list.map((tt) => (
+        <Pressable key={tt.tag} style={styles.chip} onPress={() => openTag(tt.tag)}>
+          <AppText variant="label" color="primary">
+            #{tt.tag}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={{ marginLeft: 4 }}>
+            {tt.count}
+          </AppText>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+
+  const searchUserRow = (u: DiscoverUser) => (
+    <Card key={u.id} style={styles.userRow}>
+      <Pressable style={styles.userMain} onPress={() => openProfile(u.id)}>
+        <Avatar name={u.displayName} url={u.avatarUrl} size={36} />
+        <AppText variant="body" weight="medium" numberOfLines={1} style={styles.userName}>
+          {u.displayName || t('discover.unnamed')}
+        </AppText>
+      </Pressable>
+      <Button
+        title={u.isFollowing ? t('discover.following') : t('discover.follow')}
+        size="sm"
+        variant={u.isFollowing ? 'secondary' : 'primary'}
+        fullWidth={false}
+        disabled={u.isFollowing}
+        onPress={() => follow(u, 'search')}
+      />
+    </Card>
+  );
+
+  const discoveryHeader = (
     <View>
       {tags.length > 0 ? (
         <>
           <SectionHeader title={t('explore.trending')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
-            {tags.map((tt) => (
-              <Pressable key={tt.tag} style={styles.chip} onPress={() => openTag(tt.tag)}>
-                <AppText variant="label" color="primary">
-                  #{tt.tag}
-                </AppText>
-                <AppText variant="label" color="textFaint" style={{ marginLeft: 4 }}>
-                  {tt.count}
-                </AppText>
-              </Pressable>
-            ))}
-          </ScrollView>
+          {tagChips(tags)}
         </>
       ) : null}
-
       {users.length > 0 ? (
         <>
           <SectionHeader title={t('explore.suggested')} />
@@ -81,7 +136,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
               <Card key={u.id} style={styles.userCard}>
                 <Pressable onPress={() => openProfile(u.id)} style={{ alignItems: 'center' }}>
                   <Avatar name={u.displayName} url={u.avatarUrl} size={52} />
-                  <AppText variant="label" weight="medium" numberOfLines={1} style={styles.userName}>
+                  <AppText variant="label" weight="medium" numberOfLines={1} style={styles.userCardName}>
                     {u.displayName || t('discover.unnamed')}
                   </AppText>
                   <AppText variant="label" color="textFaint" numberOfLines={1}>
@@ -92,7 +147,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
                   title={u.isFollowing ? t('discover.following') : t('discover.follow')}
                   size="sm"
                   variant={u.isFollowing ? 'secondary' : 'primary'}
-                  onPress={() => follow(u)}
+                  onPress={() => follow(u, 'discovery')}
                   disabled={u.isFollowing}
                   style={{ marginTop: spacing.sm }}
                 />
@@ -101,17 +156,48 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
           </ScrollView>
         </>
       ) : null}
-
       <SectionHeader title={t('explore.popular')} />
     </View>
   );
 
+  const searchHeader = (
+    <View>
+      {results && results.users.length > 0 ? (
+        <>
+          <SectionHeader title={t('search.users')} />
+          {results.users.map(searchUserRow)}
+        </>
+      ) : null}
+      {results && results.tags.length > 0 ? (
+        <>
+          <SectionHeader title={t('search.tags')} />
+          {tagChips(results.tags)}
+        </>
+      ) : null}
+      {results && results.posts.length > 0 ? <SectionHeader title={t('search.posts')} /> : null}
+    </View>
+  );
+
+  const data = searching ? (results?.posts ?? []) : posts;
+  const noSearchResults =
+    searching && results !== null && results.users.length === 0 && results.tags.length === 0 && results.posts.length === 0;
+
   return (
     <Screen padded={false}>
+      <View style={styles.search}>
+        <TextField
+          value={q}
+          onChangeText={setQ}
+          placeholder={t('search.placeholder')}
+          autoCapitalize="none"
+          returnKeyType="search"
+          containerStyle={{ marginBottom: 0 }}
+        />
+      </View>
       <FlatList
-        data={posts}
+        data={data}
         keyExtractor={(p) => p.id}
-        ListHeaderComponent={header}
+        ListHeaderComponent={searching ? searchHeader : discoveryHeader}
         renderItem={({ item }) => (
           <DiscoveryPostCard
             post={item}
@@ -121,14 +207,31 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
           />
         )}
         contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
-        ListEmptyComponent={!loading ? <EmptyState title={t('explore.empty')} /> : null}
+        refreshControl={
+          searching ? undefined : (
+            <RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />
+          )
+        }
+        ListEmptyComponent={
+          noSearchResults ? (
+            <EmptyState title={t('search.empty')} />
+          ) : !searching && !loading ? (
+            <EmptyState title={t('explore.empty')} />
+          ) : null
+        }
       />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  search: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
   list: { padding: spacing.lg, paddingTop: spacing.sm, flexGrow: 1 },
   chips: { paddingVertical: spacing.xs, gap: spacing.sm, paddingRight: spacing.md },
   chip: {
@@ -141,5 +244,8 @@ const styles = StyleSheet.create({
   },
   suggested: { paddingVertical: spacing.xs, gap: spacing.sm, paddingRight: spacing.md },
   userCard: { width: 140, alignItems: 'center', marginBottom: spacing.sm },
-  userName: { marginTop: spacing.xs, maxWidth: 120, textAlign: 'center' },
+  userCardName: { marginTop: spacing.xs, maxWidth: 120, textAlign: 'center' },
+  userRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+  userMain: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  userName: { flex: 1, marginHorizontal: spacing.md },
 });

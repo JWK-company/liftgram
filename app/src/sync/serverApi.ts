@@ -92,6 +92,11 @@ export interface TrendingTag {
   tag: string;
   count: number;
 }
+export interface SearchResult {
+  users: DiscoverUser[];
+  tags: TrendingTag[];
+  posts: FeedPost[];
+}
 export interface SocialProfile {
   id: string;
   displayName: string | null;
@@ -261,6 +266,9 @@ export const serverApi = {
   },
   suggestions(): Promise<DiscoverUser[]> {
     return request<DiscoverUser[]>('/social/suggestions', { auth: true });
+  },
+  search(q: string): Promise<SearchResult> {
+    return request<SearchResult>(`/social/search?q=${encodeURIComponent(q)}`, { auth: true });
   },
   followUser(id: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/follow/${id}`, { method: 'POST', auth: true });

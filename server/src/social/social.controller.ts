@@ -9,6 +9,7 @@ import {
   DiscoverUser,
   PostView,
   PublicProfile,
+  SearchResult,
   SocialService,
   StoryGroup,
   StoryView,
@@ -108,6 +109,16 @@ export class SocialController {
   @Get('suggestions')
   suggestions(@CurrentUser() user: AuthUser, @Query('limit') limit?: string): Promise<DiscoverUser[]> {
     return this.social.getSuggestions(user.userId, clampLimit(limit, 20, 50));
+  }
+
+  // 통합 검색 — 유저 + 해시태그 + 포스트.
+  @Get('search')
+  search(
+    @CurrentUser() user: AuthUser,
+    @Query('q') q?: string,
+    @Query('limit') limit?: string,
+  ): Promise<SearchResult> {
+    return this.social.search(user.userId, q ?? '', clampLimit(limit, 20, 50));
   }
 
   @Get('users')

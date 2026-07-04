@@ -44,6 +44,11 @@ export interface TrendingTag {
   tag: string;
   count: number;
 }
+export interface SearchResult {
+  users: DiscoverUser[];
+  tags: TrendingTag[];
+  posts: PostView[];
+}
 export interface StoryView {
   id: string;
   mediaUrl: string;
@@ -77,6 +82,11 @@ const postInclude = (viewerId: string) =>
     _count: { select: { likes: true, comments: { where: { moderationStatus: 'approved' } } } },
     likes: { where: { userId: viewerId }, select: { id: true } },
   }) satisfies Prisma.PostInclude;
+
+// SQL LIKE 메타문자(%·_·\)를 이스케이프 — 사용자 입력을 리터럴로 매칭(와일드카드 남용·전체매칭 방지).
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
 
 // 캡션에서 #해시태그 추출(소문자·중복제거·최대 10개). 유니코드 글자/숫자/밑줄.
 function extractHashtags(caption: string | null | undefined): string[] {
@@ -375,7 +385,7 @@ export class SocialService {
       where: {
         id: { not: viewerId, notIn: hidden }, // 나·차단 상호 제외
         // 공개 식별자(displayName)만 검색 — 이메일 substring 매칭은 계정 열거 위험이라 제외.
-        ...(q ? { displayName: { contains: q, mode: 'insensitive' } } : {}),
+        ...(q ? { displayName: { contains: escapeLike(q), mode: 'insensitive' } } : {}),
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -391,6 +401,53 @@ export class SocialService {
       avatarUrl: u.avatarUrl,
       isFollowing: followingSet.has(u.id),
     }));
+  }
+
+  // 통합 검색 — 유저(displayName) + 해시태그(tag) + 포스트(caption). 공개·승인·차단 제외.
+  async search(viewerId: string, q: string, limit: number): Promise<SearchResult> {
+    const query = q.trim();
+    if (!query) return { users: [], tags: [], posts: [] };
+    const hidden = await this.hiddenUserIds(viewerId);
+    const [users, tagRows, posts, following] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { id: { not: viewerId, notIn: hidden }, displayName: { contains: escapeLike(query), mode: 'insensitive' } },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+      }),
+      this.prisma.postHashtag.groupBy({
+        by: ['tag'],
+        where: {
+          tag: { contains: escapeLike(query.toLowerCase()) },
+          post: { visibility: 'public', moderationStatus: 'approved', authorId: { notIn: hidden } },
+        },
+        _count: { tag: true },
+        orderBy: { _count: { tag: 'desc' } },
+        take: limit,
+      }),
+      this.prisma.post.findMany({
+        where: {
+          visibility: 'public',
+          moderationStatus: 'approved',
+          authorId: { notIn: hidden },
+          caption: { contains: escapeLike(query), mode: 'insensitive' },
+        },
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit,
+        include: postInclude(viewerId),
+      }),
+      this.prisma.follow.findMany({ where: { followerId: viewerId }, select: { followeeId: true } }),
+    ]);
+    const fset = new Set(following.map((f) => f.followeeId));
+    return {
+      users: users.map((u) => ({
+        id: u.id,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+        isFollowing: fset.has(u.id),
+      })),
+      tags: tagRows.map((r) => ({ tag: r.tag, count: r._count.tag })),
+      posts: posts.map((p) => this.toView(p)),
+    };
   }
 
   // 인기 공개 포스트 발견 — 참여도(좋아요·댓글) + 최신 순. 팔로우 무관 공개 레이어.
