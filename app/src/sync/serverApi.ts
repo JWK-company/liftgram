@@ -11,12 +11,26 @@ interface RequestOptions {
   auth?: boolean;
 }
 
+// 요청 타임아웃 — 무료 호스팅 콜드스타트/휴면 시 fetch가 무한 대기(무한 스피너)하는 것을 막고,
+// 바운드된 에러로 reject해 화면의 재시도 UI가 뜨게 한다. 콜드스타트(~50s) 수용 위해 넉넉히.
+const REQUEST_TIMEOUT_MS = 60000;
+
+async function fetchWithTimeout(url: string, init: RequestInit, ms = REQUEST_TIMEOUT_MS): Promise<Response> {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 // refresh 토큰으로 새 토큰쌍 획득. 실패(만료/폐기) 시 저장 토큰 정리. request() 재귀 방지 위해 직접 fetch.
-async function tryRefresh(): Promise<boolean> {
+async function doRefresh(): Promise<boolean> {
   const refreshToken = await loadRefreshToken();
   if (!refreshToken) return false;
   try {
-    const res = await fetch(`${SERVER_URL}/auth/refresh`, {
+    const res = await fetchWithTimeout(`${SERVER_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -29,8 +43,21 @@ async function tryRefresh(): Promise<boolean> {
     await saveTokens(accessToken, next);
     return true;
   } catch {
+    // 네트워크/타임아웃 실패는 토큰을 지우지 않음(세션 유지) — 진짜 만료(!res.ok)일 때만 정리.
     return false;
   }
+}
+
+// 동시 401(피드 등 병렬 요청)이 각자 refresh를 쏘면 서버 재사용탐지가 패밀리 무효화 → 강제 로그아웃.
+// 진행 중 refresh 하나를 공유해 1회로 합친다.
+let refreshInFlight: Promise<boolean> | null = null;
+function tryRefresh(): Promise<boolean> {
+  if (!refreshInFlight) {
+    refreshInFlight = doRefresh().finally(() => {
+      refreshInFlight = null;
+    });
+  }
+  return refreshInFlight;
 }
 
 async function request<T>(path: string, opts: RequestOptions = {}, retried = false): Promise<T> {
@@ -40,7 +67,7 @@ async function request<T>(path: string, opts: RequestOptions = {}, retried = fal
     const token = await loadToken();
     if (token) headers.authorization = `Bearer ${token}`;
   }
-  const res = await fetch(`${SERVER_URL}${path}`, {
+  const res = await fetchWithTimeout(`${SERVER_URL}${path}`, {
     method: opts.method ?? 'GET',
     headers,
     body: opts.body != null ? (isForm ? (opts.body as FormData) : JSON.stringify(opts.body)) : undefined,

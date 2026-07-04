@@ -1,4 +1,4 @@
-// @plm SRS-006  로그인/가입 스텁 (오프라인-우선, 서버 연동은 Phase 1)
+// @plm SRS-006  로그인/가입 — 서버 인증(JWT)으로 소셜 잠금 해제 + 로컬 프로필 미러.
 import React, { useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,9 @@ import type { RootStackScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
 import { useT } from '../../i18n';
+import { serverApi } from '../../sync/serverApi';
+import { authErrorKey } from '../../sync/apiError';
+import { registerPushToken } from '../../push/push';
 
 type Mode = 'login' | 'signup';
 
@@ -31,7 +34,6 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
       Alert.alert(t('common.error'), t('auth.invalidEmail'));
       return;
     }
-    // @phase-1-backend — 비밀번호는 실제로 검증·저장되지 않습니다. 서버 인증은 Phase 1.
     if (!password) {
       Alert.alert(t('common.error'), t('auth.passwordRequired'));
       return;
@@ -43,14 +45,16 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
     setBusy(true);
     try {
       const name = displayName.trim();
-      await userRepo.setLocalAuth(user.id, {
-        email: trimmedEmail,
-        displayName: name ? name : null,
-      });
+      // 실제 서버 인증(JWT 저장) — 이래야 피드·DM·발견 등 소셜 기능이 잠금 해제된다.
+      if (isSignup) await serverApi.signUp(trimmedEmail, password, name ? name : undefined);
+      else await serverApi.login(trimmedEmail, password);
+      // 로컬 프로필에 신원 미러(오프라인 표시용).
+      await userRepo.setLocalAuth(user.id, { email: trimmedEmail, displayName: name ? name : null });
+      void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
       await refresh();
       navigation.goBack();
     } catch (e) {
-      Alert.alert(t('common.error'), String(e));
+      Alert.alert(t('common.error'), t(authErrorKey(e)));
     } finally {
       setBusy(false);
     }

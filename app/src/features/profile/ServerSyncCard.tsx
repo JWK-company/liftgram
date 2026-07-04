@@ -6,10 +6,13 @@ import { AppText, Button, TextField } from '../../components';
 import { colors, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
+import { authErrorKey } from '../../sync/apiError';
 import { syncWithServer } from '../../sync/syncEngine';
 import { registerPushToken, unregisterPushToken } from '../../push/push';
 
 type Mode = 'login' | 'signup';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ServerSyncCard() {
   const { t } = useT();
@@ -27,17 +30,28 @@ export function ServerSyncCard() {
 
   async function onConnect() {
     if (busy) return;
+    const mail = email.trim();
+    if (!EMAIL_RE.test(mail)) {
+      setStatus(t('auth.invalidEmail'));
+      setError(true);
+      return;
+    }
+    if (!password) {
+      setStatus(t('auth.passwordRequired'));
+      setError(true);
+      return;
+    }
     setBusy(true);
     setStatus(null);
     setError(false);
     try {
-      if (mode === 'signup') await serverApi.signUp(email.trim(), password);
-      else await serverApi.login(email.trim(), password);
+      if (mode === 'signup') await serverApi.signUp(mail, password);
+      else await serverApi.login(mail, password);
       setLoggedIn(true);
       setPassword('');
       void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
     } catch (e) {
-      setStatus(String(e));
+      setStatus(t(authErrorKey(e)));
       setError(true);
     } finally {
       setBusy(false);
@@ -53,7 +67,7 @@ export function ServerSyncCard() {
       await syncWithServer();
       setStatus(t('serverSync.done'));
     } catch (e) {
-      setStatus(String(e));
+      setStatus(t(authErrorKey(e)));
       setError(true);
     } finally {
       setBusy(false);

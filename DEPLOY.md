@@ -48,18 +48,31 @@
 
 ---
 
-## 3단계 — 앱(프론트) 연결 (다음 단계)
+## 3단계 — 앱(프론트) 연결
 
 서버만 올리면 팀원이 아직 못 씁니다. 웹앱을 **이 서버 주소로 빌드**해서
-정적 호스팅(Netlify / Cloudflare Pages / Render Static)에 올려야
-팀원이 폰 브라우저로 접속 → 홈 화면에 추가해서 앱처럼 씁니다.
+정적 호스팅에 올려야 팀원이 폰 브라우저로 접속 → 홈 화면에 추가해서 앱처럼 씁니다.
+설정은 이미 준비돼 있음(`netlify.toml`, SPA 폴백 `app/public/_redirects`).
 
-빌드 시 서버 주소 주입:
+### 방법 A — Netlify (가장 쉬움, 무료)
+1. https://netlify.com → GitHub 로그인.
+2. **Add new site → Import an existing project** → 이 저장소 선택.
+   - 빌드 설정은 `netlify.toml`이 자동 적용됨(base=app, publish=dist).
+3. **Site settings → Environment variables** 에 추가:
+   `EXPO_PUBLIC_SERVER_URL = https://<Render 서버주소>/api`
+4. **Deploy** → 발급된 주소(예: `https://liftgram.netlify.app`)를 팀원에게 공유.
+5. 팀원: 폰 브라우저로 열기 → 공유/메뉴 → **홈 화면에 추가** → 앱처럼 사용.
+
+### 방법 B — 손으로 빌드해서 아무 정적호스팅에 업로드
 ```bash
 cd app
-EXPO_PUBLIC_SERVER_URL="https://<서버주소>/api" npx expo export --platform web
-# 결과물: app/dist  → 이 폴더를 정적 호스팅에 업로드
+EXPO_PUBLIC_SERVER_URL="https://<서버주소>/api" npm run export:web
+# 결과물: app/dist  → Cloudflare Pages/Render Static 등에 업로드
+# (Cloudflare Pages는 _redirects 파일이 SPA 폴백을 자동 처리)
 ```
+
+> 마지막으로 서버 CORS를 이 프론트 주소로 좁히려면(선택), Render 환경변수에
+> `CORS_ORIGINS = https://<프론트주소>` 추가. (안 넣어도 POC는 동작)
 
 ---
 

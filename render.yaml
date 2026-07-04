@@ -10,8 +10,8 @@ services:
     region: singapore # 한국에서 가장 가까운 무료 리전(원하면 oregon 등으로 변경)
     # 빌드: devDeps 포함 설치(nest build에 필요) → prisma client 생성 → 컴파일
     buildCommand: npm install --include=dev && npx prisma generate && npm run build
-    # 시작: 마이그레이션 적용(새 DB에 테이블 생성) → 서버 실행
-    startCommand: npx prisma migrate deploy && node dist/main.js
+    # 시작: 마이그레이션 적용(새 DB에 테이블 생성) → 서버 실행 (server/package.json의 start:render)
+    startCommand: npm run start:render
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
