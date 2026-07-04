@@ -1,0 +1,31 @@
+# Render Blueprint — Liftgram 백엔드(NestJS + PostgreSQL) 무료 배포.
+# 사용법: Render 대시보드 → New → Blueprint → 이 저장소 선택 → Apply.
+# DB는 외부 무료 Postgres(Neon)를 쓰므로, 배포 후 DATABASE_URL만 직접 넣으면 됩니다.
+services:
+  - type: web
+    name: liftgram-api
+    runtime: node
+    rootDir: server # 모노레포 — 서버는 server/ 하위
+    plan: free
+    region: singapore # 한국에서 가장 가까운 무료 리전(원하면 oregon 등으로 변경)
+    # 빌드: devDeps 포함 설치(nest build에 필요) → prisma client 생성 → 컴파일
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
+    # 시작: 마이그레이션 적용(새 DB에 테이블 생성) → 서버 실행
+    startCommand: npx prisma migrate deploy && node dist/main.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true # Render가 강력한 랜덤 시크릿 자동 생성
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: DATABASE_URL
+        sync: false # ← Neon 연결 문자열을 대시보드에서 직접 입력(비밀)
+      - key: STORAGE_PROVIDER
+        value: local # 사진=서버 디스크(무료·재배포 시 초기화). 후속: 클라우드 저장
+      - key: PUSH_PROVIDER
+        value: noop # POC엔 푸시 발송 끔(웹푸시 원하면 VAPID 키 설정 후 auto)
+      # 프론트(웹앱)를 배포한 뒤 그 주소로 좁히려면 아래 주석 해제:
+      # - key: CORS_ORIGINS
+      #   sync: false

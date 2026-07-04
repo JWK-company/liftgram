@@ -3,14 +3,19 @@
   "version": "0.1.0",
   "description": "헬스앱 백엔드 — Node.js/TS 모듈러 모놀리스 (ADR-018) + PostgreSQL. 계정·인증·동기 토대(SRS-006/ADR-002/SAD-004).",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:prod": "node dist/main.js",
+    "start:render": "prisma migrate deploy && node dist/main.js",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down"
   },
@@ -29,6 +34,7 @@
     "class-validator": "^0.14.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "prisma": "^5.20.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3",
@@ -43,7 +49,6 @@
     "@types/node": "^22.5.5",
     "@types/passport-jwt": "^4.0.1",
     "@types/web-push": "^3.6.4",
-    "prisma": "^5.20.0",
     "typescript": "^5.6.2"
   }
 }

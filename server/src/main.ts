@@ -18,8 +18,9 @@ async function bootstrap(): Promise<void> {
   app.enableCors({ origin: corsOrigins ? corsOrigins.split(',').map((s) => s.trim()) : true });
   app.setGlobalPrefix('api');
   const port = config.get<number>('PORT', 3000);
-  await app.listen(port);
+  // 0.0.0.0 바인딩 — 컨테이너/호스팅(Render 등)에서 외부 접근 가능하도록.
+  await app.listen(port, '0.0.0.0');
   // eslint-disable-next-line no-console
-  console.log(`[server] listening on http://localhost:${port}/api`);
+  console.log(`[server] listening on port ${port} (prefix /api)`);
 }
 void bootstrap();
