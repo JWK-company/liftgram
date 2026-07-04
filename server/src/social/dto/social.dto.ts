@@ -46,4 +46,8 @@ export class AddCommentDto {
   @IsString()
   @MaxLength(2000)
   body!: string;
+
+  @IsOptional()
+  @IsString()
+  parentId?: string; // 대댓글이면 부모 댓글 id
 }

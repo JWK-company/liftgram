@@ -68,7 +68,14 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
 function NotifRow({ notif, onPress }: { notif: NotificationItem; onPress: () => void }) {
   const { t } = useT();
   const name = notif.actor.displayName || t('discover.unnamed');
-  const key = notif.type === 'follow' ? 'notif.follow' : notif.type === 'like' ? 'notif.like' : 'notif.comment';
+  const KEYS = {
+    follow: 'notif.follow',
+    like: 'notif.like',
+    comment: 'notif.comment',
+    reply: 'notif.reply',
+    comment_like: 'notif.commentLike',
+  } as const;
+  const key = KEYS[notif.type as keyof typeof KEYS] ?? 'notif.generic';
   const when = new Date(notif.createdAt).toLocaleDateString('ko-KR');
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>

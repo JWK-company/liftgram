@@ -23,6 +23,10 @@ export interface CommentView {
   author: { id: string; displayName: string | null };
   body: string;
   createdAt: string;
+  likeCount: number;
+  likedByMe: boolean;
+  parentId: string | null;
+  replyCount: number; // 대댓글 수(최상위 댓글에서만 의미, 답글은 0)
 }
 export interface PublicProfile {
   id: string;
@@ -39,6 +43,12 @@ export interface DiscoverUser {
   avatarUrl: string | null;
   isFollowing: boolean;
   followerCount?: number; // 추천(suggestions)에서 채움
+}
+export interface BlockedUser {
+  id: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  blockedAt: string; // 차단 시각(ISO)
 }
 export interface TrendingTag {
   tag: string;
@@ -79,9 +89,26 @@ type PostRow = {
 const postInclude = (viewerId: string) =>
   ({
     author: { select: { id: true, displayName: true, avatarUrl: true } },
-    _count: { select: { likes: true, comments: { where: { moderationStatus: 'approved' } } } },
+    // 최상위 댓글만 카운트(대댓글 제외) — 댓글 화면 모델(최상위 N + 답글 배지)과 일치.
+    _count: { select: { likes: true, comments: { where: { moderationStatus: 'approved', parentId: null } } } },
     likes: { where: { userId: viewerId }, select: { id: true } },
   }) satisfies Prisma.PostInclude;
+
+// 댓글 조회 include — 작성자 + 좋아요 수 + 뷰어의 좋아요 여부.
+const commentInclude = (viewerId: string) =>
+  ({
+    author: { select: { id: true, displayName: true } },
+    _count: { select: { likes: true } },
+    likes: { where: { userId: viewerId }, select: { id: true } },
+  }) satisfies Prisma.CommentInclude;
+
+type CommentRow = Prisma.CommentGetPayload<{
+  include: {
+    author: { select: { id: true; displayName: true } };
+    _count: { select: { likes: true } };
+    likes: { select: { id: true } };
+  };
+}>;
 
 // SQL LIKE 메타문자(%·_·\)를 이스케이프 — 사용자 입력을 리터럴로 매칭(와일드카드 남용·전체매칭 방지).
 function escapeLike(s: string): string {
@@ -156,6 +183,8 @@ export class SocialService {
         follow: `${name}님이 회원님을 팔로우했어요`,
         like: `${name}님이 회원님의 게시물을 좋아해요`,
         comment: `${name}님이 회원님의 게시물에 댓글을 남겼어요`,
+        reply: `${name}님이 회원님의 댓글에 답글을 남겼어요`,
+        comment_like: `${name}님이 회원님의 댓글을 좋아해요`,
       };
       await this.push.sendToUsers([userId], {
         title: 'Liftgram',
@@ -224,6 +253,24 @@ export class SocialService {
   async unblock(blockerId: string, blockedId: string): Promise<{ ok: true }> {
     await this.prisma.block.deleteMany({ where: { blockerId, blockedId } });
     return { ok: true };
+  }
+
+  // 내가 차단한 유저 목록(최신 차단순). 관리 화면에서 조회·해제용.
+  async getBlockedUsers(viewerId: string): Promise<BlockedUser[]> {
+    const rows = await this.prisma.block.findMany({
+      where: { blockerId: viewerId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        createdAt: true,
+        blocked: { select: { id: true, displayName: true, avatarUrl: true } },
+      },
+    });
+    return rows.map((r) => ({
+      id: r.blocked.id,
+      displayName: r.blocked.displayName,
+      avatarUrl: r.blocked.avatarUrl,
+      blockedAt: r.createdAt.toISOString(),
+    }));
   }
 
   // viewer와 차단 관계(양방향)인 유저 id — 목록에서 상호 제외.
@@ -698,38 +745,115 @@ export class SocialService {
     return { ok: true, likeCount };
   }
 
-  async listComments(userId: string, postId: string, limit: number): Promise<CommentView[]> {
-    await this.assertCanViewPost(postId, userId);
-    const hidden = await this.hiddenUserIds(userId);
-    const comments = await this.prisma.comment.findMany({
-      where: { postId, moderationStatus: 'approved', authorId: { notIn: hidden } }, // 차단 작성자 댓글 숨김
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-      take: limit,
-      include: { author: { select: { id: true, displayName: true } } },
-    });
-    return comments.map((c) => ({
-      id: c.id,
-      author: { id: c.author.id, displayName: c.author.displayName },
-      body: c.body,
-      createdAt: c.createdAt.toISOString(),
-    }));
-  }
-
-  async addComment(userId: string, postId: string, body: string): Promise<CommentView> {
-    const { authorId } = await this.assertCanViewPost(postId, userId);
-    const text = body.trim();
-    if (!text) throw new BadRequestException('empty comment');
-    const c = await this.prisma.comment.create({
-      data: { postId, authorId: userId, body: text },
-      include: { author: { select: { id: true, displayName: true } } },
-    });
-    if (authorId !== userId) await this.notify(authorId, userId, 'comment', postId);
+  private mapComment(c: CommentRow, replyCount: number): CommentView {
     return {
       id: c.id,
       author: { id: c.author.id, displayName: c.author.displayName },
       body: c.body,
       createdAt: c.createdAt.toISOString(),
+      likeCount: c._count.likes,
+      likedByMe: c.likes.length > 0,
+      parentId: c.parentId,
+      replyCount,
     };
+  }
+
+  // 최상위 댓글 목록(대댓글 제외) — 좋아요 수·뷰어 좋아요·대댓글 수 포함.
+  async listComments(userId: string, postId: string, limit: number): Promise<CommentView[]> {
+    await this.assertCanViewPost(postId, userId);
+    const hidden = await this.hiddenUserIds(userId);
+    const comments = await this.prisma.comment.findMany({
+      where: { postId, parentId: null, moderationStatus: 'approved', authorId: { notIn: hidden } }, // 차단 작성자 숨김
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit,
+      include: commentInclude(userId),
+    });
+    // 대댓글 수(승인·비차단만) 집계.
+    const ids = comments.map((c) => c.id);
+    const replyGroups = ids.length
+      ? await this.prisma.comment.groupBy({
+          by: ['parentId'],
+          where: { parentId: { in: ids }, moderationStatus: 'approved', authorId: { notIn: hidden } },
+          _count: { _all: true },
+        })
+      : [];
+    const replyMap = new Map(replyGroups.map((g) => [g.parentId, g._count._all]));
+    return comments.map((c) => this.mapComment(c, replyMap.get(c.id) ?? 0));
+  }
+
+  // 특정 댓글의 대댓글 목록(1단계).
+  async getReplies(userId: string, commentId: string, limit: number): Promise<CommentView[]> {
+    const parent = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { postId: true },
+    });
+    if (!parent) throw new NotFoundException('comment not found');
+    await this.assertCanViewPost(parent.postId, userId);
+    const hidden = await this.hiddenUserIds(userId);
+    const replies = await this.prisma.comment.findMany({
+      where: { parentId: commentId, moderationStatus: 'approved', authorId: { notIn: hidden } },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      take: limit,
+      include: commentInclude(userId),
+    });
+    return replies.map((c) => this.mapComment(c, 0));
+  }
+
+  async addComment(userId: string, postId: string, body: string, parentId?: string): Promise<CommentView> {
+    const { authorId } = await this.assertCanViewPost(postId, userId);
+    const text = body.trim();
+    if (!text) throw new BadRequestException('empty comment');
+    let effectiveParentId: string | null = null;
+    let notifyUserId = authorId; // 최상위 → 게시물 작성자
+    let notifyType = 'comment';
+    if (parentId) {
+      const parent = await this.prisma.comment.findUnique({
+        where: { id: parentId },
+        select: { id: true, postId: true, parentId: true, authorId: true, moderationStatus: true },
+      });
+      if (!parent || parent.postId !== postId || parent.moderationStatus !== 'approved') {
+        throw new NotFoundException('parent comment not found');
+      }
+      // 1단계 정규화: 답글의 답글이면 루트 댓글에 붙임.
+      effectiveParentId = parent.parentId ?? parent.id;
+      // 답글 알림은 내가 답한 대상(부모) 댓글 작성자에게.
+      notifyUserId = parent.authorId;
+      notifyType = 'reply';
+    }
+    const c = await this.prisma.comment.create({
+      data: { postId, authorId: userId, body: text, parentId: effectiveParentId },
+      include: commentInclude(userId),
+    });
+    if (notifyUserId !== userId) await this.notify(notifyUserId, userId, notifyType, postId);
+    return this.mapComment(c, 0);
+  }
+
+  async likeComment(userId: string, commentId: string): Promise<{ ok: true; likeCount: number }> {
+    const c = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { postId: true, authorId: true, moderationStatus: true },
+    });
+    if (!c || c.moderationStatus !== 'approved') throw new NotFoundException('comment not found');
+    await this.assertCanViewPost(c.postId, userId);
+    if (await this.isBlockedBetween(userId, c.authorId)) throw new NotFoundException('comment not found');
+    try {
+      await this.prisma.commentLike.create({ data: { commentId, userId } });
+      if (c.authorId !== userId) await this.notify(c.authorId, userId, 'comment_like', c.postId);
+    } catch (e) {
+      // 이미 좋아요(unique 위반)면 알림 재생성 안 함.
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+    }
+    const likeCount = await this.prisma.commentLike.count({ where: { commentId } });
+    return { ok: true, likeCount };
+  }
+
+  async unlikeComment(userId: string, commentId: string): Promise<{ ok: true; likeCount: number }> {
+    const c = await this.prisma.comment.findUnique({ where: { id: commentId }, select: { postId: true } });
+    if (!c) throw new NotFoundException('comment not found');
+    await this.assertCanViewPost(c.postId, userId);
+    await this.prisma.commentLike.deleteMany({ where: { commentId, userId } });
+    const likeCount = await this.prisma.commentLike.count({ where: { commentId } });
+    return { ok: true, likeCount };
   }
 
   async deleteComment(userId: string, commentId: string): Promise<{ ok: true }> {

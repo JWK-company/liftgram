@@ -5,6 +5,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/jwt.strategy';
 import { AddCommentDto, CreatePostDto, CreateStoryDto, UpdatePostDto } from './dto/social.dto';
 import {
+  BlockedUser,
   CommentView,
   DiscoverUser,
   PostView,
@@ -80,7 +81,27 @@ export class SocialController {
     @Param('id') id: string,
     @Body() dto: AddCommentDto,
   ): Promise<CommentView> {
-    return this.social.addComment(user.userId, id, dto.body);
+    return this.social.addComment(user.userId, id, dto.body, dto.parentId);
+  }
+
+  // 특정 댓글의 대댓글(1단계).
+  @Get('comments/:id/replies')
+  replies(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<CommentView[]> {
+    return this.social.getReplies(user.userId, id, clampLimit(limit, 50, 100));
+  }
+
+  @Post('comments/:id/like')
+  likeComment(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true; likeCount: number }> {
+    return this.social.likeComment(user.userId, id);
+  }
+
+  @Delete('comments/:id/like')
+  unlikeComment(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true; likeCount: number }> {
+    return this.social.unlikeComment(user.userId, id);
   }
 
   @Delete('comments/:id')
@@ -171,6 +192,12 @@ export class SocialController {
   @Delete('follow/:id')
   unfollow(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
     return this.social.unfollow(user.userId, id);
+  }
+
+  // 내가 차단한 유저 목록(관리 화면).
+  @Get('blocks')
+  blocks(@CurrentUser() user: AuthUser): Promise<BlockedUser[]> {
+    return this.social.getBlockedUsers(user.userId);
   }
 
   @Post('block/:id')
