@@ -5,6 +5,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/jwt.strategy';
 import { AddCommentDto, CreatePostDto, CreateStoryDto, UpdatePostDto } from './dto/social.dto';
 import {
+  BlockedUser,
   CommentView,
   DiscoverUser,
   PostView,
@@ -191,6 +192,12 @@ export class SocialController {
   @Delete('follow/:id')
   unfollow(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
     return this.social.unfollow(user.userId, id);
+  }
+
+  // 내가 차단한 유저 목록(관리 화면).
+  @Get('blocks')
+  blocks(@CurrentUser() user: AuthUser): Promise<BlockedUser[]> {
+    return this.social.getBlockedUsers(user.userId);
   }
 
   @Post('block/:id')

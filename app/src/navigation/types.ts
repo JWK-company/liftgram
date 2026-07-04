@@ -31,6 +31,7 @@ export type RootStackParamList = {
   ModerationQueue: undefined; // SRS-020 모더레이션 큐(모더레이터)
   Explore: undefined; // SRS-018 발견(인기·트렌딩·추천)
   Hashtag: { tag: string }; // SRS-018 해시태그별 포스트
+  BlockedUsers: undefined; // SRS-018 차단 목록 관리
 };
 
 // 화면 컴포넌트 타입 헬퍼

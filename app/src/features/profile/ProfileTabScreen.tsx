@@ -30,6 +30,7 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
   const { user, weightUnit, language, barWeightKg, availableEquipment, refresh } = useUser();
   const [busy, setBusy] = useState(false);
   const [isModerator, setIsModerator] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [installable, setInstallable] = useState(canInstall());
 
   React.useEffect(() => {
@@ -41,9 +42,15 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
     useCallback(() => {
       serverApi
         .isLoggedIn()
-        .then((logged) => (logged ? serverApi.me() : null))
+        .then((logged) => {
+          setLoggedIn(logged);
+          return logged ? serverApi.me() : null;
+        })
         .then((me) => setIsModerator(!!me && (me.role === 'moderator' || me.role === 'admin')))
-        .catch(() => setIsModerator(false));
+        .catch(() => {
+          setLoggedIn(false);
+          setIsModerator(false);
+        });
     }, []),
   );
 
@@ -243,6 +250,17 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
 
       {/* 내 프로필 편집 (로그인 시만 표시) */}
       <ProfileEditCard />
+
+      {/* 차단 목록 관리 (로그인 시) */}
+      {loggedIn ? (
+        <Button
+          title={t('block.entry')}
+          icon="ban-outline"
+          variant="secondary"
+          onPress={() => navigation.navigate('BlockedUsers')}
+          style={{ marginTop: spacing.md }}
+        />
+      ) : null}
 
       {/* 모더레이션 큐 (모더레이터/관리자만) */}
       {isModerator ? (

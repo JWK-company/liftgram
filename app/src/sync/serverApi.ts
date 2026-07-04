@@ -85,6 +85,12 @@ export interface Comment {
   parentId: string | null;
   replyCount: number;
 }
+export interface BlockedUser {
+  id: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  blockedAt: string;
+}
 export interface DiscoverUser {
   id: string;
   displayName: string | null;
@@ -315,6 +321,9 @@ export const serverApi = {
   },
   unblockUser(id: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/block/${id}`, { method: 'DELETE', auth: true });
+  },
+  blockedUsers(): Promise<BlockedUser[]> {
+    return request<BlockedUser[]>('/social/blocks', { auth: true });
   },
   profile(userId: string): Promise<SocialProfile> {
     return request<SocialProfile>(`/social/users/${userId}`, { auth: true });

@@ -44,6 +44,12 @@ export interface DiscoverUser {
   isFollowing: boolean;
   followerCount?: number; // 추천(suggestions)에서 채움
 }
+export interface BlockedUser {
+  id: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  blockedAt: string; // 차단 시각(ISO)
+}
 export interface TrendingTag {
   tag: string;
   count: number;
@@ -247,6 +253,24 @@ export class SocialService {
   async unblock(blockerId: string, blockedId: string): Promise<{ ok: true }> {
     await this.prisma.block.deleteMany({ where: { blockerId, blockedId } });
     return { ok: true };
+  }
+
+  // 내가 차단한 유저 목록(최신 차단순). 관리 화면에서 조회·해제용.
+  async getBlockedUsers(viewerId: string): Promise<BlockedUser[]> {
+    const rows = await this.prisma.block.findMany({
+      where: { blockerId: viewerId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        createdAt: true,
+        blocked: { select: { id: true, displayName: true, avatarUrl: true } },
+      },
+    });
+    return rows.map((r) => ({
+      id: r.blocked.id,
+      displayName: r.blocked.displayName,
+      avatarUrl: r.blocked.avatarUrl,
+      blockedAt: r.createdAt.toISOString(),
+    }));
   }
 
   // viewer와 차단 관계(양방향)인 유저 id — 목록에서 상호 제외.
