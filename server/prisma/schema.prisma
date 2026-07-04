@@ -33,6 +33,7 @@ model User {
   messages      Message[]
   postLikes         PostLike[]
   comments          Comment[]
+  commentLikes      CommentLike[]
   notifications     Notification[] @relation("notifications")
   notificationsSent Notification[] @relation("notificationsActor")
   reports           Report[]       @relation("reporter")
@@ -233,7 +234,7 @@ model PostLike {
   @@index([postId])
 }
 
-// 댓글 (SRS-007).
+// 댓글 (SRS-007). 대댓글은 1단계(parentId → 최상위 댓글). 답글의 답글은 루트로 정규화.
 model Comment {
   id        String   @id @default(uuid())
   postId    String
@@ -241,11 +242,29 @@ model Comment {
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   body      String
+  parentId  String? // 대댓글이면 최상위 댓글 id (1단계)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  likes     CommentLike[]
   moderationStatus String @default("approved") // approved|removed (ADR-017)
   removedAt DateTime?
   createdAt DateTime @default(now())
 
   @@index([postId, createdAt])
+  @@index([parentId, createdAt])
+}
+
+// 댓글 좋아요 (SRS-007). 댓글당 사용자 1개(멱등).
+model CommentLike {
+  id        String   @id @default(uuid())
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, userId])
+  @@index([commentId])
 }
 
 // 알림 (SRS-020). 팔로우·좋아요·댓글 이벤트 fan-out. DM은 unread 배지로 별도.

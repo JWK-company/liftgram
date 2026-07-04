@@ -80,7 +80,27 @@ export class SocialController {
     @Param('id') id: string,
     @Body() dto: AddCommentDto,
   ): Promise<CommentView> {
-    return this.social.addComment(user.userId, id, dto.body);
+    return this.social.addComment(user.userId, id, dto.body, dto.parentId);
+  }
+
+  // 특정 댓글의 대댓글(1단계).
+  @Get('comments/:id/replies')
+  replies(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<CommentView[]> {
+    return this.social.getReplies(user.userId, id, clampLimit(limit, 50, 100));
+  }
+
+  @Post('comments/:id/like')
+  likeComment(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true; likeCount: number }> {
+    return this.social.likeComment(user.userId, id);
+  }
+
+  @Delete('comments/:id/like')
+  unlikeComment(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true; likeCount: number }> {
+    return this.social.unlikeComment(user.userId, id);
   }
 
   @Delete('comments/:id')

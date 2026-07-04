@@ -80,6 +80,10 @@ export interface Comment {
   author: { id: string; displayName: string | null };
   body: string;
   createdAt: string;
+  likeCount: number;
+  likedByMe: boolean;
+  parentId: string | null;
+  replyCount: number;
 }
 export interface DiscoverUser {
   id: string;
@@ -257,8 +261,21 @@ export const serverApi = {
   comments(postId: string): Promise<Comment[]> {
     return request<Comment[]>(`/social/posts/${postId}/comments`, { auth: true });
   },
-  addComment(postId: string, body: string): Promise<Comment> {
-    return request<Comment>(`/social/posts/${postId}/comments`, { method: 'POST', body: { body }, auth: true });
+  commentReplies(commentId: string): Promise<Comment[]> {
+    return request<Comment[]>(`/social/comments/${commentId}/replies`, { auth: true });
+  },
+  addComment(postId: string, body: string, parentId?: string): Promise<Comment> {
+    return request<Comment>(`/social/posts/${postId}/comments`, {
+      method: 'POST',
+      body: parentId ? { body, parentId } : { body },
+      auth: true,
+    });
+  },
+  likeComment(commentId: string): Promise<{ ok: true; likeCount: number }> {
+    return request<{ ok: true; likeCount: number }>(`/social/comments/${commentId}/like`, { method: 'POST', auth: true });
+  },
+  unlikeComment(commentId: string): Promise<{ ok: true; likeCount: number }> {
+    return request<{ ok: true; likeCount: number }>(`/social/comments/${commentId}/like`, { method: 'DELETE', auth: true });
   },
   deleteComment(commentId: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/comments/${commentId}`, { method: 'DELETE', auth: true });
