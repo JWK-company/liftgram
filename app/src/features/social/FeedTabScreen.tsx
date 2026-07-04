@@ -4,7 +4,7 @@ import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, S
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, Divider, Avatar } from '../../components';
+import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, ListState, Divider, Avatar } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -31,12 +31,13 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [caption, setCaption] = useState('');
   const [picked, setPicked] = useState<PickedImage | null>(null);
   const [posting, setPosting] = useState(false);
   const [storyBusy, setStoryBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // 작성·스토리 액션 실패(컴포저 인라인)
+  const [loadError, setLoadError] = useState(false); // 피드 로드 실패(리스트 에러 카드)
   const likePending = useRef<Set<string>>(new Set());
   const [unread, setUnread] = useState(0);
   const [meId, setMeId] = useState<string | null>(null);
@@ -48,6 +49,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     const gen = ++loadGen.current;
     setLoading(true);
     setError(null);
+    setLoadError(false);
     try {
       const logged = await serverApi.isLoggedIn();
       if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
@@ -76,8 +78,8 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           .then((r) => setUnread(r.count))
           .catch(() => {});
       }
-    } catch (e) {
-      if (gen === loadGen.current) setError(String(e));
+    } catch {
+      if (gen === loadGen.current) setLoadError(true);
     } finally {
       if (gen === loadGen.current) setLoading(false);
     }
@@ -283,7 +285,24 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={
-          !loading ? <EmptyState title={t('feed.emptyTitle')} message={t('feed.emptyMessage')} /> : null
+          <ListState
+            loading={loading}
+            error={loadError}
+            onRetry={load}
+            skeletonVariant="post"
+            emptyIcon="newspaper-outline"
+            emptyTitle="feed.emptyTitle"
+            emptyMessage="feed.emptyMessage"
+            emptyAction={
+              <Button
+                title={t('feed.emptyCta')}
+                icon="people-outline"
+                variant="secondary"
+                fullWidth={false}
+                onPress={() => navigation.navigate('Discover')}
+              />
+            }
+          />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

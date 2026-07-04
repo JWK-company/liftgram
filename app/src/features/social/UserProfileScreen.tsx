@@ -3,7 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Avatar, Button, Card, EmptyState, Screen } from '../../components';
+import { AppText, Avatar, Button, Card, EmptyState, ListState, Screen, Skeleton } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type SocialProfile } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -16,7 +16,7 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
   const { t } = useT();
   const [profile, setProfile] = useState<SocialProfile | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const dmPending = useRef(false);
@@ -191,8 +191,13 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
   if (!profile && !loading && error) {
     return (
       <Screen>
-        <EmptyState title={t('profile.loadError')} />
-        <Button title={t('profile.retry')} onPress={load} style={{ marginTop: spacing.lg }} />
+        <EmptyState
+          tone="error"
+          icon="cloud-offline-outline"
+          title={t('profile.loadError')}
+          message={t('common.loadErrorMessage')}
+          action={<Button title={t('profile.retry')} icon="refresh" fullWidth={false} onPress={load} />}
+        />
       </Screen>
     );
   }
@@ -202,7 +207,7 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
       <FlatList
         data={posts}
         keyExtractor={(p) => p.id}
-        ListHeaderComponent={header}
+        ListHeaderComponent={header ?? (loading ? <ProfileHeaderSkeleton /> : null)}
         renderItem={({ item }) => (
           <ProfilePost
             post={item}
@@ -212,7 +217,17 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
         )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
-        ListEmptyComponent={!loading && profile ? <EmptyState title={t('profile.noPosts')} /> : null}
+        ListEmptyComponent={
+          profile || loading ? (
+            <ListState
+              loading={loading}
+              skeletonVariant="post"
+              skeletonCount={3}
+              emptyIcon="image-outline"
+              emptyTitle="profile.noPosts"
+            />
+          ) : null
+        }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
@@ -221,6 +236,21 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
       />
       <ReportSheet visible={!!reportId} onClose={() => setReportId(null)} onSubmit={submitReport} />
     </Screen>
+  );
+}
+
+function ProfileHeaderSkeleton() {
+  return (
+    <View style={styles.header}>
+      <Skeleton width={84} height={84} radius={radius.pill} />
+      <Skeleton width={140} height={18} style={{ marginTop: spacing.md }} />
+      <View style={[styles.stats, { marginTop: spacing.lg }]}>
+        <Skeleton width={48} height={34} />
+        <Skeleton width={48} height={34} />
+        <Skeleton width={48} height={34} />
+      </View>
+      <Skeleton width="100%" height={46} radius={radius.md} style={{ marginTop: spacing.lg }} />
+    </View>
   );
 }
 

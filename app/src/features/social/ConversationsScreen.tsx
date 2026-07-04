@@ -3,7 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { Screen, Card, AppText, EmptyState } from '../../components';
+import { Screen, Card, AppText, Button, ListState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DmConversation } from '../../sync/serverApi';
 import { onDmMessage } from '../../sync/realtime';
@@ -14,12 +14,14 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
   const { t } = useT();
   const [convs, setConvs] = useState<DmConversation[]>([]);
   const [meId, setMeId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const meIdRef = useRef<string | null>(null);
   const convIdsRef = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const [list, me] = await Promise.all([serverApi.conversations(), serverApi.me()]);
       setConvs(list);
@@ -27,7 +29,7 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
       meIdRef.current = me.id;
       convIdsRef.current = new Set(list.map((c) => c.id));
     } catch {
-      // ignore
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -125,7 +127,24 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={
-          !loading ? <EmptyState title={t('dm.emptyTitle')} message={t('dm.emptyMessage')} /> : null
+          <ListState
+            loading={loading}
+            error={error}
+            onRetry={load}
+            skeletonVariant="row"
+            emptyIcon="chatbubbles-outline"
+            emptyTitle="dm.emptyTitle"
+            emptyMessage="dm.emptyMessage"
+            emptyAction={
+              <Button
+                title={t('dm.emptyCta')}
+                icon="people-outline"
+                variant="secondary"
+                fullWidth={false}
+                onPress={() => navigation.navigate('Discover')}
+              />
+            }
+          />
         }
       />
     </Screen>

@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, Card, AppText, Button, TextField, EmptyState, Avatar } from '../../components';
+import { Screen, Card, AppText, Button, TextField, ListState, Avatar } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DiscoverUser } from '../../sync/serverApi';
 import { colors, spacing, radius } from '../../theme';
@@ -12,7 +12,8 @@ export default function DiscoverScreen({ navigation }: RootStackScreenProps<'Dis
   const { t } = useT();
   const [q, setQ] = useState('');
   const [users, setUsers] = useState<DiscoverUser[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const reqIdRef = useRef(0);
   const pendingRef = useRef<Set<string>>(new Set());
   const dmPendingRef = useRef<Set<string>>(new Set());
@@ -21,11 +22,17 @@ export default function DiscoverScreen({ navigation }: RootStackScreenProps<'Dis
     const id = reqIdRef.current + 1;
     reqIdRef.current = id;
     setLoading(true);
+    setError(false);
     try {
       const result = await serverApi.discover(query.trim() || undefined);
       if (id === reqIdRef.current) setUsers(result); // 최신 요청만 반영(경합 방지)
     } catch {
-      if (id === reqIdRef.current) setUsers([]);
+      // 검색(쿼리 있음) 실패 시 stale 결과 제거 → 빈 목록이 되어 에러 카드+재시도가 노출.
+      // 발견(빈 쿼리) 초기 로드 실패는 목록이 이미 비어 있어 그대로 에러 카드 노출.
+      if (id === reqIdRef.current) {
+        if (query.trim()) setUsers([]);
+        setError(true);
+      }
     } finally {
       if (id === reqIdRef.current) setLoading(false);
     }
@@ -94,7 +101,17 @@ export default function DiscoverScreen({ navigation }: RootStackScreenProps<'Dis
         )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(q)} tintColor={colors.primary} />}
-        ListEmptyComponent={!loading ? <EmptyState title={t('discover.empty')} /> : null}
+        ListEmptyComponent={
+          <ListState
+            loading={loading}
+            error={error}
+            onRetry={() => load(q)}
+            skeletonVariant="row"
+            emptyIcon="people-outline"
+            emptyTitle="discover.empty"
+            emptyMessage="discover.emptyMessage"
+          />
+        }
       />
     </Screen>
   );

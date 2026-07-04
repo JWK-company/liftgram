@@ -3,7 +3,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Button, EmptyState, Screen, TextField } from '../../components';
+import { AppText, Button, ListState, Screen, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type Comment } from '../../sync/serverApi';
 import { ReportSheet } from './ReportSheet';
@@ -17,6 +17,8 @@ export default function CommentsScreen({ route }: RootStackScreenProps<'Comments
   const [meId, setMeId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
 
@@ -33,12 +35,16 @@ export default function CommentsScreen({ route }: RootStackScreenProps<'Comments
   }
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const [list, me] = await Promise.all([serverApi.comments(postId), serverApi.me()]);
       setComments(list);
       setMeId(me.id);
     } catch {
-      // ignore
+      setLoadError(true);
+    } finally {
+      setLoading(false);
     }
   }, [postId]);
 
@@ -89,7 +95,17 @@ export default function CommentsScreen({ route }: RootStackScreenProps<'Comments
             />
           )}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={<EmptyState title={t('comments.empty')} />}
+          ListEmptyComponent={
+            <ListState
+              loading={loading}
+              error={loadError}
+              onRetry={load}
+              skeletonVariant="comment"
+              emptyIcon="chatbubble-outline"
+              emptyTitle="comments.empty"
+              emptyMessage="comments.emptyMessage"
+            />
+          }
         />
         {error ? (
           <AppText variant="caption" style={styles.error}>

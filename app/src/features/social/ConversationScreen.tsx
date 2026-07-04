@@ -3,7 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Button, Screen, TextField } from '../../components';
+import { AppText, Button, ListState, Screen, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DmMessage } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -19,6 +19,9 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // 첫 메시지 로딩(스켈레톤)
+  const [loadError, setLoadError] = useState(false); // 첫 로드 실패(에러+재시도)
+  const firstLoaded = useRef(false);
   const reqIdRef = useRef(0);
   const listRef = useRef<FlatList<DmMessage>>(null);
   const [typing, setTyping] = useState(false);
@@ -62,10 +65,26 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
           a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : a.id < b.id ? -1 : 1,
         );
       });
+      if (!firstLoaded.current) {
+        firstLoaded.current = true;
+        setLoading(false);
+        setLoadError(false);
+      }
     } catch {
-      // ignore
+      // 폴링 실패는 무음, 첫 로드 실패만 에러 표면화(그 외엔 기존 목록 유지).
+      if (rid === reqIdRef.current && !firstLoaded.current) {
+        setLoading(false);
+        setLoadError(true);
+      }
     }
   }, [conversationId]);
+
+  const retry = useCallback(() => {
+    firstLoaded.current = false;
+    setLoading(true);
+    setLoadError(false);
+    void fetchMessages();
+  }, [fetchMessages]);
 
   useFocusEffect(
     useCallback(() => {
@@ -143,6 +162,16 @@ export default function ConversationScreen({ route, navigation }: RootStackScree
           renderItem={({ item }) => <Bubble msg={item} mine={item.sender.id === meId} showSender={!!isGroup} />}
           contentContainerStyle={styles.list}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+          ListEmptyComponent={
+            <ListState
+              loading={loading}
+              error={loadError}
+              onRetry={retry}
+              skeletonVariant="bubble"
+              emptyIcon="chatbubble-ellipses-outline"
+              emptyTitle="dm.threadEmpty"
+            />
+          }
         />
         {typing ? (
           <AppText variant="caption" color="textMuted" style={styles.typing}>

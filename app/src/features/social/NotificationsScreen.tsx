@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, EmptyState, Screen } from '../../components';
+import { AppText, ListState, Screen } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type NotificationItem } from '../../sync/serverApi';
 import { colors, radius, spacing } from '../../theme';
@@ -11,15 +11,17 @@ import { useT } from '../../i18n';
 export default function NotificationsScreen({ navigation }: RootStackScreenProps<'Notifications'>) {
   const { t } = useT();
   const [items, setItems] = useState<NotificationItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       setItems(await serverApi.notifications());
       serverApi.markNotificationsRead().catch(() => {}); // 열면 읽음 처리(벨 배지 해제)
     } catch {
-      // ignore
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,17 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
         renderItem={({ item }) => <NotifRow notif={item} onPress={() => open(item)} />}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
-        ListEmptyComponent={!loading ? <EmptyState title={t('notif.empty')} /> : null}
+        ListEmptyComponent={
+          <ListState
+            loading={loading}
+            error={error}
+            onRetry={load}
+            skeletonVariant="row"
+            emptyIcon="notifications-outline"
+            emptyTitle="notif.empty"
+            emptyMessage="notif.emptyMessage"
+          />
+        }
       />
     </Screen>
   );

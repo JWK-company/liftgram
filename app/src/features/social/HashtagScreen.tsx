@@ -2,18 +2,17 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Screen, EmptyState } from '../../components';
+import { Screen, ListState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost } from '../../sync/serverApi';
 import { colors, spacing } from '../../theme';
-import { useT } from '../../i18n';
 import { DiscoveryPostCard } from './DiscoveryPostCard';
 
 export default function HashtagScreen({ route, navigation }: RootStackScreenProps<'Hashtag'>) {
   const { tag } = route.params;
-  const { t } = useT();
   const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const hasMore = useRef(true);
   const loadGen = useRef(0); // 새로고침 세대 — in-flight loadMore의 stale append 차단
@@ -25,13 +24,14 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
   const load = useCallback(async () => {
     const gen = ++loadGen.current;
     setLoading(true);
+    setError(false);
     try {
       const data = await serverApi.hashtagPosts(tag);
       if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
       setPosts(data);
       hasMore.current = true;
     } catch {
-      if (gen === loadGen.current) setPosts([]);
+      if (gen === loadGen.current) setError(true);
     } finally {
       if (gen === loadGen.current) setLoading(false);
     }
@@ -79,7 +79,17 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
         )}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
-        ListEmptyComponent={!loading ? <EmptyState title={t('hashtag.empty')} /> : null}
+        ListEmptyComponent={
+          <ListState
+            loading={loading}
+            error={error}
+            onRetry={load}
+            skeletonVariant="post"
+            emptyIcon="pricetag-outline"
+            emptyTitle="hashtag.empty"
+            emptyMessage="hashtag.emptyMessage"
+          />
+        }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={

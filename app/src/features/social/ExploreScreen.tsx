@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { Screen, Card, AppText, Avatar, Button, EmptyState, SectionHeader, TextField } from '../../components';
+import { Screen, Card, AppText, Avatar, Button, EmptyState, ListState, SectionHeader, SkeletonList, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DiscoverUser, type FeedPost, type SearchResult, type TrendingTag } from '../../sync/serverApi';
 import { colors, radius, spacing } from '../../theme';
@@ -14,9 +14,12 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [tags, setTags] = useState<TrendingTag[]>([]);
   const [users, setUsers] = useState<DiscoverUser[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false); // 발견 허브 전체 실패
   const [q, setQ] = useState('');
   const [results, setResults] = useState<SearchResult | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false); // 검색 in-flight(스켈레톤)
+  const [searchError, setSearchError] = useState(false); // 검색 실패(에러+재시도)
   const followPending = useRef<Set<string>>(new Set());
   const searchReq = useRef(0);
   const qRef = useRef('');
@@ -24,6 +27,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     const [ex, tr, su] = await Promise.allSettled([
       serverApi.explore(),
       serverApi.trendingHashtags(),
@@ -32,6 +36,8 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
     if (ex.status === 'fulfilled') setPosts(ex.value);
     if (tr.status === 'fulfilled') setTags(tr.value);
     if (su.status === 'fulfilled') setUsers(su.value);
+    // 부분 실패는 allSettled로 관용(가능한 섹션만 렌더). 셋 다 실패해야 에러 표면화.
+    setLoadError(ex.status === 'rejected' && tr.status === 'rejected' && su.status === 'rejected');
     setLoading(false);
   }, []);
 
@@ -41,25 +47,48 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
     }, [load]),
   );
 
+  const fetchSearch = useCallback(async (query: string, id: number) => {
+    try {
+      const r = await serverApi.search(query);
+      if (id === searchReq.current) {
+        setResults(r);
+        setSearchLoading(false);
+      }
+    } catch {
+      if (id === searchReq.current) {
+        setSearchError(true);
+        setSearchLoading(false);
+      }
+    }
+  }, []);
+
   // 검색(디바운스 300ms·경합 가드). 빈 쿼리는 발견 모드.
   useEffect(() => {
     const query = q.trim();
     if (!query) {
       searchReq.current++; // 진행 중 검색 무효화(클리어 시 stale 결과 방지)
       setResults(null);
+      setSearchLoading(false);
+      setSearchError(false);
       return;
     }
     const id = ++searchReq.current;
-    const timer = setTimeout(async () => {
-      try {
-        const r = await serverApi.search(query);
-        if (id === searchReq.current) setResults(r);
-      } catch {
-        if (id === searchReq.current) setResults(null);
-      }
-    }, 300);
+    setResults(null); // 새 쿼리 → 이전 결과 잔상 즉시 제거
+    setSearchError(false);
+    setSearchLoading(true); // 스켈레톤 노출
+    const timer = setTimeout(() => void fetchSearch(query, id), 300);
     return () => clearTimeout(timer);
-  }, [q]);
+  }, [q, fetchSearch]);
+
+  const retrySearch = useCallback(() => {
+    const query = qRef.current.trim();
+    if (!query) return;
+    const id = ++searchReq.current;
+    setResults(null);
+    setSearchError(false);
+    setSearchLoading(true);
+    void fetchSearch(query, id);
+  }, [fetchSearch]);
 
   const searching = q.trim().length > 0;
   const openTag = (tag: string) => navigation.navigate('Hashtag', { tag });
@@ -213,11 +242,39 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
           )
         }
         ListEmptyComponent={
-          noSearchResults ? (
-            <EmptyState title={t('search.empty')} />
-          ) : !searching && !loading ? (
-            <EmptyState title={t('explore.empty')} />
-          ) : null
+          searching ? (
+            searchLoading ? (
+              <SkeletonList variant="post" />
+            ) : searchError ? (
+              <EmptyState
+                tone="error"
+                icon="cloud-offline-outline"
+                title={t('common.loadError')}
+                message={t('common.loadErrorMessage')}
+                action={
+                  <Button
+                    title={t('common.retry')}
+                    variant="secondary"
+                    icon="refresh"
+                    fullWidth={false}
+                    onPress={retrySearch}
+                  />
+                }
+              />
+            ) : noSearchResults ? (
+              <EmptyState icon="search-outline" title={t('search.empty')} />
+            ) : null
+          ) : (
+            <ListState
+              loading={loading}
+              error={loadError}
+              onRetry={load}
+              skeletonVariant="post"
+              emptyIcon="compass-outline"
+              emptyTitle="explore.empty"
+              emptyMessage="explore.emptyMessage"
+            />
+          )
         }
       />
     </Screen>
