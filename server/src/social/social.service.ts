@@ -37,6 +37,11 @@ export interface DiscoverUser {
   displayName: string | null;
   avatarUrl: string | null;
   isFollowing: boolean;
+  followerCount?: number; // 추천(suggestions)에서 채움
+}
+export interface TrendingTag {
+  tag: string;
+  count: number;
 }
 export interface StoryView {
   id: string;
@@ -71,6 +76,17 @@ const postInclude = (viewerId: string) =>
     _count: { select: { likes: true, comments: { where: { moderationStatus: 'approved' } } } },
     likes: { where: { userId: viewerId }, select: { id: true } },
   }) satisfies Prisma.PostInclude;
+
+// 캡션에서 #해시태그 추출(소문자·중복제거·최대 10개). 유니코드 글자/숫자/밑줄.
+function extractHashtags(caption: string | null | undefined): string[] {
+  if (!caption) return [];
+  const tags = new Set<string>();
+  for (const m of caption.matchAll(/#([\p{L}\p{N}_]{1,50})/gu)) {
+    tags.add(m[1].toLowerCase());
+    if (tags.size >= 10) break;
+  }
+  return [...tags];
+}
 
 @Injectable()
 export class SocialService {
@@ -181,6 +197,14 @@ export class SocialService {
       },
       include: postInclude(authorId),
     });
+    // 캡션의 #해시태그 추출·인덱싱(발견/트렌딩).
+    const tags = extractHashtags(dto.caption);
+    if (tags.length > 0) {
+      await this.prisma.postHashtag.createMany({
+        data: tags.map((tag) => ({ postId: post.id, tag })),
+        skipDuplicates: true,
+      });
+    }
     return this.toView(post);
   }
 
@@ -284,6 +308,62 @@ export class SocialService {
       displayName: u.displayName,
       avatarUrl: u.avatarUrl,
       isFollowing: followingSet.has(u.id),
+    }));
+  }
+
+  // 인기 공개 포스트 발견 — 참여도(좋아요·댓글) + 최신 순. 팔로우 무관 공개 레이어.
+  async getExplore(viewerId: string, limit: number): Promise<PostView[]> {
+    const posts = await this.prisma.post.findMany({
+      where: { visibility: 'public', moderationStatus: 'approved' },
+      // 좋아요 수(모더레이션 상태 없음=정확) + 최신순. 댓글 _count는 orderBy에서 필터 불가라 제외(제거 댓글 오염 방지).
+      orderBy: [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }],
+      take: limit,
+      include: postInclude(viewerId),
+    });
+    return posts.map((p) => this.toView(p));
+  }
+
+  // 트렌딩 해시태그 — 공개·승인 포스트의 태그 빈도 상위.
+  async getTrendingHashtags(limit: number): Promise<TrendingTag[]> {
+    const rows = await this.prisma.postHashtag.groupBy({
+      by: ['tag'],
+      where: { post: { visibility: 'public', moderationStatus: 'approved' } },
+      _count: { tag: true },
+      orderBy: { _count: { tag: 'desc' } },
+      take: limit,
+    });
+    return rows.map((r) => ({ tag: r.tag, count: r._count.tag }));
+  }
+
+  // 특정 해시태그의 공개 포스트(최신순).
+  async getHashtagPosts(viewerId: string, tag: string, limit: number): Promise<PostView[]> {
+    const posts = await this.prisma.post.findMany({
+      where: {
+        visibility: 'public',
+        moderationStatus: 'approved',
+        hashtags: { some: { tag: tag.toLowerCase() } },
+      },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: limit,
+      include: postInclude(viewerId),
+    });
+    return posts.map((p) => this.toView(p));
+  }
+
+  // 추천 유저 — 내가 아직 팔로우하지 않은 사용자, 팔로워 많은 순.
+  async getSuggestions(viewerId: string, limit: number): Promise<DiscoverUser[]> {
+    const users = await this.prisma.user.findMany({
+      where: { id: { not: viewerId }, followers: { none: { followerId: viewerId } } },
+      orderBy: { followers: { _count: 'desc' } },
+      take: limit,
+      include: { _count: { select: { followers: true } } },
+    });
+    return users.map((u) => ({
+      id: u.id,
+      displayName: u.displayName,
+      avatarUrl: u.avatarUrl,
+      isFollowing: false,
+      followerCount: u._count.followers,
     }));
   }
 

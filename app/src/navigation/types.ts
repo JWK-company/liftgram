@@ -29,6 +29,8 @@ export type RootStackParamList = {
   UserProfile: { userId: string }; // SRS-008 공개 프로필
   Notifications: undefined; // SRS-020 알림 센터
   ModerationQueue: undefined; // SRS-020 모더레이션 큐(모더레이터)
+  Explore: undefined; // SRS-018 발견(인기·트렌딩·추천)
+  Hashtag: { tag: string }; // SRS-018 해시태그별 포스트
 };
 
 // 화면 컴포넌트 타입 헬퍼

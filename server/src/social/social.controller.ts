@@ -12,6 +12,7 @@ import {
   SocialService,
   StoryGroup,
   StoryView,
+  TrendingTag,
 } from './social.service';
 
 const clampLimit = (v: string | undefined, def: number, max: number): number => {
@@ -79,6 +80,34 @@ export class SocialController {
   @Get('stories')
   stories(@CurrentUser() user: AuthUser): Promise<StoryGroup[]> {
     return this.social.getActiveStories(user.userId);
+  }
+
+  // 발견 — 인기 공개 포스트(Explore).
+  @Get('explore')
+  explore(@CurrentUser() user: AuthUser, @Query('limit') limit?: string): Promise<PostView[]> {
+    return this.social.getExplore(user.userId, clampLimit(limit, 30, 100));
+  }
+
+  // 트렌딩 해시태그.
+  @Get('hashtags')
+  trending(@Query('limit') limit?: string): Promise<TrendingTag[]> {
+    return this.social.getTrendingHashtags(clampLimit(limit, 20, 50));
+  }
+
+  // 특정 해시태그의 공개 포스트.
+  @Get('hashtags/:tag/posts')
+  hashtagPosts(
+    @CurrentUser() user: AuthUser,
+    @Param('tag') tag: string,
+    @Query('limit') limit?: string,
+  ): Promise<PostView[]> {
+    return this.social.getHashtagPosts(user.userId, tag, clampLimit(limit, 30, 100));
+  }
+
+  // 추천 유저(팔로워 많은 순, 미팔로우).
+  @Get('suggestions')
+  suggestions(@CurrentUser() user: AuthUser, @Query('limit') limit?: string): Promise<DiscoverUser[]> {
+    return this.social.getSuggestions(user.userId, clampLimit(limit, 20, 50));
   }
 
   @Get('users')

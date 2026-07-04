@@ -14,6 +14,7 @@ import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { StoryTray, StoryViewer } from './Stories';
 import { ReportSheet } from './ReportSheet';
+import { HashtagText } from './HashtagText';
 
 async function pickImageAsset(): Promise<PickedImage | null> {
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
@@ -97,6 +98,9 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           </Pressable>
           <Pressable onPress={() => navigation.navigate('Conversations')} hitSlop={8}>
             <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('Explore')} hitSlop={8}>
+            <Ionicons name="compass-outline" size={22} color={colors.primary} />
           </Pressable>
           <Pressable onPress={() => navigation.navigate('Discover')} hitSlop={8}>
             <Ionicons name="person-add-outline" size={22} color={colors.primary} />
@@ -245,6 +249,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             onLike={onLike}
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
             onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
+            onTag={(tag) => navigation.navigate('Hashtag', { tag })}
           />
         )}
         contentContainerStyle={styles.list}
@@ -282,12 +287,14 @@ function PostCard({
   onLike,
   onComment,
   onOpenProfile,
+  onTag,
 }: {
   post: FeedPost;
   meId: string | null;
   onLike: (p: FeedPost) => void;
   onComment: (p: FeedPost) => void;
   onOpenProfile: (userId: string) => void;
+  onTag: (tag: string) => void;
 }) {
   const { t } = useT();
   const { weightUnit } = useUser();
@@ -353,9 +360,7 @@ function PostCard({
       ) : null}
       {imageUrl ? <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.postImage} resizeMode="cover" /> : null}
       {post.caption ? (
-        <AppText variant="body" style={{ marginTop: spacing.sm }}>
-          {post.caption}
-        </AppText>
+        <HashtagText text={post.caption} onTag={onTag} style={{ marginTop: spacing.sm }} />
       ) : null}
       <View style={styles.actions}>
         <Pressable onPress={() => onLike(post)} hitSlop={8} style={styles.action}>

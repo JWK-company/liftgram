@@ -110,10 +110,23 @@ model Post {
   updatedAt  DateTime @updatedAt
   likes      PostLike[]
   comments   Comment[]
+  hashtags   PostHashtag[]
 
   @@index([authorId, createdAt])
   @@index([moderationStatus])
   @@index([createdAt])
+}
+
+// 해시태그 인덱스 (SRS-018). 포스트 캡션의 #태그 추출·저장 → 태그별 조회·트렌딩.
+model PostHashtag {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       String // 소문자 정규화
+  createdAt DateTime @default(now())
+
+  @@unique([postId, tag])
+  @@index([tag])
 }
 
 // 미디어 자산 (SRS-019 · SAD-012). 저장은 StorageProvider(로컬 디스크 기본 · 클라우드 드롭인 ADR-016).

@@ -86,6 +86,11 @@ export interface DiscoverUser {
   displayName: string | null;
   avatarUrl: string | null;
   isFollowing: boolean;
+  followerCount?: number; // 추천(suggestions)에서 채움
+}
+export interface TrendingTag {
+  tag: string;
+  count: number;
 }
 export interface SocialProfile {
   id: string;
@@ -242,6 +247,19 @@ export const serverApi = {
     return request<DiscoverUser[]>(`/social/users${q ? `?q=${encodeURIComponent(q)}` : ''}`, {
       auth: true,
     });
+  },
+  // --- 발견 고도화 (SRS-018) ---
+  explore(): Promise<FeedPost[]> {
+    return request<FeedPost[]>('/social/explore', { auth: true });
+  },
+  trendingHashtags(): Promise<TrendingTag[]> {
+    return request<TrendingTag[]>('/social/hashtags', { auth: true });
+  },
+  hashtagPosts(tag: string): Promise<FeedPost[]> {
+    return request<FeedPost[]>(`/social/hashtags/${encodeURIComponent(tag)}/posts`, { auth: true });
+  },
+  suggestions(): Promise<DiscoverUser[]> {
+    return request<DiscoverUser[]>('/social/suggestions', { auth: true });
   },
   followUser(id: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/follow/${id}`, { method: 'POST', auth: true });
