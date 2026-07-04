@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View, type TextProps, type ViewStyle, type StyleProp } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fontSize, fontWeight, radius, spacing } from '../theme';
 
 // ── AppText ────────────────────────────────────────────────────────
@@ -99,9 +100,28 @@ export function StatTile({ label, value, caption }: { label: string; value: stri
 }
 
 // ── EmptyState ─────────────────────────────────────────────────────
-export function EmptyState({ title, message, action }: { title: string; message?: string; action?: React.ReactNode }) {
+// 선택적 아이콘(원형 배지) + 제목 + 메시지 + CTA. tone='error'면 위험색 배지.
+export function EmptyState({
+  title,
+  message,
+  action,
+  icon,
+  tone = 'default',
+}: {
+  title: string;
+  message?: string;
+  action?: React.ReactNode;
+  icon?: keyof typeof Ionicons.glyphMap;
+  tone?: 'default' | 'error';
+}) {
+  const isError = tone === 'error';
   return (
     <View style={styles.empty}>
+      {icon ? (
+        <View style={[styles.emptyIcon, isError && styles.emptyIconError]}>
+          <Ionicons name={icon} size={30} color={isError ? colors.danger : colors.textFaint} />
+        </View>
+      ) : null}
       <AppText variant="heading" center>
         {title}
       </AppText>
@@ -138,4 +158,14 @@ const styles = StyleSheet.create({
   },
   statTile: { flex: 1, padding: spacing.md },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyIconError: { backgroundColor: '#3A1F1F' },
 });

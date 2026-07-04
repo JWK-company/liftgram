@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Avatar, Button, Card, EmptyState, Screen, TextField } from '../../components';
+import { AppText, Avatar, Button, Card, ListState, Screen, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DiscoverUser } from '../../sync/serverApi';
 import { colors, spacing } from '../../theme';
@@ -14,16 +14,19 @@ export default function NewGroupScreen({ navigation }: RootStackScreenProps<'New
   const [title, setTitle] = useState('');
   const [users, setUsers] = useState<DiscoverUser[]>([]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false); // 멤버 목록 로드 실패(리스트 에러+재시도)
   const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null); // 그룹 생성 실패(푸터 인라인)
 
   const load = useCallback(async (query: string) => {
     setLoading(true);
+    setLoadError(false);
     try {
       setUsers(await serverApi.discover(query.trim() || undefined));
     } catch {
-      setUsers([]);
+      if (query.trim()) setUsers([]); // 검색 실패 → stale 결과 제거해 에러 카드 노출
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -105,7 +108,16 @@ export default function NewGroupScreen({ navigation }: RootStackScreenProps<'New
           );
         }}
         contentContainerStyle={styles.list}
-        ListEmptyComponent={!loading ? <EmptyState title={t('group.noFollowees')} /> : null}
+        ListEmptyComponent={
+          <ListState
+            loading={loading}
+            error={loadError}
+            onRetry={() => load(q)}
+            skeletonVariant="row"
+            emptyIcon="people-outline"
+            emptyTitle="group.noFollowees"
+          />
+        }
       />
       <View style={styles.footer}>
         {error ? (

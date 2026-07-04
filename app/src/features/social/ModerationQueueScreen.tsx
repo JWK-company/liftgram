@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { Alert, FlatList, Image, RefreshControl, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Button, Card, EmptyState, Screen, Tag } from '../../components';
+import { AppText, Button, Card, ListState, Screen, Tag } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type ModerationQueueItem } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -43,15 +43,17 @@ function targetLabel(t: (k: TransKey) => string, kind: string): string {
 export default function ModerationQueueScreen(_props: RootStackScreenProps<'ModerationQueue'>) {
   const { t } = useT();
   const [items, setItems] = useState<ModerationQueueItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [busy, setBusy] = useState<{ key: string; action: 'remove' | 'approve' } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       setItems(await serverApi.moderationQueue());
     } catch {
-      // ignore
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -142,7 +144,17 @@ export default function ModerationQueueScreen(_props: RootStackScreenProps<'Mode
         }}
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
-        ListEmptyComponent={!loading ? <EmptyState title={t('moderation.empty')} /> : null}
+        ListEmptyComponent={
+          <ListState
+            loading={loading}
+            error={error}
+            onRetry={load}
+            skeletonVariant="row"
+            emptyIcon="shield-checkmark-outline"
+            emptyTitle="moderation.empty"
+            emptyMessage="moderation.emptyMessage"
+          />
+        }
       />
     </Screen>
   );
