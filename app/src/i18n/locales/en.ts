@@ -81,6 +81,7 @@ export const en: Record<TransKey, string> = {
   "dm.sendFailed": "Failed to send — try again",
   "dm.title": "Messages",
   "dm.typing": "typing…",
+  "pwa.install": "Install app",
   "exercises.addCustom": "+ Custom Exercise",
   "exercises.archive": "Archive",
   "exercises.archiveHide": "Archive (Hide)",

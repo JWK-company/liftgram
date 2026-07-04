@@ -19,6 +19,7 @@ import { userRepo } from '../../data';
 import { fromKg, toKg, ALL_EQUIPMENT, equipmentLabel, type WeightUnit, type EquipmentType } from '../../domain';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
+import { canInstall, onInstallAvailable, promptInstall } from '../../push/pwa';
 import { ServerSyncCard } from './ServerSyncCard';
 import { ProfileEditCard } from './ProfileEditCard';
 
@@ -29,6 +30,12 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
   const { user, weightUnit, language, barWeightKg, availableEquipment, refresh } = useUser();
   const [busy, setBusy] = useState(false);
   const [isModerator, setIsModerator] = useState(false);
+  const [installable, setInstallable] = useState(canInstall());
+
+  React.useEffect(() => {
+    setInstallable(canInstall());
+    return onInstallAvailable(() => setInstallable(canInstall()));
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -244,6 +251,17 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
           icon="shield-checkmark-outline"
           variant="secondary"
           onPress={() => navigation.navigate('ModerationQueue')}
+          style={{ marginTop: spacing.md }}
+        />
+      ) : null}
+
+      {/* PWA 설치 (웹·설치 가능 시) */}
+      {installable ? (
+        <Button
+          title={t('pwa.install')}
+          icon="download-outline"
+          variant="secondary"
+          onPress={() => void promptInstall()}
           style={{ marginTop: spacing.md }}
         />
       ) : null}
