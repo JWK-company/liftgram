@@ -1,9 +1,9 @@
 // @plm SRS-007 @plm SRS-018  소셜 REST 엔드포인트 (Bearer 인증) — SAD-011.
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthUser } from '../auth/jwt.strategy';
-import { AddCommentDto, CreatePostDto, CreateStoryDto } from './dto/social.dto';
+import { AddCommentDto, CreatePostDto, CreateStoryDto, UpdatePostDto } from './dto/social.dto';
 import {
   CommentView,
   DiscoverUser,
@@ -39,6 +39,20 @@ export class SocialController {
   @Post('posts')
   createPost(@CurrentUser() user: AuthUser, @Body() dto: CreatePostDto): Promise<PostView> {
     return this.social.createPost(user.userId, dto);
+  }
+
+  @Patch('posts/:id')
+  updatePost(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: UpdatePostDto,
+  ): Promise<PostView> {
+    return this.social.updatePost(user.userId, id, dto);
+  }
+
+  @Delete('posts/:id')
+  deletePost(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.social.deletePost(user.userId, id);
   }
 
   @Post('posts/:id/like')
