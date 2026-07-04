@@ -185,7 +185,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
           </ScrollView>
         </>
       ) : null}
-      <SectionHeader title={t('explore.popular')} />
+      {!loading && !loadError && posts.length > 0 ? <SectionHeader title={t('explore.popular')} /> : null}
     </View>
   );
 

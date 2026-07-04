@@ -10,6 +10,7 @@ import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
 import { AppText, AlertHost } from './src/components';
+import { OnboardingOverlay } from './src/features/onboarding/OnboardingOverlay';
 import { installWebAlert } from './src/utils/alert';
 import { LanguageSync } from './src/i18n/LanguageSync';
 import { t } from './src/i18n';
@@ -91,6 +92,7 @@ export default function App() {
         </SessionProvider>
         </UserProvider>
         <AlertHost />
+        <OnboardingOverlay />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

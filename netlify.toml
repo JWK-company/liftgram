@@ -1,0 +1,26 @@
+# Netlify 배포 설정 — Liftgram 웹앱(Expo web 정적 export).
+# 사용법: Netlify → Add new site → Import from Git → 이 저장소 선택.
+#   빌드 설정은 아래가 자동 적용됨. 대시보드 Environment에 서버 주소만 넣으면 됨:
+#   EXPO_PUBLIC_SERVER_URL = https://<Render 서버주소>/api
+# (Cloudflare Pages를 쓰면 이 파일 대신 app/public/_redirects 가 SPA 폴백을 담당)
+[build]
+  base = "app"
+  command = "npx expo export --platform web"
+  publish = "dist"
+
+# SPA 폴백 — 어떤 경로로 새로고침/딥링크해도 앱 진입점(index.html)으로.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# 서비스워커·매니페스트는 캐시하지 않음 — 배포 후 오프라인 셸이 최신으로 갱신되도록.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "no-cache"

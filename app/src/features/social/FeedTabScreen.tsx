@@ -56,24 +56,32 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
       setAuthed(logged);
       if (logged) {
-        const [feed, stories, me] = await Promise.all([
+        // 개별 실패 격리 — 콜드스타트 직후 일부만 성공해도 받은 만큼 표시(전체 버림 방지).
+        const [feedR, storiesR, meR] = await Promise.allSettled([
           serverApi.feed(),
           serverApi.stories(),
           serverApi.me(),
         ]);
         if (gen !== loadGen.current) return; // 그사이 재새로고침 → 폐기
-        setMeId(me.id);
-        // 진행 중인 좋아요는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
-        setPosts((prev) => {
-          if (!likePending.current.size) return feed;
-          const byId = new Map(prev.map((p) => [p.id, p]));
-          return feed.map((p) => {
-            const opt = likePending.current.has(p.id) ? byId.get(p.id) : undefined;
-            return opt ? { ...p, likedByMe: opt.likedByMe, likeCount: opt.likeCount } : p;
+        if (meR.status === 'fulfilled') setMeId(meR.value.id);
+        if (feedR.status === 'fulfilled') {
+          const feed = feedR.value;
+          // 진행 중인 좋아요는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
+          setPosts((prev) => {
+            if (!likePending.current.size) return feed;
+            const byId = new Map(prev.map((p) => [p.id, p]));
+            return feed.map((p) => {
+              const opt = likePending.current.has(p.id) ? byId.get(p.id) : undefined;
+              return opt ? { ...p, likedByMe: opt.likedByMe, likeCount: opt.likeCount } : p;
+            });
           });
-        });
-        setStoryGroups(stories);
-        hasMore.current = true; // 새로고침 시 커서 리셋
+          hasMore.current = true; // 새로고침 시 커서 리셋
+        }
+        if (storiesR.status === 'fulfilled') setStoryGroups(storiesR.value);
+        // 셋 다 실패했을 때만 에러 카드(부분 성공은 표시 유지).
+        if (feedR.status === 'rejected' && storiesR.status === 'rejected' && meR.status === 'rejected') {
+          setLoadError(true);
+        }
         serverApi
           .notificationsUnread()
           .then((r) => setUnread(r.count))
@@ -93,32 +101,36 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   );
 
   useLayoutEffect(() => {
+    // 소셜 진입 버튼은 로그인 상태에서만 — 로그아웃 시 게이트 없는 하위 화면 도달을 막음.
     navigation.setOptions({
-      headerRight: () => (
-        <View style={styles.headerActions}>
-          <Pressable onPress={() => navigation.navigate('Notifications')} hitSlop={8}>
-            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
-            {unread > 0 ? (
-              <View style={styles.badge}>
-                <AppText variant="label" style={styles.badgeText}>
-                  {unread > 9 ? '9+' : unread}
-                </AppText>
+      headerRight:
+        authed === true
+          ? () => (
+              <View style={styles.headerActions}>
+                <Pressable onPress={() => navigation.navigate('Notifications')} hitSlop={8}>
+                  <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+                  {unread > 0 ? (
+                    <View style={styles.badge}>
+                      <AppText variant="label" style={styles.badgeText}>
+                        {unread > 9 ? '9+' : unread}
+                      </AppText>
+                    </View>
+                  ) : null}
+                </Pressable>
+                <Pressable onPress={() => navigation.navigate('Conversations')} hitSlop={8}>
+                  <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
+                </Pressable>
+                <Pressable onPress={() => navigation.navigate('Explore')} hitSlop={8}>
+                  <Ionicons name="compass-outline" size={22} color={colors.primary} />
+                </Pressable>
+                <Pressable onPress={() => navigation.navigate('Discover')} hitSlop={8}>
+                  <Ionicons name="person-add-outline" size={22} color={colors.primary} />
+                </Pressable>
               </View>
-            ) : null}
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('Conversations')} hitSlop={8}>
-            <Ionicons name="chatbubbles-outline" size={22} color={colors.primary} />
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('Explore')} hitSlop={8}>
-            <Ionicons name="compass-outline" size={22} color={colors.primary} />
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('Discover')} hitSlop={8}>
-            <Ionicons name="person-add-outline" size={22} color={colors.primary} />
-          </Pressable>
-        </View>
-      ),
+            )
+          : undefined,
     });
-  }, [navigation, unread]);
+  }, [navigation, unread, authed]);
 
   async function onAddStory() {
     if (storyBusy) return;

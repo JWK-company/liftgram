@@ -6,13 +6,19 @@ import { AppText, Button, TextField } from '../../components';
 import { colors, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
+import { authErrorKey } from '../../sync/apiError';
 import { syncWithServer } from '../../sync/syncEngine';
 import { registerPushToken, unregisterPushToken } from '../../push/push';
+import { useUser } from '../../state/userContext';
+import { userRepo } from '../../data';
 
 type Mode = 'login' | 'signup';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function ServerSyncCard() {
   const { t } = useT();
+  const { user, refresh } = useUser();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
@@ -27,17 +33,28 @@ export function ServerSyncCard() {
 
   async function onConnect() {
     if (busy) return;
+    const mail = email.trim();
+    if (!EMAIL_RE.test(mail)) {
+      setStatus(t('auth.invalidEmail'));
+      setError(true);
+      return;
+    }
+    if (!password) {
+      setStatus(t('auth.passwordRequired'));
+      setError(true);
+      return;
+    }
     setBusy(true);
     setStatus(null);
     setError(false);
     try {
-      if (mode === 'signup') await serverApi.signUp(email.trim(), password);
-      else await serverApi.login(email.trim(), password);
+      if (mode === 'signup') await serverApi.signUp(mail, password);
+      else await serverApi.login(mail, password);
       setLoggedIn(true);
       setPassword('');
       void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
     } catch (e) {
-      setStatus(String(e));
+      setStatus(t(authErrorKey(e)));
       setError(true);
     } finally {
       setBusy(false);
@@ -53,7 +70,7 @@ export function ServerSyncCard() {
       await syncWithServer();
       setStatus(t('serverSync.done'));
     } catch (e) {
-      setStatus(String(e));
+      setStatus(t(authErrorKey(e)));
       setError(true);
     } finally {
       setBusy(false);
@@ -63,6 +80,9 @@ export function ServerSyncCard() {
   async function onDisconnect() {
     await unregisterPushToken(); // 인증 유효할 때 토큰 제거 먼저
     await serverApi.logout();
+    // 로컬 신원도 함께 정리 — 신원카드(isAuthed=!!user.email)가 '로그아웃'을 반영하도록.
+    if (user) await userRepo.signOutLocal(user.id);
+    await refresh();
     setLoggedIn(false);
     setStatus(null);
     setError(false);
