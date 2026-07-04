@@ -1,6 +1,6 @@
 // @plm SRS-008  공개 프로필 — 사용자 정보·카운트·팔로우/DM·게시물 (SAD-011).
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppText, Avatar, Button, Card, EmptyState, Screen } from '../../components';
@@ -21,6 +21,9 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
   const [error, setError] = useState(false);
   const dmPending = useRef(false);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasMore = useRef(true);
+  const loadGen = useRef(0); // 새로고침 세대 — in-flight loadMore의 stale append 차단
 
   async function submitReport(reason: string) {
     const id = reportId;
@@ -35,18 +38,42 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
   }
 
   const load = useCallback(async () => {
+    const gen = ++loadGen.current;
     setLoading(true);
     setError(false);
     try {
       const [p, ps] = await Promise.all([serverApi.profile(userId), serverApi.userPosts(userId)]);
+      if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
       setProfile(p);
       setPosts(ps);
+      hasMore.current = true;
     } catch {
-      setError(true);
+      if (gen === loadGen.current) setError(true);
     } finally {
-      setLoading(false);
+      if (gen === loadGen.current) setLoading(false);
     }
   }, [userId]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore.current || posts.length === 0) return;
+    const gen = loadGen.current; // 시작 시점 세대 캡처
+    setLoadingMore(true);
+    try {
+      const last = posts[posts.length - 1];
+      const older = await serverApi.userPosts(userId, last.createdAt, last.id);
+      if (gen !== loadGen.current) return; // 그사이 새로고침됨 → stale 페이지 폐기
+      if (older.length === 0) hasMore.current = false;
+      else
+        setPosts((prev) => {
+          const ids = new Set(prev.map((p) => p.id));
+          return [...prev, ...older.filter((p) => !ids.has(p.id))];
+        });
+    } catch {
+      // ignore
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, posts, userId]);
 
   useFocusEffect(
     useCallback(() => {
@@ -186,6 +213,11 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={!loading && profile ? <EmptyState title={t('profile.noPosts')} /> : null}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} /> : null
+        }
       />
       <ReportSheet visible={!!reportId} onClose={() => setReportId(null)} onSubmit={submitReport} />
     </Screen>
