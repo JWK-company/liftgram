@@ -93,6 +93,20 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
     }
   }
 
+  async function toggleBlock() {
+    if (!profile || busy) return;
+    setBusy(true);
+    try {
+      if (profile.isBlocked) await serverApi.unblockUser(userId);
+      else await serverApi.blockUser(userId);
+      await load(); // 차단 시 게시물 비워짐·isBlocked 갱신 반영
+    } catch {
+      Alert.alert(t('moderation.actionFailed'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const header = profile ? (
     <View style={styles.header}>
       <Avatar name={profile.displayName} url={profile.avatarUrl} size={84} />
@@ -105,24 +119,44 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
         <Stat value={profile.counts.following} label={t('profile.following')} />
       </View>
       {!profile.isSelf ? (
-        <View style={styles.actions}>
-          <Button
-            title={profile.isFollowing ? t('discover.following') : t('discover.follow')}
-            variant={profile.isFollowing ? 'secondary' : 'primary'}
-            loading={busy}
-            fullWidth={false}
-            onPress={toggleFollow}
-            style={{ flex: 1 }}
-          />
-          <Button
-            title={t('profile.message')}
-            icon="chatbubble-ellipses-outline"
-            variant="secondary"
-            fullWidth={false}
-            onPress={message}
-            style={{ flex: 1 }}
-          />
-        </View>
+        profile.isBlocked ? (
+          <View style={styles.actions}>
+            <Button
+              title={t('profile.unblock')}
+              variant="secondary"
+              loading={busy}
+              fullWidth={false}
+              onPress={toggleBlock}
+              style={{ flex: 1 }}
+            />
+          </View>
+        ) : (
+          <>
+            <View style={styles.actions}>
+              <Button
+                title={profile.isFollowing ? t('discover.following') : t('discover.follow')}
+                variant={profile.isFollowing ? 'secondary' : 'primary'}
+                loading={busy}
+                fullWidth={false}
+                onPress={toggleFollow}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title={t('profile.message')}
+                icon="chatbubble-ellipses-outline"
+                variant="secondary"
+                fullWidth={false}
+                onPress={message}
+                style={{ flex: 1 }}
+              />
+            </View>
+            <Pressable onPress={toggleBlock} hitSlop={8} style={{ marginTop: spacing.md }}>
+              <AppText variant="caption" color="danger">
+                {t('profile.block')}
+              </AppText>
+            </Pressable>
+          </>
+        )
       ) : null}
     </View>
   ) : null;

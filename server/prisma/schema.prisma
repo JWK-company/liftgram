@@ -38,6 +38,21 @@ model User {
   reports           Report[]       @relation("reporter")
   reviewedReports   Report[]       @relation("reviewer")
   pushTokens        PushToken[]
+  blocking          Block[]        @relation("blocker") // 내가 차단한
+  blockedBy         Block[]        @relation("blocked") // 나를 차단한
+}
+
+// 사용자 차단 (SRS-018). 차단=상호 불가시 + 상호작용 차단. 팔로우는 차단 시 해제.
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
 }
 
 model Device {

@@ -90,8 +90,8 @@ export class SocialController {
 
   // 트렌딩 해시태그.
   @Get('hashtags')
-  trending(@Query('limit') limit?: string): Promise<TrendingTag[]> {
-    return this.social.getTrendingHashtags(clampLimit(limit, 20, 50));
+  trending(@CurrentUser() user: AuthUser, @Query('limit') limit?: string): Promise<TrendingTag[]> {
+    return this.social.getTrendingHashtags(user.userId, clampLimit(limit, 20, 50));
   }
 
   // 특정 해시태그의 공개 포스트.
@@ -141,5 +141,15 @@ export class SocialController {
   @Delete('follow/:id')
   unfollow(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
     return this.social.unfollow(user.userId, id);
+  }
+
+  @Post('block/:id')
+  block(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.social.block(user.userId, id);
+  }
+
+  @Delete('block/:id')
+  unblock(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.social.unblock(user.userId, id);
   }
 }

@@ -95,12 +95,17 @@ export class DmService {
     if (!p) throw new ForbiddenException('not a participant');
   }
 
-  private async toConversationView(userId: string, conversationId: string): Promise<ConversationView> {
+  private async toConversationView(
+    userId: string,
+    conversationId: string,
+    hidden?: Set<string>,
+  ): Promise<ConversationView> {
     const conv = await this.prisma.conversation.findUnique({
       where: { id: conversationId },
       include: { participants: { include: { user: true } } },
     });
     if (!conv) throw new NotFoundException('conversation not found');
+    const h = hidden ?? new Set(await this.hiddenUserIds(userId));
     const me = conv.participants.find((p) => p.userId === userId);
     const lastMsg = await this.prisma.message.findFirst({
       where: { conversationId },
@@ -118,11 +123,37 @@ export class DmService {
       id: conv.id,
       isGroup: conv.isGroup,
       title: conv.title,
-      participants: conv.participants.map((p) => ({ id: p.user.id, displayName: p.user.displayName })),
+      participants: conv.participants
+        .filter((p) => p.userId === userId || !h.has(p.userId)) // 차단 참여자 숨김(그룹)
+        .map((p) => ({ id: p.user.id, displayName: p.user.displayName })),
       lastMessage: lastMsg ? this.toMessageView(lastMsg) : null,
       unreadCount,
       updatedAt: conv.updatedAt.toISOString(),
     };
+  }
+
+  // a↔b 차단(어느 방향이든) 여부.
+  private async isBlocked(a: string, b: string): Promise<boolean> {
+    const n = await this.prisma.block.count({
+      where: {
+        OR: [
+          { blockerId: a, blockedId: b },
+          { blockerId: b, blockedId: a },
+        ],
+      },
+    });
+    return n > 0;
+  }
+
+  // viewer와 차단 관계(양방향)인 유저 id — 메시지/참여자/목록에서 상호 제외.
+  private async hiddenUserIds(viewerId: string): Promise<string[]> {
+    const rows = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: viewerId }, { blockedId: viewerId }] },
+      select: { blockerId: true, blockedId: true },
+    });
+    const ids = new Set<string>();
+    for (const r of rows) ids.add(r.blockerId === viewerId ? r.blockedId : r.blockerId);
+    return [...ids];
   }
 
   // 1:1 대화 find-or-create.
@@ -130,6 +161,8 @@ export class DmService {
     if (userId === otherUserId) throw new BadRequestException('cannot message yourself');
     const other = await this.prisma.user.findUnique({ where: { id: otherUserId } });
     if (!other) throw new NotFoundException('user not found');
+    // 차단 관계면 새 1:1 대화 불가(그룹은 팔로우 게이트가 이미 차단 안전).
+    if (await this.isBlocked(userId, otherUserId)) throw new ForbiddenException('cannot message this user');
     // 정규화 키(정렬된 유저쌍) + directKey @unique → 동시 생성 시 중복 대화 방지.
     const directKey = [userId, otherUserId].sort().join(':');
     let conv = await this.prisma.conversation.findUnique({ where: { directKey }, select: { id: true } });
@@ -209,17 +242,26 @@ export class DmService {
       where: { participants: { some: { userId } } },
       orderBy: { updatedAt: 'desc' },
       take: 50,
-      select: { id: true },
+      select: { id: true, isGroup: true, participants: { select: { userId: true } } },
     });
-    return Promise.all(convs.map((c) => this.toConversationView(userId, c.id)));
+    const hidden = new Set(await this.hiddenUserIds(userId));
+    // 1:1 차단 상대 대화는 목록에서 제외. 그룹은 유지(참여자에서 차단 숨김).
+    const visible = convs.filter((c) => {
+      if (c.isGroup) return true;
+      const other = c.participants.find((p) => p.userId !== userId);
+      return !other || !hidden.has(other.userId);
+    });
+    return Promise.all(visible.map((c) => this.toConversationView(userId, c.id, hidden)));
   }
 
   async getMessages(userId: string, conversationId: string, limit: number, before?: string): Promise<MessageView[]> {
     await this.assertParticipant(userId, conversationId);
+    const hidden = await this.hiddenUserIds(userId);
     const beforeDate = before ? new Date(before) : undefined;
     const validBefore = beforeDate && !Number.isNaN(beforeDate.getTime()) ? beforeDate : undefined;
     const msgs = await this.prisma.message.findMany({
-      where: { conversationId, ...(validBefore ? { createdAt: { lt: validBefore } } : {}) },
+      // 차단 관계 발신자 메시지 숨김(1:1 차단→상대 메시지 제외, 그룹→차단 멤버 메시지 제외).
+      where: { conversationId, senderId: { notIn: hidden }, ...(validBefore ? { createdAt: { lt: validBefore } } : {}) },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: { sender: true },
@@ -229,6 +271,16 @@ export class DmService {
 
   async sendMessage(userId: string, conversationId: string, dto: SendMessageDto): Promise<MessageView> {
     await this.assertParticipant(userId, conversationId);
+    const conv = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+      select: { isGroup: true, participants: { select: { userId: true } } },
+    });
+    if (!conv) throw new NotFoundException('conversation not found');
+    const otherIds = conv.participants.map((p) => p.userId).filter((id) => id !== userId);
+    // 1:1: 차단 상대에게 전송 불가.
+    if (!conv.isGroup && otherIds[0] && (await this.isBlocked(userId, otherIds[0]))) {
+      throw new ForbiddenException('cannot message this user');
+    }
     const kind = dto.kind ?? 'text';
     if (kind === 'text' && !dto.body?.trim()) throw new BadRequestException('empty message');
     if (kind === 'image') {
@@ -249,14 +301,14 @@ export class DmService {
       this.prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
     ]);
     const view = this.toMessageView(msg);
-    // 실시간 push — 대화 참여자 전원(발신자 포함, 클라이언트가 id로 dedupe).
-    const parts = await this.prisma.conversationParticipant.findMany({
-      where: { conversationId },
-      select: { userId: true },
-    });
-    const ids = parts.map((p) => p.userId);
-    this.gateway.emitMessage(ids, view);
-    void this.dispatchDmPush(userId, conversationId, ids, kind, dto.body ?? null); // best-effort 푸시
+    // 실시간 push — 참여자 전원(발신자 포함·id dedupe). 그룹은 차단 관계 참여자 제외(상호 격리).
+    let recipients = [userId, ...otherIds];
+    if (conv.isGroup) {
+      const hidden = new Set(await this.hiddenUserIds(userId));
+      recipients = recipients.filter((id) => id === userId || !hidden.has(id));
+    }
+    this.gateway.emitMessage(recipients, view);
+    void this.dispatchDmPush(userId, conversationId, recipients, kind, dto.body ?? null); // best-effort 푸시
     return view;
   }
 

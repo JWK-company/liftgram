@@ -31,6 +31,7 @@ export interface PublicProfile {
   counts: { followers: number; following: number; posts: number };
   isFollowing: boolean;
   isSelf: boolean;
+  isBlocked: boolean; // 내가 이 사용자를 차단했는가(해제 UI용)
 }
 export interface DiscoverUser {
   id: string;
@@ -160,6 +161,9 @@ export class SocialService {
     if (followerId === followeeId) throw new BadRequestException('cannot follow yourself');
     const target = await this.prisma.user.findUnique({ where: { id: followeeId } });
     if (!target) throw new NotFoundException('user not found');
+    if (await this.isBlockedBetween(followerId, followeeId)) {
+      throw new ForbiddenException('cannot follow — blocked');
+    }
     try {
       await this.prisma.follow.create({ data: { followerId, followeeId } });
       await this.notify(followeeId, followerId, 'follow');
@@ -173,6 +177,68 @@ export class SocialService {
   async unfollow(followerId: string, followeeId: string): Promise<{ ok: true }> {
     await this.prisma.follow.deleteMany({ where: { followerId, followeeId } });
     return { ok: true };
+  }
+
+  // 차단 — 상호 불가시 + 상호작용 차단. 차단 시 양방향 팔로우 해제.
+  async block(blockerId: string, blockedId: string): Promise<{ ok: true }> {
+    if (blockerId === blockedId) throw new BadRequestException('cannot block yourself');
+    const target = await this.prisma.user.findUnique({ where: { id: blockedId }, select: { id: true } });
+    if (!target) throw new NotFoundException('user not found');
+    await this.prisma.$transaction(async (tx) => {
+      await tx.block.upsert({
+        where: { blockerId_blockedId: { blockerId, blockedId } },
+        update: {},
+        create: { blockerId, blockedId },
+      });
+      await tx.follow.deleteMany({
+        where: {
+          OR: [
+            { followerId: blockerId, followeeId: blockedId },
+            { followerId: blockedId, followeeId: blockerId },
+          ],
+        },
+      });
+      // 양방향 알림 삭제(차단 흔적 정리).
+      await tx.notification.deleteMany({
+        where: {
+          OR: [
+            { userId: blockerId, actorId: blockedId },
+            { userId: blockedId, actorId: blockerId },
+          ],
+        },
+      });
+    });
+    return { ok: true };
+  }
+
+  async unblock(blockerId: string, blockedId: string): Promise<{ ok: true }> {
+    await this.prisma.block.deleteMany({ where: { blockerId, blockedId } });
+    return { ok: true };
+  }
+
+  // viewer와 차단 관계(양방향)인 유저 id — 목록에서 상호 제외.
+  private async hiddenUserIds(viewerId: string): Promise<string[]> {
+    const rows = await this.prisma.block.findMany({
+      where: { OR: [{ blockerId: viewerId }, { blockedId: viewerId }] },
+      select: { blockerId: true, blockedId: true },
+    });
+    const ids = new Set<string>();
+    for (const r of rows) ids.add(r.blockerId === viewerId ? r.blockedId : r.blockerId);
+    return [...ids];
+  }
+
+  // a↔b 사이 차단(어느 방향이든) 존재 여부.
+  private async isBlockedBetween(a: string, b: string): Promise<boolean> {
+    if (a === b) return false;
+    const n = await this.prisma.block.count({
+      where: {
+        OR: [
+          { blockerId: a, blockedId: b },
+          { blockerId: b, blockedId: a },
+        ],
+      },
+    });
+    return n > 0;
   }
 
   async createPost(authorId: string, dto: CreatePostDto): Promise<PostView> {
@@ -215,11 +281,13 @@ export class SocialService {
       select: { followeeId: true },
     });
     const followeeIds = follows.map((f) => f.followeeId);
+    const hidden = await this.hiddenUserIds(userId);
     const beforeDate = before ? new Date(before) : undefined;
     const validBefore = beforeDate && !Number.isNaN(beforeDate.getTime()) ? beforeDate : undefined;
     const posts = await this.prisma.post.findMany({
       where: {
         moderationStatus: 'approved', // 제거/자동보류 콘텐츠 숨김
+        authorId: { notIn: hidden }, // 차단 상호 제외
         OR: [
           { authorId: userId },
           { authorId: { in: followeeIds }, visibility: { in: ['public', 'followers'] } },
@@ -244,6 +312,7 @@ export class SocialService {
   }
 
   async getUserPosts(viewerId: string, targetId: string, limit: number): Promise<PostView[]> {
+    if (await this.isBlockedBetween(viewerId, targetId)) return [];
     const isSelf = viewerId === targetId;
     const isFollowing =
       isSelf ||
@@ -264,6 +333,15 @@ export class SocialService {
     const u = await this.prisma.user.findUnique({ where: { id: targetId } });
     if (!u) throw new NotFoundException('user not found');
     const isSelf = viewerId === targetId;
+    let iBlocked = false;
+    if (!isSelf) {
+      const [me2them, them2me] = await Promise.all([
+        this.prisma.block.count({ where: { blockerId: viewerId, blockedId: targetId } }),
+        this.prisma.block.count({ where: { blockerId: targetId, blockedId: viewerId } }),
+      ]);
+      if (them2me > 0) throw new NotFoundException('user not found'); // 나를 차단한 상대는 볼 수 없음
+      iBlocked = me2them > 0; // 내가 차단한 상대는 최소 프로필+해제 UI
+    }
     const followRec = isSelf
       ? null
       : await this.prisma.follow.findUnique({
@@ -274,8 +352,10 @@ export class SocialService {
     const [followers, following, posts] = await Promise.all([
       this.prisma.follow.count({ where: { followeeId: targetId } }),
       this.prisma.follow.count({ where: { followerId: targetId } }),
-      // 게시물 수도 뷰어가 볼 수 있는 범위로 스코프 — 숨은 글 개수 누출 방지.
-      this.prisma.post.count({ where: { authorId: targetId, visibility: { in: allowed }, moderationStatus: 'approved' } }),
+      // 게시물 수도 뷰어가 볼 수 있는 범위로 스코프 — 숨은 글 개수 누출 방지. 차단 시 0.
+      iBlocked
+        ? Promise.resolve(0)
+        : this.prisma.post.count({ where: { authorId: targetId, visibility: { in: allowed }, moderationStatus: 'approved' } }),
     ]);
     return {
       id: u.id,
@@ -284,14 +364,16 @@ export class SocialService {
       counts: { followers, following, posts },
       isFollowing,
       isSelf,
+      isBlocked: iBlocked,
     };
   }
 
   // 발견 — 나 제외 사용자 목록(선택 검색어), 팔로우 여부 포함.
   async discover(viewerId: string, q: string | undefined, limit: number): Promise<DiscoverUser[]> {
+    const hidden = await this.hiddenUserIds(viewerId);
     const users = await this.prisma.user.findMany({
       where: {
-        id: { not: viewerId },
+        id: { not: viewerId, notIn: hidden }, // 나·차단 상호 제외
         // 공개 식별자(displayName)만 검색 — 이메일 substring 매칭은 계정 열거 위험이라 제외.
         ...(q ? { displayName: { contains: q, mode: 'insensitive' } } : {}),
       },
@@ -313,8 +395,9 @@ export class SocialService {
 
   // 인기 공개 포스트 발견 — 참여도(좋아요·댓글) + 최신 순. 팔로우 무관 공개 레이어.
   async getExplore(viewerId: string, limit: number): Promise<PostView[]> {
+    const hidden = await this.hiddenUserIds(viewerId);
     const posts = await this.prisma.post.findMany({
-      where: { visibility: 'public', moderationStatus: 'approved' },
+      where: { visibility: 'public', moderationStatus: 'approved', authorId: { notIn: hidden } },
       // 좋아요 수(모더레이션 상태 없음=정확) + 최신순. 댓글 _count는 orderBy에서 필터 불가라 제외(제거 댓글 오염 방지).
       orderBy: [{ likes: { _count: 'desc' } }, { createdAt: 'desc' }],
       take: limit,
@@ -324,10 +407,11 @@ export class SocialService {
   }
 
   // 트렌딩 해시태그 — 공개·승인 포스트의 태그 빈도 상위.
-  async getTrendingHashtags(limit: number): Promise<TrendingTag[]> {
+  async getTrendingHashtags(viewerId: string, limit: number): Promise<TrendingTag[]> {
+    const hidden = await this.hiddenUserIds(viewerId);
     const rows = await this.prisma.postHashtag.groupBy({
       by: ['tag'],
-      where: { post: { visibility: 'public', moderationStatus: 'approved' } },
+      where: { post: { visibility: 'public', moderationStatus: 'approved', authorId: { notIn: hidden } } },
       _count: { tag: true },
       orderBy: { _count: { tag: 'desc' } },
       take: limit,
@@ -337,10 +421,12 @@ export class SocialService {
 
   // 특정 해시태그의 공개 포스트(최신순).
   async getHashtagPosts(viewerId: string, tag: string, limit: number): Promise<PostView[]> {
+    const hidden = await this.hiddenUserIds(viewerId);
     const posts = await this.prisma.post.findMany({
       where: {
         visibility: 'public',
         moderationStatus: 'approved',
+        authorId: { notIn: hidden },
         hashtags: { some: { tag: tag.toLowerCase() } },
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -352,8 +438,9 @@ export class SocialService {
 
   // 추천 유저 — 내가 아직 팔로우하지 않은 사용자, 팔로워 많은 순.
   async getSuggestions(viewerId: string, limit: number): Promise<DiscoverUser[]> {
+    const hidden = await this.hiddenUserIds(viewerId);
     const users = await this.prisma.user.findMany({
-      where: { id: { not: viewerId }, followers: { none: { followerId: viewerId } } },
+      where: { id: { not: viewerId, notIn: hidden }, followers: { none: { followerId: viewerId } } },
       orderBy: { followers: { _count: 'desc' } },
       take: limit,
       include: { _count: { select: { followers: true } } },
@@ -395,7 +482,8 @@ export class SocialService {
       where: { followerId: userId },
       select: { followeeId: true },
     });
-    const authorIds = [...follows.map((f) => f.followeeId), userId];
+    const hidden = new Set(await this.hiddenUserIds(userId));
+    const authorIds = [...follows.map((f) => f.followeeId), userId].filter((id) => !hidden.has(id));
     const stories = await this.prisma.story.findMany({
       where: { authorId: { in: authorIds }, expiresAt: { gt: new Date() }, moderationStatus: 'approved' },
       orderBy: { createdAt: 'asc' },
@@ -430,6 +518,7 @@ export class SocialService {
     if (!post) throw new NotFoundException('post not found');
     // 제거/자동보류 포스트는 미존재로 취급 — 가시성 누출·좋아요/댓글 차단.
     if (post.moderationStatus !== 'approved') throw new NotFoundException('post not found');
+    if (await this.isBlockedBetween(viewerId, post.authorId)) throw new NotFoundException('post not found');
     if (post.authorId === viewerId || post.visibility === 'public') return { authorId: post.authorId };
     if (post.visibility === 'followers') {
       const f = await this.prisma.follow.findUnique({
@@ -462,8 +551,9 @@ export class SocialService {
 
   async listComments(userId: string, postId: string, limit: number): Promise<CommentView[]> {
     await this.assertCanViewPost(postId, userId);
+    const hidden = await this.hiddenUserIds(userId);
     const comments = await this.prisma.comment.findMany({
-      where: { postId, moderationStatus: 'approved' },
+      where: { postId, moderationStatus: 'approved', authorId: { notIn: hidden } }, // 차단 작성자 댓글 숨김
       orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       take: limit,
       include: { author: { select: { id: true, displayName: true } } },

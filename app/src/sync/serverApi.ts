@@ -99,6 +99,7 @@ export interface SocialProfile {
   counts: { followers: number; following: number; posts: number };
   isFollowing: boolean;
   isSelf: boolean;
+  isBlocked: boolean; // 내가 이 사용자를 차단했는가
 }
 export interface NotificationItem {
   id: string;
@@ -266,6 +267,12 @@ export const serverApi = {
   },
   unfollowUser(id: string): Promise<{ ok: true }> {
     return request<{ ok: true }>(`/social/follow/${id}`, { method: 'DELETE', auth: true });
+  },
+  blockUser(id: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/social/block/${id}`, { method: 'POST', auth: true });
+  },
+  unblockUser(id: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/social/block/${id}`, { method: 'DELETE', auth: true });
   },
   profile(userId: string): Promise<SocialProfile> {
     return request<SocialProfile>(`/social/users/${userId}`, { auth: true });

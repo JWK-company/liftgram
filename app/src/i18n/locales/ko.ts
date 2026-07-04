@@ -88,6 +88,8 @@ export const ko = {
   "explore.followers": "팔로워 {count}",
   "hashtag.title": "해시태그",
   "hashtag.empty": "이 태그의 게시물이 없어요",
+  "profile.block": "차단",
+  "profile.unblock": "차단 해제",
   "exercises.addCustom": "+ 커스텀 운동",
   "exercises.archive": "보관",
   "exercises.archiveHide": "보관(숨김)",

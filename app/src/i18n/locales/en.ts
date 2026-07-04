@@ -90,6 +90,8 @@ export const en: Record<TransKey, string> = {
   "explore.followers": "{count} followers",
   "hashtag.title": "Hashtag",
   "hashtag.empty": "No posts for this tag",
+  "profile.block": "Block",
+  "profile.unblock": "Unblock",
   "exercises.addCustom": "+ Custom Exercise",
   "exercises.archive": "Archive",
   "exercises.archiveHide": "Archive (Hide)",
