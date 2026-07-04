@@ -1,6 +1,6 @@
 // @plm SRS-018  해시태그별 공개 포스트 (SAD-011).
-import React, { useCallback, useLayoutEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet } from 'react-native';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Screen, EmptyState } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
@@ -14,21 +14,49 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
   const { t } = useT();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasMore = useRef(true);
+  const loadGen = useRef(0); // 새로고침 세대 — in-flight loadMore의 stale append 차단
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: `#${tag}` });
   }, [navigation, tag]);
 
   const load = useCallback(async () => {
+    const gen = ++loadGen.current;
     setLoading(true);
     try {
-      setPosts(await serverApi.hashtagPosts(tag));
+      const data = await serverApi.hashtagPosts(tag);
+      if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
+      setPosts(data);
+      hasMore.current = true;
     } catch {
-      setPosts([]);
+      if (gen === loadGen.current) setPosts([]);
     } finally {
-      setLoading(false);
+      if (gen === loadGen.current) setLoading(false);
     }
   }, [tag]);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore.current || posts.length === 0) return;
+    const gen = loadGen.current; // 시작 시점 세대 캡처
+    setLoadingMore(true);
+    try {
+      const last = posts[posts.length - 1];
+      const older = await serverApi.hashtagPosts(tag, last.createdAt, last.id);
+      if (gen !== loadGen.current) return; // 그사이 새로고침됨 → stale 페이지 폐기
+      if (older.length === 0) hasMore.current = false;
+      else
+        setPosts((prev) => {
+          const ids = new Set(prev.map((p) => p.id));
+          return [...prev, ...older.filter((p) => !ids.has(p.id))];
+        });
+    } catch {
+      // ignore
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, posts, tag]);
 
   useFocusEffect(
     useCallback(() => {
@@ -52,6 +80,11 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
         contentContainerStyle={styles.list}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={!loading ? <EmptyState title={t('hashtag.empty')} /> : null}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} /> : null
+        }
       />
     </Screen>
   );

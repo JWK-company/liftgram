@@ -130,6 +130,7 @@ model Post {
   @@index([authorId, createdAt])
   @@index([moderationStatus])
   @@index([createdAt])
+  @@index([createdAt, id]) // 키셋 커서 페이지네이션(무한스크롤)
 }
 
 // 해시태그 인덱스 (SRS-018). 포스트 캡션의 #태그 추출·저장 → 태그별 조회·트렌딩.

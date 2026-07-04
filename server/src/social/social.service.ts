@@ -285,15 +285,14 @@ export class SocialService {
   }
 
   // 피드 = 내 게시물(공개범위 무관 전부) + 팔로우한 사람의 공개/팔로워 게시물, 최신순(id 타이브레이크).
-  async getFeed(userId: string, limit: number, before?: string): Promise<PostView[]> {
+  async getFeed(userId: string, limit: number, before?: string, beforeId?: string): Promise<PostView[]> {
     const follows = await this.prisma.follow.findMany({
       where: { followerId: userId },
       select: { followeeId: true },
     });
     const followeeIds = follows.map((f) => f.followeeId);
     const hidden = await this.hiddenUserIds(userId);
-    const beforeDate = before ? new Date(before) : undefined;
-    const validBefore = beforeDate && !Number.isNaN(beforeDate.getTime()) ? beforeDate : undefined;
+    const cursor = this.cursorClause(before, beforeId);
     const posts = await this.prisma.post.findMany({
       where: {
         moderationStatus: 'approved', // 제거/자동보류 콘텐츠 숨김
@@ -302,7 +301,7 @@ export class SocialService {
           { authorId: userId },
           { authorId: { in: followeeIds }, visibility: { in: ['public', 'followers'] } },
         ],
-        ...(validBefore ? { createdAt: { lt: validBefore } } : {}),
+        ...(cursor ? { AND: [cursor] } : {}), // 키셋 커서(피드 OR와 AND 결합)
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
@@ -321,7 +320,29 @@ export class SocialService {
         : ['public'];
   }
 
-  async getUserPosts(viewerId: string, targetId: string, limit: number): Promise<PostView[]> {
+  // 커서 파싱 — 유효한 ISO 날짜면 반환(무한스크롤 before).
+  private parseBefore(before?: string): Date | undefined {
+    if (!before) return undefined;
+    const d = new Date(before);
+    return Number.isNaN(d.getTime()) ? undefined : d;
+  }
+
+  // 키셋 커서 — orderBy [createdAt desc, id desc]와 일치. 같은 밀리초 타임스탬프가
+  // 페이지 경계에 걸려도 누락/중복 없이 이어짐(createdAt만 쓰면 동일 타임스탬프 행 유실).
+  private cursorClause(before?: string, beforeId?: string): Prisma.PostWhereInput | null {
+    const d = this.parseBefore(before);
+    if (!d) return null;
+    if (!beforeId) return { createdAt: { lt: d } }; // id 없으면 폴백(구버전 호환)
+    return { OR: [{ createdAt: { lt: d } }, { createdAt: d, id: { lt: beforeId } }] };
+  }
+
+  async getUserPosts(
+    viewerId: string,
+    targetId: string,
+    limit: number,
+    before?: string,
+    beforeId?: string,
+  ): Promise<PostView[]> {
     if (await this.isBlockedBetween(viewerId, targetId)) return [];
     const isSelf = viewerId === targetId;
     const isFollowing =
@@ -330,8 +351,14 @@ export class SocialService {
         where: { followerId_followeeId: { followerId: viewerId, followeeId: targetId } },
       }));
     const allowed = this.visibilityFor(isSelf, isFollowing);
+    const cursor = this.cursorClause(before, beforeId);
     const posts = await this.prisma.post.findMany({
-      where: { authorId: targetId, visibility: { in: allowed }, moderationStatus: 'approved' },
+      where: {
+        authorId: targetId,
+        visibility: { in: allowed },
+        moderationStatus: 'approved',
+        ...(cursor ? { AND: [cursor] } : {}),
+      },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
       include: postInclude(viewerId),
@@ -477,14 +504,22 @@ export class SocialService {
   }
 
   // 특정 해시태그의 공개 포스트(최신순).
-  async getHashtagPosts(viewerId: string, tag: string, limit: number): Promise<PostView[]> {
+  async getHashtagPosts(
+    viewerId: string,
+    tag: string,
+    limit: number,
+    before?: string,
+    beforeId?: string,
+  ): Promise<PostView[]> {
     const hidden = await this.hiddenUserIds(viewerId);
+    const cursor = this.cursorClause(before, beforeId);
     const posts = await this.prisma.post.findMany({
       where: {
         visibility: 'public',
         moderationStatus: 'approved',
         authorId: { notIn: hidden },
         hashtags: { some: { tag: tag.toLowerCase() } },
+        ...(cursor ? { AND: [cursor] } : {}),
       },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,

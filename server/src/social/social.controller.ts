@@ -31,8 +31,9 @@ export class SocialController {
     @CurrentUser() user: AuthUser,
     @Query('limit') limit?: string,
     @Query('before') before?: string,
+    @Query('beforeId') beforeId?: string,
   ): Promise<PostView[]> {
-    return this.social.getFeed(user.userId, clampLimit(limit, 30, 100), before);
+    return this.social.getFeed(user.userId, clampLimit(limit, 30, 100), before, beforeId);
   }
 
   @Post('posts')
@@ -101,8 +102,10 @@ export class SocialController {
     @CurrentUser() user: AuthUser,
     @Param('tag') tag: string,
     @Query('limit') limit?: string,
+    @Query('before') before?: string,
+    @Query('beforeId') beforeId?: string,
   ): Promise<PostView[]> {
-    return this.social.getHashtagPosts(user.userId, tag, clampLimit(limit, 30, 100));
+    return this.social.getHashtagPosts(user.userId, tag, clampLimit(limit, 30, 100), before, beforeId);
   }
 
   // 추천 유저(팔로워 많은 순, 미팔로우).
@@ -140,8 +143,10 @@ export class SocialController {
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Query('limit') limit?: string,
+    @Query('before') before?: string,
+    @Query('beforeId') beforeId?: string,
   ): Promise<PostView[]> {
-    return this.social.getUserPosts(user.userId, id, clampLimit(limit, 30, 100));
+    return this.social.getUserPosts(user.userId, id, clampLimit(limit, 30, 100), before, beforeId);
   }
 
   @Post('follow/:id')

@@ -1,6 +1,6 @@
 // @plm SRS-007 @plm SRS-019  소셜 피드 탭 — 스토리 트레이 + 피드(텍스트/이미지 게시) (SAD-011/012).
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -40,12 +40,17 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const likePending = useRef<Set<string>>(new Set());
   const [unread, setUnread] = useState(0);
   const [meId, setMeId] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasMore = useRef(true);
+  const loadGen = useRef(0); // 새로고침 세대 — in-flight loadMore의 stale append 차단
 
   const load = useCallback(async () => {
+    const gen = ++loadGen.current;
     setLoading(true);
     setError(null);
     try {
       const logged = await serverApi.isLoggedIn();
+      if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
       setAuthed(logged);
       if (logged) {
         const [feed, stories, me] = await Promise.all([
@@ -53,6 +58,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           serverApi.stories(),
           serverApi.me(),
         ]);
+        if (gen !== loadGen.current) return; // 그사이 재새로고침 → 폐기
         setMeId(me.id);
         // 진행 중인 좋아요는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
         setPosts((prev) => {
@@ -64,15 +70,16 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           });
         });
         setStoryGroups(stories);
+        hasMore.current = true; // 새로고침 시 커서 리셋
         serverApi
           .notificationsUnread()
           .then((r) => setUnread(r.count))
           .catch(() => {});
       }
     } catch (e) {
-      setError(String(e));
+      if (gen === loadGen.current) setError(String(e));
     } finally {
-      setLoading(false);
+      if (gen === loadGen.current) setLoading(false);
     }
   }, []);
 
@@ -176,6 +183,27 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     }
   }, []);
 
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore.current || posts.length === 0) return;
+    const gen = loadGen.current; // 시작 시점 세대 캡처
+    setLoadingMore(true);
+    try {
+      const last = posts[posts.length - 1];
+      const older = await serverApi.feed(last.createdAt, last.id);
+      if (gen !== loadGen.current) return; // 그사이 새로고침됨 → stale 페이지 폐기
+      if (older.length === 0) hasMore.current = false;
+      else
+        setPosts((prev) => {
+          const ids = new Set(prev.map((p) => p.id));
+          return [...prev, ...older.filter((p) => !ids.has(p.id))];
+        });
+    } catch {
+      // ignore
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, posts]);
+
   if (authed === false) {
     return (
       <Screen>
@@ -256,6 +284,11 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.primary} />}
         ListEmptyComponent={
           !loading ? <EmptyState title={t('feed.emptyTitle')} message={t('feed.emptyMessage')} /> : null
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} /> : null
         }
       />
       <StoryViewer group={viewing} onClose={() => setViewing(null)} meId={meId} />

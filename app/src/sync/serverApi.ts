@@ -189,6 +189,14 @@ export interface SendMessageInput {
   mediaUrl?: string;
 }
 
+// 키셋 커서 쿼리스트링 — 마지막 항목의 createdAt(+id)로 다음 페이지 요청.
+// 서버 orderBy [createdAt desc, id desc]와 일치시켜 같은 타임스탬프 경계 누락 방지.
+function cursorQuery(before?: string, beforeId?: string): string {
+  if (!before) return '';
+  const base = `?before=${encodeURIComponent(before)}`;
+  return beforeId ? `${base}&beforeId=${encodeURIComponent(beforeId)}` : base;
+}
+
 export const serverApi = {
   async signUp(email: string, password: string, displayName?: string): Promise<void> {
     const { accessToken, refreshToken } = await request<AuthTokens>('/auth/signup', {
@@ -226,8 +234,8 @@ export const serverApi = {
     return request<{ ok: true }>('/sync/push', { method: 'POST', body: { changes }, auth: true });
   },
   // --- 소셜 ---
-  feed(before?: string): Promise<FeedPost[]> {
-    return request<FeedPost[]>(`/social/feed${before ? `?before=${encodeURIComponent(before)}` : ''}`, {
+  feed(before?: string, beforeId?: string): Promise<FeedPost[]> {
+    return request<FeedPost[]>(`/social/feed${cursorQuery(before, beforeId)}`, {
       auth: true,
     });
   },
@@ -261,8 +269,11 @@ export const serverApi = {
   trendingHashtags(): Promise<TrendingTag[]> {
     return request<TrendingTag[]>('/social/hashtags', { auth: true });
   },
-  hashtagPosts(tag: string): Promise<FeedPost[]> {
-    return request<FeedPost[]>(`/social/hashtags/${encodeURIComponent(tag)}/posts`, { auth: true });
+  hashtagPosts(tag: string, before?: string, beforeId?: string): Promise<FeedPost[]> {
+    return request<FeedPost[]>(
+      `/social/hashtags/${encodeURIComponent(tag)}/posts${cursorQuery(before, beforeId)}`,
+      { auth: true },
+    );
   },
   suggestions(): Promise<DiscoverUser[]> {
     return request<DiscoverUser[]>('/social/suggestions', { auth: true });
@@ -285,8 +296,11 @@ export const serverApi = {
   profile(userId: string): Promise<SocialProfile> {
     return request<SocialProfile>(`/social/users/${userId}`, { auth: true });
   },
-  userPosts(userId: string): Promise<FeedPost[]> {
-    return request<FeedPost[]>(`/social/users/${userId}/posts`, { auth: true });
+  userPosts(userId: string, before?: string, beforeId?: string): Promise<FeedPost[]> {
+    return request<FeedPost[]>(
+      `/social/users/${userId}/posts${cursorQuery(before, beforeId)}`,
+      { auth: true },
+    );
   },
   // --- 알림 (SRS-020) ---
   notifications(): Promise<NotificationItem[]> {
