@@ -2,7 +2,7 @@
 import React from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Avatar, Card } from '../../components';
+import { AppText, Avatar, Card, RemoteImage } from '../../components';
 import type { FeedPost } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
 import { colors, radius, spacing } from '../../theme';
@@ -48,7 +48,7 @@ export function DiscoveryPostCard({
       </View>
       <Pressable onPress={onOpen}>
         {imageUrl ? (
-          <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.image} resizeMode="cover" />
+          <RemoteImage uri={imageUrl} style={styles.image} />
         ) : null}
         {post.caption ? (
           <HashtagText text={post.caption} onTag={onTag} numberOfLines={imageUrl ? 2 : 5} style={styles.caption} />

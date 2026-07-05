@@ -3,7 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Avatar, Button, Card, EmptyState, ListState, Screen, Skeleton } from '../../components';
+import { AppText, Avatar, Button, Card, EmptyState, ListState, RemoteImage, Screen, Skeleton } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type SocialProfile } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -315,7 +315,7 @@ function ProfilePost({
     <Pressable onPress={onPress}>
       <Card style={styles.post}>
         {imageUrl ? (
-          <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.postImage} resizeMode="cover" />
+          <RemoteImage uri={imageUrl} style={styles.postImage} />
         ) : null}
         {post.caption ? (
           <AppText variant="body" numberOfLines={imageUrl ? 2 : 4}>

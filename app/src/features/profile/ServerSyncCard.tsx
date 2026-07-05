@@ -7,7 +7,9 @@ import { colors, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { authErrorKey } from '../../sync/apiError';
+import { reconcileAccount } from '../../sync/syncOwner';
 import { syncWithServer } from '../../sync/syncEngine';
+import { disconnectRealtime } from '../../sync/realtime';
 import { registerPushToken, unregisterPushToken } from '../../push/push';
 import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
@@ -50,9 +52,16 @@ export function ServerSyncCard() {
     try {
       if (mode === 'signup') await serverApi.signUp(mail, password);
       else await serverApi.login(mail, password);
+      // 계정 경계 — 다른 계정이면 로컬 운동 데이터 초기화(교차오염·유실 방지) + 신원 미러.
+      const me = await serverApi.me();
+      await reconcileAccount(me.id);
+      disconnectRealtime(); // 계정 전환 시 구 소켓 정리 — 새 신원으로 재핸드셰이크.
+      if (user) await userRepo.setLocalAuth((await userRepo.getOrCreateLocalUser()).id, { email: mail });
+      await refresh();
       setLoggedIn(true);
       setPassword('');
       void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
+      void syncWithServer().catch(() => {}); // 로그인 직후 자동 동기(백업·복원)
     } catch (e) {
       setStatus(t(authErrorKey(e)));
       setError(true);

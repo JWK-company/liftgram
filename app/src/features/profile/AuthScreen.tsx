@@ -10,6 +10,9 @@ import { userRepo } from '../../data';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { authErrorKey } from '../../sync/apiError';
+import { reconcileAccount } from '../../sync/syncOwner';
+import { syncWithServer } from '../../sync/syncEngine';
+import { disconnectRealtime } from '../../sync/realtime';
 import { registerPushToken } from '../../push/push';
 
 type Mode = 'login' | 'signup';
@@ -48,10 +51,16 @@ export default function AuthScreen({ navigation }: RootStackScreenProps<'Auth'>)
       // 실제 서버 인증(JWT 저장) — 이래야 피드·DM·발견 등 소셜 기능이 잠금 해제된다.
       if (isSignup) await serverApi.signUp(trimmedEmail, password, name ? name : undefined);
       else await serverApi.login(trimmedEmail, password);
-      // 로컬 프로필에 신원 미러(오프라인 표시용).
-      await userRepo.setLocalAuth(user.id, { email: trimmedEmail, displayName: name ? name : null });
+      // 계정 경계 — 다른 계정으로 로그인하면 로컬 운동 데이터를 초기화(교차오염·유실 방지).
+      const me = await serverApi.me();
+      await reconcileAccount(me.id);
+      disconnectRealtime(); // 계정 전환 시 구 소켓 정리 — 다음 DM 진입 때 새 신원으로 재핸드셰이크.
+      // 로컬 프로필 확보(리셋됐으면 재생성됨) + 신원 미러.
+      const localUser = await userRepo.getOrCreateLocalUser();
+      await userRepo.setLocalAuth(localUser.id, { email: trimmedEmail, displayName: name ? name : null });
       void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
       await refresh();
+      void syncWithServer().catch(() => {}); // 로그인 직후 자동 동기(백업·복원) — 수동 버튼 의존 제거
       navigation.goBack();
     } catch (e) {
       Alert.alert(t('common.error'), t(authErrorKey(e)));
