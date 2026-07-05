@@ -19,8 +19,9 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
   const meIdRef = useRef<string | null>(null);
   const convIdsRef = useRef<Set<string>>(new Set());
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // silent=true면 로딩 스피너·에러 카드를 건드리지 않음(백그라운드 폴백 폴·실시간 재조회용).
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(false);
     try {
       const [list, me] = await Promise.all([serverApi.conversations(), serverApi.me()]);
@@ -29,9 +30,9 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
       meIdRef.current = me.id;
       convIdsRef.current = new Set(list.map((c) => c.id));
     } catch {
-      setError(true);
+      if (!silent) setError(true);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -42,7 +43,7 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
       const unsub = onDmMessage((m) => {
         if (meIdRef.current === null) return; // 신원 로드 전 — 초기 load()가 권위 반영
         if (!convIdsRef.current.has(m.conversationId)) {
-          load(); // 목록에 없는 대화(신규) → 재조회
+          void load(true); // 목록에 없는 대화(신규) → 조용히 재조회
           return;
         }
         setConvs((prev) => {
@@ -58,7 +59,12 @@ export default function ConversationsScreen({ navigation }: RootStackScreenProps
           return [updated, ...prev.filter((_, i) => i !== idx)];
         });
       });
-      return unsub;
+      // WS 폴백 — 소켓 사망(콜드스타트·단절) 구간에도 목록·unread를 조용히 재동기(15s).
+      const poll = setInterval(() => void load(true), 15000);
+      return () => {
+        unsub();
+        clearInterval(poll);
+      };
     }, [load]),
   );
 

@@ -40,6 +40,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [error, setError] = useState<string | null>(null); // 작성·스토리 액션 실패(컴포저 인라인)
   const [loadError, setLoadError] = useState(false); // 피드 로드 실패(리스트 에러 카드)
   const likePending = useRef<Set<string>>(new Set());
+  const uploadedRef = useRef<{ asset: PickedImage; media: { url: string } } | null>(null); // 업로드 멱등 캐시
   const [unread, setUnread] = useState(0);
   const [meId, setMeId] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -157,7 +158,12 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     try {
       let post: FeedPost;
       if (picked) {
-        const media = await serverApi.uploadImage(picked);
+        // 업로드 성공 후 게시 실패 시, 재시도에서 같은 이미지를 재업로드하지 않도록 결과 캐시(고아·중복 방지).
+        let media = uploadedRef.current?.asset === picked ? uploadedRef.current.media : null;
+        if (!media) {
+          media = await serverApi.uploadImage(picked);
+          uploadedRef.current = { asset: picked, media };
+        }
         post = await serverApi.createPost({ kind: 'image', caption: text || undefined, data: { imageUrl: media.url } });
       } else {
         post = await serverApi.createPost({ kind: 'text', caption: text });
@@ -165,6 +171,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       setPosts((prev) => [post, ...prev]);
       setCaption('');
       setPicked(null);
+      uploadedRef.current = null; // 게시 성공 → 업로드 캐시 정리
     } catch (e) {
       setError(String(e));
     } finally {
