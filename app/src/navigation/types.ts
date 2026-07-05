@@ -32,6 +32,7 @@ export type RootStackParamList = {
   Explore: undefined; // SRS-018 발견(인기·트렌딩·추천)
   Hashtag: { tag: string }; // SRS-018 해시태그별 포스트
   BlockedUsers: undefined; // SRS-018 차단 목록 관리
+  FollowList: { userId: string; mode: 'followers' | 'following' }; // SRS-018 팔로워/팔로잉 목록
 };
 
 // 화면 컴포넌트 타입 헬퍼

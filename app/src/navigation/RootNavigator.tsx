@@ -23,6 +23,7 @@ import ModerationQueueScreen from '../features/social/ModerationQueueScreen';
 import ExploreScreen from '../features/social/ExploreScreen';
 import HashtagScreen from '../features/social/HashtagScreen';
 import BlockedUsersScreen from '../features/social/BlockedUsersScreen';
+import FollowListScreen from '../features/social/FollowListScreen';
 import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -60,6 +61,7 @@ export function RootNavigator() {
       <Stack.Screen name="Explore" component={ExploreScreen} options={{ title: t('explore.title') }} />
       <Stack.Screen name="Hashtag" component={HashtagScreen} options={{ title: t('hashtag.title') }} />
       <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} options={{ title: t('block.title') }} />
+      <Stack.Screen name="FollowList" component={FollowListScreen} options={{ title: t('follow.followersTitle') }} />
     </Stack.Navigator>
   );
 }

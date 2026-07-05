@@ -143,8 +143,16 @@ export default function UserProfileScreen({ route, navigation }: RootStackScreen
       </AppText>
       <View style={styles.stats}>
         <Stat value={profile.counts.posts} label={t('profile.postsLabel')} />
-        <Stat value={profile.counts.followers} label={t('profile.followers')} />
-        <Stat value={profile.counts.following} label={t('profile.following')} />
+        <Stat
+          value={profile.counts.followers}
+          label={t('profile.followers')}
+          onPress={() => navigation.push('FollowList', { userId, mode: 'followers' })}
+        />
+        <Stat
+          value={profile.counts.following}
+          label={t('profile.following')}
+          onPress={() => navigation.push('FollowList', { userId, mode: 'following' })}
+        />
       </View>
       {!profile.isSelf ? (
         profile.isBlocked ? (
@@ -269,15 +277,23 @@ function ProfileHeaderSkeleton() {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
-  return (
-    <View style={styles.stat}>
+function Stat({ value, label, onPress }: { value: number; label: string; onPress?: () => void }) {
+  const body = (
+    <>
       <AppText variant="heading">{value}</AppText>
       <AppText variant="caption" color="textMuted">
         {label}
       </AppText>
-    </View>
+    </>
   );
+  if (onPress) {
+    return (
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.stat, pressed && { opacity: 0.6 }]}>
+        {body}
+      </Pressable>
+    );
+  }
+  return <View style={styles.stat}>{body}</View>;
 }
 
 function ProfilePost({

@@ -42,6 +42,7 @@ export interface DiscoverUser {
   displayName: string | null;
   avatarUrl: string | null;
   isFollowing: boolean;
+  isSelf?: boolean; // 뷰어 본인 행(팔로우 버튼 숨김용)
   followerCount?: number; // 추천(suggestions)에서 채움
 }
 export interface BlockedUser {
@@ -216,6 +217,52 @@ export class SocialService {
   async unfollow(followerId: string, followeeId: string): Promise<{ ok: true }> {
     await this.prisma.follow.deleteMany({ where: { followerId, followeeId } });
     return { ok: true };
+  }
+
+  // 유저 목록에 뷰어의 팔로우 여부를 채워 DiscoverUser로 매핑.
+  private async withIsFollowing(
+    viewerId: string,
+    users: { id: string; displayName: string | null; avatarUrl: string | null }[],
+  ): Promise<DiscoverUser[]> {
+    if (users.length === 0) return [];
+    const following = await this.prisma.follow.findMany({
+      where: { followerId: viewerId, followeeId: { in: users.map((u) => u.id) } },
+      select: { followeeId: true },
+    });
+    const set = new Set(following.map((f) => f.followeeId));
+    return users.map((u) => ({
+      id: u.id,
+      displayName: u.displayName,
+      avatarUrl: u.avatarUrl,
+      isFollowing: set.has(u.id),
+      isSelf: u.id === viewerId,
+    }));
+  }
+
+  // targetId를 팔로우하는 사람들(최신순). 차단 상호 제외, 차단 관계면 빈 목록.
+  async getFollowers(viewerId: string, targetId: string, limit: number): Promise<DiscoverUser[]> {
+    if (await this.isBlockedBetween(viewerId, targetId)) return [];
+    const hidden = await this.hiddenUserIds(viewerId);
+    const rows = await this.prisma.follow.findMany({
+      where: { followeeId: targetId, followerId: { notIn: hidden } },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { follower: { select: { id: true, displayName: true, avatarUrl: true } } },
+    });
+    return this.withIsFollowing(viewerId, rows.map((r) => r.follower));
+  }
+
+  // targetId가 팔로우하는 사람들(최신순).
+  async getFollowing(viewerId: string, targetId: string, limit: number): Promise<DiscoverUser[]> {
+    if (await this.isBlockedBetween(viewerId, targetId)) return [];
+    const hidden = await this.hiddenUserIds(viewerId);
+    const rows = await this.prisma.follow.findMany({
+      where: { followerId: targetId, followeeId: { notIn: hidden } },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { followee: { select: { id: true, displayName: true, avatarUrl: true } } },
+    });
+    return this.withIsFollowing(viewerId, rows.map((r) => r.followee));
   }
 
   // 차단 — 상호 불가시 + 상호작용 차단. 차단 시 양방향 팔로우 해제.
@@ -490,9 +537,11 @@ export class SocialService {
         });
     const isFollowing = !!followRec;
     const allowed = this.visibilityFor(isSelf, isFollowing);
+    // 팔로워/팔로잉 카운트도 차단 상호 유저를 제외 — 목록(getFollowers/getFollowing)과 숫자 일치.
+    const hidden = await this.hiddenUserIds(viewerId);
     const [followers, following, posts] = await Promise.all([
-      this.prisma.follow.count({ where: { followeeId: targetId } }),
-      this.prisma.follow.count({ where: { followerId: targetId } }),
+      this.prisma.follow.count({ where: { followeeId: targetId, followerId: { notIn: hidden } } }),
+      this.prisma.follow.count({ where: { followerId: targetId, followeeId: { notIn: hidden } } }),
       // 게시물 수도 뷰어가 볼 수 있는 범위로 스코프 — 숨은 글 개수 누출 방지. 차단 시 0.
       iBlocked
         ? Promise.resolve(0)

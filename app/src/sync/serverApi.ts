@@ -123,6 +123,7 @@ export interface DiscoverUser {
   displayName: string | null;
   avatarUrl: string | null;
   isFollowing: boolean;
+  isSelf?: boolean; // 뷰어 본인 행(팔로우 버튼 숨김)
   followerCount?: number; // 추천(suggestions)에서 채움
 }
 export interface TrendingTag {
@@ -351,6 +352,12 @@ export const serverApi = {
   },
   blockedUsers(): Promise<BlockedUser[]> {
     return request<BlockedUser[]>('/social/blocks', { auth: true });
+  },
+  followers(userId: string): Promise<DiscoverUser[]> {
+    return request<DiscoverUser[]>(`/social/users/${userId}/followers`, { auth: true });
+  },
+  following(userId: string): Promise<DiscoverUser[]> {
+    return request<DiscoverUser[]>(`/social/users/${userId}/following`, { auth: true });
   },
   profile(userId: string): Promise<SocialProfile> {
     return request<SocialProfile>(`/social/users/${userId}`, { auth: true });
