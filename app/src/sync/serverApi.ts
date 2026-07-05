@@ -101,6 +101,7 @@ export interface FeedPost {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  bookmarkedByMe: boolean;
 }
 export interface Comment {
   id: string;
@@ -295,6 +296,15 @@ export const serverApi = {
   },
   unlikePost(postId: string): Promise<{ ok: true; likeCount: number }> {
     return request<{ ok: true; likeCount: number }>(`/social/posts/${postId}/like`, { method: 'DELETE', auth: true });
+  },
+  bookmarkPost(postId: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/social/posts/${postId}/bookmark`, { method: 'POST', auth: true });
+  },
+  unbookmarkPost(postId: string): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/social/posts/${postId}/bookmark`, { method: 'DELETE', auth: true });
+  },
+  bookmarks(): Promise<FeedPost[]> {
+    return request<FeedPost[]>('/social/bookmarks', { auth: true });
   },
   comments(postId: string): Promise<Comment[]> {
     return request<Comment[]>(`/social/posts/${postId}/comments`, { auth: true });

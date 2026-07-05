@@ -40,6 +40,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [error, setError] = useState<string | null>(null); // 작성·스토리 액션 실패(컴포저 인라인)
   const [loadError, setLoadError] = useState(false); // 피드 로드 실패(리스트 에러 카드)
   const likePending = useRef<Set<string>>(new Set());
+  const bookmarkPending = useRef<Set<string>>(new Set());
   const uploadedRef = useRef<{ asset: PickedImage; media: { url: string } } | null>(null); // 업로드 멱등 캐시
   const [unread, setUnread] = useState(0);
   const [meId, setMeId] = useState<string | null>(null);
@@ -67,13 +68,17 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
         if (meR.status === 'fulfilled') setMeId(meR.value.id);
         if (feedR.status === 'fulfilled') {
           const feed = feedR.value;
-          // 진행 중인 좋아요는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
+          // 진행 중인 좋아요·북마크는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
           setPosts((prev) => {
-            if (!likePending.current.size) return feed;
+            if (!likePending.current.size && !bookmarkPending.current.size) return feed;
             const byId = new Map(prev.map((p) => [p.id, p]));
             return feed.map((p) => {
-              const opt = likePending.current.has(p.id) ? byId.get(p.id) : undefined;
-              return opt ? { ...p, likedByMe: opt.likedByMe, likeCount: opt.likeCount } : p;
+              const prevP = byId.get(p.id);
+              if (!prevP) return p;
+              let out = p;
+              if (likePending.current.has(p.id)) out = { ...out, likedByMe: prevP.likedByMe, likeCount: prevP.likeCount };
+              if (bookmarkPending.current.has(p.id)) out = { ...out, bookmarkedByMe: prevP.bookmarkedByMe };
+              return out;
             });
           });
           hasMore.current = true; // 새로고침 시 커서 리셋
@@ -205,6 +210,23 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     }
   }, []);
 
+  const onBookmark = useCallback(async (post: FeedPost) => {
+    if (bookmarkPending.current.has(post.id)) return;
+    bookmarkPending.current.add(post.id);
+    const saved = post.bookmarkedByMe;
+    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, bookmarkedByMe: !saved } : p)));
+    try {
+      if (saved) await serverApi.unbookmarkPost(post.id);
+      else await serverApi.bookmarkPost(post.id);
+      // 성공 시 목표값 재확정 — 그사이 stale 리로드가 덮었어도 최종 정합(자가치유).
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, bookmarkedByMe: !saved } : p)));
+    } catch {
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, bookmarkedByMe: saved } : p))); // 롤백
+    } finally {
+      bookmarkPending.current.delete(post.id);
+    }
+  }, []);
+
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore.current || posts.length === 0) return;
     const gen = loadGen.current; // 시작 시점 세대 캡처
@@ -297,6 +319,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             post={item}
             meId={meId}
             onLike={onLike}
+            onBookmark={onBookmark}
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
             onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
             onTag={(tag) => navigation.navigate('Hashtag', { tag })}
@@ -359,6 +382,7 @@ function PostCard({
   post,
   meId,
   onLike,
+  onBookmark,
   onComment,
   onOpenProfile,
   onTag,
@@ -368,6 +392,7 @@ function PostCard({
   post: FeedPost;
   meId: string | null;
   onLike: (p: FeedPost) => void;
+  onBookmark: (p: FeedPost) => void;
   onComment: (p: FeedPost) => void;
   onOpenProfile: (userId: string) => void;
   onTag: (tag: string) => void;
@@ -463,6 +488,14 @@ function PostCard({
               {post.commentCount}
             </AppText>
           ) : null}
+        </Pressable>
+        <View style={{ flex: 1 }} />
+        <Pressable onPress={() => onBookmark(post)} hitSlop={8} style={styles.action}>
+          <Ionicons
+            name={post.bookmarkedByMe ? 'bookmark' : 'bookmark-outline'}
+            size={20}
+            color={post.bookmarkedByMe ? colors.primary : colors.textMuted}
+          />
         </Pressable>
       </View>
       <ReportSheet visible={reporting} onClose={() => setReporting(false)} onSubmit={submitReport} />

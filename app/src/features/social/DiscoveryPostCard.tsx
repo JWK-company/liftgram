@@ -18,6 +18,7 @@ export function DiscoveryPostCard({
   meId,
   onUpdated,
   onDeleted,
+  onBookmark,
 }: {
   post: FeedPost;
   onOpen: () => void;
@@ -26,6 +27,7 @@ export function DiscoveryPostCard({
   meId?: string | null;
   onUpdated?: (p: FeedPost) => void;
   onDeleted?: (id: string) => void;
+  onBookmark?: (p: FeedPost) => void;
 }) {
   const { t } = useT();
   const isOwn = !!meId && post.author.id === meId;
@@ -42,6 +44,15 @@ export function DiscoveryPostCard({
             {post.author.displayName || t('discover.unnamed')}
           </AppText>
         </Pressable>
+        {onBookmark ? (
+          <Pressable onPress={() => onBookmark(post)} hitSlop={8} style={{ paddingLeft: spacing.sm }}>
+            <Ionicons
+              name={post.bookmarkedByMe ? 'bookmark' : 'bookmark-outline'}
+              size={16}
+              color={post.bookmarkedByMe ? colors.primary : colors.textFaint}
+            />
+          </Pressable>
+        ) : null}
         {isOwn && onUpdated && onDeleted ? (
           <OwnPostMenu post={post} onUpdated={onUpdated} onDeleted={onDeleted} />
         ) : null}

@@ -251,7 +251,16 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       {/* 내 프로필 편집 (로그인 시만 표시) */}
       <ProfileEditCard />
 
-      {/* 차단 목록 관리 (로그인 시) */}
+      {/* 저장한 게시물 · 차단 목록 관리 (로그인 시) */}
+      {loggedIn ? (
+        <Button
+          title={t('bookmark.entry')}
+          icon="bookmark-outline"
+          variant="secondary"
+          onPress={() => navigation.navigate('Bookmarks')}
+          style={{ marginTop: spacing.md }}
+        />
+      ) : null}
       {loggedIn ? (
         <Button
           title={t('block.entry')}
