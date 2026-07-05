@@ -17,6 +17,7 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
   const [loadingMore, setLoadingMore] = useState(false);
   const hasMore = useRef(true);
   const loadGen = useRef(0); // 새로고침 세대 — in-flight loadMore의 stale append 차단
+  const bmPending = useRef<Set<string>>(new Set());
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: `#${tag}` });
@@ -72,6 +73,21 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
     }, [load]),
   );
 
+  const onBookmark = useCallback(async (post: FeedPost) => {
+    if (bmPending.current.has(post.id)) return;
+    bmPending.current.add(post.id);
+    const saved = post.bookmarkedByMe;
+    setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, bookmarkedByMe: !saved } : p)));
+    try {
+      if (saved) await serverApi.unbookmarkPost(post.id);
+      else await serverApi.bookmarkPost(post.id);
+    } catch {
+      setPosts((prev) => prev.map((p) => (p.id === post.id ? { ...p, bookmarkedByMe: saved } : p)));
+    } finally {
+      bmPending.current.delete(post.id);
+    }
+  }, []);
+
   return (
     <Screen padded={false}>
       <FlatList
@@ -86,6 +102,7 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
             onTag={(nextTag) => navigation.push('Hashtag', { tag: nextTag })}
             onUpdated={(u) => setPosts((prev) => prev.map((p) => (p.id === u.id ? u : p)))}
             onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
+            onBookmark={onBookmark}
           />
         )}
         contentContainerStyle={styles.list}

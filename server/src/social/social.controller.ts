@@ -66,6 +66,22 @@ export class SocialController {
     return this.social.unlikePost(user.userId, id);
   }
 
+  // 내가 저장한 글 목록(최신 저장순).
+  @Get('bookmarks')
+  bookmarks(@CurrentUser() user: AuthUser, @Query('limit') limit?: string): Promise<PostView[]> {
+    return this.social.getBookmarks(user.userId, clampLimit(limit, 30, 100));
+  }
+
+  @Post('posts/:id/bookmark')
+  bookmark(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.social.bookmarkPost(user.userId, id);
+  }
+
+  @Delete('posts/:id/bookmark')
+  unbookmark(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
+    return this.social.unbookmarkPost(user.userId, id);
+  }
+
   @Get('posts/:id/comments')
   comments(
     @CurrentUser() user: AuthUser,

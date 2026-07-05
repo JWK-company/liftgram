@@ -34,6 +34,7 @@ model User {
   postLikes         PostLike[]
   comments          Comment[]
   commentLikes      CommentLike[]
+  bookmarks         Bookmark[]
   notifications     Notification[] @relation("notifications")
   notificationsSent Notification[] @relation("notificationsActor")
   reports           Report[]       @relation("reporter")
@@ -127,6 +128,7 @@ model Post {
   likes      PostLike[]
   comments   Comment[]
   hashtags   PostHashtag[]
+  bookmarks  Bookmark[]
 
   @@index([authorId, createdAt])
   @@index([moderationStatus])
@@ -252,6 +254,19 @@ model Comment {
 
   @@index([postId, createdAt])
   @@index([parentId, createdAt])
+}
+
+// 게시물 저장(북마크) (SRS-007). 사용자당 게시물 1개(멱등). 비공개 — 알림 없음.
+model Bookmark {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([userId, createdAt])
 }
 
 // 댓글 좋아요 (SRS-007). 댓글당 사용자 1개(멱등).

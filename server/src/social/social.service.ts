@@ -17,6 +17,7 @@ export interface PostView {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  bookmarkedByMe: boolean;
 }
 export interface CommentView {
   id: string;
@@ -84,6 +85,7 @@ type PostRow = {
   author: { id: string; displayName: string | null; avatarUrl: string | null };
   _count: { likes: number; comments: number };
   likes: { id: string }[];
+  bookmarks: { id: string }[];
 };
 
 // 포스트 조회 include — 작성자 + 좋아요/댓글 수 + 뷰어의 좋아요 여부.
@@ -93,6 +95,7 @@ const postInclude = (viewerId: string) =>
     // 최상위 댓글만 카운트(대댓글 제외) — 댓글 화면 모델(최상위 N + 답글 배지)과 일치.
     _count: { select: { likes: true, comments: { where: { moderationStatus: 'approved', parentId: null } } } },
     likes: { where: { userId: viewerId }, select: { id: true } },
+    bookmarks: { where: { userId: viewerId }, select: { id: true } },
   }) satisfies Prisma.PostInclude;
 
 // 댓글 조회 include — 작성자 + 좋아요 수 + 뷰어의 좋아요 여부.
@@ -146,6 +149,7 @@ export class SocialService {
       likeCount: p._count.likes,
       commentCount: p._count.comments,
       likedByMe: p.likes.length > 0,
+      bookmarkedByMe: p.bookmarks.length > 0,
     };
   }
 
@@ -792,6 +796,50 @@ export class SocialService {
     await this.prisma.postLike.deleteMany({ where: { postId, userId } });
     const likeCount = await this.prisma.postLike.count({ where: { postId } });
     return { ok: true, likeCount };
+  }
+
+  // 게시물 저장(북마크) — 볼 수 있는 글만. 멱등(P2002 무시). 비공개 동작이라 알림 없음.
+  async bookmarkPost(userId: string, postId: string): Promise<{ ok: true }> {
+    await this.assertCanViewPost(postId, userId);
+    try {
+      await this.prisma.bookmark.create({ data: { postId, userId } });
+    } catch (e) {
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+    }
+    return { ok: true };
+  }
+
+  async unbookmarkPost(userId: string, postId: string): Promise<{ ok: true }> {
+    await this.prisma.bookmark.deleteMany({ where: { postId, userId } });
+    return { ok: true };
+  }
+
+  // 내가 저장한 글(최신 저장순) — 지금도 볼 수 있는 것만(승인·비차단·가시성). 비공개→비공개 전환 등 제외.
+  async getBookmarks(userId: string, limit: number): Promise<PostView[]> {
+    const follows = await this.prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followeeId: true },
+    });
+    const followeeIds = follows.map((f) => f.followeeId);
+    const hidden = await this.hiddenUserIds(userId);
+    const rows = await this.prisma.bookmark.findMany({
+      where: {
+        userId,
+        post: {
+          moderationStatus: 'approved',
+          authorId: { notIn: hidden },
+          OR: [
+            { authorId: userId },
+            { visibility: 'public' },
+            { authorId: { in: followeeIds }, visibility: 'followers' },
+          ],
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { post: { include: postInclude(userId) } },
+    });
+    return rows.map((r) => this.toView(r.post));
   }
 
   private mapComment(c: CommentRow, replyCount: number): CommentView {

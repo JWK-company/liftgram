@@ -22,6 +22,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
   const [searchLoading, setSearchLoading] = useState(false); // 검색 in-flight(스켈레톤)
   const [searchError, setSearchError] = useState(false); // 검색 실패(에러+재시도)
   const followPending = useRef<Set<string>>(new Set());
+  const bmPending = useRef<Set<string>>(new Set());
   const searchReq = useRef(0);
   const qRef = useRef('');
   qRef.current = q;
@@ -121,6 +122,26 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
         if (source === 'discovery' || qRef.current === startQ) setFollowing(false);
       })
       .finally(() => followPending.current.delete(u.id));
+  }, []);
+
+  // 저장(북마크) 낙관 토글 — 발견/검색 목록 모두 갱신.
+  const onBookmark = useCallback(async (post: FeedPost) => {
+    if (bmPending.current.has(post.id)) return;
+    bmPending.current.add(post.id);
+    const saved = post.bookmarkedByMe;
+    const flip = (p: FeedPost) => (p.id === post.id ? { ...p, bookmarkedByMe: !saved } : p);
+    setPosts((prev) => prev.map(flip));
+    setResults((r) => (r ? { ...r, posts: r.posts.map(flip) } : r));
+    try {
+      if (saved) await serverApi.unbookmarkPost(post.id);
+      else await serverApi.bookmarkPost(post.id);
+    } catch {
+      const back = (p: FeedPost) => (p.id === post.id ? { ...p, bookmarkedByMe: saved } : p);
+      setPosts((prev) => prev.map(back));
+      setResults((r) => (r ? { ...r, posts: r.posts.map(back) } : r));
+    } finally {
+      bmPending.current.delete(post.id);
+    }
   }, []);
 
   const tagChips = (list: TrendingTag[]) => (
@@ -250,6 +271,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
               setPosts((prev) => prev.filter((p) => p.id !== id));
               setResults((r) => (r ? { ...r, posts: r.posts.filter((p) => p.id !== id) } : r));
             }}
+            onBookmark={onBookmark}
           />
         )}
         contentContainerStyle={styles.list}
