@@ -184,6 +184,24 @@ export class SocialController {
     return this.social.getUserPosts(user.userId, id, clampLimit(limit, 30, 100), before, beforeId);
   }
 
+  @Get('users/:id/followers')
+  followers(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<DiscoverUser[]> {
+    return this.social.getFollowers(user.userId, id, clampLimit(limit, 50, 100));
+  }
+
+  @Get('users/:id/following')
+  following(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Query('limit') limit?: string,
+  ): Promise<DiscoverUser[]> {
+    return this.social.getFollowing(user.userId, id, clampLimit(limit, 50, 100));
+  }
+
   @Post('follow/:id')
   follow(@CurrentUser() user: AuthUser, @Param('id') id: string): Promise<{ ok: true }> {
     return this.social.follow(user.userId, id);
