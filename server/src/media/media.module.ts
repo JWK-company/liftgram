@@ -4,6 +4,7 @@ import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
 import { STORAGE_PROVIDER, type StorageProvider } from './storage/storage-provider';
 import { LocalStorageProvider } from './storage/local-storage.provider';
+import { S3StorageProvider } from './storage/s3-storage.provider';
 import { IMAGE_SCANNER, type ImageScanner } from './scanner/image-scanner';
 import { NoopImageScanner } from './scanner/noop-scanner';
 
@@ -14,18 +15,21 @@ import { NoopImageScanner } from './scanner/noop-scanner';
   controllers: [MediaController],
   providers: [
     MediaService,
-    LocalStorageProvider,
     NoopImageScanner,
     {
       provide: STORAGE_PROVIDER,
-      inject: [ConfigService, LocalStorageProvider],
-      useFactory: (config: ConfigService, local: LocalStorageProvider): StorageProvider => {
+      inject: [ConfigService],
+      // 선택된 어댑터만 생성 — R2 모드는 로컬 디스크(uploads/)를 안 건드리고, 로컬 모드는 S3 env 불필요.
+      useFactory: (config: ConfigService): StorageProvider => {
         const name = config.get<string>('STORAGE_PROVIDER', 'local');
         switch (name) {
-          // case 's3': return s3;   // 클라우드 드롭인 지점
+          // 클라우드(Cloudflare R2·AWS S3·Supabase).
+          case 's3':
+          case 'r2':
+            return new S3StorageProvider(config);
           case 'local':
           default:
-            return local;
+            return new LocalStorageProvider(config);
         }
       },
     },

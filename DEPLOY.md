@@ -76,10 +76,29 @@ EXPO_PUBLIC_SERVER_URL="https://<서버주소>/api" npm run export:web
 
 ---
 
+## (선택) 사진 영구 저장 — Cloudflare R2 (무료 10GB)
+기본값(`STORAGE_PROVIDER=local`)은 사진을 서버 디스크에 저장해서 **재배포하면 사진이 사라집니다**.
+아래를 설정하면 사진이 클라우드(R2)에 저장돼 재배포에도 유지됩니다. (글/계정 등 DB 데이터는 원래 안전.)
+
+1. https://dash.cloudflare.com → **R2** → **Create bucket** (이름 예: `liftgram-media`).
+2. **R2 → Manage R2 API Tokens → Create API Token** (Object Read & Write) →
+   Access Key ID / Secret Access Key 복사, 엔드포인트(`https://<account_id>.r2.cloudflarestorage.com`) 확인.
+3. Render → 서비스 → **Environment** 에 추가:
+   - `STORAGE_PROVIDER` = `r2`
+   - `S3_ENDPOINT` = `https://<account_id>.r2.cloudflarestorage.com`
+   - `S3_BUCKET` = `liftgram-media`
+   - `S3_REGION` = `auto`
+   - `S3_ACCESS_KEY_ID` = (복사한 값)
+   - `S3_SECRET_ACCESS_KEY` = (복사한 값)
+4. 재배포 → 이후 업로드되는 사진은 R2에 저장됨(서버가 `/media/file/:key`로 프록시 서브,
+   모더레이션·URL 그대로). 카드 등록 불필요(R2 무료 10GB).
+
+> 코드는 이미 준비돼 있어(어댑터) env만 넣으면 됩니다. 안 넣으면 로컬 저장으로 동작(POC 무방).
+
 ## 알아둘 점 (무료 플랜 특성)
 - **콜드 스타트**: Render 무료 서버는 15분간 아무도 안 쓰면 잠듦 → 다음 첫 접속이
   40~60초 느림(그 후엔 정상). 3명 테스트엔 무난.
-- **사진 초기화**: 사진은 서버 디스크에 저장 → 서버 재배포하면 올린 사진이 사라짐.
-  글/댓글/계정 등 DB 데이터는 Neon에 있어 안전. (사진 영구 저장은 후속에 클라우드 연동)
+- **사진 저장**: 기본은 서버 디스크(재배포 시 초기화). 위 R2 설정 시 영구 유지.
+  깨진 이미지는 앱에서 폴백 아이콘으로 표시(빈 회색 박스 방지).
 - **푸시 알림**: POC 기본 꺼둠(`PUSH_PROVIDER=noop`). 필요하면 VAPID 키 설정 후 켜기.
 - **비밀번호 찾기 없음**: 테스트용 계정을 미리 정해 팀원에게 공유하는 게 편함.
