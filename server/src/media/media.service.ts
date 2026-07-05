@@ -1,6 +1,7 @@
 // @plm SRS-019  미디어 업로드·조회 (SAD-012). 스토리지 어댑터에 저장 위임 + MediaAsset 메타 기록.
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { MediaAsset } from '@prisma/client';
+import type { Readable } from 'stream';
 import { PrismaService } from '../prisma/prisma.service';
 import { STORAGE_PROVIDER, type StorageProvider } from './storage/storage-provider';
 import { IMAGE_SCANNER, type ImageScanner, type ScanResult } from './scanner/image-scanner';
@@ -51,7 +52,11 @@ export class MediaService {
     return asset;
   }
 
-  resolvePath(key: string): string {
-    return this.storage.resolvePath(key);
+  exists(key: string): Promise<boolean> {
+    return this.storage.exists(key);
+  }
+
+  getStream(key: string): Promise<Readable> {
+    return this.storage.getStream(key);
   }
 }

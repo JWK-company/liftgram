@@ -3,8 +3,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
-import { mkdirSync, writeFileSync } from 'fs';
+import { createReadStream, existsSync, mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
+import type { Readable } from 'stream';
 import { StorageProvider, StoredObject } from './storage-provider';
 
 const EXT: Record<string, string> = {
@@ -32,9 +33,17 @@ export class LocalStorageProvider implements StorageProvider {
     return { key, url: `/media/file/${key}`, bytes: data.length };
   }
 
-  resolvePath(key: string): string {
+  private pathFor(key: string): string {
     // 경로 이탈 방지 — key는 파일명 문자만 허용.
     const safe = key.replace(/[^a-zA-Z0-9._-]/g, '');
     return join(this.dir, safe);
+  }
+
+  async exists(key: string): Promise<boolean> {
+    return existsSync(this.pathFor(key));
+  }
+
+  async getStream(key: string): Promise<Readable> {
+    return createReadStream(this.pathFor(key));
   }
 }
