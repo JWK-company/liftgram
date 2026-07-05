@@ -3,7 +3,7 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AppText, Button, ListState, Screen, TextField } from '../../components';
+import { AppText, Button, ListState, RemoteImage, Screen, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { serverApi, type DmMessage } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -217,7 +217,7 @@ function Bubble({ msg, mine, showSender }: { msg: DmMessage; mine: boolean; show
           </AppText>
         ) : null}
         {imageUrl ? (
-          <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.bubbleImage} resizeMode="cover" />
+          <RemoteImage uri={imageUrl} style={styles.bubbleImage} />
         ) : null}
         {msg.body ? (
           <AppText variant="body" style={{ color: mine ? colors.onPrimary : colors.text }}>

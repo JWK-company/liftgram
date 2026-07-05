@@ -5,13 +5,14 @@
 import { io, type Socket } from 'socket.io-client';
 import { SERVER_URL } from '../config';
 import { loadToken } from './tokenStore';
-import type { DmMessage } from './serverApi';
+import { serverApi, type DmMessage } from './serverApi';
 
 const ORIGIN = SERVER_URL.replace(/\/api\/?$/, '');
 
 type Handler = (payload: unknown) => void;
 const listeners = new Map<string, Set<Handler>>();
 let socket: Socket | null = null;
+let lastRefreshAt = 0;
 
 function ensure(): Socket {
   if (!socket) {
@@ -22,6 +23,16 @@ function ensure(): Socket {
       },
       transports: ['websocket'],
       reconnection: true,
+    });
+    // 핸드셰이크 실패(대개 access 토큰 만료) — refresh 후 재연결. auth 콜백이 새 토큰을 집는다.
+    // refresh 없으면 만료 토큰만 무한 재전송돼 15분 뒤 DM이 영구 사망. 10초 스로틀로 refresh 폭주 방지.
+    socket.on('connect_error', () => {
+      const now = Date.now();
+      if (now - lastRefreshAt < 10000) return;
+      lastRefreshAt = now;
+      void serverApi.refreshSession().then((ok) => {
+        if (ok) socket?.connect();
+      });
     });
     // 등록된 리스너를 (새) 소켓에 재부착.
     for (const [event, set] of listeners) {

@@ -9,3 +9,4 @@ export { Avatar } from './Avatar';
 export { AlertHost } from './AlertHost';
 export { Skeleton, SkeletonList, type SkeletonVariant } from './Skeleton';
 export { ListState } from './ListState';
+export { RemoteImage } from './RemoteImage';

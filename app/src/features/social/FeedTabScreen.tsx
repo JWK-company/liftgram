@@ -4,7 +4,7 @@ import { ActivityIndicator, Alert, FlatList, Image, Pressable, RefreshControl, S
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, ListState, Divider, Avatar } from '../../components';
+import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, ListState, Divider, Avatar, RemoteImage } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
 import { resolveMediaUrl } from '../../config';
@@ -432,7 +432,7 @@ function PostCard({
           </View>
         </View>
       ) : null}
-      {imageUrl ? <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.postImage} resizeMode="cover" /> : null}
+      {imageUrl ? <RemoteImage uri={imageUrl} style={styles.postImage} /> : null}
       {post.caption ? (
         <HashtagText text={post.caption} onTag={onTag} style={{ marginTop: spacing.sm }} />
       ) : null}

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText } from '../../components';
+import { AppText, RemoteImage } from '../../components';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { serverApi, type StoryGroup } from '../../sync/serverApi';
@@ -109,7 +109,7 @@ export function StoryViewer({
           </View>
         </View>
         <Pressable style={styles.viewerBody} onPress={advance}>
-          <Image source={{ uri: resolveMediaUrl(story.mediaUrl) }} style={styles.viewerImage} resizeMode="contain" />
+          <RemoteImage uri={story.mediaUrl} style={styles.viewerImage} resizeMode="contain" />
         </Pressable>
         {story.caption ? (
           <AppText variant="body" center style={styles.viewerCaption}>

@@ -265,6 +265,10 @@ export const serverApi = {
   async isLoggedIn(): Promise<boolean> {
     return (await loadToken()) != null;
   },
+  // access 토큰 갱신 트리거 — 소켓(realtime)이 만료 핸드셰이크 실패 시 호출해 재연결 전에 토큰 회전.
+  refreshSession(): Promise<boolean> {
+    return tryRefresh();
+  },
   pull(lastPulledAt: number): Promise<PullResponse> {
     return request<PullResponse>(`/sync/pull?lastPulledAt=${lastPulledAt}`, { auth: true });
   },
