@@ -1,5 +1,5 @@
 // @plm SRS-018  해시태그별 공개 포스트 (SAD-011).
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Screen, ListState } from '../../components';
@@ -11,6 +11,7 @@ import { DiscoveryPostCard } from './DiscoveryPostCard';
 export default function HashtagScreen({ route, navigation }: RootStackScreenProps<'Hashtag'>) {
   const { tag } = route.params;
   const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [meId, setMeId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -20,6 +21,13 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
   useLayoutEffect(() => {
     navigation.setOptions({ title: `#${tag}` });
   }, [navigation, tag]);
+
+  useEffect(() => {
+    serverApi
+      .me()
+      .then((m) => setMeId(m.id))
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     const gen = ++loadGen.current;
@@ -72,9 +80,12 @@ export default function HashtagScreen({ route, navigation }: RootStackScreenProp
         renderItem={({ item }) => (
           <DiscoveryPostCard
             post={item}
+            meId={meId}
             onOpen={() => navigation.navigate('Comments', { postId: item.id })}
             onOpenProfile={() => navigation.navigate('UserProfile', { userId: item.author.id })}
             onTag={(nextTag) => navigation.push('Hashtag', { tag: nextTag })}
+            onUpdated={(u) => setPosts((prev) => prev.map((p) => (p.id === u.id ? u : p)))}
+            onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
           />
         )}
         contentContainerStyle={styles.list}

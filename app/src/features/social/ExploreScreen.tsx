@@ -16,6 +16,7 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
   const [users, setUsers] = useState<DiscoverUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false); // 발견 허브 전체 실패
+  const [meId, setMeId] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [results, setResults] = useState<SearchResult | null>(null);
   const [searchLoading, setSearchLoading] = useState(false); // 검색 in-flight(스켈레톤)
@@ -46,6 +47,13 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
       load();
     }, [load]),
   );
+
+  useEffect(() => {
+    serverApi
+      .me()
+      .then((m) => setMeId(m.id))
+      .catch(() => {});
+  }, []);
 
   const fetchSearch = useCallback(async (query: string, id: number) => {
     try {
@@ -230,9 +238,18 @@ export default function ExploreScreen({ navigation }: RootStackScreenProps<'Expl
         renderItem={({ item }) => (
           <DiscoveryPostCard
             post={item}
+            meId={meId}
             onOpen={() => navigation.navigate('Comments', { postId: item.id })}
             onOpenProfile={() => openProfile(item.author.id)}
             onTag={openTag}
+            onUpdated={(u) => {
+              setPosts((prev) => prev.map((p) => (p.id === u.id ? u : p)));
+              setResults((r) => (r ? { ...r, posts: r.posts.map((p) => (p.id === u.id ? u : p)) } : r));
+            }}
+            onDeleted={(id) => {
+              setPosts((prev) => prev.filter((p) => p.id !== id));
+              setResults((r) => (r ? { ...r, posts: r.posts.filter((p) => p.id !== id) } : r));
+            }}
           />
         )}
         contentContainerStyle={styles.list}

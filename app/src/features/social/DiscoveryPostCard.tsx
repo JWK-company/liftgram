@@ -8,31 +8,44 @@ import { resolveMediaUrl } from '../../config';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { HashtagText } from './HashtagText';
+import { OwnPostMenu } from './OwnPostMenu';
 
 export function DiscoveryPostCard({
   post,
   onOpen,
   onOpenProfile,
   onTag,
+  meId,
+  onUpdated,
+  onDeleted,
 }: {
   post: FeedPost;
   onOpen: () => void;
   onOpenProfile: () => void;
   onTag: (tag: string) => void;
+  meId?: string | null;
+  onUpdated?: (p: FeedPost) => void;
+  onDeleted?: (id: string) => void;
 }) {
   const { t } = useT();
+  const isOwn = !!meId && post.author.id === meId;
   const imageUrl =
     post.kind === 'image' && post.data && typeof post.data === 'object'
       ? (post.data as { imageUrl?: string }).imageUrl
       : undefined;
   return (
     <Card style={styles.card}>
-      <Pressable style={styles.head} onPress={onOpenProfile}>
-        <Avatar name={post.author.displayName} url={post.author.avatarUrl} size={30} />
-        <AppText variant="caption" weight="medium" numberOfLines={1} style={styles.author}>
-          {post.author.displayName || t('discover.unnamed')}
-        </AppText>
-      </Pressable>
+      <View style={styles.head}>
+        <Pressable style={styles.headMain} onPress={onOpenProfile}>
+          <Avatar name={post.author.displayName} url={post.author.avatarUrl} size={30} />
+          <AppText variant="caption" weight="medium" numberOfLines={1} style={styles.author}>
+            {post.author.displayName || t('discover.unnamed')}
+          </AppText>
+        </Pressable>
+        {isOwn && onUpdated && onDeleted ? (
+          <OwnPostMenu post={post} onUpdated={onUpdated} onDeleted={onDeleted} />
+        ) : null}
+      </View>
       <Pressable onPress={onOpen}>
         {imageUrl ? (
           <Image source={{ uri: resolveMediaUrl(imageUrl) }} style={styles.image} resizeMode="cover" />
@@ -58,6 +71,7 @@ export function DiscoveryPostCard({
 const styles = StyleSheet.create({
   card: { marginBottom: spacing.sm },
   head: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  headMain: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   author: { flex: 1, marginLeft: spacing.sm },
   image: { width: '100%', height: 180, borderRadius: radius.md, marginTop: spacing.xs },
   caption: { marginTop: spacing.sm },
