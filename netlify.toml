@@ -5,7 +5,7 @@
 # (Cloudflare Pages를 쓰면 이 파일 대신 app/public/_redirects 가 SPA 폴백을 담당)
 [build]
   base = "app"
-  command = "npx expo export --platform web"
+  command = "npx expo export --platform web && node scripts/inject-pwa-head.js"
   publish = "dist"
 
 # Expo SDK56 / RN은 Node 20+ 필요 — Netlify 기본 Node가 구버전이면 빌드 실패하므로 고정.
