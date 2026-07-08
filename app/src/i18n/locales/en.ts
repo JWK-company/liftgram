@@ -427,6 +427,7 @@ export const en: Record<TransKey, string> = {
   "session.plateTarget": "Target: {targetWeight}",
   "session.prCount": "{count} new PRs",
   "session.prevRecord": "Last: {prevWeight} × {prevReps}",
+  "session.prevSetsLabel": "Last time",
   "session.removeExerciseMessage": "Delete this exercise and all its logged sets?",
   "session.removeExerciseTitle": "Delete Exercise",
   "session.repsLabel": "Reps",

@@ -67,6 +67,36 @@ export async function getPreviousExerciseSnapshot(
   return null;
 }
 
+// 직전 완료 세션의 같은 종목 '전체 세트'(세트수·무게·반복 — 재시작 시 표시·순차 프리필용).
+// ExerciseBlock이 읽어 지난 기록을 보여주고, 로깅할 때마다 다음 세트 값으로 입력을 미리 채운다.
+// set_logs를 미리 만들지는 않는다(이중 계상 방지). 이력 없으면 빈 배열.
+// 수퍼셋/중복 종목이면 첫 인스턴스(sort_order 최소) 하나만 취한다 — 여러 인스턴스를 병합하면
+// set_number가 겹쳐 시퀀스가 뒤섞이므로 단일 블록으로 스코프.
+export async function getPreviousExerciseSets(exerciseId: string): Promise<LogSetInput[]> {
+  const completed = await workouts()
+    .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
+    .fetch();
+  for (const w of completed) {
+    const wes = await workoutExercises()
+      .query(Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId), Q.sortBy('sort_order', Q.asc))
+      .fetch();
+    if (!wes.length) continue;
+    const sets = await setLogs()
+      .query(Q.where('workout_exercise_id', wes[0].id), Q.sortBy('set_number', Q.asc))
+      .fetch();
+    if (sets.length) {
+      return sets.map((s) => ({
+        weightKg: s.weightKg,
+        reps: s.reps,
+        rpe: s.rpe,
+        isWarmup: s.isWarmup,
+        isFailed: s.isFailed,
+      }));
+    }
+  }
+  return [];
+}
+
 // 세션이 시작된 루틴의 종목별 목표 반복범위(점진 제안용 — SRS-010). 블랭크 세션이면 빈 맵.
 export async function getWorkoutExerciseTargets(
   workoutId: string,
@@ -109,6 +139,9 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
       w.prCount = 0;
       w.userId = null;
     });
+    // 종목 인스턴스만 생성. 지난 세트는 set_logs로 미리 만들지 않는다 — 이 앱은 'Log Set'이
+    // 세트를 append하고 인플레이스 세트 수정 UI가 없어, 프리필 행을 만들면 로깅 시 이중 계상됨.
+    // 대신 ExerciseBlock이 getPreviousExerciseSets로 지난 세트를 읽어 '표시 + 입력 순차 프리필'한다.
     await database.batch(
       ...res.map((re, i) =>
         workoutExercises().prepareCreate((we) => {

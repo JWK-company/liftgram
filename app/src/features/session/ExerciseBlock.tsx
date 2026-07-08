@@ -14,7 +14,7 @@ import {
 } from '../../components';
 import { colors, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
-import { workoutRepo } from '../../data';
+import { workoutRepo, type LogSetInput } from '../../data';
 import type { SetLog, WorkoutExercise } from '../../db/models';
 import {
   calcPlates,
@@ -81,16 +81,35 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, target 
   const [isFailed, setIsFailed] = useState(false);
   const [logging, setLogging] = useState(false);
 
-  // 자동채움: 마지막 세트가 있으면 그 값으로, 없으면 이전 세션 스냅샷.
+  // 직전 완료 세션의 같은 종목 전체 세트 — 표시 + 세트별 순차 프리필용.
+  // set_logs를 미리 만들지 않는다(이중 계상 방지) — 값만 읽어 입력을 채운다.
+  const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
+  useEffect(() => {
+    let active = true;
+    workoutRepo
+      .getPreviousExerciseSets(we.exerciseId)
+      .then((s) => {
+        if (active) setPrevSets(s);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [we.exerciseId]);
+
+  // 자동채움: 이번 세션에서 로그한 세트 수만큼의 위치에 있는 '지난 세트' 값으로 입력을 순차 프리필
+  // → Log Set만 누르면 지난 기록대로 채워짐(재입력 불필요). 지난 세트 소진 시 마지막 로그값 유지.
+  const nextPrev = prevSets[sets.length];
   const touched = useRef(false);
   useEffect(() => {
     if (touched.current) return;
-    if (lastSet) {
-      setWeightDisplay(roundToIncrement(fromKg(lastSet.weightKg, weightUnit), weightStep));
-      setReps(lastSet.reps);
+    const src = nextPrev ?? (lastSet ? { weightKg: lastSet.weightKg, reps: lastSet.reps } : null);
+    if (src) {
+      setWeightDisplay(roundToIncrement(fromKg(src.weightKg, weightUnit), weightStep));
+      setReps(src.reps);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastSet?.id]);
+  }, [sets.length, nextPrev?.weightKg, nextPrev?.reps, lastSet?.id]);
 
   // 단위(kg↔lb) 변경 시 편집 중인 표시값을 실제 kg 기준으로 재변환(잘못된 kg 저장 방지).
   const prevUnitRef = useRef<WeightUnit>(weightUnit);
@@ -178,7 +197,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, target 
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
-          {we.prevWeightKg != null ? (
+          {we.prevWeightKg != null && prevSets.length === 0 ? (
             <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
               {t('session.prevRecord', { prevWeight: formatWeight(we.prevWeightKg, weightUnit), prevReps: we.prevReps ?? 0 })}
             </AppText>
@@ -186,6 +205,28 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, target 
         </View>
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
+
+      {/* 지난 기록(읽기전용) — 저장했던 세트가 보이도록 + 지금 로그할 위치를 강조.
+          입력은 여기 값으로 순차 프리필되며, 실제 기록은 아래 'Log Set'으로 append. */}
+      {prevSets.length ? (
+        <View style={styles.prevRef}>
+          <AppText variant="label" color="textFaint" style={{ marginBottom: 2 }}>
+            {t('session.prevSetsLabel')}
+          </AppText>
+          <View style={styles.prevRefRow}>
+            {prevSets.map((ps, i) => (
+              <AppText
+                key={i}
+                variant="caption"
+                color={i === sets.length ? 'primary' : 'textMuted'}
+                weight={i === sets.length ? 'bold' : undefined}
+              >
+                {formatWeight(ps.weightKg, weightUnit)}×{ps.reps}
+              </AppText>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {sets.length ? (
         <View style={{ marginTop: spacing.sm }}>
@@ -365,6 +406,14 @@ function formatClock(totalSeconds: number): string {
 const styles = StyleSheet.create({
   block: { marginBottom: spacing.lg },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
+  prevRef: {
+    marginTop: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+  },
+  prevRefRow: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.md, rowGap: 2 },
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',

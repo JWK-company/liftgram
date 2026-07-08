@@ -429,6 +429,7 @@ export const ko = {
   "session.plateTarget": "목표: {targetWeight}",
   "session.prCount": "PR 갱신 {count}회",
   "session.prevRecord": "이전: {prevWeight} × {prevReps}",
+  "session.prevSetsLabel": "지난 기록",
   "session.removeExerciseMessage": "이 종목과 기록한 세트를 모두 삭제할까요?",
   "session.removeExerciseTitle": "운동 삭제",
   "session.repsLabel": "횟수",
