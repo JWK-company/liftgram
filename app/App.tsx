@@ -90,9 +90,10 @@ export default function App() {
             )}
           </NavigationContainer>
         </SessionProvider>
-        </UserProvider>
+        {/* AlertHost·OnboardingOverlay는 useT()→useUser()에 의존 → 반드시 UserProvider 안에 마운트. */}
         <AlertHost />
         <OnboardingOverlay />
+        </UserProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
