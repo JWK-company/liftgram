@@ -8,6 +8,7 @@ export type TabParamList = {
   HistoryTab: undefined; // 완료 세션 히스토리 (analytics 피처)
   StatsTab: undefined; // 분석 대시보드 (analytics 피처)
   ProfileTab: undefined; // 프로필·설정 (profile 피처)
+  FeedbackTab: undefined; // 개발 피드백 → PLM 아이디어보드 (coworker/admin 전용, SRS-006)
 };
 
 export type RootStackParamList = {

@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { SERVER_URL } from '../config';
 import { clearTokens, loadRefreshToken, loadToken, saveTokens } from './tokenStore';
 import { disconnectRealtime } from './realtime';
+import { emitAuthChange } from '../state/authSignal';
 
 interface RequestOptions {
   method?: string;
@@ -48,6 +49,7 @@ async function doRefresh(): Promise<boolean> {
     });
     if (!res.ok) {
       await clearTokens();
+      emitAuthChange(); // 조용한 세션 종료 → 역할 기반 UI(피드백 탭) 즉시 회수
       return false;
     }
     const { accessToken, refreshToken: next } = (await res.json()) as AuthTokens;
@@ -201,7 +203,7 @@ export interface PublicUser {
   email: string | null;
   displayName: string | null;
   avatarUrl: string | null;
-  role: string; // user | moderator | admin (모더레이션 권한)
+  role: string; // user | coworker | moderator | admin (auth/roles.ts SSOT)
 }
 
 // --- 모더레이션 (SAD-012 · ADR-017) ---
@@ -239,6 +241,22 @@ export interface SendMessageInput {
   mediaUrl?: string;
 }
 
+// --- 개발 피드백 → PLM 아이디어보드 (SRS-006 · coworker/admin 전용) ---
+export interface FeedbackItem {
+  id: number;
+  category: string; // bug | improvement | other
+  title: string;
+  detail: string;
+  state: string; // submitted | discussion | voting | adopted | rejected | ...
+  mine: boolean;
+  promotedCode: string | null;
+}
+export interface CreateFeedbackInput {
+  category: string; // bug | improvement
+  title: string;
+  detail: string;
+}
+
 // 키셋 커서 쿼리스트링 — 마지막 항목의 createdAt(+id)로 다음 페이지 요청.
 // 서버 orderBy [createdAt desc, id desc]와 일치시켜 같은 타임스탬프 경계 누락 방지.
 function cursorQuery(before?: string, beforeId?: string): string {
@@ -254,6 +272,7 @@ export const serverApi = {
       body: { email, password, displayName },
     });
     await saveTokens(accessToken, refreshToken);
+    emitAuthChange(); // 역할 기반 UI(피드백 탭 등) 재평가 트리거
   },
   async login(email: string, password: string): Promise<void> {
     const { accessToken, refreshToken } = await request<AuthTokens>('/auth/login', {
@@ -261,6 +280,7 @@ export const serverApi = {
       body: { email, password },
     });
     await saveTokens(accessToken, refreshToken);
+    emitAuthChange();
   },
   async logout(): Promise<void> {
     const refreshToken = await loadRefreshToken();
@@ -273,6 +293,7 @@ export const serverApi = {
     }
     await clearTokens();
     disconnectRealtime(); // 실시간 소켓 정리
+    emitAuthChange();
   },
   async isLoggedIn(): Promise<boolean> {
     return (await loadToken()) != null;
@@ -477,6 +498,13 @@ export const serverApi = {
       body: { targetType, targetId, action, reason },
       auth: true,
     });
+  },
+  // --- 개발 피드백 → PLM 아이디어보드 (SRS-006 · coworker/admin 전용) ---
+  submitFeedback(input: CreateFeedbackInput): Promise<{ id: number }> {
+    return request<{ id: number }>('/feedback', { method: 'POST', body: input, auth: true });
+  },
+  feedbackList(): Promise<FeedbackItem[]> {
+    return request<FeedbackItem[]>('/feedback', { auth: true });
   },
   // --- 푸시 알림 (SRS-020 · ADR-015) ---
   getVapidPublicKey(): Promise<{ publicKey: string }> {
