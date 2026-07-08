@@ -18,7 +18,7 @@ model User {
   avatarUrl     String? // 프로필 아바타(업로드 미디어 URL)
   passwordHash  String? // 로컬 인증 토대 — 매니지드 전환 시 null (ADR-018)
   authProvider  String         @default("local") // local|email|google|apple|managed
-  role          String         @default("user") // user|moderator|admin (모더레이션 권한 · ADR-017)
+  role          String         @default("user") // user|coworker|moderator|admin (역할·인가 — auth/roles.ts SSOT · ADR-017)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   devices       Device[]

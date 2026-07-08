@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
+import { RoleBootstrapService } from './role-bootstrap.service';
 import { AUTH_PROVIDER, type AuthProvider } from './provider/auth-provider';
 import { LocalAuthProvider } from './provider/local-auth.provider';
 
@@ -25,6 +26,7 @@ import { LocalAuthProvider } from './provider/local-auth.provider';
   providers: [
     AuthService,
     JwtStrategy,
+    RoleBootstrapService,
     LocalAuthProvider,
     {
       provide: AUTH_PROVIDER,

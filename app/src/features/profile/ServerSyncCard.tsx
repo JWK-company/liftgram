@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, TextField } from '../../components';
+import { AppText, Button, Tag, TextField } from '../../components';
 import { colors, spacing } from '../../theme';
-import { useT } from '../../i18n';
+import { useT, type TransKey } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { authErrorKey } from '../../sync/apiError';
 import { reconcileAccount } from '../../sync/syncOwner';
@@ -22,6 +22,7 @@ export function ServerSyncCard() {
   const { t } = useT();
   const { user, refresh } = useUser();
   const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +31,13 @@ export function ServerSyncCard() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    serverApi.isLoggedIn().then(setLoggedIn).catch(() => setLoggedIn(false));
+    serverApi
+      .isLoggedIn()
+      .then((yes) => {
+        setLoggedIn(yes);
+        if (yes) serverApi.me().then((m) => setRole(m.role)).catch(() => {}); // 역할 표시(graceful)
+      })
+      .catch(() => setLoggedIn(false));
   }, []);
 
   async function onConnect() {
@@ -58,6 +65,7 @@ export function ServerSyncCard() {
       disconnectRealtime(); // 계정 전환 시 구 소켓 정리 — 새 신원으로 재핸드셰이크.
       if (user) await userRepo.setLocalAuth((await userRepo.getOrCreateLocalUser()).id, { email: mail });
       await refresh();
+      setRole(me.role);
       setLoggedIn(true);
       setPassword('');
       void registerPushToken(); // 로그인 후 푸시 토큰 등록(네이티브·graceful)
@@ -92,6 +100,7 @@ export function ServerSyncCard() {
     // 로컬 신원도 함께 정리 — 신원카드(isAuthed=!!user.email)가 '로그아웃'을 반영하도록.
     if (user) await userRepo.signOutLocal(user.id);
     await refresh();
+    setRole(null);
     setLoggedIn(false);
     setStatus(null);
     setError(false);
@@ -134,6 +143,7 @@ export function ServerSyncCard() {
         <AppText variant="body" weight="medium" style={{ marginLeft: spacing.sm, flex: 1 }}>
           {t('serverSync.connectedCaption')}
         </AppText>
+        {role ? <Tag label={t(('role.' + role) as TransKey)} tone="primary" /> : null}
       </View>
       <Button title={t('serverSync.syncNow')} icon="sync-outline" loading={busy} onPress={onSync} style={{ marginTop: spacing.sm }} />
       <Button title={t('serverSync.disconnect')} variant="ghost" size="sm" onPress={onDisconnect} style={{ marginTop: spacing.xs }} />
