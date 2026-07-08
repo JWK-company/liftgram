@@ -25,6 +25,17 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms = REQUEST_TIM
   }
 }
 
+// 콜드스타트 워밍업 — 앱 부팅 시 서버 헬스를 1회 핑해 무료티어(Render) 슬립 서버를 미리 깨운다.
+// 사용자가 온보딩/홈을 보는 동안 웨이크되어, 첫 로그인이 콜드스타트+타임아웃에 걸릴 확률을 낮춘다.
+// 완전 비차단·graceful — 실패해도 무해(실제 요청이 재시도 UI를 띄운다).
+export async function warmupServer(): Promise<void> {
+  try {
+    await fetchWithTimeout(`${SERVER_URL}/health`, { method: 'GET' });
+  } catch {
+    // 무시.
+  }
+}
+
 // refresh 토큰으로 새 토큰쌍 획득. 실패(만료/폐기) 시 저장 토큰 정리. request() 재귀 방지 위해 직접 fetch.
 async function doRefresh(): Promise<boolean> {
   const refreshToken = await loadRefreshToken();

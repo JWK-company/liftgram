@@ -8,6 +8,10 @@
   command = "npx expo export --platform web"
   publish = "dist"
 
+# Expo SDK56 / RN은 Node 20+ 필요 — Netlify 기본 Node가 구버전이면 빌드 실패하므로 고정.
+[build.environment]
+  NODE_VERSION = "20"
+
 # SPA 폴백 — 어떤 경로로 새로고침/딥링크해도 앱 진입점(index.html)으로.
 [[redirects]]
   from = "/*"

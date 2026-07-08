@@ -57,10 +57,17 @@
 ### 방법 A — Netlify (가장 쉬움, 무료)
 1. https://netlify.com → GitHub 로그인.
 2. **Add new site → Import an existing project** → 이 저장소 선택.
-   - 빌드 설정은 `netlify.toml`이 자동 적용됨(base=app, publish=dist).
+   - 빌드 설정은 `netlify.toml`이 자동 적용됨(base=app, publish=dist, Node 20).
 3. **Site settings → Environment variables** 에 추가:
-   `EXPO_PUBLIC_SERVER_URL = https://<Render 서버주소>/api`
-4. **Deploy** → 발급된 주소(예: `https://liftgram.netlify.app`)를 팀원에게 공유.
+   `EXPO_PUBLIC_SERVER_URL = https://<Render 서버주소>/api`  ← **끝에 `/api` 꼭 포함**
+
+   > ⚠️ **순서 함정 (제일 흔한 실수):** Import하면 Netlify가 **env를 넣기 전에** 1차 빌드를 먼저 돌립니다.
+   > Expo는 이 주소를 빌드 시점에 번들에 **굳혀** 넣기 때문에, 1차 빌드본은 `localhost`가 박혀서
+   > **로그인·피드·DM이 전부 조용히 실패**합니다(앱은 열리는데 서버 기능만 안 됨).
+   > → env를 저장한 **뒤 반드시 재빌드**: **Deploys → Trigger deploy → "Clear cache and deploy site"**.
+4. **재배포 완료** 후 발급된 주소(예: `https://liftgram.netlify.app`)를 팀원에게 공유.
+   - **확인법**: 배포된 사이트를 폰이 아닌 PC 브라우저로 열고 로그인 시도 → 되면 성공.
+     (앱 상단에 빨간 "⚠ 서버 주소가 설정되지 않았습니다" 배너가 보이면 env 누락/재빌드 안 됨 → 3번 다시.)
 5. 팀원: 폰 브라우저로 열기 → 공유/메뉴 → **홈 화면에 추가** → 앱처럼 사용.
 
 ### 방법 B — 손으로 빌드해서 아무 정적호스팅에 업로드
