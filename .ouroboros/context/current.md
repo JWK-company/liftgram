@@ -13,8 +13,10 @@
 | 구현(온디바이스 차별화) — ④점진적 과부하(SRS-010 더블 프로그레션·정체감지) ⑤규칙기반 프로그램 생성(SRS-009 목표·경력·장비·일수→요일별 루틴). 도메인테스트 26/26·typecheck·웹export·잔여한글0 PASS. SRS-012 자동카운팅은 센서/CV·네이티브 의존이라 보류(모바일 우선순위 때) | 2026-06-29 |
 | 기획 보완 — 소셜 고도화(인스타 통합): Hevy 피드 + 인스타식 DM(PT문의·만남)·미디어·스토리·탐색·알림. /plan→/requirement→/design→/decision→/trace 풀 파이프라인. PRD 보완·RM-008 발급. 신규 URS-010·UCS-010/011·SRS-017~020·SAD-011/012·ADR-014~017 + SRS-007/008 갱신. 베이스=운동앱 유지·ADR-007 좁은부족 해자 보존(ADR-014 하이브리드). 구현은 백엔드 페이즈 편성 | 2026-06-30 |
 | 백엔드 준비·착수 — 기획: SAD-013(결제 아키텍처)·ADR-018(스택 Node/TS+Postgres). 구현: `server/` 스캐폴드(NestJS 모듈러 모놀리스 + PostgreSQL/Prisma) — 계정·인증(JWT)·오프라인-우선 동기(ADR-002 last-write-wins) 토대. E2E(health/signup/login/me/sync push·pull/401) 전부 통과 | 2026-06-30 |
+| 프로젝트 이관 — `health-practice` → **`liftgram`** 리브랜드 완결. 코드·문서(80노드)는 동일 git 커밋(dc173a6·remote `liftgram.git`)으로 이미 동일 확인(복제 불필요). 신규 PLM 프로젝트 `liftgram`(빈 상태)에 로컬 `.md`(SSOT) 전건 벌크 import — created 80·relations 155·skip 0·gate orphan 0. ADR-012/013 `supersedes` 스칼라→리스트 정규화(파서 char-iter 버그 예방). server/.env 런타임 이관, 마켓플레이스 경로=liftgram | 2026-07-08 |
 
-> PLM 바인딩: `health-practice-wbi` @ https://jwk-plm.shoi.ch — 토큰 설정됨, plm-sync 활성. (초기 401·일괄 검증 이력은 git/PLM)
+> PLM 바인딩: `liftgram` @ https://jwk-plm.shoi.ch — 2026-07-08 `health-practice-wbi`에서 이관(로컬 `.md` SSOT 벌크 import: 80 아티팩트·155 관계·orphan 0). 토큰 설정됨(liftgram editor·OAuth 셀프발급), plm-sync 활성. **Status는 신규 대시보드 소유**(이관분 전건 Draft 시작 — 레거시 프로젝트 접근권 없어 대시보드 전이 상태는 미승계). 레거시 `health-practice-wbi`는 그대로 보존(미삭제). (초기 401·일괄 검증 이력은 git/PLM)
+> **코드 딥링크(2026-07-08)**: `/plm-hub:codescan` 완료 — `app/src`+`server/src`의 `@plm` 주석 스캔 → **Code 106개·realizes 115건** 생성, 참조 SRS/SAD `.md`에 `code_refs` 19건 역기재. 미존재 대상 0·GC 0·**G3(Code→요구) orphan 0**. 요구↔코드 양방향 딥링크(SRS→realizes→Code→loc) 확립. ⚠ 한 줄에 `@plm A @plm B` 반복표기 라인은 스캐너가 첫 대상만 링크(그 SRS는 타 파일서 커버되어 orphan 아님).
 
 ## 활성 기획
 
