@@ -3,13 +3,15 @@
 export const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL ?? 'http://localhost:3000/api';
 
 // 배포 함정 방어 — 배포된 웹앱(localhost가 아닌 호스트에서 열림)인데 서버 주소가
-// 여전히 localhost면, 모든 소셜 기능이 무증상 실패한다. 크게 경고(빌드 시 env 누락 탐지).
-if (
+// 여전히 localhost면, 모든 소셜 기능이 무증상 실패한다. 플래그로 노출해 UI 배너(ConfigBanner)로도
+// 승격 → console을 안 보는 테스터도 "설정 문제"를 화면에서 바로 인지(무증상→가시).
+export const isServerMisconfigured =
   typeof window !== 'undefined' &&
-  window.location &&
+  !!window.location &&
   !/^(localhost|127\.0\.0\.1)/.test(window.location.hostname) &&
-  /localhost|127\.0\.0\.1/.test(SERVER_URL)
-) {
+  /localhost|127\.0\.0\.1/.test(SERVER_URL);
+
+if (isServerMisconfigured) {
   // eslint-disable-next-line no-console
   console.error(
     '[config] 배포 웹앱인데 SERVER_URL이 localhost입니다. ' +
