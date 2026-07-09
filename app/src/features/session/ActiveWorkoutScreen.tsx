@@ -13,6 +13,7 @@ import { useModelData, useQueryData } from '../../db/hooks';
 import { workoutRepo } from '../../data';
 import type { Workout, WorkoutExercise } from '../../db/models';
 import { requestExercisePick } from '../../utils/picker';
+import { primeRestSound, playRestDone } from '../../utils/sound';
 import { useT } from '../../i18n';
 import { ExerciseBlock } from './ExerciseBlock';
 
@@ -45,13 +46,14 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   // 교체(시작)된다 → 여러 종목 타이머가 동시에 돌지 않는다.
   const [restRemaining, setRestRemaining] = useState<number | null>(null);
   const startRest = useCallback((seconds: number) => {
+    primeRestSound(); // 세트 완료 체크(사용자 제스처) 시 웹 오디오 잠금 해제 → 종료음 재생 보장
     setRestRemaining(seconds > 0 ? seconds : null);
   }, []);
   useEffect(() => {
     if (restRemaining == null) return;
     if (restRemaining <= 0) {
       setRestRemaining(null);
-      Alert.alert(t('session.restOverTitle'), t('session.restOverMessage'));
+      playRestDone(); // 휴식 종료 알림음 + 진동(Alert 대신)
       return;
     }
     const timer = setTimeout(() => setRestRemaining((r) => (r == null ? null : r - 1)), 1000);
