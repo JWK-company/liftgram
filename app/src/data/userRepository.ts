@@ -19,6 +19,7 @@ export async function getOrCreateLocalUser(): Promise<UserProfile> {
       u.weightUnit = 'kg';
       u.barWeightKg = DEFAULT_BAR_KG;
       u.availableEquipment = [];
+      u.machineVariantLabels = [];
       u.email = null;
       u.displayName = null;
       u.serverId = null;
@@ -38,6 +39,7 @@ export interface UserSettingsPatch {
   barWeightKg?: number;
   displayName?: string | null;
   availableEquipment?: EquipmentType[];
+  machineVariantLabels?: string[];
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
@@ -49,6 +51,7 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.barWeightKg !== undefined) rec.barWeightKg = patch.barWeightKg;
       if (patch.displayName !== undefined) rec.displayName = patch.displayName;
       if (patch.availableEquipment !== undefined) rec.availableEquipment = patch.availableEquipment;
+      if (patch.machineVariantLabels !== undefined) rec.machineVariantLabels = patch.machineVariantLabels;
     });
   });
 }

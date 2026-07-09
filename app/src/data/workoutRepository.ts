@@ -55,14 +55,15 @@ export function querySetLogs(workoutExerciseId: string): Query<SetLog> {
 // 직전 세션의 같은 종목 마지막 세트(자동표시·자동채움용 — SRS-003).
 export async function getPreviousExerciseSnapshot(
   exerciseId: string,
+  variant?: string | null,
 ): Promise<{ weightKg: number; reps: number } | null> {
   const completed = await workouts()
     .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
     .fetch();
   for (const w of completed) {
-    const wes = await workoutExercises()
-      .query(Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId))
-      .fetch();
+    const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)];
+    if (variant !== undefined) clauses.push(Q.where('machine_variant', variant)); // 기구별 기록 분리(null=기본)
+    const wes = await workoutExercises().query(...clauses).fetch();
     if (!wes.length) continue;
     const sets = (
       await setLogs()
@@ -80,14 +81,14 @@ export async function getPreviousExerciseSnapshot(
 // set_logs를 미리 만들지는 않는다(이중 계상 방지). 이력 없으면 빈 배열.
 // 수퍼셋/중복 종목이면 첫 인스턴스(sort_order 최소) 하나만 취한다 — 여러 인스턴스를 병합하면
 // set_number가 겹쳐 시퀀스가 뒤섞이므로 단일 블록으로 스코프.
-export async function getPreviousExerciseSets(exerciseId: string): Promise<LogSetInput[]> {
+export async function getPreviousExerciseSets(exerciseId: string, variant?: string | null): Promise<LogSetInput[]> {
   const completed = await workouts()
     .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
     .fetch();
   for (const w of completed) {
-    const wes = await workoutExercises()
-      .query(Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId), Q.sortBy('sort_order', Q.asc))
-      .fetch();
+    const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId), Q.sortBy('sort_order', Q.asc)];
+    if (variant !== undefined) clauses.push(Q.where('machine_variant', variant)); // 기구별 기록 분리(null=기본)
+    const wes = await workoutExercises().query(...clauses).fetch();
     if (!wes.length) continue;
     const sets = (
       await setLogs().query(Q.where('workout_exercise_id', wes[0].id), Q.sortBy('set_number', Q.asc)).fetch()
@@ -124,12 +125,16 @@ export async function getWorkoutExerciseTargets(
 }
 
 // 종목 개인 최고(PR) — 완료 세션 전체에서 가장 무거운 수행 워킹 세트(무게 우선, 동률 시 반복 많은 것).
-export async function getExercisePR(exerciseId: string): Promise<{ weightKg: number; reps: number } | null> {
+// variant 지정 시 그 기구의 기록만(머신 브랜드별 PR 분리). undefined=기구 무관 전체.
+export async function getExercisePR(
+  exerciseId: string,
+  variant?: string | null,
+): Promise<{ weightKg: number; reps: number } | null> {
   const completed = await workouts().query(Q.where('state', 'completed')).fetch();
   if (!completed.length) return null;
-  const wes = await workoutExercises()
-    .query(Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id))))
-    .fetch();
+  const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id)))];
+  if (variant !== undefined) clauses.push(Q.where('machine_variant', variant));
+  const wes = await workoutExercises().query(...clauses).fetch();
   if (!wes.length) return null;
   const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch())
     .filter(isPerformed)
@@ -179,13 +184,15 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
   const res = await routineExercises()
     .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
     .fetch();
-  // 종목별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
-  const prevSnapByEx = new Map<string, { weightKg: number; reps: number } | null>();
-  const prevSetsByEx = new Map<string, LogSetInput[]>();
+  // (종목×기구)별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
+  const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${re.machineVariant ?? ''}`;
+  const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
+  const prevSetsByKey = new Map<string, LogSetInput[]>();
   for (const re of res) {
-    if (!prevSnapByEx.has(re.exerciseId)) {
-      prevSnapByEx.set(re.exerciseId, await getPreviousExerciseSnapshot(re.exerciseId));
-      prevSetsByEx.set(re.exerciseId, await getPreviousExerciseSets(re.exerciseId));
+    const k = vkey(re);
+    if (!prevSnapByKey.has(k)) {
+      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, re.machineVariant));
+      prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, re.machineVariant));
     }
   }
   return database.write(async () => {
@@ -206,7 +213,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.workoutId = workout.id;
         we.exerciseId = re.exerciseId;
         we.sortOrder = i;
-        const prev = prevSnapByEx.get(re.exerciseId) ?? null;
+        const prev = prevSnapByKey.get(vkey(re)) ?? null;
         we.prevWeightKg = prev?.weightKg ?? null;
         we.prevReps = prev?.reps ?? null;
         we.targetSets = re.targetSets;
@@ -214,6 +221,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.targetRepsMax = re.targetRepsMax;
         we.targetWeightKg = re.targetWeightKg;
         we.restSeconds = re.restSeconds;
+        we.machineVariant = re.machineVariant; // 루틴의 기구 선택 복사
       }),
     );
     // 각 종목에 target_sets 개수만큼 템플릿 세트 프리레이(Hevy식).
@@ -226,8 +234,8 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
           count,
           re.targetWeightKg,
           re.targetRepsMin,
-          prevSetsByEx.get(re.exerciseId) ?? [],
-          prevSnapByEx.get(re.exerciseId) ?? null,
+          prevSetsByKey.get(vkey(re)) ?? [],
+          prevSnapByKey.get(vkey(re)) ?? null,
         ),
       );
     });
@@ -268,6 +276,7 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.targetRepsMax = null;
       rec.targetWeightKg = null;
       rec.restSeconds = 120;
+      rec.machineVariant = null; // 즉석 추가 종목은 기본(미지정) — 머신이면 사용자가 헤더에서 선택
     });
     const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap);
     await database.batch(we, ...setRecords);
@@ -337,6 +346,16 @@ export async function setSetType(id: string, type: SetType): Promise<void> {
       rec.isWarmup = type === 'warmup';
       rec.isDrop = type === 'drop';
       rec.isFailed = type === 'failed';
+    });
+  });
+}
+
+// 세션 중 종목의 머신 기구(브랜드) 변경 — 이전기록·PR이 해당 기구 것으로 갱신된다. null=기본.
+export async function setMachineVariant(workoutExerciseId: string, variant: string | null): Promise<void> {
+  await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    await we.update((rec) => {
+      rec.machineVariant = variant;
     });
   });
 }
@@ -413,13 +432,17 @@ export async function discardWorkout(id: string): Promise<void> {
 }
 
 // ── 세션 종료 + 요약/PR (SRS-004/005) ──────────────────────────────
-async function historicalSnapshotForExercise(exerciseId: string, excludeWorkoutId: string): Promise<PRSnapshot> {
+async function historicalSnapshotForExercise(
+  exerciseId: string,
+  excludeWorkoutId: string,
+  variant?: string | null,
+): Promise<PRSnapshot> {
   const completed = await workouts().query(Q.where('state', 'completed')).fetch();
   const ids = completed.map((w) => w.id).filter((id) => id !== excludeWorkoutId);
   if (!ids.length) return EMPTY_PR;
-  const wes = await workoutExercises()
-    .query(Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(ids)))
-    .fetch();
+  const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(ids))];
+  if (variant !== undefined) clauses.push(Q.where('machine_variant', variant)); // 기구별 PR 비교
+  const wes = await workoutExercises().query(...clauses).fetch();
   if (!wes.length) return EMPTY_PR;
   const sets = (
     await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch()
@@ -453,7 +476,8 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   const prDetails: WorkoutPRDetail[] = [];
   const undone: SetLog[] = []; // 미완료(done=false) 프리레이 세트 — 수행 안 함 → 완료 시 삭제.
   const emptyWEs: WorkoutExercise[] = []; // 완료 후 수행 세트 0개 종목 → 삭제(피드 종목수 과대·빈 카드 방지).
-  const performedByExercise = new Map<string, LoggedSet[]>(); // PR은 종목당 1회(중복 인스턴스 이중계상 방지).
+  // PR은 (종목 × 기구) 단위 1회 — 같은 종목이라도 머신 기구가 다르면 별도 기록으로 비교.
+  const performedByVariant = new Map<string, { exerciseId: string; variant: string | null; logged: LoggedSet[] }>();
 
   for (const we of wes) {
     const all = await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch();
@@ -466,15 +490,16 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
     const logged = performed.map(toLoggedSet);
     totalVolume += totalVolumeKg(logged);
     workingSets += logged.filter((s) => !s.isWarmup && !s.isFailed).length;
-    const arr = performedByExercise.get(we.exerciseId);
-    if (arr) arr.push(...logged);
-    else performedByExercise.set(we.exerciseId, [...logged]);
+    const key = `${we.exerciseId}::${we.machineVariant ?? ''}`;
+    const entry = performedByVariant.get(key);
+    if (entry) entry.logged.push(...logged);
+    else performedByVariant.set(key, { exerciseId: we.exerciseId, variant: we.machineVariant, logged: [...logged] });
   }
 
-  // PR 감지는 종목별 1회 — 같은 종목이 여러 인스턴스(수퍼셋·중복 추가)여도 합쳐 비교해 이중계상 방지.
-  for (const [exerciseId, logged] of performedByExercise) {
+  // PR 감지는 (종목,기구)별 1회 — 같은 조합이 여러 인스턴스(수퍼셋·중복)여도 합쳐 비교해 이중계상 방지.
+  for (const { exerciseId, variant, logged } of performedByVariant.values()) {
     const current = snapshotFromSets(logged);
-    const hist = await historicalSnapshotForExercise(exerciseId, id);
+    const hist = await historicalSnapshotForExercise(exerciseId, id, variant);
     const prs = detectNewPRs(current, hist);
     if (prs.length) {
       let name = '운동';

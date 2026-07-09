@@ -12,6 +12,7 @@ interface UserContextValue {
   language: AppLanguage;
   barWeightKg: number;
   availableEquipment: EquipmentType[];
+  machineVariantLabels: string[];
   refresh: () => Promise<void>;
 }
 
@@ -45,6 +46,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     language: user?.preferredLanguage ?? 'ko',
     barWeightKg: user?.barWeightKg ?? DEFAULT_BAR_KG,
     availableEquipment: user?.availableEquipment ?? [],
+    machineVariantLabels: user?.machineVariantLabels ?? [],
     refresh,
   };
 

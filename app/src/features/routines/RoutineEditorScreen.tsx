@@ -19,6 +19,7 @@ import {
   Divider,
   SectionHeader,
   EmptyState,
+  MachineVariantSelector,
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
@@ -429,10 +430,12 @@ function ExerciseEditRow({
   const [sets, setSets] = useState(re.targetSets);
   const [rest, setRest] = useState(re.restSeconds);
   const [weightDisp, setWeightDisp] = useState(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0);
+  const [variant, setVariant] = useState<string | null>(re.machineVariant);
 
   // 모델 값이 외부에서 바뀌면(스왑/복제 등) 동기화.
   useEffect(() => setSets(re.targetSets), [re.targetSets]);
   useEffect(() => setRest(re.restSeconds), [re.restSeconds]);
+  useEffect(() => setVariant(re.machineVariant), [re.machineVariant]);
   useEffect(
     () => setWeightDisp(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0),
     [re.targetWeightKg, weightUnit],
@@ -459,6 +462,16 @@ function ExerciseEditRow({
           <AppText variant="caption" color="textMuted">
             {t('routines.exerciseRowSummary', { index: index + 1, sets, rest })}
           </AppText>
+          <View style={styles.exVariant}>
+            <MachineVariantSelector
+              exerciseId={re.exerciseId}
+              value={variant}
+              onChange={(key) => {
+                setVariant(key);
+                persist({ machineVariant: key });
+              }}
+            />
+          </View>
         </View>
         {re.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
       </View>
@@ -543,6 +556,7 @@ const styles = StyleSheet.create({
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   handle: { width: 28, alignItems: 'center' },
   exTitle: { flex: 1, gap: 2 },
+  exVariant: { flexDirection: 'row', marginTop: 4 },
   fieldRow: { flexDirection: 'row', gap: spacing.lg },
   field: { flex: 1 },
   fieldLabel: { marginBottom: spacing.xs },

@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -18,6 +18,7 @@ export const mySchema = appSchema({
         { name: 'preferred_language', type: 'string' }, // 'ko' | 'en'
         { name: 'weight_unit', type: 'string' }, // 'kg' | 'lb'
         { name: 'available_equipment', type: 'string', isOptional: true }, // JSON EquipmentType[] (가용 기구 — 빈/미설정=전체)
+        { name: 'machine_variant_labels', type: 'string', isOptional: true }, // v5: JSON string[3] 커스텀 기구 이름(전역 공용)
         { name: 'bar_weight_kg', type: 'number' },
         { name: 'last_sync_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
@@ -66,6 +67,7 @@ export const mySchema = appSchema({
         { name: 'target_reps_max', type: 'number', isOptional: true },
         { name: 'target_weight_kg', type: 'number', isOptional: true },
         { name: 'rest_seconds', type: 'number' },
+        { name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }, // v5: 머신 기구/브랜드 키(null=기본)
         { name: 'superset_group', type: 'string', isOptional: true }, // 같은 값끼리 슈퍼셋 묶음
         { name: 'sort_order', type: 'number' },
         { name: 'note', type: 'string', isOptional: true },
@@ -109,6 +111,7 @@ export const mySchema = appSchema({
         { name: 'target_reps_max', type: 'number', isOptional: true },
         { name: 'target_weight_kg', type: 'number', isOptional: true },
         { name: 'rest_seconds', type: 'number', isOptional: true },
+        { name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }, // v5: 머신 기구/브랜드 키(null=기본)
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

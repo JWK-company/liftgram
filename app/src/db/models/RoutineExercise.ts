@@ -18,6 +18,7 @@ export default class RoutineExercise extends Model {
   @field('target_reps_max') targetRepsMax!: number | null;
   @field('target_weight_kg') targetWeightKg!: number | null;
   @field('rest_seconds') restSeconds!: number;
+  @text('machine_variant') machineVariant!: string | null; // v5: 머신 기구/브랜드 키(null=기본)
   @text('superset_group') supersetGroup!: string | null;
   @field('sort_order') sortOrder!: number;
   @text('note') note!: string | null;

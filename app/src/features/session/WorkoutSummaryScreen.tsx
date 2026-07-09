@@ -20,7 +20,7 @@ import { useUser } from '../../state/userContext';
 import { analyticsRepo, workoutRepo } from '../../data';
 import type { WorkoutDetail } from '../../data';
 import type { Workout } from '../../db/models';
-import { formatWeight, type WeightUnit } from '../../domain';
+import { formatWeight, machineVariantLabel, type WeightUnit } from '../../domain';
 import { serverApi } from '../../sync/serverApi';
 import { useT } from '../../i18n';
 
@@ -39,9 +39,9 @@ function workingSetCount(detail: WorkoutDetail): number {
 }
 
 export default function WorkoutSummaryScreen({ navigation, route }: RootStackScreenProps<'WorkoutSummary'>) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { workoutId } = route.params;
-  const { weightUnit } = useUser();
+  const { weightUnit, machineVariantLabels } = useUser();
 
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [detail, setDetail] = useState<WorkoutDetail | null>(null);
@@ -96,7 +96,10 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
           // 루틴 전체(종목·세트)를 함께 저장 → 보는 사람이 펼쳐서 구경 가능(SRS-007).
           // 원시 kg 저장(뷰어가 자기 단위로 렌더). 세트 무게/반복만 담아 경량 유지.
           exercises: detail.exercises.map((ex) => ({
-            name: ex.exerciseName,
+            // 머신 기구 선택 시 기구 라벨을 이름에 붙여 공유(보는 사람이 어떤 기구인지 알 수 있게).
+            name: ex.machineVariant
+              ? `${ex.exerciseName} (${machineVariantLabel(ex.machineVariant, lang, machineVariantLabels)})`
+              : ex.exerciseName,
             sets: ex.sets.map((s) => ({ weightKg: s.weightKg, reps: s.reps, isWarmup: s.isWarmup })),
           })),
         },

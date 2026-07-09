@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconButton, NumberStepper } from '../../components';
+import { AppText, Button, Card, IconButton, MachineVariantSelector, NumberStepper } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
 import { workoutRepo, type LogSetInput } from '../../data';
@@ -54,14 +54,23 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   const [busy, setBusy] = useState(false);
   const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
   const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
+
+  // 머신 기구(브랜드) — 이전기록·PR을 이 기구 것으로 분리 조회. null=기본.
+  const [variant, setVariant] = useState<string | null>(we.machineVariant);
+  useEffect(() => setVariant(we.machineVariant), [we.machineVariant]);
+  function onVariantChange(key: string | null) {
+    setVariant(key); // 로컬 즉시 반영(이전·PR 재조회) + 영속
+    workoutRepo.setMachineVariant(we.id, key).catch(() => {});
+  }
+
   useEffect(() => {
     let active = true;
-    workoutRepo.getPreviousExerciseSets(we.exerciseId).then((s) => active && setPrevSets(s)).catch(() => {});
-    workoutRepo.getExercisePR(we.exerciseId).then((p) => active && setPr(p)).catch(() => {});
+    workoutRepo.getPreviousExerciseSets(we.exerciseId, variant).then((s) => active && setPrevSets(s)).catch(() => {});
+    workoutRepo.getExercisePR(we.exerciseId, variant).then((p) => active && setPr(p)).catch(() => {});
     return () => {
       active = false;
     };
-  }, [we.exerciseId]);
+  }, [we.exerciseId, variant]);
 
   // 이 종목의 휴식 '설정'(초). 세트 완료 체크 시 이 값으로 전역 카운트다운을 시작(교체).
   // 카운트다운 자체는 전역(ActiveWorkoutScreen)에 1개만 존재 — 종목별로 따로 돌지 않는다.
@@ -102,11 +111,14 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
-          {pr ? (
-            <AppText variant="caption" color="pr" style={{ marginTop: 2 }}>
-              {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
-            </AppText>
-          ) : null}
+          <View style={styles.headerMeta}>
+            <MachineVariantSelector exerciseId={we.exerciseId} value={variant} onChange={onVariantChange} />
+            {pr ? (
+              <AppText variant="caption" color="pr">
+                {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
+              </AppText>
+            ) : null}
+          </View>
         </View>
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
@@ -261,6 +273,7 @@ function SetRowEdit({
 const styles = StyleSheet.create({
   block: { marginBottom: spacing.lg },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
+  headerMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' },
   gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.xs },
   colType: { width: 34, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
   colPrev: { width: 62, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },

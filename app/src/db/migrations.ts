@@ -44,5 +44,23 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v5: 머신 기구/브랜드 구분(이전기록·PR을 종목×기구로 분리). 기존 행 machine_variant=null → 기본 버킷.
+    {
+      toVersion: 5,
+      steps: [
+        addColumns({
+          table: 'routine_exercises',
+          columns: [{ name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }],
+        }),
+        addColumns({
+          table: 'workout_exercises',
+          columns: [{ name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }],
+        }),
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'machine_variant_labels', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

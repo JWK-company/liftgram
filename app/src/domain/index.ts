@@ -10,3 +10,4 @@ export * from './progression';
 export * from './programGenerator';
 export * from './plateCalculator';
 export * from './wellness';
+export * from './machineVariants';

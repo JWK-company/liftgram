@@ -7,6 +7,7 @@ import {
   Screen,
   Button,
   NumberStepper,
+  TextField,
   AppText,
   Card,
   Divider,
@@ -16,7 +17,17 @@ import { colors, spacing, radius, fontWeight } from '../../theme';
 import type { TabScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
-import { fromKg, toKg, ALL_EQUIPMENT, equipmentLabel, type WeightUnit, type EquipmentType } from '../../domain';
+import {
+  fromKg,
+  toKg,
+  ALL_EQUIPMENT,
+  equipmentLabel,
+  CUSTOM_VARIANT_KEYS,
+  CUSTOM_VARIANT_COUNT,
+  machineVariantLabel,
+  type WeightUnit,
+  type EquipmentType,
+} from '../../domain';
 import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { canInstall, onInstallAvailable, promptInstall } from '../../push/pwa';
@@ -27,8 +38,13 @@ type Language = 'ko' | 'en';
 
 export default function ProfileTabScreen({ navigation }: TabScreenProps<'ProfileTab'>) {
   const { t, lang } = useT();
-  const { user, weightUnit, language, barWeightKg, availableEquipment, refresh } = useUser();
+  const { user, weightUnit, language, barWeightKg, availableEquipment, machineVariantLabels, refresh } = useUser();
   const [busy, setBusy] = useState(false);
+  const [customLabels, setCustomLabels] = useState<string[]>(() => {
+    const a = machineVariantLabels.slice(0, CUSTOM_VARIANT_COUNT);
+    while (a.length < CUSTOM_VARIANT_COUNT) a.push('');
+    return a;
+  });
   const [isModerator, setIsModerator] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [installable, setInstallable] = useState(canInstall());
@@ -98,6 +114,17 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       ? availableEquipment.filter((e) => e !== eq)
       : [...availableEquipment, eq];
     void patch(() => userRepo.updateUserSettings(userId, { availableEquipment: next }));
+  }
+
+  function onEditCustomLabel(idx: number, text: string) {
+    setCustomLabels((prev) => {
+      const n = [...prev];
+      n[idx] = text;
+      return n;
+    });
+  }
+  function onSaveCustomLabels() {
+    void patch(() => userRepo.updateUserSettings(userId, { machineVariantLabels: customLabels.map((s) => s.trim()) }));
   }
 
   function onSignOut() {
@@ -238,6 +265,28 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
               );
             })}
           </View>
+        </View>
+
+        <Divider />
+
+        {/* 커스텀 머신 기구 이름 — 같은 브랜드·다른 기구 구분(전역 공용 3슬롯). */}
+        <View style={styles.equipBlock}>
+          <AppText variant="body" weight="medium">
+            {t('machineVariant.settingsTitle')}
+          </AppText>
+          <AppText variant="caption" color="textMuted" style={{ marginTop: 2, marginBottom: spacing.sm }}>
+            {t('machineVariant.settingsHint')}
+          </AppText>
+          {CUSTOM_VARIANT_KEYS.map((k, i) => (
+            <TextField
+              key={k}
+              value={customLabels[i] ?? ''}
+              onChangeText={(txt) => onEditCustomLabel(i, txt)}
+              onBlur={onSaveCustomLabels}
+              placeholder={machineVariantLabel(k, lang)}
+              containerStyle={{ marginBottom: spacing.sm }}
+            />
+          ))}
         </View>
       </Card>
 

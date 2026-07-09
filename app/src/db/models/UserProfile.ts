@@ -14,6 +14,7 @@ export default class UserProfile extends Model {
   @field('preferred_language') preferredLanguage!: AppLanguage;
   @field('weight_unit') weightUnit!: WeightUnit;
   @json('available_equipment', sanitizeStringArray) availableEquipment!: EquipmentType[]; // 빈=전체(필터 없음)
+  @json('machine_variant_labels', sanitizeStringArray) machineVariantLabels!: string[]; // v5: 커스텀 기구 이름(전역 공용, 최대 3)
   @field('bar_weight_kg') barWeightKg!: number;
   @field('last_sync_at') lastSyncAt!: number | null;
   @readonly @date('created_at') createdAt!: Date;

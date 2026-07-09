@@ -73,6 +73,7 @@ export interface RoutineExerciseInput {
   targetRepsMax?: number | null;
   targetWeightKg?: number | null;
   restSeconds?: number;
+  machineVariant?: string | null;
   supersetGroup?: string | null;
   note?: string | null;
 }
@@ -92,6 +93,7 @@ export async function addExerciseToRoutine(
       re.targetRepsMax = input.targetRepsMax ?? 12;
       re.targetWeightKg = input.targetWeightKg ?? null;
       re.restSeconds = input.restSeconds ?? 120;
+      re.machineVariant = input.machineVariant ?? null;
       re.supersetGroup = input.supersetGroup ?? null;
       re.sortOrder = count;
       re.note = input.note ?? null;
@@ -108,6 +110,7 @@ export async function updateRoutineExercise(id: string, patch: RoutineExerciseIn
       if (patch.targetRepsMax !== undefined) rec.targetRepsMax = patch.targetRepsMax;
       if (patch.targetWeightKg !== undefined) rec.targetWeightKg = patch.targetWeightKg;
       if (patch.restSeconds !== undefined) rec.restSeconds = patch.restSeconds;
+      if (patch.machineVariant !== undefined) rec.machineVariant = patch.machineVariant;
       if (patch.supersetGroup !== undefined) rec.supersetGroup = patch.supersetGroup;
       if (patch.note !== undefined) rec.note = patch.note;
     });

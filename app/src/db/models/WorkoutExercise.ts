@@ -25,6 +25,7 @@ export default class WorkoutExercise extends Model {
   @field('target_reps_max') targetRepsMax!: number | null;
   @field('target_weight_kg') targetWeightKg!: number | null;
   @field('rest_seconds') restSeconds!: number | null;
+  @text('machine_variant') machineVariant!: string | null; // v5: 머신 기구/브랜드 키(null=기본)
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

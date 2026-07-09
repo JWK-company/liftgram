@@ -205,6 +205,7 @@ export interface WorkoutExerciseDetail {
   workoutExerciseId: string;
   exerciseId: string;
   exerciseName: string;
+  machineVariant: string | null; // 머신 기구/브랜드 키(null=기본)
   sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean }[];
   volumeKg: number;
   bestEstimated1RM: number;
@@ -241,6 +242,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       workoutExerciseId: we.id,
       exerciseId: we.exerciseId,
       exerciseName: meta.get(we.exerciseId)?.nameKo ?? '운동',
+      machineVariant: we.machineVariant,
       sets: sets.map((s) => ({
         setNumber: s.setNumber,
         weightKg: s.weightKg,
