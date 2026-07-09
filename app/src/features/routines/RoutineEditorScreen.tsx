@@ -71,24 +71,56 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 백아웃 시 빈·미수정 신규 루틴은 정리(목록에 빈 '새 루틴' 누적 방지).
+  // 신규 루틴은 진입 즉시 DB 초안으로 생성되므로, 명시적 '완료' 저장 없이 나가면 초안으로 간주해 정리한다.
+  // handledRef: 완료/삭제 등 명시적 종료 시 true → beforeRemove가 초안정리·확인을 건너뛴다.
   const nameRef = useRef(name);
   nameRef.current = name;
+  const handledRef = useRef(false);
+  const exercisesCountRef = useRef(0);
+
+  const hasRoutineContent = () =>
+    exercisesCountRef.current > 0 ||
+    (nameRef.current.trim() !== '' && nameRef.current.trim() !== t('routines.newRoutineName'));
+
   useEffect(() => {
-    const unsub = navigation.addListener('beforeRemove', () => {
-      if (paramRoutineId || !routineId) return; // 기존 루틴은 보존
-      const trimmed = nameRef.current.trim();
-      if (trimmed && trimmed !== t('routines.newRoutineName')) return; // 이름을 바꿨으면 보존
-      routineRepo
-        .queryRoutineExercises(routineId)
-        .fetchCount()
-        .then((count) => {
-          if (count === 0) routineRepo.deleteRoutine(routineId).catch(() => {});
-        })
-        .catch(() => {});
+    const unsub = navigation.addListener('beforeRemove', (e) => {
+      if (paramRoutineId || !routineId || handledRef.current) return; // 기존/미생성/명시적종료 → 보존
+      if (!hasRoutineContent()) {
+        routineRepo.deleteRoutine(routineId).catch(() => {}); // 빈 초안 → 조용히 삭제
+        return;
+      }
+      // 내용은 있으나 저장(완료)하지 않고 나감 → 삭제할지 확인(실수 방지).
+      e.preventDefault();
+      Alert.alert(t('routines.discardTitle'), t('routines.discardMessage'), [
+        { text: t('routines.keepEditing'), style: 'cancel' },
+        {
+          text: t('routines.discardConfirm'),
+          style: 'destructive',
+          onPress: () => {
+            handledRef.current = true;
+            routineRepo.deleteRoutine(routineId).catch(() => {});
+            navigation.dispatch(e.data.action);
+          },
+        },
+      ]);
     });
     return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation, paramRoutineId, routineId]);
+
+  // '완료' = 저장. 신규인데 내용이 없으면 빈 루틴을 남기지 않고 삭제하고 나간다.
+  async function onDone() {
+    if (!paramRoutineId && routineId && !hasRoutineContent()) {
+      handledRef.current = true;
+      routineRepo.deleteRoutine(routineId).catch(() => {});
+      navigation.goBack();
+      return;
+    }
+    handledRef.current = true; // 저장 확정 → 보존
+    // 입력 중이던(블러 전) 이름/폴더/메모를 확정 저장 — 타이핑 후 바로 완료를 눌러도 반영.
+    await Promise.all([saveName(), saveFolder(), saveNotes()]);
+    navigation.goBack();
+  }
 
   // 기존 루틴이면 메타데이터(이름/메모/폴더) 1회 로드.
   useEffect(() => {
@@ -116,6 +148,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     () => (routineId ? routineRepo.queryRoutineExercises(routineId) : null),
     [routineId],
   );
+  exercisesCountRef.current = exercises.length; // beforeRemove에서 최신 종목 수 참조
 
   async function saveName() {
     if (!routineId) return;
@@ -244,6 +277,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
         style: 'destructive',
         onPress: async () => {
           try {
+            handledRef.current = true; // 명시적 삭제 → beforeRemove 확인 스킵
             await routineRepo.deleteRoutine(routineId);
             navigation.goBack();
           } catch (e) {
@@ -330,7 +364,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
       <View style={styles.topBar}>
         <IconButton icon="chevron-back" onPress={() => navigation.goBack()} />
         <AppText variant="heading">{t('routines.editorTitle')}</AppText>
-        <Button title={t('common.done')} size="sm" variant="ghost" fullWidth={false} onPress={() => navigation.goBack()} />
+        <Button title={t('common.done')} size="sm" variant="ghost" fullWidth={false} onPress={onDone} />
       </View>
 
       <ReorderableList
