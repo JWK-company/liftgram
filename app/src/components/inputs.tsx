@@ -117,7 +117,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepperValue: { minWidth: 56, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
+  // 값을 탭하면 직접 입력 가능 — 점선 밑줄로 편집 가능 힌트.
+  stepperValue: {
+    minWidth: 56,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.textFaint,
+    borderStyle: 'dashed',
+  },
   stepperInput: {
     minWidth: 56,
     height: 40,

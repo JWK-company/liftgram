@@ -17,14 +17,10 @@ interface ExerciseBlockProps {
   weightUnit: WeightUnit;
   weightStep: number;
   barWeightKg: number;
+  onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
 }
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-
-function formatClock(totalSeconds: number): string {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-}
 
 // 세트타입 라벨(순서 의존) — 일반 세트만 1,2,3.. 증가, 워밍업 W·드롭 D·실패 F.
 function setTypeLabel(s: SetLog, normalOrdinal: number): string {
@@ -51,7 +47,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -67,19 +63,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
     };
   }, [we.exerciseId]);
 
-  // 휴식 타이머 — 루틴 휴식(we.restSeconds)에서 초기화, 세트 완료 체크 시 시작.
+  // 이 종목의 휴식 '설정'(초). 세트 완료 체크 시 이 값으로 전역 카운트다운을 시작(교체).
+  // 카운트다운 자체는 전역(ActiveWorkoutScreen)에 1개만 존재 — 종목별로 따로 돌지 않는다.
   const [restSeconds, setRestSeconds] = useState<number>(we.restSeconds ?? 120);
-  const [restRemaining, setRestRemaining] = useState<number | null>(null);
-  useEffect(() => {
-    if (restRemaining == null) return;
-    if (restRemaining <= 0) {
-      setRestRemaining(null);
-      Alert.alert(t('session.restOverTitle'), t('session.restOverMessage'));
-      return;
-    }
-    const timer = setTimeout(() => setRestRemaining((r) => (r == null ? null : r - 1)), 1000);
-    return () => clearTimeout(timer);
-  }, [restRemaining]);
 
   async function onAddSet() {
     if (busy) return;
@@ -151,7 +137,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
           prev={prevSets[i]}
           weightUnit={weightUnit}
           barWeightKg={barWeightKg}
-          onRestStart={() => setRestRemaining(restSeconds)}
+          onRestStart={() => onStartRest(restSeconds)}
         />
       ))}
 
@@ -164,28 +150,14 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
         style={{ marginTop: spacing.sm }}
       />
 
-      {/* 휴식 타이머 */}
+      {/* 이 종목 휴식 '설정'(초). 실제 카운트다운은 전역 바 1개(ActiveWorkoutScreen). */}
       <View style={styles.restRow}>
-        {restRemaining != null ? (
-          <>
-            <Ionicons name="timer-outline" size={18} color={colors.primary} />
-            <AppText variant="body" color="primary" weight="bold" style={{ marginLeft: spacing.xs }}>
-              {t('session.restCountdown', { clock: formatClock(restRemaining) })}
-            </AppText>
-            <Pressable hitSlop={8} onPress={() => setRestRemaining(null)} style={{ marginLeft: spacing.md }}>
-              <AppText variant="caption" color="textMuted">
-                {t('session.skip')}
-              </AppText>
-            </Pressable>
-          </>
-        ) : (
-          <View style={styles.restSetRow}>
-            <AppText variant="caption" color="textMuted">
-              {t('session.restTime')}
-            </AppText>
-            <NumberStepper value={restSeconds} onChange={setRestSeconds} step={15} min={0} max={600} suffix={t('session.secondsSuffix')} />
-          </View>
-        )}
+        <View style={styles.restSetRow}>
+          <AppText variant="caption" color="textMuted">
+            {t('session.restTime')}
+          </AppText>
+          <NumberStepper value={restSeconds} onChange={setRestSeconds} step={15} min={0} max={600} suffix={t('session.secondsSuffix')} />
+        </View>
       </View>
     </Card>
   );
@@ -255,14 +227,24 @@ function SetRowEdit({
   return (
     <View style={[styles.setRow, isDone && styles.setRowDone]}>
       <Pressable onPress={typeMenu} hitSlop={4} style={styles.colType}>
-        <AppText variant="caption" color={typeColor()} weight="bold" center>
-          {label}
-        </AppText>
+        <View style={styles.typeChip}>
+          <AppText variant="caption" color={typeColor()} weight="bold" center>
+            {label}
+          </AppText>
+        </View>
       </Pressable>
       <Pressable onPress={applyPrev} hitSlop={4} style={styles.colPrev} disabled={!prev}>
-        <AppText variant="caption" color={prev ? 'textMuted' : 'textFaint'} center>
-          {prev ? `${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}` : '–'}
-        </AppText>
+        {prev ? (
+          <View style={styles.prevChip}>
+            <AppText variant="caption" color="primary" center numberOfLines={1}>
+              {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}`}
+            </AppText>
+          </View>
+        ) : (
+          <AppText variant="caption" color="textFaint" center>
+            –
+          </AppText>
+        )}
       </Pressable>
       <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
       <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
@@ -280,8 +262,27 @@ const styles = StyleSheet.create({
   block: { marginBottom: spacing.lg },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
   gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.xs },
-  colType: { width: 30, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
-  colPrev: { width: 60, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+  colType: { width: 34, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+  colPrev: { width: 62, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+  // 탭 가능 표시 — 칩(테두리/배경)으로 눌러볼 수 있음을 인지.
+  typeChip: {
+    minWidth: 28,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  prevChip: {
+    paddingVertical: 3,
+    paddingHorizontal: 5,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.primary,
+  },
   colVal: { flex: 1, textAlign: 'center' },
   colCheck: { width: 38 },
   colDel: { width: 26 },
@@ -289,6 +290,7 @@ const styles = StyleSheet.create({
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
   cell: {
     flex: 1,
+    minWidth: 0, // 웹 <input> 기본폭이 flex 축소를 막아 행 오버플로 → 0으로 축소 허용
     height: 40,
     textAlign: 'center',
     color: colors.text,

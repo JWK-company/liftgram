@@ -1,7 +1,8 @@
 // @plm SRS-003  라이브 세션 세트 로깅 (무게·횟수·RPE·워밍업/실패·플레이트·휴식)
 // @plm SRS-004  세션 진행 — 경과 타이머·일시정지/재개·종료·취소·종목 추가/삭제
-import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText, Button, EmptyState, IconButton } from '../../components';
 import { colors, radius, spacing } from '../../theme';
@@ -39,6 +40,24 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   const workout = useModelData(base);
   const [now, setNow] = useState(() => Date.now());
   const [finishing, setFinishing] = useState(false);
+
+  // 전역 휴식 카운트다운 — 운동 전체에 1개만. 어느 종목이든 세트 완료 체크 시 그 종목 휴식으로
+  // 교체(시작)된다 → 여러 종목 타이머가 동시에 돌지 않는다.
+  const [restRemaining, setRestRemaining] = useState<number | null>(null);
+  const startRest = useCallback((seconds: number) => {
+    setRestRemaining(seconds > 0 ? seconds : null);
+  }, []);
+  useEffect(() => {
+    if (restRemaining == null) return;
+    if (restRemaining <= 0) {
+      setRestRemaining(null);
+      Alert.alert(t('session.restOverTitle'), t('session.restOverMessage'));
+      return;
+    }
+    const timer = setTimeout(() => setRestRemaining((r) => (r == null ? null : r - 1)), 1000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restRemaining]);
 
   const exercises = useQueryData<WorkoutExercise>(() => workoutRepo.queryWorkoutExercises(workoutId), [workoutId]);
 
@@ -164,6 +183,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
               weightUnit={weightUnit}
               weightStep={weightStep}
               barWeightKg={barWeightKg}
+              onStartRest={startRest}
             />
           ))
         )}
@@ -178,6 +198,26 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           style={{ marginTop: spacing.xl }}
         />
       </ScrollView>
+
+      {/* 전역 휴식 카운트다운 바 — 운동 전체에 1개만(스크롤과 무관하게 항상 보임). */}
+      {restRemaining != null ? (
+        <View style={styles.restBar}>
+          <Ionicons name="timer-outline" size={18} color={colors.onPrimary} />
+          <AppText variant="body" weight="bold" style={styles.restBarText}>
+            {t('session.restCountdown', { clock: formatClock(restRemaining) })}
+          </AppText>
+          <Pressable hitSlop={8} onPress={() => setRestRemaining((r) => (r == null ? null : r + 15))} style={styles.restBarBtn}>
+            <AppText variant="caption" weight="bold" style={{ color: colors.onPrimary }}>
+              +15s
+            </AppText>
+          </Pressable>
+          <Pressable hitSlop={8} onPress={() => setRestRemaining(null)} style={styles.restBarBtn}>
+            <AppText variant="caption" weight="bold" style={{ color: colors.onPrimary }}>
+              {t('session.skip')}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -196,4 +236,24 @@ const styles = StyleSheet.create({
   timerWrap: { flex: 1, marginLeft: spacing.xs },
   finishBtn: { borderRadius: radius.pill, paddingHorizontal: spacing.lg },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  restBar: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  restBarText: { color: colors.onPrimary, flex: 1 },
+  restBarBtn: { paddingHorizontal: spacing.xs, paddingVertical: 2 },
 });
