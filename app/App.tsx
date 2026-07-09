@@ -3,9 +3,10 @@ import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, DarkTheme, type Theme } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, type Theme, type LinkingOptions } from '@react-navigation/native';
 import { colors } from './src/theme';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import type { RootStackParamList } from './src/navigation/types';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
@@ -30,6 +31,50 @@ const navTheme: Theme = {
     text: colors.text,
     primary: colors.primary,
     border: colors.border,
+  },
+};
+
+// 웹/PWA 히스토리 통합 — 화면마다 URL을 부여해 window.history에 엔트리가 쌓이게 한다.
+// 이게 없으면 웹에선 화면 전환 시 URL이 안 바뀌어 히스토리가 비고, standalone PWA에서
+// 하드웨어/제스처 뒤로가기가 앱 내부 이동이 아니라 창(앱) 종료로 이어진다.
+const linking: LinkingOptions<RootStackParamList> = {
+  // 웹에선 window.location + config.screens가 히스토리를 담당(prefixes는 네이티브 딥링크용).
+  prefixes: ['liftgram://', 'https://liftgram.app'],
+  config: {
+    screens: {
+      Tabs: {
+        screens: {
+          WorkoutTab: 'workout',
+          FeedTab: 'feed',
+          HistoryTab: 'history',
+          StatsTab: 'stats',
+          ProfileTab: 'profile',
+          FeedbackTab: 'feedback',
+        },
+      },
+      ExerciseList: 'exercises',
+      ExerciseDetail: 'exercise/:exerciseId',
+      ExerciseForm: 'exercise-form',
+      RoutineEditor: 'routine',
+      ProgramGenerator: 'program-generator',
+      ActiveWorkout: 'active/:workoutId',
+      WorkoutSummary: 'summary/:workoutId',
+      WorkoutDetail: 'workout-detail/:workoutId',
+      Auth: 'auth',
+      Discover: 'discover',
+      Conversations: 'messages',
+      Conversation: 'messages/:conversationId',
+      NewGroup: 'new-group',
+      Comments: 'post/:postId/comments',
+      UserProfile: 'user/:userId',
+      Notifications: 'notifications',
+      ModerationQueue: 'moderation',
+      Explore: 'explore',
+      Hashtag: 'hashtag/:tag',
+      BlockedUsers: 'blocked',
+      FollowList: 'follow/:userId/:mode',
+      Bookmarks: 'bookmarks',
+    },
   },
 };
 
@@ -80,7 +125,7 @@ export default function App() {
         <ConfigBanner />
         <View style={{ flex: 1 }}>
           <SessionProvider>
-            <NavigationContainer theme={navTheme}>
+            <NavigationContainer theme={navTheme} linking={linking}>
               {error ? (
                 <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
                   <AppText variant="heading" center>

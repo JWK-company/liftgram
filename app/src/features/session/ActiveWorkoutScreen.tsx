@@ -41,7 +41,6 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   const [finishing, setFinishing] = useState(false);
 
   const exercises = useQueryData<WorkoutExercise>(() => workoutRepo.queryWorkoutExercises(workoutId), [workoutId]);
-  const [targets, setTargets] = useState<Map<string, { repMin: number; repMax: number }>>(new Map());
 
   useEffect(() => {
     let alive = true;
@@ -51,13 +50,6 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
         if (alive) setBase(w);
       })
       .catch((e) => Alert.alert(t('common.error'), String(e)));
-    // 점진 제안용 루틴 목표(SRS-010) — 블랭크 세션이면 빈 맵.
-    workoutRepo
-      .getWorkoutExerciseTargets(workoutId)
-      .then((m) => {
-        if (alive) setTargets(m);
-      })
-      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -172,7 +164,6 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
               weightUnit={weightUnit}
               weightStep={weightStep}
               barWeightKg={barWeightKg}
-              target={targets.get(we.exerciseId)}
             />
           ))
         )}

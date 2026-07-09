@@ -53,15 +53,43 @@ interface NumberStepperProps {
 
 export function NumberStepper({ value, onChange, step = 1, min = 0, max = Infinity, suffix }: NumberStepperProps) {
   const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n * 100) / 100));
+  const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+  // 숫자 직접 수정 — 값을 탭하면 인라인 입력으로 전환(±버튼과 병행).
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState('');
+  function beginEdit() {
+    setDraft(fmt(value));
+    setEditing(true);
+  }
+  function commit() {
+    const n = parseFloat(draft.replace(',', '.'));
+    if (!Number.isNaN(n)) onChange(clamp(n));
+    setEditing(false);
+  }
   return (
     <View style={styles.stepper}>
       <Pressable onPress={() => onChange(clamp(value - step))} style={styles.stepBtn} hitSlop={8}>
         <Ionicons name="remove" size={18} color={colors.text} />
       </Pressable>
-      <AppText variant="heading" center style={{ minWidth: 56 }}>
-        {Number.isInteger(value) ? value : value.toFixed(1)}
-        {suffix ?? ''}
-      </AppText>
+      {editing ? (
+        <TextInput
+          value={draft}
+          onChangeText={setDraft}
+          onBlur={commit}
+          onSubmitEditing={commit}
+          keyboardType="numeric"
+          autoFocus
+          selectTextOnFocus
+          style={styles.stepperInput}
+        />
+      ) : (
+        <Pressable onPress={beginEdit} hitSlop={6} style={styles.stepperValue}>
+          <AppText variant="heading" center>
+            {fmt(value)}
+            {suffix ?? ''}
+          </AppText>
+        </Pressable>
+      )}
       <Pressable onPress={() => onChange(clamp(value + step))} style={styles.stepBtn} hitSlop={8}>
         <Ionicons name="add" size={18} color={colors.text} />
       </Pressable>
@@ -88,5 +116,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  stepperValue: { minWidth: 56, minHeight: 40, alignItems: 'center', justifyContent: 'center' },
+  stepperInput: {
+    minWidth: 56,
+    height: 40,
+    textAlign: 'center',
+    color: colors.text,
+    fontSize: fontSize.lg,
+    fontWeight: '700',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: spacing.xs,
   },
 });

@@ -13,5 +13,26 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v3: 루틴 목표를 세션에 복사(세트 프리레이) + 세트 완료 체크(Hevy식 템플릿 세트).
+    // 기존 workout_exercises는 target=null(과거 세션이므로 무해), 기존 set_logs는 done=null → '수행됨'으로 취급.
+    {
+      toVersion: 3,
+      steps: [
+        addColumns({
+          table: 'workout_exercises',
+          columns: [
+            { name: 'target_sets', type: 'number', isOptional: true },
+            { name: 'target_reps_min', type: 'number', isOptional: true },
+            { name: 'target_reps_max', type: 'number', isOptional: true },
+            { name: 'target_weight_kg', type: 'number', isOptional: true },
+            { name: 'rest_seconds', type: 'number', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'done', type: 'boolean', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

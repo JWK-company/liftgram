@@ -14,6 +14,7 @@ export default class SetLog extends Model {
   @field('rpe') rpe!: number | null;
   @field('is_warmup') isWarmup!: boolean;
   @field('is_failed') isFailed!: boolean;
+  @field('done') done!: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') completedAt!: number | null;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;

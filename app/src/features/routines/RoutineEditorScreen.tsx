@@ -23,6 +23,8 @@ import {
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
 import { routineRepo } from '../../data';
+import { useUser } from '../../state/userContext';
+import { fromKg, toKg } from '../../domain';
 import { requestExercisePick } from '../../utils/picker';
 import type RoutineExercise from '../../db/models/RoutineExercise';
 import { ExerciseName } from './ExerciseName';
@@ -384,20 +386,27 @@ function ExerciseEditRow({
   onRemove: () => void;
 }) {
   const { t } = useT();
+  const { weightUnit } = useUser();
+  const weightStep = weightUnit === 'kg' ? 2.5 : 5;
   const drag = useReorderableDrag();
   const isActive = useIsActive();
 
-  // 로컬 편집 상태(스테퍼 즉시 반영) + 영속화.
+  // 로컬 편집 상태(스테퍼 즉시 반영) + 영속화. 무게는 사용자 단위로 표시, kg로 저장.
   const [sets, setSets] = useState(re.targetSets);
   const [repsMin, setRepsMin] = useState(re.targetRepsMin ?? 0);
   const [repsMax, setRepsMax] = useState(re.targetRepsMax ?? 0);
   const [rest, setRest] = useState(re.restSeconds);
+  const [weightDisp, setWeightDisp] = useState(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0);
 
   // 모델 값이 외부에서 바뀌면(스왑/복제 등) 동기화.
   useEffect(() => setSets(re.targetSets), [re.targetSets]);
   useEffect(() => setRepsMin(re.targetRepsMin ?? 0), [re.targetRepsMin]);
   useEffect(() => setRepsMax(re.targetRepsMax ?? 0), [re.targetRepsMax]);
   useEffect(() => setRest(re.restSeconds), [re.restSeconds]);
+  useEffect(
+    () => setWeightDisp(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0),
+    [re.targetWeightKg, weightUnit],
+  );
 
   const persist = (patch: Parameters<typeof routineRepo.updateRoutineExercise>[1]) => {
     routineRepo.updateRoutineExercise(re.id, patch).catch((e) => Alert.alert(t('common.error'), String(e)));
@@ -493,6 +502,24 @@ function ExerciseEditRow({
             }}
           />
         </View>
+      </View>
+
+      <View style={styles.fieldRow}>
+        <View style={styles.field}>
+          <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
+            {t('routines.weightLabel', { weightUnit })}
+          </AppText>
+          <NumberStepper
+            value={weightDisp}
+            min={0}
+            step={weightStep}
+            onChange={(v) => {
+              setWeightDisp(v);
+              persist({ targetWeightKg: v > 0 ? toKg(v, weightUnit) : null });
+            }}
+          />
+        </View>
+        <View style={styles.field} />
       </View>
 
       <View style={styles.rowActions}>

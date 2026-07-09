@@ -402,6 +402,7 @@ function PostCard({
   const { t } = useT();
   const { weightUnit } = useUser();
   const [reporting, setReporting] = useState(false);
+  const [showRoutine, setShowRoutine] = useState(false);
   const isOwn = !!meId && post.author.id === meId;
   const canReport = !!meId && post.author.id !== meId;
   async function submitReport(reason: string) {
@@ -427,6 +428,7 @@ function PostCard({
           durationSeconds?: number;
           prCount?: number;
           setCount?: number;
+          exercises?: { name: string; sets: { weightKg: number; reps: number; isWarmup?: boolean }[] }[];
         })
       : undefined;
   return (
@@ -462,6 +464,33 @@ function PostCard({
             <WStat label={t('session.duration')} value={formatWorkoutDuration(workout.durationSeconds ?? 0)} />
             <WStat label={t('session.setCount')} value={String(workout.setCount ?? 0)} />
           </View>
+          {/* 루틴 전체(종목·세트) 펼쳐보기 — 보는 사람이 그 사람의 루틴을 구경 (SRS-007). */}
+          {workout.exercises && workout.exercises.length ? (
+            <>
+              <Pressable onPress={() => setShowRoutine((v) => !v)} hitSlop={6} style={styles.routineToggle}>
+                <Ionicons name={showRoutine ? 'chevron-up' : 'chevron-down'} size={16} color={colors.primary} />
+                <AppText variant="caption" color="primary" weight="medium" style={{ marginLeft: 4 }}>
+                  {showRoutine ? t('feed.hideRoutine') : t('feed.showRoutine', { count: workout.exercises.length })}
+                </AppText>
+              </Pressable>
+              {showRoutine ? (
+                <View style={styles.routineList}>
+                  {workout.exercises.map((ex, i) => (
+                    <View key={i} style={{ marginTop: spacing.sm }}>
+                      <AppText variant="body" weight="medium" numberOfLines={1}>
+                        {ex.name}
+                      </AppText>
+                      <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                        {ex.sets
+                          .map((s) => `${formatWeight(s.weightKg, weightUnit)}×${s.reps}${s.isWarmup ? ' (W)' : ''}`)
+                          .join('   ·   ')}
+                      </AppText>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </>
+          ) : null}
         </View>
       ) : null}
       {imageUrl ? <RemoteImage uri={imageUrl} style={styles.postImage} /> : null}
@@ -551,4 +580,6 @@ const styles = StyleSheet.create({
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   workoutBox: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   workoutStats: { flexDirection: 'row', gap: spacing.xl, marginTop: spacing.sm },
+  routineToggle: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, alignSelf: 'flex-start', paddingVertical: spacing.xs },
+  routineList: { marginTop: spacing.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.xs },
 });

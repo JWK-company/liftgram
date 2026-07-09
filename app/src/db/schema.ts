@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -103,11 +103,17 @@ export const mySchema = appSchema({
         { name: 'note', type: 'string', isOptional: true },
         { name: 'prev_weight_kg', type: 'number', isOptional: true }, // 직전 세션 자동표시용 스냅샷
         { name: 'prev_reps', type: 'number', isOptional: true },
+        // 루틴 목표 복사본(세션 시작 시 routine_exercises에서 복사 — 세트 프리레이·휴식 기본값). v3
+        { name: 'target_sets', type: 'number', isOptional: true },
+        { name: 'target_reps_min', type: 'number', isOptional: true },
+        { name: 'target_reps_max', type: 'number', isOptional: true },
+        { name: 'target_weight_kg', type: 'number', isOptional: true },
+        { name: 'rest_seconds', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
     }),
-    // 세트 로그 — append-only 원자 단위 (SRS-003, ADR-002)
+    // 세트 로그 — 세션 시작 시 템플릿으로 프리레이(done=false), 수행 시 체크(done=true) (SRS-003, ADR-002)
     tableSchema({
       name: 'set_logs',
       columns: [
@@ -118,6 +124,7 @@ export const mySchema = appSchema({
         { name: 'rpe', type: 'number', isOptional: true },
         { name: 'is_warmup', type: 'boolean' },
         { name: 'is_failed', type: 'boolean' },
+        { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },

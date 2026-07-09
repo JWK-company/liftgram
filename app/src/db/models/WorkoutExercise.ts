@@ -19,6 +19,12 @@ export default class WorkoutExercise extends Model {
   @text('note') note!: string | null;
   @field('prev_weight_kg') prevWeightKg!: number | null;
   @field('prev_reps') prevReps!: number | null;
+  // 루틴 목표 복사본(세션 시작 시 복사 — 세트 프리레이·휴식 기본값). v3
+  @field('target_sets') targetSets!: number | null;
+  @field('target_reps_min') targetRepsMin!: number | null;
+  @field('target_reps_max') targetRepsMax!: number | null;
+  @field('target_weight_kg') targetWeightKg!: number | null;
+  @field('rest_seconds') restSeconds!: number | null;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 
