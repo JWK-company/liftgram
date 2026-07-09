@@ -1,12 +1,12 @@
-// @plm SRS-003  세션 종목 블록 — 루틴 템플릿 세트 프리레이·편집·완료체크·휴식타이머
-// @plm SRS-004  세트 추가/삭제·종목 삭제 (Hevy식: 세트 행을 미리 깔고 수행 시 체크)
+// @plm SRS-003  세션 종목 블록 — 템플릿 세트 그리드(세트타입·이전기록·PR·직접입력·완료체크·삭제)
+// @plm SRS-004  세트 추가/삭제·종목 삭제 (Hevy식)
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, Button, Card, IconButton, NumberStepper } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
-import { workoutRepo } from '../../data';
+import { workoutRepo, type LogSetInput } from '../../data';
 import type { SetLog, WorkoutExercise } from '../../db/models';
 import { calcPlates, DEFAULT_PLATES_KG, formatWeight, fromKg, toKg, type WeightUnit } from '../../domain';
 import { ExerciseName } from './ExerciseName';
@@ -24,6 +24,14 @@ const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// 세트타입 라벨(순서 의존) — 일반 세트만 1,2,3.. 증가, 워밍업 W·드롭 D·실패 F.
+function setTypeLabel(s: SetLog, normalOrdinal: number): string {
+  if (s.isWarmup) return 'W';
+  if (s.isDrop === true) return 'D';
+  if (s.isFailed) return 'F';
+  return String(normalOrdinal);
 }
 
 function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: TransKey, v?: Record<string, string | number>) => string) {
@@ -48,6 +56,17 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
   const [busy, setBusy] = useState(false);
+  const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
+  const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
+  useEffect(() => {
+    let active = true;
+    workoutRepo.getPreviousExerciseSets(we.exerciseId).then((s) => active && setPrevSets(s)).catch(() => {});
+    workoutRepo.getExercisePR(we.exerciseId).then((p) => active && setPr(p)).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [we.exerciseId]);
+
   // 휴식 타이머 — 루틴 휴식(we.restSeconds)에서 초기화, 세트 완료 체크 시 시작.
   const [restSeconds, setRestSeconds] = useState<number>(we.restSeconds ?? 120);
   const [restRemaining, setRestRemaining] = useState<number | null>(null);
@@ -80,31 +99,39 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
       {
         text: t('common.delete'),
         style: 'destructive',
-        onPress: () => {
-          workoutRepo.removeWorkoutExercise(we.id).catch((e) => Alert.alert(t('common.error'), String(e)));
-        },
+        onPress: () => workoutRepo.removeWorkoutExercise(we.id).catch((e) => Alert.alert(t('common.error'), String(e))),
       },
     ]);
   }
+
+  // 일반 세트 순번 계산(타입 라벨용).
+  let normalCount = 0;
+  const labels = sets.map((s) => {
+    if (!s.isWarmup && s.isDrop !== true && !s.isFailed) normalCount += 1;
+    return setTypeLabel(s, normalCount);
+  });
 
   return (
     <Card style={styles.block}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
-          {we.prevWeightKg != null ? (
-            <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
-              {t('session.prevRecord', { prevWeight: formatWeight(we.prevWeightKg, weightUnit), prevReps: we.prevReps ?? 0 })}
+          {pr ? (
+            <AppText variant="caption" color="pr" style={{ marginTop: 2 }}>
+              {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
             </AppText>
           ) : null}
         </View>
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
 
-      {/* 세트 그리드 헤더 */}
+      {/* 그리드 헤더 */}
       <View style={styles.gridHead}>
-        <AppText variant="label" color="textFaint" style={styles.colNum}>
+        <AppText variant="label" color="textFaint" style={styles.colType}>
           {t('session.setColHeader')}
+        </AppText>
+        <AppText variant="label" color="textFaint" style={styles.colPrev}>
+          {t('session.prevColHeader')}
         </AppText>
         <AppText variant="label" color="textFaint" style={styles.colVal}>
           {t('session.weightLabel', { weightUnit })}
@@ -113,13 +140,15 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
           {t('session.repsLabel')}
         </AppText>
         <View style={styles.colCheck} />
+        <View style={styles.colDel} />
       </View>
 
       {sets.map((s, i) => (
         <SetRowEdit
           key={s.id}
           set={s}
-          index={i}
+          label={labels[i]}
+          prev={prevSets[i]}
           weightUnit={weightUnit}
           barWeightKg={barWeightKg}
           onRestStart={() => setRestRemaining(restSeconds)}
@@ -162,16 +191,18 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg }: Exerc
   );
 }
 
-// ── 편집 가능한 세트 1행 (무게/반복 직접입력 · 완료체크 · 롱프레스 메뉴) ──
+// ── 편집 가능한 세트 1행 ─────────────────────────────────────────────
 function SetRowEdit({
   set,
-  index,
+  label,
+  prev,
   weightUnit,
   barWeightKg,
   onRestStart,
 }: {
   set: SetLog;
-  index: number;
+  label: string;
+  prev: LogSetInput | undefined;
   weightUnit: WeightUnit;
   barWeightKg: number;
   onRestStart: () => void;
@@ -181,13 +212,8 @@ function SetRowEdit({
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
 
-  // DB 값이 바뀌면(커밋·단위변경) 표시 동기화. 입력 중엔 DB가 안 바뀌므로 타이핑을 방해하지 않음.
-  useEffect(() => {
-    setW(numStr(fromKg(set.weightKg, weightUnit)));
-  }, [set.weightKg, weightUnit]);
-  useEffect(() => {
-    setR(String(set.reps));
-  }, [set.reps]);
+  useEffect(() => setW(numStr(fromKg(set.weightKg, weightUnit))), [set.weightKg, weightUnit]);
+  useEffect(() => setR(String(set.reps)), [set.reps]);
 
   function commitWeight() {
     const n = parseFloat(w.replace(',', '.'));
@@ -202,49 +228,49 @@ function SetRowEdit({
     workoutRepo.setSetDone(set.id, next).catch(() => {});
     if (next) onRestStart();
   }
-  function menu() {
-    Alert.alert(t('session.setNumber', { setNumber: index + 1 }), undefined, [
-      {
-        text: set.isWarmup ? t('session.unmarkWarmup') : t('session.markWarmup'),
-        onPress: () => workoutRepo.updateSetLog(set.id, { isWarmup: !set.isWarmup }).catch(() => {}),
-      },
-      {
-        text: set.isFailed ? t('session.unmarkFailed') : t('session.markFailed'),
-        onPress: () => workoutRepo.updateSetLog(set.id, { isFailed: !set.isFailed }).catch(() => {}),
-      },
+  function typeColor(): keyof typeof colors {
+    if (set.isWarmup) return 'pr';
+    if (set.isDrop === true) return 'primary';
+    if (set.isFailed) return 'danger';
+    return 'textMuted';
+  }
+  function typeMenu() {
+    Alert.alert(t('session.setTypeTitle'), undefined, [
+      { text: t('session.setType.normal'), onPress: () => workoutRepo.setSetType(set.id, 'normal').catch(() => {}) },
+      { text: t('session.setType.warmup'), onPress: () => workoutRepo.setSetType(set.id, 'warmup').catch(() => {}) },
+      { text: t('session.setType.drop'), onPress: () => workoutRepo.setSetType(set.id, 'drop').catch(() => {}) },
+      { text: t('session.setType.failed'), onPress: () => workoutRepo.setSetType(set.id, 'failed').catch(() => {}) },
       { text: t('session.plateCalcTitle'), onPress: () => showPlates(set.weightKg, barWeightKg, weightUnit, t) },
-      { text: t('common.delete'), style: 'destructive', onPress: () => workoutRepo.deleteSetLog(set.id).catch(() => {}) },
       { text: t('common.cancel'), style: 'cancel' },
     ]);
+  }
+  function applyPrev() {
+    if (!prev) return;
+    workoutRepo.updateSetLog(set.id, { weightKg: prev.weightKg, reps: prev.reps }).catch(() => {});
+  }
+  function confirmDelete() {
+    workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
   return (
     <View style={[styles.setRow, isDone && styles.setRowDone]}>
-      <Pressable onLongPress={menu} delayLongPress={300} hitSlop={4} style={styles.colNum}>
-        <AppText variant="caption" color={set.isWarmup ? 'pr' : set.isFailed ? 'danger' : 'textMuted'} weight="bold" center>
-          {set.isWarmup ? 'W' : String(index + 1)}
+      <Pressable onPress={typeMenu} hitSlop={4} style={styles.colType}>
+        <AppText variant="caption" color={typeColor()} weight="bold" center>
+          {label}
         </AppText>
       </Pressable>
-      <TextInput
-        value={w}
-        onChangeText={setW}
-        onBlur={commitWeight}
-        onSubmitEditing={commitWeight}
-        keyboardType="numeric"
-        selectTextOnFocus
-        style={styles.cell}
-      />
-      <TextInput
-        value={r}
-        onChangeText={setR}
-        onBlur={commitReps}
-        onSubmitEditing={commitReps}
-        keyboardType="numeric"
-        selectTextOnFocus
-        style={styles.cell}
-      />
+      <Pressable onPress={applyPrev} hitSlop={4} style={styles.colPrev} disabled={!prev}>
+        <AppText variant="caption" color={prev ? 'textMuted' : 'textFaint'} center>
+          {prev ? `${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}` : '–'}
+        </AppText>
+      </Pressable>
+      <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
+      <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
       <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
         <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
+      </Pressable>
+      <Pressable onPress={confirmDelete} hitSlop={8} style={styles.del}>
+        <Ionicons name="close" size={15} color={colors.textFaint} />
       </Pressable>
     </View>
   );
@@ -253,11 +279,13 @@ function SetRowEdit({
 const styles = StyleSheet.create({
   block: { marginBottom: spacing.lg },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
-  gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.sm },
-  colNum: { width: 36, alignItems: 'center', justifyContent: 'center' },
+  gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.xs },
+  colType: { width: 30, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+  colPrev: { width: 60, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
   colVal: { flex: 1, textAlign: 'center' },
-  colCheck: { width: 40 },
-  setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.sm },
+  colCheck: { width: 38 },
+  colDel: { width: 26 },
+  setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
   cell: {
     flex: 1,
@@ -272,7 +300,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   check: {
-    width: 40,
+    width: 38,
     height: 40,
     borderRadius: radius.sm,
     alignItems: 'center',
@@ -282,6 +310,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  // 삭제는 체크와 간격을 둔 far-right 작은 아이콘 — 체크 오탭 방지.
+  del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   restRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, minHeight: 44 },
   restSetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 },
 });

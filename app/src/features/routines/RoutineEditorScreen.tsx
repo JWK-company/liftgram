@@ -393,15 +393,11 @@ function ExerciseEditRow({
 
   // 로컬 편집 상태(스테퍼 즉시 반영) + 영속화. 무게는 사용자 단위로 표시, kg로 저장.
   const [sets, setSets] = useState(re.targetSets);
-  const [repsMin, setRepsMin] = useState(re.targetRepsMin ?? 0);
-  const [repsMax, setRepsMax] = useState(re.targetRepsMax ?? 0);
   const [rest, setRest] = useState(re.restSeconds);
   const [weightDisp, setWeightDisp] = useState(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0);
 
   // 모델 값이 외부에서 바뀌면(스왑/복제 등) 동기화.
   useEffect(() => setSets(re.targetSets), [re.targetSets]);
-  useEffect(() => setRepsMin(re.targetRepsMin ?? 0), [re.targetRepsMin]);
-  useEffect(() => setRepsMax(re.targetRepsMax ?? 0), [re.targetRepsMax]);
   useEffect(() => setRest(re.restSeconds), [re.restSeconds]);
   useEffect(
     () => setWeightDisp(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0),
@@ -411,15 +407,6 @@ function ExerciseEditRow({
   const persist = (patch: Parameters<typeof routineRepo.updateRoutineExercise>[1]) => {
     routineRepo.updateRoutineExercise(re.id, patch).catch((e) => Alert.alert(t('common.error'), String(e)));
   };
-
-  const repsLabel = useMemo(() => {
-    const min = repsMin > 0 ? repsMin : null;
-    const max = repsMax > 0 ? repsMax : null;
-    if (min && max) return t('routines.repsRange', { min, max });
-    if (min) return t('routines.repsMin', { min });
-    if (max) return t('routines.repsMax', { max });
-    return t('routines.repsUnset');
-  }, [repsMin, repsMax, t]);
 
   return (
     <Card style={[styles.exCard, selected && styles.exCardSelected, isActive && styles.exCardActive]}>
@@ -436,7 +423,7 @@ function ExerciseEditRow({
         <View style={styles.exTitle}>
           <ExerciseName exerciseId={re.exerciseId} variant="body" />
           <AppText variant="caption" color="textMuted">
-            {t('routines.exerciseRowSummary', { index: index + 1, reps: repsLabel, rest })}
+            {t('routines.exerciseRowSummary', { index: index + 1, sets, rest })}
           </AppText>
         </View>
         {re.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
@@ -468,37 +455,6 @@ function ExerciseEditRow({
             onChange={(v) => {
               setRest(v);
               persist({ restSeconds: v });
-            }}
-          />
-        </View>
-      </View>
-
-      <View style={styles.fieldRow}>
-        <View style={styles.field}>
-          <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
-            {t('routines.minRepsLabel')}
-          </AppText>
-          <NumberStepper
-            value={repsMin}
-            min={0}
-            step={1}
-            onChange={(v) => {
-              setRepsMin(v);
-              persist({ targetRepsMin: v > 0 ? v : null });
-            }}
-          />
-        </View>
-        <View style={styles.field}>
-          <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
-            {t('routines.maxRepsLabel')}
-          </AppText>
-          <NumberStepper
-            value={repsMax}
-            min={0}
-            step={1}
-            onChange={(v) => {
-              setRepsMax(v);
-              persist({ targetRepsMax: v > 0 ? v : null });
             }}
           />
         </View>

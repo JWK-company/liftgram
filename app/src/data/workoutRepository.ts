@@ -123,6 +123,24 @@ export async function getWorkoutExerciseTargets(
   return map;
 }
 
+// 종목 개인 최고(PR) — 완료 세션 전체에서 가장 무거운 수행 워킹 세트(무게 우선, 동률 시 반복 많은 것).
+export async function getExercisePR(exerciseId: string): Promise<{ weightKg: number; reps: number } | null> {
+  const completed = await workouts().query(Q.where('state', 'completed')).fetch();
+  if (!completed.length) return null;
+  const wes = await workoutExercises()
+    .query(Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id))))
+    .fetch();
+  if (!wes.length) return null;
+  const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch())
+    .filter(isPerformed)
+    .filter((s) => !s.isWarmup);
+  let best: SetLog | null = null;
+  for (const s of sets) {
+    if (!best || s.weightKg > best.weightKg || (s.weightKg === best.weightKg && s.reps > best.reps)) best = s;
+  }
+  return best ? { weightKg: best.weightKg, reps: best.reps } : null;
+}
+
 // ── 세션 시작 ──────────────────────────────────────────────────────
 // 종목에 템플릿 세트를 프리레이(done=false, 미완료). 무게/반복 = 루틴 target 우선 →
 // 없으면 지난 세션의 해당 세트값 → 없으면 지난 세션 마지막 세트 → 기본(20kg/8회).
@@ -306,6 +324,19 @@ export async function setSetDone(id: string, done: boolean): Promise<void> {
     await s.update((rec) => {
       rec.done = done;
       rec.completedAt = done ? Date.now() : null;
+    });
+  });
+}
+
+// 세트 타입(일반/워밍업/드롭/실패) — 상호 배타. 표시 W/숫자/D/F.
+export type SetType = 'normal' | 'warmup' | 'drop' | 'failed';
+export async function setSetType(id: string, type: SetType): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.isWarmup = type === 'warmup';
+      rec.isDrop = type === 'drop';
+      rec.isFailed = type === 'failed';
     });
   });
 }

@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -124,6 +124,7 @@ export const mySchema = appSchema({
         { name: 'rpe', type: 'number', isOptional: true },
         { name: 'is_warmup', type: 'boolean' },
         { name: 'is_failed', type: 'boolean' },
+        { name: 'is_drop', type: 'boolean', isOptional: true }, // v4: 드롭세트(W/일반/D/F 세트타입 중 하나)
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

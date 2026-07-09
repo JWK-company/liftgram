@@ -34,5 +34,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v4: 드롭세트 표시(세트타입 W/일반/D/F). 기존 행 is_drop=null → 드롭 아님으로 취급.
+    {
+      toVersion: 4,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'is_drop', type: 'boolean', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });
