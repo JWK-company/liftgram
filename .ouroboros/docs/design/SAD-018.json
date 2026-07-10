@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-018",
+  "type": "SAD",
+  "title": "착용장비 어필리에이트 커머스 아키텍처 (상품 태그·딥링크·수수료 트래킹)",
+  "status": "Draft",
+  "owner": "Architecture",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "component": "Affiliate Commerce",
+  "tags": ["affiliate", "commerce", "tracking"],
+  "relations": { "refs": ["SRS-026"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "개요 (Summary)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "피드/스토리 게시물의 착용장비 태그를 외부 커머스 딥링크로 연결하고, 클릭→구매 전환→수수료를 트래킹·정산하는 경량 commerce 모듈이다. 미디어 게시물 파이프라인(SAD-012)에 태그 메타를 얹고, 어필리에이트 네트워크(쿠팡파트너스 등) 딥링크·포스트백으로 전환을 집계한다. SNS 임계질량 이후(P3) 보조 수익원으로 동작한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "컴포넌트 / 책임" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "GearTagService: " }, { "type": "text", "text": "게시물 작성 시 착용장비(리스트랩·벨트·스트랩 등) 태그 입력·저장, 미디어 메타 확장(SAD-012)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "DeepLinkBuilder: " }, { "type": "text", "text": "태그→어필리에이트 딥링크 생성(파트너 ID·트래킹 파라미터), 상품 매핑 관리." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "ConversionTracker: " }, { "type": "text", "text": "클릭·포스트백/리포트 수집→전환·수수료 집계, 크리에이터 귀속(SAD-013 정산 연계)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "DisclosureGuard: " }, { "type": "text", "text": "대가성 광고 표시(법정 고지) 라벨 강제, 정책 위반 검수(ADR-017 정합)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "다루는 SRS: SRS-026(어필리에이트 커머스). 정합: SAD-012(미디어 파이프라인), SAD-013(정산 귀속), ADR-017(표시·검수)." }] }
+  ] }
+}

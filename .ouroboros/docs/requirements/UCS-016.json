@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-016",
+  "type": "UCS",
+  "title": "사용자가 위치 기반으로 운동을 인증하고 등급·운동온도가 매겨진다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["verification", "grade", "temperature"],
+  "relations": { "elaborates": ["URS-015"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "주 흐름" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 운동을 마치고 위치/기록 기반으로 '오운완' 인증을 남긴다(실제 세트·무게 데이터에 근거)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "수행능력·성실성(연속 인증·완주율) 지표로 등급이 산정·갱신되어 프로필에 표시된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "원하는 상대와 일정 기간 VS 챌린지를 개설·참여하고, 종료 시 검증 데이터로 판정된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "같이 운동한 사람끼리 매너를 평가해 운동온도 게이지가 갱신되고, 검증된 완주율·후기가 신뢰 이력으로 쌓인다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "대안 / 예외 흐름" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치 인증 위조·어뷰징 방지(중복·비정상 패턴 탐지), 인증 실패 시 무등급 기록으로 저장." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "등급·운동온도는 웰니스 범위(수행·매너)로 한정하고 건강 진단성 평가는 하지 않는다(SRS-015)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "평가 악용(보복 저평가) 방지: 상호·시간창 제한, 신고 반영." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사전 / 사후 조건" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "사전: 기록/만남 이력. 사후: 등급·운동온도·검증 이력이 프로필과 매칭 신뢰도(SRS-021/024)에 반영된다." }] }
+  ] }
+}

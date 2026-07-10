@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-020",
+  "type": "ADR",
+  "title": "단계적 슈퍼앱 확장 전략 채택 — 쐐기(여성·직장인 입문자) → 네트워크(매칭·헬스장 B2B) → 경제(크레딧)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["strategy", "wedge", "phasing"],
+  "relations": { "informs": ["SRS-021", "SRS-023", "SRS-024", "SRS-011"], "supersedes": null },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "BS-001은 헬스장 매칭·AI·SNS·크레딧·데이팅·번개·커머스·등급을 하나로 묶은 슈퍼앱을 지향한다. 그러나 경쟁분석·수익화 보고서(2026-07)는 각 기능마다 전문 1등(Hevy·플랜핏·Strava·핏뷰·TrainHeroic)이 있고 시장이 승자독식(2025 신규 구독 앱 31%↑·신규 앱 중앙값 매출 22%↓)으로 굳는 중이라, '전 기능 동시 출시 슈퍼앱'은 개발·획득비만 태우고 소멸할 위험이 크다고 경고한다. 특히 매칭·데이팅·마켓은 임계질량 없이는 작동하지 않는다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "슈퍼앱을 한 번에 내지 않고 3단계로 확장한다. " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "P1 쐐기(0~6mo)" },
+      { "type": "text", "text": ": 여성·직장인 근력 입문자를 겨냥해 입문 AI 루틴 + 기록 + 헬스 SNS + 능동적 책임감 루프로 소셜 리텐션을 먼저 만든다(수익 후순위). " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "P2 네트워크(6~15mo)" },
+      { "type": "text", "text": ": 버디/파트너 매칭 + 헬스장 위치 매칭(B2B 리드·광고) + 프리미엄 구독 + 인증·등급·운동온도로 양면 네트워크와 조기 현금흐름을 켠다. " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "P3 경제(15mo~)" },
+      { "type": "text", "text": ": 크레딧 경제(피드백→멘토링→정산) + 유료 번개 + 어필리에이트 커머스 + 데이팅(SNS 부가)로 수수료 매출을 얹는다. 본 결정은 ADR-019(소셜 공유·수익화 총전략)를 대체하지 않고 실행 순서로 구체화한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "채택 이유: 후발주자는 하나의 날카로운 쐐기가 필수. 여성 근력은 순풍 시장이고, 소셜 리텐션(Strava 교훈: 기록이 아니라 소셜이 해자)을 먼저 만든 뒤 매칭·크레딧 수수료를 얹는 순서가 콜드스타트·비용 위험을 최소화한다. 흑자 지름길은 헬스장 B2B(P2)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검토한 대안 ① BS-001 슈퍼앱 전체 동시 출시 — 기능 과잉·1등 품질 미달·임계질량 실패 위험 → 기각. ② 순수 기록앱(Hevy 클론) — 상품화된 시장에서 차별화 0 → 기각. ③ 데이팅 단독 강조 — 피트니스 데이팅 무덤(임계질량 실패) → 기각, SNS 부가로만." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "장점: 각 단계가 다음 단계의 전제(리텐션→공급→경제)를 만들어 자본·경쟁 위험을 낮춘다. 트레이드오프: 창업자 비전(슈퍼앱)의 즉각 실현을 미루므로 신규 축(매칭·크레딧·커머스)은 요구·설계만 선발급하고 구현은 단계별로 편성. 최우선 실행 공백은 능동적 책임감 루프(SRS-011, 현 미구현)로 P1에 앞당긴다. 되돌림 비용: 낮음 — 단계 순서는 조정 가능하나, 공유물·프로필의 데이터 구조(되돌아오는 링크·트레이너/헬스장 표시·운동온도)를 초기에 심을지가 사후 비용을 가른다." }
+    ] }
+  ] }
+}

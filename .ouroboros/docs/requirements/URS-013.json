@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-013",
+  "type": "URS",
+  "title": "사용자로서 크레딧으로 동료의 피드백·멘토링을 주고받고 보상받고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "stakeholder": "피드백·멘토링을 주고받는 사용자 및 파트너 유저(P2P 경제)",
+  "priority": "Medium",
+  "tags": ["credit", "mentoring", "economy", "creator"],
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "배경 / 이해관계자" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "liftgram의 진짜 차별화는 개별 기능이 아니라 '수수료가 흐르는 내부 경제(크레딧 순환)'다(보고서 §3.1). 지식iN 내공처럼 소액 크레딧으로 일회성 피드백을 사고팔고, 멘토-멘티 계약(온라인 PT 구독)으로 발전하며, 파트너 유저는 모은 크레딧을 현금으로 정산받는다. 사용자가 '벌 수 있어서' 콘텐츠·코칭을 올리는 구조는 리텐션과 공급을 동시에 만든다. 이는 트레이너 수익배분(URS-009)의 P2P·소액 버전으로, 그와 정산 인프라를 공유한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자는 크레딧을 충전하고, 원하는 동료·전문가에게 일회성 피드백을 요청·지불할 수 있기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "멘토링 시스템으로 일정 기간 계약(온라인 PT 구독)을 맺고 프로그램 배정·수행·조정을 이어갈 수 있기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "파트너(수익화 인증 완료) 유저는 모은 크레딧을 현금으로 정산받고, 플랫폼이 세무·환전을 처리해 주기를 원한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 충전→소비(피드백/멘토링)의 왕복이 최소 1경로로 동작한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "멘토-멘티 계약이 성립하고 기간·정산 근거가 투명하게 보인다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "파트너 유저가 크레딧을 현금으로 정산받고 세무 처리가 제공된다(정산 인프라는 SRS-016/023 공유)." }] }] }
+    ] }
+  ] }
+}

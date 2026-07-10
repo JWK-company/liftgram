@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-013",
+  "type": "UCS",
+  "title": "사용자가 조건으로 주변 헬스장을 찾고, 헬스장이 리드를 받아 응답한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["marketplace", "gym", "b2b"],
+  "relations": { "elaborates": ["URS-012"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "주 흐름" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 '헬스장 찾기'를 눌러 조건(반경 km·24시간·시설·가격대 등)을 입력해 게시한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "반경 내 등록 헬스장이 '주변 사용자가 헬스장을 찾고 있다'는 리드 알림을 받는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "후보 헬스장이 수수료(광고비) 비율에 따른 우선순위 + 신규 헬스장 노출 보장 규칙으로 랭킹되어 사용자에게 제시된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "헬스장이 프로모션/응답을 보내고, 사용자가 방문·문의로 전환한다. 운영자는 성과 지표를 확인한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "대안 / 예외 흐름" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "반경 내 등록 헬스장이 없으면 반경을 확장하거나 '등록 요청' 리드로 공급 온보딩에 활용한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "수수료 미납 헬스장도 신규 노출 보장·기본 노출 몫을 받아 마켓이 유료 순위만으로 왜곡되지 않게 한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치 정보는 동의 기반으로 처리하고, 스팸/허위 리드를 필터링한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사전 / 사후 조건" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "사전: 헬스장 1개 이상 등록 + 사용자 위치 동의. 사후: 리드가 전달되고 매칭 결과·성과가 양측에 기록된다." }] }
+  ] }
+}

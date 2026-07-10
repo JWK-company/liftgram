@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-017",
+  "type": "SAD",
+  "title": "인증·등급·운동온도 아키텍처 (위치인증·평판원장·게이미피케이션)",
+  "status": "Draft",
+  "owner": "Architecture",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "component": "Verification, Grading & Reputation",
+  "tags": ["verification", "grade", "temperature", "reputation"],
+  "relations": { "refs": ["SRS-025"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "개요 (Summary)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "위치/기록 기반 운동 인증, 수행·성실성 등급, VS 챌린지, 상호 매너 평가에 따른 운동온도를 산출하는 reputation 모듈이다. 인증은 실제 기록(세트·무게)과 위치 신호를 근거로 하고, 평판은 append-only 평판 원장으로 관리해 위조·보복 저평가를 방지한다. 모든 지표는 웰니스 범위(수행·매너)로 한정하고 건강 진단성 평가를 배제한다(SAD-010)." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "컴포넌트 / 책임" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "WorkoutVerifier: " }, { "type": "text", "text": "위치+기록 근거로 오운완 인증(SRS-013 확장), 중복·비정상 패턴 어뷰징 탐지." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "GradeEngine: " }, { "type": "text", "text": "연속 인증·완주율·수행 지표로 등급 산정·갱신, 결정적·설명 가능 규칙." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "VersusChallenge: " }, { "type": "text", "text": "기간형 VS 개설·참여·검증 판정(올웨이즈식), 부정 판정 방지." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "TemperatureLedger: " }, { "type": "text", "text": "함께 운동/만남 후 상호 매너 평가를 append-only로 집계→운동온도, 상호·시간창 제한으로 보복 방지." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "ReputationAPI: " }, { "type": "text", "text": "등급·운동온도·검증 이력을 프로필·매칭(SAD-014/016) 신뢰 입력으로 제공." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "다루는 SRS: SRS-025(인증·등급·VS·운동온도). 정합: SAD-010(웰니스 가드레일), SAD-016(만남 신뢰), SAD-014(매칭 신뢰), ADR-024(게이미피케이션)." }] }
+  ] }
+}

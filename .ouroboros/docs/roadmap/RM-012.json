@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-012",
+  "type": "Roadmap",
+  "title": "P2 네트워크 — 운동 인증·등급·VS 챌린지·운동온도",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "phase": "Phase 2 — Network",
+  "target": "2027-07-31",
+  "road_status": "Planned",
+  "tags": ["verification", "grade", "temperature"],
+  "relations": { "covers": ["URS-015", "SRS-025"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 범위" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "위치/기록 기반 인증·등급·VS 챌린지·운동온도로 검증된 데이터 축과 만남 신뢰·게임화 리텐션을 만든다. 핏뷰 대비 '더 나은 실행'과 웰니스 범위 한정(ADR-024). 단계: Phase 2(네트워크), 목표 2027-07-31, road_status Planned." }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "마일스톤" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치/기록 기반 오운완 인증(SRS-013 확장) + 어뷰징 방지" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "등급 산정·프로필 표시 + VS 챌린지" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "운동온도(상호 매너 평가) 원장 + 매칭 신뢰 통합(SAD-014/016)" }] }] }
+    ] }
+  ] }
+}

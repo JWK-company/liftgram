@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-021",
+  "type": "ADR",
+  "title": "헬스장 위치 매칭 마켓플레이스 도입 + 수수료 우선순위·신규 헬스장 노출 보장 정책",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["marketplace", "gym", "b2b", "policy"],
+  "relations": { "informs": ["SAD-014", "SRS-021", "SRS-022"], "supersedes": null },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "순수 기록앱은 로컬 공급자 축이 없다. 헬스장 B2B 매출은 보고서가 지목한 조기 흑자 지름길(헬스장 광고 월 10만 원 × 300개 = 월 3,000만 원이면 고정비 커버)이나, 소상공인 광고비 저항이 크고, 유료 순위만으로 매칭을 정하면 신규·소형 헬스장이 배제되어 공급이 마르는 왜곡이 생긴다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "위치 기반 헬스장 매칭 마켓플레이스를 도입하되, 랭킹은 '수수료(광고비) 납부 비율에 따른 우선순위'와 '신규 등록 헬스장에 일정 기간 항상 일정 %의 수요를 보장하는 노출 몫(랜덤 가중)'을 결합한다. 유료 우선순위에 상한을 두어 무료 헬스장도 기본 노출을 받게 하고, 광고비는 성과 기반·소액 진입 옵션을 제공한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "채택 이유: 배민형 수수료 우선순위는 검증도 높은 매출원이고, 신규 노출 보장은 공급자 확보(콜드스타트)에 유효하다. 두 규칙의 결합이 '공급 유지 + 수익'을 동시에 잡는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검토한 대안 ① 순수 유료 순위 — 신규·소형 배제·공급 고갈 → 기각. ② 순수 거리순 — 수익화 경로 없음 → 기각. ③ 시설 이용권 중개(다짐형) — 재고·정산 복잡·저마진 → 후순위." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "장점: 조기 현금흐름 + 공급자 온보딩 유인. 트레이드오프: 공급 확보 영업 부담, 위치 정보 프라이버시·허위 리드 관리 필요(SAD-014 ConsentGuard). 되돌림 비용: 중간 — 랭킹 가중치는 조정 가능하나 헬스장 신뢰(공정 노출 약속)를 깨면 회복이 어렵다." }
+    ] }
+  ] }
+}

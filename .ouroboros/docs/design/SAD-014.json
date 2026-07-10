@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-014",
+  "type": "SAD",
+  "title": "헬스장 위치 매칭 마켓플레이스 아키텍처 (지오쿼리·매칭 랭킹·수수료 우선순위·공급자 온보딩·리드)",
+  "status": "Draft",
+  "owner": "Architecture",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "component": "Gym Matching Marketplace",
+  "tags": ["marketplace", "geo", "b2b"],
+  "relations": { "refs": ["SRS-021", "SRS-022"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "개요 (Summary)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "사용자 수요(조건 게시)와 헬스장 공급(등록·광고)을 위치 기반으로 잇는 양면 마켓플레이스를 NestJS 모듈러 모놀리스(ADR-018)의 신규 marketplace 모듈로 구현한다. PostgreSQL + PostGIS(또는 위경도 인덱스)로 반경 쿼리를 처리하고, 매칭 랭킹은 '수수료 납부 비율 우선순위'와 '신규 헬스장 노출 보장(랜덤 가중)'을 결합한 결정적 스코어러로 산출한다. 리드는 이벤트로 헬스장에 fan-out되고 전환 성과가 원장에 집계된다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "컴포넌트 / 책임" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "GymRegistry: " }, { "type": "text", "text": "헬스장 프로필·위치·시설·영업시간·검증 상태 관리, 공급자 온보딩(사업자 확인)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "GeoQueryService: " }, { "type": "text", "text": "반경·조건(24시간·가격대·시설) 필터로 후보 헬스장 조회(PostGIS/공간 인덱스)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "MatchRanker: " }, { "type": "text", "text": "수수료 비율 우선순위 + 신규 헬스장 노출 보장 몫(랜덤 가중)을 결합한 결정적 랭킹, 왜곡 방지 상한." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "LeadPipeline: " }, { "type": "text", "text": "수요 이벤트를 반경 내 헬스장에 fan-out(알림 SAD-011 연계), 스팸/허위·중복 리드 필터, 리드 상태 추적." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "AdBillingBridge: " }, { "type": "text", "text": "광고 게재·광고비/수수료 청구(SRS-022)를 결제 아키텍처(SAD-013 웹 MoR)와 연계, 성과 대시보드 집계." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "ConsentGuard: " }, { "type": "text", "text": "위치 정보 동의·최소 수집(SAD-010 프라이버시 정합), 리드에 정밀 위치 미노출." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "다루는 SRS: SRS-021(위치 매칭 마켓플레이스), SRS-022(광고·리드). 정합: ADR-018(백엔드), ADR-021(매칭·수수료 정책), SAD-011(알림 fan-out), SAD-013(결제), SAD-010(프라이버시)." }] }
+  ] }
+}

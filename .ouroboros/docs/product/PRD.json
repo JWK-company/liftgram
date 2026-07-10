@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "id": "PRD",
+  "type": "PRD",
+  "title": "liftgram — 근력 소셜 슈퍼앱 (쐐기→네트워크→경제 단계 확장)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-06-23T13:01:25Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": false,
+  "tags": ["strategy", "monetization", "wedge", "marketplace"],
+  "doc": { "type": "doc", "content": [
+    { "type": "blockquote", "content": [
+      { "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "한 줄 정의: " },
+        { "type": "text", "text": "\"내 운동을 가장 빠르게 기록하고, AI가 짜주고, 동료와 함께 지키며 — 그 기록이 만남과 수익으로 이어지는 근력 소셜 앱.\"" }
+      ] },
+      { "type": "paragraph", "content": [
+        { "type": "text", "text": "근거: BS-001(창업자 슈퍼앱 비전) + liftgram 경쟁분석·수익화 보고서(2026-07) + 현 구현 정합성 감사. 전략 결정: 슈퍼앱을 " },
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "한 번에 내지 않고" },
+        { "type": "text", "text": " 좁은 쐐기(여성·직장인 근력 입문자)에서 소셜 리텐션을 먼저 만들고, 매칭·크레딧 수수료로 수익을 단계적으로 얹는다(ADR-020)." }
+      ] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "문제 / 배경" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "순수 운동 기록은 상품화(commodity)됐다." },
+        { "type": "text", "text": " Hevy(1,000만+)·번핏·Strong이 무료로 잘 한다. 정면 클론만으로는 차별화 0." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "기능마다 전문 1등이 이미 있다." },
+        { "type": "text", "text": " 기록=Hevy, AI루틴=플랜핏(400만·2024 매출 50억·흑자), 소셜=Strava(1.8억), 파트너/운동온도=핏뷰, 코치 마켓=TrainHeroic(코치 정산 70%). '전 기능 평타 슈퍼앱'은 각 영역 1등에 밀린다." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "시장은 크지만 승자독식이다." },
+        { "type": "text", "text": " 글로벌 피트니스 앱 2025 약 129억$ → 2034 약 403억$(CAGR 13.5%), 카테고리 LTV 최고. 그러나 2025 신규 구독 앱 31%↑·신규 앱 중앙값 매출 22%↓ — 하나의 날카로운 진입점(쐐기)이 필수." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "네트워크 기능은 임계질량이 전부다." },
+        { "type": "text", "text": " 매칭·데이팅·마켓은 사용자가 많아야 작동한다. 피트니스 데이팅 단독 앱(Sweatt 등)은 대부분 소멸 — 데이팅은 독립 BM이 아니라 SNS 부가로만 유효." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "구조적 이탈." },
+        { "type": "text", "text": " 헬스앱 공통 D30 리텐션 3~10%. 코칭(뭘 할지)은 풀려도 '왜 계속하는지'(능동적 책임감)는 누구도 못 품었다." }
+      ] }] }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "빈칸(우리가 노리는 것): " },
+      { "type": "text", "text": "① '기록→소셜→오프라인 만남→크레딧 수익'으로 이어지는 전환 사슬(어떤 경쟁자도 통째로 못 가진 결합), ② 여성·직장인 입문자라는 순풍 시장에서의 커뮤니티 밀도, ③ 검증된 데이터에 기반한 신뢰(인스타 자랑이 못 하는 축)." }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 비목표" }] },
+    { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "목표" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "G1 코어(완성): " },
+        { "type": "text", "text": "Hevy 수준의 빠른 근력 로깅·루틴·분석·소셜 코어. 진입장벽 0(무료·무광고)." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "G2 쐐기 차별화: " },
+        { "type": "text", "text": "여성·직장인 입문자용 입문 친화 AI 루틴 + 능동적 책임감 루프(메이트·챌린지·결석케어) — D30 리텐션 엔진(현 최대 공백)." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "G3 양면 네트워크: " },
+        { "type": "text", "text": "버디/파트너 매칭 + 헬스장 위치 매칭 마켓플레이스(B2B 리드·광고) — 로컬 공급자 축, 조기 흑자 지름길." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "G4 내부 경제: " },
+        { "type": "text", "text": "크레딧 순환(P2P 피드백·멘토링 계약·파트너 정산) + 유료 번개 + 착용장비 어필리에이트 + 운동 인증·등급·운동온도(신뢰·게이미피케이션)." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "G5 수익·성장: " },
+        { "type": "text", "text": "무료 우선(freemium)으로 소셜을 키우고, 헬스장 B2B + 프리미엄 + 크레딧 수수료 합산으로 월 BEP(3,000만~5,000만 원) 도달. SEO 유입." }
+      ] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "비목표 (의도적으로 안 함)" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "식단/영양 루틴 — 비목표 유지(장기 후보). " },
+        { "type": "text", "text": "근력 니치 집중(Hevy 교훈)·의료기기벽 회피. '칼로리/체중감량' 의료성 카피 금지(웰니스 한정, SRS-015)." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "데이팅 단독 BM 금지. " },
+        { "type": "text", "text": "데이트 매칭은 SNS 부가 기능으로만(독립 마케팅 금지) — 피트니스 데이팅 무덤의 교훈." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "의료기기 영역 비목표. " },
+        { "type": "text", "text": "진단·치료·질병개선 표방 금지 → 웰니스 포지션(ADR-006)." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "광고 모델 전면 채택 안 함. " },
+        { "type": "text", "text": "Hevy '무광고' 강점 훼손·해자 상충. 헬스장 B2B 광고/리드는 예외(공급자 대상)." }
+      ] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "페르소나" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P1 — 여성·직장인 근력 입문자 (쐐기 1급 타깃, URS-011): " },
+        { "type": "text", "text": "정보 부족·남성 위주 공간의 심리적 벽·파트너 부재·시간 부족. 여성 근력은 순풍 시장." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P2 — 중급 '기록러' (코어, URS-001): " },
+        { "type": "text", "text": "빠른 로깅·진척 그래프·PR·직전기록. Hevy/Strong 사용자." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P3 — '혼자선 못 버티는 사람' (책임감 루프, URS-005): " },
+        { "type": "text", "text": "같은 목표 동료·챌린지·결석 케어가 있어야 지속." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P4 — 트레이너/크리에이터 (공급, URS-009·URS-013): " },
+        { "type": "text", "text": "루틴·코칭·피드백을 공급하고 사용량 기반 공정 수익·크레딧 정산을 원함." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P5 — 헬스장 운영자 (공급, URS-012): " },
+        { "type": "text", "text": "지금 운동하려는 실수요 리드·신규 노출을 원함(B2B). 조기 현금흐름원." }
+      ] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "전략 — 단계적 확장 (쐐기 → 네트워크 → 경제)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "보고서 권고에 따라 전 기능 동시 출시를 지양하고 3단계로 확장한다(정식 결정 ADR-020). 각 단계는 다음 단계의 전제(리텐션→공급→경제)를 만든다." }
+    ] },
+    { "type": "table", "content": [
+      { "type": "table_row", "content": [
+        { "type": "table_header", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "단계" }] }] },
+        { "type": "table_header", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "핵심(무엇을 짓나)" }] }] },
+        { "type": "table_header", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "요구/로드맵" }] }] },
+        { "type": "table_header", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "목표 지표" }] }] }
+      ] },
+      { "type": "table_row", "content": [
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "P1 쐐기 (0~6mo)" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "여성·직장인 입문 AI루틴 + 기록 + 헬스 SNS + 책임감 루프(메이트·챌린지·결석케어)" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "URS-001/002/003/004/005/011, SRS-001~013/027, RM-001~004/008" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "DAU·D30(그룹코호트 ≥25%)·무료성장(수익 후순위)" }] }] }
+      ] },
+      { "type": "table_row", "content": [
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "P2 네트워크 (6~15mo)" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "버디/파트너 매칭 + 약속 캘린더 + 헬스장 매칭·광고(B2B) + 프리미엄 구독 + 인증·등급·운동온도" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "URS-012/014/015, SRS-021/022/024/025, RM-009/011/012" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "헬스장 온보딩 수·매칭 성사·구독 전환·조기 현금흐름" }] }] }
+      ] },
+      { "type": "table_row", "content": [
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "P3 경제 (15mo~)" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 시스템(피드백→멘토링→파트너 정산) + 유료 번개 + 어필리에이트 커머스 + 데이팅(SNS 부가)" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "URS-013, SRS-023/026, RM-010/013 (+SRS-014/016 수익화·정산)" }] }] },
+        { "type": "table_cell", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 순환량·정산 GMV·수수료 매출" }] }] }
+      ] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "핵심 차별화 가설 (플라이휠)" }] },
+    { "type": "code_block", "attrs": { "lang": "text" }, "content": [{ "type": "text", "text": "여성·직장인 좁은 쐐기 진입 (순풍 시장)\n  → 입문 AI루틴이 '오늘 뭘 할지' 마찰 제거\n  → 검증된 기록 → 앱 안 소셜 자랑(되돌아오는 관문 공유)\n  → 책임감 루프(메이트·챌린지·결석케어) = 리텐션 엔진\n  → 버디/번개(오프라인 만남) + 헬스장 매칭(양면 네트워크)\n  → 크레딧 경제(피드백·멘토링) — 벌 수 있어 공급이 는다\n  → 트레이너·헬스장 관객·수입 증가 → 좋은 콘텐츠·리드 → 다시 유입" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "두 축이 리텐션과 매출을 동시에 만든다: (1) 수수료가 흐르는 내부 경제(크레딧 순환), (2) 오프라인 만남으로 이어지는 소셜 그래프. Hevy의 바퀴는 '인스타에 사진 한 장'에서 끊긴다(ADR-019)." }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수익 모델 (다중 수익원)" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "헬스장 매칭 수수료·광고(B2B) — 검증도 높음(배민형). 조기 흑자 지름길. 단 공급 확보 선결·소상공인 광고비 저항(SRS-021/022)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "프리미엄 구독(고급 분석·AI 심화·무제한 매칭) — 검증도 매우 높음. 웹 MoR 수금(전세계 소비세, ADR-013/SRS-014)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧(멘토링·피드백·번개) — 차별화 핵심. 플랫폼 수수료 15~30%(TrainHeroic 상한 참고). 결제·정산·세무 복잡(SRS-023/016)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "착용장비 어필리에이트 — 인플루언서 트래픽 필요, 초기 기여 작음(SRS-026)." }] }] }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "BEP(보고서 추정): " },
+      { "type": "text", "text": "소규모 팀 월 고정비 ~3,000만 원 기준 유료 2,000~6,000명 또는 MAU 7만~20만. 구독 단독보다 '헬스장 B2B + 구독 + 크레딧' 합산이 현실적. 헬스장 광고 월 10만 원 × 300개 = 월 3,000만 원이면 구독 없이도 고정비 커버 가능." }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "성공 지표 (가설)" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "세트 로깅 마찰: 1건 ≤ 3탭" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "D30 리텐션: 업계 3~10% → 그룹 가입 코호트 ≥ 25%(책임감 루프 가설)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "입문 AI 프로그램 4주 완주율 ≥ 40%" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "그룹당 주간 활성 멤버 ≥ 60% · SEO 유입 신규의 ≥ 50%" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "공유당 유입·가입 전환(되돌아오는 관문)·트레이너 도달(ADR-019 지표)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "무료→프리미엄 전환 업계 중앙값 초과(트라이얼→유료 중앙값 ~40% 참고)" }] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "리스크" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "콜드스타트/임계질량 — 매칭·SNS·마켓 모두 네트워크 기능. 좁은 그룹부터 밀도 확보." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "기능 과잉 — 동시 7기능은 개발·운영비 폭증·1등 품질 미달. 단계적 확장으로 완화." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "공급자 확보 — 헬스장 온보딩(영업)·크리에이터 유치 없으면 매칭·크레딧 공회전." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "정산·규제 — 크레딧 현금 정산은 전자금융·세무·환불. 데이팅/오프라인 만남은 안전·성범죄 리스크(ADR-022/023)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "AI·영상 비용 — 챗봇·영상 피드는 사용자당 원가↑. 캐싱·압축·CDN으로 절감." }] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "현 구현 정합성 (2026-07 감사)" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "구현됨: 운동 기록(세트·PR·볼륨)·인스타형 SNS(피드·팔로우·DM·스토리·탐색·모더레이션, 사진)·계정/싱크·푸시·i18n. 보고서 P1 쐐기의 상당 부분." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "부분: AI 프로그램(규칙기반·LLM 미연동)·점진과부하 라이프사이클·오운완/기구필터·동의관리 UI·미디어 영상." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "미구현(우선 공백): " }, { "type": "text", "text": "능동적 책임감 루프(SRS-011 — PRD가 '진짜 해자'로 규정) → P1에서 최우선. 자동 카운팅·수익화·트레이너 정산은 로드맵대로 후순위." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "기획 공백(신설): 헬스장 매칭·크레딧 경제·오프라인 만남·인증/운동온도·어필리에이트 — 이번 재정렬에서 URS/UCS/SRS/SAD/ADR/RM 발급." }] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "후속" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "요구사항 발급: /plan:requirement (URS-011~015 · UCS-012~016 · SRS-021~027). 설계: /plan:design(SAD-014~018). 결정: /plan:decision(ADR-020~024). 추적: /plan:trace. 로드맵: RM-009~013 + 기존 RM 단계 재정렬." }
+    ] }
+  ] }
+}

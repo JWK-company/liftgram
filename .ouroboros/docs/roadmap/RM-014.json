@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-014",
+  "type": "Roadmap",
+  "title": "P1 쐐기 — 여성·직장인 입문자 온보딩·안전 (커뮤니티 밀도)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "phase": "Phase 1 — Wedge",
+  "target": "2026-12-31",
+  "road_status": "Active",
+  "tags": ["wedge", "women", "beginner", "safety"],
+  "relations": { "covers": ["URS-011", "SRS-027"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 범위" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "여성·직장인 근력 입문자를 겨냥한 입문 온보딩·안전(여성 우선 매칭·검증 배지·안심 기능)으로 좁은 쐐기의 커뮤니티 밀도를 먼저 완성한다(ADR-020). 기존 P1 코어(RM-001~004·RM-008: 기록·AI루틴·소셜·책임감 루프)와 결합해 지역 1~2곳에 집중. 단계: Phase 1(쐐기), 목표 2026-12-31, road_status Active." }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "마일스톤" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "입문 온보딩(목표·가용시간·장비)→입문 AI 루틴·자세 안내(URS-011)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "여성 우선/전용 매칭 필터·검증 배지·차단/신고·안심 기능(SRS-027)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "직장인 틈새 루틴(시간·위치)·지역 밀도 시드 + 책임감 루프(SRS-011) 결합" }] }] }
+    ] }
+  ] }
+}

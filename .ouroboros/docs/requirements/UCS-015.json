@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-015",
+  "type": "UCS",
+  "title": "사용자가 버디·번개를 잡고 약속 캘린더로 관리하며 노쇼가 반영된다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["meetup", "buddy", "calendar"],
+  "relations": { "elaborates": ["URS-014"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "주 흐름" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 시간대·위치·목표 조건으로 버디/파트너를 매칭받거나, 피드에서 관심 상대에게 함께 운동을 신청한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "상대가 수락하면 약속(장소·시간)이 잡히고 캘린더에 등록·리마인드된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "인플루언서 유료 번개는 공지→신청→결제→정원 확정으로 진행되고 플랫폼이 수수료를 취한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "만남 후 상호 매너 평가가 반영되고, 노쇼는 운동온도·평판을 깎는다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "대안 / 예외 흐름" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "취소/노쇼 정책: 사전 취소는 페널티 완화, 무단 노쇼는 운동온도 하락·유료 번개 환불 규칙 적용." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "오프라인 만남 안전: 검증 배지·신고·차단, 여성 안심 옵션, 첫 만남 공개장소 권고(ADR-023)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "데이트 매칭은 SNS 부가 경로로만 노출하며 독립 탐색 UI로 강조하지 않는다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사전 / 사후 조건" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "사전: 매칭 후보 또는 유료 번개 공지. 사후: 약속이 캘린더에 남고 이행/노쇼가 운동온도(SRS-025)에 반영된다." }] }
+  ] }
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-010",
+  "type": "Roadmap",
+  "title": "P3 경제 — 크레딧 시스템·멘토링·파트너 정산",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "phase": "Phase 3 — Economy",
+  "target": "2027-12-31",
+  "road_status": "Planned",
+  "tags": ["credit", "mentoring", "payout"],
+  "relations": { "covers": ["URS-013", "SRS-023"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 범위" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 경제(충전→피드백→멘토링 계약→파트너 현금 정산)를 규제 준수 전제로 단계적으로 연다(ADR-022). 정산·세무 인프라는 트레이너 수익배분(SRS-016/SAD-013)을 재사용한다. 단계: Phase 3(경제), 목표 2027-12-31, road_status Planned." }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "마일스톤" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 원장·충전(웹 MoR)·에스크로 — 앱내 소비 우선" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "일회성 피드백·멘토-멘티 계약(온라인 PT 구독)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "파트너 인증·현금 정산·세무 처리(규제 정비 후)·어뷰징 방지" }] }] }
+    ] }
+  ] }
+}

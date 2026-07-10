@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-024",
+  "type": "SRS",
+  "title": "오프라인 만남 — 버디/파트너 매칭·유료 번개·약속 캘린더",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "kind": "FR",
+  "acceptance_criteria": "조건 기반 버디/파트너 매칭·유료 번개 공지→신청→결제→수수료·약속 캘린더·노쇼 반영이 안전장치와 함께 동작한다",
+  "tags": ["meetup", "buddy", "calendar", "offline"],
+  "relations": { "derives_from": ["URS-014", "URS-005"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "시스템은 경력·스타일·목표·시간대·위치 기반 버디/파트너 매칭과 오프라인 함께 운동 약속을 지원하고, 잡힌 약속을 캘린더로 관리(리마인드)한다. 인플루언서의 유료 번개(공지→신청→결제→정원 확정, 플랫폼 수수료)를 제공하며, 데이트 매칭은 " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "SNS 부가 경로로만" },
+      { "type": "text", "text": " 노출한다(독립 BM 아님). 사회적 약속의 무게(노쇼가 평판을 깎음)는 리텐션 장치로 작동한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "조건 기반 버디/파트너 매칭이 동작하고 수락 시 약속이 캘린더에 등록·리마인드된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "유료 번개 공지→신청→결제→수수료 흐름이 최소 1경로로 동작한다(결제 P3)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "취소/노쇼 정책이 적용되고 이행/노쇼가 운동온도(SRS-025)에 반영된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "오프라인 만남 안전(검증 배지·신고·차단·여성 안심)이 보장되고 데이트 매칭은 부가 경로로만 노출된다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "도출 URS: URS-014(오프라인 만남), URS-005(책임감 지속). 관련: SRS-017(DM 조율), SRS-011(책임감 루프), SRS-025(운동온도), SRS-027(안전), ADR-023(만남 안전 정책), SAD-016." }] }
+  ] }
+}

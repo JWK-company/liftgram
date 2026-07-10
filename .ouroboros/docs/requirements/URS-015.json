@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-015",
+  "type": "URS",
+  "title": "사용자로서 검증된 성취를 등급·운동온도로 인정받고 신뢰를 쌓고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "stakeholder": "성취 인정·신뢰(평판)를 원하는 사용자",
+  "priority": "Medium",
+  "tags": ["verification", "grade", "temperature", "gamification", "trust"],
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "배경 / 이해관계자" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "인스타그램의 운동 자랑은 진위를 알 수 없다. 실제로 기록된 데이터(진짜 세트·무게·PR)에 기반한 '인증된 진짜 성취'는 인스타가 못 하는 다른 종류의 콘텐츠 축이다(ADR-019). 핏뷰의 '버디 온도'(약속이행·집중·매너 평가)와 올웨이즈식 게임화(VS 경쟁)는 이미 국내에서 검증 중이므로, '세계 최초'가 아니라 " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "더 나은 실행" },
+      { "type": "text", "text": "으로 승부해야 한다(보고서 §2.1). 등급·운동온도는 리텐션 게임화이자 오프라인 만남 안전의 신뢰 자산이다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자는 위치 기반으로 운동을 인증하고, 수행능력·성실성 등 지표에 따라 등급을 부여받기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "원하는 상대와 일정 기간 VS 구도로 경쟁(올웨이즈 식물키우기식)할 수 있기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "같이 운동한 사람끼리 매너를 평가해 '운동온도' 게이지로 신뢰를 표시(당근식)하기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검증된 완주율·성과·후기가 앱 안 이력으로 쌓여 신규 상대가 그걸 보고 신뢰하기를 원한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치/기록 기반 운동 인증이 동작하고 등급이 산정·표시된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "VS 챌린지 개설·참여·판정이 최소 1경로로 동작한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "상호 매너 평가가 운동온도 게이지로 집계·표시되고 노쇼가 반영된다(웰니스 가드레일 준수 — 진단성 평가 아님)." }] }] }
+    ] }
+  ] }
+}
