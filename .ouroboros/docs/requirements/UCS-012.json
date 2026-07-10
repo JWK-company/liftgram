@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-012",
+  "type": "UCS",
+  "title": "여성 입문자가 안심 온보딩 → 첫 AI 루틴 → 버디 매칭으로 습관을 만든다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["wedge", "women", "onboarding"],
+  "relations": { "elaborates": ["URS-011"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "주 흐름" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "가입 후 입문 온보딩에서 성별·목표(입문 근력)·경력·가용 시간·위치·장비를 입력한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "시스템이 입문 친화 AI 루틴(짧은 시간·자세 영상 안내)을 생성하고 사용자가 조정·채택한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "첫 세션을 수행·기록하고, 여성 우선 필터로 같은 목표의 버디/멘토를 추천받는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "그룹/챌린지에 가입해 책임감 루프(결석 케어)로 습관을 이어간다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "대안 / 예외 흐름" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "여성 우선 매칭 후보가 부족하면 그룹 우선 노출로 대체하고, 불편 상대는 차단·신고할 수 있다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "가용 시간이 매우 짧으면 '30~40분 틈새 루틴'으로 축약 생성한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "AI 루틴은 웰니스 가드레일을 통과해야 하며(진단·치료 표방 금지), 실패 시 기본 템플릿 루틴으로 폴백한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사전 / 사후 조건" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "사전: 계정 생성. 사후: 채택된 루틴·첫 기록·버디/그룹 연결 중 최소 하나가 확보되어 재방문 동기가 생긴다." }] }
+  ] }
+}

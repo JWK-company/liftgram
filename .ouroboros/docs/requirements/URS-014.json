@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-014",
+  "type": "URS",
+  "title": "사용자로서 동료와 오프라인에서 만나 함께 운동하고 약속을 관리하고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "stakeholder": "오프라인 만남·버디 운동을 원하는 사용자 및 인플루언서",
+  "priority": "Medium",
+  "tags": ["meetup", "buddy", "calendar", "offline"],
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "배경 / 이해관계자" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "오프라인 만남(파트너 매칭·번개)으로 이어지는 소셜 그래프는 리텐션과 매출을 동시에 만드는 축이다(보고서 §3.1). 사회적 약속의 무게(누군가와 하기로 함 → 노쇼가 평판을 깎음)는 '안 나갈 수 없게' 만드는 리텐션 장치다. 데이트 매칭은 " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "SNS 부가 기능으로만" },
+      { "type": "text", "text": " 유효하며(피트니스 데이팅 단독 앱 무덤의 교훈), 독립 BM으로 취급하지 않는다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자는 경력·스타일·목표·시간대·위치 기반으로 함께 운동할 버디/파트너를 매칭받기를 원한다('오늘 저녁 강남서 7시')." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시물을 보고 관심 대상에게 함께 운동하자고 신청·수락(데이트 매칭은 SNS 부가)할 수 있기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "인플루언서는 '유료 번개 미팅'을 공지하고 팔로워가 비용을 내고 신청하며, 플랫폼이 수수료를 취하기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "잡힌 약속을 캘린더로 관리하고, 노쇼·이행이 평판(운동온도)에 반영되기를 원한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "조건 기반 버디/파트너 매칭이 동작하고 약속이 캘린더에 기록된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "유료 번개 공지→신청→결제→수수료 흐름이 최소 1경로로 동작한다(결제는 P3)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "노쇼/이행이 운동온도·평판(SRS-025)에 반영되고, 안전(신고·차단·검증)이 보장된다." }] }] }
+    ] }
+  ] }
+}

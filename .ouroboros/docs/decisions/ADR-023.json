@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-023",
+  "type": "ADR",
+  "title": "오프라인 만남 안전·신뢰 정책 — 데이팅은 SNS 부가로만·여성 안심·검증 우선",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["safety", "meetup", "dating", "policy"],
+  "relations": { "informs": ["SAD-016", "SRS-024", "SRS-027"], "supersedes": null },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "오프라인 만남(버디·번개·데이트)은 리텐션·매출을 만드는 소셜 그래프의 핵심이나, 만남 앱의 생명은 안전이다. 피트니스 데이팅 단독 앱(Sweatt 등)은 대부분 임계질량 실패로 소멸했고, 오프라인 만남은 성범죄·미성년·개인정보 리스크가 크다. 여성·입문자는 심리적 안전장치가 없으면 진입하지 않는다(쐐기 페르소나의 핵심 장벽)." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "데이트 매칭은 독립 BM·독립 탐색 UI로 만들지 않고 SNS 부가 경로로만 노출한다(독립 마케팅 금지). 오프라인 만남 전 표면에 안전·신뢰를 내장한다: 검증 배지(본인·성별·완주 이력), 여성 우선/전용 매칭 필터, 차단·신고(ADR-017), 첫 만남 공개장소 권고·위치 최소 공유·미성년 제한, 노쇼→운동온도 하락. 신뢰는 검증된 데이터(등급·운동온도, SRS-025)로 뒷받침한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "채택 이유: 데이팅을 SNS 트래픽에 얹어야 임계질량 무덤을 피한다. 안전·검증은 여성 쐐기 진입의 전제이자 오프라인 만남의 신뢰 자산." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검토한 대안 ① 데이팅 전면 강조(독립 매칭 UI) — 무덤 리스크·정체성 희석·안전 부담 → 기각. ② 만남 기능 전면 배제 — 오프라인 소셜 그래프(핵심 해자) 포기 → 기각. ③ 연락처만 열고 방치 — 안전·이탈 리스크 → 기각(코칭 작업실화·머무는 가치로 이김, ADR-019 정합)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "장점: 안전·신뢰로 여성·입문자 진입 장벽 완화, 데이팅 무덤 회피. 트레이드오프: 검증·모더레이션·안전 기능의 운영 부담 증가. 되돌림 비용: 낮음 — 노출 정책·필터는 조정 가능하나, 안전 사고는 브랜드에 치명적이라 보수적으로 설계한다." }
+    ] }
+  ] }
+}

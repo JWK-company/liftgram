@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-011",
+  "type": "URS",
+  "title": "여성·직장인 근력 입문자로서 진입장벽 없이 안전하게 시작하고 지속하고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "stakeholder": "여성·직장인 근력 입문자(P1 — 쐐기 1급 타깃)",
+  "priority": "High",
+  "tags": ["wedge", "women", "beginner", "safety"],
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "배경 / 이해관계자" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "여성 근력 운동은 급성장하는 순풍 시장이며(EvolveYou·WeGLOW·Fitbod 부상), 앱 트래픽 확대 관점에서 오히려 여성 사용자가 리딩할 수 있다. 그러나 입문자의 최대 장벽은 " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "정보 부족 + 남성 위주 공간의 심리적 벽 + 파트너 부재" },
+      { "type": "text", "text": " 다. 직장인은 여기에 시간 부족·불규칙 스케줄이 겹친다. 이 페르소나에서 밀도 높은 로컬 커뮤니티를 먼저 완성하는 것이 전체 전략의 쐐기다(보고서 §3.3·3.4·7)." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "입문자는 무엇을 어떻게 할지 몰라도 '입문 근력' 루틴과 자세 안내로 첫 운동을 마칠 수 있기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "여성 사용자는 여성 우선/전용 매칭·멘토, 익명·차단·검증 배지 등 심리적 안전장치가 있기를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "직장인은 '30~40분 오피스 근처·퇴근 후' 등 시간·위치에 맞는 짧은 루틴과 틈새 운동 설계를 원한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "혼자 시작해도 같은 목표의 동료·버디로 이어져 지속 동기를 얻기를 원한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "입문 온보딩에서 목표·경력·가용시간·장비를 받아 입문 친화 루틴이 생성된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "여성 우선 매칭 필터·안심 기능(검증 배지·차단·신고)이 제공된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "시간·위치 조건에 맞는 짧은 루틴/버디 추천이 최소 1개 경로로 동작한다." }] }] }
+    ] }
+  ] }
+}

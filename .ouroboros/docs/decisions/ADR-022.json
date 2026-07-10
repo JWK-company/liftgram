@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-022",
+  "type": "ADR",
+  "title": "크레딧 경제 도입 + 전자금융·세무 규제 대응 (정산은 SAD-013 재사용, 단계적 개방)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["credit", "economy", "regulation", "policy"],
+  "relations": { "informs": ["SAD-015", "SRS-023"], "supersedes": null },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "크레딧 순환(피드백·멘토링·번개·파트너 정산)은 보고서가 지목한 진짜 차별화 축이지만, 크레딧을 현금으로 정산하는 순간 전자금융거래법(선불전자지급수단)·세무(원천징수·연말 서류)·환불·머니세탁 리스크가 발생한다. 검증도는 중간이고 결제·정산·세금 처리가 가장 복잡한 표면이다(보고서 §4)." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "크레딧 경제를 도입하되 P3에서, 규제 준수를 전제로 단계적으로 개방한다. 크레딧 이동은 이중기입 원장으로 기록하고 P2P 거래는 에스크로로 보호한다. 충전은 웹 MoR(ADR-013), 현금 정산은 트레이너 수익배분(SRS-016/SAD-013)의 글로벌 payout·원천징수·세무 파이프라인을 재사용한다. 플랫폼 수수료는 15~30% 범위(TrainHeroic 30% 상한 참고), 파트너 인증(신원·계좌·세금양식) 완료자만 정산 가능."
+      }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "채택 이유: 크레딧은 '벌 수 있어서' 공급(콘텐츠·코칭)을 늘리는 구조라 리텐션·공급을 동시에 만든다. 기존 정산 인프라(SAD-013) 재사용으로 선투자 없이 거래가 날 때만 비용이 난다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검토한 대안 ① 크레딧 없이 순수 구독 — 차별화·공급 유인 약화 → 기각. ② 즉시 전면 현금화 — 전자금융업 등록·규제 부담 조기 발생 → 단계적 개방으로 완화. ③ 폐쇄형 포인트(현금화 불가) — 파트너 유인 소멸 → 부분 채택(초기엔 앱내 소비만, 정산은 인증·규제 정비 후)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "장점: 내부 경제로 리텐션·공급 동시 확보, 정산 인프라 재사용. 트레이드오프: 전자금융·세무·환불 컴플라이언스 부담, 자전거래 어뷰징 방지 필요(SAD-015 AbuseGuard). 되돌림 비용: 중간~높음 — 현금 정산을 연 뒤 축소하면 파트너 신뢰가 훼손되므로 개방 시점을 규제 정비와 맞춰야 한다." }
+    ] }
+  ] }
+}

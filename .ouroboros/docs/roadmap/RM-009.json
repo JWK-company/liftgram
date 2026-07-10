@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-009",
+  "type": "Roadmap",
+  "title": "P2 네트워크 — 헬스장 위치 매칭 마켓플레이스·B2B (조기 흑자)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "phase": "Phase 2 — Network",
+  "target": "2027-06-30",
+  "road_status": "Planned",
+  "tags": ["marketplace", "gym", "b2b"],
+  "relations": { "covers": ["URS-012", "SRS-021", "SRS-022"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 범위" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "위치 기반 헬스장 매칭 마켓플레이스와 B2B 광고·리드를 열어 로컬 공급자 축과 조기 현금흐름을 만든다. 수수료 우선순위 + 신규 헬스장 노출 보장(ADR-021)으로 공급 유지와 수익을 동시에 잡는다. 단계: Phase 2(네트워크), 목표 2027-06-30, road_status Planned." }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "마일스톤" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "헬스장 등록·공급자 온보딩 + 지오 조건 매칭(SRS-021)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "수수료 우선순위 + 신규 노출 보장 랭킹·리드 파이프라인" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "광고 게재·성과 대시보드·소액 진입 옵션(SRS-022)" }] }] }
+    ] }
+  ] }
+}

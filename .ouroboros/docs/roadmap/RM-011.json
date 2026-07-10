@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-011",
+  "type": "Roadmap",
+  "title": "P2 네트워크 — 오프라인 만남·버디 매칭·유료 번개·약속 캘린더",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "phase": "Phase 2 — Network",
+  "target": "2027-08-31",
+  "road_status": "Planned",
+  "tags": ["meetup", "buddy", "calendar"],
+  "relations": { "covers": ["URS-014", "SRS-024", "SRS-027"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 범위" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "버디/파트너 매칭·약속 캘린더·유료 번개로 오프라인 만남 소셜 그래프를 연다. 안전·여성 안심(SRS-027)과 데이팅=SNS 부가 한정(ADR-023)을 전제로 한다. 유료 번개 결제는 P3 크레딧/구독과 연계. 단계: Phase 2(네트워크), 목표 2027-08-31, road_status Planned." }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "마일스톤" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "조건(시간대·위치·목표·여성 우선) 버디/파트너 매칭 + 안전 가드(SRS-027)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "약속 제안·수락·캘린더·리마인드·노쇼→운동온도 반영" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "인플루언서 유료 번개(공지→신청→결제→수수료) + 데이팅 SNS 부가 노출" }] }] }
+    ] }
+  ] }
+}

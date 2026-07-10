@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-014",
+  "type": "UCS",
+  "title": "사용자가 크레딧으로 일회성 피드백·멘토링을 요청하고 파트너가 정산받는다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["credit", "mentoring", "payout"],
+  "relations": { "elaborates": ["URS-013"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "주 흐름" }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 크레딧을 충전한다(웹 MoR 결제, ADR-013 정합)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "동료/전문가의 프로필에서 일회성 피드백을 크레딧으로 요청하고, 상대가 피드백을 제공하면 크레딧이 이체된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "만족 시 멘토-멘티 계약(기간형 온라인 PT)으로 발전 — 멘토가 프로그램을 배정하고 멘티가 기록, 멘토가 데이터로 조정한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "파트너(수익화 인증 완료) 유저가 모은 크레딧을 현금으로 정산 요청하면 플랫폼이 수수료 차감·세무 처리 후 지급한다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "대안 / 예외 흐름" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "피드백 미이행·분쟁 시 크레딧을 에스크로에서 환불하거나 중재한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "정산은 파트너 인증(신원·계좌·세금양식) 완료자에게만 허용하고, 어뷰징(자전거래)을 탐지·차단한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 현금화는 전자금융·세무 규제 준수 범위에서만 개방한다(ADR-022)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사전 / 사후 조건" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "사전: 크레딧 잔액 + (정산 시) 파트너 인증. 사후: 크레딧 원장에 이체가 이중기입으로 기록되고 정산 근거가 투명하게 남는다." }] }
+  ] }
+}

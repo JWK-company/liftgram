@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-025",
+  "type": "SRS",
+  "title": "운동 인증·등급·VS 챌린지·운동온도 (매너온도)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "kind": "FR",
+  "acceptance_criteria": "위치/기록 기반 인증·등급 산정·VS 챌린지·상호 매너 평가(운동온도)가 어뷰징 방지·웰니스 범위로 동작한다",
+  "tags": ["verification", "grade", "versus", "temperature", "gamification"],
+  "relations": { "derives_from": ["URS-015", "URS-005"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "시스템은 위치/기록 기반 운동 인증(오운완), 수행능력·성실성 지표에 따른 등급 산정, 원하는 상대와의 기간형 VS 챌린지, 함께 운동한 사람 간 상호 매너 평가에 따른 운동온도(당근식 매너온도) 게이지를 제공한다. 검증된 데이터에 기반해 '인증된 진짜 성취'라는 콘텐츠 축을 만들고, 등급·운동온도는 리텐션 게임화이자 오프라인 만남 신뢰 자산이 된다. 핏뷰의 '버디 온도'가 선점한 영역이므로 '더 나은 실행'과 어뷰징 방지가 관건이다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치/기록 기반 인증이 동작하고 등급이 산정·프로필 표시된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "VS 챌린지 개설·참여·검증 판정이 최소 1경로로 동작한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "상호 매너 평가가 운동온도로 집계·표시되고 노쇼가 반영된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "인증 위조·보복 저평가 등 어뷰징 방지가 동작하고, 평가는 웰니스 범위(수행·매너)로 한정된다(진단성 아님)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "도출 URS: URS-015(성취 인정·신뢰), URS-005(지속). 관련: SRS-013(오운완 인증), SRS-011(책임감), SRS-024(만남 신뢰), SRS-015(웰니스 가드레일), ADR-024, SAD-017." }] }
+  ] }
+}

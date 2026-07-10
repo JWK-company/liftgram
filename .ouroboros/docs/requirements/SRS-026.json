@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-026",
+  "type": "SRS",
+  "title": "착용장비 어필리에이트 커머스 (피드 태그 → 구매 → 수수료)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "kind": "FR",
+  "acceptance_criteria": "피드 게시물의 착용장비 태그→구매 페이지 딥링크→수수료 트래킹·정산이 동작한다",
+  "tags": ["affiliate", "commerce", "monetization"],
+  "relations": { "derives_from": ["URS-009", "URS-003"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "시스템은 사용자가 피드/스토리를 올릴 때 '오늘의 착용장비'(리스트랩·헤어밴드·벨트·스트랩 등)를 옵션으로 입력·태그하고, 이를 본 사람이 태그를 눌러 구매 페이지로 이동(쿠팡파트너스식 딥링크)하면 수수료를 획득하는 어필리에이트 커머스를 제공한다. 인플루언서·후원 업체 트래픽이 있어야 유의미하므로 SNS 임계질량 이후(P3) 작동하는 보조 수익원이다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시물에 장비 태그를 달고 구매 딥링크를 연결할 수 있다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "태그 클릭→외부 구매→전환/수수료가 트래킹·정산된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "광고성 표시(대가성 고지) 등 규정 준수 라벨이 노출된다." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "도출 URS: URS-009(크리에이터 수익), URS-003(소셜 피드). 관련: SRS-019(미디어 게시물), SRS-014(수익화), SAD-018(어필리에이트 아키텍처)." }] }
+  ] }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-024",
+  "type": "ADR",
+  "title": "인증·운동온도 게이미피케이션 — 검증된 데이터 축 + '더 나은 실행'으로 핏뷰 대응",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "tags": ["verification", "temperature", "gamification", "policy"],
+  "relations": { "informs": ["SAD-017", "SRS-025"], "supersedes": null },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "인증·등급·VS·운동온도는 리텐션 게임화이자 오프라인 만남의 신뢰 자산이다. 그러나 핏뷰의 '버디 온도'(약속이행·집중·매너 평가)가 국내에서 이미 구현·검증 중이라 '세계 최초'가 아니다. 또한 인스타의 운동 자랑은 진위를 알 수 없어, 우리는 검증된 데이터라는 다른 축이 필요하다. 운동온도는 진단성 평가로 오해되면 웰니스 포지션(ADR-006)과 충돌한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "인증은 실제 기록(세트·무게)과 위치 신호에 근거한 '인증된 진짜 성취'로 설계하고, 등급·운동온도는 append-only 평판 원장으로 위조·보복 저평가를 방지한다. 핏뷰 대비 '세계 최초'가 아니라 '더 나은 실행'(검증된 데이터 연동·어뷰징 방지·매칭 신뢰 통합)으로 승부한다. 모든 지표는 웰니스 범위(수행·매너)로 한정하고 건강 진단성 평가는 배제한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "채택 이유: 검증된 성취는 인스타가 못 하는 콘텐츠 축이고, 운동온도는 노쇼 억제·오프라인 만남 신뢰·리텐션 게임화를 동시에 준다. 매칭(SAD-014/016)의 신뢰 입력으로 재사용된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검토한 대안 ① 등급·온도 미도입 — 만남 신뢰·게임화 리텐션 상실 → 기각. ② 자기신고 인증만 — 진위 불명·인스타와 차별화 실패 → 기각. ③ 건강 점수화(진단성) — 의료기기벽 리스크 → 금지(웰니스 한정)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "장점: 검증된 데이터라는 방어 가능한 축 + 만남 신뢰·게임화. 트레이드오프: 위치 인증 위조·평가 어뷰징 방지 설계 비용, 평판 원장 운영 부담. 되돌림 비용: 낮음~중간 — 지표 가중은 조정 가능하나 평판 데이터는 초기 스키마(운동온도·검증 이력)를 잘 잡아야 사후 비용이 낮다." }
+    ] }
+  ] }
+}

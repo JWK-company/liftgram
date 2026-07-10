@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-016",
+  "type": "SAD",
+  "title": "오프라인 만남 아키텍처 (버디/파트너 매칭·유료 번개·약속 캘린더·만남 안전)",
+  "status": "Draft",
+  "owner": "Architecture",
+  "product": "health-practice",
+  "created": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-10T05:53:26Z",
+  "sync": true,
+  "component": "Offline Meetup & Buddy Matching",
+  "tags": ["meetup", "buddy", "calendar", "safety"],
+  "relations": { "refs": ["SRS-024", "SRS-027"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "개요 (Summary)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "경력·시간대·위치·목표 기반 버디/파트너 매칭, 유료 번개, 약속 캘린더, 오프라인 만남 안전을 잇는 meetup 모듈이다. 매칭은 프로필·운동온도(SAD-017)·안전 필터(SRS-027)를 입력으로 하고, 약속은 캘린더에 등록·리마인드되며, 유료 번개 결제는 SAD-013을 재사용한다. 데이트 매칭은 별도 탐색 UI 없이 SNS 부가 경로로만 노출한다." }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "컴포넌트 / 책임" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "BuddyMatcher: " }, { "type": "text", "text": "조건(시간대·위치·목표·성별 우선) 기반 후보 산출, 운동온도·검증 배지 가중." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "MeetupScheduler: " }, { "type": "text", "text": "약속 제안·수락·장소/시간 확정, 캘린더 등록·리마인드(푸시 SAD-011 연계)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "FlashEventService: " }, { "type": "text", "text": "인플루언서 유료 번개 공지→신청→결제(SAD-013)→정원 확정·수수료, 취소/환불 정책." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "NoShowFeedback: " }, { "type": "text", "text": "이행/노쇼 결과를 운동온도·평판(SAD-017)에 반영, 페널티 규칙." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "SafetyGuard (SRS-027): " }, { "type": "text", "text": "여성 우선/전용 필터, 검증 배지, 차단·신고(ADR-017), 첫 만남 공개장소 권고·위치 최소 공유·미성년 제한(ADR-023)." }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "다루는 SRS: SRS-024(오프라인 만남), SRS-027(입문자 안전·여성 안심). 정합: SAD-011(DM·알림), SAD-013(결제), SAD-017(운동온도), ADR-023(만남 안전), ADR-017(모더레이션)." }] }
+  ] }
+}

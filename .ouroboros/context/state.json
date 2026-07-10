@@ -1,0 +1,12 @@
+{
+  "active_skill": null,
+  "skill_step": null,
+  "active_artifact": null,
+  "gates": {
+    "G1": "pass",
+    "G2": "pass"
+  },
+  "last_gate_check": "2026-07-10T06:18:07Z",
+  "last_sync": null,
+  "last_updated": null
+}
