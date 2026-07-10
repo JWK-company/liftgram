@@ -503,8 +503,10 @@ export const serverApi = {
   submitFeedback(input: CreateFeedbackInput): Promise<{ id: number }> {
     return request<{ id: number }>('/feedback', { method: 'POST', body: input, auth: true });
   },
-  feedbackList(): Promise<FeedbackItem[]> {
-    return request<FeedbackItem[]>('/feedback', { auth: true });
+  async feedbackList(): Promise<FeedbackItem[]> {
+    // 반려(rejected)된 항목은 앱에서 숨긴다 — 완료(adopted)·대기(submitted 등)만 노출.
+    const items = await request<FeedbackItem[]>('/feedback', { auth: true });
+    return items.filter((i) => i.state !== 'rejected');
   },
   // --- 푸시 알림 (SRS-020 · ADR-015) ---
   getVapidPublicKey(): Promise<{ publicKey: string }> {
