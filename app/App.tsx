@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, AppState, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ import { installWebAlert } from './src/utils/alert';
 import { LanguageSync } from './src/i18n/LanguageSync';
 import { t } from './src/i18n';
 import { serverApi, warmupServer } from './src/sync/serverApi';
+import { scheduleSync } from './src/sync/syncEngine';
 import { registerPushToken } from './src/push/push';
 import { initPwa } from './src/push/pwa';
 
@@ -105,9 +106,26 @@ export default function App() {
     serverApi
       .isLoggedIn()
       .then((yes) => {
-        if (yes) void registerPushToken();
+        if (yes) {
+          void registerPushToken();
+          scheduleSync(); // 부팅 동기 — 영속 토큰으로 '이미 로그인된' 세션 재오픈 시에도 동기
+        }
       })
       .catch(() => {});
+  }, []);
+
+  // 지속 동기(SRS-006) — 로그인 이후 생성/변경분이 다른 기기로 전파되도록. 기존엔 로그인 '순간'
+  // 에만 동기돼, 재오픈된 세션에선 트리거가 없어 루틴·운동기록이 교차 반영되지 않았다.
+  // (1) 포그라운드 복귀 시, (2) 실행 중 주기(2분). scheduleSync가 로그인 가드·단일비행·graceful 처리.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') scheduleSync();
+    });
+    const iv = setInterval(() => scheduleSync(), 120_000);
+    return () => {
+      sub.remove();
+      clearInterval(iv);
+    };
   }, []);
 
   const navRef = useNavigationContainerRef<RootStackParamList>();

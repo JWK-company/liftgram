@@ -25,6 +25,7 @@ import {
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo, routineRepo } from '../../data';
+import { scheduleSync } from '../../sync/syncEngine'; // 루틴 저장 후 서버 동기 트리거(@plm SRS-006)
 import { useUser } from '../../state/userContext';
 import { fromKg, toKg, type ArmKey, type EquipmentType, type GripKey, type VariantDims } from '../../domain';
 import { requestExercisePick } from '../../utils/picker';
@@ -115,12 +116,14 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     if (!paramRoutineId && routineId && !hasRoutineContent()) {
       handledRef.current = true;
       routineRepo.deleteRoutine(routineId).catch(() => {});
+      scheduleSync(); // 빈 초안 삭제도 서버 반영
       navigation.goBack();
       return;
     }
     handledRef.current = true; // 저장 확정 → 보존
     // 입력 중이던(블러 전) 이름/폴더/메모를 확정 저장 — 타이핑 후 바로 완료를 눌러도 반영.
     await Promise.all([saveName(), saveFolder(), saveNotes()]);
+    scheduleSync(); // 루틴 저장 → 서버 백업·다른 기기 반영(디바운스·로그인 가드·비차단)
     navigation.goBack();
   }
 

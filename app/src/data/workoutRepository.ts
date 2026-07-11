@@ -18,6 +18,7 @@ import {
   type EquipmentType,
 } from '../domain';
 import { legacyMachineVariantToV6, variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
+import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
 
 const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
@@ -733,5 +734,6 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
     });
   });
 
+  scheduleSync(); // 운동 완료 → 서버 백업·다른 기기 반영(디바운스·로그인 가드·비차단)
   return { workoutId: id, totalVolumeKg: totalVolume, durationSeconds, workingSets, prCount, prs: prDetails };
 }
