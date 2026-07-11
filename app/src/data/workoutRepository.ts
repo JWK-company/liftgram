@@ -627,6 +627,7 @@ export async function discardWorkout(id: string): Promise<void> {
       w.prepareMarkAsDeleted(),
     );
   });
+  scheduleSync(); // 삭제(완료기록 삭제 포함)를 서버·다른 기기에 반영
 }
 
 // ── 세션 종료 + 요약/PR (SRS-004/005) ──────────────────────────────

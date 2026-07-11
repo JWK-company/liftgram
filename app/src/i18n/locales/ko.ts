@@ -293,6 +293,7 @@ export const ko = {
   "profile.postsLabel": "게시물",
   "profile.retry": "다시 시도",
   "profile.settings": "설정",
+  "profile.account": "계정",
   "profile.signOut": "로그아웃",
   "profile.signOutConfirmMessage": "로그아웃하시겠어요? 로컬에 저장된 운동 기록은 그대로 유지됩니다.",
   "profile.sync": "동기화",

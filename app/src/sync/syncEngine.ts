@@ -29,13 +29,35 @@ function stripInternalFields(changes: SyncDatabaseChangeSet): SyncDatabaseChange
   return out as unknown as SyncDatabaseChangeSet;
 }
 
+// 진행 중(active/paused) 운동은 '그 기기에서 하는 중'인 세션 상태 — pull에서 적용하지 않는다(완료 운동만
+// 반영). 이게 없으면 한 기기의 진행중 운동이 다른 기기에 '유령 진행중 운동'으로 뜨고, 폐기해도 서버/다른
+// 기기가 계속 되밀어 되살아난다. 완료(completed)된 운동만 기기 간 동기(=히스토리). 삭제는 상태 무관 반영.
+function dropInProgressWorkouts(changes: SyncDatabaseChangeSet): SyncDatabaseChangeSet {
+  const all = changes as unknown as Record<
+    string,
+    { created?: Record<string, unknown>[]; updated?: Record<string, unknown>[]; deleted?: string[] }
+  >;
+  const wk = all.workouts;
+  if (!wk) return changes;
+  const isDone = (r: Record<string, unknown>) => r.state === 'completed';
+  return {
+    ...all,
+    workouts: {
+      created: (wk.created ?? []).filter(isDone),
+      updated: (wk.updated ?? []).filter(isDone),
+      deleted: wk.deleted ?? [],
+    },
+  } as unknown as SyncDatabaseChangeSet;
+}
+
 async function runSynchronize(): Promise<void> {
   await synchronize({
     database,
     sendCreatedAsUpdated: true,
     pullChanges: async ({ lastPulledAt }) => {
       const { changes, timestamp } = await serverApi.pull(lastPulledAt ?? 0);
-      return { changes: stripInternalFields(changes), timestamp }; // 오염(_status/_changed) 치유
+      // 오염(_status/_changed) 치유 + 진행 중 운동 반영 제외(유령 진행중 운동·폐기 후 되살아남 차단).
+      return { changes: dropInProgressWorkouts(stripInternalFields(changes)), timestamp };
     },
     pushChanges: async ({ changes }) => {
       await serverApi.push(stripInternalFields(changes)); // 서버 재오염 차단
