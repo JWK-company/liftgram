@@ -9,6 +9,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 let installListener: (() => void) | null = null;
+let swReloaded = false; // 새 SW 활성화 시 1회만 리로드(루프 방지)
 
 function addLink(rel: string, href: string): void {
   if (document.head.querySelector(`link[rel="${rel}"]`)) return;
@@ -41,7 +42,15 @@ export function initPwa(): void {
   if (Platform.OS !== 'web' || typeof document === 'undefined' || typeof window === 'undefined') return;
   injectHead();
   if ('serviceWorker' in navigator) {
+    // 최초 설치가 아니면(이미 컨트롤러 존재) 새 배포의 SW가 활성화될 때 페이지를 1회 리로드해 최신
+    // 코드로 교체 — 설치된 PWA가 옛 캐시 번들에 고착돼 배포가 사용자에게 도달 못 하는 문제를 막는다.
+    const firstInstall = !navigator.serviceWorker.controller;
     navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (firstInstall || swReloaded) return;
+      swReloaded = true;
+      window.location.reload();
+    });
   }
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
