@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, ListState, Divider, Avatar, RemoteImage } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
+import { exerciseRepo, routineRepo } from '../../data'; // @plm SRS-002 루틴 가져오기
 import { resolveMediaUrl } from '../../config';
 import { useUser } from '../../state/userContext';
 import { formatWeight } from '../../domain';
@@ -322,6 +323,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             onBookmark={onBookmark}
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
             onOpenProfile={(uid) => navigation.navigate('UserProfile', { userId: uid })}
+            onOpenRoutine={(routineId) => navigation.navigate('RoutineEditor', { routineId })}
             onTag={(tag) => navigation.navigate('Hashtag', { tag })}
             onUpdated={(u) => setPosts((prev) => prev.map((p) => (p.id === u.id ? u : p)))}
             onDeleted={(id) => setPosts((prev) => prev.filter((p) => p.id !== id))}
@@ -385,6 +387,7 @@ function PostCard({
   onBookmark,
   onComment,
   onOpenProfile,
+  onOpenRoutine,
   onTag,
   onUpdated,
   onDeleted,
@@ -395,6 +398,7 @@ function PostCard({
   onBookmark: (p: FeedPost) => void;
   onComment: (p: FeedPost) => void;
   onOpenProfile: (userId: string) => void;
+  onOpenRoutine: (routineId: string) => void;
   onTag: (tag: string) => void;
   onUpdated: (p: FeedPost) => void;
   onDeleted: (id: string) => void;
@@ -403,6 +407,7 @@ function PostCard({
   const { weightUnit } = useUser();
   const [reporting, setReporting] = useState(false);
   const [showRoutine, setShowRoutine] = useState(false);
+  const [importing, setImporting] = useState(false);
   const isOwn = !!meId && post.author.id === meId;
   const canReport = !!meId && post.author.id !== meId;
   async function submitReport(reason: string) {
@@ -431,6 +436,82 @@ function PostCard({
           exercises?: { name: string; sets: { weightKg: number; reps: number; isWarmup?: boolean }[] }[];
         })
       : undefined;
+  // 피드 게시물(운동)의 종목을 로컬 루틴으로 가져오기 — 이름 매칭(name_ko/name_en, 대소문자 무시), 없으면 커스텀 생성. (SRS-007 · SRS-002)
+  async function importRoutineFromPost() {
+    const exs = workout?.exercises;
+    if (!exs?.length || importing) return;
+    const author = post.author.displayName || t('discover.unnamed');
+    const routineName = workout?.name?.trim() || t('feed.importRoutineDefaultName', { author });
+    Alert.alert(
+      t('feed.importRoutineTitle'),
+      t('feed.importRoutineConfirm', { name: routineName, count: exs.length }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('feed.importRoutineAction'),
+          onPress: async () => {
+            setImporting(true);
+            try {
+              const catalog = await exerciseRepo.queryExercises({}).fetch();
+              const resolved: routineRepo.ImportRoutineExercise[] = [];
+              let skipped = 0;
+              for (const ex of exs) {
+                const nm = ex.name.trim();
+                if (!nm) {
+                  skipped++;
+                  continue;
+                }
+                const lower = nm.toLowerCase();
+                const match = catalog.find(
+                  (c) => c.nameKo.toLowerCase() === lower || (c.nameEn?.toLowerCase() ?? '') === lower,
+                );
+                let exerciseId: string;
+                if (match) {
+                  exerciseId = match.id;
+                } else {
+                  // 매칭 실패 → 이름만으로 커스텀 종목 생성(근육/기구는 안전 기본값).
+                  const created = await exerciseRepo.createCustomExercise({
+                    nameKo: nm,
+                    primaryMuscles: ['other'],
+                    equipment: 'other',
+                  });
+                  exerciseId = created.id;
+                }
+                // 워킹세트 우선(웜업 제외), 없으면 전체 세트로 목표 세트/반복/무게 추정.
+                const working = ex.sets.filter((s) => !s.isWarmup);
+                const src = working.length ? working : ex.sets;
+                const reps = src.map((s) => s.reps).filter((r) => r > 0);
+                const weights = src.map((s) => s.weightKg).filter((w) => w > 0);
+                resolved.push({
+                  exerciseId,
+                  targetSets: src.length || undefined,
+                  targetRepsMin: reps.length ? Math.min(...reps) : undefined,
+                  targetWeightKg: weights.length ? Math.max(...weights) : undefined,
+                });
+              }
+              if (!resolved.length) {
+                Alert.alert(t('feed.importRoutineTitle'), t('feed.importRoutineNone'));
+                return;
+              }
+              const routine = await routineRepo.importRoutine(routineName, resolved);
+              Alert.alert(
+                t('feed.importRoutineDone'),
+                t('feed.importRoutineResult', { imported: resolved.length, skipped }),
+                [
+                  { text: t('common.ok'), style: 'cancel' },
+                  { text: t('feed.importRoutineOpen'), onPress: () => onOpenRoutine(routine.id) },
+                ],
+              );
+            } catch (e) {
+              Alert.alert(t('common.error'), String(e));
+            } finally {
+              setImporting(false);
+            }
+          },
+        },
+      ],
+    );
+  }
   return (
     <Card style={styles.card}>
       <Pressable style={styles.postHead} onPress={() => onOpenProfile(post.author.id)}>
@@ -467,12 +548,22 @@ function PostCard({
           {/* 루틴 전체(종목·세트) 펼쳐보기 — 보는 사람이 그 사람의 루틴을 구경 (SRS-007). */}
           {workout.exercises && workout.exercises.length ? (
             <>
-              <Pressable onPress={() => setShowRoutine((v) => !v)} hitSlop={6} style={styles.routineToggle}>
-                <Ionicons name={showRoutine ? 'chevron-up' : 'chevron-down'} size={16} color={colors.primary} />
-                <AppText variant="caption" color="primary" weight="medium" style={{ marginLeft: 4 }}>
-                  {showRoutine ? t('feed.hideRoutine') : t('feed.showRoutine', { count: workout.exercises.length })}
-                </AppText>
-              </Pressable>
+              <View style={styles.routineActions}>
+                <Pressable onPress={() => setShowRoutine((v) => !v)} hitSlop={6} style={styles.routineToggle}>
+                  <Ionicons name={showRoutine ? 'chevron-up' : 'chevron-down'} size={16} color={colors.primary} />
+                  <AppText variant="caption" color="primary" weight="medium" style={{ marginLeft: 4 }}>
+                    {showRoutine ? t('feed.hideRoutine') : t('feed.showRoutine', { count: workout.exercises.length })}
+                  </AppText>
+                </Pressable>
+                <View style={{ flex: 1 }} />
+                {/* 이 게시물의 종목으로 내 로컬 루틴 생성 (SRS-007 → SRS-002). */}
+                <Pressable onPress={importRoutineFromPost} disabled={importing} hitSlop={6} style={styles.routineToggle}>
+                  <Ionicons name="download-outline" size={16} color={colors.primary} />
+                  <AppText variant="caption" color="primary" weight="medium" style={{ marginLeft: 4 }}>
+                    {importing ? t('feed.importing') : t('feed.importRoutine')}
+                  </AppText>
+                </Pressable>
+              </View>
               {showRoutine ? (
                 <View style={styles.routineList}>
                   {workout.exercises.map((ex, i) => (
@@ -580,6 +671,7 @@ const styles = StyleSheet.create({
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   workoutBox: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   workoutStats: { flexDirection: 'row', gap: spacing.xl, marginTop: spacing.sm },
+  routineActions: { flexDirection: 'row', alignItems: 'center' },
   routineToggle: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, alignSelf: 'flex-start', paddingVertical: spacing.xs },
   routineList: { marginTop: spacing.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.xs },
 });

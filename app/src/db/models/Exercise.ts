@@ -19,6 +19,7 @@ export default class Exercise extends Model {
   @text('category') category!: string | null;
   @field('is_custom') isCustom!: boolean;
   @json('substitute_ids', sanitizeStringArray) substituteIds!: string[];
+  @text('image_url') imageUrl!: string | null; // v7: 종목 이미지(#8)
   @field('is_archived') isArchived!: boolean;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;

@@ -270,6 +270,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.variantEquipment = re.variantEquipment ?? legacyMachineVariantToV6(re.machineVariant).dims.equipment ?? null;
         we.variantGrip = re.variantGrip ?? null;
         we.variantArm = re.variantArm ?? null;
+        we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
       }),
     );
     // 각 종목에 target_sets 개수만큼 템플릿 세트 프리레이(Hevy식).

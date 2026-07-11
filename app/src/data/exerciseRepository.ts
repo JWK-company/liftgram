@@ -41,6 +41,7 @@ export interface CustomExerciseInput {
   secondaryMuscles?: MuscleGroup[];
   equipment: EquipmentType;
   category?: string | null;
+  imageUrl?: string | null;
 }
 
 export async function createCustomExercise(input: CustomExerciseInput): Promise<Exercise> {
@@ -52,6 +53,7 @@ export async function createCustomExercise(input: CustomExerciseInput): Promise<
       e.secondaryMuscles = input.secondaryMuscles ?? [];
       e.equipment = input.equipment;
       e.category = input.category ?? null;
+      e.imageUrl = input.imageUrl ?? null;
       e.isCustom = true;
       e.substituteIds = [];
       e.isArchived = false;
@@ -61,7 +63,7 @@ export async function createCustomExercise(input: CustomExerciseInput): Promise<
 
 export async function updateExercise(
   id: string,
-  patch: Partial<Pick<Exercise, 'nameKo' | 'nameEn' | 'primaryMuscles' | 'secondaryMuscles' | 'equipment' | 'category' | 'substituteIds'>>,
+  patch: Partial<Pick<Exercise, 'nameKo' | 'nameEn' | 'primaryMuscles' | 'secondaryMuscles' | 'equipment' | 'category' | 'imageUrl' | 'substituteIds'>>,
 ): Promise<void> {
   await database.write(async () => {
     const e = await exercises().find(id);
@@ -72,6 +74,7 @@ export async function updateExercise(
       if (patch.secondaryMuscles !== undefined) rec.secondaryMuscles = patch.secondaryMuscles;
       if (patch.equipment !== undefined) rec.equipment = patch.equipment;
       if (patch.category !== undefined) rec.category = patch.category;
+      if (patch.imageUrl !== undefined) rec.imageUrl = patch.imageUrl;
       if (patch.substituteIds !== undefined) rec.substituteIds = patch.substituteIds;
     });
   });

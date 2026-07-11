@@ -31,6 +31,7 @@ export default class WorkoutExercise extends Model {
   @text('variant_equipment') variantEquipment!: string | null;
   @text('variant_grip') variantGrip!: string | null;
   @text('variant_arm') variantArm!: string | null;
+  @text('superset_group') supersetGroup!: string | null; // v7: 세션 슈퍼셋 그룹(#20)
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

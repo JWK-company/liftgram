@@ -140,6 +140,46 @@ export async function removeRoutineExercise(id: string): Promise<void> {
   });
 }
 
+// 피드 게시물(운동)에서 종목 목록을 받아 새 루틴 + routine_exercises를 한 번의 write로 생성 — 소셜 루틴 가져오기.
+// @plm SRS-002 @plm SRS-007
+export interface ImportRoutineExercise {
+  exerciseId: string;
+  targetSets?: number;
+  targetRepsMin?: number | null;
+  targetWeightKg?: number | null;
+}
+
+export async function importRoutine(name: string, exercises: ImportRoutineExercise[]): Promise<Routine> {
+  return database.write(async () => {
+    const count = await routines().query(Q.where('is_archived', false)).fetchCount();
+    const routine = await routines().create((r) => {
+      r.name = name.trim() || '가져온 루틴';
+      r.folder = null;
+      r.notes = null;
+      r.sortOrder = count;
+      r.isArchived = false;
+      r.userId = null;
+    });
+    await database.batch(
+      ...exercises.map((ex, i) =>
+        routineExercises().prepareCreate((re) => {
+          re.routineId = routine.id;
+          re.exerciseId = ex.exerciseId;
+          re.targetSets = ex.targetSets ?? 3;
+          re.targetRepsMin = ex.targetRepsMin ?? 8;
+          re.targetRepsMax = 12;
+          re.targetWeightKg = ex.targetWeightKg ?? null;
+          re.restSeconds = 120;
+          re.supersetGroup = null;
+          re.sortOrder = i;
+          re.note = null;
+        }),
+      ),
+    );
+    return routine;
+  });
+}
+
 // 대체운동 스왑: 목표(세트/반복/휴식) 유지, exercise_id만 교체 (SRS-001/002).
 export async function swapRoutineExercise(routineExerciseId: string, newExerciseId: string): Promise<void> {
   await database.write(async () => {

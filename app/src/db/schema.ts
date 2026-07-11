@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -37,6 +37,7 @@ export const mySchema = appSchema({
         { name: 'category', type: 'string', isOptional: true },
         { name: 'is_custom', type: 'boolean' },
         { name: 'substitute_ids', type: 'string' }, // JSON string[] (대체운동 exercise id)
+        { name: 'image_url', type: 'string', isOptional: true }, // v7: 종목 이미지(#8) — 업로드 URL. @plm SRS-001
         { name: 'is_archived', type: 'boolean' },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
@@ -122,6 +123,7 @@ export const mySchema = appSchema({
         { name: 'variant_equipment', type: 'string', isOptional: true }, // 기구/브랜드 키(null=카탈로그 기본)
         { name: 'variant_grip', type: 'string', isOptional: true }, // over/under/neutral/wide/close
         { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
+        { name: 'superset_group', type: 'string', isOptional: true }, // v7: 세션 슈퍼셋 그룹(#20) — 루틴서 복사. @plm SRS-004
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

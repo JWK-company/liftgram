@@ -12,6 +12,7 @@ import {
   Divider,
   SectionHeader,
   SimpleBarChart,
+  RemoteImage,
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { exerciseRepo, analyticsRepo } from '../../data';
@@ -20,7 +21,7 @@ import type { Exercise } from '../../db/models';
 import { muscleLabel, equipmentLabel, formatWeight, exerciseDisplayName, exerciseAltName, detectStall } from '../../domain';
 import { useUser } from '../../state/userContext';
 import { useT } from '../../i18n';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, radius } from '../../theme';
 
 export default function ExerciseDetailScreen({ navigation, route }: RootStackScreenProps<'ExerciseDetail'>) {
   const { exerciseId } = route.params;
@@ -125,6 +126,9 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
           {exerciseAltName(exercise, lang)}
         </AppText>
       ) : null}
+
+      {/* 종목 이미지 */}
+      {exercise.imageUrl ? <RemoteImage uri={exercise.imageUrl} style={styles.heroImage} /> : null}
 
       {/* 분류 */}
       <Card style={styles.section}>
@@ -254,6 +258,7 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
 const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  heroImage: { width: '100%', height: 200, borderRadius: radius.md, marginTop: spacing.md },
   section: { marginTop: spacing.lg },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   subRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },

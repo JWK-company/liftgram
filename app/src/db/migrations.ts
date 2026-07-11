@@ -95,5 +95,19 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v7: 종목 이미지(#8) + 세션 슈퍼셋 그룹(#20). 기존 행 null(무해).
+    {
+      toVersion: 7,
+      steps: [
+        addColumns({
+          table: 'exercises',
+          columns: [{ name: 'image_url', type: 'string', isOptional: true }],
+        }),
+        addColumns({
+          table: 'workout_exercises',
+          columns: [{ name: 'superset_group', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

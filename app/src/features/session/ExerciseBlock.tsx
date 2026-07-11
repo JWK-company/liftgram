@@ -160,6 +160,13 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
           <View style={styles.headerMeta}>
             <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
+            {we.supersetGroup ? (
+              <View style={styles.supersetBadge}>
+                <AppText variant="label" color="primary">
+                  {t('session.superset')}
+                </AppText>
+              </View>
+            ) : null}
             {pr ? (
               <AppText variant="caption" color="pr">
                 {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
@@ -459,6 +466,7 @@ const styles = StyleSheet.create({
   // 삭제는 체크와 간격을 둔 far-right 작은 아이콘 — 체크 오탭 방지.
   del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
+  supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   restRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, minHeight: 44 },
   restSetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 },
 });

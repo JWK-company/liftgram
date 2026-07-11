@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, TextField, AppText, Card, Tag, EmptyState } from '../../components';
+import { Screen, TextField, AppText, Card, Tag, EmptyState, RemoteImage } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo } from '../../data';
@@ -17,7 +17,7 @@ import {
 } from '../../domain';
 import { resolveExercisePick, cancelExercisePick } from '../../utils/picker';
 import { exerciseDisplayName, exerciseAltName } from '../../domain';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { Chip } from './Chip';
 
@@ -147,6 +147,13 @@ function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void })
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
       <Card style={styles.row}>
+        {item.imageUrl ? (
+          <RemoteImage uri={item.imageUrl} style={styles.thumb} />
+        ) : (
+          <View style={[styles.thumb, styles.thumbPlaceholder]}>
+            <Ionicons name="barbell-outline" size={18} color={colors.textFaint} />
+          </View>
+        )}
         <View style={styles.rowMain}>
           <AppText variant="heading" numberOfLines={1}>
             {exerciseDisplayName(item, lang)}
@@ -184,4 +191,6 @@ const styles = StyleSheet.create({
   },
   rowMain: { flex: 1, marginRight: spacing.sm },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
+  thumb: { width: 40, height: 40, borderRadius: radius.sm, marginRight: spacing.md },
+  thumbPlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt },
 });

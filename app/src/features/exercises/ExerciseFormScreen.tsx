@@ -1,7 +1,9 @@
 // @plm SRS-001  커스텀 운동 등록/수정 — 이름·근육군·기구 입력 + 검증
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
-import { Screen, Button, TextField, AppText } from '../../components';
+import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { Screen, Button, TextField, AppText, RemoteImage } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { exerciseRepo } from '../../data';
 import {
@@ -12,7 +14,8 @@ import {
   type MuscleGroup,
   type EquipmentType,
 } from '../../domain';
-import { colors, spacing } from '../../theme';
+import { serverApi } from '../../sync/serverApi';
+import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { Chip } from './Chip';
 
@@ -29,6 +32,8 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
   const [secondary, setSecondary] = useState<MuscleGroup[]>([]);
   const [equipment, setEquipment] = useState<EquipmentType | null>(null);
   const [category, setCategory] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // 수정 모드: 기존 값 프리필
   useEffect(() => {
@@ -44,6 +49,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
         setSecondary(ex.secondaryMuscles);
         setEquipment(ex.equipment);
         setCategory(ex.category ?? '');
+        setImageUrl(ex.imageUrl);
       } catch (e) {
         Alert.alert(t('common.error'), String(e));
       } finally {
@@ -65,6 +71,23 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
   const togglePrimary = toggle(setPrimary);
   const toggleSecondary = toggle(setSecondary);
 
+  // 종목 이미지: 라이브러리에서 선택 → 서버 업로드 후 원격 URL 저장(오프라인/미로그인 시 graceful 실패).
+  const onPickImage = async () => {
+    if (uploadingImage) return;
+    setUploadingImage(true);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+      if (result.canceled || !result.assets || !result.assets[0]) return;
+      const a = result.assets[0];
+      const media = await serverApi.uploadImage({ uri: a.uri, fileName: a.fileName, mimeType: a.mimeType });
+      setImageUrl(media.url);
+    } catch {
+      Alert.alert(t('common.error'), t('exercises.imageUploadFailed'));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const valid = useMemo(
     () => nameKo.trim().length > 0 && primary.length >= 1 && equipment !== null,
     [nameKo, primary, equipment],
@@ -84,6 +107,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
           secondaryMuscles: secondaryClean,
           equipment,
           category: category.trim() || null,
+          imageUrl,
         });
       } else {
         await exerciseRepo.createCustomExercise({
@@ -93,6 +117,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
           secondaryMuscles: secondaryClean,
           equipment,
           category: category.trim() || null,
+          imageUrl,
         });
       }
       navigation.goBack();
@@ -129,6 +154,33 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
         autoCapitalize="words"
         autoCorrect={false}
       />
+
+      <FieldLabel text={t('exercises.imageLabel')} hint={t('exercises.optionalHint')} />
+      <View style={styles.imageSection}>
+        {imageUrl ? (
+          <RemoteImage uri={imageUrl} style={styles.imagePreview} />
+        ) : (
+          <View style={[styles.imagePreview, styles.imagePlaceholder]}>
+            <Ionicons name="image-outline" size={28} color={colors.textFaint} />
+          </View>
+        )}
+        <View style={styles.imageButtons}>
+          <Button
+            title={imageUrl ? t('exercises.changeImage') : t('exercises.addImage')}
+            variant="secondary"
+            onPress={onPickImage}
+            loading={uploadingImage}
+          />
+          {imageUrl ? (
+            <Button
+              title={t('exercises.removeImage')}
+              variant="danger"
+              onPress={() => setImageUrl(null)}
+              disabled={uploadingImage}
+            />
+          ) : null}
+        </View>
+      </View>
 
       <FieldLabel text={t('exercises.primaryMusclesLabel')} hint={t('exercises.selectOneOrMoreHint')} />
       <ChipGrid>
@@ -209,4 +261,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   chipGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  imageSection: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  imagePreview: { width: 80, height: 80, borderRadius: radius.md },
+  imagePlaceholder: { alignItems: 'center', justifyContent: 'center', backgroundColor: colors.surfaceAlt },
+  imageButtons: { flex: 1, gap: spacing.sm },
 });
