@@ -6,6 +6,7 @@ export type TabParamList = {
   WorkoutTab: undefined; // 루틴 목록 + 세션 시작 (routines 피처)
   FeedTab: undefined; // 소셜 피드 (social 피처, SRS-007)
   HistoryTab: undefined; // 완료 세션 히스토리 (analytics 피처)
+  CalendarTab: undefined; // 운동 캘린더 — 월별 지속성·루틴 (SRS-011 책임감 루프)
   StatsTab: undefined; // 분석 대시보드 (analytics 피처)
   ProfileTab: undefined; // 프로필·설정 (profile 피처)
   FeedbackTab: undefined; // 개발 피드백 → PLM 아이디어보드 (coworker/admin 전용, SRS-006)
