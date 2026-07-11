@@ -16,7 +16,10 @@ async function runSynchronize(): Promise<void> {
     pushChanges: async ({ changes }) => {
       await serverApi.push(changes);
     },
-    migrationsEnabledAtVersion: 1,
+    // migration sync 미사용 — 서버는 스키마 무관 '전체 레코드' 페이로드를 불투명 보관하므로(schema
+    // authority=클라이언트), 컬럼 추가분은 일반 동기의 전체 레코드로 그대로 넘어온다. migrationsEnabledAtVersion을
+    // 켜면, 로컬이 옛 스키마 버전에서 동기한 기기(예: v2→v7)가 매 동기마다 서버가 지원하지 않는 migration sync를
+    // 시도→synchronize()가 push 전에 throw→영구 미동기. 끄면 정상 델타 동기로 모든 스키마 버전에서 동작.
   });
 }
 
