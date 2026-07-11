@@ -442,6 +442,29 @@ export async function setMachineVariant(workoutExerciseId: string, variant: stri
   await setVariant(workoutExerciseId, { equipment: variant });
 }
 
+// 세션 종목 메모 저장(BS-002 #7/#24) — 그날의 느낌·포인트. @plm SRS-004
+export async function setWorkoutExerciseNote(workoutExerciseId: string, note: string): Promise<void> {
+  await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    await we.update((rec) => {
+      rec.note = note.trim() || null;
+    });
+  });
+}
+
+// 이 종목(+변형)의 지난 세션 메모 — '다시 뜨게' 하는 참고 표시용. 없으면 null. @plm SRS-004
+export async function getPreviousExerciseNote(exerciseId: string, variantKey?: string | null): Promise<string | null> {
+  const completed = await workouts().query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc)).fetch();
+  for (const w of completed) {
+    const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)];
+    if (variantKey !== undefined) clauses.push(Q.where('variant_key', variantKey));
+    const wes = await workoutExercises().query(...clauses).fetch();
+    const note = wes.map((x) => x.note?.trim()).find((n) => n);
+    if (note) return note;
+  }
+  return null;
+}
+
 export async function updateSetLog(
   id: string,
   patch: {

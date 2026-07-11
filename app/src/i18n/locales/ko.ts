@@ -421,6 +421,8 @@ export const ko = {
   "session.loading": "세션 불러오는 중",
   "session.logSet": "세트 기록",
   "session.addSet": "세트 추가",
+  "session.notePlaceholder": "메모 (그날 느낌·포인트)",
+  "session.prevNote": "지난 메모: {note}",
   "session.setColHeader": "세트",
   "session.prevColHeader": "이전",
   "session.prLine": "PR {weight} × {reps}",

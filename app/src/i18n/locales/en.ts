@@ -419,6 +419,8 @@ export const en: Record<TransKey, string> = {
   "session.loading": "Loading session",
   "session.logSet": "Log Set",
   "session.addSet": "Add set",
+  "session.notePlaceholder": "Note (today's feel, cues)",
+  "session.prevNote": "Last note: {note}",
   "session.setColHeader": "Set",
   "session.prevColHeader": "Prev",
   "session.prLine": "PR {weight} × {reps}",

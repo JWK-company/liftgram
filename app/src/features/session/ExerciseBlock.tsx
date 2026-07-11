@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconButton, NumberStepper, VariantSelector } from '../../components';
+import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo, workoutRepo, type LogSetInput } from '../../data';
@@ -108,6 +108,21 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   // 카운트다운 자체는 전역(ActiveWorkoutScreen)에 1개만 존재 — 종목별로 따로 돌지 않는다.
   const [restSeconds, setRestSeconds] = useState<number>(we.restSeconds ?? 120);
 
+  // 종목 메모(#7/#24) — 그날 느낌·포인트. blur 시 저장. 지난 세션 메모는 참고로 표시(다시 뜨게).
+  const [note, setNote] = useState(() => we.note ?? '');
+  useEffect(() => setNote(we.note ?? ''), [we.note]);
+  const [prevNote, setPrevNote] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    workoutRepo.getPreviousExerciseNote(we.exerciseId, variantKey).then((n) => active && setPrevNote(n)).catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [we.exerciseId, variantKey]);
+  function saveNote() {
+    workoutRepo.setWorkoutExerciseNote(we.id, note).catch(() => {});
+  }
+
   async function onAddSet() {
     if (busy) return;
     setBusy(true);
@@ -196,6 +211,23 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         loading={busy}
         style={{ marginTop: spacing.sm }}
       />
+
+      {/* 종목 메모(#7/#24) — 그날 느낌·포인트. 지난 메모 참고 표시. */}
+      <TextField
+        value={note}
+        onChangeText={setNote}
+        onEndEditing={saveNote}
+        onBlur={saveNote}
+        placeholder={t('session.notePlaceholder')}
+        multiline
+        style={styles.noteInput}
+        containerStyle={{ marginTop: spacing.sm }}
+      />
+      {prevNote && prevNote !== note.trim() ? (
+        <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
+          {t('session.prevNote', { note: prevNote })}
+        </AppText>
+      ) : null}
 
       {/* 이 종목 휴식 '설정'(초). 실제 카운트다운은 전역 바 1개(ActiveWorkoutScreen). */}
       <View style={styles.restRow}>
@@ -426,6 +458,7 @@ const styles = StyleSheet.create({
   checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   // 삭제는 체크와 간격을 둔 far-right 작은 아이콘 — 체크 오탭 방지.
   del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
+  noteInput: { minHeight: 38, textAlignVertical: 'top' },
   restRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, minHeight: 44 },
   restSetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 },
 });
