@@ -11,7 +11,9 @@ import type { AdoptRoutineInput } from '../../data';
 import {
   ALL_EQUIPMENT,
   equipmentLabel,
+  muscleLabel,
   type EquipmentType,
+  type MuscleGroup,
   type ProgramExperience,
   type ProgramGoal,
 } from '../../domain';
@@ -31,19 +33,44 @@ interface EditDay {
   nameKey: string;
   index: number;
   slots: EditSlot[];
+  muscles?: MuscleGroup[]; // 커스텀 분할일 때 이름 표기용
 }
+
+type GenMode = 'auto' | 'custom';
 
 const GOALS: ProgramGoal[] = ['strength', 'hypertrophy', 'endurance'];
 const EXPERIENCES: ProgramExperience[] = ['beginner', 'intermediate', 'advanced'];
 const DAYS = [2, 3, 4, 5, 6];
+const MODES: GenMode[] = ['auto', 'custom'];
+const SPLIT_COUNTS = [2, 3, 4, 5, 6];
+// 분할에 배정 가능한 근육군(전신·기타 제외 — 개별 부위만).
+const SPLIT_MUSCLES: MuscleGroup[] = [
+  'chest', 'back', 'shoulders', 'biceps', 'triceps', 'forearms',
+  'quads', 'hamstrings', 'glutes', 'calves', 'abs', 'traps',
+];
+
+// 분할 수에 따른 합리적 기본 근육 배치(사용자가 그대로 쓰거나 수정). 결정적.
+function defaultSplits(count: number): MuscleGroup[][] {
+  const presets: Record<number, MuscleGroup[][]> = {
+    2: [['chest', 'shoulders', 'triceps', 'abs'], ['back', 'biceps', 'quads', 'hamstrings']],
+    3: [['chest', 'shoulders', 'triceps'], ['back', 'biceps', 'traps'], ['quads', 'hamstrings', 'glutes', 'calves']],
+    4: [['chest', 'triceps'], ['back', 'biceps'], ['shoulders', 'abs'], ['quads', 'hamstrings', 'glutes', 'calves']],
+    5: [['chest', 'triceps'], ['back', 'biceps'], ['shoulders', 'traps'], ['quads', 'calves'], ['hamstrings', 'glutes', 'abs']],
+    6: [['chest'], ['back'], ['shoulders', 'traps'], ['quads', 'calves'], ['hamstrings', 'glutes'], ['biceps', 'triceps', 'abs']],
+  };
+  return presets[count] ?? Array.from({ length: count }, () => [] as MuscleGroup[]);
+}
 
 export default function ProgramGeneratorScreen({ navigation }: RootStackScreenProps<'ProgramGenerator'>) {
   const { t, lang } = useT();
   const { availableEquipment } = useUser();
 
+  const [mode, setMode] = useState<GenMode>('auto');
   const [goal, setGoal] = useState<ProgramGoal>('hypertrophy');
   const [experience, setExperience] = useState<ProgramExperience>('intermediate');
   const [daysPerWeek, setDaysPerWeek] = useState(3);
+  const [splitCount, setSplitCount] = useState(3);
+  const [splitMuscles, setSplitMuscles] = useState<MuscleGroup[][]>(() => defaultSplits(3));
   const [equipment, setEquipment] = useState<EquipmentType[]>(availableEquipment);
   const [days, setDays] = useState<EditDay[] | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -53,15 +80,40 @@ export default function ProgramGeneratorScreen({ navigation }: RootStackScreenPr
     setEquipment((prev) => (prev.includes(eq) ? prev.filter((e) => e !== eq) : [...prev, eq]));
   }
 
+  // 모드/분할수 변경 시 이전 미리보기는 무효화(혼동 방지).
+  function changeMode(m: GenMode) {
+    setMode(m);
+    setDays(null);
+  }
+  function changeSplitCount(n: number) {
+    setSplitCount(n);
+    setSplitMuscles(defaultSplits(n));
+    setDays(null);
+  }
+  function toggleSplitMuscle(si: number, m: MuscleGroup) {
+    setSplitMuscles((prev) =>
+      prev.map((arr, i) => (i !== si ? arr : arr.includes(m) ? arr.filter((x) => x !== m) : [...arr, m])),
+    );
+  }
+
   async function onGenerate() {
+    const cleanedSplits = splitMuscles.filter((s) => s.length > 0);
+    if (mode === 'custom' && !cleanedSplits.length) {
+      Alert.alert(t('common.error'), t('program.splitMusclesHint'));
+      return;
+    }
     setGenerating(true);
     try {
-      const program = await programRepo.buildProgram({ goal, experience, daysPerWeek, equipment });
+      const program =
+        mode === 'custom'
+          ? await programRepo.buildFromSplits({ splits: cleanedSplits, equipment, goal, experience })
+          : await programRepo.buildProgram({ goal, experience, daysPerWeek, equipment });
       setDays(
         program.days.map((d) => ({
           templateKey: d.templateKey,
           nameKey: d.nameKey,
           index: d.index,
+          muscles: d.muscles,
           slots: d.slots.map((s) => ({
             ring: [s.exerciseId, ...s.alternatives],
             idx: 0,
@@ -106,11 +158,18 @@ export default function ProgramGeneratorScreen({ navigation }: RootStackScreenPr
     counts.forEach((c, k) => c > 1 && repeated.add(k));
   }
   function dayName(d: EditDay): string {
+    if (d.templateKey === 'custom') {
+      const names = (d.muscles ?? []).map((m) => muscleLabel(m, lang));
+      return names.length ? names.join(' · ') : `${t('program.day.custom')} ${d.index + 1}`;
+    }
     const base = t(d.nameKey as TransKey);
     return repeated.has(d.templateKey) ? `${base} ${String.fromCharCode(65 + d.index)}` : base;
   }
 
-  const programName = t('program.namePattern', { goal: t(`program.goal.${goal}` as TransKey), days: daysPerWeek });
+  const programName =
+    mode === 'custom'
+      ? t('program.customName')
+      : t('program.namePattern', { goal: t(`program.goal.${goal}` as TransKey), days: daysPerWeek });
 
   async function onAdopt() {
     if (!days) return;
@@ -145,6 +204,13 @@ export default function ProgramGeneratorScreen({ navigation }: RootStackScreenPr
         {t('program.intro')}
       </AppText>
 
+      <ChipSelect<GenMode>
+        label={t('program.mode')}
+        options={MODES.map((m) => ({ value: m, label: t(`program.mode.${m}` as TransKey) }))}
+        value={mode}
+        onChange={changeMode}
+      />
+
       <ChipSelect<ProgramGoal>
         label={t('program.goal')}
         options={GOALS.map((g) => ({ value: g, label: t(`program.goal.${g}` as TransKey) }))}
@@ -157,12 +223,54 @@ export default function ProgramGeneratorScreen({ navigation }: RootStackScreenPr
         value={experience}
         onChange={setExperience}
       />
-      <ChipSelect<number>
-        label={t('program.days')}
-        options={DAYS.map((d) => ({ value: d, label: String(d) }))}
-        value={daysPerWeek}
-        onChange={setDaysPerWeek}
-      />
+      {mode === 'auto' ? (
+        <ChipSelect<number>
+          label={t('program.days')}
+          options={DAYS.map((d) => ({ value: d, label: String(d) }))}
+          value={daysPerWeek}
+          onChange={setDaysPerWeek}
+        />
+      ) : (
+        <>
+          <ChipSelect<number>
+            label={t('program.splitCount')}
+            options={SPLIT_COUNTS.map((n) => ({ value: n, label: String(n) }))}
+            value={splitCount}
+            onChange={changeSplitCount}
+          />
+          <View style={styles.field}>
+            <AppText variant="caption" color="textFaint" style={{ marginBottom: spacing.sm }}>
+              {t('program.splitMusclesHint')}
+            </AppText>
+            {splitMuscles.map((sel, si) => (
+              <View key={si} style={{ marginBottom: spacing.md }}>
+                <AppText variant="label" color="textMuted">
+                  {t('program.splitLabel', { n: si + 1 })}
+                </AppText>
+                <View style={styles.chips}>
+                  {SPLIT_MUSCLES.map((m) => {
+                    const active = sel.includes(m);
+                    return (
+                      <Pressable
+                        key={m}
+                        onPress={() => toggleSplitMuscle(si, m)}
+                        style={[styles.chip, active && styles.chipActive]}
+                      >
+                        <AppText
+                          variant="caption"
+                          style={{ color: active ? colors.onPrimary : colors.textMuted, fontWeight: active ? fontWeight.bold : fontWeight.medium }}
+                        >
+                          {muscleLabel(m, lang)}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
 
       {/* 가용 기구(다중) — 미선택 시 전체 */}
       <View style={styles.field}>

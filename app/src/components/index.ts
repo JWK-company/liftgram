@@ -2,6 +2,7 @@
 export { Screen } from './Screen';
 export { Button } from './Button';
 export { IconButton } from './IconButton';
+export { GlobalWorkoutBar } from './GlobalWorkoutBar';
 export { TextField, NumberStepper } from './inputs';
 export { SimpleBarChart, DistributionBars, type ChartDatum } from './charts';
 export { AppText, Card, Tag, Divider, SectionHeader, StatTile, EmptyState } from './primitives';

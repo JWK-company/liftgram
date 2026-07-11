@@ -1,5 +1,5 @@
 // @plm SRS-001  운동 카탈로그 — 검색·근육군/기구 필터·picker 모드
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen, TextField, AppText, Card, Tag, EmptyState, RemoteImage } from '../../components';
@@ -28,10 +28,17 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
   const [equipment, setEquipment] = useState<EquipmentType | null>(null);
 
+  // 기구/근육군은 반응형 쿼리. 검색은 클라이언트 JS 필터 — 웹(LokiJS) 어댑터의 Q.like가 한글 검색을
+  // 필터하지 못하는 문제(#10) 회피. 대소문자 무시 부분일치(한/영 이름).
   const items = useQueryData(
-    () => exerciseRepo.queryExercises({ search, muscle, equipment }),
-    [search, muscle, equipment],
+    () => exerciseRepo.queryExercises({ muscle, equipment }),
+    [muscle, equipment],
   );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((e) => e.nameKo.toLowerCase().includes(q) || (e.nameEn ?? '').toLowerCase().includes(q));
+  }, [items, search]);
 
   // 헤더 우측: 커스텀 운동 추가
   useLayoutEffect(() => {
@@ -107,7 +114,7 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
       </View>
 
       <FlatList
-        data={items}
+        data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"

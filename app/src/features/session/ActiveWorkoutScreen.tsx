@@ -13,7 +13,7 @@ import { useModelData, useQueryData } from '../../db/hooks';
 import { workoutRepo } from '../../data';
 import type { Workout, WorkoutExercise } from '../../db/models';
 import { requestExercisePick } from '../../utils/picker';
-import { primeRestSound, playRestDone } from '../../utils/sound';
+import { formatWeight } from '../../domain';
 import { useT } from '../../i18n';
 import { ExerciseBlock } from './ExerciseBlock';
 
@@ -34,7 +34,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   const { t } = useT();
   const { workoutId } = route.params;
   const { weightUnit, barWeightKg } = useUser();
-  const { setActiveWorkoutId } = useSession();
+  const { setActiveWorkoutId, restRemaining, startRest, clearRest } = useSession();
   const weightStep = weightUnit === 'kg' ? 2.5 : 5;
 
   const [base, setBase] = useState<Workout | null>(null);
@@ -42,24 +42,16 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   const [now, setNow] = useState(() => Date.now());
   const [finishing, setFinishing] = useState(false);
 
-  // 전역 휴식 카운트다운 — 운동 전체에 1개만. 어느 종목이든 세트 완료 체크 시 그 종목 휴식으로
-  // 교체(시작)된다 → 여러 종목 타이머가 동시에 돌지 않는다.
-  const [restRemaining, setRestRemaining] = useState<number | null>(null);
-  const startRest = useCallback((seconds: number) => {
-    primeRestSound(); // 세트 완료 체크(사용자 제스처) 시 웹 오디오 잠금 해제 → 종료음 재생 보장
-    setRestRemaining(seconds > 0 ? seconds : null);
-  }, []);
+  // 휴식 카운트다운은 전역(sessionContext) — 화면을 옮겨도 유지되고 전역 바에도 표시된다(#12).
+
+  // 실시간 총 볼륨(#5) — 세트 체크 즉시 근접 반영(1.5s 폴링). 완료 워킹세트만·보정무게/정자세 반영.
+  const [liveVolume, setLiveVolume] = useState(0);
   useEffect(() => {
-    if (restRemaining == null) return;
-    if (restRemaining <= 0) {
-      setRestRemaining(null);
-      playRestDone(); // 휴식 종료 알림음 + 진동(Alert 대신)
-      return;
-    }
-    const timer = setTimeout(() => setRestRemaining((r) => (r == null ? null : r - 1)), 1000);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restRemaining]);
+    const recompute = () => workoutRepo.getWorkoutLiveVolume(workoutId).then(setLiveVolume).catch(() => {});
+    recompute();
+    const iv = setInterval(recompute, 1500);
+    return () => clearInterval(iv);
+  }, [workoutId]);
 
   const exercises = useQueryData<WorkoutExercise>(() => workoutRepo.queryWorkoutExercises(workoutId), [workoutId]);
 
@@ -99,6 +91,15 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
       workoutRepo.addExerciseToWorkout(workoutId, exId).catch((e) => Alert.alert(t('common.error'), String(e)));
     });
     navigation.navigate('ExerciseList', { mode: 'pick' });
+  }
+
+  // 운동 중 종목 순서 이동(#11) — 화살표로 위/아래. sort_order 재기입.
+  function moveExercise(from: number, to: number) {
+    if (to < 0 || to >= exercises.length) return;
+    const ids = exercises.map((e) => e.id);
+    const [m] = ids.splice(from, 1);
+    ids.splice(to, 0, m);
+    workoutRepo.reorderWorkoutExercises(ids).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
   // 운동 중 종목 교체(#22) — 삭제·재추가 없이 이 종목만 새 종목으로 교체.
@@ -170,6 +171,9 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           <AppText variant="label" color={paused ? 'warning' : 'textMuted'}>
             {paused ? t('session.paused') : workout.name ?? t('session.inProgress')}
           </AppText>
+          <AppText variant="caption" color="pr">
+            {t('session.liveVolume', { volume: formatWeight(liveVolume, weightUnit) })}
+          </AppText>
         </View>
         <IconButton icon={paused ? 'play' : 'pause'} color="text" filled onPress={togglePause} />
         <Button title={t('session.done')} size="sm" fullWidth={false} onPress={confirmFinish} loading={finishing} style={styles.finishBtn} />
@@ -186,7 +190,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
             message={t('session.noExercises.message')}
           />
         ) : (
-          exercises.map((we) => (
+          exercises.map((we, i) => (
             <ExerciseBlock
               key={we.id}
               we={we}
@@ -195,6 +199,8 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
               barWeightKg={barWeightKg}
               onStartRest={startRest}
               onSwap={handleSwapExercise}
+              onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}
+              onMoveDown={i < exercises.length - 1 ? () => moveExercise(i, i + 1) : undefined}
             />
           ))
         )}
@@ -213,17 +219,17 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
       {/* 전역 휴식 카운트다운 바 — 운동 전체에 1개만(스크롤과 무관하게 항상 보임). */}
       {restRemaining != null ? (
         <View style={styles.restBar}>
-          <Ionicons name="timer-outline" size={18} color={colors.onPrimary} />
+          <Ionicons name="timer-outline" size={18} color={colors.bg} />
           <AppText variant="body" weight="bold" style={styles.restBarText}>
             {t('session.restCountdown', { clock: formatClock(restRemaining) })}
           </AppText>
-          <Pressable hitSlop={8} onPress={() => setRestRemaining((r) => (r == null ? null : r + 15))} style={styles.restBarBtn}>
-            <AppText variant="caption" weight="bold" style={{ color: colors.onPrimary }}>
+          <Pressable hitSlop={8} onPress={() => startRest((restRemaining ?? 0) + 15)} style={styles.restBarBtn}>
+            <AppText variant="caption" weight="bold" style={{ color: colors.bg }}>
               +15s
             </AppText>
           </Pressable>
-          <Pressable hitSlop={8} onPress={() => setRestRemaining(null)} style={styles.restBarBtn}>
-            <AppText variant="caption" weight="bold" style={{ color: colors.onPrimary }}>
+          <Pressable hitSlop={8} onPress={() => clearRest()} style={styles.restBarBtn}>
+            <AppText variant="caption" weight="bold" style={{ color: colors.bg }}>
               {t('session.skip')}
             </AppText>
           </Pressable>
@@ -255,7 +261,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.pr, // 휴식 = PR 골드로 신호(#1) — 파랑 primary와 구분되는 '쉬는 중' 배경색.
     borderRadius: radius.pill,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
@@ -265,6 +271,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
-  restBarText: { color: colors.onPrimary, flex: 1 },
+  restBarText: { color: colors.bg, flex: 1 },
   restBarBtn: { paddingHorizontal: spacing.xs, paddingVertical: 2 },
 });

@@ -1,11 +1,11 @@
 // @plm SRS-005  완료 세션 히스토리 목록
 import React, { useCallback } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, Card, AppText, Tag, EmptyState } from '../../components';
+import { Screen, Card, AppText, Tag, EmptyState, IconButton } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
-import { analyticsRepo } from '../../data';
+import { analyticsRepo, workoutRepo } from '../../data';
 import { Workout } from '../../db/models';
 import { useQueryData } from '../../db/hooks';
 import { formatWeight, type WeightUnit } from '../../domain';
@@ -22,15 +22,31 @@ export default function HistoryTabScreen({ navigation }: TabScreenProps<'History
   const { weightUnit } = useUser();
   const workouts = useQueryData(() => analyticsRepo.queryWorkoutHistory(), []);
 
+  // 잘못 완료한 기록 삭제(#2) — 세트·종목·운동 전부 제거. 되돌릴 수 없음.
+  const confirmDelete = useCallback(
+    (workout: Workout) => {
+      Alert.alert(t('analytics.deleteWorkoutTitle'), t('analytics.deleteWorkoutMessage'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: () => workoutRepo.discardWorkout(workout.id).catch((e) => Alert.alert(t('common.error'), String(e))),
+        },
+      ]);
+    },
+    [t],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: Workout }) => (
       <HistoryRow
         workout={item}
         weightUnit={weightUnit}
         onPress={() => navigation.navigate('WorkoutDetail', { workoutId: item.id })}
+        onDelete={() => confirmDelete(item)}
       />
     ),
-    [navigation, weightUnit],
+    [navigation, weightUnit, confirmDelete],
   );
 
   return (
@@ -58,10 +74,12 @@ function HistoryRow({
   workout,
   weightUnit,
   onPress,
+  onDelete,
 }: {
   workout: Workout;
   weightUnit: WeightUnit;
   onPress: () => void;
+  onDelete: () => void;
 }) {
   const { t } = useT();
   const dateStr = workout.completedAt
@@ -81,6 +99,7 @@ function HistoryRow({
           </View>
           <View style={styles.cardTopRight}>
             {workout.prCount > 0 ? <Tag label={`PR ${workout.prCount}`} tone="pr" /> : null}
+            <IconButton icon="trash-outline" color="textMuted" size={18} onPress={onDelete} />
             <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
           </View>
         </View>

@@ -25,7 +25,7 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
 
   const routines = useQueryData(() => routineRepo.queryRoutines(), []);
 
-  async function startBlank() {
+  async function doStartBlank() {
     if (busy) return;
     setBusy(true);
     try {
@@ -39,7 +39,7 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
     }
   }
 
-  async function startFromRoutine(routineId: string) {
+  async function doStartFromRoutine(routineId: string) {
     if (busy) return;
     setBusy(true);
     try {
@@ -51,6 +51,51 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
     } finally {
       setBusy(false);
     }
+  }
+
+  // 활성 운동이 있으면 새 운동 시작 전 확인(#3) — 바로 바뀌지 않게.
+  function guardActive(start: () => void) {
+    if (!activeWorkoutId) {
+      start();
+      return;
+    }
+    Alert.alert(t('routines.activeExistsTitle'), t('routines.activeExistsMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('routines.resumeInstead'), onPress: () => navigation.navigate('ActiveWorkout', { workoutId: activeWorkoutId }) },
+      {
+        text: t('routines.discardAndStart'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await workoutRepo.discardWorkout(activeWorkoutId);
+          } catch {
+            /* 이미 없으면 무시 */
+          }
+          setActiveWorkoutId(null);
+          start();
+        },
+      },
+    ]);
+  }
+
+  // 진행 중 운동 폐기(#4) — 이어서 하기 대신 기록 버리기.
+  function discardActive() {
+    if (!activeWorkoutId) return;
+    Alert.alert(t('routines.discardWorkoutTitle'), t('routines.discardWorkoutMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await workoutRepo.discardWorkout(activeWorkoutId);
+          } catch (e) {
+            Alert.alert(t('common.error'), String(e));
+          }
+          setActiveWorkoutId(null);
+        },
+      },
+    ]);
   }
 
   function confirmDelete(routine: Routine) {
@@ -92,46 +137,36 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <AppText variant="display">{t('routines.title')}</AppText>
-          <Button
-            title={t('routines.newRoutine')}
-            icon="add"
-            size="sm"
-            variant="secondary"
-            fullWidth={false}
-            onPress={() => navigation.navigate('RoutineEditor')}
-          />
-        </View>
-
-        {activeWorkoutId ? (
-          <Card style={styles.resumeCard}>
-            <AppText variant="heading">{t('routines.activeWorkout')}</AppText>
-            <AppText variant="caption" color="textMuted" style={{ marginTop: spacing.xs }}>
-              {t('routines.resumePrompt')}
-            </AppText>
+          {activeWorkoutId ? (
             <Button
               title={t('routines.resumeWorkout')}
               icon="play"
-              style={{ marginTop: spacing.md }}
+              size="sm"
+              fullWidth={false}
               onPress={() => navigation.navigate('ActiveWorkout', { workoutId: activeWorkoutId })}
             />
+          ) : null}
+        </View>
+
+        {/* 진행 중 운동 — 폐기(#4) */}
+        {activeWorkoutId ? (
+          <Card style={styles.resumeCard}>
+            <View style={styles.resumeRow}>
+              <View style={{ flex: 1 }}>
+                <AppText variant="heading">{t('routines.activeWorkout')}</AppText>
+                <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                  {t('routines.resumePrompt')}
+                </AppText>
+              </View>
+              <Button title={t('routines.discardWorkoutButton')} variant="danger" size="sm" fullWidth={false} onPress={discardActive} />
+            </View>
           </Card>
         ) : null}
 
-        <Button
-          title={t('routines.quickStart')}
-          icon="flash"
-          loading={busy}
-          onPress={startBlank}
-          style={{ marginBottom: spacing.sm }}
-        />
-
-        <Button
-          title={t('program.title')}
-          icon="sparkles"
-          variant="secondary"
-          onPress={() => navigation.navigate('ProgramGenerator')}
-          style={{ marginBottom: spacing.lg }}
-        />
+        {/* 새 운동 진입 3버튼 — 같은 크기로 연달아(#6) */}
+        <Button title={t('routines.newRoutine')} icon="add" variant="secondary" onPress={() => navigation.navigate('RoutineEditor')} style={{ marginBottom: spacing.sm }} />
+        <Button title={t('routines.quickStart')} icon="flash" loading={busy} onPress={() => guardActive(doStartBlank)} style={{ marginBottom: spacing.sm }} />
+        <Button title={t('program.title')} icon="sparkles" variant="secondary" onPress={() => navigation.navigate('ProgramGenerator')} style={{ marginBottom: spacing.lg }} />
 
         <SectionHeader title={t('routines.myRoutines')} />
 
@@ -144,7 +179,7 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
             <RoutineRow
               routine={item}
               busy={busy}
-              onStart={() => startFromRoutine(item.id)}
+              onStart={() => guardActive(() => doStartFromRoutine(item.id))}
               onActions={() => openActions(item)}
             />
           )}
@@ -214,6 +249,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: spacing.lg,
   },
+  resumeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   routineCard: {
     flexDirection: 'row',
     alignItems: 'center',
