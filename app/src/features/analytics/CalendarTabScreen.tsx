@@ -9,9 +9,10 @@ import { analyticsRepo } from '../../data';
 import type { Workout } from '../../db/models';
 import { useQueryData } from '../../db/hooks';
 import { useUser } from '../../state/userContext';
-import { formatWeight } from '../../domain';
+import { formatWeight, dayNumber, computeStreak, weeklyProgress, WEEKLY_GOAL_MIN, WEEKLY_GOAL_MAX } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
+import { useWeeklyGoal } from './useWeeklyGoal';
 
 function dayKeyOf(ms: number): string {
   const d = new Date(ms);
@@ -35,6 +36,15 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
     }
     return m;
   }, [workouts]);
+
+  // 스트릭·주간 목표 — 완료 세션의 로컬 '날짜'만으로 계산(지속성 지표).
+  const [weeklyGoal, setWeeklyGoal] = useWeeklyGoal();
+  const { streak, week } = useMemo(() => {
+    const nums = workouts.map((w) => dayNumber(w.completedAt ?? w.startedAt));
+    const todayNum = dayNumber(Date.now());
+    return { streak: computeStreak(nums, todayNum), week: weeklyProgress(nums, todayNum, weeklyGoal) };
+  }, [workouts, weeklyGoal]);
+  const barPct = Math.min(100, week.goal > 0 ? (week.done / week.goal) * 100 : 0);
 
   const now = new Date();
   const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
@@ -88,6 +98,51 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
       <AppText variant="display" style={{ marginBottom: spacing.md }}>
         {t('nav.calendar')}
       </AppText>
+
+      {/* 스트릭 + 이번 주 목표 — 지속성/책임감 */}
+      <Card style={styles.streakCard}>
+        <View style={styles.streakSide}>
+          <View style={styles.flameRow}>
+            <Ionicons name="flame" size={22} color={streak.current > 0 ? colors.warning : colors.textFaint} />
+            <AppText variant="title">{streak.current}</AppText>
+          </View>
+          <AppText variant="caption" color="textMuted">
+            {t('calendar.streakLabel')}
+          </AppText>
+          {streak.longest > 1 ? (
+            <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
+              {t('calendar.longest', { days: streak.longest })}
+            </AppText>
+          ) : null}
+        </View>
+
+        <View style={styles.vDivider} />
+
+        <View style={styles.goalSide}>
+          <View style={styles.goalHeader}>
+            <AppText variant="label" color="textMuted">
+              {t('calendar.weeklyGoalTitle')}
+            </AppText>
+            <View style={styles.stepper}>
+              <Pressable onPress={() => setWeeklyGoal(weeklyGoal - 1)} hitSlop={8} disabled={weeklyGoal <= WEEKLY_GOAL_MIN}>
+                <Ionicons name="remove-circle" size={22} color={weeklyGoal <= WEEKLY_GOAL_MIN ? colors.textFaint : colors.primary} />
+              </Pressable>
+              <AppText variant="label" weight="bold" style={styles.goalNum}>
+                {t('calendar.goalDays', { days: weeklyGoal })}
+              </AppText>
+              <Pressable onPress={() => setWeeklyGoal(weeklyGoal + 1)} hitSlop={8} disabled={weeklyGoal >= WEEKLY_GOAL_MAX}>
+                <Ionicons name="add-circle" size={22} color={weeklyGoal >= WEEKLY_GOAL_MAX ? colors.textFaint : colors.primary} />
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.barTrack}>
+            <View style={[styles.barFill, { width: `${barPct}%` }, week.reached && styles.barFillDone]} />
+          </View>
+          <AppText variant="caption" color={week.reached ? 'success' : 'textMuted'}>
+            {week.reached ? t('calendar.goalReached') : t('calendar.weeklyProgress', { done: week.done, goal: week.goal })}
+          </AppText>
+        </View>
+      </Card>
 
       {/* 월 이동 + 이번 달 요약 */}
       <View style={styles.monthBar}>
@@ -177,6 +232,17 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
 }
 
 const styles = StyleSheet.create({
+  streakCard: { flexDirection: 'row', alignItems: 'stretch', marginBottom: spacing.md, paddingVertical: spacing.md },
+  streakSide: { width: 96, alignItems: 'center', justifyContent: 'center' },
+  flameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  vDivider: { width: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginHorizontal: spacing.md },
+  goalSide: { flex: 1, justifyContent: 'center', gap: spacing.xs },
+  goalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  goalNum: { minWidth: 44, textAlign: 'center' },
+  barTrack: { height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
+  barFill: { height: '100%', borderRadius: 4, backgroundColor: colors.primary },
+  barFillDone: { backgroundColor: colors.success },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
   navBtn: {
     width: 36,
