@@ -1,0 +1,588 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-028",
+  "type": "SRS",
+  "title": "종목 변형(variant) 모델 — 변형별(기구·그립·팔) 수행 기록 분리·버킷팅",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-11T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "variant",
+    "schema",
+    "records"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "set-log이 (exercise × variant tuple)로 버킷팅되고 이전기록·PR·볼륨·이력이 변형 버킷 기준으로 조회되며 기존 machine_variant를 무손실 승계",
+  "relations": {
+    "derives_from": [
+      "URS-016",
+      "URS-002"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "시스템은 하나의 종목(exercise)을 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "변형 차원(기구·그립·팔모드)의 조합"
+          },
+          {
+            "type": "text",
+            "text": "으로 구분하고, 각 세트 기록을 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "(exercise × variant)"
+          },
+          {
+            "type": "text",
+            "text": " 튜플로 버킷팅한다. 이전기록·PR·볼륨·이력 조회는 사용자가 선택한 변형 버킷을 기준으로 필터되어, 같은 종목이라도 서로 다른 변형(예: 해머 vs 프리웨이트, 오버그립 vs 뉴트럴그립, 양팔 vs 원암)의 기록이 서로 섞이지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "기존 단일 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant"
+          },
+          {
+            "type": "text",
+            "text": "(머신 브랜드)는 이 일반 변형 모델의 한 차원(기구/equip)으로 흡수되며, 기존 완료 기록은 동일 버킷으로 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "무손실 승계"
+          },
+          {
+            "type": "text",
+            "text": "된다. 변형이 지정되지 않은 세트는 카탈로그 기본 버킷으로 취급하고, 변형은 종목의 자연스러운 속성이므로 머신뿐 아니라 프리웨이트 종목에도 동일하게 적용된다. 이 요구는 Phase-1 schema-design의 canonical variant_key·버킷·마이그레이션 설계를 요구 수준에서 규정하며, 구체 저장 전략·인덱스·모델 배선 등 구현 세부는 SAD-019에 위임한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "변형 선택 시 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "해당 변형 버킷의 이전기록·PR만"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 표시된다 — 이전기록(직전 1세트·직전 전체세트)·PR(최고중량) 조회가 선택된 변형 버킷으로 필터된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "서로 다른 변형의 기록은 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "혼합되지 않는다"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 세션 종료 시 PR 검출과 볼륨 집계도 (exercise × variant) 버킷 기준으로 그룹된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "변형은 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "프리웨이트 종목에도 적용"
+                  },
+                  {
+                    "type": "text",
+                    "text": "된다 — 노출이 머신 종목에 한정되지 않고 그립·팔모드 등 차원이 프리웨이트에서도 버킷을 분기한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존 머신 브랜드 기록이 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "무손실 승계"
+                  },
+                  {
+                    "type": "text",
+                    "text": "된다 — 기존 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine_variant='hammer'"
+                  },
+                  {
+                    "type": "text",
+                    "text": "가 새 규약의 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "equip:hammer"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 버킷과 동일 문자열 버킷으로 병합되어 마이그레이션 후에도 과거 기록이 그대로 조회된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "변형 미지정은 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "기본 버킷"
+                  },
+                  {
+                    "type": "text",
+                    "text": "으로 취급된다 — 모든 차원이 기본일 때 variant_key는 null이며, 이는 v5의 기본 버킷(machine_variant=null)과 동일한 표현으로 하위호환된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "변형 차원·canonical key (요구 수준)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "변형은 고정 순서의 세 직교 차원 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "[equip, grip, arm]"
+          },
+          {
+            "type": "text",
+            "text": "으로 정의되며, 각 세트 기록의 버킷 소속은 이들 차원에서 결정적으로 파생된 canonical variant_key로 식별된다. 차원 값공간은 다음을 만족해야 한다."
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "차원"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "값공간(요구)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "기본(미지정)"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "equip"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "머신 브랜드 키 ∪ 커스텀 라벨 ∪ 프리웨이트 기구유형(바벨/덤벨/케이블/스미스/맨몸). 기존 machine_variant 흡수."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "카탈로그 기본(null)"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "grip"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "over/under/neutral/wide/close (방향·폭 향후 분리는 ADR 후보)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "null"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "arm"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "bi(양팔) / uni(원암)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "bi(null)"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "canonical key는 기본/미지정 차원 세그먼트를 생략하고 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "<dim>:<value>"
+          },
+          {
+            "type": "text",
+            "text": " 세그먼트를 고정 순서로 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "|"
+          },
+          {
+            "type": "text",
+            "text": "로 조인하며, 모든 차원이 기본이면 null이어야 한다(예: 전부 기본→null, 해머만→\"equip:hammer\", 해머+뉴트럴그립→\"equip:hammer|grip:neutral\"). 이 결정적 규약이 무손실 승계와 버킷 분리 정합의 근거다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-016(변형별 수행 기록 분리 니즈), URS-002(정확한 개인기록·진척 추적). 설계: SAD-019(variant_key·버킷·마이그레이션 아키텍처). 결정: ADR-025(정규화 canonical key + 개별 차원 컬럼 저장 전략, JSON 반려·grip 축 분리 후보). 관련: SRS-021 등 기록 기반 기능은 이 버킷 규약을 상속한다."
+          }
+        ]
+      }
+    ]
+  }
+}

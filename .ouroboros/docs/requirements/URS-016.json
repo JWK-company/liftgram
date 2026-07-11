@@ -1,0 +1,961 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-016",
+  "type": "URS",
+  "title": "같은 종목이라도 변형(기구·그립·팔)·보조반복·보정무게를 왜곡 없이 분리 기록하고 싶다",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-11T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "variant",
+    "record-accuracy",
+    "logging"
+  ],
+  "stakeholder": "정확한 수행 기록을 원하는 리프터(P2 기록러·P1 입문자)",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경 / 이해관계자"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "같은 종목명이어도 실제 수행 조건은 크게 다르다. 렛풀다운을 예로 들면 언더그립·뉴트럴그립·와이드그립이 자극과 난이도가 다르고, 원암(한팔)과 투암(양팔)은 편측 부하가 달라지며, 같은 '풀다운'이라도 머신·바벨·덤벨·케이블·스미스는 실효 무게감과 저항 곡선이 서로 다르다. 이런 조건이 한 버킷에 섞이면 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "이전기록·PR·볼륨이 왜곡"
+          },
+          {
+            "type": "text",
+            "text": "된다. 어제 뉴트럴그립으로 60kg를 당긴 것과 오늘 와이드그립 40kg를 같은 '이전기록'으로 비교하면 성장 판단이 무너진다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "무게 자체도 순수 값 하나로는 실제 수행을 담지 못한다. 어시스티드 풀업/딥스는 보조머신이 무게를 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "빼주고(−)"
+          },
+          {
+            "type": "text",
+            "text": ", 웨이트벨트·덤벨을 매단 가중 딥스/풀업은 무게를 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "더한다(+)"
+          },
+          {
+            "type": "text",
+            "text": ". 마찬가지로 12회를 했더라도 정자세 8회 + 반동(치팅) 4회라면 실제 정자세 수행은 8회다. 보조반복과 보정무게를 구분하지 못하면 기록은 실제보다 부풀거나 축소된다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "현재 앱은 머신 브랜드(machine_variant)만 분리 추적한다. 즉 '해머 vs 라이프피트니스' 같은 기구 제조사 차이는 버킷이 나뉘지만, 그립·한팔/양팔·기구 유형(바벨/덤벨 등)·보조반복·보정무게 같은 나머지 수행 맥락은 한 버킷에 뭉뚱그려진다. 이 니즈를 강하게 느끼는 이해관계자는 기록의 정합성을 중시하는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "P2 기록러"
+          },
+          {
+            "type": "text",
+            "text": "(성장 추세·PR을 신뢰 지표로 삼는 중상급자)와, 자세가 무너지기 쉬워 보조반복·어시스트 사용 빈도가 높은 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "P1 입문자"
+          },
+          {
+            "type": "text",
+            "text": "다. 두 층 모두 '내가 실제로 무엇을 어떻게 했는가'가 왜곡 없이 남기를 원한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "사용자는 같은 종목이라도 자신이 실제로 수행한 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "변형(기구/그립/팔)과 정밀 맥락(보조반복·보정무게)별로 기록이 분리·비교되어"
+          },
+          {
+            "type": "text",
+            "text": ", 각 조건에 맞는 정확한 이전기록·PR·성장 추적을 얻기를 원한다. 이는 특정 UI나 스키마를 지정하는 것이 아니라, '섞이지 않은 정확한 나의 수행 기록'이라는 니즈다."
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기구 유형·그립·한팔/양팔이 다른 수행은 서로 다른 맥락으로 인식되어, 비교와 성장 판단이 같은 조건끼리만 이루어지기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "어시스티드(무게를 빼준)와 가중(무게를 더한) 수행이 순수 무게 하나로 뭉개지지 않고, 실제 부하가 그대로 남기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "정자세 반복과 보조(치팅) 반복이 구분되어, PR·볼륨이 실제 정자세 수행을 과대평가하지 않기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "지금처럼 머신 브랜드만이 아니라, 위 변형·정밀 맥락 전반에 걸쳐 기록 분리가 일관되게 확장되기를 원한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 종목의 서로 다른 변형(예: 언더그립 vs 뉴트럴그립, 원암 vs 투암, 머신 vs 바벨) 기록이 서로 섞이지 않고 별도 버킷으로 저장·조회된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "특정 변형을 선택해 세트를 기록/조회할 때, 이전기록과 PR은 동일한 변형의 기록만 참조한다(다른 변형의 기록이 이전기록·PR로 나타나지 않는다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "어시스티드/가중 보정무게가 부호(−/+)와 함께 기록되어, 표시되는 실효 부하와 PR 비교가 순수 무게가 아니라 보정 반영값으로 계산된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "정자세 반복 수를 총 반복과 별도로 남길 수 있고, 남긴 경우 PR·볼륨 판정이 정자세 수행을 기준으로 산출된다(미기재 시 전부 정자세로 간주)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존에 머신 브랜드만으로 기록된 과거 데이터가 무손실로 유지되어, 확장된 변형 체계에서도 동일 조건 기록과 이어서 비교된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 근거 (분석 — 구현 무관 참고)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이 니즈를 뒷받침하는 현행 모델 분석과 일반화 방향을 아래에 요약한다. URS는 구현을 규정하지 않으나, 후속 SRS/SAD/ADR이 근거 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "파일:라인"
+          },
+          {
+            "type": "text",
+            "text": "을 재사용하도록 남긴다(코드 재작성 없음 — 분석/제안)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "현행 모델 지도 (v5 machine_variant)"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "위치"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "컬럼/필드"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "근거"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "set_logs"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "변형 컬럼 없음 — 부모(workout_exercise)가 소유, 세트는 상속"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "schema.ts:120-136, SetLog.ts:10-19"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "workout_exercises"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "machine_variant (string, optional, indexed)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "schema.ts:114, WorkoutExercise.ts:28"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "routine_exercises"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "machine_variant (string, optional, indexed)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "schema.ts:70, RoutineExercise.ts:21"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "user_profiles"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "machine_variant_labels (JSON string[3] 전역 커스텀 라벨)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "schema.ts:21, UserProfile.ts:17"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "값 도메인"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "브랜드 13개 + custom1~3, MACHINE_VARIANT_OPTIONS"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "machineVariants.ts:6-70"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "마이그레이션"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "v5 addColumns (기존행 machine_variant=null → 기본 버킷)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "migrations.ts:47-64"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "쓰기/버킷키: startWorkoutFromRoutine이 re.machineVariant를 we로 복사(:224), 즉석 추가는 null(:279), 세션 중 변경 setMachineVariant(:354-361). 버킷 키는 두 곳에서 동일 규약 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "`${exerciseId}::${machineVariant ?? ''}`"
+          },
+          {
+            "type": "text",
+            "text": " — startWorkoutFromRoutine:188(vkey), completeWorkout:493. 이 :: 조인이 현행 사실상의 canonical key다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "prev·PR·volume·history 버킷 필터 로직"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "prev(직전 1세트)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " getPreviousExerciseSnapshot:56-77 — variant!==undefined면 Q.where('machine_variant', variant) 추가(:65). 완료세션 completed_at desc 순회, 매칭 we의 마지막 non-warmup/non-failed performed 세트."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "prev(직전 전체세트)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " getPreviousExerciseSets:84-107 — 동일 필터 :90. 첫 인스턴스(sort_order 최소) 하나만."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "PR(최고중량)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " getExercisePR:129-147 — :136 필터. 무게 우선·동률시 reps. warmup 제외, isPerformed만."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "PR(세션종료 검출)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " historicalSnapshotForExercise:435-451 + completeWorkout:468-539 — :444 필터. PR은 (exercise_id × variant) Map(performedByVariant, :480/:493-496)으로 그룹→detectNewPRs."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "volume"
+                  },
+                  {
+                    "type": "text",
+                    "text": " completeWorkout:491 + volume.ts:12 — 변형 미분리. total_volume_kg는 세션 전체 합(워밍업·실패 제외), 버킷 개념 없음."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "history"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 전용 조회 없음 — 이력은 완료세션 순회로 파생, prev/PR가 사실상의 history 접근면."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "핵심 규약: variant===undefined → 변형 무관 전체 조회, variant===null → 기본 버킷만, variant==='hammer' → 해머 버킷만. 변형은 workout_exercise 레벨 소유(세트별 아님). 노출은 equipment==='machine'로 게이팅(MachineVariantSelector.tsx:29,36). 도메인 계산층(volume.ts:8-10, personalRecords.ts:21-29/47-60, oneRepMax.ts:7-11 Epley)은 버킷 무관 순수 함수라, 변형 일반화는 리포지토리 필터/키만 바꾸면 계산식은 재사용된다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "일반화 스키마 제안 (v6)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "결정: canonical "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "variant_key"
+          },
+          {
+            "type": "text",
+            "text": "(indexed, 버킷 조회용) + 개별 차원 컬럼(SSOT·UI편집·분석 group-by). JSON 컬럼 반려 근거 — WatermelonDB는 JSON에 Q.where 등가 필터·인덱스를 걸 수 없어, prev/PR가 요구하는 인덱스된 단일 등가 조회(현행 :65/:136/:444)를 못 준다(전건 로드 후 앱 필터 → 누적 시 O(N)). 개별 컬럼만의 3-way AND도 복합 인덱스 부재·null 분기 3배로 반려. variant_key는 쓰기 시 개별 컬럼에서 파생(derived-on-write)."
+          }
+        ]
+      },
+      {
+        "type": "code_block",
+        "attrs": {
+          "lang": "text"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "components (고정순서) = [equip, grip, arm]\n각 차원: 기본/미지정이면 세그먼트 생략\n세그먼트 = \"<dim>:<value>\", 조인 = \"|\"\n모든 차원 기본 → variant_key = null   // v5 기본 버킷과 동일 표현(하위호환 핵심)\n예)\n  전부 기본             → null\n  Hammer만              → \"equip:hammer\"\n  Hammer + 뉴트럴그립    → \"equip:hammer|grip:neutral\"\n  바벨 + 언더 + 원암     → \"equip:barbell|grip:under|arm:uni\""
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "하위호환 정합: v5 machine_variant='hammer'가 새 규약 equip:hammer와 같은 문자열 버킷이 되도록 equip 값공간에 브랜드 키를 그대로 편입 → 기존 완료기록과 신규 선택이 동일 버킷에 무손실 병합. 차원 값공간 — equip: MACHINE_BRAND_KEYS ∪ CUSTOM_VARIANT_KEYS(machineVariants.ts:6-23) ∪ EquipmentType 유형키(barbell/dumbbell/cable/smith/bodyweight, types.ts:7-16), null=카탈로그 기본. grip: over|under|neutral|wide|close (방향과 폭은 직교 축이라 향후 grip_orientation+grip_width 분리가 ADR 후보, 당장은 단일 enum). arm: bi(양팔)|uni(원암), null=bi."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SCHEMA_VERSION=6(schema.ts:5). workout_exercises·routine_exercises에 variant_key(indexed)·variant_equipment·variant_grip·variant_arm 추가(machine_variant의 @text 데코레이터 패턴 재사용, WorkoutExercise.ts:28/RoutineExercise.ts:21). set_logs에 strict_reps(number, optional; null=전부 정자세=reps)·load_adjust_kg(number, optional; signed, 어시스티드 −/가중 +, null=0) 추가(@field, SetLog.ts 패턴). machine_variant(레거시)는 유지·인덱스 유지(WatermelonDB dropColumn 부재 + 무손실 fallback 소스). 조회는 Q.where('machine_variant', v)(:65/:90/:136/:444)를 Q.where('variant_key', key)로, we.machineVariant 조인(:493)을 we.variantKey로 치환. 신규 순수 도메인 canonicalVariantKey({equip,grip,arm})→string|null이 쓰기 시 파생 저장."
+          }
+        ]
+      }
+    ]
+  }
+}

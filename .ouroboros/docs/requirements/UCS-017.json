@@ -1,0 +1,699 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-017",
+  "type": "UCS",
+  "title": "종목 변형(그립·팔·기구)을 선택하고 그 변형의 이전기록·PR을 참조하며 기록한다",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-11T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "variant",
+    "session"
+  ],
+  "relations": {
+    "elaborates": [
+      "URS-016"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개요"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "사용자는 같은 종목(exercise)이라도 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "기구(브랜드/유형)·그립·팔 모드"
+          },
+          {
+            "type": "text",
+            "text": "에 따라 실제 부하와 자극이 달라진다. 이 유스케이스는 사용자가 세션·루틴에서 종목의 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "변형(variant)"
+          },
+          {
+            "type": "text",
+            "text": "을 선택하면, 시스템이 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "(exercise_id, variant_key)"
+          },
+          {
+            "type": "text",
+            "text": " 버킷 단위로 이전기록·PR을 분리 조회·표시하고, 그 버킷에 기록을 저장하는 흐름을 정의한다. 현행 v5의 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant"
+          },
+          {
+            "type": "text",
+            "text": "(브랜드 단일 축, 머신 전용)을 그립·팔 축으로 일반화한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "액터: 운동 기록 사용자(1차). 범위: 세션 진행 화면 + 루틴 편집. 트리거: 세트 기록 전 변형 선택, 또는 루틴이 지정한 목표 변형의 세션 승계."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "주 흐름"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "변형 선택."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 사용자가 세션 또는 루틴에서 해당 종목의 변형을 지정한다 — 기구/브랜드(예: 해머·라이프피트니스·프리웨이트 바벨/덤벨), 그립(오버/언더/뉴트럴/와이드/클로즈), 팔 모드(양팔 bi / 원암 uni). 시스템은 선택된 개별 차원에서 결정적 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key"
+                  },
+                  {
+                    "type": "text",
+                    "text": "를 파생한다(모든 차원 기본이면 key=null, 예: 해머+뉴트럴 → "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "equip:hammer|grip:neutral"
+                  },
+                  {
+                    "type": "text",
+                    "text": ")."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "변형별 이전기록·PR 표시."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 시스템은 그 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 버킷의 직전 세션 세트(이전기록)와 최고기록(PR)을 조회해 세트 그리드에 표시한다. 다른 변형의 기록은 섞이지 않는다(해머 벤치의 PR과 프리웨이트 벤치의 PR이 별도 버킷)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "무게·횟수 입력(정자세/보조 구분·보정)."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 사용자가 세트별로 무게와 횟수를 입력한다. 필요 시 총 반복 중 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "정자세 횟수(strict_reps)"
+                  },
+                  {
+                    "type": "text",
+                    "text": "를 구분하고, 어시스티드(음수)·가중(양수) "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "보정 무게(load_adjust_kg)"
+                  },
+                  {
+                    "type": "text",
+                    "text": "를 입력한다. 미입력 시 전부 정자세·보정 0으로 취급한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "완료·저장·PR 갱신."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 세션 완료 시 세트들은 해당 변형 버킷에 저장되고, PR은 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "(exercise_id × variant_key)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 단위로 검출·갱신된다. 총중량(volume)은 보정 무게 반영·치팅(정자세 vs 보조) 규칙을 적용해 산출한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "대안 / 예외 흐름"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "변형 미지정(기본 버킷)."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 사용자가 변형을 지정하지 않으면 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key = null"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 기본 버킷에 기록·조회한다. 이는 v5의 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine_variant=null"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 기본 버킷과 동일한 문자열 표현이라 기존 기본 기록과 병합된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "기존 머신 기록 자동 승계."
+                  },
+                  {
+                    "type": "text",
+                    "text": " v5의 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine_variant='hammer'"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 기록은 새 규약 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "equip:hammer"
+                  },
+                  {
+                    "type": "text",
+                    "text": "와 같은 버킷이 되도록 브랜드 키를 equip 값공간에 편입해 무손실 승계한다. 사용자는 이전 해머 기록을 그대로 참조한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "프리웨이트에도 변형 적용."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 변형은 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "equipment==='machine'"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 게이팅을 넘어 바벨·덤벨·케이블에도 확장된다(예: 바벨+언더그립+원암 → "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "equip:barbell|grip:under|arm:uni"
+                  },
+                  {
+                    "type": "text",
+                    "text": "). 프리웨이트에서 그립·팔 축만으로도 버킷이 분리된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "잘못 선택 시 변형 변경·재조회."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 진행 중 변형을 잘못 골랐으면 사용자가 변형을 변경할 수 있고, 시스템은 즉시 새 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 버킷의 이전기록·PR을 재조회해 표시를 교체한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "이력 없는 신규 버킷."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 처음 기록하는 변형 버킷은 이전기록·PR이 비어 표시된다(placeholder). 첫 완료 시 그 버킷의 최초 기록·PR이 생성된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 / 사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "진행 중인 세션 또는 편집 중인 루틴에 대상 종목(exercise)이 존재한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "선택 가능한 변형 차원(기구/브랜드·그립·팔)의 값공간이 종목 유형(카탈로그 equipment)에 맞게 노출된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "커스텀 기구 라벨은 user_profiles(machine_variant_labels)에서 로드되어 선택지에 반영된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "완료된 세트가 해당 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "(exercise_id, variant_key)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 버킷에 저장되고, 개별 차원 컬럼(equipment/grip/arm)도 함께 기록되어 group-by 분석이 가능하다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "그 변형 버킷의 PR이 최고중량·최고reps·세트볼륨·추정 1RM 기준으로 갱신되고, 신규 PR 발생 시 검출된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "정자세/보조 구분과 보정 무게가 반영된 총중량(volume)이 산출되어 세션 요약에 집계된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "다음 세션에서 같은 변형을 선택하면 이번 기록이 이전기록으로 조회되어 진행성 추적이 이어진다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "elaborates: URS-016(변형별 진행성 추적 니즈). 관련 설계 근거 — variant_key canonical 규약·v6 스키마 컬럼(workout_exercises/routine_exercises: variant_key indexed + variant_equipment/grip/arm; set_logs: strict_reps/load_adjust_kg), prev/PR/volume 버킷 필터 일반화(machine_variant → variant_key 치환)."
+          }
+        ]
+      }
+    ]
+  }
+}

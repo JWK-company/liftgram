@@ -1,0 +1,973 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-025",
+  "type": "ADR",
+  "title": "종목 변형 기록 모델 결정 — 다차원 variant 키로 일반화(machine_variant 흡수), (exercise×variant) 버킷",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-11T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "variant",
+    "schema",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SAD-019",
+      "SRS-028",
+      "SRS-029"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "현재 스키마(v5)는 종목의 변형 중 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "머신 브랜드/기구"
+          },
+          {
+            "type": "text",
+            "text": "만을 단일 문자열 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant"
+          },
+          {
+            "type": "text",
+            "text": "로 분리 추적한다("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "schema.ts:114"
+          },
+          {
+            "type": "text",
+            "text": " workout_exercises·"
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "schema.ts:70"
+          },
+          {
+            "type": "text",
+            "text": " routine_exercises, 인덱스 보유). 변형은 세트가 아닌 부모 workout_exercise 레벨이 소유하며, prev/PR 조회는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "Q.where('machine_variant', variant)"
+          },
+          {
+            "type": "text",
+            "text": " 단일 등가 필터로 버킷을 나눈다("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "workoutRepository.ts:65 / :90 / :136 / :444"
+          },
+          {
+            "type": "text",
+            "text": "). 사실상의 canonical 버킷 키는 두 곳에서 반복되는 문자열 조인 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "`${exerciseId}::${machineVariant ?? ''}`"
+          },
+          {
+            "type": "text",
+            "text": "("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": ":188"
+          },
+          {
+            "type": "text",
+            "text": " / "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": ":493"
+          },
+          {
+            "type": "text",
+            "text": ")이다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "그러나 사용자 피드백은 같은 종목의 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "브랜드 이외의 변형"
+          },
+          {
+            "type": "text",
+            "text": "도 수행 무게를 실질적으로 바꾼다는 점을 반복해 지적한다 — #26 원암/투암(팔 모드), #19 그립(오버/언더/뉴트럴/와이드/클로즈), #21 기구 유형. 이 변형들이 하나의 버킷으로 섞이면 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "이전기록·PR이 왜곡"
+          },
+          {
+            "type": "text",
+            "text": "된다(예: 원암 20kg와 투암 20kg가 같은 최고중량 버킷에 들어가 잘못된 PR·이전값 노출). 단일 문자열 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant"
+          },
+          {
+            "type": "text",
+            "text": " 축만으로는 그립·팔 모드를 표현할 자리가 없어, 변형 축을 확장 가능한 모델로 일반화할 필요가 있다. 반면 도메인 계산 계층("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "volume.ts"
+          },
+          {
+            "type": "text",
+            "text": "·"
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "personalRecords.ts"
+          },
+          {
+            "type": "text",
+            "text": "·"
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "oneRepMax.ts"
+          },
+          {
+            "type": "text",
+            "text": ")는 버킷 무관 순수 함수라, 변경 표면은 리포지토리 필터/키에 국한된다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "종목 변형을 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "다차원 canonical variant_key"
+          },
+          {
+            "type": "text",
+            "text": "로 모델링한다. 차원은 고정 순서 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "[equip, grip, arm]"
+          },
+          {
+            "type": "text",
+            "text": "(기구·그립·팔 모드)이며, 기존 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant"
+          },
+          {
+            "type": "text",
+            "text": "는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "equip"
+          },
+          {
+            "type": "text",
+            "text": " 차원으로 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "흡수"
+          },
+          {
+            "type": "text",
+            "text": "한다. prev/PR/volume/history 조회 단위는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "(exercise_id × variant_key)"
+          },
+          {
+            "type": "text",
+            "text": " 버킷이다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "canonical variant_key 규약(결정적·하위호환):"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세그먼트 형식 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "\"<dim>:<value>\""
+                  },
+                  {
+                    "type": "text",
+                    "text": ", 고정 순서 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "equip|grip|arm"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 로 조인. 기본/미지정 차원은 세그먼트 생략."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모든 차원이 기본이면 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key = null"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — v5 기본 버킷과 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "동일 표현"
+                  },
+                  {
+                    "type": "text",
+                    "text": "(하위호환 핵심)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "v5 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine_variant='hammer'"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 는 새 규약의 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "\"equip:hammer\""
+                  },
+                  {
+                    "type": "text",
+                    "text": " 와 같은 문자열 버킷이 되도록 브랜드 키를 equip 값공간에 그대로 편입 → 기존 완료기록과 신규 선택이 동일 버킷에 병합."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "예: 전부 기본 → null · Hammer만 → \"equip:hammer\" · Hammer+뉴트럴그립 → \"equip:hammer|grip:neutral\" · 바벨+언더그립+원암 → \"equip:barbell|grip:under|arm:uni\"."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "저장 전략: canonical variant_key(인덱스, 버킷 조회용) + 개별 차원 컬럼(variant_equipment/grip/arm, SSOT·UI 편집·group-by 분석용)을 둘 다 저장하며, variant_key는 쓰기 시 개별 차원에서 파생(derived-on-write)한다. 마이그레이션은 무손실이며 machine_variant 레거시 컬럼은 유지·인덱스 유지(fallback 소스)한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "채택 이유:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "카탈로그 종목 수 불변"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 변형은 workout_exercise/routine_exercise 인스턴스의 속성이지 종목 레코드가 아니므로, 그립·팔·기구를 늘려도 종목 카탈로그가 폭증하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "기존 기록 승계(무손실)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — variant_key의 null·브랜드 표현이 v5 버킷과 문자열 동형이라, 기존 완료 세션 이력·PR이 새 버킷 규약에서 그대로 유효하다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "확장 용이·최소 변경"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 단일 등가 필터("
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Q.where('variant_key', key)"
+                  },
+                  {
+                    "type": "text",
+                    "text": ")로 현행 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ":65/:136/:444"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 패턴을 1:1 치환하고, 순수 계산 계층(volume/PR/1RM)은 재사용된다. 새 차원 추가는 규약 확장으로 흡수."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "기각 대안:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(a) 변형마다 별도 exercise 레코드 복제"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 카탈로그가 (종목×기구×그립×팔) 조합으로 폭증하고 중복·검색 오염을 유발. 신규 차원마다 데이터 곱셈. 기각."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(b) 자유 텍스트 메모만"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 기록 분리·PR 계산이 불가(비정형 문자열은 등가 버킷 조회 불가). 이전기록·PR 왜곡 문제를 전혀 해결하지 못함. 기각."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(c) 단일 machine_variant 유지"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 단일 축이라 그립·팔 모드를 표현할 자리가 없어 #19·#26을 수용 불가. 확장 불가로 기각."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(d) JSON 컬럼 / 개별 컬럼 3-way AND 필터"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — WatermelonDB는 JSON에 인덱스·"
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Q.where"
+                  },
+                  {
+                    "type": "text",
+                    "text": " 등가 필터가 불가해 완료세션 누적 시 O(N) 스캔이 되고, 개별 컬럼 3중 AND는 복합 인덱스 부재로 비효율·null 분기 3배. 그래서 파생 단일 variant_key를 인덱스 조회 축으로 채택(개별 컬럼은 비인덱스 분석용)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "장점:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "그립·팔·기구 변형별로 이전기록·PR·volume·history가 정확히 분리되어 #26·#19·#21 피드백을 한 모델로 해소."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "리포지토리 필터/키만 교체하고 도메인 계산은 재사용 → 변경 표면이 좁고 회귀 위험이 낮다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "개별 차원 컬럼으로 \"모든 원암 기록\", \"그립별 비교\" 같은 group-by 분석 확장 여지 확보."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "트레이드오프:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "스키마 v6 마이그레이션"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — SCHEMA_VERSION 6로 workout_exercises·routine_exercises에 variant_key(인덱스)+3개 차원 컬럼 addColumns, machine_variant는 무손실 유지. 파생 백필 필요."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "UI 복잡도"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 단일 브랜드 셀렉터가 다차원(기구·그립·팔) 선택 UI로 확장되어 상태·노출 게이팅이 복잡해진다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "모델링 냄새(향후 ADR 후보)"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — grip의 방향(over/under/neutral)과 폭(wide/close)은 직교 축이라 향후 grip_orientation+grip_width 분리가 정합적. 당장은 단일 enum 유지."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "되돌림 비용: 중간"
+          },
+          {
+            "type": "text",
+            "text": " — 컬럼 추가·필터 치환은 되돌릴 수 있으나, 핵심 리스크는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "초기 variant_key 규약(차원 순서·값공간·null 표현) 확정"
+          },
+          {
+            "type": "text",
+            "text": "이다. 이 규약이 버킷 정체성이므로 출시 후 규약을 바꾸면 기존 버킷 문자열이 어긋나 이력 재매핑 마이그레이션이 필요하다. 규약을 초기에 고정하는 것이 관건."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "informs: SAD-019(변형 기반 기록 아키텍처), SRS-028·SRS-029(다차원 변형 기록·버킷 요구). 흡수 대상: 기존 machine_variant 단일 축. 관련 근거: schema.ts:70/114·workoutRepository.ts:65/136/444/493·machineVariants.ts·volume.ts·personalRecords.ts."
+          }
+        ]
+      }
+    ]
+  }
+}
