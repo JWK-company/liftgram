@@ -357,6 +357,8 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     <View>
       <Button title={t('routines.addExercise')} icon="add" variant="secondary" onPress={addExercise} style={{ marginTop: spacing.md }} />
       <Divider />
+      {/* 완료(저장) = 루틴 삭제 바로 위, 같은 크기 버튼 */}
+      <Button title={t('common.done')} icon="checkmark" onPress={onDone} style={{ marginTop: spacing.sm }} />
       <Button title={t('routines.deleteRoutineTitle')} variant="danger" onPress={deleteRoutine} style={{ marginTop: spacing.sm }} />
     </View>
   );
@@ -366,7 +368,8 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
       <View style={styles.topBar}>
         <IconButton icon="chevron-back" onPress={() => navigation.goBack()} />
         <AppText variant="heading">{t('routines.editorTitle')}</AppText>
-        <Button title={t('common.done')} size="sm" variant="ghost" fullWidth={false} onPress={onDone} />
+        {/* 완료 버튼은 하단(삭제 위)으로 이동 — 헤더는 뒤로가기=취소만. 타이틀 중앙 유지용 스페이서. */}
+        <View style={{ width: 40 }} />
       </View>
 
       <ReorderableList
