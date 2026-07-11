@@ -345,6 +345,25 @@ export async function removeWorkoutExercise(id: string): Promise<void> {
   });
 }
 
+// 운동 중 종목 교체(BS-002 #22) — 삭제·재추가 없이 이 인스턴스의 종목만 교체. 세트는 유지(새 종목 기록으로),
+// 변형·이전기록 스냅샷은 새 종목 기준으로 초기화(다른 종목이므로 변형 맥락 리셋). @plm SRS-004
+export async function swapWorkoutExercise(workoutExerciseId: string, newExerciseId: string): Promise<void> {
+  const prevSnap = await getPreviousExerciseSnapshot(newExerciseId); // 새 종목 최신 기록(변형 무관)
+  await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    await we.update((rec) => {
+      rec.exerciseId = newExerciseId;
+      rec.prevWeightKg = prevSnap?.weightKg ?? null;
+      rec.prevReps = prevSnap?.reps ?? null;
+      rec.variantKey = null;
+      rec.variantEquipment = null;
+      rec.variantGrip = null;
+      rec.variantArm = null;
+      rec.machineVariant = null;
+    });
+  });
+}
+
 // ── 세트 편집 (템플릿 프리레이 + 완료 체크 — Hevy식) ────────────────
 export interface LogSetInput {
   weightKg: number;

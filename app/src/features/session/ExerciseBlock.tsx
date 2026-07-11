@@ -32,6 +32,7 @@ interface ExerciseBlockProps {
   weightStep: number;
   barWeightKg: number;
   onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
+  onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
 }
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -66,7 +67,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest, onSwap }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -151,6 +152,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
             ) : null}
           </View>
         </View>
+        {onSwap ? (
+          <IconButton icon="swap-horizontal-outline" color="textMuted" size={20} onPress={() => onSwap(we.id)} />
+        ) : null}
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
 

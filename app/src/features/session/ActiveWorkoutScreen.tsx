@@ -101,6 +101,14 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
 
+  // 운동 중 종목 교체(#22) — 삭제·재추가 없이 이 종목만 새 종목으로 교체.
+  function handleSwapExercise(weId: string) {
+    requestExercisePick((exId) => {
+      workoutRepo.swapWorkoutExercise(weId, exId).catch((e) => Alert.alert(t('common.error'), String(e)));
+    });
+    navigation.navigate('ExerciseList', { mode: 'pick' });
+  }
+
   function confirmFinish() {
     Alert.alert(t('session.finishWorkout.title'), t('session.finishWorkout.message'), [
       { text: t('common.cancel'), style: 'cancel' },
@@ -186,6 +194,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
               weightStep={weightStep}
               barWeightKg={barWeightKg}
               onStartRest={startRest}
+              onSwap={handleSwapExercise}
             />
           ))
         )}
