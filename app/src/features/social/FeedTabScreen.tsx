@@ -55,7 +55,9 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     setError(null);
     setLoadError(false);
     try {
-      const logged = await serverApi.isLoggedIn();
+      let logged = await serverApi.isLoggedIn();
+      // 액세스 토큰이 사라졌어도 refresh 토큰이 살아있으면 세션 복구 후 '로그인 필요' 대신 정상 피드.
+      if (!logged) logged = await serverApi.refreshSession().catch(() => false);
       if (gen !== loadGen.current) return; // 더 새로운 새로고침이 시작됨 → 폐기
       setAuthed(logged);
       if (logged) {
