@@ -43,6 +43,23 @@ const BRAND_LABELS: Record<MachineBrandKey, { ko: string; en: string }> = {
   arsenal: { ko: '아스날', en: 'Arsenal Strength' },
 };
 
+// 짧은(축약) 브랜드 라벨 — 변형 칩에 그립·팔과 함께 잘리지 않게 표시하기 위함(예: 해머스트렝스→해머).
+const BRAND_SHORT_LABELS: Record<MachineBrandKey, { ko: string; en: string }> = {
+  hammer: { ko: '해머', en: 'Hammer' },
+  lifefitness: { ko: '라이프', en: 'Life' },
+  technogym: { ko: '테크노', en: 'Techno' },
+  cybex: { ko: '사이벡스', en: 'Cybex' },
+  precor: { ko: '프리코', en: 'Precor' },
+  matrix: { ko: '매트릭스', en: 'Matrix' },
+  nautilus: { ko: '너틸러스', en: 'Nautilus' },
+  hoist: { ko: '호이스트', en: 'Hoist' },
+  newtech: { ko: '뉴텍', en: 'Newtech' },
+  panatta: { ko: '파나타', en: 'Panatta' },
+  gym80: { ko: '짐80', en: 'Gym80' },
+  prime: { ko: '프라임', en: 'Prime' },
+  arsenal: { ko: '아스날', en: 'Arsenal' },
+};
+
 function customIndex(key: string): number {
   return (CUSTOM_VARIANT_KEYS as readonly string[]).indexOf(key);
 }
@@ -60,6 +77,21 @@ export function machineVariantLabel(
     return custom || (lang === 'ko' ? `커스텀 ${ci + 1}` : `Custom ${ci + 1}`);
   }
   return BRAND_LABELS[key as MachineBrandKey]?.[lang] ?? key;
+}
+
+// 축약 라벨 — 변형 칩(트리거)용. 커스텀은 사용자명을 그대로(이미 짧음), 브랜드는 짧은 이름.
+export function machineVariantShortLabel(
+  key: string | null | undefined,
+  lang: AppLanguage,
+  customLabels: string[] = [],
+): string {
+  if (!key) return lang === 'ko' ? '기본' : 'Default';
+  const ci = customIndex(key);
+  if (ci >= 0) {
+    const custom = customLabels[ci]?.trim();
+    return custom || (lang === 'ko' ? `커스텀 ${ci + 1}` : `Custom ${ci + 1}`);
+  }
+  return BRAND_SHORT_LABELS[key as MachineBrandKey]?.[lang] ?? BRAND_LABELS[key as MachineBrandKey]?.[lang] ?? key;
 }
 
 // 선택기 옵션 순서: 기본 → 브랜드 → 커스텀.

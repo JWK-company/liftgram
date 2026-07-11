@@ -3,7 +3,14 @@
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { Routine, RoutineExercise, Exercise } from '../db/models';
-import { generateProgram, type ProgramInput, type GeneratedProgram, type CatalogExercise } from '../domain';
+import {
+  generateProgram,
+  generateFromSplits,
+  type ProgramInput,
+  type SplitProgramInput,
+  type GeneratedProgram,
+  type CatalogExercise,
+} from '../domain';
 
 const exercises = () => database.get<Exercise>('exercises');
 const routines = () => database.get<Routine>('routines');
@@ -18,6 +25,18 @@ export async function buildProgram(input: ProgramInput): Promise<GeneratedProgra
     equipment: e.equipment,
   }));
   return generateProgram(input, catalog);
+}
+
+// 커스텀 분할 생성 — 카탈로그 주입 후 순수 도메인(generateFromSplits) 위임. @plm SRS-009
+export async function buildFromSplits(input: SplitProgramInput): Promise<GeneratedProgram> {
+  const list = await exercises().query(Q.where('is_archived', false)).fetch();
+  const catalog: CatalogExercise[] = list.map((e) => ({
+    id: e.id,
+    primaryMuscles: e.primaryMuscles,
+    secondaryMuscles: e.secondaryMuscles,
+    equipment: e.equipment,
+  }));
+  return generateFromSplits(input, catalog);
 }
 
 export interface AdoptRoutineInput {

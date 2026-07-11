@@ -546,8 +546,9 @@ function ExerciseEditRow({
       </View>
 
       <View style={styles.rowActions}>
-        <IconButton icon="arrow-up" size={18} color="textMuted" disabled={index === 0} onPress={onMoveUp} />
-        <IconButton icon="arrow-down" size={18} color="textMuted" disabled={index === total - 1} onPress={onMoveDown} />
+        {/* 순서 변경 — 드래그는 웹에서 동작하지 않으므로 화살표가 신뢰 가능한 기본 경로. */}
+        <IconButton icon="arrow-up" size={20} color="text" filled disabled={index === 0} onPress={onMoveUp} />
+        <IconButton icon="arrow-down" size={20} color="text" filled disabled={index === total - 1} onPress={onMoveDown} />
         <View style={{ flex: 1 }} />
         <Button title={t('routines.swap')} size="sm" variant="ghost" fullWidth={false} onPress={onSwap} />
         <IconButton icon="trash-outline" size={18} color="danger" onPress={onRemove} />

@@ -3,15 +3,15 @@ import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer, DarkTheme, type Theme, type LinkingOptions } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, useNavigationContainerRef, type Theme, type LinkingOptions } from '@react-navigation/native';
 import { colors } from './src/theme';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import type { RootStackParamList } from './src/navigation/types';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
-import { backfillVariantKeysV6 } from './src/data/workoutRepository';
-import { AppText, AlertHost, ConfigBanner } from './src/components';
+import { backfillVariantKeysV6, consolidateExercisesV8 } from './src/data/workoutRepository';
+import { AppText, AlertHost, ConfigBanner, GlobalWorkoutBar } from './src/components';
 import { OnboardingOverlay } from './src/features/onboarding/OnboardingOverlay';
 import { installWebAlert } from './src/utils/alert';
 import { LanguageSync } from './src/i18n/LanguageSync';
@@ -88,6 +88,7 @@ export default function App() {
       try {
         await seedExercisesIfNeeded();
         await backfillVariantKeysV6(); // v6 무손실 변형 백필(멱등) — 레거시 machine_variant→variant_key. @plm SRS-028
+        await consolidateExercisesV8(); // #13 종목 통합(멱등) — 인클라인 프레스 등 기구 변형으로 흡수.
       } catch (e) {
         setError(String(e));
       } finally {
@@ -109,6 +110,9 @@ export default function App() {
       .catch(() => {});
   }, []);
 
+  const navRef = useNavigationContainerRef<RootStackParamList>();
+  const [routeName, setRouteName] = useState<string | undefined>(undefined);
+
   if (!ready) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -127,7 +131,12 @@ export default function App() {
         <ConfigBanner />
         <View style={{ flex: 1 }}>
           <SessionProvider>
-            <NavigationContainer theme={navTheme} linking={linking}>
+            <NavigationContainer
+              ref={navRef}
+              theme={navTheme}
+              linking={linking}
+              onStateChange={() => setRouteName(navRef.getCurrentRoute()?.name)}
+            >
               {error ? (
                 <View style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
                   <AppText variant="heading" center>
@@ -141,6 +150,7 @@ export default function App() {
                 <RootNavigator />
               )}
             </NavigationContainer>
+            <GlobalWorkoutBar navRef={navRef} routeName={routeName} />
           </SessionProvider>
         </View>
         {/* AlertHost·OnboardingOverlay는 useT()→useUser()에 의존 → 반드시 UserProvider 안에 마운트. */}

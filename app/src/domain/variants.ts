@@ -2,7 +2,7 @@
 // (종목 × variant_key) 버킷으로 이전기록·PR·볼륨을 분리 추적. machine_variant(v5)를 equipment 차원으로 흡수(무손실).
 // 순수 도메인(RN 의존 0). 계산·리포지토리·UI가 공유.
 import type { AppLanguage, EquipmentType } from './types';
-import { MACHINE_BRAND_KEYS, CUSTOM_VARIANT_KEYS, machineVariantLabel } from './machineVariants';
+import { MACHINE_BRAND_KEYS, CUSTOM_VARIANT_KEYS, machineVariantLabel, machineVariantShortLabel } from './machineVariants';
 
 // --- 차원 값공간 ---
 export const GRIP_KEYS = ['over', 'under', 'neutral', 'wide', 'close'] as const;
@@ -79,6 +79,14 @@ const GRIP_LABELS: Record<GripKey, { ko: string; en: string }> = {
   wide: { ko: '와이드그립', en: 'Wide grip' },
   close: { ko: '클로즈그립', en: 'Close grip' },
 };
+// 축약 그립 라벨 — 변형 칩(트리거)용. 여러 차원이 잘리지 않고 모두 보이도록 짧게.
+const GRIP_SHORT_LABELS: Record<GripKey, { ko: string; en: string }> = {
+  over: { ko: '오버', en: 'Over' },
+  under: { ko: '언더', en: 'Under' },
+  neutral: { ko: '뉴트럴', en: 'Neutral' },
+  wide: { ko: '와이드', en: 'Wide' },
+  close: { ko: '클로즈', en: 'Close' },
+};
 const IMPLEMENT_LABELS: Partial<Record<EquipmentType, { ko: string; en: string }>> = {
   barbell: { ko: '바벨', en: 'Barbell' },
   dumbbell: { ko: '덤벨', en: 'Dumbbell' },
@@ -101,6 +109,20 @@ export function armLabel(key: ArmKey | null | undefined, lang: AppLanguage): str
   return key === 'uni' ? (lang === 'ko' ? '원암' : 'Single-arm') : '';
 }
 
+// --- 축약 라벨 (변형 칩/트리거용 — 모든 차원이 잘리지 않게) ---
+export function equipmentVariantShortLabel(key: string | null | undefined, lang: AppLanguage, customLabels: string[] = []): string {
+  if (!key) return lang === 'ko' ? '기본' : 'Default';
+  const impl = IMPLEMENT_LABELS[key as EquipmentType];
+  if (impl) return impl[lang]; // 바벨/덤벨/머신… 이미 짧음
+  return machineVariantShortLabel(key, lang, customLabels); // 브랜드는 짧게, 커스텀은 그대로
+}
+export function gripShortLabel(key: GripKey | null | undefined, lang: AppLanguage): string {
+  return key ? GRIP_SHORT_LABELS[key]?.[lang] ?? key : '';
+}
+export function armShortLabel(key: ArmKey | null | undefined, lang: AppLanguage): string {
+  return key === 'uni' ? (lang === 'ko' ? '원암' : '1-arm') : '';
+}
+
 // 종합 라벨 — "해머 · 언더그립 · 원암". 전부 기본이면 '기본'.
 export function variantLabel(v: VariantDims, lang: AppLanguage, customLabels: string[] = []): string {
   const parts: string[] = [];
@@ -115,11 +137,35 @@ export function variantLabelFromKey(key: string | null | undefined, lang: AppLan
   return variantLabel(parseVariantKey(key), lang, customLabels);
 }
 
+// 축약 종합 라벨 — "해머 · 언더 · 원암"(EN "Hammer · Under · 1-arm"). 트리거 칩에서 모든 차원 표시용.
+export function variantShortLabel(v: VariantDims, lang: AppLanguage, customLabels: string[] = []): string {
+  const parts: string[] = [];
+  if (norm(v.equipment)) parts.push(equipmentVariantShortLabel(v.equipment, lang, customLabels));
+  const g = gripShortLabel(v.grip, lang);
+  if (g) parts.push(g);
+  const a = armShortLabel(v.arm, lang);
+  if (a) parts.push(a);
+  return parts.length ? parts.join(' · ') : lang === 'ko' ? '기본' : 'Default';
+}
+export function variantShortLabelFromKey(key: string | null | undefined, lang: AppLanguage, customLabels: string[] = []): string {
+  return variantShortLabel(parseVariantKey(key), lang, customLabels);
+}
+
 // --- 선택기 옵션 ---
 // equipment는 종목 기본 기구에 따라: 머신이면 브랜드+커스텀, 아니면 대체 기구.
-export function equipmentOptionsFor(baseEquipment: EquipmentType | null | undefined): (string | null)[] {
+export function equipmentOptionsFor(
+  baseEquipment: EquipmentType | null | undefined,
+  selected?: string | null,
+): (string | null)[] {
   if (baseEquipment === 'machine') return [null, ...MACHINE_BRAND_KEYS, ...CUSTOM_VARIANT_KEYS];
-  return [null, ...IMPLEMENT_KEYS];
+  const base: (string | null)[] = [null, ...IMPLEMENT_KEYS];
+  // 프리웨이트 종목에서 '머신'(또는 특정 브랜드)을 고르면 브랜드 옵션을 이어서 노출(#13 · 머신 선택 시 브랜드).
+  const sel = selected ?? '';
+  const isMachineSel =
+    sel === 'machine' ||
+    (MACHINE_BRAND_KEYS as readonly string[]).includes(sel) ||
+    (CUSTOM_VARIANT_KEYS as readonly string[]).includes(sel);
+  return isMachineSel ? [...base, ...MACHINE_BRAND_KEYS, ...CUSTOM_VARIANT_KEYS] : base;
 }
 export const GRIP_OPTIONS: (GripKey | null)[] = [null, ...GRIP_KEYS];
 export const ARM_OPTIONS: (ArmKey | null)[] = ['bi', 'uni'];

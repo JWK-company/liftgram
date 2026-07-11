@@ -14,10 +14,10 @@ export interface SeedExercise {
 export const SEED_EXERCISES: SeedExercise[] = [
   // ── 가슴 (chest) ───────────────────────────────────────────────
   { nameKo: '바벨 벤치프레스', nameEn: 'Barbell Bench Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps', 'shoulders'], equipment: 'barbell' },
-  { nameKo: '인클라인 바벨 프레스', nameEn: 'Incline Barbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'barbell' },
+  // 인클라인 프레스 — 기구(바벨/덤벨/머신)는 변형에서 선택(#13). 머신 선택 시 브랜드.
+  { nameKo: '인클라인 프레스', nameEn: 'Incline Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'barbell' },
   { nameKo: '디클라인 바벨 프레스', nameEn: 'Decline Barbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
   { nameKo: '덤벨 벤치프레스', nameEn: 'Dumbbell Bench Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps', 'shoulders'], equipment: 'dumbbell' },
-  { nameKo: '인클라인 덤벨 프레스', nameEn: 'Incline Dumbbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'dumbbell' },
   { nameKo: '디클라인 덤벨 프레스', nameEn: 'Decline Dumbbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'dumbbell' },
   { nameKo: '덤벨 플라이', nameEn: 'Dumbbell Fly', primaryMuscles: ['chest'], equipment: 'dumbbell' },
   { nameKo: '인클라인 덤벨 플라이', nameEn: 'Incline Dumbbell Fly', primaryMuscles: ['chest'], equipment: 'dumbbell' },
@@ -25,7 +25,6 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '로우 케이블 플라이', nameEn: 'Low Cable Fly', primaryMuscles: ['chest'], equipment: 'cable' },
   { nameKo: '펙 덱 플라이', nameEn: 'Pec Deck Fly', primaryMuscles: ['chest'], equipment: 'machine' },
   { nameKo: '체스트 프레스 머신', nameEn: 'Chest Press Machine', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
-  { nameKo: '인클라인 체스트 프레스 머신', nameEn: 'Incline Chest Press Machine', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
   { nameKo: '스미스 벤치프레스', nameEn: 'Smith Machine Bench Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'smith' },
   { nameKo: '딥스', nameEn: 'Dips', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'bodyweight' },
   { nameKo: '푸시업', nameEn: 'Push Up', primaryMuscles: ['chest'], secondaryMuscles: ['triceps', 'shoulders'], equipment: 'bodyweight' },

@@ -12,7 +12,7 @@ import {
   equipmentOptionsFor,
   equipmentVariantLabel,
   gripLabel,
-  variantLabel,
+  variantShortLabel,
   type ArmKey,
   type EquipmentType,
   type GripKey,
@@ -37,13 +37,14 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   const grip = value.grip ?? null;
   const arm = value.arm === 'uni' ? 'uni' : null; // 'bi'/null = 기본
   const active = Boolean(equip || grip || arm);
-  const label = variantLabel(value, lang, machineVariantLabels);
+  // 트리거 칩은 축약 라벨("해머 · 언더 · 원암")로 모든 차원을 잘림 없이 표시. 전체 라벨은 모달 옵션에서.
+  const label = variantShortLabel(value, lang, machineVariantLabels);
 
   return (
     <>
       <Pressable onPress={() => setOpen(true)} hitSlop={6} style={styles.chip}>
         <Ionicons name="options-outline" size={12} color={active ? colors.primary : colors.textMuted} />
-        <AppText variant="caption" color={active ? 'primary' : 'textMuted'} numberOfLines={1} style={styles.chipText}>
+        <AppText variant="caption" color={active ? 'primary' : 'textMuted'} style={styles.chipText}>
           {label}
         </AppText>
         <Ionicons name="chevron-down" size={12} color={active ? colors.primary : colors.textMuted} />
@@ -61,7 +62,7 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
                 {t('variant.equipment')}
               </AppText>
               <View style={styles.chipRow}>
-                {equipmentOptionsFor(baseEquipment).map((k) => (
+                {equipmentOptionsFor(baseEquipment, equip).map((k) => (
                   <SelectChip
                     key={k ?? 'default'}
                     label={equipmentVariantLabel(k, lang, machineVariantLabels)}
@@ -129,7 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    maxWidth: 180,
+    flexShrink: 1,
   },
   chipText: { flexShrink: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: spacing.xl },

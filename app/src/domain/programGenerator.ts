@@ -33,6 +33,7 @@ export interface ProgramDay {
   nameKey: string; // i18n 키(program.day.*)
   index: number; // 같은 템플릿 반복 시 A/B 구분용(0-based)
   slots: ProgramSlot[];
+  muscles?: MuscleGroup[]; // 커스텀 분할(직접 정의)에서 이 날에 배정된 근육군 — 이름 표기용
 }
 export interface GeneratedProgram {
   goal: ProgramGoal;
@@ -132,4 +133,56 @@ export function generateProgram(input: ProgramInput, catalog: CatalogExercise[])
   });
 
   return { goal: input.goal, experience: input.experience, daysPerWeek: input.daysPerWeek, days };
+}
+
+// ── 커스텀 분할(직접 정의) 생성 ─────────────────────────────────────────
+// 사용자가 "몇 분할 · 각 분할에 어떤 근육군"만 정하면 나머지(종목·세트·반복)를 자동 채운다.
+// 각 splits[i] = 한 요일(루틴). 근육군당 1~2 종목을 카탈로그(장비 필터)에서 결정적으로 선택. @plm SRS-009
+export interface SplitProgramInput {
+  splits: MuscleGroup[][]; // 분할별 근육군 목록. 길이 = 분할 수.
+  equipment: EquipmentType[]; // 빈 배열 = 전체(필터 없음)
+  goal?: ProgramGoal; // 세트/반복 스킴. 기본 hypertrophy.
+  experience?: ProgramExperience; // 세트 수 보정. 기본 intermediate.
+}
+
+export function generateFromSplits(input: SplitProgramInput, catalog: CatalogExercise[]): GeneratedProgram {
+  const goal = input.goal ?? 'hypertrophy';
+  const experience = input.experience ?? 'intermediate';
+  const scheme = SCHEME[goal];
+  const sets = Math.max(1, scheme.sets - (experience === 'beginner' ? 1 : 0));
+
+  // 후보 풀 캐시(근육별) — generateProgram과 동일한 랭킹(컴파운드·장비 우선) 재사용.
+  const poolCache = new Map<MuscleGroup, string[]>();
+  const pool = (m: MuscleGroup): string[] => {
+    if (!poolCache.has(m)) poolCache.set(m, rankedCandidates(catalog, m, input.equipment));
+    return poolCache.get(m)!;
+  };
+
+  const days: ProgramDay[] = input.splits.map((muscles, dayIdx) => {
+    const used = new Set<string>();
+    // 분할에 근육군이 적으면 근육당 2종목, 많으면 1종목으로 하루 볼륨 균형.
+    const perMuscle = muscles.length <= 2 ? 2 : 1;
+    const slots: ProgramSlot[] = [];
+    muscles.forEach((muscle) => {
+      let avail = pool(muscle).filter((id) => !used.has(id));
+      const take = Math.min(perMuscle, avail.length);
+      for (let k = 0; k < take; k++) {
+        const chosen = avail[0];
+        used.add(chosen);
+        avail = avail.slice(1);
+        const alternatives = avail.filter((id) => !used.has(id)).slice(0, 4);
+        slots.push({
+          exerciseId: chosen,
+          alternatives,
+          targetSets: sets,
+          targetRepsMin: scheme.repMin,
+          targetRepsMax: scheme.repMax,
+          restSeconds: scheme.rest,
+        });
+      }
+    });
+    return { templateKey: 'custom', nameKey: 'program.day.custom', index: dayIdx, slots, muscles };
+  });
+
+  return { goal, experience, daysPerWeek: input.splits.length, days };
 }

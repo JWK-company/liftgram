@@ -3,7 +3,7 @@
 import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
-import { Workout, WorkoutExercise, SetLog, Routine, RoutineExercise } from '../db/models';
+import { Workout, WorkoutExercise, SetLog, Routine, RoutineExercise, Exercise } from '../db/models';
 import { getExercise } from './exerciseRepository';
 import {
   totalVolumeKg,
@@ -15,6 +15,7 @@ import {
   type LoggedSet,
   type PRResult,
   type PRSnapshot,
+  type EquipmentType,
 } from '../domain';
 import { legacyMachineVariantToV6, variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
 
@@ -71,6 +72,59 @@ export async function backfillVariantKeysV6(): Promise<number> {
   return n;
 }
 
+// #13 종목 통합(멱등) — 잘게 쪼개진 종목을 '기구 변형'으로 흡수. 예: 인클라인 바벨/덤벨/머신 프레스
+// → '인클라인 프레스' 1개. 기존 참조(운동·루틴)를 통합 종목으로 재지정하고 variant_equipment로
+// 기구를 보존(이전기록·PR 버킷 유지). 이미 사용자가 고른 변형은 건드리지 않는다. 원본 종목은 삭제.
+// 신규 설치엔 원본이 없어 no-op. 부팅 시 seedExercisesIfNeeded 다음에 1회.
+interface ExerciseConsolidation {
+  targetNameKo: string;
+  sources: { nameKo: string; equipment: EquipmentType }[];
+}
+const EXERCISE_CONSOLIDATIONS: ExerciseConsolidation[] = [
+  {
+    targetNameKo: '인클라인 프레스',
+    sources: [
+      { nameKo: '인클라인 바벨 프레스', equipment: 'barbell' },
+      { nameKo: '인클라인 덤벨 프레스', equipment: 'dumbbell' },
+      { nameKo: '인클라인 체스트 프레스 머신', equipment: 'machine' },
+    ],
+  },
+];
+
+export async function consolidateExercisesV8(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  let moved = 0;
+  for (const c of EXERCISE_CONSOLIDATIONS) {
+    const [target] = await exercises.query(Q.where('name_ko', c.targetNameKo), Q.where('is_custom', false)).fetch();
+    if (!target) continue; // 통합 종목이 아직 시드 안 됨 — 건너뜀
+    for (const src of c.sources) {
+      const [srcEx] = await exercises.query(Q.where('name_ko', src.nameKo), Q.where('is_custom', false)).fetch();
+      if (!srcEx || srcEx.id === target.id) continue;
+      const cols = variantColumns({ equipment: src.equipment });
+      const wes = await workoutExercises().query(Q.where('exercise_id', srcEx.id)).fetch();
+      const res = await routineExercises().query(Q.where('exercise_id', srcEx.id)).fetch();
+      await database.write(async () => {
+        await database.batch(
+          ...[...wes, ...res].map((r) =>
+            (r as WorkoutExercise | RoutineExercise).prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+              rec.exerciseId = target.id;
+              // 기구 변형이 비어있을 때만 기존 기구를 변형으로 승계(사용자가 이미 고른 변형은 보존).
+              if (!rec.variantEquipment && !rec.variantKey) {
+                rec.variantKey = cols.variantKey;
+                rec.variantEquipment = cols.variantEquipment;
+                rec.machineVariant = cols.variantEquipment;
+              }
+            }),
+          ),
+          srcEx.prepareMarkAsDeleted(),
+        );
+      });
+      moved += wes.length + res.length;
+    }
+  }
+  return moved;
+}
+
 // ── 조회 / 반응형 ──────────────────────────────────────────────────
 export function getWorkout(id: string): Promise<Workout> {
   return workouts().find(id);
@@ -90,6 +144,33 @@ export function queryWorkoutExercises(workoutId: string): Query<WorkoutExercise>
 
 export function querySetLogs(workoutExerciseId: string): Query<SetLog> {
   return setLogs().query(Q.where('workout_exercise_id', workoutExerciseId), Q.sortBy('set_number', Q.asc));
+}
+
+// 운동 중 종목 순서 교체(#11) — 화살표로 위/아래 이동. sort_order 재기입.
+export async function reorderWorkoutExercises(orderedIds: string[]): Promise<void> {
+  await database.write(async () => {
+    const records = await Promise.all(orderedIds.map((id) => workoutExercises().find(id)));
+    await database.batch(
+      ...records.map((we, i) =>
+        we.prepareUpdate((rec) => {
+          rec.sortOrder = i;
+        }),
+      ),
+    );
+  });
+}
+
+// 진행 중 세션의 실시간 총 볼륨(#5) — 완료(done)·워킹 세트만, 보정무게·정자세 반복 반영(SRS-029). @plm SRS-004
+export async function getWorkoutLiveVolume(workoutId: string): Promise<number> {
+  const wes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
+  if (!wes.length) return 0;
+  const sets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch();
+  let v = 0;
+  for (const s of sets) {
+    if (!isPerformed(s) || s.isWarmup || s.isFailed) continue;
+    v += Math.max(0, s.weightKg + (s.loadAdjustKg ?? 0)) * (s.strictReps ?? s.reps);
+  }
+  return v;
 }
 
 // 직전 세션의 같은 종목 마지막 세트(자동표시·자동채움용 — SRS-003).

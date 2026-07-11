@@ -33,6 +33,8 @@ interface ExerciseBlockProps {
   barWeightKg: number;
   onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
   onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
+  onMoveUp?: () => void; // 운동 중 순서 위로(#11) — 없으면 최상단
+  onMoveDown?: () => void; // 운동 중 순서 아래로(#11) — 없으면 최하단
 }
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -67,11 +69,13 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest, onSwap }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest, onSwap, onMoveUp, onMoveDown }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
   const [busy, setBusy] = useState(false);
+  // v6 정밀도(SRS-029) 입력 표시 — 블록 단위 토글로 승격(#8). 보조/가중무게·정자세 반복이 메뉴에 묻혀 접근 불가하던 문제.
+  const [showPrecision, setShowPrecision] = useState(false);
   const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
   const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
 
@@ -172,8 +176,28 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
                 {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
               </AppText>
             ) : null}
+            {/* 보조/가중무게·정자세 반복 입력 토글(#8) — 친업·딥스 등 마이너스/플러스 무게 접근. */}
+            <Pressable onPress={() => setShowPrecision((v) => !v)} hitSlop={4} style={[styles.precisionToggle, showPrecision && styles.precisionToggleOn]}>
+              <AppText variant="label" color={showPrecision ? 'primary' : 'textMuted'}>
+                {t('session.precisionToggle')}
+              </AppText>
+            </Pressable>
           </View>
         </View>
+        {onMoveUp || onMoveDown ? (
+          <View style={styles.reorderCol}>
+            {onMoveUp ? (
+              <IconButton icon="chevron-up" color="textMuted" size={18} onPress={onMoveUp} />
+            ) : (
+              <View style={styles.reorderSpacer} />
+            )}
+            {onMoveDown ? (
+              <IconButton icon="chevron-down" color="textMuted" size={18} onPress={onMoveDown} />
+            ) : (
+              <View style={styles.reorderSpacer} />
+            )}
+          </View>
+        ) : null}
         {onSwap ? (
           <IconButton icon="swap-horizontal-outline" color="textMuted" size={20} onPress={() => onSwap(we.id)} />
         ) : null}
@@ -207,6 +231,8 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
           weightUnit={weightUnit}
           barWeightKg={barWeightKg}
           onRestStart={() => onStartRest(restSeconds)}
+          showPrecision={showPrecision}
+          onTogglePrecision={() => setShowPrecision((v) => !v)}
         />
       ))}
 
@@ -257,6 +283,8 @@ function SetRowEdit({
   weightUnit,
   barWeightKg,
   onRestStart,
+  showPrecision,
+  onTogglePrecision,
 }: {
   set: SetLog;
   label: string;
@@ -264,13 +292,13 @@ function SetRowEdit({
   weightUnit: WeightUnit;
   barWeightKg: number;
   onRestStart: () => void;
+  showPrecision: boolean; // 블록 단위 정밀도 토글(#8)
+  onTogglePrecision: () => void;
 }) {
   const { t } = useT();
   const isDone = set.done === true;
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
-  // v6 정밀도(SRS-029) — 기본 숨김, 세트타입 메뉴로 펼침. 정자세 반복·보정무게(부호 있음).
-  const [showPrecision, setShowPrecision] = useState(false);
   const [sr, setSr] = useState(() => (set.strictReps != null ? String(set.strictReps) : ''));
   const [la, setLa] = useState(() => (set.loadAdjustKg != null ? numStr(fromKg(set.loadAdjustKg, weightUnit)) : ''));
 
@@ -318,7 +346,7 @@ function SetRowEdit({
       { text: t('session.setType.drop'), onPress: () => workoutRepo.setSetType(set.id, 'drop').catch(() => {}) },
       { text: t('session.setType.failed'), onPress: () => workoutRepo.setSetType(set.id, 'failed').catch(() => {}) },
       { text: t('session.plateCalcTitle'), onPress: () => showPlates(set.weightKg, barWeightKg, weightUnit, t) },
-      { text: t('session.editPrecision'), onPress: () => setShowPrecision((v) => !v) },
+      { text: t('session.editPrecision'), onPress: onTogglePrecision },
       { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
@@ -467,6 +495,19 @@ const styles = StyleSheet.create({
   del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
+  // 정밀도(보조/가중무게·정자세) 토글 칩(#8).
+  precisionToggle: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  precisionToggleOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
+  // 운동 중 순서 이동 화살표 열(#11).
+  reorderCol: { alignItems: 'center', justifyContent: 'center' },
+  reorderSpacer: { width: 18, height: 18 },
   restRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, minHeight: 44 },
   restSetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 },
 });
