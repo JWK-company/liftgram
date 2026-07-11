@@ -49,6 +49,7 @@ const linking: LinkingOptions<RootStackParamList> = {
           WorkoutTab: 'workout',
           FeedTab: 'feed',
           HistoryTab: 'history',
+          CalendarTab: 'calendar',
           StatsTab: 'stats',
           ProfileTab: 'profile',
           FeedbackTab: 'feedback',

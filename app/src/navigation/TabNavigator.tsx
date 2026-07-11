@@ -7,6 +7,7 @@ import { colors } from '../theme';
 import WorkoutTabScreen from '../features/routines/WorkoutTabScreen';
 import FeedTabScreen from '../features/social/FeedTabScreen';
 import HistoryTabScreen from '../features/analytics/HistoryTabScreen';
+import CalendarTabScreen from '../features/analytics/CalendarTabScreen';
 import StatsTabScreen from '../features/analytics/StatsTabScreen';
 import ProfileTabScreen from '../features/profile/ProfileTabScreen';
 import FeedbackTabScreen from '../features/feedback/FeedbackTabScreen';
@@ -20,6 +21,7 @@ const ICONS: Record<keyof TabParamList, keyof typeof Ionicons.glyphMap> = {
   WorkoutTab: 'barbell',
   FeedTab: 'people',
   HistoryTab: 'time',
+  CalendarTab: 'calendar',
   StatsTab: 'stats-chart',
   ProfileTab: 'person',
   FeedbackTab: 'chatbox-ellipses',
@@ -72,6 +74,7 @@ export function TabNavigator() {
       <Tab.Screen name="WorkoutTab" component={WorkoutTabScreen} options={{ title: t('nav.workout') }} />
       <Tab.Screen name="FeedTab" component={FeedTabScreen} options={{ title: t('nav.feed') }} />
       <Tab.Screen name="HistoryTab" component={HistoryTabScreen} options={{ title: t('nav.history') }} />
+      <Tab.Screen name="CalendarTab" component={CalendarTabScreen} options={{ title: t('nav.calendar') }} />
       <Tab.Screen name="StatsTab" component={StatsTabScreen} options={{ title: t('nav.stats') }} />
       <Tab.Screen name="ProfileTab" component={ProfileTabScreen} options={{ title: t('nav.profile') }} />
       {showFeedback ? (
