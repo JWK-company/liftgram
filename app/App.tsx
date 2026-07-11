@@ -105,10 +105,13 @@ export default function App() {
     void warmupServer();
     serverApi
       .isLoggedIn()
-      .then((yes) => {
-        if (yes) {
+      .then(async (yes) => {
+        // 액세스 토큰이 없어도 refresh 토큰이 살아있으면 세션 자동 복구 — 스토리지 만료·부분 소실·
+        // 앱 재개로 access만 사라진 경우 재로그인 없이 회복(피드 '로그인 필요' 오표시·동기 중단 방지).
+        const active = yes || (await serverApi.refreshSession().catch(() => false));
+        if (active) {
           void registerPushToken();
-          scheduleSync(); // 부팅 동기 — 영속 토큰으로 '이미 로그인된' 세션 재오픈 시에도 동기
+          scheduleSync(); // 부팅 동기 — 영속 세션 재오픈 시에도 동기
         }
       })
       .catch(() => {});
