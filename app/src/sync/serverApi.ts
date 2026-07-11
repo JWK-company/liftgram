@@ -37,7 +37,8 @@ export async function warmupServer(): Promise<void> {
   }
 }
 
-// refresh 토큰으로 새 토큰쌍 획득. 실패(만료/폐기) 시 저장 토큰 정리. request() 재귀 방지 위해 직접 fetch.
+// refresh 토큰으로 새 토큰쌍 획득. request() 재귀 방지 위해 직접 fetch.
+// 세션 정리는 refresh가 '진짜 무효'(만료·폐기·재사용)일 때만 — 서버가 401/403으로 명시한 경우로 한정.
 async function doRefresh(): Promise<boolean> {
   const refreshToken = await loadRefreshToken();
   if (!refreshToken) return false;
@@ -48,15 +49,20 @@ async function doRefresh(): Promise<boolean> {
       body: JSON.stringify({ refreshToken }),
     });
     if (!res.ok) {
-      await clearTokens();
-      emitAuthChange(); // 조용한 세션 종료 → 역할 기반 UI(피드백 탭) 즉시 회수
+      // 401/403(서버가 명시한 인증 거절)만 세션 정리. 5xx·429·502/503/504(무료티어 콜드스타트·
+      // 게이트웨이 타임아웃 등 일시적 서버오류)는 refresh 토큰이 멀쩡하므로 보존 → 거짓 로그아웃 방지.
+      // 다음 포커스/요청에서 서버가 warm되면 refresh 성공. (일시 오류는 request()가 에러로 표면화 → 재시도 UI.)
+      if (res.status === 401 || res.status === 403) {
+        await clearTokens();
+        emitAuthChange(); // 조용한 세션 종료 → 역할 기반 UI(피드백 탭) 즉시 회수
+      }
       return false;
     }
     const { accessToken, refreshToken: next } = (await res.json()) as AuthTokens;
     await saveTokens(accessToken, next);
     return true;
   } catch {
-    // 네트워크/타임아웃 실패는 토큰을 지우지 않음(세션 유지) — 진짜 만료(!res.ok)일 때만 정리.
+    // 네트워크/타임아웃(응답 자체를 못 받음)도 토큰 보존 — 세션 유지.
     return false;
   }
 }
