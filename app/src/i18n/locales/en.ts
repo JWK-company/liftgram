@@ -295,6 +295,7 @@ export const en: Record<TransKey, string> = {
   "profile.postsLabel": "Posts",
   "profile.retry": "Retry",
   "profile.settings": "Settings",
+  "profile.account": "Account",
   "profile.signOut": "Sign out",
   "profile.signOutConfirmMessage": "Sign out? Your locally saved workout records will be kept.",
   "profile.sync": "Sync",

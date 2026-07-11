@@ -32,7 +32,6 @@ import { useT } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { canInstall, onInstallAvailable, promptInstall } from '../../push/pwa';
 import { ServerSyncCard } from './ServerSyncCard';
-import { ProfileEditCard } from './ProfileEditCard';
 
 type Language = 'ko' | 'en';
 
@@ -127,20 +126,8 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
     void patch(() => userRepo.updateUserSettings(userId, { machineVariantLabels: customLabels.map((s) => s.trim()) }));
   }
 
-  function onSignOut() {
-    Alert.alert(t('profile.signOut'), t('profile.signOutConfirmMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('profile.signOut'),
-        style: 'destructive',
-        onPress: () => void patch(() => userRepo.signOutLocal(userId)),
-      },
-    ]);
-  }
-
   const weightStep = weightUnit === 'kg' ? 2.5 : 5;
   const barDisplay = Number(fromKg(barWeightKg, weightUnit).toFixed(1));
-  const isAuthed = !!user.email;
 
   return (
     <Screen scroll>
@@ -148,34 +135,9 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
         {t('profile.title')}
       </AppText>
 
-      {/* 신원 카드 */}
-      <Card style={styles.identityCard}>
-        <View style={styles.identityRow}>
-          <View style={styles.avatar}>
-            <Ionicons name={isAuthed ? 'person' : 'person-outline'} size={26} color={colors.textMuted} />
-          </View>
-          <View style={styles.identityText}>
-            <AppText variant="heading" numberOfLines={1}>
-              {isAuthed ? user.displayName || user.email : t('profile.guest')}
-            </AppText>
-            <AppText variant="caption" color="textMuted" numberOfLines={1} style={{ marginTop: 2 }}>
-              {isAuthed ? user.email : t('profile.guestCaption')}
-            </AppText>
-          </View>
-        </View>
-        <View style={{ marginTop: spacing.lg }}>
-          {isAuthed ? (
-            <Button title={t('profile.signOut')} variant="danger" icon="log-out-outline" onPress={onSignOut} disabled={busy} />
-          ) : (
-            <Button
-              title={t('profile.loginOrSignup')}
-              variant="primary"
-              icon="log-in-outline"
-              onPress={() => navigation.navigate('Auth')}
-            />
-          )}
-        </View>
-      </Card>
+      {/* 계정 — 로그인/가입·프로필(아바타·표시이름)·동기·로그아웃을 한 곳에(세션 상태로 일관 표시) */}
+      <SectionHeader title={t('profile.account')} />
+      <ServerSyncCard />
 
       {/* 설정 */}
       <SectionHeader title={t('profile.settings')} />
@@ -289,16 +251,6 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
           ))}
         </View>
       </Card>
-
-      {/* 동기화 상태 */}
-      <SectionHeader title={t('profile.sync')} />
-      <Card style={styles.syncCard}>
-        {/* @plm SRS-006 — 실제 서버 동기(JWT + WatermelonDB synchronize) */}
-        <ServerSyncCard />
-      </Card>
-
-      {/* 내 프로필 편집 (로그인 시만 표시) */}
-      <ProfileEditCard />
 
       {/* 저장한 게시물 · 차단 목록 관리 (로그인 시) */}
       {loggedIn ? (
