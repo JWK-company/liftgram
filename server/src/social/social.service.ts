@@ -685,22 +685,59 @@ export class SocialService {
     return posts.map((p) => this.toView(p));
   }
 
-  // 추천 유저 — 내가 아직 팔로우하지 않은 사용자, 팔로워 많은 순.
+  // 추천 유저 (BS-002 #25) — ①친구의 친구(내가 팔로우하는 사람들이 팔로우하는 유저, 겹침 많은 순)
+  // 우선, 부족분은 ②인기순(팔로워 많은 순)으로 채움. 미팔로우·미숨김만.
+  // 주: '운동 기록 분석 기반' 랭킹은 서버가 운동 데이터를 불투명 동기(SyncRecord)로만 보관해 조회 불가 →
+  //     현 아키텍처에서 가능한 소셜그래프(팔로우) 신호로 추천 품질을 높인다.
   async getSuggestions(viewerId: string, limit: number): Promise<DiscoverUser[]> {
     const hidden = await this.hiddenUserIds(viewerId);
-    const users = await this.prisma.user.findMany({
-      where: { id: { not: viewerId, notIn: hidden }, followers: { none: { followerId: viewerId } } },
-      orderBy: { followers: { _count: 'desc' } },
-      take: limit,
-      include: { _count: { select: { followers: true } } },
+    const myFollows = await this.prisma.follow.findMany({
+      where: { followerId: viewerId },
+      select: { followeeId: true },
     });
-    return users.map((u) => ({
-      id: u.id,
-      displayName: u.displayName,
-      avatarUrl: u.avatarUrl,
-      isFollowing: false,
-      followerCount: u._count.followers,
-    }));
+    const followeeIds = myFollows.map((f) => f.followeeId);
+    const excluded = new Set<string>([viewerId, ...hidden, ...followeeIds]);
+    const out: DiscoverUser[] = [];
+
+    // ① 친구의 친구 — 내 팔로위들이 팔로우하는 유저를 겹치는 수 많은 순으로.
+    if (followeeIds.length) {
+      const fof = await this.prisma.follow.groupBy({
+        by: ['followeeId'],
+        where: { followerId: { in: followeeIds }, followeeId: { notIn: [...excluded] } },
+        _count: { followeeId: true },
+        orderBy: { _count: { followeeId: 'desc' } },
+        take: limit,
+      });
+      const ids = fof.map((r) => r.followeeId);
+      if (ids.length) {
+        const users = await this.prisma.user.findMany({
+          where: { id: { in: ids } },
+          include: { _count: { select: { followers: true } } },
+        });
+        const byId = new Map(users.map((u) => [u.id, u]));
+        for (const r of fof) {
+          const u = byId.get(r.followeeId);
+          if (!u) continue;
+          out.push({ id: u.id, displayName: u.displayName, avatarUrl: u.avatarUrl, isFollowing: false, followerCount: u._count.followers });
+          excluded.add(u.id);
+        }
+      }
+    }
+
+    // ② 부족분 — 인기순(팔로워 많은 순)으로 채움.
+    if (out.length < limit) {
+      const popular = await this.prisma.user.findMany({
+        where: { id: { notIn: [...excluded] } },
+        orderBy: { followers: { _count: 'desc' } },
+        take: limit - out.length,
+        include: { _count: { select: { followers: true } } },
+      });
+      for (const u of popular) {
+        out.push({ id: u.id, displayName: u.displayName, avatarUrl: u.avatarUrl, isFollowing: false, followerCount: u._count.followers });
+      }
+    }
+
+    return out.slice(0, limit);
   }
 
   // 스토리 생성 — 24h 후 만료. 미디어는 사전 업로드된 mediaUrl 참조(SRS-019 · SAD-012).
