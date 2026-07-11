@@ -25,6 +25,7 @@ export function StoryTray({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
+      style={styles.trayScroller}
       contentContainerStyle={styles.tray}
     >
       <Pressable style={styles.item} onPress={onAdd} disabled={busy}>
@@ -125,7 +126,9 @@ export function StoryViewer({
 const AVATAR = 60;
 
 const styles = StyleSheet.create({
-  tray: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
+  // 세로 공간이 좁아도(짧은 창) 트레이가 눌려 아바타가 잘리지 않게 — 축소 금지 + 내용 높이 고정.
+  trayScroller: { flexGrow: 0, flexShrink: 0 },
+  tray: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, gap: spacing.md },
   item: { alignItems: 'center', width: AVATAR + 12 },
   avatar: {
     width: AVATAR,
