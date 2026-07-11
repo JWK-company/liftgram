@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -67,7 +67,12 @@ export const mySchema = appSchema({
         { name: 'target_reps_max', type: 'number', isOptional: true },
         { name: 'target_weight_kg', type: 'number', isOptional: true },
         { name: 'rest_seconds', type: 'number' },
-        { name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }, // v5: 머신 기구/브랜드 키(null=기본)
+        { name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }, // v5(레거시): 머신 브랜드 키. v6부터 variant_equipment로 흡수
+        // v6: 종목 변형(기구·그립·팔) 일반화 — (종목×variant_key) 버킷. machine_variant 무손실 흡수. @plm SRS-028
+        { name: 'variant_key', type: 'string', isOptional: true, isIndexed: true }, // canonical 버킷 키(파생, null=기본)
+        { name: 'variant_equipment', type: 'string', isOptional: true }, // 기구/브랜드 키(null=카탈로그 기본)
+        { name: 'variant_grip', type: 'string', isOptional: true }, // over/under/neutral/wide/close
+        { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
         { name: 'superset_group', type: 'string', isOptional: true }, // 같은 값끼리 슈퍼셋 묶음
         { name: 'sort_order', type: 'number' },
         { name: 'note', type: 'string', isOptional: true },
@@ -111,7 +116,12 @@ export const mySchema = appSchema({
         { name: 'target_reps_max', type: 'number', isOptional: true },
         { name: 'target_weight_kg', type: 'number', isOptional: true },
         { name: 'rest_seconds', type: 'number', isOptional: true },
-        { name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }, // v5: 머신 기구/브랜드 키(null=기본)
+        { name: 'machine_variant', type: 'string', isOptional: true, isIndexed: true }, // v5(레거시): 머신 브랜드 키. v6부터 variant_equipment로 흡수
+        // v6: 종목 변형(기구·그립·팔) — (종목×variant_key) 버킷. @plm SRS-028
+        { name: 'variant_key', type: 'string', isOptional: true, isIndexed: true }, // canonical 버킷 키(파생, null=기본)
+        { name: 'variant_equipment', type: 'string', isOptional: true }, // 기구/브랜드 키(null=카탈로그 기본)
+        { name: 'variant_grip', type: 'string', isOptional: true }, // over/under/neutral/wide/close
+        { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -128,6 +138,9 @@ export const mySchema = appSchema({
         { name: 'is_warmup', type: 'boolean' },
         { name: 'is_failed', type: 'boolean' },
         { name: 'is_drop', type: 'boolean', isOptional: true }, // v4: 드롭세트(W/일반/D/F 세트타입 중 하나)
+        // v6: 로깅 정밀도 — 총중량/PR 정확도. @plm SRS-029
+        { name: 'strict_reps', type: 'number', isOptional: true }, // 정자세 반복(null=전부 정자세=reps). 나머지(reps-strict_reps)=보조/치팅
+        { name: 'load_adjust_kg', type: 'number', isOptional: true }, // 보정무게 signed. 어시스티드(−)/가중(+). null=0
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

@@ -10,6 +10,7 @@ import type { RootStackParamList } from './src/navigation/types';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
+import { backfillVariantKeysV6 } from './src/data/workoutRepository';
 import { AppText, AlertHost, ConfigBanner } from './src/components';
 import { OnboardingOverlay } from './src/features/onboarding/OnboardingOverlay';
 import { installWebAlert } from './src/utils/alert';
@@ -86,6 +87,7 @@ export default function App() {
     (async () => {
       try {
         await seedExercisesIfNeeded();
+        await backfillVariantKeysV6(); // v6 무손실 변형 백필(멱등) — 레거시 machine_variant→variant_key. @plm SRS-028
       } catch (e) {
         setError(String(e));
       } finally {

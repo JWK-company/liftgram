@@ -20,6 +20,11 @@ import {
   suggestNextSet,
   detectStall,
   generateProgram,
+  canonicalVariantKey,
+  parseVariantKey,
+  legacyMachineVariantToV6,
+  effectiveWeightKg,
+  effectiveReps,
   type CatalogExercise,
   type LoggedSet,
 } from '../index';
@@ -228,4 +233,47 @@ test('program: 6일 → PPL 2회전, 대체 후보 존재', () => {
   assert.deepEqual(p.days.map((d) => d.templateKey), ['push', 'pull', 'legs', 'push', 'pull', 'legs']);
   // 일부 슬롯엔 대체 후보가 있다(가슴은 3종).
   assert.ok(p.days[0].slots[0].alternatives.length >= 1);
+});
+
+// ── 종목 변형(variant) 모델 — SRS-028 ──────────────────────────────
+test('variant: 전부 기본 → null(v5 기본버킷과 동일)', () => {
+  assert.equal(canonicalVariantKey({}), null);
+  assert.equal(canonicalVariantKey({ equipment: null, grip: null, arm: 'bi' }), null); // bi=기본
+});
+test('variant: 차원 조합 → 고정순서 canonical 키', () => {
+  assert.equal(canonicalVariantKey({ equipment: 'hammer' }), 'equip:hammer');
+  assert.equal(canonicalVariantKey({ equipment: 'barbell', grip: 'under', arm: 'uni' }), 'equip:barbell|grip:under|arm:uni');
+  assert.equal(canonicalVariantKey({ grip: 'neutral' }), 'grip:neutral');
+});
+test('variant: parse ↔ canonical 왕복', () => {
+  const dims = parseVariantKey('equip:barbell|grip:under|arm:uni');
+  assert.deepEqual(dims, { equipment: 'barbell', grip: 'under', arm: 'uni' });
+  assert.equal(canonicalVariantKey(dims), 'equip:barbell|grip:under|arm:uni');
+});
+test('variant: 레거시 machine_variant 무손실 승계(hammer→equip:hammer, null→null)', () => {
+  const a = legacyMachineVariantToV6('hammer');
+  assert.equal(a.key, 'equip:hammer');
+  assert.equal(a.dims.equipment, 'hammer');
+  // 신규 선택 hammer와 같은 버킷 문자열이어야 과거·신규 기록이 병합된다
+  assert.equal(a.key, canonicalVariantKey({ equipment: 'hammer' }));
+  assert.equal(legacyMachineVariantToV6(null).key, null);
+});
+
+// ── 로깅 정밀도 — SRS-029 ──────────────────────────────────────────
+test('정밀도: 보정무게(어시스티드−)·정자세 반복이 유효 계산에 반영', () => {
+  // 100kg 스택, 10회 중 정자세 8회, 20kg 보조 → 유효무게 80, 유효반복 8
+  const s = ws(100, 10, { strictReps: 8, loadAdjustKg: -20 });
+  assert.equal(effectiveWeightKg(s), 80);
+  assert.equal(effectiveReps(s), 8);
+  assert.equal(setVolumeKg(s), 640); // 80 × 8 (치팅 2회 제외)
+});
+test('정밀도: 가중(+)·미지정 시 raw와 동일(하위호환)', () => {
+  assert.equal(effectiveWeightKg(ws(100, 5, { loadAdjustKg: 20 })), 120);
+  const plain = ws(100, 5);
+  assert.equal(effectiveWeightKg(plain), 100); // loadAdjust 미지정=0
+  assert.equal(effectiveReps(plain), 5); // strict 미지정=reps
+  assert.equal(setVolumeKg(plain), 500);
+});
+test('정밀도: 음수 유효무게는 0 클램프', () => {
+  assert.equal(effectiveWeightKg(ws(30, 5, { loadAdjustKg: -50 })), 0);
 });

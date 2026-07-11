@@ -44,6 +44,8 @@ export interface LoggedSet {
   rpe?: number | null;
   isWarmup: boolean;
   isFailed: boolean;
+  strictReps?: number | null; // v6: 정자세 반복(null=전부 정자세). 나머지(reps−strict)=보조/치팅 — 볼륨/PR 제외. @plm SRS-029
+  loadAdjustKg?: number | null; // v6: 보정무게 signed(어시스티드−/가중+). null=0
 }
 
 export const ALL_MUSCLE_GROUPS: MuscleGroup[] = [

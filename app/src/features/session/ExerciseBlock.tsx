@@ -1,14 +1,28 @@
 // @plm SRS-003  세션 종목 블록 — 템플릿 세트 그리드(세트타입·이전기록·PR·직접입력·완료체크·삭제)
 // @plm SRS-004  세트 추가/삭제·종목 삭제 (Hevy식)
+// @plm SRS-028  종목 변형(기구·그립·팔) 선택 — 변형별 이전기록·PR 분리
+// @plm SRS-029  세트 로깅 정밀도 — 정자세 반복(strict reps)·보정무게(load adjust)
 import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconButton, MachineVariantSelector, NumberStepper } from '../../components';
+import { AppText, Button, Card, IconButton, NumberStepper, VariantSelector } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
-import { workoutRepo, type LogSetInput } from '../../data';
+import { exerciseRepo, workoutRepo, type LogSetInput } from '../../data';
 import type { SetLog, WorkoutExercise } from '../../db/models';
-import { calcPlates, DEFAULT_PLATES_KG, formatWeight, fromKg, toKg, type WeightUnit } from '../../domain';
+import {
+  calcPlates,
+  canonicalVariantKey,
+  DEFAULT_PLATES_KG,
+  formatWeight,
+  fromKg,
+  toKg,
+  type ArmKey,
+  type EquipmentType,
+  type GripKey,
+  type VariantDims,
+  type WeightUnit,
+} from '../../domain';
 import { ExerciseName } from './ExerciseName';
 import { useT, type TransKey } from '../../i18n';
 
@@ -21,6 +35,11 @@ interface ExerciseBlockProps {
 }
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
+
+// 저장된 종목 변형 컬럼 → dims. @plm SRS-028
+function recordVariant(we: WorkoutExercise): VariantDims {
+  return { equipment: we.variantEquipment, grip: we.variantGrip as GripKey | null, arm: we.variantArm as ArmKey | null };
+}
 
 // 세트타입 라벨(순서 의존) — 일반 세트만 1,2,3.. 증가, 워밍업 W·드롭 D·실패 F.
 function setTypeLabel(s: SetLog, normalOrdinal: number): string {
@@ -55,22 +74,34 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
   const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
 
-  // 머신 기구(브랜드) — 이전기록·PR을 이 기구 것으로 분리 조회. null=기본.
-  const [variant, setVariant] = useState<string | null>(we.machineVariant);
-  useEffect(() => setVariant(we.machineVariant), [we.machineVariant]);
-  function onVariantChange(key: string | null) {
-    setVariant(key); // 로컬 즉시 반영(이전·PR 재조회) + 영속
-    workoutRepo.setMachineVariant(we.id, key).catch(() => {});
+  // 종목 변형(기구·그립·팔) — 이전기록·PR을 이 변형 것으로 분리 조회. @plm SRS-028
+  const [variant, setVariant] = useState<VariantDims>(() => recordVariant(we));
+  useEffect(() => setVariant(recordVariant(we)), [we.variantEquipment, we.variantGrip, we.variantArm]);
+  function onVariantChange(dims: VariantDims) {
+    setVariant(dims); // 로컬 즉시 반영(이전·PR 재조회) + 영속
+    workoutRepo.setVariant(we.id, dims).catch(() => {});
   }
 
+  // 변형 칩(기구 옵션)용 종목 기본 기구.
+  const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
+  useEffect(() => {
+    let alive = true;
+    exerciseRepo.getExercise(we.exerciseId).then((e) => alive && setBaseEquipment(e.equipment)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [we.exerciseId]);
+
+  // 버킷 조회 키(canonical variant_key) — dims가 아니라 키로 조회해야 버킷이 일치한다.
+  const variantKey = canonicalVariantKey(variant);
   useEffect(() => {
     let active = true;
-    workoutRepo.getPreviousExerciseSets(we.exerciseId, variant).then((s) => active && setPrevSets(s)).catch(() => {});
-    workoutRepo.getExercisePR(we.exerciseId, variant).then((p) => active && setPr(p)).catch(() => {});
+    workoutRepo.getPreviousExerciseSets(we.exerciseId, variantKey).then((s) => active && setPrevSets(s)).catch(() => {});
+    workoutRepo.getExercisePR(we.exerciseId, variantKey).then((p) => active && setPr(p)).catch(() => {});
     return () => {
       active = false;
     };
-  }, [we.exerciseId, variant]);
+  }, [we.exerciseId, variantKey]);
 
   // 이 종목의 휴식 '설정'(초). 세트 완료 체크 시 이 값으로 전역 카운트다운을 시작(교체).
   // 카운트다운 자체는 전역(ActiveWorkoutScreen)에 1개만 존재 — 종목별로 따로 돌지 않는다.
@@ -112,7 +143,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
           <View style={styles.headerMeta}>
-            <MachineVariantSelector exerciseId={we.exerciseId} value={variant} onChange={onVariantChange} />
+            <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
             {pr ? (
               <AppText variant="caption" color="pr">
                 {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
@@ -195,9 +226,15 @@ function SetRowEdit({
   const isDone = set.done === true;
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
+  // v6 정밀도(SRS-029) — 기본 숨김, 세트타입 메뉴로 펼침. 정자세 반복·보정무게(부호 있음).
+  const [showPrecision, setShowPrecision] = useState(false);
+  const [sr, setSr] = useState(() => (set.strictReps != null ? String(set.strictReps) : ''));
+  const [la, setLa] = useState(() => (set.loadAdjustKg != null ? numStr(fromKg(set.loadAdjustKg, weightUnit)) : ''));
 
   useEffect(() => setW(numStr(fromKg(set.weightKg, weightUnit))), [set.weightKg, weightUnit]);
   useEffect(() => setR(String(set.reps)), [set.reps]);
+  useEffect(() => setSr(set.strictReps != null ? String(set.strictReps) : ''), [set.strictReps]);
+  useEffect(() => setLa(set.loadAdjustKg != null ? numStr(fromKg(set.loadAdjustKg, weightUnit)) : ''), [set.loadAdjustKg, weightUnit]);
 
   function commitWeight() {
     const n = parseFloat(w.replace(',', '.'));
@@ -206,6 +243,19 @@ function SetRowEdit({
   function commitReps() {
     const n = parseInt(r, 10);
     if (!Number.isNaN(n) && n >= 0) workoutRepo.updateSetLog(set.id, { reps: n }).catch(() => {});
+  }
+  function commitStrict() {
+    const txt = sr.trim();
+    if (txt === '') return void workoutRepo.updateSetLog(set.id, { strictReps: null }).catch(() => {});
+    const n = parseInt(txt, 10);
+    if (!Number.isNaN(n) && n >= 0) workoutRepo.updateSetLog(set.id, { strictReps: n }).catch(() => {});
+  }
+  function commitAdjust() {
+    const txt = la.trim();
+    if (txt === '' || txt === '-' || txt === '+') return void workoutRepo.updateSetLog(set.id, { loadAdjustKg: null }).catch(() => {});
+    const n = parseFloat(txt.replace('+', '').replace(',', '.'));
+    if (Number.isNaN(n)) return;
+    workoutRepo.updateSetLog(set.id, { loadAdjustKg: n === 0 ? null : toKg(n, weightUnit) }).catch(() => {});
   }
   function toggleDone() {
     const next = !isDone;
@@ -225,6 +275,7 @@ function SetRowEdit({
       { text: t('session.setType.drop'), onPress: () => workoutRepo.setSetType(set.id, 'drop').catch(() => {}) },
       { text: t('session.setType.failed'), onPress: () => workoutRepo.setSetType(set.id, 'failed').catch(() => {}) },
       { text: t('session.plateCalcTitle'), onPress: () => showPlates(set.weightKg, barWeightKg, weightUnit, t) },
+      { text: t('session.editPrecision'), onPress: () => setShowPrecision((v) => !v) },
       { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
@@ -237,7 +288,8 @@ function SetRowEdit({
   }
 
   return (
-    <View style={[styles.setRow, isDone && styles.setRowDone]}>
+    <View style={isDone && styles.setRowDone}>
+    <View style={styles.setRow}>
       <Pressable onPress={typeMenu} hitSlop={4} style={styles.colType}>
         <View style={styles.typeChip}>
           <AppText variant="caption" color={typeColor()} weight="bold" center>
@@ -266,6 +318,45 @@ function SetRowEdit({
       <Pressable onPress={confirmDelete} hitSlop={8} style={styles.del}>
         <Ionicons name="close" size={15} color={colors.textFaint} />
       </Pressable>
+    </View>
+
+    {/* v6 정밀도 — 정자세 반복 / 보정무게. 세트타입 메뉴에서 토글. @plm SRS-029 */}
+    {showPrecision ? (
+      <View style={styles.precisionRow}>
+        <View style={styles.precisionField}>
+          <AppText variant="label" color="textMuted" style={styles.precisionLabel}>
+            {t('session.strictReps')}
+          </AppText>
+          <TextInput
+            value={sr}
+            onChangeText={setSr}
+            onBlur={commitStrict}
+            onSubmitEditing={commitStrict}
+            keyboardType="numeric"
+            placeholder={t('session.strictRepsPlaceholder')}
+            placeholderTextColor={colors.textFaint}
+            selectTextOnFocus
+            style={styles.cell}
+          />
+        </View>
+        <View style={styles.precisionField}>
+          <AppText variant="label" color="textMuted" style={styles.precisionLabel}>
+            {t('session.loadAdjust', { weightUnit })}
+          </AppText>
+          <TextInput
+            value={la}
+            onChangeText={setLa}
+            onBlur={commitAdjust}
+            onSubmitEditing={commitAdjust}
+            keyboardType="numbers-and-punctuation"
+            placeholder="0"
+            placeholderTextColor={colors.textFaint}
+            selectTextOnFocus
+            style={styles.cell}
+          />
+        </View>
+      </View>
+    ) : null}
     </View>
   );
 }
@@ -301,6 +392,10 @@ const styles = StyleSheet.create({
   colDel: { width: 26 },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
+  // v6 정밀도 보조행 — 세트타입 메뉴로 펼침. 기본 숨김.
+  precisionRow: { flexDirection: 'row', gap: spacing.sm, paddingBottom: spacing.xs, paddingHorizontal: spacing.xs },
+  precisionField: { flex: 1 },
+  precisionLabel: { marginBottom: 2 },
   cell: {
     flex: 1,
     minWidth: 0, // 웹 <input> 기본폭이 flex 축소를 막아 행 오버플로 → 0으로 축소 허용

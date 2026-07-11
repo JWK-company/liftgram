@@ -8,6 +8,7 @@ import {
   setVolumeKg,
   estimateOneRepMax,
   bestEstimatedOneRepMax,
+  legacyMachineVariantToV6,
   type LoggedSet,
   type MuscleGroup,
 } from '../domain';
@@ -205,7 +206,8 @@ export interface WorkoutExerciseDetail {
   workoutExerciseId: string;
   exerciseId: string;
   exerciseName: string;
-  machineVariant: string | null; // 머신 기구/브랜드 키(null=기본)
+  machineVariant: string | null; // 머신 기구/브랜드 키(null=기본, 레거시)
+  variantKey: string | null; // v6 변형 버킷 키(기구·그립·팔). @plm SRS-028
   sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean }[];
   volumeKg: number;
   bestEstimated1RM: number;
@@ -243,6 +245,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       exerciseId: we.exerciseId,
       exerciseName: meta.get(we.exerciseId)?.nameKo ?? '운동',
       machineVariant: we.machineVariant,
+      variantKey: we.variantKey ?? legacyMachineVariantToV6(we.machineVariant).key, // 레거시 행 즉석 승계
       sets: sets.map((s) => ({
         setNumber: s.setNumber,
         weightKg: s.weightKg,

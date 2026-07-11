@@ -62,5 +62,38 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v6: 종목 변형(기구·그립·팔) 일반화 + 로깅 정밀도 (SRS-028·SRS-029). addColumns만(스키마 전용) —
+    // machine_variant→variant_* 데이터 승계는 부팅 시 지연 백필(멱등)로 무손실 처리(migrateMachineVariantToV6).
+    // 기존 행: variant_*=null → variant_key=null(기본 버킷) 또는 백필로 equip:<brand> 흡수. machine_variant 컬럼은 유지(레거시 fallback).
+    {
+      toVersion: 6,
+      steps: [
+        addColumns({
+          table: 'routine_exercises',
+          columns: [
+            { name: 'variant_key', type: 'string', isOptional: true, isIndexed: true },
+            { name: 'variant_equipment', type: 'string', isOptional: true },
+            { name: 'variant_grip', type: 'string', isOptional: true },
+            { name: 'variant_arm', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'workout_exercises',
+          columns: [
+            { name: 'variant_key', type: 'string', isOptional: true, isIndexed: true },
+            { name: 'variant_equipment', type: 'string', isOptional: true },
+            { name: 'variant_grip', type: 'string', isOptional: true },
+            { name: 'variant_arm', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'set_logs',
+          columns: [
+            { name: 'strict_reps', type: 'number', isOptional: true },
+            { name: 'load_adjust_kg', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

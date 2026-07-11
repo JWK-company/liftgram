@@ -1,7 +1,7 @@
 // 개인 기록(PR) 스냅샷·검출 — 종목별 최대중량/최대반복/세트최대볼륨/추정1RM. @plm SRS-005
 import { LoggedSet, PRType } from './types';
 import { estimateOneRepMax } from './oneRepMax';
-import { setVolumeKg } from './volume';
+import { setVolumeKg, effectiveWeightKg, effectiveReps } from './volume';
 
 export interface PRSnapshot {
   maxWeightKg: number;
@@ -21,10 +21,10 @@ export const EMPTY_PR: PRSnapshot = {
 export function snapshotFromSets(sets: LoggedSet[]): PRSnapshot {
   const working = sets.filter((s) => !s.isWarmup && !s.isFailed);
   return {
-    maxWeightKg: working.reduce((m, s) => Math.max(m, s.weightKg), 0),
-    maxReps: working.reduce((m, s) => Math.max(m, s.reps), 0),
+    maxWeightKg: working.reduce((m, s) => Math.max(m, effectiveWeightKg(s)), 0),
+    maxReps: working.reduce((m, s) => Math.max(m, effectiveReps(s)), 0),
     maxVolumeSetKg: working.reduce((m, s) => Math.max(m, setVolumeKg(s)), 0),
-    estimated1RM: working.reduce((m, s) => Math.max(m, estimateOneRepMax(s.weightKg, s.reps)), 0),
+    estimated1RM: working.reduce((m, s) => Math.max(m, estimateOneRepMax(effectiveWeightKg(s), effectiveReps(s))), 0),
   };
 }
 

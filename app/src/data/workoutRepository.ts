@@ -9,11 +9,14 @@ import {
   totalVolumeKg,
   snapshotFromSets,
   detectNewPRs,
+  effectiveWeightKg,
+  effectiveReps,
   EMPTY_PR,
   type LoggedSet,
   type PRResult,
   type PRSnapshot,
 } from '../domain';
+import { legacyMachineVariantToV6, variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
 
 const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
@@ -22,13 +25,50 @@ const routines = () => database.get<Routine>('routines');
 const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
 
 function toLoggedSet(s: SetLog): LoggedSet {
-  return { weightKg: s.weightKg, reps: s.reps, rpe: s.rpe, isWarmup: s.isWarmup, isFailed: s.isFailed };
+  return {
+    weightKg: s.weightKg,
+    reps: s.reps,
+    rpe: s.rpe,
+    isWarmup: s.isWarmup,
+    isFailed: s.isFailed,
+    strictReps: s.strictReps, // v6 정밀도 @plm SRS-029
+    loadAdjustKg: s.loadAdjustKg,
+  };
 }
 
 // 수행 완료된 세트 판정 — done===false(프리레이 미완료 템플릿)만 제외.
 // null(레거시 세트)·true는 모두 '수행됨'으로 취급(하위호환). 볼륨/PR/이력은 이것만 센다.
 function isPerformed(s: SetLog): boolean {
   return s.done !== false;
+}
+
+// v6: 종목 변형 버킷 키 — variant_key 우선, 레거시 machine_variant는 즉석 승계(compute-on-read). @plm SRS-028
+function effectiveVariantKey(rec: { variantKey: string | null; machineVariant: string | null }): string | null {
+  return rec.variantKey ?? legacyMachineVariantToV6(rec.machineVariant).key;
+}
+
+// v6 무손실 백필(멱등) — 레거시(machine_variant만 있는) 행에 variant_key/variant_equipment를 채워
+// 신규 선택(equip:<brand>)과 같은 버킷으로 병합. 부팅 시 1회. variant_key가 이미 있거나
+// machine_variant가 없는 행은 건너뜀(기본 버킷=null 유지). @plm SRS-028
+export async function backfillVariantKeysV6(): Promise<number> {
+  let n = 0;
+  for (const coll of [workoutExercises(), routineExercises()] as const) {
+    const rows = await coll.query(Q.where('variant_key', null), Q.where('machine_variant', Q.notEq(null))).fetch();
+    if (!rows.length) continue;
+    await database.write(async () => {
+      await database.batch(
+        ...rows.map((r) =>
+          r.prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+            const { dims, key } = legacyMachineVariantToV6(rec.machineVariant);
+            rec.variantEquipment = dims.equipment ?? null;
+            rec.variantKey = key;
+          }),
+        ),
+      );
+    });
+    n += rows.length;
+  }
+  return n;
 }
 
 // ── 조회 / 반응형 ──────────────────────────────────────────────────
@@ -62,7 +102,7 @@ export async function getPreviousExerciseSnapshot(
     .fetch();
   for (const w of completed) {
     const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)];
-    if (variant !== undefined) clauses.push(Q.where('machine_variant', variant)); // 기구별 기록 분리(null=기본)
+    if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 기록 분리(null=기본 버킷)
     const wes = await workoutExercises().query(...clauses).fetch();
     if (!wes.length) continue;
     const sets = (
@@ -87,7 +127,7 @@ export async function getPreviousExerciseSets(exerciseId: string, variant?: stri
     .fetch();
   for (const w of completed) {
     const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId), Q.sortBy('sort_order', Q.asc)];
-    if (variant !== undefined) clauses.push(Q.where('machine_variant', variant)); // 기구별 기록 분리(null=기본)
+    if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 기록 분리(null=기본 버킷)
     const wes = await workoutExercises().query(...clauses).fetch();
     if (!wes.length) continue;
     const sets = (
@@ -133,17 +173,20 @@ export async function getExercisePR(
   const completed = await workouts().query(Q.where('state', 'completed')).fetch();
   if (!completed.length) return null;
   const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id)))];
-  if (variant !== undefined) clauses.push(Q.where('machine_variant', variant));
+  if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 PR 분리
   const wes = await workoutExercises().query(...clauses).fetch();
   if (!wes.length) return null;
   const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch())
     .filter(isPerformed)
     .filter((s) => !s.isWarmup);
-  let best: SetLog | null = null;
+  let best: { weightKg: number; reps: number } | null = null;
   for (const s of sets) {
-    if (!best || s.weightKg > best.weightKg || (s.weightKg === best.weightKg && s.reps > best.reps)) best = s;
+    const ls = toLoggedSet(s);
+    const w = effectiveWeightKg(ls); // v6: 보정무게 반영 @plm SRS-029
+    const r = effectiveReps(ls);
+    if (!best || w > best.weightKg || (w === best.weightKg && r > best.reps)) best = { weightKg: w, reps: r };
   }
-  return best ? { weightKg: best.weightKg, reps: best.reps } : null;
+  return best;
 }
 
 // ── 세션 시작 ──────────────────────────────────────────────────────
@@ -185,14 +228,14 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
     .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
     .fetch();
   // (종목×기구)별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
-  const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${re.machineVariant ?? ''}`;
+  const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${effectiveVariantKey(re) ?? ''}`;
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
   const prevSetsByKey = new Map<string, LogSetInput[]>();
   for (const re of res) {
     const k = vkey(re);
     if (!prevSnapByKey.has(k)) {
-      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, re.machineVariant));
-      prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, re.machineVariant));
+      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, effectiveVariantKey(re)));
+      prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, effectiveVariantKey(re)));
     }
   }
   return database.write(async () => {
@@ -221,7 +264,12 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.targetRepsMax = re.targetRepsMax;
         we.targetWeightKg = re.targetWeightKg;
         we.restSeconds = re.restSeconds;
-        we.machineVariant = re.machineVariant; // 루틴의 기구 선택 복사
+        we.machineVariant = re.machineVariant; // 레거시 미러
+        // v6: 루틴의 변형 선택 복사(버킷 키). 레거시 루틴(machine_variant만)은 즉석 승계.
+        we.variantKey = effectiveVariantKey(re);
+        we.variantEquipment = re.variantEquipment ?? legacyMachineVariantToV6(re.machineVariant).dims.equipment ?? null;
+        we.variantGrip = re.variantGrip ?? null;
+        we.variantArm = re.variantArm ?? null;
       }),
     );
     // 각 종목에 target_sets 개수만큼 템플릿 세트 프리레이(Hevy식).
@@ -276,7 +324,12 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.targetRepsMax = null;
       rec.targetWeightKg = null;
       rec.restSeconds = 120;
-      rec.machineVariant = null; // 즉석 추가 종목은 기본(미지정) — 머신이면 사용자가 헤더에서 선택
+      rec.machineVariant = null; // 레거시
+      // v6: 즉석 추가 종목은 기본(미지정) — 헤더에서 변형(기구·그립·팔) 선택
+      rec.variantKey = null;
+      rec.variantEquipment = null;
+      rec.variantGrip = null;
+      rec.variantArm = null;
     });
     const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap);
     await database.batch(we, ...setRecords);
@@ -350,19 +403,37 @@ export async function setSetType(id: string, type: SetType): Promise<void> {
   });
 }
 
-// 세션 중 종목의 머신 기구(브랜드) 변경 — 이전기록·PR이 해당 기구 것으로 갱신된다. null=기본.
-export async function setMachineVariant(workoutExerciseId: string, variant: string | null): Promise<void> {
+// 세션 중 종목의 변형(기구·그립·팔) 변경 — 이전기록·PR이 해당 변형 것으로 갱신된다. @plm SRS-028
+export async function setVariant(workoutExerciseId: string, dims: VariantDims): Promise<void> {
+  const cols = variantColumns(dims);
   await database.write(async () => {
     const we = await workoutExercises().find(workoutExerciseId);
     await we.update((rec) => {
-      rec.machineVariant = variant;
+      rec.variantKey = cols.variantKey;
+      rec.variantEquipment = cols.variantEquipment;
+      rec.variantGrip = cols.variantGrip;
+      rec.variantArm = cols.variantArm;
+      rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
     });
   });
 }
 
+// 레거시 호환 — 기구(브랜드)만 바꾸는 경로(그립/팔은 초기화).
+export async function setMachineVariant(workoutExerciseId: string, variant: string | null): Promise<void> {
+  await setVariant(workoutExerciseId, { equipment: variant });
+}
+
 export async function updateSetLog(
   id: string,
-  patch: { weightKg?: number; reps?: number; rpe?: number | null; isWarmup?: boolean; isFailed?: boolean },
+  patch: {
+    weightKg?: number;
+    reps?: number;
+    rpe?: number | null;
+    isWarmup?: boolean;
+    isFailed?: boolean;
+    strictReps?: number | null; // v6 정밀도: 정자세 반복. @plm SRS-029
+    loadAdjustKg?: number | null; // v6 정밀도: 보정무게(어시스티드−/가중+).
+  },
 ): Promise<void> {
   await database.write(async () => {
     const s = await setLogs().find(id);
@@ -372,6 +443,8 @@ export async function updateSetLog(
       if (patch.rpe !== undefined) rec.rpe = patch.rpe;
       if (patch.isWarmup !== undefined) rec.isWarmup = patch.isWarmup;
       if (patch.isFailed !== undefined) rec.isFailed = patch.isFailed;
+      if (patch.strictReps !== undefined) rec.strictReps = patch.strictReps;
+      if (patch.loadAdjustKg !== undefined) rec.loadAdjustKg = patch.loadAdjustKg;
     });
   });
 }
@@ -441,7 +514,7 @@ async function historicalSnapshotForExercise(
   const ids = completed.map((w) => w.id).filter((id) => id !== excludeWorkoutId);
   if (!ids.length) return EMPTY_PR;
   const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(ids))];
-  if (variant !== undefined) clauses.push(Q.where('machine_variant', variant)); // 기구별 PR 비교
+  if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 PR 비교
   const wes = await workoutExercises().query(...clauses).fetch();
   if (!wes.length) return EMPTY_PR;
   const sets = (
@@ -490,10 +563,11 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
     const logged = performed.map(toLoggedSet);
     totalVolume += totalVolumeKg(logged);
     workingSets += logged.filter((s) => !s.isWarmup && !s.isFailed).length;
-    const key = `${we.exerciseId}::${we.machineVariant ?? ''}`;
+    const vk = effectiveVariantKey(we); // v6: (종목×변형) 버킷 키
+    const key = `${we.exerciseId}::${vk ?? ''}`;
     const entry = performedByVariant.get(key);
     if (entry) entry.logged.push(...logged);
-    else performedByVariant.set(key, { exerciseId: we.exerciseId, variant: we.machineVariant, logged: [...logged] });
+    else performedByVariant.set(key, { exerciseId: we.exerciseId, variant: vk, logged: [...logged] });
   }
 
   // PR 감지는 (종목,기구)별 1회 — 같은 조합이 여러 인스턴스(수퍼셋·중복)여도 합쳐 비교해 이중계상 방지.

@@ -5,8 +5,16 @@ export function isWorkingSet(s: LoggedSet): boolean {
   return !s.isWarmup && !s.isFailed;
 }
 
+// v6: 유효 무게(보정 반영, 음수 클램프)·유효 반복(정자세만) — 총중량/PR 정확도. @plm SRS-029
+export function effectiveWeightKg(s: LoggedSet): number {
+  return Math.max(0, s.weightKg + (s.loadAdjustKg ?? 0));
+}
+export function effectiveReps(s: LoggedSet): number {
+  return s.strictReps ?? s.reps;
+}
+
 export function setVolumeKg(s: LoggedSet): number {
-  return isWorkingSet(s) ? s.weightKg * s.reps : 0;
+  return isWorkingSet(s) ? effectiveWeightKg(s) * effectiveReps(s) : 0;
 }
 
 export function totalVolumeKg(sets: LoggedSet[]): number {
@@ -18,5 +26,5 @@ export function workingSetCount(sets: LoggedSet[]): number {
 }
 
 export function totalReps(sets: LoggedSet[]): number {
-  return sets.filter(isWorkingSet).reduce((n, s) => n + s.reps, 0);
+  return sets.filter(isWorkingSet).reduce((n, s) => n + effectiveReps(s), 0);
 }

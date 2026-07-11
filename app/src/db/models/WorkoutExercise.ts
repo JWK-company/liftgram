@@ -25,7 +25,12 @@ export default class WorkoutExercise extends Model {
   @field('target_reps_max') targetRepsMax!: number | null;
   @field('target_weight_kg') targetWeightKg!: number | null;
   @field('rest_seconds') restSeconds!: number | null;
-  @text('machine_variant') machineVariant!: string | null; // v5: 머신 기구/브랜드 키(null=기본)
+  @text('machine_variant') machineVariant!: string | null; // v5(레거시): 머신 브랜드 키
+  // v6: 종목 변형(기구·그립·팔) — variant_key=(exercise×variant) 버킷. @plm SRS-028
+  @text('variant_key') variantKey!: string | null; // canonical 버킷 키(파생, null=기본)
+  @text('variant_equipment') variantEquipment!: string | null;
+  @text('variant_grip') variantGrip!: string | null;
+  @text('variant_arm') variantArm!: string | null;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

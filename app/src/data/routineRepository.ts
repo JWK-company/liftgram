@@ -4,6 +4,7 @@ import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { Routine, RoutineExercise } from '../db/models';
 import { randomId } from '../utils/id';
+import { variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
 
 const routines = () => database.get<Routine>('routines');
 const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
@@ -113,6 +114,21 @@ export async function updateRoutineExercise(id: string, patch: RoutineExerciseIn
       if (patch.machineVariant !== undefined) rec.machineVariant = patch.machineVariant;
       if (patch.supersetGroup !== undefined) rec.supersetGroup = patch.supersetGroup;
       if (patch.note !== undefined) rec.note = patch.note;
+    });
+  });
+}
+
+// 루틴 종목의 변형(기구·그립·팔) 저장 — variant_key 파생 + 개별 차원, 레거시 machine_variant 미러. @plm SRS-028
+export async function setRoutineExerciseVariant(id: string, dims: VariantDims): Promise<void> {
+  const cols = variantColumns(dims);
+  await database.write(async () => {
+    const re = await routineExercises().find(id);
+    await re.update((rec) => {
+      rec.variantKey = cols.variantKey;
+      rec.variantEquipment = cols.variantEquipment;
+      rec.variantGrip = cols.variantGrip;
+      rec.variantArm = cols.variantArm;
+      rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
     });
   });
 }

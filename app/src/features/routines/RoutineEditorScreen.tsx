@@ -1,4 +1,5 @@
 // @plm SRS-002  루틴 빌더 — 종목 추가/순서(드래그·화살표)/대체/슈퍼셋/세트·반복·휴식 목표 편집
+// @plm SRS-028  종목 변형(기구·그립·팔) 선택 — 루틴에 저장하면 세션 시작 시 승계
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,13 +20,13 @@ import {
   Divider,
   SectionHeader,
   EmptyState,
-  MachineVariantSelector,
+  VariantSelector,
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
-import { routineRepo } from '../../data';
+import { exerciseRepo, routineRepo } from '../../data';
 import { useUser } from '../../state/userContext';
-import { fromKg, toKg } from '../../domain';
+import { fromKg, toKg, type ArmKey, type EquipmentType, type GripKey, type VariantDims } from '../../domain';
 import { requestExercisePick } from '../../utils/picker';
 import type RoutineExercise from '../../db/models/RoutineExercise';
 import { ExerciseName } from './ExerciseName';
@@ -430,12 +431,28 @@ function ExerciseEditRow({
   const [sets, setSets] = useState(re.targetSets);
   const [rest, setRest] = useState(re.restSeconds);
   const [weightDisp, setWeightDisp] = useState(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0);
-  const [variant, setVariant] = useState<string | null>(re.machineVariant);
+  // 종목 변형(기구·그립·팔) dims. @plm SRS-028
+  const [variant, setVariant] = useState<VariantDims>(() => ({
+    equipment: re.variantEquipment,
+    grip: re.variantGrip as GripKey | null,
+    arm: re.variantArm as ArmKey | null,
+  }));
+  const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
 
   // 모델 값이 외부에서 바뀌면(스왑/복제 등) 동기화.
   useEffect(() => setSets(re.targetSets), [re.targetSets]);
   useEffect(() => setRest(re.restSeconds), [re.restSeconds]);
-  useEffect(() => setVariant(re.machineVariant), [re.machineVariant]);
+  useEffect(
+    () => setVariant({ equipment: re.variantEquipment, grip: re.variantGrip as GripKey | null, arm: re.variantArm as ArmKey | null }),
+    [re.variantEquipment, re.variantGrip, re.variantArm],
+  );
+  useEffect(() => {
+    let alive = true;
+    exerciseRepo.getExercise(re.exerciseId).then((e) => alive && setBaseEquipment(e.equipment)).catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [re.exerciseId]);
   useEffect(
     () => setWeightDisp(re.targetWeightKg != null ? fromKg(re.targetWeightKg, weightUnit) : 0),
     [re.targetWeightKg, weightUnit],
@@ -463,12 +480,15 @@ function ExerciseEditRow({
             {t('routines.exerciseRowSummary', { index: index + 1, sets, rest })}
           </AppText>
           <View style={styles.exVariant}>
-            <MachineVariantSelector
+            <VariantSelector
               exerciseId={re.exerciseId}
+              baseEquipment={baseEquipment}
               value={variant}
-              onChange={(key) => {
-                setVariant(key);
-                persist({ machineVariant: key });
+              onChange={(dims) => {
+                setVariant(dims);
+                routineRepo
+                  .setRoutineExerciseVariant(re.id, dims)
+                  .catch((e) => Alert.alert(t('common.error'), String(e)));
               }}
             />
           </View>

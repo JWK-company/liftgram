@@ -11,3 +11,4 @@ export * from './programGenerator';
 export * from './plateCalculator';
 export * from './wellness';
 export * from './machineVariants';
+export * from './variants';
