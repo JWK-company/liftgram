@@ -20,8 +20,18 @@ import { useUser } from '../../state/userContext';
 import { analyticsRepo, workoutRepo } from '../../data';
 import type { WorkoutDetail } from '../../data';
 import type { Workout } from '../../db/models';
-import { formatWeight, variantLabelFromKey, type WeightUnit } from '../../domain';
+import {
+  formatWeight,
+  variantLabelFromKey,
+  dayNumber,
+  computeStreak,
+  weeklyProgress,
+  type WeightUnit,
+  type StreakStats,
+  type WeeklyProgress,
+} from '../../domain';
 import { serverApi } from '../../sync/serverApi';
+import { useWeeklyGoal } from '../analytics/useWeeklyGoal';
 import { useT } from '../../i18n';
 
 function formatDuration(durationSeconds: number | null): string {
@@ -50,6 +60,9 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
   const [sharing, setSharing] = useState(false);
   const [shared, setShared] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [weeklyGoal] = useWeeklyGoal();
+  const [streak, setStreak] = useState<StreakStats>({ current: 0, longest: 0 });
+  const [week, setWeek] = useState<WeeklyProgress>({ done: 0, goal: weeklyGoal, reached: false });
 
   useEffect(() => {
     let alive = true;
@@ -73,6 +86,26 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
     };
   }, [workoutId]);
 
+  // 완료 시점 스트릭·주간진행 — 완료 세션 전량으로 계산(CalendarTab과 동일 패턴). 실패해도 기본값(0)으로 안전.
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const all = await analyticsRepo.queryWorkoutHistory().fetch();
+        const nums = all.map((w) => dayNumber(w.completedAt ?? w.startedAt));
+        const todayNum = dayNumber(Date.now());
+        if (!alive) return;
+        setStreak(computeStreak(nums, todayNum));
+        setWeek(weeklyProgress(nums, todayNum, weeklyGoal));
+      } catch {
+        /* 조회 실패 — 기본값 유지(오프라인/빈 DB 안전) */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [weeklyGoal]);
+
   // 오운완 → 피드 공유 (SRS-007). 원시 kg/초/카운트를 저장, 뷰어가 자기 단위로 렌더.
   async function shareToFeed() {
     if (!workout || !detail || sharing || shared) return;
@@ -83,14 +116,26 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         setShareError(t('session.shareLoginRequired'));
         return;
       }
+      // 캡션 미입력 시 볼륨·PR·스트릭을 조합한 오운완 캡션 자동 생성 → '원탭 = 완성 포스트'.
+      const autoCaption = [
+        t('session.workoutComplete'),
+        workout.name || undefined,
+        `${t('session.totalVolume')} ${formatWeight(workout.totalVolumeKg, weightUnit)}`,
+        workout.prCount > 0 ? t('session.prCount', { count: workout.prCount }) : undefined,
+        streak.current > 0 ? t('session.streakDays', { count: streak.current }) : undefined,
+      ]
+        .filter(Boolean)
+        .join(' · ');
       await serverApi.createPost({
         kind: 'workout',
-        caption: caption.trim() || undefined,
+        caption: caption.trim() || autoCaption,
         data: {
           name: workout.name ?? null,
           volumeKg: workout.totalVolumeKg,
           durationSeconds: workout.durationSeconds ?? 0,
           prCount: workout.prCount,
+          streakDays: streak.current,
+          weeklyReached: week.reached,
           setCount: workingSetCount(detail),
           exerciseCount: detail.exercises.length,
           // 루틴 전체(종목·세트)를 함께 저장 → 보는 사람이 펼쳐서 구경 가능(SRS-007).
@@ -149,6 +194,13 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         {prCount > 0 ? (
           <View style={{ marginTop: spacing.md }}>
             <Tag label={t('session.prCount', { count: prCount })} tone="pr" />
+          </View>
+        ) : null}
+        {streak.current > 0 ? (
+          <View style={styles.streakRow}>
+            <Ionicons name="flame" size={18} color={colors.warning} />
+            <Tag label={t('session.streakDays', { count: streak.current })} tone="primary" />
+            {week.reached ? <Tag label={t('calendar.goalReached')} tone="pr" /> : null}
           </View>
         ) : null}
       </View>
@@ -265,6 +317,7 @@ function ExerciseSummaryCard({
 
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingVertical: spacing.lg },
+  streakRow: { marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   statRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   sharedRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
 });
