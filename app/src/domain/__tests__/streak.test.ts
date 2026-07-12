@@ -51,6 +51,36 @@ test('computeStreak: 최장은 과거 최대 연속(현재와 분리)', () => {
   assert.equal(s.longest, 5);
 });
 
+// 주말 제외 스트릭 — 2026-07-12는 일요일이므로 07-10=금, 07-11=토, 07-13=월, 07-14=화, 07-09=목.
+const thu = d(2026, 6, 9);
+const fri = d(2026, 6, 10);
+const sat = d(2026, 6, 11);
+const mon = d(2026, 6, 13);
+const tue = d(2026, 6, 14);
+
+test('skipWeekends=true: 금까지 운동·오늘 월 → 스트릭 유지(주말 공백 무시)', () => {
+  assert.equal(computeStreak([thu, fri], mon, true).current, 2);
+});
+
+test('skipWeekends=false(기본): 금 다음 오늘 월 → 토요일에서 끊김', () => {
+  assert.equal(computeStreak([thu, fri], mon, false).current, 0);
+});
+
+test('skipWeekends=true: 평일(월)이 비면 끊김', () => {
+  // 금 운동, 오늘 화 → 사이 월(평일) 비어서 끊김
+  assert.equal(computeStreak([fri], tue, true).current, 0);
+});
+
+test('skipWeekends: 최장도 주말 건너뜀 반영', () => {
+  assert.equal(computeStreak([fri, mon], mon, true).longest, 2);
+  assert.equal(computeStreak([fri, mon], mon, false).longest, 1);
+});
+
+test('skipWeekends=true: 주말 운동도 정상 카운트', () => {
+  // 금·토·(일 쉼)·월 → 연속 3
+  assert.equal(computeStreak([fri, sat, mon], mon, true).current, 3);
+});
+
 test('weeklyProgress: 이번 주 고유 일수만·지난주 제외·목표 달성', () => {
   const anyDay = d(2026, 6, 15);
   const dow = new Date(anyDay * 86400000).getUTCDay();

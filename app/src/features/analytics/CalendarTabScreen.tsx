@@ -12,7 +12,7 @@ import { useUser } from '../../state/userContext';
 import { formatWeight, dayNumber, computeStreak, weeklyProgress, WEEKLY_GOAL_MIN, WEEKLY_GOAL_MAX } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
-import { useWeeklyGoal } from './useWeeklyGoal';
+import { useWeeklyGoal, useStreakSkipWeekends } from './useWeeklyGoal';
 
 function dayKeyOf(ms: number): string {
   const d = new Date(ms);
@@ -39,11 +39,12 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
 
   // 스트릭·주간 목표 — 완료 세션의 로컬 '날짜'만으로 계산(지속성 지표).
   const [weeklyGoal, setWeeklyGoal] = useWeeklyGoal();
+  const [skipWeekends, setSkipWeekends] = useStreakSkipWeekends();
   const { streak, week } = useMemo(() => {
     const nums = workouts.map((w) => dayNumber(w.completedAt ?? w.startedAt));
     const todayNum = dayNumber(Date.now());
-    return { streak: computeStreak(nums, todayNum), week: weeklyProgress(nums, todayNum, weeklyGoal) };
-  }, [workouts, weeklyGoal]);
+    return { streak: computeStreak(nums, todayNum, skipWeekends), week: weeklyProgress(nums, todayNum, weeklyGoal) };
+  }, [workouts, weeklyGoal, skipWeekends]);
   const barPct = Math.min(100, week.goal > 0 ? (week.done / week.goal) * 100 : 0);
 
   const now = new Date();
@@ -144,6 +145,29 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
         </View>
       </Card>
 
+      {/* 연속일 주말 포함/제외 — 주말만 쉰 건 연속 유지할지 선택 */}
+      <View style={styles.weekendRow}>
+        <AppText variant="caption" color="textMuted">
+          {t('calendar.weekendStreak')}
+        </AppText>
+        <View style={styles.segToggle}>
+          {[false, true].map((v) => {
+            const active = skipWeekends === v;
+            return (
+              <Pressable key={String(v)} onPress={() => setSkipWeekends(v)} style={[styles.seg, active && styles.segActive]}>
+                <AppText
+                  variant="caption"
+                  weight={active ? 'bold' : 'regular'}
+                  style={{ color: active ? colors.onPrimary : colors.textMuted }}
+                >
+                  {t(v ? 'calendar.weekendExclude' : 'calendar.weekendInclude')}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
       {/* 월 이동 + 이번 달 요약 */}
       <View style={styles.monthBar}>
         <Pressable onPress={() => shiftMonth(-1)} hitSlop={8} style={styles.navBtn}>
@@ -243,6 +267,10 @@ const styles = StyleSheet.create({
   barTrack: { height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 4, backgroundColor: colors.primary },
   barFillDone: { backgroundColor: colors.success },
+  weekendRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md, marginTop: -spacing.xs },
+  segToggle: { flexDirection: 'row', backgroundColor: colors.surfaceAlt, borderRadius: radius.sm, padding: 2, gap: 2 },
+  seg: { paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radius.sm - 1, alignItems: 'center', justifyContent: 'center' },
+  segActive: { backgroundColor: colors.primary },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.xs },
   navBtn: {
     width: 36,
