@@ -106,7 +106,8 @@ export function gripLabel(key: GripKey | null | undefined, lang: AppLanguage): s
   return key ? GRIP_LABELS[key]?.[lang] ?? key : '';
 }
 export function armLabel(key: ArmKey | null | undefined, lang: AppLanguage): string {
-  return key === 'uni' ? (lang === 'ko' ? '원암' : 'Single-arm') : '';
+  // 팔뿐 아니라 다리(원레그)에도 쓰이는 편측(unilateral) 차원 — 라벨에 다리 병기.
+  return key === 'uni' ? (lang === 'ko' ? '원암(원레그)' : 'Single-arm/leg') : '';
 }
 
 // --- 축약 라벨 (변형 칩/트리거용 — 모든 차원이 잘리지 않게) ---
@@ -120,7 +121,7 @@ export function gripShortLabel(key: GripKey | null | undefined, lang: AppLanguag
   return key ? GRIP_SHORT_LABELS[key]?.[lang] ?? key : '';
 }
 export function armShortLabel(key: ArmKey | null | undefined, lang: AppLanguage): string {
-  return key === 'uni' ? (lang === 'ko' ? '원암' : '1-arm') : '';
+  return key === 'uni' ? (lang === 'ko' ? '원암(원레그)' : '1-arm/leg') : '';
 }
 
 // 종합 라벨 — "해머 · 언더그립 · 원암". 전부 기본이면 '기본'.

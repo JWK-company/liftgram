@@ -1,10 +1,10 @@
 // @plm SRS-003  라이브 세션 세트 로깅 (무게·횟수·RPE·워밍업/실패·플레이트·휴식)
 // @plm SRS-004  세션 진행 — 경과 타이머·일시정지/재개·종료·취소·종목 추가/삭제
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AppText, Button, EmptyState, IconButton } from '../../components';
+import { AppText, Button, EmptyState, IconButton, TextField } from '../../components';
 import { colors, radius, spacing } from '../../theme';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
@@ -41,6 +41,21 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   const workout = useModelData(base);
   const [now, setNow] = useState(() => Date.now());
   const [finishing, setFinishing] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+
+  function openRename() {
+    setNameDraft(workout?.name ?? '');
+    setRenaming(true);
+  }
+  async function saveRename() {
+    setRenaming(false);
+    try {
+      await workoutRepo.renameWorkout(workoutId, nameDraft);
+    } catch {
+      /* 이름 변경 실패 — 무시(다음 저장 시 재시도 가능) */
+    }
+  }
 
   // 휴식 카운트다운은 전역(sessionContext) — 화면을 옮겨도 유지되고 전역 바에도 표시된다(#12).
 
@@ -168,9 +183,12 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           <AppText variant="title" weight="bold">
             {formatClock(elapsed)}
           </AppText>
-          <AppText variant="label" color={paused ? 'warning' : 'textMuted'}>
-            {paused ? t('session.paused') : workout.name ?? t('session.inProgress')}
-          </AppText>
+          <Pressable onPress={openRename} hitSlop={6} style={styles.nameRow}>
+            <AppText variant="label" color={paused ? 'warning' : 'textMuted'} numberOfLines={1}>
+              {paused ? t('session.paused') : workout.name ?? t('session.inProgress')}
+            </AppText>
+            <Ionicons name="pencil" size={12} color={colors.textFaint} style={{ marginLeft: 4 }} />
+          </Pressable>
           <AppText variant="caption" color="pr">
             {t('session.liveVolume', { volume: formatWeight(liveVolume, weightUnit) })}
           </AppText>
@@ -235,6 +253,29 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           </Pressable>
         </View>
       ) : null}
+
+      {/* 운동 이름 변경 모달 (@plm SRS-004) */}
+      <Modal visible={renaming} transparent animationType="fade" onRequestClose={() => setRenaming(false)}>
+        <Pressable style={styles.renameBackdrop} onPress={() => setRenaming(false)}>
+          <Pressable style={styles.renameCard} onPress={() => {}}>
+            <AppText variant="heading" style={{ marginBottom: spacing.sm }}>
+              {t('session.renameTitle')}
+            </AppText>
+            <TextField
+              value={nameDraft}
+              onChangeText={setNameDraft}
+              placeholder={t('session.renamePlaceholder')}
+              autoFocus
+              onSubmitEditing={saveRename}
+              containerStyle={{ marginBottom: spacing.md }}
+            />
+            <View style={styles.renameActions}>
+              <Button title={t('common.cancel')} variant="secondary" fullWidth={false} onPress={() => setRenaming(false)} style={{ flex: 1 }} />
+              <Button title={t('common.save')} fullWidth={false} onPress={saveRename} style={{ flex: 1 }} />
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -251,7 +292,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   timerWrap: { flex: 1, marginLeft: spacing.xs },
+  nameRow: { flexDirection: 'row', alignItems: 'center' },
   finishBtn: { borderRadius: radius.pill, paddingHorizontal: spacing.lg },
+  renameBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
+  renameCard: { width: '100%', maxWidth: 360, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
+  renameActions: { flexDirection: 'row', gap: spacing.sm },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   restBar: {
     position: 'absolute',
