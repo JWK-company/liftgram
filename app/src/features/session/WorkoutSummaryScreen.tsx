@@ -31,7 +31,7 @@ import {
   type WeeklyProgress,
 } from '../../domain';
 import { serverApi } from '../../sync/serverApi';
-import { useWeeklyGoal } from '../analytics/useWeeklyGoal';
+import { useWeeklyGoal, useStreakSkipWeekends } from '../analytics/useWeeklyGoal';
 import { useT } from '../../i18n';
 
 function formatDuration(durationSeconds: number | null): string {
@@ -61,6 +61,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
   const [shared, setShared] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
   const [weeklyGoal] = useWeeklyGoal();
+  const [skipWeekends] = useStreakSkipWeekends();
   const [streak, setStreak] = useState<StreakStats>({ current: 0, longest: 0 });
   const [week, setWeek] = useState<WeeklyProgress>({ done: 0, goal: weeklyGoal, reached: false });
 
@@ -95,7 +96,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         const nums = all.map((w) => dayNumber(w.completedAt ?? w.startedAt));
         const todayNum = dayNumber(Date.now());
         if (!alive) return;
-        setStreak(computeStreak(nums, todayNum));
+        setStreak(computeStreak(nums, todayNum, skipWeekends));
         setWeek(weeklyProgress(nums, todayNum, weeklyGoal));
       } catch {
         /* 조회 실패 — 기본값 유지(오프라인/빈 DB 안전) */
@@ -104,7 +105,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
     return () => {
       alive = false;
     };
-  }, [weeklyGoal]);
+  }, [weeklyGoal, skipWeekends]);
 
   // 오운완 → 피드 공유 (SRS-007). 원시 kg/초/카운트를 저장, 뷰어가 자기 단위로 렌더.
   async function shareToFeed() {

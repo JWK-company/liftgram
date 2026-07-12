@@ -31,3 +31,27 @@ export function useWeeklyGoal(): [number, (n: number) => void] {
 
   return [goal, setGoal];
 }
+
+const SKIP_WEEKENDS_KEY = 'liftgram.streakSkipWeekends';
+
+// 연속운동일 스트릭에서 주말을 제외할지(주말만 쉰 건 연속 유지) — 기기-로컬 설정.
+export function useStreakSkipWeekends(): [boolean, (v: boolean) => void] {
+  const [skip, setSkipState] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getPref(SKIP_WEEKENDS_KEY).then((v) => {
+      if (active && v != null) setSkipState(v === '1');
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const setSkip = (v: boolean) => {
+    setSkipState(v);
+    setPref(SKIP_WEEKENDS_KEY, v ? '1' : '0');
+  };
+
+  return [skip, setSkip];
+}

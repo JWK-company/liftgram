@@ -13,15 +13,33 @@ export interface StreakStats {
   longest: number; // 역대 최장 연속 운동일
 }
 
+// 요일 판정(TZ 안전) — dayNumber는 UTC자정 일련번호이므로 getUTCDay(0=일·6=토).
+function isWeekend(dayNum: number): boolean {
+  const dow = new Date(dayNum * 86400000).getUTCDay();
+  return dow === 0 || dow === 6;
+}
+
+// prev ≤ next. 두 날 사이(배타적)에 '요구되는 날'이 하나도 비어 있지 않으면 연결(스트릭 유지).
+// skipWeekends면 주말은 요구되지 않는 날 → 주말만으로 이뤄진 공백은 스트릭을 끊지 않는다
+// (평일이 하루라도 비면 끊김). 주말에 운동하면 그 자체는 정상적으로 카운트된다.
+function isConnected(prev: number, next: number, skipWeekends: boolean): boolean {
+  for (let d = prev + 1; d < next; d += 1) {
+    if (!skipWeekends || !isWeekend(d)) return false;
+  }
+  return true;
+}
+
 // dayNumbers=완료 세션들의 dayNumber(중복 허용), today=오늘의 dayNumber.
-export function computeStreak(dayNumbers: number[], today: number): StreakStats {
+// skipWeekends=true면 '연속'을 주말 제외로 판정(주말만 쉰 건 연속 유지).
+export function computeStreak(dayNumbers: number[], today: number, skipWeekends = false): StreakStats {
   const uniq = [...new Set(dayNumbers)].sort((a, b) => a - b);
   if (uniq.length === 0) return { current: 0, longest: 0 };
 
+  // 최장 — 연결된 운동일의 최대 연속 길이.
   let longest = 1;
   let run = 1;
   for (let i = 1; i < uniq.length; i += 1) {
-    if (uniq[i] === uniq[i - 1] + 1) {
+    if (isConnected(uniq[i - 1], uniq[i], skipWeekends)) {
       run += 1;
       if (run > longest) longest = run;
     } else {
@@ -29,18 +47,14 @@ export function computeStreak(dayNumbers: number[], today: number): StreakStats 
     }
   }
 
-  const set = new Set(uniq);
-  // 오늘 아직 안 했어도 어제까지 이어졌으면 스트릭 유지(오늘 하면 연장, 이틀 비면 리셋).
-  let anchor: number | null = null;
-  if (set.has(today)) anchor = today;
-  else if (set.has(today - 1)) anchor = today - 1;
-
+  // 현재 — 가장 최근 운동일이 오늘과 연결돼 있으면(오늘 미완료는 유예) 그 체인 길이.
+  const last = uniq[uniq.length - 1];
   let current = 0;
-  if (anchor != null) {
-    let d = anchor;
-    while (set.has(d)) {
-      current += 1;
-      d -= 1;
+  if (last <= today && isConnected(last, today, skipWeekends)) {
+    current = 1;
+    for (let i = uniq.length - 1; i > 0; i -= 1) {
+      if (isConnected(uniq[i - 1], uniq[i], skipWeekends)) current += 1;
+      else break;
     }
   }
   return { current, longest };
