@@ -390,6 +390,18 @@ export async function startBlankWorkout(): Promise<Workout> {
   );
 }
 
+// 운동 도중 세션(루틴) 이름 변경 (@plm SRS-004). 빈 이름은 기본값으로 폴백.
+export async function renameWorkout(workoutId: string, name: string): Promise<void> {
+  const trimmed = name.trim();
+  await database.write(async () => {
+    const w = await workouts().find(workoutId);
+    await w.update((rec) => {
+      rec.name = trimmed || '빠른 운동';
+    });
+  });
+  scheduleSync(); // 이름 변경을 서버·다른 기기에 반영
+}
+
 export async function addExerciseToWorkout(workoutId: string, exerciseId: string): Promise<WorkoutExercise> {
   const prevSnap = await getPreviousExerciseSnapshot(exerciseId);
   const prevSets = await getPreviousExerciseSets(exerciseId);

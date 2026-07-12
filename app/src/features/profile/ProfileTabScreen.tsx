@@ -28,12 +28,35 @@ import {
   type WeightUnit,
   type EquipmentType,
 } from '../../domain';
-import { useT } from '../../i18n';
+import { useT, type TransKey } from '../../i18n';
 import { serverApi } from '../../sync/serverApi';
 import { canInstall, onInstallAvailable, promptInstall } from '../../push/pwa';
+import {
+  REST_SOUND_KINDS,
+  REST_VOLUME_LEVELS,
+  getRestSoundKind,
+  getRestVolumeLevel,
+  setRestSoundKind,
+  setRestVolumeLevel,
+  previewRestSound,
+  type RestSoundKind,
+  type RestVolumeLevel,
+} from '../../utils/sound';
 import { ServerSyncCard } from './ServerSyncCard';
 
 type Language = 'ko' | 'en';
+
+const REST_SOUND_LABEL: Record<RestSoundKind, TransKey> = {
+  ding: 'restSound.ding',
+  chime: 'restSound.chime',
+  triad: 'restSound.triad',
+  buzz: 'restSound.buzz',
+};
+const REST_VOLUME_LABEL: Record<RestVolumeLevel, TransKey> = {
+  mid: 'restVolume.mid',
+  loud: 'restVolume.loud',
+  max: 'restVolume.max',
+};
 
 export default function ProfileTabScreen({ navigation }: TabScreenProps<'ProfileTab'>) {
   const { t, lang } = useT();
@@ -47,6 +70,25 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
   const [isModerator, setIsModerator] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
   const [installable, setInstallable] = useState(canInstall());
+  const [restSound, setRestSoundState] = useState<RestSoundKind>(getRestSoundKind());
+  const [restVol, setRestVolState] = useState<RestVolumeLevel>(getRestVolumeLevel());
+
+  // 저장된 알림음 설정이 부팅 직후 비동기 로드될 수 있어 마운트 후 1회 동기화.
+  React.useEffect(() => {
+    setRestSoundState(getRestSoundKind());
+    setRestVolState(getRestVolumeLevel());
+  }, []);
+
+  function onPickRestSound(k: RestSoundKind) {
+    setRestSoundState(k);
+    setRestSoundKind(k);
+    previewRestSound(k); // 선택 즉시 미리듣기
+  }
+  function onPickRestVolume(v: RestVolumeLevel) {
+    setRestVolState(v);
+    setRestVolumeLevel(v);
+    previewRestSound(restSound); // 바뀐 음량으로 현재 프리셋 미리듣기
+  }
 
   React.useEffect(() => {
     setInstallable(canInstall());
@@ -249,6 +291,47 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
               containerStyle={{ marginBottom: spacing.sm }}
             />
           ))}
+        </View>
+
+        <Divider />
+
+        {/* 휴식 종료 알림음 (SRS-003) — 프리셋 선택(탭=미리듣기) + 음량. 기기-로컬 저장. */}
+        <View style={styles.equipBlock}>
+          <AppText variant="body" weight="medium">
+            {t('profile.restSound')}
+          </AppText>
+          <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+            {t('profile.restSoundCaption')}
+          </AppText>
+          <View style={styles.equipChips}>
+            {REST_SOUND_KINDS.map((k) => {
+              const active = restSound === k;
+              return (
+                <Pressable
+                  key={k}
+                  onPress={() => onPickRestSound(k)}
+                  style={({ pressed }) => [styles.equipChip, active && styles.equipChipActive, { opacity: pressed ? 0.8 : 1 }]}
+                >
+                  <AppText
+                    variant="caption"
+                    style={{ color: active ? colors.onPrimary : colors.textMuted, fontWeight: active ? fontWeight.bold : fontWeight.medium }}
+                  >
+                    {t(REST_SOUND_LABEL[k])}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={[styles.settingRow, { paddingTop: spacing.md }]}>
+            <AppText variant="body" weight="medium">
+              {t('profile.restVolume')}
+            </AppText>
+            <Segmented<RestVolumeLevel>
+              options={REST_VOLUME_LEVELS.map((v) => ({ value: v, label: t(REST_VOLUME_LABEL[v]) }))}
+              value={restVol}
+              onChange={onPickRestVolume}
+            />
+          </View>
         </View>
       </Card>
 
