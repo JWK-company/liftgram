@@ -525,6 +525,7 @@ export const en: Record<TransKey, string> = {
   "session.skip": "Skip",
   "session.summaryLoadError": "Couldn't load summary",
   "session.summaryLoading": "Loading summary",
+  "session.streakDays": "{count}-day streak",
   "session.totalVolume": "Total Volume",
   "session.unmarkFailed": "Unmark Failed",
   "session.unmarkWarmup": "Unmark Warm-up",

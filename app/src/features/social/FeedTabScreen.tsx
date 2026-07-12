@@ -434,6 +434,8 @@ function PostCard({
           volumeKg?: number;
           durationSeconds?: number;
           prCount?: number;
+          streakDays?: number;
+          weeklyReached?: boolean;
           setCount?: number;
           exercises?: { name: string; sets: { weightKg: number; reps: number; isWarmup?: boolean }[] }[];
         })
@@ -547,6 +549,20 @@ function PostCard({
             <WStat label={t('session.duration')} value={formatWorkoutDuration(workout.durationSeconds ?? 0)} />
             <WStat label={t('session.setCount')} value={String(workout.setCount ?? 0)} />
           </View>
+          {/* 스트릭·PR 칩 — 책임감(연속 운동)의 사회적 가시화(SRS-011). 게시 시점 스냅샷. */}
+          {(workout.streakDays ?? 0) > 0 || (workout.prCount ?? 0) > 0 ? (
+            <View style={styles.workoutChips}>
+              {(workout.streakDays ?? 0) > 0 ? (
+                <View style={styles.streakChip}>
+                  <Ionicons name="flame" size={14} color={colors.warning} />
+                  <Tag label={t('session.streakDays', { count: workout.streakDays! })} tone="primary" />
+                </View>
+              ) : null}
+              {(workout.prCount ?? 0) > 0 ? (
+                <Tag label={t('session.prCount', { count: workout.prCount! })} tone="pr" />
+              ) : null}
+            </View>
+          ) : null}
           {/* 루틴 전체(종목·세트) 펼쳐보기 — 보는 사람이 그 사람의 루틴을 구경 (SRS-007). */}
           {workout.exercises && workout.exercises.length ? (
             <>
@@ -673,6 +689,8 @@ const styles = StyleSheet.create({
   action: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   workoutBox: { marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surfaceAlt },
   workoutStats: { flexDirection: 'row', gap: spacing.xl, marginTop: spacing.sm },
+  workoutChips: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm },
+  streakChip: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   routineActions: { flexDirection: 'row', alignItems: 'center' },
   routineToggle: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, alignSelf: 'flex-start', paddingVertical: spacing.xs },
   routineList: { marginTop: spacing.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: spacing.xs },

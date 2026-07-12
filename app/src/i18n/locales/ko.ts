@@ -524,6 +524,7 @@ export const ko = {
   "session.shareLoginRequired": "프로필 → 서버 동기에서 로그인 후 공유할 수 있어요",
   "session.shareToFeed": "피드에 공유",
   "session.sharedToFeed": "피드에 공유됨",
+  "session.streakDays": "연속 {count}일",
   "session.skip": "건너뛰기",
   "session.summaryLoadError": "요약을 불러오지 못했습니다",
   "session.summaryLoading": "요약 불러오는 중",
