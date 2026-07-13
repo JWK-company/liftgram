@@ -441,8 +441,9 @@ const styles = StyleSheet.create({
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
   // v9 부분반복(깔짝) 컬럼 — 정자세 옆 좁은 입력.
-  colPartial: { width: 44, textAlign: 'center' },
-  partialCell: { flex: 0, width: 44 },
+  // 부분(깔짝) — 횟수(flex 1)보다 작되 비율로 확보. 헤더도 같은 flex라 입력칸과 정렬 일치.
+  colPartial: { flex: 0.7, textAlign: 'center' },
+  partialCell: { flex: 0.7 },
   cell: {
     flex: 1,
     minWidth: 0, // 웹 <input> 기본폭이 flex 축소를 막아 행 오버플로 → 0으로 축소 허용
