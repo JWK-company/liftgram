@@ -584,5 +584,29 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/App.tsx:92",
+    "app/src/components/VariantSelector.tsx:1",
+    "app/src/data/analyticsRepository.ts:210",
+    "app/src/data/routineRepository.ts:121#setRoutineExerciseVariant",
+    "app/src/data/routineRepository.ts:7",
+    "app/src/data/workoutRepository.ts:20",
+    "app/src/data/workoutRepository.ts:47#effectiveVariantKey",
+    "app/src/data/workoutRepository.ts:54#backfillVariantKeysV6",
+    "app/src/data/workoutRepository.ts:540#setSetArm",
+    "app/src/data/workoutRepository.ts:550#setVariant",
+    "app/src/db/migrations.ts:112",
+    "app/src/db/models/RoutineExercise.ts:22",
+    "app/src/db/models/WorkoutExercise.ts:29",
+    "app/src/db/schema.ts:121",
+    "app/src/db/schema.ts:146",
+    "app/src/db/schema.ts:72",
+    "app/src/domain/variants.ts:1",
+    "app/src/features/routines/RoutineEditorScreen.tsx:2",
+    "app/src/features/routines/RoutineEditorScreen.tsx:453",
+    "app/src/features/session/ExerciseBlock.tsx:3",
+    "app/src/features/session/ExerciseBlock.tsx:45#recordVariant",
+    "app/src/features/session/ExerciseBlock.tsx:83"
+  ]
 }

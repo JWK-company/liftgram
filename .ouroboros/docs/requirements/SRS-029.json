@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "id": "SRS-029",
   "type": "SRS",
-  "title": "세트 로깅 정밀도 — 보조/치팅 횟수 구분·보정(보조/가중) 무게",
+  "title": "세트 로깅 정밀도 — 정자세/부분반복(깔짝) 구분 (볼륨·PR 제외)",
   "status": "Approved",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-11T00:00:00Z",
-  "updated": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-13T00:00:00Z",
   "sync": true,
   "tags": [
     "logging",
@@ -15,7 +15,7 @@
     "volume"
   ],
   "kind": "FR",
-  "acceptance_criteria": "정자세/보조(치팅) 횟수를 구분 기록하고 총중량서 치팅 제외, 어시스티드(−)·가중(+) 보정무게가 총중량·PR에 정확 반영",
+  "acceptance_criteria": "한 세트에서 정자세 횟수와 부분반복(깔짝)을 구분 기록하고, 총중량·PR은 정자세 횟수만 반영(부분반복 제외), 이전기록에 정자세/부분반복을 구분 표시한다",
   "relations": {
     "derives_from": [
       "URS-016",
@@ -51,11 +51,11 @@
                 "type": "strong"
               }
             ],
-            "text": "정자세(strict) 반복과 마지막 보조(치팅) 반복을 구분해 기록"
+            "text": "정자세(clean) 반복과, 실패 후 반동·보조로 추가한 부분반복(깔짝)을 구분해 기록"
           },
           {
             "type": "text",
-            "text": "하고, 총중량(volume)을 계산할 때 치팅 횟수를 제외해 실제 유효 볼륨만 집계하며, 이전기록·이력 화면에 정자세/치팅을 구분 표시한다(BS-002 #13). 이는 세트당 실제 완전가동 수행량을 왜곡 없이 남겨 진척 판단의 신뢰도를 높이기 위한 것이다."
+            "text": "한다. 주 횟수 입력은 정자세 횟수이며, 부분반복은 별도 컬럼으로 입력한다. 총중량(volume)·추정 1RM·PR 검출은 정자세 횟수만으로 계산하고 부분반복은 제외해, 세트당 실제 완전가동 수행량을 왜곡 없이 남긴다(BS-002 #13). 이전기록·이력 화면에는 정자세와 부분반복을 구분해 '8+3'처럼 표시한다."
           }
         ]
       },
@@ -64,7 +64,7 @@
         "content": [
           {
             "type": "text",
-            "text": "또한 시스템은 친업·딥스 등 "
+            "text": "부분반복은 운동 "
           },
           {
             "type": "text",
@@ -73,11 +73,11 @@
                 "type": "strong"
               }
             ],
-            "text": "어시스티드(몸무게−보조무게)와 가중(+무게)을 부호 있는 보정무게(load_adjust)로 기록"
+            "text": "수행 중에만"
           },
           {
             "type": "text",
-            "text": "해, 어시스티드는 음수(−)·가중은 양수(+)로 실제 수행 무게가 총중량과 추정 1RM/PR 검출에 정확히 반영되게 한다(#11). 자중 기반 종목의 실효 부하는 사용자 프로필의 체중 입력을 활용해 산출하며, 보정무게 미입력 시 0으로 취급해 기존 기록과 호환된다."
+            "text": " 세트 행에서 입력하며(루틴 생성 단계에는 없음), 미입력 시 0으로 취급해 기존 기록과 무손실 호환된다. 편측(원암/투암) 등 그립·팔 변형은 SRS-028 소관으로, 본 요구는 세트 단위 정자세/부분반복 구분에 한정한다."
           }
         ]
       },
@@ -104,20 +104,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "한 세트에 "
-                  },
-                  {
-                    "type": "text",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ],
-                    "text": "strict_reps"
-                  },
-                  {
-                    "type": "text",
-                    "text": "(정자세 반복)를 별도 입력할 수 있고, 미입력 시 전체 "
+                    "text": "운동 수행 중 세트 행에 정자세 "
                   },
                   {
                     "type": "text",
@@ -130,35 +117,7 @@
                   },
                   {
                     "type": "text",
-                    "text": "를 정자세로 간주한다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "총중량(volume) 계산 시 치팅 반복(reps − strict_reps)은 제외하고, 정자세 반복만 유효 볼륨으로 합산한다(워밍업·실패 세트 제외 규칙과 병존)."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "보정무게 "
+                    "text": " 옆으로 부분반복 "
                   },
                   {
                     "type": "text",
@@ -167,11 +126,11 @@
                         "type": "code"
                       }
                     ],
-                    "text": "load_adjust_kg"
+                    "text": "partial_reps"
                   },
                   {
                     "type": "text",
-                    "text": "가 부호 있게 기록되어, 어시스티드(−)·가중(+)이 실효 수행 무게에 반영되고 총중량과 추정 1RM/PR 검출이 이 실효 무게로 계산된다."
+                    "text": "(깔짝) 입력 컬럼이 있고, 크기는 횟수보다 작되 입력 가능하며 헤더와 정렬된다."
                   }
                 ]
               }
@@ -185,7 +144,20 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "이전기록·이력·PR 화면에서 정자세/치팅 반복과 보정무게(어시스티드/가중)가 구분 표시되어 사용자가 실제 수행 조건을 식별할 수 있다."
+                    "text": "총중량(volume)·추정 1RM·PR은 정자세 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "reps"
+                  },
+                  {
+                    "type": "text",
+                    "text": "만으로 계산하고 부분반복은 제외한다(워밍업·실패 세트 제외 규칙과 병존)."
                   }
                 ]
               }
@@ -199,7 +171,21 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "자중 종목의 실효 부하는 사용자 프로필 체중 입력을 활용해 산출하고, strict_reps·load_adjust 미입력 레거시 세트는 각각 reps 전체·0으로 취급해 기존 기록과 무손실 호환된다."
+                    "text": "이전기록·이력·요약·피드에서 부분반복이 있으면 정자세와 구분해 표시된다(예: 20kg×8+3)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "부분반복 미입력(null/0) 레거시 세트는 볼륨·표시에 영향이 없다(무손실 하위호환)."
                   }
                 ]
               }
@@ -215,7 +201,7 @@
         "content": [
           {
             "type": "text",
-            "text": "설계 반영 (스키마 v6)"
+            "text": "설계 반영 (스키마 v9)"
           }
         ]
       },
@@ -224,7 +210,7 @@
         "content": [
           {
             "type": "text",
-            "text": "정밀도 필드는 세트 단위로 소유되며, "
+            "text": "정밀도 필드는 세트 단위로 소유되며 "
           },
           {
             "type": "text",
@@ -237,172 +223,7 @@
           },
           {
             "type": "text",
-            "text": "에 두 개의 optional 컬럼을 추가한다(schema.ts:120-136, SetLog.ts 필드 패턴). 값 도메인·기본값은 아래와 같다."
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "컬럼"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "타입/플래그"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "의미 / 기본"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ],
-                        "text": "strict_reps"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "number, optional"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "정자세 반복. null=전부 정자세(=reps). 치팅수 = reps − strict_reps"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ],
-                        "text": "load_adjust_kg"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "number, optional"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "보정무게(signed). 어시스티드(−)/가중(+). null=0"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "볼륨·PR 순수 계산 계층("
+            "text": "에 optional 컬럼 "
           },
           {
             "type": "text",
@@ -411,37 +232,11 @@
                 "type": "code"
               }
             ],
-            "text": "volume.ts"
+            "text": "partial_reps"
           },
           {
             "type": "text",
-            "text": ":8-10, "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ],
-            "text": "personalRecords.ts"
-          },
-          {
-            "type": "text",
-            "text": ":21-29, "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ],
-            "text": "oneRepMax.ts"
-          },
-          {
-            "type": "text",
-            "text": ":7-11)는 유효 반복수와 실효 무게(weightKg + load_adjust_kg, 자중은 체중 반영)를 입력으로 받도록 조정하며, 세트 정밀도는 부모 워크아웃 종목의 변형 버킷(SRS-028/machine_variant)과 직교한다."
+            "text": "(number)를 추가한다(v9 마이그레이션, 기존 행 null). 볼륨·PR 순수 계산 계층(volume.ts effectiveReps=reps·effectiveWeightKg=weightKg, personalRecords.ts, oneRepMax.ts)은 정자세 reps만 사용한다. (구 v6 보조/가중 무게(load_adjust_kg)·정자세비중(strict_reps)은 폐기 — 컬럼은 하위호환 위해 잔존하나 볼륨/PR·UI에서 미사용.)"
           }
         ]
       },
@@ -462,10 +257,22 @@
         "content": [
           {
             "type": "text",
-            "text": "도출 URS: URS-016(세트 로깅 정밀도·수행 조건 기록), URS-001(핵심 운동 기록). 설계: SAD-019(수행 기록 데이터 모델). 웰니스 가드레일: SRS-015 준수(정보·기록 보조이며 진단·처방 아님). 경계: 원암/투암(#26) 등 그립·팔 변형은 SRS-028(변형 기반 수행 기록) 소관이며 본 요구는 세트 단위 정밀도(치팅 구분·보정무게)에 한정한다."
+            "text": "도출 URS: URS-016(세트 로깅 정밀도·수행 조건 기록), URS-001(핵심 운동 기록). 설계: SAD-019(수행 기록 데이터 모델). 웰니스 가드레일: SRS-015 준수(정보·기록 보조이며 진단·처방 아님). 경계: 원암/투암 등 편측·그립·기구 변형은 SRS-028 소관."
           }
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/data/workoutRepository.ts:268",
+    "app/src/data/workoutRepository.ts:37#isPerformed",
+    "app/src/data/workoutRepository.ts:601",
+    "app/src/db/migrations.ts:122",
+    "app/src/db/models/SetLog.ts:18",
+    "app/src/db/schema.ts:143",
+    "app/src/db/schema.ts:147",
+    "app/src/domain/types.ts:47",
+    "app/src/domain/volume.ts:8#effectiveWeightKg",
+    "app/src/features/session/ExerciseBlock.tsx:4"
+  ]
 }

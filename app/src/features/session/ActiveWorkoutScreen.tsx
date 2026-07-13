@@ -291,7 +291,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
         </View>
       ) : null}
 
-      {/* 운동 이름 변경 모달 (@plm SRS-004) */}
+      {/* 운동 이름 변경 모달 (SRS-004) */}
       <Modal visible={renaming} transparent animationType="fade" onRequestClose={() => setRenaming(false)}>
         <Pressable style={styles.renameBackdrop} onPress={() => setRenaming(false)}>
           <Pressable style={styles.renameCard} onPress={() => {}}>
@@ -314,7 +314,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
         </Pressable>
       </Modal>
 
-      {/* 운동 도중 슈퍼셋 상대 선택 모달 (@plm SRS-004) */}
+      {/* 운동 도중 슈퍼셋 상대 선택 모달 (SRS-004) */}
       <Modal visible={!!supersetTarget} transparent animationType="fade" onRequestClose={() => setSupersetTarget(null)}>
         <Pressable style={styles.renameBackdrop} onPress={() => setSupersetTarget(null)}>
           <Pressable style={styles.ssSheet} onPress={() => {}}>
