@@ -517,7 +517,17 @@ export async function setSetType(id: string, type: SetType): Promise<void> {
   });
 }
 
-// 세션 중 종목의 변형(기구·그립·팔) 변경 — 이전기록·PR이 해당 변형 것으로 갱신된다. @plm SRS-028
+// 세트별 편측(원암/원레그 ↔ 투암/투레그) 설정 — 같은 종목·세트라도 세트마다 다를 수 있어 세트 단위로 저장. @plm SRS-028
+export async function setSetArm(id: string, arm: 'uni' | null): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.arm = arm;
+    });
+  });
+}
+
+// 세션 중 종목의 변형(기구·그립) 변경 — 이전기록·PR이 해당 변형 것으로 갱신된다. @plm SRS-028
 export async function setVariant(workoutExerciseId: string, dims: VariantDims): Promise<void> {
   const cols = variantColumns(dims);
   await database.write(async () => {

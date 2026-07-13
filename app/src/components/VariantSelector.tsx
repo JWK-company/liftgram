@@ -6,16 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './primitives';
 import { colors, radius, spacing } from '../theme';
 import {
-  ARM_OPTIONS,
   GRIP_OPTIONS,
-  armLabel,
   equipmentOptionsFor,
   equipmentVariantLabel,
   gripLabel,
   variantShortLabel,
-  type ArmKey,
   type EquipmentType,
-  type GripKey,
   type VariantDims,
 } from '../domain';
 import { useUser } from '../state/userContext';
@@ -35,8 +31,7 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
 
   const equip = value.equipment ?? null;
   const grip = value.grip ?? null;
-  const arm = value.arm === 'uni' ? 'uni' : null; // 'bi'/null = 기본
-  const active = Boolean(equip || grip || arm);
+  const active = Boolean(equip || grip); // 팔(편측)은 세트별로 이동(v8) — 변형 차원에서 제외
   // 트리거 칩은 축약 라벨("해머 · 언더 · 원암")로 모든 차원을 잘림 없이 표시. 전체 라벨은 모달 옵션에서.
   const label = variantShortLabel(value, lang, machineVariantLabels);
 
@@ -87,20 +82,7 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
                 ))}
               </View>
 
-              {/* 팔 — 'bi'=양팔(기본), 'uni'=원암 */}
-              <AppText variant="label" color="textMuted" style={styles.rowLabel}>
-                {t('variant.arm')}
-              </AppText>
-              <View style={styles.chipRow}>
-                {ARM_OPTIONS.map((k) => (
-                  <SelectChip
-                    key={k ?? 'bi'}
-                    label={k === 'uni' ? armLabel('uni', lang) : t('variant.armBoth')}
-                    active={(k === 'uni' ? 'uni' : null) === arm}
-                    onPress={() => onChange({ ...value, arm: k })}
-                  />
-                ))}
-              </View>
+              {/* 팔/다리(원암·투암)는 세트별로 설정(v8) — 각 세트 행의 투암/원암 토글에서. */}
             </ScrollView>
           </Pressable>
         </Pressable>

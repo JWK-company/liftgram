@@ -32,11 +32,12 @@ function stateLabel(t: (k: TransKey) => string, state: string): string {
   }
 }
 
-function stateTone(state: string): 'default' | 'primary' | 'pr' | 'muted' {
-  if (state === 'adopted' || state === 'adopted_pending_promotion') return 'primary';
-  if (state === 'rejected') return 'muted';
-  if (state === 'voting' || state === 'discussion') return 'pr';
-  return 'default';
+// 상태 톤 — 개선제안 카테고리 태그(파랑 primary)와 확실히 구분되게 완료=초록·진행/대기=앰버·반려=빨강.
+function stateTone(state: string): 'default' | 'success' | 'warning' | 'danger' | 'muted' {
+  if (state === 'adopted' || state === 'adopted_pending_promotion') return 'success'; // 완료/채택
+  if (state === 'voting' || state === 'discussion') return 'warning'; // 진행·대기
+  if (state === 'rejected') return 'danger'; // 반려
+  return 'muted'; // 보류/기타
 }
 
 export default function FeedbackTabScreen(_props: TabScreenProps<'FeedbackTab'>) {

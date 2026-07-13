@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -143,6 +143,7 @@ export const mySchema = appSchema({
         // v6: 로깅 정밀도 — 총중량/PR 정확도. @plm SRS-029
         { name: 'strict_reps', type: 'number', isOptional: true }, // 정자세 반복(null=전부 정자세=reps). 나머지(reps-strict_reps)=보조/치팅
         { name: 'load_adjust_kg', type: 'number', isOptional: true }, // 보정무게 signed. 어시스티드(−)/가중(+). null=0
+        { name: 'arm', type: 'string', isOptional: true }, // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본). @plm SRS-028
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

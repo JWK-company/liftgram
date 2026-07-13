@@ -1,15 +1,16 @@
 // @plm SRS-011  운동 캘린더 — 월별 달력에 '언제·얼마나·어떤 루틴으로' 운동했는지 시각화(책임감 루프).
 // 완료 세션을 로컬 날짜로 버킷팅 → 날짜 셀 마커 + 선택일 상세(루틴명·볼륨·시간·PR). 지속성 가시화.
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, Card, AppText, Tag } from '../../components';
+import { Screen, Card, AppText, Tag, Button } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { analyticsRepo } from '../../data';
 import type { Workout } from '../../db/models';
 import { useQueryData } from '../../db/hooks';
 import { useUser } from '../../state/userContext';
 import { formatWeight, dayNumber, computeStreak, weeklyProgress, WEEKLY_GOAL_MIN, WEEKLY_GOAL_MAX } from '../../domain';
+import { serverApi } from '../../sync/serverApi';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { useWeeklyGoal, useStreakSkipWeekends } from './useWeeklyGoal';
@@ -75,6 +76,42 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
     () => [...byDay.entries()].filter(([k]) => k.startsWith(monthPrefix)).reduce((n, [, ws]) => n + ws.length, 0),
     [byDay, monthPrefix],
   );
+  const monthVolume = useMemo(
+    () =>
+      [...byDay.entries()]
+        .filter(([k]) => k.startsWith(monthPrefix))
+        .reduce((sum, [, ws]) => sum + ws.reduce((a, w) => a + (w.totalVolumeKg ?? 0), 0), 0),
+    [byDay, monthPrefix],
+  );
+
+  // 이번 달 자랑하기 — 월 결산(일수·횟수·볼륨)을 피드에 공유(책임감·동기). @plm SRS-007/SRS-011
+  const [bragging, setBragging] = useState(false);
+  async function shareMonth() {
+    if (bragging || monthSessions === 0) return;
+    setBragging(true);
+    try {
+      if (!(await serverApi.isLoggedIn())) {
+        Alert.alert(t('calendar.bragTitle'), t('session.shareLoginRequired'));
+        return;
+      }
+      const caption = t('calendar.bragCaption', {
+        month: monthLabel,
+        days: monthDays,
+        sessions: monthSessions,
+        volume: formatWeight(monthVolume, weightUnit),
+      });
+      await serverApi.createPost({
+        kind: 'text',
+        caption,
+        data: { month: monthPrefix, days: monthDays, sessions: monthSessions, volumeKg: monthVolume },
+      });
+      Alert.alert(t('calendar.bragTitle'), t('calendar.bragDone'));
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
+    } finally {
+      setBragging(false);
+    }
+  }
 
   function shiftMonth(delta: number) {
     setView((v) => {
@@ -183,6 +220,16 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
       <AppText variant="caption" color="textMuted" style={styles.summary}>
         {t('calendar.monthSummary', { days: monthDays, sessions: monthSessions })}
       </AppText>
+      {monthSessions > 0 ? (
+        <Button
+          title={t('calendar.brag')}
+          icon="megaphone-outline"
+          variant="secondary"
+          loading={bragging}
+          onPress={shareMonth}
+          style={styles.bragBtn}
+        />
+      ) : null}
 
       <Card style={styles.calCard}>
         {/* 요일 헤더 */}
@@ -280,7 +327,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  summary: { textAlign: 'center', marginBottom: spacing.md },
+  summary: { textAlign: 'center', marginBottom: spacing.sm },
+  bragBtn: { marginBottom: spacing.md },
   calCard: { paddingVertical: spacing.sm, marginBottom: spacing.lg },
   weekRow: { flexDirection: 'row', marginBottom: spacing.xs },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },

@@ -54,10 +54,18 @@ export function Card({
 }
 
 // ── Tag (작은 칩) ──────────────────────────────────────────────────
-export function Tag({ label, tone = 'default' }: { label: string; tone?: 'default' | 'primary' | 'pr' | 'muted' }) {
-  const bg =
-    tone === 'primary' ? colors.primaryMuted : tone === 'pr' ? '#4A3F12' : tone === 'muted' ? colors.surfaceAlt : colors.surfaceAlt;
-  const fg = tone === 'pr' ? colors.pr : tone === 'primary' ? colors.primary : colors.textMuted;
+export type TagTone = 'default' | 'primary' | 'pr' | 'muted' | 'success' | 'warning' | 'danger';
+const TAG_PALETTE: Record<TagTone, { bg: string; fg: string }> = {
+  primary: { bg: colors.primaryMuted, fg: colors.primary },
+  pr: { bg: '#4A3F12', fg: colors.pr },
+  success: { bg: '#12351F', fg: colors.success },
+  warning: { bg: '#3A2E10', fg: colors.warning },
+  danger: { bg: '#3A1518', fg: colors.danger },
+  muted: { bg: colors.surfaceAlt, fg: colors.textMuted },
+  default: { bg: colors.surfaceAlt, fg: colors.textMuted },
+};
+export function Tag({ label, tone = 'default' }: { label: string; tone?: TagTone }) {
+  const { bg, fg } = TAG_PALETTE[tone] ?? TAG_PALETTE.default;
   return (
     <View style={[styles.tag, { backgroundColor: bg }]}>
       <Text style={{ color: fg, fontSize: fontSize.xs, fontWeight: fontWeight.medium }}>{label}</Text>
