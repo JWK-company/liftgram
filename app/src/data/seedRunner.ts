@@ -4,7 +4,7 @@
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { Exercise } from '../db/models';
-import { SEED_EXERCISES } from './seed/exercises.seed';
+import { SEED_EXERCISES, type SeedExercise } from './seed/exercises.seed';
 import { SUBSTITUTES } from './seed/substitutes.seed';
 
 export async function seedExercisesIfNeeded(): Promise<number> {
@@ -13,24 +13,35 @@ export async function seedExercisesIfNeeded(): Promise<number> {
   const haveNames = new Set(existing.map((e) => e.nameKo));
   const missing = SEED_EXERCISES.filter((seed) => !haveNames.has(seed.nameKo));
   if (missing.length) {
-    await database.write(async () => {
-      await database.batch(
-        ...missing.map((seed) =>
-          exercises.prepareCreate((e) => {
-            e._raw.id = seedId(seed.nameEn); // 결정적 id → 멀티기기 동기 시 중복 방지 (SRS-001)
-            e.nameKo = seed.nameKo;
-            e.nameEn = seed.nameEn ?? null;
-            e.primaryMuscles = seed.primaryMuscles;
-            e.secondaryMuscles = seed.secondaryMuscles ?? [];
-            e.equipment = seed.equipment;
-            e.category = seed.category ?? null;
-            e.isCustom = false;
-            e.substituteIds = [];
-            e.isArchived = false;
-          }),
-        ),
-      );
-    });
+    const fields = (e: Exercise, seed: SeedExercise) => {
+      e._raw.id = seedId(seed.nameEn); // 결정적 id → 멀티기기 동기 시 중복 방지 (SRS-001)
+      e.nameKo = seed.nameKo;
+      e.nameEn = seed.nameEn ?? null;
+      e.primaryMuscles = seed.primaryMuscles;
+      e.secondaryMuscles = seed.secondaryMuscles ?? [];
+      e.equipment = seed.equipment;
+      e.category = seed.category ?? null;
+      e.isCustom = false;
+      e.substituteIds = [];
+      e.isArchived = false;
+    };
+    try {
+      await database.write(async () => {
+        await database.batch(...missing.map((seed) => exercises.prepareCreate((e) => fields(e, seed))));
+      });
+    } catch {
+      // 배치 실패(중복 id — 예: consolidate가 soft-delete한 종목의 결정적 id가 아직 DB에 잔존) →
+      // 개별 생성으로 폴백해 충돌 건만 건너뛴다. 앱 초기화가 통째로 실패(크래시)하지 않도록 방어.
+      for (const seed of missing) {
+        try {
+          await database.write(async () => {
+            await exercises.create((e) => fields(e, seed));
+          });
+        } catch {
+          /* 이미 존재(soft-deleted 포함) — 건너뜀 */
+        }
+      }
+    }
   }
   await syncSubstitutes();
   return missing.length;

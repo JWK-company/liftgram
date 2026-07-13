@@ -165,9 +165,8 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '인버티드 로우', nameEn: 'Inverted Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'bodyweight' },
   { nameKo: '원암 랫풀다운', nameEn: 'Single-arm Lat Pulldown', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'cable' },
   { nameKo: '덤벨 풀오버', nameEn: 'Dumbbell Pullover', primaryMuscles: ['back'], secondaryMuscles: ['chest'], equipment: 'dumbbell' },
-  // ── 가슴 ───────────────────────────────────────────────────────
-  { nameKo: '인클라인 바벨 프레스', nameEn: 'Incline Barbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'barbell' },
-  { nameKo: '인클라인 덤벨 프레스', nameEn: 'Incline Dumbbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'dumbbell' },
+  // 주의: '인클라인 바벨/덤벨 프레스'는 consolidateExercisesV8이 '인클라인 프레스'(기구 변형)로 흡수하는
+  // 통합 소스라 시드에 두면 안 됨(생성→soft-delete→재부팅 재생성 시 id 충돌). 인클라인은 변형에서 선택.
   // ── 어깨 ───────────────────────────────────────────────────────
   { nameKo: '랜드마인 프레스', nameEn: 'Landmine Press', primaryMuscles: ['shoulders'], secondaryMuscles: ['chest', 'triceps'], equipment: 'barbell' },
   { nameKo: '케이블 리어 델트 플라이', nameEn: 'Cable Rear Delt Fly', primaryMuscles: ['shoulders'], equipment: 'cable' },
