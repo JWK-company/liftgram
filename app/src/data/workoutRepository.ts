@@ -19,6 +19,7 @@ import {
 } from '../domain';
 import { legacyMachineVariantToV6, variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
+import { randomId } from '../utils/id';
 
 const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
@@ -516,6 +517,24 @@ export async function setSetType(id: string, type: SetType): Promise<void> {
       rec.isFailed = type === 'failed';
     });
   });
+}
+
+// 운동 도중 슈퍼셋 묶기/해제 (SRS-004) — 세션 내 종목들을 같은 supersetGroup으로. 루틴과 독립.
+export async function groupWorkoutExercisesAsSuperset(ids: string[]): Promise<string> {
+  const group = randomId('ss_');
+  await database.write(async () => {
+    const recs = await Promise.all(ids.map((id) => workoutExercises().find(id)));
+    await database.batch(...recs.map((we) => we.prepareUpdate((rec) => { rec.supersetGroup = group; })));
+  });
+  scheduleSync();
+  return group;
+}
+export async function ungroupWorkoutExercisesSuperset(ids: string[]): Promise<void> {
+  await database.write(async () => {
+    const recs = await Promise.all(ids.map((id) => workoutExercises().find(id)));
+    await database.batch(...recs.map((we) => we.prepareUpdate((rec) => { rec.supersetGroup = null; })));
+  });
+  scheduleSync();
 }
 
 // 세트별 편측(원암/원레그 ↔ 투암/투레그) 설정 — 같은 종목·세트라도 세트마다 다를 수 있어 세트 단위로 저장. @plm SRS-028

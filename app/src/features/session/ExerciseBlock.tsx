@@ -35,6 +35,9 @@ interface ExerciseBlockProps {
   onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
   onMoveUp?: () => void; // 운동 중 순서 위로(#11) — 없으면 최상단
   onMoveDown?: () => void; // 운동 중 순서 아래로(#11) — 없으면 최하단
+  canSuperset?: boolean; // 세션에 종목 2개 이상 — 슈퍼셋 버튼 노출
+  onSuperset?: () => void; // 운동 중 슈퍼셋 상대 선택 열기
+  onUnsuperset?: () => void; // 슈퍼셋 해제
 }
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -69,7 +72,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest, onSwap, onMoveUp, onMoveDown }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest, onSwap, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -155,14 +158,15 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
     return setTypeLabel(s, normalCount);
   });
 
+  const grouped = !!we.supersetGroup;
   return (
-    <Card style={styles.block}>
+    <Card style={[styles.block, grouped && styles.blockGrouped]}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
           <View style={styles.headerMeta}>
             <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
-            {we.supersetGroup ? (
+            {grouped ? (
               <View style={styles.supersetBadge}>
                 <AppText variant="label" color="primary">
                   {t('session.superset')}
@@ -189,6 +193,14 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
               <View style={styles.reorderSpacer} />
             )}
           </View>
+        ) : null}
+        {canSuperset && (onSuperset || onUnsuperset) ? (
+          <IconButton
+            icon="git-merge-outline"
+            color={grouped ? 'primary' : 'textMuted'}
+            size={20}
+            onPress={() => (grouped ? onUnsuperset?.() : onSuperset?.())}
+          />
         ) : null}
         {onSwap ? (
           <IconButton icon="swap-horizontal-outline" color="textMuted" size={20} onPress={() => onSwap(we.id)} />
@@ -398,6 +410,7 @@ function SetRowEdit({
 
 const styles = StyleSheet.create({
   block: { marginBottom: spacing.lg },
+  blockGrouped: { borderColor: colors.primary, borderWidth: 1 }, // 슈퍼셋 그룹 시각 표시
   header: { flexDirection: 'row', alignItems: 'flex-start' },
   headerMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' },
   gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.xs },

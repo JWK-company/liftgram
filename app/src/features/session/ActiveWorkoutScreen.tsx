@@ -16,6 +16,7 @@ import { requestExercisePick } from '../../utils/picker';
 import { formatWeight } from '../../domain';
 import { useT } from '../../i18n';
 import { ExerciseBlock } from './ExerciseBlock';
+import { ExerciseName } from './ExerciseName';
 
 function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -48,6 +49,36 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
     setNameDraft(workout?.name ?? '');
     setRenaming(true);
   }
+  // 운동 도중 슈퍼셋 — 종목의 슈퍼셋 버튼 → 상대 선택 → 그룹 병합. 루틴 없이 즉석 가능.
+  const ssMembers = (group: string | null) =>
+    group ? exercises.filter((e) => e.supersetGroup === group).map((e) => e.id) : [];
+  async function chooseSupersetPartner(partner: WorkoutExercise) {
+    const target = supersetTarget;
+    setSupersetTarget(null);
+    if (!target || partner.id === target.id) return;
+    const ids = [
+      ...new Set([
+        ...(target.supersetGroup ? ssMembers(target.supersetGroup) : [target.id]),
+        ...(partner.supersetGroup ? ssMembers(partner.supersetGroup) : [partner.id]),
+      ]),
+    ];
+    try {
+      await workoutRepo.groupWorkoutExercisesAsSuperset(ids);
+      setSsVersion((v) => v + 1);
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
+    }
+  }
+  async function unlinkSuperset(we: WorkoutExercise) {
+    const members = ssMembers(we.supersetGroup);
+    try {
+      await workoutRepo.ungroupWorkoutExercisesSuperset(members.length <= 2 ? members : [we.id]);
+      setSsVersion((v) => v + 1);
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
+    }
+  }
+
   async function saveRename() {
     setRenaming(false);
     try {
@@ -68,7 +99,10 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
     return () => clearInterval(iv);
   }, [workoutId]);
 
-  const exercises = useQueryData<WorkoutExercise>(() => workoutRepo.queryWorkoutExercises(workoutId), [workoutId]);
+  // 슈퍼셋 그룹 변경은 필드 업데이트라 query.observe()가 재방출 안 함 → 강제 재조회 키.
+  const [ssVersion, setSsVersion] = useState(0);
+  const [supersetTarget, setSupersetTarget] = useState<WorkoutExercise | null>(null);
+  const exercises = useQueryData<WorkoutExercise>(() => workoutRepo.queryWorkoutExercises(workoutId), [workoutId, ssVersion]);
 
   useEffect(() => {
     let alive = true;
@@ -219,6 +253,9 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
               onSwap={handleSwapExercise}
               onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}
               onMoveDown={i < exercises.length - 1 ? () => moveExercise(i, i + 1) : undefined}
+              canSuperset={exercises.length >= 2}
+              onSuperset={() => setSupersetTarget(we)}
+              onUnsuperset={() => unlinkSuperset(we)}
             />
           ))
         )}
@@ -276,6 +313,34 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* 운동 도중 슈퍼셋 상대 선택 모달 (@plm SRS-004) */}
+      <Modal visible={!!supersetTarget} transparent animationType="fade" onRequestClose={() => setSupersetTarget(null)}>
+        <Pressable style={styles.renameBackdrop} onPress={() => setSupersetTarget(null)}>
+          <Pressable style={styles.ssSheet} onPress={() => {}}>
+            <AppText variant="heading" style={{ marginBottom: spacing.sm }}>
+              {t('routines.supersetPickTitle')}
+            </AppText>
+            <ScrollView style={{ maxHeight: 320 }} keyboardShouldPersistTaps="handled">
+              {exercises
+                .filter((e) => e.id !== supersetTarget?.id)
+                .map((e) => (
+                  <Pressable key={e.id} style={styles.ssOption} onPress={() => chooseSupersetPartner(e)}>
+                    <ExerciseName exerciseId={e.exerciseId} variant="body" />
+                    {e.supersetGroup ? (
+                      <View style={styles.supersetBadgeSmall}>
+                        <AppText variant="label" color="primary">
+                          {t('session.superset')}
+                        </AppText>
+                      </View>
+                    ) : null}
+                  </Pressable>
+                ))}
+            </ScrollView>
+            <Button title={t('common.cancel')} variant="secondary" onPress={() => setSupersetTarget(null)} style={{ marginTop: spacing.md }} />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -297,6 +362,16 @@ const styles = StyleSheet.create({
   renameBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   renameCard: { width: '100%', maxWidth: 360, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
   renameActions: { flexDirection: 'row', gap: spacing.sm },
+  ssSheet: { width: '100%', maxWidth: 380, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, maxHeight: '80%' },
+  ssOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
+  supersetBadgeSmall: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   restBar: {
     position: 'absolute',
