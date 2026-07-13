@@ -2,7 +2,7 @@
 import { Model, associations } from '@nozbe/watermelondb';
 import { field, text, date, readonly, json } from '@nozbe/watermelondb/decorators';
 import { sanitizeStringArray } from './_sanitizers';
-import type { EquipmentType, MuscleGroup } from '../../domain';
+import type { EquipmentType, ExerciseKind, MuscleGroup } from '../../domain';
 
 export default class Exercise extends Model {
   static table = 'exercises';
@@ -17,6 +17,7 @@ export default class Exercise extends Model {
   @json('secondary_muscles', sanitizeStringArray) secondaryMuscles!: MuscleGroup[];
   @field('equipment') equipment!: EquipmentType;
   @text('category') category!: string | null;
+  @field('kind') kind!: ExerciseKind | null; // v10: null/'strength'=근력, 'cardio'=유산소. @plm SRS-030
   @field('is_custom') isCustom!: boolean;
   @json('substitute_ids', sanitizeStringArray) substituteIds!: string[];
   @text('image_url') imageUrl!: string | null; // v7: 종목 이미지(#8)

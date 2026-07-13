@@ -21,6 +21,7 @@ export async function seedExercisesIfNeeded(): Promise<number> {
       e.secondaryMuscles = seed.secondaryMuscles ?? [];
       e.equipment = seed.equipment;
       e.category = seed.category ?? null;
+      e.kind = seed.kind ?? null; // v10: 유산소 종목 표식('cardio'), 근력은 null. @plm SRS-030
       e.isCustom = false;
       e.substituteIds = [];
       e.isArchived = false;

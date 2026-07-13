@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 9;
+export const SCHEMA_VERSION = 10;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -35,6 +35,7 @@ export const mySchema = appSchema({
         { name: 'secondary_muscles', type: 'string' }, // JSON string[]
         { name: 'equipment', type: 'string', isIndexed: true }, // EquipmentType
         { name: 'category', type: 'string', isOptional: true },
+        { name: 'kind', type: 'string', isOptional: true }, // v10: 'strength'(기본·null포함) | 'cardio'(유산소). @plm SRS-030
         { name: 'is_custom', type: 'boolean' },
         { name: 'substitute_ids', type: 'string' }, // JSON string[] (대체운동 exercise id)
         { name: 'image_url', type: 'string', isOptional: true }, // v7: 종목 이미지(#8) — 업로드 URL. @plm SRS-001
@@ -145,6 +146,9 @@ export const mySchema = appSchema({
         { name: 'load_adjust_kg', type: 'number', isOptional: true }, // 보정무게 signed. 어시스티드(−)/가중(+). null=0
         { name: 'arm', type: 'string', isOptional: true }, // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본). @plm SRS-028
         { name: 'partial_reps', type: 'number', isOptional: true }, // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용. @plm SRS-029
+        // v10: 유산소(cardio) 지표 — 시간·거리. 근력 세트는 null. 볼륨/PR엔 미포함. @plm SRS-030
+        { name: 'duration_sec', type: 'number', isOptional: true }, // 유산소 수행 시간(초)
+        { name: 'distance_m', type: 'number', isOptional: true }, // 유산소 거리(미터·정규 저장, UI는 km)
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

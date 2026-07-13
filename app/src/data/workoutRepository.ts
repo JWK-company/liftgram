@@ -35,6 +35,8 @@ function toLoggedSet(s: SetLog): LoggedSet {
     isWarmup: s.isWarmup,
     isFailed: s.isFailed,
     partialReps: s.partialReps, // v9: 부분반복(깔짝) — 표시전용, 볼륨/PR 제외 @plm SRS-029
+    durationSec: s.durationSec, // v10: 유산소 시간 — 볼륨/PR 제외 @plm SRS-030
+    distanceM: s.distanceM, // v10: 유산소 거리 — 볼륨/PR 제외 @plm SRS-030
   };
 }
 
@@ -124,6 +126,21 @@ export async function consolidateExercisesV8(): Promise<number> {
     }
   }
   return moved;
+}
+
+// v10: 유산소 종목 승격(멱등) — 기존 설치의 '로잉 머신' 등 유산소성 종목에 kind='cardio'를 채운다.
+// 신규 시드 유산소 종목(트레드밀 러닝 등)은 seedRunner가 kind='cardio'로 생성하므로 여기선 레거시 승격만. @plm SRS-030
+const CARDIO_SEED_NAMES = ['로잉 머신', '트레드밀 러닝', '러닝', '걷기', '실내 사이클', '일립티컬', '스텝밀', '줄넘기'];
+export async function backfillCardioKindV10(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  // kind!=null 필터는 어댑터별 NULL 의미차(SQL은 NULL을 notEq에서 제외)로 위험 → 전건 조회 후 JS 필터.
+  const rows = await exercises.query(Q.where('is_custom', false)).fetch();
+  const targets = rows.filter((e) => e.kind !== 'cardio' && CARDIO_SEED_NAMES.includes(e.nameKo));
+  if (!targets.length) return 0;
+  await database.write(async () => {
+    await database.batch(...targets.map((e) => e.prepareUpdate((rec) => { rec.kind = 'cardio'; })));
+  });
+  return targets.length;
 }
 
 // ── 조회 / 반응형 ──────────────────────────────────────────────────
@@ -223,6 +240,8 @@ export async function getPreviousExerciseSets(exerciseId: string, variant?: stri
         isWarmup: s.isWarmup,
         isFailed: s.isFailed,
         partialReps: s.partialReps,
+        durationSec: s.durationSec, // v10: 유산소 이전기록. @plm SRS-030
+        distanceM: s.distanceM,
       }));
     }
   }
@@ -275,6 +294,16 @@ export async function getExercisePR(
 // ── 세션 시작 ──────────────────────────────────────────────────────
 // 종목에 템플릿 세트를 프리레이(done=false, 미완료). 무게/반복 = 루틴 target 우선 →
 // 없으면 지난 세션의 해당 세트값 → 없으면 지난 세션 마지막 세트 → 기본(20kg/8회).
+// 종목이 유산소인지 — kind='cardio'면 세트는 무게/횟수 대신 시간·거리로 기록(생성 시 weight/reps=0). @plm SRS-030
+async function isCardioExerciseId(exerciseId: string): Promise<boolean> {
+  try {
+    const e = await database.get<Exercise>('exercises').find(exerciseId);
+    return e.kind === 'cardio';
+  } catch {
+    return false;
+  }
+}
+
 function prepareTemplateSets(
   weId: string,
   count: number,
@@ -282,12 +311,14 @@ function prepareTemplateSets(
   routineReps: number | null,
   prevSets: LogSetInput[],
   prevSnap: { weightKg: number; reps: number } | null,
+  isCardio = false,
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
     const prev = prevSets[i];
-    const weight = routineWeightKg ?? prev?.weightKg ?? prevSnap?.weightKg ?? 20;
-    const reps = routineReps ?? prev?.reps ?? prevSnap?.reps ?? 8;
+    // 유산소는 볼륨/PR에서 빠지도록 무게·횟수 0으로 프리레이(시간·거리는 수행 중 입력).
+    const weight = isCardio ? 0 : routineWeightKg ?? prev?.weightKg ?? prevSnap?.weightKg ?? 20;
+    const reps = isCardio ? 0 : routineReps ?? prev?.reps ?? prevSnap?.reps ?? 8;
     recs.push(
       setLogs().prepareCreate((s) => {
         s.workoutExerciseId = weId;
@@ -314,11 +345,15 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
   const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${effectiveVariantKey(re) ?? ''}`;
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
   const prevSetsByKey = new Map<string, LogSetInput[]>();
+  const cardioByExercise = new Map<string, boolean>(); // 종목별 유산소 여부(중복 조회 방지)
   for (const re of res) {
     const k = vkey(re);
     if (!prevSnapByKey.has(k)) {
       prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, effectiveVariantKey(re)));
       prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, effectiveVariantKey(re)));
+    }
+    if (!cardioByExercise.has(re.exerciseId)) {
+      cardioByExercise.set(re.exerciseId, await isCardioExerciseId(re.exerciseId));
     }
   }
   return database.write(async () => {
@@ -368,6 +403,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
           re.targetRepsMin,
           prevSetsByKey.get(vkey(re)) ?? [],
           prevSnapByKey.get(vkey(re)) ?? null,
+          cardioByExercise.get(re.exerciseId) ?? false,
         ),
       );
     });
@@ -406,6 +442,7 @@ export async function renameWorkout(workoutId: string, name: string): Promise<vo
 export async function addExerciseToWorkout(workoutId: string, exerciseId: string): Promise<WorkoutExercise> {
   const prevSnap = await getPreviousExerciseSnapshot(exerciseId);
   const prevSets = await getPreviousExerciseSets(exerciseId);
+  const cardio = await isCardioExerciseId(exerciseId);
   return database.write(async () => {
     const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
     const setsCount = Math.max(1, prevSets.length || 1); // 지난 세션 세트수(없으면 1) — 블랭크/중간추가 종목
@@ -427,7 +464,7 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.variantGrip = null;
       rec.variantArm = null;
     });
-    const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap);
+    const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio);
     await database.batch(we, ...setRecords);
     return we;
   });
@@ -468,12 +505,14 @@ export interface LogSetInput {
   isWarmup?: boolean;
   isFailed?: boolean;
   partialReps?: number | null; // v9: 부분반복(깔짝) — 이전기록 표시 시 정자세와 구분
+  durationSec?: number | null; // v10: 유산소 시간(초) — 이전기록 표시용. @plm SRS-030
+  distanceM?: number | null; // v10: 유산소 거리(미터) — 이전기록 표시용. @plm SRS-030
 }
 
 // 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
 export async function addSet(
   workoutExerciseId: string,
-  input: { weightKg?: number; reps?: number; isWarmup?: boolean; done?: boolean } = {},
+  input: { weightKg?: number; reps?: number; isWarmup?: boolean; done?: boolean; cardio?: boolean } = {},
 ): Promise<SetLog> {
   return database.write(async () => {
     const existing = await setLogs()
@@ -481,11 +520,13 @@ export async function addSet(
       .fetch();
     const last = existing[existing.length - 1];
     const done = input.done ?? false;
+    // 유산소 세트는 무게/횟수 대신 시간·거리로 기록 → 볼륨 오염 방지 위해 0으로 생성. @plm SRS-030
+    const cardio = input.cardio ?? false;
     return setLogs().create((s) => {
       s.workoutExerciseId = workoutExerciseId;
       s.setNumber = existing.length + 1;
-      s.weightKg = input.weightKg ?? last?.weightKg ?? 20;
-      s.reps = input.reps ?? last?.reps ?? 8;
+      s.weightKg = input.weightKg ?? (cardio ? 0 : last?.weightKg ?? 20);
+      s.reps = input.reps ?? (cardio ? 0 : last?.reps ?? 8);
       s.rpe = null;
       s.isWarmup = input.isWarmup ?? false;
       s.isFailed = false;
@@ -599,6 +640,8 @@ export async function updateSetLog(
     isWarmup?: boolean;
     isFailed?: boolean;
     partialReps?: number | null; // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용. @plm SRS-029
+    durationSec?: number | null; // v10: 유산소 시간(초). @plm SRS-030
+    distanceM?: number | null; // v10: 유산소 거리(미터). @plm SRS-030
   },
 ): Promise<void> {
   await database.write(async () => {
@@ -610,6 +653,8 @@ export async function updateSetLog(
       if (patch.isWarmup !== undefined) rec.isWarmup = patch.isWarmup;
       if (patch.isFailed !== undefined) rec.isFailed = patch.isFailed;
       if (patch.partialReps !== undefined) rec.partialReps = patch.partialReps;
+      if (patch.durationSec !== undefined) rec.durationSec = patch.durationSec;
+      if (patch.distanceM !== undefined) rec.distanceM = patch.distanceM;
     });
   });
 }

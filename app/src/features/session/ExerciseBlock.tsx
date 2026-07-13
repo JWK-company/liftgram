@@ -17,6 +17,14 @@ import {
   formatWeight,
   fromKg,
   toKg,
+  formatCardioSet,
+  formatDurationClock,
+  formatDistanceKm,
+  secToMinInput,
+  minInputToSec,
+  mToKmInput,
+  kmInputToM,
+  sumCardio,
   type ArmKey,
   type EquipmentType,
   type GripKey,
@@ -88,11 +96,19 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
     workoutRepo.setVariant(we.id, dims).catch(() => {});
   }
 
-  // 변형 칩(기구 옵션)용 종목 기본 기구.
+  // 변형 칩(기구 옵션)용 종목 기본 기구 + 유산소 여부(cardio면 세트 행을 시간·거리로 렌더). @plm SRS-030
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
+  const [isCardio, setIsCardio] = useState(false);
   useEffect(() => {
     let alive = true;
-    exerciseRepo.getExercise(we.exerciseId).then((e) => alive && setBaseEquipment(e.equipment)).catch(() => {});
+    exerciseRepo
+      .getExercise(we.exerciseId)
+      .then((e) => {
+        if (!alive) return;
+        setBaseEquipment(e.equipment);
+        setIsCardio(e.kind === 'cardio');
+      })
+      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -132,7 +148,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
     if (busy) return;
     setBusy(true);
     try {
-      await workoutRepo.addSet(we.id);
+      await workoutRepo.addSet(we.id, { cardio: isCardio });
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     } finally {
@@ -165,7 +181,10 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
           <View style={styles.headerMeta}>
-            <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
+            {/* 유산소는 기구 변형·PR 개념이 없음 — 근력 종목만 노출. @plm SRS-030 */}
+            {!isCardio ? (
+              <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
+            ) : null}
             {grouped ? (
               <View style={styles.supersetBadge}>
                 <AppText variant="label" color="primary">
@@ -173,7 +192,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
                 </AppText>
               </View>
             ) : null}
-            {pr ? (
+            {!isCardio && pr ? (
               <AppText variant="caption" color="pr">
                 {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
               </AppText>
@@ -208,41 +227,73 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
 
-      {/* 그리드 헤더 */}
-      <View style={styles.gridHead}>
-        <AppText variant="label" color="textFaint" style={styles.colType}>
-          {t('session.setColHeader')}
-        </AppText>
-        <AppText variant="label" color="textFaint" style={styles.colPrev}>
-          {t('session.prevColHeader')}
-        </AppText>
-        <AppText variant="label" color="textFaint" style={styles.colVal}>
-          {t('session.weightLabel', { weightUnit })}
-        </AppText>
-        <AppText variant="label" color="textFaint" style={styles.colVal}>
-          {t('session.repsLabel')}
-        </AppText>
-        <AppText variant="label" color="textFaint" style={styles.colPartial} center>
-          {t('session.partialColHeader')}
-        </AppText>
-        <AppText variant="label" color="textFaint" style={styles.colArm} center>
-          {t('session.armColHeader')}
-        </AppText>
-        <View style={styles.colCheck} />
-        <View style={styles.colDel} />
-      </View>
+      {/* 그리드 헤더 — 유산소는 시간·거리, 근력은 무게·횟수·부분·편측. @plm SRS-030 */}
+      {isCardio ? (
+        <View style={styles.gridHead}>
+          <AppText variant="label" color="textFaint" style={styles.colType}>
+            {t('session.setColHeader')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colPrev}>
+            {t('session.prevColHeader')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colVal}>
+            {t('session.durationColHeader')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colVal}>
+            {t('session.distanceColHeader')}
+          </AppText>
+          <View style={styles.colCheck} />
+          <View style={styles.colDel} />
+        </View>
+      ) : (
+        <View style={styles.gridHead}>
+          <AppText variant="label" color="textFaint" style={styles.colType}>
+            {t('session.setColHeader')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colPrev}>
+            {t('session.prevColHeader')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colVal}>
+            {t('session.weightLabel', { weightUnit })}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colVal}>
+            {t('session.repsLabel')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colPartial} center>
+            {t('session.partialColHeader')}
+          </AppText>
+          <AppText variant="label" color="textFaint" style={styles.colArm} center>
+            {t('session.armColHeader')}
+          </AppText>
+          <View style={styles.colCheck} />
+          <View style={styles.colDel} />
+        </View>
+      )}
 
-      {sets.map((s, i) => (
-        <SetRowEdit
-          key={s.id}
-          set={s}
-          label={labels[i]}
-          prev={prevSets[i]}
-          weightUnit={weightUnit}
-          barWeightKg={barWeightKg}
-          onRestStart={() => onStartRest(restSeconds)}
-        />
-      ))}
+      {sets.map((s, i) =>
+        isCardio ? (
+          <SetRowCardio
+            key={s.id}
+            set={s}
+            label={String(i + 1)}
+            prev={prevSets[i]}
+            onRestStart={() => onStartRest(restSeconds)}
+          />
+        ) : (
+          <SetRowEdit
+            key={s.id}
+            set={s}
+            label={labels[i]}
+            prev={prevSets[i]}
+            weightUnit={weightUnit}
+            barWeightKg={barWeightKg}
+            onRestStart={() => onStartRest(restSeconds)}
+          />
+        ),
+      )}
+
+      {/* 유산소 종목 요약 — 총 시간·거리(수행 세트 합). @plm SRS-030 */}
+      {isCardio ? <CardioSummary sets={sets} /> : null}
 
       <Button
         title={t('session.addSet')}
@@ -405,6 +456,96 @@ function SetRowEdit({
       </Pressable>
     </View>
     </View>
+  );
+}
+
+// ── 유산소 세트 1행 — 무게/횟수 대신 시간(분)·거리(km). @plm SRS-030 ──────
+function SetRowCardio({
+  set,
+  label,
+  prev,
+  onRestStart,
+}: {
+  set: SetLog;
+  label: string;
+  prev: LogSetInput | undefined;
+  onRestStart: () => void;
+}) {
+  const { t } = useT();
+  const isDone = set.done === true;
+  const [mins, setMins] = useState(() => secToMinInput(set.durationSec));
+  const [km, setKm] = useState(() => mToKmInput(set.distanceM));
+  useEffect(() => setMins(secToMinInput(set.durationSec)), [set.durationSec]);
+  useEffect(() => setKm(mToKmInput(set.distanceM)), [set.distanceM]);
+
+  function commitDuration() {
+    workoutRepo.updateSetLog(set.id, { durationSec: minInputToSec(mins) }).catch(() => {});
+  }
+  function commitDistance() {
+    workoutRepo.updateSetLog(set.id, { distanceM: kmInputToM(km) }).catch(() => {});
+  }
+  function toggleDone() {
+    const next = !isDone;
+    workoutRepo.setSetDone(set.id, next).catch(() => {});
+    if (next) onRestStart();
+  }
+  function applyPrev() {
+    if (!prev) return;
+    workoutRepo.updateSetLog(set.id, { durationSec: prev.durationSec ?? null, distanceM: prev.distanceM ?? null }).catch(() => {});
+  }
+  function confirmDelete() {
+    workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert(t('common.error'), String(e)));
+  }
+  const hasPrev = prev && ((prev.durationSec ?? 0) > 0 || (prev.distanceM ?? 0) > 0);
+  return (
+    <View style={isDone && styles.setRowDone}>
+      <View style={styles.setRow}>
+        <View style={styles.colType}>
+          <View style={styles.typeChip}>
+            <AppText variant="caption" color="textMuted" weight="bold" center>
+              {label}
+            </AppText>
+          </View>
+        </View>
+        <Pressable onPress={applyPrev} hitSlop={4} style={styles.colPrev} disabled={!hasPrev}>
+          {hasPrev ? (
+            <View style={styles.prevChip}>
+              <AppText variant="caption" color="primary" center numberOfLines={1}>
+                {formatCardioSet(prev!.durationSec, prev!.distanceM)}
+              </AppText>
+            </View>
+          ) : (
+            <AppText variant="caption" color="textFaint" center>
+              –
+            </AppText>
+          )}
+        </Pressable>
+        <TextInput value={mins} onChangeText={setMins} onBlur={commitDuration} onSubmitEditing={commitDuration} keyboardType="numeric" placeholder="0" placeholderTextColor={colors.textFaint} selectTextOnFocus style={styles.cell} />
+        <TextInput value={km} onChangeText={setKm} onBlur={commitDistance} onSubmitEditing={commitDistance} keyboardType="numeric" placeholder="0" placeholderTextColor={colors.textFaint} selectTextOnFocus style={styles.cell} />
+        <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
+          <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
+        </Pressable>
+        <Pressable onPress={confirmDelete} hitSlop={8} style={styles.del}>
+          <Ionicons name="close" size={15} color={colors.textFaint} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+// 유산소 종목 요약 — 수행 완료 세트의 총 시간·거리. @plm SRS-030
+function CardioSummary({ sets }: { sets: SetLog[] }) {
+  const { t } = useT();
+  const done = sets.filter((s) => s.done !== false);
+  const { durationSec, distanceM } = sumCardio(done);
+  if (durationSec <= 0 && distanceM <= 0) return null;
+  const parts: string[] = [];
+  if (durationSec > 0) parts.push(formatDurationClock(durationSec));
+  if (distanceM > 0) parts.push(formatDistanceKm(distanceM));
+  return (
+    <AppText variant="caption" color="textMuted" style={{ marginTop: spacing.sm }}>
+      {t('session.cardioTotal', { total: parts.join(' · ') })}
+    </AppText>
   );
 }
 

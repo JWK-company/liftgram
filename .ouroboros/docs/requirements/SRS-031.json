@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-031",
+  "type": "SRS",
+  "title": "종목 찾기 도우미(스무고개) — 부위→기구 가이드 선택",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-13T00:00:00Z",
+  "updated": "2026-07-13T00:00:00Z",
+  "sync": true,
+  "tags": ["onboarding", "exercise-catalog", "beginner"],
+  "kind": "FR",
+  "acceptance_criteria": "이름을 몰라도 부위→기구(또는 유산소) 2단계 가이드로 종목 후보를 좁혀, 선택 시 기존 종목 추가 흐름으로 합류한다",
+  "relations": {
+    "derives_from": ["URS-011", "URS-001"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "운동 지식이 적은 입문자는 자신이 수행한 종목(특히 기구 이름)을 몰라 부위·기구 필터로 찾기 어렵다. 시스템은 "
+          },
+          { "type": "text", "marks": [{ "type": "strong" }], "text": "'스무고개'식 단계 가이드로 종목 찾기를 돕는다" },
+          {
+            "type": "text",
+            "text": ": 1단계에서 운동한 부위(근육군) 또는 '유산소'를 고르고, 2단계에서 사용한 기구를 고르면(모르면 건너뛰기) 해당 조건의 종목 후보로 좁혀진다. 사용자 피드백('할 때마다 켜놓고 찾긴 하지만 복기하며 찾기 어렵다 → 스무고개처럼 찾는 기능')을 반영한 경량판이다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "본 경량판은 카탈로그에 이미 존재하는 축(근육군·기구)과 종목 종류(유산소)만 사용하며, 동작패턴·자세 같은 신규 분류 데이터는 도입하지 않는다(후속 확장 여지로 남김). 도우미 완료 결과는 기존 종목 목록 화면의 필터로 반영되어, 선택 시 세션·루틴의 기존 종목 추가(picker) 흐름에 그대로 합류한다. 유산소 선택은 SRS-030 유산소 기록으로 이어진다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "종목 목록 화면에 '종목 찾기 도우미' 진입 버튼이 있고, 열면 1단계(부위/유산소) → 2단계(기구/모름) 가이드가 표시된다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "부위 선택 후 기구를 고르면 부위+기구로, '모름'을 고르면 부위만으로 종목이 좁혀진다. 1단계에서 '유산소'를 고르면 유산소 종목만 표시된다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "도우미 결과는 목록 필터로 반영되며, 선택한 종목은 기존 picker(resolveExercisePick) 흐름으로 세션·루틴에 추가된다. 필터 초기화로 언제든 전체 목록으로 복귀한다." }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "ExerciseFinderWizard(2단계 시트)가 부위(ALL_MUSCLE_GROUPS)·기구(ALL_EQUIPMENT)·유산소 선택을 수집해 WizardResult를 반환하고, ExerciseListScreen이 이를 muscle/equipment/kind 필터 상태로 반영한다. exerciseRepository.queryExercises는 kind 필터(유산소)를 추가로 지원한다. 신규 스키마·분류 데이터 없이 기존 반응형 쿼리·picker 레지스트리를 재사용하는 경량 구현이다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-011(여성·직장인 근력 입문자 진입장벽 없이 시작·지속), URS-001(핵심 운동 기록). 연계: 유산소 지름길은 SRS-030으로, 종목 추가는 SRS-002/SRS-004 세션·루틴 흐름으로 이어진다. 후속: 동작패턴·자세 분류 신설 시 다단계 심화 가능(본 SRS 범위 밖)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "app/src/features/exercises/ExerciseFinderWizard.tsx:1",
+    "app/src/features/exercises/ExerciseListScreen.tsx:1",
+    "app/src/data/exerciseRepository.ts:19"
+  ]
+}

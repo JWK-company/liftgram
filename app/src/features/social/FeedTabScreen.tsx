@@ -14,6 +14,8 @@ import { formatWeight } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { StoryTray, StoryViewer } from './Stories';
+import { loadStorySeen, markGroupSeen, type StorySeenMap } from './storySeen';
+import { showAlert } from '../../utils/alert';
 import { ReportSheet } from './ReportSheet';
 import { HashtagText } from './HashtagText';
 import { OwnPostMenu } from './OwnPostMenu';
@@ -29,10 +31,13 @@ async function pickImageAsset(): Promise<PickedImage | null> {
 
 export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>) {
   const { t } = useT();
+  const { user } = useUser(); // 로컬 프로필 — me() 실패 시 meId 폴백(server_id)으로 내 스토리 식별 보강
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
+  const [storySeen, setStorySeen] = useState<StorySeenMap>({});
+  const [storyMsg, setStoryMsg] = useState<string | null>(null); // 스토리 업로드 성공 안내(일시)
   const [loading, setLoading] = useState(true);
   const [caption, setCaption] = useState('');
   const [picked, setPicked] = useState<PickedImage | null>(null);
@@ -43,6 +48,8 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const likePending = useRef<Set<string>>(new Set());
   const bookmarkPending = useRef<Set<string>>(new Set());
   const uploadedRef = useRef<{ asset: PickedImage; media: { url: string } } | null>(null); // 업로드 멱등 캐시
+  const storySeenRef = useRef<StorySeenMap>({}); // 열람맵 최신값 참조(콜백 stale 방지)
+  const storyInflightRef = useRef(false); // 스토리 추가 진행 중 동기 가드(피커 중복 오픈 방지)
   const [unread, setUnread] = useState(0);
   const [meId, setMeId] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -109,6 +116,20 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     }, [load]),
   );
 
+  // 스토리 열람 상태(로컬) 로드 — 미열람 링 판정용.
+  React.useEffect(() => {
+    loadStorySeen().then(setStorySeen);
+  }, []);
+  React.useEffect(() => {
+    storySeenRef.current = storySeen;
+  }, [storySeen]);
+
+  // 스토리 그룹 열람 → 미열람 링 해제(로컬 기록) 후 뷰어 오픈.
+  const onOpenStory = useCallback((g: StoryGroup) => {
+    setViewing(g);
+    markGroupSeen(g, storySeenRef.current).then(setStorySeen);
+  }, []);
+
   useLayoutEffect(() => {
     // 소셜 진입 버튼은 로그인 상태에서만 — 로그아웃 시 게이트 없는 하위 화면 도달을 막음.
     navigation.setOptions({
@@ -142,19 +163,29 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   }, [navigation, unread, authed]);
 
   async function onAddStory() {
-    if (storyBusy) return;
-    const asset = await pickImageAsset();
-    if (!asset) return;
-    setStoryBusy(true);
-    setError(null);
+    // setStoryBusy는 비동기 배치라 피커 await 이전 구간에 무력 → ref로 동기 잠금(연타 시 피커 중복 오픈 차단).
+    if (storyInflightRef.current || storyBusy) return;
+    storyInflightRef.current = true;
     try {
+      const asset = await pickImageAsset();
+      if (!asset) return;
+      setStoryBusy(true);
+      setError(null);
       const media = await serverApi.uploadImage(asset);
-      await serverApi.createStory(media.url);
-      setStoryGroups(await serverApi.stories());
+      const created = await serverApi.createStory(media.url);
+      const groups = await serverApi.stories();
+      setStoryGroups(groups);
+      // 모더레이션 대기(pending) 스토리는 getActiveStories(approved)에서 빠져 트레이에 안 뜬다 →
+      // 방금 만든 스토리가 실제로 반영됐는지 확인 후 안내(성공 오인 방지).
+      const visible = groups.some((g) => g.stories.some((s) => s.id === created.id));
+      setStoryMsg(visible ? t('story.uploaded') : t('story.pending'));
+      setTimeout(() => setStoryMsg(null), 3000);
     } catch (e) {
-      setError(String(e));
+      // 실패는 트레이에서 보이지 않는 컴포저 인라인 대신 Alert로 명확히 노출.
+      showAlert(t('story.uploadFailedTitle'), String(e));
     } finally {
       setStoryBusy(false);
+      storyInflightRef.current = false;
     }
   }
 
@@ -251,6 +282,10 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
     }
   }, [loadingMore, posts]);
 
+  // me() 실패(부분 콜드스타트)로 meId가 null이어도 로컬 server_id로 내 스토리를 식별 —
+  // 병합 실패로 내 스토리가 중복 타일로 뜨거나 미열람 링이 오판정되는 것 방지.
+  const effectiveMeId = meId ?? user?.serverId ?? null;
+
   if (authed === false) {
     return (
       <Screen>
@@ -267,7 +302,19 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
 
   return (
     <Screen padded={false}>
-      <StoryTray groups={storyGroups} onAdd={onAddStory} onOpen={setViewing} busy={storyBusy} />
+      <StoryTray
+        groups={storyGroups}
+        onAdd={onAddStory}
+        onOpen={onOpenStory}
+        busy={storyBusy}
+        seen={storySeen}
+        meId={effectiveMeId}
+      />
+      {storyMsg ? (
+        <AppText variant="caption" color="success" center style={styles.storyMsg}>
+          {storyMsg}
+        </AppText>
+      ) : null}
       <Divider style={{ marginVertical: 0 }} />
       <View style={styles.compose}>
         <TextField
@@ -359,7 +406,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           loadingMore ? <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} /> : null
         }
       />
-      <StoryViewer group={viewing} onClose={() => setViewing(null)} meId={meId} />
+      <StoryViewer group={viewing} onClose={() => setViewing(null)} meId={effectiveMeId} />
     </Screen>
   );
 }
@@ -661,6 +708,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
   badgeText: { color: colors.onPrimary, fontSize: 9 },
+  storyMsg: { paddingBottom: spacing.sm },
   compose: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

@@ -1,6 +1,6 @@
 // 기본 운동 카탈로그 시드 (SRS-001). 한/영 명칭 + 근육군 + 기구.
 // seedRunner가 매 실행 멱등 top-up(nameKo 기준 없는 종목만 추가)하므로 자유롭게 확장 가능.
-import type { EquipmentType, MuscleGroup } from '../../domain';
+import type { EquipmentType, ExerciseKind, MuscleGroup } from '../../domain';
 
 export interface SeedExercise {
   nameKo: string;
@@ -9,6 +9,7 @@ export interface SeedExercise {
   secondaryMuscles?: MuscleGroup[];
   equipment: EquipmentType;
   category?: string;
+  kind?: ExerciseKind; // v10: 'cardio'=유산소(시간·거리 기록). 미지정=근력. @plm SRS-030
 }
 
 export const SEED_EXERCISES: SeedExercise[] = [
@@ -186,4 +187,14 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '앱 크런치 머신', nameEn: 'Ab Crunch Machine', primaryMuscles: ['abs'], equipment: 'machine' },
   // ── 승모 ───────────────────────────────────────────────────────
   { nameKo: '케이블 슈러그', nameEn: 'Cable Shrug', primaryMuscles: ['traps'], equipment: 'cable' },
+
+  // ── 유산소 (cardio) — 시간·거리 기록. 볼륨/PR 제외. @plm SRS-030 ────
+  // 주의: '로잉 머신'은 기존 시드(근력)라 여기 다시 넣지 않고 backfillCardioKindV10이 kind='cardio'로 승격.
+  { nameKo: '트레드밀 러닝', nameEn: 'Treadmill Running', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads', 'calves'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '러닝', nameEn: 'Running', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads', 'calves'], equipment: 'bodyweight', kind: 'cardio' },
+  { nameKo: '걷기', nameEn: 'Walking', primaryMuscles: ['fullBody'], secondaryMuscles: ['calves'], equipment: 'bodyweight', kind: 'cardio' },
+  { nameKo: '실내 사이클', nameEn: 'Indoor Cycling', primaryMuscles: ['quads'], secondaryMuscles: ['calves'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '일립티컬', nameEn: 'Elliptical', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '스텝밀', nameEn: 'Stair Climber', primaryMuscles: ['quads'], secondaryMuscles: ['glutes', 'calves'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '줄넘기', nameEn: 'Jump Rope', primaryMuscles: ['calves'], secondaryMuscles: ['fullBody'], equipment: 'other', kind: 'cardio' },
 ];

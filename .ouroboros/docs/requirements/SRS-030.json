@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-030",
+  "type": "SRS",
+  "title": "유산소(cardio) 통합 기록 — 시간·거리 세트 (볼륨·PR 제외)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-13T00:00:00Z",
+  "updated": "2026-07-13T00:00:00Z",
+  "sync": true,
+  "tags": ["cardio", "logging", "mvp"],
+  "kind": "FR",
+  "acceptance_criteria": "유산소 종목을 근력과 같은 세션에서 시간·거리로 기록하고, 볼륨·PR·1RM 계산에서 제외하며, 종목 요약에 총 시간·거리를 표시한다",
+  "relations": {
+    "derives_from": ["URS-001"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "시스템은 러닝·트레드밀·사이클·로잉 등 "
+          },
+          { "type": "text", "marks": [{ "type": "strong" }], "text": "유산소(cardio) 종목을 근력 종목과 같은 운동 세션 안에서 기록" },
+          {
+            "type": "text",
+            "text": "한다. 유산소 종목은 무게×횟수 대신 시간(분)·거리(km)를 세트 단위로 입력하며, 저장은 정규 단위(초·미터)로 한다. 사용자 피드백('유산소 기록 어떻게 하는지 못 찾음')을 반영해, 별도 탭 분리 없이 종목의 한 종류(kind=cardio)로 통합하여 기존 세션·루틴·피드·캘린더·연속운동일 파이프라인을 그대로 재사용한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "유산소 세트는 무게·횟수가 0으로 저장되어 총중량(volume)·PR·추정 1RM 계산에서 자연히 제외되며(근력 통계 왜곡 방지), 대신 종목별로 총 시간·총 거리를 요약해 보여준다. 이전기록 칩에는 무게×횟수 대신 '30:00 · 5.2km' 형식으로 유산소 지표를 표시한다. 본 MVP는 시간·거리 2지표에 한정하며, 속도·경사·심박·칼로리는 후속 확장으로 남긴다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "유산소 종목(트레드밀 러닝·러닝·걷기·실내 사이클·일립티컬·스텝밀·줄넘기·로잉 머신)을 카탈로그에서 찾아 세션에 추가할 수 있다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "유산소 종목의 세트 행은 무게·횟수 대신 시간(분)·거리(km) 입력 컬럼으로 렌더되고, 완료 체크·삭제는 근력과 동일하게 동작한다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "유산소 세트는 총중량·PR·추정 1RM에 기여하지 않는다(무게·횟수 0). 종목 요약에 총 시간·총 거리가 표시된다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "기존 설치의 유산소성 종목(로잉 머신)은 부팅 시 멱등 백필로 kind=cardio 승격된다. 기존 근력 기록·세트는 무손실 유지된다(스키마 v10 addColumns)." }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영 (스키마 v10)" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "종목 종류는 exercises 테이블에 optional 컬럼 kind(null=근력, 'cardio'=유산소)를 추가하고, 세트 지표는 set_logs에 optional 컬럼 duration_sec(초)·distance_m(미터)를 추가한다(v10 마이그레이션, 기존 행 null). 도메인 계층(domain/cardio.ts)이 분↔초·km↔미터 변환과 표시 포맷을 담당하며, 볼륨/PR 순수 계산(volume.ts·personalRecords.ts·oneRepMax.ts)은 무게·횟수 0인 유산소 세트를 자연 제외한다. 세트 생성 경로(addSet·prepareTemplateSets·addExerciseToWorkout·startWorkoutFromRoutine)는 종목 kind를 확인해 유산소면 무게·횟수 0으로 프리레이한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-001(핵심 운동 기록). 경계: 정자세/부분반복 등 세트 정밀도는 SRS-029, 편측·기구 변형은 SRS-028 소관. 웰니스 가드레일: SRS-015 준수(기록 보조이며 진단·처방 아님). 종목 찾기(유산소 지름길 포함)는 SRS-031 도우미와 연계."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "app/src/db/schema.ts:38",
+    "app/src/db/schema.ts:148",
+    "app/src/db/migrations.ts:135",
+    "app/src/db/models/Exercise.ts:20",
+    "app/src/db/models/SetLog.ts:22",
+    "app/src/domain/cardio.ts:1",
+    "app/src/domain/types.ts:19",
+    "app/src/data/workoutRepository.ts:130",
+    "app/src/features/session/ExerciseBlock.tsx:1"
+  ]
+}

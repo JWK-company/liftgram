@@ -14,12 +14,14 @@ import {
   ALL_EQUIPMENT,
   type MuscleGroup,
   type EquipmentType,
+  type ExerciseKind,
 } from '../../domain';
 import { resolveExercisePick, cancelExercisePick } from '../../utils/picker';
 import { exerciseDisplayName, exerciseAltName } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { Chip } from './Chip';
+import { ExerciseFinderWizard, type WizardResult } from './ExerciseFinderWizard';
 
 export default function ExerciseListScreen({ navigation, route }: RootStackScreenProps<'ExerciseList'>) {
   const { t, lang } = useT();
@@ -27,13 +29,25 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
   const [search, setSearch] = useState('');
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
   const [equipment, setEquipment] = useState<EquipmentType | null>(null);
+  const [kind, setKind] = useState<ExerciseKind | null>(null); // v10: 유산소 필터(스무고개 유산소 경로). @plm SRS-030
+  const [wizardOpen, setWizardOpen] = useState(false); // 스무고개(종목 찾기 도우미). @plm SRS-031
 
-  // 기구/근육군은 반응형 쿼리. 검색은 클라이언트 JS 필터 — 웹(LokiJS) 어댑터의 Q.like가 한글 검색을
+  // 기구/근육군/종류는 반응형 쿼리. 검색은 클라이언트 JS 필터 — 웹(LokiJS) 어댑터의 Q.like가 한글 검색을
   // 필터하지 못하는 문제(#10) 회피. 대소문자 무시 부분일치(한/영 이름).
   const items = useQueryData(
-    () => exerciseRepo.queryExercises({ muscle, equipment }),
-    [muscle, equipment],
+    () => exerciseRepo.queryExercises({ muscle, equipment, kind }),
+    [muscle, equipment, kind],
   );
+
+  // 스무고개 완료 → 선택 결과를 필터로 반영(부위/기구/유산소). @plm SRS-031
+  const onWizardDone = useCallback((r: WizardResult) => {
+    setMuscle(r.muscle);
+    setEquipment(r.equipment);
+    setKind(r.kind);
+    setSearch('');
+    setWizardOpen(false);
+  }, []);
+  const hasFilter = muscle !== null || equipment !== null || kind !== null;
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return items;
@@ -90,6 +104,32 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
           containerStyle={{ marginBottom: spacing.sm }}
         />
 
+        {/* 스무고개(종목 찾기 도우미) — 이름 몰라도 부위→기구로 좁히기. @plm SRS-031 */}
+        <View style={styles.wizardRow}>
+          <Pressable onPress={() => setWizardOpen(true)} style={styles.wizardBtn}>
+            <Ionicons name="compass-outline" size={16} color={colors.primary} />
+            <AppText variant="caption" weight="bold" color="primary" style={{ marginLeft: 4 }}>
+              {t('wizard.open')}
+            </AppText>
+          </Pressable>
+          {hasFilter ? (
+            <Pressable onPress={() => { setMuscle(null); setEquipment(null); setKind(null); }} hitSlop={8} style={styles.resetBtn}>
+              <Ionicons name="close-circle" size={14} color={colors.textMuted} />
+              <AppText variant="caption" color="textMuted" style={{ marginLeft: 3 }}>
+                {t('wizard.reset')}
+              </AppText>
+            </Pressable>
+          ) : null}
+        </View>
+        {kind === 'cardio' ? (
+          <View style={styles.kindBanner}>
+            <Ionicons name="heart" size={13} color={colors.primary} />
+            <AppText variant="caption" color="primary" style={{ marginLeft: 4 }}>
+              {t('wizard.cardioActive')}
+            </AppText>
+          </View>
+        ) : null}
+
         <FilterRow label={t('exercises.muscleFilter')}>
           {ALL_MUSCLE_GROUPS.map((m) => (
             <Chip
@@ -126,6 +166,7 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
           />
         }
       />
+      <ExerciseFinderWizard visible={wizardOpen} onClose={() => setWizardOpen(false)} onDone={onWizardDone} />
     </Screen>
   );
 }
@@ -186,6 +227,19 @@ function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void })
 
 const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  wizardRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
+  wizardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryMuted,
+  },
+  resetBtn: { flexDirection: 'row', alignItems: 'center', marginLeft: spacing.md, paddingVertical: spacing.xs },
+  kindBanner: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm },
   filterRow: { marginBottom: spacing.sm },
   filterLabel: { marginBottom: spacing.xs },
   chipsRow: { gap: spacing.sm, paddingRight: spacing.lg, paddingVertical: 2 },

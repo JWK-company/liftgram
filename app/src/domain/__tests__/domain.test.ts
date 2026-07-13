@@ -25,6 +25,13 @@ import {
   legacyMachineVariantToV6,
   effectiveWeightKg,
   effectiveReps,
+  minInputToSec,
+  secToMinInput,
+  kmInputToM,
+  mToKmInput,
+  formatCardioSet,
+  formatDurationClock,
+  sumCardio,
   type CatalogExercise,
   type LoggedSet,
 } from '../index';
@@ -269,4 +276,48 @@ test('볼륨: 유효무게=weightKg, 유효반복=reps (레거시 보조·가중
 test('볼륨: 부분반복(깔짝)은 볼륨에 미반영', () => {
   assert.equal(setVolumeKg(ws(50, 10, { partialReps: 5 })), 500);
   assert.equal(setVolumeKg(ws(50, 10)), 500);
+});
+
+// ── v10 유산소(cardio) — 시간·거리 변환·표시·볼륨 제외 — SRS-030 ──────
+test('유산소: 분↔초 변환(입력·표시)', () => {
+  assert.equal(minInputToSec('30'), 1800);
+  assert.equal(minInputToSec('30.5'), 1830);
+  assert.equal(minInputToSec('0'), null); // 0/빈값=미기록
+  assert.equal(minInputToSec(''), null);
+  assert.equal(minInputToSec('-5'), null);
+  assert.equal(secToMinInput(1800), '30');
+  assert.equal(secToMinInput(1830), '30.5');
+  assert.equal(secToMinInput(null), '');
+  assert.equal(secToMinInput(0), '');
+});
+test('유산소: km↔미터 변환(입력·표시)', () => {
+  assert.equal(kmInputToM('5'), 5000);
+  assert.equal(kmInputToM('5.2'), 5200);
+  assert.equal(kmInputToM('0'), null);
+  assert.equal(kmInputToM(''), null);
+  assert.equal(mToKmInput(5000), '5');
+  assert.equal(mToKmInput(5200), '5.2');
+  assert.equal(mToKmInput(null), '');
+});
+test('유산소: 세트 요약 포맷(시간·거리 조합)', () => {
+  assert.equal(formatCardioSet(1800, 5000), '30:00 · 5km');
+  assert.equal(formatCardioSet(1830, 5200), '30:30 · 5.2km'); // 후행 0 정리(입력칸과 통일)
+  assert.equal(formatCardioSet(null, 5250), '5.25km');
+  assert.equal(formatCardioSet(1800, null), '30:00');
+  assert.equal(formatCardioSet(null, 5000), '5km');
+  assert.equal(formatCardioSet(null, null), '–');
+  assert.equal(formatDurationClock(3661), '1:01:01'); // 1시간 이상
+});
+test('유산소: 세트 합계(총 시간·거리)', () => {
+  const sum = sumCardio([
+    { durationSec: 1800, distanceM: 5000 },
+    { durationSec: 600, distanceM: 1500 },
+    { durationSec: null, distanceM: null },
+  ]);
+  assert.equal(sum.durationSec, 2400);
+  assert.equal(sum.distanceM, 6500);
+});
+test('유산소: 무게·횟수 0 세트는 볼륨 0(근력 통계 미오염)', () => {
+  // 유산소 세트는 weight=0/reps=0으로 저장 → 볼륨/PR에 기여하지 않음
+  assert.equal(setVolumeKg(ws(0, 0, { durationSec: 1800, distanceM: 5000 })), 0);
 });

@@ -19,6 +19,8 @@ export default class SetLog extends Model {
   @field('strict_reps') strictReps!: number | null; // (레거시 v6) 폐기 — 하위호환
   @field('load_adjust_kg') loadAdjustKg!: number | null; // (레거시 v6) 폐기 — 하위호환
   @field('partial_reps') partialReps!: number | null; // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용
+  @field('duration_sec') durationSec!: number | null; // v10: 유산소 수행 시간(초) — 볼륨/PR 제외. @plm SRS-030
+  @field('distance_m') distanceM!: number | null; // v10: 유산소 거리(미터·정규 저장). @plm SRS-030
   @field('arm') arm!: string | null; // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본)
   @field('done') done!: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') completedAt!: number | null;

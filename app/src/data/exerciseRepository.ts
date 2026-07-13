@@ -4,7 +4,7 @@ import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { Exercise } from '../db/models';
-import type { EquipmentType, MuscleGroup } from '../domain';
+import type { EquipmentType, ExerciseKind, MuscleGroup } from '../domain';
 
 const exercises = () => database.get<Exercise>('exercises');
 
@@ -12,14 +12,16 @@ export interface ExerciseFilter {
   search?: string;
   muscle?: MuscleGroup | null;
   equipment?: EquipmentType | null;
+  kind?: ExerciseKind | null; // v10: 'cardio'=유산소만. @plm SRS-030 (스무고개 유산소 경로)
   includeArchived?: boolean;
 }
 
-// 반응형 쿼리(검색/근육군/기구 필터). 근육군은 JSON 컬럼 LIKE로 멤버십 근사 매칭.
+// 반응형 쿼리(검색/근육군/기구/종류 필터). 근육군은 JSON 컬럼 LIKE로 멤버십 근사 매칭.
 export function queryExercises(filter: ExerciseFilter = {}): Query<Exercise> {
   const clauses: Q.Clause[] = [];
   if (!filter.includeArchived) clauses.push(Q.where('is_archived', false));
   if (filter.equipment) clauses.push(Q.where('equipment', filter.equipment));
+  if (filter.kind) clauses.push(Q.where('kind', filter.kind));
   if (filter.muscle) clauses.push(Q.where('primary_muscles', Q.like(`%"${filter.muscle}"%`)));
   const search = filter.search?.trim();
   if (search) {

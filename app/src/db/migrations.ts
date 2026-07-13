@@ -129,5 +129,22 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v10: 유산소(cardio) 통합 — 종목 kind + 세트 시간·거리. 기존 행 null(근력·무해). @plm SRS-030
+    {
+      toVersion: 10,
+      steps: [
+        addColumns({
+          table: 'exercises',
+          columns: [{ name: 'kind', type: 'string', isOptional: true }],
+        }),
+        addColumns({
+          table: 'set_logs',
+          columns: [
+            { name: 'duration_sec', type: 'number', isOptional: true },
+            { name: 'distance_m', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

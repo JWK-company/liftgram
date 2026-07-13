@@ -15,6 +15,12 @@ export type EquipmentType =
   | 'smith'
   | 'other';
 
+// 종목 종류 — 근력(무게×횟수) vs 유산소(시간·거리). null/미지정=strength. @plm SRS-030
+export type ExerciseKind = 'strength' | 'cardio';
+export function isCardioKind(kind: ExerciseKind | null | undefined): boolean {
+  return kind === 'cardio';
+}
+
 export type MuscleGroup =
   | 'chest'
   | 'back'
@@ -45,6 +51,8 @@ export interface LoggedSet {
   isWarmup: boolean;
   isFailed: boolean;
   partialReps?: number | null; // v9: 부분반복(깔짝) — 정자세 후 반동/보조로 추가한 횟수. 볼륨/PR 제외·표시전용. @plm SRS-029
+  durationSec?: number | null; // v10: 유산소 수행 시간(초) — 볼륨/PR 제외. @plm SRS-030
+  distanceM?: number | null; // v10: 유산소 거리(미터) — 볼륨/PR 제외. @plm SRS-030
   strictReps?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
   loadAdjustKg?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
 }

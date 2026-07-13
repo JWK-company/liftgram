@@ -5,6 +5,7 @@ export * from './exerciseName';
 export * from './units';
 export * from './oneRepMax';
 export * from './volume';
+export * from './cardio';
 export * from './personalRecords';
 export * from './progression';
 export * from './programGenerator';
