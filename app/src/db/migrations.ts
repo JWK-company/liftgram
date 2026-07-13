@@ -119,5 +119,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v9: 부분반복(깔짝) — 보조·가중(v6) 폐기 대체. 기존 행 partial_reps=null(무해). @plm SRS-029
+    {
+      toVersion: 9,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'partial_reps', type: 'number', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

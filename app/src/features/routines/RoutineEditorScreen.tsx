@@ -1,7 +1,7 @@
 // @plm SRS-002  루틴 빌더 — 종목 추가/순서(드래그·화살표)/대체/슈퍼셋/세트·반복·휴식 목표 편집
 // @plm SRS-028  종목 변형(기구·그립·팔) 선택 — 루틴에 저장하면 세션 시작 시 승계
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ReorderableList, {
@@ -31,7 +31,7 @@ import { fromKg, toKg, type ArmKey, type EquipmentType, type GripKey, type Varia
 import { requestExercisePick } from '../../utils/picker';
 import type RoutineExercise from '../../db/models/RoutineExercise';
 import { ExerciseName } from './ExerciseName';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 
 export default function RoutineEditorScreen({ route, navigation }: RootStackScreenProps<'RoutineEditor'>) {
@@ -45,8 +45,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
   const [folder, setFolder] = useState('');
   const [loadedMeta, setLoadedMeta] = useState(false);
 
-  const [selecting, setSelecting] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [supersetTarget, setSupersetTarget] = useState<RoutineExercise | null>(null); // 슈퍼세트 상대 선택 대상
 
   // 신규 루틴이면 마운트 시 빈 루틴을 만들어 즉시 종목 추가가 가능하게 한다.
   // createdRef로 가드 — React 19 StrictMode 이중 호출에서도 1건만 생성(중복 방지).
@@ -149,9 +148,11 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     };
   }, [paramRoutineId]);
 
+  // 슈퍼셋 그룹 변경은 필드 업데이트라 query.observe()가 재방출하지 않음 → 강제 재조회 키.
+  const [ssVersion, setSsVersion] = useState(0);
   const exercises = useQueryData(
     () => (routineId ? routineRepo.queryRoutineExercises(routineId) : null),
-    [routineId],
+    [routineId, ssVersion],
   );
   exercisesCountRef.current = exercises.length; // beforeRemove에서 최신 종목 수 참조
 
@@ -232,7 +233,6 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
         onPress: async () => {
           try {
             await routineRepo.removeRoutineExercise(re.id);
-            setSelectedIds((prev) => prev.filter((id) => id !== re.id));
           } catch (e) {
             Alert.alert(t('common.error'), String(e));
           }
@@ -241,33 +241,39 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     ]);
   }
 
-  function toggleSelect(id: string) {
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const membersOfGroup = (group: string | null) =>
+    group ? exercises.filter((e) => e.supersetGroup === group).map((e) => e.id) : [];
+
+  // 종목에서 슈퍼세트 버튼 → 상대 선택 모달 오픈.
+  function openSuperset(re: RoutineExercise) {
+    setSupersetTarget(re);
   }
 
-  async function groupSuperset() {
-    if (selectedIds.length < 2) {
-      Alert.alert(t('routines.supersetTitle'), t('routines.supersetSelectAtLeastTwo'));
-      return;
-    }
+  // 상대 종목 선택 → target(및 각자의 기존 그룹원)과 partner(및 그룹원)를 한 그룹으로 병합.
+  async function chooseSupersetPartner(partner: RoutineExercise) {
+    const target = supersetTarget;
+    setSupersetTarget(null);
+    if (!target || partner.id === target.id) return;
+    const ids = [
+      ...new Set([
+        ...(target.supersetGroup ? membersOfGroup(target.supersetGroup) : [target.id]),
+        ...(partner.supersetGroup ? membersOfGroup(partner.supersetGroup) : [partner.id]),
+      ]),
+    ];
     try {
-      await routineRepo.groupAsSuperset(selectedIds);
-      setSelecting(false);
-      setSelectedIds([]);
+      await routineRepo.groupAsSuperset(ids);
+      setSsVersion((v) => v + 1); // 필드 변경 → 강제 재조회로 띠/태그 반영
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     }
   }
 
-  async function ungroupSuperset() {
-    if (selectedIds.length === 0) {
-      Alert.alert(t('routines.ungroupSupersetTitle'), t('routines.ungroupSelectExercises'));
-      return;
-    }
+  // 슈퍼세트 해제 — 그룹이 2개뿐이면 그룹 전체 해제, 아니면 이 종목만 제외.
+  async function unlinkSuperset(re: RoutineExercise) {
+    const members = membersOfGroup(re.supersetGroup);
     try {
-      await routineRepo.ungroupSuperset(selectedIds);
-      setSelecting(false);
-      setSelectedIds([]);
+      await routineRepo.ungroupSuperset(members.length <= 2 ? members : [re.id]);
+      setSsVersion((v) => v + 1);
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     }
@@ -320,38 +326,12 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
 
       <Divider />
 
-      <SectionHeader
-        title={t('routines.exercisesSection')}
-        right={
-          exercises.length >= 2 ? (
-            <Button
-              title={selecting ? t('routines.cancelSelection') : t('routines.editSuperset')}
-              size="sm"
-              variant="ghost"
-              fullWidth={false}
-              onPress={() => {
-                setSelecting((s) => !s);
-                setSelectedIds([]);
-              }}
-            />
-          ) : undefined
-        }
-      />
+      <SectionHeader title={t('routines.exercisesSection')} />
 
-      {exercises.length >= 2 && !selecting ? (
+      {exercises.length >= 2 ? (
         <AppText variant="caption" color="textFaint" style={{ marginBottom: spacing.sm }}>
           {t('routines.reorderHint')}
         </AppText>
-      ) : null}
-
-      {selecting ? (
-        <View style={styles.supersetBar}>
-          <AppText variant="caption" color="textMuted" style={{ flex: 1 }}>
-            {t('routines.supersetBarHint', { count: selectedIds.length })}
-          </AppText>
-          <Button title={t('routines.group')} size="sm" fullWidth={false} disabled={selectedIds.length < 2} onPress={groupSuperset} />
-          <Button title={t('routines.ungroup')} size="sm" variant="secondary" fullWidth={false} disabled={selectedIds.length === 0} onPress={ungroupSuperset} />
-        </View>
       ) : null}
     </View>
   );
@@ -390,9 +370,11 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
             re={item}
             index={index}
             total={exercises.length}
-            selecting={selecting}
-            selected={selectedIds.includes(item.id)}
-            onToggleSelect={() => toggleSelect(item.id)}
+            grouped={!!item.supersetGroup}
+            sameGroupAsPrev={!!item.supersetGroup && exercises[index - 1]?.supersetGroup === item.supersetGroup}
+            sameGroupAsNext={!!item.supersetGroup && exercises[index + 1]?.supersetGroup === item.supersetGroup}
+            onSuperset={() => openSuperset(item)}
+            onUnsuperset={() => unlinkSuperset(item)}
             onMoveUp={() => move(index, -1)}
             onMoveDown={() => move(index, 1)}
             onSwap={() => swap(item)}
@@ -400,6 +382,33 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
           />
         )}
       />
+
+      {/* 슈퍼세트 상대 선택 모달 — 현재 루틴의 다른 종목 중 선택(SRS-002) */}
+      <Modal visible={!!supersetTarget} transparent animationType="fade" onRequestClose={() => setSupersetTarget(null)}>
+        <Pressable style={styles.ssBackdrop} onPress={() => setSupersetTarget(null)}>
+          <Pressable style={styles.ssSheet} onPress={() => {}}>
+            <AppText variant="heading" style={{ marginBottom: spacing.sm }}>
+              {t('routines.supersetPickTitle')}
+            </AppText>
+            <ScrollView style={{ maxHeight: 360 }} keyboardShouldPersistTaps="handled">
+              {exercises
+                .filter((e) => e.id !== supersetTarget?.id)
+                .map((e) => (
+                  <Pressable key={e.id} style={styles.ssOption} onPress={() => chooseSupersetPartner(e)}>
+                    <ExerciseName exerciseId={e.exerciseId} variant="body" />
+                    {e.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
+                  </Pressable>
+                ))}
+              {exercises.filter((e) => e.id !== supersetTarget?.id).length === 0 ? (
+                <AppText variant="caption" color="textMuted">
+                  {t('routines.supersetNoPartner')}
+                </AppText>
+              ) : null}
+            </ScrollView>
+            <Button title={t('common.cancel')} variant="secondary" onPress={() => setSupersetTarget(null)} style={{ marginTop: spacing.md }} />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -408,9 +417,11 @@ function ExerciseEditRow({
   re,
   index,
   total,
-  selecting,
-  selected,
-  onToggleSelect,
+  grouped,
+  sameGroupAsPrev,
+  sameGroupAsNext,
+  onSuperset,
+  onUnsuperset,
   onMoveUp,
   onMoveDown,
   onSwap,
@@ -419,9 +430,11 @@ function ExerciseEditRow({
   re: RoutineExercise;
   index: number;
   total: number;
-  selecting: boolean;
-  selected: boolean;
-  onToggleSelect: () => void;
+  grouped: boolean;
+  sameGroupAsPrev: boolean;
+  sameGroupAsNext: boolean;
+  onSuperset: () => void;
+  onUnsuperset: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
   onSwap: () => void;
@@ -469,17 +482,16 @@ function ExerciseEditRow({
   };
 
   return (
-    <Card style={[styles.exCard, selected && styles.exCardSelected, isActive && styles.exCardActive]}>
+    <View style={grouped ? styles.ssWrap : undefined}>
+      {/* 슈퍼세트 시각 띠 — 그룹 종목 왼쪽 연결 바(위/아래 인접이면 이어짐). */}
+      {grouped ? (
+        <View style={[styles.ssBand, sameGroupAsPrev && styles.ssBandJoinTop, sameGroupAsNext && styles.ssBandJoinBottom]} />
+      ) : null}
+    <Card style={[styles.exCard, grouped && styles.exCardGrouped, isActive && styles.exCardActive]}>
       <View style={styles.exHeader}>
-        {selecting ? (
-          <Pressable onPress={onToggleSelect} hitSlop={8} style={styles.handle}>
-            <Ionicons name={selected ? 'checkbox' : 'square-outline'} size={22} color={selected ? colors.primary : colors.textMuted} />
-          </Pressable>
-        ) : (
-          <Pressable onPressIn={drag} hitSlop={8} style={styles.handle}>
-            <Ionicons name="reorder-three" size={24} color={colors.textMuted} />
-          </Pressable>
-        )}
+        <Pressable onPressIn={drag} hitSlop={8} style={styles.handle}>
+          <Ionicons name="reorder-three" size={24} color={colors.textMuted} />
+        </Pressable>
         <View style={styles.exTitle}>
           <ExerciseName exerciseId={re.exerciseId} variant="body" />
           <AppText variant="caption" color="textMuted">
@@ -556,10 +568,21 @@ function ExerciseEditRow({
         <IconButton icon="arrow-up" size={20} color="text" filled disabled={index === 0} onPress={onMoveUp} />
         <IconButton icon="arrow-down" size={20} color="text" filled disabled={index === total - 1} onPress={onMoveDown} />
         <View style={{ flex: 1 }} />
+        {total >= 2 ? (
+          <Button
+            title={grouped ? t('routines.supersetUnlink') : t('routines.supersetLink')}
+            icon="git-merge-outline"
+            size="sm"
+            variant="ghost"
+            fullWidth={false}
+            onPress={grouped ? onUnsuperset : onSuperset}
+          />
+        ) : null}
         <Button title={t('routines.swap')} size="sm" variant="ghost" fullWidth={false} onPress={onSwap} />
         <IconButton icon="trash-outline" size={18} color="danger" onPress={onRemove} />
       </View>
     </Card>
+    </View>
   );
 }
 
@@ -578,8 +601,23 @@ const styles = StyleSheet.create({
   content: { padding: spacing.lg, paddingBottom: spacing.xxl },
   supersetBar: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.md },
   exCard: { marginBottom: spacing.md, gap: spacing.md },
-  exCardSelected: { borderColor: colors.primary, borderWidth: 1 },
+  exCardGrouped: { borderColor: colors.primary, borderWidth: 1 },
   exCardActive: { borderColor: colors.primary, borderWidth: 1, opacity: 0.95 },
+  // 슈퍼세트 시각 띠 — 그룹 종목 왼쪽 세로 바(위/아래 인접 시 이어짐).
+  ssWrap: { position: 'relative' },
+  ssBand: { position: 'absolute', left: -8, top: 2, bottom: spacing.md + 2, width: 4, borderRadius: 2, backgroundColor: colors.primary },
+  ssBandJoinTop: { top: -spacing.md },
+  ssBandJoinBottom: { bottom: -2 },
+  ssBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: spacing.xl },
+  ssSheet: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg, maxHeight: '80%' },
+  ssOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+  },
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   handle: { width: 28, alignItems: 'center' },
   exTitle: { flex: 1, gap: 2 },

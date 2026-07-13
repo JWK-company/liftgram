@@ -437,7 +437,7 @@ function PostCard({
           streakDays?: number;
           weeklyReached?: boolean;
           setCount?: number;
-          exercises?: { name: string; sets: { weightKg: number; reps: number; isWarmup?: boolean }[] }[];
+          exercises?: { name: string; note?: string; sets: { weightKg: number; reps: number; isWarmup?: boolean; partialReps?: number }[] }[];
         })
       : undefined;
   // 피드 게시물(운동)의 종목을 로컬 루틴으로 가져오기 — 이름 매칭(name_ko/name_en, 대소문자 무시), 없으면 커스텀 생성. (SRS-007 · SRS-002)
@@ -591,9 +591,14 @@ function PostCard({
                       </AppText>
                       <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
                         {ex.sets
-                          .map((s) => `${formatWeight(s.weightKg, weightUnit)}×${s.reps}${s.isWarmup ? ' (W)' : ''}`)
+                          .map((s) => `${formatWeight(s.weightKg, weightUnit)}×${s.reps}${s.partialReps ? `+${s.partialReps}` : ''}${s.isWarmup ? ' (W)' : ''}`)
                           .join('   ·   ')}
                       </AppText>
+                      {ex.note ? (
+                        <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }} numberOfLines={2}>
+                          {t('analytics.exerciseNote', { note: ex.note })}
+                        </AppText>
+                      ) : null}
                     </View>
                   ))}
                 </View>

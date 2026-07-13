@@ -259,21 +259,14 @@ test('variant: 레거시 machine_variant 무손실 승계(hammer→equip:hammer,
   assert.equal(legacyMachineVariantToV6(null).key, null);
 });
 
-// ── 로깅 정밀도 — SRS-029 ──────────────────────────────────────────
-test('정밀도: 보정무게(어시스티드−)·정자세 반복이 유효 계산에 반영', () => {
-  // 100kg 스택, 10회 중 정자세 8회, 20kg 보조 → 유효무게 80, 유효반복 8
-  const s = ws(100, 10, { strictReps: 8, loadAdjustKg: -20 });
-  assert.equal(effectiveWeightKg(s), 80);
-  assert.equal(effectiveReps(s), 8);
-  assert.equal(setVolumeKg(s), 640); // 80 × 8 (치팅 2회 제외)
+// ── v9 볼륨 — 부분반복(깔짝) 제외·레거시 보조·가중 무시 — SRS-029 ────
+test('볼륨: 유효무게=weightKg, 유효반복=reps (레거시 보조·가중·정자세비중 무시)', () => {
+  const s = ws(100, 8, { partialReps: 3, loadAdjustKg: -20, strictReps: 5 });
+  assert.equal(effectiveWeightKg(s), 100); // loadAdjust 무시
+  assert.equal(effectiveReps(s), 8); // strict/partial 무시 — reps 그대로
+  assert.equal(setVolumeKg(s), 800); // 100 × 8 (부분반복 3 제외)
 });
-test('정밀도: 가중(+)·미지정 시 raw와 동일(하위호환)', () => {
-  assert.equal(effectiveWeightKg(ws(100, 5, { loadAdjustKg: 20 })), 120);
-  const plain = ws(100, 5);
-  assert.equal(effectiveWeightKg(plain), 100); // loadAdjust 미지정=0
-  assert.equal(effectiveReps(plain), 5); // strict 미지정=reps
-  assert.equal(setVolumeKg(plain), 500);
-});
-test('정밀도: 음수 유효무게는 0 클램프', () => {
-  assert.equal(effectiveWeightKg(ws(30, 5, { loadAdjustKg: -50 })), 0);
+test('볼륨: 부분반복(깔짝)은 볼륨에 미반영', () => {
+  assert.equal(setVolumeKg(ws(50, 10, { partialReps: 5 })), 500);
+  assert.equal(setVolumeKg(ws(50, 10)), 500);
 });

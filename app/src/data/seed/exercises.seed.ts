@@ -152,4 +152,39 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '버피', nameEn: 'Burpee', primaryMuscles: ['fullBody'], equipment: 'bodyweight' },
   { nameKo: '배틀 로프', nameEn: 'Battle Rope', primaryMuscles: ['fullBody'], secondaryMuscles: ['shoulders'], equipment: 'other' },
   { nameKo: '로잉 머신', nameEn: 'Rowing Machine', primaryMuscles: ['fullBody'], secondaryMuscles: ['back'], equipment: 'machine' },
+
+  // ── 보조(어시스트) 종목 — 어시스트 머신 중량=보조하중(설정 가능). @plm SRS-001 ───
+  { nameKo: '어시스트 풀업', nameEn: 'Assisted Pull Up', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine' },
+  { nameKo: '어시스트 친업', nameEn: 'Assisted Chin Up', primaryMuscles: ['biceps'], secondaryMuscles: ['back'], equipment: 'machine' },
+  { nameKo: '어시스트 딥스', nameEn: 'Assisted Dip', primaryMuscles: ['triceps'], secondaryMuscles: ['chest'], equipment: 'machine' },
+
+  // ── 추가 상용 종목(#2) — 등 ────────────────────────────────────
+  { nameKo: '하이 로우', nameEn: 'High Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine' },
+  { nameKo: '로우 로우', nameEn: 'Low Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine' },
+  { nameKo: '체스트 서포티드 로우', nameEn: 'Chest Supported Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine' },
+  { nameKo: '인버티드 로우', nameEn: 'Inverted Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'bodyweight' },
+  { nameKo: '원암 랫풀다운', nameEn: 'Single-arm Lat Pulldown', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'cable' },
+  { nameKo: '덤벨 풀오버', nameEn: 'Dumbbell Pullover', primaryMuscles: ['back'], secondaryMuscles: ['chest'], equipment: 'dumbbell' },
+  // ── 가슴 ───────────────────────────────────────────────────────
+  { nameKo: '인클라인 바벨 프레스', nameEn: 'Incline Barbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'barbell' },
+  { nameKo: '인클라인 덤벨 프레스', nameEn: 'Incline Dumbbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'dumbbell' },
+  // ── 어깨 ───────────────────────────────────────────────────────
+  { nameKo: '랜드마인 프레스', nameEn: 'Landmine Press', primaryMuscles: ['shoulders'], secondaryMuscles: ['chest', 'triceps'], equipment: 'barbell' },
+  { nameKo: '케이블 리어 델트 플라이', nameEn: 'Cable Rear Delt Fly', primaryMuscles: ['shoulders'], equipment: 'cable' },
+  // ── 하체 ───────────────────────────────────────────────────────
+  { nameKo: '시시 스쿼트', nameEn: 'Sissy Squat', primaryMuscles: ['quads'], equipment: 'bodyweight' },
+  { nameKo: '펜듈럼 스쿼트', nameEn: 'Pendulum Squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'machine' },
+  { nameKo: '벨트 스쿼트', nameEn: 'Belt Squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'machine' },
+  { nameKo: '힙 어덕션 머신', nameEn: 'Hip Adduction Machine', primaryMuscles: ['glutes'], equipment: 'machine' },
+  { nameKo: '스미스 힙 쓰러스트', nameEn: 'Smith Hip Thrust', primaryMuscles: ['glutes'], secondaryMuscles: ['hamstrings'], equipment: 'smith' },
+  // ── 팔 ─────────────────────────────────────────────────────────
+  { nameKo: 'JM 프레스', nameEn: 'JM Press', primaryMuscles: ['triceps'], equipment: 'barbell' },
+  { nameKo: '딥 머신', nameEn: 'Dip Machine', primaryMuscles: ['triceps'], secondaryMuscles: ['chest'], equipment: 'machine' },
+  { nameKo: '케이블 해머 컬', nameEn: 'Cable Hammer Curl', primaryMuscles: ['biceps'], secondaryMuscles: ['forearms'], equipment: 'cable' },
+  // ── 복근 ───────────────────────────────────────────────────────
+  { nameKo: '라잉 레그 레이즈', nameEn: 'Lying Leg Raise', primaryMuscles: ['abs'], equipment: 'bodyweight' },
+  { nameKo: '케이블 우드촙', nameEn: 'Cable Woodchopper', primaryMuscles: ['abs'], equipment: 'cable' },
+  { nameKo: '앱 크런치 머신', nameEn: 'Ab Crunch Machine', primaryMuscles: ['abs'], equipment: 'machine' },
+  // ── 승모 ───────────────────────────────────────────────────────
+  { nameKo: '케이블 슈러그', nameEn: 'Cable Shrug', primaryMuscles: ['traps'], equipment: 'cable' },
 ];

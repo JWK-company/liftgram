@@ -74,8 +74,6 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
   const [busy, setBusy] = useState(false);
-  // v6 정밀도(SRS-029) 입력 표시 — 블록 단위 토글로 승격(#8). 보조/가중무게·정자세 반복이 메뉴에 묻혀 접근 불가하던 문제.
-  const [showPrecision, setShowPrecision] = useState(false);
   const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
   const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
 
@@ -176,12 +174,6 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
                 {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
               </AppText>
             ) : null}
-            {/* 보조/가중무게·정자세 반복 입력 토글(#8) — 친업·딥스 등 마이너스/플러스 무게 접근. */}
-            <Pressable onPress={() => setShowPrecision((v) => !v)} hitSlop={4} style={[styles.precisionToggle, showPrecision && styles.precisionToggleOn]}>
-              <AppText variant="label" color={showPrecision ? 'primary' : 'textMuted'}>
-                {t('session.precisionToggle')}
-              </AppText>
-            </Pressable>
           </View>
         </View>
         {onMoveUp || onMoveDown ? (
@@ -218,6 +210,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         <AppText variant="label" color="textFaint" style={styles.colVal}>
           {t('session.repsLabel')}
         </AppText>
+        <AppText variant="label" color="textFaint" style={styles.colPartial} center>
+          {t('session.partialColHeader')}
+        </AppText>
         <AppText variant="label" color="textFaint" style={styles.colArm} center>
           {t('session.armColHeader')}
         </AppText>
@@ -234,8 +229,6 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
           weightUnit={weightUnit}
           barWeightKg={barWeightKg}
           onRestStart={() => onStartRest(restSeconds)}
-          showPrecision={showPrecision}
-          onTogglePrecision={() => setShowPrecision((v) => !v)}
         />
       ))}
 
@@ -286,8 +279,6 @@ function SetRowEdit({
   weightUnit,
   barWeightKg,
   onRestStart,
-  showPrecision,
-  onTogglePrecision,
 }: {
   set: SetLog;
   label: string;
@@ -295,21 +286,17 @@ function SetRowEdit({
   weightUnit: WeightUnit;
   barWeightKg: number;
   onRestStart: () => void;
-  showPrecision: boolean; // 블록 단위 정밀도 토글(#8)
-  onTogglePrecision: () => void;
 }) {
   const { t } = useT();
   const isDone = set.done === true;
   const isUni = set.arm === 'uni'; // v8: 세트별 편측(원암/원레그). null=투암(기본)
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
-  const [sr, setSr] = useState(() => (set.strictReps != null ? String(set.strictReps) : ''));
-  const [la, setLa] = useState(() => (set.loadAdjustKg != null ? numStr(fromKg(set.loadAdjustKg, weightUnit)) : ''));
+  const [pt, setPt] = useState(() => (set.partialReps != null && set.partialReps > 0 ? String(set.partialReps) : '')); // v9: 부분반복(깔짝)
 
   useEffect(() => setW(numStr(fromKg(set.weightKg, weightUnit))), [set.weightKg, weightUnit]);
   useEffect(() => setR(String(set.reps)), [set.reps]);
-  useEffect(() => setSr(set.strictReps != null ? String(set.strictReps) : ''), [set.strictReps]);
-  useEffect(() => setLa(set.loadAdjustKg != null ? numStr(fromKg(set.loadAdjustKg, weightUnit)) : ''), [set.loadAdjustKg, weightUnit]);
+  useEffect(() => setPt(set.partialReps != null && set.partialReps > 0 ? String(set.partialReps) : ''), [set.partialReps]);
 
   function commitWeight() {
     const n = parseFloat(w.replace(',', '.'));
@@ -319,18 +306,11 @@ function SetRowEdit({
     const n = parseInt(r, 10);
     if (!Number.isNaN(n) && n >= 0) workoutRepo.updateSetLog(set.id, { reps: n }).catch(() => {});
   }
-  function commitStrict() {
-    const txt = sr.trim();
-    if (txt === '') return void workoutRepo.updateSetLog(set.id, { strictReps: null }).catch(() => {});
+  function commitPartial() {
+    const txt = pt.trim();
+    if (txt === '') return void workoutRepo.updateSetLog(set.id, { partialReps: null }).catch(() => {});
     const n = parseInt(txt, 10);
-    if (!Number.isNaN(n) && n >= 0) workoutRepo.updateSetLog(set.id, { strictReps: n }).catch(() => {});
-  }
-  function commitAdjust() {
-    const txt = la.trim();
-    if (txt === '' || txt === '-' || txt === '+') return void workoutRepo.updateSetLog(set.id, { loadAdjustKg: null }).catch(() => {});
-    const n = parseFloat(txt.replace('+', '').replace(',', '.'));
-    if (Number.isNaN(n)) return;
-    workoutRepo.updateSetLog(set.id, { loadAdjustKg: n === 0 ? null : toKg(n, weightUnit) }).catch(() => {});
+    if (!Number.isNaN(n) && n >= 0) workoutRepo.updateSetLog(set.id, { partialReps: n === 0 ? null : n }).catch(() => {});
   }
   function toggleDone() {
     const next = !isDone;
@@ -353,7 +333,6 @@ function SetRowEdit({
       { text: t('session.setType.drop'), onPress: () => workoutRepo.setSetType(set.id, 'drop').catch(() => {}) },
       { text: t('session.setType.failed'), onPress: () => workoutRepo.setSetType(set.id, 'failed').catch(() => {}) },
       { text: t('session.plateCalcTitle'), onPress: () => showPlates(set.weightKg, barWeightKg, weightUnit, t) },
-      { text: t('session.editPrecision'), onPress: onTogglePrecision },
       { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
@@ -379,7 +358,7 @@ function SetRowEdit({
         {prev ? (
           <View style={styles.prevChip}>
             <AppText variant="caption" color="primary" center numberOfLines={1}>
-              {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}`}
+              {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}${prev.partialReps ? `+${prev.partialReps}` : ''}`}
             </AppText>
           </View>
         ) : (
@@ -390,6 +369,17 @@ function SetRowEdit({
       </Pressable>
       <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
       <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
+      <TextInput
+        value={pt}
+        onChangeText={setPt}
+        onBlur={commitPartial}
+        onSubmitEditing={commitPartial}
+        keyboardType="numeric"
+        placeholder="0"
+        placeholderTextColor={colors.textFaint}
+        selectTextOnFocus
+        style={[styles.cell, styles.partialCell]}
+      />
       <Pressable onPress={toggleArm} hitSlop={4} style={[styles.armChip, isUni && styles.armChipOn]}>
         <AppText variant="caption" color={isUni ? 'primary' : 'textFaint'} weight={isUni ? 'bold' : 'regular'} center>
           {isUni ? t('session.armUni') : t('session.armBi')}
@@ -402,44 +392,6 @@ function SetRowEdit({
         <Ionicons name="close" size={15} color={colors.textFaint} />
       </Pressable>
     </View>
-
-    {/* v6 정밀도 — 정자세 반복 / 보정무게. 세트타입 메뉴에서 토글. @plm SRS-029 */}
-    {showPrecision ? (
-      <View style={styles.precisionRow}>
-        <View style={styles.precisionField}>
-          <AppText variant="label" color="textMuted" style={styles.precisionLabel}>
-            {t('session.strictReps')}
-          </AppText>
-          <TextInput
-            value={sr}
-            onChangeText={setSr}
-            onBlur={commitStrict}
-            onSubmitEditing={commitStrict}
-            keyboardType="numeric"
-            placeholder={t('session.strictRepsPlaceholder')}
-            placeholderTextColor={colors.textFaint}
-            selectTextOnFocus
-            style={styles.cell}
-          />
-        </View>
-        <View style={styles.precisionField}>
-          <AppText variant="label" color="textMuted" style={styles.precisionLabel}>
-            {t('session.loadAdjust', { weightUnit })}
-          </AppText>
-          <TextInput
-            value={la}
-            onChangeText={setLa}
-            onBlur={commitAdjust}
-            onSubmitEditing={commitAdjust}
-            keyboardType="numbers-and-punctuation"
-            placeholder="0"
-            placeholderTextColor={colors.textFaint}
-            selectTextOnFocus
-            style={styles.cell}
-          />
-        </View>
-      </View>
-    ) : null}
     </View>
   );
 }
@@ -488,10 +440,9 @@ const styles = StyleSheet.create({
   armChipOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
-  // v6 정밀도 보조행 — 세트타입 메뉴로 펼침. 기본 숨김.
-  precisionRow: { flexDirection: 'row', gap: spacing.sm, paddingBottom: spacing.xs, paddingHorizontal: spacing.xs },
-  precisionField: { flex: 1 },
-  precisionLabel: { marginBottom: 2 },
+  // v9 부분반복(깔짝) 컬럼 — 정자세 옆 좁은 입력.
+  colPartial: { width: 44, textAlign: 'center' },
+  partialCell: { flex: 0, width: 44 },
   cell: {
     flex: 1,
     minWidth: 0, // 웹 <input> 기본폭이 flex 축소를 막아 행 오버플로 → 0으로 축소 허용
@@ -520,16 +471,6 @@ const styles = StyleSheet.create({
   del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
-  // 정밀도(보조/가중무게·정자세) 토글 칩(#8).
-  precisionToggle: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-  },
-  precisionToggleOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   // 운동 중 순서 이동 화살표 열(#11).
   reorderCol: { alignItems: 'center', justifyContent: 'center' },
   reorderSpacer: { width: 18, height: 18 },
