@@ -15,7 +15,7 @@ import { useUser } from '../../state/userContext';
 import { analyticsRepo } from '../../data';
 import type { WorkoutDetail, WorkoutExerciseDetail } from '../../data';
 import { formatWeight, type WeightUnit } from '../../domain';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, radius } from '../../theme';
 import { t, useT } from '../../i18n';
 
 function formatDuration(seconds: number | null): string {
@@ -104,6 +104,13 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
       <AppText variant="heading" numberOfLines={1}>
         {ex.exerciseName}
       </AppText>
+      {ex.note ? (
+        <View style={styles.noteBox}>
+          <AppText variant="caption" color="textMuted">
+            {t('analytics.exerciseNote', { note: ex.note })}
+          </AppText>
+        </View>
+      ) : null}
 
       <View style={styles.setHead}>
         <AppText variant="label" color="textFaint" style={styles.colSet}>
@@ -130,6 +137,7 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
             <View style={styles.setTags}>
               {s.isWarmup ? <Tag label={t('analytics.warmupTag')} tone="muted" /> : null}
               {s.isFailed ? <Tag label={t('analytics.failedTag')} tone="default" /> : null}
+              {s.arm === 'uni' ? <Tag label={t('session.armUni')} tone="primary" /> : null}
             </View>
           </View>
           <AppText variant="body" color="textMuted" style={styles.colRpe}>
@@ -166,6 +174,7 @@ const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   tilesRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg, marginBottom: spacing.lg },
   exCard: { marginBottom: spacing.lg },
+  noteBox: { marginTop: spacing.xs, paddingVertical: spacing.xs, paddingHorizontal: spacing.sm, borderRadius: radius.sm, backgroundColor: colors.surfaceAlt },
   setHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
   colSet: { width: 40 },

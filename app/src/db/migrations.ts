@@ -109,5 +109,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v8: 세트별 편측(원암/원레그) — 변형(종목 단위)에서 세트 단위로 분리. 기존 행 arm=null(투암/기본, 무해). @plm SRS-028
+    {
+      toVersion: 8,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'arm', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

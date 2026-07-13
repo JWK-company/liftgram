@@ -106,8 +106,10 @@ export function gripLabel(key: GripKey | null | undefined, lang: AppLanguage): s
   return key ? GRIP_LABELS[key]?.[lang] ?? key : '';
 }
 export function armLabel(key: ArmKey | null | undefined, lang: AppLanguage): string {
-  // 팔뿐 아니라 다리(원레그)에도 쓰이는 편측(unilateral) 차원 — 라벨에 다리 병기.
-  return key === 'uni' ? (lang === 'ko' ? '원암(원레그)' : 'Single-arm/leg') : '';
+  // 팔뿐 아니라 다리(원레그/투레그)에도 쓰이는 편측(unilateral) 차원 — 라벨에 다리 병기.
+  if (key === 'uni') return lang === 'ko' ? '원암(원레그)' : 'Single-arm/leg';
+  if (key === 'bi') return lang === 'ko' ? '투암(투레그)' : 'Two-arm/leg';
+  return '';
 }
 
 // --- 축약 라벨 (변형 칩/트리거용 — 모든 차원이 잘리지 않게) ---

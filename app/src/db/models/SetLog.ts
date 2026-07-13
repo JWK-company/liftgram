@@ -18,6 +18,7 @@ export default class SetLog extends Model {
   // v6: 로깅 정밀도 (SRS-029). @plm SRS-029
   @field('strict_reps') strictReps!: number | null; // 정자세 반복(null=전부 정자세). 나머지=보조/치팅
   @field('load_adjust_kg') loadAdjustKg!: number | null; // 보정무게 signed(어시스티드−/가중+). null=0
+  @field('arm') arm!: string | null; // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본)
   @field('done') done!: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') completedAt!: number | null;
   @readonly @date('created_at') createdAt!: Date;

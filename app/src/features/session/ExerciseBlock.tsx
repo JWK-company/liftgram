@@ -218,6 +218,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         <AppText variant="label" color="textFaint" style={styles.colVal}>
           {t('session.repsLabel')}
         </AppText>
+        <AppText variant="label" color="textFaint" style={styles.colArm} center>
+          {t('session.armColHeader')}
+        </AppText>
         <View style={styles.colCheck} />
         <View style={styles.colDel} />
       </View>
@@ -297,6 +300,7 @@ function SetRowEdit({
 }) {
   const { t } = useT();
   const isDone = set.done === true;
+  const isUni = set.arm === 'uni'; // v8: 세트별 편측(원암/원레그). null=투암(기본)
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
   const [sr, setSr] = useState(() => (set.strictReps != null ? String(set.strictReps) : ''));
@@ -332,6 +336,9 @@ function SetRowEdit({
     const next = !isDone;
     workoutRepo.setSetDone(set.id, next).catch(() => {});
     if (next) onRestStart();
+  }
+  function toggleArm() {
+    workoutRepo.setSetArm(set.id, isUni ? null : 'uni').catch(() => {});
   }
   function typeColor(): keyof typeof colors {
     if (set.isWarmup) return 'pr';
@@ -383,6 +390,11 @@ function SetRowEdit({
       </Pressable>
       <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
       <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
+      <Pressable onPress={toggleArm} hitSlop={4} style={[styles.armChip, isUni && styles.armChipOn]}>
+        <AppText variant="caption" color={isUni ? 'primary' : 'textFaint'} weight={isUni ? 'bold' : 'regular'} center>
+          {isUni ? t('session.armUni') : t('session.armBi')}
+        </AppText>
+      </Pressable>
       <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
         <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
       </Pressable>
@@ -459,8 +471,21 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   colVal: { flex: 1, textAlign: 'center' },
+  colArm: { width: 42, textAlign: 'center' },
   colCheck: { width: 38 },
   colDel: { width: 26 },
+  // 세트별 편측(투암/원암) 토글 — 기본 투암(회색), 원암 선택 시 primary 강조.
+  armChip: {
+    width: 42,
+    height: 40,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  armChipOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
   // v6 정밀도 보조행 — 세트타입 메뉴로 펼침. 기본 숨김.
