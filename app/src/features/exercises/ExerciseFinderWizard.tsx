@@ -1,15 +1,17 @@
-// @plm SRS-031  종목 찾기 도우미(스무고개) — 부위→기구 2단계 가이드로 초보가 이름 몰라도 종목을 좁힌다.
-// 선택 결과(부위·기구·유산소)를 ExerciseListScreen 필터로 넘겨 결과 목록으로 합류. 새 분류 데이터 없이
-// 기존 카탈로그 축(근육군·기구)만 사용하는 경량판. @plm SRS-031
+// @plm SRS-031  종목 찾기 도우미(스무고개) — 부위 → 동작/자세(또는 기구) 다단계 가이드로 종목을 좁힌다.
+// 큰 근육군은 '동작/자세'(밀기·당기기·스쿼트·힌지·서서/앉아서 등)를 한 단계 더 물어 근육군+기구만으론
+// 안 되던 세분화를 제공한다(FINDER_TREE 큐레이션). 동작이 균일한 부위는 대신 기구를 묻는다. 결과는
+// ExerciseListScreen 필터(부위·기구·유산소·종목집합)로 반영되어 기존 picker 흐름에 합류. @plm SRS-031
 import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '../../components';
 import {
-  ALL_EQUIPMENT,
   ALL_MUSCLE_GROUPS,
+  FINDER_EQUIPMENTS,
   equipmentLabel,
   muscleLabel,
+  muscleSubgroups,
   type EquipmentType,
   type ExerciseKind,
   type MuscleGroup,
@@ -21,6 +23,8 @@ export interface WizardResult {
   muscle: MuscleGroup | null;
   equipment: EquipmentType | null;
   kind: ExerciseKind | null;
+  names: string[] | null; // 큐레이션된 동작/자세 종목 집합(있으면 이 종목들만). null=집합 필터 없음.
+  label: string; // 배너 표시용 선택 경로(예: '가슴 · 평평하게 밀기')
 }
 
 export function ExerciseFinderWizard({
@@ -33,26 +37,31 @@ export function ExerciseFinderWizard({
   onDone: (r: WizardResult) => void;
 }) {
   const { t, lang } = useT();
-  const [step, setStep] = useState<0 | 1>(0);
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
 
-  // 열릴 때마다 처음 단계로 초기화.
   React.useEffect(() => {
-    if (visible) {
-      setStep(0);
-      setMuscle(null);
-    }
+    if (visible) setMuscle(null); // 열릴 때마다 1단계로 초기화
   }, [visible]);
 
-  function pickMuscle(m: MuscleGroup) {
-    setMuscle(m);
-    setStep(1);
+  const subgroups = muscle ? muscleSubgroups(muscle) : null;
+  const step = muscle === null ? 0 : 1;
+  const mLabel = muscle ? muscleLabel(muscle, lang) : '';
+
+  function pickCardio() {
+    onDone({ muscle: null, equipment: null, kind: 'cardio', names: null, label: t('wizard.cardio') });
+  }
+  function pickSubgroup(key: string) {
+    const opt = subgroups?.find((s) => s.key === key);
+    if (!opt || !muscle) return;
+    onDone({ muscle, equipment: null, kind: null, names: opt.names, label: `${mLabel} · ${lang === 'ko' ? opt.labelKo : opt.labelEn}` });
   }
   function pickEquipment(eq: EquipmentType | null) {
-    onDone({ muscle, equipment: eq, kind: null });
+    if (!muscle) return;
+    onDone({ muscle, equipment: eq, kind: null, names: null, label: eq ? `${mLabel} · ${equipmentLabel(eq, lang)}` : mLabel });
   }
-  function pickCardio() {
-    onDone({ muscle: null, equipment: null, kind: 'cardio' });
+  function pickAllOfMuscle() {
+    if (!muscle) return;
+    onDone({ muscle, equipment: null, kind: null, names: null, label: mLabel });
   }
 
   return (
@@ -61,7 +70,7 @@ export function ExerciseFinderWizard({
         <View style={styles.sheet}>
           <View style={styles.head}>
             {step === 1 ? (
-              <Pressable onPress={() => setStep(0)} hitSlop={8} style={styles.headBtn}>
+              <Pressable onPress={() => setMuscle(null)} hitSlop={8} style={styles.headBtn}>
                 <Ionicons name="chevron-back" size={22} color={colors.text} />
               </Pressable>
             ) : (
@@ -69,10 +78,10 @@ export function ExerciseFinderWizard({
             )}
             <View style={{ flex: 1 }}>
               <AppText variant="heading" center>
-                {step === 0 ? t('wizard.step1Title') : t('wizard.step2Title')}
+                {step === 0 ? t('wizard.step1Title') : subgroups ? t('wizard.step2MoveTitle') : t('wizard.step2EquipTitle')}
               </AppText>
               <AppText variant="caption" color="textFaint" center style={{ marginTop: 2 }}>
-                {step === 0 ? t('wizard.step1Of2') : t('wizard.step2Of2')}
+                {step === 0 ? t('wizard.step1Of2') : `${mLabel} · ${t('wizard.step2Of2')}`}
               </AppText>
             </View>
             <Pressable onPress={onClose} hitSlop={8} style={styles.headBtn}>
@@ -84,22 +93,22 @@ export function ExerciseFinderWizard({
             {step === 0 ? (
               <>
                 {ALL_MUSCLE_GROUPS.map((m) => (
-                  <WizardCard key={m} label={muscleLabel(m, lang)} onPress={() => pickMuscle(m)} />
+                  <WizardCard key={m} label={muscleLabel(m, lang)} onPress={() => setMuscle(m)} />
                 ))}
-                {/* 유산소 지름길 — 부위를 몰라도 바로 유산소 종목으로. @plm SRS-030 */}
-                <WizardCard
-                  label={t('wizard.cardio')}
-                  icon="heart-outline"
-                  accent
-                  onPress={pickCardio}
-                />
+                <WizardCard label={t('wizard.cardio')} icon="heart-outline" accent onPress={pickCardio} />
+              </>
+            ) : subgroups ? (
+              <>
+                {subgroups.map((s) => (
+                  <WizardCard key={s.key} wide label={lang === 'ko' ? s.labelKo : s.labelEn} onPress={() => pickSubgroup(s.key)} />
+                ))}
+                <WizardCard wide label={t('wizard.allOfMuscle', { muscle: mLabel })} icon="apps-outline" onPress={pickAllOfMuscle} />
               </>
             ) : (
               <>
-                {ALL_EQUIPMENT.map((eq) => (
+                {FINDER_EQUIPMENTS.map((eq) => (
                   <WizardCard key={eq} label={equipmentLabel(eq, lang)} onPress={() => pickEquipment(eq)} />
                 ))}
-                {/* 기구를 모르면 건너뛰기 — 부위만으로 결과. */}
                 <WizardCard label={t('wizard.anyEquipment')} icon="help-circle-outline" onPress={() => pickEquipment(null)} />
               </>
             )}
@@ -114,20 +123,22 @@ function WizardCard({
   label,
   icon,
   accent,
+  wide,
   onPress,
 }: {
   label: string;
   icon?: keyof typeof Ionicons.glyphMap;
   accent?: boolean;
+  wide?: boolean; // 동작/자세는 문구가 길어 한 줄 전체 폭 카드
   onPress: () => void;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, accent && styles.cardAccent, pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [styles.card, wide && styles.cardWide, accent && styles.cardAccent, pressed && { opacity: 0.7 }]}
     >
-      {icon ? <Ionicons name={icon} size={20} color={accent ? colors.primary : colors.textMuted} style={{ marginBottom: 4 }} /> : null}
-      <AppText variant="body" weight="medium" center color={accent ? 'primary' : 'text'} numberOfLines={2}>
+      {icon ? <Ionicons name={icon} size={20} color={accent ? colors.primary : colors.textMuted} style={{ marginBottom: wide ? 0 : 4, marginRight: wide ? 8 : 0 }} /> : null}
+      <AppText variant="body" weight="medium" center={!wide} color={accent ? 'primary' : 'text'} numberOfLines={2}>
         {label}
       </AppText>
     </Pressable>
@@ -166,5 +177,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xs,
   },
+  // 동작/자세 카드는 문구가 길어 한 줄 전체 폭 + 좌측 정렬(아이콘·텍스트 가로 배치).
+  cardWide: { width: '100%', minHeight: 52, flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: spacing.lg },
   cardAccent: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
 });

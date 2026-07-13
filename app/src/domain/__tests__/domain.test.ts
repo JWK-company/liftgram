@@ -32,9 +32,11 @@ import {
   formatCardioSet,
   formatDurationClock,
   sumCardio,
+  FINDER_TREE,
   type CatalogExercise,
   type LoggedSet,
 } from '../index';
+import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
 
 const ws = (weightKg: number, reps: number, extra: Partial<LoggedSet> = {}): LoggedSet => ({
   weightKg,
@@ -320,4 +322,22 @@ test('유산소: 세트 합계(총 시간·거리)', () => {
 test('유산소: 무게·횟수 0 세트는 볼륨 0(근력 통계 미오염)', () => {
   // 유산소 세트는 weight=0/reps=0으로 저장 → 볼륨/PR에 기여하지 않음
   assert.equal(setVolumeKg(ws(0, 0, { durationSec: 1800, distanceM: 5000 })), 0);
+});
+
+// ── 스무고개 트리 커버리지 — SRS-031 (큐레이션 누락·오타 방지) ────
+test('스무고개: 서브그룹 있는 부위는 모든 근력 종목을 빠짐없이 분류(오타 종목 없음)', () => {
+  const allNames = new Set(SEED_EXERCISES.map((e) => e.nameKo));
+  for (const [muscle, subs] of Object.entries(FINDER_TREE)) {
+    const covered = new Set(subs.flatMap((s) => s.names));
+    // (1) 해당 부위 근력 종목(cardio 제외, primaryMuscles[0]=muscle)이 모두 어느 서브그룹엔가 속함
+    const seedOfMuscle = SEED_EXERCISES.filter((e) => !e.kind && e.primaryMuscles[0] === muscle).map((e) => e.nameKo);
+    const missing = seedOfMuscle.filter((n) => !covered.has(n));
+    assert.deepEqual(missing, [], `${muscle} 미분류: ${missing.join(', ')}`);
+    // (2) 트리에 적힌 종목이 실제 시드에 존재(이름 오타 방지)
+    const ghost = [...covered].filter((n) => !allNames.has(n));
+    assert.deepEqual(ghost, [], `${muscle} 존재하지 않는 종목: ${ghost.join(', ')}`);
+    // (3) 서브그룹 key 중복 없음
+    const keys = subs.map((s) => s.key);
+    assert.equal(new Set(keys).size, keys.length, `${muscle} 서브그룹 key 중복`);
+  }
 });

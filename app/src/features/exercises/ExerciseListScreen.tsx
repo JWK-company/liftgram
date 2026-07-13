@@ -30,6 +30,8 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
   const [equipment, setEquipment] = useState<EquipmentType | null>(null);
   const [kind, setKind] = useState<ExerciseKind | null>(null); // v10: 유산소 필터(스무고개 유산소 경로). @plm SRS-030
+  const [names, setNames] = useState<string[] | null>(null); // 스무고개 동작/자세 큐레이션 종목집합. @plm SRS-031
+  const [finderLabel, setFinderLabel] = useState<string | null>(null); // 스무고개 선택 경로 배너
   const [wizardOpen, setWizardOpen] = useState(false); // 스무고개(종목 찾기 도우미). @plm SRS-031
 
   // 기구/근육군/종류는 반응형 쿼리. 검색은 클라이언트 JS 필터 — 웹(LokiJS) 어댑터의 Q.like가 한글 검색을
@@ -39,20 +41,35 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
     [muscle, equipment, kind],
   );
 
-  // 스무고개 완료 → 선택 결과를 필터로 반영(부위/기구/유산소). @plm SRS-031
+  // 스무고개 완료 → 선택 결과를 필터로 반영(부위/기구/유산소 + 동작/자세 종목집합). @plm SRS-031
   const onWizardDone = useCallback((r: WizardResult) => {
     setMuscle(r.muscle);
     setEquipment(r.equipment);
     setKind(r.kind);
+    setNames(r.names);
+    setFinderLabel(r.names || r.muscle || r.kind ? r.label : null);
     setSearch('');
     setWizardOpen(false);
   }, []);
-  const hasFilter = muscle !== null || equipment !== null || kind !== null;
+  const clearFilters = useCallback(() => {
+    setMuscle(null);
+    setEquipment(null);
+    setKind(null);
+    setNames(null);
+    setFinderLabel(null);
+  }, []);
+  const hasFilter = muscle !== null || equipment !== null || kind !== null || names !== null;
   const filtered = useMemo(() => {
+    let list = items;
+    // 스무고개 동작/자세 집합이 있으면 그 종목들로 좁힌다(부위 쿼리 결과 위 JS 교집합).
+    if (names) {
+      const set = new Set(names);
+      list = list.filter((e) => set.has(e.nameKo));
+    }
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((e) => e.nameKo.toLowerCase().includes(q) || (e.nameEn ?? '').toLowerCase().includes(q));
-  }, [items, search]);
+    if (!q) return list;
+    return list.filter((e) => e.nameKo.toLowerCase().includes(q) || (e.nameEn ?? '').toLowerCase().includes(q));
+  }, [items, search, names]);
 
   // 헤더 우측: 커스텀 운동 추가
   useLayoutEffect(() => {
@@ -113,7 +130,7 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
             </AppText>
           </Pressable>
           {hasFilter ? (
-            <Pressable onPress={() => { setMuscle(null); setEquipment(null); setKind(null); }} hitSlop={8} style={styles.resetBtn}>
+            <Pressable onPress={clearFilters} hitSlop={8} style={styles.resetBtn}>
               <Ionicons name="close-circle" size={14} color={colors.textMuted} />
               <AppText variant="caption" color="textMuted" style={{ marginLeft: 3 }}>
                 {t('wizard.reset')}
@@ -121,11 +138,12 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
             </Pressable>
           ) : null}
         </View>
-        {kind === 'cardio' ? (
+        {/* 스무고개 선택 경로 배너(예: '가슴 · 평평하게 밀기', '유산소') */}
+        {finderLabel ? (
           <View style={styles.kindBanner}>
-            <Ionicons name="heart" size={13} color={colors.primary} />
-            <AppText variant="caption" color="primary" style={{ marginLeft: 4 }}>
-              {t('wizard.cardioActive')}
+            <Ionicons name={kind === 'cardio' ? 'heart' : 'funnel'} size={13} color={colors.primary} />
+            <AppText variant="caption" color="primary" style={{ marginLeft: 4 }} numberOfLines={1}>
+              {t('wizard.finderActive', { path: finderLabel })}
             </AppText>
           </View>
         ) : null}
@@ -135,10 +153,21 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
             <Chip
               key={m}
               label={muscleLabel(m, lang)}
-              active={muscle === m}
-              onPress={() => setMuscle((prev) => (prev === m ? null : m))}
+              active={muscle === m && kind !== 'cardio'}
+              onPress={() => { setNames(null); setFinderLabel(null); setKind(null); setMuscle((prev) => (prev === m ? null : m)); }}
             />
           ))}
+          {/* 유산소 전용 칩 — 부위와 별개(kind=cardio). 스무고개 없이도 유산소만 보기. @plm SRS-030 */}
+          <Chip
+            label={t('wizard.cardio')}
+            active={kind === 'cardio'}
+            onPress={() => {
+              setNames(null);
+              setFinderLabel(null);
+              setMuscle(null);
+              setKind((prev) => (prev === 'cardio' ? null : 'cardio'));
+            }}
+          />
         </FilterRow>
 
         <FilterRow label={t('exercises.equipmentFilter')}>
@@ -147,7 +176,7 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
               key={eq}
               label={equipmentLabel(eq, lang)}
               active={equipment === eq}
-              onPress={() => setEquipment((prev) => (prev === eq ? null : eq))}
+              onPress={() => { setNames(null); setFinderLabel(null); setEquipment((prev) => (prev === eq ? null : eq)); }}
             />
           ))}
         </FilterRow>
@@ -212,9 +241,12 @@ function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void })
             </AppText>
           ) : null}
           <View style={styles.tags}>
-            {item.primaryMuscles.map((m) => (
-              <Tag key={m} label={muscleLabel(m, lang)} tone="primary" />
-            ))}
+            {/* 유산소는 근육 라벨(전신 등)이 헷갈려 '유산소' 태그로 표시. 근력은 근육군 표시. @plm SRS-030 */}
+            {item.kind === 'cardio' ? (
+              <Tag label={t('wizard.cardio')} tone="success" />
+            ) : (
+              item.primaryMuscles.map((m) => <Tag key={m} label={muscleLabel(m, lang)} tone="primary" />)
+            )}
             <Tag label={equipmentLabel(item.equipment, lang)} />
             {item.isCustom ? <Tag label={t('exercises.customTag')} tone="muted" /> : null}
           </View>
