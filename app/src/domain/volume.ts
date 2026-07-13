@@ -5,12 +5,13 @@ export function isWorkingSet(s: LoggedSet): boolean {
   return !s.isWarmup && !s.isFailed;
 }
 
-// v6: 유효 무게(보정 반영, 음수 클램프)·유효 반복(정자세만) — 총중량/PR 정확도. @plm SRS-029
+// v9: reps=정자세 횟수(볼륨·PR 기준). 부분반복(partialReps=깔짝)은 별도 필드로 볼륨/PR 제외. @plm SRS-029
+// (v6 보조·가중(loadAdjust)·정자세비중(strictReps)은 폐기 — 이 함수들은 하위호환 유지용.)
 export function effectiveWeightKg(s: LoggedSet): number {
-  return Math.max(0, s.weightKg + (s.loadAdjustKg ?? 0));
+  return Math.max(0, s.weightKg);
 }
 export function effectiveReps(s: LoggedSet): number {
-  return s.strictReps ?? s.reps;
+  return s.reps;
 }
 
 export function setVolumeKg(s: LoggedSet): number {

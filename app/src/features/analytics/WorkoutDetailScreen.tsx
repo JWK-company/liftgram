@@ -133,6 +133,7 @@ function ExerciseCard({ ex, weightUnit }: { ex: WorkoutExerciseDetail; weightUni
           <View style={styles.colWeight}>
             <AppText variant="body">
               {formatWeight(s.weightKg, weightUnit)} × {s.reps}
+              {s.partialReps ? <AppText variant="body" color="textFaint">{` +${s.partialReps}`}</AppText> : null}
             </AppText>
             <View style={styles.setTags}>
               {s.isWarmup ? <Tag label={t('analytics.warmupTag')} tone="muted" /> : null}

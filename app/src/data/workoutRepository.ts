@@ -33,8 +33,7 @@ function toLoggedSet(s: SetLog): LoggedSet {
     rpe: s.rpe,
     isWarmup: s.isWarmup,
     isFailed: s.isFailed,
-    strictReps: s.strictReps, // v6 정밀도 @plm SRS-029
-    loadAdjustKg: s.loadAdjustKg,
+    partialReps: s.partialReps, // v9: 부분반복(깔짝) — 표시전용, 볼륨/PR 제외 @plm SRS-029
   };
 }
 
@@ -169,7 +168,7 @@ export async function getWorkoutLiveVolume(workoutId: string): Promise<number> {
   let v = 0;
   for (const s of sets) {
     if (!isPerformed(s) || s.isWarmup || s.isFailed) continue;
-    v += Math.max(0, s.weightKg + (s.loadAdjustKg ?? 0)) * (s.strictReps ?? s.reps);
+    v += Math.max(0, s.weightKg) * s.reps; // v9: 부분반복 제외(정자세 reps만)
   }
   return v;
 }
@@ -222,6 +221,7 @@ export async function getPreviousExerciseSets(exerciseId: string, variant?: stri
         rpe: s.rpe,
         isWarmup: s.isWarmup,
         isFailed: s.isFailed,
+        partialReps: s.partialReps,
       }));
     }
   }
@@ -466,6 +466,7 @@ export interface LogSetInput {
   rpe?: number | null;
   isWarmup?: boolean;
   isFailed?: boolean;
+  partialReps?: number | null; // v9: 부분반복(깔짝) — 이전기록 표시 시 정자세와 구분
 }
 
 // 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
@@ -578,8 +579,7 @@ export async function updateSetLog(
     rpe?: number | null;
     isWarmup?: boolean;
     isFailed?: boolean;
-    strictReps?: number | null; // v6 정밀도: 정자세 반복. @plm SRS-029
-    loadAdjustKg?: number | null; // v6 정밀도: 보정무게(어시스티드−/가중+).
+    partialReps?: number | null; // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용. @plm SRS-029
   },
 ): Promise<void> {
   await database.write(async () => {
@@ -590,8 +590,7 @@ export async function updateSetLog(
       if (patch.rpe !== undefined) rec.rpe = patch.rpe;
       if (patch.isWarmup !== undefined) rec.isWarmup = patch.isWarmup;
       if (patch.isFailed !== undefined) rec.isFailed = patch.isFailed;
-      if (patch.strictReps !== undefined) rec.strictReps = patch.strictReps;
-      if (patch.loadAdjustKg !== undefined) rec.loadAdjustKg = patch.loadAdjustKg;
+      if (patch.partialReps !== undefined) rec.partialReps = patch.partialReps;
     });
   });
 }

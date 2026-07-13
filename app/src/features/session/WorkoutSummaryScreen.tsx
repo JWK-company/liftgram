@@ -142,11 +142,12 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
           // 루틴 전체(종목·세트)를 함께 저장 → 보는 사람이 펼쳐서 구경 가능(SRS-007).
           // 원시 kg 저장(뷰어가 자기 단위로 렌더). 세트 무게/반복만 담아 경량 유지.
           exercises: detail.exercises.map((ex) => ({
-            // 변형(기구·그립·팔) 선택 시 변형 라벨을 이름에 붙여 공유(보는 사람이 어떤 변형인지 알 수 있게).
+            // 변형(기구·그립) 선택 시 변형 라벨을 이름에 붙여 공유(보는 사람이 어떤 변형인지 알 수 있게).
             name: ex.variantKey
               ? `${ex.exerciseName} (${variantLabelFromKey(ex.variantKey, lang, machineVariantLabels)})`
               : ex.exerciseName,
-            sets: ex.sets.map((s) => ({ weightKg: s.weightKg, reps: s.reps, isWarmup: s.isWarmup })),
+            note: ex.note ?? undefined, // #3: 업로더 메모(확장 시 표시)
+            sets: ex.sets.map((s) => ({ weightKg: s.weightKg, reps: s.reps, isWarmup: s.isWarmup, partialReps: s.partialReps ?? undefined })),
           })),
         },
       });
