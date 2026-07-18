@@ -10,8 +10,11 @@ import { SUBSTITUTES } from './seed/substitutes.seed';
 export async function seedExercisesIfNeeded(): Promise<number> {
   const exercises = database.get<Exercise>('exercises');
   const existing = await exercises.query(Q.where('is_custom', false)).fetch();
-  const haveNames = new Set(existing.map((e) => e.nameKo));
-  const missing = SEED_EXERCISES.filter((seed) => !haveNames.has(seed.nameKo));
+  // 이름 정리 재동기 — nameEn(안정 키) 기준으로 기존 레코드 nameKo를 최신 시드명으로 갱신(id 불변 → 기록 보존). @plm SRS-028
+  await syncSeedNames(existing);
+  // top-up은 nameEn(안정 식별자) 기준으로 미보유만 추가 — 이름 정리로 nameKo가 바뀌어도 중복 생성 방지.
+  const haveEn = new Set(existing.map((e) => e.nameEn).filter((x): x is string => !!x));
+  const missing = SEED_EXERCISES.filter((seed) => !haveEn.has(seed.nameEn));
   if (missing.length) {
     const fields = (e: Exercise, seed: SeedExercise) => {
       e._raw.id = seedId(seed.nameEn); // 결정적 id → 멀티기기 동기 시 중복 방지 (SRS-001)
@@ -47,6 +50,21 @@ export async function seedExercisesIfNeeded(): Promise<number> {
   }
   await syncSubstitutes();
   return missing.length;
+}
+
+// 시드 이름 정리 재동기 — nameEn 기준으로 기존(비커스텀) 레코드의 nameKo를 최신 시드명으로 갱신. id·기록 보존. @plm SRS-028
+async function syncSeedNames(existing: Exercise[]): Promise<void> {
+  const koByEn = new Map(SEED_EXERCISES.map((s) => [s.nameEn, s.nameKo]));
+  const updates = existing.filter((e) => {
+    const newKo = e.nameEn ? koByEn.get(e.nameEn) : undefined;
+    return newKo != null && newKo !== e.nameKo;
+  });
+  if (!updates.length) return;
+  await database.write(async () => {
+    await database.batch(
+      ...updates.map((e) => e.prepareUpdate((rec) => { rec.nameKo = koByEn.get(e.nameEn as string) as string; })),
+    );
+  });
 }
 
 // 대체운동 큐레이션을 현재 DB id로 해소해 substituteIds에 반영(멱등). 큐레이션 갱신·기존 DB 보강 모두 처리.

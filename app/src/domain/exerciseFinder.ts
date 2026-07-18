@@ -27,9 +27,9 @@ export const FINDER_TREE: Partial<Record<MuscleGroup, FinderOption[]>> = {
   ],
   shoulders: [
     { key: 'press', labelKo: '위로 밀기(프레스)', labelEn: 'Press', names: ['오버헤드 프레스', '밀리터리 프레스', '덤벨 숄더 프레스', '아놀드 프레스', '숄더 프레스 머신', '랜드마인 프레스'] },
-    { key: 'lateral', labelKo: '옆으로 들기(레터럴)', labelEn: 'Lateral raise', names: ['사이드 레터럴 레이즈', '케이블 레터럴 레이즈', '머신 레터럴 레이즈', '업라이트 로우'] },
+    { key: 'lateral', labelKo: '옆으로 들기(레터럴)', labelEn: 'Lateral raise', names: ['덤벨 레터럴 레이즈', '케이블 레터럴 레이즈', '머신 레터럴 레이즈', '업라이트 로우'] },
     { key: 'front', labelKo: '앞으로 들기(프론트)', labelEn: 'Front raise', names: ['프론트 레이즈'] },
-    { key: 'rear', labelKo: '뒤쪽 어깨(리어 델트)', labelEn: 'Rear delt', names: ['리어 델트 플라이', '리버스 펙 덱', '페이스 풀', '케이블 리어 델트 플라이'] },
+    { key: 'rear', labelKo: '뒤쪽 어깨(리어 델트)', labelEn: 'Rear delt', names: ['덤벨 리어 델트 플라이', '리버스 펙 덱', '페이스 풀', '케이블 리어 델트 플라이'] },
   ],
   triceps: [
     { key: 'press', labelKo: '미는 동작(프레스·딥)', labelEn: 'Press / dip', names: ['클로즈 그립 벤치프레스', '벤치 딥스', '다이아몬드 푸시업', 'JM 프레스', '딥 머신', '어시스트 딥스'] },

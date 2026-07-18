@@ -19,7 +19,7 @@ import { exerciseRepo, analyticsRepo } from '../../data';
 import { getExerciseMedia, EXERCISE_MEDIA_CREDIT, type ExerciseMedia } from '../../data/exerciseMedia';
 import type { TrendPoint } from '../../data';
 import type { Exercise } from '../../db/models';
-import { muscleLabel, equipmentLabel, formatWeight, exerciseDisplayName, exerciseAltName, detectStall } from '../../domain';
+import { muscleLabel, equipmentLabel, formatWeight, exerciseListName, exerciseAltName, detectStall } from '../../domain';
 import { hasPendingPick, resolveExercisePick } from '../../utils/picker';
 import { useUser } from '../../state/userContext';
 import { useT } from '../../i18n';
@@ -132,7 +132,7 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
       {/* 헤더 */}
       <View style={styles.titleRow}>
         <AppText variant="title" style={{ flex: 1 }}>
-          {exerciseDisplayName(exercise, lang)}
+          {exerciseListName(exercise, lang)}
         </AppText>
         {exercise.isCustom ? <Tag label={t('exercises.customTag')} tone="muted" /> : null}
       </View>
@@ -274,7 +274,7 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
               >
                 <View style={{ flex: 1 }}>
                   <AppText variant="body" numberOfLines={1}>
-                    {exerciseDisplayName(sub, lang)}
+                    {exerciseListName(sub, lang)}
                   </AppText>
                   <AppText variant="caption" color="textFaint" numberOfLines={1} style={{ marginTop: 2 }}>
                     {equipmentLabel(sub.equipment, lang)}

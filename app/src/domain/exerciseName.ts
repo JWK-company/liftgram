@@ -25,6 +25,7 @@ export function exerciseAltName(ex: NamedExercise, lang: AppLanguage = 'ko'): st
 // 세션에선 베이스명('벤치프레스')만 + 변형 태그(바벨), 목록에선 '벤치프레스 (바벨)'. @plm SRS-028
 export interface EquippedExercise extends NamedExercise {
   equipment?: string | null;
+  kind?: string | null; // 'cardio'면 기구 변형 표기 제외.
 }
 const EQUIP_NAME_TOKENS: Record<string, { ko: string; en: string }> = {
   barbell: { ko: '바벨', en: 'Barbell' },
@@ -39,12 +40,18 @@ const EQUIP_NAME_TOKENS: Record<string, { ko: string; en: string }> = {
 // 기구 토큰이 없으면 원래 이름 그대로. '데드리프트'→'데드리프트', '사이드 레터럴 레이즈'→그대로.
 export function baseExerciseName(ex: EquippedExercise, lang: AppLanguage = 'ko'): string {
   const name = exerciseDisplayName(ex, lang);
+  if (ex.kind === 'cardio') return name; // 유산소는 기구 변형 표기 안 함(로잉 머신 등)
   const tok = ex.equipment ? EQUIP_NAME_TOKENS[ex.equipment] : null;
   if (!tok) return name;
   const label = tok[lang] ?? tok.ko;
-  const suffix = ` (${label})`;
-  if (name.endsWith(suffix)) return name.slice(0, -suffix.length).trim();
+  // 괄호접미 ' (바벨)'
+  const paren = ` (${label})`;
+  if (name.endsWith(paren)) return name.slice(0, -paren.length).trim();
+  // 접두 '바벨 '
   if (name.startsWith(label + ' ')) return name.slice(label.length + 1).trim();
+  // 후미 단어 ' 머신'('체스트 프레스 머신'→'체스트 프레스'). 이름이 기구 단어만인 경우는 제외.
+  const trailing = ` ${label}`;
+  if (name.endsWith(trailing) && name.length > trailing.length) return name.slice(0, -trailing.length).trim();
   return name;
 }
 
