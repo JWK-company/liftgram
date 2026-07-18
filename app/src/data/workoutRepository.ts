@@ -353,10 +353,12 @@ function prepareTemplateSets(
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
     const prev = prevSets[i];
+    // 프리레이 값 우선순위: 지난 세션의 세트별 실제값(prev)을 최우선 → 같은 루틴 반복 시 이전 무게·횟수가
+    // 그대로 유지돼 꾸준한 진척(progressive)이 된다. 없으면(첫 수행) 루틴 목표 → 스냅샷 → 기본. @plm SRS-010
     // 유산소는 무게·횟수 0(시간·거리는 수행 중). 맨몸은 무게 기본 0(가중 시 사용자가 입력) — 20kg 오프리필 방지.
     const bwDefault = isBodyweight ? 0 : 20;
-    const weight = isCardio ? 0 : routineWeightKg ?? prev?.weightKg ?? prevSnap?.weightKg ?? bwDefault;
-    const reps = isCardio ? 0 : routineReps ?? prev?.reps ?? prevSnap?.reps ?? 8;
+    const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    const reps = isCardio ? 0 : prev?.reps ?? routineReps ?? prevSnap?.reps ?? 8;
     recs.push(
       setLogs().prepareCreate((s) => {
         s.workoutExerciseId = weId;
