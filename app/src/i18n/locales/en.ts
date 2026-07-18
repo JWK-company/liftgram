@@ -144,6 +144,8 @@ export const en: Record<TransKey, string> = {
   "exercises.categoryLabel": "Category",
   "exercises.categoryPlaceholder": "e.g. Upper body, Compound (optional)",
   "exercises.customTag": "Custom",
+  "exercises.formGuideTitle": "How to",
+  "exercises.mediaCredit": "Image: {credit}",
   "exercises.customTitle": "Custom Exercise",
   "exercises.editTitle": "Edit Exercise",
   "exercises.emptyMessage": "Try changing your search or filters, or add a custom exercise.",

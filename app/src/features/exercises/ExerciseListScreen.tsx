@@ -6,6 +6,7 @@ import { Screen, TextField, AppText, Card, Tag, EmptyState, RemoteImage } from '
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo } from '../../data';
+import { getExerciseMedia } from '../../data/exerciseMedia';
 import type { Exercise } from '../../db/models';
 import {
   muscleLabel,
@@ -221,11 +222,13 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
 function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void }) {
   const { t, lang } = useT();
   const altName = exerciseAltName(item, lang);
+  // 썸네일: 커스텀 업로드 imageUrl 우선, 없으면 자세 미디어 시작프레임. @plm SRS-032
+  const thumbUri = item.imageUrl || getExerciseMedia(item.nameKo)?.start || null;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
       <Card style={styles.row}>
-        {item.imageUrl ? (
-          <RemoteImage uri={item.imageUrl} style={styles.thumb} />
+        {thumbUri ? (
+          <RemoteImage uri={thumbUri} style={styles.thumb} />
         ) : (
           <View style={[styles.thumb, styles.thumbPlaceholder]}>
             <Ionicons name="barbell-outline" size={18} color={colors.textFaint} />

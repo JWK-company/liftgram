@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-032",
+  "type": "SRS",
+  "title": "종목 자세 미디어 — 시작/끝 사진 시연 + 한국어 자세설명",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-13T00:00:00Z",
+  "updated": "2026-07-13T00:00:00Z",
+  "sync": true,
+  "tags": ["exercise-catalog", "media", "onboarding", "beginner"],
+  "kind": "FR",
+  "acceptance_criteria": "종목 상세에서 시작/끝 자세 사진을 교차 시연(움짤 효과)하고 한국어 자세설명(step)을 표시하며, 이미지 출처를 크레딧으로 표기한다",
+  "relations": {
+    "derives_from": ["URS-011", "URS-001"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "운동 이름만으로는 무슨 동작인지 모르는 사용자를 위해 종목 상세에서 " },
+          { "type": "text", "marks": [{ "type": "strong" }], "text": "자세 사진과 한국어 자세설명" },
+          { "type": "text", "text": "을 제공한다. Hevy 등은 자체 제작 독점 애니메이션을 쓰지만 이는 복제 불가하고, 무료·합법 GIF는 사실상 존재하지 않으므로(모두 유료 API 종속: ExerciseDB·MuscleWiki), 퍼블릭도메인 데이터셋 free-exercise-db의 종목당 시작/끝 2컷 사진을 채택해 두 프레임을 교차 표시함으로써 동작을 시연한다('가난한 자의 움짤'). 사진은 앱 번들 대신 jsDelivr CDN에서 서빙해 인프라·용량 부담을 없앴다." }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "이미지 원출처(Everkinetic)가 CC-BY-SA이므로 상세화면에 출처 크레딧을 표기한다. 영문 자세설명은 오프라인 LLM 파이프라인으로 한국어 번역해 정적 동봉(런타임·네트워크 의존 0, 오프라인 PWA 안전). 종목 목록 썸네일에도 시작 프레임을 노출한다." }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "종목 상세에서 시작/끝 자세 사진을 자동 교차(약 1.1초 주기)로 시연하고, 탭하면 정지/재생된다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "자세설명이 번호 매긴 한국어 step 리스트로 표시된다(번역 없는 종목은 영문 폴백, 매핑 없는 종목은 미표시)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "이미지 출처 크레딧(free-exercise-db · Everkinetic CC-BY-SA)이 표기된다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "종목 목록 썸네일에 미디어 시작 프레임이 노출되고, 로드 실패 시 폴백 아이콘으로 무결하다." }] }]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "정적 매핑(data/exerciseMedia.data.ts, 키=종목 한국어명 → 시작/끝 이미지 경로 + 한국어/영문 step)을 빌드 파이프라인(우리 시드 nameEn ↔ free-exercise-db 정확 매칭 + 영→한 번역, LLM 다중에이전트)으로 생성한다. 129/144 종목 커버(유산소·무매칭 제외). 조회 helper getExerciseMedia가 CDN base를 조립하고, resolveMediaUrl가 절대 URL을 그대로 통과시켜 기존 RemoteImage·ExerciseDetailScreen을 재사용한다(스키마·서버 변경 0). 상세화면 ExerciseAnimation이 두 프레임을 opacity 토글로 교차한다. 종목 라이선스상 데이터는 자유(Unlicense), 이미지는 CC-BY-SA 준수(크레딧)." }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "도출 URS: URS-011(입문자 진입장벽 없이), URS-001(핵심 운동 기록·카탈로그). 연계: 종목 찾기 도우미(SRS-031)로 찾은 종목의 자세를 상세에서 확인. 후속: 실제 GIF/영상은 유료 라이선스(ExerciseDB 등) 확보 시 URL 교체로 대체 가능, 무매칭 15종목 커버리지 확장, 커스텀 종목 사용자 업로드(기존 imageUrl)." }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "app/src/data/exerciseMedia.ts:1",
+    "app/src/data/exerciseMedia.data.ts:1",
+    "app/src/features/exercises/ExerciseDetailScreen.tsx:1",
+    "app/src/features/exercises/ExerciseListScreen.tsx:1"
+  ]
+}

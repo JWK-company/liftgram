@@ -1,5 +1,5 @@
 // @plm SRS-001  운동 상세 — 근육군·기구·대체운동·추정1RM 추세·커스텀 수정/보관
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +16,7 @@ import {
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { exerciseRepo, analyticsRepo } from '../../data';
+import { getExerciseMedia, EXERCISE_MEDIA_CREDIT, type ExerciseMedia } from '../../data/exerciseMedia';
 import type { TrendPoint } from '../../data';
 import type { Exercise } from '../../db/models';
 import { muscleLabel, equipmentLabel, formatWeight, exerciseDisplayName, exerciseAltName, detectStall } from '../../domain';
@@ -112,6 +113,10 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
   // 정체 감지(SRS-010): 추정 1RM 추세가 최근 정체면 디로드/회복 권고(웰니스 — 진단 없음).
   const stall = detectStall(trend.map((p) => p.value));
 
+  // 자세 미디어(사진 2컷·설명) — free-exercise-db 정적 매핑. 커스텀은 없음(각자 imageUrl). @plm SRS-032
+  const media = getExerciseMedia(exercise.nameKo);
+  const instructions = media ? (lang === 'ko' && media.instructionsKo.length ? media.instructionsKo : media.instructionsEn) : [];
+
   return (
     <Screen scroll>
       {/* 헤더 */}
@@ -127,8 +132,36 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
         </AppText>
       ) : null}
 
-      {/* 종목 이미지 */}
-      {exercise.imageUrl ? <RemoteImage uri={exercise.imageUrl} style={styles.heroImage} /> : null}
+      {/* 자세 시연 — 시작/끝 2프레임 교차(움짤 효과). 없으면 커스텀 imageUrl. @plm SRS-032 */}
+      {media ? (
+        <>
+          <ExerciseAnimation media={media} />
+          <AppText variant="caption" color="textFaint" center style={{ marginTop: 4 }}>
+            {t('exercises.mediaCredit', { credit: EXERCISE_MEDIA_CREDIT })}
+          </AppText>
+        </>
+      ) : exercise.imageUrl ? (
+        <RemoteImage uri={exercise.imageUrl} style={styles.heroImage} />
+      ) : null}
+
+      {/* 자세 설명(step) */}
+      {instructions.length ? (
+        <Card style={styles.section}>
+          <SectionHeader title={t('exercises.formGuideTitle')} />
+          {instructions.map((step, i) => (
+            <View key={i} style={styles.stepRow}>
+              <View style={styles.stepNum}>
+                <AppText variant="caption" color="primary" weight="bold">
+                  {i + 1}
+                </AppText>
+              </View>
+              <AppText variant="body" color="textMuted" style={{ flex: 1 }}>
+                {step}
+              </AppText>
+            </View>
+          ))}
+        </Card>
+      ) : null}
 
       {/* 분류 */}
       <Card style={styles.section}>
@@ -255,10 +288,65 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
   );
 }
 
+// 시작/끝 2프레임 교차 시연(움짤 효과). 탭하면 정지/재생. @plm SRS-032
+function ExerciseAnimation({ media }: { media: ExerciseMedia }) {
+  const [frame, setFrame] = useState(0);
+  const [paused, setPaused] = useState(false);
+  useEffect(() => {
+    if (paused) return;
+    const iv = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100);
+    return () => clearInterval(iv);
+  }, [paused]);
+  return (
+    <Pressable onPress={() => setPaused((p) => !p)} style={styles.animWrap}>
+      {/* 두 프레임을 겹쳐 두고 opacity 토글 → 재로드 없이 부드러운 2프레임 루프 */}
+      <RemoteImage uri={media.start} style={[styles.animImg, { opacity: frame === 0 ? 1 : 0 }]} resizeMode="contain" />
+      <RemoteImage uri={media.end} style={[styles.animImg, { opacity: frame === 1 ? 1 : 0 }]} resizeMode="contain" />
+      {paused ? (
+        <View style={styles.animPause}>
+          <Ionicons name="play" size={20} color={colors.onPrimary} />
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: spacing.xxl },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   heroImage: { width: '100%', height: 200, borderRadius: radius.md, marginTop: spacing.md },
+  animWrap: {
+    width: '100%',
+    height: 240,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  animImg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
+  animPause: {
+    position: 'absolute',
+    right: spacing.sm,
+    bottom: spacing.sm,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: spacing.sm, gap: spacing.sm },
+  stepNum: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
   section: { marginTop: spacing.lg },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   subRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm },
