@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 10;
+export const SCHEMA_VERSION = 11;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -145,6 +145,7 @@ export const mySchema = appSchema({
         { name: 'strict_reps', type: 'number', isOptional: true }, // 정자세 반복(null=전부 정자세=reps). 나머지(reps-strict_reps)=보조/치팅
         { name: 'load_adjust_kg', type: 'number', isOptional: true }, // 보정무게 signed. 어시스티드(−)/가중(+). null=0
         { name: 'arm', type: 'string', isOptional: true }, // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본). @plm SRS-028
+        { name: 'grip', type: 'string', isOptional: true }, // v11: 세트별 그립 — over/under/neutral/wide/close, null=기본. 표시전용. @plm SRS-028
         { name: 'partial_reps', type: 'number', isOptional: true }, // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용. @plm SRS-029
         // v10: 유산소(cardio) 지표 — 시간·거리. 근력 세트는 null. 볼륨/PR엔 미포함. @plm SRS-030
         { name: 'duration_sec', type: 'number', isOptional: true }, // 유산소 수행 시간(초)

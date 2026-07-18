@@ -143,6 +143,32 @@ export async function backfillCardioKindV10(): Promise<number> {
   return targets.length;
 }
 
+// v11: 그립·팔이 세트별(set_logs)로 이동 → 종목 변형 버킷은 기구만. 레거시 workout/routine_exercises의
+// variant_grip/variant_arm을 버킷 키에서 제거(기구만으로 재계산·컬럼 null)해 신규/즉석/루틴이 한 버킷으로
+// 통합되게 한다(같은 종목이 출처에 따라 다른 이전기록/PR을 보이던 문제 해소). 멱등. @plm SRS-028
+export async function backfillDropGripArmV11(): Promise<number> {
+  let n = 0;
+  for (const coll of [workoutExercises(), routineExercises()] as const) {
+    // NULL 의미차(어댑터별) 회피 위해 전건 조회 후 JS 필터(grip/arm 잔존 레코드만).
+    const all = await coll.query().fetch();
+    const rows = all.filter((r) => r.variantGrip != null || r.variantArm != null);
+    if (!rows.length) continue;
+    await database.write(async () => {
+      await database.batch(
+        ...rows.map((r) =>
+          (r as WorkoutExercise | RoutineExercise).prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+            rec.variantKey = variantColumns({ equipment: rec.variantEquipment }).variantKey; // 기구만으로 재계산
+            rec.variantGrip = null;
+            rec.variantArm = null;
+          }),
+        ),
+      );
+    });
+    n += rows.length;
+  }
+  return n;
+}
+
 // ── 조회 / 반응형 ──────────────────────────────────────────────────
 export function getWorkout(id: string): Promise<Workout> {
   return workouts().find(id);
@@ -304,6 +330,16 @@ async function isCardioExerciseId(exerciseId: string): Promise<boolean> {
   }
 }
 
+// 맨몸 종목(equipment='bodyweight')인지 — 맨몸은 무게 기본 0으로 프리레이(20kg 오프리필 방지 → 볼륨 대신 총횟수 표시). @plm SRS-005
+async function isBodyweightExerciseId(exerciseId: string): Promise<boolean> {
+  try {
+    const e = await database.get<Exercise>('exercises').find(exerciseId);
+    return e.equipment === 'bodyweight';
+  } catch {
+    return false;
+  }
+}
+
 function prepareTemplateSets(
   weId: string,
   count: number,
@@ -312,12 +348,14 @@ function prepareTemplateSets(
   prevSets: LogSetInput[],
   prevSnap: { weightKg: number; reps: number } | null,
   isCardio = false,
+  isBodyweight = false,
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
     const prev = prevSets[i];
-    // 유산소는 볼륨/PR에서 빠지도록 무게·횟수 0으로 프리레이(시간·거리는 수행 중 입력).
-    const weight = isCardio ? 0 : routineWeightKg ?? prev?.weightKg ?? prevSnap?.weightKg ?? 20;
+    // 유산소는 무게·횟수 0(시간·거리는 수행 중). 맨몸은 무게 기본 0(가중 시 사용자가 입력) — 20kg 오프리필 방지.
+    const bwDefault = isBodyweight ? 0 : 20;
+    const weight = isCardio ? 0 : routineWeightKg ?? prev?.weightKg ?? prevSnap?.weightKg ?? bwDefault;
     const reps = isCardio ? 0 : routineReps ?? prev?.reps ?? prevSnap?.reps ?? 8;
     recs.push(
       setLogs().prepareCreate((s) => {
@@ -346,6 +384,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
   const prevSetsByKey = new Map<string, LogSetInput[]>();
   const cardioByExercise = new Map<string, boolean>(); // 종목별 유산소 여부(중복 조회 방지)
+  const bwByExercise = new Map<string, boolean>(); // 종목별 맨몸 여부
   for (const re of res) {
     const k = vkey(re);
     if (!prevSnapByKey.has(k)) {
@@ -354,6 +393,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
     }
     if (!cardioByExercise.has(re.exerciseId)) {
       cardioByExercise.set(re.exerciseId, await isCardioExerciseId(re.exerciseId));
+      bwByExercise.set(re.exerciseId, await isBodyweightExerciseId(re.exerciseId));
     }
   }
   return database.write(async () => {
@@ -404,6 +444,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
           prevSetsByKey.get(vkey(re)) ?? [],
           prevSnapByKey.get(vkey(re)) ?? null,
           cardioByExercise.get(re.exerciseId) ?? false,
+          bwByExercise.get(re.exerciseId) ?? false,
         ),
       );
     });
@@ -443,6 +484,7 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
   const prevSnap = await getPreviousExerciseSnapshot(exerciseId);
   const prevSets = await getPreviousExerciseSets(exerciseId);
   const cardio = await isCardioExerciseId(exerciseId);
+  const bodyweight = await isBodyweightExerciseId(exerciseId);
   return database.write(async () => {
     const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
     const setsCount = Math.max(1, prevSets.length || 1); // 지난 세션 세트수(없으면 1) — 블랭크/중간추가 종목
@@ -464,7 +506,7 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.variantGrip = null;
       rec.variantArm = null;
     });
-    const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio);
+    const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio, bodyweight);
     await database.batch(we, ...setRecords);
     return we;
   });
@@ -512,7 +554,7 @@ export interface LogSetInput {
 // 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
 export async function addSet(
   workoutExerciseId: string,
-  input: { weightKg?: number; reps?: number; isWarmup?: boolean; done?: boolean; cardio?: boolean } = {},
+  input: { weightKg?: number; reps?: number; isWarmup?: boolean; done?: boolean; cardio?: boolean; bodyweight?: boolean } = {},
 ): Promise<SetLog> {
   return database.write(async () => {
     const existing = await setLogs()
@@ -522,10 +564,11 @@ export async function addSet(
     const done = input.done ?? false;
     // 유산소 세트는 무게/횟수 대신 시간·거리로 기록 → 볼륨 오염 방지 위해 0으로 생성. @plm SRS-030
     const cardio = input.cardio ?? false;
+    const bwDefault = input.bodyweight ? 0 : 20; // 맨몸은 첫 세트 기본 0(가중 시 입력). @plm SRS-005
     return setLogs().create((s) => {
       s.workoutExerciseId = workoutExerciseId;
       s.setNumber = existing.length + 1;
-      s.weightKg = input.weightKg ?? (cardio ? 0 : last?.weightKg ?? 20);
+      s.weightKg = input.weightKg ?? (cardio ? 0 : last?.weightKg ?? bwDefault);
       s.reps = input.reps ?? (cardio ? 0 : last?.reps ?? 8);
       s.rpe = null;
       s.isWarmup = input.isWarmup ?? false;
@@ -584,6 +627,16 @@ export async function setSetArm(id: string, arm: 'uni' | null): Promise<void> {
     const s = await setLogs().find(id);
     await s.update((rec) => {
       rec.arm = arm;
+    });
+  });
+}
+
+// 세트별 그립(over/under/neutral/wide/close ↔ 기본) — 팔처럼 세트마다 그립을 바꿀 수 있어 세트 단위 저장. @plm SRS-028
+export async function setSetGrip(id: string, grip: string | null): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.grip = grip;
     });
   });
 }

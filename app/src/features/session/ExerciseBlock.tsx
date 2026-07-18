@@ -2,8 +2,8 @@
 // @plm SRS-004  세트 추가/삭제·종목 삭제 (Hevy식)
 // @plm SRS-028  종목 변형(기구·그립·팔) 선택 — 변형별 이전기록·PR 분리
 // @plm SRS-029  세트 로깅 정밀도 — 정자세 반복(strict reps)·보정무게(load adjust)
-import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
@@ -25,6 +25,9 @@ import {
   mToKmInput,
   kmInputToM,
   sumCardio,
+  GRIP_KEYS,
+  gripLabel,
+  gripShortLabel,
   type ArmKey,
   type EquipmentType,
   type GripKey,
@@ -50,9 +53,10 @@ interface ExerciseBlockProps {
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
-// 저장된 종목 변형 컬럼 → dims. @plm SRS-028
+// 저장된 종목 변형 컬럼 → dims. 그립·팔은 세트별로 이동(v11/v8)했으므로 종목 변형 버킷은 기구만.
+// (레거시 variant_grip/arm은 backfillDropGripArmV11이 버킷 키에서 제거 → 신규/즉석/루틴이 한 버킷으로 통합.) @plm SRS-028
 function recordVariant(we: WorkoutExercise): VariantDims {
-  return { equipment: we.variantEquipment, grip: we.variantGrip as GripKey | null, arm: we.variantArm as ArmKey | null };
+  return { equipment: we.variantEquipment, grip: null, arm: null };
 }
 
 // 세트타입 라벨(순서 의존) — 일반 세트만 1,2,3.. 증가, 워밍업 W·드롭 D·실패 F.
@@ -87,6 +91,22 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   const [busy, setBusy] = useState(false);
   const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
   const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
+  const [prevCleared, setPrevCleared] = useState(false); // 이 종목 이전기록 표시 숨김(세션 로컬). @plm SRS-004
+
+  // 종목별 볼륨(#) — 무게·횟수·done은 필드변경이라 observe 미반영 → 1.5s 틱으로 재계산(전역 볼륨과 동일 방식). @plm SRS-005
+  const [volTick, setVolTick] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setVolTick((v) => v + 1), 1500);
+    return () => clearInterval(iv);
+  }, []);
+  const exVol = useMemo(() => {
+    const perf = sets.filter((s) => s.done !== false && !s.isWarmup && !s.isFailed);
+    const volume = perf.reduce((sum, s) => sum + Math.max(0, s.weightKg) * s.reps, 0);
+    const reps = perf.reduce((sum, s) => sum + s.reps, 0);
+    return { volume, reps };
+    // volTick를 의존성에 넣어 필드변경(무게/횟수/done)을 주기적으로 반영. sets 배열은 add/remove시만 재방출.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sets, volTick]);
 
   // 종목 변형(기구·그립·팔) — 이전기록·PR을 이 변형 것으로 분리 조회. @plm SRS-028
   const [variant, setVariant] = useState<VariantDims>(() => recordVariant(we));
@@ -118,12 +138,15 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   const variantKey = canonicalVariantKey(variant);
   useEffect(() => {
     let active = true;
+    setPrevCleared(false); // 종목/변형이 바뀌면 새 이전기록 컨텍스트 → 숨김 해제
     workoutRepo.getPreviousExerciseSets(we.exerciseId, variantKey).then((s) => active && setPrevSets(s)).catch(() => {});
     workoutRepo.getExercisePR(we.exerciseId, variantKey).then((p) => active && setPr(p)).catch(() => {});
     return () => {
       active = false;
     };
   }, [we.exerciseId, variantKey]);
+  // 표시용 이전기록 — 지우면 숨김(세션 로컬).
+  const shownPrev = prevCleared ? [] : prevSets;
 
   // 이 종목의 휴식 '설정'(초). 세트 완료 체크 시 이 값으로 전역 카운트다운을 시작(교체).
   // 카운트다운 자체는 전역(ActiveWorkoutScreen)에 1개만 존재 — 종목별로 따로 돌지 않는다.
@@ -143,12 +166,14 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   function saveNote() {
     workoutRepo.setWorkoutExerciseNote(we.id, note).catch(() => {});
   }
+  // 이전기록이 하나라도 있으면(세트·PR·메모) 지우기 토글 노출. @plm SRS-004
+  const hasPrev = prevSets.length > 0 || pr !== null || (!!prevNote && prevNote !== note.trim());
 
   async function onAddSet() {
     if (busy) return;
     setBusy(true);
     try {
-      await workoutRepo.addSet(we.id, { cardio: isCardio });
+      await workoutRepo.addSet(we.id, { cardio: isCardio, bodyweight: baseEquipment === 'bodyweight' });
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     } finally {
@@ -192,10 +217,28 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
                 </AppText>
               </View>
             ) : null}
-            {!isCardio && pr ? (
+            {!isCardio && pr && !prevCleared ? (
               <AppText variant="caption" color="pr">
                 {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
               </AppText>
+            ) : null}
+            {/* 종목별 볼륨(#) — 무게 있으면 볼륨, 맨몸·무게0이면 총 횟수. 유산소는 하단 요약으로 대체. @plm SRS-005 */}
+            {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
+              <View style={styles.exVolChip}>
+                <AppText variant="label" color="primary" weight="bold">
+                  {exVol.volume > 0
+                    ? t('session.exVolume', { volume: formatWeight(exVol.volume, weightUnit) })
+                    : t('session.exTotalReps', { reps: exVol.reps })}
+                </AppText>
+              </View>
+            ) : null}
+            {/* 이전 기록 지우기/표시 — 새 루틴 등에서 안 보고 싶을 때. 세션 로컬(이력 삭제 아님). @plm SRS-004 */}
+            {!isCardio && (hasPrev || prevCleared) ? (
+              <Pressable onPress={() => setPrevCleared((v) => !v)} hitSlop={6}>
+                <AppText variant="label" color="textFaint">
+                  {prevCleared ? t('session.showPrev') : t('session.clearPrev')}
+                </AppText>
+              </Pressable>
             ) : null}
           </View>
         </View>
@@ -262,8 +305,8 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
           <AppText variant="label" color="textFaint" style={styles.colPartial} center>
             {t('session.partialColHeader')}
           </AppText>
-          <AppText variant="label" color="textFaint" style={styles.colArm} center>
-            {t('session.armColHeader')}
+          <AppText variant="label" color="textFaint" style={styles.colVar} center>
+            {t('session.varColHeader')}
           </AppText>
           <View style={styles.colCheck} />
           <View style={styles.colDel} />
@@ -276,7 +319,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
             key={s.id}
             set={s}
             label={String(i + 1)}
-            prev={prevSets[i]}
+            prev={shownPrev[i]}
             onRestStart={() => onStartRest(restSeconds)}
           />
         ) : (
@@ -284,7 +327,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
             key={s.id}
             set={s}
             label={labels[i]}
-            prev={prevSets[i]}
+            prev={shownPrev[i]}
             weightUnit={weightUnit}
             barWeightKg={barWeightKg}
             onRestStart={() => onStartRest(restSeconds)}
@@ -315,7 +358,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         style={styles.noteInput}
         containerStyle={{ marginTop: spacing.sm }}
       />
-      {prevNote && prevNote !== note.trim() ? (
+      {!prevCleared && prevNote && prevNote !== note.trim() ? (
         <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
           {t('session.prevNote', { note: prevNote })}
         </AppText>
@@ -350,9 +393,11 @@ function SetRowEdit({
   barWeightKg: number;
   onRestStart: () => void;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const isDone = set.done === true;
   const isUni = set.arm === 'uni'; // v8: 세트별 편측(원암/원레그). null=투암(기본)
+  const gripKey = (set.grip as GripKey | null) ?? null; // v11: 세트별 그립
+  const [varOpen, setVarOpen] = useState(false); // 세트별 변형(팔·그립) 시트
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
   const [pt, setPt] = useState(() => (set.partialReps != null && set.partialReps > 0 ? String(set.partialReps) : '')); // v9: 부분반복(깔짝)
@@ -380,9 +425,18 @@ function SetRowEdit({
     workoutRepo.setSetDone(set.id, next).catch(() => {});
     if (next) onRestStart();
   }
-  function toggleArm() {
-    workoutRepo.setSetArm(set.id, isUni ? null : 'uni').catch(() => {});
+  function setArm(arm: 'uni' | null) {
+    workoutRepo.setSetArm(set.id, arm).catch(() => {});
   }
+  function setGrip(grip: GripKey | null) {
+    workoutRepo.setSetGrip(set.id, grip).catch(() => {});
+  }
+  // 변형 칩 축약 라벨 — 원암·그립 조합(예: '원암·오버'). 둘 다 기본이면 '변형' 안내.
+  const variantParts: string[] = [];
+  if (isUni) variantParts.push(t('session.armUni'));
+  if (gripKey) variantParts.push(gripShortLabel(gripKey, lang));
+  const variantSet = variantParts.length > 0;
+  const variantChipLabel = variantSet ? variantParts.join('·') : t('session.variantSet');
   function typeColor(): keyof typeof colors {
     if (set.isWarmup) return 'pr';
     if (set.isDrop === true) return 'primary';
@@ -443,9 +497,10 @@ function SetRowEdit({
         selectTextOnFocus
         style={[styles.cell, styles.partialCell]}
       />
-      <Pressable onPress={toggleArm} hitSlop={4} style={[styles.armChip, isUni && styles.armChipOn]}>
-        <AppText variant="caption" color={isUni ? 'primary' : 'textFaint'} weight={isUni ? 'bold' : 'regular'} center>
-          {isUni ? t('session.armUni') : t('session.armBi')}
+      {/* 세트별 변형(팔·그립) — 한 칸에 통합(모바일 공간 절약). 탭하면 팔·그립 시트. @plm SRS-028 */}
+      <Pressable onPress={() => setVarOpen(true)} hitSlop={4} style={[styles.varChip, variantSet && styles.varChipOn]}>
+        <AppText variant="caption" color={variantSet ? 'primary' : 'textFaint'} weight={variantSet ? 'bold' : 'regular'} center numberOfLines={1}>
+          {variantChipLabel}
         </AppText>
       </Pressable>
       <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
@@ -455,7 +510,72 @@ function SetRowEdit({
         <Ionicons name="close" size={15} color={colors.textFaint} />
       </Pressable>
     </View>
+    <SetVariantSheet
+      visible={varOpen}
+      onClose={() => setVarOpen(false)}
+      isUni={isUni}
+      gripKey={gripKey}
+      onArm={setArm}
+      onGrip={setGrip}
+    />
     </View>
+  );
+}
+
+// 세트별 변형 시트 — 팔(투암/원암) + 그립(기본/오버/언더/…). 종목당이 아닌 세트당 설정(v8 팔·v11 그립). @plm SRS-028
+function SetVariantSheet({
+  visible,
+  onClose,
+  isUni,
+  gripKey,
+  onArm,
+  onGrip,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  isUni: boolean;
+  gripKey: GripKey | null;
+  onArm: (arm: 'uni' | null) => void;
+  onGrip: (grip: GripKey | null) => void;
+}) {
+  const { t, lang } = useT();
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.varBackdrop} onPress={onClose}>
+        <Pressable style={styles.varSheet} onPress={() => {}}>
+          <AppText variant="heading" style={{ marginBottom: spacing.sm }}>
+            {t('session.setVariantTitle')}
+          </AppText>
+          <AppText variant="label" color="textMuted" style={styles.varRowLabel}>
+            {t('session.armColHeader')}
+          </AppText>
+          <View style={styles.varOptRow}>
+            <VarOpt label={t('session.armBi')} active={!isUni} onPress={() => onArm(null)} />
+            <VarOpt label={t('session.armUni')} active={isUni} onPress={() => onArm('uni')} />
+          </View>
+          <AppText variant="label" color="textMuted" style={styles.varRowLabel}>
+            {t('variant.grip')}
+          </AppText>
+          <View style={styles.varOptRow}>
+            <VarOpt label={t('variant.default')} active={!gripKey} onPress={() => onGrip(null)} />
+            {GRIP_KEYS.map((g) => (
+              <VarOpt key={g} label={gripLabel(g, lang)} active={gripKey === g} onPress={() => onGrip(g)} />
+            ))}
+          </View>
+          <Button title={t('common.ok')} onPress={onClose} style={{ marginTop: spacing.md }} />
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function VarOpt({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={[styles.varOpt, active && styles.varOptOn]}>
+      <AppText variant="caption" color={active ? 'primary' : 'text'} weight={active ? 'bold' : 'regular'}>
+        {label}
+      </AppText>
+    </Pressable>
   );
 }
 
@@ -577,21 +697,36 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   colVal: { flex: 1, textAlign: 'center' },
-  colArm: { width: 42, textAlign: 'center' },
+  colVar: { width: 58, textAlign: 'center' },
   colCheck: { width: 38 },
   colDel: { width: 26 },
-  // 세트별 편측(투암/원암) 토글 — 기본 투암(회색), 원암 선택 시 primary 강조.
-  armChip: {
-    width: 42,
+  // 세트별 변형(팔·그립) 통합 칩 — 기본은 흐린 '변형', 설정 시 primary 강조. 탭하면 시트.
+  varChip: {
+    width: 58,
     height: 40,
     borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 2,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     backgroundColor: colors.surfaceAlt,
   },
-  armChipOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
+  varChipOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
+  // 세트별 변형 시트
+  varBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: spacing.xl },
+  varSheet: { backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
+  varRowLabel: { marginTop: spacing.md, marginBottom: spacing.xs },
+  varOptRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  varOpt: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  varOptOn: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
   // v9 부분반복(깔짝) 컬럼 — 정자세 옆 좁은 입력.
@@ -626,6 +761,7 @@ const styles = StyleSheet.create({
   del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
+  exVolChip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   // 운동 중 순서 이동 화살표 열(#11).
   reorderCol: { alignItems: 'center', justifyContent: 'center' },
   reorderSpacer: { width: 18, height: 18 },

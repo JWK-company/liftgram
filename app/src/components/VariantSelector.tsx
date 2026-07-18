@@ -6,11 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './primitives';
 import { colors, radius, spacing } from '../theme';
 import {
-  GRIP_OPTIONS,
   equipmentOptionsFor,
   equipmentVariantLabel,
-  gripLabel,
-  variantShortLabel,
+  equipmentVariantShortLabel,
   type EquipmentType,
   type VariantDims,
 } from '../domain';
@@ -30,10 +28,9 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   const [open, setOpen] = useState(false);
 
   const equip = value.equipment ?? null;
-  const grip = value.grip ?? null;
-  const active = Boolean(equip || grip); // 팔(편측)은 세트별로 이동(v8) — 변형 차원에서 제외
-  // 트리거 칩은 축약 라벨("해머 · 언더 · 원암")로 모든 차원을 잘림 없이 표시. 전체 라벨은 모달 옵션에서.
-  const label = variantShortLabel(value, lang, machineVariantLabels);
+  const active = Boolean(equip); // 팔(v8)·그립(v11)은 세트별로 이동 — 종목 변형은 기구(머신 브랜드)만.
+  // 트리거 칩은 기구(브랜드) 축약 라벨. 그립·팔은 각 세트 행의 '변형'에서 설정.
+  const label = equipmentVariantShortLabel(equip, lang, machineVariantLabels);
 
   return (
     <>
@@ -67,22 +64,7 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
                 ))}
               </View>
 
-              {/* 그립 */}
-              <AppText variant="label" color="textMuted" style={styles.rowLabel}>
-                {t('variant.grip')}
-              </AppText>
-              <View style={styles.chipRow}>
-                {GRIP_OPTIONS.map((k) => (
-                  <SelectChip
-                    key={k ?? 'default'}
-                    label={k ? gripLabel(k, lang) : t('variant.default')}
-                    active={(k ?? null) === grip}
-                    onPress={() => onChange({ ...value, grip: k })}
-                  />
-                ))}
-              </View>
-
-              {/* 팔/다리(원암·투암)는 세트별로 설정(v8) — 각 세트 행의 투암/원암 토글에서. */}
+              {/* 그립(오버/언더/…)·팔(원암/투암)은 세트별로 설정(v11/v8) — 각 세트 행의 '변형'에서. */}
             </ScrollView>
           </Pressable>
         </Pressable>

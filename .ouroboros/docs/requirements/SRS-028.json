@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "id": "SRS-028",
   "type": "SRS",
-  "title": "종목 변형(variant) 모델 — 변형별(기구·그립·팔) 수행 기록 분리·버킷팅",
+  "title": "종목 변형(variant) 모델 — 기구 변형 버킷 + 팔·그립 세트별 기록",
   "status": "Approved",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-11T00:00:00Z",
-  "updated": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-13T00:00:00Z",
   "sync": true,
   "tags": [
     "variant",
@@ -15,7 +15,7 @@
     "records"
   ],
   "kind": "FR",
-  "acceptance_criteria": "set-log이 (exercise × variant tuple)로 버킷팅되고 이전기록·PR·볼륨·이력이 변형 버킷 기준으로 조회되며 기존 machine_variant를 무손실 승계",
+  "acceptance_criteria": "종목 변형 버킷은 기구(머신 브랜드)만으로 (exercise × equipment)로 분리 조회되고, 팔(원암/투암)·그립(오버/언더/…)은 세트 단위로 기록·표시되며 기존 machine_variant를 무손실 승계한다",
   "relations": {
     "derives_from": [
       "URS-016",
@@ -582,6 +582,27 @@
             "text": "도출 URS: URS-016(변형별 수행 기록 분리 니즈), URS-002(정확한 개인기록·진척 추적). 설계: SAD-019(variant_key·버킷·마이그레이션 아키텍처). 결정: ADR-025(정규화 canonical key + 개별 차원 컬럼 저장 전략, JSON 반려·grip 축 분리 후보). 관련: SRS-021 등 기록 기반 기능은 이 버킷 규약을 상속한다."
           }
         ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 — 팔·그립 세트별 이동 (v8/v11)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "초기 설계는 기구·그립·팔을 모두 종목 변형(variant_key) 차원으로 버킷팅했으나, 실사용상 같은 종목이라도 세트마다 팔(원암/투암)·그립(오버/언더/뉴트럴/와이드/클로즈)이 달라지므로 팔은 v8(set_logs.arm), 그립은 v11(set_logs.grip)에서 세트 단위로 이동했다(표시전용·볼륨/PR 미포함). 따라서 변형 버킷(이전기록·PR 분리)은 기구(머신 브랜드) 차원만 사용하며, 레거시 grip/arm 버킷 값은 backfillDropGripArmV11이 기구만으로 재계산해 통합한다. 세트행에서는 팔·그립을 '변형' 한 칸으로 통합해(모바일 공간 절약) 시트로 선택한다."
+          }
+        ]
       }
     ]
   },
@@ -595,16 +616,20 @@
     "app/src/data/workoutRepository.ts:47#effectiveVariantKey",
     "app/src/data/workoutRepository.ts:54#backfillVariantKeysV6",
     "app/src/data/workoutRepository.ts:540#setSetArm",
+    "app/src/data/workoutRepository.ts:544",
     "app/src/data/workoutRepository.ts:550#setVariant",
     "app/src/db/migrations.ts:112",
     "app/src/db/models/RoutineExercise.ts:22",
+    "app/src/db/models/SetLog.ts:23",
     "app/src/db/models/WorkoutExercise.ts:29",
     "app/src/db/schema.ts:121",
     "app/src/db/schema.ts:146",
+    "app/src/db/schema.ts:147",
     "app/src/db/schema.ts:72",
     "app/src/domain/variants.ts:1",
     "app/src/features/routines/RoutineEditorScreen.tsx:2",
     "app/src/features/routines/RoutineEditorScreen.tsx:453",
+    "app/src/features/session/ExerciseBlock.tsx:1",
     "app/src/features/session/ExerciseBlock.tsx:3",
     "app/src/features/session/ExerciseBlock.tsx:45#recordVariant",
     "app/src/features/session/ExerciseBlock.tsx:83"

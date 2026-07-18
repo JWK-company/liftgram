@@ -146,5 +146,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v11: 세트별 그립(over/under/…) — 팔(v8)처럼 그립도 세트 단위로. 기존 행 null(기본, 무해). @plm SRS-028
+    {
+      toVersion: 11,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'grip', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });
