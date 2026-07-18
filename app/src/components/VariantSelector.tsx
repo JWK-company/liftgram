@@ -6,7 +6,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './primitives';
 import { colors, radius, spacing } from '../theme';
 import {
-  equipmentOptionsFor,
+  IMPLEMENT_KEYS,
+  MACHINE_BRAND_VARIANT_KEYS,
+  isMachineEquipSel,
   equipmentVariantLabel,
   equipmentVariantShortLabel,
   type EquipmentType,
@@ -32,6 +34,12 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   // 트리거 칩은 기구(브랜드) 축약 라벨. 그립·팔은 각 세트 행의 '변형'에서 설정.
   const label = equipmentVariantShortLabel(equip, lang, machineVariantLabels);
 
+  // 2단계 기구 선택 — 베이스 기구(레벨1) + 머신 브랜드(레벨2, 들여쓰기). 머신 종목은 브랜드만.
+  const isMachineBase = baseEquipment === 'machine';
+  const machineActive = isMachineBase || isMachineEquipSel(equip);
+  const level1: (string | null)[] = [null, ...IMPLEMENT_KEYS];
+  const genericMachine: string | null = isMachineBase ? null : 'machine'; // '기본(브랜드 미지정) 머신'의 equipment 값
+
   return (
     <>
       <Pressable onPress={() => setOpen(true)} hitSlop={6} style={styles.chip}>
@@ -49,20 +57,48 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
               {t('variant.selectTitle')}
             </AppText>
             <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
-              {/* 기구 — 종목 기본 기구에 따라 브랜드/커스텀 또는 대체 기구 */}
-              <AppText variant="label" color="textMuted" style={styles.rowLabel}>
-                {t('variant.equipment')}
-              </AppText>
-              <View style={styles.chipRow}>
-                {equipmentOptionsFor(baseEquipment, equip).map((k) => (
-                  <SelectChip
-                    key={k ?? 'default'}
-                    label={equipmentVariantLabel(k, lang, machineVariantLabels)}
-                    active={(k ?? null) === equip}
-                    onPress={() => onChange({ ...value, equipment: k })}
-                  />
-                ))}
-              </View>
+              {/* 레벨1: 베이스 기구(프리웨이트 대체 기구). 머신 종목은 생략(기구가 머신 고정 → 브랜드만). */}
+              {isMachineBase ? null : (
+                <>
+                  <AppText variant="label" color="textMuted" style={styles.rowLabel}>
+                    {t('variant.equipment')}
+                  </AppText>
+                  <View style={styles.chipRow}>
+                    {level1.map((k) => (
+                      <SelectChip
+                        key={k ?? 'default'}
+                        label={equipmentVariantLabel(k, lang, machineVariantLabels)}
+                        active={k === 'machine' ? machineActive : (k ?? null) === equip}
+                        onPress={() => onChange({ ...value, equipment: k })}
+                      />
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {/* 레벨2: 머신 브랜드 — 한 레벨 아래(들여쓰기). 머신 선택 시(또는 머신 종목) 노출. 브랜드 선택은 옵션. */}
+              {machineActive ? (
+                <View style={styles.brandGroup}>
+                  <AppText variant="label" color="textFaint" style={styles.rowLabel}>
+                    {t('variant.machineBrand')}
+                  </AppText>
+                  <View style={styles.chipRow}>
+                    <SelectChip
+                      label={t('variant.default')}
+                      active={(equip ?? null) === (genericMachine ?? null)}
+                      onPress={() => onChange({ ...value, equipment: genericMachine })}
+                    />
+                    {MACHINE_BRAND_VARIANT_KEYS.map((k) => (
+                      <SelectChip
+                        key={k}
+                        label={equipmentVariantLabel(k, lang, machineVariantLabels)}
+                        active={equip === k}
+                        onPress={() => onChange({ ...value, equipment: k })}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ) : null}
 
               {/* 그립(오버/언더/…)·팔(원암/투암)은 세트별로 설정(v11/v8) — 각 세트 행의 '변형'에서. */}
             </ScrollView>
@@ -103,6 +139,8 @@ const styles = StyleSheet.create({
   list: { maxHeight: 460 },
   rowLabel: { marginTop: spacing.md, marginBottom: spacing.xs },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  // 머신 브랜드 하위 그룹 — 한 레벨 아래(들여쓰기 + 좌측 레일)로 브랜드 태그만 노출. @plm SRS-028
+  brandGroup: { marginLeft: spacing.md, paddingLeft: spacing.md, borderLeftWidth: 2, borderLeftColor: colors.primaryMuted },
   selChip: {
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,

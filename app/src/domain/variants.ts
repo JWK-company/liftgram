@@ -172,3 +172,12 @@ export function equipmentOptionsFor(
 }
 export const GRIP_OPTIONS: (GripKey | null)[] = [null, ...GRIP_KEYS];
 export const ARM_OPTIONS: (ArmKey | null)[] = ['bi', 'uni'];
+
+// --- 2단계 기구 선택(SRS-028) — 베이스 기구 vs 머신 브랜드 하위 레벨 ---
+// 선택값이 머신(기본) 또는 특정 브랜드/커스텀이면 true → 브랜드 하위 행 노출.
+export function isMachineEquipSel(sel: string | null | undefined): boolean {
+  const s = sel ?? '';
+  return s === 'machine' || (MACHINE_BRAND_KEYS as readonly string[]).includes(s) || (CUSTOM_VARIANT_KEYS as readonly string[]).includes(s);
+}
+// 머신 브랜드 하위 행 옵션(브랜드 + 커스텀). '기본(머신)'은 UI에서 별도 처리.
+export const MACHINE_BRAND_VARIANT_KEYS: string[] = [...MACHINE_BRAND_KEYS, ...CUSTOM_VARIANT_KEYS];

@@ -525,6 +525,7 @@ export const en: Record<TransKey, string> = {
   "machineVariant.settingsHint": "Name machines that share a brand but differ (seated/lying, etc.). Previous records and PRs are tracked per machine on machine exercises.",
   "variant.selectTitle": "Select variant",
   "variant.equipment": "Equipment",
+  "variant.machineBrand": "Machine brand",
   "variant.grip": "Grip",
   "variant.arm": "Arm/Leg",
   "variant.default": "Default",

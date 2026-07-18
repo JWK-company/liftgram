@@ -527,6 +527,7 @@ export const ko = {
   "machineVariant.settingsHint": "같은 브랜드라도 기구가 다르면(앉아서/누워서 등) 구분할 이름을 지정하세요. 머신 종목에서 기구별로 이전기록·PR이 따로 관리됩니다.",
   "variant.selectTitle": "변형 선택",
   "variant.equipment": "기구",
+  "variant.machineBrand": "머신 브랜드",
   "variant.grip": "그립",
   "variant.arm": "팔/다리",
   "variant.default": "기본",
