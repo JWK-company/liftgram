@@ -9,19 +9,32 @@
   "created": "2026-07-13T00:00:00Z",
   "updated": "2026-07-13T00:00:00Z",
   "sync": true,
-  "tags": ["cardio", "logging", "mvp"],
+  "tags": [
+    "cardio",
+    "logging",
+    "mvp"
+  ],
   "kind": "FR",
   "acceptance_criteria": "유산소 종목을 근력과 같은 세션에서 시간·거리로 기록하고, 볼륨·PR·1RM 계산에서 제외하며, 종목 요약에 총 시간·거리를 표시한다",
   "relations": {
-    "derives_from": ["URS-001"]
+    "derives_from": [
+      "URS-001"
+    ]
   },
   "doc": {
     "type": "doc",
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "요구 서술" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -30,7 +43,15 @@
             "type": "text",
             "text": "시스템은 러닝·트레드밀·사이클·로잉 등 "
           },
-          { "type": "text", "marks": [{ "type": "strong" }], "text": "유산소(cardio) 종목을 근력 종목과 같은 운동 세션 안에서 기록" },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "유산소(cardio) 종목을 근력 종목과 같은 운동 세션 안에서 기록"
+          },
           {
             "type": "text",
             "text": "한다. 유산소 종목은 무게×횟수 대신 시간(분)·거리(km)를 세트 단위로 입력하며, 저장은 정규 단위(초·미터)로 한다. 사용자 피드백('유산소 기록 어떻게 하는지 못 찾음')을 반영해, 별도 탭 분리 없이 종목의 한 종류(kind=cardio)로 통합하여 기존 세션·루틴·피드·캘린더·연속운동일 파이프라인을 그대로 재사용한다."
@@ -48,8 +69,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "수용 기준" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
       },
       {
         "type": "bullet_list",
@@ -60,7 +88,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "유산소 종목(트레드밀 러닝·러닝·걷기·실내 사이클·일립티컬·스텝밀·줄넘기·로잉 머신)을 카탈로그에서 찾아 세션에 추가할 수 있다." }
+                  {
+                    "type": "text",
+                    "text": "유산소 종목(트레드밀 러닝·러닝·걷기·실내 사이클·일립티컬·스텝밀·줄넘기·로잉 머신)을 카탈로그에서 찾아 세션에 추가할 수 있다."
+                  }
                 ]
               }
             ]
@@ -71,7 +102,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "유산소 종목의 세트 행은 무게·횟수 대신 시간(분)·거리(km) 입력 컬럼으로 렌더되고, 완료 체크·삭제는 근력과 동일하게 동작한다." }
+                  {
+                    "type": "text",
+                    "text": "유산소 종목의 세트 행은 무게·횟수 대신 시간(분)·거리(km) 입력 컬럼으로 렌더되고, 완료 체크·삭제는 근력과 동일하게 동작한다."
+                  }
                 ]
               }
             ]
@@ -82,7 +116,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "유산소 세트는 총중량·PR·추정 1RM에 기여하지 않는다(무게·횟수 0). 종목 요약에 총 시간·총 거리가 표시된다." }
+                  {
+                    "type": "text",
+                    "text": "유산소 세트는 총중량·PR·추정 1RM에 기여하지 않는다(무게·횟수 0). 종목 요약에 총 시간·총 거리가 표시된다."
+                  }
                 ]
               }
             ]
@@ -93,7 +130,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "기존 설치의 유산소성 종목(로잉 머신)은 부팅 시 멱등 백필로 kind=cardio 승격된다. 기존 근력 기록·세트는 무손실 유지된다(스키마 v10 addColumns)." }
+                  {
+                    "type": "text",
+                    "text": "기존 설치의 유산소성 종목(로잉 머신)은 부팅 시 멱등 백필로 kind=cardio 승격된다. 기존 근력 기록·세트는 무손실 유지된다(스키마 v10 addColumns)."
+                  }
                 ]
               }
             ]
@@ -102,8 +142,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "설계 반영 (스키마 v10)" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 반영 (스키마 v10)"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -116,8 +163,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -131,14 +185,39 @@
     ]
   },
   "code_refs": [
-    "app/src/db/schema.ts:38",
-    "app/src/db/schema.ts:148",
-    "app/src/db/migrations.ts:135",
+    "app/App.tsx:94",
+    "app/src/data/exerciseRepository.ts:15",
+    "app/src/data/seed/exercises.seed.ts:12",
+    "app/src/data/seed/exercises.seed.ts:192",
+    "app/src/data/seedRunner.ts:27",
+    "app/src/data/workoutRepository.ts:158",
+    "app/src/data/workoutRepository.ts:312",
+    "app/src/data/workoutRepository.ts:368#isCardioExerciseId",
+    "app/src/data/workoutRepository.ts:42",
+    "app/src/data/workoutRepository.ts:43",
+    "app/src/data/workoutRepository.ts:597",
+    "app/src/data/workoutRepository.ts:598#addSet",
+    "app/src/data/workoutRepository.ts:612",
+    "app/src/data/workoutRepository.ts:743",
+    "app/src/data/workoutRepository.ts:744",
+    "app/src/db/migrations.ts:132",
     "app/src/db/models/Exercise.ts:20",
     "app/src/db/models/SetLog.ts:22",
-    "app/src/domain/cardio.ts:1",
-    "app/src/domain/types.ts:19",
-    "app/src/data/workoutRepository.ts:130",
-    "app/src/features/session/ExerciseBlock.tsx:1"
+    "app/src/db/models/SetLog.ts:23",
+    "app/src/db/schema.ts:152",
+    "app/src/db/schema.ts:39",
+    "app/src/domain/cardio.ts:1#secToMinInput",
+    "app/src/domain/types.ts:18",
+    "app/src/domain/types.ts:59",
+    "app/src/domain/types.ts:60",
+    "app/src/features/exercises/ExerciseListScreen.tsx:161",
+    "app/src/features/exercises/ExerciseListScreen.tsx:253#t",
+    "app/src/features/exercises/ExerciseListScreen.tsx:33",
+    "app/src/features/session/ExerciseBlock.tsx:127",
+    "app/src/features/session/ExerciseBlock.tsx:229",
+    "app/src/features/session/ExerciseBlock.tsx:299",
+    "app/src/features/session/ExerciseBlock.tsx:358",
+    "app/src/features/session/ExerciseBlock.tsx:627#SetRowCardio",
+    "app/src/features/session/ExerciseBlock.tsx:701#CardioSummary"
   ]
 }

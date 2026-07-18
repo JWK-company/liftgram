@@ -222,7 +222,7 @@
     "app/src/data/analyticsRepository.ts:96#set",
     "app/src/data/seed/exercises.seed.ts:13",
     "app/src/data/seed/exercises.seed.ts:158",
-    "app/src/data/seedRunner.ts:25",
+    "app/src/data/seedRunner.ts:28",
     "app/src/data/userRepository.ts:40",
     "app/src/data/workoutRepository.ts:173",
     "app/src/data/workoutRepository.ts:251",
@@ -244,13 +244,13 @@
     "app/src/domain/types.ts:62",
     "app/src/domain/volume.ts:16#effectiveWeightKg",
     "app/src/domain/volume.ts:4#resolveLoadMode",
-    "app/src/features/profile/ProfileTabScreen.tsx:153#onSetBodyweight",
-    "app/src/features/profile/ProfileTabScreen.tsx:242",
-    "app/src/features/session/ExerciseBlock.tsx:109",
-    "app/src/features/session/ExerciseBlock.tsx:211",
-    "app/src/features/session/ExerciseBlock.tsx:252",
+    "app/src/features/profile/ProfileTabScreen.tsx:154#onSetBodyweight",
+    "app/src/features/profile/ProfileTabScreen.tsx:243",
+    "app/src/features/session/ExerciseBlock.tsx:100",
+    "app/src/features/session/ExerciseBlock.tsx:110",
+    "app/src/features/session/ExerciseBlock.tsx:214",
+    "app/src/features/session/ExerciseBlock.tsx:255",
     "app/src/features/session/ExerciseBlock.tsx:48",
-    "app/src/features/session/ExerciseBlock.tsx:99",
     "app/src/state/userContext.tsx:14"
   ]
 }

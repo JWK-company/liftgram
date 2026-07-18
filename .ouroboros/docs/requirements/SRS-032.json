@@ -187,9 +187,15 @@
     ]
   },
   "code_refs": [
-    "app/src/data/exerciseMedia.ts:1",
-    "app/src/data/exerciseMedia.data.ts:1",
-    "app/src/features/exercises/ExerciseDetailScreen.tsx:1",
-    "app/src/features/exercises/ExerciseListScreen.tsx:1"
+    "app/src/data/exerciseMedia.data.ts:1#RawMedia",
+    "app/src/data/exerciseMedia.data.ts:11",
+    "app/src/data/exerciseMedia.ts:1#ExerciseMedia",
+    "app/src/data/exerciseMedia.ts:6#ExerciseMedia",
+    "app/src/features/exercises/ExerciseDetailScreen.tsx:126",
+    "app/src/features/exercises/ExerciseDetailScreen.tsx:150",
+    "app/src/features/exercises/ExerciseDetailScreen.tsx:306#ExerciseAnimation",
+    "app/src/features/exercises/ExerciseListScreen.tsx:231",
+    "app/src/features/exercises/ExerciseListScreen.tsx:264",
+    "app/src/features/exercises/ExerciseListScreen.tsx:303"
   ]
 }
