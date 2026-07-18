@@ -6,12 +6,16 @@ import { database } from '../db/database';
 import { Workout, WorkoutExercise, SetLog, Exercise } from '../db/models';
 import {
   setVolumeKg,
+  effectiveWeightKg,
   estimateOneRepMax,
   bestEstimatedOneRepMax,
   legacyMachineVariantToV6,
+  resolveLoadMode,
+  type LoadMode,
   type LoggedSet,
   type MuscleGroup,
 } from '../domain';
+import { getUserBodyweightKg } from './workoutRepository'; // v12: 어시스트/맨몸 유효무게 @plm SRS-033
 
 const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
@@ -34,6 +38,10 @@ async function getCompletedSets(sinceMs?: number): Promise<EnrichedSet[]> {
   const wes = await workoutExercises().query(Q.where('workout_id', Q.oneOf(ws.map((w) => w.id)))).fetch();
   if (!wes.length) return [];
   const weById = new Map(wes.map((we) => [we.id, we]));
+  // v12: 종목 하중모드 + 사용자 체중 → 어시스트(체중-무게)/맨몸(체중+무게) 유효무게 반영. @plm SRS-033
+  const bw = await getUserBodyweightKg();
+  const exList = await exercises().query(Q.where('id', Q.oneOf([...new Set(wes.map((w) => w.exerciseId))]))).fetch();
+  const modeByEx = new Map<string, LoadMode>(exList.map((e) => [e.id, resolveLoadMode(e)]));
   const sets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch();
   const out: EnrichedSet[] = [];
   for (const s of sets) {
@@ -45,7 +53,15 @@ async function getCompletedSets(sinceMs?: number): Promise<EnrichedSet[]> {
       workoutId: w.id,
       completedAt: w.completedAt ?? w.startedAt,
       exerciseId: we.exerciseId,
-      set: { weightKg: s.weightKg, reps: s.reps, rpe: s.rpe, isWarmup: s.isWarmup, isFailed: s.isFailed },
+      set: {
+        weightKg: s.weightKg,
+        reps: s.reps,
+        rpe: s.rpe,
+        isWarmup: s.isWarmup,
+        isFailed: s.isFailed,
+        loadMode: modeByEx.get(we.exerciseId) ?? null,
+        bodyweightKg: bw,
+      },
     });
   }
   return out;
@@ -77,7 +93,7 @@ export async function getOverview(sinceMs?: number): Promise<AnalyticsOverview> 
     totalVolume += setVolumeKg(e.set);
     if (!e.set.isWarmup && !e.set.isFailed) {
       workingSets += 1;
-      const oneRM = estimateOneRepMax(e.set.weightKg, e.set.reps);
+      const oneRM = estimateOneRepMax(effectiveWeightKg(e.set), e.set.reps); // v12: 유효무게 기준 @plm SRS-033
       best1RM.set(e.exerciseId, Math.max(best1RM.get(e.exerciseId) ?? 0, oneRM));
     }
   }
@@ -226,18 +242,25 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
     .query(Q.where('workout_id', workoutId), Q.sortBy('sort_order', Q.asc))
     .fetch();
   const meta = await exerciseMeta(wes.map((w) => w.exerciseId));
+  // v12: 하중모드 + 체중 → 유효무게(어시스트/맨몸) 반영. @plm SRS-033
+  const bw = await getUserBodyweightKg();
+  const exList = await exercises().query(Q.where('id', Q.oneOf([...new Set(wes.map((w) => w.exerciseId))]))).fetch();
+  const modeByEx = new Map<string, LoadMode>(exList.map((e) => [e.id, resolveLoadMode(e)]));
   const details: WorkoutExerciseDetail[] = [];
   let total = 0;
   for (const we of wes) {
     const sets = await setLogs()
       .query(Q.where('workout_exercise_id', we.id), Q.sortBy('set_number', Q.asc))
       .fetch();
+    const loadMode = modeByEx.get(we.exerciseId) ?? null;
     const logged: LoggedSet[] = sets.map((s) => ({
       weightKg: s.weightKg,
       reps: s.reps,
       rpe: s.rpe,
       isWarmup: s.isWarmup,
       isFailed: s.isFailed,
+      loadMode,
+      bodyweightKg: bw,
     }));
     const volumeKg = logged.reduce((sum, s) => sum + setVolumeKg(s), 0);
     total += volumeKg;

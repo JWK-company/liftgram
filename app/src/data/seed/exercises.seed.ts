@@ -1,6 +1,6 @@
 // 기본 운동 카탈로그 시드 (SRS-001). 한/영 명칭 + 근육군 + 기구.
 // seedRunner가 매 실행 멱등 top-up(nameKo 기준 없는 종목만 추가)하므로 자유롭게 확장 가능.
-import type { EquipmentType, ExerciseKind, MuscleGroup } from '../../domain';
+import type { EquipmentType, ExerciseKind, LoadMode, MuscleGroup } from '../../domain';
 
 export interface SeedExercise {
   nameKo: string;
@@ -10,6 +10,7 @@ export interface SeedExercise {
   equipment: EquipmentType;
   category?: string;
   kind?: ExerciseKind; // v10: 'cardio'=유산소(시간·거리 기록). 미지정=근력. @plm SRS-030
+  loadMode?: LoadMode; // v12: 'assisted'(체중-무게)|'bodyweight'(체중+무게). 미지정=기구로 파생. @plm SRS-033
 }
 
 export const SEED_EXERCISES: SeedExercise[] = [
@@ -154,10 +155,10 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '배틀 로프', nameEn: 'Battle Rope', primaryMuscles: ['fullBody'], secondaryMuscles: ['shoulders'], equipment: 'other' },
   { nameKo: '로잉 머신', nameEn: 'Rowing Machine', primaryMuscles: ['fullBody'], secondaryMuscles: ['back'], equipment: 'machine' },
 
-  // ── 보조(어시스트) 종목 — 어시스트 머신 중량=보조하중(설정 가능). @plm SRS-001 ───
-  { nameKo: '어시스트 풀업', nameEn: 'Assisted Pull Up', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine' },
-  { nameKo: '어시스트 친업', nameEn: 'Assisted Chin Up', primaryMuscles: ['biceps'], secondaryMuscles: ['back'], equipment: 'machine' },
-  { nameKo: '어시스트 딥스', nameEn: 'Assisted Dip', primaryMuscles: ['triceps'], secondaryMuscles: ['chest'], equipment: 'machine' },
+  // ── 보조(어시스트) 종목 — 중량=보조하중, 유효무게=체중-보조하중(loadMode='assisted'). @plm SRS-001 SRS-033 ───
+  { nameKo: '어시스트 풀업', nameEn: 'Assisted Pull Up', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine', loadMode: 'assisted' },
+  { nameKo: '어시스트 친업', nameEn: 'Assisted Chin Up', primaryMuscles: ['biceps'], secondaryMuscles: ['back'], equipment: 'machine', loadMode: 'assisted' },
+  { nameKo: '어시스트 딥스', nameEn: 'Assisted Dip', primaryMuscles: ['triceps'], secondaryMuscles: ['chest'], equipment: 'machine', loadMode: 'assisted' },
 
   // ── 추가 상용 종목(#2) — 등 ────────────────────────────────────
   { nameKo: '하이 로우', nameEn: 'High Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'machine' },

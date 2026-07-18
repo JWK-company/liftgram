@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-033",
+  "type": "SRS",
+  "title": "몸무게 기반 유효 볼륨 — 어시스트(체중−보조)·맨몸±가중 + 사용자 체중 기입",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-18T00:00:00Z",
+  "updated": "2026-07-18T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "workout-logging",
+    "volume",
+    "bodyweight",
+    "assisted",
+    "personal-records"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "어시스트 종목은 (체중−보조무게), 맨몸 종목은 (체중+가중무게)로 유효무게를 계산해 볼륨·PR·추정1RM에 반영하고, 프로필에서 체중을 기입하며, 체중 미설정 시 원(raw) 무게로 폴백한다",
+  "relations": {
+    "derives_from": [
+      "URS-001"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "어시스트(보조) 종목은 보조무게를 " },
+          { "type": "text", "marks": [{ "type": "strong" }], "text": "많이 걸수록 실제 들어올린 무게가 줄어든다" },
+          { "type": "text", "text": " — 유효무게 = 체중 − 보조무게. 반대로 맨몸 종목(풀업·딥스 등)은 허리에 원판을 차는 등 가중을 더할 수 있어 유효무게 = 체중 + 가중무게다. 기존에는 설정한 무게를 그대로 볼륨에 넣어 어시스트일수록 볼륨이 커지는 역설이 있었고 맨몸운동은 무게 0으로 볼륨이 사라졌다. 본 요구는 종목의 하중모드(assisted/bodyweight/external)와 사용자 체중을 도입해 유효무게를 정확히 계산한다." }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "사용자는 프로필에서 체중(kg/lb)을 1회 기입한다. 체중이 유효무게 계산의 기준이 되며, 미설정(0/null)이면 체중 반영을 건너뛰고 원 무게로 폴백해 기존 동작을 보존한다(비파괴적). 유효무게는 운동 중 전역·종목별 볼륨, 완료 볼륨, 개인기록(PR), 추정 1RM, 분석(overview·최근 PR·상세)에 일관되게 반영된다." }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "어시스트 종목: 유효무게 = max(0, 체중 − 보조무게). 예) 체중 70·보조 30·8회 → 종목 볼륨 (70−30)×8 = 320kg." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "맨몸(±가중) 종목: 유효무게 = 체중 + 가중무게. 예) 체중 70·가중 20·8회 → 종목 볼륨 (70+20)×8 = 720kg. 가중 0이면 순수 체중 볼륨." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "외부무게(기본) 종목은 종전대로 설정 무게 그대로 계산한다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "세트 그리드 무게 컬럼 헤더가 하중모드별로 바뀐다(어시스트='보조', 맨몸='가중', 외부=단위 표시)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "프로필에서 체중을 기입·수정할 수 있고, 어시스트/맨몸 종목에서 체중 미설정 시 '체중 미설정' 안내가 표시되며 볼륨은 원 무게로 폴백한다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "유효무게가 볼륨뿐 아니라 PR·추정1RM·분석 지표에 일관 반영된다." }] }]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "스키마 v12 마이그레이션: user_profiles.bodyweight_kg, exercises.load_mode 추가(둘 다 optional·비파괴). 도메인 순수함수 effectiveWeightKg(volume.ts)가 하중모드+체중으로 유효무게를 계산하고 resolveLoadMode가 명시 load_mode 우선·없으면 기구(맨몸→bodyweight)로 파생. LoggedSet에 loadMode·bodyweightKg를 주입하는 enrichment 패턴으로 workoutRepository(라이브·완료·PR·이전스냅)·analyticsRepository(overview·최근PR·상세)의 모든 집계 지점을 통과시킨다. 시드의 어시스트 3종(풀업·친업·딥스)에 load_mode='assisted' 부여 + 기존 설치용 backfillLoadModeV12 부팅 백필. UI: 프로필 체중 스테퍼, ExerciseBlock의 종목별 볼륨·컬럼 라벨·미설정 안내. 도메인 유닛테스트 5종(어시스트·맨몸·외부·볼륨·모드파생) 추가." }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          { "type": "text", "text": "도출 URS: URS-001(핵심 운동 기록·볼륨·PR 정확도). 연계: 세트 로깅 정밀도(SRS-029)의 하중 처리 재정립(v9에서 제거됐던 보조/가중 개념을 하중모드로 정식 도입), 종목 볼륨 표시(SRS-005)에 유효무게 적용. 후속: 종목 상세/커스텀 종목에서 하중모드 직접 지정, 체중 변동 이력 기반 과거 볼륨 재계산." }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "app/src/domain/volume.ts:1",
+    "app/src/domain/types.ts:1",
+    "app/src/db/schema.ts:20",
+    "app/src/db/migrations.ts:1",
+    "app/src/data/workoutRepository.ts:1",
+    "app/src/data/analyticsRepository.ts:1",
+    "app/src/features/session/ExerciseBlock.tsx:1",
+    "app/src/features/profile/ProfileTabScreen.tsx:1"
+  ]
+}

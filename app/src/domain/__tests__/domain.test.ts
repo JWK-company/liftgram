@@ -25,6 +25,7 @@ import {
   legacyMachineVariantToV6,
   effectiveWeightKg,
   effectiveReps,
+  resolveLoadMode,
   minInputToSec,
   secToMinInput,
   kmInputToM,
@@ -322,6 +323,32 @@ test('유산소: 세트 합계(총 시간·거리)', () => {
 test('유산소: 무게·횟수 0 세트는 볼륨 0(근력 통계 미오염)', () => {
   // 유산소 세트는 weight=0/reps=0으로 저장 → 볼륨/PR에 기여하지 않음
   assert.equal(setVolumeKg(ws(0, 0, { durationSec: 1800, distanceM: 5000 })), 0);
+});
+
+// ── v12 하중모드(어시스트/맨몸±가중) 유효무게 — SRS-033 ────
+test('유효무게: 어시스트=체중-보조하중(0 바닥)', () => {
+  assert.equal(effectiveWeightKg(ws(30, 5, { loadMode: 'assisted', bodyweightKg: 70 })), 40); // 70-30
+  assert.equal(effectiveWeightKg(ws(80, 5, { loadMode: 'assisted', bodyweightKg: 70 })), 0); // 보조>체중 → 0
+  assert.equal(effectiveWeightKg(ws(30, 5, { loadMode: 'assisted' })), 30); // 체중 미설정 → raw
+});
+test('유효무게: 맨몸=체중+가중(0=순수 자체중)', () => {
+  assert.equal(effectiveWeightKg(ws(0, 8, { loadMode: 'bodyweight', bodyweightKg: 70 })), 70);
+  assert.equal(effectiveWeightKg(ws(20, 5, { loadMode: 'bodyweight', bodyweightKg: 70 })), 90);
+  assert.equal(effectiveWeightKg(ws(0, 8, { loadMode: 'bodyweight' })), 0); // 체중 미설정 → raw
+});
+test('유효무게: external은 체중 무관 raw', () => {
+  assert.equal(effectiveWeightKg(ws(100, 5, { loadMode: 'external', bodyweightKg: 70 })), 100);
+  assert.equal(effectiveWeightKg(ws(100, 5)), 100);
+});
+test('볼륨: 어시스트/맨몸 유효무게로 계산', () => {
+  assert.equal(setVolumeKg(ws(30, 8, { loadMode: 'assisted', bodyweightKg: 70 })), 320); // (70-30)*8
+  assert.equal(setVolumeKg(ws(20, 5, { loadMode: 'bodyweight', bodyweightKg: 70 })), 450); // (70+20)*5
+});
+test('resolveLoadMode: 명시 우선, 맨몸 기구 파생', () => {
+  assert.equal(resolveLoadMode({ loadMode: 'assisted', equipment: 'machine' }), 'assisted');
+  assert.equal(resolveLoadMode({ loadMode: null, equipment: 'bodyweight' }), 'bodyweight');
+  assert.equal(resolveLoadMode({ loadMode: null, equipment: 'barbell' }), 'external');
+  assert.equal(resolveLoadMode({ equipment: 'cable' }), 'external');
 });
 
 // ── 스무고개 트리 커버리지 — SRS-031 (큐레이션 누락·오타 방지) ────

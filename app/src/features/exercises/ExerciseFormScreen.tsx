@@ -88,24 +88,24 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
     }
   };
 
-  const valid = useMemo(
-    () => nameKo.trim().length > 0 && primary.length >= 1 && equipment !== null,
-    [nameKo, primary, equipment],
-  );
+  // 이름만 있으면 생성 가능 — 근육군·기구는 선택(미지정 시 '기타'로 기본). @plm SRS-001
+  const valid = useMemo(() => nameKo.trim().length > 0, [nameKo]);
 
   const onSave = async () => {
-    if (!valid || equipment === null || saving) return;
+    if (!valid || saving) return;
     setSaving(true);
     try {
-      // 보조 근육에서 주 근육 중복 제거
-      const secondaryClean = secondary.filter((m) => !primary.includes(m));
+      // 보조 근육에서 주 근육 중복 제거. 미선택 근육/기구는 '기타'로 폴백(이름만으로 생성 지원).
+      const primaryClean = primary.length ? primary : (['other'] as MuscleGroup[]);
+      const secondaryClean = secondary.filter((m) => !primaryClean.includes(m));
+      const eq = equipment ?? 'other';
       if (isEdit && exerciseId) {
         await exerciseRepo.updateExercise(exerciseId, {
           nameKo: nameKo.trim(),
           nameEn: nameEn.trim() || null,
-          primaryMuscles: primary,
+          primaryMuscles: primaryClean,
           secondaryMuscles: secondaryClean,
-          equipment,
+          equipment: eq,
           category: category.trim() || null,
           imageUrl,
         });
@@ -113,9 +113,9 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
         await exerciseRepo.createCustomExercise({
           nameKo: nameKo.trim(),
           nameEn: nameEn.trim() || null,
-          primaryMuscles: primary,
+          primaryMuscles: primaryClean,
           secondaryMuscles: secondaryClean,
-          equipment,
+          equipment: eq,
           category: category.trim() || null,
           imageUrl,
         });
@@ -182,7 +182,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
         </View>
       </View>
 
-      <FieldLabel text={t('exercises.primaryMusclesLabel')} hint={t('exercises.selectOneOrMoreHint')} />
+      <FieldLabel text={t('exercises.primaryMusclesLabel')} hint={t('exercises.optionalHint')} />
       <ChipGrid>
         {ALL_MUSCLE_GROUPS.map((m) => (
           <Chip key={m} label={muscleLabel(m, lang)} active={primary.includes(m)} onPress={() => togglePrimary(m)} />
@@ -201,7 +201,7 @@ export default function ExerciseFormScreen({ navigation, route }: RootStackScree
         ))}
       </ChipGrid>
 
-      <FieldLabel text={t('exercises.equipmentLabel')} hint={t('exercises.selectOneHint')} />
+      <FieldLabel text={t('exercises.equipmentLabel')} hint={t('exercises.optionalHint')} />
       <ChipGrid>
         {ALL_EQUIPMENT.map((eq) => (
           <Chip

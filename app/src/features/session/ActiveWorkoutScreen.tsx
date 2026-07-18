@@ -34,7 +34,7 @@ function elapsedSeconds(w: Workout, now: number): number {
 export default function ActiveWorkoutScreen({ navigation, route }: RootStackScreenProps<'ActiveWorkout'>) {
   const { t } = useT();
   const { workoutId } = route.params;
-  const { weightUnit, barWeightKg } = useUser();
+  const { weightUnit, barWeightKg, bodyweightKg } = useUser();
   const { setActiveWorkoutId, restRemaining, startRest, clearRest } = useSession();
   const weightStep = weightUnit === 'kg' ? 2.5 : 5;
 
@@ -249,6 +249,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
               weightUnit={weightUnit}
               weightStep={weightStep}
               barWeightKg={barWeightKg}
+              bodyweightKg={bodyweightKg}
               onStartRest={startRest}
               onSwap={handleSwapExercise}
               onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}

@@ -11,6 +11,7 @@ interface UserContextValue {
   weightUnit: WeightUnit;
   language: AppLanguage;
   barWeightKg: number;
+  bodyweightKg: number | null; // v12: 체중(맨몸±가중/보조 볼륨). @plm SRS-033
   availableEquipment: EquipmentType[];
   machineVariantLabels: string[];
   refresh: () => Promise<void>;
@@ -45,6 +46,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     weightUnit: user?.weightUnit ?? 'kg',
     language: user?.preferredLanguage ?? 'ko',
     barWeightKg: user?.barWeightKg ?? DEFAULT_BAR_KG,
+    bodyweightKg: user?.bodyweightKg ?? null,
     availableEquipment: user?.availableEquipment ?? [],
     machineVariantLabels: user?.machineVariantLabels ?? [],
     refresh,

@@ -156,5 +156,19 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v12: 사용자 체중 + 종목 하중모드(맨몸±가중/보조) — 어시스트/가중 볼륨을 체중 기준으로. 기존 행 null(무해). @plm SRS-033
+    {
+      toVersion: 12,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'bodyweight_kg', type: 'number', isOptional: true }],
+        }),
+        addColumns({
+          table: 'exercises',
+          columns: [{ name: 'load_mode', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

@@ -16,6 +16,7 @@ export default class UserProfile extends Model {
   @json('available_equipment', sanitizeStringArray) availableEquipment!: EquipmentType[]; // 빈=전체(필터 없음)
   @json('machine_variant_labels', sanitizeStringArray) machineVariantLabels!: string[]; // v5: 커스텀 기구 이름(전역 공용, 최대 3)
   @field('bar_weight_kg') barWeightKg!: number;
+  @field('bodyweight_kg') bodyweightKg!: number | null; // v12: 체중 — 맨몸±가중/보조 볼륨 계산. @plm SRS-033
   @field('last_sync_at') lastSyncAt!: number | null;
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;

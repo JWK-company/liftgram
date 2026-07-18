@@ -60,7 +60,7 @@ const REST_VOLUME_LABEL: Record<RestVolumeLevel, TransKey> = {
 
 export default function ProfileTabScreen({ navigation }: TabScreenProps<'ProfileTab'>) {
   const { t, lang } = useT();
-  const { user, weightUnit, language, barWeightKg, availableEquipment, machineVariantLabels, refresh } = useUser();
+  const { user, weightUnit, language, barWeightKg, bodyweightKg, availableEquipment, machineVariantLabels, refresh } = useUser();
   const [busy, setBusy] = useState(false);
   const [customLabels, setCustomLabels] = useState<string[]>(() => {
     const a = machineVariantLabels.slice(0, CUSTOM_VARIANT_COUNT);
@@ -150,6 +150,12 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
     void patch(() => userRepo.updateUserSettings(userId, { barWeightKg: toKg(displayValue, weightUnit) }));
   }
 
+  // v12: 체중 — 어시스트(체중-보조)·맨몸±가중 볼륨 계산 기준. 0이면 미설정(null). @plm SRS-033
+  function onSetBodyweight(displayValue: number) {
+    const kg = displayValue > 0 ? toKg(displayValue, weightUnit) : null;
+    void patch(() => userRepo.updateUserSettings(userId, { bodyweightKg: kg }));
+  }
+
   function onToggleEquipment(eq: EquipmentType) {
     const next = availableEquipment.includes(eq)
       ? availableEquipment.filter((e) => e !== eq)
@@ -229,6 +235,26 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
             onChange={onSetBarWeight}
             step={weightStep}
             min={0}
+            suffix={weightUnit}
+          />
+        </View>
+
+        {/* 체중 (v12) — 어시스트/맨몸±가중 볼륨 계산 기준. @plm SRS-033 */}
+        <View style={styles.stepperRow}>
+          <View style={styles.stepperLabel}>
+            <AppText variant="body" weight="medium">
+              {t('profile.bodyweight')}
+            </AppText>
+            <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+              {t('profile.bodyweightCaption')}
+            </AppText>
+          </View>
+          <NumberStepper
+            value={bodyweightKg != null ? Number(fromKg(bodyweightKg, weightUnit).toFixed(1)) : 0}
+            onChange={onSetBodyweight}
+            step={weightStep === 2.5 ? 0.5 : 1}
+            min={0}
+            max={weightUnit === 'kg' ? 300 : 660}
             suffix={weightUnit}
           />
         </View>

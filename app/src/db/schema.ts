@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 11;
+export const SCHEMA_VERSION = 12;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -17,6 +17,7 @@ export const mySchema = appSchema({
         { name: 'auth_provider', type: 'string' }, // 'local' | 'email' | 'google' | 'apple'
         { name: 'preferred_language', type: 'string' }, // 'ko' | 'en'
         { name: 'weight_unit', type: 'string' }, // 'kg' | 'lb'
+        { name: 'bodyweight_kg', type: 'number', isOptional: true }, // v12: 사용자 체중 — 맨몸±가중/보조 볼륨 계산. @plm SRS-033
         { name: 'available_equipment', type: 'string', isOptional: true }, // JSON EquipmentType[] (가용 기구 — 빈/미설정=전체)
         { name: 'machine_variant_labels', type: 'string', isOptional: true }, // v5: JSON string[3] 커스텀 기구 이름(전역 공용)
         { name: 'bar_weight_kg', type: 'number' },
@@ -36,6 +37,7 @@ export const mySchema = appSchema({
         { name: 'equipment', type: 'string', isIndexed: true }, // EquipmentType
         { name: 'category', type: 'string', isOptional: true },
         { name: 'kind', type: 'string', isOptional: true }, // v10: 'strength'(기본·null포함) | 'cardio'(유산소). @plm SRS-030
+        { name: 'load_mode', type: 'string', isOptional: true }, // v12: 'assisted'(체중-무게)|'bodyweight'(체중+무게)|null(외부무게). @plm SRS-033
         { name: 'is_custom', type: 'boolean' },
         { name: 'substitute_ids', type: 'string' }, // JSON string[] (대체운동 exercise id)
         { name: 'image_url', type: 'string', isOptional: true }, // v7: 종목 이미지(#8) — 업로드 URL. @plm SRS-001

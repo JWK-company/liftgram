@@ -28,9 +28,12 @@ import {
   GRIP_KEYS,
   gripLabel,
   gripShortLabel,
+  effectiveWeightKg,
+  resolveLoadMode,
   type ArmKey,
   type EquipmentType,
   type GripKey,
+  type LoadMode,
   type VariantDims,
   type WeightUnit,
 } from '../../domain';
@@ -42,6 +45,7 @@ interface ExerciseBlockProps {
   weightUnit: WeightUnit;
   weightStep: number;
   barWeightKg: number;
+  bodyweightKg: number | null; // v12: 어시스트/맨몸±가중 유효무게 계산. @plm SRS-033
   onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
   onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
   onMoveUp?: () => void; // 운동 중 순서 위로(#11) — 없으면 최상단
@@ -84,7 +88,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStartRest, onSwap, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -92,6 +96,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   const [prevSets, setPrevSets] = useState<LogSetInput[]>([]);
   const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
   const [prevCleared, setPrevCleared] = useState(false); // 이 종목 이전기록 표시 숨김(세션 로컬). @plm SRS-004
+  const [loadMode, setLoadMode] = useState<LoadMode>('external'); // v12: 어시스트/맨몸 하중모드(볼륨 계산). @plm SRS-033
 
   // 종목별 볼륨(#) — 무게·횟수·done은 필드변경이라 observe 미반영 → 1.5s 틱으로 재계산(전역 볼륨과 동일 방식). @plm SRS-005
   const [volTick, setVolTick] = useState(0);
@@ -101,12 +106,14 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   }, []);
   const exVol = useMemo(() => {
     const perf = sets.filter((s) => s.done !== false && !s.isWarmup && !s.isFailed);
-    const volume = perf.reduce((sum, s) => sum + Math.max(0, s.weightKg) * s.reps, 0);
+    // v12: 어시스트=체중-무게, 맨몸=체중+무게, 외부=무게. 체중 미설정이면 raw 무게. @plm SRS-033
+    const eff = (s: SetLog) => effectiveWeightKg({ weightKg: s.weightKg, reps: s.reps, isWarmup: s.isWarmup, isFailed: s.isFailed, loadMode, bodyweightKg });
+    const volume = perf.reduce((sum, s) => sum + eff(s) * s.reps, 0);
     const reps = perf.reduce((sum, s) => sum + s.reps, 0);
     return { volume, reps };
     // volTick를 의존성에 넣어 필드변경(무게/횟수/done)을 주기적으로 반영. sets 배열은 add/remove시만 재방출.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sets, volTick]);
+  }, [sets, volTick, loadMode, bodyweightKg]);
 
   // 종목 변형(기구·그립·팔) — 이전기록·PR을 이 변형 것으로 분리 조회. @plm SRS-028
   const [variant, setVariant] = useState<VariantDims>(() => recordVariant(we));
@@ -127,6 +134,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
         if (!alive) return;
         setBaseEquipment(e.equipment);
         setIsCardio(e.kind === 'cardio');
+        setLoadMode(resolveLoadMode(e));
       })
       .catch(() => {});
     return () => {
@@ -200,6 +208,15 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
   });
 
   const grouped = !!we.supersetGroup;
+  // v12: 하중모드별 무게 컬럼 라벨 + 체중 미설정 안내. @plm SRS-033
+  const weightColLabel =
+    loadMode === 'assisted'
+      ? t('session.assistColHeader')
+      : loadMode === 'bodyweight'
+        ? t('session.addedColHeader')
+        : t('session.weightLabel', { weightUnit });
+  const bwRelative = loadMode === 'assisted' || loadMode === 'bodyweight';
+  const bwMissing = bwRelative && bodyweightKg == null;
   return (
     <Card style={[styles.block, grouped && styles.blockGrouped]}>
       <View style={styles.header}>
@@ -231,6 +248,12 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
                     : t('session.exTotalReps', { reps: exVol.reps })}
                 </AppText>
               </View>
+            ) : null}
+            {/* 어시스트/맨몸±가중인데 체중 미설정 → 볼륨이 체중 반영 안 됨 안내. @plm SRS-033 */}
+            {bwMissing ? (
+              <AppText variant="label" color="warning">
+                {t('session.bodyweightNeeded')}
+              </AppText>
             ) : null}
             {/* 이전 기록 지우기/표시 — 새 루틴 등에서 안 보고 싶을 때. 세션 로컬(이력 삭제 아님). @plm SRS-004 */}
             {!isCardio && (hasPrev || prevCleared) ? (
@@ -297,7 +320,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, onStart
             {t('session.prevColHeader')}
           </AppText>
           <AppText variant="label" color="textFaint" style={styles.colVal}>
-            {t('session.weightLabel', { weightUnit })}
+            {weightColLabel}
           </AppText>
           <AppText variant="label" color="textFaint" style={styles.colVal}>
             {t('session.repsLabel')}

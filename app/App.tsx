@@ -10,7 +10,7 @@ import type { RootStackParamList } from './src/navigation/types';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
-import { backfillVariantKeysV6, consolidateExercisesV8, backfillCardioKindV10, backfillDropGripArmV11 } from './src/data/workoutRepository';
+import { backfillVariantKeysV6, consolidateExercisesV8, backfillCardioKindV10, backfillDropGripArmV11, backfillLoadModeV12 } from './src/data/workoutRepository';
 import { AppText, AlertHost, ConfigBanner, GlobalWorkoutBar } from './src/components';
 import { OnboardingOverlay } from './src/features/onboarding/OnboardingOverlay';
 import { installWebAlert } from './src/utils/alert';
@@ -93,6 +93,7 @@ export default function App() {
         await consolidateExercisesV8(); // #13 종목 통합(멱등) — 인클라인 프레스 등 기구 변형으로 흡수.
         await backfillCardioKindV10(); // v10 유산소 승격(멱등) — 로잉 머신 등 kind='cardio'. @plm SRS-030
         await backfillDropGripArmV11(); // v11 그립·팔 세트이동(멱등) — 레거시 변형 버킷서 grip/arm 제거. @plm SRS-028
+        await backfillLoadModeV12(); // v12 어시스트 하중모드 승격(멱등) — load_mode='assisted'. @plm SRS-033
       } catch (e) {
         setError(String(e));
       } finally {

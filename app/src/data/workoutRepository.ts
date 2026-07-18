@@ -3,16 +3,19 @@
 import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
-import { Workout, WorkoutExercise, SetLog, Routine, RoutineExercise, Exercise } from '../db/models';
+import { Workout, WorkoutExercise, SetLog, Routine, RoutineExercise, Exercise, UserProfile } from '../db/models';
 import { getExercise } from './exerciseRepository';
 import {
   totalVolumeKg,
+  setVolumeKg,
   snapshotFromSets,
   detectNewPRs,
   effectiveWeightKg,
   effectiveReps,
+  resolveLoadMode,
   EMPTY_PR,
   type LoggedSet,
+  type LoadMode,
   type PRResult,
   type PRSnapshot,
   type EquipmentType,
@@ -27,7 +30,8 @@ const setLogs = () => database.get<SetLog>('set_logs');
 const routines = () => database.get<Routine>('routines');
 const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
 
-function toLoggedSet(s: SetLog): LoggedSet {
+// loadMode·bodyweightKg를 주입하면 유효무게가 어시스트(체중-무게)/맨몸(체중+무게) 반영. 미주입=raw. @plm SRS-033
+function toLoggedSet(s: SetLog, loadMode: LoadMode | null = null, bodyweightKg: number | null = null): LoggedSet {
   return {
     weightKg: s.weightKg,
     reps: s.reps,
@@ -37,7 +41,29 @@ function toLoggedSet(s: SetLog): LoggedSet {
     partialReps: s.partialReps, // v9: 부분반복(깔짝) — 표시전용, 볼륨/PR 제외 @plm SRS-029
     durationSec: s.durationSec, // v10: 유산소 시간 — 볼륨/PR 제외 @plm SRS-030
     distanceM: s.distanceM, // v10: 유산소 거리 — 볼륨/PR 제외 @plm SRS-030
+    loadMode, // v12: 하중모드 @plm SRS-033
+    bodyweightKg, // v12: 계산 시점 체중 @plm SRS-033
   };
+}
+
+// 사용자 체중(kg) — 어시스트/맨몸 유효무게 계산용. 미입력=null → raw 무게 폴백. @plm SRS-033
+export async function getUserBodyweightKg(): Promise<number | null> {
+  try {
+    const [u] = await database.get<UserProfile>('user_profiles').query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
+    return u?.bodyweightKg ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// 주어진 종목 id들의 하중모드 맵(load_mode 명시 우선, 없으면 기구로 파생). @plm SRS-033
+async function loadModeByExerciseId(exerciseIds: string[]): Promise<Map<string, LoadMode>> {
+  const uniq = [...new Set(exerciseIds)];
+  const map = new Map<string, LoadMode>();
+  if (!uniq.length) return map;
+  const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(uniq))).fetch();
+  for (const e of exs) map.set(e.id, resolveLoadMode(e));
+  return map;
 }
 
 // 수행 완료된 세트 판정 — done===false(프리레이 미완료 템플릿)만 제외.
@@ -143,6 +169,20 @@ export async function backfillCardioKindV10(): Promise<number> {
   return targets.length;
 }
 
+// v12: 어시스트 종목 하중모드 승격(멱등) — 기존 설치의 '어시스트 X'에 load_mode='assisted'를 채운다.
+// (맨몸 모드는 equipment='bodyweight'로 파생하므로 백필 불필요. 신규 시드는 seedRunner가 채움.) @plm SRS-033
+const ASSISTED_SEED_NAMES = ['어시스트 풀업', '어시스트 친업', '어시스트 딥스'];
+export async function backfillLoadModeV12(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  const rows = await exercises.query(Q.where('is_custom', false)).fetch();
+  const targets = rows.filter((e) => e.loadMode !== 'assisted' && ASSISTED_SEED_NAMES.includes(e.nameKo));
+  if (!targets.length) return 0;
+  await database.write(async () => {
+    await database.batch(...targets.map((e) => e.prepareUpdate((rec) => { rec.loadMode = 'assisted'; })));
+  });
+  return targets.length;
+}
+
 // v11: 그립·팔이 세트별(set_logs)로 이동 → 종목 변형 버킷은 기구만. 레거시 workout/routine_exercises의
 // variant_grip/variant_arm을 버킷 키에서 제거(기구만으로 재계산·컬럼 null)해 신규/즉석/루틴이 한 버킷으로
 // 통합되게 한다(같은 종목이 출처에 따라 다른 이전기록/PR을 보이던 문제 해소). 멱등. @plm SRS-028
@@ -208,11 +248,14 @@ export async function reorderWorkoutExercises(orderedIds: string[]): Promise<voi
 export async function getWorkoutLiveVolume(workoutId: string): Promise<number> {
   const wes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
   if (!wes.length) return 0;
+  const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
+  const modeByEx = await loadModeByExerciseId(wes.map((w) => w.exerciseId));
+  const modeByWe = new Map(wes.map((w) => [w.id, modeByEx.get(w.exerciseId) ?? 'external']));
   const sets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch();
   let v = 0;
   for (const s of sets) {
     if (!isPerformed(s) || s.isWarmup || s.isFailed) continue;
-    v += Math.max(0, s.weightKg) * s.reps; // v9: 부분반복 제외(정자세 reps만)
+    v += setVolumeKg(toLoggedSet(s, modeByWe.get(s.workoutExerciseId) ?? null, bw)); // 유효무게×정자세reps
   }
   return v;
 }
@@ -304,13 +347,15 @@ export async function getExercisePR(
   if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 PR 분리
   const wes = await workoutExercises().query(...clauses).fetch();
   if (!wes.length) return null;
+  const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
   const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch())
     .filter(isPerformed)
     .filter((s) => !s.isWarmup);
   let best: { weightKg: number; reps: number } | null = null;
   for (const s of sets) {
-    const ls = toLoggedSet(s);
-    const w = effectiveWeightKg(ls); // v6: 보정무게 반영 @plm SRS-029
+    const ls = toLoggedSet(s, loadMode, bw);
+    const w = effectiveWeightKg(ls); // v12: 하중모드(어시스트/맨몸) 반영 @plm SRS-033
     const r = effectiveReps(ls);
     if (!best || w > best.weightKg || (w === best.weightKg && r > best.reps)) best = { weightKg: w, reps: r };
   }
@@ -786,7 +831,9 @@ async function historicalSnapshotForExercise(
   const sets = (
     await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch()
   ).filter(isPerformed);
-  return snapshotFromSets(sets.map(toLoggedSet));
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  return snapshotFromSets(sets.map((s) => toLoggedSet(s, loadMode, bw)));
 }
 
 export interface WorkoutPRDetail {
@@ -817,6 +864,8 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   const emptyWEs: WorkoutExercise[] = []; // 완료 후 수행 세트 0개 종목 → 삭제(피드 종목수 과대·빈 카드 방지).
   // PR은 (종목 × 기구) 단위 1회 — 같은 종목이라도 머신 기구가 다르면 별도 기록으로 비교.
   const performedByVariant = new Map<string, { exerciseId: string; variant: string | null; logged: LoggedSet[] }>();
+  const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
+  const modeByEx = await loadModeByExerciseId(wes.map((w) => w.exerciseId));
 
   for (const we of wes) {
     const all = await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch();
@@ -826,7 +875,8 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
       emptyWEs.push(we);
       continue;
     }
-    const logged = performed.map(toLoggedSet);
+    const loadMode = modeByEx.get(we.exerciseId) ?? null;
+    const logged = performed.map((s) => toLoggedSet(s, loadMode, bw));
     totalVolume += totalVolumeKg(logged);
     workingSets += logged.filter((s) => !s.isWarmup && !s.isFailed).length;
     const vk = effectiveVariantKey(we); // v6: (종목×변형) 버킷 키

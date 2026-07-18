@@ -37,6 +37,7 @@ export interface UserSettingsPatch {
   weightUnit?: WeightUnit;
   preferredLanguage?: AppLanguage;
   barWeightKg?: number;
+  bodyweightKg?: number | null; // v12: 체중 — 맨몸±가중/보조 볼륨. @plm SRS-033
   displayName?: string | null;
   availableEquipment?: EquipmentType[];
   machineVariantLabels?: string[];
@@ -49,6 +50,7 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.weightUnit !== undefined) rec.weightUnit = patch.weightUnit;
       if (patch.preferredLanguage !== undefined) rec.preferredLanguage = patch.preferredLanguage;
       if (patch.barWeightKg !== undefined) rec.barWeightKg = patch.barWeightKg;
+      if (patch.bodyweightKg !== undefined) rec.bodyweightKg = patch.bodyweightKg;
       if (patch.displayName !== undefined) rec.displayName = patch.displayName;
       if (patch.availableEquipment !== undefined) rec.availableEquipment = patch.availableEquipment;
       if (patch.machineVariantLabels !== undefined) rec.machineVariantLabels = patch.machineVariantLabels;

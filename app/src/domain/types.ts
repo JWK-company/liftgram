@@ -21,6 +21,11 @@ export function isCardioKind(kind: ExerciseKind | null | undefined): boolean {
   return kind === 'cardio';
 }
 
+// 하중 모드 — 볼륨 계산 시 세트 무게의 의미. @plm SRS-033
+// external(기본): 유효무게=무게(바벨/덤벨/머신). assisted: 유효무게=체중-무게(어시스트 머신, 보조하중 클수록 실무게↓).
+// bodyweight: 유효무게=체중+무게(맨몸, 무게=가중분·0=순수 자체중).
+export type LoadMode = 'external' | 'assisted' | 'bodyweight';
+
 export type MuscleGroup =
   | 'chest'
   | 'back'
@@ -53,6 +58,8 @@ export interface LoggedSet {
   partialReps?: number | null; // v9: 부분반복(깔짝) — 정자세 후 반동/보조로 추가한 횟수. 볼륨/PR 제외·표시전용. @plm SRS-029
   durationSec?: number | null; // v10: 유산소 수행 시간(초) — 볼륨/PR 제외. @plm SRS-030
   distanceM?: number | null; // v10: 유산소 거리(미터) — 볼륨/PR 제외. @plm SRS-030
+  loadMode?: LoadMode | null; // v12: 하중모드(어시스트/맨몸) — 유효무게 계산. @plm SRS-033
+  bodyweightKg?: number | null; // v12: 계산 시점 사용자 체중(assisted/bodyweight일 때만 사용). @plm SRS-033
   strictReps?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
   loadAdjustKg?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
 }
