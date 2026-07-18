@@ -1,7 +1,9 @@
-// @plm SRS-032  종목 미디어(자세 사진·설명) — free-exercise-db(퍼블릭도메인 데이터, 이미지 출처 Everkinetic CC-BY-SA)
-// 매핑을 정적 데이터로 베이크(런타임·네트워크 의존 0, 오프라인 PWA 안전). 이미지는 jsDelivr CDN에서 서빙.
-// 시작/끝 2프레임을 교차 표시해 동작을 시연('가난한 자의 움짤'). GIF는 무료 합법본이 없어 사진 2컷 채택.
-// 이미지 라이선스(CC-BY-SA) 준수 위해 상세화면에 출처 크레딧 표기. @plm SRS-032
+// @plm SRS-032  종목 미디어(자세 사진·설명) — free-exercise-db.
+// 라이선스: 원본 LICENSE.md·GitHub 모두 Unlicense(퍼블릭 도메인, 이미지 포함 리포 전체·상업이용/판매 자유·출처표기 의무 없음).
+// (이미지 원출처는 문서화돼 있지 않아 chain-of-title 잔여 리스크 존재 — 유료 상용 시 IP 검토 권장.)
+// 매핑을 정적 데이터로 베이크(런타임·네트워크 의존 0, 오프라인 PWA 안전). 이미지는 jsDelivr CDN 서빙.
+// 시작/끝 2프레임 교차로 동작 시연('가난한 자의 움짤'). 무료 합법 GIF는 없어 사진 2컷 채택.
+// 크레딧은 의무 아니나 관례상 표기(출처 존중). @plm SRS-032
 
 export interface ExerciseMedia {
   start: string; // 시작 자세 이미지 CDN URL
@@ -26,5 +28,5 @@ export function getExerciseMedia(nameKo: string): ExerciseMedia | null {
   return { start: freeDbImageUrl(r.s), end: freeDbImageUrl(r.e), instructionsKo: r.k, instructionsEn: r.en };
 }
 
-// 이미지 출처 크레딧(CC-BY-SA 준수).
-export const EXERCISE_MEDIA_CREDIT = 'free-exercise-db · Everkinetic (CC-BY-SA)';
+// 이미지 출처 크레딧(관례 표기 — Unlicense는 의무 아님).
+export const EXERCISE_MEDIA_CREDIT = 'free-exercise-db (Public Domain)';
