@@ -1,0 +1,145 @@
+import { Callout } from 'nextra/components'
+
+# 메모리 시스템
+
+Ouroboros의 메모리 시스템은 작업 경험을 축적하고 검색하는 핵심 인프라입니다.
+
+---
+
+## 메모리 타입
+
+6가지 메모리 타입을 지원합니다.
+
+| 타입 | 수명 | 설명 | 예시 |
+|------|------|------|------|
+| `gotcha` | 영구 | 삽질/함정/예상과 다른 결과 | "이 통계는 연도별이 아니라 분기별 기준이다" |
+| `pattern` | 영구 | 재사용 가능한 문서/설계 패턴 | "경영진 보고서는 결론-근거-제안 순서가 효과적" |
+| `decision` | 영구 (버전관리) | 문서 전략/방향 결정 | "기술 백서는 비유 중심으로 작성하기로 결정" |
+| `insight` | 영구 | 비자명한 발견/맥락 이해 | "이 도메인에서는 %보다 절대값이 더 설득력 있다" |
+| `domain-knowledge` | 영구 | 도메인 특화 지식 | "결제 취소는 T+1일까지만 가능" |
+| `preference` | 영구 | 사용자/프로젝트 선호 | "보고서는 피라미드 구조로 작성" |
+
+<Callout type="info">
+  `decision` 타입은 버전 관리를 지원합니다. 새로운 결정이 이전 결정을 대체하면 `superseded_by`로 이력이 연결됩니다.
+</Callout>
+
+---
+
+## 저장
+
+`memory_store`로 메모리를 저장합니다.
+
+```
+memory_store({
+  type: "gotcha",
+  content: "시장 규모 통계를 인용할 때 연도/분기 기준을 반드시 명시해야 한다",
+  scope: "project",        // project 또는 personal
+  tags: ["보고서", "데이터인용"],
+  related_files: [".ouroboros/docs/write/2026-03-30-시장분석.md"],
+  user_id: "kimjeongmin",
+  project_id: "my-project"
+})
+```
+
+저장 시 Ollama가 **1024차원 벡터 임베딩**을 생성하여 Neo4j에 함께 저장합니다.
+
+### 자동 수집 (Auto-Collection)
+
+`/write` 실행 중 Claude가 gotcha/pattern/insight를 감지하면 자동으로 저장합니다.
+
+```
+감지 → memory_search (>= 0.90 스킵, 0.80-0.90 질문) → memory_store → 1줄 보고
+```
+
+- 세션당 최대 **5건**
+- 중복 검사: 유사도 >= 0.90이면 자동 스킵, 0.80-0.90이면 사용자에게 질문
+- 저장 금지: 일회성 단계, 자명한 사실, 원문 복사(Idea-Only)
+- Auto-collection은 항상 `scope: "personal"`로 저장
+
+### 임계값 상수
+
+| 상수 | 값 | 용도 |
+|------|-----|------|
+| DUPLICATE_SKIP | >= 0.90 | 자동 수집 시 중복 스킵 |
+| DUPLICATE_ASK | 0.80-0.90 | 유사 메모리 존재 시 사용자에게 질문 |
+| RELEVANCE_HIGH | >= 0.85 | 문서 설계 시 주의사항 필수 포함 |
+| RELEVANCE_REF | 0.80-0.85 | 참고 수준 |
+
+---
+
+## 검색
+
+`memory_search`로 메모리를 검색합니다.
+
+```
+memory_search({
+  query: "보고서 데이터 인용 주의사항",
+  limit: 5,
+  user_id: "kimjeongmin",
+  project_id: "my-project"
+})
+```
+
+### RRF 4축 리랭킹
+
+검색 결과는 **4축 RRF(Reciprocal Rank Fusion)** 리랭킹으로 정렬됩니다.
+
+| 축 | 가중치 | 설명 |
+|----|--------|------|
+| **Semantic** | 0.4 | Ollama 임베딩 벡터 유사도 |
+| **Recency** | 0.3 | 최신 메모리 우선 (created_at 기준) |
+| **Access** | 0.15 | 자주 접근된 메모리 우선 |
+| **Source** | 0.15 | 개인 메모리 > 프로젝트 메모리 |
+
+**최종 점수** = `0.4 * semantic + 0.3 * recency + 0.15 * access + 0.15 * source`
+
+### 검색 우선순위
+
+1. active 상태 + 최신 (created_at 내림차순)
+2. 같은 시점이면 **개인 > 프로젝트** 우선
+3. 충돌 시: "프로젝트 지식과 다른 개인 기록이 있습니다" 1회 질문
+
+---
+
+## 라이프사이클
+
+메모리는 3가지 상태를 순환합니다.
+
+```
+active → stale_candidate → archived
+```
+
+### active
+
+- 기본 상태
+- 검색에 포함
+- 정상적으로 사용 가능
+
+### stale_candidate
+
+- 관련 파일이 변경되었거나 6개월 이상 미접근 시 전환
+- 검색에 포함되지만 **경고 표시**
+- `/housekeeping`에서 검증 대상
+
+### archived
+
+- 이력 보존 목적
+- **검색에서 제외** (`--include-archived` 옵션으로 조회 가능)
+- `memory_archive`로 수동 전환 또는 `/housekeeping`에서 자동 전환
+
+<Callout type="warning">
+  stale_candidate 메모리는 아직 유효할 수 있습니다. `/housekeeping`으로 정기적으로 검증하세요.
+</Callout>
+
+---
+
+## 프로젝트/개인 메모리
+
+| 구분 | scope | 공유 범위 | 예시 |
+|------|-------|----------|------|
+| **프로젝트 메모리** | `project` | 같은 PROJECT_ID의 모든 사용자 | 문서 전략, 공통 작성 패턴 |
+| **개인 메모리** | `personal` | 해당 DEVELOPER_USER_ID만 | 개인 선호, 작업 맥락 |
+
+- 검색 시 양쪽 모두 포함
+- Source 축(0.15)에서 개인 메모리가 우선
+- 명시적으로 scope를 지정하여 저장

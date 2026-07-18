@@ -18,5 +18,6 @@ case "$CHANGED" in
 esac
 grep -q '@plm' "$CHANGED" 2>/dev/null || exit 0
 plm_active "$CHANGED" || exit 0
-python3 "$DIR/scripts/plm_codescan.py" --file "$CHANGED" 2>/dev/null || true
+# TOP-01: stderr 경고(403 멤버십 거부 등) 표면화 — 침묵 desync 방지. graceful exit 0 유지.
+python3 "$DIR/scripts/plm_codescan.py" --file "$CHANGED" || true
 exit 0

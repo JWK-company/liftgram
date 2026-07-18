@@ -1,7 +1,18 @@
 {
   "name": "plm-hub",
-  "version": "0.5.1",
-  "description": "PLM-Hub 거버넌스 브리지 — 원격 PLM MCP(14도구, OAuth) 등록 + plan/code의 .ouroboros/docs/*.md를 PLM에 자동 동기(Edit hook)·게이트(G1~G3) 표면화(Stop hook) + 딥링크 추적(소스 @plm 주석↔Code 아티팩트↔요구, 문서 code_refs 역기재) + 역반영(pull). 웹 [Sync]→세션 push 채널은 별도 plm-channel 플러그인(/plm-hub:channel 안내). PLM이 Notion 대체 거버넌스 백엔드. 명령: plm-hub:link/sync/pull/codescan/gates/channel/artifact-*/relation-link. 설계: HOOKS.md.",
-  "author": { "name": "plan-db workflow templates" },
-  "keywords": ["plm", "governance", "mcp", "traceability", "hooks", "channels", "rust"]
+  "version": "0.6.8",
+  "description": "PLM-Hub 거버넌스 브리지 — 원격 PLM MCP(14도구, OAuth) 등록 + plan/code의 .ouroboros/docs/*.json(ADR-019 CODE.json 동형)를 PLM에 자동 동기(Edit hook)·게이트(G1~G3) 표면화(Stop hook) + 딥링크 추적(소스 @plm 주석↔Code 아티팩트↔요구, 문서 code_refs 역기재) + 역반영(pull). 웹 [Sync]→세션 push 채널은 별도 plm-channel 플러그인(/plm-hub:channel 안내). PLM이 Notion 대체 거버넌스 백엔드. 명령: plm-hub:link/sync/pull/codescan/gates/channel/upload/artifact-*/relation-link. 설계: HOOKS.md.",
+  "author": {
+    "name": "plan-db workflow templates"
+  },
+  "keywords": [
+    "plm",
+    "governance",
+    "mcp",
+    "traceability",
+    "hooks",
+    "channels",
+    "rust",
+    "upload"
+  ]
 }

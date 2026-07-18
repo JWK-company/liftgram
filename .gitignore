@@ -20,3 +20,6 @@ app/android/
 Thumbs.db
 *.log
 *.tmp
+
+# Local Netlify folder
+.netlify

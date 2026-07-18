@@ -3,16 +3,12 @@
     "ouroboros": {
       "type": "http",
       "url": "${OURO_MCP_URL:-https://jwk-ouro.shoi.ch/mcp}",
-      "oauth": {
-        "clientId": "claude-code-mcp"
-      }
+      "headersHelper": "bash .ouroboros/env/mcp-auth.sh ouro"
     },
     "plm": {
       "type": "http",
       "url": "${PLM_MCP_URL:-https://jwk-plm.shoi.ch/mcp}",
-      "oauth": {
-        "clientId": "claude-code-mcp"
-      }
+      "headersHelper": "bash .ouroboros/env/mcp-auth.sh plm"
     }
   }
 }

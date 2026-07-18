@@ -29,9 +29,7 @@ plm_resolve() {
   # .env 로드 (PLM_* 만)
   if [[ -f "$env_file" ]]; then
     # shellcheck disable=SC2046
-    # 프로세스 치환 `. <(...)` 은 /dev/fd 제한 환경(샌드박스/일부 macOS)에서 무음 실패 → 토큰 미로딩(401).
-    # here-string + /dev/stdin 소싱으로 대체(동일 export 의미, 제한 환경에서도 동작). platform-build 수정.
-    set -a; source /dev/stdin <<<"$(grep -E '^PLM_(API_URL|API_TOKEN|PROJECT|ENABLED|CODE_ROOT)=' "$env_file" 2>/dev/null)" 2>/dev/null; set +a
+    set -a; . <(grep -E '^PLM_(API_URL|API_TOKEN|PROJECT|ENABLED|CODE_ROOT|BRANCH)=' "$env_file" 2>/dev/null) 2>/dev/null; set +a
   fi
   # config/plm.json 에서 project/api_url/code_root 보강 (env 미설정 시)
   if [[ -f "$cfg_file" ]] && command -v python3 >/dev/null 2>&1; then
@@ -39,7 +37,7 @@ plm_resolve() {
     [[ -z "${PLM_API_URL:-}" ]] && PLM_API_URL="$(python3 -c "import json,sys;print(json.load(open('$cfg_file')).get('api_url',''))" 2>/dev/null)"
     [[ -z "${PLM_CODE_ROOT:-}" ]] && PLM_CODE_ROOT="$(python3 -c "import json,sys;print(json.load(open('$cfg_file')).get('code_root',''))" 2>/dev/null)"
   fi
-  export PLM_API_URL="${PLM_API_URL:-https://plm.shoi.ch}"
+  export PLM_API_URL="${PLM_API_URL:-https://jwk-plm.shoi.ch}"
   # 토큰 기본값 없음(공개 백도어 토큰 제거 — platform-build 보안). .env의 PLM_API_TOKEN 필수.
   export PLM_API_TOKEN="${PLM_API_TOKEN:-}"
   export PLM_PROJECT="${PLM_PROJECT:-}"

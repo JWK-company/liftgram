@@ -140,7 +140,7 @@
       <a href="#channel">채널(선택)</a>
       <a href="#trouble">트러블슈팅</a>
     </nav>
-    <div class="navfoot">본문·관계 = 로컬 .md SSOT<br>Status·게이트 = PLM 권위<br>URL은 인스턴스별 자동 치환</div>
+    <div class="navfoot">본문·관계 = 로컬 .json(CODE.json) SSOT<br>Status·게이트 = PLM 권위<br>URL은 인스턴스별 자동 치환</div>
   </aside>
 
   <!-- MAIN -->
@@ -152,7 +152,7 @@
       <p class="lead">자가호스팅 <b>PLM-Hub</b> 거버넌스 + <b>Ouroboros</b> 시맨틱 메모리를 Claude Code 플러그인으로 통합한 워크플로우다.
         이 문서는 템플릿을 자기 프로젝트에 막 설치한 사람을 위한 "이제 뭐하지?"의 답이다.</p>
       <div class="badges">
-        <span class="pill ok">✓ 본문·관계 = 로컬 .md SSOT</span>
+        <span class="pill ok">✓ 본문·관계 = 로컬 .json(CODE.json) SSOT</span>
         <span class="pill mcp">Status·게이트 = PLM</span>
         <span class="pill tok">hook = token · MCP = OAuth</span>
         <span class="pill">Notion 대체 거버넌스</span>
@@ -160,6 +160,14 @@
       <div class="cta">
         <a class="btn p" href="#first">설치 후 첫 단계 →</a>
         <a class="btn s" href="#gov">기획 워크플로우 보기</a>
+      </div>
+
+      <div class="note ok" style="margin-top:24px">
+        <b>ADR-019 동형(isomorphic) — 모든 아티팩트는 <code>CODE.json</code></b><br>
+        요구·설계·결정·로드맵은 <code>CODE.json</code>(<code>schemaVersion·id·type·title·status·relations·doc</code>)으로 생성한다.
+        <code>doc</code>는 ProseMirror 트리이며 <b>파일·DB·웹 에디터가 같은 JSON을 공유</b>한다(변환기 없음). <b>markdown(.md) 생성은 금지.</b>
+        저장 시 <code>plm-sync</code> hook이 본문(<code>doc</code>)·관계를 PLM에 자동 upsert한다.<br>
+        전체 배포 상태와 전 화면 스크린샷은 <code>.ouroboros/docs/report/20260629_plm-hub-deployment-usage.html</code> 참고.
       </div>
 
       <div class="grid g4" style="margin-top:40px">
@@ -204,7 +212,7 @@
         </div></div>
       </div>
 
-      <div class="note ok">바인딩이 끝나면 기획 <code>.md</code>를 편집할 때마다 <code>plm-sync</code> hook이 PLM에 자동 upsert하고, 매 세션 종료 시 <code>plm-gate</code> hook이 게이트(G1~G3)를 경고로 표면화한다. 이후 평소 작업은 슬래시 커맨드만 쓰면 된다.</div>
+      <div class="note ok">바인딩이 끝나면 기획 <code>.json</code>(CODE.json·ADR-019)을 저장할 때마다 <code>plm-sync</code> hook이 PLM에 자동 upsert하고, 매 세션 종료 시 <code>plm-gate</code> hook이 게이트(G1~G3)를 경고로 표면화한다. 이후 평소 작업은 슬래시 커맨드만 쓰면 된다.</div>
       <div class="note">MCP URL은 인스턴스별로 다르다 — 설치 스크립트가 <code>.mcp.json</code>의 URL을 당신 인스턴스(전부 같은 k0s 클러스터)로 자동 치환한다. 아래 예시의 <code>plm.shoi.ch</code> 류는 기본 인스턴스 표기일 뿐이다.</div>
     </section>
 
@@ -221,9 +229,9 @@
         <div class="card" style="border-color:#5a2e63"><div class="ic" style="background:rgba(240,171,252,.12)">🔑</div>
           <h3 style="color:var(--tok)">hook — token (자동·무인)</h3>
           <p>무인 Edit/Stop hook은 <code>.ouroboros/env/.env</code>의 <code>PLM_API_TOKEN</code>으로 동작(<code>plm-hub:link</code>가 자동 발급). MCP를 호출할 수 없는 셸 레이어용. 토큰은 로그에서 마스킹.</p>
-          <div class="kv"><span>plm-sync — .md 저장 시 upsert</span><span>plm-gate — Stop 시 게이트 경고</span></div></div>
+          <div class="kv"><span>plm-sync — .json 저장 시 upsert</span><span>plm-gate — Stop 시 게이트 경고</span></div></div>
       </div>
-      <div class="note tok"><b>권위 분담</b> — 본문·관계는 로컬 <code>.md</code>가 SSOT, Status·게이트·추적은 PLM이 권위. 역할이 겹치지 않으므로 충돌이 없다. 대시보드에서 사람이 바꾼 Status는 <code>/plm-hub:pull</code>로 로컬에 회수한다.</div>
+      <div class="note tok"><b>권위 분담</b> — 본문·관계는 로컬 <code>.json</code>(CODE.json)이 SSOT, Status·게이트·추적은 PLM이 권위. 역할이 겹치지 않으므로 충돌이 없다. 대시보드에서 사람이 바꾼 Status는 <code>/plm-hub:pull</code>로 로컬에 회수한다.</div>
     </section>
 
     <!-- 3. GOVERNANCE FLOW -->
@@ -264,7 +272,7 @@
         <div class="card"><div class="ic" style="background:rgba(34,211,238,.12)">G2</div><h3>설계 타당성</h3>
           <p>모든 <code>SAD</code>가 <code>refs</code>(→SRS)를 보유하는가. 요구에 닿지 않는 설계를 표면화.</p></div>
       </div>
-      <div class="note">게이트는 <b>소프트(비차단)</b> — Stop hook이 <code>exit 0</code>으로 경고만 띄운다. frontmatter엔 owner(작성) 관계만 적고, 역방향(피참조)은 매트릭스가 역산한다.</div>
+      <div class="note">게이트는 <b>소프트(비차단)</b> — Stop hook이 <code>exit 0</code>으로 경고만 띄운다. JSON <code>relations</code>엔 owner(작성) 관계만 적고, 역방향(피참조)은 매트릭스가 역산한다.</div>
     </section>
 
     <!-- 4. CODE FLOW -->
@@ -303,10 +311,10 @@
       <p>구현 코드 위에 <code>@plm &lt;CODE&gt;</code> 주석을 달면, 요구에서 실제 코드 위치까지 끝단이 연결된다. 언어별 주석 문법 자유.</p>
       <div class="codewrap"><pre><span class="c">// @plm SRS-002  피드 생성 — fan-out-on-read</span>
 <span class="k">pub fn</span> <b>build_feed</b>(user: UserId) -&gt; Feed { <span class="c">/* ... */</span> }</pre></div>
-      <p>그다음 <code>/plm-hub:codescan</code>을 돌리면 PLM에 <b>Code 아티팩트</b>(<code>loc: path:line</code>, <code>build_state=as_built</code>)와 <b>realizes</b>(Code→SRS/SAD) 관계가 생기고, 참조된 SRS/SAD의 <code>.md</code> frontmatter에 <code>code_refs</code>가 역기재된다.</p>
+      <p>그다음 <code>/plm-hub:codescan</code>을 돌리면 PLM에 <b>Code 아티팩트</b>(<code>loc: path:line</code>, <code>build_state=as_built</code>)와 <b>realizes</b>(Code→SRS/SAD) 관계가 생기고, 참조된 SRS/SAD의 <code>.json</code>에 <code>code_refs</code>가 역기재된다.</p>
       <div class="diagram" style="margin-top:18px">
         <div class="flow">
-          <div class="node a"><b>SRS-002.md</b><span>요구</span></div>
+          <div class="node a"><b>SRS-002.json</b><span>요구</span></div>
           <div class="arr">←</div>
           <div class="node"><b>realizes</b><span>Code 아티팩트</span></div>
           <div class="arr">←</div>
@@ -323,7 +331,7 @@
       <h2>PLM 대시보드</h2>
       <p class="lead" style="font-size:16px">웹에서 사람이 거버넌스를 운영하는 곳. Keycloak OAuth로 로그인하며 역할(viewer/editor/approver/admin)에 따라 권한이 다르다.</p>
       <div class="grid g3" style="margin-top:20px">
-        <div class="card"><div class="ic">📁</div><h3>프로젝트 · Portfolio</h3><p>프로젝트 생성(repo 연결/생성)과 포트폴리오 개관. 바인딩 대상이 여기 보인다.</p></div>
+        <div class="card"><div class="ic">📁</div><h3>프로젝트 · Portfolio</h3><p>프로젝트 생성(repo 연결/생성)과 포트폴리오 개관. 바인딩 대상이 여기 보인다. 홈 카드 hover 시 🗑로 <b>프로젝트 삭제</b>(id 타이핑 확인·owner/admin만, 아티팩트·관계·멤버·repo 함께 제거).</p></div>
         <div class="card"><div class="ic">📦</div><h3>Artifacts</h3><p>URS·UCS·SRS·SAD·ADR·Roadmap·Code를 타입·status별 조회. 본문은 로컬이 동기한 것.</p></div>
         <div class="card"><div class="ic">🔁</div><h3>Status 전이</h3><p><code>Draft → In Review → Approved → Superseded</code>를 사람이 여기서 수행(editor/approver/admin).</p></div>
         <div class="card"><div class="ic">🚦</div><h3>Gates</h3><p>G1(SRS→URS)·G2(SAD→SRS)·G3(implemented_by→Code) orphan을 한눈에.</p></div>
@@ -333,7 +341,7 @@
         <div class="card"><div class="ic">↪️</div><h3>Sync 버튼</h3><p>[Sync]로 작업을 채널이 연결된 터미널 세션에 push(아래 채널 설정 필요).</p></div>
         <div class="card"><div class="ic">🧠</div><h3>Ouroboros 대시보드</h3><p>별도 대시보드에서 메모리·세션(대화 전량)·지식그래프를 조회.</p></div>
       </div>
-      <div class="note w">대시보드에서 전이한 Status는 로컬 <code>.md</code>에 <b>자동 반영되지 않는다</b>. <code>/plm-hub:pull</code>로 Status·관계·본문을 회수해야 정합된다.</div>
+      <div class="note w">대시보드에서 전이한 Status는 로컬 <code>.json</code>에 <b>자동 반영되지 않는다</b>. <code>/plm-hub:pull</code>로 Status·관계·본문을 회수해야 정합된다.</div>
     </section>
 
     <!-- 7. PLM-HUB REFERENCE -->
@@ -344,7 +352,7 @@
         <thead><tr><th>커맨드</th><th>한 줄 설명</th></tr></thead>
         <tbody>
           <tr><td><code>/plm-hub:link</code></td><td>이 워크플로우를 PLM 프로젝트에 바인딩 + 영속 쓰기 토큰 자동 발급</td></tr>
-          <tr><td><code>/plm-hub:sync</code></td><td>로컬 기획 <code>.md</code> 전체를 PLM과 일괄 동기(export/import)</td></tr>
+          <tr><td><code>/plm-hub:sync</code></td><td>로컬 기획 <code>.json</code> 전체를 PLM과 일괄 동기(export/import)</td></tr>
           <tr><td><code>/plm-hub:pull</code></td><td>PLM 대시보드 편집분(Status·관계·code_refs·본문)을 로컬로 역방향 회수</td></tr>
           <tr><td><code>/plm-hub:codescan</code></td><td><code>@plm</code> 주석 전체 스캔 → Code 아티팩트·realizes·loc·code_refs 동기 + GC</td></tr>
           <tr><td><code>/plm-hub:gates</code></td><td>G1~G3 orphan과 재검토 큐(needs_review) 조회</td></tr>
@@ -399,7 +407,7 @@
 
     <footer>
       설치 후 사용 가이드 · PLM-Hub(거버넌스) + Ouroboros(메모리) + Claude Code 플러그인(plan·code·plm-hub·plm-channel)<br>
-      본문·관계 = 로컬 .md SSOT / Status·게이트 = PLM 권위 · 모든 URL은 인스턴스별 자동 치환 · <code>make guide</code>로 다시 열기
+      본문·관계 = 로컬 .json(CODE.json) SSOT / Status·게이트 = PLM 권위 · 모든 URL은 인스턴스별 자동 치환 · <code>make guide</code>로 다시 열기
     </footer>
   </main>
 </div>

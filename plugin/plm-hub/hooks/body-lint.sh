@@ -6,7 +6,9 @@ DIR="$(cd "$(dirname "$0")/.." && pwd)"
 . "$DIR/scripts/plm_lib.sh"
 CHANGED="$(plm_hook_changed)"   # A2: stdin JSON 우선, env fallback
 case "$CHANGED" in
-  *.ouroboros/docs/requirements/*.md|*.ouroboros/docs/design/*.md|*.ouroboros/docs/decisions/*.md) : ;;
+  # ADR-019 동형: .json canonical 우선 + .md 이행기 레거시. (product/=PRD 산문도 대상)
+  *.ouroboros/docs/requirements/*.json|*.ouroboros/docs/design/*.json|*.ouroboros/docs/decisions/*.json|*.ouroboros/docs/product/*.json) : ;;
+  *.ouroboros/docs/requirements/*.md|*.ouroboros/docs/design/*.md|*.ouroboros/docs/decisions/*.md|*.ouroboros/docs/product/*.md) : ;;
   *) exit 0 ;;
 esac
 [[ "$(basename "$CHANGED")" == _* ]] && exit 0

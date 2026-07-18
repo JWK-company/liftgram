@@ -1,6 +1,6 @@
 # 설치 & 사용 — jwk-platform (plan + code + plm-hub 플러그인)
 
-> 거버넌스 백엔드는 **PLM**(원격 MCP/REST, `plm.shoi.ch`)이 기본. Notion 동기화는 **선택(레거시)**.
+> 거버넌스 백엔드는 **PLM**(원격 MCP/REST, `jwk-plm.shoi.ch`)이 기본. Notion 동기화는 **선택(레거시)**.
 
 ## 1. 설치 — `make setup` 한 번
 
@@ -15,6 +15,35 @@
 | 시드·env | `.ouroboros/` + Ouroboros `.env` | `make ouroboros` · `make env` |
 | (선택) Notion MCP | Notion 동기화를 쓸 때만 | `make notion-plugin` |
 
+### Windows — `make` 불필요 (PowerShell 또는 Git Bash 택1)
+
+Windows는 `make`가 없으므로 **동등 기능의 설치 스크립트 2종**을 제공한다. **기반 런타임(git·Node.js/npx·uv/uvx·Claude Code CLI)이 없으면 자동 설치**한다(winget 또는 공식 설치 스크립트).
+
+**① PowerShell** (내장 Windows PowerShell 5.1+ — 추가 설치 불필요):
+```powershell
+# 저장소 루트에서
+powershell -ExecutionPolicy Bypass -File .\setup.ps1     # 또는 pwsh -File .\setup.ps1
+```
+또는 파일 탐색기에서 **`setup.cmd` 더블클릭**.
+
+**② Git Bash / WSL** (bash):
+```bash
+bash setup.sh
+```
+
+| 스위치 (ps1 / sh) | 동작 |
+|-------------------|------|
+| (없음) | 전체 설치 — 런타임 자동설치 → MCP·로컬 플러그인 → `.ouroboros` 시드 → `.env` |
+| `-Check` / `--check` | 설치 상태(plugins / MCP / **runtimes** / env) |
+| `-NotionPlugin` / `--notion` | (선택) Notion MCP 플러그인 |
+| `-Channels` / `--channels` | 채널 사용법 안내 |
+| `-SkipDeps` / `--skip-deps` | 런타임 자동설치 생략(플러그인/시드/env만) |
+| `-DryRun` / `--dry-run` | 실행 없이 수행 작업만 출력(검증) |
+
+- **런타임 자동설치**: Windows는 `winget`(Win10 1809+/11)으로 git·Node.js·uv 설치, Claude Code는 공식 설치본(`irm https://claude.ai/install.ps1 | iex`). Git Bash도 `winget`을 호출(있을 때) — 없으면 공식 설치본. **새로 설치한 직후엔 PATH 반영을 위해 터미널을 새로 열고 재실행**(스크립트가 안내).
+- 멱등: 재실행 시 설치된 플러그인은 건너뛰고 **기존 `.env`·`.ouroboros` 편집분을 보존**(no-clobber). `.env`에 `PLM_API_TOKEN`이 있으면 유지.
+- 조직 관리형 계정의 채널 정책은 관리자 PowerShell에서 `%ProgramFiles%\ClaudeCode\managed-settings.json` allowlist 등록(개인 Pro/Max는 불필요).
+
 - **plan / code / plm-hub 플러그인**은 루트 `.claude-plugin/marketplace.json`(로컬 마켓플레이스 `jwk-platform`, source → `./plugin/{plan,code,plm-hub}` submodule)을 통해 `make plugin-install` 로 설치된다.
   - **plan** (`plan:<cmd>`): `plan:plan` `plan:requirement` `plan:design` `plan:decision` `plan:trace` `plan:reflect` (+ 레거시 `plan:notion-setup/push/pull`) + hook(gate-check·trace-validator·context-reminder).
   - **code** (`code:<cmd>`): `code:spec` `code:execute` `code:qa` `code:fix` `code:patch` `code:reflect` `code:onboarding` `code:housekeeping` `code:ask` `code:suggest` `code:guide` `code:study` `code:evolve` + hook. `.ouroboros/` 컨텍스트를 plan과 공유.
@@ -22,7 +51,7 @@
   - 설치 상태는 `~/.claude`(사용자 설정)에 기록 → **머신마다 1회** `make plugin-install` 필요(`.claude/settings.json` 은 커밋하지 않는다).
 
 ### 커스텀 MCP 2종 (ouroboros · plm)
-- 루트 `.mcp.json` 에 `ouroboros`(ouro.shoi.ch/mcp)·`plm`(plm.shoi.ch/mcp) MCP 서버가 선언돼 있다. 둘 다 **HTTP + OAuth** — **Claude 재실행 → 프로젝트 신뢰 승인 → OAuth 인증**으로 연결. **API Key를 `.env`에 넣을 필요 없다**.
+- 루트 `.mcp.json` 에 `ouroboros`(jwk-ouro.shoi.ch/mcp)·`plm`(jwk-plm.shoi.ch/mcp) MCP 서버가 선언돼 있다. 둘 다 **HTTP + OAuth** — **Claude 재실행 → 프로젝트 신뢰 승인 → OAuth 인증**으로 연결. **API Key를 `.env`에 넣을 필요 없다**.
 - `ouroboros` = 글로벌 메모리/KG 백엔드. `plm` = PLM 거버넌스(14도구: artifact·relation·search·gates·export/import 등). 둘 다 도구만 제공 — 커맨드·hook은 플러그인이 담당.
 
 ## 2. 시드 초기화
@@ -39,7 +68,7 @@
 로컬 `.ouroboros/docs/*.md` = **본문·관계 SSOT**, PLM = **동기 대상 + 게이트(G1~G3)·추적·영향전파 권위**.
 
 1. **plm MCP 연결**: `.mcp.json` 의 `plm` 서버 → Claude 재실행 → OAuth 승인(Keycloak). 이후 `artifact_issue`·`gates`·`search` 등 14도구를 대화 중 직접 사용.
-2. **프로젝트 바인딩**: `/plm-hub:link <project-id>` — `.ouroboros/config/plm.json`(`{ "project": "...", "api_url": "https://plm.shoi.ch" }`)을 생성. 없는 프로젝트면 MCP `project_create`로 생성.
+2. **프로젝트 바인딩**: `/plm-hub:link <project-id>` — `.ouroboros/config/plm.json`(`{ "project": "...", "api_url": "https://jwk-plm.shoi.ch" }`)을 생성. 없는 프로젝트면 MCP `project_create`로 생성.
 3. **쓰기 토큰(hook용)**: `plm-hub:link` 실행 시 **자동 발급·기입**(SSO JWT 재사용 → `POST /tokens` 셀프 발급, 본인 realm 역할·없으면 editor). 수동 기입도 가능: `.ouroboros/env/.env` 의 `PLM_API_TOKEN`.
 4. 이후 **기획 `.md` 를 편집할 때마다** Edit hook(`plm-sync`)이 frontmatter+본문+owner 관계를 PLM에 즉시 upsert하고, **Stop hook(`plm-gate`)** 이 게이트 위반(orphan)·재검토 큐를 소프트 경고한다. 모두 비차단·graceful.
 5. 일괄 동기는 `/plm-hub:sync`, 게이트 조회는 `/plm-hub:gates`.
@@ -100,7 +129,7 @@ plan 플러그인 hook: `gate-check.sh`(로컬 추적 검증)·`trace-validator.
 |------|-------------|
 | plm-sync 동기 안 됨 | `/plm-hub:link` 바인딩 확인(`config/plm.json`) + `.env` `PLM_API_TOKEN` 확인. 403이면 토큰 권한(writer) 점검 |
 | plm MCP 도구 안 보임 | Claude 재실행 → `.mcp.json` plm OAuth 승인했는지 확인 |
-| 게이트 경고 안 뜸 | `plm.shoi.ch/gates?project=` 도달 확인(public). 디바운스 45s 후 재시도 |
+| 게이트 경고 안 뜸 | `jwk-plm.shoi.ch/gates?project=` 도달 확인(public). 디바운스 45s 후 재시도 |
 | 토큰 없이 동작? | 동기화만 graceful skip — 로컬 기획·추적은 정상 |
 | (Notion) 동기화 안 됨 | `401`/`404` = integration을 root page에 공유했는지 확인 |
 | 충돌(pull) | 로컬·원격 양쪽 Status 변경 시 자동 미적용 → 안내 따라 수동 선택 |

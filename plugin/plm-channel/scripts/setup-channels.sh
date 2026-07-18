@@ -31,6 +31,8 @@ fi
 # OS별 정책 파일 경로 + 권한 상승 방식. Windows(Git Bash/MSYS/Cygwin)는 sudo가 없으므로
 # 관리자 권한 셸에서 직접 write(SUDO 빈값), Linux/macOS는 sudo.
 SUDO="sudo"
+# root(컨테이너/도커)면 sudo 불필요·부재 — 직접 write.
+[ "$(id -u 2>/dev/null || echo 1)" = 0 ] && SUDO=""
 case "$(uname -s)" in
   Linux)   DEST="/etc/claude-code/managed-settings.json" ;;
   Darwin)  DEST="/Library/Application Support/ClaudeCode/managed-settings.json" ;;
@@ -51,7 +53,9 @@ if $SUDO test -f "$DEST"; then
   EXISTING="$($SUDO cat "$DEST")"
 fi
 
-MERGED="$(PLM_EXISTING="$EXISTING" PLM_PLUGIN="$PLUGIN" PLM_MARKET="$MARKET" python3 - <<'PY'
+# JSON 병합 엔진: python3 우선, 없으면 node(설치기가 node를 보장) — 컨테이너/미니멀 환경 대응.
+if command -v python3 >/dev/null 2>&1; then
+  MERGED="$(PLM_EXISTING="$EXISTING" PLM_PLUGIN="$PLUGIN" PLM_MARKET="$MARKET" python3 - <<'PY'
 import json, os, sys
 try:
     cfg = json.loads(os.environ.get("PLM_EXISTING") or "{}")
@@ -71,8 +75,22 @@ cfg["allowedChannelPlugins"] = lst
 print(json.dumps(cfg, indent=2, ensure_ascii=False))
 PY
 )"
-
-echo "$MERGED" | python3 -c 'import json,sys; json.load(sys.stdin)' || { echo "[X] 병합 JSON 무효 — 중단"; exit 1; }
+  echo "$MERGED" | python3 -c 'import json,sys; json.load(sys.stdin)' || { echo "[X] 병합 JSON 무효 — 중단"; exit 1; }
+elif command -v node >/dev/null 2>&1; then
+  MERGED="$(PLM_EXISTING="$EXISTING" PLM_PLUGIN="$PLUGIN" PLM_MARKET="$MARKET" node -e '
+let cfg = {};
+try { const c = JSON.parse(process.env.PLM_EXISTING || "{}"); if (c && typeof c === "object" && !Array.isArray(c)) cfg = c; } catch {}
+cfg.channelsEnabled = true;
+let lst = Array.isArray(cfg.allowedChannelPlugins) ? cfg.allowedChannelPlugins : [];
+const entry = { plugin: process.env.PLM_PLUGIN, marketplace: process.env.PLM_MARKET };
+if (!lst.some(e => e && e.plugin === entry.plugin && e.marketplace === entry.marketplace)) lst.push(entry);
+cfg.allowedChannelPlugins = lst;
+console.log(JSON.stringify(cfg, null, 2));
+')"
+  echo "$MERGED" | node -e 'JSON.parse(require("fs").readFileSync(0,"utf8"))' || { echo "[X] 병합 JSON 무효 — 중단"; exit 1; }
+else
+  echo "[X] python3/node 모두 없음 — JSON 병합 불가 (설치 후 재시도)"; exit 1
+fi
 $SUDO mkdir -p "$DIR"
 printf '%s\n' "$MERGED" | $SUDO tee "$DEST" >/dev/null
 

@@ -1,0 +1,137 @@
+import { Callout } from 'nextra/components'
+
+# Hook 시스템
+
+Ouroboros는 **6개 Hook**을 제공합니다. 모든 Hook은 자동으로 동작하며 사용자 개입이 필요 없습니다.
+
+---
+
+## Hook 전체 목록
+
+| # | Hook | 이벤트 | 동기/비동기 | 역할 |
+|---|------|--------|-----------|------|
+| 1 | user-prompt-reminder | UserPromptSubmit | 동기 | 가이드라인 주입 + 미완료 경고 |
+| 2 | git-guard | PreToolUse | 동기 | git 변경 명령어 사용자 확인 |
+| 3 | knowledge-signal | PostToolUse | 동기 | 사용자 선호 감지 유도 |
+| 4 | event-capture | PostToolUse + UserPromptSubmit | 비동기 | 이벤트 기록 |
+| 5 | context-compact-recovery | PreCompact | 동기 | CC 복구 지침 주입 |
+| 6 | conversation-sync | UserPromptSubmit + PreCompact | 비동기 | 대화 동기화 (ClickHouse) |
+
+<Callout type="info">
+  모든 Hook은 `exit 0`을 보장합니다. 실패 시 graceful degradation으로 워크플로우를 중단하지 않습니다.
+</Callout>
+
+---
+
+## 1. user-prompt-reminder
+
+**이벤트:** `UserPromptSubmit` (매 프롬프트 제출 시)
+
+매 프롬프트마다 가이드라인 5줄을 자동 주입하고, 미완료 작업이 있으면 경고합니다.
+
+**동작:**
+- `state.json`을 읽어 현재 활성 스킬 확인
+- 핵심 원칙 5줄 주입 (불확실하면 질문, 범위 준수, CC 복구 등)
+- 미완료 작업이 있으면 "현재 `{스킬}` 진행 중" 경고
+
+**효과:** Claude가 매 턴마다 워크플로우 규칙을 상기합니다.
+
+---
+
+## 2. git-guard
+
+**이벤트:** `PreToolUse` (Bash 호출 전)
+
+`git commit`, `git push` 등 git 변경 명령어 실행 전 사용자 확인을 요청합니다.
+
+**동작:**
+- Bash 호출 명령어가 `git commit`, `git push`, `git reset`, `git rebase` 등 저장소를 변경하는 명령어이면 사용자 확인 요청
+- 사용자가 승인하면 진행, 거부하면 차단
+
+**효과:** 의도치 않은 커밋/푸시를 방지하고 git 이력 관리를 사용자가 직접 제어합니다.
+
+<Callout type="warning">
+  git-guard 확인 없이 git 변경 명령어를 우회하는 것은 **절대 규칙 위반**입니다.
+</Callout>
+
+---
+
+## 3. knowledge-signal
+
+**이벤트:** `PostToolUse` (AskUserQuestion 응답 후)
+
+사용자 응답에서 선호/패턴을 감지하고 Knowledge Graph 저장을 유도합니다.
+
+**동작:**
+1. 사용자 응답 텍스트를 분석
+2. "~를 선호한다", "~를 쓰자", "~로 통일" 등의 패턴 감지
+3. 감지되면 Claude에게 `knowledge_store`로 Preference 노드 저장을 유도
+
+**예시:**
+```
+사용자: "보고서는 결론부터 쓰자"
+→ knowledge_store({ type: "preference", name: "피라미드 구조 선호", ... })
+```
+
+---
+
+## 4. event-capture
+
+**이벤트:** `PostToolUse` (Edit, Write, Bash) + `UserPromptSubmit`
+
+도구 호출과 프롬프트를 서버에 기록합니다.
+
+**동작:**
+- 도구 호출 시: 도구 이름, 파일 경로, 타임스탬프 기록
+- 프롬프트 제출 시: 프롬프트 메타데이터 기록
+- **비동기 실행** (워크플로우를 차단하지 않음)
+
+**데이터는 ClickHouse에 저장되며 대시보드 Overview에서 조회 가능합니다.**
+
+---
+
+## 5. context-compact-recovery
+
+**이벤트:** `PreCompact` (Context Compact 발생 전)
+
+CC 발생 시 `state.json` 기반 복구 지침을 주입합니다.
+
+**동작:**
+1. `state.json`에서 `active_skill`, `skill_step` 읽기
+2. 스킬별 최소 읽기 세트 안내
+
+| active_skill | 읽기 세트 | 예상 토큰 |
+|-------------|----------|----------|
+| spec, reflect, revise 등 | current.md만 | ~200 |
+| write (Step 1-3) | current.md + spec 문서 | ~400 |
+| write (Step 4+) | current.md + spec + 현재 섹션 | ~600 |
+| write --continue | current.md + 다음 섹션 | ~400 |
+| null/missing | current.md + 등급별 전량 읽기 | ~800 |
+
+**금지 사항:**
+- "어디까지 했나요?" 질문
+- 문서/Memory 미확인 후 추측 진행
+
+<Callout type="error">
+  CC 후 Hook 지침대로 복구하는 것이 핵심입니다. 추측으로 진행하면 이전 작업과 충돌할 수 있습니다.
+</Callout>
+
+---
+
+## 6. conversation-sync
+
+**이벤트:** `UserPromptSubmit + PreCompact` (프롬프트 제출 시 + CC 발생 전)
+
+JSONL 형식의 대화 전량을 서버에 자동 동기화합니다.
+
+**동작:**
+- 프롬프트 제출 시 및 CC 발생 전 새 대화 내용을 ClickHouse에 전송
+- **비동기 실행**
+
+**대시보드 Sessions에서 전체 대화 기록을 조회할 수 있습니다:**
+- USER: 사용자 입력
+- ASSISTANT: Claude 응답
+- TOOL: 도구 호출 (파일 경로, 변경 내역)
+- RESULT: 도구 실행 결과
+
+긴 내용은 **"더보기"** 버튼으로 펼칠 수 있습니다.

@@ -143,21 +143,60 @@ req = urllib.request.Request(
     headers={"Content-Type": "application/json", "User-Agent": "ouroboros-sync/1.0"},
     method="POST"
 )
-try:
-    urllib.request.urlopen(req, timeout=2)
-except Exception as e:
-    # 에러 로그 최근 10건 보존
+# OBS-13: store-and-forward — 성공 시 큐에 쌓인 과거 실패 이벤트를 먼저 flush(재시도), 그 다음 현재 전송.
+# 실패 시 현재 이벤트를 `.ouroboros/queue/events.ndjson`(append-only·영속)에 적재 → 다음 호출에서 재전송.
+# 이벤트 서버 일시 다운 시에도 유실 없이 결국 도달(보조 텔레메트리 정확도 보존).
+proj_dir = os.environ.get("OURO_PROJECT_DIR", "")
+queue_file = os.path.join(proj_dir, ".ouroboros", "queue", "events.ndjson") if proj_dir else ""
+
+def _send(b):
+    r = urllib.request.Request(f"{event_log_url}/api/record", data=b, headers={"Content-Type": "application/json", "User-Agent": "ouroboros-sync/1.0"}, method="POST")
+    urllib.request.urlopen(r, timeout=2)
+
+def _flush_queue():
+    if not queue_file or not os.path.exists(queue_file):
+        return
     try:
-        log_file = "/tmp/.claude-event-errors.log"
-        msg = f"{datetime.now().isoformat()} {event_type} {str(e)[:100]}\n"
+        with open(queue_file, "r") as f:
+            lines = [ln for ln in f.read().splitlines() if ln.strip()]
+    except Exception:
+        return
+    remaining = []
+    for i, ln in enumerate(lines[:50]):  # 호출당 최대 50건 재시도(폭주 방지)
+        try:
+            _send(ln.encode())
+        except Exception:
+            remaining = lines[i:]  # 첫 실패부터 남김(순서 보존)
+            break
+    else:
+        remaining = lines[50:]
+    try:
+        with open(queue_file, "w") as f:
+            f.write("\n".join(remaining) + ("\n" if remaining else ""))
+    except Exception:
+        pass
+
+try:
+    _send(body)
+    _flush_queue()  # 현재 전송 성공 → 큐 드레인 시도
+except Exception as e:
+    # 큐에 적재(영속) — 다음 성공 시 재전송.
+    try:
+        if queue_file:
+            os.makedirs(os.path.dirname(queue_file), exist_ok=True)
+            with open(queue_file, "a") as f:
+                f.write(body.decode() + "\n")
+        # 에러 로그도 .ouroboros/log/에 영속(최근 50건).
+        log_dir = os.path.join(proj_dir, ".ouroboros", "log") if proj_dir else "/tmp"
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, "event-capture-errors.log")
         with open(log_file, "a") as f:
-            f.write(msg)
-        # 10건 초과 시 truncate
+            f.write(f"{datetime.now().isoformat()} {event_type} {str(e)[:100]}\n")
         with open(log_file, "r") as f:
             lines = f.readlines()
-        if len(lines) > 10:
+        if len(lines) > 50:
             with open(log_file, "w") as f:
-                f.writelines(lines[-10:])
+                f.writelines(lines[-50:])
     except Exception:
         pass
 finally:
@@ -177,6 +216,7 @@ USER_ID_ENV="$USER_ID" \
 PROJECT_ID_ENV="$PROJECT_ID_VAL" \
 EVENT_LOG_URL_ENV="$EVENT_LOG_URL" \
 PYSCRIPT_PATH="$PYSCRIPT" \
+OURO_PROJECT_DIR="$PROJECT_DIR" \
 echo "$STDIN_RAW" | python3 "$PYSCRIPT" 2>/dev/null &
 
 exit 0

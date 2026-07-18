@@ -108,7 +108,7 @@ WebSearch(query="{기능명} implementation example {언어}")
 
 > 코드 작업을 plan의 **아티팩트 추적 백본에 일관되게 편입**한다. (프로토콜: `workflow/protocols/traceability-analysis.md`. PLM 미바인딩 시 경고 후 스킵.)
 
-1. **상위 아티팩트 해소**: 이 작업이 구현하는 요구/설계를 찾는다 — `.ouroboros/docs/requirements/SRS-*.md`·`docs/design/SAD-*.md` 또는 PLM(`mcp__plm__search`/`artifact_get`). 발견분을 후보로 수집.
+1. **상위 아티팩트 해소**: 이 작업이 구현하는 요구/설계를 찾는다 — `.ouroboros/docs/requirements/SRS-*.json`·`docs/design/SAD-*.json`(ADR-019 CODE.json) 또는 PLM(`mcp__plm__search`/`artifact_get`). 발견분을 후보로 수집.
 2. **요구 선행 게이트 (G0)**:
    - 대응 SRS/SAD **있음** → spec 헤더 `추적(implements): SRS-NNN, SAD-NNN` 기재.
    - 대응 SRS **없음 + 새 동작/기능** → **먼저 `/requirement`(plan)로 SRS를 발급**해 추적 백본에 편입할 것을 권고(AskUserQuestion: "요구가 없습니다. SRS를 먼저 발급할까요?"). 사용자가 생략 동의 시 진행.

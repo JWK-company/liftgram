@@ -7,7 +7,7 @@
   1. PLM /export 에서 큐 수집(thin body prose) — 또는 --code 로 특정 1건.
   2. 각 아티팩트의 맥락(상류 URS/SRS·구현 Code) 수집.
   3. `claude -p` 로 템플릿 섹션에 맞는 본문 생성(요구서술·수용기준·연결 등).
-  4. --apply 면 로컬 .md 본문 갱신 → plm-sync hook 이 PLM upsert. 없으면 dry-run.
+  4. --apply 면 마크다운 본문 → ProseMirror doc(ADR-019) 변환 → 로컬 CODE.json 갱신 + PLM PUT /doc. 없으면 dry-run.
 인증: PLM_API_TOKEN(서비스 토큰). 사람 계정 암호 불필요.
 env: PLM_API_URL · PLM_API_TOKEN · PLM_PROJECT · CLAUDE_PROJECT_DIR(로컬 docs 루트)
 인자: [--apply] [--limit N] [--code CODE]
@@ -40,23 +40,35 @@ def http_get(url, token):
         return json.loads(r.read().decode())
 
 
-def push(api, token, project, art, body):
-    """본문 갱신을 PLM 에 upsert(서비스 토큰). 스크립트 쓰기는 hook 미발화 → agent 가 직접 동기."""
+def push(api, token, project, art, body, doc):
+    """본문 갱신을 PLM 에 upsert(서비스 토큰). 스크립트 쓰기는 hook 미발화 → agent 가 직접 동기.
+    ADR-019 동형: /import(메타)+ PUT /doc(canonical 본문). 대시보드는 doc 를 렌더."""
+    from urllib.parse import quote
     payload = {"project": project, "artifacts": [{
         "code": art["code"], "type": art["type"], "title": art.get("title", art["code"]),
-        "status": art.get("status", "Draft"), "body": body,
+        "status": art.get("status", "Draft"), "body": body, "doc": doc,
         "granularity": art.get("granularity"), "build_state": art.get("build_state"),
     }], "relations": []}
-    data = json.dumps(payload).encode()
-    req = urllib.request.Request(f"{api}/import", data=data, method="POST")
+    req = urllib.request.Request(f"{api}/import", data=json.dumps(payload).encode(), method="POST")
     req.add_header("content-type", "application/json")
     req.add_header("user-agent", "plm-agent/1.0")
     req.add_header("authorization", f"Bearer {token}")
     with urllib.request.urlopen(req, timeout=10) as r:
-        return json.loads(r.read().decode())
+        r.read()
+    # canonical 본문 doc 저장(대시보드 렌더 정합)
+    req2 = urllib.request.Request(
+        f"{api}/artifacts/{quote(project)}/{quote(art['code'])}/doc",
+        data=json.dumps({"doc": doc, "schema_version": 1}).encode(), method="PUT")
+    req2.add_header("content-type", "application/json")
+    req2.add_header("user-agent", "plm-agent/1.0")
+    req2.add_header("authorization", f"Bearer {token}")
+    with urllib.request.urlopen(req2, timeout=10) as r:
+        return json.loads(r.read().decode() or "{}")
 
 
 def is_thin(a):
+    if "seed" in (a.get("tags") or []):
+        return False  # P1-2: seed BS는 보정 대상 아님(사용자 아이디어 없는 본문 날조 방지)
     body = (a.get("body") or "").strip()
     prose = "\n".join(l for l in body.splitlines() if not l.startswith("#")).strip()
     return (not prose) or len(prose) < 50 or "{{" in body
@@ -95,20 +107,64 @@ def gen_body(art, up, code_impl):
         return None
 
 
-def write_local(docs_root, code, new_body):
-    """로컬 .md 본문 교체(frontmatter 보존). 성공 시 경로 반환."""
+def md_to_doc(md):
+    """마크다운 본문 → 최소 ProseMirror doc(heading/paragraph/bullet_list). 템플릿 섹션 구조 커버(ADR-019)."""
+    content, bullets = [], []
+
+    def flush():
+        if bullets:
+            content.append({"type": "bullet_list", "content": [
+                {"type": "list_item", "content": [
+                    {"type": "paragraph", "content": [{"type": "text", "text": b}]}]}
+                for b in bullets]})
+            bullets.clear()
+
+    for raw in md.splitlines():
+        s = raw.strip()
+        if not s:
+            flush()
+            continue
+        hm = re.match(r"^(#{1,6})\s+(.*)$", s)
+        if hm:
+            flush()
+            content.append({"type": "heading", "attrs": {"level": min(len(hm.group(1)), 6)},
+                            "content": [{"type": "text", "text": hm.group(2)}]})
+            continue
+        bm = re.match(r"^[-*]\s+(.*)$", s)
+        if bm:
+            bullets.append(bm.group(1))
+            continue
+        flush()
+        content.append({"type": "paragraph", "content": [{"type": "text", "text": s}]})
+    flush()
+    return {"type": "doc", "content": content}
+
+
+def write_local(docs_root, code, new_body, doc):
+    """로컬 본문 교체. ADR-019 동형: CODE.json(doc) canonical 우선 + .md(frontmatter 보존) 레거시. 경로 반환."""
     sub = CAT.get(code.split("-")[0])
     if not sub:
         return None
-    path = os.path.join(docs_root, sub, f"{code}.md")
-    if not os.path.exists(path):
-        return None
-    txt = open(path, encoding="utf-8").read()
-    m = re.match(r"^(---\n.*?\n---\n)(.*)$", txt, re.S)
-    if not m:
-        return None
-    open(path, "w", encoding="utf-8").write(m.group(1) + new_body.rstrip() + "\n")
-    return path
+    jpath = os.path.join(docs_root, sub, f"{code}.json")
+    mpath = os.path.join(docs_root, sub, f"{code}.md")
+    if os.path.exists(jpath):  # canonical — 래퍼의 doc 교체
+        try:
+            obj = json.load(open(jpath, encoding="utf-8"))
+        except Exception:
+            return None
+        obj["doc"] = doc
+        with open(jpath, "w", encoding="utf-8") as f:
+            json.dump(obj, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+        return jpath
+    if os.path.exists(mpath):  # 레거시 .md
+        txt = open(mpath, encoding="utf-8").read()
+        m = re.match(r"^(---\n.*?\n---\n)(.*)$", txt, re.S)
+        if not m:
+            return None
+        open(mpath, "w", encoding="utf-8").write(m.group(1) + new_body.rstrip() + "\n")
+        return mpath
+    return None
 
 
 def main():
@@ -129,7 +185,7 @@ def main():
         queue = [a for a in arts if a["code"] == only]
     else:
         queue = [a for a in arts if a.get("type") in PROSE
-                 and a.get("status") != "Superseded" and is_thin(a)]
+                 and a.get("status") != "Replaced" and is_thin(a)]
     queue = queue[:limit]
     mode = "APPLY" if apply else "DRY-RUN"
     print(f"[agent] 큐 {len(queue)}건 ({mode}) · project={project}")
@@ -144,10 +200,11 @@ def main():
         if not body:
             print("    본문 생성 실패 — 스킵")
             continue
-        p = write_local(docs_root, code, body)
+        doc = md_to_doc(body)  # ADR-019: 마크다운 → ProseMirror doc(canonical)
+        p = write_local(docs_root, code, body, doc)
         synced = ""
         try:
-            push(api, token, project, a, body)
+            push(api, token, project, a, body, doc)
             synced = " → PLM 동기✓"
         except Exception as e:
             synced = f" (PLM 동기 실패: {str(e)[:40]})"
@@ -155,7 +212,7 @@ def main():
             print(f"    ✓ 본문 {len(body)}자 작성 → {os.path.relpath(p, docs_root)}{synced}")
             done += 1
         else:
-            print("    로컬 .md 없음 — 스킵")
+            print("    로컬 아티팩트 파일 없음(.json/.md) — 스킵")
     if apply:
         print(f"[agent] 완료: {done}/{len(queue)}건 보정. /plm-hub:pull 또는 plm-sync 로 PLM 정합.")
 

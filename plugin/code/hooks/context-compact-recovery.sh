@@ -39,7 +39,7 @@ fi
 ACTIVE_SKILL=$(read_state '.active_skill')
 SKILL_STEP=$(read_state '.skill_step')
 GRADE=$(read_first_task '.grade')
-PHASE=$(read_first_task '.phase')
+PHASE=$(read_first_task '.current_phase')  # BUG-③: state.json task는 .current_phase(.phase 아님)
 PLAN_PATH=$(read_first_task '.plan_path')
 
 if [ -n "$ACTIVE_SKILL" ]; then

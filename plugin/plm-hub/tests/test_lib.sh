@@ -9,8 +9,8 @@ chk(){ if [[ "$1" == "$2" ]]; then P=$((P+1)); else F=$((F+1)); echo "  FAIL: $3
 # 임시 중첩 워크스페이스 구성
 TMP="$(mktemp -d)"
 mkdir -p "$TMP/root/.ouroboros/config" "$TMP/root/sub/.ouroboros/config" "$TMP/root/sub/src"
-echo '{"project":"root-proj","api_url":"https://plm.shoi.ch"}' > "$TMP/root/.ouroboros/config/plm.json"
-echo '{"project":"sub-proj","api_url":"https://plm.shoi.ch","code_root":"src"}' > "$TMP/root/sub/.ouroboros/config/plm.json"
+echo '{"project":"root-proj","api_url":"https://jwk-plm.shoi.ch"}' > "$TMP/root/.ouroboros/config/plm.json"
+echo '{"project":"sub-proj","api_url":"https://jwk-plm.shoi.ch","code_root":"src"}' > "$TMP/root/sub/.ouroboros/config/plm.json"
 
 export CLAUDE_PROJECT_DIR="$TMP/root"
 

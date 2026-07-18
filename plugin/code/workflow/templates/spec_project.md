@@ -2,6 +2,7 @@
 
 > 생성일: {{DATE}}
 > 등급: **Project** ({{SCORE}}점)
+> 추적(implements): {{SRS-NNN, SAD-NNN | 없음(요구 불변)}}
 > spec 경로: `.ouroboros/docs/spec/{{YYYYMMDD}}_{{name}}/`
 
 ---
@@ -16,6 +17,14 @@
 ## 작업 의도
 
 {{왜 이 작업이 필요한가? 비즈니스/기술적 배경 5-8줄}}
+
+## 추적 매핑 (구현 ↔ 요구)
+
+| 심볼/파일 | 실현 SRS/SAD | granularity | @plm |
+|-----------|--------------|-------------|------|
+| {{모듈/컴포넌트}} | {{SRS-NNN, SAD-NNN}} | {{component/function}} | `@plm SRS-NNN` |
+
+> G0(요구 선행): 새 동작은 대응 SRS가 선행해야 한다(없으면 `/requirement` 먼저). 구현 시 `@plm` 역링크 → 완료 후 `/plm-hub:codescan`으로 딥링크 동기. (멀티 도메인이면 Phase별로 매핑 확장.)
 
 ### 성공 기준
 

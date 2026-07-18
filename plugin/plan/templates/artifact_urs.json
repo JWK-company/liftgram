@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-{{NNN}}",
+  "type": "URS",
+  "title": "{{한 줄 제목}}",
+  "status": "Draft",
+  "owner": "{{책임 역할}}",
+  "product": "{{제품}}",
+  "created": "{{ISO8601_UTC}}",
+  "updated": "{{ISO8601_UTC}}",
+  "sync": true,
+  "stakeholder": "{{이해관계자}}",
+  "priority": "{{High|Med|Low}}",
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "배경 / 이해관계자" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{누가 왜 이 요구를 내는가}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{이해관계자 관점의 니즈 (해결책 아님)}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{측정 가능한 충족 조건}}" }] }] }
+    ] }
+  ] }
+}

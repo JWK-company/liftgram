@@ -26,10 +26,12 @@ if [ -n "$ACTIVE_SKILL" ]; then
   debug_log "active_skill=$ACTIVE_SKILL step=$SKILL_STEP"
 fi
 
-TASK_NAME=$(read_first_task '.name')
+# BUG-③: 미완료 task만(closed 제외) + phase 필드는 .current_phase(존재 필드). 과거: read_first_task가
+# 끝난 task도 반환 + 없는 .phase 참조로 "Phase 0" 고정 오표기 → 완료 task를 매번 [미완료]로 표시.
+TASK_NAME=$(read_first_open_task '.name')
 if [ -n "$TASK_NAME" ]; then
-  TASK_PHASE=$(read_first_task '.phase')
-  TASK_GRADE=$(read_first_task '.grade')
+  TASK_PHASE=$(read_first_open_task '.current_phase')
+  TASK_GRADE=$(read_first_open_task '.grade')
   echo "[미완료] $TASK_NAME ($TASK_GRADE / Phase ${TASK_PHASE:-0})"
   debug_log "task=$TASK_NAME grade=$TASK_GRADE phase=$TASK_PHASE"
 fi

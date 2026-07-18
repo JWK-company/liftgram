@@ -1,0 +1,118 @@
+import { Callout, Steps, Tabs } from 'nextra/components'
+
+# 표준 워크플로우
+
+문서 유형에 따른 **표준 작성 흐름**을 안내합니다.
+
+---
+
+## 기본 흐름
+
+```
+/research → /spec → /review spec → /write → /review doc → /revise → /reflect
+```
+
+모든 단계가 필수는 아닙니다. 문서 규모에 따라 단계를 생략할 수 있습니다.
+
+---
+
+## 문서 유형별 워크플로우
+
+<Tabs items={['메모/이메일', '보고서', '백서/기획서']}>
+<Tabs.Tab>
+**간단한 메모, 이메일, 안내문** (1-2페이지)
+
+<Steps>
+### /draft 실행
+```
+/draft "주간 팀 회의 요약 — 결정사항 3건, 액션아이템 정리"
+```
+### (선택) /revise로 다듬기
+```
+/revise "격식체로 변경"
+```
+</Steps>
+
+소요 시간: 5-10분
+</Tabs.Tab>
+<Tabs.Tab>
+**정기 보고서, 분석 보고서** (5-15페이지)
+
+<Steps>
+### /research로 자료 수집
+```
+/research "Q1 매출 데이터, 채널별 성과, 경쟁사 동향"
+```
+### /spec으로 구조 설계
+```
+/spec "Q1 마케팅 성과 보고서 — 채널별 ROI, 경쟁사 비교, Q2 전략"
+```
+### /review spec으로 구조 검토
+```
+/review spec
+```
+### /write로 본문 작성
+```
+/write
+```
+### /review doc으로 리뷰
+```
+/review doc
+```
+### /revise로 피드백 반영
+```
+/revise
+```
+</Steps>
+
+소요 시간: 1-3시간
+</Tabs.Tab>
+<Tabs.Tab>
+**백서, 전략 기획서, 제안서** (15페이지+)
+
+<Steps>
+### /research로 심층 조사
+```
+/research "AI 도입 ROI 사례 — 제조업, 금융, 유통 분야"
+```
+### /spec으로 상세 설계
+```
+/spec "AI 도입 전략 백서 — 현황 분석, 기술 비교, 도입 로드맵, ROI 산출"
+```
+### /review spec + /consult
+```
+/review spec
+/consult "ROI 산출 방법론이 적절한지 재무 관점에서 검토"
+```
+### /write로 챕터별 작성
+```
+/write --section "1. 현황 분석"
+/write --section "2. 기술 비교"
+```
+### 중간 리뷰 + 수정
+```
+/review doc
+/revise
+```
+### 최종 완성 + 회고
+```
+/write --section "3. 도입 로드맵"
+/review doc
+/revise
+/reflect
+```
+</Steps>
+
+소요 시간: 3-8시간 (여러 세션)
+</Tabs.Tab>
+</Tabs>
+
+---
+
+## 워크플로우 팁
+
+<Callout>
+- `/suggest`로 시작하면 현재 상태에서 최적의 다음 단계를 안내받습니다
+- 각 스킬 완료 시 자동으로 다음 단계가 제안됩니다
+- 세션이 끊겨도 `/suggest`로 이어서 진행할 수 있습니다
+</Callout>

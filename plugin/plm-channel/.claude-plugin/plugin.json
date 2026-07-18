@@ -1,7 +1,15 @@
 {
   "name": "plm-channel",
-  "version": "0.1.0",
+  "version": "0.1.14",
   "description": "PLM-Hub 채널 — 웹 대시보드 [Sync] 버튼 → 이 터미널 Claude 세션으로 작업 push(claude/channel). 백엔드 SSE를 구독하는 로컬 릴레이(Node, 의존성 0). zero-config 자동발견(.ouroboros/config·env). 사용: claude --channels plugin:plm-channel@jwk-platform. 승인=managed-settings allowedChannelPlugins(make channels). 토큰=/plm-hub:link(영속 plmhub-).",
-  "author": { "name": "JWK-company workflow plugins" },
-  "keywords": ["plm", "channel", "sync", "mcp", "claude-channel"]
+  "author": {
+    "name": "JWK-company workflow plugins"
+  },
+  "keywords": [
+    "plm",
+    "channel",
+    "sync",
+    "mcp",
+    "claude-channel"
+  ]
 }

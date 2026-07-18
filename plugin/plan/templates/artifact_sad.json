@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-{{NNN}}",
+  "type": "SAD",
+  "title": "{{설계 제목}}",
+  "status": "Draft",
+  "owner": "{{책임 역할}}",
+  "product": "{{제품}}",
+  "created": "{{ISO8601_UTC}}",
+  "updated": "{{ISO8601_UTC}}",
+  "sync": true,
+  "component": "{{컴포넌트}}",
+  "relations": { "refs": ["SRS-{{NNN}}"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "개요" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{상위 설계 의도 (2문장+)}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "컴포넌트 / 책임" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{컴포넌트 → 책임}}" }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "다루는 SRS: {{SRS-NNN}}" }] }
+  ] }
+}

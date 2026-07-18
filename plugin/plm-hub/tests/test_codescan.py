@@ -57,13 +57,13 @@ check(m and m.group(1) == "scripts/player.gd", "LOC_RE 경로(라인 제외)")
 ex = {"artifacts": [
     {"code": "CODE-a-gone", "type": "Code", "status": "Draft", "body": "loc: `scripts/a.gd:1`"},
     {"code": "CODE-other", "type": "Code", "status": "Draft", "body": "loc: `far/b.gd:1`"},
-    {"code": "CODE-sup", "type": "Code", "status": "Superseded", "body": "loc: `scripts/c.gd:1`"},
+    {"code": "CODE-sup", "type": "Code", "status": "Replaced", "body": "loc: `scripts/c.gd:1`"},
 ]}
 stale = cs.stale_codes(ex, seen=set(), present={"scripts/x.gd"})  # present_dir=scripts
 codes = {c for c, _, _ in stale}
 check("CODE-a-gone" in codes, "GC: 스캔디렉토리 내 사라진 Code 포함")
 check("CODE-other" not in codes, "GC: 다른 스코프 Code 보존")
-check("CODE-sup" not in codes, "GC: 이미 Superseded 제외")
+check("CODE-sup" not in codes, "GC: 이미 Replaced 제외")
 
 print(f"test_codescan: {P} pass, {F} fail")
 sys.exit(1 if F else 0)

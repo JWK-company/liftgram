@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-{{NNN}}",
+  "type": "SRS",
+  "title": "{{기능/성능 제목}}",
+  "status": "Draft",
+  "owner": "{{책임 역할}}",
+  "product": "{{제품}}",
+  "created": "{{ISO8601_UTC}}",
+  "updated": "{{ISO8601_UTC}}",
+  "sync": true,
+  "kind": "{{FR|NFR}}",
+  "acceptance_criteria": "{{수용기준 1줄 요약}}",
+  "relations": { "derives_from": ["URS-{{NNN}}"] },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{기능/성능 요구 (구현 무관, 2문장+)}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{측정 가능한 조건}}" }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "도출 URS: {{URS-NNN}}" }] }
+  ] }
+}

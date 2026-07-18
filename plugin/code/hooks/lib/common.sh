@@ -84,6 +84,16 @@ read_first_task() {
   fi
 }
 
+# BUG-③: 미완료(open) task만 골라 필드 읽기 — status가 done/complete/closed/archived/cancel/replaced가
+# 아닌 첫 task. read_first_task는 status 무필터라 끝난 task도 [미완료]로 오표기하던 문제 해소.
+# Usage: NAME=$(read_first_open_task '.name');  PHASE=$(read_first_open_task '.current_phase')
+read_first_open_task() {
+  local field="$1"
+  if [ -f "$STATE_JSON" ] && has_jq; then
+    jq -r "[.tasks[] | select(((.status // \"active\") | ascii_downcase | test(\"done|complete|closed|archived|cancel|replaced\")) | not)] | first | ${field} // empty" "$STATE_JSON" 2>/dev/null || echo ""
+  fi
+}
+
 # current.md에서 섹션 추출 (HTML 마커 우선, 헤더 fallback)
 # Usage: CONTENT=$(read_current_section "ACTIVE_TASK" "활성 작업")
 read_current_section() {

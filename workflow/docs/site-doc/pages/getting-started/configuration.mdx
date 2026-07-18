@@ -1,0 +1,121 @@
+import { Callout } from 'nextra/components'
+
+# 설정
+
+Ouroboros 워크플로우의 주요 설정 파일과 커스터마이징 방법을 설명합니다.
+
+---
+
+## .ouroboros/env/.env 변수
+
+| 변수 | 필수 | 설명 |
+|------|------|------|
+| `OUROBOROS_URL` | O | MCP 서버 URL |
+| `OUROBOROS_API_KEY` | O | API 인증 키 |
+| `DEVELOPER_USER_ID` | O | 사용자 고유 ID. 개인/프로젝트 메모리를 분리하는 기준 |
+| `PROJECT_ID` | O | 프로젝트 고유 ID. 멀티 프로젝트 환경에서 데이터 격리 |
+| `EVENT_LOG_URL` | O | 대시보드 URL. 대화 동기화 및 세션 기록 대상 |
+
+```env filename=".ouroboros/env/.env"
+OUROBOROS_URL=https://your-server.example.com
+OUROBOROS_API_KEY=your-api-key
+DEVELOPER_USER_ID=your-user-id
+PROJECT_ID=your-project-id
+EVENT_LOG_URL=https://your-dashboard.example.com
+```
+
+---
+
+## .mcp.json
+
+MCP 서버 연결 설정입니다. 필요에 따라 서버를 추가하거나 제거할 수 있습니다.
+
+```json filename=".mcp.json"
+{
+  "mcpServers": {
+    "ouroboros": {
+      "type": "http",
+      "url": "${OUROBOROS_URL}/mcp?key=${OUROBOROS_API_KEY}"
+    },
+    "sequential-thinking": {
+      "type": "http",
+      "url": "https://mcp.sequentialthinking.com"
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "serena": {
+      "command": "uvx",
+      "args": ["serena", "--workspace", "."]
+    }
+  }
+}
+```
+
+| 서버 | 필수 | 역할 |
+|------|------|------|
+| `ouroboros` | O | 핵심 MCP 서버 (메모리, KG, 이벤트) |
+| `sequential-thinking` | - | 복잡한 문제의 단계적 사고 |
+| `context7` | - | 외부 라이브러리 문서 조회 |
+| `serena` | - | 프로젝트 파일 구조 분석 (LSP 기반) |
+
+---
+
+## Hook 활성화/비활성화
+
+Hook 설정은 `.claude/settings.json`에서 관리됩니다. 일반적으로 수정할 필요가 없지만, 특정 Hook을 비활성화해야 할 경우 해당 항목을 제거합니다.
+
+```json filename=".claude/settings.json"
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "command": ".ouroboros/hooks/user-prompt-reminder.sh" },
+      { "command": ".ouroboros/hooks/event-capture.sh" },
+      { "command": ".ouroboros/hooks/conversation-sync.sh" }
+    ],
+    "PreToolUse": [
+      { "command": ".ouroboros/hooks/git-guard.sh" }
+    ],
+    "PostToolUse": [
+      { "command": ".ouroboros/hooks/knowledge-signal.sh" },
+      { "command": ".ouroboros/hooks/event-capture.sh" }
+    ],
+    "PreCompact": [
+      { "command": ".ouroboros/hooks/context-compact-recovery.sh" }
+    ],
+    "Stop": [
+      { "command": ".ouroboros/hooks/conversation-sync.sh" }
+    ]
+  }
+}
+```
+
+| Hook | 비활성화 시 영향 |
+|------|----------------|
+| `user-prompt-reminder` | 가이드라인 자동 주입 중단 |
+| `git-guard` | git 변경 명령어 사용자 확인 중단 |
+| `knowledge-signal` | 사용자 선호 자동 감지 중단 |
+| `event-capture` | 이벤트 기록 중단 |
+| `conversation-sync` | 대화 동기화 중단 (대시보드 Sessions 비활성) |
+| `context-compact-recovery` | CC 복구 지침 자동 주입 중단 |
+
+<Callout type="warning">
+  `user-prompt-reminder`와 `git-guard`는 핵심 Hook입니다. 비활성화하면 워크플로우 품질이 크게 저하될 수 있습니다.
+</Callout>
+
+---
+
+## 설정 검증
+
+모든 설정이 올바른지 확인하려면:
+
+```bash
+make doctor
+```
+
+`make doctor`는 다음을 검증합니다:
+- `.ouroboros/env/.env` 필수 변수 존재 여부
+- MCP 서버 연결 상태
+- Hook 파일 존재 및 실행 권한
+- 스킬 파일 무결성

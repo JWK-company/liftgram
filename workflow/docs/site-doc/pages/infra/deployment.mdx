@@ -1,0 +1,172 @@
+import { Callout, Steps } from 'nextra/components'
+
+# 배포
+
+Ouroboros MCP 서버를 Docker Compose로 배포하는 방법을 안내합니다.
+
+---
+
+## Docker Compose 배포
+
+<Steps>
+### 저장소 클론
+
+```bash
+git clone https://github.com/your-org/ouroboros-infra.git
+cd ouroboros-infra
+```
+
+### 환경 설정
+
+```bash
+cp .env.example .env
+```
+
+`.ouroboros/env/.env` 파일을 편집하여 필요한 값을 설정합니다.
+
+```env filename=".ouroboros/env/.env"
+# Neo4j
+NEO4J_AUTH=neo4j/your-password
+NEO4J_PLUGINS=["apoc"]
+
+# ClickHouse
+CLICKHOUSE_USER=default
+CLICKHOUSE_PASSWORD=your-password
+
+# Ollama
+OLLAMA_MODELS=qwen3-embedding
+
+# MCP 서버
+MCP_PORT=8080
+API_KEY=your-api-key
+
+# Dashboard
+DASHBOARD_PORT=3000
+```
+
+### 서비스 시작
+
+```bash
+docker compose up -d
+```
+
+모든 서비스가 시작됩니다:
+
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| Neo4j | 7474 (HTTP), 7687 (Bolt) | 메모리 + KG |
+| ClickHouse | 8123 (HTTP), 9000 (Native) | 이벤트 로그 |
+| Ollama | 11434 | GPU 임베딩 |
+| MCP 서버 | 8080 | MCP API |
+| Dashboard | 3000 | 웹 대시보드 |
+
+### 상태 확인
+
+```bash
+docker compose ps
+# 모든 서비스가 healthy 상태인지 확인
+
+# 또는
+make health
+make status
+```
+</Steps>
+
+---
+
+## Cloudflare Tunnel
+
+외부에서 MCP 서버와 대시보드에 접근하려면 Cloudflare Tunnel을 사용합니다.
+
+<Steps>
+### cloudflared 설치
+
+```bash
+# Linux
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+chmod +x /usr/local/bin/cloudflared
+```
+
+### 터널 생성
+
+```bash
+cloudflared tunnel login
+cloudflared tunnel create ouroboros
+```
+
+### 설정 파일
+
+```yaml filename="~/.cloudflared/config.yml"
+tunnel: ouroboros
+credentials-file: ~/.cloudflared/<tunnel-id>.json
+
+ingress:
+  - hostname: mcp.your-domain.com
+    service: http://localhost:8080
+  - hostname: dashboard.your-domain.com
+    service: http://localhost:3000
+  - service: http_status:404
+```
+
+### DNS 레코드 등록
+
+```bash
+cloudflared tunnel route dns ouroboros mcp.your-domain.com
+cloudflared tunnel route dns ouroboros dashboard.your-domain.com
+```
+
+### 터널 실행
+
+```bash
+cloudflared tunnel run ouroboros
+```
+
+<Callout type="info">
+  systemd 서비스로 등록하면 서버 재시작 시 자동으로 터널이 실행됩니다.
+</Callout>
+</Steps>
+
+---
+
+## 서버 설정
+
+### GPU 요구사항
+
+Ollama 임베딩을 위해 GPU가 권장됩니다.
+
+| 항목 | 최소 | 권장 |
+|------|------|------|
+| GPU VRAM | 4GB | 8GB+ |
+| RAM | 8GB | 16GB+ |
+| Storage | 20GB | 50GB+ |
+
+<Callout type="warning">
+  GPU가 없으면 Ollama가 CPU fallback으로 동작합니다. 임베딩 생성 속도가 느려질 수 있습니다.
+</Callout>
+
+### 백업
+
+```bash
+# Neo4j 백업
+docker compose exec neo4j neo4j-admin dump --to=/backups/neo4j-$(date +%Y%m%d).dump
+
+# ClickHouse 백업
+docker compose exec clickhouse clickhouse-client --query "BACKUP DATABASE default TO Disk('backups', 'ch-$(date +%Y%m%d)')"
+```
+
+### 서비스 관리
+
+```bash
+# 전체 시작
+docker compose up -d
+
+# 전체 중지
+docker compose down
+
+# 특정 서비스 재시작
+docker compose restart mcp-server
+
+# 로그 확인
+docker compose logs -f mcp-server
+docker compose logs -f neo4j
+```

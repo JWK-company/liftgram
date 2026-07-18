@@ -6,13 +6,3 @@
 .ref/**
 .serena/**
 **/.git/**
-# 문서·플러그인·테스트는 @plm 예시 텍스트라 Code 아티팩트 오염 방지 — 스캔 제외
-*.md
-**/*.md
-CLAUDE.md
-AGENTS.md
-plugin/**
-workflow/**
-.ouroboros/**
-**/*.test.ts
-**/__tests__/**

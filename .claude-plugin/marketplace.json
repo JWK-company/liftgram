@@ -16,7 +16,7 @@
     },
     {
       "name": "plm-hub",
-      "description": "PLM 거버넌스 브리지 — 원격 PLM MCP(14도구, OAuth) 등록 + plan/code의 .ouroboros/docs/*.md를 PLM에 자동 동기(Edit hook)·게이트(G1~G3) 표면화(Stop hook). 사용: plm-hub:<command>",
+      "description": "PLM 거버넌스 브리지 — 원격 PLM MCP(14도구, OAuth) 등록 + plan/code의 .ouroboros/docs/*.json(ADR-019 CODE.json)를 PLM에 자동 동기(Edit hook)·게이트(G1~G3) 표면화(Stop hook). 사용: plm-hub:<command>",
       "source": "./plugin/plm-hub"
     },
     {

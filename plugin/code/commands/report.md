@@ -19,7 +19,7 @@ PLM(추적·Code 권위)과 Ouroboros(엔지니어링 메모리)에서 데이터
 - **구현 커버리지**: 각 SRS/SAD가 `implemented_by`(역산) Code를 가지는가 → **요구 대비 구현률**. Code 없는 SRS = 미구현 갭.
 - **고아 Code**: 어떤 SRS/SAD도 realize 안 하는 Code(추적 끊김, G3).
 - 소스 `@plm <CODE>` 주석 분포(파일·모듈별) — 추적 밀도.
-- 최신 `/plm-hub:codescan` 결과(생성/수정/superseded/GC)로 코드↔PLM 정합 상태.
+- 최신 `/plm-hub:codescan` 결과(생성/수정/Replaced/GC)로 코드↔PLM 정합 상태.
 
 **Ouroboros에서 (엔지니어링 지식):**
 - `memory_search`(scope 양쪽) — 이 프로젝트의 **gotcha(함정)·pattern(재사용 패턴)·insight(비자명 동작)**. `user_id`·`project_id`는 `.ouroboros/env/.env`.

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ouroboros - Install</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0a0a0f; color: #e5e7eb; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: #111827; border: 1px solid #1f2937; border-radius: 16px; padding: 2.5rem; max-width: 520px; width: 100%; margin: 1rem; }
+    h1 { color: #818cf8; font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .sub { color: #6b7280; font-size: 0.85rem; margin-bottom: 2rem; }
+    .step { margin-bottom: 1.5rem; }
+    .step-num { display: inline-block; background: #818cf8; color: #0a0a0f; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; font-size: 0.75rem; font-weight: bold; margin-right: 0.5rem; }
+    .step-label { font-size: 0.9rem; font-weight: 500; }
+    .btn { display: block; width: 100%; padding: 0.75rem; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 500; cursor: pointer; margin: 1rem 0; }
+    .btn:hover { background: #4338ca; }
+    .btn:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+    .code-box { background: #0a0a0f; border: 1px solid #1f2937; border-radius: 8px; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: #a5f3fc; word-break: break-all; position: relative; display: none; }
+    .code-box.show { display: block; }
+    .copy-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; cursor: pointer; }
+    .copy-btn:hover { background: #374151; color: white; }
+    .info { color: #6b7280; font-size: 0.75rem; margin-top: 1rem; }
+    .error { color: #f87171; font-size: 0.85rem; margin-top: 0.5rem; display: none; }
+    .spinner { display: none; }
+    .spinner.show { display: inline-block; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #status { font-size: 0.85rem; margin-top: 0.5rem; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Ouroboros Install</h1>
+    <p class="sub">Keycloak 로그인 후 설치 명령어를 발급받으세요.</p>
+
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-label">Keycloak 로그인</span>
+    </div>
+    <button id="loginBtn" class="btn" onclick="login()">Keycloak으로 로그인</button>
+    <div id="status"></div>
+    <div id="error" class="error"></div>
+
+    <div class="step" style="margin-top: 1.5rem;">
+      <span class="step-num">2</span>
+      <span class="step-label">터미널에서 아래 명령어 실행</span>
+    </div>
+    <div id="cmdBox" class="code-box">
+      <button class="copy-btn" onclick="copyCmd()">Copy</button>
+      <span id="cmdText"></span>
+    </div>
+
+    <p class="info">
+      토큰은 10분간 유효하며, 1회만 사용 가능합니다.<br>
+      만료 시 이 페이지를 새로고침하세요.
+    </p>
+  </div>
+
+  <script>
+    const OURO_URL = '__OURO_URL__';
+    const OIDC_ISSUER = '__OIDC_ISSUER__';
+    const CLIENT_ID = '__CLIENT_ID__';
+
+    // PKCE helpers
+    function base64url(buf) {
+      return btoa(String.fromCharCode(...new Uint8Array(buf)))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    async function generatePKCE() {
+      const verifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
+      const challenge = base64url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
+      return { verifier, challenge };
+    }
+
+    async function login() {
+      const btn = document.getElementById('loginBtn');
+      const status = document.getElementById('status');
+      const error = document.getElementById('error');
+      error.style.display = 'none';
+
+      // Generate PKCE
+      const { verifier, challenge } = await generatePKCE();
+      const state = base64url(crypto.getRandomValues(new Uint8Array(16)));
+
+      // Store for callback
+      sessionStorage.setItem('pkce_verifier', verifier);
+      sessionStorage.setItem('pkce_state', state);
+
+      // Redirect to Keycloak
+      const redirectUri = window.location.origin + window.location.pathname;
+      const authUrl = `${OIDC_ISSUER}/protocol/openid-connect/auth?` +
+        `client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        `&response_type=code&scope=openid&state=${state}` +
+        `&code_challenge=${challenge}&code_challenge_method=S256`;
+
+      window.location.href = authUrl;
+    }
+
+    // Handle callback (code in URL)
+    async function handleCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const state = params.get('state');
+      if (!code) return;
+
+      const savedState = sessionStorage.getItem('pkce_state');
+      const verifier = sessionStorage.getItem('pkce_verifier');
+      if (state !== savedState || !verifier) {
+        showError('State mismatch. Please try again.');
+        return;
+      }
+
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+
+      const status = document.getElementById('status');
+      const btn = document.getElementById('loginBtn');
+      status.textContent = 'Exchanging token...';
+      btn.disabled = true;
+
+      try {
+        // Exchange code for tokens
+        const redirectUri = window.location.origin + window.location.pathname;
+        const tokenRes = await fetch(`${OIDC_ISSUER}/protocol/openid-connect/token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: CLIENT_ID,
+            code,
+            redirect_uri: redirectUri,
+            code_verifier: verifier,
+          }),
+        });
+
+        if (!tokenRes.ok) throw new Error('Token exchange failed');
+        const tokens = await tokenRes.json();
+
+        // Get install token
+        const installRes = await fetch(`${OURO_URL}/api/install/token`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${tokens.access_token}` },
+        });
+
+        if (!installRes.ok) throw new Error('Install token generation failed');
+        const { install_token } = await installRes.json();
+
+        // Show command
+        const cmd = `curl -fsSL '${OURO_URL}/install.sh?token=${install_token}' | bash`;
+        document.getElementById('cmdText').textContent = cmd;
+        document.getElementById('cmdBox').classList.add('show');
+        status.textContent = 'Install command generated!';
+        btn.textContent = 'Login complete';
+
+        sessionStorage.removeItem('pkce_verifier');
+        sessionStorage.removeItem('pkce_state');
+      } catch (e) {
+        showError(e.message);
+        btn.disabled = false;
+      }
+    }
+
+    function showError(msg) {
+      const error = document.getElementById('error');
+      error.textContent = msg;
+      error.style.display = 'block';
+    }
+
+    function copyCmd() {
+      const text = document.getElementById('cmdText').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        document.querySelector('.copy-btn').textContent = 'Copied!';
+        setTimeout(() => document.querySelector('.copy-btn').textContent = 'Copy', 2000);
+      });
+    }
+
+    // Auto-handle callback on load
+    handleCallback();
+  </script>
+</body>
+</html>

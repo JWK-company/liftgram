@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "id": "BS-001",
+  "type": "BS",
+  "title": "{{프로그램명(가칭)}}",
+  "status": "Draft",
+  "owner": "{{책임 역할}}",
+  "product": "{{제품}}",
+  "kind": "idea",
+  "created": "{{ISO8601_UTC}}",
+  "updated": "{{ISO8601_UTC}}",
+  "sync": true,
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "프로그램명 (가칭)" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{한 줄 — 이 프로그램을 뭐라 부를지}}" }] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "프로그램의 목적" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{무슨 문제를 누구를 위해 해결하나 — 2~3문장}}" }] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사용자 종류 (role)" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "역할별로 한 줄씩. 형식: 역할명 — 목표/니즈(이 목록이 사용자 시뮬레이션의 입력이 됩니다)." }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{역할1(예: 관리자)}} — {{그가 이 프로그램으로 이루려는 목표}}" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{역할2(예: 일반 사용자)}} — {{목표}}" }] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "사용 흐름" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "대표 시나리오를 단계로. 역할이 여럿이면 역할별로 나눠 적어도 됩니다." }] },
+    { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{1단계 — 누가 무엇을}}" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{2단계}}" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{3단계}}" }] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수익화 포인트" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{어디서 돈이 되나 — 과금 모델·유료 기능·전환 지점}}" }] }] }
+    ] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "로드맵 시드" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{위를 바탕으로 한 초기 설계 가안·단계 아이디어 — 이후 /plan이 Roadmap(RM)을 만들 때 참조하는 뼈대}}" }] }
+  ] }
+}

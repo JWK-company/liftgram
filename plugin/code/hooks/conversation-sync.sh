@@ -54,7 +54,7 @@ export _SYNC_OFFSET_FILE="$OFFSET_FILE"
 export _SYNC_CURRENT_SIZE="$CURRENT_SIZE"
 
 python3 -c '
-import json, os, urllib.request
+import json, os, re, urllib.request
 
 jsonl_path = os.environ["_SYNC_JSONL"]
 offset = int(os.environ["_SYNC_OFFSET"])
@@ -65,18 +65,42 @@ project_id = os.environ["_SYNC_PROJECT_ID"]
 offset_file = os.environ["_SYNC_OFFSET_FILE"]
 current_size = os.environ["_SYNC_CURRENT_SIZE"]
 
+# OBS-02: PII 레닥션(event-capture.sh와 동일 패턴) — 대화 본문/Bash/diff의 시크릿 평문 적재 차단.
+_PII = [
+    (re.compile(r"(?i)(Bearer\s+)([A-Za-z0-9\-._~+/]+=*)"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(\"(?:password|secret|token|api_key|apikey|access_key|private_key)\")\s*:\s*\"([^\"]*)\""), r"\1: \"[REDACTED]\""),
+    (re.compile(r"(?i)((?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY|AWS_SECRET)[A-Z_]*)\s*=\s*(\S+)"), r"\1=[REDACTED]"),
+    (re.compile(r"-----BEGIN[A-Z ]*PRIVATE KEY-----[\s\S]*?-----END[A-Z ]*PRIVATE KEY-----"), "[REDACTED:PRIVATE_KEY]"),
+]
+def redact(t):
+    if not t:
+        return t
+    for rx, rep in _PII:
+        t = rx.sub(rep, t)
+    return t
+
 with open(jsonl_path, "rb") as f:
     f.seek(offset)
     new_data = f.read()
 
 sent = 0
-for line in new_data.decode("utf-8", errors="replace").split("\n"):
-    line = line.strip()
+# OBS-02: 라인별 바이트 위치 추적 — 전송 성공한 마지막 라인까지만 오프셋 전진(실패 시 그 지점에서
+# 멈춰 다음 실행 재시도 → 이벤트 서버 다운 시 대화 영구소실 방지). raw 바이트 라인으로 분할.
+raw_lines = new_data.split(b"\n")
+last_ok = offset            # 성공 전송한 마지막 라인의 끝 바이트(없으면 시작 오프셋 유지)
+cursor = offset             # 현재 라인 시작 바이트
+failed = False
+for raw in raw_lines:
+    line_end = cursor + len(raw) + 1  # +1 = "\n"
+    cursor = line_end
+    line = raw.decode("utf-8", errors="replace").strip()
     if not line:
+        last_ok = min(line_end, int(current_size))  # 빈 라인은 건너뛰되 위치는 전진
         continue
     try:
         d = json.loads(line)
     except:
+        last_ok = min(line_end, int(current_size))   # 파싱불가 라인도 스킵(전송대상 아님)
         continue
 
     msg = d.get("message", {})
@@ -142,18 +166,23 @@ for line in new_data.decode("utf-8", errors="replace").split("\n"):
         "project_id": project_id,
         "session_id": session_id,
         "tool_name": tool_name,
-        "content": content[:5000],
+        "content": redact(content)[:5000],  # OBS-02: PII 레닥션
     }).encode()
 
     try:
         req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json", "User-Agent": "ouroboros-sync/1.0"}, method="POST")
         urllib.request.urlopen(req, timeout=3)
         sent += 1
-    except:
-        pass
+        last_ok = min(line_end, int(current_size))  # 이 라인까지 성공 → 오프셋 전진 허용
+    except Exception:
+        # OBS-02: 전송 실패 → 오프셋을 더 전진시키지 않고 중단(다음 실행에서 이 라인부터 재시도).
+        failed = True
+        break
 
+# OBS-02: 전부 성공 시 current_size까지, 실패 시 last_ok(마지막 성공 라인)까지만 전진.
+new_offset = str(int(current_size)) if (not failed) else str(int(last_ok))
 with open(offset_file, "w") as f:
-    f.write(current_size)
+    f.write(new_offset)
 '
 ) &
 

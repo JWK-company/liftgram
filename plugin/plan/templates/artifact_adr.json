@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-{{NNN}}",
+  "type": "ADR",
+  "title": "{{결정 제목}}",
+  "status": "Draft",
+  "owner": "{{책임 역할}}",
+  "product": "{{제품}}",
+  "created": "{{ISO8601_UTC}}",
+  "updated": "{{ISO8601_UTC}}",
+  "sync": true,
+  "relations": { "informs": [], "supersedes": null },
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{어떤 상황/제약에서 결정이 필요한가 (2문장+)}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{무엇을 택했는가}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "채택 이유: {{}}" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검토한 대안: {{}}" }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{장점 / 트레이드오프 / 되돌림 비용}}" }] }
+  ] }
+}

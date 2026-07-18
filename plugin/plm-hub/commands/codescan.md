@@ -19,10 +19,10 @@ pub fn build_feed(...) { ... }
 2. `scripts/plm_codescan.py` 실행(env `PLM_CODE_ROOT` 또는 프로젝트 루트 하위 소스 스캔):
    - 각 `@plm` 위치마다 **Code 아티팩트** 생성 — `code=CODE-<경로슬러그>-<라인>`, `body` 첫 줄 `` loc: `path:line` ``, `build_state=as_built`, `granularity=function`.
    - **realizes**(Code→SRS/SAD) 관계 생성 → `POST /import`.
-   - 참조된 기획 아티팩트의 로컬 `.md` frontmatter에 `code_refs: [path:line, ...]` **역기재**(문서에도 명시).
-3. **GC(추적 정합)**: 스캔된 파일·디렉토리에서 **사라진 심볼/삭제된 파일**의 구 Code 아티팩트를 **Superseded**로 표시(이력 보존·하드삭제 아님). 안전판정: loc 경로가 이번 스캔 범위(scanned dirs)일 때만 — 다른 스코프(서브디렉토리 스캔)는 보존.
+   - 참조된 기획 아티팩트의 로컬 `CODE.json` 래퍼에 `"code_refs": [path:line, ...]` **역기재**(ADR-019 동형, 문서에도 명시).
+3. **GC(추적 정합)**: 스캔된 파일·디렉토리에서 **사라진 심볼/삭제된 파일**의 구 Code 아티팩트를 **Replaced**로 표시(이력 보존·하드삭제 아님). 안전판정: loc 경로가 이번 스캔 범위(scanned dirs)일 때만 — 다른 스코프(서브디렉토리 스캔)는 보존.
 4. **미존재 대상 경고**: `@plm`이 PLM에 없는 아티팩트(SRS-099 등 오타·미발급)를 가리키면 스캔 시 ⚠ 경고(해당 Code는 realizes 없는 orphan→G3). `/requirement`로 발급하거나 오타 수정.
-5. 결과(Code 수·realizes·code_refs·GC·경고) 보고. `/plm-hub:gates`로 G3(구현 갭) 확인. (게이트는 Superseded 제외 — 마이그레이션 0008.)
+5. 결과(Code 수·realizes·code_refs·GC·경고) 보고. `/plm-hub:gates`로 G3(구현 갭) 확인. (게이트는 Replaced 제외 — 마이그레이션 0008.)
 
 ## 추적 효과
 `SRS-002` → (PLM 역참조 `implemented_by`/`realizes`) → `Code` 아티팩트 → `loc: src/feed.rs:42` → 실제 코드. 역으로 소스의 `@plm` 주석 → 요구. 문서 `code_refs`로 .md에서도 구현 위치 확인.

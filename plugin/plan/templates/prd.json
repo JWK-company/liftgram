@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "PRD",
+  "type": "PRD",
+  "title": "{{제품 기획서 제목}}",
+  "status": "Draft",
+  "owner": "{{책임 역할}}",
+  "product": "{{제품}}",
+  "created": "{{ISO8601_UTC}}",
+  "updated": "{{ISO8601_UTC}}",
+  "sync": true,
+  "doc": { "type": "doc", "content": [
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "문제 / 배경" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 비목표" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "{{}}" }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "성공 지표" }] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "{{지표}}" }] }] }
+    ] }
+  ] }
+}

@@ -1,0 +1,155 @@
+import { Callout } from 'nextra/components'
+
+# 프로토콜
+
+Ouroboros는 **10개 프로토콜**을 정의합니다. 프로토콜은 특정 상황에서 따라야 할 행동 규칙입니다.
+
+---
+
+## 프로토콜 목록
+
+| # | 프로토콜 | 적용 시점 | 설명 |
+|---|---------|----------|------|
+| 1 | Auto-Collection | /write 중 | 인사이트 자동 감지 및 저장 |
+| 2 | Signal | 사용자 응답 시 | 선호/패턴 감지 → KG 저장 |
+| 3 | RRF Search | 메모리 검색 시 | 4축 리랭킹 검색 |
+| 4 | CC Recovery | Context Compact 시 | state.json 기반 정밀 복구 |
+| 5 | Scope Guard | 파일 수정 시 | 작업 범위 준수 감시 |
+| 6 | Multi-file Change | 다중 파일 수정 시 | 전체 검색 → 체크리스트 → 수정 → 검증 |
+| 7 | Escalation | /revise 중 | 5단계 점진적 문제 해결 |
+| 8 | 5-Minute Rule | 모든 작업 | 5분 이상 결과물 없는 자율 탐색 금지 |
+| 9 | Real-time Sync | 모든 작업 | current.md + state.json 실시간 동기화 |
+| 10 | Request Classification | 요청 수신 시 | 요청 유형 구분 (spec/write/ambiguous) |
+
+---
+
+## 1. Auto-Collection 프로토콜
+
+`/write` 실행 중 인사이트를 자동 감지하고 메모리에 저장합니다.
+
+**플로우:**
+```
+감지 → memory_search (>= 0.90 스킵, 0.80-0.90 질문) → memory_store → 1줄 보고
+```
+
+**규칙:**
+- 세션당 최대 5건
+- 저장 대상: gotcha, pattern, insight
+- 저장 금지: 일회성 단계, 자명한 사실, 원문 복사
+- Auto-collection은 항상 `scope: "personal"`로 저장
+
+**임계값:**
+
+| 유사도 | 동작 |
+|--------|------|
+| >= 0.90 | 자동 스킵 (중복으로 판단) |
+| 0.80-0.90 | 사용자에게 질문 ("유사한 메모리가 있습니다. 저장할까요?") |
+| < 0.80 | 자동 저장 |
+
+---
+
+## 2. Signal 프로토콜
+
+사용자 응답에서 선호/패턴을 감지하여 Knowledge Graph에 저장합니다.
+
+`knowledge-signal` Hook이 이 프로토콜을 구현합니다.
+
+**감지 패턴 예시:**
+- "~를 선호한다" → Preference 노드
+- "~로 통일하자" → Convention 노드
+- "~를 사용하지 말자" → Convention 노드 (부정)
+
+---
+
+## 3. RRF Search 프로토콜
+
+메모리 검색 시 4축 RRF(Reciprocal Rank Fusion) 리랭킹을 적용합니다.
+
+| 축 | 가중치 | 설명 |
+|----|--------|------|
+| Semantic | 0.4 | 벡터 유사도 |
+| Recency | 0.3 | 최신 우선 |
+| Access | 0.15 | 자주 접근 우선 |
+| Source | 0.15 | 개인 > 프로젝트 |
+
+---
+
+## 4. CC Recovery 프로토콜
+
+Context Compact 발생 시 `state.json`을 읽어 최소한의 파일로 복구합니다.
+
+**핵심:** "어디까지 했나요?" 질문 금지. Hook 지침대로 문서를 읽고 이어서 작업합니다.
+
+상세 내용은 [Hook 시스템 > context-compact-recovery](/advanced/hooks#6-context-compact-recovery)를 참조하세요.
+
+---
+
+## 5. Scope Guard 프로토콜
+
+작업 범위 외 파일 수정을 감지합니다.
+
+- `state.json`의 `active_files` + `scope-allowlist.txt` 기준
+- Draft/Memo: 경고 / Report+: 차단
+
+---
+
+## 6. Multi-file Change 프로토콜
+
+여러 파일을 수정할 때 누락을 방지하는 프로토콜입니다.
+
+<Callout type="info">
+  Multi-file Change 프로토콜은 용어 통일, 포맷 변경 등 여러 문서에 영향을 주는 작업에서 필수입니다.
+</Callout>
+
+**4단계 플로우:**
+
+1. **검색** -- 전체 사용처 검색
+2. **체크리스트** -- 모든 수정 대상 파일 목록 작성
+3. **수정** -- 파일별 하나씩 수정
+4. **검증** -- 최종 검색으로 누락 확인
+
+---
+
+## 7. Escalation 프로토콜
+
+`/revise`에서 사용하는 5단계 점진적 문제 해결 프로토콜입니다.
+
+```
+1회: 직접 수정 → 2회: 재분석 → 3회: 메모리 검색 → 4회: 근본원인 → 5회: 사용자 에스컬레이션
+```
+
+5회가 hard limit입니다.
+
+---
+
+## 8. 5-Minute Rule
+
+5분 이상 결과물 없는 자율 탐색을 금지합니다.
+
+- 차단 요소가 생기면 즉시 사용자에게 보고
+- 방향이 불분명하면 `AskUserQuestion` 사용
+- 추측 진행 금지
+
+---
+
+## 9. Real-time Sync 프로토콜
+
+매 작업 완료 즉시 `current.md`와 `state.json`을 업데이트합니다.
+
+**규칙:**
+- `state.json` = Primary (기계 읽기용)
+- `current.md` = View (사람 읽기용, 100줄 이내)
+- 문서 동기화 없이 다음 작업 진행 **금지**
+- 여러 작업 후 일괄 문서화 **금지**
+
+---
+
+## 10. Request Classification 프로토콜
+
+사용자 요청의 유형을 구분하여 적절한 산출물을 생성합니다.
+
+| 요청 유형 | 산출물 | 금지 |
+|----------|--------|------|
+| "스펙/설계/spec" | `.md` 설계 문서 | 본문 작성 |
+| "작성/write" | 문서 본문 | 설계 문서만 작성 |
+| 불명확 | `AskUserQuestion` | 추측 후 진행 |

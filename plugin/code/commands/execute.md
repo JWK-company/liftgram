@@ -165,7 +165,7 @@ knowledge_query(query="{기술}", type="convention", limit=3)
 
 ### 6.0 딥링크 역링크 (추적성 — 코드↔요구)
 - 구현한 코드 단위(함수/모듈) 위에 **상위 요구 역링크 주석**을 단다: `// @plm SRS-NNN [SAD-NNN]  설명` (언어별 주석문법). 여러 요구를 실현하면 모두 나열.
-- 구현 완료 후 **`/plm-hub:codescan`** 실행 → 소스 `@plm` 주석이 PLM에 Code 아티팩트(`loc: path:line`)+`realizes`로 등록되고, 대상 SRS/SAD `.md`에 `code_refs`가 역기재되어 **요구↔코드 양방향 딥링크**가 완성된다. (PLM 바인딩 시.)
+- 구현 완료 후 **`/plm-hub:codescan`** 실행 → 소스 `@plm` 주석이 PLM에 Code 아티팩트(`loc: path:line`)+`realizes`로 등록되고, 대상 SRS/SAD `CODE.json`에 `code_refs`가 역기재되어 **요구↔코드 양방향 딥링크**가 완성된다. (PLM 바인딩 시.)
 
 ### 6.1 메모리 검증 (Feature+ 전용)
 - workflow-changed Signal: 워크플로우 파일 수정 감지 → reference 메모리 업데이트

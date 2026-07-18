@@ -2,6 +2,7 @@
 
 > 생성일: {{DATE}}
 > 등급: **Epic** ({{SCORE}}점)
+> 추적(implements): {{SRS-NNN, SAD-NNN | 하위 Project별 매핑}}
 > spec 경로: `.ouroboros/docs/spec/{{YYYYMMDD}}_{{name}}/`
 > **CC 복구 최우선 문서** — Context Compact 발생 시 이 문서를 가장 먼저 읽는다.
 

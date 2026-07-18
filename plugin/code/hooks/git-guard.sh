@@ -1,7 +1,7 @@
 #!/bin/bash
 # git-guard.sh -- git으로 파일을 변경하는 명령어 실행 전 사용자 확인
 # 트리거: PreToolUse (matcher: Bash)
-# 출력: JSON {"decision":"block","reason":"..."} 또는 빈 출력(허용)
+# 출력: JSON {"decision":"ask","reason":"..."}(사용자 확인) 또는 빈 출력(허용)
 
 STDIN_DATA=$(cat)
 COMMAND="${CLAUDE_TOOL_INPUT_COMMAND:-}"
