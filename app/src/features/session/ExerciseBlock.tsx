@@ -512,9 +512,9 @@ function SetRowEdit({
         <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
           <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
         </Pressable>
-        {/* 부분반복·변형·삭제는 ⋯로 펼침(모바일에서 무게·횟수 폭 확보). 펼치면 아래쐐기(상세가 아래에 있음)·값 있으면 primary 점등. @plm SRS-004 */}
+        {/* 부분반복·변형·삭제 펼침 토글 — 접힘=아래쐐기(▼), 펼침=위쐐기(▲). 값 있으면 primary 점등. @plm SRS-004 */}
         <Pressable onPress={() => setExpanded((v) => !v)} hitSlop={6} style={[styles.moreBtn, (expanded || hasDetail) && styles.moreBtnOn]}>
-          <Ionicons name={expanded ? 'chevron-down' : 'ellipsis-horizontal'} size={16} color={expanded || hasDetail ? colors.primary : colors.textFaint} />
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={expanded || hasDetail ? colors.primary : colors.textFaint} />
         </Pressable>
       </View>
       {expanded ? (
