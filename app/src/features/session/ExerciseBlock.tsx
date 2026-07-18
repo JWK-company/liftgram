@@ -224,7 +224,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
     <Card style={[styles.block, showGroupedBorder && styles.blockGrouped, insideSuperset && styles.blockInSuperset]}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <ExerciseName exerciseId={we.exerciseId} variant="heading" />
+          <ExerciseName exerciseId={we.exerciseId} variant="heading" base />
           <View style={styles.headerMeta}>
             {/* 유산소는 기구 변형·PR 개념이 없음 — 근력 종목만 노출. @plm SRS-030 */}
             {!isCardio ? (

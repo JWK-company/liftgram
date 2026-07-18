@@ -19,3 +19,46 @@ export function exerciseAltName(ex: NamedExercise, lang: AppLanguage = 'ko'): st
   const other = lang === 'en' ? ex.nameKo : ex.nameEn?.trim() || null;
   return other && other !== primary ? other : null;
 }
+
+// --- 기구 변형 종목명 처리(SRS-028) ---
+// '바벨 벤치프레스'/'벤치프레스 (바벨)'처럼 기구가 이름에 포함된 종목을 베이스명 + 기구로 분리.
+// 세션에선 베이스명('벤치프레스')만 + 변형 태그(바벨), 목록에선 '벤치프레스 (바벨)'. @plm SRS-028
+export interface EquippedExercise extends NamedExercise {
+  equipment?: string | null;
+}
+const EQUIP_NAME_TOKENS: Record<string, { ko: string; en: string }> = {
+  barbell: { ko: '바벨', en: 'Barbell' },
+  dumbbell: { ko: '덤벨', en: 'Dumbbell' },
+  machine: { ko: '머신', en: 'Machine' },
+  cable: { ko: '케이블', en: 'Cable' },
+  smith: { ko: '스미스', en: 'Smith' },
+  kettlebell: { ko: '케틀벨', en: 'Kettlebell' },
+};
+
+// 종목명에서 (해당 종목의 기구) 토큰을 접두 '바벨 ' 또는 괄호접미 ' (바벨)'로 떼어 베이스명 반환.
+// 기구 토큰이 없으면 원래 이름 그대로. '데드리프트'→'데드리프트', '사이드 레터럴 레이즈'→그대로.
+export function baseExerciseName(ex: EquippedExercise, lang: AppLanguage = 'ko'): string {
+  const name = exerciseDisplayName(ex, lang);
+  const tok = ex.equipment ? EQUIP_NAME_TOKENS[ex.equipment] : null;
+  if (!tok) return name;
+  const label = tok[lang] ?? tok.ko;
+  const suffix = ` (${label})`;
+  if (name.endsWith(suffix)) return name.slice(0, -suffix.length).trim();
+  if (name.startsWith(label + ' ')) return name.slice(label.length + 1).trim();
+  return name;
+}
+
+// 이름에 기구 토큰이 있는(=베이스명이 원본과 다른) 종목인지.
+export function hasEquipmentInName(ex: EquippedExercise, lang: AppLanguage = 'ko'): boolean {
+  return baseExerciseName(ex, lang) !== exerciseDisplayName(ex, lang);
+}
+
+// 목록/피커 표기 — 베이스명 + ' (기구)'. 기구 토큰이 이름에 없으면 원래 이름 그대로.
+export function exerciseListName(ex: EquippedExercise, lang: AppLanguage = 'ko'): string {
+  const base = baseExerciseName(ex, lang);
+  const full = exerciseDisplayName(ex, lang);
+  if (base === full) return full;
+  const tok = ex.equipment ? EQUIP_NAME_TOKENS[ex.equipment] : null;
+  const label = tok ? (tok[lang] ?? tok.ko) : '';
+  return label ? `${base} (${label})` : base;
+}

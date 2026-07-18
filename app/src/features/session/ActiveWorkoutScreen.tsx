@@ -364,7 +364,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
                 .filter((e) => e.id !== supersetTarget?.id)
                 .map((e) => (
                   <Pressable key={e.id} style={styles.ssOption} onPress={() => chooseSupersetPartner(e)}>
-                    <ExerciseName exerciseId={e.exerciseId} variant="body" />
+                    <ExerciseName exerciseId={e.exerciseId} variant="body" base />
                     {e.supersetGroup ? (
                       <View style={styles.supersetBadgeSmall}>
                         <AppText variant="label" color="primary">

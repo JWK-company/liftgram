@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { AppText } from '../../components';
 import { exerciseRepo } from '../../data';
-import { exerciseDisplayName } from '../../domain';
+import { exerciseDisplayName, baseExerciseName } from '../../domain';
 import { useT } from '../../i18n';
 import type Exercise from '../../db/models/Exercise';
 
@@ -13,10 +13,12 @@ export function ExerciseName({
   exerciseId,
   variant = 'body',
   color = 'text',
+  base = false,
 }: {
   exerciseId: string;
   variant?: Variant;
   color?: 'text' | 'textMuted' | 'textFaint';
+  base?: boolean; // 기구 토큰 뗀 베이스명(변형 태그로 기구 별도 표시). @plm SRS-028
 }) {
   const { lang } = useT();
   const [ex, setEx] = useState<Exercise | null>(null);
@@ -34,7 +36,7 @@ export function ExerciseName({
   }, [exerciseId]);
   return (
     <AppText variant={variant} color={color} numberOfLines={1}>
-      {ex ? exerciseDisplayName(ex, lang) : '…'}
+      {ex ? (base ? baseExerciseName(ex, lang) : exerciseDisplayName(ex, lang)) : '…'}
     </AppText>
   );
 }

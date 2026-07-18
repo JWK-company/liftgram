@@ -395,7 +395,7 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
                 .filter((e) => e.id !== supersetTarget?.id)
                 .map((e) => (
                   <Pressable key={e.id} style={styles.ssOption} onPress={() => chooseSupersetPartner(e)}>
-                    <ExerciseName exerciseId={e.exerciseId} variant="body" />
+                    <ExerciseName exerciseId={e.exerciseId} variant="body" base />
                     {e.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
                   </Pressable>
                 ))}
@@ -493,7 +493,7 @@ function ExerciseEditRow({
           <Ionicons name="reorder-three" size={24} color={colors.textMuted} />
         </Pressable>
         <View style={styles.exTitle}>
-          <ExerciseName exerciseId={re.exerciseId} variant="body" />
+          <ExerciseName exerciseId={re.exerciseId} variant="body" base />
           <AppText variant="caption" color="textMuted">
             {t('routines.exerciseRowSummary', { index: index + 1, sets, rest })}
           </AppText>

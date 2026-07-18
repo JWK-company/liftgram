@@ -18,7 +18,7 @@ import {
   type ExerciseKind,
 } from '../../domain';
 import { resolveExercisePick, cancelExercisePick } from '../../utils/picker';
-import { exerciseDisplayName, exerciseAltName } from '../../domain';
+import { exerciseListName, exerciseAltName } from '../../domain';
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { Chip } from './Chip';
@@ -242,7 +242,7 @@ function ExerciseRow({ item, onPress, onInfo }: { item: Exercise; onPress: () =>
         )}
         <View style={styles.rowMain}>
           <AppText variant="heading" numberOfLines={1}>
-            {exerciseDisplayName(item, lang)}
+            {exerciseListName(item, lang)}
           </AppText>
           {altName ? (
             <AppText variant="caption" color="textFaint" numberOfLines={1} style={{ marginTop: 2 }}>

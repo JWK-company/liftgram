@@ -30,15 +30,21 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   const [open, setOpen] = useState(false);
 
   const equip = value.equipment ?? null;
-  const active = Boolean(equip); // 팔(v8)·그립(v11)은 세트별로 이동 — 종목 변형은 기구(머신 브랜드)만.
-  // 트리거 칩은 기구(브랜드) 축약 라벨. 그립·팔은 각 세트 행의 '변형'에서 설정.
-  const label = equipmentVariantShortLabel(equip, lang, machineVariantLabels);
-
   // 2단계 기구 선택 — 베이스 기구(레벨1) + 머신 브랜드(레벨2, 들여쓰기). 머신 종목은 브랜드만.
   const isMachineBase = baseEquipment === 'machine';
   const machineActive = isMachineBase || isMachineEquipSel(equip);
-  const level1: (string | null)[] = [null, ...IMPLEMENT_KEYS];
   const genericMachine: string | null = isMachineBase ? null : 'machine'; // '기본(브랜드 미지정) 머신'의 equipment 값
+  // 종목 고유 기구(프리웨이트 implement) — 이름에 든 기구(바벨/덤벨/…). 있으면 '기본' 대신 이 기구를 디폴트로. @plm SRS-028
+  const intrinsicImplement =
+    baseEquipment && baseEquipment !== 'machine' && (IMPLEMENT_KEYS as string[]).includes(baseEquipment) ? baseEquipment : null;
+  // 고유 기구가 있으면 '기본(null)' 칩 생략(고유 기구가 곧 디폴트). 없으면(맨몸 등) 기존대로 '기본' + 대체 기구.
+  const level1: (string | null)[] = intrinsicImplement ? [...IMPLEMENT_KEYS] : [null, ...IMPLEMENT_KEYS];
+  // 기구 미지정(null)이면 고유 기구를 '선택된 것처럼' 표시 — 레코드 버킷은 그대로 null(기존 기록 보존).
+  const l1Selected = equip ?? (isMachineBase ? null : intrinsicImplement); // 레벨1 하이라이트 기준
+  const triggerEquip = equip ?? (isMachineBase ? 'machine' : intrinsicImplement); // 트리거 칩 라벨 기준
+  const active = Boolean(triggerEquip);
+  // 트리거 칩은 기구(브랜드) 축약 라벨. 그립·팔은 각 세트 행의 '변형'에서 설정.
+  const label = equipmentVariantShortLabel(triggerEquip, lang, machineVariantLabels);
 
   return (
     <>
@@ -68,8 +74,9 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
                       <SelectChip
                         key={k ?? 'default'}
                         label={equipmentVariantLabel(k, lang, machineVariantLabels)}
-                        active={k === 'machine' ? machineActive : (k ?? null) === equip}
-                        onPress={() => onChange({ ...value, equipment: k })}
+                        active={k === 'machine' ? machineActive : (k ?? null) === l1Selected}
+                        // 종목 고유 기구 선택 = 기본 버킷(null)으로 저장 → 기존 기록 유지. 다른 기구만 별도 변형 버킷.
+                        onPress={() => onChange({ ...value, equipment: k === baseEquipment ? null : k })}
                       />
                     ))}
                   </View>
