@@ -24,7 +24,7 @@
 |--------|------|
 | G1 요구 (모든 SRS가 URS에 연결) | pass (orphan 0) |
 | G2 설계 (모든 SAD가 SRS에 연결) | pass (orphan 0) |
-| G3 구현 (Code→SRS realizes) | pass — Code 162·realizes 175 딥링크 (codescan 2026-07-13) |
+| G3 구현 (Code→SRS realizes) | pass — Code 261·realizes 275 딥링크 (codescan 2026-07-18: SRS-033 realizes 36·SRS-001 realizes 17) |
 
 ## 종목 자세 미디어 (2026-07-13 · 사용자 피드백)
 
@@ -51,6 +51,7 @@
 
 - **SRS-033 몸무게 기반 유효 볼륨** — 어시스트(보조) 종목은 유효무게 = **체중 − 보조무게**(많이 걸수록 실제 든 무게↓), 맨몸 종목은 유효무게 = **체중 + 가중무게**(허리 가중). 스키마 v12(user_profiles.bodyweight_kg·exercises.load_mode, 둘 다 optional·비파괴). 도메인 순수함수 `effectiveWeightKg`+`resolveLoadMode`(명시 load_mode 우선, 없으면 기구로 파생: 맨몸→bodyweight). LoggedSet에 loadMode·bodyweightKg 주입하는 enrichment로 라이브·완료 볼륨·PR·추정1RM·분석 전 집계 통과. 어시스트 3종(풀업·친업·딥스) load_mode='assisted' 시드+`backfillLoadModeV12` 부팅 백필. 프로필 체중 스테퍼, 세트 컬럼 헤더 하중모드별(보조/가중), 체중 미설정 시 raw 폴백+안내. 도메인 유닛테스트 5종. **드래프트 검증**: 체중 70 → 딥스(맨몸) +20×8=720kg, 어시스트풀업 70−30×8=320kg, 전역 1040kg ✓. derives_from URS-001. Status=Draft.
 - **SRS-001 커스텀 운동 이름만으로 생성** — 리스트에 원하는 종목 없을 때: 근육군·기구 미선택이어도 **이름만으로** 생성 가능(미지정 시 '기타'로 폴백), 리스트 노출, 상세→수정에서 이름 직접 변경. 폼 라벨 '*'는 필수(이름)만 유지, 주근육군·기구는 선택으로 정정. **드래프트 검증**: 이름만 생성(primary=['other']·equipment='other'·is_custom) → 리스트 노출 → 리네임 영속 ✓. (@plm SRS-001)
+- **PLM 동기(2026-07-18)** — SRS-033 doc·derives_from(URS-001) 동기 + codescan 전량 재스캔(Code 261·realizes 275, SRS-033 realizes 36·SRS-001 realizes 17·code_refs 26건 역기재). codescan 64자 초과 Code 키 400 버그 수정(`cap_code`: 초과 시에만 결정적 해시 축약 — 짧은 키 보존). **프로덕션 배포는 여전히 Netlify 크레딧 소진(~2026-08-08)으로 차단** — main 푸시분은 크레딧 리셋 시 자동 배포(드래프트로 검증 완료).
 
 ## 최근 구현(Approved 요구 실현 — 이번 세션)
 
