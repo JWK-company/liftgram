@@ -20,6 +20,7 @@ import { getExerciseMedia, EXERCISE_MEDIA_CREDIT, type ExerciseMedia } from '../
 import type { TrendPoint } from '../../data';
 import type { Exercise } from '../../db/models';
 import { muscleLabel, equipmentLabel, formatWeight, exerciseDisplayName, exerciseAltName, detectStall } from '../../domain';
+import { hasPendingPick, resolveExercisePick } from '../../utils/picker';
 import { useUser } from '../../state/userContext';
 import { useT } from '../../i18n';
 import { colors, spacing, radius } from '../../theme';
@@ -33,6 +34,15 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [myEquipmentOnly, setMyEquipmentOnly] = useState(true);
+  // 픽(운동/루틴 추가) 흐름에서 상세를 미리보기로 열었으면 '이 운동 추가' 버튼 노출(진입 시점 기준). @plm SRS-001
+  const [pickMode] = useState(() => hasPendingPick());
+
+  // 상세에서 바로 추가 — 픽 해결(추가) 후 상세·피커 두 화면 pop 하고 호출자(운동/루틴)로 복귀.
+  const onAddFromPick = useCallback(() => {
+    resolveExercisePick(exerciseId);
+    if (typeof navigation.pop === 'function') navigation.pop(2);
+    else navigation.goBack();
+  }, [exerciseId, navigation]);
 
   // 화면 포커스마다 재로드(수정 후 돌아왔을 때 반영).
   useFocusEffect(
@@ -130,6 +140,11 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
         <AppText variant="body" color="textFaint" style={{ marginTop: 2 }}>
           {exerciseAltName(exercise, lang)}
         </AppText>
+      ) : null}
+
+      {/* 픽 흐름(운동/루틴 추가)에서 미리보기로 열었으면 상세에서 바로 추가. @plm SRS-001 */}
+      {pickMode ? (
+        <Button title={t('exercises.addThisExercise')} icon="add" onPress={onAddFromPick} style={{ marginTop: spacing.md }} />
       ) : null}
 
       {/* 자세 시연 — 시작/끝 2프레임 교차(움짤 효과). 없으면 커스텀 imageUrl. @plm SRS-032 */}

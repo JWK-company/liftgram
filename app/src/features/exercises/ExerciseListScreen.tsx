@@ -188,7 +188,13 @@ export default function ExerciseListScreen({ navigation, route }: RootStackScree
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
-        renderItem={({ item }) => <ExerciseRow item={item} onPress={() => onPickRow(item)} />}
+        renderItem={({ item }) => (
+          <ExerciseRow
+            item={item}
+            onPress={() => onPickRow(item)}
+            onInfo={mode === 'pick' ? () => navigation.navigate('ExerciseDetail', { exerciseId: item.id }) : undefined}
+          />
+        )}
         ListEmptyComponent={
           <EmptyState
             title={t('exercises.emptyTitle')}
@@ -219,14 +225,14 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void }) {
+function ExerciseRow({ item, onPress, onInfo }: { item: Exercise; onPress: () => void; onInfo?: () => void }) {
   const { t, lang } = useT();
   const altName = exerciseAltName(item, lang);
   // 썸네일: 커스텀 업로드 imageUrl 우선, 없으면 자세 미디어 시작프레임. @plm SRS-032
   const thumbUri = item.imageUrl || getExerciseMedia(item.nameKo)?.start || null;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
-      <Card style={styles.row}>
+    <Card style={styles.row}>
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.rowTap, { opacity: pressed ? 0.7 : 1 }]}>
         {thumbUri ? (
           <RemoteImage uri={thumbUri} style={styles.thumb} />
         ) : (
@@ -254,9 +260,18 @@ function ExerciseRow({ item, onPress }: { item: Exercise; onPress: () => void })
             {item.isCustom ? <Tag label={t('exercises.customTag')} tone="muted" /> : null}
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
-      </Card>
-    </Pressable>
+      </Pressable>
+      {/* pick 모드: ⓘ로 상세(사진·자세설명) 미리보기 — 행 탭은 추가. browse 모드: chevron(행 탭이 곧 상세). @plm SRS-032 */}
+      {onInfo ? (
+        <Pressable onPress={onInfo} hitSlop={8} style={styles.infoBtn}>
+          <Ionicons name="information-circle-outline" size={24} color={colors.primary} />
+        </Pressable>
+      ) : (
+        <View style={styles.infoBtn}>
+          <Ionicons name="chevron-forward" size={18} color={colors.textFaint} />
+        </View>
+      )}
+    </Card>
   );
 }
 
@@ -285,6 +300,9 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
+  // 행 탭 영역(썸네일+이름) — ⓘ 버튼과 분리(중첩 Pressable 웹 이중발화 방지). @plm SRS-032
+  rowTap: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  infoBtn: { paddingHorizontal: spacing.xs, alignItems: 'center', justifyContent: 'center', alignSelf: 'stretch', minWidth: 40 },
   rowMain: { flex: 1, marginRight: spacing.sm },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
   thumb: { width: 40, height: 40, borderRadius: radius.sm, marginRight: spacing.md },

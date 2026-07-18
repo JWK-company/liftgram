@@ -18,3 +18,8 @@ export function resolveExercisePick(exerciseId: string): void {
 export function cancelExercisePick(): void {
   pending = null;
 }
+
+// 현재 픽(선택) 대기 중인지 — 상세화면에서 '이 운동 추가' 버튼 노출 판단용. @plm SRS-001
+export function hasPendingPick(): boolean {
+  return pending !== null;
+}

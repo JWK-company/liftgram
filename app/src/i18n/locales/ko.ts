@@ -144,6 +144,7 @@ export const ko = {
   "exercises.categoryPlaceholder": "예: 상체, 컴파운드 (선택)",
   "exercises.changeImage": "이미지 변경",
   "exercises.customTag": "커스텀",
+  "exercises.addThisExercise": "이 운동 추가",
   "exercises.formGuideTitle": "자세 설명",
   "exercises.mediaCredit": "이미지: {credit}",
   "exercises.customTitle": "커스텀 운동",
