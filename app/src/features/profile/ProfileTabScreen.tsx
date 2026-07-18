@@ -29,6 +29,7 @@ import {
   type EquipmentType,
 } from '../../domain';
 import { useT, type TransKey } from '../../i18n';
+import { APP_NAME, APP_VERSION } from '../../appInfo';
 import { serverApi } from '../../sync/serverApi';
 import { canInstall, onInstallAvailable, promptInstall } from '../../push/pwa';
 import {
@@ -403,9 +404,12 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
         />
       ) : null}
 
-      {/* 푸터 — 웰니스 고지 */}
+      {/* 푸터 — 앱 버전 + 웰니스 고지 */}
       <View style={styles.footer}>
-        <AppText variant="caption" color="textFaint">
+        <AppText variant="caption" color="textMuted" weight="medium">
+          {APP_NAME} v{APP_VERSION}
+        </AppText>
+        <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.md }}>
           {t('wellness.noMedicalClaimNotice')}
         </AppText>
         <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.sm }}>
