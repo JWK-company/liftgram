@@ -242,23 +242,60 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
             message={t('session.noExercises.message')}
           />
         ) : (
-          exercises.map((we, i) => (
-            <ExerciseBlock
-              key={we.id}
-              we={we}
-              weightUnit={weightUnit}
-              weightStep={weightStep}
-              barWeightKg={barWeightKg}
-              bodyweightKg={bodyweightKg}
-              onStartRest={startRest}
-              onSwap={handleSwapExercise}
-              onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}
-              onMoveDown={i < exercises.length - 1 ? () => moveExercise(i, i + 1) : undefined}
-              canSuperset={exercises.length >= 2}
-              onSuperset={() => setSupersetTarget(we)}
-              onUnsuperset={() => unlinkSuperset(we)}
-            />
-          ))
+          (() => {
+            // 슈퍼셋 멤버는 하나의 컨테이너로 묶어 렌더(뭐랑 묶였는지 명확). 나머지는 단독. @plm SRS-004
+            const doneGroups = new Set<string>();
+            const nodes: React.ReactNode[] = [];
+            exercises.forEach((we, i) => {
+              const g = we.supersetGroup;
+              if (g) {
+                if (doneGroups.has(g)) return; // 이 그룹은 첫 멤버 위치에서 이미 통째로 렌더됨
+                const members = exercises.filter((e) => e.supersetGroup === g);
+                if (members.length >= 2) {
+                  doneGroups.add(g);
+                  nodes.push(
+                    <SupersetContainer key={g} onUnlink={() => unlinkSuperset(members[0])}>
+                      {members.map((m, mi) => (
+                        <React.Fragment key={m.id}>
+                          {mi > 0 ? <View style={styles.ssDivider} /> : null}
+                          <ExerciseBlock
+                            we={m}
+                            weightUnit={weightUnit}
+                            weightStep={weightStep}
+                            barWeightKg={barWeightKg}
+                            bodyweightKg={bodyweightKg}
+                            onStartRest={startRest}
+                            onSwap={handleSwapExercise}
+                            insideSuperset
+                          />
+                        </React.Fragment>
+                      ))}
+                    </SupersetContainer>,
+                  );
+                  return;
+                }
+              }
+              // 단독 종목(또는 그룹 멤버가 1개뿐인 폴백 — 개별 파란 테두리 유지)
+              nodes.push(
+                <ExerciseBlock
+                  key={we.id}
+                  we={we}
+                  weightUnit={weightUnit}
+                  weightStep={weightStep}
+                  barWeightKg={barWeightKg}
+                  bodyweightKg={bodyweightKg}
+                  onStartRest={startRest}
+                  onSwap={handleSwapExercise}
+                  onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}
+                  onMoveDown={i < exercises.length - 1 ? () => moveExercise(i, i + 1) : undefined}
+                  canSuperset={exercises.length >= 2}
+                  onSuperset={() => setSupersetTarget(we)}
+                  onUnsuperset={() => unlinkSuperset(we)}
+                />,
+              );
+            });
+            return nodes;
+          })()
         )}
 
         <Button title={t('session.addExercise')} icon="add" variant="secondary" onPress={handleAddExercise} style={{ marginTop: spacing.sm }} />
@@ -346,8 +383,36 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   );
 }
 
+// 슈퍼셋 공통 컨테이너 — 멤버 종목들을 하나의 테두리+헤더 박스로 묶어 '무엇과 슈퍼셋인지' 명확히. @plm SRS-004
+function SupersetContainer({ onUnlink, children }: { onUnlink: () => void; children: React.ReactNode }) {
+  const { t } = useT();
+  return (
+    <View style={styles.ssContainer}>
+      <View style={styles.ssHeaderRow}>
+        <Ionicons name="git-merge-outline" size={15} color={colors.primary} />
+        <AppText variant="label" color="primary" weight="bold" style={styles.ssHeaderLabel}>
+          {t('session.superset')}
+        </AppText>
+        <Pressable onPress={onUnlink} hitSlop={8} style={styles.ssUnlinkBtn}>
+          <AppText variant="label" color="textMuted">
+            {t('session.supersetUnlink')}
+          </AppText>
+        </Pressable>
+      </View>
+      <View style={styles.ssBody}>{children}</View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
+  // 슈퍼셋 컨테이너
+  ssContainer: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.lg, marginBottom: spacing.lg, backgroundColor: colors.surface, overflow: 'hidden' },
+  ssHeaderRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.primaryMuted },
+  ssHeaderLabel: { flex: 1, marginLeft: 6 },
+  ssUnlinkBtn: { paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  ssBody: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+  ssDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: spacing.xs },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

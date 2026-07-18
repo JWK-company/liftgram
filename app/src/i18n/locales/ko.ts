@@ -494,6 +494,7 @@ export const ko = {
   "session.notePlaceholder": "메모 (그날 느낌·포인트)",
   "session.prevNote": "지난 메모: {note}",
   "session.superset": "슈퍼세트",
+  "session.supersetUnlink": "해제",
   "session.restingBar": "휴식 {time}",
   "session.elapsedBar": "운동 {time}",
   "session.liveVolume": "볼륨 {volume}",

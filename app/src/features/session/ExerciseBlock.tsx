@@ -53,6 +53,7 @@ interface ExerciseBlockProps {
   canSuperset?: boolean; // 세션에 종목 2개 이상 — 슈퍼셋 버튼 노출
   onSuperset?: () => void; // 운동 중 슈퍼셋 상대 선택 열기
   onUnsuperset?: () => void; // 슈퍼셋 해제
+  insideSuperset?: boolean; // 슈퍼셋 공통 컨테이너 안에 렌더 — 개별 테두리·배지·이동/슈퍼셋 버튼 숨김(컨테이너가 담당). @plm SRS-004
 }
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -88,7 +89,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -207,7 +208,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
     return setTypeLabel(s, normalCount);
   });
 
-  const grouped = !!we.supersetGroup;
+  const inGroup = !!we.supersetGroup;
+  // 슈퍼셋 컨테이너 안이면 개별 테두리·배지·컨트롤 숨김(컨테이너가 담당). 밖인데 그룹이면(비인접 폴백) 파란 테두리 유지. @plm SRS-004
+  const showGroupedBorder = inGroup && !insideSuperset;
   // v12: 하중모드별 무게 컬럼 라벨 + 체중 미설정 안내. @plm SRS-033
   const weightColLabel =
     loadMode === 'assisted'
@@ -218,7 +221,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   const bwRelative = loadMode === 'assisted' || loadMode === 'bodyweight';
   const bwMissing = bwRelative && bodyweightKg == null;
   return (
-    <Card style={[styles.block, grouped && styles.blockGrouped]}>
+    <Card style={[styles.block, showGroupedBorder && styles.blockGrouped, insideSuperset && styles.blockInSuperset]}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" />
@@ -227,7 +230,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             {!isCardio ? (
               <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
             ) : null}
-            {grouped ? (
+            {showGroupedBorder ? (
               <View style={styles.supersetBadge}>
                 <AppText variant="label" color="primary">
                   {t('session.superset')}
@@ -279,12 +282,12 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             )}
           </View>
         ) : null}
-        {canSuperset && (onSuperset || onUnsuperset) ? (
+        {!insideSuperset && canSuperset && (onSuperset || onUnsuperset) ? (
           <IconButton
             icon="git-merge-outline"
-            color={grouped ? 'primary' : 'textMuted'}
+            color={inGroup ? 'primary' : 'textMuted'}
             size={20}
-            onPress={() => (grouped ? onUnsuperset?.() : onSuperset?.())}
+            onPress={() => (inGroup ? onUnsuperset?.() : onSuperset?.())}
           />
         ) : null}
         {onSwap ? (
@@ -325,14 +328,8 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
           <AppText variant="label" color="textFaint" style={styles.colVal}>
             {t('session.repsLabel')}
           </AppText>
-          <AppText variant="label" color="textFaint" style={styles.colPartial} center>
-            {t('session.partialColHeader')}
-          </AppText>
-          <AppText variant="label" color="textFaint" style={styles.colVar} center>
-            {t('session.varColHeader')}
-          </AppText>
           <View style={styles.colCheck} />
-          <View style={styles.colDel} />
+          <View style={styles.colMore} />
         </View>
       )}
 
@@ -421,6 +418,7 @@ function SetRowEdit({
   const isUni = set.arm === 'uni'; // v8: 세트별 편측(원암/원레그). null=투암(기본)
   const gripKey = (set.grip as GripKey | null) ?? null; // v11: 세트별 그립
   const [varOpen, setVarOpen] = useState(false); // 세트별 변형(팔·그립) 시트
+  const [expanded, setExpanded] = useState(false); // 부분반복·변형·삭제 상세 펼침(모바일 공간 절약). @plm SRS-004
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
   const [r, setR] = useState(() => String(set.reps));
   const [pt, setPt] = useState(() => (set.partialReps != null && set.partialReps > 0 ? String(set.partialReps) : '')); // v9: 부분반복(깔짝)
@@ -484,63 +482,85 @@ function SetRowEdit({
     workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
+  // ⋯ 상세에 값이 있으면(부분반복·변형) 점 표시로 접혀 있어도 인지. @plm SRS-004
+  const hasDetail = (pt.trim() !== '' && pt.trim() !== '0') || variantSet;
   return (
     <View style={isDone && styles.setRowDone}>
-    <View style={styles.setRow}>
-      <Pressable onPress={typeMenu} hitSlop={4} style={styles.colType}>
-        <View style={styles.typeChip}>
-          <AppText variant="caption" color={typeColor()} weight="bold" center>
-            {label}
-          </AppText>
-        </View>
-      </Pressable>
-      <Pressable onPress={applyPrev} hitSlop={4} style={styles.colPrev} disabled={!prev}>
-        {prev ? (
-          <View style={styles.prevChip}>
-            <AppText variant="caption" color="primary" center numberOfLines={1}>
-              {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}${prev.partialReps ? `+${prev.partialReps}` : ''}`}
+      <View style={styles.setRow}>
+        <Pressable onPress={typeMenu} hitSlop={4} style={styles.colType}>
+          <View style={styles.typeChip}>
+            <AppText variant="caption" color={typeColor()} weight="bold" center>
+              {label}
             </AppText>
           </View>
-        ) : (
-          <AppText variant="caption" color="textFaint" center>
-            –
-          </AppText>
-        )}
-      </Pressable>
-      <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
-      <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
-      <TextInput
-        value={pt}
-        onChangeText={setPt}
-        onBlur={commitPartial}
-        onSubmitEditing={commitPartial}
-        keyboardType="numeric"
-        placeholder="0"
-        placeholderTextColor={colors.textFaint}
-        selectTextOnFocus
-        style={[styles.cell, styles.partialCell]}
+        </Pressable>
+        <Pressable onPress={applyPrev} hitSlop={4} style={styles.colPrev} disabled={!prev}>
+          {prev ? (
+            <View style={styles.prevChip}>
+              <AppText variant="caption" color="primary" center numberOfLines={1}>
+                {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}${prev.partialReps ? `+${prev.partialReps}` : ''}`}
+              </AppText>
+            </View>
+          ) : (
+            <AppText variant="caption" color="textFaint" center>
+              –
+            </AppText>
+          )}
+        </Pressable>
+        <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
+        <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
+        <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
+          <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
+        </Pressable>
+        {/* 부분반복·변형·삭제는 ⋯로 펼침(모바일에서 무게·횟수 폭 확보). 값 있으면 primary 점등. @plm SRS-004 */}
+        <Pressable onPress={() => setExpanded((v) => !v)} hitSlop={6} style={[styles.moreBtn, (expanded || hasDetail) && styles.moreBtnOn]}>
+          <Ionicons name={expanded ? 'chevron-up' : 'ellipsis-horizontal'} size={16} color={expanded || hasDetail ? colors.primary : colors.textFaint} />
+        </Pressable>
+      </View>
+      {expanded ? (
+        <View style={styles.setDetail}>
+          <View style={styles.detailItem}>
+            <AppText variant="label" color="textMuted" style={styles.detailLabel}>
+              {t('session.partialColHeader')}
+            </AppText>
+            <TextInput
+              value={pt}
+              onChangeText={setPt}
+              onBlur={commitPartial}
+              onSubmitEditing={commitPartial}
+              keyboardType="numeric"
+              placeholder="0"
+              placeholderTextColor={colors.textFaint}
+              selectTextOnFocus
+              style={[styles.cell, styles.detailPartial]}
+            />
+          </View>
+          <View style={styles.detailItem}>
+            <AppText variant="label" color="textMuted" style={styles.detailLabel}>
+              {t('session.varColHeader')}
+            </AppText>
+            <Pressable onPress={() => setVarOpen(true)} style={[styles.detailVarChip, variantSet && styles.varChipOn]}>
+              <AppText variant="caption" color={variantSet ? 'primary' : 'text'} weight={variantSet ? 'bold' : 'regular'} numberOfLines={1}>
+                {variantChipLabel}
+              </AppText>
+            </Pressable>
+          </View>
+          <Pressable onPress={confirmDelete} hitSlop={8} style={styles.detailDel}>
+            <Ionicons name="trash-outline" size={15} color={colors.danger} />
+            <AppText variant="caption" color="danger" style={{ marginLeft: 4 }}>
+              {t('common.delete')}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
+      <SetVariantSheet
+        visible={varOpen}
+        onClose={() => setVarOpen(false)}
+        isUni={isUni}
+        gripKey={gripKey}
+        onArm={setArm}
+        onGrip={setGrip}
       />
-      {/* 세트별 변형(팔·그립) — 한 칸에 통합(모바일 공간 절약). 탭하면 팔·그립 시트. @plm SRS-028 */}
-      <Pressable onPress={() => setVarOpen(true)} hitSlop={4} style={[styles.varChip, variantSet && styles.varChipOn]}>
-        <AppText variant="caption" color={variantSet ? 'primary' : 'textFaint'} weight={variantSet ? 'bold' : 'regular'} center numberOfLines={1}>
-          {variantChipLabel}
-        </AppText>
-      </Pressable>
-      <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
-        <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
-      </Pressable>
-      <Pressable onPress={confirmDelete} hitSlop={8} style={styles.del}>
-        <Ionicons name="close" size={15} color={colors.textFaint} />
-      </Pressable>
-    </View>
-    <SetVariantSheet
-      visible={varOpen}
-      onClose={() => setVarOpen(false)}
-      isUni={isUni}
-      gripKey={gripKey}
-      onArm={setArm}
-      onGrip={setGrip}
-    />
     </View>
   );
 }
@@ -694,7 +714,9 @@ function CardioSummary({ sets }: { sets: SetLog[] }) {
 
 const styles = StyleSheet.create({
   block: { marginBottom: spacing.lg },
-  blockGrouped: { borderColor: colors.primary, borderWidth: 1 }, // 슈퍼셋 그룹 시각 표시
+  blockGrouped: { borderColor: colors.primary, borderWidth: 1 }, // 슈퍼셋 그룹 시각 표시(비인접 폴백)
+  // 슈퍼셋 공통 컨테이너 안: 개별 카드 테두리·배경·그림자 제거 → 컨테이너가 하나의 묶음으로. @plm SRS-004
+  blockInSuperset: { marginBottom: 0, borderWidth: 0, backgroundColor: 'transparent', shadowOpacity: 0, elevation: 0, paddingHorizontal: 0, paddingVertical: spacing.sm },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
   headerMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' },
   gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.xs },
@@ -721,7 +743,8 @@ const styles = StyleSheet.create({
   },
   colVal: { flex: 1, textAlign: 'center' },
   colVar: { width: 58, textAlign: 'center' },
-  colCheck: { width: 38 },
+  colCheck: { width: 40 },
+  colMore: { width: 34 },
   colDel: { width: 26 },
   // 세트별 변형(팔·그립) 통합 칩 — 기본은 흐린 '변형', 설정 시 primary 강조. 탭하면 시트.
   varChip: {
@@ -782,6 +805,16 @@ const styles = StyleSheet.create({
   checkOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   // 삭제는 체크와 간격을 둔 far-right 작은 아이콘 — 체크 오탭 방지.
   del: { width: 26, height: 40, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
+  // ⋯ 상세 토글 — done 옆. 부분반복·변형 값 있으면 primary 배경 점등. @plm SRS-004
+  moreBtn: { width: 34, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
+  moreBtnOn: { backgroundColor: colors.primaryMuted },
+  // 세트 상세 펼침(부분반복·변형·삭제) — 세트행 아래에 여유 있게 배치(무게·횟수 폭 확보). @plm SRS-004
+  setDetail: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs, paddingLeft: 40 },
+  detailItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  detailLabel: { marginRight: 2 },
+  detailPartial: { width: 60, flex: 0, height: 36 },
+  detailVarChip: { minWidth: 72, height: 36, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surfaceAlt },
+  detailDel: { flexDirection: 'row', alignItems: 'center', marginLeft: 'auto', paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   exVolChip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },

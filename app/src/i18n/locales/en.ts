@@ -492,6 +492,7 @@ export const en: Record<TransKey, string> = {
   "session.notePlaceholder": "Note (today's feel, cues)",
   "session.prevNote": "Last note: {note}",
   "session.superset": "Superset",
+  "session.supersetUnlink": "Unlink",
   "session.restingBar": "Rest {time}",
   "session.elapsedBar": "Workout {time}",
   "session.liveVolume": "Volume {volume}",
