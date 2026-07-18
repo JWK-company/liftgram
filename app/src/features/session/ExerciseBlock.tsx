@@ -512,42 +512,44 @@ function SetRowEdit({
         <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
           <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
         </Pressable>
-        {/* 부분반복·변형·삭제는 ⋯로 펼침(모바일에서 무게·횟수 폭 확보). 값 있으면 primary 점등. @plm SRS-004 */}
+        {/* 부분반복·변형·삭제는 ⋯로 펼침(모바일에서 무게·횟수 폭 확보). 펼치면 아래쐐기(상세가 아래에 있음)·값 있으면 primary 점등. @plm SRS-004 */}
         <Pressable onPress={() => setExpanded((v) => !v)} hitSlop={6} style={[styles.moreBtn, (expanded || hasDetail) && styles.moreBtnOn]}>
-          <Ionicons name={expanded ? 'chevron-up' : 'ellipsis-horizontal'} size={16} color={expanded || hasDetail ? colors.primary : colors.textFaint} />
+          <Ionicons name={expanded ? 'chevron-down' : 'ellipsis-horizontal'} size={16} color={expanded || hasDetail ? colors.primary : colors.textFaint} />
         </Pressable>
       </View>
       {expanded ? (
-        <View style={styles.setDetail}>
-          <View style={styles.detailItem}>
-            <AppText variant="label" color="textMuted" style={styles.detailLabel}>
-              {t('session.partialColHeader')}
-            </AppText>
-            <TextInput
-              value={pt}
-              onChangeText={setPt}
-              onBlur={commitPartial}
-              onSubmitEditing={commitPartial}
-              keyboardType="numeric"
-              placeholder="0"
-              placeholderTextColor={colors.textFaint}
-              selectTextOnFocus
-              style={[styles.cell, styles.detailPartial]}
-            />
-          </View>
-          <View style={styles.detailItem}>
-            <AppText variant="label" color="textMuted" style={styles.detailLabel}>
-              {t('session.varColHeader')}
-            </AppText>
-            <Pressable onPress={() => setVarOpen(true)} style={[styles.detailVarChip, variantSet && styles.varChipOn]}>
-              <AppText variant="caption" color={variantSet ? 'primary' : 'text'} weight={variantSet ? 'bold' : 'regular'} numberOfLines={1}>
-                {variantChipLabel}
+        <View style={styles.setDetailWrap}>
+          <View style={styles.setDetailFields}>
+            <View style={styles.detailField}>
+              <AppText variant="label" color="textMuted" style={styles.detailFieldLabel}>
+                {t('session.partialFull')}
               </AppText>
-            </Pressable>
+              <TextInput
+                value={pt}
+                onChangeText={setPt}
+                onBlur={commitPartial}
+                onSubmitEditing={commitPartial}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor={colors.textFaint}
+                selectTextOnFocus
+                style={styles.detailInput}
+              />
+            </View>
+            <View style={styles.detailField}>
+              <AppText variant="label" color="textMuted" style={styles.detailFieldLabel}>
+                {t('session.varColHeader')}
+              </AppText>
+              <Pressable onPress={() => setVarOpen(true)} style={[styles.detailInput, styles.detailVarChip, variantSet && styles.varChipOn]}>
+                <AppText variant="body" color={variantSet ? 'primary' : 'text'} weight={variantSet ? 'bold' : 'regular'} numberOfLines={1}>
+                  {variantChipLabel}
+                </AppText>
+              </Pressable>
+            </View>
           </View>
           <Pressable onPress={confirmDelete} hitSlop={8} style={styles.detailDel}>
-            <Ionicons name="trash-outline" size={15} color={colors.danger} />
-            <AppText variant="caption" color="danger" style={{ marginLeft: 4 }}>
+            <Ionicons name="trash-outline" size={16} color={colors.danger} />
+            <AppText variant="label" color="danger" style={{ marginLeft: 4 }}>
               {t('common.delete')}
             </AppText>
           </Pressable>
@@ -808,13 +810,25 @@ const styles = StyleSheet.create({
   // ⋯ 상세 토글 — done 옆. 부분반복·변형 값 있으면 primary 배경 점등. @plm SRS-004
   moreBtn: { width: 34, height: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', marginLeft: 2 },
   moreBtnOn: { backgroundColor: colors.primaryMuted },
-  // 세트 상세 펼침(부분반복·변형·삭제) — 세트행 아래에 여유 있게 배치(무게·횟수 폭 확보). @plm SRS-004
-  setDetail: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: spacing.md, paddingTop: spacing.sm, paddingBottom: spacing.xs, paddingLeft: 40 },
-  detailItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  detailLabel: { marginRight: 2 },
-  detailPartial: { width: 60, flex: 0, height: 36 },
-  detailVarChip: { minWidth: 72, height: 36, paddingHorizontal: spacing.sm, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surfaceAlt },
-  detailDel: { flexDirection: 'row', alignItems: 'center', marginLeft: 'auto', paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  // 세트 상세 펼침(부분반복·변형·삭제) — 메인 무게·횟수 입력과 비슷한 크기로(작아서 못 알아보던 문제 해소). @plm SRS-004
+  setDetailWrap: { paddingTop: spacing.xs, paddingBottom: spacing.sm },
+  setDetailFields: { flexDirection: 'row', gap: spacing.sm },
+  detailField: { flex: 1 },
+  detailFieldLabel: { marginBottom: 4 },
+  detailInput: {
+    height: 42,
+    alignSelf: 'stretch',
+    textAlign: 'center',
+    color: colors.text,
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.medium,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  detailVarChip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm },
+  detailDel: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginTop: spacing.sm, paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   exVolChip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },

@@ -508,6 +508,7 @@ export const en: Record<TransKey, string> = {
   "session.clearPrev": "Clear previous",
   "session.showPrev": "Show previous",
   "session.partialColHeader": "Part",
+  "session.partialFull": "Partial reps",
   "session.durationColHeader": "Time(min)",
   "session.distanceColHeader": "Dist(km)",
   "session.cardioTotal": "Total {total}",

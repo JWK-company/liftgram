@@ -510,6 +510,7 @@ export const ko = {
   "session.clearPrev": "이전기록 지우기",
   "session.showPrev": "이전기록 표시",
   "session.partialColHeader": "부분",
+  "session.partialFull": "부분 반복(깔짝)",
   "session.durationColHeader": "시간(분)",
   "session.distanceColHeader": "거리(km)",
   "session.cardioTotal": "총 {total}",
