@@ -25,6 +25,7 @@ import HashtagScreen from '../features/social/HashtagScreen';
 import BlockedUsersScreen from '../features/social/BlockedUsersScreen';
 import FollowListScreen from '../features/social/FollowListScreen';
 import BookmarksScreen from '../features/social/BookmarksScreen';
+import NearbyGymsScreen from '../features/gyms/NearbyGymsScreen';
 import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -64,6 +65,7 @@ export function RootNavigator() {
       <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} options={{ title: t('block.title') }} />
       <Stack.Screen name="FollowList" component={FollowListScreen} options={{ title: t('follow.followersTitle') }} />
       <Stack.Screen name="Bookmarks" component={BookmarksScreen} options={{ title: t('bookmark.title') }} />
+      <Stack.Screen name="NearbyGyms" component={NearbyGymsScreen} options={{ title: t('gyms.title') }} />
     </Stack.Navigator>
   );
 }

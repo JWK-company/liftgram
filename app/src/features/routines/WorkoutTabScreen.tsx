@@ -1,6 +1,7 @@
 // @plm SRS-002  루틴 목록 + 세션 시작 + 진행중 세션 복구 배너
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Screen,
@@ -17,7 +18,7 @@ import { useQueryData } from '../../db/hooks';
 import { routineRepo, workoutRepo, analyticsRepo } from '../../data';
 import type Routine from '../../db/models/Routine';
 import { muscleLabel } from '../../domain';
-import { colors, spacing } from '../../theme';
+import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
 export default function WorkoutTabScreen({ navigation }: TabScreenProps<'WorkoutTab'>) {
@@ -212,7 +213,14 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
         {/* 새 운동 진입 3버튼 — 같은 크기로 연달아(#6) */}
         <Button title={t('routines.newRoutine')} icon="add" variant="secondary" onPress={() => navigation.navigate('RoutineEditor')} style={{ marginBottom: spacing.sm }} />
         <Button title={t('routines.quickStart')} icon="flash" loading={busy} onPress={() => guardActive(doStartBlank)} style={{ marginBottom: spacing.sm }} />
-        <Button title={t('program.title')} icon="sparkles" variant="secondary" onPress={() => navigation.navigate('ProgramGenerator')} style={{ marginBottom: spacing.lg }} />
+        <Button title={t('program.title')} icon="sparkles" variant="secondary" onPress={() => navigation.navigate('ProgramGenerator')} style={{ marginBottom: spacing.sm }} />
+
+        {/* 주변 헬스장 발견(SRS-035) — 위치 기반 추천. 맥락상 '어디서 운동할까'. */}
+        <Pressable onPress={() => navigation.navigate('NearbyGyms')} style={styles.gymEntry}>
+          <Ionicons name="location" size={18} color={colors.primary} />
+          <AppText variant="body" weight="medium" style={{ flex: 1 }}>{t('gyms.entry')}</AppText>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </Pressable>
 
         <SectionHeader title={t('routines.myRoutines')} />
 
@@ -307,6 +315,18 @@ const styles = StyleSheet.create({
   recoCardMuted: {
     backgroundColor: colors.surfaceAlt,
     marginBottom: spacing.sm,
+  },
+  gymEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.lg,
   },
   routineCard: {
     flexDirection: 'row',

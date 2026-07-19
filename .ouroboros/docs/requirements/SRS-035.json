@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-035",
+  "type": "SRS",
+  "title": "위치 기반 주변 헬스장 발견·추천 (소비자 MVP — 헬스장 매칭 B2B 전단계)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-19T00:00:00Z",
+  "updated": "2026-07-19T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gym-matching",
+    "geolocation",
+    "discovery",
+    "monetization",
+    "b2b-precursor"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "사용자 현재 위치를 기반으로 주변 헬스장을 거리순으로 조회·표시하고 상단에 추천 1곳을 강조하며, 각 항목에서 외부 지도 길찾기를 열 수 있다. 위치 미지원/권한거부/시간초과/검색실패/결과없음을 각각 친화 메시지로 안내하고, 반경을 2→5→10km로 넓힐 수 있다.",
+  "relations": {
+    "derives_from": [
+      "URS-011"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "수익화 로드맵의 '헬스장 매칭·광고(B2B)'는 조기 흑자 지름길이나 헬스장 공급·영업이 선결이다. 그 전단계로, 사용자가 자기 위치 기반으로 주변 헬스장을 발견·비교할 수 있는 소비자용 기능을 먼저 제공해 수요측 사용성과 데이터를 확보한다(전 기능 무료로 사용자 수 확보 전략과 정합). 이는 SRS-021(헬스장 위치 매칭 마켓플레이스)의 소비자 발견 슬라이스이며, 추후 B2B 온보딩·수수료 우선노출·광고로 확장한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "MVP는 별도 계약·정산 없이 공개 POI 데이터로 주변 헬스장을 보여준다. POI 제공자는 추상화해(초기 Overpass/OSM — API 키 불필요), 이후 카카오/구글 등 키 기반 제공자로 교체·보강할 수 있게 한다. 위치는 웹 PWA의 브라우저 위치를 사용하며, 권한·네트워크 실패는 사용자에게 명확히 안내한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "운동 탭에서 '주변 헬스장 찾기' 진입 → 현재 위치를 받아 반경 내 헬스장을 거리순으로 조회·표시한다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "상단에 추천 1곳(가장 가까운 곳, 동거리 시 이름 있는 곳 우선)을 별도 카드로 강조한다 — 추후 스폰서/우선노출 슬롯으로 확장 가능한 구조." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "각 헬스장에 이름·거리(±m/km)·주소(있으면)를 표시하고, '길찾기'로 외부 지도(좌표 기반 보편 URL)를 연다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치 미지원·권한거부·확인실패·시간초과·검색(네트워크)실패를 각각 구분된 친화 메시지 + 다시 시도로 안내한다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "결과가 없으면 안내 + 반경을 2→5→10km로 넓혀 재검색할 수 있다." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "POI 제공자 교체(Overpass→카카오/구글)가 서비스 함수 1개 수준의 변경으로 가능하도록 제공자를 추상화한다." }] }]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도메인 gyms.ts(순수): haversine 거리·rankGyms(거리순·동거리 이름우선)·formatDistance + 유닛테스트 7종. 서비스 services/gymSearch.ts: getCurrentLocation(navigator.geolocation, 권한·시간초과·미지원을 GymError 코드로 구분) + searchNearbyGyms(제공자 추상화, MVP=Overpass 2개 엔드포인트 폴백, fitness_centre/amenity=gym/sport=fitness 조회) + gymMapsUrl(외부 지도 길찾기). UI features/gyms/NearbyGymsScreen: locating/searching/error/empty/done 상태머신, 추천 카드+목록+반경확장. 운동 탭 진입 카드 + RootStack 'NearbyGyms' 등록. 서버 변경 없음(클라이언트 전용, Netlify 배포). 후속: 서버 프록시+카카오 키로 국내 커버리지 강화, B2B 온보딩·우선노출·광고(SRS-021)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-011(입문자가 진입장벽 없이 시작 — 주변 헬스장을 몰라 못 가는 벽 완화). 연계: SRS-021(헬스장 위치 매칭 마켓플레이스)의 소비자 발견 전단계(수요측 선확보), 수익 로드맵 P2 '헬스장 매칭·광고(B2B)'의 진입점. 후속: B2B 공급자 온보딩·수수료 우선노출·광고 슬롯, 위치 제공자 카카오/구글 전환."
+          }
+        ]
+      }
+    ]
+  }
+}

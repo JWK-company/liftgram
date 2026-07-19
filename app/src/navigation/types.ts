@@ -36,6 +36,7 @@ export type RootStackParamList = {
   BlockedUsers: undefined; // SRS-018 차단 목록 관리
   FollowList: { userId: string; mode: 'followers' | 'following' }; // SRS-018 팔로워/팔로잉 목록
   Bookmarks: undefined; // SRS-007 저장한 게시물
+  NearbyGyms: undefined; // SRS-035 위치 기반 주변 헬스장 발견·추천
 };
 
 // 화면 컴포넌트 타입 헬퍼

@@ -16,3 +16,4 @@ export * from './machineVariants';
 export * from './variants';
 export * from './streak';
 export * from './routineRecommendation';
+export * from './gyms';
