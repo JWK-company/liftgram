@@ -497,6 +497,8 @@ export const ko = {
   "session.addSet": "세트 추가",
   "session.notePlaceholder": "메모 · 팁 (그날 느낌·포인트)",
   "session.prevNote": "지난 메모: {note}",
+  "session.noteHistoryToggle": "이전 메모 · 팁 보기",
+  "session.noteHistoryEmpty": "이전에 남긴 메모가 없어요",
   "session.superset": "슈퍼세트",
   "session.supersetUnlink": "해제",
   "session.restingBar": "휴식 {time}",

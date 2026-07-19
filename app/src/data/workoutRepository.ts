@@ -732,6 +732,34 @@ export async function getPreviousExerciseNote(exerciseId: string, variantKey?: s
   return null;
 }
 
+// 이 종목(+변형)의 과거 메모·팁 타임라인 — 운동 중 '이전엔 뭐라 적었지' 확인용(최신순, 세션당 1개). @plm SRS-004
+export interface ExerciseNoteEntry {
+  completedAt: number;
+  note: string;
+}
+export async function getExerciseNoteHistory(
+  exerciseId: string,
+  variantKey?: string | null,
+  limit = 40,
+): Promise<ExerciseNoteEntry[]> {
+  const clauses = [Q.where('exercise_id', exerciseId)];
+  if (variantKey !== undefined) clauses.push(Q.where('variant_key', variantKey));
+  const wes = await workoutExercises().query(...clauses).fetch();
+  const withNote = wes.filter((w) => w.note?.trim());
+  if (!withNote.length) return [];
+  const wIds = [...new Set(withNote.map((w) => w.workoutId))];
+  const ws = await workouts().query(Q.where('id', Q.oneOf(wIds)), Q.where('state', 'completed')).fetch();
+  const completedAtById = new Map(ws.map((w) => [w.id, w.completedAt ?? w.startedAt]));
+  // 완료 세션당 1개(첫 비어있지 않은 메모), 최신순.
+  const byWorkout = new Map<string, ExerciseNoteEntry>();
+  for (const we of withNote) {
+    const at = completedAtById.get(we.workoutId);
+    if (at == null) continue; // 미완료(진행중·폐기) 세션 제외
+    if (!byWorkout.has(we.workoutId)) byWorkout.set(we.workoutId, { completedAt: at, note: we.note!.trim() });
+  }
+  return [...byWorkout.values()].sort((a, b) => b.completedAt - a.completedAt).slice(0, limit);
+}
+
 export async function updateSetLog(
   id: string,
   patch: {

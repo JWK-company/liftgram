@@ -175,6 +175,27 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   function saveNote() {
     workoutRepo.setWorkoutExerciseNote(we.id, note).catch(() => {});
   }
+  // 과거 메모·팁 타임라인(#34) — 지연 로드. 종목/변형 바뀌면 리셋. @plm SRS-004
+  const [noteHistory, setNoteHistory] = useState<workoutRepo.ExerciseNoteEntry[] | null>(null);
+  const [histOpen, setHistOpen] = useState(false);
+  useEffect(() => {
+    setNoteHistory(null);
+    setHistOpen(false);
+  }, [we.exerciseId, variantKey]);
+  function toggleNoteHistory() {
+    const next = !histOpen;
+    setHistOpen(next);
+    if (next && noteHistory === null) {
+      workoutRepo
+        .getExerciseNoteHistory(we.exerciseId, variantKey)
+        .then((h) => setNoteHistory(h))
+        .catch(() => setNoteHistory([]));
+    }
+  }
+  const histDateFmt = (ms: number) => {
+    const d = new Date(ms);
+    return `${String(d.getFullYear()).slice(2)}.${d.getMonth() + 1}.${d.getDate()}`;
+  };
   // 이전기록이 하나라도 있으면(세트·PR·메모) 지우기 토글 노출. @plm SRS-004
   const hasPrev = prevSets.length > 0 || pr !== null || (!!prevNote && prevNote !== note.trim());
 
@@ -382,6 +403,36 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         <AppText variant="caption" color="textFaint" style={{ marginTop: 2 }}>
           {t('session.prevNote', { note: prevNote })}
         </AppText>
+      ) : null}
+      {/* 과거 메모·팁 타임라인(#34) — 최신 메모 보면서 이전 것도 확인. @plm SRS-004 */}
+      {prevNote ? (
+        <View style={{ marginTop: spacing.xs }}>
+          <Pressable onPress={toggleNoteHistory} hitSlop={6} style={styles.histToggle}>
+            <Ionicons name="time-outline" size={13} color={colors.textMuted} />
+            <AppText variant="caption" color="textMuted">{t('session.noteHistoryToggle')}</AppText>
+            <Ionicons name={histOpen ? 'chevron-up' : 'chevron-down'} size={13} color={colors.textMuted} />
+          </Pressable>
+          {histOpen ? (
+            <View style={styles.histBox}>
+              {noteHistory === null ? (
+                <AppText variant="caption" color="textFaint">{t('common.loading')}</AppText>
+              ) : noteHistory.length === 0 ? (
+                <AppText variant="caption" color="textFaint">{t('session.noteHistoryEmpty')}</AppText>
+              ) : (
+                noteHistory.map((h, i) => (
+                  <View key={`${h.completedAt}-${i}`} style={[styles.histRow, i > 0 && styles.histRowBorder]}>
+                    <AppText variant="caption" color="textFaint" style={styles.histDate} numberOfLines={1}>
+                      {histDateFmt(h.completedAt)}
+                    </AppText>
+                    <AppText variant="caption" color="textMuted" style={{ flex: 1 }}>
+                      {h.note}
+                    </AppText>
+                  </View>
+                ))
+              )}
+            </View>
+          ) : null}
+        </View>
       ) : null}
 
       {/* 이 종목 휴식 '설정'(초). 실제 카운트다운은 전역 바 1개(ActiveWorkoutScreen). */}
@@ -830,6 +881,17 @@ const styles = StyleSheet.create({
   detailVarChip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.sm },
   detailDel: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-end', marginTop: spacing.sm, paddingVertical: spacing.xs, paddingHorizontal: spacing.sm },
   noteInput: { minHeight: 38, textAlignVertical: 'top' },
+  histToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingVertical: 2 },
+  histBox: {
+    marginTop: spacing.xs,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  histRow: { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.xs },
+  histRowBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  histDate: { width: 58 },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   exVolChip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   // 운동 중 순서 이동 화살표 열(#11).

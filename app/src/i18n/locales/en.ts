@@ -495,6 +495,8 @@ export const en: Record<TransKey, string> = {
   "session.addSet": "Add set",
   "session.notePlaceholder": "Memo · Tip (today's feel, cues)",
   "session.prevNote": "Last note: {note}",
+  "session.noteHistoryToggle": "View past memos · tips",
+  "session.noteHistoryEmpty": "No past memos yet",
   "session.superset": "Superset",
   "session.supersetUnlink": "Unlink",
   "session.restingBar": "Rest {time}",
