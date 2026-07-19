@@ -53,6 +53,7 @@ interface ExerciseBlockProps {
   bodyweightKg: number | null; // v12: 어시스트/맨몸±가중 유효무게 계산. @plm SRS-033
   onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
   onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
+  onInfo?: () => void; // 운동 중 종목 상세(사진·운동법) 보기 — 운동법 까먹었을 때. @plm SRS-001
   onMoveUp?: () => void; // 운동 중 순서 위로(#11) — 없으면 최상단
   onMoveDown?: () => void; // 운동 중 순서 아래로(#11) — 없으면 최하단
   canSuperset?: boolean; // 세션에 종목 2개 이상 — 슈퍼셋 버튼 노출
@@ -94,7 +95,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onInfo, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
   const { t } = useT();
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
@@ -296,6 +297,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             ) : null}
           </View>
         </View>
+        {onInfo ? (
+          <IconButton icon="information-circle-outline" color="textMuted" size={20} onPress={onInfo} />
+        ) : null}
         {onMoveUp || onMoveDown ? (
           <View style={styles.reorderCol}>
             {onMoveUp ? (

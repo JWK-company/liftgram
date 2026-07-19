@@ -266,6 +266,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
                             bodyweightKg={bodyweightKg}
                             onStartRest={startRest}
                             onSwap={handleSwapExercise}
+                            onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: m.exerciseId })}
                             insideSuperset
                           />
                         </React.Fragment>
@@ -286,6 +287,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
                   bodyweightKg={bodyweightKg}
                   onStartRest={startRest}
                   onSwap={handleSwapExercise}
+                  onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: we.exerciseId })}
                   onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}
                   onMoveDown={i < exercises.length - 1 ? () => moveExercise(i, i + 1) : undefined}
                   canSuperset={exercises.length >= 2}
