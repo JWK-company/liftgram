@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Screen, Card, AppText, Tag, Button, TextField, EmptyState, ListState, Divider, Avatar, RemoteImage } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
 import { serverApi, type FeedPost, type PickedImage, type StoryGroup } from '../../sync/serverApi';
+import { authErrorKey } from '../../sync/apiError'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
 import { exerciseRepo, routineRepo } from '../../data'; // @plm SRS-002 루틴 가져오기
 import { resolveMediaUrl } from '../../config';
 import { useUser } from '../../state/userContext';
@@ -181,8 +182,8 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       setStoryMsg(visible ? t('story.uploaded') : t('story.pending'));
       setTimeout(() => setStoryMsg(null), 3000);
     } catch (e) {
-      // 실패는 트레이에서 보이지 않는 컴포저 인라인 대신 Alert로 명확히 노출.
-      showAlert(t('story.uploadFailedTitle'), String(e));
+      // 실패는 트레이에서 보이지 않는 컴포저 인라인 대신 Alert로 명확히 노출(오프라인/서버오류 친화 메시지).
+      showAlert(t('story.uploadFailedTitle'), t(authErrorKey(e)));
     } finally {
       setStoryBusy(false);
       storyInflightRef.current = false;
@@ -212,7 +213,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       setPicked(null);
       uploadedRef.current = null; // 게시 성공 → 업로드 캐시 정리
     } catch (e) {
-      setError(String(e));
+      setError(t(authErrorKey(e))); // 오프라인이면 "서버에 연결할 수 없어요…" 등 친화 메시지
     } finally {
       setPosting(false);
     }
@@ -554,7 +555,7 @@ function PostCard({
                 ],
               );
             } catch (e) {
-              Alert.alert(t('common.error'), String(e));
+              Alert.alert(t('common.error'), t(authErrorKey(e)));
             } finally {
               setImporting(false);
             }

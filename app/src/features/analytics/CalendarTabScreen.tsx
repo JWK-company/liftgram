@@ -11,6 +11,7 @@ import { useQueryData } from '../../db/hooks';
 import { useUser } from '../../state/userContext';
 import { formatWeight, dayNumber, computeStreak, weeklyProgress, WEEKLY_GOAL_MIN, WEEKLY_GOAL_MAX } from '../../domain';
 import { serverApi } from '../../sync/serverApi';
+import { authErrorKey } from '../../sync/apiError'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
 import { useWeeklyGoal, useStreakSkipWeekends } from './useWeeklyGoal';
@@ -107,7 +108,7 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
       });
       Alert.alert(t('calendar.bragTitle'), t('calendar.bragDone'));
     } catch (e) {
-      Alert.alert(t('common.error'), String(e));
+      Alert.alert(t('common.error'), t(authErrorKey(e)));
     } finally {
       setBragging(false);
     }

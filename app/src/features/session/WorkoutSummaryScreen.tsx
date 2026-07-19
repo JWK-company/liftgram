@@ -31,6 +31,7 @@ import {
   type WeeklyProgress,
 } from '../../domain';
 import { serverApi } from '../../sync/serverApi';
+import { authErrorKey } from '../../sync/apiError'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
 import { useWeeklyGoal, useStreakSkipWeekends } from '../analytics/useWeeklyGoal';
 import { useT } from '../../i18n';
 
@@ -154,7 +155,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
       setShared(true);
       setCaption('');
     } catch (e) {
-      setShareError(String(e));
+      setShareError(t(authErrorKey(e))); // 오프라인이면 "서버에 연결할 수 없어요…" — 기록 자체는 로컬 저장됨
     } finally {
       setSharing(false);
     }
