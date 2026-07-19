@@ -1,6 +1,7 @@
 // @plm SRS-002  루틴 목록 + 세션 시작 + 진행중 세션 복구 배너
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Screen,
   Button,
@@ -13,17 +14,30 @@ import {
 import type { TabScreenProps } from '../../navigation/types';
 import { useSession } from '../../state/sessionContext';
 import { useQueryData } from '../../db/hooks';
-import { routineRepo, workoutRepo } from '../../data';
+import { routineRepo, workoutRepo, analyticsRepo } from '../../data';
 import type Routine from '../../db/models/Routine';
+import { muscleLabel } from '../../domain';
 import { colors, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
 export default function WorkoutTabScreen({ navigation }: TabScreenProps<'WorkoutTab'>) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { activeWorkoutId, setActiveWorkoutId } = useSession();
   const [busy, setBusy] = useState(false);
 
   const routines = useQueryData(() => routineRepo.queryRoutines(), []);
+
+  // 오늘의 추천 루틴 (SRS-034) — 완료 이력 기반 예측. 화면 포커스/루틴변경/세션종료 시 갱신.
+  const [reco, setReco] = useState<analyticsRepo.TodayRoutineReco | null>(null);
+  const loadReco = useCallback(async () => {
+    try {
+      setReco(await analyticsRepo.getTodayRoutineRecommendation());
+    } catch {
+      setReco(null);
+    }
+  }, []);
+  useFocusEffect(useCallback(() => { loadReco(); }, [loadReco]));
+  useEffect(() => { loadReco(); }, [routines.length, activeWorkoutId, loadReco]);
 
   async function doStartBlank() {
     if (busy) return;
@@ -163,6 +177,38 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
           </Card>
         ) : null}
 
+        {/* 오늘의 추천 루틴(SRS-034) — 아직 운동 전일 때만, '새 루틴' 위에 표시 */}
+        {!activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
+          reco.status === 'ok' ? (
+            <Card style={styles.recoCard}>
+              <View style={{ flex: 1, marginRight: spacing.md }}>
+                <AppText variant="label" color="primary">{t('routines.todayRecoLabel')}</AppText>
+                <AppText variant="heading" numberOfLines={1} style={{ marginTop: 2 }}>
+                  {reco.routineName}
+                </AppText>
+                <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                  {t('routines.todayRecoHint', { muscle: muscleLabel(reco.muscle!, lang) })}
+                </AppText>
+              </View>
+              <Button
+                title={t('routines.start')}
+                icon="play"
+                size="sm"
+                fullWidth={false}
+                disabled={busy}
+                onPress={() => guardActive(() => doStartFromRoutine(reco.routineId!))}
+              />
+            </Card>
+          ) : (
+            <Card style={styles.recoCardMuted}>
+              <AppText variant="label" color="textMuted">{t('routines.todayRecoLabel')}</AppText>
+              <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
+                {t('routines.todayRecoInsufficient')}
+              </AppText>
+            </Card>
+          )
+        ) : null}
+
         {/* 새 운동 진입 3버튼 — 같은 크기로 연달아(#6) */}
         <Button title={t('routines.newRoutine')} icon="add" variant="secondary" onPress={() => navigation.navigate('RoutineEditor')} style={{ marginBottom: spacing.sm }} />
         <Button title={t('routines.quickStart')} icon="flash" loading={busy} onPress={() => guardActive(doStartBlank)} style={{ marginBottom: spacing.sm }} />
@@ -250,6 +296,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   resumeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  recoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryMuted,
+    borderColor: colors.primary,
+    borderWidth: 1,
+    marginBottom: spacing.sm,
+  },
+  recoCardMuted: {
+    backgroundColor: colors.surfaceAlt,
+    marginBottom: spacing.sm,
+  },
   routineCard: {
     flexDirection: 'row',
     alignItems: 'center',

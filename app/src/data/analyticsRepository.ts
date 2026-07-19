@@ -3,7 +3,7 @@
 import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
-import { Workout, WorkoutExercise, SetLog, Exercise } from '../db/models';
+import { Workout, WorkoutExercise, SetLog, Exercise, Routine } from '../db/models';
 import {
   setVolumeKg,
   effectiveWeightKg,
@@ -11,6 +11,9 @@ import {
   bestEstimatedOneRepMax,
   legacyMachineVariantToV6,
   resolveLoadMode,
+  recommendTodayRoutine,
+  type RecoWorkout,
+  type RoutineRecommendation,
   type LoadMode,
   type LoggedSet,
   type MuscleGroup,
@@ -21,6 +24,7 @@ const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
 const setLogs = () => database.get<SetLog>('set_logs');
 const exercises = () => database.get<Exercise>('exercises');
+const routines = () => database.get<Routine>('routines');
 
 interface EnrichedSet {
   workoutId: string;
@@ -286,4 +290,61 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
     });
   }
   return { workout, exercises: details, totalVolumeKg: total };
+}
+
+// ── 오늘의 추천 루틴 (SRS-034) ─────────────────────────────────────
+// 최근 완료 이력의 대표부위 사이클을 분석 → "오늘 할 부위"를 예측 → 그 부위 최신 수행 루틴 추천.
+// 순수 예측은 domain.recommendTodayRoutine, 여기서는 이력·현존 루틴 존재여부만 수집한다. @plm SRS-034
+const RECO_WINDOW_DAYS = 35;
+
+export interface TodayRoutineReco extends RoutineRecommendation {
+  alreadyWorkedOutToday: boolean; // 오늘 이미 완료 세션이 있으면 추천 숨김
+}
+
+export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco> {
+  const now = Date.now();
+  const sinceMs = now - RECO_WINDOW_DAYS * 86400000;
+  const ws = await workouts()
+    .query(Q.where('state', 'completed'), Q.where('completed_at', Q.gte(sinceMs)))
+    .fetch();
+  const todayNum = dayNum(now);
+  const alreadyWorkedOutToday = ws.some((w) => dayNum(w.completedAt ?? w.startedAt) === todayNum);
+  if (!ws.length) return { status: 'insufficient', alreadyWorkedOutToday };
+
+  // 세션별 종목 주근육 수집.
+  const wes = await workoutExercises().query(Q.where('workout_id', Q.oneOf(ws.map((w) => w.id)))).fetch();
+  const exIds = [...new Set(wes.map((we) => we.exerciseId))];
+  const exList = exIds.length ? await exercises().query(Q.where('id', Q.oneOf(exIds))).fetch() : [];
+  const primaryByEx = new Map<string, MuscleGroup | null>(exList.map((e) => [e.id, e.primaryMuscles[0] ?? null]));
+  const musclesByWorkout = new Map<string, MuscleGroup[]>();
+  for (const we of wes) {
+    const m = primaryByEx.get(we.exerciseId);
+    if (!m) continue;
+    const arr = musclesByWorkout.get(we.workoutId) ?? [];
+    arr.push(m);
+    musclesByWorkout.set(we.workoutId, arr);
+  }
+
+  // 현존 루틴만 추천 가능(삭제된 루틴은 시작 불가).
+  const routineIds = [...new Set(ws.map((w) => w.routineId).filter((r): r is string => !!r))];
+  const rList = routineIds.length ? await routines().query(Q.where('id', Q.oneOf(routineIds))).fetch() : [];
+  const nameById = new Map<string, string>(rList.map((r) => [r.id, r.name]));
+
+  const entries: RecoWorkout[] = ws.map((w) => {
+    const exists = w.routineId ? nameById.get(w.routineId) : undefined;
+    return {
+      completedAtMs: w.completedAt ?? w.startedAt,
+      routineId: exists ? w.routineId : null,
+      routineName: exists ?? null,
+      primaryMuscles: musclesByWorkout.get(w.id) ?? [],
+    };
+  });
+
+  return { ...recommendTodayRoutine(entries, now), alreadyWorkedOutToday };
+}
+
+// 로컬 달력일 일련번호(streak.dayNumber와 동일 관례) — 별도 import 없이 내부 재사용.
+function dayNum(ms: number): number {
+  const d = new Date(ms);
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
 }

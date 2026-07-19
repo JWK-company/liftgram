@@ -15,3 +15,4 @@ export * from './wellness';
 export * from './machineVariants';
 export * from './variants';
 export * from './streak';
+export * from './routineRecommendation';

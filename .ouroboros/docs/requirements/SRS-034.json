@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-034",
+  "type": "SRS",
+  "title": "오늘의 추천 루틴 — 완료 이력 기반 '오늘 할 부위' 예측 + 부위별 최신 루틴 추천",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-19T00:00:00Z",
+  "updated": "2026-07-19T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "workout-logging",
+    "routine",
+    "recommendation",
+    "retention",
+    "habit-loop"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "운동탭에서 아직 오늘 운동 전일 때 '새 루틴' 위에 오늘의 추천 루틴 카드를 표시한다. 완료 이력의 대표부위(주근육) 사이클을 분석해 '오늘 할 부위'를 예측하고, 그 부위의 가장 최근 수행 루틴을 추천한다. 기록이 부족하면(운동일<4 또는 기간<6일) 안내 문구로 비활성 표시한다.",
+  "relations": {
+    "derives_from": [
+      "URS-001"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "사용자가 일주일 이상 꾸준히 운동하면 보통 같은 분할 루틴을 주 단위로 반복하므로, 다음에 어떤 루틴을 수행할지 예측할 수 있다. 본 요구는 완료 운동 이력을 분석해 '오늘 할 부위'를 예측하고 그 부위의 가장 최신 수행 루틴을 운동탭 상단(새 루틴 버튼 위)에 '오늘의 추천 루틴'으로 제시해, 매번 루틴을 고르는 마찰을 줄이고 지속 사용을 돕는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "분할 예측은 타겟 근육(각 세션의 대표=주근육 최빈) 기준으로 회전하며, 실제 추천 루틴은 해당 근육묶음의 가장 최근 수행 버전을 고른다(예: 직전 사이클에서 등 루틴을 새로 만들어 수행했다면, 다음 등 차례에 그 새 루틴을 추천). 기록이 부족하면 추천 대신 '일주일 이상 꾸준히 운동하면 오늘 할 루틴을 추천해드려요' 안내로 비활성 표시한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "운동탭에서 아직 오늘 완료 세션이 없고 진행중 세션도 없을 때만 '새 루틴' 위에 추천 카드가 나타난다(오늘 이미 운동했으면 숨김)." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "추천 부위 = 완료 이력의 대표부위 전이(직전 부위 다음에 가장 자주 수행한 부위)로 예측하고, 없으면 가장 오래 안 한 부위로 폴백한다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "추천 루틴 = 예측 부위의 가장 최근 수행 루틴(최신 버전). 현존 루틴만 추천하며(삭제된 루틴 제외), 그 부위가 프리스타일뿐이면 다음 후보 부위로 넘어간다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "일회성으로 한 번만 수행한 부위가 예측을 지배하지 않는다(전이 빈도 기반이라 노이즈에 강건)." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "기록 부족(고유 운동일 < 4 또는 첫~마지막 운동 간격 < 6일)이면 추천 대신 안내 문구를 비활성 카드로 표시한다." }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  { "type": "text", "text": "추천 카드의 '시작'을 누르면 진행중 세션 가드(guardActive)를 거쳐 해당 루틴으로 세션을 시작한다." }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도메인 순수함수 recommendTodayRoutine(routineRecommendation.ts): 완료 이력(대표부위=dominantMuscle 최빈)으로 꾸준함 게이트 판정 후, 직전 부위의 최빈 후속 부위를 전이 모델로 예측하고 LRU(오래 쉰 순) 폴백으로 후보를 정렬해 현존 루틴이 있는 첫 부위를 채택한다. 오늘 세션은 예측에서 제외해 '다음 세션'을 겨눈다. repo(analyticsRepository.getTodayRoutineRecommendation): 최근 35일 완료 워크아웃→종목 주근육·현존 루틴명·오늘운동여부를 수집해 도메인에 위임. UI(WorkoutTabScreen): useFocusEffect로 갱신, ok=강조 카드(루틴명+부위 힌트+시작 버튼)·insufficient=비활성 안내 카드. 도메인 유닛테스트 11종(5분할 회전·최신버전·일회성 강건·풀바디 반복·프리스타일 폴백·삭제 루틴·오늘 제외·게이트) 추가."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-001(핵심 운동 기록·루틴 수행 경험). 연계: 스트릭·주간목표(SRS-011) 책임감 루프와 함께 지속 사용을 강화하고, 루틴 목록/세션 시작(SRS-002) 위에 얹혀 루틴 선택 마찰을 줄인다. 후속: 추천 근거 설명(왜 이 부위인지), 휴식/디로드 인지, 목표 분할 템플릿 기반 예측 보정."
+          }
+        ]
+      }
+    ]
+  }
+}
