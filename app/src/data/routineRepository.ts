@@ -147,6 +147,7 @@ export interface ImportRoutineExercise {
   targetSets?: number;
   targetRepsMin?: number | null;
   targetWeightKg?: number | null;
+  note?: string | null; // 작성자(상급자)가 남긴 종목별 메모·팁 — 티칭 느낌 전파. @plm SRS-007
 }
 
 export async function importRoutine(name: string, exercises: ImportRoutineExercise[]): Promise<Routine> {
@@ -172,7 +173,7 @@ export async function importRoutine(name: string, exercises: ImportRoutineExerci
           re.restSeconds = 120;
           re.supersetGroup = null;
           re.sortOrder = i;
-          re.note = null;
+          re.note = ex.note?.trim() || null; // 가져온 루틴에 작성자 종목 메모·팁 보존(구: 무조건 null). @plm SRS-007
         }),
       ),
     );

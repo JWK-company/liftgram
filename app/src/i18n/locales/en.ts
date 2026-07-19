@@ -493,7 +493,7 @@ export const en: Record<TransKey, string> = {
   "session.loading": "Loading session",
   "session.logSet": "Log Set",
   "session.addSet": "Add set",
-  "session.notePlaceholder": "Note (today's feel, cues)",
+  "session.notePlaceholder": "Memo · Tip (today's feel, cues)",
   "session.prevNote": "Last note: {note}",
   "session.superset": "Superset",
   "session.supersetUnlink": "Unlink",

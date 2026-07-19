@@ -539,6 +539,7 @@ function PostCard({
                   targetSets: src.length || undefined,
                   targetRepsMin: reps.length ? Math.min(...reps) : undefined,
                   targetWeightKg: weights.length ? Math.max(...weights) : undefined,
+                  note: ex.note, // 작성자 종목 메모·팁 동반 가져오기(티칭). @plm SRS-007
                 });
               }
               if (!resolved.length) {

@@ -476,6 +476,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.variantGrip = re.variantGrip ?? null;
         we.variantArm = re.variantArm ?? null;
         we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
+        we.note = re.note?.trim() || null; // 루틴 종목 메모·팁을 세션 메모에 시드(가져온 상급자 팁 노출 — 티칭). @plm SRS-004 SRS-007
       }),
     );
     // 각 종목에 target_sets 개수만큼 템플릿 세트 프리레이(Hevy식).
