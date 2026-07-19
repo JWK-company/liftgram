@@ -3,11 +3,11 @@
   "id": "SRS-032",
   "type": "SRS",
   "title": "종목 자세 미디어 — 시작/끝 사진 시연 + 한국어 자세설명",
-  "status": "Draft",
+  "status": "Approved",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-13T00:00:00Z",
-  "updated": "2026-07-13T00:00:00Z",
+  "updated": "2026-07-19T09:33:02Z",
   "sync": true,
   "tags": [
     "exercise-catalog",

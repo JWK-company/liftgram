@@ -3,11 +3,11 @@
   "id": "SRS-034",
   "type": "SRS",
   "title": "오늘의 추천 루틴 — 완료 이력 기반 '오늘 할 부위' 예측 + 부위별 최신 루틴 추천",
-  "status": "Draft",
+  "status": "Approved",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-19T00:00:00Z",
-  "updated": "2026-07-19T00:00:00Z",
+  "updated": "2026-07-19T09:33:02Z",
   "sync": true,
   "tags": [
     "workout-logging",

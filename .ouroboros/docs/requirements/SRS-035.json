@@ -3,11 +3,11 @@
   "id": "SRS-035",
   "type": "SRS",
   "title": "위치 기반 주변 헬스장 발견·추천 (소비자 MVP — 헬스장 매칭 B2B 전단계)",
-  "status": "Draft",
+  "status": "Approved",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-19T00:00:00Z",
-  "updated": "2026-07-19T00:00:00Z",
+  "updated": "2026-07-19T09:33:02Z",
   "sync": true,
   "tags": [
     "gym-matching",

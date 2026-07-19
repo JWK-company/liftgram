@@ -264,12 +264,12 @@
     ]
   },
   "code_refs": [
-    "app/src/data/workoutRepository.ts:41",
-    "app/src/data/workoutRepository.ts:771",
+    "app/src/data/workoutRepository.ts:42",
+    "app/src/data/workoutRepository.ts:787",
     "app/src/db/migrations.ts:122",
     "app/src/db/models/SetLog.ts:18",
-    "app/src/db/schema.ts:146",
-    "app/src/db/schema.ts:151",
+    "app/src/db/schema.ts:148",
+    "app/src/db/schema.ts:153",
     "app/src/domain/types.ts:58",
     "app/src/domain/volume.ts:14#effectiveWeightKg",
     "app/src/features/session/ExerciseBlock.tsx:4"
