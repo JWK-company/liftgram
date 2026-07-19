@@ -56,6 +56,58 @@ export function formatCardioSet(durationSec?: number | null, distanceM?: number 
   return parts.length ? parts.join(' · ') : '–';
 }
 
+// ── 종목별 유산소 지표(SRS-030 확장) ─────────────────────────────
+// 기구마다 기록할 정보가 다르다: 러닝머신=경사, 실내 사이클·천국의 계단=단계 등.
+// incline(경사 %)과 level(단계)은 상호배타(기구는 둘 중 하나). 미매핑(커스텀)은 기본 [시간·거리].
+export type CardioMetric = 'duration' | 'distance' | 'incline' | 'level';
+
+export interface CardioTarget {
+  durationSec?: number | null;
+  distanceM?: number | null;
+  incline?: number | null; // 경사 %
+  level?: number | null; // 저항/강도 단계
+}
+
+// nameEn 기준 종목별 지표. 새 종목 추가 시 여기에 등록.
+const CARDIO_METRICS_BY_NAME_EN: Record<string, CardioMetric[]> = {
+  'Treadmill Running': ['duration', 'distance', 'incline'],
+  Running: ['duration', 'distance'],
+  Walking: ['duration', 'distance', 'incline'],
+  'Indoor Cycling': ['duration', 'distance', 'level'],
+  Elliptical: ['duration', 'distance', 'level'],
+  'Stair Climber': ['duration', 'level'], // 천국의 계단(스텝밀)
+  'Jump Rope': ['duration'],
+  'Rowing Machine': ['duration', 'distance', 'level'],
+  'Assault Bike': ['duration', 'distance', 'level'],
+  'Stepper': ['duration', 'level'],
+  SkiErg: ['duration', 'distance', 'level'],
+};
+
+export function cardioMetricsFor(ex: { nameEn?: string | null }): CardioMetric[] {
+  const m = ex.nameEn ? CARDIO_METRICS_BY_NAME_EN[ex.nameEn] : undefined;
+  return m ?? ['duration', 'distance'];
+}
+
+// incline/level 등 단순 수치 입력 helpers — 저장은 number, 빈/0/음수/NaN = null.
+export function cardioNumInput(v: number | null | undefined): string {
+  if (v == null || v <= 0) return '';
+  return String(v);
+}
+export function inputToIncline(text: string): number | null {
+  const n = parseFloat(text.replace(',', '.'));
+  return Number.isNaN(n) || n <= 0 ? null : Math.round(n * 10) / 10; // 소수1자리
+}
+export function inputToLevel(text: string): number | null {
+  const n = parseInt(text, 10);
+  return Number.isNaN(n) || n <= 0 ? null : n;
+}
+export function formatIncline(v: number): string {
+  return `${v}%`;
+}
+export function formatLevel(v: number): string {
+  return `${v}단계`;
+}
+
 // 유산소 세트 배열의 총 시간(초)·총 거리(미터) 합 — 종목 요약용(수행 세트만).
 export function sumCardio(sets: { durationSec?: number | null; distanceM?: number | null }[]): {
   durationSec: number;

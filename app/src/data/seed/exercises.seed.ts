@@ -196,6 +196,9 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '걷기', nameEn: 'Walking', primaryMuscles: ['fullBody'], secondaryMuscles: ['calves'], equipment: 'bodyweight', kind: 'cardio' },
   { nameKo: '실내 사이클', nameEn: 'Indoor Cycling', primaryMuscles: ['quads'], secondaryMuscles: ['calves'], equipment: 'machine', kind: 'cardio' },
   { nameKo: '일립티컬', nameEn: 'Elliptical', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads'], equipment: 'machine', kind: 'cardio' },
-  { nameKo: '스텝밀', nameEn: 'Stair Climber', primaryMuscles: ['quads'], secondaryMuscles: ['glutes', 'calves'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '천국의 계단', nameEn: 'Stair Climber', primaryMuscles: ['quads'], secondaryMuscles: ['glutes', 'calves'], equipment: 'machine', kind: 'cardio' }, // 구 '스텝밀' — nameEn 유지로 기록 승계
   { nameKo: '줄넘기', nameEn: 'Jump Rope', primaryMuscles: ['calves'], secondaryMuscles: ['fullBody'], equipment: 'other', kind: 'cardio' },
+  { nameKo: '어썰트 바이크', nameEn: 'Assault Bike', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '스텝퍼', nameEn: 'Stepper', primaryMuscles: ['quads'], secondaryMuscles: ['glutes', 'calves'], equipment: 'machine', kind: 'cardio' },
+  { nameKo: '스키에르그', nameEn: 'SkiErg', primaryMuscles: ['back'], secondaryMuscles: ['triceps', 'fullBody'], equipment: 'machine', kind: 'cardio' },
 ];

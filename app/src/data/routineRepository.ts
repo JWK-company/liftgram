@@ -3,6 +3,7 @@ import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { Routine, RoutineExercise } from '../db/models';
+import type { CardioTargetJson } from '../db/models/_sanitizers';
 import { randomId } from '../utils/id';
 import { variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
 
@@ -77,6 +78,7 @@ export interface RoutineExerciseInput {
   machineVariant?: string | null;
   supersetGroup?: string | null;
   note?: string | null;
+  cardioTarget?: CardioTargetJson | null; // v13: 유산소 목표(시간·거리·경사·단계). @plm SRS-030
 }
 
 export async function addExerciseToRoutine(
@@ -114,6 +116,7 @@ export async function updateRoutineExercise(id: string, patch: RoutineExerciseIn
       if (patch.machineVariant !== undefined) rec.machineVariant = patch.machineVariant;
       if (patch.supersetGroup !== undefined) rec.supersetGroup = patch.supersetGroup;
       if (patch.note !== undefined) rec.note = patch.note;
+      if (patch.cardioTarget !== undefined) rec.cardioTarget = patch.cardioTarget;
     });
   });
 }

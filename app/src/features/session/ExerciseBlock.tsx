@@ -25,6 +25,11 @@ import {
   mToKmInput,
   kmInputToM,
   sumCardio,
+  cardioMetricsFor,
+  cardioNumInput,
+  inputToIncline,
+  inputToLevel,
+  type CardioMetric,
   GRIP_KEYS,
   gripLabel,
   gripShortLabel,
@@ -127,6 +132,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   // 변형 칩(기구 옵션)용 종목 기본 기구 + 유산소 여부(cardio면 세트 행을 시간·거리로 렌더). @plm SRS-030
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
+  const [cardioMetrics, setCardioMetrics] = useState<CardioMetric[]>(['duration', 'distance']);
   useEffect(() => {
     let alive = true;
     exerciseRepo
@@ -135,6 +141,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         if (!alive) return;
         setBaseEquipment(e.equipment);
         setIsCardio(e.kind === 'cardio');
+        setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn })); // 종목별 유산소 지표(경사/단계 등). @plm SRS-030
         setLoadMode(resolveLoadMode(e));
       })
       .catch(() => {});
@@ -326,12 +333,11 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
           <AppText variant="label" color="textFaint" style={styles.colPrev}>
             {t('session.prevColHeader')}
           </AppText>
-          <AppText variant="label" color="textFaint" style={styles.colVal}>
-            {t('session.durationColHeader')}
-          </AppText>
-          <AppText variant="label" color="textFaint" style={styles.colVal}>
-            {t('session.distanceColHeader')}
-          </AppText>
+          {cardioMetrics.map((m) => (
+            <AppText key={m} variant="label" color="textFaint" style={styles.colVal}>
+              {t(CARDIO_COL_LABEL[m])}
+            </AppText>
+          ))}
           <View style={styles.colCheck} />
           <View style={styles.colDel} />
         </View>
@@ -361,6 +367,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             set={s}
             label={String(i + 1)}
             prev={shownPrev[i]}
+            metrics={cardioMetrics}
             onRestStart={() => onStartRest(restSeconds)}
           />
         ) : (
@@ -675,31 +682,43 @@ function VarOpt({ label, active, onPress }: { label: string; active: boolean; on
   );
 }
 
-// ── 유산소 세트 1행 — 무게/횟수 대신 시간(분)·거리(km). @plm SRS-030 ──────
+// 유산소 지표 → 그리드 컬럼 헤더 i18n 키. @plm SRS-030
+const CARDIO_COL_LABEL: Record<CardioMetric, TransKey> = {
+  duration: 'session.durationColHeader',
+  distance: 'session.distanceColHeader',
+  incline: 'session.inclineColHeader',
+  level: 'session.levelColHeader',
+};
+
+// ── 유산소 세트 1행 — 무게/횟수 대신 종목별 지표(시간·거리·경사·단계). @plm SRS-030 ──────
 function SetRowCardio({
   set,
   label,
   prev,
+  metrics,
   onRestStart,
 }: {
   set: SetLog;
   label: string;
   prev: LogSetInput | undefined;
+  metrics: CardioMetric[];
   onRestStart: () => void;
 }) {
   const { t } = useT();
   const isDone = set.done === true;
   const [mins, setMins] = useState(() => secToMinInput(set.durationSec));
   const [km, setKm] = useState(() => mToKmInput(set.distanceM));
+  const [incline, setIncline] = useState(() => cardioNumInput(set.inclinePct));
+  const [level, setLevel] = useState(() => cardioNumInput(set.level));
   useEffect(() => setMins(secToMinInput(set.durationSec)), [set.durationSec]);
   useEffect(() => setKm(mToKmInput(set.distanceM)), [set.distanceM]);
+  useEffect(() => setIncline(cardioNumInput(set.inclinePct)), [set.inclinePct]);
+  useEffect(() => setLevel(cardioNumInput(set.level)), [set.level]);
 
-  function commitDuration() {
-    workoutRepo.updateSetLog(set.id, { durationSec: minInputToSec(mins) }).catch(() => {});
-  }
-  function commitDistance() {
-    workoutRepo.updateSetLog(set.id, { distanceM: kmInputToM(km) }).catch(() => {});
-  }
+  const commitDuration = () => workoutRepo.updateSetLog(set.id, { durationSec: minInputToSec(mins) }).catch(() => {});
+  const commitDistance = () => workoutRepo.updateSetLog(set.id, { distanceM: kmInputToM(km) }).catch(() => {});
+  const commitIncline = () => workoutRepo.updateSetLog(set.id, { inclinePct: inputToIncline(incline) }).catch(() => {});
+  const commitLevel = () => workoutRepo.updateSetLog(set.id, { level: inputToLevel(level) }).catch(() => {});
   function toggleDone() {
     const next = !isDone;
     workoutRepo.setSetDone(set.id, next).catch(() => {});
@@ -707,12 +726,32 @@ function SetRowCardio({
   }
   function applyPrev() {
     if (!prev) return;
-    workoutRepo.updateSetLog(set.id, { durationSec: prev.durationSec ?? null, distanceM: prev.distanceM ?? null }).catch(() => {});
+    workoutRepo
+      .updateSetLog(set.id, {
+        durationSec: prev.durationSec ?? null,
+        distanceM: prev.distanceM ?? null,
+        inclinePct: prev.inclinePct ?? null,
+        level: prev.level ?? null,
+      })
+      .catch(() => {});
   }
   function confirmDelete() {
     workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
-  const hasPrev = prev && ((prev.durationSec ?? 0) > 0 || (prev.distanceM ?? 0) > 0);
+  const hasPrev = prev && ((prev.durationSec ?? 0) > 0 || (prev.distanceM ?? 0) > 0 || (prev.inclinePct ?? 0) > 0 || (prev.level ?? 0) > 0);
+  const cellFor = (m: CardioMetric) => {
+    const common = { keyboardType: 'numeric' as const, placeholder: '0', placeholderTextColor: colors.textFaint, selectTextOnFocus: true, style: styles.cell };
+    switch (m) {
+      case 'duration':
+        return <TextInput key="duration" value={mins} onChangeText={setMins} onBlur={commitDuration} onSubmitEditing={commitDuration} {...common} />;
+      case 'distance':
+        return <TextInput key="distance" value={km} onChangeText={setKm} onBlur={commitDistance} onSubmitEditing={commitDistance} {...common} />;
+      case 'incline':
+        return <TextInput key="incline" value={incline} onChangeText={setIncline} onBlur={commitIncline} onSubmitEditing={commitIncline} {...common} />;
+      case 'level':
+        return <TextInput key="level" value={level} onChangeText={setLevel} onBlur={commitLevel} onSubmitEditing={commitLevel} {...common} />;
+    }
+  };
   return (
     <View style={isDone && styles.setRowDone}>
       <View style={styles.setRow}>
@@ -736,8 +775,7 @@ function SetRowCardio({
             </AppText>
           )}
         </Pressable>
-        <TextInput value={mins} onChangeText={setMins} onBlur={commitDuration} onSubmitEditing={commitDuration} keyboardType="numeric" placeholder="0" placeholderTextColor={colors.textFaint} selectTextOnFocus style={styles.cell} />
-        <TextInput value={km} onChangeText={setKm} onBlur={commitDistance} onSubmitEditing={commitDistance} keyboardType="numeric" placeholder="0" placeholderTextColor={colors.textFaint} selectTextOnFocus style={styles.cell} />
+        {metrics.map(cellFor)}
         <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
           <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
         </Pressable>

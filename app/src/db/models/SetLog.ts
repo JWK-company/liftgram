@@ -21,6 +21,8 @@ export default class SetLog extends Model {
   @field('partial_reps') partialReps!: number | null; // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용
   @field('duration_sec') durationSec!: number | null; // v10: 유산소 수행 시간(초) — 볼륨/PR 제외. @plm SRS-030
   @field('distance_m') distanceM!: number | null; // v10: 유산소 거리(미터·정규 저장). @plm SRS-030
+  @field('incline_pct') inclinePct!: number | null; // v13: 러닝머신 등 경사(%). @plm SRS-030
+  @field('level') level!: number | null; // v13: 사이클·천국의 계단 등 단계. @plm SRS-030
   @field('arm') arm!: string | null; // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본)
   @field('grip') grip!: string | null; // v11: 세트별 그립 — over/under/neutral/wide/close, null=기본(표시전용)
   @field('done') done!: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨

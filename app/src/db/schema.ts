@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 12;
+export const SCHEMA_VERSION = 13;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -80,6 +80,7 @@ export const mySchema = appSchema({
         { name: 'superset_group', type: 'string', isOptional: true }, // 같은 값끼리 슈퍼셋 묶음
         { name: 'sort_order', type: 'number' },
         { name: 'note', type: 'string', isOptional: true },
+        { name: 'cardio_target', type: 'string', isOptional: true }, // v13: 유산소 목표 JSON {durationSec,distanceM,incline,level}. @plm SRS-030
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -127,6 +128,7 @@ export const mySchema = appSchema({
         { name: 'variant_grip', type: 'string', isOptional: true }, // over/under/neutral/wide/close
         { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
         { name: 'superset_group', type: 'string', isOptional: true }, // v7: 세션 슈퍼셋 그룹(#20) — 루틴서 복사. @plm SRS-004
+        { name: 'cardio_target', type: 'string', isOptional: true }, // v13: 유산소 목표 JSON(루틴서 복사). @plm SRS-030
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -152,6 +154,8 @@ export const mySchema = appSchema({
         // v10: 유산소(cardio) 지표 — 시간·거리. 근력 세트는 null. 볼륨/PR엔 미포함. @plm SRS-030
         { name: 'duration_sec', type: 'number', isOptional: true }, // 유산소 수행 시간(초)
         { name: 'distance_m', type: 'number', isOptional: true }, // 유산소 거리(미터·정규 저장, UI는 km)
+        { name: 'incline_pct', type: 'number', isOptional: true }, // v13: 러닝머신 등 경사(%). @plm SRS-030
+        { name: 'level', type: 'number', isOptional: true }, // v13: 사이클·천국의 계단 등 저항/강도 단계. @plm SRS-030
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

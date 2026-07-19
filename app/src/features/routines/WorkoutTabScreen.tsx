@@ -147,112 +147,118 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
     ]);
   }
 
-  return (
-    <Screen padded={false}>
-      <View style={styles.container}>
-        <View style={styles.headerRow}>
-          <AppText variant="display">{t('routines.title')}</AppText>
-          {activeWorkoutId ? (
+  // 헤더(제목·추천·버튼·헬스장) — '내 루틴' 리스트 위 콘텐츠. FlatList 헤더로 넣어 탭 전체가 함께 스크롤된다.
+  const header = (
+    <View>
+      <View style={styles.headerRow}>
+        <AppText variant="display">{t('routines.title')}</AppText>
+        {activeWorkoutId ? (
+          <Button
+            title={t('routines.resumeWorkout')}
+            icon="play"
+            size="sm"
+            fullWidth={false}
+            onPress={() => navigation.navigate('ActiveWorkout', { workoutId: activeWorkoutId })}
+          />
+        ) : null}
+      </View>
+
+      {/* 진행 중 운동 — 폐기(#4) */}
+      {activeWorkoutId ? (
+        <Card style={styles.resumeCard}>
+          <View style={styles.resumeRow}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="heading">{t('routines.activeWorkout')}</AppText>
+              <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                {t('routines.resumePrompt')}
+              </AppText>
+            </View>
+            <Button title={t('routines.discardWorkoutButton')} variant="danger" size="sm" fullWidth={false} onPress={discardActive} />
+          </View>
+        </Card>
+      ) : null}
+
+      {/* 오늘의 추천 루틴(SRS-034) — 아직 운동 전일 때만, '새 루틴' 위에 표시 */}
+      {!activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
+        reco.status === 'ok' ? (
+          <Card style={styles.recoCard}>
+            <View style={{ flex: 1, marginRight: spacing.md }}>
+              <AppText variant="label" color="primary">{t('routines.todayRecoLabel')}</AppText>
+              <AppText variant="heading" numberOfLines={1} style={{ marginTop: 2 }}>
+                {reco.routineName}
+              </AppText>
+              <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                {t('routines.todayRecoHint', { muscle: muscleLabel(reco.muscle!, lang) })}
+              </AppText>
+            </View>
             <Button
-              title={t('routines.resumeWorkout')}
+              title={t('routines.start')}
               icon="play"
               size="sm"
               fullWidth={false}
-              onPress={() => navigation.navigate('ActiveWorkout', { workoutId: activeWorkoutId })}
+              disabled={busy}
+              onPress={() => guardActive(() => doStartFromRoutine(reco.routineId!))}
             />
-          ) : null}
-        </View>
-
-        {/* 진행 중 운동 — 폐기(#4) */}
-        {activeWorkoutId ? (
-          <Card style={styles.resumeCard}>
-            <View style={styles.resumeRow}>
-              <View style={{ flex: 1 }}>
-                <AppText variant="heading">{t('routines.activeWorkout')}</AppText>
-                <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-                  {t('routines.resumePrompt')}
-                </AppText>
-              </View>
-              <Button title={t('routines.discardWorkoutButton')} variant="danger" size="sm" fullWidth={false} onPress={discardActive} />
-            </View>
           </Card>
-        ) : null}
+        ) : (
+          <Card style={styles.recoCardMuted}>
+            <AppText variant="label" color="textMuted">{t('routines.todayRecoLabel')}</AppText>
+            <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
+              {t('routines.todayRecoInsufficient')}
+            </AppText>
+          </Card>
+        )
+      ) : null}
 
-        {/* 오늘의 추천 루틴(SRS-034) — 아직 운동 전일 때만, '새 루틴' 위에 표시 */}
-        {!activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
-          reco.status === 'ok' ? (
-            <Card style={styles.recoCard}>
-              <View style={{ flex: 1, marginRight: spacing.md }}>
-                <AppText variant="label" color="primary">{t('routines.todayRecoLabel')}</AppText>
-                <AppText variant="heading" numberOfLines={1} style={{ marginTop: 2 }}>
-                  {reco.routineName}
-                </AppText>
-                <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-                  {t('routines.todayRecoHint', { muscle: muscleLabel(reco.muscle!, lang) })}
-                </AppText>
-              </View>
+      {/* 새 운동 진입 3버튼 — 같은 크기로 연달아(#6) */}
+      <Button title={t('routines.newRoutine')} icon="add" variant="secondary" onPress={() => navigation.navigate('RoutineEditor')} style={{ marginBottom: spacing.sm }} />
+      <Button title={t('routines.quickStart')} icon="flash" loading={busy} onPress={() => guardActive(doStartBlank)} style={{ marginBottom: spacing.sm }} />
+      <Button title={t('program.title')} icon="sparkles" variant="secondary" onPress={() => navigation.navigate('ProgramGenerator')} style={{ marginBottom: spacing.sm }} />
+
+      {/* 주변 헬스장 발견(SRS-035) — 위치 기반 추천. 맥락상 '어디서 운동할까'. */}
+      <Pressable onPress={() => navigation.navigate('NearbyGyms')} style={styles.gymEntry}>
+        <Ionicons name="location" size={18} color={colors.primary} />
+        <AppText variant="body" weight="medium" style={{ flex: 1 }}>{t('gyms.entry')}</AppText>
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      </Pressable>
+
+      <SectionHeader title={t('routines.myRoutines')} />
+    </View>
+  );
+
+  return (
+    <Screen padded={false}>
+      {/* 탭 전체 스크롤 — 헤더를 FlatList 헤더로 넣어 '내 루틴' 리스트가 좁은 칸에 갇히지 않게 한다. */}
+      <FlatList
+        data={routines}
+        keyExtractor={(r) => r.id}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={header}
+        renderItem={({ item }) => (
+          <RoutineRow
+            routine={item}
+            busy={busy}
+            onStart={() => guardActive(() => doStartFromRoutine(item.id))}
+            onActions={() => openActions(item)}
+          />
+        )}
+        ListEmptyComponent={
+          <EmptyState
+            title={t('routines.listEmptyTitle')}
+            message={t('routines.listEmptyMessage')}
+            action={
               <Button
-                title={t('routines.start')}
-                icon="play"
-                size="sm"
+                title={t('routines.createRoutine')}
+                icon="add"
                 fullWidth={false}
-                disabled={busy}
-                onPress={() => guardActive(() => doStartFromRoutine(reco.routineId!))}
+                onPress={() => navigation.navigate('RoutineEditor')}
               />
-            </Card>
-          ) : (
-            <Card style={styles.recoCardMuted}>
-              <AppText variant="label" color="textMuted">{t('routines.todayRecoLabel')}</AppText>
-              <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
-                {t('routines.todayRecoInsufficient')}
-              </AppText>
-            </Card>
-          )
-        ) : null}
-
-        {/* 새 운동 진입 3버튼 — 같은 크기로 연달아(#6) */}
-        <Button title={t('routines.newRoutine')} icon="add" variant="secondary" onPress={() => navigation.navigate('RoutineEditor')} style={{ marginBottom: spacing.sm }} />
-        <Button title={t('routines.quickStart')} icon="flash" loading={busy} onPress={() => guardActive(doStartBlank)} style={{ marginBottom: spacing.sm }} />
-        <Button title={t('program.title')} icon="sparkles" variant="secondary" onPress={() => navigation.navigate('ProgramGenerator')} style={{ marginBottom: spacing.sm }} />
-
-        {/* 주변 헬스장 발견(SRS-035) — 위치 기반 추천. 맥락상 '어디서 운동할까'. */}
-        <Pressable onPress={() => navigation.navigate('NearbyGyms')} style={styles.gymEntry}>
-          <Ionicons name="location" size={18} color={colors.primary} />
-          <AppText variant="body" weight="medium" style={{ flex: 1 }}>{t('gyms.entry')}</AppText>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </Pressable>
-
-        <SectionHeader title={t('routines.myRoutines')} />
-
-        <FlatList
-          data={routines}
-          keyExtractor={(r) => r.id}
-          contentContainerStyle={routines.length === 0 ? styles.emptyContainer : styles.listContent}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <RoutineRow
-              routine={item}
-              busy={busy}
-              onStart={() => guardActive(() => doStartFromRoutine(item.id))}
-              onActions={() => openActions(item)}
-            />
-          )}
-          ListEmptyComponent={
-            <EmptyState
-              title={t('routines.listEmptyTitle')}
-              message={t('routines.listEmptyMessage')}
-              action={
-                <Button
-                  title={t('routines.createRoutine')}
-                  icon="add"
-                  fullWidth={false}
-                  onPress={() => navigation.navigate('RoutineEditor')}
-                />
-              }
-            />
-          }
-        />
-      </View>
+            }
+          />
+        }
+      />
     </Screen>
   );
 }
@@ -291,6 +297,7 @@ function RoutineRow({
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: spacing.lg },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl, flexGrow: 1 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

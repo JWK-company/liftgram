@@ -3,3 +3,23 @@ export function sanitizeStringArray(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
   return raw.filter((x): x is string => typeof x === 'string');
 }
+
+// 유산소 목표(JSON) sanitizer — {durationSec,distanceM,incline,level} 숫자 필드만. null=미설정. @plm SRS-030
+export interface CardioTargetJson {
+  durationSec?: number | null;
+  distanceM?: number | null;
+  incline?: number | null;
+  level?: number | null;
+}
+export function sanitizeCardioTarget(raw: unknown): CardioTargetJson | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null);
+  const out: CardioTargetJson = {
+    durationSec: num(o.durationSec),
+    distanceM: num(o.distanceM),
+    incline: num(o.incline),
+    level: num(o.level),
+  };
+  return out.durationSec || out.distanceM || out.incline || out.level ? out : null;
+}

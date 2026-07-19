@@ -170,5 +170,26 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v13: 유산소 지표 확장 — 경사(러닝머신)·단계(사이클·천국의 계단) + 루틴 유산소 목표(JSON). @plm SRS-030
+    {
+      toVersion: 13,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [
+            { name: 'incline_pct', type: 'number', isOptional: true },
+            { name: 'level', type: 'number', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'routine_exercises',
+          columns: [{ name: 'cardio_target', type: 'string', isOptional: true }],
+        }),
+        addColumns({
+          table: 'workout_exercises',
+          columns: [{ name: 'cardio_target', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

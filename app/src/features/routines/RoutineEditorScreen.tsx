@@ -1,7 +1,7 @@
 // @plm SRS-002  루틴 빌더 — 종목 추가/순서(드래그·화살표)/대체/슈퍼셋/세트·반복·휴식 목표 편집
 // @plm SRS-028  종목 변형(기구·그립·팔) 선택 — 루틴에 저장하면 세션 시작 시 승계
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ReorderableList, {
@@ -27,12 +27,28 @@ import { useQueryData } from '../../db/hooks';
 import { exerciseRepo, routineRepo } from '../../data';
 import { scheduleSync } from '../../sync/syncEngine'; // 루틴 저장 후 서버 동기 트리거(@plm SRS-006)
 import { useUser } from '../../state/userContext';
-import { fromKg, toKg, type ArmKey, type EquipmentType, type GripKey, type VariantDims } from '../../domain';
+import {
+  fromKg,
+  toKg,
+  cardioMetricsFor,
+  secToMinInput,
+  minInputToSec,
+  mToKmInput,
+  kmInputToM,
+  cardioNumInput,
+  inputToIncline,
+  inputToLevel,
+  type ArmKey,
+  type CardioMetric,
+  type EquipmentType,
+  type GripKey,
+  type VariantDims,
+} from '../../domain';
 import { requestExercisePick } from '../../utils/picker';
 import type RoutineExercise from '../../db/models/RoutineExercise';
 import { ExerciseName } from './ExerciseName';
-import { colors, spacing, radius } from '../../theme';
-import { useT } from '../../i18n';
+import { colors, spacing, radius, fontSize } from '../../theme';
+import { useT, type TransKey } from '../../i18n';
 
 export default function RoutineEditorScreen({ route, navigation }: RootStackScreenProps<'RoutineEditor'>) {
   const { t } = useT();
@@ -413,6 +429,60 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
   );
 }
 
+// 유산소 목표 입력(SRS-030) — 종목별 지표(시간·거리·경사·단계)만 노출. 세트/무게/휴식 대신.
+const CARDIO_FIELD_LABEL: Record<CardioMetric, TransKey> = {
+  duration: 'routines.cardioDurationLabel',
+  distance: 'routines.cardioDistanceLabel',
+  incline: 'routines.cardioInclineLabel',
+  level: 'routines.cardioLevelLabel',
+};
+
+function CardioTargetFields({ re, metrics }: { re: RoutineExercise; metrics: CardioMetric[] }) {
+  const { t } = useT();
+  const ct = re.cardioTarget ?? {};
+  const [mins, setMins] = useState(() => secToMinInput(ct.durationSec));
+  const [km, setKm] = useState(() => mToKmInput(ct.distanceM));
+  const [incline, setIncline] = useState(() => cardioNumInput(ct.incline));
+  const [level, setLevel] = useState(() => cardioNumInput(ct.level));
+
+  const persist = () => {
+    routineRepo
+      .updateRoutineExercise(re.id, {
+        cardioTarget: {
+          durationSec: minInputToSec(mins),
+          distanceM: kmInputToM(km),
+          incline: inputToIncline(incline),
+          level: inputToLevel(level),
+        },
+      })
+      .catch((e) => Alert.alert(t('common.error'), String(e)));
+  };
+  const valueOf = (m: CardioMetric) => (m === 'duration' ? mins : m === 'distance' ? km : m === 'incline' ? incline : level);
+  const setterOf = (m: CardioMetric) =>
+    m === 'duration' ? setMins : m === 'distance' ? setKm : m === 'incline' ? setIncline : setLevel;
+  return (
+    <View style={styles.cardioFields}>
+      {metrics.map((m) => (
+        <View key={m} style={styles.cardioField}>
+          <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
+            {t(CARDIO_FIELD_LABEL[m])}
+          </AppText>
+          <TextInput
+            value={valueOf(m)}
+            onChangeText={setterOf(m)}
+            onBlur={persist}
+            onSubmitEditing={persist}
+            keyboardType="numeric"
+            placeholder="0"
+            placeholderTextColor={colors.textFaint}
+            style={styles.cardioInput}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function ExerciseEditRow({
   re,
   index,
@@ -457,6 +527,9 @@ function ExerciseEditRow({
     arm: re.variantArm as ArmKey | null,
   }));
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
+  // v13: 유산소면 세트/무게/휴식 대신 유산소 목표(시간·거리·경사·단계) 입력. @plm SRS-030
+  const [isCardio, setIsCardio] = useState(false);
+  const [cardioMetrics, setCardioMetrics] = useState<CardioMetric[]>(['duration', 'distance']);
 
   // 모델 값이 외부에서 바뀌면(스왑/복제 등) 동기화.
   useEffect(() => setSets(re.targetSets), [re.targetSets]);
@@ -467,7 +540,15 @@ function ExerciseEditRow({
   );
   useEffect(() => {
     let alive = true;
-    exerciseRepo.getExercise(re.exerciseId).then((e) => alive && setBaseEquipment(e.equipment)).catch(() => {});
+    exerciseRepo
+      .getExercise(re.exerciseId)
+      .then((e) => {
+        if (!alive) return;
+        setBaseEquipment(e.equipment);
+        setIsCardio(e.kind === 'cardio');
+        setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn }));
+      })
+      .catch(() => {});
     return () => {
       alive = false;
     };
@@ -495,7 +576,7 @@ function ExerciseEditRow({
         <View style={styles.exTitle}>
           <ExerciseName exerciseId={re.exerciseId} variant="body" base />
           <AppText variant="caption" color="textMuted">
-            {t('routines.exerciseRowSummary', { index: index + 1, sets, rest })}
+            {isCardio ? t('routines.cardioRowLabel', { index: index + 1 }) : t('routines.exerciseRowSummary', { index: index + 1, sets, rest })}
           </AppText>
           <View style={styles.exVariant}>
             <VariantSelector
@@ -514,6 +595,10 @@ function ExerciseEditRow({
         {re.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
       </View>
 
+      {isCardio ? (
+        <CardioTargetFields re={re} metrics={cardioMetrics} />
+      ) : (
+      <>
       <View style={styles.fieldRow}>
         <View style={styles.field}>
           <AppText variant="label" color="textMuted" style={styles.fieldLabel}>
@@ -562,6 +647,8 @@ function ExerciseEditRow({
         </View>
         <View style={styles.field} />
       </View>
+      </>
+      )}
 
       <View style={styles.rowActions}>
         {/* 순서 변경 — 드래그는 웹에서 동작하지 않으므로 화살표가 신뢰 가능한 기본 경로. */}
@@ -625,5 +712,18 @@ const styles = StyleSheet.create({
   fieldRow: { flexDirection: 'row', gap: spacing.lg },
   field: { flex: 1 },
   fieldLabel: { marginBottom: spacing.xs },
+  cardioFields: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  cardioField: { flexGrow: 1, flexBasis: '30%', minWidth: 90 },
+  cardioInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    fontSize: fontSize.md,
+    textAlign: 'center',
+  },
   rowActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
 });
