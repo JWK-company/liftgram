@@ -28,8 +28,15 @@
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "요구 서술" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -51,8 +58,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "수용 기준" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
       },
       {
         "type": "bullet_list",
@@ -63,7 +77,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "운동탭에서 아직 오늘 완료 세션이 없고 진행중 세션도 없을 때만 '새 루틴' 위에 추천 카드가 나타난다(오늘 이미 운동했으면 숨김)." }
+                  {
+                    "type": "text",
+                    "text": "운동탭에서 아직 오늘 완료 세션이 없고 진행중 세션도 없을 때만 '새 루틴' 위에 추천 카드가 나타난다(오늘 이미 운동했으면 숨김)."
+                  }
                 ]
               }
             ]
@@ -74,7 +91,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "추천 부위 = 완료 이력의 대표부위 전이(직전 부위 다음에 가장 자주 수행한 부위)로 예측하고, 없으면 가장 오래 안 한 부위로 폴백한다." }
+                  {
+                    "type": "text",
+                    "text": "추천 부위 = 완료 이력의 대표부위 전이(직전 부위 다음에 가장 자주 수행한 부위)로 예측하고, 없으면 가장 오래 안 한 부위로 폴백한다."
+                  }
                 ]
               }
             ]
@@ -85,7 +105,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "추천 루틴 = 예측 부위의 가장 최근 수행 루틴(최신 버전). 현존 루틴만 추천하며(삭제된 루틴 제외), 그 부위가 프리스타일뿐이면 다음 후보 부위로 넘어간다." }
+                  {
+                    "type": "text",
+                    "text": "추천 루틴 = 예측 부위의 가장 최근 수행 루틴(최신 버전). 현존 루틴만 추천하며(삭제된 루틴 제외), 그 부위가 프리스타일뿐이면 다음 후보 부위로 넘어간다."
+                  }
                 ]
               }
             ]
@@ -96,7 +119,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "일회성으로 한 번만 수행한 부위가 예측을 지배하지 않는다(전이 빈도 기반이라 노이즈에 강건)." }
+                  {
+                    "type": "text",
+                    "text": "일회성으로 한 번만 수행한 부위가 예측을 지배하지 않는다(전이 빈도 기반이라 노이즈에 강건)."
+                  }
                 ]
               }
             ]
@@ -107,7 +133,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "기록 부족(고유 운동일 < 4 또는 첫~마지막 운동 간격 < 6일)이면 추천 대신 안내 문구를 비활성 카드로 표시한다." }
+                  {
+                    "type": "text",
+                    "text": "기록 부족(고유 운동일 < 4 또는 첫~마지막 운동 간격 < 6일)이면 추천 대신 안내 문구를 비활성 카드로 표시한다."
+                  }
                 ]
               }
             ]
@@ -118,7 +147,10 @@
               {
                 "type": "paragraph",
                 "content": [
-                  { "type": "text", "text": "추천 카드의 '시작'을 누르면 진행중 세션 가드(guardActive)를 거쳐 해당 루틴으로 세션을 시작한다." }
+                  {
+                    "type": "text",
+                    "text": "추천 카드의 '시작'을 누르면 진행중 세션 가드(guardActive)를 거쳐 해당 루틴으로 세션을 시작한다."
+                  }
                 ]
               }
             ]
@@ -127,8 +159,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "설계 반영" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 반영"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -141,8 +180,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -154,5 +200,9 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/data/analyticsRepository.ts:297",
+    "app/src/domain/routineRecommendation.ts:4"
+  ]
 }

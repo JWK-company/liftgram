@@ -47,14 +47,13 @@ const OVERPASS_ENDPOINTS = [
 
 function buildOverpassQuery(from: GeoPoint, radiusM: number): string {
   const a = `${radiusM},${from.lat},${from.lon}`;
+  // 상업 헬스장 태그만 조회. sport=fitness는 아파트·공원 운동공간까지 잡는 노이즈라 제외(SRS-035 개선).
   return (
     '[out:json][timeout:20];(' +
     `node["leisure"="fitness_centre"](around:${a});` +
     `way["leisure"="fitness_centre"](around:${a});` +
     `node["amenity"="gym"](around:${a});` +
     `way["amenity"="gym"](around:${a});` +
-    `node["sport"="fitness"](around:${a});` +
-    `way["sport"="fitness"](around:${a});` +
     ');out center tags 60;'
   );
 }
@@ -120,11 +119,13 @@ export async function searchNearbyGyms(from: GeoPoint, radiusM = 2000): Promise<
     if (typeof lat !== 'number' || typeof lon !== 'number') continue;
     const id = `${el.type}/${el.id}`;
     if (seen.has(id)) continue;
-    seen.add(id);
     const tags = el.tags ?? {};
+    const name = tags.name ?? tags['name:ko'] ?? tags['name:en'] ?? null;
+    if (!name) continue; // 상호 미입력 항목 제외 — '이름 미상'은 사용성 낮음(SRS-035 개선). 카카오 연동 시 해소(SRS-036).
+    seen.add(id);
     gyms.push({
       id,
-      name: tags.name ?? tags['name:ko'] ?? tags['name:en'] ?? null,
+      name,
       lat,
       lon,
       address: tagsToAddress(tags),

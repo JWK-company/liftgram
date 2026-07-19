@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-036",
+  "type": "SRS",
+  "title": "헬스장 데이터 제공자 고도화 — 카카오 로컬 연동(서버 프록시·상호/주소/전화/영업시간·국내 커버리지) [추후 과제]",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-19T00:00:00Z",
+  "updated": "2026-07-19T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gym-matching",
+    "data-quality",
+    "kakao-local",
+    "backend-proxy",
+    "backlog"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "주변 헬스장 데이터 제공자를 Overpass(OSM) MVP에서 카카오 로컬로 고도화한다. 서버 프록시로 REST 키를 은닉하고, 상호·도로명주소·전화·(가능 시)영업시간을 제공해 '이름 미상' 항목을 제거하며 국내 커버리지를 확보한다. 클라이언트의 제공자 추상화(searchNearbyGyms) 계약은 유지해 UI 변경을 최소화한다.",
+  "relations": {
+    "derives_from": [
+      "URS-011"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SRS-035(주변 헬스장 발견 소비자 MVP)는 키가 필요 없는 Overpass(OSM)로 즉시 출시했으나, OSM은 크라우드소싱이라 국내 커버리지가 성기고 상호(name) 미입력 지점이 많아 '이름 미상'으로 노출되는 한계가 있다(1차 개선으로 sport=fitness 노이즈 제외·무명 항목 필터 적용). 본 요구는 데이터 제공자를 카카오 로컬로 고도화해 국내 상업 헬스장의 상호·주소·전화·영업시간을 정확히 제공하고, '이름 미상' 문제를 근본 해소한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "카카오 REST 키는 서버(NestJS) 프록시에서 사용해 클라이언트에 노출하지 않는다(키 은닉·쿼터/캐싱 중앙화). 클라이언트는 기존 제공자 추상화(services/gymSearch.searchNearbyGyms) 계약을 유지하여 화면(NearbyGymsScreen) 변경을 최소화한다. 카카오 로컬 키워드 장소검색은 무료 쿼터 내 운용하며, 유료 API(구글 Places 등)는 채택하지 않는다(비용 회피)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "서버에 헬스장 검색 프록시 엔드포인트 추가(위치·반경 입력 → 카카오 로컬 키워드 '헬스장/피트니스' 검색). 카카오 REST 키는 서버 환경변수로만 보관, 클라이언트 미노출." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "결과에 상호·도로명주소·전화·(제공 시)영업시간·좌표를 포함해 '이름 미상' 항목이 사라진다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "클라이언트 searchNearbyGyms의 반환 타입(RankedGym) 계약 유지 — NearbyGymsScreen·domain(gyms) 변경 최소화(제공자 교체 수준)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "카카오 실패·쿼터초과 시 Overpass로 폴백하거나 친화 오류를 유지(가용성 저하 없음)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "유료 지도 API 미사용(비용 0 원칙). 카카오 무료 쿼터 초과 대비 서버 캐싱(위치 그리드·TTL) 적용." }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "설계 반영(예정)" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "서버: NestJS gyms 모듈 신설 — GET /gyms/nearby?lat&lon&radius → 카카오 로컬 REST 호출·정규화·캐싱. 키는 서버 .env(KAKAO_REST_KEY). 클라이언트: services/gymSearch의 provider를 'server'로 전환(우리 서버 프록시 호출), Overpass는 폴백 유지. domain/gyms(거리·정렬)와 UI는 그대로. 선행 필요: 사용자가 카카오 디벨로퍼스에서 무료 REST 키 발급."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-011. 전제: SRS-035(소비자 발견 MVP·제공자 추상화)를 데이터 품질 측면에서 고도화. 후속: SRS-021(헬스장 매칭 마켓플레이스·B2B 우선노출·광고)의 정확한 공급자 데이터 기반. 블로커: 카카오 REST 키 발급(사용자 액션)."
+          }
+        ]
+      }
+    ]
+  }
+}

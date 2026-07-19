@@ -195,11 +195,11 @@
     "app/src/data/workoutRepository.ts:368#isCardioExerciseId",
     "app/src/data/workoutRepository.ts:42",
     "app/src/data/workoutRepository.ts:43",
-    "app/src/data/workoutRepository.ts:597",
-    "app/src/data/workoutRepository.ts:598#addSet",
-    "app/src/data/workoutRepository.ts:612",
-    "app/src/data/workoutRepository.ts:743",
-    "app/src/data/workoutRepository.ts:744",
+    "app/src/data/workoutRepository.ts:598",
+    "app/src/data/workoutRepository.ts:599#addSet",
+    "app/src/data/workoutRepository.ts:613",
+    "app/src/data/workoutRepository.ts:772",
+    "app/src/data/workoutRepository.ts:773",
     "app/src/db/migrations.ts:132",
     "app/src/db/models/Exercise.ts:20",
     "app/src/db/models/SetLog.ts:22",
@@ -214,10 +214,10 @@
     "app/src/features/exercises/ExerciseListScreen.tsx:253#t",
     "app/src/features/exercises/ExerciseListScreen.tsx:33",
     "app/src/features/session/ExerciseBlock.tsx:127",
-    "app/src/features/session/ExerciseBlock.tsx:229",
-    "app/src/features/session/ExerciseBlock.tsx:299",
-    "app/src/features/session/ExerciseBlock.tsx:358",
-    "app/src/features/session/ExerciseBlock.tsx:627#SetRowCardio",
-    "app/src/features/session/ExerciseBlock.tsx:701#CardioSummary"
+    "app/src/features/session/ExerciseBlock.tsx:250",
+    "app/src/features/session/ExerciseBlock.tsx:320",
+    "app/src/features/session/ExerciseBlock.tsx:379",
+    "app/src/features/session/ExerciseBlock.tsx:678#SetRowCardio",
+    "app/src/features/session/ExerciseBlock.tsx:752#CardioSummary"
   ]
 }

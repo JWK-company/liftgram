@@ -265,7 +265,7 @@
   },
   "code_refs": [
     "app/src/data/workoutRepository.ts:41",
-    "app/src/data/workoutRepository.ts:742",
+    "app/src/data/workoutRepository.ts:771",
     "app/src/db/migrations.ts:122",
     "app/src/db/models/SetLog.ts:18",
     "app/src/db/schema.ts:146",

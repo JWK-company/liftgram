@@ -28,8 +28,15 @@
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "요구 서술" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -51,42 +58,116 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "수용 기준" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
       },
       {
         "type": "bullet_list",
         "content": [
           {
             "type": "list_item",
-            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "운동 탭에서 '주변 헬스장 찾기' 진입 → 현재 위치를 받아 반경 내 헬스장을 거리순으로 조회·표시한다." }] }]
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 탭에서 '주변 헬스장 찾기' 진입 → 현재 위치를 받아 반경 내 헬스장을 거리순으로 조회·표시한다."
+                  }
+                ]
+              }
+            ]
           },
           {
             "type": "list_item",
-            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "상단에 추천 1곳(가장 가까운 곳, 동거리 시 이름 있는 곳 우선)을 별도 카드로 강조한다 — 추후 스폰서/우선노출 슬롯으로 확장 가능한 구조." }] }]
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "상단에 추천 1곳(가장 가까운 곳, 동거리 시 이름 있는 곳 우선)을 별도 카드로 강조한다 — 추후 스폰서/우선노출 슬롯으로 확장 가능한 구조."
+                  }
+                ]
+              }
+            ]
           },
           {
             "type": "list_item",
-            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "각 헬스장에 이름·거리(±m/km)·주소(있으면)를 표시하고, '길찾기'로 외부 지도(좌표 기반 보편 URL)를 연다." }] }]
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "각 헬스장에 이름·거리(±m/km)·주소(있으면)를 표시하고, '길찾기'로 외부 지도(좌표 기반 보편 URL)를 연다."
+                  }
+                ]
+              }
+            ]
           },
           {
             "type": "list_item",
-            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "위치 미지원·권한거부·확인실패·시간초과·검색(네트워크)실패를 각각 구분된 친화 메시지 + 다시 시도로 안내한다." }] }]
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "위치 미지원·권한거부·확인실패·시간초과·검색(네트워크)실패를 각각 구분된 친화 메시지 + 다시 시도로 안내한다."
+                  }
+                ]
+              }
+            ]
           },
           {
             "type": "list_item",
-            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "결과가 없으면 안내 + 반경을 2→5→10km로 넓혀 재검색할 수 있다." }] }]
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "결과가 없으면 안내 + 반경을 2→5→10km로 넓혀 재검색할 수 있다."
+                  }
+                ]
+              }
+            ]
           },
           {
             "type": "list_item",
-            "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "POI 제공자 교체(Overpass→카카오/구글)가 서비스 함수 1개 수준의 변경으로 가능하도록 제공자를 추상화한다." }] }]
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "POI 제공자 교체(Overpass→카카오/구글)가 서비스 함수 1개 수준의 변경으로 가능하도록 제공자를 추상화한다."
+                  }
+                ]
+              }
+            ]
           }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "설계 반영" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 반영"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -99,8 +180,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -112,5 +200,10 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/domain/gyms.ts:2#GeoPoint",
+    "app/src/features/gyms/NearbyGymsScreen.tsx:1",
+    "app/src/services/gymSearch.ts:3"
+  ]
 }
