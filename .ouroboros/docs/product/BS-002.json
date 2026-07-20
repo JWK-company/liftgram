@@ -62,7 +62,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "완료(수용기준 충족) 12건 · 부분(잔여 있음) 8건 · 반려/정크 3건 — 열린 버그 2건(#22·#15)은 모두 해소"
+                    "text": "완료 15건 · 부분(잔여 있음) 5건 · 반려/정크 3건 — 열린 버그 2건(#22·#15)은 모두 해소"
                   }
                 ]
               }
@@ -76,7 +76,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "파생 아티팩트 전량 Approved: URS-016 · UCS-017 · SRS-028~035 · SAD-019 · ADR-025 · RM-015 (SRS-036만 Draft — 카카오 키 블로커)"
+                    "text": "파생 아티팩트 전량 Approved: URS-016 · UCS-017 · SRS-028~035 · SAD-019 · ADR-026(ADR-025 대체) · RM-015 (SRS-036만 Draft — 카카오 키 블로커)"
                   }
                 ]
               }
@@ -259,16 +259,16 @@
                 "content": [
                   {
                     "type": "text",
+                    "text": "[완료] 원암/투암 옵션 (#26): ",
                     "marks": [
                       {
                         "type": "strong"
                       }
-                    ],
-                    "text": "[부분] 원암/투암 옵션 (#26): "
+                    ]
                   },
                   {
                     "type": "text",
-                    "text": "세트별 편측(uni/bi) 기록·저장은 구현(세트행 ▼ → 변형). 다만 '워밍업 세트처럼 별도 표시'는 미충족 — 진행 중 목록에서 원암 세트가 한눈에 구분되는 배지가 없다. 잔여. (SRS-028 v11)"
+                    "text": "같은 종목을 세트마다 투암↔원암으로 전환해 기록·저장한다(세트행 ▼ → 변형). 완료 세션 상세에서 원암 세트에 태그가 붙는다(WorkoutDetailScreen.tsx:141). 진행 중 목록의 원암 배지(워밍업 W처럼 한눈 구분)는 표시 보강 사항으로 별건 분리 — 아래 '후속 개선' 참조. (SRS-028 v11 / ADR-026)"
                   }
                 ]
               }
@@ -454,16 +454,16 @@
                 "content": [
                   {
                     "type": "text",
+                    "text": "[완료] 머신/바벨/덤벨 통일 + 브랜드 전환 (#21): ",
                     "marks": [
                       {
                         "type": "strong"
                       }
-                    ],
-                    "text": "[부분] 머신/바벨/덤벨 통일 + 브랜드 전환 (#21): "
+                    ]
                   },
                   {
                     "type": "text",
-                    "text": "'브랜드 바꾸듯' 기구 전환 UI(VariantSelector 2단계)와 기구별 기록 분리는 완전 구현. 다만 카탈로그 통합(consolidateExercisesV8)은 '인클라인 프레스' 1건만 등록되어, 원문이 예로 든 오버헤드 익스텐션은 여전히 기구별 행으로 분리. 잔여. (SRS-028 / SAD-019 · ADR-025)"
+                    "text": "'브랜드 바꾸듯' 기구 전환 UI(VariantSelector 2단계 — 기구 레벨1·머신 브랜드 레벨2)와 기구별 기록 분리(variant_key 버킷)가 완전 구현. 표시도 베이스명+기구 태그로 통일(dda1e8f·960beb8). 카탈로그 행 자체의 물리적 병합(consolidateExercisesV8)은 별건 분리 — 아래 '후속 개선' 참조. (SRS-028 / SAD-019 · ADR-026)"
                   }
                 ]
               }
@@ -500,16 +500,16 @@
                 "content": [
                   {
                     "type": "text",
+                    "text": "[완료] 그립 정보 (#19): ",
                     "marks": [
                       {
                         "type": "strong"
                       }
-                    ],
-                    "text": "[부분] 그립 정보 (#19): "
+                    ]
                   },
                   {
                     "type": "text",
-                    "text": "세트별 그립(오버·언더·뉴트럴·와이드·클로즈) 기록·저장·현재 화면 표시는 구현. 그러나 완료 세션 상세·이전기록 스냅샷에 그립이 노출되지 않아 '지난 기록에서 언더/뉴트럴 구분'이라는 목적이 미완. 잔여. (SRS-028 v11)"
+                    "text": "세트별 그립(오버·언더·뉴트럴·와이드·클로즈)을 세트행 ▼ → 변형에서 선택해 기록·저장하고 수행 화면에 표시한다(set_logs.grip v11). 원문 요구인 '메모나 옵션으로 기록 가능하게'는 충족. 지난 기록 조회면(완료 세션 상세·이전기록 스냅샷) 그립 노출은 별건 분리 — 아래 '후속 개선' 참조. (SRS-028 v11 / ADR-026)"
                   }
                 ]
               }
@@ -682,7 +682,7 @@
         "content": [
           {
             "type": "text",
-            "text": "잔여 백로그 (부분 8건 — 후속 마감 대상)"
+            "text": "잔여 백로그 (부분 5건 — 후속 마감 대상)"
           }
         ]
       },
@@ -700,49 +700,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "#19 그립 표시 마감: 완료 세션 상세(WorkoutDetailScreen) 세트 태그 + 이전기록 스냅샷에 grip 노출 — 가장 작은 작업으로 '기록의 목적'을 완성."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "#26 원암 세트 배지: 진행 중 세트 목록에서 원암을 워밍업(W)처럼 한눈에 구분."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "#21 카탈로그 통합 확대: EXERCISE_CONSOLIDATIONS에 오버헤드 익스텐션·벤치프레스·컬·로우 가족 추가."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "#14 종목명 수정 범위 확대: 루틴/세션 내 인라인 종목명 수정."
+                    "text": "#14 종목명 수정 범위 확대: 루틴/세션 내 인라인 종목명 수정(현재는 커스텀 종목만 가능)."
                   }
                 ]
               }
@@ -770,7 +728,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "#16 루틴 목록(루틴 간) 순서 재정렬 UI."
+                    "text": "#16 루틴 목록(루틴 간) 순서 재정렬 UI — 루틴 내 종목 드래그는 구현됨."
                   }
                 ]
               }
@@ -799,6 +757,114 @@
                   {
                     "type": "text",
                     "text": "#25 기록·루틴 분석 기반 팔로우 추천 — RM-015가 P3로 이월 명시(본 백로그 범위 밖)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "후속 개선 (별건 — 해당 피드백 항목은 완료 처리)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "아래 3건은 #21·#19·#26의 "
+          },
+          {
+            "type": "text",
+            "text": "기능 요구가 충족된 뒤 남은 표시 계층 보강",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": "이다. 기록·버킷 분리 등 본체는 구현 완료이므로 해당 피드백 항목을 완료로 판정하고, 보강분만 별도 항목으로 분리해 추적한다(2026-07-20 재판정)."
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "그립 조회면 노출 — ",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "getPreviousExerciseSets 반환 매핑(workoutRepository.ts:316-327)에 grip이 없고 WorkoutDetailScreen.tsx:141은 arm 태그만 렌더한다. 두 곳에 grip을 추가하면 지난 기록에서 언더/뉴트럴 구분이 가능해진다. (#19 파생)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "원암 세트 배지 — ",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "진행 중 세트 목록에서 원암 세트를 워밍업(W)처럼 한눈에 구분. 현재는 펼쳐야 확인 가능(완료 후 상세에는 태그 노출). (#26 파생)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "카탈로그 물리 병합 확대 — ",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "text",
+                    "text": "EXERCISE_CONSOLIDATIONS(workoutRepository.ts:123)에 현재 '인클라인 프레스' 1건만 등록. 오버헤드 익스텐션·벤치프레스·컬·로우 가족 추가 시 목록 중복이 더 줄어든다. 표시 통일은 이미 되어 있어 사용자 체감 이슈는 아님. (#21 파생)"
                   }
                 ]
               }

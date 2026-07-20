@@ -4,39 +4,55 @@
 
 | 상태 | 시작 |
 |------|------|
-| BS-002 감사 + 드리프트 해소 + 버그 수정 완료 | 2026-07-20 |
+| **paused — autorun 1/6 완료, 진행 방식 사용자 결정 대기** | 2026-07-20 |
 
-## 활성 기획
+## 활성 작업
 
-| 이름 | 단계 | 비고 |
-|------|------|------|
-| BS-002 계열 상태 정리 | 완료 | BS-002 Draft→Approved · 본문 실측 갱신 |
-| v11/v12 문서-코드 드리프트 해소 | 완료 | ADR-026 발급(Approved)·ADR-025→Replaced · 본문 개정 5건 |
-| 실버그 2건 수정 | 완료 | 유산소 PR 오탐 · 1RM 유효무게 (83/83 pass, tsc clean) |
+| 이름 | 등급 | phase | 비고 |
+|------|------|-------|------|
+| SRS-037 착용장비 도메인 모듈 | Task | **완료** | spec rev3 · qa spec×2 · qa code×2 |
+| SRS-038~042 | Feature×5 | 미착수 | 진행 방식 답변 후 재개 |
+
+- spec: `.ouroboros/docs/spec/20260720_gear-domain_spec.md` (rev3)
+- autorun 재개: `/code:autorun --from SRS-038`
 
 ## 작업 범위 (이번 세션 변경분 — 미커밋)
 
-- 아티팩트: `product/BS-002.json` · `decisions/ADR-026.json`(신규) · `decisions/ADR-025.json` · `requirements/{URS-016,UCS-017,SRS-029}.json` · `design/SAD-019.json` · `roadmap/RM-015.json`
-- 코드: `app/src/data/workoutRepository.ts` · `app/src/data/analyticsRepository.ts` · `app/src/domain/oneRepMax.ts` · `app/src/domain/__tests__/domain.test.ts`
-- 문서: `docs/qa/20260720_bs002-implementation-audit_qa.md`
+**코드 (SRS-037)**
+- `app/src/domain/gear.ts` (신규) · `app/src/domain/__tests__/gear.test.ts` (신규 · T1~T20)
+- `app/src/domain/index.ts` (배럴 1줄) · `app/src/i18n/locales/{ko,en}.ts` (`gear.cat.*` 8키 쌍)
+
+**아티팩트 (신규 10)**
+- `decisions/ADR-027.json` · `requirements/URS-017.json` · `requirements/SRS-037~042.json`
+- `roadmap/RM-016.json` · `design/SAD-020.json` · `product/BS-003.json`(PLM→로컬 회수)
+
+**아티팩트 (개정 3)** — `requirements/SRS-026.json` · `design/SAD-018.json` · `roadmap/RM-013.json` → Phase 1+/P3 축소
+
+**문서** — `docs/research/20260720_coupang-partners-policy_research.md` · `docs/spec/20260720_gear-domain_spec.md`
 
 ## 현재 위치
 
-- **마지막 완료**: 드리프트 해소 + 버그 수정 전량. PLM 동기 완료(10건 upsert·관계 +2), `/gates` orphan 0, PLM 상태 검증 완료.
-- **종목 변형 계열 상태 확인 완료**: SRS-028·URS-016·UCS-017·SAD-019·RM-015·ADR-026 전부 Approved(ADR-025는 Replaced). 추가 전이 대상 없음. 변형 관련 **Code 아티팩트 21건은 Draft**이나 이는 `plm_codescan.py:247`이 status를 항상 Draft로 하드코딩하기 때문 — 구현 완료 표식은 `build_state=as_built`이며, 수동 전이해도 다음 codescan에서 되돌아간다(전체 Code 470건 전부 Draft).
-- **다음 작업(사용자 결정 대기)**:
-  1. UCS-017 제목 정정 여부 (대시보드 표시명 변경이라 승인 필요)
-  2. dead column 4종 + 죽은 스타일/i18n 키 정리 (ADR-026이 별도 결정으로 유보)
-  3. BS-002 잔여 백로그 8건 — 변형 계열은 #19 그립 표시·#26 원암 배지·#21 카탈로그 통합 확대
+- **마지막 완료**: SRS-037 전체 체인. `typecheck` 0 error · `npm test` **103 pass / 0 fail**(기준선 83 → +20) · T1~T20 20그룹 · 변이 테스트로 카테고리 결속 검증
+- **PLM**: 신규 10건 등재, 관계 39건, **게이트 orphan 0**(G1·G2·G3 pass)
+- **다음**: 사용자가 ⓐ강도↓ / ⓑ현행 / ⓒ중단 / ⓓ선별 중 택일 → SRS-038부터 재개
+- **미커밋**: 직전 세션 버그픽스 4파일(analyticsRepository·workoutRepository·oneRepMax·domain.test)도 함께 미커밋 상태
 
-## 게이트 (요구→설계)
+## 확정 계약 (ADR-027 · SAD-020 · rev3 spec 일치)
 
-| 게이트 | 상태 |
-|--------|------|
-| G1 요구 (모든 SRS가 URS에 연결) | pass (PLM /gates orphan 0) |
-| G2 설계 (모든 SAD가 SRS에 연결) | pass |
-| G3 구현 (모든 Code가 SRS/SAD에 연결) | pass |
+- 서버(SRS-039)가 `{ enabled, links }` 제공. `links`=사전 생성 딥링크(`link.coupang.com/a/…`)를 **문자 그대로** 사용, 가공 금지(운영정책 4.1 링크 조작 = A등급)
+- `resolveGearLink(c, cfg, ctx)`가 **URL 획득 유일 경로** — 고지 렌더 사실을 인자로 요구. 검색어 사전·URL 조립기·호스트 판정은 전부 모듈 내부
+- **정리 A**: `kind:'deeplink'` ⟺ 고지 필요 && 고지 렌더됨 / **정리 B**: `enabled!==true` → links 전면 무시, 추적 0개 검색 URL
+- 고지 트리거 = `enabled===true` **또는** 허용 호스트 딥링크 존재. 라벨은 게시물 **첫 부분**(작성자명 아래), 끝부분 표기 폐지(2024-12-01)
+- 수익 크레딧 환원 **영구 배제**(약관 제7조·운영정책 2.2) · 사진 위 오버레이 태그 금지 · 카테고리 8종만
 
 ## 차단 요소
 
-- SRS-036: 카카오 REST 키 발급(사용자 액션) — 미해소, Draft 유지
+- **진행 방식 사용자 결정 대기** (autorun `status: paused`)
+- 쿠팡 파트너스 가입·매체 등록(앱스토어 출시 후)·최종승인 = 사람이 외부 처리. Phase 0 진행은 막지 않음
+- SRS-036: 카카오 REST 키 발급 — 미해소(별건)
+- 직전 세션 미결: UCS-017 제목 정정 · dead column 정리 · BS-002 잔여 백로그 **5건**(변형 3건 #21·#19·#26은 2026-07-20 완료 재판정, 표시 보강분만 BS-002 '후속 개선(별건)' 절로 이관)
+
+## 알려진 함정 (이번 세션 확인)
+
+- **워크플로우 서브에이전트의 Write에는 plm-sync hook이 발동하지 않는다** → 아티팩트 생성 후 `sync_bulk.py import --project liftgram` 수동 실행 필요(`.ouroboros/env/.env` 로드 선행)
+- 소스에 제어문자를 리터럴로 넣지 말 것 — 정규식 문자클래스는 `\uXXXX` 이스케이프로
