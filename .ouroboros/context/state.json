@@ -1,13 +1,13 @@
 {
-  "active_skill": "autorun",
-  "skill_step": 1,
+  "active_skill": null,
+  "skill_step": null,
   "active_artifact": "SRS-040",
   "gates": {
     "G1": "pass",
     "G2": "pass",
     "G3": "pass"
   },
-  "last_gate_check": "2026-07-20T11:31:06Z",
+  "last_gate_check": "2026-07-20T12:49:22Z",
   "last_sync": "2026-07-20T00:00:00Z",
   "last_updated": "2026-07-20T00:00:00Z",
   "tasks": {
@@ -24,8 +24,9 @@
     "srs-038-composer": "done",
     "srs-039-gear-server": "done",
     "srs-040-feed-display": "done",
-    "srs-041-042-my-gear": "pending",
-    "deploy-gear-server": "pending-user-approval"
+    "srs-041-042-my-gear": "done",
+    "deploy-gear-server": "done",
+    "deploy-web": "done"
   },
   "grade": "Task",
   "phase": null,
@@ -40,9 +41,10 @@
       "SRS-041",
       "SRS-042"
     ],
-    "idx": 4,
-    "step": "done:SRS-038,039,040",
-    "status": "running",
+    "idx": 6,
+    "step": "done",
+    "status": "done",
     "held_at": null
-  }
+  },
+  "release_tag": "1dcf545 / netlify 6a5e0b4b4cc74b2839cdb429"
 }

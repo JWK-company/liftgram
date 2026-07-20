@@ -213,6 +213,8 @@ export const ko = {
   "feed.importRoutineNone": "가져올 종목이 없어요",
   "feed.importRoutineOpen": "루틴 열기",
   "gear.addTags": "착용장비 추가",
+  "gear.brandPlaceholder": "예: SBD",
+  "gear.brandSection": "브랜드 (선택)",
   "gear.cat.armSleeve": "암슬리브",
   "gear.cat.belt": "리프팅벨트",
   "gear.cat.chalk": "초크",

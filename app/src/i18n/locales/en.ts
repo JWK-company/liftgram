@@ -215,6 +215,8 @@ export const en: Record<TransKey, string> = {
   "feed.importRoutineNone": "No exercises to import",
   "feed.importRoutineOpen": "Open routine",
   "gear.addTags": "Add worn gear",
+  "gear.brandPlaceholder": "e.g. SBD",
+  "gear.brandSection": "Brand (optional)",
   "gear.cat.armSleeve": "Arm sleeves",
   "gear.cat.belt": "Lifting belt",
   "gear.cat.chalk": "Chalk",

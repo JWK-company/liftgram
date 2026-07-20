@@ -9,6 +9,7 @@ import {
   GEAR_CATEGORIES,
   MAX_GEAR_TAGS,
   MAX_GEAR_NOTE_LEN,
+  MAX_GEAR_BRAND_LEN,
   MAX_GEAR_INPUT_SCAN,
   AFFILIATE_DISCLOSURE_KO,
   isGearCategory,
@@ -140,13 +141,20 @@ test('T7 화이트리스트: Belt·__proto__·toString·미지 문자열 폐기'
 });
 
 // ── T8 출력 형태 ─────────────────────────────────────────────────
-test('T8 출력 형태: 새 리터럴 · 그 외 키 전량 폐기 · 프로토타입 정상', () => {
+test('T8 출력 형태: 새 리터럴 · 화이트리스트 밖 키 폐기 · 프로토타입 정상', () => {
+  // ADR-027 D5 개정(2026-07-20): brand·brandSource 는 이제 화이트리스트 '안'이다.
+  // 개정 전 이 테스트는 brand 폐기를 정답으로 고정하고 있었다 — 실측(브랜드 오단정 0건)으로 근거가 반박돼 뒤집는다.
   const r = normalizeGearTags([
-    { category: 'belt', source: 'user', extra: 1, brand: 'X', url: 'https://x' },
+    { category: 'belt', source: 'user', extra: 1, brand: 'SBD', url: 'https://x' },
   ]);
   assert.equal(r.length, 1);
-  assert.deepEqual(Object.keys(r[0]), ['category', 'source']);
+  assert.deepEqual(Object.keys(r[0]), ['category', 'source', 'brand', 'brandSource']);
+  assert.equal(r[0].brand, 'SBD');
+  assert.equal(r[0].brandSource, 'user', 'brandSource 부재 시 user로 수렴');
   assert.equal(Object.getPrototypeOf(r[0]), Object.prototype);
+  // 화이트리스트 밖 키(extra·url)는 여전히 폐기된다
+  assert.equal((r[0] as Record<string, unknown>).extra, undefined);
+  assert.equal((r[0] as Record<string, unknown>).url, undefined);
   // JSON 데이터 키로 실린 __proto__ 가 결과에 흘러들지 않는다
   const polluted = JSON.parse('[{"category":"belt","source":"user","__proto__":{"bad":1}}]');
   const p = normalizeGearTags(polluted);
@@ -548,6 +556,82 @@ test('T19 MAX_GEAR_INPUT_SCAN: 스캔 절단이 병합보다 먼저 · 경계값
   const rb = normalizeGearTags(big);
   assert.ok(rb.length <= MAX_GEAR_TAGS);
   assert.deepEqual(normalizeGearTags(rb), rb);
+});
+
+// ── T21 브랜드 (ADR-027 D5 개정판) ───────────────────────────────
+test('T21 브랜드: 불변식 · 검색어 반영 · 미지정 시 회귀 없음', () => {
+  // (1) 회귀 없음 — brand 미지정이면 URL이 개정 전과 문자 단위로 동일하다
+  for (const c of GEAR_CATEGORIES) {
+    const plain = resolveGearLink(c, undefined, hidden);
+    const asTag = resolveGearLink({ category: c, source: 'user' }, undefined, hidden);
+    assert.equal(plain.ok && plain.url, asTag.ok && asTag.url, `카테고리/태그 호출 동일: ${c}`);
+  }
+
+  // (2) brand 가 있으면 q 값에 반영된다 — 쿼리 키는 여전히 q 하나뿐(정리 B 불변)
+  const r = resolveGearLink({ category: 'belt', source: 'user', brand: 'SBD', brandSource: 'user' }, undefined, hidden);
+  assert.equal(r.ok && r.kind, 'search');
+  const u = new URL(r.ok ? r.url : '');
+  assert.deepEqual([...u.searchParams.keys()], ['q'], '추적 파라미터 0개 유지');
+  assert.equal(u.searchParams.get('q'), 'SBD 리프팅 벨트', '브랜드 + 카테고리어');
+  assert.notEqual(u.searchParams.get('q'), 'SBD', '카테고리어를 지우지 않는다(관련성 조항)');
+
+  // (3) 딥링크는 brand 유무와 무관하게 무가공 통과 — 링크 조작 금지(운영정책 4.1)
+  const cfgOn = cfg({ enabled: true, links: { belt: DEEP } });
+  const d1 = resolveGearLink({ category: 'belt', source: 'user' }, cfgOn, shown);
+  const d2 = resolveGearLink({ category: 'belt', source: 'user', brand: 'SBD', brandSource: 'user' }, cfgOn, shown);
+  assert.equal(d1.ok && d1.url, DEEP);
+  assert.equal(d2.ok && d2.url, DEEP, '브랜드가 있어도 딥링크는 문자 단위 그대로');
+
+  // (4) 고지 게이트는 brand 와 무관하게 그대로 — 라벨 없으면 브랜드가 있어도 차단
+  assert.deepEqual(
+    resolveGearLink({ category: 'belt', source: 'user', brand: 'SBD', brandSource: 'user' }, cfgOn, hidden),
+    { ok: false, blocked: 'disclosure-missing' },
+  );
+
+  // (5) brand ⟺ brandSource 동시 존재 불변식
+  const onlySource = normalizeGearTags([{ category: 'belt', source: 'user', brandSource: 'auto' }]);
+  assert.deepEqual(Object.keys(onlySource[0]), ['category', 'source'], 'brand 없는 brandSource 는 제거');
+  const onlyBrand = normalizeGearTags([{ category: 'belt', source: 'user', brand: 'SBD' }]);
+  assert.equal(onlyBrand[0].brandSource, 'user', 'brandSource 없으면 user로 수렴');
+
+  // (6) brandSource 는 source 와 별개 축이다 — 태그는 user 인데 브랜드만 auto 일 수 있다
+  const mixed = normalizeGearTags([
+    { category: 'belt', source: 'user', brand: 'SBD', brandSource: 'auto' },
+  ]);
+  assert.equal(mixed[0].source, 'user');
+  assert.equal(mixed[0].brandSource, 'auto', '확인을 거쳐도 auto 원천 표시는 지워지지 않는다');
+
+  // (7) brand 정제 — note 와 같은 규칙, 상한만 다름
+  const long = normalizeGearTags([{ category: 'belt', source: 'user', brand: 'A'.repeat(60) }]);
+  assert.equal([...(long[0].brand as string)].length, MAX_GEAR_BRAND_LEN);
+  for (const bad of [42, null, {}, [], '   ', '\u0000\u0000']) {
+    const t = normalizeGearTags([{ category: 'belt', source: 'user', brand: bad }]);
+    assert.deepEqual(Object.keys(t[0]), ['category', 'source'], `무효 brand 제거: ${String(bad)}`);
+  }
+  assert.equal(
+    normalizeGearTags([{ category: 'belt', source: 'user', brand: ' S\u0000B D ' }])[0].brand,
+    'S B D', '제어문자 → 공백 · 공백 접기 · trim',
+  );
+
+  // (8) 병합 시 brand 는 brandSource 와 쌍으로 승계된다
+  const merged = normalizeGearTags([
+    { category: 'belt', source: 'user' },
+    { category: 'belt', source: 'auto', brand: 'SBD', brandSource: 'auto' },
+  ]);
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].source, 'user', 'user 태그가 이긴다(D7)');
+  assert.equal(merged[0].brand, 'SBD', '진 쪽의 brand 를 승계');
+  assert.equal(merged[0].brandSource, 'auto', 'brandSource 도 쌍으로 승계 — 값만 오고 출처가 갈리면 안 된다');
+
+  // (9) 멱등
+  const sample = [{ category: 'belt', source: 'user', brand: '  SBD  ', brandSource: 'auto' }];
+  assert.deepEqual(normalizeGearTags(normalizeGearTags(sample)), normalizeGearTags(sample));
+
+  // (10) 미지 카테고리 태그도 차단된다(태그 경로에서도 1단계가 먼저)
+  assert.deepEqual(
+    resolveGearLink({ category: 'dumbbell', source: 'user', brand: 'X' } as never, undefined, shown),
+    { ok: false, blocked: 'unknown-category' },
+  );
 });
 
 // ── T20 배럴 스모크 ──────────────────────────────────────────────

@@ -3,11 +3,18 @@
 import React, { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, AppText, Card, EmptyState } from '../../components';
+import { Screen, AppText, Card, EmptyState, TextField } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { userRepo } from '../../data';
 import { useUser } from '../../state/userContext';
-import { GEAR_CATEGORIES, gearLabelKey, normalizeGearTags, type GearCategory, type GearTag } from '../../domain';
+import {
+  GEAR_CATEGORIES,
+  MAX_GEAR_BRAND_LEN,
+  gearLabelKey,
+  normalizeGearTags,
+  type GearCategory,
+  type GearTag,
+} from '../../domain';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
@@ -33,6 +40,10 @@ export default function MyGearScreen(_props: RootStackScreenProps<'MyGear'>) {
 
   const owned = new Set(myGear.map((g) => g.category));
 
+  function setBrand(c: GearCategory, brand: string) {
+    void save(myGear.map((g) => (g.category === c ? { ...g, brand, brandSource: 'user' as const } : g)));
+  }
+
   function toggle(c: GearCategory) {
     void save(
       owned.has(c) ? myGear.filter((g) => g.category !== c) : [...myGear, { category: c, source: 'user' as const }],
@@ -53,16 +64,25 @@ export default function MyGearScreen(_props: RootStackScreenProps<'MyGear'>) {
             <AppText variant="label" color="textFaint" style={{ marginBottom: spacing.sm }}>
               {t('gear.myGearSaved', { count: myGear.length })}
             </AppText>
-            <View style={styles.chips}>
-              {myGear.map((g) => (
-                <Pressable key={g.category} style={styles.chip} onPress={() => toggle(g.category)} hitSlop={4}>
-                  <AppText variant="caption" color="text">
-                    {t(gearLabelKey(g.category))}
-                  </AppText>
-                  <Ionicons name="close" size={13} color={colors.textMuted} style={{ marginLeft: 4 }} />
+            {/* 브랜드는 선택 입력 — 저장해두면 작성 시 재사용에서 함께 딸려 간다(SRS-042).
+                비우면 카테고리 폴백으로 돌아간다(ADR-027 D5 개정판). */}
+            {myGear.map((g) => (
+              <View key={g.category} style={styles.savedRow}>
+                <Pressable onPress={() => toggle(g.category)} hitSlop={6} style={styles.savedRemove}>
+                  <Ionicons name="close-circle" size={18} color={colors.textFaint} />
                 </Pressable>
-              ))}
-            </View>
+                <AppText variant="caption" color="text" style={styles.savedLabel} numberOfLines={1}>
+                  {t(gearLabelKey(g.category))}
+                </AppText>
+                <TextField
+                  value={g.brand ?? ''}
+                  onChangeText={(txt) => setBrand(g.category, txt)}
+                  placeholder={t('gear.brandPlaceholder')}
+                  maxLength={MAX_GEAR_BRAND_LEN}
+                  containerStyle={styles.savedInput}
+                />
+              </View>
+            ))}
           </Card>
         )}
 
@@ -107,6 +127,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: spacing.sm,
   },
+  savedRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  savedRemove: { paddingRight: spacing.xs },
+  savedLabel: { width: 72 },
+  savedInput: { flex: 1, marginBottom: 0 },
   grid: { gap: spacing.xs },
   option: {
     flexDirection: 'row',

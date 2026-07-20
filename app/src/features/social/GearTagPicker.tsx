@@ -1,14 +1,22 @@
 // @plm SRS-038  게시물 작성 시 착용장비 카테고리 수동 태그 — 선택기(모달 바텀시트) + 선택 칩 미리보기.
 // 새 라우트를 만들지 않고 파일 로컬 Modal 로 띄운다(ReportSheet·OwnPostMenu 가 확립한 패턴).
-// 브랜드·모델은 입력받지 않는다 — 카테고리 8종만(ADR-027 D5).
+// 카테고리 8종 + 브랜드 직접 입력(선택). 브랜드를 비우면 카테고리 검색으로 폴백한다(ADR-027 D5 개정판).
+// Phase 0 은 사용자 직접 입력만 — 자동 감지 제안은 재측정 통과 후 Phase 1 대상이다.
 import React, { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText } from '../../components';
+import { AppText, TextField } from '../../components';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { useUser } from '../../state/userContext';
-import { GEAR_CATEGORIES, gearLabelKey, normalizeGearTags, type GearCategory, type GearTag } from '../../domain';
+import {
+  GEAR_CATEGORIES,
+  MAX_GEAR_BRAND_LEN,
+  gearLabelKey,
+  normalizeGearTags,
+  type GearCategory,
+  type GearTag,
+} from '../../domain';
 
 export function GearTagPicker({
   value,
@@ -38,6 +46,15 @@ export function GearTagPicker({
     onChange(normalizeGearTags(next));
   }
 
+  // 브랜드 입력 — 빈 문자열이면 정규화가 brand·brandSource 를 함께 제거해 카테고리 폴백으로 돌아간다.
+  function setBrand(c: GearCategory, brand: string) {
+    onChange(
+      normalizeGearTags(
+        value.map((g) => (g.category === c ? { ...g, brand, brandSource: 'user' as const } : g)),
+      ),
+    );
+  }
+
   function remove(c: GearCategory) {
     onChange(normalizeGearTags(value.filter((g) => g.category !== c)));
   }
@@ -49,7 +66,7 @@ export function GearTagPicker({
           {value.map((g) => (
             <Pressable key={g.category} style={styles.chip} onPress={() => remove(g.category)} hitSlop={4}>
               <AppText variant="caption" color="text">
-                {t(gearLabelKey(g.category))}
+                {g.brand ? `${g.brand} ${t(gearLabelKey(g.category))}` : t(gearLabelKey(g.category))}
               </AppText>
               <Ionicons name="close" size={13} color={colors.textMuted} style={{ marginLeft: 4 }} />
             </Pressable>
@@ -95,6 +112,30 @@ export function GearTagPicker({
                 </View>
               </View>
             ) : null)}
+
+            {value.length > 0 ? (
+              <View style={styles.brands}>
+                <AppText variant="label" color="textFaint" style={{ marginBottom: spacing.xs }}>
+                  {t('gear.brandSection')}
+                </AppText>
+                {/* 브랜드는 선택 입력이다 — 비우면 카테고리 검색으로 폴백한다(회귀 없음, ADR-027 D5 개정판).
+                    Phase 0 은 사용자 직접 입력만이며 brandSource 는 항상 'user' 다. */}
+                {value.map((g) => (
+                  <View key={g.category} style={styles.brandRow}>
+                    <AppText variant="caption" color="textMuted" style={styles.brandLabel} numberOfLines={1}>
+                      {t(gearLabelKey(g.category))}
+                    </AppText>
+                    <TextField
+                      value={g.brand ?? ''}
+                      onChangeText={(txt) => setBrand(g.category, txt)}
+                      placeholder={t('gear.brandPlaceholder')}
+                      maxLength={MAX_GEAR_BRAND_LEN}
+                      containerStyle={styles.brandInput}
+                    />
+                  </View>
+                ))}
+              </View>
+            ) : null}
 
             <ScrollView style={styles.list}>
               <View style={styles.grid}>
@@ -167,6 +208,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: spacing.sm,
   },
+  brands: { marginBottom: spacing.md },
+  brandRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs },
+  brandLabel: { width: 78 },
+  brandInput: { flex: 1, marginBottom: 0 },
   list: { flexGrow: 0 },
   grid: { gap: spacing.xs },
   option: {

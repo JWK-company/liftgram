@@ -65,7 +65,8 @@ export function GearChips({
   if (tags.length === 0) return null;
 
   function open(tag: GearTag) {
-    const r = resolveGearLink(tag.category, cfg, { disclosureRendered });
+    // 태그를 통째로 넘긴다 — 확인된 brand 가 검색어에 반영된다(ADR-027 D5 개정판).
+    const r = resolveGearLink(tag, cfg, { disclosureRendered });
     // 고지가 필요한데 렌더되지 않았거나 미지 카테고리면 URL 자체가 없다 — 아무것도 열지 않는다.
     if (!r.ok) return;
     // 링크를 **먼저** 연다. 집계를 await 하면 웹(react-native-web)에서 사용자 제스처 컨텍스트가 끊겨
@@ -93,7 +94,7 @@ export function GearChips({
           {tags.map((tag) => (
             <Pressable key={tag.category} style={styles.chip} onPress={() => open(tag)} hitSlop={4}>
               <AppText variant="caption" color="primary">
-                {t(gearLabelKey(tag.category))}
+                {tag.brand ? `${tag.brand} ${t(gearLabelKey(tag.category))}` : t(gearLabelKey(tag.category))}
               </AppText>
               <Ionicons name="open-outline" size={12} color={colors.primary} style={{ marginLeft: 4 }} />
             </Pressable>

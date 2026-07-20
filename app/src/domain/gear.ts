@@ -12,8 +12,7 @@
 // Node의 WHATWG URL과 의미가 다르다(throw 여부·소문자 정규화 여부). 안전이 걸린 판정을 엔진 차이가
 // 있는 API로 구현하면 Node 테스트가 초록인데 기기에서 다르게 동작한다. URL 조립·호스트 판정 모두 문자열 연산으로만 한다.
 
-// 착용장비 카테고리 8종(ADR-027 D5). 브랜드·모델은 표현하지 않는다 —
-// 로고 오인식 분쟁을 피하고, 쿠팡 오픈 API 키가 없는 Phase 0에서 모델 단위 상품 데이터를 확보할 수도 없다.
+// 착용장비 카테고리 8종. 브랜드가 없을 때의 폴백이자 자동 감지의 1차 분류축이다(ADR-027 D5 개정판).
 // domain/types.ts 의 EquipmentType(barbell/dumbbell/machine…)은 '운동 기구'로 이미 점유된 개념이라 섞지 않는다.
 export const GEAR_CATEGORIES = Object.freeze([
   'wristWrap', 'strap', 'belt', 'kneeSleeve', 'gloves', 'shoes', 'chalk', 'armSleeve',
@@ -28,14 +27,27 @@ export type GearSource = 'user' | 'auto';
 export interface GearTag {
   readonly category: GearCategory;
   readonly source: GearSource;
+  // 브랜드·모델 문자열(ADR-027 D5 개정판 — 조건부 허용).
+  //
+  // **저장돼 있다는 것 자체가 사용자 확인을 통과했다는 뜻이다.** 별도 confirmed 플래그를 두지 않는 이유가 이것이다 —
+  // 미확인 자동 제안은 게시 전 확인 UI 안에만 존재하고 저장 경로 자체가 없으므로,
+  // "미확인 브랜드가 게시·표시되는" 유일한 금지선이 데이터 모델 수준에서 구조적으로 막힌다.
+  readonly brand?: string;
+  // 그 brand 문자열의 원천. 'auto' = 비전 모델이 제안하고 **사용자가 확인한** 것(확인을 거쳐도 원천은 지우지 않는다).
+  //
+  // 위 source 와는 **별개 축**이다 — source 는 태그(카테고리) 자체의 원천이고 brandSource 는 브랜드 문자열의 원천이다.
+  // 둘을 합치면(확인된 브랜드를 담으려고 태그 전체를 source:'auto' 로 바꾸는 식) D7 기반 성과 분리 측정이 오염된다.
+  readonly brandSource?: GearSource;
   // Phase 0 비입력·비렌더 — 외부(조작된 클라이언트·손상 데이터)에서 들어온 값을 보존·정제만 한다.
-  // 렌더하면 30자 안에 브랜드명이 들어가 ADR-027 D5가 막으려던 표면이 그대로 복원된다.
+  // 브랜드는 note 가 아니라 위 brand 필드로 구조화해 담는다(자유 텍스트 대신 별도 축).
   readonly note?: string;
 }
 
-// 타입 주석 없이 선언 — 리터럴 타입(8 / 30 / 200)을 보존한다.
+// 타입 주석 없이 선언 — 리터럴 타입(8 / 30 / 40 / 200)을 보존한다.
 export const MAX_GEAR_TAGS = GEAR_CATEGORIES.length;
 export const MAX_GEAR_NOTE_LEN = 30;
+// 브랜드 문자열 상한. note 와 별개 상수다 — 용도가 다르고(검색어에 실림) 상한 조정 시점도 다르다.
+export const MAX_GEAR_BRAND_LEN = 40;
 // 손상·조작된 data.gear[] 가 수만 개일 때 피드 카드마다 전량 순회하는 비용 차단.
 export const MAX_GEAR_INPUT_SCAN = 200;
 
@@ -58,7 +70,8 @@ export interface GearAffiliateConfig {
   enabled: boolean;
   // 카테고리 → 파트너스 공식 링크 생성기/Deeplink API로 사전 생성된 딥링크(link.coupang.com/a/…).
   // 반드시 "검색 결과 URL을 원본으로 생성한" 딥링크만 주입한다 — 상품 상세(/vp/products/…) 딥링크는
-  // ADR-027 D5(브랜드·모델 미특정)를 링크 계층에서 무력화한다. 단축 URL이라 목적지를 코드로 구분할 방법이
+  // 운영자가 특정 SKU를 확정하는 것이어서 ADR-027 D5 개정판이 허용하는 3경로(사용자 직접 입력 /
+  // 사용자가 확인한 자동 제안 / 카테고리 폴백) 어디에도 속하지 않는다. 단축 URL이라 목적지를 코드로 구분할 방법이
   // 원리적으로 없어 사람의 절차가 유일한 방어선이다(spec §links 정책).
   links?: Partial<Record<GearCategory, string>>;
 }
@@ -101,14 +114,19 @@ export function gearLabelKey<C extends GearCategory>(c: C): `gear.cat.${C}` {
 // 검색어 조회 — 사전 직접 참조를 이 함수 하나로 모은다. export 하지 않는다(§고지 게이트 — URL 조각 비공개).
 // 공개되면 `openURL('https://www.coupang.com/np/search?q=' + encodeURIComponent(gearSearchQuery(c)))` 한 줄로
 // 내부 빌더와 문자까지 동일한 URL을 게이트 없이 만들 수 있다. T20이 이 심볼의 비공개를 회귀 고정한다.
-function gearSearchQuery(c: GearCategory): string {
-  return GEAR_SEARCH_QUERY[c];
+// brand 가 있으면 검색어 앞에 붙인다: '리프팅 벨트' → 'SBD 리프팅 벨트'.
+// 카테고리어를 남겨 두는 이유 — 브랜드만으로 검색하면 그 브랜드의 전 상품군이 나와
+// 운영정책 4.1 6) '검색 키워드가 관련성이 지나치게 떨어지는 상품과 연계' 조항에 가까워진다.
+function gearSearchQuery(c: GearCategory, brand?: string): string {
+  const base = GEAR_SEARCH_QUERY[c];
+  return brand ? `${brand} ${base}` : base;
 }
 
 // 검색 URL 조립 — 쿼리 키는 정확히 q 하나. 순수 문자열 결합(URL 파서 미사용).
+// brand 는 q 값에만 들어간다. 쿼리 키가 늘지 않으므로 '추적 파라미터 0개' 불변식(정리 B)은 그대로다.
 // services/gymSearch.ts 의 gymMapsUrl() 선례를 따른다. export 하지 않는다(§고지 게이트 — URL 조각 비공개).
-function coupangSearchUrl(c: GearCategory): string {
-  return `https://www.coupang.com/np/search?q=${encodeURIComponent(gearSearchQuery(c))}`;
+function coupangSearchUrl(c: GearCategory, brand?: string): string {
+  return `https://www.coupang.com/np/search?q=${encodeURIComponent(gearSearchQuery(c, brand))}`;
 }
 
 // 허용 호스트 판정 — URL 파싱을 쓰지 않는 엔진 비의존 순수 문자열 연산. 실패해도 예외를 던지지 않는다.
@@ -178,11 +196,20 @@ export function requiresAffiliateDisclosure(cfg?: GearAffiliateConfig | null): b
 // 검색어 사전·URL 조립기·호스트 판정은 전부 모듈 내부이며 export 하지 않는다 — 하나라도 공개하면
 // 게이트를 우회해 같은 URL을 만들 수 있어 은닉의 실효가 사라진다.
 // 계약: 어떤 입력에도 예외를 던지지 않는다.
+// 첫 인자는 카테고리 문자열 또는 GearTag 다. 태그를 넘기면 확인된 brand 가 검색어에 반영된다
+// (ADR-027 D5 개정판). 카테고리만 넘기는 기존 호출은 그대로 동작한다 — 회귀 없음.
 export function resolveGearLink(
-  c: GearCategory,
+  target: GearCategory | GearTag,
   cfg: GearAffiliateConfig | null | undefined,
   ctx: { disclosureRendered: boolean },
 ): GearLinkResult {
+  // GearTag 인지 카테고리 문자열인지 판별. 불투명 입력이 올 수 있으므로 방어적으로 읽는다.
+  const isTag = target !== null && typeof target === 'object' && !Array.isArray(target);
+  const c = (isTag ? (target as { category?: unknown }).category : target) as GearCategory;
+  // 저장된 brand 는 정의상 사용자 확인을 통과한 값이다(미확인 제안은 저장 경로가 없다).
+  // 그래도 불투명 JSON 경유일 수 있으므로 여기서 다시 정제한다.
+  const brand = isTag ? sanitizeBrand((target as { brand?: unknown }).brand) : undefined;
+
   if (!isGearCategory(c)) return { ok: false, blocked: 'unknown-category' };
 
   // 게이트가 딥링크·검색 양쪽보다 앞선다 — 고지가 필요한데 렌더되지 않았으면 아무것도 열리지 않는다.
@@ -199,7 +226,7 @@ export function resolveGearLink(
     if (isAllowedAffiliateUrl(raw)) return { ok: true, kind: 'deeplink', url: raw };
   }
 
-  return { ok: true, kind: 'search', url: coupangSearchUrl(c) };
+  return { ok: true, kind: 'search', url: coupangSearchUrl(c, brand) };
 }
 
 // note 정제 — 제어문자·라인구분자 → 공백 치환 → 고립 서로게이트 제거 → 공백 접기 → trim → 코드포인트 절단 → 재trim.
@@ -210,21 +237,48 @@ export function resolveGearLink(
 // 제거 단계는 반드시 공백 접기 **앞**에 둔다 — 뒤에 두면 'a <lone> b' 가 'a  b' 로 남아 멱등성이 깨진다.
 // 정규식은 정상 페어를 먼저 소비해 보존하며 lookbehind를 쓰지 않는다(Hermes 미지원 대비 — 엔진 비의존 원칙).
 // 마지막 재trim이 없으면 공백 경계 절단 시 후행 공백이 남아 멱등성이 깨진다(쓰기·읽기 양쪽에서 재사용하므로 필수).
-function sanitizeNote(v: unknown): string | undefined {
+function sanitizeText(v: unknown, maxLen: number): string | undefined {
   if (typeof v !== 'string') return undefined;
   const collapsed = v
     .replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029\uFEFF]/g, ' ')
     .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]/g, (m) => (m.length === 2 ? m : ''))
     .replace(/\s+/g, ' ')
     .trim();
-  const cut = Array.from(collapsed).slice(0, MAX_GEAR_NOTE_LEN).join('').trim();
+  const cut = Array.from(collapsed).slice(0, maxLen).join('').trim();
   return cut.length > 0 ? cut : undefined;
 }
 
+function sanitizeNote(v: unknown): string | undefined {
+  return sanitizeText(v, MAX_GEAR_NOTE_LEN);
+}
+
+// 브랜드 정제 — note 와 같은 규칙을 상한만 달리 적용한다.
+// brand 는 검색어 q 값에 실리므로 제어문자·고립 서로게이트 제거가 note 보다 더 중요하다
+// (깨진 문자가 그대로 쿠팡 검색 쿼리로 나가면 결과가 무의미해지고 관련성 조항에 가까워진다).
+function sanitizeBrand(v: unknown): string | undefined {
+  return sanitizeText(v, MAX_GEAR_BRAND_LEN);
+}
+
 // 출력은 항상 새 리터럴로 구성한다 — 입력 객체를 반환·스프레드하지 않는다.
-// 그래야 brand·url·데이터 키로 실린 __proto__ 같은 그 외 모든 키가 폐기된다.
-function makeTag(category: GearCategory, source: GearSource, note: string | undefined): GearTag {
-  return note !== undefined ? { category, source, note } : { category, source };
+// 그래야 url·데이터 키로 실린 __proto__ 같은 화이트리스트 밖 키가 전부 폐기된다.
+// 불변식: brand 와 brandSource 는 함께 있거나 함께 없다. 한쪽만 있으면 여기서 제거된다
+// (brandSource 만 남으면 '출처는 아는데 값이 없는' 무의미한 상태가 되고,
+//  brand 만 남으면 확인 원천을 알 수 없어 D5 개정판의 추적성이 깨진다).
+function makeTag(
+  category: GearCategory,
+  source: GearSource,
+  note: string | undefined,
+  brand: string | undefined,
+  brandSource: GearSource | undefined,
+): GearTag {
+  const bs: GearSource | undefined = brand !== undefined ? (brandSource ?? 'user') : undefined;
+  const b = bs !== undefined ? brand : undefined;
+  return {
+    category,
+    source,
+    ...(b !== undefined ? { brand: b, brandSource: bs } : {}),
+    ...(note !== undefined ? { note } : {}),
+  };
 }
 
 // 순서 무관 우선순위 병합 — user가 auto를 항상 이기고, 같은 source끼리는 먼저 온 것이 남는다.
@@ -235,7 +289,10 @@ function mergeTag(prev: GearTag, next: GearTag): GearTag {
   const winner = prev.source === 'user' || next.source !== 'user' ? prev : next;
   const loser = winner === prev ? next : prev;
   const note = winner.note !== undefined ? winner.note : loser.note;
-  return makeTag(winner.category, winner.source, note);
+  // brand 도 승계한다 — 이긴 쪽에 없고 진 쪽에 있으면 물려받되, brandSource 도 짝지어 함께 가져온다.
+  // 값과 출처가 갈리면 D5 개정판의 '확인된 브랜드' 추적성이 깨지므로 반드시 쌍으로 옮긴다.
+  const src = winner.brand !== undefined ? winner : loser;
+  return makeTag(winner.category, winner.source, note, src.brand, src.brandSource);
 }
 
 // 서버 Post.data 는 @IsObject() 만 걸린 불투명 Json 필드라 어떤 형태든 들어올 수 있다.
@@ -263,7 +320,10 @@ export function normalizeGearTags(input: unknown): GearTag[] {
 
     // 없음·오타·null·비문자열은 'user'로 수렴한다. 유효하면 임의로 바꾸지 않는다(ADR-027 D7).
     const source: GearSource = rec.source === 'auto' ? 'auto' : 'user';
-    const tag = makeTag(category, source, sanitizeNote(rec.note));
+    // brandSource 는 태그의 source 와 별개 축이다 — 무효·부재면 'user'로 수렴한다.
+    // 저장돼 들어온 brand 는 정의상 사용자 확인을 통과한 값이므로 원천만 보존하면 된다.
+    const brandSource: GearSource = rec.brandSource === 'auto' ? 'auto' : 'user';
+    const tag = makeTag(category, source, sanitizeNote(rec.note), sanitizeBrand(rec.brand), brandSource);
 
     const prev = byCategory.get(category);
     if (prev === undefined) {
