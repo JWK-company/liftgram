@@ -32,3 +32,8 @@ services:
       # 프론트(웹앱)를 배포한 뒤 그 주소로 좁히려면 아래 주석 해제:
       # - key: CORS_ORIGINS
       #   sync: false
+      # 착용장비 제휴(SRS-039 · ADR-027) — 기본은 미설정(=Phase 0, 제휴 비활성).
+      # ⚠ 쿠팡 파트너스 매체 등록·최종승인 완료 전에는 GEAR_AFFILIATE_ENABLED 를 true 로 두지 않는다
+      #   (미등록 매체 광고 노출 = A등급 제재). 활성화는 대시보드에서 아래 두 값을 넣는 것으로만 한다.
+      #   GEAR_AFFILIATE_ENABLED="true" · GEAR_AFFILIATE_LINKS='{"belt":"https://link.coupang.com/a/…"}'
+      #   자세한 형식·주의는 server/.env.example 참고.

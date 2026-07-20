@@ -20,6 +20,9 @@ import { showAlert } from '../../utils/alert';
 import { ReportSheet } from './ReportSheet';
 import { HashtagText } from './HashtagText';
 import { OwnPostMenu } from './OwnPostMenu';
+import { GearTagPicker } from './GearTagPicker'; // @plm SRS-038 착용장비 수동 태그
+import { GearChips, GearDisclosure, readGearTags } from './GearChips'; // @plm SRS-040 피드 표시·링크
+import { requiresAffiliateDisclosure, type GearAffiliateConfig, type GearTag } from '../../domain';
 
 async function pickImageAsset(): Promise<PickedImage | null> {
   const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
@@ -42,6 +45,10 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
   const [loading, setLoading] = useState(true);
   const [caption, setCaption] = useState('');
   const [picked, setPicked] = useState<PickedImage | null>(null);
+  const [gear, setGear] = useState<GearTag[]>([]); // @plm SRS-038 작성 중 선택한 착용장비
+  // @plm SRS-040 제휴 설정 — 서버 env 에서만 오고 Phase 0 기본값은 { enabled:false }(제휴 비활성).
+  // 조회 실패는 무시한다(비활성으로 수렴) — 장비 칩은 여전히 순수 쿠팡 검색으로 열린다.
+  const [affiliate, setAffiliate] = useState<GearAffiliateConfig | null>(null);
   const [posting, setPosting] = useState(false);
   const [storyBusy, setStoryBusy] = useState(false);
   const [error, setError] = useState<string | null>(null); // 작성·스토리 액션 실패(컴포저 인라인)
@@ -70,13 +77,15 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
       setAuthed(logged);
       if (logged) {
         // 개별 실패 격리 — 콜드스타트 직후 일부만 성공해도 받은 만큼 표시(전체 버림 방지).
-        const [feedR, storiesR, meR] = await Promise.allSettled([
+        const [feedR, storiesR, meR, gearR] = await Promise.allSettled([
           serverApi.feed(),
           serverApi.stories(),
           serverApi.me(),
+          serverApi.gearConfig(), // @plm SRS-040 제휴 설정(실패해도 비활성으로 수렴 — 검색 링크는 그대로 동작)
         ]);
         if (gen !== loadGen.current) return; // 그사이 재새로고침 → 폐기
         if (meR.status === 'fulfilled') setMeId(meR.value.id);
+        setAffiliate(gearR.status === 'fulfilled' ? gearR.value : null);
         if (feedR.status === 'fulfilled') {
           const feed = feedR.value;
           // 진행 중인 좋아요·북마크는 서버 반영 전이므로 낙관적 상태 보존(리로드 클로버 방지).
@@ -204,13 +213,23 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           media = await serverApi.uploadImage(picked);
           uploadedRef.current = { asset: picked, media };
         }
-        post = await serverApi.createPost({ kind: 'image', caption: text || undefined, data: { imageUrl: media.url } });
+        post = await serverApi.createPost({
+          kind: 'image',
+          caption: text || undefined,
+          data: { imageUrl: media.url, ...(gear.length > 0 ? { gear } : {}) },
+        });
       } else {
-        post = await serverApi.createPost({ kind: 'text', caption: text });
+        // 장비 태그가 없으면 data 자체를 보내지 않는다 — 기존 텍스트 게시물 페이로드와 완전히 동일(회귀 없음).
+        post = await serverApi.createPost({
+          kind: 'text',
+          caption: text,
+          ...(gear.length > 0 ? { data: { gear } } : {}),
+        });
       }
       setPosts((prev) => [post, ...prev]);
       setCaption('');
       setPicked(null);
+      setGear([]);
       uploadedRef.current = null; // 게시 성공 → 업로드 캐시 정리
     } catch (e) {
       setError(t(authErrorKey(e))); // 오프라인이면 "서버에 연결할 수 없어요…" 등 친화 메시지
@@ -333,6 +352,8 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
             </Pressable>
           </View>
         ) : null}
+        {/* @plm SRS-038 착용장비 태그 — 선택 칩 미리보기 + 모달 선택기 */}
+        <GearTagPicker value={gear} onChange={setGear} disabled={posting} />
         <View style={styles.composeActions}>
           <Button
             title={t('feed.addImage')}
@@ -369,6 +390,7 @@ export default function FeedTabScreen({ navigation }: TabScreenProps<'FeedTab'>)
           <PostCard
             post={item}
             meId={meId}
+            affiliate={affiliate}
             onLike={onLike}
             onBookmark={onBookmark}
             onComment={(p) => navigation.navigate('Comments', { postId: p.id })}
@@ -433,6 +455,7 @@ function WStat({ label, value }: { label: string; value: string }) {
 function PostCard({
   post,
   meId,
+  affiliate,
   onLike,
   onBookmark,
   onComment,
@@ -444,6 +467,7 @@ function PostCard({
 }: {
   post: FeedPost;
   meId: string | null;
+  affiliate: GearAffiliateConfig | null;
   onLike: (p: FeedPost) => void;
   onBookmark: (p: FeedPost) => void;
   onComment: (p: FeedPost) => void;
@@ -471,6 +495,11 @@ function PostCard({
   }
   const name = post.author.displayName || t('discover.unnamed');
   const when = new Date(post.createdAt).toLocaleDateString('ko-KR');
+  // @plm SRS-040 착용장비 — 불투명 data 를 정규화 경유로만 읽는다.
+  const gearTags = readGearTags(post.data);
+  // 고지 라벨을 실제로 렌더하는 조건식. 이 값을 그대로 GearChips 에 넘겨야 게이트가 의미를 갖는다
+  // (requiresAffiliateDisclosure 를 재호출해 넘기면 항진명제가 되어 라벨 JSX 를 지워도 링크가 열린다).
+  const showDisclosure = gearTags.length > 0 && requiresAffiliateDisclosure(affiliate);
   const imageUrl =
     post.kind === 'image' && post.data && typeof post.data === 'object'
       ? (post.data as { imageUrl?: string }).imageUrl
@@ -586,6 +615,8 @@ function PostCard({
           </Pressable>
         ) : null}
       </Pressable>
+      {/* 대가성 고지 — 게시물 첫 부분(작성자명 바로 아래). 끝부분 표기는 2024-12-01 폐지(ADR-027 D6). */}
+      {showDisclosure ? <GearDisclosure /> : null}
       {workout ? (
         <View style={styles.workoutBox}>
           {workout.name ? (
@@ -660,6 +691,16 @@ function PostCard({
       {post.caption ? (
         <HashtagText text={post.caption} onTag={onTag} style={{ marginTop: spacing.sm }} />
       ) : null}
+      {/* 장비 칩은 반드시 사진 '바깥' 하단 — 오버레이는 커버형·가림 광고로 A등급 제재 대상(ADR-027 D4). */}
+      <GearChips
+        tags={gearTags}
+        cfg={affiliate}
+        disclosureRendered={showDisclosure}
+        onOpen={(category, kind) => {
+          // 비차단 집계 — 실패·지연이 링크 이동을 막지 않는다.
+          serverApi.trackGearClick({ postId: post.id, category, source: 'user', kind }).catch(() => {});
+        }}
+      />
       <View style={styles.actions}>
         <Pressable onPress={() => onLike(post)} hitSlop={8} style={styles.action}>
           <Ionicons

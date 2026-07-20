@@ -362,6 +362,15 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
         </View>
       </Card>
 
+      {/* 내 장비함 — 로컬 우선이라 비로그인·오프라인에서도 열린다. @plm SRS-042 */}
+      <Button
+        title={t('gear.myGearEntry')}
+        icon="fitness-outline"
+        variant="secondary"
+        onPress={() => navigation.navigate('MyGear')}
+        style={{ marginTop: spacing.md }}
+      />
+
       {/* 저장한 게시물 · 차단 목록 관리 (로그인 시) */}
       {loggedIn ? (
         <Button

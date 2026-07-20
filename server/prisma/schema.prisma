@@ -42,6 +42,7 @@ model User {
   pushTokens        PushToken[]
   blocking          Block[]        @relation("blocker") // 내가 차단한
   blockedBy         Block[]        @relation("blocked") // 나를 차단한
+  gearClicks        GearClick[]
 }
 
 // 사용자 차단 (SRS-018). 차단=상호 불가시 + 상호작용 차단. 팔로우는 차단 시 해제.
@@ -318,6 +319,32 @@ model Report {
   @@unique([reporterId, targetType, targetId])
   @@index([targetType, targetId])
   @@index([status])
+}
+
+// 착용장비 태그 클릭 (SRS-039 · SAD-020 · ADR-027 D8). Phase 0의 유일한 판정 지표 —
+// "사람들이 피드 사진 속 장비를 실제로 눌러보는가"를 재는 클릭 카운터다. 구매 전환·수수료 대사는
+// 제휴 API가 없어 원천적으로 불가하므로 포스트백 없는 클릭 이벤트만 적재한다.
+model GearClick {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // postId에 FK를 걸지 않는다 — 게시물이 지워져도 클릭 이력은 남아야 Phase 1 투자 판단의 표본이 보존된다.
+  // 삭제된 게시물의 클릭까지 CASCADE로 함께 사라지면 KPI가 조용히 과소집계된다. Notification.postId 선례와 동일.
+  postId    String
+  category  String // wristWrap|strap|belt|kneeSleeve|gloves|shoes|chalk|armSleeve (8종 · ADR-027 D5)
+  source    String // user|auto — 사용자 지정 태그와 Phase 1 자동 감지 태그의 성과를 분리 측정(ADR-027 D7)
+  // deeplink|search — 그 클릭이 제휴 딥링크로 열렸는지 순수 검색 URL로 폴백했는지.
+  // 딥링크 하나를 오기입해 전 카테고리가 조용히 검색으로 떨어지면 수수료 0원인데 고지 라벨만 노출되는
+  // 최악의 상태가 되는데, 이 필드가 그 사고를 감지하는 유일한 수단이다.
+  kind      String
+  createdAt DateTime @default(now())
+
+  // 중복 억제 조회(동일 사용자·게시물·카테고리의 최근 행 1건) 전용 — 컬럼 순서를 바꾸면 서비스의 시간창 질의가 인덱스를 못 탄다.
+  @@index([userId, postId, category, createdAt])
+  // 카테고리별·기간별 집계(admin 통계) 전용.
+  @@index([category, createdAt])
+  // 특정 사용자에 클릭이 몰리는 이상 패턴 조회(부정 클릭 방어 — 운영정책 A등급 판정 대비).
+  @@index([userId, createdAt])
 }
 
 // 푸시 알림 디바이스 토큰 (SRS-020 · ADR-015). 발송은 PushProvider(noop 기본·Expo/FCM/WebPush 드롭인).

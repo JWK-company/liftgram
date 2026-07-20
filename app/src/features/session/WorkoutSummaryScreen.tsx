@@ -31,7 +31,9 @@ import {
   type WeeklyProgress,
 } from '../../domain';
 import { serverApi } from '../../sync/serverApi';
-import { authErrorKey } from '../../sync/apiError'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
+import { authErrorKey } from '../../sync/apiError';
+import { GearTagPicker } from '../social/GearTagPicker'; // @plm SRS-038 착용장비 태그(운동 직후가 가장 자연스러운 태깅 지점)
+import type { GearTag } from '../../domain'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
 import { useWeeklyGoal, useStreakSkipWeekends } from '../analytics/useWeeklyGoal';
 import { useT } from '../../i18n';
 
@@ -60,6 +62,7 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
   const [caption, setCaption] = useState('');
   const [sharing, setSharing] = useState(false);
   const [shared, setShared] = useState(false);
+  const [gear, setGear] = useState<GearTag[]>([]); // @plm SRS-038 오운완 공유 시 착용장비
   const [shareError, setShareError] = useState<string | null>(null);
   const [weeklyGoal] = useWeeklyGoal();
   const [skipWeekends] = useStreakSkipWeekends();
@@ -150,10 +153,13 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
             note: ex.note ?? undefined, // #3: 업로더 메모(확장 시 표시)
             sets: ex.sets.map((s) => ({ weightKg: s.weightKg, reps: s.reps, isWarmup: s.isWarmup, partialReps: s.partialReps ?? undefined })),
           })),
+          // @plm SRS-038 착용장비 — 태그가 없으면 키 자체를 넣지 않아 기존 페이로드와 동일(회귀 없음).
+          ...(gear.length > 0 ? { gear } : {}),
         },
       });
       setShared(true);
       setCaption('');
+      setGear([]);
     } catch (e) {
       setShareError(t(authErrorKey(e))); // 오프라인이면 "서버에 연결할 수 없어요…" — 기록 자체는 로컬 저장됨
     } finally {
@@ -233,6 +239,8 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
               multiline
               containerStyle={{ marginBottom: spacing.sm }}
             />
+            {/* @plm SRS-038 착용장비 태그 — 방금 실제로 착용한 직후라 태깅 정확도가 가장 높은 지점 */}
+            <GearTagPicker value={gear} onChange={setGear} disabled={sharing} />
             <Button
               title={t('session.shareToFeed')}
               icon="share-social-outline"

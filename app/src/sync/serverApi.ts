@@ -323,6 +323,21 @@ export const serverApi = {
   createPost(input: CreatePostInput): Promise<FeedPost> {
     return request<FeedPost>('/social/posts', { method: 'POST', body: input, auth: true });
   },
+  // @plm SRS-040  제휴 설정 조회 — 값은 서버 env 에만 있다(EXPO_PUBLIC_* 는 웹 번들에 평문으로 굳으므로 금지).
+  // Phase 0 기본값은 { enabled:false }(제휴 비활성) — 순수 쿠팡 검색 URL 만 열린다.
+  gearConfig(): Promise<{ enabled: boolean; links?: Record<string, string> }> {
+    return request<{ enabled: boolean; links?: Record<string, string> }>('/gear/config', { auth: true });
+  },
+  // @plm SRS-040  장비 칩 클릭 집계 — 링크를 연 뒤 비차단으로 호출한다(await 하면 웹 팝업 차단).
+  // kind 를 함께 보내 딥링크/검색 폴백률을 관측 가능하게 한다.
+  trackGearClick(input: {
+    postId: string;
+    category: string;
+    source: 'user' | 'auto';
+    kind: 'deeplink' | 'search';
+  }): Promise<{ ok: true }> {
+    return request<{ ok: true }>('/gear/clicks', { method: 'POST', body: input, auth: true });
+  },
   updatePost(postId: string, input: { caption?: string; visibility?: string }): Promise<FeedPost> {
     return request<FeedPost>(`/social/posts/${postId}`, { method: 'PATCH', body: input, auth: true });
   },

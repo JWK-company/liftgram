@@ -37,6 +37,7 @@ export type RootStackParamList = {
   FollowList: { userId: string; mode: 'followers' | 'following' }; // SRS-018 팔로워/팔로잉 목록
   Bookmarks: undefined; // SRS-007 저장한 게시물
   NearbyGyms: undefined; // SRS-035 위치 기반 주변 헬스장 발견·추천
+  MyGear: undefined; // SRS-042 내 장비함 — 착용장비 저장·재사용
 };
 
 // 화면 컴포넌트 타입 헬퍼

@@ -17,3 +17,4 @@ export * from './variants';
 export * from './streak';
 export * from './routineRecommendation';
 export * from './gyms';
+export * from './gear';

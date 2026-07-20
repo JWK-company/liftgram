@@ -4,7 +4,8 @@ import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { UserProfile } from '../db/models';
 import { DEFAULT_BAR_KG } from '../domain';
-import type { AppLanguage, EquipmentType, WeightUnit } from '../domain';
+import { normalizeGearTags } from '../domain';
+import type { AppLanguage, EquipmentType, GearTag, WeightUnit } from '../domain';
 
 const profiles = () => database.get<UserProfile>('user_profiles');
 
@@ -20,6 +21,7 @@ export async function getOrCreateLocalUser(): Promise<UserProfile> {
       u.barWeightKg = DEFAULT_BAR_KG;
       u.availableEquipment = [];
       u.machineVariantLabels = [];
+      u.myGear = []; // v14 내 장비함. @plm SRS-041
       u.email = null;
       u.displayName = null;
       u.serverId = null;
@@ -41,6 +43,7 @@ export interface UserSettingsPatch {
   displayName?: string | null;
   availableEquipment?: EquipmentType[];
   machineVariantLabels?: string[];
+  myGear?: GearTag[]; // v14: 내 장비함 — 저장 전 도메인 정규화를 강제한다. @plm SRS-041
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
@@ -54,6 +57,8 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.displayName !== undefined) rec.displayName = patch.displayName;
       if (patch.availableEquipment !== undefined) rec.availableEquipment = patch.availableEquipment;
       if (patch.machineVariantLabels !== undefined) rec.machineVariantLabels = patch.machineVariantLabels;
+      // 화이트리스트 밖·중복·상한 초과는 여기서 걸러 저장한다(sanitizer 는 읽기 방어, 이건 쓰기 방어).
+      if (patch.myGear !== undefined) rec.myGear = normalizeGearTags(patch.myGear);
     });
   });
 }

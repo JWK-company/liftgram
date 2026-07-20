@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 13;
+export const SCHEMA_VERSION = 14;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -20,6 +20,7 @@ export const mySchema = appSchema({
         { name: 'bodyweight_kg', type: 'number', isOptional: true }, // v12: 사용자 체중 — 맨몸±가중/보조 볼륨 계산. @plm SRS-033
         { name: 'available_equipment', type: 'string', isOptional: true }, // JSON EquipmentType[] (가용 기구 — 빈/미설정=전체)
         { name: 'machine_variant_labels', type: 'string', isOptional: true }, // v5: JSON string[3] 커스텀 기구 이름(전역 공용)
+        { name: 'my_gear', type: 'string', isOptional: true }, // v14: JSON GearTag[] 내 장비함(착용장비 재사용). @plm SRS-041
         { name: 'bar_weight_kg', type: 'number' },
         { name: 'last_sync_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { userRepo } from '../data';
 import { UserProfile } from '../db/models';
 import { useModelData } from '../db/hooks';
-import { DEFAULT_BAR_KG, type WeightUnit, type AppLanguage, type EquipmentType } from '../domain';
+import { DEFAULT_BAR_KG, type WeightUnit, type AppLanguage, type EquipmentType, type GearTag } from '../domain';
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -14,6 +14,7 @@ interface UserContextValue {
   bodyweightKg: number | null; // v12: 체중(맨몸±가중/보조 볼륨). @plm SRS-033
   availableEquipment: EquipmentType[];
   machineVariantLabels: string[];
+  myGear: GearTag[]; // v14: 내 장비함 — user_profiles 컬럼은 예외 없이 이 컨텍스트 경유로 노출. @plm SRS-041
   refresh: () => Promise<void>;
 }
 
@@ -49,6 +50,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     bodyweightKg: user?.bodyweightKg ?? null,
     availableEquipment: user?.availableEquipment ?? [],
     machineVariantLabels: user?.machineVariantLabels ?? [],
+    myGear: user?.myGear ?? [],
     refresh,
   };
 

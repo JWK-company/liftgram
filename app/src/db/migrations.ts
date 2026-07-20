@@ -191,5 +191,18 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v14: 내 장비함 — 자주 쓰는 착용장비를 저장해 작성 선택기에서 재사용. @plm SRS-041
+    // 새 테이블을 만들지 않는다: 이 파일에 createTable 선례가 전무하고 동일 migrations 가
+    // 네이티브 SQLite·웹 LokiJS 두 어댑터에 배선되어 첫 사례가 부팅 실패 리스크를 진다.
+    // user_profiles 의 @json 컬럼(available_equipment·machine_variant_labels) 선례를 그대로 따른다.
+    {
+      toVersion: 14,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'my_gear', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });
