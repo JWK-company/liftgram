@@ -235,7 +235,7 @@ export const en: Record<TransKey, string> = {
   "gear.myGearSaved": "Saved {count}",
   "gear.myGearTitle": "My gear",
   "gear.pickerDone": "Done",
-  "gear.pickerHint": "Pick the type, not the brand. Tapping in the feed opens a Coupang search.",
+  "gear.pickerHint": "Pick the type, and add the brand if you like. Tapping in the feed opens a Coupang search.",
   "gear.pickerTitle": "Gear worn today",
   "gear.wornCount": "Worn gear {count}",
   "group.create": "Create ({count})",

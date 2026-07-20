@@ -7,7 +7,7 @@
     "G2": "pass",
     "G3": "pass"
   },
-  "last_gate_check": "2026-07-20T12:49:22Z",
+  "last_gate_check": "2026-07-20T13:25:40Z",
   "last_sync": "2026-07-20T00:00:00Z",
   "last_updated": "2026-07-20T00:00:00Z",
   "tasks": {
@@ -46,5 +46,5 @@
     "status": "done",
     "held_at": null
   },
-  "release_tag": "1dcf545 / netlify 6a5e0b4b4cc74b2839cdb429"
+  "release_tag": "7e818fa / netlify 6a5e1e209686bfa383466628"
 }

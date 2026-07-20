@@ -37,8 +37,15 @@
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "목표 / 범위" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "목표 / 범위"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -81,18 +88,27 @@
         "content": [
           {
             "type": "text",
-            "text": "구현 상태 — SRS-037~042는 커밋 1dcf545로 이미 구현·배포 완료이며, 배포된 app/src/domain/gear.ts의 makeTag()는 화이트리스트 재구성 과정에서 brand 키를 의도적으로 폐기하고 gear.test.ts T8이 그 폐기를 테스트로 고정하고 있다. 즉 위 브랜드 직접 입력 범위는 아직 코드에 반영되지 않았고 이 문서가 코드보다 앞서 있다. 코드 반영(makeTag의 brand·brandSource 보존, T8 갱신, 컴포저 입력 UI)은 후속 작업이다."
+            "text": "커밋 7e818fa 로 코드 반영·배포 완료(2026-07-20). 문서가 코드보다 앞선 상태는 해소됐다 — gear.ts 에 brand·brandSource·sanitizeBrand·MAX_GEAR_BRAND_LEN 이 들어갔고, GearTagPicker·GearChips·MyGearScreen 이 브랜드 입력·표시·저장을 담당한다. T8 은 brand 폐기 고정에서 보존 검증으로 뒤집혔고 T21(10항목)이 신설됐다. 검증: typecheck 0 error · npm test 104 pass / 0 fail."
           }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "마일스톤" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "마일스톤"
+          }
+        ]
       },
       {
         "type": "ordered_list",
-        "attrs": { "order": 1 },
+        "attrs": {
+          "order": 1
+        },
         "content": [
           {
             "type": "list_item",
@@ -210,8 +226,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "성공 기준 (Phase 1 진입 판정 지표)" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "성공 기준 (Phase 1 진입 판정 지표)"
+          }
+        ]
       },
       {
         "type": "bullet_list",
@@ -280,7 +303,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "회귀 안전 — cd app && npm run typecheck 통과, cd app && npm test 기준선 83 pass / 0 fail 유지(신규 gear 도메인 테스트 추가분 포함)."
+                    "text": "회귀 안전 — cd app && npm run typecheck 통과, cd app && npm test 기준선 104 pass / 0 fail 유지(신규 gear 도메인 테스트 추가분 포함)."
                   }
                 ]
               }
@@ -304,8 +327,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "명시적 비범위 (Out-of-scope)" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "명시적 비범위 (Out-of-scope)"
+          }
+        ]
       },
       {
         "type": "bullet_list",
@@ -412,8 +442,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",

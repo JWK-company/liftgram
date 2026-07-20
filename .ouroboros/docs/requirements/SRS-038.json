@@ -31,8 +31,15 @@
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "요구 서술" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -72,45 +79,287 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "수용 기준" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
       },
       {
         "type": "bullet_list",
         "content": [
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시 kind 값이 기존 화이트리스트(text·workout·image)를 벗어나지 않는다 — 새 kind 를 만들지 않으므로 서버 400이 발생하지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비를 하나도 선택하지 않으면 게시 페이로드와 동작이 기존과 완전히 동일하다 — data 에 gear 키가 추가되지 않으며 기존 게시 흐름에 회귀가 없다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "선택한 칩을 게시 전에 개별 제거할 수 있고, 제거 결과가 즉시 전송 페이로드에 반영된다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "전송 전 SRS-037의 정규화를 통과한다 — 화이트리스트 밖 카테고리는 탈락하고, 중복은 제거되며, 개수 상한을 넘지 않는다. 각 항목은 source=\"user\"를 갖는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "카테고리를 고른 뒤 브랜드·모델을 직접 입력할 수 있는 선택 입력이 제공된다. 미입력이 기본값이며, 브랜드를 하나도 입력하지 않은 게시의 페이로드는 브랜드 도입 이전과 완전히 동일하다(gear 항목에 브랜드 키가 붙지 않음 — 회귀 없음)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "입력한 브랜드 문자열이 SRS-037 정규화를 통과한다 — 제어문자가 제거되고 연속 공백이 접히며, 정규화 결과가 빈 문자열이면 브랜드 키를 싣지 않고 카테고리 수준으로 폴백한다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "브랜드는 자유 입력이므로 길이 상한이 강제된다 — 입력 UI가 상한에서 입력을 끊고, 전송 직전 정규화가 상한 초과분을 다시 한 번 절단한다(UI 우회 경로로도 상한이 뚫리지 않는다)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Phase 0에서 브랜드가 채워지는 경로는 사용자 직접 입력뿐이다 — 자동 감지 제안 경로는 구현·활성화되지 않으며, 사용자 확인 없이 브랜드가 채워진 채 게시되는 경로가 존재하지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "FeedTabScreen(text·image)과 WorkoutSummaryScreen(workout) 두 경로 모두에서 동일한 GearTagPicker로 선택할 수 있다. CalendarTabScreen(월간 자랑)에는 선택기가 노출되지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "GearTagPicker 가 확장 지점을 갖춘다 — 선택기 상단에 저장 장비 재사용 영역 슬롯(SRS-042에서 채움)이 비워져 있고, 선택된 태그 배열을 외부에서 주입·조작할 수 있는 인터페이스(초기값 주입 및 변경 통지)를 노출한다. 본 요구 단계에서 슬롯은 비어 있어도 되며 재사용 동작 자체는 검증 대상이 아니다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "서버·DB 변경이 0건이다 — Prisma 마이그레이션, CreatePostDto/UpdatePostDto 수정, 신규 엔드포인트가 모두 없다. app/src/sync/serverApi.ts 도 data 가 이미 unknown 이라 수정하지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "새 문자열은 app/src/i18n/locales/ko.ts 와 en.ts 에 플랫 키로 쌍을 이뤄 추가된다. cd app && npm run typecheck 및 cd app && npm test 가 기존 기준선(83 pass / 0 fail) 대비 회귀 없이 통과한다." }] }] }
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "게시 kind 값이 기존 화이트리스트(text·workout·image)를 벗어나지 않는다 — 새 kind 를 만들지 않으므로 서버 400이 발생하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장비를 하나도 선택하지 않으면 게시 페이로드와 동작이 기존과 완전히 동일하다 — data 에 gear 키가 추가되지 않으며 기존 게시 흐름에 회귀가 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "선택한 칩을 게시 전에 개별 제거할 수 있고, 제거 결과가 즉시 전송 페이로드에 반영된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "전송 전 SRS-037의 정규화를 통과한다 — 화이트리스트 밖 카테고리는 탈락하고, 중복은 제거되며, 개수 상한을 넘지 않는다. 각 항목은 source=\"user\"를 갖는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "카테고리를 고른 뒤 브랜드·모델을 직접 입력할 수 있는 선택 입력이 제공된다. 미입력이 기본값이며, 브랜드를 하나도 입력하지 않은 게시의 페이로드는 브랜드 도입 이전과 완전히 동일하다(gear 항목에 브랜드 키가 붙지 않음 — 회귀 없음)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "입력한 브랜드 문자열이 SRS-037 정규화를 통과한다 — 제어문자가 제거되고 연속 공백이 접히며, 정규화 결과가 빈 문자열이면 브랜드 키를 싣지 않고 카테고리 수준으로 폴백한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "브랜드는 자유 입력이므로 길이 상한이 강제된다 — 입력 UI가 상한에서 입력을 끊고, 전송 직전 정규화가 상한 초과분을 다시 한 번 절단한다(UI 우회 경로로도 상한이 뚫리지 않는다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Phase 0에서 브랜드가 채워지는 경로는 사용자 직접 입력뿐이다 — 자동 감지 제안 경로는 구현·활성화되지 않으며, 사용자 확인 없이 브랜드가 채워진 채 게시되는 경로가 존재하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "FeedTabScreen(text·image)과 WorkoutSummaryScreen(workout) 두 경로 모두에서 동일한 GearTagPicker로 선택할 수 있다. CalendarTabScreen(월간 자랑)에는 선택기가 노출되지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "GearTagPicker 가 확장 지점을 갖춘다 — 선택기 상단에 저장 장비 재사용 영역 슬롯(SRS-042에서 채움)이 비워져 있고, 선택된 태그 배열을 외부에서 주입·조작할 수 있는 인터페이스(초기값 주입 및 변경 통지)를 노출한다. 본 요구 단계에서 슬롯은 비어 있어도 되며 재사용 동작 자체는 검증 대상이 아니다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "서버·DB 변경이 0건이다 — Prisma 마이그레이션, CreatePostDto/UpdatePostDto 수정, 신규 엔드포인트가 모두 없다. app/src/sync/serverApi.ts 도 data 가 이미 unknown 이라 수정하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 문자열은 app/src/i18n/locales/ko.ts 와 en.ts 에 플랫 키로 쌍을 이뤄 추가된다. cd app && npm run typecheck 및 cd app && npm test 가 기존 기준선(104 pass / 0 fail) 대비 회귀 없이 통과한다."
+                  }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "작업 범위" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "작업 범위"
+          }
+        ]
       },
       {
         "type": "bullet_list",
         "content": [
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/social/GearTagPicker.tsx — 신규. Modal 바텀시트 선택기(카테고리 8종 토글·선택 칩·개별 제거·선택 항목별 브랜드/모델 자유 입력란), 두 게시 경로 공용." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/social/FeedTabScreen.tsx — 컴포저 영역 한정(text·image 컴포저에 선택기 진입점과 선택 상태 배선, createPost 호출에 data.gear[] 부착). 같은 파일의 PostCard 렌더 영역은 SRS-040 소관이라 본 요구에서 수정하지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/session/WorkoutSummaryScreen.tsx — workout 공유 경로에 동일 배선." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/i18n/locales/ko.ts · en.ts — 선택기·칩·카테고리 라벨 문자열 쌍 추가." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "범위 밖: 서버 전체(schema.prisma·DTO·컨트롤러), app/src/sync/serverApi.ts(수정 불필요), CalendarTabScreen, UserProfileScreen 썸네일 그리드, 게시 후 태그 수정, 브랜드 자동 감지(비전 모델 제안 + 사용자 승인 — Phase 1, 프로덕션 모델·실사용자 사진 재측정 통과가 선행 조건). 같은 파일 안이라도 FeedTabScreen.tsx 내부 PostCard 렌더 영역은 SRS-040 소관이므로 본 요구가 건드리지 않는다 — 본 요구는 컴포저 영역(작성 입력·선택기 진입점·createPost 호출부)에 한정한다." }] }] }
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/social/GearTagPicker.tsx — 신규. Modal 바텀시트 선택기(카테고리 8종 토글·선택 칩·개별 제거·선택 항목별 브랜드/모델 자유 입력란), 두 게시 경로 공용."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/social/FeedTabScreen.tsx — 컴포저 영역 한정(text·image 컴포저에 선택기 진입점과 선택 상태 배선, createPost 호출에 data.gear[] 부착). 같은 파일의 PostCard 렌더 영역은 SRS-040 소관이라 본 요구에서 수정하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/session/WorkoutSummaryScreen.tsx — workout 공유 경로에 동일 배선."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/i18n/locales/ko.ts · en.ts — 선택기·칩·카테고리 라벨 문자열 쌍 추가."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "범위 밖: 서버 전체(schema.prisma·DTO·컨트롤러), app/src/sync/serverApi.ts(수정 불필요), CalendarTabScreen, UserProfileScreen 썸네일 그리드, 게시 후 태그 수정, 브랜드 자동 감지(비전 모델 제안 + 사용자 승인 — Phase 1, 프로덕션 모델·실사용자 사진 재측정 통과가 선행 조건). 같은 파일 안이라도 FeedTabScreen.tsx 내부 PostCard 렌더 영역은 SRS-040 소관이므로 본 요구가 건드리지 않는다 — 본 요구는 컴포저 영역(작성 입력·선택기 진입점·createPost 호출부)에 한정한다."
+                  }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -118,6 +367,88 @@
           {
             "type": "text",
             "text": "도출 URS: URS-017(장비 발견·전시 니즈), URS-003(친구·동료와 함께 운동하며 자극받고 싶다 — 피드 소셜 맥락). 관련(비추적): BS-003 오늘의 착용장비 수익화 전략. 전제: SRS-037(착용장비 도메인 — 카테고리 상수·정규화)이 선행되어야 전송 정규화를 호출할 수 있다. 후속: 태그된 data.gear[] 는 SRS-040(피드 카드 장비 표시)이 읽어 사진 바깥 카드 영역에 렌더하고, 클릭은 SRS-039(클릭 집계 서버)가 기록한다. 또한 본 요구가 GearTagPicker 에 남겨 두는 재사용 영역 슬롯과 태그 배열 주입 인터페이스에 SRS-042(내 장비함 화면)가 저장 장비 재사용을 배선한다 — 재사용 동작은 SRS-042 소관이고 본 요구는 그 확장 지점만 제공한다. 파일 소유 경계: FeedTabScreen.tsx 는 본 요구가 컴포저 영역을, SRS-040이 내부 PostCard 렌더 영역을 각각 소유한다. 등급 Feature. 결정 전제: ADR-027 — D5(개정: 브랜드·모델 조건부 허용 — 사용자 직접 입력 / 자동 감지 제안 + 사용자 확인 / 없으면 카테고리 폴백. 미확인 자동 태그 게시는 금지. Phase 0 범위는 사용자 직접 입력만) · D7(source 보존 — Phase 1 자동 감지가 사용자 지정을 덮어쓰지 못하게 하는 장치)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "구현 상태"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "구현·배포 완료(2026-07-20 · 커밋 7e818fa). 개정 ADR-027 D5의 경로 1(사용자 직접 입력)에 해당하는 브랜드 지원이 코드에 반영되어 Netlify 프로덕션에 배포됐다. 더 이상 문서가 코드보다 앞선 상태가 아니다."
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "구현 지점: app/src/features/social/GearTagPicker.tsx — 선택한 카테고리별로 브랜드·모델을 직접 적는 선택 입력을 제공한다. 미입력이 기본값이며 필수 표시·다음 단계 차단이 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "빈 값 처리: 브랜드 입력을 비워 두면 SRS-037 정규화가 brand 와 brandSource 를 함께 제거해 카테고리 수준으로 폴백한다 — 페이로드가 브랜드 도입 이전과 동일해져 회귀가 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "확인 상태는 별도 boolean 없이 구조로 표현된다 — brand 가 저장돼 있다는 사실 자체가 사용자 확인 통과를 뜻하고(미확인 제안을 저장하는 경로가 코드에 없다), 원천은 brandSource(\"user\" | \"auto\")로 남는다. Phase 0 경로는 항상 \"user\" 다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검증: cd app && npm run typecheck 0 error · cd app && npm test 104 pass / 0 fail. 브랜드 동작 전용 테스트 T21 신설(10항목), 구 D5 시절 '브랜드 폐기'를 고정하던 T8은 보존 검증으로 뒤집었다."
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

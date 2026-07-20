@@ -24,10 +24,20 @@
     { "type": "paragraph", "content": [
       { "type": "text", "text": "전제(상속·재검증 제외): Phase 0가 확립한 규약 — 제휴 파라미터 없는 검색 URL 빌더와 고지 필요 판정 순수 함수(SRS-037), 사진 바깥 하단 렌더·오버레이 금지·고지 라벨 조건부 강제·링크 선행 후 비차단 집계(SRS-040), 태그 정규화와 source(\"user\"|\"auto\") 보존(SRS-037·SRS-038) — 는 본 요구가 그대로 상속한다. 본 요구는 이 규약을 변경하지 않으며, 해당 동작을 자신의 수용 기준으로 다시 검증하지 않는다(Phase 0에서 이미 검증됨 — 이중 계상 방지)." }
     ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "브랜드 확인 게이트(Phase 1 소관 · 본 요구가 소유): ADR-027 개정 D5 는 브랜드·모델명을 세 경로로만 허용하며(사용자 직접 입력 · 자동 감지 제안 후 사용자 확인 · 카테고리 폴백), 유일한 금지선은 사용자가 확인하지 않은 자동 감지 결과를 게시·표시하는 것이다. 경로 1(직접 입력)은 Phase 0(SRS-042)이 이미 구현했고 SRS-038 은 자동 감지를 명시적 범위 밖으로 두었으므로, 경로 2의 게시 전 확인 UI 는 어느 요구에도 귀속돼 있지 않다. 본 요구가 이를 소유한다. 확인 UI 는 비전 모델의 브랜드 제안을 게시 전에 사용자가 승인하는 단계이며, 승인된 값만 GearTag.brand 에 저장되고 그 원천은 brandSource=\"auto\" 로 보존된다. 미승인 제안은 저장 경로 자체가 존재하지 않는다 — brand 가 저장돼 있다는 사실이 곧 사용자 확인 통과를 뜻하므로, 금지선은 별도 플래그 없이 데이터 모델 수준에서 구조적으로 막힌다. brandSource 는 태그 원천인 source(\"user\"|\"auto\")와 별개 축이며, 확인된 브랜드를 담으려고 태그 전체의 source 를 바꾸는 구현은 D7 기반 성과 분리 측정을 오염시키므로 금지한다." }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "활성화 전제: 브랜드 자동 감지는 프로덕션에서 실제로 쓸 모델과 실사용자 촬영 사진으로 재측정해 통과한 뒤에만 켠다. 선행 실측(2026-07-20, 블라인드 14장)은 브랜드 오단정 0건·카테고리 14/14 였으나 12/14가 브랜드 공식몰 커머셜 사진이고 채점 모델이 Opus 급, 표본 14장, 국내 브랜드 0종이라는 낙관 편향 상한선을 갖는다. 판정 지표는 정확도가 아니라 브랜드 오단정률(잘못된 브랜드를 확신 있게 제시한 비율)이며, 저확신 시에는 제안하지 않고 기권해 카테고리 폴백으로 떨어진다." }
+    ] },
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
     { "type": "bullet_list", "content": [
       { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시물 사진을 비전 LLM 추론 파이프라인(이미지 큐)에 투입해 착용장비 후보를 감지하고, 감지 신뢰도가 임계값 이상인 후보만 사용자에게 태그 제안으로 제시한다." }] }] },
       { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 수락한 자동 감지 태그는 source=\"auto\"로 기록되며, 기존 사용자 지정 태그(source=\"user\")를 덮어쓰거나 삭제하지 않는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "자동 감지가 브랜드·모델명을 제안할 때, 게시 전에 사용자가 그 값을 승인하는 확인 UI 를 거친다. 승인 없이 게시 화면·피드·칩 라벨 어디에도 자동 감지 브랜드가 표시되지 않는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "감지 신뢰도가 낮으면 브랜드를 제안하지 않고 기권하며, 해당 태그는 카테고리 단위로만 남는다(억지 추정 금지)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 승인한 브랜드만 GearTag.brand 에 저장되고, 원천은 brandSource=\"auto\" 로 보존된다. 미승인 제안은 저장 경로가 없어 어떤 상태로도 영속화되지 않으며, brandSource 를 기록하려고 태그의 source 값을 변경하지 않는다(두 축은 독립)." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "브랜드 자동 감지 활성화 전에 프로덕션 모델·실사용자 사진으로 재측정을 수행하고, 브랜드 오단정률이 사전 정한 임계 이하임을 확인한 기록을 남긴다. 미통과 시 카테고리 폴백만 유지한 채 브랜드 제안을 끈다." }] }] },
       { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "제휴 매체 승인 후 발급된 partnerTag가 주입되면 상속한 링크 빌더가 추적 파라미터가 붙은 제휴 딥링크를 생성하고, 해당 링크의 아웃바운드 이벤트에 전환 추적 식별자가 부착된다." }] }] },
       { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "어필리에이트 네트워크의 전환 포스트백·정산 리포트를 수집해 자체 클릭 로그와 대사(reconciliation)하고, 불일치 건은 미확정 상태로 분리해 재대사 대상으로 남긴다." }] }] },
       { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "확정된 수수료가 해당 게시물의 크리에이터에게 귀속되어 정산 내역으로 조회되며, 정산 단위·주기·지급 상태가 기록된다." }] }] }

@@ -233,7 +233,7 @@ export const ko = {
   "gear.myGearSaved": "저장됨 {count}",
   "gear.myGearTitle": "내 장비함",
   "gear.pickerDone": "완료",
-  "gear.pickerHint": "브랜드가 아니라 종류만 골라요. 피드에서 누르면 쿠팡 검색으로 이동해요.",
+  "gear.pickerHint": "종류를 고르고, 원하면 브랜드도 적어요. 피드에서 누르면 쿠팡 검색으로 이동해요.",
   "gear.pickerTitle": "오늘의 착용장비",
   "gear.wornCount": "착용장비 {count}",
   "group.create": "만들기 ({count})",

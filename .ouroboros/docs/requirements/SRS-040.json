@@ -138,6 +138,29 @@
             "text": "도출 URS: URS-017(장비 발견·전시 니즈), URS-003(친구·동료와 함께 운동하며 자극). 근거: BS-003(오늘의 착용장비 수익화 전략, relates_to). 결정 전제: ADR-027 — D5(개정: 브랜드·모델 조건부 허용 — 표시 측 함의는 브랜드가 있으면 칩 라벨·검색어에 반영, 없으면 카테고리 수준 폴백. 미확인 자동 감지 결과의 표시는 금지) · D2(Phase 0 제휴 비활성 출발) · D4(사진 위 오버레이 금지) · D6(고지 라벨 강제 — 트리거는 enabled 또는 허용 호스트 딥링크 존재) · D8(클릭 집계 서버 전용·비차단). 의존: SRS-037(gear 도메인 모듈) · SRS-038(작성 시 태그 입력) · SRS-039(서버 엔드포인트, 선행 배포 필수). 등급: Feature. 로드맵: RM-016(Phase 0). 범위 밖: UserProfileScreen 썸네일 그리드, 게시 후 장비 태그 수정(UpdatePostDto가 caption·visibility만 허용 — 서버 DTO 확장이 필요한 별도 과제)."
           }
         ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "구현 상태" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "구현·배포 완료(2026-07-20 · 커밋 7e818fa). 브랜드 표시·검색어 반영이 코드에 반영되어 Netlify 프로덕션에 배포됐다. 더 이상 문서가 코드보다 앞선 상태가 아니다."
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "구현 지점: app/src/features/social/GearChips.tsx — 칩 라벨에 브랜드를 병기한다(브랜드가 있으면 '브랜드 + 카테고리', 없으면 카테고리명 그대로여서 브랜드 도입 이전과 동일)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "링크: resolveGearLink(tag, …)가 태그를 통째로 받아 검색어에 브랜드를 반영한다 — 카드 코드는 URL을 조립·파싱·재조립하지 않으며, 브랜드는 검색 쿼리의 q 값에만 들어간다. 딥링크는 브랜드 유무와 무관하게 무가공 통과로 유지된다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "표시되는 브랜드는 사용자 확인을 통과한 값뿐이다 — brand 가 저장돼 있다는 사실 자체가 확인 통과를 뜻하고(미확인 자동 감지 결과를 저장하는 경로가 코드에 없다), 원천은 brandSource 로 구분된다. 미확인 자동 태그의 표시 금지선이 데이터 모델 수준에서 막혀 있다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검증: cd app && npm run typecheck 0 error · cd app && npm test 104 pass / 0 fail. 브랜드 동작 전용 테스트 T21 신설(10항목), 구 D5 시절 '브랜드 폐기'를 고정하던 T8은 보존 검증으로 뒤집었다." }] }] }
+        ]
       }
     ]
   }

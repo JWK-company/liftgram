@@ -2,82 +2,60 @@
 
 ## 세션 상태
 
-| 상태 | 시작 |
+| 상태 | 갱신 |
 |------|------|
-| **완료 — D5 개정 + 브랜드 지원 배포됨** | 2026-07-20 |
+| **완료 — 착용장비 Phase 0 + D5 개정(브랜드 조건부 허용) 배포됨** | 2026-07-20 |
 
-## 활성 작업
+## 완료 작업
 
-| SRS | 내용 | 상태 |
+| SRS | 내용 | 커밋 |
 |-----|------|------|
-| SRS-037 | 착용장비 도메인(카테고리·정규화·링크 해석·고지 판정) | 완료 |
-| SRS-038 | 작성 시 수동 태그(피드 컴포저·운동 요약) | 완료 |
-| SRS-039 | 클릭 집계 서버(GearClick·config·stats) | 완료 |
-| SRS-040 | 피드 카드 표시·고지 라벨·링크 열기·집계 | 완료 |
-| SRS-041 | 내 장비함 데이터 계층(로컬 v14 @json) | 완료 |
-| SRS-042 | 내 장비함 화면·진입점·컴포저 재사용 | 완료 |
-| (후속) | **D5 개정 코드 반영** — `gear.ts` brand·brandSource 필드 · 컴포저 브랜드 입력 · 칩 표시 (T8 폐기 테스트 교체 포함) | 완료 |
+| SRS-037 | 착용장비 도메인(카테고리 8종·정규화·링크 해석·고지 판정) | `1dcf545` |
+| SRS-038 | 작성 시 수동 태그(피드 컴포저·운동 요약) | `1dcf545` |
+| SRS-039 | 클릭 집계 서버(GearClick·config·stats) | `1dcf545` |
+| SRS-040 | 피드 카드 표시·고지 라벨·링크 열기·집계 | `1dcf545` |
+| SRS-041 | 내 장비함 데이터 계층(로컬 v14 @json) | `1dcf545` |
+| SRS-042 | 내 장비함 화면·진입점·컴포저 재사용 | `1dcf545` |
+| ADR-027 D5 개정 | 브랜드·모델 조건부 허용 — `brand`·`brandSource` 코드 반영 | `7e818fa` |
 
-- spec: `.ouroboros/docs/spec/20260720_gear-domain_spec.md` (rev3)
-- 브라우저 검증: 컴포저 선택기·내 장비함 저장·v14 마이그레이션(웹 LokiJS) 확인. 미확인 1건 = 컴포저 모달의 "내 장비함에서 빠르게 추가" 행(로그인 필요)
+- spec: `.ouroboros/docs/spec/20260720_gear-domain_spec.md` (**rev4**)
+- 실측 근거: `.ouroboros/docs/research/20260720_gear-brand-detection-accuracy_research.md`
+- 배포: 서버 Render(`/api/gear/*` 200/401 확인) · 웹 https://comforting-empanada-d0f054.netlify.app
+  ⚠ Netlify 크레딧 소진 → **draft 업로드 후 `restore` 승격**으로만 배포 가능(자동 빌드 불가)
+  ⚠ CLI 빌드는 `EXPO_PUBLIC_SERVER_URL=https://liftgram-api.onrender.com/api` 필수(미지정 시 localhost 로 굳음)
 
-## 작업 범위 (이번 세션 변경분 — 미커밋)
+## 검증 상태
 
-**코드 (SRS-037)**
-- `app/src/domain/gear.ts` (신규) · `app/src/domain/__tests__/gear.test.ts` (신규 · T1~T20)
-- `app/src/domain/index.ts` (배럴 1줄) · `app/src/i18n/locales/{ko,en}.ts` (`gear.cat.*` 8키 쌍)
+- `npm test` **104 pass / 0 fail** (T1~T21) · app·server `typecheck` 0 error
+- 브라우저: 컴포저 선택기 · 내 장비함 브랜드 저장·복원 · v14 마이그레이션(웹 LokiJS) 확인
+- 미확인 1건: 컴포저 모달의 "내 장비함에서 빠르게 추가" 행(피드가 로그인 게이트라 렌더 미확인)
 
-**아티팩트 (신규 10)**
-- `decisions/ADR-027.json` · `requirements/URS-017.json` · `requirements/SRS-037~042.json`
-- `roadmap/RM-016.json` · `design/SAD-020.json` · `product/BS-003.json`(PLM→로컬 회수)
+## 확정 계약 (ADR-027)
 
-**아티팩트 (개정 3)** — `requirements/SRS-026.json` · `design/SAD-018.json` · `roadmap/RM-013.json` → Phase 1+/P3 축소
-
-**문서** — `docs/research/20260720_coupang-partners-policy_research.md` · `docs/spec/20260720_gear-domain_spec.md`
-
-## 현재 위치
-
-- **마지막 완료**: SRS-037 전체 체인. `typecheck` 0 error · `npm test` **103 pass / 0 fail**(기준선 83 → +20) · T1~T20 20그룹 · 변이 테스트로 카테고리 결속 검증
-- **PLM**: 신규 10건 등재, 관계 39건, **게이트 orphan 0**(G1·G2·G3 pass)
-- **다음**: 사용자가 ⓐ강도↓ / ⓑ현행 / ⓒ중단 / ⓓ선별 중 택일 → SRS-038부터 재개
-- **미커밋**: 직전 세션 버그픽스 4파일(analyticsRepository·workoutRepository·oneRepMax·domain.test)도 함께 미커밋 상태
-
-## 확정 계약 (ADR-027 · SAD-020 · rev3 spec 일치)
-
-- 서버(SRS-039)가 `{ enabled, links }` 제공. `links`=사전 생성 딥링크(`link.coupang.com/a/…`)를 **문자 그대로** 사용, 가공 금지(운영정책 4.1 링크 조작 = A등급)
-- `resolveGearLink(c, cfg, ctx)`가 **URL 획득 유일 경로** — 고지 렌더 사실을 인자로 요구. 검색어 사전·URL 조립기·호스트 판정은 전부 모듈 내부
-- **정리 A**: `kind:'deeplink'` ⟺ 고지 필요 && 고지 렌더됨 / **정리 B**: `enabled!==true` → links 전면 무시, 추적 0개 검색 URL
-- 고지 트리거 = `enabled===true` **또는** 허용 호스트 딥링크 존재. 라벨은 게시물 **첫 부분**(작성자명 아래), 끝부분 표기 폐지(2024-12-01)
-- 수익 크레딧 환원 **영구 배제**(약관 제7조·운영정책 2.2) · 사진 위 오버레이 태그 금지
-- **브랜드·모델 = 조건부 허용(개정 D5 · 2026-07-20)** — "카테고리 8종만"은 폐기됐다. 허용 3경로: ⓐ사용자 직접 입력 ⓑ자동 감지 제안 + 게시 전 업로더 확인 ⓒ둘 다 없으면 카테고리 8종 폴백.
-  **Phase 0 범위 = ⓐ뿐**. ⓑ자동 감지는 프로덕션 모델·실사용자 사진 재측정 통과 전까지 비활성(Phase 1).
-  유일한 금지선 = **사용자가 확인하지 않은 자동 감지 결과의 게시·표시**. 근거: `docs/research/20260720_gear-brand-detection-accuracy_research.md`
-- 확인 상태 필드: 별도 boolean 없음. `GearTag.brand?: string`(저장돼 있다는 것 자체가 사용자 확인 통과) + `GearTag.brandSource?: "user"|"auto"`(원천 · auto = 모델 제안을 사용자가 확인함). 불변식 = brand ⟺ brandSource. Phase 0은 항상 `"user"`.
-  기존 `source: "user"|"auto"`는 **태그(카테고리)의 원천**이며 brandSource와 별개 축이다.
-- **구현 상태**: 위 개정 D5는 **아직 코드에 미반영**. 배포된 `app/src/domain/gear.ts`의 `makeTag()`는 화이트리스트 재구성으로 brand 키를 의도적으로 폐기하며 `gear.test.ts` T8이 그 폐기를 고정하고 있다(커밋 `1dcf545`). 문서가 코드보다 앞선 상태다.
-
-## 차단 요소
-
-- 없음 (배포 완료)
-  - 서버(Render): `1dcf545` 반영 — `/api/gear/config`·`/gear/stats` 401(정상), GearClick 테이블 생성됨
-  - 웹(Netlify): **수동 배포** — 크레딧 소진으로 신규 배포 차단이라 draft 업로드 → `restore` 승격
-    프로덕션 https://comforting-empanada-d0f054.netlify.app · 번들 `index-adab12ec…`
-    ⚠ CLI 빌드는 `EXPO_PUBLIC_SERVER_URL=https://liftgram-api.onrender.com/api` 를 반드시 지정할 것
-      (미지정 시 localhost:3000 으로 굳어 소셜 기능 전부 실패)
-- 쿠팡 파트너스 가입·매체 등록(앱스토어 출시 후)·최종승인 = 사람이 외부 처리. Phase 0 진행은 막지 않음
-- SRS-036: 카카오 REST 키 발급 — 미해소(별건)
-- 직전 세션 미결: UCS-017 제목 정정 · dead column 정리 · BS-002 잔여 백로그 **5건**(변형 3건 #21·#19·#26은 2026-07-20 완료 재판정, 표시 보강분만 BS-002 '후속 개선(별건)' 절로 이관)
-
-## 알려진 함정 (이번 세션 확인)
-
-- **워크플로우 서브에이전트의 Write에는 plm-sync hook이 발동하지 않는다** → 아티팩트 생성 후 `sync_bulk.py import --project liftgram` 수동 실행 필요(`.ouroboros/env/.env` 로드 선행)
-- 소스에 제어문자를 리터럴로 넣지 말 것 — 정규식 문자클래스는 `\uXXXX` 이스케이프로
+- **D2** 제휴 비활성 출발 — 서버가 `{ enabled, links }` 제공, `links`=사전 생성 딥링크를 **문자 그대로** 사용(가공 금지, 운영정책 4.1 링크 조작 = A등급)
+- **D5 개정** 브랜드·모델 **조건부 허용** 3경로: ⓐ사용자 직접 입력(**Phase 0 범위**) ⓑ자동 감지 제안+게시 전 확인(**재측정 통과 후 Phase 1**) ⓒ카테고리 8종 폴백
+  - 유일한 금지선: **사용자가 확인하지 않은 자동 감지 결과의 게시·표시**
+  - 확인 상태: 별도 boolean 없음 — `brand` 저장 자체가 확인 통과를 뜻함(미확인 제안은 저장 경로 부재)
+  - `brandSource`(`user`|`auto`)는 **태그 원천 `source` 와 별개 축** — 합치면 D7 성과 분리 측정이 오염됨
+- **D6** 고지 라벨은 게시물 **첫 부분**(작성자명 아래), 끝부분 표기 폐지(2024-12-01)
+- **D3** 수익 크레딧 환원 **영구 배제**(약관 제7조·운영정책 2.2) / **D4** 사진 위 오버레이 태그 금지
+- 불변식: 정리 A(`kind:'deeplink'` ⟺ 고지필요&&렌더됨) · 정리 B(`enabled!==true` → links 무시, 쿼리 키 `q` 하나)
 
 ## 남은 작업
 
-- **브랜드 자동 감지(Phase 1)** — 프로덕션 모델·실사용자 사진으로 재측정 통과가 선행 조건.
+- **브랜드 자동 감지(Phase 1)** — **프로덕션 모델·실사용자 사진 재측정 통과가 선행 조건.**
   판정 지표는 적중률이 아니라 **브랜드 오단정률**(판정선은 측정 전 확정). 표본에 국내 브랜드·저가 노브랜드·
-  실사용 촬영 조건(모션 블러·역광·거울 셀카·마모 로고) 포함할 것.
-- **문서 잔재** — BS-003 본문에 구 D5 문구 잔존(+본문이 2회 중복 수록된 별개 버그) · spec rev3 5곳 ·
-  SRS-038/040/SAD-020 '구현 상태' 절 부재(코드 반영으로 사실상 해소됐으나 문구 미갱신) · SRS-041 brand 보존 서술
-- **쿠팡 파트너스 가입** — 웹 매체 등록은 지금 가능. 가입 즉시 수수료 적립 시작(지급만 최종승인까지 보류)
+  실사용 조건(모션 블러·역광·거울 셀카·마모 로고) 포함할 것. 게시 전 확인 UI 소유는 SRS-026.
+- **쿠팡 파트너스 가입** — 웹 매체 등록은 지금 가능(앱은 스토어 출시 후). **가입 즉시 수수료 적립 시작**,
+  지급만 최종승인(누적 판매 15만원)까지 보류 — 소멸이 아니라 에스크로.
+  승인 후 Render env `GEAR_AFFILIATE_ENABLED`·`GEAR_AFFILIATE_LINKS` 주입만으로 앱 재배포 없이 활성화.
+- Phase 2(인플루언서 외부 링크·성과 리포트·브랜드 과금) — SRS 미발급
+
+## 알려진 함정
+
+- **워크플로우 서브에이전트의 Write에는 plm-sync hook이 발동하지 않는다** → 아티팩트 생성 후
+  `sync_bulk.py import --project liftgram` 수동 실행 필요(`.ouroboros/env/.env` 로드 선행)
+- **결정 개정 시 전파 대상은 grep으로 먼저 전수 조사할 것** — 이번 D5 개정에서 3회 연속 누락 발생
+  (URS-017·RM-016·SRS-039/042·SAD-018 → BS-003·spec → **i18n 사용자 노출 문자열**). `.ouroboros/docs/**` + `app/src/**` 양쪽
+- 소스에 제어문자를 리터럴로 넣지 말 것 — 정규식 문자클래스는 `\uXXXX` 이스케이프로
+- Metro 캐시 지연 — 코드 수정 후 첫 스냅샷에 반영이 안 보이면 `--clear` 후 재로드

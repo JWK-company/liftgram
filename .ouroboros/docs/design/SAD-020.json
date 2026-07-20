@@ -137,7 +137,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "도메인 gear 모듈 — app/src/domain/gear.ts (신규) + app/src/domain/__tests__/gear.test.ts. 카테고리 8종 상수(wristWrap · strap · belt · kneeSleeve · gloves · shoes · chalk · armSleeve, ADR-027 D5), 태그 정규화(화이트리스트 필터 · 중복제거 · 개수 상한), 링크 선택기 resolveGearLink(카테고리 · 브랜드 · 서버 설정 · 고지 렌더 여부), 고지 필요 판정 requiresAffiliateDisclosure. 태그는 카테고리 외에 brand 선택(optional) 문자열 필드를 가진다(개정 ADR-027 D5) — 없으면 기존과 완전히 동일하게 카테고리만으로 동작하므로 회귀가 없다. brand 도 카테고리와 동일하게 정규화 대상이다: 길이 상한 적용 · 제어문자 제거 · 연속 공백 접기와 앞뒤 공백 제거를 거치며, 정규화 후 빈 문자열이면 필드 자체를 제거해 미지정으로 되돌린다. 정규화는 작성 경로와 읽기 경로에서 동일하게 재사용한다. brand 는 검색어 조립에만 쓰이고 링크 문자열 가공에는 일절 관여하지 않는다. 검색어 문자열·검색 URL 조립기·허용 호스트 판정은 모듈 내부에 두고 export 하지 않아, URL을 얻는 공개 경로가 resolveGearLink 하나뿐이게 만든다. 부수효과·플랫폼 API·네트워크를 일절 포함하지 않는 순수 모듈이다. 프로젝트의 자동 회귀 게이트(app/src/domain/__tests__/*.test.ts 1-depth glob)에 걸리는 유일한 계층이므로 정책성 규칙 전부를 여기에 모은다. 기존 EquipmentType(barbell/dumbbell/machine)은 '운동 기구' 의미로 이미 점유되어 있어 gear 네임스페이스로 완전히 분리한다."
+                    "text": "도메인 gear 모듈 — app/src/domain/gear.ts (신규) + app/src/domain/__tests__/gear.test.ts. 카테고리 8종 상수(wristWrap · strap · belt · kneeSleeve · gloves · shoes · chalk · armSleeve, ADR-027 D5), 태그 정규화(화이트리스트 필터 · 중복제거 · 개수 상한), 링크 선택기 resolveGearLink(카테고리 · 브랜드 · 서버 설정 · 고지 렌더 여부), 고지 필요 판정 requiresAffiliateDisclosure. 태그는 카테고리 외에 brand 선택(optional) 문자열 필드를 가진다(개정 ADR-027 D5) — 없으면 기존과 완전히 동일하게 카테고리만으로 동작하므로 회귀가 없다. brand 도 카테고리와 동일하게 정규화 대상이다: 길이 상한 적용 · 제어문자 제거 · 연속 공백 접기와 앞뒤 공백 제거를 거치며, 정규화 후 빈 문자열이면 필드 자체를 제거해 미지정으로 되돌린다. 정규화는 작성 경로와 읽기 경로에서 동일하게 재사용한다. brand 는 검색어 조립에만 쓰이고 링크 문자열 가공에는 일절 관여하지 않는다. brand 옆에는 그 문자열의 원천을 기록하는 brandSource(\"user\" | \"auto\") 필드를 둔다. 이것은 태그 자체의 원천을 나타내는 source 와 완전히 별개의 축이다 — 확인된 브랜드를 담으려고 태그 전체의 source 를 \"auto\" 로 바꾸는 식으로 두 축을 합치면 ADR-027 D7이 노리는 사용자 지정 대 자동 감지의 성과 분리 측정이 오염된다. 정규화는 brand ⟺ brandSource 불변식을 강제해 한쪽만 있는 태그에서는 두 필드를 함께 제거한다. Phase 0에서 brandSource 는 항상 \"user\" 다. 또한 별도의 '확인됨' boolean 을 두지 않는다 — brand 가 저장돼 있다는 사실 자체가 사용자 확인 통과를 뜻하며(미확인 제안을 저장하는 경로가 존재하지 않는다), 이로써 개정 D5의 유일한 금지선인 '미확인 자동 감지 결과의 게시·표시'가 UI 규율이 아니라 데이터 모델 수준에서 구조적으로 막힌다. 브랜드 길이 상한은 note 의 상한과 별개 상수(MAX_GEAR_BRAND_LEN = 40)로 둔다. 검색어 문자열·검색 URL 조립기·허용 호스트 판정은 모듈 내부에 두고 export 하지 않아, URL을 얻는 공개 경로가 resolveGearLink 하나뿐이게 만든다. 부수효과·플랫폼 API·네트워크를 일절 포함하지 않는 순수 모듈이다. 프로젝트의 자동 회귀 게이트(app/src/domain/__tests__/*.test.ts 1-depth glob)에 걸리는 유일한 계층이므로 정책성 규칙 전부를 여기에 모은다. 기존 EquipmentType(barbell/dumbbell/machine)은 '운동 기구' 의미로 이미 점유되어 있어 gear 네임스페이스로 완전히 분리한다."
                   }
                 ]
               }
@@ -151,7 +151,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "GearTagPicker — 게시물 작성 경로에 삽입되는 선택 UI(SRS-038). 진입점은 app/src/features/social/FeedTabScreen.tsx 의 컴포저(kind=text·image)와 app/src/features/session/WorkoutSummaryScreen.tsx 의 운동 공유(kind=workout) 두 곳이다. app/src/features/analytics/CalendarTabScreen.tsx 의 월간 자랑 게시는 대상이 아니다. 카테고리마다 브랜드를 직접 적을 수 있는 선택 입력 필드를 함께 제공한다(개정 ADR-027 D5 경로 1). 비워두면 카테고리 수준 그대로 동작하므로 필수 입력이 아니다. 자동 감지 제안은 이 UI에 없다 — Phase 0 범위 밖이다. 선택 결과는 도메인 정규화를 거쳐 CreatePostDto.data.gear[] 로 전송한다. 저장된 내 장비함이 있으면 초기 후보로 제시해 입력 비용을 낮춘다(SRS-042)."
+                    "text": "GearTagPicker — 게시물 작성 경로에 삽입되는 선택 UI(SRS-038). 진입점은 app/src/features/social/FeedTabScreen.tsx 의 컴포저(kind=text·image)와 app/src/features/session/WorkoutSummaryScreen.tsx 의 운동 공유(kind=workout) 두 곳이다. app/src/features/analytics/CalendarTabScreen.tsx 의 월간 자랑 게시는 대상이 아니다. 카테고리마다 브랜드를 직접 적을 수 있는 선택 입력 필드를 함께 제공한다(개정 ADR-027 D5 경로 1). 비워두면 카테고리 수준 그대로 동작하므로 필수 입력이 아니다. 사용자가 적어 넣은 값에는 brandSource: \"user\" 가 함께 부여된다 — 태그의 source 와는 별개 축이며, 이 화면이 만들어 내는 brandSource 는 언제나 \"user\" 다. 자동 감지 제안은 이 UI에 없다 — Phase 0 범위 밖이다. 선택 결과는 도메인 정규화를 거쳐 CreatePostDto.data.gear[] 로 전송한다. 저장된 내 장비함이 있으면 초기 후보로 제시해 입력 비용을 낮춘다(SRS-042)."
                   }
                 ]
               }
@@ -227,7 +227,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "작성 — 사용자가 GearTagPicker 에서 카테고리를 고르고, 원하면 그 태그에 브랜드를 직접 입력한다(개정 ADR-027 D5 경로 1 — 본인이 착용한 제품을 본인이 적으므로 오인식 개념 자체가 없다. 비워두면 카테고리 수준으로 폴백한다). → domain/gear 정규화(화이트리스트·중복제거·상한 + brand 길이 상한·제어문자 제거·공백 접기) → 각 태그에 source: \"user\" 를 부여(ADR-027 D7) → CreatePostDto.data.gear[] 로 전송. server/prisma/schema.prisma 의 Post.data 는 Json? 불투명 필드이고 CreatePostDto.data 는 @IsObject() 만 걸려 있어 서버 마이그레이션 없이 그대로 저장된다. CreatePostDto.kind 는 @IsIn([\"text\",\"workout\",\"image\"]) 화이트리스트이므로 새 kind 를 만들지 않고 기존 세 kind 위에 태그를 실는다."
+                    "text": "작성 — 사용자가 GearTagPicker 에서 카테고리를 고르고, 원하면 그 태그에 브랜드를 직접 입력한다(개정 ADR-027 D5 경로 1 — 본인이 착용한 제품을 본인이 적으므로 오인식 개념 자체가 없다. 비워두면 카테고리 수준으로 폴백한다). → domain/gear 정규화(화이트리스트·중복제거·상한 + brand 길이 상한·제어문자 제거·공백 접기 + brand ⟺ brandSource 불변식 강제 — 한쪽만 있으면 둘 다 제거) → 각 태그에 source: \"user\" 를 부여하고(ADR-027 D7), 브랜드가 남은 태그에는 그와 별개 축인 brandSource: \"user\" 를 부여한다(두 축을 합치지 않는 이유는 성과 분리 측정 오염 방지) → CreatePostDto.data.gear[] 로 전송. server/prisma/schema.prisma 의 Post.data 는 Json? 불투명 필드이고 CreatePostDto.data 는 @IsObject() 만 걸려 있어 서버 마이그레이션 없이 그대로 저장된다. CreatePostDto.kind 는 @IsIn([\"text\",\"workout\",\"image\"]) 화이트리스트이므로 새 kind 를 만들지 않고 기존 세 kind 위에 태그를 실는다."
                   }
                 ]
               }
@@ -241,7 +241,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "조회 — 피드 응답의 post.data 는 타입 보증이 없는 불투명 JSON이므로 렌더러는 반드시 방어적 파싱을 거친다. 배열 아님·미지 카테고리·중복·상한 초과는 조용히 걸러내고 남은 것만 렌더한다(정규화 함수를 읽기 경로에서도 재사용). 결과는 사진 바깥 하단 GearChips 영역에 접힘 요약칩으로 표시된다."
+                    "text": "조회 — 피드 응답의 post.data 는 타입 보증이 없는 불투명 JSON이므로 렌더러는 반드시 방어적 파싱을 거친다. 배열 아님·미지 카테고리·중복·상한 초과는 조용히 걸러내고 남은 것만 렌더한다(정규화 함수를 읽기 경로에서도 재사용). brand·brandSource 도 같은 정규화를 통과하므로, 불변식이 깨진 항목(brand 만 있거나 brandSource 만 있는 항목)은 읽기 시점에도 브랜드가 제거되어 카테고리 수준으로 폴백한다 — 따라서 렌더되는 브랜드는 언제나 사용자 확인을 통과해 저장된 값뿐이다. 결과는 사진 바깥 하단 GearChips 영역에 접힘 요약칩으로 표시된다."
                   }
                 ]
               }
@@ -425,7 +425,7 @@
         "content": [
           {
             "type": "text",
-            "text": "위상 순서는 SRS-037 → 038 → 039 → 040 → 041 → 042 이며, 서버 집계(SRS-039)가 피드 표시(SRS-040)보다 반드시 먼저 배포되어야 집계 없는 외부 링크가 프로덕션에 노출되는 구간이 생기지 않는다. 자동 검증 게이트는 cd app && npm run typecheck 와 cd app && npm test 두 개뿐이고, 테스트 러너 glob 이 app/src/domain/__tests__/*.test.ts 1-depth 고정이라 자동 회귀가 실제로 걸리는 것은 domain/gear.ts 뿐이다(현재 기준선 83 pass / 0 fail). server 에는 테스트 스크립트가 없으므로 SRS-039 는 수동 검증에 의존한다. 이 제약이 정책성 규칙(카테고리 화이트리스트·링크 선택기와 허용 호스트 판정·고지 판정)을 전부 순수 도메인으로 밀어 넣는 구조적 이유다. 사용자 노출 문자열은 app/src/i18n/locales/ko.ts 와 en.ts 에 플랫 키로 쌍 추가한다."
+            "text": "위상 순서는 SRS-037 → 038 → 039 → 040 → 041 → 042 이며, 서버 집계(SRS-039)가 피드 표시(SRS-040)보다 반드시 먼저 배포되어야 집계 없는 외부 링크가 프로덕션에 노출되는 구간이 생기지 않는다. 자동 검증 게이트는 cd app && npm run typecheck 와 cd app && npm test 두 개뿐이고, 테스트 러너 glob 이 app/src/domain/__tests__/*.test.ts 1-depth 고정이라 자동 회귀가 실제로 걸리는 것은 domain/gear.ts 뿐이다(현재 기준선 104 pass / 0 fail). server 에는 테스트 스크립트가 없으므로 SRS-039 는 수동 검증에 의존한다. 이 제약이 정책성 규칙(카테고리 화이트리스트·링크 선택기와 허용 호스트 판정·고지 판정)을 전부 순수 도메인으로 밀어 넣는 구조적 이유다. 사용자 노출 문자열은 app/src/i18n/locales/ko.ts 와 en.ts 에 플랫 키로 쌍 추가한다."
           }
         ]
       },
@@ -548,6 +548,116 @@
           {
             "type": "text",
             "text": "참조 SRS: SRS-037(도메인 gear 모듈) · SRS-038(작성 시 수동 태그) · SRS-039(클릭 집계 서버) · SRS-040(피드 카드 표시) · SRS-041(장비함 데이터 계층) · SRS-042(장비함 화면). 근거 결정: ADR-027(D1~D8). 발원: BS-003(오늘의 착용장비 수익화 전략). 로드맵: RM-016(P1 Phase 0). 상위 목표 설계: SAD-018 / SRS-026 / RM-013(P3 · Phase 1·2 범위 유지)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "구현 상태"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "브랜드 지원 구현·배포 완료(2026-07-20 · 커밋 7e818fa). 개정 ADR-027 D5의 경로 1(사용자 직접 입력)과 그에 딸린 brand·brandSource 데이터 모델이 코드에 반영되어 Netlify 프로덕션에 배포됐다. 본 설계는 더 이상 코드보다 앞선 문서가 아니다."
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/domain/gear.ts — brand·brandSource 필드, sanitizeBrand(길이 상한 MAX_GEAR_BRAND_LEN=40 · 제어문자 제거 · 공백 접기), brand ⟺ brandSource 불변식 강제, resolveGearLink(GearTag | GearCategory, …)의 검색어 조립에 브랜드 반영. 딥링크는 무가공 통과 유지."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/social/GearTagPicker.tsx — 컴포저의 카테고리별 브랜드 입력(SRS-038). 빈 값이면 정규화가 brand·brandSource 를 함께 제거해 카테고리 폴백."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/social/GearChips.tsx — 칩 라벨 브랜드 병기 + resolveGearLink(tag, …)로 검색어 반영(SRS-040)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "MyGearScreen — 장비함에 브랜드까지 저장(SRS-042 경로)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검증: cd app && npm run typecheck 0 error · cd app && npm test 104 pass / 0 fail. 브랜드 동작 전용 테스트 T21 신설(10항목), 구 D5 시절 '브랜드 폐기'를 고정하던 T8은 보존 검증으로 뒤집었다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "브랜드 도입으로 약화되지 않은 불변식: 링크 조작 금지(brand 는 검색 쿼리 q 값에만, 딥링크 무가공) · 고지 게이트 · 오버레이 금지 · 사용자 수익 환원 영구 배제."
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

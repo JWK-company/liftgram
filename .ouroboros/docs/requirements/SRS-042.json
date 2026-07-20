@@ -30,8 +30,15 @@
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "요구 서술" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -62,40 +69,217 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "수용 기준" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
       },
       {
         "type": "bullet_list",
         "content": [
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "프로필 탭(ProfileTabScreen)에 '내 장비함' 진입점이 있고, 화면 라우트가 RootStackParamList에 등록되어 RootNavigator에서 타입 안전하게 내비게이션된다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비 추가·삭제가 즉시 화면에 반영된다 — userContext의 반응형 구독을 경유하며, 화면 재진입이나 수동 새로고침을 요구하지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비 추가는 확정 카테고리 8종(wristWrap·strap·belt·kneeSleeve·gloves·shoes·chalk·armSleeve) 중 하나를 고르고, 여기에 사용자가 브랜드·모델을 직접 입력해 함께 저장한다(개정 ADR-027 D5 — 허용 3경로 중 '사용자 직접 입력'. 오인식 개념 자체가 없다). 브랜드는 선택 입력이며 비우면 기존 카테고리 수준 폴백 동작 그대로다. 저장 시 brandSource는 항상 \"user\"로 기록되고, 불변식상 brand가 있으면 brandSource도 반드시 있다(정규화가 brand 없는 brandSource를 제거한다)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "내 장비함이 브랜드를 함께 저장·재사용하지 않으면 실재하는 기능적 공백이 생긴다 — SRS-038의 GearTagPicker는 브랜드 입력을 갖는데 장비함이 카테고리만 저장하면, 저장 장비를 재사용하는 순간 브랜드가 유실되어 사용자가 매번 다시 타이핑해야 한다. 따라서 재사용 탭 시 카테고리뿐 아니라 brand·brandSource가 함께 이번 게시물의 태그로 들어가야 한다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "피드 컴포저의 GearTagPicker에서 저장된 장비가 별도 영역으로 먼저 보이고, 한 번의 탭으로 이번 게시물의 태그(source: \"user\")에 brand·brandSource까지 함께 들어간다. 태그 자체의 원천을 뜻하는 source와 브랜드 문자열의 원천을 뜻하는 brandSource는 별개 축이며 혼동하지 않는다. 이미 태그된 항목은 중복 추가되지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비함이 비었을 때 빈 상태 UI가 무엇을 담는 곳인지와 다음 행동(추가하기)을 안내하며, 이 상태에서도 컴포저의 카테고리 태그는 정상 동작한다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "신규·변경 문자열이 ko.ts·en.ts에 쌍으로 존재하고, cd app && npm run typecheck 가 통과한다(본 요구는 순수 도메인 모듈을 신설하지 않아 자동 테스트 회귀 대상은 아니다)." }] }] }
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "프로필 탭(ProfileTabScreen)에 '내 장비함' 진입점이 있고, 화면 라우트가 RootStackParamList에 등록되어 RootNavigator에서 타입 안전하게 내비게이션된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장비 추가·삭제가 즉시 화면에 반영된다 — userContext의 반응형 구독을 경유하며, 화면 재진입이나 수동 새로고침을 요구하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장비 추가는 확정 카테고리 8종(wristWrap·strap·belt·kneeSleeve·gloves·shoes·chalk·armSleeve) 중 하나를 고르고, 여기에 사용자가 브랜드·모델을 직접 입력해 함께 저장한다(개정 ADR-027 D5 — 허용 3경로 중 '사용자 직접 입력'. 오인식 개념 자체가 없다). 브랜드는 선택 입력이며 비우면 기존 카테고리 수준 폴백 동작 그대로다. 저장 시 brandSource는 항상 \"user\"로 기록되고, 불변식상 brand가 있으면 brandSource도 반드시 있다(정규화가 brand 없는 brandSource를 제거한다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "내 장비함이 브랜드를 함께 저장·재사용하지 않으면 실재하는 기능적 공백이 생긴다 — SRS-038의 GearTagPicker는 브랜드 입력을 갖는데 장비함이 카테고리만 저장하면, 저장 장비를 재사용하는 순간 브랜드가 유실되어 사용자가 매번 다시 타이핑해야 한다. 따라서 재사용 탭 시 카테고리뿐 아니라 brand·brandSource가 함께 이번 게시물의 태그로 들어가야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "피드 컴포저의 GearTagPicker에서 저장된 장비가 별도 영역으로 먼저 보이고, 한 번의 탭으로 이번 게시물의 태그(source: \"user\")에 brand·brandSource까지 함께 들어간다. 태그 자체의 원천을 뜻하는 source와 브랜드 문자열의 원천을 뜻하는 brandSource는 별개 축이며 혼동하지 않는다. 이미 태그된 항목은 중복 추가되지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장비함이 비었을 때 빈 상태 UI가 무엇을 담는 곳인지와 다음 행동(추가하기)을 안내하며, 이 상태에서도 컴포저의 카테고리 태그는 정상 동작한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "신규·변경 문자열이 ko.ts·en.ts에 쌍으로 존재하고, cd app && npm run typecheck 가 통과한다(본 요구는 순수 도메인 모듈을 신설하지 않아 자동 테스트 회귀 대상은 아니다)."
+                  }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "작업 범위" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "작업 범위"
+          }
+        ]
       },
       {
         "type": "bullet_list",
         "content": [
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/gear/MyGearScreen.tsx — 신규. 장비 목록·추가·삭제·빈 상태." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/social/GearTagPicker.tsx — SRS-038 산출물. 저장 장비 재사용 영역을 배선." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/navigation/types.ts · app/src/navigation/RootNavigator.tsx — 라우트 등록." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/profile/ProfileTabScreen.tsx — 진입점 추가." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/i18n/locales/ko.ts · en.ts — 문자열 쌍 추가." }] }] }
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/gear/MyGearScreen.tsx — 신규. 장비 목록·추가·삭제·빈 상태."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/social/GearTagPicker.tsx — SRS-038 산출물. 저장 장비 재사용 영역을 배선."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/navigation/types.ts · app/src/navigation/RootNavigator.tsx — 라우트 등록."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/features/profile/ProfileTabScreen.tsx — 진입점 추가."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/i18n/locales/ko.ts · en.ts — 문자열 쌍 추가."
+                  }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -135,15 +319,22 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "구현 상태" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "구현 상태"
+          }
+        ]
       },
       {
         "type": "paragraph",
         "content": [
           {
             "type": "text",
-            "text": "이 개정 명세는 아직 코드에 반영되지 않았다 — 문서가 코드보다 앞서 있다. SRS-037~042는 커밋 1dcf545로 이미 구현·배포 완료이며, 배포된 app/src/domain/gear.ts의 makeTag()는 화이트리스트 재구성 과정에서 brand 키를 의도적으로 폐기하고, gear.test.ts의 T8이 그 폐기를 테스트로 고정하고 있다. 따라서 본 요구가 기술하는 brand·brandSource 저장·재사용은 현재 코드에서 동작하지 않는다. 코드 반영(makeTag 화이트리스트에 brand·brandSource 추가, 불변식 검증, T8 갱신, sanitizer 허용 키 확장, MyGearScreen·GearTagPicker 브랜드 입력·전달)은 후속 작업이다."
+            "text": "커밋 7e818fa 로 코드 반영·배포 완료(2026-07-20). 문서가 코드보다 앞선 상태는 해소됐다 — gear.ts 에 brand·brandSource·sanitizeBrand·MAX_GEAR_BRAND_LEN 이 들어갔고, GearTagPicker·GearChips·MyGearScreen 이 브랜드 입력·표시·저장을 담당한다. T8 은 brand 폐기 고정에서 보존 검증으로 뒤집혔고 T21(10항목)이 신설됐다. 검증: typecheck 0 error · npm test 104 pass / 0 fail."
           }
         ]
       }
