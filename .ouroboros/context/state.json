@@ -1,12 +1,23 @@
 {
   "active_skill": null,
   "skill_step": null,
-  "active_artifact": null,
+  "active_artifact": "ADR-026",
   "gates": {
     "G1": "pass",
-    "G2": "pass"
+    "G2": "pass",
+    "G3": "pass"
   },
-  "last_gate_check": "2026-07-11T04:10:40Z",
-  "last_sync": null,
-  "last_updated": null
+  "last_gate_check": "2026-07-20T08:51:28Z",
+  "last_sync": "2026-07-20T10:10:00Z",
+  "last_updated": "2026-07-20T10:10:00Z",
+  "tasks": {
+    "bs002-audit": "done",
+    "drift-adr-026": "done",
+    "drift-doc-revision": "done",
+    "bugfix-cardio-pr": "done",
+    "bugfix-1rm-effective-weight": "done",
+    "commit": "done",
+    "ucs017-title-fix": "pending-user-decision",
+    "dead-column-cleanup": "pending-user-decision"
+  }
 }

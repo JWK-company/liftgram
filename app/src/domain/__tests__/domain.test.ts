@@ -344,6 +344,24 @@ test('볼륨: 어시스트/맨몸 유효무게로 계산', () => {
   assert.equal(setVolumeKg(ws(30, 8, { loadMode: 'assisted', bodyweightKg: 70 })), 320); // (70-30)*8
   assert.equal(setVolumeKg(ws(20, 5, { loadMode: 'bodyweight', bodyweightKg: 70 })), 450); // (70+20)*5
 });
+// 회귀: 1RM도 유효무게 기준 — raw 무게면 "보조를 키울수록 1RM이 커지는" 역설이 생긴다. SRS-033 AC6
+test('추정1RM: 어시스트는 유효무게(체중-보조) 기준 — 보조↑ 이면 1RM↓', () => {
+  const light = ws(20, 5, { loadMode: 'assisted', bodyweightKg: 70 }); // 유효 50
+  const heavy = ws(40, 5, { loadMode: 'assisted', bodyweightKg: 70 }); // 유효 30 (보조 더 많이 씀)
+  assert.equal(bestEstimatedOneRepMax([light]), estimateOneRepMax(50, 5));
+  assert.ok(
+    bestEstimatedOneRepMax([heavy]) < bestEstimatedOneRepMax([light]),
+    '보조하중이 클수록 추정 1RM은 작아야 한다',
+  );
+});
+test('추정1RM: 맨몸+가중은 체중을 포함, external은 raw 유지', () => {
+  assert.equal(
+    bestEstimatedOneRepMax([ws(20, 5, { loadMode: 'bodyweight', bodyweightKg: 70 })]),
+    estimateOneRepMax(90, 5),
+  );
+  assert.equal(bestEstimatedOneRepMax([ws(100, 5)]), estimateOneRepMax(100, 5));
+});
+
 test('resolveLoadMode: 명시 우선, 맨몸 기구 파생', () => {
   assert.equal(resolveLoadMode({ loadMode: 'assisted', equipment: 'machine' }), 'assisted');
   assert.equal(resolveLoadMode({ loadMode: null, equipment: 'bodyweight' }), 'bodyweight');

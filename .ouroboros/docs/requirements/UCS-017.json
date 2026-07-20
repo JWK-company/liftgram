@@ -7,7 +7,7 @@
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-11T00:00:00Z",
-  "updated": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
   "sync": true,
   "tags": [
     "variant",
@@ -38,7 +38,7 @@
         "content": [
           {
             "type": "text",
-            "text": "사용자는 같은 종목(exercise)이라도 "
+            "text": "사용자는 같은 종목(exercise)이라도 기구(브랜드/유형)에 따라 실제 부하와 자극이 달라지고, 같은 종목 안에서도 세트마다 그립·팔(원암/투암)을 바꿔가며 수행한다. 이 유스케이스는 사용자가 세션·루틴에서 종목의 변형(variant)을 선택하면 시스템이 (exercise_id, variant_key) 버킷 단위로 이전기록·PR을 분리 조회·표시하고, 그 버킷에 기록을 저장하는 흐름을 정의한다. "
           },
           {
             "type": "text",
@@ -47,11 +47,11 @@
                 "type": "strong"
               }
             ],
-            "text": "기구(브랜드/유형)·그립·팔 모드"
+            "text": "변형 버킷의 축은 기구(equip) 1차원"
           },
           {
             "type": "text",
-            "text": "에 따라 실제 부하와 자극이 달라진다. 이 유스케이스는 사용자가 세션·루틴에서 종목의 "
+            "text": "이며(ADR-026), 그립·팔은 버킷을 나누지 않는 "
           },
           {
             "type": "text",
@@ -60,24 +60,11 @@
                 "type": "strong"
               }
             ],
-            "text": "변형(variant)"
+            "text": "세트 속성"
           },
           {
             "type": "text",
-            "text": "을 선택하면, 시스템이 "
-          },
-          {
-            "type": "text",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ],
-            "text": "(exercise_id, variant_key)"
-          },
-          {
-            "type": "text",
-            "text": " 버킷 단위로 이전기록·PR을 분리 조회·표시하고, 그 버킷에 기록을 저장하는 흐름을 정의한다. 현행 v5의 "
+            "text": "("
           },
           {
             "type": "text",
@@ -86,11 +73,24 @@
                 "type": "code"
               }
             ],
-            "text": "machine_variant"
+            "text": "set_logs.grip"
           },
           {
             "type": "text",
-            "text": "(브랜드 단일 축, 머신 전용)을 그립·팔 축으로 일반화한다."
+            "text": "·"
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "set_logs.arm"
+          },
+          {
+            "type": "text",
+            "text": ")으로 기록된다. 현행 v5의 machine_variant(브랜드 단일 축, 머신 전용)은 equip 값공간에 무손실 흡수해 프리웨이트까지 일반화한다."
           }
         ]
       },
@@ -134,11 +134,11 @@
                         "type": "strong"
                       }
                     ],
-                    "text": "변형 선택."
+                    "text": "종목 변형 선택."
                   },
                   {
                     "type": "text",
-                    "text": " 사용자가 세션 또는 루틴에서 해당 종목의 변형을 지정한다 — 기구/브랜드(예: 해머·라이프피트니스·프리웨이트 바벨/덤벨), 그립(오버/언더/뉴트럴/와이드/클로즈), 팔 모드(양팔 bi / 원암 uni). 시스템은 선택된 개별 차원에서 결정적 "
+                    "text": " 사용자가 세션 또는 루틴에서 해당 종목의 변형을 지정한다 — 기구(레벨1: 바벨·덤벨·케이블·머신 등)와 머신 브랜드(레벨2: 해머·라이프피트니스·커스텀 라벨). 시스템은 선택된 기구에서 결정적 "
                   },
                   {
                     "type": "text",
@@ -151,7 +151,7 @@
                   },
                   {
                     "type": "text",
-                    "text": "를 파생한다(모든 차원 기본이면 key=null, 예: 해머+뉴트럴 → "
+                    "text": "를 파생한다(종목 고유 기구 = 기본 버킷 key=null, 예: 해머 → "
                   },
                   {
                     "type": "text",
@@ -160,11 +160,11 @@
                         "type": "code"
                       }
                     ],
-                    "text": "equip:hammer|grip:neutral"
+                    "text": "equip:hammer"
                   },
                   {
                     "type": "text",
-                    "text": ")."
+                    "text": "). 그립·팔은 이 셀렉터에 노출되지 않는다."
                   }
                 ]
               }
@@ -219,37 +219,63 @@
                         "type": "strong"
                       }
                     ],
-                    "text": "무게·횟수 입력(정자세/보조 구분·보정)."
+                    "text": "세트 입력(정자세 reps · 부분반복 · 세트별 그립/팔)."
                   },
                   {
                     "type": "text",
-                    "text": " 사용자가 세트별로 무게와 횟수를 입력한다. 필요 시 총 반복 중 "
-                  },
-                  {
-                    "type": "text",
-                    "marks": [
-                      {
-                        "type": "strong"
-                      }
-                    ],
-                    "text": "정자세 횟수(strict_reps)"
-                  },
-                  {
-                    "type": "text",
-                    "text": "를 구분하고, 어시스티드(음수)·가중(양수) "
+                    "text": " 사용자가 세트별로 무게와 횟수를 입력한다. 주 입력 "
                   },
                   {
                     "type": "text",
                     "marks": [
                       {
-                        "type": "strong"
+                        "type": "code"
                       }
                     ],
-                    "text": "보정 무게(load_adjust_kg)"
+                    "text": "reps"
                   },
                   {
                     "type": "text",
-                    "text": "를 입력한다. 미입력 시 전부 정자세·보정 0으로 취급한다."
+                    "text": "는 정자세 횟수이며, 깔짝 반복은 세트 행의 ▼ 펼침 상세에서 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "partial_reps"
+                  },
+                  {
+                    "type": "text",
+                    "text": "로 따로 넣는다(볼륨·PR·추정1RM 제외). 같은 펼침의 변형 칩에서 그 세트의 그립(오버/언더/뉴트럴/와이드/클로즈)과 팔(원암 uni / 미지정=투암)을 고른다 — 세트마다 다르게 지정할 수 있으며 이전기록·PR 버킷은 나뉘지 않는다. 어시스티드·가중 보정은 사용자가 세트마다 입력하지 않고, 종목의 하중모드("
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "load_mode"
+                  },
+                  {
+                    "type": "text",
+                    "text": ")와 프로필 체중("
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "bodyweight_kg"
+                  },
+                  {
+                    "type": "text",
+                    "text": ")에서 유효무게로 파생된다."
                   }
                 ]
               }
@@ -272,20 +298,7 @@
                   },
                   {
                     "type": "text",
-                    "text": " 세션 완료 시 세트들은 해당 변형 버킷에 저장되고, PR은 "
-                  },
-                  {
-                    "type": "text",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ],
-                    "text": "(exercise_id × variant_key)"
-                  },
-                  {
-                    "type": "text",
-                    "text": " 단위로 검출·갱신된다. 총중량(volume)은 보정 무게 반영·치팅(정자세 vs 보조) 규칙을 적용해 산출한다."
+                    "text": " 세션 완료 시 세트들은 해당 변형 버킷에 저장되고, PR은 (exercise_id × variant_key) 단위로 검출·갱신된다(유산소 종목은 PR 검출 제외). 총중량(volume)은 유효무게(하중모드+체중 파생) × 정자세 reps로 합산하고, 추정 1RM은 같은 유효무게를 입력으로 Epley 식(ADR-010)으로 추정한다 — 두 지표 모두 부분반복은 포함하지 않는다."
                   }
                 ]
               }
@@ -423,7 +436,7 @@
                   },
                   {
                     "type": "text",
-                    "text": " 변형은 "
+                    "text": " 변형은 equipment==='machine' 게이팅을 넘어 바벨·덤벨·케이블에도 확장된다(예: 바벨 종목을 덤벨로 수행 → "
                   },
                   {
                     "type": "text",
@@ -432,11 +445,34 @@
                         "type": "code"
                       }
                     ],
-                    "text": "equipment==='machine'"
+                    "text": "equip:dumbbell"
                   },
                   {
                     "type": "text",
-                    "text": " 게이팅을 넘어 바벨·덤벨·케이블에도 확장된다(예: 바벨+언더그립+원암 → "
+                    "text": "). 다만 분리 축은 기구뿐이며, 같은 기구에서 그립·팔만 바꾼 경우는 버킷이 나뉘지 않고 같은 이전기록·PR을 공유한다(세트 속성으로만 남는다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "레거시 3차원 버킷 병합."
+                  },
+                  {
+                    "type": "text",
+                    "text": " 그립·팔 축으로 분리 저장되어 있던 예전 기록은 부팅 시 멱등 백필("
                   },
                   {
                     "type": "text",
@@ -445,11 +481,50 @@
                         "type": "code"
                       }
                     ],
-                    "text": "equip:barbell|grip:under|arm:uni"
+                    "text": "backfillDropGripArmV11"
                   },
                   {
                     "type": "text",
-                    "text": "). 프리웨이트에서 그립·팔 축만으로도 버킷이 분리된다."
+                    "text": ")이 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_grip"
+                  },
+                  {
+                    "type": "text",
+                    "text": "·"
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_arm"
+                  },
+                  {
+                    "type": "text",
+                    "text": "을 비우고 기구만으로 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key"
+                  },
+                  {
+                    "type": "text",
+                    "text": "를 재계산해 한 버킷으로 합친다. 같은 종목이 즉석 추가·루틴 승계 등 출처에 따라 다른 버킷으로 파편화되어 이전기록이 비던 문제가 해소된다."
                   }
                 ]
               }
@@ -565,7 +640,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "선택 가능한 변형 차원(기구/브랜드·그립·팔)의 값공간이 종목 유형(카탈로그 equipment)에 맞게 노출된다."
+                    "text": "종목 변형 셀렉터에는 기구/브랜드 값공간이 종목 유형(카탈로그 equipment)에 맞게 노출되고, 그립·팔 값공간은 세트 행의 변형 시트에 노출된다."
                   }
                 ]
               }
@@ -610,7 +685,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "완료된 세트가 해당 "
+                    "text": "완료된 세트가 해당 (exercise_id, variant_key) 버킷에 저장되고, 종목 레벨에는 "
                   },
                   {
                     "type": "text",
@@ -619,11 +694,37 @@
                         "type": "code"
                       }
                     ],
-                    "text": "(exercise_id, variant_key)"
+                    "text": "variant_equipment"
                   },
                   {
                     "type": "text",
-                    "text": " 버킷에 저장되고, 개별 차원 컬럼(equipment/grip/arm)도 함께 기록되어 group-by 분석이 가능하다."
+                    "text": "가 함께 기록되어 기구별 group-by 분석이 가능하다. 그 세트의 그립·팔은 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "set_logs.grip"
+                  },
+                  {
+                    "type": "text",
+                    "text": "·"
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "set_logs.arm"
+                  },
+                  {
+                    "type": "text",
+                    "text": "에 남아 세트 단위 group-by로 접근한다(버킷 필터로는 쓰이지 않는다)."
                   }
                 ]
               }
@@ -651,7 +752,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "정자세/보조 구분과 보정 무게가 반영된 총중량(volume)이 산출되어 세션 요약에 집계된다."
+                    "text": "유효무게(종목 하중모드 + 프로필 체중으로 파생 — 어시스트=체중−보조, 맨몸=체중+가중, 그 외 raw) × 정자세 reps로 총중량(volume)이 산출되어 세션 요약에 집계되고, 부분반복은 제외된다."
                   }
                 ]
               }
@@ -690,7 +791,50 @@
         "content": [
           {
             "type": "text",
-            "text": "elaborates: URS-016(변형별 진행성 추적 니즈). 관련 설계 근거 — variant_key canonical 규약·v6 스키마 컬럼(workout_exercises/routine_exercises: variant_key indexed + variant_equipment/grip/arm; set_logs: strict_reps/load_adjust_kg), prev/PR/volume 버킷 필터 일반화(machine_variant → variant_key 치환)."
+            "text": "elaborates: URS-016(변형별 진행성 추적 니즈). 관련 설계 근거 — variant_key canonical 규약·v6 스키마 컬럼(workout_exercises/routine_exercises: variant_key indexed + variant_equipment, 레거시 variant_grip/arm은 읽기 하위호환용 dead column), 세트 속성 컬럼(set_logs: arm v8 · grip v11 · partial_reps v9), 종목 단위 load_mode + user_profiles.bodyweight_kg(v12) 유효무게 파생, prev/PR/volume 버킷 필터 일반화(machine_variant → variant_key 치환). 버킷 축을 기구 1차원으로 좁히고 세트 정밀도 필드를 교체한 결정은 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "ADR-026"
+          },
+          {
+            "type": "text",
+            "text": "(supersedes ADR-025)에 기록되어 있다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 이력"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "2026-07-20 개정."
+          },
+          {
+            "type": "text",
+            "text": " 본문이 ADR-025의 3차원(기구·그립·팔) 변형 버킷과 세트별 strict_reps·load_adjust_kg를 전제하고 있었으나, 실제 구현은 v8~v13에서 다른 모델로 확정되어 있었다. 그립·팔은 종목 변형 버킷에서 빠져 세트 속성(set_logs.arm·grip)이 되었고 종목 셀렉터는 기구·머신브랜드 2축만 노출하며, 레거시 3차원 버킷은 부팅 백필로 기구 버킷에 병합되었다. 세트 정밀도 축도 계산에 한 번도 연결되지 않은 strict_reps·load_adjust_kg 대신 partial_reps(볼륨·PR 제외)와 종목 단위 load_mode + 프로필 체중 기반 유효무게로 대체되었다. 이에 맞춰 개요·주 흐름 1/3/4·대안 흐름(그립·팔 축 분리 삭제, v11 병합 백필 추가)·사전/사후 조건·연결을 실제 동작으로 고쳤다. 근거 결정은 ADR-026(supersedes ADR-025)."
           }
         ]
       }

@@ -4,73 +4,39 @@
 
 | 상태 | 시작 |
 |------|------|
-| 구현·추적 동기 | 2026-07-13 |
+| BS-002 감사 + 드리프트 해소 + 버그 수정 완료 | 2026-07-20 |
 
 ## 활성 기획
 
 | 이름 | 단계 | 비고 |
 |------|------|------|
-| P0/P1 코어 구현 | 구현 완료 | 코드↔요구 딥링크 동기(codescan) |
-| P2/P3 확장 발급분 | Draft(미착수) | SRS-021~027·SAD-014~018·ADR-020~024·RM-009~014·UCS-012~016 |
+| BS-002 계열 상태 정리 | 완료 | BS-002 Draft→Approved · 본문 실측 갱신 |
+| v11/v12 문서-코드 드리프트 해소 | 완료 | ADR-026 발급(Approved)·ADR-025→Replaced · 본문 개정 5건 |
+| 실버그 2건 수정 | 완료 | 유산소 PR 오탐 · 1RM 유효무게 (83/83 pass, tsc clean) |
 
-## 작업 범위
+## 작업 범위 (이번 세션 변경분 — 미커밋)
 
-- 코드=별도 앱(app/·server/) — 소스 `@plm SRS-NNN` 주석으로 요구 역링크.
-- 기획 산출물(URS·UCS·SRS·SAD·ADR·RM)=`.ouroboros/docs/*` — 본문·관계 로컬 SSOT, Status=PLM.
+- 아티팩트: `product/BS-002.json` · `decisions/ADR-026.json`(신규) · `decisions/ADR-025.json` · `requirements/{URS-016,UCS-017,SRS-029}.json` · `design/SAD-019.json` · `roadmap/RM-015.json`
+- 코드: `app/src/data/workoutRepository.ts` · `app/src/data/analyticsRepository.ts` · `app/src/domain/oneRepMax.ts` · `app/src/domain/__tests__/domain.test.ts`
+- 문서: `docs/qa/20260720_bs002-implementation-audit_qa.md`
 
-## 게이트 (요구→설계→코드)
+## 현재 위치
+
+- **마지막 완료**: 드리프트 해소 + 버그 수정 전량. PLM 동기 완료(10건 upsert·관계 +2), `/gates` orphan 0, PLM 상태 검증 완료.
+- **종목 변형 계열 상태 확인 완료**: SRS-028·URS-016·UCS-017·SAD-019·RM-015·ADR-026 전부 Approved(ADR-025는 Replaced). 추가 전이 대상 없음. 변형 관련 **Code 아티팩트 21건은 Draft**이나 이는 `plm_codescan.py:247`이 status를 항상 Draft로 하드코딩하기 때문 — 구현 완료 표식은 `build_state=as_built`이며, 수동 전이해도 다음 codescan에서 되돌아간다(전체 Code 470건 전부 Draft).
+- **다음 작업(사용자 결정 대기)**:
+  1. UCS-017 제목 정정 여부 (대시보드 표시명 변경이라 승인 필요)
+  2. dead column 4종 + 죽은 스타일/i18n 키 정리 (ADR-026이 별도 결정으로 유보)
+  3. BS-002 잔여 백로그 8건 — 변형 계열은 #19 그립 표시·#26 원암 배지·#21 카탈로그 통합 확대
+
+## 게이트 (요구→설계)
 
 | 게이트 | 상태 |
 |--------|------|
-| G1 요구 (모든 SRS가 URS에 연결) | pass (orphan 0) |
-| G2 설계 (모든 SAD가 SRS에 연결) | pass (orphan 0) |
-| G3 구현 (Code→SRS realizes) | pass — Code 261·realizes 275 딥링크 (codescan 2026-07-18: SRS-033 realizes 36·SRS-001 realizes 17) |
-
-## 종목 자세 미디어 (2026-07-13 · 사용자 피드백)
-
-- **SRS-032 자세 사진·설명** — 이름만으로 모르는 종목에 시작/끝 사진 교차 시연(움짤 효과) + 한국어 자세설명 + 출처 크레딧. 소스=free-exercise-db, jsDelivr CDN 서빙(서버·스키마 변경 0, resolveMediaUrl 절대URL 통과 재사용). 129/144 종목 매핑(LLM 다중에이전트 정확매칭)+한국어 번역 정적 동봉. Status=Draft.
-  - **라이선스(원문 확인)**: LICENSE.md·GitHub 모두 **Unlicense(퍼블릭 도메인)** — 이미지 포함 리포 전체·**상업이용/판매 자유·출처표기 의무 없음**. (앞서 'CC-BY-SA·Everkinetic'은 조사 에이전트 추정 오류 → 정정.) 잔여 리스크=이미지 원출처 미문서화(chain-of-title, 낮음) → 유료 상용 시 IP 검토 권장.
-  - **무료 GIF는 없음**(전부 유료 API 종속) → 사진 2컷 교차로 대체. 실제 GIF 원하면 ExerciseDB 유료 구매 후 URL 교체.
-
-## 세트 로깅 확장 (2026-07-13 · 사용자 피드백)
-
-- **프리레이 값 우선순위(SRS-010)** — 같은 루틴 반복 시 지난 세션의 세트별 무게·횟수가 유지되도록 `prepareTemplateSets` 우선순위를 `prev(지난 세션 세트별) → 루틴 목표 → 스냅샷 → 기본`으로 변경(기존엔 루틴 목표(targetReps=8)가 prev를 덮어 매번 8로 초기화됨). 검증: 루틴 2회차서 이전 [13,8,8] 그대로 프리레이.
-
-- **세트별 그립(SRS-028, 스키마 v11)** — 그립을 종목 변형에서 **세트 단위**(set_logs.grip)로 이동(팔 v8과 동일). 세트행 '변형' 칩 1칸에 팔+그립 통합(모바일 공간 절약)→시트로 선택. 종목 변형 버킷은 기구만(레거시 grip/arm은 backfillDropGripArmV11이 버킷서 제거해 통합).
-- **종목별 볼륨(SRS-005)** — 각 종목 패널에 해당 종목 볼륨 표시(전역 볼륨과 동일 정의, 1.5s 폴링). 맨몸·무게0이면 '총 N회'로 폴백(맨몸 종목은 세트 기본 무게 0으로 프리레이 — 20kg 오프리필 제거).
-- **이전기록 지우기(SRS-004)** — 종목별 '이전기록 지우기/표시' 토글(세션 로컬 숨김, 이력 삭제 아님). 새 루틴에 같은 종목 담을 때 이전기록 안 보고 싶으면 숨김.
-
-## 신규 발급 (2026-07-13 · 사용자 피드백 반영)
-
-- **SRS-030 유산소(cardio) 통합 기록** — 별도 탭 대신 종목의 한 종류(kind=cardio)로 통합. set_logs v10(duration_sec·distance_m), 시간·거리 세트 UI, 볼륨/PR 제외, 로잉 머신 kind 승격 백필. derives_from URS-001. Status=Draft(대시보드 승격 대기).
-- **SRS-031 종목 찾기 도우미(스무고개)** — 부위→**동작/자세**(큰 근육군: 밀기·당기기·스쿼트·힌지·서서/앉아서 등) 또는 부위→기구(작은 근육군/유산소) 다단계 세분화 가이드. FINDER_TREE 큐레이션(스키마 무변경, 커버리지 단위테스트). picker 흐름 합류. derives_from URS-011·URS-001. Status=Draft. (초기 '경량판=근육군+기구'가 사용자 피드백으로 세분화판으로 강화됨.)
-- **유산소 라벨** — 목록·필터칩에서 근육 라벨(전신) 대신 '유산소' 태그 + 유산소 전용 필터칩.
-- 스토리 UX: 성공 피드백 없던 것 → 썸네일·미열람 링(인스타/카톡식)·성공 안내·실패 Alert (SRS-019, 버그 아님·어포던스 갭 해소).
-
-## 신규 구현 (2026-07-18 · 사용자 피드백)
-
-- **SRS-033 몸무게 기반 유효 볼륨** — 어시스트(보조) 종목은 유효무게 = **체중 − 보조무게**(많이 걸수록 실제 든 무게↓), 맨몸 종목은 유효무게 = **체중 + 가중무게**(허리 가중). 스키마 v12(user_profiles.bodyweight_kg·exercises.load_mode, 둘 다 optional·비파괴). 도메인 순수함수 `effectiveWeightKg`+`resolveLoadMode`(명시 load_mode 우선, 없으면 기구로 파생: 맨몸→bodyweight). LoggedSet에 loadMode·bodyweightKg 주입하는 enrichment로 라이브·완료 볼륨·PR·추정1RM·분석 전 집계 통과. 어시스트 3종(풀업·친업·딥스) load_mode='assisted' 시드+`backfillLoadModeV12` 부팅 백필. 프로필 체중 스테퍼, 세트 컬럼 헤더 하중모드별(보조/가중), 체중 미설정 시 raw 폴백+안내. 도메인 유닛테스트 5종. **드래프트 검증**: 체중 70 → 딥스(맨몸) +20×8=720kg, 어시스트풀업 70−30×8=320kg, 전역 1040kg ✓. derives_from URS-001. Status=Draft.
-- **SRS-001 커스텀 운동 이름만으로 생성** — 리스트에 원하는 종목 없을 때: 근육군·기구 미선택이어도 **이름만으로** 생성 가능(미지정 시 '기타'로 폴백), 리스트 노출, 상세→수정에서 이름 직접 변경. 폼 라벨 '*'는 필수(이름)만 유지, 주근육군·기구는 선택으로 정정. **드래프트 검증**: 이름만 생성(primary=['other']·equipment='other'·is_custom) → 리스트 노출 → 리네임 영속 ✓. (@plm SRS-001)
-- **PLM 동기(2026-07-18)** — SRS-033 doc·derives_from(URS-001) 동기 + codescan 전량 재스캔(Code 261·realizes 275, SRS-033 realizes 36·SRS-001 realizes 17·code_refs 26건 역기재). codescan 64자 초과 Code 키 400 버그 수정(`cap_code`: 초과 시에만 결정적 해시 축약 — 짧은 키 보존).
-- **세션 UI 개선(2026-07-18, SRS-004)** — (1) 슈퍼셋: 멤버 종목을 개별 파란 테두리 대신 **하나의 공통 컨테이너**(테두리+"슈퍼세트" 헤더+"해제"+멤버 사이 구분선)로 묶어 '무엇과 묶였는지' 명확화(ActiveWorkoutScreen에서 같은 supersetGroup 멤버를 첫 위치에 모아 렌더, ExerciseBlock `insideSuperset`으로 개별 테두리·배지·이동/슈퍼셋버튼 숨김). (2) 세트행 과밀 해소: 상시 컬럼을 **세트#·이전·무게·횟수·✓**로 축소(무게/횟수 입력폭 약 2배 → 짤림 해소), **부분반복·변형(팔·그립)·삭제는 `⋯`로 펼침**(값 있으면 primary 점등). 폰 뷰포트(390) 검증: 슈퍼셋 묶음·해제·⋯펼침·무게 안짤림 확인. restore로 프로덕션 발행(`9bdc97f0`).
-- **프로덕션 배포(2026-07-18) ✅ 완료** — Netlify는 크레딧 소진 시 *신규* 배포(git 빌드·`--prod` CLI 업로드)를 `403 "credit usage exceeded - new deploys blocked"`로 차단하지만, **이미 업로드된 `ready` 드래프트를 production으로 승격(`POST /deploys/{id}/restore`)하는 건 신규 배포가 아니라 통과**함. 검증된 클린 빌드(`5149ba4d…`)를 restore로 발행 → `https://comforting-empanada-d0f054.netlify.app` 프로덕션에 SRS-033·커스텀운동 라이브(sw·JS 번들 해시 일치 확인). (빌드 파이프라인 자동배포는 여전히 크레딧 필요 — 다음 배포도 로컬 빌드→드래프트→restore 패턴 사용.)
-
-## 최근 구현(Approved 요구 실현 — 이번 세션)
-
-- SRS-011 책임감 루프: 운동 캘린더(월별 지속성·스트릭·주간목표·주말 포함/제외)·오운완 자동 공유 루프·이번 달 자랑.
-- SRS-028 변형: 편측(원암/투암)을 종목 변형→**세트 단위**로 이동(set_logs.arm, v8). 라벨 원암(원레그)/투암(투레그).
-- SRS-029 로깅 정밀도: 보조·가중(loadAdjust)·정자세비중(strictReps) 폐기 → **부분반복(깔짝)**(set_logs.partial_reps, v9). 정자세만 볼륨/PR, 부분반복 제외·이전기록 구분.
-- SRS-002/004 루틴·세션: 종목별 슈퍼세트(루틴+운동중 즉석)·운동중 이름 변경.
-- SRS-001 종목: 어시스트(풀업/친업/딥스)·상용 종목 24개 추가.
-- SRS-007 피드: 워크아웃 카드 세분화(확장 시 브랜드·메모·부분반복).
-- 휴식 알림음 커스텀(프리셋·음량·미리듣기), 피드백 상태 태그 색 구분.
-
-## 드리프트 해소
-
-- **SRS-029 본문** 갱신 완료(2026-07-13) — 보정(보조/가중) 무게 폐기 반영, 부분반복(깔짝) 기준으로 재작성·동기(doc✓). 제목: "…정자세/부분반복(깔짝) 구분 (볼륨·PR 제외)".
-- **ADR-019** In Review 유지(사람 결정) — 수익화 전략 미확정.
-- **SRS-001 시드 무결성**(2026-07-13) — 통합 소스(인클라인 바벨/덤벨 프레스)를 시드에 넣어 부팅 시 Duplicate key 크래시 발생하던 것 수정: 통합 소스 시드 제거 + seedRunner 방어 폴백. 드래프트 재검증(재시드·리로드 무오류).
+| G1 요구 (모든 SRS가 URS에 연결) | pass (PLM /gates orphan 0) |
+| G2 설계 (모든 SAD가 SRS에 연결) | pass |
+| G3 구현 (모든 Code가 SRS/SAD에 연결) | pass |
 
 ## 차단 요소
 
-- 프로덕션 배포: Netlify 무료 크레딧 소진으로 *신규* 배포(git 빌드·`--prod`)는 차단이나, **로컬 빌드→CLI 드래프트 업로드→`restore`로 production 승격** 패턴으로 배포 가능(신규 배포 아님 → 크레딧 무관). 2026-07-18 이 방식으로 최신 빌드 프로덕션 발행 완료. (2026-08-08 크레딧 리셋 후 git 자동배포 정상화 예상.)
+- SRS-036: 카카오 REST 키 발급(사용자 액션) — 미해소, Draft 유지

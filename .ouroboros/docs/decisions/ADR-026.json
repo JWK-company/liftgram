@@ -1,0 +1,784 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-026",
+  "type": "ADR",
+  "title": "종목 변형 축 축소 + 세트 정밀도 필드 교체 — 버킷은 기구 1축, 그립·팔은 세트 속성 (ADR-025 대체)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-20T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "variant",
+    "schema",
+    "decision",
+    "as-built"
+  ],
+  "relations": {
+    "supersedes": [
+      "ADR-025"
+    ],
+    "informs": [
+      "SAD-019",
+      "SRS-028",
+      "SRS-029",
+      "SRS-033"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "ADR-025는 종목 변형을 고정 순서 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "[equip, grip, arm]"
+          },
+          {
+            "type": "text",
+            "text": " 3차원 canonical variant_key로 모델링하고, prev/PR/volume/history 조회 단위를 (exercise_id × variant_key) 버킷으로 정했다. 이 결정의 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "메커니즘"
+          },
+          {
+            "type": "text",
+            "text": " — 세그먼트 문자열 규약·derived-on-write 저장·단일 등가 필터·machine_variant의 equip 흡수 — 은 코드에 그대로 구현되어 지금도 유효하다(domain/variants.ts:27-36, schema.ts:76/126, migrations.ts v6)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "그러나 v8~v13 구현·사용 과정에서 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "차원의 소유 레벨"
+          },
+          {
+            "type": "text",
+            "text": " 자체가 실측으로 뒤집혔다. 후속 인앱 피드백이 직접적이었다 — #30 \"원암옵션은 운동종목에 묶이는게 아니라 각 세트에 묶여야함\", #33 \"원암 투암을 한종목에서 바꿀수 있는것처럼 그립도 마찬가지\", #36 \"세트별 정보가 많다보니 휴대폰에서 볼때 꾸겨져서 보임\". 실제로 사용자는 한 종목 안에서 세트마다 투암→원암으로 넘어가고 그립을 바꾼다(BS-002 #26 원문도 \"같은종목 투암으로 하다 원암으로 진행\"이었다). 종목 레벨 버킷 모델에서는 이를 기록하려면 세트 도중 종목 변형을 갈아야 하고, 그 순간 이전기록·PR 버킷이 통째로 바뀌어 버린다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "추가로 (a) 같은 종목이 즉석 추가·루틴 승계 등 출처에 따라 다른 grip/arm 조합을 물고 들어와 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "한 종목이 여러 버킷으로 파편화"
+          },
+          {
+            "type": "text",
+            "text": " 되어 이전기록이 비는 문제, (b) 3차원 셀렉터가 세트 행을 과밀하게 만든 문제(#36)가 겹쳤다. 한편 세트 정밀도 축(ADR-025가 전제한 strict_reps·load_adjust_kg)은 구현 단계에서 한 번도 계산에 연결되지 않은 채 v9 partial_reps와 v12 load_mode+bodyweight_kg로 대체되었다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "ADR-025는 이 상황을 스스로 예고했다 — "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "\"핵심 리스크는 초기 variant_key 규약(차원 순서·값공간·null 표현) 확정이다. 출시 후 규약을 바꾸면 기존 버킷 문자열이 어긋나 이력 재매핑 마이그레이션이 필요하다.\""
+          },
+          {
+            "type": "text",
+            "text": " 그 재매핑은 v11에서 실제로 집행되었으나(backfillDropGripArmV11), 결정 기록이 남지 않아 문서와 코드가 어긋난 채 방치되었다. 본 ADR은 그 규약 변경을 사후 확정·기록한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "ADR-025를 대체한다. 변경은 두 축이며, 나머지 메커니즘은 그대로 승계한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "1. 변형 버킷 축 = 기구(equip) 1차원."
+          },
+          {
+            "type": "text",
+            "text": " 그립·팔은 종목 변형 버킷에서 제외하고 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "세트 속성"
+          },
+          {
+            "type": "text",
+            "text": " 으로 소유를 옮긴다(set_logs.arm v8 · set_logs.grip v11). 세트별 그립·팔은 기록·표시 대상이며 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "이전기록·PR·볼륨 버킷을 나누지 않는다"
+          },
+          {
+            "type": "text",
+            "text": " . 종목 변형 셀렉터(VariantSelector)는 기구(레벨1)와 머신 브랜드(레벨2)만 노출한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "2. 세트 정밀도 필드 교체."
+          },
+          {
+            "type": "text",
+            "text": " strict_reps(정자세 비중)·load_adjust_kg(세트별 부호 보정)를 폐기하고 다음으로 대체한다 — "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "partial_reps"
+          },
+          {
+            "type": "text",
+            "text": "(v9): 주 입력 reps를 정자세로 두고 부분반복(깔짝)만 추가 입력, 볼륨·추정1RM·PR에서 제외. "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "load_mode + user_profiles.bodyweight_kg"
+          },
+          {
+            "type": "text",
+            "text": "(v12): 보정을 세트가 아니라 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "종목 단위 하중모드"
+          },
+          {
+            "type": "text",
+            "text": " (assisted/bodyweight/external)와 사용자 체중으로 파생해 유효무게를 계산(어시스트=체중−보조, 맨몸=체중+가중)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "3. ADR-025에서 그대로 승계(계속 유효):"
+          },
+          {
+            "type": "text",
+            "text": " canonical variant_key 문자열 규약(세그먼트 \"<dim>:<value>\", 전 차원 기본이면 null), derived-on-write 저장(variant_key 인덱스 + 개별 차원 컬럼), 단일 등가 필터 Q.where('variant_key', key), v5 machine_variant→\"equip:<brand>\" 문자열 동형 흡수, 무손실 마이그레이션 원칙. 차원 순서 [equip, grip, arm]도 규약으로는 유지한다(런타임에서 grip·arm 세그먼트가 생성되지 않을 뿐이며, 향후 축 재도입 시 문자열 호환)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "4. 레거시 컬럼 보존 정책."
+          },
+          {
+            "type": "text",
+            "text": " strict_reps · load_adjust_kg · variant_grip · variant_arm · machine_variant는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "읽기 하위호환용으로 잔존"
+          },
+          {
+            "type": "text",
+            "text": " 하며 계산·UI 어디에서도 쓰지 않는다(dead column). 삭제는 별도 정리 결정으로 다룬다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "채택 이유:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "실사용 정합 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "한 종목 안에서 세트마다 원암/투암·그립을 섞는 것이 실제 수행 방식이다(#30·#33·#26 원문). 세트 소유가 사용자 행동과 일치한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "버킷 희소화 방지 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "기구×그립×팔 조합으로 버킷을 나누면 각 버킷의 표본이 급감해 '이전기록 없음'이 상시화된다. 출처(즉석·루틴)별 조합 차이로 같은 종목이 파편화되던 문제도 함께 해소된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "입력 부담 최소 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "load_mode는 종목 메타에서 파생되므로 사용자 입력이 0회다. 세트마다 보정무게를 부호와 함께 넣게 하는 load_adjust_kg보다 마찰이 작고, partial_reps도 필요한 세트에서만 추가 입력한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "UI 과밀 해소(#36) — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "종목 셀렉터는 기구 축만 남기고, 그립·팔·부분반복은 세트 행의 ▼ 펼침 상세로 내려 기본 화면의 세트 행을 좁게 유지한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "기각 대안:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(a) 3차원 버킷 유지 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "세트별 혼합 기록이 구조적으로 불가하고 버킷 희소화를 감수해야 한다. 위 피드백을 수용 불가. 기각."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(b) 그립·팔을 버킷과 세트에 이중 기록 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "진실 원천이 둘이 되어 정합 비용·모순(종목 버킷은 언더인데 세트는 뉴트럴)이 생긴다. 기각."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(c) 세트별 load_adjust_kg 유지 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "같은 종목에서 매 세트 같은 값을 반복 입력해야 하고, 체중 변화가 과거 기록에 반영되지 않는다. 종목 단위 load_mode + 체중 파생이 우월. 기각."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "(d) 그립·팔 축만 옵트인 버킷(설정으로 켜기) — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "같은 데이터가 사용자 설정에 따라 다른 버킷에 들어가 이력 비교가 깨진다. 기각."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "장점:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트 단위 수행 실태(원암 전환·그립 변경)를 왜곡 없이 남기고, 종목 버킷은 기구 축으로 조밀하게 유지된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "볼륨·PR·1RM 규칙이 단순해진다 — 유효무게(종목 load_mode+체중) × 정자세 reps 하나로 통일되고 부분반복은 제외."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트 행이 좁아져 거치형 환경 가독성이 개선된다(#36)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "트레이드오프:"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "그립·팔별 이전기록·PR 분리는 포기 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "BS-002 #19·#26이 기대한 '변형별 분리 기록' 중 그립·팔은 표시 수준으로 축소된다. 렛풀다운 언더 vs 뉴트럴의 PR 비교는 불가. 필요해지면 세트 단위 group-by 분석으로 접근하거나 축을 재도입해야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "이력 재매핑을 이미 지불 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "backfillDropGripArmV11이 기존 3차원 버킷 문자열을 기구 버킷으로 병합했다(부팅 시 멱등 실행). ADR-025가 경고한 되돌림 비용이 실제로 발생했으며, 되돌리려면 병합 전 버킷을 복원할 수 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "dead column 4종 잔존 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "strict_reps·load_adjust_kg·variant_grip·variant_arm이 스키마에 남아 신규 기여자에게 오해를 준다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "세트별 그립의 조회면 미완 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "완료 세션 상세·이전기록 스냅샷에 grip이 노출되지 않아 '나중에 확인' 목적이 아직 미충족(BS-002 잔여 #19)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "되돌림 비용: 높음"
+          },
+          {
+            "type": "text",
+            "text": " — 컬럼·필터는 되돌릴 수 있으나 v11 백필이 기존 버킷 문자열을 이미 병합해 원래 분리 상태를 복원할 수 없다. 축 재도입은 '신규 기록부터 적용'으로만 가능하다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "supersedes: ADR-025(3차원 변형 버킷 + strict_reps/load_adjust_kg 전제). informs: SAD-019(변형 데이터 모델 아키텍처), SRS-028(변형 선택·버킷), SRS-029(세트 로깅 정밀도), SRS-033(유효 볼륨·하중모드). 기원 피드백: BS-002 #19·#21·#26 + 후속 인앱 아이디어 #30·#33·#36."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 코드: domain/variants.ts:27-36(canonical key) · data/workoutRepository.ts:186-211(backfillDropGripArmV11) · features/session/ExerciseBlock.tsx:68-70(recordVariant grip/arm=null)·:512-515(setSetArm/setSetGrip) · components/VariantSelector.tsx:66-110(기구·브랜드 2축) · db/schema.ts:149-153(strict_reps·load_adjust_kg 잔존 / arm·grip·partial_reps) · domain/volume.ts:5-28(resolveLoadMode·effectiveWeightKg·effectiveReps)."
+          }
+        ]
+      }
+    ]
+  }
+}

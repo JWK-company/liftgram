@@ -67,6 +67,16 @@ async function loadModeByExerciseId(exerciseIds: string[]): Promise<Map<string, 
   return map;
 }
 
+// 주어진 종목 id 중 유산소(kind='cardio')인 것들의 집합. PR 감지에서 유산소를 배제하는 데 쓴다. @plm SRS-030
+async function cardioExerciseIdSet(exerciseIds: string[]): Promise<Set<string>> {
+  const uniq = [...new Set(exerciseIds)];
+  const set = new Set<string>();
+  if (!uniq.length) return set;
+  const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(uniq))).fetch();
+  for (const e of exs) if (e.kind === 'cardio') set.add(e.id);
+  return set;
+}
+
 // 수행 완료된 세트 판정 — done===false(프리레이 미완료 템플릿)만 제외.
 // null(레거시 세트)·true는 모두 '수행됨'으로 취급(하위호환). 볼륨/PR/이력은 이것만 센다.
 function isPerformed(s: SetLog): boolean {
@@ -915,6 +925,10 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   const performedByVariant = new Map<string, { exerciseId: string; variant: string | null; logged: LoggedSet[] }>();
   const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
   const modeByEx = await loadModeByExerciseId(wes.map((w) => w.exerciseId));
+  // 유산소는 무게/1RM PR 대상이 아니다(SRS-030 — 볼륨·PR·추정1RM 미기여). 러닝·걷기처럼
+  // equipment='bodyweight'로 등재된 유산소는 유효무게가 '체중'으로 잡혀 체중이 그대로
+  // maxWeight PR로 오탐되므로(체중 갱신 때마다 재발), PR 감지 대상에서 제외한다. @plm SRS-030
+  const cardioIds = await cardioExerciseIdSet(wes.map((w) => w.exerciseId));
 
   for (const we of wes) {
     const all = await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch();
@@ -928,6 +942,7 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
     const logged = performed.map((s) => toLoggedSet(s, loadMode, bw));
     totalVolume += totalVolumeKg(logged);
     workingSets += logged.filter((s) => !s.isWarmup && !s.isFailed).length;
+    if (cardioIds.has(we.exerciseId)) continue; // 유산소는 PR 감지 제외(볼륨은 위에서 이미 합산 — reps=0이라 0)
     const vk = effectiveVariantKey(we); // v6: (종목×변형) 버킷 키
     const key = `${we.exerciseId}::${vk ?? ''}`;
     const entry = performedByVariant.get(key);

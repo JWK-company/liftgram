@@ -7,7 +7,7 @@
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-11T00:00:00Z",
-  "updated": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
   "sync": true,
   "tags": [
     "variant",
@@ -21,7 +21,8 @@
     "covers": [
       "URS-016",
       "SRS-028",
-      "SRS-029"
+      "SRS-029",
+      "SRS-033"
     ]
   },
   "doc": {
@@ -57,7 +58,111 @@
           },
           {
             "type": "text",
-            "text": "를 목표로 한다. 종목은 불변으로 두고 기구·그립·팔(원암/투암) 같은 실행 조건을 변형 축(variant axis)으로 분리 기록하며, 세트 로깅에는 치팅(정자세 외) 반복과 보정무게(어시스티드 −/가중 +)를 부호·질까지 정밀하게 담는다. 이로써 이전기록·PR·볼륨·히스토리가 "
+            "text": "를 목표로 했고, M0~M2가 전량 구현·출시되었다. 종목은 불변으로 두고 실행 조건을 변형 축(variant axis)으로 분리 기록한다는 골격은 그대로 산출되었으나, 실사용 검증을 거치며 두 곳이 초안과 갈렸고 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "ADR-026(ADR-025 대체)"
+          },
+          {
+            "type": "text",
+            "text": "이 이를 사후 확정했다 — ① 변형 버킷 축은 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "기구(equip) 1차원"
+          },
+          {
+            "type": "text",
+            "text": "으로 좁혀졌고 그립·팔은 종목이 아니라 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "세트 속성"
+          },
+          {
+            "type": "text",
+            "text": "("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "set_logs.arm"
+          },
+          {
+            "type": "text",
+            "text": " v8 · "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "set_logs.grip"
+          },
+          {
+            "type": "text",
+            "text": " v11)으로 소유가 옮겨졌다. ② 세트 정밀도는 치팅 비중·부호 보정무게가 아니라 부분반복 분리 입력("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "partial_reps"
+          },
+          {
+            "type": "text",
+            "text": " v9)과 종목 단위 하중모드·사용자 체중에서 파생하는 유효무게("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "load_mode"
+          },
+          {
+            "type": "text",
+            "text": " + "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "user_profiles.bodyweight_kg"
+          },
+          {
+            "type": "text",
+            "text": " v12)로 구현되었다. 결과적으로 이전기록·PR·볼륨·히스토리는 "
           },
           {
             "type": "text",
@@ -70,7 +175,7 @@
           },
           {
             "type": "text",
-            "text": " 버킷 단위로 정확히 갈라져 사용자가 비교 가능한 진짜 진척을 본다."
+            "text": " 버킷 — 실질적으로 기구 축 — 으로 갈라지고, 세트별 그립·팔은 버킷을 나누지 않는 기록·표시 속성으로 남아 사용자가 비교 가능한 진짜 진척을 본다."
           }
         ]
       },
@@ -135,7 +240,98 @@
               },
               {
                 "type": "text",
-                "text": "스키마 v6(변형 canonical key + 개별 차원 컬럼 + 세트 정밀도 필드), 무손실 마이그레이션(v5 machine_variant 계승), prev/PR/volume/history 버킷 필터의 variant_key 전환, 열린 버그 #22·#15."
+                "text": "스키마 v6(변형 canonical key + 개별 차원 컬럼)과 후속 v8~v12(세트별 "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "arm"
+              },
+              {
+                "type": "text",
+                "text": "·"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "grip"
+              },
+              {
+                "type": "text",
+                "text": ", "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "partial_reps"
+              },
+              {
+                "type": "text",
+                "text": ", "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "load_mode"
+              },
+              {
+                "type": "text",
+                "text": " + "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "bodyweight_kg"
+              },
+              {
+                "type": "text",
+                "text": "), 무손실 마이그레이션(v5 "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "machine_variant"
+              },
+              {
+                "type": "text",
+                "text": " 계승 + v11 그립·팔 버킷 병합 백필), prev/PR/volume/history 버킷 필터의 "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "variant_key"
+              },
+              {
+                "type": "text",
+                "text": " 전환, 열린 버그 #22·#15."
               }
             ]
           },
@@ -153,7 +349,7 @@
               },
               {
                 "type": "text",
-                "text": "세트별(부모 we가 아닌 세트 레코드 단위) 변형 변화, 그립 방향/폭 축 분리(ADR 후보로 기록만), 소셜·이미지·팔로우 추천은 P3 백로그로 이월."
+                "text": "그립·팔별 이전기록·PR 분리(세트 속성으로 이관되어 버킷을 나누지 않는다 — ADR-026 트레이드오프. 필요 시 세트 단위 group-by 분석으로 접근), 그립 방향/폭 축 분리(축 자체가 버킷에서 빠져 canonical 문자열 규약만 호환용 보존), 소셜·이미지·팔로우 추천(#25)은 P3 백로그로 이월."
               }
             ]
           }
@@ -263,7 +459,7 @@
                         "type": "strong"
                       }
                     ],
-                    "text": "M1 (P1) 변형 모델 + 스키마 v6 + 무손실 마이그레이션 — SRS-028 / SAD-019 / ADR-025."
+                    "text": "M1 (P1) 변형 모델 + 스키마 v6 + 무손실 마이그레이션 — SRS-028 / SAD-019 / ADR-026(ADR-025 대체)."
                   }
                 ]
               },
@@ -272,7 +468,20 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "종목 불변·실행조건 변형 축(equip·grip·arm) 데이터 모델을 발급한다. BS-002 근거: #26 원암/투암, #19 그립(언더/뉴트럴), 선례 #21 브랜드 전환(db34d85 완료)."
+                    "text": "종목 불변·실행조건 변형 축 데이터 모델을 발급했다. 발급 시점 초안은 (equip·grip·arm) 3차원이었으나, 한 종목 안에서 세트마다 원암/투암·그립을 섞는 실제 수행 방식과 버킷 희소화 때문에 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "버킷 축은 기구(equip) 1차원으로 확정"
+                  },
+                  {
+                    "type": "text",
+                    "text": "되고 그립·팔은 세트 속성으로 이관되었다. BS-002 근거: #26 원암/투암, #19 그립(언더/뉴트럴), 선례 #21 브랜드 전환(db34d85 완료). 이관 근거: 후속 인앱 피드백 #30·#33·#36."
                   }
                 ]
               },
@@ -339,7 +548,46 @@
                           },
                           {
                             "type": "text",
-                            "text": " 개별 차원 컬럼 추가."
+                            "text": " 개별 차원 컬럼 추가. 실제 운용에서 채워지는 것은 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "variant_equipment"
+                          },
+                          {
+                            "type": "text",
+                            "text": " 뿐이며 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "variant_grip"
+                          },
+                          {
+                            "type": "text",
+                            "text": "·"
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "variant_arm"
+                          },
+                          {
+                            "type": "text",
+                            "text": "은 v11 이후 dead column(읽기 하위호환)."
                           }
                         ]
                       }
@@ -392,7 +640,7 @@
                           },
                           {
                             "type": "text",
-                            "text": " (v5 기본 버킷과 동일 표현)."
+                            "text": " (v5 기본 버킷과 동일 표현). 규약·순서는 향후 축 재도입 시의 문자열 호환을 위해 그대로 두되, 런타임이 생성하는 세그먼트는 equip 하나뿐이다."
                           }
                         ]
                       }
@@ -455,6 +703,77 @@
                         "content": [
                           {
                             "type": "text",
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "세트 소유 이관(v8/v11): "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "set_logs.arm"
+                          },
+                          {
+                            "type": "text",
+                            "text": "('uni'=원암, null=투암)·"
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "set_logs.grip"
+                          },
+                          {
+                            "type": "text",
+                            "text": "(over/under/neutral/wide/close, 표시전용) 추가. 종목 변형 셀렉터(VariantSelector)는 기구(레벨1)·머신 브랜드(레벨2) 2축만 노출하고, 그립·팔은 세트 행 ▼ 펼침에서 세트별로 지정한다. 레거시 행은 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "backfillDropGripArmV11"
+                          },
+                          {
+                            "type": "text",
+                            "text": "이 grip/arm 컬럼을 지우고 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "variant_key"
+                          },
+                          {
+                            "type": "text",
+                            "text": "를 기구만으로 재계산(부팅 시 멱등) → 같은 종목이 출처(즉석·루틴)에 따라 여러 버킷으로 파편화되어 이전기록이 비던 문제 해소."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "list_item",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
                             "text": "prev/PR/volume/history 버킷 필터를 "
                           },
                           {
@@ -481,30 +800,7 @@
                           },
                           {
                             "type": "text",
-                            "text": " 로 치환. 순수 도메인 계산(volume·1RM·PR 비교)은 버킷 무관이라 재사용."
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "type": "list_item",
-                    "content": [
-                      {
-                        "type": "paragraph",
-                        "content": [
-                          {
-                            "type": "text",
-                            "marks": [
-                              {
-                                "type": "strong"
-                              }
-                            ],
-                            "text": "ADR-025 후보: "
-                          },
-                          {
-                            "type": "text",
-                            "text": "grip 방향(over/under/neutral)과 폭(wide/close)은 직교 축 → 향후 grip_orientation + grip_width 분리 정합성 기록. 당장은 단일 enum 유지."
+                            "text": " 로 치환. 순수 도메인 계산(volume·1RM·PR 비교)은 버킷 무관이라 재사용. 세트별 grip/arm은 어떤 조회에서도 필터로 쓰이지 않는다."
                           }
                         ]
                       }
@@ -527,7 +823,7 @@
                         "type": "strong"
                       }
                     ],
-                    "text": "M2 (P1) 로깅 정밀도 — 치팅 횟수 · 보정무게 — SRS-029."
+                    "text": "M2 (P1) 로깅 정밀도 — 부분반복 · 하중모드 유효무게 — SRS-029(하중모드는 SRS-033으로 분화)."
                   }
                 ]
               },
@@ -536,7 +832,33 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "세트 반복의 질과 무게 부호를 정밀 기록한다. BS-002 근거: #13 깔짝(치팅) 횟수, #11 마이너스/가중 무게. M1이 스키마 축을 먼저 정의한 뒤 순차 착수."
+                    "text": "세트 반복의 질과 유효 부하를 정밀 기록한다. BS-002 근거: #13 깔짝(치팅) 횟수, #11 마이너스/가중 무게. 초안이 전제했던 "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "strict_reps"
+                  },
+                  {
+                    "type": "text",
+                    "text": "·"
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "load_adjust_kg"
+                  },
+                  {
+                    "type": "text",
+                    "text": "는 구현 단계에서 한 번도 계산에 연결되지 않은 채 아래 두 필드로 대체되었다(ADR-026)."
                   }
                 ]
               },
@@ -556,11 +878,165 @@
                                 "type": "code"
                               }
                             ],
-                            "text": "set_logs"
+                            "text": "set_logs.partial_reps"
                           },
                           {
                             "type": "text",
-                            "text": " 에 "
+                            "text": "(v9) — 주 입력 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "reps"
+                          },
+                          {
+                            "type": "text",
+                            "text": "를 정자세 횟수로 두고 부분반복(깔짝)만 별도 입력. 볼륨·추정1RM·PR에서 제외한다("
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "effectiveReps"
+                          },
+                          {
+                            "type": "text",
+                            "text": "는 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "reps"
+                          },
+                          {
+                            "type": "text",
+                            "text": "를 그대로 반환). 초안의 '치팅분 차감' 대신 '정자세를 주 입력으로, 깔짝을 부가 입력으로' 뒤집은 형태."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "list_item",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "load_mode"
+                          },
+                          {
+                            "type": "text",
+                            "text": " + "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "user_profiles.bodyweight_kg"
+                          },
+                          {
+                            "type": "text",
+                            "text": "(v12) — 보정을 세트가 아니라 종목 단위 하중모드에서 파생한다. "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "resolveLoadMode"
+                          },
+                          {
+                            "type": "text",
+                            "text": "(명시 load_mode 우선, 없으면 equipment==='bodyweight'면 bodyweight, 그 외 external) → "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "effectiveWeightKg"
+                          },
+                          {
+                            "type": "text",
+                            "text": "(assisted=max(0, 체중−무게) · bodyweight=체중+가중 · 체중 미설정이면 raw 무게 폴백). #11의 마이너스/가중 요구를 세트당 입력 0회로 충족."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "list_item",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "볼륨/PR/1RM이 "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "유효무게 × 정자세 reps"
+                          },
+                          {
+                            "type": "text",
+                            "text": " 하나로 통일되도록 도메인 계층 확장. "
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "getRecentPRs"
+                          },
+                          {
+                            "type": "text",
+                            "text": "·"
+                          },
+                          {
+                            "type": "text",
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "bestEstimatedOneRepMax"
+                          },
+                          {
+                            "type": "text",
+                            "text": "도 유효무게 기준으로 전환되어 어시스트 종목의 1RM 역설이 해소되었다. "
                           },
                           {
                             "type": "text",
@@ -573,18 +1049,8 @@
                           },
                           {
                             "type": "text",
-                            "text": "(number, optional — 정자세 반복, null=전부 정자세=reps) 추가 → 총볼륨에서 치팅분 제외."
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "type": "list_item",
-                    "content": [
-                      {
-                        "type": "paragraph",
-                        "content": [
+                            "text": "·"
+                          },
                           {
                             "type": "text",
                             "marks": [
@@ -596,7 +1062,7 @@
                           },
                           {
                             "type": "text",
-                            "text": "(number, optional — signed 보정무게: 어시스티드 −, 가중 +, null=0) 추가 → 체중 기준 보조·가중을 유효 부하에 반영."
+                            "text": "는 dead column으로 잔존(읽기 하위호환, 계산·UI 미사용)."
                           }
                         ]
                       }
@@ -610,7 +1076,7 @@
                         "content": [
                           {
                             "type": "text",
-                            "text": "볼륨/PR/1RM 계산이 strict_reps·load_adjust_kg를 유효 부하로 반영하도록 도메인 계층 확장(순수 계산식은 재사용, 입력값만 보정)."
+                            "text": "입력 UI는 세트 행의 ▼ 펼침 상세 패널에 둔다 — 인앱 피드백 #36(\"세트별 정보가 많아 휴대폰에서 꾸겨져 보임\") 대응으로 메인 세트 행에서 상세로 내렸다."
                           }
                         ]
                       }
@@ -895,6 +1361,156 @@
                 "text": "BS-002 본문은 #13·#11·#26·#20을 \"SRS-003 확장 후보\"로 묶었으나, 본 로드맵은 지시대로 재분류한다 — #26/#19는 변형(SRS-028), #13/#11은 정밀도(SRS-029), #20은 흐름이라 SRS-002/004로 분리(변형모델 아님). SRS-028/029 발급 시 BS-002 본문의 \"SRS-003 확장\" 문구를 이 매핑으로 갱신 필요. 반려: #6·#4·#3(정크/테스트/빈 항목)."
               }
             ]
+          }
+        ]
+      },
+      {
+        "type": "horizontal_rule"
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 이력"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "2026-07-20 — 실제 산출 반영(계획서 → 산출 기록). "
+          },
+          {
+            "type": "text",
+            "text": "M0~M2가 전량 구현·출시된 뒤 코드 감사(path:line 전수 확인) 결과 본문 두 곳이 구현과 어긋나 있어 바로잡았다. ① M1의 변형 버킷 축 서술 — 초안은 (equip·grip·arm) 3차원으로 이전기록·PR·볼륨이 갈린다고 했으나, 실제 버킷은 기구 1차원이고 그립·팔은 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "set_logs.grip"
+          },
+          {
+            "type": "text",
+            "text": "(v11)·"
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "set_logs.arm"
+          },
+          {
+            "type": "text",
+            "text": "(v8) 세트 속성으로 이관되어 어떤 조회에도 필터로 쓰이지 않는다("
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "recordVariant"
+          },
+          {
+            "type": "text",
+            "text": "가 grip/arm을 항상 null로 고정, "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "backfillDropGripArmV11"
+          },
+          {
+            "type": "text",
+            "text": "이 레거시 버킷을 기구 축으로 병합). ② M2의 유효 부하 서술 — "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "strict_reps"
+          },
+          {
+            "type": "text",
+            "text": "·"
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "load_adjust_kg"
+          },
+          {
+            "type": "text",
+            "text": "는 계산에 한 번도 연결되지 않은 dead column이며, 실제로는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "partial_reps"
+          },
+          {
+            "type": "text",
+            "text": "(v9) 제외와 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "load_mode"
+          },
+          {
+            "type": "text",
+            "text": "+체중 파생 유효무게(v12)가 볼륨·PR·1RM을 결정한다. 두 변경의 결정 근거는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "ADR-026"
+          },
+          {
+            "type": "text",
+            "text": "(ADR-025 대체)에 기록되어 있으며, 본 개정은 로드맵 본문을 그 결정에 정합시킨 것이다. M0(#22·#15)·M3(#14·#9·#20·#7/#24)·M4 및 우선순위·트리아지 주석은 사실과 일치하여 그대로 두었다."
           }
         ]
       }

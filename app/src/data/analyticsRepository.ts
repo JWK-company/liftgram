@@ -192,7 +192,11 @@ export async function getRecentPRs(limit = 10): Promise<RecentPR[]> {
   const byExercise = new Map<string, Map<string, { completedAt: number; best: number }>>();
   for (const e of enriched) {
     if (e.set.isWarmup || e.set.isFailed) continue;
-    const oneRM = estimateOneRepMax(e.set.weightKg, e.set.reps);
+    // v12: 유효무게 기준 — raw 무게로 계산하면 어시스트 종목이 보조무게가 클수록 1RM이 커진다. @plm SRS-033
+    // [원본] 원복 시 아래를 주석 해제하고 새 호출을 주석 처리
+    // const oneRM = estimateOneRepMax(e.set.weightKg, e.set.reps);
+    // [개선] 유효무게 기준
+    const oneRM = estimateOneRepMax(effectiveWeightKg(e.set), e.set.reps);
     const sessions = byExercise.get(e.exerciseId) ?? new Map();
     const cur = sessions.get(e.workoutId) ?? { completedAt: e.completedAt, best: 0 };
     cur.best = Math.max(cur.best, oneRM);

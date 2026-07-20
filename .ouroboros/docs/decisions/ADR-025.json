@@ -3,11 +3,11 @@
   "id": "ADR-025",
   "type": "ADR",
   "title": "종목 변형 기록 모델 결정 — 다차원 variant 키로 일반화(machine_variant 흡수), (exercise×variant) 버킷",
-  "status": "Approved",
+  "status": "Replaced",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-11T00:00:00Z",
-  "updated": "2026-07-11T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
   "sync": true,
   "tags": [
     "variant",
