@@ -344,5 +344,8 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/domain/gear.ts:2"
+  ]
 }

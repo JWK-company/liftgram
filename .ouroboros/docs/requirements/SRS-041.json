@@ -312,5 +312,14 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/data/userRepository.ts:24",
+    "app/src/data/userRepository.ts:46#updateUserSettings",
+    "app/src/db/migrations.ts:194",
+    "app/src/db/models/UserProfile.ts:18",
+    "app/src/db/models/_sanitizers.ts:9#sanitizeGearTags",
+    "app/src/db/schema.ts:23",
+    "app/src/state/userContext.tsx:17"
+  ]
 }

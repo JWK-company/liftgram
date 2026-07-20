@@ -453,5 +453,15 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/features/session/WorkoutSummaryScreen.tsx:156",
+    "app/src/features/session/WorkoutSummaryScreen.tsx:242",
+    "app/src/features/session/WorkoutSummaryScreen.tsx:35",
+    "app/src/features/session/WorkoutSummaryScreen.tsx:65",
+    "app/src/features/social/FeedTabScreen.tsx:23",
+    "app/src/features/social/FeedTabScreen.tsx:355",
+    "app/src/features/social/FeedTabScreen.tsx:48",
+    "app/src/features/social/GearTagPicker.tsx:1"
+  ]
 }

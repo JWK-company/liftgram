@@ -51,6 +51,18 @@
   승인 후 Render env `GEAR_AFFILIATE_ENABLED`·`GEAR_AFFILIATE_LINKS` 주입만으로 앱 재배포 없이 활성화.
 - Phase 2(인플루언서 외부 링크·성과 리포트·브랜드 과금) — SRS 미발급
 
+## codescan / plm-hub 상태 (2026-07-20 확인)
+
+- G1·G2·G3 **orphan 0** · Code 363건·realizes 378건·문서 `code_refs` 35건 동기 완료
+- ⚠ **설치본에만 반영된 임시 패치가 있다.** `plm_codescan.py` 의 `cap_code()`(Code 키 64자 상한 축약)를
+  `~/.claude/plugins/cache/jwk-platform/plm-hub/0.6.8/scripts/` 에 직접 복사해 넣었다(`.bak-*` 백업 있음).
+  없으면 `/import` 가 `400 code too long (max 64 chars)` 로 **363건 배치 전량 실패**한다(초과 3건 때문).
+- **다음 `/plm-hub:update` 시 이 패치가 날아간다.** 마켓플레이스 배포 원본은 liftgram 이 아니라
+  `~/desktop/tarae/autotutor/plugin/plm-hub/`(v0.6.11)이고 거기엔 `cap_code` 가 **없다**.
+  liftgram 의 `plugin/plm-hub/`(v0.6.8 사본)에만 수정이 고립돼 있다.
+  → 영구 해결은 autotutor 원본에 이식 + 버전 범프. **사용자 지시로 이번엔 보류**(다른 리포라 범위 밖).
+  같은 플러그인을 쓰는 fda-manager·autotutor 도 경로·심볼명이 길면 동일 증상.
+
 ## 알려진 함정
 
 - **워크플로우 서브에이전트의 Write에는 plm-sync hook이 발동하지 않는다** → 아티팩트 생성 후

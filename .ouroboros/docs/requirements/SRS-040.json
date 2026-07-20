@@ -31,8 +31,15 @@
     "content": [
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "요구 서술" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -81,31 +88,214 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "수용 기준" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
       },
       {
         "type": "bullet_list",
         "content": [
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "data.gear[]가 있고 정규화 결과가 비어있지 않은 게시물에서만 착용장비 영역이 나타난다. 기본은 접힌 요약 칩('착용장비 N') 하나이며, 펼치기 조작 후에만 카테고리 칩 목록이 보인다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "칩 라벨에 브랜드가 있으면 브랜드가 함께 표시된다(예: '리프팅벨트' → 'SBD 리프팅벨트'). 브랜드가 없는 항목의 라벨은 카테고리명 그대로이며 브랜드 도입 이전과 픽셀 단위로 동일하다(회귀 없음)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "브랜드가 있는 칩의 링크를 열면 브랜드가 검색어에 반영된다 — 검색 URL의 쿼리가 '리프팅 벨트'가 아니라 'SBD 리프팅 벨트'로 나간다. 반영은 SRS-037 resolveGearLink 안에서만 일어나고 카드 코드는 URL을 조립·파싱·재조립하지 않는다. 딥링크(kind=\"deeplink\")는 브랜드 유무와 무관하게 무가공 그대로 열린다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "note 필드는 Phase 0에서 렌더하지 않는다 — 게시물 data.gear[] 항목에 note 가 실려 있어도 카드 어디에도 나타나지 않는다. brand 는 이와 별개의 구조화 필드로서 표시 대상이며, 두 필드를 같은 렌더 경로로 묶지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사진 위에 어떤 태그 요소도 겹쳐지지 않는다 — 장비 영역은 이미지 컨테이너 바깥, 카드 하단에 별도 블록으로만 배치한다(오버레이·absolute 포지셔닝 금지). 쿠팡 파트너스 운영정책(2026-06-08) A등급 금지 회피." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "SRS-037의 requiresAffiliateDisclosure(cfg)가 true일 때(= enabled === true 이거나 허용 호스트 딥링크가 하나라도 존재) 고지 라벨이 접힘 여부와 무관하게 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 항상 노출된다. 라벨이 렌더되지 않는 경로로는 링크를 열 수 없다(코드에서 강제 — 판정은 SRS-037 순수 함수 재사용). 판정이 false일 때만 라벨이 렌더되지 않는다(Phase 0 = enabled:false·links 부재이므로 false)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "칩 탭 시 링크 열기가 사용자 제스처 핸들러 안에서 동기적으로 호출된다(호출 전 await 금지) — 웹(react-native-web)에서 팝업 차단에 걸리지 않는다. 실패 시 조용히 무시하고 카드 상태는 유지한다(NearbyGymsScreen 선례와 동일)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "클릭 집계는 링크를 연 뒤 비차단(fire-and-forget)으로 호출된다. 네트워크 실패·지연·서버 오류가 이동을 지연시키거나 UI 오류를 노출하지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "data가 없거나(null·문자열·배열 등 이형) gear 항목이 화이트리스트 밖 값·비객체인 게시물에서도 카드 렌더가 깨지지 않는다 — Post.data는 서버가 @IsObject() 이상 검증하지 않는 불투명 Json 필드이므로 클라이언트가 방어적으로 파싱하고, 인식 불가 항목은 조용히 제외한다. 읽기 경로도 반드시 normalizeGearTags 를 경유한다 — 브랜드 문자열 역시 이 경로에서 정규화(길이 상한·제어문자 제거·공백 접기)된 값만 라벨과 검색어에 쓰인다. (post.data as {gear?: GearTag[]}).gear 를 정규화 없이 map 하면 typecheck는 통과하고 미지 카테고리가 그대로 흘러든다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "고지 라벨은 AFFILIATE_DISCLOSURE_KO 상수를 그대로 쓰며(i18n 키 생성 금지 — 로케일 무관 한국어 고정), 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 본문보다 크거나 다른 색으로 렌더한다. 끝부분(칩 영역 상단 포함) 표기는 2024-12-01 폐지되어 허용되지 않는다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "ctx.disclosureRendered 에는 고지 라벨 JSX를 감싸는 바로 그 조건식(또는 라벨 컴포넌트가 mount 시 set 하는 ref/state)만 전달한다. requiresAffiliateDisclosure(cfg)의 반환값을 그대로 되먹이는 패턴은 금지한다 — 게이트가 항진명제가 되어 라벨 JSX를 지워도 링크가 열린다. 이 항목은 SRS-040 코드 리뷰 필수 체크 항목이다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "구현 착수 전 8개 카테고리 검색어의 실제 쿠팡 검색 결과 관련성을 육안 확인한다(운영정책 4.1 6) 관련성 없는 상품 연계 금지). 라벨 문구와 검색어의 핵심 토큰이 일치하는지도 함께 확인한다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "클릭 집계 호출 시 resolveGearLink 가 반환한 kind(\"deeplink\" | \"search\")를 함께 전송한다 — 딥링크 오기입으로 8종 전부가 조용히 검색 URL로 폴백해 수수료 0원인데 고지 라벨만 노출되는 상태를 관측 가능하게 한다." }] }] }
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "data.gear[]가 있고 정규화 결과가 비어있지 않은 게시물에서만 착용장비 영역이 나타난다. 기본은 접힌 요약 칩('착용장비 N') 하나이며, 펼치기 조작 후에만 카테고리 칩 목록이 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "칩 라벨에 브랜드가 있으면 브랜드가 함께 표시된다(예: '리프팅벨트' → 'SBD 리프팅벨트'). 브랜드가 없는 항목의 라벨은 카테고리명 그대로이며 브랜드 도입 이전과 픽셀 단위로 동일하다(회귀 없음)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "브랜드가 있는 칩의 링크를 열면 브랜드가 검색어에 반영된다 — 검색 URL의 쿼리가 '리프팅 벨트'가 아니라 'SBD 리프팅 벨트'로 나간다. 반영은 SRS-037 resolveGearLink 안에서만 일어나고 카드 코드는 URL을 조립·파싱·재조립하지 않는다. 딥링크(kind=\"deeplink\")는 브랜드 유무와 무관하게 무가공 그대로 열린다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "note 필드는 Phase 0에서 렌더하지 않는다 — 게시물 data.gear[] 항목에 note 가 실려 있어도 카드 어디에도 나타나지 않는다. brand 는 이와 별개의 구조화 필드로서 표시 대상이며, 두 필드를 같은 렌더 경로로 묶지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사진 위에 어떤 태그 요소도 겹쳐지지 않는다 — 장비 영역은 이미지 컨테이너 바깥, 카드 하단에 별도 블록으로만 배치한다(오버레이·absolute 포지셔닝 금지). 쿠팡 파트너스 운영정책(2026-06-08) A등급 금지 회피."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "SRS-037의 requiresAffiliateDisclosure(cfg)가 true일 때(= enabled === true 이거나 허용 호스트 딥링크가 하나라도 존재) 고지 라벨이 접힘 여부와 무관하게 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 항상 노출된다. 라벨이 렌더되지 않는 경로로는 링크를 열 수 없다(코드에서 강제 — 판정은 SRS-037 순수 함수 재사용). 판정이 false일 때만 라벨이 렌더되지 않는다(Phase 0 = enabled:false·links 부재이므로 false)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "칩 탭 시 링크 열기가 사용자 제스처 핸들러 안에서 동기적으로 호출된다(호출 전 await 금지) — 웹(react-native-web)에서 팝업 차단에 걸리지 않는다. 실패 시 조용히 무시하고 카드 상태는 유지한다(NearbyGymsScreen 선례와 동일)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "클릭 집계는 링크를 연 뒤 비차단(fire-and-forget)으로 호출된다. 네트워크 실패·지연·서버 오류가 이동을 지연시키거나 UI 오류를 노출하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "data가 없거나(null·문자열·배열 등 이형) gear 항목이 화이트리스트 밖 값·비객체인 게시물에서도 카드 렌더가 깨지지 않는다 — Post.data는 서버가 @IsObject() 이상 검증하지 않는 불투명 Json 필드이므로 클라이언트가 방어적으로 파싱하고, 인식 불가 항목은 조용히 제외한다. 읽기 경로도 반드시 normalizeGearTags 를 경유한다 — 브랜드 문자열 역시 이 경로에서 정규화(길이 상한·제어문자 제거·공백 접기)된 값만 라벨과 검색어에 쓰인다. (post.data as {gear?: GearTag[]}).gear 를 정규화 없이 map 하면 typecheck는 통과하고 미지 카테고리가 그대로 흘러든다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "고지 라벨은 AFFILIATE_DISCLOSURE_KO 상수를 그대로 쓰며(i18n 키 생성 금지 — 로케일 무관 한국어 고정), 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 본문보다 크거나 다른 색으로 렌더한다. 끝부분(칩 영역 상단 포함) 표기는 2024-12-01 폐지되어 허용되지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ctx.disclosureRendered 에는 고지 라벨 JSX를 감싸는 바로 그 조건식(또는 라벨 컴포넌트가 mount 시 set 하는 ref/state)만 전달한다. requiresAffiliateDisclosure(cfg)의 반환값을 그대로 되먹이는 패턴은 금지한다 — 게이트가 항진명제가 되어 라벨 JSX를 지워도 링크가 열린다. 이 항목은 SRS-040 코드 리뷰 필수 체크 항목이다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "구현 착수 전 8개 카테고리 검색어의 실제 쿠팡 검색 결과 관련성을 육안 확인한다(운영정책 4.1 6) 관련성 없는 상품 연계 금지). 라벨 문구와 검색어의 핵심 토큰이 일치하는지도 함께 확인한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "클릭 집계 호출 시 resolveGearLink 가 반환한 kind(\"deeplink\" | \"search\")를 함께 전송한다 — 딥링크 오기입으로 8종 전부가 조용히 검색 URL로 폴백해 수수료 0원인데 고지 라벨만 노출되는 상태를 관측 가능하게 한다."
+                  }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "작업 범위 / 선행 조건" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "작업 범위 / 선행 조건"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -127,8 +317,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "연결" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -141,8 +338,15 @@
       },
       {
         "type": "heading",
-        "attrs": { "level": 2 },
-        "content": [{ "type": "text", "text": "구현 상태" }]
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "구현 상태"
+          }
+        ]
       },
       {
         "type": "paragraph",
@@ -156,12 +360,75 @@
       {
         "type": "bullet_list",
         "content": [
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "구현 지점: app/src/features/social/GearChips.tsx — 칩 라벨에 브랜드를 병기한다(브랜드가 있으면 '브랜드 + 카테고리', 없으면 카테고리명 그대로여서 브랜드 도입 이전과 동일)." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "링크: resolveGearLink(tag, …)가 태그를 통째로 받아 검색어에 브랜드를 반영한다 — 카드 코드는 URL을 조립·파싱·재조립하지 않으며, 브랜드는 검색 쿼리의 q 값에만 들어간다. 딥링크는 브랜드 유무와 무관하게 무가공 통과로 유지된다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "표시되는 브랜드는 사용자 확인을 통과한 값뿐이다 — brand 가 저장돼 있다는 사실 자체가 확인 통과를 뜻하고(미확인 자동 감지 결과를 저장하는 경로가 코드에 없다), 원천은 brandSource 로 구분된다. 미확인 자동 태그의 표시 금지선이 데이터 모델 수준에서 막혀 있다." }] }] },
-          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검증: cd app && npm run typecheck 0 error · cd app && npm test 104 pass / 0 fail. 브랜드 동작 전용 테스트 T21 신설(10항목), 구 D5 시절 '브랜드 폐기'를 고정하던 T8은 보존 검증으로 뒤집었다." }] }] }
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "구현 지점: app/src/features/social/GearChips.tsx — 칩 라벨에 브랜드를 병기한다(브랜드가 있으면 '브랜드 + 카테고리', 없으면 카테고리명 그대로여서 브랜드 도입 이전과 동일)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "링크: resolveGearLink(tag, …)가 태그를 통째로 받아 검색어에 브랜드를 반영한다 — 카드 코드는 URL을 조립·파싱·재조립하지 않으며, 브랜드는 검색 쿼리의 q 값에만 들어간다. 딥링크는 브랜드 유무와 무관하게 무가공 통과로 유지된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "표시되는 브랜드는 사용자 확인을 통과한 값뿐이다 — brand 가 저장돼 있다는 사실 자체가 확인 통과를 뜻하고(미확인 자동 감지 결과를 저장하는 경로가 코드에 없다), 원천은 brandSource 로 구분된다. 미확인 자동 태그의 표시 금지선이 데이터 모델 수준에서 막혀 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검증: cd app && npm run typecheck 0 error · cd app && npm test 104 pass / 0 fail. 브랜드 동작 전용 테스트 T21 신설(10항목), 구 D5 시절 '브랜드 폐기'를 고정하던 T8은 보존 검증으로 뒤집었다."
+                  }
+                ]
+              }
+            ]
+          }
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/features/social/DiscoveryPostCard.tsx:12",
+    "app/src/features/social/DiscoveryPostCard.tsx:35",
+    "app/src/features/social/FeedTabScreen.tsx:24",
+    "app/src/features/social/FeedTabScreen.tsx:49",
+    "app/src/features/social/FeedTabScreen.tsx:498",
+    "app/src/features/social/FeedTabScreen.tsx:84",
+    "app/src/features/social/GearChips.tsx:1",
+    "app/src/sync/serverApi.ts:326#gearConfig",
+    "app/src/sync/serverApi.ts:331#trackGearClick"
+  ]
 }

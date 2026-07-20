@@ -339,5 +339,11 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/features/gear/MyGearScreen.tsx:1",
+    "app/src/features/profile/ProfileTabScreen.tsx:365",
+    "app/src/features/social/GearTagPicker.tsx:34",
+    "app/src/navigation/RootNavigator.tsx:29"
+  ]
 }
