@@ -2,26 +2,33 @@
   "schemaVersion": 1,
   "id": "RM-013",
   "type": "Roadmap",
-  "title": "P3 경제 — 착용장비 어필리에이트 커머스",
+  "title": "P3 경제 — 착용장비 어필리에이트 자동 감지·수수료 정산 (Phase 1/2)",
   "status": "Draft",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-10T05:53:26Z",
-  "updated": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-20T00:00:00Z",
   "sync": true,
   "phase": "Phase 3 — Economy",
   "target": "2028-03-31",
   "road_status": "Planned",
-  "tags": ["affiliate", "commerce"],
-  "relations": { "covers": ["SRS-026"] },
+  "tags": ["affiliate", "commerce", "phase1", "phase2"],
+  "relations": { "covers": ["SRS-026"], "relates_to": ["BS-003"] },
   "doc": { "type": "doc", "content": [
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "목표 / 범위" }] },
-    { "type": "paragraph", "content": [{ "type": "text", "text": "피드 착용장비 태그→구매 딥링크→수수료 트래킹으로 보조 수익원을 얹는다. SNS 임계질량·인플루언서 트래픽 이후 유의미하므로 P3에 배치(SAD-018). 단계: Phase 3(경제), 목표 2028-03-31, road_status Planned." }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "피드 착용장비 태그 위에 사진 기반 자동 감지와 제휴 딥링크·수수료 트래킹을 얹어 보조 수익원을 만든다. SNS 임계질량·인플루언서 트래픽 이후 유의미하므로 P3에 배치(SAD-018). 단계: Phase 3(경제), 목표 2028-03-31, road_status Planned." }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "ADR-027에 따라 본 로드맵의 범위는 BS-003의 Phase 1(비전 LLM 자동 감지·수수료 정산)과 Phase 2(인플루언서 외부링크·브랜드 과금)로 좁혀졌다. Phase 0(수동 태그·내 장비함·클릭률 검증)은 LLM·제휴승인·정산이 전부 불필요해 콜드스타트 리스크가 없고 Phase 1 투자 판단에 필요한 클릭률 데이터를 만들기 때문에 P1으로 전진 배치되어 RM-016(SRS-037~042)으로 분리되었다. 즉 본 로드맵의 착수 전제는 RM-016의 클릭률 KPI가 Phase 1 투자를 정당화하는 것, 그리고 제휴 매체 승인(앱스토어 출시 후 등록)과 누적 판매 달성 후의 오픈 API 키 발급이다." }] },
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "마일스톤" }] },
     { "type": "ordered_list", "attrs": { "order": 1 }, "content": [
-      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시물 장비 태그·상품 매핑(SRS-026)" }] }] },
-      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "어필리에이트 딥링크·전환/수수료 트래킹·크리에이터 귀속" }] }] },
-      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "대가성 광고 표시(법정 고지) 라벨·검수" }] }] }
-    ] }
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사진 기반 착용장비 자동 감지(비전 LLM) — 이미지 추론 큐·감지 신뢰도 임계·태그 후보 제안 파이프라인(SRS-026). 태그 스키마와 source 보존 규칙 자체는 RM-016(SRS-037) 산출물을 그대로 사용하며 여기서 재정의하지 않는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "제휴 파트너 승인 후 partnerTag 서버 env 주입 → 추적 파라미터 딥링크 활성화·상품 단위 매핑. 파트너 설정 조회·클릭 집계 계층은 RM-016(SRS-039) 산출물을 재사용한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "전환 포스트백/리포트 수집 → 전환·수수료 집계·크리에이터 귀속 정산(SAD-013 연계)" }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "정책 위반 검수 운영 파이프라인 — 제휴 활성화 이후 실제 노출된 대가성 고지 라벨의 정책 적합성 검증(파트너 약관·심사 기준 대조), 위반 게시물 검수 큐·제재 대응 운영. 고지 필요 판정과 라벨 없는 경로 차단 자체는 RM-016(SRS-037·SRS-040)에서 이미 확정되며 여기서 다시 구현하지 않는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "Phase 2 — 인플루언서 외부링크·브랜드 과금 모델" }] }] }
+    ] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "이관 항목" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "기존 마일스톤 \"게시물 장비 태그·상품 매핑\" 중 Phase 0에 해당하는 부분(수동 장비 태그 입력·카테고리 8종·일반 검색 링크·피드 카드 표시·클릭 집계·내 장비함)은 RM-016으로 이관되었다(SRS-037 도메인 → 038 작성 → 039 클릭 집계 서버 → 040 피드 표시 → 041 장비함 데이터 → 042 장비함 화면). 상품 단위 매핑은 제휴 API 의존이므로 본 로드맵에 남는다." }] },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "제외 (영구)" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "사용자 수익 환원(크레딧·포인트·캐시백)은 제휴 약관·운영정책 위반이라 Phase 1/2에서도 도입하지 않는다. 사진 위 오버레이 태그도 커버형 배너·콘텐츠 가림 클릭 유도 금지에 걸려 영구 배제한다(ADR-027)." }] }
   ] }
 }

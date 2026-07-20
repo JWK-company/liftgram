@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-040",
+  "type": "SRS",
+  "title": "피드 카드 착용장비 표시 — 사진 하단 카드·조건부 고지 라벨·링크 열기·클릭 집계",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-20T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gear",
+    "feed",
+    "disclosure",
+    "phase0"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "게시물 data.gear[]가 있을 때에만 사진 바깥(카드 하단)에 착용장비 영역을 노출한다. 기본은 접힌 요약 칩('착용장비 N')이고 펼쳤을 때만 카테고리 목록이 보이며, 사진 위에는 어떤 태그 요소도 겹치지 않는다(쿠팡 파트너스 운영정책 2026-06-08 시행 — 커버형·콘텐츠 가림 클릭 유도 A등급 금지). SRS-037의 requiresAffiliateDisclosure(cfg)가 true일 때(= enabled === true 이거나 허용 호스트 딥링크가 하나라도 존재) 고지 라벨이 접힘 여부와 무관하게 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 노출되고 라벨 없이는 링크를 열 수 없다. 링크 열기는 사용자 제스처 핸들러 안에서 동기 호출(웹 팝업 차단 회피), 클릭 집계는 링크를 연 뒤 비차단 호출. data 결손·이형 게시물에서도 카드 렌더가 깨지지 않는다.",
+  "relations": {
+    "derives_from": [
+      "URS-017",
+      "URS-003"
+    ],
+    "relates_to": [
+      "BS-003"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SRS-038이 작성 시점에 실은 착용장비 태그(data.gear[])를 소비자가 실제로 보는 지점이 피드 카드다. 게시물 카드는 data.gear[]가 존재하고 정규화 후 항목이 1개 이상일 때에만 착용장비 영역을 노출하고, 그렇지 않으면 아무 것도 렌더하지 않는다(빈 상태 UI도 없다). 표시 로직은 GearChips.tsx 공용 컴포넌트 하나로 흡수해 FeedTabScreen 내부 PostCard와 DiscoveryPostCard(Explore·Hashtag·Bookmarks 공용)가 같은 코드를 공유한다 — 렌더러가 세 곳에 분산되어 있어 로직을 복제하면 고지 라벨·배치 제약이 한쪽에서만 지켜지는 사고가 난다. UserProfileScreen 썸네일 그리드는 사진만 나열하는 면적이라 Phase 0 범위 밖이다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "배치 제약이 이 요구의 핵심이다. 2026-06-08 시행 쿠팡 파트너스 운영정책은 커버형 배너 광고와 '이미지 등 컨텐츠를 가리는 방식의 클릭 유도'를 A등급 금지 행위(수익 몰수·계정 해지)로 규정한다. 따라서 장비 칩은 사진 위 오버레이 핀·핫스팟 형태가 될 수 없고, 반드시 사진 바깥 카드 하단에 별도 영역으로 렌더한다(BS-003 초안의 사진 위 태그안은 이 근거로 폐기 — ADR-027 D4). 기본 상태는 접힌 요약 칩 '착용장비 N' 하나이며, 사용자가 명시적으로 펼쳤을 때에만 카테고리 칩 목록이 열린다. 피드 스크롤 경험을 훼손하지 않으면서 관심 있는 사용자만 커머스 접점으로 진입하게 하는 구조다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Phase 0은 제휴 비활성(enabled:false·links 부재)으로 출발하므로(ADR-027 D2) 고지 라벨은 렌더되지 않는다. 그러나 서버가 제휴 설정 { enabled, links }를 내려주어 requiresAffiliateDisclosure가 true가 되는 순간부터는 대가성 고지가 강제된다 — 쿠팡 파트너스는 고지 문구를 콘텐츠의 '제목 또는 첫 부분'에 본문보다 크거나 다른 색으로 한국어 표기하도록 요구하며(끝부분 표기 허용은 2024-12-01 폐지), 이를 만족하려면 라벨이 접힘 여부와 무관하게 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 항상 노출되어야 한다. 판정은 SRS-037의 순수 도메인 함수(고지 필요 판정)를 그대로 사용하고, 카드 코드는 라벨이 렌더되지 않은 경로에서 링크를 여는 것이 구조적으로 불가능하도록 작성한다. 링크 열기 자체는 사용자 제스처 핸들러 안에서 동기적으로 Linking.openURL을 호출해야 한다 — react-native-web에서 await 이후에 호출하면 브라우저 팝업 차단에 걸려 이동이 실패한다. 클릭 집계(SRS-039)는 링크를 연 다음 fire-and-forget으로 호출하며, 실패나 지연이 사용자 이동을 막지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "data.gear[]가 있고 정규화 결과가 비어있지 않은 게시물에서만 착용장비 영역이 나타난다. 기본은 접힌 요약 칩('착용장비 N') 하나이며, 펼치기 조작 후에만 카테고리 칩 목록이 보인다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사진 위에 어떤 태그 요소도 겹쳐지지 않는다 — 장비 영역은 이미지 컨테이너 바깥, 카드 하단에 별도 블록으로만 배치한다(오버레이·absolute 포지셔닝 금지). 쿠팡 파트너스 운영정책(2026-06-08) A등급 금지 회피." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "SRS-037의 requiresAffiliateDisclosure(cfg)가 true일 때(= enabled === true 이거나 허용 호스트 딥링크가 하나라도 존재) 고지 라벨이 접힘 여부와 무관하게 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 항상 노출된다. 라벨이 렌더되지 않는 경로로는 링크를 열 수 없다(코드에서 강제 — 판정은 SRS-037 순수 함수 재사용). 판정이 false일 때만 라벨이 렌더되지 않는다(Phase 0 = enabled:false·links 부재이므로 false)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "칩 탭 시 링크 열기가 사용자 제스처 핸들러 안에서 동기적으로 호출된다(호출 전 await 금지) — 웹(react-native-web)에서 팝업 차단에 걸리지 않는다. 실패 시 조용히 무시하고 카드 상태는 유지한다(NearbyGymsScreen 선례와 동일)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "클릭 집계는 링크를 연 뒤 비차단(fire-and-forget)으로 호출된다. 네트워크 실패·지연·서버 오류가 이동을 지연시키거나 UI 오류를 노출하지 않는다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "data가 없거나(null·문자열·배열 등 이형) gear 항목이 화이트리스트 밖 값·비객체인 게시물에서도 카드 렌더가 깨지지 않는다 — Post.data는 서버가 @IsObject() 이상 검증하지 않는 불투명 Json 필드이므로 클라이언트가 방어적으로 파싱하고, 인식 불가 항목은 조용히 제외한다. 읽기 경로도 반드시 normalizeGearTags 를 경유한다. (post.data as {gear?: GearTag[]}).gear 를 정규화 없이 map 하면 typecheck는 통과하고 미지 카테고리가 그대로 흘러든다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "고지 라벨은 AFFILIATE_DISCLOSURE_KO 상수를 그대로 쓰며(i18n 키 생성 금지 — 로케일 무관 한국어 고정), 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 본문보다 크거나 다른 색으로 렌더한다. 끝부분(칩 영역 상단 포함) 표기는 2024-12-01 폐지되어 허용되지 않는다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "ctx.disclosureRendered 에는 고지 라벨 JSX를 감싸는 바로 그 조건식(또는 라벨 컴포넌트가 mount 시 set 하는 ref/state)만 전달한다. requiresAffiliateDisclosure(cfg)의 반환값을 그대로 되먹이는 패턴은 금지한다 — 게이트가 항진명제가 되어 라벨 JSX를 지워도 링크가 열린다. 이 항목은 SRS-040 코드 리뷰 필수 체크 항목이다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "구현 착수 전 8개 카테고리 검색어의 실제 쿠팡 검색 결과 관련성을 육안 확인한다(운영정책 4.1 6) 관련성 없는 상품 연계 금지). 라벨 문구와 검색어의 핵심 토큰이 일치하는지도 함께 확인한다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "클릭 집계 호출 시 resolveGearLink 가 반환한 kind(\"deeplink\" | \"search\")를 함께 전송한다 — 딥링크 오기입으로 8종 전부가 조용히 검색 URL로 폴백해 수수료 0원인데 고지 라벨만 노출되는 상태를 관측 가능하게 한다." }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "작업 범위 / 선행 조건" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "수정 대상: app/src/features/social/GearChips.tsx(신규 공용 컴포넌트) · app/src/features/social/FeedTabScreen.tsx(내부 PostCard 배선) · app/src/features/social/DiscoveryPostCard.tsx(Explore·Hashtag·Bookmarks 공용 배선) · app/src/sync/serverApi.ts(클릭 기록·제휴 설정 조회 메서드 추가) · app/src/i18n/locales/ko.ts · app/src/i18n/locales/en.ts(플랫 키 쌍 추가). 카테고리 상수·정규화·링크 해석기 resolveGearLink·고지 판정은 SRS-037의 app/src/domain/gear.ts를 그대로 사용하며 이 SRS에서 로직을 재구현하지 않는다. URL을 얻는 경로는 resolveGearLink() 하나뿐이며, 반환이 ok:false(disclosure-missing·unknown-category)이면 Linking.openURL을 호출하지 않는다. 앱은 URL을 조립·파싱·재조립하지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "선행 조건: SRS-039(클릭 집계 서버)가 프로덕션에 배포되어 엔드포인트가 응답하는 것을 확인한 뒤에 이 표시 기능을 노출한다. 앱이 먼저 뜨면 그 구간에 발생한 클릭이 유실되어 Phase 0의 유일한 판단 지표인 클릭률 KPI가 왜곡되고, Phase 1(비전 LLM·제휴 정산) 투자 판단의 근거가 훼손된다. 제휴 설정 { enabled, links }(사전 생성 딥링크 포함)는 서버 env에만 두고 조회 API로 내려받는다 — EXPO_PUBLIC_* 은 웹 번들에 평문으로 굳으므로 사용하지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-017(장비 발견·전시 니즈), URS-003(친구·동료와 함께 운동하며 자극). 근거: BS-003(오늘의 착용장비 수익화 전략, relates_to). 결정 전제: ADR-027 — D2(Phase 0 제휴 비활성 출발) · D4(사진 위 오버레이 금지) · D6(고지 라벨 강제 — 트리거는 enabled 또는 허용 호스트 딥링크 존재) · D8(클릭 집계 서버 전용·비차단). 의존: SRS-037(gear 도메인 모듈) · SRS-038(작성 시 태그 입력) · SRS-039(서버 엔드포인트, 선행 배포 필수). 등급: Feature. 로드맵: RM-016(Phase 0). 범위 밖: UserProfileScreen 썸네일 그리드, 게시 후 장비 태그 수정(UpdatePostDto가 caption·visibility만 허용 — 서버 DTO 확장이 필요한 별도 과제)."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,15 +1,15 @@
 {
-  "active_skill": null,
-  "skill_step": null,
-  "active_artifact": "ADR-026",
+  "active_skill": "autorun",
+  "skill_step": 1,
+  "active_artifact": "SRS-040",
   "gates": {
     "G1": "pass",
     "G2": "pass",
     "G3": "pass"
   },
-  "last_gate_check": "2026-07-20T08:51:28Z",
-  "last_sync": "2026-07-20T10:10:00Z",
-  "last_updated": "2026-07-20T10:10:00Z",
+  "last_gate_check": "2026-07-20T11:31:06Z",
+  "last_sync": "2026-07-20T00:00:00Z",
+  "last_updated": "2026-07-20T00:00:00Z",
   "tasks": {
     "bs002-audit": "done",
     "drift-adr-026": "done",
@@ -18,6 +18,31 @@
     "bugfix-1rm-effective-weight": "done",
     "commit": "done",
     "ucs017-title-fix": "pending-user-decision",
-    "dead-column-cleanup": "pending-user-decision"
+    "dead-column-cleanup": "pending-user-decision",
+    "srs-037-gear-domain": "done",
+    "srs-038-042": "pending-user-decision",
+    "srs-038-composer": "done",
+    "srs-039-gear-server": "done",
+    "srs-040-feed-display": "done",
+    "srs-041-042-my-gear": "pending",
+    "deploy-gear-server": "pending-user-approval"
+  },
+  "grade": "Task",
+  "phase": null,
+  "spec_path": ".ouroboros/docs/spec/20260720_gear-domain_spec.md",
+  "autorun": {
+    "root": "RM-016",
+    "queue": [
+      "SRS-037",
+      "SRS-038",
+      "SRS-039",
+      "SRS-040",
+      "SRS-041",
+      "SRS-042"
+    ],
+    "idx": 4,
+    "step": "done:SRS-038,039,040",
+    "status": "running",
+    "held_at": null
   }
 }

@@ -1,0 +1,397 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-016",
+  "type": "Roadmap",
+  "title": "P1 착용장비 Phase 0 — 수동 태그·내 장비함·클릭률 검증",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-20T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gear",
+    "phase0",
+    "wedge",
+    "validation"
+  ],
+  "phase": "Phase 1 — Wedge (Gear Discovery)",
+  "target": "2026-10-31",
+  "road_status": "Active",
+  "relations": {
+    "covers": [
+      "URS-017",
+      "SRS-037",
+      "SRS-038",
+      "SRS-039",
+      "SRS-040",
+      "SRS-041",
+      "SRS-042"
+    ],
+    "relates_to": [
+      "BS-003"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "목표 / 범위" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이 로드맵은 BS-003(오늘의 착용장비 수익화 전략)이 3단계로 나눈 구상 중 Phase 0만 떼어내 P1으로 전진 배치한 실행 계획이다. Phase 0의 정의는 명확하다 — 비전 LLM 없이 사용자가 직접 자기 게시물에 착용장비를 태그하고(수동 태그), 자주 쓰는 장비를 프로필에 저장해 재사용하며(내 장비함), 피드 카드에서 그 장비의 쇼핑 링크가 얼마나 눌리는지 서버가 집계한다(클릭률 검증). 여기에는 자동 감지도, 제휴 승인도, 수수료 정산도 들어가지 않는다. 즉 콜드스타트 리스크에 전혀 노출되지 않으면서, Phase 1(비전 LLM 자동 감지·정산) 투자를 할지 말지 판단할 실측 데이터를 만들어 내는 것이 이 로드맵의 유일한 목적이다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "RM-013(P3 경제 — 착용장비 어필리에이트 커머스, target 2028-03-31)과의 경계는 다음과 같이 확정한다. RM-013은 Phase 1·Phase 2 범위(자동 감지, 수수료 정산, 인플루언서 외부링크, 브랜드 과금)를 그대로 유지하고 SRS-026·SAD-018을 계속 덮는다. RM-016은 그 앞단의 Phase 0만 커버하며 SRS-037~042 여섯 건과 신규 부모 요구 URS-017을 덮는다. 두 로드맵은 대체 관계가 아니라 시간 축 분리이며, RM-016의 성공 기준 미달 시 RM-013은 착수되지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Phase 0의 실행 전제는 ADR-027에 확정된 제휴 정책 판단이다. 쿠팡 파트너스 오픈 API 키는 누적 판매 15만원 달성 후에야 발급되고 모바일 앱 매체 등록은 스토어 출시 이후에만 가능하므로, Phase 0은 제휴 딥링크 없이 쿼리 키가 q 하나뿐인 순수 쿠팡 검색 URL만 연다. 수수료는 0원이지만 클릭률 KPI는 동일하게 수집된다. 앱은 URL을 조립하지 않는다 — 서버(SRS-039)가 제휴 설정 { enabled, links }를 내려주고, links의 값은 파트너스 공식 링크 생성기·Deeplink API로 사람이 사전 생성한 딥링크(link.coupang.com/a/…)를 문자 단위로 그대로 사용한다. 파싱·재조립·파라미터 추가는 운영정책 4.1 1) 링크 조작(A등급 제재)에 해당하므로 금지다. 따라서 파트너스 승인 이후 활성화는 서버가 enabled를 true로 올리고 사전 생성한 딥링크를 links에 채우는 것만으로 이뤄지며, 앱 코드 변경은 필요 없다. cfg.enabled가 true가 아니면 links는 전면 무시된다. 사용자 크레딧·포인트·캐시백 환원은 파트너스 이용약관 제7조·운영정책 2.2 위반이라 영구 배제하고, 사진 위 오버레이 태그는 2026-06-08 시행 운영정책의 컨텐츠 가림 클릭유도 금지에 걸리므로 장비 태그는 반드시 사진 바깥 카드 하단에만 렌더한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "마일스톤" }]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": { "order": 1 },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M1 — SRS-037 착용장비 도메인(Task): app/src/domain/gear.ts 신규. 카테고리 8종 상수(리스트랩·스트랩·리프팅벨트·무릎보호대·그립/장갑·리프팅화·초크·암슬리브), 태그 정규화(화이트리스트·중복제거·상한), 링크 해석기 resolveGearLink(c, cfg, ctx) — 제휴 설정 { enabled, links }를 입력받아 고지 게이트를 내장한 채 { ok:true, kind:\"deeplink\"|\"search\", url } 또는 { ok:false, blocked:\"disclosure-missing\"|\"unknown-category\" }를 반환하는 URL 획득의 유일한 공개 경로 — 그리고 고지 필요 판정(= cfg.enabled === true 또는 허용 호스트 정확 일치를 통과한 딥링크가 links에 하나라도 존재)을 순수 함수로 두고 테스트로 고정한다. 검색어 사전·URL 조립기·허용 호스트 판정은 모듈 내부에 두고 export하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M2 — SRS-038 게시물 작성 시 수동 장비 태그(Feature): 피드 컴포저(text·image)와 운동요약 공유(workout)에서 카테고리를 골라 data.gear[]로 전송한다. Post.data가 Json? 불투명 필드라 서버 마이그레이션이 필요 없고, kind 화이트리스트도 건드리지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M3 — SRS-039 클릭 집계 서버(Feature, 서버 전용): Prisma GearClick 모델과 마이그레이션, NestJS gear 모듈(클릭 기록 POST · 파트너 설정 조회 · admin 통계), 동일 사용자·게시물·카테고리 시간창 중복 억제를 자체 구현한다(@nestjs/throttler 미설치 대체)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M4 — SRS-040 피드 카드 장비 표시(Feature): 사진 하단 별도 영역에 기본 접힘 요약칩으로 렌더하고, 고지가 필요한 경우 AFFILIATE_DISCLOSURE_KO 상수를 그대로 게시물 첫 부분(작성자명 바로 아래 · 캡션·이미지·장비 칩 영역보다 위)에 렌더하며, 라벨 없이는 resolveGearLink가 blocked:\"disclosure-missing\"을 돌려 링크를 열 수 없게 강제한다. 링크를 먼저 연 뒤 집계는 비차단으로 호출한다(await 시 웹 팝업 차단)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M5 — SRS-041 내 장비함 데이터 계층(Feature): WatermelonDB v13→v14 addColumns로 user_profiles에 @json 컬럼 추가(기존 available_equipment 선례 준용), sanitizer·userRepository·userContext까지 배선한다. 새 테이블은 만들지 않는다(createTable 선례 부재)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M6 — SRS-042 내 장비함 화면(Feature): MyGearScreen 신규·라우트 등록·프로필 탭 진입점을 만들고, 저장된 장비를 컴포저에서 한 번에 재사용할 수 있게 연결해 태깅 마찰을 낮춘다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "실행 순서는 SRS-037 → 038 → 039 → 040 → 041 → 042 위상 고정이다. 서버(039)가 표시(040)보다 반드시 먼저여야 집계되지 않는 링크가 프로덕션에 노출되는 구간이 생기지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "성공 기준 (Phase 1 진입 판정 지표)" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "태깅률 — 출시 후 8주간 생성된 image·workout 게시물 중 장비 태그가 1개 이상 달린 비율. 이 값이 유의미하게 낮으면 자동 감지(Phase 1)의 필요성이 오히려 커지는 신호이므로, 낮은 값 자체가 실패가 아니라 다음 단계 근거로 해석한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장비 태그 클릭률 — 장비 태그가 노출된 카드 대비 카테고리 링크가 열린 비율(GearClick 기준, 시간창 중복 억제 후). Phase 1 투자 판단의 1차 지표이며 카테고리별 분해로 어떤 장비가 커머스 접점으로 유효한지 식별한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "내 장비함 재사용률 — 저장된 장비를 컴포저에서 재사용해 태그한 비율. 마찰 감소가 태깅률을 끌어올리는지 검증한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "정책 무위반 — 오버레이 태그 0건, 사용자 보상 환원 0건, 고지가 필요한 경우(제휴 설정 enabled 또는 허용 호스트를 통과한 딥링크 존재) 라벨 누락 0건. 라벨 강제 판정은 순수 도메인 모듈 테스트로 상시 회귀 검증한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회귀 안전 — cd app && npm run typecheck 통과, cd app && npm test 기준선 83 pass / 0 fail 유지(신규 gear 도메인 테스트 추가분 포함)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "판정 — 위 지표가 Phase 1(비전 LLM 자동 감지·수수료 정산)의 개발·추론 비용을 정당화하면 RM-013을 착수하고, 그렇지 않으면 Phase 0을 유지하거나 축소한다. 이 판정 자체가 RM-016의 산출물이다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "명시적 비범위 (Out-of-scope)" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "비전 LLM 자동 장비 감지 — Phase 1. RM-013(SRS-026·SAD-018 GearTagService) 범위. Phase 0의 태그는 source 필드로 user 원천을 보존해, 이후 자동 감지가 사용자 지정 태그를 덮어쓰지 못하게 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "제휴 수수료 정산·전환 추적 — Phase 1. RM-013(ConversionTracker) 범위. 파트너스 최종승인 전에는 사전 생성 딥링크 자체가 존재하지 않아 links가 비어 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "인플루언서 외부링크·브랜드 과금 — Phase 2. RM-013 범위."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "게시 후 장비 태그 수정 — UpdatePostDto가 caption·visibility만 허용하므로 서버 DTO 확장이 필요한 별도 과제다. Phase 0은 작성 시점 태그만 다룬다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "브랜드·모델 특정 태그 — 카테고리 8종 수준만 태그한다(ADR-027 D5). 로고 오인식 분쟁 회피 및 API 없는 수동 큐레이션 가능성 확보."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자 수익 환원(크레딧·포인트·캐시백) — 영구 배제. Phase 1·2에서도 부활하지 않는다(ADR-027 D3)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "프로필 썸네일 그리드(UserProfileScreen)와 월간 자랑 게시물(CalendarTabScreen) — 장비 태그 표시·작성 대상이 아니다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "covers: URS-017(장비 발견·전시 니즈), SRS-037·038·039·040·041·042. relates_to: BS-003(발원 브레인스토밍). 전제 결정: ADR-027(Phase 0 전진 배치·제휴 파라미터 없는 출발·보상 환원 배제·오버레이 금지·카테고리 수준 태그·고지 라벨 강제·source 보존·서버 전용 집계). 후속: RM-013(P3 경제 — Phase 1·2, SRS-026·SAD-018). 환경 제약: EXPO_PUBLIC_* 는 웹 번들에 평문으로 굳으므로 제휴 파트너 값은 서버 env에만 둔다."
+          }
+        ]
+      }
+    ]
+  }
+}

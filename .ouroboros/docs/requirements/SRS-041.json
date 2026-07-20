@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-041",
+  "type": "SRS",
+  "title": "내 장비함 데이터 계층 — 로컬 스키마 v14·정합성 보정·사용자 컨텍스트 노출",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-20T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gear",
+    "local-db",
+    "migration",
+    "phase0"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "사용자가 자주 쓰는 착용장비를 로컬 우선으로 보관하는 데이터 계층을 만든다. 새 테이블을 만들지 않고 user_profiles 에 @json 컬럼을 addColumns 로 추가하는 확립된 패턴(available_equipment·machine_variant_labels 선례)을 따르며, SCHEMA_VERSION 을 13에서 14로 올리고 migrations.ts 의 toVersion 과 일치시킨다. 저장 값은 SRS-037의 정규화를 통과한 것만 남고, 네이티브(SQLite)·웹(LokiJS/IndexedDB) 양쪽 동작을 각각 수동 확인하며, 저장된 장비는 app/src/state/userContext.tsx 를 경유해 UI에 노출된다.",
+  "relations": {
+    "derives_from": [
+      "URS-017"
+    ],
+    "relates_to": [
+      "BS-003"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "사용자가 실제로 착용하는 장비(리스트랩·스트랩·리프팅벨트·무릎보호대·그립/장갑·리프팅화·초크·암슬리브)를 한 번 등록해 두고 게시물 작성 때마다 다시 고르지 않아도 되게 하는, 로컬 우선(local-first) 데이터 계층을 만든다. 이 계층은 SRS-042(내 장비함 화면)의 저장소이며, 저장된 장비를 게시물 작성 선택기의 기본값으로 되살리는 소비 배선 역시 SRS-042가 담당한다. 이 계층 자체는 화면을 갖지 않는다. 착용장비는 서버 왕복 없이 오프라인·비로그인 상태에서도 열람·편집돼야 하므로 서버 모델이 아니라 기기 로컬 프로필에 둔다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "저장 형태는 새 테이블이 아니라 user_profiles 의 @json 컬럼 추가로 한다. WatermelonDB migrations.ts 에는 addColumns 선례만 있고 createTable 선례가 전무한 반면, 네이티브 SQLite 어댑터와 웹 LokiJS 어댑터 두 곳에 동일 마이그레이션이 배선되어 있어 미검증 경로를 새로 여는 비용이 크다. 반대로 user_profiles 에는 available_equipment·machine_variant_labels 같은 @json(col, sanitizer) 컬럼 선례가 이미 확립돼 있어, 같은 패턴을 따르면 스키마 위험 없이 배열 값을 안전하게 다룰 수 있다. 따라서 SCHEMA_VERSION 13 → 14 로 올리고 user_profiles 에 착용장비 JSON 컬럼을 addColumns 로 추가한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "값의 정합성은 저장 시점에 sanitizer 가 책임진다. sanitizer 는 SRS-037(착용장비 도메인)의 카테고리 화이트리스트·중복제거·상한 정규화를 통과한 값만 남기고, 파싱 불가·미지 카테고리·비배열 입력은 조용히 빈 배열로 떨어뜨려 앱이 깨지지 않게 한다. 기존 운동 기구 개념(EquipmentType: barbell/dumbbell/machine…)과 이름이 겹치지 않도록 착용장비는 gear 네임스페이스로 완전히 분리한다. 읽기·쓰기 접근은 app/src/data/userRepository.ts 를 통하고, UI 노출은 예외 없이 app/src/state/userContext.tsx 를 경유한다 — 이 리포에서 user_profiles 컬럼이 화면에 도달하는 확립된 단일 경로이며, 화면이 모델을 직접 구독해 이를 우회하면 갱신 반영·비로그인 폴백이 깨진다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "app/src/db/schema.ts 의 SCHEMA_VERSION 이 13에서 14로 오르고, app/src/db/migrations.ts 에 toVersion: 14 의 addColumns 항목이 추가되어 두 값이 정확히 일치한다. 새 테이블(createTable)은 만들지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "user_profiles 에 착용장비 JSON 컬럼이 추가되고, UserProfile 모델이 @json(col, sanitizer) 로 이를 노출한다. sanitizer 는 SRS-037 정규화를 거친 유효 카테고리 배열만 반환하고, null·비배열·미지 값·중복·상한 초과 입력은 빈 배열 또는 절삭된 유효 배열로 안전 축약한다(예외를 던지지 않는다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존 사용자의 프로필·운동 데이터가 손실 없이 유지된다. 확인 방법: v13 데이터가 있는 기존 설치본에서 앱을 갱신 실행해 프로필(닉네임·체중·available_equipment)과 최근 운동 기록·세트가 그대로 조회되고, 신규 컬럼만 빈 값으로 존재함을 확인한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "네이티브(SQLite)와 웹(LokiJS/IndexedDB) 양쪽에서 동일하게 동작함을 각각 확인한다. 이 마이그레이션은 순수 도메인 모듈이 아니어서 app 테스트 러너(src/domain/__tests__/*.test.ts 1-depth 고정)의 자동 회귀 대상이 아니므로 확인은 수동으로 한다 — 네이티브는 v13 기존 설치본 갱신 실행 후 장비 저장·앱 재시작·재조회, 웹은 브라우저에서 저장 후 새로고침·재조회로 확인한다. 웹은 LokiJS→IndexedDB flush 디바운스로 저장 직후 새로고침 시 값이 유실돼 보이는 알려진 함정이 있으므로, 저장 후 충분히 대기(또는 flush 확정)한 뒤 새로고침해 값이 남아 있는지로 판정한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "저장된 장비가 app/src/data/userRepository.ts 의 읽기·갱신 API를 거쳐 app/src/state/userContext.tsx 에 노출되고, 값 변경 시 이를 구독하는 화면이 재렌더된다. 화면이 UserProfile 모델을 직접 구독해 userContext 를 우회하는 구현은 허용하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "비로그인·오프라인 상태에서도 착용장비를 열람·편집·저장할 수 있고, 서버 요청 실패가 이 경로에 영향을 주지 않는다. cd app && npm run typecheck 통과, cd app && npm test 기준선(83 pass / 0 fail) 유지."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "작업 범위" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/db/schema.ts — SCHEMA_VERSION 14 · user_profiles 컬럼 정의" }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/db/migrations.ts — toVersion 14 addColumns" }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/db/models/UserProfile.ts — @json 필드 추가" }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/db/models/_sanitizers.ts — 착용장비 sanitizer(SRS-037 정규화 위임)" }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/data/userRepository.ts — 읽기·갱신 API" }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/state/userContext.tsx — UI 노출 경로" }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "범위 밖" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "장비함 화면·라우트·프로필 진입점(SRS-042), 게시물 작성 시 태그 전송(SRS-038), 서버 동기·백업(Phase 0에서 착용장비는 로컬 전용). 새 테이블 도입과 착용장비의 서버 프로필 반영은 Phase 1 이후 별도 과제로 남긴다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-017(다른 사람이 쓰는 장비를 알고, 내 장비를 보여주고 싶다). 관련(비추적): BS-003(오늘의 착용장비 수익화 전략). 선행: SRS-037(착용장비 도메인 — 카테고리 상수·정규화)이 sanitizer 가 위임할 순수 함수를 제공한다. 후속: SRS-042(내 장비함 화면)가 이 계층을 소비하며, 저장된 장비를 게시물 작성 선택기의 기본값으로 재사용하는 배선도 SRS-042 소관이다(SAD-020 귀속). SRS-038(작성 시 수동 장비 태그)은 실행 순서상 본 요구보다 세 단계 먼저 완료되는 선행 요구이므로 이 데이터 계층에 의존하지 않으며, 재사용 배선의 주체가 아니라 그 배선이 꽂힐 확장 지점(GearTagPicker 의 재사용 영역 슬롯과 태그 배열 주입 인터페이스)을 미리 만들어 두는 역할만 한다. 실행 순서상 SRS-037 → 038 → 039 → 040 → 041 → 042 의 다섯 번째다. 등급: Feature."
+          }
+        ]
+      }
+    ]
+  }
+}

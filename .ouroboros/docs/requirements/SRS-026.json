@@ -2,29 +2,37 @@
   "schemaVersion": 1,
   "id": "SRS-026",
   "type": "SRS",
-  "title": "착용장비 어필리에이트 커머스 (피드 태그 → 구매 → 수수료)",
+  "title": "착용장비 어필리에이트 커머스 — 자동 감지·전환 정산 (Phase 1+)",
   "status": "Draft",
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-10T05:53:26Z",
-  "updated": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-20T00:00:00Z",
   "sync": true,
   "kind": "FR",
-  "acceptance_criteria": "피드 게시물의 착용장비 태그→구매 페이지 딥링크→수수료 트래킹·정산이 동작한다",
-  "tags": ["affiliate", "commerce", "monetization"],
-  "relations": { "derives_from": ["URS-009", "URS-003"] },
+  "acceptance_criteria": "사진 기반 자동 감지가 장비 후보를 제안하고 source=auto로 기록되며(사용자 태그 미덮어쓰기), 제휴 추적 파라미터가 붙은 딥링크의 전환 포스트백을 수집해 수수료를 대사하고 크리에이터에게 귀속·정산한다. Phase 0(SRS-037~042)이 확립한 링크 빌더·고지 판정·렌더 위치 규약은 전제로 상속하며 본 요구의 재검증 대상이 아니다",
+  "tags": ["affiliate", "commerce", "monetization", "phase1"],
+  "relations": { "derives_from": ["URS-009", "URS-003"], "relates_to": ["BS-003"] },
   "doc": { "type": "doc", "content": [
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
     { "type": "paragraph", "content": [
-      { "type": "text", "text": "시스템은 사용자가 피드/스토리를 올릴 때 '오늘의 착용장비'(리스트랩·헤어밴드·벨트·스트랩 등)를 옵션으로 입력·태그하고, 이를 본 사람이 태그를 눌러 구매 페이지로 이동(쿠팡파트너스식 딥링크)하면 수수료를 획득하는 어필리에이트 커머스를 제공한다. 인플루언서·후원 업체 트래픽이 있어야 유의미하므로 SNS 임계질량 이후(P3) 작동하는 보조 수익원이다." }
+      { "type": "text", "text": "시스템은 피드 게시물 사진에서 착용장비(리스트랩·스트랩·벨트·무릎보호대 등)를 비전 LLM으로 자동 감지해 태그 후보를 제안하고, 승인된 제휴 파트너 추적 파라미터가 주입된 딥링크로 구매 전환을 유도하며, 어필리에이트 네트워크의 전환 포스트백·리포트를 수집해 수수료를 집계하고 크리에이터에게 귀속·정산한다. 인플루언서·후원 업체 트래픽이 있어야 유의미하므로 SNS 임계질량 이후(P3) 작동하는 보조 수익원이다." }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "본 요구는 ADR-027에 따라 Phase 1 이후 범위로 축소되었다. 제휴 파라미터 없는 수동 태그·일반 검색 링크·클릭 집계(Phase 0)는 SRS-037~042가 담당하며, 본 요구는 그 위에 자동 감지와 수익 정산 레이어를 얹는다. 전제 조건은 제휴 매체 승인(앱스토어 출시 후 등록 가능)과 누적 판매 달성 후의 오픈 API 키 발급이다." }
+    ] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "전제(상속·재검증 제외): Phase 0가 확립한 규약 — 제휴 파라미터 없는 검색 URL 빌더와 고지 필요 판정 순수 함수(SRS-037), 사진 바깥 하단 렌더·오버레이 금지·고지 라벨 조건부 강제·링크 선행 후 비차단 집계(SRS-040), 태그 정규화와 source(\"user\"|\"auto\") 보존(SRS-037·SRS-038) — 는 본 요구가 그대로 상속한다. 본 요구는 이 규약을 변경하지 않으며, 해당 동작을 자신의 수용 기준으로 다시 검증하지 않는다(Phase 0에서 이미 검증됨 — 이중 계상 방지)." }
     ] },
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
     { "type": "bullet_list", "content": [
-      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시물에 장비 태그를 달고 구매 딥링크를 연결할 수 있다." }] }] },
-      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "태그 클릭→외부 구매→전환/수수료가 트래킹·정산된다." }] }] },
-      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "광고성 표시(대가성 고지) 등 규정 준수 라벨이 노출된다." }] }] }
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "게시물 사진을 비전 LLM 추론 파이프라인(이미지 큐)에 투입해 착용장비 후보를 감지하고, 감지 신뢰도가 임계값 이상인 후보만 사용자에게 태그 제안으로 제시한다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "사용자가 수락한 자동 감지 태그는 source=\"auto\"로 기록되며, 기존 사용자 지정 태그(source=\"user\")를 덮어쓰거나 삭제하지 않는다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "제휴 매체 승인 후 발급된 partnerTag가 주입되면 상속한 링크 빌더가 추적 파라미터가 붙은 제휴 딥링크를 생성하고, 해당 링크의 아웃바운드 이벤트에 전환 추적 식별자가 부착된다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "어필리에이트 네트워크의 전환 포스트백·정산 리포트를 수집해 자체 클릭 로그와 대사(reconciliation)하고, 불일치 건은 미확정 상태로 분리해 재대사 대상으로 남긴다." }] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "확정된 수수료가 해당 게시물의 크리에이터에게 귀속되어 정산 내역으로 조회되며, 정산 단위·주기·지급 상태가 기록된다." }] }] }
     ] },
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
-    { "type": "paragraph", "content": [{ "type": "text", "text": "도출 URS: URS-009(크리에이터 수익), URS-003(소셜 피드). 관련: SRS-019(미디어 게시물), SRS-014(수익화), SAD-018(어필리에이트 아키텍처)." }] }
+    { "type": "paragraph", "content": [{ "type": "text", "text": "도출 URS: URS-009(크리에이터 수익), URS-003(소셜 피드). 관련: BS-003(착용장비 수익화 전략). 범위 축소 근거: ADR-027 — Phase 0(수동 태그·내 장비함·클릭 집계)은 SRS-037(장비 도메인)·SRS-038(작성 시 태그)·SRS-039(클릭 집계 서버)·SRS-040(피드 카드 표시)·SRS-041(내 장비함 데이터)·SRS-042(내 장비함 화면)로 분리 발급되었다. 설계: SAD-018(Phase 1+ 아키텍처), SAD-020(Phase 0 축소판). 로드맵: RM-013(P3 Phase 1/2), RM-016(P1 Phase 0). 정합: SRS-019(미디어 게시물), SRS-014(수익화)." }] }
   ] }
 }

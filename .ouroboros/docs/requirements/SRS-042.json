@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-042",
+  "type": "SRS",
+  "title": "내 장비함 화면 — 관리 UI·프로필 진입점·컴포저 재사용",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-20T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gear",
+    "ui",
+    "navigation",
+    "phase0"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "사용자는 프로필 탭에서 진입하는 '내 장비함' 화면에서 착용장비를 추가·삭제하고, 피드 컴포저의 GearTagPicker에서 저장된 장비를 한 번의 탭으로 태그에 넣을 수 있다. 라우트는 RootStackParamList에 정식 등록되고, 추가·삭제는 반응형 구독으로 즉시 반영되며, 장비함이 비면 빈 상태 UI가 다음 행동을 안내한다. cd app && npm run typecheck 통과.",
+  "relations": {
+    "derives_from": [
+      "URS-017"
+    ],
+    "relates_to": [
+      "BS-003"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "요구 서술" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "사용자는 자기가 실제로 쓰는 착용장비(리스트랩·스트랩·리프팅벨트·무릎보호대·그립/장갑·리프팅화·초크·암슬리브)를 한 곳에 모아 관리하고 싶어 한다. SRS-041이 마련한 데이터 계층(user_profiles의 @json 컬럼 · sanitizer · userRepository · userContext 노출) 위에, 본 요구는 그 저장소를 사람이 직접 다루는 화면 계층을 정의한다. 사용자는 '내 장비함' 화면에서 카테고리를 골라 장비를 추가하고, 더는 쓰지 않는 항목을 삭제한다. 저장은 로컬 프로필에 남으므로 서버 왕복이나 별도 계정 상태가 필요 없다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "장비함의 가치는 목록 자체가 아니라 재입력 제거에 있다. Phase 0의 장비 태그는 전량 수동 입력(D5의 카테고리 8종 · 브랜드·모델 미특정)이라, 매 게시물마다 같은 장비를 다시 고르는 마찰이 곧 태그 이탈률이 된다. 따라서 컴포저의 장비 선택기(GearTagPicker)는 저장된 장비를 상단 '내 장비' 영역으로 먼저 제시하고, 사용자는 한 번의 탭으로 그 항목을 이번 게시물의 태그에 넣는다. 저장 장비가 없는 사용자도 전체 카테고리 목록으로 그대로 태그할 수 있어, 장비함은 필수 선행 단계가 아니라 가속 장치로만 작동한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "진입 경로는 프로필 탭 한 곳으로 고정한다. '내 장비함'은 자기 자산을 관리하는 성격이라 피드·탐색이 아니라 프로필 맥락에 속하며, 화면은 임시 모달이 아니라 RootStackParamList에 정식 등록된 라우트로 둔다(딥링크·뒤로가기·타입 안정성 확보). 문자열은 ko.ts / en.ts에 플랫 키로 쌍 추가한다. 게시 후 장비 태그 수정은 서버 UpdatePostDto가 caption·visibility만 허용하므로 Phase 0 범위 밖이며, 본 화면은 '앞으로 붙일 태그'의 소스만 관리한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수용 기준" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "프로필 탭(ProfileTabScreen)에 '내 장비함' 진입점이 있고, 화면 라우트가 RootStackParamList에 등록되어 RootNavigator에서 타입 안전하게 내비게이션된다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비 추가·삭제가 즉시 화면에 반영된다 — userContext의 반응형 구독을 경유하며, 화면 재진입이나 수동 새로고침을 요구하지 않는다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비 추가는 확정 카테고리 8종(wristWrap·strap·belt·kneeSleeve·gloves·shoes·chalk·armSleeve) 안에서만 선택되며, 브랜드·모델 자유입력을 제공하지 않는다(D5)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "피드 컴포저의 GearTagPicker에서 저장된 장비가 별도 영역으로 먼저 보이고, 한 번의 탭으로 이번 게시물의 태그(source: \"user\")에 들어간다. 이미 태그된 항목은 중복 추가되지 않는다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "장비함이 비었을 때 빈 상태 UI가 무엇을 담는 곳인지와 다음 행동(추가하기)을 안내하며, 이 상태에서도 컴포저의 카테고리 태그는 정상 동작한다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "신규·변경 문자열이 ko.ts·en.ts에 쌍으로 존재하고, cd app && npm run typecheck 가 통과한다(본 요구는 순수 도메인 모듈을 신설하지 않아 자동 테스트 회귀 대상은 아니다)." }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "작업 범위" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/gear/MyGearScreen.tsx — 신규. 장비 목록·추가·삭제·빈 상태." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/social/GearTagPicker.tsx — SRS-038 산출물. 저장 장비 재사용 영역을 배선." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/navigation/types.ts · app/src/navigation/RootNavigator.tsx — 라우트 등록." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/features/profile/ProfileTabScreen.tsx — 진입점 추가." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "app/src/i18n/locales/ko.ts · en.ts — 문자열 쌍 추가." }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "연결" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-017(다른 사람이 쓰는 장비를 알고, 내 장비를 보여주고 싶다). 근거 디스커버리: BS-003(오늘의 착용장비 수익화 전략, 비추적 relates_to). 결정 전제: ADR-027 — Phase 0만 전진 배치(D1), 제휴 파라미터 없이 출발(D2), 카테고리 수준 태그(D5)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "선행: SRS-037(gear 도메인 상수·정규화) → SRS-041(장비함 데이터 계층 — v13→v14 addColumns @json·sanitizer·userContext 노출). SRS-041이 제공하는 읽기/쓰기 경로가 없으면 본 화면은 성립하지 않는다. SRS-038과의 관계가 특히 중요하다 — GearTagPicker 컴포넌트 자체는 SRS-038(게시물 작성 시 수동 장비 태그)에서 생성되며, 본 요구는 그 선택기에 '저장 장비 재사용' 경로를 덧붙여 확장한다. 따라서 SRS-038 구현 시점에 선택기 상단에 재사용 영역 자리를 비워두고 태그 배열 조작 인터페이스를 외부에서 주입 가능하게 설계해 두는 것이 본 요구의 전제다. 그 자리를 남기지 않으면 042에서 선택기를 다시 헐어야 한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "실행 순서상 본 요구는 Phase 0 위상의 마지막(SRS-037 → 038 → 039 → 040 → 041 → 042)이다. 범위 밖: 게시 후 장비 태그 수정(서버 UpdatePostDto 확장이 필요한 별도 과제), 사용자 프로필 화면에서 타인의 장비함 공개 조회, 브랜드·모델 단위 관리, 장비 사용량·클릭 통계 표시(SRS-039 admin 통계 소관)."
+          }
+        ]
+      }
+    ]
+  }
+}

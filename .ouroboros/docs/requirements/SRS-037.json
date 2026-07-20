@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-037",
+  "type": "SRS",
+  "title": "착용장비 도메인 — 카테고리 사전·태그 정규화·쿠팡 링크 해석(딥링크 무가공·검색 폴백)·고지 판정",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-20T00:00:00Z",
+  "updated": "2026-07-20T00:00:00Z",
+  "sync": true,
+  "tags": [
+    "gear",
+    "domain",
+    "affiliate",
+    "phase0"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "착용장비를 브랜드·모델 없이 카테고리 수준으로만 표현하는 RN 비의존 순수 도메인 모듈(app/src/domain/gear.ts)을 제공한다. 8종 카테고리 상수와 i18n 라벨 키 정의, 태그 배열 정규화(화이트리스트 밖 폐기·중복 카테고리 병합·개수 상한·메모 길이 상한), 태그별 source(user|auto) 보존, 그리고 링크 해석을 순수 함수로 제공한다. 링크 해석은 제휴 설정 { enabled, links }를 입력으로 받아, 제휴 비활성이거나 해당 카테고리 딥링크가 없으면 쿼리 키가 q 하나뿐인 순수 검색 URL을 반환하고, 허용 호스트 정확 일치 딥링크만 문자 단위 그대로(무가공) 반환한다. 딥링크가 하나라도 존재하면 enabled 와 무관하게 고지 필요로 판정하며, 고지가 필요한데 렌더되지 않았으면 URL 자체를 반환하지 않는다. 어떤 입력에도 예외를 던지지 않는다. app/src/domain/__tests__/gear.test.ts 로 검증되어 npm test 기준선(83 pass)이 유지·증가한다.",
+  "relations": {
+    "derives_from": [
+      "URS-017"
+    ],
+    "relates_to": [
+      "BS-003"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "착용장비(리스트랩·스트랩·리프팅벨트 등)를 다루는 Phase 0 기능군의 최하부에, React Native에 의존하지 않는 순수 도메인 모듈 app/src/domain/gear.ts 를 신설한다. 이 모듈은 착용장비를 브랜드·모델이 아니라 카테고리 수준으로만 표현한다(ADR-027 D5). 로고를 오인식해 특정 브랜드를 지목하면 분쟁 소지가 있고, 쿠팡 오픈 API 키가 없는 Phase 0에서는 모델 단위 상품 데이터를 확보할 수도 없기 때문이다. 확정 카테고리는 8종이다 — 리스트랩(wristWrap) · 스트랩(strap) · 리프팅벨트(belt) · 무릎보호대(kneeSleeve) · 그립/장갑(gloves) · 리프팅화(shoes) · 초크/그립파우더(chalk) · 암슬리브(armSleeve). 기존 EquipmentType(barbell/dumbbell/machine…)은 운동 기구라는 의미로 이미 점유돼 있으므로, 착용장비는 gear 네임스페이스로 타입·상수·i18n 키를 완전히 분리한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "모듈은 네 가지 순수 기능을 제공한다. ① 태그 배열 정규화 — 화이트리스트 밖 카테고리는 폐기하고, 같은 카테고리가 중복 입력되면 하나로 병합하며, 게시물당 태그 개수 상한과 태그별 메모 문자열 길이 상한을 강제한다. 서버 Post.data 가 @IsObject() 만 걸린 불투명 Json 필드라 서버가 형태를 검증하지 않으므로, 정규화가 사실상 유일한 방어선이다. ② 각 태그의 source 보존 — 태그는 source: \"user\" | \"auto\" 를 갖는다(ADR-027 D7). Phase 0에서는 전부 user 이지만, Phase 1의 비전 LLM 자동 감지가 사용자 지정 태그를 덮어쓰지 못하게 하는 장치를 지금 형식에 심어 둔다. ③ 카테고리에서 열람용 URL을 해석한다 — 앱은 URL을 조작해 추적 파라미터를 덧붙이지 않는다. 서버(SRS-039)가 내려주는 제휴 설정 { enabled, links }를 입력으로 받아, 제휴가 활성이고 해당 카테고리에 사전 생성 딥링크(파트너스 링크 생성기·Deeplink API 산출물)가 있으면 그 문자열을 문자 단위 그대로 반환하고, 그렇지 않으면 쿼리 키가 q 하나뿐인 순수 쿠팡 검색 URL로 폴백한다. 딥링크 문자열의 파싱·재조립·파라미터 추가는 일절 하지 않는다. ④ 고지 라벨 필요 판정 — 판정 기준은 \"추적 파라미터가 붙었는가\"가 아니라 \"우리가 파트너스 매체로서 대가를 받을 수 있는 상태인가\"이며, 판정이 true인데 고지가 렌더되지 않았으면 링크 해석 함수가 URL 자체를 반환하지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "링크 해석이 사전 생성 딥링크를 그대로 쓰는 구조는 쿠팡 파트너스 운영정책에서 나온다 — 정책 4.1은 파트너스가 전송하는 광고의 링크·형태에 대한 별도의 조작 행위를 A등급 제재 대상으로 금지한다. 따라서 앱이 URL에 추적 파라미터를 임의로 덧붙이는 방식은 채택하지 않으며, 추적 링크는 파트너스 공식 링크 생성기 또는 Deeplink API로 사전 생성한 딥링크(link.coupang.com/a/…)를 서버가 내려주고 앱은 이를 무가공 전달만 한다. 여기에 파트너스 승인 절차의 닭-달걀 구조가 겹친다(ADR-027 D2) — 오픈 API 키는 누적 판매 15만원 달성 후 최종승인에서만 발급되고, 모바일 앱 매체 등록은 앱스토어 출시 이후에만 가능하다. 따라서 Phase 0은 딥링크 없이(수수료 0원·추적 0개 검색 URL) 출발하되 클릭률 KPI는 동일하게 수집하고, 승인 후에는 서버 설정에 딥링크를 채우는 것만으로 딥링크와 고지 라벨이 동시에 활성화된다. 고지 라벨 필요 판정을 이 순수 모듈에 두는 이유도 같다 — 대가성 문구 표기는 위반 시 제재가 큰 규정이므로(ADR-027 D6), UI 코드가 아니라 테스트로 검증 가능한 도메인 함수가 판정을 소유해야 한다. 상위 화면(SRS-040)은 이 판정이 true인데 라벨이 렌더되지 않으면 링크를 열지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "8종 카테고리 상수(wristWrap · strap · belt · kneeSleeve · gloves · shoes · chalk · armSleeve)와 각 카테고리의 i18n 라벨 키가 도메인 모듈에 정의되고, ko.ts·en.ts 에 쌍으로 추가된다. 카테고리 라벨 문자열은 도메인이 갖지 않고 키만 노출한다(RN·i18n 비의존). 단 법정 대가성 고지 문구(AFFILIATE_DISCLOSURE_KO)는 로케일 무관 한국어 고정이 요건이므로 도메인이 상수로 보유하는 명시적 예외이며, ko.ts·en.ts 어느 쪽에도 키를 만들지 않는다 — 파트너스 가이드가 \"추천·보증과 같은 언어로 기재\"를 요구하고 위반 사례에 \"영문·줄임말 기재\"가 명시돼 있어, en 로케일 사용자에게 영문 고지가 렌더되면 그대로 위반이 된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "태그 정규화 함수가 화이트리스트 밖 카테고리를 폐기하고, 중복 카테고리를 하나로 병합하며, 태그 개수 상한과 메모 길이 상한을 강제한다. 입력이 null·undefined·비배열·이형 객체여도 예외 없이 빈 배열 또는 유효 부분집합을 반환한다(서버 data.gear[] 가 불투명 Json이라 신뢰 불가)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "각 태그가 source(\"user\" | \"auto\")를 보존한다. 값이 없거나 알 수 없는 값이면 \"user\"로 수렴하며, 정규화가 source를 임의로 바꾸지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "링크 해석 함수가 제휴 설정 { enabled, links }를 입력으로 받는다. 제휴가 비활성(enabled !== true)이거나 해당 카테고리 딥링크가 없으면, 쿼리 키가 정확히 q 하나뿐이고 추적 파라미터가 0개인 순수 쿠팡 검색 URL을 반환한다. 검색어는 카테고리에서 결정론적으로 도출되며 동일 입력에 항상 동일 URL을 반환한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "제휴가 활성이고 해당 카테고리 딥링크가 허용 호스트(link.coupang.com · www.coupang.com · coupang.com) 정확 일치이면, 그 문자열을 문자 단위 그대로 반환한다 — 파싱·재조립·파라미터 추가 등 어떤 가공도 하지 않는다. 호스트가 정확 일치하지 않거나(부분 일치·서브도메인 사칭 포함) 값이 문자열이 아니면 검색 URL로 폴백한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "고지 라벨 필요 판정 함수가 enabled === true 이거나 허용 호스트 정확 일치를 통과한 딥링크가 어느 하나라도 존재하면 true 를 반환한다. 즉 허용 호스트 정확 일치를 통과한 딥링크가 존재하면 enabled 값과 무관하게 고지 필요이며, 호스트 검증을 통과하지 못한 무효 문자열(예: https://evil.com/x)은 대가 가능성이 없으므로 고지 불필요다(대가를 받을 수 있는 상태 자체가 기준이며, 공정위 심사지침상 미래·조건부 대가도 공개 대상이다). 판정은 순수 함수이며 화면·플랫폼 상태를 참조하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "고지가 필요한데 고지 렌더 사실이 함수 인자로 전달되지 않으면, 링크 해석 함수는 URL 자체를 반환하지 않고 차단 결과를 반환한다. URL을 얻는 공개 경로가 이 함수 하나뿐이므로, 라벨 없이 링크를 여는 경로가 코드상 존재하지 않는다. 알 수 없는 카테고리도 마찬가지로 URL 없이 차단된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "링크 해석·고지 판정 함수는 어떤 입력에도 예외를 던지지 않는다. 제휴 설정은 네트워크 JSON을 캐스팅해 들어오는 불투명 값으로 취급하며, 설정·links·개별 링크 값이 null·비객체·비문자열이어도 정상 결과(검색 URL 또는 차단)로 수렴한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "위 규칙 전체가 app/src/domain/__tests__/gear.test.ts 로 검증된다(테스트 러너 glob이 src/domain/__tests__/*.test.ts 1-depth 고정). cd app && npm run typecheck 통과, cd app && npm test 기준선 83 pass / 0 fail 이 유지·증가한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 반영"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "작업 범위: app/src/domain/gear.ts(신규 — 카테고리 상수·GearTag 타입·정규화·링크 해석·고지 판정) · app/src/domain/__tests__/gear.test.ts(신규) · app/src/domain/index.ts(재수출) · app/src/i18n/locales/ko.ts · app/src/i18n/locales/en.ts(카테고리 라벨 플랫 키 쌍 추가). 검색 URL 조립은 app/src/services/gymSearch.ts 의 gymMapsUrl() 순수 함수 선례를 따르되, 검색어·URL을 만드는 조각은 모듈 내부에 감추고 공개하지 않는다 — URL을 얻는 유일한 공개 경로가 링크 해석 함수 하나여야 고지 없는 링크 열람 경로가 코드상 사라진다. 딥링크 값은 절대 EXPO_PUBLIC_* 로 두지 않는다 — 웹 번들에 평문으로 굳으므로 서버 전용이며, 앱은 서버 설정 조회(SRS-039)로 { enabled, links } 형태의 제휴 설정을 런타임에 받아 이 모듈에 인자로 넘긴다. links 에는 반드시 검색 결과 URL을 원본으로 생성한 딥링크만 주입한다 — 상품 상세 딥링크는 ADR-027 D5(브랜드·모델 미특정)를 링크 계층에서 무력화하며, 코드는 이를 검증할 수 없으므로 운영 규약으로 강제한다. 허용 호스트 판정은 URL 파싱 엔진에 의존하지 않는 순수 문자열 정확 일치로 한다(RN polyfill URL과 Node WHATWG URL의 의미 차이 회피). 등급 Task, Phase 0 실행 순서의 첫 단계다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출 URS: URS-017(다른 사람이 쓰는 장비를 알고, 내 장비를 보여주고 싶다). 관련(비추적): BS-003. 전제 결정: ADR-027(D2 제휴 파라미터 없이 출발 · D5 카테고리 수준 태그 · D6 고지 라벨 강제 · D7 source 보존). 후속: SRS-038(작성 시 수동 태그)·SRS-040(피드 카드 표시)이 이 모듈의 정규화·링크 해석·고지 판정을 그대로 소비하고, SRS-039(클릭 집계·설정 서버)가 { enabled, links } 제휴 설정을 서버에서 공급한다. SRS-041·042(내 장비함)도 같은 카테고리 사전을 사용한다. Phase 1/2(비전 LLM 자동 감지·수수료 정산·브랜드 과금)는 RM-013 범위로 남으며 본 요구는 Phase 0(RM-016) 범위다."
+          }
+        ]
+      }
+    ]
+  }
+}

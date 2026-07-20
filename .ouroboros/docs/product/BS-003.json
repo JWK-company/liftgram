@@ -1,0 +1,2110 @@
+{
+ "schemaVersion": 1,
+ "id": "BS-003",
+ "type": "BS",
+ "title": "오늘의 착용장비 수익화 전략",
+ "status": "Draft",
+ "owner": "Product",
+ "product": "health-practice",
+ "created": "2026-07-20T00:00:00Z",
+ "updated": "2026-07-20T00:00:00Z",
+ "sync": true,
+ "kind": "idea",
+ "tags": [
+  "monetization",
+  "affiliate",
+  "gear",
+  "commerce"
+ ],
+ "doc": {
+  "content": [
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "요지",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "피드 사진의 착용장비를 커머스 접점으로 바꾼다. 일반 사용자는 자동 감지 → 쿠팡 파트너스로, 인플루언서는 직접 링크 → '오늘의 사용장비' 탭으로. 두 트랙은 겉보기엔 같은 기능이지만 수익 구조도 리스크도 완전히 다르므로 분리해서 판단한다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "0. 원안 (그대로 보존)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "일반 사용자 피드",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "order": 1
+    },
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "일반 사용자들은 피드에 사진과 함께 사진을 올릴때 본인의 착용장비를 공유할수 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "디폴트로는 사진만으로도 손에 리스트랩이나 스트랩등이 장착되어있으면 감지하여 쿠팡에서 관련 물품을 찾아 피드에서 클릭하면 쿠팡으로 연결될수 있게 한다. 그래서 쿠팡 파트너스 수익금을 먹는다",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "2의 과정에서 사진의 착용장비 분석시에 llm 이 필요한지? 필요하다면 해당 금액보다 쿠팡 파트너스로 얻는 금액이 높아야만 수익화가 가능하다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "ordered_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "인플루언서 피드",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "인플루언서의 경우 자신이 후원받는 브랜드의 장비등이 있어서 이것을 피드에 올려 광고하고 싶다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "이때 인플루언서는 쿠팡이 아니라 네이버 스토어나 자체 스토어등을 통해 피드를 보는 사용자가 구매를 하게 하고싶을수 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "이 경우 인플루언서는 피드를 올릴때 '오늘의 사용장비' 라는 탭에서 자신이 썼던 장비의 구매 링크를 직접 올릴수 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "해당 기능을 사용한 인플루언서는 우리 앱이 광고를 대신 해주는 샘이므로 요금을 내야한다. (프로 플랜을 쓰면 기능을 쓰게 할지, 아니면 건마다 돈을 받을지, 좋은 방법을 아직 생각중.)",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "1. 핵심 통찰 3",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "통찰 1 — 비용은 '사진 수'에 비례하고 수익은 '노출 수'에 비례한다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안 3번의 걱정(LLM 비용 > 파트너스 수익)은 두 값이 같은 축에서 늘어난다는 전제 위에 있다. 실제로는 축이 다르다. 사진 1장은 업로드 시점에 딱 1번 분석하고 결과를 캐시하면 비용이 고정된다. 반면 그 사진은 팔로워·탐색 피드에 계속 노출되며 노출 수만큼 클릭 기회가 늘어난다. 즉 시간이 갈수록 사진 1장의 수익은 늘고 비용은 그대로다. 이 비대칭이 트랙 A의 성립 근거다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "통찰 2 — 트랙 A는 '수익 사업'이 아니라 '데이터·참여 장치'다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "흑자는 나지만 절대 금액이 작다(2-3 참조). 파트너스 수수료만 보고 이 기능을 정당화하면 초기에 실망하고 접게 된다. 대신 이 기능이 실제로 만드는 자산은 (a) 사용자별 장비 프로필, (b) '어떤 등급·어떤 종목의 사람이 어떤 장비를 쓰는가'라는 시장 데이터, (c) 피드에 붙는 구매 전환 트래킹 인프라 — 이 셋은 전부 트랙 B의 브랜드 세일즈에 그대로 재사용된다. 트랙 A는 트랙 B의 활주로다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "통찰 3 — 청구서는 인플루언서가 아니라 브랜드에 보내는 게 자연스럽다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안은 '광고를 대신 해줬으니 인플루언서가 요금을 낸다'는 논리다. 논리는 맞지만 초기 협상력이 반대다 — 우리는 인플루언서의 트래픽이 필요하고, 인플루언서는 이미 인스타를 갖고 있다. 돈을 요구하면 안 온다. 반면 브랜드는 이미 인플루언서에게 현금·현물을 쓰고 있으면서 그 성과를 측정하지 못해 답답한 상태다. 우리가 클릭·유입 데이터를 쥐고 있으면 브랜드가 지불할 이유가 생긴다. 참고로 BS-001의 '헬스장이 광고비를 내고 사용자는 무료'와 정확히 같은 골격이라 제품 전체의 수익 철학이 일관된다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "2. 트랙 A — 일반 사용자 자동 감지 (쿠팡 파트너스)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-1. 감지 파이프라인 — LLM을 4계층으로 깎는다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안 3번에 대한 실무적 답. '모든 사진에 LLM'이 아니라 '대부분 0원, LLM은 마지막 수단'으로 설계한다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L0 — 사용자 수동 태그 (비용 0). 인플루언서와 장비 애호가는 어차피 직접 태그하고 싶어한다. 자랑 욕구가 곧 데이터 입력 동력이다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L1 — 사전 필터 (비용 0). 장비가 있을 리 없는 사진(음식·풍경·전신 거울샷 아닌 것 등)을 온디바이스 경량 판별로 걸러 LLM 호출 자체를 막는다. 실제로 LLM까지 도달하는 건 전체 업로드의 일부에 그친다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L2 — 비전 LLM 1회 + 영구 캐시. 이미지 해시 기준으로 결과를 저장해 재분석을 원천 차단한다. 리사이즈해서 보내면 토큰이 크게 줄고, 출력은 장비 후보 목록 + 신뢰도만 받는 구조화 출력으로 짧게 끊는다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L3 — '내 장비함(My Gear)'. 한 번 확정된 장비는 사용자 프로필에 등록되고 다음 사진부터는 추론 없이 프리필 후보로 뜬다. 헬스인은 같은 벨트·같은 스트랩을 몇 년씩 쓴다 — 유저당 LLM 호출은 초기 몇 회에 수렴하고 이후 0에 가까워진다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "content": [
+     {
+      "text": "부수 효과: L3이 쌓이면 '내 장비함'은 그 자체로 프로필 콘텐츠가 된다(이 사람 뭐 쓰나 구경 → 팔로우 → 구매). 감지 기능이 아니라 SNS 기능으로 승격된다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-2. 단가 — 가정 명시 (전부 검증 필요)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "비전 LLM 분석: 리사이즈 이미지 1장 + 짧은 구조화 출력 기준 대략 장당 2~3원 (경량 모델 기준 · 실측 필요)",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "객단가: 스트랩 약 1만 / 리스트랩 약 1.5만 / 벨트 약 3~8만 / 신발 10만+ → 가중 평균 대략 2만 가정",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "쿠팡 파트너스 수수료율: 카테고리별 대략 3% 수준 (정확한 요율·상한·전환 창은 약관 재확인 필요) → 전환 1건 약 500~600원",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "퍼널: 태그 노출 → 클릭 CTR 약 1.5%, 클릭 → 구매 전환율 약 3% 가정 → 노출 1회당 기대수익 약 0.22원",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-3. 손익분기 — 사진 1장이 13회 노출되면 본전",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "분석비 3원 ÷ 노출당 0.22원 ≈ 13.6회. SNS 피드에서 사진 1장이 13번 노출되는 건 사실상 자동으로 넘는 허들이다. 결론: 원안 3번의 '수익 < 비용' 시나리오는 성립하지 않는다. 다만 흑자 폭 자체가 작다는 게 진짜 문제다 — 월 10만 노출이어도 파트너스 수익은 약 2만원대. 이걸로 서버비를 낼 수는 없다. 그래서 통찰 2가 나온다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "text": "반대로 볼 수도 있다: 비용이 이렇게 작으면 굳이 수익화 압박 없이 기능을 켜둘 수 있다. '이 사람 뭐 차고 운동하지?'는 헬스 커뮤니티에서 가장 빈번한 질문 중 하나이고, 그 답을 앱이 자동으로 달아주는 것만으로 체류·재방문이 늘어난다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-4. 수익 귀속 — 사용자에게 크래딧으로 환원 (BS-001 연결)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안은 '앱이 파트너스 수익금을 먹는다'로 되어 있는데, 남의 사진에서 나온 수익을 앱이 전부 가져가는 구조는 (a) 사용자 반발 소지가 있고 (b) 금액이 어차피 작아서 앱이 다 먹어도 티가 안 난다. 대신 발생 수익의 일부(예: 절반)를 사진을 올린 사용자에게 크래딧으로 돌려주면 성격이 바뀐다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "사용자에게 '피드를 열심히 올릴 이유'가 생긴다 — 콘텐츠 공급이 곧 수익. 초기 콘텐츠 부족 문제의 직접적 해법.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "BS-001의 크래딧 경제(멘토-멘티 피드백·온라인 PT·유료 번개)에 초기 유동성을 공급한다. 크래딧을 현금으로 사야만 하는 시스템은 부트스트랩이 어렵지만, '피드 올리면 크래딧이 조금씩 생긴다'가 있으면 경제가 돌기 시작한다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "현금이 아니라 앱 내 크래딧이므로 실제 현금 유출이 아니고 앱 안에 다시 갇힌다. 정산·세무 부담도 없다(현금 인출은 BS-001의 파트너 유저 인증 절차를 그대로 태움).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "검토 필요: 파트너스 약관상 수수료를 제3자에게 재분배하는 것이 허용되는지 확인 필요. 안 되면 '수익 연동'이 아니라 '업로드 활동 보상'이라는 별개 명목으로 우회 설계.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-5. 오탐 방어 — 비용보다 이쪽이 진짜 리스크",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "신뢰도 임계값 미달이면 태그를 아예 안 단다. '틀린 태그'보다 '없는 태그'가 훨씬 낫다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "브랜드·모델 특정은 하지 않는다(로고 오인식은 브랜드 분쟁으로 번진다). 카테고리 수준('리스트랩', '리프팅 벨트')까지만 감지하고 상품은 쿠팡 인기순 후보로 제시.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "업로더 확인 단계를 둔다 — 업로드 직후 '이거 맞나요?' 한 번. 확인은 정확도 보정이자 L3 학습 데이터이자 옵트인 절차를 겸한다(1석 3조).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "오탐 신고 1클릭 → 즉시 태그 제거.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "3. 트랙 B — 인플루언서 '오늘의 사용장비'",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-1. 과금 모델 3안 비교",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "A안 — 인플루언서 프로 플랜(월정액). 수익 예측이 쉽고 구현이 단순. 단점: 성과가 증명되기 전에는 아무도 안 낸다. 초기 도입 시 인플루언서 유입 자체가 막힌다. 성숙기 모델.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "B안 — 건당/성과 과금. 공정해 보이지만 치명적 결함이 있다. 네이버 스토어·자체몰은 우리가 전환(실제 구매)을 추적할 수 없다. 클릭까지만 측정 가능하므로 '클릭당 과금'밖에 안 되는데, 그건 인플루언서 입장에서 팔리지도 않았는데 돈 나가는 구조라 반발이 크다. 자체 결제 연동을 뚫지 않는 한 비추천.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "C안 — 브랜드(후원사) 과금. 인플루언서는 무료로 쓰고, 돈은 그 장비를 파는 브랜드가 낸다. 브랜드는 이미 인플루언서에게 지출 중이며 성과 측정을 원한다. 우리는 '이 브랜드 장비가 앱 안에서 몇 번 노출·클릭됐는지'를 리포트로 팔거나, 카테고리 스폰서 슬롯(예: 벨트 카테고리 추천 상단)을 판다. 단점: B2B 세일즈가 필요하고 트래픽이 어느 정도 쌓여야 시작 가능.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-2. 권장 — C를 목표로 두고 A로 마무리, B는 버린다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "초기에는 기능을 전면 무료로 풀어 인플루언서를 최대한 끌어들이고(그들이 데려오는 팔로워가 초기 트래픽의 전부다), 그동안 쌓인 클릭·유입 데이터로 C를 연다. A(프로 플랜)는 데이터가 충분히 값어치를 갖게 된 뒤 '심화 리포트·다중 링크·A/B 테스트·고정 배너' 같은 상위 기능 묶음으로 뒤늦게 붙인다. 즉 원안의 '프로 플랜이냐 건당이냐'는 질문에 대한 답은 — 둘 다 지금은 아니고, 순서는 무료 → 브랜드 과금 → 프로 플랜이다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-3. 인플루언서가 우리를 쓸 이유 (요금을 못 받는 대신 얻어야 하는 것)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "성과 리포트. 인스타에서는 '내 링크가 몇 번 눌렸는지'를 인플루언서 본인도 잘 모른다. 우리가 그걸 보여주면 인플루언서는 그 숫자를 들고 브랜드와 단가 협상을 한다. 그 순간 우리 앱은 그들에게 필수 도구가 된다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "우리가 그 리포트의 발급처라는 것 = 나중에 C안에서 브랜드에게 데이터를 팔 정당한 위치를 확보한다는 뜻. 리포트는 인플루언서에게 주는 선물이자 우리의 해자.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "타깃 정확도. 인스타 팔로워는 잡식이지만 여기 팔로워는 100% 헬스인이다. 벨트 하나 파는 데 이보다 좋은 지면이 없다 — 이게 인플루언서와 브랜드 양쪽에 할 세일즈 문구.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-4. 두 트랙의 충돌 — 우선순위 규칙이 필요하다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "인플루언서가 직접 링크를 걸었는데 자동 감지가 쿠팡 링크를 덧붙이면, 후원 브랜드가 아닌 경쟁사 상품이 같은 피드에 뜨는 사고가 난다. 후원 계약 위반으로 번질 수 있다. 규칙: 사용자가 수동 태그·직접 링크를 지정한 장비는 자동 감지가 절대 덮어쓰지 않는다. 인플루언서 계정은 자동 감지를 기본 OFF로 두는 것도 검토.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "4. 리스크·전제 (착수 전 확인)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "정책 — 쿠팡 파트너스 가입·오픈API 사용 승인, 자동 생성 링크 허용 여부, 수수료율·전환 창(쿠키 기간)·수수료 상한, 제3자 재분배 가능 여부. 여기서 막히면 트랙 A의 전제가 무너지므로 가장 먼저 확인할 것.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "법 — 공정위 추천·보증 심사지침상 대가성 표시 의무. 자동 삽입 링크는 플랫폼인 우리가 고지 주체다. 피드 단위 고지 라벨(예: '제휴 링크 포함')을 UI에 상시 노출해야 한다. 인플루언서 직접 링크도 '광고·후원' 표시가 필요하며, 표시 여부를 앱이 강제하는 게 안전하다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "신뢰 — 남의 사진에 광고를 자동으로 붙이는 것이므로 옵트인이 원칙. 다만 옵트인율이 낮으면 트랙 A가 무의미해지므로, '업로드 시 확인 단계'(2-5)를 옵트인 절차로 자연스럽게 흡수하는 설계가 관건.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "초상권·타인 장비 — 사진에 남이 찍혔고 그 사람 장비가 감지되는 경우. 업로더 본인 착용 추정 영역만 대상으로 제한하는 규칙이 필요.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "체감 훼손 — 피드가 광고판처럼 보이는 순간 SNS로서의 매력이 죽는다. 태그는 기본 접힘(사진 위 작은 인디케이터), 탭해야 펼쳐지는 수준으로 절제할 것.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "콜드 스타트 — 트래픽이 없으면 두 트랙 다 금액이 0에 수렴한다. 이 아이디어는 앱의 성장 수단이 아니라 성장의 결과물이다. 우선순위를 그렇게 잡을 것.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "5. 단계별 전개",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 0 (LLM 없이) — '오늘의 착용장비' 수동 태그 + 내 장비함 + 쿠팡 검색 링크만. LLM 0원, 개발 부담 최소. 여기서 '사람들이 실제로 장비를 태그하고 남의 장비를 눌러보는가'를 먼저 검증한다. 클릭률이 안 나오면 자동 감지를 만들 이유가 없다. 원안 1번이 곧 Phase 0이다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 1 (자동 감지) — Phase 0의 클릭 데이터로 손익분기를 실측한 뒤 L1~L3 파이프라인 투입. 동시에 크래딧 환원(2-4)을 붙여 업로드 동기를 만든다. 원안 2·3번.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 2 (인플루언서·브랜드) — 외부 링크 등록 + 성과 리포트 무료 제공으로 인플루언서 확보. 데이터가 쌓이면 브랜드 스폰서 슬롯(C안) 오픈, 그 후 프로 플랜(A안). 원안 4~7번.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "6. 열린 질문 (결정 필요)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "order": 1
+    },
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "파트너스 수익을 앱이 전부 갖는가, 사용자에게 크래딧으로 나누는가(2-4)? 나눈다면 비율은?",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "자동 감지는 기본 ON(옵트아웃)인가 기본 OFF(옵트인)인가? 수익성과 사용자 신뢰가 정면으로 부딪치는 지점.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "인플루언서 과금을 초기에 아예 받지 않는 C안 노선에 동의하는가, 아니면 원안대로 처음부터 유료로 갈 것인가?",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "'인플루언서'를 어떻게 정의·인증할 것인가? 팔로워 수 기준인가, BS-001의 파트너 유저 인증을 재사용하는가? 일반 유저도 외부 링크를 걸 수 있게 하면 스팸이 들어온다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "감지 범위를 어디까지? (손목·허리 장비만 vs 신발·의류까지) 넓힐수록 객단가는 오르지만 오탐도 는다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 0을 먼저 검증하는 순서에 동의하는가, 아니면 자동 감지를 처음부터 넣어야 기능이 성립한다고 보는가?",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "ordered_list"
+   },
+   {
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "요지",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "피드 사진의 착용장비를 커머스 접점으로 바꾼다. 일반 사용자는 자동 감지 → 쿠팡 파트너스로, 인플루언서는 직접 링크 → '오늘의 사용장비' 탭으로. 두 트랙은 겉보기엔 같은 기능이지만 수익 구조도 리스크도 완전히 다르므로 분리해서 판단한다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "0. 원안 (그대로 보존)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "일반 사용자 피드",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "order": 1
+    },
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "일반 사용자들은 피드에 사진과 함께 사진을 올릴때 본인의 착용장비를 공유할수 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "디폴트로는 사진만으로도 손에 리스트랩이나 스트랩등이 장착되어있으면 감지하여 쿠팡에서 관련 물품을 찾아 피드에서 클릭하면 쿠팡으로 연결될수 있게 한다. 그래서 쿠팡 파트너스 수익금을 먹는다",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "2의 과정에서 사진의 착용장비 분석시에 llm 이 필요한지? 필요하다면 해당 금액보다 쿠팡 파트너스로 얻는 금액이 높아야만 수익화가 가능하다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "ordered_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "인플루언서 피드",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "인플루언서의 경우 자신이 후원받는 브랜드의 장비등이 있어서 이것을 피드에 올려 광고하고 싶다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "이때 인플루언서는 쿠팡이 아니라 네이버 스토어나 자체 스토어등을 통해 피드를 보는 사용자가 구매를 하게 하고싶을수 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "이 경우 인플루언서는 피드를 올릴때 '오늘의 사용장비' 라는 탭에서 자신이 썼던 장비의 구매 링크를 직접 올릴수 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "해당 기능을 사용한 인플루언서는 우리 앱이 광고를 대신 해주는 샘이므로 요금을 내야한다. (프로 플랜을 쓰면 기능을 쓰게 할지, 아니면 건마다 돈을 받을지, 좋은 방법을 아직 생각중.)",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "1. 핵심 통찰 3",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "통찰 1 — 비용은 '사진 수'에 비례하고 수익은 '노출 수'에 비례한다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안 3번의 걱정(LLM 비용 > 파트너스 수익)은 두 값이 같은 축에서 늘어난다는 전제 위에 있다. 실제로는 축이 다르다. 사진 1장은 업로드 시점에 딱 1번 분석하고 결과를 캐시하면 비용이 고정된다. 반면 그 사진은 팔로워·탐색 피드에 계속 노출되며 노출 수만큼 클릭 기회가 늘어난다. 즉 시간이 갈수록 사진 1장의 수익은 늘고 비용은 그대로다. 이 비대칭이 트랙 A의 성립 근거다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "통찰 2 — 트랙 A는 '수익 사업'이 아니라 '데이터·참여 장치'다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "흑자는 나지만 절대 금액이 작다(2-3 참조). 파트너스 수수료만 보고 이 기능을 정당화하면 초기에 실망하고 접게 된다. 대신 이 기능이 실제로 만드는 자산은 (a) 사용자별 장비 프로필, (b) '어떤 등급·어떤 종목의 사람이 어떤 장비를 쓰는가'라는 시장 데이터, (c) 피드에 붙는 구매 전환 트래킹 인프라 — 이 셋은 전부 트랙 B의 브랜드 세일즈에 그대로 재사용된다. 트랙 A는 트랙 B의 활주로다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "통찰 3 — 청구서는 인플루언서가 아니라 브랜드에 보내는 게 자연스럽다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안은 '광고를 대신 해줬으니 인플루언서가 요금을 낸다'는 논리다. 논리는 맞지만 초기 협상력이 반대다 — 우리는 인플루언서의 트래픽이 필요하고, 인플루언서는 이미 인스타를 갖고 있다. 돈을 요구하면 안 온다. 반면 브랜드는 이미 인플루언서에게 현금·현물을 쓰고 있으면서 그 성과를 측정하지 못해 답답한 상태다. 우리가 클릭·유입 데이터를 쥐고 있으면 브랜드가 지불할 이유가 생긴다. 참고로 BS-001의 '헬스장이 광고비를 내고 사용자는 무료'와 정확히 같은 골격이라 제품 전체의 수익 철학이 일관된다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "2. 트랙 A — 일반 사용자 자동 감지 (쿠팡 파트너스)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-1. 감지 파이프라인 — LLM을 4계층으로 깎는다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안 3번에 대한 실무적 답. '모든 사진에 LLM'이 아니라 '대부분 0원, LLM은 마지막 수단'으로 설계한다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L0 — 사용자 수동 태그 (비용 0). 인플루언서와 장비 애호가는 어차피 직접 태그하고 싶어한다. 자랑 욕구가 곧 데이터 입력 동력이다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L1 — 사전 필터 (비용 0). 장비가 있을 리 없는 사진(음식·풍경·전신 거울샷 아닌 것 등)을 온디바이스 경량 판별로 걸러 LLM 호출 자체를 막는다. 실제로 LLM까지 도달하는 건 전체 업로드의 일부에 그친다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L2 — 비전 LLM 1회 + 영구 캐시. 이미지 해시 기준으로 결과를 저장해 재분석을 원천 차단한다. 리사이즈해서 보내면 토큰이 크게 줄고, 출력은 장비 후보 목록 + 신뢰도만 받는 구조화 출력으로 짧게 끊는다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "L3 — '내 장비함(My Gear)'. 한 번 확정된 장비는 사용자 프로필에 등록되고 다음 사진부터는 추론 없이 프리필 후보로 뜬다. 헬스인은 같은 벨트·같은 스트랩을 몇 년씩 쓴다 — 유저당 LLM 호출은 초기 몇 회에 수렴하고 이후 0에 가까워진다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "content": [
+     {
+      "text": "부수 효과: L3이 쌓이면 '내 장비함'은 그 자체로 프로필 콘텐츠가 된다(이 사람 뭐 쓰나 구경 → 팔로우 → 구매). 감지 기능이 아니라 SNS 기능으로 승격된다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-2. 단가 — 가정 명시 (전부 검증 필요)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "비전 LLM 분석: 리사이즈 이미지 1장 + 짧은 구조화 출력 기준 대략 장당 2~3원 (경량 모델 기준 · 실측 필요)",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "객단가: 스트랩 약 1만 / 리스트랩 약 1.5만 / 벨트 약 3~8만 / 신발 10만+ → 가중 평균 대략 2만 가정",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "쿠팡 파트너스 수수료율: 카테고리별 대략 3% 수준 (정확한 요율·상한·전환 창은 약관 재확인 필요) → 전환 1건 약 500~600원",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "퍼널: 태그 노출 → 클릭 CTR 약 1.5%, 클릭 → 구매 전환율 약 3% 가정 → 노출 1회당 기대수익 약 0.22원",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-3. 손익분기 — 사진 1장이 13회 노출되면 본전",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "분석비 3원 ÷ 노출당 0.22원 ≈ 13.6회. SNS 피드에서 사진 1장이 13번 노출되는 건 사실상 자동으로 넘는 허들이다. 결론: 원안 3번의 '수익 < 비용' 시나리오는 성립하지 않는다. 다만 흑자 폭 자체가 작다는 게 진짜 문제다 — 월 10만 노출이어도 파트너스 수익은 약 2만원대. 이걸로 서버비를 낼 수는 없다. 그래서 통찰 2가 나온다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "text": "반대로 볼 수도 있다: 비용이 이렇게 작으면 굳이 수익화 압박 없이 기능을 켜둘 수 있다. '이 사람 뭐 차고 운동하지?'는 헬스 커뮤니티에서 가장 빈번한 질문 중 하나이고, 그 답을 앱이 자동으로 달아주는 것만으로 체류·재방문이 늘어난다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-4. 수익 귀속 — 사용자에게 크래딧으로 환원 (BS-001 연결)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "원안은 '앱이 파트너스 수익금을 먹는다'로 되어 있는데, 남의 사진에서 나온 수익을 앱이 전부 가져가는 구조는 (a) 사용자 반발 소지가 있고 (b) 금액이 어차피 작아서 앱이 다 먹어도 티가 안 난다. 대신 발생 수익의 일부(예: 절반)를 사진을 올린 사용자에게 크래딧으로 돌려주면 성격이 바뀐다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "사용자에게 '피드를 열심히 올릴 이유'가 생긴다 — 콘텐츠 공급이 곧 수익. 초기 콘텐츠 부족 문제의 직접적 해법.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "BS-001의 크래딧 경제(멘토-멘티 피드백·온라인 PT·유료 번개)에 초기 유동성을 공급한다. 크래딧을 현금으로 사야만 하는 시스템은 부트스트랩이 어렵지만, '피드 올리면 크래딧이 조금씩 생긴다'가 있으면 경제가 돌기 시작한다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "현금이 아니라 앱 내 크래딧이므로 실제 현금 유출이 아니고 앱 안에 다시 갇힌다. 정산·세무 부담도 없다(현금 인출은 BS-001의 파트너 유저 인증 절차를 그대로 태움).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "검토 필요: 파트너스 약관상 수수료를 제3자에게 재분배하는 것이 허용되는지 확인 필요. 안 되면 '수익 연동'이 아니라 '업로드 활동 보상'이라는 별개 명목으로 우회 설계.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "2-5. 오탐 방어 — 비용보다 이쪽이 진짜 리스크",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "신뢰도 임계값 미달이면 태그를 아예 안 단다. '틀린 태그'보다 '없는 태그'가 훨씬 낫다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "브랜드·모델 특정은 하지 않는다(로고 오인식은 브랜드 분쟁으로 번진다). 카테고리 수준('리스트랩', '리프팅 벨트')까지만 감지하고 상품은 쿠팡 인기순 후보로 제시.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "업로더 확인 단계를 둔다 — 업로드 직후 '이거 맞나요?' 한 번. 확인은 정확도 보정이자 L3 학습 데이터이자 옵트인 절차를 겸한다(1석 3조).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "오탐 신고 1클릭 → 즉시 태그 제거.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "3. 트랙 B — 인플루언서 '오늘의 사용장비'",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-1. 과금 모델 3안 비교",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "A안 — 인플루언서 프로 플랜(월정액). 수익 예측이 쉽고 구현이 단순. 단점: 성과가 증명되기 전에는 아무도 안 낸다. 초기 도입 시 인플루언서 유입 자체가 막힌다. 성숙기 모델.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "B안 — 건당/성과 과금. 공정해 보이지만 치명적 결함이 있다. 네이버 스토어·자체몰은 우리가 전환(실제 구매)을 추적할 수 없다. 클릭까지만 측정 가능하므로 '클릭당 과금'밖에 안 되는데, 그건 인플루언서 입장에서 팔리지도 않았는데 돈 나가는 구조라 반발이 크다. 자체 결제 연동을 뚫지 않는 한 비추천.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "C안 — 브랜드(후원사) 과금. 인플루언서는 무료로 쓰고, 돈은 그 장비를 파는 브랜드가 낸다. 브랜드는 이미 인플루언서에게 지출 중이며 성과 측정을 원한다. 우리는 '이 브랜드 장비가 앱 안에서 몇 번 노출·클릭됐는지'를 리포트로 팔거나, 카테고리 스폰서 슬롯(예: 벨트 카테고리 추천 상단)을 판다. 단점: B2B 세일즈가 필요하고 트래픽이 어느 정도 쌓여야 시작 가능.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-2. 권장 — C를 목표로 두고 A로 마무리, B는 버린다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "초기에는 기능을 전면 무료로 풀어 인플루언서를 최대한 끌어들이고(그들이 데려오는 팔로워가 초기 트래픽의 전부다), 그동안 쌓인 클릭·유입 데이터로 C를 연다. A(프로 플랜)는 데이터가 충분히 값어치를 갖게 된 뒤 '심화 리포트·다중 링크·A/B 테스트·고정 배너' 같은 상위 기능 묶음으로 뒤늦게 붙인다. 즉 원안의 '프로 플랜이냐 건당이냐'는 질문에 대한 답은 — 둘 다 지금은 아니고, 순서는 무료 → 브랜드 과금 → 프로 플랜이다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-3. 인플루언서가 우리를 쓸 이유 (요금을 못 받는 대신 얻어야 하는 것)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "성과 리포트. 인스타에서는 '내 링크가 몇 번 눌렸는지'를 인플루언서 본인도 잘 모른다. 우리가 그걸 보여주면 인플루언서는 그 숫자를 들고 브랜드와 단가 협상을 한다. 그 순간 우리 앱은 그들에게 필수 도구가 된다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "우리가 그 리포트의 발급처라는 것 = 나중에 C안에서 브랜드에게 데이터를 팔 정당한 위치를 확보한다는 뜻. 리포트는 인플루언서에게 주는 선물이자 우리의 해자.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "타깃 정확도. 인스타 팔로워는 잡식이지만 여기 팔로워는 100% 헬스인이다. 벨트 하나 파는 데 이보다 좋은 지면이 없다 — 이게 인플루언서와 브랜드 양쪽에 할 세일즈 문구.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 3
+    },
+    "content": [
+     {
+      "text": "3-4. 두 트랙의 충돌 — 우선순위 규칙이 필요하다",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "인플루언서가 직접 링크를 걸었는데 자동 감지가 쿠팡 링크를 덧붙이면, 후원 브랜드가 아닌 경쟁사 상품이 같은 피드에 뜨는 사고가 난다. 후원 계약 위반으로 번질 수 있다. 규칙: 사용자가 수동 태그·직접 링크를 지정한 장비는 자동 감지가 절대 덮어쓰지 않는다. 인플루언서 계정은 자동 감지를 기본 OFF로 두는 것도 검토.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "4. 리스크·전제 (착수 전 확인)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "정책 — 쿠팡 파트너스 가입·오픈API 사용 승인, 자동 생성 링크 허용 여부, 수수료율·전환 창(쿠키 기간)·수수료 상한, 제3자 재분배 가능 여부. 여기서 막히면 트랙 A의 전제가 무너지므로 가장 먼저 확인할 것.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "법 — 공정위 추천·보증 심사지침상 대가성 표시 의무. 자동 삽입 링크는 플랫폼인 우리가 고지 주체다. 피드 단위 고지 라벨(예: '제휴 링크 포함')을 UI에 상시 노출해야 한다. 인플루언서 직접 링크도 '광고·후원' 표시가 필요하며, 표시 여부를 앱이 강제하는 게 안전하다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "신뢰 — 남의 사진에 광고를 자동으로 붙이는 것이므로 옵트인이 원칙. 다만 옵트인율이 낮으면 트랙 A가 무의미해지므로, '업로드 시 확인 단계'(2-5)를 옵트인 절차로 자연스럽게 흡수하는 설계가 관건.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "초상권·타인 장비 — 사진에 남이 찍혔고 그 사람 장비가 감지되는 경우. 업로더 본인 착용 추정 영역만 대상으로 제한하는 규칙이 필요.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "체감 훼손 — 피드가 광고판처럼 보이는 순간 SNS로서의 매력이 죽는다. 태그는 기본 접힘(사진 위 작은 인디케이터), 탭해야 펼쳐지는 수준으로 절제할 것.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "콜드 스타트 — 트래픽이 없으면 두 트랙 다 금액이 0에 수렴한다. 이 아이디어는 앱의 성장 수단이 아니라 성장의 결과물이다. 우선순위를 그렇게 잡을 것.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "5. 단계별 전개",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 0 (LLM 없이) — '오늘의 착용장비' 수동 태그 + 내 장비함 + 쿠팡 검색 링크만. LLM 0원, 개발 부담 최소. 여기서 '사람들이 실제로 장비를 태그하고 남의 장비를 눌러보는가'를 먼저 검증한다. 클릭률이 안 나오면 자동 감지를 만들 이유가 없다. 원안 1번이 곧 Phase 0이다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 1 (자동 감지) — Phase 0의 클릭 데이터로 손익분기를 실측한 뒤 L1~L3 파이프라인 투입. 동시에 크래딧 환원(2-4)을 붙여 업로드 동기를 만든다. 원안 2·3번.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 2 (인플루언서·브랜드) — 외부 링크 등록 + 성과 리포트 무료 제공으로 인플루언서 확보. 데이터가 쌓이면 브랜드 스폰서 슬롯(C안) 오픈, 그 후 프로 플랜(A안). 원안 4~7번.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "6. 열린 질문 (결정 필요)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "attrs": {
+     "order": 1
+    },
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "파트너스 수익을 앱이 전부 갖는가, 사용자에게 크래딧으로 나누는가(2-4)? 나눈다면 비율은?",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "자동 감지는 기본 ON(옵트아웃)인가 기본 OFF(옵트인)인가? 수익성과 사용자 신뢰가 정면으로 부딪치는 지점.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "인플루언서 과금을 초기에 아예 받지 않는 C안 노선에 동의하는가, 아니면 원안대로 처음부터 유료로 갈 것인가?",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "'인플루언서'를 어떻게 정의·인증할 것인가? 팔로워 수 기준인가, BS-001의 파트너 유저 인증을 재사용하는가? 일반 유저도 외부 링크를 걸 수 있게 하면 스팸이 들어온다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "감지 범위를 어디까지? (손목·허리 장비만 vs 신발·의류까지) 넓힐수록 객단가는 오르지만 오탐도 는다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "Phase 0을 먼저 검증하는 순서에 동의하는가, 아니면 자동 감지를 처음부터 넣어야 기능이 성립한다고 보는가?",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "ordered_list"
+   },
+   {
+    "type": "paragraph"
+   }
+  ],
+  "type": "doc"
+ }
+}
