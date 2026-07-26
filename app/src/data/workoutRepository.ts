@@ -10,7 +10,8 @@ import {
   totalVolumeKg,
   setVolumeKg,
   snapshotFromSets,
-  detectNewPRs,
+  detectMajorPRs,
+  mergeSnapshots,
   effectiveWeightKg,
   effectiveReps,
   resolveLoadMode,
@@ -996,7 +997,10 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   for (const { exerciseId, variant, logged } of performedByVariant.values()) {
     const current = snapshotFromSets(logged);
     const hist = await historicalSnapshotForExercise(exerciseId, id, variant);
-    const prs = detectNewPRs(current, hist);
+    // [원본] 4종(중량·반복·세트볼륨·1RM) 검출 — 원복 시 아래를 해제하고 detectMajorPRs를 주석 처리
+    // const prs = detectNewPRs(current, hist);
+    // [개편] 종목별 중량·볼륨 2종만 PR로 인정(개수 부풀림 방지 — 2026-07 재개편)
+    const prs = detectMajorPRs(current, hist);
     if (prs.length) {
       let name = '운동';
       try {
@@ -1032,5 +1036,69 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   });
 
   scheduleSync(); // 운동 완료 → 서버 백업·다른 기기 반영(디바운스·로그인 가드·비차단)
-  return { workoutId: id, totalVolumeKg: totalVolume, durationSeconds, workingSets, prCount, prs: prDetails };
+  const summary: WorkoutSummary = { workoutId: id, totalVolumeKg: totalVolume, durationSeconds, workingSets, prCount, prs: prDetails };
+  lastCompletedSummary = summary; // 요약 화면이 종목별 PR 내역을 표시(휘발 — 재로드 시 prCount만)
+  return summary;
+}
+
+// ── 라이브 PR 판정 (세트 완료 시 축하 이펙트용 — 휘발) @plm SRS-005 ──────
+// 최종 PR '기록'은 completeWorkout(완료 저장)에서만 확정된다. 여기서는 아무것도 저장하지 않고
+// "이 세트가 (과거 완료 운동 + 이번 세션의 앞선 세트) 최고치를 넘는가"만 답한다.
+// 운동을 도중 폐기하면 축하는 이미 지나갔어도 기록엔 아무 흔적이 없다(사용자 요구).
+let lastCompletedSummary: WorkoutSummary | null = null;
+
+// 완료 직후 요약 화면용 종목별 PR 내역(메모리 캐시). 재로드 등으로 없으면 null → prCount만 표시.
+export function getLastWorkoutSummary(workoutId: string): WorkoutSummary | null {
+  return lastCompletedSummary?.workoutId === workoutId ? lastCompletedSummary : null;
+}
+
+const liveHistCache = new Map<string, PRSnapshot>(); // `${workoutId}::${ex}::${variant}` → 과거 최고(완료 운동만)
+const liveCelebrated = new Set<string>(); // `${setId}:${type}` — 체크 해제→재체크 중복 축하 방지(휘발)
+
+export async function evalLiveSetPr(
+  workoutExerciseId: string,
+  setId: string,
+  uiWeightKg?: number,
+  uiReps?: number,
+): Promise<PRResult[]> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  const exerciseId = we.exerciseId;
+  if ((await cardioExerciseIdSet([exerciseId])).size > 0) return []; // 유산소 제외 @plm SRS-030
+  const set = await setLogs().find(setId);
+  if (set.isWarmup || set.isFailed) return []; // PR은 작업 세트만(스냅샷 규칙과 동일)
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  // 방금 완료된 세트 — 무게/반복은 UI 입력값 우선(블러 커밋 경합 대비. 처방 제안 로직과 같은 이유).
+  const logged = toLoggedSet(set, loadMode, bw);
+  if (uiWeightKg != null && uiWeightKg > 0) logged.weightKg = uiWeightKg;
+  if (uiReps != null && uiReps >= 0) logged.reps = uiReps;
+  const thisSet = snapshotFromSets([logged]);
+  if (thisSet.maxVolumeSetKg <= 0 && thisSet.maxWeightKg <= 0) return [];
+
+  const variant = effectiveVariantKey(we);
+  const cacheKey = `${we.workoutId}::${exerciseId}::${variant ?? ''}`;
+  let hist = liveHistCache.get(cacheKey);
+  if (!hist) {
+    hist = await historicalSnapshotForExercise(exerciseId, we.workoutId, variant);
+    liveHistCache.set(cacheKey, hist);
+  }
+  // 이번 세션에서 앞서 수행한 같은 (종목×기구) 세트들 — 수퍼셋 중복 인스턴스 포함, 자기 자신 제외.
+  const siblingWes = (
+    await workoutExercises().query(Q.where('workout_id', we.workoutId), Q.where('exercise_id', exerciseId)).fetch()
+  ).filter((x) => effectiveVariantKey(x) === variant);
+  const priorSets = siblingWes.length
+    ? (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(siblingWes.map((x) => x.id)))).fetch()).filter(
+        (s) => s.id !== setId && isPerformed(s),
+      )
+    : [];
+  const sessionPrior = snapshotFromSets(priorSets.map((s) => toLoggedSet(s, loadMode, bw)));
+
+  const prs = detectMajorPRs(thisSet, mergeSnapshots(hist, sessionPrior));
+  // 같은 세트가 체크 해제→재체크로 같은 타입을 다시 넘겨도 축하는 1회만.
+  return prs.filter((p) => {
+    const k = `${setId}:${p.type}`;
+    if (liveCelebrated.has(k)) return false;
+    liveCelebrated.add(k);
+    return true;
+  });
 }

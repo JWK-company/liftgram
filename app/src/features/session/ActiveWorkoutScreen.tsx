@@ -5,7 +5,7 @@ import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ReorderableList, { useReorderableDrag, type ReorderableListReorderEvent } from 'react-native-reorderable-list';
-import { AppText, Button, EmptyState, IconButton, TextField } from '../../components';
+import { AppText, Button, EmptyState, IconButton, TextField, PrCelebrationHost } from '../../components';
 import { colors, radius, spacing } from '../../theme';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useUser } from '../../state/userContext';
@@ -394,6 +394,9 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* 라이브 PR 축하 토스트(폭죽) — 세트 체크 시 쓱 떴다 자동 소멸. 저장은 완료 시(completeWorkout). */}
+      <PrCelebrationHost />
     </SafeAreaView>
   );
 }

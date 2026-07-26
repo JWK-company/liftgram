@@ -10,6 +10,7 @@ import {
   workingSetCount,
   snapshotFromSets,
   detectNewPRs,
+  detectMajorPRs,
   EMPTY_PR,
   calcPlates,
   toKg,
@@ -100,6 +101,28 @@ test('PR: 중량만 갱신', () => {
   const cur = snapshotFromSets([ws(110, 5)]);
   const prs = detectNewPRs(cur, hist);
   assert.ok(prs.some((p) => p.type === 'maxWeight'));
+});
+
+// ── PR 재개편(2026-07): 종목별 중량·볼륨 2종만 ──────────────────────
+test('MajorPR: 과거 없으면 중량·볼륨 딱 2종만(반복·1RM 제외)', () => {
+  const prs = detectMajorPRs(snapshotFromSets([ws(100, 5)]), EMPTY_PR);
+  assert.deepEqual(prs.map((p) => p.type).sort(), ['maxVolumeSet', 'maxWeight']);
+});
+
+test('MajorPR: 반복·추정1RM만 늘어난 세션은 PR 아님', () => {
+  const hist = snapshotFromSets([ws(100, 5)]); // 최대중량 100 · 세트볼륨 500
+  const cur = snapshotFromSets([ws(80, 6)]); // 반복 6(↑)·1RM 무관이지만 중량 80·볼륨 480(↓)
+  assert.equal(detectMajorPRs(cur, hist).length, 0);
+  assert.ok(detectNewPRs(cur, hist).some((p) => p.type === 'maxReps')); // 레거시 4종에선 잡히던 케이스
+});
+
+test('MajorPR: 가벼운 무게 고반복으로 세트볼륨만 갱신 → 볼륨 PR 1건', () => {
+  const hist = snapshotFromSets([ws(100, 5)]); // 볼륨 500
+  const cur = snapshotFromSets([ws(80, 8)]); // 볼륨 640 — 중량은 미달
+  const prs = detectMajorPRs(cur, hist);
+  assert.deepEqual(prs.map((p) => p.type), ['maxVolumeSet']);
+  assert.equal(prs[0].previous, 500);
+  assert.equal(prs[0].current, 640);
 });
 
 // ── 플레이트 계산기 (SRS-003) ────────────────────────────────────────

@@ -187,6 +187,8 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
   }
 
   const prCount = workout.prCount;
+  // PR 재개편: 종목별 중량/볼륨 PR 내역(완료 직후 메모리 캐시 — 재로드 시 null이면 개수 태그만).
+  const prSummary = workoutRepo.getLastWorkoutSummary(workoutId);
 
   return (
     <Screen scroll contentContainerStyle={{ paddingBottom: spacing.xxl }}>
@@ -203,6 +205,20 @@ export default function WorkoutSummaryScreen({ navigation, route }: RootStackScr
         {prCount > 0 ? (
           <View style={{ marginTop: spacing.md }}>
             <Tag label={t('session.prCount', { count: prCount })} tone="pr" />
+          </View>
+        ) : null}
+        {/* 종목별 PR 내역 — "벤치프레스 · 중량 PR 105kg (이전 100kg)" 식으로 무엇이 갱신됐는지 명시 */}
+        {prSummary && prSummary.prs.length > 0 ? (
+          <View style={styles.prList}>
+            {prSummary.prs.flatMap((d) =>
+              d.prs.map((p) => (
+                <AppText key={`${d.exerciseId}_${p.type}`} variant="caption" color="pr" center>
+                  {d.exerciseName} · {t(p.type === 'maxWeight' ? 'session.prTypeWeight' : 'session.prTypeVolume')}{' '}
+                  {formatWeight(p.current, weightUnit)}
+                  {p.previous > 0 ? ` (${t('session.prPrev', { value: formatWeight(p.previous, weightUnit) })})` : ''}
+                </AppText>
+              )),
+            )}
           </View>
         ) : null}
         {streak.current > 0 ? (
@@ -328,6 +344,7 @@ function ExerciseSummaryCard({
 
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingVertical: spacing.lg },
+  prList: { marginTop: spacing.sm, gap: 2 },
   streakRow: { marginTop: spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   statRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
   sharedRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },

@@ -5,7 +5,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector } from '../../components';
+import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector, firePrCelebration } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo, workoutRepo, type LogSetInput } from '../../data';
@@ -260,9 +260,20 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   const rxList: (PrescribedSet | null)[] = we.prescription ?? [];
   // 중량 이어달리기 — 세트 완료 시 다음 미완료 '처방' 세트에 제안(자동 덮어쓰기 금지·탭 적용·무시 가능, ADR-028).
   const [suggestions, setSuggestions] = useState<Record<string, CascadeSuggestion>>({});
-  function handleDoneToggled(index: number, done: boolean, weightKg: number) {
-    if (!done || !(weightKg > 0)) return;
+  function handleDoneToggled(index: number, done: boolean, weightKg: number, reps: number) {
+    if (!done) return;
     const cur = sets[index];
+    // PR 재개편(2026-07): 완료 세트가 (과거 완료 운동 + 이번 세션 앞세트)의 최고 중량/세트볼륨을
+    // 넘으면 축하 토스트(휘발 — 최종 기록은 운동 완료 저장 시 completeWorkout이 확정).
+    if (cur) {
+      workoutRepo
+        .evalLiveSetPr(we.id, cur.id, weightKg > 0 ? weightKg : undefined, reps >= 0 ? reps : undefined)
+        .then((prs) => {
+          if (prs.length) firePrCelebration({ exerciseName: exName || exNameKo || '', types: prs.map((p) => p.type) });
+        })
+        .catch(() => {});
+    }
+    if (!(weightKg > 0)) return;
     const next = sets.slice(index + 1).find((s) => s.done !== true && s.setType != null);
     if (!cur || !next) return;
     const sug = suggestNextSetWeightKg({
@@ -436,7 +447,7 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             rx={rxList[s.setNumber - 1] ?? null}
             suggestion={suggestions[s.id] ?? null}
             onApplySuggestion={() => applySuggestion(s.id)}
-            onDoneToggled={(done, weightKg) => handleDoneToggled(i, done, weightKg)}
+            onDoneToggled={(done, weightKg, reps) => handleDoneToggled(i, done, weightKg, reps)}
             onRestStart={() => {
               // v16: 세트 타입별 권장 휴식(웜업45/탑180/백오프120) — 비처방은 종목 설정값. @plm SRS-043
               onStartRest(restSecondsForSetType(s.setType as PrescribedSetType | null, restSeconds));
@@ -540,7 +551,7 @@ function SetRowEdit({
   rx: PrescribedSet | null; // v16: 이 세트의 처방(반복범위 라벨용). @plm SRS-043
   suggestion: CascadeSuggestion | null; // v16: 중량 이어달리기 제안(행 아래 라인 — 탭 적용·무시 가능)
   onApplySuggestion: () => void;
-  onDoneToggled: (done: boolean, weightKg: number) => void;
+  onDoneToggled: (done: boolean, weightKg: number, reps: number) => void;
   onRestStart: () => void;
 }) {
   const { t, lang } = useT();
@@ -582,8 +593,10 @@ function SetRowEdit({
     workoutRepo.setSetDone(set.id, next).catch(() => {});
     if (next) onRestStart();
     // v16: 완료 시 다음 처방 세트 제안 계산(현재 입력 무게 기준 — kg 정규). @plm SRS-043
+    // 반복수도 UI 입력값 그대로 전달(라이브 PR 판정이 블러 커밋 경합 없이 정확히 보게).
     const n = parseFloat(w.replace(',', '.'));
-    onDoneToggled(next, !Number.isNaN(n) && n > 0 ? toKg(n, weightUnit) : 0);
+    const rp = parseInt(r, 10);
+    onDoneToggled(next, !Number.isNaN(n) && n > 0 ? toKg(n, weightUnit) : 0, !Number.isNaN(rp) && rp >= 0 ? rp : -1);
   }
   function setArm(arm: 'uni' | null) {
     workoutRepo.setSetArm(set.id, arm).catch(() => {});

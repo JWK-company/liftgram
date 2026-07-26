@@ -43,7 +43,15 @@ export interface PRResult {
   current: number;
 }
 
-// 이번 세션 스냅샷 vs 과거 최고치(이번 세션 제외) → 갱신된 PR 목록.
+// PR 재개편(2026-07): 종목별 '중량 PR(maxWeight)'·'볼륨 PR(maxVolumeSet)' 2종만 인정.
+// 반복·추정1RM은 파생 지표라 PR로 세지 않는다(개수 부풀림 방지 — 사용자 피드백).
+export const MAJOR_PR_TYPES: readonly PRType[] = ['maxWeight', 'maxVolumeSet'];
+
+export function detectMajorPRs(current: PRSnapshot, historicalBest: PRSnapshot): PRResult[] {
+  return detectNewPRs(current, historicalBest).filter((r) => MAJOR_PR_TYPES.includes(r.type));
+}
+
+// 이번 세션 스냅샷 vs 과거 최고치(이번 세션 제외) → 갱신된 PR 목록(4종 전체 — 레거시·분석용).
 export function detectNewPRs(current: PRSnapshot, historicalBest: PRSnapshot): PRResult[] {
   const out: PRResult[] = [];
   const cmp: [PRType, number, number][] = [
