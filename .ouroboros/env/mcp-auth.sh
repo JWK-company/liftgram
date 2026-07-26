@@ -22,11 +22,42 @@ ENV_FILE="$HERE/.env"
 case "${1:-}" in
   plm)  TOKEN="${PLM_API_TOKEN:-}" ;;
   ouro) TOKEN="${OURO_MCP_TOKEN:-}" ;;
+  penpot)
+    # penpot MCP(oauth2-proxy 게이트) — Keycloak client-credentials로 매 호출 fresh 토큰(만료 대응).
+    # 게이트가 Bearer JWT(aud=penpot-mcp)를 검증. secret은 .env(PENPOT_MCP_CLIENT_SECRET).
+    ISS="${PENPOT_MCP_ISSUER:-https://jwk-auth.shoi.ch/realms/ouroboros}"
+    CID="${PENPOT_MCP_CLIENT_ID:-penpot-mcp}"
+    if [ -n "${PENPOT_MCP_CLIENT_SECRET:-}" ] && command -v curl >/dev/null 2>&1; then
+      TOKEN="$(curl -fsS -m 6 -d "client_id=$CID&client_secret=$PENPOT_MCP_CLIENT_SECRET&grant_type=client_credentials" \
+        "$ISS/protocol/openid-connect/token" 2>/dev/null \
+        | sed -n 's/.*"access_token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' || true)"
+    fi
+    ;;
   *)    TOKEN="" ;;
 esac
 
+# ouro 토큰 self-heal — "인증하면 없다가도 생기게": OURO_MCP_TOKEN 이 없고 PLM 인증(PLM_API_TOKEN)이
+# 있으면, PLM 의 /ouro-token 에서 대행 발급받아 .env 에 자동 기입한다(다음부터는 로컬 값 사용).
+# 실패(구서버·미설정 배포·네트워크)해도 조용히 기존 흐름(빈 헤더 → 401)으로 폴백.
+if [ "${1:-}" = "ouro" ] && [ -z "$TOKEN" ] && [ -n "${PLM_API_TOKEN:-}" ] && command -v curl >/dev/null 2>&1; then
+  CFG="$HERE/../config/plm.json"
+  API=""
+  if [ -f "$CFG" ] && command -v python3 >/dev/null 2>&1; then
+    API="$(python3 -c "import json;print(json.load(open('$CFG')).get('api_url',''))" 2>/dev/null || true)"
+  fi
+  API="${API%/}"
+  if [ -n "$API" ]; then
+    NEW="$(curl -fsS -m 6 -H "authorization: Bearer $PLM_API_TOKEN" -H "user-agent: mcp-auth/1.0" \
+      "$API/ouro-token" 2>/dev/null | sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' || true)"
+    if [ -n "$NEW" ]; then
+      TOKEN="$NEW"
+      printf 'OURO_MCP_TOKEN=%s\n' "$NEW" >> "$ENV_FILE" 2>/dev/null || true
+    fi
+  fi
+fi
+
 # 토큰이 없으면 빈 객체(헤더 없음) — 서버가 401 로 명확히 실패하게 두어 조용한 오작동을 막는다.
-# (해결: .env 에 해당 토큰을 채운다. plm 은 /plm-hub:link, ouro 는 OURO_MCP_TOKEN 설정.)
+# (해결: plm 은 /plm-hub:link. ouro 는 위 self-heal 이 자동 처리 — PLM 인증만 돼 있으면 된다.)
 if [ -z "$TOKEN" ]; then
   printf '{}'
 else

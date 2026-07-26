@@ -1,0 +1,464 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-WKT",
+ "type": "Wireframe",
+ "title": "운동",
+ "screen_code": "WKT",
+ "route": "/workout",
+ "archetype": "auto",
+ "status": "Draft",
+ "relations": {
+  "covers": [
+   "SRS-002",
+   "SRS-034",
+   "SRS-035",
+   "UCS-001"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "운동 · WKT · /workout"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.01 [nav] 로고 운동 홈 헤더"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.02 [nav] 이어서 운동하기 (헤더 우측 필)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 활성 세션 있을 때만"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 진행 중이던 운동 세션 복귀"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.03 [container] 진행 중인 운동 배너 (이전에 시작한 세션 · 폐기)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 활성 세션 있음(warn) / 없음(숨김)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 폐기 탭=확인 다이얼로그"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 세션 폐기 또는 유지"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.04 [container] 오늘의 추천 루틴 배너"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 추천됨(ok) / 기록 부족(muted)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 시작 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 오늘은 {근육} 차례예요 — 추천 루틴으로 세션 시작"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.05 [button] + 새 루틴"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 루틴 편집 화면(신규) 진입"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.06 [button] ⚡ 빠른 운동 시작"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 빈 세션 생성 → 운동 세션 화면"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.07 [button] 프로그램 생성"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 프로그램 생성 화면 진입"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.08 [button] 주변 헬스장 찾기 ›"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 주변 헬스장 화면 진입"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.09 [display] 내 루틴 섹션 헤더 (폴더 그룹)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 폴더 있음 / 없음(평면)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 폴더별 루틴 그룹 표시"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.10 [list] 루틴 목록 행 (이름·종목 수·시작)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 일반 / 슈퍼셋 포함"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 행 탭=편집 · 시작 탭=세션"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 활성 세션 존재 시 이어서/폐기 확인"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.11 [overlay] 루틴 더보기 시트 (편집·복제·삭제)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 닫힘 / 열림"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 항목 선택"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 복제=사본 생성 · 삭제=확인 다이얼로그"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "WKT.12 [nav] 하단 탭바 (운동·피드·기록·캘린더·분석·프로필)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 운동 탭 활성"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭 전환"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 각 탭 화면 이동"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "order": 30,
+ "phase": "2. 운동 준비 · 루틴",
+ "impl": "implemented",
+ "desc": "앱 홈이자 운동 탭. 내 루틴 목록과 오늘의 운동 시작, 프로그램 생성·주변 헬스장 진입점을 제공한다."
+}

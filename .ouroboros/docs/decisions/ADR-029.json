@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-029",
+  "type": "ADR",
+  "title": "3D 운동 미디어 소싱 — GymVisual 라이선스 구매 + 자체 호스팅 (하이브리드 보완)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T06:06:00Z",
+  "updated": "2026-07-26T06:06:00Z",
+  "sync": true,
+  "tags": [
+    "media",
+    "sourcing",
+    "licensing",
+    "bs004"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-046",
+      "SRS-047",
+      "SAD-021"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SRS-046은 세션 중 3D 모델 스타일 움짤(실사 아님)을 요구하고, SRS-047 갭 이관 포함 대상은 약 300종이다. DR-001 조사 결과: GymVisual은 GIF 개당 $3.60(10개 이상 $0.90), 비독점 상업 로열티프리 영구 라이선스(N-CRFL)로 300종 ≈ $270 수준. 대안인 ExerciseDB류 API는 재배포 권리가 불명확하고 외부 API 종속이 로컬 퍼스트 방향과 충돌하며, 자체 3D 제작은 수천만 원대·수개월로 단계 규모에 과대하다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "운동 미디어는 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "GymVisual 애니메이션 GIF를 대량 구매(팩 협상 포함)해 자체 스토리지/CDN에 호스팅"
+          },
+          {
+            "type": "text",
+            "text": "한다. 커버리지 갭(한국 특수 기구 등)은 부재 종목만 개별 제작으로 보완하는 하이브리드. 외부 API 핫링크는 금지한다. 구매 확정 전 게이트: ① N-CRFL 앱 재배포 조항 원문 확인 ② 갭 종목 대조표와 GymVisual 카탈로그 매칭률 확인 ③ 팩 견적."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택: 비용이 압도적으로 낮고(300종 ≈ $270) 목표 룩앤필(3D 모델·근육 하이라이트 — RapidOverload 동일 스타일)을 검증된 형태로 즉시 확보. 영구 라이선스라 반복 비용 없음."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대안 ExerciseDB API(기각): 종수는 많으나 재배포·자체 호스팅 권리 불명확 + 외부 API 종속(오프라인·성능·중단 리스크)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대안 오픈소스 wger 등(기각): 애니메이션 미지원·품질 비일관. 대안 전면 자체 제작(기각): 비용·기간 과대 — 보완용으로만."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "＋ SRS-046 팁 UX를 즉시 착수 가능(미디어 병목 해소). 자체 호스팅으로 오프라인 캐시·성능 통제."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "－ 비독점이라 시각적 독자성은 없음 — 차별화는 접이식 UX·단계 설명 이중 구조(우리 레이어)에서 만든다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "－ 에셋-종목 매핑 작업 필요: exerciseMedia 규약(nameKo KEY)대로 매핑 테이블 관리, 부재 종목은 단계 설명 폴백."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌림 비용 낮음: 영구 라이선스 매몰 ≈ $270뿐, 스타일 교체 시 매핑 테이블만 갈아끼우면 됨."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

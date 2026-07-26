@@ -1,4 +1,4 @@
-import { normalizeGearTags, type GearTag } from '../../domain';
+import { normalizeGearTags, sanitizePrescriptionValue, sanitizeWeeklySchedule, type GearTag, type PrescribedSet, type WeeklySchedule } from '../../domain';
 
 // @json 컬럼 sanitizer — DB 원시값을 안전한 string[]로 정규화.
 export function sanitizeStringArray(raw: unknown): string[] {
@@ -13,12 +13,13 @@ export function sanitizeGearTags(raw: unknown): GearTag[] {
   return normalizeGearTags(raw);
 }
 
-// 유산소 목표(JSON) sanitizer — {durationSec,distanceM,incline,level} 숫자 필드만. null=미설정. @plm SRS-030
+// 유산소 목표(JSON) sanitizer — {durationSec,distanceM,incline,level,speed} 숫자 필드만. null=미설정. @plm SRS-030
 export interface CardioTargetJson {
   durationSec?: number | null;
   distanceM?: number | null;
   incline?: number | null;
   level?: number | null;
+  speed?: number | null; // v15: 러닝머신 속도(km/h)
 }
 export function sanitizeCardioTarget(raw: unknown): CardioTargetJson | null {
   if (!raw || typeof raw !== 'object') return null;
@@ -29,6 +30,19 @@ export function sanitizeCardioTarget(raw: unknown): CardioTargetJson | null {
     distanceM: num(o.distanceM),
     incline: num(o.incline),
     level: num(o.level),
+    speed: num(o.speed),
   };
-  return out.durationSec || out.distanceM || out.incline || out.level ? out : null;
+  return out.durationSec || out.distanceM || out.incline || out.level || out.speed ? out : null;
 }
+
+// 처방(JSON) sanitizer — 도메인 정규화 위임(타입·RIR 클램프·불량 항목 제거). @plm SRS-043
+export function sanitizePrescription(raw: unknown): PrescribedSet[] | null {
+  return sanitizePrescriptionValue(raw);
+}
+export type { PrescribedSet };
+
+// 주단위 스케줄(JSON) sanitizer — 도메인 정규화 위임(길이 7 보정·블록 검증). @plm SRS-044
+export function sanitizeWeeklyScheduleJson(raw: unknown): WeeklySchedule | null {
+  return sanitizeWeeklySchedule(raw);
+}
+export type { WeeklySchedule };

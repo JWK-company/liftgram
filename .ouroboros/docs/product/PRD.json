@@ -7,9 +7,10 @@
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-06-23T13:01:25Z",
-  "updated": "2026-07-10T05:53:26Z",
+  "updated": "2026-07-26T05:20:00Z",
   "sync": false,
-  "tags": ["strategy", "monetization", "wedge", "marketplace"],
+  "tags": ["strategy", "monetization", "wedge", "marketplace", "coaching"],
+  "relations": { "generated_from": ["BS-001", "BS-004"], "relates_to": ["BS-004"] },
   "doc": { "type": "doc", "content": [
     { "type": "blockquote", "content": [
       { "type": "paragraph", "content": [
@@ -195,9 +196,30 @@
       { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "기획 공백(신설): 헬스장 매칭·크레딧 경제·오프라인 만남·인증/운동온도·어필리에이트 — 이번 재정렬에서 URS/UCS/SRS/SAD/ADR/RM 발급." }] }] }
     ] },
 
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "벤치마킹 반영 — BS-004 (RapidOverload 선별 카피, 2026-07)" }] },
+    { "type": "paragraph", "content": [
+      { "type": "text", "text": "RapidOverload(급진적 과부하) 전 화면 분석(BS-004 첨부 PDF)에서 확정 10건을 선별 카피한다. " },
+      { "type": "text", "marks": [{ "type": "strong" }], "text": "핵심 결정: 코칭의 주체는 알고리즘이 아니라 사람" },
+      { "type": "text", "text": " — 처방 구조(세트 타입·RIR)·주단위 관리·팁 UX는 가져오되 처방 주체를 소셜에서 만난 상급자·트레이너로 치환한다(알고리즘 자동 처방 제외). 이 축은 기존 전략의 P4 페르소나(트레이너 공급)와 크레딧 멘토링(SRS-023)·PT마켓(SRS-014)·정산(SRS-016)을 '코칭 도구'로 완성하는 그림이다." }
+    ] },
+    { "type": "bullet_list", "content": [
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P1 코어 강화(즉시): " },
+        { "type": "text", "text": "처방 어휘 데이터 모델(세트 타입·RIR·반복범위) + 주단위 스케줄·블록·디로딩 + 온보딩 경력·의향 분류 + 세션 경험(접이식 3D 팁·중량 이어달리기·세트 완료 UX·RIR 교육) + 카탈로그 갭 이관·콘셉트 루틴 — RM-017, SRS-043~047." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "P2~P3 코칭 마켓: " },
+        { "type": "text", "text": "트레이너 프로 권한(회원 루틴 편집·주별 관리)과 회원 리포트(부위별 볼륨·완료율) — RM-018, SRS-048. 기존 SRS-014·016·023과 연계, 프리미엄 과금 근거." }
+      ] }] },
+      { "type": "list_item", "content": [{ "type": "paragraph", "content": [
+        { "type": "text", "marks": [{ "type": "strong" }], "text": "제외·보류: " },
+        { "type": "text", "text": "알고리즘 자동 처방·선결제 퍼널(정체성 충돌), 체지방 사진 캘리브레이션(보류 — 라이선스·민감정보)." }
+      ] }] }
+    ] },
+
     { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "후속" }] },
     { "type": "paragraph", "content": [
-      { "type": "text", "text": "요구사항 발급: /plan:requirement (URS-011~015 · UCS-012~016 · SRS-021~027). 설계: /plan:design(SAD-014~018). 결정: /plan:decision(ADR-020~024). 추적: /plan:trace. 로드맵: RM-009~013 + 기존 RM 단계 재정렬." }
+      { "type": "text", "text": "요구사항 발급: /plan:requirement (URS-011~015 · UCS-012~016 · SRS-021~027). 설계: /plan:design(SAD-014~018). 결정: /plan:decision(ADR-020~024). 추적: /plan:trace. 로드맵: RM-009~013 + 기존 RM 단계 재정렬. — BS-004 반영분: UCS-018~019 · SRS-043~048 · RM-017~018 · SAD(코칭 도구)·ADR(코칭 주체) 후속 발급." }
     ] }
   ] }
 }

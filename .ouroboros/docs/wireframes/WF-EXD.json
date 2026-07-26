@@ -1,0 +1,429 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-EXD",
+ "type": "Wireframe",
+ "title": "운동 상세",
+ "screen_code": "EXD",
+ "route": "/exercise-detail",
+ "archetype": "auto",
+ "status": "Draft",
+ "relations": {
+  "covers": [
+   "SRS-001",
+   "SRS-032",
+   "UCS-002",
+   "SRS-046"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "운동 상세 · EXD · /exercise-detail"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.01 [button] ← 뒤로"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 목록 복귀"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.02 [display] 종목명 (한글·영문)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 커스텀 배지 표시 가능"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.03 [display] 자세 미디어 (시작·끝 사진)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 세트 {label}/{total}"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭=시작·끝 전환"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 자세 시연 사진 순환"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.04 [container] 자세 설명 패널 (한국어 단계별)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 미디어 크레딧 표기"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.05 [display] 주 근육군"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.06 [display] 보조 근육군"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.07 [container] 추정 1RM 추세 차트 패널"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 기록 없음 안내(muted)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: Epley 추정 · 실측 아님 고지"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.08 [display] 대체 운동 섹션 헤더"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.09 [toggle] 내 기구만 (대체 운동 필터)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 꺼짐 / 켜짐"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 토글"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 보유 기구 가능 대체만 표시"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.10 [list] 대체 운동 목록 행"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 없음 / 목록"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 해당 종목 상세로 이동"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "EXD.11 [button] 이 운동 추가"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 루틴·세션에 종목 추가"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "order": 110,
+ "phase": "2. 운동 준비 · 루틴",
+ "impl": "partial",
+ "desc": "운동의 수행법·팁·대체 운동을 보여준다. SRS-046 접이식 3D 움짤·단계 설명 전환과 RIR·웜업 마이크로 교육이 확장 예정이다(미디어 소싱=ADR-029)."
+}

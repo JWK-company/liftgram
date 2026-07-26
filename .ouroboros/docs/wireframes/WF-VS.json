@@ -1,0 +1,321 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-VS",
+ "type": "Wireframe",
+ "title": "VS 챌린지 (계획)",
+ "screen_code": "VS",
+ "route": "/planned/vs",
+ "archetype": "auto",
+ "status": "Draft",
+ "relations": {
+  "covers": [
+   "SRS-025"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "VS 챌린지 (계획) · VS · /planned/vs"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.01 [button] ← 뒤로"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 이전 화면 복귀"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.02 [display] VS 대결 헤더 (1:1 볼륨 대결)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.03 [container] 대결 현황 패널 (나 vs 상대 · 주간 볼륨 게이지)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 우세(ok) / 열세(warn)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 실시간 볼륨 비교"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.04 [list] 진행 중 대결 행 (상대·기간·점수)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 우세(ok) / 열세(warn) / 종료"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 대결 상세"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.05 [button] 대결 신청"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 상대·종목·기간 선택"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.06 [input] 대결 조건 (종목·기간·판정 기준)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 예: 스쿼트 볼륨 · 1주"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 입력"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.07 [display] 결과·보상 (승리 시 온도·배지)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "VS.08 [overlay] 대결 수락 시트"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 닫힘 / 열림"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 수락·거절"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 대결 시작 + 상대 알림"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "order": 410,
+ "phase": "8. 매칭 · 챌린지 (계획)",
+ "impl": "planned",
+ "desc": "1:1 VS 챌린지 — 기록 대결."
+}

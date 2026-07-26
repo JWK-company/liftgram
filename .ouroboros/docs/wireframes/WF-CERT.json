@@ -1,0 +1,322 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-CERT",
+ "type": "Wireframe",
+ "title": "운동 인증 등급 (계획)",
+ "screen_code": "CERT",
+ "route": "/planned/cert",
+ "archetype": "auto",
+ "status": "Draft",
+ "relations": {
+  "covers": [
+   "SRS-025",
+   "UCS-016"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "운동 인증 등급 (계획) · CERT · /planned/cert"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.01 [button] ← 뒤로"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 이전 화면 복귀"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.02 [display] 내 운동온도 타일 (36.5°)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 상승(ok) / 하락(warn)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 인증·약속 이행·매너가 반영된 신뢰 지표"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.03 [display] 등급 표시 (브론즈 → 다이아)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 승급 임박(accent)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 누적 인증·꾸준함 기반 등급"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.04 [button] 위치 기반 운동 인증"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 현재 위치가 헬스장이면 인증 성립"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.05 [container] 인증 확인 패널 (헬스장 위치 대조·시간)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 위치 확인 중(warn) / 인증 성공(ok)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: GPS·헬스장 DB 대조"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.06 [list] 인증 내역 행 (날짜·헬스장·연속)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 연속 인증(ok)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.07 [display] 등급 혜택 (매칭 우선·배지 노출)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "CERT.08 [overlay] 인증 완료 축하 시트 (+온도 상승)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 닫힘 / 열림"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 피드 공유 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 인증 게시물 공유"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "order": 420,
+ "phase": "8. 매칭 · 챌린지 (계획)",
+ "impl": "planned",
+ "desc": "운동 인증 등급 — 3대 기록 인증·배지."
+}

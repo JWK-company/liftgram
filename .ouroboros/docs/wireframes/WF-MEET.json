@@ -1,0 +1,357 @@
+{
+ "schemaVersion": 1,
+ "id": "WF-MEET",
+ "type": "Wireframe",
+ "title": "번개 약속 캘린더 (계획)",
+ "screen_code": "MEET",
+ "route": "/planned/meetup",
+ "archetype": "auto",
+ "status": "Draft",
+ "relations": {
+  "covers": [
+   "SRS-024",
+   "UCS-015"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "번개 약속 캘린더 (계획) · MEET · /planned/meetup"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.01 [button] ← 뒤로"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 이전 화면 복귀"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.02 [display] 다가오는 약속 타일 (D-1 · 장소)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 확정(ok) / 대기(warn)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.03 [list] 약속 행 (일시·장소·참여자·상태)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 확정(ok) / 응답 대기(warn) / 노쇼 기록"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 약속 상세·변경 요청"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.04 [container] 약속 캘린더 패널 (월 뷰·약속 도트)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 날짜 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 그 날 약속 목록"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.05 [button] 번개 만들기"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 일시·장소·인원·유료 여부 설정"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.06 [input] 번개 제목·장소"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 예: 토요일 아침 스쿼트 번개"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 입력"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.07 [toggle] 참가비"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 무료(선택) / 유료(크레딧)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 선택"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 유료 시 크레딧 결제·정산 연동"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.08 [display] 노쇼 정책 — 무단 불참 시 운동온도 하락"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: —"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: —"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "MEET.09 [overlay] 참여 확정 시트 (참가자 명단)"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "상태: 닫힘 / 열림"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "액션: 확정 탭"
+         },
+         {
+          "type": "hard_break"
+         },
+         {
+          "type": "text",
+          "text": "이펙트: 약속 확정 + 참여자 알림"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "order": 380,
+ "phase": "8. 매칭 · 챌린지 (계획)",
+ "impl": "planned",
+ "desc": "번개 운동 약속 캘린더."
+}

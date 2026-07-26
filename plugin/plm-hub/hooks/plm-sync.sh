@@ -7,7 +7,9 @@ DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CHANGED="$(plm_hook_changed)"   # A2: stdin JSON 우선, env fallback
 case "$CHANGED" in
   # ADR-019 동형: .json 우선(canonical). .md는 이행기 레거시 호환. product/=PRD(미추적 싱글턴이나 대시보드 표시 위해 동기).
-  *.ouroboros/docs/requirements/*.json|*.ouroboros/docs/design/*.json|*.ouroboros/docs/decisions/*.json|*.ouroboros/docs/roadmap/*.json|*.ouroboros/docs/product/*.json) : ;;
+  # blueprint/=Blueprint(BP-00N — ADR-032 · 미추적이나 [아키텍처] 탭 렌더 위해 동기).
+  # design-research/=DesignResearch(DR-00N — BP 선행 설계 조사 · 미추적이나 문서 뷰 열람 위해 동기).
+  *.ouroboros/docs/requirements/*.json|*.ouroboros/docs/design/*.json|*.ouroboros/docs/decisions/*.json|*.ouroboros/docs/roadmap/*.json|*.ouroboros/docs/product/*.json|*.ouroboros/docs/blueprint/*.json|*.ouroboros/docs/design-research/*.json) : ;;
   *.ouroboros/docs/requirements/*.md|*.ouroboros/docs/design/*.md|*.ouroboros/docs/decisions/*.md|*.ouroboros/docs/roadmap/*.md|*.ouroboros/docs/product/*.md) : ;;
   *) exit 0 ;;
 esac

@@ -30,6 +30,8 @@ CATEGORY = {  # type → 디렉토리
     "PRD": "product",  # PRD는 미추적(관계·게이트·trace 없음)이나 대시보드 표시 위해 동기(BS와 동일 취급)
     "BS": "product",   # P0-3: BS 누락 잠복 버그 수정 — bulk 동기·pull 정위치(product/)
     "Business": "product",  # ADR-027: 시장·경쟁·수익화 통합 조사(BIZ-00N — 구 Report 리네임)
+    "Blueprint": "blueprint",  # ADR-032: 아키텍처 설계도(BP-00N) — 미추적이나 [아키텍처] 탭 렌더 위해 동기
+    "DesignResearch": "design-research",  # DR-00N: BP 선행 설계 조사(도메인 로직·트레이드오프·수치) — 미추적이나 문서 뷰 열람 위해 동기
     "Report": "product",  # (레거시 → Business — 구 파일 하위호환)
     "MR": "product",   # MR(시장조사)는 비추적 싱글턴이나 대시보드 표시 위해 동기(PRD와 동일 취급)
     "CA": "product",   # CA(경쟁조사)는 비추적 싱글턴이나 대시보드 표시 위해 동기(PRD와 동일 취급)

@@ -121,6 +121,21 @@ export async function updateRoutineExercise(id: string, patch: RoutineExerciseIn
   });
 }
 
+// 루틴 종목의 세트별 처방 저장 — 작성 주체는 사람(루틴 에디터·프리셋)뿐(ADR-028). null=처방 제거. @plm SRS-043
+export async function setRoutineExercisePrescription(
+  id: string,
+  prescription: import('../domain').PrescribedSet[] | null,
+): Promise<void> {
+  await database.write(async () => {
+    const re = await routineExercises().find(id);
+    await re.update((rec) => {
+      rec.prescription = prescription && prescription.length > 0 ? prescription : null;
+      // 처방이 있으면 프리레이 세트 수 기준을 처방 길이에 맞춘다(에디터 UI 안내와 일치).
+      if (prescription && prescription.length > 0) rec.targetSets = prescription.length;
+    });
+  });
+}
+
 // 루틴 종목의 변형(기구·그립·팔) 저장 — variant_key 파생 + 개별 차원, 레거시 machine_variant 미러. @plm SRS-028
 export async function setRoutineExerciseVariant(id: string, dims: VariantDims): Promise<void> {
   const cols = variantColumns(dims);
@@ -200,6 +215,16 @@ export async function reorderRoutineExercises(orderedIds: string[]): Promise<voi
     const records = await Promise.all(orderedIds.map((id) => routineExercises().find(id)));
     await database.batch(
       ...records.map((re, i) => re.prepareUpdate((rec) => { rec.sortOrder = i; })),
+    );
+  });
+}
+
+// 루틴 목록 순서 재배치(드래그 재배치) — orderedIds 순서대로 sort_order 재기록. @plm SRS-002
+export async function reorderRoutines(orderedIds: string[]): Promise<void> {
+  await database.write(async () => {
+    const records = await Promise.all(orderedIds.map((id) => routines().find(id)));
+    await database.batch(
+      ...records.map((r, i) => r.prepareUpdate((rec) => { rec.sortOrder = i; })),
     );
   });
 }

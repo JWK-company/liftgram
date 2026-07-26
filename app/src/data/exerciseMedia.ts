@@ -23,7 +23,12 @@ export function freeDbImageUrl(path: string): string {
 import { RAW_MEDIA } from './exerciseMedia.data';
 
 export function getExerciseMedia(nameKo: string): ExerciseMedia | null {
-  const r = RAW_MEDIA[nameKo];
+  // 기구 변형 종목('인클라인 프레스 (덤벨)' 등)은 정확 키가 없으면 괄호 기구 토큰을 떼어 베이스 미디어를 상속. @plm SRS-028/032
+  let r = RAW_MEDIA[nameKo];
+  if (!r) {
+    const base = nameKo.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    if (base && base !== nameKo) r = RAW_MEDIA[base];
+  }
   if (!r) return null;
   return { start: freeDbImageUrl(r.s), end: freeDbImageUrl(r.e), instructionsKo: r.k, instructionsEn: r.en };
 }

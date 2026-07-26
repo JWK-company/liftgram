@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "id": "DR-001",
+  "type": "DesignResearch",
+  "title": "3D 스타일 운동 애니메이션 미디어 소싱 조사 (SRS-046 선행)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:55:00Z",
+  "updated": "2026-07-26T05:55:00Z",
+  "sync": true,
+  "tags": [
+    "media",
+    "sourcing",
+    "licensing",
+    "bs004-b1"
+  ],
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "조사 목적"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SRS-046(운동 팁 미디어 UX)은 실사 영상이 아닌 RapidOverload식 3D 모델 스타일 움짤을 요구한다. 라이선스 구매 vs 자체 제작의 비용·품질·확장성을 비교해 소싱 방식을 결정한다. 대상 규모: 카탈로그 갭 이관(SRS-047) 포함 약 300종."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "옵션 비교 (2026-07 조사)"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "옵션"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "비용(300종 기준)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "라이선스·품질"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "리스크"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "GymVisual 구매 (권장)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "GIF 개당 $3.60, 10개 이상 $0.90 → 300종 ≈ $270(약 37만 원). 팩(대량)은 별도 문의 협상 가능"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "N-CRFL(비독점 상업 로열티프리·영구·전세계) — 앱 임베드 허용. 8,000+ 자산, 근육 하이라이트 3D 모델풍 — RapidOverload가 쓰는 것과 같은 스타일이라 목표 룩앤필 즉시 확보"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "비독점(경쟁 앱과 동일 에셋 — RapidOverload와 겹침은 오히려 검증된 스타일). 한국 특수 기구 일부 부재 가능 → 부재분만 개별 제작 보완"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "ExerciseDB API (11,000+ GIF)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "API 구독형(무료 티어 제한적)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "종수는 최다이나 GIF 재배포·자체 호스팅 권리가 불명확(API 핫링크 전제)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "외부 API 종속(오프라인·성능·중단 리스크) — 로컬 퍼스트 앱 방향과 충돌"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "오픈소스(wger·MIT 데이터셋)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "무료"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "애니메이션 GIF 미지원(정적 이미지 위주)·종수 부족(~317) — 요구 스타일 미충족"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "품질·일관성 낮음. 탈락"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "자체 3D 제작(Blender 파이프라인)"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "외주 시 클립당 수만~수십만 원 × 300종(수천만 원대) 또는 내재화 수개월"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "독점·완전 통제·한국 기구 커스텀 자유"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "비용·기간이 Phase 규모에 과대 — 전면 채택 탈락, 부재 종목 보완용으로만"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결론 (SAD·ADR 입력)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "1안 채택 권장: GymVisual 대량 구매"
+                  },
+                  {
+                    "type": "text",
+                    "text": " — 300종 ≈ $270(10+ 단가 $0.90/GIF·팩 협상 시 추가 절감), N-CRFL 영구 라이선스로 자체 CDN 호스팅. 목표 룩앤필(3D 모델·근육 하이라이트)을 검증된 형태로 즉시 확보."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "커버리지 갭(한국 특수 기구 등)은 종목별 확인 후 부재분만 개별 제작 보완(하이브리드)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "에셋은 자체 스토리지/CDN에 호스팅(외부 API 핫링크 금지 — 오프라인·성능). 파일명·매핑은 exerciseMedia 규약(nameKo KEY)을 따른다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "구매 전 확인 체크리스트: ① N-CRFL의 앱 재배포 조항 원문 확인 ② 팩 협상 견적 ③ 갭 종목 대조표(SRS-047)와 GymVisual 카탈로그 매칭률."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "출처"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "gymvisual.com/content/6-price-rules (가격) · gymvisual.com/content/9-license (N-CRFL)"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "github.com/ExerciseDB/exercisedb-api · workoutxapp.com (대안 비교) · wger 프로젝트"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

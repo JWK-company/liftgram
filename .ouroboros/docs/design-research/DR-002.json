@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "id": "DR-002",
+  "type": "DesignResearch",
+  "title": "Liftgram 제품 전체 설계 조사 — 도메인 모델·기술 트레이드오프·수치 목표·아키텍처 스케치 (BP-001 선행)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T12:00:00Z",
+  "updated": "2026-07-26T12:00:00Z",
+  "sync": true,
+  "tags": ["architecture", "domain-model", "blueprint-basis", "bp-001"],
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "조사 목적·범위" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [{ "type": "text", "text": "아키텍처 블루프린트(BP-001)의 근거가 되는 제품 전체 설계 조사. 기존 DR-001은 운동 미디어 소싱(SRS-046 선행)에 한정되어 있어, 본 조사는 요구 전체(URS-001~017 · UCS-001~019 · SRS-001~048)와 설계·의사결정(SAD-001~022 · ADR-002~029), 그리고 앱 소스 실측(app/src 전 모듈 · @plm 주석 117파일)을 종합해 도메인 모델·기술 트레이드오프·수치 목표·위험·아키텍처 스케치를 정리한다. 미디어 소싱 수치는 DR-001의 결론을 그대로 인용한다." }]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "도메인 모델·비즈니스 로직 심층" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "핵심 엔티티(as-built, WatermelonDB schema v16): " }, { "type": "text", "text": "exercises(종목 — kind=strength|cardio, load_mode=external|assisted|bodyweight, 무브먼트 패턴; SRS-001·030·033·047) → routines/routine_exercises(루틴 — variant·슈퍼세트·유산소 목표·처방 어휘(세트타입·RIR·반복범위); SRS-002·043) → workouts/workout_exercises/set_logs(세션·세트 — variant_key 버킷, 정자세/부분반복 분리, 세트별 그립·팔, 유산소 시간·거리; SRS-003·004·028·029·030) → user_profiles(체중·경력·코칭 의향·my_gear @json·언어; SRS-006·033·041·045). 서버 측: Post.data.gear[](불투명 Json — 서버 마이그레이션 0; SRS-038) · GearClick(클릭 집계; SRS-039)." }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "기록 정밀도 규칙(도메인 불변식): " }, { "type": "text", "text": "변형 버킷 축은 기구(equip) 1차원 — 그립·팔은 버킷을 나누지 않는 세트 속성(ADR-026, v11 멱등 백필로 병합·비가역). 이전기록·PR 조회는 (exercise_id × variant_key) 단일 등가 필터(SRS-028·SAD-019). 볼륨·추정 1RM·PR은 정자세 reps × 유효무게만 사용(부분반복 제외, SRS-029) · 유효무게는 load_mode+체중 파생(assisted=max(0,체중−보조), bodyweight=체중+가중; SRS-033) · 1RM 산식은 Epley 단일 표준(ADR-010) · 유산소는 무게·횟수 0으로 볼륨·PR에서 자연 제외(SRS-030)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "코칭 도메인(P2P 확정): " }, { "type": "text", "text": "처방(세트타입·RIR·반복범위·중량대)은 사람(트레이너·프리셋)만 작성·변경하고 알고리즘 자동 처방 경로는 설계상 부재(ADR-028·BS-004). 앱의 자동 계산은 reasonKey를 동반한 무시 가능한 제안(중량 이어달리기; SRS-043). 트레이너 접근은 계약(SRS-023)+회원 동의+프로 구독(SRS-014)의 3중 조건 — 하나라도 깨지면 즉시 회수·감사 로그(SRS-048·SAD-022). 리포트는 사실 집계만(자동 개입 UI 금지)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "커머스 도메인(Phase 0 as-built): " }, { "type": "text", "text": "착용장비 태그는 카테고리 8종 화이트리스트 정규화, 브랜드는 조건부(직접 입력/확인된 자동 제안/카테고리 폴백 — 미확인 자동 감지 게시 금지, ADR-027 D5). 앱은 링크를 조립·가공하지 않음(서버 주입 사전 생성 딥링크 무가공 통과 또는 검색 URL 폴백 — 쿠팡 정책 4.1 A등급 제재 회피). 고지 라벨 미렌더 시 링크 열기 자체가 코드상 불가(resolveGearLink 인자 강제; SRS-037·040·SAD-020)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "신뢰·안전 횡단 규칙: " }, { "type": "text", "text": "모든 지표·평가·카피는 웰니스 범위(수행·매너)로 한정하고 의료 진단성 표현은 카피 게이트(containsMedicalClaim)로 차단(SRS-015·ADR-006). 여성 우선 매칭·검증 배지·차단/신고는 매칭·만남·크레딧 경로 전반의 횡단 요구(SRS-027). 데이트 매칭은 SNS 부가 경로로만(ADR-023). 크레딧은 이중기입 원장+에스크로, 현금 정산은 파트너 인증 완료자만·규제 준수 범위(SRS-023·ADR-022)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "가치 루프(PRD 플라이휠): " }, { "type": "text", "text": "쐐기 진입(여성·직장인 입문자, URS-011) → AI 루틴이 '오늘 뭘 할지' 마찰 제거(SRS-009) → 검증된 기록(SRS-003·028~033) → 앱 안 소셜 자랑(SRS-007·019, '되돌아오는 관문') → 책임감 루프(SRS-011, 리텐션 엔진) → 오프라인 만남·헬스장 매칭(SRS-021·024) → 크레딧 경제(SRS-023) → 공급자(트레이너·헬스장) 수익 → 콘텐츠·리드 재유입. 확장 순서는 쐐기→네트워크→경제 3단계(ADR-020)." }] }]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "기술 선택지·트레이드오프 (결정 확정분 요약)" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "클라이언트 = Expo RN 단일 코드베이스, 1차 배포 웹(PWA): " }, { "type": "text", "text": "Expo ~56 + RN 0.85 + react-native-web(실측). 네이티브 우선 대비 배포 마찰·스토어 심사 없이 SEO·공유 관문 확보(ADR-012). 트레이드오프: 웹 오디오·잠금화면 제약은 Web Audio 예약+MediaSession으로 우회(SRS-003 휴식 알람)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "로컬 퍼스트 저장 = WatermelonDB: " }, { "type": "text", "text": "네이티브 SQLite+JSI / 웹 LokiJS+IndexedDB 어댑터 분기(실측 db/adapter*.ts). 서버 중심(Supabase/Firebase) 대안 대비 오프라인 즉시성·헬스장 지하 환경 대응 우위(ADR-003). 동기화는 WatermelonDB synchronize() ↔ 자체 /sync 프로토콜, 엔티티별 충돌 해소(ADR-002·SAD-004)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "백엔드 = Node.js/TypeScript 모듈러 모놀리스 + PostgreSQL: " }, { "type": "text", "text": "마이크로서비스 기각 — 팀 규모·운영비 대비 과대(ADR-011·018). 신규 도메인(마켓플레이스·크레딧·만남·평판·커머스·코칭 권한)은 같은 모놀리스의 모듈로 증설(SAD-014~018·022). 실시간 DM은 socket.io + 매니지드 챗 추상화(ADR-015), 미디어는 오브젝트 스토리지+CDN+매니지드 트랜스코딩(ADR-016·SAD-012)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "AI 프로그램 = 규칙엔진·템플릿 우선(LLM 보조): " }, { "type": "text", "text": "실측 domain/programGenerator.ts는 LLM 비의존 순수 규칙 기반 — 비용 0·결정적·오프라인 동작(ADR-004). 비전 LLM은 착용장비 자동 감지(Phase 1+)에만 1회 분석+영구 캐시로 한정(BS-003 — 사진 1장 분석비 ~3원, 유저당 호출 0에 수렴하는 L0~L3 계층)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "헬스장 POI = Overpass(OSM) 무키 출발 → 카카오 로컬 서버 프록시 고도화: " }, { "type": "text", "text": "Phase 0는 클라이언트 직접 호출·키 불필요·서버 변경 0(SRS-035, 실측 services/gymSearch.ts 제공자 추상화). 국내 커버리지·'이름 미상' 한계는 카카오 REST(서버 프록시·그리드 캐싱·Overpass 폴백)로 해소 예정 — 블로커: 카카오 키 발급(SRS-036)." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "운동 미디어 = GymVisual 구매 + 자체 CDN (DR-001 결론 인용): " }, { "type": "text", "text": "300종 ≈ $270(10+ 단가 $0.90/GIF), N-CRFL 영구 라이선스, 외부 API 핫링크 금지(ExerciseDB API·wger·전면 자체 제작 기각; ADR-029). 현행 as-built는 free-exercise-db 시작/끝 2컷+jsDelivr(129/144종, SRS-032)이며 3D 움짤(SRS-046)은 GymVisual로 전환·갭만 개별 제작." }] }]
+          },
+          {
+            "type": "list_item",
+            "content": [{ "type": "paragraph", "content": [{ "type": "text", "marks": [{ "type": "strong" }], "text": "결제 = 웹 MoR(Merchant of Record) 수금 + User-centric 구독풀 배분: " }, { "type": "text", "text": "앱스토어 수수료 회피·글로벌 payout·원천징수 일원화(ADR-013·SAD-013). 크레딧 충전(SRS-023)·헬스장 광고비(SRS-022)·프로 구독(SRS-014)이 동일 결제 인프라를 재사용." }] }]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "수치·용량·성능 목표 (근거 명시)" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "세트 로깅 ≤3탭 · 그룹 가입 코호트 D30 리텐션 ≥25%(업계 3~10% 대비) · 입문 AI 4주 완주율 ≥40% · 그룹당 주간 활성 ≥60% — PRD 성공 지표 가설." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "월 BEP 3,000만~5,000만 원 — 헬스장 B2B(월 10만 원 × 300개 = 3,000만 원) + 프리미엄 구독 + 크레딧 수수료 15~30%(ADR-022) + 어필리에이트 합산(PRD 수익 모델)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "착용장비 손익분기 = 사진 1장당 약 13회 노출(비전 분석비 ~3원 ÷ 노출당 기대수익 ~0.22원, BS-003) — 단 Phase 0는 LLM 0원(수동 태그)으로 클릭률 KPI만 검증(RM-016)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "운동 미디어 소싱 ≈ $270/300종(GymVisual 10+ 단가 $0.90, DR-001) · 현행 자세 미디어 커버리지 129/144종(SRS-032) · 카탈로그 목표 ~284종(RapidOverload 갭 대조, SRS-047)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "인프라 실측: Render 무료 티어 콜드스타트 ~50s → 클라이언트 워밍업 핑+60s 타임아웃으로 흡수(sync/serverApi.ts) · 로컬 스키마 v16(마이그레이션 additive-only·멱등 백필) · @plm 딥링크 코드 아티팩트 574건/주석 파일 117개." }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "위험·미해결 질문" }]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "카카오 REST 키 발급 블로커(SRS-036 Draft 유지) — 발급 전까지 국내 헬스장 커버리지는 OSM 한계 감수." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "쿠팡 파트너스 정책 리스크(링크 조작·반복 클릭 A등급 제재) — 무가공 통과·서버 주입 구조로 방어했으나 승인·재배포 조항은 외부 변수(ADR-027 D2·D6). GymVisual N-CRFL 앱 재배포 조항 원문 확인은 구매 전 게이트(DR-001)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "크레딧 현금화의 전자금융·세무 규제(ADR-022) — 초기 앱내 소비만 개방, 정산은 규제 정비 후. 브랜드 자동 제안은 프로덕션 모델·실사용자 사진 조건의 오단정률 재측정 통과 전 비활성(SRS-026)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "무료 티어 서버(콜드스타트·용량)와 웹 LokiJS 내구성(IndexedDB flush) — 사용자 증가 시 유료 티어 전환·백업 전략 필요. P2·P3 신규 모듈(지오쿼리·원장·평판)의 PostGIS·감사 스토리지 용량 추정은 미확정(추후 DR)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "능동적 책임감 루프(SRS-011)가 PRD상 '진짜 해자'이나 최대 구현 공백 — P1 최우선 리스크이자 기회." }] }] }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": { "level": 2 },
+        "content": [{ "type": "text", "text": "아키텍처 스케치 (BP-001 존·컴포넌트·데이터 흐름 초안)" }]
+      },
+      {
+        "type": "paragraph",
+        "content": [{ "type": "text", "text": "5존 구성: ① 클라이언트 화면·경험(기록/세션·소셜·탐색 화면군 — Expo RN 3타깃) ② 클라이언트 도메인·데이터(순수 도메인 21모듈 · repository 계층 · WatermelonDB 로컬 DB — 로컬 퍼스트의 심장) ③ 연결·동기 계층(syncEngine·serverApi JWT · socket.io DM · Expo/web push) ④ 백엔드 서버(NestJS 모듈러 모놀리스 — as-built: auth·sync·social·media·gear / 계획: marketplace·credit·meetup·reputation·commerce·coaching) ⑤ 외부 서비스(Overpass OSM · 쿠팡 파트너스 · 미디어 CDN(jsDelivr→GymVisual 자체 호스팅) · Expo Push·웹 MoR)." }]
+      },
+      {
+        "type": "paragraph",
+        "content": [{ "type": "text", "text": "데이터 흐름 초안: 화면 → repository → 로컬 DB(즉시 반영·reactive 구독) → syncEngine이 백그라운드로 서버 /sync 왕복(오프라인 우선) · 소셜·미디어·장비 클릭은 serverApi REST 직행 · DM은 socket.io 상시 채널 · 서버 → Expo Push → 디바이스 알림 · 장비 칩 탭 → 쿠팡(무가공 딥링크/검색 URL) + 비차단 클릭 집계. P2·P3 확장 모듈은 코어의 인증·결제(SAD-013)·알림(SAD-011) 인프라를 재사용하며 모놀리스 내 모듈로 증설. 상세 노드·엣지·페르소나별 E2E 여정은 BP-001 모델이 정본." }]
+      }
+    ]
+  }
+}

@@ -204,5 +204,60 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v15: 러닝머신 속도(km/h) 지표 — 러닝머신만 경사·속도 기록. @plm SRS-030
+    {
+      toVersion: 15,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'speed_kmh', type: 'number', isOptional: true }],
+        }),
+      ],
+    },
+    // v16: 처방 어휘(세트 타입·RIR·반복범위) — 작성 주체는 사람(트레이너·프리셋, ADR-028).
+    // 기존 행 null=비처방(기존 UI·동작 불변 — 옵트인 레이어). @plm SRS-043
+    {
+      toVersion: 16,
+      steps: [
+        addColumns({
+          table: 'routine_exercises',
+          columns: [{ name: 'prescription', type: 'string', isOptional: true }],
+        }),
+        addColumns({
+          table: 'workout_exercises',
+          columns: [{ name: 'prescription', type: 'string', isOptional: true }],
+        }),
+        addColumns({
+          table: 'set_logs',
+          columns: [
+            { name: 'set_type', type: 'string', isOptional: true },
+            { name: 'target_rir', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    // v17: 주단위 스케줄·블록(요일→루틴 매핑 + N주+1주 디로딩) — user_profiles @json 선례. @plm SRS-044
+    {
+      toVersion: 17,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'weekly_schedule', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
+    // v18: 온보딩 경력·코칭 의향 분류 — 선택 수집(미응답 무차단), role은 자격 보증 아님. @plm SRS-045
+    {
+      toVersion: 18,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [
+            { name: 'experience_level', type: 'string', isOptional: true },
+            { name: 'trainer_intent', type: 'boolean', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

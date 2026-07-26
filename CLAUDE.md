@@ -50,6 +50,8 @@
 | BS | Brainstorming (아이디어 발산·피드백 기원 · **다수 발급**(BS-00N) · kind=idea\|feedback · 대시보드 표시) | /business, (feedback은 자유 발급) | — | ✗ 미추적(relates_to dst + **targets 발신**) |
 | Business | 통합 조사 보고서 (구 MR+CA 병합 — 파트A 시장·파트B 경쟁 · **다수 발급**(BIZ-00N) · 완성 보고서 파일 첨부가 본체 · 대시보드 표시) | /business | — | ✗ 미추적(relates_to dst + generated_from→BS) |
 | PRD | 제품 기획서 (프로젝트당 1개 · 대시보드 표시) | /plan | — | ✗ 미추적(관계·게이트 없음) |
+| Blueprint | 아키텍처 설계도 (BP-00N · 다수 발급 · [아키텍처] 탭 인터랙티브 렌더 · doc 내 plm-blueprint 모델) | /plm-hub:blueprint, (탭 챗) | — | ✗ 미추적(대시보드 표시) |
+| DesignResearch | 설계 조사 (DR-00N · 도메인 로직·기술 트레이드오프·수치 — BP 근거 · 대시보드 표시) | (탭 챗·/plm-hub:blueprint 선행 단계) | — | ✗ 미추적 |
 | Research | 리서치 노트 | (자유) | — | ✗ 비추적 |
 
 #### 추적 백본 (owner = 로컬 작성 측, 화살표 = 작성 방향)
@@ -90,7 +92,7 @@ Business|PRD ─generated_from→ BS · Roadmap ─generated_from→ PRD   (생�
 | `/report` | 기획 거버넌스 HTML 보고서(PLM+Ouroboros 수집·3사이클 검증) | docs/report |
 | `/reflect` | 기획 회고·ADR 후보·로드맵 갱신 제안 | — |
 
-**표준 기획 흐름:** `/business(선택) → /plan → /requirement → /design → /decision → /trace`. 동기화는 PLM(§5)이 자동 담당.
+**표준 기획 흐름:** `/business(선택) → /plan → /requirement → 설계 조사(DR) → (아키텍처 BP — 탭 챗 또는 /plm-hub:blueprint) → /design → /decision → /trace`. 동기화는 PLM(§5)이 자동 담당.
 
 ---
 
@@ -247,6 +249,7 @@ improvedFunction(args);
 | `/plm-hub:verify` | 로컬↔PLM 동기 무결성 전수 재검증(드리프트 감사·정합) |
 | `/plm-hub:agent` | 빈약 본문 아티팩트 자동 보정(work agent) |
 | `/plm-hub:upload` | 증거·미디어를 대시보드 스토리지(MinIO)에 업로드 → 본문 임베드 |
+| `/plm-hub:blueprint` | 아키텍처 블루프린트(BP) 저작/갱신 — 모델 계약 v1·bpcheck 검증 → [아키텍처] 탭 렌더 |
 | `/plm-hub:artifact-get`·`artifact-issue`·`relation-link` | 아티팩트 조회·발급·관계 연결 |
 | `/plm-hub:channel` | 웹 [Sync] 버튼 → 이 터미널 세션 push 채널 설정 |
 | `/plm-hub:update` | 4개 플러그인을 서버 배포 최신으로 일괄 갱신 |
@@ -276,12 +279,13 @@ improvedFunction(args);
 - **게이트(자동)**: Stop hook `plm-gate`가 `/gates`·`/review-queue`를 읽어 G1~G3 orphan·재검토 경고(비차단).
 - **동기 드리프트(자동·안전망)**: 같은 Stop hook이 매 세션 **로컬 문서↔PLM active 집합 대조** — `미동기`·`드리프트`를 표면화. 전수 재검증·정합은 `/plm-hub:verify`.
 - **본문 품질(자동)**: 작성 시 `body-lint` hook이 빈약 본문 경고(예방), `plm-gate`가 `G_body` 상시 감지, `/plm-hub:agent`가 자동 보정. Code 본문은 codescan이 `loc+symbol+스니펫`으로 강화.
+- **블루프린트 상시 동기(ADR-033)**: 후속 기획·구현 변경 시 BP를 갱신한다(비파괴 — 기존 노드·배치 보존) — [아키텍처] 탭 낡음 배너와 `bpcheck` 커버리지(▍BP 커버리지)가 낡음·미커버 UCS/SRS를 표면화.
 - **민감 기획**: CODE.json 래퍼의 `sync: false`로 본문 반출 제외. 모든 hook은 exit 0 graceful. Cloudflare가 python-urllib 기본 UA를 차단(403)하므로 스크립트는 `user-agent` 헤더 명시.
 - 설계 상세: `plugin/plm-hub/HOOKS.md`.
 
 ### 5.6 문서 저장 규칙
 
-`.ouroboros/docs/{requirements,design,decisions,roadmap,product,research,traceability}/`. **파일명 = 아티팩트 ID + `.json`**(`URS-001.json` — ADR-019 동형, markdown 금지). 포맷 = `plugin/plan/templates/_ARTIFACT-JSON-FORMAT.md`(스펙 문서 자체는 참고용 .md). `_`로 시작·`research/`·`sync:false`는 동기화 제외. `product/`의 PRD(싱글턴)·BS·Business(다수 발급)는 미추적이나 대시보드 표시 위해 동기(관계·게이트·매트릭스엔 미포함).
+`.ouroboros/docs/{requirements,design,decisions,roadmap,product,blueprint,design-research,research,traceability}/`. **파일명 = 아티팩트 ID + `.json`**(`URS-001.json`·`BP-001.json`·`DR-001.json` — ADR-019 동형, markdown 금지). 포맷 = `plugin/plan/templates/_ARTIFACT-JSON-FORMAT.md`(스펙 문서 자체는 참고용 .md). `_`로 시작·`research/`·`sync:false`는 동기화 제외. `product/`의 PRD(싱글턴)·BS·Business(다수 발급)는 미추적이나 대시보드 표시 위해 동기(관계·게이트·매트릭스엔 미포함). `design-research/`의 DR(다수 발급)도 동일 — 미추적이나 문서 뷰 열람 위해 동기.
 
 **본문 미디어 첨부**: 증거·분석 자료(스크린샷·GIF·PDF·데이터)는 `/plm-hub:upload <file>`로 스토리지(MinIO)에 올려 반환된 **image/file 노드**를 본문 `doc.content`에 임베드. **필요한 자료만.** 대시보드에선 드래그·붙여넣기·슬래시(`/이미지`·`/PDF`·`/파일`)로도 첨부.
 

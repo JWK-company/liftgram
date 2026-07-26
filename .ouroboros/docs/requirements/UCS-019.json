@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-019",
+  "type": "UCS",
+  "title": "트레이너가 프로 구독으로 회원 루틴·주간 스케줄을 관리하고 리포트로 점검한다",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:36:00Z",
+  "updated": "2026-07-26T05:36:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "trainer",
+    "premium"
+  ],
+  "relations": {
+    "elaborates": [
+      "URS-009",
+      "URS-010"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "온보딩에서 \"회원을 구하고 싶어요\"에 응답해 트레이너 role이 태깅되어 있고, 프로필에 등급·매너온도·검증 배지가 노출된다(SRS-025·027)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "프로 모델 구독이 활성 상태다(SRS-014)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "주 흐름"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "PT문의 DM(SRS-017)과 크레딧 멘토링 계약(SRS-023)으로 회원을 확보한다. 계약 성립 시 회원이 동의한 범위(루틴·주간 스케줄·운동 기록)의 접근 권한이 부여된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "담당 회원 목록에서 회원을 선택해 루틴에 처방 어휘(세트 타입·RIR·반복범위·중량대)로 처방을 작성한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "주간 스케줄(요일→루틴·휴식)과 블록 주기(N주+디로딩)를 편집한다 — 회원 홈에 즉시 반영."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원 리포트(부위별 볼륨·운동별 퍼포먼스·완료율)를 보고 다음 주 처방을 조정한다 — 판단은 트레이너, 앱은 사실 집계만 표시."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "정산은 기존 크레딧·수익배분 체계(SRS-016·023)를 따른다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "대안 / 예외 흐름"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "계약 해지·동의 철회 시 접근 권한 즉시 회수 — 이후 리포트·루틴 편집 불가, 감사 로그 기록."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "프로 구독 만료 시 처방 작성·리포트가 잠기고 열람 전 상태로 강등(기존 처방은 회원에게 유지)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원 세션에 처방이 렌더되고(UCS-018), 처방 이력이 변경 추적된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

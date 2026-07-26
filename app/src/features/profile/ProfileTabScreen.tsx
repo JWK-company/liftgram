@@ -44,6 +44,7 @@ import {
   type RestVolumeLevel,
 } from '../../utils/sound';
 import { ServerSyncCard } from './ServerSyncCard';
+import { ExperienceCard } from './ExperienceCard'; // @plm SRS-045
 
 type Language = 'ko' | 'en';
 
@@ -187,6 +188,9 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
       {/* 계정 — 로그인/가입·프로필(아바타·표시이름)·동기·로그아웃을 한 곳에(세션 상태로 일관 표시) */}
       <SectionHeader title={t('profile.account')} />
       <ServerSyncCard />
+
+      {/* 운동 경력·코칭 의향 — 온보딩 미응답분 후입력·수정(선택·무차단). @plm SRS-045 */}
+      <ExperienceCard />
 
       {/* 설정 */}
       <SectionHeader title={t('profile.settings')} />

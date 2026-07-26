@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 14;
+export const SCHEMA_VERSION = 18;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -21,6 +21,9 @@ export const mySchema = appSchema({
         { name: 'available_equipment', type: 'string', isOptional: true }, // JSON EquipmentType[] (가용 기구 — 빈/미설정=전체)
         { name: 'machine_variant_labels', type: 'string', isOptional: true }, // v5: JSON string[3] 커스텀 기구 이름(전역 공용)
         { name: 'my_gear', type: 'string', isOptional: true }, // v14: JSON GearTag[] 내 장비함(착용장비 재사용). @plm SRS-041
+        { name: 'weekly_schedule', type: 'string', isOptional: true }, // v17: JSON WeeklySchedule 주단위 스케줄·블록(월=0). @plm SRS-044
+        { name: 'experience_level', type: 'string', isOptional: true }, // v18: 운동 경력(beginner|intermediate|advanced). 선택 수집. @plm SRS-045
+        { name: 'trainer_intent', type: 'boolean', isOptional: true }, // v18: 코칭 의향(회원 모집) — 자격 보증 아님(면책 고지). @plm SRS-045
         { name: 'bar_weight_kg', type: 'number' },
         { name: 'last_sync_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
@@ -82,6 +85,7 @@ export const mySchema = appSchema({
         { name: 'sort_order', type: 'number' },
         { name: 'note', type: 'string', isOptional: true },
         { name: 'cardio_target', type: 'string', isOptional: true }, // v13: 유산소 목표 JSON {durationSec,distanceM,incline,level}. @plm SRS-030
+        { name: 'prescription', type: 'string', isOptional: true }, // v16: 세트별 처방 JSON PrescribedSet[] — 작성 주체는 사람(ADR-028). @plm SRS-043
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -130,6 +134,7 @@ export const mySchema = appSchema({
         { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
         { name: 'superset_group', type: 'string', isOptional: true }, // v7: 세션 슈퍼셋 그룹(#20) — 루틴서 복사. @plm SRS-004
         { name: 'cardio_target', type: 'string', isOptional: true }, // v13: 유산소 목표 JSON(루틴서 복사). @plm SRS-030
+        { name: 'prescription', type: 'string', isOptional: true }, // v16: 처방 JSON(루틴서 복사 — 세션 렌더 근거). @plm SRS-043
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -157,6 +162,10 @@ export const mySchema = appSchema({
         { name: 'distance_m', type: 'number', isOptional: true }, // 유산소 거리(미터·정규 저장, UI는 km)
         { name: 'incline_pct', type: 'number', isOptional: true }, // v13: 러닝머신 등 경사(%). @plm SRS-030
         { name: 'level', type: 'number', isOptional: true }, // v13: 사이클·천국의 계단 등 저항/강도 단계. @plm SRS-030
+        { name: 'speed_kmh', type: 'number', isOptional: true }, // v15: 러닝머신 속도(km/h). @plm SRS-030
+        // v16: 처방 어휘 — 세트 타입(warmup/top/backoff)·목표 RIR. null=비처방(기존 세트). @plm SRS-043
+        { name: 'set_type', type: 'string', isOptional: true },
+        { name: 'target_rir', type: 'number', isOptional: true },
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-046",
+  "type": "SRS",
+  "title": "운동 팁 미디어 UX — 접이식 3D 움짤·단계 설명 전환 + RIR·웜업 마이크로 교육",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:43:00Z",
+  "updated": "2026-07-26T05:43:00Z",
+  "sync": true,
+  "tags": [
+    "session",
+    "media",
+    "education",
+    "bs004-b1",
+    "bs004-b4"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "세션 중 운동 카드에서 3D 모델 스타일 움짤을 접었다 펼 수 있고, 탭하면 기존 1·2·3·4 단계 상세 설명으로 전환된다. 세션 상단에서 RIR 가이드·웜업 가이드(다페이지 모달)를 열 수 있다. 미디어는 지연 로드로 세션 성능을 해치지 않으며, 미디어 없는 종목은 단계 설명만 표시된다.",
+  "relations": {
+    "derives_from": [
+      "URS-004"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "세션 중 자세 확인 마찰을 없앤다. 운동 카드에 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "접이식(콜랩스) 미디어 영역"
+          },
+          {
+            "type": "text",
+            "text": "을 두어 3D 모델 스타일 움짤(실사 아님)을 보여주고, 미디어를 탭하면 기존 Liftgram의 1·2·3·4 단계 상세 설명으로 전환한다 — 빠른 시각 확인(움짤)과 정확한 학습(단계 텍스트)의 이중 구조. 접힘 상태는 운동별로 기억한다. 3D 미디어 소싱(라이선스 구매 vs 제작)은 선행 설계 조사(DR)로 결정하며, 미디어가 아직 없는 종목은 단계 설명만으로 동작한다(점진 롤아웃)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "함께, 세션 상단에 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "RIR 가이드·웜업 가이드"
+          },
+          {
+            "type": "text",
+            "text": " 진입 버튼을 두고 다페이지 모달(이전/다음 페이지네이션)로 제공한다. 콘텐츠는 \"주관적 힘듦이 아닌 수행 속도 변화로 RIR을 판단\", \"웜업은 횟수보다 낮은 강도가 중요·생략 가능\" 등 실전 기준을 담는다 — 트레이너-회원 코칭의 공통 언어(BS-004). 모든 문구는 웰니스 가드레일(SRS-015: 의료 단정 금지) 준수, i18n(ko/en) 번들로 관리한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 카드 미디어 접기/펼치기 + 탭 시 단계 설명 전환이 동작하고 접힘 상태가 운동별로 유지된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "미디어는 뷰포트 진입 시 지연 로드 — 세션 초기 렌더 시간 회귀 없음(측정 기준 명시)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "미디어 없는 종목은 단계 설명만 표시(빈 프레임·깨진 이미지 없음)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "RIR·웜업 가이드 모달이 다페이지로 열리고 콘텐츠가 i18n 번들에서 로드되며 카피 게이트(containsMedicalClaim) 검사를 통과한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-004(어떻게 운동할지). 근거: BS-004 B1·B4. 선행: DR(3D 미디어 소싱 조사). 기존 자산: exerciseMedia·ExerciseBlock·i18n."
+          }
+        ]
+      }
+    ]
+  }
+}

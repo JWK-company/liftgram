@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-022",
+  "type": "SAD",
+  "title": "코칭 권한·회원 리포트 아키텍처 — 계약 기반 접근 제어·감사 로그·트레이너 대시보드",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T06:01:00Z",
+  "updated": "2026-07-26T06:01:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "trainer",
+    "authorization",
+    "privacy",
+    "architecture",
+    "bs004"
+  ],
+  "component": "Coaching Access & Trainer Report (BS-004 P2)",
+  "relations": {
+    "refs": [
+      "SRS-048"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개요"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "트레이너-회원 코칭 관계를 \"계약 + 동의 + 구독\" 3중 조건의 접근 제어로 모델링한다. 데이터 소유자는 항상 회원이고 트레이너는 위임된 범위의 읽기/쓰기 권한만 가진다. 서버 사이드 권한 검증을 단일 지점(코칭 권한 가드)으로 두고 클라이언트는 이를 신뢰하지 않는 표시 계층으로만 취급한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "컴포넌트 / 책임"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "① CoachingGrant (권한 모델·가드)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "grant = {trainerId, memberId, scope(루틴 편집·주간 스케줄 편집·기록 열람), contractRef(SRS-023 계약), consentAt, revokedAt}. 유효성 = 계약 활성 ∧ 동의 유효 ∧ 트레이너 프로 구독 활성(SRS-014) — 셋 중 하나라도 깨지면 즉시 무효."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모든 코칭 읽기/쓰기 API는 단일 가드를 경유 — scope 밖 데이터(신체정보 등)는 쿼리 레벨에서 배제."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "해지·철회·구독 만료 이벤트 구독 → grant 무효화 + 클라이언트 캐시 퍼지 신호."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "② CoachingAudit (감사 로그)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너의 모든 접근·변경을 {who, when, what, memberId} 불변 레코드로 기록 — 처방 변경은 diff 요약 포함."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원 열람 화면(내 코칭 이력) 제공 — 신뢰·분쟁 대응 표면."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "③ TrainerDashboard (담당 회원·리포트)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "담당 회원 목록 → 회원별 리포트: 부위별 볼륨 추이·운동별 퍼포먼스(중량·반복·추정 1RM)·주간 완료율. 집계는 기존 volume·personalRecords·oneRepMax 도메인 함수 재사용(신규 통계 로직 최소화)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "표시는 사실 집계만 — 자동 제안·경고·개입 UI 없음(판단은 트레이너, BS-004·SRS-015). 추정치는 '추정' 라벨 강제(wellness 규약)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "처방 작성 진입점: 회원 루틴 에디터(SAD-021 ①·②를 트레이너 컨텍스트로 오픈 — 동일 컴포넌트 재사용, 대상 사용자만 스위칭)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "④ 신뢰 표면 (기존 연계)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너 프로필에 검증 배지·등급·매너온도(SRS-025)·안전 가드(SRS-027) 병기 + 자격 비보증 면책 문구(SAD-021 ⑤ 공용 컴포넌트)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "계약·정산 흐름은 기존 SRS-016·023 설계를 그대로 소비 — 이 SAD는 권한·도구 레이어만 신설."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 원칙 / 제약"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "권한 판단은 서버 단일 가드에서만 — 클라이언트 조건 분기는 UX 힌트일 뿐 보안 경계가 아니다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원 데이터의 로컬 퍼스트 원칙과 충돌 주의: 트레이너 측에는 동의 범위 스냅샷만 서버 경유 제공(회원 기기 데이터 직접 접근 없음)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "리포트·코칭 문구는 카피 게이트(containsMedicalClaim) 통과 필수."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "다루는 SRS: SRS-048(코칭 권한·회원 리포트). 소비: SRS-043·044(처방·스케줄 도구, SAD-021)·SRS-014·016·023·017·025·027(기존 마켓 축). 근거: BS-004 D1·D2."
+          }
+        ]
+      }
+    ]
+  }
+}

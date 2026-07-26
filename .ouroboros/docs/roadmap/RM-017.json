@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-017",
+  "type": "Roadmap",
+  "title": "P1 코어 강화 — 처방 루틴·주단위 스케줄·세션 경험·카탈로그 (BS-004 1~3단계)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:25:00Z",
+  "updated": "2026-07-26T05:25:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "routine",
+    "session",
+    "catalog"
+  ],
+  "relations": {
+    "covers": [
+      "URS-001",
+      "URS-004",
+      "URS-005",
+      "URS-007",
+      "URS-016",
+      "SRS-043",
+      "SRS-044",
+      "SRS-045",
+      "SRS-046",
+      "SRS-047"
+    ],
+    "generated_from": [
+      "PRD"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "목표 / 범위"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "BS-004(RapidOverload 선별 카피) 확정 10건 중 1~3단계를 P1 코어에 얹는다. 목표: 루틴·세션이 \"기록 도구\"에서 \"처방을 담는 그릇\"으로 진화하되, 처방 주체는 사람(트레이너·프리셋)으로 한정한다 — 알고리즘 자동 처방 없음."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "마일스톤"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "M1 루틴 기반: "
+                  },
+                  {
+                    "type": "text",
+                    "text": "처방 어휘 데이터 모델(세트 타입 웜업/탑/백오프 · 목표 RIR · 반복범위, SRS-043) + 주단위 스케줄·블록·디로딩(요일→루틴 매핑·N주+1주 디로딩·홈 주차 스트립, SRS-044) + 온보딩 경력·의향 분류(SRS-045 — 코칭 마켓 데이터 선축적)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "M2 세션 경험: "
+                  },
+                  {
+                    "type": "text",
+                    "text": "세션 처방 렌더·중량 이어달리기·세트 완료 마이크로 UX(SRS-043) + 접이식 3D 팁·RIR/웜업 마이크로 교육(SRS-046 — 선행 DR: 3D 미디어 소싱)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "M3 카탈로그(병렬): "
+                  },
+                  {
+                    "type": "text",
+                    "text": "RapidOverload 대비 갭 종목 이관(nameKo=조회 KEY·기구 변형=별도 엔트리·무브먼트 패턴 그룹 필드) + 콘셉트 루틴 카탈로그(SRS-047)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "완료 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴에 처방(세트 타입·RIR·반복범위)이 저장·표시되고, 세션이 이를 렌더한다(수동 기록과 100% 호환 — 옵트인)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "주단위 스케줄로 오늘 운동이 자동 결정되고 디로딩 주가 표시된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "온보딩에서 경력·코칭 의향이 수집되어 프로필에 반영된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세션 중 접이식 미디어→단계 설명 전환이 동작하고, 갭 종목이 기존 finder·substitutes를 깨지 않고 추가된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

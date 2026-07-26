@@ -77,6 +77,34 @@ else
   claude plugin marketplace add "$SRC" --scope project >/dev/null 2>&1 || true
 fi
 
+# 3.8) 마켓플레이스 등록 경로 self-heal — 등록 경로는 머신당 1개(최초 add 선점)라, 다른 디렉토리에서
+#   update해도 Claude는 "등록된 경로"의 사본으로 설치해 버전 정체가 재발한다(중복/정체의 근본 원인).
+#   → 등록 경로가 현재 ROOT와 다르면 known_marketplaces.json의 경로를 ROOT로 교정(.bak 백업).
+#   (marketplace remove/add는 설치 플러그인 고아화 위험 → 직접 경로 교정이 안전. 이후 step 4가 재읽음.)
+if [ -n "$ROOT" ] && command -v python3 >/dev/null 2>&1; then
+  python3 - "$ROOT" "$MP" <<'PY' || true
+import json, os, shutil, sys, time
+root, mp = sys.argv[1], sys.argv[2]
+p = os.path.expanduser("~/.claude/plugins/known_marketplaces.json")
+try:
+    d = json.load(open(p))
+except Exception:
+    sys.exit(0)
+e = d.get(mp)
+if not isinstance(e, dict):
+    sys.exit(0)
+cur = (e.get("source") or {}).get("path") or e.get("installLocation") or ""
+if os.path.realpath(cur or "/nonexistent") == os.path.realpath(root):
+    sys.exit(0)
+shutil.copy2(p, p + ".bak-" + time.strftime("%Y%m%d%H%M%S"))
+if isinstance(e.get("source"), dict) and "path" in e["source"]:
+    e["source"]["path"] = root
+e["installLocation"] = root
+json.dump(d, open(p, "w"), indent=2, ensure_ascii=False)
+print(f"[+] 마켓플레이스 '{mp}' 등록 경로 교정: {cur or '(없음)'} → {root}  (이 디렉토리가 업데이트 원본이 됩니다)")
+PY
+fi
+
 # 4) 마켓플레이스 재읽기 + 각 플러그인 업데이트(프로젝트 스코프 우선, user 스코프 폴백 — P0-2).
 echo "[*] 마켓플레이스 갱신: $MP"
 claude plugin marketplace update "$MP" 2>&1 | grep -iE 'updated|error' | sed 's/^/    /' || true
@@ -88,6 +116,79 @@ for p in "${PLUGINS[@]}"; do
   line="$(printf '%s' "$out" | grep -iE 'updated from|up to date|up-to-date|Restart|not installed' | head -1)"
   [ -n "$line" ] && printf '    %-12s %s\n' "$p:" "$line" || printf '    %-12s (처리됨)\n' "$p:"
 done
+
+# 4.5) ouroboros MCP 인증 self-heal(구설치본) — update만으로 ouro 연결이 살아나게:
+#   ① 헬퍼(.ouroboros/env/mcp-auth.sh)를 번들 최신으로 배치(토큰 자동 취득 self-heal 포함)
+#   ② .mcp.json ouroboros 블록에 headersHelper 없으면 전환(구 인증 방식 → 토큰 헤더)
+#   토큰 자체는 mcp-auth.sh가 연결 시 PLM 인증(/ouro-token)으로 자동 발급 — 수동 배부 불필요.
+if [ -n "$ROOT" ] && [ -f "$TDIR/plugin/plan/seed/env/mcp-auth.sh" ]; then
+  mkdir -p "$ROOT/.ouroboros/env"
+  cp "$TDIR/plugin/plan/seed/env/mcp-auth.sh" "$ROOT/.ouroboros/env/mcp-auth.sh" 2>/dev/null \
+    && echo "[+] .ouroboros/env/mcp-auth.sh 최신화 — ouro 토큰 자동 발급 지원"
+fi
+if [ -n "$ROOT" ] && [ -f "$ROOT/.mcp.json" ] && command -v python3 >/dev/null 2>&1; then
+  python3 - "$ROOT/.mcp.json" <<'PY' || true
+import json, sys
+p = sys.argv[1]
+try:
+    d = json.load(open(p))
+except Exception:
+    sys.exit(0)
+srv = d.get("mcpServers")
+if not isinstance(srv, dict):
+    sys.exit(0)
+o = srv.get("ouroboros")
+if isinstance(o, dict) and "headersHelper" not in o:
+    o["headersHelper"] = "bash .ouroboros/env/mcp-auth.sh ouro"
+    o.pop("headers", None)
+    json.dump(d, open(p, "w"), indent=2, ensure_ascii=False)
+    print("[+] .mcp.json ouroboros -> headersHelper 인증으로 전환(재시작 후 적용)")
+PY
+fi
+
+# 4.8) 설치 기록 정리 — 삭제된 디렉토리의 유령 항목 purge(우리 4종 한정·.bak 백업) + 멀티 디렉토리 요약.
+#   'claude plugin list'가 디렉토리별 설치를 전부 나열해 유령/구버전이 목록을 오염하던 문제의 해소.
+if command -v python3 >/dev/null 2>&1; then
+  python3 - "$MP" <<'PY' || true
+import json, os, shutil, sys, time
+mp = sys.argv[1]
+OURS = {f"{n}@{mp}" for n in ("plan", "code", "plm-hub", "plm-channel")}
+p = os.path.expanduser("~/.claude/plugins/installed_plugins.json")
+try:
+    d = json.load(open(p))
+except Exception:
+    sys.exit(0)
+plugins = d.get("plugins")
+if not isinstance(plugins, dict):
+    sys.exit(0)
+purged = 0
+dirs = set()
+for key in list(plugins.keys()):
+    if key not in OURS:
+        continue  # 타 플러그인 불변
+    ent = plugins[key]
+    if not isinstance(ent, list):
+        continue
+    keep = []
+    for e in ent:
+        pp = e.get("projectPath", "") if isinstance(e, dict) else ""
+        if e.get("scope") == "project" and pp and not os.path.isdir(pp):
+            purged += 1
+            continue
+        keep.append(e)
+        if pp:
+            dirs.add(pp)
+    plugins[key] = keep
+if purged:
+    shutil.copy2(p, p + ".bak-" + time.strftime("%Y%m%d%H%M%S"))
+    json.dump(d, open(p, "w"), indent=2, ensure_ascii=False)
+    print(f"[+] 설치 기록 정리: 삭제된 디렉토리의 유령 항목 {purged}건 제거(백업 .bak 생성)")
+n = len(dirs)
+if n > 1:
+    print(f"[i] 이 머신에 워크플로우 플러그인이 설치된 디렉토리 {n}곳 — 목록의 중복 표시는 디렉토리별 기록입니다.")
+    print("    각 디렉토리의 버전은 '그 디렉토리에서 update 실행' 시 최신화됩니다(안 쓰는 디렉토리는 그곳에서 uninstall).")
+PY
+fi
 
 # 5) 레거시 훅 정리(self-heal) — 구 인스톨러가 .claude/settings.json에 심은 '.ouroboros/hooks/*' 훅 항목 제거.
 #    플러그인이 훅을 제공(plugin hooks.json)하므로 중복이고, .ouroboros/hooks/가 없으면 매 도구호출마다

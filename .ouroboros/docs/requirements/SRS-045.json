@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-045",
+  "type": "SRS",
+  "title": "온보딩 경력·코칭 의향 분류 (등급·트레이너 role 태깅)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:42:00Z",
+  "updated": "2026-07-26T05:42:00Z",
+  "sync": true,
+  "tags": [
+    "onboarding",
+    "role",
+    "coaching",
+    "bs004-a3"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "가입 온보딩에서 운동 경력(초보 1-2년/중급 3-6년/상급 7년+)과 코칭 의향('회원을 구하고 싶어요')을 수집해 프로필에 경력 등급과 트레이너 role 태그로 반영한다. 기존 사용자는 프로필 편집에서 후입력할 수 있고, 미응답 시 어떤 기능도 차단되지 않는다. 트레이너 role은 자격 보증이 아님이 UI에 명시된다.",
+  "relations": {
+    "derives_from": [
+      "URS-004",
+      "URS-009"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가입 온보딩 설문에 두 문항을 추가한다. "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "① 운동 경력"
+          },
+          {
+            "type": "text",
+            "text": "(초보 1-2년 / 중급 3-6년 / 상급 7년+ — RapidOverload식 3분류)으로 경력 등급을 태깅해 코칭 수요-공급 매칭과 콘텐츠 톤 조정의 기초 데이터로 쓴다. "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "② 코칭 의향"
+          },
+          {
+            "type": "text",
+            "text": "(\"나는 회원을 구하고 싶어요\" 류)으로 응답자를 트레이너/코치 role로 태깅한다. role은 프로필에 코칭 의향으로 노출되고 등급·매너온도·검증 배지(SRS-025·027)와 함께 표시되며, 이후 프로 모델(SRS-014·048)의 대상 선별에 사용된다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "수집은 선택 사항이며 미응답이 기능을 차단하지 않는다. 트레이너 role 태깅은 자격 보증이 아님을 명시(면책 고지)하고, 경력·의향 값은 프로필 편집에서 언제든 수정 가능하다. 신체정보(체지방 등)는 이 단계에서 수집하지 않는다(BS-004 보류 결정)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "신규 가입 온보딩에 경력·의향 2문항이 추가되고 응답이 프로필(경력 등급·트레이너 role)에 저장된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존 사용자는 프로필 편집에서 동일 항목을 후입력·수정할 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "건너뛰기 가능 — 미응답 상태에서 모든 기존 기능이 정상 동작한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너 role 노출 지점에 \"자격 보증 아님\" 면책 문구가 표시된다(i18n ko/en)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-004(수요측 — 내게 맞는 코칭)·URS-009(공급측 — 트레이너 수익 의향). 근거: BS-004 A3. 소비처: SRS-048(프로 모델 대상), 매칭·프로필(SRS-025)."
+          }
+        ]
+      }
+    ]
+  }
+}

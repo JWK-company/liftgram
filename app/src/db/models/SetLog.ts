@@ -23,8 +23,12 @@ export default class SetLog extends Model {
   @field('distance_m') distanceM!: number | null; // v10: 유산소 거리(미터·정규 저장). @plm SRS-030
   @field('incline_pct') inclinePct!: number | null; // v13: 러닝머신 등 경사(%). @plm SRS-030
   @field('level') level!: number | null; // v13: 사이클·천국의 계단 등 단계. @plm SRS-030
+  @field('speed_kmh') speedKmh!: number | null; // v15: 러닝머신 속도(km/h). @plm SRS-030
   @field('arm') arm!: string | null; // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본)
   @field('grip') grip!: string | null; // v11: 세트별 그립 — over/under/neutral/wide/close, null=기본(표시전용)
+  // v16: 처방 어휘 — 세트 타입·목표 RIR. null=비처방(기존 세트·기존 동작 불변). @plm SRS-043
+  @field('set_type') setType!: string | null; // 'warmup'|'top'|'backoff'
+  @field('target_rir') targetRir!: number | null; // 0~6
   @field('done') done!: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') completedAt!: number | null;
   @readonly @date('created_at') createdAt!: Date;

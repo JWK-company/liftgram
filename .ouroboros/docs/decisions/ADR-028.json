@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-028",
+  "type": "ADR",
+  "title": "코칭 주체 = 사람(P2P) — 알고리즘 자동 처방 배제",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T06:05:00Z",
+  "updated": "2026-07-26T06:05:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "identity",
+    "wellness",
+    "bs004"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-043",
+      "SRS-044",
+      "SRS-045",
+      "SRS-046",
+      "SRS-047",
+      "SRS-048",
+      "SAD-021",
+      "SAD-022"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "RapidOverload 벤치마킹(BS-004)에서 처방형 코칭(세트 타입·RIR·중량 추천·주단위 관리)의 사용자 가치가 확인됐다. 쟁점은 처방의 주체였다: RapidOverload는 알고리즘이 퍼포먼스·피로를 분석해 세트 수·강도·운동을 자동 변경한다. Liftgram은 무료 기록+소셜 정체성이며 이미 P2P 축(PT마켓 SRS-014·트레이너 정산 SRS-016·크레딧 멘토링 SRS-023·PT문의 DM SRS-017)을 기획해 두었고, 웰니스 가드레일(SRS-015·ADR-006)상 자동 개입의 단정적 표현·책임 문제도 존재한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "코칭의 주체는 사람이다."
+          },
+          {
+            "type": "text",
+            "text": " 처방 구조(세트 타입·RIR·반복범위·주단위 스케줄)는 데이터 모델·UX로 도입하되, 처방의 작성·변경 주체는 트레이너(멘토링 계약·프로 구독)와 프리셋 루틴으로 한정한다. 알고리즘의 자동 처방 — 자동 세트 증감·자동 강도 조절·자동 운동 교체 — 은 만들지 않는다. 앱의 자동 계산은 \"제안형 편의\"(중량 이어달리기 등)로 제한하며 항상 근거(reasonKey)를 표시하고 무시 가능해야 한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "채택 근거 — "
+                  },
+                  {
+                    "type": "text",
+                    "text": "① 정체성: 소셜이 핵심 자산이므로 코칭도 소셜(사람 연결)로 푸는 것이 차별화·플라이휠에 정합(트레이너 공급 ↔ 회원 수요 ↔ 크레딧 경제). ② 기존 기획 재사용: 계약·정산·신뢰(등급·매너온도) 축이 이미 있어 코칭 도구만 얹으면 된다. ③ 웰니스 리스크: 자동 개입은 의료성 단정으로 해석될 여지가 크고, 사람 코칭+사실 집계 리포트는 가드레일 안에 안전하게 든다. ④ 데이터 요건: 자동 코칭은 대량 사용자 데이터·검증이 전제 — 현 단계에 비현실적."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "대안 A(기각) — RapidOverload식 알고리즘 자동 코칭: "
+                  },
+                  {
+                    "type": "text",
+                    "text": "차별화가 아닌 추격이 되고(상대는 데이터·알고리즘 선행), 웰니스 가드레일과 충돌하며, 소셜 자산을 활용하지 못한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "대안 B(기각) — 하이브리드(알고리즘 제안 + 사람 승인): "
+                  },
+                  {
+                    "type": "text",
+                    "text": "제안 로직의 품질·책임 문제가 그대로 남고 구현 복잡도만 배가. 향후 데이터가 쌓이면 \"트레이너 리포트에 참고 지표 추가\" 수준으로 재검토(새 ADR로)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "＋ 코칭 기능이 기존 수익화 축(프로 구독·크레딧 수수료)의 과금 근거가 된다. 처방 어휘는 트레이너-회원 공통 언어로 소셜 관계를 강화한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "－ 코칭 품질이 트레이너 공급·품질에 종속(콜드스타트) — 프리셋 루틴·마이크로 교육이 무코치 사용자의 바닥 경험을 받친다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "－ 무자격 코칭·데이터 권한 리스크를 떠안는다 → 면책 고지·검증 배지·동의 기반 접근 제어·감사 로그(SAD-022)로 완화."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌림 비용: 처방 데이터 모델은 주체 중립적이라 낮음 — 자동화 도입 시에도 스키마 재사용 가능(쓰기 경로만 추가). 단 정체성·신뢰 포지션 전환 비용은 큼."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-047",
+  "type": "SRS",
+  "title": "운동 카탈로그 갭 이관 + 콘셉트 루틴 카탈로그",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:44:00Z",
+  "updated": "2026-07-26T05:44:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "exercises",
+    "routine-preset",
+    "bs004-c1",
+    "bs004-c2"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "RapidOverload 대비 갭 종목이 기존 카탈로그 규약(nameKo=조회 KEY 불변·기구 변형=별도 엔트리·seedId 규칙)대로 추가되고 finder·media·substitutes가 회귀 없이 동작한다. 각 종목에 무브먼트 패턴 그룹이 부여되어 같은 패턴 대체운동 조회가 가능하다. 프리셋 루틴에 콘셉트명·스토리·1주 미리보기가 표시된다.",
+  "relations": {
+    "derives_from": [
+      "URS-007",
+      "URS-016"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "카탈로그 갭 이관: "
+          },
+          {
+            "type": "text",
+            "text": "RapidOverload 라이브러리(~284종 — 해머스트렝스·플레이트로디드 레버 계열, 인클라인/디클라인 변형, 넥 컬/익스텐션, 그립별 랫풀다운·로우 등 한국 헬스장 기구 세분)와 Liftgram 카탈로그를 대조해 없는 종목을 추가한다. 이관은 기존 데이터 규약을 엄수한다: 기존 종목의 nameKo는 finder(스무고개)·media·substitutes의 조회 KEY이므로 rename 금지, 기구·그립 변형은 기존 종목 수정이 아니라 별도 엔트리로 추가(벤치프레스식 안전 추가법·seedId 규칙). 추가 시 각 종목에 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "무브먼트 패턴 그룹"
+          },
+          {
+            "type": "text",
+            "text": "(예: 수평 프레스·수직 당기기) 필드를 부여해 \"같은 패턴 대체운동\" 조회의 기반을 만든다 — 헬스장에 기구가 없을 때의 교체 UX(변형 피커 승격)가 이를 소비한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "콘셉트 루틴 카탈로그: "
+          },
+          {
+            "type": "text",
+            "text": "프리셋 루틴에 \"원하는 몸\" 기준 콘셉트명(한국 감성 네이밍)·한 단락 스토리·1주 기준 운동 미리보기(데이별 종목 썸네일)를 부여해 루틴 선택을 목적 중심으로 바꾼다. 데이터는 기존 프리셋·exerciseMedia를 재사용하고 포장 레이어만 추가한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "갭 종목 목록(대조표)이 산출되고, 추가 종목이 seedId 규칙·별도 엔트리 원칙으로 시드에 반영된다 — 기존 종목 rename 0건."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존 finder(스무고개)·미디어 매핑·대체운동 조회가 전부 회귀 없이 통과(기존 테스트 + 신규 종목 스팟 체크)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "신규·기존 주요 종목에 무브먼트 패턴 그룹이 부여되고 같은 패턴 조회 API(도메인 함수)가 동작한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "프리셋 루틴 목록에 콘셉트명·스토리·1주 미리보기가 렌더된다(미부여 프리셋은 기존 표시 유지)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-007(한국 헬스 환경)·URS-016(변형 분리 기록). 근거: BS-004 C1·C2. 기존 자산: exercises.seed·variants·machineVariants·routineRecommendation."
+          }
+        ]
+      }
+    ]
+  }
+}

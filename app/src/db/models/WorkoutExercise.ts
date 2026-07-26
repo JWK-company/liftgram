@@ -1,7 +1,7 @@
 // 세션 내 종목 인스턴스 (SRS-004). @plm SRS-004
 import { Model, Query, Relation, associations } from '@nozbe/watermelondb';
 import { field, text, date, readonly, children, relation, immutableRelation, json } from '@nozbe/watermelondb/decorators';
-import { sanitizeCardioTarget, type CardioTargetJson } from './_sanitizers';
+import { sanitizeCardioTarget, sanitizePrescription, type CardioTargetJson, type PrescribedSet } from './_sanitizers';
 import type Workout from './Workout';
 import type Exercise from './Exercise';
 import type SetLog from './SetLog';
@@ -34,6 +34,7 @@ export default class WorkoutExercise extends Model {
   @text('variant_arm') variantArm!: string | null;
   @text('superset_group') supersetGroup!: string | null; // v7: 세션 슈퍼셋 그룹(#20)
   @json('cardio_target', sanitizeCardioTarget) cardioTarget!: CardioTargetJson | null; // v13: 유산소 목표(루틴서 복사). @plm SRS-030
+  @json('prescription', sanitizePrescription) prescription!: PrescribedSet[] | null; // v16: 처방(루틴서 복사 — 세션 렌더). @plm SRS-043
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

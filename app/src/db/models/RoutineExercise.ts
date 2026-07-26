@@ -1,7 +1,7 @@
 // 루틴 내 종목 + 목표(세트/반복범위/휴식/슈퍼셋) (SRS-002). @plm SRS-002
 import { Model, Relation, associations } from '@nozbe/watermelondb';
 import { field, text, date, readonly, relation, immutableRelation, json } from '@nozbe/watermelondb/decorators';
-import { sanitizeCardioTarget, type CardioTargetJson } from './_sanitizers';
+import { sanitizeCardioTarget, sanitizePrescription, type CardioTargetJson, type PrescribedSet } from './_sanitizers';
 import type Routine from './Routine';
 import type Exercise from './Exercise';
 
@@ -29,6 +29,7 @@ export default class RoutineExercise extends Model {
   @field('sort_order') sortOrder!: number;
   @text('note') note!: string | null;
   @json('cardio_target', sanitizeCardioTarget) cardioTarget!: CardioTargetJson | null; // v13: 유산소 목표. @plm SRS-030
+  @json('prescription', sanitizePrescription) prescription!: PrescribedSet[] | null; // v16: 세트별 처방(사람 작성 — ADR-028). @plm SRS-043
   @readonly @date('created_at') createdAt!: Date;
   @readonly @date('updated_at') updatedAt!: Date;
 

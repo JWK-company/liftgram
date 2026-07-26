@@ -1,0 +1,431 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-021",
+  "type": "SAD",
+  "title": "처방·주단위 스케줄 아키텍처 — 처방 어휘 도메인·세션 렌더·카탈로그 패턴 그룹",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T06:00:00Z",
+  "updated": "2026-07-26T06:00:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "prescription",
+    "schedule",
+    "architecture",
+    "bs004"
+  ],
+  "component": "Prescription & Weekly Schedule (BS-004 P1)",
+  "relations": {
+    "refs": [
+      "SRS-043",
+      "SRS-044",
+      "SRS-045",
+      "SRS-046",
+      "SRS-047"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개요"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "루틴·세션 도메인 위에 \"처방\"이라는 옵트인 데이터 레이어를 얹는 상위 설계다. 처방은 사람(트레이너·프리셋)이 작성하는 정적 데이터이며 앱은 이를 렌더·보조 계산만 한다 — 알고리즘이 처방을 변경하는 경로는 설계상 존재하지 않는다(BS-004 핵심 결정). 로컬 퍼스트(WatermelonDB/LokiJS) 원칙을 유지하고 모든 계산은 순수 도메인 함수로 둔다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "컴포넌트 / 책임"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "① prescription 도메인 (신규 app/src/domain/prescription.ts)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "처방 어휘 타입 정의: SetType(warmup|top|backoff)·targetRir(0~6)·repMin/repMax·loadHint(light|medium|heavy|수치). 루틴 세트 스키마 확장 필드는 전부 nullable — 기존 루틴 무손상(SRS-043)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "중량 이어달리기 순수함수: (직전 실측, 세트 타입, 단위) → 권장 중량 + reasonKey. progression(SRS-010)의 더블 프로그레션과 별도 함수로 공존 — 같은 reasonKey 투명성 패턴."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트 타입별 권장 휴식 시간 테이블 제공 → 기존 restAlarm이 소비."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "② weeklySchedule 도메인 + routines 확장"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "요일→루틴/휴식 매핑·blockWeeks·deloadWeek 모델과 \"오늘 운동\" 결정 함수(오늘 요일+블록 주차 → 루틴 or 휴식 or 디로딩, SRS-044)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "블록 롤오버(마지막 주 완료 → 1주차)와 주차 이력 보존. 디로딩 볼륨 값은 저장된 처방을 그대로 사용(자동 산출 없음)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "스케줄 부재 시 null 반환 — 홈은 기존 루틴 선택 UI로 폴백(하위호환)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "③ 세션 렌더 (ActiveWorkoutScreen·ExerciseBlock 확장)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "처방 존재 시 세트 행에 타입 배지·RIR 라벨·목표 placeholder 렌더, 완료 체크 시 행 잠금·재탭 해제·restAlarm 자동 시작(SRS-043)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "접이식 미디어 영역(3D 움짤 ↔ 1·2·3·4 단계 설명 전환·지연 로드·접힘 상태 기억)과 RIR/웜업 가이드 모달(i18n 콘텐츠, SRS-046)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "처방 없는 세트는 기존 UI 경로 그대로 — 조건 분기는 컴포넌트 경계에서 1회만."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "④ 카탈로그 확장 (exercises.seed·variants)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "movementPattern 필드 신설(수평/수직 프레스·당기기·힌지·스쿼트·캐리 등) + 갭 종목 시드 추가 — nameKo KEY 불변·별도 엔트리 원칙(SRS-047)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 패턴 조회 도메인 함수(패턴+부위 → 대체 후보 목록) — 기존 substitutes를 보완하는 상위 그룹."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "미디어 에셋은 DR-001 결론(GymVisual 구매·자체 호스팅)에 따라 exerciseMedia 매핑에 추가 — 부재 종목은 단계 설명 폴백."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "⑤ 온보딩·프로필 확장"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "온보딩 설문에 경력·코칭 의향 2문항 추가, 프로필 스키마에 experienceLevel·trainerIntent 저장(SRS-045) — 건너뛰기 허용·후입력 편집."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "trainerIntent 노출 지점에 면책 문구 컴포넌트 공용화(SAD-022의 신뢰 표면과 공유)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 원칙 / 제약"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "처방 쓰기 경로는 사람 입력(루틴 에디터·트레이너 도구)뿐 — 백그라운드 잡·알고리즘의 처방 필드 쓰기 금지."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모든 제안(권장 중량 등)은 reasonKey와 함께 표시·무시 가능(웰니스 SRS-015, 카피 게이트 통과)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "DB 마이그레이션은 additive-only(신규 nullable 컬럼) — 기존 세션 로그 스키마 불변."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "다루는 SRS: SRS-043(처방·세션)·SRS-044(주단위·블록)·SRS-045(온보딩 분류)·SRS-046(팁 미디어·교육)·SRS-047(카탈로그·콘셉트). 근거: BS-004·DR-001. 트레이너 권한·리포트는 SAD-022."
+          }
+        ]
+      }
+    ]
+  }
+}

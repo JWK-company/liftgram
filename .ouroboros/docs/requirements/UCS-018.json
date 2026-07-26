@@ -1,0 +1,267 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-018",
+  "type": "UCS",
+  "title": "회원이 트레이너의 주간 처방을 받아 세션에서 수행한다",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:35:00Z",
+  "updated": "2026-07-26T05:35:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "prescription",
+    "session"
+  ],
+  "relations": {
+    "elaborates": [
+      "URS-004",
+      "URS-010"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원이 온보딩에서 경력 분류를 완료했고(SRS-045), 트레이너와 멘토링 계약(SRS-023)이 성립되어 데이터 접근 동의 범위가 설정돼 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너가 회원 루틴에 처방(세트 타입·RIR·반복범위)과 주간 스케줄을 작성해 두었다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "주 흐름"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원이 홈에서 주차 스트립과 \"오늘 운동\"(요일→루틴 매핑 결과)을 확인하고 세션을 시작한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "각 운동 카드에 처방이 렌더된다 — 세트 타입 배지(웜업/탑/본), 목표 RIR, 반복범위, 중량대 placeholder."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원이 실측 중량·횟수를 입력하고 세트를 체크하면 행이 잠기고 세트 타입별 권장 휴식 타이머가 시작되며, 다음 세트의 권장 중량이 자동 갱신된다(중량 이어달리기 — 제안형·근거 표시)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "자세가 궁금하면 카드의 접이식 미디어(3D 움짤)를 펼쳐 확인하고, 탭하면 1·2·3·4 단계 상세 설명으로 전환한다. RIR 용어가 낯설면 세션 상단의 RIR·웜업 가이드를 연다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세션을 완료하면 기록이 저장되고, 동의 범위 내에서 트레이너 리포트에 집계된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "대안 / 예외 흐름"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너가 없는 회원: 동일한 처방 렌더를 프리셋(콘셉트 루틴 포함)이 채운다 — 처방 없는 자유 기록도 기존과 동일하게 가능(옵트인)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "미완료 세트가 있는 채 종료 시 확인 모달(\"아직 남은 세트가 있어요\")을 거친다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "헬스장에 처방 운동이 없으면 같은 무브먼트 패턴의 대체운동으로 교체해 수행한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세션 기록이 변형 단위로 저장되고 주차 진행 상태(디로딩 포함)가 갱신된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너는 다음 처방 조정을 위해 리포트에서 이번 세션을 볼 수 있다(동의 범위 내)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

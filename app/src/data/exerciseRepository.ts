@@ -8,6 +8,15 @@ import type { EquipmentType, ExerciseKind, MuscleGroup } from '../domain';
 
 const exercises = () => database.get<Exercise>('exercises');
 
+// nameKo 정확 일치로 종목 id 조회(콘셉트 루틴 저장 등 — 시드 KEY 규약). 없는 이름은 결과에서 빠진다. @plm SRS-047
+export async function getExerciseIdsByNames(namesKo: string[]): Promise<Map<string, string>> {
+  if (namesKo.length === 0) return new Map();
+  const rows = await exercises()
+    .query(Q.where('name_ko', Q.oneOf(namesKo)), Q.where('is_archived', false))
+    .fetch();
+  return new Map(rows.map((e) => [e.nameKo, e.id]));
+}
+
 export interface ExerciseFilter {
   search?: string;
   muscle?: MuscleGroup | null;

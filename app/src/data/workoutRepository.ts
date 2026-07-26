@@ -20,6 +20,7 @@ import {
   type PRResult,
   type PRSnapshot,
   type EquipmentType,
+  type PrescribedSet, // v16: 처방 어휘(프리레이·복사). @plm SRS-043
 } from '../domain';
 import { legacyMachineVariantToV6, variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
@@ -166,8 +167,9 @@ export async function consolidateExercisesV8(): Promise<number> {
 }
 
 // v10: 유산소 종목 승격(멱등) — 기존 설치의 '로잉 머신' 등 유산소성 종목에 kind='cardio'를 채운다.
-// 신규 시드 유산소 종목(트레드밀 러닝 등)은 seedRunner가 kind='cardio'로 생성하므로 여기선 레거시 승격만. @plm SRS-030
-const CARDIO_SEED_NAMES = ['로잉 머신', '트레드밀 러닝', '러닝', '걷기', '실내 사이클', '일립티컬', '천국의 계단', '스텝밀', '줄넘기', '어썰트 바이크', '스텝퍼', '스키에르그'];
+// 신규 시드 유산소 종목(러닝머신 등)은 seedRunner가 kind='cardio'로 생성하므로 여기선 레거시 승격만. @plm SRS-030
+// '러닝머신'·'트레드밀 러닝' 둘 다 포함 — syncSeedNames 리네임 전/후 어느 순서든 백필이 놓치지 않게. @plm SRS-030
+const CARDIO_SEED_NAMES = ['로잉 머신', '러닝머신', '트레드밀 러닝', '러닝', '걷기', '실내 사이클', '일립티컬', '천국의 계단', '스텝밀', '줄넘기', '어썰트 바이크', '스텝퍼', '스키에르그'];
 export async function backfillCardioKindV10(): Promise<number> {
   const exercises = database.get<Exercise>('exercises');
   // kind!=null 필터는 어댑터별 NULL 의미차(SQL은 NULL을 notEq에서 제외)로 위험 → 전건 조회 후 JS 필터.
@@ -324,6 +326,9 @@ export async function getPreviousExerciseSets(exerciseId: string, variant?: stri
         distanceM: s.distanceM,
         inclinePct: s.inclinePct, // v13: 유산소 경사 이전기록. @plm SRS-030
         level: s.level, // v13: 유산소 단계 이전기록. @plm SRS-030
+        speedKmh: s.speedKmh, // v15: 유산소 속도 이전기록. @plm SRS-030
+        arm: s.arm, // 세트별 편측(원암/투암) — 이전기록에 옵션 표시. @plm SRS-028
+        grip: s.grip, // 세트별 그립 — 이전기록에 옵션 표시. @plm SRS-028
       }));
     }
   }
@@ -408,16 +413,19 @@ function prepareTemplateSets(
   isCardio = false,
   isBodyweight = false,
   cardioTarget: CardioTargetJson | null = null,
+  prescription: PrescribedSet[] | null = null, // v16: 세트별 처방(사람 작성 — 렌더·휴식·RIR 라벨 근거). @plm SRS-043
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
     const prev = prevSets[i];
+    const rx = prescription?.[i] ?? null; // 이 세트의 처방(없으면 비처방 — 기존 동작 그대로)
     // 프리레이 값 우선순위: 지난 세션의 세트별 실제값(prev)을 최우선 → 같은 루틴 반복 시 이전 무게·횟수가
     // 그대로 유지돼 꾸준한 진척(progressive)이 된다. 없으면(첫 수행) 루틴 목표 → 스냅샷 → 기본. @plm SRS-010
     // 유산소는 무게·횟수 0(시간·거리는 수행 중). 맨몸은 무게 기본 0(가중 시 사용자가 입력) — 20kg 오프리필 방지.
     const bwDefault = isBodyweight ? 0 : 20;
     const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
-    const reps = isCardio ? 0 : prev?.reps ?? routineReps ?? prevSnap?.reps ?? 8;
+    // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
+    const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
     recs.push(
       setLogs().prepareCreate((s) => {
         s.workoutExerciseId = weId;
@@ -433,6 +441,19 @@ function prepareTemplateSets(
           s.distanceM = prev?.distanceM ?? cardioTarget?.distanceM ?? null;
           s.inclinePct = prev?.inclinePct ?? cardioTarget?.incline ?? null;
           s.level = prev?.level ?? cardioTarget?.level ?? null;
+          s.speedKmh = prev?.speedKmh ?? cardioTarget?.speed ?? null;
+        }
+        // 지난 세션 세트별 그립·팔을 새 세트에 미리 채움(꾸준한 진척 + 옵션 유지, 사용자가 변경 가능). @plm SRS-028
+        s.arm = prev?.arm ?? null;
+        s.grip = prev?.grip ?? null;
+        // v16: 처방 세트 — 타입·목표 RIR 기입. warmup은 is_warmup 미러(기존 W 라벨·볼륨 제외 재사용). @plm SRS-043
+        if (rx && rx.setType !== 'normal') {
+          s.setType = rx.setType;
+          s.targetRir = rx.targetRir;
+          if (rx.setType === 'warmup') s.isWarmup = true;
+        } else {
+          s.setType = null;
+          s.targetRir = rx?.targetRir ?? null;
         }
         s.done = false;
         s.completedAt = null;
@@ -499,13 +520,16 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
         we.note = re.note?.trim() || null; // 루틴 종목 메모·팁을 세션 메모에 시드(가져온 상급자 팁 노출 — 티칭). @plm SRS-004 SRS-007
         we.cardioTarget = re.cardioTarget ?? null; // v13: 루틴 유산소 목표 복사. @plm SRS-030
+        we.prescription = re.prescription ?? null; // v16: 처방 복사(세션 렌더 근거 — 사람 작성분 그대로). @plm SRS-043
       }),
     );
     // 각 종목에 target_sets 개수만큼 템플릿 세트 프리레이(Hevy식). 유산소는 1세트에 목표값 프리레이.
     const setRecords: SetLog[] = [];
     res.forEach((re, i) => {
       const isCardioEx = cardioByExercise.get(re.exerciseId) ?? false;
-      const count = isCardioEx ? 1 : Math.max(1, re.targetSets || 1);
+      // v16: 처방이 있으면 처방 세트 수가 프리레이 기준(유산소 제외). @plm SRS-043
+      const rx = !isCardioEx ? re.prescription : null;
+      const count = isCardioEx ? 1 : rx && rx.length > 0 ? rx.length : Math.max(1, re.targetSets || 1);
       setRecords.push(
         ...prepareTemplateSets(
           weRecords[i].id,
@@ -517,6 +541,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
           isCardioEx,
           bwByExercise.get(re.exerciseId) ?? false,
           re.cardioTarget ?? null,
+          rx,
         ),
       );
     });
@@ -623,6 +648,9 @@ export interface LogSetInput {
   distanceM?: number | null; // v10: 유산소 거리(미터) — 이전기록 표시용. @plm SRS-030
   inclinePct?: number | null; // v13: 유산소 경사(%). @plm SRS-030
   level?: number | null; // v13: 유산소 단계. @plm SRS-030
+  speedKmh?: number | null; // v15: 유산소 속도(km/h·러닝머신). @plm SRS-030
+  arm?: string | null; // v8: 세트별 편측(원암/투암) — 이전기록에 옵션 표시. @plm SRS-028
+  grip?: string | null; // v11: 세트별 그립(오버/언더/…) — 이전기록에 옵션 표시. @plm SRS-028
 }
 
 // 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
@@ -647,10 +675,22 @@ export async function addSet(
       s.rpe = null;
       s.isWarmup = input.isWarmup ?? false;
       s.isFailed = false;
+      // 마지막 세트의 그립·팔을 새 세트에 상속(같은 종목 이어서 하니 동일 옵션이 자연스러움). @plm SRS-028
+      s.arm = cardio ? null : last?.arm ?? null;
+      s.grip = cardio ? null : last?.grip ?? null;
       s.done = done;
       s.completedAt = done ? Date.now() : null;
     });
   });
+}
+
+// 미완료(done=false) 세트 수 — 종료 확인 문구에 남은 세트를 보여준다(처방·비처방 공통). @plm SRS-043
+export async function getWorkoutUndoneSetCount(workoutId: string): Promise<number> {
+  const wes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
+  if (wes.length === 0) return 0;
+  return setLogs()
+    .query(Q.where('workout_exercise_id', Q.oneOf(wes.map((w) => w.id))), Q.where('done', false))
+    .fetchCount();
 }
 
 // 세트 완료 체크 토글 — 볼륨/PR/이력은 done인 세트만 센다.
@@ -799,6 +839,7 @@ export async function updateSetLog(
     distanceM?: number | null; // v10: 유산소 거리(미터). @plm SRS-030
     inclinePct?: number | null; // v13: 유산소 경사(%). @plm SRS-030
     level?: number | null; // v13: 유산소 단계. @plm SRS-030
+    speedKmh?: number | null; // v15: 유산소 속도(km/h·러닝머신). @plm SRS-030
   },
 ): Promise<void> {
   await database.write(async () => {
@@ -814,6 +855,7 @@ export async function updateSetLog(
       if (patch.distanceM !== undefined) rec.distanceM = patch.distanceM;
       if (patch.inclinePct !== undefined) rec.inclinePct = patch.inclinePct;
       if (patch.level !== undefined) rec.level = patch.level;
+      if (patch.speedKmh !== undefined) rec.speedKmh = patch.speedKmh;
     });
   });
 }

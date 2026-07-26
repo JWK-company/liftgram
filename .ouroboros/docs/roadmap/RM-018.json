@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-018",
+  "type": "Roadmap",
+  "title": "P2 코칭 마켓 — 트레이너 프로 권한·회원 리포트 (BS-004 4단계)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:26:00Z",
+  "updated": "2026-07-26T05:26:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "trainer",
+    "premium",
+    "marketplace"
+  ],
+  "relations": {
+    "covers": [
+      "URS-004",
+      "URS-009",
+      "URS-010",
+      "SRS-048"
+    ],
+    "generated_from": [
+      "PRD"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "목표 / 범위"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "BS-004 4단계(코칭 마켓)를 P2 네트워크 단계에 얹는다. RM-017의 처방 어휘·주단위 스케줄을 권한 단위로 사용해, 프로 모델 구독 트레이너에게 담당 회원의 루틴 편집·주별 관리 권한과 회원 리포트를 제공한다. 계약·정산·신뢰는 기존 기획(SRS-014 PT마켓 · SRS-016 정산 · SRS-023 멘토링 계약 · SRS-017 PT문의 DM · SRS-025 등급·매너온도 · SRS-027 안전)과 연계 — 이 RM은 그 위의 \"코칭 도구\" 레이어만 다룬다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "마일스톤"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "M1 코칭 관계·권한: "
+                  },
+                  {
+                    "type": "text",
+                    "text": "멘토링 계약(SRS-023) 성립 시 회원 동의 범위 내 트레이너 접근 권한(루틴·주간 스케줄·운동 기록, 신체정보 기본 제외) 부여·해지 시 즉시 회수(SRS-048)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "M2 처방 도구: "
+                  },
+                  {
+                    "type": "text",
+                    "text": "트레이너가 회원 루틴에 처방 어휘(SRS-043)로 세트 타입·RIR·반복범위를 작성하고 주단위 스케줄(SRS-044)을 편집 — 회원 세션에 렌더."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "M3 회원 리포트: "
+                  },
+                  {
+                    "type": "text",
+                    "text": "담당 회원의 부위별 볼륨·운동별 퍼포먼스·완료율 대시보드(자동 개입 없음 — 판단은 트레이너). 프로 모델 과금 근거(SRS-014 연계)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "완료 기준 / 가드레일"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "권한은 계약·동의 기반으로만 부여되고 해지 시 즉시 회수된다(감사 로그 포함)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너 role은 자격 보증이 아님을 UI에 명시(면책) — 검증 배지·등급·매너온도(SRS-025·027) 연동."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "의료·재활 단정 표현 금지(SRS-015·ADR-006) — 리포트는 사실 집계만."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

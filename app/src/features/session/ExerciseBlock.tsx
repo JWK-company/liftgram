@@ -3,7 +3,7 @@
 // @plm SRS-028  종목 변형(기구·그립·팔) 선택 — 변형별 이전기록·PR 분리
 // @plm SRS-029  세트 로깅 정밀도 — 정자세 반복(strict reps)·보정무게(load adjust)
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
@@ -29,12 +29,22 @@ import {
   cardioNumInput,
   inputToIncline,
   inputToLevel,
+  inputToSpeed,
   type CardioMetric,
   GRIP_KEYS,
   gripLabel,
   gripShortLabel,
+  armShortLabel,
   effectiveWeightKg,
   resolveLoadMode,
+  baseExerciseName,
+  // v16: 처방 렌더·타입별 휴식·중량 이어달리기(제안형 — ADR-028). @plm SRS-043
+  repRangeLabel,
+  restSecondsForSetType,
+  suggestNextSetWeightKg,
+  type CascadeSuggestion,
+  type PrescribedSet,
+  type PrescribedSetType,
   type ArmKey,
   type EquipmentType,
   type GripKey,
@@ -43,6 +53,8 @@ import {
   type WeightUnit,
 } from '../../domain';
 import { ExerciseName } from './ExerciseName';
+import { ExerciseTipPanel } from './ExerciseTipPanel'; // @plm SRS-046
+import { setWorkoutNowPlaying } from '../../utils/sound';
 import { useT, type TransKey } from '../../i18n';
 
 interface ExerciseBlockProps {
@@ -54,8 +66,7 @@ interface ExerciseBlockProps {
   onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
   onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
   onInfo?: () => void; // 운동 중 종목 상세(사진·운동법) 보기 — 운동법 까먹었을 때. @plm SRS-001
-  onMoveUp?: () => void; // 운동 중 순서 위로(#11) — 없으면 최상단
-  onMoveDown?: () => void; // 운동 중 순서 아래로(#11) — 없으면 최하단
+  onDrag?: () => void; // 운동 중 순서 = 좌측 三 핸들 꾹 눌러 드래그(제공 시 핸들 표시). 화살표 대체. @plm SRS-004
   canSuperset?: boolean; // 세션에 종목 2개 이상 — 슈퍼셋 버튼 노출
   onSuperset?: () => void; // 운동 중 슈퍼셋 상대 선택 열기
   onUnsuperset?: () => void; // 슈퍼셋 해제
@@ -71,10 +82,12 @@ function recordVariant(we: WorkoutExercise): VariantDims {
 }
 
 // 세트타입 라벨(순서 의존) — 일반 세트만 1,2,3.. 증가, 워밍업 W·드롭 D·실패 F.
+// v16: 처방 탑 세트는 'T'(수동 타입 미설정일 때만 — 수동 W/D/F가 우선, spec qa c1 정책). @plm SRS-043
 function setTypeLabel(s: SetLog, normalOrdinal: number): string {
   if (s.isWarmup) return 'W';
   if (s.isDrop === true) return 'D';
   if (s.isFailed) return 'F';
+  if (s.setType === 'top') return 'T';
   return String(normalOrdinal);
 }
 
@@ -95,8 +108,10 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onInfo, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
-  const { t } = useT();
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onInfo, onDrag, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
+  const { t, lang } = useT();
+  // 모바일 웹에서 핸들 터치가 스크롤로 가로채지지 않게(드래그 활성화). 데스크톱 grab 커서. RN-web 전용.
+  const webDrag = Platform.OS === 'web' ? ({ touchAction: 'none', cursor: 'grab', userSelect: 'none' } as object) : undefined;
   const sets = useQueryData<SetLog>(() => workoutRepo.querySetLogs(we.id), [we.id]);
 
   const [busy, setBusy] = useState(false);
@@ -134,6 +149,8 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
   const [cardioMetrics, setCardioMetrics] = useState<CardioMetric[]>(['duration', 'distance']);
+  const [exName, setExName] = useState(''); // 잠금화면 카드용 종목명(비동기 로드). @plm SRS-003
+  const [exNameKo, setExNameKo] = useState<string | null>(null); // 팁 패널 미디어 조회 KEY(nameKo). @plm SRS-046
   useEffect(() => {
     let alive = true;
     exerciseRepo
@@ -144,12 +161,14 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         setIsCardio(e.kind === 'cardio');
         setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn })); // 종목별 유산소 지표(경사/단계 등). @plm SRS-030
         setLoadMode(resolveLoadMode(e));
+        setExName(baseExerciseName(e, lang));
+        setExNameKo(e.nameKo); // @plm SRS-046
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [we.exerciseId]);
+  }, [we.exerciseId, lang]);
 
   // 버킷 조회 키(canonical variant_key) — dims가 아니라 키로 조회해야 버킷이 일치한다.
   const variantKey = canonicalVariantKey(variant);
@@ -230,12 +249,47 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
     ]);
   }
 
-  // 일반 세트 순번 계산(타입 라벨용).
+  // 일반 세트 순번 계산(타입 라벨용). 처방 탑/백오프도 번호 카운트에 포함(총 세트 수 일관 — spec qa c1).
   let normalCount = 0;
   const labels = sets.map((s) => {
     if (!s.isWarmup && s.isDrop !== true && !s.isFailed) normalCount += 1;
     return setTypeLabel(s, normalCount);
   });
+
+  // v16: 처방(반복범위·중량대) — set_number 기준 인덱스(도중 추가 세트=처방 없음). @plm SRS-043
+  const rxList: (PrescribedSet | null)[] = we.prescription ?? [];
+  // 중량 이어달리기 — 세트 완료 시 다음 미완료 '처방' 세트에 제안(자동 덮어쓰기 금지·탭 적용·무시 가능, ADR-028).
+  const [suggestions, setSuggestions] = useState<Record<string, CascadeSuggestion>>({});
+  function handleDoneToggled(index: number, done: boolean, weightKg: number) {
+    if (!done || !(weightKg > 0)) return;
+    const cur = sets[index];
+    const next = sets.slice(index + 1).find((s) => s.done !== true && s.setType != null);
+    if (!cur || !next) return;
+    const sug = suggestNextSetWeightKg({
+      prevWeightKg: weightKg,
+      prevType: (cur.setType as PrescribedSetType | null) ?? null,
+      nextType: (next.setType as PrescribedSetType | null) ?? null,
+    });
+    if (sug) setSuggestions((prev) => ({ ...prev, [next.id]: sug }));
+  }
+  function applySuggestion(setId: string) {
+    const sug = suggestions[setId];
+    if (!sug) return;
+    workoutRepo.updateSetLog(setId, { weightKg: sug.weightKg }).catch(() => {});
+    setSuggestions((prev) => {
+      const { [setId]: _drop, ...rest } = prev;
+      return rest;
+    });
+  }
+
+  // 세트 완료 → 휴식 시작 시 잠금화면 카드에 '종목명 · 세트 N/총'을 싣는다(표시 전용, 웹). @plm SRS-003
+  // 완료 세트 라벨은 setLabel(숫자·'W' 등). 이름 미로드 시엔 no-op(빈 문자열은 setWorkoutNowPlaying이 무시).
+  const announceNowPlaying = (setLabel: string) => {
+    setWorkoutNowPlaying({
+      exercise: exName,
+      setInfo: t('session.mediaSetInfo', { label: setLabel, total: normalCount }),
+    });
+  };
 
   const inGroup = !!we.supersetGroup;
   // 슈퍼셋 컨테이너 안이면 개별 테두리·배지·컨트롤 숨김(컨테이너가 담당). 밖인데 그룹이면(비인접 폴백) 파란 테두리 유지. @plm SRS-004
@@ -252,8 +306,13 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   return (
     <Card style={[styles.block, showGroupedBorder && styles.blockGrouped, insideSuperset && styles.blockInSuperset]}>
       <View style={styles.header}>
+        {onDrag ? (
+          <Pressable onPressIn={onDrag} hitSlop={8} style={[styles.dragHandle, webDrag]} accessibilityLabel={t('routines.reorderHandle')}>
+            <Ionicons name="reorder-three" size={22} color={colors.textMuted} />
+          </Pressable>
+        ) : null}
         <View style={{ flex: 1 }}>
-          <ExerciseName exerciseId={we.exerciseId} variant="heading" base />
+          <ExerciseName exerciseId={we.exerciseId} variant="heading" base revealOnTap />
           <View style={styles.headerMeta}>
             {/* 유산소는 기구 변형·PR 개념이 없음 — 근력 종목만 노출. @plm SRS-030 */}
             {!isCardio ? (
@@ -300,20 +359,6 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         {onInfo ? (
           <IconButton icon="information-circle-outline" color="textMuted" size={20} onPress={onInfo} />
         ) : null}
-        {onMoveUp || onMoveDown ? (
-          <View style={styles.reorderCol}>
-            {onMoveUp ? (
-              <IconButton icon="chevron-up" color="textMuted" size={18} onPress={onMoveUp} />
-            ) : (
-              <View style={styles.reorderSpacer} />
-            )}
-            {onMoveDown ? (
-              <IconButton icon="chevron-down" color="textMuted" size={18} onPress={onMoveDown} />
-            ) : (
-              <View style={styles.reorderSpacer} />
-            )}
-          </View>
-        ) : null}
         {!insideSuperset && canSuperset && (onSuperset || onUnsuperset) ? (
           <IconButton
             icon="git-merge-outline"
@@ -327,6 +372,9 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         ) : null}
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
+
+      {/* 세션 중 운동 팁 — 접이식 미디어 ↔ 단계 설명(SRS-046). 유산소는 자세 미디어 개념 없음. */}
+      {!isCardio ? <ExerciseTipPanel nameKo={exNameKo} /> : null}
 
       {/* 그리드 헤더 — 유산소는 시간·거리, 근력은 무게·횟수·부분·편측. @plm SRS-030 */}
       {isCardio ? (
@@ -372,7 +420,10 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             label={String(i + 1)}
             prev={shownPrev[i]}
             metrics={cardioMetrics}
-            onRestStart={() => onStartRest(restSeconds)}
+            onRestStart={() => {
+              onStartRest(restSeconds);
+              announceNowPlaying(String(i + 1));
+            }}
           />
         ) : (
           <SetRowEdit
@@ -382,8 +433,17 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
             prev={shownPrev[i]}
             weightUnit={weightUnit}
             barWeightKg={barWeightKg}
-            onRestStart={() => onStartRest(restSeconds)}
+            rx={rxList[s.setNumber - 1] ?? null}
+            suggestion={suggestions[s.id] ?? null}
+            onApplySuggestion={() => applySuggestion(s.id)}
+            onDoneToggled={(done, weightKg) => handleDoneToggled(i, done, weightKg)}
+            onRestStart={() => {
+              // v16: 세트 타입별 권장 휴식(웜업45/탑180/백오프120) — 비처방은 종목 설정값. @plm SRS-043
+              onStartRest(restSecondsForSetType(s.setType as PrescribedSetType | null, restSeconds));
+              announceNowPlaying(labels[i]);
+            }}
           />
+
         ),
       )}
 
@@ -466,6 +526,10 @@ function SetRowEdit({
   prev,
   weightUnit,
   barWeightKg,
+  rx,
+  suggestion,
+  onApplySuggestion,
+  onDoneToggled,
   onRestStart,
 }: {
   set: SetLog;
@@ -473,12 +537,22 @@ function SetRowEdit({
   prev: LogSetInput | undefined;
   weightUnit: WeightUnit;
   barWeightKg: number;
+  rx: PrescribedSet | null; // v16: 이 세트의 처방(반복범위 라벨용). @plm SRS-043
+  suggestion: CascadeSuggestion | null; // v16: 중량 이어달리기 제안(행 아래 라인 — 탭 적용·무시 가능)
+  onApplySuggestion: () => void;
+  onDoneToggled: (done: boolean, weightKg: number) => void;
   onRestStart: () => void;
 }) {
   const { t, lang } = useT();
   const isDone = set.done === true;
   const isUni = set.arm === 'uni'; // v8: 세트별 편측(원암/원레그). null=투암(기본)
   const gripKey = (set.grip as GripKey | null) ?? null; // v11: 세트별 그립
+  // 이전기록의 세트별 그립·팔 축약 라벨(예: '오버·원암'). 기본(널)은 빈 문자열 → 미표시. @plm SRS-028
+  const prevOpt = prev
+    ? [gripShortLabel((prev.grip as GripKey | null) ?? null, lang), armShortLabel((prev.arm as ArmKey | null) ?? null, lang)]
+        .filter(Boolean)
+        .join('·')
+    : '';
   const [varOpen, setVarOpen] = useState(false); // 세트별 변형(팔·그립) 시트
   const [expanded, setExpanded] = useState(false); // 부분반복·변형·삭제 상세 펼침(모바일 공간 절약). @plm SRS-004
   const [w, setW] = useState(() => numStr(fromKg(set.weightKg, weightUnit)));
@@ -507,6 +581,9 @@ function SetRowEdit({
     const next = !isDone;
     workoutRepo.setSetDone(set.id, next).catch(() => {});
     if (next) onRestStart();
+    // v16: 완료 시 다음 처방 세트 제안 계산(현재 입력 무게 기준 — kg 정규). @plm SRS-043
+    const n = parseFloat(w.replace(',', '.'));
+    onDoneToggled(next, !Number.isNaN(n) && n > 0 ? toKg(n, weightUnit) : 0);
   }
   function setArm(arm: 'uni' | null) {
     workoutRepo.setSetArm(set.id, arm).catch(() => {});
@@ -562,6 +639,12 @@ function SetRowEdit({
               <AppText variant="caption" color="primary" center numberOfLines={1}>
                 {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}${prev.partialReps ? `+${prev.partialReps}` : ''}`}
               </AppText>
+              {/* 세트별 그립·팔 옵션(있을 때만) — 중량×횟수 아래 축약 표시. @plm SRS-028 */}
+              {prevOpt ? (
+                <AppText variant="label" color="textFaint" center numberOfLines={1}>
+                  {prevOpt}
+                </AppText>
+              ) : null}
             </View>
           ) : (
             <AppText variant="caption" color="textFaint" center>
@@ -569,8 +652,9 @@ function SetRowEdit({
             </AppText>
           )}
         </Pressable>
-        <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
-        <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus style={styles.cell} />
+        {/* v16: 완료 행 잠금 — 재탭(체크 해제)으로 편집 복원. @plm SRS-043 */}
+        <TextInput value={w} onChangeText={setW} onBlur={commitWeight} onSubmitEditing={commitWeight} keyboardType="numeric" selectTextOnFocus editable={!isDone} style={styles.cell} />
+        <TextInput value={r} onChangeText={setR} onBlur={commitReps} onSubmitEditing={commitReps} keyboardType="numeric" selectTextOnFocus editable={!isDone} style={styles.cell} />
         <Pressable onPress={toggleDone} hitSlop={6} style={[styles.check, isDone && styles.checkOn]}>
           <Ionicons name="checkmark" size={16} color={isDone ? colors.onPrimary : colors.textFaint} />
         </Pressable>
@@ -579,6 +663,36 @@ function SetRowEdit({
           <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={expanded || hasDetail ? colors.primary : colors.textFaint} />
         </Pressable>
       </View>
+      {/* v16: 처방 라인 — 목표 반복범위·RIR(수동 타입 변경과 독립·set_type 기준). @plm SRS-043 */}
+      {set.targetRir != null || (rx && repRangeLabel(rx.repMin, rx.repMax)) ? (
+        <View style={styles.rxLine}>
+          {rx && repRangeLabel(rx.repMin, rx.repMax) ? (
+            <AppText variant="label" color="textMuted">
+              {t('session.rxRepRange', { range: repRangeLabel(rx.repMin, rx.repMax) })}
+            </AppText>
+          ) : null}
+          {set.targetRir != null ? (
+            <AppText variant="label" color="primary" weight="bold">
+              {t('session.rxRir', { rir: set.targetRir })}
+            </AppText>
+          ) : null}
+        </View>
+      ) : null}
+      {/* v16: 중량 이어달리기 제안 — 근거와 함께 표시·탭 적용·무시 가능(자동 덮어쓰기 금지, ADR-028). @plm SRS-043 */}
+      {!isDone && suggestion ? (
+        <View style={styles.rxLine}>
+          <AppText variant="label" color="pr" numberOfLines={1} style={{ flexShrink: 1 }}>
+            {t('session.rxSuggest', { weight: formatWeight(suggestion.weightKg, weightUnit) })}
+            {' — '}
+            {t(suggestion.reasonKey as TransKey)}
+          </AppText>
+          <Pressable onPress={onApplySuggestion} hitSlop={6} style={styles.rxApplyBtn}>
+            <AppText variant="label" color="primary" weight="bold">
+              {t('session.rxApply')}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
       {expanded ? (
         <View style={styles.setDetailWrap}>
           <View style={styles.setDetailFields}>
@@ -595,6 +709,7 @@ function SetRowEdit({
                 placeholder="0"
                 placeholderTextColor={colors.textFaint}
                 selectTextOnFocus
+                editable={!isDone}
                 style={styles.detailInput}
               />
             </View>
@@ -692,6 +807,7 @@ const CARDIO_COL_LABEL: Record<CardioMetric, TransKey> = {
   distance: 'session.distanceColHeader',
   incline: 'session.inclineColHeader',
   level: 'session.levelColHeader',
+  speed: 'session.speedColHeader',
 };
 
 // ── 유산소 세트 1행 — 무게/횟수 대신 종목별 지표(시간·거리·경사·단계). @plm SRS-030 ──────
@@ -714,15 +830,18 @@ function SetRowCardio({
   const [km, setKm] = useState(() => mToKmInput(set.distanceM));
   const [incline, setIncline] = useState(() => cardioNumInput(set.inclinePct));
   const [level, setLevel] = useState(() => cardioNumInput(set.level));
+  const [speed, setSpeed] = useState(() => cardioNumInput(set.speedKmh));
   useEffect(() => setMins(secToMinInput(set.durationSec)), [set.durationSec]);
   useEffect(() => setKm(mToKmInput(set.distanceM)), [set.distanceM]);
   useEffect(() => setIncline(cardioNumInput(set.inclinePct)), [set.inclinePct]);
   useEffect(() => setLevel(cardioNumInput(set.level)), [set.level]);
+  useEffect(() => setSpeed(cardioNumInput(set.speedKmh)), [set.speedKmh]);
 
   const commitDuration = () => workoutRepo.updateSetLog(set.id, { durationSec: minInputToSec(mins) }).catch(() => {});
   const commitDistance = () => workoutRepo.updateSetLog(set.id, { distanceM: kmInputToM(km) }).catch(() => {});
   const commitIncline = () => workoutRepo.updateSetLog(set.id, { inclinePct: inputToIncline(incline) }).catch(() => {});
   const commitLevel = () => workoutRepo.updateSetLog(set.id, { level: inputToLevel(level) }).catch(() => {});
+  const commitSpeed = () => workoutRepo.updateSetLog(set.id, { speedKmh: inputToSpeed(speed) }).catch(() => {});
   function toggleDone() {
     const next = !isDone;
     workoutRepo.setSetDone(set.id, next).catch(() => {});
@@ -736,13 +855,20 @@ function SetRowCardio({
         distanceM: prev.distanceM ?? null,
         inclinePct: prev.inclinePct ?? null,
         level: prev.level ?? null,
+        speedKmh: prev.speedKmh ?? null,
       })
       .catch(() => {});
   }
   function confirmDelete() {
     workoutRepo.deleteSetLog(set.id).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
-  const hasPrev = prev && ((prev.durationSec ?? 0) > 0 || (prev.distanceM ?? 0) > 0 || (prev.inclinePct ?? 0) > 0 || (prev.level ?? 0) > 0);
+  const hasPrev =
+    prev &&
+    ((prev.durationSec ?? 0) > 0 ||
+      (prev.distanceM ?? 0) > 0 ||
+      (prev.inclinePct ?? 0) > 0 ||
+      (prev.level ?? 0) > 0 ||
+      (prev.speedKmh ?? 0) > 0);
   const cellFor = (m: CardioMetric) => {
     const common = { keyboardType: 'numeric' as const, placeholder: '0', placeholderTextColor: colors.textFaint, selectTextOnFocus: true, style: styles.cell };
     switch (m) {
@@ -754,6 +880,8 @@ function SetRowCardio({
         return <TextInput key="incline" value={incline} onChangeText={setIncline} onBlur={commitIncline} onSubmitEditing={commitIncline} {...common} />;
       case 'level':
         return <TextInput key="level" value={level} onChangeText={setLevel} onBlur={commitLevel} onSubmitEditing={commitLevel} {...common} />;
+      case 'speed':
+        return <TextInput key="speed" value={speed} onChangeText={setSpeed} onBlur={commitSpeed} onSubmitEditing={commitSpeed} {...common} />;
     }
   };
   return (
@@ -870,6 +998,9 @@ const styles = StyleSheet.create({
   varOptOn: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
   setRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs, gap: spacing.xs },
   setRowDone: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm },
+  // v16: 처방 라인(목표 반복·RIR)·제안 라인(중량 이어달리기) — 행 아래 소형 정보 줄. @plm SRS-043
+  rxLine: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingLeft: 34 + 8, paddingBottom: 2 },
+  rxApplyBtn: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   // v9 부분반복(깔짝) 컬럼 — 정자세 옆 좁은 입력.
   // 부분(깔짝) — 횟수(flex 1)보다 작되 비율로 확보. 헤더도 같은 flex라 입력칸과 정렬 일치.
   colPartial: { flex: 0.7, textAlign: 'center' },
@@ -937,8 +1068,7 @@ const styles = StyleSheet.create({
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   exVolChip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   // 운동 중 순서 이동 화살표 열(#11).
-  reorderCol: { alignItems: 'center', justifyContent: 'center' },
-  reorderSpacer: { width: 18, height: 18 },
+  dragHandle: { width: 30, alignItems: 'center', justifyContent: 'center', marginRight: 2 }, // 三 드래그 핸들
   restRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, minHeight: 44 },
   restSetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 },
 });

@@ -108,16 +108,6 @@ def slug(rel):
     return re.sub(r"[^A-Za-z0-9]+", "-", rel).strip("-")[:60]
 
 
-def cap_code(code, maxlen=64):
-    """Code 키를 PLM 제약(≤64자)에 맞춘다. 초과 시에만 접미 8자 해시로 축약 —
-    짧은 키는 그대로 보존(재키잉 방지), 긴 키는 결정적(안정)으로 유일하게 줄인다."""
-    if len(code) <= maxlen:
-        return code
-    import hashlib
-    h = hashlib.sha1(code.encode()).hexdigest()[:8]
-    return code[: maxlen - 1 - len(h)].rstrip("-") + "-" + h
-
-
 # @plm 주석 다음의 실제 선언에서 심볼명 추출 → 라인보다 안정적인 키.
 SYM_SKIP = re.compile(r"^\s*(//|#|/\*|\*|<!--|@|UCLASS|UFUNCTION|UPROPERTY|USTRUCT|UENUM|GENERATED_BODY|#pragma|#include|\{|\}|$)")
 SYM_PAT = [
@@ -226,7 +216,7 @@ def _extract(relp, lines, arts, rels, refs):
             continue
         loc = f"{relp}:{i}"
         # 키: 심볼 기반(라인 이동에 안정) → 없으면 라인 폴백.
-        ccode = cap_code(f"CODE-{slug(relp)}-{slug(sym)}" if sym else f"CODE-{slug(relp)}-{i}")
+        ccode = f"CODE-{slug(relp)}-{slug(sym)}" if sym else f"CODE-{slug(relp)}-{i}"
         title = (sym or desc or f"{relp}:{i}")[:120]
         snippet = _snippet(lines, i - 1, ext)  # RAW 코드(펜스 없음)
         # ADR-019 동형: 본문 canonical = doc(ProseMirror). body는 빈 문자열(중복 저장 방지 — plm_sync_one/sync_bulk와

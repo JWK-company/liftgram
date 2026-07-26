@@ -1,9 +1,10 @@
 // @plm SRS-003  라이브 세션 세트 로깅 (무게·횟수·RPE·워밍업/실패·플레이트·휴식)
 // @plm SRS-004  세션 진행 — 경과 타이머·일시정지/재개·종료·취소·종목 추가/삭제
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ReorderableList, { useReorderableDrag, type ReorderableListReorderEvent } from 'react-native-reorderable-list';
 import { AppText, Button, EmptyState, IconButton, TextField } from '../../components';
 import { colors, radius, spacing } from '../../theme';
 import type { RootStackScreenProps } from '../../navigation/types';
@@ -16,6 +17,7 @@ import { requestExercisePick } from '../../utils/picker';
 import { formatWeight } from '../../domain';
 import { useT } from '../../i18n';
 import { ExerciseBlock } from './ExerciseBlock';
+import { SessionGuideButtons } from './SessionGuides'; // @plm SRS-046
 import { ExerciseName } from './ExerciseName';
 
 function formatClock(totalSeconds: number): string {
@@ -142,12 +144,33 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
 
-  // 운동 중 종목 순서 이동(#11) — 화살표로 위/아래. sort_order 재기입.
-  function moveExercise(from: number, to: number) {
-    if (to < 0 || to >= exercises.length) return;
-    const ids = exercises.map((e) => e.id);
-    const [m] = ids.splice(from, 1);
-    ids.splice(to, 0, m);
+  // 드래그 재배치용 행 — 슈퍼셋 그룹은 한 행(그룹 통째 이동), 나머지는 단독. @plm SRS-004
+  const reorderRows = useMemo(() => {
+    const done = new Set<string>();
+    const out: ({ key: string; kind: 'single'; we: WorkoutExercise } | { key: string; kind: 'group'; group: string; members: WorkoutExercise[] })[] = [];
+    exercises.forEach((we) => {
+      const g = we.supersetGroup;
+      if (g) {
+        if (done.has(g)) return;
+        const members = exercises.filter((e) => e.supersetGroup === g);
+        if (members.length >= 2) {
+          done.add(g);
+          out.push({ key: `g_${g}`, kind: 'group', group: g, members });
+          return;
+        }
+      }
+      out.push({ key: we.id, kind: 'single', we });
+    });
+    return out;
+  }, [exercises]);
+
+  // 종목 순서 드래그 재배치 — 행 재정렬 → 종목 id 평탄화(그룹은 멤버 순서 유지) → sort_order 재기입. @plm SRS-004
+  function handleReorderExercises({ from, to }: ReorderableListReorderEvent) {
+    if (from === to) return;
+    const nr = [...reorderRows];
+    const [moved] = nr.splice(from, 1);
+    nr.splice(to, 0, moved);
+    const ids = nr.flatMap((r) => (r.kind === 'group' ? r.members.map((m) => m.id) : [r.we.id]));
     workoutRepo.reorderWorkoutExercises(ids).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
@@ -159,8 +182,14 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }
 
-  function confirmFinish() {
-    Alert.alert(t('session.finishWorkout.title'), t('session.finishWorkout.message'), [
+  async function confirmFinish() {
+    // v16: 미완료 세트가 있으면 남은 수를 확인 문구에 표기(RapidOverload식 — 실수 종료 방지). @plm SRS-043
+    const undone = await workoutRepo.getWorkoutUndoneSetCount(workoutId).catch(() => 0);
+    const message =
+      undone > 0
+        ? `${t('session.finishUndoneCount', { count: undone })}\n${t('session.finishWorkout.message')}`
+        : t('session.finishWorkout.message');
+    Alert.alert(t('session.finishWorkout.title'), message, [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('session.finishWorkout.confirm'),
@@ -231,85 +260,69 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
         <Button title={t('session.done')} size="sm" fullWidth={false} onPress={confirmFinish} loading={finishing} style={styles.finishBtn} />
       </View>
 
-      <ScrollView
+      {/* RIR·웜업 마이크로 교육 진입(SRS-046) — 트레이너-회원 공통 언어. */}
+      <SessionGuideButtons />
+
+      <ReorderableList
+        data={reorderRows}
+        keyExtractor={(r) => r.key}
+        onReorder={handleReorderExercises}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-      >
-        {exercises.length === 0 ? (
-          <EmptyState
-            title={t('session.noExercises.title')}
-            message={t('session.noExercises.message')}
-          />
-        ) : (
-          (() => {
-            // 슈퍼셋 멤버는 하나의 컨테이너로 묶어 렌더(뭐랑 묶였는지 명확). 나머지는 단독. @plm SRS-004
-            const doneGroups = new Set<string>();
-            const nodes: React.ReactNode[] = [];
-            exercises.forEach((we, i) => {
-              const g = we.supersetGroup;
-              if (g) {
-                if (doneGroups.has(g)) return; // 이 그룹은 첫 멤버 위치에서 이미 통째로 렌더됨
-                const members = exercises.filter((e) => e.supersetGroup === g);
-                if (members.length >= 2) {
-                  doneGroups.add(g);
-                  nodes.push(
-                    <SupersetContainer key={g} onUnlink={() => unlinkSuperset(members[0])}>
-                      {members.map((m, mi) => (
-                        <React.Fragment key={m.id}>
-                          {mi > 0 ? <View style={styles.ssDivider} /> : null}
-                          <ExerciseBlock
-                            we={m}
-                            weightUnit={weightUnit}
-                            weightStep={weightStep}
-                            barWeightKg={barWeightKg}
-                            bodyweightKg={bodyweightKg}
-                            onStartRest={startRest}
-                            onSwap={handleSwapExercise}
-                            onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: m.exerciseId })}
-                            insideSuperset
-                          />
-                        </React.Fragment>
-                      ))}
-                    </SupersetContainer>,
-                  );
-                  return;
-                }
-              }
-              // 단독 종목(또는 그룹 멤버가 1개뿐인 폴백 — 개별 파란 테두리 유지)
-              nodes.push(
+        ListEmptyComponent={
+          <EmptyState title={t('session.noExercises.title')} message={t('session.noExercises.message')} />
+        }
+        ListFooterComponent={
+          <>
+            <Button title={t('session.addExercise')} icon="add" variant="secondary" onPress={handleAddExercise} style={{ marginTop: spacing.sm }} />
+            <Button title={t('session.discardWorkoutButton')} variant="danger" icon="trash-outline" onPress={confirmDiscard} style={{ marginTop: spacing.xl }} />
+          </>
+        }
+        renderItem={({ item }) => (
+          <DraggableRow
+            render={(drag) =>
+              item.kind === 'group' ? (
+                // 슈퍼셋 그룹 — 그룹 헤더 三 핸들로 통째 드래그(멤버 개별 핸들 없음). @plm SRS-004
+                <SupersetContainer onUnlink={() => unlinkSuperset(item.members[0])} onDrag={drag}>
+                  {item.members.map((m, mi) => (
+                    <React.Fragment key={m.id}>
+                      {mi > 0 ? <View style={styles.ssDivider} /> : null}
+                      <ExerciseBlock
+                        we={m}
+                        weightUnit={weightUnit}
+                        weightStep={weightStep}
+                        barWeightKg={barWeightKg}
+                        bodyweightKg={bodyweightKg}
+                        onStartRest={startRest}
+                        onSwap={handleSwapExercise}
+                        onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: m.exerciseId })}
+                        insideSuperset
+                      />
+                    </React.Fragment>
+                  ))}
+                </SupersetContainer>
+              ) : (
+                // 단독 종목 — 좌측 三 핸들 꾹 눌러 드래그.
                 <ExerciseBlock
-                  key={we.id}
-                  we={we}
+                  we={item.we}
                   weightUnit={weightUnit}
                   weightStep={weightStep}
                   barWeightKg={barWeightKg}
                   bodyweightKg={bodyweightKg}
                   onStartRest={startRest}
                   onSwap={handleSwapExercise}
-                  onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: we.exerciseId })}
-                  onMoveUp={i > 0 ? () => moveExercise(i, i - 1) : undefined}
-                  onMoveDown={i < exercises.length - 1 ? () => moveExercise(i, i + 1) : undefined}
+                  onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: item.we.exerciseId })}
+                  onDrag={drag}
                   canSuperset={exercises.length >= 2}
-                  onSuperset={() => setSupersetTarget(we)}
-                  onUnsuperset={() => unlinkSuperset(we)}
-                />,
-              );
-            });
-            return nodes;
-          })()
+                  onSuperset={() => setSupersetTarget(item.we)}
+                  onUnsuperset={() => unlinkSuperset(item.we)}
+                />
+              )
+            }
+          />
         )}
-
-        <Button title={t('session.addExercise')} icon="add" variant="secondary" onPress={handleAddExercise} style={{ marginTop: spacing.sm }} />
-
-        <Button
-          title={t('session.discardWorkoutButton')}
-          variant="danger"
-          icon="trash-outline"
-          onPress={confirmDiscard}
-          style={{ marginTop: spacing.xl }}
-        />
-      </ScrollView>
+      />
 
       {/* 전역 휴식 카운트다운 바 — 운동 전체에 1개만(스크롤과 무관하게 항상 보임). */}
       {restRemaining != null ? (
@@ -386,11 +399,25 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
 }
 
 // 슈퍼셋 공통 컨테이너 — 멤버 종목들을 하나의 테두리+헤더 박스로 묶어 '무엇과 슈퍼셋인지' 명확히. @plm SRS-004
-function SupersetContainer({ onUnlink, children }: { onUnlink: () => void; children: React.ReactNode }) {
+// ReorderableList 셀 안에서 useReorderableDrag를 얻어 자식에 drag를 전달(렌더 prop). 셀 루트는 단일 요소. @plm SRS-004
+function DraggableRow({ render }: { render: (drag: () => void) => React.ReactElement }) {
+  const drag = useReorderableDrag();
+  return render(drag);
+}
+
+// 모바일 웹에서 핸들 터치가 브라우저 스크롤로 가로채지지 않게(드래그 활성화). 데스크톱 grab 커서. RN-web 전용.
+const webDragStyle = Platform.OS === 'web' ? ({ touchAction: 'none', cursor: 'grab', userSelect: 'none' } as object) : undefined;
+
+function SupersetContainer({ onUnlink, onDrag, children }: { onUnlink: () => void; onDrag?: () => void; children: React.ReactNode }) {
   const { t } = useT();
   return (
     <View style={styles.ssContainer}>
       <View style={styles.ssHeaderRow}>
+        {onDrag ? (
+          <Pressable onPressIn={onDrag} hitSlop={8} style={[styles.ssDragHandle, webDragStyle]}>
+            <Ionicons name="reorder-three" size={20} color={colors.primary} />
+          </Pressable>
+        ) : null}
         <Ionicons name="git-merge-outline" size={15} color={colors.primary} />
         <AppText variant="label" color="primary" weight="bold" style={styles.ssHeaderLabel}>
           {t('session.superset')}
@@ -411,6 +438,7 @@ const styles = StyleSheet.create({
   // 슈퍼셋 컨테이너
   ssContainer: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.lg, marginBottom: spacing.lg, backgroundColor: colors.surface, overflow: 'hidden' },
   ssHeaderRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.primaryMuted },
+  ssDragHandle: { width: 28, alignItems: 'center', justifyContent: 'center', marginRight: 2 }, // 三 슈퍼셋 그룹 드래그 핸들
   ssHeaderLabel: { flex: 1, marginLeft: 6 },
   ssUnlinkBtn: { paddingHorizontal: spacing.sm, paddingVertical: 2 },
   ssBody: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },

@@ -5,7 +5,7 @@ import { database } from '../db/database';
 import { UserProfile } from '../db/models';
 import { DEFAULT_BAR_KG } from '../domain';
 import { normalizeGearTags } from '../domain';
-import type { AppLanguage, EquipmentType, GearTag, WeightUnit } from '../domain';
+import type { AppLanguage, EquipmentType, ExperienceLevel, GearTag, WeeklySchedule, WeightUnit } from '../domain';
 
 const profiles = () => database.get<UserProfile>('user_profiles');
 
@@ -44,6 +44,9 @@ export interface UserSettingsPatch {
   availableEquipment?: EquipmentType[];
   machineVariantLabels?: string[];
   myGear?: GearTag[]; // v14: 내 장비함 — 저장 전 도메인 정규화를 강제한다. @plm SRS-041
+  weeklySchedule?: WeeklySchedule | null; // v17: 주단위 스케줄·블록 — null=제거. @plm SRS-044
+  experienceLevel?: ExperienceLevel | null; // v18: 운동 경력 — 선택·후입력 가능. @plm SRS-045
+  trainerIntent?: boolean | null; // v18: 코칭 의향(회원 모집) — 자격 보증 아님. @plm SRS-045
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
@@ -59,6 +62,9 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.machineVariantLabels !== undefined) rec.machineVariantLabels = patch.machineVariantLabels;
       // 화이트리스트 밖·중복·상한 초과는 여기서 걸러 저장한다(sanitizer 는 읽기 방어, 이건 쓰기 방어).
       if (patch.myGear !== undefined) rec.myGear = normalizeGearTags(patch.myGear);
+      if (patch.weeklySchedule !== undefined) rec.weeklySchedule = patch.weeklySchedule; // sanitizer가 읽기 방어. @plm SRS-044
+      if (patch.experienceLevel !== undefined) rec.experienceLevel = patch.experienceLevel; // @plm SRS-045
+      if (patch.trainerIntent !== undefined) rec.trainerIntent = patch.trainerIntent; // @plm SRS-045
     });
   });
 }

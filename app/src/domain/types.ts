@@ -44,6 +44,9 @@ export type MuscleGroup =
 
 export type WorkoutState = 'active' | 'paused' | 'completed' | 'discarded';
 
+// 운동 경력 분류(온보딩·프로필 — RapidOverload식 3분류). @plm SRS-045
+export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced';
+
 // PR(개인 기록) 종류 — SRS-005
 export type PRType = 'maxWeight' | 'maxReps' | 'maxVolumeSet' | 'estimated1RM';
 

@@ -16,11 +16,15 @@ export interface SeedExercise {
 export const SEED_EXERCISES: SeedExercise[] = [
   // ── 가슴 (chest) ───────────────────────────────────────────────
   { nameKo: '바벨 벤치프레스', nameEn: 'Barbell Bench Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps', 'shoulders'], equipment: 'barbell' },
-  // 인클라인 프레스 — 기구(바벨/덤벨/머신)는 변형에서 선택(#13). 머신 선택 시 브랜드.
-  { nameKo: '인클라인 프레스', nameEn: 'Incline Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'barbell' },
-  { nameKo: '디클라인 바벨 프레스', nameEn: 'Decline Barbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
+  // 인클라인 프레스 — 다기구: 기구별 별도 엔트리(리스트 '인클라인 프레스 (기구)' → 루틴선 '인클라인 프레스'+기구 태그). @plm SRS-028
+  // (바벨 엔트리는 nameEn='Incline Press' 유지 → id 불변·기존 기록 보존. 나머지는 paren형 신규 nameEn으로 과거 soft-delete와 id 충돌 회피.)
+  { nameKo: '인클라인 프레스 (바벨)', nameEn: 'Incline Press', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'barbell' },
+  { nameKo: '인클라인 프레스 (덤벨)', nameEn: 'Incline Press (Dumbbell)', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'dumbbell' },
+  { nameKo: '인클라인 프레스 (머신)', nameEn: 'Incline Press (Machine)', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'machine' },
+  { nameKo: '인클라인 프레스 (스미스)', nameEn: 'Incline Press (Smith)', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders', 'triceps'], equipment: 'smith' },
+  { nameKo: '디클라인 프레스 (바벨)', nameEn: 'Decline Barbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
   { nameKo: '덤벨 벤치프레스', nameEn: 'Dumbbell Bench Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps', 'shoulders'], equipment: 'dumbbell' },
-  { nameKo: '디클라인 덤벨 프레스', nameEn: 'Decline Dumbbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'dumbbell' },
+  { nameKo: '디클라인 프레스 (덤벨)', nameEn: 'Decline Dumbbell Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'dumbbell' },
   { nameKo: '덤벨 플라이', nameEn: 'Dumbbell Fly', primaryMuscles: ['chest'], equipment: 'dumbbell' },
   { nameKo: '인클라인 덤벨 플라이', nameEn: 'Incline Dumbbell Fly', primaryMuscles: ['chest'], equipment: 'dumbbell' },
   { nameKo: '케이블 크로스오버', nameEn: 'Cable Crossover', primaryMuscles: ['chest'], equipment: 'cable' },
@@ -59,19 +63,19 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '덤벨 레터럴 레이즈', nameEn: 'Side Lateral Raise', primaryMuscles: ['shoulders'], equipment: 'dumbbell' },
   { nameKo: '케이블 레터럴 레이즈', nameEn: 'Cable Lateral Raise', primaryMuscles: ['shoulders'], equipment: 'cable' },
   { nameKo: '머신 레터럴 레이즈', nameEn: 'Machine Lateral Raise', primaryMuscles: ['shoulders'], equipment: 'machine' },
-  { nameKo: '프론트 레이즈', nameEn: 'Front Raise', primaryMuscles: ['shoulders'], equipment: 'dumbbell' },
+  { nameKo: '프론트 레이즈 (덤벨)', nameEn: 'Front Raise', primaryMuscles: ['shoulders'], equipment: 'dumbbell' },
   { nameKo: '덤벨 리어 델트 플라이', nameEn: 'Rear Delt Fly', primaryMuscles: ['shoulders'], equipment: 'dumbbell' },
   { nameKo: '리버스 펙 덱', nameEn: 'Reverse Pec Deck', primaryMuscles: ['shoulders'], equipment: 'machine' },
   { nameKo: '페이스 풀', nameEn: 'Face Pull', primaryMuscles: ['shoulders'], secondaryMuscles: ['traps'], equipment: 'cable' },
-  { nameKo: '업라이트 로우', nameEn: 'Upright Row', primaryMuscles: ['shoulders'], secondaryMuscles: ['traps'], equipment: 'barbell' },
+  { nameKo: '업라이트 로우 (바벨)', nameEn: 'Upright Row', primaryMuscles: ['shoulders'], secondaryMuscles: ['traps'], equipment: 'barbell' },
 
   // ── 이두 (biceps) ──────────────────────────────────────────────
   { nameKo: '바벨 컬', nameEn: 'Barbell Curl', primaryMuscles: ['biceps'], equipment: 'barbell' },
   { nameKo: '이지바 컬', nameEn: 'EZ-Bar Curl', primaryMuscles: ['biceps'], equipment: 'barbell' },
   { nameKo: '덤벨 컬', nameEn: 'Dumbbell Curl', primaryMuscles: ['biceps'], equipment: 'dumbbell' },
-  { nameKo: '해머 컬', nameEn: 'Hammer Curl', primaryMuscles: ['biceps'], secondaryMuscles: ['forearms'], equipment: 'dumbbell' },
+  { nameKo: '해머 컬 (덤벨)', nameEn: 'Hammer Curl', primaryMuscles: ['biceps'], secondaryMuscles: ['forearms'], equipment: 'dumbbell' },
   { nameKo: '인클라인 덤벨 컬', nameEn: 'Incline Dumbbell Curl', primaryMuscles: ['biceps'], equipment: 'dumbbell' },
-  { nameKo: '프리처 컬', nameEn: 'Preacher Curl', primaryMuscles: ['biceps'], equipment: 'barbell' },
+  { nameKo: '프리처 컬 (바벨)', nameEn: 'Preacher Curl', primaryMuscles: ['biceps'], equipment: 'barbell' },
   { nameKo: '컨센트레이션 컬', nameEn: 'Concentration Curl', primaryMuscles: ['biceps'], equipment: 'dumbbell' },
   { nameKo: '케이블 컬', nameEn: 'Cable Curl', primaryMuscles: ['biceps'], equipment: 'cable' },
   { nameKo: '스파이더 컬', nameEn: 'Spider Curl', primaryMuscles: ['biceps'], equipment: 'dumbbell' },
@@ -83,13 +87,13 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '로프 푸시다운', nameEn: 'Rope Pushdown', primaryMuscles: ['triceps'], equipment: 'cable' },
   { nameKo: '오버헤드 트라이셉스 익스텐션', nameEn: 'Overhead Triceps Extension', primaryMuscles: ['triceps'], equipment: 'dumbbell' },
   { nameKo: '케이블 오버헤드 익스텐션', nameEn: 'Cable Overhead Extension', primaryMuscles: ['triceps'], equipment: 'cable' },
-  { nameKo: '스컬 크러셔', nameEn: 'Skull Crusher', primaryMuscles: ['triceps'], equipment: 'barbell' },
-  { nameKo: '트라이셉스 킥백', nameEn: 'Triceps Kickback', primaryMuscles: ['triceps'], equipment: 'dumbbell' },
+  { nameKo: '스컬 크러셔 (바벨)', nameEn: 'Skull Crusher', primaryMuscles: ['triceps'], equipment: 'barbell' },
+  { nameKo: '트라이셉스 킥백 (덤벨)', nameEn: 'Triceps Kickback', primaryMuscles: ['triceps'], equipment: 'dumbbell' },
   { nameKo: '벤치 딥스', nameEn: 'Bench Dip', primaryMuscles: ['triceps'], equipment: 'bodyweight' },
   { nameKo: '다이아몬드 푸시업', nameEn: 'Diamond Push Up', primaryMuscles: ['triceps'], secondaryMuscles: ['chest'], equipment: 'bodyweight' },
 
   // ── 전완 (forearms) ────────────────────────────────────────────
-  { nameKo: '리스트 컬', nameEn: 'Wrist Curl', primaryMuscles: ['forearms'], equipment: 'barbell' },
+  { nameKo: '리스트 컬 (바벨)', nameEn: 'Wrist Curl', primaryMuscles: ['forearms'], equipment: 'barbell' },
   { nameKo: '리버스 리스트 컬', nameEn: 'Reverse Wrist Curl', primaryMuscles: ['forearms'], equipment: 'barbell' },
   { nameKo: '리버스 바벨 컬', nameEn: 'Reverse Barbell Curl', primaryMuscles: ['forearms'], secondaryMuscles: ['biceps'], equipment: 'barbell' },
   { nameKo: '파머스 워크', nameEn: "Farmer's Walk", primaryMuscles: ['forearms'], secondaryMuscles: ['traps'], equipment: 'dumbbell' },
@@ -102,14 +106,14 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '레그 프레스', nameEn: 'Leg Press', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'machine' },
   { nameKo: '레그 익스텐션', nameEn: 'Leg Extension', primaryMuscles: ['quads'], equipment: 'machine' },
   { nameKo: '고블릿 스쿼트', nameEn: 'Goblet Squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
-  { nameKo: '런지', nameEn: 'Lunge', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
+  { nameKo: '런지 (덤벨)', nameEn: 'Lunge', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
   { nameKo: '워킹 런지', nameEn: 'Walking Lunge', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
-  { nameKo: '불가리안 스플릿 스쿼트', nameEn: 'Bulgarian Split Squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
+  { nameKo: '불가리안 스플릿 스쿼트 (덤벨)', nameEn: 'Bulgarian Split Squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
   { nameKo: '스미스 스쿼트', nameEn: 'Smith Machine Squat', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'smith' },
   { nameKo: '스텝업', nameEn: 'Step Up', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'dumbbell' },
 
   // ── 햄스트링 (hamstrings) ──────────────────────────────────────
-  { nameKo: '루마니안 데드리프트', nameEn: 'Romanian Deadlift', primaryMuscles: ['hamstrings'], secondaryMuscles: ['glutes', 'back'], equipment: 'barbell' },
+  { nameKo: '루마니안 데드리프트 (바벨)', nameEn: 'Romanian Deadlift', primaryMuscles: ['hamstrings'], secondaryMuscles: ['glutes', 'back'], equipment: 'barbell' },
   { nameKo: '스티프 레그 데드리프트', nameEn: 'Stiff Leg Deadlift', primaryMuscles: ['hamstrings'], secondaryMuscles: ['glutes'], equipment: 'barbell' },
   { nameKo: '라잉 레그 컬', nameEn: 'Lying Leg Curl', primaryMuscles: ['hamstrings'], equipment: 'machine' },
   { nameKo: '시티드 레그 컬', nameEn: 'Seated Leg Curl', primaryMuscles: ['hamstrings'], equipment: 'machine' },
@@ -117,7 +121,7 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '노르딕 컬', nameEn: 'Nordic Curl', primaryMuscles: ['hamstrings'], equipment: 'bodyweight' },
 
   // ── 둔근 (glutes) ──────────────────────────────────────────────
-  { nameKo: '힙 쓰러스트', nameEn: 'Hip Thrust', primaryMuscles: ['glutes'], secondaryMuscles: ['hamstrings'], equipment: 'barbell' },
+  { nameKo: '힙 쓰러스트 (바벨)', nameEn: 'Hip Thrust', primaryMuscles: ['glutes'], secondaryMuscles: ['hamstrings'], equipment: 'barbell' },
   { nameKo: '글루트 브릿지', nameEn: 'Glute Bridge', primaryMuscles: ['glutes'], secondaryMuscles: ['hamstrings'], equipment: 'barbell' },
   { nameKo: '케이블 킥백', nameEn: 'Cable Kickback', primaryMuscles: ['glutes'], equipment: 'cable' },
   { nameKo: '힙 어브덕션 머신', nameEn: 'Hip Abduction Machine', primaryMuscles: ['glutes'], equipment: 'machine' },
@@ -191,7 +195,8 @@ export const SEED_EXERCISES: SeedExercise[] = [
 
   // ── 유산소 (cardio) — 시간·거리 기록. 볼륨/PR 제외. @plm SRS-030 ────
   // 주의: '로잉 머신'은 기존 시드(근력)라 여기 다시 넣지 않고 backfillCardioKindV10이 kind='cardio'로 승격.
-  { nameKo: '트레드밀 러닝', nameEn: 'Treadmill Running', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads', 'calves'], equipment: 'machine', kind: 'cardio' },
+  // 러닝머신 — 경사·속도 기록(nameEn 'Treadmill Running' 유지로 기존 기록·id 승계, nameKo만 갱신). @plm SRS-030
+  { nameKo: '러닝머신', nameEn: 'Treadmill Running', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads', 'calves'], equipment: 'machine', kind: 'cardio' },
   { nameKo: '러닝', nameEn: 'Running', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads', 'calves'], equipment: 'bodyweight', kind: 'cardio' },
   { nameKo: '걷기', nameEn: 'Walking', primaryMuscles: ['fullBody'], secondaryMuscles: ['calves'], equipment: 'bodyweight', kind: 'cardio' },
   { nameKo: '실내 사이클', nameEn: 'Indoor Cycling', primaryMuscles: ['quads'], secondaryMuscles: ['calves'], equipment: 'machine', kind: 'cardio' },
@@ -201,4 +206,42 @@ export const SEED_EXERCISES: SeedExercise[] = [
   { nameKo: '어썰트 바이크', nameEn: 'Assault Bike', primaryMuscles: ['fullBody'], secondaryMuscles: ['quads'], equipment: 'machine', kind: 'cardio' },
   { nameKo: '스텝퍼', nameEn: 'Stepper', primaryMuscles: ['quads'], secondaryMuscles: ['glutes', 'calves'], equipment: 'machine', kind: 'cardio' },
   { nameKo: '스키에르그', nameEn: 'SkiErg', primaryMuscles: ['back'], secondaryMuscles: ['triceps', 'fullBody'], equipment: 'machine', kind: 'cardio' },
+  // ── 다기구 변형 보강 (SRS-028) — 리스트엔 기구별 별도, 루틴선 베이스명+기구 태그. paren형 novel nameEn(id 충돌 회피). ──
+  { nameKo: '로우 (스미스)', nameEn: 'Row (Smith)', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'smith' },
+  { nameKo: '숄더 프레스 (스미스)', nameEn: 'Shoulder Press (Smith)', primaryMuscles: ['shoulders'], secondaryMuscles: ['triceps'], equipment: 'smith' },
+  { nameKo: '프론트 레이즈 (케이블)', nameEn: 'Front Raise (Cable)', primaryMuscles: ['shoulders'], equipment: 'cable' },
+  { nameKo: '프론트 레이즈 (바벨)', nameEn: 'Front Raise (Barbell)', primaryMuscles: ['shoulders'], equipment: 'barbell' },
+  { nameKo: '업라이트 로우 (케이블)', nameEn: 'Upright Row (Cable)', primaryMuscles: ['shoulders'], secondaryMuscles: ['traps'], equipment: 'cable' },
+  { nameKo: '업라이트 로우 (덤벨)', nameEn: 'Upright Row (Dumbbell)', primaryMuscles: ['shoulders'], secondaryMuscles: ['traps'], equipment: 'dumbbell' },
+  { nameKo: '프리처 컬 (덤벨)', nameEn: 'Preacher Curl (Dumbbell)', primaryMuscles: ['biceps'], equipment: 'dumbbell' },
+  { nameKo: '스컬 크러셔 (덤벨)', nameEn: 'Skull Crusher (Dumbbell)', primaryMuscles: ['triceps'], equipment: 'dumbbell' },
+  { nameKo: '트라이셉스 킥백 (케이블)', nameEn: 'Triceps Kickback (Cable)', primaryMuscles: ['triceps'], equipment: 'cable' },
+  { nameKo: '리스트 컬 (덤벨)', nameEn: 'Wrist Curl (Dumbbell)', primaryMuscles: ['forearms'], equipment: 'dumbbell' },
+  { nameKo: '런지 (바벨)', nameEn: 'Lunge (Barbell)', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'barbell' },
+  { nameKo: '런지 (스미스)', nameEn: 'Lunge (Smith)', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'smith' },
+  { nameKo: '불가리안 스플릿 스쿼트 (바벨)', nameEn: 'Bulgarian Split Squat (Barbell)', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'barbell' },
+  { nameKo: '불가리안 스플릿 스쿼트 (스미스)', nameEn: 'Bulgarian Split Squat (Smith)', primaryMuscles: ['quads'], secondaryMuscles: ['glutes'], equipment: 'smith' },
+  { nameKo: '루마니안 데드리프트 (덤벨)', nameEn: 'Romanian Deadlift (Dumbbell)', primaryMuscles: ['hamstrings'], secondaryMuscles: ['glutes', 'back'], equipment: 'dumbbell' },
+  { nameKo: '힙 쓰러스트 (머신)', nameEn: 'Hip Thrust (Machine)', primaryMuscles: ['glutes'], secondaryMuscles: ['hamstrings'], equipment: 'machine' },
+  { nameKo: '슈러그 (스미스)', nameEn: 'Shrug (Smith)', primaryMuscles: ['traps'], equipment: 'smith' },
+
+  // ── 카탈로그 갭 이관 (SRS-047 — RapidOverload 실탐색 대조, BS-004 C1) ────────────────
+  // 규약: 기존 nameKo 불변(rename 0)·기구 변형=별도 엔트리·novel nameEn(id 충돌 회피).
+  // 넥 컬/넥 익스텐션은 MuscleGroup에 'neck'이 없어 이번 이관에서 제외(침묵 탈락 아님 — 타입 확장 별도 결정). @plm SRS-047
+  { nameKo: '해머스트렝스 체스트 프레스', nameEn: 'Hammer Strength Chest Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
+  { nameKo: '디클라인 체스트 프레스 머신', nameEn: 'Decline Chest Press Machine', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
+  { nameKo: '라잉 체스트 프레스 머신', nameEn: 'Lying Chest Press Machine', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
+  { nameKo: '컨버징 체스트 프레스 머신', nameEn: 'Converging Chest Press Machine', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
+  { nameKo: '원암 체스트 프레스 머신', nameEn: 'Single-arm Chest Press Machine', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'machine' },
+  { nameKo: '시티드 케이블 체스트 프레스', nameEn: 'Seated Cable Chest Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'cable' },
+  { nameKo: '스탠딩 케이블 체스트 프레스', nameEn: 'Standing Cable Chest Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'cable' },
+  { nameKo: '라잉 케이블 체스트 프레스', nameEn: 'Lying Cable Chest Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'cable' },
+  { nameKo: '라슨 프레스', nameEn: 'Larsen Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
+  { nameKo: '피트 업 벤치프레스', nameEn: 'Feet-up Bench Press', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'barbell' },
+  { nameKo: '디클라인 프레스 (스미스)', nameEn: 'Decline Press (Smith)', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'smith' },
+  { nameKo: '와이드 그립 푸시업', nameEn: 'Wide Grip Push Up', primaryMuscles: ['chest'], secondaryMuscles: ['shoulders'], equipment: 'bodyweight' },
+  { nameKo: '데피싯 푸시업', nameEn: 'Deficit Push Up', primaryMuscles: ['chest'], secondaryMuscles: ['triceps'], equipment: 'bodyweight' },
+  { nameKo: '체스트 서포티드 티바 로우', nameEn: 'Chest Supported T-Bar Row', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'barbell' },
+  { nameKo: '체스트 서포티드 로우 (덤벨)', nameEn: 'Chest Supported Row (Dumbbell)', primaryMuscles: ['back'], secondaryMuscles: ['biceps'], equipment: 'dumbbell' },
+  { nameKo: '싯업', nameEn: 'Sit Up', primaryMuscles: ['abs'], equipment: 'bodyweight' },
 ];

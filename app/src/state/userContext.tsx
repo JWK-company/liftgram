@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { userRepo } from '../data';
 import { UserProfile } from '../db/models';
 import { useModelData } from '../db/hooks';
-import { DEFAULT_BAR_KG, type WeightUnit, type AppLanguage, type EquipmentType, type GearTag } from '../domain';
+import { DEFAULT_BAR_KG, type WeightUnit, type AppLanguage, type EquipmentType, type ExperienceLevel, type GearTag, type WeeklySchedule } from '../domain';
 
 interface UserContextValue {
   user: UserProfile | null;
@@ -15,6 +15,9 @@ interface UserContextValue {
   availableEquipment: EquipmentType[];
   machineVariantLabels: string[];
   myGear: GearTag[]; // v14: 내 장비함 — user_profiles 컬럼은 예외 없이 이 컨텍스트 경유로 노출. @plm SRS-041
+  weeklySchedule: WeeklySchedule | null; // v17: 주단위 스케줄·블록. @plm SRS-044
+  experienceLevel: ExperienceLevel | null; // v18: 운동 경력. @plm SRS-045
+  trainerIntent: boolean | null; // v18: 코칭 의향(자격 보증 아님). @plm SRS-045
   refresh: () => Promise<void>;
 }
 
@@ -51,6 +54,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     availableEquipment: user?.availableEquipment ?? [],
     machineVariantLabels: user?.machineVariantLabels ?? [],
     myGear: user?.myGear ?? [],
+    weeklySchedule: user?.weeklySchedule ?? null,
+    experienceLevel: user?.experienceLevel ?? null,
+    trainerIntent: user?.trainerIntent ?? null,
     refresh,
   };
 

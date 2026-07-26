@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-044",
+  "type": "SRS",
+  "title": "주단위 루틴 스케줄 + 블록·디로딩 (요일 매핑·주차 스트립)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:41:00Z",
+  "updated": "2026-07-26T05:41:00Z",
+  "sync": true,
+  "tags": [
+    "routine",
+    "schedule",
+    "block",
+    "deload",
+    "bs004-a2"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "사용자는 요일→루틴/휴식 매핑으로 주간 스케줄을 만들고 블록 주기(연속/4+1/5+1/6+1주)를 설정할 수 있다. 홈에 주차 스트립(Day·휴식 칩, 현재 위치 강조)과 '오늘 운동' 카드가 표시되고, 디로딩 주는 명확히 구분 표시된다. 기존 루틴 단위 관리(스케줄 없이 개별 실행)는 그대로 유지된다.",
+  "relations": {
+    "derives_from": [
+      "URS-004",
+      "URS-005"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "기존 루틴별 관리 위에 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "주단위 스케줄"
+          },
+          {
+            "type": "text",
+            "text": " 레이어를 도입한다. 사용자는 요일마다 루틴 또는 휴식을 배정하고(월 A루틴·화 B루틴·수 휴식), 블록 주기(디로딩 없음 / 4주+1 / 5주+1 / 6주+1)를 선택한다. 홈 대시보드는 현재 주차와 주간 칩 스트립, 오늘의 운동 요약(운동 수·세트 수)과 시작 CTA를 보여준다. 디로딩 주에는 별도 표기를 하며, 디로딩 주의 처방 볼륨 조정(세트 감소 폭)은 루틴 작성자(트레이너·프리셋)가 정의한 값을 따른다 — 자동 산출하지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "주간 스케줄은 트레이너 코칭(SRS-048)의 권한·관리 단위가 된다. 스케줄이 없는 사용자는 기존처럼 루틴을 개별 선택해 실행할 수 있어야 하며(하위호환), 스케줄 도입은 강제가 아니다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "요일→루틴/휴식 매핑 CRUD + 블록 주기 설정이 저장되고, 홈에서 오늘 요일의 루틴이 '오늘 운동'으로 결정된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "주차 스트립이 현재 Day를 강조하고 완료 Day를 구분 표시하며, 디로딩 주 진입 시 라벨이 바뀐다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "블록 종료 시 다음 블록 1주차로 롤오버된다(이력 보존)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "스케줄 미사용 사용자 경험은 기존과 동일(회귀 없음). typecheck·기존 테스트 통과."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-004(코치 필요 — 주간 계획)·URS-005(지속 책임감 — 계획된 반복). 근거: BS-004 A2. 소비처: UCS-018·019, SRS-048(트레이너 주별 관리)."
+          }
+        ]
+      }
+    ]
+  }
+}

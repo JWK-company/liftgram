@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-048",
+  "type": "SRS",
+  "title": "트레이너 코칭 권한 + 회원 리포트 (프로 모델 코칭 도구)",
+  "status": "Approved",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-07-26T05:45:00Z",
+  "updated": "2026-07-26T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "trainer",
+    "premium",
+    "privacy",
+    "bs004-d1",
+    "bs004-d2"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "멘토링 계약 성립·회원 동의 시 프로 구독 트레이너에게 회원의 루틴 편집(처방 어휘)·주간 스케줄 관리·운동 기록 열람 권한이 부여되고, 계약 해지·동의 철회·구독 만료 시 즉시 회수된다(감사 로그). 트레이너는 담당 회원 리포트(부위별 볼륨·운동별 퍼포먼스·완료율)를 열람할 수 있으며 앱은 사실 집계만 표시하고 자동 개입하지 않는다.",
+  "relations": {
+    "derives_from": [
+      "URS-004",
+      "URS-009",
+      "URS-010"
+    ],
+    "relates_to": [
+      "BS-004"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "코칭 권한: "
+          },
+          {
+            "type": "text",
+            "text": "크레딧 멘토링 계약(SRS-023)이 성립되고 회원이 접근 범위에 동의하면, 프로 모델 구독(SRS-014) 트레이너에게 담당 회원에 대한 코칭 권한을 부여한다 — 회원 루틴에 처방 어휘(SRS-043)로 처방 작성, 주간 스케줄·블록(SRS-044) 편집, 운동 기록 열람. 접근 범위는 루틴·주간 스케줄·운동 기록으로 한정하고 신체정보는 기본 제외한다. 계약 해지·동의 철회·프로 구독 만료 시 권한을 즉시 회수하며(기존 처방은 회원에게 유지), 모든 접근·변경은 감사 로그로 남긴다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "회원 리포트: "
+          },
+          {
+            "type": "text",
+            "text": "트레이너는 담당 회원별 대시보드에서 부위별 볼륨 추이·운동별 퍼포먼스(중량·반복·추정 1RM 추이)·주간 완료율을 열람한다. 리포트는 사실 집계만 표시한다 — 세트 증감·운동 교체 등의 판단과 개입은 전적으로 트레이너가 하며 앱은 자동 제안·자동 변경을 하지 않는다(BS-004 핵심 결정·웰니스 가드레일 SRS-015). 트레이너 role 노출 지점에는 자격 보증이 아니라는 면책 고지를 유지하고 검증 배지·등급·매너온도(SRS-025·027)를 병기한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "권한 부여는 계약 성립 + 회원 동의 + 프로 구독 3조건이 모두 참일 때만 — 하나라도 해제되면 즉시 회수(캐시 포함)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너의 처방 작성·스케줄 편집이 회원 세션(UCS-018)에 반영되고 변경 이력이 회원에게 표시된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "리포트는 동의 범위 데이터만 집계하고 신체정보를 포함하지 않으며, 문구는 카피 게이트(containsMedicalClaim) 통과."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모든 트레이너 접근·변경에 감사 로그(누가·언제·무엇)가 기록되고 회원이 열람할 수 있다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-004(코치 필요)·URS-009(트레이너 수익)·URS-010(PT 연결). 근거: BS-004 D1·D2. 연계: SRS-014(프로 모델)·SRS-016(정산)·SRS-023(계약)·SRS-017(DM)·SRS-025/027(신뢰·안전)·SRS-043/044(처방·스케줄)."
+          }
+        ]
+      }
+    ]
+  }
+}

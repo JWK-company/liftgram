@@ -249,12 +249,74 @@ async function handleSse(raw) {
   let buildInfo = null;
   if (isBuild) { try { buildInfo = JSON.parse(w.payload || "{}"); } catch { buildInfo = {}; } }
   const bc = buildInfo?.code || "?";
+  // 와이어프레임 빌더 — build 안의 mode="wireframe"(와이어프레임 탭 전용 채팅). 헤드리스 penpot 생성·SAE 지시로 주입.
+  const isWireframe = isBuild && buildInfo?.mode === "wireframe";
+  // 아키텍처 블루프린트 빌더 — build 안의 mode="blueprint"([아키텍처] 탭 전용 채팅). BP 모델 저작·bpcheck 지시로 주입.
+  const isBlueprint = isBuild && buildInfo?.mode === "blueprint";
+  // 블루프린트 질문 모드 — payload.intent="ask": 설계도에 대해 답변만(모델·파일 수정 금지 · 저작 플로우 미진입).
+  const isBpAsk = isBlueprint && buildInfo?.intent === "ask";
+  // 탐색 컨텍스트(payload.context) — 탭이 현재 보고 있는 노드/존/여정/뷰를 자동 첨부(저작·질문 양 모드).
+  const bctx = buildInfo?.context;
+  const bpCtxParts = [];
+  if (bctx && typeof bctx === "object") {
+    if (bctx.selectedNode?.id) bpCtxParts.push(`선택 노드=${bctx.selectedNode.id}(${bctx.selectedNode.label || ""})`);
+    if (bctx.zone?.id) bpCtxParts.push(`선택 존(그룹)=${bctx.zone.id}(${bctx.zone.label || ""})`);
+    if (bctx.scenario?.id) bpCtxParts.push(`활성 여정=${bctx.scenario.id}(${bctx.scenario.label || ""}) · 스텝=${bctx.scenario.step ?? "overview"}`);
+    if (bctx.view) bpCtxParts.push(`뷰=${bctx.view === "docs" ? "컴포넌트 문서" : "설계도"}`);
+  }
+  const bpCtxLine = bpCtxParts.length
+    ? `\n[탐색 컨텍스트 — 사용자가 지금 탭에서 보고 있는 대상] ${bpCtxParts.join(" · ")}\n`
+    : "";
+  // 블루프린트 대상 — payload.code가 있으면 그 BP를 갱신, 없으면 BP-001부터 신규(다음 번호 승계).
+  const bpTarget = buildInfo?.code
+    ? `현재 탭의 BP **${buildInfo.code}** (\`.ouroboros/docs/blueprint/${buildInfo.code}.json\`)를 갱신`
+    : "`.ouroboros/docs/blueprint/BP-001.json`부터 신규 저작(이미 있으면 다음 번호 `BP-<NNN>.json`)";
   // 적용 대상(targets) — 페이로드에 실려오면 직접 반영, 없으면 세션이 artifact_links로 조회하도록 안내(feedback 반영 보장).
   const btargets = Array.isArray(buildInfo?.targets) ? buildInfo.targets.filter(Boolean) : [];
   const targetsHint = btargets.length
     ? `**적용 대상(targets) = ${btargets.join(", ")}** — 각 대상을 doc_get으로 읽고 그 맥락 위에서 개선/피드백을 구체적으로 논의·제안한다.`
     : `**적용 대상(targets)** 은 plm artifact_links(project="${w.project}", code="${bc}")로 rel="targets" 대상을 조회해 확인한다(없으면 사용자에게 적용 대상 지정 또는 revise 절차 안내).`;
-  const content = isBuild
+  const content = isWireframe
+    ? `[와이어프레임 빌더 요청] project=${w.project} team=${buildInfo?.team || "?"} work_id=${w.work_id}\n` +
+      `사용자: ${buildInfo?.text || ""}\n\n` +
+      `— 이것은 이 프로젝트의 penpot 와이어프레임을 대화로 만들고/수정하는 요청입니다(와이어프레임 탭 전용 채팅 — 전역 세션 지시나 문서 빌딩이 아님). **화면 수 제한 없음** — 이 제품에 필요한 만큼(고정 샘플 금지). 수행:\n` +
+      `1. **화면 집합 도출(계획 주도)**: 먼저 이 프로젝트의 계획을 읽어(plm doc_get/artifact_get 로 BS·Roadmap·PRD·URS/UCS/SRS) **제품에 필요한 화면을 전부 도출**한다 — LIB/RDR/PIPE 같은 고정 샘플이 아니라 이 제품이 실제로 필요한 수만큼(3개일 수도, 12개일 수도). 각 화면에 SCREEN_CODE(대문자 토큰) 부여. 계획이 비었으면 사용자에게 어떤 화면이 필요한지 message(kind="question")로 먼저 확인.\n` +
+      `2. **SAE 스펙 저작(화면마다 1개 · durable)**: 도출한 각 화면에 대해 \`.ouroboros/docs/wireframes/WF-<CODE>.json\`(SAE 스펙 — 요소코드<SCREEN>.<NN> + 상태·액션·이펙트, _WIREFRAME-SAE-METHODOLOGY 준수)을 **반드시 저작**한다. 이미 있으면 갱신. **이 스펙 파일이 다음 사람이 이어서 채우는 유일한 근거**다 — 남기지 않으면 wfscan이 얇은 폴백 본문만 발급하고(book-tarae 같은 요소별 SAE 표 없음) 아무도 이어서 못 채운다. (이 단계를 건너뛰면 스펙이 없어 화면이 안 나오거나 폴백된다.)\n` +
+      `3. **생성(헤드리스·재사용 도구 우선)**: \`python3 plugin/plm-hub/scripts/wfgen.py --project ${w.project}\` — **--screens 생략 시 저작된 WF-*.json 전량**을 Wireframes penpot에 SAE 화면 보드로 생성(shape·좌표·board명 규약·컴포넌트 승격·archetype 자동선택 내장). 특정 화면만 재생성할 때만 \`--screens <CODE,...>\`. 세밀한 개별 요소 수정은 update-file RPC change-ops(add-obj/del-obj). penpot 팀 id=${buildInfo?.team || "(get-teams로 'PLM · " + w.project + "' 팀)"}. **대상 공간(SRS-044)=Wireframes 프로젝트**${buildInfo?.wireframesProject ? "(project-id=" + buildInfo.wireframesProject + ")" : ""}. (수동 조작 시: get-projects{team-id}→get-project-files{project-id}→get-file로 revn/vern·shape 확인 후 변경. update-file은 vern 필수.)\n` +
+      `4. **아티팩트 발급·추적**: \`python3 plugin/plm-hub/scripts/wfscan.py --project ${w.project}\`(프레임→WF-<CODE> 멱등 발급) 후 covers→UCS/SRS 링크(relation_link)로 요구와 잇는다. **wfscan 출력의 'SAE 커버리지'를 반드시 확인** — '스펙없음'으로 뜬 화면은 step2로 돌아가 \`docs/wireframes/WF-<CODE>.json\`을 저작하고 재실행한다(그래야 본문이 book-tarae처럼 요소별 SAE 표로 채워짐). **얇은 본문으로 완료 보고 금지.**\n` +
+      `5. **렌더 검증(필수)**: get-file→SVG→PNG로 **각 화면**이 의도대로·도메인 정확한지 눈으로 확인(태그 나열/엉뚱 도메인이면 스펙·archetype 고쳐 재생성). 개수만으로 완료 보고 금지.\n` +
+      `6. **피드백 루프**: 사용자가 렌더를 보고 수정/보완/추가를 요청하면 → 해당 WF-<CODE>.json 스펙을 고치거나 새 화면 스펙을 추가 → 재생성(3) → 재렌더(5) → 회신. 반복. 변경은 penpot에 직접 반영되며 사용자는 미리보기(iframe) 새로고침으로 확인(문서 빌더와 달리 proposal/[반영] 없음).\n` +
+      `7. 진행상황·질문은 message(thread="wireframe:${w.project}", kind="progress"|"question", work_id="${w.work_id}", body="..."), 완료는 report(work_id="${w.work_id}", ok=true, result="...").` +
+      REMOTE_ASK_RULE(w.work_id)
+    : isBpAsk
+    ? `[아키텍처 블루프린트 질문] project=${w.project} bp=${buildInfo?.code || "?"} work_id=${w.work_id}\n` +
+      `사용자: ${buildInfo?.text || ""}\n` +
+      bpCtxLine +
+      `\n— **질문 모드**: 이 프로젝트의 설계도(BP)에 대해 **답변만** 합니다 — **모델·파일 수정 금지**(저작 지시가 아님 · bpcheck/동기 불필요). 수행:\n` +
+      `1. BP 모델을 읽는다 — 로컬 \`.ouroboros/docs/blueprint/${buildInfo?.code || "BP-001"}.json\`이 있으면 로컬, 아니면 plm doc_get(project="${w.project}", code="${buildInfo?.code || "BP-001"}")로 code_block(plm-blueprint) JSON을 확보. 프로젝트에 DR(DesignResearch — \`.ouroboros/docs/design-research/\`)이 있으면 함께 읽어 수치·트레이드오프 근거로 답한다.\n` +
+      `2. 탐색 컨텍스트(선택 노드·존·활성 여정·스텝)가 있으면 **그 대상을 중심으로** 답한다 — 노드면 그 노드의 role/design/io/연결, 존(그룹)이면 구성 노드·그룹 경계 흐름, 여정이면 해당 스텝의 비즈니스 로직.\n` +
+      `3. 근거 아티팩트 코드("SRS-011" 형태)를 답변 산문에 **인라인 인용**한다 — 탭이 자동 딥링크 칩으로 렌더. 불확실하면 plm doc_get으로 근거 문서를 실제 확인(추측 금지).\n` +
+      `4. 답변은 message(kind="result", thread="blueprint:${w.project}", work_id="${w.work_id}", body="...")로 **간결하게**(질문에 맞는 분량 — 장문 보고서 금지). 완료는 report(work_id="${w.work_id}", ok=true, result="...").` +
+      REMOTE_ASK_RULE(w.work_id)
+    : isBlueprint
+    ? `[아키텍처 블루프린트 빌더 요청] project=${w.project} bp=${buildInfo?.code || "(신규)"} work_id=${w.work_id}\n` +
+      `사용자: ${buildInfo?.text || ""}\n` +
+      bpCtxLine +
+      `\n— 이것은 이 프로젝트의 아키텍처 설계도(Blueprint·BP)를 대화로 만들고/수정하는 요청입니다([아키텍처] 탭 전용 채팅 — 전역 세션 지시나 문서 빌딩이 아님). payload.context(탐색 컨텍스트)가 있으면 **그 노드/존/여정을 중심 대상으로 해석**한다. 수행:\n` +
+      `0. **설계 조사(DR) 선행 — BP 깊이의 원천**: 이 프로젝트에 DR(DesignResearch) 아티팩트가 없으면 **설계 조사를 먼저 수행**해 \`.ouroboros/docs/design-research/DR-001.json\`(CODE.json 래퍼 · type="DesignResearch" · status:"Draft")을 발급한다 — 요구 전체(URS/UCS/SRS·BS·PRD)를 읽고 심층 조사. doc 섹션 표준(H2): ①도메인 모델·비즈니스 로직 심층(핵심 엔티티·상태 흐름·도메인 규칙) ②기술 선택지·트레이드오프(대안 비교표·결정 후보→ADR 예고) ③수치·용량·성능 목표(추정 근거 명시) ④위험·미해결 질문 ⑤아키텍처 스케치(존·컴포넌트 후보·데이터 흐름 초안). 각 항목에 요구 코드(URS/UCS/SRS)를 인라인 인용하고, 필요하면 WebSearch로 외부 근거를 보강(출처 명시). 그 다음 BP를 저작하되 **노드 design·basis에 DR의 결론(수치·선택지·근거)을 인용**한다(basis에 DR-001 표기 → 탭이 딥링크 칩). **DR이 이미 있으면 읽고 근거로 사용**(재발급 금지 — 부족분만 DR 갱신).\n` +
+      `1. **근거 수집(추측 금지)**: plm doc_get/artifact_get으로 이 프로젝트의 DR·SAD·ADR·SRS·Code(code_refs)·기존 BP를 읽고, 필요하면 소스 저장소 구조(디렉토리·주요 모듈)를 확인한다 — 설계도는 **실존 근거로만** 그린다(상상 컴포넌트·추측 연결 금지).\n` +
+      `2. **모델 저작/갱신**: ${bpTarget}한다 — CODE.json 래퍼(id·type="Blueprint"·title·status:"Draft"·doc) · doc = H2 제목 + code_block(attrs.language="plm-blueprint") 모델 + 설명 문단(형식 정본 = \`.ouroboros/docs/blueprint/BP-001.json\` · \`_BLUEPRINT-METHODOLOGY.md\`). code_block 텍스트 = **모델 계약 v1.1** JSON(version은 1 유지 — persona/covers/desc 선택):\n` +
+      `   {version:1, zones:[{id,label,hue?,desc?}], nodes:[{id,zone,label,kind?(client|service|db|queue|external|llm), role?, design?[], io?, basis?, artifacts?[], loc?, pos?{x,y,w?,h?}}], edges:[{id?,from,to,label?,kind?(sync|async|data)}], scenarios?:[{id,label,persona?,covers?[],note?,steps:[{text,nodes?[],edges?[]}]}]}\n` +
+      `   pos 없으면 탭이 존별 자동배치. **존마다 desc 1~2문장 권장**(그룹 한눈 파악용 — 탭 존 라벨 클릭 시 그룹 개요 패널에 표시). **노드 role/design/io/basis를 실근거로 충실히**(빈 껍데기 금지) · **artifacts[]·covers[]는 이 프로젝트에 실존하는 아티팩트 코드만**(탭에서 딥링크 칩이 됨 — 없는 코드 금지). 스텝 text·노드 산문 속 "SRS-011" 같은 코드 표기는 탭이 자동 딥링크 칩으로 렌더 — 인라인 참조 활용.\n` +
+      `   **시나리오 표준(ADR-033)**: 시나리오 = **페르소나별 엔드투엔드 여정** — 트리거→모듈 경유→데이터 축적→**다음 사이클 되먹임**까지, 각 스텝에 비즈니스 로직(무엇을·왜)을 서술. 기대 수준 예시(AnyC): "일기 작성→LLM 챗봇 인터뷰→일기 완성→어휘·문법 학습→음성 회화 인터뷰→학습 결과 누적이 다음 학습에 영향" 같은 6단계급 여정. **사용자 여정만이 아니라 운영·배치 여정**(인제스트 파이프라인·신규 도메인 온보딩 등)도 포함 — 개수는 제품이 필요한 만큼(2~3개로 끝내지 말 것). 프로젝트의 **UCS 전부 + BS 사용시나리오**를 커버(없으면 SRS 기능별 대표 여정+핵심 가치 루프). scenario.persona·covers(→UCS/SRS) 명시 · note에 여정별 LLM/비용 주석 권장.\n` +
+      `   **갱신 규율(비파괴)**: 갱신 지시(탭 낡음 배너 "빌더로 갱신 지시"·[재생성·갱신]·기획 후속 반영) 시 **기존 노드·pos·설명을 보존**하고 변경분만 반영(전면 재생성 금지 — 필요한 엣지/시나리오 추가는 허용). DR 갱신분(새 수치·선택지 변경)이 있으면 해당 노드 design·basis에 반영한다.\n` +
+      `3. **검증**: \`python3 plugin/plm-hub/scripts/bpcheck.py --project ${w.project}\` — 에러 0 될 때까지 수정(래퍼·모델 파스·zone/edge/시나리오 참조 무결성·artifacts/covers 실존·중복 id). 말미 **▍BP 커버리지 블록**(미커버 UCS·SRS·covers 없는 시나리오 — 비차단 경고)을 확인하고 여정 시나리오 covers로 좁힌다. 얇은 설계도로 완료 보고 금지.\n` +
+      `4. **동기**: Write/Edit 도구로 저장하면 plm-sync 훅이 자동 upsert(래퍼 메타+doc). 훅 미작동 시 폴백: plm MCP import(래퍼 메타) + PUT /artifacts/{project}/{code}/doc.\n` +
+      `5. **회신**: 변경 요약(존/노드/엣지/시나리오 수·무엇이 바뀌었나)과 함께 [아키텍처] 탭 새로고침으로 확인하라고 안내한다.\n` +
+      `6. **피드백 루프**: 수정 요청 → 모델 고침 → bpcheck(3) → 재동기(4) → 회신(5) 반복.\n` +
+      `7. 진행상황·질문은 message(thread="blueprint:${w.project}", kind="progress"|"question", work_id="${w.work_id}", body="..."), 완료는 report(work_id="${w.work_id}", ok=true, result="...").` +
+      REMOTE_ASK_RULE(w.work_id)
+    : isBuild
     ? `[문서 빌더 요청] project=${w.project} code=${bc} mode=${buildInfo?.mode || "doc"} work_id=${w.work_id}\n` +
       `사용자: ${buildInfo?.text || ""}\n\n` +
       `— 이것은 문서 "${bc}"를 대화로 빌딩하는 요청입니다(전역 세션 지시가 아닌 그 문서 전용 대화). 수행:\n` +
@@ -268,7 +330,8 @@ async function handleSse(raw) {
       `4. 본문 제안은 message(kind="proposal", thread="build:${bc}", work_id="${w.work_id}", body=<JSON>)로 회신하세요.\n` +
       `   body = JSON.stringify({ summary: "무엇을 바꿨는지 한 줄", doc: <문서 전체 ProseMirror doc JSON> }).\n` +
       `   ⚠ 본문을 직접 put_doc 하지 마세요 — 사용자가 빌더 탭 [반영] 버튼으로 확정합니다(Q2).\n` +
-      `5. 완료는 report(work_id="${w.work_id}", ok=true, result="...").` +
+      `5. 완료는 report(work_id="${w.work_id}", ok=true, result="...").\n` +
+      `6. 마무리 규약: 이 변경이 아키텍처(컴포넌트·연결·요구 구조)에 닿고 프로젝트에 Blueprint(BP)가 존재하면, 완료 회신에 "[아키텍처] 탭 BP 갱신 제안" 한 줄을 포함하세요(낡음 배너·bpcheck 커버리지가 표면화하는 항목 — ADR-033).` +
       REMOTE_ASK_RULE(w.work_id)
     : isUserMsg
     ? `[PLM 사용자 메시지] project=${w.project}` +
