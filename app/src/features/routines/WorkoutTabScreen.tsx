@@ -193,8 +193,15 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
         onStartRoutine={(rid) => guardActive(() => doStartFromRoutine(rid))}
       />
 
-      {/* 오늘의 추천 루틴(SRS-034) — 주간 스케줄이 없는 사용자에게만(스케줄 보유 시 스케줄이 오늘을 결정 —
-          '휴식일' 안내와 추천이 동시에 뜨는 모순 방지). 아직 운동 전일 때만. @plm SRS-044 */}
+      {/* 오늘의 안내 — 스케줄 보유 시 같은 위치·톤으로 '오늘은 ~' 카드(스케줄=SSOT), 없으면 기존 추천(SRS-034). @plm SRS-044 */}
+      {!activeWorkoutId && weeklySchedule ? (
+        <ScheduleTodayCard
+          schedule={weeklySchedule}
+          routines={routines}
+          busy={busy}
+          onStartRoutine={(rid) => guardActive(() => doStartFromRoutine(rid))}
+        />
+      ) : null}
       {!activeWorkoutId && !weeklySchedule && reco && !reco.alreadyWorkedOutToday ? (
         reco.status === 'ok' ? (
           <Card style={styles.recoCard}>
@@ -297,6 +304,55 @@ const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 const BLOCK_OPTIONS: (number | null)[] = [null, 4, 5, 6];
 // 루틴 구분 색 점 팔레트 — 다크 배경 가독 색(루틴 목록 순서로 고정 배정 → 같은 루틴=같은 색).
 const ROUTINE_DOT_PALETTE = ['#4F8EF7', '#A78BFA', '#34D399', '#F59E0B', '#F472B6', '#22D3EE', '#F87171', '#A3E635'];
+function routineDotColor(routines: Routine[], id: string): string {
+  const idx = routines.findIndex((r) => r.id === id);
+  return ROUTINE_DOT_PALETTE[(idx >= 0 ? idx : 0) % ROUTINE_DOT_PALETTE.length];
+}
+
+// 오늘의 안내 카드 — 추천 루틴 카드와 같은 위치·스타일. 스케줄 기준으로 '오늘은 ~예요' + 루틴 바로가기. @plm SRS-044
+function ScheduleTodayCard({
+  schedule,
+  routines,
+  busy,
+  onStartRoutine,
+}: {
+  schedule: WeeklySchedule;
+  routines: Routine[];
+  busy: boolean;
+  onStartRoutine: (routineId: string) => void;
+}) {
+  const { t } = useT();
+  const plan = todayPlan(schedule, Date.now());
+  if (plan.kind === 'routine') {
+    const name = routines.find((r) => r.id === plan.routineId)?.name;
+    if (!name) return null; // 삭제된 루틴 배정 — 스케줄 카드에서 편집 유도
+    return (
+      <Card style={styles.recoCard}>
+        <View style={{ flex: 1, marginRight: spacing.md }}>
+          <AppText variant="label" color="primary">{t('schedule.todayLabel')}</AppText>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: routineDotColor(routines, plan.routineId) }} />
+            <AppText variant="heading" numberOfLines={1} style={{ flexShrink: 1 }}>
+              {name}
+            </AppText>
+          </View>
+          <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+            {t('schedule.todayHint')}
+          </AppText>
+        </View>
+        <Button title={t('routines.start')} icon="play" size="sm" fullWidth={false} disabled={busy} onPress={() => onStartRoutine(plan.routineId)} />
+      </Card>
+    );
+  }
+  return (
+    <Card style={styles.recoCardMuted}>
+      <AppText variant="label" color="textMuted">{t('schedule.todayLabel')}</AppText>
+      <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
+        {plan.kind === 'rest' ? t('schedule.todayRest') : t('schedule.todayNone')}
+      </AppText>
+    </Card>
+  );
+}
 
 function WeeklyScheduleCard({
   routines,
@@ -314,16 +370,9 @@ function WeeklyScheduleCard({
   const [draftBlock, setDraftBlock] = useState<number | null>(null);
 
   const now = Date.now();
-  const plan = todayPlan(weeklySchedule, now);
   const block = currentBlockWeek(weeklySchedule, now);
   const todayIdx = (new Date(now).getDay() + 6) % 7; // 월=0
   const nameOf = (id: string) => routines.find((r) => r.id === id)?.name ?? null;
-  // 루틴별 색 점 — 같은 루틴은 같은 색(루틴 목록 순서 기반, 다크 배경 가독 팔레트). 칩 폭이 좁아
-  // 이름이 짤리는 문제를 색으로 1차 구분하고, 탭하면 풀네임을 보여준다(사용자 피드백 반영).
-  const dotColorOf = (id: string) => {
-    const idx = routines.findIndex((r) => r.id === id);
-    return ROUTINE_DOT_PALETTE[(idx >= 0 ? idx : 0) % ROUTINE_DOT_PALETTE.length];
-  };
   // 칩 탭 → 요일·풀네임 표시(+배정 루틴이면 바로 시작).
   function showDay(i: number) {
     const entry = weeklySchedule?.days[i] ?? null;
@@ -337,8 +386,6 @@ function WeeklyScheduleCard({
       { text: t('schedule.startThis'), onPress: () => onStartRoutine(entry) },
     ]);
   }
-  const todayRoutineName = plan.kind === 'routine' ? nameOf(plan.routineId) : null;
-
   function openEdit() {
     setDraftDays(weeklySchedule?.days ? [...weeklySchedule.days] : Array.from({ length: 7 }, () => null));
     setDraftBlock(weeklySchedule?.blockWeeks ?? null);
@@ -356,6 +403,26 @@ function WeeklyScheduleCard({
       { text: t('common.cancel'), style: 'cancel' },
     ]);
   }
+  // 스케줄 삭제 — 확인 후 weekly_schedule=null(주차·배정 전체 제거. 루틴 자체는 그대로). @plm SRS-044
+  function deleteSchedule() {
+    if (!user) return;
+    Alert.alert(t('schedule.deleteTitle'), t('schedule.deleteMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await userRepo.updateUserSettings(user.id, { weeklySchedule: null });
+            setEditing(false);
+          } catch (e) {
+            Alert.alert(t('common.error'), String(e));
+          }
+        },
+      },
+    ]);
+  }
+
   async function saveSchedule() {
     if (!user) return;
     const hasAny = draftDays.some((d) => d !== null) || draftBlock != null;
@@ -411,9 +478,9 @@ function WeeklyScheduleCard({
         <IconButton icon="pencil" size={16} color="textMuted" onPress={openEdit} />
       </View>
       <View style={wsStyles.strip}>
+        {/* 칩은 색 점(루틴)/달 아이콘(휴식)만 — 이름은 탭해서 확인(사용자 피드백: 짤린 텍스트 제거). */}
         {DAY_KEYS.map((k, i) => {
           const entry = weeklySchedule.days[i];
-          const label = entry === 'rest' ? t('schedule.restShort') : entry ? (nameOf(entry) ?? '?') : '–';
           const isRoutine = !!entry && entry !== 'rest';
           return (
             <Pressable key={k} onPress={() => showDay(i)} style={[wsStyles.dayChip, i === todayIdx && wsStyles.dayChipToday]}>
@@ -421,33 +488,17 @@ function WeeklyScheduleCard({
                 {t(`schedule.dayShort.${k}`)}
               </AppText>
               <View style={wsStyles.dayChipValue}>
-                {isRoutine ? <View style={[wsStyles.routineDot, { backgroundColor: dotColorOf(entry) }]} /> : null}
-                <AppText
-                  variant="label"
-                  color={i === todayIdx ? 'primary' : 'textMuted'}
-                  numberOfLines={1}
-                  style={{ flexShrink: 1 }}
-                >
-                  {label}
-                </AppText>
+                {isRoutine ? (
+                  <View style={[wsStyles.routineDot, { backgroundColor: routineDotColor(routines, entry) }]} />
+                ) : entry === 'rest' ? (
+                  <Ionicons name="moon" size={9} color={i === todayIdx ? colors.primary : colors.textMuted} />
+                ) : null}
               </View>
             </Pressable>
           );
         })}
       </View>
-      {plan.kind === 'routine' && todayRoutineName ? (
-        <Button
-          title={t('schedule.startToday', { routine: todayRoutineName })}
-          icon="play"
-          loading={busy}
-          onPress={() => onStartRoutine(plan.routineId)}
-          style={{ marginTop: spacing.sm }}
-        />
-      ) : plan.kind === 'rest' ? (
-        <AppText variant="caption" color="textMuted" style={{ marginTop: spacing.sm }}>
-          {t('schedule.todayRest')}
-        </AppText>
-      ) : null}
+      {/* 오늘 안내·시작 CTA는 추천카드 위치의 ScheduleTodayCard로 이동(사용자 피드백 — 위치 일관). */}
       <ScheduleEditModal
         visible={editing}
         onClose={() => setEditing(false)}
@@ -457,6 +508,7 @@ function WeeklyScheduleCard({
         onPickDay={pickDay}
         onPickBlock={setDraftBlock}
         nameOf={nameOf}
+        onDelete={deleteSchedule}
       />
     </Card>
   );
@@ -471,6 +523,7 @@ function ScheduleEditModal({
   onPickDay,
   onPickBlock,
   nameOf,
+  onDelete,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -480,6 +533,7 @@ function ScheduleEditModal({
   onPickDay: (i: number) => void;
   onPickBlock: (w: number | null) => void;
   nameOf: (id: string) => string | null;
+  onDelete?: () => void; // 기존 스케줄 편집일 때만 — 스케줄 전체 삭제(확인 후). @plm SRS-044
 }) {
   const { t } = useT();
   return (
@@ -523,6 +577,9 @@ function ScheduleEditModal({
             <Button title={t('common.cancel')} variant="secondary" fullWidth={false} onPress={onClose} style={{ flex: 1 }} />
             <Button title={t('common.save')} fullWidth={false} onPress={onSave} style={{ flex: 1 }} />
           </View>
+          {onDelete ? (
+            <Button title={t('schedule.deleteButton')} variant="danger" icon="trash-outline" size="sm" onPress={onDelete} style={{ marginTop: spacing.sm }} />
+          ) : null}
         </Pressable>
       </Pressable>
     </Modal>
@@ -558,7 +615,7 @@ const wsStyles = StyleSheet.create({
     borderColor: colors.border,
   },
   dayChipToday: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
-  dayChipValue: { flexDirection: 'row', alignItems: 'center', gap: 3, maxWidth: '100%', paddingHorizontal: 2 },
+  dayChipValue: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 12, gap: 3, paddingHorizontal: 2 },
   routineDot: { width: 6, height: 6, borderRadius: 3 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   sheet: { width: '100%', maxWidth: 380, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
