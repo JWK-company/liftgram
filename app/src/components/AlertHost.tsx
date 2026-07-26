@@ -22,8 +22,13 @@ export function AlertHost() {
     b.onPress?.();
   };
 
+  // 알림이 있을 때만 Modal을 마운트한다 — RN-web은 Modal 포털을 '마운트 시점'에 body에 붙이므로,
+  // 상시 마운트하면 나중에 열린 화면 모달(스케줄 편집 등)이 항상 알림 위에 쌓여 알림이 가려진다.
+  // 요청 시점 마운트 = 포털이 마지막에 붙어 어떤 모달 위에서도 최상단 보장. (fade-out 없음은 수용.)
+  if (!req) return null;
+
   return (
-    <Modal visible={!!req} transparent animationType="fade" onRequestClose={dismiss}>
+    <Modal visible transparent animationType="fade" onRequestClose={dismiss}>
       <Pressable style={styles.backdrop} onPress={dismiss}>
         <Pressable style={styles.card} onPress={() => {}}>
           {req ? (
