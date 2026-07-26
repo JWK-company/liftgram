@@ -586,6 +586,7 @@ export const ko = {
   "onboarding.trainerIntentOption": "나는 회원을 구하고 싶어요 (트레이너·코치)",
   "onboarding.expDone": "완료",
   "onboarding.skip": "건너뛰기",
+  "schedule.startThis": "이 루틴 시작",
   "schedule.title": "주간 스케줄",
   "schedule.createEntry": "주간 스케줄 만들기 (요일별 루틴·디로딩)",
   "schedule.editTitle": "주간 스케줄 편집",

@@ -588,6 +588,7 @@ export const en: Record<TransKey, string> = {
   "onboarding.trainerIntentOption": "I want to find clients (trainer/coach)",
   "onboarding.expDone": "Done",
   "onboarding.skip": "Skip",
+  "schedule.startThis": "Start this routine",
   "schedule.title": "Weekly schedule",
   "schedule.createEntry": "Create weekly schedule (routines per day, deload)",
   "schedule.editTitle": "Edit weekly schedule",

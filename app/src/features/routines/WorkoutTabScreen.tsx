@@ -31,6 +31,7 @@ import { useT } from '../../i18n';
 export default function WorkoutTabScreen({ navigation }: TabScreenProps<'WorkoutTab'>) {
   const { t, lang } = useT();
   const { activeWorkoutId, setActiveWorkoutId } = useSession();
+  const { weeklySchedule } = useUser(); // 주간 스케줄 보유 시 추천 루틴 숨김(모순 방지 — 스케줄이 SSOT). @plm SRS-044
   const [busy, setBusy] = useState(false);
 
   const routines = useQueryData(() => routineRepo.queryRoutines(), []);
@@ -192,8 +193,9 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
         onStartRoutine={(rid) => guardActive(() => doStartFromRoutine(rid))}
       />
 
-      {/* 오늘의 추천 루틴(SRS-034) — 아직 운동 전일 때만, '새 루틴' 위에 표시 */}
-      {!activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
+      {/* 오늘의 추천 루틴(SRS-034) — 주간 스케줄이 없는 사용자에게만(스케줄 보유 시 스케줄이 오늘을 결정 —
+          '휴식일' 안내와 추천이 동시에 뜨는 모순 방지). 아직 운동 전일 때만. @plm SRS-044 */}
+      {!activeWorkoutId && !weeklySchedule && reco && !reco.alreadyWorkedOutToday ? (
         reco.status === 'ok' ? (
           <Card style={styles.recoCard}>
             <View style={{ flex: 1, marginRight: spacing.md }}>
@@ -293,6 +295,8 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
 // ── 주단위 스케줄 카드 + 편집 모달 (SRS-044). 디로딩 볼륨은 표시만 — 자동 조정 없음(ADR-028). ──
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 const BLOCK_OPTIONS: (number | null)[] = [null, 4, 5, 6];
+// 루틴 구분 색 점 팔레트 — 다크 배경 가독 색(루틴 목록 순서로 고정 배정 → 같은 루틴=같은 색).
+const ROUTINE_DOT_PALETTE = ['#4F8EF7', '#A78BFA', '#34D399', '#F59E0B', '#F472B6', '#22D3EE', '#F87171', '#A3E635'];
 
 function WeeklyScheduleCard({
   routines,
@@ -314,6 +318,25 @@ function WeeklyScheduleCard({
   const block = currentBlockWeek(weeklySchedule, now);
   const todayIdx = (new Date(now).getDay() + 6) % 7; // 월=0
   const nameOf = (id: string) => routines.find((r) => r.id === id)?.name ?? null;
+  // 루틴별 색 점 — 같은 루틴은 같은 색(루틴 목록 순서 기반, 다크 배경 가독 팔레트). 칩 폭이 좁아
+  // 이름이 짤리는 문제를 색으로 1차 구분하고, 탭하면 풀네임을 보여준다(사용자 피드백 반영).
+  const dotColorOf = (id: string) => {
+    const idx = routines.findIndex((r) => r.id === id);
+    return ROUTINE_DOT_PALETTE[(idx >= 0 ? idx : 0) % ROUTINE_DOT_PALETTE.length];
+  };
+  // 칩 탭 → 요일·풀네임 표시(+배정 루틴이면 바로 시작).
+  function showDay(i: number) {
+    const entry = weeklySchedule?.days[i] ?? null;
+    const dayName = t(`schedule.day.${DAY_KEYS[i]}`);
+    if (entry === 'rest') return void Alert.alert(dayName, t('schedule.rest'));
+    if (!entry) return void Alert.alert(dayName, t('schedule.unassigned'));
+    const routineName = nameOf(entry);
+    if (!routineName) return void Alert.alert(dayName, '?');
+    Alert.alert(dayName, routineName, [
+      { text: t('common.ok'), style: 'cancel' },
+      { text: t('schedule.startThis'), onPress: () => onStartRoutine(entry) },
+    ]);
+  }
   const todayRoutineName = plan.kind === 'routine' ? nameOf(plan.routineId) : null;
 
   function openEdit() {
@@ -391,20 +414,24 @@ function WeeklyScheduleCard({
         {DAY_KEYS.map((k, i) => {
           const entry = weeklySchedule.days[i];
           const label = entry === 'rest' ? t('schedule.restShort') : entry ? (nameOf(entry) ?? '?') : '–';
+          const isRoutine = !!entry && entry !== 'rest';
           return (
-            <View key={k} style={[wsStyles.dayChip, i === todayIdx && wsStyles.dayChipToday]}>
+            <Pressable key={k} onPress={() => showDay(i)} style={[wsStyles.dayChip, i === todayIdx && wsStyles.dayChipToday]}>
               <AppText variant="label" color={i === todayIdx ? 'primary' : 'textFaint'} weight={i === todayIdx ? 'bold' : 'regular'}>
                 {t(`schedule.dayShort.${k}`)}
               </AppText>
-              <AppText
-                variant="label"
-                color={i === todayIdx ? 'primary' : 'textMuted'}
-                numberOfLines={1}
-                style={{ maxWidth: 44 }}
-              >
-                {label}
-              </AppText>
-            </View>
+              <View style={wsStyles.dayChipValue}>
+                {isRoutine ? <View style={[wsStyles.routineDot, { backgroundColor: dotColorOf(entry) }]} /> : null}
+                <AppText
+                  variant="label"
+                  color={i === todayIdx ? 'primary' : 'textMuted'}
+                  numberOfLines={1}
+                  style={{ flexShrink: 1 }}
+                >
+                  {label}
+                </AppText>
+              </View>
+            </Pressable>
           );
         })}
       </View>
@@ -531,6 +558,8 @@ const wsStyles = StyleSheet.create({
     borderColor: colors.border,
   },
   dayChipToday: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
+  dayChipValue: { flexDirection: 'row', alignItems: 'center', gap: 3, maxWidth: '100%', paddingHorizontal: 2 },
+  routineDot: { width: 6, height: 6, borderRadius: 3 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   sheet: { width: '100%', maxWidth: 380, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
   editRow: {
