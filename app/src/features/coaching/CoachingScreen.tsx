@@ -15,6 +15,7 @@ import {
   type CoachingMemberReport,
   type CoachingPeer,
 } from '../../sync/serverApi';
+import { MemberRoutinesPanel } from './MemberRoutinesPanel'; // 슬라이스2: 처방 편집. @plm SRS-048
 
 export default function CoachingScreen() {
   const { t, lang } = useT();
@@ -25,6 +26,7 @@ export default function CoachingScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<CoachingPeer[] | null>(null);
   const [report, setReport] = useState<{ peer: CoachingPeer; data: CoachingMemberReport } | null>(null);
+  const [routinesPeer, setRoutinesPeer] = useState<CoachingPeer | null>(null); // 슬라이스2: 회원 루틴 패널
 
   const load = useCallback(async () => {
     try {
@@ -67,6 +69,20 @@ export default function CoachingScreen() {
     try {
       const data = await serverApi.coachingMemberReport(g.peer.id);
       setReport({ peer: g.peer, data });
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
+    }
+  }
+
+  // 코칭 이력(감사 로그) — 회원·트레이너 양쪽 열람(신뢰 표면 — SAD-022). 간단 Alert 목록.
+  async function openHistory(g: CoachingGrantView) {
+    try {
+      const rows = await serverApi.coachingAudit(g.id);
+      const lines = rows
+        .slice(0, 15)
+        .map((a) => `${new Date(a.createdAt).toLocaleString()} · ${t(('coaching.action.' + a.action) as Parameters<typeof t>[0])}`)
+        .join('\n');
+      Alert.alert(t('coaching.historyTitle'), lines || t('coaching.historyEmpty'));
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     }
@@ -138,6 +154,9 @@ export default function CoachingScreen() {
         </Card>
       ) : null}
 
+      {/* 회원 루틴 처방 편집(트레이너 — 슬라이스2). */}
+      {routinesPeer ? <MemberRoutinesPanel peer={routinesPeer} onClose={() => setRoutinesPeer(null)} /> : null}
+
       {/* 내 코치(회원 시점) */}
       <SectionHeader title={t('coaching.myCoaches')} />
       {asMember.length === 0 ? (
@@ -146,7 +165,7 @@ export default function CoachingScreen() {
         </AppText>
       ) : (
         asMember.map((g) => (
-          <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => act(() => serverApi.coachingAccept(g.id))} onRevoke={() => act(() => serverApi.coachingRevoke(g.id))} />
+          <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => act(() => serverApi.coachingAccept(g.id))} onRevoke={() => act(() => serverApi.coachingRevoke(g.id))} onHistory={() => openHistory(g)} />
         ))
       )}
 
@@ -165,6 +184,8 @@ export default function CoachingScreen() {
             onAccept={() => act(() => serverApi.coachingAccept(g.id))}
             onRevoke={() => act(() => serverApi.coachingRevoke(g.id))}
             onReport={g.status === 'active' ? () => openReport(g) : undefined}
+            onRoutines={g.status === 'active' ? () => setRoutinesPeer(g.peer) : undefined}
+            onHistory={() => openHistory(g)}
           />
         ))
       )}
@@ -247,12 +268,16 @@ function GrantRow({
   onAccept,
   onRevoke,
   onReport,
+  onRoutines,
+  onHistory,
 }: {
   grant: CoachingGrantView;
   busy: boolean;
   onAccept: () => void;
   onRevoke: () => void;
   onReport?: () => void;
+  onRoutines?: () => void; // 슬라이스2: 회원 루틴 처방 편집(트레이너·active)
+  onHistory?: () => void; // 코칭 이력(감사 로그 — 양쪽)
 }) {
   const { t } = useT();
   const canAccept = grant.status === 'pending' && grant.requestedBy !== grant.roleOfMe;
@@ -263,10 +288,14 @@ function GrantRow({
         <AppText variant="body" weight="medium" numberOfLines={1}>
           {grant.peer.displayName ?? '?'}
         </AppText>
-        <AppText variant="caption" color={grant.status === 'active' ? 'primary' : 'textMuted'}>
-          {t(`coaching.status.${grant.status}` as Parameters<typeof t>[0])}
-        </AppText>
+        <Pressable onPress={onHistory} hitSlop={4} disabled={!onHistory}>
+          <AppText variant="caption" color={grant.status === 'active' ? 'primary' : 'textMuted'}>
+            {t(`coaching.status.${grant.status}` as Parameters<typeof t>[0])}
+            {onHistory ? ` · ${t('coaching.historyLink')}` : ''}
+          </AppText>
+        </Pressable>
       </View>
+      {onRoutines ? <Button title={t('coaching.routinesButton')} size="sm" variant="secondary" fullWidth={false} onPress={onRoutines} /> : null}
       {onReport ? <Button title={t('coaching.reportButton')} size="sm" variant="secondary" fullWidth={false} onPress={onReport} /> : null}
       {canAccept ? <Button title={t('coaching.acceptButton')} size="sm" fullWidth={false} disabled={busy} onPress={onAccept} /> : null}
       <Button title={t('coaching.revokeButton')} size="sm" variant="ghost" fullWidth={false} disabled={busy} onPress={onRevoke} />

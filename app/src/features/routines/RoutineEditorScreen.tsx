@@ -50,6 +50,7 @@ import {
 import { requestExercisePick } from '../../utils/picker';
 import type RoutineExercise from '../../db/models/RoutineExercise';
 import { ExerciseName } from './ExerciseName';
+import { PrescriptionRows, emptyRxRow, rxSummary } from './PrescriptionRows'; // @plm SRS-043
 import { colors, spacing, radius, fontSize } from '../../theme';
 import { useT, type TransKey } from '../../i18n';
 
@@ -683,21 +684,8 @@ function ExerciseEditRow({
   );
 }
 
-// ── v16: 세트별 처방 편집기 — 요약 칩 + 모달(행별 타입 순환·RIR·반복범위, 행 추가/삭제). @plm SRS-043
-// 처방의 작성 주체는 사람(이 에디터·프리셋)뿐이며 앱이 자동 변경하지 않는다(ADR-028).
-const RX_TYPE_ORDER: PrescribedSetType[] = ['normal', 'warmup', 'top', 'backoff'];
-const RX_TYPE_KEY: Record<PrescribedSetType, TransKey> = {
-  normal: 'routines.rxType.normal',
-  warmup: 'routines.rxType.warmup',
-  top: 'routines.rxType.top',
-  backoff: 'routines.rxType.backoff',
-};
-const RX_SUMMARY_CHAR: Record<PrescribedSetType, string> = { normal: '·', warmup: 'W', top: 'T', backoff: 'B' };
-
-function emptyRxRow(): PrescribedSet {
-  return { setType: 'normal', targetRir: null, repMin: null, repMax: null, loadHint: null };
-}
-
+// ── v16: 세트별 처방 편집기 — 요약 칩 + 모달(행 편집은 공용 PrescriptionRows). @plm SRS-043
+// 처방의 작성 주체는 사람(이 에디터·프리셋·코칭 화면)뿐이며 앱이 자동 변경하지 않는다(ADR-028).
 function PrescriptionEditor({ re, onSaved }: { re: RoutineExercise; onSaved: (setCount: number) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
@@ -705,27 +693,14 @@ function PrescriptionEditor({ re, onSaved }: { re: RoutineExercise; onSaved: (se
   // 필드 변경은 query.observe()가 재방출하지 않음(알려진 함정) → 저장 결과를 로컬 미러로 즉시 반영.
   const [savedRx, setSavedRx] = useState<PrescribedSet[] | null>(() => re.prescription);
   useEffect(() => setSavedRx(re.prescription), [re.id]);
-  const rx = savedRx;
 
   function openEditor() {
     setRows(
-      rx && rx.length > 0
-        ? rx.map((r) => ({ ...r }))
+      savedRx && savedRx.length > 0
+        ? savedRx.map((r) => ({ ...r }))
         : Array.from({ length: Math.max(1, re.targetSets || 1) }, emptyRxRow),
     );
     setOpen(true);
-  }
-  function cycleType(i: number) {
-    setRows((rs) =>
-      rs.map((r, idx) =>
-        idx === i ? { ...r, setType: RX_TYPE_ORDER[(RX_TYPE_ORDER.indexOf(r.setType) + 1) % RX_TYPE_ORDER.length] } : r,
-      ),
-    );
-  }
-  function setRowNum(i: number, key: 'targetRir' | 'repMin' | 'repMax', txt: string) {
-    const n = parseInt(txt, 10);
-    const val = Number.isNaN(n) || n < 0 ? null : key === 'targetRir' ? Math.min(6, n) : n;
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, [key]: val } : r)));
   }
   async function save() {
     // 전 행이 빈 처방(전부 normal·값 없음)이면 처방 제거(null) — 기존 자유 루틴으로 복귀.
@@ -739,7 +714,7 @@ function PrescriptionEditor({ re, onSaved }: { re: RoutineExercise; onSaved: (se
       Alert.alert(t('common.error'), String(e));
     }
   }
-  const summary = rx && rx.length > 0 ? rx.map((r) => RX_SUMMARY_CHAR[r.setType]).join(' ') : null;
+  const summary = rxSummary(savedRx);
 
   return (
     <View style={{ marginTop: spacing.sm }}>
@@ -756,62 +731,7 @@ function PrescriptionEditor({ re, onSaved }: { re: RoutineExercise; onSaved: (se
             <AppText variant="caption" color="textMuted" style={{ marginTop: 2, marginBottom: spacing.sm }}>
               {t('routines.rxHint')}
             </AppText>
-            <View style={rxStyles.gridHead}>
-              <AppText variant="label" color="textFaint" style={rxStyles.colType}>{t('routines.rxColType')}</AppText>
-              <AppText variant="label" color="textFaint" style={rxStyles.colNum}>{t('routines.rxColRir')}</AppText>
-              <AppText variant="label" color="textFaint" style={rxStyles.colNum}>{t('routines.rxColRepMin')}</AppText>
-              <AppText variant="label" color="textFaint" style={rxStyles.colNum}>{t('routines.rxColRepMax')}</AppText>
-              <View style={rxStyles.colDel} />
-            </View>
-            <ScrollView style={{ maxHeight: 320 }} keyboardShouldPersistTaps="handled">
-              {rows.map((r, i) => (
-                <View key={i} style={rxStyles.row}>
-                  <Pressable onPress={() => cycleType(i)} style={[rxStyles.typeBtn, r.setType !== 'normal' && rxStyles.typeBtnOn]}>
-                    <AppText variant="caption" color={r.setType !== 'normal' ? 'primary' : 'text'} weight="bold">
-                      {t(RX_TYPE_KEY[r.setType])}
-                    </AppText>
-                  </Pressable>
-                  <TextInput
-                    value={r.targetRir != null ? String(r.targetRir) : ''}
-                    onChangeText={(txt) => setRowNum(i, 'targetRir', txt)}
-                    keyboardType="numeric"
-                    placeholder="–"
-                    placeholderTextColor={colors.textFaint}
-                    style={rxStyles.numCell}
-                  />
-                  <TextInput
-                    value={r.repMin != null ? String(r.repMin) : ''}
-                    onChangeText={(txt) => setRowNum(i, 'repMin', txt)}
-                    keyboardType="numeric"
-                    placeholder="–"
-                    placeholderTextColor={colors.textFaint}
-                    style={rxStyles.numCell}
-                  />
-                  <TextInput
-                    value={r.repMax != null ? String(r.repMax) : ''}
-                    onChangeText={(txt) => setRowNum(i, 'repMax', txt)}
-                    keyboardType="numeric"
-                    placeholder="–"
-                    placeholderTextColor={colors.textFaint}
-                    style={rxStyles.numCell}
-                  />
-                  <IconButton
-                    icon="close"
-                    size={16}
-                    color="textFaint"
-                    onPress={() => setRows((rs) => (rs.length > 1 ? rs.filter((_, idx) => idx !== i) : rs))}
-                  />
-                </View>
-              ))}
-            </ScrollView>
-            <Button
-              title={t('routines.rxAddSet')}
-              icon="add"
-              variant="secondary"
-              size="sm"
-              onPress={() => setRows((rs) => [...rs, emptyRxRow()])}
-              style={{ marginTop: spacing.sm }}
-            />
+            <PrescriptionRows rows={rows} onChange={setRows} />
             <View style={rxStyles.actions}>
               <Button title={t('common.cancel')} variant="secondary" fullWidth={false} onPress={() => setOpen(false)} style={{ flex: 1 }} />
               <Button title={t('common.save')} fullWidth={false} onPress={save} style={{ flex: 1 }} />
@@ -839,34 +759,6 @@ const rxStyles = StyleSheet.create({
   chipOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center', padding: spacing.xl },
   sheet: { width: '100%', maxWidth: 400, backgroundColor: colors.surface, borderRadius: radius.lg, padding: spacing.lg },
-  gridHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingBottom: spacing.xs },
-  colType: { width: 76 },
-  colNum: { flex: 1, textAlign: 'center' },
-  colDel: { width: 32 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingVertical: 3 },
-  typeBtn: {
-    width: 76,
-    height: 38,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceAlt,
-  },
-  typeBtnOn: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
-  numCell: {
-    flex: 1,
-    minWidth: 0,
-    height: 38,
-    textAlign: 'center',
-    color: colors.text,
-    fontSize: fontSize.md,
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
   actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
 });
 

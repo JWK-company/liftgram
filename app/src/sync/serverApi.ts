@@ -231,6 +231,24 @@ export interface CoachingGrantView {
   roleOfMe: 'trainer' | 'member';
   peer: CoachingPeer;
 }
+export interface CoachingRoutineExercise {
+  id: string;
+  exerciseId: string;
+  exerciseName: string | null;
+  targetSets: number | null;
+  prescription: import('../domain').PrescribedSet[] | null;
+}
+export interface CoachingRoutine {
+  id: string;
+  name: string;
+  exercises: CoachingRoutineExercise[];
+}
+export interface CoachingAuditEntry {
+  id: string;
+  actorId: string;
+  action: string; // request | accept | revoke | report_view | routines_view | prescription_edit
+  createdAt: string;
+}
 export interface CoachingMemberReport {
   weeks: number;
   sessionsCount: number;
@@ -517,6 +535,25 @@ export const serverApi = {
   },
   coachingMemberReport(memberId: string): Promise<CoachingMemberReport> {
     return request<CoachingMemberReport>(`/coaching/members/${memberId}/report`, { auth: true });
+  },
+  // 슬라이스2: 회원 루틴 열람·처방 저장(트레이너 — scope=routineEdit) + 감사 이력. @plm SRS-048
+  coachingMemberRoutines(memberId: string): Promise<CoachingRoutine[]> {
+    return request<CoachingRoutine[]>(`/coaching/members/${memberId}/routines`, { auth: true });
+  },
+  coachingSetPrescription(
+    memberId: string,
+    routineId: string,
+    routineExerciseId: string,
+    prescription: import('../domain').PrescribedSet[] | null,
+  ): Promise<{ ok: true }> {
+    return request<{ ok: true }>(`/coaching/members/${memberId}/routines/${routineId}/exercises/${routineExerciseId}/prescription`, {
+      method: 'PUT',
+      body: { prescription },
+      auth: true,
+    });
+  },
+  coachingAudit(grantId: string): Promise<CoachingAuditEntry[]> {
+    return request<CoachingAuditEntry[]>(`/coaching/grants/${grantId}/audit`, { auth: true });
   },
   updateProfile(input: { displayName?: string; avatarUrl?: string; experienceLevel?: string | null; trainerIntent?: boolean }): Promise<PublicUser> {
     return request<PublicUser>('/users/me', { method: 'PATCH', body: input, auth: true });

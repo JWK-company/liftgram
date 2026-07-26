@@ -47,6 +47,47 @@ function num(v: unknown): number {
   return typeof v === 'number' && Number.isFinite(v) ? v : 0;
 }
 
+// 처방(SRS-043 어휘) 서버측 정규화 — 앱 domain/prescription.sanitize와 동일 규칙(화이트리스트·RIR 0~6 클램프).
+// 앱과 서버 양쪽에서 방어해 어느 경로로도 불량 처방이 회원 데이터에 들어가지 않게 한다.
+export interface PrescribedSetServer {
+  setType: 'warmup' | 'top' | 'backoff' | 'normal';
+  targetRir: number | null;
+  repMin: number | null;
+  repMax: number | null;
+  loadHint: 'light' | 'medium' | 'heavy' | null;
+}
+const RX_TYPES = ['warmup', 'top', 'backoff', 'normal'] as const;
+const RX_LOADS = ['light', 'medium', 'heavy'] as const;
+
+export function sanitizePrescriptionServer(raw: unknown): PrescribedSetServer[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out: PrescribedSetServer[] = [];
+  for (const item of raw.slice(0, 20)) {
+    if (typeof item !== 'object' || item === null) continue;
+    const o = item as Record<string, unknown>;
+    const nnum = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null);
+    const rir = nnum(o.targetRir);
+    out.push({
+      setType: RX_TYPES.includes(o.setType as PrescribedSetServer['setType']) ? (o.setType as PrescribedSetServer['setType']) : 'normal',
+      targetRir: rir == null ? null : Math.min(6, Math.max(0, Math.round(rir))),
+      repMin: nnum(o.repMin),
+      repMax: nnum(o.repMax),
+      loadHint: RX_LOADS.includes(o.loadHint as 'light') ? (o.loadHint as PrescribedSetServer['loadHint']) : null,
+    });
+  }
+  return out.length > 0 ? out : null;
+}
+
+// 회원 SyncRecord payload의 prescription(직렬화 문자열)을 뷰용 배열로.
+function parsePrescriptionRaw(v: unknown): PrescribedSetServer[] | null {
+  if (typeof v !== 'string' || !v) return null;
+  try {
+    return sanitizePrescriptionServer(JSON.parse(v));
+  } catch {
+    return null;
+  }
+}
+
 @Injectable()
 export class CoachingService {
   constructor(private readonly prisma: PrismaService) {}
@@ -260,6 +301,76 @@ export class CoachingService {
         prCount: num(w.pr_count),
       })),
     };
+  }
+
+  // ── 슬라이스2: 회원 루틴 처방 편집 (SRS-048 M2 · SAD-022) ─────────────────────────
+  // 트레이너가 회원 루틴에 처방(세트 타입·RIR·반복범위 — SRS-043 어휘)을 작성한다.
+  // 저장은 회원의 SyncRecord(routine_exercises payload)를 갱신 → 회원 앱이 기존 sync pull로 수신.
+  // 알려진 한계(LWW): 회원이 같은 레코드의 미동기 로컬 변경을 나중에 push하면 트레이너 편집이
+  // 덮일 수 있다(동기 프로토콜이 last-write-wins — 정교화는 sync 충돌 처리 후속에서).
+
+  // 회원 루틴 목록(이름·종목·현재 처방) — scope=routineEdit 가드. 열람도 편집 권한의 일부로 본다.
+  async memberRoutines(trainerId: string, memberId: string) {
+    const g = await this.assertActiveGrant(trainerId, memberId, 'routineEdit');
+    await this.audit(g.id, trainerId, 'routines_view');
+    const recs = await this.prisma.syncRecord.findMany({
+      where: { userId: memberId, deleted: false, collection: { in: ['routines', 'routine_exercises', 'exercises'] } },
+    });
+    const byCol = new Map<string, RawRecord[]>();
+    for (const r of recs) {
+      const list = byCol.get(r.collection) ?? [];
+      list.push(r.payload as RawRecord);
+      byCol.set(r.collection, list);
+    }
+    const nameByExercise = new Map(
+      (byCol.get('exercises') ?? []).map((e) => [String(e.id), typeof e.name_ko === 'string' ? e.name_ko : null] as const),
+    );
+    const routines = (byCol.get('routines') ?? []).filter((r) => r.is_archived !== true);
+    const res = (byCol.get('routine_exercises') ?? []);
+    return routines
+      .map((r) => ({
+        id: String(r.id),
+        name: typeof r.name === 'string' ? r.name : '',
+        exercises: res
+          .filter((re) => String(re.routine_id) === String(r.id))
+          .sort((a, b) => num(a.sort_order) - num(b.sort_order))
+          .map((re) => ({
+            id: String(re.id),
+            exerciseId: String(re.exercise_id),
+            exerciseName: nameByExercise.get(String(re.exercise_id)) ?? null,
+            targetSets: re.target_sets == null ? null : num(re.target_sets),
+            prescription: parsePrescriptionRaw(re.prescription),
+          })),
+      }))
+      .filter((r) => r.exercises.length > 0);
+  }
+
+  // 처방 저장 — 회원 SyncRecord(routine_exercises) payload 갱신(version 증가·updatedAt bump → pull 대상).
+  // 서버측 정규화(화이트리스트·클램프)로 불량 처방 저장을 차단. null=처방 제거. 감사 로그 필수.
+  async setMemberPrescription(
+    trainerId: string,
+    memberId: string,
+    routineId: string,
+    routineExerciseId: string,
+    prescription: unknown,
+  ) {
+    const g = await this.assertActiveGrant(trainerId, memberId, 'routineEdit');
+    const rx = sanitizePrescriptionServer(prescription);
+    const rec = await this.prisma.syncRecord.findUnique({
+      where: { userId_collection_recordId: { userId: memberId, collection: 'routine_exercises', recordId: routineExerciseId } },
+    });
+    if (!rec || rec.deleted) throw new NotFoundException('routine exercise not found');
+    const payload = { ...(rec.payload as Record<string, unknown>) };
+    if (String(payload.routine_id) !== routineId) throw new BadRequestException('routine mismatch');
+    // WatermelonDB raw record 규약: @json 컬럼은 직렬화 문자열, 마지막 수정 시각(_changed 등)은 클라이언트 관할.
+    payload.prescription = rx ? JSON.stringify(rx) : null;
+    if (rx) payload.target_sets = rx.length; // 처방 길이 = 프리레이 세트 수(클라이언트 에디터와 동일 정책)
+    await this.prisma.syncRecord.update({
+      where: { id: rec.id },
+      data: { payload: payload as Prisma.InputJsonValue, version: { increment: 1 } },
+    });
+    await this.audit(g.id, trainerId, 'prescription_edit', { routineId, routineExerciseId, sets: rx?.length ?? 0 });
+    return { ok: true as const, prescription: rx };
   }
 
   // 감사 로그 열람 — grant 당사자만(회원의 "내 코칭 이력" 표면).
