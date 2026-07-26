@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
 import { movementPatternOf, movementPatternMapKeys, samePatternNames } from '../movementPatterns';
 import { CONCEPT_ROUTINES } from '../conceptRoutines';
+import { RAW_MEDIA_3D } from '../../data/exerciseMedia3d.data'; // @plm SRS-046
 import { containsMedicalClaim } from '../wellness';
 
 const seedNames = new Set(SEED_EXERCISES.map((e) => e.nameKo));
@@ -57,5 +58,12 @@ test('콘셉트 루틴: 구성 종목 전부 시드 실존 + 스토리 카피 �
     }
     assert.equal(containsMedicalClaim(c.storyKo), false, `${c.id} storyKo 의료 단정`);
     assert.equal(containsMedicalClaim(c.storyEn), false, `${c.id} storyEn 의료 단정`);
+  }
+});
+
+test('3D 움짤 오버레이: 매핑 키 전부 시드 실존 + 자체 호스팅 경로(/media3d/) 강제', () => {
+  for (const [k, v] of Object.entries(RAW_MEDIA_3D)) {
+    assert.ok(known(k), `media3d 매핑이 시드에 없는 종목을 참조: ${k}`);
+    assert.ok(v.startsWith('/media3d/'), `외부 URL 금지(자체 호스팅 — ADR-029): ${k} → ${v}`);
   }
 });

@@ -23,10 +23,14 @@
 - **SRS-047**: 시드 갭 15종(rename 0) · movementPatterns(14패턴·같은 패턴 후보) · 콘셉트 루틴 3종+저장 UI · finder 분류 보강(무결성 테스트가 검출)
 - 검증: `npm run typecheck` ✓ · `npm test` 125/125 ✓ (미커밋 — 커밋은 사용자 확인 후)
 
+## 배포 (2026-07-26)
+
+- 커밋 62f8666 (v0.10.0) → origin/main 푸시 → 웹 빌드 → Netlify 드래프트 배포 → restore API로 프로덕션 승격(크레딧-프리 경로)
+- 프로덕션 https://comforting-empanada-d0f054.netlify.app 에서 신규 번들(index-3eede08…) 서빙 확인
+
 ## 다음 작업
 
-- 변경분 커밋(사용자 확인 — git-guard) → 배포는 git-driven(Netlify)
-- ADR-029 구매 게이트: GymVisual 재배포 조항·매칭률·팩 견적 → SRS-046 에셋 교체
+- 3D 움짤 파이프라인 완료(gif 오버레이+ingest 스크립트+/media3d 자체 호스팅+무결성 테스트) — **에셋 라이선스 확보만 남음**: ADR-029 게이트 ① 실집행 결과 GymVisual N-CRFL 원문에 앱 임베드 충돌 소지 발견(DR-001 갱신) → ⓐ GymVisual support 서면 확인 ⓑ Gym Animations/MoveKit 비교 — 사용자 결정 대기
 - SRS-048(트레이너 권한·리포트) — P2 서버 컴포넌트와 함께 별도 /spec
 - 알려진 이슈: PLM 벌크 동기 한도 — sync_bulk 413·codescan 400(서버 페이로드). 신규 문서 15건은 개별 POST로 동기 완료. codescan은 청크 패치 후 재실행(G3 갱신)
 

@@ -79,13 +79,23 @@ export function ExerciseTipPanel({ nameKo }: { nameKo: string | null }) {
   );
 }
 
-// 시작/끝 2프레임 교차 루프 — ExerciseDetailScreen의 시연 기법 재사용(세션용 소형). @plm SRS-032 SRS-046
+// 동작 시연 — 3D 움짤(gif)이 있으면 그걸, 없으면 시작/끝 2프레임 교차 루프. @plm SRS-032 SRS-046
+// gif 전환은 exerciseMedia3d.data 매핑만 채우면 됨(ingest 스크립트 — ADR-029 자체 호스팅).
 function TwoFrameLoop({ media }: { media: ExerciseMedia }) {
   const [frame, setFrame] = useState(0);
+  const isGif = !!media.gif;
   useEffect(() => {
+    if (isGif) return; // GIF는 브라우저가 자체 루프
     const iv = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100);
     return () => clearInterval(iv);
-  }, []);
+  }, [isGif]);
+  if (media.gif) {
+    return (
+      <View style={styles.animWrap}>
+        <RemoteImage uri={media.gif} style={styles.animImg} resizeMode="contain" />
+      </View>
+    );
+  }
   return (
     <View style={styles.animWrap}>
       <RemoteImage uri={media.start} style={[styles.animImg, { opacity: frame === 0 ? 1 : 0 }]} resizeMode="contain" />

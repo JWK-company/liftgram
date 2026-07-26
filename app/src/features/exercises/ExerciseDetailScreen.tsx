@@ -308,10 +308,18 @@ function ExerciseAnimation({ media }: { media: ExerciseMedia }) {
   const [frame, setFrame] = useState(0);
   const [paused, setPaused] = useState(false);
   useEffect(() => {
-    if (paused) return;
+    if (paused || media.gif) return; // GIF는 브라우저 자체 루프. @plm SRS-046
     const iv = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100);
     return () => clearInterval(iv);
-  }, [paused]);
+  }, [paused, media.gif]);
+  // v0.10: 3D 움짤 오버레이(자체 호스팅) — 있으면 2프레임 대신 단일 GIF. @plm SRS-046
+  if (media.gif) {
+    return (
+      <View style={styles.animWrap}>
+        <RemoteImage uri={media.gif} style={styles.animImg} resizeMode="contain" />
+      </View>
+    );
+  }
   return (
     <Pressable onPress={() => setPaused((p) => !p)} style={styles.animWrap}>
       {/* 두 프레임을 겹쳐 두고 opacity 토글 → 재로드 없이 부드러운 2프레임 루프 */}

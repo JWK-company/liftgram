@@ -7,7 +7,7 @@
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-07-26T05:55:00Z",
-  "updated": "2026-07-26T05:55:00Z",
+  "updated": "2026-07-26T11:40:00Z",
   "sync": true,
   "tags": [
     "media",
@@ -486,6 +486,101 @@
                   {
                     "type": "text",
                     "text": "github.com/ExerciseDB/exercisedb-api · workoutxapp.com (대안 비교) · wger 프로젝트"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "게이트 검증 결과 (2026-07-26 추가 — ADR-029 구매 게이트 ① 실집행)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "GymVisual N-CRFL 원문 확인 결과, "
+          },
+          {
+            "type": "text",
+            "text": "'재판매/재배포 금지'와 '재판매 목적 제품(물리·디지털)에의 사용 제한' 조항이 앱 임베드 허용 여부를 불명확하게 만든다",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ]
+          },
+          {
+            "type": "text",
+            "text": ". 본 조사의 당초 전제('앱 임베드 허용')와 충돌 소지 — 구매 전 GymVisual support에 앱 번들 임베드 허용 여부 서면 확인이 필수다. 무료(Free) 항목의 라이선스도 별도 명시가 없다."
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대안 후보(앱 상업 라이선스를 명시적으로 표방): Gym Animations(gym-animations.com — 7,000+ 애니메이션·커머셜 라이선스·평생 사용권, 무료 데모 샘플 제공) · MoveKit(movekit.com — 피트니스 앱용 3D 클립·상업권 포함)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "WorkoutX 무료 API(1,400+ GIF)는 월 500요청 제한·자체 호스팅 권리 불명 — 프로덕션 부적합 재확인."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "앱 측 준비 완료: 3D 움짤 오버레이 파이프라인(exerciseMedia3d.data + ingest-3d-media.js + /media3d 자체 호스팅 + 무결성 테스트) — 라이선스 확보 즉시 에셋 폴더 반입만으로 전환."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "후속: 사용자 결정 필요 — ⓐ GymVisual support 문의 후 구매 ⓑ Gym Animations/MoveKit 견적 비교 구매. 결정 시 ADR-029 갱신(또는 supersede)."
                   }
                 ]
               }
