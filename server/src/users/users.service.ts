@@ -16,11 +16,15 @@ export interface PublicUser {
   avatarUrl: string | null;
   authProvider: string;
   role: string;
+  experienceLevel: string | null; // SRS-045 서버 반영 — 트레이너 탐색·프로필 표시
+  trainerIntent: boolean; // 코칭 의향(자격 보증 아님 — 면책은 클라이언트 표기). @plm SRS-045 SRS-048
 }
 
 export interface UpdateProfileInput {
   displayName?: string;
   avatarUrl?: string; // '' 이면 제거
+  experienceLevel?: string | null; // beginner|intermediate|advanced|null(제거). @plm SRS-045
+  trainerIntent?: boolean; // @plm SRS-045 SRS-048
 }
 
 @Injectable()
@@ -34,6 +38,8 @@ export class UsersService {
     avatarUrl: string | null;
     authProvider: string;
     role: string;
+    experienceLevel: string | null;
+    trainerIntent: boolean;
   }): PublicUser {
     return {
       id: u.id,
@@ -42,6 +48,8 @@ export class UsersService {
       avatarUrl: u.avatarUrl,
       authProvider: u.authProvider,
       role: u.role,
+      experienceLevel: u.experienceLevel,
+      trainerIntent: u.trainerIntent,
     };
   }
 
@@ -52,7 +60,7 @@ export class UsersService {
   }
 
   async updateProfile(id: string, input: UpdateProfileInput): Promise<PublicUser> {
-    const data: { displayName?: string | null; avatarUrl?: string | null } = {};
+    const data: { displayName?: string | null; avatarUrl?: string | null; experienceLevel?: string | null; trainerIntent?: boolean } = {};
     if (input.displayName !== undefined) {
       data.displayName = input.displayName.trim() || null;
     }
@@ -60,6 +68,15 @@ export class UsersService {
       if (input.avatarUrl) await this.assertOwnedMedia(input.avatarUrl, id);
       data.avatarUrl = input.avatarUrl || null;
     }
+    // 경력·코칭 의향(SRS-045 서버 반영) — 화이트리스트 검증(불량 값 저장 방지).
+    if (input.experienceLevel !== undefined) {
+      const lv = input.experienceLevel;
+      if (lv !== null && !['beginner', 'intermediate', 'advanced'].includes(lv)) {
+        throw new BadRequestException('invalid experienceLevel');
+      }
+      data.experienceLevel = lv;
+    }
+    if (input.trainerIntent !== undefined) data.trainerIntent = !!input.trainerIntent;
     const u = await this.prisma.user.update({ where: { id }, data });
     return this.toPublic(u);
   }

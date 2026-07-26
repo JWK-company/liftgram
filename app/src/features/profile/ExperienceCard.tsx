@@ -8,6 +8,7 @@ import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 import { useUser } from '../../state/userContext';
 import { userRepo } from '../../data';
+import { serverApi } from '../../sync/serverApi'; // 서버 프로필 반영(트레이너 탐색용 — 로그인 시). @plm SRS-048
 import type { ExperienceLevel } from '../../domain';
 
 const LEVELS: ExperienceLevel[] = ['beginner', 'intermediate', 'advanced'];
@@ -22,6 +23,14 @@ export function ExperienceCard() {
     setBusy(true);
     try {
       await userRepo.updateUserSettings(user.id, patch);
+      // 로그인 상태면 서버 프로필에도 반영(코칭 탐색 노출) — 실패해도 로컬 저장은 유지(silent).
+      // 서버는 trainerIntent를 boolean으로만 받음(null=off로 정규화).
+      if (await serverApi.isLoggedIn().catch(() => false)) {
+        const server: { experienceLevel?: string | null; trainerIntent?: boolean } = {};
+        if (patch.experienceLevel !== undefined) server.experienceLevel = patch.experienceLevel;
+        if (patch.trainerIntent !== undefined) server.trainerIntent = patch.trainerIntent === true;
+        serverApi.updateProfile(server).catch(() => {});
+      }
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     } finally {

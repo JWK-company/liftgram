@@ -13,10 +13,11 @@ import { ModerationModule } from './moderation/moderation.module';
 import { PushModule } from './push/push.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { GearModule } from './gear/gear.module';
+import { CoachingModule } from './coaching/coaching.module'; // @plm SRS-048
 
 // 모듈러 모놀리스 루트 (ADR-011/ADR-018). 도메인 모듈을 한 배포 단위로 묶는다.
-// 현재: health · auth · users · sync · social(팔로우·피드·스토리·좋아요·댓글) · media · dm · notifications.
-// 후속: payments(SAD-013).
+// 현재: health · auth · users · sync · social(팔로우·피드·스토리·좋아요·댓글) · media · dm · notifications · coaching.
+// 후속: payments(SAD-013) — 도입 시 coaching의 구독 스텁(assertTrainerEligible) 교체.
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -33,6 +34,7 @@ import { GearModule } from './gear/gear.module';
     PushModule,
     FeedbackModule,
     GearModule,
+    CoachingModule,
   ],
 })
 export class AppModule {}

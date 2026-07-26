@@ -27,6 +27,7 @@ import FollowListScreen from '../features/social/FollowListScreen';
 import BookmarksScreen from '../features/social/BookmarksScreen';
 import NearbyGymsScreen from '../features/gyms/NearbyGymsScreen';
 import MyGearScreen from '../features/gear/MyGearScreen'; // @plm SRS-042
+import CoachingScreen from '../features/coaching/CoachingScreen'; // @plm SRS-048
 import { useT } from '../i18n';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -68,6 +69,7 @@ export function RootNavigator() {
       <Stack.Screen name="Bookmarks" component={BookmarksScreen} options={{ title: t('bookmark.title') }} />
       <Stack.Screen name="NearbyGyms" component={NearbyGymsScreen} options={{ title: t('gyms.title') }} />
       <Stack.Screen name="MyGear" component={MyGearScreen} options={{ title: t('gear.myGearTitle') }} />
+      <Stack.Screen name="Coaching" component={CoachingScreen} options={{ title: t('coaching.title') }} />
     </Stack.Navigator>
   );
 }

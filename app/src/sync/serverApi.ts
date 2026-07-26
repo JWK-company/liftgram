@@ -210,6 +210,34 @@ export interface PublicUser {
   displayName: string | null;
   avatarUrl: string | null;
   role: string; // user | coworker | moderator | admin (auth/roles.ts SSOT)
+  experienceLevel?: string | null; // v0.10: 경력 분류(SRS-045 서버 반영). @plm SRS-045
+  trainerIntent?: boolean; // v0.10: 코칭 의향 — 자격 보증 아님. @plm SRS-045 SRS-048
+}
+
+// --- 코칭 (SRS-048 · SAD-022) — grant 기반 접근·회원 리포트. 판단은 사람(ADR-028) ---
+export interface CoachingPeer {
+  id: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  experienceLevel: string | null;
+  trainerIntent: boolean;
+}
+export interface CoachingGrantView {
+  id: string;
+  status: string; // pending | active | revoked
+  requestedBy: string; // member | trainer
+  consentAt: string | null;
+  createdAt: string;
+  roleOfMe: 'trainer' | 'member';
+  peer: CoachingPeer;
+}
+export interface CoachingMemberReport {
+  weeks: number;
+  sessionsCount: number;
+  sessionsPerWeek: number;
+  totalVolumeKg: number;
+  muscleVolume: { muscle: string; volumeKg: number }[];
+  recentSessions: { name: string | null; startedAt: number; durationSeconds: number | null; totalVolumeKg: number; prCount: number }[];
 }
 
 // --- 모더레이션 (SAD-012 · ADR-017) ---
@@ -470,7 +498,27 @@ export const serverApi = {
   me(): Promise<PublicUser> {
     return request<PublicUser>('/users/me', { auth: true });
   },
-  updateProfile(input: { displayName?: string; avatarUrl?: string }): Promise<PublicUser> {
+  // --- 코칭 (SRS-048) ---
+  coachingSearchTrainers(q?: string): Promise<CoachingPeer[]> {
+    const qs = q?.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
+    return request<CoachingPeer[]>(`/coaching/trainers${qs}`, { auth: true });
+  },
+  coachingRequest(input: { trainerId?: string; memberId?: string }): Promise<CoachingGrantView> {
+    return request<CoachingGrantView>('/coaching/requests', { method: 'POST', body: input, auth: true });
+  },
+  coachingGrants(): Promise<CoachingGrantView[]> {
+    return request<CoachingGrantView[]>('/coaching/grants', { auth: true });
+  },
+  coachingAccept(grantId: string): Promise<CoachingGrantView> {
+    return request<CoachingGrantView>(`/coaching/grants/${grantId}/accept`, { method: 'POST', auth: true });
+  },
+  coachingRevoke(grantId: string): Promise<CoachingGrantView> {
+    return request<CoachingGrantView>(`/coaching/grants/${grantId}/revoke`, { method: 'POST', auth: true });
+  },
+  coachingMemberReport(memberId: string): Promise<CoachingMemberReport> {
+    return request<CoachingMemberReport>(`/coaching/members/${memberId}/report`, { auth: true });
+  },
+  updateProfile(input: { displayName?: string; avatarUrl?: string; experienceLevel?: string | null; trainerIntent?: boolean }): Promise<PublicUser> {
     return request<PublicUser>('/users/me', { method: 'PATCH', body: input, auth: true });
   },
   // --- DM ---

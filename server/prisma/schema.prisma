@@ -12,37 +12,41 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String?        @unique
-  displayName   String?
-  avatarUrl     String? // 프로필 아바타(업로드 미디어 URL)
-  passwordHash  String? // 로컬 인증 토대 — 매니지드 전환 시 null (ADR-018)
-  authProvider  String         @default("local") // local|email|google|apple|managed
-  role          String         @default("user") // user|coworker|moderator|admin (역할·인가 — auth/roles.ts SSOT · ADR-017)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  devices       Device[]
-  refreshTokens RefreshToken[]
-  syncRecords   SyncRecord[]
-  following     Follow[]       @relation("following") // 내가 팔로우하는 관계
-  followers     Follow[]       @relation("followers") // 나를 팔로우하는 관계
-  posts         Post[]
-  mediaAssets   MediaAsset[]
-  stories       Story[]
-  conversations ConversationParticipant[]
-  messages      Message[]
+  id                String                    @id @default(uuid())
+  email             String?                   @unique
+  displayName       String?
+  avatarUrl         String? // 프로필 아바타(업로드 미디어 URL)
+  passwordHash      String? // 로컬 인증 토대 — 매니지드 전환 시 null (ADR-018)
+  authProvider      String                    @default("local") // local|email|google|apple|managed
+  role              String                    @default("user") // user|coworker|moderator|admin (역할·인가 — auth/roles.ts SSOT · ADR-017)
+  experienceLevel   String? // beginner|intermediate|advanced — 온보딩 경력 분류(SRS-045 서버 반영·트레이너 탐색)
+  trainerIntent     Boolean                   @default(false) // 코칭 의향(회원 모집) — 자격 보증 아님(면책 고지). @plm SRS-045
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  devices           Device[]
+  refreshTokens     RefreshToken[]
+  syncRecords       SyncRecord[]
+  following         Follow[]                  @relation("following") // 내가 팔로우하는 관계
+  followers         Follow[]                  @relation("followers") // 나를 팔로우하는 관계
+  posts             Post[]
+  mediaAssets       MediaAsset[]
+  stories           Story[]
+  conversations     ConversationParticipant[]
+  messages          Message[]
   postLikes         PostLike[]
   comments          Comment[]
   commentLikes      CommentLike[]
   bookmarks         Bookmark[]
-  notifications     Notification[] @relation("notifications")
-  notificationsSent Notification[] @relation("notificationsActor")
-  reports           Report[]       @relation("reporter")
-  reviewedReports   Report[]       @relation("reviewer")
+  notifications     Notification[]            @relation("notifications")
+  notificationsSent Notification[]            @relation("notificationsActor")
+  reports           Report[]                  @relation("reporter")
+  reviewedReports   Report[]                  @relation("reviewer")
   pushTokens        PushToken[]
-  blocking          Block[]        @relation("blocker") // 내가 차단한
-  blockedBy         Block[]        @relation("blocked") // 나를 차단한
+  blocking          Block[]                   @relation("blocker") // 내가 차단한
+  blockedBy         Block[]                   @relation("blocked") // 나를 차단한
   gearClicks        GearClick[]
+  coachingAsTrainer CoachingGrant[]           @relation("coachTrainer") // @plm SRS-048
+  coachingAsMember  CoachingGrant[]           @relation("coachMember") // @plm SRS-048
 }
 
 // 사용자 차단 (SRS-018). 차단=상호 불가시 + 상호작용 차단. 팔로우는 차단 시 해제.
@@ -114,22 +118,22 @@ model Follow {
 
 // 피드 게시물 (SRS-007 · SAD-011). 텍스트/운동 + 이미지(data.mediaUrl). 스토리·영상은 후속(SAD-012).
 model Post {
-  id         String   @id @default(uuid())
-  authorId   String
-  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  kind       String   @default("text") // text|workout|image
-  caption    String?
-  data       Json? // 운동 요약·이미지 URL 등 부가 데이터(불투명).
-  visibility String   @default("public") // public|followers|private
-  moderationStatus String @default("approved") // approved|pending|removed (ADR-017)
-  removedAt     DateTime?
-  removedReason String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  likes      PostLike[]
-  comments   Comment[]
-  hashtags   PostHashtag[]
-  bookmarks  Bookmark[]
+  id               String        @id @default(uuid())
+  authorId         String
+  author           User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  kind             String        @default("text") // text|workout|image
+  caption          String?
+  data             Json? // 운동 요약·이미지 URL 등 부가 데이터(불투명).
+  visibility       String        @default("public") // public|followers|private
+  moderationStatus String        @default("approved") // approved|pending|removed (ADR-017)
+  removedAt        DateTime?
+  removedReason    String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  likes            PostLike[]
+  comments         Comment[]
+  hashtags         PostHashtag[]
+  bookmarks        Bookmark[]
 
   @@index([authorId, createdAt])
   @@index([moderationStatus])
@@ -168,16 +172,16 @@ model MediaAsset {
 
 // 스토리 (SRS-019 · SAD-012). 24h 후 만료 — 만료는 조회 시 expiresAt 필터(정리 잡은 후속).
 model Story {
-  id        String   @id @default(uuid())
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  mediaUrl  String
-  caption   String?
-  moderationStatus String @default("approved") // approved|pending|removed (ADR-017)
-  removedAt     DateTime?
-  removedReason String?
-  createdAt DateTime @default(now())
-  expiresAt DateTime
+  id               String    @id @default(uuid())
+  authorId         String
+  author           User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  mediaUrl         String
+  caption          String?
+  moderationStatus String    @default("approved") // approved|pending|removed (ADR-017)
+  removedAt        DateTime?
+  removedReason    String?
+  createdAt        DateTime  @default(now())
+  expiresAt        DateTime
 
   @@index([authorId, expiresAt])
   @@index([expiresAt])
@@ -239,19 +243,19 @@ model PostLike {
 
 // 댓글 (SRS-007). 대댓글은 1단계(parentId → 최상위 댓글). 답글의 답글은 루트로 정규화.
 model Comment {
-  id        String   @id @default(uuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  body      String
-  parentId  String? // 대댓글이면 최상위 댓글 id (1단계)
-  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies   Comment[] @relation("CommentReplies")
-  likes     CommentLike[]
-  moderationStatus String @default("approved") // approved|removed (ADR-017)
-  removedAt DateTime?
-  createdAt DateTime @default(now())
+  id               String        @id @default(uuid())
+  postId           String
+  post             Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId         String
+  author           User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body             String
+  parentId         String? // 대댓글이면 최상위 댓글 id (1단계)
+  parent           Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies          Comment[]     @relation("CommentReplies")
+  likes            CommentLike[]
+  moderationStatus String        @default("approved") // approved|removed (ADR-017)
+  removedAt        DateTime?
+  createdAt        DateTime      @default(now())
 
   @@index([postId, createdAt])
   @@index([parentId, createdAt])
@@ -358,4 +362,41 @@ model PushToken {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// ── 코칭 권한 (SRS-048 · SAD-022). 유효성 = 요청→상대 수락(동의) → active. 해지 즉시 revoked(회수).
+// 3중 조건(계약·동의·구독) 중 구독은 SRS-014 미구현 — 트레이너 자격은 trainerIntent 확인 스텁
+// (구독 도입 시 assertTrainerEligible 한 곳만 교체). 계약(SRS-023 크레딧)도 후속 — grant가 계약 역할 겸임.
+model CoachingGrant {
+  id          String          @id @default(uuid())
+  trainerId   String
+  trainer     User            @relation("coachTrainer", fields: [trainerId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      User            @relation("coachMember", fields: [memberId], references: [id], onDelete: Cascade)
+  status      String          @default("pending") // pending | active | revoked
+  // 접근 범위(SAD-022): 루틴 편집·주간 스케줄 편집·기록 열람. 신체정보는 범위에 없음(기본 제외 원칙).
+  scope       Json            @default("{\"routineEdit\":true,\"scheduleEdit\":true,\"logView\":true}")
+  requestedBy String // member | trainer — 수락 권한은 반대편에게만
+  consentAt   DateTime? // 수락(동의) 시각
+  revokedAt   DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  audits      CoachingAudit[]
+
+  @@unique([trainerId, memberId]) // 쌍당 1건 — 해지 후 재요청은 같은 행을 pending으로 되살림
+  @@index([memberId, status])
+  @@index([trainerId, status])
+}
+
+// 코칭 감사 로그 (SRS-048 · SAD-022) — 트레이너의 모든 접근·변경 불변 기록. 회원 열람 표면.
+model CoachingAudit {
+  id        String        @id @default(uuid())
+  grantId   String
+  grant     CoachingGrant @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  actorId   String // 행위자(트레이너 또는 회원)
+  action    String // request | accept | revoke | report_view
+  detail    Json?
+  createdAt DateTime      @default(now())
+
+  @@index([grantId, createdAt])
 }

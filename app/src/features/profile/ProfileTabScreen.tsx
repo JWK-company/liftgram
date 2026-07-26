@@ -375,6 +375,15 @@ export default function ProfileTabScreen({ navigation }: TabScreenProps<'Profile
         style={{ marginTop: spacing.md }}
       />
 
+      {/* 코칭 — 내 코치·담당 회원·트레이너 찾기(서버 grant 기반 — 로그인 필요 안내는 화면에서). @plm SRS-048 */}
+      <Button
+        title={t('coaching.entry')}
+        icon="people-outline"
+        variant="secondary"
+        onPress={() => navigation.navigate('Coaching')}
+        style={{ marginTop: spacing.md }}
+      />
+
       {/* 저장한 게시물 · 차단 목록 관리 (로그인 시) */}
       {loggedIn ? (
         <Button
