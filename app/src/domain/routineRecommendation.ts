@@ -41,6 +41,44 @@ export function dominantMuscle(muscles: MuscleGroup[]): MuscleGroup | null {
   return best;
 }
 
+// ── 요일 습관 보조 추천 (두 카드 UX) ─────────────────────────────────
+// 전이 기반 추천(recommendTodayRoutine)은 하루를 건너뛰면 자연스럽게 "밀린" 루틴을 이어주므로,
+// "예정대로(같은 요일에 늘 하던)" 루틴을 보조 카드로 함께 제시한다. 요일 신호가 충분할 때만 —
+// 최근 3주 내 오늘과 같은 요일에 같은 루틴 ≥2회.
+export const WEEKDAY_HABIT_LOOKBACK_DAYS = 21;
+export const WEEKDAY_HABIT_MIN_COUNT = 2;
+
+export interface WeekdayHabit {
+  routineId: string;
+  routineName: string;
+  lastPerformedMs: number;
+}
+
+export function weekdayHabitRoutine(entries: RecoWorkout[], nowMs: number): WeekdayHabit | null {
+  const today = dayNumber(nowMs);
+  const weekday = new Date(nowMs).getDay();
+  const counts = new Map<string, { name: string; count: number; lastMs: number }>();
+  for (const e of entries) {
+    if (!e.routineId || !e.routineName || !Number.isFinite(e.completedAtMs)) continue;
+    const d = dayNumber(e.completedAtMs);
+    if (d >= today || today - d > WEEKDAY_HABIT_LOOKBACK_DAYS) continue;
+    if (new Date(e.completedAtMs).getDay() !== weekday) continue;
+    const cur = counts.get(e.routineId) ?? { name: e.routineName, count: 0, lastMs: 0 };
+    cur.count += 1;
+    cur.lastMs = Math.max(cur.lastMs, e.completedAtMs);
+    counts.set(e.routineId, cur);
+  }
+  let best: WeekdayHabit | null = null;
+  let bestCount = 0;
+  for (const [routineId, c] of counts) {
+    if (c.count > bestCount || (c.count === bestCount && best && c.lastMs > best.lastPerformedMs)) {
+      best = { routineId, routineName: c.name, lastPerformedMs: c.lastMs };
+      bestCount = c.count;
+    }
+  }
+  return bestCount >= WEEKDAY_HABIT_MIN_COUNT ? best : null;
+}
+
 interface Row {
   completedAtMs: number;
   day: number;

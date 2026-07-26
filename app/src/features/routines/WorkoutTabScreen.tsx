@@ -24,7 +24,7 @@ import { useUser } from '../../state/userContext';
 import { useQueryData } from '../../db/hooks';
 import { routineRepo, workoutRepo, analyticsRepo, userRepo, exerciseRepo } from '../../data';
 import type Routine from '../../db/models/Routine';
-import { muscleLabel, todayPlan, currentBlockWeek, CONCEPT_ROUTINES, type ConceptRoutine, type ScheduleDay, type WeeklySchedule } from '../../domain';
+import { muscleLabel, todayPlan, currentBlockWeek, missedCatchUp, CONCEPT_ROUTINES, type ConceptRoutine, type MissedPlan, type ScheduleDay, type WeeklySchedule } from '../../domain';
 import { colors, radius, spacing } from '../../theme';
 import { useT } from '../../i18n';
 
@@ -38,13 +38,25 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
 
   // 오늘의 추천 루틴 (SRS-034) — 완료 이력 기반 예측. 화면 포커스/루틴변경/세션종료 시 갱신.
   const [reco, setReco] = useState<analyticsRepo.TodayRoutineReco | null>(null);
+  // 놓친 루틴 캐치업(스케줄 사용자 · 두 카드 UX) — 가장 최근 배정일에 완료 0건이면 후보.
+  const [catchUp, setCatchUp] = useState<MissedPlan | null>(null);
   const loadReco = useCallback(async () => {
     try {
       setReco(await analyticsRepo.getTodayRoutineRecommendation());
     } catch {
       setReco(null);
     }
-  }, []);
+    try {
+      if (weeklySchedule) {
+        const dayNums = await analyticsRepo.getCompletedDayNumsSince(8);
+        setCatchUp(missedCatchUp(weeklySchedule, dayNums, Date.now()));
+      } else {
+        setCatchUp(null);
+      }
+    } catch {
+      setCatchUp(null);
+    }
+  }, [weeklySchedule]);
   useFocusEffect(useCallback(() => { loadReco(); }, [loadReco]));
   useEffect(() => { loadReco(); }, [routines.length, activeWorkoutId, loadReco]);
 
@@ -195,34 +207,71 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
 
       {/* 오늘의 안내 — 스케줄 보유 시 같은 위치·톤으로 '오늘은 ~' 카드(스케줄=SSOT), 없으면 기존 추천(SRS-034). @plm SRS-044 */}
       {!activeWorkoutId && weeklySchedule ? (
-        <ScheduleTodayCard
-          schedule={weeklySchedule}
-          routines={routines}
-          busy={busy}
-          onStartRoutine={(rid) => guardActive(() => doStartFromRoutine(rid))}
-        />
+        <>
+          <ScheduleTodayCard
+            schedule={weeklySchedule}
+            routines={routines}
+            busy={busy}
+            onStartRoutine={(rid) => guardActive(() => doStartFromRoutine(rid))}
+          />
+          {/* 놓친 루틴 캐치업 — "예정대로 vs 밀린 것"은 사용자가 고른다(두 카드 UX). 오늘 이미 운동했으면 숨김. */}
+          {catchUp && !reco?.alreadyWorkedOutToday ? (
+            <CatchUpCard
+              catchUp={catchUp}
+              schedule={weeklySchedule}
+              routines={routines}
+              busy={busy}
+              onStartRoutine={(rid) => guardActive(() => doStartFromRoutine(rid))}
+            />
+          ) : null}
+        </>
       ) : null}
       {!activeWorkoutId && !weeklySchedule && reco && !reco.alreadyWorkedOutToday ? (
         reco.status === 'ok' ? (
-          <Card style={styles.recoCard}>
-            <View style={{ flex: 1, marginRight: spacing.md }}>
-              <AppText variant="label" color="primary">{t('routines.todayRecoLabel')}</AppText>
-              <AppText variant="heading" numberOfLines={1} style={{ marginTop: 2 }}>
-                {reco.routineName}
-              </AppText>
-              <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
-                {t('routines.todayRecoHint', { muscle: muscleLabel(reco.muscle!, lang) })}
-              </AppText>
-            </View>
-            <Button
-              title={t('routines.start')}
-              icon="play"
-              size="sm"
-              fullWidth={false}
-              disabled={busy}
-              onPress={() => guardActive(() => doStartFromRoutine(reco.routineId!))}
-            />
-          </Card>
+          <>
+            <Card style={styles.recoCard}>
+              <View style={{ flex: 1, marginRight: spacing.md }}>
+                <AppText variant="label" color="primary">{t('routines.todayRecoLabel')}</AppText>
+                <AppText variant="heading" numberOfLines={1} style={{ marginTop: 2 }}>
+                  {reco.routineName}
+                </AppText>
+                <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                  {t('routines.todayRecoHint', { muscle: muscleLabel(reco.muscle!, lang) })}
+                </AppText>
+              </View>
+              <Button
+                title={t('routines.start')}
+                icon="play"
+                size="sm"
+                fullWidth={false}
+                disabled={busy}
+                onPress={() => guardActive(() => doStartFromRoutine(reco.routineId!))}
+              />
+            </Card>
+            {/* 요일 습관 보조 카드 — 전이 추천(밀린 흐름 반영)과 별개로 "지난주 이 요일엔 ~" 선택지(두 카드 UX). */}
+            {reco.weekdayHabit ? (
+              <Card style={styles.recoCardAlt}>
+                <View style={{ flex: 1, marginRight: spacing.md }}>
+                  <AppText variant="label" color="textMuted">{t('routines.weekdayHabitLabel')}</AppText>
+                  <AppText variant="body" weight="bold" numberOfLines={1} style={{ marginTop: 2 }}>
+                    {reco.weekdayHabit.routineName}
+                  </AppText>
+                  <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+                    {t('routines.weekdayHabitHint')}
+                  </AppText>
+                </View>
+                <Button
+                  title={t('routines.start')}
+                  icon="play"
+                  size="sm"
+                  variant="secondary"
+                  fullWidth={false}
+                  disabled={busy}
+                  onPress={() => guardActive(() => doStartFromRoutine(reco.weekdayHabit!.routineId))}
+                />
+              </Card>
+            ) : null}
+          </>
         ) : (
           <Card style={styles.recoCardMuted}>
             <AppText variant="label" color="textMuted">{t('routines.todayRecoLabel')}</AppText>
@@ -350,6 +399,52 @@ function ScheduleTodayCard({
       <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
         {plan.kind === 'rest' ? t('schedule.todayRest') : t('schedule.todayNone')}
       </AppText>
+    </Card>
+  );
+}
+
+// 놓친 루틴 캐치업 카드 — "어제 못한 B, 오늘 진행할까요?" 오늘 예정 루틴과 같으면 중복이라 숨김. @plm SRS-044
+function CatchUpCard({
+  catchUp,
+  schedule,
+  routines,
+  busy,
+  onStartRoutine,
+}: {
+  catchUp: MissedPlan;
+  schedule: WeeklySchedule;
+  routines: Routine[];
+  busy: boolean;
+  onStartRoutine: (routineId: string) => void;
+}) {
+  const { t } = useT();
+  const name = routines.find((r) => r.id === catchUp.routineId)?.name;
+  if (!name) return null; // 삭제된 루틴 — 카드 생략
+  const plan = todayPlan(schedule, Date.now());
+  if (plan.kind === 'routine' && plan.routineId === catchUp.routineId) return null; // 오늘 예정과 동일 — 카드 1장이면 충분
+  return (
+    <Card style={styles.recoCardAlt}>
+      <View style={{ flex: 1, marginRight: spacing.md }}>
+        <AppText variant="label" color="warning">{t('schedule.catchUpLabel')}</AppText>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: routineDotColor(routines, catchUp.routineId) }} />
+          <AppText variant="body" weight="bold" numberOfLines={1} style={{ flexShrink: 1 }}>
+            {name}
+          </AppText>
+        </View>
+        <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+          {catchUp.daysAgo === 1 ? t('schedule.catchUpYesterday') : t('schedule.catchUpDaysAgo', { days: catchUp.daysAgo })}
+        </AppText>
+      </View>
+      <Button
+        title={t('routines.start')}
+        icon="play"
+        size="sm"
+        variant="secondary"
+        fullWidth={false}
+        disabled={busy}
+        onPress={() => onStartRoutine(catchUp.routineId)}
+      />
     </Card>
   );
 }
@@ -815,6 +910,15 @@ const styles = StyleSheet.create({
   },
   recoCardMuted: {
     backgroundColor: colors.surfaceAlt,
+    marginBottom: spacing.sm,
+  },
+  // 보조 카드(캐치업·요일 습관) — 주 카드와 같은 행 구성이되 무채색으로 우선순위 구분.
+  recoCardAlt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
+    borderWidth: 1,
     marginBottom: spacing.sm,
   },
   gymEntry: {

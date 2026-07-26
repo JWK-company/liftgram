@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 import {
   recommendTodayRoutine,
+  weekdayHabitRoutine,
   dominantMuscle,
   type RecoWorkout,
 } from '../routineRecommendation';
@@ -163,4 +164,35 @@ test('오늘 이미 운동한 세션은 예측에서 제외(다음 부위 예측
 
 test('기록 전무면 insufficient', () => {
   assert.equal(recommendTodayRoutine([], at(2026, 6, 15)).status, 'insufficient');
+});
+
+// ── weekdayHabitRoutine — 요일 습관 보조 추천 (두 카드 UX) ───────────
+test('요일 습관: 최근 3주 같은 요일 같은 루틴 2회 이상 → 반환', () => {
+  // 2026-07-22(수) 기준 — 7/8·7/15 수요일에 같은 루틴 c.
+  const entries = [
+    w(2026, 6, 8, 'chest', 'rc', '가슴 C'),
+    w(2026, 6, 15, 'chest', 'rc', '가슴 C'),
+    w(2026, 6, 14, 'back', 'rb', '등 B'),
+  ];
+  const habit = weekdayHabitRoutine(entries, at(2026, 6, 22));
+  assert.equal(habit?.routineId, 'rc');
+  assert.equal(habit?.routineName, '가슴 C');
+});
+
+test('요일 습관: 같은 요일 1회뿐이거나 루틴이 매번 다르면 null(신호 부족)', () => {
+  assert.equal(weekdayHabitRoutine([w(2026, 6, 15, 'chest', 'rc', '가슴 C')], at(2026, 6, 22)), null);
+  const mixed = [
+    w(2026, 6, 8, 'chest', 'r1', 'A'),
+    w(2026, 6, 15, 'back', 'r2', 'B'),
+  ];
+  assert.equal(weekdayHabitRoutine(mixed, at(2026, 6, 22)), null);
+});
+
+test('요일 습관: 3주(21일) 밖 기록·오늘 기록은 무시', () => {
+  const entries = [
+    w(2026, 5, 10, 'chest', 'rc', '가슴 C'), // 6/10 — 21일 밖
+    w(2026, 6, 15, 'chest', 'rc', '가슴 C'),
+    w(2026, 6, 22, 'chest', 'rc', '가슴 C'), // 오늘 — 제외
+  ];
+  assert.equal(weekdayHabitRoutine(entries, at(2026, 6, 22)), null); // 유효 1회뿐
 });

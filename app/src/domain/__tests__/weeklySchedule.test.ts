@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { sanitizeWeeklySchedule, todayPlan, currentBlockWeek } from '../weeklySchedule';
+import { sanitizeWeeklySchedule, todayPlan, currentBlockWeek, missedCatchUp } from '../weeklySchedule';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 // 2026-07-20은 월요일(로컬 자정 기준).
@@ -45,4 +45,47 @@ test('currentBlockWeek: 블록 미설정·시작 전·불량은 null', () => {
   const s = sanitizeWeeklySchedule({ days: ['a'], blockWeeks: 4, blockStartAt: MON });
   assert.equal(currentBlockWeek(s, MON - 1000), null); // 시작 전
   assert.equal(currentBlockWeek(null, MON), null);
+});
+
+// ── missedCatchUp — 놓친 루틴 캐치업 (두 카드 UX) ────────────────────
+const DAY = 24 * 3600 * 1000;
+const dayNumOf = (ms: number) => {
+  const d = new Date(ms);
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+};
+
+test('missedCatchUp: 어제(배정일) 완료 0건 → 어제 루틴을 캐치업', () => {
+  // 월 a · 화 b · 수 c. 오늘=수. 화요일 완료 없음.
+  const s = sanitizeWeeklySchedule({ days: ['a', 'b', 'c'], blockWeeks: null });
+  const wed = MON + 2 * DAY;
+  const done = new Set([dayNumOf(MON)]); // 월요일만 수행
+  assert.deepEqual(missedCatchUp(s, done, wed), { routineId: 'b', dayIdx: 1, daysAgo: 1 });
+});
+
+test('missedCatchUp: 어제 무엇이든 완료했으면(대체 수행 포함) null', () => {
+  const s = sanitizeWeeklySchedule({ days: ['a', 'b', 'c'], blockWeeks: null });
+  const wed = MON + 2 * DAY;
+  const done = new Set([dayNumOf(MON + DAY)]); // 화요일 수행(어떤 루틴이든)
+  assert.equal(missedCatchUp(s, done, wed), null);
+});
+
+test('missedCatchUp: 휴식·미배정일은 건너뛰고 가장 최근 배정일만 본다', () => {
+  // 월 a · 화 rest · 수 미배정 · 목=오늘. 월요일을 놓침 → daysAgo 3.
+  const s = sanitizeWeeklySchedule({ days: ['a', 'rest', null], blockWeeks: null });
+  const thu = MON + 3 * DAY;
+  assert.deepEqual(missedCatchUp(s, new Set<number>(), thu), { routineId: 'a', dayIdx: 0, daysAgo: 3 });
+});
+
+test('missedCatchUp: 가장 최근 배정일을 수행했으면 그 전에 놓친 날이 있어도 null(최근 1건만)', () => {
+  // 월 a · 화 b. 오늘=수. 화(b) 수행·월(a) 놓침 → 캐치업 없음.
+  const s = sanitizeWeeklySchedule({ days: ['a', 'b'], blockWeeks: null });
+  const wed = MON + 2 * DAY;
+  const done = new Set([dayNumOf(MON + DAY)]);
+  assert.equal(missedCatchUp(s, done, wed), null);
+});
+
+test('missedCatchUp: 스케줄 없음·6일 내 배정일 없음 → null', () => {
+  assert.equal(missedCatchUp(null, new Set<number>(), MON), null);
+  const restOnly = sanitizeWeeklySchedule({ days: ['rest', 'rest', 'rest', 'rest', 'rest', 'rest', 'rest'], blockWeeks: null });
+  assert.equal(missedCatchUp(restOnly, new Set<number>(), MON + 3 * DAY), null);
 });

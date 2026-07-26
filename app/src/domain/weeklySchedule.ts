@@ -41,6 +41,38 @@ export function todayPlan(schedule: WeeklySchedule | null, now: number): TodayPl
   return { kind: 'none' };
 }
 
+// ── 놓친 루틴 캐치업 (두 카드 UX) ────────────────────────────────────
+// "가장 최근의 루틴 배정일(오늘 제외·최대 6일 역추적)에 완료 운동이 0건"이면 그 루틴을 캐치업 후보로.
+// 배정일에 무엇이든 완료했으면(다른 루틴이어도) 대체 수행으로 보고 null(오탐·잔소리 방지).
+// 여러 날을 놓쳤어도 가장 최근 1건만 — 밀린 카드가 쌓이면 동기부여가 아니라 죄책감 UX가 된다.
+export interface MissedPlan {
+  routineId: string;
+  dayIdx: number; // 놓친 요일(월=0)
+  daysAgo: number; // 1=어제
+}
+
+export function missedCatchUp(
+  schedule: WeeklySchedule | null,
+  completedDayNums: ReadonlySet<number>, // dayNumber(완료 시각) 집합 (streak.dayNumber 관례)
+  now: number,
+): MissedPlan | null {
+  if (!schedule) return null;
+  for (let ago = 1; ago <= 6; ago += 1) {
+    const ms = now - ago * 24 * 60 * 60 * 1000;
+    const dayIdx = (new Date(ms).getDay() + 6) % 7;
+    const entry = schedule.days[dayIdx] ?? null;
+    if (entry === 'rest' || entry == null) continue; // 휴식·미배정일은 놓친 게 아님 — 더 과거로
+    return completedDayNums.has(dayNumberOf(ms)) ? null : { routineId: entry, dayIdx, daysAgo: ago };
+  }
+  return null;
+}
+
+// streak.dayNumber와 동일 관례(로컬 달력일 일련번호) — 순환 import 회피용 내부 사본.
+function dayNumberOf(ms: number): number {
+  const d = new Date(ms);
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+}
+
 // 현재 블록 주차 — 사이클 = blockWeeks(운동) + 1(디로딩). 모듈로 롤오버(blockStartAt 불변).
 export interface BlockWeekInfo {
   week: number; // 1-based (사이클 내)

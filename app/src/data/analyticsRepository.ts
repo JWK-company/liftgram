@@ -12,6 +12,8 @@ import {
   legacyMachineVariantToV6,
   resolveLoadMode,
   recommendTodayRoutine,
+  weekdayHabitRoutine,
+  type WeekdayHabit,
   type RecoWorkout,
   type RoutineRecommendation,
   type LoadMode,
@@ -303,6 +305,8 @@ const RECO_WINDOW_DAYS = 35;
 
 export interface TodayRoutineReco extends RoutineRecommendation {
   alreadyWorkedOutToday: boolean; // 오늘 이미 완료 세션이 있으면 추천 숨김
+  // 보조 카드: "지난주 이 요일엔 ~" — 요일 습관이 뚜렷하고 주 추천과 다를 때만(두 카드 UX).
+  weekdayHabit: WeekdayHabit | null;
 }
 
 export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco> {
@@ -313,7 +317,7 @@ export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco>
     .fetch();
   const todayNum = dayNum(now);
   const alreadyWorkedOutToday = ws.some((w) => dayNum(w.completedAt ?? w.startedAt) === todayNum);
-  if (!ws.length) return { status: 'insufficient', alreadyWorkedOutToday };
+  if (!ws.length) return { status: 'insufficient', alreadyWorkedOutToday, weekdayHabit: null };
 
   // 세션별 종목 주근육 수집.
   const wes = await workoutExercises().query(Q.where('workout_id', Q.oneOf(ws.map((w) => w.id)))).fetch();
@@ -344,7 +348,23 @@ export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco>
     };
   });
 
-  return { ...recommendTodayRoutine(entries, now), alreadyWorkedOutToday };
+  const reco = recommendTodayRoutine(entries, now);
+  // 요일 습관 보조 추천 — 주 추천이 성립하고, 습관 루틴이 주 추천과 다를 때만 두 번째 카드.
+  const habit = reco.status === 'ok' ? weekdayHabitRoutine(entries, now) : null;
+  return {
+    ...reco,
+    alreadyWorkedOutToday,
+    weekdayHabit: habit && habit.routineId !== reco.routineId ? habit : null,
+  };
+}
+
+// 최근 N일 완료 운동의 달력일 집합 — 주간 스케줄 캐치업(missedCatchUp) 판정용. @plm SRS-044
+export async function getCompletedDayNumsSince(days: number): Promise<Set<number>> {
+  const since = Date.now() - days * 86400000;
+  const ws = await workouts()
+    .query(Q.where('state', 'completed'), Q.where('completed_at', Q.gte(since)))
+    .fetch();
+  return new Set(ws.map((w) => dayNum(w.completedAt ?? w.startedAt)));
 }
 
 // 로컬 달력일 일련번호(streak.dayNumber와 동일 관례) — 별도 import 없이 내부 재사용.
