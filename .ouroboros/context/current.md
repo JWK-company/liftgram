@@ -10,7 +10,7 @@
 
 | 이름 | 단계 | 비고 |
 |------|------|------|
-| BS-004 구현 1~4단계 (SRS-043~048) | **구현 완료(048은 MVP 슬라이스1)** — app 126테스트·server build 통과 | 048: grant·감사·리포트 — 처방 편집(M2)·구독 검증은 후속 |
+| BS-004 구현 1~4단계 (SRS-043~048) | **구현 완료(048 슬라이스1+2)** — app 126테스트·server build 통과 | 048 잔여: 구독 검증(SRS-014 결제 대기)·sync LWW 충돌 정교화 |
 | 와이어프레임 42화면 (시나리오 재편성) | 완료 — 피드백 루프 대기 | penpot file=734044e5-a8b9-818b-8008-629fb599d7bc · 8단계 phase 행·구현상태 테두리(초록24/주황2/보라점선16)·우측 설명 패널 · 신규 ONB·WSCH·RTNC·COACH·MRPT · wfgen v2.1(order/phase/impl/desc) |
 | 아키텍처 블루프린트 BP-001 | **완료** (2026-07-26) | DR-002(제품 전체 설계 조사) 신규 발급 + DR-001 인용 · 존 5·노드 15·엣지 18·시나리오 13 · bpcheck PASS(에러 0·경고 0·커버리지 UCS·SRS 67/67) · PLM 동기 완료 |
 
@@ -31,7 +31,7 @@
 ## 다음 작업
 
 - 3D 움짤 파이프라인 완료(gif 오버레이+ingest 스크립트+/media3d 자체 호스팅+무결성 테스트) — **에셋 라이선스 확보만 남음**: ADR-029 게이트 ① 실집행 결과 GymVisual N-CRFL 원문에 앱 임베드 충돌 소지 발견(DR-001 갱신) → ⓐ GymVisual support 서면 확인 ⓑ Gym Animations/MoveKit 비교 — 사용자 결정 대기
-- SRS-048 슬라이스2: 트레이너의 회원 루틴 처방 편집(서버가 회원 SyncRecord upsert→회원 pull) + SRS-014 구독 검증 교체(assertTrainerEligible 스텁)
+- SRS-048 잔여: SRS-014 구독 도입 시 assertTrainerEligible 스텁 교체 · sync LWW 충돌 정교화(회원 미동기 변경이 처방을 덮는 엣지)
 - 3D 움짤: 무료·앱 상업 라이선스 명시 소스 부재 확인(MIT 표기 저장소들도 미디어 원권리=GymVisual — chain-of-title 불가) → **보류·현행(free-exercise-db 2컷) 유지**. 파이프라인은 준비 완료(에셋 확보 시 즉시 전환)
 - 알려진 이슈: PLM 벌크 동기 한도 — sync_bulk 413·codescan 400(서버 페이로드). 신규 문서 15건은 개별 POST로 동기 완료. codescan은 청크 패치 후 재실행(G3 갱신)
 
