@@ -10,6 +10,14 @@ import { variantColumns, type VariantDims } from '../domain/variants'; // @plm S
 const routines = () => database.get<Routine>('routines');
 const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
 
+// 존재하는 폴더명 목록(중복 제거·가나다순) — 에디터 폴더 픽커용. 폴더 0개면 픽커 대신 생성 입력.
+export async function getFolderNames(): Promise<string[]> {
+  const rs = await routines().query().fetch();
+  const set = new Set<string>();
+  for (const r of rs) if (r.folder) set.add(r.folder);
+  return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
+}
+
 export function queryRoutines(folder?: string | null): Query<Routine> {
   const clauses: Q.Clause[] = [Q.where('is_archived', false)];
   if (folder) clauses.push(Q.where('folder', folder));

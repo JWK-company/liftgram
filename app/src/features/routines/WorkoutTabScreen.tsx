@@ -1,6 +1,6 @@
 // @plm SRS-002  루틴 목록 + 세션 시작 + 진행중 세션 복구 배너
 // @plm SRS-044  주단위 스케줄·블록(요일→루틴, N주+1주 디로딩) — 오늘 운동·주차 스트립·편집
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ReorderableList, { useReorderableDrag, type ReorderableListReorderEvent } from 'react-native-reorderable-list';
@@ -36,6 +36,24 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
 
   const routines = useQueryData(() => routineRepo.queryRoutines(), []);
 
+  // 폴더 그룹핑 — 같은 폴더 루틴은 목록에서 폴더 행으로 묶고 탭하면 펼침. 폴더 없는 루틴만 드래그 재배치.
+  // folder는 필드 변경이라 query observe가 재방출하지 않음 → 화면 포커스 틱(focusTick)으로 재계산(볼륨 틱과 동일 수법).
+  const [focusTick, setFocusTick] = useState(0);
+  const folderGroups = useMemo(() => {
+    const map = new Map<string, Routine[]>();
+    for (const r of routines) {
+      if (!r.folder) continue;
+      const arr = map.get(r.folder) ?? [];
+      arr.push(r);
+      map.set(r.folder, arr);
+    }
+    return [...map.entries()]; // 삽입 순서 = 루틴 정렬 순 → 폴더도 첫 루틴 기준 순서
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routines, focusTick]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const looseRoutines = useMemo(() => routines.filter((r) => !r.folder), [routines, focusTick]);
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
+
   // 오늘의 추천 루틴 (SRS-034) — 완료 이력 기반 예측. 화면 포커스/루틴변경/세션종료 시 갱신.
   const [reco, setReco] = useState<analyticsRepo.TodayRoutineReco | null>(null);
   // 놓친 루틴 캐치업(스케줄 사용자 · 두 카드 UX) — 가장 최근 배정일에 완료 0건이면 후보.
@@ -57,7 +75,7 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
       setCatchUp(null);
     }
   }, [weeklySchedule]);
-  useFocusEffect(useCallback(() => { loadReco(); }, [loadReco]));
+  useFocusEffect(useCallback(() => { loadReco(); setFocusTick((x) => x + 1); }, [loadReco]));
   useEffect(() => { loadReco(); }, [routines.length, activeWorkoutId, loadReco]);
 
   async function doStartBlank() {
@@ -298,13 +316,27 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
       </Pressable>
 
       <SectionHeader title={t('routines.myRoutines')} />
+
+      {/* 폴더 그룹 — 같은 폴더 루틴 묶음. 탭하면 펼쳐져 각 루틴 시작·관리. 폴더 없는 루틴은 아래 리스트(드래그 재배치). */}
+      {folderGroups.map(([folderName, members]) => (
+        <FolderGroup
+          key={folderName}
+          name={folderName}
+          members={members}
+          open={!!openFolders[folderName]}
+          onToggle={() => setOpenFolders((p) => ({ ...p, [folderName]: !p[folderName] }))}
+          busy={busy}
+          onStart={(rid) => guardActive(() => doStartFromRoutine(rid))}
+          onActions={openActions}
+        />
+      ))}
     </View>
   );
 
-  // 루틴 목록 드래그 재배치 — 순서 변경 후 sort_order 영속(꾹 눌러 三 핸들 드래그). @plm SRS-002
+  // 루틴 목록 드래그 재배치 — 폴더 없는 루틴만 대상(폴더 묶음은 위 그룹 카드). @plm SRS-002
   function handleReorder({ from, to }: ReorderableListReorderEvent) {
     if (from === to) return;
-    const ids = routines.map((r) => r.id);
+    const ids = looseRoutines.map((r) => r.id);
     const [moved] = ids.splice(from, 1);
     ids.splice(to, 0, moved);
     routineRepo.reorderRoutines(ids).catch((e) => Alert.alert(t('common.error'), String(e)));
@@ -314,7 +346,7 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
     <Screen padded={false}>
       {/* 탭 전체 스크롤 — 헤더를 리스트 헤더로 넣어 '내 루틴'이 좁은 칸에 갇히지 않게. 三 핸들 꾹 눌러 드래그 재배치. */}
       <ReorderableList
-        data={routines}
+        data={looseRoutines}
         keyExtractor={(r) => r.id}
         onReorder={handleReorder}
         contentContainerStyle={styles.scrollContent}
@@ -330,18 +362,20 @@ export default function WorkoutTabScreen({ navigation }: TabScreenProps<'Workout
           />
         )}
         ListEmptyComponent={
-          <EmptyState
-            title={t('routines.listEmptyTitle')}
-            message={t('routines.listEmptyMessage')}
-            action={
-              <Button
-                title={t('routines.createRoutine')}
-                icon="add"
-                fullWidth={false}
-                onPress={() => navigation.navigate('RoutineEditor')}
-              />
-            }
-          />
+          routines.length === 0 ? ( // 전부 폴더에 들어가 리스트가 비어도 폴더 그룹이 있으면 빈 상태 아님
+            <EmptyState
+              title={t('routines.listEmptyTitle')}
+              message={t('routines.listEmptyMessage')}
+              action={
+                <Button
+                  title={t('routines.createRoutine')}
+                  icon="add"
+                  fullWidth={false}
+                  onPress={() => navigation.navigate('RoutineEditor')}
+                />
+              }
+            />
+          ) : null
         }
       />
     </Screen>
@@ -847,6 +881,76 @@ const conceptStyles = StyleSheet.create({
   actions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
 });
 
+// 폴더 그룹 카드 — 같은 폴더 루틴 묶음. 헤더 탭으로 접기/펼치기, 펼치면 멤버 루틴 각각 시작·관리. @plm SRS-002
+function FolderGroup({
+  name,
+  members,
+  open,
+  onToggle,
+  busy,
+  onStart,
+  onActions,
+}: {
+  name: string;
+  members: Routine[];
+  open: boolean;
+  onToggle: () => void;
+  busy: boolean;
+  onStart: (routineId: string) => void;
+  onActions: (routine: Routine) => void;
+}) {
+  const { t } = useT();
+  return (
+    <Card style={styles.folderCard}>
+      <Pressable onPress={onToggle} style={styles.folderHead}>
+        <Ionicons name={open ? 'folder-open' : 'folder'} size={20} color={colors.primary} />
+        <View style={{ flex: 1 }}>
+          <AppText variant="heading" numberOfLines={1}>
+            {name}
+          </AppText>
+          <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+            {t('routines.folderRoutineCount', { count: members.length })}
+          </AppText>
+        </View>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textMuted} />
+      </Pressable>
+      {open
+        ? members.map((r) => <FolderRoutineRow key={r.id} routine={r} busy={busy} onStart={() => onStart(r.id)} onActions={() => onActions(r)} />)
+        : null}
+    </Card>
+  );
+}
+
+// 폴더 안 루틴 행 — RoutineRow와 같은 정보·액션이되 드래그 핸들 없음(폴더 내부는 재배치 비대상).
+function FolderRoutineRow({
+  routine,
+  busy,
+  onStart,
+  onActions,
+}: {
+  routine: Routine;
+  busy: boolean;
+  onStart: () => void;
+  onActions: () => void;
+}) {
+  const { t } = useT();
+  const exercises = useQueryData(() => routineRepo.queryRoutineExercises(routine.id), [routine.id]);
+  return (
+    <View style={styles.folderMemberRow}>
+      <View style={{ flex: 1, marginRight: spacing.sm }}>
+        <AppText variant="body" weight="bold" numberOfLines={1}>
+          {routine.name}
+        </AppText>
+        <AppText variant="caption" color="textMuted" style={{ marginTop: 2 }}>
+          {t('routines.exerciseCount', { count: exercises.length })}
+        </AppText>
+      </View>
+      <Button title={t('routines.start')} size="sm" fullWidth={false} disabled={busy} onPress={onStart} />
+      <IconButton icon="ellipsis-vertical" color="textMuted" onPress={onActions} />
+    </View>
+  );
+}
+
 function RoutineRow({
   routine,
   busy,
@@ -938,6 +1042,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.md,
+  },
+  // 폴더 그룹 카드 — 헤더(폴더명·개수·화살표) + 펼침 시 멤버 행.
+  folderCard: { marginBottom: spacing.md },
+  folderHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  folderMemberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingLeft: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   routineInfo: { flex: 1, marginRight: spacing.md },
   routineActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },

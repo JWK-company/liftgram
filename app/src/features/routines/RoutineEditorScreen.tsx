@@ -64,6 +64,12 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
   const [notes, setNotes] = useState('');
   const [folder, setFolder] = useState('');
   const [loadedMeta, setLoadedMeta] = useState(false);
+  // 폴더 픽커 — 기존 폴더가 있으면 직접 입력 대신 클릭 선택(+새 폴더). 0개면 생성 입력(하위호환).
+  const [folderOptions, setFolderOptions] = useState<string[]>([]);
+  const [newFolderMode, setNewFolderMode] = useState(false);
+  useEffect(() => {
+    routineRepo.getFolderNames().then(setFolderOptions).catch(() => {});
+  }, []);
 
   const [supersetTarget, setSupersetTarget] = useState<RoutineExercise | null>(null); // 슈퍼세트 상대 선택 대상
 
@@ -200,9 +206,20 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
     if (!routineId) return;
     try {
       await routineRepo.updateRoutine(routineId, { folder: folder.trim() || null });
+      // 새 폴더 입력을 확정하면 옵션 목록에도 반영(다음 렌더부터 칩으로 선택 가능).
+      const v = folder.trim();
+      if (v && !folderOptions.includes(v)) setFolderOptions((prev) => [...prev, v].sort((a, b) => a.localeCompare(b, 'ko')));
     } catch (e) {
       Alert.alert(t('common.error'), String(e));
     }
+  }
+
+  // 칩 탭 선택 — 상태와 저장을 즉시 함께(블러 의존 없음).
+  function pickFolder(next: string) {
+    setFolder(next);
+    setNewFolderMode(false);
+    if (!routineId) return;
+    routineRepo.updateRoutine(routineId, { folder: next.trim() || null }).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
   function addExercise() {
@@ -341,7 +358,60 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
         placeholder={t('routines.namePlaceholder')}
         returnKeyType="done"
       />
-      <TextField label={t('routines.folderLabel')} value={folder} onChangeText={setFolder} onBlur={saveFolder} placeholder={t('routines.folderPlaceholder')} />
+      {/* 폴더 — 기존 폴더가 있으면 칩 클릭 선택 + '새 폴더' 생성, 0개면 직접 입력(생성). */}
+      {folderOptions.length === 0 && !newFolderMode ? (
+        <TextField label={t('routines.folderLabel')} value={folder} onChangeText={setFolder} onBlur={saveFolder} placeholder={t('routines.folderPlaceholder')} />
+      ) : (
+        <View style={{ marginBottom: spacing.md }}>
+          <AppText variant="label" color="textMuted" style={{ marginBottom: spacing.xs }}>
+            {t('routines.folderLabel')}
+          </AppText>
+          <View style={styles.folderChips}>
+            <Pressable onPress={() => pickFolder('')} style={[styles.folderChip, !folder.trim() && !newFolderMode && styles.folderChipActive]}>
+              <AppText variant="caption" color={!folder.trim() && !newFolderMode ? 'primary' : 'textMuted'}>
+                {t('routines.folderNone')}
+              </AppText>
+            </Pressable>
+            {folderOptions.map((f) => (
+              <Pressable key={f} onPress={() => pickFolder(f)} style={[styles.folderChip, folder === f && styles.folderChipActive]}>
+                <Ionicons name="folder-outline" size={12} color={folder === f ? colors.primary : colors.textMuted} />
+                <AppText variant="caption" color={folder === f ? 'primary' : 'textMuted'}>
+                  {f}
+                </AppText>
+              </Pressable>
+            ))}
+            <Pressable
+              onPress={() => {
+                setFolder('');
+                setNewFolderMode(true);
+              }}
+              style={[styles.folderChip, newFolderMode && styles.folderChipActive]}
+            >
+              <Ionicons name="add" size={12} color={newFolderMode ? colors.primary : colors.textMuted} />
+              <AppText variant="caption" color={newFolderMode ? 'primary' : 'textMuted'}>
+                {t('routines.folderNew')}
+              </AppText>
+            </Pressable>
+          </View>
+          {newFolderMode ? (
+            <TextField
+              value={folder}
+              onChangeText={setFolder}
+              onBlur={() => {
+                saveFolder();
+                if (folder.trim()) setNewFolderMode(false);
+              }}
+              onSubmitEditing={() => {
+                saveFolder();
+                if (folder.trim()) setNewFolderMode(false);
+              }}
+              placeholder={t('routines.folderNewPlaceholder')}
+              returnKeyType="done"
+              autoFocus
+            />
+          ) : null}
+        </View>
+      )}
       <TextField label={t('routines.notesLabel')} value={notes} onChangeText={setNotes} onBlur={saveNotes} placeholder={t('routines.notesPlaceholder')} multiline />
 
       <Divider />
@@ -764,6 +834,20 @@ const rxStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
+  // 폴더 픽커 칩 — 기존 폴더 클릭 선택 + 새 폴더 생성.
+  folderChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  folderChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  folderChipActive: { borderColor: colors.primary, backgroundColor: colors.primaryMuted },
   loader: { flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' },
   topBar: {
     flexDirection: 'row',
