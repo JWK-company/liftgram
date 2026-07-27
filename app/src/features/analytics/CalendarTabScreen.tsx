@@ -14,7 +14,7 @@ import { serverApi } from '../../sync/serverApi';
 import { authErrorKey } from '../../sync/apiError'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
-import { useWeeklyGoal, useStreakSkipWeekends, useManualWorkoutDays } from './useWeeklyGoal';
+import { useWeeklyGoal, useStreakSkipWeekends } from './useWeeklyGoal';
 
 function dayKeyOf(ms: number): string {
   const d = new Date(ms);
@@ -86,6 +86,17 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
 
   const monthPrefix = `${view.y}-${view.m}-`;
   const monthDays = useMemo(() => [...byDay.keys()].filter((k) => k.startsWith(monthPrefix)).length, [byDay, monthPrefix]);
+  // 수동 표시일도 '이번 달 운동일수'에 합산(명시적 표시 = 운동한 날) — 앱 기록일과 중복은 제외(union).
+  // 세션 수·볼륨에는 미반영(수행 내용이 없으므로), 연속일 스트릭도 기존대로 앱 기록만.
+  const monthManualDays = useMemo(() => {
+    const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+    let n = 0;
+    for (let d = 1; d <= daysInMonth; d += 1) {
+      if (!byDay.has(`${view.y}-${view.m}-${d}`) && manualSet.has(dayNumber(new Date(view.y, view.m, d).getTime()))) n += 1;
+    }
+    return n;
+  }, [view, byDay, manualSet]);
+  const monthDaysTotal = monthDays + monthManualDays;
   const monthSessions = useMemo(
     () => [...byDay.entries()].filter(([k]) => k.startsWith(monthPrefix)).reduce((n, [, ws]) => n + ws.length, 0),
     [byDay, monthPrefix],
@@ -110,14 +121,14 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
       }
       const caption = t('calendar.bragCaption', {
         month: monthLabel,
-        days: monthDays,
+        days: monthDaysTotal,
         sessions: monthSessions,
         volume: formatWeight(monthVolume, weightUnit),
       });
       await serverApi.createPost({
         kind: 'text',
         caption,
-        data: { month: monthPrefix, days: monthDays, sessions: monthSessions, volumeKg: monthVolume },
+        data: { month: monthPrefix, days: monthDaysTotal, sessions: monthSessions, volumeKg: monthVolume },
       });
       Alert.alert(t('calendar.bragTitle'), t('calendar.bragDone'));
     } catch (e) {
@@ -233,7 +244,7 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
         </Pressable>
       </View>
       <AppText variant="caption" color="textMuted" style={styles.summary}>
-        {t('calendar.monthSummary', { days: monthDays, sessions: monthSessions })}
+        {t('calendar.monthSummary', { days: monthDaysTotal, sessions: monthSessions })}
       </AppText>
       {monthSessions > 0 ? (
         <Button

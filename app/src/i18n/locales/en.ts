@@ -359,7 +359,7 @@ export const en: Record<TransKey, string> = {
   "calendar.noWorkout": "No workout logged this day",
   "calendar.markWorkedOut": "I worked out this day too",
   "calendar.manualMarkedTag": "Marked as workout day",
-  "calendar.manualMarkedDesc": "Marked manually without an app log. Not counted in stats or streaks.",
+  "calendar.manualMarkedDesc": "Marked manually without an app log. Counts toward monthly workout days, not streaks or volume.",
   "calendar.unmark": "Remove mark",
   "calendar.streakLabel": "Day streak",
   "calendar.longest": "Best {days}d",

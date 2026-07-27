@@ -32,42 +32,6 @@ export function useWeeklyGoal(): [number, (n: number) => void] {
   return [goal, setGoal];
 }
 
-const MANUAL_DAYS_KEY = 'liftgram.manualWorkoutDays';
-
-// '이 날도 운동 했어요' 수동 표시일(dayNumber 배열) — 앱으로 기록 못한 운동일의 보조 마커.
-// 기록 세션과 다른 색 점으로 표시(통계·스트릭 미반영 — 표시 전용). 기기-로컬 설정. @plm SRS-011
-export function useManualWorkoutDays(): [Set<number>, (dayNum: number, add: boolean) => void] {
-  const [days, setDays] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    let active = true;
-    getPref(MANUAL_DAYS_KEY).then((v) => {
-      if (!active || !v) return;
-      try {
-        const arr: unknown = JSON.parse(v);
-        if (Array.isArray(arr)) setDays(new Set(arr.filter((x): x is number => Number.isFinite(x))));
-      } catch {
-        // 손상된 값은 무시(빈 상태로 시작)
-      }
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const toggle = (dayNum: number, add: boolean) => {
-    setDays((prev) => {
-      const next = new Set(prev);
-      if (add) next.add(dayNum);
-      else next.delete(dayNum);
-      setPref(MANUAL_DAYS_KEY, JSON.stringify([...next]));
-      return next;
-    });
-  };
-
-  return [days, toggle];
-}
-
 const SKIP_WEEKENDS_KEY = 'liftgram.streakSkipWeekends';
 
 // 연속운동일 스트릭에서 주말을 제외할지(주말만 쉰 건 연속 유지) — 기기-로컬 설정.

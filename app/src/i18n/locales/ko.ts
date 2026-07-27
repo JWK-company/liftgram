@@ -357,7 +357,7 @@ export const ko = {
   "calendar.noWorkout": "이 날은 운동 기록이 없어요",
   "calendar.markWorkedOut": "이 날도 운동 했어요",
   "calendar.manualMarkedTag": "직접 표시한 운동일",
-  "calendar.manualMarkedDesc": "앱 기록 없이 직접 표시했어요. 통계·연속일에는 포함되지 않아요.",
+  "calendar.manualMarkedDesc": "앱 기록 없이 직접 표시했어요. 월 운동일수에는 포함되고, 연속일·볼륨에는 포함되지 않아요.",
   "calendar.unmark": "표시 해제",
   "calendar.streakLabel": "연속 운동일",
   "calendar.longest": "최장 {days}일",
