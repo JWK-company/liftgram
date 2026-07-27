@@ -175,9 +175,13 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
   }
 
   // 운동 중 종목 교체(#22) — 삭제·재추가 없이 이 종목만 새 종목으로 교체.
+  // 교체는 필드 업데이트라 query.observe()가 재방출 안 함 → ssVersion 범프로 강제 재조회(이전기록·PR·이름 즉시 갱신).
   function handleSwapExercise(weId: string) {
     requestExercisePick((exId) => {
-      workoutRepo.swapWorkoutExercise(weId, exId).catch((e) => Alert.alert(t('common.error'), String(e)));
+      workoutRepo
+        .swapWorkoutExercise(weId, exId)
+        .then(() => setSsVersion((v) => v + 1))
+        .catch((e) => Alert.alert(t('common.error'), String(e)));
     });
     navigation.navigate('ExerciseList', { mode: 'pick' });
   }

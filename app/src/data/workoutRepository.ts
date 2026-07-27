@@ -618,21 +618,54 @@ export async function removeWorkoutExercise(id: string): Promise<void> {
   });
 }
 
+// 종목의 '가장 최근 수행' 변형 컨텍스트(완료 세션·수행 세트 있는 인스턴스 기준) — 종목 교체 시 승계용.
+// 이전기록·PR은 (종목×변형) 버킷으로 분리 조회되므로, 버킷을 무조건 기본(null)으로 리셋하면
+// 변형으로만 수행해 온 종목은 교체 직후 이전기록이 비어 보인다. 이력 없으면 null.
+async function getLatestVariantUsage(exerciseId: string): Promise<{
+  variantKey: string | null;
+  variantEquipment: string | null;
+  variantGrip: string | null;
+  variantArm: string | null;
+  machineVariant: string | null;
+} | null> {
+  const completed = await workouts()
+    .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
+    .fetch();
+  for (const w of completed) {
+    const wes = await workoutExercises().query(Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)).fetch();
+    for (const cand of wes) {
+      const sets = (await setLogs().query(Q.where('workout_exercise_id', cand.id)).fetch()).filter(isPerformed);
+      if (sets.length) {
+        return {
+          variantKey: cand.variantKey,
+          variantEquipment: cand.variantEquipment,
+          variantGrip: cand.variantGrip,
+          variantArm: cand.variantArm,
+          machineVariant: cand.machineVariant,
+        };
+      }
+    }
+  }
+  return null;
+}
+
 // 운동 중 종목 교체(BS-002 #22) — 삭제·재추가 없이 이 인스턴스의 종목만 교체. 세트는 유지(새 종목 기록으로),
-// 변형·이전기록 스냅샷은 새 종목 기준으로 초기화(다른 종목이므로 변형 맥락 리셋). @plm SRS-004
+// 변형은 새 종목의 '마지막 수행 변형'을 승계 — 교체 직후 그 기록의 이전기록·PR이 바로 보인다(이력 없으면 기본). @plm SRS-004 SRS-028
 export async function swapWorkoutExercise(workoutExerciseId: string, newExerciseId: string): Promise<void> {
-  const prevSnap = await getPreviousExerciseSnapshot(newExerciseId); // 새 종목 최신 기록(변형 무관)
+  const lastVariant = await getLatestVariantUsage(newExerciseId);
+  // 스냅샷도 승계 버킷 기준(있으면) — 이전기록 표시·프리필과 같은 기록을 가리키게.
+  const prevSnap = await getPreviousExerciseSnapshot(newExerciseId, lastVariant ? lastVariant.variantKey : undefined);
   await database.write(async () => {
     const we = await workoutExercises().find(workoutExerciseId);
     await we.update((rec) => {
       rec.exerciseId = newExerciseId;
       rec.prevWeightKg = prevSnap?.weightKg ?? null;
       rec.prevReps = prevSnap?.reps ?? null;
-      rec.variantKey = null;
-      rec.variantEquipment = null;
-      rec.variantGrip = null;
-      rec.variantArm = null;
-      rec.machineVariant = null;
+      rec.variantKey = lastVariant?.variantKey ?? null;
+      rec.variantEquipment = lastVariant?.variantEquipment ?? null;
+      rec.variantGrip = lastVariant?.variantGrip ?? null;
+      rec.variantArm = lastVariant?.variantArm ?? null;
+      rec.machineVariant = lastVariant?.machineVariant ?? null;
     });
   });
 }
