@@ -18,6 +18,7 @@ interface UserContextValue {
   weeklySchedule: WeeklySchedule | null; // v17: 주단위 스케줄·블록. @plm SRS-044
   experienceLevel: ExperienceLevel | null; // v18: 운동 경력. @plm SRS-045
   trainerIntent: boolean | null; // v18: 코칭 의향(자격 보증 아님). @plm SRS-045
+  manualWorkoutDays: number[]; // v19: 수동 '운동했어요' 표시일(dayNumber) — 캘린더 전용. @plm SRS-011
   refresh: () => Promise<void>;
 }
 
@@ -57,6 +58,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     weeklySchedule: user?.weeklySchedule ?? null,
     experienceLevel: user?.experienceLevel ?? null,
     trainerIntent: user?.trainerIntent ?? null,
+    manualWorkoutDays: user?.manualWorkoutDays ?? [],
     refresh,
   };
 

@@ -47,6 +47,7 @@ export interface UserSettingsPatch {
   weeklySchedule?: WeeklySchedule | null; // v17: 주단위 스케줄·블록 — null=제거. @plm SRS-044
   experienceLevel?: ExperienceLevel | null; // v18: 운동 경력 — 선택·후입력 가능. @plm SRS-045
   trainerIntent?: boolean | null; // v18: 코칭 의향(회원 모집) — 자격 보증 아님. @plm SRS-045
+  manualWorkoutDays?: number[] | null; // v19: 수동 '운동했어요' 표시일(dayNumber) — 캘린더 전용. @plm SRS-011
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
@@ -65,6 +66,7 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.weeklySchedule !== undefined) rec.weeklySchedule = patch.weeklySchedule; // sanitizer가 읽기 방어. @plm SRS-044
       if (patch.experienceLevel !== undefined) rec.experienceLevel = patch.experienceLevel; // @plm SRS-045
       if (patch.trainerIntent !== undefined) rec.trainerIntent = patch.trainerIntent; // @plm SRS-045
+      if (patch.manualWorkoutDays !== undefined) rec.manualWorkoutDays = patch.manualWorkoutDays; // @plm SRS-011
     });
   });
 }

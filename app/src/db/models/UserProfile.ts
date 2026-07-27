@@ -2,7 +2,7 @@
 import { Model } from '@nozbe/watermelondb';
 import { field, text, date, readonly, json } from '@nozbe/watermelondb/decorators';
 import type { AppLanguage, EquipmentType, ExperienceLevel, GearTag, WeeklySchedule, WeightUnit } from '../../domain';
-import { sanitizeGearTags, sanitizeStringArray, sanitizeWeeklyScheduleJson } from './_sanitizers';
+import { sanitizeGearTags, sanitizeManualWorkoutDaysJson, sanitizeStringArray, sanitizeWeeklyScheduleJson } from './_sanitizers';
 
 export default class UserProfile extends Model {
   static table = 'user_profiles';
@@ -19,6 +19,7 @@ export default class UserProfile extends Model {
   @json('weekly_schedule', sanitizeWeeklyScheduleJson) weeklySchedule!: WeeklySchedule | null; // v17: 주단위 스케줄·블록. @plm SRS-044
   @text('experience_level') experienceLevel!: ExperienceLevel | null; // v18: 운동 경력(선택). @plm SRS-045
   @field('trainer_intent') trainerIntent!: boolean | null; // v18: 코칭 의향 — 자격 보증 아님. @plm SRS-045
+  @json('manual_workout_days', sanitizeManualWorkoutDaysJson) manualWorkoutDays!: number[] | null; // v19: 수동 '운동했어요' 표시일(dayNumber). @plm SRS-011
   @field('bar_weight_kg') barWeightKg!: number;
   @field('bodyweight_kg') bodyweightKg!: number | null; // v12: 체중 — 맨몸±가중/보조 볼륨 계산. @plm SRS-033
   @field('last_sync_at') lastSyncAt!: number | null;

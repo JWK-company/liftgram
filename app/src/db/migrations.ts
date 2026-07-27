@@ -259,5 +259,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v19: 캘린더 수동 '운동했어요' 표시일 — 앱 기록 없는 운동일 백필(표시 전용·다른 색 점). @plm SRS-011
+    {
+      toVersion: 19,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'manual_workout_days', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

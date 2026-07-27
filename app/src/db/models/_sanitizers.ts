@@ -46,3 +46,11 @@ export function sanitizeWeeklyScheduleJson(raw: unknown): WeeklySchedule | null 
   return sanitizeWeeklySchedule(raw);
 }
 export type { WeeklySchedule };
+
+// v19: 수동 '운동했어요' 표시일(JSON number[] — dayNumber). 정수만·중복 제거·상한 방어. @plm SRS-011
+export function sanitizeManualWorkoutDaysJson(raw: unknown): number[] | null {
+  if (!Array.isArray(raw)) return null;
+  const out = [...new Set(raw.filter((n): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0))];
+  out.sort((a, b) => a - b);
+  return out.slice(0, 3000); // ≈8년치 매일 표시 — 폭주 데이터 방어 상한
+}

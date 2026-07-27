@@ -5,7 +5,7 @@ import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen, Card, AppText, Tag, Button } from '../../components';
 import type { TabScreenProps } from '../../navigation/types';
-import { analyticsRepo } from '../../data';
+import { analyticsRepo, userRepo } from '../../data';
 import type { Workout } from '../../db/models';
 import { useQueryData } from '../../db/hooks';
 import { useUser } from '../../state/userContext';
@@ -14,7 +14,7 @@ import { serverApi } from '../../sync/serverApi';
 import { authErrorKey } from '../../sync/apiError'; // 오프라인/서버오류 → 친화 메시지. @plm SRS-006
 import { colors, spacing, radius } from '../../theme';
 import { useT } from '../../i18n';
-import { useWeeklyGoal, useStreakSkipWeekends } from './useWeeklyGoal';
+import { useWeeklyGoal, useStreakSkipWeekends, useManualWorkoutDays } from './useWeeklyGoal';
 
 function dayKeyOf(ms: number): string {
   const d = new Date(ms);
@@ -23,9 +23,22 @@ function dayKeyOf(ms: number): string {
 
 export default function CalendarTabScreen({ navigation }: TabScreenProps<'CalendarTab'>) {
   const { t, lang } = useT();
-  const { weightUnit } = useUser();
+  const { weightUnit, user, manualWorkoutDays, refresh } = useUser();
   const locale = lang === 'en' ? 'en-US' : 'ko-KR';
   const workouts = useQueryData(() => analyticsRepo.queryWorkoutHistory(), []);
+
+  // v19: 수동 '운동했어요' 표시일(dayNumber) — 앱으로 기록 못한 운동일 백필. 표시 전용(통계·스트릭 미반영). @plm SRS-011
+  const manualSet = useMemo(() => new Set(manualWorkoutDays), [manualWorkoutDays]);
+  async function toggleManualDay(dayNum: number, add: boolean) {
+    if (!user) return;
+    const next = add ? [...manualSet, dayNum] : [...manualSet].filter((n) => n !== dayNum);
+    try {
+      await userRepo.updateUserSettings(user.id, { manualWorkoutDays: next });
+      await refresh();
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
+    }
+  }
 
   // 완료 세션을 로컬 '날짜'로 그룹핑 (하루 여러 세션 가능).
   const byDay = useMemo(() => {
@@ -131,6 +144,7 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
     return new Date(y, m, d);
   })();
   const selectedLabel = selectedDate.toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'long' });
+  const selectedDayNum = dayNumber(selectedDate.getTime()); // 수동 표시 조회·토글용(v19 dayNumber 저장). @plm SRS-011
 
   return (
     <Screen scroll>
@@ -249,15 +263,22 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
             if (d == null) return <View key={i} style={styles.cell} />;
             const key = `${view.y}-${view.m}-${d}`;
             const count = byDay.get(key)?.length ?? 0;
+            const manual = count === 0 && manualSet.has(dayNumber(new Date(view.y, view.m, d).getTime())); // 기록 세션이 있으면 기본 점이 우선
             const isToday = key === todayKey;
             const isSelected = key === selected;
             return (
               <Pressable key={i} style={styles.cell} onPress={() => setSelected(key)}>
                 <View style={[styles.dayInner, isSelected && styles.daySelected, isToday && !isSelected && styles.dayToday]}>
-                  <AppText variant="caption" weight={count ? 'bold' : 'regular'} color={isSelected ? 'onPrimary' : count ? 'text' : 'textMuted'} center>
+                  <AppText variant="caption" weight={count || manual ? 'bold' : 'regular'} color={isSelected ? 'onPrimary' : count || manual ? 'text' : 'textMuted'} center>
                     {d}
                   </AppText>
-                  {count > 0 ? <View style={[styles.dot, isSelected && styles.dotOnSel]} /> : <View style={styles.dotSpacer} />}
+                  {count > 0 ? (
+                    <View style={[styles.dot, isSelected && styles.dotOnSel]} />
+                  ) : manual ? (
+                    <View style={[styles.dot, styles.dotManual, isSelected && styles.dotOnSel]} />
+                  ) : (
+                    <View style={styles.dotSpacer} />
+                  )}
                 </View>
               </Pressable>
             );
@@ -270,9 +291,39 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
         {selectedLabel}
       </AppText>
       {selectedWorkouts.length === 0 ? (
-        <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.xs }}>
-          {t('calendar.noWorkout')}
-        </AppText>
+        manualSet.has(selectedDayNum) ? (
+          /* 수동 표시일 — 앱 기록 없이 직접 표시한 운동일(다른 색 마커). 해제 가능. @plm SRS-011 */
+          <Card style={styles.manualCard}>
+            <View style={styles.wTop}>
+              <View style={styles.manualDot} />
+              <AppText variant="body" weight="bold" style={{ flex: 1 }}>
+                {t('calendar.manualMarkedTag')}
+              </AppText>
+              <Button title={t('calendar.unmark')} size="sm" variant="ghost" fullWidth={false} onPress={() => toggleManualDay(selectedDayNum, false)} />
+            </View>
+            <AppText variant="caption" color="textMuted" style={{ marginTop: 4 }}>
+              {t('calendar.manualMarkedDesc')}
+            </AppText>
+          </Card>
+        ) : (
+          <View>
+            <AppText variant="caption" color="textFaint" style={{ marginTop: spacing.xs }}>
+              {t('calendar.noWorkout')}
+            </AppText>
+            {/* 미래 날짜는 표시 불가 — 지난/오늘 빈 날짜만 '이 날도 운동 했어요'. */}
+            {selectedDate < new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) ? (
+              <Button
+                title={t('calendar.markWorkedOut')}
+                icon="checkmark-circle-outline"
+                size="sm"
+                variant="secondary"
+                fullWidth={false}
+                onPress={() => toggleManualDay(selectedDayNum, true)}
+                style={{ marginTop: spacing.sm, alignSelf: 'flex-start' }}
+              />
+            ) : null}
+          </View>
+        )
       ) : (
         selectedWorkouts.map((w) => (
           <Pressable key={w.id} onPress={() => navigation.navigate('WorkoutDetail', { workoutId: w.id })}>
@@ -338,8 +389,11 @@ const styles = StyleSheet.create({
   daySelected: { backgroundColor: colors.primary },
   dayToday: { borderWidth: 1, borderColor: colors.primary },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, marginTop: 3 },
+  dotManual: { backgroundColor: colors.warning }, // 수동 표시일 — 기록 세션(primary)과 구분되는 색
   dotOnSel: { backgroundColor: colors.onPrimary },
   dotSpacer: { height: 6, marginTop: 3 },
+  manualCard: { borderColor: colors.warning, borderWidth: 1, marginTop: spacing.xs, marginBottom: spacing.md },
+  manualDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.warning },
   detailTitle: { marginBottom: spacing.sm },
   wCard: { marginBottom: spacing.md },
   wTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

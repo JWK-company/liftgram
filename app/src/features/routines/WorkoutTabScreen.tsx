@@ -592,6 +592,9 @@ function WeeklyScheduleCard({
     );
   }
 
+  // 주당 운동 일수 — 루틴이 배정된 요일 수(휴식·미배정 제외). @plm SRS-044
+  const assignedCount = weeklySchedule.days.filter((d) => d != null && d !== 'rest').length;
+
   return (
     <Card style={[wsStyles.card, block?.isDeload && wsStyles.cardDeload]}>
       <View style={wsStyles.headRow}>
@@ -602,6 +605,12 @@ function WeeklyScheduleCard({
               {block.isDeload ? t('schedule.deloadWeek') : t('schedule.weekN', { week: block.week })}
             </AppText>
           </View>
+        ) : null}
+        {/* 주당 운동 일수 — 루틴 배정 요일 수(휴식·미배정 제외). 주차 배지 옆 표기. @plm SRS-044 */}
+        {assignedCount > 0 ? (
+          <AppText variant="caption" color="textMuted">
+            {t('schedule.timesPerWeek', { count: assignedCount })}
+          </AppText>
         ) : null}
         <View style={{ flex: 1 }} />
         <IconButton icon="pencil" size={16} color="textMuted" onPress={openEdit} />
