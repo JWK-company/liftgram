@@ -174,6 +174,21 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
     workoutRepo.reorderWorkoutExercises(ids).catch((e) => Alert.alert(t('common.error'), String(e)));
   }
 
+  // ▲▼ 1클릭 순서 이동(사용자 피드백 2026-07-27) — 운동 중엔 드래그보다 탭이 편함. 드래그와 병행.
+  // 슈퍼셋 그룹은 한 행이라 통째로 이동. sort_order는 필드 업데이트(observe 미재방출) → ssVersion 범프로 즉시 반영. @plm SRS-004
+  function moveRow(index: number, dir: -1 | 1) {
+    const target = index + dir;
+    if (target < 0 || target >= reorderRows.length) return;
+    const nr = [...reorderRows];
+    const [moved] = nr.splice(index, 1);
+    nr.splice(target, 0, moved);
+    const ids = nr.flatMap((r) => (r.kind === 'group' ? r.members.map((m) => m.id) : [r.we.id]));
+    workoutRepo
+      .reorderWorkoutExercises(ids)
+      .then(() => setSsVersion((v) => v + 1))
+      .catch((e) => Alert.alert(t('common.error'), String(e)));
+  }
+
   // 운동 중 종목 교체(#22) — 삭제·재추가 없이 이 종목만 새 종목으로 교체.
   // 교체는 필드 업데이트라 query.observe()가 재방출 안 함 → ssVersion 범프로 강제 재조회(이전기록·PR·이름 즉시 갱신).
   function handleSwapExercise(weId: string) {
@@ -283,12 +298,16 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
             <Button title={t('session.discardWorkoutButton')} variant="danger" icon="trash-outline" onPress={confirmDiscard} style={{ marginTop: spacing.xl }} />
           </>
         }
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <DraggableRow
-            render={(drag) =>
+            render={() =>
               item.kind === 'group' ? (
-                // 슈퍼셋 그룹 — 그룹 헤더 三 핸들로 통째 드래그(멤버 개별 핸들 없음). @plm SRS-004
-                <SupersetContainer onUnlink={() => unlinkSuperset(item.members[0])} onDrag={drag}>
+                // 슈퍼셋 그룹 — 헤더 ▲▼로 통째 이동(운동 중엔 드래그 대신 원클릭 — 사용자 피드백). @plm SRS-004
+                <SupersetContainer
+                  onUnlink={() => unlinkSuperset(item.members[0])}
+                  onMoveUp={index > 0 ? () => moveRow(index, -1) : undefined}
+                  onMoveDown={index < reorderRows.length - 1 ? () => moveRow(index, 1) : undefined}
+                >
                   {item.members.map((m, mi) => (
                     <React.Fragment key={m.id}>
                       {mi > 0 ? <View style={styles.ssDivider} /> : null}
@@ -307,7 +326,7 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
                   ))}
                 </SupersetContainer>
               ) : (
-                // 단독 종목 — 좌측 三 핸들 꾹 눌러 드래그.
+                // 단독 종목 — 좌측 ▲▼ 원클릭 이동(운동 중엔 드래그보다 편함 — 사용자 피드백).
                 <ExerciseBlock
                   we={item.we}
                   weightUnit={weightUnit}
@@ -317,7 +336,8 @@ export default function ActiveWorkoutScreen({ navigation, route }: RootStackScre
                   onStartRest={startRest}
                   onSwap={handleSwapExercise}
                   onInfo={() => navigation.navigate('ExerciseDetail', { exerciseId: item.we.exerciseId })}
-                  onDrag={drag}
+                  onMoveUp={index > 0 ? () => moveRow(index, -1) : undefined}
+                  onMoveDown={index < reorderRows.length - 1 ? () => moveRow(index, 1) : undefined}
                   canSuperset={exercises.length >= 2}
                   onSuperset={() => setSupersetTarget(item.we)}
                   onUnsuperset={() => unlinkSuperset(item.we)}
@@ -415,15 +435,31 @@ function DraggableRow({ render }: { render: (drag: () => void) => React.ReactEle
 // 모바일 웹에서 핸들 터치가 브라우저 스크롤로 가로채지지 않게(드래그 활성화). 데스크톱 grab 커서. RN-web 전용.
 const webDragStyle = Platform.OS === 'web' ? ({ touchAction: 'none', cursor: 'grab', userSelect: 'none' } as object) : undefined;
 
-function SupersetContainer({ onUnlink, onDrag, children }: { onUnlink: () => void; onDrag?: () => void; children: React.ReactNode }) {
+function SupersetContainer({
+  onUnlink,
+  onMoveUp,
+  onMoveDown,
+  children,
+}: {
+  onUnlink: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  children: React.ReactNode;
+}) {
   const { t } = useT();
   return (
     <View style={styles.ssContainer}>
       <View style={styles.ssHeaderRow}>
-        {onDrag ? (
-          <Pressable onPressIn={onDrag} hitSlop={8} style={[styles.ssDragHandle, webDragStyle]}>
-            <Ionicons name="reorder-three" size={20} color={colors.primary} />
-          </Pressable>
+        {/* 운동 중 순서 이동 ▲▼ — 원클릭(드래그 대체 — 사용자 피드백). 끝단은 비활성. */}
+        {onMoveUp || onMoveDown ? (
+          <View style={styles.ssMoveCol}>
+            <Pressable onPress={onMoveUp} disabled={!onMoveUp} hitSlop={6}>
+              <Ionicons name="chevron-up" size={16} color={onMoveUp ? colors.primary : colors.border} />
+            </Pressable>
+            <Pressable onPress={onMoveDown} disabled={!onMoveDown} hitSlop={6}>
+              <Ionicons name="chevron-down" size={16} color={onMoveDown ? colors.primary : colors.border} />
+            </Pressable>
+          </View>
         ) : null}
         <Ionicons name="git-merge-outline" size={15} color={colors.primary} />
         <AppText variant="label" color="primary" weight="bold" style={styles.ssHeaderLabel}>
@@ -445,7 +481,8 @@ const styles = StyleSheet.create({
   // 슈퍼셋 컨테이너
   ssContainer: { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.lg, marginBottom: spacing.lg, backgroundColor: colors.surface, overflow: 'hidden' },
   ssHeaderRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.primaryMuted },
-  ssDragHandle: { width: 28, alignItems: 'center', justifyContent: 'center', marginRight: 2 }, // 三 슈퍼셋 그룹 드래그 핸들
+  ssDragHandle: { width: 28, alignItems: 'center', justifyContent: 'center', marginRight: 2 }, // (레거시) 三 슈퍼셋 그룹 드래그 핸들
+  ssMoveCol: { alignItems: 'center', justifyContent: 'center', marginRight: 6, gap: 2 }, // ▲▼ 그룹 원클릭 이동
   ssHeaderLabel: { flex: 1, marginLeft: 6 },
   ssUnlinkBtn: { paddingHorizontal: spacing.sm, paddingVertical: 2 },
   ssBody: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },

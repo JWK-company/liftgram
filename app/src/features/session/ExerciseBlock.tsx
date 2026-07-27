@@ -66,7 +66,9 @@ interface ExerciseBlockProps {
   onStartRest: (seconds: number) => void; // 전역 휴식 카운트다운 시작(기존 것 교체)
   onSwap?: (workoutExerciseId: string) => void; // 운동 중 종목 교체(#22)
   onInfo?: () => void; // 운동 중 종목 상세(사진·운동법) 보기 — 운동법 까먹었을 때. @plm SRS-001
-  onDrag?: () => void; // 운동 중 순서 = 좌측 三 핸들 꾹 눌러 드래그(제공 시 핸들 표시). 화살표 대체. @plm SRS-004
+  onDrag?: () => void; // 운동 중 순서 = 좌측 三 핸들 꾹 눌러 드래그(제공 시 핸들 표시). @plm SRS-004
+  onMoveUp?: () => void; // ▲ 1클릭 위로 — 운동 중엔 드래그보다 탭이 편함(사용자 피드백 2026-07-27). 미제공=맨 위(비활성). @plm SRS-004
+  onMoveDown?: () => void; // ▼ 1클릭 아래로 — 미제공=맨 아래(비활성)
   canSuperset?: boolean; // 세션에 종목 2개 이상 — 슈퍼셋 버튼 노출
   onSuperset?: () => void; // 운동 중 슈퍼셋 상대 선택 열기
   onUnsuperset?: () => void; // 슈퍼셋 해제
@@ -108,7 +110,7 @@ function showPlates(weightKg: number, barKg: number, unit: WeightUnit, t: (k: Tr
   Alert.alert(t('session.plateCalcPerSideTitle'), lines.join('\n'));
 }
 
-export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onInfo, onDrag, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
+export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodyweightKg, onStartRest, onSwap, onInfo, onDrag, onMoveUp, onMoveDown, canSuperset, onSuperset, onUnsuperset, insideSuperset }: ExerciseBlockProps) {
   const { t, lang } = useT();
   // 모바일 웹에서 핸들 터치가 스크롤로 가로채지지 않게(드래그 활성화). 데스크톱 grab 커서. RN-web 전용.
   const webDrag = Platform.OS === 'web' ? ({ touchAction: 'none', cursor: 'grab', userSelect: 'none' } as object) : undefined;
@@ -317,6 +319,17 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
   return (
     <Card style={[styles.block, showGroupedBorder && styles.blockGrouped, insideSuperset && styles.blockInSuperset]}>
       <View style={styles.header}>
+        {onMoveUp || onMoveDown ? (
+          /* 운동 중 순서 = ▲▼ 한 번 탭 이동(#11 화살표 복원 — 운동 중엔 드래그보다 편하다는 사용자 피드백). 루틴 목록·편집은 드래그 유지. */
+          <View style={styles.moveCol}>
+            <Pressable onPress={onMoveUp} disabled={!onMoveUp} hitSlop={6} accessibilityLabel={t('session.moveUp')}>
+              <Ionicons name="chevron-up" size={20} color={onMoveUp ? colors.textMuted : colors.border} />
+            </Pressable>
+            <Pressable onPress={onMoveDown} disabled={!onMoveDown} hitSlop={6} accessibilityLabel={t('session.moveDown')}>
+              <Ionicons name="chevron-down" size={20} color={onMoveDown ? colors.textMuted : colors.border} />
+            </Pressable>
+          </View>
+        ) : null}
         {onDrag ? (
           <Pressable onPressIn={onDrag} hitSlop={8} style={[styles.dragHandle, webDrag]} accessibilityLabel={t('routines.reorderHandle')}>
             <Ionicons name="reorder-three" size={22} color={colors.textMuted} />
@@ -1080,8 +1093,8 @@ const styles = StyleSheet.create({
   histDate: { width: 58 },
   supersetBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
   exVolChip: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.pill, backgroundColor: colors.primaryMuted },
-  // 운동 중 순서 이동 화살표 열(#11).
-  dragHandle: { width: 30, alignItems: 'center', justifyContent: 'center', marginRight: 2 }, // 三 드래그 핸들
+  dragHandle: { width: 30, alignItems: 'center', justifyContent: 'center', marginRight: 2 }, // (레거시) 三 드래그 핸들
+  moveCol: { width: 30, alignItems: 'center', justifyContent: 'center', marginRight: 2, gap: 2 }, // ▲▼ 한 번 탭 순서 이동(#11 복원)
   restRow: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, minHeight: 44 },
   restSetRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 },
 });

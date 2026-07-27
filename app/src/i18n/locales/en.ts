@@ -771,6 +771,8 @@ export const en: Record<TransKey, string> = {
   "session.platePerSide": "Per side: {perSide}kg",
   "session.plateTarget": "Target: {targetWeight}",
   "session.prCount": "{count} new PRs",
+  "session.moveUp": "Move up",
+  "session.moveDown": "Move down",
   "session.prTypeWeight": "Weight PR",
   "session.prTypeVolume": "Volume PR",
   "session.prToast": "{name} — new {label}!",

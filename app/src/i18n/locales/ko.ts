@@ -773,6 +773,8 @@ export const ko = {
   "session.platePerSide": "한쪽: {perSide}kg",
   "session.plateTarget": "목표: {targetWeight}",
   "session.prCount": "PR 갱신 {count}회",
+  "session.moveUp": "위로 이동",
+  "session.moveDown": "아래로 이동",
   "session.prTypeWeight": "중량 PR",
   "session.prTypeVolume": "볼륨 PR",
   "session.prToast": "{name} {label} 달성!",
