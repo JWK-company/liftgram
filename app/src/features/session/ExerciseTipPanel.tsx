@@ -13,7 +13,8 @@ import { useT } from '../../i18n';
 // 접힘 상태 종목별 기억(세션 수명 — 영속 불필요). 기본 접힘(공간 절약).
 const expandedByExercise = new Map<string, boolean>();
 
-export function ExerciseTipPanel({ nameKo }: { nameKo: string | null }) {
+// trailing: 토글 줄 우측에 병치할 보조 액션(예: '이전기록 지우기') — 세로 공간 절약(사용자 피드백 2026-07-28).
+export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; trailing?: React.ReactNode }) {
   const { t, lang } = useT();
   const [expanded, setExpanded] = useState(() => (nameKo ? expandedByExercise.get(nameKo) ?? false : false));
   const [mode, setMode] = useState<'media' | 'steps'>('media');
@@ -36,13 +37,16 @@ export function ExerciseTipPanel({ nameKo }: { nameKo: string | null }) {
 
   return (
     <View style={styles.wrap}>
-      <Pressable onPress={toggle} hitSlop={6} style={styles.toggleRow}>
-        <Ionicons name="film-outline" size={14} color={colors.textMuted} />
-        <AppText variant="label" color="textMuted">
-          {t('session.tipToggle')}
-        </AppText>
-        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textMuted} />
-      </Pressable>
+      <View style={styles.toggleLine}>
+        <Pressable onPress={toggle} hitSlop={6} style={styles.toggleRow}>
+          <Ionicons name="film-outline" size={14} color={colors.textMuted} />
+          <AppText variant="label" color="textMuted">
+            {t('session.tipToggle')}
+          </AppText>
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textMuted} />
+        </Pressable>
+        {trailing ?? null}
+      </View>
       {expanded ? (
         mode === 'media' && media ? (
           <Pressable onPress={() => steps.length > 0 && setMode('steps')} style={styles.mediaBox}>
@@ -106,6 +110,8 @@ function TwoFrameLoop({ media }: { media: ExerciseMedia }) {
 
 const styles = StyleSheet.create({
   wrap: { marginTop: spacing.xs },
+  // 토글 줄 — 좌측 트리거 + 우측 trailing(있으면) 한 줄 병치.
+  toggleLine: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingVertical: 2 },
   mediaBox: { marginTop: spacing.xs },
   animWrap: {

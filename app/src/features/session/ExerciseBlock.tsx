@@ -54,6 +54,7 @@ import {
 } from '../../domain';
 import { ExerciseName } from './ExerciseName';
 import { ExerciseTipPanel } from './ExerciseTipPanel'; // @plm SRS-046
+import { getExerciseMedia } from '../../data/exerciseMedia'; // 팁 존재 판단 — '지우기' 병치 위치 결정. @plm SRS-046
 import { setWorkoutNowPlaying } from '../../utils/sound';
 import { useT, type TransKey } from '../../i18n';
 
@@ -316,6 +317,17 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         : t('session.weightLabel', { weightUnit });
   const bwRelative = loadMode === 'assisted' || loadMode === 'bodyweight';
   const bwMissing = bwRelative && bodyweightKg == null;
+  // '이전기록 지우기'를 팁('운동 방법 보기') 줄 우측에 병치해 세로 1줄 절약(사용자 피드백 2026-07-28).
+  // 팁이 없는 종목(미디어 부재·유산소)은 메타 칩 행에 폴백. @plm SRS-004
+  const hasTip = !isCardio && !!exNameKo && !!getExerciseMedia(exNameKo);
+  const prevClearBtn =
+    !isCardio && (hasPrev || prevCleared) ? (
+      <Pressable onPress={() => setPrevCleared((v) => !v)} hitSlop={6}>
+        <AppText variant="label" color="textFaint">
+          {prevCleared ? t('session.showPrev') : t('session.clearPrev')}
+        </AppText>
+      </Pressable>
+    ) : null;
   return (
     <Card style={[styles.block, showGroupedBorder && styles.blockGrouped, insideSuperset && styles.blockInSuperset]}>
       <View style={styles.header}>
@@ -337,48 +349,6 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         ) : null}
         <View style={{ flex: 1 }}>
           <ExerciseName exerciseId={we.exerciseId} variant="heading" base revealOnTap />
-          <View style={styles.headerMeta}>
-            {/* 유산소는 기구 변형·PR 개념이 없음 — 근력 종목만 노출. @plm SRS-030 */}
-            {!isCardio ? (
-              <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
-            ) : null}
-            {showGroupedBorder ? (
-              <View style={styles.supersetBadge}>
-                <AppText variant="label" color="primary">
-                  {t('session.superset')}
-                </AppText>
-              </View>
-            ) : null}
-            {!isCardio && pr && !prevCleared ? (
-              <AppText variant="caption" color="pr">
-                {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
-              </AppText>
-            ) : null}
-            {/* 종목별 볼륨(#) — 무게 있으면 볼륨, 맨몸·무게0이면 총 횟수. 유산소는 하단 요약으로 대체. @plm SRS-005 */}
-            {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
-              <View style={styles.exVolChip}>
-                <AppText variant="label" color="primary" weight="bold">
-                  {exVol.volume > 0
-                    ? t('session.exVolume', { volume: formatWeight(exVol.volume, weightUnit) })
-                    : t('session.exTotalReps', { reps: exVol.reps })}
-                </AppText>
-              </View>
-            ) : null}
-            {/* 어시스트/맨몸±가중인데 체중 미설정 → 볼륨이 체중 반영 안 됨 안내. @plm SRS-033 */}
-            {bwMissing ? (
-              <AppText variant="label" color="warning">
-                {t('session.bodyweightNeeded')}
-              </AppText>
-            ) : null}
-            {/* 이전 기록 지우기/표시 — 새 루틴 등에서 안 보고 싶을 때. 세션 로컬(이력 삭제 아님). @plm SRS-004 */}
-            {!isCardio && (hasPrev || prevCleared) ? (
-              <Pressable onPress={() => setPrevCleared((v) => !v)} hitSlop={6}>
-                <AppText variant="label" color="textFaint">
-                  {prevCleared ? t('session.showPrev') : t('session.clearPrev')}
-                </AppText>
-              </Pressable>
-            ) : null}
-          </View>
         </View>
         {onInfo ? (
           <IconButton icon="information-circle-outline" color="textMuted" size={20} onPress={onInfo} />
@@ -397,8 +367,47 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         <IconButton icon="trash-outline" color="textMuted" size={20} onPress={confirmRemove} />
       </View>
 
-      {/* 세션 중 운동 팁 — 접이식 미디어 ↔ 단계 설명(SRS-046). 유산소는 자세 미디어 개념 없음. */}
-      {!isCardio ? <ExerciseTipPanel nameKo={exNameKo} /> : null}
+      {/* 메타 칩 행 — 헤더(이름+아이콘) 밖 카드 전폭 사용. 아이콘 열 옆 좁은 컬럼에 갇혀 칩이 전부
+          줄바꿈·세로 나열되고 우측이 놀던 문제 해소(모바일 사용자 피드백 2026-07-28 — 패널 높이 절감). */}
+      <View style={styles.headerMeta}>
+        {/* 유산소는 기구 변형·PR 개념이 없음 — 근력 종목만 노출. @plm SRS-030 */}
+        {!isCardio ? (
+          <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
+        ) : null}
+        {showGroupedBorder ? (
+          <View style={styles.supersetBadge}>
+            <AppText variant="label" color="primary">
+              {t('session.superset')}
+            </AppText>
+          </View>
+        ) : null}
+        {!isCardio && pr && !prevCleared ? (
+          <AppText variant="caption" color="pr">
+            {t('session.prLine', { weight: formatWeight(pr.weightKg, weightUnit), reps: pr.reps })}
+          </AppText>
+        ) : null}
+        {/* 종목별 볼륨(#) — 무게 있으면 볼륨, 맨몸·무게0이면 총 횟수. 유산소는 하단 요약으로 대체. @plm SRS-005 */}
+        {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
+          <View style={styles.exVolChip}>
+            <AppText variant="label" color="primary" weight="bold">
+              {exVol.volume > 0
+                ? t('session.exVolume', { volume: formatWeight(exVol.volume, weightUnit) })
+                : t('session.exTotalReps', { reps: exVol.reps })}
+            </AppText>
+          </View>
+        ) : null}
+        {/* 어시스트/맨몸±가중인데 체중 미설정 → 볼륨이 체중 반영 안 됨 안내. @plm SRS-033 */}
+        {bwMissing ? (
+          <AppText variant="label" color="warning">
+            {t('session.bodyweightNeeded')}
+          </AppText>
+        ) : null}
+        {/* 이전 기록 지우기/표시 — 팁 줄에 병치(hasTip), 팁 없으면 여기 폴백. 세션 로컬(이력 삭제 아님). @plm SRS-004 */}
+        {!hasTip ? prevClearBtn : null}
+      </View>
+
+      {/* 세션 중 운동 팁 — 접이식 미디어 ↔ 단계 설명(SRS-046) + 우측 '지우기' 병치. 유산소는 자세 미디어 개념 없음. */}
+      {!isCardio ? <ExerciseTipPanel nameKo={exNameKo} trailing={hasTip ? prevClearBtn : undefined} /> : null}
 
       {/* 그리드 헤더 — 유산소는 시간·거리, 근력은 무게·횟수·부분·편측. @plm SRS-030 */}
       {isCardio ? (
