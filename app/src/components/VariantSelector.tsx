@@ -39,19 +39,19 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   const machineActive = isMachineBase || isMachineEquipSel(equip);
   const genericMachine: string | null = isMachineBase ? null : 'machine'; // '기본(브랜드 미지정) 머신'의 equipment 값
   // 종목 고유 기구(프리웨이트 implement) — 이름에 든 기구(바벨/덤벨/…). 있으면 '기본' 대신 이 기구를 디폴트로. @plm SRS-028
+  // 머신 종목도 고유 기구='machine'으로 취급 — 레벨1(덤벨·바벨·스미스…)을 상시 노출해
+  // 머신 종목에서도 프리웨이트 대체 변형을 고를 수 있게(사용자 피드백 2026-07-28: 브랜드만 보이던 문제).
   const intrinsicImplement =
-    baseEquipment && baseEquipment !== 'machine' && (IMPLEMENT_KEYS as string[]).includes(baseEquipment) ? baseEquipment : null;
+    baseEquipment && (IMPLEMENT_KEYS as string[]).includes(baseEquipment) ? baseEquipment : null;
   // 고유 기구가 있으면 '기본(null)' 칩 생략(고유 기구가 곧 디폴트). 없으면(맨몸 등) 기존대로 '기본' + 대체 기구.
   const level1: (string | null)[] = intrinsicImplement ? [...IMPLEMENT_KEYS] : [null, ...IMPLEMENT_KEYS];
   // 기구 미지정(null)이면 고유 기구를 '선택된 것처럼' 표시 — 레코드 버킷은 그대로 null(기존 기록 보존).
   const l1Selected = equip ?? (isMachineBase ? null : intrinsicImplement); // 레벨1 하이라이트 기준
   const triggerEquip = equip ?? (isMachineBase ? 'machine' : intrinsicImplement); // 트리거 칩 라벨 기준
-  const grip = (value.grip as GripKey | null) ?? null; // 그립 — 버킷 축(ADR-030 — ADR-026 부분 개정)
-  const active = Boolean(triggerEquip) || Boolean(grip);
-  // 트리거 칩 = 기구(브랜드)·그립 축약 라벨(그립 선택 시 병기). 팔(원암)은 각 세트 행의 '변형'에서(세트 속성 유지).
-  const label = [equipmentVariantShortLabel(triggerEquip, lang, machineVariantLabels), grip ? gripShortLabel(grip, lang) : null]
-    .filter(Boolean)
-    .join('·');
+  // 그립은 별도 GripSelector 칩으로 분리(사용자 피드백 2026-07-28: "기구 변형에 그립이 섞여 이상함") —
+  // 이 시트는 기구(레벨1)·머신 브랜드(레벨2)만 담당한다. 버킷 축은 그대로 (기구×그립, ADR-030).
+  const active = Boolean(triggerEquip);
+  const label = equipmentVariantShortLabel(triggerEquip, lang, machineVariantLabels);
 
   return (
     <>
@@ -70,25 +70,21 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
               {t('variant.selectTitle')}
             </AppText>
             <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
-              {/* 레벨1: 베이스 기구(프리웨이트 대체 기구). 머신 종목은 생략(기구가 머신 고정 → 브랜드만). */}
-              {isMachineBase ? null : (
-                <>
-                  <AppText variant="label" color="textMuted" style={styles.rowLabel}>
-                    {t('variant.equipment')}
-                  </AppText>
-                  <View style={styles.chipRow}>
-                    {level1.map((k) => (
-                      <SelectChip
-                        key={k ?? 'default'}
-                        label={equipmentVariantLabel(k, lang, machineVariantLabels)}
-                        active={k === 'machine' ? machineActive : (k ?? null) === l1Selected}
-                        // 종목 고유 기구 선택 = 기본 버킷(null)으로 저장 → 기존 기록 유지. 다른 기구만 별도 변형 버킷.
-                        onPress={() => onChange({ ...value, equipment: k === baseEquipment ? null : k })}
-                      />
-                    ))}
-                  </View>
-                </>
-              )}
+              {/* 레벨1: 베이스 기구 — 머신 종목 포함 상시 노출(머신 종목은 'machine'이 디폴트 하이라이트). */}
+              <AppText variant="label" color="textMuted" style={styles.rowLabel}>
+                {t('variant.equipment')}
+              </AppText>
+              <View style={styles.chipRow}>
+                {level1.map((k) => (
+                  <SelectChip
+                    key={k ?? 'default'}
+                    label={equipmentVariantLabel(k, lang, machineVariantLabels)}
+                    active={k === 'machine' ? machineActive : (k ?? null) === l1Selected}
+                    // 종목 고유 기구 선택 = 기본 버킷(null)으로 저장 → 기존 기록 유지. 다른 기구만 별도 변형 버킷.
+                    onPress={() => onChange({ ...value, equipment: k === baseEquipment ? null : k })}
+                  />
+                ))}
+              </View>
 
               {/* 레벨2: 머신 브랜드 — 한 레벨 아래(들여쓰기). 머신 선택 시(또는 머신 종목) 노출. 브랜드 선택은 옵션. */}
               {machineActive ? (
@@ -114,17 +110,43 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
                 </View>
               ) : null}
 
-              {/* 그립 — 버킷 축 복귀(ADR-030): (종목×기구×그립)으로 이전기록·PR 분리. 팔(원암)은 세트 속성 유지. @plm SRS-028 */}
-              <AppText variant="label" color="textMuted" style={styles.rowLabel}>
-                {t('variant.grip')}
-              </AppText>
-              <View style={styles.chipRow}>
-                <SelectChip label={t('variant.default')} active={!grip} onPress={() => onChange({ ...value, grip: null })} />
-                {GRIP_KEYS.map((k) => (
-                  <SelectChip key={k} label={gripLabel(k, lang)} active={grip === k} onPress={() => onChange({ ...value, grip: k })} />
-                ))}
-              </View>
             </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
+// 그립 선택 칩 — 기구 변형과 분리된 독립 컨트롤(사용자 피드백 2026-07-28). 그립도 (종목×기구×그립)
+// 기록 버킷 축이므로(ADR-030) 선택 즉시 이전기록·PR이 그 그립 것으로 전환된다. 팔(원암)은 세트 속성 유지.
+// 세트별 그립 저장과 양립 불가(버킷이 종목 인스턴스 단위) — 종목(블록) 단위 그립으로 일원화. @plm SRS-028
+export function GripSelector({ value, onChange }: { value: GripKey | null; onChange: (grip: GripKey | null) => void }) {
+  const { t, lang } = useT();
+  const [open, setOpen] = useState(false);
+  const active = value != null;
+  return (
+    <>
+      <Pressable onPress={() => setOpen(true)} hitSlop={6} style={styles.chip}>
+        <Ionicons name="hand-left-outline" size={12} color={active ? colors.primary : colors.textMuted} />
+        <AppText variant="caption" color={active ? 'primary' : 'textMuted'} style={styles.chipText}>
+          {active ? gripShortLabel(value, lang) : t('variant.grip')}
+        </AppText>
+        <Ionicons name="chevron-down" size={12} color={active ? colors.primary : colors.textMuted} />
+      </Pressable>
+
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
+          <Pressable style={styles.sheet} onPress={() => {}}>
+            <AppText variant="heading" style={styles.sheetTitle}>
+              {t('variant.grip')}
+            </AppText>
+            <View style={styles.chipRow}>
+              <SelectChip label={t('variant.default')} active={!active} onPress={() => { onChange(null); setOpen(false); }} />
+              {GRIP_KEYS.map((k) => (
+                <SelectChip key={k} label={gripLabel(k, lang)} active={value === k} onPress={() => { onChange(k); setOpen(false); }} />
+              ))}
+            </View>
           </Pressable>
         </Pressable>
       </Modal>

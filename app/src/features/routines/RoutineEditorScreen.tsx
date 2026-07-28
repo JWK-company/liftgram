@@ -21,6 +21,7 @@ import {
   SectionHeader,
   EmptyState,
   VariantSelector,
+  GripSelector,
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
@@ -670,6 +671,19 @@ function ExerciseEditRow({
                   .catch((e) => Alert.alert(t('common.error'), String(e)));
               }}
             />
+            {/* 그립 칩 — 기구 변형과 분리된 독립 컨트롤(ADR-030 그립 버킷·세션 승계). 유산소 제외. */}
+            {!isCardio ? (
+              <GripSelector
+                value={variant.grip ?? null}
+                onChange={(g) => {
+                  const dims = { ...variant, grip: g };
+                  setVariant(dims);
+                  routineRepo
+                    .setRoutineExerciseVariant(re.id, dims)
+                    .catch((e) => Alert.alert(t('common.error'), String(e)));
+                }}
+              />
+            ) : null}
           </View>
         </View>
         {re.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}
@@ -881,7 +895,7 @@ const styles = StyleSheet.create({
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   handle: { width: 28, alignItems: 'center' },
   exTitle: { flex: 1, gap: 2 },
-  exVariant: { flexDirection: 'row', marginTop: 4 },
+  exVariant: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 },
   fieldRow: { flexDirection: 'row', gap: spacing.lg },
   field: { flex: 1 },
   fieldLabel: { marginBottom: spacing.xs },

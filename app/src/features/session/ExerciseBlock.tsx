@@ -5,7 +5,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector, firePrCelebration } from '../../components';
+import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector, GripSelector, firePrCelebration } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo, workoutRepo, type LogSetInput } from '../../data';
@@ -373,6 +373,10 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         {/* 유산소는 기구 변형·PR 개념이 없음 — 근력 종목만 노출. @plm SRS-030 */}
         {!isCardio ? (
           <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
+        ) : null}
+        {/* 그립 칩 — 기구 변형과 분리된 독립 컨트롤(사용자 피드백 2026-07-28). 선택 시 그립 버킷 전환(ADR-030). */}
+        {!isCardio ? (
+          <GripSelector value={(variant.grip as GripKey | null) ?? null} onChange={(g) => onVariantChange({ ...variant, grip: g })} />
         ) : null}
         {showGroupedBorder ? (
           <View style={styles.supersetBadge}>
