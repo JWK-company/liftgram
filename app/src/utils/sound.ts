@@ -271,8 +271,81 @@ export function previewRestSound(kind: RestSoundKind): void {
 // ════════════════════════════════════════════════════════════════════════════════════
 
 // ── 키프얼라이브(운동 세션 동안 1회 유지; 회당 stop/restart 금지 — WebKit 261858) ──
+// [개편 2026-07-28] 가시성 게이트: 화면이 보이는 동안엔 keep-alive '출력'을 완전히 끊는다 —
+// 무음 재생이어도 OS가 재생 중 미디어로 보고 다른 앱(유튜브뮤직 등) 소리를 duck시키는 부작용
+// 제거(사용자 피드백). 잠금/백그라운드 진입 시에만 출력을 살려 잠금 알람·Now Playing 카드 유지.
+// 오실레이터는 stop하지 않고(WebKit 261858) gain 노드 disconnect/connect로만 차단·복원한다.
 let keepAliveOsc: OscillatorNode | null = null;
 let keepAliveEl: HTMLAudioElement | null = null;
+let keepAliveGain: GainNode | null = null;
+let keepAliveWanted = false; // 휴식 예약이 살아있는 동안 true — 실제 출력은 hidden일 때만
+let visGateBound = false;
+
+function setAudioSessionType(type: string): void {
+  try {
+    const navAny = navigator as unknown as { audioSession?: { type: string } };
+    if (navAny.audioSession) navAny.audioSession.type = type;
+  } catch {
+    /* 미지원 무시 */
+  }
+}
+
+// 화면이 보임 → 출력 차단(다른 앱 오디오와 공존). 노드·el은 살려둬 재가동이 즉시·제스처 무관.
+function pauseKeepAliveOutput(): void {
+  try {
+    keepAliveGain?.disconnect();
+  } catch {
+    /* no-op */
+  }
+  try {
+    keepAliveEl?.pause();
+  } catch {
+    /* no-op */
+  }
+  setAudioSessionType('auto'); // iOS: 배타 재생 의도 해제 → 다른 앱 소리 복원
+}
+
+// 잠금/백그라운드 → 출력 복원(잠금 알람 보장·카드 표시). 이 구간에서만 duck이 허용된다.
+function resumeKeepAliveOutput(): void {
+  startKeepAlive();
+  const ctx = audioCtx;
+  if (keepAliveGain && ctx) {
+    try {
+      keepAliveGain.disconnect();
+    } catch {
+      /* no-op */
+    }
+    try {
+      keepAliveGain.connect(ctx.destination);
+    } catch {
+      /* no-op */
+    }
+  }
+  try {
+    void keepAliveEl?.play().catch(() => {});
+  } catch {
+    /* no-op */
+  }
+  setAudioSessionType('playback'); // 잠금 중 재생 유지(iOS)
+}
+
+function syncKeepAlive(): void {
+  if (!keepAliveWanted) return;
+  if (typeof document !== 'undefined' && document.visibilityState === 'hidden') resumeKeepAliveOutput();
+  else pauseKeepAliveOutput();
+}
+
+// scheduleRestDone에서 호출 — 제스처 컨텍스트에서 노드·el을 미리 만들어 두되(이후 hidden 재생 허용),
+// 화면이 보이면 즉시 출력을 차단한다.
+function requestKeepAlive(): void {
+  keepAliveWanted = true;
+  if (!visGateBound && typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', syncKeepAlive);
+    visGateBound = true;
+  }
+  startKeepAlive();
+  syncKeepAlive();
+}
 
 // 거의-무음(디지털 0 아님) 짧은 저주파 WAV — iOS '무음 30초 사망' 회피. 폰 스피커엔 사실상 안 들림.
 function nearSilentWavDataUri(): string {
@@ -306,16 +379,17 @@ function nearSilentWavDataUri(): string {
   return `data:audio/wav;base64,${typeof btoa !== 'undefined' ? btoa(bin) : ''}`;
 }
 
+// iOS(웹) 감지 — iPadOS는 Mac UA로 위장하므로 터치 포인트로 보정.
+function isIOSWeb(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent || '';
+  return /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && (navigator.maxTouchPoints ?? 0) > 1);
+}
+
 function startKeepAlive(): void {
   const ctx = webAudioContext();
   if (!ctx) return;
   if (ctx.state !== 'running') ctx.resume().catch(() => {});
-  try {
-    const navAny = navigator as unknown as { audioSession?: { type: string } };
-    if (navAny.audioSession) navAny.audioSession.type = 'playback'; // 백그라운드 재생 의도 선언(iOS)
-  } catch {
-    /* 미지원 무시 */
-  }
   if (!keepAliveOsc) {
     try {
       const osc = ctx.createOscillator();
@@ -326,9 +400,21 @@ function startKeepAlive(): void {
       g.connect(ctx.destination); // 리미터 우회(진짜 무음)
       osc.start();
       keepAliveOsc = osc;
+      keepAliveGain = g; // 가시성 게이트가 disconnect/connect로 출력만 차단·복원(261858 — stop 금지)
     } catch {
       /* no-op */
     }
+  }
+  // 오디오 포커스 정책(사용자 피드백 2026-07-28): 루프 <audio>+MediaSession('playing')은 브라우저가
+  // '미디어 재생'으로 취급해 다른 앱(유튜브 뮤직 등) 소리를 덕킹시킨다 — 다른 앱 소리는 건드리지 않는다.
+  // → iOS에서만 유지(잠금 중 AudioContext 'interrupted' 생존에 필수·구조상 포커스와 불가분).
+  //   Android/데스크톱은 근무음 오실레이터+예약+복귀 보정(rearm/flush)만으로 동작(잠금화면 카드는 포기 — 표시전용이었음).
+  if (!isIOSWeb()) return;
+  try {
+    const navAny = navigator as unknown as { audioSession?: { type: string } };
+    if (navAny.audioSession) navAny.audioSession.type = 'playback'; // 백그라운드 재생 의도 선언(iOS)
+  } catch {
+    /* 미지원 무시 */
   }
   if (typeof document !== 'undefined' && !keepAliveEl) {
     try {
@@ -368,6 +454,9 @@ function startKeepAlive(): void {
 
 // 운동 종료/언마운트 시 정리(휴식 스킵/재시작 시에는 호출하지 않음 — 세션 내 연속 유지).
 export function stopKeepAlive(): void {
+  keepAliveWanted = false; // 가시성 게이트 해제(운동 종료)
+  keepAliveGain = null;
+  setAudioSessionType('auto'); // iOS 배타 재생 의도 해제
   try {
     keepAliveOsc?.stop();
   } catch {
@@ -478,7 +567,7 @@ export function scheduleRestDone(sec: number): boolean {
   const ctx = webAudioContext();
   if (!ctx) return false;
   cancelScheduledRestDone(); // 이전 예약 완전 정리
-  startKeepAlive();
+  requestKeepAlive(); // 화면 보이면 출력 차단·잠금 시에만 가동(다른 앱 오디오 보호)
   restBeepFired = false;
   const ok = armAt(ctx, sec);
   if (!ok) {
@@ -545,6 +634,9 @@ type MediaSessionLike = {
 };
 function mediaSessionObj(): MediaSessionLike | null {
   if (Platform.OS !== 'web' || typeof navigator === 'undefined') return null;
+  // 오디오 포커스 정책: 카드용 <audio> 재생을 iOS로 한정했으므로(startKeepAlive 참조) 카드 갱신도 iOS만.
+  // Android에서 playbackState='playing' 선언은 실재하지 않는 재생을 주장하는 셈이라 함께 차단.
+  if (!isIOSWeb()) return null;
   return (navigator as unknown as { mediaSession?: MediaSessionLike }).mediaSession ?? null;
 }
 
