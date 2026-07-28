@@ -10,7 +10,7 @@ import type { RootStackParamList } from './src/navigation/types';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
-import { backfillVariantKeysV6, consolidateExercisesV8, backfillCardioKindV10, backfillLoadModeV12, backfillPromoteUniformGripV21 } from './src/data/workoutRepository';
+import { backfillVariantKeysV6, consolidateExercisesV8, backfillCardioKindV10, backfillDropGripArmV11, backfillLoadModeV12 } from './src/data/workoutRepository';
 import { AppText, AlertHost, ConfigBanner, GlobalWorkoutBar } from './src/components';
 import { OnboardingOverlay } from './src/features/onboarding/OnboardingOverlay';
 import { installWebAlert } from './src/utils/alert';
@@ -92,11 +92,8 @@ export default function App() {
         await backfillVariantKeysV6(); // v6 무손실 변형 백필(멱등) — 레거시 machine_variant→variant_key. @plm SRS-028
         await consolidateExercisesV8(); // #13 종목 통합(멱등) — 인클라인 프레스 등 기구 변형으로 흡수.
         await backfillCardioKindV10(); // v10 유산소 승격(멱등) — 로잉 머신 등 kind='cardio'. @plm SRS-030
-        // v11 그립 통합 백필은 중지(2026-07-28 사용자 결정·ADR-030: 그립은 별도 기록 버킷, 원암은 세트 속성 유지) — 재실행하면
-        // 새로 만든 grip/arm 버킷 키를 부팅마다 도로 합쳐버린다. 함수는 이력 보존 위해 남김. @plm SRS-028
-        // await backfillDropGripArmV11();
+        await backfillDropGripArmV11(); // v11 그립·팔 세트이동(멱등) — 레거시 변형 버킷서 grip/arm 제거. @plm SRS-028
         await backfillLoadModeV12(); // v12 어시스트 하중모드 승격(멱등) — load_mode='assisted'. @plm SRS-033
-        await backfillPromoteUniformGripV21(); // ADR-030 소급 승격(멱등) — 균일 세트그립 인스턴스 → 그립 버킷(과거 기록 구제). @plm SRS-028
       } catch (e) {
         setError(String(e));
       } finally {

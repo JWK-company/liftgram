@@ -200,7 +200,6 @@ export async function backfillLoadModeV12(): Promise<number> {
 // v11: 그립·팔이 세트별(set_logs)로 이동 → 종목 변형 버킷은 기구만. 레거시 workout/routine_exercises의
 // variant_grip/variant_arm을 버킷 키에서 제거(기구만으로 재계산·컬럼 null)해 신규/즉석/루틴이 한 버킷으로
 // 통합되게 한다(같은 종목이 출처에 따라 다른 이전기록/PR을 보이던 문제 해소). 멱등. @plm SRS-028
-// ⚠ ADR-030(그립 버킷 축 복귀) 이후 재실행 금지 — 실행하면 사용자가 고른 블록 그립을 전부 지운다. 호출부 없음(사장).
 export async function backfillDropGripArmV11(): Promise<number> {
   let n = 0;
   for (const coll of [workoutExercises(), routineExercises()] as const) {
@@ -222,47 +221,6 @@ export async function backfillDropGripArmV11(): Promise<number> {
     n += rows.length;
   }
   return n;
-}
-
-// ADR-030: 과거 '세트별 그립' 기록 소급 승격(멱등) — 수행 세트 전부가 같은 그립으로 기록된 종목 인스턴스를
-// 그 그립 버킷으로 승격(variant_grip + variant_key 재계산). 혼합 그립·미지정 인스턴스는 기본 버킷 유지(비파괴).
-// 세트 그립 입력이 변형 레벨로 이관돼 신규 데이터는 대상이 없다 — 레거시 1회성이나 멱등 가드로 매 부팅 안전.
-// 예: 하이로우를 세트마다 오버그립으로 기록해 온 사용자는 오버그립 버킷 선택 시 그 이전기록·PR을 그대로 본다.
-// routine_exercises는 세트가 없어 추론 불가 — 대상 제외(루틴 목표 그립은 사용자가 변형 시트에서 지정). @plm SRS-028
-export async function backfillPromoteUniformGripV21(): Promise<number> {
-  const allSets = await setLogs().query().fetch();
-  const byWe = new Map<string, SetLog[]>();
-  for (const s of allSets) {
-    const arr = byWe.get(s.workoutExerciseId);
-    if (arr) arr.push(s);
-    else byWe.set(s.workoutExerciseId, [s]);
-  }
-  const wes = await workoutExercises().query().fetch();
-  const targets: { we: WorkoutExercise; grip: string }[] = [];
-  for (const we of wes) {
-    if (we.variantGrip != null) continue; // 이미 그립 버킷 — 멱등 가드
-    const sets = (byWe.get(we.id) ?? []).filter(isPerformed);
-    if (!sets.length) continue;
-    const grips = new Set(sets.map((s) => s.grip ?? null));
-    if (grips.size !== 1) continue; // 혼합 그립 — 승격 불가(기본 버킷 유지)
-    const [g] = [...grips];
-    if (!g) continue; // 전부 미지정 — 기본 버킷 그대로
-    targets.push({ we, grip: g });
-  }
-  if (targets.length) {
-    await database.write(async () => {
-      await database.batch(
-        ...targets.map(({ we, grip }) =>
-          we.prepareUpdate((rec) => {
-            rec.variantGrip = grip;
-            // arm은 버킷 밖(ADR-030 — 세트 속성 유지) → equipment+grip으로만 키 재계산.
-            rec.variantKey = variantColumns({ equipment: rec.variantEquipment, grip: grip as VariantDims['grip'] }).variantKey;
-          }),
-        ),
-      );
-    });
-  }
-  return targets.length;
 }
 
 // ── 조회 / 반응형 ──────────────────────────────────────────────────

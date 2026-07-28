@@ -7,36 +7,264 @@
  "owner": "Product",
  "product": "health-practice",
  "created": "2026-07-28T11:40:00Z",
- "updated": "2026-07-28T11:40:00Z",
+ "updated": "2026-07-28T13:19:16Z",
  "sync": true,
- "tags": ["variants", "records", "grip", "user-feedback"],
+ "tags": [
+  "variants",
+  "records",
+  "grip",
+  "user-feedback"
+ ],
  "relations": {
-  "informs": ["SRS-028"]
+  "informs": [
+   "SRS-028"
+  ]
  },
  "doc": {
   "type": "doc",
   "content": [
-   {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "맥락 (Context)"}]},
-   {"type": "paragraph", "content": [{"type": "text", "text": "ADR-026은 변형 버킷을 기구 1축으로 축소하고 그립·팔을 세트 속성으로 이동했다(그립까지 쪼개면 이전기록·PR이 상시 비어 보이는 문제). 그러나 실사용 피드백(2026-07-28): 하이로우를 기본 그립에서 오버그립으로 바꿨는데 기본 그립으로 수행한 이전기록이 그대로 보였고, 사용자(제품 오너)는 그립도 기록을 따로 매기는 축이어야 한다고 판단했다. 선택지(A 현행 유지 / B 그립 버킷 분리 / C 같은 그립 세트 강조)를 제시했고 B가 선택됐다."}]},
-   {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "결정 (Decision)"}]},
-   {"type": "bullet_list", "content": [
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "그립을 기록 버킷 축으로 복귀한다 — 버킷 키 = (종목 × 기구 × 그립). canonicalVariantKey의 grip 차원을 다시 사용한다."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "그립 선택은 블록(종목 인스턴스) 단위 — VariantSelector에 그립 섹션을 복원한다(세션·루틴 편집 공용, 루틴에 저장 시 세션에 승계)."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "팔(원암/투암)은 세트 속성으로 유지한다(ADR-026 유지 — 편측은 세트 단위 미세 기록·버킷 미분리). 세트별 그립 필드도 표기·미세 기록용으로 유지하되 버킷은 블록 그립이 결정한다."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "기존 기록은 마이그레이션하지 않는다 — 그립 키가 없는 과거 기록은 '기본 그립' 버킷으로 남는다(사용자가 트레이드오프 수용)."}]}]}
-   ]},
-   {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "근거 (Rationale)"}]},
-   {"type": "bullet_list", "content": [
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "그립이 달라지면 수행 중량이 실질적으로 달라지는 종목(하이로우·랫풀다운·로우 계열)에서 이전기록·PR의 연속성보다 정확한 분리가 사용자 가치가 크다는 제품 오너 판단."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ADR-026의 우려(버킷 파편화로 이전기록이 비어 보임)는 여전히 유효하나, 기구 변경과 동일한 UX(변형 선택 시 그 버킷 기록으로 전환·없으면 '–')로 일관되게 노출하는 편이 혼란이 적다."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "구현 리스크가 낮다 — canonicalVariantKey·variantColumns·조회 경로는 그립 차원을 이미 지원하며(v6 유산), UI 복원과 recordVariant의 그립 포함만 필요하다."}]}]}
-   ]},
-   {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "결과·트레이드오프 (Consequences)"}]},
-   {"type": "bullet_list", "content": [
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "ADR-026의 '버킷=기구 1축' 결정은 이 ADR로 부분 개정된다(그립 축 복귀). 세트 정밀도 필드(정자세/부분반복)와 팔=세트 속성 결정은 유지."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "그립을 바꾸면 해당 버킷에 기록이 없을 때 이전기록·PR이 비어 보인다 — 의도된 동작(기구 변경과 동일)."}]}]},
-    {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "과거 v11 백필로 그립 키가 제거된 기록은 기본 그립 버킷에 남는다 — 재분리 불가(원본 키 소실)."}]}]}
-   ]}
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "맥락 (Context)"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "ADR-026은 변형 버킷을 기구 1축으로 축소하고 그립·팔을 세트 속성으로 이동했다(그립까지 쪼개면 이전기록·PR이 상시 비어 보이는 문제). 그러나 실사용 피드백(2026-07-28): 하이로우를 기본 그립에서 오버그립으로 바꿨는데 기본 그립으로 수행한 이전기록이 그대로 보였고, 사용자(제품 오너)는 그립도 기록을 따로 매기는 축이어야 한다고 판단했다. 선택지(A 현행 유지 / B 그립 버킷 분리 / C 같은 그립 세트 강조)를 제시했고 B가 선택됐다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "결정 (Decision)"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "그립을 기록 버킷 축으로 복귀한다 — 버킷 키 = (종목 × 기구 × 그립). canonicalVariantKey의 grip 차원을 다시 사용한다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "그립 선택은 블록(종목 인스턴스) 단위 — VariantSelector에 그립 섹션을 복원한다(세션·루틴 편집 공용, 루틴에 저장 시 세션에 승계)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "팔(원암/투암)은 세트 속성으로 유지한다(ADR-026 유지 — 편측은 세트 단위 미세 기록·버킷 미분리). 세트별 그립 필드도 표기·미세 기록용으로 유지하되 버킷은 블록 그립이 결정한다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "기존 기록은 마이그레이션하지 않는다 — 그립 키가 없는 과거 기록은 '기본 그립' 버킷으로 남는다(사용자가 트레이드오프 수용)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "근거 (Rationale)"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "그립이 달라지면 수행 중량이 실질적으로 달라지는 종목(하이로우·랫풀다운·로우 계열)에서 이전기록·PR의 연속성보다 정확한 분리가 사용자 가치가 크다는 제품 오너 판단."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "ADR-026의 우려(버킷 파편화로 이전기록이 비어 보임)는 여전히 유효하나, 기구 변경과 동일한 UX(변형 선택 시 그 버킷 기록으로 전환·없으면 '–')로 일관되게 노출하는 편이 혼란이 적다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "구현 리스크가 낮다 — canonicalVariantKey·variantColumns·조회 경로는 그립 차원을 이미 지원하며(v6 유산), UI 복원과 recordVariant의 그립 포함만 필요하다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "결과·트레이드오프 (Consequences)"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "ADR-026의 '버킷=기구 1축' 결정은 이 ADR로 부분 개정된다(그립 축 복귀). 세트 정밀도 필드(정자세/부분반복)와 팔=세트 속성 결정은 유지."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "그립을 바꾸면 해당 버킷에 기록이 없을 때 이전기록·PR이 비어 보인다 — 의도된 동작(기구 변경과 동일)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "과거 v11 백필로 그립 키가 제거된 기록은 기본 그립 버킷에 남는다 — 재분리 불가(원본 키 소실)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "철회 (Withdrawn — 2026-07-28)"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "이 결정은 발행 당일 사용자 지시로 전면 철회되었다. 실제 앱에서 확인한 결과 그립을 기록 버킷 축으로 두면 그립을 바꿀 때마다 이전기록이 비어 보이고 기존 기록이 기본 그립 버킷에 갇혀, 얻는 엄밀함보다 잃는 연속성이 컸다. 코드·데이터 모두 ADR-026(그립=세트 속성, 이전기록·PR은 그립 무관 통합) 상태로 되돌렸다 — 그립 UI는 세트 변형 다이얼로그에 그대로 있고 그 세트의 표시 속성으로만 기록된다. 그립별 기록 분리가 다시 필요해지면 사용자 지시로 별도 ADR을 발행한다."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "되돌린 범위: recordVariant의 그립 축 제거 · 세트 변형 시트의 그립을 세트 저장(setSetGrip)으로 복원 · 그립 통합 백필(backfillDropGripArmV11) 재가동 · 소급 승격 백필(backfillPromoteUniformGripV21) 제거. 유지: 기구·머신 브랜드 변형 버킷(ADR-026 원안)."
+     }
+    ]
+   }
   ]
  }
 }

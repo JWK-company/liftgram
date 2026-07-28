@@ -717,7 +717,6 @@ export const en: Record<TransKey, string> = {
   "session.elapsedBar": "Workout {time}",
   "session.liveVolume": "Volume {volume}",
   "session.setColHeader": "Set",
-  "session.gripColHeader": "Grip",
   "session.armColHeader": "Arm",
   "session.armBi": "2-arm",
   "session.armUni": "1-arm",
