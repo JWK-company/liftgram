@@ -662,8 +662,9 @@ function SetRowEdit({
         <Pressable onPress={applyPrev} hitSlop={4} style={styles.colPrev} disabled={!prev}>
           {prev ? (
             <View style={styles.prevChip}>
+              {/* 단위 생략·깔짝은 괄호 플러스 — "10×9" / "10×(9+1)" (사용자 피드백 2026-07-28: 짤림 없이 간결하게). */}
               <AppText variant="caption" color="primary" center numberOfLines={1}>
-                {`${formatWeight(prev.weightKg, weightUnit)}×${prev.reps}${prev.partialReps ? `+${prev.partialReps}` : ''}`}
+                {`${numStr(fromKg(prev.weightKg, weightUnit))}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
               </AppText>
               {/* 세트별 그립·팔 옵션(있을 때만) — 중량×횟수 아래 축약 표시. @plm SRS-028 */}
               {prevOpt ? (
@@ -970,7 +971,7 @@ const styles = StyleSheet.create({
   headerMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 4, flexWrap: 'wrap' },
   gridHead: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, paddingBottom: spacing.xs, gap: spacing.xs },
   colType: { width: 34, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
-  colPrev: { width: 62, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
+  colPrev: { width: 66, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }, // "12.5×(12+3)" 수용(단위 생략·괄호 깔짝)
   // 탭 가능 표시 — 칩(테두리/배경)으로 눌러볼 수 있음을 인지.
   typeChip: {
     minWidth: 28,
