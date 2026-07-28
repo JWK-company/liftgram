@@ -36,7 +36,10 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   const equip = value.equipment ?? null;
   // 2단계 기구 선택 — 베이스 기구(레벨1) + 머신 브랜드(레벨2, 들여쓰기). 머신 종목은 브랜드만.
   const isMachineBase = baseEquipment === 'machine';
-  const machineActive = isMachineBase || isMachineEquipSel(equip);
+  // '머신' 칩·브랜드 목록의 켜짐 판정은 '현재 선택' 기준 — 종목이 머신이라도 바벨 등 대체 기구를 고르면
+  // 머신이 꺼져야 한다(버그 픽스 2026-07-28: isMachineBase에 묶여 항상 켜져 보이던 문제). 머신 종목의
+  // 기본(null)은 곧 '기본 머신'이므로 켜짐으로 취급.
+  const machineActive = isMachineEquipSel(equip) || (isMachineBase && equip == null);
   const genericMachine: string | null = isMachineBase ? null : 'machine'; // '기본(브랜드 미지정) 머신'의 equipment 값
   // 종목 고유 기구(프리웨이트 implement) — 이름에 든 기구(바벨/덤벨/…). 있으면 '기본' 대신 이 기구를 디폴트로. @plm SRS-028
   // 머신 종목도 고유 기구='machine'으로 취급 — 레벨1(덤벨·바벨·스미스…)을 상시 노출해
