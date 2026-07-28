@@ -8,14 +8,10 @@ import { colors, radius, spacing } from '../theme';
 import {
   IMPLEMENT_KEYS,
   MACHINE_BRAND_VARIANT_KEYS,
-  GRIP_KEYS,
-  gripLabel,
-  gripShortLabel,
   isMachineEquipSel,
   equipmentVariantLabel,
   equipmentVariantShortLabel,
   type EquipmentType,
-  type GripKey,
   type VariantDims,
 } from '../domain';
 import { useUser } from '../state/userContext';
@@ -51,8 +47,8 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   // 기구 미지정(null)이면 고유 기구를 '선택된 것처럼' 표시 — 레코드 버킷은 그대로 null(기존 기록 보존).
   const l1Selected = equip ?? (isMachineBase ? null : intrinsicImplement); // 레벨1 하이라이트 기준
   const triggerEquip = equip ?? (isMachineBase ? 'machine' : intrinsicImplement); // 트리거 칩 라벨 기준
-  // 그립은 별도 GripSelector 칩으로 분리(사용자 피드백 2026-07-28: "기구 변형에 그립이 섞여 이상함") —
-  // 이 시트는 기구(레벨1)·머신 브랜드(레벨2)만 담당한다. 버킷 축은 그대로 (기구×그립, ADR-030).
+  // 이 시트는 기구(레벨1)·머신 브랜드(레벨2) 전담 — 그립 편집은 세트 ▼ 변형 시트(원암 옆, 사용자 지시
+  // 2026-07-28), 값은 종목 공통 버킷 축(기구×그립, ADR-030).
   const active = Boolean(triggerEquip);
   const label = equipmentVariantShortLabel(triggerEquip, lang, machineVariantLabels);
 
@@ -121,41 +117,6 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   );
 }
 
-// 그립 선택 칩 — 기구 변형과 분리된 독립 컨트롤(사용자 피드백 2026-07-28). 그립도 (종목×기구×그립)
-// 기록 버킷 축이므로(ADR-030) 선택 즉시 이전기록·PR이 그 그립 것으로 전환된다. 팔(원암)은 세트 속성 유지.
-// 세트별 그립 저장과 양립 불가(버킷이 종목 인스턴스 단위) — 종목(블록) 단위 그립으로 일원화. @plm SRS-028
-export function GripSelector({ value, onChange }: { value: GripKey | null; onChange: (grip: GripKey | null) => void }) {
-  const { t, lang } = useT();
-  const [open, setOpen] = useState(false);
-  const active = value != null;
-  return (
-    <>
-      <Pressable onPress={() => setOpen(true)} hitSlop={6} style={styles.chip}>
-        <Ionicons name="hand-left-outline" size={12} color={active ? colors.primary : colors.textMuted} />
-        <AppText variant="caption" color={active ? 'primary' : 'textMuted'} style={styles.chipText}>
-          {active ? gripShortLabel(value, lang) : t('variant.grip')}
-        </AppText>
-        <Ionicons name="chevron-down" size={12} color={active ? colors.primary : colors.textMuted} />
-      </Pressable>
-
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <AppText variant="heading" style={styles.sheetTitle}>
-              {t('variant.grip')}
-            </AppText>
-            <View style={styles.chipRow}>
-              <SelectChip label={t('variant.default')} active={!active} onPress={() => { onChange(null); setOpen(false); }} />
-              {GRIP_KEYS.map((k) => (
-                <SelectChip key={k} label={gripLabel(k, lang)} active={value === k} onPress={() => { onChange(k); setOpen(false); }} />
-              ))}
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </>
-  );
-}
 
 function SelectChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return (

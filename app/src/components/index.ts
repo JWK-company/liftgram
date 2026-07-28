@@ -13,4 +13,4 @@ export { ConfigBanner } from './ConfigBanner';
 export { Skeleton, SkeletonList, type SkeletonVariant } from './Skeleton';
 export { ListState } from './ListState';
 export { RemoteImage } from './RemoteImage';
-export { VariantSelector, GripSelector } from './VariantSelector';
+export { VariantSelector } from './VariantSelector';
