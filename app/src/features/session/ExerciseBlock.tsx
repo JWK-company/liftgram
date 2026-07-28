@@ -5,7 +5,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector, GripSelector, firePrCelebration } from '../../components';
+import { AppText, Button, Card, IconButton, NumberStepper, TextField, VariantSelector, firePrCelebration } from '../../components';
 import { colors, fontSize, fontWeight, radius, spacing } from '../../theme';
 import { useQueryData } from '../../db/hooks';
 import { exerciseRepo, workoutRepo, type LogSetInput } from '../../data';
@@ -374,9 +374,12 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
         {!isCardio ? (
           <VariantSelector exerciseId={we.exerciseId} baseEquipment={baseEquipment} value={variant} onChange={onVariantChange} />
         ) : null}
-        {/* 그립 칩 — 기구 변형과 분리된 독립 컨트롤(사용자 피드백 2026-07-28). 선택 시 그립 버킷 전환(ADR-030). */}
-        {!isCardio ? (
-          <GripSelector value={(variant.grip as GripKey | null) ?? null} onChange={(g) => onVariantChange({ ...variant, grip: g })} />
+        {/* 그립 편집 위치는 세트 ▼ 변형 시트(원암/투암과 함께 — 사용자 지시 2026-07-28). 값은 블록 공통 버킷 축.
+            선택된 그립은 여기 라벨로만 표시(칩 중복 방지). */}
+        {!isCardio && variant.grip ? (
+          <AppText variant="caption" color="primary">
+            {gripShortLabel(variant.grip as GripKey, lang)}
+          </AppText>
         ) : null}
         {showGroupedBorder ? (
           <View style={styles.supersetBadge}>
@@ -479,6 +482,8 @@ export function ExerciseBlock({ we, weightUnit, weightStep, barWeightKg, bodywei
               onStartRest(restSecondsForSetType(s.setType as PrescribedSetType | null, restSeconds));
               announceNowPlaying(labels[i]);
             }}
+            blockGrip={(variant.grip as GripKey | null) ?? null}
+            onBlockGrip={(g) => onVariantChange({ ...variant, grip: g })}
           />
 
         ),
@@ -568,6 +573,8 @@ function SetRowEdit({
   onApplySuggestion,
   onDoneToggled,
   onRestStart,
+  blockGrip,
+  onBlockGrip,
 }: {
   set: SetLog;
   label: string;
@@ -579,6 +586,8 @@ function SetRowEdit({
   onApplySuggestion: () => void;
   onDoneToggled: (done: boolean, weightKg: number, reps: number) => void;
   onRestStart: () => void;
+  blockGrip: GripKey | null; // 그립 — 종목(블록) 공통 버킷 축(ADR-030). 편집 위치는 세트 변형 시트(사용자 지시 2026-07-28).
+  onBlockGrip: (grip: GripKey | null) => void; // 시트에서 선택 → 블록 그립 변경(이전기록·PR 버킷 전환)
 }) {
   const { t, lang } = useT();
   const isDone = set.done === true;
@@ -628,9 +637,10 @@ function SetRowEdit({
     workoutRepo.setSetArm(set.id, arm).catch(() => {});
   }
   // 변형 칩 축약 라벨 — 원암·그립 조합(예: '원암·오버'). 둘 다 기본이면 '변형' 안내.
+  // 그립은 블록 공통 값(버킷 축) — 표시·편집 모두 blockGrip 기준(세트별 grip 컬럼은 레거시 표시용).
   const variantParts: string[] = [];
   if (isUni) variantParts.push(t('session.armUni'));
-  if (gripKey) variantParts.push(gripShortLabel(gripKey, lang));
+  if (blockGrip) variantParts.push(gripShortLabel(blockGrip, lang));
   const variantSet = variantParts.length > 0;
   const variantChipLabel = variantSet ? variantParts.join('·') : t('session.variantSet');
   function typeColor(): keyof typeof colors {
@@ -773,26 +783,30 @@ function SetRowEdit({
         visible={varOpen}
         onClose={() => setVarOpen(false)}
         isUni={isUni}
-        gripKey={gripKey}
+        gripKey={blockGrip}
         onArm={setArm}
+        onGrip={onBlockGrip}
       />
     </View>
   );
 }
 
-// 세트별 변형 시트 — 팔(투암/원암) + 그립(기본/오버/언더/…). 종목당이 아닌 세트당 설정(v8 팔·v11 그립). @plm SRS-028
+// 세트별 변형 시트 — 팔(투암/원암, 세트당·v8) + 그립(기본/오버/언더/…). 그립 편집 위치는 예전 그대로
+// 이 시트(사용자 지시 2026-07-28)이되, 값은 종목(블록) 공통 버킷 축(ADR-030) — 선택 즉시 이전기록·PR 전환. @plm SRS-028
 function SetVariantSheet({
   visible,
   onClose,
   isUni,
   gripKey,
   onArm,
+  onGrip,
 }: {
   visible: boolean;
   onClose: () => void;
   isUni: boolean;
-  gripKey: GripKey | null;
+  gripKey: GripKey | null; // 블록 공통 그립(버킷 축)
   onArm: (arm: 'uni' | null) => void;
+  onGrip: (grip: GripKey | null) => void; // 블록 그립 변경 — 그립별 기록 분리 유지
 }) {
   const { t, lang } = useT();
   return (
@@ -809,8 +823,15 @@ function SetVariantSheet({
             <VarOpt label={t('session.armBi')} active={!isUni} onPress={() => onArm(null)} />
             <VarOpt label={t('session.armUni')} active={isUni} onPress={() => onArm('uni')} />
           </View>
-          {/* 그립 편집은 종목 변형(헤더 칩)으로 이동 — 버킷 축 복귀(ADR-030). 세트 시트는 팔(원암)만.
-              과거 세트별 그립 값은 이전기록 라벨('오버·원암') 표시로만 잔존(읽기 전용). */}
+          <AppText variant="label" color="textMuted" style={styles.varRowLabel}>
+            {t('session.gripColHeader')}
+          </AppText>
+          <View style={styles.varOptRow}>
+            <VarOpt label={t('variant.default')} active={!gripKey} onPress={() => onGrip(null)} />
+            {GRIP_KEYS.map((g) => (
+              <VarOpt key={g} label={gripLabel(g, lang)} active={gripKey === g} onPress={() => onGrip(g)} />
+            ))}
+          </View>
           <Button title={t('common.ok')} onPress={onClose} style={{ marginTop: spacing.md }} />
         </Pressable>
       </Pressable>

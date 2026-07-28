@@ -21,7 +21,6 @@ import {
   SectionHeader,
   EmptyState,
   VariantSelector,
-  GripSelector,
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
@@ -671,19 +670,7 @@ function ExerciseEditRow({
                   .catch((e) => Alert.alert(t('common.error'), String(e)));
               }}
             />
-            {/* 그립 칩 — 기구 변형과 분리된 독립 컨트롤(ADR-030 그립 버킷·세션 승계). 유산소 제외. */}
-            {!isCardio ? (
-              <GripSelector
-                value={variant.grip ?? null}
-                onChange={(g) => {
-                  const dims = { ...variant, grip: g };
-                  setVariant(dims);
-                  routineRepo
-                    .setRoutineExerciseVariant(re.id, dims)
-                    .catch((e) => Alert.alert(t('common.error'), String(e)));
-                }}
-              />
-            ) : null}
+            {/* 그립 편집은 세션의 세트 ▼ 변형 시트에서(사용자 지시 2026-07-28) — 루틴 편집기는 기구 변형만(원래대로). */}
           </View>
         </View>
         {re.supersetGroup ? <Tag label={t('routines.supersetTag')} tone="primary" /> : null}

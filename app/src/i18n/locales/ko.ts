@@ -719,6 +719,7 @@ export const ko = {
   "session.elapsedBar": "운동 {time}",
   "session.liveVolume": "볼륨 {volume}",
   "session.setColHeader": "세트",
+  "session.gripColHeader": "그립",
   "session.armColHeader": "팔",
   "session.armBi": "투암",
   "session.armUni": "원암",
