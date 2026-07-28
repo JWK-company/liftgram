@@ -77,10 +77,10 @@ interface ExerciseBlockProps {
 
 const numStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
-// 저장된 종목 변형 컬럼 → dims. 그립·팔은 세트별로 이동(v11/v8)했으므로 종목 변형 버킷은 기구만.
-// (레거시 variant_grip/arm은 backfillDropGripArmV11이 버킷 키에서 제거 → 신규/즉석/루틴이 한 버킷으로 통합.) @plm SRS-028
+// 저장된 종목 변형 컬럼 → dims. 그립은 버킷 축 복귀(ADR-030 — ADR-026 부분 개정: 그립별 이전기록·PR 분리),
+// 팔(원암)은 세트 속성 유지. 과거 v11 백필로 그립 키가 없는 기록은 기본 그립 버킷. @plm SRS-028
 function recordVariant(we: WorkoutExercise): VariantDims {
-  return { equipment: we.variantEquipment, grip: null, arm: null };
+  return { equipment: we.variantEquipment, grip: (we.variantGrip as GripKey | null) ?? null, arm: null };
 }
 
 // 세트타입 라벨(순서 의존) — 일반 세트만 1,2,3.. 증가, 워밍업 W·드롭 D·실패 F.
@@ -614,9 +614,6 @@ function SetRowEdit({
   function setArm(arm: 'uni' | null) {
     workoutRepo.setSetArm(set.id, arm).catch(() => {});
   }
-  function setGrip(grip: GripKey | null) {
-    workoutRepo.setSetGrip(set.id, grip).catch(() => {});
-  }
   // 변형 칩 축약 라벨 — 원암·그립 조합(예: '원암·오버'). 둘 다 기본이면 '변형' 안내.
   const variantParts: string[] = [];
   if (isUni) variantParts.push(t('session.armUni'));
@@ -765,7 +762,6 @@ function SetRowEdit({
         isUni={isUni}
         gripKey={gripKey}
         onArm={setArm}
-        onGrip={setGrip}
       />
     </View>
   );
@@ -778,14 +774,12 @@ function SetVariantSheet({
   isUni,
   gripKey,
   onArm,
-  onGrip,
 }: {
   visible: boolean;
   onClose: () => void;
   isUni: boolean;
   gripKey: GripKey | null;
   onArm: (arm: 'uni' | null) => void;
-  onGrip: (grip: GripKey | null) => void;
 }) {
   const { t, lang } = useT();
   return (
@@ -802,15 +796,8 @@ function SetVariantSheet({
             <VarOpt label={t('session.armBi')} active={!isUni} onPress={() => onArm(null)} />
             <VarOpt label={t('session.armUni')} active={isUni} onPress={() => onArm('uni')} />
           </View>
-          <AppText variant="label" color="textMuted" style={styles.varRowLabel}>
-            {t('variant.grip')}
-          </AppText>
-          <View style={styles.varOptRow}>
-            <VarOpt label={t('variant.default')} active={!gripKey} onPress={() => onGrip(null)} />
-            {GRIP_KEYS.map((g) => (
-              <VarOpt key={g} label={gripLabel(g, lang)} active={gripKey === g} onPress={() => onGrip(g)} />
-            ))}
-          </View>
+          {/* 그립 편집은 종목 변형(헤더 칩)으로 이동 — 버킷 축 복귀(ADR-030). 세트 시트는 팔(원암)만.
+              과거 세트별 그립 값은 이전기록 라벨('오버·원암') 표시로만 잔존(읽기 전용). */}
           <Button title={t('common.ok')} onPress={onClose} style={{ marginTop: spacing.md }} />
         </Pressable>
       </Pressable>

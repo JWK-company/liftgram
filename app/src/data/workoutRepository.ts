@@ -200,6 +200,7 @@ export async function backfillLoadModeV12(): Promise<number> {
 // v11: 그립·팔이 세트별(set_logs)로 이동 → 종목 변형 버킷은 기구만. 레거시 workout/routine_exercises의
 // variant_grip/variant_arm을 버킷 키에서 제거(기구만으로 재계산·컬럼 null)해 신규/즉석/루틴이 한 버킷으로
 // 통합되게 한다(같은 종목이 출처에 따라 다른 이전기록/PR을 보이던 문제 해소). 멱등. @plm SRS-028
+// ⚠ ADR-030(그립 버킷 축 복귀) 이후 재실행 금지 — 실행하면 사용자가 고른 블록 그립을 전부 지운다. 호출부 없음(사장).
 export async function backfillDropGripArmV11(): Promise<number> {
   let n = 0;
   for (const coll of [workoutExercises(), routineExercises()] as const) {

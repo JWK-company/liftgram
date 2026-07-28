@@ -8,10 +8,14 @@ import { colors, radius, spacing } from '../theme';
 import {
   IMPLEMENT_KEYS,
   MACHINE_BRAND_VARIANT_KEYS,
+  GRIP_KEYS,
+  gripLabel,
+  gripShortLabel,
   isMachineEquipSel,
   equipmentVariantLabel,
   equipmentVariantShortLabel,
   type EquipmentType,
+  type GripKey,
   type VariantDims,
 } from '../domain';
 import { useUser } from '../state/userContext';
@@ -42,9 +46,12 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
   // 기구 미지정(null)이면 고유 기구를 '선택된 것처럼' 표시 — 레코드 버킷은 그대로 null(기존 기록 보존).
   const l1Selected = equip ?? (isMachineBase ? null : intrinsicImplement); // 레벨1 하이라이트 기준
   const triggerEquip = equip ?? (isMachineBase ? 'machine' : intrinsicImplement); // 트리거 칩 라벨 기준
-  const active = Boolean(triggerEquip);
-  // 트리거 칩은 기구(브랜드) 축약 라벨. 그립·팔은 각 세트 행의 '변형'에서 설정.
-  const label = equipmentVariantShortLabel(triggerEquip, lang, machineVariantLabels);
+  const grip = (value.grip as GripKey | null) ?? null; // 그립 — 버킷 축(ADR-030 — ADR-026 부분 개정)
+  const active = Boolean(triggerEquip) || Boolean(grip);
+  // 트리거 칩 = 기구(브랜드)·그립 축약 라벨(그립 선택 시 병기). 팔(원암)은 각 세트 행의 '변형'에서(세트 속성 유지).
+  const label = [equipmentVariantShortLabel(triggerEquip, lang, machineVariantLabels), grip ? gripShortLabel(grip, lang) : null]
+    .filter(Boolean)
+    .join('·');
 
   return (
     <>
@@ -107,7 +114,16 @@ export function VariantSelector({ baseEquipment, value, onChange }: Props) {
                 </View>
               ) : null}
 
-              {/* 그립(오버/언더/…)·팔(원암/투암)은 세트별로 설정(v11/v8) — 각 세트 행의 '변형'에서. */}
+              {/* 그립 — 버킷 축 복귀(ADR-030): (종목×기구×그립)으로 이전기록·PR 분리. 팔(원암)은 세트 속성 유지. @plm SRS-028 */}
+              <AppText variant="label" color="textMuted" style={styles.rowLabel}>
+                {t('variant.grip')}
+              </AppText>
+              <View style={styles.chipRow}>
+                <SelectChip label={t('variant.default')} active={!grip} onPress={() => onChange({ ...value, grip: null })} />
+                {GRIP_KEYS.map((k) => (
+                  <SelectChip key={k} label={gripLabel(k, lang)} active={grip === k} onPress={() => onChange({ ...value, grip: k })} />
+                ))}
+              </View>
             </ScrollView>
           </Pressable>
         </Pressable>
