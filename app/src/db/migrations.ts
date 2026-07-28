@@ -269,5 +269,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v20: 캘린더 날짜별 간단 메모 — 선택일 상세에서 작성(빈 값=삭제). user_profiles @json 선례. @plm SRS-011
+    {
+      toVersion: 20,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'calendar_notes', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

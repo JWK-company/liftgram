@@ -1,9 +1,10 @@
 // @plm SRS-011  운동 캘린더 — 월별 달력에 '언제·얼마나·어떤 루틴으로' 운동했는지 시각화(책임감 루프).
 // 완료 세션을 로컬 날짜로 버킷팅 → 날짜 셀 마커 + 선택일 상세(루틴명·볼륨·시간·PR). 지속성 가시화.
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen, Card, AppText, Tag, Button } from '../../components';
+import { Screen, Card, AppText, Tag, Button, TextField } from '../../components';
+import { CALENDAR_NOTE_MAX_LEN } from '../../db/models/_sanitizers';
 import type { TabScreenProps } from '../../navigation/types';
 import { analyticsRepo, userRepo } from '../../data';
 import type { Workout } from '../../db/models';
@@ -23,7 +24,7 @@ function dayKeyOf(ms: number): string {
 
 export default function CalendarTabScreen({ navigation }: TabScreenProps<'CalendarTab'>) {
   const { t, lang } = useT();
-  const { weightUnit, user, manualWorkoutDays, refresh } = useUser();
+  const { weightUnit, user, manualWorkoutDays, calendarNotes, refresh } = useUser();
   const locale = lang === 'en' ? 'en-US' : 'ko-KR';
   const workouts = useQueryData(() => analyticsRepo.queryWorkoutHistory(), []);
 
@@ -157,6 +158,24 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
   const selectedLabel = selectedDate.toLocaleDateString(locale, { month: 'long', day: 'numeric', weekday: 'long' });
   const selectedDayNum = dayNumber(selectedDate.getTime()); // 수동 표시 조회·토글용(v19 dayNumber 저장). @plm SRS-011
 
+  // v20: 날짜별 간단 메모 — 선택일 변경 시 로드, blur 시 저장(비우면 삭제). 프로필 동기 경로. @plm SRS-011
+  const [noteDraft, setNoteDraft] = useState('');
+  useEffect(() => setNoteDraft(calendarNotes[String(selectedDayNum)] ?? ''), [selectedDayNum, calendarNotes]);
+  async function saveDayNote() {
+    if (!user) return;
+    const text = noteDraft.trim().slice(0, CALENDAR_NOTE_MAX_LEN);
+    if (text === (calendarNotes[String(selectedDayNum)] ?? '')) return;
+    const next = { ...calendarNotes };
+    if (text) next[String(selectedDayNum)] = text;
+    else delete next[String(selectedDayNum)];
+    try {
+      await userRepo.updateUserSettings(user.id, { calendarNotes: next });
+      await refresh();
+    } catch (e) {
+      Alert.alert(t('common.error'), String(e));
+    }
+  }
+
   return (
     <Screen scroll>
       <AppText variant="display" style={{ marginBottom: spacing.md }}>
@@ -274,7 +293,9 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
             if (d == null) return <View key={i} style={styles.cell} />;
             const key = `${view.y}-${view.m}-${d}`;
             const count = byDay.get(key)?.length ?? 0;
-            const manual = count === 0 && manualSet.has(dayNumber(new Date(view.y, view.m, d).getTime())); // 기록 세션이 있으면 기본 점이 우선
+            const dn = dayNumber(new Date(view.y, view.m, d).getTime());
+            const manual = count === 0 && manualSet.has(dn); // 기록 세션이 있으면 기본 점이 우선
+            const noted = count === 0 && !manual && !!calendarNotes[String(dn)]; // v20: 메모만 있는 날 — 회색 점
             const isToday = key === todayKey;
             const isSelected = key === selected;
             return (
@@ -287,6 +308,8 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
                     <View style={[styles.dot, isSelected && styles.dotOnSel]} />
                   ) : manual ? (
                     <View style={[styles.dot, styles.dotManual, isSelected && styles.dotOnSel]} />
+                  ) : noted ? (
+                    <View style={[styles.dot, styles.dotNote, isSelected && styles.dotOnSel]} />
                   ) : (
                     <View style={styles.dotSpacer} />
                   )}
@@ -301,6 +324,16 @@ export default function CalendarTabScreen({ navigation }: TabScreenProps<'Calend
       <AppText variant="heading" style={styles.detailTitle}>
         {selectedLabel}
       </AppText>
+      {/* v20: 날짜별 간단 메모 — 컨디션·특이사항. blur 저장, 비우면 삭제(운동 유무 무관 상시). @plm SRS-011 */}
+      <TextField
+        value={noteDraft}
+        onChangeText={setNoteDraft}
+        onBlur={saveDayNote}
+        placeholder={t('calendar.dayNotePlaceholder')}
+        multiline
+        maxLength={CALENDAR_NOTE_MAX_LEN}
+        containerStyle={{ marginBottom: spacing.sm }}
+      />
       {selectedWorkouts.length === 0 ? (
         manualSet.has(selectedDayNum) ? (
           /* 수동 표시일 — 앱 기록 없이 직접 표시한 운동일(다른 색 마커). 해제 가능. @plm SRS-011 */
@@ -401,6 +434,7 @@ const styles = StyleSheet.create({
   dayToday: { borderWidth: 1, borderColor: colors.primary },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, marginTop: 3 },
   dotManual: { backgroundColor: colors.warning }, // 수동 표시일 — 기록 세션(primary)과 구분되는 색
+  dotNote: { backgroundColor: colors.textFaint }, // v20: 메모만 있는 날 — 회색 점
   dotOnSel: { backgroundColor: colors.onPrimary },
   dotSpacer: { height: 6, marginTop: 3 },
   manualCard: { borderColor: colors.warning, borderWidth: 1, marginTop: spacing.xs, marginBottom: spacing.md },

@@ -54,3 +54,20 @@ export function sanitizeManualWorkoutDaysJson(raw: unknown): number[] | null {
   out.sort((a, b) => a - b);
   return out.slice(0, 3000); // ≈8년치 매일 표시 — 폭주 데이터 방어 상한
 }
+
+// v20: 날짜별 간단 메모(JSON Record<dayNumber 문자열, string>). 숫자 키·비어있지 않은 텍스트만, 길이·개수 상한 방어. @plm SRS-011
+export const CALENDAR_NOTE_MAX_LEN = 400;
+export function sanitizeCalendarNotesJson(raw: unknown): Record<string, string> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out: Record<string, string> = {};
+  let count = 0;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (count >= 2000) break; // 폭주 방어 상한
+    if (!/^\d+$/.test(k) || typeof v !== 'string') continue;
+    const text = v.trim().slice(0, CALENDAR_NOTE_MAX_LEN);
+    if (!text) continue;
+    out[k] = text;
+    count += 1;
+  }
+  return out;
+}

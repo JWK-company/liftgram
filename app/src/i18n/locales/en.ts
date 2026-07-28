@@ -357,6 +357,7 @@ export const en: Record<TransKey, string> = {
   "nav.calendar": "Calendar",
   "calendar.monthSummary": "{days} active days · {sessions} sessions",
   "calendar.noWorkout": "No workout logged this day",
+  "calendar.dayNotePlaceholder": "Note for this day (condition, anything)",
   "calendar.markWorkedOut": "I worked out this day too",
   "calendar.manualMarkedTag": "Marked as workout day",
   "calendar.manualMarkedDesc": "Marked manually without an app log. Counts toward monthly workout days, not streaks or volume.",

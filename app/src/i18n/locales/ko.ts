@@ -355,6 +355,7 @@ export const ko = {
   "nav.calendar": "캘린더",
   "calendar.monthSummary": "{days}일 운동 · 총 {sessions}회",
   "calendar.noWorkout": "이 날은 운동 기록이 없어요",
+  "calendar.dayNotePlaceholder": "이 날 메모 (컨디션·특이사항)",
   "calendar.markWorkedOut": "이 날도 운동 했어요",
   "calendar.manualMarkedTag": "직접 표시한 운동일",
   "calendar.manualMarkedDesc": "앱 기록 없이 직접 표시했어요. 월 운동일수에는 포함되고, 연속일·볼륨에는 포함되지 않아요.",
