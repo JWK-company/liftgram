@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
 import { SUBSTITUTES } from '../../data/seed/substitutes.seed';
 import { RAW_MEDIA } from '../../data/exerciseMedia.data'; // @plm SRS-032
+import { getExerciseMedia } from '../../data/exerciseMedia';
 import { movementPatternOf, movementPatternMapKeys, samePatternNames } from '../movementPatterns';
 import { FINDER_TREE } from '../exerciseFinder'; // @plm SRS-031
 import { IMPLEMENT_KEYS, equipmentVariantLabel } from '../variants'; // @plm SRS-028
@@ -108,6 +109,29 @@ test('파인더: FINDER_TREE 전 슬롯 names가 시드 실존(베이스 폴백 
 test('미디어: RAW_MEDIA 키 전건이 시드 실존(베이스 폴백 허용)', () => {
   for (const k of Object.keys(RAW_MEDIA)) {
     assert.ok(known(k), `RAW_MEDIA 죽은 키: ${k}`);
+  }
+});
+
+test('미디어 steps-only 렌더 계약: 이미지 없는 엔트리는 start/end 빈 문자열 + 한/영 스텝 보유', () => {
+  // steps-only(s/e 없음) 엔트리가 최소 1건 존재하고, 조회 시 빈 URL(패널이 단계 설명만 렌더)이어야 한다.
+  const stepsOnly = Object.entries(RAW_MEDIA).filter(([, v]) => !v.s);
+  assert.ok(stepsOnly.length >= 50, `steps-only 엔트리 부족: ${stepsOnly.length}`);
+  for (const [k, v] of stepsOnly) {
+    assert.ok(!v.e, `${k}: s 없이 e만 존재`);
+    assert.ok(v.k.length >= 3 && v.en.length >= 3, `${k}: 스텝 부족(ko ${v.k.length}/en ${v.en.length})`);
+  }
+  const m = getExerciseMedia('클랩 푸시업');
+  assert.ok(m, '클랩 푸시업 미디어 조회 실패');
+  assert.equal(m!.start, '');
+  assert.equal(m!.end, '');
+  assert.ok(m!.instructionsKo.length >= 3);
+});
+
+test('미디어 카피 게이트: RAW_MEDIA 전 엔트리 스텝(한/영)에 의료 단정 없음', () => {
+  for (const [k, v] of Object.entries(RAW_MEDIA)) {
+    for (const s of [...v.k, ...v.en]) {
+      assert.equal(containsMedicalClaim(s), false, `의료 단정 카피: ${k} → ${s}`);
+    }
   }
 });
 

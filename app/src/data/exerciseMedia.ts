@@ -39,7 +39,14 @@ export function getExerciseMedia(nameKo: string): ExerciseMedia | null {
   if (!r && !gif) return null;
   // 3D 움짤만 있고 2컷·설명이 없는 종목(신규 갭 종목 등)도 미디어 패널이 뜨도록 허용.
   if (!r) return { start: '', end: '', gif, instructionsKo: [], instructionsEn: [] };
-  return { start: freeDbImageUrl(r.s), end: freeDbImageUrl(r.e), gif, instructionsKo: r.k, instructionsEn: r.en };
+  // steps-only 엔트리(s/e 없음 — 무매칭 자체 스텝)는 start/end 빈 문자열 → 패널이 단계 설명만 렌더. @plm SRS-032 SRS-046
+  return {
+    start: r.s ? freeDbImageUrl(r.s) : '',
+    end: r.e ? freeDbImageUrl(r.e) : '',
+    gif,
+    instructionsKo: r.k,
+    instructionsEn: r.en,
+  };
 }
 
 // 이미지 출처 크레딧(관례 표기 — Unlicense는 의무 아님).

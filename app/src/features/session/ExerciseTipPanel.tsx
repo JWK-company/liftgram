@@ -27,12 +27,14 @@ export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; 
   const media = getExerciseMedia(nameKo);
   const steps = media ? (lang === 'ko' && media.instructionsKo.length ? media.instructionsKo : media.instructionsEn) : [];
   if (!media && steps.length === 0) return null;
+  // steps-only 엔트리(이미지 없이 스텝만)는 미디어 박스 대신 단계 설명을 초기 표시(빈 이미지 박스 방지). @plm SRS-032 SRS-046
+  const hasImages = !!media && !!(media.gif || media.start);
 
   function toggle() {
     const next = !expanded;
     setExpanded(next);
     if (nameKo) expandedByExercise.set(nameKo, next);
-    if (next) setMode(media ? 'media' : 'steps');
+    if (next) setMode(hasImages ? 'media' : 'steps');
   }
 
   return (
@@ -48,7 +50,7 @@ export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; 
         {trailing ?? null}
       </View>
       {expanded ? (
-        mode === 'media' && media ? (
+        mode === 'media' && media && hasImages ? (
           <Pressable onPress={() => steps.length > 0 && setMode('steps')} style={styles.mediaBox}>
             <TwoFrameLoop media={media} />
             {steps.length > 0 ? (
@@ -58,7 +60,7 @@ export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; 
             ) : null}
           </Pressable>
         ) : (
-          <Pressable onPress={() => media && setMode('media')} style={styles.stepsBox}>
+          <Pressable onPress={() => hasImages && setMode('media')} style={styles.stepsBox}>
             {steps.map((step, i) => (
               <View key={i} style={styles.stepRow}>
                 <View style={styles.stepNum}>
@@ -71,7 +73,7 @@ export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; 
                 </AppText>
               </View>
             ))}
-            {media ? (
+            {hasImages ? (
               <AppText variant="label" color="textFaint" center style={{ marginTop: 2 }}>
                 {t('session.tipTapForMedia')}
               </AppText>
