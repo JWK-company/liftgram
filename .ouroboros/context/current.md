@@ -45,7 +45,13 @@
 
 ## 활성 작업
 
-(없음 — 카탈로그 대확장 완료·배포됨. 다음 권장: /qa code → /reflect)
+(없음 — 카탈로그 대확장 사이클 종결: spec → qa spec → execute 4 Phase → qa code → v0.14.0/0.14.1 배포 → **회고 완료**)
+
+## 회고 (2026-08-01 · /reflect)
+
+- 저장 5건: pattern(정본 확정→에이전트 팬아웃→기계 검증기 병합) · gotcha(재생성 코드젠의 침묵 삭제 가드) · decision(스펙 표 vs 도메인 정확성 이탈 시 3곳 사유 기록) · insight(리뷰 발견은 코드 대조 전 채택 금지 — 오탐이 불필요한 마이그레이션을 부름) + 파일 메모리 신규 1(Ouroboros scope 갭)
+- 파일 메모리 갱신 2: 카탈로그(336종·band 축·steps-only 게이트·gen 스크립트 계약·시드↔파인더 원자성) · 브라우저 검증(`/exercise/seed-<슬러그>` 결정적 딥링크)
+- **설정 갭**: `.ouroboros/env/.env`에 `PROJECT_ID`·`DEVELOPER_USER_ID` 부재 → 메모리는 personal scope만 안전(채우면 project 공유 가능)
 
 ## 다음 작업
 

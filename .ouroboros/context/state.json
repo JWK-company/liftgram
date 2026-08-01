@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-08-01T11:59:53Z",
+  "last_gate_check": "2026-08-01T12:23:00Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -39,7 +39,7 @@
   },
   "active_files": [],
   "notes": {
-    "last_done": "2026-08-01 /qa code 완료(채택9·보류5·기각0)·v0.14.1 배포(index-96cf55a3) — 다음 권장: /reflect"
+    "last_done": "2026-08-01 /reflect 완료(인사이트 5건 저장·파일 메모리 3건 갱신) — 카탈로그 대확장 사이클 종결. 다음 권장: /suggest"
   },
   "grade": "Feature",
   "spec_path": ".ouroboros/docs/spec/20260801_exercise_catalog_expansion/",
