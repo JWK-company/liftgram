@@ -1,6 +1,6 @@
 {
   "active_skill": null,
-  "skill_step": 1,
+  "skill_step": null,
   "active_artifact": null,
   "autorun": {
     "queue": [
@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-08-01T09:17:38Z",
+  "last_gate_check": "2026-08-01T11:39:35Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -39,6 +39,18 @@
   },
   "active_files": [],
   "notes": {
-    "last_done": "2026-08-01 v0.13.6 전역 운동 바 푸터 여유공간 픽스 배포 완료 — 커밋 f86040d·드래프트 6a6dc21f restore 승격·프로덕션 index-f0542a64 확인"
-  }
+    "last_done": "2026-08-01 운동 카탈로그 대확장 완료·v0.14.0 프로덕션 배포(index-f4a06171) — 다음 권장: /qa code → /reflect"
+  },
+  "grade": "Feature",
+  "spec_path": ".ouroboros/docs/spec/20260801_exercise_catalog_expansion/",
+  "phase": null,
+  "tasks_exec": {
+    "catalog-expansion": {
+      "name": "운동 카탈로그 대확장",
+      "spec_path": ".ouroboros/docs/spec/20260801_exercise_catalog_expansion/",
+      "grade": "Feature",
+      "current_phase": "done"
+    }
+  },
+  "release_tag": "v0.14.0"
 }
