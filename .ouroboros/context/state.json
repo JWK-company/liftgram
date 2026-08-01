@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-07-31T13:03:19Z",
+  "last_gate_check": "2026-08-01T09:17:38Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -39,6 +39,6 @@
   },
   "active_files": [],
   "notes": {
-    "last_done": "2026-08-01 v0.13.5 변형 버킷 분열 픽스 배포 완료 — 커밋 52aae07·드래프트 6a6db920 restore 승격·프로덕션 index-c97e813d 확인"
+    "last_done": "2026-08-01 v0.13.6 전역 운동 바 푸터 여유공간 픽스 배포 완료 — 커밋 f86040d·드래프트 6a6dc21f restore 승격·프로덕션 index-f0542a64 확인"
   }
 }
