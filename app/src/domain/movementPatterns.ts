@@ -114,6 +114,94 @@ const PATTERN_BY_NAME: Record<string, MovementPattern> = {
   '덤벨 레터럴 레이즈': 'lateralRaise',
   '케이블 레터럴 레이즈': 'lateralRaise',
   '머신 레터럴 레이즈': 'lateralRaise',
+
+  // ── 카탈로그 대확장 (2026-08 · spec 20260801) — 표의 패턴 컬럼 기재분만(공란=제외 확정).
+  // 괄호 신규 엔트리(힙 쓰러스트 (덤벨)·슈러그 (머신) 등)는 베이스 폴백 자동 도달 — 매핑 추가 금지.
+  // 단 베이스가 맵에 없는 괄호 계열(프론트 레이즈·리버스 컬)은 베이스명 키로 계열 전체를 잇는다. @plm SRS-047
+  // 수평 프레스
+  '디클라인 푸시업': 'horizontalPress',
+  '클랩 푸시업': 'horizontalPress',
+  '닐링 푸시업': 'horizontalPress',
+  '원암 푸시업': 'horizontalPress',
+  '플랭크 푸시업': 'horizontalPress',
+  '링 푸시업': 'horizontalPress',
+  '플로어 프레스': 'horizontalPress',
+  '덤벨 스퀴즈 프레스': 'horizontalPress',
+  '스벤드 프레스': 'horizontalPress',
+  '링 딥스': 'horizontalPress',
+  // 플라이
+  '디클라인 덤벨 플라이': 'fly',
+  '시티드 케이블 플라이': 'fly',
+  '덤벨 어라운드 더 월드': 'fly',
+  '밴드 풀 어파트': 'fly', // 리어
+  // 수평 당기기
+  '랜드마인 로우': 'horizontalPull',
+  '메도우스 로우': 'horizontalPull',
+  '씰 로우': 'horizontalPull',
+  '고릴라 로우': 'horizontalPull',
+  '레니게이드 로우': 'horizontalPull',
+  // 수직 당기기
+  '풀오버 머신': 'verticalPull',
+  '네거티브 풀업': 'verticalPull',
+  '스캐퓰러 풀업': 'verticalPull',
+  '키핑 풀업': 'verticalPull',
+  '스터넘 풀업': 'verticalPull',
+  '머슬업': 'verticalPull',
+  '링 풀업': 'verticalPull',
+  // 수직 프레스
+  '파이크 푸시업': 'verticalPress',
+  '핸드스탠드 푸시업': 'verticalPress',
+  '핸드스탠드 홀드': 'verticalPress',
+  '푸시 프레스': 'verticalPress',
+  // 레터럴 레이즈 (프론트 레이즈는 베이스 키 — (덤벨)/(케이블)/(바벨)/(플레이트) 폴백 도달)
+  '케이블 Y 레이즈': 'lateralRaise',
+  '체스트 서포티드 Y 레이즈': 'lateralRaise',
+  '프론트 레이즈': 'lateralRaise',
+  '오버헤드 플레이트 레이즈': 'lateralRaise',
+  // 컬 (리버스 컬은 베이스 키 — (덤벨)/(케이블) 폴백 도달)
+  '드래그 컬': 'curl',
+  '조트맨 컬': 'curl',
+  '크로스 바디 해머 컬': 'curl',
+  '웨이터 컬': 'curl',
+  '21 컬': 'curl',
+  '오버헤드 케이블 컬': 'curl',
+  '비하인드 백 케이블 컬': 'curl',
+  '플레이트 컬': 'curl',
+  '비하인드 백 리스트 컬': 'curl',
+  '리버스 컬': 'curl',
+  // 삼두 신전
+  '리버스 그립 푸시다운': 'extension',
+  '트라이셉스 익스텐션 머신': 'extension',
+  '와이드 엘보 트라이셉스 프레스': 'extension',
+  // 스쿼트
+  '박스 스쿼트': 'squat',
+  '포즈 스쿼트': 'squat',
+  '오버헤드 스쿼트': 'squat',
+  '저처 스쿼트': 'squat',
+  '스모 스쿼트': 'squat',
+  '피스톨 스쿼트': 'squat',
+  '월 싯': 'squat',
+  '점프 스쿼트': 'squat',
+  '박스 점프': 'squat', // 양발 플라이오 — 점프 스쿼트와 동조(qa)
+  '프로그 점프': 'squat',
+  '레터럴 스쿼트': 'squat',
+  // 런지·스텝 (기존 런지 계열과 정합 — 표의 〃 연쇄는 squat로 읽히나 대체후보 계열 분열 방지가 우선)
+  '레터럴 박스 점프': 'lungeStep',
+  '리버스 런지': 'lungeStep',
+  '레터럴 런지': 'lungeStep',
+  '커시 런지': 'lungeStep',
+  '점프 런지': 'lungeStep',
+  '오버헤드 런지': 'lungeStep',
+  '스플릿 스쿼트': 'lungeStep',
+  // 힌지
+  '백 익스텐션 머신': 'hinge',
+  '케이블 풀 스루': 'hinge',
+  '리버스 하이퍼익스텐션': 'hinge',
+  '데드리프트 하이 풀': 'hinge',
+  // 코어·캐리
+  '슈퍼맨': 'core',
+  '숄더 탭': 'core',
+  '수트케이스 캐리': 'carry',
 };
 
 // 괄호 기구 토큰 제거 폴백('인클라인 프레스 (바벨)' → '인클라인 프레스') — exerciseMedia와 동일 규칙.
