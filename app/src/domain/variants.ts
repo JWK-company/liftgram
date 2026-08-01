@@ -65,6 +65,25 @@ export function variantColumns(v: VariantDims): {
   };
 }
 
+// 종목 '고유 기구'(카탈로그 기본 기구) 선택 = 기본 버킷(null). 선택기는 이미 이렇게 저장하지만
+// (VariantSelector: `k === baseEquipment ? null : k`, 2026-07-18~) 그 규칙이 UI에만 있었던 탓에
+// 그 이전 데이터·다른 쓰기 경로가 `equip:<고유기구>`를 남겼고, 같은 종목·같은 기구인데 버킷이 둘로
+// 갈라져 루틴/세션마다 이전기록·PR이 비어 보였다(2026-08-01 사용자 리포트). 모든 쓰기 경로와 부팅
+// 백필(V22)이 이 함수를 통과해 한 버킷으로 모은다. @plm SRS-028
+export function normalizeVariantEquipment(
+  equipment: string | null | undefined,
+  baseEquipment: string | null | undefined,
+): string | null {
+  const eq = norm(equipment);
+  if (!eq || !baseEquipment) return eq;
+  return eq === baseEquipment ? null : eq;
+}
+
+// 위 규칙을 dims 단위로 적용(기구 차원만 정규화 — 그립·팔은 그대로).
+export function normalizeVariantDims(v: VariantDims, baseEquipment: string | null | undefined): VariantDims {
+  return { ...v, equipment: normalizeVariantEquipment(v.equipment, baseEquipment) };
+}
+
 // v5 machine_variant(브랜드/커스텀 키) → v6 차원/키 무손실 승계. 브랜드는 equipment 차원으로.
 export function legacyMachineVariantToV6(mv: string | null | undefined): { dims: VariantDims; key: string | null } {
   const dims: VariantDims = { equipment: norm(mv), grip: null, arm: null };

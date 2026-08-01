@@ -23,7 +23,14 @@ import {
   type EquipmentType,
   type PrescribedSet, // v16: 처방 어휘(프리레이·복사). @plm SRS-043
 } from '../domain';
-import { legacyMachineVariantToV6, variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
+import {
+  legacyMachineVariantToV6,
+  variantColumns,
+  normalizeVariantDims,
+  type VariantDims,
+  type GripKey,
+  type ArmKey,
+} from '../domain/variants'; // @plm SRS-028
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
 import { randomId } from '../utils/id';
 
@@ -214,6 +221,45 @@ export async function backfillDropGripArmV11(): Promise<number> {
             rec.variantKey = variantColumns({ equipment: rec.variantEquipment }).variantKey; // 기구만으로 재계산
             rec.variantGrip = null;
             rec.variantArm = null;
+          }),
+        ),
+      );
+    });
+    n += rows.length;
+  }
+  return n;
+}
+
+// v22: 고유 기구 버킷 병합(멱등) — variant_equipment가 종목의 고유 기구와 같은 행(예: '바벨 벤치프레스'에
+// equip:barbell)을 기본 버킷(null)으로 정규화한다. 선택기는 2026-07-18부터 고유 기구를 null로 저장하지만
+// 그 이전에 저장된 루틴·세션 행이 남아 같은 종목이 두 버킷으로 갈라졌고, 그 결과 "루틴 A로는 이전기록이
+// 보이는데 루틴 B로 시작하면 안 보인다"가 발생했다(2026-08-01 사용자 리포트).
+// machine_variant(레거시 미러)도 함께 비운다 — 남겨두면 backfillVariantKeysV6/effectiveVariantKey가
+// 다음 부팅에 equip:<고유기구>를 되살려 정규화가 무효화된다. @plm SRS-028
+export async function backfillNormalizeIntrinsicEquipmentV22(): Promise<number> {
+  const exs = await database.get<Exercise>('exercises').query().fetch();
+  const equipById = new Map(exs.map((e) => [e.id, e.equipment as string | null]));
+  let n = 0;
+  for (const coll of [workoutExercises(), routineExercises()] as const) {
+    // NULL 의미차(어댑터별) 회피 위해 전건 조회 후 JS 필터.
+    const all = await coll.query().fetch();
+    const rows = all.filter((r) => {
+      const eq = (r.variantEquipment ?? '').trim();
+      return !!eq && eq === equipById.get(r.exerciseId);
+    });
+    if (!rows.length) continue;
+    await database.write(async () => {
+      await database.batch(
+        ...rows.map((r) =>
+          (r as WorkoutExercise | RoutineExercise).prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+            // 그립·팔은 v11 이후 항상 null이지만, 남아 있어도 손실 없이 보존하고 기구 축만 병합.
+            rec.variantKey = variantColumns({
+              equipment: null,
+              grip: rec.variantGrip as GripKey | null,
+              arm: rec.variantArm as ArmKey | null,
+            }).variantKey;
+            rec.variantEquipment = null;
+            rec.machineVariant = null; // 레거시 미러도 비워야 V6 백필이 되살리지 않는다
           }),
         ),
       );
@@ -469,8 +515,24 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
   const res = await routineExercises()
     .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
     .fetch();
+  // 종목별 버킷 결정 — 루틴이 변형을 지정했으면 그대로, 미지정이면 마지막 수행 변형 승계(resolveStartVariant).
+  const variantByRe = new Map<string, VariantColumns>();
+  for (const re of res) {
+    const legacy = legacyMachineVariantToV6(re.machineVariant);
+    variantByRe.set(
+      re.id,
+      await resolveStartVariant(re.exerciseId, {
+        variantKey: effectiveVariantKey(re),
+        variantEquipment: re.variantEquipment ?? legacy.dims.equipment ?? null,
+        variantGrip: re.variantGrip ?? null,
+        variantArm: re.variantArm ?? null,
+        machineVariant: re.machineVariant ?? null,
+      }),
+    );
+  }
+  const variantOf = (re: (typeof res)[number]) => variantByRe.get(re.id) as VariantColumns;
   // (종목×기구)별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
-  const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${effectiveVariantKey(re) ?? ''}`;
+  const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${variantOf(re).variantKey ?? ''}`;
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
   const prevSetsByKey = new Map<string, LogSetInput[]>();
   const cardioByExercise = new Map<string, boolean>(); // 종목별 유산소 여부(중복 조회 방지)
@@ -478,8 +540,8 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
   for (const re of res) {
     const k = vkey(re);
     if (!prevSnapByKey.has(k)) {
-      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, effectiveVariantKey(re)));
-      prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, effectiveVariantKey(re)));
+      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, variantOf(re).variantKey));
+      prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, variantOf(re).variantKey));
     }
     if (!cardioByExercise.has(re.exerciseId)) {
       cardioByExercise.set(re.exerciseId, await isCardioExerciseId(re.exerciseId));
@@ -512,12 +574,14 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.targetRepsMax = re.targetRepsMax;
         we.targetWeightKg = re.targetWeightKg;
         we.restSeconds = re.restSeconds;
-        we.machineVariant = re.machineVariant; // 레거시 미러
         // v6: 루틴의 변형 선택 복사(버킷 키). 레거시 루틴(machine_variant만)은 즉석 승계.
-        we.variantKey = effectiveVariantKey(re);
-        we.variantEquipment = re.variantEquipment ?? legacyMachineVariantToV6(re.machineVariant).dims.equipment ?? null;
-        we.variantGrip = re.variantGrip ?? null;
-        we.variantArm = re.variantArm ?? null;
+        // 미지정 종목은 마지막 수행 변형을 승계한 값(resolveStartVariant) — 이전기록·PR이 이어지도록.
+        const v = variantOf(re);
+        we.machineVariant = v.machineVariant; // 레거시 미러
+        we.variantKey = v.variantKey;
+        we.variantEquipment = v.variantEquipment;
+        we.variantGrip = v.variantGrip;
+        we.variantArm = v.variantArm;
         we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
         we.note = re.note?.trim() || null; // 루틴 종목 메모·팁을 세션 메모에 시드(가져온 상급자 팁 노출 — 티칭). @plm SRS-004 SRS-007
         we.cardioTarget = re.cardioTarget ?? null; // v13: 루틴 유산소 목표 복사. @plm SRS-030
@@ -579,8 +643,17 @@ export async function renameWorkout(workoutId: string, name: string): Promise<vo
 }
 
 export async function addExerciseToWorkout(workoutId: string, exerciseId: string): Promise<WorkoutExercise> {
-  const prevSnap = await getPreviousExerciseSnapshot(exerciseId);
-  const prevSets = await getPreviousExerciseSets(exerciseId);
+  // 즉석 추가도 '마지막 수행 변형'을 승계 — 그래야 프리레이에 쓴 이전기록과 블록이 조회하는 버킷이 같다
+  // (구: 버킷 무관 조회 + 기본 버킷 저장 → 값은 채워졌는데 이전기록·PR은 비어 보였다). @plm SRS-028
+  const variant = await resolveStartVariant(exerciseId, {
+    variantKey: null,
+    variantEquipment: null,
+    variantGrip: null,
+    variantArm: null,
+    machineVariant: null,
+  });
+  const prevSnap = await getPreviousExerciseSnapshot(exerciseId, variant.variantKey);
+  const prevSets = await getPreviousExerciseSets(exerciseId, variant.variantKey);
   const cardio = await isCardioExerciseId(exerciseId);
   const bodyweight = await isBodyweightExerciseId(exerciseId);
   return database.write(async () => {
@@ -597,12 +670,12 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.targetRepsMax = null;
       rec.targetWeightKg = null;
       rec.restSeconds = 120;
-      rec.machineVariant = null; // 레거시
-      // v6: 즉석 추가 종목은 기본(미지정) — 헤더에서 변형(기구·그립·팔) 선택
-      rec.variantKey = null;
-      rec.variantEquipment = null;
-      rec.variantGrip = null;
-      rec.variantArm = null;
+      // v6: 기본(미지정) — 단, 이 종목을 변형으로만 수행해 왔다면 그 변형 승계(헤더에서 변경 가능)
+      rec.machineVariant = variant.machineVariant; // 레거시 미러
+      rec.variantKey = variant.variantKey;
+      rec.variantEquipment = variant.variantEquipment;
+      rec.variantGrip = variant.variantGrip;
+      rec.variantArm = variant.variantArm;
     });
     const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio, bodyweight);
     await database.batch(we, ...setRecords);
@@ -618,35 +691,59 @@ export async function removeWorkoutExercise(id: string): Promise<void> {
   });
 }
 
-// 종목의 '가장 최근 수행' 변형 컨텍스트(완료 세션·수행 세트 있는 인스턴스 기준) — 종목 교체 시 승계용.
-// 이전기록·PR은 (종목×변형) 버킷으로 분리 조회되므로, 버킷을 무조건 기본(null)으로 리셋하면
-// 변형으로만 수행해 온 종목은 교체 직후 이전기록이 비어 보인다. 이력 없으면 null.
-async function getLatestVariantUsage(exerciseId: string): Promise<{
+// 종목 인스턴스의 변형 컬럼 묶음 — 승계(교체·세션 시작)에서 통째로 복사한다. @plm SRS-028
+export interface VariantColumns {
   variantKey: string | null;
   variantEquipment: string | null;
   variantGrip: string | null;
   variantArm: string | null;
   machineVariant: string | null;
-} | null> {
-  const completed = await workouts()
-    .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
-    .fetch();
-  for (const w of completed) {
-    const wes = await workoutExercises().query(Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)).fetch();
-    for (const cand of wes) {
-      const sets = (await setLogs().query(Q.where('workout_exercise_id', cand.id)).fetch()).filter(isPerformed);
-      if (sets.length) {
-        return {
-          variantKey: cand.variantKey,
-          variantEquipment: cand.variantEquipment,
-          variantGrip: cand.variantGrip,
-          variantArm: cand.variantArm,
-          machineVariant: cand.machineVariant,
-        };
-      }
-    }
-  }
-  return null;
+}
+
+const variantColumnsOf = (rec: WorkoutExercise): VariantColumns => ({
+  variantKey: rec.variantKey,
+  variantEquipment: rec.variantEquipment,
+  variantGrip: rec.variantGrip,
+  variantArm: rec.variantArm,
+  machineVariant: rec.machineVariant,
+});
+
+// 이 종목을 '실제로 수행한' 완료 세션 인스턴스들(최신순). 변형 승계·버킷 이력 판정의 공통 기반.
+// 세션당 순회(완료 세션 수 × 쿼리)가 아니라 3쿼리로 모으므로 이력이 쌓여도 시작이 느려지지 않는다.
+async function performedInstancesOf(exerciseId: string): Promise<{ we: WorkoutExercise; completedAt: number }[]> {
+  const wes = await workoutExercises().query(Q.where('exercise_id', exerciseId)).fetch();
+  if (!wes.length) return [];
+  const wIds = [...new Set(wes.map((w) => w.workoutId))];
+  const ws = await workouts().query(Q.where('id', Q.oneOf(wIds)), Q.where('state', 'completed')).fetch();
+  const atById = new Map(ws.map((w) => [w.id, w.completedAt ?? w.startedAt]));
+  const cands = wes.filter((w) => atById.has(w.workoutId));
+  if (!cands.length) return [];
+  const sets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(cands.map((c) => c.id)))).fetch();
+  const performed = new Set(sets.filter(isPerformed).map((s) => s.workoutExerciseId));
+  return cands
+    .filter((c) => performed.has(c.id))
+    .map((c) => ({ we: c, completedAt: atById.get(c.workoutId) as number }))
+    .sort((a, b) => b.completedAt - a.completedAt);
+}
+
+// 종목의 '가장 최근 수행' 변형 컨텍스트(완료 세션·수행 세트 있는 인스턴스 기준) — 종목 교체 시 승계용.
+// 이전기록·PR은 (종목×변형) 버킷으로 분리 조회되므로, 버킷을 무조건 기본(null)으로 리셋하면
+// 변형으로만 수행해 온 종목은 교체 직후 이전기록이 비어 보인다. 이력 없으면 null.
+export async function getLatestVariantUsage(exerciseId: string): Promise<VariantColumns | null> {
+  const [latest] = await performedInstancesOf(exerciseId);
+  return latest ? variantColumnsOf(latest.we) : null;
+}
+
+// 세션 재료화(루틴 시작·즉석 추가) 시 버킷 결정 — 변형이 '미지정(기본 버킷)'인데 기본 버킷엔 수행 이력이
+// 없고 다른 변형으로 수행한 이력이 있으면 마지막 수행 변형을 승계한다(종목 교체와 같은 규칙).
+// 이게 없으면 "많이 해온 종목인데 이 루틴으로 시작하니 이전기록·PR이 안 보인다"가 된다(2026-08-01 리포트).
+// 변형이 명시된 종목은 손대지 않는다 — 사용자가 고른 기구가 우선. @plm SRS-028
+async function resolveStartVariant(exerciseId: string, stored: VariantColumns): Promise<VariantColumns> {
+  if (stored.variantKey != null) return stored; // 명시 선택 존중
+  const instances = await performedInstancesOf(exerciseId);
+  if (!instances.length) return stored; // 이력 없음 — 기본 버킷
+  if (instances.some(({ we }) => we.variantKey == null)) return stored; // 기본 버킷에 이력 있음 — 그대로
+  return variantColumnsOf(instances[0].we); // 전부 다른 변형 → 마지막 수행 변형 승계
 }
 
 // 운동 중 종목 교체(BS-002 #22) — 삭제·재추가 없이 이 인스턴스의 종목만 교체. 세트는 유지(새 종목 기록으로),
@@ -789,9 +886,21 @@ export async function setSetGrip(id: string, grip: string | null): Promise<void>
   });
 }
 
+// 종목의 고유 기구(카탈로그 기본 기구) — 변형 정규화 기준. 조회 실패는 null(정규화 생략). @plm SRS-028
+async function baseEquipmentOf(exerciseId: string): Promise<string | null> {
+  try {
+    const e = await getExercise(exerciseId);
+    return e.equipment ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // 세션 중 종목의 변형(기구·그립) 변경 — 이전기록·PR이 해당 변형 것으로 갱신된다. @plm SRS-028
+// 고유 기구 선택은 기본 버킷(null)으로 정규화 — UI뿐 아니라 데이터 계층에서 보장(버킷 분열 방지).
 export async function setVariant(workoutExerciseId: string, dims: VariantDims): Promise<void> {
-  const cols = variantColumns(dims);
+  const target = await workoutExercises().find(workoutExerciseId);
+  const cols = variantColumns(normalizeVariantDims(dims, await baseEquipmentOf(target.exerciseId)));
   await database.write(async () => {
     const we = await workoutExercises().find(workoutExerciseId);
     await we.update((rec) => {

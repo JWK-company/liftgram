@@ -5,7 +5,9 @@ import { database } from '../db/database';
 import { Routine, RoutineExercise } from '../db/models';
 import type { CardioTargetJson } from '../db/models/_sanitizers';
 import { randomId } from '../utils/id';
-import { variantColumns, type VariantDims } from '../domain/variants'; // @plm SRS-028
+import { variantColumns, normalizeVariantDims, type VariantDims } from '../domain/variants'; // @plm SRS-028
+import { getExercise } from './exerciseRepository';
+import { getLatestVariantUsage } from './workoutRepository';
 
 const routines = () => database.get<Routine>('routines');
 const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
@@ -145,8 +147,13 @@ export async function setRoutineExercisePrescription(
 }
 
 // 루틴 종목의 변형(기구·그립·팔) 저장 — variant_key 파생 + 개별 차원, 레거시 machine_variant 미러. @plm SRS-028
+// 고유 기구 선택은 기본 버킷(null)으로 정규화 — 같은 종목·같은 기구가 두 버킷으로 갈라지지 않게(데이터 계층 보장).
 export async function setRoutineExerciseVariant(id: string, dims: VariantDims): Promise<void> {
-  const cols = variantColumns(dims);
+  const target = await routineExercises().find(id);
+  const base = await getExercise(target.exerciseId)
+    .then((e) => e.equipment ?? null)
+    .catch(() => null);
+  const cols = variantColumns(normalizeVariantDims(dims, base));
   await database.write(async () => {
     const re = await routineExercises().find(id);
     await re.update((rec) => {
@@ -208,11 +215,20 @@ export async function importRoutine(name: string, exercises: ImportRoutineExerci
 }
 
 // 대체운동 스왑: 목표(세트/반복/휴식) 유지, exercise_id만 교체 (SRS-001/002).
+// 변형(기구)은 이전 종목 것을 물려받으면 안 된다 — 새 종목의 '마지막 수행 변형'을 승계(없으면 기본 버킷).
+// 구: 변형을 그대로 둬서 예컨대 덤벨 변형이 붙은 채 바벨 종목으로 바뀌고, 그 루틴으로 시작한 세션만
+// 엉뚱한 버킷을 조회해 이전기록·PR이 비어 보였다. 세션 종목 교체(swapWorkoutExercise)와 같은 규칙. @plm SRS-028
 export async function swapRoutineExercise(routineExerciseId: string, newExerciseId: string): Promise<void> {
+  const lastVariant = await getLatestVariantUsage(newExerciseId);
   await database.write(async () => {
     const re = await routineExercises().find(routineExerciseId);
     await re.update((rec) => {
       rec.exerciseId = newExerciseId;
+      rec.variantKey = lastVariant?.variantKey ?? null;
+      rec.variantEquipment = lastVariant?.variantEquipment ?? null;
+      rec.variantGrip = lastVariant?.variantGrip ?? null;
+      rec.variantArm = lastVariant?.variantArm ?? null;
+      rec.machineVariant = lastVariant?.machineVariant ?? null;
     });
   });
 }
@@ -287,6 +303,15 @@ export async function duplicateRoutine(id: string): Promise<Routine> {
           re.supersetGroup = se.supersetGroup;
           re.sortOrder = se.sortOrder;
           re.note = se.note;
+          // 변형(기구)·처방·유산소 목표까지 복사 — 빠뜨리면 복사본이 원본과 다른 기록 버킷을 가리켜
+          // 복사한 루틴으로 시작한 세션만 이전기록·PR이 비어 보인다. @plm SRS-028 SRS-030 SRS-043
+          re.machineVariant = se.machineVariant;
+          re.variantKey = se.variantKey;
+          re.variantEquipment = se.variantEquipment;
+          re.variantGrip = se.variantGrip;
+          re.variantArm = se.variantArm;
+          re.cardioTarget = se.cardioTarget;
+          re.prescription = se.prescription;
         }),
       ),
     );

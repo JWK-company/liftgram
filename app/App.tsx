@@ -10,7 +10,7 @@ import type { RootStackParamList } from './src/navigation/types';
 import { UserProvider } from './src/state/userContext';
 import { SessionProvider } from './src/state/sessionContext';
 import { seedExercisesIfNeeded } from './src/data/seedRunner';
-import { backfillVariantKeysV6, consolidateExercisesV8, backfillCardioKindV10, backfillDropGripArmV11, backfillLoadModeV12 } from './src/data/workoutRepository';
+import { backfillVariantKeysV6, consolidateExercisesV8, backfillCardioKindV10, backfillDropGripArmV11, backfillLoadModeV12, backfillNormalizeIntrinsicEquipmentV22 } from './src/data/workoutRepository';
 import { AppText, AlertHost, ConfigBanner, GlobalWorkoutBar } from './src/components';
 import { OnboardingOverlay } from './src/features/onboarding/OnboardingOverlay';
 import { installWebAlert } from './src/utils/alert';
@@ -94,6 +94,9 @@ export default function App() {
         await backfillCardioKindV10(); // v10 유산소 승격(멱등) — 로잉 머신 등 kind='cardio'. @plm SRS-030
         await backfillDropGripArmV11(); // v11 그립·팔 세트이동(멱등) — 레거시 변형 버킷서 grip/arm 제거. @plm SRS-028
         await backfillLoadModeV12(); // v12 어시스트 하중모드 승격(멱등) — load_mode='assisted'. @plm SRS-033
+        // v22 고유기구 버킷 병합(멱등) — equip:<종목 고유 기구>를 기본 버킷으로. V6 백필 뒤에 와야
+        // machine_variant→variant_key 복원과 충돌하지 않는다(V22가 레거시 미러도 비움). @plm SRS-028
+        await backfillNormalizeIntrinsicEquipmentV22();
       } catch (e) {
         setError(String(e));
       } finally {
