@@ -186,5 +186,24 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/src/data/seed/exercises.seed.ts:232",
+    "app/src/data/seed/exercises.seed.ts:253",
+    "app/src/data/seed/substitutes.seed.ts:121#프레스",
+    "app/src/domain/__tests__/catalogGap.test.ts:1",
+    "app/src/domain/exerciseFinder.ts:17",
+    "app/src/domain/exerciseFinder.ts:19",
+    "app/src/domain/exerciseFinder.ts:23",
+    "app/src/domain/exerciseFinder.ts:24",
+    "app/src/domain/exerciseFinder.ts:29",
+    "app/src/domain/exerciseFinder.ts:39",
+    "app/src/domain/exerciseFinder.ts:40",
+    "app/src/domain/exerciseFinder.ts:50",
+    "app/src/domain/exerciseFinder.ts:58",
+    "app/src/domain/exerciseFinder.ts:59",
+    "app/src/domain/exerciseFinder.ts:61",
+    "app/src/domain/movementPatterns.ts:1",
+    "app/src/domain/movementPatterns.ts:120"
+  ]
 }

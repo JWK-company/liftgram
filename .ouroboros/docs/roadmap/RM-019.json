@@ -1,0 +1,702 @@
+{
+ "schemaVersion": 1,
+ "id": "RM-019",
+ "type": "Roadmap",
+ "title": "출시 준비(Pre-launch) 체크리스트 — 법·정책·운영·품질 게이트",
+ "status": "Draft",
+ "owner": "Product",
+ "product": "health-practice",
+ "created": "2026-07-27T09:30:00Z",
+ "updated": "2026-07-27T09:30:00Z",
+ "sync": true,
+ "tags": [
+  "launch",
+  "compliance",
+  "ops",
+  "qa"
+ ],
+ "relations": {
+  "covers": [
+   "SRS-006",
+   "SRS-014",
+   "SRS-015",
+   "SRS-046",
+   "SRS-048"
+  ],
+  "generated_from": [
+   "PRD"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "목표 / 범위"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "실제 출시(스토어 공개·일반 사용자 유입) 전에 반드시 완료해야 할 준비 항목을 마일스톤별로 관리한다. 기능 로드맵(RM-017·018 등)과 달리 이 로드맵은 법·정책·운영·품질 게이트 중심이며, 각 항목이 구체 기능 요구로 승격되면 SRS를 발급해 covers에 연결한다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "M1. 법·정책·계정 위생 (차단 게이트)"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "개인정보처리방침·이용약관 작성 및 앱 내 게시(가입 시 동의 흐름 포함) — 건강 관련 기록을 다루므로 민감정보 수집 여부 명시(SRS-015 웰니스 가드레일과 정합)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "계정 삭제(탈퇴) + 서버 데이터 완전 삭제 흐름 — 현재 미구현. 스토어 심사(Apple 계정 삭제 의무)와 개인정보보호법 모두에서 필수. → SRS 발급 후보."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "비밀번호 재설정(이메일) 흐름 점검 — 미구현 시 SRS 발급 후보."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "만 14세 미만 가입 정책 결정(차단 또는 법정대리인 동의) 및 고지."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "건강·의료 면책 고지 전수 점검(추정 1RM·처방·코칭 화면 — containsMedicalClaim 게이트 재확인)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "3D 운동 미디어 라이선스 종결(ADR-029 보류 건) — 현행 free-exercise-db(퍼블릭 도메인) 유지 확정이면 출처 고지 정리로 종료."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "M2. 배포 채널·스토어"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "배포 형태 확정: PWA 단독 유지 vs 네이티브(Expo EAS) 스토어 제출 — 스토어 제출 시 심사 메타(아이콘·스크린샷·설명·연령등급) 준비."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "프로덕션 도메인·브랜딩 정리(현재 comforting-empanada Netlify 서브도메인 → 커스텀 도메인)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "Netlify 크레딧/플랜 정상화 — 현재 드래프트+restore 우회 배포 중(운영 리스크)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "버전·릴리스 노트 체계 유지(SemVer 규칙 — appInfo 변경 요약을 릴리스 노트 원천으로)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "M3. 안정성·운영"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "클라이언트 에러 리포팅 도입(Sentry류) — 현재 프로덕션 오류 가시성 없음."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "서버(Render) 모니터링·알림 + 콜드스타트(슬립) 대응 정책(핑 or 유료 플랜)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "DB 백업·복구 절차 수립(서버 Postgres) + 로컬 WatermelonDB 마이그레이션 v19까지 업그레이드 경로 실기기 검증."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "sync LWW 충돌 정교화(SRS-048 잔여 — 회원 미동기 변경이 트레이너 처방을 덮는 엣지)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "부하 기초 점검(피드·동기화 엔드포인트) 및 요청 제한(rate limit) 확인."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "M4. 품질·성능 검증"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "오프라인 시나리오 전수 검증(기록→복구→로그인 동기) — 로컬퍼스트 핵심 약속."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "iOS Safari·안드로이드 Chrome 실기기 QA(잠금화면 오디오·PWA 설치·안전영역)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "초기 로드 성능 점검(번들 크기·Lighthouse) 및 저사양 기기 스크롤 성능."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "빈 상태·엣지 카피 전수 점검(기록 0·팔로우 0·오프라인 배너) + en 로케일 검수."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "M5. 성장 준비"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "핵심 퍼널 이벤트 분석 설계(가입→첫 기록→7일 잔존) — 도구 선정 포함."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "온보딩 마무리 손질(가치 제안 3화면 → 첫 기록까지의 마찰 측정)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "피드백 수집 경로 상시화(BS-002 인앱 피드백 루프 연결)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "기획-미구현 백로그 (출시 범위 판단 필요)"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "아래는 기획(BS→SRS)까지 되어 있으나 코드가 없는 요구들이다. 출시 필수는 아니며, 출시 전 '범위 제외' 또는 '이후 버전' 판정을 명시해 둔다."
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-012 자동 횟수 카운팅(센서/카메라) — 미구현, 기술 난도 높음 → 이후 버전 권고."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-014 수익화 중 결제·프리미엄 티어 — 미구현(무료 기능만 존재, assertTrainerEligible 스텁이 결제 대기). 출시 초기 무료 운영이면 범위 제외 가능."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-016 트레이너 수익배분·정산 — 미구현(SRS-014 결제 선행 필요)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-021 헬스장 위치 매칭 마켓플레이스 — 미구현(SRS-035 소비자 MVP까지만 구현)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-022 헬스장 광고·리드(B2B) — 미구현."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-023 크레딧 시스템(충전·P2P·정산) — 미구현."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-024 오프라인 만남(버디·번개·약속 캘린더) — 미구현."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-025 운동 인증·등급·VS 챌린지·운동온도 — 미구현."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-026 착용장비 어필리에이트 자동 감지·전환 정산(Phase 1+) — 미구현(수동 태그·클릭 집계까지만 구현, SRS-037~042)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-027 입문자 안전·여성 안심 매칭 — 미구현(SRS-024·025 선행 필요)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-036 헬스장 카카오 로컬 연동 고도화 — 미구현(추후 과제로 명시됨)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "부분 구현 잔여: SRS-011 책임감 루프 중 메이트·그룹챌린지(스트릭·주간목표·결석 케어 푸시는 구현) · SRS-046 중 3D 움짤 에셋(파이프라인만, 라이선스 보류) · SRS-048 중 구독 검증 스텁."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "완료 기준"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "M1 전 항목 완료(법·정책은 예외 없음) + M2 배포 형태 확정."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "M3 에러 리포팅·백업 가동, M4 실기기 QA 시나리오 통과."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "백로그 각 항목에 '출시 범위 제외/포함' 판정 기록(이 문서 갱신)."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

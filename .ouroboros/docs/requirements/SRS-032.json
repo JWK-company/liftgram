@@ -187,15 +187,23 @@
     ]
   },
   "code_refs": [
+    "app/scripts/gen-exercise-media.js:121#writeFileSync",
+    "app/scripts/gen-exercise-media.js:2",
     "app/src/data/exerciseMedia.data.ts:1#RawMedia",
     "app/src/data/exerciseMedia.data.ts:11",
+    "app/src/data/exerciseMedia.data.ts:144#거리",
+    "app/src/data/exerciseMedia.data.ts:5",
     "app/src/data/exerciseMedia.ts:1#ExerciseMedia",
+    "app/src/data/exerciseMedia.ts:42",
     "app/src/data/exerciseMedia.ts:6#ExerciseMedia",
+    "app/src/domain/__tests__/catalogGap.test.ts:7",
     "app/src/features/exercises/ExerciseDetailScreen.tsx:126",
     "app/src/features/exercises/ExerciseDetailScreen.tsx:150",
     "app/src/features/exercises/ExerciseDetailScreen.tsx:306#ExerciseAnimation",
     "app/src/features/exercises/ExerciseListScreen.tsx:231",
     "app/src/features/exercises/ExerciseListScreen.tsx:264",
-    "app/src/features/exercises/ExerciseListScreen.tsx:303"
+    "app/src/features/exercises/ExerciseListScreen.tsx:303",
+    "app/src/features/session/ExerciseTipPanel.tsx:30",
+    "app/src/features/session/ExerciseTipPanel.tsx:88#TwoFrameLoop"
   ]
 }

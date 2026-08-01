@@ -1,0 +1,2362 @@
+[
+ {
+  "img": "img_029.jpeg",
+  "name": "사이드 밴드",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_029.jpeg",
+  "name": "사이드 밴드 (덤벨)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_029.jpeg",
+  "name": "사이드 플렝크",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_029.jpeg",
+  "name": "싱글 암 케이블 크로스오버",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_029.jpeg",
+  "name": "싱글 암 케이블 로우",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_029.jpeg",
+  "name": "Single Arm Curl (Cable)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "Single Arm Curl (Cable)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "싱글 암 랜드마인 프레스 (바벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "싱글 암 렛 풀다운",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "Single Arm Lateral Raise (Cable)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "원 암 트라이셉스 익스텐션 (덤벨)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "Single Arm Triceps Pushdown (Cable)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_030.jpeg",
+  "name": "싱글 레그 익스텐션",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_031.jpeg",
+  "name": "싱글 레그 글루트 브릿지",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_031.jpeg",
+  "name": "싱글 레그 힙 쓰러스트",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_031.jpeg",
+  "name": "Single Leg Hip Thrust (Dumbbell)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_031.jpeg",
+  "name": "싱글 레그 프레스 (머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_031.jpeg",
+  "name": "싱글 레그 루마니안 데드리프트 (바벨)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_031.jpeg",
+  "name": "싱글 레그 루마니안 데드리프트 (덤벨)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_032.jpeg",
+  "name": "싱글 레그 스탠딩 카프 레이즈",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_032.jpeg",
+  "name": "싱글 레그 스탠딩 카프 레이즈 (바벨)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_032.jpeg",
+  "name": "싱글 레그 스탠딩 카프 레이즈 (덤벨)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_032.jpeg",
+  "name": "싱글 레그 스탠딩 카프 레이즈 (머신)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_032.jpeg",
+  "name": "씨씨 스쿼트 (중량)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_032.jpeg",
+  "name": "싯 업",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "싯 업",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "싯 업 (중량)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "스케이팅",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "Ski Erg",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "스키",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "스컬 크러셔 (바벨)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_033.jpeg",
+  "name": "스컬 크러셔 (덤벨)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_034.jpeg",
+  "name": "Sled Pull",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_034.jpeg",
+  "name": "Sled Push",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_034.jpeg",
+  "name": "스내치",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_034.jpeg",
+  "name": "스노우 보드",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_034.jpeg",
+  "name": "스파이더 컬 (바벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_034.jpeg",
+  "name": "Spider Curl (Dumbbell)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "Spider Curl (Dumbbell)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "스파이더맨",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "스피닝 (실내 자전거)",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "스플릿 저크",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "스플릿 스쿼트 (덤벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "스프린트",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_035.jpeg",
+  "name": "스쿼트 (밴드)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_057.jpeg",
+  "name": "케이블 트위스트(아래서 위로)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_057.jpeg",
+  "name": "케이블 트위스트(위에서 아래로)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_057.jpeg",
+  "name": "카프 익스텐션 (머신)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_057.jpeg",
+  "name": "카프 프레스 ( 머신)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_057.jpeg",
+  "name": "딥스",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_057.jpeg",
+  "name": "딥스 (어시스트)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_058.jpeg",
+  "name": "딥스 (중량)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_058.jpeg",
+  "name": "체스트 플라이 (밴드)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_058.jpeg",
+  "name": "체스트 플라이 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_058.jpeg",
+  "name": "체스트 플라이 (머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_058.jpeg",
+  "name": "체스트 플라이 (서스펜션)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_058.jpeg",
+  "name": "체스트 프레스 (밴드)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_059.jpeg",
+  "name": "체스트 프레스 (밴드)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_059.jpeg",
+  "name": "체스트 서포티드 인클리인 로우 (덤벨)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_059.jpeg",
+  "name": "리버스 플라이 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_059.jpeg",
+  "name": "Chest Supported T Bar Row",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_059.jpeg",
+  "name": "Chest Supported Y Raise (Dumbbell)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_059.jpeg",
+  "name": "친 업",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_060.jpeg",
+  "name": "친 업 (어시스트)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_060.jpeg",
+  "name": "친 업 (중량)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_060.jpeg",
+  "name": "크램쉘",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_060.jpeg",
+  "name": "박수 푸쉬 업",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_060.jpeg",
+  "name": "클린",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_060.jpeg",
+  "name": "클린 앤 저크",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_061.jpeg",
+  "name": "클린 앤 프레스",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_061.jpeg",
+  "name": "클린 풀",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_061.jpeg",
+  "name": "클라이밍",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_061.jpeg",
+  "name": "컨센트레이션 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_061.jpeg",
+  "name": "크로스 바디 헤머 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_061.jpeg",
+  "name": "크런치",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_062.jpeg",
+  "name": "크런치 (머신)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_062.jpeg",
+  "name": "크런치 (중량)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_062.jpeg",
+  "name": "컬시 런지",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_062.jpeg",
+  "name": "자전거 (실외)",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_062.jpeg",
+  "name": "데드 버그",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_062.jpeg",
+  "name": "데드 행",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_063.jpeg",
+  "name": "데드리프트 (벤드)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_063.jpeg",
+  "name": "데드리프트 (바벨)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_063.jpeg",
+  "name": "데드리프트 (덤벨)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_063.jpeg",
+  "name": "데드리프트 (스미스 머신)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_063.jpeg",
+  "name": "데드리프트 (트랩바)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_063.jpeg",
+  "name": "데드리프트 하이 풀",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_015.jpeg",
+  "name": "플렝크",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_015.jpeg",
+  "name": "플렝크 푸쉬 업",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_015.jpeg",
+  "name": "플레이트 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_015.jpeg",
+  "name": "플레이트 프론트 레이즈",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_015.jpeg",
+  "name": "플레이트 프레스",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_015.jpeg",
+  "name": "Plate Squeeze (Svend Press)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_016.jpeg",
+  "name": "파워 클린",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_016.jpeg",
+  "name": "파워 스내치",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_016.jpeg",
+  "name": "프리처 컬 (바벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_016.jpeg",
+  "name": "프리처 컬 (덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_016.jpeg",
+  "name": "프리처 컬 (머신)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_016.jpeg",
+  "name": "프레스 언더",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_017.jpeg",
+  "name": "풀 업",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_017.jpeg",
+  "name": "풀 업 (어시스트)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_017.jpeg",
+  "name": "풀 업 (밴드)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_017.jpeg",
+  "name": "풀 업 (중량)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_017.jpeg",
+  "name": "풀 오버(덤벨)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_017.jpeg",
+  "name": "Pullover (Machine)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_018.jpeg",
+  "name": "푸쉬 프레스",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_018.jpeg",
+  "name": "팔 굽혀 펴기",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_018.jpeg",
+  "name": "팔 굽혀 펴기 - 좁은 그립",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_018.jpeg",
+  "name": "팔 굽혀 펴기 (중량)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_018.jpeg",
+  "name": "락 풀",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_018.jpeg",
+  "name": "리버스 플라이 (케이블)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_019.jpeg",
+  "name": "벤트 오버 플라이 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_019.jpeg",
+  "name": "리버스 펙덱 플라이 (머신)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_019.jpeg",
+  "name": "Rear Kick (Machine)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_019.jpeg",
+  "name": "Recumbent Bike",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_019.jpeg",
+  "name": "레니게이드 로우 (덤벨)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_019.jpeg",
+  "name": "리버스 크런치",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_020.jpeg",
+  "name": "리버스 컬 (바벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_020.jpeg",
+  "name": "Reverse Curl (Cable)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_020.jpeg",
+  "name": "리버스 컬 (덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_020.jpeg",
+  "name": "리버스 플라이 싱글 암 (케이블)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_020.jpeg",
+  "name": "리버스 그립 컨센트레이션 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_020.jpeg",
+  "name": "리버스 그립 렛 풀 다운 (케이블)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_021.jpeg",
+  "name": "Reverse Grip Triceps Pushdown",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_021.jpeg",
+  "name": "리버스 하이퍼 익스텐션",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_021.jpeg",
+  "name": "리버스 런지",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_021.jpeg",
+  "name": "리버스 런지 (바벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_021.jpeg",
+  "name": "리버스 런지 (덤벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_021.jpeg",
+  "name": "리버스 플랭크",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_036.jpeg",
+  "name": "스쿼트 (밴드)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_036.jpeg",
+  "name": "스쿼트 (바벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_036.jpeg",
+  "name": "스쿼트 (맨몸)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_036.jpeg",
+  "name": "스쿼트 (덤벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_036.jpeg",
+  "name": "스쿼트 (머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_036.jpeg",
+  "name": "스쿼트 (스미스 머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_037.jpeg",
+  "name": "스쿼트 (스미스 머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_037.jpeg",
+  "name": "스쿼트 (서스펜션)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_037.jpeg",
+  "name": "스쿼트 로우",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_037.jpeg",
+  "name": "천국의 계단",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_037.jpeg",
+  "name": "천국의 계단",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_037.jpeg",
+  "name": "스텐딩 케이블 글루트 킥 백",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_038.jpeg",
+  "name": "스탠딩 카프 레이즈",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_038.jpeg",
+  "name": "스탠딩 카프 레이즈 (바벨)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_038.jpeg",
+  "name": "스탠딩 카프 레이즈 (덤벨)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_038.jpeg",
+  "name": "스탠딩 카프 레이즈 (머신)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_038.jpeg",
+  "name": "Standing Calf Raise (Smith)",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_038.jpeg",
+  "name": "스탠딩 레그 컬",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "스탠딩 레그 컬",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "스탠딩 밀리터리 프레스 (바벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "Standing Y Raise (Cable)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "스텝 업",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "스터넘 풀 업",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "스트레이트 암 풀다운 (케이블)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_039.jpeg",
+  "name": "스티프 데드 리프트",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_040.jpeg",
+  "name": "스트레칭",
+  "muscle": "기타"
+ },
+ {
+  "img": "img_040.jpeg",
+  "name": "Suitcase Carry (Dumbbell)",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_040.jpeg",
+  "name": "스모 데드리프트",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_040.jpeg",
+  "name": "Sumo Squat",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_040.jpeg",
+  "name": "스모 스쿼트 (바벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_040.jpeg",
+  "name": "Sumo Squat (Dumbbell)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "Sumo Squat (Dumbbell)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "Sumo Squat (Kettlebell)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "슈퍼맨",
+  "muscle": "허리"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "수영",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "T 바 로우",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "스러스터 (바벨)",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_041.jpeg",
+  "name": "스러스터 (케틀벨)",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_042.jpeg",
+  "name": "Toe Touch",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_042.jpeg",
+  "name": "토우 투 바",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_042.jpeg",
+  "name": "토르소 로테이션",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_042.jpeg",
+  "name": "트레드밀 (러닝머신)",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_042.jpeg",
+  "name": "딥스",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_042.jpeg",
+  "name": "딥스 (어시스트)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_043.jpeg",
+  "name": "딥스 (중량)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_043.jpeg",
+  "name": "트라이셉스 익스텐션 (바벨)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_043.jpeg",
+  "name": "트라이셉스 익스텐션 (케이블)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_043.jpeg",
+  "name": "트라이셉스 익스텐션 (덤벨)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_043.jpeg",
+  "name": "트라이셉스 익스텐션 (머신)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_043.jpeg",
+  "name": "트라이셉스 익스텐션 (서스펜션)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_044.jpeg",
+  "name": "Triceps Kickback (Cable)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_044.jpeg",
+  "name": "트라이셉스 킥 백",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_044.jpeg",
+  "name": "프레스 다운",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_044.jpeg",
+  "name": "푸쉬 다운",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_044.jpeg",
+  "name": "로프 푸쉬 다운",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_044.jpeg",
+  "name": "업라이트 로우 (바벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_045.jpeg",
+  "name": "업라이트 로우 (케이블)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_045.jpeg",
+  "name": "업라이트 로우 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_045.jpeg",
+  "name": "V 싯 업",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_045.jpeg",
+  "name": "Vertical Traction (Machine)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_045.jpeg",
+  "name": "Waiter Curl (Dumbbell)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_045.jpeg",
+  "name": "걷기",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_046.jpeg",
+  "name": "Walking Lunge",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_046.jpeg",
+  "name": "Walking Lunge (Dumbbell)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_046.jpeg",
+  "name": "Walking Lunge (Sandbag)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_046.jpeg",
+  "name": "월 볼",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_046.jpeg",
+  "name": "월 싯",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_046.jpeg",
+  "name": "Warm Up",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_047.jpeg",
+  "name": "와이드 풀 업",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_047.jpeg",
+  "name": "Wide-Elbow Triceps Press (Dumbbell)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_047.jpeg",
+  "name": "리스트 롤",
+  "muscle": "팔뚝"
+ },
+ {
+  "img": "img_047.jpeg",
+  "name": "요가",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_047.jpeg",
+  "name": "저쳐 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_047.jpeg",
+  "name": "조트맨 컬 (덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_048.jpeg",
+  "name": "21 이두 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_048.jpeg",
+  "name": "Ab Scissors",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_048.jpeg",
+  "name": "AB 휠",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_048.jpeg",
+  "name": "에어로빅",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_048.jpeg",
+  "name": "Air Bike",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_048.jpeg",
+  "name": "아놀스 프레스 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_049.jpeg",
+  "name": "AB 휠",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_049.jpeg",
+  "name": "에어로빅",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_049.jpeg",
+  "name": "Air Bike",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_049.jpeg",
+  "name": "아놀스 프레스 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_049.jpeg",
+  "name": "어라운드 더 월드",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_049.jpeg",
+  "name": "어시스티드 피스톨 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_050.jpeg",
+  "name": "백 익스텐션 (하이퍼익스텐션)",
+  "muscle": "허리"
+ },
+ {
+  "img": "img_050.jpeg",
+  "name": "백 익스텐션 (머신)",
+  "muscle": "허리"
+ },
+ {
+  "img": "img_050.jpeg",
+  "name": "백 익스텐션 (중량 하이퍼익스텐션)",
+  "muscle": "허리"
+ },
+ {
+  "img": "img_050.jpeg",
+  "name": "볼 슬램",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_050.jpeg",
+  "name": "밴드 풀 아파트",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_050.jpeg",
+  "name": "배틀 로프",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_051.jpeg",
+  "name": "Bear Crawl",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_051.jpeg",
+  "name": "Behind the Back Curl (Cable)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_051.jpeg",
+  "name": "비하인드 더 백 리스트 컬 (바벨)",
+  "muscle": "팔뚝"
+ },
+ {
+  "img": "img_051.jpeg",
+  "name": "Belt Squat (Machine)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_051.jpeg",
+  "name": "벤치 딥",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_051.jpeg",
+  "name": "벤체 프레스 - 좁은 그립 (바벨)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_052.jpeg",
+  "name": "벤치 프레스 - 넓은 그립 (바벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_052.jpeg",
+  "name": "벤치 프레스 (바벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_052.jpeg",
+  "name": "벤치 프레스 (케이블)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_052.jpeg",
+  "name": "벤치 프레스 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_052.jpeg",
+  "name": "벤치 프레스 (스미스 머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_052.jpeg",
+  "name": "벤트 오버 로우 (밴드)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_053.jpeg",
+  "name": "벤트 오버 로우 (바벨)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_053.jpeg",
+  "name": "벤트 오버 로우 (덤벨)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_053.jpeg",
+  "name": "Bent Over Row (Smith Machine)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_053.jpeg",
+  "name": "바이셉스 컬 (바벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_053.jpeg",
+  "name": "바이셉스 컬 (케이블)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_053.jpeg",
+  "name": "바이셉스 컬 (덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_054.jpeg",
+  "name": "바이셉스 컬 (머신)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_054.jpeg",
+  "name": "바이셉스 컬 (서스펜션)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_054.jpeg",
+  "name": "바이시클 크런치",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_054.jpeg",
+  "name": "바이시클 크런치 레그 레이즈",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_054.jpeg",
+  "name": "버드 독",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_054.jpeg",
+  "name": "박스 점프",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_055.jpeg",
+  "name": "박스 스쿼트 (바벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_055.jpeg",
+  "name": "복싱",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_055.jpeg",
+  "name": "Bulgarian Split Squat (Barbell)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_055.jpeg",
+  "name": "불가리안 스플릿 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_055.jpeg",
+  "name": "버피",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_055.jpeg",
+  "name": "Burpee Broad Jumps",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_056.jpeg",
+  "name": "버피 오버 더 바",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_056.jpeg",
+  "name": "버터플라이(펙덱 플라이)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_056.jpeg",
+  "name": "케이블 코어 팔로프 프레스",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_056.jpeg",
+  "name": "케이블 크런치",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_056.jpeg",
+  "name": "케이블 플라이 크로스오버",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_056.jpeg",
+  "name": "케이블 풀 쓰루",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_022.jpeg",
+  "name": "Reverse Wrist Curl (Dumbbell)",
+  "muscle": "팔뚝"
+ },
+ {
+  "img": "img_022.jpeg",
+  "name": "링 딥스",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_022.jpeg",
+  "name": "Ring Pull Up",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_022.jpeg",
+  "name": "Ring Push Up",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_022.jpeg",
+  "name": "루마니안 데드리프트 (바벨)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_022.jpeg",
+  "name": "루마니안 데드리프트 (덤벨)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_023.jpeg",
+  "name": "Romanian Deadlift (Smith Machine)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_023.jpeg",
+  "name": "로프 케이블 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_023.jpeg",
+  "name": "로프 스트레이트 암 풀 다운",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_023.jpeg",
+  "name": "로잉 머신",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_023.jpeg",
+  "name": "달리기 (실외)",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_023.jpeg",
+  "name": "러시안 트위스트 (맨몸)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_024.jpeg",
+  "name": "러시안 트위스트 (중량)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_024.jpeg",
+  "name": "스캐퓰러 풀업",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_024.jpeg",
+  "name": "Seal Row (Barbell)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_024.jpeg",
+  "name": "Seal Row (Dumbbell)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_024.jpeg",
+  "name": "시티드 케이블 로우",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_024.jpeg",
+  "name": "시티드 케이블 로우 - 넓은 그립",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_025.jpeg",
+  "name": "Seated Cable Row - V Grip (Cable)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_025.jpeg",
+  "name": "시티드 카프 레이즈",
+  "muscle": "종아리 근육"
+ },
+ {
+  "img": "img_025.jpeg",
+  "name": "Seated Chest Flys (Cable)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_025.jpeg",
+  "name": "시티드 딥 머신",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_025.jpeg",
+  "name": "시티드 인클라인 컬 (덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_025.jpeg",
+  "name": "Seated Incline Hammer Curl (Dumbbell)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "Seated Incline Hammer Curl (Dumbbell)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "시티드 레터럴 레이즈 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "시티드 레그 컬 (머신)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "시티드 오버헤드 프레드 (바벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "시티드 오버헤드 프레드 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "시티드 팜 업 리스트 컬",
+  "muscle": "팔뚝"
+ },
+ {
+  "img": "img_026.jpeg",
+  "name": "시티드 로우 (머신)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_027.jpeg",
+  "name": "시티드 숄더 프레드 (머신)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_027.jpeg",
+  "name": "시티드 트라이셉스 프레스",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_027.jpeg",
+  "name": "Seated Wrist Curl (Barbell)",
+  "muscle": "팔뚝"
+ },
+ {
+  "img": "img_027.jpeg",
+  "name": "시티드 리스트 익스텐션 (바벨)",
+  "muscle": "팔뚝"
+ },
+ {
+  "img": "img_027.jpeg",
+  "name": "숄더 프레스 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_027.jpeg",
+  "name": "Shoulder Press (Machine Plates)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_028.jpeg",
+  "name": "숄더 탭",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_028.jpeg",
+  "name": "슈러그 (바벨)",
+  "muscle": "트랩"
+ },
+ {
+  "img": "img_028.jpeg",
+  "name": "슈러그 (케이블)",
+  "muscle": "트랩"
+ },
+ {
+  "img": "img_028.jpeg",
+  "name": "슈러그 (덤벨)",
+  "muscle": "트랩"
+ },
+ {
+  "img": "img_028.jpeg",
+  "name": "Shrug (Machine)",
+  "muscle": "트랩"
+ },
+ {
+  "img": "img_028.jpeg",
+  "name": "슈러그 (스미스 머신)",
+  "muscle": "트랩"
+ },
+ {
+  "img": "img_071.jpeg",
+  "name": "프론트 레이즈 (서스펜션)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_071.jpeg",
+  "name": "프론트 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_071.jpeg",
+  "name": "풀 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_071.jpeg",
+  "name": "브릿지",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_071.jpeg",
+  "name": "Glute Bridge (Barbell)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_071.jpeg",
+  "name": "글루트 햄 레이즈",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "글루트 햄 레이즈",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "글루트 킥 백 (머신)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "글루트 킥 백 (바닥에서)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "가블릿 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "굿 모닝 (바벨)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "Gorilla Row (Kettlebell)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_072.jpeg",
+  "name": "핵 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_073.jpeg",
+  "name": "핵 스쿼트 (머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_073.jpeg",
+  "name": "해머 컬 (밴드)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_073.jpeg",
+  "name": "해머 컬 (케이블)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_073.jpeg",
+  "name": "해머 컬 (덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_073.jpeg",
+  "name": "물구나무 서기",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_073.jpeg",
+  "name": "핸드스텐드 푸쉬 업",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_074.jpeg",
+  "name": "행 클린",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_074.jpeg",
+  "name": "행 스내치",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_074.jpeg",
+  "name": "행잉 니 레이즈",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_074.jpeg",
+  "name": "행잉 레그 레이즈",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_074.jpeg",
+  "name": "힐 탭",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_074.jpeg",
+  "name": "Hex Press (Dumbbell)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_075.jpeg",
+  "name": "High Knee Skips",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_075.jpeg",
+  "name": "하이 니",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_075.jpeg",
+  "name": "히트",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_075.jpeg",
+  "name": "하이킹",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_075.jpeg",
+  "name": "Hip Abduction (Cable)",
+  "muscle": "외전근"
+ },
+ {
+  "img": "img_075.jpeg",
+  "name": "힙 어브덕션 (머신)",
+  "muscle": "외전근"
+ },
+ {
+  "img": "img_076.jpeg",
+  "name": "Hip Adduction (Cable)",
+  "muscle": "내전근"
+ },
+ {
+  "img": "img_076.jpeg",
+  "name": "힙 어덕션 (머신)",
+  "muscle": "내전근"
+ },
+ {
+  "img": "img_076.jpeg",
+  "name": "힙 쓰러스트",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_076.jpeg",
+  "name": "힙 쓰러스트 (바벨)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_076.jpeg",
+  "name": "Hip Thrust (Dumbbell)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_076.jpeg",
+  "name": "Hip Thrust (Machine)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_077.jpeg",
+  "name": "Hip Thrust (Smith Machine)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_077.jpeg",
+  "name": "할로우 락",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_077.jpeg",
+  "name": "인클라인 벤치 프레스 (바벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_077.jpeg",
+  "name": "인클라인 벤치 프레스 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_077.jpeg",
+  "name": "인클라인 벤치 프레스 (스미스 머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_077.jpeg",
+  "name": "인클라인 체스트 플라이 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_008.jpeg",
+  "name": "레터럴 레이즈 (케이블)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_008.jpeg",
+  "name": "레터럴 레이즈 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_008.jpeg",
+  "name": "레터럴 레이즈 (머신)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_008.jpeg",
+  "name": "레터럴 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_008.jpeg",
+  "name": "레그 익스텐션 (머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_008.jpeg",
+  "name": "레그 프레스 (머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_009.jpeg",
+  "name": "수평 레그 프레스 (머신)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_009.jpeg",
+  "name": "레그 레이즈 패러럴 바",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_009.jpeg",
+  "name": "로우 케이블 플라이 크로스오버",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_009.jpeg",
+  "name": "로우 로우 (서스펜션)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_009.jpeg",
+  "name": "런지",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_009.jpeg",
+  "name": "런지 (바벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_010.jpeg",
+  "name": "런지 (덤벨)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_010.jpeg",
+  "name": "라잉 니 레이즈",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_010.jpeg",
+  "name": "라잉 레그 컬 (머신)",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_010.jpeg",
+  "name": "라잉 레그 레이즈",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_010.jpeg",
+  "name": "Lying Neck Curls",
+  "muscle": "목"
+ },
+ {
+  "img": "img_010.jpeg",
+  "name": "Lying Neck Curls (Weighted)",
+  "muscle": "목"
+ },
+ {
+  "img": "img_011.jpeg",
+  "name": "Lying Neck Extension",
+  "muscle": "목"
+ },
+ {
+  "img": "img_011.jpeg",
+  "name": "Lying Neck Extension (Weighted)",
+  "muscle": "목"
+ },
+ {
+  "img": "img_011.jpeg",
+  "name": "메도우스 로우",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_011.jpeg",
+  "name": "마운틴 클라이머",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_011.jpeg",
+  "name": "머슬 업",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_011.jpeg",
+  "name": "Negative Pull Up",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_012.jpeg",
+  "name": "로르딕 햄드스링 컬",
+  "muscle": "햄스트링"
+ },
+ {
+  "img": "img_012.jpeg",
+  "name": "사이드 크런치",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_012.jpeg",
+  "name": "원 암 푸쉬 업",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_012.jpeg",
+  "name": "오버헤드 컬 (케이블)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_012.jpeg",
+  "name": "오버헤드 덤벨 런지",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_012.jpeg",
+  "name": "Overhead Plate Raise",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_013.jpeg",
+  "name": "오버헤드 프레드 (바벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_013.jpeg",
+  "name": "오버헤드 프레드 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_013.jpeg",
+  "name": "오버헤드 프레드 (스미스 머신)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_013.jpeg",
+  "name": "오버헤드 스쿼트",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_013.jpeg",
+  "name": "Overhead Triceps Extension (Cable)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_013.jpeg",
+  "name": "Partial Glute Bridge (Barbell)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "Pause Squat (Barbell)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "펜들레이 로우 (바벨)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "Pendulum Squat (Machine)",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "파이크 푸쉬 업",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "Pilates",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "핀 휠 컬(덤벨)",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_014.jpeg",
+  "name": "피스톨 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_001.jpeg",
+  "name": "인클라인 체스트 프레스 (머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_001.jpeg",
+  "name": "인클라인 푸쉬 업",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_001.jpeg",
+  "name": "인버티드 로우",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_001.jpeg",
+  "name": "레터럴 체스트 프레스 (머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_001.jpeg",
+  "name": "아이소 레터럴 하이 로우 (머신)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_001.jpeg",
+  "name": "Iso-Lateral Low Row",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_002.jpeg",
+  "name": "아이소 레터럴 로우 (머신)",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_002.jpeg",
+  "name": "젝 나이프 (서스펜션)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_002.jpeg",
+  "name": "잭나이프 싯 업",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_002.jpeg",
+  "name": "JM Press (Barbell)",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_002.jpeg",
+  "name": "줄넘기",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_002.jpeg",
+  "name": "점프 슈러그",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_003.jpeg",
+  "name": "점프 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_003.jpeg",
+  "name": "팔벌려 뛰기",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_003.jpeg",
+  "name": "점프 런지",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_003.jpeg",
+  "name": "Kettlebell Around the World",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_003.jpeg",
+  "name": "케틸벨 클린",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_003.jpeg",
+  "name": "케틀벨 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_004.jpeg",
+  "name": "케틀벨 가블릿 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_004.jpeg",
+  "name": "Kettlebell Halo",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_004.jpeg",
+  "name": "케틀벨 하이 풀",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_004.jpeg",
+  "name": "케틀벨 숄더 프레스",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_004.jpeg",
+  "name": "케틀벨 스내치",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_004.jpeg",
+  "name": "케틀벨 스윙",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_005.jpeg",
+  "name": "케틀벨 터키쉬 겟 업",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_005.jpeg",
+  "name": "키핑 풀업",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_005.jpeg",
+  "name": "니 레이즈 패러럴 바",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_005.jpeg",
+  "name": "닐링 풀 다운 (밴드)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_005.jpeg",
+  "name": "닐링 푸쉬 업",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_005.jpeg",
+  "name": "L-시트 홀드",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_006.jpeg",
+  "name": "랜드마인 180",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_006.jpeg",
+  "name": "Landmine Row",
+  "muscle": "상부 등"
+ },
+ {
+  "img": "img_006.jpeg",
+  "name": "Landmine Squat and Press",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_006.jpeg",
+  "name": "렛 풀다운 - 좁은 그립 (케이블)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_006.jpeg",
+  "name": "렛 풀다운 (밴드)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_006.jpeg",
+  "name": "렛 풀다운 (케이블)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_007.jpeg",
+  "name": "렛 풀다운 (머신)",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_007.jpeg",
+  "name": "레터럴 밴드 워크",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_007.jpeg",
+  "name": "레터럴 박스 점프",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_007.jpeg",
+  "name": "레터럴 레그 레이즈",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_007.jpeg",
+  "name": "레터럴 런지",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_007.jpeg",
+  "name": "레터럴 레이즈 (밴드)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_064.jpeg",
+  "name": "디클라인 벤치 프레스 (바벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_064.jpeg",
+  "name": "디클라인 벤치 프레스 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_064.jpeg",
+  "name": "디클라인 벤치 프레스 (머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_064.jpeg",
+  "name": "디클라인 벤치 프레스 (스미스 머신)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_064.jpeg",
+  "name": "디클라인 체스트 플라이 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_064.jpeg",
+  "name": "디클라인 크런치",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_065.jpeg",
+  "name": "디클라인 크런치 (중량)",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_065.jpeg",
+  "name": "디클라인 푸쉬 업",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_065.jpeg",
+  "name": "다이아몬드 푸쉬 업",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_065.jpeg",
+  "name": "다운 도그",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_065.jpeg",
+  "name": "드래그 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_065.jpeg",
+  "name": "드래곤 플래그",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_066.jpeg",
+  "name": "드래곤 플라이",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_066.jpeg",
+  "name": "덤벨 로우",
+  "muscle": "광배근"
+ },
+ {
+  "img": "img_066.jpeg",
+  "name": "덤벨 스네치",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_066.jpeg",
+  "name": "덤벨 스퀴즈 프레스",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_066.jpeg",
+  "name": "덤벨 스텝 업",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_066.jpeg",
+  "name": "Elbow to Knee",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "Elbow to Knee",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "일립티컬 트레이너",
+  "muscle": "심장강화운동"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "이지바 바이셉스 컬",
+  "muscle": "이두근"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "페이스 풀",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "파머스 워크",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "Feet Up Bench Press (Barbell)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_067.jpeg",
+  "name": "파이어 하이드런트",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "파이어 하이드런트",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "플로어 프레스",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "플로어 프레스 (덤벨)",
+  "muscle": "가슴"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "플로어 트라이셉스 딥스",
+  "muscle": "삼두근"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "플러터 킥",
+  "muscle": "복부"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "개구리 점프",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_068.jpeg",
+  "name": "프로그 펌프 (덤벨)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_069.jpeg",
+  "name": "프론트 레버 홀드",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_069.jpeg",
+  "name": "프론트 레버 레이즈",
+  "muscle": "전신"
+ },
+ {
+  "img": "img_069.jpeg",
+  "name": "프론트 레이즈 (밴드)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_069.jpeg",
+  "name": "프론트 레이즈 (바벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_069.jpeg",
+  "name": "프론트 레이즈 (케이블)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_069.jpeg",
+  "name": "프론트 레이즈 (덤벨)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_070.jpeg",
+  "name": "프론트 레이즈 (서스펜션)",
+  "muscle": "어깨"
+ },
+ {
+  "img": "img_070.jpeg",
+  "name": "프론트 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_070.jpeg",
+  "name": "풀 스쿼트",
+  "muscle": "사두근"
+ },
+ {
+  "img": "img_070.jpeg",
+  "name": "브릿지",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_070.jpeg",
+  "name": "Glute Bridge (Barbell)",
+  "muscle": "둔근"
+ },
+ {
+  "img": "img_070.jpeg",
+  "name": "글루트 햄 레이즈",
+  "muscle": "햄스트링"
+ }
+]

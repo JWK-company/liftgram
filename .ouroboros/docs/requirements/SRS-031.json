@@ -172,6 +172,7 @@
     ]
   },
   "code_refs": [
+    "app/src/domain/__tests__/catalogGap.test.ts:10",
     "app/src/domain/exerciseFinder.ts:1",
     "app/src/features/exercises/ExerciseFinderWizard.tsx:1",
     "app/src/features/exercises/ExerciseFinderWizard.tsx:4",

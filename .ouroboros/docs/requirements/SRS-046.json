@@ -180,5 +180,16 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "app/scripts/gen-exercise-media.js:121#writeFileSync",
+    "app/src/data/exerciseMedia.data.ts:144#거리",
+    "app/src/data/exerciseMedia.ts:11",
+    "app/src/data/exerciseMedia.ts:25#lookupWithBase",
+    "app/src/data/exerciseMedia.ts:42",
+    "app/src/domain/__tests__/catalogGap.test.ts:13",
+    "app/src/features/session/ExerciseTipPanel.tsx:1",
+    "app/src/features/session/ExerciseTipPanel.tsx:30",
+    "app/src/features/session/ExerciseTipPanel.tsx:88#TwoFrameLoop"
+  ]
 }
