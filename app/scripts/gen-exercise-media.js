@@ -4,6 +4,8 @@
 //   node scripts/gen-exercise-media.js <exercises.json>
 //   - exercises.json = free-exercise-db 덤프(비커밋 · 다운로드:
 //     https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/dist/exercises.json)
+//     ⚠ @main은 mutable — 재실행 시 업스트림 rename에 의한 침묵 탈락은 아래 '기존 생성 키 소실 가드'가 throw로 막는다.
+//     재현성 필요 시 커밋 해시로 핀(@<sha>)해 받을 것.
 //   - 콘텐츠 입력 = scripts/media-supplement.json (커밋 — 매칭 종목 한국어 번역 k / 무매칭 종목 k+en)
 // 동작:
 //   1) 시드에서 미디어 미커버 근력 종목 추출(유산소 제외 — hasTip 차단 정책 유지)
@@ -84,6 +86,11 @@ function main() {
       cardio: /kind:\s*'cardio'/.test(m[4]),
     });
   }
+  // 파싱 건수 가드(qa code) — 재포맷·프로퍼티 삽입으로 정규식이 엔트리를 침묵 탈락시키면 fail-fast.
+  const roughCount = (seedSrc.match(/\{ nameKo:/g) ?? []).length;
+  if (roughCount !== seedEntries.length) {
+    throw new Error(`시드 파싱 불일치: 개략 ${roughCount} vs 파싱 ${seedEntries.length} — 시드 포맷 변경 의심(정규식 갱신 필요)`);
+  }
   const seedNames = new Set(seedEntries.map((e) => e.ko));
 
   // 기존 데이터 파일 — 마커 이전(수기·기존 블록)은 보존.
@@ -93,8 +100,12 @@ function main() {
   const preservedKeys = new Set([...preserved.matchAll(/^\s*"((?:[^"\\]|\\.)*)":\s*\{/gm)].map((m) => m[1]));
   const covered = (ko) => preservedKeys.has(ko) || preservedKeys.has(baseOf(ko));
 
-  const targets = seedEntries.filter((e) => !e.cardio && !covered(e.ko));
+  // 전용 supplement(k+en)가 있으면 covered(베이스 폴백 도달)여도 전용 엔트리를 방출 — 직접 키가 폴백보다 우선(qa code).
+  const targets = seedEntries.filter(
+    (e) => !e.cardio && (!covered(e.ko) || (supplement[e.ko]?.k && supplement[e.ko]?.en)),
+  );
   const lines = [];
+  const emitted = new Set(); // 방출 키(소실 가드용)
   const reportRows = [];
   const unmatched = [];
   for (const t of targets) {
@@ -107,14 +118,29 @@ function main() {
       // db 지시문이 빈 종목(예: Push Press)은 supplement의 en으로 보충.
       const en = d.instructions?.length ? d.instructions : sup?.en ?? [];
       checkForbidden(t.ko, k);
+      emitted.add(t.ko);
       lines.push(entryLine(t.ko, { s: d.images[0], e: d.images[1], k, en }));
       reportRows.push(`| ${t.ko} | ${d.name} | ${aliasName ? 'alias(검수)' : 'exact'} | ${k.length ? '✓' : '—'} |`);
     } else if (sup?.k && sup?.en) {
       checkForbidden(t.ko, sup.k);
+      emitted.add(t.ko);
       lines.push(entryLine(t.ko, { k: sup.k, en: sup.en })); // steps-only(s/e 없음)
       reportRows.push(`| ${t.ko} | (무매칭 — 자체 스텝) | steps-only | ✓ |`);
     } else {
       unmatched.push(t.ko);
+    }
+  }
+
+  // 검증은 전부 파일 쓰기 '이전'에 — 실패 시 작업트리를 오염시키지 않는다(qa code).
+  // ① supplement 죽은 키(시드에 없는 종목 콘텐츠 방지).
+  const deadSup = Object.keys(supplement).filter((k) => !seedNames.has(k));
+  if (deadSup.length) throw new Error(`supplement 죽은 키: ${deadSup.join(', ')}`);
+  // ② 기존 생성 키 소실 가드 — 업스트림 rename·파싱 탈락으로 기존 엔트리가 침묵 삭제되는 것을 차단.
+  if (markIdx >= 0) {
+    const prevGen = [...dataSrc.slice(markIdx).matchAll(/^\s*"((?:[^"\\]|\\.)*)":\s*\{/gm)].map((m) => m[1]);
+    const lost = prevGen.filter((k) => !emitted.has(k) && !covered(k));
+    if (lost.length) {
+      throw new Error(`기존 생성 엔트리 소실(침묵 삭제 금지): ${lost.join(', ')} — 업스트림 rename이면 ALIAS 갱신, 의도적 제거면 이 가드를 확인 후 수동 처리`);
     }
   }
 
@@ -125,9 +151,6 @@ function main() {
     `# 미디어 매칭 검수 표 (gen-exercise-media.js 산출)\n\n정확일치 외 매칭(alias)은 기구·자세 토큰 대조(negative 규칙) 후 사람 검수로 확정된 것만 ALIAS 맵에 등재.\n\n| nameKo | free-exercise-db | 방식 | 한국어 스텝 |\n|---|---|---|---|\n${reportRows.join('\n')}\n\n무매칭(스텝 대기): ${unmatched.length}건 — media-unmatched.txt\n`,
   );
   fs.writeFileSync(UNMATCHED, unmatched.join('\n') + (unmatched.length ? '\n' : ''));
-  // supplement 죽은 키 검증(시드에 없는 종목 콘텐츠 방지).
-  const dead = Object.keys(supplement).filter((k) => !seedNames.has(k));
-  if (dead.length) throw new Error(`supplement 죽은 키: ${dead.join(', ')}`);
   console.log(`생성 ${lines.length}건 (매칭 ${reportRows.filter((r) => !r.includes('steps-only')).length} · steps-only ${reportRows.filter((r) => r.includes('steps-only')).length}) · 무매칭 잔여 ${unmatched.length}`);
 }
 

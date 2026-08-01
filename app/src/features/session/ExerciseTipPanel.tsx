@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, RemoteImage } from '../../components';
 import { colors, radius, spacing } from '../../theme';
-import { getExerciseMedia, type ExerciseMedia } from '../../data/exerciseMedia';
+import { getExerciseMedia, hasMediaImages, type ExerciseMedia } from '../../data/exerciseMedia';
 import { useT } from '../../i18n';
 
 // 접힘 상태 종목별 기억(세션 수명 — 영속 불필요). 기본 접힘(공간 절약).
@@ -27,8 +27,8 @@ export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; 
   const media = getExerciseMedia(nameKo);
   const steps = media ? (lang === 'ko' && media.instructionsKo.length ? media.instructionsKo : media.instructionsEn) : [];
   if (!media && steps.length === 0) return null;
-  // steps-only 엔트리(이미지 없이 스텝만)는 미디어 박스 대신 단계 설명을 초기 표시(빈 이미지 박스 방지). @plm SRS-032 SRS-046
-  const hasImages = !!media && !!(media.gif || media.start);
+  // steps-only 엔트리(이미지 없이 스텝만)는 미디어 박스 대신 단계 설명을 초기 표시(빈 이미지 박스 방지 — 상세 화면과 공용 게이트). @plm SRS-032 SRS-046
+  const hasImages = hasMediaImages(media);
 
   function toggle() {
     const next = !expanded;

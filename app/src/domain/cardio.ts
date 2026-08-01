@@ -91,7 +91,7 @@ const CARDIO_METRICS_BY_NAME_EN: Record<string, CardioMetric[]> = {
   Hiking: ['duration', 'distance'],
   Sprint: ['duration', 'distance'],
   'Outdoor Cycling': ['duration', 'distance'],
-  'Recumbent Bike': ['duration', 'distance'],
+  'Recumbent Bike': ['duration', 'distance', 'level'], // 실내 머신 — Indoor Cycling과 동일하게 저항 단계 기록(qa code)
   HIIT: ['duration'],
   Aerobics: ['duration'],
   Yoga: ['duration'],

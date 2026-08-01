@@ -49,5 +49,10 @@ export function getExerciseMedia(nameKo: string): ExerciseMedia | null {
   };
 }
 
+// steps-only 엔트리(이미지 없이 스텝만) 판별 — 시연 박스·크레딧 렌더 게이트 공용(TipPanel·상세 화면 동일 계약). @plm SRS-032 SRS-046
+export function hasMediaImages(media: ExerciseMedia | null): boolean {
+  return !!media && !!(media.gif || media.start);
+}
+
 // 이미지 출처 크레딧(관례 표기 — Unlicense는 의무 아님).
 export const EXERCISE_MEDIA_CREDIT = 'free-exercise-db (Public Domain)';

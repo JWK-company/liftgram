@@ -16,7 +16,7 @@ import {
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { exerciseRepo, analyticsRepo } from '../../data';
-import { getExerciseMedia, EXERCISE_MEDIA_CREDIT, type ExerciseMedia } from '../../data/exerciseMedia';
+import { getExerciseMedia, hasMediaImages, EXERCISE_MEDIA_CREDIT, type ExerciseMedia } from '../../data/exerciseMedia';
 import type { TrendPoint } from '../../data';
 import type { Exercise } from '../../db/models';
 import { muscleLabel, equipmentLabel, formatWeight, exerciseListName, exerciseAltName, detectStall } from '../../domain';
@@ -147,8 +147,10 @@ export default function ExerciseDetailScreen({ navigation, route }: RootStackScr
         <Button title={t('exercises.addThisExercise')} icon="add" onPress={onAddFromPick} style={{ marginTop: spacing.md }} />
       ) : null}
 
-      {/* 자세 시연 — 시작/끝 2프레임 교차(움짤 효과). 없으면 커스텀 imageUrl. @plm SRS-032 */}
-      {media ? (
+      {/* 자세 시연 — 시작/끝 2프레임 교차(움짤 효과). 없으면 커스텀 imageUrl.
+          steps-only 엔트리(이미지 없이 스텝만 — 대확장 자체 작성분)는 빈 박스·오귀속 크레딧을 막고
+          아래 단계 설명만 렌더(hasMediaImages 게이트 — TipPanel과 동일 계약). @plm SRS-032 SRS-046 */}
+      {media && hasMediaImages(media) ? (
         <>
           <ExerciseAnimation media={media} />
           <AppText variant="caption" color="textFaint" center style={{ marginTop: 4 }}>

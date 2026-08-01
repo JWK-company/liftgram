@@ -1,6 +1,7 @@
 // 카탈로그 갭 이관·무브먼트 패턴·콘셉트 루틴 무결성 테스트 (SRS-047) — `npm test`. @plm SRS-047
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
 import { SUBSTITUTES } from '../../data/seed/substitutes.seed';
@@ -125,6 +126,19 @@ test('미디어 steps-only 렌더 계약: 이미지 없는 엔트리는 start/en
   assert.equal(m!.start, '');
   assert.equal(m!.end, '');
   assert.ok(m!.instructionsKo.length >= 3);
+});
+
+test('미디어 supplement ↔ 생성 데이터 드리프트 금지: supplement 전 키가 RAW_MEDIA에 동일 콘텐츠로 존재', () => {
+  // supplement(콘텐츠 정본 입력)만 고치고 gen-exercise-media.js 재실행을 잊으면 조용히 어긋난다 — 기계로 강제(qa code).
+  const supplement = JSON.parse(
+    readFileSync(new URL('../../../scripts/media-supplement.json', import.meta.url), 'utf8'),
+  ) as Record<string, { k: string[]; en?: string[] }>;
+  for (const [key, sup] of Object.entries(supplement)) {
+    const entry = RAW_MEDIA[key];
+    assert.ok(entry, `supplement 키가 RAW_MEDIA에 미방출: ${key} (gen-exercise-media.js 재실행 필요)`);
+    assert.deepEqual(entry.k, sup.k, `supplement k 드리프트: ${key}`);
+    if (!entry.s && sup.en) assert.deepEqual(entry.en, sup.en, `supplement en 드리프트(steps-only): ${key}`);
+  }
 });
 
 test('미디어 카피 게이트: RAW_MEDIA 전 엔트리 스텝(한/영)에 의료 단정 없음', () => {

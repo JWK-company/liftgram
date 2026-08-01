@@ -167,7 +167,7 @@ const PATTERN_BY_NAME: Record<string, MovementPattern> = {
   '오버헤드 케이블 컬': 'curl',
   '비하인드 백 케이블 컬': 'curl',
   '플레이트 컬': 'curl',
-  '비하인드 백 리스트 컬': 'curl',
+  // 비하인드 백 리스트 컬은 손목 굴곡 — 이두 curl 버킷 오염 방지, 기존 리스트 컬 계열과 동일하게 미등록(qa code).
   '리버스 컬': 'curl',
   // 삼두 신전
   '리버스 그립 푸시다운': 'extension',
