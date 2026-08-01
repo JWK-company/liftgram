@@ -163,6 +163,9 @@ export default function App() {
               ref={navRef}
               theme={navTheme}
               linking={linking}
+              // 최초 로드(딥링크·새로고침)엔 onStateChange가 안 울린다 → onReady로 초기 라우트를 잡아야
+              // 전역 운동 바가 첫 화면부터 제자리(탭바 위/화면 바닥)에 앉고, 운동 화면에선 숨는다. @plm SRS-004
+              onReady={() => setRouteName(navRef.getCurrentRoute()?.name)}
               onStateChange={() => setRouteName(navRef.getCurrentRoute()?.name)}
             >
               {error ? (

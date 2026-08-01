@@ -21,6 +21,7 @@ import {
   SectionHeader,
   EmptyState,
   VariantSelector,
+  useWorkoutBarInset,
 } from '../../components';
 import type { RootStackScreenProps } from '../../navigation/types';
 import { useQueryData } from '../../db/hooks';
@@ -56,6 +57,7 @@ import { useT, type TransKey } from '../../i18n';
 
 export default function RoutineEditorScreen({ route, navigation }: RootStackScreenProps<'RoutineEditor'>) {
   const { t } = useT();
+  const barInset = useWorkoutBarInset(); // 운동 중 전역 바가 덮는 하단 여유공간. @plm SRS-004
   const paramRoutineId = route.params?.routineId;
   const [routineId, setRoutineId] = useState<string | null>(paramRoutineId ?? null);
   const [creating, setCreating] = useState(!paramRoutineId);
@@ -433,6 +435,8 @@ export default function RoutineEditorScreen({ route, navigation }: RootStackScre
       {/* 완료(저장) = 루틴 삭제 바로 위, 같은 크기 버튼 */}
       <Button title={t('common.done')} icon="checkmark" onPress={onDone} style={{ marginTop: spacing.sm }} />
       <Button title={t('routines.deleteRoutineTitle')} variant="danger" onPress={deleteRoutine} style={{ marginTop: spacing.sm }} />
+      {/* 운동 중이면 전역 운동 바가 하단을 덮으므로 그만큼 여유공간(삭제 버튼이 가려지지 않게). @plm SRS-004 */}
+      {barInset > 0 ? <View style={{ height: barInset }} /> : null}
     </View>
   );
 
