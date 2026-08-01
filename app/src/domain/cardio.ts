@@ -83,6 +83,23 @@ const CARDIO_METRICS_BY_NAME_EN: Record<string, CardioMetric[]> = {
   'Assault Bike': ['duration', 'distance', 'level'],
   'Stepper': ['duration', 'level'],
   SkiErg: ['duration', 'distance', 'level'],
+  // 카탈로그 대확장(2026-08) 신규 15종 — spec 유산소 표가 정본. duration-only 종목은
+  // 기본값(시간+거리)이 거리 입력을 노출하므로 반드시 명시. @plm SRS-030
+  Swimming: ['duration', 'distance'],
+  Boxing: ['duration'],
+  Climbing: ['duration'],
+  Hiking: ['duration', 'distance'],
+  Sprint: ['duration', 'distance'],
+  'Outdoor Cycling': ['duration', 'distance'],
+  'Recumbent Bike': ['duration', 'distance'],
+  HIIT: ['duration'],
+  Aerobics: ['duration'],
+  Yoga: ['duration'],
+  Pilates: ['duration'],
+  Skating: ['duration', 'distance'],
+  Skiing: ['duration', 'distance'],
+  Snowboarding: ['duration'],
+  Stretching: ['duration'],
 };
 
 export function cardioMetricsFor(ex: { nameEn?: string | null }): CardioMetric[] {

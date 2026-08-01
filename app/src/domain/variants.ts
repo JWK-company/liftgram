@@ -10,7 +10,8 @@ export type GripKey = (typeof GRIP_KEYS)[number];
 export type ArmKey = 'bi' | 'uni'; // bi(양팔)=기본=null, uni(원암)만 별도 버킷
 
 // equipment 변형 차원: 머신 종목은 브랜드/커스텀, 프리웨이트는 대체 기구로 전환(#21).
-export const IMPLEMENT_KEYS: EquipmentType[] = ['barbell', 'dumbbell', 'machine', 'cable', 'smith', 'kettlebell'];
+// band는 카탈로그 대확장(2026-08)에서 추가 — 스크린샷 (밴드) 변형 다수를 축으로 흡수. @plm SRS-028
+export const IMPLEMENT_KEYS: EquipmentType[] = ['barbell', 'dumbbell', 'machine', 'cable', 'smith', 'kettlebell', 'band'];
 
 export interface VariantDims {
   equipment?: string | null; // 브랜드/커스텀 키 또는 implement type. null=기본
@@ -113,6 +114,7 @@ const IMPLEMENT_LABELS: Partial<Record<EquipmentType, { ko: string; en: string }
   cable: { ko: '케이블', en: 'Cable' },
   smith: { ko: '스미스', en: 'Smith' },
   kettlebell: { ko: '케틀벨', en: 'Kettlebell' },
+  band: { ko: '밴드', en: 'Band' },
 };
 
 export function equipmentVariantLabel(key: string | null | undefined, lang: AppLanguage, customLabels: string[] = []): string {

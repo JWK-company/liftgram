@@ -1,4 +1,4 @@
-// 운동 카탈로그 시드 — 멱등 top-up (SRS-001). 매 실행 시 nameKo 기준으로 DB에 없는
+// 운동 카탈로그 시드 — 멱등 top-up (SRS-001). 매 실행 시 nameEn(안정 키) 기준으로 DB에 없는
 // 기본(비커스텀) 종목만 추가한다. 신규 설치=전건 주입, 기존 DB=신규 추가분만 보강.
 // 추가로 대체운동(SUBSTITUTES)을 nameKo->id로 해소해 substituteIds에 멱등 적용(기존 DB 보강 포함).
 import { Q } from '@nozbe/watermelondb';
