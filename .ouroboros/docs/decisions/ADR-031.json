@@ -1,0 +1,268 @@
+{
+ "schemaVersion": 1,
+ "id": "ADR-031",
+ "type": "ADR",
+ "title": "웹 스택 전면 전환 — 프론트 Next 16 · 백엔드 Go/Connect RPC · proto 계약 SSOT, 병존(strangler) 이행 (ADR-018 대체)",
+ "status": "Draft",
+ "owner": "Architecture",
+ "product": "health-practice",
+ "created": "2026-08-01T14:20:00Z",
+ "updated": "2026-08-01T14:20:00Z",
+ "sync": true,
+ "tags": [
+  "stack",
+  "backend",
+  "frontend",
+  "devops",
+  "migration",
+  "tarae-web-stack"
+ ],
+ "relations": {
+  "supersedes": [
+   "ADR-018"
+  ],
+  "informs": [
+   "SAD-001",
+   "SAD-004",
+   "SAD-011",
+   "SAD-013"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "맥락 (Context)" }]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "현 구현은 두 갈래다 — app/(Expo RN Web · 163파일 28.6k LOC · Netlify 정적 SPA)와 server/(NestJS + Prisma · 49파일 5.1k LOC · Render). 그 사이 사내 표준 웹 템플릿 tarae-web-stack이 정립됐다: Next 16(RSC·/api 프록시·/ws 터널) + Go/Connect RPC + PostgreSQL + Redis + Docker compose, proto 한 장에서 Go·TypeScript를 동시 생성, verify/smoke/ci·runtime contract 검증 하네스 내장. 제품 오너 지시(2026-08-01): 웹 스택은 전부 tarae-web-stack으로 교체하되 현재 임시 배포된 구현은 유지한다."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "ADR-018은 Go를 대안 ③으로 검토하고 '소팀 생산성·앱과의 언어 분리'를 이유로 기각했다. 그 판단의 전제는 '백엔드 스택을 처음부터 세운다'였다. 템플릿이 조립·검증·컨테이너·CI까지 완성된 형태로 제공되면서 그 전제가 바뀌었다 — 기각 사유였던 초기 비용의 대부분이 이미 지불돼 있다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "결정 (Decision)" }]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "웹 스택을 tarae-web-stack으로 전면 채택한다 — frontend: Next 16(브라우저가 보는 유일한 입구, /api/* 프록시와 /ws 터널을 소유) · backend: Go + Connect RPC(호스트 미노출, 내부 전용) · PostgreSQL + Redis · Docker compose."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "위치는 저장소 src/. Go 모듈 경로는 github.com/JWK-company/liftgram/src/backend."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "계약의 SSOT는 proto/ 한 곳이다(Go·TS 동시 생성 — 필드가 바뀌면 화면의 타입 검사가 깨진다). 스키마의 SSOT는 database/migrations/. 생성물은 커밋한다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "이행은 병존(strangler)으로 한다. app/(Expo Web·Netlify)와 server/(NestJS·Render)는 도메인별 파리티에 도달할 때까지 그대로 운영한다. 도메인 단위로 src/에 옮기고, 옮긴 도메인만 트래픽을 전환한다. 빅뱅 전환은 하지 않는다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "첫 이행 도메인은 운동 카탈로그로 한다 — 읽기 전용 참조 데이터라 인증·동기에 의존하지 않고, 336종 실데이터가 있어 계약·성능·검증 하네스를 실증할 수 있다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "미결로 남긴다: ADR-002(로컬 우선/offline-first)는 이 ADR로 철회하지 않는다. 템플릿이 서버 중심이라는 사실과, 프론트에 로컬 저장소·동기 계층을 얹는 것은 배타적이지 않다. 세션·기록 도메인을 옮기는 시점에 별도 ADR로 결정한다 — 그 전에는 SRS-006이 그대로 유효하다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "근거 / 대안" }]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "채택 이유 — ① 계약이 스키마로 못 박혀 프론트·백엔드 불일치가 런타임이 아니라 컴파일에서 잡힌다. ② 검증 하네스(verify·smoke 8종·ci 9단계·runtime contract)가 완성돼 있어 이식 비용의 상당 부분이 선불됐다. ③ 사내 다른 프로젝트와 스택이 같아져 유지보수가 한 곳으로 모인다. ④ 실측: 이식 직후 로컬·컨테이너 양쪽에서 smoke 8종 통과, backend 이미지 59.9MB."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "대안 ① 현행 유지(Expo Web + NestJS) — 사내 표준과 갈라져 유지보수·인력이 분산되고, 계약 불일치를 잡아 주는 장치가 없다. 대안 ② 백엔드만 Go로 — 프론트·계약 통합의 이득을 못 얻고 언어만 늘어난다. 대안 ③ 빅뱅 전환 — 33k LOC·42화면을 한 번에 재작성하는 동안 배포 불가 기간이 길고 되돌리기 어렵다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "결과 (Consequences)" }]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         { "type": "text", "text": "장점: 계약 기반 타입 안전, 검증·컨테이너·CI 하네스 내장, 사내 표준 정합, 운영 이미지 경량." }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "트레이드오프: 언어가 둘(TypeScript·Go)로 늘어난다. 이행 기간 동안 두 스택을 동시에 운영·배포해야 한다. 오프라인 우선을 유지한다면 로컬 저장소·동기 엔진을 새 프론트에 다시 얹어야 한다(미결)."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "되돌림 비용: 이행 기간에는 낮다 — app/·server/가 살아 있어 도메인 단위로 되돌릴 수 있다. 파리티 도달 후 구스택을 걷어내면 높아진다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "운영 유의: 템플릿이 자기 번호 체계의 @plm SRS-001~012 주석 76개를 달고 왔다. liftgram의 동명 SRS에 가짜 딥링크가 붙는 것을 막기 위해 루트 .plmignore에 src/**를 두었고, 도메인을 옮기며 liftgram SRS로 다시 매핑할 때 디렉터리 단위로 해제한다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "연결" }]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "대체: ADR-018(Node/TS 모듈러 모놀리스 + PostgreSQL) · 영향 SAD: SAD-001(시스템개요·스택)·SAD-004(데이터·동기)·SAD-011(소셜·메시징 백엔드)·SAD-013(결제·정산) · 미결로 남긴 것: ADR-002(로컬 우선) / SRS-006 · 정합: ADR-011(모듈러 모놀리스 토폴로지)"
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -6,3 +6,12 @@
 .ref/**
 .serena/**
 **/.git/**
+
+# ── src/ (웹 스택 이식분) — 2026-08-01 ────────────────────────────────────────
+# tarae-web-stack 템플릿이 **자기 번호 체계의** `@plm SRS-001~012` 주석 76개를 달고 왔다.
+# 그대로 스캔하면 liftgram의 동명 SRS에 가짜 realizes가 붙는다. 예:
+#   템플릿 SRS-001(카운터 저장소) → liftgram SRS-001(운동 데이터베이스)
+#   템플릿 SRS-008(compose·entry point) → liftgram SRS-008(프로필 및 PR 공유)
+#   템플릿 SRS-004(WebSocket) → liftgram SRS-004(운동 세션 관리)
+# 도메인을 실제로 포팅하며 liftgram SRS로 다시 매핑할 때 **디렉터리 단위로 이 제외를 푼다.**
+src/**

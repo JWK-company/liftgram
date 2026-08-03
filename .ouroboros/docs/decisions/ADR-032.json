@@ -1,0 +1,232 @@
+{
+ "schemaVersion": 1,
+ "id": "ADR-032",
+ "type": "ADR",
+ "title": "오프라인 우선 유지 확정 + 이관 전략 — 도메인·저장소·i18n은 TypeScript로 이전(재작성 금지), Go는 서버 책임만 (ADR-031 미결 해소)",
+ "status": "Draft",
+ "owner": "Architecture",
+ "product": "health-practice",
+ "created": "2026-08-02T01:10:00Z",
+ "updated": "2026-08-02T01:10:00Z",
+ "sync": true,
+ "tags": [
+  "migration",
+  "offline-first",
+  "domain",
+  "typescript",
+  "strategy"
+ ],
+ "relations": {
+  "informs": [
+   "SRS-006",
+   "SAD-001",
+   "SAD-004"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "맥락 (Context)" }]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "ADR-031이 웹 스택을 tarae-web-stack(Next + Go)으로 바꾸기로 하면서 ADR-002(로컬 우선/offline-first)의 존폐를 미결로 남겼다. 첫 도메인(운동 카탈로그)은 읽기 전용이라 이 결정 없이도 옮길 수 있었지만, 다음 관문인 세션·기록은 그렇지 않다. 제품 오너 지시(2026-08-02): 어차피 전 기능을 옮겨야 하니 판단해서 진행하라."
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "실측으로 확인한 사실: app/src/domain(4,371 LOC — PR·볼륨·1RM·처방·주간스케줄·progression·스트릭·원판계산·유산소·변형버킷)은 **외부 import가 하나도 없는 순수 TypeScript**이고, 딸린 단위테스트가 1,910 LOC·154건이다. db/(852) · data/(3,399) · i18n/(1,747)도 React Native를 직접 참조하지 않는다(웹 어댑터 adapter.web.ts가 이미 있어 브라우저에서 돈다). 반면 features/*·components/(14,312 LOC)는 대부분 RN에 묶여 있다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "결정 (Decision)" }]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "**오프라인 우선을 유지한다.** ADR-002는 유효하고 SRS-006도 그대로다. ADR-031이 남긴 미결은 이것으로 닫는다 — 헬스장에서 네트워크 없이 기록되는 동작은 이 제품의 신뢰 그 자체이고, 아래 결정 때문에 유지 비용이 오히려 가장 낮은 선택이 됐다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "**도메인·로컬저장소·i18n 계층은 TypeScript 그대로 이전한다(lift). Go로 재구현하지 않는다.** 구체적으로 domain/ · db/ · data/ · i18n/ 은 옮기기만 하고, 계산 규칙을 손대지 않는다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "**Go 백엔드의 책임은 서버의 일로 한정한다** — 계정·인증, 동기(충돌 해소의 서버 측), 소셜 그래프·피드, DM, 미디어, 알림, 결제/엔타이틀먼트. 볼륨·PR·1RM·처방 같은 **도메인 계산을 백엔드에서 다시 구현하지 않는다.**"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "**재작성이 필요한 유일한 계층은 UI다** — features/*·components/를 React Native에서 React DOM으로 옮긴다. 화면은 도메인 함수를 부르는 껍데기이므로, 규칙이 이미 검증된 상태에서 옮기는 셈이 된다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "**이행 기간 동안 원본은 app/이고 src/는 파생이다.** 복사는 `make sync-domain`이 하고, 어긋나면 `make domain-check`가 검증에서 실패시킨다. app/이 은퇴하는 날 src/가 원본이 되고 이 장치는 사라진다. 카탈로그 시드를 생성물로 둔 것과 같은 원칙 — 같은 사실을 두 곳에 손으로 적지 않는다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "근거 / 대안" }]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "채택 이유 — ① **이중 구현을 원천 차단한다.** 오프라인 우선이면 같은 계산이 클라이언트에도 있어야 한다. 도메인을 Go로 옮기면 Go와 TS에 같은 규칙이 두 벌 생기고, 둘은 반드시 갈라진다(이 저장소는 이미 변형 버킷 키 분열·그립 버킷 도입/철회로 그 값을 치렀다). ② **이전이 곧 검증이다** — 154건의 단위테스트가 함께 옮겨 와 동작 동일성을 기계가 증명한다. 재작성했다면 이 테스트는 재작성 대상이 되어 증명력이 사라진다. ③ 가장 버그가 나기 쉬운 10,400 LOC를 손대지 않으므로 이관 위험이 UI 한 겹으로 좁혀진다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "대안 ① **도메인을 Go로 재구현** — 백엔드가 '똑똑해지지만' 오프라인 클라이언트가 같은 계산을 못 해 즉시 PR·볼륨을 보여줄 수 없다. 결국 TS에도 다시 구현해야 하므로 이중 구현으로 귀결된다. 대안 ② **오프라인 포기(서버 중심)** — ADR-002가 이미 '코어 요구 위반'으로 기각했고, 지금은 유지 비용마저 더 낮다. 대안 ③ **전 계층 재작성** — 33k LOC를 다시 쓰는 동안 회귀를 잡아 줄 기준이 없다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "결과 (Consequences)" }]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         { "type": "text", "text": "장점: 이관 위험이 UI 한 겹으로 좁아진다. 도메인 테스트 154건이 그대로 회귀 그물이 된다. 오프라인 우선이 유지돼 제품의 코어 약속이 깨지지 않는다." }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "트레이드오프: 백엔드가 '얇아진다' — 서버는 저장·동기·소셜을 하고 계산은 클라이언트가 한다. 서버만 아는 계산(랭킹·정산 등)이 나중에 필요해지면 그때 그 계산만 Go에 둔다. 또 이행 기간에는 도메인 코드가 두 곳에 존재하므로 드리프트 검사가 반드시 켜져 있어야 한다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         { "type": "text", "text": "되돌림 비용: 낮다. 이전은 복사이므로 되돌리면 app/이 그대로 원본으로 남는다." }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": { "level": 2 },
+    "content": [{ "type": "text", "text": "연결" }]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "미결 해소: ADR-031(웹 스택 전환)이 남긴 오프라인 우선 결정 · 재확인: ADR-002(로컬 우선 동기·엔티티별 충돌 해소) / SRS-006 · 영향 SAD: SAD-001(시스템개요·스택)·SAD-004(데이터·동기)"
+     }
+    ]
+   }
+  ]
+ }
+}
