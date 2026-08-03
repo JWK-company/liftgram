@@ -15,6 +15,22 @@ export default defineConfig({
   expect: { timeout: 8_000 },
   use: {
     baseURL: process.env.BASE ?? "http://127.0.0.1:3100",
+    // **첫 실행 안내를 이미 본 상태**로 시작한다.
+    //
+    // 그 안내는 화면을 통째로 덮는다(그게 목적이다). 매 테스트가 새 브라우저 컨텍스트로
+    // 시작하므로, 이 표시가 없으면 78종 전부가 안내부터 닫아야 한다 — 검사하려는 것과
+    // 무관한 절차가 모든 테스트에 붙는다.
+    //
+    // 안내 자체는 `onboarding.spec.ts`가 이 표시를 지우고 확인한다.
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: process.env.BASE ?? "http://127.0.0.1:3100",
+          localStorage: [{ name: "onboarding_seen_v1", value: "yes" }],
+        },
+      ],
+    },
     trace: "retain-on-failure", // 실패했을 때만 추적 파일을 남긴다(용량·시간 절약)
     screenshot: "only-on-failure",
   },

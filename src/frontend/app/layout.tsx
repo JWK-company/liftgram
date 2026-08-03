@@ -18,6 +18,7 @@ import { AuthProvider } from "./components/AuthProvider";
 import { GlobalWorkoutBar } from "./components/GlobalWorkoutBar";
 import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
+import { OnboardingOverlay } from "./components/OnboardingOverlay";
 import { TabBar } from "./components/ui/TabBar";
 import "./globals.css";
 
@@ -50,6 +51,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 <GlobalWorkoutBar />
                 <TabBar />
+                {/* 첫 실행 안내는 **한 번만** 뜬다(본 표시는 이 기기에 남는다). */}
+                <OnboardingOverlay />
               </div>
             </ToastProvider>
           </SessionProvider>
