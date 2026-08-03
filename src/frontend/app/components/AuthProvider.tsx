@@ -87,13 +87,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (res.user) await onLoggedIn(res.user.id);
       },
       logOut: async () => {
-        const { getRefreshToken } = await import("@/lib/session");
-        const token = getRefreshToken();
-        // 서버가 못 받아도 이 기기에서는 나간다 — 오프라인에서 로그아웃이 막히면 안 된다.
-        if (token)
-          await authClient()
-            .logOut({ refreshToken: token })
-            .catch(() => {});
+        // refresh는 httpOnly 쿠키에 있어 여기서 읽을 수 없다 — 폐기까지 세션 라우트가 한다.
+        // 서버가 못 받아도 이 기기에서는 나간다(오프라인에서 로그아웃이 막히면 안 된다).
         clearTokens();
         setUser(null);
       },

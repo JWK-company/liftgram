@@ -45,7 +45,7 @@ test("남의 글은 신고할 수 있고, 내 글에는 신고 버튼이 없다"
 
   // 다른 사람으로 갈아탄다.
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("reporter"), "신고자");
 
   await 프로필로(page, 주인이름);
@@ -76,7 +76,7 @@ test("댓글도 신고할 수 있다 — 내 댓글은 삭제, 남의 댓글은 
   await expect(page.getByTestId("comment-report")).toHaveCount(0);
 
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("creporter"), "댓글신고자");
 
   await 프로필로(page, 주인이름);
@@ -109,7 +109,7 @@ test("차단하면 목록에 뜨고, 거기서 풀 수 있다", async ({ page, c
   await 가입(page, freshEmail("blocked"), 상대이름);
 
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("blocker"), "차단하는사람");
 
   await 프로필로(page, 상대이름);
@@ -149,7 +149,7 @@ test("검토자는 큐에서 글을 내릴 수 있다", async ({ page, context }
   await expect(page.getByTestId("feed-list")).toContainText(글, { timeout: 20_000 });
 
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, `q-rep-${ts}@x.com`, "신고자");
   await page.goto("/discover");
   await page.getByTestId("discover-query").fill(주인이름);
@@ -161,7 +161,7 @@ test("검토자는 큐에서 글을 내릴 수 있다", async ({ page, context }
 
   // 검토자 계정 — 역할은 밖에서 부여한다(테스트 스크립트가 psql로 준다).
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await page.goto("/account");
   await page.getByTestId("mode-login").click();
   await page.getByTestId("auth-email-input").fill(모더레이터메일);

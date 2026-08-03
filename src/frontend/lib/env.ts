@@ -50,6 +50,11 @@ const schema = z.object({
   APP_URL: z.string().url().default("http://localhost:3000"),
   SHUTDOWN_TIMEOUT_MS: z.coerce.number().default(10000),
   INSTANCE_ID: z.string().optional(),
+  /**
+   * 프로덕션인가. 세션 쿠키에 `Secure`를 붙일지 정하는 데 쓴다 —
+   * 로컬은 http라 붙이면 쿠키가 아예 저장되지 않는다.
+   */
+  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 export type WebEnv = z.infer<typeof schema>;
 

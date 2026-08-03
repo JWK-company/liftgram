@@ -302,6 +302,7 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `PLM_API_URL` | 선택 | `https://jwk-plm.shoi.ch` | 개발 피드백을 등록하는 아이디어보드 주소(SRS-006). 로컬 e2e는 가짜 보드를 띄워 여기를 돌려놓는다 — 테스트 글이 진짜 보드에 쌓이지 않게 |
 | `PLM_API_TOKEN` | 선택 | 비어 있음 | 보드 토큰. **서버에만 둔다**(앱 번들에 들어가면 회수할 수 없다). 비면 개발 피드백 탭만 "지금 안 된다"고 답하고 나머지는 그대로 동작한다 |
 | `PLM_PROJECT` | 선택 | `liftgram` | 보드에서 이 앱의 아이디어가 속하는 프로젝트 이름 |
+| `NODE_ENV` | 선택 | `development` | 세션 쿠키에 `Secure`를 붙일지 정한다 — **로컬은 http라 붙이면 쿠키가 아예 저장되지 않는다**. 컨테이너 이미지는 `production`으로 뜬다 |
 | `POSTGRES_*` · `DB_PORT` · `BROKER_PORT` · `WEB_PORT` | 선택 | app / 5433 / 6380 / 3000 | compose 전용(앱은 읽지 않음) |
 
 직접 부르는 스크립트도 같은 이름으로 있다 — `bun run db:migrate`(= `make migrate`) · `bun run gen:module <이름>`(= `make gen NAME=<이름>`).

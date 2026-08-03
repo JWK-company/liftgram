@@ -30,7 +30,7 @@ async function 가입(page: Page, email: string, name: string) {
 test("로그인하지 않았으면 로그인하라고 한다", async ({ page, context }) => {
   await context.clearCookies();
   await page.goto("/");
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
 
   await page.goto("/feedback");
   await expect(page.getByTestId("feedback-gate")).toBeVisible({ timeout: 20_000 });

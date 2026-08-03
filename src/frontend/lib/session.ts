@@ -7,11 +7,16 @@
 // ── 토큰을 어디에 두나 ──────────────────────────────────────────────────────
 //   access   **메모리에만.** 15분이면 죽으므로 새로고침 때 다시 받으면 된다.
 //            localStorage에 두면 XSS 한 번에 그대로 새어 나간다.
-//   refresh  localStorage. 새로고침·탭 종료를 넘겨 살아야 로그인 상태가 유지된다.
+//   refresh  **httpOnly 쿠키.** 스크립트가 값을 읽지 못한다 — 이 파일도 못 읽는다.
+//            담고 꺼내는 일은 `/api/session`(같은 출처의 라우트 핸들러)이 한다.
 //
-// refresh를 localStorage에 두는 것은 완전한 안전이 아니다 — 이상적으로는 httpOnly 쿠키다.
-// 다만 그러려면 프록시가 쿠키를 붙이고 CSRF를 막아야 해서, 계정 기능이 실제로 쓰이는
-// 시점(피드·DM)에 함께 옮기는 것이 맞다. 지금은 그 사실을 적어 두고 간다.
+// refresh는 오래 사는 열쇠라 훔쳐 가면 계정을 무기한 유지할 수 있다. 그래서 access와
+// **다른 곳**에 둔다: XSS가 나도 가져갈 수 있는 것은 15분짜리 access뿐이다.
+// CSRF는 쿠키의 `SameSite=Strict`와 커스텀 헤더 요구로 막는다(라우트 주석 참고).
+//
+// 화면은 "로그인돼 있나?"를 알아야 하는데 쿠키를 못 읽는다. 그래서 **표시만** 하나
+// localStorage에 남긴다(`liftgram.session`). 값이 아니라 있고 없음만 있는 깃발이라
+// 새어 나가도 잃을 것이 없다.
 //
 // ── 갱신 ────────────────────────────────────────────────────────────────────
 // access가 죽으면 서버가 401(unauthenticated)을 준다. 그때 **한 번만** 갱신하고 재시도한다.
@@ -22,7 +27,12 @@ import { AuthService, routes } from "@app/contracts";
 import { Code, ConnectError, createClient, type Client, type Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 
-const REFRESH_KEY = "liftgram.refreshToken";
+/** 세션이 있을 법하다는 **깃발**(값이 아니다). 쿠키를 읽을 수 없으니 화면은 이걸 본다. */
+const SESSION_FLAG = "liftgram.session";
+/** 옛 저장 자리. 한 번만 쿠키로 옮기고 지운다 — 없으면 기존 사용자가 전부 로그아웃된다. */
+const LEGACY_REFRESH_KEY = "liftgram.refreshToken";
+/** 남의 사이트가 붙일 수 없는 헤더 — 세션 라우트가 이걸 요구한다(CSRF 빗장). */
+const GUARD = { "x-liftgram-session": "1" } as const;
 
 let accessToken: string | null = null;
 let refreshing: Promise<boolean> | null = null;
@@ -40,30 +50,65 @@ function notify(): void {
   for (const fn of listeners) fn();
 }
 
-export function getRefreshToken(): string | null {
-  return typeof localStorage === "undefined" ? null : localStorage.getItem(REFRESH_KEY);
+function setFlag(on: boolean): void {
+  if (typeof localStorage === "undefined") return;
+  if (on) localStorage.setItem(SESSION_FLAG, "1");
+  else localStorage.removeItem(SESSION_FLAG);
 }
 
-/** 로그인·갱신이 성공했을 때. access는 메모리, refresh만 남긴다. */
+/**
+ * 로그인·가입이 성공했을 때. access는 메모리에, refresh는 **서버가 쿠키에** 담는다.
+ *
+ * 쿠키를 담는 요청이 실패해도 그 자리에서는 로그인된 채로 둔다(access가 있다) —
+ * 다만 새로고침하면 풀린다. 로그인 자체를 실패로 되돌리는 것보다 낫다.
+ */
 export function setTokens(t: { accessToken: string; refreshToken: string }): void {
   accessToken = t.accessToken;
-  if (typeof localStorage !== "undefined") localStorage.setItem(REFRESH_KEY, t.refreshToken);
+  setFlag(true);
+  void fetch("/api/session", {
+    method: "POST",
+    headers: { ...GUARD, "content-type": "application/json" },
+    body: JSON.stringify({ refreshToken: t.refreshToken }),
+  }).catch(() => {});
   notify();
 }
 
 export function clearTokens(): void {
   accessToken = null;
-  if (typeof localStorage !== "undefined") localStorage.removeItem(REFRESH_KEY);
+  setFlag(false);
+  void fetch("/api/session", { method: "DELETE", headers: GUARD }).catch(() => {});
   notify();
 }
 
 /**
- * 지금 로그인돼 있는가 — **refresh가 있는지**로 본다.
+ * 지금 로그인돼 있는가 — **깃발**로 본다(쿠키는 못 읽는다).
  *
  * access는 새로고침하면 사라지지만 그건 "로그아웃"이 아니다. 첫 요청에서 갱신하면 된다.
+ * 깃발이 남았는데 쿠키가 죽었다면 갱신이 401을 주고, 그때 깃발도 내려간다.
  */
 export function hasSession(): boolean {
-  return !!getRefreshToken();
+  return typeof localStorage !== "undefined" && localStorage.getItem(SESSION_FLAG) === "1";
+}
+
+/**
+ * 옛 저장 자리(localStorage)에 남은 refresh를 **한 번만** 쿠키로 옮긴다.
+ *
+ * 이 이행이 없으면 이미 로그인해 둔 사람이 전부 로그아웃된다 — 새 코드가 옛 자리를
+ * 더는 보지 않기 때문이다. 옮긴 뒤에는 그 값을 지운다(두 곳에 남겨 둘 이유가 없다).
+ */
+async function migrateLegacyToken(): Promise<boolean> {
+  if (typeof localStorage === "undefined") return false;
+  const legacy = localStorage.getItem(LEGACY_REFRESH_KEY);
+  if (!legacy) return false;
+  localStorage.removeItem(LEGACY_REFRESH_KEY);
+  const res = await fetch("/api/session", {
+    method: "POST",
+    headers: { ...GUARD, "content-type": "application/json" },
+    body: JSON.stringify({ refreshToken: legacy }),
+  }).catch(() => null);
+  if (!res?.ok) return false;
+  setFlag(true);
+  return true;
 }
 
 /** 인증이 붙은 클라이언트. 401이면 한 번 갱신하고 다시 보낸다. */
@@ -95,13 +140,13 @@ export function authInterceptor(): Interceptor {
     // **죽은 토큰으로 재시도**해 "불러오지 못했어요"로 끝난다(실측으로 잡았다).
     //
     // `refreshOnce`가 단일 비행이라, 여기서 먼저 기다리면 그 경쟁 자체가 사라진다.
-    if (!accessToken && getRefreshToken()) await refreshOnce();
+    if (!accessToken && hasSession()) await refreshOnce();
     if (accessToken) req.header.set("Authorization", `Bearer ${accessToken}`);
     try {
       return await next(req);
     } catch (e) {
       // 갱신할 것이 없거나 401이 아니면 그대로 올린다.
-      if (!(e instanceof ConnectError) || e.code !== Code.Unauthenticated || !getRefreshToken()) throw e;
+      if (!(e instanceof ConnectError) || e.code !== Code.Unauthenticated || !hasSession()) throw e;
       if (!(await refreshOnce())) throw e;
       if (accessToken) req.header.set("Authorization", `Bearer ${accessToken}`);
       return await next(req);
@@ -125,18 +170,29 @@ function transport() {
 async function refreshOnce(): Promise<boolean> {
   if (refreshing) return refreshing;
   refreshing = (async () => {
-    const token = getRefreshToken();
-    if (!token) return false;
     try {
-      // 갱신 요청 자체는 인터셉터 없는 맨 전송으로 보낸다(다시 401 → 갱신 고리에 빠지지 않게).
-      const bare = createClient(AuthService, createConnectTransport({ baseUrl: routes.apiPrefix }));
-      const res = await bare.refresh({ refreshToken: token });
-      if (!res.tokens) return false;
-      setTokens(res.tokens);
+      // 옛 자리에 토큰이 남아 있으면 먼저 쿠키로 옮긴다(기존 사용자 이행).
+      await migrateLegacyToken();
+
+      // 갱신은 **우리 서버에** 부탁한다 — refresh 값은 쿠키에 있고 여기서는 읽을 수 없다.
+      const res = await fetch("/api/session/refresh", { method: "POST", headers: GUARD });
+      if (res.status === 401) {
+        // 토큰이 죽었다 — 진짜 로그아웃이다(쿠키는 서버가 이미 지웠다).
+        accessToken = null;
+        setFlag(false);
+        notify();
+        return false;
+      }
+      if (!res.ok) return false; // 서버에 못 닿았다 — 로그아웃시키지 않는다(다음에 다시 시도)
+
+      const body = (await res.json()) as { accessToken?: string };
+      if (!body.accessToken) return false;
+      accessToken = body.accessToken;
+      setFlag(true);
+      notify();
       return true;
     } catch {
-      // refresh까지 죽었다 — 진짜 로그아웃이다.
-      clearTokens();
+      // 네트워크가 끊겼다. 이건 로그아웃이 아니다.
       return false;
     } finally {
       refreshing = null;
@@ -148,6 +204,9 @@ async function refreshOnce(): Promise<boolean> {
 /** 새로고침 직후처럼 access가 없을 때, 조용히 한 번 채워 둔다. */
 export async function restoreSession(): Promise<boolean> {
   if (accessToken) return true;
-  if (!getRefreshToken()) return false;
+  // 깃발이 없어도 옛 자리에 토큰이 남아 있을 수 있다 — 그 사람도 이어서 로그인 상태여야 한다.
+  if (!hasSession() && typeof localStorage !== "undefined" && !localStorage.getItem(LEGACY_REFRESH_KEY)) {
+    return false;
+  }
   return refreshOnce();
 }

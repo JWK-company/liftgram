@@ -67,7 +67,7 @@ async function 코칭요청(page: Page, 트레이너이름: string) {
 test("로그인하지 않으면 코칭을 쓸 수 없다", async ({ page, context }) => {
   await context.clearCookies();
   await page.goto("/");
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
 
   await page.goto("/coaching");
   await expect(page.getByTestId("coaching-login-required")).toBeVisible({ timeout: 20_000 });

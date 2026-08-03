@@ -32,7 +32,7 @@ test("발견은 팔로우하지 않은 사람의 공개 글도 보여 준다", a
 
   // 아무도 팔로우하지 않은 새 사람.
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("newbie"), "새사람");
 
   // 피드는 비어 있다(팔로우가 없다).

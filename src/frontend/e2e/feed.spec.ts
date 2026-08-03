@@ -93,7 +93,7 @@ test("팔로우하면 그 사람의 글이 내 피드에 들어온다", async ({
 
   // 다른 사람으로 갈아탄다 — 저장된 세션을 지우고 새로 가입한다.
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("fan"), "팬");
 
   // 팔로우 전에는 남의 글이 안 보인다.
@@ -271,7 +271,7 @@ test("팔로우한 사람의 스토리가 내 트레이에 들어온다", async 
   await expect(page.getByTestId("story-mine").locator("img")).toBeVisible({ timeout: 20_000 });
 
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("storyfan"), "팬");
 
   // 팔로우 전에는 남의 스토리가 없다(내 타일 하나뿐).
