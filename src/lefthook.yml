@@ -1,0 +1,25 @@
+# @plm SRS-009  커밋 전에 CI가 볼 것을 먼저 본다 — 깨진 커밋이 원격에 올라가지 않게
+#
+# 설치: make hooks   (bun install 후 한 번만. lefthook install이 .git/hooks에 훅을 심는다)
+# 건너뛰기: LEFTHOOK=0 git commit …   (급할 때만. CI는 어차피 같은 검사를 한다)
+#
+# 원칙: pre-commit은 **빠른 것만** 넣는다(스테이지된 파일 대상). 컨테이너 빌드·smoke test처럼
+# 오래 걸리는 것은 CI(scripts/ci.sh)의 몫이다 — 커밋이 느려지면 사람들이 훅을 끄기 시작한다.
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.{ts,tsx,mjs,js,json}"
+      run: bunx biome check --write {staged_files}
+      stage_fixed: true      # 자동 수정분을 스테이지에 되돌려 넣는다
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: bun run typecheck
+    test:
+      glob: "backend/**/*.go"
+      run: cd backend && go test ./...
+
+pre-push:
+  commands:
+    verify:
+      run: bun run typecheck && cd backend && go test ./...

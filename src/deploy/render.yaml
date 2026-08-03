@@ -1,0 +1,68 @@
+# @plm SRS-008  무료 배포 청사진(Render) — 개발 단계용
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 이 파일은 **새 웹 스택**(src/)을 무료로 띄우기 위한 것이다.
+# 저장소 루트의 `render.yaml`은 **현재 살아 있는 옛 백엔드**(server/, NestJS) 배포다 —
+# 건드리지 않는다. 두 배포는 서로 독립이고, 파리티가 될 때까지 함께 떠 있어도 된다.
+#
+# ── 무료로 맞추기 위해 한 선택 ───────────────────────────────────────────────
+#   · 웹 서비스 **1개**   화면(Next)과 API(Go)를 한 컨테이너에 넣는다(Dockerfile의 combined).
+#                        무료 티어는 상시 프로세스를 하나만 주므로, 나누면 슬립·한도를 두 배로 쓴다.
+#   · Postgres = **Neon** Render 무료 DB는 30일 뒤 삭제된다. Neon 무료는 기한이 없다.
+#                        (지금 옛 백엔드가 쓰는 그 DB와 **다른 데이터베이스**를 만들어 쓴다 — 아래 주의)
+#   · Redis  = **없음**   인스턴스가 하나면 `REALTIME_BUS=memory`로 스트리밍·WS가 완전히 동작한다.
+#
+# ── 주의: 데이터를 옛 배포와 섞지 않는다 ────────────────────────────────────
+# 새 스택은 자기 스키마를 마이그레이션으로 만든다. 살아 있는 옛 DB를 가리키면 그 데이터를
+# 건드릴 수 있다. **반드시 새 데이터베이스**를 쓰고, 이관은 전환 시점에 따로 한다.
+#
+# 사용법: Render → New → Blueprint → 이 저장소 선택 → 이 파일 경로 지정 → Apply
+#         이후 대시보드에서 DATABASE_URL(새 Neon 연결 문자열)만 입력한다.
+# ─────────────────────────────────────────────────────────────────────────────
+services:
+  - type: web
+    name: liftgram-web
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: src
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # 화면+API를 함께 담은 타깃(운영에서는 쓰지 않는다 — deploy/README.md 참고)
+    dockerTarget: combined
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render가 주는 공개 포트. 화면이 이 포트를 잡고, API는 컨테이너 안에서만 돈다.
+      - key: PORT
+        value: 8080
+      - key: DATABASE_URL
+        sync: false # ← 새 Neon 데이터베이스의 연결 문자열을 대시보드에서 입력(비밀)
+      - key: JWT_SECRET
+        generateValue: true # Render가 강한 랜덤 값을 만들어 준다 — 저장소에 비밀이 남지 않는다
+      - key: REALTIME_BUS
+        value: memory
+      - key: APP_URL
+        sync: false # ← 배포 후 발급된 주소(https://liftgram-web.onrender.com 등)
+      # ── 사진 저장소 ──
+      # 무료 티어에는 **영구 디스크가 없다** — disk로 두면 재배포·슬립 복귀마다 올린 사진이 사라진다.
+      # (지금 살아 있는 옛 배포도 같은 조건이라 동작은 파리티다. 사진을 남기려면 아래를 바꾼다.)
+      #
+      # 사진을 오래 남기려면: 값을 s3로 바꾸고 Cloudflare R2(무료 10GB)에서 만든
+      # **새 버킷**의 값 넷을 대시보드 Environment에 넣는다 — 옛 배포와 버킷을 섞지 않는다.
+      #   S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
+      #   S3_BUCKET=<새 버킷 이름> · S3_ACCESS_KEY_ID · S3_SECRET_ACCESS_KEY
+      # 설정이 비면 **부팅이 멈춘다**(조용히 disk로 떨어지지 않는다).
+      - key: STORAGE_PROVIDER
+        value: disk
+
+      # 개발 피드백 → PLM 아이디어보드(SRS-006) — **내부 사람 전용 탭**.
+      # 토큰은 대시보드 Environment에만 넣는다(코드·번들에 두지 않는다).
+      # 비워 두면 그 탭만 "지금 안 된다"고 답하고 나머지 기능은 그대로다.
+      - key: PLM_API_URL
+        value: https://jwk-plm.shoi.ch
+      - key: PLM_API_TOKEN
+        sync: false
+      - key: PLM_PROJECT
+        value: liftgram

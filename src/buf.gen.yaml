@@ -1,0 +1,49 @@
+# @plm SRS-001  코드생성 — proto 한 장에서 Go와 TypeScript를 **동시에** 낸다 (ADR-011)
+#
+# 이것이 이 구조의 핵심이다: api가 필드를 바꾸면 web의 타입 검사가 깨진다.
+# 예전에는 zod 스키마를 손으로 공유했지만, 이제 두 언어의 생성물이 같은 원본에서 나온다.
+#
+# 생성 위치:
+#   backend/gen/…            Go 메시지 + Connect 핸들러/클라이언트
+#   contracts/gen/…  TS 메시지 + 브라우저 클라이언트(@connectrpc/connect-web)
+#
+# 실행: make proto   (생성물은 커밋한다 — 받는 사람이 buf 없이도 빌드되게)
+version: v2
+inputs:
+  - directory: proto
+  # 계약 TS가 protovalidate의 기술자를 참조한다 — 그 모듈도 함께 생성해야 타입이 풀린다.
+  - module: buf.build/bufbuild/protovalidate
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/JWK-company/liftgram/src/backend/gen
+  disable:
+    # 외부 모듈(protovalidate)의 go_package는 건드리지 않는다 — 그쪽 좌표를 그대로 써야 한다.
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+plugins:
+  # 플러그인은 **로컬에서 돈다**(원격 실행 금지 — ADR-011 후속).
+  # 예전에는 `remote: buf.build/...` 로 BSR 서버가 대신 생성해 줬는데, 팀 전체가 한 IP로
+  # 나가면 **rate limit(resource_exhausted)에 걸려 빌드가 통째로 멈춘다**(실측: CI 7/9 중단).
+  # 이제 버전이 저장소에 고정된다 — Go는 backend/go.mod 의 `tool` 지시자, TS는 package.json.
+  #
+  # ── Go ── (protoc-gen-go v1.36.11 · protoc-gen-connect-go v1.19.0 = go.mod tool 고정)
+  - local: ["go", "-C", "backend", "tool", "protoc-gen-go"]
+    out: backend/gen
+    opt:
+      - paths=source_relative
+  - local: ["go", "-C", "backend", "tool", "protoc-gen-connect-go"]
+    out: backend/gen
+    opt:
+      - paths=source_relative
+
+  # ── TypeScript (화면이 쓰는 계약) ── @bufbuild/protoc-gen-es 2.13.0 = package.json 고정
+  # (런타임 @bufbuild/protobuf 와 **같은 버전**이어야 한다 — 어긋나면 생성기가 죽는다(실측))
+  - local: node_modules/.bin/protoc-gen-es
+    out: contracts/gen
+    opt:
+      - target=ts
+      # 번들러(Turbopack·webpack)가 확장자 없는 import를 그대로 해석한다.
+      # js를 붙이면 소스가 .ts라 "모듈을 찾을 수 없음"이 된다(실측).
+      - import_extension=none

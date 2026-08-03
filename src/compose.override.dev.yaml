@@ -1,0 +1,33 @@
+# @plm SRS-008  개발 오버레이 — 컨테이너 안에서 핫리로드
+#
+# base(compose.yaml)는 **프로덕션 이미지 그대로** 둔다. 개발 편의는 여기서만 켠다 —
+# 그래야 "로컬에서는 됐는데 이미지에서는 안 되는" 차이가 생기지 않는다.
+#
+# 사용: make dev-container   (make up-all 은 영향받지 않는다)
+#
+# 소스를 마운트하고 개발 서버로 띄운다. node_modules는 이미지 것을 쓴다(호스트 것을 덮어쓰지 않게
+# 익명 볼륨으로 가린다) — 호스트와 컨테이너의 아키텍처·바이너리가 다를 수 있기 때문이다.
+services:
+  frontend:
+    # 별도 이미지 태그를 쓴다 — base의 runtime 이미지와 섞이면 target이 무시된다(실측).
+    image: ${COMPOSE_PROJECT_NAME:-app}-frontend-dev
+    build:
+      context: .
+      target: frontend-build   # 개발 서버는 소스와 툴체인이 있는 빌드 스테이지에서 돈다
+    # 이미지의 entrypoint(node)를 비우고 bun으로 띄운다 — 개발 서버는 Bun 툴체인이 돌린다.
+    entrypoint: []
+    command: ["bun", "run", "dev"]
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+      REALTIME_BUS: redis
+      REDIS_URL: redis://broker:6379
+      PORT: "3000"
+    volumes:
+      - .:/app # 소스 반영
+      - /app/node_modules # 이미지의 의존을 유지(호스트 것으로 덮지 않는다)
+      - /app/.next # 빌드 캐시도 컨테이너 안에 둔다
+    # 개발 서버는 migrate 완료를 기다릴 필요가 없다 — 스키마는 make migrate로 따로 적용한다.
+    depends_on:
+      db: { condition: service_healthy }
+      broker: { condition: service_healthy }

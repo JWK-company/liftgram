@@ -1,0 +1,22 @@
+node_modules/
+.next/
+.env
+*.log
+
+# 타입 빌드 캐시
+*.tsbuildinfo
+
+# 계약 패키지는 **빌드하지 않는다**(ADR-011) — 소스(.ts)를 Next가 직접 트랜스파일한다.
+# 예전 스택의 습관으로 여기에 dist가 생기면 옛 계약이 조용히 살아남는다.
+contracts/dist/
+
+# 로컬 빌드 산출물(make build) — 이미지는 Dockerfile이 따로 만든다
+/bin/
+
+# e2e 산출물 — 경로를 고정하지 않는다(frontend/test-results 처럼 하위에도 생긴다)
+test-results/
+playwright-report/
+blob-report/
+
+# 로컬에서 올린 사진 — 저장소에 넣지 않는다.
+.media/

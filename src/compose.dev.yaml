@@ -1,0 +1,26 @@
+# 개발용 — db·broker만 띄우고 앱은 로컬에서 bun/node로 돌린다.
+# 값은 compose.yaml과 같은 .env를 본다(포트를 바꾸려면 .env의 DB_PORT·BROKER_PORT만 고친다).
+# 프로덕션 스택과 **같은 볼륨(pgdata)** 을 쓰지 않는다 — 개발 데이터가 섞이지 않게 분리한다.
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports: ["${DB_PORT:-5433}:5432"]
+    # PostgreSQL 18부터 데이터 디렉터리 구조가 바뀌어 볼륨은 /var/lib/postgresql 에 건다
+    # (기존처럼 .../data 에 걸면 "unused mount/volume" 오류로 뜨지 않는다)
+    volumes: ["devdata:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  broker:
+    image: redis:8-alpine
+    ports: ["${BROKER_PORT:-6380}:6379"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 20 }
+
+volumes:
+  devdata:

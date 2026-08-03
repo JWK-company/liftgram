@@ -1,0 +1,18 @@
+{
+  // 모노레포 공통 기반 — frontend · contracts가 이 파일을 extends 한다(backend는 Go).
+  // 여기서는 아무 파일도 검사하지 않는다("files": []). 검사는 각 워크스페이스의 tsconfig가 한다:
+  //   bun run typecheck  →  tsc -p backend  &&  tsc -p frontend
+  // 공통 옵션을 한 곳에 둬야 web과 api의 엄격도가 갈라지지 않는다.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "files": []
+}

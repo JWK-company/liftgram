@@ -1,0 +1,133 @@
+# @plm SRS-008  전 실행 단위를 compose로 정의 — frontend · backend · db · migrate · broker
+#
+# 값은 전부 .env에서 온다(`${키:-기본값}`). 그래서 로컬 실행과 컨테이너 실행이
+# **같은 설정 파일 하나**를 본다 — 포트를 바꾸고 싶으면 .env만 고치면 된다.
+#
+# 컨테이너 안에서의 접속 주소는 호스트와 다르다(db·broker·api는 서비스 이름으로 찾는다).
+# 그 차이만 여기서 명시적으로 덮어쓴다.
+#
+# ── 누가 누구를 보는가 (ADR-010) ────────────────────────────────────────────
+#   브라우저 ──▶ frontend(:3000, 호스트에 노출)
+#                 │  /api/*  프록시 · /ws  터널
+#                 ▼
+#              backend(:3001, **호스트에 노출하지 않음**) ──▶ db · broker
+#
+#   backend에 ports를 열지 않은 것은 실수가 아니라 설계다. 브라우저가 백엔드를 직접 볼 수
+#   없으므로 CORS·인증 경계가 frontend 한 곳으로 모인다. 밖에서 직접 두드려 봐야 하면:
+#     docker compose run --rm --publish 3001:3001 backend
+services:
+  db:
+    image: pgvector/pgvector:pg18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+    ports: ["${DB_PORT:-5433}:5432"]
+    # PostgreSQL 18부터 데이터 디렉터리 구조가 바뀌어 볼륨은 /var/lib/postgresql 에 건다
+    # (기존처럼 .../data 에 걸면 "unused mount/volume" 오류로 뜨지 않는다)
+    volumes: ["pgdata:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  broker:
+    image: redis:8-alpine
+    ports: ["${BROKER_PORT:-6380}:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # one-shot 마이그레이션 — 앱 부팅과 분리된 실행 단위(SRS-008).
+  # backend 이미지를 그대로 쓴다(같은 소스에서 나온 두 번째 바이너리라 스키마와 코드가 어긋나지 않는다).
+  # backend는 이 서비스가 **정상 종료된 뒤에야** 뜬다.
+  migrate:
+    build: { context: ., target: backend }
+    # backend와 **같은 이미지**를 가리킨다 — 별도 이미지로 갈라지면 한쪽만 갱신돼 조용히 옛 코드가 돈다(실측).
+    image: ${COMPOSE_PROJECT_NAME:-liftgram}-backend
+    command: ["/app/migrate"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
+  # 백엔드 — 도메인 규칙·DB·실시간의 종단. 브라우저가 직접 보지 않는다.
+  backend:
+    build: { context: ., target: backend }
+    image: ${COMPOSE_PROJECT_NAME:-liftgram}-backend
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
+      # access 토큰 서명 키 — 없으면 부팅하지 않는다(기본값을 코드에 두지 않는 이유는 config.go 참고).
+      JWT_SECRET: ${JWT_SECRET}
+      REALTIME_BUS: ${REALTIME_BUS_CONTAINER:-redis}
+      REDIS_URL: redis://broker:6379
+      API_PORT: "3001"
+      RATE_LIMIT: ${RATE_LIMIT:-120}
+      RATE_LIMIT_WINDOW_SEC: ${RATE_LIMIT_WINDOW_SEC:-60}
+      SHUTDOWN_TIMEOUT_MS: ${SHUTDOWN_TIMEOUT_MS:-10000}
+      # 착용장비 제휴(ADR-027) — **기본은 꺼짐**. 켜는 것은 "true" 정확 일치일 때만이고,
+      # 링크는 사람이 사전 생성한 것만 넣는다(서버가 조립하지 않는다).
+      GEAR_AFFILIATE_ENABLED: ${GEAR_AFFILIATE_ENABLED:-}
+      GEAR_AFFILIATE_LINKS: ${GEAR_AFFILIATE_LINKS:-}
+      # 사진 — 기본은 컨테이너 안 디스크. 볼륨에 두어야 재시작해도 남는다.
+      STORAGE_PROVIDER: ${STORAGE_PROVIDER:-disk}
+      MEDIA_DIR: /app/media
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-auto}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      # 개발 피드백 → PLM 아이디어보드(SRS-006). 토큰이 비면 그 탭만 "지금 안 된다"고 답한다.
+      PLM_API_URL: ${PLM_API_URL:-https://jwk-plm.shoi.ch}
+      PLM_API_TOKEN: ${PLM_API_TOKEN:-}
+      PLM_PROJECT: ${PLM_PROJECT:-liftgram}
+    volumes:
+      - media:/app/media
+    # 호스트 포트를 열지 않는다 — 위 그림 참고.
+    expose: ["3001"]
+    healthcheck:
+      # 이미지에 curl·node를 넣지 않는다(정적 바이너리 하나뿐인 이미지다).
+      # 서버가 자기 헬스를 확인하는 모드를 갖고 있다 — 같은 코드가 판단하므로 검사와 실제가 어긋나지 않는다.
+      test: ["CMD", "/app/server", "-healthcheck"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      db: { condition: service_healthy }
+      broker: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  # 화면 + 프록시 — 브라우저가 보는 유일한 주소.
+  frontend:
+    build: { context: ., target: frontend }
+    environment:
+      API_URL: http://backend:3001
+      PORT: "3000"
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      SHUTDOWN_TIMEOUT_MS: ${SHUTDOWN_TIMEOUT_MS:-10000}
+      NODE_ENV: production
+    ports: ["${WEB_PORT:-3000}:3000"]
+    healthcheck:
+      # **frontend 자신의** 경로를 본다(/healthz). /api/healthz 는 프록시라 backend의 상태를
+      # 답하므로, 그것을 frontend의 헬스체크로 쓰면 backend가 아플 때 멀쩡한 frontend가 재시작된다.
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      backend: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  # 올라간 사진 — 컨테이너를 다시 만들어도 남는다(무료 호스트의 디스크는 그렇지 않다).
+  media:

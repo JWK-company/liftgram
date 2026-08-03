@@ -1,0 +1,15 @@
+# @plm SRS-001  계약 저장소 — proto 한 곳이 web·api의 single source of truth이다 (ADR-011)
+#
+# lint(STANDARD)은 이름·패키지 convention을 강제하고, breaking(FILE)은 이미 나간 계약을
+# 실수로 깨뜨리는 변경을 **커밋 전에** 잡는다 — 필드 번호 재사용·타입 변경 같은 것들.
+version: v2
+modules:
+  - path: proto
+deps:
+  - buf.build/bufbuild/protovalidate
+lint:
+  use:
+    - STANDARD
+breaking:
+  use:
+    - FILE
