@@ -1,0 +1,72 @@
+// @plm SRS-019  스토리 계약 — 24시간 뒤 사라지는 한 컷
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// 글(피드)과 다른 점은 **수명**뿐이 아니다:
+//   · 24시간이 지나면 안 보인다. **지우지는 않는다** — 신고·감사 때문에 기록은 남는다.
+//   · 사람별로 묶어서 본다(한 사람의 여러 컷이 한 타일). 그래서 목록이 아니라 **그룹**을 돌려준다.
+//   · **내 그룹이 항상 맨 앞이다** — 트레이 첫 칸이 "내 스토리"이기 때문이다.
+//
+// ── 누가 본 것인가 ──────────────────────────────────────────────────────────
+// 열람 여부는 **서버가 모른다.** 기기에 남긴다(app도 그랬다 — `story_seen_v1`).
+// 안 본 표시(강조 링)는 개인적인 표시라 기기마다 달라도 되고, 서버에 두면 쓰기가 폭증한다
+// (한 사람이 스토리를 넘길 때마다 쓰기가 생긴다).
+//
+// ── 사진은 먼저 올린다 ──────────────────────────────────────────────────────
+// 여기서는 바이트를 받지 않는다. `media.v1.UploadImage`로 먼저 올리고 그 주소를 싣는다 —
+// 업로드는 성공했는데 스토리 만들기가 실패했을 때 사진을 다시 올리지 않아도 되게.
+// 주소는 **내가 올린 것**이어야 한다(남의 사진 주소를 실을 수 없다 — 규칙은 service가 지킨다).
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package story.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/story/v1;storyv1";
+
+message StoryAuthor {
+  string id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+}
+
+message Story {
+  string id = 1;
+  // `/media/file/<key>` — 화면이 그대로 쓴다.
+  string media_url = 2;
+  string caption = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp expires_at = 5;
+}
+
+// 한 사람의 살아 있는 스토리들. 오래된 것이 먼저다(넘겨 보는 순서).
+message StoryGroup {
+  StoryAuthor author = 1;
+  repeated Story stories = 2;
+}
+
+message CreateStoryRequest {
+  string media_url = 1 [(buf.validate.field).string = {min_len: 1, max_len: 300}];
+  string caption = 2 [(buf.validate.field).string = {max_len: 500}];
+}
+
+message CreateStoryResponse {
+  Story story = 1;
+  // 자동 스캔에 걸린 사진이면 올라가긴 하되 **아직 안 보인다.**
+  // 화면이 "올렸어요"와 "검토 중이에요"를 갈라 말하기 위해 필요하다.
+  bool pending = 2;
+}
+
+message ListActiveStoriesRequest {}
+
+message ListActiveStoriesResponse {
+  // 내 그룹이 있으면 **항상 첫 번째**다.
+  repeated StoryGroup groups = 1;
+}
+
+service StoryService {
+  rpc CreateStory(CreateStoryRequest) returns (CreateStoryResponse) {}
+  // 내 것 + 내가 팔로우하는 사람의 것 중 아직 만료되지 않은 것.
+  rpc ListActiveStories(ListActiveStoriesRequest) returns (ListActiveStoriesResponse) {}
+}

@@ -1,0 +1,12 @@
+{
+  // 이 패키지는 **빌드하지 않는다** — Next가 워크스페이스 TS를 그대로 트랜스파일한다.
+  // 여기 설정은 타입 검사(make verify)용이다.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "jsx": "preserve"
+  },
+  "include": ["src/**/*.ts", "gen/**/*.ts"]
+}

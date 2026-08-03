@@ -1,0 +1,25 @@
+// 운영 메타 계약 — "어디서 도는가"를 답하는 도메인 밖의 서비스
+//
+// 도메인 계약(운동 카탈로그 등)에 이걸 얹지 않는 이유: 인스턴스 식별자와 propagation 버스는
+// **도메인 데이터가 아니라 실행 환경의 사실**이다. 도메인에 섞으면 "왜 카탈로그 계약이 redis를
+// 아는가"가 되고, 그 도메인을 걷어낼 때 운영 화면이 함께 깨진다.
+//
+// 다중 인스턴스 propagation을 눈으로 확인할 때(make scale-2) 이 값이 근거가 된다.
+syntax = "proto3";
+
+package meta.v1;
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/meta/v1;metav1";
+
+message GetMetaRequest {}
+
+message GetMetaResponse {
+  // 이 응답을 준 인스턴스. 기본값은 호스트명이다.
+  string instance = 1;
+  // memory | redis
+  string bus = 2;
+}
+
+service MetaService {
+  rpc GetMeta(GetMetaRequest) returns (GetMetaResponse) {}
+}

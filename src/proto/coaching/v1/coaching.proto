@@ -1,0 +1,219 @@
+// @plm SRS-048  코칭 계약 — 사람이 사람을 가르친다 (SAD-022 · ADR-028)
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 알고리즘이 처방하지 않는다 ──────────────────────────────────────────────
+// 코칭의 주체는 **사람**(트레이너·상급자)이다. 서버가 하는 일은 ① 누가 누구를 볼 수 있는지 지키고
+// ② 본 것을 **사실 그대로** 집계해 주는 것뿐이다. "이렇게 하세요"는 트레이너가 말한다.
+// 그래서 이 계약에는 추천·제안 RPC가 없다(ADR-028).
+//
+// ── 동의가 먼저다 ───────────────────────────────────────────────────────────
+// 요청은 어느 쪽에서든 걸 수 있지만 **반대편이 수락해야** 열린다. 요청한 사람이 자기 요청을
+// 수락할 수 없다 — 그러면 동의가 아니라 통보다.
+//
+// ── 열리는 범위는 정해져 있다 ───────────────────────────────────────────────
+// 루틴 편집 · 주간 스케줄 편집 · 기록 열람 셋뿐이다. **신체 정보는 범위에 없다**(기본 제외).
+// 해지하면 그 순간 전부 닫힌다.
+//
+// ── 본 것은 남는다 ──────────────────────────────────────────────────────────
+// 트레이너가 무엇을 보고 무엇을 고쳤는지 감사 기록에 남고, **회원이 그것을 읽을 수 있다**.
+// 감시받는 쪽이 감시 기록을 볼 수 없으면 그건 신뢰 장치가 아니다.
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package coaching.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/coaching/v1;coachingv1";
+
+// 상대방. 트레이너가 보면 회원, 회원이 보면 트레이너다.
+message Peer {
+  string id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+  // 스스로 밝힌 운동 경력. **자격 보증이 아니다**(화면이 그 고지를 함께 띄운다).
+  string experience_level = 4;
+  bool trainer_intent = 5;
+}
+
+enum GrantStatus {
+  GRANT_STATUS_UNSPECIFIED = 0;
+  GRANT_STATUS_PENDING = 1;
+  GRANT_STATUS_ACTIVE = 2;
+  GRANT_STATUS_REVOKED = 3;
+}
+
+// 나는 이 관계에서 어느 쪽인가. 같은 행을 양쪽이 보므로 **보는 사람 기준**으로 채운다.
+enum Side {
+  SIDE_UNSPECIFIED = 0;
+  SIDE_TRAINER = 1;
+  SIDE_MEMBER = 2;
+}
+
+message Grant {
+  string id = 1;
+  GrantStatus status = 2;
+  // 누가 걸었나. 수락은 **반대편만** 할 수 있다.
+  Side requested_by = 3;
+  Side role_of_me = 4;
+  Peer peer = 5;
+  int64 created_at = 6;
+  // 수락(동의) 시각. 아직이면 0.
+  int64 consent_at = 7;
+}
+
+// 세트 처방 — 앱의 어휘(SRS-043)를 그대로 쓴다.
+enum SetType {
+  SET_TYPE_UNSPECIFIED = 0;
+  SET_TYPE_WARMUP = 1;
+  SET_TYPE_TOP = 2;
+  SET_TYPE_BACKOFF = 3;
+  SET_TYPE_NORMAL = 4;
+}
+enum LoadHint {
+  LOAD_HINT_UNSPECIFIED = 0;
+  LOAD_HINT_LIGHT = 1;
+  LOAD_HINT_MEDIUM = 2;
+  LOAD_HINT_HEAVY = 3;
+}
+
+message PrescribedSet {
+  SetType set_type = 1;
+  // 남길 여유 반복(RIR). 0~6 밖의 값은 서버가 잘라 낸다. 미지정이면 -1.
+  int32 target_rir = 2;
+  // 반복 범위. 미지정이면 0.
+  int32 rep_min = 3;
+  int32 rep_max = 4;
+  LoadHint load_hint = 5;
+}
+
+message RoutineExercise {
+  string id = 1;
+  string exercise_id = 2;
+  // 회원의 기기에 있는 이름. 못 찾으면 빈 문자열(서버는 카탈로그를 다시 해석하지 않는다).
+  string exercise_name = 3;
+  int32 target_sets = 4;
+  repeated PrescribedSet prescription = 5;
+}
+
+message Routine {
+  string id = 1;
+  string name = 2;
+  repeated RoutineExercise exercises = 3;
+}
+
+// 사실 집계만. **추정도 제안도 없다** — 판단은 트레이너가 한다(ADR-028).
+message MuscleVolume {
+  string muscle = 1;
+  double volume_kg = 2;
+}
+message SessionSummary {
+  string name = 1;
+  int64 started_at = 2;
+  int32 duration_seconds = 3;
+  double total_volume_kg = 4;
+  int32 pr_count = 5;
+}
+message MemberReport {
+  int32 weeks = 1;
+  int32 sessions_count = 2;
+  double sessions_per_week = 3;
+  double total_volume_kg = 4;
+  repeated MuscleVolume muscle_volume = 5;
+  repeated SessionSummary recent_sessions = 6;
+}
+
+message AuditEntry {
+  string id = 1;
+  string actor_id = 2;
+  // 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit.
+  string action = 3;
+  int64 created_at = 4;
+}
+
+message SearchTrainersRequest {
+  string query = 1 [(buf.validate.field).string.max_len = 100];
+}
+message SearchTrainersResponse {
+  repeated Peer peers = 1;
+}
+
+// 요청은 **정확히 한쪽만** 지정한다. 둘 다 비거나 둘 다 채우면 누가 가르치는지 알 수 없다.
+message RequestCoachingRequest {
+  string trainer_id = 1;
+  string member_id = 2;
+}
+message RequestCoachingResponse {
+  Grant grant = 1;
+}
+
+message ListGrantsRequest {}
+message ListGrantsResponse {
+  repeated Grant grants = 1;
+}
+
+message AcceptGrantRequest {
+  string grant_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+message AcceptGrantResponse {
+  Grant grant = 1;
+}
+
+message RevokeGrantRequest {
+  string grant_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+message RevokeGrantResponse {
+  Grant grant = 1;
+}
+
+message GetMemberReportRequest {
+  string member_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+message GetMemberReportResponse {
+  MemberReport report = 1;
+}
+
+message ListMemberRoutinesRequest {
+  string member_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+message ListMemberRoutinesResponse {
+  repeated Routine routines = 1;
+}
+
+message SetMemberPrescriptionRequest {
+  string member_id = 1 [(buf.validate.field).string.min_len = 1];
+  string routine_id = 2 [(buf.validate.field).string.min_len = 1];
+  string routine_exercise_id = 3 [(buf.validate.field).string.min_len = 1];
+  // 비우면 처방을 **지운다**(회원은 자유롭게 한다).
+  repeated PrescribedSet prescription = 4;
+}
+message SetMemberPrescriptionResponse {
+  repeated PrescribedSet prescription = 1;
+}
+
+message ListAuditRequest {
+  string grant_id = 1 [(buf.validate.field).string.min_len = 1];
+}
+message ListAuditResponse {
+  repeated AuditEntry entries = 1;
+}
+
+service CoachingService {
+  // 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
+  rpc SearchTrainers(SearchTrainersRequest) returns (SearchTrainersResponse) {}
+  rpc RequestCoaching(RequestCoachingRequest) returns (RequestCoachingResponse) {}
+  rpc ListGrants(ListGrantsRequest) returns (ListGrantsResponse) {}
+  // 수락 = 동의. **요청한 쪽은 부를 수 없다.**
+  rpc AcceptGrant(AcceptGrantRequest) returns (AcceptGrantResponse) {}
+  // 해지는 양쪽 다 할 수 있고, 그 순간 모든 접근이 닫힌다.
+  rpc RevokeGrant(RevokeGrantRequest) returns (RevokeGrantResponse) {}
+
+  // 회원 기록 열람(scope=logView). 사실 집계만 돌려준다.
+  rpc GetMemberReport(GetMemberReportRequest) returns (GetMemberReportResponse) {}
+  // 회원 루틴 열람·처방(scope=routineEdit).
+  rpc ListMemberRoutines(ListMemberRoutinesRequest) returns (ListMemberRoutinesResponse) {}
+  rpc SetMemberPrescription(SetMemberPrescriptionRequest) returns (SetMemberPrescriptionResponse) {}
+
+  // 코칭 이력. **양쪽 다 읽을 수 있다** — 회원이 볼 수 없으면 신뢰 장치가 아니다.
+  rpc ListAudit(ListAuditRequest) returns (ListAuditResponse) {}
+}

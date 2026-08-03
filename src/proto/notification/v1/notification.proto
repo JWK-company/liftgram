@@ -1,0 +1,66 @@
+// @plm SRS-020  알림 계약 — 누가 나에게 무엇을 했는가
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// 알림은 **부수적**이다. 팔로우·좋아요·댓글이 일어날 때 곁들여 쌓이고,
+// 그 쌓기가 실패해도 원래 동작(팔로우 자체)은 성공한다 — 알림 때문에 좋아요가 안 눌리면 안 된다.
+//
+// 내용을 저장하지 않는다: 종류(follow|like|comment)와 **누가**·**어느 글**만 남긴다.
+// 문구는 화면이 만든다 — 서버는 보는 사람의 언어를 모른다(옛 서버와 같은 판단).
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package notification.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/notification/v1;notificationv1";
+
+enum NotificationKind {
+  NOTIFICATION_KIND_UNSPECIFIED = 0;
+  NOTIFICATION_KIND_FOLLOW = 1;
+  NOTIFICATION_KIND_LIKE = 2;
+  NOTIFICATION_KIND_COMMENT = 3;
+}
+
+message Actor {
+  string id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+}
+
+message Notification {
+  string id = 1;
+  NotificationKind kind = 2;
+  Actor actor = 3;
+  // like·comment일 때 그 글. 눌러서 찾아가는 자리다.
+  string post_id = 4;
+  bool read = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message ListNotificationsRequest {
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+}
+
+message UnreadCountRequest {}
+
+message UnreadCountResponse {
+  int32 count = 1;
+}
+
+message MarkAllReadRequest {}
+
+message MarkAllReadResponse {}
+
+service NotificationService {
+  rpc ListNotifications(ListNotificationsRequest) returns (ListNotificationsResponse) {}
+  // 피드 머리의 배지가 매번 부른다 — 세는 것 하나뿐이라 가볍다.
+  rpc UnreadCount(UnreadCountRequest) returns (UnreadCountResponse) {}
+  // 알림 화면을 열면 한 번에 읽음 처리한다(개별 읽음은 app에도 없다).
+  rpc MarkAllRead(MarkAllReadRequest) returns (MarkAllReadResponse) {}
+}

@@ -1,0 +1,162 @@
+// @plm SRS-017  다이렉트 메시지 계약 — 1:1과 그룹
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 1:1은 "찾거나 만든다" ───────────────────────────────────────────────────
+// 같은 두 사람 사이에 대화가 둘이 되면 안 된다. 그래서 만들기 대신 **GetOrCreateDirect**다 —
+// 같은 상대를 여러 번 눌러도 늘 같은 대화로 들어간다(동시에 눌러도 하나. 근거는 스키마의 direct_key).
+//
+// ── 그룹은 팔로우한 사람만 ──────────────────────────────────────────────────
+// 낯선 사람을 대량으로 끌어넣는 방을 막는다. 1:1은 게이트하지 않는다 —
+// PT 문의처럼 **처음 말을 거는 통로**가 필요하기 때문이다(옛 서버와 같은 판단).
+//
+// ── 실시간 ──────────────────────────────────────────────────────────────────
+// `WatchMessages`가 열려 있는 동안 새 메시지가 흘러온다. 전파 버스는 **이름만** 나르므로
+// 서버가 그 신호를 받고 DB에서 다시 읽어 보낸다 — 순서가 어긋날 수 없다(ADR: 이름만 전파).
+// 스트림이 끊겨도 화면은 `ListMessages`로 계속 쓸 수 있다.
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package dm.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/dm/v1;dmv1";
+
+enum MessageKind {
+  MESSAGE_KIND_UNSPECIFIED = 0;
+  MESSAGE_KIND_TEXT = 1;
+  MESSAGE_KIND_IMAGE = 2;
+}
+
+message Participant {
+  string id = 1;
+  string display_name = 2;
+  string avatar_url = 3;
+}
+
+message Message {
+  string id = 1;
+  string conversation_id = 2;
+  Participant sender = 3;
+  MessageKind kind = 4;
+  string body = 5;
+  // 사진 메시지일 때만. `/media/file/<key>` — **내가 올린 사진**이어야 한다.
+  string media_url = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message Conversation {
+  string id = 1;
+  bool is_group = 2;
+  // 그룹에만 있다. 1:1의 제목은 화면이 상대 이름으로 만든다.
+  string title = 3;
+  // 나를 포함한다. 차단한 사람은 빠진다.
+  repeated Participant participants = 4;
+  Message last_message = 5;
+  // 내가 아직 안 읽은 수 — 목록의 배지.
+  int32 unread_count = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message ListConversationsRequest {}
+
+message ListConversationsResponse {
+  // 최근 대화가 앞이다.
+  repeated Conversation conversations = 1;
+}
+
+message GetOrCreateDirectRequest {
+  string user_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message GetOrCreateDirectResponse {
+  Conversation conversation = 1;
+}
+
+message CreateGroupRequest {
+  // 나를 뺀 사람들. **내가 팔로우하는 사람**이어야 한다.
+  repeated string user_ids = 1 [(buf.validate.field).repeated = {min_items: 1, max_items: 50}];
+  string title = 2 [(buf.validate.field).string = {max_len: 80}];
+}
+
+message CreateGroupResponse {
+  Conversation conversation = 1;
+}
+
+message LeaveConversationRequest {
+  string conversation_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message LeaveConversationResponse {}
+
+message ListMessagesRequest {
+  string conversation_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  int32 limit = 2 [(buf.validate.field).int32 = {gte: 0, lte: 100}];
+  // 이 시각보다 **앞선** 메시지(위로 더 읽기). 비면 최신부터.
+  google.protobuf.Timestamp before = 3;
+}
+
+message ListMessagesResponse {
+  // 오래된 것 → 최신 순서. 화면이 그대로 위에서 아래로 놓는다.
+  repeated Message messages = 1;
+}
+
+message SendMessageRequest {
+  string conversation_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  MessageKind kind = 2;
+  string body = 3 [(buf.validate.field).string = {max_len: 2000}];
+  string media_url = 4 [(buf.validate.field).string = {max_len: 300}];
+}
+
+message SendMessageResponse {
+  Message message = 1;
+}
+
+message MarkReadRequest {
+  string conversation_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message MarkReadResponse {}
+
+message TypingRequest {
+  string conversation_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message TypingResponse {}
+
+message WatchMessagesRequest {
+  string conversation_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+
+message WatchMessagesResponse {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_MESSAGE = 1;
+    // 상대가 입력 중. 저장되지 않는 순간의 신호다.
+    KIND_TYPING = 2;
+    // 살아 있다는 표시 — 중간 장비가 조용한 연결을 끊지 않게.
+    KIND_HEARTBEAT = 3;
+  }
+  Kind kind = 1;
+  repeated Message messages = 2;
+  // KIND_TYPING일 때 누가 치고 있는지.
+  string actor_id = 3;
+}
+
+service DmService {
+  rpc ListConversations(ListConversationsRequest) returns (ListConversationsResponse) {}
+  // 같은 상대면 언제나 같은 대화를 돌려준다.
+  rpc GetOrCreateDirect(GetOrCreateDirectRequest) returns (GetOrCreateDirectResponse) {}
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse) {}
+  // 그룹만 나갈 수 있다. 마지막 한 사람이 나가면 대화 자체가 사라진다.
+  rpc LeaveConversation(LeaveConversationRequest) returns (LeaveConversationResponse) {}
+
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse) {}
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {}
+  rpc MarkRead(MarkReadRequest) returns (MarkReadResponse) {}
+  // 입력 중 표시. 저장하지 않는다 — 지금 열려 있는 상대에게만 지나간다.
+  rpc Typing(TypingRequest) returns (TypingResponse) {}
+
+  rpc WatchMessages(WatchMessagesRequest) returns (stream WatchMessagesResponse) {}
+}

@@ -1,0 +1,232 @@
+// @plm SRS-001  운동 카탈로그 계약 — frontend와 backend가 함께 보는 single source of truth
+//
+// buf가 이 한 장에서 두 벌을 생성한다(make proto):
+//     backend/gen/…            Go 타입 + Connect 핸들러 인터페이스
+//     contracts/gen/…          TypeScript 타입 + 브라우저 클라이언트
+// 검증 규칙도 여기 선언한다(protovalidate) — 서버는 인터셉터가 자동으로 적용한다.
+//
+// ── 왜 enum인가 ─────────────────────────────────────────────────────────────
+// 기구·근육군·종류·하중모드는 **닫힌 집합**이다(각 9·14·2·3). 문자열로 두면 오타가 런타임까지
+// 살아남지만, enum이면 값을 늘릴 때 proto를 고치고 재생성해야 하므로 양쪽 코드가 동시에 깨져
+// 빠뜨릴 수 없다. 실제로 band 축이 뒤늦게 추가된 전례가 있다.
+//
+// ── 레거시 대응 ─────────────────────────────────────────────────────────────
+// 앱(app/)의 로컬 스키마는 kind·load_mode를 null로 두어 "근력·외부하중"을 뜻했다.
+// 여기서는 UNSPECIFIED가 그 자리를 대신한다 — 저장소는 null을 그대로 두고, 읽을 때 매핑한다.
+// category 필드는 옮기지 않았다: 시드 336종 전부 null이고 앱 어디서도 읽지 않는 죽은 필드다.
+syntax = "proto3";
+
+package exercise.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/exercise/v1;exercisev1";
+
+// 기구. 기록 버킷의 축이기도 하다(종목×기구) — 값을 늘리면 기록이 갈라지므로 신중히 늘린다.
+enum Equipment {
+  EQUIPMENT_UNSPECIFIED = 0;
+  EQUIPMENT_BARBELL = 1;
+  EQUIPMENT_DUMBBELL = 2;
+  EQUIPMENT_MACHINE = 3;
+  EQUIPMENT_CABLE = 4;
+  EQUIPMENT_BODYWEIGHT = 5;
+  EQUIPMENT_KETTLEBELL = 6;
+  EQUIPMENT_BAND = 7;
+  EQUIPMENT_SMITH = 8;
+  EQUIPMENT_OTHER = 9;
+}
+
+// 근육군.
+enum Muscle {
+  MUSCLE_UNSPECIFIED = 0;
+  MUSCLE_CHEST = 1;
+  MUSCLE_BACK = 2;
+  MUSCLE_SHOULDERS = 3;
+  MUSCLE_BICEPS = 4;
+  MUSCLE_TRICEPS = 5;
+  MUSCLE_FOREARMS = 6;
+  MUSCLE_QUADS = 7;
+  MUSCLE_HAMSTRINGS = 8;
+  MUSCLE_GLUTES = 9;
+  MUSCLE_CALVES = 10;
+  MUSCLE_ABS = 11;
+  MUSCLE_TRAPS = 12;
+  MUSCLE_FULL_BODY = 13;
+  MUSCLE_OTHER = 14;
+}
+
+// 종목 종류 — 근력(무게×횟수) vs 유산소(시간·거리). UNSPECIFIED = 근력(레거시 null).
+enum ExerciseKind {
+  EXERCISE_KIND_UNSPECIFIED = 0;
+  EXERCISE_KIND_STRENGTH = 1;
+  EXERCISE_KIND_CARDIO = 2;
+}
+
+// 하중 모드 — 볼륨 계산에서 세트 무게가 갖는 의미. UNSPECIFIED = EXTERNAL(레거시 null).
+//   EXTERNAL   유효무게 = 무게            (바벨·덤벨·머신)
+//   ASSISTED   유효무게 = 체중 - 무게      (어시스트 머신 — 보조하중이 클수록 실무게가 준다)
+//   BODYWEIGHT 유효무게 = 체중 + 무게      (맨몸 — 무게는 가중분)
+enum LoadMode {
+  LOAD_MODE_UNSPECIFIED = 0;
+  LOAD_MODE_EXTERNAL = 1;
+  LOAD_MODE_ASSISTED = 2;
+  LOAD_MODE_BODYWEIGHT = 3;
+}
+
+// 종목 하나의 전체 모양(상세 화면이 보는 것).
+message Exercise {
+  // 시드 종목은 name_en에서 파생한 결정적 id(`seed-<슬러그>`)다 — 기기가 달라도 같은 id라
+  // 동기 시 중복이 생기지 않는다. 커스텀 종목은 서버가 발급한 uuid다.
+  string id = 1;
+  string name_ko = 2;
+  // 시드의 **안정 키**. 이름 정리로 name_ko가 바뀌어도 이 값이 같으면 같은 종목이다.
+  // 커스텀 종목은 비어 있을 수 있다.
+  string name_en = 3;
+  repeated Muscle primary_muscles = 4;
+  repeated Muscle secondary_muscles = 5;
+  Equipment equipment = 6;
+  ExerciseKind kind = 7;
+  LoadMode load_mode = 8;
+  // 대체운동 — 같은 자리를 메울 수 있는 종목의 id. 큐레이션 결과다.
+  repeated string substitute_ids = 9;
+  string image_url = 10;
+  bool is_custom = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// 목록이 보는 것. 상세 전용 필드(대체운동·이미지)를 빼서 336종을 실어도 가볍다.
+message ExerciseSummary {
+  string id = 1;
+  string name_ko = 2;
+  string name_en = 3;
+  Equipment equipment = 4;
+  repeated Muscle primary_muscles = 5;
+  ExerciseKind kind = 6;
+  bool is_custom = 7;
+}
+
+message GetExerciseRequest {
+  // id는 URL에 그대로 실린다 — 그래서 좁게 잡는다(`seed-bench-press` · uuid).
+  string id = 1 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 128,
+    pattern: "^[A-Za-z0-9._-]+$"
+  }];
+}
+message GetExerciseResponse {
+  Exercise exercise = 1;
+}
+
+message ListExercisesRequest {
+  // 커서는 정렬 키(name_ko)를 그대로 싣는다. name_ko는 unique라 커서가 흔들리지 않는다.
+  string cursor = 1 [(buf.validate.field).string = {max_len: 128}];
+  // 잘못된 값은 조용히 고치지 않고 거절한다(음수가 1건으로 둔갑하지 않도록).
+  int32 limit = 2 [(buf.validate.field).int32 = {gte: 0, lte: 50}];
+  // 한글·영문 부분일치. 비우면 전체.
+  string query = 3 [(buf.validate.field).string = {max_len: 64}];
+  // UNSPECIFIED = 필터 없음.
+  Equipment equipment = 4 [(buf.validate.field).enum = {defined_only: true}];
+  // primary_muscles 기준. UNSPECIFIED = 필터 없음.
+  Muscle muscle = 5 [(buf.validate.field).enum = {defined_only: true}];
+}
+message ListExercisesResponse {
+  repeated ExerciseSummary items = 1;
+  // 비어 있으면 다음 페이지가 없다는 뜻.
+  string next_cursor = 2;
+}
+
+// 사용자가 만든 종목. 카탈로그에 없는 기구·변형을 쓰는 사람이 실제로 있다.
+message CreateCustomExerciseRequest {
+  string name_ko = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  repeated Muscle primary_muscles = 2 [(buf.validate.field).repeated = {
+    min_items: 1,
+    max_items: 4,
+    items: {enum: {defined_only: true, not_in: [0]}}
+  }];
+  repeated Muscle secondary_muscles = 3 [(buf.validate.field).repeated = {
+    max_items: 6,
+    items: {enum: {defined_only: true, not_in: [0]}}
+  }];
+  Equipment equipment = 4 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
+  ExerciseKind kind = 5 [(buf.validate.field).enum = {defined_only: true}];
+  LoadMode load_mode = 6 [(buf.validate.field).enum = {defined_only: true}];
+  // 같은 키의 재전송은 한 번만 반영된다. 비우면 idempotency 보장이 없다.
+  string idempotency_key = 7 [(buf.validate.field).string = {max_len: 128}];
+}
+message CreateCustomExerciseResponse {
+  Exercise exercise = 1;
+  // 이번 호출이 실제로 반영됐는지(false), 이전 결과를 되돌려준 것인지(true).
+  bool replayed = 2;
+}
+
+// 커스텀 종목 치우기. 지우지 않고 **보관**하는 이유: 그 종목으로 남긴 기록이 뒤에 생기는데,
+// 행을 지우면 기록이 가리킬 곳을 잃는다(app/의 is_archived와 같은 뜻).
+message ArchiveCustomExerciseRequest {
+  string id = 1 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 128,
+    pattern: "^[A-Za-z0-9._-]+$"
+  }];
+}
+message ArchiveCustomExerciseResponse {}
+
+// 카탈로그를 기기의 로컬 저장소로 **통째로 내려받는다**(배포 채널).
+//
+// 왜 ListExercises로 하지 않나: 목록은 화면용이라 요약만 싣는다(대체운동·보조근·하중모드 없음).
+// 로컬에 세우려면 종목의 전부가 필요하다. 한 번에 다 주지 않고 커서로 나누는 것은 같다.
+message PullCatalogRequest {
+  string cursor = 1 [(buf.validate.field).string = {max_len: 128}];
+  // 배포용이라 화면 목록보다 크게 받는다.
+  int32 limit = 2 [(buf.validate.field).int32 = {gte: 0, lte: 500}];
+}
+message PullCatalogResponse {
+  repeated Exercise items = 1;
+  string next_cursor = 2;
+  // 이 응답이 어느 시점의 카탈로그인가. 받는 쪽이 저장해 두었다가 다음에 견준다 —
+  // 같으면 내려받지 않는다.
+  CatalogRevision revision = 3;
+}
+
+message WatchCatalogRequest {}
+
+// 카탈로그가 바뀐 사실을 알린다. convention: 붙자마자 SNAPSHOT 하나, 이후 DELTA.
+// 재연결하면 다시 SNAPSHOT부터 — 끊긴 사이의 변화가 저절로 메워진다(이벤트 재생 불필요).
+//
+// 값이 아니라 **개정 번호(revision)** 만 싣는다. 받는 쪽이 달라졌을 때만 목록을 다시 읽으므로
+// 메시지 순서가 뒤바뀌어도 낡은 목록이 화면에 남지 않는다.
+message WatchCatalogResponse {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    KIND_SNAPSHOT = 1;
+    KIND_DELTA = 2;
+    // 유휴 연결이 중간 프록시에서 끊기지 않게 하는 신호. revision은 직전 값 그대로다.
+    KIND_HEARTBEAT = 3;
+  }
+  Kind kind = 1;
+  CatalogRevision revision = 2;
+}
+
+// 카탈로그의 현재 상태를 한 줄로 요약한 것. 두 값이 같으면 다시 읽을 필요가 없다.
+message CatalogRevision {
+  int64 count = 1;
+  google.protobuf.Timestamp updated_at = 2;
+}
+
+service ExerciseService {
+  // 단건 조회. 없으면 NotFound다 — 카탈로그는 "없으면 만들어 준다"가 성립하지 않는다.
+  rpc GetExercise(GetExerciseRequest) returns (GetExerciseResponse) {}
+
+  rpc ListExercises(ListExercisesRequest) returns (ListExercisesResponse) {}
+
+  // 기기가 로컬 저장소를 세울 때 쓴다(ADR-002 — 읽기 정본은 로컬이고 서버는 배포 채널이다).
+  rpc PullCatalog(PullCatalogRequest) returns (PullCatalogResponse) {}
+
+  rpc CreateCustomExercise(CreateCustomExerciseRequest) returns (CreateCustomExerciseResponse) {}
+
+  // 기본 카탈로그(시드)는 보관할 수 없다 — 규칙은 서버의 service가 지킨다.
+  rpc ArchiveCustomExercise(ArchiveCustomExerciseRequest) returns (ArchiveCustomExerciseResponse) {}
+
+  // 서버 스트리밍 — 브라우저가 HTTP/1.1로도 받을 수 있다(Connect 프로토콜).
+  rpc WatchCatalog(WatchCatalogRequest) returns (stream WatchCatalogResponse) {}
+}

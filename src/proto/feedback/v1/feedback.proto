@@ -1,0 +1,79 @@
+// @plm SRS-006  개발 피드백 계약 — 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 이건 사용자 기능이 아니다 ───────────────────────────────────────────────
+// 내부 사람(coworker·admin)만 쓰는 탭이다. 그래서 **서버가 역할로 막는다** —
+// 화면이 탭을 숨기는 것은 편의일 뿐 경계가 아니다.
+//
+// ── 저장소를 새로 만들지 않는다 ─────────────────────────────────────────────
+// 피드백은 우리 DB에 쌓지 않고 **PLM 아이디어보드에 그대로 등록**한다. 논의·투표·채택은
+// 이미 거기서 돌아간다 — 우리가 상태를 복제하면 두 곳이 어긋나는 순간부터 아무도 안 믿는다.
+// 그래서 이 계약에는 목록을 **되읽는** RPC만 있고, 상태를 바꾸는 RPC는 없다(상태는 PLM 소유).
+//
+// ── 토큰은 서버에만 있다 ────────────────────────────────────────────────────
+// PLM 토큰이 앱 번들에 들어가면 회수할 방법이 없다. 앱은 우리 서버에만 말하고,
+// 서버가 PLM에 말한다.
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package feedback.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/feedback/v1;feedbackv1";
+
+// 분류. 되읽을 때는 우리가 심은 마커에서 복원한다 — PLM에는 분류 칸이 없다.
+enum FeedbackCategory {
+  FEEDBACK_CATEGORY_UNSPECIFIED = 0;
+  FEEDBACK_CATEGORY_BUG = 1;
+  FEEDBACK_CATEGORY_IMPROVEMENT = 2;
+}
+
+// 아이디어보드의 진행 상태. **PLM이 정하고 우리는 읽기만 한다** —
+// 모르는 상태 문자열이 와도 화면이 깨지지 않게 원문을 함께 싣는다.
+enum FeedbackState {
+  FEEDBACK_STATE_UNSPECIFIED = 0;
+  FEEDBACK_STATE_SUBMITTED = 1;
+  FEEDBACK_STATE_DISCUSSION = 2;
+  FEEDBACK_STATE_VOTING = 3;
+  FEEDBACK_STATE_ADOPTED = 4;
+  FEEDBACK_STATE_REJECTED = 5;
+  FEEDBACK_STATE_HOLD = 6;
+}
+
+message FeedbackItem {
+  int64 id = 1;
+  FeedbackCategory category = 2;
+  // 사람이 읽는 제목 — 우리가 붙인 `[버그]` 접두는 떼고 준다.
+  string title = 3;
+  // 사람이 읽는 본문 — 제출자 푸터와 기계 마커는 떼고 준다.
+  string detail = 4;
+  FeedbackState state = 5;
+  // PLM이 준 상태 원문. 아는 값으로 못 옮겼을 때 화면이 이걸 그대로 보여 준다.
+  string state_raw = 6;
+  // 지금 보는 사람이 올린 것인가.
+  bool mine = 7;
+  // 채택되어 승격된 아티팩트 코드(SRS-012 같은 것). 없으면 빈 문자열.
+  string promoted_code = 8;
+}
+
+message SubmitRequest {
+  FeedbackCategory category = 1 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
+  string title = 2 [(buf.validate.field).string = {min_len: 3, max_len: 120}];
+  string detail = 3 [(buf.validate.field).string = {min_len: 5, max_len: 4000}];
+}
+message SubmitResponse {
+  int64 id = 1;
+}
+
+message ListRequest {}
+message ListResponse {
+  repeated FeedbackItem items = 1;
+}
+
+service FeedbackService {
+  // 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+  rpc Submit(SubmitRequest) returns (SubmitResponse) {}
+  // 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+  rpc List(ListRequest) returns (ListResponse) {}
+}

@@ -1,0 +1,151 @@
+// @plm SRS-006  계정·인증 계약 — 세션(JWT access + refresh 회전)
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// 이 앱은 **계정 없이도 완전히 쓸 수 있다**(ADR-002 — 기록은 기기의 로컬 저장소에 남는다).
+// 계정이 필요한 것은 여러 기기에서 이어 쓰기와 **다른 사람이 있는 기능**(피드·DM·코칭)뿐이다.
+// 그래서 인증은 '문 앞의 자물쇠'가 아니라 '필요할 때 여는 서랍'이다 — 화면 대부분은 로그인을 묻지 않는다.
+//
+// ── 토큰 두 장을 쓰는 이유 ──────────────────────────────────────────────────
+//   access   짧게 산다(15분). 매 요청에 실린다. 훔쳐가도 금방 쓸모없어진다.
+//   refresh  길게 산다(30일). access를 새로 받을 때만 쓴다. **한 번 쓰면 폐기되고 새 것이 나온다**(회전).
+//
+// 회전이 중요한 이유: 훔친 refresh를 쓰면 진짜 사용자의 것이 무효가 되어 **도난이 드러난다**.
+// 서버는 refresh를 원문으로 저장하지 않는다(해시만) — DB가 새어도 세션을 탈취당하지 않게.
+//
+// ── 비밀번호 ────────────────────────────────────────────────────────────────
+// 옛 백엔드(server/, NestJS)는 bcrypt(cost 10)를 썼다. 여기서도 **같은 알고리즘**을 쓴다 —
+// 전환 시점에 기존 사용자의 해시를 그대로 옮길 수 있어야 하기 때문이다(다시 가입시킬 수 없다).
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package auth.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/auth/v1;authv1";
+
+// 역할. 인가 판단의 단일 출처다 — 화면이 아니라 서버가 이걸로 막는다.
+enum Role {
+  ROLE_UNSPECIFIED = 0;
+  ROLE_USER = 1;
+  // 개발 피드백 탭을 볼 수 있는 내부 사용자.
+  ROLE_COWORKER = 2;
+  // 신고 큐를 처리할 수 있다.
+  ROLE_MODERATOR = 3;
+  ROLE_ADMIN = 4;
+}
+
+// 운동 경력. 온보딩에서 물어보지만 **답하지 않아도 된다**(UNSPECIFIED가 그 자리).
+enum ExperienceLevel {
+  EXPERIENCE_LEVEL_UNSPECIFIED = 0;
+  EXPERIENCE_LEVEL_BEGINNER = 1;
+  EXPERIENCE_LEVEL_INTERMEDIATE = 2;
+  EXPERIENCE_LEVEL_ADVANCED = 3;
+}
+
+// 남에게 보이는 사용자. **비밀번호 해시는 이 메시지에 없다** — 나갈 일이 없는 값은 계약에 두지 않는다.
+message User {
+  string id = 1;
+  string email = 2;
+  string display_name = 3;
+  string avatar_url = 4;
+  Role role = 5;
+  ExperienceLevel experience_level = 6;
+  // 코칭 의향 — **자격 보증이 아니다**(화면이 항상 그 고지를 함께 띄운다).
+  bool trainer_intent = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// 세션 한 벌. 클라이언트는 access를 메모리에, refresh를 오래 가는 저장소에 둔다.
+message Tokens {
+  string access_token = 1;
+  string refresh_token = 2;
+  // 초 단위. 클라이언트가 만료 전에 미리 갱신할 수 있게 알려 준다.
+  int32 expires_in = 3;
+}
+
+message SignUpRequest {
+  string email = 1 [(buf.validate.field).string = {
+    min_len: 3,
+    max_len: 254,
+    email: true
+  }];
+  // 8자 미만은 거절한다. 상한(72바이트)은 bcrypt의 제약이다 — 넘으면 뒤가 조용히 잘린다.
+  string password = 2 [(buf.validate.field).string = {min_len: 8, max_len: 72}];
+  string display_name = 3 [(buf.validate.field).string = {max_len: 40}];
+}
+
+message LogInRequest {
+  string email = 1 [(buf.validate.field).string = {min_len: 3, max_len: 254}];
+  string password = 2 [(buf.validate.field).string = {min_len: 1, max_len: 72}];
+}
+
+message RefreshRequest {
+  string refresh_token = 1 [(buf.validate.field).string = {min_len: 16, max_len: 128}];
+}
+
+message LogOutRequest {
+  string refresh_token = 1 [(buf.validate.field).string = {min_len: 16, max_len: 128}];
+}
+
+// 응답 타입은 **RPC마다 따로** 둔다(buf lint 규칙). 지금은 모양이 같지만, 그래야 한쪽만
+// 필드를 늘려도 다른 쪽 계약이 흔들리지 않는다 — 예: 가입에만 "환영 메일 보냄" 같은 것이 붙을 때.
+message SignUpResponse {
+  Tokens tokens = 1;
+  User user = 2;
+}
+
+message LogInResponse {
+  Tokens tokens = 1;
+  User user = 2;
+}
+
+message RefreshResponse {
+  Tokens tokens = 1;
+  User user = 2;
+}
+
+message MeRequest {}
+
+message MeResponse {
+  User user = 1;
+}
+
+// 프로필 수정. **보낸 필드만 바꾼다** — 빈 문자열로 지우는 것과 "안 보냄"을 구분하기 위해
+// 각 항목에 짝이 되는 `set_*` 플래그를 둔다(proto3에 부분 갱신이 없어서 생기는 문제다).
+message UpdateProfileRequest {
+  string display_name = 1 [(buf.validate.field).string = {max_len: 40}];
+  bool set_display_name = 2;
+  string avatar_url = 3 [(buf.validate.field).string = {max_len: 512}];
+  bool set_avatar_url = 4;
+  ExperienceLevel experience_level = 5;
+  bool set_experience_level = 6;
+  bool trainer_intent = 7;
+  bool set_trainer_intent = 8;
+}
+
+message UpdateProfileResponse {
+  User user = 1;
+}
+
+service AuthService {
+  // 가입. 이미 있는 이메일이면 AlreadyExists다 — "로그인해 보세요"를 화면이 안내한다.
+  rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
+
+  // 로그인. **이메일이 없든 비밀번호가 틀리든 같은 오류**를 낸다(어느 이메일이 가입돼 있는지 흘리지 않는다).
+  rpc LogIn(LogInRequest) returns (LogInResponse) {}
+
+  // access가 만료됐을 때. 쓴 refresh는 폐기되고 새 한 벌이 나온다(회전).
+  rpc Refresh(RefreshRequest) returns (RefreshResponse) {}
+
+  // 이 기기의 세션만 끊는다. 다른 기기는 그대로다.
+  rpc LogOut(LogOutRequest) returns (LogOutResponse) {}
+
+  // 내가 누구인지. access 토큰이 필요하다.
+  rpc Me(MeRequest) returns (MeResponse) {}
+
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {}
+}
+
+message LogOutResponse {}

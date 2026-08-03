@@ -1,0 +1,118 @@
+// @plm SRS-020  신고·모더레이션 계약 (ADR-017)
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 신고는 누구나, 검토는 모더레이터만 ──────────────────────────────────────
+// `Report`는 로그인한 사람이면 누구나 부른다. `ListQueue`·`Resolve`는 **역할이 있어야** 한다
+// (moderator·admin). 그 판정은 service가 한다 — 인터셉터가 일괄로 막지 않는다(ADR-002).
+//
+// ── 내려가도 지우지 않는다 ──────────────────────────────────────────────────
+// 제거는 `moderation_status='removed'`로 **감추는 것**이다. 행을 지우면 이의 제기가 들어왔을 때
+// 무엇을 왜 내렸는지 확인할 수 없다. 사진도 함께 막는다(미디어에 flagged를 세워 바이트도 안 나간다) —
+// "내려갔다"가 참이려면 파일도 안 보여야 한다.
+//
+// ── 큐에는 두 갈래가 섞인다 ─────────────────────────────────────────────────
+//   · 사람이 신고한 것(같은 대상은 한 줄로 묶고 사유·건수를 함께 보여 준다)
+//   · 자동 스캔이 보류한 것(신고가 없어도 검토 대상이다)
+// 그래서 항목에 `source`가 있다 — 검토자가 "왜 여기 있는지"를 알아야 판단이 빨라진다.
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package moderation.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/moderation/v1;moderationv1";
+
+// 신고 대상. 셋 다 작성자가 있고 감출 수 있다.
+enum TargetType {
+  TARGET_TYPE_UNSPECIFIED = 0;
+  TARGET_TYPE_POST = 1;
+  TARGET_TYPE_STORY = 2;
+  TARGET_TYPE_COMMENT = 3;
+}
+
+// 사유는 **고정 목록**이다 — 자유 입력이면 집계도 정책 대응도 못 한다(상세는 details에).
+enum Reason {
+  REASON_UNSPECIFIED = 0;
+  REASON_SPAM = 1;
+  REASON_NUDITY = 2;
+  REASON_HARASSMENT = 3;
+  REASON_VIOLENCE = 4;
+  REASON_SELF_HARM = 5;
+  REASON_MINOR_SAFETY = 6;
+  REASON_MISINFORMATION = 7;
+  REASON_OTHER = 8;
+}
+
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+  // 감춘다(지우지 않는다). 사진도 함께 막는다.
+  ACTION_REMOVE = 1;
+  // 문제없음 — 자동 보류를 풀고 신고를 기각한다.
+  ACTION_APPROVE = 2;
+}
+
+// 검토 대상의 글쓴이. `feed.v1.Author`와 이름을 겹치지 않게 둔다 —
+// 계약을 한 곳에서 재수출하는 화면 쪽에서 같은 이름이 둘이면 어느 쪽인지 알 수 없다.
+message ContentAuthor {
+  string id = 1;
+  string display_name = 2;
+}
+
+// 검토자가 판단할 최소한. 본문 전체를 싣지 않는다(큐는 훑는 화면이다).
+message Preview {
+  string kind = 1;
+  string text = 2;
+  string media_url = 3;
+}
+
+message QueueItem {
+  TargetType target_type = 1;
+  string target_id = 2;
+  // "report" 또는 "auto" — 왜 큐에 있는지.
+  string source = 3;
+  // 같은 대상에 여러 사유가 모인다.
+  repeated Reason reasons = 4;
+  int32 report_count = 5;
+  ContentAuthor author = 6;
+  Preview preview = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+message ReportRequest {
+  TargetType target_type = 1;
+  string target_id = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  Reason reason = 3;
+  string details = 4 [(buf.validate.field).string = {max_len: 1000}];
+}
+
+message ReportResponse {}
+
+message ListQueueRequest {
+  int32 limit = 1 [(buf.validate.field).int32 = {gte: 0, lte: 200}];
+}
+
+message ListQueueResponse {
+  repeated QueueItem items = 1;
+}
+
+message ResolveRequest {
+  TargetType target_type = 1;
+  string target_id = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  Action action = 3;
+  // 제거할 때 남기는 사유(감사용).
+  string reason = 4 [(buf.validate.field).string = {max_len: 200}];
+}
+
+message ResolveResponse {}
+
+service ModerationService {
+  // 로그인한 사람이면 누구나. **볼 수 있는 것만** 신고할 수 있고, 내 것은 신고할 수 없다.
+  // 같은 대상을 여러 번 신고해도 한 건이다(멱등).
+  rpc Report(ReportRequest) returns (ReportResponse) {}
+
+  // 여기부터는 moderator·admin만.
+  rpc ListQueue(ListQueueRequest) returns (ListQueueResponse) {}
+  rpc Resolve(ResolveRequest) returns (ResolveResponse) {}
+}

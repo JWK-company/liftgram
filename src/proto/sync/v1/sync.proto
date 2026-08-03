@@ -1,0 +1,63 @@
+// @plm SRS-006  오프라인 동기 계약 — 기기의 로컬 DB와 서버를 맞춘다 (ADR-002 · SAD-004)
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// ── 서버는 레코드의 속을 모른다 ─────────────────────────────────────────────
+// 스키마의 권위는 **클라이언트(WatermelonDB)** 다. 서버는 레코드를 통째 JSON으로 보관하고
+// 되돌려 줄 뿐, 컬럼을 해석하지 않는다. 그래서 앱에 컬럼이 하나 늘어도 서버를 고칠 일이 없다 —
+// 오프라인 앱에서 서버 배포와 앱 배포의 시점이 어긋나는 것은 정상이고, 그때 동기가 멈추면 안 된다.
+//
+// 그래서 레코드는 **JSON 문자열**로 싣는다. `google.protobuf.Struct`를 쓰면 숫자가 전부 double이
+// 되고 필드 순서·null 표현이 바뀐다 — "받은 그대로 돌려준다"는 이 계약의 전제가 깨진다.
+//
+// ── 커서는 시각이다 ─────────────────────────────────────────────────────────
+// 클라이언트는 마지막으로 받은 시각을 들고 와서 "그 뒤로 바뀐 것"을 받는다. 서버가 돌려주는
+// `timestamp`가 다음 요청의 `last_pulled_at`이 된다.
+//
+// ── 삭제는 지우는 것이 아니라 표시다 ────────────────────────────────────────
+// 지워 버리면 "없다"와 "지웠다"를 구분할 수 없어, 다른 기기가 그 레코드를 되살린다.
+// 그래서 삭제는 행을 남긴 채 표시만 하고, pull에서 id 목록으로 내려간다.
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package sync.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/sync/v1;syncv1";
+
+// 한 컬렉션(테이블)의 변화분.
+//
+// `created`와 `updated`를 나누는 것은 **클라이언트 쪽 사정**이다. 서버는 pull에서 살아 있는 레코드를
+// 전부 `updated`로 보낸다 — 받는 쪽이 없으면 만들고 있으면 덮기 때문에(`sendCreatedAsUpdated`),
+// 굳이 둘을 가르려다 "이미 있다" 오류만 난다.
+message TableChanges {
+  // 레코드 JSON. 최상위는 객체여야 하고 `id`(문자열)를 가져야 한다.
+  repeated string created = 1;
+  repeated string updated = 2;
+  // 지워진 레코드의 id.
+  repeated string deleted = 3;
+}
+
+message PullRequest {
+  // 마지막으로 받은 시각(epoch ms). 처음이면 0 — 그때는 전부 받는다.
+  int64 last_pulled_at = 1 [(buf.validate.field).int64.gte = 0];
+}
+
+message PullResponse {
+  // 컬렉션 이름 → 변화분. 바뀐 것이 없는 컬렉션은 아예 들어 있지 않다.
+  map<string, TableChanges> changes = 1;
+  // 다음 요청에 그대로 넣을 값(epoch ms).
+  int64 timestamp = 2;
+}
+
+message PushRequest {
+  map<string, TableChanges> changes = 1;
+}
+message PushResponse {}
+
+service SyncService {
+  // 내 변화분을 받아 온다. **로그인이 필요하다** — 동기는 계정에 묶인다.
+  rpc Pull(PullRequest) returns (PullResponse) {}
+  // 내 변화분을 올린다. 한 번의 호출은 **전부 반영되거나 아무것도 반영되지 않는다**.
+  rpc Push(PushRequest) returns (PushResponse) {}
+}
