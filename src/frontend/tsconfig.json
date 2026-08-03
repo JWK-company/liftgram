@@ -1,0 +1,35 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "jsx": "preserve",
+    // WatermelonDB 모델은 **legacy 데코레이터**(`@field('x') name!: T`)를 쓴다(ADR-003).
+    // Next의 SWC는 이 두 값을 tsconfig에서 읽어 간다 — app/의 babel 설정과 같은 뜻이다:
+    //   experimentalDecorators   = @babel/plugin-proposal-decorators { legacy: true }
+    //   useDefineForClassFields:false = class-properties { loose: true }
+    // 후자를 빠뜨리면 class-fields가 define 모드로 돌아 **데코레이터가 설치한 accessor를 덮어써**
+    // 모델이 조용히 빈 값을 돌려준다(app의 babel.config.js가 같은 함정을 주석으로 남겨 뒀다).
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    // target이 ES2022 이상이면 class-fields 기본값이 define이 된다. SWC가 위 플래그를
+    // 존중하지 않는 경우를 대비해 target도 함께 낮춰 둔다(런타임은 어차피 최신 브라우저).
+    "target": "ES2021",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    // 개발 서버가 만드는 임시 라우트 타입. 라우트를 지우면 여기 참조가 남아
+    // 소스는 멀쩡한데 타입 검사가 깨진다(제너레이터로 만들고 지우면 바로 만난다).
+    // 라우트 타입의 진짜 검증은 next build가 한다 — tsc는 소스만 본다.
+    ".next"
+  ]
+}

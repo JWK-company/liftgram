@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* @plm SRS-007  디자인 토큰 — 색상 하드코딩 금지, 토큰으로만
+ *
+ * 팔레트의 원본은 app/src/theme/tokens.ts 다(다크 테마 · PR 골드까지).
+ * 같은 값을 여기 손으로 적으면 두 곳이 갈라지므로 `make sync-core` 가 만들어 낸다.
+ * 토큰을 고치려면 app/src/theme/tokens.ts 를 고치고 다시 동기하면 된다. */
+@import "./theme.generated.css";
+
+/* 가로 스크롤 줄(필터 칩)의 스크롤바를 숨긴다 — app은 인디케이터를 끄고 쓴다
+ * (showsHorizontalScrollIndicator={false}). 손가락으로 밀어 쓰는 줄이라 막대가 보이면
+ * 폰 앱과 다르게 보인다. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 자리표시 펄스 — app의 Animated.loop(0.5↔1, 750ms 왕복)와 같은 주기. */
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* PR 폭죽 — 가운데에서 각도·거리·회전을 달리해 흩어진다(각 파티클이 CSS 변수로 자기 값을 갖는다). */
+@keyframes pr-burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--spin));
+    opacity: 0;
+  }
+}
