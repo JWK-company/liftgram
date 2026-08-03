@@ -75,12 +75,16 @@
     "web-stack-coaching": {
       "status": "done",
       "note": "코칭(동의·범위·감사·리포트·처방) · Go 25테스트 · e2e 78종. 화면 32/32 완료. 갱신 경쟁 결함(session.ts) 수정"
+    },
+    "web-stack-final": {
+      "status": "done",
+      "note": "브랜치 feat/web-stack-tarae · 12커밋 · 유산소 세트행·온보딩·httpOnly 쿠키 세션·사진 메시지 · e2e 84종. 푸시는 사용자 확인 대기"
     }
   },
   "active_files": [
-    "src/backend/internal/coaching/service.go",
-    "src/backend/internal/coaching/report.go",
-    "src/frontend/app/components/coaching/CoachingClient.tsx",
+    "src/frontend/app/components/session/SetRowCardio.tsx",
+    "src/frontend/app/components/OnboardingOverlay.tsx",
+    "src/frontend/app/api/session/route.ts",
     "src/frontend/lib/session.ts"
   ],
   "notes": {
@@ -99,5 +103,5 @@
     }
   },
   "release_tag": "v0.14.1",
-  "last_verified": "2026-08-03"
+  "last_verified": "2026-08-04"
 }
