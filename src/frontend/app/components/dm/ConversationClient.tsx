@@ -20,7 +20,7 @@ import { t } from "@/lib/i18n";
 import { dmClient } from "@/lib/dmClient";
 import { restoreSession } from "@/lib/session";
 import { feedErrorMessage } from "@/lib/feedClient";
-import { mediaSrc } from "@/lib/mediaClient";
+import { mediaSrc, uploadImage } from "@/lib/mediaClient";
 import { useAuth } from "../AuthProvider";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
@@ -177,6 +177,33 @@ export default function ConversationClient({ conversationId }: { conversationId:
     }
   }
 
+  /**
+   * 사진 한 장을 보낸다.
+   *
+   * **올린 다음에 보낸다** — 서버는 우리 저장소의 주소만 받는다(남의 주소를 실을 수 없다).
+   * 올리는 데 실패하면 메시지를 보내지 않는다. 빈 말풍선이 남는 것보다 아무 일도 안 일어난 편이 낫다.
+   */
+  async function sendImage(file: File) {
+    if (sending) return;
+    setSending(true);
+    setError(null);
+    try {
+      const url = await uploadImage(file);
+      const res = await dmClient().sendMessage({
+        conversationId,
+        kind: MessageKind.IMAGE,
+        mediaUrl: url,
+        // 사진 메시지에도 본문 자리는 있다 — 지금은 비워 둔다(설명은 다음 메시지로 적는다).
+        body: "",
+      });
+      if (res.message) merge([res.message]);
+    } catch (e) {
+      setError(feedErrorMessage(e));
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <ScreenHeader
@@ -223,6 +250,23 @@ export default function ConversationClient({ conversationId }: { conversationId:
       ) : null}
 
       <div className="sticky bottom-0 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)]">
+        {/* 사진 — 고르는 즉시 올라가고 보내진다. 미리보기 단계를 두지 않는다(메신저의 관례다). */}
+        <label className="flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            data-testid="conv-image-file"
+            disabled={sending}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void sendImage(f);
+              // 같은 파일을 다시 고를 수 있게 비운다(값이 같으면 change가 안 뜬다).
+              e.target.value = "";
+            }}
+          />
+          <Icon name="image-outline" size={20} color="var(--color-ink2)" />
+        </label>
         <div className="flex-1">
           <TextArea
             value={text}

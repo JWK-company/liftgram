@@ -40,7 +40,7 @@ test("메시지를 주고받고, 안 읽은 수가 섰다가 사라진다", asyn
 
   // 다른 사람으로 갈아탄다.
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("fan"), "팬");
 
   await 프로필로(page, 스타이름);
@@ -119,7 +119,7 @@ test("그룹은 팔로우한 사람만 고를 수 있고, 나가면 목록에서
   await 가입(page, freshEmail("gfriend"), 친구이름);
 
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("gme"), "방장");
 
   // 팔로우하기 전에는 후보에 뜨지 않는다.
@@ -165,7 +165,7 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
 
   // 다른 사람이 팔로우·좋아요·댓글을 남긴다.
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("actor"), "행동가");
 
   await 프로필로(page, 주인이름);
@@ -179,7 +179,7 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
 
   // 주인으로 돌아와 알림을 본다.
   await context.clearCookies();
-  await page.evaluate(() => localStorage.removeItem("liftgram.refreshToken"));
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 로그인(page, 주인메일);
 
   // 피드 머리에 안 읽은 배지가 서 있다(팔로우·좋아요·댓글 = 3건).
@@ -196,4 +196,41 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   // 열었으니 읽음 — 돌아가면 배지가 없다.
   await page.goto("/feed");
   await expect(page.getByTestId("feed-unread-badge")).toHaveCount(0, { timeout: 20_000 });
+});
+
+test("사진 한 장을 보내면 말풍선에 그대로 뜬다", async ({ page, browser }) => {
+  test.setTimeout(180_000);
+  const ts = Date.now();
+  const 받는이 = `사진받이${ts.toString(36)}`;
+
+  // 상대를 먼저 만든다(대화는 서로 아는 사이에서 시작된다).
+  const ctxB = await browser.newContext();
+  const pageB = await ctxB.newPage();
+  try {
+    await 가입(pageB, `photo-b-${ts}@x.com`, 받는이);
+
+    await 가입(page, `photo-a-${ts}@x.com`, `사진보내${ts.toString(36)}`);
+    await 프로필로(page, 받는이);
+    await page.getByTestId("profile-message").click();
+    await expect(page.getByTestId("conv-input")).toBeVisible({ timeout: 20_000 });
+
+    // 1×1 png 한 장을 고른다 — 올린 뒤 보내진다.
+    await page.getByTestId("conv-image-file").setInputFiles({
+      name: "shot.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+        "base64",
+      ),
+    });
+
+    // 말풍선에 **실제로 그려진** 사진이 있어야 한다(주소만 있고 안 뜨는 것과 구분한다).
+    const 사진 = page.getByTestId("conv-bubble").locator("img").first();
+    await expect(사진).toBeVisible({ timeout: 30_000 });
+    await expect
+      .poll(async () => await 사진.evaluate((el: HTMLImageElement) => el.naturalWidth), { timeout: 20_000 })
+      .toBeGreaterThan(0);
+  } finally {
+    await ctxB.close();
+  }
 });
