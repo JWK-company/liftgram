@@ -29,6 +29,11 @@ import {
   type EquipmentType,
   type VariantDims,
   type WeightUnit,
+  cardioMetricsFor,
+  formatDistanceKm,
+  formatDurationClock,
+  sumCardio,
+  type CardioMetric,
 } from "@app/core";
 import { getExerciseMedia } from "@app/core/data/exerciseMedia";
 import { useQueryData } from "@app/core/db/hooks";
@@ -45,6 +50,7 @@ import { VariantSelector } from "../ui/VariantSelector";
 import { ExerciseName } from "./ExerciseName";
 import { ExerciseTipPanel } from "./ExerciseTipPanel";
 import { NoteHistoryPanel } from "./NoteHistoryPanel";
+import { CARDIO_COL_LABEL, SetRowCardio } from "./SetRowCardio";
 import { SetRowEdit, type PrevSet, type SetRow, type Suggestion } from "./SetRowEdit";
 
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -98,6 +104,8 @@ export function ExerciseBlock({
   const [loadMode, setLoadMode] = useState<"external" | "assisted" | "bodyweight">("external");
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
+  // 종목마다 기록하는 지표가 다르다(러닝머신=경사·속도, 계단=단계, 줄넘기=시간만) — 도메인이 정한다.
+  const [cardioMetrics, setCardioMetrics] = useState<CardioMetric[]>(["duration", "distance"]);
   const [exName, setExName] = useState<string | null>(null);
   const [variant, setVariant] = useState<VariantDims>(() => we.variant ?? {});
   const [restSeconds, setRestSeconds] = useState(we.restSeconds ?? 120);
@@ -119,10 +127,12 @@ export function ExerciseBlock({
           equipment: EquipmentType;
           kind: string | null;
           nameKo: string;
+          nameEn: string | null;
         };
         if (!alive) return;
         setBaseEquipment(e.equipment);
         setIsCardio(e.kind === "cardio");
+        setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn }));
         setExName(e.nameKo);
         setLoadMode(resolveLoadMode(e as Parameters<typeof resolveLoadMode>[0]));
       } catch {
@@ -198,6 +208,19 @@ export function ExerciseBlock({
   }, [sets]);
 
   const shownPrev = prevCleared ? [] : prevSets;
+
+  /**
+   * 유산소 합계 — **체크하지 않은 세트는 빼지 않는다**(`done !== false`).
+   * 예전 레코드에는 `done`이 아예 없어서, 없는 것을 "안 한 것"으로 보면 옛 기록이 0이 된다.
+   */
+  const cardioTotal = (() => {
+    if (!isCardio) return "";
+    const { durationSec, distanceM } = sumCardio(sets.filter((s) => s.done !== false));
+    const parts: string[] = [];
+    if (durationSec > 0) parts.push(formatDurationClock(durationSec));
+    if (distanceM > 0) parts.push(formatDistanceKm(distanceM));
+    return parts.join(" · ");
+  })();
   const hasPrev = prevSets.length > 0 || pr !== null || (!!prevNote && prevNote !== note.trim());
   const hasTip = !isCardio && !!exName && !!getExerciseMedia(exName);
   const bwRelative = loadMode === "assisted" || loadMode === "bodyweight";
@@ -375,6 +398,11 @@ export function ExerciseBlock({
             />
           ) : null}
 
+          {/* 유산소는 볼륨 대신 총 시간·거리를 보여 준다 — 무게·횟수가 없으니 볼륨 칩은 늘 0이다. */}
+          {isCardio && cardioTotal ? (
+            <Tag tone="primary" label={t("session.cardioTotal", { total: cardioTotal })} />
+          ) : null}
+
           {bwMissing ? (
             <AppText variant="label" color="warning">
               {t("session.bodyweightNeeded")}
@@ -390,47 +418,73 @@ export function ExerciseBlock({
         <div className="mt-[var(--spacing-md)] flex gap-[4px] pb-[4px]">
           <HeadCell className="w-[34px]">{t("session.setColHeader")}</HeadCell>
           <HeadCell className="w-[66px]">{t("session.prevColHeader")}</HeadCell>
-          <HeadCell className="flex-1">
-            {loadMode === "assisted"
-              ? t("session.assistColHeader")
-              : loadMode === "bodyweight"
-                ? t("session.addedColHeader")
-                : t("session.weightLabel", { weightUnit: unit })}
-          </HeadCell>
-          <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell>
+          {isCardio ? (
+            cardioMetrics.map((m) => (
+              <HeadCell key={m} className="flex-1">
+                {t(CARDIO_COL_LABEL[m])}
+              </HeadCell>
+            ))
+          ) : (
+            <>
+              <HeadCell className="flex-1">
+                {loadMode === "assisted"
+                  ? t("session.assistColHeader")
+                  : loadMode === "bodyweight"
+                    ? t("session.addedColHeader")
+                    : t("session.weightLabel", { weightUnit: unit })}
+              </HeadCell>
+              <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell>
+            </>
+          )}
           <span className="w-[38px] shrink-0" />
           <span className="w-[34px] shrink-0" />
         </div>
 
         <div data-testid="set-list">
-          {sets.map((s, i) => (
-            <SetRowEdit
-              key={s.id}
-              set={s}
-              label={labels[i].label}
-              labelColor={labels[i].color}
-              prev={shownPrev[i] ?? null}
-              rx={we.prescription?.[s.setNumber - 1] ?? null}
-              suggestion={suggestions[s.id] ?? null}
-              unit={unit}
-              barWeightKg={barWeightKg}
-              onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
-              onToggleDone={onToggleDone(s)}
-              onSetType={(type) => void write(() => repo.setSetType(s.id, type))}
-              onSetArm={(arm) => void write(() => repo.setSetArm(s.id, arm))}
-              onSetGrip={(grip) => void write(() => repo.setSetGrip(s.id, grip))}
-              onDelete={() => void write(() => repo.deleteSetLog(s.id))}
-              onApplySuggestion={() => {
-                const sug = suggestions[s.id];
-                if (!sug) return;
-                void write(() => repo.updateSetLog(s.id, { weightKg: sug.weightKg }));
-                setSuggestions((m) => {
-                  const { [s.id]: _drop, ...rest } = m;
-                  return rest;
-                });
-              }}
-            />
-          ))}
+          {sets.map((s, i) =>
+            isCardio ? (
+              <SetRowCardio
+                key={s.id}
+                set={s}
+                label={String(i + 1)}
+                prev={shownPrev[i] ?? null}
+                metrics={cardioMetrics}
+                onUpdate={(patch: Record<string, number | null>) =>
+                  void write(() => repo.updateSetLog(s.id, patch))
+                }
+                // 유산소에는 무게·횟수가 없다 — 완료 표시만 넘긴다(휴식은 같은 규칙으로 시작된다).
+                onToggleDone={() => onToggleDone(s)(!(s.done === true), 0, 0)}
+                onDelete={() => void write(() => repo.deleteSetLog(s.id))}
+              />
+            ) : (
+              <SetRowEdit
+                key={s.id}
+                set={s}
+                label={labels[i].label}
+                labelColor={labels[i].color}
+                prev={shownPrev[i] ?? null}
+                rx={we.prescription?.[s.setNumber - 1] ?? null}
+                suggestion={suggestions[s.id] ?? null}
+                unit={unit}
+                barWeightKg={barWeightKg}
+                onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
+                onToggleDone={onToggleDone(s)}
+                onSetType={(type) => void write(() => repo.setSetType(s.id, type))}
+                onSetArm={(arm) => void write(() => repo.setSetArm(s.id, arm))}
+                onSetGrip={(grip) => void write(() => repo.setSetGrip(s.id, grip))}
+                onDelete={() => void write(() => repo.deleteSetLog(s.id))}
+                onApplySuggestion={() => {
+                  const sug = suggestions[s.id];
+                  if (!sug) return;
+                  void write(() => repo.updateSetLog(s.id, { weightKg: sug.weightKg }));
+                  setSuggestions((m) => {
+                    const { [s.id]: _drop, ...rest } = m;
+                    return rest;
+                  });
+                }}
+              />
+            ),
+          )}
         </div>
 
         <div className="mt-[var(--spacing-sm)]">

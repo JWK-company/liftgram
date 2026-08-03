@@ -47,6 +47,13 @@ export interface SetRow {
   grip: string | null;
   setType: string | null;
   targetRir: number | null;
+  // 유산소 지표(SRS-030) — 같은 세트 행이 근력·유산소 둘 다를 담는다.
+  // 근력 종목에서는 늘 비어 있고, 유산소에서는 무게·횟수 쪽이 비어 있다.
+  durationSec?: number | null;
+  distanceM?: number | null;
+  inclinePct?: number | null;
+  level?: number | null;
+  speedKmh?: number | null;
 }
 
 /** 직전 세션의 같은 자리 세트 — "이전" 칩이 보여 준다. */
@@ -56,6 +63,13 @@ export interface PrevSet {
   partialReps?: number | null;
   arm?: string | null;
   grip?: string | null;
+  // 유산소 지표(SRS-030). 근력 줄은 쓰지 않지만 **같은 조회에서 함께 온다** —
+  // 타입을 근력 것만으로 좁혀 두면 유산소 줄이 이전 기록을 못 받는다.
+  durationSec?: number | null;
+  distanceM?: number | null;
+  inclinePct?: number | null;
+  level?: number | null;
+  speedKmh?: number | null;
 }
 
 export interface Suggestion {
