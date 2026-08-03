@@ -1,0 +1,33 @@
+{
+  "name": "@app/core",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/domain/index.ts",
+  "types": "src/domain/index.ts",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nozbe/watermelondb": "^0.28.0"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "exports": {
+    ".": "./src/domain/index.ts",
+    "./db": "./src/db/database.ts",
+    "./db/*": "./src/db/*.ts",
+    "./domain/*": "./src/domain/*.ts",
+    "./data/*": "./src/data/*.ts",
+    "./i18n/*": "./src/i18n/*.ts",
+    "./state/*": "./src/state/*.tsx",
+    "./sync/*": "./src/sync/*.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "devDependencies": {
+    "@types/react": "^19.2.18"
+  }
+}

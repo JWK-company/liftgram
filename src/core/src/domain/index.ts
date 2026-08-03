@@ -1,0 +1,24 @@
+// 순수 도메인 계층 공개 API. 이 배럴만 import 하면 됨(RN 의존성 없음 → 테스트 가능).
+export * from './types';
+export * from './labels';
+export * from './exerciseName';
+export * from './units';
+export * from './oneRepMax';
+export * from './volume';
+export * from './cardio';
+export * from './exerciseFinder';
+export * from './personalRecords';
+export * from './progression';
+export * from './prescription'; // @plm SRS-043
+export * from './weeklySchedule'; // @plm SRS-044
+export * from './movementPatterns'; // @plm SRS-047
+export * from './conceptRoutines'; // @plm SRS-047
+export * from './programGenerator';
+export * from './plateCalculator';
+export * from './wellness';
+export * from './machineVariants';
+export * from './variants';
+export * from './streak';
+export * from './routineRecommendation';
+export * from './gyms';
+export * from './gear';

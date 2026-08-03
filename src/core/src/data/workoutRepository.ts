@@ -1,0 +1,1246 @@
+// 세션 매니저 + 세트 로깅 데이터 접근 (SRS-003/004). 무결성의 핵심.
+// 세트는 append-only(ADR-002), 완료 시 볼륨·시간·PR을 계산해 캐시. @plm SRS-003 SRS-004
+import { Q } from '@nozbe/watermelondb';
+import type { Query } from '@nozbe/watermelondb';
+import { database } from '../db/database';
+import { Workout, WorkoutExercise, SetLog, Routine, RoutineExercise, Exercise, UserProfile } from '../db/models';
+import type { CardioTargetJson } from '../db/models/_sanitizers';
+import { getExercise } from './exerciseRepository';
+import {
+  totalVolumeKg,
+  setVolumeKg,
+  snapshotFromSets,
+  detectMajorPRs,
+  mergeSnapshots,
+  effectiveWeightKg,
+  effectiveReps,
+  resolveLoadMode,
+  EMPTY_PR,
+  type LoggedSet,
+  type LoadMode,
+  type PRResult,
+  type PRSnapshot,
+  type EquipmentType,
+  type PrescribedSet, // v16: 처방 어휘(프리레이·복사). @plm SRS-043
+} from '../domain';
+import {
+  legacyMachineVariantToV6,
+  variantColumns,
+  normalizeVariantDims,
+  type VariantDims,
+  type GripKey,
+  type ArmKey,
+} from '../domain/variants'; // @plm SRS-028
+import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
+import { randomId } from '../utils/id';
+
+const workouts = () => database.get<Workout>('workouts');
+const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
+const setLogs = () => database.get<SetLog>('set_logs');
+const routines = () => database.get<Routine>('routines');
+const routineExercises = () => database.get<RoutineExercise>('routine_exercises');
+
+// loadMode·bodyweightKg를 주입하면 유효무게가 어시스트(체중-무게)/맨몸(체중+무게) 반영. 미주입=raw. @plm SRS-033
+function toLoggedSet(s: SetLog, loadMode: LoadMode | null = null, bodyweightKg: number | null = null): LoggedSet {
+  return {
+    weightKg: s.weightKg,
+    reps: s.reps,
+    rpe: s.rpe,
+    isWarmup: s.isWarmup,
+    isFailed: s.isFailed,
+    partialReps: s.partialReps, // v9: 부분반복(깔짝) — 표시전용, 볼륨/PR 제외 @plm SRS-029
+    durationSec: s.durationSec, // v10: 유산소 시간 — 볼륨/PR 제외 @plm SRS-030
+    distanceM: s.distanceM, // v10: 유산소 거리 — 볼륨/PR 제외 @plm SRS-030
+    loadMode, // v12: 하중모드 @plm SRS-033
+    bodyweightKg, // v12: 계산 시점 체중 @plm SRS-033
+  };
+}
+
+// 사용자 체중(kg) — 어시스트/맨몸 유효무게 계산용. 미입력=null → raw 무게 폴백. @plm SRS-033
+export async function getUserBodyweightKg(): Promise<number | null> {
+  try {
+    const [u] = await database.get<UserProfile>('user_profiles').query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
+    return u?.bodyweightKg ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// 주어진 종목 id들의 하중모드 맵(load_mode 명시 우선, 없으면 기구로 파생). @plm SRS-033
+async function loadModeByExerciseId(exerciseIds: string[]): Promise<Map<string, LoadMode>> {
+  const uniq = [...new Set(exerciseIds)];
+  const map = new Map<string, LoadMode>();
+  if (!uniq.length) return map;
+  const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(uniq))).fetch();
+  for (const e of exs) map.set(e.id, resolveLoadMode(e));
+  return map;
+}
+
+// 주어진 종목 id 중 유산소(kind='cardio')인 것들의 집합. PR 감지에서 유산소를 배제하는 데 쓴다. @plm SRS-030
+async function cardioExerciseIdSet(exerciseIds: string[]): Promise<Set<string>> {
+  const uniq = [...new Set(exerciseIds)];
+  const set = new Set<string>();
+  if (!uniq.length) return set;
+  const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(uniq))).fetch();
+  for (const e of exs) if (e.kind === 'cardio') set.add(e.id);
+  return set;
+}
+
+// 수행 완료된 세트 판정 — done===false(프리레이 미완료 템플릿)만 제외.
+// null(레거시 세트)·true는 모두 '수행됨'으로 취급(하위호환). 볼륨/PR/이력은 이것만 센다.
+function isPerformed(s: SetLog): boolean {
+  return s.done !== false;
+}
+
+// v6: 종목 변형 버킷 키 — variant_key 우선, 레거시 machine_variant는 즉석 승계(compute-on-read). @plm SRS-028
+function effectiveVariantKey(rec: { variantKey: string | null; machineVariant: string | null }): string | null {
+  return rec.variantKey ?? legacyMachineVariantToV6(rec.machineVariant).key;
+}
+
+// v6 무손실 백필(멱등) — 레거시(machine_variant만 있는) 행에 variant_key/variant_equipment를 채워
+// 신규 선택(equip:<brand>)과 같은 버킷으로 병합. 부팅 시 1회. variant_key가 이미 있거나
+// machine_variant가 없는 행은 건너뜀(기본 버킷=null 유지). @plm SRS-028
+export async function backfillVariantKeysV6(): Promise<number> {
+  let n = 0;
+  for (const coll of [workoutExercises(), routineExercises()] as const) {
+    const rows = await coll.query(Q.where('variant_key', null), Q.where('machine_variant', Q.notEq(null))).fetch();
+    if (!rows.length) continue;
+    await database.write(async () => {
+      await database.batch(
+        ...rows.map((r) =>
+          r.prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+            const { dims, key } = legacyMachineVariantToV6(rec.machineVariant);
+            rec.variantEquipment = dims.equipment ?? null;
+            rec.variantKey = key;
+          }),
+        ),
+      );
+    });
+    n += rows.length;
+  }
+  return n;
+}
+
+// #13 종목 통합(멱등) — 잘게 쪼개진 종목을 '기구 변형'으로 흡수. 예: 인클라인 바벨/덤벨/머신 프레스
+// → '인클라인 프레스' 1개. 기존 참조(운동·루틴)를 통합 종목으로 재지정하고 variant_equipment로
+// 기구를 보존(이전기록·PR 버킷 유지). 이미 사용자가 고른 변형은 건드리지 않는다. 원본 종목은 삭제.
+// 신규 설치엔 원본이 없어 no-op. 부팅 시 seedExercisesIfNeeded 다음에 1회.
+interface ExerciseConsolidation {
+  targetNameKo: string;
+  sources: { nameKo: string; equipment: EquipmentType }[];
+}
+const EXERCISE_CONSOLIDATIONS: ExerciseConsolidation[] = [
+  {
+    targetNameKo: '인클라인 프레스',
+    sources: [
+      { nameKo: '인클라인 바벨 프레스', equipment: 'barbell' },
+      { nameKo: '인클라인 덤벨 프레스', equipment: 'dumbbell' },
+      { nameKo: '인클라인 체스트 프레스 머신', equipment: 'machine' },
+    ],
+  },
+];
+
+export async function consolidateExercisesV8(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  let moved = 0;
+  for (const c of EXERCISE_CONSOLIDATIONS) {
+    const [target] = await exercises.query(Q.where('name_ko', c.targetNameKo), Q.where('is_custom', false)).fetch();
+    if (!target) continue; // 통합 종목이 아직 시드 안 됨 — 건너뜀
+    for (const src of c.sources) {
+      const [srcEx] = await exercises.query(Q.where('name_ko', src.nameKo), Q.where('is_custom', false)).fetch();
+      if (!srcEx || srcEx.id === target.id) continue;
+      const cols = variantColumns({ equipment: src.equipment });
+      const wes = await workoutExercises().query(Q.where('exercise_id', srcEx.id)).fetch();
+      const res = await routineExercises().query(Q.where('exercise_id', srcEx.id)).fetch();
+      await database.write(async () => {
+        await database.batch(
+          ...[...wes, ...res].map((r) =>
+            (r as WorkoutExercise | RoutineExercise).prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+              rec.exerciseId = target.id;
+              // 기구 변형이 비어있을 때만 기존 기구를 변형으로 승계(사용자가 이미 고른 변형은 보존).
+              if (!rec.variantEquipment && !rec.variantKey) {
+                rec.variantKey = cols.variantKey;
+                rec.variantEquipment = cols.variantEquipment;
+                rec.machineVariant = cols.variantEquipment;
+              }
+            }),
+          ),
+          srcEx.prepareMarkAsDeleted(),
+        );
+      });
+      moved += wes.length + res.length;
+    }
+  }
+  return moved;
+}
+
+// v10: 유산소 종목 승격(멱등) — 기존 설치의 '로잉 머신' 등 유산소성 종목에 kind='cardio'를 채운다.
+// 신규 시드 유산소 종목(러닝머신 등)은 seedRunner가 kind='cardio'로 생성하므로 여기선 레거시 승격만. @plm SRS-030
+// '러닝머신'·'트레드밀 러닝' 둘 다 포함 — syncSeedNames 리네임 전/후 어느 순서든 백필이 놓치지 않게. @plm SRS-030
+const CARDIO_SEED_NAMES = ['로잉 머신', '러닝머신', '트레드밀 러닝', '러닝', '걷기', '실내 사이클', '일립티컬', '천국의 계단', '스텝밀', '줄넘기', '어썰트 바이크', '스텝퍼', '스키에르그'];
+export async function backfillCardioKindV10(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  // kind!=null 필터는 어댑터별 NULL 의미차(SQL은 NULL을 notEq에서 제외)로 위험 → 전건 조회 후 JS 필터.
+  const rows = await exercises.query(Q.where('is_custom', false)).fetch();
+  const targets = rows.filter((e) => e.kind !== 'cardio' && CARDIO_SEED_NAMES.includes(e.nameKo));
+  if (!targets.length) return 0;
+  await database.write(async () => {
+    await database.batch(...targets.map((e) => e.prepareUpdate((rec) => { rec.kind = 'cardio'; })));
+  });
+  return targets.length;
+}
+
+// v12: 어시스트 종목 하중모드 승격(멱등) — 기존 설치의 '어시스트 X'에 load_mode='assisted'를 채운다.
+// (맨몸 모드는 equipment='bodyweight'로 파생하므로 백필 불필요. 신규 시드는 seedRunner가 채움.) @plm SRS-033
+const ASSISTED_SEED_NAMES = ['어시스트 풀업', '어시스트 친업', '어시스트 딥스'];
+export async function backfillLoadModeV12(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  const rows = await exercises.query(Q.where('is_custom', false)).fetch();
+  const targets = rows.filter((e) => e.loadMode !== 'assisted' && ASSISTED_SEED_NAMES.includes(e.nameKo));
+  if (!targets.length) return 0;
+  await database.write(async () => {
+    await database.batch(...targets.map((e) => e.prepareUpdate((rec) => { rec.loadMode = 'assisted'; })));
+  });
+  return targets.length;
+}
+
+// v11: 그립·팔이 세트별(set_logs)로 이동 → 종목 변형 버킷은 기구만. 레거시 workout/routine_exercises의
+// variant_grip/variant_arm을 버킷 키에서 제거(기구만으로 재계산·컬럼 null)해 신규/즉석/루틴이 한 버킷으로
+// 통합되게 한다(같은 종목이 출처에 따라 다른 이전기록/PR을 보이던 문제 해소). 멱등. @plm SRS-028
+export async function backfillDropGripArmV11(): Promise<number> {
+  let n = 0;
+  for (const coll of [workoutExercises(), routineExercises()] as const) {
+    // NULL 의미차(어댑터별) 회피 위해 전건 조회 후 JS 필터(grip/arm 잔존 레코드만).
+    const all = await coll.query().fetch();
+    const rows = all.filter((r) => r.variantGrip != null || r.variantArm != null);
+    if (!rows.length) continue;
+    await database.write(async () => {
+      await database.batch(
+        ...rows.map((r) =>
+          (r as WorkoutExercise | RoutineExercise).prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+            rec.variantKey = variantColumns({ equipment: rec.variantEquipment }).variantKey; // 기구만으로 재계산
+            rec.variantGrip = null;
+            rec.variantArm = null;
+          }),
+        ),
+      );
+    });
+    n += rows.length;
+  }
+  return n;
+}
+
+// v22: 고유 기구 버킷 병합(멱등) — variant_equipment가 종목의 고유 기구와 같은 행(예: '바벨 벤치프레스'에
+// equip:barbell)을 기본 버킷(null)으로 정규화한다. 선택기는 2026-07-18부터 고유 기구를 null로 저장하지만
+// 그 이전에 저장된 루틴·세션 행이 남아 같은 종목이 두 버킷으로 갈라졌고, 그 결과 "루틴 A로는 이전기록이
+// 보이는데 루틴 B로 시작하면 안 보인다"가 발생했다(2026-08-01 사용자 리포트).
+// machine_variant(레거시 미러)도 함께 비운다 — 남겨두면 backfillVariantKeysV6/effectiveVariantKey가
+// 다음 부팅에 equip:<고유기구>를 되살려 정규화가 무효화된다. @plm SRS-028
+export async function backfillNormalizeIntrinsicEquipmentV22(): Promise<number> {
+  const exs = await database.get<Exercise>('exercises').query().fetch();
+  const equipById = new Map(exs.map((e) => [e.id, e.equipment as string | null]));
+  let n = 0;
+  for (const coll of [workoutExercises(), routineExercises()] as const) {
+    // NULL 의미차(어댑터별) 회피 위해 전건 조회 후 JS 필터.
+    const all = await coll.query().fetch();
+    const rows = all.filter((r) => {
+      const eq = (r.variantEquipment ?? '').trim();
+      return !!eq && eq === equipById.get(r.exerciseId);
+    });
+    if (!rows.length) continue;
+    await database.write(async () => {
+      await database.batch(
+        ...rows.map((r) =>
+          (r as WorkoutExercise | RoutineExercise).prepareUpdate((rec: WorkoutExercise | RoutineExercise) => {
+            // 그립·팔은 v11 이후 항상 null이지만, 남아 있어도 손실 없이 보존하고 기구 축만 병합.
+            rec.variantKey = variantColumns({
+              equipment: null,
+              grip: rec.variantGrip as GripKey | null,
+              arm: rec.variantArm as ArmKey | null,
+            }).variantKey;
+            rec.variantEquipment = null;
+            rec.machineVariant = null; // 레거시 미러도 비워야 V6 백필이 되살리지 않는다
+          }),
+        ),
+      );
+    });
+    n += rows.length;
+  }
+  return n;
+}
+
+// ── 조회 / 반응형 ──────────────────────────────────────────────────
+export function getWorkout(id: string): Promise<Workout> {
+  return workouts().find(id);
+}
+
+// 진행 중(active/paused) 세션 1건 — 앱 재시작 시 복구 대상 (SRS-004).
+export async function getActiveWorkout(): Promise<Workout | null> {
+  const res = await workouts()
+    .query(Q.where('state', Q.oneOf(['active', 'paused'])), Q.sortBy('started_at', Q.desc), Q.take(1))
+    .fetch();
+  return res[0] ?? null;
+}
+
+export function queryWorkoutExercises(workoutId: string): Query<WorkoutExercise> {
+  return workoutExercises().query(Q.where('workout_id', workoutId), Q.sortBy('sort_order', Q.asc));
+}
+
+export function querySetLogs(workoutExerciseId: string): Query<SetLog> {
+  return setLogs().query(Q.where('workout_exercise_id', workoutExerciseId), Q.sortBy('set_number', Q.asc));
+}
+
+// 운동 중 종목 순서 교체(#11) — 화살표로 위/아래 이동. sort_order 재기입.
+export async function reorderWorkoutExercises(orderedIds: string[]): Promise<void> {
+  await database.write(async () => {
+    const records = await Promise.all(orderedIds.map((id) => workoutExercises().find(id)));
+    await database.batch(
+      ...records.map((we, i) =>
+        we.prepareUpdate((rec) => {
+          rec.sortOrder = i;
+        }),
+      ),
+    );
+  });
+}
+
+// 진행 중 세션의 실시간 총 볼륨(#5) — 완료(done)·워킹 세트만, 보정무게·정자세 반복 반영(SRS-029). @plm SRS-004
+export async function getWorkoutLiveVolume(workoutId: string): Promise<number> {
+  const wes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
+  if (!wes.length) return 0;
+  const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
+  const modeByEx = await loadModeByExerciseId(wes.map((w) => w.exerciseId));
+  const modeByWe = new Map(wes.map((w) => [w.id, modeByEx.get(w.exerciseId) ?? 'external']));
+  const sets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch();
+  let v = 0;
+  for (const s of sets) {
+    if (!isPerformed(s) || s.isWarmup || s.isFailed) continue;
+    v += setVolumeKg(toLoggedSet(s, modeByWe.get(s.workoutExerciseId) ?? null, bw)); // 유효무게×정자세reps
+  }
+  return v;
+}
+
+// 직전 세션의 같은 종목 마지막 세트(자동표시·자동채움용 — SRS-003).
+export async function getPreviousExerciseSnapshot(
+  exerciseId: string,
+  variant?: string | null,
+): Promise<{ weightKg: number; reps: number } | null> {
+  const completed = await workouts()
+    .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
+    .fetch();
+  for (const w of completed) {
+    const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)];
+    if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 기록 분리(null=기본 버킷)
+    const wes = await workoutExercises().query(...clauses).fetch();
+    if (!wes.length) continue;
+    const sets = (
+      await setLogs()
+        .query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id))), Q.sortBy('set_number', Q.desc))
+        .fetch()
+    ).filter(isPerformed);
+    const last = sets.find((s) => !s.isWarmup && !s.isFailed) ?? sets[0];
+    if (last) return { weightKg: last.weightKg, reps: last.reps };
+  }
+  return null;
+}
+
+// 직전 완료 세션의 같은 종목 '전체 세트'(세트수·무게·반복 — 재시작 시 표시·순차 프리필용).
+// ExerciseBlock이 읽어 지난 기록을 보여주고, 로깅할 때마다 다음 세트 값으로 입력을 미리 채운다.
+// set_logs를 미리 만들지는 않는다(이중 계상 방지). 이력 없으면 빈 배열.
+// 수퍼셋/중복 종목이면 첫 인스턴스(sort_order 최소) 하나만 취한다 — 여러 인스턴스를 병합하면
+// set_number가 겹쳐 시퀀스가 뒤섞이므로 단일 블록으로 스코프.
+export async function getPreviousExerciseSets(exerciseId: string, variant?: string | null): Promise<LogSetInput[]> {
+  const completed = await workouts()
+    .query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc))
+    .fetch();
+  for (const w of completed) {
+    const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId), Q.sortBy('sort_order', Q.asc)];
+    if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 기록 분리(null=기본 버킷)
+    const wes = await workoutExercises().query(...clauses).fetch();
+    if (!wes.length) continue;
+    const sets = (
+      await setLogs().query(Q.where('workout_exercise_id', wes[0].id), Q.sortBy('set_number', Q.asc)).fetch()
+    ).filter(isPerformed);
+    if (sets.length) {
+      return sets.map((s) => ({
+        weightKg: s.weightKg,
+        reps: s.reps,
+        rpe: s.rpe,
+        isWarmup: s.isWarmup,
+        isFailed: s.isFailed,
+        partialReps: s.partialReps,
+        durationSec: s.durationSec, // v10: 유산소 이전기록. @plm SRS-030
+        distanceM: s.distanceM,
+        inclinePct: s.inclinePct, // v13: 유산소 경사 이전기록. @plm SRS-030
+        level: s.level, // v13: 유산소 단계 이전기록. @plm SRS-030
+        speedKmh: s.speedKmh, // v15: 유산소 속도 이전기록. @plm SRS-030
+        arm: s.arm, // 세트별 편측(원암/투암) — 이전기록에 옵션 표시. @plm SRS-028
+        grip: s.grip, // 세트별 그립 — 이전기록에 옵션 표시. @plm SRS-028
+      }));
+    }
+  }
+  return [];
+}
+
+// 세션이 시작된 루틴의 종목별 목표 반복범위(점진 제안용 — SRS-010). 블랭크 세션이면 빈 맵.
+export async function getWorkoutExerciseTargets(
+  workoutId: string,
+): Promise<Map<string, { repMin: number; repMax: number }>> {
+  const map = new Map<string, { repMin: number; repMax: number }>();
+  const w = await workouts().find(workoutId);
+  if (!w.routineId) return map;
+  const res = await routineExercises().query(Q.where('routine_id', w.routineId)).fetch();
+  for (const re of res) {
+    const min = re.targetRepsMin ?? 0;
+    const max = re.targetRepsMax ?? 0;
+    if (min > 0 || max > 0) {
+      map.set(re.exerciseId, { repMin: min || max, repMax: max || min });
+    }
+  }
+  return map;
+}
+
+// 종목 개인 최고(PR) — 완료 세션 전체에서 가장 무거운 수행 워킹 세트(무게 우선, 동률 시 반복 많은 것).
+// variant 지정 시 그 기구의 기록만(머신 브랜드별 PR 분리). undefined=기구 무관 전체.
+export async function getExercisePR(
+  exerciseId: string,
+  variant?: string | null,
+): Promise<{ weightKg: number; reps: number } | null> {
+  const completed = await workouts().query(Q.where('state', 'completed')).fetch();
+  if (!completed.length) return null;
+  const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id)))];
+  if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 PR 분리
+  const wes = await workoutExercises().query(...clauses).fetch();
+  if (!wes.length) return null;
+  const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch())
+    .filter(isPerformed)
+    .filter((s) => !s.isWarmup);
+  let best: { weightKg: number; reps: number } | null = null;
+  for (const s of sets) {
+    const ls = toLoggedSet(s, loadMode, bw);
+    const w = effectiveWeightKg(ls); // v12: 하중모드(어시스트/맨몸) 반영 @plm SRS-033
+    const r = effectiveReps(ls);
+    if (!best || w > best.weightKg || (w === best.weightKg && r > best.reps)) best = { weightKg: w, reps: r };
+  }
+  return best;
+}
+
+// ── 세션 시작 ──────────────────────────────────────────────────────
+// 종목에 템플릿 세트를 프리레이(done=false, 미완료). 무게/반복 = 루틴 target 우선 →
+// 없으면 지난 세션의 해당 세트값 → 없으면 지난 세션 마지막 세트 → 기본(20kg/8회).
+// 종목이 유산소인지 — kind='cardio'면 세트는 무게/횟수 대신 시간·거리로 기록(생성 시 weight/reps=0). @plm SRS-030
+async function isCardioExerciseId(exerciseId: string): Promise<boolean> {
+  try {
+    const e = await database.get<Exercise>('exercises').find(exerciseId);
+    return e.kind === 'cardio';
+  } catch {
+    return false;
+  }
+}
+
+// 맨몸 종목(equipment='bodyweight')인지 — 맨몸은 무게 기본 0으로 프리레이(20kg 오프리필 방지 → 볼륨 대신 총횟수 표시). @plm SRS-005
+async function isBodyweightExerciseId(exerciseId: string): Promise<boolean> {
+  try {
+    const e = await database.get<Exercise>('exercises').find(exerciseId);
+    return e.equipment === 'bodyweight';
+  } catch {
+    return false;
+  }
+}
+
+function prepareTemplateSets(
+  weId: string,
+  count: number,
+  routineWeightKg: number | null,
+  routineReps: number | null,
+  prevSets: LogSetInput[],
+  prevSnap: { weightKg: number; reps: number } | null,
+  isCardio = false,
+  isBodyweight = false,
+  cardioTarget: CardioTargetJson | null = null,
+  prescription: PrescribedSet[] | null = null, // v16: 세트별 처방(사람 작성 — 렌더·휴식·RIR 라벨 근거). @plm SRS-043
+): SetLog[] {
+  const recs: SetLog[] = [];
+  for (let i = 0; i < count; i++) {
+    const prev = prevSets[i];
+    const rx = prescription?.[i] ?? null; // 이 세트의 처방(없으면 비처방 — 기존 동작 그대로)
+    // 프리레이 값 우선순위: 지난 세션의 세트별 실제값(prev)을 최우선 → 같은 루틴 반복 시 이전 무게·횟수가
+    // 그대로 유지돼 꾸준한 진척(progressive)이 된다. 없으면(첫 수행) 루틴 목표 → 스냅샷 → 기본. @plm SRS-010
+    // 유산소는 무게·횟수 0(시간·거리는 수행 중). 맨몸은 무게 기본 0(가중 시 사용자가 입력) — 20kg 오프리필 방지.
+    const bwDefault = isBodyweight ? 0 : 20;
+    const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
+    const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
+    recs.push(
+      setLogs().prepareCreate((s) => {
+        s.workoutExerciseId = weId;
+        s.setNumber = i + 1;
+        s.weightKg = weight;
+        s.reps = reps;
+        s.rpe = null;
+        s.isWarmup = false;
+        s.isFailed = false;
+        // 유산소 프리레이: 지난 세션 실제값 우선 → 루틴 유산소 목표(cardioTarget). @plm SRS-030
+        if (isCardio) {
+          s.durationSec = prev?.durationSec ?? cardioTarget?.durationSec ?? null;
+          s.distanceM = prev?.distanceM ?? cardioTarget?.distanceM ?? null;
+          s.inclinePct = prev?.inclinePct ?? cardioTarget?.incline ?? null;
+          s.level = prev?.level ?? cardioTarget?.level ?? null;
+          s.speedKmh = prev?.speedKmh ?? cardioTarget?.speed ?? null;
+        }
+        // 지난 세션 세트별 그립·팔을 새 세트에 미리 채움(꾸준한 진척 + 옵션 유지, 사용자가 변경 가능). @plm SRS-028
+        s.arm = prev?.arm ?? null;
+        s.grip = prev?.grip ?? null;
+        // v16: 처방 세트 — 타입·목표 RIR 기입. warmup은 is_warmup 미러(기존 W 라벨·볼륨 제외 재사용). @plm SRS-043
+        if (rx && rx.setType !== 'normal') {
+          s.setType = rx.setType;
+          s.targetRir = rx.targetRir;
+          if (rx.setType === 'warmup') s.isWarmup = true;
+        } else {
+          s.setType = null;
+          s.targetRir = rx?.targetRir ?? null;
+        }
+        s.done = false;
+        s.completedAt = null;
+      }),
+    );
+  }
+  return recs;
+}
+
+export async function startWorkoutFromRoutine(routineId: string): Promise<Workout> {
+  const routine = await routines().find(routineId);
+  const res = await routineExercises()
+    .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
+    .fetch();
+  // 종목별 버킷 결정 — 루틴이 변형을 지정했으면 그대로, 미지정이면 마지막 수행 변형 승계(resolveStartVariant).
+  const variantByRe = new Map<string, VariantColumns>();
+  for (const re of res) {
+    const legacy = legacyMachineVariantToV6(re.machineVariant);
+    variantByRe.set(
+      re.id,
+      await resolveStartVariant(re.exerciseId, {
+        variantKey: effectiveVariantKey(re),
+        variantEquipment: re.variantEquipment ?? legacy.dims.equipment ?? null,
+        variantGrip: re.variantGrip ?? null,
+        variantArm: re.variantArm ?? null,
+        machineVariant: re.machineVariant ?? null,
+      }),
+    );
+  }
+  const variantOf = (re: (typeof res)[number]) => variantByRe.get(re.id) as VariantColumns;
+  // (종목×기구)별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
+  const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${variantOf(re).variantKey ?? ''}`;
+  const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
+  const prevSetsByKey = new Map<string, LogSetInput[]>();
+  const cardioByExercise = new Map<string, boolean>(); // 종목별 유산소 여부(중복 조회 방지)
+  const bwByExercise = new Map<string, boolean>(); // 종목별 맨몸 여부
+  for (const re of res) {
+    const k = vkey(re);
+    if (!prevSnapByKey.has(k)) {
+      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(re.exerciseId, variantOf(re).variantKey));
+      prevSetsByKey.set(k, await getPreviousExerciseSets(re.exerciseId, variantOf(re).variantKey));
+    }
+    if (!cardioByExercise.has(re.exerciseId)) {
+      cardioByExercise.set(re.exerciseId, await isCardioExerciseId(re.exerciseId));
+      bwByExercise.set(re.exerciseId, await isBodyweightExerciseId(re.exerciseId));
+    }
+  }
+  return database.write(async () => {
+    const now = Date.now();
+    const workout = await workouts().create((w) => {
+      w.routineId = routineId;
+      w.name = routine.name;
+      w.state = 'active';
+      w.startedAt = now;
+      w.accumulatedPauseMs = 0;
+      w.totalVolumeKg = 0;
+      w.prCount = 0;
+      w.userId = null;
+    });
+    // 종목 인스턴스에 루틴 target(세트/반복/무게/휴식)을 복사 저장 + 스냅샷.
+    const weRecords = res.map((re, i) =>
+      workoutExercises().prepareCreate((we) => {
+        we.workoutId = workout.id;
+        we.exerciseId = re.exerciseId;
+        we.sortOrder = i;
+        const prev = prevSnapByKey.get(vkey(re)) ?? null;
+        we.prevWeightKg = prev?.weightKg ?? null;
+        we.prevReps = prev?.reps ?? null;
+        we.targetSets = re.targetSets;
+        we.targetRepsMin = re.targetRepsMin;
+        we.targetRepsMax = re.targetRepsMax;
+        we.targetWeightKg = re.targetWeightKg;
+        we.restSeconds = re.restSeconds;
+        // v6: 루틴의 변형 선택 복사(버킷 키). 레거시 루틴(machine_variant만)은 즉석 승계.
+        // 미지정 종목은 마지막 수행 변형을 승계한 값(resolveStartVariant) — 이전기록·PR이 이어지도록.
+        const v = variantOf(re);
+        we.machineVariant = v.machineVariant; // 레거시 미러
+        we.variantKey = v.variantKey;
+        we.variantEquipment = v.variantEquipment;
+        we.variantGrip = v.variantGrip;
+        we.variantArm = v.variantArm;
+        we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
+        we.note = re.note?.trim() || null; // 루틴 종목 메모·팁을 세션 메모에 시드(가져온 상급자 팁 노출 — 티칭). @plm SRS-004 SRS-007
+        we.cardioTarget = re.cardioTarget ?? null; // v13: 루틴 유산소 목표 복사. @plm SRS-030
+        we.prescription = re.prescription ?? null; // v16: 처방 복사(세션 렌더 근거 — 사람 작성분 그대로). @plm SRS-043
+      }),
+    );
+    // 각 종목에 target_sets 개수만큼 템플릿 세트 프리레이(Hevy식). 유산소는 1세트에 목표값 프리레이.
+    const setRecords: SetLog[] = [];
+    res.forEach((re, i) => {
+      const isCardioEx = cardioByExercise.get(re.exerciseId) ?? false;
+      // v16: 처방이 있으면 처방 세트 수가 프리레이 기준(유산소 제외). @plm SRS-043
+      const rx = !isCardioEx ? re.prescription : null;
+      const count = isCardioEx ? 1 : rx && rx.length > 0 ? rx.length : Math.max(1, re.targetSets || 1);
+      setRecords.push(
+        ...prepareTemplateSets(
+          weRecords[i].id,
+          count,
+          re.targetWeightKg,
+          re.targetRepsMin,
+          prevSetsByKey.get(vkey(re)) ?? [],
+          prevSnapByKey.get(vkey(re)) ?? null,
+          isCardioEx,
+          bwByExercise.get(re.exerciseId) ?? false,
+          re.cardioTarget ?? null,
+          rx,
+        ),
+      );
+    });
+    await database.batch(...weRecords, ...setRecords);
+    return workout;
+  });
+}
+
+export async function startBlankWorkout(): Promise<Workout> {
+  return database.write(async () =>
+    workouts().create((w) => {
+      w.routineId = null;
+      w.name = '빠른 운동';
+      w.state = 'active';
+      w.startedAt = Date.now();
+      w.accumulatedPauseMs = 0;
+      w.totalVolumeKg = 0;
+      w.prCount = 0;
+      w.userId = null;
+    }),
+  );
+}
+
+// 운동 도중 세션(루틴) 이름 변경 (@plm SRS-004). 빈 이름은 기본값으로 폴백.
+export async function renameWorkout(workoutId: string, name: string): Promise<void> {
+  const trimmed = name.trim();
+  await database.write(async () => {
+    const w = await workouts().find(workoutId);
+    await w.update((rec) => {
+      rec.name = trimmed || '빠른 운동';
+    });
+  });
+  scheduleSync(); // 이름 변경을 서버·다른 기기에 반영
+}
+
+export async function addExerciseToWorkout(workoutId: string, exerciseId: string): Promise<WorkoutExercise> {
+  // 즉석 추가도 '마지막 수행 변형'을 승계 — 그래야 프리레이에 쓴 이전기록과 블록이 조회하는 버킷이 같다
+  // (구: 버킷 무관 조회 + 기본 버킷 저장 → 값은 채워졌는데 이전기록·PR은 비어 보였다). @plm SRS-028
+  const variant = await resolveStartVariant(exerciseId, {
+    variantKey: null,
+    variantEquipment: null,
+    variantGrip: null,
+    variantArm: null,
+    machineVariant: null,
+  });
+  const prevSnap = await getPreviousExerciseSnapshot(exerciseId, variant.variantKey);
+  const prevSets = await getPreviousExerciseSets(exerciseId, variant.variantKey);
+  const cardio = await isCardioExerciseId(exerciseId);
+  const bodyweight = await isBodyweightExerciseId(exerciseId);
+  return database.write(async () => {
+    const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
+    const setsCount = Math.max(1, prevSets.length || 1); // 지난 세션 세트수(없으면 1) — 블랭크/중간추가 종목
+    const we = workoutExercises().prepareCreate((rec) => {
+      rec.workoutId = workoutId;
+      rec.exerciseId = exerciseId;
+      rec.sortOrder = count;
+      rec.prevWeightKg = prevSnap?.weightKg ?? null;
+      rec.prevReps = prevSnap?.reps ?? null;
+      rec.targetSets = setsCount;
+      rec.targetRepsMin = prevSnap?.reps ?? null;
+      rec.targetRepsMax = null;
+      rec.targetWeightKg = null;
+      rec.restSeconds = 120;
+      // v6: 기본(미지정) — 단, 이 종목을 변형으로만 수행해 왔다면 그 변형 승계(헤더에서 변경 가능)
+      rec.machineVariant = variant.machineVariant; // 레거시 미러
+      rec.variantKey = variant.variantKey;
+      rec.variantEquipment = variant.variantEquipment;
+      rec.variantGrip = variant.variantGrip;
+      rec.variantArm = variant.variantArm;
+    });
+    const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio, bodyweight);
+    await database.batch(we, ...setRecords);
+    return we;
+  });
+}
+
+export async function removeWorkoutExercise(id: string): Promise<void> {
+  await database.write(async () => {
+    const we = await workoutExercises().find(id);
+    const sets = await setLogs().query(Q.where('workout_exercise_id', id)).fetch();
+    await database.batch(...sets.map((s) => s.prepareMarkAsDeleted()), we.prepareMarkAsDeleted());
+  });
+}
+
+// 종목 인스턴스의 변형 컬럼 묶음 — 승계(교체·세션 시작)에서 통째로 복사한다. @plm SRS-028
+export interface VariantColumns {
+  variantKey: string | null;
+  variantEquipment: string | null;
+  variantGrip: string | null;
+  variantArm: string | null;
+  machineVariant: string | null;
+}
+
+const variantColumnsOf = (rec: WorkoutExercise): VariantColumns => ({
+  variantKey: rec.variantKey,
+  variantEquipment: rec.variantEquipment,
+  variantGrip: rec.variantGrip,
+  variantArm: rec.variantArm,
+  machineVariant: rec.machineVariant,
+});
+
+// 이 종목을 '실제로 수행한' 완료 세션 인스턴스들(최신순). 변형 승계·버킷 이력 판정의 공통 기반.
+// 세션당 순회(완료 세션 수 × 쿼리)가 아니라 3쿼리로 모으므로 이력이 쌓여도 시작이 느려지지 않는다.
+async function performedInstancesOf(exerciseId: string): Promise<{ we: WorkoutExercise; completedAt: number }[]> {
+  const wes = await workoutExercises().query(Q.where('exercise_id', exerciseId)).fetch();
+  if (!wes.length) return [];
+  const wIds = [...new Set(wes.map((w) => w.workoutId))];
+  const ws = await workouts().query(Q.where('id', Q.oneOf(wIds)), Q.where('state', 'completed')).fetch();
+  const atById = new Map(ws.map((w) => [w.id, w.completedAt ?? w.startedAt]));
+  const cands = wes.filter((w) => atById.has(w.workoutId));
+  if (!cands.length) return [];
+  const sets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(cands.map((c) => c.id)))).fetch();
+  const performed = new Set(sets.filter(isPerformed).map((s) => s.workoutExerciseId));
+  return cands
+    .filter((c) => performed.has(c.id))
+    .map((c) => ({ we: c, completedAt: atById.get(c.workoutId) as number }))
+    .sort((a, b) => b.completedAt - a.completedAt);
+}
+
+// 종목의 '가장 최근 수행' 변형 컨텍스트(완료 세션·수행 세트 있는 인스턴스 기준) — 종목 교체 시 승계용.
+// 이전기록·PR은 (종목×변형) 버킷으로 분리 조회되므로, 버킷을 무조건 기본(null)으로 리셋하면
+// 변형으로만 수행해 온 종목은 교체 직후 이전기록이 비어 보인다. 이력 없으면 null.
+export async function getLatestVariantUsage(exerciseId: string): Promise<VariantColumns | null> {
+  const [latest] = await performedInstancesOf(exerciseId);
+  return latest ? variantColumnsOf(latest.we) : null;
+}
+
+// 세션 재료화(루틴 시작·즉석 추가) 시 버킷 결정 — 변형이 '미지정(기본 버킷)'인데 기본 버킷엔 수행 이력이
+// 없고 다른 변형으로 수행한 이력이 있으면 마지막 수행 변형을 승계한다(종목 교체와 같은 규칙).
+// 이게 없으면 "많이 해온 종목인데 이 루틴으로 시작하니 이전기록·PR이 안 보인다"가 된다(2026-08-01 리포트).
+// 변형이 명시된 종목은 손대지 않는다 — 사용자가 고른 기구가 우선. @plm SRS-028
+async function resolveStartVariant(exerciseId: string, stored: VariantColumns): Promise<VariantColumns> {
+  if (stored.variantKey != null) return stored; // 명시 선택 존중
+  const instances = await performedInstancesOf(exerciseId);
+  if (!instances.length) return stored; // 이력 없음 — 기본 버킷
+  if (instances.some(({ we }) => we.variantKey == null)) return stored; // 기본 버킷에 이력 있음 — 그대로
+  return variantColumnsOf(instances[0].we); // 전부 다른 변형 → 마지막 수행 변형 승계
+}
+
+// 운동 중 종목 교체(BS-002 #22) — 삭제·재추가 없이 이 인스턴스의 종목만 교체. 세트는 유지(새 종목 기록으로),
+// 변형은 새 종목의 '마지막 수행 변형'을 승계 — 교체 직후 그 기록의 이전기록·PR이 바로 보인다(이력 없으면 기본). @plm SRS-004 SRS-028
+export async function swapWorkoutExercise(workoutExerciseId: string, newExerciseId: string): Promise<void> {
+  const lastVariant = await getLatestVariantUsage(newExerciseId);
+  // 스냅샷도 승계 버킷 기준(있으면) — 이전기록 표시·프리필과 같은 기록을 가리키게.
+  const prevSnap = await getPreviousExerciseSnapshot(newExerciseId, lastVariant ? lastVariant.variantKey : undefined);
+  await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    await we.update((rec) => {
+      rec.exerciseId = newExerciseId;
+      rec.prevWeightKg = prevSnap?.weightKg ?? null;
+      rec.prevReps = prevSnap?.reps ?? null;
+      rec.variantKey = lastVariant?.variantKey ?? null;
+      rec.variantEquipment = lastVariant?.variantEquipment ?? null;
+      rec.variantGrip = lastVariant?.variantGrip ?? null;
+      rec.variantArm = lastVariant?.variantArm ?? null;
+      rec.machineVariant = lastVariant?.machineVariant ?? null;
+    });
+  });
+}
+
+// ── 세트 편집 (템플릿 프리레이 + 완료 체크 — Hevy식) ────────────────
+export interface LogSetInput {
+  weightKg: number;
+  reps: number;
+  rpe?: number | null;
+  isWarmup?: boolean;
+  isFailed?: boolean;
+  partialReps?: number | null; // v9: 부분반복(깔짝) — 이전기록 표시 시 정자세와 구분
+  durationSec?: number | null; // v10: 유산소 시간(초) — 이전기록 표시용. @plm SRS-030
+  distanceM?: number | null; // v10: 유산소 거리(미터) — 이전기록 표시용. @plm SRS-030
+  inclinePct?: number | null; // v13: 유산소 경사(%). @plm SRS-030
+  level?: number | null; // v13: 유산소 단계. @plm SRS-030
+  speedKmh?: number | null; // v15: 유산소 속도(km/h·러닝머신). @plm SRS-030
+  arm?: string | null; // v8: 세트별 편측(원암/투암) — 이전기록에 옵션 표시. @plm SRS-028
+  grip?: string | null; // v11: 세트별 그립(오버/언더/…) — 이전기록에 옵션 표시. @plm SRS-028
+}
+
+// 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
+export async function addSet(
+  workoutExerciseId: string,
+  input: { weightKg?: number; reps?: number; isWarmup?: boolean; done?: boolean; cardio?: boolean; bodyweight?: boolean } = {},
+): Promise<SetLog> {
+  return database.write(async () => {
+    const existing = await setLogs()
+      .query(Q.where('workout_exercise_id', workoutExerciseId), Q.sortBy('set_number', Q.asc))
+      .fetch();
+    const last = existing[existing.length - 1];
+    const done = input.done ?? false;
+    // 유산소 세트는 무게/횟수 대신 시간·거리로 기록 → 볼륨 오염 방지 위해 0으로 생성. @plm SRS-030
+    const cardio = input.cardio ?? false;
+    const bwDefault = input.bodyweight ? 0 : 20; // 맨몸은 첫 세트 기본 0(가중 시 입력). @plm SRS-005
+    return setLogs().create((s) => {
+      s.workoutExerciseId = workoutExerciseId;
+      s.setNumber = existing.length + 1;
+      s.weightKg = input.weightKg ?? (cardio ? 0 : last?.weightKg ?? bwDefault);
+      s.reps = input.reps ?? (cardio ? 0 : last?.reps ?? 8);
+      s.rpe = null;
+      s.isWarmup = input.isWarmup ?? false;
+      s.isFailed = false;
+      // 마지막 세트의 그립·팔을 새 세트에 상속(같은 종목 이어서 하니 동일 옵션이 자연스러움). @plm SRS-028
+      s.arm = cardio ? null : last?.arm ?? null;
+      s.grip = cardio ? null : last?.grip ?? null;
+      s.done = done;
+      s.completedAt = done ? Date.now() : null;
+    });
+  });
+}
+
+// 미완료(done=false) 세트 수 — 종료 확인 문구에 남은 세트를 보여준다(처방·비처방 공통). @plm SRS-043
+export async function getWorkoutUndoneSetCount(workoutId: string): Promise<number> {
+  const wes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
+  if (wes.length === 0) return 0;
+  return setLogs()
+    .query(Q.where('workout_exercise_id', Q.oneOf(wes.map((w) => w.id))), Q.where('done', false))
+    .fetchCount();
+}
+
+// 세트 완료 체크 토글 — 볼륨/PR/이력은 done인 세트만 센다.
+export async function setSetDone(id: string, done: boolean): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.done = done;
+      rec.completedAt = done ? Date.now() : null;
+    });
+  });
+}
+
+// 세트 타입(일반/워밍업/드롭/실패) — 상호 배타. 표시 W/숫자/D/F.
+export type SetType = 'normal' | 'warmup' | 'drop' | 'failed';
+export async function setSetType(id: string, type: SetType): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.isWarmup = type === 'warmup';
+      rec.isDrop = type === 'drop';
+      rec.isFailed = type === 'failed';
+    });
+  });
+}
+
+// 운동 도중 슈퍼셋 묶기/해제 (SRS-004) — 세션 내 종목들을 같은 supersetGroup으로. 루틴과 독립.
+export async function groupWorkoutExercisesAsSuperset(ids: string[]): Promise<string> {
+  const group = randomId('ss_');
+  await database.write(async () => {
+    const recs = await Promise.all(ids.map((id) => workoutExercises().find(id)));
+    await database.batch(...recs.map((we) => we.prepareUpdate((rec) => { rec.supersetGroup = group; })));
+  });
+  scheduleSync();
+  return group;
+}
+export async function ungroupWorkoutExercisesSuperset(ids: string[]): Promise<void> {
+  await database.write(async () => {
+    const recs = await Promise.all(ids.map((id) => workoutExercises().find(id)));
+    await database.batch(...recs.map((we) => we.prepareUpdate((rec) => { rec.supersetGroup = null; })));
+  });
+  scheduleSync();
+}
+
+// 세트별 편측(원암/원레그 ↔ 투암/투레그) 설정 — 같은 종목·세트라도 세트마다 다를 수 있어 세트 단위로 저장. @plm SRS-028
+export async function setSetArm(id: string, arm: 'uni' | null): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.arm = arm;
+    });
+  });
+}
+
+// 세트별 그립(over/under/neutral/wide/close ↔ 기본) — 팔처럼 세트마다 그립을 바꿀 수 있어 세트 단위 저장. @plm SRS-028
+export async function setSetGrip(id: string, grip: string | null): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      rec.grip = grip;
+    });
+  });
+}
+
+// 종목의 고유 기구(카탈로그 기본 기구) — 변형 정규화 기준. 조회 실패는 null(정규화 생략). @plm SRS-028
+async function baseEquipmentOf(exerciseId: string): Promise<string | null> {
+  try {
+    const e = await getExercise(exerciseId);
+    return e.equipment ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// 세션 중 종목의 변형(기구·그립) 변경 — 이전기록·PR이 해당 변형 것으로 갱신된다. @plm SRS-028
+// 고유 기구 선택은 기본 버킷(null)으로 정규화 — UI뿐 아니라 데이터 계층에서 보장(버킷 분열 방지).
+export async function setVariant(workoutExerciseId: string, dims: VariantDims): Promise<void> {
+  const target = await workoutExercises().find(workoutExerciseId);
+  const cols = variantColumns(normalizeVariantDims(dims, await baseEquipmentOf(target.exerciseId)));
+  await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    await we.update((rec) => {
+      rec.variantKey = cols.variantKey;
+      rec.variantEquipment = cols.variantEquipment;
+      rec.variantGrip = cols.variantGrip;
+      rec.variantArm = cols.variantArm;
+      rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
+    });
+  });
+}
+
+// 레거시 호환 — 기구(브랜드)만 바꾸는 경로(그립/팔은 초기화).
+export async function setMachineVariant(workoutExerciseId: string, variant: string | null): Promise<void> {
+  await setVariant(workoutExerciseId, { equipment: variant });
+}
+
+// 세션 종목 메모 저장(BS-002 #7/#24) — 그날의 느낌·포인트. @plm SRS-004
+export async function setWorkoutExerciseNote(workoutExerciseId: string, note: string): Promise<void> {
+  await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    await we.update((rec) => {
+      rec.note = note.trim() || null;
+    });
+  });
+}
+
+// 이 종목(+변형)의 지난 세션 메모 — '다시 뜨게' 하는 참고 표시용. 없으면 null. @plm SRS-004
+export async function getPreviousExerciseNote(exerciseId: string, variantKey?: string | null): Promise<string | null> {
+  const completed = await workouts().query(Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc)).fetch();
+  for (const w of completed) {
+    const clauses = [Q.where('workout_id', w.id), Q.where('exercise_id', exerciseId)];
+    if (variantKey !== undefined) clauses.push(Q.where('variant_key', variantKey));
+    const wes = await workoutExercises().query(...clauses).fetch();
+    const note = wes.map((x) => x.note?.trim()).find((n) => n);
+    if (note) return note;
+  }
+  return null;
+}
+
+// 이 종목(+변형)의 과거 메모·팁 타임라인 — 운동 중 '이전엔 뭐라 적었지' 확인용(최신순, 세션당 1개). @plm SRS-004
+export interface ExerciseNoteEntry {
+  completedAt: number;
+  note: string;
+}
+export async function getExerciseNoteHistory(
+  exerciseId: string,
+  variantKey?: string | null,
+  limit = 40,
+): Promise<ExerciseNoteEntry[]> {
+  const clauses = [Q.where('exercise_id', exerciseId)];
+  if (variantKey !== undefined) clauses.push(Q.where('variant_key', variantKey));
+  const wes = await workoutExercises().query(...clauses).fetch();
+  const withNote = wes.filter((w) => w.note?.trim());
+  if (!withNote.length) return [];
+  const wIds = [...new Set(withNote.map((w) => w.workoutId))];
+  const ws = await workouts().query(Q.where('id', Q.oneOf(wIds)), Q.where('state', 'completed')).fetch();
+  const completedAtById = new Map(ws.map((w) => [w.id, w.completedAt ?? w.startedAt]));
+  // 완료 세션당 1개(첫 비어있지 않은 메모), 최신순.
+  const byWorkout = new Map<string, ExerciseNoteEntry>();
+  for (const we of withNote) {
+    const at = completedAtById.get(we.workoutId);
+    if (at == null) continue; // 미완료(진행중·폐기) 세션 제외
+    if (!byWorkout.has(we.workoutId)) byWorkout.set(we.workoutId, { completedAt: at, note: we.note!.trim() });
+  }
+  return [...byWorkout.values()].sort((a, b) => b.completedAt - a.completedAt).slice(0, limit);
+}
+
+export async function updateSetLog(
+  id: string,
+  patch: {
+    weightKg?: number;
+    reps?: number;
+    rpe?: number | null;
+    isWarmup?: boolean;
+    isFailed?: boolean;
+    partialReps?: number | null; // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용. @plm SRS-029
+    durationSec?: number | null; // v10: 유산소 시간(초). @plm SRS-030
+    distanceM?: number | null; // v10: 유산소 거리(미터). @plm SRS-030
+    inclinePct?: number | null; // v13: 유산소 경사(%). @plm SRS-030
+    level?: number | null; // v13: 유산소 단계. @plm SRS-030
+    speedKmh?: number | null; // v15: 유산소 속도(km/h·러닝머신). @plm SRS-030
+  },
+): Promise<void> {
+  await database.write(async () => {
+    const s = await setLogs().find(id);
+    await s.update((rec) => {
+      if (patch.weightKg !== undefined) rec.weightKg = patch.weightKg;
+      if (patch.reps !== undefined) rec.reps = patch.reps;
+      if (patch.rpe !== undefined) rec.rpe = patch.rpe;
+      if (patch.isWarmup !== undefined) rec.isWarmup = patch.isWarmup;
+      if (patch.isFailed !== undefined) rec.isFailed = patch.isFailed;
+      if (patch.partialReps !== undefined) rec.partialReps = patch.partialReps;
+      if (patch.durationSec !== undefined) rec.durationSec = patch.durationSec;
+      if (patch.distanceM !== undefined) rec.distanceM = patch.distanceM;
+      if (patch.inclinePct !== undefined) rec.inclinePct = patch.inclinePct;
+      if (patch.level !== undefined) rec.level = patch.level;
+      if (patch.speedKmh !== undefined) rec.speedKmh = patch.speedKmh;
+    });
+  });
+}
+
+// 세트 삭제 후 남은 세트 번호 재정렬.
+export async function deleteSetLog(id: string): Promise<void> {
+  await database.write(async () => {
+    const target = await setLogs().find(id);
+    const weId = target.workoutExerciseId;
+    await target.markAsDeleted();
+    const remaining = await setLogs()
+      .query(Q.where('workout_exercise_id', weId), Q.sortBy('set_number', Q.asc))
+      .fetch();
+    await database.batch(...remaining.map((s, i) => s.prepareUpdate((rec) => { rec.setNumber = i + 1; })));
+  });
+}
+
+// ── 일시정지 / 재개 (SRS-004) ──────────────────────────────────────
+export async function pauseWorkout(id: string): Promise<void> {
+  await database.write(async () => {
+    const w = await workouts().find(id);
+    if (w.state !== 'active') return;
+    await w.update((rec) => {
+      rec.state = 'paused';
+      rec.pausedAt = Date.now();
+    });
+  });
+}
+
+export async function resumeWorkout(id: string): Promise<void> {
+  await database.write(async () => {
+    const w = await workouts().find(id);
+    if (w.state !== 'paused') return;
+    const pausedAt = w.pausedAt;
+    const accumulated = w.accumulatedPauseMs;
+    await w.update((rec) => {
+      rec.state = 'active';
+      if (pausedAt) rec.accumulatedPauseMs = accumulated + (Date.now() - pausedAt);
+      rec.pausedAt = null;
+    });
+  });
+}
+
+export async function discardWorkout(id: string): Promise<void> {
+  await database.write(async () => {
+    const w = await workouts().find(id);
+    const wes = await workoutExercises().query(Q.where('workout_id', id)).fetch();
+    const weIds = wes.map((x) => x.id);
+    const sets = weIds.length
+      ? await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(weIds))).fetch()
+      : [];
+    await database.batch(
+      ...sets.map((s) => s.prepareMarkAsDeleted()),
+      ...wes.map((x) => x.prepareMarkAsDeleted()),
+      w.prepareMarkAsDeleted(),
+    );
+  });
+  scheduleSync(); // 삭제(완료기록 삭제 포함)를 서버·다른 기기에 반영
+}
+
+// ── 세션 종료 + 요약/PR (SRS-004/005) ──────────────────────────────
+async function historicalSnapshotForExercise(
+  exerciseId: string,
+  excludeWorkoutId: string,
+  variant?: string | null,
+): Promise<PRSnapshot> {
+  const completed = await workouts().query(Q.where('state', 'completed')).fetch();
+  const ids = completed.map((w) => w.id).filter((id) => id !== excludeWorkoutId);
+  if (!ids.length) return EMPTY_PR;
+  const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(ids))];
+  if (variant !== undefined) clauses.push(Q.where('variant_key', variant)); // v6: 변형별 PR 비교
+  const wes = await workoutExercises().query(...clauses).fetch();
+  if (!wes.length) return EMPTY_PR;
+  const sets = (
+    await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch()
+  ).filter(isPerformed);
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  return snapshotFromSets(sets.map((s) => toLoggedSet(s, loadMode, bw)));
+}
+
+export interface WorkoutPRDetail {
+  exerciseId: string;
+  exerciseName: string;
+  prs: PRResult[];
+}
+
+export interface WorkoutSummary {
+  workoutId: string;
+  totalVolumeKg: number;
+  durationSeconds: number;
+  workingSets: number;
+  prCount: number;
+  prs: WorkoutPRDetail[];
+}
+
+export async function completeWorkout(id: string): Promise<WorkoutSummary> {
+  const workout = await workouts().find(id);
+  const wes = await workoutExercises()
+    .query(Q.where('workout_id', id), Q.sortBy('sort_order', Q.asc))
+    .fetch();
+
+  let totalVolume = 0;
+  let workingSets = 0;
+  const prDetails: WorkoutPRDetail[] = [];
+  const undone: SetLog[] = []; // 미완료(done=false) 프리레이 세트 — 수행 안 함 → 완료 시 삭제.
+  const emptyWEs: WorkoutExercise[] = []; // 완료 후 수행 세트 0개 종목 → 삭제(피드 종목수 과대·빈 카드 방지).
+  // PR은 (종목 × 기구) 단위 1회 — 같은 종목이라도 머신 기구가 다르면 별도 기록으로 비교.
+  const performedByVariant = new Map<string, { exerciseId: string; variant: string | null; logged: LoggedSet[] }>();
+  const bw = await getUserBodyweightKg(); // v12: 어시스트/맨몸 유효무게 반영 @plm SRS-033
+  const modeByEx = await loadModeByExerciseId(wes.map((w) => w.exerciseId));
+  // 유산소는 무게/1RM PR 대상이 아니다(SRS-030 — 볼륨·PR·추정1RM 미기여). 러닝·걷기처럼
+  // equipment='bodyweight'로 등재된 유산소는 유효무게가 '체중'으로 잡혀 체중이 그대로
+  // maxWeight PR로 오탐되므로(체중 갱신 때마다 재발), PR 감지 대상에서 제외한다. @plm SRS-030
+  const cardioIds = await cardioExerciseIdSet(wes.map((w) => w.exerciseId));
+
+  for (const we of wes) {
+    const all = await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch();
+    const performed = all.filter(isPerformed);
+    for (const s of all) if (!isPerformed(s)) undone.push(s);
+    if (performed.length === 0) {
+      emptyWEs.push(we);
+      continue;
+    }
+    const loadMode = modeByEx.get(we.exerciseId) ?? null;
+    const logged = performed.map((s) => toLoggedSet(s, loadMode, bw));
+    totalVolume += totalVolumeKg(logged);
+    workingSets += logged.filter((s) => !s.isWarmup && !s.isFailed).length;
+    if (cardioIds.has(we.exerciseId)) continue; // 유산소는 PR 감지 제외(볼륨은 위에서 이미 합산 — reps=0이라 0)
+    const vk = effectiveVariantKey(we); // v6: (종목×변형) 버킷 키
+    const key = `${we.exerciseId}::${vk ?? ''}`;
+    const entry = performedByVariant.get(key);
+    if (entry) entry.logged.push(...logged);
+    else performedByVariant.set(key, { exerciseId: we.exerciseId, variant: vk, logged: [...logged] });
+  }
+
+  // PR 감지는 (종목,기구)별 1회 — 같은 조합이 여러 인스턴스(수퍼셋·중복)여도 합쳐 비교해 이중계상 방지.
+  for (const { exerciseId, variant, logged } of performedByVariant.values()) {
+    const current = snapshotFromSets(logged);
+    const hist = await historicalSnapshotForExercise(exerciseId, id, variant);
+    // [원본] 4종(중량·반복·세트볼륨·1RM) 검출 — 원복 시 아래를 해제하고 detectMajorPRs를 주석 처리
+    // const prs = detectNewPRs(current, hist);
+    // [개편] 종목별 중량·볼륨 2종만 PR로 인정(개수 부풀림 방지 — 2026-07 재개편)
+    const prs = detectMajorPRs(current, hist);
+    if (prs.length) {
+      let name = '운동';
+      try {
+        name = (await getExercise(exerciseId)).nameKo;
+      } catch {
+        /* 종목이 삭제된 경우 기본명 유지 */
+      }
+      prDetails.push({ exerciseId, exerciseName: name, prs });
+    }
+  }
+
+  const now = Date.now();
+  const durationSeconds = Math.max(
+    0,
+    Math.round((now - workout.startedAt - workout.accumulatedPauseMs) / 1000),
+  );
+  const prCount = prDetails.reduce((n, d) => n + d.prs.length, 0);
+
+  await database.write(async () => {
+    // 체크 안 한 템플릿 세트 + 세트 0개 종목은 실제 수행이 아니므로 기록에서 제거(이력·볼륨·피드 오염 방지).
+    const dels = [
+      ...undone.map((s) => s.prepareMarkAsDeleted()),
+      ...emptyWEs.map((we) => we.prepareMarkAsDeleted()),
+    ];
+    if (dels.length) await database.batch(...dels);
+    await workout.update((rec) => {
+      rec.state = 'completed';
+      rec.completedAt = now;
+      rec.totalVolumeKg = totalVolume;
+      rec.durationSeconds = durationSeconds;
+      rec.prCount = prCount;
+    });
+  });
+
+  scheduleSync(); // 운동 완료 → 서버 백업·다른 기기 반영(디바운스·로그인 가드·비차단)
+  const summary: WorkoutSummary = { workoutId: id, totalVolumeKg: totalVolume, durationSeconds, workingSets, prCount, prs: prDetails };
+  lastCompletedSummary = summary; // 요약 화면이 종목별 PR 내역을 표시(휘발 — 재로드 시 prCount만)
+  return summary;
+}
+
+// ── 라이브 PR 판정 (세트 완료 시 축하 이펙트용 — 휘발) @plm SRS-005 ──────
+// 최종 PR '기록'은 completeWorkout(완료 저장)에서만 확정된다. 여기서는 아무것도 저장하지 않고
+// "이 세트가 (과거 완료 운동 + 이번 세션의 앞선 세트) 최고치를 넘는가"만 답한다.
+// 운동을 도중 폐기하면 축하는 이미 지나갔어도 기록엔 아무 흔적이 없다(사용자 요구).
+let lastCompletedSummary: WorkoutSummary | null = null;
+
+// 완료 직후 요약 화면용 종목별 PR 내역(메모리 캐시). 재로드 등으로 없으면 null → prCount만 표시.
+export function getLastWorkoutSummary(workoutId: string): WorkoutSummary | null {
+  return lastCompletedSummary?.workoutId === workoutId ? lastCompletedSummary : null;
+}
+
+const liveHistCache = new Map<string, PRSnapshot>(); // `${workoutId}::${ex}::${variant}` → 과거 최고(완료 운동만)
+const liveCelebrated = new Set<string>(); // `${setId}:${type}` — 체크 해제→재체크 중복 축하 방지(휘발)
+
+export async function evalLiveSetPr(
+  workoutExerciseId: string,
+  setId: string,
+  uiWeightKg?: number,
+  uiReps?: number,
+): Promise<PRResult[]> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  const exerciseId = we.exerciseId;
+  if ((await cardioExerciseIdSet([exerciseId])).size > 0) return []; // 유산소 제외 @plm SRS-030
+  const set = await setLogs().find(setId);
+  if (set.isWarmup || set.isFailed) return []; // PR은 작업 세트만(스냅샷 규칙과 동일)
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  // 방금 완료된 세트 — 무게/반복은 UI 입력값 우선(블러 커밋 경합 대비. 처방 제안 로직과 같은 이유).
+  const logged = toLoggedSet(set, loadMode, bw);
+  if (uiWeightKg != null && uiWeightKg > 0) logged.weightKg = uiWeightKg;
+  if (uiReps != null && uiReps >= 0) logged.reps = uiReps;
+  const thisSet = snapshotFromSets([logged]);
+  if (thisSet.maxVolumeSetKg <= 0 && thisSet.maxWeightKg <= 0) return [];
+
+  const variant = effectiveVariantKey(we);
+  const cacheKey = `${we.workoutId}::${exerciseId}::${variant ?? ''}`;
+  let hist = liveHistCache.get(cacheKey);
+  if (!hist) {
+    hist = await historicalSnapshotForExercise(exerciseId, we.workoutId, variant);
+    liveHistCache.set(cacheKey, hist);
+  }
+  // 이번 세션에서 앞서 수행한 같은 (종목×기구) 세트들 — 수퍼셋 중복 인스턴스 포함, 자기 자신 제외.
+  const siblingWes = (
+    await workoutExercises().query(Q.where('workout_id', we.workoutId), Q.where('exercise_id', exerciseId)).fetch()
+  ).filter((x) => effectiveVariantKey(x) === variant);
+  const priorSets = siblingWes.length
+    ? (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(siblingWes.map((x) => x.id)))).fetch()).filter(
+        (s) => s.id !== setId && isPerformed(s),
+      )
+    : [];
+  const sessionPrior = snapshotFromSets(priorSets.map((s) => toLoggedSet(s, loadMode, bw)));
+
+  const prs = detectMajorPRs(thisSet, mergeSnapshots(hist, sessionPrior));
+  // 같은 세트가 체크 해제→재체크로 같은 타입을 다시 넘겨도 축하는 1회만.
+  return prs.filter((p) => {
+    const k = `${setId}:${p.type}`;
+    if (liveCelebrated.has(k)) return false;
+    liveCelebrated.add(k);
+    return true;
+  });
+}

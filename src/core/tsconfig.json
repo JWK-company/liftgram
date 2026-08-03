@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "jsx": "preserve",
+    "types": ["node"],
+    "lib": ["ES2022", "dom"],
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "//": [
+    "__tests__ 는 타입 검사에서 뺀다 — 여기는 파생물이라 원본(app/)과 TypeScript 버전이 다르고",
+    "(app 6.0.3 / 여기 5.9) 테스트의 단언 스타일이 그 차이에 걸린다. 파생물에서 원본 코드 스타일과",
+    "싸울 자리가 아니다. 테스트의 타입은 app/ 의 `npm run typecheck` 가 이미 검사하고,",
+    "동작은 `make test` 가 154건을 실제로 돌려 검사한다. 여기서 검사할 것은 **프론트가 import하는",
+    "소스가 이 스택의 TypeScript로 컴파일되는가** 뿐이다."
+  ],
+  "exclude": ["src/domain/__tests__"]
+}
