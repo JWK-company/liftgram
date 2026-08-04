@@ -36,3 +36,6 @@ make ci        # 9단계 전량 — 이미지 빌드 · 스캐폴더 · 제너�
 
 새 검사를 추가하면 [`ci.sh`](ci.sh)에 단계를 넣고, 사람이 직접 부를 것이면
 [`Makefile`](../Makefile)에 타깃 + `##` 설명을 단다 — `check-docs.mjs`가 문서화 여부를 검사한다.
+
+- `migrate-legacy.sh` — **옛 배포 → 새 스택 데이터 이관**(전환 시점 1회). 옛 DB는 읽기만 하고,
+  `--dry-run`으로 먼저 행 수를 대조한다. 자세한 절차는 [`../deploy/README.md`](../deploy/README.md).
