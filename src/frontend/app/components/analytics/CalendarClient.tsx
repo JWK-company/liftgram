@@ -28,6 +28,8 @@ import { useUser } from "@app/core/state/userContext";
 import { useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
 import { getPref, setPref } from "@/lib/prefs";
+import { feedClient } from "@/lib/feedClient";
+import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
@@ -57,6 +59,8 @@ function dayKeyOf(ms: number): string {
 export default function CalendarClient() {
   const { weightUnit, user, manualWorkoutDays, calendarNotes, refresh } = useUser();
   const toast = useToast();
+  const { user: account } = useAuth();
+  const [bragging, setBragging] = useState(false);
   const [repo, setRepo] = useState<AnalyticsRepo | null>(null);
 
   useEffect(() => {
@@ -174,6 +178,42 @@ export default function CalendarClient() {
   }
   const monthDaysTotal = monthEntries.length + monthManual;
   const monthSessions = monthEntries.reduce((n, [, ws]) => n + ws.length, 0);
+  // 이번 달 총 볼륨 — 자랑 문구가 이 값을 쓴다(세션 요약에 이미 담겨 있어 다시 계산하지 않는다).
+  const monthVolume = monthEntries.reduce(
+    (sum, [, ws]) => sum + ws.reduce((n, w) => n + (w.totalVolumeKg ?? 0), 0),
+    0,
+  );
+
+  /**
+   * 이번 달 결산을 피드에 올린다.
+   *
+   * **사진 없이 글만** 올린다(오운완 카드가 아니다) — 한 달의 숫자는 세션 하나가 아니라
+   * 기간의 요약이라, 세션 카드 형식에 억지로 넣으면 "그날 그만큼 했다"로 읽힌다.
+   * 로그인하지 않았으면 그 사실을 알리고 아무것도 하지 않는다.
+   */
+  async function shareMonth() {
+    if (bragging || monthSessions === 0) return;
+    setBragging(true);
+    try {
+      if (!account) {
+        toast(t("session.shareLoginRequired"), "error");
+        return;
+      }
+      await feedClient().createPost({
+        caption: t("calendar.bragCaption", {
+          month: monthLabel,
+          days: monthDaysTotal,
+          sessions: monthSessions,
+          volume: formatWeight(monthVolume, weightUnit),
+        }),
+      });
+      toast(t("calendar.bragDone"));
+    } catch {
+      toast(t("common.error"), "error");
+    } finally {
+      setBragging(false);
+    }
+  }
 
   const selectedWorkouts = byDay.get(selected) ?? [];
   const selectedLabel = selectedDate.toLocaleDateString("ko-KR", {
@@ -332,6 +372,21 @@ export default function CalendarClient() {
       <AppText variant="caption" color="textMuted" center className="mb-[var(--spacing-sm)] block">
         {t("calendar.monthSummary", { days: monthDaysTotal, sessions: monthSessions })}
       </AppText>
+
+      {/* 이번 달 자랑하기 — 한 달을 마친 사람에게만 뜻이 있다(운동이 0회면 숨긴다). */}
+      {monthSessions > 0 ? (
+        <div className="mb-[var(--spacing-md)]">
+          <Button
+            title={t("calendar.brag")}
+            icon="share-social-outline"
+            variant="secondary"
+            size="sm"
+            loading={bragging}
+            onPress={() => void shareMonth()}
+            testId="btn-brag-month"
+          />
+        </div>
+      ) : null}
 
       <Card className="mb-[var(--spacing-lg)]">
         <div className="flex">

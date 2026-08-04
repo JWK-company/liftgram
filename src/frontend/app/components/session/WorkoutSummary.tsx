@@ -6,12 +6,14 @@
 // 값은 하나도 여기서 계산하지 않는다 — `completeWorkout`이 확정해 돌려준 요약을 그대로 놓는다
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
-// app에는 여기에 오운완 공유·연속일수·주간 목표도 있다. 그건 소셜·분석 계층을 옮길 때 따라온다.
+// 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
 import { formatWeight, type WeightUnit } from "@app/core";
+import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { AppText, StatTile, Tag } from "../ui/primitives";
+import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
 
 export interface Summary {
   workoutId: string;
@@ -35,6 +37,16 @@ export function WorkoutSummary({
   unit: WeightUnit;
   onClose: () => void;
 }) {
+  // 종목별 분해와 공유용 한 벌은 **같은 조회**에서 나온다(요약에는 둘 다 없다).
+  const [extras, setExtras] = useState<{ share: ShareablePayload; breakdown: BreakdownRow[] } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void loadSummaryExtras(summary).then((x) => alive && setExtras(x));
+    return () => {
+      alive = false;
+    };
+  }, [summary]);
+
   return (
     <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
       <div className="flex flex-col items-center">
@@ -91,6 +103,52 @@ export function WorkoutSummary({
       <span className="hidden" data-testid="summary-prs">
         {summary.prCount}
       </span>
+
+      {/* 종목별 분해 — 무엇을 얼마나 했는지. 요약 숫자만으로는 다음에 뭘 올릴지 못 정한다. */}
+      <AppText variant="heading" className="mt-[var(--spacing-xl)] mb-[var(--spacing-md)] block">
+        {t("session.perExerciseRecords")}
+      </AppText>
+      {extras && extras.breakdown.length === 0 ? (
+        <AppText variant="caption" color="textMuted">
+          {t("session.noExercisesRecorded")}
+        </AppText>
+      ) : (
+        <div data-testid="summary-breakdown">
+          {extras?.breakdown.map((ex) => (
+            <div
+              key={ex.id}
+              className="mb-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+            >
+              <AppText variant="body" className="block font-medium!">
+                {ex.name}
+              </AppText>
+              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+                {t("session.exerciseSetsVolume", {
+                  count: ex.setCount,
+                  volume: formatWeight(ex.volumeKg, unit),
+                })}
+              </AppText>
+              {ex.best1RM > 0 ? (
+                <div className="mt-[var(--spacing-xs)]">
+                  <AppText variant="label" color="textMuted" className="block">
+                    {t("wellness.oneRepMaxLabel")}
+                  </AppText>
+                  <AppText variant="title" color="primary" className="block">
+                    {formatWeight(ex.best1RM, unit)}
+                  </AppText>
+                  {/* 추정값임을 함께 적는다 — 실제로 든 무게가 아니다(웰니스 규약). */}
+                  <AppText variant="caption" color="textFaint" className="block">
+                    {t("wellness.oneRepMaxCaption")}
+                  </AppText>
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
+      {extras ? <ShareWorkout payload={extras.share} unit={unit} /> : null}
 
       {/* app은 여기서 탭으로 돌아간다 — 웹에서는 이 화면 자체가 세션 경로라 요약만 닫는다. */}
       <div className="mt-[var(--spacing-xl)]">

@@ -93,7 +93,7 @@ make nuke          # 데이터 볼륨까지 삭제
 | | `make docs-check` | **문서 drift 검사** — 설정 키·make 타깃·스크립트가 문서에 있는지 |
 | | `make ratelimit-check` | rate limit이 실제로 막는지(429·Retry-After·합산 한도) |
 | | `make smoke` / `make contract` / `make ci` | 10종 smoke test · **두 이미지(frontend·backend)** runtime contract · CI 전 과정 |
-| | `make e2e` / `make e2e-install` | **브라우저 e2e 84종**(역할·제휴 설정이 필요한 2종은 `MOD_EMAIL`·`GEAR_ON` 없으면 건너뜀) — 화면·채널 전환·토스트·두 탭·두 인스턴스 간 propagation (`e2e-install`은 브라우저 최초 설치) |
+| | `make e2e` / `make e2e-install` | **브라우저 e2e 94종**(역할·제휴 설정이 필요한 2종은 `MOD_EMAIL`·`GEAR_ON` 없으면 건너뜀) — 화면·채널 전환·토스트·두 탭·두 인스턴스 간 propagation (`e2e-install`은 브라우저 최초 설치) |
 | 5 컨테이너 | `make image` / `make up` / `make down` / `make restart` / `make ps` | 전부 이미지로 (`make restart`는 backend·frontend만 — 인프라는 그대로) |
 | | `make logs` / `make logs-backend` / `make logs-frontend` | 두 로그를 함께 보거나 따로 본다(같은 요청이 `x-request-id`로 이어진다) |
 | | `make backend-shell PATH_=/api/meta` | **호스트에 열려 있지 않은** backend를 같은 네트워크에서 직접 두드려 본다 |

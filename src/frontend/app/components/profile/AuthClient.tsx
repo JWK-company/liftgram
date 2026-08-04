@@ -11,6 +11,7 @@
 import { Code, ConnectError } from "@connectrpc/connect";
 import { useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
+import { ProfileEditCard } from "./ProfileEditCard";
 import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
 import { Button } from "../ui/Button";
@@ -130,6 +131,7 @@ export default function AuthClient() {
             />
           </div>
         </Card>
+        <ProfileEditCard />
         <ServerSyncCard />
         <OfflineNote />
       </div>

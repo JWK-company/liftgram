@@ -19,6 +19,7 @@ import { t } from "@/lib/i18n";
 import { equipmentLabel, kindLabel, loadModeLabel, muscleLabel } from "@/lib/labels";
 import ExerciseAnimation from "../../components/ExerciseAnimation";
 import { ScreenHeader } from "../../components/ui/ScreenHeader";
+import { ExerciseAdminBar } from "../../components/ExerciseAdminBar";
 import { Icon } from "../../components/ui/Icon";
 import { AppText, Card, Divider, SectionHeader, Tag } from "../../components/ui/primitives";
 
@@ -242,6 +243,11 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
             </ul>
           )}
         </Card>
+
+        {/* 보관은 여기서 — 서버가 아는 종목(기본 카탈로그)의 상세다.
+            내가 만든 종목은 **로컬에만** 있어 이 페이지가 404다(서버가 모른다) —
+            그래서 고치기·보관 진입은 카탈로그 목록 쪽에 둔다. */}
+        <ExerciseAdminBar exerciseId={exercise.id} isCustom={false} />
 
         <AppText variant="caption" color="textFaint">
           {exercise.id}

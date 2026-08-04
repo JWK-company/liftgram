@@ -17,11 +17,20 @@
 // (getTodayRoutineRecommendation) · 콘셉트 루틴의 내용(CONCEPT_ROUTINES) — 전부 core다.
 // 여기서 다시 계산하면 app과 갈라진다(ADR-032).
 // ─────────────────────────────────────────────────────────────────────────────
-import { CONCEPT_ROUTINES, currentBlockWeek, muscleLabel, todayPlan, type ConceptRoutine } from "@app/core";
+import {
+  CONCEPT_ROUTINES,
+  currentBlockWeek,
+  missedCatchUp,
+  muscleLabel,
+  todayPlan,
+  type ConceptRoutine,
+  type MissedPlan,
+  type WeeklySchedule,
+} from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { lang, t } from "@/lib/i18n";
+import { lang, t, tw } from "@/lib/i18n";
 import { useSession } from "../SessionProvider";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
@@ -29,6 +38,7 @@ import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
+import { ScheduleEditor } from "./ScheduleEditor";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -50,7 +60,7 @@ const ROUTINE_DOT_PALETTE = [
 ];
 
 export default function RoutinesClient() {
-  const { weeklySchedule } = useUser();
+  const { user, weeklySchedule } = useUser();
   const { activeWorkoutId, activeName, setActive, refreshActive } = useSession();
   const toast = useToast();
 
@@ -67,6 +77,9 @@ export default function RoutinesClient() {
   const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [activeExists, setActiveExists] = useState<null | (() => Promise<void>)>(null);
+  const [editingSchedule, setEditingSchedule] = useState(false);
+  /** 최근 8일 중 운동을 마친 날. 캐치업 판정이 이걸 본다. */
+  const [doneDayNums, setDoneDayNums] = useState<Set<number>>(() => new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -99,10 +112,33 @@ export default function RoutinesClient() {
       .getTodayRoutineRecommendation()
       .then((r) => !cancelled && setReco(r))
       .catch(() => !cancelled && setReco(null));
+    void analytics
+      .getCompletedDayNumsSince(8)
+      .then((d) => !cancelled && setDoneDayNums(d))
+      .catch(() => !cancelled && setDoneDayNums(new Set()));
     return () => {
       cancelled = true;
     };
   }, [analytics, routineCount, activeWorkoutId]);
+
+  /**
+   * 낱개 루틴의 순서를 한 칸 옮긴다.
+   *
+   * **폴더에 든 루틴은 대상이 아니다** — 폴더 안은 묶음의 순서라 목록 순서와 다른 축이다.
+   * 저장은 전체 순서를 다시 매기는 한 번의 쓰기다(부분 갱신은 중간 값이 남는다).
+   */
+  function moveRoutine(id: string, delta: number) {
+    const idx = loose.findIndex((r) => r.id === id);
+    const to = idx + delta;
+    if (idx < 0 || to < 0 || to >= loose.length) return;
+    const next = [...loose];
+    const [moved] = next.splice(idx, 1);
+    next.splice(to, 0, moved);
+    setActionsFor(null);
+    run(async () => void (await repos?.routine.reorderRoutines(next.map((r) => r.id))));
+  }
+
+  const looseIndexOf = (id: string) => loose.findIndex((r) => r.id === id);
 
   /** 폴더가 있는 루틴은 묶고, 없는 것은 낱개로 — 순서는 루틴 정렬 순서를 따른다. */
   const { folderGroups, loose } = useMemo(() => {
@@ -180,6 +216,10 @@ export default function RoutinesClient() {
   };
 
   const plan = todayPlan(weeklySchedule, Date.now());
+  // 놓친 루틴 — 가장 최근 배정일에 완료가 0건이면 후보다(스케줄을 쓰는 사람에게만 뜻이 있다).
+  const catchUp: MissedPlan | null = weeklySchedule
+    ? missedCatchUp(weeklySchedule, doneDayNums, Date.now())
+    : null;
   const block = currentBlockWeek(weeklySchedule, Date.now());
   const assignedCount = weeklySchedule?.days.filter((d) => d !== null && d !== "rest").length ?? 0;
 
@@ -245,14 +285,24 @@ export default function RoutinesClient() {
             ) : null}
           </div>
           <WeekStrip schedule={weeklySchedule} routines={routines} dotColor={dotColor} />
+          <div className="mt-[var(--spacing-sm)]">
+            <Button
+              title={t("schedule.editTitle")}
+              icon="calendar-outline"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              onPress={() => setEditingSchedule(true)}
+              testId="btn-edit-schedule"
+            />
+          </div>
         </Card>
       ) : (
         <EntryRow
           icon="calendar-outline"
           label={t("schedule.createEntry")}
           testId="entry-schedule"
-          // 스케줄 편집기는 아직 옮기지 않았다 — 화면이 생기면 여기서 연다.
-          disabled
+          onPress={() => setEditingSchedule(true)}
         />
       )}
 
@@ -267,6 +317,18 @@ export default function RoutinesClient() {
         />
       ) : !activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
         <RecoCard reco={reco} onStart={(id) => guardActive(startFromRoutine(id))} busy={busy} />
+      ) : null}
+
+      {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
+      {catchUp &&
+      !reco?.alreadyWorkedOutToday &&
+      !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
+        <CatchUpCard
+          catchUp={catchUp}
+          name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
+          busy={busy}
+          onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
+        />
       ) : null}
 
       {/* ── 새 운동 진입 ── */}
@@ -387,6 +449,31 @@ export default function RoutinesClient() {
         />
       ) : null}
 
+      {editingSchedule ? (
+        <ScheduleEditor
+          schedule={weeklySchedule}
+          routines={routines.map((r) => ({ id: r.id, name: r.name }))}
+          onClose={() => setEditingSchedule(false)}
+          onSave={async (next) => {
+            if (!user) return;
+            const userRepo = await import("@app/core/data/userRepository");
+            await userRepo.updateUserSettings(user.id, { weeklySchedule: next });
+            // 로컬 저장소는 비동기로 내려쓴다 — 판을 닫기 전에 확실히 남긴다.
+            const { flushLocalDb } = await import("@/lib/localDb");
+            await flushLocalDb();
+            setEditingSchedule(false);
+          }}
+          onDelete={async () => {
+            if (!user) return;
+            const userRepo = await import("@app/core/data/userRepository");
+            await userRepo.updateUserSettings(user.id, { weeklySchedule: null });
+            const { flushLocalDb } = await import("@/lib/localDb");
+            await flushLocalDb();
+            setEditingSchedule(false);
+          }}
+        />
+      ) : null}
+
       {actionsFor ? (
         <ActionSheet
           testId="routine-actions"
@@ -399,6 +486,14 @@ export default function RoutinesClient() {
                 location.href = `/routines/${actionsFor.id}`;
               },
             },
+            // 순서 바꾸기 — app은 길게 눌러 끄는 방식이지만, 웹에서 그 제스처는 터치에서
+            // 스크롤과 싸운다(길게 누르면 페이지가 따라 움직인다). 결과가 같은 조작으로 옮긴다.
+            ...(looseIndexOf(actionsFor.id) > 0
+              ? [{ label: tw("web.routines.moveUp"), onPress: () => moveRoutine(actionsFor.id, -1) }]
+              : []),
+            ...(looseIndexOf(actionsFor.id) >= 0 && looseIndexOf(actionsFor.id) < loose.length - 1
+              ? [{ label: tw("web.routines.moveDown"), onPress: () => moveRoutine(actionsFor.id, 1) }]
+              : []),
             {
               label: t("routines.duplicate"),
               onPress: () => run(async () => void (await repos?.routine.duplicateRoutine(actionsFor.id))),
@@ -892,5 +987,50 @@ function ConceptDialog({
         </div>
       </div>
     </SheetShell>
+  );
+}
+
+/**
+ * 놓친 루틴 — **지난 배정일에 아무것도 안 한 날**이 있으면 한 장 띄운다.
+ *
+ * 오늘 예정과 같은 루틴이면 띄우지 않는다(부르는 쪽이 판단한다) — 같은 말을 두 번 하는 셈이라
+ * 카드만 늘고 무엇을 하라는 건지 흐려진다.
+ */
+function CatchUpCard({
+  catchUp,
+  name,
+  busy,
+  onStart,
+}: {
+  catchUp: MissedPlan;
+  name: string | null;
+  busy: boolean;
+  onStart: () => void;
+}) {
+  if (!name) return null; // 지워진 루틴을 가리키고 있다 — 권할 것이 없다
+  return (
+    <Card className="mb-[var(--spacing-sm)]" data-testid="catchup-card">
+      <AppText variant="label" color="warning" className="block">
+        {t("schedule.catchUpLabel")}
+      </AppText>
+      <div className="mt-[var(--spacing-xs)] flex items-center gap-[var(--spacing-sm)]">
+        <div className="min-w-0 flex-1">
+          <AppText variant="body" className="block truncate font-medium!">
+            {name}
+          </AppText>
+          <AppText variant="caption" color="textMuted">
+            {t("schedule.catchUpDaysAgo", { days: catchUp.daysAgo })}
+          </AppText>
+        </div>
+        <Button
+          title={t("schedule.startThis")}
+          size="sm"
+          fullWidth={false}
+          disabled={busy}
+          onPress={onStart}
+          testId="btn-catchup-start"
+        />
+      </div>
+    </Card>
   );
 }

@@ -16,7 +16,7 @@
 import type { Message } from "@app/contracts";
 import { MessageKind, WatchMessagesResponse_Kind } from "@app/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { t } from "@/lib/i18n";
+import { t, tw } from "@/lib/i18n";
 import { dmClient } from "@/lib/dmClient";
 import { restoreSession } from "@/lib/session";
 import { feedErrorMessage } from "@/lib/feedClient";
@@ -28,6 +28,7 @@ import { Icon } from "../ui/Icon";
 import { TextArea } from "../ui/inputs";
 import { ListState } from "../ui/ListState";
 import { AppText } from "../ui/primitives";
+import { ConfirmDialog } from "../ui/Dialog";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { conversationTitle } from "./ConversationsClient";
 
@@ -43,6 +44,7 @@ export default function ConversationClient({ conversationId }: { conversationId:
   const [messages, setMessages] = useState<Message[]>([]);
   const [title, setTitle] = useState("");
   const [isGroup, setIsGroup] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [text, setText] = useState("");
@@ -160,6 +162,23 @@ export default function ConversationClient({ conversationId }: { conversationId:
     }
   }
 
+  /**
+   * 그룹에서 나간다.
+   *
+   * 나간 뒤에는 그 방을 볼 수 없으므로 목록으로 돌려보낸다. 실패하면 **그 자리에 남긴다** —
+   * 나간 줄 알고 떠났는데 남아 있으면, 이후 메시지를 계속 받으면서 이유를 모른다.
+   */
+  async function leave() {
+    setError(null);
+    try {
+      await dmClient().leaveConversation({ conversationId });
+      location.href = "/messages";
+    } catch (e) {
+      setConfirmLeave(false);
+      setError(feedErrorMessage(e));
+    }
+  }
+
   async function send() {
     const body = text.trim();
     if (!body || sending) return;
@@ -213,7 +232,33 @@ export default function ConversationClient({ conversationId }: { conversationId:
             <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }
+        // 나가기는 **그룹에만** 있다. 1:1은 나갈 곳이 없다(상대와의 대화 자체가 방이다) —
+        // 그 자리에 버튼을 두면 "이 사람과 끊기"로 읽혀 차단과 헷갈린다.
+        right={
+          isGroup ? (
+            <button
+              type="button"
+              onClick={() => setConfirmLeave(true)}
+              aria-label={tw("web.dm.leaveGroup")}
+              data-testid="conv-leave"
+            >
+              <Icon name="exit-outline" size={22} color="var(--color-bad)" />
+            </button>
+          ) : undefined
+        }
       />
+
+      {confirmLeave ? (
+        <ConfirmDialog
+          testId="confirm-leave-group"
+          title={tw("web.dm.leaveGroup")}
+          message={tw("web.dm.leaveConfirm")}
+          confirmLabel={tw("web.dm.leaveGroup")}
+          destructive
+          onCancel={() => setConfirmLeave(false)}
+          onConfirm={() => void leave()}
+        />
+      ) : null}
 
       <div
         className="flex flex-1 flex-col gap-[var(--spacing-xs)] p-[var(--spacing-lg)]"

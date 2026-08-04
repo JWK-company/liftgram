@@ -364,7 +364,19 @@ function ExerciseRow({ row }: { row: Row }) {
   const thumb = row.imageUrl || getExerciseMedia(row.nameKo)?.start || null;
 
   return (
-    <li>
+    <li className="relative">
+      {/* 내가 만든 종목은 **로컬에만** 있어 서버가 렌더하는 상세(/exercise/…)가 404다.
+          그래서 고치기 진입을 목록 행에 둔다 — 만든 사람이 곧바로 손볼 수 있는 유일한 자리다. */}
+      {row.isCustom ? (
+        <a
+          href={`/exercises/${encodeURIComponent(row.id)}/edit`}
+          data-testid={`edit-${row.id}`}
+          aria-label={t("common.edit")}
+          className="absolute top-[var(--spacing-md)] right-[var(--spacing-md)] z-10 flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+        >
+          <Icon name="create-outline" size={16} color="var(--color-ink2)" />
+        </a>
+      ) : null}
       <a
         href={routes.exercise(row.id)}
         data-testid={`exercise-${row.id}`}

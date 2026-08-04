@@ -352,7 +352,9 @@ export default function ProgramGeneratorClient() {
         </div>
 
         <Button
-          title={t("program.generate")}
+          // 이미 한 번 만들었으면 "다시 생성" — 같은 버튼이 같은 말을 하면
+          // 눌러도 아무 일 없는 줄 안다(앞의 미리보기가 그대로 있으니).
+          title={days ? t("program.regenerate") : t("program.generate")}
           icon="flash"
           loading={generating}
           onPress={generate}
