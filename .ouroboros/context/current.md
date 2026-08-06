@@ -45,7 +45,11 @@
 
 ## 활성 작업
 
-(없음 — 카탈로그 대확장 사이클 종결: spec → qa spec → execute 4 Phase → qa code → v0.14.0/0.14.1 배포 → **회고 완료**)
+카탈로그 대확장 **phase 2·3 잔여 완결**(v0.15.0) — 운동방법 무매칭 23종 자체 작성 + 대체운동 결손 59종 보완. 완료 후 `feat/web-stack-tarae` 복귀(tarae-web-stack 이전 작업 재개).
+
+## 작업 범위
+
+`app/scripts/media-supplement.json` · `app/src/data/exerciseMedia.data.ts`(생성물) · `app/src/data/seed/substitutes.seed.ts` · `app/src/appInfo.ts` · `app/app.json` · spec phase-2/3.md
 
 ## 회고 (2026-08-01 · /reflect)
 
@@ -55,6 +59,7 @@
 
 ## 다음 작업
 
+- **v0.15.0 (2026-08-06) — 카탈로그 대확장 phase 2·3 잔여 완결**: ① 운동방법 — free-exercise-db 무매칭 23종(해머스트렝스/디클라인·라잉·컨버징·원암 체스트 프레스 머신, 시티드·라잉 케이블 프레스, 라슨·피트업, 디클라인(스미스), 와이드그립·데피싯 푸시업, 펜들레이 로우, 로우(스미스), 체스트 서포티드 티바 로우, 머신 레터럴 레이즈, 숄더 프레스·슈러그(스미스), 노르딕 컬, 펜듈럼·벨트 스쿼트, 쓰러스터, 버피)의 한/영 스텝 자체 작성 → supplement 139→**162건**, `media-unmatched.txt` **잔여 0** ② 대체운동 — 결손 59종(괄호 기구변형·머신 변형) 큐레이션 → SUBSTITUTES 252→**311키**, 근력 311종 전건 보유·dangling 0 ③ finder 미편입 0(슬롯 보유 부위)·패턴은 스펙 기재분만(공란=제외 확정). 검증: 154/154 · tsc 0 · 멱등 재생성 · 웹빌드 index-2e2fa270…
 - **v0.14.1 배포 완료(2026-08-01) — /qa code 채택 9건 반영**: 커밋 4b90f95 → 드래프트 6a6de4b7 → restore 승격 · 프로덕션 index-96cf55a3… 확인. 리뷰=전문가 3인+발견 14건 전건 적대적 검증(반증 0) → **채택 9·보류 5·기각 0**(보고서 `docs/qa/20260801_catalog_expansion_code_review.md`). 핵심 픽스: **상세 화면 steps-only 미게이트**(신규 73종 상세의 빈 시연 박스·API 루트 요청 2건·크레딧 오귀속 — hasMediaImages 공용 헬퍼로 TipPanel·상세 통일, 브라우저 재검증) + 대체운동 정정(넥 길항·슬레드 풀)·리버스 리스트 컬 패턴 제거·리컴번트 level·코드젠 가드 4종(침묵 삭제 throw·원자성·파싱 fail-fast·supplement 우선)·드리프트 테스트. 154/154 · 멱등 재생성 diff 0. 보류 5건: RAW_MEDIA 번들 스플릿(성능 사이클)·패턴 버킷 재설계 4건(패턴 어휘 확장 필요 — 다음 /requirement 후보)
 - **v0.14.0 배포 완료(2026-08-01) — 운동 카탈로그 대확장(183→336종)**: /execute 4 Phase 전부(spec=`docs/spec/20260801_exercise_catalog_expansion/`) — ① 시드 153종+band 축+무결성 테스트 7종+죽은 참조 정리(substitutes 14/65·RAW_MEDIA 2, 커밋 9a4dc6c) ② 패턴 ~72키+대체운동 138종 큐레이션(75e0c3e) ③ steps-only 렌더+gen-exercise-media.js(매칭 66=정확33·별칭30·구종목3)+자체 스텝 73(RAW_MEDIA 268, d7edb25) ④ 브라우저 e2e 7케이스(시드 336·검색·밴드 버킷 기록·PR·이전기록 승계·유산소 지표 duration-only·steps-only 렌더·미완료 카운트)+codescan 청크 동기(Code 54·realizes 64)+release 338247c → push → 드래프트 6a6dde87 → restore 승격 · **프로덕션 index-f4a06171… 확인**. 153/153 테스트 · Scope 외 변경 0 · 검증 워크플로우 3회(18 에이전트). 잔여: codescan 전체 GC(서버 페이로드 픽스 후) · qa spec 보류 1건(이명 검색성 — 검색이 nameEn 매칭하므로 헥스 프레스→Squeeze Press로는 안 걸림, 필요 시 finder 슬롯 보강)
 - **v0.13.6 배포 완료(2026-08-01)**: 커밋 f86040d → 드래프트 6a6dc21f → restore 승격 · 프로덕션 index-f0542a64… 확인. 전역 운동 바가 다른 화면 하단 콘텐츠를 가리던 문제(사용자 리포트). `useWorkoutBarInset()` 훅 신설 — 운동 중일 때 바가 덮는 높이(탭 화면=탭바 위 기준, 스택 화면=화면 바닥 기준)를 계산해 공용 `Screen` 래퍼가 스페이서로 푸터 여유공간 확보(스타일 병합 충돌 없음). 루틴 편집기(Screen 미사용)는 리스트 푸터에 직접 적용. 바 위치도 탭 유무에 따라 조정(스택 화면에서 60px 빈 띠 제거 — `navigation/tabRoutes.ts` 리프 모듈로 사이클 회피) + NavigationContainer `onReady`로 최초 로드 라우트 반영(딥링크/새로고침 시 바 위치·숨김 오작동 수정). 검증: tsc 0·144테스트 · 브라우저(412px) 탭/스택/운동화면/비운동 4케이스 측정 — 콘텐츠 최하단이 바 상단 위, 폐기 후 여백 0 (@plm SRS-004)
@@ -68,11 +73,8 @@
 - **그립 버킷 분리(ADR-030·v0.13.0)** — 터미널: ADR-030 발급·변형 시트 그립 복원·(종목×기구×그립) 버킷·v11 백필 중지·커밋 cfb4253 / 원격: **소급 승격 백필 추가**(backfillPromoteUniformGripV21 — 균일 세트그립 인스턴스→그립 버킷·멱등) + e2e 검증. ~~미커밋 3파일~~ → **d107a52로 커밋 완료**(App.tsx·app.json·workoutRepository V21) — 클린 체크아웃 위험 해소
 
 - **v0.13.0 배포 완료(2026-07-28)**: 그립 기록 버킷 분리(**ADR-030** 발급 — ADR-026 부분 개정, 팔=세트 속성 유지) — VariantSelector 그립 섹션 복원·(종목×기구×그립) 이전기록·PR·트리거 칩 병기("덤벨·오버")·세트별 그립 편집은 블록 그립으로 일원화·v11 백필 재실행 금지 주석. 기존 기록=기본 그립 버킷(마이그레이션 없음 — 사용자 수용). 재현 테스트로 그립 분리·칩 병기 검증 · tsc 0·137테스트 ✓ · 프로덕션 index-543bc0b… 0.13.0 확인. **기구·브랜드 변경 시 이전기록 갱신은 재현 검증 결과 정상**(사용자 문의 ①)
-- ~~미배포~~ → **v0.12.2 배포 완료(2026-07-28)**: 세션 이전기록 표기 개편 — 단위 생략·깔짝 괄호 플러스("10×9"/"10×(9+1)")·colPrev 66px(짤림 방지), 그립·팔 축약 아랫줄 유지(ExerciseBlock). tsc 0·137테스트 ✓ · 커밋 후 드래프트 6a68909c→restore 승격 · 프로덕션 index-404b289… 0.12.2 확인
 - ~~미배포 픽스~~ → **v0.12.1 배포 완료(2026-07-28)**: 휴식 알람 오디오 포커스 정책 — keep-alive `<audio>`+MediaSession을 iOS 한정 축소 + 가시성 게이트(화면 보이면 출력 차단·audioSession 'auto', 잠금/백그라운드에서만 'playback'+재생). Android 세트 완료 후 타 앱 덕킹 제거(잠금 카드 포기). 커밋 beae7da · 프로덕션 index-13ea678… 0.12.1 확인 · **잔여: Android·iOS 잠금 알람 실기기 확인**
 
-- ~~미배포 픽스~~ → **v0.11.1 배포 완료(2026-07-27)**: 종목 교체 시 '마지막 수행 변형' 승계(swapWorkoutExercise) + ssVersion 강제 재조회(교체 즉시 이전기록·PR·이름 갱신) — 커밋 8ad2eb2 · 드래프트 6a67282→restore 승격 · 프로덕션 index-a5ec648… 0.11.1 확인
-- **v0.11.2 배포 완료(2026-07-27)**: 운동 중 종목 순서 ▲▼ 원클릭 복원(사용자 피드백 — 단독·슈퍼셋 그룹 모두, 끝단 비활성, 루틴 편집·목록 드래그는 유지) · e2e 검증(▲ 탭 → 즉시 이동) · 프로덕션 index-88c6760…
 - 3D 움짤 파이프라인 완료(gif 오버레이+ingest 스크립트+/media3d 자체 호스팅+무결성 테스트) — **에셋 라이선스 확보만 남음**: ADR-029 게이트 ① 실집행 결과 GymVisual N-CRFL 원문에 앱 임베드 충돌 소지 발견(DR-001 갱신) → ⓐ GymVisual support 서면 확인 ⓑ Gym Animations/MoveKit 비교 — 사용자 결정 대기
 - SRS-048 잔여: SRS-014 구독 도입 시 assertTrainerEligible 스텁 교체 · sync LWW 충돌 정교화(회원 미동기 변경이 처방을 덮는 엣지)
 - 3D 움짤: 무료·앱 상업 라이선스 명시 소스 부재 확인(MIT 표기 저장소들도 미디어 원권리=GymVisual — chain-of-title 불가) → **보류·현행(free-exercise-db 2컷) 유지**. 파이프라인은 준비 완료(에셋 확보 시 즉시 전환)

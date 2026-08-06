@@ -32,25 +32,31 @@
       "MRPT"
     ]
   },
-  "last_updated": "2026-07-26T10:30:00Z",
+  "last_updated": "2026-08-06T05:50:00Z",
   "tasks": {
     "bp-001-blueprint": "done",
     "dr-002-design-research": "done"
   },
-  "active_files": [],
+  "active_files": [
+    "app/scripts/media-supplement.json",
+    "app/src/data/exerciseMedia.data.ts",
+    "app/src/data/seed/substitutes.seed.ts",
+    "app/src/appInfo.ts",
+    "app/app.json"
+  ],
   "notes": {
-    "last_done": "2026-08-01 /reflect 완료(인사이트 5건 저장·파일 메모리 3건 갱신) — 카탈로그 대확장 사이클 종결. 다음 권장: /suggest"
+    "last_done": "2026-08-06 phase 2·3 잔여 완결: 운동방법 무매칭 0(supplement 162) · 대체운동 결손 0(SUBSTITUTES 311키) · 154/154 · tsc 0 · 웹빌드 index-2e2fa270. 다음: 커밋→푸시→Netlify 배포→feat/web-stack-tarae 복귀"
   },
   "grade": "Feature",
   "spec_path": ".ouroboros/docs/spec/20260801_exercise_catalog_expansion/",
-  "phase": null,
+  "phase": "phase-2+3 잔여 완결",
   "tasks_exec": {
     "catalog-expansion": {
       "name": "운동 카탈로그 대확장",
       "spec_path": ".ouroboros/docs/spec/20260801_exercise_catalog_expansion/",
       "grade": "Feature",
-      "current_phase": "done"
+      "current_phase": "phase-2/3 잔여 완결(대체 59·운동방법 23) — 배포 대기"
     }
   },
-  "release_tag": "v0.14.1"
+  "release_tag": "v0.15.0"
 }
