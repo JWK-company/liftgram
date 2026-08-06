@@ -4,8 +4,31 @@
 
 | nameKo | free-exercise-db | 방식 | 한국어 스텝 |
 |---|---|---|---|
+| 펜들레이 로우 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 머신 레터럴 레이즈 | (무매칭 — 자체 스텝) | steps-only | ✓ |
 | 파머스 워크 | Farmer's Walk | exact | ✓ |
+| 노르딕 컬 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 쓰러스터 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 버피 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 펜듈럼 스쿼트 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 벨트 스쿼트 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 로우 (스미스) | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 숄더 프레스 (스미스) | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 슈러그 (스미스) | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 해머스트렝스 체스트 프레스 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 디클라인 체스트 프레스 머신 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 라잉 체스트 프레스 머신 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 컨버징 체스트 프레스 머신 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 원암 체스트 프레스 머신 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 시티드 케이블 체스트 프레스 | (무매칭 — 자체 스텝) | steps-only | ✓ |
 | 스탠딩 케이블 체스트 프레스 | Standing Cable Chest Press | exact | ✓ |
+| 라잉 케이블 체스트 프레스 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 라슨 프레스 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 피트 업 벤치프레스 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 디클라인 프레스 (스미스) | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 와이드 그립 푸시업 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 데피싯 푸시업 | (무매칭 — 자체 스텝) | steps-only | ✓ |
+| 체스트 서포티드 티바 로우 | (무매칭 — 자체 스텝) | steps-only | ✓ |
 | 싯업 | Sit-Up | exact | ✓ |
 | 디클라인 푸시업 | Decline Push-Up | exact | ✓ |
 | 클랩 푸시업 | (무매칭 — 자체 스텝) | steps-only | ✓ |
@@ -144,4 +167,4 @@
 | 하이 니 | (무매칭 — 자체 스텝) | steps-only | ✓ |
 | 프론트 레버 레이즈 | (무매칭 — 자체 스텝) | steps-only | ✓ |
 
-무매칭(스텝 대기): 23건 — media-unmatched.txt
+무매칭(스텝 대기): 0건 — media-unmatched.txt
