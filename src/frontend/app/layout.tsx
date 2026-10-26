@@ -19,6 +19,7 @@ import { GlobalWorkoutBar } from "./components/GlobalWorkoutBar";
 import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
 import { OnboardingOverlay } from "./components/OnboardingOverlay";
+import { ServiceWorker } from "./components/ServiceWorker";
 import { TabBar } from "./components/ui/TabBar";
 import "./globals.css";
 
@@ -59,6 +60,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <TabBar />
                 {/* 첫 실행 안내는 **한 번만** 뜬다(본 표시는 이 기기에 남는다). */}
                 <OnboardingOverlay />
+                {/* 오프라인 셸·새 버전 띠 — 운동 중인지 알아야 해서 SessionProvider 안에 둔다. */}
+                <ServiceWorker />
               </div>
             </ToastProvider>
           </SessionProvider>

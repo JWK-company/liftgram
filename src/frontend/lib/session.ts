@@ -77,6 +77,11 @@ export function clearTokens(): void {
   accessToken = null;
   setFlag(false);
   void fetch("/api/session", { method: "DELETE", headers: GUARD }).catch(() => {});
+  // 서비스워커가 담아 둔 사진도 지운다 — 다음 사람이 이 기기를 쓸 수 있다(sw.template.js "clear-media").
+  if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    navigator.serviceWorker.controller?.postMessage("clear-media");
+    void globalThis.caches?.delete("liftgram-media").catch(() => {});
+  }
   notify();
 }
 

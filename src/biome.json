@@ -12,7 +12,8 @@
       "!**/.next",
       "!**/test-results",
       "!**/playwright-report",
-      "!**/blob-report"
+      "!**/blob-report",
+      "!frontend/public/sw.js"
     ]
   },
   "linter": {

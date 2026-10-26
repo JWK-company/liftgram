@@ -40,6 +40,15 @@ const WEB_ONLY: Record<string, Record<AppLanguage, string>> = {
     ko: "이 그룹에서 나갈까요? 다시 들어오려면 초대를 받아야 해요.",
     en: "Leave this group? You will need an invite to come back.",
   },
+  // 서비스워커(오프라인 셸·새 버전) — 앱은 스토어가 업데이트를 맡아 이 문구가 없다.
+  "web.sw.updateReady": { ko: "새 버전이 있어요", en: "A new version is ready" },
+  "web.sw.updateApply": { ko: "새로고침", en: "Reload" },
+  "web.offline.title": { ko: "오프라인이에요", en: "You're offline" },
+  "web.offline.message": {
+    ko: "이 화면은 아직 기기에 없어요. 운동·기록·캘린더·분석 탭은 오프라인에서도 열려요.",
+    en: "This screen isn't on your device yet. Workout, history, calendar and stats work offline.",
+  },
+  "web.offline.home": { ko: "운동 탭으로", en: "Go to workouts" },
 };
 
 export type WebOnlyKey = keyof typeof WEB_ONLY;
