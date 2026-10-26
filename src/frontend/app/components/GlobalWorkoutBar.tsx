@@ -38,31 +38,48 @@ export function GlobalWorkoutBar() {
 
   const elapsed = activeStartedAt && now ? Math.round((now - activeStartedAt) / 1000) : 0;
   const resting = restRemaining != null;
-  const fg = resting ? "var(--color-bg)" : "var(--color-on-brand)";
 
   return (
-    // app처럼 **탭 바 위에 떠 있는** 오버레이다(문서 흐름을 차지하지 않는다).
-    // 탭 바 높이(61px)만큼 띄우고, 폰 폭 칼럼 안에 맞춰 가운데 정렬한다.
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(61px+var(--spacing-md))] z-40 mx-auto max-w-[560px] px-[var(--spacing-md)]">
-      <a
-        href="/workout"
-        data-testid="global-workout-bar"
-        style={{ backgroundColor: resting ? "var(--color-pr)" : "var(--color-brand)" }}
-        className="pointer-events-auto flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-lg)] px-[var(--spacing-md)] py-[var(--spacing-sm)] shadow-lg"
-      >
-        <Icon name={resting ? "timer-outline" : "barbell-outline"} size={18} color={fg} />
-        <span className="min-w-0 flex-1">
-          <AppText variant="label" style={{ color: fg }} className="block truncate">
-            {resting
-              ? t("session.restingBar", { time: clock(restRemaining ?? 0) })
-              : activeName || t("routines.activeWorkout")}
-          </AppText>
-          <AppText variant="caption" style={{ color: fg, opacity: 0.9 }} className="block truncate">
-            {t("session.elapsedBar", { time: clock(elapsed) })}
-          </AppText>
-        </span>
-        <Icon name="chevron-forward" size={18} color={fg} />
-      </a>
-    </div>
+    <>
+      {/* 막대 높이만큼 흐름에 자리를 낸다 — 화면 맨 아래 내용이 막대 밑에 깔리지 않게. */}
+      <div aria-hidden className="h-[60px] shrink-0" />
+      {/* 진행 중 막대(SRS-054 시안 11 · 결정 D2) — 운동 화면을 ⌄ 로 내리면 **모든 탭 위에** 붙는다(음악 앱의 재생 막대).
+          탭바 바로 위에 떠 있고, 폰 폭 칼럼 안에 맞춘다. 휴식 중이면 남은 시간이 주인공이다. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[560px]">
+        <a
+          href="/workout"
+          data-testid="global-workout-bar"
+          className="pointer-events-auto flex items-center gap-[var(--spacing-md)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-[0_-4px_16px_rgba(0,0,0,0.08)]"
+        >
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+            style={{ backgroundColor: resting ? "var(--color-pr-soft)" : "var(--color-brand-muted)" }}
+          >
+            <Icon
+              name={resting ? "timer-outline" : "barbell-outline"}
+              size={18}
+              color={resting ? "var(--color-pr)" : "var(--color-brand)"}
+            />
+          </span>
+          <span className="min-w-0 flex-1">
+            <AppText variant="label" className="block truncate">
+              {t("session.inProgressBar", { name: activeName || t("routines.activeWorkout") })}
+            </AppText>
+            <AppText
+              variant="caption"
+              color={resting ? "pr" : "textMuted"}
+              className="block truncate tabular-nums"
+            >
+              {resting
+                ? t("session.restingBar", { time: clock(restRemaining ?? 0) })
+                : t("session.elapsedBar", { time: clock(elapsed) })}
+            </AppText>
+          </span>
+          <span className="rounded-full bg-(--color-brand) px-[var(--spacing-md)] py-[6px] font-semibold text-(--color-on-brand) text-[length:var(--text-sm)]">
+            {t("session.openBar")}
+          </span>
+        </a>
+      </div>
+    </>
   );
 }

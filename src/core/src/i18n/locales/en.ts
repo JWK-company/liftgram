@@ -714,6 +714,8 @@ export const en: Record<TransKey, string> = {
   "session.supersetUnlink": "Unlink",
   "session.restingBar": "Rest {time}",
   "session.mediaSetInfo": "Set {label}/{total}",
+  "session.inProgressBar": "{name} in progress",
+  "session.openBar": "Open",
   "session.elapsedBar": "Workout {time}",
   "session.liveVolume": "Volume {volume}",
   "session.setColHeader": "Set",

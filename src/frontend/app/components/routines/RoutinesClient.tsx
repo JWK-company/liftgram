@@ -37,9 +37,12 @@ import { Button } from "../ui/Button";
 import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
-import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
+import { AppText, Card, EmptyState } from "../ui/primitives";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { AppBar, AppBarAction } from "../ui/AppBar";
+import { MoreMenu } from "../ui/MoreMenu";
+import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { RecentWorkouts, WeekSummary } from "./WeekSummary";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -230,47 +233,140 @@ export default function RoutinesClient() {
       <AppBar
         logo
         title={t("routines.title")}
-        actions={
-          <>
-            <AppBarAction
-              icon="search-outline"
-              label={t("nav.exerciseList")}
-              href="/exercises"
-              testId="home-exercises"
-            />
-            {activeWorkoutId ? (
-              <a href="/workout" data-testid="btn-resume" className="ml-[var(--spacing-xs)]">
-                <Button title={t("routines.resumeWorkout")} icon="play" size="sm" fullWidth={false} />
-              </a>
-            ) : null}
-          </>
-        }
+        actions=<AppBarAction
+          icon="search-outline"
+          label={t("nav.exerciseList")}
+          href="/exercises"
+          testId="home-exercises"
+        />
       />
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        {/* ── 진행 중인 운동 ── */}
+        {/* ── 진행 중인 운동 — 폐기는 ⋯ 안으로(위험 동작은 화면에 늘 두지 않는다) ── */}
         {activeWorkoutId ? (
-          <Card className="mb-[var(--spacing-lg)] border-(--color-brand)!">
-            <div className="flex items-center gap-[var(--spacing-md)]" data-testid="resume-card">
-              <div className="min-w-0 flex-1">
-                <AppText variant="heading" className="block truncate">
-                  {activeName || t("routines.activeWorkout")}
-                </AppText>
-                <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-                  {t("routines.resumePrompt")}
-                </AppText>
-              </div>
-              <Button
-                title={t("routines.discardWorkoutButton")}
-                variant="danger"
-                size="sm"
-                fullWidth={false}
-                testId="btn-discard-active"
-                onPress={() => setConfirmDiscard(true)}
-              />
-            </div>
-          </Card>
+          <div
+            className="mb-[var(--spacing-lg)] flex items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-brand) bg-(--color-brand-muted) py-[var(--spacing-md)] pr-[var(--spacing-xs)] pl-[var(--spacing-lg)]"
+            data-testid="resume-card"
+          >
+            <a href="/workout" data-testid="btn-resume" className="min-w-0 flex-1">
+              <AppText variant="heading" className="block truncate">
+                {activeName || t("routines.activeWorkout")}
+              </AppText>
+              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+                {t("routines.resumePrompt")}
+              </AppText>
+            </a>
+            <MoreMenu
+              testId="btn-active-menu"
+              options={[
+                {
+                  label: t("routines.discardWorkoutButton"),
+                  destructive: true,
+                  testId: "btn-discard-active",
+                  onPress: () => setConfirmDiscard(true),
+                },
+              ]}
+            />
+          </div>
         ) : null}
 
+        {/* ── 이번 주 — 목표·연속일·볼륨 한 장(시안 01 · 결정 D3) ── */}
+        <WeekSummary />
+
+        {/* ── 빈 운동 시작 — 할 일 1순위 ── */}
+        <div className="mb-[var(--spacing-md)]">
+          <Button
+            title={t("routines.quickStart")}
+            icon="play"
+            loading={busy}
+            testId="btn-quick-start"
+            onPress={() => guardActive(startBlank)}
+          />
+        </div>
+
+        {/* ── 오늘의 안내 ── */}
+        {!activeWorkoutId && weeklySchedule ? (
+          <TodayCard
+            plan={plan}
+            routines={routines}
+            dotColor={dotColor}
+            onStart={(id) => guardActive(startFromRoutine(id))}
+            busy={busy}
+          />
+        ) : !activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
+          <RecoCard reco={reco} onStart={(id) => guardActive(startFromRoutine(id))} busy={busy} />
+        ) : null}
+
+        {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
+        {catchUp &&
+        !reco?.alreadyWorkedOutToday &&
+        !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
+          <CatchUpCard
+            catchUp={catchUp}
+            name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
+            busy={busy}
+            onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
+          />
+        ) : null}
+
+        {/* ── 내 루틴 — 줄마다 바로 시작(시안 01) ── */}
+        <SectionLabel
+          className="mt-[var(--spacing-xl)]"
+          title={t("routines.myRoutines")}
+          right={
+            <a
+              href="/routines/new"
+              data-testid="btn-new-routine"
+              className="font-semibold text-(--color-brand)"
+            >
+              + {t("routines.newRoutine")}
+            </a>
+          }
+        />
+
+        {folderGroups.map(([name, members]) => (
+          <FolderGroup
+            key={name}
+            name={name}
+            members={members}
+            open={openFolders[name] ?? false}
+            repo={repos?.routine ?? null}
+            busy={busy}
+            onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
+            onStart={(id) => guardActive(startFromRoutine(id))}
+            onActions={setActionsFor}
+          />
+        ))}
+
+        {routines.length === 0 ? (
+          <EmptyState
+            icon="clipboard-outline"
+            title={t("routines.listEmptyTitle")}
+            message={t("routines.listEmptyMessage")}
+            action={
+              <a href="/routines/new">
+                <Button title={t("routines.createRoutine")} icon="add" fullWidth={false} />
+              </a>
+            }
+          />
+        ) : (
+          <ListGroup testId="routine-list">
+            {loose.map((r) => (
+              <RoutineRow
+                key={r.id}
+                routine={r}
+                repo={repos?.routine ?? null}
+                busy={busy}
+                onStart={() => guardActive(startFromRoutine(r.id))}
+                onActions={() => setActionsFor(r)}
+              />
+            ))}
+          </ListGroup>
+        )}
+
+        <RecentWorkouts />
+
+        {/* ── 더 해 보기 — 자주 쓰지 않는 진입은 아래로 모은다 ── */}
+        <SectionLabel className="mt-[var(--spacing-xl)]" title="더 해 보기" />
         {/* ── 주간 스케줄 ── */}
         {weeklySchedule ? (
           <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
@@ -322,63 +418,16 @@ export default function RoutinesClient() {
           />
         )}
 
-        {/* ── 오늘의 안내 ── */}
-        {!activeWorkoutId && weeklySchedule ? (
-          <TodayCard
-            plan={plan}
-            routines={routines}
-            dotColor={dotColor}
-            onStart={(id) => guardActive(startFromRoutine(id))}
-            busy={busy}
-          />
-        ) : !activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
-          <RecoCard reco={reco} onStart={(id) => guardActive(startFromRoutine(id))} busy={busy} />
-        ) : null}
-
-        {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
-        {catchUp &&
-        !reco?.alreadyWorkedOutToday &&
-        !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
-          <CatchUpCard
-            catchUp={catchUp}
-            name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
-            busy={busy}
-            onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
-          />
-        ) : null}
-
-        {/* ── 새 운동 진입 ── */}
-        <div className="mb-[var(--spacing-sm)]">
-          <a href="/routines/new" className="block">
-            <Button
-              title={t("routines.newRoutine")}
-              icon="add"
-              variant="secondary"
-              testId="btn-new-routine"
-            />
-          </a>
-        </div>
-        <div className="mb-[var(--spacing-sm)]">
-          <Button
-            title={t("routines.quickStart")}
-            icon="flash"
-            loading={busy}
-            testId="btn-quick-start"
-            onPress={() => guardActive(startBlank)}
-          />
-        </div>
-        <div className="mb-[var(--spacing-sm)]">
-          <a href="/program" className="block">
-            <Button title={t("program.title")} icon="sparkles" variant="secondary" testId="btn-program" />
-          </a>
-        </div>
-
+        <ListGroup className="mb-[var(--spacing-md)]">
+          <ListRow href="/program" testId="btn-program" icon="sparkles" title={t("program.title")} />
+          <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} />
+        </ListGroup>
         {/* ── 콘셉트 루틴 ── */}
         <div className="mb-[var(--spacing-sm)]">
           <AppText variant="label" color="textMuted" className="mb-[4px] block">
             {t("concept.sectionTitle")}
           </AppText>
-          <div className="flex gap-[var(--spacing-sm)]">
+          <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
             {CONCEPT_ROUTINES.map((c) => (
               <button
                 key={c.id}
@@ -398,64 +447,6 @@ export default function RoutinesClient() {
             ))}
           </div>
         </div>
-
-        {/* ── 주변 헬스장(SRS-035) ── 맥락상 "어디서 운동할까"라 이 자리다. */}
-        <a
-          href="/gyms"
-          data-testid="btn-gyms"
-          className="mt-[var(--spacing-md)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)]"
-        >
-          <Icon name="location" size={18} color="var(--color-brand)" />
-          <AppText variant="body" className="flex-1 font-medium!">
-            {t("gyms.entry")}
-          </AppText>
-          <Icon name="chevron-forward" size={18} color="var(--color-ink2)" />
-        </a>
-
-        {/* ── 내 루틴 ── */}
-        <div className="mt-[var(--spacing-lg)]">
-          <SectionHeader title={t("routines.myRoutines")} />
-        </div>
-
-        {folderGroups.map(([name, members]) => (
-          <FolderGroup
-            key={name}
-            name={name}
-            members={members}
-            open={openFolders[name] ?? false}
-            repo={repos?.routine ?? null}
-            busy={busy}
-            onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
-            onStart={(id) => guardActive(startFromRoutine(id))}
-            onActions={setActionsFor}
-          />
-        ))}
-
-        {routines.length === 0 ? (
-          <EmptyState
-            icon="clipboard-outline"
-            title={t("routines.listEmptyTitle")}
-            message={t("routines.listEmptyMessage")}
-            action={
-              <a href="/routines/new">
-                <Button title={t("routines.createRoutine")} icon="add" fullWidth={false} />
-              </a>
-            }
-          />
-        ) : (
-          <div data-testid="routine-list">
-            {loose.map((r) => (
-              <RoutineRow
-                key={r.id}
-                routine={r}
-                repo={repos?.routine ?? null}
-                busy={busy}
-                onStart={() => guardActive(startFromRoutine(r.id))}
-                onActions={() => setActionsFor(r)}
-              />
-            ))}
-          </div>
-        )}
 
         {/* ── 대화상자들 ── */}
         {concept ? (
@@ -870,7 +861,7 @@ function RoutineRow({
   onActions: () => void;
 }) {
   return (
-    <Card className="mb-[var(--spacing-md)]">
+    <div className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
       <div className="flex items-center justify-between" data-testid={`routine-${routine.id}`}>
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
           <AppText variant="heading" className="block truncate">
@@ -895,7 +886,7 @@ function RoutineRow({
           />
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 

@@ -33,7 +33,9 @@ test("끊긴 상태에서도 주요 탭이 열린다", async ({ page, context })
   for (const path of ["/workout", "/history", "/calendar", "/stats"]) {
     await page.goto(path);
     await expect(page.getByTestId("offline-page")).toHaveCount(0);
-    await expect(page.locator("nav")).toBeVisible();
+    // 운동 화면은 집중 모드라 탭바가 없다(SRS-054 D2) — 본문이 섰는지로 본다.
+    if (path === "/workout") await expect(page.locator("main")).toBeVisible();
+    else await expect(page.locator("nav")).toBeVisible();
   }
 });
 

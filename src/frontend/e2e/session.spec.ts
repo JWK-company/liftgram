@@ -118,7 +118,9 @@ test("두 종목을 슈퍼셋으로 묶고 풀 수 있다", async ({ page }) => 
   await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(2);
 
   // 첫 종목에서 슈퍼셋 → 상대 고르기
-  await page.getByTestId("workout-exercises").locator("> div").first().getByTestId("btn-superset").click();
+  // 종목 동작은 ⋯ 안에 있다(SRS-054) — 메뉴를 열고 슈퍼셋을 고른다.
+  await page.getByTestId("workout-exercises").locator("> div").first().getByTestId("btn-we-menu").click();
+  await page.getByTestId("btn-superset").click();
   await page.getByTestId("superset-option").first().click();
 
   // 묶이면 두 종목이 한 컨테이너 안으로 들어간다.

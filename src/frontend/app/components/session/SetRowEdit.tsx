@@ -190,7 +190,8 @@ export function SetRowEdit({
   return (
     <div
       data-testid={`set-${set.id}`}
-      style={{ backgroundColor: isDone ? "var(--color-brand-muted)" : undefined }}
+      // 마친 세트는 조용하게(SRS-054) — 붉은 판 대신 옅은 초록, 입력칸은 흐리게. 남은 세트가 눈에 띈다.
+      style={{ backgroundColor: isDone ? "var(--color-ok-soft)" : undefined }}
       className="rounded-[var(--radius-sm)]"
     >
       <div className="flex items-center gap-[4px] py-[4px]">
@@ -243,7 +244,7 @@ export function SetRowEdit({
           onBlur={commitWeight}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           onFocus={(e) => e.currentTarget.select()}
-          className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:opacity-70"
+          className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
         <input
           data-testid="set-reps"
@@ -254,7 +255,7 @@ export function SetRowEdit({
           onBlur={commitReps}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           onFocus={(e) => e.currentTarget.select()}
-          className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:opacity-70"
+          className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
 
         <button
@@ -269,8 +270,8 @@ export function SetRowEdit({
             onToggleDone(!isDone, kg, reps);
           }}
           style={{
-            backgroundColor: isDone ? "var(--color-brand)" : "var(--color-surface-alt)",
-            borderColor: isDone ? "var(--color-brand)" : "var(--color-line)",
+            backgroundColor: isDone ? "var(--color-ok)" : "var(--color-surface-alt)",
+            borderColor: isDone ? "var(--color-ok)" : "var(--color-line)",
           }}
           className="flex h-10 w-[38px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] border"
         >

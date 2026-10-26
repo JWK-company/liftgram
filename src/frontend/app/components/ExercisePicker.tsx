@@ -23,9 +23,12 @@ const LIMIT = 40;
 export default function ExercisePicker({
   onPick,
   onClose,
+  bare,
 }: {
   onPick: (exerciseId: string) => void;
   onClose: () => void;
+  /** 바닥 시트 안 — 카드 테두리 없이, 목록을 시트 높이만큼(SRS-054 시안 03). */
+  bare?: boolean;
 }) {
   const [repo, setRepo] = useState<Repo | null>(null);
   const [query, setQuery] = useState("");
@@ -51,8 +54,9 @@ export default function ExercisePicker({
     return filtered.slice(0, LIMIT);
   }, [models, query]);
 
+  const Shell = bare ? BareShell : PickerCard;
   return (
-    <Card className="border-(--color-brand)!">
+    <Shell>
       <div data-testid="exercise-picker">
         <div className="mb-[var(--spacing-md)] flex items-center gap-[var(--spacing-sm)]">
           <TextField
@@ -81,7 +85,7 @@ export default function ExercisePicker({
         ) : (
           <ul
             data-testid="picker-list"
-            className="flex max-h-80 flex-col gap-[var(--spacing-xs)] overflow-y-auto"
+            className={`flex flex-col gap-[var(--spacing-xs)] overflow-y-auto ${bare ? "max-h-[60dvh]" : "max-h-80"}`}
           >
             {rows.map((e) => (
               <li key={e.id}>
@@ -101,6 +105,14 @@ export default function ExercisePicker({
           </ul>
         )}
       </div>
-    </Card>
+    </Shell>
   );
+}
+
+function PickerCard({ children }: { children: React.ReactNode }) {
+  return <Card className="border-(--color-brand)!">{children}</Card>;
+}
+
+function BareShell({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
 }

@@ -716,6 +716,8 @@ export const ko = {
   "session.supersetUnlink": "해제",
   "session.restingBar": "휴식 {time}",
   "session.mediaSetInfo": "세트 {label}/{total}",
+  "session.inProgressBar": "{name} 진행 중",
+  "session.openBar": "열기",
   "session.elapsedBar": "운동 {time}",
   "session.liveVolume": "볼륨 {volume}",
   "session.setColHeader": "세트",

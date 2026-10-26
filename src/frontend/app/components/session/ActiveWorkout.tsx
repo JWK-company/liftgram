@@ -29,7 +29,8 @@ import { useSession } from "../SessionProvider";
 import { ErrorState } from "../States";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
-import { ConfirmDialog, SheetShell } from "../ui/Dialog";
+import { ConfirmDialog, Overlay, SheetShell } from "../ui/Dialog";
+import { MoreMenu } from "../ui/MoreMenu";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { TextField } from "../ui/inputs";
@@ -310,6 +311,27 @@ export default function ActiveWorkout() {
             })()
           }
         />
+
+        {/* 드문·위험 동작은 ⋯ 안으로(SRS-054) — 이름 바꾸기 · 운동 취소(삭제). 취소는 확인창을 그대로 거친다. */}
+        <MoreMenu
+          testId="btn-session-menu"
+          options={[
+            {
+              label: t("session.renameTitle"),
+              testId: "btn-rename",
+              onPress: () => {
+                setNameDraft(workout.name ?? "");
+                setRenaming(true);
+              },
+            },
+            {
+              label: t("session.discardWorkoutButton"),
+              destructive: true,
+              testId: "btn-discard",
+              onPress: () => setConfirmDiscard(true),
+            },
+          ]}
+        />
       </div>
 
       <SessionGuideButtons />
@@ -360,24 +382,18 @@ export default function ActiveWorkout() {
             onPress={() => setPicking({ mode: "add" })}
           />
         </div>
-        <div className="mt-[var(--spacing-xl)]">
-          <Button
-            title={t("session.discardWorkoutButton")}
-            variant="danger"
-            icon="trash-outline"
-            disabled={busy}
-            testId="btn-discard"
-            onPress={() => setConfirmDiscard(true)}
-          />
-        </div>
+        {/* 「운동 취소(삭제)」는 머리의 ⋯ 안에 있다 — 세트 추가보다 크고 붉게 늘 떠 있던 자리(SRS-054). */}
+        <div className="h-[var(--spacing-xxl)]" />
       </div>
 
       <RestBar />
       <PrCelebrationHost />
 
       {picking ? (
-        <div className="p-[var(--spacing-lg)] pt-0">
+        // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
+        <Overlay onClose={() => setPicking(null)} placement="bottom" testId="picker-sheet">
           <ExercisePicker
+            bare
             onClose={() => setPicking(null)}
             onPick={(exerciseId) =>
               guard(async () => {
@@ -391,7 +407,7 @@ export default function ActiveWorkout() {
               })
             }
           />
-        </div>
+        </Overlay>
       ) : null}
 
       {renaming ? (

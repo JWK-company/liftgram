@@ -12,7 +12,8 @@ import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
-import { AppText, StatTile, Tag } from "../ui/primitives";
+import { AppText, Tag } from "../ui/primitives";
+import { KpiRow, ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
 
 export interface Summary {
@@ -47,111 +48,126 @@ export function WorkoutSummary({
     };
   }, [summary]);
 
+  const today = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
   return (
-    <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-      <div className="flex flex-col items-center">
-        <Icon name="trophy" size={40} color="var(--color-pr)" />
-        <AppText variant="display" center className="mt-[var(--spacing-sm)] block">
-          {t("session.workoutComplete")}
-        </AppText>
+    <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
+        {/* 축하는 위에 짧게(시안 04) — 깬 기록은 아래 목록으로 읽힌다. */}
+        <div className="flex flex-col items-center pt-[var(--spacing-md)]">
+          <Icon name="trophy" size={36} color="var(--color-pr)" />
+          <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-sm)] block">
+            {today}
+          </AppText>
+          <AppText variant="title" center className="mt-[2px] block">
+            {t("session.workoutComplete")}
+          </AppText>
+          {summary.prCount > 0 ? (
+            <div className="mt-[var(--spacing-sm)]">
+              <Tag label={t("session.prCount", { count: summary.prCount })} tone="pr" />
+            </div>
+          ) : null}
+        </div>
 
-        {summary.prCount > 0 ? (
-          <div className="mt-[var(--spacing-md)]">
-            <Tag label={t("session.prCount", { count: summary.prCount })} tone="pr" />
-          </div>
-        ) : null}
+        {/* 숫자 상자 셋 → 한 줄(같은 무게의 숫자는 칸 나눔으로). */}
+        <div className="mt-[var(--spacing-lg)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) py-[var(--spacing-lg)]">
+          <KpiRow
+            items={[
+              {
+                label: t("session.totalVolume"),
+                value: formatWeight(summary.totalVolumeKg, unit),
+                testId: "summary-volume",
+              },
+              {
+                label: t("session.duration"),
+                value: duration(summary.durationSeconds),
+                testId: "summary-duration",
+              },
+              { label: t("session.setCount"), value: String(summary.workingSets), testId: "summary-sets" },
+            ]}
+          />
+        </div>
+        <span className="hidden" data-testid="summary-prs">
+          {summary.prCount}
+        </span>
 
-        {/* 무엇이 갱신됐는지 종목별로 밝힌다 — "벤치프레스 · 중량 PR 105kg (이전 100kg)". */}
+        {/* 이번에 깬 기록 — "벤치프레스 · 중량  105kg (이전 100kg)". */}
         {summary.prs.length > 0 ? (
-          <div className="mt-[var(--spacing-sm)] flex flex-col items-center" data-testid="summary-pr-list">
-            {summary.prs.flatMap((d) =>
-              d.prs.map((p) => (
-                <AppText
-                  key={`${d.exerciseId}_${p.type}`}
-                  variant="caption"
-                  color="pr"
-                  center
-                  className="block"
-                >
-                  {`${d.exerciseName} · ${t(
-                    p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume",
-                  )} ${formatWeight(p.current, unit)}${
-                    p.previous > 0
-                      ? ` (${t("session.prPrev", { value: formatWeight(p.previous, unit) })})`
-                      : ""
-                  }`}
-                </AppText>
-              )),
-            )}
-          </div>
+          <>
+            <SectionLabel
+              className="mt-[var(--spacing-xl)]"
+              title={t("session.prCount", { count: summary.prCount })}
+            />
+            <ListGroup testId="summary-pr-list">
+              {summary.prs.flatMap((d) =>
+                d.prs.map((p) => (
+                  <ListRow
+                    key={`${d.exerciseId}_${p.type}`}
+                    leading={<Icon name="trophy" size={18} color="var(--color-pr)" />}
+                    title={`${d.exerciseName} · ${t(
+                      p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume",
+                    )}`}
+                    subtitle={
+                      p.previous > 0
+                        ? t("session.prPrev", { value: formatWeight(p.previous, unit) })
+                        : undefined
+                    }
+                    value={
+                      <span className="font-bold text-(--color-pr)">{formatWeight(p.current, unit)}</span>
+                    }
+                  />
+                )),
+              )}
+            </ListGroup>
+          </>
         ) : null}
-      </div>
 
-      <div className="mt-[var(--spacing-lg)] flex gap-[var(--spacing-md)]">
-        <StatTile
-          testId="summary-volume"
-          label={t("session.totalVolume")}
-          value={formatWeight(summary.totalVolumeKg, unit)}
-        />
-        <StatTile
-          testId="summary-duration"
-          label={t("session.duration")}
-          value={duration(summary.durationSeconds)}
-        />
-        <StatTile testId="summary-sets" label={t("session.setCount")} value={String(summary.workingSets)} />
-      </div>
-      <span className="hidden" data-testid="summary-prs">
-        {summary.prCount}
-      </span>
-
-      {/* 종목별 분해 — 무엇을 얼마나 했는지. 요약 숫자만으로는 다음에 뭘 올릴지 못 정한다. */}
-      <AppText variant="heading" className="mt-[var(--spacing-xl)] mb-[var(--spacing-md)] block">
-        {t("session.perExerciseRecords")}
-      </AppText>
-      {extras && extras.breakdown.length === 0 ? (
-        <AppText variant="caption" color="textMuted">
-          {t("session.noExercisesRecorded")}
-        </AppText>
-      ) : (
-        <div data-testid="summary-breakdown">
-          {extras?.breakdown.map((ex) => (
-            <div
-              key={ex.id}
-              className="mb-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
-            >
-              <AppText variant="body" className="block font-medium!">
-                {ex.name}
-              </AppText>
-              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-                {t("session.exerciseSetsVolume", {
+        {/* 종목별 — 무엇을 얼마나 했는지. 요약 숫자만으로는 다음에 뭘 올릴지 못 정한다. */}
+        <SectionLabel className="mt-[var(--spacing-xl)]" title={t("session.perExerciseRecords")} />
+        {extras && extras.breakdown.length === 0 ? (
+          <AppText variant="caption" color="textMuted">
+            {t("session.noExercisesRecorded")}
+          </AppText>
+        ) : (
+          <ListGroup testId="summary-breakdown">
+            {extras?.breakdown.map((ex) => (
+              <ListRow
+                key={ex.id}
+                title={ex.name}
+                subtitle={t("session.exerciseSetsVolume", {
                   count: ex.setCount,
                   volume: formatWeight(ex.volumeKg, unit),
                 })}
-              </AppText>
-              {ex.best1RM > 0 ? (
-                <div className="mt-[var(--spacing-xs)]">
-                  <AppText variant="label" color="textMuted" className="block">
-                    {t("wellness.oneRepMaxLabel")}
-                  </AppText>
-                  <AppText variant="title" color="primary" className="block">
-                    {formatWeight(ex.best1RM, unit)}
-                  </AppText>
-                  {/* 추정값임을 함께 적는다 — 실제로 든 무게가 아니다(웰니스 규약). */}
-                  <AppText variant="caption" color="textFaint" className="block">
-                    {t("wellness.oneRepMaxCaption")}
-                  </AppText>
-                </div>
-              ) : null}
-            </div>
-          ))}
-        </div>
-      )}
+                value={
+                  ex.best1RM > 0 ? (
+                    // 추정값임을 함께 적는다 — 실제로 든 무게가 아니다(웰니스 규약).
+                    <span className="flex flex-col items-end">
+                      <span className="font-bold text-(--color-brand)">{formatWeight(ex.best1RM, unit)}</span>
+                      <span className="text-(--color-ink3) text-[length:var(--text-xs)]">
+                        {t("wellness.oneRepMaxLabel")}
+                      </span>
+                    </span>
+                  ) : undefined
+                }
+              />
+            ))}
+          </ListGroup>
+        )}
+        {extras?.breakdown.some((ex) => ex.best1RM > 0) ? (
+          <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
+            {t("wellness.oneRepMaxCaption")}
+          </AppText>
+        ) : null}
 
-      {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
-      {extras ? <ShareWorkout payload={extras.share} unit={unit} /> : null}
+        {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
+        {extras ? (
+          <div className="mt-[var(--spacing-xl)]">
+            <ShareWorkout payload={extras.share} unit={unit} />
+          </div>
+        ) : null}
+      </div>
 
-      {/* app은 여기서 탭으로 돌아간다 — 웹에서는 이 화면 자체가 세션 경로라 요약만 닫는다. */}
-      <div className="mt-[var(--spacing-xl)]">
+      {/* 하단 고정 — 할 일은 「완료」 하나. app은 여기서 탭으로 돌아간다 — 웹에서는 이 화면 자체가 세션 경로라 요약만 닫는다. */}
+      <div className="sticky bottom-0 border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom))]">
         <Button title={t("common.done")} testId="btn-summary-close" onPress={onClose} />
       </div>
     </div>

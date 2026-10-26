@@ -82,7 +82,7 @@ export function PrCelebrationHost() {
   return (
     <div
       data-testid="pr-celebration"
-      className="pointer-events-none fixed inset-0 z-[999] flex justify-center pt-[22%]"
+      className="pointer-events-none fixed inset-0 z-[999] flex justify-center pt-[calc(env(safe-area-inset-top)+64px)]"
     >
       <div
         style={{

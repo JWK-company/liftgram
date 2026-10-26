@@ -41,8 +41,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
 import { firePrCelebration } from "../PrCelebration";
 import { Button } from "../ui/Button";
-import { ConfirmDialog } from "../ui/Dialog";
-import { Icon } from "../ui/Icon";
+import { ConfirmDialog, SheetShell } from "../ui/Dialog";
+import { MoreMenu } from "../ui/MoreMenu";
+import { navigate } from "@/lib/nav";
 import { IconButton } from "../ui/IconButton";
 import { NumberStepper } from "../ui/inputs";
 import { AppText, Card, Tag } from "../ui/primitives";
@@ -113,6 +114,10 @@ export function ExerciseBlock({
   const [prevNote, setPrevNote] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, Suggestion>>({});
   const [confirmRemove, setConfirmRemove] = useState(false);
+  // 메모·휴식 시간은 종목 ⋯ 안의 설정이다(SRS-054) — 입력칸이 늘 펼쳐져 세트 표를 밀어내지 않게.
+  // 메모는 써 둔 것이 있으면 처음부터 보인다.
+  const [noteOpen, setNoteOpen] = useState(() => !!we.note?.trim());
+  const [restSheet, setRestSheet] = useState(false);
   const [volTick, setVolTick] = useState(0);
 
   const variantKey = useMemo(() => canonicalVariantKey(variant), [variant]);
@@ -331,38 +336,50 @@ export function ExerciseBlock({
             <ExerciseName exerciseId={we.exerciseId} variant="heading" base revealOnTap testId="we-name" />
           </div>
 
-          <a
-            href={`/exercise/${we.exerciseId}`}
-            aria-label={t("nav.exerciseDetail")}
-            className="flex h-10 w-10 shrink-0 items-center justify-center"
-          >
-            <Icon name="information-circle-outline" size={20} color="var(--color-ink2)" />
-          </a>
-
-          {!insideSuperset && canSuperset && (onSuperset || onUnsuperset) ? (
-            <IconButton
-              icon="git-merge-outline"
-              label={t("session.superset")}
-              color={we.supersetGroup ? "var(--color-brand)" : "var(--color-ink2)"}
-              onPress={we.supersetGroup ? onUnsuperset : onSuperset}
-              testId="btn-superset"
-            />
-          ) : null}
-
-          {onSwap ? (
-            <IconButton
-              icon="swap-horizontal-outline"
-              label={t("routines.swap")}
-              onPress={() => onSwap(we.id)}
-              testId="btn-swap"
-            />
-          ) : null}
-
-          <IconButton
-            icon="trash-outline"
-            label={t("session.removeExerciseTitle")}
-            onPress={() => setConfirmRemove(true)}
-            testId="btn-remove-exercise"
+          {/* 종목 동작은 ⋯ 하나로(아이콘 셋 → 하나 · SRS-054). 표식(btn-superset·btn-swap·btn-remove-exercise)은 시트 안 선택지가 잇는다. */}
+          <MoreMenu
+            vertical
+            testId="btn-we-menu"
+            title={exName ?? ""}
+            options={[
+              {
+                label: t("nav.exerciseDetail"),
+                testId: "btn-we-info",
+                onPress: () => navigate(`/exercise/${we.exerciseId}`),
+              },
+              ...(!insideSuperset && canSuperset && (onSuperset || onUnsuperset)
+                ? [
+                    {
+                      label: we.supersetGroup ? t("session.supersetUnlink") : t("session.superset"),
+                      testId: "btn-superset",
+                      onPress: () => (we.supersetGroup ? onUnsuperset?.() : onSuperset?.()),
+                    },
+                  ]
+                : []),
+              ...(onSwap
+                ? [{ label: t("routines.swap"), testId: "btn-swap", onPress: () => onSwap(we.id) }]
+                : []),
+              {
+                label: `${t("session.restTime")} · ${restSeconds}${t("session.secondsSuffix")}`,
+                testId: "btn-rest-setting",
+                onPress: () => setRestSheet(true),
+              },
+              ...(noteOpen
+                ? []
+                : [
+                    {
+                      label: t("session.notePlaceholder"),
+                      testId: "btn-note-open",
+                      onPress: () => setNoteOpen(true),
+                    },
+                  ]),
+              {
+                label: t("session.removeExerciseTitle"),
+                destructive: true,
+                testId: "btn-remove-exercise",
+                onPress: () => setConfirmRemove(true),
+              },
+            ]}
           />
         </div>
 
@@ -499,15 +516,17 @@ export function ExerciseBlock({
         </div>
 
         {/* 메모 — 그날의 느낌·포인트. 다음에 같은 종목을 할 때 지난 메모로 보인다. */}
-        <textarea
-          data-testid="we-note"
-          value={note}
-          rows={2}
-          placeholder={t("session.notePlaceholder")}
-          onChange={(e) => setNote(e.target.value)}
-          onBlur={() => void write(() => repo.setWorkoutExerciseNote(we.id, note))}
-          className="mt-[var(--spacing-sm)] min-h-[38px] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
-        />
+        {noteOpen ? (
+          <textarea
+            data-testid="we-note"
+            value={note}
+            rows={2}
+            placeholder={t("session.notePlaceholder")}
+            onChange={(e) => setNote(e.target.value)}
+            onBlur={() => void write(() => repo.setWorkoutExerciseNote(we.id, note))}
+            className="mt-[var(--spacing-sm)] min-h-[38px] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+          />
+        ) : null}
 
         {!prevCleared && prevNote && prevNote !== note.trim() ? (
           <AppText variant="caption" color="textFaint" className="mt-[2px] block">
@@ -519,23 +538,25 @@ export function ExerciseBlock({
           <NoteHistoryPanel repo={repo} exerciseId={we.exerciseId} variantKey={variantKey} />
         ) : null}
 
-        {/* 휴식 시간 — 이 종목의 **설정값**이다. 카운트다운 자체는 운동 전체에 하나뿐이다. */}
-        <div className="mt-[var(--spacing-md)] flex min-h-[44px] items-center justify-between">
-          <AppText variant="caption" color="textMuted">
-            {t("session.restTime")}
-          </AppText>
-          <NumberStepper
-            testId="rest-seconds"
-            value={restSeconds}
-            step={15}
-            min={0}
-            max={600}
-            suffix={t("session.secondsSuffix")}
-            // app과 같이 **이 세션 동안의 설정**이다 — 저장소에 쓰지 않는다.
-            onChange={setRestSeconds}
-          />
-        </div>
+        {/* 휴식 시간 — 이 종목의 **설정값**이다(⋯ → 휴식 시간 시트). 카운트다운 자체는 운동 전체에 하나뿐이다. */}
       </div>
+
+      {restSheet ? (
+        <SheetShell title={t("session.restTime")} onClose={() => setRestSheet(false)} testId="rest-sheet">
+          <div className="mt-[var(--spacing-md)] flex justify-center">
+            <NumberStepper
+              testId="rest-seconds"
+              value={restSeconds}
+              step={15}
+              min={0}
+              max={600}
+              suffix={t("session.secondsSuffix")}
+              // app과 같이 **이 세션 동안의 설정**이다 — 저장소에 쓰지 않는다.
+              onChange={setRestSeconds}
+            />
+          </div>
+        </SheetShell>
+      ) : null}
 
       {confirmRemove ? (
         <ConfirmDialog
