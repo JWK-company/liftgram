@@ -42,7 +42,7 @@ func (t *Templates) link(path, token string) string {
 // Verify — 가입 주소 확인.
 func (t *Templates) Verify(to, token string) Mail {
 	u := t.link("/verify-email", token)
-	const lead = "확인 전에도 운동은 기록할 수 있지만, 피드·DM 같은 소셜 기능은 확인 후에 이용할 수 있어요."
+	const lead = "운동 기록은 확인 없이도 계속 쓸 수 있어요. 72시간 안에 확인하지 않으면 피드·스토리·DM에 글을 쓸 수 없게 돼요."
 	const foot = "이 링크는 24시간 뒤 만료됩니다. 본인이 요청하지 않았다면 이 메일을 무시하셔도 됩니다."
 	return Mail{
 		To:       to,

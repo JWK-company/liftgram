@@ -20,6 +20,20 @@ booktarae(`booktarae.org`)와 같은 방식이다. 도메인을 따로 사지 �
 - **터널**: 공개 호스트명은 Cloudflare 대시보드(Zero Trust → Networks → Tunnels)에서 단다. 커넥터가 `host` 네트워크라 `localhost:3410`이 그대로 보인다.
 - **되돌리기**: `DEPLOY_REF=<커밋> bash scripts/deploy-h2500-3.sh`. 옛 무료 조합(Netlify + Render + Neon)은 **폐기한다**(사용자 2026-10-26) — 컷오버 시점 덤프 2개를 `~/liftgram/backups/`에 남겼다.
 
+### 계정 메일 · 봇 방어 · 소셜 로그인 (SRS-052)
+
+| 무엇 | 어디서 | 서버 `.env` |
+|---|---|---|
+| 메일 | Cloudflare Email Sending — `tarae.org` 등록(SPF·DKIM 자동) · 발신 토큰(IP `118.128.43.242` 제한) · 하루 200통 | `MAIL_TRANSPORT=smtp` · `MAIL_SMTP_HOST=smtp.mx.cloudflare.net` · `MAIL_SMTP_PORT=465`(implicit TLS) · `MAIL_SMTP_USER=api_token` · `MAIL_SMTP_PASSWORD=<토큰>` · `MAIL_FROM=Liftgram <no-reply@tarae.org>` |
+| 봇 방어 | Cloudflare Turnstile — hostname `liftgram.tarae.org` · Managed | `TURNSTILE_SITE_KEY` · `TURNSTILE_SECRET` (**짝으로**) |
+| 구글 | Google Cloud 프로젝트 `liftgram` · 웹 클라이언트 · redirect `https://liftgram.tarae.org/api/auth/oauth/google/callback` | `OAUTH_GOOGLE_CLIENT_ID` · `OAUTH_GOOGLE_CLIENT_SECRET` |
+| 카카오·네이버 | 같은 꼴의 redirect(`…/kakao/callback` · `…/naver/callback`) | `OAUTH_KAKAO_*` · `OAUTH_NAVER_*` |
+| 실제 IP | 터널 뒤라 소켓 IP는 전원 같다 | `TRUST_CF_CONNECTING_IP=1` · `AUTH_RATE_LIMIT=10` |
+
+- 키를 바꾼 뒤에는 **재빌드 없이** 다시 띄운다: `docker compose -p liftgram -f compose.yaml -f compose.prod.yaml up -d --wait backend frontend`
+- 배포 스크립트가 메일이 켜져 있으면 SMTP 로그인까지 확인한다(보내지는 않는다).
+- 메일이 꺼져 있으면(console) 화면이 확인 안내·비밀번호 찾기를 숨기고, 미확인 72시간 제한도 걸지 않는다.
+
 ## 예전 계획(개발 단계 무료) — Render 합본
 
 | 구성요소 | 무엇을 쓰나 | 비용 |

@@ -115,6 +115,20 @@ echo "── 결과 확인 ──"
 # 컨테이너 안에서 먼저(터널과 무관하게 앱이 DB 까지 닿는가), 그다음 공개 주소.
 $SSH "cd $REMOTE/src && port=\$(grep '^WEB_PORT=' .env | cut -d= -f2)
   curl -sf -m 10 http://127.0.0.1:\$port/api/readyz || { echo '  !! readyz 실패 — DB 에 닿지 않는다'; exit 1; }; echo"
+# 메일이 켜져 있으면 SMTP 로그인까지 본다(보내지는 않는다) — 배포가 "끝"이라 해도 가입 확인·재설정 메일이
+# 안 나가면 사용자는 오지 않을 메일을 기다린다(booktarae 2026-10-01 실사 F1: 거절을 아무도 몰랐다).
+$SSH "cd $REMOTE/src && if grep -q '^MAIL_TRANSPORT=smtp' .env; then
+  H=\$(grep '^MAIL_SMTP_HOST=' .env | cut -d= -f2-) PORT=\$(grep '^MAIL_SMTP_PORT=' .env | cut -d= -f2-) \
+  U=\$(grep '^MAIL_SMTP_USER=' .env | cut -d= -f2-) P=\$(grep '^MAIL_SMTP_PASSWORD=' .env | cut -d= -f2-) python3 -c '
+import os,smtplib,ssl,sys
+h,p=os.environ[\"H\"],int(os.environ.get(\"PORT\") or 587)
+try:
+  s=smtplib.SMTP_SSL(h,p,context=ssl.create_default_context(),timeout=15) if p==465 else smtplib.SMTP(h,p,timeout=15)
+  if p!=465: s.starttls(context=ssl.create_default_context())
+  s.login(os.environ[\"U\"],os.environ[\"P\"]); s.quit(); print(\"  메일 발신 점검 OK\")
+except Exception as e:
+  print(\"  !! 메일 발신 점검 실패 —\", type(e).__name__, e); sys.exit(1)
+'; else echo '  메일: console(꺼짐) — 화면이 확인 안내를 숨긴다'; fi"
 code=$(curl -s -o /dev/null -w '%{http_code}' -m 20 "$SITE/api/readyz" || true)
 if [ "$code" = "200" ]; then
   echo "  $SITE → readyz 200"

@@ -174,6 +174,8 @@ func main() {
 		auth.Interceptor(authSvc),
 		validator,
 		middleware.ErrorInterceptor(),
+		// 오류 변환 **안쪽**에 둔다 — 여기서 내는 도메인 오류도 Connect 코드로 옮겨져야 한다.
+		auth.VerifiedGate(authSvc),
 	)
 
 	mux := http.NewServeMux()
