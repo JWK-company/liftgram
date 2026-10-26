@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-055",
+  "type": "SRS",
+  "title": "종목 카탈로그 정합·확장 — 이름 규칙 통일·이상 종목 정리·누락 종목 추가·전 종목 이미지/썸네일(저작권 안전)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:00:00Z",
+  "updated": "2026-10-26T09:01:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "exercise",
+    "media",
+    "license"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "근력 종목 100% 썸네일·라이선스 허용목록 테스트 통과·이름 규칙 위반 0·삭제/병합 종목 기록 이관 후 사용자별 세트 수·볼륨 합 불변·카탈로그 무결성 테스트 통과.",
+  "relations": {
+    "derives_from": [
+      "URS-018",
+      "URS-001"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "카탈로그는 실사용 근력 운동의 거의 전부를 담고, 모든 종목이 같은 이름 규칙을 따르며, 모든 근력 종목에 썸네일과 동작 이미지가 있어야 한다. 이미지는 저작권 문제가 없는 출처(퍼블릭 도메인 또는 출처 표기 조건을 지킨 공개 라이선스, 또는 자체 제작)만 쓰고, 종목별로 출처·라이선스를 기록한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "브랜드명이 종목명에 들어간 것(예: 해머스트렝스 체스트 프레스)처럼 규칙에 맞지 않는 종목은 지우되, 그 종목의 기록은 올바른 종목(+머신 브랜드 옵션)으로 옮긴다. 같은 동작이 이름만 다르게 두 번 들어간 종목은 하나로 합치고 다른 이름은 별칭(SRS-056)으로 만든다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "현황 분석: .ouroboros/docs/knowledge/20261026_exercise-catalog-asis_knowledge.md (시드 336종·근력 311 중 이미지 215·설명만 96·유산소 25 이미지 0 · 검색은 소문자 부분일치뿐 · 기구 교체는 같은 종목의 equip 변형 버킷 · 머신 브랜드 13키 · 그립 5값은 세트 속성 · 카탈로그 경로 3갈래(시드·서버 0002·sync_records) · 웹 부팅 백필 진입점 없음)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이름 규칙: 「기구 + 동작」 한 형식으로 통일(괄호형·접두형·후미형 혼재 해소). 표시 이름 변경은 nameEn(id 원천) 불변 + nameKo 키 참조 13곳 동시 갱신."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "누락 종목 추가: 부위·기구별 공백 목록을 만들어 채운다(예: 머신 암 익스텐션은 기존 「트라이셉스 익스텐션 머신」의 별칭, 없는 동작은 신규)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이미지: 썸네일(목록용)과 동작 컷(상세·운동 중 팁)을 모든 근력 종목에. 유산소는 대표 썸네일."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "출처 메타: 종목별 source·license·author·url 필드. 상세 화면에 크레딧 표시(라이선스가 요구할 때)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "근력 종목 100%가 썸네일을 가진다(설명만 있는 종목 0)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모든 이미지에 license 필드가 있고, 허용 목록(PD·CC0·CC-BY·CC-BY-SA·자체 제작) 밖이면 테스트가 실패한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "브랜드명·기구 중복 표기 등 이름 규칙 위반 종목 0(규칙 검사 테스트)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "삭제·병합된 종목의 기존 기록이 대상 종목으로 옮겨져 사용자별 세트 수·볼륨 합이 개편 전과 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "카탈로그 무결성 테스트(nameKo·nameEn 유일, 키 참조 ⊆ 시드, 스무고개 완결성)가 통과한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-018(전 운동·그림), URS-001(빠른 기록). 관련: SRS-028(변형), SRS-031(스무고개), SRS-056·057·058."
+          }
+        ]
+      }
+    ]
+  }
+}

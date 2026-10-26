@@ -1,0 +1,232 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-018",
+  "type": "URS",
+  "title": "내가 하는 모든 운동을 내가 부르는 이름으로 바로 찾아 기록하고, 기구·부착물이 달라도 기록이 섞이거나 쪼개지지 않기를 원한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:00:00Z",
+  "updated": "2026-10-26T09:01:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "exercise",
+    "search",
+    "alias",
+    "variant",
+    "record-accuracy"
+  ],
+  "stakeholder": "매일 기록하는 리프터(P2 기록러)·근력 입문자(P1)·운영자",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경 / 이해관계자"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "매일 헬스장에서 기록하는 리프터(운영자 본인 포함 실사용자)와 입문자. 운동 이름은 헬스장·사람마다 다르게 부르고(벤트오버 로우=바벨 로우, 롱풀=시티드 케이블 로우, 이너타이=힙 어덕션, 스컬크러셔=라잉 트라이셉스 익스텐션), 같은 동작을 덤벨·바벨·머신·케이블로 바꿔 하며, 같은 머신이라도 핀로드와 플레이트로드, 같은 케이블이라도 로프와 일자바의 무게가 다르다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "PLM 인앱 피드백(2026-10 미해결): #58 앉아서 삼두 찍는 머신 없음 · #49 이너타이 치면 힙 어덕션 같이 · #44 인클라인(바벨)을 덤벨로 바꾸면 인클라인(덤벨)과 같은 기록 · #57 핀로드/플레이트 중량 따로 · #54 케이블 로프·일자·벌컨 · #53 플레이트 한쪽 무게 입력·볼륨 2배 · #42 다른 루틴 같은 종목 기록 공유 안 됨 · #47 대체를 두 번 눌러야 바뀜."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구(니즈)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "앱에 내가 하는 거의 모든 근력 운동이 있고, 각 운동이 무엇인지 그림으로 알 수 있어야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "내가 부르는 이름(띄어쓰기를 하든 안 하든)으로 검색하면 그 운동이 나오고, 그 이름으로 내 루틴·기록에 보여야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 동작은 어떤 이름으로 추가했든 이전 기록·PR·추세가 하나로 이어져야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기구를 바꾸면(바벨→덤벨) 그 기구의 운동으로 기록되어, 처음부터 그 운동을 고른 것과 같아야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "무게가 달라지는 조건(머신의 핀로드/플레이트, 케이블 부착물)은 기록이 섞이지 않게 나뉘고, 지난번 무엇으로 했는지 보여야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이미 쌓인 내 기록은 개편 뒤에도 하나도 사라지거나 엉뚱한 운동으로 가지 않아야 한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "실사용 종목 기준으로 「앱에 없어서 직접 만들었다」는 피드백 0건(#58 유형)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "별칭·공백 변형으로 검색해 원하는 운동을 찾는 데 실패하는 사례 0건(예: 랫풀 → 랫 풀다운, 이너타이 → 힙 어덕션)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "개편 전후 사용자별 세트 수·볼륨 합계가 같다(기록 손실 0)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기구 교체 후 그 기구 종목의 이전 기록이 바로 보인다(#44·#42 재발 0)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

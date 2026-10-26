@@ -1,0 +1,268 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-021",
+  "type": "UCS",
+  "title": "운동 중 기구·적재 방식·부착물을 바꾸고, 그에 맞는 종목·기록 칸에 저장한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:00:00Z",
+  "updated": "2026-10-26T09:01:00Z",
+  "sync": true,
+  "tags": [
+    "workout",
+    "variant",
+    "equipment",
+    "machine",
+    "cable"
+  ],
+  "relations": {
+    "elaborates": [
+      "URS-018"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴으로 운동을 시작했고 「바벨 벤치프레스」가 들어 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "카탈로그에 같은 동작의 기구별 종목(덤벨 벤치프레스·스미스 벤치프레스·체스트 프레스 머신)이 연결돼 있다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "주 흐름"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "헬스장 벤치가 차서 사용자가 종목 ⋯ → 「기구 바꾸기」에서 덤벨을 고른다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중 화면의 종목이 「덤벨 벤치프레스」로 바뀌고, 이전 기록 칸에 덤벨 벤치프레스의 지난 기록이 뜬다. 이미 입력한 세트는 새 종목으로 옮겨진다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동을 마치면 세트는 덤벨 벤치프레스에 저장된다. 처음부터 덤벨 벤치프레스를 고른 것과 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "체스트 프레스 머신을 할 때는 머신 옵션에서 브랜드(예: 해머스트렝스)와 적재 방식(핀로드/플레이트)을 고르고, 이전 기록은 그 조합의 칸에서 뜬다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "케이블 푸시다운을 할 때는 부착물(로프·일자바·V바·EZ바·벌컨 등)을 고르고, 다음에 열면 지난번 부착물이 기본으로 선택되고 그 부착물의 이전 기록이 뜬다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "대안 / 예외 흐름"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 동작의 해당 기구 종목이 카탈로그에 없으면 그 기구는 목록에 나오지 않는다(엉뚱한 종목으로 바꾸지 않는다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴 자체를 바꿀지 묻는다: 「이번만」(기본) / 「루틴에도 반영」."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "플레이트 머신은 「한쪽 무게로 입력」을 켤 수 있고, 볼륨은 양쪽 합(2배)으로 계산된다(#53)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트는 바뀐 종목 id(+머신 브랜드·적재 방식·케이블 부착물 칸)에 저장된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 종목 안의 기구 변형 칸(equip:dumbbell 등)은 더 이상 새로 생기지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

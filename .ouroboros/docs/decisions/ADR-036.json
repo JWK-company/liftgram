@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-036",
+  "type": "ADR",
+  "title": "종목 이미지 정책 — 전 종목 자체 제작 SVG 픽토그램(관절 리그·시작/끝 자세·근육 강조) + 퍼블릭 도메인 사진 보조, 종목별 출처·라이선스 기록",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:30:00Z",
+  "updated": "2026-10-26T10:20:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "media",
+    "license",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-055"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근력 311종 중 이미지 215(그중 32는 다른 기구 사진 차용)·설명만 96, 유산소 25종 이미지 0. 현재 출처는 free-exercise-db(퍼블릭 도메인) 하나이고 종목별 출처 필드가 없다. 종목을 대거 추가하면 빈 곳이 더 늘어난다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "1순위(전 종목): 자체 제작 SVG 픽토그램 — 관절 리그(고정 비율·선 굵기) + 기구 부품 + 동작 그룹(family)별 시작/끝 자세 정의, 타깃 근육 주황 강조, CSS 변수로 라이트/다크 자동, 시작↔끝 애니메이션. 목록 썸네일·운동 중 팁·상세에 쓴다. GPU 불필요(2026-10-26 사용자 결정 — h2500-3 GPU는 동업자 공유)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보조: free-exercise-db(퍼블릭 도메인) 실사 사진이 같은 동작·같은 기구로 있으면 상세 화면에 함께 보인다(다른 기구 사진 차용 금지). 나중에 GPU 시간이 확보되면 AI 일러스트로 교체할 수 있게 이미지 소스를 종목 메타로 추상화한다(교체 = 데이터만)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "출처 표기가 필요한 외부 라이선스(CC-BY-SA 등)는 쓰지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "모든 이미지에 source·license·author·url 메타를 둔다. 허용 목록(public-domain·self-made) 밖이면 테스트가 실패한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "자체 제작은 저작권 위험이 없고 화풍을 통일할 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대안 CC-BY-SA 혼용: 화풍 혼재·출처 표기 관리 부담 — 기각(사용자 선택 A)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "픽토그램은 동작 그룹이 확정된 뒤(카탈로그 단계 이후) 마지막 단계로 만든다. 그 전까지 빈 종목은 지금처럼 아이콘 폴백. 검수 = 전 종목 렌더 시트 육안 확인."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "AI 일러스트로 교체할 경우 모델 라이선스(예: Z-Image Turbo·Qwen-Image = Apache-2.0)를 license 메타에 남기고, GPU 사용은 사용자 허락 후에만."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "informs: SRS-055."
+          }
+        ]
+      }
+    ]
+  }
+}

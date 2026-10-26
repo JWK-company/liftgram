@@ -1,0 +1,481 @@
+status,id_en,old_name_ko,new_name_ko,equipment,primary,secondary,kind,load_mode,family,aliases_ko,aliases_en,merge_into,implied_axes,similar,media,usage_sets,note
+keep,Barbell Bench Press,바벨 벤치프레스,바벨 벤치프레스,barbell,chest,triceps;shoulders,strength,weight,bench_press,벤치;벤치프레스;벤치 프레스;플랫 벤치;바벨 벤치;벤프,bench;flat bench press;BB bench,,,chest_press;incline_press;decline_press;floor_press;larsen_press;feet_up_bench_press;close_grip_bench_press,fedb:Barbell_Bench_Press_-_Medium_Grip,40,
+rename,Incline Press,인클라인 프레스 (바벨),바벨 인클라인 프레스,barbell,chest,shoulders;triceps,strength,weight,incline_press,인클라인 프레스 (바벨);인클라인 프레스;인클라인 벤치프레스;인클라인 벤치;인클라인 바벨 프레스;바벨 인클라인 벤치프레스,incline bench press;incline barbell bench press,,,bench_press;decline_press;incline_fly,fedb:Barbell_Incline_Bench_Press_-_Medium_Grip,48,"옛 sync 이름 '인클라인 프레스'·V8 통합 소스명 '인클라인 바벨 프레스'를 별칭으로 보존. 운영 equip:dumbbell 9건→덤벨 인클라인 프레스, hammer 3·technogym 1→머신 인클라인 프레스 이관(H.3)"
+rename,Incline Press (Dumbbell),인클라인 프레스 (덤벨),덤벨 인클라인 프레스,dumbbell,chest,shoulders;triceps,strength,weight,incline_press,인클라인 프레스 (덤벨);인클라인 덤벨 프레스;덤벨 인클라인 벤치프레스;인덤프,incline dumbbell press;incline DB press,,,bench_press;decline_press;incline_fly,fedb:Incline_Dumbbell_Press,,'인클라인 덤벨 프레스'는 과거 soft-delete id의 이름 — 별칭으로만 사용(id 재사용 없음)
+rename,Incline Press (Machine),인클라인 프레스 (머신),머신 인클라인 프레스,machine,chest,shoulders;triceps,strength,weight,incline_press,인클라인 프레스 (머신);인클라인 체스트 프레스 머신;인클라인 머신 프레스,incline machine press;incline chest press machine,,,bench_press;decline_press;incline_fly,fedb:Leverage_Incline_Chest_Press,,
+rename,Incline Press (Smith),인클라인 프레스 (스미스),스미스 인클라인 프레스,smith,chest,shoulders;triceps,strength,weight,incline_press,인클라인 프레스 (스미스);스미스 인클라인 벤치프레스;스미스 인클라인,smith incline press,,,bench_press;decline_press;incline_fly,fedb:Smith_Machine_Incline_Bench_Press,,
+rename,Decline Barbell Press,디클라인 프레스 (바벨),바벨 디클라인 프레스,barbell,chest,triceps,strength,weight,decline_press,디클라인 프레스 (바벨);디클라인 바벨 프레스;디클라인 벤치프레스;디클라인 벤치,decline bench press;decline barbell press,,,bench_press;incline_press;dips,fedb:Decline_Barbell_Bench_Press,,
+keep,Dumbbell Bench Press,덤벨 벤치프레스,덤벨 벤치프레스,dumbbell,chest,triceps;shoulders,strength,weight,bench_press,덤벨 벤치;덤벨 프레스;덤벨 체스트 프레스;덤벨벤치;덤벤,DB bench press;dumbbell chest press,,,chest_press;incline_press;decline_press;floor_press;larsen_press;feet_up_bench_press;close_grip_bench_press,fedb:Dumbbell_Bench_Press,,
+rename,Decline Dumbbell Press,디클라인 프레스 (덤벨),덤벨 디클라인 프레스,dumbbell,chest,triceps,strength,weight,decline_press,디클라인 프레스 (덤벨);디클라인 덤벨 프레스,decline dumbbell press,,,bench_press;incline_press;dips,fedb:Decline_Dumbbell_Bench_Press,,
+keep,Dumbbell Fly,덤벨 플라이,덤벨 플라이,dumbbell,chest,,strength,weight,chest_fly,덤벨 플라이스;플랫 덤벨 플라이;덤플,dumbbell flye;DB fly,,,cable_crossover;incline_fly;decline_fly;seated_cable_fly,fedb:Dumbbell_Flyes,,
+rename,Incline Dumbbell Fly,인클라인 덤벨 플라이,덤벨 인클라인 플라이,dumbbell,chest,,strength,weight,incline_fly,인클라인 덤벨 플라이;인클라인 플라이,incline dumbbell flye,,,chest_fly;low_to_high_fly,fedb:Incline_Dumbbell_Flyes,,
+keep,Cable Crossover,케이블 크로스오버,케이블 크로스오버,cable,chest,,strength,weight,cable_crossover,크로스오버;케이블 플라이;하이 케이블 플라이;케크,cable fly;high to low cable fly,,,chest_fly;seated_cable_fly;low_to_high_fly,fedb:Cable_Crossover,,
+rename,Low Cable Fly,로우 케이블 플라이,케이블 로우 투 하이 플라이,cable,chest,,strength,weight,low_to_high_fly,로우 케이블 플라이;로우 케이블 크로스오버;로우투하이 플라이;어퍼 체스트 케이블 플라이,low cable fly;low to high cable fly;low cable crossover,,,incline_fly;cable_crossover,fedb:Low_Cable_Crossover,,
+keep,Pec Deck Fly,펙 덱 플라이,펙 덱 플라이,machine,chest,,strength,weight,chest_fly,펙덱;펙 덱;버터플라이;머신 플라이;체스트 플라이 머신;플라이 머신,pec deck;butterfly;machine fly,,,cable_crossover;incline_fly;decline_fly;seated_cable_fly,fedb:Butterfly,36,
+rename,Chest Press Machine,체스트 프레스 머신,머신 체스트 프레스,machine,chest,triceps,strength,weight,chest_press,체스트 프레스 머신;체스트 프레스;머신 프레스;체프;해머스트렝스 체스트 프레스;해머 체스트 프레스;원암 체스트 프레스 머신;컨버징 체스트 프레스 머신;시티드 체스트 프레스,machine chest press;seated chest press;hammer strength chest press;converging chest press,,,bench_press;seated_cable_chest_press;incline_press,fedb:Leverage_Chest_Press,70,"별칭 축 함축: 해머스트렝스/해머=brand=hammer, 원암=arm=uni, 컨버징=머신 모델 특성(브랜드 축과 같은 성격)"
+keep,Smith Machine Bench Press,스미스 벤치프레스,스미스 벤치프레스,smith,chest,triceps,strength,weight,bench_press,스미스 벤치;스미스 머신 벤치프레스,smith bench press,,,chest_press;incline_press;decline_press;floor_press;larsen_press;feet_up_bench_press;close_grip_bench_press,fedb:Smith_Machine_Bench_Press,,
+keep,Dips,딥스,딥스,bodyweight,chest,triceps,strength,bodyweight,dips,딥;평행봉 딥스;체스트 딥스;가슴 딥스;트라이셉스 딥스;중량 딥스;웨이티드 딥스,dip;chest dip;parallel bar dip;weighted dip,,,assisted_dip;bench_dip;decline_press,fedb:Dips_-_Chest_Version,,운영 technogym 4·cybex 1 변형 → 머신 딥스 이관(H.3)
+keep,Push Up,푸시업,푸시업,bodyweight,chest,triceps;shoulders,strength,bodyweight,push_up,푸쉬업;팔굽혀펴기;와이드 그립 푸시업;와이드 푸시업,pushup;press up;wide grip push up,,,incline_push_up;decline_push_up;kneeling_push_up;diamond_push_up;deficit_push_up;bench_press,fedb:Pushups,,'와이드 그립 푸시업' 별칭=grip=wide 함축
+keep,Incline Push Up,인클라인 푸시업,인클라인 푸시업,bodyweight,chest,triceps,strength,bodyweight,incline_push_up,인클라인 푸쉬업,incline pushup,,,push_up;kneeling_push_up,fedb:Incline_Push-Up,,
+rename,Deadlift,데드리프트,바벨 데드리프트,barbell,back,glutes;hamstrings,strength,weight,deadlift,데드리프트;데드;컨벤셔널 데드리프트;바벨 데드;스내치 그립 데드리프트,deadlift;conventional deadlift;barbell deadlift,,,sumo_deadlift;rack_pull;deficit_deadlift;romanian_deadlift,fedb:Barbell_Deadlift,,'스내치 그립' 별칭=grip=wide 함축
+rename,Sumo Deadlift,스모 데드리프트,바벨 스모 데드리프트,barbell,back,glutes;quads,strength,weight,sumo_deadlift,스모 데드리프트;스모 데드;스모데드,sumo deadlift,,,deadlift;sumo_squat,fedb:Sumo_Deadlift,,
+rename,Rack Pull,랙 풀,바벨 랙 풀,barbell,back,traps,strength,weight,rack_pull,랙 풀;랙풀;블록 풀,rack pull;block pull,,,deadlift,fedb:Rack_Pulls,,
+keep,Barbell Row,바벨 로우,바벨 로우,barbell,back,biceps,strength,weight,bent_over_row,벤트오버 로우;바벨 벤트오버 로우;벤트 오버 로우;예이츠 로우;언더그립 바벨 로우;리버스 그립 바벨 로우,bent over row;barbell bent over row;yates row,,,pendlay_row;t_bar_row;seal_row;chest_supported_row;one_arm_row,fedb:Bent_Over_Barbell_Row,40,'예이츠/언더그립/리버스 그립' 별칭=grip=under 함축
+rename,Pendlay Row,펜들레이 로우,바벨 펜들레이 로우,barbell,back,biceps,strength,weight,pendlay_row,펜들레이 로우;펜들레이,pendlay row,,,bent_over_row,gen,,매 rep 바닥 정지 — 바벨 로우와 수행이 달라 별도(비슷한 운동으로 연결)
+keep,T-Bar Row,티바 로우,티바 로우,barbell,back,biceps,strength,weight,t_bar_row,T바 로우;랜드마인 티바 로우,t bar row;landmine t-bar row,,,bent_over_row;chest_supported_t_bar_row;landmine_row,fedb:T-Bar_Row_with_Handle,,
+keep,Dumbbell Row,덤벨 로우,덤벨 로우,dumbbell,back,biceps,strength,weight,one_arm_row,원암 덤벨 로우;덤벨 원암 로우;원암 로우;크록 로우,one arm dumbbell row;single arm dumbbell row;kroc row,,,bent_over_row;meadows_row;seated_row,fedb:One-Arm_Dumbbell_Row,,원암이 동작 자체(벤치 지지·반측 당김) — 관행상 별도 종목 유지(사용자 확정 예외)
+rename,Seated Cable Row,시티드 케이블 로우,케이블 시티드 로우,cable,back,biceps,strength,weight,seated_row,시티드 케이블 로우;시티드 로우;롱풀;롱 풀;케이블 로우;로우 풀리,seated cable row;cable row;long pull,,,low_row;chest_supported_row;high_row,fedb:Seated_Cable_Rows,,운영 technogym 4·custom1 1 → 머신 시티드 로우 이관(H.3)
+rename,Lat Pulldown,랫 풀다운,케이블 랫풀다운,cable,back,biceps,strength,weight,lat_pulldown,랫 풀다운;랫풀다운;랫풀;렛풀다운;렛풀;렛 풀다운;풀다운;와이드 그립 풀다운;와이드 랫풀다운;클로즈그립 풀다운;클로즈 그립 랫풀다운;원암 랫풀다운;싱글암 랫풀다운;언더그립 랫풀다운;리버스 그립 랫풀다운;V바 풀다운;브이바 풀다운,lat pulldown;lat pull down;pulldown;close grip pulldown;single arm lat pulldown;v-bar pulldown,,,pull_up;chin_up;assisted_pull_up;straight_arm_pulldown;high_row,fedb:Wide-Grip_Lat_Pulldown,67,"별칭 축 함축: 와이드=grip=wide, 클로즈그립=grip=close, 원암/싱글암=arm=uni;attach=single, 언더/리버스 그립=grip=under, V바=attach=v. 운영 cybex·hammer 변형 → 머신 랫풀다운 이관"
+merge,Close Grip Pulldown,클로즈그립 풀다운,케이블 랫풀다운,cable,back,biceps,strength,weight,lat_pulldown,,,Lat Pulldown,grip=close,pull_up;chin_up;assisted_pull_up;straight_arm_pulldown;high_row,inherit:Lat Pulldown,,부착물·그립 흡수(S1). V바로 했다면 attach=v
+rename,Straight Arm Pulldown,스트레이트암 풀다운,케이블 스트레이트 암 풀다운,cable,back,,strength,weight,straight_arm_pulldown,스트레이트암 풀다운;스트레이트 암 풀다운;암 풀다운;암풀다운;케이블 풀오버;로프 풀오버,straight arm pulldown;cable pullover;rope pullover,,,pullover,fedb:Straight-Arm_Pulldown,,'로프 풀오버' 별칭=attach=rope 함축
+keep,Pull Up,풀업,풀업,bodyweight,back,biceps,strength,bodyweight,pull_up,턱걸이;중량 풀업;웨이티드 풀업;와이드 풀업;와이드 그립 풀업;뉴트럴 그립 풀업;철봉,pullup;pull-up;weighted pull up;wide grip pull up;neutral grip pull up,,,chin_up;lat_pulldown;assisted_pull_up;negative_pull_up,fedb:Pullups,34,"와이드=grip=wide, 뉴트럴=grip=neutral 함축. 중량=loadMode bodyweight(+무게)"
+keep,Chin Up,친업,친업,bodyweight,back,biceps,strength,bodyweight,chin_up,언더그립 턱걸이;친닝;중량 친업;역그립 턱걸이,chinup;chin-up,,,pull_up;assisted_chin_up,fedb:Chin-Up,24,S1 예외 후보(그립 변형이나 관행상 독립 종목·이두 관여↑) — 애매 항목
+rename,Machine Row,머신 로우,머신 시티드 로우,machine,back,biceps,strength,weight,seated_row,머신 로우;시티드 로우 머신;로우 머신;아이소 로우,machine row;seated machine row;iso row,,,low_row;chest_supported_row;high_row,fedb:Leverage_Iso_Row,38,
+keep,Hyperextension,하이퍼익스텐션,하이퍼익스텐션,bodyweight,back,glutes;hamstrings,strength,bodyweight,back_extension,백 익스텐션;허리 펴기;45도 백 익스텐션;로만 체어;하이퍼;중량 하이퍼익스텐션,back extension;45 degree back extension;roman chair,,,reverse_hyperextension;good_morning,fedb:Hyperextensions_Back_Extensions,,
+rename,Good Morning,굿모닝,바벨 굿모닝,barbell,back,hamstrings;glutes,strength,weight,good_morning,굿모닝;굿 모닝,good morning;barbell good morning,,,romanian_deadlift;back_extension,fedb:Good_Morning,,
+rename,Overhead Press,오버헤드 프레스,바벨 오버헤드 프레스,barbell,shoulders,triceps,strength,weight,overhead_press,오버헤드 프레스;OHP;오헤프;밀리터리 프레스;밀프;스탠딩 프레스;바벨 숄더 프레스;시티드 바벨 프레스,overhead press;OHP;military press;standing press;barbell shoulder press,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Barbell_Shoulder_Press,,밀리터리 프레스 병합 대상. 운영 custom2 변형 2건 승계
+merge,Military Press,밀리터리 프레스,바벨 오버헤드 프레스,barbell,shoulders,triceps,strength,weight,overhead_press,,,Overhead Press,,arnold_press;push_press;landmine_press;behind_neck_press,inherit:Overhead Press,,"같은 동작·같은 기구, 이름만 다름 → 별칭 흡수"
+keep,Dumbbell Shoulder Press,덤벨 숄더 프레스,덤벨 숄더 프레스,dumbbell,shoulders,triceps,strength,weight,overhead_press,덤숄프;덤벨 오버헤드 프레스;시티드 덤벨 프레스;덤벨 밀리터리 프레스,dumbbell shoulder press;DB shoulder press;seated dumbbell press,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Dumbbell_Shoulder_Press,35,
+rename,Arnold Press,아놀드 프레스,덤벨 아놀드 프레스,dumbbell,shoulders,triceps,strength,weight,arnold_press,아놀드 프레스;아놀드,arnold press,,,overhead_press,fedb:Arnold_Dumbbell_Press,,
+rename,Shoulder Press Machine,숄더 프레스 머신,머신 숄더 프레스,machine,shoulders,triceps,strength,weight,overhead_press,숄더 프레스 머신;숄더프레스 머신;머숄프,machine shoulder press;shoulder press machine,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Leverage_Shoulder_Press,,
+keep,Side Lateral Raise,덤벨 레터럴 레이즈,덤벨 레터럴 레이즈,dumbbell,shoulders,,strength,weight,lateral_raise,사레레;사이드 레터럴 레이즈;레레;사이드 레이즈;레터럴 레이즈;덤벨 사레레;측면 레이즈,lateral raise;side lateral raise;DB lateral raise,,,upright_row;y_raise,fedb:Side_Lateral_Raise,82,
+keep,Cable Lateral Raise,케이블 레터럴 레이즈,케이블 레터럴 레이즈,cable,shoulders,,strength,weight,lateral_raise,케이블 사레레;케이블 사이드 레터럴 레이즈;케이블 레레,cable lateral raise;cable side raise,,,upright_row;y_raise,fedb:Cable_Seated_Lateral_Raise,,
+keep,Machine Lateral Raise,머신 레터럴 레이즈,머신 레터럴 레이즈,machine,shoulders,,strength,weight,lateral_raise,머신 사레레;레터럴 레이즈 머신;사레레 머신,machine lateral raise,,,upright_row;y_raise,gen,33,
+rename,Front Raise,프론트 레이즈 (덤벨),덤벨 프론트 레이즈,dumbbell,shoulders,,strength,weight,front_raise,프론트 레이즈 (덤벨);프론트 레이즈;프레레;덤벨 프레레,front raise;dumbbell front raise,,,overhead_plate_raise,fedb:Front_Dumbbell_Raise,28,
+keep,Rear Delt Fly,덤벨 리어 델트 플라이,덤벨 리어 델트 플라이,dumbbell,shoulders,,strength,weight,rear_delt_fly,리어 델트 플라이;리어델트;벤트오버 레터럴 레이즈;벤트 오버 레이즈;후면 레이즈;리버스 플라이;덤벨 리버스 플라이,rear delt fly;reverse fly;bent over lateral raise,,,face_pull;band_pull_apart,fedb:Reverse_Flyes,40,
+keep,Reverse Pec Deck,리버스 펙 덱,리버스 펙 덱,machine,shoulders,,strength,weight,rear_delt_fly,리어 델트 머신;머신 리어 델트 플라이;리버스 플라이 머신;리어델트 머신,reverse pec deck;rear delt machine;machine reverse fly,,,face_pull;band_pull_apart,fedb:Reverse_Machine_Flyes,,
+rename,Face Pull,페이스 풀,케이블 페이스 풀,cable,shoulders,traps,strength,weight,face_pull,페이스 풀;페이스풀;로프 페이스풀,face pull;cable face pull,,,rear_delt_fly;band_pull_apart,fedb:Face_Pull,33,'로프' 별칭=attach=rope(기본 부착물)
+rename,Upright Row,업라이트 로우 (바벨),바벨 업라이트 로우,barbell,shoulders,traps,strength,weight,upright_row,업라이트 로우 (바벨);업라이트 로우;업라이트로우,upright row;barbell upright row,,,lateral_raise;shrug,fedb:Upright_Barbell_Row,,
+keep,Barbell Curl,바벨 컬,바벨 컬,barbell,biceps,,strength,weight,curl,스탠딩 바벨 컬;바벨 바이셉스 컬,barbell curl;BB curl,,,hammer_curl;preacher_curl;incline_curl;spider_curl;concentration_curl,fedb:Barbell_Curl,,
+rename,EZ-Bar Curl,이지바 컬,EZ바 컬,ezbar,biceps,,strength,weight,curl,이지바 컬;이지 바 컬;EZ컬,ez bar curl,,,hammer_curl;preacher_curl;incline_curl;spider_curl;concentration_curl,fedb:EZ-Bar_Curl,,기구 barbell→ezbar 제안(enum 확장 — 애매 항목)
+keep,Dumbbell Curl,덤벨 컬,덤벨 컬,dumbbell,biceps,,strength,weight,curl,덤벨 바이셉스 컬;얼터네이트 덤벨 컬;시티드 덤벨 컬;암컬,dumbbell curl;alternating dumbbell curl;DB curl,,,hammer_curl;preacher_curl;incline_curl;spider_curl;concentration_curl,fedb:Dumbbell_Bicep_Curl,39,운영 equip:cable 1건 → 케이블 컬 이관
+rename,Hammer Curl,해머 컬 (덤벨),덤벨 해머 컬,dumbbell,biceps,forearms,strength,weight,hammer_curl,해머 컬 (덤벨);해머 컬;해머컬;뉴트럴 그립 컬,hammer curl;dumbbell hammer curl,,,curl;cross_body_hammer_curl;reverse_curl,fedb:Hammer_Curls,44,S1 예외 후보(뉴트럴 그립 컬이지만 관행상 독립·상완요골근 주동) — 애매 항목
+rename,Incline Dumbbell Curl,인클라인 덤벨 컬,덤벨 인클라인 컬,dumbbell,biceps,,strength,weight,incline_curl,인클라인 덤벨 컬;인클라인 컬,incline dumbbell curl,,,curl,fedb:Incline_Dumbbell_Curl,,
+rename,Preacher Curl,프리처 컬 (바벨),바벨 프리처 컬,barbell,biceps,,strength,weight,preacher_curl,프리처 컬 (바벨);프리처 컬;프리쳐 컬;스캇 컬;스콧 컬,preacher curl;scott curl,,,curl;spider_curl;concentration_curl,fedb:Preacher_Curl,48,운영 equip:machine 1건 → 머신 프리처 컬 이관. 실사용이 EZ바일 수 있음(애매)
+rename,Concentration Curl,컨센트레이션 컬,덤벨 컨센트레이션 컬,dumbbell,biceps,,strength,weight,concentration_curl,컨센트레이션 컬;컨센 컬,concentration curl,,,preacher_curl,fedb:Concentration_Curls,,
+keep,Cable Curl,케이블 컬,케이블 컬,cable,biceps,,strength,weight,curl,케이블 바이셉스 컬;스탠딩 케이블 컬,cable curl;cable biceps curl,,,hammer_curl;preacher_curl;incline_curl;spider_curl;concentration_curl,fedb:Standing_Biceps_Cable_Curl,19,
+rename,Spider Curl,스파이더 컬,덤벨 스파이더 컬,dumbbell,biceps,,strength,weight,spider_curl,스파이더 컬,spider curl,,,preacher_curl,gen,,fedb Spider_Curl은 EZ바 → EZ바 스파이더 컬에 배정
+keep,Machine Curl,머신 컬,머신 컬,machine,biceps,,strength,weight,curl,암컬 머신;머신 암컬;바이셉스 컬 머신;이두 머신;컬 머신,machine curl;biceps curl machine;arm curl machine,,,hammer_curl;preacher_curl;incline_curl;spider_curl;concentration_curl,fedb:Machine_Bicep_Curl,,
+rename,Close Grip Bench Press,클로즈 그립 벤치프레스,바벨 클로즈그립 벤치프레스,barbell,triceps,chest,strength,weight,close_grip_bench_press,클로즈 그립 벤치프레스;클로즈그립 벤치;클로즈 벤치;내로우 그립 벤치프레스;CGBP,close grip bench press;CGBP,,,bench_press;jm_press;diamond_push_up,fedb:Close-Grip_Barbell_Bench_Press,,S1 예외 후보(그립 변형이나 삼두 주동 종목으로 정착) — 애매 항목. 운영 equip:smith 1건 → 스미스 클로즈그립 벤치프레스 이관
+rename,Triceps Pushdown,트라이셉스 푸시다운,케이블 푸시다운,cable,triceps,,strength,weight,pushdown,트라이셉스 푸시다운;푸시다운;푸쉬다운;프레스다운;삼두 푸시다운;케이블 푸쉬다운;트라이셉 푸시다운;로프 푸시다운;로프 푸쉬다운;리버스 그립 푸시다운;언더그립 푸시다운;V바 푸시다운;브이바 푸시다운;스트레이트 바 푸시다운,triceps pushdown;tricep pushdown;pressdown;rope pushdown;reverse grip pushdown;v-bar pushdown,,,triceps_extension;triceps_kickback,fedb:Triceps_Pushdown,36,"별칭 축 함축: 로프=attach=rope, 리버스/언더그립=grip=under, V바=attach=v, 스트레이트 바=attach=straight"
+merge,Rope Pushdown,로프 푸시다운,케이블 푸시다운,cable,triceps,,strength,weight,pushdown,,,Triceps Pushdown,attach=rope,triceps_extension;triceps_kickback,inherit:Triceps Pushdown,52,부착물 흡수(S1). 운영 52세트 — 이관 시 set/we에 attach=rope 기입
+rename,Overhead Triceps Extension,오버헤드 트라이셉스 익스텐션,덤벨 오버헤드 트라이셉스 익스텐션,dumbbell,triceps,,strength,weight,overhead_triceps_extension,오버헤드 트라이셉스 익스텐션;덤벨 오버헤드 익스텐션;오버헤드 익스텐션;트라이셉스 익스텐션;삼두 익스텐션;시티드 트라이셉스 프레스;덤벨 트라이셉스 익스텐션,overhead triceps extension;dumbbell overhead extension;seated triceps press,,,machine_arm_extension;skull_crusher;pushdown,fedb:Seated_Triceps_Press,55,"운영 equip:newtech 13 → 머신 오버헤드 트라이셉스 익스텐션 + brand=newtech (R1 — 뉴텍 앉아서 머리 위 손잡이를 위로 미는 기구), equip:barbell 2 → 바벨 오버헤드 트라이셉스 익스텐션"
+rename,Cable Overhead Extension,케이블 오버헤드 익스텐션,케이블 오버헤드 트라이셉스 익스텐션,cable,triceps,,strength,weight,overhead_triceps_extension,케이블 오버헤드 익스텐션;로프 오버헤드 익스텐션;케이블 오버헤드;로프 익스텐션,cable overhead triceps extension;rope overhead extension,,,machine_arm_extension;skull_crusher;pushdown,fedb:Cable_Rope_Overhead_Triceps_Extension,31,'로프' 별칭=attach=rope 함축
+rename,Skull Crusher,스컬 크러셔 (바벨),바벨 스컬크러셔,barbell,triceps,,strength,weight,skull_crusher,스컬 크러셔 (바벨);스컬 크러셔;스컬크러셔;라잉 트라이셉스 익스텐션;바벨 라잉 트라이셉스 익스텐션;라잉 익스텐션,skull crusher;lying triceps extension;barbell skullcrusher,,,triceps_extension;jm_press,gen,,대표명 스컬크러셔 vs 라잉 트라이셉스 익스텐션 — 애매 항목. fedb 사진은 EZ바라 EZ바 스컬크러셔로 이동
+rename,Triceps Kickback,트라이셉스 킥백 (덤벨),덤벨 트라이셉스 킥백,dumbbell,triceps,,strength,weight,triceps_kickback,트라이셉스 킥백 (덤벨);트라이셉스 킥백;덤벨 킥백;삼두 킥백,triceps kickback;dumbbell kickback,,,pushdown,fedb:Tricep_Dumbbell_Kickback,,
+keep,Bench Dip,벤치 딥스,벤치 딥스,bodyweight,triceps,,strength,bodyweight,bench_dip,벤치 딥;의자 딥스,bench dip;bench dips,,,dips,fedb:Bench_Dips,,
+keep,Diamond Push Up,다이아몬드 푸시업,다이아몬드 푸시업,bodyweight,triceps,chest,strength,bodyweight,diamond_push_up,다이아몬드 푸쉬업;클로즈 그립 푸시업;내로우 푸시업;삼두 푸시업,diamond pushup;close grip push up,,,push_up;close_grip_bench_press,fedb:Push-Ups_-_Close_Triceps_Position,,S1 예외 후보(손 모양이 동작 정체성·삼두 주동) — 애매 항목
+rename,Wrist Curl,리스트 컬 (바벨),바벨 리스트 컬,barbell,forearms,,strength,weight,wrist_curl,리스트 컬 (바벨);리스트 컬;손목 컬;바벨 손목 컬,wrist curl;barbell wrist curl,,,reverse_wrist_curl,fedb:Seated_Palm-Up_Barbell_Wrist_Curl,,
+rename,Reverse Wrist Curl,리버스 리스트 컬,바벨 리버스 리스트 컬,barbell,forearms,,strength,weight,reverse_wrist_curl,리버스 리스트 컬;리버스 손목 컬,reverse wrist curl,,,wrist_curl,fedb:Seated_Palms-Down_Barbell_Wrist_Curl,,S1 예외 후보(손등 방향이 주동근을 신전근으로 바꿈)
+rename,Reverse Barbell Curl,리버스 바벨 컬,바벨 리버스 컬,barbell,forearms,biceps,strength,weight,reverse_curl,리버스 바벨 컬;리버스 컬;역그립 컬,reverse curl;reverse barbell curl,,,hammer_curl;reverse_wrist_curl,fedb:Reverse_Barbell_Curl,,S1 예외 후보(오버그립 컬이나 전완 주동 종목으로 정착)
+rename,Farmer's Walk,파머스 워크,덤벨 파머스 워크,dumbbell,forearms,traps,strength,weight,farmers_walk,파머스 워크;파머스 캐리;파머 워크;농부 걷기,farmers walk;farmer carry,,,suitcase_carry,fedb:Farmers_Walk,,
+keep,Barbell Squat,바벨 스쿼트,바벨 스쿼트,barbell,quads,glutes;hamstrings,strength,weight,squat,스쿼트;스쿼드;백 스쿼트;바벨 백 스쿼트;로우바 스쿼트;바벨 스쿼드;하이바 스쿼트;풀 스쿼트,back squat;squat;low bar squat;high bar squat,,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,fedb:Barbell_Squat,25,하이바 스쿼트 병합 대상. 커스텀 '바벨 스쿼트 (바벨)' 정리 후보
+merge,High Bar Squat,하이바 스쿼트,바벨 스쿼트,barbell,quads,glutes,strength,weight,squat,,,Barbell Squat,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,inherit:Barbell Squat,,바 위치 차이만(같은 기구·주동근) → 별칭. 바 위치를 기록 축으로 원하면 유지 — 애매 항목
+rename,Front Squat,프론트 스쿼트,바벨 프론트 스쿼트,barbell,quads,glutes,strength,weight,front_squat,프론트 스쿼트;프론트 스쿼드;프스,front squat,,,squat;goblet_squat,fedb:Front_Barbell_Squat,,커스텀 '프론트 스쿼트 (바벨)' 정리 후보
+keep,Hack Squat,핵 스쿼트,핵 스쿼트,machine,quads,glutes,strength,weight,hack_squat,머신 핵 스쿼트;핵 스쿼드,hack squat;machine hack squat,,,squat;pendulum_squat;leg_press,fedb:Hack_Squat,,머신 고유 동작 — 기구 접두 생략
+keep,Leg Press,레그 프레스,레그 프레스,machine,quads,glutes,strength,weight,leg_press,레그 프레스 머신;45도 레그 프레스;레프,leg press;45 degree leg press,,,hack_squat;seated_leg_press;pendulum_squat,fedb:Leg_Press,41,머신 고유 동작 — 기구 접두 생략. 커스텀 '레그 프레스 (호이스트)'=brand=hoist로 정리 후보
+keep,Leg Extension,레그 익스텐션,레그 익스텐션,machine,quads,,strength,weight,leg_extension,레그익스;레그 익스;레그 익스텐션 머신;레익,leg extension;quad extension,,,,fedb:Leg_Extensions,30,머신 고유 동작
+rename,Goblet Squat,고블릿 스쿼트,덤벨 고블릿 스쿼트,dumbbell,quads,glutes,strength,weight,goblet_squat,고블릿 스쿼트;고블렛 스쿼트;고블릿,goblet squat;dumbbell goblet squat,,,front_squat;squat,gen,,fedb Goblet_Squat은 케틀벨 → 케틀벨 고블릿 스쿼트에 배정
+rename,Lunge,런지 (덤벨),덤벨 런지,dumbbell,quads,glutes,strength,weight,lunge,런지 (덤벨);런지;덤벨 포워드 런지,dumbbell lunge;forward lunge,,,walking_lunge;reverse_lunge;split_squat;bulgarian_split_squat,fedb:Dumbbell_Lunges,,옛 sync 이름 '런지' 별칭 보존
+rename,Walking Lunge,워킹 런지,덤벨 워킹 런지,dumbbell,quads,glutes,strength,weight,walking_lunge,워킹 런지;워킹런지,walking lunge;dumbbell walking lunge,,,lunge,gen,,fedb 사진은 맨몸 — 차용 제거
+rename,Bulgarian Split Squat,불가리안 스플릿 스쿼트 (덤벨),덤벨 불가리안 스플릿 스쿼트,dumbbell,quads,glutes,strength,weight,bulgarian_split_squat,불가리안 스플릿 스쿼트 (덤벨);불가리안 스플릿 스쿼트;불가리안;불스스;불가리안 스쿼트,bulgarian split squat;rear foot elevated split squat;RFESS,,,split_squat,gen,,fedb에 불가리안 없음(스플릿 스쿼트 사진 차용 제거)
+keep,Smith Machine Squat,스미스 스쿼트,스미스 스쿼트,smith,quads,glutes,strength,weight,squat,스미스 머신 스쿼트;스미스 스쿼드,smith squat,,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,fedb:Smith_Machine_Squat,,
+rename,Step Up,스텝업,덤벨 스텝업,dumbbell,quads,glutes,strength,weight,step_up,스텝업;스텝 업;박스 스텝업,step up;dumbbell step up,,,lunge,fedb:Dumbbell_Step_Ups,,
+rename,Romanian Deadlift,루마니안 데드리프트 (바벨),바벨 루마니안 데드리프트,barbell,hamstrings,glutes;back,strength,weight,romanian_deadlift,루마니안 데드리프트 (바벨);루마니안 데드리프트;루마니안;RDL;알디엘;루마니안 데드,romanian deadlift;RDL,,,stiff_leg_deadlift;good_morning,fedb:Romanian_Deadlift,,
+rename,Stiff Leg Deadlift,스티프 레그 데드리프트,바벨 스티프 레그 데드리프트,barbell,hamstrings,glutes,strength,weight,stiff_leg_deadlift,스티프 레그 데드리프트;스티프 데드;스티프 레그;SLDL;스티프 데드리프트,stiff leg deadlift;SLDL,,,romanian_deadlift,fedb:Stiff-Legged_Barbell_Deadlift,,
+keep,Lying Leg Curl,라잉 레그 컬,라잉 레그 컬,machine,hamstrings,,strength,weight,lying_leg_curl,레그 컬;레그컬;엎드려 레그컬;라잉 햄스트링 컬,leg curl;lying leg curl;prone leg curl,,,seated_leg_curl;standing_leg_curl;nordic_curl,fedb:Lying_Leg_Curls,,머신 고유. 레그 컬(일반) 병합 대상. 커스텀 '라잉 레그 컬 (호이스트)'=brand=hoist
+keep,Seated Leg Curl,시티드 레그 컬,시티드 레그 컬,machine,hamstrings,,strength,weight,seated_leg_curl,앉아서 레그컬,seated leg curl,,,lying_leg_curl,fedb:Seated_Leg_Curl,,
+merge,Leg Curl,레그 컬,라잉 레그 컬,machine,hamstrings,,strength,weight,lying_leg_curl,,,Lying Leg Curl,,seated_leg_curl;standing_leg_curl;nordic_curl,inherit:Lying Leg Curl,28,일반명 '레그 컬' — 국내 관행상 라잉 레그 컬 지칭. 운영 28세트(1인) — 실제 기구 확인 필요(애매)
+keep,Nordic Curl,노르딕 컬,노르딕 컬,bodyweight,hamstrings,,strength,bodyweight,nordic_curl,노르딕 햄스트링 컬;노르딕;노르딕 햄 컬,nordic curl;nordic hamstring curl;natural glute ham raise,,,glute_ham_raise,fedb:Natural_Glute_Ham_Raise,,fedb Natural GHR=노르딕과 동일 동작(확인 권장)
+rename,Hip Thrust,힙 쓰러스트 (바벨),바벨 힙 쓰러스트,barbell,glutes,hamstrings,strength,weight,hip_thrust,힙 쓰러스트 (바벨);힙 쓰러스트;힙쓰;힙 스러스트;힙쓰러스트;바벨 힙쓰,hip thrust;barbell hip thrust,,,glute_bridge,fedb:Barbell_Hip_Thrust,,
+rename,Glute Bridge,글루트 브릿지,바벨 글루트 브릿지,barbell,glutes,hamstrings,strength,weight,glute_bridge,바벨 브릿지;바벨 힙 브릿지,barbell glute bridge,,,hip_thrust;frog_pump,fedb:Barbell_Glute_Bridge,,옛 이름 '글루트 브릿지'는 신규 맨몸 종목 대표명으로 넘김(애매 항목)
+rename,Cable Kickback,케이블 킥백,케이블 글루트 킥백,cable,glutes,,strength,weight,glute_kickback,케이블 킥백;케이블 힙 익스텐션;케이블 동키킥,cable glute kickback;cable kickback;cable hip extension,,,hip_thrust,fedb:One-Legged_Cable_Kickback,,삼두 '케이블 트라이셉스 킥백'과 혼동 해소
+rename,Hip Abduction Machine,힙 어브덕션 머신,머신 힙 어브덕션,machine,glutes,,strength,weight,hip_abduction,힙 어브덕션 머신;아웃타이;아웃 타이;아웃싸이;아웃 싸이;어브덕션;힙 어브덕터;외전근 머신,hip abduction machine;outer thigh machine;abductor machine,,,lateral_band_walk;fire_hydrant;clamshell,fedb:Thigh_Abductor,20,
+keep,Kettlebell Swing,케틀벨 스윙,케틀벨 스윙,kettlebell,glutes,hamstrings;back,strength,weight,kettlebell_swing,KB 스윙;러시안 스윙,kettlebell swing;russian swing,,,,fedb:One-Arm_Kettlebell_Swings,,
+rename,Standing Calf Raise,스탠딩 카프 레이즈,머신 카프 레이즈,machine,calves,,strength,weight,calf_raise,스탠딩 카프 레이즈;스탠딩 카프;카프 레이즈 머신;스탠딩 카프레이즈,standing calf raise;calf raise machine,,,seated_calf_raise;leg_press_calf_raise,fedb:Standing_Calf_Raises,,
+rename,Seated Calf Raise,시티드 카프 레이즈,머신 시티드 카프 레이즈,machine,calves,,strength,weight,seated_calf_raise,시티드 카프 레이즈;시티드 카프;앉아서 카프레이즈,seated calf raise,,,calf_raise,fedb:Seated_Calf_Raise,,
+keep,Leg Press Calf Raise,레그 프레스 카프 레이즈,레그 프레스 카프 레이즈,machine,calves,,strength,weight,leg_press_calf_raise,레그프레스 카프;카프 프레스,leg press calf raise;calf press,,,,fedb:Calf_Press_On_The_Leg_Press_Machine,,
+keep,Dumbbell Calf Raise,덤벨 카프 레이즈,덤벨 카프 레이즈,dumbbell,calves,,strength,weight,calf_raise,덤벨 스탠딩 카프 레이즈,dumbbell calf raise,,,seated_calf_raise;leg_press_calf_raise,fedb:Standing_Dumbbell_Calf_Raise,,
+keep,Plank,플랭크,플랭크,bodyweight,abs,,strength,bodyweight,plank,플랭크 홀드;엘보 플랭크;프론트 플랭크,front plank,,,,fedb:Plank,,
+keep,Side Plank,사이드 플랭크,사이드 플랭크,bodyweight,abs,,strength,bodyweight,side_plank,,side bridge,,,,fedb:Side_Bridge,,
+keep,Crunch,크런치,크런치,bodyweight,abs,,strength,bodyweight,crunch,복근 크런치;윗배 크런치;크런치 맨몸,crunches,,,decline_crunch;sit_up;reverse_crunch,fedb:Crunches,,
+keep,Bicycle Crunch,바이시클 크런치,바이시클 크런치,bodyweight,abs,,strength,bodyweight,bicycle_crunch,바이시클;자전거 크런치,bicycle crunches,,,,fedb:Air_Bike,,
+keep,Hanging Leg Raise,행잉 레그 레이즈,행잉 레그 레이즈,bodyweight,abs,,strength,bodyweight,hanging_leg_raise,행레레;행잉 레레;매달려 다리 들기,hanging leg raises,,,hanging_knee_raise;toes_to_bar;lying_leg_raise,fedb:Hanging_Leg_Raise,,
+keep,Reverse Crunch,리버스 크런치,리버스 크런치,bodyweight,abs,,strength,bodyweight,reverse_crunch,아랫배 크런치,reverse crunches,,,,fedb:Reverse_Crunch,,
+keep,Cable Crunch,케이블 크런치,케이블 크런치,cable,abs,,strength,weight,crunch,닐링 케이블 크런치;로프 크런치,kneeling cable crunch;rope crunch,,,decline_crunch;sit_up;reverse_crunch,fedb:Cable_Crunch,,'로프' 별칭=attach=rope 함축
+keep,Russian Twist,러시안 트위스트,러시안 트위스트,bodyweight,abs,,strength,bodyweight,russian_twist,중량 러시안 트위스트,russian twists,,,,fedb:Russian_Twist,,
+keep,Ab Wheel Rollout,앱 휠 롤아웃,앱 휠 롤아웃,other,abs,,strength,weight,ab_rollout,앱 롤아웃;앱휠;복근 롤러;AB 슬라이드;롤아웃;휠 롤아웃,ab roller;ab wheel;rollout,,,,fedb:Ab_Roller,,
+keep,Decline Sit Up,디클라인 싯업,디클라인 싯업,bodyweight,abs,,strength,bodyweight,decline_sit_up,디클라인 윗몸일으키기,decline situp,,,,gen,,현 매핑 Sit-Up은 다른 동작 사진
+keep,Mountain Climber,마운틴 클라이머,마운틴 클라이머,bodyweight,abs,fullBody,strength,bodyweight,mountain_climber,등산자 운동,mountain climbers,,,,fedb:Mountain_Climbers,,
+keep,Barbell Shrug,바벨 슈러그,바벨 슈러그,barbell,traps,,strength,weight,shrug,슈러그;바벨 쉬러그;쉬러그,shrug;barbell shrug,,,upright_row,fedb:Barbell_Shrug,,
+keep,Dumbbell Shrug,덤벨 슈러그,덤벨 슈러그,dumbbell,traps,,strength,weight,shrug,덤벨 쉬러그,dumbbell shrug,,,upright_row,fedb:Dumbbell_Shrug,,
+rename,Power Clean,바벨 클린,바벨 파워 클린,barbell,fullBody,back;quads,strength,weight,clean,바벨 클린;파워 클린;파워클린;클린,power clean;clean,,,hang_clean;clean_pull;clean_and_jerk,fedb:Power_Clean,,
+rename,Clean and Jerk,클린 앤 저크,바벨 클린 앤 저크,barbell,fullBody,shoulders;quads,strength,weight,clean_and_jerk,클린 앤 저크;용상;클린앤저크,clean and jerk,,,,fedb:Clean_and_Jerk,,
+rename,Snatch,스내치,바벨 스내치,barbell,fullBody,shoulders;back,strength,weight,snatch,스내치;인상,snatch,,,power_snatch;hang_snatch,fedb:Snatch,,
+rename,Thruster,쓰러스터,바벨 쓰러스터,barbell,fullBody,quads;shoulders,strength,weight,thruster,쓰러스터;스러스터,thruster;barbell thruster,,,front_squat;push_press,gen,,
+keep,Burpee,버피,버피,bodyweight,fullBody,,strength,bodyweight,burpee,버피 테스트;버피테스트,burpees,,,,gen,,
+keep,Battle Rope,배틀 로프,배틀 로프,other,fullBody,shoulders,strength,weight,battle_rope,배틀 로프 웨이브,battling ropes,,,,fedb:Battling_Ropes,,
+keep,Rowing Machine,로잉 머신,로잉 머신,machine,fullBody,back,cardio,weight,cardio,로잉;실내 조정;로우잉 머신;로잉 에르그,rowing machine;rower;erg,,,,none,,시드에 kind 누락(백필 V10 의존·웹 미실행) → kind=cardio 명시 제안
+keep,Assisted Pull Up,어시스트 풀업,어시스트 풀업,machine,back,biceps,strength,assisted,assisted_pull_up,어시스티드 풀업;어시 풀업;풀업 머신;턱걸이 머신;어시스트 턱걸이,assisted pull up;machine assisted pull up,,,pull_up;lat_pulldown,gen,21,현 사진은 밴드 보조 — 밴드 어시스트 풀업으로 이동
+keep,Assisted Chin Up,어시스트 친업,어시스트 친업,machine,biceps,back,strength,assisted,assisted_chin_up,어시스티드 친업;어시 친업,assisted chin up,,,chin_up,gen,,현 사진은 맨몸 친업(차용)
+keep,Assisted Dip,어시스트 딥스,어시스트 딥스,machine,triceps,chest,strength,assisted,assisted_dip,어시스티드 딥스;어시 딥스;어시스트 딥 머신,assisted dip,,,dips,gen,,현 사진은 평행봉 딥스(차용)
+rename,High Row,하이 로우,머신 하이 로우,machine,back,biceps,strength,weight,high_row,하이 로우;하이로우;아이소 래터럴 하이 로우;해머 하이 로우,high row;iso-lateral high row,,,seated_row;lat_pulldown,fedb:Leverage_High_Row,38,모델명형 → 규칙형 rename(애매 항목). '해머' 별칭=brand=hammer
+rename,Low Row,로우 로우,머신 로우 로우,machine,back,biceps,strength,weight,low_row,로우 로우;로우로우;아이소 래터럴 로우 로우;해머 로우 로우,low row;iso-lateral low row,,,seated_row,gen,11,모델명형 → 규칙형 rename(애매 항목). 현 사진은 머신 시티드 로우와 동일 파일
+rename,Chest Supported Row,체스트 서포티드 로우,머신 체스트 서포티드 로우,machine,back,biceps,strength,weight,chest_supported_row,체스트 서포티드 로우;체서로;가슴 지지 로우,chest supported row;machine chest supported row,,,chest_supported_t_bar_row;seal_row;seated_row,fedb:Lying_T-Bar_Row,,
+keep,Inverted Row,인버티드 로우,인버티드 로우,bodyweight,back,biceps,strength,bodyweight,inverted_row,바디웨이트 로우;호주식 턱걸이;오스트레일리안 풀업,australian pull up;bodyweight row,,,bent_over_row;pull_up,fedb:Inverted_Row,,
+merge,Single-arm Lat Pulldown,원암 랫풀다운,케이블 랫풀다운,cable,back,biceps,strength,weight,lat_pulldown,,,Lat Pulldown,arm=uni;attach=single,pull_up;chin_up;assisted_pull_up;straight_arm_pulldown;high_row,inherit:Lat Pulldown,,원암 흡수(S1) — 세트 arm=uni + 싱글 핸들
+keep,Dumbbell Pullover,덤벨 풀오버,덤벨 풀오버,dumbbell,back,chest,strength,weight,pullover,풀오버,dumbbell pullover;pullover,,,straight_arm_pulldown,fedb:Bent-Arm_Dumbbell_Pullover,,
+keep,Landmine Press,랜드마인 프레스,랜드마인 프레스,barbell,shoulders,chest;triceps,strength,weight,landmine_press,원암 랜드마인 프레스,landmine press,,,overhead_press,gen,,현 사진 Linear Jammer는 다른 동작. '원암' 별칭=arm=uni
+keep,Cable Rear Delt Fly,케이블 리어 델트 플라이,케이블 리어 델트 플라이,cable,shoulders,,strength,weight,rear_delt_fly,케이블 리어델트;케이블 리버스 플라이;케이블 후면 레이즈,cable reverse fly,,,face_pull;band_pull_apart,fedb:Cable_Rear_Delt_Fly,,운영 equip:machine 1건 → 리버스 펙 덱 이관
+keep,Sissy Squat,시시 스쿼트,시시 스쿼트,bodyweight,quads,,strength,bodyweight,sissy_squat,씨씨 스쿼트,sissy squat,,,,gen,,fedb 사진은 바벨 가중
+keep,Pendulum Squat,펜듈럼 스쿼트,펜듈럼 스쿼트,machine,quads,glutes,strength,weight,pendulum_squat,펜듈럼;펜듈럼 스쿼트 머신,pendulum squat,,,hack_squat,gen,,머신 고유
+keep,Belt Squat,벨트 스쿼트,벨트 스쿼트,machine,quads,glutes,strength,weight,belt_squat,벨트 스쿼트 머신,belt squat,,,,gen,,머신 고유
+rename,Hip Adduction Machine,힙 어덕션 머신,머신 힙 어덕션,machine,glutes,,strength,weight,hip_adduction,힙 어덕션 머신;이너타이;이너 타이;이너싸이;이너 싸이;어덕션;힙 어덕터;내전근 머신,hip adduction machine;inner thigh machine;adductor machine,,,copenhagen_plank,fedb:Thigh_Adductor,,
+keep,Smith Hip Thrust,스미스 힙 쓰러스트,스미스 힙 쓰러스트,smith,glutes,hamstrings,strength,weight,hip_thrust,스미스 힙쓰;스미스 힙 스러스트,smith hip thrust,,,glute_bridge,gen,,현 사진은 바벨
+rename,JM Press,JM 프레스,바벨 JM 프레스,barbell,triceps,,strength,weight,jm_press,JM 프레스;제이엠 프레스,JM press,,,skull_crusher;close_grip_bench_press,fedb:JM_Press,,
+rename,Dip Machine,딥 머신,머신 딥스,machine,triceps,chest,strength,weight,dips,딥 머신;시티드 딥;머신 딥;시티드 딥스;트라이셉스 딥 머신,dip machine;seated dip,,,assisted_dip;bench_dip;decline_press,fedb:Dip_Machine,,
+keep,Cable Hammer Curl,케이블 해머 컬,케이블 해머 컬,cable,biceps,forearms,strength,weight,hammer_curl,케이블 로프 해머 컬;로프 해머 컬;로프 컬,cable hammer curl;rope hammer curl,,,curl;cross_body_hammer_curl;reverse_curl,fedb:Cable_Hammer_Curls_-_Rope_Attachment,,로프 부착물이 동작 정의에 포함(해머 컬 계열의 케이블 버전) — 해머 컬 유지 시 함께 유지
+keep,Lying Leg Raise,라잉 레그 레이즈,라잉 레그 레이즈,bodyweight,abs,,strength,bodyweight,lying_leg_raise,누워서 다리 들기;레그 레이즈;레그레이즈,leg raise,,,,fedb:Flat_Bench_Lying_Leg_Raise,,
+keep,Cable Woodchopper,케이블 우드촙,케이블 우드촙,cable,abs,,strength,weight,woodchop,우드촙;우드찹;케이블 우드찹;우드 초퍼,cable woodchop;woodchopper,,,,fedb:Standing_Cable_Wood_Chop,,
+rename,Ab Crunch Machine,앱 크런치 머신,머신 크런치,machine,abs,,strength,weight,crunch,앱 크런치 머신;복근 머신;크런치 머신;앱 머신,ab crunch machine;machine crunch,,,decline_crunch;sit_up;reverse_crunch,fedb:Ab_Crunch_Machine,,
+keep,Cable Shrug,케이블 슈러그,케이블 슈러그,cable,traps,,strength,weight,shrug,케이블 쉬러그,cable shrug,,,upright_row,fedb:Cable_Shrugs,,
+keep,Treadmill Running,러닝머신,러닝머신,machine,fullBody,quads;calves,cardio,weight,cardio,트레드밀;런닝머신;트레드밀 러닝,treadmill,,,,none,,
+keep,Running,러닝,러닝,bodyweight,fullBody,quads;calves,cardio,bodyweight,cardio,달리기;런닝;조깅,jogging,,,,none,,
+keep,Walking,걷기,걷기,bodyweight,fullBody,calves,cardio,bodyweight,cardio,걷기 운동;산책,walk,,,,none,,
+keep,Indoor Cycling,실내 사이클,실내 사이클,machine,quads,calves,cardio,weight,cardio,실내 자전거;사이클;스피닝;싸이클,stationary bike;spinning,,,,none,,
+keep,Elliptical,일립티컬,일립티컬,machine,fullBody,quads,cardio,weight,cardio,엘립티컬;일립티컬 머신;크로스 트레이너,cross trainer,,,,none,,
+keep,Stair Climber,천국의 계단,천국의 계단,machine,quads,glutes;calves,cardio,weight,cardio,스텝밀;계단 오르기;천계,stairmaster;stepmill,,,,none,,옛 이름 '스텝밀' 별칭
+keep,Jump Rope,줄넘기,줄넘기,other,calves,fullBody,cardio,weight,cardio,줄넘기 운동,skipping,,,,none,,
+keep,Assault Bike,어썰트 바이크,어썰트 바이크,machine,fullBody,quads,cardio,weight,cardio,에어바이크;에어 바이크;팬 바이크,air bike;fan bike,,,,none,,
+keep,Stepper,스텝퍼,스텝퍼,machine,quads,glutes;calves,cardio,weight,cardio,스테퍼,stair stepper,,,,none,,
+keep,SkiErg,스키에르그,스키에르그,machine,back,triceps;fullBody,cardio,weight,cardio,스키어그,ski erg,,,,none,,
+rename,Row (Smith),로우 (스미스),스미스 로우,smith,back,biceps,strength,weight,bent_over_row,로우 (스미스);스미스 벤트오버 로우;스미스 바벨 로우,smith row;smith bent over row,,,pendlay_row;t_bar_row;seal_row;chest_supported_row;one_arm_row,fedb:Smith_Machine_Bent_Over_Row,,
+rename,Shoulder Press (Smith),숄더 프레스 (스미스),스미스 숄더 프레스,smith,shoulders,triceps,strength,weight,overhead_press,숄더 프레스 (스미스);스미스 오버헤드 프레스;스미스 밀프,smith shoulder press,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Smith_Machine_Overhead_Shoulder_Press,,
+rename,Front Raise (Cable),프론트 레이즈 (케이블),케이블 프론트 레이즈,cable,shoulders,,strength,weight,front_raise,프론트 레이즈 (케이블);케이블 프레레,cable front raise,,,overhead_plate_raise,fedb:Front_Cable_Raise,,
+rename,Front Raise (Barbell),프론트 레이즈 (바벨),바벨 프론트 레이즈,barbell,shoulders,,strength,weight,front_raise,프론트 레이즈 (바벨);바벨 프레레,barbell front raise,,,overhead_plate_raise,gen,,
+rename,Upright Row (Cable),업라이트 로우 (케이블),케이블 업라이트 로우,cable,shoulders,traps,strength,weight,upright_row,업라이트 로우 (케이블),cable upright row,,,lateral_raise;shrug,fedb:Upright_Cable_Row,,
+rename,Upright Row (Dumbbell),업라이트 로우 (덤벨),덤벨 업라이트 로우,dumbbell,shoulders,traps,strength,weight,upright_row,업라이트 로우 (덤벨),dumbbell upright row,,,lateral_raise;shrug,fedb:Standing_Dumbbell_Upright_Row,,
+rename,Preacher Curl (Dumbbell),프리처 컬 (덤벨),덤벨 프리처 컬,dumbbell,biceps,,strength,weight,preacher_curl,프리처 컬 (덤벨);덤벨 프리쳐 컬;원암 덤벨 프리처 컬,dumbbell preacher curl,,,curl;spider_curl;concentration_curl,fedb:Two-Arm_Dumbbell_Preacher_Curl,,'원암' 별칭=arm=uni. 운영 cybex 변형 → 머신 프리처 컬 이관
+rename,Skull Crusher (Dumbbell),스컬 크러셔 (덤벨),덤벨 스컬크러셔,dumbbell,triceps,,strength,weight,skull_crusher,스컬 크러셔 (덤벨);덤벨 라잉 트라이셉스 익스텐션;덤벨 라잉 익스텐션,dumbbell skull crusher;dumbbell lying triceps extension,,,triceps_extension;jm_press,fedb:Lying_Dumbbell_Tricep_Extension,,
+rename,Triceps Kickback (Cable),트라이셉스 킥백 (케이블),케이블 트라이셉스 킥백,cable,triceps,,strength,weight,triceps_kickback,트라이셉스 킥백 (케이블);케이블 삼두 킥백,cable triceps kickback,,,pushdown,gen,,
+rename,Wrist Curl (Dumbbell),리스트 컬 (덤벨),덤벨 리스트 컬,dumbbell,forearms,,strength,weight,wrist_curl,리스트 컬 (덤벨);덤벨 손목 컬,dumbbell wrist curl,,,reverse_wrist_curl,fedb:Seated_Dumbbell_Palms-Up_Wrist_Curl,,
+rename,Lunge (Barbell),런지 (바벨),바벨 런지,barbell,quads,glutes,strength,weight,lunge,런지 (바벨),barbell lunge,,,walking_lunge;reverse_lunge;split_squat;bulgarian_split_squat,fedb:Barbell_Lunge,,
+rename,Lunge (Smith),런지 (스미스),스미스 런지,smith,quads,glutes,strength,weight,lunge,런지 (스미스),smith lunge,,,walking_lunge;reverse_lunge;split_squat;bulgarian_split_squat,gen,,
+rename,Bulgarian Split Squat (Barbell),불가리안 스플릿 스쿼트 (바벨),바벨 불가리안 스플릿 스쿼트,barbell,quads,glutes,strength,weight,bulgarian_split_squat,불가리안 스플릿 스쿼트 (바벨);바벨 불가리안,barbell bulgarian split squat,,,split_squat,gen,,
+rename,Bulgarian Split Squat (Smith),불가리안 스플릿 스쿼트 (스미스),스미스 불가리안 스플릿 스쿼트,smith,quads,glutes,strength,weight,bulgarian_split_squat,불가리안 스플릿 스쿼트 (스미스);스미스 불가리안,smith bulgarian split squat,,,split_squat,gen,,
+rename,Romanian Deadlift (Dumbbell),루마니안 데드리프트 (덤벨),덤벨 루마니안 데드리프트,dumbbell,hamstrings,glutes;back,strength,weight,romanian_deadlift,루마니안 데드리프트 (덤벨);덤벨 RDL;덤벨 루마니안,dumbbell romanian deadlift;DB RDL,,,stiff_leg_deadlift;good_morning,gen,,
+rename,Hip Thrust (Machine),힙 쓰러스트 (머신),머신 힙 쓰러스트,machine,glutes,hamstrings,strength,weight,hip_thrust,힙 쓰러스트 (머신);힙 쓰러스트 머신;머신 힙쓰;글루트 드라이브,machine hip thrust;glute drive,,,glute_bridge,gen,,
+rename,Shrug (Smith),슈러그 (스미스),스미스 슈러그,smith,traps,,strength,weight,shrug,슈러그 (스미스);스미스 쉬러그,smith shrug,,,upright_row,gen,,fedb 스미스 슈러그는 비하인드 백 버전
+delete,Hammer Strength Chest Press,해머스트렝스 체스트 프레스,머신 체스트 프레스,machine,chest,triceps,strength,weight,chest_press,,,Chest Press Machine,brand=hammer,bench_press;seated_cable_chest_press;incline_press,inherit:Chest Press Machine,,브랜드명 종목 삭제(규칙 4) — 테스트·FINDER·패턴·SUBSTITUTES 4곳 동시 정리 필요. 운영 사용 0
+rename,Decline Chest Press Machine,디클라인 체스트 프레스 머신,머신 디클라인 프레스,machine,chest,triceps,strength,weight,decline_press,디클라인 체스트 프레스 머신;디클라인 머신 프레스;머신 디클라인 체스트 프레스,decline chest press machine,,,bench_press;incline_press;dips,fedb:Leverage_Decline_Chest_Press,,
+rename,Lying Chest Press Machine,라잉 체스트 프레스 머신,머신 라잉 체스트 프레스,machine,chest,triceps,strength,weight,bench_press,라잉 체스트 프레스 머신;머신 벤치프레스;머신 벤치;라잉 머신 프레스,lying chest press machine;machine bench press,,,chest_press;incline_press;decline_press;floor_press;larsen_press;feet_up_bench_press;close_grip_bench_press,gen,,
+merge,Converging Chest Press Machine,컨버징 체스트 프레스 머신,머신 체스트 프레스,machine,chest,triceps,strength,weight,chest_press,,,Chest Press Machine,,bench_press;seated_cable_chest_press;incline_press,inherit:Chest Press Machine,,컨버징=머신 궤적(모델) 특성 → 브랜드처럼 축/별칭 처리 권장(애매 항목). 운영 사용 0
+merge,Single-arm Chest Press Machine,원암 체스트 프레스 머신,머신 체스트 프레스,machine,chest,triceps,strength,weight,chest_press,,,Chest Press Machine,arm=uni,bench_press;seated_cable_chest_press;incline_press,inherit:Chest Press Machine,,원암 흡수(S1)
+rename,Seated Cable Chest Press,시티드 케이블 체스트 프레스,케이블 시티드 체스트 프레스,cable,chest,triceps,strength,weight,seated_cable_chest_press,시티드 케이블 체스트 프레스,seated cable chest press,,,chest_press,gen,,
+rename,Standing Cable Chest Press,스탠딩 케이블 체스트 프레스,케이블 체스트 프레스,cable,chest,triceps,strength,weight,chest_press,스탠딩 케이블 체스트 프레스;케이블 프레스;스탠딩 케이블 프레스,standing cable chest press;cable chest press,,,bench_press;seated_cable_chest_press;incline_press,fedb:Standing_Cable_Chest_Press,,
+rename,Lying Cable Chest Press,라잉 케이블 체스트 프레스,케이블 라잉 체스트 프레스,cable,chest,triceps,strength,weight,bench_press,라잉 케이블 체스트 프레스;케이블 벤치프레스,lying cable chest press;cable bench press,,,chest_press;incline_press;decline_press;floor_press;larsen_press;feet_up_bench_press;close_grip_bench_press,gen,,
+rename,Larsen Press,라슨 프레스,바벨 라슨 프레스,barbell,chest,triceps,strength,weight,larsen_press,라슨 프레스,larsen press,,,bench_press;feet_up_bench_press,gen,,
+rename,Feet-up Bench Press,피트 업 벤치프레스,바벨 피트 업 벤치프레스,barbell,chest,triceps,strength,weight,feet_up_bench_press,피트 업 벤치프레스;피트업 벤치;다리 들고 벤치,feet up bench press,,,bench_press;larsen_press,gen,,
+rename,Decline Press (Smith),디클라인 프레스 (스미스),스미스 디클라인 프레스,smith,chest,triceps,strength,weight,decline_press,디클라인 프레스 (스미스);스미스 디클라인 벤치프레스,smith decline press,,,bench_press;incline_press;dips,fedb:Smith_Machine_Decline_Press,,
+merge,Wide Grip Push Up,와이드 그립 푸시업,푸시업,bodyweight,chest,shoulders,strength,bodyweight,push_up,,,Push Up,grip=wide,incline_push_up;decline_push_up;kneeling_push_up;diamond_push_up;deficit_push_up;bench_press,inherit:Push Up,,손그립 흡수(S1)
+keep,Deficit Push Up,데피싯 푸시업,데피싯 푸시업,bodyweight,chest,triceps,strength,bodyweight,deficit_push_up,데피싯 푸쉬업;디피싯 푸시업,deficit pushup,,,push_up,gen,,
+keep,Chest Supported T-Bar Row,체스트 서포티드 티바 로우,체스트 서포티드 티바 로우,barbell,back,biceps,strength,weight,chest_supported_t_bar_row,체스트 서포티드 티바;라잉 티바 로우;티바 로우 머신;체서티,chest supported t-bar row;lying t-bar row,,,t_bar_row;chest_supported_row,gen,,기구 barbell 유지(티바 자체가 기구 표기). 운영 equip:machine 1건 → 머신 체스트 서포티드 로우 이관 여부 확인
+rename,Chest Supported Row (Dumbbell),체스트 서포티드 로우 (덤벨),덤벨 체스트 서포티드 로우,dumbbell,back,biceps,strength,weight,chest_supported_row,체스트 서포티드 로우 (덤벨);인클라인 덤벨 로우;덤벨 인클라인 로우;프론 덤벨 로우,incline dumbbell row;chest supported dumbbell row,,,chest_supported_t_bar_row;seal_row;seated_row,fedb:Dumbbell_Incline_Row,,
+keep,Sit Up,싯업,싯업,bodyweight,abs,,strength,bodyweight,sit_up,윗몸일으키기;윗몸 일으키기,situp,,,,fedb:Sit-Up,,
+keep,Decline Push Up,디클라인 푸시업,디클라인 푸시업,bodyweight,chest,shoulders;triceps,strength,bodyweight,decline_push_up,디클라인 푸쉬업;발 올리고 푸시업,decline pushup;feet elevated push up,,,push_up;pike_push_up,fedb:Decline_Push-Up,,
+keep,Clap Push Up,클랩 푸시업,클랩 푸시업,bodyweight,chest,triceps,strength,bodyweight,clap_push_up,박수 푸시업;클랩 푸쉬업;플라이오 푸시업,clap pushup;plyo push up,,,,fedb:Plyo_Push-up,,fedb Plyo Push-up=동일 계열(확인 권장)
+keep,Kneeling Push Up,닐링 푸시업,닐링 푸시업,bodyweight,chest,triceps,strength,bodyweight,kneeling_push_up,무릎 푸시업;무릎 대고 푸시업;니 푸시업,knee push up,,,push_up;incline_push_up,gen,,
+keep,One Arm Push Up,원암 푸시업,원암 푸시업,bodyweight,chest,triceps;abs,strength,bodyweight,one_arm_push_up,한 팔 푸시업;원암 푸쉬업,single arm push up,,,,fedb:Single-Arm_Push-Up,,S1 예외(칼리스데닉스 독립 스킬 — 지지 기전·반회전 저항이 동작 자체로 다름)
+keep,Plank Push Up,플랭크 푸시업,플랭크 푸시업,bodyweight,chest,abs,strength,bodyweight,plank_push_up,업다운 플랭크;플랭크 업다운,plank up down;up down plank,,,,gen,,
+keep,Ring Push Up,링 푸시업,링 푸시업,other,chest,triceps;abs,strength,weight,push_up,링 푸쉬업,ring pushup,,,incline_push_up;decline_push_up;kneeling_push_up;diamond_push_up;deficit_push_up;bench_press,gen,,기구 other(링) — 푸시업 계열의 링 버전
+rename,Floor Press,플로어 프레스,바벨 플로어 프레스,barbell,chest,triceps,strength,weight,floor_press,플로어 프레스;바닥 프레스,floor press;barbell floor press,,,bench_press,fedb:Floor_Press,,
+keep,Dumbbell Squeeze Press,덤벨 스퀴즈 프레스,덤벨 스퀴즈 프레스,dumbbell,chest,triceps,strength,weight,squeeze_press,스퀴즈 프레스;헥스 프레스;덤벨 헥스 프레스;크러시 프레스,squeeze press;hex press;crush press,,,bench_press,gen,,
+rename,Svend Press,스벤드 프레스,플레이트 스벤드 프레스,other,chest,,strength,weight,svend_press,스벤드 프레스;플레이트 프레스;원판 프레스,svend press;plate press,,,,fedb:Svend_Press,,
+rename,Decline Dumbbell Fly,디클라인 덤벨 플라이,덤벨 디클라인 플라이,dumbbell,chest,,strength,weight,decline_fly,디클라인 덤벨 플라이,decline dumbbell flye,,,chest_fly;cable_crossover,fedb:Decline_Dumbbell_Flyes,,
+rename,Seated Cable Fly,시티드 케이블 플라이,케이블 시티드 플라이,cable,chest,,strength,weight,seated_cable_fly,시티드 케이블 플라이,seated cable fly,,,chest_fly;cable_crossover,gen,,
+keep,Dumbbell Around the World,덤벨 어라운드 더 월드,덤벨 어라운드 더 월드,dumbbell,chest,shoulders,strength,weight,around_the_world,어라운드 더 월드,around the worlds,,,,fedb:Around_The_Worlds,,
+keep,Ring Dip,링 딥스,링 딥스,other,chest,triceps,strength,weight,dips,링 딥,ring dips,,,assisted_dip;bench_dip;decline_press,fedb:Ring_Dips,,기구 other(링)
+keep,Landmine Row,랜드마인 로우,랜드마인 로우,barbell,back,biceps,strength,weight,landmine_row,투암 랜드마인 로우,two arm landmine row,,,t_bar_row;meadows_row,fedb:Bent_Over_Two-Arm_Long_Bar_Row,,
+keep,Meadows Row,메도우스 로우,메도우스 로우,barbell,back,biceps,strength,weight,meadows_row,메도우즈 로우;메도우 로우,meadows row,,,one_arm_row;landmine_row,fedb:One-Arm_Long_Bar_Row,,원암 동작이 정의(랜드마인 엇갈림 자세) — S1 예외
+rename,Seal Row,씰 로우,바벨 씰 로우,barbell,back,biceps,strength,weight,seal_row,씰 로우;실 로우,seal row;barbell seal row,,,chest_supported_row;bent_over_row,gen,,
+rename,Gorilla Row,고릴라 로우,케틀벨 고릴라 로우,kettlebell,back,biceps,strength,weight,gorilla_row,고릴라 로우,gorilla row,,,,gen,,
+rename,Renegade Row,레니게이드 로우,덤벨 레니게이드 로우,dumbbell,back,abs;biceps,strength,weight,renegade_row,레니게이드 로우;레네게이드 로우,renegade row;dumbbell renegade row,,,,gen,,fedb 사진은 케틀벨 → 케틀벨 레니게이드 로우에 배정
+rename,Machine Pullover,풀오버 머신,머신 풀오버,machine,back,chest,strength,weight,pullover,풀오버 머신,pullover machine,,,straight_arm_pulldown,gen,,
+keep,Negative Pull Up,네거티브 풀업,네거티브 풀업,bodyweight,back,biceps,strength,bodyweight,negative_pull_up,네거티브 턱걸이;이센트릭 풀업,eccentric pull up,,,pull_up,gen,,
+keep,Scapular Pull Up,스캐퓰러 풀업,스캐퓰러 풀업,bodyweight,back,traps,strength,bodyweight,scapular_pull_up,스캐풀러 풀업;견갑 풀업;견갑 턱걸이,scap pull up,,,,fedb:Scapular_Pull-Up,,
+keep,Kipping Pull Up,키핑 풀업,키핑 풀업,bodyweight,back,biceps;fullBody,strength,bodyweight,kipping_pull_up,키핑 턱걸이,kipping pullup,,,,gen,,
+keep,Sternum Pull Up,스터넘 풀업,스터넘 풀업,bodyweight,back,biceps,strength,bodyweight,sternum_pull_up,지론다 풀업;스터넘 친업,gironda sternum chin,,,,fedb:Gironda_Sternum_Chins,,
+keep,Muscle Up,머슬업,머슬업,bodyweight,back,fullBody,strength,bodyweight,muscle_up,,muscle-up,,,,fedb:Muscle_Up,,
+keep,Ring Pull Up,링 풀업,링 풀업,other,back,biceps,strength,weight,pull_up,링 턱걸이,ring pullup,,,chin_up;lat_pulldown;assisted_pull_up;negative_pull_up,gen,,기구 other(링)
+keep,Dead Hang,데드 행,데드 행,bodyweight,back,forearms,strength,bodyweight,dead_hang,매달리기;철봉 매달리기,bar hang,,,,gen,,
+rename,Back Extension Machine,백 익스텐션 머신,머신 백 익스텐션,machine,back,glutes,strength,weight,back_extension,백 익스텐션 머신;로어 백 머신;허리 머신,back extension machine;lower back machine,,,reverse_hyperextension;good_morning,gen,,
+keep,Superman,슈퍼맨,슈퍼맨,bodyweight,back,glutes,strength,bodyweight,superman,슈퍼맨 자세,superman hold,,,,fedb:Superman,,
+keep,Pike Push Up,파이크 푸시업,파이크 푸시업,bodyweight,shoulders,triceps,strength,bodyweight,pike_push_up,파이크 푸쉬업,pike pushup,,,,gen,,
+keep,Handstand Push Up,핸드스탠드 푸시업,핸드스탠드 푸시업,bodyweight,shoulders,triceps,strength,bodyweight,handstand_push_up,물구나무 푸시업;HSPU,HSPU,,,,fedb:Handstand_Push-Ups,,
+keep,Handstand Hold,핸드스탠드 홀드,핸드스탠드 홀드,bodyweight,shoulders,abs,strength,bodyweight,handstand_hold,물구나무 서기;핸드스탠드;물구나무,handstand,,,,gen,,
+rename,Push Press,푸시 프레스,바벨 푸시 프레스,barbell,shoulders,triceps;quads,strength,weight,push_press,푸시 프레스;푸쉬 프레스,push press,,,overhead_press;thruster,fedb:Push_Press,,
+keep,Band Pull Apart,밴드 풀 어파트,밴드 풀 어파트,band,shoulders,traps,strength,weight,band_pull_apart,풀 어파트,pull apart,,,rear_delt_fly;face_pull,fedb:Band_Pull_Apart,,
+keep,Cable Y Raise,케이블 Y 레이즈,케이블 Y 레이즈,cable,shoulders,,strength,weight,y_raise,케이블 와이 레이즈,cable Y-raise,,,lateral_raise,gen,,
+rename,Chest Supported Y Raise,체스트 서포티드 Y 레이즈,덤벨 Y 레이즈,dumbbell,shoulders,,strength,weight,y_raise,체스트 서포티드 Y 레이즈;인클라인 Y 레이즈;덤벨 와이 레이즈;프론 Y 레이즈,chest supported y raise;incline y raise,,,lateral_raise,gen,,
+rename,Plate Front Raise,프론트 레이즈 (플레이트),플레이트 프론트 레이즈,other,shoulders,,strength,weight,front_raise,프론트 레이즈 (플레이트);원판 프론트 레이즈;원판 레이즈,plate front raise,,,overhead_plate_raise,fedb:Front_Plate_Raise,,
+rename,Overhead Plate Raise,오버헤드 플레이트 레이즈,플레이트 오버헤드 레이즈,other,shoulders,,strength,weight,overhead_plate_raise,오버헤드 플레이트 레이즈;원판 오버헤드 레이즈,overhead plate raise,,,,gen,,
+keep,Shoulder Taps,숄더 탭,숄더 탭,bodyweight,abs,shoulders,strength,bodyweight,shoulder_tap,플랭크 숄더 탭,plank shoulder taps,,,,gen,,
+keep,Kettlebell Halo,케틀벨 헤일로,케틀벨 헤일로,kettlebell,shoulders,abs,strength,weight,kettlebell_halo,헤일로;케틀벨 할로,halo,,,,fedb:Kettlebell_Halo,,fedb 신규 매칭
+rename,Drag Curl,드래그 컬,바벨 드래그 컬,barbell,biceps,,strength,weight,drag_curl,드래그 컬,drag curl,,,,fedb:Drag_Curl,,
+rename,Zottman Curl,조트맨 컬,덤벨 조트맨 컬,dumbbell,biceps,forearms,strength,weight,zottman_curl,조트맨 컬;조트먼 컬,zottman curl,,,,fedb:Zottman_Curl,,
+rename,Cross Body Hammer Curl,크로스 바디 해머 컬,덤벨 크로스 바디 해머 컬,dumbbell,biceps,forearms,strength,weight,cross_body_hammer_curl,크로스 바디 해머 컬;핀휠 컬;크로스바디 컬,cross body hammer curl;pinwheel curl,,,hammer_curl,fedb:Cross_Body_Hammer_Curl,,
+rename,Waiter Curl,웨이터 컬,덤벨 웨이터 컬,dumbbell,biceps,,strength,weight,waiter_curl,웨이터 컬,waiter curl,,,,gen,,
+rename,Bicep Curl 21s,21 컬,바벨 21 컬,barbell,biceps,,strength,weight,curl_21s,21 컬;21s;이십일 컬,21s,,,,gen,,
+rename,Overhead Cable Curl,오버헤드 케이블 컬,케이블 오버헤드 컬,cable,biceps,,strength,weight,overhead_cable_curl,오버헤드 케이블 컬;하이 케이블 컬;더블 바이셉스 케이블 컬,overhead cable curl;high cable curl,,,,fedb:Overhead_Cable_Curl,,
+rename,Behind the Back Cable Curl,비하인드 백 케이블 컬,케이블 비하인드 백 컬,cable,biceps,,strength,weight,behind_back_cable_curl,비하인드 백 케이블 컬;베이지안 컬;바이에시안 컬,bayesian curl;behind the back cable curl,,,,gen,,
+keep,Plate Curl,플레이트 컬,플레이트 컬,other,biceps,forearms,strength,weight,plate_curl,원판 컬,plate curl,,,,gen,,
+merge,Reverse Grip Pushdown,리버스 그립 푸시다운,케이블 푸시다운,cable,triceps,,strength,weight,pushdown,,,Triceps Pushdown,grip=under,triceps_extension;triceps_kickback,inherit:Triceps Pushdown,,손그립 흡수(S1)
+rename,Triceps Extension Machine,트라이셉스 익스텐션 머신,머신 트라이셉스 익스텐션,machine,triceps,,strength,weight,machine_arm_extension,트라이셉스 익스텐션 머신;머신 암 익스텐션;암 익스텐션;암 익스텐션 머신;머신 삼두 익스텐션;프리처 트라이셉스 익스텐션 머신,triceps extension machine;machine arm extension,,,overhead_triceps_extension;skull_crusher;pushdown,fedb:Machine_Triceps_Extension,,사용자 정의(2026-10-26 R1): 프리처 컬 모양 패드에 팔을 올리고 삼두를 펴는 기구(이두 머신 컬의 반대). media fedb:Machine_Triceps_Extension 이 이 자세인지 검수 필요
+new,Machine Overhead Triceps Extension,,머신 오버헤드 트라이셉스 익스텐션,machine,triceps,,strength,,overhead_triceps_extension,오버헤드 익스텐션 머신;머신 오버헤드 익스텐션;시티드 오버헤드 트라이셉스 머신;오버헤드 트라이셉스 머신,Seated Overhead Triceps Extension Machine,,,machine_arm_extension;skull_crusher;pushdown,gen,13,R1(2026-10-26): 앉아서 머리 위 손잡이를 잡고 위로 펴는 머신(뉴텍 등). 운영 덤벨 OHE+newtech 13세트 이관 대상
+rename,Wide-Elbow Triceps Press,와이드 엘보 트라이셉스 프레스,덤벨 와이드 엘보 트라이셉스 프레스,dumbbell,triceps,,strength,weight,tate_press,와이드 엘보 트라이셉스 프레스;테이트 프레스,tate press;wide elbow triceps press,,,skull_crusher,fedb:Tate_Press,,fedb 신규 매칭(Tate Press=동일 동작)
+keep,Wrist Roller,리스트 롤러,리스트 롤러,other,forearms,,strength,weight,wrist_roller,손목 롤러,wrist roller,,,,fedb:Wrist_Roller,,
+rename,Behind the Back Wrist Curl,비하인드 백 리스트 컬,바벨 비하인드 백 리스트 컬,barbell,forearms,,strength,weight,behind_back_wrist_curl,비하인드 백 리스트 컬,behind the back wrist curl,,,,fedb:Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl,,
+rename,Reverse Curl (Dumbbell),리버스 컬 (덤벨),덤벨 리버스 컬,dumbbell,forearms,biceps,strength,weight,reverse_curl,리버스 컬 (덤벨),dumbbell reverse curl,,,hammer_curl;reverse_wrist_curl,fedb:Standing_Dumbbell_Reverse_Curl,,
+rename,Reverse Curl (Cable),리버스 컬 (케이블),케이블 리버스 컬,cable,forearms,biceps,strength,weight,reverse_curl,리버스 컬 (케이블),cable reverse curl,,,hammer_curl;reverse_wrist_curl,fedb:Reverse_Cable_Curl,,
+rename,Shrug (Machine),슈러그 (머신),머신 슈러그,machine,traps,,strength,weight,shrug,슈러그 (머신);머신 쉬러그;슈러그 머신,machine shrug,,,upright_row,fedb:Leverage_Shrug,,카프 머신 슈러그 사진 → 레버리지 슈러그로 교체
+rename,Jump Shrug,점프 슈러그,바벨 점프 슈러그,barbell,traps,fullBody,strength,weight,jump_shrug,점프 슈러그,jump shrug,,,,gen,,
+keep,Lying Neck Curl,라잉 넥 컬,라잉 넥 컬,bodyweight,other,,strength,bodyweight,neck_curl,넥 컬;목 컬;중량 넥 컬,neck curl,,,,fedb:Lying_Face_Up_Plate_Neck_Resistance,,fedb 신규 매칭(원판 가중 — 맨몸 기구 표기와 차이)
+keep,Lying Neck Extension,라잉 넥 익스텐션,라잉 넥 익스텐션,bodyweight,other,,strength,bodyweight,neck_extension,넥 익스텐션;목 익스텐션,neck extension,,,,fedb:Lying_Face_Down_Plate_Neck_Resistance,,fedb 신규 매칭
+rename,Box Squat,박스 스쿼트,바벨 박스 스쿼트,barbell,quads,glutes,strength,weight,box_squat,박스 스쿼트,box squat,,,squat,fedb:Box_Squat,,
+rename,Pause Squat,포즈 스쿼트,바벨 포즈 스쿼트,barbell,quads,glutes,strength,weight,pause_squat,포즈 스쿼트;퍼즈 스쿼트;정지 스쿼트,pause squat;paused squat,,,squat,gen,,템포 변형이라 바벨 스쿼트 흡수도 가능(현안 유지)
+rename,Overhead Squat,오버헤드 스쿼트,바벨 오버헤드 스쿼트,barbell,quads,fullBody,strength,weight,overhead_squat,오버헤드 스쿼트;OHS,overhead squat,,,,fedb:Overhead_Squat,,
+rename,Zercher Squat,저처 스쿼트,바벨 저처 스쿼트,barbell,quads,glutes;abs,strength,weight,zercher_squat,저처 스쿼트;져처 스쿼트,zercher squat,,,,fedb:Zercher_Squats,,
+rename,Sumo Squat,스모 스쿼트,덤벨 스모 스쿼트,dumbbell,quads,glutes,strength,weight,sumo_squat,스모 스쿼트;플리에 스쿼트;와이드 스쿼트,sumo squat;plie squat,,,sumo_deadlift;squat,fedb:Plie_Dumbbell_Squat,,
+keep,Pistol Squat,피스톨 스쿼트,피스톨 스쿼트,bodyweight,quads,glutes,strength,bodyweight,pistol_squat,한발 스쿼트;피스톨,pistol,,,,gen,,
+keep,Wall Sit,월 싯,월 싯,bodyweight,quads,,strength,bodyweight,wall_sit,벽 앉기;기마자세,wall squat hold,,,,gen,,
+keep,Jump Squat,점프 스쿼트,점프 스쿼트,bodyweight,quads,glutes,strength,bodyweight,jump_squat,스쿼트 점프,squat jump,,,,fedb:Freehand_Jump_Squat,,
+keep,Box Jump,박스 점프,박스 점프,bodyweight,quads,glutes,strength,bodyweight,box_jump,,box jumps,,,,fedb:Front_Box_Jump,,
+keep,Lateral Box Jump,레터럴 박스 점프,레터럴 박스 점프,bodyweight,quads,glutes,strength,bodyweight,lateral_box_jump,사이드 박스 점프,side box jump,,,,fedb:Lateral_Box_Jump,,
+keep,Frog Jump,프로그 점프,프로그 점프,bodyweight,quads,glutes,strength,bodyweight,frog_jump,개구리 점프,frog hops,,,,fedb:Frog_Hops,,
+keep,Lateral Squat,레터럴 스쿼트,레터럴 스쿼트,bodyweight,quads,glutes,strength,bodyweight,lateral_squat,사이드 스쿼트;코사크 스쿼트,cossack squat,,,,gen,,
+keep,Reverse Lunge,리버스 런지,리버스 런지,bodyweight,quads,glutes,strength,bodyweight,reverse_lunge,백 런지;뒤로 런지;리어 런지,rear lunge,,,lunge,gen,,
+keep,Lateral Lunge,레터럴 런지,레터럴 런지,bodyweight,quads,glutes,strength,bodyweight,lateral_lunge,사이드 런지,side lunge,,,,gen,,
+keep,Curtsy Lunge,커시 런지,커시 런지,bodyweight,quads,glutes,strength,bodyweight,curtsy_lunge,커트시 런지;크로스 런지,crossover reverse lunge,,,,fedb:Crossover_Reverse_Lunge,,
+keep,Jump Lunge,점프 런지,점프 런지,bodyweight,quads,glutes,strength,bodyweight,jump_lunge,점핑 런지;스플릿 점프,split jump,,,,fedb:Split_Jump,,fedb 신규 매칭
+rename,Overhead Lunge,오버헤드 런지,덤벨 오버헤드 런지,dumbbell,quads,glutes;shoulders,strength,weight,overhead_lunge,오버헤드 런지,overhead lunge,,,,gen,,
+rename,Split Squat,스플릿 스쿼트,덤벨 스플릿 스쿼트,dumbbell,quads,glutes,strength,weight,split_squat,스플릿 스쿼트;스플릿스쿼트,split squat;dumbbell split squat,,,bulgarian_split_squat;lunge,fedb:Split_Squat_with_Dumbbells,,fedb 신규 매칭(불가리안에서 이동)
+keep,Glute Ham Raise,글루트 햄 레이즈,글루트 햄 레이즈,machine,hamstrings,glutes,strength,weight,glute_ham_raise,GHR,GHR,,,nordic_curl,fedb:Glute_Ham_Raise,,
+keep,Standing Leg Curl,스탠딩 레그 컬,스탠딩 레그 컬,machine,hamstrings,,strength,weight,standing_leg_curl,서서 레그컬,standing leg curl,,,lying_leg_curl,fedb:Standing_Leg_Curl,,
+keep,Cable Pull Through,케이블 풀 스루,케이블 풀 스루,cable,glutes,hamstrings,strength,weight,pull_through,풀 스루;풀스루,pull through,,,,fedb:Pull_Through,,
+keep,Reverse Hyperextension,리버스 하이퍼익스텐션,리버스 하이퍼익스텐션,machine,glutes,hamstrings;back,strength,weight,reverse_hyperextension,리버스 하이퍼;리버스 하이퍼 머신,reverse hyper,,,,fedb:Reverse_Hyperextension,,
+rename,Deadlift High Pull,데드리프트 하이 풀,바벨 데드리프트 하이 풀,barbell,fullBody,back;traps,strength,weight,deadlift_high_pull,데드리프트 하이 풀;하이 풀,deadlift high pull;high pull,,,,gen,,
+rename,Hip Thrust (Dumbbell),힙 쓰러스트 (덤벨),덤벨 힙 쓰러스트,dumbbell,glutes,hamstrings,strength,weight,hip_thrust,힙 쓰러스트 (덤벨);덤벨 힙쓰,dumbbell hip thrust,,,glute_bridge,gen,,
+keep,Fire Hydrant,파이어 하이드런트,파이어 하이드런트,bodyweight,glutes,,strength,bodyweight,fire_hydrant,강아지 다리 들기,fire hydrants,,,,gen,,
+keep,Clamshell,클램셸,클램셸,bodyweight,glutes,,strength,bodyweight,clamshell,클램쉘;조개 운동;밴드 클램셸,clam shell,,,,gen,,'밴드' 별칭=저항 밴드 사용(무게 칸 대신 메모)
+rename,Frog Pump,프로그 펌프,덤벨 프로그 펌프,dumbbell,glutes,hamstrings,strength,weight,frog_pump,프로그 펌프;개구리 브릿지,frog pump;frog pumps,,,,gen,,
+keep,Bird Dog,버드 독,버드 독,bodyweight,glutes,abs;back,strength,bodyweight,bird_dog,버드 도그,bird dogs,,,,gen,,
+rename,Glute Kickback Machine,글루트 킥백 머신,머신 글루트 킥백,machine,glutes,,strength,weight,glute_kickback,글루트 킥백 머신;킥백 머신;힙 익스텐션 머신,glute kickback machine;hip extension machine,,,hip_thrust,gen,,
+keep,Glute Kickback,글루트 킥백,글루트 킥백,bodyweight,glutes,,strength,bodyweight,glute_kickback,동키 킥;덩키 킥;네발 킥백;힙 킥백,donkey kick,,,hip_thrust,fedb:Glute_Kickback,,
+keep,Cable Hip Abduction,케이블 힙 어브덕션,케이블 힙 어브덕션,cable,glutes,,strength,weight,hip_abduction,케이블 아웃타이;케이블 어브덕션,cable abduction,,,lateral_band_walk;fire_hydrant;clamshell,gen,,
+keep,Cable Hip Adduction,케이블 힙 어덕션,케이블 힙 어덕션,cable,glutes,,strength,weight,hip_adduction,케이블 이너타이;케이블 어덕션,cable adduction,,,copenhagen_plank,fedb:Cable_Hip_Adduction,,
+keep,Lateral Leg Raise,레터럴 레그 레이즈,레터럴 레그 레이즈,bodyweight,glutes,,strength,bodyweight,lateral_leg_raise,사이드 레그 레이즈;옆으로 다리 들기,side lying leg raise,,,,gen,,
+rename,Lateral Band Walk,레터럴 밴드 워크,밴드 레터럴 워크,band,glutes,,strength,weight,lateral_band_walk,레터럴 밴드 워크;밴드 워크;몬스터 워크;사이드 밴드 워크;밴드 사이드 스텝,lateral band walk;monster walk,,,,fedb:Monster_Walk,,fedb 신규 매칭
+keep,Dead Bug,데드 버그,데드 버그,bodyweight,abs,,strength,bodyweight,dead_bug,데드벅,deadbug,,,,fedb:Dead_Bug,,
+keep,V Sit Up,V 싯업,V 싯업,bodyweight,abs,,strength,bodyweight,v_sit_up,브이 싯업;V업;잭나이프 싯업,v up;jackknife sit up,,,,fedb:Jackknife_Sit-Up,,
+keep,Hollow Rock,할로우 락,할로우 락,bodyweight,abs,,strength,bodyweight,hollow_rock,할로우 바디;할로우 홀드,hollow body hold,,,,gen,,
+keep,Flutter Kick,플러터 킥,플러터 킥,bodyweight,abs,,strength,bodyweight,flutter_kick,,flutter kicks,,,,fedb:Flutter_Kicks,,
+keep,Scissor Kick,시저 킥,시저 킥,bodyweight,abs,,strength,bodyweight,scissor_kick,가위차기,scissor kicks,,,,fedb:Scissor_Kick,,
+keep,Toe Touch,토 터치,토 터치,bodyweight,abs,,strength,bodyweight,toe_touch,,toe touchers,,,,fedb:Toe_Touchers,,
+keep,Heel Tap,힐 터치,힐 터치,bodyweight,abs,,strength,bodyweight,heel_tap,힐 탭,heel touch,,,,fedb:Alternate_Heel_Touchers,,
+keep,Side Crunch,사이드 크런치,사이드 크런치,bodyweight,abs,,strength,bodyweight,side_crunch,오블리크 크런치;옆구리 크런치,oblique crunch,,,,fedb:Oblique_Crunches,,
+rename,Side Bend,사이드 벤드,덤벨 사이드 벤드,dumbbell,abs,,strength,weight,side_bend,사이드 벤드;덤벨 옆구리,dumbbell side bend,,,,fedb:Dumbbell_Side_Bend,,
+keep,Decline Crunch,디클라인 크런치,디클라인 크런치,bodyweight,abs,,strength,bodyweight,decline_crunch,디클라인 벤치 크런치,decline bench crunch,,,,fedb:Decline_Crunch,,
+keep,Lying Knee Raise,라잉 니 레이즈,라잉 니 레이즈,bodyweight,abs,,strength,bodyweight,lying_knee_raise,누워서 무릎 들기,lying knee tuck,,,,gen,,
+keep,Hanging Knee Raise,행잉 니 레이즈,행잉 니 레이즈,bodyweight,abs,,strength,bodyweight,hanging_knee_raise,매달려 무릎 들기,hanging knee tuck,,,,gen,,
+keep,Parallel Bar Knee Raise,패러럴 바 니 레이즈,패러럴 바 니 레이즈,other,abs,,strength,weight,parallel_bar_knee_raise,캡틴스 체어 니 레이즈;평행봉 니 레이즈;니업,captains chair knee raise,,,,fedb:Knee_Hip_Raise_On_Parallel_Bars,,
+keep,Parallel Bar Leg Raise,패러럴 바 레그 레이즈,패러럴 바 레그 레이즈,other,abs,,strength,weight,parallel_bar_leg_raise,캡틴스 체어 레그 레이즈;평행봉 레그 레이즈,captains chair leg raise,,,,gen,,
+keep,Dragon Flag,드래곤 플래그,드래곤 플래그,bodyweight,abs,fullBody,strength,bodyweight,dragon_flag,,dragon flags,,,,gen,,
+keep,Reverse Plank,리버스 플랭크,리버스 플랭크,bodyweight,abs,glutes;back,strength,bodyweight,reverse_plank,역플랭크,back plank,,,,gen,,
+keep,Elbow to Knee,엘보 투 니,엘보 투 니,bodyweight,abs,,strength,bodyweight,elbow_to_knee,엘보우 투 니,elbow to knee crunch,,,,fedb:Elbow_to_Knee,,
+keep,Spiderman Plank,스파이더맨 플랭크,스파이더맨 플랭크,bodyweight,abs,,strength,bodyweight,spiderman_plank,스파이더맨,spiderman plank crunch,,,,gen,,
+rename,Pallof Press,팔로프 프레스,케이블 팔로프 프레스,cable,abs,,strength,weight,pallof_press,팔로프 프레스;팰로프 프레스,pallof press;cable pallof press,,,,fedb:Pallof_Press,,
+keep,Landmine 180,랜드마인 180,랜드마인 180,barbell,abs,shoulders,strength,weight,landmine_180,랜드마인 트위스트;랜드마인 로테이션,landmine rotation,,,,fedb:Landmine_180s,,
+keep,Toes to Bar,토즈 투 바,토즈 투 바,bodyweight,abs,forearms,strength,bodyweight,toes_to_bar,T2B;토투바,T2B,,,,gen,,
+keep,L-Sit Hold,L-싯 홀드,L-싯 홀드,bodyweight,abs,triceps,strength,bodyweight,l_sit,엘싯;L싯;L 싯,l-sit,,,,gen,,
+rename,Torso Rotation Machine,토르소 로테이션 머신,머신 토르소 로테이션,machine,abs,,strength,weight,torso_rotation,토르소 로테이션 머신;로터리 토르소;몸통 회전 머신,torso rotation machine;rotary torso,,,,gen,,
+rename,Hang Clean,행 클린,바벨 행 클린,barbell,fullBody,back;quads,strength,weight,hang_clean,행 클린;행 파워 클린,hang clean;hang power clean,,,,fedb:Hang_Clean,,
+rename,Clean and Press,클린 앤 프레스,바벨 클린 앤 프레스,barbell,fullBody,shoulders;quads,strength,weight,clean_and_press,클린 앤 프레스,clean and press,,,,fedb:Clean_and_Press,,
+rename,Clean Pull,클린 풀,바벨 클린 풀,barbell,fullBody,back;traps,strength,weight,clean_pull,클린 풀,clean pull,,,,fedb:Clean_Pull,,
+rename,Power Snatch,파워 스내치,바벨 파워 스내치,barbell,fullBody,shoulders;back,strength,weight,power_snatch,파워 스내치,power snatch,,,,fedb:Power_Snatch,,
+rename,Hang Snatch,행 스내치,바벨 행 스내치,barbell,fullBody,shoulders;back,strength,weight,hang_snatch,행 스내치,hang snatch,,,,fedb:Hang_Snatch,,
+rename,Split Jerk,스플릿 저크,바벨 스플릿 저크,barbell,fullBody,shoulders;quads,strength,weight,split_jerk,스플릿 저크,split jerk,,,,fedb:Split_Jerk,,
+rename,Press Under,프레스 언더,바벨 프레스 언더,barbell,fullBody,shoulders,strength,weight,press_under,프레스 언더;스내치 프레스,snatch press,,,,gen,,
+keep,Landmine Squat to Press,랜드마인 스쿼트 앤 프레스,랜드마인 스쿼트 앤 프레스,barbell,fullBody,quads;shoulders,strength,weight,landmine_squat_press,랜드마인 쓰러스터,landmine thruster,,,,gen,,
+keep,Kettlebell High Pull,케틀벨 하이 풀,케틀벨 하이 풀,kettlebell,fullBody,traps;shoulders,strength,weight,kettlebell_high_pull,케틀벨 스모 하이 풀,kettlebell sumo high pull,,,,fedb:Kettlebell_Sumo_High_Pull,,
+rename,Turkish Get Up,터키시 겟업,케틀벨 터키시 겟업,kettlebell,fullBody,abs;shoulders,strength,weight,turkish_get_up,터키시 겟업;터겟,turkish get up;TGU,,,,fedb:Kettlebell_Turkish_Get-Up_Lunge_style,,
+keep,Kettlebell Around the World,케틀벨 어라운드 더 월드,케틀벨 어라운드 더 월드,kettlebell,fullBody,abs,strength,weight,kettlebell_around_world,케틀벨 어라운드,kettlebell around the body,,,,gen,,
+keep,Sled Push,슬레드 푸시,슬레드 푸시,other,fullBody,quads,strength,weight,sled_push,썰매 밀기;슬레드,prowler push,,,,fedb:Sled_Push,,
+keep,Sled Pull,슬레드 풀,슬레드 풀,other,fullBody,back,strength,weight,sled_pull,썰매 끌기;슬레드 드래그,sled drag,,,,gen,,
+rename,Suitcase Carry,수트케이스 캐리,덤벨 수트케이스 캐리,dumbbell,fullBody,forearms;abs,strength,weight,suitcase_carry,수트케이스 캐리;한손 파머스,suitcase carry,,,farmers_walk,gen,,한 손이 동작 정의(반측 하중 코어 저항) — S1 예외
+keep,Wall Ball,월 볼,월 볼,other,fullBody,quads;shoulders,strength,weight,wall_ball,월 볼 샷,wall ball shot,,,,gen,,
+keep,Medicine Ball Slam,메디신 볼 슬램,메디신 볼 슬램,other,fullBody,abs,strength,weight,ball_slam,볼 슬램;슬램볼,ball slam;slam ball,,,,fedb:Overhead_Slam,,fedb 신규 매칭
+keep,Bear Crawl,베어 크롤,베어 크롤,bodyweight,fullBody,abs;shoulders,strength,bodyweight,bear_crawl,곰 걷기,bear crawls,,,,gen,,
+keep,Front Lever Hold,프론트 레버 홀드,프론트 레버 홀드,bodyweight,back,abs,strength,bodyweight,front_lever,프론트 레버,front lever,,,,gen,,
+keep,Burpee Broad Jump,버피 브로드 점프,버피 브로드 점프,bodyweight,fullBody,,strength,bodyweight,burpee_broad_jump,버피 멀리뛰기,burpee broad jumps,,,,gen,,
+keep,Burpee Over the Bar,버피 오버 더 바,버피 오버 더 바,bodyweight,fullBody,,strength,bodyweight,burpee_over_bar,바 넘기 버피,bar facing burpee,,,,gen,,
+keep,Jumping Jack,점핑 잭,점핑 잭,bodyweight,fullBody,calves,strength,bodyweight,jumping_jack,팔벌려뛰기;팔 벌려 뛰기,jumping jacks,,,,gen,,
+keep,High Knees,하이 니,하이 니,bodyweight,fullBody,quads;calves,strength,bodyweight,high_knees,제자리 무릎 높이 뛰기,high knee run,,,,gen,,
+keep,Front Lever Raise,프론트 레버 레이즈,프론트 레버 레이즈,bodyweight,back,abs,strength,bodyweight,front_lever_raise,프론트 레버 풀,front lever pull,,,,gen,,
+keep,Swimming,수영,수영,bodyweight,fullBody,back;shoulders,cardio,bodyweight,cardio,수영 운동,swim,,,,none,,
+keep,Boxing,복싱,복싱,bodyweight,fullBody,shoulders;abs,cardio,bodyweight,cardio,권투,boxing workout,,,,none,,
+keep,Climbing,클라이밍,클라이밍,bodyweight,fullBody,back;forearms,cardio,bodyweight,cardio,볼더링;암벽 등반,bouldering;rock climbing,,,,none,,
+keep,Hiking,하이킹,하이킹,bodyweight,fullBody,quads;calves,cardio,bodyweight,cardio,등산,hike,,,,none,,
+keep,Sprint,스프린트,스프린트,bodyweight,fullBody,quads;hamstrings,cardio,bodyweight,cardio,전력질주;단거리 달리기,sprints,,,,none,,
+keep,Outdoor Cycling,야외 사이클,야외 사이클,other,quads,calves,cardio,weight,cardio,자전거;라이딩;로드 자전거,cycling;bike ride,,,,none,,
+keep,Recumbent Bike,리컴번트 바이크,리컴번트 바이크,machine,quads,calves,cardio,weight,cardio,리컴번트;좌식 자전거,recumbent cycle,,,,none,,
+keep,HIIT,히트 (HIIT),히트 (HIIT),bodyweight,fullBody,,cardio,bodyweight,cardio,히트;인터벌;고강도 인터벌,interval training,,,,none,,괄호값이 기구가 아님 — 이름 예외 허용(유산소)
+keep,Aerobics,에어로빅,에어로빅,bodyweight,fullBody,,cardio,bodyweight,cardio,에어로빅스,aerobic dance,,,,none,,
+keep,Yoga,요가,요가,bodyweight,fullBody,,cardio,bodyweight,cardio,요가 운동,yoga flow,,,,none,,
+keep,Pilates,필라테스,필라테스,bodyweight,fullBody,abs,cardio,bodyweight,cardio,필라테스 운동,pilates workout,,,,none,,
+keep,Skating,스케이팅,스케이팅,other,quads,glutes,cardio,weight,cardio,인라인;스케이트,inline skating,,,,none,,
+keep,Skiing,스키,스키,other,quads,glutes,cardio,weight,cardio,스키 타기,ski,,,,none,,
+keep,Snowboarding,스노우보드,스노우보드,other,quads,glutes;abs,cardio,weight,cardio,보드;스노보드,snowboard,,,,none,,
+keep,Stretching,스트레칭,스트레칭,bodyweight,fullBody,,cardio,bodyweight,cardio,몸풀기;스트레칭 운동,stretch,,,,none,,
+new,Cable Incline Fly,,케이블 인클라인 플라이,cable,chest,shoulders,strength,weight,incline_fly,인클라인 케이블 플라이;인클라인 케이블 크로스오버,incline cable fly,,,chest_fly;low_to_high_fly,fedb:Incline_Cable_Flye,,사용자 예시 갭
+new,Cable Lying Fly,,케이블 라잉 플라이,cable,chest,,strength,weight,chest_fly,플랫 벤치 케이블 플라이;라잉 케이블 플라이,flat bench cable fly,,,cable_crossover;incline_fly;decline_fly;seated_cable_fly,fedb:Flat_Bench_Cable_Flyes,,
+new,Dumbbell Floor Press,,덤벨 플로어 프레스,dumbbell,chest,triceps,strength,weight,floor_press,덤벨 바닥 프레스,dumbbell floor press,,,bench_press,fedb:Dumbbell_Floor_Press,,기존 '덤벨=변형 축' 주석 → 별도 종목으로 전환
+new,Cable Incline Chest Press,,케이블 인클라인 프레스,cable,chest,shoulders;triceps,strength,weight,incline_press,인클라인 케이블 프레스;인클라인 케이블 체스트 프레스,incline cable chest press,,,bench_press;decline_press;incline_fly,fedb:Incline_Cable_Chest_Press,,
+new,Band Chest Press,,밴드 체스트 프레스,band,chest,triceps,strength,weight,chest_press,밴드 프레스;튜빙 체스트 프레스,band chest press,,,bench_press;seated_cable_chest_press;incline_press,gen,,
+new,Barbell Pullover,,바벨 풀오버,barbell,back,chest,strength,weight,pullover,벤트암 바벨 풀오버,barbell pullover,,,straight_arm_pulldown,fedb:Bent-Arm_Barbell_Pullover,,
+new,Dumbbell Close Grip Press,,덤벨 클로즈그립 프레스,dumbbell,triceps,chest,strength,weight,close_grip_bench_press,덤벨 클로즈 프레스;덤벨 내로우 프레스,close grip dumbbell press,,,bench_press;jm_press;diamond_push_up,fedb:Close-Grip_Dumbbell_Press,,
+new,Smith Close Grip Bench Press,,스미스 클로즈그립 벤치프레스,smith,triceps,chest,strength,weight,close_grip_bench_press,스미스 클로즈 벤치;스미스 클로즈 그립 벤치,smith close grip bench press,,,bench_press;jm_press;diamond_push_up,fedb:Smith_Machine_Close-Grip_Bench_Press,,운영 CGBP+equip:smith 이관 대상
+new,EZ-Bar Close Grip Press,,EZ바 클로즈그립 프레스,ezbar,triceps,chest,strength,weight,close_grip_bench_press,이지바 클로즈그립 프레스;이지바 클로즈 프레스,close grip ez bar press,,,bench_press;jm_press;diamond_push_up,fedb:Close-Grip_EZ-Bar_Press,,
+new,Trap Bar Deadlift,,트랩바 데드리프트,trapbar,back,glutes;quads;hamstrings,strength,weight,deadlift,헥스바 데드리프트;헥스바 데드;트랩바 데드;육각바 데드리프트,trap bar deadlift;hex bar deadlift,,,sumo_deadlift;rack_pull;deficit_deadlift;romanian_deadlift,fedb:Trap_Bar_Deadlift,,기구 trapbar 신설 제안
+new,Dumbbell Deadlift,,덤벨 데드리프트,dumbbell,back,glutes;hamstrings,strength,weight,deadlift,덤벨 데드,dumbbell deadlift,,,sumo_deadlift;rack_pull;deficit_deadlift;romanian_deadlift,gen,,
+new,Kettlebell Deadlift,,케틀벨 데드리프트,kettlebell,back,glutes;hamstrings,strength,weight,deadlift,케틀벨 데드,kettlebell deadlift,,,sumo_deadlift;rack_pull;deficit_deadlift;romanian_deadlift,gen,,
+new,Smith Deadlift,,스미스 데드리프트,smith,back,glutes;hamstrings,strength,weight,deadlift,스미스 데드,smith deadlift,,,sumo_deadlift;rack_pull;deficit_deadlift;romanian_deadlift,gen,,
+new,Deficit Deadlift,,바벨 데피싯 데드리프트,barbell,back,glutes;hamstrings,strength,weight,deficit_deadlift,데피싯 데드리프트;디피싯 데드,deficit deadlift,,,deadlift,fedb:Deficit_Deadlift,,
+new,Kettlebell Sumo Deadlift,,케틀벨 스모 데드리프트,kettlebell,glutes,quads;hamstrings,strength,weight,sumo_deadlift,케틀벨 스모 데드,kettlebell sumo deadlift,,,deadlift;sumo_squat,gen,,
+new,Dumbbell Bent Over Row,,덤벨 벤트오버 로우,dumbbell,back,biceps,strength,weight,bent_over_row,투암 덤벨 로우;양손 덤벨 로우,dumbbell bent over row;two arm dumbbell row,,,pendlay_row;t_bar_row;seal_row;chest_supported_row;one_arm_row,fedb:Bent_Over_Two-Dumbbell_Row,,
+new,Kettlebell One Arm Row,,케틀벨 원암 로우,kettlebell,back,biceps,strength,weight,one_arm_row,케틀벨 로우,kettlebell row,,,bent_over_row;meadows_row;seated_row,fedb:One-Arm_Kettlebell_Row,,
+new,Machine Lat Pulldown,,머신 랫풀다운,machine,back,biceps,strength,weight,lat_pulldown,플레이트 랫풀다운;랫풀다운 머신;머신 풀다운;아이소 래터럴 풀다운,machine lat pulldown;iso-lateral pulldown,,,pull_up;chin_up;assisted_pull_up;straight_arm_pulldown;high_row,gen,,사용자 예시 갭. 운영 랫 풀다운+cybex/hammer 이관 대상
+new,Band Lat Pulldown,,밴드 랫풀다운,band,back,biceps,strength,weight,lat_pulldown,밴드 풀다운,band lat pulldown,,,pull_up;chin_up;assisted_pull_up;straight_arm_pulldown;high_row,gen,,
+new,Cable High Row,,케이블 하이 로우,cable,back,biceps,strength,weight,high_row,닐링 하이 풀리 로우;닐링 케이블 로우,kneeling high pulley row,,,seated_row;lat_pulldown,fedb:Kneeling_High_Pulley_Row,,
+new,Band Seated Row,,밴드 시티드 로우,band,back,biceps,strength,weight,seated_row,밴드 로우;튜빙 로우,band row,,,low_row;chest_supported_row;high_row,gen,,
+new,Ring Row,,링 로우,other,back,biceps,strength,weight,inverted_row,TRX 로우;서스펜션 로우,TRX row;suspension row,,,bent_over_row;pull_up,fedb:Suspended_Row,,
+new,Band Assisted Pull Up,,밴드 어시스트 풀업,band,back,biceps,strength,assisted,assisted_pull_up,밴드 풀업;밴드 턱걸이;밴드 보조 턱걸이,band assisted pull up,,,pull_up;lat_pulldown,fedb:Band_Assisted_Pull-Up,,
+new,Band Good Morning,,밴드 굿모닝,band,hamstrings,back;glutes,strength,weight,good_morning,,band good morning,,,romanian_deadlift;back_extension,fedb:Band_Good_Morning,,
+new,Dumbbell Seal Row,,덤벨 씰 로우,dumbbell,back,biceps,strength,weight,seal_row,,dumbbell seal row,,,chest_supported_row;bent_over_row,gen,,기존 '덤벨=변형 축' 주석 → 별도 종목
+new,Band Face Pull,,밴드 페이스 풀,band,shoulders,traps,strength,weight,face_pull,,band face pull,,,rear_delt_fly;band_pull_apart,gen,,
+new,Trap Bar Shrug,,트랩바 슈러그,trapbar,traps,,strength,weight,shrug,헥스바 슈러그,trap bar shrug,,,upright_row,gen,,
+new,Band Straight Arm Pulldown,,밴드 스트레이트 암 풀다운,band,back,,strength,weight,straight_arm_pulldown,밴드 암풀다운,band straight arm pulldown,,,pullover,gen,,
+new,Kettlebell Renegade Row,,케틀벨 레니게이드 로우,kettlebell,back,abs;biceps,strength,weight,renegade_row,,kettlebell renegade row,,,,fedb:Alternating_Renegade_Row,,
+new,Kettlebell Shoulder Press,,케틀벨 숄더 프레스,kettlebell,shoulders,triceps,strength,weight,overhead_press,케틀벨 프레스;케틀벨 밀리터리 프레스,kettlebell press,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Two-Arm_Kettlebell_Military_Press,,
+new,Band Shoulder Press,,밴드 숄더 프레스,band,shoulders,triceps,strength,weight,overhead_press,밴드 오버헤드 프레스,band shoulder press,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Shoulder_Press_-_With_Bands,,
+new,Cable Shoulder Press,,케이블 숄더 프레스,cable,shoulders,triceps,strength,weight,overhead_press,,cable shoulder press,,,arnold_press;push_press;landmine_press;behind_neck_press,fedb:Cable_Shoulder_Press,,
+new,Barbell Behind the Neck Press,,바벨 비하인드 넥 프레스,barbell,shoulders,triceps,strength,weight,behind_neck_press,비하인드 넥 프레스;비하인드 넥;BTN 프레스,behind the neck press,,,overhead_press,fedb:Standing_Barbell_Press_Behind_Neck,,
+new,Smith Upright Row,,스미스 업라이트 로우,smith,shoulders,traps,strength,weight,upright_row,,smith upright row,,,lateral_raise;shrug,fedb:Smith_Machine_Upright_Row,,
+new,EZ-Bar Upright Row,,EZ바 업라이트 로우,ezbar,shoulders,traps,strength,weight,upright_row,이지바 업라이트 로우,ez bar upright row,,,lateral_raise;shrug,gen,,
+new,Band Lateral Raise,,밴드 레터럴 레이즈,band,shoulders,,strength,weight,lateral_raise,밴드 사레레;밴드 사이드 레이즈,band lateral raise,,,upright_row;y_raise,fedb:Lateral_Raise_-_With_Bands,,
+new,Band Rear Delt Fly,,밴드 리어 델트 플라이,band,shoulders,traps,strength,weight,rear_delt_fly,밴드 리버스 플라이,band reverse fly,,,face_pull;band_pull_apart,fedb:Back_Flyes_-_With_Bands,,
+new,Cable External Rotation,,케이블 외회전,cable,shoulders,,strength,weight,external_rotation,케이블 익스터널 로테이션;외회전;로테이터 커프,cable external rotation,,,internal_rotation,fedb:External_Rotation_with_Cable,,
+new,Dumbbell External Rotation,,덤벨 외회전,dumbbell,shoulders,,strength,weight,external_rotation,덤벨 익스터널 로테이션;사이드라잉 외회전,dumbbell external rotation,,,internal_rotation,fedb:External_Rotation,,
+new,Band External Rotation,,밴드 외회전,band,shoulders,,strength,weight,external_rotation,밴드 익스터널 로테이션,band external rotation,,,internal_rotation,fedb:External_Rotation_with_Band,,
+new,Cable Internal Rotation,,케이블 내회전,cable,shoulders,,strength,weight,internal_rotation,케이블 인터널 로테이션;내회전,cable internal rotation,,,external_rotation,fedb:Cable_Internal_Rotation,,
+new,Dumbbell Push Press,,덤벨 푸시 프레스,dumbbell,shoulders,triceps;quads,strength,weight,push_press,,dumbbell push press,,,overhead_press;thruster,gen,,
+new,Kettlebell Push Press,,케틀벨 푸시 프레스,kettlebell,shoulders,triceps;quads,strength,weight,push_press,더블 케틀벨 푸시 프레스,double kettlebell push press,,,overhead_press;thruster,fedb:Double_Kettlebell_Push_Press,,
+new,Machine Preacher Curl,,머신 프리처 컬,machine,biceps,,strength,weight,preacher_curl,프리처 컬 머신;프리쳐 머신,machine preacher curl,,,curl;spider_curl;concentration_curl,fedb:Machine_Preacher_Curls,,사용자 예시 갭. 운영 프리처 컬+equip:machine 이관 대상
+new,Cable Preacher Curl,,케이블 프리처 컬,cable,biceps,,strength,weight,preacher_curl,,cable preacher curl,,,curl;spider_curl;concentration_curl,fedb:Cable_Preacher_Curl,,사용자 예시 갭
+new,EZ-Bar Preacher Curl,,EZ바 프리처 컬,ezbar,biceps,,strength,weight,preacher_curl,이지바 프리처 컬,ez bar preacher curl,,,curl;spider_curl;concentration_curl,gen,,
+new,Band Curl,,밴드 컬,band,biceps,,strength,weight,curl,밴드 바이셉스 컬;튜빙 컬,band curl,,,hammer_curl;preacher_curl;incline_curl;spider_curl;concentration_curl,gen,,
+new,EZ-Bar Spider Curl,,EZ바 스파이더 컬,ezbar,biceps,,strength,weight,spider_curl,이지바 스파이더 컬,ez bar spider curl,,,preacher_curl,fedb:Spider_Curl,,
+new,EZ-Bar Reverse Curl,,EZ바 리버스 컬,ezbar,forearms,biceps,strength,weight,reverse_curl,이지바 리버스 컬,ez bar reverse curl,,,hammer_curl;reverse_wrist_curl,gen,,
+new,Barbell Overhead Triceps Extension,,바벨 오버헤드 트라이셉스 익스텐션,barbell,triceps,,strength,weight,overhead_triceps_extension,바벨 오버헤드 익스텐션;스탠딩 바벨 익스텐션,barbell overhead triceps extension,,,machine_arm_extension;skull_crusher;pushdown,fedb:Standing_Overhead_Barbell_Triceps_Extension,,운영 OHE+equip:barbell 2건 이관 대상
+new,EZ-Bar Overhead Triceps Extension,,EZ바 오버헤드 트라이셉스 익스텐션,ezbar,triceps,,strength,weight,overhead_triceps_extension,이지바 오버헤드 익스텐션;EZ바 오버헤드 익스텐션,ez bar overhead extension,,,machine_arm_extension;skull_crusher;pushdown,gen,,
+new,Kettlebell Overhead Triceps Extension,,케틀벨 오버헤드 트라이셉스 익스텐션,kettlebell,triceps,,strength,weight,overhead_triceps_extension,케틀벨 오버헤드 익스텐션,kettlebell overhead extension,,,machine_arm_extension;skull_crusher;pushdown,fedb:Kettlebell_Overhead_Triceps_Extension,,
+new,Band Overhead Triceps Extension,,밴드 오버헤드 트라이셉스 익스텐션,band,triceps,,strength,weight,overhead_triceps_extension,밴드 오버헤드 익스텐션,band overhead extension,,,machine_arm_extension;skull_crusher;pushdown,gen,,
+new,EZ-Bar Skull Crusher,,EZ바 스컬크러셔,ezbar,triceps,,strength,weight,skull_crusher,이지바 스컬크러셔;EZ바 라잉 트라이셉스 익스텐션;이지바 라잉 익스텐션,ez bar skull crusher;ez bar lying triceps extension,,,triceps_extension;jm_press,fedb:EZ-Bar_Skullcrusher,,사용자 확정 별칭(스컬크러셔=라잉 트라이셉스 익스텐션)
+new,Cable Skull Crusher,,케이블 스컬크러셔,cable,triceps,,strength,weight,skull_crusher,케이블 라잉 트라이셉스 익스텐션,cable lying triceps extension,,,triceps_extension;jm_press,fedb:Cable_Lying_Triceps_Extension,,
+new,Band Pushdown,,밴드 푸시다운,band,triceps,,strength,weight,pushdown,밴드 삼두 푸시다운,band pushdown,,,triceps_extension;triceps_kickback,gen,,
+new,Dumbbell Reverse Wrist Curl,,덤벨 리버스 리스트 컬,dumbbell,forearms,,strength,weight,reverse_wrist_curl,덤벨 리버스 손목 컬,dumbbell reverse wrist curl,,,wrist_curl,fedb:Seated_Dumbbell_Palms-Down_Wrist_Curl,,
+new,Cable Wrist Curl,,케이블 리스트 컬,cable,forearms,,strength,weight,wrist_curl,케이블 손목 컬,cable wrist curl,,,reverse_wrist_curl,fedb:Cable_Wrist_Curl,,
+new,Trap Bar Farmer's Walk,,트랩바 파머스 워크,trapbar,forearms,traps,strength,weight,farmers_walk,헥스바 파머스 워크;트랩바 캐리,trap bar carry,,,suitcase_carry,gen,,
+new,Kettlebell Farmer's Walk,,케틀벨 파머스 워크,kettlebell,forearms,traps,strength,weight,farmers_walk,케틀벨 캐리,kettlebell farmers walk,,,suitcase_carry,gen,,
+new,Plate Pinch,,플레이트 핀치,other,forearms,,strength,weight,plate_pinch,원판 핀치;핀치 그립,plate pinch,,,,fedb:Plate_Pinch,,
+new,Dumbbell Overhead Carry,,덤벨 오버헤드 캐리,dumbbell,shoulders,abs,strength,weight,overhead_carry,오버헤드 캐리;웨이터 캐리,overhead carry;waiter walk,,,,gen,,
+new,Dumbbell Squat,,덤벨 스쿼트,dumbbell,quads,glutes,strength,weight,squat,덤벨 스쿼드;덤벨 백 스쿼트,dumbbell squat,,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,fedb:Dumbbell_Squat,,사용자 예시 갭
+new,Air Squat,,에어 스쿼트,bodyweight,quads,glutes,strength,bodyweight,squat,맨몸 스쿼트;바디웨이트 스쿼트;프리 스쿼트,air squat;bodyweight squat,,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,fedb:Bodyweight_Squat,,
+new,Band Squat,,밴드 스쿼트,band,quads,glutes,strength,weight,squat,,band squat,,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,fedb:Squats_-_With_Bands,,
+new,Safety Bar Squat,,세이프티바 스쿼트,other,quads,glutes;back,strength,weight,squat,SSB 스쿼트;세이프티 스쿼트 바,safety bar squat;SSB squat,,,front_squat;box_squat;pause_squat;hack_squat;goblet_squat;leg_press,gen,,
+new,Kettlebell Goblet Squat,,케틀벨 고블릿 스쿼트,kettlebell,quads,glutes,strength,weight,goblet_squat,케틀벨 고블렛 스쿼트,kettlebell goblet squat,,,front_squat;squat,fedb:Goblet_Squat,,
+new,Dumbbell Front Squat,,덤벨 프론트 스쿼트,dumbbell,quads,glutes,strength,weight,front_squat,,dumbbell front squat,,,squat;goblet_squat,gen,,
+new,Kettlebell Front Squat,,케틀벨 프론트 스쿼트,kettlebell,quads,glutes,strength,weight,front_squat,더블 케틀벨 프론트 스쿼트,double kettlebell front squat,,,squat;goblet_squat,fedb:Front_Squats_With_Two_Kettlebells,,
+new,Smith Front Squat,,스미스 프론트 스쿼트,smith,quads,glutes,strength,weight,front_squat,,smith front squat,,,squat;goblet_squat,gen,,
+new,Landmine Squat,,랜드마인 스쿼트,barbell,quads,glutes,strength,weight,landmine_squat,,landmine squat,,,,gen,,
+new,Barbell Sumo Squat,,바벨 스모 스쿼트,barbell,quads,glutes,strength,weight,sumo_squat,바벨 와이드 스쿼트,barbell sumo squat;wide stance squat,,,sumo_deadlift;squat,fedb:Wide_Stance_Barbell_Squat,,
+new,Kettlebell Sumo Squat,,케틀벨 스모 스쿼트,kettlebell,quads,glutes,strength,weight,sumo_squat,,kettlebell sumo squat,,,sumo_deadlift;squat,gen,,
+new,Seated Leg Press,,시티드 레그 프레스,machine,quads,glutes,strength,weight,seated_leg_press,호리존탈 레그 프레스;수평 레그 프레스,seated leg press;horizontal leg press,,,leg_press,gen,,45도 레그 프레스와 다른 머신(좌식·수평)
+new,Machine V Squat,,머신 V 스쿼트,machine,quads,glutes,strength,weight,v_squat,브이 스쿼트;V스쿼트 머신,v squat machine,,,,gen,,
+new,Barbell Hack Squat,,바벨 핵 스쿼트,barbell,quads,glutes,strength,weight,hack_squat,비하인드 바벨 핵 스쿼트,barbell hack squat,,,squat;pendulum_squat;leg_press,fedb:Barbell_Hack_Squat,,
+new,Barbell Step Up,,바벨 스텝업,barbell,quads,glutes,strength,weight,step_up,,barbell step up,,,lunge,fedb:Barbell_Step_Ups,,
+new,Barbell Walking Lunge,,바벨 워킹 런지,barbell,quads,glutes,strength,weight,walking_lunge,,barbell walking lunge,,,lunge,fedb:Barbell_Walking_Lunge,,
+new,Dumbbell Reverse Lunge,,덤벨 리버스 런지,dumbbell,quads,glutes,strength,weight,reverse_lunge,덤벨 백 런지,dumbbell reverse lunge,,,lunge,fedb:Dumbbell_Rear_Lunge,,
+new,Barbell Reverse Lunge,,바벨 리버스 런지,barbell,quads,glutes,strength,weight,reverse_lunge,바벨 백 런지,barbell reverse lunge,,,lunge,gen,,
+new,Smith Reverse Lunge,,스미스 리버스 런지,smith,quads,glutes,strength,weight,reverse_lunge,스미스 백 런지,smith reverse lunge,,,lunge,gen,,
+new,Dumbbell Lateral Lunge,,덤벨 레터럴 런지,dumbbell,quads,glutes,strength,weight,lateral_lunge,덤벨 사이드 런지,dumbbell lateral lunge,,,,gen,,
+new,Smith Split Squat,,스미스 스플릿 스쿼트,smith,quads,glutes,strength,weight,split_squat,,smith split squat,,,bulgarian_split_squat;lunge,fedb:Smith_Single-Leg_Split_Squat,,
+new,Barbell Split Squat,,바벨 스플릿 스쿼트,barbell,quads,glutes,strength,weight,split_squat,,barbell split squat,,,bulgarian_split_squat;lunge,gen,,
+new,Reverse Nordic,,리버스 노르딕,bodyweight,quads,,strength,bodyweight,reverse_nordic,리버스 노르딕 컬,reverse nordic curl,,,,gen,,
+new,Smith Romanian Deadlift,,스미스 루마니안 데드리프트,smith,hamstrings,glutes;back,strength,weight,romanian_deadlift,스미스 RDL;스미스 루마니안,smith RDL,,,stiff_leg_deadlift;good_morning,gen,,사용자 예시 갭(메모리상 과거 추가 이력·현 시드 부재)
+new,Kettlebell Romanian Deadlift,,케틀벨 루마니안 데드리프트,kettlebell,hamstrings,glutes;back,strength,weight,romanian_deadlift,케틀벨 RDL,kettlebell RDL,,,stiff_leg_deadlift;good_morning,gen,,
+new,Dumbbell Stiff Leg Deadlift,,덤벨 스티프 레그 데드리프트,dumbbell,hamstrings,glutes,strength,weight,stiff_leg_deadlift,덤벨 스티프 데드;덤벨 SLDL,dumbbell stiff leg deadlift,,,romanian_deadlift,fedb:Stiff-Legged_Dumbbell_Deadlift,,
+new,Smith Stiff Leg Deadlift,,스미스 스티프 레그 데드리프트,smith,hamstrings,glutes,strength,weight,stiff_leg_deadlift,스미스 스티프 데드,smith stiff leg deadlift,,,romanian_deadlift,fedb:Smith_Machine_Stiff-Legged_Deadlift,,
+new,Stability Ball Leg Curl,,짐볼 레그 컬,other,hamstrings,glutes,strength,weight,ball_leg_curl,스위스볼 레그 컬;볼 레그컬,stability ball leg curl,,,,fedb:Ball_Leg_Curl,,
+new,Dumbbell Lying Leg Curl,,덤벨 라잉 레그 컬,dumbbell,hamstrings,,strength,weight,lying_leg_curl,덤벨 레그컬,dumbbell leg curl,,,seated_leg_curl;standing_leg_curl;nordic_curl,gen,,
+new,Bodyweight Glute Bridge,,글루트 브릿지,bodyweight,glutes,hamstrings,strength,bodyweight,glute_bridge,힙 브릿지;브릿지;엉덩이 들기,glute bridge;hip bridge,,,hip_thrust;frog_pump,fedb:Butt_Lift_Bridge,,대표명이 기존 바벨 종목의 옛 이름과 같음(서버 UNIQUE(name_ko) rename 순서 주의)
+new,Dumbbell Glute Bridge,,덤벨 글루트 브릿지,dumbbell,glutes,hamstrings,strength,weight,glute_bridge,,dumbbell glute bridge,,,hip_thrust;frog_pump,gen,,
+new,Band Hip Abduction,,밴드 힙 어브덕션,band,glutes,,strength,weight,hip_abduction,밴드 아웃타이;밴드 시티드 어브덕션,band hip abduction,,,lateral_band_walk;fire_hydrant;clamshell,gen,,
+new,Band Glute Kickback,,밴드 글루트 킥백,band,glutes,,strength,weight,glute_kickback,밴드 킥백;밴드 동키킥,band kickback,,,hip_thrust,gen,,
+new,Copenhagen Plank,,코펜하겐 플랭크,bodyweight,glutes,abs,strength,bodyweight,copenhagen_plank,코펜하겐;내전근 플랭크,copenhagen plank,,,,gen,,내전근 부위 없음 → 어덕션과 같은 glutes 배정
+new,Smith Calf Raise,,스미스 카프 레이즈,smith,calves,,strength,weight,calf_raise,,smith calf raise,,,seated_calf_raise;leg_press_calf_raise,fedb:Smith_Machine_Calf_Raise,,
+new,Barbell Calf Raise,,바벨 카프 레이즈,barbell,calves,,strength,weight,calf_raise,바벨 스탠딩 카프 레이즈,barbell calf raise,,,seated_calf_raise;leg_press_calf_raise,fedb:Standing_Barbell_Calf_Raise,,
+new,Bodyweight Calf Raise,,카프 레이즈,bodyweight,calves,,strength,bodyweight,calf_raise,까치발 들기;맨몸 카프 레이즈;종아리 운동,calf raise;bodyweight calf raise,,,seated_calf_raise;leg_press_calf_raise,gen,,
+new,Dumbbell Seated Calf Raise,,덤벨 시티드 카프 레이즈,dumbbell,calves,,strength,weight,seated_calf_raise,,dumbbell seated calf raise,,,calf_raise,gen,,
+new,Barbell Seated Calf Raise,,바벨 시티드 카프 레이즈,barbell,calves,,strength,weight,seated_calf_raise,,barbell seated calf raise,,,calf_raise,fedb:Barbell_Seated_Calf_Raise,,
+new,Donkey Calf Raise,,머신 동키 카프 레이즈,machine,calves,,strength,weight,donkey_calf_raise,동키 카프 레이즈;동키 카프,donkey calf raise,,,,gen,,fedb 동키는 파트너 탑승형(기구 other)
+new,Barbell Rollout,,바벨 롤아웃,barbell,abs,,strength,weight,ab_rollout,바벨 앱 롤아웃,barbell rollout,,,,fedb:Barbell_Ab_Rollout,,
+new,Band Pallof Press,,밴드 팔로프 프레스,band,abs,,strength,weight,pallof_press,,band pallof press,,,,gen,,
+new,Cable Side Bend,,케이블 사이드 벤드,cable,abs,,strength,weight,side_bend,,cable side bend,,,,gen,,
+new,Band Woodchop,,밴드 우드촙,band,abs,,strength,weight,woodchop,밴드 우드찹,band woodchop,,,,gen,,
+new,Kettlebell Windmill,,케틀벨 윈드밀,kettlebell,abs,shoulders,strength,weight,kettlebell_windmill,윈드밀,kettlebell windmill,,,,fedb:Kettlebell_Windmill,,
+new,Exercise Ball Crunch,,짐볼 크런치,other,abs,,strength,weight,crunch,스위스볼 크런치;볼 크런치,exercise ball crunch,,,decline_crunch;sit_up;reverse_crunch,fedb:Exercise_Ball_Crunch,,
+new,Windshield Wiper,,윈드실드 와이퍼,bodyweight,abs,,strength,bodyweight,windshield_wiper,행잉 와이퍼;와이퍼,windshield wipers,,,,gen,,
+new,Archer Push Up,,아처 푸시업,bodyweight,chest,triceps,strength,bodyweight,archer_push_up,아처 푸쉬업,archer pushup,,,,gen,,한쪽 팔 편 측방 이동이 동작 정의 — 칼리스데닉스 예외
+new,Hindu Push Up,,힌두 푸시업,bodyweight,chest,shoulders;triceps,strength,bodyweight,hindu_push_up,힌두 푸쉬업;다이브 밤버 푸시업,hindu pushup;dive bomber push up,,,,gen,,
+new,Kettlebell Floor Press,,케틀벨 플로어 프레스,kettlebell,chest,triceps,strength,weight,floor_press,,kettlebell floor press,,,bench_press,gen,,
+new,Dumbbell Clean,,덤벨 클린,dumbbell,fullBody,back;quads,strength,weight,clean,,dumbbell clean,,,hang_clean;clean_pull;clean_and_jerk,fedb:Dumbbell_Clean,,
+new,Kettlebell Clean,,케틀벨 클린,kettlebell,fullBody,back;quads,strength,weight,clean,,kettlebell clean,,,hang_clean;clean_pull;clean_and_jerk,fedb:One-Arm_Kettlebell_Clean,,
+new,Dumbbell Snatch,,덤벨 스내치,dumbbell,fullBody,shoulders;back,strength,weight,snatch,원암 덤벨 스내치,dumbbell snatch,,,power_snatch;hang_snatch,gen,,
+new,Kettlebell Snatch,,케틀벨 스내치,kettlebell,fullBody,shoulders;back,strength,weight,snatch,,kettlebell snatch,,,power_snatch;hang_snatch,fedb:One-Arm_Kettlebell_Snatch,,
+new,Dumbbell Thruster,,덤벨 쓰러스터,dumbbell,fullBody,quads;shoulders,strength,weight,thruster,덤벨 스러스터,dumbbell thruster,,,front_squat;push_press,gen,,
+new,Kettlebell Thruster,,케틀벨 쓰러스터,kettlebell,fullBody,quads;shoulders,strength,weight,thruster,케틀벨 스러스터,kettlebell thruster,,,front_squat;push_press,fedb:Kettlebell_Thruster,,
+new,Power Jerk,,바벨 파워 저크,barbell,fullBody,shoulders;quads,strength,weight,power_jerk,파워 저크;푸시 저크,power jerk;push jerk,,,,fedb:Power_Jerk,,
+new,Broad Jump,,브로드 점프,bodyweight,quads,glutes,strength,bodyweight,broad_jump,제자리 멀리뛰기;멀리뛰기,broad jump;standing long jump,,,,fedb:Standing_Long_Jump,,
+new,Tuck Jump,,턱 점프,bodyweight,quads,glutes,strength,bodyweight,tuck_jump,무릎 점프,tuck jump,,,,fedb:Knee_Tuck_Jump,,
+new,Skater Jump,,스케이터 점프,bodyweight,glutes,quads,strength,bodyweight,skater_jump,스케이터;스피드 스케이터,skater jumps,,,,fedb:Lateral_Bound,,
+new,Band Deadlift,,밴드 데드리프트,band,back,glutes;hamstrings,strength,weight,deadlift,,band deadlift,,,sumo_deadlift;rack_pull;deficit_deadlift;romanian_deadlift,gen,,
+new,Cable Romanian Deadlift,,케이블 루마니안 데드리프트,cable,hamstrings,glutes;back,strength,weight,romanian_deadlift,케이블 RDL,cable RDL,,,stiff_leg_deadlift;good_morning,gen,,
+new,Band Leg Curl,,밴드 레그 컬,band,hamstrings,,strength,weight,seated_leg_curl,밴드 햄스트링 컬,band leg curl,,,lying_leg_curl,fedb:Seated_Band_Hamstring_Curl,,
+new,Band Hip Thrust,,밴드 힙 쓰러스트,band,glutes,hamstrings,strength,weight,hip_thrust,밴드 힙쓰,band hip thrust,,,glute_bridge,gen,,
+new,Dumbbell Swing,,덤벨 스윙,dumbbell,glutes,hamstrings;back,strength,weight,kettlebell_swing,,dumbbell swing,,,,gen,,
+new,Kettlebell Lunge,,케틀벨 런지,kettlebell,quads,glutes,strength,weight,lunge,,kettlebell lunge,,,walking_lunge;reverse_lunge;split_squat;bulgarian_split_squat,gen,,
+new,Band Chest Fly,,밴드 체스트 플라이,band,chest,,strength,weight,chest_fly,밴드 플라이,band fly,,,cable_crossover;incline_fly;decline_fly;seated_cable_fly,fedb:Cross_Over_-_With_Bands,,
+new,Smith Good Morning,,스미스 굿모닝,smith,hamstrings,back;glutes,strength,weight,good_morning,,smith good morning,,,romanian_deadlift;back_extension,gen,,
+new,Band Assisted Dip,,밴드 어시스트 딥스,band,triceps,chest,strength,assisted,assisted_dip,밴드 딥스;밴드 보조 딥스,band assisted dip,,,dips,gen,,
+new,Band Pull Through,,밴드 풀 스루,band,glutes,hamstrings,strength,weight,pull_through,,band pull through,,,,fedb:Band_Good_Morning_Pull_Through,,
+new,Band Upright Row,,밴드 업라이트 로우,band,shoulders,traps,strength,weight,upright_row,,band upright row,,,lateral_raise;shrug,fedb:Upright_Row_-_With_Bands,,
+new,Band Front Raise,,밴드 프론트 레이즈,band,shoulders,,strength,weight,front_raise,밴드 프레레,band front raise,,,overhead_plate_raise,gen,,
+new,Band Triceps Kickback,,밴드 트라이셉스 킥백,band,triceps,,strength,weight,triceps_kickback,밴드 삼두 킥백,band kickback triceps,,,pushdown,gen,,
+new,Band Calf Raise,,밴드 카프 레이즈,band,calves,,strength,weight,calf_raise,,band calf raise,,,seated_calf_raise;leg_press_calf_raise,fedb:Calf_Raises_-_With_Bands,,
+new,Smith Inverted Row,,스미스 인버티드 로우,smith,back,biceps,strength,bodyweight,inverted_row,스미스 바디웨이트 로우,smith inverted row,,,bent_over_row;pull_up,gen,,맨몸 하중이지만 스미스 바를 기구로 씀 — 기구 smith·load bodyweight 제안
+new,Kettlebell Bent Over Row,,케틀벨 벤트오버 로우,kettlebell,back,biceps,strength,weight,bent_over_row,투암 케틀벨 로우,two arm kettlebell row,,,pendlay_row;t_bar_row;seal_row;chest_supported_row;one_arm_row,fedb:Two-Arm_Kettlebell_Row,,
+new,Cable Rear Delt Row,,케이블 리어 델트 로우,cable,shoulders,back;traps,strength,weight,rear_delt_row,로프 리어 델트 로우;케이블 로프 하이 로우,cable rope rear delt row,,,face_pull;rear_delt_fly,fedb:Cable_Rope_Rear-Delt_Rows,,
+new,Smith Sumo Squat,,스미스 스모 스쿼트,smith,quads,glutes,strength,weight,sumo_squat,스미스 와이드 스쿼트,smith sumo squat,,,sumo_deadlift;squat,gen,,
+new,Cable Standing Leg Curl,,케이블 스탠딩 레그 컬,cable,hamstrings,,strength,weight,standing_leg_curl,케이블 레그컬,cable leg curl,,,lying_leg_curl,gen,,
+new,Rope Climb,,로프 클라이밍,other,back,biceps;forearms,strength,weight,rope_climb,로프 오르기;밧줄 오르기,rope climb,,,,fedb:Rope_Climb,,
+new,Devil Press,,덤벨 데빌 프레스,dumbbell,fullBody,shoulders;quads,strength,weight,devil_press,데빌 프레스,devil press,,,,gen,,

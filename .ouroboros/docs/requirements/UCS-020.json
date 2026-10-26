@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-020",
+  "type": "UCS",
+  "title": "내가 부르는 이름으로 종목을 검색해 그 이름으로 루틴·운동에 추가한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:00:00Z",
+  "updated": "2026-10-26T09:01:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "search",
+    "alias"
+  ],
+  "relations": {
+    "elaborates": [
+      "URS-018"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "종목 카탈로그에 대표 이름과 별칭이 있다(예: 바벨 로우 ← 벤트오버 로우·바벨 벤트오버 로우)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자는 루틴 편집 또는 운동 중 「운동 추가」 시트에 있다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "주 흐름"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자가 검색칸에 「벤트오버」 또는 「벤트 오버 로우」 또는 초성 「ㅂㅌㅇㅂ」를 입력한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "목록 맨 위에 「바벨 로우 · 벤트오버 로우」처럼 대표 종목과 사용자가 친 별칭이 함께 보인다. 그 아래 「비슷한 운동」 구역에 펜들레이 로우·원암 덤벨 로우 등 다른 종목이 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자가 「벤트오버 로우」를 고른다. 종목은 바벨 로우(하나의 종목 id)로 추가되고, 이 사용자의 표시 이름은 「벤트오버 로우」가 된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴·운동 중 화면·기록·분석에서 이 사용자는 계속 「벤트오버 로우」로 본다. 이전 기록·PR은 바벨 로우의 것이 그대로 이어진다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "대안 / 예외 흐름"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검색 결과가 없으면 「직접 만들기」와 「스무고개로 찾기」를 제안한다(기존 기능)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자가 나중에 표시 이름을 대표 이름이나 다른 별칭으로 바꿀 수 있다(종목 상세 ⋯). 기록은 그대로다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "다른 사람의 피드·공유 루틴에서는 보는 사람이 정한 표시 이름이 있으면 그 이름, 없으면 대표 이름으로 보인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴 항목은 종목 id를 가리키고, 사용자 표시 이름 선호가 저장·동기된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기록은 종목 id 하나에 모인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

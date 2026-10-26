@@ -1,0 +1,233 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-035",
+  "type": "ADR",
+  "title": "종목 이름 형식 = 「기구 + 동작」 단일 형식 — 옛 이름은 별칭으로 남긴다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:30:00Z",
+  "updated": "2026-10-26T09:31:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "naming",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-055",
+      "SRS-056"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "시드 336종에 괄호형 「인클라인 프레스 (덤벨)」 41개, 접두형 「덤벨 벤치프레스」 43개, 후미형 「체스트 프레스 머신」 16개가 섞여 있다. 세션 화면은 기구를 떼고 줄여 바벨·덤벨·케이블·머신 컬이 모두 「컬」로 보이는 문제도 있다. nameKo 는 13곳에서 조회 키로 쓰인다(스무고개·미디어·대체운동 등)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대표 이름은 「기구 + 동작」(덤벨 인클라인 프레스·바벨 벤치프레스·머신 체스트 프레스·케이블 크로스오버). 맨몸은 기구를 붙이지 않는다(풀업·딥스)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "nameEn(id 원천)은 바꾸지 않는다 — 기록·id 보존. nameKo 변경은 키 참조 13곳과 같은 커밋에서 갱신하고, 가능하면 조회 키를 nameKo 에서 안정 키(seedId)로 옮긴다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "옛 대표 이름은 별칭으로 남겨 검색된다(ADR-033)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세션 화면의 이름 축약(기구 떼기)은 폐지한다 — 기구가 종목 정체성의 일부이기 때문이다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사람들이 부르는 순서와 같다(덤벨 프레스·바벨 로우)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대안 괄호형: 목록에서 동작끼리 모이지만 말하는 순서와 다르다 — 기각(사용자 선택 A)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이름 변경 일괄 작업과 키 참조 이전이 필요하다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "동기로 옛 이름이 되돌아오는 경로(sync_records에 복제된 시드 행)를 막는 정책이 필요하다(스펙)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "informs: SRS-055·056."
+          }
+        ]
+      }
+    ]
+  }
+}

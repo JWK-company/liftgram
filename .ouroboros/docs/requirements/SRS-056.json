@@ -1,0 +1,242 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-056",
+  "type": "SRS",
+  "title": "종목 별칭·사용자별 표시 이름·비슷한 운동·공백/초성 무시 검색",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:00:00Z",
+  "updated": "2026-10-26T09:01:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "search",
+    "alias",
+    "i18n"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "공백·초성·별칭 검색 표(랫풀·이너타이·롱풀·스컬크러셔 등) 전부 첫 화면 노출·별칭 추가 종목 기록 통합·표시 이름 동기·500종 검색 50ms 이내.",
+  "relations": {
+    "derives_from": [
+      "URS-018",
+      "URS-001"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "같은 동작(자세·기구·주동근 동일)은 한 종목으로 두고 여러 별칭을 가진다. 사용자가 어떤 별칭으로 추가하든 기록은 그 종목 하나에 모이고, 화면에는 그 사용자가 고른 이름(표시 이름)이 보인다. 수행이 다르거나 기구가 다른 운동은 별도 종목이며, 검색에서 「비슷한 운동」으로 함께 보인다(2026-10-26 사용자 확정 결정)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "검색은 띄어쓰기·대소문자·하이픈 차이를 무시하고, 한글 초성과 부분 일치를 지원하며, 대표 이름·별칭·영문 이름을 모두 대상으로 한다. 종목 피커와 종목 탭이 같은 검색 함수를 쓴다(현재 두 벌 복제)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "카탈로그 데이터: 종목별 aliases(한/영)·similar(비슷한 운동 그룹) — 시드·서버 카탈로그·기기 DB에 일관 반영."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자 표시 이름 선호: (사용자, 종목) → 고른 별칭. 계정을 따라 동기된다. 미설정이면 대표 이름."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검색 정규화: 공백·구두점 제거 + 소문자 + 한글 자모 분해/초성 키. 순위: 정확 일치 > 시작 일치 > 부분 일치 > 초성 > 비슷한 운동."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "결과 표시: 별칭으로 맞으면 「대표 이름 · 맞은 별칭」을 함께 보이고, 그 별칭을 고르면 표시 이름으로 저장."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "별칭/별도 판정 목록은 스펙에서 표로 확정(사용자 확인)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "「랫풀」「랫 풀」「latpull」로 랫 풀다운이 첫 화면에 나온다. 「이너타이」로 힙 어덕션, 「롱풀」로 시티드 케이블 로우, 「스컬크러셔」로 라잉 트라이셉스 익스텐션이 나온다(검색 단위 테스트 표)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "별칭으로 추가한 종목의 이전 기록·PR이 대표 종목의 것과 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "표시 이름은 루틴·운동 중·기록·분석·피드(본인 화면)에 일관되게 보이고, 다른 기기에서 로그인해도 유지된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검색 응답은 카탈로그 전체(목표 500종 이상)에서 기기 기준 50ms 이내."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-018(내 이름으로 찾기·기록 통합), URS-001. 피드백 #49."
+          }
+        ]
+      }
+    ]
+  }
+}

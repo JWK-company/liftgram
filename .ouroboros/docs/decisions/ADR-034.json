@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-034",
+  "type": "ADR",
+  "title": "기록 칸(버킷) 축 개정 — 종목 × 머신(브랜드·적재 방식) × 케이블 부착물 × 손 그립, 기구 변형 칸 폐지 (ADR-026 대체 · ADR-030 확정 흡수)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:40:00Z",
+  "updated": "2026-10-26T09:40:00Z",
+  "sync": true,
+  "tags": ["variant", "bucket", "grip", "machine", "cable", "decision"],
+  "relations": {
+    "supersedes": ["ADR-026", "ADR-030"],
+    "informs": ["SRS-028", "SRS-057", "SRS-058"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "맥락 (Context)" }] },
+      { "type": "paragraph", "content": [{ "type": "text", "text": "ADR-026(2026-07-20)은 이전기록·PR 버킷을 (종목 × 기구) 1축으로 줄이고 그립·팔을 세트 속성으로 옮겼다. ADR-030(2026-07-28 초안)에서 사용자는 하이로우를 오버그립으로 바꿨는데 기본 그립 이전기록이 보이는 문제로 「그립도 버킷 축」(B)을 골랐지만 구현되지 않았다. 2026-10 피드백은 같은 브랜드 머신의 핀로드/플레이트(#57), 케이블 부착물(#54)도 무게가 달라 기록을 나눠야 한다고 한다. 한편 ADR-033으로 기구 교체는 종목 교체가 되어 프리웨이트·케이블 간 equip 변형 칸은 필요 없어졌다." }] },
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결정 (Decision)" }] },
+      { "type": "bullet_list", "content": [
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "버킷 키 = 종목 × [머신: 브랜드 × 적재 방식(pin|plate)] × [케이블: 부착물(rope|straight|v|ez|single|mag/vulcan …)] × 손 그립(over|under|neutral|wide|close). 해당 없는 축은 비운다." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "equip:(barbell|dumbbell|cable|smith|kettlebell|band) 변형 칸은 폐지한다 — 기구가 다르면 다른 종목(ADR-033). 머신 브랜드 키(13종)는 유지한다." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "축 선택은 블록(종목 인스턴스) 단위이며, 세션 시작·즉석 추가·종목 교체 모두 「지난번 수행 조합 승계」 규칙을 따른다(그립·부착물·적재 방식 기본값 = 지난번)." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "팔(원암/투암)은 세트 속성으로 유지한다(ADR-026 유지). 세트별 그립 표기 필드도 유지하되 버킷은 블록 그립이 결정한다." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "기존 기록: 새 축(적재 방식·부착물·손 그립)이 없는 과거 기록은 「기본」 칸으로 남는다(이관 없음 — ADR-030에서 사용자 수용). equip 변형 칸 기록만 종목 이관(SRS-057)." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "정규화: 모든 쓰기 경로가 하나의 정규화 함수를 통과하고(축 순서 고정·빈 값 제거·종목 고유값=null), 읽기 경로도 같은 함수로 키를 만든다." }] }] }
+      ] },
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거 / 대안" }] },
+      { "type": "bullet_list", "content": [
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "무게가 실제로 달라지는 조건만 축으로 둔다 — 그립·부착물·적재 방식은 모두 같은 무게로 다른 강도를 만든다(사용자 판단, 7/28·10/26 두 번 확인)." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "지난번 조합 승계로 「평소대로 하면 칸이 쪼개지지 않는다」 — ADR-026이 걱정한 「이전기록이 상시 비어 보임」을 막는다." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "대안 B(손 그립은 세트 표시만): 7/28 하이로우 문제가 재발 — 기각(2026-10-26 사용자 A)." }] }] }
+      ] },
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "결과 (Consequences)" }] },
+      { "type": "bullet_list", "content": [
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "variant_key 문법 확장(load·attach 차원) — 기존 키는 그대로 해석된다(하위호환). 이전기록 화면은 「다른 그립/부착물 기록도 보기」 접근을 둔다." }] }] },
+        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "메모리 liftgram-variant-bucket-invariant(버킷 축=기구 하나)는 이 결정으로 갱신한다." }] }] }
+      ] },
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
+      { "type": "paragraph", "content": [{ "type": "text", "text": "supersedes: ADR-026·ADR-030. informs: SRS-028·SRS-057·SRS-058. 사용자 확정 2026-10-26(Q1 A·Q5 A)." }] }
+    ]
+  }
+}

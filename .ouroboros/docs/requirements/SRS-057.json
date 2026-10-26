@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-057",
+  "type": "SRS",
+  "title": "기구 교체 = 종목 교체 — 같은 동작의 기구별 종목 연결·운동 중 전환·기존 기구 변형 기록 이관(옛 #21 방향 철회)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-26T09:00:00Z",
+  "updated": "2026-10-26T09:01:00Z",
+  "sync": true,
+  "tags": [
+    "variant",
+    "equipment",
+    "migration",
+    "workout"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "기구 교체 세션 = 처음부터 그 종목 세션과 동일 기록·PR · 이관 후 프리웨이트/케이블 equip 변형 칸 세트 0 · 멱등 · 사용자별 세트 수·볼륨 합 불변 · 동기로 되살아나지 않음.",
+  "relations": {
+    "derives_from": [
+      "URS-018",
+      "URS-016",
+      "URS-001"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "운동 중이나 루틴에서 기구를 바꾸면(바벨→덤벨) 같은 종목의 기구 변형 칸이 아니라 같은 동작의 그 기구 종목으로 바뀌고, 기록도 그 종목에 저장된다. 이는 처음부터 그 종목을 고른 것과 결과가 같아야 한다(#44). 예전 결정(#21·SRS-028의 기구 변형 버킷)은 머신 브랜드에만 남기고, 프리웨이트·케이블·스미스 간 전환에서는 철회한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이미 「바벨 벤치프레스 + equip:dumbbell」처럼 기구 변형 칸에 쌓인 기록은 해당 기구 종목으로 옮긴다. 운영에 실재(예: 바벨 인클라인+덤벨 9세트, 덤벨 오버헤드 익스텐션+머신 브랜드 13세트, 딥스+머신 5세트). 옮길 대상 종목이 없으면 새로 만들거나(카탈로그 보강) 그대로 둔다 — 엉뚱한 종목으로 보내지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "범위"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "카탈로그: 동작 그룹(movement family) — 같은 동작의 기구별 종목을 잇는다(벤치프레스: 바벨·덤벨·스미스·머신)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중: 종목 ⋯ 「기구 바꾸기」 → 같은 그룹의 다른 기구 종목으로 교체. 입력한 세트 이동. 「이번만/루틴에도」 선택. 대체(교체) 한 번에 반영(#47)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이관: 기기 DB·서버 동기 기록 모두에 대해 멱등 백필. 실행 전 백업, 사용자별 세트 수·볼륨 합 보존 검증, 레거시 machine_variant 정리."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "웹 부팅 백필 진입점 신설(현재 은퇴한 app/에만 존재)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "바벨 벤치프레스를 덤벨로 바꿔 마친 세션의 세트가 덤벨 벤치프레스 종목에 저장되고, 덤벨 벤치프레스를 처음부터 고른 세션과 이전 기록·PR이 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이관 후 equip:(바벨·덤벨·케이블·스미스·케틀벨·밴드) 변형 칸에 남은 세트 0, 머신 브랜드 칸은 그대로."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이관을 두 번 돌려도 결과가 같다(멱등) · 사용자별 세트 수·볼륨 합 불변."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "다른 기기가 옛 변형 칸으로 동기해도 되살아나지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-018(기구 바꿔도 기록 정확), URS-016(변형 분리 기록 — 해석 변경), URS-001. 피드백 #44·#42·#47. 결정 개정: SRS-028, ADR-026."
+          }
+        ]
+      }
+    ]
+  }
+}
