@@ -21,7 +21,13 @@ import {
   syncWithServer,
   type SyncTableChanges,
 } from "@app/core/sync/syncEngine";
-import { installOwnerStore, reconcileAccount } from "@app/core/sync/syncOwner";
+import {
+  clearSyncBlock,
+  discardLocalAndAdopt,
+  installOwnerStore,
+  reconcileAccount,
+  type ReconcileResult,
+} from "@app/core/sync/syncOwner";
 import { createClient } from "@connectrpc/connect";
 import { getPref, setPref } from "./prefs";
 import { authedTransport, hasSession } from "./session";
@@ -69,20 +75,34 @@ export function installSync(): void {
       const { flushLocalDb } = await import("./localDb");
       await flushLocalDb();
     },
+
+    // 마지막 성공 시각을 앱을 다시 열어도 기억한다 — "며칠째 백업이 안 됐다"를 말하려면 필요하다.
+    store: { get: (k) => getPref(k), set: (k, v) => setPref(k, v) },
   });
 }
 
 /**
- * 로그인 직후에 부른다. **대조가 먼저다** — 다른 계정이면 로컬을 비우고 나서 받아야
- * 이전 사람의 기록이 새 계정으로 올라가지 않는다.
+ * 로그인 직후에 부른다. **대조가 먼저다** — 다른 계정이면 이전 사람의 기록이 올라가면 안 된다.
  *
- * @returns 이 기기의 예전 기록을 지웠으면 true(화면이 알린다)
+ * `blocked`면 동기를 걸지 않는다 — 이 기기에 다른 계정의 올라가지 않은 기록이 있다.
+ * 화면(AccountGuard)이 사람에게 고르게 한다.
  */
-export async function onLoggedIn(userId: string): Promise<boolean> {
-  const wiped = await reconcileAccount(userId);
-  // 비웠으면 서버에서 받아 채운다. 아니면 로컬 변경을 밀어 올린다 — 어느 쪽이든 동기 한 번이다.
+export async function onLoggedIn(userId: string): Promise<ReconcileResult> {
+  const result = await reconcileAccount(userId);
+  // 비웠으면 서버에서 받아 채우고, 아니면 로컬 변경을 밀어 올린다 — 어느 쪽이든 동기 한 번이다.
+  if (result.kind !== "blocked") scheduleSync(0);
+  return result;
+}
+
+/** "백업 파일을 내보냈고, 이 기기 기록을 비운 뒤 이 계정으로 계속" — AccountGuard가 부른다. */
+export async function discardAndAdopt(userId: string): Promise<void> {
+  await discardLocalAndAdopt(userId);
   scheduleSync(0);
-  return wiped;
+}
+
+/** 로그아웃 — 멈춤을 푼다(이 기기 주인은 그대로라, 원래 계정으로 로그인하면 올라간다). */
+export async function onLoggedOut(): Promise<void> {
+  await clearSyncBlock();
 }
 
 /** 주기 동기 간격. app(`setInterval(…, 120_000)`)과 같은 값이다. */

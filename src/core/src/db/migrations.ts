@@ -279,5 +279,16 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v21: 앱 설정(주간 목표·주말 제외·알림음) — 기기 localStorage에만 있어 주소를 옮기자 사라졌다(2026-10-26).
+    // 프로필에 실어 계정과 함께 동기한다. @plm SRS-006
+    {
+      toVersion: 21,
+      steps: [
+        addColumns({
+          table: 'user_profiles',
+          columns: [{ name: 'app_prefs', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

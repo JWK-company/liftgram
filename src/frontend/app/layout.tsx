@@ -20,6 +20,9 @@ import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
 import { OnboardingOverlay } from "./components/OnboardingOverlay";
 import { ServiceWorker } from "./components/ServiceWorker";
+import { PrefsBridge } from "./components/PrefsBridge";
+import { AccountGuard } from "./components/sync/AccountGuard";
+import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
 import { TabBar } from "./components/ui/TabBar";
 import "./globals.css";
 
@@ -54,6 +57,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="mx-auto flex min-h-dvh max-w-[560px] flex-col border-(--color-line) sm:border-x">
                 {/* 머리는 화면이 각자 그린다(components/ui/ScreenHeader) — app이 화면마다
                   제목·액션을 다르게 두기 때문이다. 셸은 자리만 내어 준다. */}
+                {/* 백업이 멈췄거나 기록이 이 기기에만 쌓이면 화면 위에 알린다 — 조용한 실패 금지(2026-10-26). */}
+                <SyncHealthBanner />
                 <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">{children}</main>
 
                 <GlobalWorkoutBar />
@@ -62,6 +67,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <OnboardingOverlay />
                 {/* 오프라인 셸·새 버전 띠 — 운동 중인지 알아야 해서 SessionProvider 안에 둔다. */}
                 <ServiceWorker />
+                {/* 다른 계정의 올라가지 않은 기록이 있으면 지우지 않고 고르게 한다. */}
+                <AccountGuard />
+                {/* 계정과 함께 옮기는 설정(주간 목표·알림음)을 프로필과 잇는다. */}
+                <PrefsBridge />
               </div>
             </ToastProvider>
           </SessionProvider>

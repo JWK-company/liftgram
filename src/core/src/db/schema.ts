@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 20;
+export const SCHEMA_VERSION = 21;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -25,7 +25,8 @@ export const mySchema = appSchema({
         { name: 'experience_level', type: 'string', isOptional: true }, // v18: 운동 경력(beginner|intermediate|advanced). 선택 수집. @plm SRS-045
         { name: 'trainer_intent', type: 'boolean', isOptional: true }, // v18: 코칭 의향(회원 모집) — 자격 보증 아님(면책 고지). @plm SRS-045
         { name: 'manual_workout_days', type: 'string', isOptional: true }, // v19: JSON number[](dayNumber) 수동 '운동했어요' 표시일 — 캘린더 전용. @plm SRS-011
-        { name: 'calendar_notes', type: 'string', isOptional: true }, // v20: JSON Record<dayNumber, string> 날짜별 간단 메모 — 캘린더 상세에서 작성. @plm SRS-011
+        { name: 'calendar_notes', type: 'string', isOptional: true },
+        { name: 'app_prefs', type: 'string', isOptional: true }, // v21: JSON Record<키, 값> — 기기에만 있던 앱 설정(주간 목표·주말 제외·알림음)을 계정과 함께 옮긴다. @plm SRS-006 // v20: JSON Record<dayNumber, string> 날짜별 간단 메모 — 캘린더 상세에서 작성. @plm SRS-011
         { name: 'bar_weight_kg', type: 'number' },
         { name: 'last_sync_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

@@ -25,6 +25,14 @@ const TO = join(HERE, "..", "core", "src");
 
 /** 디렉터리 통째로 옮길 것 — 하위 전부(.ts) */
 const DIRS = ["domain", "i18n/locales", "data", "db", "theme"];
+
+/**
+ * **app/ 은퇴 (2026-10-26).** 운영이 새 스택(liftgram.tarae.org)으로 넘어가고 옛 Expo 웹은 리다이렉트만 남았다.
+ * core/README 에 적어 둔 대로 이날부터 **`src/core/src/` 가 원본**이다 — 복사·대조를 멈춘다.
+ * 남는 일은 디자인 토큰 → CSS 생성 하나뿐이고, 그 원본도 이제 `src/core/src/theme/tokens.ts` 다.
+ * (되돌릴 일은 없다: app/ 의 소스는 이력으로만 남고 더는 고치지 않는다.)
+ */
+const APP_RETIRED = true;
 /** 파일 단위로 옮길 것 */
 // 단일 파일로 옮기는 것들.
 //
@@ -125,7 +133,7 @@ function walk(dir) {
 
 // ── 원본 수집 ────────────────────────────────────────────────────────────────
 const sources = [];
-for (const d of DIRS) {
+for (const d of APP_RETIRED ? [] : DIRS) {
   const abs = join(FROM, d);
   if (!existsSync(abs)) {
     console.error(`  ✗ 원본이 없습니다: app/src/${d}`);
@@ -133,7 +141,7 @@ for (const d of DIRS) {
   }
   sources.push(...walk(abs).filter((p) => !SKIP.has(relative(FROM, p))));
 }
-for (const f of FILES) {
+for (const f of APP_RETIRED ? [] : FILES) {
   const abs = join(FROM, f);
   if (!existsSync(abs)) {
     console.error(`  ✗ 원본이 없습니다: app/src/${f}`);
@@ -142,7 +150,7 @@ for (const f of FILES) {
   sources.push(abs);
 }
 
-if (sources.length < MIN_FILES) {
+if (!APP_RETIRED && sources.length < MIN_FILES) {
   console.error(`  ✗ 원본이 ${sources.length}개뿐입니다 — 최소 ${MIN_FILES}개를 기대합니다`);
   console.error("    복사하지 않고 멈춥니다(조용히 줄어든 파생물이 더 위험합니다).");
   process.exit(1);
@@ -170,7 +178,7 @@ for (const abs of sources) {
 }
 
 // src/ 밖의 부속 파일(테스트가 읽는 것)도 같은 규칙으로 옮긴다.
-for (const e of EXTRA) {
+for (const e of APP_RETIRED ? [] : EXTRA) {
   if (!existsSync(e.from)) {
     console.error(`  ✗ 원본이 없습니다: ${relative(REPO, e.from)}`);
     process.exit(1);
@@ -200,7 +208,7 @@ const THEME_CSS = join(HERE, "..", "frontend", "app", "theme.generated.css");
 {
   const { colors, radius, spacing, fontSize } = await import(join(TO, "theme", "tokens.ts"));
   const lines = [
-    "/* 생성물이다 — 손으로 고치지 않는다. 원본: app/src/theme/tokens.ts · 재생성: make sync-core */",
+    "/* 생성물이다 — 손으로 고치지 않는다. 원본: src/core/src/theme/tokens.ts · 재생성: make sync-core */",
     "@theme {",
     "  /* 템플릿이 쓰던 이름 ← app 팔레트 */",
     `  --color-bg: ${colors.bg};`,
@@ -251,11 +259,12 @@ const expected = new Set(
     return RENAMES.get(rel) ?? rel;
   }),
 );
-const stale = existsSync(TO)
-  ? walk(TO)
-      .map((a) => relative(TO, a))
-      .filter((r) => !expected.has(r) && !OWNED.has(r))
-  : [];
+const stale =
+  !APP_RETIRED && existsSync(TO)
+    ? walk(TO)
+        .map((a) => relative(TO, a))
+        .filter((r) => !expected.has(r) && !OWNED.has(r))
+    : [];
 for (const r of stale) {
   if (check) {
     drift.push(`남음: ${r}`);
@@ -274,7 +283,11 @@ if (check) {
     console.log("    src/core/src/ 를 직접 고쳤다면 되돌리세요 — 원본은 app/src/ 입니다(ADR-032).\n");
     process.exit(1);
   }
-  console.log(`  ✓ core 파생물이 원본과 일치한다 (${sources.length}파일)`);
+  console.log(
+    APP_RETIRED
+      ? "  ✓ 디자인 토큰 CSS가 core 원본과 일치한다 (app/ 은퇴 — core가 원본)"
+      : `  ✓ core 파생물이 원본과 일치한다 (${sources.length}파일)`,
+  );
   process.exit(0);
 }
 

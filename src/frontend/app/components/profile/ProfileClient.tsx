@@ -47,6 +47,10 @@ import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card, Divider, SectionHeader } from "../ui/primitives";
+// 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
+import { PREFS_EVENT } from "@/lib/prefs";
+import { version as APP_VERSION } from "../../../package.json";
+import buildInfo from "../../build-info.json";
 
 type Language = "ko" | "en";
 
@@ -96,8 +100,14 @@ export default function ProfileClient() {
   const [restVol, setRestVolState] = useState<RestVolumeLevel>("loud");
 
   useEffect(() => {
-    setRestSoundState(getRestSoundKind());
-    setRestVolState(getRestVolumeLevel());
+    // 알림음은 계정과 함께 동기된다 — 다른 기기에서 바뀌면 PrefsBridge가 PREFS_EVENT를 쏜다.
+    const read = () => {
+      setRestSoundState(getRestSoundKind());
+      setRestVolState(getRestVolumeLevel());
+    };
+    read();
+    window.addEventListener(PREFS_EVENT, read);
+    return () => window.removeEventListener(PREFS_EVENT, read);
   }, []);
 
   if (!user) {
@@ -476,8 +486,13 @@ export default function ProfileClient() {
       ) : null}
 
       <div className="mt-[var(--spacing-xl)] pb-[var(--spacing-xl)]">
-        <AppText variant="caption" color="textMuted" className="block font-semibold">
-          Liftgram
+        <AppText
+          variant="caption"
+          color="textMuted"
+          className="block font-semibold"
+          data-testid="app-version"
+        >
+          Liftgram v{APP_VERSION} ({buildInfo.build})
         </AppText>
         <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-md)] block">
           {t("wellness.noMedicalClaimNotice")}

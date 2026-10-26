@@ -56,6 +56,21 @@ git -C "$ROOT" worktree add --detach --quiet "$CLEAN" "$DEPLOY_SHA"
 d=$(git -C "$ROOT" status --porcelain -- src | wc -l | tr -d ' ')
 [ "$d" != "0" ] && echo "     작업 트리 미커밋 ${d}건 — **배포에는 들어가지 않는다**"
 
+# ── 버전 — 배포마다 SemVer 가 올라가야 한다(deploy/README.md "버전") ────────────────
+# 커밋은 새로 나가는데 버전이 그대로면 **멈춘다**(2026-10-26: DB 이전 배포가 번호 없이 나갔다).
+# 같은 커밋을 다시 올리는 재배포만 같은 버전을 허락한다. 일부러 넘기려면 ALLOW_SAME_VERSION=1.
+VERSION=$(node -p "require('$CLEAN/src/frontend/package.json').version")
+BUILD=$(git -C "$ROOT" rev-list --count "$DEPLOY_SHA")
+PREV_VERSION=$($SSH "cat $REMOTE/DEPLOYED_VERSION 2>/dev/null" || true)
+echo "     버전 v${VERSION} (build ${BUILD}) · 지금 떠 있는 것 v${PREV_VERSION:-?}"
+if [ -n "$PREV_VERSION" ] && [ "$VERSION" = "$PREV_VERSION" ] && [ "$PREV" != "$DEPLOY_SHA" ] && [ "${ALLOW_SAME_VERSION:-0}" != "1" ]; then
+  echo "!! 새 커밋이 나가는데 버전이 v${VERSION} 그대로다 — src/frontend/package.json 을 올리고 커밋하라"
+  echo "   (기능 = MINOR · 고침·설정·문구 = PATCH · 깨지는 변경 = MAJOR)"
+  exit 1
+fi
+# 프로필 하단에 보이는 빌드 번호·커밋 — 커밋된 것은 "dev" 자리표시자이고, 배포 사본에만 찍는다.
+printf '{ "build": "%s", "commit": "%s" }\n' "$BUILD" "$SHORT" > "$CLEAN/src/frontend/app/build-info.json"
+
 echo "── 여유 공간·설정 확인(서버를 건드리기 전에) ──"
 $SSH "
   free=\$(df -BG --output=avail / | tail -1 | tr -dc '0-9')
@@ -87,7 +102,14 @@ $SSH "docker builder prune -f --keep-storage ${CACHE_CAP_GB}GB 2>&1 | tail -1
   docker image prune -f --filter 'label=project=liftgram' --filter 'until=${IMAGE_KEEP_H}h' 2>&1 | tail -1
   df -h / | tail -1"
 
-$SSH "echo $DEPLOY_SHA > $REMOTE/DEPLOYED_REF"
+$SSH "echo $DEPLOY_SHA > $REMOTE/DEPLOYED_REF; echo $VERSION > $REMOTE/DEPLOYED_VERSION"
+# 배포된 버전에 태그를 단다 — 「v0.18.2 에 무엇이 들어 있었나」를 git 이 답하게.
+if git -C "$ROOT" rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+  [ "$(git -C "$ROOT" rev-list -n1 "v$VERSION")" = "$DEPLOY_SHA" ] || echo "  ⚠ 태그 v$VERSION 이 다른 커밋에 이미 있다(재배포면 무시)"
+else
+  git -C "$ROOT" tag -a "v$VERSION" "$DEPLOY_SHA" -m "release v$VERSION (build $BUILD)" &&
+    git -C "$ROOT" push -q origin "v$VERSION" 2>/dev/null && echo "  태그 v$VERSION 푸시" || echo "  ⚠ 태그 v$VERSION 푸시 실패(로컬에는 있다)"
+fi
 
 echo "── 결과 확인 ──"
 # 컨테이너 안에서 먼저(터널과 무관하게 앱이 DB 까지 닿는가), 그다음 공개 주소.
@@ -99,4 +121,4 @@ if [ "$code" = "200" ]; then
 else
   echo "  ⚠ $SITE/api/readyz → ${code:-응답 없음} (터널 공개 호스트명 설정을 확인 — deploy/README.md)"
 fi
-echo "── 끝: ${SHORT} ──"
+echo "── 끝: v${VERSION} (build ${BUILD}) · ${SHORT} ──"

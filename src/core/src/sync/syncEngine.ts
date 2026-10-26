@@ -25,6 +25,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { synchronize, type SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
 import { database } from '../db/database';
+import { countPendingUserChanges } from './pending';
+import { isSyncBlocked } from './syncOwner';
 
 /** 한 컬렉션의 변화분 — 계약과 같은 모양이다(레코드는 JSON 문자열). */
 export interface SyncTableChanges {
@@ -50,14 +52,85 @@ export interface SyncTransport {
    * **커서는 이미 전진했으므로 서버가 다시 보내지 않는다** — 조용한 데이터 유실이다.
    */
   flush?: () => Promise<void>;
+  /** 동기 건강(마지막 성공 시각)을 앱을 다시 열어도 기억하는 자리. 웹은 localStorage */
+  store?: { get(key: string): string | null; set(key: string, value: string): void };
 }
 
 let transport: SyncTransport | null = null;
 let warned = false;
 
+// ── 동기 건강 — **조용한 실패를 보이게 한다** (2026-10-26) ───────────────────
+// 옛 앱은 8월부터 동기가 매번 실패했는데(서버 레코드의 `_status` 한 건이 pull을 죽였다) 화면은
+// 아무 말도 하지 않았다. 그 사이 쌓인 기록은 기기에만 남았고, 주소를 옮기자 찾을 수 없게 됐다.
+// 그래서 마지막 성공 시각·연속 실패·올라가지 않은 기록 수를 들고 있다가 화면에 내보인다.
+export interface SyncHealth {
+  /** 마지막으로 끝까지 성공한 시각(ms). 한 번도 없으면 null */
+  lastSuccessAt: number | null;
+  lastAttemptAt: number | null;
+  /** 마지막 실패의 이유(사람이 읽을 말이 아니라 진단용 원문) */
+  lastError: string | null;
+  consecutiveFailures: number;
+  /** 서버로 아직 안 올라간 **사용자 기록** 수(기본 카탈로그 제외). 모르면 null */
+  pending: number | null;
+  /** 다른 계정의 기록이 남아 있어 동기를 멈춘 상태(syncOwner) */
+  blocked: boolean;
+}
+
+const LAST_SUCCESS_KEY = 'sync_last_success_at';
+let health: SyncHealth = {
+  lastSuccessAt: null,
+  lastAttemptAt: null,
+  lastError: null,
+  consecutiveFailures: 0,
+  pending: null,
+  blocked: false,
+};
+const listeners = new Set<(h: SyncHealth) => void>();
+
+function setHealth(patch: Partial<SyncHealth>): void {
+  health = { ...health, ...patch };
+  for (const fn of listeners) fn(health);
+}
+
+export function getSyncHealth(): SyncHealth {
+  return health;
+}
+
+/** 건강 상태가 바뀔 때마다 부른다. 정리 함수를 돌려준다. */
+export function subscribeSyncHealth(fn: (h: SyncHealth) => void): () => void {
+  listeners.add(fn);
+  fn(health);
+  return () => listeners.delete(fn);
+}
+
+export { countPendingUserChanges } from './pending';
+
+/** 올라가지 않은 기록 수를 다시 센다(저장 뒤·동기 뒤·화면이 열릴 때). */
+export async function refreshPendingCount(): Promise<number> {
+  const pending = await countPendingUserChanges().catch(() => null);
+  setHealth({ pending, blocked: isSyncBlocked() });
+  return pending ?? 0;
+}
+
 /** 앱 시작 때 한 번 꽂는다. `null`을 주면 다시 뽑는다(로그아웃·테스트). */
 export function installSyncTransport(t: SyncTransport | null): void {
   transport = t;
+  if (!t) markFirstSettled();
+  else
+    void t.isLoggedIn().then((ok) => {
+      if (!ok) markFirstSettled();
+    });
+  const saved = Number(t?.store?.get(LAST_SUCCESS_KEY) ?? 0);
+  setHealth({ lastSuccessAt: saved > 0 ? saved : null });
+  void refreshPendingCount();
+}
+
+/** 다른 계정의 기록이 남아 있어 동기를 멈춘 상태에서 부르면 이 오류가 난다. */
+export class SyncBlockedError extends Error {
+  constructor() {
+    super('다른 계정의 기록이 이 기기에 남아 있어 동기를 멈췄습니다');
+    this.name = 'SyncBlockedError';
+  }
 }
 
 type RawRec = Record<string, unknown>;
@@ -141,6 +214,11 @@ async function runSynchronize(): Promise<void> {
     }
     return;
   }
+  // 다른 계정의 기록이 남아 있으면 **올리지도 받지도 않는다** — 올리면 남의 기록이 이 계정에 붙는다.
+  if (isSyncBlocked()) {
+    setHealth({ blocked: true });
+    throw new SyncBlockedError();
+  }
 
   await synchronize({
     database,
@@ -166,6 +244,24 @@ async function runSynchronize(): Promise<void> {
   await t.flush?.();
 }
 
+// ── 첫 동기 ────────────────────────────────────────────────────────────────
+// 새 기기에 로그인하면, 서버의 프로필이 내려오기 **전에** 화면이 빈 프로필을 만들곤 했다.
+// 그러면 프로필이 기기마다 하나씩 늘고(한 계정에 14개까지 쌓였다), 그 사이 고친 설정은 엉뚱한
+// 프로필에 남는다. 그래서 첫 동기가 한 번 끝날 때까지(성공이든 실패든) 기다릴 수 있게 한다.
+let settleFirst: (() => void) | null = null;
+const firstSettled = new Promise<void>((resolve) => {
+  settleFirst = resolve;
+});
+function markFirstSettled(): void {
+  settleFirst?.();
+  settleFirst = null;
+}
+
+/** 이 앱 실행에서 첫 동기가 끝날 때까지 기다린다(로그인 안 했으면 곧바로). 최대 `ms`. */
+export function awaitFirstSync(ms = 4000): Promise<void> {
+  return Promise.race([firstSettled, new Promise<void>((r) => setTimeout(r, ms))]);
+}
+
 // 겹쳐 부르면 커서가 깨진다 — 진행 중이면 그 약속을 함께 기다린다.
 let inFlight: Promise<void> | null = null;
 
@@ -175,9 +271,27 @@ let inFlight: Promise<void> | null = null;
  */
 export function syncWithServer(): Promise<void> {
   if (!inFlight) {
-    inFlight = runSynchronize().finally(() => {
-      inFlight = null;
-    });
+    const startedAt = Date.now();
+    setHealth({ lastAttemptAt: startedAt });
+    inFlight = runSynchronize()
+      .then(() => {
+        if (!transport) return;
+        transport.store?.set(LAST_SUCCESS_KEY, String(startedAt));
+        setHealth({ lastSuccessAt: startedAt, lastError: null, consecutiveFailures: 0, blocked: false });
+      })
+      .catch((e: unknown) => {
+        // 실패를 **센다**. 배경 동기는 아래에서 삼키지만, 몇 번째 실패인지는 화면이 안다.
+        setHealth({
+          lastError: e instanceof Error ? e.message : String(e),
+          consecutiveFailures: health.consecutiveFailures + 1,
+        });
+        throw e;
+      })
+      .finally(() => {
+        inFlight = null;
+        markFirstSettled();
+        void refreshPendingCount();
+      });
   }
   return inFlight;
 }
@@ -196,9 +310,11 @@ export function scheduleSync(delayMs = 1500): void {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
+    void refreshPendingCount();
     void (async () => {
       try {
         if (transport && (await transport.isLoggedIn())) await syncWithServer();
+        else markFirstSettled(); // 로그인 안 했다 — 기다릴 서버가 없다
       } catch {
         // 오프라인·일시 오류는 무시 — 다음 방아쇠가 재시도한다.
       }

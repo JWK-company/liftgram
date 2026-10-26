@@ -8,16 +8,20 @@
 // 그래서 로그인할 때 한 번 대조한다:
 //   · 소유자가 없다  → 이 계정 것으로 삼는다(오프라인에서 쌓은 기록을 그대로 이어 간다)
 //   · 소유자가 같다  → 아무 일도 없다
-//   · 소유자가 다르다 → **로컬을 비운다**(커서까지). 그리고 카탈로그를 다시 심는다
-//
-// 비우는 쪽이 과격해 보이지만, 대안은 "섞인다"뿐이다. 비워도 그 계정의 기록은 서버에 있고
-// 첫 동기에서 되돌아온다 — 잃는 것은 **로그인하지 않은 채 쌓은 남의 기록뿐**이고, 그건
-// 애초에 이 계정 것이 아니다.
+//   · 소유자가 다르다 →
+//       - 이 기기에만 있는(서버에 안 올라간) 기록이 **없으면** 로컬을 비운다. 그 계정 기록은 서버에 있어
+//         다음에 그 계정으로 로그인하면 되돌아온다.
+//       - **있으면 비우지 않는다**(2026-10-26). 예전에는 여기서 통째로 지워, 올라가지 못한 기록이 그대로
+//         사라질 수 있었다. 대신 동기를 **멈추고**(남의 기록이 새 계정에 붙지 않게) 사람에게 고르게 한다:
+//         원래 계정으로 돌아가 올리거나, 백업 파일로 내보낸 뒤 비우거나.
 // ─────────────────────────────────────────────────────────────────────────────
 import { database } from '../db/database';
 import { seedExercisesIfNeeded } from '../data/seedRunner';
+import { countPendingUserChanges } from './pending';
 
 const OWNER_KEY = 'sync_owner_id';
+/** 동기를 멈춘 상태 — 값은 막 로그인한(그러나 아직 이 기기 주인이 아닌) 계정 id */
+const BLOCK_KEY = 'sync_owner_blocked';
 
 /** 소유자 표시를 읽고 쓰는 방법. 플랫폼이 다르므로 밖에서 꽂는다(웹=localStorage). */
 export interface OwnerStore {
@@ -26,31 +30,80 @@ export interface OwnerStore {
 }
 
 let store: OwnerStore | null = null;
+// 동기 엔진이 매번 묻는다 — 저장소가 비동기일 수 있어 메모리에도 들고 있는다.
+let blockedFor: string | null = null;
 
 export function installOwnerStore(s: OwnerStore | null): void {
   store = s;
+  blockedFor = null;
+  if (!s) return;
+  void Promise.resolve(s.get(BLOCK_KEY)).then((v) => {
+    blockedFor = v || null;
+  });
+}
+
+/** 다른 계정의 기록이 남아 있어 동기를 멈췄는가. */
+export function isSyncBlocked(): boolean {
+  return blockedFor !== null;
+}
+
+export type ReconcileResult =
+  | { kind: 'same' }
+  | { kind: 'adopted' }
+  /** 남은 기록이 없어 비웠다 — 화면은 "이 기기의 예전 기록을 지웠다"고 알린다 */
+  | { kind: 'wiped' }
+  /** 남은 기록이 있어 **멈췄다** — 화면은 고르게 한다(원래 계정으로 / 내보낸 뒤 비우기) */
+  | { kind: 'blocked'; pending: number; previousOwner: string };
+
+/** 로그인한 계정과 로컬 데이터의 주인을 대조한다. */
+export async function reconcileAccount(serverUserId: string): Promise<ReconcileResult> {
+  if (!store || !serverUserId) return { kind: 'same' };
+
+  const owner = await store.get(OWNER_KEY);
+  if (!owner) {
+    // 처음이다 — 로그인 전에 쌓은 기록을 이 계정 것으로 삼는다.
+    await store.set(OWNER_KEY, serverUserId);
+    await setBlocked(null);
+    return { kind: 'adopted' };
+  }
+  if (owner === serverUserId) {
+    await setBlocked(null);
+    return { kind: 'same' };
+  }
+
+  const pending = await countPendingUserChanges();
+  if (pending > 0) {
+    await setBlocked(serverUserId);
+    return { kind: 'blocked', pending, previousOwner: owner };
+  }
+  await wipeFor(serverUserId);
+  return { kind: 'wiped' };
 }
 
 /**
- * 로그인한 계정과 로컬 데이터의 주인을 대조한다.
- *
- * @returns 로컬을 비웠으면 true. 화면은 이 값을 보고 "이 기기의 예전 기록을 지웠다"고 알린다.
+ * 사람이 "비우고 이 계정으로 계속"을 골랐다(백업 파일을 내보낸 **뒤에만** 부른다).
+ * 이 기기의 기록을 지우고 지금 계정을 주인으로 삼는다.
  */
-export async function reconcileAccount(serverUserId: string): Promise<boolean> {
-  if (!store || !serverUserId) return false;
+export async function discardLocalAndAdopt(serverUserId: string): Promise<void> {
+  await wipeFor(serverUserId);
+}
 
-  const owner = await store.get(OWNER_KEY);
-  if (owner && owner !== serverUserId) {
-    // 다른 사람이 이 기기를 쓴다 — 로컬과 동기 커서를 통째로 비운다.
-    await database.write(async () => {
-      await database.unsafeResetDatabase();
-    });
-    // 카탈로그는 사용자 데이터가 아니라 앱의 재료다 — 비운 자리에 다시 심는다.
-    await seedExercisesIfNeeded();
-    await store.set(OWNER_KEY, serverUserId);
-    return true;
-  }
-  // 처음이다 — 로그인 전에 쌓은 기록을 이 계정 것으로 삼는다.
-  if (!owner) await store.set(OWNER_KEY, serverUserId);
-  return false;
+/** 로그아웃했다 — 멈춤을 푼다(주인은 그대로라 원래 계정으로 다시 로그인하면 이어진다). */
+export async function clearSyncBlock(): Promise<void> {
+  await setBlocked(null);
+}
+
+async function wipeFor(serverUserId: string): Promise<void> {
+  await database.write(async () => {
+    await database.unsafeResetDatabase();
+  });
+  // 카탈로그는 사용자 데이터가 아니라 앱의 재료다 — 비운 자리에 다시 심는다.
+  await seedExercisesIfNeeded();
+  await store?.set(OWNER_KEY, serverUserId);
+  await setBlocked(null);
+}
+
+async function setBlocked(userId: string | null): Promise<void> {
+  blockedFor = userId;
+  await store?.set(BLOCK_KEY, userId ?? '');
 }

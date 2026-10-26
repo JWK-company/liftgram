@@ -1,10 +1,8 @@
-// [sync-core] 이 파일은 파생물이다 — 원본 app/src/db/models/ 에서 옮기며 데코레이터 필드를
-// `declare` 형태로 바꿨다(SWC에서 class-fields가 접근자를 가리는 것을 막는다 · scripts/sync-core.mjs).
 // 사용자 프로필 모델 (SRS-006). Phase 0: 로컬 단일 사용자. @plm SRS-006
 import { Model } from '@nozbe/watermelondb';
 import { field, text, date, readonly, json } from '@nozbe/watermelondb/decorators';
 import type { AppLanguage, EquipmentType, ExperienceLevel, GearTag, WeeklySchedule, WeightUnit } from '../../domain';
-import { sanitizeCalendarNotesJson, sanitizeGearTags, sanitizeManualWorkoutDaysJson, sanitizeStringArray, sanitizeWeeklyScheduleJson } from './_sanitizers';
+import { sanitizeAppPrefsJson, sanitizeCalendarNotesJson, sanitizeGearTags, sanitizeManualWorkoutDaysJson, sanitizeStringArray, sanitizeWeeklyScheduleJson } from './_sanitizers';
 
 export default class UserProfile extends Model {
   static table = 'user_profiles';
@@ -23,6 +21,7 @@ export default class UserProfile extends Model {
   @field('trainer_intent') declare trainerIntent: boolean | null; // v18: 코칭 의향 — 자격 보증 아님. @plm SRS-045
   @json('manual_workout_days', sanitizeManualWorkoutDaysJson) declare manualWorkoutDays: number[] | null; // v19: 수동 '운동했어요' 표시일(dayNumber). @plm SRS-011
   @json('calendar_notes', sanitizeCalendarNotesJson) declare calendarNotes: Record<string, string> | null; // v20: 날짜별 간단 메모(dayNumber 키). @plm SRS-011
+  @json('app_prefs', sanitizeAppPrefsJson) declare appPrefs: Record<string, string> | null; // v21: 계정과 함께 옮기는 앱 설정. @plm SRS-006
   @field('bar_weight_kg') declare barWeightKg: number;
   @field('bodyweight_kg') declare bodyweightKg: number | null; // v12: 체중 — 맨몸±가중/보조 볼륨 계산. @plm SRS-033
   @field('last_sync_at') declare lastSyncAt: number | null;

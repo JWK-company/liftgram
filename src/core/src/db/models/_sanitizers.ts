@@ -71,3 +71,20 @@ export function sanitizeCalendarNotesJson(raw: unknown): Record<string, string> 
   }
   return out;
 }
+
+/**
+ * v21 앱 설정 — `{ "liftgram.weeklyGoal": "6", … }`. 문자열 키·문자열 값만, 개수·길이에 상한을 둔다.
+ * 키를 여기서 고정하지 않는 이유: 설정이 늘 때마다 스키마를 올리지 않으려고(허용 목록은 웹 prefs.ts가 쥔다).
+ */
+export function sanitizeAppPrefsJson(raw: unknown): Record<string, string> | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const out: Record<string, string> = {};
+  let count = 0;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (count >= 50) break;
+    if (typeof v !== 'string' || k.length > 64) continue;
+    out[k] = v.slice(0, 200);
+    count += 1;
+  }
+  return out;
+}

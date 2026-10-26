@@ -2,6 +2,7 @@
 import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
+import { awaitFirstSync } from '../sync/syncEngine';
 import { UserProfile } from '../db/models';
 import { DEFAULT_BAR_KG } from '../domain';
 import { normalizeGearTags } from '../domain';
@@ -13,6 +14,11 @@ const profiles = () => database.get<UserProfile>('user_profiles');
 export async function getOrCreateLocalUser(): Promise<UserProfile> {
   const existing = await profiles().query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
   if (existing[0]) return existing[0];
+  // 새 기기일 수 있다 — 서버의 프로필이 내려오기 전에 빈 것을 만들면 프로필이 기기마다 늘어난다.
+  // 첫 동기를 잠깐 기다린 뒤 다시 본다(로그인 안 했거나 오프라인이면 곧바로 지나간다).
+  await awaitFirstSync();
+  const pulled = await profiles().query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
+  if (pulled[0]) return pulled[0];
   return database.write(async () =>
     profiles().create((u) => {
       u.authProvider = 'local';
@@ -49,6 +55,7 @@ export interface UserSettingsPatch {
   trainerIntent?: boolean | null; // v18: 코칭 의향(회원 모집) — 자격 보증 아님. @plm SRS-045
   manualWorkoutDays?: number[] | null; // v19: 수동 '운동했어요' 표시일(dayNumber) — 캘린더 전용. @plm SRS-011
   calendarNotes?: Record<string, string> | null; // v20: 날짜별 간단 메모 — 캘린더. @plm SRS-011
+  appPrefs?: Record<string, string> | null; // v21: 계정과 함께 옮기는 앱 설정 — 통째로 바꾼다(합치기는 부르는 쪽). @plm SRS-006
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
@@ -69,6 +76,7 @@ export async function updateUserSettings(id: string, patch: UserSettingsPatch): 
       if (patch.trainerIntent !== undefined) rec.trainerIntent = patch.trainerIntent; // @plm SRS-045
       if (patch.manualWorkoutDays !== undefined) rec.manualWorkoutDays = patch.manualWorkoutDays; // @plm SRS-011
       if (patch.calendarNotes !== undefined) rec.calendarNotes = patch.calendarNotes; // v20 @plm SRS-011
+      if (patch.appPrefs !== undefined) rec.appPrefs = patch.appPrefs; // v21 @plm SRS-006
     });
   });
 }

@@ -1,4 +1,4 @@
-/* 생성물이다 — 손으로 고치지 않는다. 원본: app/src/theme/tokens.ts · 재생성: make sync-core */
+/* 생성물이다 — 손으로 고치지 않는다. 원본: src/core/src/theme/tokens.ts · 재생성: make sync-core */
 @theme {
   /* 템플릿이 쓰던 이름 ← app 팔레트 */
   --color-bg: #0E1116;

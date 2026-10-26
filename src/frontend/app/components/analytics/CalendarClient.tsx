@@ -27,7 +27,7 @@ import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
-import { getPref, setPref } from "@/lib/prefs";
+import { getPref, setPref, PREFS_EVENT } from "@/lib/prefs";
 import { feedClient } from "@/lib/feedClient";
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
@@ -74,13 +74,18 @@ export default function CalendarClient() {
   const models = useQueryData(() => (repo ? repo.queryWorkoutHistory() : null), [repo]);
   const workouts: WorkoutRow[] = useMemo(() => models.map((m) => m as unknown as WorkoutRow), [models]);
 
-  // 기기-로컬 설정 — 서버에 보낼 것도, 스키마에 넣을 것도 아니다.
+  // 앱 설정 — 계정과 함께 동기된다(lib/prefs.ts SYNCED_PREF_KEYS). 다른 기기에서 바뀌면 PREFS_EVENT로 다시 읽는다.
   const [weeklyGoal, setWeeklyGoalState] = useState(WEEKLY_GOAL_DEFAULT);
   const [skipWeekends, setSkipWeekendsState] = useState(false);
   useEffect(() => {
-    const g = Number.parseInt(getPref(GOAL_KEY) ?? "", 10);
-    if (Number.isFinite(g)) setWeeklyGoalState(Math.min(WEEKLY_GOAL_MAX, Math.max(WEEKLY_GOAL_MIN, g)));
-    setSkipWeekendsState(getPref(SKIP_WEEKENDS_KEY) === "1");
+    const read = () => {
+      const g = Number.parseInt(getPref(GOAL_KEY) ?? "", 10);
+      if (Number.isFinite(g)) setWeeklyGoalState(Math.min(WEEKLY_GOAL_MAX, Math.max(WEEKLY_GOAL_MIN, g)));
+      setSkipWeekendsState(getPref(SKIP_WEEKENDS_KEY) === "1");
+    };
+    read();
+    window.addEventListener(PREFS_EVENT, read);
+    return () => window.removeEventListener(PREFS_EVENT, read);
   }, []);
   const setWeeklyGoal = (n: number) => {
     const c = Math.min(WEEKLY_GOAL_MAX, Math.max(WEEKLY_GOAL_MIN, Math.round(n)));

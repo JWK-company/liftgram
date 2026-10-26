@@ -134,12 +134,12 @@ gen-migration: ## 새 마이그레이션 파일 만들기 — 사용: make gen-m
 	printf -- "-- %s\n--\n-- 규칙: 재실행해도 결과가 같도록 IF NOT EXISTS · ON CONFLICT 를 쓴다.\n-- 한 번 적용된 파일은 고치지 않는다 — 새 파일을 만든다.\n\n" "$(NAME)" > $$f; \
 	echo "만들었습니다: $$f  (내용을 채운 뒤 make sqlc && make migrate)"
 
-sync-core: ## 도메인·정적데이터·문자열을 app/에서 core/로 이전 (ADR-032 · 원본은 app/src/)
+sync-core: ## 디자인 토큰 → theme.generated.css 생성 (2026-10-26 app/ 은퇴 — 이제 core/src 가 원본)
 	@# 재작성이 아니라 복사다 — 같은 계산 규칙을 두 곳에 손으로 적으면 반드시 갈라진다.
 	bun scripts/sync-core.mjs
 	@echo "생성물은 커밋한다 — 검증은 make core-check"
 
-core-check: ## core 파생물이 원본(app/src/)과 일치하는가 — make verify가 부른다
+core-check: ## 토큰 CSS가 core 원본과 일치하는가 — make verify가 부른다
 	bun scripts/sync-core.mjs --check
 
 gen-exercise-seed: ## 운동 카탈로그 시드 SQL 재생성 (원본 = app/의 TypeScript 시드)

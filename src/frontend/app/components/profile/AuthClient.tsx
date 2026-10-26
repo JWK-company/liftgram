@@ -12,6 +12,8 @@ import { Code, ConnectError } from "@connectrpc/connect";
 import { useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
+import { BackupCard } from "../sync/BackupCard";
+import { agoText, useSyncHealth } from "../sync/useSyncHealth";
 import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
 import { Button } from "../ui/Button";
@@ -29,6 +31,7 @@ import { AppText, Card } from "../ui/primitives";
  * 배경 동기는 조용히 실패하므로(그게 옳다), 사용자가 확인할 방법이 하나는 있어야 한다.
  */
 function ServerSyncCard() {
+  const h = useSyncHealth();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
@@ -55,6 +58,23 @@ function ServerSyncCard() {
       </AppText>
       <AppText variant="caption" color="textMuted" className="mt-[2px] block">
         {t("serverSync.connectedCaption")}
+      </AppText>
+      {/* 마지막 백업·남은 기록 — 동기가 조용히 실패해도 여기서는 보인다(2026-10-26). */}
+      <AppText
+        variant="caption"
+        color="textMuted"
+        className="mt-[var(--spacing-sm)] block"
+        data-testid="sync-last"
+      >
+        {agoText(h.lastSuccessAt)}
+      </AppText>
+      <AppText
+        variant="caption"
+        color={h.pending ? "warning" : "textMuted"}
+        className="block"
+        data-testid="sync-pending"
+      >
+        {h.pending ? t("syncHealth.pending", { count: h.pending }) : t("syncHealth.allSynced")}
       </AppText>
       <div className="mt-[var(--spacing-md)]">
         <Button
@@ -133,6 +153,7 @@ export default function AuthClient() {
         </Card>
         <ProfileEditCard />
         <ServerSyncCard />
+        <BackupCard />
         <OfflineNote />
       </div>
     );
@@ -235,6 +256,7 @@ export default function AuthClient() {
         </div>
       </Card>
 
+      <BackupCard />
       <OfflineNote />
     </div>
   );
