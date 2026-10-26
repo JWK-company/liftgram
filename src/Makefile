@@ -142,9 +142,12 @@ sync-core: ## 디자인 토큰 → theme.generated.css 생성 (2026-10-26 app/ �
 core-check: ## 토큰 CSS가 core 원본과 일치하는가 — make verify가 부른다
 	bun scripts/sync-core.mjs --check
 
-catalog: ## 종목 카탈로그 생성 — 정본 core/src/data/catalog/*.csv → 시드 표·이관 예외 표·서버 SQL(staged)
+catalog: ## 종목 카탈로그 생성 — 정본 core/src/data/catalog/*.csv → 시드 표·이관 예외 표·서버 SQL(migrations/0014)
 	node scripts/gen-catalog.mjs
 	@echo "생성물은 커밋한다 — 검증은 make catalog-check"
+
+records-migrate: ## 운영 기록 이관(카탈로그 개편) — PSQL="<psql 명령>" MODE=--dry-run|--apply REPORT=<파일>
+	node --import tsx scripts/migrate-records.ts --psql "$(PSQL)" $(or $(MODE),--dry-run) $(if $(REPORT),--report $(REPORT),)
 
 catalog-check: ## 카탈로그 생성물이 정본 CSV와 일치하는가 — make verify가 부른다
 	node scripts/gen-catalog.mjs --check

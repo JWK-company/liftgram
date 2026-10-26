@@ -4,8 +4,9 @@
 -- 예외는 저장소가 더 잘하는 것뿐이다 — 필터·정렬·페이지네이션이 그렇다(336종을 다 읽어
 -- Go에서 거르면 카탈로그가 커질수록 느려진다).
 
+-- 보관 종목도 돌려준다(카탈로그 개편 QA M1) — 옛 기록·옛 링크가 가리키는 종목 상세가 「통합됨 → 대상」을 안내한다.
 -- name: GetExerciseByID :one
-SELECT * FROM exercises WHERE id = $1 AND is_archived = false;
+SELECT * FROM exercises WHERE id = $1;
 
 -- 목록 — 커서 페이지네이션 + 선택 필터 3종.
 --
@@ -34,9 +35,10 @@ LIMIT @lim;
 
 -- 배포용 전량 조회 — 화면 목록과 달리 **행 전부**를 준다(로컬 저장소를 세우려면 전부 필요하다).
 -- 정렬 키는 목록과 같은 name_ko(unique)라 커서가 흔들리지 않는다.
+-- include_archived: 새 클라이언트는 보관 종목도 받아 로컬을 보관 처리한다(옛 클라이언트는 false — 보관 종목을 되살리지 않게).
 -- name: PullCatalogAfter :many
 SELECT * FROM exercises
-WHERE is_archived = false
+WHERE (is_archived = false OR @include_archived::boolean)
   AND (@cursor::text = '' OR name_ko > @cursor::text)
 ORDER BY name_ko
 LIMIT @lim;
@@ -60,7 +62,7 @@ WHERE id = $1 AND is_custom = true AND is_archived = false;
 -- name: GetCatalogRevision :one
 -- 명시적 캐스트가 필요하다 — coalesce의 결과 타입을 sqlc가 유추하지 못해
 -- Go 쪽이 interface{}로 생성된다(그러면 시각을 꺼낼 수 없다).
+-- 보관 행도 센다 — 종목이 보관되면 개정이 바뀌어 기기가 다시 받는다(QA M1).
 SELECT count(*)::bigint AS count,
        coalesce(max(updated_at), to_timestamp(0))::timestamptz AS updated_at
-FROM exercises
-WHERE is_archived = false;
+FROM exercises;

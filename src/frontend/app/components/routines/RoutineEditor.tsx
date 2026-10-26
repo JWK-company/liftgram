@@ -44,7 +44,8 @@ import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card, Divider, EmptyState, SectionHeader, Tag } from "../ui/primitives";
-import { VariantSelector } from "../ui/VariantSelector";
+// [원본] import { VariantSelector } from "../ui/VariantSelector";
+import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { ExerciseName } from "../session/ExerciseName";
 import { useSession } from "../SessionProvider";
 import { SubAppBar } from "../ui/AppBar";
@@ -307,6 +308,13 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                 total={exercises.length}
                 repo={repo}
                 onSwap={() => setPicking({ mode: "swap", reId: re.id })}
+                onSwapTo={(exerciseId) => {
+                  void (async () => {
+                    await repo.swapRoutineExercise(re.id, exerciseId);
+                    await flush();
+                    setVersion((v) => v + 1);
+                  })();
+                }}
                 onRemove={() => setConfirmRemove(re)}
                 onSuperset={() => setSupersetTarget(re)}
                 onUnsuperset={() => {
@@ -536,6 +544,7 @@ function ExerciseEditRow({
   total,
   repo,
   onSwap,
+  onSwapTo,
   onRemove,
   onSuperset,
   onUnsuperset,
@@ -545,6 +554,8 @@ function ExerciseEditRow({
   total: number;
   repo: RoutineRepo;
   onSwap: () => void;
+  /** 같은 동작의 다른 기구 종목으로 곧바로 바꾼다(기구 바꾸기) @plm SRS-057 */
+  onSwapTo: (exerciseId: string) => void;
   onRemove: () => void;
   onSuperset: () => void;
   onUnsuperset: () => void;
@@ -554,6 +565,9 @@ function ExerciseEditRow({
   const [rest, setRest] = useState(re.restSeconds);
   const [weight, setWeight] = useState(() => (re.targetWeightKg ? fromKg(re.targetWeightKg, weightUnit) : 0));
   const [variant, setVariant] = useState<VariantDims>(() => re.variant ?? {});
+  // 종목이 바뀌면(기구 바꾸기·대체) 저장소가 정한 새 칸을 따른다.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 종목이 바뀔 때만 따라간다
+  useEffect(() => setVariant(re.variant ?? {}), [re.exerciseId]);
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
   const [metrics, setMetrics] = useState<CardioMetric[]>([]);
@@ -604,13 +618,16 @@ function ExerciseEditRow({
             </AppText>
             {!isCardio ? (
               <div className="mt-[4px] flex flex-wrap gap-[6px]">
-                <VariantSelector
+                {/* [원본] <VariantSelector …/> — P2: 기구 바꾸기 = 종목 바꾸기(ADR-033·034) */}
+                <RecordSlotSelector
+                  exerciseId={re.exerciseId}
                   baseEquipment={baseEquipment}
                   value={variant}
                   onChange={(dims) => {
                     setVariant(dims);
                     void repo.setRoutineExerciseVariant(re.id, dims).then(scheduleFlush);
                   }}
+                  onSwap={onSwapTo}
                 />
               </div>
             ) : null}

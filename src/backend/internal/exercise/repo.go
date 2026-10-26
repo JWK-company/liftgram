@@ -71,8 +71,8 @@ func (r *pgRepo) ListAfter(ctx context.Context, f ListFilter) ([]Summary, error)
 	return out, nil
 }
 
-func (r *pgRepo) PullAfter(ctx context.Context, cursor string, limit int32) ([]Exercise, error) {
-	rows, err := r.q.PullCatalogAfter(ctx, sqlcgen.PullCatalogAfterParams{Cursor: cursor, Lim: limit})
+func (r *pgRepo) PullAfter(ctx context.Context, cursor string, limit int32, includeArchived bool) ([]Exercise, error) {
+	rows, err := r.q.PullCatalogAfter(ctx, sqlcgen.PullCatalogAfterParams{Cursor: cursor, Lim: limit, IncludeArchived: includeArchived})
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +134,11 @@ func toDomain(e sqlcgen.Exercise) Exercise {
 		ImageURL:         deref(e.ImageUrl),
 		IsCustom:         e.IsCustom,
 		UpdatedAt:        e.UpdatedAt.Time,
+		Aliases:          e.Aliases,
+		Family:           deref(e.Family),
+		Similar:          e.SimilarRefs,
+		MediaRef:         deref(e.MediaRef),
+		IsArchived:       e.IsArchived,
 	}
 }
 

@@ -27,8 +27,8 @@ export interface WizardResult {
   muscle: MuscleGroup | null;
   equipment: EquipmentType | null;
   kind: ExerciseKind | null;
-  /** 큐레이션된 동작/자세 종목 집합(있으면 이 종목들만). null = 집합 필터 없음. */
-  names: string[] | null;
+  /** 큐레이션된 동작/자세 종목 id 집합(있으면 이 종목들만 · P2 에서 이름 → id). null = 집합 필터 없음. */
+  ids: string[] | null;
   /** 배너에 보여줄 선택 경로(예: '가슴 · 평평하게 밀기'). */
   label: string;
 }
@@ -66,7 +66,7 @@ export default function ExerciseFinderWizard({
   const mLabel = muscle ? muscleLabelFromDomain(muscle) : "";
 
   const pickCardio = () =>
-    onDone({ muscle: null, equipment: null, kind: "cardio", names: null, label: t("wizard.cardio") });
+    onDone({ muscle: null, equipment: null, kind: "cardio", ids: null, label: t("wizard.cardio") });
 
   const pickSubgroup = (key: string) => {
     const opt = subgroups?.find((s) => s.key === key);
@@ -75,7 +75,7 @@ export default function ExerciseFinderWizard({
       muscle,
       equipment: null,
       kind: null,
-      names: opt.names,
+      ids: opt.ids,
       label: `${mLabel} · ${lang === "ko" ? opt.labelKo : opt.labelEn}`,
     });
   };
@@ -86,14 +86,14 @@ export default function ExerciseFinderWizard({
       muscle,
       equipment: eq,
       kind: null,
-      names: null,
+      ids: null,
       label: eq ? `${mLabel} · ${equipmentLabelFromDomain(eq)}` : mLabel,
     });
   };
 
   const pickAllOfMuscle = () => {
     if (!muscle) return;
-    onDone({ muscle, equipment: null, kind: null, names: null, label: mLabel });
+    onDone({ muscle, equipment: null, kind: null, ids: null, label: mLabel });
   };
 
   return createPortal(

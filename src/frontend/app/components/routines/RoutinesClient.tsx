@@ -924,16 +924,17 @@ function ConceptDialog({
         import("@app/core/data/exerciseRepository"),
         import("@app/core/data/routineRepository"),
       ]);
-      const names = [...new Set(concept.days.flatMap((d) => d.exercises))];
-      const idByName = await exerciseRepo.getExerciseIdsByNames(names);
+      // [원본] 콘셉트 루틴이 nameKo 로 종목을 가리키던 때 — P2 에서 seed id 로 옮겼다(ADR-033)
+      // const names = [...new Set(concept.days.flatMap((d) => d.exercises))];
+      // const idByName = await exerciseRepo.getExerciseIdsByNames(names);
+      const have = await exerciseRepo.getActiveExerciseIds([
+        ...new Set(concept.days.flatMap((d) => d.exercises)),
+      ]);
 
       let made = 0;
       for (const d of concept.days) {
-        // 시드에 없는 종목은 조용히 뺀다 — 하나 없다고 Day 전체를 못 만들 이유가 없다.
-        const items = d.exercises
-          .map((n) => idByName.get(n))
-          .filter((id): id is string => !!id)
-          .map((exerciseId) => ({ exerciseId }));
+        // 기기에 없는 종목은 조용히 뺀다 — 하나 없다고 Day 전체를 못 만들 이유가 없다.
+        const items = d.exercises.filter((id) => have.has(id)).map((exerciseId) => ({ exerciseId }));
         if (!items.length) continue;
         await routineRepo.importRoutine(routineName(lang === "ko" ? d.nameKo : d.nameEn), items);
         made += 1;

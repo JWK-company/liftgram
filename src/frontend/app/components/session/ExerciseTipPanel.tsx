@@ -17,21 +17,28 @@ import { lang, t } from "@/lib/i18n";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
-/** 종목명 → 펼침 여부. 컴포넌트 밖에 두어 블록이 다시 마운트돼도 남는다(app과 같다). */
+/** 종목 id → 펼침 여부. 컴포넌트 밖에 두어 블록이 다시 마운트돼도 남는다(app과 같다). */
 const expandedByExercise = new Map<string, boolean>();
 
-export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; trailing?: ReactNode }) {
+// P2(ADR-033): 이름이 아니라 종목 id 로 찾는다 — 대표 이름·별칭이 바뀌어도 팁이 끊기지 않는다.
+export function ExerciseTipPanel({
+  exerciseId,
+  trailing,
+}: {
+  exerciseId: string | null;
+  trailing?: ReactNode;
+}) {
   const [expanded, setExpanded] = useState(false);
   const [mode, setMode] = useState<"media" | "steps">("media");
 
   useEffect(() => {
-    if (!nameKo) return;
-    setExpanded(expandedByExercise.get(nameKo) ?? false);
+    if (!exerciseId) return;
+    setExpanded(expandedByExercise.get(exerciseId) ?? false);
     setMode("media");
-  }, [nameKo]);
+  }, [exerciseId]);
 
-  if (!nameKo) return null;
-  const media = getExerciseMedia(nameKo);
+  if (!exerciseId) return null;
+  const media = getExerciseMedia(exerciseId);
   const steps = media
     ? lang === "ko" && media.instructionsKo.length
       ? media.instructionsKo
@@ -44,7 +51,7 @@ export function ExerciseTipPanel({ nameKo, trailing }: { nameKo: string | null; 
   const toggle = () => {
     const next = !expanded;
     setExpanded(next);
-    expandedByExercise.set(nameKo, next);
+    expandedByExercise.set(exerciseId, next);
     if (next) setMode(hasImages ? "media" : "steps");
   };
 

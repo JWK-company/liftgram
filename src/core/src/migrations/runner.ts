@@ -12,7 +12,9 @@
 //   V8  인클라인 3종 → 한 종목 통합  → **폐기**(ADR-033 과 반대 방향 · 대상 nameKo 가 시드에 없어 원래도 no-op)
 //   V10 유산소 kind · V12 어시스트 load_mode → 서버 카탈로그(catalogSync)가 kind·load_mode 를 내려 준다
 //   V11 그립·팔 버킷 제거 · V22 고유 기구 정규화 → 정규화(ADR-034)로 대체
-// 그래서 지금 등록된 백필은 없다. 새 백필은 BOOT_MIGRATIONS 에 id 와 함께 넣는다(id 는 바꾸지 않는다).
+// 등록된 백필은 「번들 카탈로그 판 반영」 하나다(P2) — 판(내용 해시)이 id 에 들어 있어 CSV 가 바뀌면 다시 한 번 돈다.
+// 새 백필은 BOOT_MIGRATIONS 에 id 와 함께 넣는다(id 는 바꾸지 않는다).
+import { CATALOG_REVISION } from '../data/catalog/catalogRevision';
 
 /** 표식을 두는 기기 로컬 저장소(웹 = localStorage). 동기 대상이 아니어야 한다. */
 export interface MarkerStore {
@@ -27,7 +29,16 @@ export interface BootMigration {
   run(): Promise<unknown>;
 }
 
-export const BOOT_MIGRATIONS: BootMigration[] = [];
+export const BOOT_MIGRATIONS: BootMigration[] = [
+  {
+    // 이미 있는 시드 종목의 이름·보관·family·별칭을 새 번들 표에 맞춘다(오프라인으로 새 판을 연 기기의 안전망). @plm SRS-055
+    id: `catalog-bundle-${CATALOG_REVISION}`,
+    run: async () => {
+      const { refreshSeedCatalog } = await import('../data/seedRunner');
+      return refreshSeedCatalog();
+    },
+  },
+];
 
 const MARK_PREFIX = 'liftgram.migration.';
 

@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { CATALOG, CATALOG_FAMILIES } from '../../data/catalog/catalog.generated';
 import { MIGRATION_OVERRIDES } from '../../data/catalog/catalogMigration.data';
 import type { CatalogRow } from '../../data/catalog/catalogTypes';
-import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
+import { LEGACY_SEED_EXERCISES as SEED_EXERCISES } from '../../data/seed/legacySeed'; // 개편 전 시드(게이트가 막는지 확인용)
 import { CATALOG_EQUIPMENT, checkCatalogIntegrity } from '../catalogIntegrity';
 import { normalizeNameKey, seedIdOf } from '../nameKey';
 

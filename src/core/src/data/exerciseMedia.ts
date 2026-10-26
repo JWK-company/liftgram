@@ -23,6 +23,7 @@ export function freeDbImageUrl(path: string): string {
 // 이미지 경로만 저장(CDN base 중앙화)하고 조회 시 절대 URL로 조립. RAW_MEDIA는 빌드 스크립트가 생성.
 import { RAW_MEDIA } from './exerciseMedia.data';
 import { RAW_MEDIA_3D } from './exerciseMedia3d.data'; // v0.10: 3D 움짤 오버레이(에셋 확보 시 ingest 스크립트가 채움). @plm SRS-046
+import { MEDIA_KEY_BY_ID } from './exerciseMediaKeys.data'; // P2: 종목 id → 미디어 키(ADR-033 — 이름이 바뀌어도 끊기지 않게)
 
 // 괄호 기구 토큰 폴백 공용('인클라인 프레스 (덤벨)' → '인클라인 프레스'). @plm SRS-028/032
 function lookupWithBase<T>(table: Record<string, T>, nameKo: string): T | undefined {
@@ -33,7 +34,18 @@ function lookupWithBase<T>(table: Record<string, T>, nameKo: string): T | undefi
   return undefined;
 }
 
-export function getExerciseMedia(nameKo: string): ExerciseMedia | null {
+/**
+ * 종목 미디어 — **종목 id** 로 찾는다(카탈로그 개편 P2 · ADR-033). 대표 이름이 바뀌거나 사용자가 별칭으로
+ * 부르더라도 그림이 끊기지 않는다. 커스텀 종목·미디어가 없는 신규 종목은 null(픽토그램은 P5).
+ */
+export function getExerciseMedia(exerciseId: string): ExerciseMedia | null {
+  const key = MEDIA_KEY_BY_ID[exerciseId];
+  if (!key) return null;
+  return getExerciseMediaByKey(key);
+}
+
+// [원본] 이름 키 조회 — 미디어 표 자체의 키(사진 출처 라벨)로만 쓴다. 화면은 위 id 조회를 쓴다.
+export function getExerciseMediaByKey(nameKo: string): ExerciseMedia | null {
   const r = lookupWithBase(RAW_MEDIA, nameKo);
   const gif = lookupWithBase(RAW_MEDIA_3D, nameKo) ?? null;
   if (!r && !gif) return null;

@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 import { CATALOG, CATALOG_FAMILIES } from '../../data/catalog/catalog.generated';
 import { MIGRATION_OVERRIDES } from '../../data/catalog/catalogMigration.data';
-import { buildCatalogIndex, planBlockMigration, type BlockColumns } from '../catalogMigrationPlan';
-import { IMPLEMENT_KEYS } from '../variants';
+import { buildCatalogIndex, planBlockMigration, planDisplayNames, type BlockColumns } from '../catalogMigrationPlan';
+import { IMPLEMENT_KEYS, normalizeVariantDimsV34 } from '../variants';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const idx = buildCatalogIndex(CATALOG, CATALOG_FAMILIES, MIGRATION_OVERRIDES);
@@ -148,11 +148,12 @@ test('운영 변형 분포 전수 — 기구 변형 칸 0 · 남는 칸은 아�
   ]);
 });
 
-test('부팅 백필 등록 목록 고정(QA M5) — V6·V8·V10·V11·V12·V22 는 정규화·서버 카탈로그로 대체', async () => {
+test('부팅 백필 등록 목록 고정(QA M5) — 옛 V6~V22 는 없고, 번들 카탈로그 판 반영 하나뿐', async () => {
   const { BOOT_MIGRATIONS, runBootMigrations } = await import('../../migrations/runner');
+  const { CATALOG_REVISION } = await import('../../data/catalog/catalogRevision');
   assert.deepEqual(
     BOOT_MIGRATIONS.map((m) => m.id),
-    [],
+    [`catalog-bundle-${CATALOG_REVISION}`],
   );
   // 표식은 기기 로컬 저장소에 — 두 번째 실행은 건너뛴다, 실패는 다음 부팅에 다시
   const mem = new Map<string, string>();
@@ -164,4 +165,40 @@ test('부팅 백필 등록 목록 고정(QA M5) — V6·V8·V10·V11·V12·V22 �
   assert.equal(n, 1);
   await assert.rejects(runBootMigrations(store, [{ id: 'y', run: async () => Promise.reject(new Error('boom')) }]));
   assert.equal(mem.has('liftgram.migration.y'), false);
+});
+
+// ── 표시 이름 연속성(QA M3) — 이관 뒤에도 사용자가 쓰던 이름 ──────────────────
+test('표시 이름: 로프 푸시다운만 쓰던 사람 → 케이블 푸시다운이 「로프 푸시다운」으로 보인다', () => {
+  const names = planDisplayNames(new Map([['seed-rope-pushdown', 5]]), idx);
+  assert.equal(names.get('seed-triceps-pushdown'), '로프 푸시다운');
+});
+
+test('표시 이름: 대상 자신의 옛 이름이 우선 — 「트라이셉스 푸시다운」+「로프 푸시다운」 → 「트라이셉스 푸시다운」', () => {
+  const names = planDisplayNames(new Map([['seed-rope-pushdown', 9], ['seed-triceps-pushdown', 1]]), idx);
+  assert.equal(names.get('seed-triceps-pushdown'), '트라이셉스 푸시다운');
+});
+
+test('표시 이름: 대상을 이름 그대로 쓰던 사람은 대표 이름(null) — 접혀 들어온 이름으로 바꾸지 않는다', () => {
+  const names = planDisplayNames(new Map([['seed-leg-curl', 3], ['seed-lying-leg-curl', 2]]), idx);
+  assert.equal(names.get('seed-lying-leg-curl'), null);
+});
+
+test('표시 이름 멱등 — 옮겨 들어간 종목은 이름이 없어도 대표 이름 선호를 남긴다(재실행이 옛 이름을 착각하지 않게)', () => {
+  // 딥스+테크노짐 → 머신 딥스(옛 이름 「딥 머신」): 사용자는 「딥 머신」이라고 부른 적이 없다.
+  const first = planDisplayNames(new Map([['seed-dips', 2]]), idx, ['seed-dip-machine']);
+  assert.equal(first.get('seed-dip-machine'), null);
+});
+
+test('쓰기 정규화(ADR-034 · P2) — 기구 값은 칸이 아니다(기구 바꾸기 = 종목 바꾸기), 브랜드는 머신에서만 남는다', () => {
+  const machine = { baseEquipment: 'machine', attachments: [], grips: [], load: true };
+  assert.equal(normalizeVariantDimsV34({ equipment: 'dumbbell' }, { baseEquipment: 'barbell' }).equipment, null);
+  assert.equal(normalizeVariantDimsV34({ equipment: 'hammer' }, machine).equipment, 'hammer');
+  assert.equal(normalizeVariantDimsV34({ equipment: 'machine' }, machine).equipment, null);
+});
+
+test('수렴(QA H1) — 서버 이관 뒤 옛 PWA 가 옛 형식(로프 푸시다운 + 미러)을 다시 올려도 같은 결과로 정규화된다', () => {
+  const server = applied(block('seed-rope-pushdown'));
+  const stale = applied(block('seed-rope-pushdown', null, { machineVariant: null }));
+  assert.deepEqual(stale, server);
+  assert.equal(planBlockMigration(server, idx).changed, false);
 });

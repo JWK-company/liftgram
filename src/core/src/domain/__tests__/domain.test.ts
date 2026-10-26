@@ -396,16 +396,19 @@ test('resolveLoadMode: 명시 우선, 맨몸 기구 파생', () => {
 });
 
 // ── 스무고개 트리 커버리지 — SRS-031 (큐레이션 누락·오타 방지) ────
-test('스무고개: 서브그룹 있는 부위는 모든 근력 종목을 빠짐없이 분류(오타 종목 없음)', () => {
-  const allNames = new Set(SEED_EXERCISES.map((e) => e.nameKo));
+test('스무고개: 서브그룹 있는 부위는 모든 활성 근력 종목을 빠짐없이 분류(죽은 id 없음)', () => {
+  // P2(ADR-033): 트리 KEY = seed id. 보관(병합) 종목은 고를 수 없으므로 트리에 두지 않는다.
+  const idOf = (en: string) => `seed-${en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
+  const active = SEED_EXERCISES.filter((e) => !e.isArchived);
+  const allIds = new Set(active.map((e) => idOf(e.nameEn)));
   for (const [muscle, subs] of Object.entries(FINDER_TREE)) {
-    const covered = new Set(subs.flatMap((s) => s.names));
+    const covered = new Set(subs.flatMap((s) => s.ids));
     // (1) 해당 부위 근력 종목(cardio 제외, primaryMuscles[0]=muscle)이 모두 어느 서브그룹엔가 속함
-    const seedOfMuscle = SEED_EXERCISES.filter((e) => !e.kind && e.primaryMuscles[0] === muscle).map((e) => e.nameKo);
+    const seedOfMuscle = active.filter((e) => !e.kind && e.primaryMuscles[0] === muscle).map((e) => idOf(e.nameEn));
     const missing = seedOfMuscle.filter((n) => !covered.has(n));
     assert.deepEqual(missing, [], `${muscle} 미분류: ${missing.join(', ')}`);
-    // (2) 트리에 적힌 종목이 실제 시드에 존재(이름 오타 방지)
-    const ghost = [...covered].filter((n) => !allNames.has(n));
+    // (2) 트리에 적힌 종목이 실제 활성 시드에 존재(오타·보관 방지)
+    const ghost = [...covered].filter((n) => !allIds.has(n));
     assert.deepEqual(ghost, [], `${muscle} 존재하지 않는 종목: ${ghost.join(', ')}`);
     // (3) 서브그룹 key 중복 없음
     const keys = subs.map((s) => s.key);

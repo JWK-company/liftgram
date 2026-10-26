@@ -557,6 +557,13 @@ export default function ActiveWorkout() {
         bodyweightKg={bodyweightKg}
         onStartRest={startRest}
         onSwap={(weId) => setPicking({ mode: "swap", weId })}
+        onSwapTo={(weId, exerciseId) =>
+          guard(async () => {
+            if (!repo) return;
+            await repo.swapWorkoutExercise(weId, exerciseId);
+            setVersion((v) => v + 1);
+          })
+        }
         canSuperset={exercises.length > 1}
         onSuperset={() => setSupersetTarget(we)}
         onUnsuperset={() =>

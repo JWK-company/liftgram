@@ -5,7 +5,7 @@ import { database } from '../db/database';
 import { Routine, RoutineExercise } from '../db/models';
 import type { CardioTargetJson } from '../db/models/_sanitizers';
 import { randomId } from '../utils/id';
-import { variantColumns, normalizeVariantDims, type VariantDims } from '../domain/variants'; // @plm SRS-028
+import { variantColumns, normalizeVariantDims, normalizeVariantDimsV34, type VariantDims } from '../domain/variants'; // @plm SRS-028
 import { getExercise } from './exerciseRepository';
 import { getLatestVariantUsage } from './workoutRepository';
 
@@ -153,7 +153,11 @@ export async function setRoutineExerciseVariant(id: string, dims: VariantDims): 
   const base = await getExercise(target.exerciseId)
     .then((e) => e.equipment ?? null)
     .catch(() => null);
-  const cols = variantColumns(normalizeVariantDims(dims, base));
+  // [원본] const cols = variantColumns(normalizeVariantDims(dims, base));
+  // [개선] ADR-034(P2): 허용 목록 밖 축·기구 값 제거 — 기구 바꾸기는 종목 바꾸기다
+  void base;
+  const { variantAxesFor } = await import('./catalogMeta');
+  const cols = variantColumns(normalizeVariantDimsV34(dims, await variantAxesFor(target.exerciseId)));
   await database.write(async () => {
     const re = await routineExercises().find(id);
     await re.update((rec) => {

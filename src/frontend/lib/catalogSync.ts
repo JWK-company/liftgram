@@ -49,13 +49,19 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
   const collection = database.get("exercises");
 
   const localCount = await collection.query().fetchCount();
+  // 화면에 보이는 종목 수 — 보관(병합·삭제) 종목은 고를 수 없으니 세지 않는다(카탈로그 개편 P2).
+  // 위 localCount(보관 포함)는 서버 개정(보관 포함)과 견줄 때만 쓴다.
+  const activeCount = async () =>
+    (await collection.query().fetch()).filter(
+      (e) => !(e._raw as unknown as { is_archived?: boolean }).is_archived,
+    ).length;
 
   let first: Awaited<ReturnType<ReturnType<typeof api>["pullCatalog"]>>;
   try {
     // 첫 페이지를 1건만 받아 개정 번호부터 본다 — 바뀌지 않았으면 336종을 헛되이 받지 않는다.
-    first = await api().pullCatalog({ limit: 1 });
+    first = await api().pullCatalog({ limit: 1, includeArchived: true });
   } catch {
-    return { status: "offline", count: localCount };
+    return { status: "offline", count: await activeCount() };
   }
 
   const serverRev = revisionKey(first.revision);
@@ -67,14 +73,15 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
   // 영원히 고쳐지지 않는다(실측: 개정은 339인데 로컬은 337이었다).
   // 로컬이 더 많은 것은 정상이다 — 사용자가 만든 커스텀 종목은 서버 카탈로그에 없다.
   if (serverRev && serverRev === knownRev && localCount >= serverCount && localCount > 0) {
-    return { status: "up-to-date", count: localCount };
+    return { status: "up-to-date", count: await activeCount() };
   }
 
   // ── 전량 받기 ──
   const items: ContractExercise[] = [];
   let cursor = "";
   for (;;) {
-    const page = await api().pullCatalog({ cursor, limit: PAGE });
+    // 보관 종목도 받는다 — 병합·삭제된 종목을 로컬에서도 보관 처리해야 고를 수 없게 된다(QA M1).
+    const page = await api().pullCatalog({ cursor, limit: PAGE, includeArchived: true });
     items.push(...page.items);
     if (!page.nextCursor) break;
     cursor = page.nextCursor;
@@ -101,7 +108,13 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
       rec.substituteIds = it.substituteIds;
       rec.imageUrl = it.imageUrl || null;
       rec.isCustom = it.isCustom;
-      rec.isArchived = false;
+      // [원본] rec.isArchived = false;
+      // [개선] 카탈로그 개편(ADR-033 · QA M1) — 보관·동작 그룹·별칭·비슷한 운동·그림 출처를 그대로 받는다.
+      rec.isArchived = it.isArchived;
+      rec.family = it.family || null;
+      rec.aliases = it.aliases;
+      rec.similar = it.similar;
+      rec.mediaRef = it.mediaRef || null;
     };
 
     const found = byId.get(it.id);
@@ -134,5 +147,5 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
   if (typeof localStorage !== "undefined" && serverRev) localStorage.setItem(REVISION_KEY, serverRev);
 
   void Exercise; // 모델 클래스를 번들에 남긴다(컬렉션이 이름으로 찾으므로 트리셰이킹 방지)
-  return { status: "synced", count: await collection.query().fetchCount(), written };
+  return { status: "synced", count: await activeCount(), written };
 }

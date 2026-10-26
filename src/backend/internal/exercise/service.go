@@ -106,6 +106,12 @@ type Exercise struct {
 	ImageURL         string
 	IsCustom         bool
 	UpdatedAt        time.Time
+	// 카탈로그 개편(ADR-033) — 별칭·동작 그룹·비슷한 운동·그림 출처·보관. @plm SRS-055 SRS-056
+	Aliases    []string
+	Family     string
+	Similar    []string
+	MediaRef   string
+	IsArchived bool
 }
 
 // Summary는 목록이 보는 것. 상세 전용 필드를 빼서 336종을 실어도 가볍다.
@@ -151,7 +157,8 @@ type Repo interface {
 	GetByID(ctx context.Context, id string) (Exercise, error)
 	ListAfter(ctx context.Context, f ListFilter) ([]Summary, error)
 	// PullAfter는 배포용이라 요약이 아니라 종목 전부를 돌려준다.
-	PullAfter(ctx context.Context, cursor string, limit int32) ([]Exercise, error)
+	// includeArchived: 보관 종목도 싣는다(새 클라이언트만 — QA M1).
+	PullAfter(ctx context.Context, cursor string, limit int32, includeArchived bool) ([]Exercise, error)
 	// CreateCustom은 이름이 이미 있으면 errs.Conflict를 돌려준다.
 	CreateCustom(ctx context.Context, id string, in NewCustom) (Exercise, error)
 	// Archive는 감춘 행 수를 돌려준다. 0이면 없거나 이미 감춰졌거나 시드다.
@@ -224,7 +231,7 @@ const maxPullLimit = 500
 //
 // 개정 번호를 **함께** 돌려준다. 받는 쪽이 그 값을 저장해 두었다가 다음에 견주면
 // 바뀌지 않은 카탈로그를 다시 내려받지 않는다(ADR-002 — 읽기 정본은 로컬이고 서버는 배포 채널).
-func (s *Service) Pull(ctx context.Context, cursor string, limit int32) ([]Exercise, string, Revision, error) {
+func (s *Service) Pull(ctx context.Context, cursor string, limit int32, includeArchived bool) ([]Exercise, string, Revision, error) {
 	take := limit
 	if take <= 0 {
 		take = maxPullLimit
@@ -233,7 +240,7 @@ func (s *Service) Pull(ctx context.Context, cursor string, limit int32) ([]Exerc
 		take = maxPullLimit
 	}
 
-	rows, err := s.repo.PullAfter(ctx, cursor, take+1)
+	rows, err := s.repo.PullAfter(ctx, cursor, take+1, includeArchived)
 	if err != nil {
 		return nil, "", Revision{}, err
 	}

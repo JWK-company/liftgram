@@ -60,8 +60,15 @@ export function hasEquipmentInName(ex: EquippedExercise, lang: AppLanguage = 'ko
   return baseExerciseName(ex, lang) !== exerciseDisplayName(ex, lang);
 }
 
-// 목록/피커 표기 — 베이스명 + ' (기구)'. 기구 토큰이 이름에 없으면 원래 이름 그대로.
+// 목록/피커 표기 — 카탈로그 개편(ADR-035)부터 대표 이름이 이미 「기구 + 동작」이라 그대로 쓴다.
+// (옛 시드는 「인클라인 프레스 (바벨)」·「체스트 프레스 머신」처럼 섞여 있어 「베이스 (기구)」로 맞췄다 — 아래 Legacy)
 export function exerciseListName(ex: EquippedExercise, lang: AppLanguage = 'ko'): string {
+  // [원본] return exerciseListNameLegacy(ex, lang);
+  return exerciseDisplayName(ex, lang);
+}
+
+// [보존] 옛 목록 표기 — 베이스명 + ' (기구)'. 기구 토큰이 이름에 없으면 원래 이름 그대로.
+export function exerciseListNameLegacy(ex: EquippedExercise, lang: AppLanguage = 'ko'): string {
   const base = baseExerciseName(ex, lang);
   const full = exerciseDisplayName(ex, lang);
   if (base === full) return full;

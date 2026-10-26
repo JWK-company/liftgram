@@ -27,6 +27,7 @@ import {
   legacyMachineVariantToV6,
   variantColumns,
   normalizeVariantDims,
+  normalizeVariantDimsV34,
   type VariantDims,
   type GripKey,
   type ArmKey,
@@ -178,12 +179,12 @@ export async function consolidateExercisesV8(): Promise<number> {
 // v10: 유산소 종목 승격(멱등) — 기존 설치의 '로잉 머신' 등 유산소성 종목에 kind='cardio'를 채운다.
 // 신규 시드 유산소 종목(러닝머신 등)은 seedRunner가 kind='cardio'로 생성하므로 여기선 레거시 승격만. @plm SRS-030
 // '러닝머신'·'트레드밀 러닝' 둘 다 포함 — syncSeedNames 리네임 전/후 어느 순서든 백필이 놓치지 않게. @plm SRS-030
-const CARDIO_SEED_NAMES = ['로잉 머신', '러닝머신', '트레드밀 러닝', '러닝', '걷기', '실내 사이클', '일립티컬', '천국의 계단', '스텝밀', '줄넘기', '어썰트 바이크', '스텝퍼', '스키에르그'];
+const CARDIO_SEED_NAMES = ['seed-rowing-machine', 'seed-treadmill-running', 'seed-running', 'seed-walking', 'seed-indoor-cycling', 'seed-elliptical', 'seed-stair-climber', 'seed-jump-rope', 'seed-assault-bike', 'seed-stepper', 'seed-skierg']; // P2: seed id(ADR-033)
 export async function backfillCardioKindV10(): Promise<number> {
   const exercises = database.get<Exercise>('exercises');
   // kind!=null 필터는 어댑터별 NULL 의미차(SQL은 NULL을 notEq에서 제외)로 위험 → 전건 조회 후 JS 필터.
   const rows = await exercises.query(Q.where('is_custom', false)).fetch();
-  const targets = rows.filter((e) => e.kind !== 'cardio' && CARDIO_SEED_NAMES.includes(e.nameKo));
+  const targets = rows.filter((e) => e.kind !== 'cardio' && CARDIO_SEED_NAMES.includes(e.id));
   if (!targets.length) return 0;
   await database.write(async () => {
     await database.batch(...targets.map((e) => e.prepareUpdate((rec) => { rec.kind = 'cardio'; })));
@@ -193,11 +194,11 @@ export async function backfillCardioKindV10(): Promise<number> {
 
 // v12: 어시스트 종목 하중모드 승격(멱등) — 기존 설치의 '어시스트 X'에 load_mode='assisted'를 채운다.
 // (맨몸 모드는 equipment='bodyweight'로 파생하므로 백필 불필요. 신규 시드는 seedRunner가 채움.) @plm SRS-033
-const ASSISTED_SEED_NAMES = ['어시스트 풀업', '어시스트 친업', '어시스트 딥스'];
+const ASSISTED_SEED_NAMES = ['seed-assisted-pull-up', 'seed-assisted-chin-up', 'seed-assisted-dip']; // P2: seed id(ADR-033)
 export async function backfillLoadModeV12(): Promise<number> {
   const exercises = database.get<Exercise>('exercises');
   const rows = await exercises.query(Q.where('is_custom', false)).fetch();
-  const targets = rows.filter((e) => e.loadMode !== 'assisted' && ASSISTED_SEED_NAMES.includes(e.nameKo));
+  const targets = rows.filter((e) => e.loadMode !== 'assisted' && ASSISTED_SEED_NAMES.includes(e.id));
   if (!targets.length) return 0;
   await database.write(async () => {
     await database.batch(...targets.map((e) => e.prepareUpdate((rec) => { rec.loadMode = 'assisted'; })));
@@ -913,7 +914,10 @@ async function baseEquipmentOf(exerciseId: string): Promise<string | null> {
 // 고유 기구 선택은 기본 버킷(null)으로 정규화 — UI뿐 아니라 데이터 계층에서 보장(버킷 분열 방지).
 export async function setVariant(workoutExerciseId: string, dims: VariantDims): Promise<void> {
   const target = await workoutExercises().find(workoutExerciseId);
-  const cols = variantColumns(normalizeVariantDims(dims, await baseEquipmentOf(target.exerciseId)));
+  // [원본] const cols = variantColumns(normalizeVariantDims(dims, await baseEquipmentOf(target.exerciseId)));
+  // [개선] ADR-034(P2): 허용 목록 밖 축·기구 값 제거 — 기구 바꾸기는 종목 바꾸기다(swapWorkoutExercise)
+  const { variantAxesFor } = await import('./catalogMeta');
+  const cols = variantColumns(normalizeVariantDimsV34(dims, await variantAxesFor(target.exerciseId)));
   await database.write(async () => {
     const we = await workoutExercises().find(workoutExerciseId);
     await we.update((rec) => {

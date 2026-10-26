@@ -30,7 +30,7 @@ func (q *Queries) ArchiveCustomExercise(ctx context.Context, id string) (int64, 
 const createCustomExercise = `-- name: CreateCustomExercise :one
 INSERT INTO exercises (id, name_ko, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_custom)
 VALUES ($1, $2, $3, $4, $5, $6, $7, true)
-RETURNING id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, substitute_ids, image_url, is_custom, is_archived, created_at, updated_at
+RETURNING id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, substitute_ids, image_url, is_custom, is_archived, created_at, updated_at, aliases, family, similar_refs, media_ref
 `
 
 type CreateCustomExerciseParams struct {
@@ -71,6 +71,10 @@ func (q *Queries) CreateCustomExercise(ctx context.Context, arg CreateCustomExer
 		&i.IsArchived,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Aliases,
+		&i.Family,
+		&i.SimilarRefs,
+		&i.MediaRef,
 	)
 	return i, err
 }
@@ -79,7 +83,6 @@ const getCatalogRevision = `-- name: GetCatalogRevision :one
 SELECT count(*)::bigint AS count,
        coalesce(max(updated_at), to_timestamp(0))::timestamptz AS updated_at
 FROM exercises
-WHERE is_archived = false
 `
 
 type GetCatalogRevisionRow struct {
@@ -91,6 +94,7 @@ type GetCatalogRevisionRow struct {
 // 목록 전체를 비교하지 않으려고 둔다.
 // 명시적 캐스트가 필요하다 — coalesce의 결과 타입을 sqlc가 유추하지 못해
 // Go 쪽이 interface{}로 생성된다(그러면 시각을 꺼낼 수 없다).
+// 보관 행도 센다 — 종목이 보관되면 개정이 바뀌어 기기가 다시 받는다(QA M1).
 func (q *Queries) GetCatalogRevision(ctx context.Context) (GetCatalogRevisionRow, error) {
 	row := q.db.QueryRow(ctx, getCatalogRevision)
 	var i GetCatalogRevisionRow
@@ -100,7 +104,7 @@ func (q *Queries) GetCatalogRevision(ctx context.Context) (GetCatalogRevisionRow
 
 const getExerciseByID = `-- name: GetExerciseByID :one
 
-SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, substitute_ids, image_url, is_custom, is_archived, created_at, updated_at FROM exercises WHERE id = $1 AND is_archived = false
+SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, substitute_ids, image_url, is_custom, is_archived, created_at, updated_at, aliases, family, similar_refs, media_ref FROM exercises WHERE id = $1
 `
 
 // @plm SRS-001  운동 카탈로그 쿼리 — 여기 있는 것은 SQL뿐이다
@@ -108,6 +112,7 @@ SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind
 // 규칙(무엇이 허용되는가)은 internal/exercise/service.go가 안다.
 // 예외는 저장소가 더 잘하는 것뿐이다 — 필터·정렬·페이지네이션이 그렇다(336종을 다 읽어
 // Go에서 거르면 카탈로그가 커질수록 느려진다).
+// 보관 종목도 돌려준다(카탈로그 개편 QA M1) — 옛 기록·옛 링크가 가리키는 종목 상세가 「통합됨 → 대상」을 안내한다.
 func (q *Queries) GetExerciseByID(ctx context.Context, id string) (Exercise, error) {
 	row := q.db.QueryRow(ctx, getExerciseByID, id)
 	var i Exercise
@@ -126,6 +131,10 @@ func (q *Queries) GetExerciseByID(ctx context.Context, id string) (Exercise, err
 		&i.IsArchived,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Aliases,
+		&i.Family,
+		&i.SimilarRefs,
+		&i.MediaRef,
 	)
 	return i, err
 }
@@ -212,22 +221,24 @@ func (q *Queries) ListExercisesAfter(ctx context.Context, arg ListExercisesAfter
 }
 
 const pullCatalogAfter = `-- name: PullCatalogAfter :many
-SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, substitute_ids, image_url, is_custom, is_archived, created_at, updated_at FROM exercises
-WHERE is_archived = false
-  AND ($1::text = '' OR name_ko > $1::text)
+SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, substitute_ids, image_url, is_custom, is_archived, created_at, updated_at, aliases, family, similar_refs, media_ref FROM exercises
+WHERE (is_archived = false OR $1::boolean)
+  AND ($2::text = '' OR name_ko > $2::text)
 ORDER BY name_ko
-LIMIT $2
+LIMIT $3
 `
 
 type PullCatalogAfterParams struct {
-	Cursor string
-	Lim    int32
+	IncludeArchived bool
+	Cursor          string
+	Lim             int32
 }
 
 // 배포용 전량 조회 — 화면 목록과 달리 **행 전부**를 준다(로컬 저장소를 세우려면 전부 필요하다).
 // 정렬 키는 목록과 같은 name_ko(unique)라 커서가 흔들리지 않는다.
+// include_archived: 새 클라이언트는 보관 종목도 받아 로컬을 보관 처리한다(옛 클라이언트는 false — 보관 종목을 되살리지 않게).
 func (q *Queries) PullCatalogAfter(ctx context.Context, arg PullCatalogAfterParams) ([]Exercise, error) {
-	rows, err := q.db.Query(ctx, pullCatalogAfter, arg.Cursor, arg.Lim)
+	rows, err := q.db.Query(ctx, pullCatalogAfter, arg.IncludeArchived, arg.Cursor, arg.Lim)
 	if err != nil {
 		return nil, err
 	}
@@ -250,6 +261,10 @@ func (q *Queries) PullCatalogAfter(ctx context.Context, arg PullCatalogAfterPara
 			&i.IsArchived,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.Aliases,
+			&i.Family,
+			&i.SimilarRefs,
+			&i.MediaRef,
 		); err != nil {
 			return nil, err
 		}

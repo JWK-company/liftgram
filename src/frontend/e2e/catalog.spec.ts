@@ -94,8 +94,8 @@ test("결정적 딥링크로 상세가 열리고 대체운동이 이어진다", 
   // 상세는 **서버 렌더**다 — 밖으로 공유되는 URL이라 SEO와 즉시 열림이 필요하다.
   // 경로 규칙은 app/(Expo Web)과 같아서 공유된 링크가 어느 구현에서도 열린다.
   await page.goto("/exercise/seed-barbell-bench-press");
-  // 표시 이름은 도메인 규칙을 따른다 — 이름에 든 기구 토큰을 뒤로 뺀다('바벨 벤치프레스' → '벤치프레스 (바벨)').
-  await expect(page.getByTestId("exercise-name")).toHaveText("벤치프레스 (바벨)");
+  // 대표 이름은 「기구 + 동작」 그대로다(ADR-035 — 개편 전에는 기구 토큰을 뒤로 뺐다: '벤치프레스 (바벨)').
+  await expect(page.getByTestId("exercise-name")).toHaveText("바벨 벤치프레스");
 
   const subs = page.getByTestId("substitutes").locator("li");
   expect(await subs.count()).toBeGreaterThan(0);

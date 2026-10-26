@@ -58,7 +58,7 @@ func (f *fakeRepo) CreateCustom(_ context.Context, id string, in NewCustom) (Exe
 	}, nil
 }
 
-func (f *fakeRepo) PullAfter(_ context.Context, cursor string, limit int32) ([]Exercise, error) {
+func (f *fakeRepo) PullAfter(_ context.Context, cursor string, limit int32, _ bool) ([]Exercise, error) {
 	f.lastPull = ListFilter{Cursor: cursor, Limit: limit}
 	if int(limit) < len(f.full) {
 		return f.full[:limit], nil
@@ -320,7 +320,7 @@ func TestPull_기본은_상한까지_주고_커서를_붙인다(t *testing.T) {
 	repo := &fakeRepo{full: fulls(maxPullLimit + 1), rev: Revision{Count: 336}}
 	svc, _, _ := newSvc(repo)
 
-	items, next, rev, err := svc.Pull(context.Background(), "", 0)
+	items, next, rev, err := svc.Pull(context.Background(), "", 0, false)
 	if err != nil {
 		t.Fatalf("예상치 못한 오류: %v", err)
 	}
@@ -340,7 +340,7 @@ func TestPull_상한을_넘는_요청은_잘린다(t *testing.T) {
 	repo := &fakeRepo{full: fulls(10)}
 	svc, _, _ := newSvc(repo)
 
-	if _, _, _, err := svc.Pull(context.Background(), "", 9999); err != nil {
+	if _, _, _, err := svc.Pull(context.Background(), "", 9999, false); err != nil {
 		t.Fatalf("예상치 못한 오류: %v", err)
 	}
 	if repo.lastPull.Limit != maxPullLimit+1 {
@@ -352,7 +352,7 @@ func TestPull_마지막_페이지는_커서가_비어야_한다(t *testing.T) {
 	repo := &fakeRepo{full: fulls(3)}
 	svc, _, _ := newSvc(repo)
 
-	items, next, _, err := svc.Pull(context.Background(), "", 10)
+	items, next, _, err := svc.Pull(context.Background(), "", 10, false)
 	if err != nil {
 		t.Fatalf("예상치 못한 오류: %v", err)
 	}

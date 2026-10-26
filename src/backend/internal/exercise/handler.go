@@ -74,7 +74,7 @@ func (h *Handler) ListExercises(ctx context.Context, req *connect.Request[exerci
 }
 
 func (h *Handler) PullCatalog(ctx context.Context, req *connect.Request[exercisev1.PullCatalogRequest]) (*connect.Response[exercisev1.PullCatalogResponse], error) {
-	items, next, rev, err := h.svc.Pull(ctx, req.Msg.GetCursor(), req.Msg.GetLimit())
+	items, next, rev, err := h.svc.Pull(ctx, req.Msg.GetCursor(), req.Msg.GetLimit(), req.Msg.GetIncludeArchived())
 	if err != nil {
 		return nil, err
 	}
@@ -246,6 +246,11 @@ func toProto(e Exercise) *exercisev1.Exercise {
 		ImageUrl:         e.ImageURL,
 		IsCustom:         e.IsCustom,
 		UpdatedAt:        timestamppb.New(e.UpdatedAt),
+		Aliases:          e.Aliases,
+		Family:           e.Family,
+		Similar:          e.Similar,
+		MediaRef:         e.MediaRef,
+		IsArchived:       e.IsArchived,
 	}
 }
 

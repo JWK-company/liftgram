@@ -208,6 +208,38 @@ func (q *Queries) ListAudit(ctx context.Context, grantID string) ([]ListAuditRow
 	return items, nil
 }
 
+const listCatalogExerciseMeta = `-- name: ListCatalogExerciseMeta :many
+SELECT id, name_ko, primary_muscles FROM exercises WHERE is_custom = false
+`
+
+type ListCatalogExerciseMetaRow struct {
+	ID             string
+	NameKo         string
+	PrimaryMuscles []string
+}
+
+// 서버 카탈로그의 종목 이름·주 근육(카탈로그 개편 QA H4). 리포트는 종목을 **여기서 먼저** 해석한다 —
+// 기기는 이제 시드 종목 행을 동기하지 않아(D10) sync_records 에는 커스텀 종목만 있다.
+func (q *Queries) ListCatalogExerciseMeta(ctx context.Context) ([]ListCatalogExerciseMetaRow, error) {
+	rows, err := q.db.Query(ctx, listCatalogExerciseMeta)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListCatalogExerciseMetaRow
+	for rows.Next() {
+		var i ListCatalogExerciseMetaRow
+		if err := rows.Scan(&i.ID, &i.NameKo, &i.PrimaryMuscles); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listGrantsForUser = `-- name: ListGrantsForUser :many
 SELECT
   g.id, g.trainer_id, g.member_id, g.status, g.scope, g.requested_by, g.consent_at, g.revoked_at, g.created_at, g.updated_at,

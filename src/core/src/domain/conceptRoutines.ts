@@ -5,7 +5,7 @@
 export interface ConceptRoutineDay {
   nameKo: string; // 루틴 이름(저장 시 "콘셉트명 — Day명")
   nameEn: string;
-  exercises: string[]; // 시드 nameKo 목록
+  exercises: string[]; // 종목 seed id 목록(P2 — nameKo 키 폐지 · ADR-033)
 }
 
 export interface ConceptRoutine {
@@ -30,12 +30,12 @@ export const CONCEPT_ROUTINES: ConceptRoutine[] = [
       {
         nameKo: 'Day 1 프레스·측면',
         nameEn: 'Day 1 Press & Side Delts',
-        exercises: ['오버헤드 프레스', '덤벨 레터럴 레이즈', '인클라인 프레스 (덤벨)', '케이블 레터럴 레이즈'],
+        exercises: ['seed-overhead-press', 'seed-side-lateral-raise', 'seed-incline-press-dumbbell', 'seed-cable-lateral-raise'],
       },
       {
         nameKo: 'Day 2 후면·상체 풀',
         nameEn: 'Day 2 Rear Delts & Pull',
-        exercises: ['페이스 풀', '덤벨 리어 델트 플라이', '랫 풀다운', '덤벨 슈러그'],
+        exercises: ['seed-face-pull', 'seed-rear-delt-fly', 'seed-lat-pulldown', 'seed-dumbbell-shrug'],
       },
     ],
   },
@@ -51,17 +51,17 @@ export const CONCEPT_ROUTINES: ConceptRoutine[] = [
       {
         nameKo: 'Day 1 스쿼트',
         nameEn: 'Day 1 Squat',
-        exercises: ['바벨 스쿼트', '레그 프레스', '시티드 레그 컬', '플랭크'],
+        exercises: ['seed-barbell-squat', 'seed-leg-press', 'seed-seated-leg-curl', 'seed-plank'],
       },
       {
         nameKo: 'Day 2 벤치',
         nameEn: 'Day 2 Bench',
-        exercises: ['바벨 벤치프레스', '인클라인 프레스 (덤벨)', '딥스', '트라이셉스 푸시다운'],
+        exercises: ['seed-barbell-bench-press', 'seed-incline-press-dumbbell', 'seed-dips', 'seed-triceps-pushdown'],
       },
       {
         nameKo: 'Day 3 데드리프트',
         nameEn: 'Day 3 Deadlift',
-        exercises: ['데드리프트', '바벨 로우', '풀업', '바벨 컬'],
+        exercises: ['seed-deadlift', 'seed-barbell-row', 'seed-pull-up', 'seed-barbell-curl'],
       },
     ],
   },
@@ -77,17 +77,17 @@ export const CONCEPT_ROUTINES: ConceptRoutine[] = [
       {
         nameKo: 'Day 1 가슴·어깨',
         nameEn: 'Day 1 Chest & Shoulders',
-        exercises: ['체스트 프레스 머신', '케이블 크로스오버', '숄더 프레스 머신', '케이블 레터럴 레이즈'],
+        exercises: ['seed-chest-press-machine', 'seed-cable-crossover', 'seed-shoulder-press-machine', 'seed-cable-lateral-raise'],
       },
       {
         nameKo: 'Day 2 등·팔',
         nameEn: 'Day 2 Back & Arms',
-        exercises: ['랫 풀다운', '시티드 케이블 로우', '케이블 컬', '로프 푸시다운'],
+        exercises: ['seed-lat-pulldown', 'seed-seated-cable-row', 'seed-cable-curl', 'seed-triceps-pushdown'],
       },
       {
         nameKo: 'Day 3 하체·코어',
         nameEn: 'Day 3 Legs & Core',
-        exercises: ['레그 프레스', '힙 쓰러스트 (바벨)', '시티드 레그 컬', '케이블 크런치'],
+        exercises: ['seed-leg-press', 'seed-hip-thrust', 'seed-seated-leg-curl', 'seed-cable-crunch'],
       },
     ],
   },
@@ -103,12 +103,12 @@ export const CONCEPT_ROUTINES: ConceptRoutine[] = [
       {
         nameKo: 'Day 1 전신 푸시',
         nameEn: 'Day 1 Full-Body Push',
-        exercises: ['고블릿 스쿼트', '덤벨 벤치프레스', '덤벨 숄더 프레스', '플랭크'],
+        exercises: ['seed-goblet-squat', 'seed-dumbbell-bench-press', 'seed-dumbbell-shoulder-press', 'seed-plank'],
       },
       {
         nameKo: 'Day 2 전신 풀',
         nameEn: 'Day 2 Full-Body Pull',
-        exercises: ['루마니안 데드리프트 (바벨)', '랫 풀다운', '시티드 케이블 로우', '덤벨 컬'],
+        exercises: ['seed-romanian-deadlift', 'seed-lat-pulldown', 'seed-seated-cable-row', 'seed-dumbbell-curl'],
       },
     ],
   },

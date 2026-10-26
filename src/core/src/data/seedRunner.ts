@@ -1,6 +1,6 @@
 // 운동 카탈로그 시드 — 멱등 top-up (SRS-001). 매 실행 시 nameEn(안정 키) 기준으로 DB에 없는
 // 기본(비커스텀) 종목만 추가한다. 신규 설치=전건 주입, 기존 DB=신규 추가분만 보강.
-// 추가로 대체운동(SUBSTITUTES)을 nameKo->id로 해소해 substituteIds에 멱등 적용(기존 DB 보강 포함).
+// 추가로 대체운동(SUBSTITUTES — seed id 키)을 substituteIds에 멱등 적용(기존 DB 보강 포함).
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import { Exercise } from '../db/models';
@@ -28,7 +28,8 @@ export async function seedExercisesIfNeeded(): Promise<number> {
       e.loadMode = seed.loadMode ?? null; // v12: 하중모드('assisted' 등). @plm SRS-033
       e.isCustom = false;
       e.substituteIds = [];
-      e.isArchived = false;
+      e.isArchived = seed.isArchived ?? false;
+      fillCatalogMeta(e, seed);
     };
     try {
       await database.write(async () => {
@@ -75,7 +76,8 @@ export async function topUpSeedCatalog(): Promise<number> {
     e.loadMode = seed.loadMode ?? null;
     e.isCustom = false;
     e.substituteIds = [];
-    e.isArchived = false;
+    e.isArchived = seed.isArchived ?? false;
+    fillCatalogMeta(e, seed);
   };
   try {
     await database.write(async () => {
@@ -118,12 +120,13 @@ async function syncSeedNames(existing: Exercise[]): Promise<void> {
 async function syncSubstitutes(): Promise<void> {
   const exercises = database.get<Exercise>('exercises');
   const all = await exercises.query(Q.where('is_custom', false)).fetch();
-  const idByName = new Map(all.map((e) => [e.nameKo, e.id]));
+  // P2: 큐레이션 키·값이 seed id 다(ADR-033) — 이름이 바뀌어도 끊기지 않는다. 로컬에 있는 id 만 싣는다.
+  const have = new Set(all.map((e) => e.id));
   const pending = all
     .map((e) => {
-      const subNames = SUBSTITUTES[e.nameKo];
-      if (!subNames) return null;
-      const ids = subNames.map((n) => idByName.get(n)).filter((x): x is string => !!x);
+      const subIds = SUBSTITUTES[e.id];
+      if (!subIds) return null;
+      const ids = subIds.filter((x) => have.has(x));
       return arraysEqual(e.substituteIds, ids) ? null : { e, ids };
     })
     .filter((x): x is { e: Exercise; ids: string[] } => x !== null);
@@ -137,6 +140,65 @@ async function syncSubstitutes(): Promise<void> {
       ),
     );
   });
+}
+
+// v22 카탈로그 메타(ADR-033·034) — 동작 그룹·별칭·비슷한 운동·그림 출처. @plm SRS-055 SRS-056
+function fillCatalogMeta(e: Exercise, seed: SeedExercise): void {
+  e.family = seed.family ?? null;
+  e.aliases = seed.aliases ?? [];
+  e.similar = seed.similar ?? [];
+  e.mediaRef = seed.mediaRef ?? null;
+}
+
+/**
+ * 번들 카탈로그 반영(번들 판이 바뀐 첫 부팅에 한 번 — 부팅 백필 `catalog-bundle-<판>`). @plm SRS-055
+ *
+ * 이미 로컬에 있는 시드 종목의 이름·기구·근육·보관·카탈로그 메타를 번들 표에 맞춘다. 서버 카탈로그(catalogSync)도
+ * 같은 CSV 에서 나오므로 온라인이면 곧 같은 값으로 덮인다 — 이것은 **오프라인으로 새 판을 연 기기**가 새 이름·
+ * 보관 상태·family 를 곧바로 갖게 하는 안전망이다. 판마다 한 번만 돌아, 서버가 더 새 값을 줘도 매 부팅 되돌리지 않는다.
+ * 커스텀 종목은 건드리지 않는다. 바뀐 행 수를 돌려준다.
+ */
+export async function refreshSeedCatalog(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  const rows = await exercises.query(Q.where('is_custom', false)).fetch();
+  const byEn = new Map(SEED_EXERCISES.map((s) => [s.nameEn, s]));
+  const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  const updates = rows
+    .map((e) => ({ e, seed: e.nameEn ? byEn.get(e.nameEn) : undefined }))
+    .filter((x): x is { e: Exercise; seed: SeedExercise } => !!x.seed)
+    .filter(
+      ({ e, seed }) =>
+        e.nameKo !== seed.nameKo ||
+        e.equipment !== seed.equipment ||
+        !same(e.primaryMuscles, seed.primaryMuscles) ||
+        !same(e.secondaryMuscles, seed.secondaryMuscles ?? []) ||
+        (e.kind ?? null) !== (seed.kind ?? null) ||
+        (e.loadMode ?? null) !== (seed.loadMode ?? null) ||
+        e.isArchived !== (seed.isArchived ?? false) ||
+        (e.family ?? null) !== (seed.family ?? null) ||
+        !same(e.aliases, seed.aliases ?? []) ||
+        !same(e.similar, seed.similar ?? []) ||
+        (e.mediaRef ?? null) !== (seed.mediaRef ?? null),
+    );
+  if (!updates.length) return 0;
+  // 이름 교환(A↔B)이 있어도 로컬은 nameKo 유일 제약이 없어 한 배치로 된다.
+  await database.write(async () => {
+    await database.batch(
+      ...updates.map(({ e, seed }) =>
+        e.prepareUpdate((rec) => {
+          rec.nameKo = seed.nameKo;
+          rec.equipment = seed.equipment;
+          rec.primaryMuscles = seed.primaryMuscles;
+          rec.secondaryMuscles = seed.secondaryMuscles ?? [];
+          rec.kind = seed.kind ?? null;
+          rec.loadMode = seed.loadMode ?? null;
+          rec.isArchived = seed.isArchived ?? false;
+          fillCatalogMeta(rec, seed);
+        }),
+      ),
+    );
+  });
+  return updates.length;
 }
 
 // 시드 종목의 결정적 id — nameEn 슬러그 기반. 여러 기기가 같은 종목을 같은 id로 생성하므로

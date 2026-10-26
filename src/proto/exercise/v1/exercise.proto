@@ -96,6 +96,18 @@ message Exercise {
   string image_url = 10;
   bool is_custom = 11;
   google.protobuf.Timestamp updated_at = 12;
+  // ── 카탈로그 개편(2026-10 · ADR-033) ── @plm SRS-055 SRS-056
+  // 별칭(검색·표시 이름 후보, 한/영). 대표 이름은 name_ko.
+  repeated string aliases = 13;
+  // 동작 그룹 — 같은 동작의 다른 기구 종목(기구 바꾸기)·비슷한 운동·그림 자세의 단위.
+  string family = 14;
+  // 「비슷한 운동」 — family 이름 또는 name_en.
+  repeated string similar = 15;
+  // 그림 출처 참조(fedb:<id> · gen · inherit:) — ADR-036.
+  string media_ref = 16;
+  // 보관(병합·삭제된 종목) — 고를 수 없고, 옛 기록은 대상 종목으로 옮겨진다.
+  // include_archived 로 받은 응답에만 true 가 있을 수 있다.
+  bool is_archived = 17;
 }
 
 // 목록이 보는 것. 상세 전용 필드(대체운동·이미지)를 빼서 336종을 실어도 가볍다.
@@ -182,6 +194,8 @@ message PullCatalogRequest {
   string cursor = 1 [(buf.validate.field).string = {max_len: 128}];
   // 배포용이라 화면 목록보다 크게 받는다.
   int32 limit = 2 [(buf.validate.field).int32 = {gte: 0, lte: 500}];
+  // 보관 종목도 받는다(새 클라이언트만 true — 옛 클라이언트가 보관 종목을 활성으로 되살리지 않게 · QA M1).
+  bool include_archived = 3;
 }
 message PullCatalogResponse {
   repeated Exercise items = 1;

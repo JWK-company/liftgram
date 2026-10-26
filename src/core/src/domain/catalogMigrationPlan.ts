@@ -200,3 +200,50 @@ export function planBlockMigration(block: BlockColumns, idx: CatalogIndex): Bloc
     block.machineVariant != null;
   return { changed, exerciseId, columns, setArmUni, kept, steps };
 }
+
+/**
+ * 표시 이름 연속성(QA M3) — 사용자가 옛 이름으로 쓰던 종목은 이관 뒤에도 그 이름으로 보인다.
+ *
+ * `sourceIds` = 사용자의 블록이 **이관 전에** 가리키던 종목 id 들(운동·루틴). 이름이 바뀌었거나(rename) 다른 종목으로
+ * 접힌(merge·delete) 종목마다 「이관 뒤 종목 id → 옛 이름」을 낸다. 한 대상에 옛 이름이 여럿이면 **대상 자신의 옛
+ * 이름**을 고른다(원래 그 종목을 쓰던 사람 — 「랫 풀다운」 사용자가 원암 랫풀다운도 했다면 「랫 풀다운」). 아니면
+ * 가장 많이 쓴 출처의 옛 이름. 이름이 그대로면 아무것도 내지 않는다(대표 이름 = 옛 이름).
+ * 이미 선호 레코드가 있는 종목은 부르는 쪽이 건너뛴다 — 사용자가 고른 이름(또는 「대표 이름으로 보기」)을 덮지 않는다.
+ */
+export function planDisplayNames(
+  sourceUse: Map<string, number>,
+  idx: CatalogIndex,
+  /** 이번에 블록이 옮겨 들어간 종목 id — 이름을 고르지 않았어도 「대표 이름」(null) 선호를 남겨 다음 실행이 다시 고르지 않게 */
+  movedInto: Iterable<string> = [],
+): Map<string, string | null> {
+  const candidates = new Map<string, { name: string; uses: number; self: boolean }[]>();
+  for (const [srcId, uses] of sourceUse) {
+    const src = idx.byId.get(srcId);
+    if (!src?.oldNameKo) continue;
+    const plan = planBlockMigration(
+      { exerciseId: srcId, variantKey: null, variantEquipment: null, variantGrip: null, variantArm: null, machineVariant: null },
+      idx,
+    );
+    const target = idx.byId.get(plan.exerciseId);
+    if (!target || target.isArchived) continue;
+    if (src.oldNameKo === target.nameKo) continue;
+    const list = candidates.get(target.id) ?? [];
+    list.push({ name: src.oldNameKo, uses, self: srcId === target.id });
+    candidates.set(target.id, list);
+  }
+  const out = new Map<string, string | null>();
+  for (const [targetId, list] of candidates) {
+    // 대상 종목을 이름 그대로 쓰던 사람이면 그 이름(대표 이름)이 맞다 — 접혀 들어온 다른 이름으로 바꾸지 않는다.
+    const self = idx.byId.get(targetId);
+    if (sourceUse.has(targetId) && self && (self.oldNameKo ?? self.nameKo) === self.nameKo) {
+      out.set(targetId, null);
+      continue;
+    }
+    const pick = list.find((c) => c.self) ?? [...list].sort((a, b) => b.uses - a.uses || a.name.localeCompare(b.name))[0];
+    out.set(targetId, pick.name);
+  }
+  // 멱등(재실행): 옮겨진 뒤의 블록은 대상 종목을 가리키므로, 다음 실행은 그 종목의 옛 이름(예: 「딥 머신」)을 사용자가
+  // 쓰던 이름으로 착각한다. 옮겨 들어간 종목에는 이름을 고르지 않았어도 대표 이름(null) 선호를 남겨 둔다.
+  for (const id of movedInto) if (!out.has(id) && idx.byId.get(id) && !idx.byId.get(id)?.isArchived) out.set(id, null);
+  return out;
+}

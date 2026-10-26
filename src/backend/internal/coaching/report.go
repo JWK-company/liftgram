@@ -114,8 +114,20 @@ func byCollection(recs []MemberRecord) map[string][]raw {
 	return out
 }
 
-// buildReport는 회원의 레코드를 8주치 사실로 압축한다.
+// CatalogExercise는 서버 카탈로그에서 읽은 종목 하나의 이름·주 근육이다.
+type CatalogExercise struct {
+	NameKo        string
+	PrimaryMuscle string
+}
+
+// buildReport는 회원의 레코드를 8주치 사실로 압축한다(서버 카탈로그 없이 — 회원 레코드만).
 func buildReport(recs []MemberRecord, now time.Time) Report {
+	return buildReportWith(recs, nil, now)
+}
+
+// buildReportWith는 종목을 **서버 카탈로그 먼저**, 없으면 회원이 올린 커스텀 종목으로 해석한다(QA H4).
+// 볼륨은 무게 × 횟수 × 배수(load_multiplier — 플레이트 한쪽 입력, 없으면 1 · ADR-037).
+func buildReportWith(recs []MemberRecord, catalog map[string]CatalogExercise, now time.Time) Report {
 	cols := byCollection(recs)
 	since := now.Add(-time.Duration(reportWeeks) * 7 * 24 * time.Hour).UnixMilli()
 
@@ -138,10 +150,14 @@ func buildReport(recs []MemberRecord, now time.Time) Report {
 		}
 	}
 
-	// ③ 종목 → 주 근육. 카탈로그도 회원의 기기에서 온다(커스텀 종목이 있을 수 있다).
-	muscleOfExercise := make(map[string]string, len(cols["exercises"]))
+	// ③ 종목 → 주 근육. 서버 카탈로그가 정본이고(시드 종목은 더 이상 동기되지 않는다 — D10),
+	//    회원의 커스텀 종목은 회원 레코드에서 채운다.
+	muscleOfExercise := make(map[string]string, len(catalog)+len(cols["exercises"]))
 	for _, e := range cols["exercises"] {
 		muscleOfExercise[e.str("id")] = primaryMuscle(e.str("primary_muscles"))
+	}
+	for id, c := range catalog {
+		muscleOfExercise[id] = c.PrimaryMuscle
 	}
 
 	// ④ 부위별 볼륨. **워밍업·실패·미체크 세트는 빼고**.
@@ -160,7 +176,7 @@ func buildReport(recs []MemberRecord, now time.Time) Report {
 		if failed, present := s.boolAt("is_failed"); present && failed {
 			continue
 		}
-		volume := s.num("weight_kg") * s.num("reps")
+		volume := s.num("weight_kg") * s.num("reps") * loadMultiplier(s)
 		if volume <= 0 {
 			continue
 		}
@@ -215,6 +231,16 @@ func buildReport(recs []MemberRecord, now time.Time) Report {
 	}
 }
 
+// loadMultiplier는 세트의 무게 배수다 — 플레이트 머신 「한쪽 무게로 입력」이면 2(ADR-037).
+// 없거나 0 이하이면 1: 예전 세트에는 이 필드가 없다(QA B1 — 0 이 되면 볼륨이 통째로 사라진다).
+func loadMultiplier(s raw) float64 {
+	m := s.num("load_multiplier")
+	if m <= 0 {
+		return 1
+	}
+	return m
+}
+
 // primaryMuscle은 `["chest","triceps"]` 같은 **직렬화된 문자열**에서 첫 근육을 꺼낸다.
 // 못 읽으면 빈 문자열 — 부르는 쪽이 'other'로 채운다.
 func primaryMuscle(serialized string) string {
@@ -231,11 +257,19 @@ func primaryMuscle(serialized string) string {
 // buildRoutines는 회원의 루틴을 처방과 함께 돌려준다. 보관함에 넣은 루틴과
 // 종목이 하나도 없는 루틴은 빼고 — 트레이너가 손댈 것이 없다.
 func buildRoutines(recs []MemberRecord) []Routine {
+	return buildRoutinesWith(recs, nil)
+}
+
+// buildRoutinesWith는 종목 이름을 서버 카탈로그 먼저 해석한다(QA H4 — 시드 종목은 회원 레코드에 없다).
+func buildRoutinesWith(recs []MemberRecord, catalog map[string]CatalogExercise) []Routine {
 	cols := byCollection(recs)
 
-	nameOfExercise := make(map[string]string, len(cols["exercises"]))
+	nameOfExercise := make(map[string]string, len(catalog)+len(cols["exercises"]))
 	for _, e := range cols["exercises"] {
 		nameOfExercise[e.str("id")] = e.str("name_ko")
+	}
+	for id, c := range catalog {
+		nameOfExercise[id] = c.NameKo
 	}
 
 	blocksOfRoutine := make(map[string][]raw)

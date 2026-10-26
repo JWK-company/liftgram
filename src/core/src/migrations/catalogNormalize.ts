@@ -11,14 +11,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
-import type { RoutineExercise, SetLog, WorkoutExercise } from '../db/models';
-import { buildCatalogIndex, planBlockMigration, type CatalogIndex } from '../domain/catalogMigrationPlan';
+import type { ExerciseUserPref, RoutineExercise, SetLog, WorkoutExercise } from '../db/models';
+import { exercisePrefId } from '../db/models/ExerciseUserPref';
+import { buildCatalogIndex, planBlockMigration, planDisplayNames, type CatalogIndex } from '../domain/catalogMigrationPlan';
 
 /**
- * 켜는 시점은 P2(v0.31) — 서버 카탈로그 개편(0014)·시드 갱신·기록 칸 선택 UI 가 함께 나가야 한다.
- * 그 전에 켜면 「로프 푸시다운」 기록이 아직 이름이 안 바뀐 종목과 고를 수 없는 부착물 칸으로 옮겨진다(QA H5).
+ * P2(v0.31)에서 켰다 — 서버 카탈로그 개편(0014)·시드 갱신·부착물/그립 칩·기구 바꾸기가 함께 나갔다.
+ * (P0·P1 에서는 꺼 두었다: 이름이 안 바뀐 종목과 고를 수 없는 부착물 칸으로 옮겨지는 것을 막으려고 — QA H5)
  */
-export const CATALOG_NORMALIZE_ENABLED = false;
+export const CATALOG_NORMALIZE_ENABLED = true;
 
 let index: CatalogIndex | null = null;
 async function catalogIndex(): Promise<CatalogIndex> {
@@ -37,6 +38,8 @@ export interface NormalizeResult {
   changed: number;
   /** 대상 종목이 로컬에 없어 미룬 블록 수 */
   deferred: number;
+  /** 옛 이름을 표시 이름으로 심은 종목 수(QA M3) */
+  named?: number;
 }
 
 /** 로컬 블록을 정규화한다. 꺼져 있으면 아무것도 하지 않는다. */
@@ -50,6 +53,24 @@ export async function normalizeCatalogRecords(force = false): Promise<NormalizeR
   let deferred = 0;
   let changed = 0;
   const ops: Parameters<typeof database.batch> = [];
+
+  // 표시 이름 연속성(QA M3) — 옮기기 **전의** 종목 id 로 옛 이름을 계산해, 선호 레코드가 아직 없는 종목에만 심는다.
+  // 레코드 id 가 결정적(pref-<종목>)이라 여러 기기·서버 이관이 같은 행을 만든다. 있으면(사용자가 고른 이름 포함) 건드리지 않는다.
+  const use = new Map<string, number>();
+  const movedInto = new Set<string>();
+  for (const r of [...wes, ...res]) {
+    use.set(r.exerciseId, (use.get(r.exerciseId) ?? 0) + 1);
+    const p = planBlockMigration(r, idx);
+    if (p.changed && p.exerciseId !== r.exerciseId) movedInto.add(p.exerciseId);
+  }
+  const names = planDisplayNames(use, idx, movedInto);
+  const prefs = database.get<ExerciseUserPref>('exercise_user_prefs');
+  const toName: [string, string | null][] = [];
+  if (names.size) {
+    const have = new Set((await prefs.query().fetch()).map((p) => p.exerciseId));
+    for (const [exerciseId, displayName] of names)
+      if (!have.has(exerciseId) && localIds.has(exerciseId)) toName.push([exerciseId, displayName]);
+  }
   const armUni: string[] = [];
   for (const rec of [...wes, ...res]) {
     const plan = planBlockMigration(rec, idx);
@@ -90,5 +111,26 @@ export async function normalizeCatalogRecords(force = false): Promise<NormalizeR
       await database.batch(...ops);
     });
   }
-  return { changed, deferred };
+  // 이름 심기는 따로 — 지워진(soft-delete) 같은 id 가 남아 있어 만들기가 실패해도 기록 정규화는 이미 끝났다.
+  let named = 0;
+  if (toName.length) {
+    try {
+      await database.write(async () => {
+        await database.batch(
+          ...toName.map(([exerciseId, displayName]) =>
+            prefs.prepareCreate((p) => {
+              p._raw.id = exercisePrefId(exerciseId);
+              p.exerciseId = exerciseId;
+              p.displayName = displayName;
+              p.plateOneSide = null;
+            }),
+          ),
+        );
+      });
+      named = toName.length;
+    } catch (e) {
+      console.warn('[normalize] 표시 이름 심기 건너뜀', e);
+    }
+  }
+  return { changed, deferred, named };
 }

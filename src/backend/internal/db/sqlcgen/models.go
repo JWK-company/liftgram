@@ -33,6 +33,22 @@ type Block struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type CatalogNew struct {
+	ID               string
+	NameKo           string
+	NameEn           *string
+	PrimaryMuscles   []string
+	SecondaryMuscles []string
+	Equipment        *string
+	Kind             *string
+	LoadMode         *string
+	IsArchived       *bool
+	Aliases          []string
+	Family           *string
+	SimilarRefs      []string
+	MediaRef         *string
+}
+
 type CoachingAudit struct {
 	ID        string
 	GrantID   string
@@ -105,6 +121,10 @@ type Exercise struct {
 	IsArchived       bool
 	CreatedAt        pgtype.Timestamptz
 	UpdatedAt        pgtype.Timestamptz
+	Aliases          []string
+	Family           *string
+	SimilarRefs      []string
+	MediaRef         *string
 }
 
 type Follow struct {

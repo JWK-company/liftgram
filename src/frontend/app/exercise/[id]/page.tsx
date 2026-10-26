@@ -99,8 +99,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
   };
   const altName = exerciseAltName(named);
 
-  // 자세 미디어(2컷·설명)는 정적 매핑이다 — 네트워크 없이 이름으로 찾는다(SRS-032).
-  const media = getExerciseMedia(exercise.nameKo);
+  // 자세 미디어(2컷·설명)는 정적 매핑이다 — 네트워크 없이 종목 id 로 찾는다(SRS-032 · P2 ADR-033).
+  const media = getExerciseMedia(exercise.id);
   const instructions = media
     ? media.instructionsKo.length
       ? media.instructionsKo

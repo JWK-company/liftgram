@@ -211,6 +211,22 @@ func (r *pgRepo) ListMemberRecords(ctx context.Context, memberID string, collect
 	return out, nil
 }
 
+func (r *pgRepo) CatalogMeta(ctx context.Context) (map[string]CatalogExercise, error) {
+	rows, err := r.q.ListCatalogExerciseMeta(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]CatalogExercise, len(rows))
+	for _, row := range rows {
+		m := ""
+		if len(row.PrimaryMuscles) > 0 {
+			m = row.PrimaryMuscles[0]
+		}
+		out[row.ID] = CatalogExercise{NameKo: row.NameKo, PrimaryMuscle: m}
+	}
+	return out, nil
+}
+
 func (r *pgRepo) GetMemberRecord(ctx context.Context, memberID, collection, recordID string) (string, []byte, error) {
 	row, err := r.q.GetMemberRecord(ctx, sqlcgen.GetMemberRecordParams{
 		UserID: memberID, Collection: collection, RecordID: recordID,

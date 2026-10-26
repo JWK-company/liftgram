@@ -4,16 +4,24 @@
 // 세션 화면은 좁아서 이름을 한 줄로 자른다. 대신 **탭하면 3초간 펼쳐** 전체를 보여 준다
 // (긴 종목명이 잘려 무엇인지 모르겠다는 피드백으로 app에 들어온 동작이다).
 //
-// 이름 규칙은 도메인이 정한다 — `base`면 기구 토큰을 뗀 이름을 쓴다
-// (세션에서는 기구를 변형 칩이 따로 보여 주므로 이름에서 중복을 없앤다).
-import { baseExerciseName, exerciseDisplayName } from "@app/core/domain/exerciseName";
+// 이름 규칙(카탈로그 개편 P2 · ADR-033·035):
+//   · 사용자가 고른 표시 이름(이관이 심은 옛 이름 포함)이 있으면 그것, 없으면 대표 이름(「기구 + 동작」)
+//   · 기구 토큰을 떼던 축약(`base`)은 없앴다 — 기구가 곧 종목이라(바벨 벤치 ≠ 덤벨 벤치) 떼면 다른 종목과 구별이 안 된다
+// [원본] import { baseExerciseName, exerciseDisplayName } from "@app/core/domain/exerciseName";
+import { exerciseDisplayName } from "@app/core/domain/exerciseName";
 import { useEffect, useRef, useState } from "react";
 import { AppText } from "../ui/primitives";
 
 /** 펼친 뒤 다시 접히기까지 — app과 같은 3초. */
 const REVEAL_MS = 3000;
 
-type Named = { nameKo: string; nameEn: string | null; equipment?: string | null; kind?: string | null };
+type Named = {
+  nameKo: string;
+  nameEn: string | null;
+  equipment?: string | null;
+  kind?: string | null;
+  displayName?: string | null;
+};
 
 export function ExerciseName({
   exerciseId,
@@ -39,8 +47,8 @@ export function ExerciseName({
     void (async () => {
       try {
         const repo = await import("@app/core/data/exerciseRepository");
-        const e = (await repo.getExercise(exerciseId)) as unknown as Named;
-        if (alive) setEx(e);
+        const e = (await repo.getExerciseDisplayName(exerciseId)) as Named | null;
+        if (alive && e) setEx(e);
       } catch {
         // 삭제된 종목 등 — 이름 없이 둔다.
       }
@@ -57,7 +65,11 @@ export function ExerciseName({
     [],
   );
 
-  const label = ex ? (base ? baseExerciseName(ex) : exerciseDisplayName(ex)) : "…";
+  // [원본] const label = ex ? (base ? baseExerciseName(ex) : exerciseDisplayName(ex)) : "…";
+  void base; // 축약 폐지(P2) — 호출부의 base 는 무시한다
+  const label = ex
+    ? ex.displayName || exerciseDisplayName(ex as Parameters<typeof exerciseDisplayName>[0])
+    : "…";
 
   const text = (
     <AppText

@@ -47,7 +47,8 @@ import { navigate } from "@/lib/nav";
 import { IconButton } from "../ui/IconButton";
 import { NumberStepper } from "../ui/inputs";
 import { AppText, Card, Tag } from "../ui/primitives";
-import { VariantSelector } from "../ui/VariantSelector";
+// [원본] import { VariantSelector } from "../ui/VariantSelector";
+import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { ExerciseName } from "./ExerciseName";
 import { ExerciseTipPanel } from "./ExerciseTipPanel";
 import { NoteHistoryPanel } from "./NoteHistoryPanel";
@@ -75,6 +76,7 @@ export function ExerciseBlock({
   bodyweightKg,
   onStartRest,
   onSwap,
+  onSwapTo,
   onMoveUp,
   onMoveDown,
   onSuperset,
@@ -90,6 +92,8 @@ export function ExerciseBlock({
   bodyweightKg: number | null;
   onStartRest: (seconds: number) => void;
   onSwap?: (weId: string) => void;
+  /** 같은 동작의 다른 기구 종목으로 곧바로 바꾼다(기구 바꾸기 — 피커 없이) @plm SRS-057 */
+  onSwapTo?: (weId: string, exerciseId: string) => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onSuperset?: () => void;
@@ -119,6 +123,10 @@ export function ExerciseBlock({
   const [noteOpen, setNoteOpen] = useState(() => !!we.note?.trim());
   const [restSheet, setRestSheet] = useState(false);
   const [volTick, setVolTick] = useState(0);
+
+  // 종목이 바뀌면(기구 바꾸기·대체) 저장소가 새 종목의 지난 조합을 승계해 둔다 — 그 값을 다시 따른다.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 종목이 바뀔 때만 따라간다(같은 종목의 선택은 위 상태가 정본)
+  useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId]);
 
   const variantKey = useMemo(() => canonicalVariantKey(variant), [variant]);
 
@@ -228,7 +236,7 @@ export function ExerciseBlock({
     return parts.join(" · ");
   })();
   const hasPrev = prevSets.length > 0 || pr !== null || (!!prevNote && prevNote !== note.trim());
-  const hasTip = !isCardio && !!exName && !!getExerciseMedia(exName);
+  const hasTip = !isCardio && !!getExerciseMedia(we.exerciseId); // P2: 미디어는 종목 id 로 찾는다(ADR-033)
   const bwRelative = loadMode === "assisted" || loadMode === "bodyweight";
   const bwMissing = bwRelative && bodyweightKg == null;
 
@@ -387,13 +395,17 @@ export function ExerciseBlock({
         {/* 메타 칩 — 변형 · 슈퍼셋 · PR · 볼륨 · 경고 */}
         <div className="mt-[4px] flex flex-wrap items-center gap-[var(--spacing-sm)]">
           {!isCardio ? (
-            <VariantSelector
+            // [원본] 기구 칩이 같은 종목의 변형 칸이던 선택기 — P2 에서 기구 바꾸기 = 종목 바꾸기(ADR-033·034)
+            // <VariantSelector baseEquipment={baseEquipment} value={variant} onChange={...} />
+            <RecordSlotSelector
+              exerciseId={we.exerciseId}
               baseEquipment={baseEquipment}
               value={variant}
               onChange={(dims) => {
                 setVariant(dims);
                 void write(() => repo.setVariant(we.id, dims));
               }}
+              onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
             />
           ) : null}
 
@@ -430,7 +442,9 @@ export function ExerciseBlock({
           {!hasTip ? prevClearBtn : null}
         </div>
 
-        {!isCardio ? <ExerciseTipPanel nameKo={exName} trailing={hasTip ? prevClearBtn : undefined} /> : null}
+        {!isCardio ? (
+          <ExerciseTipPanel exerciseId={we.exerciseId} trailing={hasTip ? prevClearBtn : undefined} />
+        ) : null}
 
         {/* 표 머리 */}
         <div className="mt-[var(--spacing-md)] flex gap-[4px] pb-[4px]">

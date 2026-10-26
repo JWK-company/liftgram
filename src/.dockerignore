@@ -9,6 +9,10 @@
 
 node_modules
 .next
+# 워크스페이스 안쪽도(frontend/.next 개발 캐시가 16GB까지 커져 로컬 빌드 문맥이 수 GB가 됐다)
+**/node_modules
+**/.next
+**/test-results
 .git
 *.log
 

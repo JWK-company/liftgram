@@ -20,6 +20,7 @@ import (
 )
 
 type fakeRepo struct {
+	catalog map[string]CatalogExercise // 서버 카탈로그(시드 종목) — QA H4
 	trainers   []Peer
 	eligible   map[string]bool
 	users      map[string]bool
@@ -119,6 +120,9 @@ func (f *fakeRepo) Audit(_ context.Context, id, grantID, actorID, action string,
 func (f *fakeRepo) ListAudit(context.Context, string) ([]AuditEntry, error) { return f.audits, nil }
 func (f *fakeRepo) ListMemberRecords(context.Context, string, []string) ([]MemberRecord, error) {
 	return f.records, f.failWith
+}
+func (f *fakeRepo) CatalogMeta(context.Context) (map[string]CatalogExercise, error) {
+	return f.catalog, nil
 }
 func (f *fakeRepo) GetMemberRecord(_ context.Context, _, collection, recordID string) (string, []byte, error) {
 	for _, r := range f.records {
@@ -410,6 +414,39 @@ func TestReport_사실만_센다(t *testing.T) {
 	}
 	if r.SessionsPerWeek != 0.1 {
 		t.Fatalf("주당 세션이 틀렸다: %v", r.SessionsPerWeek)
+	}
+}
+
+// 카탈로그 개편 QA H4 — 기기가 시드 종목을 더 이상 동기하지 않으므로(D10) 종목은 서버 카탈로그에서 해석한다.
+// 플레이트 한쪽 입력(load_multiplier=2)은 볼륨이 두 배, 없는 옛 세트는 1배(ADR-037 · QA B1).
+func TestReport_종목은_서버_카탈로그로_배수는_볼륨에(t *testing.T) {
+	now := time.UnixMilli(1_700_000_000_000)
+	recent := now.Add(-2 * 24 * time.Hour).UnixMilli()
+	repo := newRepo()
+	activeGrant(repo, fullScope())
+	repo.catalog = map[string]CatalogExercise{
+		"seed-machine-overhead-triceps-extension": {NameKo: "머신 오버헤드 트라이셉스 익스텐션", PrimaryMuscle: "triceps"},
+		"seed-leg-press": {NameKo: "레그 프레스", PrimaryMuscle: "quads"},
+	}
+	repo.records = []MemberRecord{
+		rec("workouts", "w1", map[string]any{"id": "w1", "state": "completed", "started_at": recent, "total_volume_kg": 0, "name": "하체"}),
+		// 신규 시드 종목 — 회원 레코드에 exercises 행이 없다.
+		rec("workout_exercises", "we1", map[string]any{"id": "we1", "workout_id": "w1", "exercise_id": "seed-machine-overhead-triceps-extension"}),
+		rec("workout_exercises", "we2", map[string]any{"id": "we2", "workout_id": "w1", "exercise_id": "seed-leg-press"}),
+		rec("set_logs", "s1", map[string]any{"id": "s1", "workout_exercise_id": "we1", "weight_kg": 30, "reps": 10, "done": true}),
+		// 한쪽 40kg × 10 × 2 = 800
+		rec("set_logs", "s2", map[string]any{"id": "s2", "workout_exercise_id": "we2", "weight_kg": 40, "reps": 10, "done": true, "load_multiplier": 2}),
+	}
+	r, err := newSvc(repo).GetMemberReport(context.Background(), "t1", "m1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]float64{}
+	for _, m := range r.MuscleVolume {
+		got[m.Muscle] = m.VolumeKg
+	}
+	if got["triceps"] != 300 || got["quads"] != 800 || got["other"] != 0 {
+		t.Fatalf("카탈로그 해석·배수가 틀렸다: %+v", r.MuscleVolume)
 	}
 }
 

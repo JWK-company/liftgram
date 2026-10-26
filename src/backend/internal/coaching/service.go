@@ -112,6 +112,8 @@ type Repo interface {
 	ListAudit(ctx context.Context, grantID string) ([]AuditEntry, error)
 
 	ListMemberRecords(ctx context.Context, memberID string, collections []string) ([]MemberRecord, error)
+	// 서버 카탈로그(시드 종목)의 이름·주 근육 — 종목 해석의 정본(QA H4). @plm SRS-048 SRS-055
+	CatalogMeta(ctx context.Context) (map[string]CatalogExercise, error)
 	GetMemberRecord(ctx context.Context, memberID, collection, recordID string) (rowID string, payload []byte, err error)
 	UpdateMemberRecord(ctx context.Context, rowID string, payload []byte) error
 }
@@ -326,7 +328,11 @@ func (s *Service) GetMemberReport(ctx context.Context, viewerID, memberID string
 	if err != nil {
 		return Report{}, err
 	}
-	return buildReport(recs, s.now()), nil
+	catalog, err := s.repo.CatalogMeta(ctx)
+	if err != nil {
+		return Report{}, err
+	}
+	return buildReportWith(recs, catalog, s.now()), nil
 }
 
 // ListMemberRoutines는 회원의 루틴과 현재 처방을 돌려준다.
@@ -345,7 +351,11 @@ func (s *Service) ListMemberRoutines(ctx context.Context, viewerID, memberID str
 	if err != nil {
 		return nil, err
 	}
-	return buildRoutines(recs), nil
+	catalog, err := s.repo.CatalogMeta(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return buildRoutinesWith(recs, catalog), nil
 }
 
 // SetMemberPrescription은 회원의 루틴 종목에 처방을 써 넣는다.

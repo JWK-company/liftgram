@@ -39,3 +39,9 @@ make ci        # 9단계 전량 — 이미지 빌드 · 스캐폴더 · 제너�
 
 - `migrate-legacy.sh` — **옛 배포 → 새 스택 데이터 이관**(전환 시점 1회). 옛 DB는 읽기만 하고,
   `--dry-run`으로 먼저 행 수를 대조한다. 자세한 절차는 [`../deploy/README.md`](../deploy/README.md).
+- `gen-catalog.mjs` — **종목 카탈로그 생성**(`make catalog`). 정본 `core/src/data/catalog/*.csv` → 시드 표·이관 예외 표·
+  번들 판 해시·서버 SQL(`database/migrations/0014_catalog_revamp.sql`). `make catalog-check`가 드리프트를 막는다.
+- `migrate-records.ts` — **운영 기록 이관**(카탈로그 개편 P2 · `make records-migrate`). 기기 정규화와 **같은 계획 함수**로
+  sync_records 의 운동·루틴 블록을 새 카탈로그로 옮긴다. `--dry-run`(실제로 돌려 보고 되돌림) → `--apply`.
+  불변식(사용자별 세트 수·볼륨, 블록별 세트 수, 브랜드 칸, 보관 종목 0 …)을 같은 트랜잭션 안에서 검사하고 어기면 전부 되돌린다.
+  자동 마이그레이션이 아니다 — 실패해도 API 는 그대로 돈다. 실행 전 `pg_dump` 백업 필수.

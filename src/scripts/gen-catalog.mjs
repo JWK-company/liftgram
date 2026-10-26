@@ -11,13 +11,15 @@
 // 출력
 //   core/src/data/catalog/catalog.generated.ts       종목·family 표(시드 원천 — P2 에서 시드가 이것을 쓴다)
 //   core/src/data/catalog/catalogMigration.data.ts   이관 예외 표(서버·기기 공용 매핑의 데이터)
-//   database/staged/0014_catalog_revamp.sql          서버 카탈로그 개편 SQL — **P2 에서 migrations/ 로 옮겨 켠다**
+//   core/src/data/catalog/catalogRevision.ts         번들 카탈로그 판(내용 해시) — 판이 바뀐 첫 부팅에 기기 시드를 맞춘다
+//   database/migrations/0014_catalog_revamp.sql      서버 카탈로그 개편 SQL(P2 에서 켰다)
 //
 // 실행: make catalog        (생성)   ·   make catalog-check   (생성물이 정본과 같은가 — CI)
 //
 // 옛 생성기(gen-exercise-seed.mjs)는 입력이 은퇴한 app/ 경로이고 이미 적용된 0002 를 덮어써서 쓰지 않는다.
 // 이 생성기가 지키는 것: 정본을 못 읽었거나 줄었으면(최소 행 수) **파일을 쓰지 않고** 종료 코드 1.
 // ─────────────────────────────────────────────────────────────────────────────
+import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,7 +29,9 @@ const SRC = join(HERE, "..");
 const CAT = join(SRC, "core", "src", "data", "catalog");
 const OUT_TS = join(CAT, "catalog.generated.ts");
 const OUT_MIG = join(CAT, "catalogMigration.data.ts");
-const OUT_SQL = join(SRC, "database", "staged", "0014_catalog_revamp.sql");
+const OUT_REV = join(CAT, "catalogRevision.ts");
+// P2: 서버 적용 경로로 옮겼다(파일명으로 한 번만 적용 — 이후 CSV 를 고치면 새 번호의 마이그레이션을 만든다).
+const OUT_SQL = join(SRC, "database", "migrations", "0014_catalog_revamp.sql");
 
 const MIN_ROWS = 450;
 const CHECK = process.argv.includes("--check");
@@ -192,12 +196,13 @@ const sql = `-- @plm SRS-055  종목 카탈로그 개편 — **생성물이다. 
 
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS aliases text[] NOT NULL DEFAULT '{}';
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS family text;
-ALTER TABLE exercises ADD COLUMN IF NOT EXISTS similar text[] NOT NULL DEFAULT '{}';
+-- similar 는 PostgreSQL 예약어(SIMILAR TO)라 열 이름을 similar_refs 로 둔다(계약·로컬 이름은 similar).
+ALTER TABLE exercises ADD COLUMN IF NOT EXISTS similar_refs text[] NOT NULL DEFAULT '{}';
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS media_ref text;
 
 CREATE TEMP TABLE catalog_new (
   id text PRIMARY KEY, name_ko text NOT NULL, name_en text, primary_muscles text[], secondary_muscles text[],
-  equipment text, kind text, load_mode text, is_archived boolean, aliases text[], family text, similar text[], media_ref text
+  equipment text, kind text, load_mode text, is_archived boolean, aliases text[], family text, similar_refs text[], media_ref text
 ) ON COMMIT DROP;
 
 INSERT INTO catalog_new VALUES
@@ -209,26 +214,35 @@ UPDATE exercises e SET name_ko = '__catalog_tmp__' || e.id
  WHERE n.id = e.id AND e.is_custom = false AND e.name_ko IS DISTINCT FROM n.name_ko;
 
 -- 2단계: 전 필드 upsert(달라진 행만)
-INSERT INTO exercises AS e (id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar, media_ref)
-SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar, media_ref FROM catalog_new
+INSERT INTO exercises AS e (id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar_refs, media_ref)
+SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar_refs, media_ref FROM catalog_new
 ON CONFLICT (id) DO UPDATE SET
   name_ko = EXCLUDED.name_ko, name_en = EXCLUDED.name_en,
   primary_muscles = EXCLUDED.primary_muscles, secondary_muscles = EXCLUDED.secondary_muscles,
   equipment = EXCLUDED.equipment, kind = EXCLUDED.kind, load_mode = EXCLUDED.load_mode,
   is_archived = EXCLUDED.is_archived, aliases = EXCLUDED.aliases, family = EXCLUDED.family,
-  similar = EXCLUDED.similar, media_ref = EXCLUDED.media_ref, updated_at = now()
+  similar_refs = EXCLUDED.similar_refs, media_ref = EXCLUDED.media_ref, updated_at = now()
 WHERE e.is_custom = false AND (
   e.name_ko, e.name_en, e.primary_muscles, e.secondary_muscles, e.equipment, e.kind, e.load_mode,
-  e.is_archived, e.aliases, e.family, e.similar, e.media_ref
+  e.is_archived, e.aliases, e.family, e.similar_refs, e.media_ref
 ) IS DISTINCT FROM (
   EXCLUDED.name_ko, EXCLUDED.name_en, EXCLUDED.primary_muscles, EXCLUDED.secondary_muscles, EXCLUDED.equipment,
-  EXCLUDED.kind, EXCLUDED.load_mode, EXCLUDED.is_archived, EXCLUDED.aliases, EXCLUDED.family, EXCLUDED.similar,
+  EXCLUDED.kind, EXCLUDED.load_mode, EXCLUDED.is_archived, EXCLUDED.aliases, EXCLUDED.family, EXCLUDED.similar_refs,
   EXCLUDED.media_ref
 );
 `;
 
+const rev = createHash("sha1")
+  .update(JSON.stringify([rows, fams]))
+  .digest("hex")
+  .slice(0, 10);
+const revTs = `${HEADER}// @plm SRS-055  번들 카탈로그 판 — 표 내용의 해시. 바뀌면 기기가 한 번 시드 종목을 새 표에 맞춘다(refreshSeedCatalog).
+export const CATALOG_REVISION = '${rev}';
+`;
+
 const outputs = [
   [OUT_TS, ts],
+  [OUT_REV, revTs],
   [OUT_MIG, mig],
   [OUT_SQL, sql],
 ];

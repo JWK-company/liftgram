@@ -384,6 +384,18 @@ type Exercise struct {
 	ImageUrl      string                 `protobuf:"bytes,10,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	IsCustom      bool                   `protobuf:"varint,11,opt,name=is_custom,json=isCustom,proto3" json:"is_custom,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	// ── 카탈로그 개편(2026-10 · ADR-033) ── @plm SRS-055 SRS-056
+	// 별칭(검색·표시 이름 후보, 한/영). 대표 이름은 name_ko.
+	Aliases []string `protobuf:"bytes,13,rep,name=aliases,proto3" json:"aliases,omitempty"`
+	// 동작 그룹 — 같은 동작의 다른 기구 종목(기구 바꾸기)·비슷한 운동·그림 자세의 단위.
+	Family string `protobuf:"bytes,14,opt,name=family,proto3" json:"family,omitempty"`
+	// 「비슷한 운동」 — family 이름 또는 name_en.
+	Similar []string `protobuf:"bytes,15,rep,name=similar,proto3" json:"similar,omitempty"`
+	// 그림 출처 참조(fedb:<id> · gen · inherit:) — ADR-036.
+	MediaRef string `protobuf:"bytes,16,opt,name=media_ref,json=mediaRef,proto3" json:"media_ref,omitempty"`
+	// 보관(병합·삭제된 종목) — 고를 수 없고, 옛 기록은 대상 종목으로 옮겨진다.
+	// include_archived 로 받은 응답에만 true 가 있을 수 있다.
+	IsArchived    bool `protobuf:"varint,17,opt,name=is_archived,json=isArchived,proto3" json:"is_archived,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -500,6 +512,41 @@ func (x *Exercise) GetUpdatedAt() *timestamppb.Timestamp {
 		return x.UpdatedAt
 	}
 	return nil
+}
+
+func (x *Exercise) GetAliases() []string {
+	if x != nil {
+		return x.Aliases
+	}
+	return nil
+}
+
+func (x *Exercise) GetFamily() string {
+	if x != nil {
+		return x.Family
+	}
+	return ""
+}
+
+func (x *Exercise) GetSimilar() []string {
+	if x != nil {
+		return x.Similar
+	}
+	return nil
+}
+
+func (x *Exercise) GetMediaRef() string {
+	if x != nil {
+		return x.MediaRef
+	}
+	return ""
+}
+
+func (x *Exercise) GetIsArchived() bool {
+	if x != nil {
+		return x.IsArchived
+	}
+	return false
 }
 
 // 목록이 보는 것. 상세 전용 필드(대체운동·이미지)를 빼서 336종을 실어도 가볍다.
@@ -1055,9 +1102,11 @@ type PullCatalogRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Cursor string                 `protobuf:"bytes,1,opt,name=cursor,proto3" json:"cursor,omitempty"`
 	// 배포용이라 화면 목록보다 크게 받는다.
-	Limit         int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Limit int32 `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	// 보관 종목도 받는다(새 클라이언트만 true — 옛 클라이언트가 보관 종목을 활성으로 되살리지 않게 · QA M1).
+	IncludeArchived bool `protobuf:"varint,3,opt,name=include_archived,json=includeArchived,proto3" json:"include_archived,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *PullCatalogRequest) Reset() {
@@ -1102,6 +1151,13 @@ func (x *PullCatalogRequest) GetLimit() int32 {
 		return x.Limit
 	}
 	return 0
+}
+
+func (x *PullCatalogRequest) GetIncludeArchived() bool {
+	if x != nil {
+		return x.IncludeArchived
+	}
+	return false
 }
 
 type PullCatalogResponse struct {
@@ -1316,7 +1372,7 @@ var File_exercise_v1_exercise_proto protoreflect.FileDescriptor
 
 const file_exercise_v1_exercise_proto_rawDesc = "" +
 	"\n" +
-	"\x1aexercise/v1/exercise.proto\x12\vexercise.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x81\x04\n" +
+	"\x1aexercise/v1/exercise.proto\x12\vexercise.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8b\x05\n" +
 	"\bExercise\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\aname_ko\x18\x02 \x01(\tR\x06nameKo\x12\x17\n" +
@@ -1331,7 +1387,13 @@ const file_exercise_v1_exercise_proto_rawDesc = "" +
 	" \x01(\tR\bimageUrl\x12\x1b\n" +
 	"\tis_custom\x18\v \x01(\bR\bisCustom\x129\n" +
 	"\n" +
-	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\x93\x02\n" +
+	"updated_at\x18\f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12\x18\n" +
+	"\aaliases\x18\r \x03(\tR\aaliases\x12\x16\n" +
+	"\x06family\x18\x0e \x01(\tR\x06family\x12\x18\n" +
+	"\asimilar\x18\x0f \x03(\tR\asimilar\x12\x1b\n" +
+	"\tmedia_ref\x18\x10 \x01(\tR\bmediaRef\x12\x1f\n" +
+	"\vis_archived\x18\x11 \x01(\bR\n" +
+	"isArchived\"\x93\x02\n" +
 	"\x0fExerciseSummary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\aname_ko\x18\x02 \x01(\tR\x06nameKo\x12\x17\n" +
@@ -1368,11 +1430,12 @@ const file_exercise_v1_exercise_proto_rawDesc = "" +
 	"\breplayed\x18\x02 \x01(\bR\breplayed\"M\n" +
 	"\x1cArchiveCustomExerciseRequest\x12-\n" +
 	"\x02id\x18\x01 \x01(\tB\x1d\xbaH\x1ar\x18\x10\x01\x18\x80\x012\x11^[A-Za-z0-9._-]+$R\x02id\"\x1f\n" +
-	"\x1dArchiveCustomExerciseResponse\"X\n" +
+	"\x1dArchiveCustomExerciseResponse\"\x83\x01\n" +
 	"\x12PullCatalogRequest\x12 \n" +
 	"\x06cursor\x18\x01 \x01(\tB\b\xbaH\x05r\x03\x18\x80\x01R\x06cursor\x12 \n" +
 	"\x05limit\x18\x02 \x01(\x05B\n" +
-	"\xbaH\a\x1a\x05\x18\xf4\x03(\x00R\x05limit\"\x9d\x01\n" +
+	"\xbaH\a\x1a\x05\x18\xf4\x03(\x00R\x05limit\x12)\n" +
+	"\x10include_archived\x18\x03 \x01(\bR\x0fincludeArchived\"\x9d\x01\n" +
 	"\x13PullCatalogResponse\x12+\n" +
 	"\x05items\x18\x01 \x03(\v2\x15.exercise.v1.ExerciseR\x05items\x12\x1f\n" +
 	"\vnext_cursor\x18\x02 \x01(\tR\n" +

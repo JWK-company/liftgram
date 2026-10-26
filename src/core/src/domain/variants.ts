@@ -139,6 +139,8 @@ export interface VariantAxesAllowed {
 export function normalizeVariantDimsV34(v: VariantDims, allowed: VariantAxesAllowed): VariantDims {
   const base = allowed.baseEquipment ?? null;
   const out: VariantDims = { ...normalizeVariantDims(v, base) };
+  // 기구 바꾸기 = 종목 바꾸기(D2) — 기구 값(바벨·덤벨·케이블…)은 더 이상 칸이 아니다. 머신 브랜드·커스텀 슬롯만 남는다.
+  if (out.equipment && (IMPLEMENT_KEYS as string[]).includes(out.equipment)) out.equipment = null;
   if (!(base === 'machine' && allowed.load && out.load && (LOAD_KEYS as readonly string[]).includes(out.load))) out.load = null;
   if (!(base === 'cable' && out.attach && allowed.attachments?.includes(out.attach))) out.attach = null;
   if (out.grip && !allowed.grips?.includes(out.grip)) out.grip = null;

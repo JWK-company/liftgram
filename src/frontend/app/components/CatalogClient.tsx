@@ -61,7 +61,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
   // 유산소는 부위와 별개 축이다(app과 같다) — 이 칩을 켜면 부위 선택은 풀린다.
   const [kind, setKind] = useState<"cardio" | "">("");
   // 스무고개가 골라 준 동작/자세 종목집합. 있으면 그 종목들로만 좁힌다(SRS-031).
-  const [names, setNames] = useState<string[] | null>(null);
+  const [names, setNames] = useState<string[] | null>(null); // 스무고개가 좁힌 종목 id(P2 — 이름이 아니라 id)
   const [finderLabel, setFinderLabel] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -133,7 +133,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
       };
     });
     // 스무고개가 종목집합을 줬으면 부위 쿼리 결과 위에 교집합을 취한다(app과 같은 순서).
-    const narrowed = names ? list.filter((e) => new Set(names).has(e.nameKo)) : list;
+    const narrowed = names ? list.filter((e) => new Set(names).has(e.id)) : list;
     // 검색은 여기서 — 대소문자 무시 부분일치(한글 이름 · 영문 이름). app과 같은 규칙이다.
     const q = query.trim().toLowerCase();
     if (!q) return narrowed;
@@ -202,8 +202,8 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
     setMuscle(r.muscle ?? "");
     setEquipment(r.equipment ?? "");
     setKind(r.kind === "cardio" ? "cardio" : "");
-    setNames(r.names);
-    setFinderLabel(r.names || r.muscle || r.kind ? r.label : null);
+    setNames(r.ids);
+    setFinderLabel(r.ids || r.muscle || r.kind ? r.label : null);
     setQuery("");
     setWizardOpen(false);
   };
@@ -361,7 +361,7 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
 function ExerciseRow({ row }: { row: Row }) {
   const item = { nameKo: row.nameKo, nameEn: row.nameEn, equipment: row.equipment };
   const altName = exerciseAltName(item);
-  const thumb = row.imageUrl || getExerciseMedia(row.nameKo)?.start || null;
+  const thumb = row.imageUrl || getExerciseMedia(row.id)?.start || null;
 
   return (
     <li className="relative">

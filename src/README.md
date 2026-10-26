@@ -79,7 +79,8 @@ make nuke          # 데이터 볼륨까지 삭제
 | | `make sqlc` | SQL 쿼리 → type-safe한 Go(호스트 설치 불필요 — `go run`) |
 | | `make gen-migration NAME=…` → `make migrate` | 새 SQL 파일 → 적용(one-shot·idempotency) |
 | | `make migrate-check` / `make db-status` | idempotency 확인(두 번 실행) · 적용 이력 조회 |
-| | `make catalog` / `make catalog-check` | **종목 카탈로그 생성** — 정본은 `core/src/data/catalog/*.csv`(마스터 480행·family·이관 예외). 시드 표·이관 예외 표·서버 SQL(`database/staged/`)을 만든다. 정본이 줄면 파일을 쓰지 않고 죽고, 생성물이 어긋나면 `make verify`가 실패한다 |
+| | `make catalog` / `make catalog-check` | **종목 카탈로그 생성** — 정본은 `core/src/data/catalog/*.csv`(마스터 480행·family·이관 예외). 시드 표·이관 예외 표·번들 판 해시·서버 SQL(`database/migrations/0014_catalog_revamp.sql`)을 만든다. 정본이 줄면 파일을 쓰지 않고 죽고, 생성물이 어긋나면 `make verify`가 실패한다 |
+| | `make records-migrate PSQL="…" MODE=--dry-run\|--apply` | **운영 기록 이관**(카탈로그 개편 P2) — 기기 정규화와 같은 계획 함수로 sync_records 블록을 옮긴다. 불변식을 같은 트랜잭션에서 검사하고 어기면 되돌린다. 자동 마이그레이션이 아니다(실패해도 API 무관) · 실행 전 `pg_dump` |
 | | `make gen-exercise-seed` | (은퇴) 옛 카탈로그 시드 SQL 생성기 — 입력이 은퇴한 `app/` 경로라 쓰지 않는다 |
 | 2.6 계층 이전 | `make sync-core` / `make core-check` | **도메인·정적데이터·문자열을 `app/`에서 `core/`로 이전**(ADR-032 — 재작성이 아니라 복사) · 어긋나면 `make verify`가 실패한다 |
 | 2.4 새 프로젝트 | `make create NAME=my-app [DIR=…] [BARE=1]` | **이 템플릿에서 새 저장소를 만든다** — 이름 치환·포트 자동 선택·`.env`·git 초기화까지 (`bun run create:app`도 같음) |

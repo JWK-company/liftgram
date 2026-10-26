@@ -92,3 +92,8 @@ WHERE user_id = $1 AND collection = $2 AND record_id = $3 AND deleted = false;
 UPDATE sync_records
 SET payload = $2, updated_at = now()
 WHERE id = $1;
+
+-- 서버 카탈로그의 종목 이름·주 근육(카탈로그 개편 QA H4). 리포트는 종목을 **여기서 먼저** 해석한다 —
+-- 기기는 이제 시드 종목 행을 동기하지 않아(D10) sync_records 에는 커스텀 종목만 있다.
+-- name: ListCatalogExerciseMeta :many
+SELECT id, name_ko, primary_muscles FROM exercises WHERE is_custom = false;

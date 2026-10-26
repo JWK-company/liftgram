@@ -4,53 +4,60 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
+import { LEGACY_SEED_EXERCISES } from '../../data/seed/legacySeed';
+import { MEDIA_KEY_BY_ID } from '../../data/exerciseMediaKeys.data';
 import { SUBSTITUTES } from '../../data/seed/substitutes.seed';
 import { RAW_MEDIA } from '../../data/exerciseMedia.data'; // @plm SRS-032
 import { getExerciseMedia } from '../../data/exerciseMedia';
-import { movementPatternOf, movementPatternMapKeys, samePatternNames } from '../movementPatterns';
+import { movementPatternOf, movementPatternMapKeys, samePatternIds } from '../movementPatterns';
 import { FINDER_TREE } from '../exerciseFinder'; // @plm SRS-031
 import { IMPLEMENT_KEYS, equipmentVariantLabel } from '../variants'; // @plm SRS-028
 import { CONCEPT_ROUTINES } from '../conceptRoutines';
 import { RAW_MEDIA_3D } from '../../data/exerciseMedia3d.data'; // @plm SRS-046
 import { containsMedicalClaim } from '../wellness';
 
+// P2(ADR-033): 큐레이션 표의 KEY 가 nameKo 에서 **seed id** 로 옮겨졌다 — 이름(대표·별칭)이 바뀌어도 끊기지 않는다.
+const slugId = (en: string) => `seed-${en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
 const seedNames = new Set(SEED_EXERCISES.map((e) => e.nameKo));
-// 괄호 변형 엔트리의 베이스명('인클라인 프레스 (바벨)' → '인클라인 프레스')도 유효 키로 취급.
-const seedBases = new Set(SEED_EXERCISES.map((e) => e.nameKo.replace(/\s*\([^)]*\)\s*$/, '').trim()));
-const known = (n: string) => seedNames.has(n) || seedBases.has(n);
+const seedIds = new Set(SEED_EXERCISES.map((e) => slugId(e.nameEn)));
+const activeIds = new Set(SEED_EXERCISES.filter((e) => !e.isArchived).map((e) => slugId(e.nameEn)));
+const idByName = new Map(SEED_EXERCISES.map((e) => [e.nameKo, slugId(e.nameEn)]));
+// 미디어 표는 사진 출처 라벨(옛 이름)로 키를 둔다 — 옛 시드 이름·괄호 베이스명이 유효 키.
+const legacyNames = new Set(LEGACY_SEED_EXERCISES.map((e) => e.nameKo));
+const legacyBases = new Set(LEGACY_SEED_EXERCISES.map((e) => e.nameKo.replace(/\s*\([^)]*\)\s*$/, '').trim()));
+const knownLegacy = (n: string) => legacyNames.has(n) || legacyBases.has(n);
 
-test('갭 이관: RapidOverload 대조 신규 종목이 시드에 존재(rename 없이 추가만)', () => {
-  for (const n of [
-    '해머스트렝스 체스트 프레스',
-    '컨버징 체스트 프레스 머신',
-    '라슨 프레스',
-    '피트 업 벤치프레스',
-    '디클라인 프레스 (스미스)',
-    '체스트 서포티드 티바 로우',
-    '싯업',
+test('갭 이관: RapidOverload 대조 신규 종목이 시드에 존재(id 불변 — 이름은 개편에서 바뀔 수 있다)', () => {
+  for (const id of [
+    'seed-hammer-strength-chest-press', // 보관(머신 체스트 프레스+해머로 접힘) — 행은 남는다
+    'seed-converging-chest-press-machine',
+    'seed-larsen-press',
+    'seed-feet-up-bench-press',
+    'seed-decline-press-smith',
+    'seed-chest-supported-t-bar-row',
+    'seed-sit-up',
   ]) {
-    assert.ok(seedNames.has(n), `시드 누락: ${n}`);
+    assert.ok(seedIds.has(id), `시드 누락: ${id}`);
   }
-  // 기존 KEY 불변 스팟 체크(rename 금지 규약).
-  for (const n of ['바벨 벤치프레스', '스미스 벤치프레스', '랫 풀다운', '딥스']) {
-    assert.ok(seedNames.has(n), `기존 KEY 소실: ${n}`);
+  for (const id of ['seed-barbell-bench-press', 'seed-smith-machine-bench-press', 'seed-lat-pulldown', 'seed-dips']) {
+    assert.ok(activeIds.has(id), `기존 KEY 소실: ${id}`);
   }
 });
 
 test('무브먼트 패턴: 매핑 키 전부 시드 실존(dangling 금지)', () => {
   for (const key of movementPatternMapKeys()) {
-    assert.ok(known(key), `패턴 매핑이 시드에 없는 종목을 참조: ${key}`);
+    assert.ok(seedIds.has(key), `패턴 매핑이 시드에 없는 종목을 참조: ${key}`);
   }
 });
 
-test('무브먼트 패턴: 직접·괄호 폴백 조회와 같은 패턴 후보', () => {
-  assert.equal(movementPatternOf('바벨 벤치프레스'), 'horizontalPress');
-  assert.equal(movementPatternOf('인클라인 프레스 (바벨)'), 'horizontalPress'); // 폴백
+test('무브먼트 패턴: id 조회와 같은 패턴 후보', () => {
+  assert.equal(movementPatternOf('seed-barbell-bench-press'), 'horizontalPress');
+  assert.equal(movementPatternOf('seed-incline-press'), 'horizontalPress');
   assert.equal(movementPatternOf('없는 종목'), null);
-  const candidates = samePatternNames('horizontalPress', '바벨 벤치프레스');
+  const candidates = samePatternIds('horizontalPress', 'seed-barbell-bench-press');
   assert.ok(candidates.length >= 15, `수평 프레스 후보가 너무 적음: ${candidates.length}`);
-  assert.ok(!candidates.includes('바벨 벤치프레스'), '자기 자신 제외 실패');
-  assert.ok(candidates.includes('해머스트렝스 체스트 프레스'));
+  assert.ok(!candidates.includes('seed-barbell-bench-press'), '자기 자신 제외 실패');
+  assert.ok(candidates.includes('seed-chest-press-machine'));
 });
 
 test('콘셉트 루틴: 구성 종목 전부 시드 실존 + 스토리 카피 게이트 통과', () => {
@@ -59,7 +66,7 @@ test('콘셉트 루틴: 구성 종목 전부 시드 실존 + 스토리 카피 �
     assert.ok(c.days.length >= 2, `${c.id}: Day 부족`);
     for (const d of c.days) {
       for (const ex of d.exercises) {
-        assert.ok(seedNames.has(ex), `${c.id}/${d.nameKo}: 시드에 없는 종목 ${ex}`);
+        assert.ok(activeIds.has(ex), `${c.id}/${d.nameKo}: 활성 시드에 없는 종목 ${ex}`);
       }
     }
     assert.equal(containsMedicalClaim(c.storyKo), false, `${c.id} storyKo 의료 단정`);
@@ -75,8 +82,8 @@ const NEW_CARDIO_15 = [
   '히트 (HIIT)', '에어로빅', '요가', '필라테스', '스케이팅', '스키', '스노우보드', '스트레칭',
 ];
 
-test('카탈로그 확장: 시드 총수 하한(>=336) + nameKo 유일', () => {
-  assert.ok(SEED_EXERCISES.length >= 336, `시드 총수 부족: ${SEED_EXERCISES.length} < 336`);
+test('카탈로그 확장: 시드 총수 하한(>=450) + nameKo 유일', () => {
+  assert.ok(SEED_EXERCISES.length >= 450, `시드 총수 부족: ${SEED_EXERCISES.length} < 450`);
   assert.equal(seedNames.size, SEED_EXERCISES.length, 'nameKo 중복 존재');
 });
 
@@ -91,25 +98,34 @@ test('카탈로그 확장: nameEn 결정적 슬러그(seedId) 유일 — 기존�
   }
 });
 
-test('대체운동: SUBSTITUTES 키·값 전건이 시드 nameKo 정확일치(침묵 드롭 금지)', () => {
-  // syncSubstitutes는 정확일치만 해소하고 미일치를 조용히 버린다 — 베이스 폴백 없음.
+test('대체운동: SUBSTITUTES 키·값 전건이 활성 시드 id(침묵 드롭 금지)', () => {
+  // syncSubstitutes는 로컬에 있는 id 만 싣고 나머지를 조용히 버린다 — 보관 종목을 가리키면 안 된다.
   for (const [key, vals] of Object.entries(SUBSTITUTES)) {
-    assert.ok(seedNames.has(key), `SUBSTITUTES 죽은 키: ${key}`);
-    for (const v of vals) assert.ok(seedNames.has(v), `SUBSTITUTES 죽은 값: ${key} → ${v}`);
+    assert.ok(activeIds.has(key), `SUBSTITUTES 죽은 키: ${key}`);
+    for (const v of vals) assert.ok(activeIds.has(v), `SUBSTITUTES 죽은 값: ${key} → ${v}`);
   }
 });
 
-test('파인더: FINDER_TREE 전 슬롯 names가 시드 실존(베이스 폴백 허용)', () => {
+test('파인더: FINDER_TREE 전 슬롯 ids 가 활성 시드 id', () => {
   for (const [muscle, options] of Object.entries(FINDER_TREE)) {
     for (const opt of options ?? []) {
-      for (const n of opt.names) assert.ok(known(n), `FINDER_TREE 죽은 이름: ${muscle}/${opt.key} → ${n}`);
+      for (const n of opt.ids) assert.ok(activeIds.has(n), `FINDER_TREE 죽은 id: ${muscle}/${opt.key} → ${n}`);
     }
   }
 });
 
+test('미디어 키 표: 전 id 가 시드에 있고 값은 RAW_MEDIA 키', () => {
+  for (const [id, key] of Object.entries(MEDIA_KEY_BY_ID)) {
+    assert.ok(seedIds.has(id), `MEDIA_KEY_BY_ID 죽은 id: ${id}`);
+    assert.ok(RAW_MEDIA[key], `MEDIA_KEY_BY_ID 값이 미디어 표에 없음: ${id} → ${key}`);
+  }
+  // 이름이 바뀐 종목도 그림이 그대로 — id 로 찾기 때문(ADR-033)
+  assert.ok(getExerciseMedia('seed-barbell-bench-press'));
+});
+
 test('미디어: RAW_MEDIA 키 전건이 시드 실존(베이스 폴백 허용)', () => {
   for (const k of Object.keys(RAW_MEDIA)) {
-    assert.ok(known(k), `RAW_MEDIA 죽은 키: ${k}`);
+    assert.ok(knownLegacy(k), `RAW_MEDIA 죽은 키: ${k}`);
   }
 });
 
@@ -121,7 +137,7 @@ test('미디어 steps-only 렌더 계약: 이미지 없는 엔트리는 start/en
     assert.ok(!v.e, `${k}: s 없이 e만 존재`);
     assert.ok(v.k.length >= 3 && v.en.length >= 3, `${k}: 스텝 부족(ko ${v.k.length}/en ${v.en.length})`);
   }
-  const m = getExerciseMedia('클랩 푸시업');
+  const m = getExerciseMedia(idByName.get('클랩 푸시업') ?? 'seed-clap-push-up');
   assert.ok(m, '클랩 푸시업 미디어 조회 실패');
   assert.equal(m!.start, '');
   assert.equal(m!.end, '');
@@ -160,9 +176,11 @@ test('변형 축: IMPLEMENT_KEYS 전건이 라벨 보유(원시 키 노출 금�
 });
 
 test('유산소 신규 15종: 시드 실존 + kind=cardio(무게 UI 회귀 방지)', () => {
-  const byKo = new Map(SEED_EXERCISES.map((e) => [e.nameKo, e]));
+  // 유산소 이름은 개편에서 그대로거나 별칭으로 남는다 — 옛 이름 → id → 지금 시드.
+  const legacyId = new Map(LEGACY_SEED_EXERCISES.map((e) => [e.nameKo, slugId(e.nameEn)]));
+  const byId = new Map(SEED_EXERCISES.map((e) => [slugId(e.nameEn), e]));
   for (const n of NEW_CARDIO_15) {
-    const e = byKo.get(n);
+    const e = byId.get(legacyId.get(n) ?? '');
     assert.ok(e, `유산소 시드 누락: ${n}`);
     assert.equal(e!.kind, 'cardio', `kind!=cardio: ${n}`);
   }
@@ -170,7 +188,7 @@ test('유산소 신규 15종: 시드 실존 + kind=cardio(무게 UI 회귀 방�
 
 test('3D 움짤 오버레이: 매핑 키 전부 시드 실존 + 자체 호스팅 경로(/media3d/) 강제', () => {
   for (const [k, v] of Object.entries(RAW_MEDIA_3D)) {
-    assert.ok(known(k), `media3d 매핑이 시드에 없는 종목을 참조: ${k}`);
+    assert.ok(knownLegacy(k), `media3d 매핑이 시드에 없는 종목을 참조: ${k}`);
     assert.ok(v.startsWith('/media3d/'), `외부 URL 금지(자체 호스팅 — ADR-029): ${k} → ${v}`);
   }
 });

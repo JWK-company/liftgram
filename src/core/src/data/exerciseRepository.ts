@@ -3,7 +3,7 @@
 import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
-import { Exercise } from '../db/models';
+import { Exercise, ExerciseUserPref } from '../db/models';
 import type { EquipmentType, ExerciseKind, MuscleGroup } from '../domain';
 
 const exercises = () => database.get<Exercise>('exercises');
@@ -15,6 +15,15 @@ export async function getExerciseIdsByNames(namesKo: string[]): Promise<Map<stri
     .query(Q.where('name_ko', Q.oneOf(namesKo)), Q.where('is_archived', false))
     .fetch();
   return new Map(rows.map((e) => [e.nameKo, e.id]));
+}
+
+// 로컬에 있고 보관되지 않은 종목 id 만 — 콘셉트 루틴 저장(종목 KEY = seed id · P2 ADR-033). @plm SRS-047 SRS-055
+export async function getActiveExerciseIds(ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+  const rows = await exercises()
+    .query(Q.where('id', Q.oneOf(ids)), Q.where('is_archived', false))
+    .fetch();
+  return new Set(rows.map((e) => e.id));
 }
 
 export interface ExerciseFilter {
@@ -43,6 +52,26 @@ export function queryExercises(filter: ExerciseFilter = {}): Query<Exercise> {
 
 export function getExercise(id: string): Promise<Exercise> {
   return exercises().find(id);
+}
+
+// ── 표시 이름(ADR-033 · QA M3) ── 사용자가 고른 이름(별칭)이 있으면 그것, 없으면 대표 이름. @plm SRS-056
+// 최소판(P2): 이관이 옛 이름을 심어 둔 종목이 갑자기 새 이름으로 바뀌지 않게 한다. 고르기·되돌리기는 P3.
+export async function getExerciseDisplayName(id: string): Promise<{ nameKo: string; nameEn: string | null; displayName: string | null; kind: string | null; equipment: string } | null> {
+  let ex: Exercise;
+  try {
+    ex = await exercises().find(id);
+  } catch {
+    return null;
+  }
+  let displayName: string | null = null;
+  try {
+    const { exercisePrefId } = await import('../db/models/ExerciseUserPref');
+    const pref = await database.get<ExerciseUserPref>('exercise_user_prefs').find(exercisePrefId(id));
+    displayName = pref.displayName?.trim() || null;
+  } catch {
+    // 선호 없음 — 대표 이름
+  }
+  return { nameKo: ex.nameKo, nameEn: ex.nameEn, displayName, kind: ex.kind, equipment: ex.equipment };
 }
 
 export interface CustomExerciseInput {

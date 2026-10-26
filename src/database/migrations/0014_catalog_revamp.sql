@@ -6,12 +6,13 @@
 
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS aliases text[] NOT NULL DEFAULT '{}';
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS family text;
-ALTER TABLE exercises ADD COLUMN IF NOT EXISTS similar text[] NOT NULL DEFAULT '{}';
+-- similar 는 PostgreSQL 예약어(SIMILAR TO)라 열 이름을 similar_refs 로 둔다(계약·로컬 이름은 similar).
+ALTER TABLE exercises ADD COLUMN IF NOT EXISTS similar_refs text[] NOT NULL DEFAULT '{}';
 ALTER TABLE exercises ADD COLUMN IF NOT EXISTS media_ref text;
 
 CREATE TEMP TABLE catalog_new (
   id text PRIMARY KEY, name_ko text NOT NULL, name_en text, primary_muscles text[], secondary_muscles text[],
-  equipment text, kind text, load_mode text, is_archived boolean, aliases text[], family text, similar text[], media_ref text
+  equipment text, kind text, load_mode text, is_archived boolean, aliases text[], family text, similar_refs text[], media_ref text
 ) ON COMMIT DROP;
 
 INSERT INTO catalog_new VALUES
@@ -502,19 +503,19 @@ UPDATE exercises e SET name_ko = '__catalog_tmp__' || e.id
  WHERE n.id = e.id AND e.is_custom = false AND e.name_ko IS DISTINCT FROM n.name_ko;
 
 -- 2단계: 전 필드 upsert(달라진 행만)
-INSERT INTO exercises AS e (id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar, media_ref)
-SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar, media_ref FROM catalog_new
+INSERT INTO exercises AS e (id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar_refs, media_ref)
+SELECT id, name_ko, name_en, primary_muscles, secondary_muscles, equipment, kind, load_mode, is_archived, aliases, family, similar_refs, media_ref FROM catalog_new
 ON CONFLICT (id) DO UPDATE SET
   name_ko = EXCLUDED.name_ko, name_en = EXCLUDED.name_en,
   primary_muscles = EXCLUDED.primary_muscles, secondary_muscles = EXCLUDED.secondary_muscles,
   equipment = EXCLUDED.equipment, kind = EXCLUDED.kind, load_mode = EXCLUDED.load_mode,
   is_archived = EXCLUDED.is_archived, aliases = EXCLUDED.aliases, family = EXCLUDED.family,
-  similar = EXCLUDED.similar, media_ref = EXCLUDED.media_ref, updated_at = now()
+  similar_refs = EXCLUDED.similar_refs, media_ref = EXCLUDED.media_ref, updated_at = now()
 WHERE e.is_custom = false AND (
   e.name_ko, e.name_en, e.primary_muscles, e.secondary_muscles, e.equipment, e.kind, e.load_mode,
-  e.is_archived, e.aliases, e.family, e.similar, e.media_ref
+  e.is_archived, e.aliases, e.family, e.similar_refs, e.media_ref
 ) IS DISTINCT FROM (
   EXCLUDED.name_ko, EXCLUDED.name_en, EXCLUDED.primary_muscles, EXCLUDED.secondary_muscles, EXCLUDED.equipment,
-  EXCLUDED.kind, EXCLUDED.load_mode, EXCLUDED.is_archived, EXCLUDED.aliases, EXCLUDED.family, EXCLUDED.similar,
+  EXCLUDED.kind, EXCLUDED.load_mode, EXCLUDED.is_archived, EXCLUDED.aliases, EXCLUDED.family, EXCLUDED.similar_refs,
   EXCLUDED.media_ref
 );
