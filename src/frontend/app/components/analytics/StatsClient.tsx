@@ -1,20 +1,27 @@
 "use client";
-// @plm SRS-005  분석 탭 — app의 features/analytics/StatsTabScreen.tsx를 웹으로
+// @plm SRS-005 SRS-054  분석 탭 — app의 features/analytics/StatsTabScreen.tsx를 웹으로 · 시안 07 배치
 //
-// 기간(주·월·전체)을 고르면 그 구간의 볼륨·세션 수·세트 수, 추정 1RM 상위, 주간 볼륨 추세,
-// 근육군 분포, 최근 PR을 보여 준다.
+// 기간(주·월·3개월·전체)을 구간 선택기로 고르면 그 구간의 볼륨·세션 수·세트 수, 추정 1RM 상위,
+// 주간 볼륨 추세, 근육군 분포, 최근 PR을 보여 준다.
+//
+// 배치(시안 07): 맨 위 **대표 숫자 하나**(기간 볼륨)와 지난 같은 기간 대비 변화 + 추세 막대 →
+// 숫자 한 줄(세션·워킹 세트·세션당 볼륨) → 1RM·부위·PR은 **줄 목록**(종목이 늘어도 카드가 길어지지 않게).
+// 추세 막대는 언제나 최소 8칸이다 — 기록이 한 주뿐이어도 빈 칸을 보여 줘 막대 하나가 판을 꽉 채우지 않게.
 //
 // **집계는 전부 저장소가 한다**(getOverview·getVolumeTrend·getMuscleDistribution·getRecentPRs).
 // 화면에서 다시 세면 app과 숫자가 갈라진다 — 그건 사용자가 제일 먼저 알아채는 종류의 어긋남이다.
+// 지난 기간 대비는 같은 함수를 두 번(2배 구간 − 이번 구간) 불러 얻는다 — 새 집계를 만들지 않는다.
 //
 // 맨 아래 고지는 지우지 않는다: 이 앱은 웰니스 도구이지 의학적 판단을 하지 않는다(SRS-015).
 import { AppBar } from "../ui/AppBar";
+import { routes } from "@app/contracts";
 import { formatWeight, muscleLabel, type MuscleGroup } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
-import { lang, t, type TransKey } from "@/lib/i18n";
-import { SimpleBarChart, DistributionBars } from "../ui/charts";
-import { AppText, Card, Divider, EmptyState, SectionHeader, StatTile, Tag } from "../ui/primitives";
+import { lang, t } from "@/lib/i18n";
+import { DistributionBars } from "../ui/charts";
+import { AppText, Card, EmptyState, Tag } from "../ui/primitives";
+import { KpiRow, ListGroup, ListRow, SectionLabel, Segmented } from "../ui/rows";
 import { LogoSpinner } from "../ui/LogoSpinner";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
@@ -22,21 +29,44 @@ type Overview = Awaited<ReturnType<AnalyticsRepo["getOverview"]>>;
 type TrendPoint = Awaited<ReturnType<AnalyticsRepo["getVolumeTrend"]>>[number];
 type RecentPR = Awaited<ReturnType<AnalyticsRepo["getRecentPRs"]>>[number];
 
-type Period = "week" | "month" | "all";
+type Period = "week" | "month" | "quarter" | "all";
 
-const PERIODS: { key: Period; labelKey: TransKey }[] = [
-  { key: "week", labelKey: "analytics.periodWeek" },
-  { key: "month", labelKey: "analytics.periodMonth" },
-  { key: "all", labelKey: "analytics.periodAll" },
+const PERIODS: { key: Period; label: string; hero: string }[] = [
+  { key: "week", label: t("analytics.periodWeek"), hero: "최근 7일 볼륨" },
+  { key: "month", label: t("analytics.periodMonth"), hero: "최근 30일 볼륨" },
+  { key: "quarter", label: "3개월", hero: "최근 3개월 볼륨" },
+  { key: "all", label: t("analytics.periodAll"), hero: "전체 볼륨" },
 ];
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const SPAN: Record<Period, number | null> = { week: 7, month: 30, quarter: 90, all: null };
+const MIN_BARS = 8;
+const MAX_BARS = 12;
 
-function sinceForPeriod(period: Period): number | undefined {
-  const now = Date.now();
-  if (period === "week") return now - 7 * DAY_MS;
-  if (period === "month") return now - 30 * DAY_MS;
-  return undefined;
+function weekStart(ms: number): number {
+  const d = new Date(ms);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // 월요일
+  return d.getTime();
+}
+
+/** 주간 추세를 최소 8칸으로 — 빈 주는 0으로 채우고, 이번 주를 끝 칸에 둔다. */
+function padTrend(points: TrendPoint[]): { label: string; value: number; current: boolean }[] {
+  const byWeek = new Map(points.map((p) => [weekStart(p.bucketMs), p.value]));
+  const thisWeek = weekStart(Date.now());
+  const first = points.length ? weekStart(points[0].bucketMs) : thisWeek;
+  const span = Math.round((thisWeek - first) / (7 * DAY_MS)) + 1;
+  const n = Math.min(MAX_BARS, Math.max(MIN_BARS, span));
+  return Array.from({ length: n }, (_, i) => {
+    const wk = new Date(thisWeek);
+    wk.setDate(wk.getDate() - (n - 1 - i) * 7);
+    const ms = weekStart(wk.getTime());
+    return {
+      label: `${wk.getMonth() + 1}/${wk.getDate()}`,
+      value: byWeek.get(ms) ?? 0,
+      current: ms === thisWeek,
+    };
+  });
 }
 
 export default function StatsClient() {
@@ -44,25 +74,32 @@ export default function StatsClient() {
   const [period, setPeriod] = useState<Period>("week");
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState<Overview | null>(null);
+  const [prevVolume, setPrevVolume] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [dist, setDist] = useState<{ muscle: MuscleGroup; volumeKg: number }[]>([]);
   const [recentPRs, setRecentPRs] = useState<RecentPR[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    const sinceMs = sinceForPeriod(period);
+    const days = SPAN[period];
+    const now = Date.now();
+    const sinceMs = days ? now - days * DAY_MS : undefined;
+    const prevSince = days ? now - 2 * days * DAY_MS : undefined;
     setLoading(true);
     void (async () => {
       try {
         const repo = await import("@app/core/data/analyticsRepository");
-        const [o, tr, d, prs] = await Promise.all([
+        const [o, o2, tr, d, prs] = await Promise.all([
           repo.getOverview(sinceMs),
-          repo.getVolumeTrend(sinceMs),
+          prevSince ? repo.getOverview(prevSince) : Promise.resolve(null),
+          // 추세는 기간과 상관없이 최근 몇 주를 본다 — 「이번 주」 를 골라도 막대가 하나만 남지 않게.
+          repo.getVolumeTrend(now - MAX_BARS * 7 * DAY_MS),
           repo.getMuscleDistribution(sinceMs),
           repo.getRecentPRs(10),
         ]);
         if (cancelled) return;
         setOverview(o);
+        setPrevVolume(o2 ? o2.totalVolumeKg - o.totalVolumeKg : null);
         setTrend(tr);
         setDist(d);
         setRecentPRs(prs);
@@ -76,34 +113,19 @@ export default function StatsClient() {
   }, [period]);
 
   const hasData = !!overview && overview.sessionCount > 0;
+  const meta = PERIODS.find((p) => p.key === period) ?? PERIODS[0];
 
   return (
     <div className="flex flex-1 flex-col">
       <AppBar title={t("analytics.title")} />
-      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        <div className="mb-[var(--spacing-lg)] flex gap-[var(--spacing-sm)]">
-          {PERIODS.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              data-testid={`period-${p.key}`}
-              onClick={() => setPeriod(p.key)}
-              style={{
-                backgroundColor: p.key === period ? "var(--color-brand)" : "var(--color-surface-alt)",
-              }}
-              className="rounded-[var(--radius-pill)] px-[var(--spacing-lg)] py-[var(--spacing-sm)]"
-            >
-              <AppText
-                variant="caption"
-                color={p.key === period ? "text" : "textMuted"}
-                style={p.key === period ? { color: "var(--color-on-brand)" } : undefined}
-                className={p.key === period ? "font-bold" : ""}
-              >
-                {t(p.labelKey)}
-              </AppText>
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
+        <Segmented
+          testId="stats-period"
+          className="mb-[var(--spacing-lg)]"
+          value={period}
+          onChange={setPeriod}
+          items={PERIODS.map((p) => ({ value: p.key, label: p.label, testId: `period-${p.key}` }))}
+        />
 
         {loading && !overview ? (
           <div className="flex justify-center py-[var(--spacing-xxl)]">
@@ -119,96 +141,115 @@ export default function StatsClient() {
           />
         ) : (
           <>
-            <div className="mb-[var(--spacing-lg)] flex gap-[var(--spacing-sm)]">
-              <StatTile
-                testId="stat-volume"
-                label={t("analytics.totalVolume")}
-                value={formatWeight(overview.totalVolumeKg, weightUnit)}
-              />
-              <StatTile
-                testId="stat-sessions"
-                label={t("analytics.sessionCount")}
-                value={String(overview.sessionCount)}
-              />
-              <StatTile
-                testId="stat-sets"
-                label={t("analytics.workingSets")}
-                value={String(overview.workingSets)}
-              />
-            </div>
-
-            <Card className="mb-[var(--spacing-lg)]">
-              <SectionHeader title={t("wellness.oneRepMaxLabel")} />
-              {overview.topOneRM.length === 0 ? (
-                <AppText variant="caption" color="textFaint">
-                  {t("analytics.topOneRMEmpty")}
-                </AppText>
-              ) : (
-                overview.topOneRM.map((row, i) => (
-                  <div key={row.exerciseId}>
-                    {i > 0 ? <Divider /> : null}
-                    <div className="flex items-center justify-between py-[var(--spacing-xs)]">
-                      <AppText variant="body" className="mr-[var(--spacing-md)] flex-1 truncate">
-                        {row.exerciseName}
-                      </AppText>
-                      <AppText variant="body" className="font-bold">
-                        {formatWeight(row.estimated1RM, weightUnit)}
-                      </AppText>
-                    </div>
-                  </div>
-                ))
-              )}
-              <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-sm)] block">
-                {t("wellness.oneRepMaxCaption")}
+            <Card className="mb-[var(--spacing-md)]">
+              <AppText variant="caption" color="textMuted" className="block">
+                {meta.hero}
               </AppText>
+              <div className="mt-[2px] flex items-baseline gap-[var(--spacing-sm)]">
+                <span
+                  data-testid="stat-volume"
+                  className="font-bold text-(--color-ink) text-[length:var(--text-xxl)] tabular-nums leading-tight"
+                >
+                  {formatWeight(overview.totalVolumeKg, weightUnit)}
+                </span>
+                <Delta now={overview.totalVolumeKg} prev={prevVolume} period={period} />
+              </div>
+              <TrendBars data={padTrend(trend)} />
             </Card>
 
             <Card className="mb-[var(--spacing-lg)]">
-              <SectionHeader title={t("analytics.weeklyVolumeTrend")} />
-              <SimpleBarChart
-                data={trend.map((x) => ({ label: x.label, value: x.value }))}
-                formatValue={(v) => String(Math.round(v))}
+              <KpiRow
+                items={[
+                  {
+                    label: t("analytics.sessionCount"),
+                    value: String(overview.sessionCount),
+                    testId: "stat-sessions",
+                  },
+                  {
+                    label: t("analytics.workingSets"),
+                    value: String(overview.workingSets),
+                    testId: "stat-sets",
+                  },
+                  {
+                    label: "세션당 볼륨",
+                    value: formatWeight(
+                      overview.totalVolumeKg / Math.max(1, overview.sessionCount),
+                      weightUnit,
+                    ),
+                  },
+                ]}
               />
             </Card>
 
+            <SectionLabel title={t("wellness.oneRepMaxLabel")} />
+            {overview.topOneRM.length === 0 ? (
+              <AppText
+                variant="caption"
+                color="textFaint"
+                className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
+              >
+                {t("analytics.topOneRMEmpty")}
+              </AppText>
+            ) : (
+              <ListGroup className="mb-[var(--spacing-xs)]" testId="stats-1rm">
+                {overview.topOneRM.map((row) => (
+                  <ListRow
+                    key={row.exerciseId}
+                    title={row.exerciseName}
+                    value={
+                      <span className="font-bold text-(--color-ink)">
+                        {formatWeight(row.estimated1RM, weightUnit)}
+                      </span>
+                    }
+                    href={routes.exercise(row.exerciseId)}
+                  />
+                ))}
+              </ListGroup>
+            )}
+            <AppText
+              variant="caption"
+              color="textFaint"
+              className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
+            >
+              {t("wellness.oneRepMaxCaption")}
+            </AppText>
+
+            <SectionLabel title={t("analytics.muscleDistribution")} />
             <Card className="mb-[var(--spacing-lg)]">
-              <SectionHeader title={t("analytics.muscleDistribution")} />
               <DistributionBars
                 data={dist.map((d) => ({ label: muscleLabel(d.muscle, lang), value: d.volumeKg }))}
                 formatValue={(v) => formatWeight(v, weightUnit)}
               />
             </Card>
 
-            <Card className="mb-[var(--spacing-lg)]">
-              <SectionHeader title={t("analytics.recentPRs")} />
-              {recentPRs.length === 0 ? (
-                <AppText variant="caption" color="textFaint">
-                  {t("analytics.recentPRsEmpty")}
-                </AppText>
-              ) : (
-                recentPRs.map((pr, i) => (
-                  <div key={`${pr.exerciseId}-${pr.completedAt}`}>
-                    {i > 0 ? <Divider /> : null}
-                    <div className="flex items-center justify-between py-[var(--spacing-xs)]">
-                      <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
-                        <AppText variant="body" className="block truncate">
-                          {pr.exerciseName}
-                        </AppText>
-                        <AppText variant="caption" color="textFaint" className="mt-[2px] block">
-                          {new Date(pr.completedAt).toLocaleDateString("ko-KR")}
-                        </AppText>
-                      </div>
-                      <div className="flex items-center gap-[var(--spacing-sm)]">
-                        <AppText variant="body" className="font-bold">
+            <SectionLabel title={t("analytics.recentPRs")} />
+            {recentPRs.length === 0 ? (
+              <AppText
+                variant="caption"
+                color="textFaint"
+                className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
+              >
+                {t("analytics.recentPRsEmpty")}
+              </AppText>
+            ) : (
+              <ListGroup className="mb-[var(--spacing-lg)]">
+                {recentPRs.map((pr) => (
+                  <ListRow
+                    key={`${pr.exerciseId}-${pr.completedAt}`}
+                    title={pr.exerciseName}
+                    subtitle={new Date(pr.completedAt).toLocaleDateString("ko-KR")}
+                    trailing={
+                      <span className="flex items-center gap-[var(--spacing-sm)]">
+                        <span className="font-bold text-(--color-ink) text-[length:var(--text-md)]">
                           {formatWeight(pr.estimated1RM, weightUnit)}
-                        </AppText>
+                        </span>
                         <Tag label={t("analytics.estimateTag")} tone="pr" />
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </Card>
+                      </span>
+                    }
+                  />
+                ))}
+              </ListGroup>
+            )}
           </>
         )}
 
@@ -220,6 +261,55 @@ export default function StatsClient() {
         >
           {t("wellness.noMedicalClaimNotice")}
         </AppText>
+      </div>
+    </div>
+  );
+}
+
+/** 지난 같은 기간 대비 — 「전체」 와 지난 기간이 비었으면 그리지 않는다. */
+function Delta({ now, prev, period }: { now: number; prev: number | null; period: Period }) {
+  if (prev == null || prev <= 0) return null;
+  const pct = Math.round(((now - prev) / prev) * 100);
+  const up = pct >= 0;
+  const what = period === "week" ? "지난주보다" : "지난 기간보다";
+  return (
+    <span
+      data-testid="stat-delta"
+      className="text-[length:var(--text-sm)] tabular-nums"
+      style={{ color: up ? "var(--color-ok)" : "var(--color-ink2)" }}
+    >
+      {`${up ? "▲" : "▼"} ${Math.abs(pct)}% ${what}`}
+    </span>
+  );
+}
+
+/** 주간 볼륨 막대 — 최소 8칸. 이번 주는 브랜드색, 나머지는 옅게. 값 글자는 달지 않는다(대표 숫자가 위에 있다). */
+function TrendBars({ data }: { data: { label: string; value: number; current: boolean }[] }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  const H = 72;
+  return (
+    <div className="mt-[var(--spacing-md)]" data-testid="stats-trend">
+      <div style={{ height: H }} className="flex items-end gap-[6px]">
+        {data.map((d) => (
+          <span
+            key={d.label}
+            title={`${d.label} · ${Math.round(d.value)}`}
+            style={{
+              height: d.value > 0 ? Math.max(4, (d.value / max) * H) : 3,
+              backgroundColor: d.current
+                ? "var(--color-brand)"
+                : d.value > 0
+                  ? "color-mix(in srgb, var(--color-brand) 35%, transparent)"
+                  : "var(--color-line)",
+            }}
+            className="flex-1 rounded-[4px]"
+          />
+        ))}
+      </div>
+      <div className="mt-[var(--spacing-xs)] flex justify-between text-(--color-ink3) text-[length:var(--text-xs)] tabular-nums">
+        <span>{data[0]?.label}</span>
+        <span>{data[Math.floor(data.length / 2)]?.label}</span>
+        <span>이번 주</span>
       </div>
     </div>
   );

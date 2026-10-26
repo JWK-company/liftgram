@@ -313,7 +313,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
       ) : (
         <ul
           data-testid="exercise-list"
-          className="mt-[var(--spacing-xs)] flex flex-col gap-[var(--spacing-sm)]"
+          className="mt-[var(--spacing-xs)] overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>li+li]:border-(--color-line) [&>li+li]:border-t"
         >
           {rows.map((r) => (
             <ExerciseRow key={r.id} row={r} />
@@ -372,7 +372,7 @@ function ExerciseRow({ row }: { row: Row }) {
           href={`/exercises/${encodeURIComponent(row.id)}/edit`}
           data-testid={`edit-${row.id}`}
           aria-label={t("common.edit")}
-          className="absolute top-[var(--spacing-md)] right-[var(--spacing-md)] z-10 flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+          className="absolute top-1/2 right-[var(--spacing-xl)] z-10 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
         >
           <Icon name="create-outline" size={16} color="var(--color-ink2)" />
         </a>
@@ -380,7 +380,7 @@ function ExerciseRow({ row }: { row: Row }) {
       <a
         href={routes.exercise(row.id)}
         data-testid={`exercise-${row.id}`}
-        className="flex items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)] hover:opacity-80"
+        className="flex min-h-[60px] items-center gap-[var(--spacing-md)] px-[var(--spacing-md)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
       >
         {thumb ? (
           // eslint 규칙이 아니라 의도다 — CDN 원본을 그대로 쓴다(next/image 최적화 서버 불필요).
@@ -397,23 +397,25 @@ function ExerciseRow({ row }: { row: Row }) {
           </span>
         )}
 
-        <span className="flex min-w-0 flex-1 flex-col">
-          <AppText variant="heading" className="truncate">
-            {exerciseListName(item)}
-          </AppText>
-          {altName ? (
-            <AppText variant="caption" color="textFaint" className="mt-[2px] truncate">
-              {altName}
-            </AppText>
-          ) : null}
-          <span className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
-            {row.kind === "cardio" ? (
-              <Tag label={t("wizard.cardio")} tone="success" />
-            ) : (
-              row.primaryMuscles.map((m) => <Tag key={m} label={muscleLabelFromDomain(m)} tone="primary" />)
-            )}
-            <Tag label={equipmentLabelFromDomain(row.equipment)} />
+        {/* 줄 목록(SRS-054): 이름 한 줄 + 「부위 · 기구」 한 줄. 태그 칩 묶음은 쓰지 않는다 —
+            칩이 줄마다 두세 개씩 붙으면 목록이 칩 더미로 보였다. 내 종목만 작은 표시를 단다. */}
+        <span className={`flex min-w-0 flex-1 flex-col ${row.isCustom ? "pr-10" : ""}`}>
+          <span className="flex items-center gap-[var(--spacing-xs)]">
+            <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
+              {exerciseListName(item)}
+            </span>
             {row.isCustom ? <Tag label={t("exercises.customTag")} tone="muted" /> : null}
+          </span>
+          <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">
+            {[
+              row.kind === "cardio"
+                ? t("wizard.cardio")
+                : row.primaryMuscles.map((m) => muscleLabelFromDomain(m)).join("·"),
+              equipmentLabelFromDomain(row.equipment),
+              altName,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
         </span>
 

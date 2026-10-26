@@ -33,7 +33,10 @@ import { feedClient } from "@/lib/feedClient";
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
+import { SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
+import { MoreMenu } from "../ui/MoreMenu";
+import { Segmented } from "../ui/rows";
 import { AppText, Card, Tag } from "../ui/primitives";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
@@ -132,6 +135,8 @@ export default function CalendarClient() {
   }, [workouts, weeklyGoal, skipWeekends, now]);
 
   const [noteDraft, setNoteDraft] = useState("");
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [goalSheet, setGoalSheet] = useState(false);
   const selectedDate = useMemo(() => {
     if (!selected) return null;
     const [y, m, d] = selected.split("-").map(Number);
@@ -139,6 +144,9 @@ export default function CalendarClient() {
   }, [selected]);
   const selectedDayNum = selectedDate ? dayNumber(selectedDate.getTime()) : 0;
   useEffect(() => setNoteDraft(calendarNotes[String(selectedDayNum)] ?? ""), [selectedDayNum, calendarNotes]);
+  // 다른 날을 고르면 메모 칸을 다시 접는다(그 날에 메모가 있으면 펼친 채로 보인다).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 고른 날이 바뀌는 것이 계기다(값은 읽지 않는다)
+  useEffect(() => setNoteOpen(false), [selectedDayNum]);
 
   const saveSetting = async (patch: Record<string, unknown>) => {
     if (!user) return;
@@ -235,114 +243,134 @@ export default function CalendarClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <RecordsHeader view="calendar" />
+      <RecordsHeader
+        view="calendar"
+        actions={
+          // 이번 달 자랑하기는 ⋯ 안으로(시안 06). 한 달에 운동이 없으면 뜻이 없어 메뉴째 숨긴다.
+          monthSessions > 0 ? (
+            <MoreMenu
+              testId="records-more"
+              sheetTestId="records-menu"
+              options={[
+                {
+                  label: bragging ? "올리는 중…" : t("calendar.brag"),
+                  testId: "btn-brag-month",
+                  onPress: () => void shareMonth(),
+                },
+              ]}
+            />
+          ) : null
+        }
+      />
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        {/* 연속일 + 이번 주 목표 */}
-        <Card className="mb-[var(--spacing-sm)]">
-          <div className="flex items-stretch">
-            <div className="min-w-[92px]">
-              <div className="flex items-center gap-[var(--spacing-xs)]">
-                <Icon
-                  name="flame"
-                  size={22}
-                  color={streak.current > 0 ? "var(--color-warn)" : "var(--color-ink3)"}
-                />
-                <AppText variant="title" data-testid="streak-current">
-                  {String(streak.current)}
-                </AppText>
-              </div>
-              <AppText variant="caption" color="textMuted" className="block">
-                {t("calendar.streakLabel")}
-              </AppText>
-              {streak.longest > 1 ? (
-                <AppText variant="caption" color="textFaint" className="mt-[2px] block">
-                  {t("calendar.longest", { days: streak.longest })}
-                </AppText>
-              ) : null}
-            </div>
-
-            <div className="mx-[var(--spacing-md)] w-px bg-(--color-line)" />
-
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <AppText variant="label" color="textMuted">
-                  {t("calendar.weeklyGoalTitle")}
-                </AppText>
-                <div className="flex items-center gap-[var(--spacing-sm)]">
-                  <button
-                    type="button"
-                    aria-label="목표 줄이기"
-                    disabled={weeklyGoal <= WEEKLY_GOAL_MIN}
-                    onClick={() => setWeeklyGoal(weeklyGoal - 1)}
-                    className="disabled:opacity-45"
-                  >
-                    <Icon
-                      name="remove-circle"
-                      size={22}
-                      color={weeklyGoal <= WEEKLY_GOAL_MIN ? "var(--color-ink3)" : "var(--color-brand)"}
-                    />
-                  </button>
-                  <AppText variant="label" className="font-bold" data-testid="weekly-goal">
-                    {t("calendar.goalDays", { days: weeklyGoal })}
-                  </AppText>
-                  <button
-                    type="button"
-                    aria-label="목표 늘리기"
-                    disabled={weeklyGoal >= WEEKLY_GOAL_MAX}
-                    onClick={() => setWeeklyGoal(weeklyGoal + 1)}
-                    className="disabled:opacity-45"
-                  >
-                    <Icon
-                      name="add-circle"
-                      size={22}
-                      color={weeklyGoal >= WEEKLY_GOAL_MAX ? "var(--color-ink3)" : "var(--color-brand)"}
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="my-[var(--spacing-xs)] h-2 rounded-[var(--radius-pill)] bg-(--color-surface-alt)">
-                <span
-                  style={{
-                    width: `${barPct}%`,
-                    backgroundColor: week.reached ? "var(--color-ok)" : "var(--color-brand)",
-                  }}
-                  className="block h-2 rounded-[var(--radius-pill)]"
-                />
-              </div>
-              <AppText variant="caption" color={week.reached ? "success" : "textMuted"}>
-                {week.reached
-                  ? t("calendar.goalReached")
-                  : t("calendar.weeklyProgress", { done: week.done, goal: week.goal })}
-              </AppText>
-            </div>
-          </div>
-        </Card>
-
-        {/* 주말만 쉰 것을 연속으로 볼지 */}
-        <div className="mb-[var(--spacing-md)] flex items-center justify-between">
-          <AppText variant="caption" color="textMuted">
-            {t("calendar.weekendStreak")}
-          </AppText>
-          <div className="flex gap-[2px] rounded-[var(--radius-pill)] bg-(--color-surface-alt) p-[2px]">
-            {[false, true].map((v) => (
-              <button
-                key={String(v)}
-                type="button"
-                onClick={() => setSkipWeekends(v)}
-                style={{ backgroundColor: skipWeekends === v ? "var(--color-brand)" : "transparent" }}
-                className="rounded-[var(--radius-pill)] px-[var(--spacing-md)] py-[4px]"
+        {/* 이번 주 목표 · 연속 — 요약 한 줄. 누르면 목표·주말 설정 시트(시안 06). */}
+        <button
+          type="button"
+          data-testid="goal-row"
+          onClick={() => setGoalSheet(true)}
+          className="mb-[var(--spacing-md)] flex w-full items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt)"
+        >
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-(--color-ink2) text-[length:var(--text-xs)]">
+              {t("calendar.weeklyGoalTitle")}
+            </span>
+            <span className="font-bold text-(--color-ink) text-[length:var(--text-md)] tabular-nums">
+              {`${week.done} / `}
+              <span data-testid="weekly-goal">{t("calendar.goalDays", { days: weeklyGoal })}</span>
+            </span>
+            <span className="mt-[6px] block h-1.5 overflow-hidden rounded-full bg-(--color-surface-alt)">
+              <span
+                style={{
+                  width: `${barPct}%`,
+                  backgroundColor: week.reached ? "var(--color-ok)" : "var(--color-brand)",
+                }}
+                className="block h-full rounded-full"
+              />
+            </span>
+          </span>
+          <span className="h-10 w-px bg-(--color-line)" />
+          <span className="flex flex-col items-center">
+            <span className="text-(--color-ink2) text-[length:var(--text-xs)]">
+              {t("calendar.streakLabel")}
+            </span>
+            <span className="flex items-center gap-[2px]">
+              <span
+                data-testid="streak-current"
+                className="font-bold text-(--color-ink) text-[length:var(--text-md)] tabular-nums"
               >
-                <AppText
-                  variant="caption"
-                  style={{ color: skipWeekends === v ? "var(--color-on-brand)" : "var(--color-ink2)" }}
-                  className={skipWeekends === v ? "font-bold" : ""}
-                >
-                  {t(v ? "calendar.weekendExclude" : "calendar.weekendInclude")}
-                </AppText>
+                {String(streak.current)}
+              </span>
+              <Icon
+                name="flame"
+                size={16}
+                color={streak.current > 0 ? "var(--color-warn)" : "var(--color-ink3)"}
+              />
+            </span>
+          </span>
+          <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+        </button>
+
+        {goalSheet ? (
+          <SheetShell
+            title={t("calendar.weeklyGoalTitle")}
+            onClose={() => setGoalSheet(false)}
+            testId="goal-sheet"
+          >
+            <div className="flex items-center justify-center gap-[var(--spacing-xl)] py-[var(--spacing-md)]">
+              <button
+                type="button"
+                aria-label="목표 줄이기"
+                disabled={weeklyGoal <= WEEKLY_GOAL_MIN}
+                onClick={() => setWeeklyGoal(weeklyGoal - 1)}
+                className="flex h-11 w-11 items-center justify-center disabled:opacity-45"
+              >
+                <Icon name="remove-circle" size={32} color="var(--color-brand)" />
               </button>
-            ))}
-          </div>
-        </div>
+              <AppText variant="title" className="tabular-nums">
+                {t("calendar.goalDays", { days: weeklyGoal })}
+              </AppText>
+              <button
+                type="button"
+                aria-label="목표 늘리기"
+                disabled={weeklyGoal >= WEEKLY_GOAL_MAX}
+                onClick={() => setWeeklyGoal(weeklyGoal + 1)}
+                className="flex h-11 w-11 items-center justify-center disabled:opacity-45"
+              >
+                <Icon name="add-circle" size={32} color="var(--color-brand)" />
+              </button>
+            </div>
+            <AppText
+              variant="caption"
+              color={week.reached ? "success" : "textMuted"}
+              center
+              className="block"
+            >
+              {week.reached
+                ? t("calendar.goalReached")
+                : t("calendar.weeklyProgress", { done: week.done, goal: week.goal })}
+            </AppText>
+            {streak.longest > 1 ? (
+              <AppText variant="caption" color="textFaint" center className="mt-[2px] block">
+                {t("calendar.longest", { days: streak.longest })}
+              </AppText>
+            ) : null}
+            <AppText
+              variant="label"
+              color="textMuted"
+              className="mt-[var(--spacing-lg)] mb-[var(--spacing-xs)] block"
+            >
+              {t("calendar.weekendStreak")}
+            </AppText>
+            <Segmented
+              value={skipWeekends ? "exclude" : "include"}
+              onChange={(v) => setSkipWeekends(v === "exclude")}
+              items={[
+                { value: "include", label: t("calendar.weekendInclude") },
+                { value: "exclude", label: t("calendar.weekendExclude") },
+              ]}
+            />
+          </SheetShell>
+        ) : null}
 
         {/* 월 이동 */}
         <div className="flex items-center justify-between">
@@ -350,7 +378,7 @@ export default function CalendarClient() {
             type="button"
             aria-label="이전 달"
             onClick={() => shiftMonth(-1)}
-            className="p-[var(--spacing-sm)]"
+            className="flex h-11 w-11 items-center justify-center"
           >
             <Icon name="chevron-back" size={20} color="var(--color-ink)" />
           </button>
@@ -361,36 +389,22 @@ export default function CalendarClient() {
               setView({ y: now.getFullYear(), m: now.getMonth() });
               setSelected(todayKey);
             }}
+            className="flex flex-col items-center"
           >
             <AppText variant="heading">{monthLabel}</AppText>
+            <AppText variant="caption" color="textMuted">
+              {t("calendar.monthSummary", { days: monthDaysTotal, sessions: monthSessions })}
+            </AppText>
           </button>
           <button
             type="button"
             aria-label="다음 달"
             onClick={() => shiftMonth(1)}
-            className="p-[var(--spacing-sm)]"
+            className="flex h-11 w-11 items-center justify-center"
           >
             <Icon name="chevron-forward" size={20} color="var(--color-ink)" />
           </button>
         </div>
-        <AppText variant="caption" color="textMuted" center className="mb-[var(--spacing-sm)] block">
-          {t("calendar.monthSummary", { days: monthDaysTotal, sessions: monthSessions })}
-        </AppText>
-
-        {/* 이번 달 자랑하기 — 한 달을 마친 사람에게만 뜻이 있다(운동이 0회면 숨긴다). */}
-        {monthSessions > 0 ? (
-          <div className="mb-[var(--spacing-md)]">
-            <Button
-              title={t("calendar.brag")}
-              icon="share-social-outline"
-              variant="secondary"
-              size="sm"
-              loading={bragging}
-              onPress={() => void shareMonth()}
-              testId="btn-brag-month"
-            />
-          </div>
-        ) : null}
 
         <Card className="mb-[var(--spacing-lg)]">
           <div className="flex">
@@ -413,43 +427,45 @@ export default function CalendarClient() {
               const noted = count === 0 && !manual && !!calendarNotes[String(dn)];
               const isToday = key === todayKey;
               const isSelected = key === selected;
-              const hasMarker = count > 0 || manual || noted;
               return (
                 <button
                   key={key}
                   type="button"
                   data-testid={`day-${d}`}
+                  data-worked={count > 0 ? "1" : undefined}
                   onClick={() => setSelected(key)}
-                  className="w-[14.28%] py-[var(--spacing-xs)]"
+                  className="w-[14.28%] py-[3px]"
                 >
+                  {/* 운동한 날은 칸을 주황으로 채운다(시안 06) — 점 하나보다 한 달의 리듬이 한눈에 보인다.
+                    고른 날은 진한 브랜드색, 오늘은 테두리. 수동 표시는 초록 칸, 메모만 있는 날은 작은 점. */}
                   <span
                     style={{
-                      backgroundColor: isSelected ? "var(--color-brand)" : undefined,
+                      backgroundColor: isSelected
+                        ? "var(--color-brand)"
+                        : count > 0
+                          ? "color-mix(in srgb, var(--color-brand) 22%, transparent)"
+                          : manual
+                            ? "color-mix(in srgb, var(--color-ok) 20%, transparent)"
+                            : undefined,
                       borderColor: isToday && !isSelected ? "var(--color-brand)" : "transparent",
                     }}
-                    className="mx-auto flex h-9 w-9 flex-col items-center justify-center rounded-[var(--radius-pill)] border"
+                    className="mx-auto flex h-10 w-10 flex-col items-center justify-center rounded-[10px] border-2"
                   >
                     <AppText
                       variant="caption"
                       color={isSelected ? "text" : count || manual ? "text" : "textMuted"}
                       style={isSelected ? { color: "var(--color-on-brand)" } : undefined}
-                      className={count || manual ? "font-bold" : ""}
+                      className={count || manual || isToday ? "font-bold" : ""}
                     >
                       {String(d)}
                     </AppText>
-                    {/* 점은 **표시할 것이 있을 때만** 찍는다. 고른 날이면 배경과 대비되게 흰 점으로.
-                      자리는 항상 비워 둬야 숫자가 위아래로 흔들리지 않는다. */}
                     <span
                       style={{
-                        backgroundColor: !hasMarker
-                          ? "transparent"
-                          : isSelected
+                        backgroundColor: noted
+                          ? isSelected
                             ? "var(--color-on-brand)"
-                            : count > 0
-                              ? "var(--color-brand)"
-                              : manual
-                                ? "var(--color-ok)"
-                                : "var(--color-ink3)",
+                            : "var(--color-ink3)"
+                          : "transparent",
                       }}
                       className="mt-[1px] h-[4px] w-[4px] rounded-full"
                     />
@@ -461,27 +477,41 @@ export default function CalendarClient() {
         </Card>
 
         {/* 고른 날 */}
-        <AppText variant="heading" className="mb-[var(--spacing-sm)] block" data-testid="selected-day">
-          {selectedLabel}
-        </AppText>
+        <div className="mb-[var(--spacing-sm)] flex items-center justify-between">
+          <AppText variant="heading" data-testid="selected-day">
+            {selectedLabel}
+          </AppText>
+          {!noteOpen && !noteDraft ? (
+            <button
+              type="button"
+              data-testid="btn-day-note"
+              onClick={() => setNoteOpen(true)}
+              className="text-(--color-brand) text-[length:var(--text-sm)]"
+            >
+              + 이 날 메모
+            </button>
+          ) : null}
+        </div>
 
-        <textarea
-          data-testid="day-note"
-          value={noteDraft}
-          rows={2}
-          maxLength={CALENDAR_NOTE_MAX_LEN}
-          placeholder={t("calendar.dayNotePlaceholder")}
-          onChange={(e) => setNoteDraft(e.target.value)}
-          onBlur={() => {
-            const text = noteDraft.trim().slice(0, CALENDAR_NOTE_MAX_LEN);
-            if (text === (calendarNotes[String(selectedDayNum)] ?? "")) return;
-            const next = { ...calendarNotes };
-            if (text) next[String(selectedDayNum)] = text;
-            else delete next[String(selectedDayNum)];
-            void saveSetting({ calendarNotes: next });
-          }}
-          className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
-        />
+        {noteOpen || noteDraft ? (
+          <textarea
+            data-testid="day-note"
+            value={noteDraft}
+            rows={2}
+            maxLength={CALENDAR_NOTE_MAX_LEN}
+            placeholder={t("calendar.dayNotePlaceholder")}
+            onChange={(e) => setNoteDraft(e.target.value)}
+            onBlur={() => {
+              const text = noteDraft.trim().slice(0, CALENDAR_NOTE_MAX_LEN);
+              if (text === (calendarNotes[String(selectedDayNum)] ?? "")) return;
+              const next = { ...calendarNotes };
+              if (text) next[String(selectedDayNum)] = text;
+              else delete next[String(selectedDayNum)];
+              void saveSetting({ calendarNotes: next });
+            }}
+            className="mb-[var(--spacing-sm)] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+          />
+        ) : null}
 
         {selectedWorkouts.length === 0 ? (
           manualSet.has(selectedDayNum) ? (
@@ -530,31 +560,33 @@ export default function CalendarClient() {
             </div>
           )
         ) : (
-          selectedWorkouts.map((w) => (
-            <a key={w.id} href={`/history/${w.id}`} className="block">
-              <Card className="mb-[var(--spacing-md)]">
-                <div className="flex items-center gap-[var(--spacing-sm)]">
-                  <AppText variant="heading" className="min-w-0 flex-1 truncate">
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+            {selectedWorkouts.map((w) => (
+              <a
+                key={w.id}
+                href={`/history/${w.id}`}
+                className="flex min-h-[56px] items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] active:bg-(--color-surface-alt)"
+              >
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
                     {w.name || t("analytics.workoutNameFallback")}
-                  </AppText>
-                  {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null}
-                  <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
-                </div>
-                <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-lg)]">
-                  <AppText variant="caption" color="textMuted">
-                    {`${t("analytics.metaVolume")} ${formatWeight(w.totalVolumeKg, weightUnit)}`}
-                  </AppText>
-                  <AppText variant="caption" color="textMuted">
-                    {`${t("analytics.metaDuration")} ${
+                  </span>
+                  <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums">
+                    {[
                       w.durationSeconds
                         ? t("common.minutesShort", { minutes: Math.round(w.durationSeconds / 60) })
-                        : "-"
-                    }`}
-                  </AppText>
-                </div>
-              </Card>
-            </a>
-          ))
+                        : "",
+                      formatWeight(w.totalVolumeKg, weightUnit),
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </span>
+                {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null}
+                <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+              </a>
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -160,6 +160,7 @@ test("주간 목표가 계정을 따라 다른 기기로 간다", async ({ page,
   await page.goto("/calendar");
   const goal = page.getByTestId("weekly-goal");
   const before = await goal.innerText();
+  await page.getByTestId("goal-row").click();
   await page.getByRole("button", { name: "목표 늘리기" }).click();
   await expect(goal).not.toHaveText(before);
   const after = await goal.innerText();

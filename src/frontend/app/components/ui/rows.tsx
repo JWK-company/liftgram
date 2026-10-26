@@ -157,7 +157,7 @@ export function Segmented<V extends string>({
       {items.map((it) => {
         const on = it.value === value;
         const cls = `flex h-9 flex-1 items-center justify-center rounded-[8px] text-[length:var(--text-sm)] ${
-          on ? "bg-(--color-card) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"
+          on ? "bg-(--seg-on) font-semibold text-(--color-ink) shadow-sm" : "text-(--color-ink2)"
         }`;
         return it.href ? (
           <a

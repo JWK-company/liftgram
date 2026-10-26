@@ -46,6 +46,10 @@ import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card, Divider, EmptyState, SectionHeader, Tag } from "../ui/primitives";
 import { VariantSelector } from "../ui/VariantSelector";
 import { ExerciseName } from "../session/ExerciseName";
+import { useSession } from "../SessionProvider";
+import { SubAppBar } from "../ui/AppBar";
+import { LogoSpinner } from "../ui/LogoSpinner";
+import { MoreMenu } from "../ui/MoreMenu";
 import { PrescriptionRows, emptyRxRow, rxSummary } from "./PrescriptionRows";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
@@ -83,6 +87,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   const [picking, setPicking] = useState<null | { mode: "add" } | { mode: "swap"; reId: string }>(null);
   const [supersetTarget, setSupersetTarget] = useState<RoutineExerciseRow | null>(null);
   const [confirmDeleteRoutine, setConfirmDeleteRoutine] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const { activeWorkoutId, setActive } = useSession();
   const [confirmRemove, setConfirmRemove] = useState<RoutineExerciseRow | null>(null);
 
   // 만들기가 두 번 겹치지 않게 하는 자물쇠(빠르게 두 번 누르거나 개발 모드의 이중 실행 대비).
@@ -157,12 +163,16 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   if (!loaded || !repo) {
     return (
       <div className="flex flex-1 items-center justify-center p-[var(--spacing-xl)]">
-        <AppText variant="body" color="textMuted">
-          {t("common.loading")}
-        </AppText>
+        <span role="status" className="inline-flex">
+          <LogoSpinner size={36} label={t("common.loading")} />
+        </span>
       </div>
     );
   }
+
+  // 저장된 루틴이고 종목이 있고, 이미 진행 중인 운동이 없을 때만 바로 시작할 수 있다
+  // (진행 중이면 홈의 「이어 하기」 가 먼저다 — 두 운동이 겹치지 않게).
+  const canStart = !!routineId && exercises.length > 0 && !activeWorkoutId;
 
   const pickFolder = (next: string) => {
     setFolder(next);
@@ -172,18 +182,31 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-30 flex items-center justify-between border-(--color-line) border-b bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-sm)]">
-        <a
-          href="/"
-          aria-label={t("routines.editorTitle")}
-          className="flex h-10 w-10 items-center justify-center"
-        >
-          <Icon name="chevron-back" size={22} color="var(--color-ink)" />
-        </a>
-        <AppText variant="heading">{t("routines.editorTitle")}</AppText>
-        {/* 제목을 가운데 두기 위한 자리 — 완료 버튼은 아래에 있다(app과 같다). */}
-        <span className="w-10" />
-      </header>
+      {/* 하위 화면 앱바(SRS-054 시안 12) — ← · 가운데 루틴 이름 · ⋯(삭제). 삭제는 화면에 늘 드러내지 않는다. */}
+      <SubAppBar
+        title={name.trim() || t("routines.editorTitle")}
+        onBack={() => {
+          void (async () => {
+            if (name.trim()) await save({ name: name.trim() });
+            const { navigateAfterFlush } = await import("@/lib/localDb");
+            await navigateAfterFlush("/");
+          })();
+        }}
+        right={
+          <MoreMenu
+            testId="btn-routine-menu"
+            sheetTestId="routine-menu"
+            options={[
+              {
+                label: t("routines.deleteRoutineTitle"),
+                destructive: true,
+                testId: "btn-delete-routine",
+                onPress: () => setConfirmDeleteRoutine(true),
+              },
+            ]}
+          />
+        }
+      />
 
       <div className="flex-1 p-[var(--spacing-lg)]">
         <TextField
@@ -330,13 +353,15 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             />
           </div>
         ) : null}
+      </div>
 
-        <Divider />
-
-        <div className="mt-[var(--spacing-sm)]">
+      {/* 하단 고정 — 루틴 화면에서 할 일 1순위는 「시작」(시안 12). 완료는 저장하고 나가기. */}
+      <div className="sticky bottom-0 z-20 flex gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)]">
+        <div className={canStart ? "w-[38%]" : "flex-1"}>
           <Button
             title={t("common.done")}
             icon="checkmark"
+            variant={canStart ? "secondary" : "primary"}
             testId="btn-routine-done"
             onPress={() => {
               void (async () => {
@@ -348,14 +373,37 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             }}
           />
         </div>
-        <div className="mt-[var(--spacing-sm)]">
-          <Button
-            title={t("routines.deleteRoutineTitle")}
-            variant="danger"
-            testId="btn-delete-routine"
-            onPress={() => setConfirmDeleteRoutine(true)}
-          />
-        </div>
+        {canStart ? (
+          <div className="flex-1">
+            <Button
+              title="이 루틴으로 시작"
+              icon="play"
+              testId="btn-routine-start"
+              loading={starting}
+              onPress={() => {
+                if (starting || !routineId) return;
+                setStarting(true);
+                void (async () => {
+                  try {
+                    if (name.trim()) await save({ name: name.trim() });
+                    const workout = await import("@app/core/data/workoutRepository");
+                    const w = (await workout.startWorkoutFromRoutine(routineId)) as unknown as {
+                      id: string;
+                      startedAt: number;
+                      name: string | null;
+                    };
+                    setActive({ id: w.id, startedAt: w.startedAt, name: w.name });
+                    const { navigateAfterFlush } = await import("@/lib/localDb");
+                    await navigateAfterFlush("/workout");
+                  } catch (e) {
+                    toast(e instanceof Error ? e.message : String(e), "error");
+                    setStarting(false);
+                  }
+                })();
+              }}
+            />
+          </div>
+        ) : null}
       </div>
 
       {supersetTarget ? (

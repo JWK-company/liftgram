@@ -18,6 +18,8 @@ import { EQUIPMENT_KEY } from "@/lib/contractMap";
 import { t } from "@/lib/i18n";
 import { equipmentLabel, kindLabel, loadModeLabel, muscleLabel } from "@/lib/labels";
 import ExerciseAnimation from "../../components/ExerciseAnimation";
+import ExerciseProgress from "../../components/analytics/ExerciseProgress";
+import { UserSettingsProvider } from "../../components/UserSettingsProvider";
 import { ScreenHeader } from "../../components/ui/ScreenHeader";
 import { ExerciseAdminBar } from "../../components/ExerciseAdminBar";
 import { Icon } from "../../components/ui/Icon";
@@ -110,12 +112,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
       <ScreenHeader
         title={t("nav.exerciseDetail")}
         back={
-          <a
-            href="/exercises"
-            aria-label="뒤로"
-            className="-ml-[var(--spacing-sm)] flex h-9 w-9 items-center justify-center"
-          >
-            <Icon name="chevron-back" size={22} color="var(--color-ink)" />
+          <a href="/exercises" aria-label="뒤로" data-testid="exercise-back">
+            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }
       />
@@ -132,6 +130,11 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
             {altName}
           </AppText>
         ) : null}
+
+        {/* 내 기록 — 이 종목을 해 본 적이 있으면 추정 1RM 추세(로컬 저장소 · 없으면 아무것도 안 그린다). */}
+        <UserSettingsProvider>
+          <ExerciseProgress exerciseId={id} />
+        </UserSettingsProvider>
 
         {/* 자세 시연 — 2컷 교차 또는 3D 움짤. 이미지가 없는 종목(설명만 있는 항목)은 건너뛴다. */}
         {media && hasMediaImages(media) ? (

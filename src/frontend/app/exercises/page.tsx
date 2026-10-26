@@ -27,11 +27,17 @@ export default async function Page() {
     <>
       {/* app의 종목 화면 머리와 같은 제목이다(i18n exercises.title).
           오른쪽은 app의 헤더 액션과 같은 자리 — 커스텀 종목 만들기. */}
+      {/* 운동 홈의 🔍 에서 들어오는 하위 화면 — ← · 가운데 제목(SRS-054 앱바 2형). */}
       <ScreenHeader
         title="운동"
+        back={
+          <a href="/" aria-label="뒤로" data-testid="exercises-back">
+            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
+          </a>
+        }
         right={
           <a href="/exercises/new" aria-label="커스텀 운동" data-testid="btn-new-exercise">
-            <Icon name="add" size={24} color="var(--color-brand)" />
+            <Icon name="add" size={24} color="var(--color-ink)" />
           </a>
         }
       />

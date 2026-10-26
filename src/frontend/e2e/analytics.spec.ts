@@ -69,6 +69,8 @@ test("주간 목표는 기기에 남는다 — 새로고침해도 그대로", as
   await expect(page.getByTestId("weekly-goal")).toBeVisible({ timeout: 20_000 });
 
   const before = await page.getByTestId("weekly-goal").innerText();
+  // 목표 조절은 요약 줄을 누르면 열리는 시트 안에 있다(SRS-054 시안 06).
+  await page.getByTestId("goal-row").click();
   await page.getByLabel("목표 늘리기").click();
   const after = await page.getByTestId("weekly-goal").innerText();
   expect(after).not.toBe(before);

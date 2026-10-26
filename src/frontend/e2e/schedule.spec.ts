@@ -111,7 +111,9 @@ test("이번 달 자랑하기는 운동이 있을 때만 뜬다", async ({ page 
 
   // 아직 아무것도 안 했으면 버튼이 없다.
   await page.goto("/calendar");
-  await expect(page.getByTestId("btn-brag-month")).toHaveCount(0);
+  // 자랑하기는 기록 머리의 ⋯ 안에 있다 — 운동이 없으면 ⋯ 째로 없다(SRS-054 시안 06).
+  await expect(page.getByTestId("month-label")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("records-more")).toHaveCount(0);
 
   // 운동을 하나 마치면 뜬다.
   await page.goto("/workout");
@@ -129,7 +131,9 @@ test("이번 달 자랑하기는 운동이 있을 때만 뜬다", async ({ page 
   await page.getByTestId("btn-summary-close").click();
 
   await page.goto("/calendar");
-  await expect(page.getByTestId("btn-brag-month")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("records-more")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("records-more").click();
+  await expect(page.getByTestId("btn-brag-month")).toBeVisible();
 
   // 로그인하지 않았으면 그 사실을 알린다(조용히 실패하지 않는다).
   await page.getByTestId("btn-brag-month").click();

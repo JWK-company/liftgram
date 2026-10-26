@@ -3,13 +3,14 @@
 //
 // 같은 데이터(지난 운동)를 두 가지로 본다. 주소가 곧 상태다 — /history 는 목록, /calendar 는 달력.
 // 그래서 전환은 링크이고, 새로고침·뒤로 가기가 그대로 맞는다.
+import type { ReactNode } from "react";
 import { AppBar } from "../ui/AppBar";
 import { Segmented } from "../ui/rows";
 
-export function RecordsHeader({ view }: { view: "list" | "calendar" }) {
+export function RecordsHeader({ view, actions }: { view: "list" | "calendar"; actions?: ReactNode }) {
   return (
     <>
-      <AppBar title="기록" />
+      <AppBar title="기록" actions={actions} />
       <div className="px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
         <Segmented
           testId="records-view"

@@ -1,13 +1,20 @@
 "use client";
-// @plm SRS-005  세션 상세 — app의 features/analytics/WorkoutDetailScreen.tsx를 웹으로
+// @plm SRS-005 SRS-054  세션 상세 — app의 features/analytics/WorkoutDetailScreen.tsx를 웹으로
 //
 // 지난 운동 하나를 펼쳐 본다: 총 볼륨·소요 시간 + 종목마다 세트 표(무게×횟수·RPE·태그)와
 // 볼륨·추정 1RM. 값은 전부 `getWorkoutDetail`이 준 것을 그대로 놓는다(집계는 저장소 몫).
+//
+// 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
 import { formatWeight, type WeightUnit } from "@app/core";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
-import { Icon } from "../ui/Icon";
-import { AppText, Card, Divider, EmptyState, StatTile, Tag } from "../ui/primitives";
+import { useToast } from "../Toast";
+import { SubAppBar } from "../ui/AppBar";
+import { ConfirmDialog } from "../ui/Dialog";
+import { MoreMenu } from "../ui/MoreMenu";
+import { KpiRow } from "../ui/rows";
+import { AppText, Card, Divider, EmptyState, Tag } from "../ui/primitives";
 import { LogoSpinner } from "../ui/LogoSpinner";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
@@ -18,6 +25,9 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [unit, setUnit] = useState<WeightUnit>("kg");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -49,16 +59,26 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-30 flex items-center gap-[var(--spacing-sm)] bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)]">
-        <a
-          href="/history"
-          aria-label={t("analytics.historyTitle")}
-          className="flex h-10 w-10 items-center justify-center"
-        >
-          <Icon name="chevron-back" size={22} color="var(--color-ink)" />
-        </a>
-        <AppText variant="heading">{t("analytics.historyTitle")}</AppText>
-      </header>
+      <SubAppBar
+        title={t("analytics.historyTitle")}
+        fallbackHref="/history"
+        right={
+          detail ? (
+            <MoreMenu
+              testId="btn-detail-menu"
+              sheetTestId="detail-menu"
+              options={[
+                {
+                  label: t("analytics.deleteWorkoutTitle"),
+                  destructive: true,
+                  testId: "btn-delete-workout",
+                  onPress: () => setConfirmDelete(true),
+                },
+              ]}
+            />
+          ) : null
+        }
+      />
 
       <div className="flex-1 p-[var(--spacing-lg)]">
         {loading ? (
@@ -84,17 +104,22 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 : ""}
             </AppText>
 
-            <div className="mt-[var(--spacing-lg)] mb-[var(--spacing-lg)] flex gap-[var(--spacing-sm)]">
-              <StatTile
-                testId="detail-volume"
-                label={t("analytics.totalVolumeLabel")}
-                value={formatWeight(detail.totalVolumeKg, unit)}
+            <Card className="mt-[var(--spacing-lg)] mb-[var(--spacing-lg)]">
+              <KpiRow
+                items={[
+                  {
+                    label: t("analytics.totalVolumeLabel"),
+                    value: formatWeight(detail.totalVolumeKg, unit),
+                    testId: "detail-volume",
+                  },
+                  { label: t("analytics.durationLabel"), value: duration(detail.workout.durationSeconds) },
+                  {
+                    label: "세트",
+                    value: String(detail.exercises.reduce((n, ex) => n + ex.sets.length, 0)),
+                  },
+                ]}
               />
-              <StatTile
-                label={t("analytics.durationLabel")}
-                value={duration(detail.workout.durationSeconds)}
-              />
-            </div>
+            </Card>
 
             {detail.exercises.length === 0 ? (
               <EmptyState icon="barbell-outline" title={t("analytics.noSetsTitle")} />
@@ -108,6 +133,31 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
           </>
         )}
       </div>
+
+      {confirmDelete ? (
+        <ConfirmDialog
+          testId="confirm-delete-workout"
+          title={t("analytics.deleteWorkoutTitle")}
+          message={t("analytics.deleteWorkoutMessage")}
+          confirmLabel={t("common.delete")}
+          destructive
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            setConfirmDelete(false);
+            void (async () => {
+              try {
+                const workout = await import("@app/core/data/workoutRepository");
+                await workout.discardWorkout(workoutId);
+                const { flushLocalDb } = await import("@/lib/localDb");
+                await flushLocalDb();
+                router.replace("/history");
+              } catch (e) {
+                toast(e instanceof Error ? e.message : String(e), "error");
+              }
+            })();
+          }}
+        />
+      ) : null}
     </div>
   );
 }
