@@ -56,7 +56,17 @@ export async function POST(req: Request): Promise<Response> {
   const rotated = body.tokens?.refreshToken ?? "";
   if (!access || !rotated) return new Response("unexpected response", { status: 502 });
 
-  return new Response(JSON.stringify({ accessToken: access }), {
+  // 내 정보도 같이 싣는다(SRS-054 · 왕복 줄이기). 브라우저가 갱신 다음에 Me 를 따로 부르면 길 위에서 한 번(≈0.6s)을
+  // 더 쓴다 — 여기서는 같은 서버 안이라 수 ms 다. 실패해도 갱신은 성공으로 두고 화면이 Me 를 부른다.
+  const me = await fetch(`${env.API_URL.replace(/\/$/, "")}/api/auth.v1.AuthService/Me`, {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+    body: "{}",
+  })
+    .then((r) => (r.ok ? (r.json() as Promise<{ user?: unknown }>) : null))
+    .catch(() => null);
+
+  return new Response(JSON.stringify({ accessToken: access, user: me?.user ?? null }), {
     status: 200,
     headers: { "content-type": "application/json", "set-cookie": cookieHeader(rotated, MAX_AGE_SEC) },
   });

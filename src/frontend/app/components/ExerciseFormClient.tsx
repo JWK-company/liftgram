@@ -31,6 +31,7 @@ import { Icon } from "./ui/Icon";
 import { TextField } from "./ui/inputs";
 import { AppText } from "./ui/primitives";
 import { ScreenHeader } from "./ui/ScreenHeader";
+import { LogoSpinner } from "./ui/LogoSpinner";
 
 export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string }) {
   const toast = useToast();
@@ -137,10 +138,9 @@ export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string
 
       {loading ? (
         <div className="flex flex-1 items-center justify-center py-[var(--spacing-xl)]">
-          <span
-            role="status"
-            className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-brand) border-t-transparent"
-          />
+          <span role="status" className="inline-flex">
+            <LogoSpinner size={32} label="불러오는 중" />
+          </span>
         </div>
       ) : (
         <div className="flex-1 p-[var(--spacing-lg)]" data-testid="exercise-form">

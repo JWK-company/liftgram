@@ -37,6 +37,40 @@ const GUARD = { "x-liftgram-session": "1" } as const;
 
 let accessToken: string | null = null;
 let refreshing: Promise<boolean> | null = null;
+/** 갱신 라우트가 같이 실어 준 내 정보(Connect JSON). AuthProvider 가 한 번 가져가면 비운다 — Me 왕복을 아낀다. */
+let refreshedMe: unknown = null;
+
+/** 갱신과 함께 온 내 정보를 꺼낸다(한 번만). 없으면 null — 그때는 Me 를 부른다. */
+export function takeRefreshedMe(): unknown {
+  const me = refreshedMe;
+  refreshedMe = null;
+  return me;
+}
+
+/**
+ * 마지막으로 확인한 내 정보 요약 — **첫 칠하기에만** 쓴다(SRS-054).
+ * 새로고침·앱 실행 때 서버 확인(≈0.6s+)이 끝날 때까지 로그인한 사람이 비로그인 화면을 보지 않게 한다.
+ * 값은 표시용(이름·역할·이메일)이고 권한 판정은 서버가 매 요청 한다. 로그아웃하면 지운다.
+ */
+const ME_CACHE = "liftgram.me";
+
+export function cacheMe(json: unknown): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    if (json) localStorage.setItem(ME_CACHE, JSON.stringify(json));
+    else localStorage.removeItem(ME_CACHE);
+  } catch {}
+}
+
+export function readCachedMe(): unknown {
+  if (typeof localStorage === "undefined" || !hasSession()) return null;
+  try {
+    const raw = localStorage.getItem(ME_CACHE);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 /** 로그인 상태가 바뀌면 화면이 따라오도록 알린다. */
 type Listener = () => void;
@@ -86,6 +120,7 @@ export function setTokens(
 export function clearTokens(): void {
   accessToken = null;
   setFlag(false);
+  cacheMe(null);
   void fetch("/api/session", { method: "DELETE", headers: GUARD }).catch(() => {});
   // 서비스워커가 담아 둔 사진도 지운다 — 다음 사람이 이 기기를 쓸 수 있다(sw.template.js "clear-media").
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
@@ -200,9 +235,10 @@ async function refreshOnce(): Promise<boolean> {
       }
       if (!res.ok) return false; // 서버에 못 닿았다 — 로그아웃시키지 않는다(다음에 다시 시도)
 
-      const body = (await res.json()) as { accessToken?: string };
+      const body = (await res.json()) as { accessToken?: string; user?: unknown };
       if (!body.accessToken) return false;
       accessToken = body.accessToken;
+      refreshedMe = body.user ?? null;
       setFlag(true);
       notify();
       return true;

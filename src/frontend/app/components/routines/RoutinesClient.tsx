@@ -17,6 +17,7 @@
 // (getTodayRoutineRecommendation) · 콘셉트 루틴의 내용(CONCEPT_ROUTINES) — 전부 core다.
 // 여기서 다시 계산하면 app과 갈라진다(ADR-032).
 // ─────────────────────────────────────────────────────────────────────────────
+import { navigate } from "@/lib/nav";
 import {
   CONCEPT_ROUTINES,
   currentBlockWeek,
@@ -25,7 +26,6 @@ import {
   todayPlan,
   type ConceptRoutine,
   type MissedPlan,
-  type WeeklySchedule,
 } from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
@@ -39,6 +39,7 @@ import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
 import { ScheduleEditor } from "./ScheduleEditor";
+import { AppBar, AppBarAction } from "../ui/AppBar";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -224,352 +225,373 @@ export default function RoutinesClient() {
   const assignedCount = weeklySchedule?.days.filter((d) => d !== null && d !== "rest").length ?? 0;
 
   return (
-    <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-      {/* ── 헤더 ── */}
-      <div className="mb-[var(--spacing-lg)] flex items-center justify-between">
-        <AppText variant="display">{t("routines.title")}</AppText>
+    <div className="flex flex-1 flex-col">
+      {/* ── 앱바: 운동 홈만 로고(SRS-054 앱바 2형) ── */}
+      <AppBar
+        logo
+        title={t("routines.title")}
+        actions={
+          <>
+            <AppBarAction
+              icon="search-outline"
+              label={t("nav.exerciseList")}
+              href="/exercises"
+              testId="home-exercises"
+            />
+            {activeWorkoutId ? (
+              <a href="/workout" data-testid="btn-resume" className="ml-[var(--spacing-xs)]">
+                <Button title={t("routines.resumeWorkout")} icon="play" size="sm" fullWidth={false} />
+              </a>
+            ) : null}
+          </>
+        }
+      />
+      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
+        {/* ── 진행 중인 운동 ── */}
         {activeWorkoutId ? (
-          <a href="/workout" data-testid="btn-resume">
-            <Button title={t("routines.resumeWorkout")} icon="play" size="sm" fullWidth={false} />
+          <Card className="mb-[var(--spacing-lg)] border-(--color-brand)!">
+            <div className="flex items-center gap-[var(--spacing-md)]" data-testid="resume-card">
+              <div className="min-w-0 flex-1">
+                <AppText variant="heading" className="block truncate">
+                  {activeName || t("routines.activeWorkout")}
+                </AppText>
+                <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+                  {t("routines.resumePrompt")}
+                </AppText>
+              </div>
+              <Button
+                title={t("routines.discardWorkoutButton")}
+                variant="danger"
+                size="sm"
+                fullWidth={false}
+                testId="btn-discard-active"
+                onPress={() => setConfirmDiscard(true)}
+              />
+            </div>
+          </Card>
+        ) : null}
+
+        {/* ── 주간 스케줄 ── */}
+        {weeklySchedule ? (
+          <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
+            <div className="flex items-center gap-[var(--spacing-sm)]">
+              <AppText variant="label" color="primary">
+                {t("schedule.title")}
+              </AppText>
+              {block ? (
+                <span
+                  style={{
+                    backgroundColor: block.isDeload ? "var(--color-surface-alt)" : "var(--color-brand-muted)",
+                  }}
+                  className="rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px]"
+                >
+                  <AppText
+                    variant="label"
+                    color={block.isDeload ? "warning" : "primary"}
+                    className="font-bold"
+                  >
+                    {block.isDeload ? t("schedule.deloadWeek") : t("schedule.weekN", { week: block.week })}
+                  </AppText>
+                </span>
+              ) : null}
+              {assignedCount > 0 ? (
+                <AppText variant="caption" color="textMuted">
+                  {t("schedule.timesPerWeek", { count: assignedCount })}
+                </AppText>
+              ) : null}
+            </div>
+            <WeekStrip schedule={weeklySchedule} routines={routines} dotColor={dotColor} />
+            <div className="mt-[var(--spacing-sm)]">
+              <Button
+                title={t("schedule.editTitle")}
+                icon="calendar-outline"
+                variant="secondary"
+                size="sm"
+                fullWidth={false}
+                onPress={() => setEditingSchedule(true)}
+                testId="btn-edit-schedule"
+              />
+            </div>
+          </Card>
+        ) : (
+          <EntryRow
+            icon="calendar-outline"
+            label={t("schedule.createEntry")}
+            testId="entry-schedule"
+            onPress={() => setEditingSchedule(true)}
+          />
+        )}
+
+        {/* ── 오늘의 안내 ── */}
+        {!activeWorkoutId && weeklySchedule ? (
+          <TodayCard
+            plan={plan}
+            routines={routines}
+            dotColor={dotColor}
+            onStart={(id) => guardActive(startFromRoutine(id))}
+            busy={busy}
+          />
+        ) : !activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
+          <RecoCard reco={reco} onStart={(id) => guardActive(startFromRoutine(id))} busy={busy} />
+        ) : null}
+
+        {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
+        {catchUp &&
+        !reco?.alreadyWorkedOutToday &&
+        !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
+          <CatchUpCard
+            catchUp={catchUp}
+            name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
+            busy={busy}
+            onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
+          />
+        ) : null}
+
+        {/* ── 새 운동 진입 ── */}
+        <div className="mb-[var(--spacing-sm)]">
+          <a href="/routines/new" className="block">
+            <Button
+              title={t("routines.newRoutine")}
+              icon="add"
+              variant="secondary"
+              testId="btn-new-routine"
+            />
           </a>
+        </div>
+        <div className="mb-[var(--spacing-sm)]">
+          <Button
+            title={t("routines.quickStart")}
+            icon="flash"
+            loading={busy}
+            testId="btn-quick-start"
+            onPress={() => guardActive(startBlank)}
+          />
+        </div>
+        <div className="mb-[var(--spacing-sm)]">
+          <a href="/program" className="block">
+            <Button title={t("program.title")} icon="sparkles" variant="secondary" testId="btn-program" />
+          </a>
+        </div>
+
+        {/* ── 콘셉트 루틴 ── */}
+        <div className="mb-[var(--spacing-sm)]">
+          <AppText variant="label" color="textMuted" className="mb-[4px] block">
+            {t("concept.sectionTitle")}
+          </AppText>
+          <div className="flex gap-[var(--spacing-sm)]">
+            {CONCEPT_ROUTINES.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                data-testid={`concept-${c.id}`}
+                onClick={() => setConcept(c)}
+                // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
+                className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+              >
+                <AppText variant="body" className="block truncate font-bold">
+                  {lang === "ko" ? c.nameKo : c.nameEn}
+                </AppText>
+                <AppText variant="label" color="textMuted">
+                  {t("concept.dayCount", { count: c.days.length })}
+                </AppText>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 주변 헬스장(SRS-035) ── 맥락상 "어디서 운동할까"라 이 자리다. */}
+        <a
+          href="/gyms"
+          data-testid="btn-gyms"
+          className="mt-[var(--spacing-md)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)]"
+        >
+          <Icon name="location" size={18} color="var(--color-brand)" />
+          <AppText variant="body" className="flex-1 font-medium!">
+            {t("gyms.entry")}
+          </AppText>
+          <Icon name="chevron-forward" size={18} color="var(--color-ink2)" />
+        </a>
+
+        {/* ── 내 루틴 ── */}
+        <div className="mt-[var(--spacing-lg)]">
+          <SectionHeader title={t("routines.myRoutines")} />
+        </div>
+
+        {folderGroups.map(([name, members]) => (
+          <FolderGroup
+            key={name}
+            name={name}
+            members={members}
+            open={openFolders[name] ?? false}
+            repo={repos?.routine ?? null}
+            busy={busy}
+            onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
+            onStart={(id) => guardActive(startFromRoutine(id))}
+            onActions={setActionsFor}
+          />
+        ))}
+
+        {routines.length === 0 ? (
+          <EmptyState
+            icon="clipboard-outline"
+            title={t("routines.listEmptyTitle")}
+            message={t("routines.listEmptyMessage")}
+            action={
+              <a href="/routines/new">
+                <Button title={t("routines.createRoutine")} icon="add" fullWidth={false} />
+              </a>
+            }
+          />
+        ) : (
+          <div data-testid="routine-list">
+            {loose.map((r) => (
+              <RoutineRow
+                key={r.id}
+                routine={r}
+                repo={repos?.routine ?? null}
+                busy={busy}
+                onStart={() => guardActive(startFromRoutine(r.id))}
+                onActions={() => setActionsFor(r)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* ── 대화상자들 ── */}
+        {concept ? (
+          <ConceptDialog
+            concept={concept}
+            existingNames={routines.map((r) => r.name)}
+            onClose={() => setConcept(null)}
+            onSaved={(count) => {
+              setConcept(null);
+              toast(t("concept.savedMessage", { count }));
+            }}
+          />
+        ) : null}
+
+        {editingSchedule ? (
+          <ScheduleEditor
+            schedule={weeklySchedule}
+            routines={routines.map((r) => ({ id: r.id, name: r.name }))}
+            onClose={() => setEditingSchedule(false)}
+            onSave={async (next) => {
+              if (!user) return;
+              const userRepo = await import("@app/core/data/userRepository");
+              await userRepo.updateUserSettings(user.id, { weeklySchedule: next });
+              // 로컬 저장소는 비동기로 내려쓴다 — 판을 닫기 전에 확실히 남긴다.
+              const { flushLocalDb } = await import("@/lib/localDb");
+              await flushLocalDb();
+              setEditingSchedule(false);
+            }}
+            onDelete={async () => {
+              if (!user) return;
+              const userRepo = await import("@app/core/data/userRepository");
+              await userRepo.updateUserSettings(user.id, { weeklySchedule: null });
+              const { flushLocalDb } = await import("@/lib/localDb");
+              await flushLocalDb();
+              setEditingSchedule(false);
+            }}
+          />
+        ) : null}
+
+        {actionsFor ? (
+          <ActionSheet
+            testId="routine-actions"
+            title={actionsFor.name}
+            onClose={() => setActionsFor(null)}
+            options={[
+              {
+                label: t("routines.edit"),
+                onPress: () => {
+                  navigate(`/routines/${actionsFor.id}`);
+                },
+              },
+              // 순서 바꾸기 — app은 길게 눌러 끄는 방식이지만, 웹에서 그 제스처는 터치에서
+              // 스크롤과 싸운다(길게 누르면 페이지가 따라 움직인다). 결과가 같은 조작으로 옮긴다.
+              ...(looseIndexOf(actionsFor.id) > 0
+                ? [{ label: tw("web.routines.moveUp"), onPress: () => moveRoutine(actionsFor.id, -1) }]
+                : []),
+              ...(looseIndexOf(actionsFor.id) >= 0 && looseIndexOf(actionsFor.id) < loose.length - 1
+                ? [{ label: tw("web.routines.moveDown"), onPress: () => moveRoutine(actionsFor.id, 1) }]
+                : []),
+              {
+                label: t("routines.duplicate"),
+                onPress: () => run(async () => void (await repos?.routine.duplicateRoutine(actionsFor.id))),
+              },
+              {
+                label: t("common.delete"),
+                destructive: true,
+                onPress: () => setConfirmDelete(actionsFor),
+              },
+            ]}
+          />
+        ) : null}
+
+        {confirmDelete ? (
+          <ConfirmDialog
+            testId="confirm-delete-routine"
+            title={t("routines.deleteTitle")}
+            message={t("routines.deleteConfirm", { routineName: confirmDelete.name })}
+            confirmLabel={t("common.delete")}
+            destructive
+            onCancel={() => setConfirmDelete(null)}
+            onConfirm={() => {
+              const target = confirmDelete;
+              setConfirmDelete(null);
+              run(async () => void (await repos?.routine.deleteRoutine(target.id)));
+            }}
+          />
+        ) : null}
+
+        {confirmDiscard ? (
+          <ConfirmDialog
+            testId="confirm-discard-active"
+            title={t("routines.discardWorkoutTitle")}
+            message={t("routines.discardWorkoutMessage")}
+            confirmLabel={t("common.delete")}
+            destructive
+            onCancel={() => setConfirmDiscard(false)}
+            onConfirm={() => {
+              setConfirmDiscard(false);
+              run(async () => {
+                if (activeWorkoutId) await repos?.workout.discardWorkout(activeWorkoutId).catch(() => {});
+                setActive(null);
+                await refreshActive();
+              });
+            }}
+          />
+        ) : null}
+
+        {activeExists ? (
+          <ActionSheet
+            testId="active-exists"
+            title={t("routines.activeExistsTitle")}
+            onClose={() => setActiveExists(null)}
+            options={[
+              {
+                label: t("routines.resumeInstead"),
+                onPress: () => {
+                  navigate("/workout");
+                },
+              },
+              {
+                label: t("routines.discardAndStart"),
+                destructive: true,
+                onPress: () => {
+                  const start = activeExists;
+                  setActiveExists(null);
+                  run(async () => {
+                    if (activeWorkoutId) await repos?.workout.discardWorkout(activeWorkoutId).catch(() => {});
+                    setActive(null);
+                    await start();
+                  });
+                },
+              },
+            ]}
+          />
         ) : null}
       </div>
-
-      {/* ── 진행 중인 운동 ── */}
-      {activeWorkoutId ? (
-        <Card className="mb-[var(--spacing-lg)] border-(--color-brand)!">
-          <div className="flex items-center gap-[var(--spacing-md)]" data-testid="resume-card">
-            <div className="min-w-0 flex-1">
-              <AppText variant="heading" className="block truncate">
-                {activeName || t("routines.activeWorkout")}
-              </AppText>
-              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-                {t("routines.resumePrompt")}
-              </AppText>
-            </div>
-            <Button
-              title={t("routines.discardWorkoutButton")}
-              variant="danger"
-              size="sm"
-              fullWidth={false}
-              testId="btn-discard-active"
-              onPress={() => setConfirmDiscard(true)}
-            />
-          </div>
-        </Card>
-      ) : null}
-
-      {/* ── 주간 스케줄 ── */}
-      {weeklySchedule ? (
-        <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
-          <div className="flex items-center gap-[var(--spacing-sm)]">
-            <AppText variant="label" color="primary">
-              {t("schedule.title")}
-            </AppText>
-            {block ? (
-              <span
-                style={{
-                  backgroundColor: block.isDeload ? "var(--color-surface-alt)" : "var(--color-brand-muted)",
-                }}
-                className="rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px]"
-              >
-                <AppText variant="label" color={block.isDeload ? "warning" : "primary"} className="font-bold">
-                  {block.isDeload ? t("schedule.deloadWeek") : t("schedule.weekN", { week: block.week })}
-                </AppText>
-              </span>
-            ) : null}
-            {assignedCount > 0 ? (
-              <AppText variant="caption" color="textMuted">
-                {t("schedule.timesPerWeek", { count: assignedCount })}
-              </AppText>
-            ) : null}
-          </div>
-          <WeekStrip schedule={weeklySchedule} routines={routines} dotColor={dotColor} />
-          <div className="mt-[var(--spacing-sm)]">
-            <Button
-              title={t("schedule.editTitle")}
-              icon="calendar-outline"
-              variant="secondary"
-              size="sm"
-              fullWidth={false}
-              onPress={() => setEditingSchedule(true)}
-              testId="btn-edit-schedule"
-            />
-          </div>
-        </Card>
-      ) : (
-        <EntryRow
-          icon="calendar-outline"
-          label={t("schedule.createEntry")}
-          testId="entry-schedule"
-          onPress={() => setEditingSchedule(true)}
-        />
-      )}
-
-      {/* ── 오늘의 안내 ── */}
-      {!activeWorkoutId && weeklySchedule ? (
-        <TodayCard
-          plan={plan}
-          routines={routines}
-          dotColor={dotColor}
-          onStart={(id) => guardActive(startFromRoutine(id))}
-          busy={busy}
-        />
-      ) : !activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
-        <RecoCard reco={reco} onStart={(id) => guardActive(startFromRoutine(id))} busy={busy} />
-      ) : null}
-
-      {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
-      {catchUp &&
-      !reco?.alreadyWorkedOutToday &&
-      !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
-        <CatchUpCard
-          catchUp={catchUp}
-          name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
-          busy={busy}
-          onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
-        />
-      ) : null}
-
-      {/* ── 새 운동 진입 ── */}
-      <div className="mb-[var(--spacing-sm)]">
-        <a href="/routines/new" className="block">
-          <Button title={t("routines.newRoutine")} icon="add" variant="secondary" testId="btn-new-routine" />
-        </a>
-      </div>
-      <div className="mb-[var(--spacing-sm)]">
-        <Button
-          title={t("routines.quickStart")}
-          icon="flash"
-          loading={busy}
-          testId="btn-quick-start"
-          onPress={() => guardActive(startBlank)}
-        />
-      </div>
-      <div className="mb-[var(--spacing-sm)]">
-        <a href="/program" className="block">
-          <Button title={t("program.title")} icon="sparkles" variant="secondary" testId="btn-program" />
-        </a>
-      </div>
-
-      {/* ── 콘셉트 루틴 ── */}
-      <div className="mb-[var(--spacing-sm)]">
-        <AppText variant="label" color="textMuted" className="mb-[4px] block">
-          {t("concept.sectionTitle")}
-        </AppText>
-        <div className="flex gap-[var(--spacing-sm)]">
-          {CONCEPT_ROUTINES.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              data-testid={`concept-${c.id}`}
-              onClick={() => setConcept(c)}
-              // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
-              className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
-            >
-              <AppText variant="body" className="block truncate font-bold">
-                {lang === "ko" ? c.nameKo : c.nameEn}
-              </AppText>
-              <AppText variant="label" color="textMuted">
-                {t("concept.dayCount", { count: c.days.length })}
-              </AppText>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── 주변 헬스장(SRS-035) ── 맥락상 "어디서 운동할까"라 이 자리다. */}
-      <a
-        href="/gyms"
-        data-testid="btn-gyms"
-        className="mt-[var(--spacing-md)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)]"
-      >
-        <Icon name="location" size={18} color="var(--color-brand)" />
-        <AppText variant="body" className="flex-1 font-medium!">
-          {t("gyms.entry")}
-        </AppText>
-        <Icon name="chevron-forward" size={18} color="var(--color-ink2)" />
-      </a>
-
-      {/* ── 내 루틴 ── */}
-      <div className="mt-[var(--spacing-lg)]">
-        <SectionHeader title={t("routines.myRoutines")} />
-      </div>
-
-      {folderGroups.map(([name, members]) => (
-        <FolderGroup
-          key={name}
-          name={name}
-          members={members}
-          open={openFolders[name] ?? false}
-          repo={repos?.routine ?? null}
-          busy={busy}
-          onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
-          onStart={(id) => guardActive(startFromRoutine(id))}
-          onActions={setActionsFor}
-        />
-      ))}
-
-      {routines.length === 0 ? (
-        <EmptyState
-          icon="clipboard-outline"
-          title={t("routines.listEmptyTitle")}
-          message={t("routines.listEmptyMessage")}
-          action={
-            <a href="/routines/new">
-              <Button title={t("routines.createRoutine")} icon="add" fullWidth={false} />
-            </a>
-          }
-        />
-      ) : (
-        <div data-testid="routine-list">
-          {loose.map((r) => (
-            <RoutineRow
-              key={r.id}
-              routine={r}
-              repo={repos?.routine ?? null}
-              busy={busy}
-              onStart={() => guardActive(startFromRoutine(r.id))}
-              onActions={() => setActionsFor(r)}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* ── 대화상자들 ── */}
-      {concept ? (
-        <ConceptDialog
-          concept={concept}
-          existingNames={routines.map((r) => r.name)}
-          onClose={() => setConcept(null)}
-          onSaved={(count) => {
-            setConcept(null);
-            toast(t("concept.savedMessage", { count }));
-          }}
-        />
-      ) : null}
-
-      {editingSchedule ? (
-        <ScheduleEditor
-          schedule={weeklySchedule}
-          routines={routines.map((r) => ({ id: r.id, name: r.name }))}
-          onClose={() => setEditingSchedule(false)}
-          onSave={async (next) => {
-            if (!user) return;
-            const userRepo = await import("@app/core/data/userRepository");
-            await userRepo.updateUserSettings(user.id, { weeklySchedule: next });
-            // 로컬 저장소는 비동기로 내려쓴다 — 판을 닫기 전에 확실히 남긴다.
-            const { flushLocalDb } = await import("@/lib/localDb");
-            await flushLocalDb();
-            setEditingSchedule(false);
-          }}
-          onDelete={async () => {
-            if (!user) return;
-            const userRepo = await import("@app/core/data/userRepository");
-            await userRepo.updateUserSettings(user.id, { weeklySchedule: null });
-            const { flushLocalDb } = await import("@/lib/localDb");
-            await flushLocalDb();
-            setEditingSchedule(false);
-          }}
-        />
-      ) : null}
-
-      {actionsFor ? (
-        <ActionSheet
-          testId="routine-actions"
-          title={actionsFor.name}
-          onClose={() => setActionsFor(null)}
-          options={[
-            {
-              label: t("routines.edit"),
-              onPress: () => {
-                location.href = `/routines/${actionsFor.id}`;
-              },
-            },
-            // 순서 바꾸기 — app은 길게 눌러 끄는 방식이지만, 웹에서 그 제스처는 터치에서
-            // 스크롤과 싸운다(길게 누르면 페이지가 따라 움직인다). 결과가 같은 조작으로 옮긴다.
-            ...(looseIndexOf(actionsFor.id) > 0
-              ? [{ label: tw("web.routines.moveUp"), onPress: () => moveRoutine(actionsFor.id, -1) }]
-              : []),
-            ...(looseIndexOf(actionsFor.id) >= 0 && looseIndexOf(actionsFor.id) < loose.length - 1
-              ? [{ label: tw("web.routines.moveDown"), onPress: () => moveRoutine(actionsFor.id, 1) }]
-              : []),
-            {
-              label: t("routines.duplicate"),
-              onPress: () => run(async () => void (await repos?.routine.duplicateRoutine(actionsFor.id))),
-            },
-            {
-              label: t("common.delete"),
-              destructive: true,
-              onPress: () => setConfirmDelete(actionsFor),
-            },
-          ]}
-        />
-      ) : null}
-
-      {confirmDelete ? (
-        <ConfirmDialog
-          testId="confirm-delete-routine"
-          title={t("routines.deleteTitle")}
-          message={t("routines.deleteConfirm", { routineName: confirmDelete.name })}
-          confirmLabel={t("common.delete")}
-          destructive
-          onCancel={() => setConfirmDelete(null)}
-          onConfirm={() => {
-            const target = confirmDelete;
-            setConfirmDelete(null);
-            run(async () => void (await repos?.routine.deleteRoutine(target.id)));
-          }}
-        />
-      ) : null}
-
-      {confirmDiscard ? (
-        <ConfirmDialog
-          testId="confirm-discard-active"
-          title={t("routines.discardWorkoutTitle")}
-          message={t("routines.discardWorkoutMessage")}
-          confirmLabel={t("common.delete")}
-          destructive
-          onCancel={() => setConfirmDiscard(false)}
-          onConfirm={() => {
-            setConfirmDiscard(false);
-            run(async () => {
-              if (activeWorkoutId) await repos?.workout.discardWorkout(activeWorkoutId).catch(() => {});
-              setActive(null);
-              await refreshActive();
-            });
-          }}
-        />
-      ) : null}
-
-      {activeExists ? (
-        <ActionSheet
-          testId="active-exists"
-          title={t("routines.activeExistsTitle")}
-          onClose={() => setActiveExists(null)}
-          options={[
-            {
-              label: t("routines.resumeInstead"),
-              onPress: () => {
-                location.href = "/workout";
-              },
-            },
-            {
-              label: t("routines.discardAndStart"),
-              destructive: true,
-              onPress: () => {
-                const start = activeExists;
-                setActiveExists(null);
-                run(async () => {
-                  if (activeWorkoutId) await repos?.workout.discardWorkout(activeWorkoutId).catch(() => {});
-                  setActive(null);
-                  await start();
-                });
-              },
-            },
-          ]}
-        />
-      ) : null}
     </div>
   );
 }

@@ -61,3 +61,69 @@
     opacity: 0;
   }
 }
+
+/* ── 로고 색 채우기(LogoSpinner · SRS-054) — **합성 스레드에서만** 움직인다 ───────────────────────────
+   booktarae 와 같은 장치: 빈 로고(윤곽선) 위에 채운 로고를 겹치고, «창»(.lf-win)을 아래에서 위로 올리며 안의 그림(.lf-ink)은
+   반대로 내려 제자리에 두면 아래부터 차오른다. transform 둘뿐이라 폰이 하이드레이션으로 바빠도 멈추지 않는다. */
+.lf {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+.lf-win {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform: translateY(100%);
+}
+.lf-ink {
+  position: absolute;
+  inset: 0;
+  transform: translateY(-100%);
+}
+/* 비었다 → 찼다 → 잠깐 머문다 → 다시. 시작을 당겨(-0.5s) 잠깐 떠도 빈 로고가 아니다. */
+.lf-loop .lf-win {
+  animation: lf-win-loop 1.6s ease-in-out -0.5s infinite;
+}
+.lf-loop .lf-ink {
+  animation: lf-ink-loop 1.6s ease-in-out -0.5s infinite;
+}
+@keyframes lf-win-loop {
+  0% {
+    transform: translateY(100%);
+  }
+  75%,
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes lf-ink-loop {
+  0% {
+    transform: translateY(-100%);
+  }
+  75%,
+  100% {
+    transform: translateY(0);
+  }
+}
+.logo-spinner-breathe {
+  animation: lf-breathe 1.4s ease-in-out infinite alternate;
+}
+@keyframes lf-breathe {
+  from {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-spinner-breathe {
+    animation: none;
+  }
+  .lf-win,
+  .lf-ink {
+    animation: none !important;
+    transform: none !important;
+  }
+}

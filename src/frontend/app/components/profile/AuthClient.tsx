@@ -23,6 +23,7 @@ import { LastLoginBadge, SocialButtons, useAuthOptions } from "../auth/SocialBut
 import { agoText, useSyncHealth } from "../sync/useSyncHealth";
 import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
+import { RouteLoading } from "../ui/LogoSpinner";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { TextField } from "../ui/inputs";
@@ -140,7 +141,7 @@ export default function AuthClient({
   /** 이 기기에서 마지막으로 로그인한 방법 — 서버 페이지가 HttpOnly 쿠키 lg_last 를 읽어 넘긴다. */
   lastLogin?: LastLogin | null;
 }) {
-  const { user, signUp, logIn, logOut } = useAuth();
+  const { user, restoring, signUp, logIn, logOut } = useAuth();
   const [human, setHuman] = useState<string | null>(null);
   const [humanReset, setHumanReset] = useState(0);
   const { mailEnabled } = useAuthOptions();
@@ -217,6 +218,8 @@ export default function AuthClient({
       </div>
     );
   }
+  // 세션 깃발은 있는데 아직 확인 중이다 — 로그인 폼을 그리지 않는다(로그인한 사람에게 폼이 깜빡이던 것 · SRS-054).
+  if (restoring) return <RouteLoading />;
 
   const submit = () => {
     const trimmed = email.trim();

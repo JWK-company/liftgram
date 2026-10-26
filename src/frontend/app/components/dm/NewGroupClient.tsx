@@ -3,6 +3,7 @@
 //
 // **내가 팔로우하는 사람만** 고를 수 있다(서버도 같은 판정을 한다 — 여기서 거르는 것은 안내일 뿐).
 // 그래서 검색 결과 중 팔로우하지 않은 사람은 목록에 두지 않는다 — 골라 놓고 거절당하면 이유를 모른다.
+import { navigate } from "@/lib/nav";
 import type { UserResult } from "@app/contracts";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -63,7 +64,7 @@ export default function NewGroupClient() {
     setError(null);
     try {
       const res = await dmClient().createGroup({ userIds: selectedIds, title: title.trim() });
-      if (res.conversation) location.href = `/messages/${res.conversation.id}`;
+      if (res.conversation) navigate(`/messages/${res.conversation.id}`);
     } catch (e) {
       setError(feedErrorMessage(e));
     } finally {

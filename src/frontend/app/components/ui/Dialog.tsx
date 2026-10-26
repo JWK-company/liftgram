@@ -24,10 +24,13 @@ export function Overlay({
   onClose,
   children,
   testId,
+  placement = "center",
 }: {
   onClose: () => void;
   children: ReactNode;
   testId?: string;
+  /** bottom = 바닥 시트(SRS-054) — 선택지·설정처럼 엄지 근처에서 고르는 것. center = 확인창. */
+  placement?: "center" | "bottom";
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
@@ -39,17 +42,30 @@ export function Overlay({
   }, [onClose]);
 
   if (!root) return null;
+  const bottom = placement === "bottom";
   return createPortal(
     <div
       data-testid={testId}
-      className="fixed inset-0 z-50 flex items-center justify-center p-[var(--spacing-xl)]"
+      className={`fixed inset-0 z-50 flex justify-center ${
+        bottom ? "items-end" : "items-center p-[var(--spacing-xl)]"
+      }`}
     >
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 bg-black/50" />
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-[380px] rounded-[var(--radius-lg)] bg-(--color-surface) p-[var(--spacing-lg)]"
+        className={
+          bottom
+            ? "relative max-h-[88dvh] w-full max-w-[560px] overflow-y-auto rounded-t-[var(--radius-lg)] bg-(--color-surface) px-[var(--spacing-lg)] pt-[var(--spacing-sm)] pb-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))]"
+            : "relative w-full max-w-[380px] rounded-[var(--radius-lg)] bg-(--color-surface) p-[var(--spacing-lg)]"
+        }
       >
+        {bottom ? (
+          <div
+            aria-hidden
+            className="mx-auto mb-[var(--spacing-md)] h-1 w-10 rounded-full bg-(--color-line-strong)"
+          />
+        ) : null}
         {children}
       </div>
     </div>,
@@ -76,7 +92,7 @@ export function SheetShell({
   testId?: string;
 }) {
   return (
-    <Overlay onClose={onClose} testId={testId}>
+    <Overlay onClose={onClose} testId={testId} placement="bottom">
       {title ? <AppText variant="heading">{title}</AppText> : null}
       {children}
       {hideOk ? null : (
@@ -155,8 +171,8 @@ export function ActionSheet({
   testId?: string;
 }) {
   return (
-    <Overlay onClose={onClose} testId={testId}>
-      <AppText variant="heading">{title}</AppText>
+    <Overlay onClose={onClose} testId={testId} placement="bottom">
+      {title ? <AppText variant="heading">{title}</AppText> : null}
       <ul className="mt-[var(--spacing-md)] flex flex-col">
         {options.map((o, i) => (
           <li key={o.label}>

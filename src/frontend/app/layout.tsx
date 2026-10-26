@@ -16,6 +16,7 @@
 import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "./components/AuthProvider";
 import { GlobalWorkoutBar } from "./components/GlobalWorkoutBar";
+import { LinkInterceptor } from "./components/LinkInterceptor";
 import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
 import { OnboardingOverlay } from "./components/OnboardingOverlay";
@@ -87,6 +88,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <AccountGuard />
                 {/* 계정과 함께 옮기는 설정(주간 목표·알림음)을 프로필과 잇는다. */}
                 <PrefsBridge />
+                {/* 앱 안 <a href> 를 클라이언트 이동으로 — 탭마다 문서를 새로 받지 않게(SRS-054). */}
+                <LinkInterceptor />
               </div>
             </ToastProvider>
           </SessionProvider>

@@ -27,6 +27,7 @@ import { TextArea, TextField } from "./ui/inputs";
 import { ListState } from "./ui/ListState";
 import { AppText, Card, EmptyState, Tag, type TagTone } from "./ui/primitives";
 import { ScreenHeader } from "./ui/ScreenHeader";
+import { LogoSpinner } from "./ui/LogoSpinner";
 
 /** 이 탭을 쓸 수 있는 역할. 서버의 판단과 **같은 목록**이어야 한다. */
 export function isInsider(role: Role | undefined): boolean {
@@ -124,10 +125,9 @@ export default function FeedbackClient() {
   if (authLoading) {
     return (
       <Gate>
-        <span
-          role="status"
-          className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-brand) border-t-transparent"
-        />
+        <span role="status" className="inline-flex">
+          <LogoSpinner size={32} label="불러오는 중" />
+        </span>
       </Gate>
     );
   }

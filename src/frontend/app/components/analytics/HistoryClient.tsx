@@ -3,6 +3,7 @@
 //
 // 완료한 세션 목록. 한 줄에 이름·날짜·PR 배지·볼륨·시간을 담고, 누르면 상세로 간다.
 // 잘못 완료한 기록은 여기서 지운다(세트·종목까지 전부 — 되돌릴 수 없어 확인창을 세운다).
+import { RecordsHeader } from "./RecordsHeader";
 import { formatWeight } from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
@@ -51,9 +52,7 @@ export default function HistoryClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="px-[var(--spacing-lg)] pt-[var(--spacing-lg)] pb-[var(--spacing-sm)]">
-        <AppText variant="title">{t("analytics.historyTitle")}</AppText>
-      </div>
+      <RecordsHeader view="list" />
 
       <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-sm)]">
         {workouts.length === 0 ? (

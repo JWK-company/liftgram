@@ -4,7 +4,8 @@
 // 그래서 이 워커는 화면 셸과 정적 파일만 기기에 보관한다. 요청마다 규칙이 다르다:
 //
 //   /_next/static/*      설치 때 전부 미리 받기 → 캐시 우선(파일명에 해시가 있어 내용이 안 바뀐다)
-//   화면 이동(HTML)       네트워크 우선(3초) → 캐시 → /offline
+//   화면 이동(HTML)       탭 셸(SWR_SHELLS)은 **기기에 있는 것을 곧바로** 주고 뒤에서 새로 받아 둔다(stale-while-revalidate ·
+//                        SRS-054 — 운영 경로 왕복 ≈0.6s 를 첫 칠하기에서 뺀다). 그 밖은 네트워크 우선(3초) → 캐시 → /offline
 //   ?_rsc / RSC: 1        네트워크만 — 실패하면 Next가 전체 페이지 이동으로 넘어가고 위 줄이 받는다
 //   /api/*                절대 캐시하지 않는다(인증된 응답이 기기에 남으면 안 된다)
 //   /fonts/*              캐시 우선(정적 캐시 — Pretendard 서브셋은 그 글자를 처음 쓸 때 받는다)
@@ -21,6 +22,20 @@ const MEDIA = "liftgram-media";
 const PRECACHE = __PRECACHE__;
 // 주요 탭 셸 — 설치 때 받아 두면 한 번도 안 연 탭도 오프라인에서 열린다.
 const SHELLS = ["/", "/workout", "/history", "/calendar", "/stats", "/exercises", "/profile", "/offline"];
+// 곧바로 내줘도 되는 셸 — 쿠키를 읽지 않는 클라이언트 화면만(데이터는 기기 DB·API 에서 따로 온다).
+// signin·signup·account 는 서버가 쿠키(「최근」 배지)를 읽어 그린다 — 여기 넣지 않는다.
+// 캐시는 **이 빌드의 PAGES** 뿐이다: 셸 HTML 이 가리키는 정적 조각이 같은 워커의 STATIC 에 들어 있다(버전 어긋남 없음).
+// 새 배포는 새 워커가 기다리다 「새 버전」 띠로 사람이 바꾼다(ServiceWorker.tsx) — 그때 새 셸로 넘어간다.
+const SWR_SHELLS = new Set([
+  "/",
+  "/workout",
+  "/history",
+  "/calendar",
+  "/stats",
+  "/exercises",
+  "/profile",
+  "/feed",
+]);
 const NAV_TIMEOUT_MS = 3000;
 const MEDIA_MAX = 200;
 const MEDIA_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -86,7 +101,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/media/file/")) return event.respondWith(media(req));
   // 화면 사이 이동 데이터는 캐시하지 않는다 — 오래된 화면 조각이 섞인다.
   if (url.searchParams.has("_rsc") || req.headers.get("RSC") === "1") return;
-  if (req.mode === "navigate") return event.respondWith(page(req));
+  if (req.mode === "navigate") return event.respondWith(page(req, event));
   if (PRECACHE.includes(url.pathname)) return event.respondWith(cacheFirst(req, STATIC));
 });
 
@@ -98,8 +113,22 @@ async function cacheFirst(req, name) {
   return res;
 }
 
-async function page(req) {
+async function page(req, event) {
   const cache = await caches.open(PAGES);
+  if (SWR_SHELLS.has(new URL(req.url).pathname)) {
+    const hit = await cache.match(stripQuery(req));
+    if (hit) {
+      // 뒤에서 새로 받아 다음 열기에 쓴다 — 리다이렉트·오류는 셸로 보관하지 않는다.
+      event.waitUntil(
+        fetch(req)
+          .then((res) => {
+            if (res.ok && res.type === "basic" && !res.redirected) return cache.put(stripQuery(req), res);
+          })
+          .catch(() => {}),
+      );
+      return hit;
+    }
+  }
   try {
     const res = await withTimeout(fetch(req), NAV_TIMEOUT_MS);
     // 리다이렉트·오류 화면은 셸로 보관하지 않는다.

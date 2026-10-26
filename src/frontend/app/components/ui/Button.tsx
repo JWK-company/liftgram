@@ -6,6 +6,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { LogoSpinner } from "./LogoSpinner";
 import { Icon, type IconName } from "./Icon";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
@@ -77,13 +78,10 @@ export function Button({
         ${isDisabled ? "opacity-45" : "active:opacity-85"} ${className}`}
     >
       {loading ? (
-        // app은 ActivityIndicator를 쓴다 — 웹에는 없어 같은 색의 회전 링으로 대신한다.
-        <span
-          role="status"
-          aria-label="처리 중"
-          style={{ borderColor: p.fg, borderTopColor: "transparent" }}
-          className="h-4 w-4 animate-spin rounded-full border-2"
-        />
+        // 앱 공용 로딩 = 로고 색 채우기(SRS-054 · booktarae 와 같다). 버튼 글자색을 따른다.
+        <span role="status" style={{ color: p.fg }} className="inline-flex">
+          <LogoSpinner size={18} tone="current" label="처리 중" />
+        </span>
       ) : (
         <>
           {icon ? <Icon name={icon} size={size === "sm" ? 16 : 18} color={p.fg} /> : null}

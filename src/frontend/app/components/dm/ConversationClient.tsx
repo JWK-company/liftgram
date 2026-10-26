@@ -13,6 +13,7 @@
 // 낙관적으로 붙여 두면 곧이어 도착한 스트림/폴링 결과와 겹쳐 같은 말이 두 번 보인다.
 // 서버가 준 것 하나만 붙이고(그 id로 중복을 거른다), 나머지는 스트림에 맡긴다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { navigate } from "@/lib/nav";
 import type { Message } from "@app/contracts";
 import { MessageKind, WatchMessagesResponse_Kind } from "@app/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -22,7 +23,6 @@ import { restoreSession } from "@/lib/session";
 import { feedErrorMessage } from "@/lib/feedClient";
 import { mediaSrc, uploadImage } from "@/lib/mediaClient";
 import { useAuth } from "../AuthProvider";
-import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { TextArea } from "../ui/inputs";
@@ -172,7 +172,7 @@ export default function ConversationClient({ conversationId }: { conversationId:
     setError(null);
     try {
       await dmClient().leaveConversation({ conversationId });
-      location.href = "/messages";
+      navigate("/messages");
     } catch (e) {
       setConfirmLeave(false);
       setError(feedErrorMessage(e));

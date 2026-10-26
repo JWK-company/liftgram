@@ -13,7 +13,8 @@ import { t, type TransKey } from "@/lib/i18n";
 import { Button } from "./Button";
 import type { IconName } from "./Icon";
 import { EmptyState } from "./primitives";
-import { SkeletonList, type SkeletonVariant } from "./Skeleton";
+import { LogoSpinner } from "./LogoSpinner";
+import type { SkeletonVariant } from "./Skeleton";
 
 export function ListState({
   loading,
@@ -41,8 +42,19 @@ export function ListState({
     if (!loading) settledEmpty.current = !error;
   }, [loading, error]);
 
+  // 첫 로드 = 로고 색 채우기(SRS-054 · booktarae 와 같은 로딩 언어). 스켈레톤은 남겨 두되 쓰지 않는다.
+  // if (loading && !settledEmpty.current) return <SkeletonList variant={skeletonVariant} count={skeletonCount} />;
   if (loading && !settledEmpty.current)
-    return <SkeletonList variant={skeletonVariant} count={skeletonCount} />;
+    return (
+      <div
+        className="flex justify-center py-[var(--spacing-xxl)]"
+        data-testid="list-loading"
+        data-variant={skeletonVariant}
+        data-count={skeletonCount}
+      >
+        <LogoSpinner size={44} label="불러오는 중" />
+      </div>
+    );
 
   if (error)
     return (

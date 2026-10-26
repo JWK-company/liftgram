@@ -1,29 +1,133 @@
-// @plm SRS-051  하단 탭 바 — app의 navigation/TabNavigator를 웹으로 옮긴 것
+// @plm SRS-051 SRS-054  하단 탭 바 — 5칸 · 라인 아이콘 · 현재 탭 위쪽 강조선 (결정 D1·D4)
 //
-// app은 하단 탭 6개(운동·피드·기록·캘린더·통계·프로필)를 쓴다. 색 규칙도 같다:
-// 활성 = 브랜드, 비활성 = textFaint, 배경 = surface, 위쪽 경계선 1px.
+// 탭은 운동 · 기록 · 피드 · 분석 · 프로필. 옛 6칸에서 기록과 캘린더는 같은 데이터(지난 운동)라
+// 한 탭의 목록/달력 전환으로 합쳤다 — /calendar 주소는 그대로 살아 있고 「기록」 탭이 켜진다.
+// 아이콘은 앱 아이콘과 같은 선 굵기의 라인 그림을 여기서 직접 그린다(북타래 탭바와 같은 형태).
 //
-// **아직 안 옮긴 탭은 여기 없다.** 화면이 생길 때마다 한 줄씩 는다 — 눌러도 아무것도 없는
-// 탭을 미리 그려 두면 "되는 것처럼 보이는" 화면이 되기 때문이다.
+// 운동 중(/workout)에는 **숨긴다**(결정 D2 집중 모드) — 세트 입력 손가락 근처에 다른 탭 버튼을 두지 않는다.
+// 운동 화면을 내리면 진행 중 막대(GlobalWorkoutBar)가 모든 탭 위에 뜬다.
 "use client";
 
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../AuthProvider";
 import { isInsider } from "../FeedbackClient";
-import { Icon, type IconName } from "./Icon";
-import { AppText } from "./primitives";
+import { LogoSpinner } from "./LogoSpinner";
 
-type Tab = { href: string; label: string; icon: IconName; testId: string };
+type TabKey = "workout" | "records" | "feed" | "stats" | "profile" | "feedback";
+type Tab = { key: TabKey; href: string; label: string; testId: string; match: (p: string) => boolean };
 
-/** app의 ICONS·title과 같은 짝. 순서도 app의 탭 순서를 따른다. */
 const TABS: Tab[] = [
-  { href: "/", label: "운동", icon: "barbell", testId: "nav-workout" },
-  { href: "/feed", label: "피드", icon: "newspaper-outline", testId: "nav-feed" },
-  { href: "/history", label: "기록", icon: "time", testId: "nav-history" },
-  { href: "/calendar", label: "캘린더", icon: "calendar", testId: "nav-calendar" },
-  { href: "/stats", label: "분석", icon: "stats-chart", testId: "nav-stats" },
-  { href: "/profile", label: "프로필", icon: "person", testId: "nav-profile" },
+  {
+    key: "workout",
+    href: "/",
+    label: "운동",
+    testId: "nav-workout",
+    match: (p) =>
+      p === "/" || p.startsWith("/exercise") || p.startsWith("/routines") || p.startsWith("/program"),
+  },
+  {
+    key: "records",
+    href: "/history",
+    label: "기록",
+    testId: "nav-history",
+    match: (p) => p.startsWith("/history") || p.startsWith("/calendar"),
+  },
+  {
+    key: "feed",
+    href: "/feed",
+    label: "피드",
+    testId: "nav-feed",
+    match: (p) =>
+      ["/feed", "/discover", "/explore", "/hashtag", "/messages", "/notifications", "/u/", "/bookmarks"].some(
+        (x) => p.startsWith(x),
+      ),
+  },
+  { key: "stats", href: "/stats", label: "분석", testId: "nav-stats", match: (p) => p.startsWith("/stats") },
+  {
+    key: "profile",
+    href: "/profile",
+    label: "프로필",
+    testId: "nav-profile",
+    match: (p) =>
+      ["/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"].some((x) => p.startsWith(x)),
+  },
 ];
+
+const FEEDBACK: Tab = {
+  key: "feedback",
+  href: "/feedback",
+  label: "피드백",
+  testId: "nav-feedback",
+  match: (p) => p.startsWith("/feedback"),
+};
+
+/** 라인 아이콘 — 24 격자 · 선 1.8 · 둥근 끝. 켜진 탭은 같은 선에 브랜드색만 입힌다. */
+function TabGlyph({ k }: { k: TabKey }) {
+  const common = {
+    width: 24,
+    height: 24,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.8,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  switch (k) {
+    case "workout":
+      return (
+        <svg aria-hidden="true" {...common}>
+          <rect x="4.5" y="7" width="3.5" height="10" rx="1.2" />
+          <rect x="16" y="7" width="3.5" height="10" rx="1.2" />
+          <path d="M8 12h8M2.5 12h2M19.5 12h2" />
+        </svg>
+      );
+    case "records":
+      return (
+        <svg aria-hidden="true" {...common}>
+          <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+          <path d="M3.5 9.5h17M8 3v4M16 3v4M7.5 13.5h4M7.5 17h7" />
+        </svg>
+      );
+    case "feed":
+      return (
+        <svg aria-hidden="true" {...common}>
+          <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+          <circle cx="9" cy="9" r="1.6" />
+          <path d="m20.5 15-4.2-4.2a1.5 1.5 0 0 0-2.1 0L5 20" />
+        </svg>
+      );
+    case "stats":
+      return (
+        <svg aria-hidden="true" {...common}>
+          <path d="M4 20h16M7 16.5v-4M12 16.5V7M17 16.5v-7" />
+        </svg>
+      );
+    case "profile":
+      return (
+        <svg aria-hidden="true" {...common}>
+          <circle cx="12" cy="8.5" r="3.8" />
+          <path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5" />
+        </svg>
+      );
+    case "feedback":
+      return (
+        <svg aria-hidden="true" {...common}>
+          <path d="M20 11.5c0 4-3.6 7-8 7-1 0-2-.2-2.9-.5L4 19.5l1.3-3.6C4.5 14.6 4 13.1 4 11.5c0-4 3.6-7 8-7s8 3 8 7Z" />
+        </svg>
+      );
+  }
+}
+
+/**
+ * 누른 탭이 다음 화면을 받는 동안(운영 경로 왕복 ≈0.6s) 그 탭 아이콘 자리에 로고가 차오른다 — 눌렸다는 것을 바로 보인다.
+ * Link 의 자식이어야 useLinkStatus 가 그 링크의 대기를 안다.
+ */
+function TabIcon({ k }: { k: TabKey }) {
+  const { pending } = useLinkStatus();
+  return pending ? <LogoSpinner size={24} /> : <TabGlyph k={k} />;
+}
 
 /**
  * 개발 피드백 탭은 **내부 사람에게만** 보인다(app의 TabNavigator와 같은 규칙).
@@ -32,36 +136,40 @@ const TABS: Tab[] = [
 export function TabBar() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const tabs = isInsider(user?.role)
-    ? [
-        ...TABS,
-        { href: "/feedback", label: "피드백", icon: "chatbox-ellipses" as IconName, testId: "nav-feedback" },
-      ]
-    : TABS;
+  if (pathname.startsWith("/workout")) return null;
+  const tabs = isInsider(user?.role) ? [...TABS, FEEDBACK] : TABS;
 
   return (
     <nav
       data-testid="shell-nav"
-      className="sticky bottom-0 z-40 flex border-(--color-line) border-t bg-(--color-surface)"
+      className="sticky bottom-0 z-40 flex border-(--color-line) border-t bg-(--color-surface) pb-[env(safe-area-inset-bottom)]"
     >
       {tabs.map((t) => {
-        // 상세(/exercise/…)는 종목 탭에서 들어가는 자리다 — 그 동안에도 탭을 켜 둔다.
-        const active =
-          t.href === "/" ? pathname === "/" || pathname.startsWith("/exercise") : pathname.startsWith(t.href);
-        const color = active ? "var(--color-brand)" : "var(--color-ink3)";
+        const active = t.match(pathname);
         return (
-          <a
-            key={t.href}
+          // next/link — 탭 이동이 문서 새로 받기(≈0.6s 왕복 + JS·로컬 DB·세션 확인 다시)가 아니라 화면 조각만 바꾼다.
+          // 미리받기는 로딩 경계(loading.tsx)까지 — 누르는 순간 로고가 뜨고 내용이 이어 온다.
+          <Link
+            key={t.key}
+            prefetch
             href={t.href}
             data-testid={t.testId}
             aria-current={active ? "page" : undefined}
-            className="flex flex-1 flex-col items-center gap-[2px] py-[var(--spacing-sm)]"
+            className={`relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-[3px] ${
+              active ? "text-(--color-brand)" : "text-(--color-ink3)"
+            }`}
           >
-            <Icon name={t.icon} size={24} color={color} />
-            <AppText variant="label" style={{ color }} className="font-normal!">
+            {active ? (
+              <span
+                aria-hidden
+                className="absolute inset-x-[22%] top-0 h-[2.5px] rounded-b-full bg-(--color-brand)"
+              />
+            ) : null}
+            <TabIcon k={t.key} />
+            <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>
               {t.label}
-            </AppText>
-          </a>
+            </span>
+          </Link>
         );
       })}
     </nav>

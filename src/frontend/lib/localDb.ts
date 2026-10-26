@@ -32,6 +32,7 @@ async function findLoki(): Promise<LokiLike | null> {
  * @returns 실제로 내려썼으면 true. 어댑터 내부에 닿지 못했으면 false(호출부는 그래도 진행한다 —
  *          자동 저장이 결국 처리하므로 막을 이유는 없다).
  */
+import { navigate } from "./nav";
 export async function flushLocalDb(): Promise<boolean> {
   const loki = await findLoki();
   if (!loki?.saveDatabase) return false;
@@ -88,5 +89,6 @@ export function scheduleFlush(): void {
  */
 export async function navigateAfterFlush(href: string): Promise<void> {
   await flushLocalDb();
-  location.href = href;
+  // 클라이언트 이동 — 로컬 DB·세션을 다시 열지 않는다(SRS-054). 내려쓰기는 위에서 끝났다.
+  navigate(href);
 }

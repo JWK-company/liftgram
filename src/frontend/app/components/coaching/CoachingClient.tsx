@@ -33,6 +33,7 @@ import { TextField } from "../ui/inputs";
 import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { useToast } from "../Toast";
+import { LogoSpinner } from "../ui/LogoSpinner";
 
 const STATUS_KEY: Record<GrantStatus, TransKey> = {
   [GrantStatus.UNSPECIFIED]: "coaching.status.pending",
@@ -118,10 +119,9 @@ export default function CoachingClient() {
     return (
       <Shell>
         <div className="flex flex-1 items-center justify-center py-[var(--spacing-xl)]">
-          <span
-            role="status"
-            className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-brand) border-t-transparent"
-          />
+          <span role="status" className="inline-flex">
+            <LogoSpinner size={32} label="불러오는 중" />
+          </span>
         </div>
       </Shell>
     );
@@ -509,10 +509,9 @@ function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: () => vo
 
       {routines === null ? (
         <div className="flex justify-center py-[var(--spacing-lg)]">
-          <span
-            role="status"
-            className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-brand) border-t-transparent"
-          />
+          <span role="status" className="inline-flex">
+            <LogoSpinner size={32} label="불러오는 중" />
+          </span>
         </div>
       ) : routines.length === 0 ? (
         <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-md)] block">

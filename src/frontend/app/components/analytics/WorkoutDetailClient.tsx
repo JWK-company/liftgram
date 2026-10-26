@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Icon } from "../ui/Icon";
 import { AppText, Card, Divider, EmptyState, StatTile, Tag } from "../ui/primitives";
+import { LogoSpinner } from "../ui/LogoSpinner";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -62,11 +63,9 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
       <div className="flex-1 p-[var(--spacing-lg)]">
         {loading ? (
           <div className="flex justify-center py-[var(--spacing-xxl)]">
-            <span
-              role="status"
-              aria-label={t("common.loading")}
-              className="h-6 w-6 animate-spin rounded-full border-2 border-(--color-brand) border-t-transparent"
-            />
+            <span role="status" className="inline-flex">
+              <LogoSpinner size={36} label="불러오는 중" />
+            </span>
           </div>
         ) : !detail ? (
           <EmptyState

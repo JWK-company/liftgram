@@ -8,6 +8,7 @@
 // 차단은 되돌릴 수 있지만 관계를 끊는다(팔로우가 양쪽 다 사라진다). 그래서 확인창을 세운다.
 // 내가 차단한 사람의 프로필은 **보인다** — 해제 버튼이 여기 있어야 하기 때문이다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { navigate } from "@/lib/nav";
 import type { WeightUnit } from "@app/core";
 import { routes, type Cursor, type Post, type SocialProfile } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
@@ -84,7 +85,7 @@ export default function UserProfileClient({ userId }: { userId: string }) {
     setBusy(true);
     try {
       const res = await dmClient().getOrCreateDirect({ userId });
-      if (res.conversation) location.href = `/messages/${res.conversation.id}`;
+      if (res.conversation) navigate(`/messages/${res.conversation.id}`);
     } catch (e) {
       setError(feedErrorMessage(e));
     } finally {

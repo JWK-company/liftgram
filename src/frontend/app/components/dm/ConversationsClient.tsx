@@ -12,6 +12,7 @@
 // 목록에는 실시간 스트림을 걸지 않는다(대화방마다 열면 연결이 사람 수만큼 는다).
 // 대신 15초마다 조용히 다시 읽는다 — app이 하던 것과 같다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { navigate } from "@/lib/nav";
 import type { Conversation } from "@app/contracts";
 import { routes } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
@@ -97,7 +98,7 @@ export default function ConversationsClient() {
                 variant="secondary"
                 fullWidth={false}
                 onPress={() => {
-                  location.href = "/discover";
+                  navigate("/discover");
                 }}
                 testId="dm-empty-discover"
               />

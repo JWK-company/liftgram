@@ -27,6 +27,7 @@ import { Button } from "./ui/Button";
 import { Icon } from "./ui/Icon";
 import { AppText, Card, EmptyState } from "./ui/primitives";
 import { ScreenHeader } from "./ui/ScreenHeader";
+import { LogoSpinner } from "./ui/LogoSpinner";
 
 /** 반경 확장 단계(m). */
 const RADIUS_STEPS = [2000, 5000, 10000];
@@ -90,10 +91,9 @@ export default function NearbyGymsClient() {
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]" data-testid="gyms-body">
         {phase === "locating" || phase === "searching" ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-[var(--spacing-md)]">
-            <span
-              role="status"
-              className="h-5 w-5 animate-spin rounded-full border-2 border-(--color-brand) border-t-transparent"
-            />
+            <span role="status" className="inline-flex">
+              <LogoSpinner size={32} label="불러오는 중" />
+            </span>
             <AppText variant="body" color="textMuted" data-testid="gyms-phase">
               {t(phase === "locating" ? "gyms.locating" : "gyms.searching")}
             </AppText>

@@ -11,17 +11,19 @@
 //   · `data-testid`를 유지한다 — smoke test·e2e가 이 값으로 상태를 확인한다.
 //   · 오류에는 되도록 `onRetry`를 준다. 사용자가 막다른 길에 서지 않게 하는 최소 장치다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { LogoSpinner } from "./ui/LogoSpinner";
 
-/** 데이터를 기다리는 동안. 실제 콘텐츠와 비슷한 형태(스켈레톤)로 레이아웃 밀림을 줄인다. */
+/** 데이터를 기다리는 동안 — Liftgram 로고가 차오른다(SRS-054 · 앱 공용 로딩 = 로고 채우기). */
 export function Loading({ label = "불러오는 중" }: { label?: string }) {
   return (
     <div
-      className="animate-pulse rounded-xl border border-(--color-line) bg-(--color-card) p-6"
+      role="status"
+      aria-busy="true"
+      className="flex flex-col items-center gap-3 rounded-xl bg-(--color-card) p-8"
       data-testid="state-loading"
     >
-      <div className="h-4 w-24 rounded bg-(--color-line)" />
-      <div className="mt-3 h-8 w-40 rounded bg-(--color-line)" />
-      <p className="mt-3 text-sm text-(--color-ink3)">{label}…</p>
+      <LogoSpinner size={52} />
+      <p className="text-sm text-(--color-ink3)">{label}…</p>
     </div>
   );
 }

@@ -1,0 +1,386 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-054",
+  "type": "SRS",
+  "title": "화면 재설계 — 앱바 2형·5탭 라인 아이콘·목록 줄·구간 선택기·위험 동작 ⋯ (화면 구성 규칙 · 6단계 배포)",
+  "status": "Draft",
+  "owner": "Design",
+  "product": "health-practice",
+  "created": "2026-10-26T07:00:00Z",
+  "updated": "2026-10-26T07:00:00Z",
+  "sync": true,
+  "tags": [
+    "ui",
+    "ux",
+    "redesign",
+    "navigation",
+    "design-system"
+  ],
+  "kind": "UX",
+  "acceptance_criteria": "탭은 운동·기록·피드·분석·프로필 5개이고 라인 아이콘에 현재 탭만 브랜드색과 위쪽 강조선이 붙는다. 탭 첫 화면은 로고 또는 큰 제목에 오른쪽 아이콘 2개 이하, 하위 화면은 ← · 가운데 제목 · ⋯ 앱바를 쓴다. 기록 탭은 목록/달력을 구간 선택기로 바꾸며 /calendar 주소는 기록 달력으로 열린다. 운동 중에는 탭바가 숨고 운동 화면을 내리면 모든 탭 위에 진행 중 막대가 뜬다. 운동 취소·기록 삭제 같은 위험 동작은 화면에 노출되지 않고 ⋯ 메뉴나 시트 안에서 확인을 거친다. 운동 홈은 이번 주 목표·시작·루틴·최근 운동을 한 화면에 보인다. 데이터·동기화·오프라인 저장·휴식 알림·로그인 로직은 바뀌지 않고 기존 data-testid가 유지돼 기존 e2e가 통과한다.",
+  "relations": {
+    "derives_from": [
+      "URS-001",
+      "URS-007"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "v0.23에서 로고·주황·라이트/다크·글꼴(디자인 토큰)은 앱 전체에 들어갔지만 화면 배치는 옛 RN 앱을 옮긴 그대로였다. 앱바가 화면마다 다르고, 탭이 6개(기록·캘린더가 같은 데이터)이며, 모든 요소가 카드라 위계가 없고, 운동 취소·기록 휴지통 같은 위험 버튼이 크게 노출되고, 운동 중에도 탭바가 휴식 띠와 겹쳤다. 운영자가 북타래처럼 화면별로 디자이너가 손본 배치를 요청했고, 시안(claude.ai/artifact/3CVyQDuS3Ky1s1qBdrXudT)을 2026-10-26 전부 권장안(A)으로 승인했다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "공통 규칙 (북타래 차용 · 색은 liftgram 주황)"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "앱바 2형 — 탭 첫 화면: 로고(운동 홈) 또는 큰 제목 + 오른쪽 아이콘 최대 2개. 하위 화면: ← · 가운데 제목 · 더보기(⋯)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "탭바 — 5개 이하, 라인 아이콘, 현재 탭만 브랜드색 + 위쪽 강조선. 개발 피드백 탭은 내부 사람에게만."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "목록 — 카드 대신 줄(왼쪽 내용 · 오른쪽 값/›)과 구역 제목. 카드는 요약 한 장에만."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "선택 — 기간·보기 전환은 구간 선택기(회색 틀 안 흰 칸) 또는 밑줄 탭. 칩은 필터에만."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "위험 동작 — 삭제·취소는 ⋯ 메뉴나 시트 안으로, 확인을 거친다. 화면에 늘 노출하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "치수 — 좌우 여백 16–20 · 누르는 칸 44 이상 · 카드 반경 12 · 시트 반경 16 · 활자는 토큰 단계 안에서만."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (D1~D6 — 모두 A)"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "D1 탭 5개: 운동 · 기록 · 피드 · 분석 · 프로필. 기록과 캘린더는 한 탭의 목록/달력 전환. /calendar 주소는 기록 달력으로 이어진다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "D2 운동 중 집중 모드: 운동 화면에서는 탭바를 숨기고, ⌄로 내리면 모든 탭 위에 진행 중 막대(휴식·현재 종목)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "D3 운동 홈 요약형: 이번 주 목표 → 시작 버튼 → 루틴(줄마다 시작) → 최근 운동."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "D4 라인 아이콘 + 현재 탭 위 강조선."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "D5 피드 글쓰기는 + 버튼 → 전체 화면 작성기(운동 완료의 「피드에 공유」도 같은 작성기)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "D6 단계마다 배포하고 버전을 올린다(SemVer minor)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "단계"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "P0 공용 조각 (v0.24.0) — 앱바 2형 · 탭바 5칸 라인 아이콘 · 목록 줄 · 구역 제목 · 구간 선택기 · 밑줄 탭 · 바닥 시트 · 숫자 한 줄 · ⋯ 메뉴."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "P1 운동 흐름 (v0.25.0) — 운동 홈 · 운동 중(집중 모드) · 운동 추가 시트 · 완료 · 진행 중 막대."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "P2 기록·분석 (v0.26.0) — 기록 목록/달력 · 분석 · 루틴 상세 · 종목 목록/상세 · 기록 상세."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "P3 계정·설정 (v0.27.0) — 프로필 · 로그인 · 가입·비밀번호·확인 · 로그인·보안 · 백업 파일."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "P4 소셜 (v0.28.0) — 피드 · 게시물 · 발견 · DM · 알림 · 남의 프로필."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "P5 나머지 + 넓은 화면 (v0.29.0) — 코칭·장비·헬스장·프로그램·관리, 태블릿/데스크톱 폭."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "불변"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "기록 데이터·동기화·오프라인 저장·휴식 알림 소리 예약(Web Audio)·세션 저장·로그인 방식은 바꾸지 않는다. 화면 요소의 data-testid를 유지해 기존 e2e가 그대로 돈다(데이터 안전·오프라인 e2e는 단계마다 필수 통과). 단계마다 라이트·다크 모바일 캡처로 확인한다."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/frontend/app/components/analytics/RecordsHeader.tsx:2",
+    "src/frontend/app/components/ui/AppBar.tsx:2",
+    "src/frontend/app/components/ui/LogoSpinner.tsx:1#Symbol",
+    "src/frontend/app/components/ui/MoreMenu.tsx:2",
+    "src/frontend/app/components/ui/ScreenHeader.tsx:1",
+    "src/frontend/app/components/ui/TabBar.tsx:1",
+    "src/frontend/app/components/ui/rows.tsx:1"
+  ]
+}

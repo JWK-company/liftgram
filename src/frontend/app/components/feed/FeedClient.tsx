@@ -15,6 +15,7 @@
 // 커서는 서버가 준 것을 그대로 되돌려 준다(직접 만들지 않는다). 새로고침이 끼어들면 그 전에
 // 시작된 페이지 요청의 결과는 **버린다** — 안 그러면 옛 페이지가 새 목록 뒤에 붙는다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { navigate } from "@/lib/nav";
 import type { GearTag, WeightUnit } from "@app/core";
 import type { Cursor, Post, StoryGroup } from "@app/contracts";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -127,14 +128,15 @@ export default function FeedClient() {
     }
   }, []);
 
+  // 직전 사용자(캐시)가 있으면 세션 확인을 기다리지 않고 바로 받는다(SRS-054) — 갱신은 전송 계층이 한 번만 돈다
+  // (AuthProvider 의 복원과 같은 약속을 나눠 쓴다). 사용자 **id** 가 바뀔 때만 다시 받는다(확인 뒤 같은 사람이면 그대로).
+  const userId = user?.id ?? null;
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    void load();
-  }, [authLoading, user, load]);
+    if (userId) void load();
+  }, [userId, load]);
+  useEffect(() => {
+    if (!authLoading && !userId) setLoading(false);
+  }, [authLoading, userId]);
 
   // 열람 표시는 기기에 있다 — 화면이 뜰 때 한 번 읽는다.
   useEffect(() => setSeen(loadStorySeen()), []);
@@ -240,7 +242,7 @@ export default function FeedClient() {
                 icon="person-circle-outline"
                 fullWidth={false}
                 onPress={() => {
-                  location.href = "/account";
+                  navigate("/account");
                 }}
                 testId="feed-go-profile"
               />
@@ -350,7 +352,7 @@ export default function FeedClient() {
                 variant="secondary"
                 fullWidth={false}
                 onPress={() => {
-                  location.href = "/discover";
+                  navigate("/discover");
                 }}
                 testId="feed-empty-discover"
               />
