@@ -2,33 +2,29 @@
 #
 #   docker compose -p liftgram -f compose.yaml -f compose.prod.yaml up -d --wait
 #
-# compose.yaml과 다른 것은 셋뿐이다:
-#   ① **DB는 띄우지 않는다** — 옛 배포가 쓰던 Neon을 그대로 쓴다(DATABASE_URL). 두 스키마는
-#      테이블 이름이 겹치지 않아("User"↔users · _prisma_migrations↔_migrations) 한 DB에 함께 산다.
-#      그래서 옛 배포로 되돌릴 자리가 그대로 남는다.
+# compose.yaml과 다른 것:
+#   ① **DB도 이 서버에서 돈다** (2026-10-26 Neon에서 옮겨 왔다 — 화면 응답이 DB 왕복 220ms에 묶여 있었다).
+#      데이터는 named volume `liftgram_pgdata`. 백업은 scripts/backup-h2500-3.sh(cron).
 #   ② **루프백에만 연다** — 공용 서버다. 밖에서 들어오는 길은 Cloudflare 터널 하나뿐이다
-#      (liftgram.tarae.org → http://localhost:${WEB_PORT}).
-#   ③ broker(redis)는 호스트에 노출하지 않는다 — 컨테이너끼리만 본다.
+#      (liftgram.tarae.org → http://localhost:${WEB_PORT}). db·broker는 호스트에 노출하지 않는다.
+#   ③ 서버가 재부팅돼도 다시 뜬다(restart).
 services:
   db:
-    # 운영에서는 뜨지 않는다. compose.yaml의 정의는 로컬 실행 때문에 남겨 둔다.
-    profiles: ["local-db"]
+    ports: !reset []
+    restart: unless-stopped
 
   broker:
     ports: !reset []
+    restart: unless-stopped
 
   migrate:
     environment:
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다 (Neon 연결 문자열)}
-    depends_on: !reset {}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다}
 
   backend:
     environment:
-      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다 (Neon 연결 문자열)}
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다}
     restart: unless-stopped
-    depends_on: !override
-      broker: { condition: service_healthy }
-      migrate: { condition: service_completed_successfully }
 
   frontend:
     restart: unless-stopped
