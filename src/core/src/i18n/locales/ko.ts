@@ -911,6 +911,17 @@ export const ko = {
   "complete.signingIn": "로그인하는 중…",
   "complete.failed": "로그인하지 못했어요. 다시 시도해 주세요.",
   "complete.back": "계정 화면으로",
+  "auth.idHint": "아이디는 가입한 이메일 주소예요",
+  "auth.emailDivider": "또는 이메일로",
+  "auth.loginWithEmail": "이메일로 로그인",
+  "auth.signupSubmit": "가입하기",
+  "auth.noAccount": "계정이 없나요?",
+  "auth.haveAccount": "이미 계정이 있나요?",
+  "auth.signupEmailNote": "아래 정보를 채우면 가입이 끝나요. 확인 메일은 가입 뒤에 보내 드려요. 소셜로 시작하면 비밀번호 없이 바로 가입돼요.",
+  "auth.nicknameHint": "피드·프로필에 보이는 공개 이름",
+  "auth.passwordHint": "8자 이상",
+  "auth.setupNeeded": "설정 필요",
+  "auth.setupNotice": "{provider} 로그인은 준비 중이에요. 곧 열려요.",
 } as const;
 
 export type TransKey = keyof typeof ko;

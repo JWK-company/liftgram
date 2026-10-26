@@ -130,6 +130,7 @@ services:
       # 운영은 터널 뒤라 1(compose.prod 가 포트를 루프백에만 연다) — SRS-052
       TRUST_CF_CONNECTING_IP: ${TRUST_CF_CONNECTING_IP:-0}
       TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      OAUTH_PREVIEW_PROVIDERS: ${OAUTH_PREVIEW_PROVIDERS:-}
     ports: ["${WEB_PORT:-3000}:3000"]
     healthcheck:
       # **frontend 자신의** 경로를 본다(/healthz). /api/healthz 는 프록시라 backend의 상태를

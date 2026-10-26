@@ -123,16 +123,22 @@ const OAUTH_ERRS = new Set([
 export default function AuthClient({
   siteKey = "",
   oauthError = "",
+  initialMode = "login",
+  preview = [],
 }: {
   siteKey?: string;
   oauthError?: string;
+  /** /signup 으로 들어오면 가입 화면부터 */
+  initialMode?: Mode;
+  /** 키가 아직 없어 눌러도 나가지 않는 제공자 — "설정 필요"로 미리 보여 준다(OAUTH_PREVIEW_PROVIDERS) */
+  preview?: string[];
 }) {
   const { user, signUp, logIn, logOut } = useAuth();
   const [human, setHuman] = useState<string | null>(null);
   const [humanReset, setHumanReset] = useState(0);
   const { mailEnabled } = useAuthOptions();
   const oauthMsg = OAUTH_ERRS.has(oauthError) ? t(`oauth.err.${oauthError}` as TransKey) : null;
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -221,27 +227,35 @@ export default function AuthClient({
     })();
   };
 
+  // booktarae 형식(SRS-052): 로그인·회원가입은 **다른 화면**이다(/signin · /signup — 같은 컴포넌트).
+  // 소셜이 1순위로 맨 위, 그 아래 "또는 이메일로". 두 화면 사이는 아래 링크로 오간다.
+  const go = (m: Mode) => {
+    setMode(m);
+    setError(null);
+    if (typeof window !== "undefined")
+      window.history.replaceState(null, "", m === "signup" ? "/signup" : "/signin");
+  };
+
   return (
     <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
       <Header />
 
-      <div className="mb-[var(--spacing-lg)] flex gap-[3px] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[3px]">
+      {/* 화면 이름 — 두 화면을 오가는 탭을 겸한다(지금 화면이 굵게). */}
+      <div className="mb-[var(--spacing-lg)] flex justify-center gap-[var(--spacing-xl)]">
         {(["login", "signup"] as const).map((m) => (
           <button
             key={m}
             type="button"
             data-testid={`mode-${m}`}
-            onClick={() => setMode(m)}
-            style={{ backgroundColor: mode === m ? "var(--color-brand)" : "transparent" }}
-            className="flex-1 rounded-[var(--radius-sm)] py-[var(--spacing-sm)]"
+            aria-current={mode === m ? "page" : undefined}
+            onClick={() => go(m)}
+            className={`border-b-2 pb-[var(--spacing-xs)] text-lg ${
+              mode === m
+                ? "border-(--color-brand) font-bold text-(--color-ink)"
+                : "border-transparent text-(--color-ink3)"
+            }`}
           >
-            <AppText
-              variant="caption"
-              style={{ color: mode === m ? "var(--color-on-brand)" : "var(--color-ink2)" }}
-              className={mode === m ? "font-bold" : "font-semibold"}
-            >
-              {t(m === "login" ? "auth.login" : "auth.signup")}
-            </AppText>
+            {t(m === "login" ? "auth.login" : "auth.signup")}
           </button>
         ))}
       </div>
@@ -250,13 +264,20 @@ export default function AuthClient({
         <AppText
           variant="caption"
           color="danger"
-          className="mb-[var(--spacing-md)] block"
+          className="mb-[var(--spacing-md)] block rounded-[var(--radius-md)] border border-(--color-bad) p-[var(--spacing-md)]"
           data-testid="oauth-error"
+          role="alert"
         >
           {oauthMsg}
         </AppText>
       ) : null}
-      <SocialButtons returnTo="/account" />
+
+      <SocialButtons returnTo="/account" preview={preview} />
+      {isSignup ? (
+        <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
+          {t("auth.signupEmailNote")}
+        </AppText>
+      ) : null}
 
       <Card className="mb-[var(--spacing-lg)]">
         <TextField
@@ -268,10 +289,19 @@ export default function AuthClient({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+        {!isSignup ? (
+          <AppText
+            variant="caption"
+            color="textFaint"
+            className="-mt-[var(--spacing-xs)] mb-[var(--spacing-sm)] block"
+          >
+            {t("auth.idHint")}
+          </AppText>
+        ) : null}
         <TextField
           testId="auth-password-input"
           label={t("auth.passwordLabel")}
-          placeholder={t("auth.passwordLabel")}
+          placeholder={isSignup ? t("auth.passwordHint") : t("auth.passwordLabel")}
           type="password"
           autoComplete={isSignup ? "new-password" : "current-password"}
           value={password}
@@ -279,43 +309,62 @@ export default function AuthClient({
           onKeyDown={(e) => e.key === "Enter" && submit()}
         />
         {isSignup ? (
-          <TextField
-            testId="auth-name-input"
-            label={t("auth.displayNameLabel")}
-            placeholder={t("auth.displayNamePlaceholder")}
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-          />
+          <>
+            <TextField
+              testId="auth-name-input"
+              label={t("auth.displayNameLabel")}
+              placeholder={t("auth.displayNamePlaceholder")}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+            />
+            <AppText
+              variant="caption"
+              color="textFaint"
+              className="-mt-[var(--spacing-xs)] mb-[var(--spacing-sm)] block"
+            >
+              {t("auth.nicknameHint")}
+            </AppText>
+          </>
         ) : null}
 
         {/* 가입은 로그인 없이 메일을 내보내는 입구다 — 사람 확인(키가 없으면 그리지 않는다). */}
         {isSignup ? <HumanCheck siteKey={siteKey} onToken={setHuman} resetKey={humanReset} /> : null}
 
         {error ? (
-          <AppText variant="caption" color="danger" data-testid="auth-error" className="block">
+          <AppText variant="caption" color="danger" data-testid="auth-error" className="block" role="alert">
             {error}
           </AppText>
         ) : null}
 
         <div className="mt-[var(--spacing-sm)]">
           <Button
-            title={t(isSignup ? "auth.signupButton" : "auth.login")}
-            icon="chevron-forward"
+            title={t(isSignup ? "auth.signupSubmit" : "auth.loginWithEmail")}
             loading={busy}
             disabled={busy}
             testId="btn-auth-submit"
             onPress={submit}
           />
         </div>
-        {!isSignup ? (
+        {!isSignup && mailEnabled ? (
           <a
             href="/forgot"
-            className="mt-[var(--spacing-sm)] block text-center text-sm text-(--color-ink2)"
+            className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center text-sm text-(--color-ink) underline"
             data-testid="link-forgot"
           >
             {t("auth.forgotLink")}
           </a>
         ) : null}
+        <p className="mt-[var(--spacing-xs)] text-center text-sm text-(--color-ink3)">
+          {isSignup ? t("auth.haveAccount") : t("auth.noAccount")}{" "}
+          <button
+            type="button"
+            className="font-semibold text-(--color-ink) underline"
+            onClick={() => go(isSignup ? "login" : "signup")}
+            data-testid={isSignup ? "link-to-signin" : "link-to-signup"}
+          >
+            {isSignup ? t("auth.login") : t("auth.signup")}
+          </button>
+        </p>
       </Card>
 
       <BackupCard />

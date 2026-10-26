@@ -313,6 +313,7 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `OAUTH_KAKAO_CLIENT_ID` · `OAUTH_KAKAO_CLIENT_SECRET` | 선택 | 비어 있음 | 카카오 로그인(OIDC). redirect URI = `…/oauth/kakao/callback` |
 | `OAUTH_KAKAO_LEGACY` | 선택 | 비어 있음 | 카카오 앱에서 OIDC를 켤 수 없을 때만 `true` — 자동 폴백이 아니다 |
 | `OAUTH_NAVER_CLIENT_ID` · `OAUTH_NAVER_CLIENT_SECRET` | 선택 | 비어 있음 | 네이버 로그인. 네이버는 이메일 소유를 보증하지 않아 그 주소를 계정 주소로 쓰지 않는다 |
+| `OAUTH_PREVIEW_PROVIDERS` | 선택 | 비어 있음 | [임시] 키가 아직 없는 제공자를 "설정 필요" 버튼으로 미리 보여 준다(쉼표 구분). 키가 들어와 켜지면 자동으로 진짜 버튼이 된다 |
 | `PLM_PROJECT` | 선택 | `liftgram` | 보드에서 이 앱의 아이디어가 속하는 프로젝트 이름 |
 | `NODE_ENV` | 선택 | `development` | 세션 쿠키에 `Secure`를 붙일지 정한다 — **로컬은 http라 붙이면 쿠키가 아예 저장되지 않는다**. 컨테이너 이미지는 `production`으로 뜬다 |
 | `POSTGRES_*` · `DB_PORT` · `BROKER_PORT` · `WEB_PORT` | 선택 | app / 5433 / 6380 / 3000 | compose 전용(앱은 읽지 않음) |

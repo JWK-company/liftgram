@@ -65,6 +65,11 @@ const schema = z.object({
     .transform((v) => v === "1"),
   /** Cloudflare Turnstile 사이트 키 — 비면 위젯을 그리지 않는다(백엔드 TURNSTILE_SECRET 과 짝) */
   TURNSTILE_SITE_KEY: z.string().default(""),
+  /**
+   * [임시-소셜설정전] 키가 아직 없어도 버튼을 "설정 필요"로 미리 보여 줄 제공자(쉼표 구분 · 예: google,kakao,naver).
+   * 키가 들어와 켜진 제공자는 자동으로 진짜 버튼이 된다. 다 켜지면 비운다.
+   */
+  OAUTH_PREVIEW_PROVIDERS: z.string().default(""),
 });
 export type WebEnv = z.infer<typeof schema>;
 
