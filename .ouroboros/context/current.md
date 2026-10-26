@@ -10,15 +10,14 @@
 | 고친 템플릿 결함 | macOS `timeout` 부재 · `server.mjs` HMR 업그레이드 절단 · Next16 dev origin 가드 · Dockerfile 워크스페이스 누락 (**원본에도 있는 결함 — 역이식 대상**) |
 | @plm 오염·무변경 | 템플릿 주석 76개 → 루트 `.plmignore`의 `src/**`(인프라 SRS 결정 후 해제) · `app/`·`server/` **무변경** |
 
-## 활성 작업 — 프로덕션 교체: 새 스택 → `https://liftgram.tarae.org` (2026-10-26 지시)
-**방향(사용자 확정)**: booktarae와 같은 방식 = **h2500-3 docker compose + Cloudflare 터널**(tarae.org 서브도메인·추가 구매 없음) · **DB는 옛 배포의 Neon 그대로**(새 테이블이 옛 테이블 옆에 공존 — 이름 충돌 0 → 옛 배포로 되돌릴 수 있음) · 이관 = `migrate-legacy.sh`(OLD=NEW 같은 URL)
-| 항목 | 상태 |
-|------|------|
-| `compose.prod.yaml` · `scripts/deploy-h2500-3.sh` · `deploy/README.md` h2500-3 절 | 작성 ✓(booktarae 안전장치 이식: 클린 worktree·디스크 가드·DEPLOYED_REF·readyz) · 포트 `127.0.0.1:3410` |
-| 서버 `~/liftgram/src/.env`(600) | JWT 새로 생성·PLM 토큰 · **DATABASE_URL 비어 있음** |
-| 서버 이미지 빌드 | ✓ — **Dockerfile 결함 수정**: 워크스페이스별 node_modules(contracts·core) 미복사 → Module not found 49건 |
-| **차단(사용자)** | ① Neon `DATABASE_URL`(Render liftgram-api env) ② CF 터널 공개 호스트명 `liftgram.tarae.org → http://localhost:3410` ③ 옛 Netlify 주소 처리(리다이렉트 권장) |
-**작업 범위**: `src/compose.prod.yaml` · `src/scripts/deploy-h2500-3.sh` · `src/Dockerfile` · `src/deploy/README.md` · 서버 `~/liftgram/`
+## 프로덕션 교체 — **완료** (2026-10-26) · 운영 = `https://liftgram.tarae.org` · v0.16.0 (`4612735`)
+**구성**: h2500-3 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) + booktarae CF 터널 공개 호스트명 → `localhost:3410` · DB = **옛 Neon 그대로**(새 테이블이 옛 Prisma 테이블 옆에 공존) · 배포 = `src/scripts/deploy-h2500-3.sh`
+- **이관 ✓**: 백업 `h2500-3:~/liftgram/backups/neondb-pre-cutover-20261026-021100.dump`(24테이블) → `migrate-legacy.sh` 20테이블 행수 전부 일치(사용자 4·글 6·sync_records 4053) · 해시 `$2b$10$` 그대로
+- **사진 4장은 복구 불가**: 옛 Render 무료 디스크에서 이미 사라져 있었다(옛 서버도 404) — 이관 손실 아님
+- **옛 주소**: Netlify를 301 리다이렉트 + **자기 해제 서비스워커**(설치된 PWA가 옛 캐시를 계속 띄우는 것 방지)로 교체(draft→restore) · **Netlify 자동 빌드 정지**(stop_builds — main 푸시가 리다이렉트를 덮지 않게)
+- 옛 Render `liftgram-api`는 **아직 켜져 있다**(되돌리기 자리 — 사용자 확인 후 내린다)
+- 고친 결함: Dockerfile 워크스페이스 node_modules 미복사 · PWA 매니페스트·아이콘 부재(standalone엔 public/이 안 실림)
+- **관찰**: DB 왕복 ~220ms(h2500-3 ↔ Neon us-east-1) → 화면 응답 ~1s. 옛 배포(Render 싱가포르)도 같은 거리였다
 **질문은 터미널에서**(PLM 채널 금지 — 사용자 2026-10-26)
 
 ## 이관 진행 (ADR-031 · ADR-032)
@@ -59,7 +58,7 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - 안 옮기는 것: 세션 토큰·푸시 토큰·카탈로그(시드). **사진은 DB에 없다** — 저장소를 따로 이어야 한다
 
 ## 다음 작업
-1. 차단 ①② 해소 → `deploy-h2500-3.sh` 배포 → Neon 브랜치 백업 → `migrate-legacy.sh --dry-run` → 이관 → 옛 계정 로그인·기록·사진 확인 → 옛 Netlify 리다이렉트
+1. 사용자 확인: 옛 계정 로그인·기록 표시 → 옛 Render 서버 내리기 · 서비스워커(오프라인 앱셸) 웹 스택에 없음 — 별도 작업
 2. **@plm 오염**: 템플릿 유래 주석 53개/41파일(템플릿 원본과 같은 줄 대조로 판별) + 우리 인프라 스크립트도 그 관례(SRS-006/008)를 따라감 → 인프라 SRS 발급 후 재매핑 → `.plmignore`의 `src/**` 해제
 3. codescan 400·sync_bulk 413 · SRS-048 잔여(assertTrainerEligible 스텁·sync LWW) · ADR-012/013 dangling·ADR-025→026 Replaced(대시보드)
 4. 사용자 결정 대기: ADR-029 게이트 · 3D 움짤 에셋 라이선스
