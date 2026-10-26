@@ -14,8 +14,8 @@ export type EquipmentType =
   | 'band'
   | 'smith'
   | 'other'
-  // 2026-10 카탈로그 개편(ADR-035) — 기구가 이름 앞머리인 종목(EZ바 컬·트랩바 데드리프트). 필터 칩(ALL_EQUIPMENT)에는
-  // 그 종목이 실제로 들어오는 P2 에서 넣는다. @plm SRS-055
+  // 2026-10 카탈로그 개편(ADR-035) — 기구가 이름 앞머리인 종목(EZ바 컬·트랩바 데드리프트). 필터 칩(ALL_EQUIPMENT)에도
+  // 들어 있다. @plm SRS-055
   | 'ezbar'
   | 'trapbar';
 
@@ -98,5 +98,8 @@ export const ALL_EQUIPMENT: EquipmentType[] = [
   'kettlebell',
   'band',
   'smith',
+  // 2026-10 카탈로그 개편 — EZ바·트랩바 종목이 P2 부터 카탈로그에 있다(빠지면 필터로 못 찾는다). @plm SRS-055
+  'ezbar',
+  'trapbar',
   'other',
 ];
