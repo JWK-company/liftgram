@@ -39,7 +39,8 @@ export const metadata: Metadata = {
   // 홈 화면에 추가하면 앱처럼 열린다(옛 Expo 웹과 같은 매니페스트·아이콘 — public/).
   manifest: "/manifest.json",
   appleWebApp: { capable: true, title: "Liftgram", statusBarStyle: "black-translucent" },
-  icons: { apple: "/apple-touch-icon.png" },
+  // 아이콘 주소에 버전을 붙인다 — 주소가 같으면 설치된 홈 화면 앱이 새 아이콘을 받지 않는다(v0.23 로고 교체 때 실측).
+  icons: { apple: "/apple-touch-icon.png?v=2" },
 };
 
 // 브라우저 상단 띠 색 — 라이트·다크 바탕(#F7F7F7 · #161616)과 같게. 토큰을 쓸 수 없는 자리라 값을 적는다.

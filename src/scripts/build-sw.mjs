@@ -30,10 +30,10 @@ const files = [];
 // 홈 화면 앱이 오프라인에서도 아이콘·이름을 갖게 한다.
 const pub = [
   "/manifest.json",
-  "/icon-192.png",
-  "/icon-512.png",
-  "/icon-maskable-512.png",
-  "/apple-touch-icon.png",
+  "/icon-192.png?v=2",
+  "/icon-512.png?v=2",
+  "/icon-maskable-512.png?v=2",
+  "/apple-touch-icon.png?v=2",
 ];
 const precache = [...pub, ...files.sort()];
 
