@@ -11,6 +11,8 @@ export default class ExerciseUserPref extends Model {
   @field('exercise_id') declare exerciseId: string;
   @text('display_name') declare displayName: string | null;
   @field('plate_one_side') declare plateOneSide: boolean | null;
+  /** v23: 기본 종목 숨기기 — 계정과 함께 동기된다(/qa code M-4) */
+  @field('hidden') declare hidden: boolean | null;
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
 }

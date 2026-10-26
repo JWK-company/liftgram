@@ -81,3 +81,23 @@ export function summarizeSlots(sessions: SlotSession[]): SlotSummary[] {
   }
   return out.sort((a, b) => b.lastAt - a.lastAt);
 }
+
+/**
+ * 블록 배수가 바뀔 때(「한쪽 무게로 입력」 토글·적재 방식 변경·기구 바꾸기) 세트를 어떻게 고칠지(/qa code M-1).
+ *
+ * **이미 한 세트(done ≠ false)는 건드리지 않는다** — 그 무게는 그 배수로 적은 것이라, 배수만 바꾸면 계산 무게가
+ * 두 배·절반이 되어 거짓 PR·볼륨이 남는다. 아직 안 한 세트만 새 배수로 옮기고, 적힌 무게는 계산 무게가 같도록 환산한다
+ * (양쪽 100 → 한쪽 50). 바꿀 것이 없으면 빈 목록.
+ */
+export function planBlockMultiplierResync(
+  sets: { id: string; done: boolean | null; weightKg: number; loadMultiplier: number | null | undefined }[],
+  toMultiplier: number | null,
+): { id: string; weightKg: number; loadMultiplier: number | null }[] {
+  const out: { id: string; weightKg: number; loadMultiplier: number | null }[] = [];
+  for (const s of sets) {
+    if (s.done !== false) continue;
+    if ((s.loadMultiplier ?? null) === toMultiplier) continue;
+    out.push({ id: s.id, weightKg: carryWeightAcrossMultiplier(s.weightKg, s.loadMultiplier, toMultiplier), loadMultiplier: toMultiplier });
+  }
+  return out;
+}

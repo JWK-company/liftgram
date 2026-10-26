@@ -92,6 +92,9 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
   // 서버 카탈로그에 없는 행이라고 지우면 사용자가 만든 종목이 사라진다.
   const existing = await collection.query().fetch();
   const byId = new Map(existing.map((e) => [e.id, e]));
+  // 계정이 숨긴 기본 종목은 서버 카탈로그가 활성이어도 숨긴 채로 둔다(/qa code M-4)
+  const { getHiddenExerciseIds } = await import("@app/core/data/exercisePrefs");
+  const hidden = await getHiddenExerciseIds();
 
   const ops: unknown[] = [];
   let written = 0;
@@ -110,7 +113,7 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
       rec.isCustom = it.isCustom;
       // [원본] rec.isArchived = false;
       // [개선] 카탈로그 개편(ADR-033 · QA M1) — 보관·동작 그룹·별칭·비슷한 운동·그림 출처를 그대로 받는다.
-      rec.isArchived = it.isArchived;
+      rec.isArchived = it.isArchived || hidden.has(it.id);
       rec.family = it.family || null;
       rec.aliases = it.aliases;
       rec.similar = it.similar;
@@ -137,6 +140,9 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
     await database.write(async () => {
       await database.batch(...(ops as Parameters<typeof database.batch>));
     });
+    // 대표 이름이 바뀌었을 수 있다 — 표시 이름 캐시를 비운다(/qa code L-6)
+    const { invalidateExerciseNames } = await import("./exerciseNames");
+    invalidateExerciseNames();
   }
 
   // 받은 것을 **디스크까지** 내려쓴다. 여기서 안 하면 곧바로 새로고침했을 때 되돌아간다

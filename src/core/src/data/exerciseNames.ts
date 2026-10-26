@@ -9,6 +9,7 @@ import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import type { Exercise, ExerciseUserPref, SetLog, WorkoutExercise } from '../db/models';
 import { exercisePrefId } from '../db/models/ExerciseUserPref';
+import { markLocalWins } from '../sync/localWins';
 import type { ImpliedAxes } from './catalog/catalogTypes';
 import { dimsFromColumns, type AttachKey, type GripKey, type VariantDims } from '../domain/variants';
 import { normalizeNameKey } from '../domain/nameKey';
@@ -91,12 +92,16 @@ export async function setExerciseDisplayName(exerciseId: string, name: string | 
       });
       return;
     }
-    if (next == null) return; // 선호가 없으면 이미 대표 이름이다
+    // [원본] 선호가 없으면 대표 이름을 골라도 아무것도 남기지 않았다 — 정규화가 나중에 옛 이름을 심을 여지(/qa code H-1 c)
+    // if (next == null) return; // 선호가 없으면 이미 대표 이름이다
+    // [개선] 대표 이름을 고른 것도 「고른 이름」(null)으로 남긴다 — 정규화는 선호 행이 있는 종목을 건드리지 않는다
     await prefs().create((p) => {
       p._raw.id = exercisePrefId(exerciseId);
       p.exerciseId = exerciseId;
       p.displayName = next;
       p.plateOneSide = null;
+      // 사용자가 고른 이름은 같은 id 의 원격 행보다 우선한다 — 한쪽 입력 칸은 원격을 받는다(/qa code M-2)
+      markLocalWins(p._raw, ['display_name']);
     });
   });
 }

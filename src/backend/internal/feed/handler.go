@@ -401,13 +401,14 @@ func toProtoExercises(list []WorkoutExercise) []*feedv1.WorkoutExercise {
 		sets := make([]*feedv1.WorkoutSet, 0, len(ex.Sets))
 		for _, st := range ex.Sets {
 			sets = append(sets, &feedv1.WorkoutSet{
-				WeightKg:    st.WeightKg,
-				Reps:        st.Reps,
-				IsWarmup:    st.IsWarmup,
-				PartialReps: st.PartialReps,
+				WeightKg:       st.WeightKg,
+				Reps:           st.Reps,
+				IsWarmup:       st.IsWarmup,
+				PartialReps:    st.PartialReps,
+				LoadMultiplier: st.LoadMultiplier,
 			})
 		}
-		out = append(out, &feedv1.WorkoutExercise{Name: ex.Name, Note: ex.Note, Sets: sets})
+		out = append(out, &feedv1.WorkoutExercise{Name: ex.Name, Note: ex.Note, Sets: sets, ExerciseId: ex.ExerciseID})
 	}
 	return out
 }
@@ -418,13 +419,14 @@ func fromProtoExercises(list []*feedv1.WorkoutExercise) []WorkoutExercise {
 		sets := make([]WorkoutSet, 0, len(ex.GetSets()))
 		for _, st := range ex.GetSets() {
 			sets = append(sets, WorkoutSet{
-				WeightKg:    st.GetWeightKg(),
-				Reps:        st.GetReps(),
-				IsWarmup:    st.GetIsWarmup(),
-				PartialReps: st.GetPartialReps(),
+				WeightKg:       st.GetWeightKg(),
+				Reps:           st.GetReps(),
+				IsWarmup:       st.GetIsWarmup(),
+				PartialReps:    st.GetPartialReps(),
+				LoadMultiplier: st.GetLoadMultiplier(),
 			})
 		}
-		out = append(out, WorkoutExercise{Name: ex.GetName(), Note: ex.GetNote(), Sets: sets})
+		out = append(out, WorkoutExercise{Name: ex.GetName(), Note: ex.GetNote(), Sets: sets, ExerciseID: ex.GetExerciseId()})
 	}
 	return out
 }

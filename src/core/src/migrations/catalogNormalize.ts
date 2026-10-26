@@ -11,9 +11,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
-import type { ExerciseUserPref, RoutineExercise, SetLog, WorkoutExercise } from '../db/models';
+import type { Exercise, ExerciseUserPref, RoutineExercise, SetLog, WorkoutExercise } from '../db/models';
 import { exercisePrefId } from '../db/models/ExerciseUserPref';
-import { buildCatalogIndex, planBlockMigration, planDisplayNames, type CatalogIndex } from '../domain/catalogMigrationPlan';
+import {
+  buildCatalogIndex,
+  displayNameSourceUse,
+  planBlockMigration,
+  planDisplayNames,
+  type CatalogIndex,
+} from '../domain/catalogMigrationPlan';
 
 /**
  * P2(v0.31)에서 켰다 — 서버 카탈로그 개편(0014)·시드 갱신·부착물/그립 칩·기구 바꾸기가 함께 나갔다.
@@ -40,6 +46,8 @@ export interface NormalizeResult {
   deferred: number;
   /** 옛 이름을 표시 이름으로 심은 종목 수(QA M3) */
   named?: number;
+  /** 계정 선호대로 다시 숨긴 기본 종목 수(/qa code M-4) */
+  hidden?: number;
 }
 
 /** 로컬 블록을 정규화한다. 꺼져 있으면 아무것도 하지 않는다. */
@@ -56,10 +64,13 @@ export async function normalizeCatalogRecords(force = false): Promise<NormalizeR
 
   // 표시 이름 연속성(QA M3) — 옮기기 **전의** 종목 id 로 옛 이름을 계산해, 선호 레코드가 아직 없는 종목에만 심는다.
   // 레코드 id 가 결정적(pref-<종목>)이라 여러 기기·서버 이관이 같은 행을 만든다. 있으면(사용자가 고른 이름 포함) 건드리지 않는다.
-  const use = new Map<string, number>();
+  // [원본] 모든 블록을 출처로 쳤다 — 이름 바뀐 종목을 개편 뒤에 처음 쓴 사람에게도 옛 이름이 심겼다(/qa code H-1)
+  // const use = new Map<string, number>();
+  // for (const r of [...wes, ...res]) use.set(r.exerciseId, (use.get(r.exerciseId) ?? 0) + 1);
+  // [개선] 옛 종목을 가리키는 블록 + 개편 전에 만든 블록만 출처
+  const use = displayNameSourceUse([...wes, ...res], idx);
   const movedInto = new Set<string>();
   for (const r of [...wes, ...res]) {
-    use.set(r.exerciseId, (use.get(r.exerciseId) ?? 0) + 1);
     const p = planBlockMigration(r, idx);
     if (p.changed && p.exerciseId !== r.exerciseId) movedInto.add(p.exerciseId);
   }
@@ -132,5 +143,26 @@ export async function normalizeCatalogRecords(force = false): Promise<NormalizeR
       console.warn('[normalize] 표시 이름 심기 건너뜀', e);
     }
   }
-  return { changed, deferred, named };
+  // 계정이 숨긴 기본 종목(/qa code M-4) — 다른 기기에서 숨겼거나 카탈로그를 다시 받아 풀린 것을 로컬 행에 다시 반영한다.
+  let hidden = 0;
+  const hiddenIds = (await prefs.query(Q.where('hidden', true)).fetch()).map((p) => p.exerciseId).filter((id) => localIds.has(id));
+  if (hiddenIds.length) {
+    const rows = await database
+      .get<Exercise>('exercises')
+      .query(Q.where('id', Q.oneOf(hiddenIds)), Q.where('is_archived', false))
+      .fetch();
+    if (rows.length) {
+      await database.write(async () => {
+        await database.batch(
+          ...rows.map((e) =>
+            e.prepareUpdate((r) => {
+              r.isArchived = true;
+            }),
+          ),
+        );
+      });
+      hidden = rows.length;
+    }
+  }
+  return { changed, deferred, named, hidden };
 }

@@ -139,3 +139,21 @@ test('성능 — 500종 색인 위에서 검색 한 번이 50ms 안', () => {
     assert.ok(ms < 50, `「${q}」 ${ms.toFixed(1)}ms`);
   }
 });
+
+// ── /qa code H-2 — 피드 가져오기: 옛 이름·별칭·id 로 내 종목을 찾는다(엉뚱한 커스텀 금지) ──────────
+test('가져오기 매칭(H-2): 개편 전 옛 이름·사용자 별칭·띄어쓰기 다른 이름 → 카탈로그 종목', async () => {
+  const { resolveSharedExercise } = await import('../exerciseSearch');
+  const id = (name: string, exerciseId?: string) => resolveSharedExercise(INDEX, { name, exerciseId })?.id;
+  assert.equal(id('인클라인 프레스 (바벨)'), 'seed-incline-press');
+  assert.equal(id('로프 푸시다운'), 'seed-triceps-pushdown');
+  assert.equal(NAME.get(id('케이블랫풀다운') ?? ''), '케이블 랫풀다운');
+  assert.equal(id('아무도 모르는 이름', 'seed-deadlift'), 'seed-deadlift'); // id 가 먼저
+  assert.equal(id('벤치프'), undefined); // 부분 일치로 고르지 않는다 → 커스텀(「벤치」는 바벨 벤치프레스의 별칭이라 맞는다)
+  assert.equal(id('없는 종목 이름'), undefined);
+});
+
+test('가져오기 매칭(H-2): 별칭으로 맞으면 그 별칭을 돌려준다 — 함축 칸(로프)을 적용할 수 있게', async () => {
+  const { resolveSharedExercise } = await import('../exerciseSearch');
+  const r = resolveSharedExercise(INDEX, { name: '로프 푸시다운' });
+  assert.equal(r?.hit?.matchedKind, 'alias');
+});

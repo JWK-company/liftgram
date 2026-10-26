@@ -129,7 +129,8 @@ sqlc: ## database/queries/*.sql → 타입 안전한 Go 코드 (호스트 설치
 
 gen-migration: ## 새 마이그레이션 파일 만들기 — 사용: make gen-migration NAME=add_index
 	@test -n "$(NAME)" || { echo "NAME= 을 주세요.  예: make gen-migration NAME=add_index"; exit 1; }
-	@n=$$(ls database/migrations/*.sql 2>/dev/null | wc -l); \
+	@# 파일 수가 아니라 **가장 큰 번호 + 1** — 번호에 구멍(0015 없음)이 있어도 접두가 겹치지 않는다(/qa code L-3)
+	@n=$$(ls database/migrations/*.sql 2>/dev/null | sed -E 's|.*/([0-9]{4})_.*|\1|' | sort -n | tail -1 | sed 's/^0*//'); n=$$(( $${n:-0} + 1 )); \
 	f=$$(printf "database/migrations/%04d_%s.sql" $$n "$(NAME)"); \
 	printf -- "-- %s\n--\n-- 규칙: 재실행해도 결과가 같도록 IF NOT EXISTS · ON CONFLICT 를 쓴다.\n-- 한 번 적용된 파일은 고치지 않는다 — 새 파일을 만든다.\n\n" "$(NAME)" > $$f; \
 	echo "만들었습니다: $$f  (내용을 채운 뒤 make sqlc && make migrate)"

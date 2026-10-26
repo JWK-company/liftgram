@@ -379,13 +379,15 @@ func (x *WorkoutSummary) GetExercises() []*WorkoutExercise {
 
 // 무게는 **항상 kg**으로 싣는다 — 보는 사람이 자기 단위로 바꿔 읽는다.
 type WorkoutSet struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	WeightKg      float64                `protobuf:"fixed64,1,opt,name=weight_kg,json=weightKg,proto3" json:"weight_kg,omitempty"`
-	Reps          int32                  `protobuf:"varint,2,opt,name=reps,proto3" json:"reps,omitempty"`
-	IsWarmup      bool                   `protobuf:"varint,3,opt,name=is_warmup,json=isWarmup,proto3" json:"is_warmup,omitempty"`
-	PartialReps   int32                  `protobuf:"varint,4,opt,name=partial_reps,json=partialReps,proto3" json:"partial_reps,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	WeightKg    float64                `protobuf:"fixed64,1,opt,name=weight_kg,json=weightKg,proto3" json:"weight_kg,omitempty"`
+	Reps        int32                  `protobuf:"varint,2,opt,name=reps,proto3" json:"reps,omitempty"`
+	IsWarmup    bool                   `protobuf:"varint,3,opt,name=is_warmup,json=isWarmup,proto3" json:"is_warmup,omitempty"`
+	PartialReps int32                  `protobuf:"varint,4,opt,name=partial_reps,json=partialReps,proto3" json:"partial_reps,omitempty"`
+	// 플레이트 「한쪽 무게로 입력」 배수(ADR-037). 0 = 모름/1 — weight_kg 는 적은 그대로(한쪽), 계산 무게 = weight_kg × 배수.
+	LoadMultiplier float64 `protobuf:"fixed64,5,opt,name=load_multiplier,json=loadMultiplier,proto3" json:"load_multiplier,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *WorkoutSet) Reset() {
@@ -446,12 +448,21 @@ func (x *WorkoutSet) GetPartialReps() int32 {
 	return 0
 }
 
+func (x *WorkoutSet) GetLoadMultiplier() float64 {
+	if x != nil {
+		return x.LoadMultiplier
+	}
+	return 0
+}
+
 type WorkoutExercise struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Name  string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// 작성자의 종목 메모 — 가져가는 사람에게 팁이 함께 간다.
-	Note          string        `protobuf:"bytes,2,opt,name=note,proto3" json:"note,omitempty"`
-	Sets          []*WorkoutSet `protobuf:"bytes,3,rep,name=sets,proto3" json:"sets,omitempty"`
+	Note string        `protobuf:"bytes,2,opt,name=note,proto3" json:"note,omitempty"`
+	Sets []*WorkoutSet `protobuf:"bytes,3,rep,name=sets,proto3" json:"sets,omitempty"`
+	// 종목 id(시드 id 는 모든 사용자에게 같다) — 가져가는 쪽이 이름보다 먼저 찾는다(/qa code H-2). 비면 이름으로.
+	ExerciseId    string `protobuf:"bytes,4,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -505,6 +516,13 @@ func (x *WorkoutExercise) GetSets() []*WorkoutSet {
 		return x.Sets
 	}
 	return nil
+}
+
+func (x *WorkoutExercise) GetExerciseId() string {
+	if x != nil {
+		return x.ExerciseId
+	}
+	return ""
 }
 
 type Post struct {
@@ -3836,17 +3854,20 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\vstreak_days\x18\a \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\n" +
 	"streakDays\x12%\n" +
 	"\x0eweekly_reached\x18\b \x01(\bR\rweeklyReached\x12@\n" +
-	"\texercises\x18\t \x03(\v2\x18.feed.v1.WorkoutExerciseB\b\xbaH\x05\x92\x01\x02\x10(R\texercises\"\x9f\x01\n" +
+	"\texercises\x18\t \x03(\v2\x18.feed.v1.WorkoutExerciseB\b\xbaH\x05\x92\x01\x02\x10(R\texercises\"\xe1\x01\n" +
 	"\n" +
 	"WorkoutSet\x12+\n" +
 	"\tweight_kg\x18\x01 \x01(\x01B\x0e\xbaH\v\x12\t)\x00\x00\x00\x00\x00\x00\x00\x00R\bweightKg\x12\x1b\n" +
 	"\x04reps\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04reps\x12\x1b\n" +
 	"\tis_warmup\x18\x03 \x01(\bR\bisWarmup\x12*\n" +
-	"\fpartial_reps\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\vpartialReps\"\x81\x01\n" +
+	"\fpartial_reps\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\vpartialReps\x12@\n" +
+	"\x0fload_multiplier\x18\x05 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00$@)\x00\x00\x00\x00\x00\x00\x00\x00R\x0eloadMultiplier\"\xab\x01\n" +
 	"\x0fWorkoutExercise\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18xR\x04name\x12\x1c\n" +
 	"\x04note\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03R\x04note\x121\n" +
-	"\x04sets\x18\x03 \x03(\v2\x13.feed.v1.WorkoutSetB\b\xbaH\x05\x92\x01\x02\x10<R\x04sets\"\x80\x04\n" +
+	"\x04sets\x18\x03 \x03(\v2\x13.feed.v1.WorkoutSetB\b\xbaH\x05\x92\x01\x02\x10<R\x04sets\x12(\n" +
+	"\vexercise_id\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\n" +
+	"exerciseId\"\x80\x04\n" +
 	"\x04Post\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x06author\x18\x02 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12%\n" +

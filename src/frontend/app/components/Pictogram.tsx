@@ -47,7 +47,9 @@ export function Pictogram({
   testId?: string;
 }) {
   const key = exerciseId;
-  const [still, setStill] = useState<string | null | undefined>(() => stillCache.get(animate ? `${key}:full` : key));
+  const [still, setStill] = useState<string | null | undefined>(() =>
+    stillCache.get(animate ? `${key}:full` : key),
+  );
   const [frames, setFrames] = useState<string[] | null | undefined>(() => framesCache.get(key));
   const [i, setI] = useState(0);
   const moving = animate && !reducedMotion();
@@ -59,7 +61,8 @@ export function Pictogram({
       const spec = m.specForId(key);
       if (!stillCache.has(key)) stillCache.set(key, spec ? m.pictogramSvg(spec) : null);
       // 움직임 자리(상세·팁)의 정지 그림은 움직임과 같은 창 — 동작 줄이기에서도 크기가 같다
-      if (animate && spec && !stillCache.has(`${key}:full`)) stillCache.set(`${key}:full`, m.pictogramSvg(spec, 'end'));
+      if (animate && spec && !stillCache.has(`${key}:full`))
+        stillCache.set(`${key}:full`, m.pictogramSvg(spec, "end"));
       if (animate) setStill(stillCache.get(`${key}:full`) ?? null);
       else setStill(stillCache.get(key) ?? null);
       if (animate) {

@@ -227,3 +227,23 @@ export function matchedLabel(hit: SearchHit, nameKo: string): string | null {
   if (hit.matchedKind === 'name') return null;
   return normalizeNameKey(hit.matched) === normalizeNameKey(nameKo) ? null : hit.matched;
 }
+
+/**
+ * 피드 「내 루틴으로 가져오기」 — 공유된 종목을 내 카탈로그의 종목으로 찾는다(/qa code H-2).
+ *
+ * 순서: ① 공유에 실린 종목 id(시드 id 는 모든 사용자에게 같다)가 내 색인에 있으면 그것 ② 이름이 대표 이름·별칭·영문명과
+ * **정확히** 같은 종목(정규화 키 — 띄어쓰기·대소문자 무시). 개편 전 옛 이름(「인클라인 프레스 (바벨)」)·사용자가 고른
+ * 별칭(「로프 푸시다운」)도 대상 종목의 별칭이라 여기서 찾힌다. ③ 못 찾으면 null — 부르는 쪽이 커스텀 종목을 만든다.
+ * 부분 일치는 쓰지 않는다: 「벤치」 한 마디로 엉뚱한 종목을 고르는 것보다 커스텀이 낫다.
+ */
+export function resolveSharedExercise(
+  index: ExerciseSearchIndex,
+  shared: { exerciseId?: string | null; name: string },
+): { id: string; hit: SearchHit | null } | null {
+  const id = shared.exerciseId?.trim();
+  if (id && index.byId.has(id)) return { id, hit: null };
+  const name = shared.name.trim();
+  if (!name) return null;
+  const exact = searchExercises(index, name).hits.find((h) => h.exact);
+  return exact ? { id: exact.id, hit: exact } : null;
+}

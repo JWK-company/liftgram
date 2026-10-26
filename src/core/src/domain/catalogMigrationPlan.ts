@@ -202,6 +202,37 @@ export function planBlockMigration(block: BlockColumns, idx: CatalogIndex): Bloc
 }
 
 /**
+ * 카탈로그 개편(v0.31.0 · 0014)이 나간 시각 — 이보다 **뒤에** 만든 블록은 새 이름을 보고 고른 것이다.
+ * (커밋 4eafaa2 시각. 서버 이관은 그 뒤 12:55:17Z 에 돌았다 — 그 사이 새 카탈로그로 만든 블록은 있을 수 없다)
+ */
+export const CATALOG_REVAMP_AT = Date.parse('2026-10-26T12:53:26Z');
+
+/**
+ * 표시 이름 출처(/qa code H-1) — `planDisplayNames` 에 넘길 「옛 이름으로 쓰던 종목」 집계.
+ *
+ * 매 부팅·동기마다 도는 정규화가 **모든** 블록을 출처로 치면, 이름이 바뀐 종목(같은 id)을 개편 뒤에 처음 쓴 사람에게도
+ * 옛 이름이 심겨 영구히 남는다. 그래서 출처는 둘뿐이다:
+ *   · 옛 종목(병합·삭제 원본)을 가리키는 블록 — 언제 만들었든 옛 이름으로 고른 것(옛 PWA 포함)
+ *   · 개편 전에 만든 블록(createdAt < CATALOG_REVAMP_AT)
+ * 만든 시각을 모르면 출처로 치지 않는다 — 이름을 안 심는 쪽은 대표 이름이 보일 뿐이고, 잘못 심는 쪽은 영구히 남는다.
+ */
+export function displayNameSourceUse(
+  blocks: Iterable<BlockColumns & { createdAt?: number | Date | null }>,
+  idx: CatalogIndex,
+  cutoff = CATALOG_REVAMP_AT,
+): Map<string, number> {
+  const use = new Map<string, number>();
+  for (const b of blocks) {
+    const at = b.createdAt instanceof Date ? b.createdAt.getTime() : (b.createdAt ?? null);
+    const fromOldExercise = planBlockMigration(b, idx).exerciseId !== b.exerciseId;
+    const beforeRevamp = at != null && Number.isFinite(at) && at < cutoff;
+    if (!fromOldExercise && !beforeRevamp) continue;
+    use.set(b.exerciseId, (use.get(b.exerciseId) ?? 0) + 1);
+  }
+  return use;
+}
+
+/**
  * 표시 이름 연속성(QA M3) — 사용자가 옛 이름으로 쓰던 종목은 이관 뒤에도 그 이름으로 보인다.
  *
  * `sourceIds` = 사용자의 블록이 **이관 전에** 가리키던 종목 id 들(운동·루틴). 이름이 바뀌었거나(rename) 다른 종목으로

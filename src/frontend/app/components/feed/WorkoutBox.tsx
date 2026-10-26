@@ -69,8 +69,29 @@ export function WorkoutBox({
         import("@app/core/data/exerciseRepository"),
         import("@app/core/data/routineRepository"),
       ]);
-      const catalog = await exerciseRepo.queryExercises({}).fetch();
+      const [catalog, { buildExerciseSearchIndex, resolveSharedExercise }, names] = await Promise.all([
+        exerciseRepo.queryExercises({}).fetch(),
+        import("@app/core/domain/exerciseSearch"),
+        import("@app/core/data/exerciseNames"),
+      ]);
+      // [원본] 대표 이름·영문명이 정확히 같을 때만 찾았다 — 개편으로 이름이 바뀐 142종·사용자 별칭으로 공유된 종목을 못 찾아
+      // 근육·기구가 「기타」인 커스텀을 만들었다(/qa code H-2)
+      // const match = catalog.find((c) => c.nameKo.toLowerCase() === lower || (c.nameEn?.toLowerCase() ?? "") === lower);
+      // [개선] 종목 id → 대표 이름·별칭·영문 정확 일치(정규화) → 그래도 없으면 커스텀
+      const index = buildExerciseSearchIndex(
+        catalog.map((c) => ({
+          id: c.id,
+          nameKo: c.nameKo,
+          nameEn: c.nameEn,
+          aliases: c.aliases ?? [],
+          family: c.family,
+          equipment: c.equipment,
+          isArchived: c.isArchived,
+        })),
+      );
       const resolved: Parameters<typeof routineRepo.importRoutine>[1] = [];
+      /** 맞은 별칭이 칸을 함축하면(「로프 푸시다운」 → 로프) 가져온 루틴 줄에도 적용한다 — resolved 와 같은 순서 */
+      const axesByIndex = new Map<number, Awaited<ReturnType<typeof names.impliedAxesForAlias>>>();
       let skipped = 0;
 
       for (const ex of exercises) {
@@ -79,13 +100,14 @@ export function WorkoutBox({
           skipped++;
           continue;
         }
-        const lower = nm.toLowerCase();
-        const match = catalog.find(
-          (c) => c.nameKo.toLowerCase() === lower || (c.nameEn?.toLowerCase() ?? "") === lower,
-        );
+        const match = resolveSharedExercise(index, { exerciseId: ex.exerciseId, name: nm });
         let exerciseId: string;
         if (match) {
           exerciseId = match.id;
+          if (match.hit?.matchedKind === "alias") {
+            const axes = await names.impliedAxesForAlias(match.id, match.hit.matched);
+            if (axes) axesByIndex.set(resolved.length, axes);
+          }
         } else {
           const created = await exerciseRepo.createCustomExercise({
             nameKo: nm,
@@ -97,7 +119,8 @@ export function WorkoutBox({
         const working = ex.sets.filter((s) => !s.isWarmup);
         const src = working.length ? working : ex.sets;
         const reps = src.map((s) => s.reps).filter((r) => r > 0);
-        const weights = src.map((s) => s.weightKg).filter((w) => w > 0);
+        // 목표 무게는 계산 무게(한쪽 입력이면 ×배수) — 받는 사람은 한쪽 입력을 켰는지 모른다(/qa code L-5)
+        const weights = src.map((s) => s.weightKg * (s.loadMultiplier || 1)).filter((w) => w > 0);
         resolved.push({
           exerciseId,
           targetSets: src.length || undefined,
@@ -111,7 +134,14 @@ export function WorkoutBox({
         toast(t("feed.importRoutineNone"));
         return;
       }
-      await routineRepo.importRoutine(routineName, resolved);
+      const routine = await routineRepo.importRoutine(routineName, resolved);
+      if (axesByIndex.size) {
+        const rows = await routineRepo.queryRoutineExercises(routine.id).fetch();
+        for (const [i, axes] of axesByIndex) {
+          const row = rows[i];
+          if (row && axes) await names.applyImpliedAxesToRoutineExercise(row.id, axes);
+        }
+      }
       // 로컬 저장소는 비동기로 flush된다 — 바로 /routines로 옮겨 가도 남아 있게 예약해 둔다.
       scheduleFlush();
       toast(t("feed.importRoutineResult", { imported: resolved.length, skipped }));
@@ -196,7 +226,8 @@ export function WorkoutBox({
                     {ex.sets
                       .map(
                         (s) =>
-                          `${formatWeight(s.weightKg, unit)}×${s.reps}${s.partialReps ? `+${s.partialReps}` : ""}${
+                          // 한쪽 입력으로 적은 세트도 계산 무게로 보인다 — 같은 글의 총 볼륨과 숫자가 맞게(/qa code L-5)
+                          `${formatWeight(s.weightKg * (s.loadMultiplier || 1), unit)}×${s.reps}${s.partialReps ? `+${s.partialReps}` : ""}${
                             s.isWarmup ? " (W)" : ""
                           }`,
                       )

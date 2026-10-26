@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 22;
+export const SCHEMA_VERSION = 23;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -197,6 +197,8 @@ export const mySchema = appSchema({
         { name: 'exercise_id', type: 'string', isIndexed: true },
         { name: 'display_name', type: 'string', isOptional: true },
         { name: 'plate_one_side', type: 'boolean', isOptional: true },
+        // v23: 기본 종목 숨기기 — 시드 행은 동기에 싣지 않으므로(D10) 숨김을 사용자 선호로 옮긴다(/qa code M-4)
+        { name: 'hidden', type: 'boolean', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

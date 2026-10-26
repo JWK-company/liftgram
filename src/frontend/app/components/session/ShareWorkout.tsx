@@ -38,7 +38,10 @@ export interface ShareablePayload {
   streakDays: number;
   exercises: {
     name: string;
-    sets: { weightKg: number; reps: number }[];
+    /** 종목 id — 가져가는 쪽이 이름보다 먼저 찾는다(/qa code H-2) */
+    exerciseId?: string;
+    /** loadMultiplier = 플레이트 한쪽 입력 배수(null=1) — weightKg 는 적은 그대로(/qa code L-5) */
+    sets: { weightKg: number; reps: number; loadMultiplier?: number | null }[];
     note?: string;
   }[];
 }
@@ -86,11 +89,12 @@ export async function loadSummaryExtras(summary: {
         streakDays: streak.current,
         exercises: detail.exercises.map((ex) => ({
           name: ex.exerciseName,
+          exerciseId: ex.exerciseId,
           note: ex.note ?? undefined,
           // 워밍업·실패 세트는 빼고 보낸다 — 카드에 실리는 것은 실제로 해낸 세트다.
           sets: ex.sets
             .filter((st) => !st.isWarmup && !st.isFailed)
-            .map((st) => ({ weightKg: st.weightKg, reps: st.reps })),
+            .map((st) => ({ weightKg: st.weightKg, reps: st.reps, loadMultiplier: st.loadMultiplier })),
         })),
       },
       breakdown: detail.exercises.map((ex) => ({
@@ -146,8 +150,13 @@ export function ShareWorkout({ payload, unit }: { payload: ShareablePayload; uni
           streakDays: payload.streakDays,
           exercises: payload.exercises.map((ex) => ({
             name: ex.name,
+            exerciseId: ex.exerciseId ?? "",
             note: ex.note ?? "",
-            sets: ex.sets.map((s) => ({ weightKg: s.weightKg, reps: s.reps })),
+            sets: ex.sets.map((s) => ({
+              weightKg: s.weightKg,
+              reps: s.reps,
+              loadMultiplier: s.loadMultiplier ?? 0,
+            })),
           })),
         },
       });

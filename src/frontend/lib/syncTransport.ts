@@ -20,6 +20,7 @@ import {
   awaitFirstSync,
   installSyncTransport,
   scheduleSync,
+  subscribeSyncHealth,
   syncWithServer,
   type SyncTableChanges,
 } from "@app/core/sync/syncEngine";
@@ -31,6 +32,7 @@ import {
   type ReconcileResult,
 } from "@app/core/sync/syncOwner";
 import { createClient } from "@connectrpc/connect";
+import { invalidateExerciseNames } from "./exerciseNames";
 import { getPref, setPref } from "./prefs";
 import { authedTransport, hasSession } from "./session";
 
@@ -60,6 +62,15 @@ export function installSync(): void {
       await syncCatalogToLocal();
     } catch {
       // 오프라인 — 종목 탭이 열릴 때 다시 시도한다.
+    }
+  });
+
+  // 동기가 성공할 때마다 표시 이름 캐시를 비운다 — 다른 기기에서 고른 별칭·정규화가 심은 이름이 새로고침 없이 보이게(/qa code L-6)
+  let lastSuccess: number | null = null;
+  subscribeSyncHealth((h) => {
+    if (h.lastSuccessAt != null && h.lastSuccessAt !== lastSuccess) {
+      if (lastSuccess != null) invalidateExerciseNames();
+      lastSuccess = h.lastSuccessAt;
     }
   });
 

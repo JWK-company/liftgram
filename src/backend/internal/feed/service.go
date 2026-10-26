@@ -79,12 +79,16 @@ type WorkoutSet struct {
 	Reps        int32
 	IsWarmup    bool
 	PartialReps int32
+	// 플레이트 한쪽 입력 배수(ADR-037) — 0 = 모름(1). 옛 글의 JSON 에는 없다.
+	LoadMultiplier float64 `json:",omitempty"`
 }
 
 type WorkoutExercise struct {
 	Name string
 	Note string
 	Sets []WorkoutSet
+	// 종목 id — 가져가는 쪽이 이름보다 먼저 찾는다(/qa code H-2). 옛 글에는 없다.
+	ExerciseID string `json:",omitempty"`
 }
 
 // GearTag는 글에 붙는 착용장비다. 규칙(허용 분류·링크 생성)은 **화면 쪽 도메인**이 갖고 있고,

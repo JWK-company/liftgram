@@ -121,12 +121,19 @@ export async function updateExercise(
 }
 
 export async function archiveExercise(id: string): Promise<void> {
+  let isCustom = true;
   await database.write(async () => {
     const e = await exercises().find(id);
+    isCustom = e.isCustom;
     await e.update((rec) => {
       rec.isArchived = true;
     });
   });
+  // 기본 종목은 행이 동기되지 않는다(D10) — 숨김을 계정 선호에도 적어 다른 기기·카탈로그 재수신에도 유지한다(/qa code M-4)
+  if (!isCustom) {
+    const { setExerciseHidden } = await import('./exercisePrefs');
+    await setExerciseHidden(id, true);
+  }
 }
 
 // 대체운동: 명시적 substituteIds 우선(큐레이션 랭킹 순서 보존), 없으면 같은 주근육군 후보로 폴백 (SRS-001).

@@ -20,7 +20,8 @@
 // 이 생성기가 지키는 것: 정본을 못 읽었거나 줄었으면(최소 행 수) **파일을 쓰지 않고** 종료 코드 1.
 // ─────────────────────────────────────────────────────────────────────────────
 import { createHash } from "node:crypto";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,7 +32,11 @@ const OUT_TS = join(CAT, "catalog.generated.ts");
 const OUT_MIG = join(CAT, "catalogMigration.data.ts");
 const OUT_REV = join(CAT, "catalogRevision.ts");
 // P2: 서버 적용 경로로 옮겼다(파일명으로 한 번만 적용 — 이후 CSV 를 고치면 새 번호의 마이그레이션을 만든다).
-const OUT_SQL = join(SRC, "database", "migrations", "0014_catalog_revamp.sql");
+// [원본] 출력이 0014 로 고정돼 CSV 를 고치면 이미 적용된 0014 를 덮어썼다 — 서버는 건너뛰고 기기만 바뀌었다(/qa code M-3)
+// const OUT_SQL = join(SRC, "database", "migrations", "0014_catalog_revamp.sql");
+// [개선] 카탈로그 SQL 은 가장 최근 카탈로그 마이그레이션과 내용이 다를 때만 **새 번호 파일**로 낸다(아래 catalogSqlOutput)
+const MIGRATIONS = join(SRC, "database", "migrations");
+const CATALOG_SQL_RE = /^(\d{4})_catalog_.*\.sql$/;
 
 const MIN_ROWS = 450;
 const CHECK = process.argv.includes("--check");
@@ -240,12 +245,43 @@ const revTs = `${HEADER}// @plm SRS-055  번들 카탈로그 판 — 표 내용�
 export const CATALOG_REVISION = '${rev}';
 `;
 
-const outputs = [
-  [OUT_TS, ts],
-  [OUT_REV, revTs],
-  [OUT_MIG, mig],
-  [OUT_SQL, sql],
-];
+/**
+ * 카탈로그 SQL 을 어디에 쓸지 — **이미 있는 마이그레이션 파일은 절대 고치지 않는다**(서버는 파일명으로 한 번만 적용한다).
+ * 가장 최근 카탈로그 마이그레이션(NNNN_catalog_*.sql)과 내용이 같으면 쓸 것 없음, 다르면 「가장 큰 번호 + 1」 새 파일.
+ * SQL 은 카탈로그 전체 상태의 멱등 upsert 라 새 파일 하나로 서버가 정본에 맞춰진다.
+ */
+function catalogSqlOutput(content) {
+  const files = readdirSync(MIGRATIONS)
+    .filter((f) => f.endsWith(".sql"))
+    .sort();
+  const catalogFiles = files.filter((f) => CATALOG_SQL_RE.test(f));
+  const latest = catalogFiles[catalogFiles.length - 1];
+  if (latest && readFileSync(join(MIGRATIONS, latest), "utf8") === content) return null;
+  const maxNo = Math.max(0, ...files.map((f) => Number(f.slice(0, 4))).filter(Number.isFinite));
+  return join(MIGRATIONS, `${String(maxNo + 1).padStart(4, "0")}_catalog_rev_${rev}.sql`);
+}
+
+/** 이미 커밋된 카탈로그 마이그레이션을 손으로(또는 옛 생성기로) 고쳤는가 — 적용된 파일은 바뀌면 안 된다. git 이 없으면 건너뛴다. */
+function editedAppliedCatalogMigrations() {
+  const out = [];
+  for (const f of readdirSync(MIGRATIONS).filter((n) => CATALOG_SQL_RE.test(n))) {
+    const rel = `database/migrations/${f}`;
+    try {
+      const committed = execFileSync("git", ["show", `HEAD:src/${rel}`], {
+        cwd: SRC,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+      if (committed !== readFileSync(join(MIGRATIONS, f), "utf8")) out.push(rel);
+    } catch {
+      // 아직 커밋 안 된 새 파일이거나 git 이 없다 — 검사 대상이 아니다
+    }
+  }
+  return out;
+}
+
+const OUT_SQL = catalogSqlOutput(sql);
+const outputs = [[OUT_TS, ts], [OUT_REV, revTs], [OUT_MIG, mig], ...(OUT_SQL ? [[OUT_SQL, sql]] : [])];
 
 if (CHECK) {
   const drift = outputs.filter(([p, c]) => {
@@ -255,6 +291,12 @@ if (CHECK) {
       return true;
     }
   });
+  const edited = editedAppliedCatalogMigrations();
+  for (const p of edited)
+    console.error(
+      `  ✗ 이미 적용된 카탈로그 마이그레이션이 바뀌었습니다: ${p} — 되돌리고 make catalog 로 새 번호 파일을 만드세요`,
+    );
+  if (edited.length) process.exit(1);
   if (drift.length) {
     for (const [p] of drift) console.error(`  ✗ 생성물이 정본과 다릅니다: ${p.replace(`${SRC}/`, "")}`);
     console.error("    make catalog 로 다시 만드세요.");

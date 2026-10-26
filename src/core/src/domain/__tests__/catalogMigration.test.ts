@@ -7,7 +7,14 @@ import { fileURLToPath } from 'node:url';
 
 import { CATALOG, CATALOG_FAMILIES } from '../../data/catalog/catalog.generated';
 import { MIGRATION_OVERRIDES } from '../../data/catalog/catalogMigration.data';
-import { buildCatalogIndex, planBlockMigration, planDisplayNames, type BlockColumns } from '../catalogMigrationPlan';
+import {
+  buildCatalogIndex,
+  CATALOG_REVAMP_AT,
+  displayNameSourceUse,
+  planBlockMigration,
+  planDisplayNames,
+  type BlockColumns,
+} from '../catalogMigrationPlan';
 import { IMPLEMENT_KEYS, normalizeVariantDimsV34 } from '../variants';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -201,4 +208,29 @@ test('수렴(QA H1) — 서버 이관 뒤 옛 PWA 가 옛 형식(로프 푸시�
   const stale = applied(block('seed-rope-pushdown', null, { machineVariant: null }));
   assert.deepEqual(stale, server);
   assert.equal(planBlockMigration(server, idx).changed, false);
+});
+
+// ── /qa code H-1 — 이름이 바뀐 종목을 개편 **뒤에** 처음 쓴 사람에게 옛 이름을 심지 않는다 ──────────
+test('표시 이름 출처(H-1): 개편 뒤에 처음 쓴 이름 바뀐 종목은 출처가 아니다 → 옛 이름을 심지 않는다', () => {
+  const after = CATALOG_REVAMP_AT + 60_000;
+  const use = displayNameSourceUse([{ ...block('seed-incline-press'), createdAt: after }], idx);
+  assert.equal(use.size, 0);
+  assert.equal(planDisplayNames(use, idx).get('seed-incline-press'), undefined);
+});
+
+test('표시 이름 출처(H-1): 개편 전에 쓰던 기록은 출처 — 옛 이름 「인클라인 프레스 (바벨)」 유지', () => {
+  const before = CATALOG_REVAMP_AT - 60_000;
+  const use = displayNameSourceUse([{ ...block('seed-incline-press'), createdAt: before }], idx);
+  assert.equal(planDisplayNames(use, idx).get('seed-incline-press'), '인클라인 프레스 (바벨)');
+});
+
+test('표시 이름 출처(H-1): 옛 종목(병합 원본)을 가리키는 블록은 시각과 무관하게 출처 — 옛 PWA 가 개편 뒤에 올린 것', () => {
+  const after = CATALOG_REVAMP_AT + 60_000;
+  const use = displayNameSourceUse([{ ...block('seed-rope-pushdown'), createdAt: after }], idx);
+  assert.equal(planDisplayNames(use, idx).get('seed-triceps-pushdown'), '로프 푸시다운');
+});
+
+test('표시 이름 출처(H-1): 만든 시각을 모르면 출처로 치지 않는다(심지 않는 쪽이 안전)', () => {
+  const use = displayNameSourceUse([{ ...block('seed-incline-press'), createdAt: null }], idx);
+  assert.equal(use.size, 0);
 });

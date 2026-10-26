@@ -335,5 +335,16 @@ export default schemaMigrations({
         }),
       ],
     },
+    // v23: 기본 종목 숨기기를 사용자 선호로(/qa code M-4). 시드 종목 행은 사용자 동기에서 빠져(D10) 다른 기기로 가지 않았고,
+    // 카탈로그를 다시 받으면 풀렸다. null = 숨기지 않음. @plm SRS-056
+    {
+      toVersion: 23,
+      steps: [
+        addColumns({
+          table: 'exercise_user_prefs',
+          columns: [{ name: 'hidden', type: 'boolean', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

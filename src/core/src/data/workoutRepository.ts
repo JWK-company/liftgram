@@ -37,6 +37,7 @@ import {
   pickStartSlot,
   blockLoadMultiplier,
   carryWeightAcrossMultiplier,
+  planBlockMultiplierResync,
   summarizeSlots,
   type SlotSummary,
 } from '../domain/recordSlots'; // ADR-034 지난 조합 · ADR-037 한쪽 입력 @plm SRS-057 SRS-058
@@ -1002,13 +1003,20 @@ export async function syncBlockLoadMultiplier(workoutExerciseId: string): Promis
     return; // 블록이 지워졌다
   }
   const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
-  const stale = sets.filter((x) => (x.loadMultiplier ?? null) !== m);
-  if (!stale.length) return;
+  // [원본] 블록의 **모든** 세트(이미 한 세트 포함) 배수를 바꾸고 무게는 그대로 — 운동 도중 토글하면 완료 세트의
+  // 계산 무게가 두 배·절반이 되어 거짓 PR·볼륨이 남았다(/qa code M-1)
+  // const stale = sets.filter((x) => (x.loadMultiplier ?? null) !== m);
+  // ... stale.map((x) => x.prepareUpdate((rec) => { rec.loadMultiplier = m; }))
+  // [개선] 안 한 세트만 옮기고, 적힌 무게는 계산 무게가 같도록 환산한다 — 한 세트는 그 배수로 적은 그대로 둔다
+  const plan = planBlockMultiplierResync(sets, m);
+  if (!plan.length) return;
+  const byId = new Map(sets.map((x) => [x.id, x]));
   await database.write(async () => {
     await database.batch(
-      ...stale.map((x) =>
-        x.prepareUpdate((rec) => {
-          rec.loadMultiplier = m;
+      ...plan.map((u) =>
+        (byId.get(u.id) as SetLog).prepareUpdate((rec) => {
+          rec.loadMultiplier = u.loadMultiplier;
+          rec.weightKg = u.weightKg;
         }),
       ),
     );

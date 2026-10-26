@@ -100,3 +100,24 @@ test('지난 세트 프리필 환산 — 양쪽 합 80 → 한쪽 입력이면 4
   assert.equal(carryWeightAcrossMultiplier(42.5, 2, 2), 42.5);
   assert.equal(carryWeightAcrossMultiplier(25, 1, 2), 12.5);
 });
+
+// ── /qa code M-1 — 운동 도중 한쪽 입력을 켜도 이미 한 세트의 무게 의미는 그대로 ──────────────
+test('배수 재조정(M-1): 완료한 세트는 그대로, 안 한 세트만 새 배수로 옮기고 계산 무게가 같게 환산한다', async () => {
+  const { planBlockMultiplierResync } = await import('../recordSlots');
+  const sets = [
+    { id: 'a', done: true, weightKg: 100, loadMultiplier: null },
+    { id: 'b', done: true, weightKg: 100, loadMultiplier: null },
+    { id: 'c', done: false, weightKg: 100, loadMultiplier: null },
+    { id: 'd', done: null, weightKg: 100, loadMultiplier: null }, // 옛 세트(done 미기록) = 수행한 것으로 본다
+  ];
+  const plan = planBlockMultiplierResync(sets, 2);
+  assert.deepEqual(plan, [{ id: 'c', weightKg: 50, loadMultiplier: 2 }]);
+});
+
+test('배수 재조정(M-1): 끄면(2 → null) 안 한 세트의 한쪽 40 이 양쪽 80 이 된다 · 같은 배수면 아무것도 안 한다', async () => {
+  const { planBlockMultiplierResync } = await import('../recordSlots');
+  assert.deepEqual(planBlockMultiplierResync([{ id: 'x', done: false, weightKg: 40, loadMultiplier: 2 }], null), [
+    { id: 'x', weightKg: 80, loadMultiplier: null },
+  ]);
+  assert.deepEqual(planBlockMultiplierResync([{ id: 'y', done: false, weightKg: 40, loadMultiplier: 2 }], 2), []);
+});

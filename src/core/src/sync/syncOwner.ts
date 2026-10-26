@@ -103,6 +103,11 @@ async function wipeFor(serverUserId: string): Promise<void> {
   // 카탈로그는 사용자 데이터가 아니라 앱의 재료다 — 비운 자리에 다시 심는다.
   const { seedExercisesIfNeeded } = await import('../data/seedRunner');
   await seedExercisesIfNeeded();
+  // 비운 DB 에는 부팅 백필이 다시 필요하다 — 기기 로컬 표식을 지운다(빈 값 = 미실행). 카탈로그 판 표식도 지워
+  // 다음 카탈로그 동기가 처음부터 받게 한다(/qa code L-2). 소유자 저장소에는 remove 가 없어 빈 값을 쓴다.
+  const { clearBootMarkers } = await import('../migrations/runner');
+  clearBootMarkers({ get: () => null, set: () => {}, remove: (k) => void store?.set(k, '') });
+  await store?.set('liftgram.catalog.revision', '');
   await store?.set(OWNER_KEY, serverUserId);
   await setBlocked(null);
 }

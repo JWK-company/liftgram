@@ -240,7 +240,7 @@ export interface WorkoutExerciseDetail {
   machineVariant: string | null; // 머신 기구/브랜드 키(null=기본, 레거시)
   variantKey: string | null; // v6 변형 버킷 키(기구·그립·팔). @plm SRS-028
   note: string | null; // 세션 종목 메모(그날 느낌·포인트). @plm SRS-004
-  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null }[];
+  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null }[];
   volumeKg: number;
   bestEstimated1RM: number;
 }
@@ -296,6 +296,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
         isFailed: s.isFailed,
         arm: s.arm ?? null,
         partialReps: s.partialReps ?? null,
+        loadMultiplier: s.loadMultiplier ?? null, // 공유·가져오기가 계산 무게를 알게(/qa code L-5) @plm SRS-058
       })),
       volumeKg,
       bestEstimated1RM: bestEstimatedOneRepMax(logged),
