@@ -65,13 +65,14 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 
 ## 정식 계정 (SRS-052) — v0.19.0 `fe616c4` 운영 · 키 대기
 - 구현·배포 완료: 이메일 확인(24h·재발송 60초) · 비밀번호 찾기/재설정(30분·1회·전 세션 끊김) · 변경/설정 · 소셜(구글·카카오·네이버 · state·PKCE · 일회용 로그인 코드 → /auth/complete · 같은 주소 자동 합병 금지 · 2분 연결 표 · 마지막 수단 해제 금지) · Turnstile · 인증 IP당 10회/분 · **XFF 위조 구멍 수정**(운영 실측: 위조 XFF로도 11번째 차단)
-- 운영 .env: TRUST_CF_CONNECTING_IP=1 · AUTH_RATE_LIMIT=10 · MAIL_TRANSPORT=console(키 오면 smtp) — 메일 꺼져 있으면 화면이 확인 안내·비밀번호 찾기를 숨긴다(GetAuthOptions.mail_enabled)
+- **메일 켜짐(2026-10-26)**: CF Email Sending tarae.org(SPF·DKIM·DMARC PASS — 사용자 Gmail 원본 확인) · 토큰 IP 118.128.43.242 제한 · 465 implicit TLS · 배포 점검이 SMTP 로그인 확인
+- v0.20.0 `cc74e3d`: 미확인 72h 뒤 소셜 쓰기 제한(VerifiedGate) · 운영 .env TRUST_CF_CONNECTING_IP=1 · AUTH_RATE_LIMIT=10
 - 테스트: Go 계정 규칙 11 · e2e auth-formal 7(Mailpit 실메일 · 가짜 제공자는 `-tags=oauthfake`, BASE=http://localhost:3100 필요 — state 쿠키가 APP_URL 호스트에 묶임)
 
 ## 다음 작업
-1. **사용자 키 대기** → 받으면 서버 .env에 넣고 재기동(재빌드 불필요): CF Email Sending(tarae.org onboard + SMTP 토큰 → MAIL_TRANSPORT=smtp·MAIL_SMTP_HOST=smtp.mx.cloudflare.net·MAIL_REQUIRE_TLS=true) · Turnstile(TURNSTILE_SITE_KEY·SECRET) · 구글 OAuth(OAUTH_GOOGLE_*, redirect `https://liftgram.tarae.org/api/auth/oauth/google/callback`)
+1. **사용자 키 대기**(메일 완료): Turnstile(TURNSTILE_SITE_KEY·SECRET) · 구글 OAuth(OAUTH_GOOGLE_*) → .env 넣고 `up -d backend frontend`(재빌드 불필요 · deploy/README 표)
 2. 그다음: 사용자가 구글로 새 계정 생성 → admin@example.com의 기록·관계·역할(admin)을 새 계정으로 이전(sync_records 등 user_id 재지정 · 시드 종목 충돌은 옛 것 유지) → 임시 계정 폐기
-3. 남은 것: 미확인 72h 뒤 소셜 기능 제한(미구현) · 배포 점검에 메일 실발송 1건 · codescan 400(plugin) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
+3. 남은 것: codescan 400(plugin) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
 - 옛 Netlify: 리다이렉트 + `/recover` 복구 페이지 유지(stop_builds) · 무관한 미커밋 `plugin/**`
 ## 게이트 / 차단
 G1·G2 pass · G3 = @plm 주석 완료, codescan 400으로 딥링크 미동기. 범위 밖 기존 이슈: ADR-012·013 supersedes dangling, ADR-025→026 Replaced 전이 필요.
