@@ -410,13 +410,18 @@ export default function ActiveWorkout() {
           <ExercisePicker
             bare
             onClose={() => setPicking(null)}
-            onPick={(exerciseId) =>
+            onPick={(exerciseId, info) =>
               guard(async () => {
+                // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
+                const { applyPick } = await import("@/lib/exerciseNames");
                 if (picking.mode === "swap") {
                   await repo.swapWorkoutExercise(picking.weId, exerciseId);
+                  await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
                   setVersion((v) => v + 1);
                 } else {
-                  await repo.addExerciseToWorkout(workout.id, exerciseId);
+                  const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
+                  await applyPick(exerciseId, info, { workoutExerciseId: we.id });
+                  if (info) setVersion((v) => v + 1);
                 }
                 setPicking(null);
               })

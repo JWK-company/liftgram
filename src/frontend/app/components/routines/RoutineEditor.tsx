@@ -344,15 +344,21 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           <div className="mt-[var(--spacing-md)]">
             <ExercisePicker
               onClose={() => setPicking(null)}
-              onPick={(exerciseId) => {
+              onPick={(exerciseId, info) => {
                 const p = picking;
                 setPicking(null);
                 void (async () => {
+                  // 고른 이름(별칭)이 표시 이름·함축 칸을 정한다 @plm SRS-056
+                  const { applyPick } = await import("@/lib/exerciseNames");
                   if (p.mode === "swap") {
                     await repo.swapRoutineExercise(p.reId, exerciseId);
+                    await applyPick(exerciseId, info, { routineExerciseId: p.reId });
                   } else {
                     const id = await ensureId();
-                    if (id) await repo.addExerciseToRoutine(id, exerciseId);
+                    if (id) {
+                      const re = await repo.addExerciseToRoutine(id, exerciseId);
+                      await applyPick(exerciseId, info, { routineExerciseId: re.id });
+                    }
                   }
                   await flush();
                   setVersion((v) => v + 1);

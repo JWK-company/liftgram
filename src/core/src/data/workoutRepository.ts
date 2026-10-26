@@ -1167,7 +1167,10 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
     if (prs.length) {
       let name = '운동';
       try {
-        name = (await getExercise(exerciseId)).nameKo;
+        // [원본] name = (await getExercise(exerciseId)).nameKo;
+        // [개선] 표시 이름(ADR-033) — PR 축하·요약이 운동 화면과 같은 이름 @plm SRS-056
+        const { getExerciseDisplayNameMap } = await import('./exerciseNames');
+        name = (await getExerciseDisplayNameMap([exerciseId])).get(exerciseId) ?? (await getExercise(exerciseId)).nameKo;
       } catch {
         /* 종목이 삭제된 경우 기본명 유지 */
       }

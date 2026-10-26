@@ -78,7 +78,11 @@ async function exerciseMeta(ids: string[]): Promise<Map<string, { nameKo: string
   const map = new Map<string, { nameKo: string; primary: MuscleGroup | null }>();
   if (!ids.length) return map;
   const list = await exercises().query(Q.where('id', Q.oneOf(ids))).fetch();
-  for (const e of list) map.set(e.id, { nameKo: e.nameKo, primary: e.primaryMuscles[0] ?? null });
+  // [원본] for (const e of list) map.set(e.id, { nameKo: e.nameKo, primary: e.primaryMuscles[0] ?? null });
+  // [개선] 표시 이름(사용자가 부르는 이름 — ADR-033)으로. 분석·기록·공유가 운동 화면과 같은 이름을 쓴다. @plm SRS-056
+  const { getExerciseDisplayNameMap } = await import('./exerciseNames');
+  const names = await getExerciseDisplayNameMap(ids);
+  for (const e of list) map.set(e.id, { nameKo: names.get(e.id) ?? e.nameKo, primary: e.primaryMuscles[0] ?? null });
   return map;
 }
 

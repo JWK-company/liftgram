@@ -49,6 +49,7 @@ import { NumberStepper } from "../ui/inputs";
 import { AppText, Card, Tag } from "../ui/primitives";
 // [원본] import { VariantSelector } from "../ui/VariantSelector";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
+import { useExerciseName } from "@/lib/exerciseNames";
 import { ExerciseName } from "./ExerciseName";
 import { ExerciseTipPanel } from "./ExerciseTipPanel";
 import { NoteHistoryPanel } from "./NoteHistoryPanel";
@@ -111,7 +112,9 @@ export function ExerciseBlock({
   const [isCardio, setIsCardio] = useState(false);
   // 종목마다 기록하는 지표가 다르다(러닝머신=경사·속도, 계단=단계, 줄넘기=시간만) — 도메인이 정한다.
   const [cardioMetrics, setCardioMetrics] = useState<CardioMetric[]>(["duration", "distance"]);
-  const [exName, setExName] = useState<string | null>(null);
+  // [원본] const [exName, setExName] = useState<string | null>(null);
+  // [P3] 표시 이름(내가 부르는 이름) — PR 축하·팁 제목이 블록 이름과 같게 @plm SRS-056
+  const exName = useExerciseName(we.exerciseId);
   const [variant, setVariant] = useState<VariantDims>(() => we.variant ?? {});
   const [restSeconds, setRestSeconds] = useState(we.restSeconds ?? 120);
   const [note, setNote] = useState(we.note ?? "");
@@ -125,8 +128,12 @@ export function ExerciseBlock({
   const [volTick, setVolTick] = useState(0);
 
   // 종목이 바뀌면(기구 바꾸기·대체) 저장소가 새 종목의 지난 조합을 승계해 둔다 — 그 값을 다시 따른다.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 종목이 바뀔 때만 따라간다(같은 종목의 선택은 위 상태가 정본)
-  useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId]);
+  // [원본] 종목이 바뀔 때만 따라갔다 — 그래서 고른 직후 저장소가 칸을 정하면(별칭 「로프 푸시다운」 → 로프 · P3) 화면이 몰랐다
+  // useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId]);
+  // [개선] 저장된 칸(키)이 바뀌어도 따른다. 같은 종목에서 사람이 고른 값은 곧 같은 키로 저장되므로 되돌리지 않는다. @plm SRS-056
+  const storedVariantKey = canonicalVariantKey(we.variant ?? {});
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 종목·저장된 칸이 바뀔 때만 따라간다(그 사이 선택은 위 상태가 정본)
+  useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId, storedVariantKey]);
 
   const variantKey = useMemo(() => canonicalVariantKey(variant), [variant]);
 
@@ -146,7 +153,7 @@ export function ExerciseBlock({
         setBaseEquipment(e.equipment);
         setIsCardio(e.kind === "cardio");
         setCardioMetrics(cardioMetricsFor({ nameEn: e.nameEn }));
-        setExName(e.nameKo);
+        // [원본] setExName(e.nameKo);
         setLoadMode(resolveLoadMode(e as Parameters<typeof resolveLoadMode>[0]));
       } catch {
         // 삭제된 종목 — 기본값으로 둔다.

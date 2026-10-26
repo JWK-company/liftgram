@@ -8,20 +8,13 @@
 //   · 사용자가 고른 표시 이름(이관이 심은 옛 이름 포함)이 있으면 그것, 없으면 대표 이름(「기구 + 동작」)
 //   · 기구 토큰을 떼던 축약(`base`)은 없앴다 — 기구가 곧 종목이라(바벨 벤치 ≠ 덤벨 벤치) 떼면 다른 종목과 구별이 안 된다
 // [원본] import { baseExerciseName, exerciseDisplayName } from "@app/core/domain/exerciseName";
-import { exerciseDisplayName } from "@app/core/domain/exerciseName";
+// [원본] import { exerciseDisplayName } from "@app/core/domain/exerciseName";
 import { useEffect, useRef, useState } from "react";
+import { useExerciseName } from "@/lib/exerciseNames";
 import { AppText } from "../ui/primitives";
 
 /** 펼친 뒤 다시 접히기까지 — app과 같은 3초. */
 const REVEAL_MS = 3000;
-
-type Named = {
-  nameKo: string;
-  nameEn: string | null;
-  equipment?: string | null;
-  kind?: string | null;
-  displayName?: string | null;
-};
 
 export function ExerciseName({
   exerciseId,
@@ -38,25 +31,10 @@ export function ExerciseName({
   revealOnTap?: boolean;
   testId?: string;
 }) {
-  const [ex, setEx] = useState<Named | null>(null);
+  // [P3] 표시 이름은 공용 훅에서 — 이름 바꾸기를 하면 그려진 블록도 곧바로 바뀐다(lib/exerciseNames) @plm SRS-056
+  const name = useExerciseName(exerciseId);
   const [expanded, setExpanded] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    void (async () => {
-      try {
-        const repo = await import("@app/core/data/exerciseRepository");
-        const e = (await repo.getExerciseDisplayName(exerciseId)) as Named | null;
-        if (alive && e) setEx(e);
-      } catch {
-        // 삭제된 종목 등 — 이름 없이 둔다.
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [exerciseId]);
 
   useEffect(
     () => () => {
@@ -67,9 +45,7 @@ export function ExerciseName({
 
   // [원본] const label = ex ? (base ? baseExerciseName(ex) : exerciseDisplayName(ex)) : "…";
   void base; // 축약 폐지(P2) — 호출부의 base 는 무시한다
-  const label = ex
-    ? ex.displayName || exerciseDisplayName(ex as Parameters<typeof exerciseDisplayName>[0])
-    : "…";
+  const label = name ?? "…";
 
   const text = (
     <AppText

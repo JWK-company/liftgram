@@ -23,6 +23,7 @@ import { createConnectTransport } from "@connectrpc/connect-web";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getExerciseMedia } from "@app/core/data/exerciseMedia";
 import { exerciseAltName, exerciseListName } from "@app/core/domain/exerciseName";
+import { buildExerciseSearchIndex, matchedLabel, searchExercises } from "@app/core/domain/exerciseSearch";
 import { t } from "@/lib/i18n";
 import { equipmentLabelFromDomain, muscleLabelFromDomain } from "@/lib/labels";
 import ExerciseFinderWizard, { type WizardResult } from "./ExerciseFinderWizard";
@@ -44,6 +45,12 @@ type Row = {
   isCustom: boolean;
   /** 커스텀 종목이 올린 사진 — 없으면 자세 미디어의 시작 프레임을 쓴다. */
   imageUrl: string | null;
+  // v22 카탈로그 메타 — 검색 색인(별칭·비슷한 운동) @plm SRS-056
+  aliases: string[];
+  family: string | null;
+  similar: string[];
+  /** 검색에서 대표 이름이 아닌 별칭·영문이 맞았으면 그 말(줄에 「· 롱풀」로 보인다) */
+  matchedAlias?: string | null;
 };
 
 type Repo = typeof import("@app/core/data/exerciseRepository");
@@ -130,16 +137,26 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
         kind: r.kind,
         isCustom: r.isCustom,
         imageUrl: r.imageUrl,
+        aliases: r.aliases ?? [],
+        family: r.family ?? null,
+        similar: r.similar ?? [],
       };
     });
     // 스무고개가 종목집합을 줬으면 부위 쿼리 결과 위에 교집합을 취한다(app과 같은 순서).
     const narrowed = names ? list.filter((e) => new Set(names).has(e.id)) : list;
-    // 검색은 여기서 — 대소문자 무시 부분일치(한글 이름 · 영문 이름). app과 같은 규칙이다.
-    const q = query.trim().toLowerCase();
-    if (!q) return narrowed;
-    return narrowed.filter(
-      (e) => e.nameKo.toLowerCase().includes(q) || (e.nameEn ?? "").toLowerCase().includes(q),
-    );
+    // [원본] 검색은 여기서 — 대소문자 무시 부분일치(한글 이름 · 영문 이름). app과 같은 규칙이다.
+    // const q = query.trim().toLowerCase();
+    // if (!q) return narrowed;
+    // return narrowed.filter(
+    //   (e) => e.nameKo.toLowerCase().includes(q) || (e.nameEn ?? "").toLowerCase().includes(q),
+    // );
+    // [개선] 피커와 같은 검색(띄어쓰기·초성·별칭·영문 · 관련도 순 — core/domain/exerciseSearch) @plm SRS-056
+    if (!query.trim()) return narrowed;
+    const byId = new Map(narrowed.map((e) => [e.id, e]));
+    return searchExercises(buildExerciseSearchIndex(narrowed), query).hits.flatMap((h) => {
+      const e = byId.get(h.id);
+      return e ? [{ ...e, matchedAlias: matchedLabel(h, e.nameKo) }] : [];
+    });
   }, [models, query, names]);
 
   // ── 서버가 카탈로그를 바꾸면 다시 받는다 ──
@@ -412,7 +429,7 @@ function ExerciseRow({ row }: { row: Row }) {
                 ? t("wizard.cardio")
                 : row.primaryMuscles.map((m) => muscleLabelFromDomain(m)).join("·"),
               equipmentLabelFromDomain(row.equipment),
-              altName,
+              row.matchedAlias ?? altName,
             ]
               .filter(Boolean)
               .join(" · ")}

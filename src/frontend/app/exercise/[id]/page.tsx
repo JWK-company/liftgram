@@ -22,6 +22,7 @@ import ExerciseProgress from "../../components/analytics/ExerciseProgress";
 import { UserSettingsProvider } from "../../components/UserSettingsProvider";
 import { ScreenHeader } from "../../components/ui/ScreenHeader";
 import { ExerciseAdminBar } from "../../components/ExerciseAdminBar";
+import { ExerciseNameHeader } from "../../components/ExerciseNameHeader";
 import { Icon } from "../../components/ui/Icon";
 import { AppText, Card, Divider, SectionHeader, Tag } from "../../components/ui/primitives";
 
@@ -120,9 +121,11 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
 
       <div className="flex flex-1 flex-col gap-[var(--spacing-md)] p-[var(--spacing-lg)]">
         <div className="flex items-start gap-[var(--spacing-sm)]">
-          <AppText variant="title" className="flex-1" data-testid="exercise-name">
-            {exerciseListName(named)}
-          </AppText>
+          {/* [원본] <AppText variant="title" className="flex-1" data-testid="exercise-name">{exerciseListName(named)}</AppText> */}
+          {/* [P3] 내가 부르는 이름 + ⋯ 이름 바꾸기(기기 저장소 — 클라이언트) @plm SRS-056 */}
+          <div className="min-w-0 flex-1">
+            <ExerciseNameHeader exerciseId={id} fallback={exerciseListName(named)} />
+          </div>
           {exercise.isCustom ? <Tag label={t("exercises.customTag")} tone="muted" /> : null}
         </div>
         {altName ? (
