@@ -1,0 +1,35 @@
+# @plm SRS-008  운영 배포(h2500-3) 덮어쓰기 — compose.yaml 위에 얹는다
+#
+#   docker compose -p liftgram -f compose.yaml -f compose.prod.yaml up -d --wait
+#
+# compose.yaml과 다른 것은 셋뿐이다:
+#   ① **DB는 띄우지 않는다** — 옛 배포가 쓰던 Neon을 그대로 쓴다(DATABASE_URL). 두 스키마는
+#      테이블 이름이 겹치지 않아("User"↔users · _prisma_migrations↔_migrations) 한 DB에 함께 산다.
+#      그래서 옛 배포로 되돌릴 자리가 그대로 남는다.
+#   ② **루프백에만 연다** — 공용 서버다. 밖에서 들어오는 길은 Cloudflare 터널 하나뿐이다
+#      (liftgram.tarae.org → http://localhost:${WEB_PORT}).
+#   ③ broker(redis)는 호스트에 노출하지 않는다 — 컨테이너끼리만 본다.
+services:
+  db:
+    # 운영에서는 뜨지 않는다. compose.yaml의 정의는 로컬 실행 때문에 남겨 둔다.
+    profiles: ["local-db"]
+
+  broker:
+    ports: !reset []
+
+  migrate:
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다 (Neon 연결 문자열)}
+    depends_on: !reset {}
+
+  backend:
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다 (Neon 연결 문자열)}
+    restart: unless-stopped
+    depends_on: !override
+      broker: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  frontend:
+    restart: unless-stopped
+    ports: !override ["127.0.0.1:${WEB_PORT:?WEB_PORT가 필요하다}:3000"]

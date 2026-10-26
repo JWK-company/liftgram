@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-08-03T12:57:48Z",
+  "last_gate_check": "2026-10-26T02:03:46Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -32,7 +32,7 @@
       "MRPT"
     ]
   },
-  "last_updated": "2026-07-26T10:30:00Z",
+  "last_updated": "2026-10-26T02:10:00Z",
   "tasks": {
     "bp-001-blueprint": "done",
     "dr-002-design-research": "done",
@@ -79,13 +79,17 @@
     "web-stack-final": {
       "status": "done",
       "note": "브랜치 feat/web-stack-tarae · 12커밋 · 유산소 세트행·온보딩·httpOnly 쿠키 세션·사진 메시지 · e2e 84종. 푸시는 사용자 확인 대기"
+    },
+    "prod-cutover-tarae-org": {
+      "status": "blocked",
+      "note": "h2500-3+CF 터널 liftgram.tarae.org · DB=옛 Neon 공존 · 배포 자산·서버 빌드 ✓ · 차단: DATABASE_URL·터널 호스트명(사용자)"
     }
   },
   "active_files": [
-    "src/frontend/app/components/session/SetRowCardio.tsx",
-    "src/frontend/app/components/OnboardingOverlay.tsx",
-    "src/frontend/app/api/session/route.ts",
-    "src/frontend/lib/session.ts"
+    "src/compose.prod.yaml",
+    "src/scripts/deploy-h2500-3.sh",
+    "src/Dockerfile",
+    "src/deploy/README.md"
   ],
   "notes": {
     "last_done": "2026-08-03 UI 이관 방침 확정 + 디자인 토큰 이전 — app/src/theme/tokens.ts를 core로 옮기고 make sync-core가 Tailwind @theme CSS를 생성(색을 두 곳에 안 적음·드리프트 검사 포함). 템플릿 변수명에 app 팔레트를 꽂아 기존 화면 무수정 전환 → 배경 #0E1116 등 app과 동일. verify·e2e 11/11·smoke 10종(dev·컨테이너).",

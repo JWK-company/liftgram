@@ -1,6 +1,23 @@
 # 배포 — 개발 단계는 무료, 정식 배포는 유료로
 
-## 지금(개발 단계) — 완전 무료
+## 지금 — h2500-3 + Cloudflare 터널 → `https://liftgram.tarae.org` (2026-10-26~)
+
+booktarae(`booktarae.org`)와 같은 방식이다. 도메인을 따로 사지 않고 이미 가진 `tarae.org`의 서브도메인을 쓴다.
+
+| 구성요소 | 무엇을 쓰나 |
+|---|---|
+| 화면 + API | 공용 서버 **h2500-3**의 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) · frontend는 `127.0.0.1:3410`에만 열린다 |
+| 공개 주소 | Cloudflare 터널의 공개 호스트명 `liftgram.tarae.org` → `http://localhost:3410` |
+| PostgreSQL | **옛 배포(Render `liftgram-api`)가 쓰던 Neon 그대로** — 새 테이블이 옛 테이블 옆에 산다(이름이 겹치지 않는다) |
+| Redis | compose의 broker(호스트에 노출하지 않음) |
+| 사진 | 서버 디스크(named volume `liftgram_media`) — 재배포해도 남는다 |
+
+- **배포**: `bash scripts/deploy-h2500-3.sh` — 커밋된 것만 나간다(작업 트리 WIP 제외) · 빌드 전 디스크 확인 · 서버에 `~/liftgram/DEPLOYED_REF`로 배포 커밋을 기록 · 끝에 `readyz`(DB까지)를 본다.
+- **서버 설정**: `~/liftgram/src/.env`(권한 600 · 사람이 관리 · 스크립트는 읽기만 한다). 필수 = `DATABASE_URL`·`JWT_SECRET`·`APP_URL`·`WEB_PORT`.
+- **터널**: 공개 호스트명은 Cloudflare 대시보드(Zero Trust → Networks → Tunnels)에서 단다. 커넥터가 `host` 네트워크라 `localhost:3410`이 그대로 보인다.
+- **되돌리기**: `DEPLOY_REF=<커밋> bash scripts/deploy-h2500-3.sh`. 옛 배포(Netlify + Render)로 돌아가야 하면 옛 테이블이 그대로 있으므로 주소만 바꾸면 된다.
+
+## 예전 계획(개발 단계 무료) — Render 합본
 
 | 구성요소 | 무엇을 쓰나 | 비용 |
 |---|---|---|

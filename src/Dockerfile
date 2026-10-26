@@ -33,6 +33,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" -o /out/server 
 
 # ── backend 이미지 ───────────────────────────────────────────────────────────
 FROM alpine:3.21 AS backend
+# 공용 서버에서 우리 옛 이미지만 골라 회수하는 표식(scripts/deploy-h2500-3.sh).
+LABEL project=liftgram
 WORKDIR /app
 # ca-certificates: 바깥으로 HTTPS를 걸 때 필요하다(지금은 안 쓰지만, 붙이는 순간 없으면 디버깅이 길어진다).
 RUN apk add --no-cache ca-certificates \
@@ -67,6 +69,10 @@ FROM oven/bun:1 AS frontend-build
 WORKDIR /app
 COPY --from=frontend-deps /app/node_modules ./node_modules
 COPY --from=frontend-deps /app/frontend/node_modules ./frontend/node_modules
+# bun 은 워크스페이스마다 자기 node_modules 를 둔다(@bufbuild/protobuf → contracts/,
+# watermelondb → core/). 이 둘을 빠뜨리면 Next 빌드가 "Module not found" 49건으로 죽는다(2026-10-26 실측).
+COPY --from=frontend-deps /app/contracts/node_modules ./contracts/node_modules
+COPY --from=frontend-deps /app/core/node_modules ./core/node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # 계약은 **빌드하지 않는다**(ADR-011) — proto에서 생성된 TS를 Next가 직접 트랜스파일한다.
@@ -74,6 +80,7 @@ RUN bun run --cwd frontend build
 
 # ── frontend 이미지 ──────────────────────────────────────────────────────────
 FROM node:24-slim AS frontend
+LABEL project=liftgram
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 RUN groupadd -r app && useradd -r -g app app
