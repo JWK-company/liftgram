@@ -88,6 +88,8 @@ RUN groupadd -r app && useradd -r -g app app
 #   /app/frontend/server.js · /app/node_modules/...
 COPY --from=frontend-build /app/frontend/.next/standalone ./
 COPY --from=frontend-build /app/frontend/.next/static ./frontend/.next/static
+# public/(PWA 매니페스트·아이콘)도 standalone에 실리지 않는다 — 빠뜨리면 홈 화면 추가가 앱이 아니라 탭으로 열린다.
+COPY --from=frontend-build /app/frontend/public ./frontend/public
 # entry point은 Next가 만든 server.js가 아니라 우리 커스텀 서버다(/ws 업그레이드를 받아야 하므로).
 COPY --from=frontend-build /app/frontend/server.mjs ./frontend/server.mjs
 COPY --from=frontend-build /app/frontend/lib/env.ts ./frontend/lib/env.ts
@@ -126,6 +128,8 @@ RUN groupadd -r app && useradd -r -g app app
 # 화면(standalone) — frontend 타깃과 같은 구성
 COPY --from=frontend-build /app/frontend/.next/standalone ./
 COPY --from=frontend-build /app/frontend/.next/static ./frontend/.next/static
+# public/(PWA 매니페스트·아이콘)도 standalone에 실리지 않는다 — 빠뜨리면 홈 화면 추가가 앱이 아니라 탭으로 열린다.
+COPY --from=frontend-build /app/frontend/public ./frontend/public
 COPY --from=frontend-build /app/frontend/server.mjs ./frontend/server.mjs
 COPY --from=frontend-build /app/frontend/lib/env.ts ./frontend/lib/env.ts
 COPY --from=frontend-deps /app/frontend/node_modules/ws ./frontend/node_modules/ws

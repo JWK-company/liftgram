@@ -13,7 +13,7 @@
 // 새 화면은 app/<경로>/page.tsx만 추가하면 이 셸 안에 들어온다 — 여기를 고칠 일은
 // 내비게이션이 늘거나 전역 UI 슬롯이 필요할 때뿐이다.
 // ─────────────────────────────────────────────────────────────────────────────
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { AuthProvider } from "./components/AuthProvider";
 import { GlobalWorkoutBar } from "./components/GlobalWorkoutBar";
 import { SessionProvider } from "./components/SessionProvider";
@@ -31,8 +31,14 @@ import "./globals.css";
 // (app/opengraph-image.tsx)로 만들고 거기서 env.APP_URL을 읽는다 — 그건 요청 시점에 돈다.
 export const metadata: Metadata = {
   title: "Liftgram",
-  description: "운동 카탈로그 — liftgram 웹 스택",
+  description: "운동 기록 + 소셜 — Hevy식 트래킹에 인스타식 피드·DM·스토리",
+  // 홈 화면에 추가하면 앱처럼 열린다(옛 Expo 웹과 같은 매니페스트·아이콘 — public/).
+  manifest: "/manifest.json",
+  appleWebApp: { capable: true, title: "Liftgram", statusBarStyle: "black-translucent" },
+  icons: { apple: "/apple-touch-icon.png" },
 };
+
+export const viewport: Viewport = { themeColor: "#0E1116" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
