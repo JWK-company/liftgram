@@ -45,6 +45,8 @@ test("표시 이름을 바꾸면 다른 화면에도 그 이름으로 나온다"
 
   // 남이 보는 곳에서도 새 이름이다 — 글을 쓰면 작성자가 그 이름으로 나온다.
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(`이름 확인 ${Date.now()}`);
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText(바꾼이름, { timeout: 20_000 });

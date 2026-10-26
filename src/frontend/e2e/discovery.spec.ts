@@ -26,6 +26,8 @@ test("발견은 팔로우하지 않은 사람의 공개 글도 보여 준다", a
   const 글 = `발견 실험 ${Date.now()}`;
   await 가입(page, freshEmail("author"), `발견주인${Date.now().toString(36)}`);
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(`${글} #발견태그`);
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText(글, { timeout: 20_000 });
@@ -55,6 +57,8 @@ test("검색은 사람·태그·글을 한 번에 찾는다", async ({ page }) =
   const 낱말 = `검색낱말${Date.now().toString(36)}`;
   await 가입(page, freshEmail("search"), `검색인${Date.now().toString(36)}`);
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(`${낱말} 들어간 글 #${낱말}`);
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText(낱말, { timeout: 20_000 });

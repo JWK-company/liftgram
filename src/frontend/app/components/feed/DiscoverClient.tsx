@@ -2,6 +2,7 @@
 // @plm SRS-018  사람 찾기 — app의 features/social/DiscoverScreen.tsx를 웹으로
 //
 // 이름·이메일 부분일치로 찾고, 그 자리에서 팔로우한다.
+// 피드의 「발견」 밑줄 탭 안에도 그대로 들어간다(embedded — 머리 없이 · SRS-054 시안 08). /discover 주소는 남긴다.
 // 검색은 **입력이 멈춘 뒤** 보낸다(타이핑마다 보내면 한 사람 찾는 데 열 번을 조른다).
 import type { UserResult } from "@app/contracts";
 import { routes } from "@app/contracts";
@@ -13,10 +14,10 @@ import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { TextField } from "../ui/inputs";
 import { ListState } from "../ui/ListState";
-import { AppText, Card } from "../ui/primitives";
+import { AppText } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 
-export default function DiscoverClient() {
+export default function DiscoverClient({ embedded = false }: { embedded?: boolean }) {
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<UserResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -70,14 +71,16 @@ export default function DiscoverClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ScreenHeader
-        title={t("discover.title")}
-        back={
-          <a href="/feed" aria-label={t("feed.title")} data-testid="discover-back">
-            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
-          </a>
-        }
-      />
+      {embedded ? null : (
+        <ScreenHeader
+          title={t("discover.title")}
+          back={
+            <a href="/feed" aria-label={t("feed.title")} data-testid="discover-back">
+              <Icon name="chevron-back" size={24} color="var(--color-ink)" />
+            </a>
+          }
+        />
+      )}
       <div className="px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
         <TextField
           value={query}
@@ -99,9 +102,12 @@ export default function DiscoverClient() {
             />
           ) : null
         ) : (
-          users.map((u) => (
-            <Card key={u.author?.id} className="mb-[var(--spacing-sm)]">
-              <div className="flex items-center gap-[var(--spacing-sm)]">
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+            {users.map((u) => (
+              <div
+                key={u.author?.id}
+                className="flex items-center gap-[var(--spacing-sm)] px-[var(--spacing-md)] py-[var(--spacing-sm)]"
+              >
                 <a
                   href={routes.userProfile(u.author?.id ?? "")}
                   className="flex min-w-0 flex-1 items-center gap-[var(--spacing-sm)]"
@@ -121,8 +127,8 @@ export default function DiscoverClient() {
                   testId="discover-follow"
                 />
               </div>
-            </Card>
-          ))
+            ))}
+          </div>
         )}
       </div>
     </div>

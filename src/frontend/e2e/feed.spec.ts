@@ -28,6 +28,8 @@ async function 가입(page: Page, email: string, name: string) {
 
 async function 글쓰기(page: Page, caption: string) {
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(caption);
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText(caption, { timeout: 20_000 });
@@ -151,6 +153,8 @@ test("사진을 올리면 글에 붙고, 새로고침해도 그 자리에 있다
   await page.goto("/feed");
 
   // 진짜 PNG 한 장을 만들어 고른다(입력은 숨겨져 있으므로 직접 채운다).
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("compose-file").setInputFiles({
     name: "shot.png",
     mimeType: "image/png",
@@ -183,6 +187,8 @@ test("사진만 있고 글이 없어도 올릴 수 있다", async ({ page }) => 
   await page.goto("/feed");
 
   // 아무것도 없으면 게시 버튼은 눌리지 않는다.
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await expect(page.getByTestId("feed-post")).toBeDisabled();
 
   await page.getByTestId("compose-file").setInputFiles({

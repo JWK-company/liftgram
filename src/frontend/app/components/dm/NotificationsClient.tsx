@@ -14,7 +14,7 @@ import { notificationClient } from "@/lib/dmClient";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 import { ListState } from "../ui/ListState";
-import { AppText, Card } from "../ui/primitives";
+import { AppText } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 
 function sentence(n: Notification): string {
@@ -83,9 +83,17 @@ export default function NotificationsClient() {
             emptyMessage="notif.emptyMessage"
           />
         ) : (
-          items.map((n) => (
-            <a key={n.id} href={target(n)} data-testid="notif-row">
-              <Card className="mb-[var(--spacing-sm)]">
+          // 줄 목록(SRS-054): 안 읽은 줄은 옅은 브랜드 바탕 + 점 — 읽음 표시가 약하던 것(29개 표).
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+            {items.map((n) => (
+              <a
+                key={n.id}
+                href={target(n)}
+                data-testid="notif-row"
+                className={`block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt) ${
+                  n.read ? "" : "bg-(--color-brand-muted)"
+                }`}
+              >
                 <div className="flex items-center gap-[var(--spacing-md)]">
                   <Avatar name={n.actor?.displayName} url={n.actor?.avatarUrl} size={40} />
                   <AppText variant="body" className="min-w-0 flex-1">
@@ -94,9 +102,9 @@ export default function NotificationsClient() {
                   {/* 안 읽은 것은 점 하나로만 구분한다 — 목록이 요란해지지 않게. */}
                   {n.read ? null : <span className="h-2 w-2 shrink-0 rounded-full bg-(--color-brand)" />}
                 </div>
-              </Card>
-            </a>
-          ))
+              </a>
+            ))}
+          </div>
         )}
       </div>
     </div>

@@ -22,6 +22,7 @@ import { Icon } from "../ui/Icon";
 import { ListState } from "../ui/ListState";
 import { AppText, EmptyState } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
+import { MoreMenu } from "../ui/MoreMenu";
 import { InfiniteSentinel } from "./InfiniteSentinel";
 import { PostCard } from "./PostCard";
 import { useWeightUnit } from "./useWeightUnit";
@@ -139,31 +140,54 @@ export default function UserProfileClient({ userId }: { userId: string }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ScreenHeader title={name} back={<BackToFeed />} />
+      <ScreenHeader
+        title={name}
+        back={<BackToFeed />}
+        right={
+          profile && !profile.isSelf && !profile.isBlocked ? (
+            <MoreMenu
+              testId="profile-menu"
+              sheetTestId="profile-menu-sheet"
+              options={[
+                {
+                  label: t("profile.block"),
+                  destructive: true,
+                  testId: "profile-block",
+                  onPress: toggleBlock,
+                },
+              ]}
+            />
+          ) : null
+        }
+      />
 
       <div className="flex-1 p-[var(--spacing-lg)]">
         {profile ? (
-          <div className="flex flex-col items-center py-[var(--spacing-lg)]" data-testid="profile-header">
-            <Avatar name={name} url={profile.author?.avatarUrl} size={84} />
-            <div className="mt-[var(--spacing-md)]">
-              <AppText variant="heading" data-testid="profile-name">
-                {name}
-              </AppText>
-            </div>
-            <div className="mt-[var(--spacing-lg)] flex gap-[var(--spacing-xxl)]">
-              <Stat value={profile.postCount} label={t("profile.postsLabel")} />
-              <Stat
-                value={profile.followerCount}
-                label={t("profile.followers")}
-                href={routes.follows(userId, "followers")}
-                testId="profile-followers"
-              />
-              <Stat
-                value={profile.followingCount}
-                label={t("profile.following")}
-                href={routes.follows(userId, "following")}
-                testId="profile-following"
-              />
+          // 내 프로필(시안 09)과 같은 머리: 왼쪽 아바타 · 오른쪽 이름과 숫자 셋 → 아래 팔로우·메시지.
+          // 차단은 화면에 늘 드러내지 않고 머리의 ⋯ 안에 둔다(위험 동작 규칙).
+          <div className="pb-[var(--spacing-lg)]" data-testid="profile-header">
+            <div className="flex items-center gap-[var(--spacing-lg)]">
+              <Avatar name={name} url={profile.author?.avatarUrl} size={72} />
+              <div className="min-w-0 flex-1">
+                <AppText variant="heading" data-testid="profile-name" className="block truncate">
+                  {name}
+                </AppText>
+                <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-xl)]">
+                  <Stat value={profile.postCount} label={t("profile.postsLabel")} />
+                  <Stat
+                    value={profile.followerCount}
+                    label={t("profile.followers")}
+                    href={routes.follows(userId, "followers")}
+                    testId="profile-followers"
+                  />
+                  <Stat
+                    value={profile.followingCount}
+                    label={t("profile.following")}
+                    href={routes.follows(userId, "following")}
+                    testId="profile-following"
+                  />
+                </div>
+              </div>
             </div>
 
             {profile.isSelf ? null : profile.isBlocked ? (
@@ -179,38 +203,26 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 </div>
               </div>
             ) : (
-              <>
-                <div className="mt-[var(--spacing-lg)] flex w-full gap-[var(--spacing-sm)]">
-                  <div className="flex-1">
-                    <Button
-                      title={profile.isFollowing ? t("discover.following") : t("discover.follow")}
-                      variant={profile.isFollowing ? "secondary" : "primary"}
-                      loading={busy}
-                      onPress={toggleFollow}
-                      testId="profile-follow"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Button
-                      title={t("profile.message")}
-                      icon="chatbubble-ellipses-outline"
-                      variant="secondary"
-                      onPress={message}
-                      testId="profile-message"
-                    />
-                  </div>
+              <div className="mt-[var(--spacing-lg)] flex w-full gap-[var(--spacing-sm)]">
+                <div className="flex-1">
+                  <Button
+                    title={profile.isFollowing ? t("discover.following") : t("discover.follow")}
+                    variant={profile.isFollowing ? "secondary" : "primary"}
+                    loading={busy}
+                    onPress={toggleFollow}
+                    testId="profile-follow"
+                  />
                 </div>
-                <button
-                  type="button"
-                  onClick={toggleBlock}
-                  className="mt-[var(--spacing-md)]"
-                  data-testid="profile-block"
-                >
-                  <AppText variant="caption" color="danger">
-                    {t("profile.block")}
-                  </AppText>
-                </button>
-              </>
+                <div className="flex-1">
+                  <Button
+                    title={t("profile.message")}
+                    icon="chatbubble-ellipses-outline"
+                    variant="secondary"
+                    onPress={message}
+                    testId="profile-message"
+                  />
+                </div>
+              </div>
             )}
           </div>
         ) : null}

@@ -35,6 +35,8 @@ test("남의 글은 신고할 수 있고, 내 글에는 신고 버튼이 없다"
   const 주인이름 = `주인${Date.now().toString(36)}`;
   await 가입(page, freshEmail("owner"), 주인이름);
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill("신고 실험용 글");
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText("신고 실험용 글", { timeout: 20_000 });
@@ -64,6 +66,8 @@ test("댓글도 신고할 수 있다 — 내 댓글은 삭제, 남의 댓글은 
   const 주인이름 = `댓글주인${Date.now().toString(36)}`;
   await 가입(page, freshEmail("cowner"), 주인이름);
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill("댓글 신고 실험");
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText("댓글 신고 실험", { timeout: 20_000 });
@@ -113,6 +117,8 @@ test("차단하면 목록에 뜨고, 거기서 풀 수 있다", async ({ page, c
   await 가입(page, freshEmail("blocker"), "차단하는사람");
 
   await 프로필로(page, 상대이름);
+  // 차단은 머리의 ⋯ 안에 있다(SRS-054 위험 동작 규칙).
+  await page.getByTestId("profile-menu").click();
   await page.getByTestId("profile-block").click();
   // 차단하면 그 자리에서 해제 버튼으로 바뀐다.
   await expect(page.getByTestId("profile-unblock")).toBeVisible({ timeout: 20_000 });
@@ -144,6 +150,8 @@ test("검토자는 큐에서 글을 내릴 수 있다", async ({ page, context }
   await 가입(page, `q-owner-${ts}@x.com`, 주인이름);
   await page.goto("/feed");
   const 글 = `큐에 올라갈 글 ${ts}`;
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(글);
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText(글, { timeout: 20_000 });

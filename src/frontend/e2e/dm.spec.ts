@@ -159,6 +159,8 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   const 주인메일 = freshEmail("owner");
   await 가입(page, 주인메일, 주인이름);
   await page.goto("/feed");
+  // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
+  await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill("알림 실험용 글");
   await page.getByTestId("feed-post").click();
   await expect(page.getByTestId("feed-list")).toContainText("알림 실험용 글", { timeout: 20_000 });

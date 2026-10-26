@@ -2,8 +2,9 @@
 // @plm SRS-007  피드 탭 — app의 features/social/FeedTabScreen.tsx를 웹으로
 //
 // ─────────────────────────────────────────────────────────────────────────────
-//   머리   제목 + 저장함·사람 찾기
-//   작성   캡션 입력 + 게시
+//   머리   제목 + 검색·DM·알림(기본색 아이콘 셋 — SRS-054 시안 08. 저장함은 프로필로, 사람 찾기는 「발견」 탭으로)
+//   갈래   팔로잉 / 발견 밑줄 탭. 팔로잉이 비면 그 자리에 발견(사람 찾기)을 곧바로 보여 준다
+//   작성   + 버튼 → 전체 화면 작성기(결정 D5) — 피드는 읽기에 집중하고, 쓸 때만 작성기를 연다
 //   목록   PostCard들 · 스크롤 끝에서 다음 페이지
 //
 // ── 로그인 ──────────────────────────────────────────────────────────────────
@@ -32,6 +33,9 @@ import { TextArea } from "../ui/inputs";
 import { ListState } from "../ui/ListState";
 import { AppText, EmptyState } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
+import { AppBar } from "../ui/AppBar";
+import { UnderlineTabs } from "../ui/rows";
+import DiscoverClient from "./DiscoverClient";
 import { GearTagPicker } from "./GearTagPicker";
 import { ImagePicker } from "./ImagePicker";
 import { GearSource, GearCategory as GearCategoryEnum } from "@app/contracts";
@@ -91,6 +95,8 @@ export default function FeedClient() {
   const [storyBusy, setStoryBusy] = useState(false);
   // 안 읽은 알림 수 — 머리의 배지.
   const [unread, setUnread] = useState(0);
+  const [tab, setTab] = useState<"following" | "discover">("following");
+  const [composing, setComposing] = useState(false);
 
   // 새로고침 세대 — 이 값이 바뀌면 진행 중이던 페이지 요청의 결과는 버린다.
   const gen = useRef(0);
@@ -211,6 +217,9 @@ export default function FeedClient() {
       setPicked(null);
       setGear([]);
       uploaded.current = null; // 글이 올라갔으니 캐시는 버린다
+      // 작성기를 닫고 방금 쓴 글이 보이는 팔로잉 목록으로 돌아간다. 실패하면 작성기를 연 채로 오류를 보인다.
+      setComposing(false);
+      setTab("following");
     } catch (e) {
       setError(feedErrorMessage(e));
     } finally {
@@ -255,127 +264,202 @@ export default function FeedClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ScreenHeader
+      <AppBar
         title={t("feed.title")}
-        right={
-          <div className="flex items-center gap-[var(--spacing-lg)]">
-            <a
+        actions={
+          <>
+            <HeadIcon
+              href="/explore"
+              label={t("explore.title")}
+              icon="search-outline"
+              testId="feed-explore"
+            />
+            <HeadIcon
+              href="/messages"
+              label={t("dm.title")}
+              icon="chatbubbles-outline"
+              testId="feed-messages"
+            />
+            <HeadIcon
               href="/notifications"
-              aria-label={t("notif.title")}
-              data-testid="feed-notifications"
-              className="relative"
-            >
-              <Icon name="notifications-outline" size={22} color="var(--color-brand)" />
-              {unread > 0 ? (
-                <span
-                  data-testid="feed-unread-badge"
-                  className="-top-[5px] -right-[7px] absolute flex h-4 min-w-4 items-center justify-center rounded-full bg-(--color-bad) px-[3px]"
-                >
-                  <AppText variant="label" style={{ color: "var(--color-on-brand)", fontSize: 9 }}>
+              label={t("notif.title")}
+              icon="notifications-outline"
+              testId="feed-notifications"
+              badge={
+                unread > 0 ? (
+                  <span
+                    data-testid="feed-unread-badge"
+                    className="absolute top-1.5 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-(--color-brand) px-[3px] font-bold text-(--color-on-brand) text-[9px]"
+                  >
                     {unread > 9 ? "9+" : String(unread)}
-                  </AppText>
-                </span>
-              ) : null}
-            </a>
-            <a href="/messages" aria-label={t("dm.title")} data-testid="feed-messages">
-              <Icon name="chatbubbles-outline" size={22} color="var(--color-brand)" />
-            </a>
-            <a href="/explore" aria-label={t("explore.title")} data-testid="feed-explore">
-              <Icon name="compass-outline" size={22} color="var(--color-brand)" />
-            </a>
-            <a href="/bookmarks" aria-label={t("bookmark.title")} data-testid="feed-bookmarks">
-              <Icon name="bookmark-outline" size={22} color="var(--color-brand)" />
-            </a>
-            <a href="/discover" aria-label={t("discover.title")} data-testid="feed-discover">
-              <Icon name="person-add-outline" size={22} color="var(--color-brand)" />
-            </a>
-          </div>
+                  </span>
+                ) : null
+              }
+            />
+          </>
         }
       />
 
-      <StoryTray
-        groups={groups}
-        meId={user?.id ?? null}
-        seen={seen}
-        busy={storyBusy}
-        onOpen={openStory}
-        onAdd={addStory}
+      <UnderlineTabs
+        testId="feed-tabs"
+        value={tab}
+        onChange={setTab}
+        items={[
+          { value: "following", label: "팔로잉", testId: "feed-following" },
+          { value: "discover", label: "발견", testId: "feed-discover" },
+        ]}
       />
 
-      <div className="border-(--color-line) border-b px-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[var(--spacing-md)]">
-        <TextArea
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          placeholder={t("feed.composePlaceholder")}
-          testId="feed-caption"
-          className="mb-[var(--spacing-sm)]!"
-        />
-        {/* 착용장비 태그 — 선택 칩 미리보기 + 목록 시트 */}
-        <GearTagPicker value={gear} onChange={setGear} disabled={posting} />
-        <ImagePicker file={picked} onPick={setPicked} disabled={posting} />
-        <div className="mt-[var(--spacing-xs)] flex items-center gap-[var(--spacing-sm)]">
-          <div className="flex-1" />
-          <Button
-            title={posting ? t("feed.uploading") : t("feed.post")}
-            icon="send"
-            size="sm"
-            loading={posting}
-            disabled={!caption.trim() && !picked}
-            fullWidth={false}
-            onPress={submit}
-            testId="feed-post"
+      {tab === "discover" ? (
+        <DiscoverClient embedded />
+      ) : (
+        <>
+          <StoryTray
+            groups={groups}
+            meId={user?.id ?? null}
+            seen={seen}
+            busy={storyBusy}
+            onOpen={openStory}
+            onAdd={addStory}
           />
-        </div>
-        {error ? (
-          <div className="mt-[var(--spacing-sm)]">
-            <AppText variant="caption" color="danger" data-testid="feed-error">
-              {error}
-            </AppText>
-          </div>
-        ) : null}
-      </div>
 
-      <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-list">
-        {posts.length === 0 ? (
-          <ListState
-            loading={loading}
-            error={loadError}
-            onRetry={load}
-            skeletonVariant="post"
-            emptyIcon="newspaper-outline"
-            emptyTitle="feed.emptyTitle"
-            emptyMessage="feed.emptyMessage"
-            emptyAction={
-              <Button
-                title={t("feed.emptyCta")}
-                icon="people-outline"
-                variant="secondary"
-                fullWidth={false}
-                onPress={() => {
-                  navigate("/discover");
-                }}
-                testId="feed-empty-discover"
+          <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-list">
+            {posts.length === 0 ? (
+              <>
+                <ListState
+                  loading={loading}
+                  error={loadError}
+                  onRetry={load}
+                  skeletonVariant="post"
+                  emptyIcon="newspaper-outline"
+                  emptyTitle="feed.emptyTitle"
+                  emptyMessage="feed.emptyMessage"
+                />
+                {/* 팔로잉이 비면 그 자리에서 사람을 찾게 한다(시안 08) — 다른 화면으로 보내지 않는다. */}
+                {!loading && !loadError ? (
+                  <div
+                    className="-mx-[var(--spacing-lg)] mt-[var(--spacing-md)]"
+                    data-testid="feed-empty-discover"
+                  >
+                    <DiscoverClient embedded />
+                  </div>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {posts.map((p) => (
+                  <PostCard
+                    key={p.id}
+                    post={p}
+                    meId={user?.id ?? null}
+                    unit={unit as WeightUnit}
+                    onChanged={replace}
+                    onDeleted={drop}
+                  />
+                ))}
+                <InfiniteSentinel onReach={loadMore} disabled={!cursor} />
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* + 버튼 — 탭바 위 오른쪽. 넓은 화면에서도 앱 폭(560) 안쪽에 붙는다. */}
+      <button
+        type="button"
+        aria-label={t("feed.post")}
+        data-testid="feed-compose"
+        onClick={() => setComposing(true)}
+        className="fixed right-[max(16px,calc(50vw-264px))] bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-(--color-brand) shadow-lg active:opacity-80"
+      >
+        <Icon name="add" size={28} color="var(--color-on-brand)" />
+      </button>
+
+      {composing ? (
+        // 전체 화면 작성기 — 장비·사진 시트(z-50)가 이 위로 뜨도록 한 단 낮게 둔다.
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="새 글"
+          data-testid="feed-composer"
+          className="fixed inset-0 z-[45] flex justify-center bg-(--color-bg)"
+        >
+          <div className="flex w-full max-w-[560px] flex-col bg-(--color-surface)">
+            <header className="flex min-h-14 items-center border-(--color-line) border-b px-[var(--spacing-xs)]">
+              <button
+                type="button"
+                aria-label="닫기"
+                data-testid="composer-close"
+                onClick={() => setComposing(false)}
+                className="flex h-11 w-11 items-center justify-center"
+              >
+                <Icon name="close" size={24} color="var(--color-ink)" />
+              </button>
+              <h1 className="flex-1 text-center font-semibold text-[length:var(--text-md)]">새 글</h1>
+              <div className="pr-[var(--spacing-sm)]">
+                <Button
+                  title={posting ? t("feed.uploading") : t("feed.post")}
+                  size="sm"
+                  loading={posting}
+                  disabled={!caption.trim() && !picked}
+                  fullWidth={false}
+                  onPress={submit}
+                  testId="feed-post"
+                />
+              </div>
+            </header>
+            <div className="flex-1 overflow-y-auto px-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[var(--spacing-xl)]">
+              <TextArea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder={t("feed.composePlaceholder")}
+                testId="feed-caption"
+                rows={6}
+                className="mb-[var(--spacing-sm)]!"
               />
-            }
-          />
-        ) : (
-          <>
-            {posts.map((p) => (
-              <PostCard
-                key={p.id}
-                post={p}
-                meId={user?.id ?? null}
-                unit={unit as WeightUnit}
-                onChanged={replace}
-                onDeleted={drop}
-              />
-            ))}
-            <InfiniteSentinel onReach={loadMore} disabled={!cursor} />
-          </>
-        )}
-      </div>
+              {/* 착용장비 태그 — 선택 칩 미리보기 + 목록 시트 */}
+              <GearTagPicker value={gear} onChange={setGear} disabled={posting} />
+              <ImagePicker file={picked} onPick={setPicked} disabled={posting} />
+              {error ? (
+                <div className="mt-[var(--spacing-sm)]">
+                  <AppText variant="caption" color="danger" data-testid="feed-error">
+                    {error}
+                  </AppText>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <StoryViewer group={viewing} meId={user?.id ?? null} onClose={() => setViewing(null)} />
     </div>
+  );
+}
+
+/** 피드 머리 아이콘 — 기본 글자색(붉은 아이콘은 「눌러야 할 것」 처럼 보였다 · 시안 08). */
+function HeadIcon({
+  href,
+  label,
+  icon,
+  testId,
+  badge,
+}: {
+  href: string;
+  label: string;
+  icon: Parameters<typeof Icon>[0]["name"];
+  testId: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      aria-label={label}
+      data-testid={testId}
+      className="relative flex h-11 w-11 items-center justify-center rounded-full active:opacity-60"
+    >
+      <Icon name={icon} size={23} color="var(--color-ink)" />
+      {badge}
+    </a>
   );
 }

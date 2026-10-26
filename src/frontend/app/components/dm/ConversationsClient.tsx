@@ -23,7 +23,7 @@ import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { ListState } from "../ui/ListState";
-import { AppText, Card } from "../ui/primitives";
+import { AppText } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 
 /** 1:1이면 상대 이름, 그룹이면 제목(없으면 참여자 이름들). */
@@ -76,7 +76,7 @@ export default function ConversationsClient() {
         }
         right={
           <a href="/messages/new" aria-label={t("group.title")} data-testid="dm-new-group">
-            <Icon name="people-outline" size={22} color="var(--color-brand)" />
+            <Icon name="people-outline" size={23} color="var(--color-ink)" />
           </a>
         }
       />
@@ -105,16 +105,25 @@ export default function ConversationsClient() {
             }
           />
         ) : (
-          convs.map((c) => {
-            const title = conversationTitle(c, meId);
-            const preview = c.lastMessage ? c.lastMessage.body || t("dm.imageMessage") : "";
-            return (
-              <a key={c.id} href={routes.conversation(c.id)} data-testid="dm-row">
-                <Card className="mb-[var(--spacing-sm)]">
+          // 줄 목록(SRS-054 · 29개 표): 아바타 · 이름 · 미리보기 · 안 읽음 수. 카드 더미 대신 한 판에 줄을 겹친다.
+          <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
+            {convs.map((c) => {
+              const title = conversationTitle(c, meId);
+              const preview = c.lastMessage ? c.lastMessage.body || t("dm.imageMessage") : "";
+              return (
+                <a
+                  key={c.id}
+                  href={routes.conversation(c.id)}
+                  data-testid="dm-row"
+                  className="block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt)"
+                >
                   <div className="flex items-center gap-[var(--spacing-md)]">
                     <Avatar name={title} size={44} />
                     <span className="min-w-0 flex-1">
-                      <AppText variant="body" className="block truncate font-medium!">
+                      <AppText
+                        variant="body"
+                        className={`block truncate ${c.unreadCount > 0 ? "font-bold!" : "font-medium!"}`}
+                      >
                         {title}
                       </AppText>
                       <AppText variant="caption" color="textMuted" className="mt-[2px] block truncate">
@@ -132,10 +141,10 @@ export default function ConversationsClient() {
                       </span>
                     ) : null}
                   </div>
-                </Card>
-              </a>
-            );
-          })
+                </a>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
