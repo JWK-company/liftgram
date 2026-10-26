@@ -3,7 +3,7 @@
 - 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
 - Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
 - 작업 범위: src/core(seed·domain·migrations·sync·db) · src/frontend(Picker·CatalogClient·VariantSelector·session) · src/backend(exercise) · src/proto/exercise · src/database(0014·0015) · src/scripts/gen-catalog.mjs
-- 현재 위치: **P0+P1 완료·배포 v0.30.1(build 307, 279be00)** — 정본 CSV·gen-catalog·무결성/이관 계획·부팅 파이프라인·D10·v22·ADR-034 키. 다음 = **P2**(시드=catalog.generated 전환·KEY 이전·0014 staged→migrations·proto aliases/family/archived·be/cmd/migrate-records·CATALOG_NORMALIZE_ENABLED=true·implement 칩 제거+attach/grip 칩·display_name 시드·코칭 리포트) · 규칙: 질문 없이 완주·GPU 금지
+- 현재 위치: **P2 완료·배포 v0.31.0(build 309, 4eafaa2)·운영 기록 이관 적용** — 188 블록 이동·표시 이름 58·불변식 통과·재실행 no-op · 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump · 리포트 spec/dryrun-report.md·apply-report.md · 다음 = **P3**(검색 정규화·초성·별칭 색인·비슷한 운동·표시 이름 선택/되돌리기 — useExerciseName 최소판은 ExerciseName 에만, 분석·피드·기록 목록은 아직 nameKo)
 
 ## 채널 담당 (2026-07-28 지시) — **세션 281e6e0e 단독**. 다른 세션은 채널 메시지를 받아도 대기(동시 편집 레이스 방지).
 ## 세션 상태 — 웹 스택 교체 진행 중 (모든 소셜 슬라이스는 2026-08-03 작업)
