@@ -85,6 +85,23 @@ services:
       PLM_API_URL: ${PLM_API_URL:-https://jwk-plm.shoi.ch}
       PLM_API_TOKEN: ${PLM_API_TOKEN:-}
       PLM_PROJECT: ${PLM_PROJECT:-liftgram}
+      # 정식 계정(SRS-052) — 메일 링크·OAuth redirect_uri 의 기준 주소는 APP_URL 하나다
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:-console}
+      MAIL_SMTP_HOST: ${MAIL_SMTP_HOST:-}
+      MAIL_SMTP_PORT: ${MAIL_SMTP_PORT:-587}
+      MAIL_SMTP_USER: ${MAIL_SMTP_USER:-}
+      MAIL_SMTP_PASSWORD: ${MAIL_SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-Liftgram <no-reply@localhost>}
+      MAIL_REQUIRE_TLS: ${MAIL_REQUIRE_TLS:-true}
+      TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
+      AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-10}
+      OAUTH_GOOGLE_CLIENT_ID: ${OAUTH_GOOGLE_CLIENT_ID:-}
+      OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET:-}
+      OAUTH_KAKAO_CLIENT_ID: ${OAUTH_KAKAO_CLIENT_ID:-}
+      OAUTH_KAKAO_CLIENT_SECRET: ${OAUTH_KAKAO_CLIENT_SECRET:-}
+      OAUTH_NAVER_CLIENT_ID: ${OAUTH_NAVER_CLIENT_ID:-}
+      OAUTH_NAVER_CLIENT_SECRET: ${OAUTH_NAVER_CLIENT_SECRET:-}
     volumes:
       - media:/app/media
     # 호스트 포트를 열지 않는다 — 위 그림 참고.
@@ -110,6 +127,9 @@ services:
       APP_URL: ${APP_URL:-http://localhost:3000}
       SHUTDOWN_TIMEOUT_MS: ${SHUTDOWN_TIMEOUT_MS:-10000}
       NODE_ENV: production
+      # 운영은 터널 뒤라 1(compose.prod 가 포트를 루프백에만 연다) — SRS-052
+      TRUST_CF_CONNECTING_IP: ${TRUST_CF_CONNECTING_IP:-0}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
     ports: ["${WEB_PORT:-3000}:3000"]
     healthcheck:
       # **frontend 자신의** 경로를 본다(/healthz). /api/healthz 는 프록시라 backend의 상태를

@@ -31,6 +31,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -61,11 +62,13 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/feedback"
 	"github.com/JWK-company/liftgram/src/backend/internal/gear"
 	"github.com/JWK-company/liftgram/src/backend/internal/idempotency"
+	"github.com/JWK-company/liftgram/src/backend/internal/mailer"
 	"github.com/JWK-company/liftgram/src/backend/internal/media"
 	"github.com/JWK-company/liftgram/src/backend/internal/meta"
 	"github.com/JWK-company/liftgram/src/backend/internal/middleware"
 	"github.com/JWK-company/liftgram/src/backend/internal/moderation"
 	"github.com/JWK-company/liftgram/src/backend/internal/notification"
+	"github.com/JWK-company/liftgram/src/backend/internal/oauth"
 	"github.com/JWK-company/liftgram/src/backend/internal/realtime"
 	"github.com/JWK-company/liftgram/src/backend/internal/story"
 	syncdomain "github.com/JWK-company/liftgram/src/backend/internal/sync"
@@ -135,6 +138,36 @@ func main() {
 	authRepo := auth.NewRepo(pool)
 	authSvc := auth.NewService(authRepo, auth.NewHMACSigner(cfg.JWTSecret))
 
+	// ── 정식 계정(SRS-052): 메일 · 사람 확인 · 소셜 제공자 ──
+	mailSender, err := newMailSender(cfg)
+	if err != nil {
+		slog.Error("메일 설정 오류", "err", err)
+		os.Exit(1)
+	}
+	auth.LogMailMode(cfg.MailTransport)
+	mailTmpl, err := mailer.NewTemplates(cfg.AppURL)
+	if err != nil {
+		slog.Error("메일 템플릿 준비 실패", "err", err)
+		os.Exit(1)
+	}
+	oauthProviders := oauth.NewRegistry(oauth.Registry{
+		Google:      oauth.ProviderConfig{ClientID: cfg.OAuthGoogleClientID, ClientSecret: cfg.OAuthGoogleClientSecret},
+		Kakao:       oauth.ProviderConfig{ClientID: cfg.OAuthKakaoClientID, ClientSecret: cfg.OAuthKakaoClientSecret},
+		Naver:       oauth.ProviderConfig{ClientID: cfg.OAuthNaverClientID, ClientSecret: cfg.OAuthNaverClientSecret},
+		KakaoLegacy: cfg.OAuthKakaoLegacy,
+	})
+	authSvc.WithAccount(auth.Account{
+		Repo:      auth.NewAccountRepo(authRepo),
+		Mail:      mailSender,
+		Templates: mailTmpl,
+		Human:     auth.NewTurnstile(cfg.TurnstileSecret),
+		Providers: oauth.Names(oauthProviders),
+		// 메일이 콘솔로만 나가면 화면이 확인 안내·비밀번호 찾기를 숨긴다(오지 않을 메일을 기다리게 하지 않는다)
+		MailEnabled: cfg.MailTransport == "smtp",
+	})
+	slog.Info("정식 계정", "mail", cfg.MailTransport, "turnstile", cfg.TurnstileSecret != "", "providers", oauth.Names(oauthProviders))
+	authLimiter := auth.NewAuthLimiter(cfg.AuthRateLimit, time.Minute)
+
 	opts := connect.WithInterceptors(
 		middleware.RequestLogInterceptor(),
 		limiter.Interceptor(),
@@ -164,8 +197,17 @@ func main() {
 
 	// ── 계정·인증 ──
 	// 서비스는 위(인터셉터)에서 이미 만들었다 — 같은 인스턴스를 핸들러도 쓴다.
-	authPath, authHTTP := authv1connect.NewAuthServiceHandler(auth.NewHandler(authSvc), opts)
+	authPath, authHTTP := authv1connect.NewAuthServiceHandler(auth.NewHandler(authSvc).WithLimiter(authLimiter), opts)
 	mount(mux, authPath, authHTTP)
+
+	// 소셜 로그인 왕복 — 브라우저 전면 리다이렉트라 Connect 밖에서 받는다(/media/file 과 같은 선례).
+	mux.Handle("/api/auth/oauth/", oauth.NewHandler(oauthProviders, authSvc, oauth.Config{
+		AppURL:       cfg.AppURL,
+		Secret:       []byte(cfg.JWTSecret),
+		CookieSecure: strings.HasPrefix(cfg.AppURL, "https://"),
+		SignInPath:   "/account",
+		CompletePath: "/auth/complete",
+	}, func(key string) bool { return authLimiter.Allow("oauth|" + key) }))
 
 	// ── 미디어 ──
 	// 저장소는 **여기서 한 번** 정해진다. 도메인은 자기가 디스크를 쓰는지 R2를 쓰는지 모른다.
@@ -349,4 +391,15 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(body)
+}
+
+// newMailSender — smtp 는 운영, console 은 개발(메일 본문을 로그로 찍는다).
+func newMailSender(cfg *config.Config) (mailer.Sender, error) {
+	if cfg.MailTransport == "smtp" {
+		return mailer.NewSMTP(mailer.SMTPConfig{
+			Host: cfg.MailSMTPHost, Port: cfg.MailSMTPPort, Username: cfg.MailSMTPUser, Password: cfg.MailSMTPPass,
+			From: cfg.MailFrom, Timeout: 10 * time.Second, RequireTLS: cfg.MailRequireTLS,
+		})
+	}
+	return mailer.NewConsole(), nil
 }

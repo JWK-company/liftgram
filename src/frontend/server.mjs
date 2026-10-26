@@ -15,6 +15,7 @@
 // 프로토콜을 해석하지 않으므로 메시지 종류가 늘어도 이 파일은 바뀌지 않는다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { createServer } from "node:http";
+import { isIP } from "node:net";
 import next from "next";
 import { WebSocket, WebSocketServer } from "ws";
 import { assertEnv, env } from "./lib/env.ts";
@@ -86,12 +87,25 @@ const server = createServer((req, res) => {
   res.setHeader("referrer-policy", "strict-origin-when-cross-origin");
   res.setHeader("x-frame-options", "SAMEORIGIN");
 
-  // web이 이 스택의 **가장자리**다 — 여기서 클라이언트 주소를 기록해 두지 않으면
-  // api는 모든 요청을 "web이 보냈다"고 보게 되고, rate limit이 전원 한 키로 묶인다.
-  // 이미 앞에 프록시(nginx·클라우드 LB)가 있으면 그쪽이 붙인 체인을 그대로 존중한다.
-  if (!req.headers["x-forwarded-for"]) {
-    const ip = req.socket.remoteAddress ?? "";
-    if (ip) req.headers["x-forwarded-for"] = ip.replace(/^::ffff:/, "");
+  // web이 이 스택의 **가장자리**다 — 여기서 클라이언트 주소를 **한 번** 정하고, api는 그 값만 쓴다.
+  //
+  // ⚠ 예전에는 "XFF가 없으면 소켓 주소를 넣는다"였다. 그러면 **클라이언트가 보낸 XFF가 그대로** 내려가
+  //   헤더 하나로 요청 제한을 우회할 수 있었다(2026-10-26 발견). 이제 받은 XFF는 버리고 다시 세운다:
+  //   ① TRUST_CF_CONNECTING_IP=1 이고 CF-Connecting-IP가 유효한 IP면 그것(운영 — Cloudflare 터널 뒤)
+  //   ② 아니면 소켓 주소. 운영은 터널이 루프백으로 붙으므로 ②면 전원이 한 주소가 된다 — 그래서 ①이 필요하다.
+  //   쓰지 않는 CF 헤더는 지운다(아래에서 누가 읽기 시작하면 위조 통로가 된다). booktarae lib/client-ip.ts와 같은 판단.
+  {
+    const socket = (req.socket.remoteAddress ?? "").replace(/^::ffff:/, "");
+    const cfRaw = req.headers["cf-connecting-ip"];
+    const cf = String(Array.isArray(cfRaw) ? cfRaw[0] : (cfRaw ?? ""))
+      .split(",")[0]
+      .trim()
+      .replace(/^::ffff:/, "");
+    const ip = env.TRUST_CF_CONNECTING_IP && isIP(cf) ? cf : socket;
+    if (ip) req.headers["x-forwarded-for"] = ip;
+    else delete req.headers["x-forwarded-for"];
+    delete req.headers["cf-connecting-ip"];
+    delete req.headers["x-real-ip"];
   }
 
   res.on("finish", () => {

@@ -8,6 +8,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AuthIdentity struct {
+	ID             string
+	UserID         string
+	Provider       string
+	ProviderUserID string
+	Email          *string
+	CreatedAt      pgtype.Timestamptz
+}
+
+type AuthToken struct {
+	TokenHash string
+	UserID    string
+	Purpose   string
+	Email     *string
+	ExpiresAt pgtype.Timestamptz
+	UsedAt    pgtype.Timestamptz
+	CreatedAt pgtype.Timestamptz
+}
+
 type Block struct {
 	BlockerID string
 	BlockedID string
@@ -238,4 +257,5 @@ type User struct {
 	TrainerIntent   bool
 	CreatedAt       pgtype.Timestamptz
 	UpdatedAt       pgtype.Timestamptz
+	EmailVerifiedAt pgtype.Timestamptz
 }

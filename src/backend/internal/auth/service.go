@@ -7,16 +7,20 @@
 // ── 지키는 규칙 세 가지 ─────────────────────────────────────────────────────
 //
 // ① **로그인 실패는 한 가지 오류로만 답한다.**
-//    "그런 이메일 없음"과 "비밀번호 틀림"을 구분해 주면, 공격자가 이메일 목록을 만들 수 있다.
-//    비밀번호가 없는 계정(소셜 로그인)도 같은 오류로 답한다.
+//
+//	"그런 이메일 없음"과 "비밀번호 틀림"을 구분해 주면, 공격자가 이메일 목록을 만들 수 있다.
+//	비밀번호가 없는 계정(소셜 로그인)도 같은 오류로 답한다.
 //
 // ② **없는 이메일이어도 해시 계산은 한다.**
-//    있는 계정만 bcrypt를 돌리면 응답 시간이 갈려서 "가입 여부"가 시간으로 새어 나간다.
-//    그래서 사용자를 못 찾아도 더미 해시로 한 번 비교한다(타이밍 평탄화).
+//
+//	있는 계정만 bcrypt를 돌리면 응답 시간이 갈려서 "가입 여부"가 시간으로 새어 나간다.
+//	그래서 사용자를 못 찾아도 더미 해시로 한 번 비교한다(타이밍 평탄화).
 //
 // ③ **refresh는 쓰는 순간 폐기하고 새로 준다**(회전).
-//    훔친 토큰을 쓰면 진짜 사용자의 것이 무효가 되어 도난이 드러난다.
-//    토큰 원문은 저장하지 않는다 — 해시만 둔다.
+//
+//	훔친 토큰을 쓰면 진짜 사용자의 것이 무효가 되어 도난이 드러난다.
+//	토큰 원문은 저장하지 않는다 — 해시만 둔다.
+//
 // ─────────────────────────────────────────────────────────────────────────────
 package auth
 
@@ -26,6 +30,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -61,6 +66,8 @@ type User struct {
 	ExperienceLevel string
 	TrainerIntent   bool
 	CreatedAt       time.Time
+	// 이메일 소유가 확인됐는가(SRS-052 · 0013의 email_verified_at)
+	EmailVerified bool
 }
 
 // RefreshToken은 살아 있는 세션 하나다.
@@ -110,6 +117,8 @@ type Service struct {
 	repo   Repo
 	signer Signer
 	now    func() time.Time
+	// 정식 계정 기능(account.go) — WithAccount로 끼운다. nil 이면 메일 없는 옛 동작
+	acct *Account
 }
 
 func NewService(repo Repo, signer Signer) *Service {
@@ -143,6 +152,11 @@ func (s *Service) SignUp(ctx context.Context, email, password, displayName strin
 	})
 	if err != nil {
 		return User{}, Tokens{}, err
+	}
+
+	// 주소 확인 메일 — 실패해도 가입은 성공한다(재발송이 복구 경로 · account.go 규칙 ⑤).
+	if _, err := s.sendVerification(ctx, u, true); err != nil {
+		slog.Error("[auth] 가입 확인 메일 준비 실패", "err", err)
 	}
 
 	tokens, err := s.issue(ctx, u)

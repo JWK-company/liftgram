@@ -78,6 +78,30 @@ type Config struct {
 	PLMAPIToken string
 	PLMProject  string
 
+	// ── 정식 계정 (SRS-052) ──
+	// 밖에서 보이는 주소. 메일 링크와 OAuth redirect_uri 의 유일한 기준(요청 Host 로 만들지 않는다).
+	AppURL string
+	// smtp | console — console 은 개발용(메일을 로그로만 찍는다)
+	MailTransport  string
+	MailSMTPHost   string
+	MailSMTPPort   int
+	MailSMTPUser   string
+	MailSMTPPass   string
+	MailFrom       string
+	MailRequireTLS bool
+	// Cloudflare Turnstile 비밀키 — 비면 사람 확인을 하지 않는다(화면 사이트 키와 짝으로 켠다)
+	TurnstileSecret string
+	// 인증 입구(가입·로그인·메일 요청)의 IP당 분당 허용 — 0 이하면 끈다(e2e)
+	AuthRateLimit int
+
+	OAuthGoogleClientID     string
+	OAuthGoogleClientSecret string
+	OAuthKakaoClientID      string
+	OAuthKakaoClientSecret  string
+	OAuthKakaoLegacy        bool
+	OAuthNaverClientID      string
+	OAuthNaverClientSecret  string
+
 	// 마이그레이션 SQL이 있는 디렉터리.
 	// 실행 위치가 두 가지라 기본값을 찾아서 정한다(아래 defaultMigrationsDir):
 	//   컨테이너 → /app/migrations · 로컬(backend에서 go run) → ../database/migrations
@@ -116,6 +140,27 @@ func Load() (*Config, error) {
 		S3Region:        envStr("S3_REGION", "auto"),
 		S3AccessKey:     os.Getenv("S3_ACCESS_KEY_ID"),
 		S3SecretKey:     os.Getenv("S3_SECRET_ACCESS_KEY"),
+
+		AppURL:                  envStr("APP_URL", "http://localhost:3100"),
+		MailTransport:           strings.ToLower(envStr("MAIL_TRANSPORT", "console")),
+		MailSMTPHost:            os.Getenv("MAIL_SMTP_HOST"),
+		MailSMTPPort:            envInt("MAIL_SMTP_PORT", 587),
+		MailSMTPUser:            os.Getenv("MAIL_SMTP_USER"),
+		MailSMTPPass:            os.Getenv("MAIL_SMTP_PASSWORD"),
+		MailFrom:                envStr("MAIL_FROM", "Liftgram <no-reply@localhost>"),
+		MailRequireTLS:          envStr("MAIL_REQUIRE_TLS", "true") == "true",
+		TurnstileSecret:         os.Getenv("TURNSTILE_SECRET"),
+		AuthRateLimit:           envInt("AUTH_RATE_LIMIT", 10),
+		OAuthGoogleClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
+		OAuthGoogleClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
+		OAuthKakaoClientID:      os.Getenv("OAUTH_KAKAO_CLIENT_ID"),
+		OAuthKakaoClientSecret:  os.Getenv("OAUTH_KAKAO_CLIENT_SECRET"),
+		OAuthKakaoLegacy:        os.Getenv("OAUTH_KAKAO_LEGACY") == "true",
+		OAuthNaverClientID:      os.Getenv("OAUTH_NAVER_CLIENT_ID"),
+		OAuthNaverClientSecret:  os.Getenv("OAUTH_NAVER_CLIENT_SECRET"),
+	}
+	if c.MailTransport != "smtp" && c.MailTransport != "console" {
+		return nil, fmt.Errorf("[env] MAIL_TRANSPORT는 smtp 또는 console이어야 합니다 (받은 값: %q)", c.MailTransport)
 	}
 
 	var missing []string

@@ -130,6 +130,7 @@ func toDomain(row sqlcgen.User) User {
 		ExperienceLevel: deref(row.ExperienceLevel),
 		TrainerIntent:   row.TrainerIntent,
 		CreatedAt:       row.CreatedAt.Time,
+		EmailVerified:   row.EmailVerifiedAt.Valid,
 	}
 }
 

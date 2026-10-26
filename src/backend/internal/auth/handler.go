@@ -19,6 +19,8 @@ import (
 type Handler struct {
 	authv1connect.UnimplementedAuthServiceHandler
 	svc *Service
+	// 인증 전용 요청 제한(handler_account.go) — nil 이면 제한 없음
+	limiter *AuthLimiter
 }
 
 func NewHandler(svc *Service) *Handler {
@@ -26,6 +28,13 @@ func NewHandler(svc *Service) *Handler {
 }
 
 func (h *Handler) SignUp(ctx context.Context, req *connect.Request[authv1.SignUpRequest]) (*connect.Response[authv1.SignUpResponse], error) {
+	// 로그인 없이 메일을 내보내는 입구다 — 요청 제한과 사람 확인을 먼저 거친다(SRS-052).
+	if err := h.guard("signup", req.Header()); err != nil {
+		return nil, err
+	}
+	if err := h.svc.CheckHuman(ctx, req.Header().Get(TurnstileHeader), clientIP(req.Header())); err != nil {
+		return nil, err
+	}
 	u, tokens, err := h.svc.SignUp(ctx, req.Msg.GetEmail(), req.Msg.GetPassword(), req.Msg.GetDisplayName())
 	if err != nil {
 		return nil, err
@@ -34,6 +43,10 @@ func (h *Handler) SignUp(ctx context.Context, req *connect.Request[authv1.SignUp
 }
 
 func (h *Handler) LogIn(ctx context.Context, req *connect.Request[authv1.LogInRequest]) (*connect.Response[authv1.LogInResponse], error) {
+	// 비밀번호 무차별 대입을 IP 단위로 늦춘다.
+	if err := h.guard("login", req.Header()); err != nil {
+		return nil, err
+	}
 	u, tokens, err := h.svc.LogIn(ctx, req.Msg.GetEmail(), req.Msg.GetPassword())
 	if err != nil {
 		return nil, err
@@ -109,6 +122,9 @@ func toProtoUser(u User) *authv1.User {
 		ExperienceLevel: toProtoExperience(u.ExperienceLevel),
 		TrainerIntent:   u.TrainerIntent,
 		CreatedAt:       timestamppb.New(u.CreatedAt),
+		EmailVerified:   u.EmailVerified,
+		// 비밀번호 유무는 해시가 아니라 있다/없다만 내보낸다.
+		HasPassword: u.PasswordHash != "",
 	}
 }
 

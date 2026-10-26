@@ -50,3 +50,50 @@ WHERE user_id = $1 AND revoked_at IS NULL;
 -- 만료된 토큰 청소 — 쌓아 둘 이유가 없다.
 -- name: DeleteExpiredRefreshTokens :exec
 DELETE FROM refresh_tokens WHERE expires_at < now();
+
+-- ── 정식 계정 (0013 · SRS-052) ─────────────────────────────────────────────
+
+-- name: SetEmailVerified :exec
+UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()), updated_at = now() WHERE id = $1;
+
+-- name: SetPasswordHash :exec
+UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1;
+
+-- name: CreateAuthToken :exec
+INSERT INTO auth_tokens (token_hash, user_id, purpose, email, expires_at)
+VALUES ($1, $2, $3, $4, $5);
+
+-- 쓰는 순간 소모한다 — 같은 토큰으로 두 번 성공하지 않게 한 문장에서 확인·표시한다.
+-- name: ConsumeAuthToken :one
+UPDATE auth_tokens SET used_at = now()
+WHERE token_hash = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > now()
+RETURNING *;
+
+-- 재발송 간격 판단 — 이 사람의 이 목적 토큰 중 가장 최근 발급 시각.
+-- name: LastAuthTokenAt :one
+SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS last_at
+FROM auth_tokens WHERE user_id = $1 AND purpose = $2;
+
+-- 새로 발급하면 같은 목적의 옛 토큰은 못 쓰게 한다(메일함에 남은 옛 링크가 살아 있지 않게).
+-- name: InvalidateAuthTokens :exec
+UPDATE auth_tokens SET used_at = now() WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL;
+
+-- name: DeleteExpiredAuthTokens :exec
+DELETE FROM auth_tokens WHERE expires_at < now() - interval '7 days';
+
+-- name: GetIdentity :one
+SELECT * FROM auth_identities WHERE provider = $1 AND provider_user_id = $2;
+
+-- name: CreateIdentity :one
+INSERT INTO auth_identities (id, user_id, provider, provider_user_id, email)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING *;
+
+-- name: ListIdentities :many
+SELECT * FROM auth_identities WHERE user_id = $1 ORDER BY created_at;
+
+-- name: DeleteIdentity :execrows
+DELETE FROM auth_identities WHERE user_id = $1 AND provider = $2;
+
+-- name: CountIdentities :one
+SELECT count(*) FROM auth_identities WHERE user_id = $1;

@@ -13,6 +13,9 @@ import { useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
 import { BackupCard } from "../sync/BackupCard";
+import { HumanCheck } from "../auth/HumanCheck";
+import { SecurityCard } from "../auth/SecurityCard";
+import { SocialButtons, useAuthOptions } from "../auth/SocialButtons";
 import { agoText, useSyncHealth } from "../sync/useSyncHealth";
 import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
@@ -105,8 +108,30 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Mode = "login" | "signup";
 
-export default function AuthClient() {
+/** 소셜 로그인 콜백이 실패하면 ?err=<코드> 로 돌아온다 — 화이트리스트 코드만 문구로 바꾼다. */
+const OAUTH_ERRS = new Set([
+  "oauth_state",
+  "oauth_failed",
+  "oauth_provider",
+  "oauth_email_taken",
+  "oauth_linked_elsewhere",
+  "oauth_link_expired",
+  "oauth_rate",
+  "oauth_internal",
+]);
+
+export default function AuthClient({
+  siteKey = "",
+  oauthError = "",
+}: {
+  siteKey?: string;
+  oauthError?: string;
+}) {
   const { user, signUp, logIn, logOut } = useAuth();
+  const [human, setHuman] = useState<string | null>(null);
+  const [humanReset, setHumanReset] = useState(0);
+  const { mailEnabled } = useAuthOptions();
+  const oauthMsg = OAUTH_ERRS.has(oauthError) ? t(`oauth.err.${oauthError}` as TransKey) : null;
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -151,7 +176,18 @@ export default function AuthClient() {
             />
           </div>
         </Card>
+        {oauthMsg ? (
+          <AppText
+            variant="caption"
+            color="danger"
+            className="mb-[var(--spacing-md)] block"
+            data-testid="oauth-error"
+          >
+            {oauthMsg}
+          </AppText>
+        ) : null}
         <ProfileEditCard />
+        <SecurityCard />
         <ServerSyncCard />
         <BackupCard />
         <OfflineNote />
@@ -173,10 +209,12 @@ export default function AuthClient() {
     setBusy(true);
     void (async () => {
       try {
-        if (isSignup) await signUp(trimmed, password, displayName.trim());
+        if (isSignup) await signUp(trimmed, password, displayName.trim(), human);
         else await logIn(trimmed, password);
       } catch (e) {
         setError(t(messageKeyFor(e)));
+        // 사람 확인 토큰은 한 번 쓰면 끝이다 — 실패했으면 새로 받는다.
+        if (isSignup) setHumanReset((n) => n + 1);
       } finally {
         setBusy(false);
       }
@@ -208,6 +246,18 @@ export default function AuthClient() {
         ))}
       </div>
 
+      {oauthMsg ? (
+        <AppText
+          variant="caption"
+          color="danger"
+          className="mb-[var(--spacing-md)] block"
+          data-testid="oauth-error"
+        >
+          {oauthMsg}
+        </AppText>
+      ) : null}
+      <SocialButtons returnTo="/account" />
+
       <Card className="mb-[var(--spacing-lg)]">
         <TextField
           testId="auth-email-input"
@@ -238,6 +288,9 @@ export default function AuthClient() {
           />
         ) : null}
 
+        {/* 가입은 로그인 없이 메일을 내보내는 입구다 — 사람 확인(키가 없으면 그리지 않는다). */}
+        {isSignup ? <HumanCheck siteKey={siteKey} onToken={setHuman} resetKey={humanReset} /> : null}
+
         {error ? (
           <AppText variant="caption" color="danger" data-testid="auth-error" className="block">
             {error}
@@ -254,6 +307,15 @@ export default function AuthClient() {
             onPress={submit}
           />
         </div>
+        {!isSignup ? (
+          <a
+            href="/forgot"
+            className="mt-[var(--spacing-sm)] block text-center text-sm text-(--color-ink2)"
+            data-testid="link-forgot"
+          >
+            {t("auth.forgotLink")}
+          </a>
+        ) : null}
       </Card>
 
       <BackupCard />
@@ -298,9 +360,9 @@ function messageKeyFor(e: unknown): TransKey {
       case Code.DeadlineExceeded:
         return "auth.errTimeout";
       case Code.Unavailable:
-        return "auth.errNetwork";
+        return e.rawMessage.includes("너무 잦") ? "auth.errRate" : "auth.errNetwork";
       case Code.InvalidArgument:
-        return "auth.invalidEmail";
+        return e.rawMessage.includes("보안 확인") ? "auth.errHumanCheck" : "auth.invalidEmail";
     }
   }
   return "auth.errServer";

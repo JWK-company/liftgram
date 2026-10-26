@@ -19,8 +19,8 @@ import (
 )
 
 var codeMap = map[errs.Code]connect.Code{
-	errs.NotFound:   connect.CodeNotFound,
-	errs.Conflict:   connect.CodeAlreadyExists,
+	errs.NotFound:     connect.CodeNotFound,
+	errs.Conflict:     connect.CodeAlreadyExists,
 	errs.Validation:   connect.CodeInvalidArgument,
 	errs.Unauthorized: connect.CodeUnauthenticated,
 	errs.Forbidden:    connect.CodePermissionDenied,

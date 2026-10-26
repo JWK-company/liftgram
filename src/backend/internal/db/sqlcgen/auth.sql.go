@@ -11,6 +11,102 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const consumeAuthToken = `-- name: ConsumeAuthToken :one
+UPDATE auth_tokens SET used_at = now()
+WHERE token_hash = $1 AND purpose = $2 AND used_at IS NULL AND expires_at > now()
+RETURNING token_hash, user_id, purpose, email, expires_at, used_at, created_at
+`
+
+type ConsumeAuthTokenParams struct {
+	TokenHash string
+	Purpose   string
+}
+
+// 쓰는 순간 소모한다 — 같은 토큰으로 두 번 성공하지 않게 한 문장에서 확인·표시한다.
+func (q *Queries) ConsumeAuthToken(ctx context.Context, arg ConsumeAuthTokenParams) (AuthToken, error) {
+	row := q.db.QueryRow(ctx, consumeAuthToken, arg.TokenHash, arg.Purpose)
+	var i AuthToken
+	err := row.Scan(
+		&i.TokenHash,
+		&i.UserID,
+		&i.Purpose,
+		&i.Email,
+		&i.ExpiresAt,
+		&i.UsedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const countIdentities = `-- name: CountIdentities :one
+SELECT count(*) FROM auth_identities WHERE user_id = $1
+`
+
+func (q *Queries) CountIdentities(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRow(ctx, countIdentities, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const createAuthToken = `-- name: CreateAuthToken :exec
+INSERT INTO auth_tokens (token_hash, user_id, purpose, email, expires_at)
+VALUES ($1, $2, $3, $4, $5)
+`
+
+type CreateAuthTokenParams struct {
+	TokenHash string
+	UserID    string
+	Purpose   string
+	Email     *string
+	ExpiresAt pgtype.Timestamptz
+}
+
+func (q *Queries) CreateAuthToken(ctx context.Context, arg CreateAuthTokenParams) error {
+	_, err := q.db.Exec(ctx, createAuthToken,
+		arg.TokenHash,
+		arg.UserID,
+		arg.Purpose,
+		arg.Email,
+		arg.ExpiresAt,
+	)
+	return err
+}
+
+const createIdentity = `-- name: CreateIdentity :one
+INSERT INTO auth_identities (id, user_id, provider, provider_user_id, email)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, user_id, provider, provider_user_id, email, created_at
+`
+
+type CreateIdentityParams struct {
+	ID             string
+	UserID         string
+	Provider       string
+	ProviderUserID string
+	Email          *string
+}
+
+func (q *Queries) CreateIdentity(ctx context.Context, arg CreateIdentityParams) (AuthIdentity, error) {
+	row := q.db.QueryRow(ctx, createIdentity,
+		arg.ID,
+		arg.UserID,
+		arg.Provider,
+		arg.ProviderUserID,
+		arg.Email,
+	)
+	var i AuthIdentity
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Provider,
+		&i.ProviderUserID,
+		&i.Email,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createRefreshToken = `-- name: CreateRefreshToken :exec
 INSERT INTO refresh_tokens (token_hash, user_id, expires_at)
 VALUES ($1, $2, $3)
@@ -31,7 +127,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (id, email, display_name, password_hash, auth_provider, role)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at
 `
 
 type CreateUserParams struct {
@@ -69,8 +165,18 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.TrainerIntent,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EmailVerifiedAt,
 	)
 	return i, err
+}
+
+const deleteExpiredAuthTokens = `-- name: DeleteExpiredAuthTokens :exec
+DELETE FROM auth_tokens WHERE expires_at < now() - interval '7 days'
+`
+
+func (q *Queries) DeleteExpiredAuthTokens(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteExpiredAuthTokens)
+	return err
 }
 
 const deleteExpiredRefreshTokens = `-- name: DeleteExpiredRefreshTokens :exec
@@ -81,6 +187,46 @@ DELETE FROM refresh_tokens WHERE expires_at < now()
 func (q *Queries) DeleteExpiredRefreshTokens(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, deleteExpiredRefreshTokens)
 	return err
+}
+
+const deleteIdentity = `-- name: DeleteIdentity :execrows
+DELETE FROM auth_identities WHERE user_id = $1 AND provider = $2
+`
+
+type DeleteIdentityParams struct {
+	UserID   string
+	Provider string
+}
+
+func (q *Queries) DeleteIdentity(ctx context.Context, arg DeleteIdentityParams) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteIdentity, arg.UserID, arg.Provider)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const getIdentity = `-- name: GetIdentity :one
+SELECT id, user_id, provider, provider_user_id, email, created_at FROM auth_identities WHERE provider = $1 AND provider_user_id = $2
+`
+
+type GetIdentityParams struct {
+	Provider       string
+	ProviderUserID string
+}
+
+func (q *Queries) GetIdentity(ctx context.Context, arg GetIdentityParams) (AuthIdentity, error) {
+	row := q.db.QueryRow(ctx, getIdentity, arg.Provider, arg.ProviderUserID)
+	var i AuthIdentity
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Provider,
+		&i.ProviderUserID,
+		&i.Email,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getLiveRefreshToken = `-- name: GetLiveRefreshToken :one
@@ -103,7 +249,7 @@ func (q *Queries) GetLiveRefreshToken(ctx context.Context, tokenHash string) (Re
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at FROM users WHERE lower(email) = lower($1)
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at FROM users WHERE lower(email) = lower($1)
 `
 
 // 로그인이 쓴다. 이메일은 대소문자를 가리지 않는다 —
@@ -123,12 +269,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (User, error
 		&i.TrainerIntent,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EmailVerifiedAt,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at FROM users WHERE id = $1
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -146,8 +293,73 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.TrainerIntent,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EmailVerifiedAt,
 	)
 	return i, err
+}
+
+const invalidateAuthTokens = `-- name: InvalidateAuthTokens :exec
+UPDATE auth_tokens SET used_at = now() WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL
+`
+
+type InvalidateAuthTokensParams struct {
+	UserID  string
+	Purpose string
+}
+
+// 새로 발급하면 같은 목적의 옛 토큰은 못 쓰게 한다(메일함에 남은 옛 링크가 살아 있지 않게).
+func (q *Queries) InvalidateAuthTokens(ctx context.Context, arg InvalidateAuthTokensParams) error {
+	_, err := q.db.Exec(ctx, invalidateAuthTokens, arg.UserID, arg.Purpose)
+	return err
+}
+
+const lastAuthTokenAt = `-- name: LastAuthTokenAt :one
+SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS last_at
+FROM auth_tokens WHERE user_id = $1 AND purpose = $2
+`
+
+type LastAuthTokenAtParams struct {
+	UserID  string
+	Purpose string
+}
+
+// 재발송 간격 판단 — 이 사람의 이 목적 토큰 중 가장 최근 발급 시각.
+func (q *Queries) LastAuthTokenAt(ctx context.Context, arg LastAuthTokenAtParams) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, lastAuthTokenAt, arg.UserID, arg.Purpose)
+	var last_at pgtype.Timestamptz
+	err := row.Scan(&last_at)
+	return last_at, err
+}
+
+const listIdentities = `-- name: ListIdentities :many
+SELECT id, user_id, provider, provider_user_id, email, created_at FROM auth_identities WHERE user_id = $1 ORDER BY created_at
+`
+
+func (q *Queries) ListIdentities(ctx context.Context, userID string) ([]AuthIdentity, error) {
+	rows, err := q.db.Query(ctx, listIdentities, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuthIdentity
+	for rows.Next() {
+		var i AuthIdentity
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Provider,
+			&i.ProviderUserID,
+			&i.Email,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const revokeAllRefreshTokensForUser = `-- name: RevokeAllRefreshTokensForUser :exec
@@ -172,6 +384,31 @@ func (q *Queries) RevokeRefreshToken(ctx context.Context, tokenHash string) erro
 	return err
 }
 
+const setEmailVerified = `-- name: SetEmailVerified :exec
+
+UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()), updated_at = now() WHERE id = $1
+`
+
+// ── 정식 계정 (0013 · SRS-052) ─────────────────────────────────────────────
+func (q *Queries) SetEmailVerified(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, setEmailVerified, id)
+	return err
+}
+
+const setPasswordHash = `-- name: SetPasswordHash :exec
+UPDATE users SET password_hash = $2, updated_at = now() WHERE id = $1
+`
+
+type SetPasswordHashParams struct {
+	ID           string
+	PasswordHash *string
+}
+
+func (q *Queries) SetPasswordHash(ctx context.Context, arg SetPasswordHashParams) error {
+	_, err := q.db.Exec(ctx, setPasswordHash, arg.ID, arg.PasswordHash)
+	return err
+}
+
 const updateUserProfile = `-- name: UpdateUserProfile :one
 UPDATE users SET
   display_name     = CASE WHEN $1::boolean     THEN $2::text     ELSE display_name END,
@@ -180,7 +417,7 @@ UPDATE users SET
   trainer_intent   = CASE WHEN $7::boolean   THEN $8::boolean ELSE trainer_intent END,
   updated_at       = now()
 WHERE id = $9::text
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at
 `
 
 type UpdateUserProfileParams struct {
@@ -222,6 +459,7 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.TrainerIntent,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.EmailVerifiedAt,
 	)
 	return i, err
 }

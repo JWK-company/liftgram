@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file auth/v1/auth.proto.
  */
 export const file_auth_v1_auth: GenFile = /*@__PURE__*/
-  fileDesc("ChJhdXRoL3YxL2F1dGgucHJvdG8SB2F1dGgudjEi5AEKBFVzZXISCgoCaWQYASABKAkSDQoFZW1haWwYAiABKAkSFAoMZGlzcGxheV9uYW1lGAMgASgJEhIKCmF2YXRhcl91cmwYBCABKAkSGwoEcm9sZRgFIAEoDjINLmF1dGgudjEuUm9sZRIyChBleHBlcmllbmNlX2xldmVsGAYgASgOMhguYXV0aC52MS5FeHBlcmllbmNlTGV2ZWwSFgoOdHJhaW5lcl9pbnRlbnQYByABKAgSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiSQoGVG9rZW5zEhQKDGFjY2Vzc190b2tlbhgBIAEoCRIVCg1yZWZyZXNoX3Rva2VuGAIgASgJEhIKCmV4cGlyZXNfaW4YAyABKAUiaAoNU2lnblVwUmVxdWVzdBIbCgVlbWFpbBgBIAEoCUIMukgJcgcQAxj+AWABEhsKCHBhc3N3b3JkGAIgASgJQgm6SAZyBBAIGEgSHQoMZGlzcGxheV9uYW1lGAMgASgJQge6SARyAhgoIkYKDExvZ0luUmVxdWVzdBIZCgVlbWFpbBgBIAEoCUIKukgHcgUQAxj+ARIbCghwYXNzd29yZBgCIAEoCUIJukgGcgQQARhIIjMKDlJlZnJlc2hSZXF1ZXN0EiEKDXJlZnJlc2hfdG9rZW4YASABKAlCCrpIB3IFEBAYgAEiMgoNTG9nT3V0UmVxdWVzdBIhCg1yZWZyZXNoX3Rva2VuGAEgASgJQgq6SAdyBRAQGIABIk4KDlNpZ25VcFJlc3BvbnNlEh8KBnRva2VucxgBIAEoCzIPLmF1dGgudjEuVG9rZW5zEhsKBHVzZXIYAiABKAsyDS5hdXRoLnYxLlVzZXIiTQoNTG9nSW5SZXNwb25zZRIfCgZ0b2tlbnMYASABKAsyDy5hdXRoLnYxLlRva2VucxIbCgR1c2VyGAIgASgLMg0uYXV0aC52MS5Vc2VyIk8KD1JlZnJlc2hSZXNwb25zZRIfCgZ0b2tlbnMYASABKAsyDy5hdXRoLnYxLlRva2VucxIbCgR1c2VyGAIgASgLMg0uYXV0aC52MS5Vc2VyIgsKCU1lUmVxdWVzdCIpCgpNZVJlc3BvbnNlEhsKBHVzZXIYASABKAsyDS5hdXRoLnYxLlVzZXIiiwIKFFVwZGF0ZVByb2ZpbGVSZXF1ZXN0Eh0KDGRpc3BsYXlfbmFtZRgBIAEoCUIHukgEcgIYKBIYChBzZXRfZGlzcGxheV9uYW1lGAIgASgIEhwKCmF2YXRhcl91cmwYAyABKAlCCLpIBXIDGIAEEhYKDnNldF9hdmF0YXJfdXJsGAQgASgIEjIKEGV4cGVyaWVuY2VfbGV2ZWwYBSABKA4yGC5hdXRoLnYxLkV4cGVyaWVuY2VMZXZlbBIcChRzZXRfZXhwZXJpZW5jZV9sZXZlbBgGIAEoCBIWCg50cmFpbmVyX2ludGVudBgHIAEoCBIaChJzZXRfdHJhaW5lcl9pbnRlbnQYCCABKAgiNAoVVXBkYXRlUHJvZmlsZVJlc3BvbnNlEhsKBHVzZXIYASABKAsyDS5hdXRoLnYxLlVzZXIiEAoOTG9nT3V0UmVzcG9uc2UqYgoEUm9sZRIUChBST0xFX1VOU1BFQ0lGSUVEEAASDQoJUk9MRV9VU0VSEAESEQoNUk9MRV9DT1dPUktFUhACEhIKDlJPTEVfTU9ERVJBVE9SEAMSDgoKUk9MRV9BRE1JThAEKpQBCg9FeHBlcmllbmNlTGV2ZWwSIAocRVhQRVJJRU5DRV9MRVZFTF9VTlNQRUNJRklFRBAAEh0KGUVYUEVSSUVOQ0VfTEVWRUxfQkVHSU5ORVIQARIhCh1FWFBFUklFTkNFX0xFVkVMX0lOVEVSTUVESUFURRACEh0KGUVYUEVSSUVOQ0VfTEVWRUxfQURWQU5DRUQQAzKEAwoLQXV0aFNlcnZpY2USOwoGU2lnblVwEhYuYXV0aC52MS5TaWduVXBSZXF1ZXN0GhcuYXV0aC52MS5TaWduVXBSZXNwb25zZSIAEjgKBUxvZ0luEhUuYXV0aC52MS5Mb2dJblJlcXVlc3QaFi5hdXRoLnYxLkxvZ0luUmVzcG9uc2UiABI+CgdSZWZyZXNoEhcuYXV0aC52MS5SZWZyZXNoUmVxdWVzdBoYLmF1dGgudjEuUmVmcmVzaFJlc3BvbnNlIgASOwoGTG9nT3V0EhYuYXV0aC52MS5Mb2dPdXRSZXF1ZXN0GhcuYXV0aC52MS5Mb2dPdXRSZXNwb25zZSIAEi8KAk1lEhIuYXV0aC52MS5NZVJlcXVlc3QaEy5hdXRoLnYxLk1lUmVzcG9uc2UiABJQCg1VcGRhdGVQcm9maWxlEh0uYXV0aC52MS5VcGRhdGVQcm9maWxlUmVxdWVzdBoeLmF1dGgudjEuVXBkYXRlUHJvZmlsZVJlc3BvbnNlIgBClQEKC2NvbS5hdXRoLnYxQglBdXRoUHJvdG9QAVo+Z2l0aHViLmNvbS9KV0stY29tcGFueS9saWZ0Z3JhbS9zcmMvYmFja2VuZC9nZW4vYXV0aC92MTthdXRodjGiAgNBWFiqAgdBdXRoLlYxygIHQXV0aFxWMeICE0F1dGhcVjFcR1BCTWV0YWRhdGHqAghBdXRoOjpWMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("ChJhdXRoL3YxL2F1dGgucHJvdG8SB2F1dGgudjEikgIKBFVzZXISCgoCaWQYASABKAkSDQoFZW1haWwYAiABKAkSFAoMZGlzcGxheV9uYW1lGAMgASgJEhIKCmF2YXRhcl91cmwYBCABKAkSGwoEcm9sZRgFIAEoDjINLmF1dGgudjEuUm9sZRIyChBleHBlcmllbmNlX2xldmVsGAYgASgOMhguYXV0aC52MS5FeHBlcmllbmNlTGV2ZWwSFgoOdHJhaW5lcl9pbnRlbnQYByABKAgSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASFgoOZW1haWxfdmVyaWZpZWQYCSABKAgSFAoMaGFzX3Bhc3N3b3JkGAogASgIIkkKBlRva2VucxIUCgxhY2Nlc3NfdG9rZW4YASABKAkSFQoNcmVmcmVzaF90b2tlbhgCIAEoCRISCgpleHBpcmVzX2luGAMgASgFImgKDVNpZ25VcFJlcXVlc3QSGwoFZW1haWwYASABKAlCDLpICXIHEAMY/gFgARIbCghwYXNzd29yZBgCIAEoCUIJukgGcgQQCBhIEh0KDGRpc3BsYXlfbmFtZRgDIAEoCUIHukgEcgIYKCJGCgxMb2dJblJlcXVlc3QSGQoFZW1haWwYASABKAlCCrpIB3IFEAMY/gESGwoIcGFzc3dvcmQYAiABKAlCCbpIBnIEEAEYSCIzCg5SZWZyZXNoUmVxdWVzdBIhCg1yZWZyZXNoX3Rva2VuGAEgASgJQgq6SAdyBRAQGIABIjIKDUxvZ091dFJlcXVlc3QSIQoNcmVmcmVzaF90b2tlbhgBIAEoCUIKukgHcgUQEBiAASJOCg5TaWduVXBSZXNwb25zZRIfCgZ0b2tlbnMYASABKAsyDy5hdXRoLnYxLlRva2VucxIbCgR1c2VyGAIgASgLMg0uYXV0aC52MS5Vc2VyIk0KDUxvZ0luUmVzcG9uc2USHwoGdG9rZW5zGAEgASgLMg8uYXV0aC52MS5Ub2tlbnMSGwoEdXNlchgCIAEoCzINLmF1dGgudjEuVXNlciJPCg9SZWZyZXNoUmVzcG9uc2USHwoGdG9rZW5zGAEgASgLMg8uYXV0aC52MS5Ub2tlbnMSGwoEdXNlchgCIAEoCzINLmF1dGgudjEuVXNlciILCglNZVJlcXVlc3QiKQoKTWVSZXNwb25zZRIbCgR1c2VyGAEgASgLMg0uYXV0aC52MS5Vc2VyIosCChRVcGRhdGVQcm9maWxlUmVxdWVzdBIdCgxkaXNwbGF5X25hbWUYASABKAlCB7pIBHICGCgSGAoQc2V0X2Rpc3BsYXlfbmFtZRgCIAEoCBIcCgphdmF0YXJfdXJsGAMgASgJQgi6SAVyAxiABBIWCg5zZXRfYXZhdGFyX3VybBgEIAEoCBIyChBleHBlcmllbmNlX2xldmVsGAUgASgOMhguYXV0aC52MS5FeHBlcmllbmNlTGV2ZWwSHAoUc2V0X2V4cGVyaWVuY2VfbGV2ZWwYBiABKAgSFgoOdHJhaW5lcl9pbnRlbnQYByABKAgSGgoSc2V0X3RyYWluZXJfaW50ZW50GAggASgIIjQKFVVwZGF0ZVByb2ZpbGVSZXNwb25zZRIbCgR1c2VyGAEgASgLMg0uYXV0aC52MS5Vc2VyIhcKFUdldEF1dGhPcHRpb25zUmVxdWVzdCJBChZHZXRBdXRoT3B0aW9uc1Jlc3BvbnNlEhEKCXByb3ZpZGVycxgBIAMoCRIUCgxtYWlsX2VuYWJsZWQYAiABKAgiHgocU2VuZEVtYWlsVmVyaWZpY2F0aW9uUmVxdWVzdCI4Ch1TZW5kRW1haWxWZXJpZmljYXRpb25SZXNwb25zZRIXCg9yZXRyeV9hZnRlcl9zZWMYASABKAUiLwoSVmVyaWZ5RW1haWxSZXF1ZXN0EhkKBXRva2VuGAEgASgJQgq6SAdyBRAQGIABIhUKE1ZlcmlmeUVtYWlsUmVzcG9uc2UiOAobUmVxdWVzdFBhc3N3b3JkUmVzZXRSZXF1ZXN0EhkKBWVtYWlsGAEgASgJQgq6SAdyBRADGP4BIh4KHFJlcXVlc3RQYXNzd29yZFJlc2V0UmVzcG9uc2UiUgoUUmVzZXRQYXNzd29yZFJlcXVlc3QSGQoFdG9rZW4YASABKAlCCrpIB3IFEBAYgAESHwoMbmV3X3Bhc3N3b3JkGAIgASgJQgm6SAZyBBAIGEgiFwoVUmVzZXRQYXNzd29yZFJlc3BvbnNlIlsKFUNoYW5nZVBhc3N3b3JkUmVxdWVzdBIhChBjdXJyZW50X3Bhc3N3b3JkGAEgASgJQge6SARyAhhIEh8KDG5ld19wYXNzd29yZBgCIAEoCUIJukgGcgQQCBhIIjkKFkNoYW5nZVBhc3N3b3JkUmVzcG9uc2USHwoGdG9rZW5zGAEgASgLMg8uYXV0aC52MS5Ub2tlbnMiNAoYRXhjaGFuZ2VMb2dpbkNvZGVSZXF1ZXN0EhgKBGNvZGUYASABKAlCCrpIB3IFEBAYgAEiagoZRXhjaGFuZ2VMb2dpbkNvZGVSZXNwb25zZRIfCgZ0b2tlbnMYASABKAsyDy5hdXRoLnYxLlRva2VucxIbCgR1c2VyGAIgASgLMg0uYXV0aC52MS5Vc2VyEg8KB2NyZWF0ZWQYAyABKAgiGQoXQ3JlYXRlTGlua1RpY2tldFJlcXVlc3QiKgoYQ3JlYXRlTGlua1RpY2tldFJlc3BvbnNlEg4KBnRpY2tldBgBIAEoCSJbCghJZGVudGl0eRIQCghwcm92aWRlchgBIAEoCRINCgVlbWFpbBgCIAEoCRIuCgpjcmVhdGVkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIXChVMaXN0SWRlbnRpdGllc1JlcXVlc3QiPwoWTGlzdElkZW50aXRpZXNSZXNwb25zZRIlCgppZGVudGl0aWVzGAEgAygLMhEuYXV0aC52MS5JZGVudGl0eSJGChVVbmxpbmtJZGVudGl0eVJlcXVlc3QSLQoIcHJvdmlkZXIYASABKAlCG7pIGHIWUgZnb29nbGVSBWtha2FvUgVuYXZlciIYChZVbmxpbmtJZGVudGl0eVJlc3BvbnNlIhAKDkxvZ091dFJlc3BvbnNlKmIKBFJvbGUSFAoQUk9MRV9VTlNQRUNJRklFRBAAEg0KCVJPTEVfVVNFUhABEhEKDVJPTEVfQ09XT1JLRVIQAhISCg5ST0xFX01PREVSQVRPUhADEg4KClJPTEVfQURNSU4QBCqUAQoPRXhwZXJpZW5jZUxldmVsEiAKHEVYUEVSSUVOQ0VfTEVWRUxfVU5TUEVDSUZJRUQQABIdChlFWFBFUklFTkNFX0xFVkVMX0JFR0lOTkVSEAESIQodRVhQRVJJRU5DRV9MRVZFTF9JTlRFUk1FRElBVEUQAhIdChlFWFBFUklFTkNFX0xFVkVMX0FEVkFOQ0VEEAMygAoKC0F1dGhTZXJ2aWNlEjsKBlNpZ25VcBIWLmF1dGgudjEuU2lnblVwUmVxdWVzdBoXLmF1dGgudjEuU2lnblVwUmVzcG9uc2UiABI4CgVMb2dJbhIVLmF1dGgudjEuTG9nSW5SZXF1ZXN0GhYuYXV0aC52MS5Mb2dJblJlc3BvbnNlIgASPgoHUmVmcmVzaBIXLmF1dGgudjEuUmVmcmVzaFJlcXVlc3QaGC5hdXRoLnYxLlJlZnJlc2hSZXNwb25zZSIAEjsKBkxvZ091dBIWLmF1dGgudjEuTG9nT3V0UmVxdWVzdBoXLmF1dGgudjEuTG9nT3V0UmVzcG9uc2UiABIvCgJNZRISLmF1dGgudjEuTWVSZXF1ZXN0GhMuYXV0aC52MS5NZVJlc3BvbnNlIgASUAoNVXBkYXRlUHJvZmlsZRIdLmF1dGgudjEuVXBkYXRlUHJvZmlsZVJlcXVlc3QaHi5hdXRoLnYxLlVwZGF0ZVByb2ZpbGVSZXNwb25zZSIAElMKDkdldEF1dGhPcHRpb25zEh4uYXV0aC52MS5HZXRBdXRoT3B0aW9uc1JlcXVlc3QaHy5hdXRoLnYxLkdldEF1dGhPcHRpb25zUmVzcG9uc2UiABJoChVTZW5kRW1haWxWZXJpZmljYXRpb24SJS5hdXRoLnYxLlNlbmRFbWFpbFZlcmlmaWNhdGlvblJlcXVlc3QaJi5hdXRoLnYxLlNlbmRFbWFpbFZlcmlmaWNhdGlvblJlc3BvbnNlIgASSgoLVmVyaWZ5RW1haWwSGy5hdXRoLnYxLlZlcmlmeUVtYWlsUmVxdWVzdBocLmF1dGgudjEuVmVyaWZ5RW1haWxSZXNwb25zZSIAEmUKFFJlcXVlc3RQYXNzd29yZFJlc2V0EiQuYXV0aC52MS5SZXF1ZXN0UGFzc3dvcmRSZXNldFJlcXVlc3QaJS5hdXRoLnYxLlJlcXVlc3RQYXNzd29yZFJlc2V0UmVzcG9uc2UiABJQCg1SZXNldFBhc3N3b3JkEh0uYXV0aC52MS5SZXNldFBhc3N3b3JkUmVxdWVzdBoeLmF1dGgudjEuUmVzZXRQYXNzd29yZFJlc3BvbnNlIgASUwoOQ2hhbmdlUGFzc3dvcmQSHi5hdXRoLnYxLkNoYW5nZVBhc3N3b3JkUmVxdWVzdBofLmF1dGgudjEuQ2hhbmdlUGFzc3dvcmRSZXNwb25zZSIAElwKEUV4Y2hhbmdlTG9naW5Db2RlEiEuYXV0aC52MS5FeGNoYW5nZUxvZ2luQ29kZVJlcXVlc3QaIi5hdXRoLnYxLkV4Y2hhbmdlTG9naW5Db2RlUmVzcG9uc2UiABJZChBDcmVhdGVMaW5rVGlja2V0EiAuYXV0aC52MS5DcmVhdGVMaW5rVGlja2V0UmVxdWVzdBohLmF1dGgudjEuQ3JlYXRlTGlua1RpY2tldFJlc3BvbnNlIgASUwoOTGlzdElkZW50aXRpZXMSHi5hdXRoLnYxLkxpc3RJZGVudGl0aWVzUmVxdWVzdBofLmF1dGgudjEuTGlzdElkZW50aXRpZXNSZXNwb25zZSIAElMKDlVubGlua0lkZW50aXR5Eh4uYXV0aC52MS5VbmxpbmtJZGVudGl0eVJlcXVlc3QaHy5hdXRoLnYxLlVubGlua0lkZW50aXR5UmVzcG9uc2UiAEKVAQoLY29tLmF1dGgudjFCCUF1dGhQcm90b1ABWj5naXRodWIuY29tL0pXSy1jb21wYW55L2xpZnRncmFtL3NyYy9iYWNrZW5kL2dlbi9hdXRoL3YxO2F1dGh2MaICA0FYWKoCB0F1dGguVjHKAgdBdXRoXFYx4gITQXV0aFxWMVxHUEJNZXRhZGF0YeoCCEF1dGg6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * 남에게 보이는 사용자. **비밀번호 해시는 이 메시지에 없다** — 나갈 일이 없는 값은 계약에 두지 않는다.
@@ -81,6 +81,20 @@ export type User = Message<"auth.v1.User"> & {
    * @generated from field: google.protobuf.Timestamp created_at = 8;
    */
   createdAt?: Timestamp | undefined;
+
+  /**
+   * 이메일 소유가 확인됐는가(SRS-052). 확인 전에도 기록은 쓰지만, 화면이 안내를 띄운다.
+   *
+   * @generated from field: bool email_verified = 9;
+   */
+  emailVerified: boolean;
+
+  /**
+   * 비밀번호로 로그인할 수 있는가 — 소셜로만 가입한 계정은 false(비밀번호 "설정"이 가능하다).
+   *
+   * @generated from field: bool has_password = 10;
+   */
+  hasPassword: boolean;
 };
 
 /**
@@ -378,6 +392,391 @@ export const UpdateProfileResponseSchema: GenMessage<UpdateProfileResponse> = /*
   messageDesc(file_auth_v1_auth, 12);
 
 /**
+ * 화면이 그릴 것 — 켜진 소셜 제공자. 자격증명이 들어온 것만 온다(버튼 = 이 목록).
+ *
+ * @generated from message auth.v1.GetAuthOptionsRequest
+ */
+export type GetAuthOptionsRequest = Message<"auth.v1.GetAuthOptionsRequest"> & {
+};
+
+/**
+ * Describes the message auth.v1.GetAuthOptionsRequest.
+ * Use `create(GetAuthOptionsRequestSchema)` to create a new message.
+ */
+export const GetAuthOptionsRequestSchema: GenMessage<GetAuthOptionsRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 13);
+
+/**
+ * @generated from message auth.v1.GetAuthOptionsResponse
+ */
+export type GetAuthOptionsResponse = Message<"auth.v1.GetAuthOptionsResponse"> & {
+  /**
+   * @generated from field: repeated string providers = 1;
+   */
+  providers: string[];
+
+  /**
+   * 계정 메일이 실제로 나가는가(MAIL_TRANSPORT=smtp). 아니면 화면이 확인 안내·비밀번호 찾기를 숨긴다 —
+   * 오지 않을 메일을 기다리게 하지 않는다.
+   *
+   * @generated from field: bool mail_enabled = 2;
+   */
+  mailEnabled: boolean;
+};
+
+/**
+ * Describes the message auth.v1.GetAuthOptionsResponse.
+ * Use `create(GetAuthOptionsResponseSchema)` to create a new message.
+ */
+export const GetAuthOptionsResponseSchema: GenMessage<GetAuthOptionsResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 14);
+
+/**
+ * 확인 메일 다시 보내기(로그인 필요). 너무 잦으면 남은 초를 알려 준다.
+ *
+ * @generated from message auth.v1.SendEmailVerificationRequest
+ */
+export type SendEmailVerificationRequest = Message<"auth.v1.SendEmailVerificationRequest"> & {
+};
+
+/**
+ * Describes the message auth.v1.SendEmailVerificationRequest.
+ * Use `create(SendEmailVerificationRequestSchema)` to create a new message.
+ */
+export const SendEmailVerificationRequestSchema: GenMessage<SendEmailVerificationRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 15);
+
+/**
+ * @generated from message auth.v1.SendEmailVerificationResponse
+ */
+export type SendEmailVerificationResponse = Message<"auth.v1.SendEmailVerificationResponse"> & {
+  /**
+   * 0이면 보냈다. 0보다 크면 그만큼 기다렸다가 다시 누를 수 있다.
+   *
+   * @generated from field: int32 retry_after_sec = 1;
+   */
+  retryAfterSec: number;
+};
+
+/**
+ * Describes the message auth.v1.SendEmailVerificationResponse.
+ * Use `create(SendEmailVerificationResponseSchema)` to create a new message.
+ */
+export const SendEmailVerificationResponseSchema: GenMessage<SendEmailVerificationResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 16);
+
+/**
+ * @generated from message auth.v1.VerifyEmailRequest
+ */
+export type VerifyEmailRequest = Message<"auth.v1.VerifyEmailRequest"> & {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token: string;
+};
+
+/**
+ * Describes the message auth.v1.VerifyEmailRequest.
+ * Use `create(VerifyEmailRequestSchema)` to create a new message.
+ */
+export const VerifyEmailRequestSchema: GenMessage<VerifyEmailRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 17);
+
+/**
+ * @generated from message auth.v1.VerifyEmailResponse
+ */
+export type VerifyEmailResponse = Message<"auth.v1.VerifyEmailResponse"> & {
+};
+
+/**
+ * Describes the message auth.v1.VerifyEmailResponse.
+ * Use `create(VerifyEmailResponseSchema)` to create a new message.
+ */
+export const VerifyEmailResponseSchema: GenMessage<VerifyEmailResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 18);
+
+/**
+ * 계정 존재를 드러내지 않는다 — 있든 없든 같은 응답이다.
+ *
+ * @generated from message auth.v1.RequestPasswordResetRequest
+ */
+export type RequestPasswordResetRequest = Message<"auth.v1.RequestPasswordResetRequest"> & {
+  /**
+   * @generated from field: string email = 1;
+   */
+  email: string;
+};
+
+/**
+ * Describes the message auth.v1.RequestPasswordResetRequest.
+ * Use `create(RequestPasswordResetRequestSchema)` to create a new message.
+ */
+export const RequestPasswordResetRequestSchema: GenMessage<RequestPasswordResetRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 19);
+
+/**
+ * @generated from message auth.v1.RequestPasswordResetResponse
+ */
+export type RequestPasswordResetResponse = Message<"auth.v1.RequestPasswordResetResponse"> & {
+};
+
+/**
+ * Describes the message auth.v1.RequestPasswordResetResponse.
+ * Use `create(RequestPasswordResetResponseSchema)` to create a new message.
+ */
+export const RequestPasswordResetResponseSchema: GenMessage<RequestPasswordResetResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 20);
+
+/**
+ * 성공하면 **모든 기기의 세션이 끊긴다** — 새로 로그인한다.
+ *
+ * @generated from message auth.v1.ResetPasswordRequest
+ */
+export type ResetPasswordRequest = Message<"auth.v1.ResetPasswordRequest"> & {
+  /**
+   * @generated from field: string token = 1;
+   */
+  token: string;
+
+  /**
+   * @generated from field: string new_password = 2;
+   */
+  newPassword: string;
+};
+
+/**
+ * Describes the message auth.v1.ResetPasswordRequest.
+ * Use `create(ResetPasswordRequestSchema)` to create a new message.
+ */
+export const ResetPasswordRequestSchema: GenMessage<ResetPasswordRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 21);
+
+/**
+ * @generated from message auth.v1.ResetPasswordResponse
+ */
+export type ResetPasswordResponse = Message<"auth.v1.ResetPasswordResponse"> & {
+};
+
+/**
+ * Describes the message auth.v1.ResetPasswordResponse.
+ * Use `create(ResetPasswordResponseSchema)` to create a new message.
+ */
+export const ResetPasswordResponseSchema: GenMessage<ResetPasswordResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 22);
+
+/**
+ * 로그인한 상태에서 바꾼다. 비밀번호가 없는 계정(소셜 전용)은 current_password를 비워 **설정**한다.
+ * 다른 기기 세션은 끊고, 이 기기는 새 토큰으로 이어 간다.
+ *
+ * @generated from message auth.v1.ChangePasswordRequest
+ */
+export type ChangePasswordRequest = Message<"auth.v1.ChangePasswordRequest"> & {
+  /**
+   * @generated from field: string current_password = 1;
+   */
+  currentPassword: string;
+
+  /**
+   * @generated from field: string new_password = 2;
+   */
+  newPassword: string;
+};
+
+/**
+ * Describes the message auth.v1.ChangePasswordRequest.
+ * Use `create(ChangePasswordRequestSchema)` to create a new message.
+ */
+export const ChangePasswordRequestSchema: GenMessage<ChangePasswordRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 23);
+
+/**
+ * @generated from message auth.v1.ChangePasswordResponse
+ */
+export type ChangePasswordResponse = Message<"auth.v1.ChangePasswordResponse"> & {
+  /**
+   * @generated from field: auth.v1.Tokens tokens = 1;
+   */
+  tokens?: Tokens | undefined;
+};
+
+/**
+ * Describes the message auth.v1.ChangePasswordResponse.
+ * Use `create(ChangePasswordResponseSchema)` to create a new message.
+ */
+export const ChangePasswordResponseSchema: GenMessage<ChangePasswordResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 24);
+
+/**
+ * 소셜 로그인 콜백이 화면에 붙여 보낸 일회용 코드(60초·1회)를 세션으로 바꾼다.
+ *
+ * @generated from message auth.v1.ExchangeLoginCodeRequest
+ */
+export type ExchangeLoginCodeRequest = Message<"auth.v1.ExchangeLoginCodeRequest"> & {
+  /**
+   * @generated from field: string code = 1;
+   */
+  code: string;
+};
+
+/**
+ * Describes the message auth.v1.ExchangeLoginCodeRequest.
+ * Use `create(ExchangeLoginCodeRequestSchema)` to create a new message.
+ */
+export const ExchangeLoginCodeRequestSchema: GenMessage<ExchangeLoginCodeRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 25);
+
+/**
+ * @generated from message auth.v1.ExchangeLoginCodeResponse
+ */
+export type ExchangeLoginCodeResponse = Message<"auth.v1.ExchangeLoginCodeResponse"> & {
+  /**
+   * @generated from field: auth.v1.Tokens tokens = 1;
+   */
+  tokens?: Tokens | undefined;
+
+  /**
+   * @generated from field: auth.v1.User user = 2;
+   */
+  user?: User | undefined;
+
+  /**
+   * 이번 로그인으로 계정이 새로 만들어졌는가(화면이 온보딩을 띄울지 정한다)
+   *
+   * @generated from field: bool created = 3;
+   */
+  created: boolean;
+};
+
+/**
+ * Describes the message auth.v1.ExchangeLoginCodeResponse.
+ * Use `create(ExchangeLoginCodeResponseSchema)` to create a new message.
+ */
+export const ExchangeLoginCodeResponseSchema: GenMessage<ExchangeLoginCodeResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 26);
+
+/**
+ * 로그인한 사람이 소셜을 **연결**하러 나갈 때 들고 가는 표(2분·1회).
+ * 브라우저 전면 이동이라 Authorization 헤더를 실을 수 없어서 쓴다.
+ *
+ * @generated from message auth.v1.CreateLinkTicketRequest
+ */
+export type CreateLinkTicketRequest = Message<"auth.v1.CreateLinkTicketRequest"> & {
+};
+
+/**
+ * Describes the message auth.v1.CreateLinkTicketRequest.
+ * Use `create(CreateLinkTicketRequestSchema)` to create a new message.
+ */
+export const CreateLinkTicketRequestSchema: GenMessage<CreateLinkTicketRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 27);
+
+/**
+ * @generated from message auth.v1.CreateLinkTicketResponse
+ */
+export type CreateLinkTicketResponse = Message<"auth.v1.CreateLinkTicketResponse"> & {
+  /**
+   * @generated from field: string ticket = 1;
+   */
+  ticket: string;
+};
+
+/**
+ * Describes the message auth.v1.CreateLinkTicketResponse.
+ * Use `create(CreateLinkTicketResponseSchema)` to create a new message.
+ */
+export const CreateLinkTicketResponseSchema: GenMessage<CreateLinkTicketResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 28);
+
+/**
+ * @generated from message auth.v1.Identity
+ */
+export type Identity = Message<"auth.v1.Identity"> & {
+  /**
+   * @generated from field: string provider = 1;
+   */
+  provider: string;
+
+  /**
+   * @generated from field: string email = 2;
+   */
+  email: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 3;
+   */
+  createdAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message auth.v1.Identity.
+ * Use `create(IdentitySchema)` to create a new message.
+ */
+export const IdentitySchema: GenMessage<Identity> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 29);
+
+/**
+ * @generated from message auth.v1.ListIdentitiesRequest
+ */
+export type ListIdentitiesRequest = Message<"auth.v1.ListIdentitiesRequest"> & {
+};
+
+/**
+ * Describes the message auth.v1.ListIdentitiesRequest.
+ * Use `create(ListIdentitiesRequestSchema)` to create a new message.
+ */
+export const ListIdentitiesRequestSchema: GenMessage<ListIdentitiesRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 30);
+
+/**
+ * @generated from message auth.v1.ListIdentitiesResponse
+ */
+export type ListIdentitiesResponse = Message<"auth.v1.ListIdentitiesResponse"> & {
+  /**
+   * @generated from field: repeated auth.v1.Identity identities = 1;
+   */
+  identities: Identity[];
+};
+
+/**
+ * Describes the message auth.v1.ListIdentitiesResponse.
+ * Use `create(ListIdentitiesResponseSchema)` to create a new message.
+ */
+export const ListIdentitiesResponseSchema: GenMessage<ListIdentitiesResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 31);
+
+/**
+ * 마지막 로그인 수단은 해제할 수 없다(비밀번호도 소셜도 없으면 계정에 다시 들어올 수 없다).
+ *
+ * @generated from message auth.v1.UnlinkIdentityRequest
+ */
+export type UnlinkIdentityRequest = Message<"auth.v1.UnlinkIdentityRequest"> & {
+  /**
+   * @generated from field: string provider = 1;
+   */
+  provider: string;
+};
+
+/**
+ * Describes the message auth.v1.UnlinkIdentityRequest.
+ * Use `create(UnlinkIdentityRequestSchema)` to create a new message.
+ */
+export const UnlinkIdentityRequestSchema: GenMessage<UnlinkIdentityRequest> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 32);
+
+/**
+ * @generated from message auth.v1.UnlinkIdentityResponse
+ */
+export type UnlinkIdentityResponse = Message<"auth.v1.UnlinkIdentityResponse"> & {
+};
+
+/**
+ * Describes the message auth.v1.UnlinkIdentityResponse.
+ * Use `create(UnlinkIdentityResponseSchema)` to create a new message.
+ */
+export const UnlinkIdentityResponseSchema: GenMessage<UnlinkIdentityResponse> = /*@__PURE__*/
+  messageDesc(file_auth_v1_auth, 33);
+
+/**
  * @generated from message auth.v1.LogOutResponse
  */
 export type LogOutResponse = Message<"auth.v1.LogOutResponse"> & {
@@ -388,7 +787,7 @@ export type LogOutResponse = Message<"auth.v1.LogOutResponse"> & {
  * Use `create(LogOutResponseSchema)` to create a new message.
  */
 export const LogOutResponseSchema: GenMessage<LogOutResponse> = /*@__PURE__*/
-  messageDesc(file_auth_v1_auth, 13);
+  messageDesc(file_auth_v1_auth, 34);
 
 /**
  * 역할. 인가 판단의 단일 출처다 — 화면이 아니라 서버가 이걸로 막는다.
@@ -526,6 +925,86 @@ export const AuthService: GenService<{
     methodKind: "unary";
     input: typeof UpdateProfileRequestSchema;
     output: typeof UpdateProfileResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.GetAuthOptions
+   */
+  getAuthOptions: {
+    methodKind: "unary";
+    input: typeof GetAuthOptionsRequestSchema;
+    output: typeof GetAuthOptionsResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.SendEmailVerification
+   */
+  sendEmailVerification: {
+    methodKind: "unary";
+    input: typeof SendEmailVerificationRequestSchema;
+    output: typeof SendEmailVerificationResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.VerifyEmail
+   */
+  verifyEmail: {
+    methodKind: "unary";
+    input: typeof VerifyEmailRequestSchema;
+    output: typeof VerifyEmailResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.RequestPasswordReset
+   */
+  requestPasswordReset: {
+    methodKind: "unary";
+    input: typeof RequestPasswordResetRequestSchema;
+    output: typeof RequestPasswordResetResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.ResetPassword
+   */
+  resetPassword: {
+    methodKind: "unary";
+    input: typeof ResetPasswordRequestSchema;
+    output: typeof ResetPasswordResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.ChangePassword
+   */
+  changePassword: {
+    methodKind: "unary";
+    input: typeof ChangePasswordRequestSchema;
+    output: typeof ChangePasswordResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.ExchangeLoginCode
+   */
+  exchangeLoginCode: {
+    methodKind: "unary";
+    input: typeof ExchangeLoginCodeRequestSchema;
+    output: typeof ExchangeLoginCodeResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.CreateLinkTicket
+   */
+  createLinkTicket: {
+    methodKind: "unary";
+    input: typeof CreateLinkTicketRequestSchema;
+    output: typeof CreateLinkTicketResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.ListIdentities
+   */
+  listIdentities: {
+    methodKind: "unary";
+    input: typeof ListIdentitiesRequestSchema;
+    output: typeof ListIdentitiesResponseSchema;
+  },
+  /**
+   * @generated from rpc auth.v1.AuthService.UnlinkIdentity
+   */
+  unlinkIdentity: {
+    methodKind: "unary";
+    input: typeof UnlinkIdentityRequestSchema;
+    output: typeof UnlinkIdentityResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_auth_v1_auth, 0);

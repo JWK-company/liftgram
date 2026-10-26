@@ -65,6 +65,35 @@ const (
 	// AuthServiceUpdateProfileProcedure is the fully-qualified name of the AuthService's UpdateProfile
 	// RPC.
 	AuthServiceUpdateProfileProcedure = "/auth.v1.AuthService/UpdateProfile"
+	// AuthServiceGetAuthOptionsProcedure is the fully-qualified name of the AuthService's
+	// GetAuthOptions RPC.
+	AuthServiceGetAuthOptionsProcedure = "/auth.v1.AuthService/GetAuthOptions"
+	// AuthServiceSendEmailVerificationProcedure is the fully-qualified name of the AuthService's
+	// SendEmailVerification RPC.
+	AuthServiceSendEmailVerificationProcedure = "/auth.v1.AuthService/SendEmailVerification"
+	// AuthServiceVerifyEmailProcedure is the fully-qualified name of the AuthService's VerifyEmail RPC.
+	AuthServiceVerifyEmailProcedure = "/auth.v1.AuthService/VerifyEmail"
+	// AuthServiceRequestPasswordResetProcedure is the fully-qualified name of the AuthService's
+	// RequestPasswordReset RPC.
+	AuthServiceRequestPasswordResetProcedure = "/auth.v1.AuthService/RequestPasswordReset"
+	// AuthServiceResetPasswordProcedure is the fully-qualified name of the AuthService's ResetPassword
+	// RPC.
+	AuthServiceResetPasswordProcedure = "/auth.v1.AuthService/ResetPassword"
+	// AuthServiceChangePasswordProcedure is the fully-qualified name of the AuthService's
+	// ChangePassword RPC.
+	AuthServiceChangePasswordProcedure = "/auth.v1.AuthService/ChangePassword"
+	// AuthServiceExchangeLoginCodeProcedure is the fully-qualified name of the AuthService's
+	// ExchangeLoginCode RPC.
+	AuthServiceExchangeLoginCodeProcedure = "/auth.v1.AuthService/ExchangeLoginCode"
+	// AuthServiceCreateLinkTicketProcedure is the fully-qualified name of the AuthService's
+	// CreateLinkTicket RPC.
+	AuthServiceCreateLinkTicketProcedure = "/auth.v1.AuthService/CreateLinkTicket"
+	// AuthServiceListIdentitiesProcedure is the fully-qualified name of the AuthService's
+	// ListIdentities RPC.
+	AuthServiceListIdentitiesProcedure = "/auth.v1.AuthService/ListIdentities"
+	// AuthServiceUnlinkIdentityProcedure is the fully-qualified name of the AuthService's
+	// UnlinkIdentity RPC.
+	AuthServiceUnlinkIdentityProcedure = "/auth.v1.AuthService/UnlinkIdentity"
 )
 
 // AuthServiceClient is a client for the auth.v1.AuthService service.
@@ -80,6 +109,16 @@ type AuthServiceClient interface {
 	// 내가 누구인지. access 토큰이 필요하다.
 	Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error)
 	UpdateProfile(context.Context, *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.UpdateProfileResponse], error)
+	GetAuthOptions(context.Context, *connect.Request[v1.GetAuthOptionsRequest]) (*connect.Response[v1.GetAuthOptionsResponse], error)
+	SendEmailVerification(context.Context, *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[v1.SendEmailVerificationResponse], error)
+	VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[v1.VerifyEmailResponse], error)
+	RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error)
+	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error)
+	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
+	ExchangeLoginCode(context.Context, *connect.Request[v1.ExchangeLoginCodeRequest]) (*connect.Response[v1.ExchangeLoginCodeResponse], error)
+	CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error)
+	ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error)
+	UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the auth.v1.AuthService service. By default, it uses
@@ -129,17 +168,87 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("UpdateProfile")),
 			connect.WithClientOptions(opts...),
 		),
+		getAuthOptions: connect.NewClient[v1.GetAuthOptionsRequest, v1.GetAuthOptionsResponse](
+			httpClient,
+			baseURL+AuthServiceGetAuthOptionsProcedure,
+			connect.WithSchema(authServiceMethods.ByName("GetAuthOptions")),
+			connect.WithClientOptions(opts...),
+		),
+		sendEmailVerification: connect.NewClient[v1.SendEmailVerificationRequest, v1.SendEmailVerificationResponse](
+			httpClient,
+			baseURL+AuthServiceSendEmailVerificationProcedure,
+			connect.WithSchema(authServiceMethods.ByName("SendEmailVerification")),
+			connect.WithClientOptions(opts...),
+		),
+		verifyEmail: connect.NewClient[v1.VerifyEmailRequest, v1.VerifyEmailResponse](
+			httpClient,
+			baseURL+AuthServiceVerifyEmailProcedure,
+			connect.WithSchema(authServiceMethods.ByName("VerifyEmail")),
+			connect.WithClientOptions(opts...),
+		),
+		requestPasswordReset: connect.NewClient[v1.RequestPasswordResetRequest, v1.RequestPasswordResetResponse](
+			httpClient,
+			baseURL+AuthServiceRequestPasswordResetProcedure,
+			connect.WithSchema(authServiceMethods.ByName("RequestPasswordReset")),
+			connect.WithClientOptions(opts...),
+		),
+		resetPassword: connect.NewClient[v1.ResetPasswordRequest, v1.ResetPasswordResponse](
+			httpClient,
+			baseURL+AuthServiceResetPasswordProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ResetPassword")),
+			connect.WithClientOptions(opts...),
+		),
+		changePassword: connect.NewClient[v1.ChangePasswordRequest, v1.ChangePasswordResponse](
+			httpClient,
+			baseURL+AuthServiceChangePasswordProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ChangePassword")),
+			connect.WithClientOptions(opts...),
+		),
+		exchangeLoginCode: connect.NewClient[v1.ExchangeLoginCodeRequest, v1.ExchangeLoginCodeResponse](
+			httpClient,
+			baseURL+AuthServiceExchangeLoginCodeProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ExchangeLoginCode")),
+			connect.WithClientOptions(opts...),
+		),
+		createLinkTicket: connect.NewClient[v1.CreateLinkTicketRequest, v1.CreateLinkTicketResponse](
+			httpClient,
+			baseURL+AuthServiceCreateLinkTicketProcedure,
+			connect.WithSchema(authServiceMethods.ByName("CreateLinkTicket")),
+			connect.WithClientOptions(opts...),
+		),
+		listIdentities: connect.NewClient[v1.ListIdentitiesRequest, v1.ListIdentitiesResponse](
+			httpClient,
+			baseURL+AuthServiceListIdentitiesProcedure,
+			connect.WithSchema(authServiceMethods.ByName("ListIdentities")),
+			connect.WithClientOptions(opts...),
+		),
+		unlinkIdentity: connect.NewClient[v1.UnlinkIdentityRequest, v1.UnlinkIdentityResponse](
+			httpClient,
+			baseURL+AuthServiceUnlinkIdentityProcedure,
+			connect.WithSchema(authServiceMethods.ByName("UnlinkIdentity")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // authServiceClient implements AuthServiceClient.
 type authServiceClient struct {
-	signUp        *connect.Client[v1.SignUpRequest, v1.SignUpResponse]
-	logIn         *connect.Client[v1.LogInRequest, v1.LogInResponse]
-	refresh       *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
-	logOut        *connect.Client[v1.LogOutRequest, v1.LogOutResponse]
-	me            *connect.Client[v1.MeRequest, v1.MeResponse]
-	updateProfile *connect.Client[v1.UpdateProfileRequest, v1.UpdateProfileResponse]
+	signUp                *connect.Client[v1.SignUpRequest, v1.SignUpResponse]
+	logIn                 *connect.Client[v1.LogInRequest, v1.LogInResponse]
+	refresh               *connect.Client[v1.RefreshRequest, v1.RefreshResponse]
+	logOut                *connect.Client[v1.LogOutRequest, v1.LogOutResponse]
+	me                    *connect.Client[v1.MeRequest, v1.MeResponse]
+	updateProfile         *connect.Client[v1.UpdateProfileRequest, v1.UpdateProfileResponse]
+	getAuthOptions        *connect.Client[v1.GetAuthOptionsRequest, v1.GetAuthOptionsResponse]
+	sendEmailVerification *connect.Client[v1.SendEmailVerificationRequest, v1.SendEmailVerificationResponse]
+	verifyEmail           *connect.Client[v1.VerifyEmailRequest, v1.VerifyEmailResponse]
+	requestPasswordReset  *connect.Client[v1.RequestPasswordResetRequest, v1.RequestPasswordResetResponse]
+	resetPassword         *connect.Client[v1.ResetPasswordRequest, v1.ResetPasswordResponse]
+	changePassword        *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
+	exchangeLoginCode     *connect.Client[v1.ExchangeLoginCodeRequest, v1.ExchangeLoginCodeResponse]
+	createLinkTicket      *connect.Client[v1.CreateLinkTicketRequest, v1.CreateLinkTicketResponse]
+	listIdentities        *connect.Client[v1.ListIdentitiesRequest, v1.ListIdentitiesResponse]
+	unlinkIdentity        *connect.Client[v1.UnlinkIdentityRequest, v1.UnlinkIdentityResponse]
 }
 
 // SignUp calls auth.v1.AuthService.SignUp.
@@ -172,6 +281,56 @@ func (c *authServiceClient) UpdateProfile(ctx context.Context, req *connect.Requ
 	return c.updateProfile.CallUnary(ctx, req)
 }
 
+// GetAuthOptions calls auth.v1.AuthService.GetAuthOptions.
+func (c *authServiceClient) GetAuthOptions(ctx context.Context, req *connect.Request[v1.GetAuthOptionsRequest]) (*connect.Response[v1.GetAuthOptionsResponse], error) {
+	return c.getAuthOptions.CallUnary(ctx, req)
+}
+
+// SendEmailVerification calls auth.v1.AuthService.SendEmailVerification.
+func (c *authServiceClient) SendEmailVerification(ctx context.Context, req *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[v1.SendEmailVerificationResponse], error) {
+	return c.sendEmailVerification.CallUnary(ctx, req)
+}
+
+// VerifyEmail calls auth.v1.AuthService.VerifyEmail.
+func (c *authServiceClient) VerifyEmail(ctx context.Context, req *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[v1.VerifyEmailResponse], error) {
+	return c.verifyEmail.CallUnary(ctx, req)
+}
+
+// RequestPasswordReset calls auth.v1.AuthService.RequestPasswordReset.
+func (c *authServiceClient) RequestPasswordReset(ctx context.Context, req *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error) {
+	return c.requestPasswordReset.CallUnary(ctx, req)
+}
+
+// ResetPassword calls auth.v1.AuthService.ResetPassword.
+func (c *authServiceClient) ResetPassword(ctx context.Context, req *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error) {
+	return c.resetPassword.CallUnary(ctx, req)
+}
+
+// ChangePassword calls auth.v1.AuthService.ChangePassword.
+func (c *authServiceClient) ChangePassword(ctx context.Context, req *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error) {
+	return c.changePassword.CallUnary(ctx, req)
+}
+
+// ExchangeLoginCode calls auth.v1.AuthService.ExchangeLoginCode.
+func (c *authServiceClient) ExchangeLoginCode(ctx context.Context, req *connect.Request[v1.ExchangeLoginCodeRequest]) (*connect.Response[v1.ExchangeLoginCodeResponse], error) {
+	return c.exchangeLoginCode.CallUnary(ctx, req)
+}
+
+// CreateLinkTicket calls auth.v1.AuthService.CreateLinkTicket.
+func (c *authServiceClient) CreateLinkTicket(ctx context.Context, req *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error) {
+	return c.createLinkTicket.CallUnary(ctx, req)
+}
+
+// ListIdentities calls auth.v1.AuthService.ListIdentities.
+func (c *authServiceClient) ListIdentities(ctx context.Context, req *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error) {
+	return c.listIdentities.CallUnary(ctx, req)
+}
+
+// UnlinkIdentity calls auth.v1.AuthService.UnlinkIdentity.
+func (c *authServiceClient) UnlinkIdentity(ctx context.Context, req *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error) {
+	return c.unlinkIdentity.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the auth.v1.AuthService service.
 type AuthServiceHandler interface {
 	// 가입. 이미 있는 이메일이면 AlreadyExists다 — "로그인해 보세요"를 화면이 안내한다.
@@ -185,6 +344,16 @@ type AuthServiceHandler interface {
 	// 내가 누구인지. access 토큰이 필요하다.
 	Me(context.Context, *connect.Request[v1.MeRequest]) (*connect.Response[v1.MeResponse], error)
 	UpdateProfile(context.Context, *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.UpdateProfileResponse], error)
+	GetAuthOptions(context.Context, *connect.Request[v1.GetAuthOptionsRequest]) (*connect.Response[v1.GetAuthOptionsResponse], error)
+	SendEmailVerification(context.Context, *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[v1.SendEmailVerificationResponse], error)
+	VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[v1.VerifyEmailResponse], error)
+	RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error)
+	ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error)
+	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
+	ExchangeLoginCode(context.Context, *connect.Request[v1.ExchangeLoginCodeRequest]) (*connect.Response[v1.ExchangeLoginCodeResponse], error)
+	CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error)
+	ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error)
+	UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -230,6 +399,66 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("UpdateProfile")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceGetAuthOptionsHandler := connect.NewUnaryHandler(
+		AuthServiceGetAuthOptionsProcedure,
+		svc.GetAuthOptions,
+		connect.WithSchema(authServiceMethods.ByName("GetAuthOptions")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceSendEmailVerificationHandler := connect.NewUnaryHandler(
+		AuthServiceSendEmailVerificationProcedure,
+		svc.SendEmailVerification,
+		connect.WithSchema(authServiceMethods.ByName("SendEmailVerification")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceVerifyEmailHandler := connect.NewUnaryHandler(
+		AuthServiceVerifyEmailProcedure,
+		svc.VerifyEmail,
+		connect.WithSchema(authServiceMethods.ByName("VerifyEmail")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceRequestPasswordResetHandler := connect.NewUnaryHandler(
+		AuthServiceRequestPasswordResetProcedure,
+		svc.RequestPasswordReset,
+		connect.WithSchema(authServiceMethods.ByName("RequestPasswordReset")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceResetPasswordHandler := connect.NewUnaryHandler(
+		AuthServiceResetPasswordProcedure,
+		svc.ResetPassword,
+		connect.WithSchema(authServiceMethods.ByName("ResetPassword")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceChangePasswordHandler := connect.NewUnaryHandler(
+		AuthServiceChangePasswordProcedure,
+		svc.ChangePassword,
+		connect.WithSchema(authServiceMethods.ByName("ChangePassword")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceExchangeLoginCodeHandler := connect.NewUnaryHandler(
+		AuthServiceExchangeLoginCodeProcedure,
+		svc.ExchangeLoginCode,
+		connect.WithSchema(authServiceMethods.ByName("ExchangeLoginCode")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceCreateLinkTicketHandler := connect.NewUnaryHandler(
+		AuthServiceCreateLinkTicketProcedure,
+		svc.CreateLinkTicket,
+		connect.WithSchema(authServiceMethods.ByName("CreateLinkTicket")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceListIdentitiesHandler := connect.NewUnaryHandler(
+		AuthServiceListIdentitiesProcedure,
+		svc.ListIdentities,
+		connect.WithSchema(authServiceMethods.ByName("ListIdentities")),
+		connect.WithHandlerOptions(opts...),
+	)
+	authServiceUnlinkIdentityHandler := connect.NewUnaryHandler(
+		AuthServiceUnlinkIdentityProcedure,
+		svc.UnlinkIdentity,
+		connect.WithSchema(authServiceMethods.ByName("UnlinkIdentity")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/auth.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceSignUpProcedure:
@@ -244,6 +473,26 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceMeHandler.ServeHTTP(w, r)
 		case AuthServiceUpdateProfileProcedure:
 			authServiceUpdateProfileHandler.ServeHTTP(w, r)
+		case AuthServiceGetAuthOptionsProcedure:
+			authServiceGetAuthOptionsHandler.ServeHTTP(w, r)
+		case AuthServiceSendEmailVerificationProcedure:
+			authServiceSendEmailVerificationHandler.ServeHTTP(w, r)
+		case AuthServiceVerifyEmailProcedure:
+			authServiceVerifyEmailHandler.ServeHTTP(w, r)
+		case AuthServiceRequestPasswordResetProcedure:
+			authServiceRequestPasswordResetHandler.ServeHTTP(w, r)
+		case AuthServiceResetPasswordProcedure:
+			authServiceResetPasswordHandler.ServeHTTP(w, r)
+		case AuthServiceChangePasswordProcedure:
+			authServiceChangePasswordHandler.ServeHTTP(w, r)
+		case AuthServiceExchangeLoginCodeProcedure:
+			authServiceExchangeLoginCodeHandler.ServeHTTP(w, r)
+		case AuthServiceCreateLinkTicketProcedure:
+			authServiceCreateLinkTicketHandler.ServeHTTP(w, r)
+		case AuthServiceListIdentitiesProcedure:
+			authServiceListIdentitiesHandler.ServeHTTP(w, r)
+		case AuthServiceUnlinkIdentityProcedure:
+			authServiceUnlinkIdentityHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -275,4 +524,44 @@ func (UnimplementedAuthServiceHandler) Me(context.Context, *connect.Request[v1.M
 
 func (UnimplementedAuthServiceHandler) UpdateProfile(context.Context, *connect.Request[v1.UpdateProfileRequest]) (*connect.Response[v1.UpdateProfileResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.UpdateProfile is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) GetAuthOptions(context.Context, *connect.Request[v1.GetAuthOptionsRequest]) (*connect.Response[v1.GetAuthOptionsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.GetAuthOptions is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) SendEmailVerification(context.Context, *connect.Request[v1.SendEmailVerificationRequest]) (*connect.Response[v1.SendEmailVerificationResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.SendEmailVerification is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) VerifyEmail(context.Context, *connect.Request[v1.VerifyEmailRequest]) (*connect.Response[v1.VerifyEmailResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.VerifyEmail is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) RequestPasswordReset(context.Context, *connect.Request[v1.RequestPasswordResetRequest]) (*connect.Response[v1.RequestPasswordResetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.RequestPasswordReset is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ResetPassword(context.Context, *connect.Request[v1.ResetPasswordRequest]) (*connect.Response[v1.ResetPasswordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.ResetPassword is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.ChangePassword is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ExchangeLoginCode(context.Context, *connect.Request[v1.ExchangeLoginCodeRequest]) (*connect.Response[v1.ExchangeLoginCodeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.ExchangeLoginCode is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.CreateLinkTicket is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.ListIdentities is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.UnlinkIdentity is not implemented"))
 }

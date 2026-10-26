@@ -55,6 +55,16 @@ const schema = z.object({
    * 로컬은 http라 붙이면 쿠키가 아예 저장되지 않는다.
    */
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  /**
+   * 「이 포트에 닿는 것은 cloudflared 뿐이다」를 운영자가 선언할 때만 1. 그때만 Cloudflare가 붙인
+   * CF-Connecting-IP를 클라이언트 주소로 믿는다(SRS-052). 짝으로 포트를 루프백에만 연다(compose.prod).
+   */
+  TRUST_CF_CONNECTING_IP: z
+    .enum(["0", "1", ""])
+    .default("0")
+    .transform((v) => v === "1"),
+  /** Cloudflare Turnstile 사이트 키 — 비면 위젯을 그리지 않는다(백엔드 TURNSTILE_SECRET 과 짝) */
+  TURNSTILE_SITE_KEY: z.string().default(""),
 });
 export type WebEnv = z.infer<typeof schema>;
 

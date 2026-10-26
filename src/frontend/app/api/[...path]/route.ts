@@ -93,7 +93,9 @@ async function proxy(req: Request): Promise<Response> {
     // ("failed to decompress 'gzip': incorrect header check" — 브라우저 e2e가 잡아낸 결함).
     // curl은 --compressed 없이는 풀지 않아서 smoke test에서는 드러나지 않았다.
     if (key === "content-encoding" || key === "content-length") return;
-    headers.set(k, v);
+    // Set-Cookie는 여러 개일 수 있다 — set 으로 덮으면 마지막 하나만 남는다(OAuth state 쿠키 등).
+    if (key === "set-cookie") headers.append(k, v);
+    else headers.set(k, v);
   });
   headers.set("x-request-id", requestId);
 

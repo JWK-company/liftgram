@@ -21,6 +21,19 @@ services:
     image: redis:8-alpine
     ports: ["${BROKER_PORT:-6380}:6379"]
     healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 3s, timeout: 3s, retries: 20 }
+  # 개발 메일함(SRS-052) — 가입 확인·비밀번호 재설정 메일이 실제 SMTP로 여기 도착한다.
+  # e2e가 API(8026)로 메일을 꺼내 링크를 연다. 화면: http://localhost:8026
+  # 포트를 booktarae 개발 Mailpit(1025·8025)과 겹치지 않게 옮겼다.
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports: ["${MAILPIT_SMTP_PORT:-1026}:1025", "${MAILPIT_UI_PORT:-8026}:8025"]
+    environment:
+      MP_MAX_MESSAGES: "500"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
 
 volumes:
   devdata:

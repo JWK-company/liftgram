@@ -3,8 +3,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // 옛 서버와 **같은 판단**을 그대로 옮긴다: 저장은 클라우드에 하지만 **서브는 우리 서버가 한다.**
 // 버킷을 공개로 열지 않기 때문에
-//   · 내려간(flagged) 사진은 바이트도 안 나간다 — 모더레이션이 실제로 효력을 갖는다
-//   · 저장소를 바꿔도 이미 올라간 글의 주소가 그대로다
+//
+//	· 내려간(flagged) 사진은 바이트도 안 나간다 — 모더레이션이 실제로 효력을 갖는다
+//	· 저장소를 바꿔도 이미 올라간 글의 주소가 그대로다
+//
 // 대신 사진 트래픽이 서버를 지난다. CDN을 앞에 두려면 그때 url만 절대주소로 바꾸면 된다
 // (그래서 url을 계산하지 않고 **값으로 저장**한다 — 0006_media.sql).
 //
@@ -62,7 +64,7 @@ func NewS3Storage(cfg S3Config) (Storage, error) {
 		Region:       region,
 		BaseEndpoint: aws.String(cfg.Endpoint),
 		UsePathStyle: true, // R2·호환 스토리지에서 가장 안전한 주소 방식
-		Credentials: credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, ""),
+		Credentials:  credentials.NewStaticCredentialsProvider(cfg.AccessKey, cfg.SecretKey, ""),
 	})
 	return &s3Storage{client: client, bucket: cfg.Bucket}, nil
 }

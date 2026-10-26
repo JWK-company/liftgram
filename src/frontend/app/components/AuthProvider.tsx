@@ -26,7 +26,12 @@ interface AuthValue {
   /** 로그인하지 않았으면 null. 아직 확인 중이어도 null이다(loading으로 구분한다). */
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  /** humanToken = 사람 확인(Turnstile) 토큰. 키가 없는 환경에서는 비어도 된다. */
+  signUp: (email: string, password: string, displayName: string, humanToken?: string | null) => Promise<void>;
+  /** 소셜 로그인 콜백이 붙여 보낸 일회용 코드로 로그인한다(/auth/complete). 새 계정이면 true */
+  logInWithCode: (code: string) => Promise<boolean>;
+  /** 서버의 내 정보를 다시 읽는다(이메일 확인 뒤 등). */
+  refreshMe: () => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
   /**
@@ -41,6 +46,9 @@ interface AuthValue {
 }
 
 const AuthContext = createContext<AuthValue | null>(null);
+
+/** 사람 확인 토큰을 싣는 헤더 — backend internal/auth/turnstile.go 의 TurnstileHeader 와 같은 이름 */
+export const HUMAN_HEADER = "X-Turnstile-Token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -92,8 +100,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       loading,
-      signUp: async (email, password, displayName) => {
-        const res = await authClient().signUp({ email, password, displayName });
+      signUp: async (email, password, displayName, humanToken) => {
+        const res = await authClient().signUp(
+          { email, password, displayName },
+          { headers: humanToken ? { [HUMAN_HEADER]: humanToken } : {} },
+        );
         if (res.tokens) setTokens(res.tokens);
         setUser(res.user ?? null);
         // 로그인 전에 쌓은 기록을 이 계정 것으로 삼는다(대조가 먼저, 그다음 동기).
@@ -106,6 +117,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // **다른 계정이면** 이전 사람의 기록이 올라가면 안 된다 — 남은 기록이 없으면 비우고,
         // 있으면 멈추고 고르게 한다(AccountGuard).
         if (res.user) await reconcile(res.user.id);
+      },
+      logInWithCode: async (code) => {
+        const res = await authClient().exchangeLoginCode({ code });
+        if (res.tokens) setTokens(res.tokens);
+        setUser(res.user ?? null);
+        if (res.user) await reconcile(res.user.id);
+        return res.created;
+      },
+      refreshMe: async () => {
+        if (!hasSession()) return;
+        const res = await authClient().me({});
+        setUser(res.user ?? null);
       },
       logOut: async () => {
         // refresh는 httpOnly 쿠키에 있어 여기서 읽을 수 없다 — 폐기까지 세션 라우트가 한다.

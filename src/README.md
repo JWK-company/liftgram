@@ -301,6 +301,18 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `S3_ACCESS_KEY_ID` · `S3_SECRET_ACCESS_KEY` | s3일 때 필수 | — | 비어 있으면 **부팅이 멈춘다** — 조용히 디스크로 되돌아가지 않는다 |
 | `PLM_API_URL` | 선택 | `https://jwk-plm.shoi.ch` | 개발 피드백을 등록하는 아이디어보드 주소(SRS-006). 로컬 e2e는 가짜 보드를 띄워 여기를 돌려놓는다 — 테스트 글이 진짜 보드에 쌓이지 않게 |
 | `PLM_API_TOKEN` | 선택 | 비어 있음 | 보드 토큰. **서버에만 둔다**(앱 번들에 들어가면 회수할 수 없다). 비면 개발 피드백 탭만 "지금 안 된다"고 답하고 나머지는 그대로 동작한다 |
+| `MAIL_TRANSPORT` | 선택 | `console` | 계정 메일(가입 확인·비밀번호 재설정)을 어떻게 보내나 — `smtp` 또는 `console`(로그로만 찍는다 · **운영이면 아무에게도 닿지 않는다**). SRS-052 |
+| `MAIL_SMTP_HOST` · `MAIL_SMTP_PORT` | smtp면 필수 | 없음 · `587` | 개발은 Mailpit(`localhost:1026`), 운영은 Cloudflare Email Sending(`smtp.mx.cloudflare.net`) |
+| `MAIL_SMTP_USER` · `MAIL_SMTP_PASSWORD` | 선택 | 비어 있음 | SMTP 인증(운영 = 발신 토큰). 비면 AUTH를 건너뛴다(Mailpit) |
+| `MAIL_FROM` | 선택 | `Liftgram <no-reply@localhost>` | 보내는 사람. 운영 `Liftgram <no-reply@tarae.org>` — 그 도메인에 SPF·DKIM이 있어야 받은편지함에 들어간다 |
+| `MAIL_REQUIRE_TLS` | 선택 | `true` | 운영 true. 로컬 Mailpit은 TLS가 없어 false |
+| `TURNSTILE_SITE_KEY` · `TURNSTILE_SECRET` | 선택 | 비어 있음(끔) | Cloudflare Turnstile(사람 확인) — 가입·비밀번호 찾기에 붙는다. **두 키를 짝으로** 켠다(비밀키만 있으면 위젯이 없어 가입이 전부 막힌다) |
+| `AUTH_RATE_LIMIT` | 선택 | `10` | 가입·로그인·메일 요청의 IP당 분당 허용(0=끔 · e2e). IP는 web 가장자리가 정한 값만 쓴다 |
+| `TRUST_CF_CONNECTING_IP` | 선택 | `0` | `1`이면 Cloudflare가 붙인 CF-Connecting-IP를 클라이언트 주소로 믿는다 — **포트가 터널에만 열려 있을 때만**(운영). 꺼져 있으면 그 헤더는 버린다 |
+| `OAUTH_GOOGLE_CLIENT_ID` · `OAUTH_GOOGLE_CLIENT_SECRET` | 선택 | 비어 있음 | 구글 로그인. **둘 다** 채운 제공자만 켜지고 버튼이 뜬다. redirect URI = `{APP_URL}/api/auth/oauth/google/callback` |
+| `OAUTH_KAKAO_CLIENT_ID` · `OAUTH_KAKAO_CLIENT_SECRET` | 선택 | 비어 있음 | 카카오 로그인(OIDC). redirect URI = `…/oauth/kakao/callback` |
+| `OAUTH_KAKAO_LEGACY` | 선택 | 비어 있음 | 카카오 앱에서 OIDC를 켤 수 없을 때만 `true` — 자동 폴백이 아니다 |
+| `OAUTH_NAVER_CLIENT_ID` · `OAUTH_NAVER_CLIENT_SECRET` | 선택 | 비어 있음 | 네이버 로그인. 네이버는 이메일 소유를 보증하지 않아 그 주소를 계정 주소로 쓰지 않는다 |
 | `PLM_PROJECT` | 선택 | `liftgram` | 보드에서 이 앱의 아이디어가 속하는 프로젝트 이름 |
 | `NODE_ENV` | 선택 | `development` | 세션 쿠키에 `Secure`를 붙일지 정한다 — **로컬은 http라 붙이면 쿠키가 아예 저장되지 않는다**. 컨테이너 이미지는 `production`으로 뜬다 |
 | `POSTGRES_*` · `DB_PORT` · `BROKER_PORT` · `WEB_PORT` | 선택 | app / 5433 / 6380 / 3000 | compose 전용(앱은 읽지 않음) |

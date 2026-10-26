@@ -55,6 +55,10 @@ message User {
   // 코칭 의향 — **자격 보증이 아니다**(화면이 항상 그 고지를 함께 띄운다).
   bool trainer_intent = 7;
   google.protobuf.Timestamp created_at = 8;
+  // 이메일 소유가 확인됐는가(SRS-052). 확인 전에도 기록은 쓰지만, 화면이 안내를 띄운다.
+  bool email_verified = 9;
+  // 비밀번호로 로그인할 수 있는가 — 소셜로만 가입한 계정은 false(비밀번호 "설정"이 가능하다).
+  bool has_password = 10;
 }
 
 // 세션 한 벌. 클라이언트는 access를 메모리에, refresh를 오래 가는 저장소에 둔다.
@@ -129,6 +133,87 @@ message UpdateProfileResponse {
   User user = 1;
 }
 
+// ── 정식 계정 (SRS-052) ─────────────────────────────────────────────────────
+// 가입·비밀번호 찾기처럼 **로그인 없이 메일을 내보내는** 요청은 헤더 X-Turnstile-Token(사람 확인)을 함께 보낸다.
+
+// 화면이 그릴 것 — 켜진 소셜 제공자. 자격증명이 들어온 것만 온다(버튼 = 이 목록).
+message GetAuthOptionsRequest {}
+message GetAuthOptionsResponse {
+  repeated string providers = 1;
+  // 계정 메일이 실제로 나가는가(MAIL_TRANSPORT=smtp). 아니면 화면이 확인 안내·비밀번호 찾기를 숨긴다 —
+  // 오지 않을 메일을 기다리게 하지 않는다.
+  bool mail_enabled = 2;
+}
+
+// 확인 메일 다시 보내기(로그인 필요). 너무 잦으면 남은 초를 알려 준다.
+message SendEmailVerificationRequest {}
+message SendEmailVerificationResponse {
+  // 0이면 보냈다. 0보다 크면 그만큼 기다렸다가 다시 누를 수 있다.
+  int32 retry_after_sec = 1;
+}
+
+message VerifyEmailRequest {
+  string token = 1 [(buf.validate.field).string = {min_len: 16, max_len: 128}];
+}
+message VerifyEmailResponse {}
+
+// 계정 존재를 드러내지 않는다 — 있든 없든 같은 응답이다.
+message RequestPasswordResetRequest {
+  string email = 1 [(buf.validate.field).string = {min_len: 3, max_len: 254}];
+}
+message RequestPasswordResetResponse {}
+
+// 성공하면 **모든 기기의 세션이 끊긴다** — 새로 로그인한다.
+message ResetPasswordRequest {
+  string token = 1 [(buf.validate.field).string = {min_len: 16, max_len: 128}];
+  string new_password = 2 [(buf.validate.field).string = {min_len: 8, max_len: 72}];
+}
+message ResetPasswordResponse {}
+
+// 로그인한 상태에서 바꾼다. 비밀번호가 없는 계정(소셜 전용)은 current_password를 비워 **설정**한다.
+// 다른 기기 세션은 끊고, 이 기기는 새 토큰으로 이어 간다.
+message ChangePasswordRequest {
+  string current_password = 1 [(buf.validate.field).string = {max_len: 72}];
+  string new_password = 2 [(buf.validate.field).string = {min_len: 8, max_len: 72}];
+}
+message ChangePasswordResponse {
+  Tokens tokens = 1;
+}
+
+// 소셜 로그인 콜백이 화면에 붙여 보낸 일회용 코드(60초·1회)를 세션으로 바꾼다.
+message ExchangeLoginCodeRequest {
+  string code = 1 [(buf.validate.field).string = {min_len: 16, max_len: 128}];
+}
+message ExchangeLoginCodeResponse {
+  Tokens tokens = 1;
+  User user = 2;
+  // 이번 로그인으로 계정이 새로 만들어졌는가(화면이 온보딩을 띄울지 정한다)
+  bool created = 3;
+}
+
+// 로그인한 사람이 소셜을 **연결**하러 나갈 때 들고 가는 표(2분·1회).
+// 브라우저 전면 이동이라 Authorization 헤더를 실을 수 없어서 쓴다.
+message CreateLinkTicketRequest {}
+message CreateLinkTicketResponse {
+  string ticket = 1;
+}
+
+message Identity {
+  string provider = 1;
+  string email = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+message ListIdentitiesRequest {}
+message ListIdentitiesResponse {
+  repeated Identity identities = 1;
+}
+
+// 마지막 로그인 수단은 해제할 수 없다(비밀번호도 소셜도 없으면 계정에 다시 들어올 수 없다).
+message UnlinkIdentityRequest {
+  string provider = 1 [(buf.validate.field).string = {in: ["google", "kakao", "naver"]}];
+}
+message UnlinkIdentityResponse {}
+
 service AuthService {
   // 가입. 이미 있는 이메일이면 AlreadyExists다 — "로그인해 보세요"를 화면이 안내한다.
   rpc SignUp(SignUpRequest) returns (SignUpResponse) {}
@@ -146,6 +231,17 @@ service AuthService {
   rpc Me(MeRequest) returns (MeResponse) {}
 
   rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {}
+
+  rpc GetAuthOptions(GetAuthOptionsRequest) returns (GetAuthOptionsResponse) {}
+  rpc SendEmailVerification(SendEmailVerificationRequest) returns (SendEmailVerificationResponse) {}
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {}
+  rpc RequestPasswordReset(RequestPasswordResetRequest) returns (RequestPasswordResetResponse) {}
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {}
+  rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {}
+  rpc ExchangeLoginCode(ExchangeLoginCodeRequest) returns (ExchangeLoginCodeResponse) {}
+  rpc CreateLinkTicket(CreateLinkTicketRequest) returns (CreateLinkTicketResponse) {}
+  rpc ListIdentities(ListIdentitiesRequest) returns (ListIdentitiesResponse) {}
+  rpc UnlinkIdentity(UnlinkIdentityRequest) returns (UnlinkIdentityResponse) {}
 }
 
 message LogOutResponse {}
