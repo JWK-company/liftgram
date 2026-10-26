@@ -35,6 +35,8 @@ async function 가입(page: Page, email: string, name: string) {
 /** 코칭 의향을 켠다 — 이걸 켜야 남의 검색에 나온다(로컬만이 아니라 **서버 프로필에도** 적힌다). */
 async function 코칭의향_켜기(page: Page) {
   await page.goto("/profile");
+  // 경력·코칭 의향은 프로필의 「편집」 시트 안에 있다(SRS-054 시안 09).
+  await page.getByTestId("btn-edit-experience").click();
   await expect(page.getByTestId("trainer-intent")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("trainer-intent").click();
   await expect(page.getByTestId("trainer-intent")).toHaveAttribute("aria-pressed", "true", {

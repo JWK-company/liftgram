@@ -163,7 +163,7 @@ test("검토자는 큐에서 글을 내릴 수 있다", async ({ page, context }
   await context.clearCookies();
   await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await page.goto("/account");
-  await page.getByTestId("mode-login").click();
+  // /account 는 로그인부터 연다(로그인/가입 탭 없음 — SRS-054 시안 10).
   await page.getByTestId("auth-email-input").fill(모더레이터메일);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("btn-auth-submit").click();

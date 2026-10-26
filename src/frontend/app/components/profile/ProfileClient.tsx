@@ -43,10 +43,10 @@ import {
 } from "@/lib/restSound";
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
-import { Button } from "../ui/Button";
-import { Icon } from "../ui/Icon";
+import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { NumberStepper, TextField } from "../ui/inputs";
-import { AppText, Card, Divider, SectionHeader } from "../ui/primitives";
+import { AppText, Card } from "../ui/primitives";
+import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
@@ -102,6 +102,9 @@ export default function ProfileClient() {
   const [restSound, setRestSoundState] = useState<RestSoundKind>("ding");
   const [theme, setThemeState] = useState<ThemeChoice>("system");
   const [restVol, setRestVolState] = useState<RestVolumeLevel>("loud");
+  const [sheet, setSheet] = useState<
+    null | "unit" | "theme" | "language" | "sound" | "equipment" | "machine" | "experience"
+  >(null);
 
   useEffect(() => {
     // 알림음은 계정과 함께 동기된다 — 다른 기기에서 바뀌면 PrefsBridge가 PREFS_EVENT를 쏜다.
@@ -183,328 +186,168 @@ export default function ProfileClient() {
   const weightStep = weightUnit === "kg" ? 2.5 : 5;
   const barDisplay = Number(fromKg(barWeightKg, weightUnit).toFixed(1));
 
+  const levelLabel = experienceLevel ? t(`experience.level.${experienceLevel}` as TransKey) : null;
+  const themeLabel: Record<ThemeChoice, string> = {
+    system: t("profile.themeSystem"),
+    light: t("profile.themeLight"),
+    dark: t("profile.themeDark"),
+  };
+  const displayName = account?.displayName || account?.email || "나";
+
   return (
     <div className="flex flex-1 flex-col">
       <AppBar title={t("profile.title")} />
-      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        {/* 계정 — **선택이다.** 로그인하지 않아도 기록은 기기에 남는다(ADR-002). */}
-        <SectionHeader title={t("profile.account")} />
-        <a href="/account" className="mb-[var(--spacing-xl)] block">
-          <Card>
-            <div className="flex items-center gap-[var(--spacing-md)]" data-testid="account-card">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-surface-alt)">
-                <Icon name="person" size={20} color="var(--color-ink2)" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <AppText variant="body" className="block truncate font-semibold">
-                  {account ? account.displayName || account.email : t("auth.login")}
-                </AppText>
-                <AppText variant="caption" color="textMuted" className="mt-[2px] block truncate">
-                  {account ? account.email : t("auth.offlineNote")}
-                </AppText>
-              </span>
-              <Icon name="chevron-forward" size={18} color="var(--color-ink2)" />
-            </div>
-          </Card>
-        </a>
-
-        {/* 경력·코칭 의향 — 선택 사항이고, 답하지 않아도 아무 기능도 막히지 않는다. */}
-        <SectionHeader title={t("experience.title")} />
+      <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-lg)] pb-[var(--spacing-xl)]">
+        {/* ── 나(시안 09): 맨 위는 사람 — 아바타 · 이름 · 경력/코칭 의향 + 편집. 계정 주소 카드는 아래 「계정과 데이터」 로. */}
         <Card className="mb-[var(--spacing-xl)]">
-          <AppText variant="label" color="textMuted">
-            {t("experience.levelLabel")}
-          </AppText>
-          <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-xs)]">
-            {LEVELS.map((lv) => (
-              <Chip
-                key={lv}
-                testId={`level-${lv}`}
-                label={t(`experience.level.${lv}` as TransKey)}
-                active={experienceLevel === lv}
-                // 같은 것을 다시 누르면 해제 — "고르지 않음"으로 돌아갈 길을 남긴다.
-                onPress={() => {
-                  const next = experienceLevel === lv ? null : lv;
-                  saveShared({ experienceLevel: next }, { experienceLevel: next });
-                }}
-              />
-            ))}
-          </div>
-
-          <div className="mt-[var(--spacing-md)]">
-            <AppText variant="label" color="textMuted">
-              {t("experience.intentLabel")}
-            </AppText>
-          </div>
-          <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-xs)]">
-            <Chip
-              testId="trainer-intent"
-              label={t("experience.intentYes")}
-              active={trainerIntent === true}
-              onPress={() => {
-                const next = trainerIntent === true ? null : true;
-                // 서버는 boolean만 안다 — 해제(null)는 false로 옮긴다.
-                saveShared({ trainerIntent: next }, { trainerIntent: next === true });
-              }}
-            />
-          </div>
-          {trainerIntent === true ? (
-            <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
-              {t("experience.trainerDisclaimer")}
-            </AppText>
-          ) : null}
-        </Card>
-
-        <SectionHeader title={t("profile.settings")} />
-        <Card>
-          <SettingRow label={t("profile.unit")} caption={t("profile.unitCaption")}>
-            <Segmented<WeightUnit>
-              testId="unit"
-              options={[
-                { value: "kg", label: "kg" },
-                { value: "lb", label: "lb" },
-              ]}
-              value={weightUnit}
-              disabled={busy}
-              onChange={(v) => v !== weightUnit && save({ weightUnit: v })}
-            />
-          </SettingRow>
-
-          <Divider />
-
-          <SettingRow label={t("profile.theme")} caption={t("profile.themeCaption")}>
-            <Segmented<ThemeChoice>
-              testId="theme"
-              options={[
-                { value: "system", label: t("profile.themeSystem") },
-                { value: "light", label: t("profile.themeLight") },
-                { value: "dark", label: t("profile.themeDark") },
-              ]}
-              value={theme}
-              onChange={(v) => {
-                setThemeState(v);
-                setTheme(v);
-              }}
-            />
-          </SettingRow>
-
-          <Divider />
-
-          <SettingRow label={t("profile.language")} caption={t("profile.languageCaption")}>
-            <Segmented<Language>
-              testId="language"
-              options={[
-                { value: "ko", label: t("profile.languageKorean") },
-                { value: "en", label: t("profile.languageEnglish") },
-              ]}
-              value={language}
-              disabled={busy}
-              onChange={(v) => v !== language && save({ preferredLanguage: v })}
-            />
-          </SettingRow>
-
-          <Divider />
-
-          <div className="flex items-center justify-between py-[var(--spacing-sm)]">
-            <div className="mr-[var(--spacing-md)] flex-1">
-              <AppText variant="body" className="block font-semibold">
-                {t("profile.barWeight")}
-              </AppText>
-              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-                {t("profile.barWeightCaption")}
-              </AppText>
-            </div>
-            <NumberStepper
-              testId="bar-weight"
-              value={barDisplay}
-              step={weightStep}
-              min={0}
-              suffix={weightUnit}
-              onChange={(v) => save({ barWeightKg: toKg(v, weightUnit) })}
-            />
-          </div>
-
-          <div className="flex items-center justify-between py-[var(--spacing-sm)]">
-            <div className="mr-[var(--spacing-md)] flex-1">
-              <AppText variant="body" className="block font-semibold">
-                {t("profile.bodyweight")}
-              </AppText>
-              <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-                {t("profile.bodyweightCaption")}
-              </AppText>
-            </div>
-            <NumberStepper
-              testId="bodyweight"
-              value={bodyweightKg != null ? Number(fromKg(bodyweightKg, weightUnit).toFixed(1)) : 0}
-              step={weightStep === 2.5 ? 0.5 : 1}
-              min={0}
-              max={weightUnit === "kg" ? 300 : 660}
-              suffix={weightUnit}
-              // 0은 "설정 안 함"이다 — 그래야 세션이 체중 기반 계산을 건너뛴다.
-              onChange={(v) => save({ bodyweightKg: v > 0 ? toKg(v, weightUnit) : null })}
-            />
-          </div>
-
-          <Divider />
-
-          <div className="py-[var(--spacing-sm)]">
-            <AppText variant="body" className="block font-semibold">
-              {t("profile.availableEquipment")}
-            </AppText>
-            <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-              {t("profile.availableEquipmentCaption")}
-            </AppText>
-            <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
-              {ALL_EQUIPMENT.map((eq) => (
-                <Chip
-                  key={eq}
-                  testId={`equip-${eq}`}
-                  label={equipmentLabel(eq, lang)}
-                  active={availableEquipment.includes(eq)}
-                  onPress={() =>
-                    save({
-                      availableEquipment: availableEquipment.includes(eq)
-                        ? availableEquipment.filter((e) => e !== eq)
-                        : [...availableEquipment, eq],
-                    })
-                  }
-                />
-              ))}
-            </div>
-          </div>
-
-          <Divider />
-
-          <div className="py-[var(--spacing-sm)]">
-            <AppText variant="body" className="block font-semibold">
-              {t("machineVariant.settingsTitle")}
-            </AppText>
-            <AppText variant="caption" color="textMuted" className="mt-[2px] mb-[var(--spacing-sm)] block">
-              {t("machineVariant.settingsHint")}
-            </AppText>
-            {CUSTOM_VARIANT_KEYS.map((k, i) => (
-              <TextField
-                key={k}
-                testId={`machine-label-${i}`}
-                value={customLabels[i] ?? ""}
-                placeholder={machineVariantLabel(k, lang)}
-                onChange={(e) =>
-                  setCustomLabels((prev) => prev.map((v, idx) => (idx === i ? e.target.value : v)))
-                }
-                onBlur={() => save({ machineVariantLabels: customLabels.map((s) => s.trim()) })}
-              />
-            ))}
-          </div>
-
-          <Divider />
-
-          <div className="py-[var(--spacing-sm)]">
-            <AppText variant="body" className="block font-semibold">
-              {t("profile.restSound")}
-            </AppText>
-            <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-              {t("profile.restSoundCaption")}
-            </AppText>
-            <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
-              {REST_SOUND_KINDS.map((k) => (
-                <Chip
-                  key={k}
-                  testId={`sound-${k}`}
-                  label={t(REST_SOUND_LABEL[k])}
-                  active={restSound === k}
-                  // 고르는 즉시 들려 준다 — 이름만 보고는 무엇인지 알 수 없다.
-                  onPress={() => {
-                    setRestSoundState(k);
-                    setRestSoundKind(k);
-                    playRestSound(k);
-                  }}
-                />
-              ))}
-            </div>
-
-            <div className="mt-[var(--spacing-md)] flex items-center justify-between">
-              <AppText variant="body" className="font-semibold">
-                {t("profile.restVolume")}
-              </AppText>
-              <Segmented<RestVolumeLevel>
-                testId="rest-volume"
-                options={REST_VOLUME_LEVELS.map((v) => ({ value: v, label: t(REST_VOLUME_LABEL[v]) }))}
-                value={restVol}
-                onChange={(v) => {
-                  setRestVolState(v);
-                  setRestVolumeLevel(v);
-                  playRestSound(restSound);
-                }}
-              />
-            </div>
+          <div className="flex items-center gap-[var(--spacing-md)]" data-testid="profile-me">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-(--color-brand) font-bold text-(--color-on-brand) text-[length:var(--text-lg)]">
+              {displayName.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate font-bold text-(--color-ink) text-[length:var(--text-lg)]">
+                {account ? displayName : t("profile.title")}
+              </span>
+              <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">
+                {[levelLabel, trainerIntent === true ? t("experience.intentYes") : null]
+                  .filter(Boolean)
+                  .join(" · ") || "경력·코칭 의향을 알려 주세요"}
+              </span>
+            </span>
+            <button
+              type="button"
+              data-testid="btn-edit-experience"
+              onClick={() => setSheet("experience")}
+              className="h-9 shrink-0 rounded-[var(--radius-pill)] border border-(--color-line) px-[var(--spacing-md)] font-medium text-(--color-ink) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+            >
+              {t("common.edit")}
+            </button>
           </div>
         </Card>
 
-        {/* 코칭 — 계정이 있을 때만 뜻이 있다(관계는 서버에 있다). */}
-        {account ? (
-          <div className="mt-[var(--spacing-md)]">
-            <a href="/coaching" className="block">
-              <Button
-                title={t("coaching.entry")}
-                icon="people-outline"
-                variant="secondary"
+        {/* ── 설정: 줄 + 현재값. 누르면 선택 시트(시안 09) — 토글이 한 화면에 줄지어 있던 것을 줄 하나씩으로. */}
+        <SectionLabel title={t("profile.settings")} />
+        <ListGroup className="mb-[var(--spacing-xl)]">
+          <ListRow
+            testId="unit"
+            title={t("profile.unit")}
+            value={weightUnit}
+            onPress={() => setSheet("unit")}
+          />
+          <ListRow
+            testId="theme"
+            title={t("profile.theme")}
+            value={themeLabel[theme]}
+            onPress={() => setSheet("theme")}
+          />
+          <ListRow
+            testId="language"
+            title={t("profile.language")}
+            value={language === "en" ? t("profile.languageEnglish") : t("profile.languageKorean")}
+            onPress={() => setSheet("language")}
+          />
+          <ListRow
+            title={t("profile.barWeight")}
+            subtitle={t("profile.barWeightCaption")}
+            trailing={
+              <NumberStepper
+                testId="bar-weight"
+                value={barDisplay}
+                step={weightStep}
+                min={0}
+                suffix={weightUnit}
+                onChange={(v) => save({ barWeightKg: toKg(v, weightUnit) })}
+              />
+            }
+          />
+          <ListRow
+            title={t("profile.bodyweight")}
+            subtitle={t("profile.bodyweightCaption")}
+            trailing={
+              <NumberStepper
+                testId="bodyweight"
+                value={bodyweightKg != null ? Number(fromKg(bodyweightKg, weightUnit).toFixed(1)) : 0}
+                step={weightStep === 2.5 ? 0.5 : 1}
+                min={0}
+                max={weightUnit === "kg" ? 300 : 660}
+                suffix={weightUnit}
+                // 0은 "설정 안 함"이다 — 그래야 세션이 체중 기반 계산을 건너뛴다.
+                onChange={(v) => save({ bodyweightKg: v > 0 ? toKg(v, weightUnit) : null })}
+              />
+            }
+          />
+          <ListRow
+            testId="row-rest-sound"
+            title={t("profile.restSound")}
+            value={`${t(REST_SOUND_LABEL[restSound])} · ${t(REST_VOLUME_LABEL[restVol])}`}
+            onPress={() => setSheet("sound")}
+          />
+          <ListRow
+            testId="row-equipment"
+            title={t("profile.availableEquipment")}
+            value={availableEquipment.length ? `${availableEquipment.length}개` : "전체"}
+            onPress={() => setSheet("equipment")}
+          />
+          <ListRow
+            testId="row-machine-labels"
+            title={t("machineVariant.settingsTitle")}
+            onPress={() => setSheet("machine")}
+          />
+        </ListGroup>
+
+        {/* ── 계정과 데이터: 로그인·보안과 백업은 하위 화면(/account)으로 모은다. */}
+        <SectionLabel title="계정과 데이터" />
+        <ListGroup className="mb-[var(--spacing-xl)]">
+          <ListRow
+            testId="account-card"
+            icon="lock-closed-outline"
+            title={account ? "로그인·보안" : t("auth.login")}
+            subtitle={account ? account.email || t("profile.account") : t("auth.offlineNote")}
+            href="/account"
+          />
+          <ListRow
+            testId="row-backup"
+            icon="download-outline"
+            title="백업 파일"
+            subtitle="내보내기 · 가져오기"
+            href="/account#backup"
+          />
+          <ListRow testId="btn-gear" icon="fitness-outline" title={t("gear.myGearEntry")} href="/gear" />
+          {account ? (
+            <>
+              <ListRow
                 testId="btn-coaching"
+                icon="people-outline"
+                title={t("coaching.entry")}
+                href="/coaching"
               />
-            </a>
-          </div>
-        ) : null}
-
-        <div className="mt-[var(--spacing-md)]">
-          <a href="/gear" className="block">
-            <Button
-              title={t("gear.myGearEntry")}
-              icon="fitness-outline"
-              variant="secondary"
-              testId="btn-gear"
-            />
-          </a>
-        </div>
-
-        {/* 소셜 관리 — 계정이 있을 때만 뜻이 있다(차단·저장은 서버에 있다). */}
-        {account ? (
-          <>
-            <div className="mt-[var(--spacing-sm)]">
-              <a href="/bookmarks" className="block">
-                <Button
-                  title={t("bookmark.entry")}
-                  icon="bookmark-outline"
-                  variant="secondary"
-                  testId="btn-bookmarks"
+              <ListRow
+                testId="btn-bookmarks"
+                icon="bookmark-outline"
+                title={t("bookmark.entry")}
+                href="/bookmarks"
+              />
+              <ListRow
+                testId="btn-blocked"
+                icon="shield-checkmark-outline"
+                title={t("block.entry")}
+                href="/blocked"
+              />
+              {/* 모더레이션 큐는 **역할이 있는 사람에게만** 보인다. 권한이 없으면 서버가 거절하지만,
+                누를 수 없는 문을 그려 두지 않는다. */}
+              {account.role === Role.MODERATOR || account.role === Role.ADMIN ? (
+                <ListRow
+                  testId="btn-moderation"
+                  icon="flag-outline"
+                  title={t("moderation.entry")}
+                  href="/moderation"
                 />
-              </a>
-            </div>
-            <div className="mt-[var(--spacing-sm)]">
-              <a href="/blocked" className="block">
-                <Button
-                  title={t("block.entry")}
-                  icon="shield-checkmark-outline"
-                  variant="secondary"
-                  testId="btn-blocked"
-                />
-              </a>
-            </div>
-            {/* 모더레이션 큐는 **역할이 있는 사람에게만** 보인다. 권한이 없으면 서버가 거절하지만,
-              누를 수 없는 문을 그려 두지 않는다. */}
-            {account.role === Role.MODERATOR || account.role === Role.ADMIN ? (
-              <div className="mt-[var(--spacing-sm)]">
-                <a href="/moderation" className="block">
-                  <Button
-                    title={t("moderation.entry")}
-                    icon="flag-outline"
-                    variant="secondary"
-                    testId="btn-moderation"
-                  />
-                </a>
-              </div>
-            ) : null}
-          </>
-        ) : null}
+              ) : null}
+            </>
+          ) : null}
+        </ListGroup>
 
-        <div className="mt-[var(--spacing-xl)] pb-[var(--spacing-xl)]">
+        <div className="pb-[var(--spacing-xl)]">
           <AppText
             variant="caption"
             color="textMuted"
@@ -530,32 +373,184 @@ export default function ProfileClient() {
           <BusinessInfo className="mt-[var(--spacing-md)]" />
         </div>
       </div>
-    </div>
-  );
-}
 
-function SettingRow({
-  label,
-  caption,
-  children,
-}: {
-  label: string;
-  caption?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between py-[var(--spacing-sm)]">
-      <div className="mr-[var(--spacing-md)] flex-1">
-        <AppText variant="body" className="block font-semibold">
-          {label}
-        </AppText>
-        {caption ? (
-          <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-            {caption}
+      {/* ── 선택 시트들 ── */}
+      {sheet === "unit" ? (
+        <ActionSheet
+          title={t("profile.unit")}
+          testId="unit-sheet"
+          onClose={() => setSheet(null)}
+          options={(["kg", "lb"] as WeightUnit[]).map((u) => ({
+            label: u,
+            selected: weightUnit === u,
+            testId: `unit-${u}`,
+            onPress: () => u !== weightUnit && save({ weightUnit: u }),
+          }))}
+        />
+      ) : null}
+      {sheet === "theme" ? (
+        <ActionSheet
+          title={t("profile.theme")}
+          testId="theme-sheet"
+          onClose={() => setSheet(null)}
+          options={(["system", "light", "dark"] as ThemeChoice[]).map((v) => ({
+            label: themeLabel[v],
+            selected: theme === v,
+            testId: `theme-${v}`,
+            onPress: () => {
+              setThemeState(v);
+              setTheme(v);
+            },
+          }))}
+        />
+      ) : null}
+      {sheet === "language" ? (
+        <ActionSheet
+          title={t("profile.language")}
+          testId="language-sheet"
+          onClose={() => setSheet(null)}
+          options={(["ko", "en"] as Language[]).map((v) => ({
+            label: v === "ko" ? t("profile.languageKorean") : t("profile.languageEnglish"),
+            selected: language === v,
+            testId: `language-${v}`,
+            onPress: () => v !== language && save({ preferredLanguage: v }),
+          }))}
+        />
+      ) : null}
+      {sheet === "sound" ? (
+        <SheetShell title={t("profile.restSound")} onClose={() => setSheet(null)} testId="sound-sheet">
+          <AppText variant="caption" color="textMuted" className="block">
+            {t("profile.restSoundCaption")}
           </AppText>
-        ) : null}
-      </div>
-      {children}
+          <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
+            {REST_SOUND_KINDS.map((k) => (
+              <Chip
+                key={k}
+                testId={`sound-${k}`}
+                label={t(REST_SOUND_LABEL[k])}
+                active={restSound === k}
+                // 고르는 즉시 들려 준다 — 이름만 보고는 무엇인지 알 수 없다.
+                onPress={() => {
+                  setRestSoundState(k);
+                  setRestSoundKind(k);
+                  playRestSound(k);
+                }}
+              />
+            ))}
+          </div>
+          <div className="mt-[var(--spacing-lg)] flex items-center justify-between">
+            <AppText variant="body" className="font-semibold">
+              {t("profile.restVolume")}
+            </AppText>
+            <Segmented<RestVolumeLevel>
+              testId="rest-volume"
+              options={REST_VOLUME_LEVELS.map((v) => ({ value: v, label: t(REST_VOLUME_LABEL[v]) }))}
+              value={restVol}
+              onChange={(v) => {
+                setRestVolState(v);
+                setRestVolumeLevel(v);
+                playRestSound(restSound);
+              }}
+            />
+          </div>
+        </SheetShell>
+      ) : null}
+      {sheet === "equipment" ? (
+        <SheetShell
+          title={t("profile.availableEquipment")}
+          onClose={() => setSheet(null)}
+          testId="equipment-sheet"
+        >
+          <AppText variant="caption" color="textMuted" className="block">
+            {t("profile.availableEquipmentCaption")}
+          </AppText>
+          <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
+            {ALL_EQUIPMENT.map((eq) => (
+              <Chip
+                key={eq}
+                testId={`equip-${eq}`}
+                label={equipmentLabel(eq, lang)}
+                active={availableEquipment.includes(eq)}
+                onPress={() =>
+                  save({
+                    availableEquipment: availableEquipment.includes(eq)
+                      ? availableEquipment.filter((e) => e !== eq)
+                      : [...availableEquipment, eq],
+                  })
+                }
+              />
+            ))}
+          </div>
+        </SheetShell>
+      ) : null}
+      {sheet === "machine" ? (
+        <SheetShell
+          title={t("machineVariant.settingsTitle")}
+          onClose={() => setSheet(null)}
+          testId="machine-sheet"
+        >
+          <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
+            {t("machineVariant.settingsHint")}
+          </AppText>
+          {CUSTOM_VARIANT_KEYS.map((k, i) => (
+            <TextField
+              key={k}
+              testId={`machine-label-${i}`}
+              value={customLabels[i] ?? ""}
+              placeholder={machineVariantLabel(k, lang)}
+              onChange={(e) =>
+                setCustomLabels((prev) => prev.map((v, idx) => (idx === i ? e.target.value : v)))
+              }
+              onBlur={() => save({ machineVariantLabels: customLabels.map((s) => s.trim()) })}
+            />
+          ))}
+        </SheetShell>
+      ) : null}
+      {sheet === "experience" ? (
+        <SheetShell title={t("experience.title")} onClose={() => setSheet(null)} testId="experience-sheet">
+          {/* 경력·코칭 의향 — 선택 사항이고, 답하지 않아도 아무 기능도 막히지 않는다. 자주 바꾸지 않아 편집 안에 둔다. */}
+          <AppText variant="label" color="textMuted">
+            {t("experience.levelLabel")}
+          </AppText>
+          <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-xs)]">
+            {LEVELS.map((lv) => (
+              <Chip
+                key={lv}
+                testId={`level-${lv}`}
+                label={t(`experience.level.${lv}` as TransKey)}
+                active={experienceLevel === lv}
+                // 같은 것을 다시 누르면 해제 — "고르지 않음"으로 돌아갈 길을 남긴다.
+                onPress={() => {
+                  const next = experienceLevel === lv ? null : lv;
+                  saveShared({ experienceLevel: next }, { experienceLevel: next });
+                }}
+              />
+            ))}
+          </div>
+          <div className="mt-[var(--spacing-md)]">
+            <AppText variant="label" color="textMuted">
+              {t("experience.intentLabel")}
+            </AppText>
+          </div>
+          <div className="mt-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-xs)]">
+            <Chip
+              testId="trainer-intent"
+              label={t("experience.intentYes")}
+              active={trainerIntent === true}
+              onPress={() => {
+                const next = trainerIntent === true ? null : true;
+                // 서버는 boolean만 안다 — 해제(null)는 false로 옮긴다.
+                saveShared({ trainerIntent: next }, { trainerIntent: next === true });
+              }}
+            />
+          </div>
+          {trainerIntent === true ? (
+            <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
+              {t("experience.trainerDisclaimer")}
+            </AppText>
+          ) : null}
+        </SheetShell>
+      ) : null}
     </div>
   );
 }

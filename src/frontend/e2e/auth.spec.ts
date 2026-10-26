@@ -72,8 +72,7 @@ test("틀린 비밀번호와 없는 계정은 같은 문구로 거절한다", as
   await 가입(page, email);
   await page.getByTestId("btn-logout").click();
   await expect(page.getByTestId("btn-auth-submit")).toBeVisible({ timeout: 20_000 });
-  // 탭은 가입에 남아 있다 — 로그인 시도임을 **분명히** 고른다(남은 상태에 기대지 않는다).
-  await page.getByTestId("mode-login").click();
+  // 로그아웃하면 로그인 화면부터 다시 보인다(SRS-054 시안 10 — 로그인/가입 탭 없음).
 
   // ① 있는 계정 + 틀린 비밀번호
   await page.getByTestId("auth-email-input").fill(email);

@@ -14,6 +14,9 @@ import { useAuth } from "../AuthProvider";
 import { isInsider } from "../FeedbackClient";
 import { LogoSpinner } from "./LogoSpinner";
 
+/** 탭바 없이 전체 화면으로 여는 인증 흐름(SRS-054 P3). /account 는 프로필의 하위 화면이라 탭바를 둔다. */
+const AUTH_ROUTES = ["/signin", "/signup", "/forgot", "/reset", "/verify-email", "/auth"];
+
 type TabKey = "workout" | "records" | "feed" | "stats" | "profile" | "feedback";
 type Tab = { key: TabKey; href: string; label: string; testId: string; match: (p: string) => boolean };
 
@@ -137,6 +140,8 @@ export function TabBar() {
   const pathname = usePathname();
   const { user } = useAuth();
   if (pathname.startsWith("/workout")) return null;
+  // 로그인·가입·비밀번호·확인 화면은 전체 화면이다(시안 10) — 탭바가 아래 내용을 가리던 자리.
+  if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) return null;
   const tabs = isInsider(user?.role) ? [...TABS, FEEDBACK] : TABS;
 
   return (

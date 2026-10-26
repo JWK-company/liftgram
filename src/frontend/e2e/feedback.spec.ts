@@ -58,7 +58,7 @@ test("내부 사람은 적어 올리고 목록에서 확인한다", async ({ pag
   test.setTimeout(120_000);
 
   await page.goto("/account");
-  await page.getByTestId("mode-login").click();
+  // 계정 화면은 로그인부터 연다(로그인/가입 탭은 없앴다 — SRS-054 시안 10).
   await page.getByTestId("auth-email-input").fill(메일);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("btn-auth-submit").click();

@@ -147,7 +147,7 @@ test("그룹은 팔로우한 사람만 고를 수 있고, 나가면 목록에서
 
 async function 로그인(page: Page, email: string) {
   await page.goto("/account");
-  await page.getByTestId("mode-login").click();
+  // /account 는 로그인부터 연다(로그인/가입 탭 없음 — SRS-054 시안 10).
   await page.getByTestId("auth-email-input").fill(email);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("btn-auth-submit").click();

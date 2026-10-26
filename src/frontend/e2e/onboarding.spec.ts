@@ -49,6 +49,7 @@ test("답한 경력·의향은 프로필에 남는다", async ({ page }) => {
   await expect(page.getByTestId("onboarding")).toHaveCount(0);
 
   await page.goto("/profile");
+  await page.getByTestId("btn-edit-experience").click();
   await expect(page.getByTestId("level-intermediate")).toHaveAttribute("aria-pressed", "true", {
     timeout: 20_000,
   });

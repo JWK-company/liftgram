@@ -21,6 +21,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       oauthError={err ?? ""}
       preview={previewProviders()}
       lastLogin={lastLogin}
+      deviceData
     />
   );
 }

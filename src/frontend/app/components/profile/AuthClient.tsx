@@ -13,7 +13,9 @@ import { useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
 import { BackupCard } from "../sync/BackupCard";
-import { BusinessInfo } from "../BusinessInfo";
+import { AuthFooter } from "../auth/AuthPage";
+import { SubAppBar } from "../ui/AppBar";
+import { SectionLabel } from "../ui/rows";
 import { Logo } from "../ui/Logo";
 import { HumanCheck } from "../auth/HumanCheck";
 import { SecurityCard, useIdentities } from "../auth/SecurityCard";
@@ -131,6 +133,7 @@ export default function AuthClient({
   initialMode = "login",
   preview = [],
   lastLogin = null,
+  deviceData = false,
 }: {
   siteKey?: string;
   oauthError?: string;
@@ -140,6 +143,8 @@ export default function AuthClient({
   preview?: string[];
   /** 이 기기에서 마지막으로 로그인한 방법 — 서버 페이지가 HttpOnly 쿠키 lg_last 를 읽어 넘긴다. */
   lastLogin?: LastLogin | null;
+  /** /account 에서만 — 로그인하지 않은 기기의 백업 파일·오프라인 안내를 함께 보인다(로그인 화면에는 없다 · 시안 10). */
+  deviceData?: boolean;
 }) {
   const { user, restoring, signUp, logIn, logOut } = useAuth();
   const [human, setHuman] = useState<string | null>(null);
@@ -156,65 +161,73 @@ export default function AuthClient({
 
   const isSignup = mode === "signup";
 
+  // 로그아웃하면 로그인부터 다시 보인다 — 가입 화면에 남아 있으면 「로그인」 으로 돌아갈 탭이 이제 없다(시안 10).
+  const [wasUser, setWasUser] = useState(!!user);
+  if (wasUser !== !!user) {
+    setWasUser(!!user);
+    if (!user && mode !== initialMode) setMode(initialMode);
+  }
+
   // 이미 로그인돼 있으면 로그인 폼 대신 지금 누구인지 보여 준다.
   // 계정에 주소가 없으면(보증하지 않는 제공자 — 네이버로만 가입) 연결된 로그인의 주소를 대신 보인다.
   const viaIdentity = identities.find((i) => i.email);
   const accountLine =
     user?.email || (viaIdentity ? `${providerLabel(viaIdentity.provider)} · ${viaIdentity.email}` : "");
   if (user) {
+    // 계정 화면(/account) — 프로필의 하위 화면이다(시안 09·29개 표): ← · 「계정」 · 세 구역
+    // ① 계정(이름·주소·로그아웃 · 프로필 편집) ② 로그인·보안 ③ 기기와 서버(동기 · 백업 파일).
     return (
-      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        <Header />
-        <Card className="mb-[var(--spacing-lg)]">
-          <AppText variant="label" color="textMuted">
-            {t("profile.account")}
-          </AppText>
-          <AppText
-            variant="heading"
-            className="mt-[var(--spacing-xs)] block truncate"
-            data-testid="auth-email"
-          >
-            {user.displayName || user.email}
-          </AppText>
-          {user.displayName && accountLine ? (
+      <div className="flex flex-1 flex-col">
+        <SubAppBar title={t("profile.account")} fallbackHref="/profile" />
+        <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-lg)] pb-[var(--spacing-xl)]">
+          <SectionLabel title={t("profile.account")} />
+          <Card className="mb-[var(--spacing-md)]">
+            <AppText variant="heading" className="block truncate" data-testid="auth-email">
+              {user.displayName || user.email}
+            </AppText>
+            {user.displayName && accountLine ? (
+              <AppText
+                variant="caption"
+                color="textMuted"
+                className="mt-[2px] block truncate"
+                data-testid="auth-account-line"
+              >
+                {accountLine}
+              </AppText>
+            ) : null}
+            <div className="mt-[var(--spacing-md)]">
+              <Button
+                title={t("profile.signOut")}
+                variant="danger"
+                icon="exit-outline"
+                testId="btn-logout"
+                onPress={() => {
+                  setBusy(true);
+                  void logOut().finally(() => setBusy(false));
+                }}
+                loading={busy}
+              />
+            </div>
+          </Card>
+          {oauthMsg ? (
             <AppText
               variant="caption"
-              color="textMuted"
-              className="mt-[2px] block truncate"
-              data-testid="auth-account-line"
+              color="danger"
+              className="mb-[var(--spacing-md)] block"
+              data-testid="oauth-error"
             >
-              {accountLine}
+              {oauthMsg}
             </AppText>
           ) : null}
-          <div className="mt-[var(--spacing-md)]">
-            <Button
-              title={t("profile.signOut")}
-              variant="danger"
-              icon="exit-outline"
-              testId="btn-logout"
-              onPress={() => {
-                setBusy(true);
-                void logOut().finally(() => setBusy(false));
-              }}
-              loading={busy}
-            />
+          <ProfileEditCard />
+          <SecurityCard />
+          <SectionLabel title="기기와 서버" className="mt-[var(--spacing-sm)]" />
+          <ServerSyncCard />
+          <div id="backup">
+            <BackupCard />
           </div>
-        </Card>
-        {oauthMsg ? (
-          <AppText
-            variant="caption"
-            color="danger"
-            className="mb-[var(--spacing-md)] block"
-            data-testid="oauth-error"
-          >
-            {oauthMsg}
-          </AppText>
-        ) : null}
-        <ProfileEditCard />
-        <SecurityCard />
-        <ServerSyncCard />
-        <BackupCard />
-        <OfflineNote />
+          <OfflineNote />
+        </div>
       </div>
     );
   }
@@ -257,28 +270,10 @@ export default function AuthClient({
   };
 
   return (
-    <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-      <Header />
-
-      {/* 화면 이름 — 두 화면을 오가는 탭을 겸한다(지금 화면이 굵게). */}
-      <div className="mb-[var(--spacing-lg)] flex justify-center gap-[var(--spacing-xl)]">
-        {(["login", "signup"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            data-testid={`mode-${m}`}
-            aria-current={mode === m ? "page" : undefined}
-            onClick={() => go(m)}
-            className={`border-b-2 pb-[var(--spacing-xs)] text-lg ${
-              mode === m
-                ? "border-(--color-brand) font-bold text-(--color-ink)"
-                : "border-transparent text-(--color-ink3)"
-            }`}
-          >
-            {t(m === "login" ? "auth.login" : "auth.signup")}
-          </button>
-        ))}
-      </div>
+    <div className="mx-auto flex w-full max-w-[440px] flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-xl)] pb-[var(--spacing-xl)]">
+      {/* 시안 10: 탭바 없는 전체 화면 · 로고 · 한 줄 머리말 · 소셜 3종 → 또는 이메일 → 아래 한 줄 링크.
+          로그인/가입 탭은 없앴다 — 두 화면은 아래 링크로 오간다(북타래와 같은 형태). */}
+      <Header title={t(isSignup ? "auth.signup" : "auth.login")} />
 
       {oauthMsg ? (
         <AppText
@@ -299,7 +294,7 @@ export default function AuthClient({
         </AppText>
       ) : null}
 
-      <Card className="mb-[var(--spacing-lg)]">
+      <div className="mb-[var(--spacing-lg)]">
         <TextField
           testId="auth-email-input"
           label={t("auth.emailLabel")}
@@ -397,27 +392,42 @@ export default function AuthClient({
             type="button"
             className="font-semibold text-(--color-ink) underline"
             onClick={() => go(isSignup ? "login" : "signup")}
-            data-testid={isSignup ? "link-to-signin" : "link-to-signup"}
+            data-testid={isSignup ? "mode-login" : "mode-signup"}
           >
             {isSignup ? t("auth.login") : t("auth.signup")}
           </button>
         </p>
-      </Card>
+      </div>
 
-      <BackupCard />
-      <OfflineNote />
-      <BusinessInfo className="mt-[var(--spacing-xl)]" />
+      {/* 계정 화면에서만: 로그인하지 않은 이 기기의 기록을 파일로 꺼내거나 되살린다. 로그인 화면엔 두지 않는다. */}
+      {deviceData ? (
+        <div id="backup" className="mt-[var(--spacing-sm)]">
+          <BackupCard />
+          <OfflineNote />
+        </div>
+      ) : (
+        <OfflineNote />
+      )}
+      <AuthFooter />
     </div>
   );
 }
 
-function Header() {
+function Header({ title }: { title: string }) {
   return (
-    <div className="mt-[var(--spacing-xl)] mb-[var(--spacing-xl)] flex flex-col items-center">
+    <div className="mb-[var(--spacing-xl)]">
       {/* 로고 — 2026-10-26 확정(B1 · 주황). 워드마크는 글자색을 따라 다크에서 저절로 밝아진다. */}
-      <Logo height={32} className="text-(--color-ink)" />
-      <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-md)] block">
-        {t("auth.tagline")}
+      <a href="/" aria-label="Liftgram 홈" className="inline-block">
+        <Logo height={26} className="text-(--color-ink)" />
+      </a>
+      <h1
+        data-testid="auth-title"
+        className="mt-[var(--spacing-xl)] font-bold text-(--color-ink) text-[length:var(--text-xl)]"
+      >
+        {title}
+      </h1>
+      <AppText variant="body" color="textMuted" className="mt-[var(--spacing-xs)] block">
+        로그인하면 기록이 서버에 백업되고 피드를 쓸 수 있어요
       </AppText>
     </div>
   );

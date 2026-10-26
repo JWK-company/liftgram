@@ -111,11 +111,15 @@ export function OnboardingOverlay() {
         {step === 0 ? (
           <>
             <div className="flex justify-center">
-              <span className="flex h-[56px] w-[56px] items-center justify-center rounded-[var(--radius-lg)] bg-(--color-brand)">
-                <AppText variant="display" style={{ color: "var(--color-on-brand)" }} className="font-bold!">
-                  L
-                </AppText>
-              </span>
+              {/* 앱 아이콘 그대로(B1 · 홈 화면 아이콘과 같은 그림) — 「L」 글자 임시 아이콘을 바꿨다(SRS-054 P3). */}
+              {/* biome-ignore lint/performance/noImgElement: 정적 브랜드 아이콘 56px — 최적화 파이프라인이 필요 없다 */}
+              <img
+                src="/brand/icon-192.png?v=2"
+                alt="Liftgram"
+                width={56}
+                height={56}
+                className="h-[56px] w-[56px] rounded-[var(--radius-lg)]"
+              />
             </div>
             <AppText variant="title" className="mt-[var(--spacing-md)] block text-center">
               {t("onboarding.title")}

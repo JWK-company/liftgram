@@ -16,14 +16,13 @@ test("단위를 lb로 바꾸면 세션의 무게 표기가 따라간다", async 
 
   await page.goto("/profile");
   await expect(page.getByTestId("unit")).toBeVisible({ timeout: 20_000 });
+  // 설정은 줄 + 현재값 → 선택 시트(SRS-054 시안 09).
+  await page.getByTestId("unit").click();
   await page.getByTestId("unit-lb").click();
   // 저장이 **끝난 뒤** 옮겨 간다. 페이지를 떠나면 JS 컨텍스트가 갈리므로,
   // 아직 로컬 저장소에 안 내려간 변경은 그대로 사라진다(LokiJS는 비동기로 flush한다).
-  //
-  // 그런데 `aria-pressed`만 보면 부족하다 — 그 값은 **메모리의 관측값**이라 flush보다 먼저 뒤집힌다.
-  // 버튼이 다시 눌릴 수 있게 되는 순간이 저장→flush→재조회가 **다 끝난** 시점이다(그동안 disabled).
-  await expect(page.getByTestId("unit-lb")).toHaveAttribute("aria-pressed", "true", { timeout: 20_000 });
-  await expect(page.getByTestId("unit-lb")).toBeEnabled({ timeout: 20_000 });
+  // 줄의 현재값은 저장→flush→재조회가 **다 끝난 뒤** 재조회된 설정으로 바뀐다 — 그것을 기다린다.
+  await expect(page.getByTestId("unit")).toContainText("lb", { timeout: 20_000 });
 
   // 세션을 열면 무게 컬럼이 lb로 바뀌어 있다(저장은 계속 kg — 표시만 바뀐다).
   await page.goto("/workout");

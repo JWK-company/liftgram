@@ -61,7 +61,7 @@ async function 가입(page: Page, email: string) {
 
 async function 로그인_시도(page: Page, email: string, password: string) {
   await page.goto("/account");
-  await page.getByTestId("mode-login").click();
+  // /account 는 로그인부터 연다(로그인/가입 탭 없음 — SRS-054 시안 10).
   await page.getByTestId("auth-email-input").fill(email);
   await page.getByTestId("auth-password-input").fill(password);
   await page.getByTestId("btn-auth-submit").click();
