@@ -16,7 +16,8 @@ import { BackupCard } from "../sync/BackupCard";
 import { BusinessInfo } from "../BusinessInfo";
 import { Logo } from "../ui/Logo";
 import { HumanCheck } from "../auth/HumanCheck";
-import { SecurityCard } from "../auth/SecurityCard";
+import { SecurityCard, useIdentities } from "../auth/SecurityCard";
+import { providerLabel } from "../auth/providers";
 import type { LastLogin } from "@/lib/last-login";
 import { LastLoginBadge, SocialButtons, useAuthOptions } from "../auth/SocialButtons";
 import { agoText, useSyncHealth } from "../sync/useSyncHealth";
@@ -148,12 +149,17 @@ export default function AuthClient({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [identities] = useIdentities(user?.id);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isSignup = mode === "signup";
 
   // 이미 로그인돼 있으면 로그인 폼 대신 지금 누구인지 보여 준다.
+  // 계정에 주소가 없으면(보증하지 않는 제공자 — 네이버로만 가입) 연결된 로그인의 주소를 대신 보인다.
+  const viaIdentity = identities.find((i) => i.email);
+  const accountLine =
+    user?.email || (viaIdentity ? `${providerLabel(viaIdentity.provider)} · ${viaIdentity.email}` : "");
   if (user) {
     return (
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
@@ -169,9 +175,14 @@ export default function AuthClient({
           >
             {user.displayName || user.email}
           </AppText>
-          {user.displayName ? (
-            <AppText variant="caption" color="textMuted" className="mt-[2px] block truncate">
-              {user.email}
+          {user.displayName && accountLine ? (
+            <AppText
+              variant="caption"
+              color="textMuted"
+              className="mt-[2px] block truncate"
+              data-testid="auth-account-line"
+            >
+              {accountLine}
             </AppText>
           ) : null}
           <div className="mt-[var(--spacing-md)]">

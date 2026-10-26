@@ -21,22 +21,31 @@ function errText(e: unknown): string {
   return e instanceof ConnectError ? e.rawMessage : String(e);
 }
 
-export function SecurityCard() {
-  const { user, refreshMe } = useAuth();
-  const { providers, mailEnabled } = useAuthOptions();
+/** 이 계정에 연결된 소셜 로그인 목록. userId 가 바뀌면(로그인·전환) 다시 묻는다. */
+export function useIdentities(userId?: string): [Identity[], () => void] {
   const [identities, setIdentities] = useState<Identity[]>([]);
-  const [msg, setMsg] = useState<{ text: string; bad?: boolean } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [current, setCurrent] = useState("");
-  const [next, setNext] = useState("");
-
   const load = useCallback(() => {
+    if (!userId) {
+      setIdentities([]);
+      return;
+    }
     authClient()
       .listIdentities({})
       .then((r) => setIdentities(r.identities))
       .catch(() => {});
-  }, []);
+  }, [userId]);
   useEffect(load, [load]);
+  return [identities, load];
+}
+
+export function SecurityCard() {
+  const { user, refreshMe } = useAuth();
+  const { providers, mailEnabled } = useAuthOptions();
+  const [identities, load] = useIdentities(user?.id);
+  const [msg, setMsg] = useState<{ text: string; bad?: boolean } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
 
   if (!user) return null;
   const linked = new Set(identities.map((i) => i.provider));

@@ -24,11 +24,11 @@ function loadOptions() {
   return optionsOnce;
 }
 
-export function useAuthOptions(): { providers: string[]; mailEnabled: boolean } {
-  const [opts, setOpts] = useState({ providers: [] as string[], mailEnabled: false });
+export function useAuthOptions(): { providers: string[]; mailEnabled: boolean; loaded: boolean } {
+  const [opts, setOpts] = useState({ providers: [] as string[], mailEnabled: false, loaded: false });
   useEffect(() => {
     let alive = true;
-    void loadOptions().then((o) => alive && setOpts(o));
+    void loadOptions().then((o) => alive && setOpts({ ...o, loaded: true }));
     return () => {
       alive = false;
     };
@@ -71,7 +71,7 @@ export function SocialButtons({
   /** 이 기기에서 마지막으로 로그인한 방법 — 그 버튼에 「최근」 배지(미리보기 버튼에는 달지 않는다). */
   last?: LastLogin | null;
 }) {
-  const providers = useAuthProviders();
+  const { providers, loaded } = useAuthOptions();
   const [notice, setNotice] = useState<string | null>(null);
   // 미리보기 = 키가 아직 없어 **눌러도 나가지 않는** 제공자(booktarae [임시-소셜설정전]과 같은 판단).
   // 키가 들어와 진짜로 켜지면 미리보기 목록에 남아 있어도 자동으로 진짜 버튼이 된다.
@@ -105,15 +105,21 @@ export function SocialButtons({
           type="button"
           data-testid={`btn-oauth-${p}`}
           data-preview="1"
+          disabled={!loaded}
           onClick={() => setNotice(t("auth.setupNotice", { provider: providerLabel(p) }))}
-          style={{ background: style(p).bg, color: style(p).fg }}
-          className="flex h-12 items-center justify-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] font-medium outline-2 -outline-offset-2 outline-dashed outline-(--color-line-strong)"
+          style={{ background: style(p).bg, color: style(p).fg, borderColor: style(p).border ?? style(p).bg }}
+          className={`flex h-12 items-center justify-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] font-medium ${
+            loaded ? "outline-2 -outline-offset-2 outline-dashed outline-(--color-line-strong)" : "border"
+          }`}
         >
           <BrandMark p={p} />
           <span>{t("auth.continueWith", { provider: providerLabel(p) })}</span>
-          <span className="rounded-full border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)">
-            {t("auth.setupNeeded")}
-          </span>
+          {/* 서버 답을 받기 전에는 표시하지 않는다 — 켜진 제공자에 잠깐 「설정 필요」가 번쩍이던 문제. */}
+          {loaded ? (
+            <span className="rounded-full border border-(--color-line) bg-(--color-card) px-2 py-0.5 text-xs text-(--color-ink2)">
+              {t("auth.setupNeeded")}
+            </span>
+          ) : null}
         </button>
       ))}
       {notice ? (
