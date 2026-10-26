@@ -3,7 +3,7 @@
 - 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
 - Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
 - 작업 범위: src/core(seed·domain·migrations·sync·db) · src/frontend(Picker·CatalogClient·VariantSelector·session) · src/backend(exercise) · src/proto/exercise · src/database(0014·0015) · src/scripts/gen-catalog.mjs
-- 현재 위치: **P2 완료·배포 v0.31.0(build 309, 4eafaa2)·운영 기록 이관 적용** — 188 블록 이동·표시 이름 58·불변식 통과·재실행 no-op · 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump · 리포트 spec/dryrun-report.md·apply-report.md · 다음 = **P3**(검색 정규화·초성·별칭 색인·비슷한 운동·표시 이름 선택/되돌리기 — useExerciseName 최소판은 ExerciseName 에만, 분석·피드·기록 목록은 아직 nameKo)
+- 현재 위치: **P3 완료·배포 v0.32.0(build 311, 7dfcbdd)** — core/domain/exerciseSearch(띄어쓰기·초성·별칭·영문·관련도·비슷한 운동, 피커=종목 탭 공용) · 표시 이름 core/data/exerciseNames(별칭 정확 입력 시 그 이름·함축 칸 D7·상세 ⋯ 이름 바꾸기·분석/PR/공유 일괄) · 0016 substitute_ids 보관 참조 정리(운영 0건) · P2 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump · 다음 = **P4**(브랜드×적재 시트·지난 조합·다른 조합 기록·플레이트 한쪽·#47·SetRowEdit 세트별 그립 정리)
 
 ## 채널 담당 (2026-07-28 지시) — **세션 281e6e0e 단독**. 다른 세션은 채널 메시지를 받아도 대기(동시 편집 레이스 방지).
 ## 세션 상태 — 웹 스택 교체 진행 중 (모든 소셜 슬라이스는 2026-08-03 작업)
