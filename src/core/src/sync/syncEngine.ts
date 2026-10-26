@@ -80,6 +80,9 @@ export interface SyncHealth {
 }
 
 const LAST_SUCCESS_KEY = 'sync_last_success_at';
+// 연속 실패 수도 기억한다(2026-10-26). 메모리에만 두면 앱을 다시 여는 순간 0 이 되어, 계속 실패하는 기기가
+// 「경고 없음」으로 돌아간다 — 시드 행을 더는 올리지 않아(D10) 첫 동기가 빨리 성공하게 되자 드러났다.
+const FAILURES_KEY = 'sync_consecutive_failures';
 let health: SyncHealth = {
   lastSuccessAt: null,
   lastAttemptAt: null,
@@ -124,7 +127,8 @@ export function installSyncTransport(t: SyncTransport | null): void {
       if (!ok) markFirstSettled();
     });
   const saved = Number(t?.store?.get(LAST_SUCCESS_KEY) ?? 0);
-  setHealth({ lastSuccessAt: saved > 0 ? saved : null });
+  const failures = Number(t?.store?.get(FAILURES_KEY) ?? 0);
+  setHealth({ lastSuccessAt: saved > 0 ? saved : null, consecutiveFailures: failures > 0 ? failures : 0 });
   void refreshPendingCount();
 }
 
@@ -309,6 +313,7 @@ export function syncWithServer(): Promise<void> {
       .then(() => {
         if (!transport) return;
         transport.store?.set(LAST_SUCCESS_KEY, String(startedAt));
+        transport.store?.set(FAILURES_KEY, '0');
         setHealth({ lastSuccessAt: startedAt, lastError: null, consecutiveFailures: 0, blocked: false });
       })
       .catch((e: unknown) => {
@@ -317,6 +322,7 @@ export function syncWithServer(): Promise<void> {
           lastError: e instanceof Error ? e.message : String(e),
           consecutiveFailures: health.consecutiveFailures + 1,
         });
+        transport?.store?.set(FAILURES_KEY, String(health.consecutiveFailures));
         throw e;
       })
       .finally(() => {
