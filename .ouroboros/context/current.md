@@ -70,7 +70,8 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - 테스트: Go 계정 규칙 11 · e2e auth-formal 7(Mailpit 실메일 · 가짜 제공자는 `-tags=oauthfake`, BASE=http://localhost:3100 필요 — state 쿠키가 APP_URL 호스트에 묶임)
 
 ## 다음 작업
-1. **사용자 키 대기**(메일 완료): Turnstile(TURNSTILE_SITE_KEY·SECRET) · 구글 OAuth(OAUTH_GOOGLE_*) → .env 넣고 `up -d backend frontend`(재빌드 불필요 · deploy/README 표)
+1. **키 반영 완료(2026-10-26)**: 메일(smtp) · Turnstile(liftgram-auth 위젯 · 토큰 없는 가입 거절 확인) · 구글(OAuth 클라이언트 liftgram-web · start→accounts.google.com 정상) · v0.21 booktarae형 로그인/가입 화면 · v0.22 /privacy·/terms · OAUTH_PREVIEW_PROVIDERS=google,kakao,naver(카카오·네이버는 '설정 필요')
+   - **사용자 대기**: 구글 브랜딩 페이지 작성→앱 게시(또는 테스트 사용자 등록) → 구글로 가입
 2. 그다음: 사용자가 구글로 새 계정 생성 → admin@example.com의 기록·관계·역할(admin)을 새 계정으로 이전(sync_records 등 user_id 재지정 · 시드 종목 충돌은 옛 것 유지) → 임시 계정 폐기
 3. 남은 것: codescan 400(plugin) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
 - 옛 Netlify: 리다이렉트 + `/recover` 복구 페이지 유지(stop_builds) · 무관한 미커밋 `plugin/**`
