@@ -11,6 +11,7 @@
 // 고르면 그 정보(맞은 말·정확 여부)를 함께 넘긴다 — 부르는 사람이 표시 이름·함축 축을 정한다. @plm SRS-056
 import { useQueryData } from "@app/core/db/hooks";
 import { useEffect, useMemo, useState } from "react";
+import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { exerciseListName } from "@app/core/domain/exerciseName";
 import {
   buildExerciseSearchIndex,
@@ -21,6 +22,7 @@ import {
 } from "@app/core/domain/exerciseSearch";
 import type { EquipmentType } from "@app/core/domain/types";
 import { equipmentLabelFromDomain } from "@/lib/labels";
+import { Pictogram } from "./Pictogram";
 import { Button } from "./ui/Button";
 import { TextField } from "./ui/inputs";
 import { AppText, Card, Tag } from "./ui/primitives";
@@ -174,6 +176,12 @@ function PickRow({ e, alias, onPress }: { e: Row; alias: string | null; onPress:
       onClick={onPress}
       className="flex w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] p-[var(--spacing-sm)] text-left hover:bg-(--color-surface-alt)"
     >
+      {/* P5: 이름만으로 헷갈리는 종목을 그림으로 가린다(피드백 #8) — 시드 종목만, 정지 그림 @plm SRS-055 */}
+      {hasPictogram(e.id) ? (
+        <span className="h-8 w-10 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+          <Pictogram exerciseId={e.id} className="h-full w-full" />
+        </span>
+      ) : null}
       <AppText variant="body" className="min-w-0 flex-1 truncate">
         {exerciseListName(e)}
         {alias ? (

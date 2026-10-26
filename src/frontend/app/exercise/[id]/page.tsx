@@ -11,13 +11,15 @@ import { notFound } from "next/navigation";
 import { Code, ConnectError, type Client } from "@connectrpc/connect";
 import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { ExerciseKind, type ExerciseService, LoadMode, routes } from "@app/contracts";
-import { EXERCISE_MEDIA_CREDIT, getExerciseMedia, hasMediaImages } from "@app/core/data/exerciseMedia";
+import { EXERCISE_MEDIA_CREDIT, getExerciseMediaOwn, hasMediaImages } from "@app/core/data/exerciseMedia";
+import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { exerciseAltName, exerciseListName } from "@app/core/domain/exerciseName";
 import { exerciseClient } from "@/lib/api";
 import { EQUIPMENT_KEY } from "@/lib/contractMap";
 import { t } from "@/lib/i18n";
 import { equipmentLabel, kindLabel, loadModeLabel, muscleLabel } from "@/lib/labels";
 import ExerciseAnimation from "../../components/ExerciseAnimation";
+import { Pictogram } from "../../components/Pictogram";
 import ExerciseProgress from "../../components/analytics/ExerciseProgress";
 import { UserSettingsProvider } from "../../components/UserSettingsProvider";
 import { ScreenHeader } from "../../components/ui/ScreenHeader";
@@ -101,7 +103,10 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
   const altName = exerciseAltName(named);
 
   // 자세 미디어(2컷·설명)는 정적 매핑이다 — 네트워크 없이 종목 id 로 찾는다(SRS-032 · P2 ADR-033).
-  const media = getExerciseMedia(exercise.id);
+  // [원본] const media = getExerciseMedia(exercise.id);
+  // [P5] 사진은 같은 동작·같은 기구일 때만(빌린 사진은 비운다) — 그림은 픽토그램이 맡는다(ADR-036) @plm SRS-055
+  const media = getExerciseMediaOwn(exercise.id);
+  const picto = hasPictogram(exercise.id);
   const instructions = media
     ? media.instructionsKo.length
       ? media.instructionsKo
@@ -139,7 +144,14 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
           <ExerciseProgress exerciseId={id} />
         </UserSettingsProvider>
 
-        {/* 자세 시연 — 2컷 교차 또는 3D 움짤. 이미지가 없는 종목(설명만 있는 항목)은 건너뛴다. */}
+        {/* P5 자세 그림 — 시작↔끝 움직임(동작 줄이기 설정이면 한 장). 자체 제작이라 출처 표기가 필요 없다. */}
+        {picto ? (
+          <div className="h-[200px] w-full overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+            <Pictogram exerciseId={exercise.id} animate className="h-full w-full" testId="exercise-picto" />
+          </div>
+        ) : null}
+
+        {/* 자세 시연 — 2컷 교차 또는 3D 움짤. 이미지가 없는 종목(설명만 있는 항목)은 건너뛴다. P5 부터는 실사 보조. */}
         {media && hasMediaImages(media) ? (
           <>
             <ExerciseAnimation start={media.start} end={media.end} gif={media.gif} />

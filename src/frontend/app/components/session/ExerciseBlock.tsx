@@ -39,7 +39,8 @@ import {
   sumCardio,
   type CardioMetric,
 } from "@app/core";
-import { getExerciseMedia } from "@app/core/data/exerciseMedia";
+// import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5: 팁 유무는 hasPictogram, 사진 표는 팁 패널이 펼칠 때 불러온다
+import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -56,6 +57,7 @@ import { AppText, Card, Tag } from "../ui/primitives";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { ExerciseName } from "./ExerciseName";
+import { Pictogram } from "../Pictogram";
 import { ExerciseTipPanel } from "./ExerciseTipPanel";
 import { NoteHistoryPanel } from "./NoteHistoryPanel";
 import { CARDIO_COL_LABEL, SetRowCardio } from "./SetRowCardio";
@@ -282,7 +284,10 @@ export function ExerciseBlock({
     return parts.join(" · ");
   })();
   const hasPrev = prevSets.length > 0 || pr !== null || (!!prevNote && prevNote !== note.trim());
-  const hasTip = !isCardio && !!getExerciseMedia(we.exerciseId); // P2: 미디어는 종목 id 로 찾는다(ADR-033)
+  // [원본] const hasTip = !isCardio && !!getExerciseMedia(we.exerciseId); // P2: 미디어는 종목 id 로 찾는다(ADR-033)
+  // [P5] 시드 종목은 사진이 없어도 픽토그램 움직임이 있다(ADR-036) @plm SRS-055
+  // 사진·설명 표의 키는 전부 시드 종목이다 — 시드 종목이면 팁이 있다(사진 표 672KB 를 이 화면에서 미리 싣지 않는다)
+  const hasTip = !isCardio && hasPictogram(we.exerciseId);
   const bwRelative = loadMode === "assisted" || loadMode === "bodyweight";
   const bwMissing = bwRelative && bodyweightKg == null;
 
@@ -387,6 +392,12 @@ export function ExerciseBlock({
             </div>
           ) : null}
 
+          {/* P5: 종목 그림(정지) — 이름만으로 헷갈리는 종목을 한눈에(피드백 #8) @plm SRS-055 */}
+          {hasPictogram(we.exerciseId) ? (
+            <span className="h-9 w-11 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+              <Pictogram exerciseId={we.exerciseId} className="h-full w-full" testId="we-picto" />
+            </span>
+          ) : null}
           <div className="min-w-0 flex-1">
             <ExerciseName exerciseId={we.exerciseId} variant="heading" base revealOnTap testId="we-name" />
           </div>

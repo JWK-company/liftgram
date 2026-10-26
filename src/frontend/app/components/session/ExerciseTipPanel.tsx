@@ -10,10 +10,13 @@
 //   steps  번호 붙은 단계 설명
 // 이미지가 없는 종목(설명만 있는 항목)은 steps만 보여 준다.
 // ─────────────────────────────────────────────────────────────────────────────
-import { getExerciseMedia, hasMediaImages } from "@app/core/data/exerciseMedia";
+// import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5 에서 getExerciseMediaOwn 으로
+import type { ExerciseMedia } from "@app/core/data/exerciseMedia";
+import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { lang, t } from "@/lib/i18n";
+import { Pictogram } from "../Pictogram";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
@@ -30,6 +33,18 @@ export function ExerciseTipPanel({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [mode, setMode] = useState<"media" | "steps">("media");
+  const [loadedMedia, setLoadedMedia] = useState<{ id: string; media: ExerciseMedia | null } | null>(null);
+
+  useEffect(() => {
+    if (!exerciseId || !expanded) return;
+    let cancelled = false;
+    void import("@app/core/data/exerciseMedia").then((m) => {
+      if (!cancelled) setLoadedMedia({ id: exerciseId, media: m.getExerciseMediaOwn(exerciseId) });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [exerciseId, expanded]);
 
   useEffect(() => {
     if (!exerciseId) return;
@@ -38,15 +53,20 @@ export function ExerciseTipPanel({
   }, [exerciseId]);
 
   if (!exerciseId) return null;
-  const media = getExerciseMedia(exerciseId);
+  // [원본] const media = getExerciseMedia(exerciseId);
+  // [P5] 같은 동작·같은 기구 사진만(빌린 사진은 비운다) + 시드 종목은 픽토그램 움직임(ADR-036) @plm SRS-055
+  // 사진·설명 표(672KB)는 처음 펼칠 때 불러온다 — 운동 화면 첫 로드에 싣지 않는다.
+  const media = loadedMedia?.id === exerciseId ? loadedMedia.media : null;
+  const picto = hasPictogram(exerciseId);
   const steps = media
     ? lang === "ko" && media.instructionsKo.length
       ? media.instructionsKo
       : media.instructionsEn
     : [];
-  if (!media && steps.length === 0) return null;
+  if (!picto && !media && steps.length === 0) return null;
 
-  const hasImages = hasMediaImages(media);
+  // [원본] const hasImages = hasMediaImages(media);
+  const hasImages = picto || !!(media && (media.gif || media.start));
 
   const toggle = () => {
     const next = !expanded;
@@ -73,14 +93,21 @@ export function ExerciseTipPanel({
         {trailing}
       </div>
 
-      {expanded && mode === "media" && media && hasImages ? (
+      {expanded && mode === "media" && hasImages ? (
         <button
           type="button"
           data-testid="tip-media"
           onClick={() => steps.length && setMode("steps")}
           className="mt-[var(--spacing-xs)] block w-full"
         >
-          <TwoFrameLoop start={media.start} end={media.end} gif={media.gif} />
+          {/* [원본] <TwoFrameLoop start={media.start} end={media.end} gif={media.gif} /> */}
+          {picto ? (
+            <span className="block h-[150px] w-full overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+              <Pictogram exerciseId={exerciseId} animate className="h-full w-full" testId="tip-picto" />
+            </span>
+          ) : media ? (
+            <TwoFrameLoop start={media.start} end={media.end} gif={media.gif} />
+          ) : null}
           {steps.length ? (
             <AppText variant="label" color="textFaint" center className="mt-[2px] block">
               {t("session.tipTapForSteps")}

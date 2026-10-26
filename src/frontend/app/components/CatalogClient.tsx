@@ -21,12 +21,14 @@ import type { EquipmentType, MuscleGroup } from "@app/core/domain/types";
 import { createClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getExerciseMedia } from "@app/core/data/exerciseMedia";
+// import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5 에서 썸네일이 픽토그램으로
+import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { exerciseAltName, exerciseListName } from "@app/core/domain/exerciseName";
 import { buildExerciseSearchIndex, matchedLabel, searchExercises } from "@app/core/domain/exerciseSearch";
 import { t } from "@/lib/i18n";
 import { equipmentLabelFromDomain, muscleLabelFromDomain } from "@/lib/labels";
 import ExerciseFinderWizard, { type WizardResult } from "./ExerciseFinderWizard";
+import { Pictogram } from "./Pictogram";
 import { ErrorState } from "./States";
 import { useToast } from "./Toast";
 import { Chip } from "./ui/Chip";
@@ -378,7 +380,15 @@ function FilterRow({ label, children }: { label: string; children: React.ReactNo
 function ExerciseRow({ row }: { row: Row }) {
   const item = { nameKo: row.nameKo, nameEn: row.nameEn, equipment: row.equipment };
   const altName = exerciseAltName(item);
-  const thumb = row.imageUrl || getExerciseMedia(row.id)?.start || null;
+  // [원본] 사진 썸네일 — 다른 기구 사진을 빌려 쓰던 종목이 섞였다(P5 · ADR-036)
+  // const thumb = row.imageUrl || getExerciseMedia(row.id)?.start || null;
+  // [개선] 내가 올린 사진이 있으면 그것, 아니면 픽토그램(시드 종목 전부) — 사진 CDN 을 목록에서 부르지 않는다
+  const thumb = row.imageUrl || null;
+  const fallbackIcon = (
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+      <Icon name="barbell-outline" size={18} color="var(--color-ink3)" />
+    </span>
+  );
 
   return (
     <li className="relative">
@@ -408,10 +418,17 @@ function ExerciseRow({ row }: { row: Row }) {
             loading="lazy"
             className="h-10 w-10 shrink-0 rounded-[var(--radius-sm)] object-cover"
           />
-        ) : (
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
-            <Icon name="barbell-outline" size={18} color="var(--color-ink3)" />
+        ) : hasPictogram(row.id) ? (
+          <span className="h-10 w-12 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
+            <Pictogram
+              exerciseId={row.id}
+              className="h-full w-full"
+              fallback={fallbackIcon}
+              testId="row-picto"
+            />
           </span>
+        ) : (
+          fallbackIcon
         )}
 
         {/* 줄 목록(SRS-054): 이름 한 줄 + 「부위 · 기구」 한 줄. 태그 칩 묶음은 쓰지 않는다 —

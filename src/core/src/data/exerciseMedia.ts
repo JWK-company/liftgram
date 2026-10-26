@@ -24,6 +24,7 @@ export function freeDbImageUrl(path: string): string {
 import { RAW_MEDIA } from './exerciseMedia.data';
 import { RAW_MEDIA_3D } from './exerciseMedia3d.data'; // v0.10: 3D 움짤 오버레이(에셋 확보 시 ingest 스크립트가 채움). @plm SRS-046
 import { MEDIA_KEY_BY_ID } from './exerciseMediaKeys.data'; // P2: 종목 id → 미디어 키(ADR-033 — 이름이 바뀌어도 끊기지 않게)
+import { BORROWED_PHOTO_IDS } from './exerciseMediaOwn.data'; // P5: 다른 기구 사진을 빌려 쓰던 종목(ADR-036)
 
 // 괄호 기구 토큰 폴백 공용('인클라인 프레스 (덤벨)' → '인클라인 프레스'). @plm SRS-028/032
 function lookupWithBase<T>(table: Record<string, T>, nameKo: string): T | undefined {
@@ -42,6 +43,16 @@ export function getExerciseMedia(exerciseId: string): ExerciseMedia | null {
   const key = MEDIA_KEY_BY_ID[exerciseId];
   if (!key) return null;
   return getExerciseMediaByKey(key);
+}
+
+/**
+ * 같은 동작·같은 기구의 사진만 남긴 미디어(카탈로그 개편 P5 · ADR-036). 다른 기구 사진을 빌려 쓰던 종목은
+ * 사진을 비우고 단계 설명만 돌려준다 — 그림은 픽토그램이 맡는다. 화면은 이 함수를 쓴다.
+ */
+export function getExerciseMediaOwn(exerciseId: string): ExerciseMedia | null {
+  const m = getExerciseMedia(exerciseId);
+  if (!m || !BORROWED_PHOTO_IDS.has(exerciseId)) return m;
+  return { ...m, start: '', end: '', gif: null };
 }
 
 // [원본] 이름 키 조회 — 미디어 표 자체의 키(사진 출처 라벨)로만 쓴다. 화면은 위 id 조회를 쓴다.
