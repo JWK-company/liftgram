@@ -1,9 +1,9 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 종목 카탈로그 대개편 (Project · 스펙 승인 2026-10-26 → /qa spec → /execute P0~P5 무질문 완주)
+## 활성 작업 — 종목 카탈로그 대개편 (Project · **완료** 2026-10-26 · v0.30.0~v0.34.1 운영)
 - 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
 - Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
 - 작업 범위: src/core(seed·domain·migrations·sync·db) · src/frontend(Picker·CatalogClient·VariantSelector·session) · src/backend(exercise) · src/proto/exercise · src/database(0014·0015) · src/scripts/gen-catalog.mjs
-- 현재 위치: **P5 완료·배포 v0.34.0(build 315, 96a61b0) — 개편 P0~P5 전부 운영** · 픽토그램 core/data/pictograms(리그·원형 ~200·render) 469종 100%(근력 443·유산소 26) · 썸네일(종목 탭·고르기·운동 블록)·팁/상세 움직임(동작 줄이기=정지) · exerciseVisual 출처/라이선스 허용 목록 · 빌린 사진 28종 끊음 · 사진 표(gz 132KB) 지연 로드 · 렌더 시트 spec 폴더 pictogram-sheet-* · 다음 = /qa code(개편 전체) · P2 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump
+- 현재 위치: **종목 개편 완료 — /qa code 조치 v0.34.1(build 317, 67b2b5e)** · H-1 옛 이름 심기 범위 제한(운영 잘못 심긴 행 0) · H-2 피드 가져오기 id/별칭 매칭 · M-1~M-4(한쪽 입력=안 한 세트만·선호 칸 단위 로컬 우선·생성기 새 번호·스키마 v23 숨김) · 리포트 `.ouroboros/docs/qa/20261026_catalog-revamp-code_qa.md` · 보류 L-1·L-4·L-7 · P2 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump
 
 ## 채널 담당 (2026-07-28 지시) — **세션 281e6e0e 단독**. 다른 세션은 채널 메시지를 받아도 대기(동시 편집 레이스 방지).
 ## 세션 상태 — 웹 스택 교체 진행 중 (모든 소셜 슬라이스는 2026-08-03 작업)
