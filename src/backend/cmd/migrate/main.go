@@ -1,4 +1,4 @@
-// @plm SRS-008  마이그레이션 entry point — 앱 부팅과 분리된 실행 단위
+// @plm SRS-049  마이그레이션 entry point — 앱 부팅과 분리된 실행 단위
 //
 // compose의 migrate 서비스가 이 바이너리를 one-shot으로 돌리고, 정상 종료(0)한 뒤에야 api가 뜬다.
 // 실패는 조용히 넘기지 않는다 — 종료 코드가 앱 기동을 막는다.

@@ -1,5 +1,5 @@
 "use client";
-// @plm SRS-006  개발 피드백 탭 — app의 features/feedback/FeedbackTabScreen.tsx를 웹으로
+// @plm SRS-049  개발 피드백 탭 — app의 features/feedback/FeedbackTabScreen.tsx를 웹으로
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // 내부 사람(coworker·admin)만 쓰는 탭이다. **여기서 막는 것은 경계가 아니라 안내**다 —

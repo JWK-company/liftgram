@@ -1,5 +1,5 @@
 "use client";
-// @plm SRS-008  사람 찾기 — app의 features/social/DiscoverScreen.tsx를 웹으로
+// @plm SRS-018  사람 찾기 — app의 features/social/DiscoverScreen.tsx를 웹으로
 //
 // 이름·이메일 부분일치로 찾고, 그 자리에서 팔로우한다.
 // 검색은 **입력이 멈춘 뒤** 보낸다(타이핑마다 보내면 한 사람 찾는 데 열 번을 조른다).

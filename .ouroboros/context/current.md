@@ -59,8 +59,8 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 
 ## 다음 작업
 1. 사용자 확인: 옛 계정 로그인·기록 표시 · 서비스워커(오프라인 앱셸) 웹 스택에 없음 — 별도 작업
-2. **@plm 오염**: 템플릿 유래 주석 53개/41파일(템플릿 원본과 같은 줄 대조로 판별) + 우리 인프라 스크립트도 그 관례(SRS-006/008)를 따라감 → 인프라 SRS 발급 후 재매핑 → `.plmignore`의 `src/**` 해제
-3. codescan 400·sync_bulk 413 · SRS-048 잔여(assertTrainerEligible 스텁·sync LWW) · ADR-012/013 dangling·ADR-025→026 Replaced(대시보드)
+2. **@plm 오염 — 정리 완료**(2026-10-26): SRS-049(실행·배포 기반)·SRS-050(API 경계)·SRS-051(앱 셸·UI) 발급 → 87줄 재매핑(+도메인 오태깅 루틴→SRS-002·발견→SRS-018) · `.plmignore`의 `src/**` 해제(생성물만 제외) · **codescan 400 원인 = Code ID 64자 초과 32개**(plm_codescan.py:219 무축약) → plugin 수정 후 전체 스캔 필요. 보고서 `docs/report/20261026_plm-contamination_report.md`
+3. codescan ID 축약+청크(plugin) · sync_bulk 413 · SRS-048 잔여(assertTrainerEligible 스텁·sync LWW) · ADR-012/013 dangling·ADR-025→026 Replaced(대시보드)
 4. 사용자 결정 대기: ADR-029 게이트 · 3D 움짤 에셋 라이선스
 - 무관한 미커밋: `plugin/**`·`.claude-plugin/marketplace.json`(다른 작업 — 건드리지 않는다)
 

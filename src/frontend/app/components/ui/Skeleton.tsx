@@ -1,4 +1,4 @@
-// @plm SRS-007  자리표시 — app의 components/Skeleton.tsx를 웹으로 옮긴 것
+// @plm SRS-051  자리표시 — app의 components/Skeleton.tsx를 웹으로 옮긴 것
 //
 // 첫 로딩에 빈 화면 대신 보여 주는 회색 펄스 블록. app은 Animated.loop(0.5↔1, 750ms)로
 // 투명도를 오간다 — 여기서는 같은 주기의 CSS 애니메이션으로 대신한다(JS 타이머가 필요 없다).

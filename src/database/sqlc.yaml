@@ -1,4 +1,4 @@
-# @plm SRS-001  SQL → 타입 안전한 Go 코드 생성 (ADR-011)
+# @plm SRS-050  SQL → 타입 안전한 Go 코드 생성 (ADR-011)
 #
 # 왜 sqlc인가: 이 템플릿의 convention 중 하나가 "repository는 SQL만 안다"인데,
 # sqlc는 그 경계를 **코드생성으로 강제한다** — 쿼리는 .sql에만 쓰이고, Go 쪽은 생성물이라

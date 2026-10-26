@@ -1,4 +1,4 @@
-// @plm SRS-008  web의 커스텀 서버가 쓰는 의존의 closure를 계산한다.
+// @plm SRS-049  web의 커스텀 서버가 쓰는 의존의 closure를 계산한다.
 //
 // 왜 필요한가: Next의 파일 트레이싱은 **앱 코드만** 따라간다. `frontend/server.mjs`는 빌드 밖의
 // entry point이라 그 의존이 standalone 출력에 실리지 않는다 — Dockerfile이 명시적으로 복사해야 하고,

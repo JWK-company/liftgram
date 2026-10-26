@@ -1,4 +1,4 @@
-// @plm SRS-007  아이콘 버튼 — app의 components/IconButton을 웹으로 옮긴 것
+// @plm SRS-051  아이콘 버튼 — app의 components/IconButton을 웹으로 옮긴 것
 //
 // 40×40 원형. `filled`면 surfaceAlt 배경을 깐다. 세션 헤더·종목 블록 헤더가 쓴다.
 "use client";

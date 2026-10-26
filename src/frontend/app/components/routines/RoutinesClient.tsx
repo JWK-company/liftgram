@@ -1,5 +1,5 @@
 "use client";
-// @plm SRS-003  운동 탭(루틴) — app의 features/routines/WorkoutTabScreen.tsx를 웹으로
+// @plm SRS-002  운동 탭(루틴) — app의 features/routines/WorkoutTabScreen.tsx를 웹으로
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // 앱을 열면 처음 보이는 화면이다. 위에서 아래로:

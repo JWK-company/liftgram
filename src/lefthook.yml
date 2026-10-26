@@ -1,4 +1,4 @@
-# @plm SRS-009  커밋 전에 CI가 볼 것을 먼저 본다 — 깨진 커밋이 원격에 올라가지 않게
+# @plm SRS-049  커밋 전에 CI가 볼 것을 먼저 본다 — 깨진 커밋이 원격에 올라가지 않게
 #
 # 설치: make hooks   (bun install 후 한 번만. lefthook install이 .git/hooks에 훅을 심는다)
 # 건너뛰기: LEFTHOOK=0 git commit …   (급할 때만. CI는 어차피 같은 검사를 한다)

@@ -1,4 +1,4 @@
-// @plm SRS-007  하단 탭 바 — app의 navigation/TabNavigator를 웹으로 옮긴 것
+// @plm SRS-051  하단 탭 바 — app의 navigation/TabNavigator를 웹으로 옮긴 것
 //
 // app은 하단 탭 6개(운동·피드·기록·캘린더·통계·프로필)를 쓴다. 색 규칙도 같다:
 // 활성 = 브랜드, 비활성 = textFaint, 배경 = surface, 위쪽 경계선 1px.

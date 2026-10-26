@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @plm SRS-009  플랫폼 중립 CI — 어떤 러너에서도 이 한 줄이면 같은 검증이 돈다
+# @plm SRS-049  플랫폼 중립 CI — 어떤 러너에서도 이 한 줄이면 같은 검증이 돈다
 # 사용: bash scripts/ci.sh  (GitHub Actions·GitLab CI·Jenkins 어디서든 동일)
 set -euo pipefail
 step(){ echo; echo "▶ $1"; }

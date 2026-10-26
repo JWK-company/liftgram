@@ -1,4 +1,4 @@
-// @plm SRS-007  아이콘 — app과 같은 글리프(Ionicons)를 웹에서 쓴다
+// @plm SRS-051  아이콘 — app과 같은 글리프(Ionicons)를 웹에서 쓴다
 //
 // app은 `@expo/vector-icons`의 Ionicons를 쓴다. 웹에는 그 패키지가 없으므로 같은 아이콘 세트를
 // 담은 `react-icons/io5`로 대체하되, **호출 방식은 app과 같게** 둔다: `<Icon name="barbell" />`.

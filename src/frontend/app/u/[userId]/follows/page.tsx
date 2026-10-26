@@ -1,4 +1,4 @@
-// @plm SRS-008  팔로워·팔로잉 목록
+// @plm SRS-018  팔로워·팔로잉 목록
 import FollowListClient from "../../../components/feed/FollowListClient";
 
 export const dynamic = "force-dynamic";

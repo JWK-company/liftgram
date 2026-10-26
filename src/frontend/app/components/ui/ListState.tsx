@@ -1,4 +1,4 @@
-// @plm SRS-007  목록 상태 — app의 components/ListState.tsx를 웹으로 옮긴 것
+// @plm SRS-051  목록 상태 — app의 components/ListState.tsx를 웹으로 옮긴 것
 //
 // 비어 있는 목록 자리에 무엇을 보여 줄지 한 곳에서 정한다:
 //   loading(첫 로드) → 스켈레톤 · error → 구분되는 오류 + 재시도 · 그 외 → 빈 상태

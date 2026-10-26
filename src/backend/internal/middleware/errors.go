@@ -1,4 +1,4 @@
-// @plm SRS-001  도메인 오류 → Connect 코드 (단일 매퍼)
+// @plm SRS-050  도메인 오류 → Connect 코드 (단일 매퍼)
 //
 // 도메인은 errs.DomainError를 그냥 돌려준다. 전송 코드로 옮기는 일은 여기서만 한다 —
 // 그래야 RPC·스트림·WebSocket 어디서 실패하든 같은 규칙이 적용되고,

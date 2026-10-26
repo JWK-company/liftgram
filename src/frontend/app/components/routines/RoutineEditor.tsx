@@ -1,5 +1,5 @@
 "use client";
-// @plm SRS-003  루틴 편집기 — app의 features/routines/RoutineEditorScreen.tsx를 웹으로
+// @plm SRS-002  루틴 편집기 — app의 features/routines/RoutineEditorScreen.tsx를 웹으로
 //
 // ─────────────────────────────────────────────────────────────────────────────
 //   머리   이름 · 폴더(칩 또는 입력) · 메모

@@ -1,4 +1,4 @@
-// @plm SRS-011  스캐폴더 — 명령 한 줄로 새 저장소가 선다
+// @plm SRS-049  스캐폴더 — 명령 한 줄로 새 저장소가 선다
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // 사용:
@@ -162,8 +162,8 @@ if (bare) {
   // 그래서 **알려진 최소 골격을 통째로** 쓴다. 첫 도메인은 make gen 이 네 줄을 넣는다.
   writeFileSync(
     path.join(target, "backend/cmd/server/main.go"),
-    `// @plm SRS-008  api entry point — 설정 검증 · 조립 · 정상 종료
-// @plm SRS-010  헬스 — 생존과 준비를 나눈다
+    `// @plm SRS-049  api entry point — 설정 검증 · 조립 · 정상 종료
+// @plm SRS-049  헬스 — 생존과 준비를 나눈다
 //
 // 이 파일이 이 서비스의 **composition root**이다. 인스턴스가 만들어지는 곳은 여기 하나뿐이고,
 // 도메인 패키지는 자기가 무엇을 주입받았는지 모른다(인터페이스로만 안다).
@@ -354,7 +354,7 @@ export default async function Page() {
   // 화면의 api 클라이언트도 비운다 — 카운터 서비스 기술자를 지웠으므로 그대로 두면 import가 깨진다.
   writeFileSync(
     path.join(target, "frontend/lib/api.ts"),
-    `// @plm SRS-008  api 접근 — 서버에서만 쓰는 내부 주소
+    `// @plm SRS-049  api 접근 — 서버에서만 쓰는 내부 주소
 //
 // 브라우저는 이 파일을 쓰지 않는다. 클라이언트 코드는 상대 경로(\`/api\`)로 web을 부르고,
 // web(프록시)이 api로 넘긴다 — 그래야 api를 외부에 노출하지 않는다(ADR-010).
@@ -377,7 +377,7 @@ export function apiBaseUrl(): string {
   // 계약 entry point도 비운다 — 카운터 생성물을 지웠으므로 그대로 두면 import가 깨진다.
   writeFileSync(
     path.join(target, "contracts/src/index.ts"),
-    `// @plm SRS-001  계약 entry point — 화면이 import 하는 단 하나의 문
+    `// @plm SRS-050  계약 entry point — 화면이 import 하는 단 하나의 문
 //
 // gen/ 아래는 buf가 proto에서 만들어낸다(make proto). 첫 도메인을 만들면
 // 여기에 \`export * from "../gen/<도메인>/v1/<도메인>_pb";\` 한 줄이 늘어난다.
@@ -399,7 +399,7 @@ export const routes = {
   mkdirSync(path.join(target, "database/migrations"), { recursive: true });
   writeFileSync(
     path.join(target, "database/migrations/0000_init.sql"),
-    `-- @plm SRS-008  첫 마이그레이션 — 빈 골격
+    `-- @plm SRS-049  첫 마이그레이션 — 빈 골격
 --
 -- 테이블은 make gen NAME=<도메인> 이 여기에 파일을 추가한다.
 -- 이 디렉터리는 sqlc가 **schema의 source of truth**으로도 읽는다(sqlc.yaml) — 정의가 두 곳에 생기지 않는다.

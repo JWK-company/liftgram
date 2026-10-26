@@ -1,4 +1,4 @@
-# @plm SRS-008  운영 배포(h2500-3) 덮어쓰기 — compose.yaml 위에 얹는다
+# @plm SRS-049  운영 배포(h2500-3) 덮어쓰기 — compose.yaml 위에 얹는다
 #
 #   docker compose -p liftgram -f compose.yaml -f compose.prod.yaml up -d --wait
 #

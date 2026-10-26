@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @plm SRS-008  컨테이너 runtime contract 검증 — 템플릿이 약속한 것을 이미지가 실제로 지키는가
+# @plm SRS-049  컨테이너 runtime contract 검증 — 템플릿이 약속한 것을 이미지가 실제로 지키는가
 #
 # 실행 단위가 둘이라(ADR-010) 이미지도 둘이다. 약속의 대부분은 같지만 포트·entry point이 다르므로
 # UNIT으로 무엇을 보는지 알려 준다:

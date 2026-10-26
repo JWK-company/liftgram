@@ -1,4 +1,4 @@
-// @plm SRS-007  입력 — app의 components/inputs.tsx를 웹으로 옮긴 것
+// @plm SRS-051  입력 — app의 components/inputs.tsx를 웹으로 옮긴 것
 //
 // TextField와 NumberStepper. 세션 화면의 무게·횟수는 이 스테퍼로 넣는다 —
 // ± 버튼과 **값을 눌러 직접 입력**하는 두 경로를 app과 같게 유지한다(점선 밑줄이 그 힌트다).

@@ -1,4 +1,4 @@
-// @plm SRS-007  버튼 — app의 components/Button.tsx를 웹으로 옮긴 것
+// @plm SRS-051  버튼 — app의 components/Button.tsx를 웹으로 옮긴 것
 //
 // props와 시각 결과를 app과 맞춘다: `<Button title="저장" variant="primary" icon="checkmark" />`.
 // 높이(36/46/54)·라운드·간격·비활성 투명도(0.45)·눌림 투명도(0.85)까지 같은 값이다.

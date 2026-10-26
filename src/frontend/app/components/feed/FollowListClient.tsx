@@ -1,5 +1,5 @@
 "use client";
-// @plm SRS-008  팔로워·팔로잉 목록 — app의 features/social/FollowListScreen.tsx를 웹으로
+// @plm SRS-018  팔로워·팔로잉 목록 — app의 features/social/FollowListScreen.tsx를 웹으로
 //
 // 프로필의 숫자를 눌러 들어온다. 어느 쪽을 보는지는 주소의 mode가 정한다 —
 // 그래야 뒤로가기·새로고침·링크 공유가 같은 화면을 연다.

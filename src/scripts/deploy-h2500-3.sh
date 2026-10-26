@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @plm SRS-008  h2500-3 배포 — 커밋된 소스 동기 + 빌드 + 기동 + 결과 확인
+# @plm SRS-049  h2500-3 배포 — 커밋된 소스 동기 + 빌드 + 기동 + 결과 확인
 #
 #   bash scripts/deploy-h2500-3.sh            # HEAD 를 배포
 #   DEPLOY_REF=<커밋> bash scripts/deploy-h2500-3.sh

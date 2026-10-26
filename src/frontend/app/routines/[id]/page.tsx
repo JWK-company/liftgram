@@ -1,4 +1,4 @@
-// @plm SRS-003  루틴 편집 — 기존 루틴을 연다
+// @plm SRS-002  루틴 편집 — 기존 루틴을 연다
 import RoutineEditor from "../../components/routines/RoutineEditor";
 import { UserSettingsProvider } from "../../components/UserSettingsProvider";
 

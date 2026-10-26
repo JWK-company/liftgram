@@ -1,5 +1,5 @@
-// @plm SRS-008  컨테이너 runtime contract — standalone 출력으로 런타임 이미지 최소화
-// @plm SRS-010  기본 보안 헤더는 프레임워크 설정에서 한 번에 건다
+// @plm SRS-049  컨테이너 runtime contract — standalone 출력으로 런타임 이미지 최소화
+// @plm SRS-049  기본 보안 헤더는 프레임워크 설정에서 한 번에 건다
 import path from "node:path";
 import type { NextConfig } from "next";
 

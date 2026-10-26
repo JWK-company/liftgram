@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# @plm SRS-008  h2500-3 운영 백업 — DB 매일 · 사진 매주 (사용자 crontab에서 돈다)
+# @plm SRS-049  h2500-3 운영 백업 — DB 매일 · 사진 매주 (사용자 crontab에서 돈다)
 #
 #   crontab:  17 4 * * * $HOME/liftgram/src/scripts/backup-h2500-3.sh >> $HOME/liftgram/backups/backup.log 2>&1
 #

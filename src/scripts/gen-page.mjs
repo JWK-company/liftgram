@@ -1,4 +1,4 @@
-// @plm SRS-006  화면 제너레이터 — 앱 셸 convention을 지킨 화면을 한 번에 만든다
+// @plm SRS-049  화면 제너레이터 — 앱 셸 convention을 지킨 화면을 한 번에 만든다
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // 사용:  make gen-page NAME=posts [MODULE=posts]      MODULE은 api의 경로 세그먼트(복수형)
@@ -67,7 +67,7 @@ const pageBody = moduleName
 write(
   `${WEB}/app/${raw}/page.tsx`,
   [
-    `// @plm SRS-006  ${Name} 화면 — RSC가 초기 데이터를 확정해 클라이언트에 넘긴다`,
+    `// @plm SRS-051  ${Name} 화면 — RSC가 초기 데이터를 확정해 클라이언트에 넘긴다`,
     `//`,
     `// 데이터 패턴: 여기(서버)에서 api를 직접 호출하고 직렬화 가능한 형태로 props에 담는다.`,
     `// 자기 프록시(/api/*)를 자기 서버에 fetch 하지 않는다 — 왕복 한 번이 통째로 낭비다.`,
@@ -92,7 +92,7 @@ write(
 write(
   `${WEB}/app/${raw}/loading.tsx`,
   [
-    `// @plm SRS-007  로딩 — 셸의 Suspense 경계가 이 파일을 쓴다(화면마다 스피너를 만들지 않는다)`,
+    `// @plm SRS-051  로딩 — 셸의 Suspense 경계가 이 파일을 쓴다(화면마다 스피너를 만들지 않는다)`,
     `import { Loading } from "../components/States";`,
     ``,
     `export default function LoadingPage() {`,
@@ -107,7 +107,7 @@ write(
   `${WEB}/app/${raw}/error.tsx`,
   [
     `"use client";`,
-    `// @plm SRS-007  오류 경계 — 사용자에게는 문구를, 개발자에게는 로그를`,
+    `// @plm SRS-051  오류 경계 — 사용자에게는 문구를, 개발자에게는 로그를`,
     `import { ErrorState } from "../components/States";`,
     ``,
     `export default function ErrorPage({ error, reset }: { error: Error; reset: () => void }) {`,
@@ -216,7 +216,7 @@ write(
   `${WEB}/app/${raw}/${Name}Client.tsx`,
   [
     `"use client";`,
-    `// @plm SRS-006  ${Name} 상호작용 — 서버 데이터를 화면 상태로 받아 유지한다`,
+    `// @plm SRS-051  ${Name} 상호작용 — 서버 데이터를 화면 상태로 받아 유지한다`,
     `//`,
     `// 규칙(이 템플릿의 R2): 서버에서 온 데이터를 **전역 스토어에 넣지 않는다.**`,
     `// 첫 값은 서버가 props로 주고, 이후 변화만 여기서 관리한다.`,

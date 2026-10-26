@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* @plm SRS-007  디자인 토큰 — 색상 하드코딩 금지, 토큰으로만
+/* @plm SRS-051  디자인 토큰 — 색상 하드코딩 금지, 토큰으로만
  *
  * 팔레트의 원본은 app/src/theme/tokens.ts 다(다크 테마 · PR 골드까지).
  * 같은 값을 여기 손으로 적으면 두 곳이 갈라지므로 `make sync-core` 가 만들어 낸다.

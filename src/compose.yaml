@@ -1,4 +1,4 @@
-# @plm SRS-008  전 실행 단위를 compose로 정의 — frontend · backend · db · migrate · broker
+# @plm SRS-049  전 실행 단위를 compose로 정의 — frontend · backend · db · migrate · broker
 #
 # 값은 전부 .env에서 온다(`${키:-기본값}`). 그래서 로컬 실행과 컨테이너 실행이
 # **같은 설정 파일 하나**를 본다 — 포트를 바꾸고 싶으면 .env만 고치면 된다.
@@ -41,7 +41,7 @@ services:
       timeout: 3s
       retries: 20
 
-  # one-shot 마이그레이션 — 앱 부팅과 분리된 실행 단위(SRS-008).
+  # one-shot 마이그레이션 — 앱 부팅과 분리된 실행 단위(SRS-049).
   # backend 이미지를 그대로 쓴다(같은 소스에서 나온 두 번째 바이너리라 스키마와 코드가 어긋나지 않는다).
   # backend는 이 서비스가 **정상 종료된 뒤에야** 뜬다.
   migrate:
@@ -81,7 +81,7 @@ services:
       S3_REGION: ${S3_REGION:-auto}
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
-      # 개발 피드백 → PLM 아이디어보드(SRS-006). 토큰이 비면 그 탭만 "지금 안 된다"고 답한다.
+      # 개발 피드백 → PLM 아이디어보드(SRS-049). 토큰이 비면 그 탭만 "지금 안 된다"고 답한다.
       PLM_API_URL: ${PLM_API_URL:-https://jwk-plm.shoi.ch}
       PLM_API_TOKEN: ${PLM_API_TOKEN:-}
       PLM_PROJECT: ${PLM_PROJECT:-liftgram}
