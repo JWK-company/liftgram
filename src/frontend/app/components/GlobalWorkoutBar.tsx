@@ -45,7 +45,7 @@ export function GlobalWorkoutBar() {
       <div aria-hidden className="h-[60px] shrink-0" />
       {/* 진행 중 막대(SRS-054 시안 11 · 결정 D2) — 운동 화면을 ⌄ 로 내리면 **모든 탭 위에** 붙는다(음악 앱의 재생 막대).
           탭바 바로 위에 떠 있고, 폰 폭 칼럼 안에 맞춘다. 휴식 중이면 남은 시간이 주인공이다. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[560px]">
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[560px] lg:bottom-4">
         <a
           href="/workout"
           data-testid="global-workout-bar"

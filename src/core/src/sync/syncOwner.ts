@@ -16,7 +16,10 @@
 //         원래 계정으로 돌아가 올리거나, 백업 파일로 내보낸 뒤 비우거나.
 // ─────────────────────────────────────────────────────────────────────────────
 import { database } from '../db/database';
-import { seedExercisesIfNeeded } from '../data/seedRunner';
+// [원본] 원복 시 아래를 주석 해제하고 wipeFor 안의 동적 import 를 지운다
+// import { seedExercisesIfNeeded } from '../data/seedRunner';
+// [개선] 시드 카탈로그(338종 · ≈111KB)는 계정을 비울 때만 필요하다 — 정적 import 면 앱 셸 첫 로드에 매번 실린다
+// (SRS-054 P5 청크 실측). 동작은 같고 받는 시점만 그때로 미룬다.
 import { countPendingUserChanges } from './pending';
 
 const OWNER_KEY = 'sync_owner_id';
@@ -98,6 +101,7 @@ async function wipeFor(serverUserId: string): Promise<void> {
     await database.unsafeResetDatabase();
   });
   // 카탈로그는 사용자 데이터가 아니라 앱의 재료다 — 비운 자리에 다시 심는다.
+  const { seedExercisesIfNeeded } = await import('../data/seedRunner');
   await seedExercisesIfNeeded();
   await store?.set(OWNER_KEY, serverUserId);
   await setBlocked(null);

@@ -18,6 +18,7 @@ import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { useToast } from "../Toast";
 import { Icon } from "../ui/Icon";
+import { ScreenHeader } from "../ui/ScreenHeader";
 import { TextField } from "../ui/inputs";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 
@@ -54,16 +55,14 @@ export default function MyGearClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-30 flex items-center gap-[var(--spacing-sm)] bg-(--color-surface) px-[var(--spacing-md)] py-[var(--spacing-md)]">
-        <a
-          href="/profile"
-          aria-label={t("profile.title")}
-          className="flex h-10 w-10 items-center justify-center"
-        >
-          <Icon name="chevron-back" size={22} color="var(--color-ink)" />
-        </a>
-        <AppText variant="heading">{t("gear.myGearEntry")}</AppText>
-      </header>
+      <ScreenHeader
+        title={t("gear.myGearEntry")}
+        back={
+          <a href="/profile" aria-label={t("profile.title")} data-testid="gear-back">
+            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
+          </a>
+        }
+      />
 
       <div className="flex-1 p-[var(--spacing-lg)]">
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">

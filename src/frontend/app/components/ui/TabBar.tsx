@@ -147,7 +147,9 @@ export function TabBar() {
   return (
     <nav
       data-testid="shell-nav"
-      className="sticky bottom-0 z-40 flex border-(--color-line) border-t bg-(--color-surface) pb-[env(safe-area-inset-bottom)]"
+      // 넓은 화면(lg·1024px+)에서는 탭바를 앱 칸 왼쪽의 세로 막대로 옮긴다(시안 P5) — 데스크톱에서 화면 맨 아래까지
+      // 손을 뻗지 않게. 앱 칸(560px)은 그대로 가운데에 두고, 막대는 그 왼쪽 바깥에 붙는다.
+      className="sticky bottom-0 z-40 flex border-(--color-line) border-t bg-(--color-surface) pb-[env(safe-area-inset-bottom)] lg:fixed lg:top-0 lg:bottom-auto lg:left-[calc(50%-280px-88px)] lg:h-dvh lg:w-[88px] lg:flex-col lg:justify-center lg:gap-[var(--spacing-sm)] lg:border-t-0 lg:border-r lg:border-l lg:pb-0"
     >
       {tabs.map((t) => {
         const active = t.match(pathname);
@@ -160,14 +162,14 @@ export function TabBar() {
             href={t.href}
             data-testid={t.testId}
             aria-current={active ? "page" : undefined}
-            className={`relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-[3px] ${
+            className={`relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-[3px] lg:min-h-[64px] lg:flex-none ${
               active ? "text-(--color-brand)" : "text-(--color-ink3)"
             }`}
           >
             {active ? (
               <span
                 aria-hidden
-                className="absolute inset-x-[22%] top-0 h-[2.5px] rounded-b-full bg-(--color-brand)"
+                className="absolute inset-x-[22%] top-0 h-[2.5px] rounded-b-full bg-(--color-brand) lg:inset-x-auto lg:inset-y-[18%] lg:left-0 lg:h-auto lg:w-[2.5px] lg:rounded-b-none lg:rounded-r-full"
               />
             ) : null}
             <TabIcon k={t.key} />
