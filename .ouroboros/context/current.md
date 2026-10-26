@@ -57,14 +57,18 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - 안전: 옛 DB **읽기만** · 새 DB에 사람 있으면 정지 · 스테이징+`ON CONFLICT DO NOTHING`으로 **멱등** · 끝나면 행 수 대조표 · **가짜 옛 DB(21테이블)로 끝까지 돌려 확인**(20테이블 일치·오운완 JSON 펼침·답글 부모·재계산 카운트·2회 실행 불일치 0·가드 3종)
 - 안 옮기는 것: 세션 토큰·푸시 토큰·카탈로그(시드). **사진은 DB에 없다** — 저장소를 따로 이어야 한다
 
-## 다음 작업
-1. **오프라인 서비스워커 ✓ v0.17.0**(`67803d9` · 설계안 1A2A3A4A · e2e offline 3/3 운영 통과) — 미검증: 새 버전 띠(다음 배포 때 확인) · 웹 푸시는 범위 밖(자리만)
-   - 사용자 확인 대기: `admin@example.com` 임시 비번 재설정(옛 해시 `~/liftgram/backups/admin-hash-before-reset.txt`) → 로그인·기록 표시 · **비밀번호 변경 기능 없음 → 추가 필요**
-2. **@plm 오염 — 정리 완료**(2026-10-26): SRS-049(실행·배포 기반)·SRS-050(API 경계)·SRS-051(앱 셸·UI) 발급 → 87줄 재매핑(+도메인 오태깅 루틴→SRS-002·발견→SRS-018) · `.plmignore`의 `src/**` 해제(생성물만 제외) · **codescan 400 원인 = Code ID 64자 초과 32개**(plm_codescan.py:219 무축약) → plugin 수정 후 전체 스캔 필요. 보고서 `docs/report/20261026_plm-contamination_report.md`
-3. codescan ID 축약+청크(plugin) · sync_bulk 413 · SRS-048 잔여(assertTrainerEligible 스텁·sync LWW) · ADR-012/013 dangling·ADR-025→026 Replaced(대시보드)
-4. 사용자 결정 대기: ADR-029 게이트 · 3D 움짤 에셋 라이선스
-- 무관한 미커밋: `plugin/**`·`.claude-plugin/marketplace.json`(다른 작업 — 건드리지 않는다)
+## 기록 손실 복구 · 데이터 보호 (2026-10-26 · v0.18.0 `14b078c` 운영)
+- **사고**: 옛 앱 동기가 8월부터 조용히 실패(서버 레코드 65건의 `_status`가 pull을 죽임) → 운동 32건 등 2,343행이 폰 IndexedDB에만. 옛 주소에 `recover.html`(IndexedDB 덤프)을 올려 회수 → 서버에 합침(전 행 일치 검증) · 오염 65건 정리 · 설정 3종 복원(주간목표 6·주말제외·볼륨 mid)
+- **방지(SRS-053)**: 동기 건강 경고 띠 · 계정 전환 가드(미동기 있으면 지우지 않음) · 백업 파일 내보내기/가져오기(옛 복구 파일 호환) · 설정 프로필 동기(로컬 스키마 v21 app_prefs) · 첫 동기 전 빈 프로필 생성 금지(+single-flight) · e2e data-safety 4종
+- **app/ 은퇴 → core가 원본**(sync-core는 토큰 CSS만) · 버전 규칙: 배포 스크립트가 같은 버전 재배포 거부·build 번호·git 태그·프로필 하단 표시
+- e2e 전체: 88 통과 · 실패 6 중 profile 2건은 회귀(수정함) · 나머지 DM·스토리는 부하 flake(단독 재실행 통과)
 
+## 다음 작업
+1. **정식 계정(SRS-052) 진행 중** — 완료: 마이그레이션 0013(email_verified_at·auth_tokens·auth_identities, 미커밋) · sqlc · mailer 이식(Liftgram 문안). 남음: 서비스(검증·재설정·변경·소셜 연결) · oauth 이식(구글·카카오·네이버 + 일회용 로그인 코드) · Turnstile · **XFF 위조 구멍**(server.mjs가 클라이언트 XFF를 믿음 → CF-Connecting-IP만) · 화면(/verify-email·/forgot·/reset·/auth/complete·보안 카드) · e2e(가짜 제공자 빌드 태그)
+   - **사용자 콘솔 작업 대기**: CF Email Sending tarae.org onboard+SMTP 토큰 · Turnstile 위젯 · 구글 OAuth 클라이언트(redirect `https://liftgram.tarae.org/api/auth/oauth/google/callback`)
+2. 끝나면: 구글 계정 생성 → admin@example.com 기록 이전 → 임시 계정 폐기
+3. codescan 400(plugin 쪽 Code ID 64자) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
+- 옛 Netlify: 리다이렉트 + `/recover` 복구 페이지 유지(stop_builds) · 무관한 미커밋 `plugin/**`
 ## 게이트 / 차단
 G1·G2 pass · G3 = @plm 주석 완료, codescan 400으로 딥링크 미동기. 범위 밖 기존 이슈: ADR-012·013 supersedes dangling, ADR-025→026 Replaced 전이 필요.
 **차단 요소 없음** — 방향·이관 전략·배포 경로 확정(ADR-031·032). 파리티까지 직진 가능.
