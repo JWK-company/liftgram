@@ -39,9 +39,13 @@ export function ServiceWorker() {
       .catch(() => {});
 
     // 새 워커가 자리를 잡으면 한 번만 새로고침한다(새 화면 조각과 맞추려면 페이지도 새것이어야 한다).
+    // **처음 설치는 빼고** — 옛 워커가 없던 첫 방문에서 clients.claim 이 자리를 잡을 때도 controllerchange 가 오는데,
+    // 그때 새로고침하면 사용자가 막 누른 화면 이동이 홈 새로고침에 끊긴다(바꿀 옛 버전이 없으니 새로고침할 이유도 없다 ·
+    // 2026-10-26 운영 offline e2e 에서 「/exercises 이동이 / 새로고침에 끊김」 으로 재현).
+    const hadController = navigator.serviceWorker.controller != null;
     let reloaded = false;
     const onChange = () => {
-      if (reloaded) return;
+      if (reloaded || !hadController) return;
       reloaded = true;
       window.location.reload();
     };
