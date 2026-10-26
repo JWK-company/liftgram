@@ -63,11 +63,15 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - **app/ 은퇴 → core가 원본**(sync-core는 토큰 CSS만) · 버전 규칙: 배포 스크립트가 같은 버전 재배포 거부·build 번호·git 태그·프로필 하단 표시
 - e2e 전체: 88 통과 · 실패 6 중 profile 2건은 회귀(수정함) · 나머지 DM·스토리는 부하 flake(단독 재실행 통과)
 
+## 정식 계정 (SRS-052) — v0.19.0 `fe616c4` 운영 · 키 대기
+- 구현·배포 완료: 이메일 확인(24h·재발송 60초) · 비밀번호 찾기/재설정(30분·1회·전 세션 끊김) · 변경/설정 · 소셜(구글·카카오·네이버 · state·PKCE · 일회용 로그인 코드 → /auth/complete · 같은 주소 자동 합병 금지 · 2분 연결 표 · 마지막 수단 해제 금지) · Turnstile · 인증 IP당 10회/분 · **XFF 위조 구멍 수정**(운영 실측: 위조 XFF로도 11번째 차단)
+- 운영 .env: TRUST_CF_CONNECTING_IP=1 · AUTH_RATE_LIMIT=10 · MAIL_TRANSPORT=console(키 오면 smtp) — 메일 꺼져 있으면 화면이 확인 안내·비밀번호 찾기를 숨긴다(GetAuthOptions.mail_enabled)
+- 테스트: Go 계정 규칙 11 · e2e auth-formal 7(Mailpit 실메일 · 가짜 제공자는 `-tags=oauthfake`, BASE=http://localhost:3100 필요 — state 쿠키가 APP_URL 호스트에 묶임)
+
 ## 다음 작업
-1. **정식 계정(SRS-052) 진행 중** — 완료: 마이그레이션 0013(email_verified_at·auth_tokens·auth_identities, 미커밋) · sqlc · mailer 이식(Liftgram 문안). 남음: 서비스(검증·재설정·변경·소셜 연결) · oauth 이식(구글·카카오·네이버 + 일회용 로그인 코드) · Turnstile · **XFF 위조 구멍**(server.mjs가 클라이언트 XFF를 믿음 → CF-Connecting-IP만) · 화면(/verify-email·/forgot·/reset·/auth/complete·보안 카드) · e2e(가짜 제공자 빌드 태그)
-   - **사용자 콘솔 작업 대기**: CF Email Sending tarae.org onboard+SMTP 토큰 · Turnstile 위젯 · 구글 OAuth 클라이언트(redirect `https://liftgram.tarae.org/api/auth/oauth/google/callback`)
-2. 끝나면: 구글 계정 생성 → admin@example.com 기록 이전 → 임시 계정 폐기
-3. codescan 400(plugin 쪽 Code ID 64자) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
+1. **사용자 키 대기** → 받으면 서버 .env에 넣고 재기동(재빌드 불필요): CF Email Sending(tarae.org onboard + SMTP 토큰 → MAIL_TRANSPORT=smtp·MAIL_SMTP_HOST=smtp.mx.cloudflare.net·MAIL_REQUIRE_TLS=true) · Turnstile(TURNSTILE_SITE_KEY·SECRET) · 구글 OAuth(OAUTH_GOOGLE_*, redirect `https://liftgram.tarae.org/api/auth/oauth/google/callback`)
+2. 그다음: 사용자가 구글로 새 계정 생성 → admin@example.com의 기록·관계·역할(admin)을 새 계정으로 이전(sync_records 등 user_id 재지정 · 시드 종목 충돌은 옛 것 유지) → 임시 계정 폐기
+3. 남은 것: 미확인 72h 뒤 소셜 기능 제한(미구현) · 배포 점검에 메일 실발송 1건 · codescan 400(plugin) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
 - 옛 Netlify: 리다이렉트 + `/recover` 복구 페이지 유지(stop_builds) · 무관한 미커밋 `plugin/**`
 ## 게이트 / 차단
 G1·G2 pass · G3 = @plm 주석 완료, codescan 400으로 딥링크 미동기. 범위 밖 기존 이슈: ADR-012·013 supersedes dangling, ADR-025→026 Replaced 전이 필요.
