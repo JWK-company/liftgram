@@ -3,7 +3,7 @@
 - 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
 - Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
 - 작업 범위: src/core(seed·domain·migrations·sync·db) · src/frontend(Picker·CatalogClient·VariantSelector·session) · src/backend(exercise) · src/proto/exercise · src/database(0014·0015) · src/scripts/gen-catalog.mjs
-- 현재 위치: **P4 완료·배포 v0.33.0(build 313, cc930d0)** — 칸 시트(머신 브랜드+적재 방식 핀/플레이트·케이블 부착물·손 그립) · 플레이트 「한쪽 무게로 입력」(exercise_user_prefs.plate_one_side → 세트 load_multiplier=2, 프리필 환산) · 지난 조합 승계(domain/recordSlots.pickStartSlot) · 「이전 기록 · 조합」+「다른 조합 기록 보기」 시트 · 「이번만/루틴에도 바꾸기」 · 세트별 그립 선택 제거(표시만) · #47 회귀 e2e · e2e record-slots 5종 · P2 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump · 다음 = **P5 픽토그램(v0.34.0)**
+- 현재 위치: **P5 완료·배포 v0.34.0(build 315, 96a61b0) — 개편 P0~P5 전부 운영** · 픽토그램 core/data/pictograms(리그·원형 ~200·render) 469종 100%(근력 443·유산소 26) · 썸네일(종목 탭·고르기·운동 블록)·팁/상세 움직임(동작 줄이기=정지) · exerciseVisual 출처/라이선스 허용 목록 · 빌린 사진 28종 끊음 · 사진 표(gz 132KB) 지연 로드 · 렌더 시트 spec 폴더 pictogram-sheet-* · 다음 = /qa code(개편 전체) · P2 백업 h2500-3:~/liftgram/backups/pre-catalog-revamp-20261026-122547.dump
 
 ## 채널 담당 (2026-07-28 지시) — **세션 281e6e0e 단독**. 다른 세션은 채널 메시지를 받아도 대기(동시 편집 레이스 방지).
 ## 세션 상태 — 웹 스택 교체 진행 중 (모든 소셜 슬라이스는 2026-08-03 작업)
