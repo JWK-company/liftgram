@@ -500,6 +500,14 @@ export default function ProfileClient() {
         <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-sm)] block">
           {t("wellness.safetyNotice")}
         </AppText>
+        <p className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-md)] text-xs text-(--color-ink3)">
+          <a href="/terms" className="underline">
+            이용약관
+          </a>
+          <a href="/privacy" className="underline">
+            개인정보처리방침
+          </a>
+        </p>
       </div>
     </div>
   );

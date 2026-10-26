@@ -354,6 +354,22 @@ export default function AuthClient({
             {t("auth.forgotLink")}
           </a>
         ) : null}
+        {isSignup ? (
+          <p
+            className="mt-[var(--spacing-xs)] text-center text-xs text-(--color-ink3)"
+            data-testid="signup-legal"
+          >
+            가입하면{" "}
+            <a href="/terms" className="underline">
+              이용약관
+            </a>
+            과{" "}
+            <a href="/privacy" className="underline">
+              개인정보처리방침
+            </a>
+            에 동의하는 것으로 봅니다.
+          </p>
+        ) : null}
         <p className="mt-[var(--spacing-xs)] text-center text-sm text-(--color-ink3)">
           {isSignup ? t("auth.haveAccount") : t("auth.noAccount")}{" "}
           <button
