@@ -54,21 +54,26 @@ const (
 	Equipment_EQUIPMENT_BAND        Equipment = 7
 	Equipment_EQUIPMENT_SMITH       Equipment = 8
 	Equipment_EQUIPMENT_OTHER       Equipment = 9
+	// 종목 카탈로그 개편(2026-10 · ADR-035) — 「EZ바 컬」「트랩바 데드리프트」처럼 기구가 이름의 앞머리다. @plm SRS-055
+	Equipment_EQUIPMENT_EZBAR   Equipment = 10
+	Equipment_EQUIPMENT_TRAPBAR Equipment = 11
 )
 
 // Enum value maps for Equipment.
 var (
 	Equipment_name = map[int32]string{
-		0: "EQUIPMENT_UNSPECIFIED",
-		1: "EQUIPMENT_BARBELL",
-		2: "EQUIPMENT_DUMBBELL",
-		3: "EQUIPMENT_MACHINE",
-		4: "EQUIPMENT_CABLE",
-		5: "EQUIPMENT_BODYWEIGHT",
-		6: "EQUIPMENT_KETTLEBELL",
-		7: "EQUIPMENT_BAND",
-		8: "EQUIPMENT_SMITH",
-		9: "EQUIPMENT_OTHER",
+		0:  "EQUIPMENT_UNSPECIFIED",
+		1:  "EQUIPMENT_BARBELL",
+		2:  "EQUIPMENT_DUMBBELL",
+		3:  "EQUIPMENT_MACHINE",
+		4:  "EQUIPMENT_CABLE",
+		5:  "EQUIPMENT_BODYWEIGHT",
+		6:  "EQUIPMENT_KETTLEBELL",
+		7:  "EQUIPMENT_BAND",
+		8:  "EQUIPMENT_SMITH",
+		9:  "EQUIPMENT_OTHER",
+		10: "EQUIPMENT_EZBAR",
+		11: "EQUIPMENT_TRAPBAR",
 	}
 	Equipment_value = map[string]int32{
 		"EQUIPMENT_UNSPECIFIED": 0,
@@ -81,6 +86,8 @@ var (
 		"EQUIPMENT_BAND":        7,
 		"EQUIPMENT_SMITH":       8,
 		"EQUIPMENT_OTHER":       9,
+		"EQUIPMENT_EZBAR":       10,
+		"EQUIPMENT_TRAPBAR":     11,
 	}
 )
 
@@ -1384,7 +1391,7 @@ const file_exercise_v1_exercise_proto_rawDesc = "" +
 	"\x0fCatalogRevision\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x03R\x05count\x129\n" +
 	"\n" +
-	"updated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt*\xf3\x01\n" +
+	"updated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt*\x9f\x02\n" +
 	"\tEquipment\x12\x19\n" +
 	"\x15EQUIPMENT_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11EQUIPMENT_BARBELL\x10\x01\x12\x16\n" +
@@ -1395,7 +1402,10 @@ const file_exercise_v1_exercise_proto_rawDesc = "" +
 	"\x14EQUIPMENT_KETTLEBELL\x10\x06\x12\x12\n" +
 	"\x0eEQUIPMENT_BAND\x10\a\x12\x13\n" +
 	"\x0fEQUIPMENT_SMITH\x10\b\x12\x13\n" +
-	"\x0fEQUIPMENT_OTHER\x10\t*\xae\x02\n" +
+	"\x0fEQUIPMENT_OTHER\x10\t\x12\x13\n" +
+	"\x0fEQUIPMENT_EZBAR\x10\n" +
+	"\x12\x15\n" +
+	"\x11EQUIPMENT_TRAPBAR\x10\v*\xae\x02\n" +
 	"\x06Muscle\x12\x16\n" +
 	"\x12MUSCLE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fMUSCLE_CHEST\x10\x01\x12\x0f\n" +

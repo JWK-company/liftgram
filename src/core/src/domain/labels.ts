@@ -48,6 +48,8 @@ export const EQUIPMENT_LABELS: Record<AppLanguage, Record<EquipmentType, string>
     band: '밴드',
     smith: '스미스머신',
     other: '기타',
+    ezbar: 'EZ바',
+    trapbar: '트랩바',
   },
   en: {
     barbell: 'Barbell',
@@ -59,6 +61,8 @@ export const EQUIPMENT_LABELS: Record<AppLanguage, Record<EquipmentType, string>
     band: 'Band',
     smith: 'Smith Machine',
     other: 'Other',
+    ezbar: 'EZ bar',
+    trapbar: 'Trap bar',
   },
 };
 

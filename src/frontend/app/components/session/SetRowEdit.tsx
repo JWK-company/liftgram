@@ -54,6 +54,8 @@ export interface SetRow {
   inclinePct?: number | null;
   level?: number | null;
   speedKmh?: number | null;
+  /** v22: 무게 배수(플레이트 한쪽 입력=2) — null=1. 볼륨 계산만 쓴다. @plm SRS-058 */
+  loadMultiplier?: number | null;
 }
 
 /** 직전 세션의 같은 자리 세트 — "이전" 칩이 보여 준다. */

@@ -11,3 +11,7 @@ contracts/gen
 # 빌드 산출물 · 의존
 frontend/.next
 node_modules
+# 카탈로그 생성물 — 정본은 core/src/data/catalog/*.csv
+core/src/data/catalog/catalog.generated.ts
+core/src/data/catalog/catalogMigration.data.ts
+database/staged

@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 21;
+export const SCHEMA_VERSION = 22;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -49,6 +49,11 @@ export const mySchema = appSchema({
         { name: 'substitute_ids', type: 'string' }, // JSON string[] (대체운동 exercise id)
         { name: 'image_url', type: 'string', isOptional: true }, // v7: 종목 이미지(#8) — 업로드 URL. @plm SRS-001
         { name: 'is_archived', type: 'boolean' },
+        // v22: 종목 카탈로그 개편(ADR-033) — 동작 그룹·별칭·비슷한 운동·그림 출처. 서버 카탈로그가 채운다. @plm SRS-055 SRS-056
+        { name: 'family', type: 'string', isOptional: true, isIndexed: true },
+        { name: 'aliases', type: 'string', isOptional: true }, // JSON string[] (한·영 별칭)
+        { name: 'similar', type: 'string', isOptional: true }, // JSON string[] (family 또는 nameEn)
+        { name: 'media_ref', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -84,6 +89,9 @@ export const mySchema = appSchema({
         { name: 'variant_equipment', type: 'string', isOptional: true }, // 기구/브랜드 키(null=카탈로그 기본)
         { name: 'variant_grip', type: 'string', isOptional: true }, // over/under/neutral/wide/close
         { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
+        // v22: 기록 칸 축 확장(ADR-034) — 머신 적재 방식(pin|plate)·케이블 부착물. 손 그립은 variant_grip. @plm SRS-058
+        { name: 'variant_load', type: 'string', isOptional: true },
+        { name: 'variant_attach', type: 'string', isOptional: true },
         { name: 'superset_group', type: 'string', isOptional: true }, // 같은 값끼리 슈퍼셋 묶음
         { name: 'sort_order', type: 'number' },
         { name: 'note', type: 'string', isOptional: true },
@@ -135,6 +143,9 @@ export const mySchema = appSchema({
         { name: 'variant_equipment', type: 'string', isOptional: true }, // 기구/브랜드 키(null=카탈로그 기본)
         { name: 'variant_grip', type: 'string', isOptional: true }, // over/under/neutral/wide/close
         { name: 'variant_arm', type: 'string', isOptional: true }, // bi/uni(원암)
+        // v22: 기록 칸 축 확장(ADR-034). @plm SRS-058
+        { name: 'variant_load', type: 'string', isOptional: true },
+        { name: 'variant_attach', type: 'string', isOptional: true },
         { name: 'superset_group', type: 'string', isOptional: true }, // v7: 세션 슈퍼셋 그룹(#20) — 루틴서 복사. @plm SRS-004
         { name: 'cardio_target', type: 'string', isOptional: true }, // v13: 유산소 목표 JSON(루틴서 복사). @plm SRS-030
         { name: 'prescription', type: 'string', isOptional: true }, // v16: 처방 JSON(루틴서 복사 — 세션 렌더 근거). @plm SRS-043
@@ -169,8 +180,23 @@ export const mySchema = appSchema({
         // v16: 처방 어휘 — 세트 타입(warmup/top/backoff)·목표 RIR. null=비처방(기존 세트). @plm SRS-043
         { name: 'set_type', type: 'string', isOptional: true },
         { name: 'target_rir', type: 'number', isOptional: true },
+        // v22: 무게 배수 — 플레이트 한쪽 입력이면 2(ADR-037). **optional, null = 1**: WatermelonDB 는 기본값이 없어
+        // non-optional number 는 0 이 되고, 그러면 기존 세트의 볼륨·PR 이 전부 0 이 된다(QA B1). 읽기는 effectiveMultiplier 하나로. @plm SRS-058
+        { name: 'load_multiplier', type: 'number', isOptional: true },
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+    // v22: 사용자 × 종목 선호 — 표시 이름(마지막으로 고른 별칭)·플레이트 한쪽 입력. 계정과 함께 동기된다.
+    // 레코드 id = 결정적 `pref-<exercise_id>`(여러 기기가 같은 행을 가리키게 — QA M3). @plm SRS-056 SRS-058
+    tableSchema({
+      name: 'exercise_user_prefs',
+      columns: [
+        { name: 'exercise_id', type: 'string', isIndexed: true },
+        { name: 'display_name', type: 'string', isOptional: true },
+        { name: 'plate_one_side', type: 'boolean', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

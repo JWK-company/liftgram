@@ -1,5 +1,5 @@
 // 스키마 마이그레이션 (ADR-003). 컬럼 추가 시 여기 등록(어댑터에 배선됨 — native/web 공통).
-import { schemaMigrations, addColumns } from '@nozbe/watermelondb/Schema/migrations';
+import { schemaMigrations, addColumns, createTable } from '@nozbe/watermelondb/Schema/migrations';
 
 export default schemaMigrations({
   migrations: [
@@ -287,6 +287,51 @@ export default schemaMigrations({
         addColumns({
           table: 'user_profiles',
           columns: [{ name: 'app_prefs', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
+    // v22: 종목 카탈로그 개편(ADR-033·034·037). 웹(LokiJS)만 남아 createTable 위험(v14 주석)이 사라졌다 —
+    // 네이티브 앱(app/)은 2026-10-26 은퇴. 새 컬럼은 전부 optional: 기존 행은 null 이고 null 은 「기본」이다
+    // (load_multiplier null = 1 · variant_load/attach null = 기본 칸). @plm SRS-055 SRS-058
+    {
+      toVersion: 22,
+      steps: [
+        addColumns({
+          table: 'exercises',
+          columns: [
+            { name: 'family', type: 'string', isOptional: true, isIndexed: true },
+            { name: 'aliases', type: 'string', isOptional: true },
+            { name: 'similar', type: 'string', isOptional: true },
+            { name: 'media_ref', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'workout_exercises',
+          columns: [
+            { name: 'variant_load', type: 'string', isOptional: true },
+            { name: 'variant_attach', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'routine_exercises',
+          columns: [
+            { name: 'variant_load', type: 'string', isOptional: true },
+            { name: 'variant_attach', type: 'string', isOptional: true },
+          ],
+        }),
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'load_multiplier', type: 'number', isOptional: true }],
+        }),
+        createTable({
+          name: 'exercise_user_prefs',
+          columns: [
+            { name: 'exercise_id', type: 'string', isIndexed: true },
+            { name: 'display_name', type: 'string', isOptional: true },
+            { name: 'plate_one_side', type: 'boolean', isOptional: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
         }),
       ],
     },

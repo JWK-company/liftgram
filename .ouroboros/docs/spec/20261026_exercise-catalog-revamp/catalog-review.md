@@ -1,5 +1,7 @@
 # 종목 카탈로그 대개편 — 마스터 표 초안 검토서
 
+> **재집계(2026-10-26 P0 · QA L1)**: 머신 오버헤드 트라이셉스 익스텐션(R1) 추가 뒤 실제 수치는 **480행 · new 144 · 활성 469 = 근력 443 + 유산소 26**이다. 아래 본문의 479·143·468·442는 그 전 수치다. 정본은 이제 `src/core/src/data/catalog/catalog.master.csv`이고 수치는 `catalogRevamp.test.ts`가 고정한다.
+
 - 작성일: 2026-10-26 · 산출물: `catalog-master.csv`(같은 폴더, 479행 = 기존 336 + 신규 143; 병합·삭제 11행도 이관 근거로 표에 남김)
 - 입력: 시드 `src/core/src/data/seed/exercises.seed.ts`(336종), 현황 분석 `docs/knowledge/20261026_exercise-catalog-asis_knowledge.md`(§A·§H·§I), free-exercise-db `dist/exercises.json`(873종, 2026-10-26 @main 받음), 현행 미디어 `exerciseMedia.data.ts`.
 - 코드 수정 없음. 기존 `nameEn`(=id_en) 336개는 하나도 바꾸지 않았다.

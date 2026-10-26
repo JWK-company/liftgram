@@ -18,6 +18,10 @@ SELECT now()::timestamptz AS now;
 
 -- 레코드 묶음을 한 번에 올린다(있으면 덮고 없으면 만든다).
 -- 한 문장으로 보내는 이유: 레코드마다 왕복하면 수백 건 push에서 그 왕복이 전부다.
+--
+-- **덮을 때 얕게 합친다**(2026-10-26 · 종목 개편 QA H2). 클라이언트는 자기 스키마의 컬럼을 전부(null 포함)
+-- 보내므로, 남는 것은 **보낸 쪽이 모르는 키**뿐이다 — 옛 스키마의 기기가 올려도 새 컬럼(예: 서버 이관이 채운
+-- variant_attach)이 지워지지 않는다. @plm SRS-057
 -- name: UpsertSyncRecords :exec
 INSERT INTO sync_records (id, user_id, collection, record_id, payload, deleted, updated_at)
 SELECT
@@ -29,7 +33,7 @@ SELECT
   false,
   now()
 ON CONFLICT (user_id, collection, record_id) DO UPDATE
-  SET payload    = EXCLUDED.payload,
+  SET payload    = sync_records.payload || EXCLUDED.payload,
       deleted    = false,
       updated_at = now();
 

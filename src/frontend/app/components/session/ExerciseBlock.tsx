@@ -192,6 +192,7 @@ export function ExerciseBlock({
         reps: s.reps,
         loadMode,
         bodyweightKg: bodyweightKg ?? undefined,
+        loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
       } as Parameters<typeof effectiveWeightKg>[0]);
       volume += w * s.reps;
       reps += s.reps;

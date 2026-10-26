@@ -6,7 +6,8 @@ import Workout from './Workout';
 import WorkoutExercise from './WorkoutExercise';
 import SetLog from './SetLog';
 import UserProfile from './UserProfile';
+import ExerciseUserPref from './ExerciseUserPref'; // v22 @plm SRS-056
 
-export { Exercise, Routine, RoutineExercise, Workout, WorkoutExercise, SetLog, UserProfile };
+export { Exercise, Routine, RoutineExercise, Workout, WorkoutExercise, SetLog, UserProfile, ExerciseUserPref };
 
-export const models = [Exercise, Routine, RoutineExercise, Workout, WorkoutExercise, SetLog, UserProfile];
+export const models = [Exercise, Routine, RoutineExercise, Workout, WorkoutExercise, SetLog, UserProfile, ExerciseUserPref];

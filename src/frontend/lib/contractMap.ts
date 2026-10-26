@@ -52,6 +52,8 @@ export const EQUIPMENT_KEY: Record<Equipment, EquipmentType | null> = {
   [Equipment.BAND]: "band",
   [Equipment.SMITH]: "smith",
   [Equipment.OTHER]: "other",
+  [Equipment.EZBAR]: "ezbar", // 2026-10 카탈로그 개편 @plm SRS-055
+  [Equipment.TRAPBAR]: "trapbar",
 };
 
 /** 계약 enum 배열 → 도메인 문자열 배열(UNSPECIFIED는 버린다). */

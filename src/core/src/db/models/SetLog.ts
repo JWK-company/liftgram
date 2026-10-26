@@ -31,6 +31,7 @@ export default class SetLog extends Model {
   // v16: 처방 어휘 — 세트 타입·목표 RIR. null=비처방(기존 세트·기존 동작 불변). @plm SRS-043
   @field('set_type') declare setType: string | null; // 'warmup'|'top'|'backoff'
   @field('target_rir') declare targetRir: number | null; // 0~6
+  @field('load_multiplier') declare loadMultiplier: number | null; // v22: 무게 배수(플레이트 한쪽=2) — null=1(QA B1). @plm SRS-058
   @field('done') declare done: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') declare completedAt: number | null;
   @readonly @date('created_at') declare createdAt: Date;

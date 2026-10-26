@@ -142,7 +142,14 @@ sync-core: ## 디자인 토큰 → theme.generated.css 생성 (2026-10-26 app/ �
 core-check: ## 토큰 CSS가 core 원본과 일치하는가 — make verify가 부른다
 	bun scripts/sync-core.mjs --check
 
-gen-exercise-seed: ## 운동 카탈로그 시드 SQL 재생성 (원본 = app/의 TypeScript 시드)
+catalog: ## 종목 카탈로그 생성 — 정본 core/src/data/catalog/*.csv → 시드 표·이관 예외 표·서버 SQL(staged)
+	node scripts/gen-catalog.mjs
+	@echo "생성물은 커밋한다 — 검증은 make catalog-check"
+
+catalog-check: ## 카탈로그 생성물이 정본 CSV와 일치하는가 — make verify가 부른다
+	node scripts/gen-catalog.mjs --check
+
+gen-exercise-seed: ## (은퇴) 옛 카탈로그 시드 SQL 생성기 — 입력이 은퇴한 app/ 경로다. 새 카탈로그는 make catalog
 	@# node가 아니라 bun으로 돈다 — TS 시드를 변환 없이 그대로 import하기 위해서다.
 	@# 시드가 줄었거나 키가 겹치면 파일을 쓰지 않고 죽는다(조용한 축소 방지).
 	bun scripts/gen-exercise-seed.mjs
@@ -226,7 +233,7 @@ test: ## 유닛 테스트(DB 불필요 · e2e는 make e2e)
 docs-check: ## 문서 드리프트 검사 — 설정 키·make 타깃·스크립트가 문서에 있는가
 	@node scripts/check-docs.mjs
 
-verify: lint typecheck test core-check docs-check ## lint + 타입 + 테스트 + core 드리프트 + 문서 검사 한 번에
+verify: lint typecheck test core-check catalog-check docs-check ## lint + 타입 + 테스트 + core·카탈로그 드리프트 + 문서 검사 한 번에
 
 go-vet: ## Go 정적 검사(빌드 + vet)
 	cd backend && go build ./... && go vet ./...

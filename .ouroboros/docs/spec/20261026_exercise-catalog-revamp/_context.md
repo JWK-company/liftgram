@@ -41,6 +41,17 @@ catalog.master.csv ──gen-catalog.mjs──┬─▶ core/data/seed/exercises
 
 ## 4. 코드 지도 (주요 수정 지점)
 
+**P0·P1 에서 실제로 생긴 자리(v0.30.0)**
+| 무엇 | 파일 |
+|------|------|
+| 정본 CSV 4종 | `core/src/data/catalog/catalog.master.csv`(+`name_rule` 열) · `catalog.families.csv`(family 축 허용 목록) · `migration-overrides.csv`(예외 표) · `usage.prod.csv`(운영 변형 분포 — 읽기 전용 쿼리 결과) |
+| 생성기 | `scripts/gen-catalog.mjs` → `catalog.generated.ts` · `catalogMigration.data.ts` · `database/staged/0014_catalog_revamp.sql`(P2 에서 migrations/ 로 옮겨 켬) · `make catalog`/`catalog-check`(verify 포함) |
+| 순수 규칙 | `core/domain/catalogIntegrity.ts`(무결성) · `catalogMigrationPlan.ts`(블록 이관 계획 — 서버·기기 공용) · `nameKey.ts`(공백 무시 키·seedIdOf) |
+| 기기 | `core/migrations/runner.ts`(부팅 파이프라인: 시드 top-up → 백필(등록 0) → 정규화) · `catalogNormalize.ts`(**`CATALOG_NORMALIZE_ENABLED=false` — P2 에서 켠다**) · `sync/catalogFilter.ts`(D10) · `syncEngine`(부팅 대기·스키마 커서 리셋·동기 뒤 정규화) |
+| 축 | `domain/variants.ts`(LOAD_KEYS·ATTACH_KEYS·canonicalVariantKeyV34·dimsFromColumns·normalizeVariantDimsV34) · 모델 getter `variant` · `volume.effectiveMultiplier` |
+| 서버 | `UpsertSyncRecords` 얕은 병합(`payload || EXCLUDED.payload`) · proto `EQUIPMENT_EZBAR/TRAPBAR` |
+
+
 | 영역 | 파일 |
 |------|------|
 | 시드·적재 | `core/data/seed/exercises.seed.ts` · `core/data/seedRunner.ts` · `src/scripts/gen-catalog.mjs`(신규) |

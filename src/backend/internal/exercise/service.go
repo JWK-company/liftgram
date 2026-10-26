@@ -51,6 +51,8 @@ const (
 	EquipmentBand       Equipment = "band"
 	EquipmentSmith      Equipment = "smith"
 	EquipmentOther      Equipment = "other"
+	EquipmentEzbar      Equipment = "ezbar"   // 2026-10 카탈로그 개편 @plm SRS-055
+	EquipmentTrapbar    Equipment = "trapbar" // 2026-10 카탈로그 개편 @plm SRS-055
 )
 
 type Muscle string

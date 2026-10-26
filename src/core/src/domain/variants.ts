@@ -8,6 +8,11 @@ import { MACHINE_BRAND_KEYS, CUSTOM_VARIANT_KEYS, machineVariantLabel, machineVa
 export const GRIP_KEYS = ['over', 'under', 'neutral', 'wide', 'close'] as const;
 export type GripKey = (typeof GRIP_KEYS)[number];
 export type ArmKey = 'bi' | 'uni'; // bi(양팔)=기본=null, uni(원암)만 별도 버킷
+// ADR-034: 기록 칸 축 확장 — 머신 적재 방식(핀로드/플레이트) · 케이블 부착물. 허용 여부는 family 메타가 정한다. @plm SRS-058
+export const LOAD_KEYS = ['pin', 'plate'] as const;
+export type LoadKey = (typeof LOAD_KEYS)[number];
+export const ATTACH_KEYS = ['rope', 'straight', 'v', 'ez', 'single', 'lat_bar', 'neutral_bar', 'mag_wide', 'mag_close'] as const;
+export type AttachKey = (typeof ATTACH_KEYS)[number];
 
 // equipment 변형 차원: 머신 종목은 브랜드/커스텀, 프리웨이트는 대체 기구로 전환(#21).
 // band는 카탈로그 대확장(2026-08)에서 추가 — 스크린샷 (밴드) 변형 다수를 축으로 흡수. @plm SRS-028
@@ -16,7 +21,9 @@ export const IMPLEMENT_KEYS: EquipmentType[] = ['barbell', 'dumbbell', 'machine'
 export interface VariantDims {
   equipment?: string | null; // 브랜드/커스텀 키 또는 implement type. null=기본
   grip?: GripKey | null;
-  arm?: ArmKey | null; // null|'bi'=기본
+  arm?: ArmKey | null; // null|'bi'=기본 — ADR-034: 세트 속성, 버킷 키에는 넣지 않는다
+  load?: LoadKey | null; // 머신 적재 방식(pin|plate). null=기본 @plm SRS-058
+  attach?: AttachKey | null; // 케이블 부착물. null=기본 @plm SRS-058
 }
 
 const norm = (s: string | null | undefined): string | null => {
@@ -24,8 +31,31 @@ const norm = (s: string | null | undefined): string | null => {
   return t ? t : null;
 };
 
-// canonical 버킷 키 — 고정순서 [equip, grip, arm], "dim:value" 를 "|"로 조인. 전부 기본 → null(v5 기본버킷과 동일 표현 = 하위호환).
+// canonical 버킷 키 — ADR-034 이후 이 함수가 모든 읽기·쓰기 경로의 단일 키 파생이다.
 export function canonicalVariantKey(v: VariantDims): string | null {
+  // [원본] 원복 시 아래를 주석 해제하고 새 호출을 주석 처리
+  // return canonicalVariantKeyV6(v);
+  // [개선] ADR-034 축 순서
+  return canonicalVariantKeyV34(v);
+}
+
+// ADR-034 버킷 키 — 고정순서 [equip(브랜드), load, attach, grip]. 팔은 세트 속성이라 넣지 않는다.
+// 기존 키(equip 만 · equip|grip)는 같은 문자열로 나오므로 하위호환이다. 전부 기본 → null. @plm SRS-058
+export function canonicalVariantKeyV34(v: VariantDims): string | null {
+  const parts: string[] = [];
+  const eq = norm(v.equipment);
+  const ld = norm(v.load);
+  const at = norm(v.attach);
+  const gr = norm(v.grip);
+  if (eq) parts.push(`equip:${eq}`);
+  if (ld) parts.push(`load:${ld}`);
+  if (at) parts.push(`attach:${at}`);
+  if (gr) parts.push(`grip:${gr}`);
+  return parts.length ? parts.join('|') : null;
+}
+
+// (원본 v6) canonical 버킷 키 — 고정순서 [equip, grip, arm], "dim:value" 를 "|"로 조인. 전부 기본 → null(v5 기본버킷과 동일 표현 = 하위호환).
+export function canonicalVariantKeyV6(v: VariantDims): string | null {
   const parts: string[] = [];
   const eq = norm(v.equipment);
   const gr = norm(v.grip);
@@ -37,7 +67,7 @@ export function canonicalVariantKey(v: VariantDims): string | null {
 }
 
 export function parseVariantKey(key: string | null | undefined): VariantDims {
-  const out: VariantDims = { equipment: null, grip: null, arm: null };
+  const out: VariantDims = { equipment: null, grip: null, arm: null, load: null, attach: null };
   if (!key) return out;
   for (const seg of key.split('|')) {
     const i = seg.indexOf(':');
@@ -47,6 +77,8 @@ export function parseVariantKey(key: string | null | undefined): VariantDims {
     if (dim === 'equip') out.equipment = val;
     else if (dim === 'grip') out.grip = (val as GripKey) ?? null;
     else if (dim === 'arm') out.arm = (val as ArmKey) ?? null;
+    else if (dim === 'load') out.load = (val as LoadKey) ?? null;
+    else if (dim === 'attach') out.attach = (val as AttachKey) ?? null;
   }
   return out;
 }
@@ -57,13 +89,60 @@ export function variantColumns(v: VariantDims): {
   variantEquipment: string | null;
   variantGrip: string | null;
   variantArm: string | null;
+  variantLoad: string | null;
+  variantAttach: string | null;
 } {
   return {
     variantKey: canonicalVariantKey(v),
     variantEquipment: norm(v.equipment),
     variantGrip: v.grip ?? null,
     variantArm: v.arm === 'uni' ? 'uni' : null,
+    variantLoad: norm(v.load), // v22 @plm SRS-058
+    variantAttach: norm(v.attach), // v22 @plm SRS-058
   };
+}
+
+// 저장 컬럼 → dims. 키(variant_key)가 있으면 키가 정본, 없으면 개별 컬럼(레거시 machine_variant 포함)에서 읽는다.
+// 모델 getter·이관 계획이 같은 규칙으로 읽어야 버킷이 갈라지지 않는다. @plm SRS-058
+export function dimsFromColumns(rec: {
+  variantKey?: string | null;
+  variantEquipment?: string | null;
+  variantGrip?: string | null;
+  variantArm?: string | null;
+  variantLoad?: string | null;
+  variantAttach?: string | null;
+  machineVariant?: string | null;
+}): VariantDims {
+  if (rec.variantKey) {
+    const d = parseVariantKey(rec.variantKey);
+    return { ...d, arm: d.arm ?? ((rec.variantArm as ArmKey | null) || null) };
+  }
+  return {
+    equipment: norm(rec.variantEquipment) ?? norm(rec.machineVariant),
+    grip: (norm(rec.variantGrip) as GripKey | null) ?? null,
+    arm: (norm(rec.variantArm) as ArmKey | null) ?? null,
+    load: (norm(rec.variantLoad) as LoadKey | null) ?? null,
+    attach: (norm(rec.variantAttach) as AttachKey | null) ?? null,
+  };
+}
+
+/** 축 허용 목록(family 메타) — 빈 목록이면 그 축은 없다. */
+export interface VariantAxesAllowed {
+  baseEquipment: string | null | undefined;
+  attachments?: readonly string[];
+  grips?: readonly string[];
+  load?: boolean;
+}
+
+// ADR-034 정규화 — 고유 기구=null + 허용 목록 밖 축 제거(머신 아니면 load 없음, 케이블 아니면 attach 없음).
+// 모든 쓰기 경로가 이 함수를 지나야 「같은 조건인데 칸이 둘」이 생기지 않는다. 팔은 세트 속성이라 그대로 둔다. @plm SRS-058
+export function normalizeVariantDimsV34(v: VariantDims, allowed: VariantAxesAllowed): VariantDims {
+  const base = allowed.baseEquipment ?? null;
+  const out: VariantDims = { ...normalizeVariantDims(v, base) };
+  if (!(base === 'machine' && allowed.load && out.load && (LOAD_KEYS as readonly string[]).includes(out.load))) out.load = null;
+  if (!(base === 'cable' && out.attach && allowed.attachments?.includes(out.attach))) out.attach = null;
+  if (out.grip && !allowed.grips?.includes(out.grip)) out.grip = null;
+  return out;
 }
 
 // 종목 '고유 기구'(카탈로그 기본 기구) 선택 = 기본 버킷(null). 선택기는 이미 이렇게 저장하지만
@@ -107,6 +186,27 @@ const GRIP_SHORT_LABELS: Record<GripKey, { ko: string; en: string }> = {
   wide: { ko: '와이드', en: 'Wide' },
   close: { ko: '클로즈', en: 'Close' },
 };
+const LOAD_LABELS: Record<LoadKey, { ko: string; en: string }> = {
+  pin: { ko: '핀로드', en: 'Pin-loaded' },
+  plate: { ko: '플레이트', en: 'Plate-loaded' },
+};
+const ATTACH_LABELS: Record<AttachKey, { ko: string; en: string }> = {
+  rope: { ko: '로프', en: 'Rope' },
+  straight: { ko: '일자바', en: 'Straight bar' },
+  v: { ko: 'V바', en: 'V-bar' },
+  ez: { ko: 'EZ바', en: 'EZ bar' },
+  single: { ko: '싱글 핸들', en: 'Single handle' },
+  lat_bar: { ko: '랫바', en: 'Lat bar' },
+  neutral_bar: { ko: '패러럴 바', en: 'Parallel bar' },
+  mag_wide: { ko: 'MAG 와이드', en: 'MAG wide' },
+  mag_close: { ko: 'MAG 클로즈', en: 'MAG close' },
+};
+export function loadLabel(key: LoadKey | null | undefined, lang: AppLanguage): string {
+  return key ? LOAD_LABELS[key]?.[lang] ?? key : '';
+}
+export function attachLabel(key: AttachKey | null | undefined, lang: AppLanguage): string {
+  return key ? ATTACH_LABELS[key]?.[lang] ?? key : '';
+}
 const IMPLEMENT_LABELS: Partial<Record<EquipmentType, { ko: string; en: string }>> = {
   barbell: { ko: '바벨', en: 'Barbell' },
   dumbbell: { ko: '덤벨', en: 'Dumbbell' },
@@ -151,6 +251,8 @@ export function armShortLabel(key: ArmKey | null | undefined, lang: AppLanguage)
 export function variantLabel(v: VariantDims, lang: AppLanguage, customLabels: string[] = []): string {
   const parts: string[] = [];
   if (norm(v.equipment)) parts.push(equipmentVariantLabel(v.equipment, lang, customLabels));
+  if (norm(v.load)) parts.push(loadLabel(v.load, lang));
+  if (norm(v.attach)) parts.push(attachLabel(v.attach, lang));
   const g = gripLabel(v.grip, lang);
   if (g) parts.push(g);
   const a = armLabel(v.arm, lang);
@@ -165,6 +267,8 @@ export function variantLabelFromKey(key: string | null | undefined, lang: AppLan
 export function variantShortLabel(v: VariantDims, lang: AppLanguage, customLabels: string[] = []): string {
   const parts: string[] = [];
   if (norm(v.equipment)) parts.push(equipmentVariantShortLabel(v.equipment, lang, customLabels));
+  if (norm(v.load)) parts.push(loadLabel(v.load, lang));
+  if (norm(v.attach)) parts.push(attachLabel(v.attach, lang));
   const g = gripShortLabel(v.grip, lang);
   if (g) parts.push(g);
   const a = armShortLabel(v.arm, lang);

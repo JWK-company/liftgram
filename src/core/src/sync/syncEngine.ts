@@ -25,6 +25,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { synchronize, type SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
 import { database } from '../db/database';
+import { SCHEMA_VERSION } from '../db/schema';
+import { bootPipelineSettled } from '../migrations/runner';
+import { dropCatalogRows } from './catalogFilter';
 import { countPendingUserChanges } from './pending';
 import { isSyncBlocked } from './syncOwner';
 
@@ -220,6 +223,15 @@ async function runSynchronize(): Promise<void> {
     throw new SyncBlockedError();
   }
 
+  // 부팅 데이터 파이프라인(시드 top-up → 백필 → 정규화)이 끝난 뒤에 동기한다(QA H3 순서).
+  await bootPipelineSettled();
+
+  // 스키마가 올라간 첫 동기는 **처음부터 다시 받는다**(QA H2). 옛 스키마로 받은 레코드는 그때 모르던 컬럼이
+  // 버려졌는데 커서는 이미 지나갔다 — 그대로 두면 그 값(예: 서버 이관이 채운 variant_attach)을 영영 못 받는다.
+  const syncedSchema = await database.adapter.getLocal(SYNCED_SCHEMA_KEY);
+  if (syncedSchema !== String(SCHEMA_VERSION)) await database.adapter.removeLocal(LAST_PULLED_KEY);
+
+  const knownTables = new Set(Object.keys(database.schema.tables));
   await synchronize({
     database,
     // 서버는 살아 있는 레코드를 전부 updated로 보낸다. 받는 쪽이 없으면 만들게 해서
@@ -228,12 +240,13 @@ async function runSynchronize(): Promise<void> {
     pullChanges: async ({ lastPulledAt }) => {
       const res = await t.pull(lastPulledAt ?? 0);
       return {
-        changes: dropInProgressWorkouts(stripInternalFields(decode(res.changes))),
+        changes: dropCatalogRows(dropInProgressWorkouts(stripInternalFields(decode(res.changes))), knownTables),
         timestamp: res.timestamp,
       };
     },
     pushChanges: async ({ changes }) => {
-      await t.push(encode(stripInternalFields(changes)));
+      // 시드 종목 행은 올리지 않는다(D10). 걸러낸 행도 WatermelonDB 는 '보냈다'로 표시한다 — 그래서 매번 다시 세지 않는다.
+      await t.push(encode(dropCatalogRows(stripInternalFields(changes))));
     },
     // migration sync는 쓰지 않는다 — 서버가 스키마를 모르므로(권위는 클라이언트) 컬럼이 늘어도
     // 평범한 델타로 넘어온다. 켜면 옛 스키마의 기기가 서버가 모르는 요청을 보낸다.
@@ -242,7 +255,26 @@ async function runSynchronize(): Promise<void> {
   // **받은 것을 확실히 남긴다.** 여기서 내려쓰지 않으면, 동기 직후 화면을 옮기는 순간
   // 받은 데이터가 사라지는데 커서는 이미 전진해 있어 서버가 다시 보내지 않는다.
   await t.flush?.();
+  await database.adapter.setLocal(SYNCED_SCHEMA_KEY, String(SCHEMA_VERSION));
+
+  // 받은 것 중 옛 형식 기록(옛 클라이언트가 올린 것)을 새 카탈로그 규칙으로 맞춘다 — 매번, 멱등(QA H1).
+  // 고친 것이 있으면 곧 다시 올린다.
+  try {
+    const { normalizeCatalogRecords } = await import('../migrations/catalogNormalize');
+    const r = await normalizeCatalogRecords();
+    if (r.changed > 0) {
+      await t.flush?.();
+      scheduleSync(0);
+    }
+  } catch (e) {
+    console.warn('[sync] 기록 정규화 실패 — 다음 동기에 다시', e);
+  }
 }
+
+/** WatermelonDB 의 pull 커서 키(sync/impl). 스키마가 바뀌면 지워서 전량 다시 받는다. */
+const LAST_PULLED_KEY = '__watermelon_last_pulled_at';
+/** 마지막으로 동기에 성공한 로컬 스키마 버전 — 기기 로컬(어댑터 local storage, DB 와 함께 비워진다). */
+const SYNCED_SCHEMA_KEY = 'liftgram_synced_schema_version';
 
 // ── 첫 동기 ────────────────────────────────────────────────────────────────
 // 새 기기에 로그인하면, 서버의 프로필이 내려오기 **전에** 화면이 빈 프로필을 만들곤 했다.

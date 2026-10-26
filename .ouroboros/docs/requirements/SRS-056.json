@@ -238,5 +238,10 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/domain/__tests__/catalogRevamp.test.ts:1",
+    "src/core/src/domain/catalogIntegrity.ts:1",
+    "src/core/src/domain/nameKey.ts:1#normalizeNameKey"
+  ]
 }

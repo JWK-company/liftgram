@@ -198,6 +198,8 @@ var equipmentToProto = map[Equipment]exercisev1.Equipment{
 	EquipmentBand:       exercisev1.Equipment_EQUIPMENT_BAND,
 	EquipmentSmith:      exercisev1.Equipment_EQUIPMENT_SMITH,
 	EquipmentOther:      exercisev1.Equipment_EQUIPMENT_OTHER,
+	EquipmentEzbar:      exercisev1.Equipment_EQUIPMENT_EZBAR,
+	EquipmentTrapbar:    exercisev1.Equipment_EQUIPMENT_TRAPBAR,
 }
 
 var muscleToProto = map[Muscle]exercisev1.Muscle{

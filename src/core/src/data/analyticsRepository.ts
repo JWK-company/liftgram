@@ -67,6 +67,7 @@ async function getCompletedSets(sinceMs?: number): Promise<EnrichedSet[]> {
         isFailed: s.isFailed,
         loadMode: modeByEx.get(we.exerciseId) ?? null,
         bodyweightKg: bw,
+        loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
       },
     });
   }
@@ -271,6 +272,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       isFailed: s.isFailed,
       loadMode,
       bodyweightKg: bw,
+      loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
     }));
     const volumeKg = logged.reduce((sum, s) => sum + setVolumeKg(s), 0);
     total += volumeKg;

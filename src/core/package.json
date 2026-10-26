@@ -22,7 +22,8 @@
     "./data/*": "./src/data/*.ts",
     "./i18n/*": "./src/i18n/*.ts",
     "./state/*": "./src/state/*.tsx",
-    "./sync/*": "./src/sync/*.ts"
+    "./sync/*": "./src/sync/*.ts",
+    "./migrations/*": "./src/migrations/*.ts"
   },
   "files": [
     "src"

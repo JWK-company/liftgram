@@ -161,7 +161,11 @@ export async function setRoutineExerciseVariant(id: string, dims: VariantDims): 
       rec.variantEquipment = cols.variantEquipment;
       rec.variantGrip = cols.variantGrip;
       rec.variantArm = cols.variantArm;
-      rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
+      rec.variantLoad = cols.variantLoad; // v22 @plm SRS-058
+      rec.variantAttach = cols.variantAttach;
+      // [원본] rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
+      // [개선] ADR-034: 미러는 비운다(QA H9)
+      rec.machineVariant = null;
     });
   });
 }
@@ -228,6 +232,8 @@ export async function swapRoutineExercise(routineExerciseId: string, newExercise
       rec.variantEquipment = lastVariant?.variantEquipment ?? null;
       rec.variantGrip = lastVariant?.variantGrip ?? null;
       rec.variantArm = lastVariant?.variantArm ?? null;
+      rec.variantLoad = lastVariant?.variantLoad ?? null; // v22 @plm SRS-058
+      rec.variantAttach = lastVariant?.variantAttach ?? null;
       rec.machineVariant = lastVariant?.machineVariant ?? null;
     });
   });
@@ -310,6 +316,8 @@ export async function duplicateRoutine(id: string): Promise<Routine> {
           re.variantEquipment = se.variantEquipment;
           re.variantGrip = se.variantGrip;
           re.variantArm = se.variantArm;
+          re.variantLoad = se.variantLoad; // v22 @plm SRS-058
+          re.variantAttach = se.variantAttach;
           re.cardioTarget = se.cardioTarget;
           re.prescription = se.prescription;
         }),

@@ -79,7 +79,8 @@ make nuke          # 데이터 볼륨까지 삭제
 | | `make sqlc` | SQL 쿼리 → type-safe한 Go(호스트 설치 불필요 — `go run`) |
 | | `make gen-migration NAME=…` → `make migrate` | 새 SQL 파일 → 적용(one-shot·idempotency) |
 | | `make migrate-check` / `make db-status` | idempotency 확인(두 번 실행) · 적용 이력 조회 |
-| | `make gen-exercise-seed` | **운동 카탈로그 시드 SQL 재생성** — 원본은 `app/`의 TypeScript 시드다(이행 기간 한정). 시드가 줄거나 키가 겹치면 파일을 쓰지 않고 죽는다 |
+| | `make catalog` / `make catalog-check` | **종목 카탈로그 생성** — 정본은 `core/src/data/catalog/*.csv`(마스터 480행·family·이관 예외). 시드 표·이관 예외 표·서버 SQL(`database/staged/`)을 만든다. 정본이 줄면 파일을 쓰지 않고 죽고, 생성물이 어긋나면 `make verify`가 실패한다 |
+| | `make gen-exercise-seed` | (은퇴) 옛 카탈로그 시드 SQL 생성기 — 입력이 은퇴한 `app/` 경로라 쓰지 않는다 |
 | 2.6 계층 이전 | `make sync-core` / `make core-check` | **도메인·정적데이터·문자열을 `app/`에서 `core/`로 이전**(ADR-032 — 재작성이 아니라 복사) · 어긋나면 `make verify`가 실패한다 |
 | 2.4 새 프로젝트 | `make create NAME=my-app [DIR=…] [BARE=1]` | **이 템플릿에서 새 저장소를 만든다** — 이름 치환·포트 자동 선택·`.env`·git 초기화까지 (`bun run create:app`도 같음) |
 | 2.5 생성 | `make gen-page NAME=posts [MODULE=post]` | **새 화면 생성** — RSC·loading·error·클라이언트 4파일(`bun run gen:page`) |
@@ -87,7 +88,7 @@ make nuke          # 데이터 볼륨까지 삭제
 | 3 앱 | `make dev` / `make dev-container` / `make build` / `make start` | `make dev`는 **backend와 frontend를 함께** 띄운다. `make dev-container`는 컨테이너 안에서 핫리로드(오버레이 — base 이미지는 프로덕션 그대로) |
 | | `make dev-backend` / `make dev-frontend` | 한쪽만 띄운다 — 백엔드만 만질 때 / 화면만 만질 때(backend는 떠 있어야 한다) |
 | | `make install` / `make hooks` | 의존 설치(+ **lefthook** git 훅) · `make hooks`로 훅만 재설치 |
-| 4 검증 | `make verify` (= `make lint` + `make typecheck` + `make test` + `make core-check` + `make docs-check`) | 커밋 전에 도는 것 |
+| 4 검증 | `make verify` (= `make lint` + `make typecheck` + `make test` + `make core-check` + `make catalog-check` + `make docs-check`) | 커밋 전에 도는 것 |
 | | `make test` (= Go 테스트 + `bun run test:core`) | `test:core`는 **이관해 온 도메인 단위테스트 154건**(core/src/domain/__tests__) — 규칙이 app과 같은지 기계가 증명한다 |
 | | `make go-vet` / `make proto-check` | Go 빌드·vet / **계약 생성물이 proto와 일치하는가**(커밋 누락 탐지) |
 | | `make docs-check` | **문서 drift 검사** — 설정 키·make 타깃·스크립트가 문서에 있는지 |

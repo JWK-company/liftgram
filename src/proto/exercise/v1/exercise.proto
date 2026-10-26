@@ -35,6 +35,9 @@ enum Equipment {
   EQUIPMENT_BAND = 7;
   EQUIPMENT_SMITH = 8;
   EQUIPMENT_OTHER = 9;
+  // 종목 카탈로그 개편(2026-10 · ADR-035) — 「EZ바 컬」「트랩바 데드리프트」처럼 기구가 이름의 앞머리다. @plm SRS-055
+  EQUIPMENT_EZBAR = 10;
+  EQUIPMENT_TRAPBAR = 11;
 }
 
 // 근육군.

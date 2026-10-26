@@ -15,7 +15,9 @@
 // 폰으로 기록하는 동안 노트북에 띄워 둔 화면이 그 경우다. 탭이 숨겨져 있으면 쉰다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { SyncService } from "@app/contracts";
+import { runBootPipeline } from "@app/core/migrations/runner";
 import {
+  awaitFirstSync,
   installSyncTransport,
   scheduleSync,
   syncWithServer,
@@ -42,6 +44,25 @@ function client() {
  * 꽂기 전까지 저장소의 `scheduleSync()`는 아무 일도 하지 않는다 — 로컬 저장은 그대로 동작한다.
  */
 export function installSync(): void {
+  // 부팅 데이터 파이프라인(시드 top-up → 백필 → 기록 정규화) — 첫 동기가 이것을 기다린다(QA H3).
+  // 표식은 기기 로컬(localStorage)에만 둔다 — 계정과 함께 동기되는 곳에 두면 다른 기기가 건너뛴다(QA B2).
+  void runBootPipeline({
+    get: (k) => getPref(k),
+    set: (k, v) => setPref(k, v),
+    remove: (k) => {
+      if (typeof localStorage !== "undefined") localStorage.removeItem(k);
+    },
+  });
+  // 첫 동기가 끝나면 서버 카탈로그를 한 번 받는다(예전엔 종목 탭에서만 — 이제 시드 행이 사용자 동기로 오지 않는다, D10).
+  void awaitFirstSync(15_000).then(async () => {
+    try {
+      const { syncCatalogToLocal } = await import("./catalogSync");
+      await syncCatalogToLocal();
+    } catch {
+      // 오프라인 — 종목 탭이 열릴 때 다시 시도한다.
+    }
+  });
+
   installOwnerStore({
     get: (k) => getPref(k),
     set: (k, v) => setPref(k, v),

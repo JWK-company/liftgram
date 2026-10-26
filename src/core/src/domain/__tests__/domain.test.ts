@@ -22,6 +22,7 @@ import {
   detectStall,
   generateProgram,
   canonicalVariantKey,
+  canonicalVariantKeyV6,
   parseVariantKey,
   legacyMachineVariantToV6,
   effectiveWeightKg,
@@ -273,15 +274,17 @@ test('variant: 전부 기본 → null(v5 기본버킷과 동일)', () => {
   assert.equal(canonicalVariantKey({}), null);
   assert.equal(canonicalVariantKey({ equipment: null, grip: null, arm: 'bi' }), null); // bi=기본
 });
-test('variant: 차원 조합 → 고정순서 canonical 키', () => {
+test('variant: 차원 조합 → 고정순서 canonical 키(ADR-034: 팔은 세트 속성이라 키에서 빠진다)', () => {
   assert.equal(canonicalVariantKey({ equipment: 'hammer' }), 'equip:hammer');
-  assert.equal(canonicalVariantKey({ equipment: 'barbell', grip: 'under', arm: 'uni' }), 'equip:barbell|grip:under|arm:uni');
+  assert.equal(canonicalVariantKey({ equipment: 'barbell', grip: 'under', arm: 'uni' }), 'equip:barbell|grip:under');
   assert.equal(canonicalVariantKey({ grip: 'neutral' }), 'grip:neutral');
+  // 원본(v6) 함수는 보존 — 팔을 넣는다
+  assert.equal(canonicalVariantKeyV6({ equipment: 'barbell', grip: 'under', arm: 'uni' }), 'equip:barbell|grip:under|arm:uni');
 });
-test('variant: parse ↔ canonical 왕복', () => {
+test('variant: parse ↔ canonical 왕복(옛 arm 키도 읽는다)', () => {
   const dims = parseVariantKey('equip:barbell|grip:under|arm:uni');
-  assert.deepEqual(dims, { equipment: 'barbell', grip: 'under', arm: 'uni' });
-  assert.equal(canonicalVariantKey(dims), 'equip:barbell|grip:under|arm:uni');
+  assert.deepEqual(dims, { equipment: 'barbell', grip: 'under', arm: 'uni', load: null, attach: null });
+  assert.equal(canonicalVariantKey(dims), 'equip:barbell|grip:under');
 });
 test('variant: 레거시 machine_variant 무손실 승계(hammer→equip:hammer, null→null)', () => {
   const a = legacyMachineVariantToV6('hammer');

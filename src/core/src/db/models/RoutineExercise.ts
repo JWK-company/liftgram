@@ -6,6 +6,7 @@ import { field, text, date, readonly, relation, immutableRelation, json } from '
 import { sanitizeCardioTarget, sanitizePrescription, type CardioTargetJson, type PrescribedSet } from './_sanitizers';
 import type Routine from './Routine';
 import type Exercise from './Exercise';
+import { dimsFromColumns, type VariantDims } from '../../domain/variants';
 
 export default class RoutineExercise extends Model {
   static table = 'routine_exercises';
@@ -27,6 +28,9 @@ export default class RoutineExercise extends Model {
   @text('variant_equipment') declare variantEquipment: string | null;
   @text('variant_grip') declare variantGrip: string | null;
   @text('variant_arm') declare variantArm: string | null;
+  // v22: 기록 칸 축 확장(ADR-034) — 머신 적재 방식·케이블 부착물. @plm SRS-058
+  @text('variant_load') declare variantLoad: string | null;
+  @text('variant_attach') declare variantAttach: string | null;
   @text('superset_group') declare supersetGroup: string | null;
   @field('sort_order') declare sortOrder: number;
   @text('note') declare note: string | null;
@@ -34,6 +38,14 @@ export default class RoutineExercise extends Model {
   @json('prescription', sanitizePrescription) declare prescription: PrescribedSet[] | null; // v16: 세트별 처방(사람 작성 — ADR-028). @plm SRS-043
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
+
+  /**
+   * 저장된 기록 칸(변형) — 화면이 이 값으로 선택기 초기값과 이전 기록 키를 만든다. 읽기·쓰기가 같은 규칙
+   * (dimsFromColumns·canonicalVariantKey)이어야 다시 연 블록이 기본 칸을 읽지 않는다(ADR-034). @plm SRS-058
+   */
+  get variant(): VariantDims {
+    return dimsFromColumns(this);
+  }
 
   @immutableRelation('routines', 'routine_id') declare routine: Relation<Routine>;
   // 대체운동 스왑 시 exercise_id 변경 가능 → 가변 relation (SRS-001)

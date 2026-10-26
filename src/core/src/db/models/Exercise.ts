@@ -25,6 +25,11 @@ export default class Exercise extends Model {
   @json('substitute_ids', sanitizeStringArray) declare substituteIds: string[];
   @text('image_url') declare imageUrl: string | null; // v7: 종목 이미지(#8)
   @field('is_archived') declare isArchived: boolean;
+  // v22: 카탈로그 개편(ADR-033) — 서버 카탈로그(catalogSync)·번들 시드가 채운다. @plm SRS-055 SRS-056
+  @text('family') declare family: string | null;
+  @json('aliases', sanitizeStringArray) declare aliases: string[];
+  @json('similar', sanitizeStringArray) declare similar: string[];
+  @text('media_ref') declare mediaRef: string | null;
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
 }

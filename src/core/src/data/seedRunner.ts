@@ -52,6 +52,53 @@ export async function seedExercisesIfNeeded(): Promise<number> {
   return missing.length;
 }
 
+// @plm SRS-055  부팅 top-up(매 부팅 · QA H3) — 번들 시드에 있는데 로컬에 없는 종목만 만든다.
+// 이름·대체운동은 건드리지 않는다: 카탈로그의 정본은 서버(catalogSync)이고, 여기서 이름을 되돌리면
+// 서버가 고친 이름과 매 부팅 엎치락뒤치락한다(D10). 새 기기·오프라인 첫 실행에 종목 이름이 비지 않게 하는 안전망이다.
+// 만든 행은 사용자 동기에 실리지 않는다(syncEngine 이 시드 행을 무시 — D10).
+export async function topUpSeedCatalog(): Promise<number> {
+  const exercises = database.get<Exercise>('exercises');
+  const existing = await exercises.query().fetch();
+  const haveId = new Set(existing.map((e) => e.id));
+  const haveEn = new Set(existing.map((e) => e.nameEn).filter((x): x is string => !!x));
+  const missing = SEED_EXERCISES.filter((seed) => !haveEn.has(seed.nameEn) && !haveId.has(seedId(seed.nameEn)));
+  if (!missing.length) return 0;
+  const fill = (e: Exercise, seed: SeedExercise) => {
+    e._raw.id = seedId(seed.nameEn);
+    e.nameKo = seed.nameKo;
+    e.nameEn = seed.nameEn ?? null;
+    e.primaryMuscles = seed.primaryMuscles;
+    e.secondaryMuscles = seed.secondaryMuscles ?? [];
+    e.equipment = seed.equipment;
+    e.category = seed.category ?? null;
+    e.kind = seed.kind ?? null;
+    e.loadMode = seed.loadMode ?? null;
+    e.isCustom = false;
+    e.substituteIds = [];
+    e.isArchived = false;
+  };
+  try {
+    await database.write(async () => {
+      await database.batch(...missing.map((seed) => exercises.prepareCreate((e) => fill(e, seed))));
+    });
+    return missing.length;
+  } catch {
+    // 배치 실패(soft-deleted 잔존 id 충돌) → 하나씩, 충돌 건만 건너뛴다.
+    let made = 0;
+    for (const seed of missing) {
+      try {
+        await database.write(async () => {
+          await exercises.create((e) => fill(e, seed));
+        });
+        made += 1;
+      } catch {
+        /* 이미 존재 — 건너뜀 */
+      }
+    }
+    return made;
+  }
+}
+
 // 시드 이름 정리 재동기 — nameEn 기준으로 기존(비커스텀) 레코드의 nameKo를 최신 시드명으로 갱신. id·기록 보존. @plm SRS-028
 async function syncSeedNames(existing: Exercise[]): Promise<void> {
   const koByEn = new Map(SEED_EXERCISES.map((s) => [s.nameEn, s.nameKo]));

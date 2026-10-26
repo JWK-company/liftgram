@@ -14,8 +14,17 @@ export function isWorkingSet(s: LoggedSet): boolean {
 // v9: reps=정자세 횟수(볼륨·PR 기준). 부분반복(partialReps=깔짝)은 별도 필드로 볼륨/PR 제외. @plm SRS-029
 // v12: 하중모드 반영 — 어시스트는 체중-무게, 맨몸±가중은 체중+무게. 체중 미입력(bodyweightKg null)이면
 //      raw 무게로 폴백(기존 동작 보존). external(기본)은 항상 raw 무게. @plm SRS-033
+// v22: 무게 배수 — 플레이트 머신 「한쪽 무게로 입력」이면 2(ADR-037). **null·0·음수·미지정 = 1** —
+// WatermelonDB 는 컬럼 기본값이 없어 값이 비면 null 이고, 그것을 0 으로 읽으면 기존 세트 볼륨·PR 이 전부 0 이 된다(QA B1).
+// 배수를 읽는 곳은 이 함수 하나다. @plm SRS-058
+export function effectiveMultiplier(s: { loadMultiplier?: number | null }): number {
+  const m = s.loadMultiplier;
+  return m != null && Number.isFinite(m) && m > 0 ? m : 1;
+}
+
 export function effectiveWeightKg(s: LoggedSet): number {
-  const w = Math.max(0, s.weightKg);
+  // [원본] const w = Math.max(0, s.weightKg);
+  const w = Math.max(0, s.weightKg) * effectiveMultiplier(s); // 입력 무게(한쪽) × 배수 = 계산 무게
   const bw = s.bodyweightKg;
   if (bw != null && bw > 0) {
     if (s.loadMode === 'assisted') return Math.max(0, bw - w); // 보조하중 클수록 실무게↓

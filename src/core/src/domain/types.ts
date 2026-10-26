@@ -13,7 +13,11 @@ export type EquipmentType =
   | 'kettlebell'
   | 'band'
   | 'smith'
-  | 'other';
+  | 'other'
+  // 2026-10 카탈로그 개편(ADR-035) — 기구가 이름 앞머리인 종목(EZ바 컬·트랩바 데드리프트). 필터 칩(ALL_EQUIPMENT)에는
+  // 그 종목이 실제로 들어오는 P2 에서 넣는다. @plm SRS-055
+  | 'ezbar'
+  | 'trapbar';
 
 // 종목 종류 — 근력(무게×횟수) vs 유산소(시간·거리). null/미지정=strength. @plm SRS-030
 export type ExerciseKind = 'strength' | 'cardio';
@@ -63,6 +67,7 @@ export interface LoggedSet {
   distanceM?: number | null; // v10: 유산소 거리(미터) — 볼륨/PR 제외. @plm SRS-030
   loadMode?: LoadMode | null; // v12: 하중모드(어시스트/맨몸) — 유효무게 계산. @plm SRS-033
   bodyweightKg?: number | null; // v12: 계산 시점 사용자 체중(assisted/bodyweight일 때만 사용). @plm SRS-033
+  loadMultiplier?: number | null; // v22: 무게 배수(플레이트 한쪽 입력=2). null·미지정=1(QA B1). @plm SRS-058
   strictReps?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
   loadAdjustKg?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
 }

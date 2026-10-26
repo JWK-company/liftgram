@@ -53,6 +53,7 @@ function toLoggedSet(s: SetLog, loadMode: LoadMode | null = null, bodyweightKg: 
     distanceM: s.distanceM, // v10: 유산소 거리 — 볼륨/PR 제외 @plm SRS-030
     loadMode, // v12: 하중모드 @plm SRS-033
     bodyweightKg, // v12: 계산 시점 체중 @plm SRS-033
+    loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
   };
 }
 
@@ -526,6 +527,8 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         variantEquipment: re.variantEquipment ?? legacy.dims.equipment ?? null,
         variantGrip: re.variantGrip ?? null,
         variantArm: re.variantArm ?? null,
+        variantLoad: re.variantLoad ?? null, // v22 @plm SRS-058
+        variantAttach: re.variantAttach ?? null,
         machineVariant: re.machineVariant ?? null,
       }),
     );
@@ -582,6 +585,8 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.variantEquipment = v.variantEquipment;
         we.variantGrip = v.variantGrip;
         we.variantArm = v.variantArm;
+        we.variantLoad = v.variantLoad ?? null; // v22 @plm SRS-058
+        we.variantAttach = v.variantAttach ?? null;
         we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
         we.note = re.note?.trim() || null; // 루틴 종목 메모·팁을 세션 메모에 시드(가져온 상급자 팁 노출 — 티칭). @plm SRS-004 SRS-007
         we.cardioTarget = re.cardioTarget ?? null; // v13: 루틴 유산소 목표 복사. @plm SRS-030
@@ -676,6 +681,8 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.variantEquipment = variant.variantEquipment;
       rec.variantGrip = variant.variantGrip;
       rec.variantArm = variant.variantArm;
+      rec.variantLoad = variant.variantLoad ?? null; // v22 @plm SRS-058
+      rec.variantAttach = variant.variantAttach ?? null;
     });
     const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio, bodyweight);
     await database.batch(we, ...setRecords);
@@ -697,6 +704,8 @@ export interface VariantColumns {
   variantEquipment: string | null;
   variantGrip: string | null;
   variantArm: string | null;
+  variantLoad?: string | null; // v22 @plm SRS-058
+  variantAttach?: string | null; // v22 @plm SRS-058
   machineVariant: string | null;
 }
 
@@ -705,6 +714,8 @@ const variantColumnsOf = (rec: WorkoutExercise): VariantColumns => ({
   variantEquipment: rec.variantEquipment,
   variantGrip: rec.variantGrip,
   variantArm: rec.variantArm,
+  variantLoad: rec.variantLoad, // v22: 지난 조합 승계에 적재 방식·부착물도 함께(ADR-034) @plm SRS-058
+  variantAttach: rec.variantAttach,
   machineVariant: rec.machineVariant,
 });
 
@@ -762,6 +773,8 @@ export async function swapWorkoutExercise(workoutExerciseId: string, newExercise
       rec.variantEquipment = lastVariant?.variantEquipment ?? null;
       rec.variantGrip = lastVariant?.variantGrip ?? null;
       rec.variantArm = lastVariant?.variantArm ?? null;
+      rec.variantLoad = lastVariant?.variantLoad ?? null; // v22 @plm SRS-058
+      rec.variantAttach = lastVariant?.variantAttach ?? null;
       rec.machineVariant = lastVariant?.machineVariant ?? null;
     });
   });
@@ -908,7 +921,11 @@ export async function setVariant(workoutExerciseId: string, dims: VariantDims): 
       rec.variantEquipment = cols.variantEquipment;
       rec.variantGrip = cols.variantGrip;
       rec.variantArm = cols.variantArm;
-      rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
+      rec.variantLoad = cols.variantLoad; // v22 @plm SRS-058
+      rec.variantAttach = cols.variantAttach;
+      // [원본] rec.machineVariant = cols.variantEquipment; // 레거시 미러(기구 차원)
+      // [개선] ADR-034: 미러는 비운다 — 키가 정본이고, 미러를 쓰면 기록 정규화가 매번 다시 지우며 동기를 흔든다(QA H9)
+      rec.machineVariant = null;
     });
   });
 }
