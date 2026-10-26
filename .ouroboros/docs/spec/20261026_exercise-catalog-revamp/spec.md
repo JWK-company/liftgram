@@ -177,6 +177,33 @@ ADR-034 의 축(load·attach·grip)을 변형 키 문법·정규화·조회에 �
 
 ---
 
+## /qa spec 반영 (2026-10-26 — 조건부 통과 → 아래가 각 작업보다 우선)
+
+근거: `.ouroboros/docs/qa/20261026_catalog-revamp-spec_qa.md`(차단 3 · 높음 9 · 중간 7 · 낮음 6).
+
+| QA | 바뀐 결정 | 적용 작업 |
+|----|-----------|-----------|
+| B1 | `set_logs.load_multiplier` 는 **optional, null = 1**. 읽기는 `effectiveMultiplier(s) = s.loadMultiplier ?? 1` 하나로만 · v21→v22 이관 뒤와 키 없는 pull 세트의 볼륨 불변 테스트 | 1.3 · 1.4 |
+| B2·H1 | 기록 이관은 버전 표식 없이 **멱등 정규화** `normalizeCatalogRecords()` — 부팅 때(동기 전) 1회 + **pull 적용 직후·push 전 매번**(받은 workout_exercises·routine_exercises 대상, 변화 없으면 no-op). 러너 표식은 스키마 데이터 백필 전용이고 **기기 로컬 전용**(localStorage — 동기 컬럼 금지, wipeFor 뒤 초기화) | 0.4 · 2.4 |
+| B3·M7 | 0015 는 자동 마이그레이션에서 뺀다 → **`be/cmd/migrate-records` one-shot**(`--dry-run` 리포트 / `--apply`, 검증 실패 = 그 트랜잭션만 되돌리고 오류 종료, API 무관). 0014 는 0015 없이도 앱이 동작(기기 정규화가 로컬을 고친다). 배포 순서 = `pg_dump -Fc`(크기·`pg_restore --list` 확인, 실패 시 중단) → compose up(0014 자동) → 드라이런 리포트 → `--apply` → 리포트 재생성 대조 | 2.5 · 2.6 · 배포 |
+| H2 | 로컬 `SCHEMA_VERSION` 이 올라간 첫 부팅에 **lastPulledAt=0 으로 전량 재수신**. 서버 `UpsertSyncRecords` 는 `payload = sync_records.payload || EXCLUDED.payload`(얕은 병합 — 옛 클라이언트가 모르는 키 보존). 멱등 판정은 목표 상태 전체(exercise_id·variant 컬럼·variant_key) 비교 | 1.3 · 2.3 · 2.4 |
+| H3 | 부팅 순서 = ① 번들 시드 **top-up 매 부팅**(신규·필드·archived 반영, 사용자 행 불변) → ② 정규화 → ③ 동기 → ④ catalogSync(온라인 시 덮어쓰기). 대상 id 가 로컬에 없으면 옮기지 않고 다음 기회에 재시도. 빈 DB+오프라인+서버 기록 pull 테스트 | 0.4 · 0.5 · 2.4 |
+| H4 | 코칭 리포트(`be/internal/coaching/report.go`)는 종목을 서버 `exercises` 테이블에서 먼저 해석, 커스텀만 sync_records 보완 · 볼륨 `×coalesce(load_multiplier,1)` · report_test 추가 | 2.3 |
+| H5 | **P2 에서** VariantSelector 의 implement 칩 제거(대신 「기구 바꾸기」 최소판 = 같은 family 종목 swap) + attach·grip 칩(허용 목록 안에서 선택·해제) 노출. P4 는 이를 완성(브랜드×적재 시트·지난 조합·다른 조합 기록 보기·플레이트 한쪽). 표시 이름 연속성은 M3 로 P2 에 | 2.8(신규) · 4.1 · 4.2 |
+| H6 | 생성기 입력에 **`migration-overrides.csv`**(원 종목 × 변형 키 → 대상 id·축, A20 체스트 서포티드 티바+machine → 머신 체스트 서포티드 로우 포함). 규칙 순서 0→1→2→3→예외 표, 고정점 최대 2회. `custom1~3` 은 비머신 종목에서 **유지 + 리포트**(machine_variant_labels 동봉), 비머신+브랜드 대상 없음 = 유지 + 리포트. 운영 변형 분포 전 행 분류(미분류 0) 테스트. 성공 기준 2 = 「equip:implement = 0, 예외 표 유지 항목 제외」 | 0.2 · 0.3 · §3 |
+| H7 | 검증 정의: raw 볼륨 `Σ weight_kg×reps×coalesce(load_multiplier,1)`(워밍업·실패 제외·done≠false·deleted 제외·살아 있는 블록) 사용자별 불변 + 불변식(사용자×원 블록 세트 수 불변 · 브랜드 키별 블록 수 불변 · 모든 exercise_id 실재(활성 카탈로그 ∪ 그 사용자 커스텀) · archived 가리키는 블록 0 · equip:implement = 예외 표 수 · payload `_status`/`_changed` 0 · deleted 행 불변). 드라이런 리포트에 「원 → 대상 × 블록/세트」 표. load_mode 가 바뀌는 종목은 리포트에 별도 표시 | 2.5 · 2.6 |
+| H8 | proto `EQUIPMENT_EZBAR=10`·`EQUIPMENT_TRAPBAR=11` + Go 매핑 + `contractMap.EQUIPMENT_KEY` + core `EquipmentType`·라벨 + 필터 칩 · 「CSV 기구 ⊆ proto ⊆ contractMap」 테스트 | 0.3 · 2.3 |
+| H9 | 규칙 0: `variant_key` null + `machine_variant` 미러 있음 → 먼저 미러로 `variant_equipment`·`variant_key` 실체화(V6 의미) → 규칙 1~5. 0015 동일. 드라이런에 해당 블록 수 집계 | §3 · 2.4 · 2.5 |
+| M1 | `PullCatalogRequest.include_archived`(기본 false, 새 클라이언트 true) · `Exercise.is_archived` · revision 쿼리 archived 포함 · catalogSync 가 isArchived·family·aliases·similar·mediaRef 매핑 · GetExercise 는 archived 도 반환, 상세 「통합됨 → 대상」 | 2.3 |
+| M2 | merge/delete 행은 시드·0014 에서 **old_name_ko 유지 + is_archived=true**. 이름 유일 검사는 활성 행만, 「보관 행 이름 ∈ 대상 별칭」 강제, 검색 색인에서 archived 제외 | 0.2 · 0.3 · 3.1 |
+| M3 | 이관 때 rename/merge 종목을 옛 이름으로 쓴 (사용자×종목) 마다 `display_name = 옛 이름` 시드 → 표시 이름 훅은 **P2 에 최소판**(이름 해석만), P3 에서 검색·선택 연동. prefs id = 결정적 `pref-<exercise_id>` · `USER_TABLES` 추가 · 「대표 이름으로 보기」 되돌리기 | 1.3 · 2.4 · 2.5 · 3.3 |
+| M4 | family 메타 정본 `catalog.families.csv`(family·attachments·grips·load 적용) · implied_axes ⊆ 허용 목록 · cable 외 attach 없음 · machine 외 load 없음 테스트 | 0.1 · 0.2 · 0.3 |
+| M5 | 옛 백필 처리: V8 폐기(호출 주석 처리) · V6 → 규칙 0 흡수 · V10/V12 seed id 기반 재작성 · V11/V22 → 새 정규화로 대체 · 등록 목록 고정 테스트 | 0.4 |
+| M6 | delete 금지·이관 대상 목록은 운영 DB 읽기 전용 쿼리 결과로 생성·커밋(`usage.prod.csv`) · 0015 와 검증은 sync_records 의 **모든 user_id** 대상 | 0.3 · 2.6 |
+| L1~L6 | 통계 재집계(480행 · new 144 · 활성 469 = 근력 443 + 유산소 26) · similar ⊆ family ∪ id 테스트+`triceps_extension` 8건 수정 · 맨몸 글루트 브릿지 영문 별칭에서 `glute bridge` 제거 · CSV `name_rule` 열(prefix·intrinsic·bodyweight) · status 무관 전 필드 `IS DISTINCT FROM` upsert · fedb 커밋 고정 · 2페이지 카탈로그 수신 테스트 | 0.1~0.3 · 2.3 |
+
+---
+
 ## 배포·운영 규칙(전 Phase 공통)
 - Phase 마다 minor 버전 + git tag + `deploy-h2500-3.sh` + 서버 `DEPLOYED_REF==HEAD` + 운영 390px 라이트/다크 눈 확인.
 - Phase 2 운영 이관 직전 `pg_dump`(배포 스크립트가 백업 경로·크기 출력) · 0015 는 합계 불일치 시 자동 ROLLBACK.
