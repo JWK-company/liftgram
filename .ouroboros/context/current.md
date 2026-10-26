@@ -11,13 +11,13 @@
 | @plm 오염·무변경 | 템플릿 주석 76개 → 루트 `.plmignore`의 `src/**`(인프라 SRS 결정 후 해제) · `app/`·`server/` **무변경** |
 
 ## 프로덕션 교체 — **완료** (2026-10-26) · 운영 = `https://liftgram.tarae.org` · v0.16.0 (`4612735`)
-**구성**: h2500-3 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) + booktarae CF 터널 공개 호스트명 → `localhost:3410` · DB = **옛 Neon 그대로**(새 테이블이 옛 Prisma 테이블 옆에 공존) · 배포 = `src/scripts/deploy-h2500-3.sh`
+**구성**: h2500-3 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) + booktarae CF 터널 공개 호스트명 → `localhost:3410` · **DB = 같은 서버 compose db**(Neon에서 이전 · 왕복 220ms→7ms · origin 화면 ~15ms) · 배포 = `src/scripts/deploy-h2500-3.sh` · 백업 = cron 04:17 `backup-h2500-3.sh`(DB 매일 14·사진 매주 4)
+- **테스트 콘텐츠 삭제**(사용자 지시): 글 6·스토리 3·사진 4·좋아요 알림 2 → 0 · 사용자 4·동기 4053 유지 · 옛 무료 조합(Neon·Netlify·Render) **폐기 예정**
 - **이관 ✓**: 백업 `h2500-3:~/liftgram/backups/neondb-pre-cutover-20261026-021100.dump`(24테이블) → `migrate-legacy.sh` 20테이블 행수 전부 일치(사용자 4·글 6·sync_records 4053) · 해시 `$2b$10$` 그대로
-- **사진 4장은 복구 불가**: 옛 Render 무료 디스크에서 이미 사라져 있었다(옛 서버도 404) — 이관 손실 아님
 - **옛 주소**: Netlify를 301 리다이렉트 + **자기 해제 서비스워커**(설치된 PWA가 옛 캐시를 계속 띄우는 것 방지)로 교체(draft→restore) · **Netlify 자동 빌드 정지**(stop_builds — main 푸시가 리다이렉트를 덮지 않게)
-- 옛 Render `liftgram-api`는 **아직 켜져 있다**(되돌리기 자리 — 사용자 확인 후 내린다)
+- 옛 Render `liftgram-api`·Neon 프로젝트는 아직 살아 있다 — **사용자가 대시보드에서 삭제**(덤프 2개 보관: `neondb-pre-cutover-*`·`neon-newstack-*`)
 - 고친 결함: Dockerfile 워크스페이스 node_modules 미복사 · PWA 매니페스트·아이콘 부재(standalone엔 public/이 안 실림)
-- **관찰**: DB 왕복 ~220ms(h2500-3 ↔ Neon us-east-1) → 화면 응답 ~1s. 옛 배포(Render 싱가포르)도 같은 거리였다
+- **공개 주소 ~0.6–0.9s = Cloudflare 무료가 한국 요청을 LAX 엣지로 받는 탓**(booktarae.org도 동일 · origin은 15ms)
 **질문은 터미널에서**(PLM 채널 금지 — 사용자 2026-10-26)
 
 ## 이관 진행 (ADR-031 · ADR-032)
@@ -58,7 +58,7 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - 안 옮기는 것: 세션 토큰·푸시 토큰·카탈로그(시드). **사진은 DB에 없다** — 저장소를 따로 이어야 한다
 
 ## 다음 작업
-1. 사용자 확인: 옛 계정 로그인·기록 표시 → 옛 Render 서버 내리기 · 서비스워커(오프라인 앱셸) 웹 스택에 없음 — 별도 작업
+1. 사용자 확인: 옛 계정 로그인·기록 표시 · 서비스워커(오프라인 앱셸) 웹 스택에 없음 — 별도 작업
 2. **@plm 오염**: 템플릿 유래 주석 53개/41파일(템플릿 원본과 같은 줄 대조로 판별) + 우리 인프라 스크립트도 그 관례(SRS-006/008)를 따라감 → 인프라 SRS 발급 후 재매핑 → `.plmignore`의 `src/**` 해제
 3. codescan 400·sync_bulk 413 · SRS-048 잔여(assertTrainerEligible 스텁·sync LWW) · ADR-012/013 dangling·ADR-025→026 Replaced(대시보드)
 4. 사용자 결정 대기: ADR-029 게이트 · 3D 움짤 에셋 라이선스

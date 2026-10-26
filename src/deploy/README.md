@@ -8,14 +8,17 @@ booktarae(`booktarae.org`)와 같은 방식이다. 도메인을 따로 사지 �
 |---|---|
 | 화면 + API | 공용 서버 **h2500-3**의 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) · frontend는 `127.0.0.1:3410`에만 열린다 |
 | 공개 주소 | Cloudflare 터널의 공개 호스트명 `liftgram.tarae.org` → `http://localhost:3410` |
-| PostgreSQL | **옛 배포(Render `liftgram-api`)가 쓰던 Neon 그대로** — 새 테이블이 옛 테이블 옆에 산다(이름이 겹치지 않는다) |
+| PostgreSQL | **같은 서버의 compose db**(named volume `liftgram_pgdata` · 호스트 비노출). 2026-10-26 Neon에서 옮겨 왔다(DB 왕복 220ms → 7ms) |
+| 백업 | `scripts/backup-h2500-3.sh`(crontab 04:17) — DB 매일 14개 · 사진 매주 4개 · `~/liftgram/backups/`. ⚠ 같은 디스크다 |
 | Redis | compose의 broker(호스트에 노출하지 않음) |
 | 사진 | 서버 디스크(named volume `liftgram_media`) — 재배포해도 남는다 |
 
 - **배포**: `bash scripts/deploy-h2500-3.sh` — 커밋된 것만 나간다(작업 트리 WIP 제외) · 빌드 전 디스크 확인 · 서버에 `~/liftgram/DEPLOYED_REF`로 배포 커밋을 기록 · 끝에 `readyz`(DB까지)를 본다.
-- **서버 설정**: `~/liftgram/src/.env`(권한 600 · 사람이 관리 · 스크립트는 읽기만 한다). 필수 = `DATABASE_URL`·`JWT_SECRET`·`APP_URL`·`WEB_PORT`.
+- **서버 설정**: `~/liftgram/src/.env`(권한 600 · 사람이 관리 · 스크립트는 읽기만 한다). 필수 = `DATABASE_URL`(`…@db:5432/liftgram`)·`POSTGRES_*`·`JWT_SECRET`·`APP_URL`·`WEB_PORT`.
+- **복원**: `docker exec -i liftgram-db-1 pg_restore -U liftgram -d liftgram --clean --if-exists < ~/liftgram/backups/daily/<파일>.dump`(앱을 먼저 멈춘다).
+- **응답 시간**: origin은 화면 ~15ms. 공개 주소가 ~0.6–0.9s인 것은 Cloudflare 무료 플랜이 한국 요청을 LAX 엣지로 받기 때문이다(booktarae.org도 같다) — 앱 문제가 아니다.
 - **터널**: 공개 호스트명은 Cloudflare 대시보드(Zero Trust → Networks → Tunnels)에서 단다. 커넥터가 `host` 네트워크라 `localhost:3410`이 그대로 보인다.
-- **되돌리기**: `DEPLOY_REF=<커밋> bash scripts/deploy-h2500-3.sh`. 옛 배포(Netlify + Render)로 돌아가야 하면 옛 테이블이 그대로 있으므로 주소만 바꾸면 된다.
+- **되돌리기**: `DEPLOY_REF=<커밋> bash scripts/deploy-h2500-3.sh`. 옛 무료 조합(Netlify + Render + Neon)은 **폐기한다**(사용자 2026-10-26) — 컷오버 시점 덤프 2개를 `~/liftgram/backups/`에 남겼다.
 
 ## 예전 계획(개발 단계 무료) — Render 합본
 
