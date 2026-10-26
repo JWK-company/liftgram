@@ -11,9 +11,24 @@ import type { AppLanguage, EquipmentType, ExperienceLevel, GearTag, WeeklySchedu
 const profiles = () => database.get<UserProfile>('user_profiles');
 
 // 로컬 사용자 1건 보장(없으면 기본값으로 생성).
+//
+// **만드는 길은 하나다(single-flight).** 화면 여럿이 동시에 부르면, 모두가 "없음"을 본 뒤 각자 만들어
+// 프로필이 둘 이상 생긴다 — 그러면 설정은 새 프로필에 쓰이는데 화면은 가장 오래된 것을 보여 줘서
+// 바꾼 값이 안 바뀐 것처럼 보인다(첫 동기를 기다리게 한 뒤 실제로 그렇게 깨졌다 · 2026-10-26).
+let creating: Promise<UserProfile> | null = null;
+
 export async function getOrCreateLocalUser(): Promise<UserProfile> {
   const existing = await profiles().query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
   if (existing[0]) return existing[0];
+  if (!creating) {
+    creating = createLocalUserOnce().finally(() => {
+      creating = null;
+    });
+  }
+  return creating;
+}
+
+async function createLocalUserOnce(): Promise<UserProfile> {
   // 새 기기일 수 있다 — 서버의 프로필이 내려오기 전에 빈 것을 만들면 프로필이 기기마다 늘어난다.
   // 첫 동기를 잠깐 기다린 뒤 다시 본다(로그인 안 했거나 오프라인이면 곧바로 지나간다).
   await awaitFirstSync();

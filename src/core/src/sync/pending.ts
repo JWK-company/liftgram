@@ -1,4 +1,4 @@
-// 서버로 아직 안 올라간 **사용자 기록** 세기 — 동기 경고(syncEngine)와 계정 전환 가드(syncOwner)가 함께 쓴다.
+// @plm SRS-053  서버로 아직 안 올라간 **사용자 기록** 세기 — 동기 경고(syncEngine)와 계정 전환 가드(syncOwner)가 함께 쓴다.
 //
 // WatermelonDB는 행마다 `_status`(synced·created·updated·deleted)를 둔다. synced가 아니면 이 기기에만 있다.
 // 기본 카탈로그(`exercises` 중 is_custom=false)는 세지 않는다 — 앱이 심은 재료라 잃어도 다시 심긴다.

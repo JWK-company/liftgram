@@ -1,4 +1,4 @@
-// @plm SRS-006  백업 파일 — core/sync/backup.ts 를 브라우저 파일(내려받기·고르기)에 잇는다
+// @plm SRS-053  백업 파일 — core/sync/backup.ts 를 브라우저 파일(내려받기·고르기)에 잇는다
 import { exportBackup, importBackup, type ImportReport } from "@app/core/sync/backup";
 import { scheduleSync } from "@app/core/sync/syncEngine";
 import { getPref } from "./prefs";
