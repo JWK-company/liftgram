@@ -24,8 +24,8 @@ export function Chip({
       aria-pressed={active}
       onClick={onPress}
       style={{
-        backgroundColor: active ? "var(--color-brand)" : "var(--color-surface-alt)",
-        borderColor: active ? "var(--color-brand)" : "var(--color-line)",
+        backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-card)",
+        borderColor: active ? "var(--color-brand)" : "var(--color-line-strong)",
       }}
       className="shrink-0 whitespace-nowrap rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-sm)] active:opacity-80"
     >
@@ -33,7 +33,7 @@ export function Chip({
         variant="caption"
         color={active ? "text" : "textMuted"}
         className={active ? "font-bold" : ""}
-        style={active ? { color: "var(--color-on-brand)" } : undefined}
+        style={active ? { color: "var(--color-brand)" } : undefined}
       >
         {label}
       </AppText>

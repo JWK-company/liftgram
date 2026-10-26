@@ -19,10 +19,13 @@ function safePath(p: string): string {
 export default function CompleteClient({
   code,
   linked,
+  via,
   returnTo,
 }: {
   code: string;
   linked: string;
+  /** 로그인 수단(연결이면 비어 있다) — 「최근」 배지 쿠키로 남는다. */
+  via: string;
   returnTo: string;
 }) {
   const { logInWithCode } = useAuth();
@@ -34,13 +37,13 @@ export default function CompleteClient({
     if (!code || once.current) return;
     once.current = true;
     window.history.replaceState(null, "", "/auth/complete");
-    logInWithCode(code)
+    logInWithCode(code, via)
       .then(() => {
         if (linked) toast(t("security.linkedToast", { provider: providerLabel(linked) }));
         window.location.replace(safePath(returnTo || "/"));
       })
       .catch(() => setFailed(true));
-  }, [code, linked, returnTo, logInWithCode, toast]);
+  }, [code, linked, via, returnTo, logInWithCode, toast]);
 
   return (
     <AuthPage title={failed ? t("complete.failed") : t("complete.signingIn")}>

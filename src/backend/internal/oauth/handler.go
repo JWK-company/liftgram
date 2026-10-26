@@ -218,6 +218,9 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request, p Provider) {
 	target := h.cfg.CompletePath + "?code=" + urlQueryEscape(loginCode)
 	if payload.LinkUserID != "" {
 		target += "&linked=" + urlQueryEscape(p.Name())
+	} else {
+		// 이 기기의 「최근」 배지 — 화면의 /api/session 이 lg_last 쿠키로 남긴다. 연결은 로그인 수단이 아니라 붙이지 않는다.
+		target += "&via=" + urlQueryEscape(p.Name())
 	}
 	if back := safeReturnTo(payload.ReturnTo, ""); back != "" {
 		target += "&return_to=" + urlQueryEscape(back)

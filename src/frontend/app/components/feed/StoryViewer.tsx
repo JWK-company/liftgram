@@ -81,14 +81,14 @@ export function StoryViewer({
         {group.stories.map((s, i) => (
           <span
             key={s.id}
-            style={{ backgroundColor: i <= idx ? "#fff" : "rgba(255,255,255,0.3)" }}
+            style={{ backgroundColor: i <= idx ? "var(--color-on-scrim)" : "rgba(255,255,255,0.3)" }}
             className="h-[3px] flex-1 rounded-[2px]"
           />
         ))}
       </div>
 
       <div className="flex items-center justify-between px-[var(--spacing-lg)] py-[var(--spacing-md)]">
-        <AppText variant="body" style={{ color: "#fff" }} className="font-medium!">
+        <AppText variant="body" style={{ color: "var(--color-on-scrim)" }} className="font-medium!">
           {group.author?.displayName || t("discover.unnamed")}
         </AppText>
         <span className="flex items-center gap-[var(--spacing-lg)]">
@@ -100,11 +100,11 @@ export function StoryViewer({
               aria-label={t("report.title")}
               data-testid="story-report"
             >
-              <Icon name="flag-outline" size={22} color="#fff" />
+              <Icon name="flag-outline" size={22} color="var(--color-on-scrim)" />
             </button>
           ) : null}
           <button type="button" onClick={onClose} aria-label={t("common.cancel")} data-testid="story-close">
-            <Icon name="close" size={28} color="#fff" />
+            <Icon name="close" size={28} color="var(--color-on-scrim)" />
           </button>
         </span>
       </div>
@@ -127,7 +127,7 @@ export function StoryViewer({
 
       {story.caption ? (
         <div className="px-[var(--spacing-lg)] py-[var(--spacing-xl)] text-center">
-          <AppText variant="body" style={{ color: "#fff" }}>
+          <AppText variant="body" style={{ color: "var(--color-on-scrim)" }}>
             {story.caption}
           </AppText>
         </div>

@@ -32,7 +32,7 @@ export function TextField({
       <input
         {...rest}
         data-testid={testId}
-        className="w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+        className="w-full rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) outline-none focus:border-(--color-brand) focus:ring-1 focus:ring-(--color-brand) px-[var(--spacing-md)] py-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
       />
       {hint ? (
         <div className="mt-[var(--spacing-xs)]">
@@ -76,7 +76,7 @@ export function TextArea({
         {...rest}
         rows={rows}
         data-testid={testId}
-        className="w-full resize-y rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] placeholder:text-(--color-ink3)"
+        className="w-full resize-y rounded-[var(--radius-sm)] border border-(--color-line-strong) bg-(--color-card) outline-none focus:border-(--color-brand) focus:ring-1 focus:ring-(--color-brand) px-[var(--spacing-md)] py-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) leading-[22px] placeholder:text-(--color-ink3)"
       />
     </div>
   );

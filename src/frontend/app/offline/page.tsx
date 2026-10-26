@@ -15,7 +15,7 @@ export default function OfflinePage() {
         action={
           <a
             href="/"
-            className="rounded-lg bg-(--color-brand) px-4 py-2 font-semibold text-white"
+            className="rounded-lg bg-(--color-brand) px-4 py-2 font-semibold text-(--color-on-brand)"
             data-testid="offline-home"
           >
             {tw("web.offline.home")}

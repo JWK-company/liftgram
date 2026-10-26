@@ -64,7 +64,7 @@ export function ServiceWorker() {
       <button
         type="button"
         data-testid="sw-update-apply"
-        className="rounded-md bg-(--color-brand) px-3 py-1.5 font-semibold text-white"
+        className="rounded-md bg-(--color-brand) px-3 py-1.5 font-semibold text-(--color-on-brand)"
         onClick={() => waiting.postMessage("skip-waiting")}
       >
         {tw("web.sw.updateApply")}

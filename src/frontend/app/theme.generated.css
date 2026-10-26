@@ -1,23 +1,112 @@
 /* 생성물이다 — 손으로 고치지 않는다. 원본: src/core/src/theme/tokens.ts · 재생성: make sync-core */
+/* 라이트가 기본이고, 기기 설정이 다크면 다크(사용자가 프로필에서 고르면 data-theme 이 이긴다). */
+:root {
+  color-scheme: light;
+  --p-bg: #F7F7F7;
+  --p-card: #FFFFFF;
+  --p-surface: #FFFFFF;
+  --p-surface-alt: #F1F2F4;
+  --p-line: #DBDBDB;
+  --p-line-strong: #747474;
+  --p-ink: #141619;
+  --p-ink2: #3E4348;
+  --p-ink3: #6A737B;
+  --p-brand: #C8381C;
+  --p-brand-vivid: #FF5A36;
+  --p-brand-muted: #FFF0EB;
+  --p-on-brand: #FFFFFF;
+  --p-ok: #047857;
+  --p-ok-soft: #EBF4F2;
+  --p-ok-muted: #EBF4F2;
+  --p-warn: #B45309;
+  --p-warn-soft: #F9F1EB;
+  --p-bad: #B91C1C;
+  --p-bad-soft: #F9EDED;
+  --p-pr: #A16207;
+  --p-pr-soft: #FEF3C7;
+  --p-scrim: #000000;
+  --p-on-scrim: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --p-bg: #161616;
+    --p-card: #2B2B2B;
+    --p-surface: #2B2B2B;
+    --p-surface-alt: #3A3A3A;
+    --p-line: #424242;
+    --p-line-strong: #A8A8A8;
+    --p-ink: #F5F7F9;
+    --p-ink2: #D8DBDF;
+    --p-ink3: #98A1AD;
+    --p-brand: #FF7A57;
+    --p-brand-vivid: #FF5A36;
+    --p-brand-muted: #3D2620;
+    --p-on-brand: #161616;
+    --p-ok: #6EE7B7;
+    --p-ok-soft: #34453F;
+    --p-ok-muted: #34453F;
+    --p-warn: #FBBF24;
+    --p-warn-soft: #48402A;
+    --p-bad: #FCA5A5;
+    --p-bad-soft: #483C3C;
+    --p-pr: #FFD23F;
+    --p-pr-soft: #4A3F12;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --p-bg: #161616;
+  --p-card: #2B2B2B;
+  --p-surface: #2B2B2B;
+  --p-surface-alt: #3A3A3A;
+  --p-line: #424242;
+  --p-line-strong: #A8A8A8;
+  --p-ink: #F5F7F9;
+  --p-ink2: #D8DBDF;
+  --p-ink3: #98A1AD;
+  --p-brand: #FF7A57;
+  --p-brand-vivid: #FF5A36;
+  --p-brand-muted: #3D2620;
+  --p-on-brand: #161616;
+  --p-ok: #6EE7B7;
+  --p-ok-soft: #34453F;
+  --p-ok-muted: #34453F;
+  --p-warn: #FBBF24;
+  --p-warn-soft: #48402A;
+  --p-bad: #FCA5A5;
+  --p-bad-soft: #483C3C;
+  --p-pr: #FFD23F;
+  --p-pr-soft: #4A3F12;
+}
+@theme inline {
+  --color-bg: var(--p-bg);
+  --color-card: var(--p-card);
+  --color-surface: var(--p-surface);
+  --color-surface-alt: var(--p-surface-alt);
+  --color-line: var(--p-line);
+  --color-line-strong: var(--p-line-strong);
+  --color-ink: var(--p-ink);
+  --color-ink2: var(--p-ink2);
+  --color-ink3: var(--p-ink3);
+  --color-brand: var(--p-brand);
+  --color-brand-vivid: var(--p-brand-vivid);
+  --color-brand-muted: var(--p-brand-muted);
+  --color-on-brand: var(--p-on-brand);
+  --color-ok: var(--p-ok);
+  --color-ok-soft: var(--p-ok-soft);
+  --color-ok-muted: var(--p-ok-muted);
+  --color-warn: var(--p-warn);
+  --color-warn-soft: var(--p-warn-soft);
+  --color-bad: var(--p-bad);
+  --color-bad-soft: var(--p-bad-soft);
+  --color-pr: var(--p-pr);
+  --color-pr-soft: var(--p-pr-soft);
+  --color-scrim: var(--p-scrim);
+  --color-on-scrim: var(--p-on-scrim);
+}
 @theme {
-  /* 템플릿이 쓰던 이름 ← app 팔레트 */
-  --color-bg: #0E1116;
-  --color-card: #171B22;
-  --color-line: #2A323D;
-  --color-ink: #F2F5F8;
-  --color-ink2: #9AA6B2;
-  --color-ink3: #5E6B78;
-  --color-brand: #4C8DFF;
-  --color-ok: #37C871;
-  --color-warn: #FFB020;
-  --color-bad: #FF5C5C;
-  /* app에만 있던 것 */
-  --color-surface: #171B22;
-  --color-surface-alt: #1E242D;
-  --color-brand-muted: #2A4A7F;
-  --color-on-brand: #FFFFFF;
-  --color-pr: #FFD23F;
-  /* 간격·라운드·타이포 — app과 같은 리듬 */
+  /* 간격·라운드·타이포 */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -32,6 +121,6 @@
   --text-sm: 14px;
   --text-md: 16px;
   --text-lg: 20px;
-  --text-xl: 28px;
-  --text-xxl: 36px;
+  --text-xl: 24px;
+  --text-xxl: 28px;
 }

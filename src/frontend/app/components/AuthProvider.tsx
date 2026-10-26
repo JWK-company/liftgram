@@ -21,6 +21,7 @@ import {
   onLoggedOut,
   watchSyncTriggers,
 } from "@/lib/syncTransport";
+import { parseLastLogin } from "@/lib/last-login";
 
 interface AuthValue {
   /** 로그인하지 않았으면 null. 아직 확인 중이어도 null이다(loading으로 구분한다). */
@@ -29,7 +30,8 @@ interface AuthValue {
   /** humanToken = 사람 확인(Turnstile) 토큰. 키가 없는 환경에서는 비어도 된다. */
   signUp: (email: string, password: string, displayName: string, humanToken?: string | null) => Promise<void>;
   /** 소셜 로그인 콜백이 붙여 보낸 일회용 코드로 로그인한다(/auth/complete). 새 계정이면 true */
-  logInWithCode: (code: string) => Promise<boolean>;
+  /** via = 콜백이 붙인 제공자(연결일 때는 비어 있다) — 「최근」 배지용. */
+  logInWithCode: (code: string, via?: string) => Promise<boolean>;
   /** 서버의 내 정보를 다시 읽는다(이메일 확인 뒤 등). */
   refreshMe: () => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
@@ -105,22 +107,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           { email, password, displayName },
           { headers: humanToken ? { [HUMAN_HEADER]: humanToken } : {} },
         );
-        if (res.tokens) setTokens(res.tokens);
+        if (res.tokens) setTokens(res.tokens, "email");
         setUser(res.user ?? null);
         // 로그인 전에 쌓은 기록을 이 계정 것으로 삼는다(대조가 먼저, 그다음 동기).
         if (res.user) await reconcile(res.user.id);
       },
       logIn: async (email, password) => {
         const res = await authClient().logIn({ email, password });
-        if (res.tokens) setTokens(res.tokens);
+        if (res.tokens) setTokens(res.tokens, "email");
         setUser(res.user ?? null);
         // **다른 계정이면** 이전 사람의 기록이 올라가면 안 된다 — 남은 기록이 없으면 비우고,
         // 있으면 멈추고 고르게 한다(AccountGuard).
         if (res.user) await reconcile(res.user.id);
       },
-      logInWithCode: async (code) => {
+      logInWithCode: async (code, via) => {
         const res = await authClient().exchangeLoginCode({ code });
-        if (res.tokens) setTokens(res.tokens);
+        // 착지 화면은 곧바로 떠난다 — 쿠키가 구워질 때까지 기다린다(session.ts setTokens).
+        if (res.tokens) await setTokens(res.tokens, parseLastLogin(via) ?? undefined);
         setUser(res.user ?? null);
         if (res.user) await reconcile(res.user.id);
         return res.created;

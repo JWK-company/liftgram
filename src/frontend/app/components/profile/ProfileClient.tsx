@@ -22,7 +22,6 @@ import {
   fromKg,
   machineVariantLabel,
   toKg,
-  type EquipmentType,
   type ExperienceLevel,
   type WeightUnit,
 } from "@app/core";
@@ -49,6 +48,8 @@ import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card, Divider, SectionHeader } from "../ui/primitives";
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
+import { BusinessInfo } from "../BusinessInfo";
+import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 import { version as APP_VERSION } from "../../../package.json";
 import buildInfo from "../../build-info.json";
 
@@ -97,11 +98,13 @@ export default function ProfileClient() {
     return a;
   });
   const [restSound, setRestSoundState] = useState<RestSoundKind>("ding");
+  const [theme, setThemeState] = useState<ThemeChoice>("system");
   const [restVol, setRestVolState] = useState<RestVolumeLevel>("loud");
 
   useEffect(() => {
     // 알림음은 계정과 함께 동기된다 — 다른 기기에서 바뀌면 PrefsBridge가 PREFS_EVENT를 쏜다.
     const read = () => {
+      setThemeState(getTheme());
       setRestSoundState(getRestSoundKind());
       setRestVolState(getRestVolumeLevel());
     };
@@ -265,6 +268,24 @@ export default function ProfileClient() {
             value={weightUnit}
             disabled={busy}
             onChange={(v) => v !== weightUnit && save({ weightUnit: v })}
+          />
+        </SettingRow>
+
+        <Divider />
+
+        <SettingRow label={t("profile.theme")} caption={t("profile.themeCaption")}>
+          <Segmented<ThemeChoice>
+            testId="theme"
+            options={[
+              { value: "system", label: t("profile.themeSystem") },
+              { value: "light", label: t("profile.themeLight") },
+              { value: "dark", label: t("profile.themeDark") },
+            ]}
+            value={theme}
+            onChange={(v) => {
+              setThemeState(v);
+              setTheme(v);
+            }}
           />
         </SettingRow>
 
@@ -508,6 +529,7 @@ export default function ProfileClient() {
             개인정보처리방침
           </a>
         </p>
+        <BusinessInfo className="mt-[var(--spacing-md)]" />
       </div>
     </div>
   );

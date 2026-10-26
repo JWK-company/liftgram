@@ -6,8 +6,15 @@ export const dynamic = "force-dynamic";
 export default async function CompletePage({
   searchParams,
 }: {
-  searchParams: Promise<{ code?: string; linked?: string; return_to?: string }>;
+  searchParams: Promise<{ code?: string; linked?: string; via?: string; return_to?: string }>;
 }) {
   const sp = await searchParams;
-  return <CompleteClient code={sp.code ?? ""} linked={sp.linked ?? ""} returnTo={sp.return_to ?? ""} />;
+  return (
+    <CompleteClient
+      code={sp.code ?? ""}
+      linked={sp.linked ?? ""}
+      via={sp.via ?? ""}
+      returnTo={sp.return_to ?? ""}
+    />
+  );
 }

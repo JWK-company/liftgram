@@ -26,6 +26,7 @@
 import { AuthService, routes } from "@app/contracts";
 import { Code, ConnectError, createClient, type Client, type Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
+import type { LastLogin } from "./last-login";
 
 /** 세션이 있을 법하다는 **깃발**(값이 아니다). 쿠키를 읽을 수 없으니 화면은 이걸 본다. */
 const SESSION_FLAG = "liftgram.session";
@@ -62,15 +63,24 @@ function setFlag(on: boolean): void {
  * 쿠키를 담는 요청이 실패해도 그 자리에서는 로그인된 채로 둔다(access가 있다) —
  * 다만 새로고침하면 풀린다. 로그인 자체를 실패로 되돌리는 것보다 낫다.
  */
-export function setTokens(t: { accessToken: string; refreshToken: string }): void {
+export function setTokens(
+  t: { accessToken: string; refreshToken: string },
+  method?: LastLogin,
+): Promise<void> {
   accessToken = t.accessToken;
   setFlag(true);
-  void fetch("/api/session", {
+  // 돌려주는 약속 = 쿠키가 실제로 구워졌다. 곧바로 페이지를 떠나는 곳(소셜 착지)은 이것을 기다린다 —
+  // 기다리지 않으면 이동이 이 요청을 끊어(ERR_ABORTED) refresh 쿠키가 남지 않고, 도착 화면에서 로그아웃돼 있다.
+  const saved = fetch("/api/session", {
     method: "POST",
     headers: { ...GUARD, "content-type": "application/json" },
-    body: JSON.stringify({ refreshToken: t.refreshToken }),
-  }).catch(() => {});
+    // method = 로그인 수단(「최근」 배지). 로그인·가입만 싣는다 — 비밀번호 변경 등은 비워 둬 쿠키를 건드리지 않는다.
+    body: JSON.stringify({ refreshToken: t.refreshToken, method }),
+  })
+    .then(() => {})
+    .catch(() => {});
   notify();
+  return saved;
 }
 
 export function clearTokens(): void {

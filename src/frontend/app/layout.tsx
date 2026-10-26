@@ -42,13 +42,28 @@ export const metadata: Metadata = {
   icons: { apple: "/apple-touch-icon.png" },
 };
 
-export const viewport: Viewport = { themeColor: "#0E1116" };
+// 브라우저 상단 띠 색 — 라이트·다크 바탕(#F7F7F7 · #161616)과 같게. 토큰을 쓸 수 없는 자리라 값을 적는다.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F7F7F7" },
+    { media: "(prefers-color-scheme: dark)", color: "#161616" },
+  ],
+};
+
+// 테마 — 첫 칠하기 **전에** 정한다(그렇지 않으면 라이트로 번쩍였다가 다크로 바뀐다). 프로필에서 고른 값이 없으면
+// 기기 설정(prefers-color-scheme)을 따른다 — CSS 가 처리하므로 data-theme 을 달지 않는다(lib/theme.ts).
+const THEME_INIT = `(function(){try{var t=localStorage.getItem("liftgram.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
-      {/* app은 다크 테마 하나만 쓴다 — 브라우저가 폼 컨트롤을 밝게 그리지 않도록 알려 준다. */}
-      <body className="min-h-dvh bg-(--color-bg) text-(--color-ink) antialiased [color-scheme:dark]">
+    <html lang="ko" suppressHydrationWarning>
+      <head>
+        {/* Pretendard — booktarae 와 같은 본문 글꼴. 자체 호스팅(오프라인 PWA에서도 같은 글꼴 · 외부 요청 없음). */}
+        <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 첫 칠하기 전 테마를 정하는 고정 문자열 */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+      </head>
+      <body className="min-h-dvh bg-(--color-bg) font-sans text-(--color-ink) antialiased">
         {/* 로그인 상태·진행 중인 운동·휴식은 **화면을 옮겨도 유지된다** — 그래서 셸이 들고 있는다. */}
         <AuthProvider>
           <SessionProvider>

@@ -13,11 +13,14 @@ export function providerLabel(p: string): string {
   return p in LABEL ? t(LABEL[p as Provider]) : p;
 }
 
-/** 제공자 색 — 각 사 가이드의 기본 버튼색(로고 이미지는 싣지 않는다). */
+/**
+ * 제공자 색 — 각 사의 **브랜드 가이드가 정한 값**이라 우리 토큰을 쓰지 않는다(다크에서도 그대로여야 한다 —
+ * 구글 버튼을 어둡게 칠하면 가이드 위반이다). booktarae SocialButtons 와 같은 값. 디자인 토큰 규칙의 유일한 예외다.
+ */
 export const PROVIDER_STYLE: Record<Provider, { bg: string; fg: string; border?: string }> = {
-  google: { bg: "#ffffff", fg: "#1f1f1f", border: "#dadce0" },
-  kakao: { bg: "#FEE500", fg: "#191919" },
-  naver: { bg: "#03C75A", fg: "#ffffff" },
+  google: { bg: "#FFFFFF", fg: "#141619", border: "var(--color-line-strong)" },
+  kakao: { bg: "#FEE500", fg: "#191600" },
+  naver: { bg: "#03C75A", fg: "#FFFFFF" },
 };
 
 /** 소셜 로그인 시작 주소. 브라우저 전면 이동이라 RPC가 아니라 링크다(backend internal/oauth). */

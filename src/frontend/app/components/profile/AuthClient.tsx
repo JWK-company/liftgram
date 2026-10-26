@@ -13,9 +13,12 @@ import { useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
 import { BackupCard } from "../sync/BackupCard";
+import { BusinessInfo } from "../BusinessInfo";
+import { Logo } from "../ui/Logo";
 import { HumanCheck } from "../auth/HumanCheck";
 import { SecurityCard } from "../auth/SecurityCard";
-import { SocialButtons, useAuthOptions } from "../auth/SocialButtons";
+import type { LastLogin } from "@/lib/last-login";
+import { LastLoginBadge, SocialButtons, useAuthOptions } from "../auth/SocialButtons";
 import { agoText, useSyncHealth } from "../sync/useSyncHealth";
 import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
@@ -125,6 +128,7 @@ export default function AuthClient({
   oauthError = "",
   initialMode = "login",
   preview = [],
+  lastLogin = null,
 }: {
   siteKey?: string;
   oauthError?: string;
@@ -132,6 +136,8 @@ export default function AuthClient({
   initialMode?: Mode;
   /** 키가 아직 없어 눌러도 나가지 않는 제공자 — "설정 필요"로 미리 보여 준다(OAUTH_PREVIEW_PROVIDERS) */
   preview?: string[];
+  /** 이 기기에서 마지막으로 로그인한 방법 — 서버 페이지가 HttpOnly 쿠키 lg_last 를 읽어 넘긴다. */
+  lastLogin?: LastLogin | null;
 }) {
   const { user, signUp, logIn, logOut } = useAuth();
   const [human, setHuman] = useState<string | null>(null);
@@ -272,7 +278,7 @@ export default function AuthClient({
         </AppText>
       ) : null}
 
-      <SocialButtons returnTo="/account" preview={preview} />
+      <SocialButtons returnTo="/account" preview={preview} last={lastLogin} />
       {isSignup ? (
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
           {t("auth.signupEmailNote")}
@@ -343,6 +349,7 @@ export default function AuthClient({
             disabled={busy}
             testId="btn-auth-submit"
             onPress={submit}
+            adornment={!isSignup && lastLogin === "email" ? <LastLoginBadge /> : null}
           />
         </div>
         {!isSignup && mailEnabled ? (
@@ -385,6 +392,7 @@ export default function AuthClient({
 
       <BackupCard />
       <OfflineNote />
+      <BusinessInfo className="mt-[var(--spacing-xl)]" />
     </div>
   );
 }
@@ -392,9 +400,8 @@ export default function AuthClient({
 function Header() {
   return (
     <div className="mt-[var(--spacing-xl)] mb-[var(--spacing-xl)] flex flex-col items-center">
-      <span className="flex h-16 w-16 items-center justify-center rounded-[var(--radius-lg)] bg-(--color-surface-alt)">
-        <Icon name="barbell" size={30} color="var(--color-brand)" />
-      </span>
+      {/* 로고 — 2026-10-26 확정(B1 · 주황). 워드마크는 글자색을 따라 다크에서 저절로 밝아진다. */}
+      <Logo height={32} className="text-(--color-ink)" />
       <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-md)] block">
         {t("auth.tagline")}
       </AppText>

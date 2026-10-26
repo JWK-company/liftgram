@@ -867,6 +867,8 @@ export const ko = {
   "auth.errRate": "요청이 너무 잦아요. 잠시 뒤 다시 시도해 주세요",
   "auth.orDivider": "또는",
   "auth.continueWith": "{provider}로 계속하기",
+  "auth.lastBadge": "최근",
+  "auth.lastBadgeSr": "최근에 로그인한 방법",
   "auth.providerGoogle": "구글",
   "auth.providerKakao": "카카오",
   "auth.providerNaver": "네이버",
@@ -922,6 +924,11 @@ export const ko = {
   "auth.passwordHint": "8자 이상",
   "auth.setupNeeded": "설정 필요",
   "auth.setupNotice": "{provider} 로그인은 준비 중이에요. 곧 열려요.",
+  "profile.theme": "화면 테마",
+  "profile.themeCaption": "기기 설정을 따르거나 직접 고를 수 있어요",
+  "profile.themeSystem": "시스템",
+  "profile.themeLight": "라이트",
+  "profile.themeDark": "다크",
 } as const;
 
 export type TransKey = keyof typeof ko;

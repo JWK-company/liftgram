@@ -2,10 +2,28 @@
 
 /* @plm SRS-051  디자인 토큰 — 색상 하드코딩 금지, 토큰으로만
  *
- * 팔레트의 원본은 app/src/theme/tokens.ts 다(다크 테마 · PR 골드까지).
- * 같은 값을 여기 손으로 적으면 두 곳이 갈라지므로 `make sync-core` 가 만들어 낸다.
- * 토큰을 고치려면 app/src/theme/tokens.ts 를 고치고 다시 동기하면 된다. */
+ * 팔레트의 원본은 core/src/theme/tokens.ts 다(라이트·다크 두 벌 · 2026-10-26 booktarae 디자인 시스템 + 주황).
+ * 같은 값을 여기 손으로 적으면 두 곳이 갈라지므로 `make sync-core` 가 만들어 낸다. */
 @import "./theme.generated.css";
+
+/* 다크 변형 — 기기 설정이 다크이거나(고른 값 없음) 프로필에서 다크를 고른 경우. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  /* 본문 글꼴 — booktarae 와 같다(public/fonts/pretendard · OFL). */
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+}
+
+/* 손가락 기기에서 입력 글자 16px 바닥 — iOS 는 16px 미만 입력에 포커스가 가면 화면을 확대한다(booktarae §9.1-2). */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
 
 /* 가로 스크롤 줄(필터 칩)의 스크롤바를 숨긴다 — app은 인디케이터를 끄고 쓴다
  * (showsHorizontalScrollIndicator={false}). 손가락으로 밀어 쓰는 줄이라 막대가 보이면

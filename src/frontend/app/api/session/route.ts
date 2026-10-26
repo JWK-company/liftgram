@@ -22,6 +22,7 @@
 // 화면이 받는 것은 access 토큰뿐이다 — 그것만 메모리에 둔다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { env } from "@/lib/env";
+import { LAST_LOGIN_COOKIE, parseLastLogin } from "@/lib/last-login";
 
 export const dynamic = "force-dynamic";
 
@@ -48,19 +49,43 @@ function cookieHeader(value: string, maxAge: number): string {
   return parts.join("; ");
 }
 
+/**
+ * 이 기기에서 마지막으로 로그인한 방법. 로그아웃해도 지우지 않는다(다음 로그인 화면이 쓰는 값이다).
+ * SameSite=Lax — 소셜 콜백에서 돌아오는 첫 화면에도 실려야 한다(값은 비밀이 아니고 쓰기는 이 라우트뿐이다).
+ */
+function lastLoginCookie(v: string): string {
+  const parts = [
+    `${LAST_LOGIN_COOKIE}=${v}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${365 * 24 * 60 * 60}`,
+  ];
+  if (env.NODE_ENV === "production") parts.push("Secure");
+  return parts.join("; ");
+}
+
 /** 로그인·가입 직후 — 받은 refresh를 쿠키에 담는다. 화면은 값을 돌려받지 않는다. */
 export async function POST(req: Request): Promise<Response> {
   if (!guarded(req)) return new Response("forbidden", { status: 403 });
 
   let token = "";
+  let method: string | undefined;
   try {
-    token = ((await req.json()) as { refreshToken?: string }).refreshToken ?? "";
+    const body = (await req.json()) as { refreshToken?: string; method?: string };
+    token = body.refreshToken ?? "";
+    method = body.method;
   } catch {
     return new Response("bad request", { status: 400 });
   }
   if (!token) return new Response("bad request", { status: 400 });
 
-  return new Response(null, { status: 204, headers: { "set-cookie": cookieHeader(token, MAX_AGE_SEC) } });
+  const headers = new Headers();
+  headers.append("set-cookie", cookieHeader(token, MAX_AGE_SEC));
+  // 「최근」 배지 — 로그인·가입일 때만 화면이 method 를 싣는다(회전·비밀번호 변경은 싣지 않아 그대로 둔다).
+  const last = parseLastLogin(method);
+  if (last) headers.append("set-cookie", lastLoginCookie(last));
+  return new Response(null, { status: 204, headers });
 }
 
 /**

@@ -869,6 +869,8 @@ export const en: Record<TransKey, string> = {
   "auth.errRate": "Too many requests. Please try again shortly",
   "auth.orDivider": "or",
   "auth.continueWith": "Continue with {provider}",
+  "auth.lastBadge": "Last used",
+  "auth.lastBadgeSr": "last used sign-in method",
   "auth.providerGoogle": "Google",
   "auth.providerKakao": "Kakao",
   "auth.providerNaver": "Naver",
@@ -924,4 +926,9 @@ export const en: Record<TransKey, string> = {
   "auth.passwordHint": "8+ characters",
   "auth.setupNeeded": "Setting up",
   "auth.setupNotice": "{provider} sign-in is being set up. Coming soon.",
+  "profile.theme": "Theme",
+  "profile.themeCaption": "Follow your device or choose one",
+  "profile.themeSystem": "System",
+  "profile.themeLight": "Light",
+  "profile.themeDark": "Dark",
 };

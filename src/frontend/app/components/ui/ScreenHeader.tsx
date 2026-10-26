@@ -18,7 +18,7 @@ export function ScreenHeader({
   back?: ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-30 flex items-center gap-[var(--spacing-sm)] bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)]">
+    <header className="sticky top-0 z-30 flex min-h-14 items-center gap-[var(--spacing-sm)] border-(--color-line) border-b bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-sm)]">
       {back}
       <AppText variant="heading" data-testid="screen-title">
         {title}

@@ -14,6 +14,7 @@ export const SYNCED_PREF_KEYS = [
   "liftgram.streakSkipWeekends",
   "liftgram.restSound",
   "liftgram.restVolume",
+  "liftgram.theme", // 시스템·라이트·다크 — lib/theme.ts
 ] as const;
 const SYNCED = new Set<string>(SYNCED_PREF_KEYS);
 
@@ -52,7 +53,13 @@ export function applyProfilePrefs(prefs: Record<string, string> | null): boolean
       changed = true;
     }
   }
-  if (changed) window.dispatchEvent(new Event(PREFS_EVENT));
+  if (changed) {
+    // 테마는 화면 전체에 곧바로 — 다른 기기에서 바꾼 값이 내려왔을 때도.
+    const t = localStorage.getItem("liftgram.theme");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+    window.dispatchEvent(new Event(PREFS_EVENT));
+  }
   return changed;
 }
 

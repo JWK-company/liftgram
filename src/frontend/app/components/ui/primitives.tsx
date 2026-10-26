@@ -4,7 +4,7 @@
 // **목표는 "같은 앱으로 보이는 것"이다.** 그래서 이름·props·시각 결과를 app과 맞춘다 —
 // 화면을 옮길 때 `<AppText variant="heading">` 을 그대로 쓸 수 있어야 옮기는 일이 기계적이 된다.
 //
-// 색·간격·라운드·크기는 전부 토큰이다(app/src/theme/tokens.ts에서 생성된 CSS 변수).
+// 색·간격·라운드·크기는 전부 토큰이다(core/src/theme/tokens.ts → theme.generated.css · 라이트·다크 두 벌).
 // 여기에 색을 직접 적지 않는다 — 적는 순간 app과 갈라진다.
 //
 // RN → DOM에서 달라지는 것은 **구현뿐**이다: View→div, Text→span/p, StyleSheet→Tailwind.
@@ -99,15 +99,14 @@ export function Card({
 export type TagTone = "default" | "primary" | "pr" | "muted" | "success" | "warning" | "danger";
 
 /**
- * 작은 칩. 배경은 각 색의 어두운 짝이다 — app이 손으로 고른 값이라 그대로 옮긴다
- * (토큰에 없는 값이므로 여기서만 쓰이는 상수로 둔다).
+ * 작은 칩. 배경은 각 상태색의 **연한 판** 토큰이다(라이트·다크 두 벌 · 그 위 글자 AA 계산값 — tokens.ts).
  */
 const TAG_PALETTE: Record<TagTone, { bg: string; fg: string }> = {
   primary: { bg: "var(--color-brand-muted)", fg: "var(--color-brand)" },
-  pr: { bg: "#4A3F12", fg: "var(--color-pr)" },
-  success: { bg: "#12351F", fg: "var(--color-ok)" },
-  warning: { bg: "#3A2E10", fg: "var(--color-warn)" },
-  danger: { bg: "#3A1518", fg: "var(--color-bad)" },
+  pr: { bg: "var(--color-pr-soft)", fg: "var(--color-pr)" },
+  success: { bg: "var(--color-ok-soft)", fg: "var(--color-ok)" },
+  warning: { bg: "var(--color-warn-soft)", fg: "var(--color-warn)" },
+  danger: { bg: "var(--color-bad-soft)", fg: "var(--color-bad)" },
   muted: { bg: "var(--color-surface-alt)", fg: "var(--color-ink2)" },
   default: { bg: "var(--color-surface-alt)", fg: "var(--color-ink2)" },
 };
@@ -203,7 +202,7 @@ export function EmptyState({
     >
       {icon ? (
         <div
-          style={{ backgroundColor: isError ? "#3A1F1F" : "var(--color-surface-alt)" }}
+          style={{ backgroundColor: isError ? "var(--color-bad-soft)" : "var(--color-surface-alt)" }}
           className="mb-[var(--spacing-lg)] flex h-16 w-16 items-center justify-center rounded-[var(--radius-pill)]"
         >
           <Icon name={icon} size={30} color={isError ? "var(--color-bad)" : "var(--color-ink3)"} />

@@ -157,8 +157,9 @@ test("구글로 처음 로그인하면 계정이 생기고, 다시 하면 같은
   가짜_프로필({ id, email, verified: true, name: "구글사람" });
 
   await page.getByTestId("btn-oauth-google").click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/auth/complete"), { timeout: 30_000 });
-  await page.goto("/account");
+  // 착지 화면이 /account 로 보낸다. 거기서 곧바로 goto 하면 막 시작된 refresh 를 끊어 회전된 쿠키를 잃고
+  // 다음 갱신이 옛 토큰(재사용 → 폐기)으로 나간다 — 테스트가 만든 경합이라 다시 열지 않고 도착을 기다린다.
+  await page.waitForURL((u) => u.pathname.startsWith("/account"), { timeout: 30_000 });
   // 계정 카드는 표시 이름과 이메일을 함께 보여 준다(auth-email 칸은 이름이다).
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("main")).toContainText(email, { timeout: 20_000 });
@@ -171,8 +172,9 @@ test("구글로 처음 로그인하면 계정이 생기고, 다시 하면 같은
   await page.getByTestId("btn-logout").click();
   가짜_프로필({ id, email: freshEmail("changed"), verified: true });
   await page.getByTestId("btn-oauth-google").click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/auth/complete"), { timeout: 30_000 });
-  await page.goto("/account");
+  // 착지 화면이 /account 로 보낸다. 거기서 곧바로 goto 하면 막 시작된 refresh 를 끊어 회전된 쿠키를 잃고
+  // 다음 갱신이 옛 토큰(재사용 → 폐기)으로 나간다 — 테스트가 만든 경합이라 다시 열지 않고 도착을 기다린다.
+  await page.waitForURL((u) => u.pathname.startsWith("/account"), { timeout: 30_000 });
   // 계정 카드는 표시 이름과 이메일을 함께 보여 준다(auth-email 칸은 이름이다).
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("main")).toContainText(email, { timeout: 20_000 });
@@ -202,8 +204,9 @@ test("로그인한 계정에 카카오를 연결하고, 그 카카오로 다시 
 
   await page.getByTestId("btn-logout").click();
   await page.getByTestId("btn-oauth-kakao").click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/auth/complete"), { timeout: 30_000 });
-  await page.goto("/account");
+  // 착지 화면이 /account 로 보낸다. 거기서 곧바로 goto 하면 막 시작된 refresh 를 끊어 회전된 쿠키를 잃고
+  // 다음 갱신이 옛 토큰(재사용 → 폐기)으로 나간다 — 테스트가 만든 경합이라 다시 열지 않고 도착을 기다린다.
+  await page.waitForURL((u) => u.pathname.startsWith("/account"), { timeout: 30_000 });
   // 계정 카드는 표시 이름과 이메일을 함께 보여 준다(auth-email 칸은 이름이다).
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("main")).toContainText(email, { timeout: 20_000 });

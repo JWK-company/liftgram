@@ -7,6 +7,7 @@
 //   화면 이동(HTML)       네트워크 우선(3초) → 캐시 → /offline
 //   ?_rsc / RSC: 1        네트워크만 — 실패하면 Next가 전체 페이지 이동으로 넘어가고 위 줄이 받는다
 //   /api/*                절대 캐시하지 않는다(인증된 응답이 기기에 남으면 안 된다)
+//   /fonts/*              캐시 우선(정적 캐시 — Pretendard 서브셋은 그 글자를 처음 쓸 때 받는다)
 //   /media/file/*         캐시 우선 · 최대 200장 · 7일(키가 무작위라 내용이 안 바뀐다)
 //
 // ⚠ 새 워커는 **스스로 활성화하지 않는다**(skipWaiting 없음). 화면이 "새 버전" 띠를 띄우고,
@@ -81,6 +82,7 @@ self.addEventListener("fetch", (event) => {
 
   if (url.pathname.startsWith("/api/") || url.pathname === "/sw.js") return;
   if (url.pathname.startsWith("/_next/static/")) return event.respondWith(cacheFirst(req, STATIC));
+  if (url.pathname.startsWith("/fonts/")) return event.respondWith(cacheFirst(req, STATIC));
   if (url.pathname.startsWith("/media/file/")) return event.respondWith(media(req));
   // 화면 사이 이동 데이터는 캐시하지 않는다 — 오래된 화면 조각이 섞인다.
   if (url.searchParams.has("_rsc") || req.headers.get("RSC") === "1") return;
