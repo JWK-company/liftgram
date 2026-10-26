@@ -136,9 +136,9 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
   // 회원 — 운동을 하나 마치고 서버에 올린다(리포트는 동기된 기록에서 나온다).
   await 준비(page);
   await 가입(page, freshEmail("m-report"), 회원);
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
@@ -149,6 +149,8 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-summary-close").click();
+  // 요약을 닫으면 운동 탭으로 옮겨 간다(#61) — 그 이동이 끝난 뒤 다음 주소로 간다.
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
   await 동기(page);
 
   const [ctxT, pageT] = await 새_기기(browser);

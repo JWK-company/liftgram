@@ -41,9 +41,9 @@ async function 로그인(page: Page, email: string) {
 }
 
 async function 운동하고_마치기(page: Page) {
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
@@ -55,6 +55,8 @@ async function 운동하고_마치기(page: Page) {
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-summary-close").click();
+  // 요약을 닫으면 운동 탭으로 옮겨 간다(#61) — 그 이동이 끝난 뒤 다음 주소로 간다.
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 }
 
 async function 기록에_있다(page: Page) {

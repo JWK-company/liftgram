@@ -28,9 +28,9 @@ test("로그인하지 않아도 운동을 기록할 수 있다", async ({ page }
   await page.goto("/exercises");
   await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();

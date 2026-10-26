@@ -56,9 +56,9 @@ test("끊긴 상태에서 운동을 시작하고 세트를 기록한다", async 
   await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 
   await context.setOffline(true);
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("벤치");
   await page.getByTestId("picker-list").locator("button").first().click();

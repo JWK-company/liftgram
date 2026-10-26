@@ -16,9 +16,9 @@ async function 준비(page: Page) {
 
 /** 빈 운동을 시작하고 종목 하나를 담는다. */
 async function 세션에_담기(page: Page, 검색어: string) {
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(검색어);
   await page.getByTestId("picker-list").locator("button").first().click();

@@ -25,9 +25,9 @@ test("단위를 lb로 바꾸면 세션의 무게 표기가 따라간다", async 
   await expect(page.getByTestId("unit")).toContainText("lb", { timeout: 20_000 });
 
   // 세션을 열면 무게 컬럼이 lb로 바뀌어 있다(저장은 계속 kg — 표시만 바뀐다).
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
@@ -39,9 +39,9 @@ test("체중을 넣으면 세션의 '체중 미설정' 경고가 사라진다", 
   await 카탈로그_준비(page);
 
   // 어시스트 종목(체중 기준이 필요한 종목)을 담은 세션을 연다.
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("어시스트 풀업");
   const first = page.getByTestId("picker-list").locator("button").first();

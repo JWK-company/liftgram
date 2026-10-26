@@ -118,9 +118,9 @@ test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({
   await page.goto("/exercises");
   await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 30_000 });
 
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();

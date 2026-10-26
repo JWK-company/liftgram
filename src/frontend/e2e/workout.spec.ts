@@ -13,9 +13,9 @@ async function 카탈로그_준비(page: import("@playwright/test").Page) {
 
 /** 빈 운동을 시작하고 종목 하나를 넣는다. */
 async function 운동_시작(page: import("@playwright/test").Page, 종목검색: string) {
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
 
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(종목검색);

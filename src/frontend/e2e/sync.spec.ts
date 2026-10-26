@@ -45,9 +45,9 @@ async function 로그인(page: Page, email: string) {
 
 /** 종목 하나에 세트 하나를 채워 운동을 마친다. 완료한 운동 이름을 돌려준다. */
 async function 운동하고_마치기(page: Page, 종목 = "바벨 벤치프레스") {
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(종목);
   await page.getByTestId("picker-list").locator("button").first().click();
@@ -63,6 +63,8 @@ async function 운동하고_마치기(page: Page, 종목 = "바벨 벤치프레�
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-summary-close").click();
+  // 요약을 닫으면 운동 탭으로 옮겨 간다(#61) — 그 이동이 끝난 뒤 다음 주소로 간다.
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 }
 
 /** '지금 동기'를 눌러 **끝날 때까지** 기다린다. 배경 동기를 기다리는 것보다 확정적이다. */
@@ -151,9 +153,9 @@ test("하는 중인 운동은 다른 기기로 건너가지 않는다", async ({
   // 기기 A — 운동을 **시작만** 하고 마치지 않는다.
   await 준비(page);
   await 가입(page, 메일, "진행중인사람");
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();

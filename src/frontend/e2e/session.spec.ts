@@ -16,9 +16,9 @@ async function 카탈로그_준비(page: Page) {
 }
 
 async function 운동_시작(page: Page, 검색: string) {
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await 종목_추가(page, 검색);
 }
 
@@ -97,6 +97,8 @@ test("지난 세션의 기록이 '이전'으로 오고, 누르면 그대로 채�
 
   // ② 요약을 닫고 같은 종목으로 다시 시작하면 지난 기록이 따라온다.
   await page.getByTestId("btn-summary-close").click();
+  // 요약을 닫으면 운동 탭으로 옮겨 간다(#61) — 그 이동이 끝난 뒤 다음 주소로 간다.
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
   await 운동_시작(page, "데드리프트");
 
   const prev = 세트(page, 0, 0).getByTestId("set-prev");
@@ -129,4 +131,33 @@ test("두 종목을 슈퍼셋으로 묶고 풀 수 있다", async ({ page }) => 
 
   await page.getByTestId("btn-unlink-superset").click();
   await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(2, { timeout: 10_000 });
+});
+
+// #61 — 취소·완료 뒤 탭바 없는 빈 「진행 중인 운동」 화면에 갇히던 것
+test("운동을 취소하거나 마치면 운동 탭으로 돌아간다 — 빈 세션 화면에 갇히지 않는다", async ({ page }) => {
+  await 카탈로그_준비(page);
+
+  // ① 취소(⋯ → 운동 취소 → 삭제)
+  await 운동_시작(page, "데드리프트");
+  await page.getByTestId("btn-session-menu").click();
+  await page.getByTestId("btn-discard").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await expect(page.getByTestId("btn-quick-start")).toBeVisible();
+  await expect(page.getByTestId("nav-workout")).toBeVisible();
+
+  // ② 완료 → 요약 → 닫기
+  await 운동_시작(page, "데드리프트");
+  await 세트_기록(page, 0, 0, 100, 5);
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId("btn-summary-close").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await expect(page.getByTestId("nav-workout")).toBeVisible();
+
+  // ③ 진행 중인 운동 없이 주소로 직접 들어와도 운동 탭으로 간다(뒤로 가기도 같은 길)
+  await page.goto("/workout");
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await expect(page.getByTestId("btn-start")).toHaveCount(0);
 });

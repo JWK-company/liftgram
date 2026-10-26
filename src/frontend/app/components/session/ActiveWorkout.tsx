@@ -23,6 +23,7 @@ import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
+import { navigate } from "@/lib/nav";
 import ExercisePicker from "../ExercisePicker";
 import { PrCelebrationHost } from "../PrCelebration";
 import { useSession } from "../SessionProvider";
@@ -97,6 +98,14 @@ export default function ActiveWorkout() {
       cancelled = true;
     };
   }, [setActive]);
+
+  // ── 진행 중인 운동이 없으면 운동 탭으로 (#61) ──
+  // 취소·완료(요약을 닫은 뒤)·뒤로 가기로 다시 온 경우·주소 직접 입력이 모두 여기로 모인다.
+  // replace — 뒤로 가기가 빈 세션 화면으로 되돌아오지 않게.
+  const leaveSession = useCallback(() => navigate("/", { replace: true }), []);
+  useEffect(() => {
+    if (repo && !workout && !summary) leaveSession();
+  }, [repo, workout, summary, leaveSession]);
 
   // 기록한 직후 탭을 닫아도 남아야 한다(SRS-006).
   useEffect(() => {
@@ -192,13 +201,19 @@ export default function ActiveWorkout() {
   };
 
   if (err && !repo) return <ErrorState message={err} onRetry={() => location.reload()} />;
-  if (summary) return <WorkoutSummary summary={summary} unit={weightUnit} onClose={() => setSummary(null)} />;
+  // [원본] 요약을 닫으면 세션 화면에 그대로 남아 빈 「진행 중인 운동」이 떴다(탭바도 숨겨진 채 — 피드백 #61)
+  // if (summary) return <WorkoutSummary summary={summary} unit={weightUnit} onClose={() => setSummary(null)} />;
+  // [개선] 요약을 닫으면 운동 탭으로 — app 과 같다
+  if (summary) return <WorkoutSummary summary={summary} unit={weightUnit} onClose={leaveSession} />;
 
-  if (!repo) {
+  // [개선] 진행 중인 운동이 없으면(취소 직후·완료 뒤 뒤로 가기·주소 직접 입력) 이 화면에 머물지 않는다.
+  // 세션 화면은 탭바를 숨기므로 여기 남으면 갈 곳이 없다(#61). 이동하는 동안은 불러오는 중으로 보인다.
+  if (!repo || !workout) {
     return <EmptyState icon="hourglass-outline" title={t("session.loading")} />;
   }
 
-  if (!workout) {
+  // [원본] 진행 중인 운동이 없을 때의 빈 화면 — 위 이동으로 대체(원복 시 위 `|| !workout` 을 빼고 아래 블록 주석 해제)
+  /* if (!workout) {
     return (
       // app에서는 이 자리가 없다 — 진행 중인 운동이 없으면 세션 화면 자체가 열리지 않고
       // 운동 탭(루틴 화면)이 뜬다. 웹은 주소로 바로 들어올 수 있어 이 상태가 생긴다.
@@ -225,7 +240,7 @@ export default function ActiveWorkout() {
         }
       />
     );
-  }
+  } */
 
   const elapsed =
     now == null
@@ -520,6 +535,8 @@ export default function ActiveWorkout() {
             setConfirmDiscard(false);
             guard(async () => {
               await repo.discardWorkout(workout.id);
+              const { flushLocalDb } = await import("@/lib/localDb");
+              await flushLocalDb();
               clearRest();
               setActive(null);
               setWorkout(null);

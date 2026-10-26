@@ -95,9 +95,9 @@ test("커스텀 종목은 이름만으로 만들 수 있고 바로 쓸 수 있�
   await expect(page.getByTestId("exercise-list")).toContainText(이름, { timeout: 20_000 });
 
   // 세션의 종목 피커에서도 고를 수 있다(로컬 저장소에 남았다는 뜻).
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-start")).toBeEnabled({ timeout: 20_000 });
-  await page.getByTestId("btn-start").click();
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(이름);
   await expect(page.getByTestId("picker-list")).toContainText(이름, { timeout: 20_000 });
