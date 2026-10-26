@@ -20,7 +20,11 @@
 // 그래서 볼륨처럼 값이 바뀌어야 다시 그려야 하는 것은 app과 같이 1.5초 폴링으로 따라간다.
 // ─────────────────────────────────────────────────────────────────────────────
 import {
+  blockLoadMultiplier,
   canonicalVariantKey,
+  parseVariantKey,
+  variantLabelFromKey,
+  type SlotSummary,
   effectiveWeightKg,
   formatWeight,
   resolveLoadMode,
@@ -37,8 +41,9 @@ import {
 } from "@app/core";
 import { getExerciseMedia } from "@app/core/data/exerciseMedia";
 import { useQueryData } from "@app/core/db/hooks";
+import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { t } from "@/lib/i18n";
+import { lang, t } from "@/lib/i18n";
 import { firePrCelebration } from "../PrCelebration";
 import { Button } from "../ui/Button";
 import { ConfirmDialog, SheetShell } from "../ui/Dialog";
@@ -126,6 +131,11 @@ export function ExerciseBlock({
   const [noteOpen, setNoteOpen] = useState(() => !!we.note?.trim());
   const [restSheet, setRestSheet] = useState(false);
   const [volTick, setVolTick] = useState(0);
+  // ── 기록 칸(조합) — 플레이트 한쪽 입력 · 다른 조합 기록(ADR-034 · ADR-037) @plm SRS-058 ──
+  const { machineVariantLabels } = useUser();
+  const [plateOneSide, setPlateOneSideState] = useState(false);
+  const [slots, setSlots] = useState<SlotSummary[]>([]);
+  const [slotsOpen, setSlotsOpen] = useState(false);
 
   // 종목이 바뀌면(기구 바꾸기·대체) 저장소가 새 종목의 지난 조합을 승계해 둔다 — 그 값을 다시 따른다.
   // [원본] 종목이 바뀔 때만 따라갔다 — 그래서 고른 직후 저장소가 칸을 정하면(별칭 「로프 푸시다운」 → 로프 · P3) 화면이 몰랐다
@@ -183,6 +193,35 @@ export function ExerciseBlock({
       alive = false;
     };
   }, [repo, we.exerciseId, variantKey]);
+
+  // 한쪽 입력 선호(사용자 × 종목) — 종목이 바뀌면 다시 읽는다
+  useEffect(() => {
+    let alive = true;
+    void import("@app/core/data/exercisePrefs").then(async (m) => {
+      const on = await m.getPlateOneSide(we.exerciseId);
+      if (alive) setPlateOneSideState(on);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [we.exerciseId]);
+
+  // 조합별 기록(이 종목을 어떤 칸으로 해 왔나) — 「이전 기록 · 로프」와 「다른 조합 기록 보기」의 재료
+  useEffect(() => {
+    let alive = true;
+    void repo
+      .getExerciseSlotSummaries(we.exerciseId)
+      .then((list) => {
+        if (alive) setSlots(list);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [repo, we.exerciseId]);
+
+  const oneSide = blockLoadMultiplier(variant, plateOneSide) === 2;
+  const otherSlots = slots.filter((x) => (x.variantKey ?? null) !== (variantKey ?? null));
 
   // ── 세트 목록(반응형) ──
   const models = useQueryData(() => repo.querySetLogs(we.id), [repo, we.id]);
@@ -413,6 +452,11 @@ export function ExerciseBlock({
                 void write(() => repo.setVariant(we.id, dims));
               }}
               onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
+              plateOneSide={plateOneSide}
+              onPlateOneSide={(on) => {
+                setPlateOneSideState(on);
+                void write(() => repo.setPlateOneSideForExercise(we.exerciseId, on));
+              }}
             />
           ) : null}
 
@@ -449,6 +493,30 @@ export function ExerciseBlock({
           {!hasTip ? prevClearBtn : null}
         </div>
 
+        {/* 이전 기록이 어느 조합의 것인지 — 기본 칸이 아니거나 다른 조합 기록이 있을 때만(ADR-034) @plm SRS-058 */}
+        {!isCardio && (variantKey || otherSlots.length > 0) ? (
+          <div
+            className="mt-[4px] flex flex-wrap items-center gap-x-[var(--spacing-sm)]"
+            data-testid="slot-line"
+          >
+            <AppText variant="label" color="textFaint" data-testid="prev-slot">
+              {t("session.prevSlot", { slot: variantLabelFromKey(variantKey, lang, machineVariantLabels) })}
+            </AppText>
+            {otherSlots.length > 0 ? (
+              <button
+                type="button"
+                data-testid="btn-other-slots"
+                onClick={() => setSlotsOpen(true)}
+                className="py-[2px]"
+              >
+                <AppText variant="label" color="primary">
+                  {t("session.otherSlots")} ({otherSlots.length})
+                </AppText>
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
         {!isCardio ? (
           <ExerciseTipPanel exerciseId={we.exerciseId} trailing={hasTip ? prevClearBtn : undefined} />
         ) : null}
@@ -470,7 +538,9 @@ export function ExerciseBlock({
                   ? t("session.assistColHeader")
                   : loadMode === "bodyweight"
                     ? t("session.addedColHeader")
-                    : t("session.weightLabel", { weightUnit: unit })}
+                    : oneSide
+                      ? t("session.weightOneSideLabel", { weightUnit: unit }) // 플레이트 한쪽 입력(ADR-037)
+                      : t("session.weightLabel", { weightUnit: unit })}
               </HeadCell>
               <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell>
             </>
@@ -562,6 +632,75 @@ export function ExerciseBlock({
 
         {/* 휴식 시간 — 이 종목의 **설정값**이다(⋯ → 휴식 시간 시트). 카운트다운 자체는 운동 전체에 하나뿐이다. */}
       </div>
+
+      {slotsOpen ? (
+        <SheetShell
+          title={t("session.otherSlotsTitle")}
+          onClose={() => setSlotsOpen(false)}
+          testId="slots-sheet"
+        >
+          <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-sm)]">
+            {slots.length === 0 ? (
+              <AppText variant="caption" color="textMuted">
+                {t("session.otherSlotsEmpty")}
+              </AppText>
+            ) : null}
+            {slots.map((x) => {
+              const current = (x.variantKey ?? null) === (variantKey ?? null);
+              return (
+                <div
+                  key={x.variantKey ?? "default"}
+                  data-testid={`slot-${x.variantKey ?? "default"}`}
+                  className="rounded-[var(--radius-md)] border border-(--color-line) p-[var(--spacing-md)]"
+                >
+                  <div className="flex items-center gap-[var(--spacing-sm)]">
+                    <AppText variant="body" className="min-w-0 flex-1 font-bold">
+                      {variantLabelFromKey(x.variantKey, lang, machineVariantLabels)}
+                    </AppText>
+                    {current ? (
+                      <Tag label={t("session.currentSlot")} tone="primary" />
+                    ) : (
+                      <Button
+                        title={t("session.useThisSlot")}
+                        size="sm"
+                        variant="secondary"
+                        fullWidth={false}
+                        testId="btn-use-slot"
+                        onPress={() => {
+                          const dims = { ...parseVariantKey(x.variantKey), arm: null };
+                          setVariant(dims);
+                          setSlotsOpen(false);
+                          void write(() => repo.setVariant(we.id, dims));
+                        }}
+                      />
+                    )}
+                  </div>
+                  <AppText variant="caption" color="textMuted" className="block">
+                    {t("session.slotSessions", {
+                      date: new Date(x.lastAt).toLocaleDateString(lang === "ko" ? "ko-KR" : "en-US", {
+                        month: "short",
+                        day: "numeric",
+                      }),
+                      count: x.sessions,
+                    })}
+                  </AppText>
+                  <AppText variant="caption" className="block" data-testid="slot-last-sets">
+                    {x.lastSets.map((ls) => `${formatWeight(ls.weightKg, unit)}×${ls.reps}`).join(" · ")}
+                  </AppText>
+                  {x.best ? (
+                    <AppText variant="caption" color="pr" className="block">
+                      {t("session.slotBest", {
+                        weight: formatWeight(x.best.weightKg, unit),
+                        reps: x.best.reps,
+                      })}
+                    </AppText>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </SheetShell>
+      ) : null}
 
       {restSheet ? (
         <SheetShell title={t("session.restTime")} onClose={() => setRestSheet(false)} testId="rest-sheet">

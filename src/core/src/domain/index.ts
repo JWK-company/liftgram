@@ -22,3 +22,4 @@ export * from './streak';
 export * from './routineRecommendation';
 export * from './gyms';
 export * from './gear';
+export * from './recordSlots'; // @plm SRS-057 SRS-058

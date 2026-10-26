@@ -28,10 +28,18 @@ import {
   variantColumns,
   normalizeVariantDims,
   normalizeVariantDimsV34,
+  dimsFromColumns,
   type VariantDims,
   type GripKey,
   type ArmKey,
 } from '../domain/variants'; // @plm SRS-028
+import {
+  pickStartSlot,
+  blockLoadMultiplier,
+  carryWeightAcrossMultiplier,
+  summarizeSlots,
+  type SlotSummary,
+} from '../domain/recordSlots'; // ADR-034 지난 조합 · ADR-037 한쪽 입력 @plm SRS-057 SRS-058
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
 import { randomId } from '../utils/id';
 
@@ -378,6 +386,7 @@ export async function getPreviousExerciseSets(exerciseId: string, variant?: stri
         speedKmh: s.speedKmh, // v15: 유산소 속도 이전기록. @plm SRS-030
         arm: s.arm, // 세트별 편측(원암/투암) — 이전기록에 옵션 표시. @plm SRS-028
         grip: s.grip, // 세트별 그립 — 이전기록에 옵션 표시. @plm SRS-028
+        loadMultiplier: s.loadMultiplier ?? null, // v22: 그 세트를 한쪽으로 적었는지 — 프리필 환산용 @plm SRS-058
       }));
     }
   }
@@ -463,6 +472,7 @@ function prepareTemplateSets(
   isBodyweight = false,
   cardioTarget: CardioTargetJson | null = null,
   prescription: PrescribedSet[] | null = null, // v16: 세트별 처방(사람 작성 — 렌더·휴식·RIR 라벨 근거). @plm SRS-043
+  loadMultiplier: number | null = null, // v22: 이 블록의 배수(플레이트 한쪽=2 · ADR-037) @plm SRS-058
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
@@ -472,7 +482,10 @@ function prepareTemplateSets(
     // 그대로 유지돼 꾸준한 진척(progressive)이 된다. 없으면(첫 수행) 루틴 목표 → 스냅샷 → 기본. @plm SRS-010
     // 유산소는 무게·횟수 0(시간·거리는 수행 중). 맨몸은 무게 기본 0(가중 시 사용자가 입력) — 20kg 오프리필 방지.
     const bwDefault = isBodyweight ? 0 : 20;
-    const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // [원본] const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // [개선] 지난 세트를 다른 입력 방식(양쪽 합 ↔ 한쪽)으로 적었으면 이번 방식으로 환산 — 계산 무게가 같게 @plm SRS-058
+    const prevWeight = prev ? carryWeightAcrossMultiplier(prev.weightKg, prev.loadMultiplier, loadMultiplier) : undefined;
+    const weight = isCardio ? 0 : prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
     // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
     const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
     recs.push(
@@ -494,7 +507,10 @@ function prepareTemplateSets(
         }
         // 지난 세션 세트별 그립·팔을 새 세트에 미리 채움(꾸준한 진척 + 옵션 유지, 사용자가 변경 가능). @plm SRS-028
         s.arm = prev?.arm ?? null;
-        s.grip = prev?.grip ?? null;
+        // [원본] s.grip = prev?.grip ?? null;
+        // [개선] ADR-034: 손 그립은 블록 축(칸)이다 — 세트 그립은 옛 기록 표시용으로만 남기고 새로 채우지 않는다 @plm SRS-058
+        s.grip = null;
+        s.loadMultiplier = isCardio ? null : loadMultiplier; // v22 @plm SRS-058
         // v16: 처방 세트 — 타입·목표 RIR 기입. warmup은 is_warmup 미러(기존 W 라벨·볼륨 제외 재사용). @plm SRS-043
         if (rx && rx.setType !== 'normal') {
           s.setType = rx.setType;
@@ -535,6 +551,11 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
     );
   }
   const variantOf = (re: (typeof res)[number]) => variantByRe.get(re.id) as VariantColumns;
+  // v22: 블록 배수 — 플레이트 칸 + 「한쪽 무게로 입력」 선호(ADR-037) @plm SRS-058
+  const { getPlateOneSideMap } = await import('./exercisePrefs');
+  const plateMap = await getPlateOneSideMap(res.map((re) => re.exerciseId));
+  const multiplierOf = (re: (typeof res)[number]) =>
+    blockLoadMultiplier(dimsFromColumns(variantOf(re)), plateMap.get(re.exerciseId));
   // (종목×기구)별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
   const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${variantOf(re).variantKey ?? ''}`;
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
@@ -613,6 +634,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
           bwByExercise.get(re.exerciseId) ?? false,
           re.cardioTarget ?? null,
           rx,
+          multiplierOf(re),
         ),
       );
     });
@@ -662,6 +684,8 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
   const prevSets = await getPreviousExerciseSets(exerciseId, variant.variantKey);
   const cardio = await isCardioExerciseId(exerciseId);
   const bodyweight = await isBodyweightExerciseId(exerciseId);
+  const { getPlateOneSide } = await import('./exercisePrefs');
+  const multiplier = blockLoadMultiplier(dimsFromColumns(variant), await getPlateOneSide(exerciseId)); // v22 @plm SRS-058
   return database.write(async () => {
     const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
     const setsCount = Math.max(1, prevSets.length || 1); // 지난 세션 세트수(없으면 1) — 블랭크/중간추가 종목
@@ -685,7 +709,19 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
       rec.variantLoad = variant.variantLoad ?? null; // v22 @plm SRS-058
       rec.variantAttach = variant.variantAttach ?? null;
     });
-    const setRecords = prepareTemplateSets(we.id, setsCount, null, prevSnap?.reps ?? null, prevSets, prevSnap, cardio, bodyweight);
+    const setRecords = prepareTemplateSets(
+      we.id,
+      setsCount,
+      null,
+      prevSnap?.reps ?? null,
+      prevSets,
+      prevSnap,
+      cardio,
+      bodyweight,
+      null,
+      null,
+      multiplier,
+    );
     await database.batch(we, ...setRecords);
     return we;
   });
@@ -751,11 +787,16 @@ export async function getLatestVariantUsage(exerciseId: string): Promise<Variant
 // 이게 없으면 "많이 해온 종목인데 이 루틴으로 시작하니 이전기록·PR이 안 보인다"가 된다(2026-08-01 리포트).
 // 변형이 명시된 종목은 손대지 않는다 — 사용자가 고른 기구가 우선. @plm SRS-028
 async function resolveStartVariant(exerciseId: string, stored: VariantColumns): Promise<VariantColumns> {
-  if (stored.variantKey != null) return stored; // 명시 선택 존중
-  const instances = await performedInstancesOf(exerciseId);
-  if (!instances.length) return stored; // 이력 없음 — 기본 버킷
-  if (instances.some(({ we }) => we.variantKey == null)) return stored; // 기본 버킷에 이력 있음 — 그대로
-  return variantColumnsOf(instances[0].we); // 전부 다른 변형 → 마지막 수행 변형 승계
+  // [원본] 기본 칸에 이력이 하나라도 있으면 기본 칸 — 로프로 해 온 사람이 다음에도 기본(부착물 없음) 칸에서 시작했다
+  // if (stored.variantKey != null) return stored; // 명시 선택 존중
+  // const instances = await performedInstancesOf(exerciseId);
+  // if (!instances.length) return stored; // 이력 없음 — 기본 버킷
+  // if (instances.some(({ we }) => we.variantKey == null)) return stored; // 기본 버킷에 이력 있음 — 그대로
+  // return variantColumnsOf(instances[0].we); // 전부 다른 변형 → 마지막 수행 변형 승계
+  // [개선] ADR-034: 지난번 수행 조합 승계(브랜드·적재 방식·부착물·그립) — 명시 칸이 있으면 그것 @plm SRS-058
+  if (stored.variantKey != null) return stored;
+  const [latest] = await performedInstancesOf(exerciseId);
+  return pickStartSlot(stored, latest ? variantColumnsOf(latest.we) : null);
 }
 
 // 운동 중 종목 교체(BS-002 #22) — 삭제·재추가 없이 이 인스턴스의 종목만 교체. 세트는 유지(새 종목 기록으로),
@@ -779,6 +820,8 @@ export async function swapWorkoutExercise(workoutExerciseId: string, newExercise
       rec.machineVariant = lastVariant?.machineVariant ?? null;
     });
   });
+  // 입력한 세트는 이 블록에 그대로 남는다(새 종목 기록으로) — 새 칸의 입력 방식(한쪽/양쪽)에 배수를 맞춘다. @plm SRS-058
+  await syncBlockLoadMultiplier(workoutExerciseId);
 }
 
 // ── 세트 편집 (템플릿 프리레이 + 완료 체크 — Hevy식) ────────────────
@@ -796,6 +839,7 @@ export interface LogSetInput {
   speedKmh?: number | null; // v15: 유산소 속도(km/h·러닝머신). @plm SRS-030
   arm?: string | null; // v8: 세트별 편측(원암/투암) — 이전기록에 옵션 표시. @plm SRS-028
   grip?: string | null; // v11: 세트별 그립(오버/언더/…) — 이전기록에 옵션 표시. @plm SRS-028
+  loadMultiplier?: number | null; // v22: 무게 배수(플레이트 한쪽=2) — 프리필을 이번 입력 방식으로 환산 @plm SRS-058
 }
 
 // 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
@@ -812,6 +856,8 @@ export async function addSet(
     // 유산소 세트는 무게/횟수 대신 시간·거리로 기록 → 볼륨 오염 방지 위해 0으로 생성. @plm SRS-030
     const cardio = input.cardio ?? false;
     const bwDefault = input.bodyweight ? 0 : 20; // 맨몸은 첫 세트 기본 0(가중 시 입력). @plm SRS-005
+    // v22: 블록의 배수(플레이트 한쪽=2) — 세트가 있으면 같은 블록의 마지막 세트를 따른다(블록 안에서 같게 유지된다) @plm SRS-058
+    const multiplier = cardio ? null : last ? last.loadMultiplier ?? null : await blockMultiplierOf(workoutExerciseId);
     return setLogs().create((s) => {
       s.workoutExerciseId = workoutExerciseId;
       s.setNumber = existing.length + 1;
@@ -822,7 +868,10 @@ export async function addSet(
       s.isFailed = false;
       // 마지막 세트의 그립·팔을 새 세트에 상속(같은 종목 이어서 하니 동일 옵션이 자연스러움). @plm SRS-028
       s.arm = cardio ? null : last?.arm ?? null;
-      s.grip = cardio ? null : last?.grip ?? null;
+      // [원본] s.grip = cardio ? null : last?.grip ?? null;
+      // [개선] ADR-034: 손 그립은 블록 칸 — 세트 그립은 옛 기록 표시용으로만 남는다 @plm SRS-058
+      s.grip = null;
+      s.loadMultiplier = multiplier;
       s.done = done;
       s.completedAt = done ? Date.now() : null;
     });
@@ -932,6 +981,74 @@ export async function setVariant(workoutExerciseId: string, dims: VariantDims): 
       rec.machineVariant = null;
     });
   });
+  await syncBlockLoadMultiplier(workoutExerciseId); // 적재 방식이 바뀌면 한쪽 입력 배수도 따라간다 @plm SRS-058
+}
+
+// ── 플레이트 한쪽 입력(ADR-037) ───────────────────────────────────────
+// 블록의 배수 = (적재 방식 plate) × (사용자 × 종목 「한쪽 무게로 입력」). 블록 안 세트는 모두 같은 배수다 —
+// 화면의 숫자를 어떻게 적는지가 블록 단위로 정해지기 때문이다. 과거 세션 세트는 저장된 배수로 의미가 보존된다. @plm SRS-058
+async function blockMultiplierOf(workoutExerciseId: string): Promise<number | null> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  const { getPlateOneSide } = await import('./exercisePrefs');
+  return blockLoadMultiplier(dimsFromColumns(we), await getPlateOneSide(we.exerciseId));
+}
+
+/** 블록 세트의 배수를 블록 규칙에 맞춘다(다른 것만 쓴다). */
+export async function syncBlockLoadMultiplier(workoutExerciseId: string): Promise<void> {
+  let m: number | null;
+  try {
+    m = await blockMultiplierOf(workoutExerciseId);
+  } catch {
+    return; // 블록이 지워졌다
+  }
+  const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
+  const stale = sets.filter((x) => (x.loadMultiplier ?? null) !== m);
+  if (!stale.length) return;
+  await database.write(async () => {
+    await database.batch(
+      ...stale.map((x) =>
+        x.prepareUpdate((rec) => {
+          rec.loadMultiplier = m;
+        }),
+      ),
+    );
+  });
+}
+
+/** 「한쪽 무게로 입력」을 켜고 끈다 — 선호를 쓰고, 진행 중인 운동의 그 종목 블록 세트 배수를 맞춘다. */
+export async function setPlateOneSideForExercise(exerciseId: string, on: boolean): Promise<void> {
+  const { setPlateOneSide } = await import('./exercisePrefs');
+  await setPlateOneSide(exerciseId, on);
+  const active = await getActiveWorkout();
+  if (!active) return;
+  const wes = await workoutExercises()
+    .query(Q.where('workout_id', active.id), Q.where('exercise_id', exerciseId))
+    .fetch();
+  for (const we of wes) await syncBlockLoadMultiplier(we.id);
+}
+
+// ── 다른 조합 기록 보기(ADR-034) ─────────────────────────────────────
+/** 이 종목의 수행 이력을 칸(조합)별로 — 최근 수행 칸이 먼저. 「다른 조합 기록 보기」 시트가 쓴다. @plm SRS-058 */
+export async function getExerciseSlotSummaries(exerciseId: string): Promise<SlotSummary[]> {
+  const instances = await performedInstancesOf(exerciseId);
+  if (!instances.length) return [];
+  const sets = await setLogs()
+    .query(Q.where('workout_exercise_id', Q.oneOf(instances.map((i) => i.we.id))), Q.sortBy('set_number', Q.asc))
+    .fetch();
+  const byWe = new Map<string, SetLog[]>();
+  for (const x of sets) {
+    if (!isPerformed(x)) continue;
+    const list = byWe.get(x.workoutExerciseId);
+    if (list) list.push(x);
+    else byWe.set(x.workoutExerciseId, [x]);
+  }
+  return summarizeSlots(
+    instances.map(({ we, completedAt }) => ({
+      variantKey: effectiveVariantKey(we),
+      completedAt,
+      sets: (byWe.get(we.id) ?? []).map((x) => toLoggedSet(x)),
+    })),
+  );
 }
 
 // 레거시 호환 — 기구(브랜드)만 바꾸는 경로(그립/팔은 초기화).

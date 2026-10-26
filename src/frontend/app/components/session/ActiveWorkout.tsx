@@ -30,7 +30,7 @@ import { useSession } from "../SessionProvider";
 import { ErrorState } from "../States";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
-import { ConfirmDialog, Overlay, SheetShell } from "../ui/Dialog";
+import { ActionSheet, ConfirmDialog, Overlay, SheetShell } from "../ui/Dialog";
 import { MoreMenu } from "../ui/MoreMenu";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
@@ -45,6 +45,7 @@ import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type WorkoutRow = {
   id: string;
+  routineId: string | null;
   name: string | null;
   startedAt: number;
   state: string;
@@ -77,6 +78,13 @@ export default function ActiveWorkout() {
   const [supersetTarget, setSupersetTarget] = useState<WorkoutExerciseRow | null>(null);
   const [confirmFinish, setConfirmFinish] = useState<string | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  // 루틴으로 시작한 운동에서 종목을 바꾸면 「이번만 / 루틴에도」를 묻는다(SRS-057 · 4.1)
+  const [swapScope, setSwapScope] = useState<null | {
+    routineId: string;
+    routineName: string;
+    from: string;
+    to: string;
+  }>(null);
 
   // ── 부팅 ──
   useEffect(() => {
@@ -415,9 +423,11 @@ export default function ActiveWorkout() {
                 // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
                 const { applyPick } = await import("@/lib/exerciseNames");
                 if (picking.mode === "swap") {
+                  const from = exercises.find((x) => x.id === picking.weId)?.exerciseId ?? null;
                   await repo.swapWorkoutExercise(picking.weId, exerciseId);
                   await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
                   setVersion((v) => v + 1);
+                  if (from) await askRoutineScope(from, exerciseId);
                 } else {
                   const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
                   await applyPick(exerciseId, info, { workoutExerciseId: we.id });
@@ -506,6 +516,29 @@ export default function ActiveWorkout() {
         </SheetShell>
       ) : null}
 
+      {swapScope ? (
+        <ActionSheet
+          testId="swap-scope"
+          title={t("session.swapScopeTitle", { routine: swapScope.routineName })}
+          onClose={() => setSwapScope(null)}
+          options={[
+            { label: t("session.swapThisTime"), testId: "btn-swap-this-time", onPress: () => {} },
+            {
+              label: t("session.swapAlsoRoutine"),
+              testId: "btn-swap-routine",
+              onPress: () => {
+                const s = swapScope;
+                guard(async () => {
+                  const rr = await import("@app/core/data/routineRepository");
+                  const n = await rr.swapExerciseInRoutine(s.routineId, s.from, s.to);
+                  if (n > 0) toast(t("session.swapRoutineDone"));
+                });
+              },
+            },
+          ]}
+        />
+      ) : null}
+
       {confirmFinish ? (
         <ConfirmDialog
           testId="confirm-finish"
@@ -565,8 +598,10 @@ export default function ActiveWorkout() {
         onSwapTo={(weId, exerciseId) =>
           guard(async () => {
             if (!repo) return;
+            const from = we.exerciseId;
             await repo.swapWorkoutExercise(weId, exerciseId);
             setVersion((v) => v + 1);
+            await askRoutineScope(from, exerciseId);
           })
         }
         canSuperset={exercises.length > 1}
@@ -581,6 +616,25 @@ export default function ActiveWorkout() {
         {...extra}
       />
     );
+  }
+
+  /**
+   * 루틴으로 시작한 운동이고 그 루틴에 바꾸기 전 종목이 아직 있으면 「이번만 / 루틴에도」를 묻는다.
+   * 빠른 운동이거나 루틴에서 이미 빠진 종목이면 묻지 않는다(이번만). @plm SRS-057
+   */
+  async function askRoutineScope(from: string, to: string) {
+    if (!workout?.routineId || from === to) return;
+    try {
+      const rr = await import("@app/core/data/routineRepository");
+      const routine = (await rr.getRoutine(workout.routineId)) as unknown as { id: string; name: string };
+      const rows = (await rr.queryRoutineExercises(routine.id).fetch()) as unknown as {
+        exerciseId: string;
+      }[];
+      if (!rows.some((r) => r.exerciseId === from)) return;
+      setSwapScope({ routineId: routine.id, routineName: routine.name, from, to });
+    } catch {
+      // 루틴이 지워졌다 — 이번만 바뀐다
+    }
   }
 
   /** 두 종목을 한 묶음으로 — 이미 묶여 있던 상대의 멤버까지 전부 합친다. */

@@ -16,6 +16,8 @@
 // 만들지 않는다** — 결과는 같고(빈 초안이 쌓이지 않는다) 지우는 코드가 필요 없다.
 // ─────────────────────────────────────────────────────────────────────────────
 import {
+  blockLoadMultiplier,
+  canonicalVariantKey,
   cardioMetricsFor,
   fromKg,
   inputToIncline,
@@ -572,8 +574,25 @@ function ExerciseEditRow({
   const [weight, setWeight] = useState(() => (re.targetWeightKg ? fromKg(re.targetWeightKg, weightUnit) : 0));
   const [variant, setVariant] = useState<VariantDims>(() => re.variant ?? {});
   // 종목이 바뀌면(기구 바꾸기·대체) 저장소가 정한 새 칸을 따른다.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 종목이 바뀔 때만 따라간다
-  useEffect(() => setVariant(re.variant ?? {}), [re.exerciseId]);
+  // [원본] 종목이 바뀔 때만 따라갔다 — 별칭(「로프 푸시다운」)으로 대체하면 저장소가 정한 칸을 화면이 몰랐다
+  // useEffect(() => setVariant(re.variant ?? {}), [re.exerciseId]);
+  // [개선] 저장된 칸(키)이 바뀌어도 따른다(세션 블록과 같은 규칙 · #47 회귀 방지) @plm SRS-057
+  const storedVariantKey = canonicalVariantKey(re.variant ?? {});
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 종목·저장된 칸이 바뀔 때만 따라간다
+  useEffect(() => setVariant(re.variant ?? {}), [re.exerciseId, storedVariantKey]);
+  // 플레이트 「한쪽 무게로 입력」(사용자 × 종목 선호 — 세션과 같은 값) @plm SRS-058
+  const [plateOneSide, setPlateOneSideState] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    void import("@app/core/data/exercisePrefs").then(async (m) => {
+      const on = await m.getPlateOneSide(re.exerciseId);
+      if (alive) setPlateOneSideState(on);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [re.exerciseId]);
+  const oneSide = blockLoadMultiplier(variant, plateOneSide) === 2;
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
   const [metrics, setMetrics] = useState<CardioMetric[]>([]);
@@ -634,6 +653,13 @@ function ExerciseEditRow({
                     void repo.setRoutineExerciseVariant(re.id, dims).then(scheduleFlush);
                   }}
                   onSwap={onSwapTo}
+                  plateOneSide={plateOneSide}
+                  onPlateOneSide={(on) => {
+                    setPlateOneSideState(on);
+                    void import("@app/core/data/exercisePrefs")
+                      .then((m) => m.setPlateOneSide(re.exerciseId, on))
+                      .then(scheduleFlush);
+                  }}
                 />
               </div>
             ) : null}
@@ -673,7 +699,13 @@ function ExerciseEditRow({
             </div>
 
             <div className="flex gap-[var(--spacing-lg)]">
-              <Field label={t("routines.weightLabel", { weightUnit })}>
+              <Field
+                label={
+                  oneSide
+                    ? t("session.weightOneSideLabel", { weightUnit }) // 플레이트 한쪽 입력(ADR-037)
+                    : t("routines.weightLabel", { weightUnit })
+                }
+              >
                 <NumberStepper
                   testId="re-weight"
                   value={weight}

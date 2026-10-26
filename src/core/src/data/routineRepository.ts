@@ -243,6 +243,17 @@ export async function swapRoutineExercise(routineExerciseId: string, newExercise
   });
 }
 
+// 운동 중 「기구 바꾸기·대체」를 루틴에도 — 그 루틴에서 같은 종목을 쓰던 줄을 모두 새 종목으로(「이번만 / 루틴에도」). @plm SRS-057
+// 바꾼 줄 수를 돌려준다(0 이면 루틴에 그 종목이 없었다 — 이미 지웠거나 다른 루틴).
+export async function swapExerciseInRoutine(routineId: string, fromExerciseId: string, toExerciseId: string): Promise<number> {
+  if (fromExerciseId === toExerciseId) return 0;
+  const rows = await routineExercises()
+    .query(Q.where('routine_id', routineId), Q.where('exercise_id', fromExerciseId))
+    .fetch();
+  for (const re of rows) await swapRoutineExercise(re.id, toExerciseId);
+  return rows.length;
+}
+
 // 순서 재배치: orderedIds 순서대로 sort_order 재기록.
 export async function reorderRoutineExercises(orderedIds: string[]): Promise<void> {
   await database.write(async () => {

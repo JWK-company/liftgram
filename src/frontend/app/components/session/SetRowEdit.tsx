@@ -15,7 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import {
   DEFAULT_PLATES_KG,
-  GRIP_KEYS,
+  // [원본] GRIP_KEYS, — 세트별 그립 선택을 없앴다(ADR-034: 그립은 블록 칸)
   type GripKey,
   calcPlates,
   formatWeight,
@@ -472,12 +472,25 @@ function SetVariantSheet({
         <VarOpt label={t("session.armBi")} active={!isUni} onPress={() => onArm(null)} />
         <VarOpt label={t("session.armUni")} active={isUni} onPress={() => onArm("uni")} />
       </SheetRow>
+      {/* [원본] 세트별 그립 선택 — ADR-034: 손 그립은 블록 칸(종목 칩의 「손 그립」)이 정한다. 세트마다 고르면 칸과 겹친다.
       <SheetRow label={t("variant.grip")}>
         <VarOpt label={t("variant.default")} active={!grip} onPress={() => onGrip(null)} />
         {GRIP_KEYS.map((g) => (
           <VarOpt key={g} label={gripLabel(g, lang)} active={grip === g} onPress={() => onGrip(g)} />
         ))}
-      </SheetRow>
+      </SheetRow> */}
+      {/* [개선] 예전에 세트에 적어 둔 그립은 보여 주기만 한다(지울 수는 있다) @plm SRS-058 */}
+      {grip ? (
+        <div
+          className="mt-[var(--spacing-md)] flex items-center gap-[var(--spacing-sm)]"
+          data-testid="set-grip-legacy"
+        >
+          <AppText variant="caption" color="textMuted" className="flex-1">
+            {t("session.setGripLegacy", { grip: gripLabel(grip as GripKey, lang) })}
+          </AppText>
+          <VarOpt label={t("variant.default")} active={false} onPress={() => onGrip(null)} />
+        </div>
+      ) : null}
     </SheetShell>
   );
 }

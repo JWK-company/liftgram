@@ -8,7 +8,8 @@
 //   · 기구를 바꾸면 **종목이 바뀐다** — 같은 동작 그룹(family)의 그 기구 종목으로 교체(onSwap). 없는 기구는 안 보인다.
 //   · 칸은 종목 × [머신 브랜드] × [케이블 부착물] × [손 그립] — 허용 목록은 family 메타가 정한다(없으면 그 줄이 없다).
 //
-// 최소판이다(P2): 적재 방식(핀/플레이트)·지난 조합 기본값·다른 조합 기록 보기는 P4 에서 이 시트에 더한다.
+// P4: 머신은 브랜드 + 적재 방식(핀/플레이트), 플레이트면 「한쪽 무게로 입력」(ADR-037). 지난 조합 기본값은 저장소가
+// 블록을 만들 때 정하고(resolveStartVariant), 다른 조합 기록 보기는 종목 블록이 띄운다.
 // 저장 규칙(정규화)은 저장소가 한다(normalizeVariantDimsV34) — 여기는 고르는 화면뿐이다.
 // ─────────────────────────────────────────────────────────────────────────────
 import {
@@ -17,7 +18,10 @@ import {
   equipmentLabel,
   equipmentVariantLabel,
   gripLabel,
+  loadLabel,
+  LOAD_KEYS,
   type AttachKey,
+  type LoadKey,
   type EquipmentType,
   type GripKey,
   type VariantDims,
@@ -30,7 +34,7 @@ import { Icon } from "./Icon";
 import { AppText } from "./primitives";
 
 type Sibling = { id: string; equipment: string; nameKo: string };
-type Axes = { attachments: string[]; grips: string[] };
+type Axes = { attachments: string[]; grips: string[]; load: boolean };
 
 /** 칩 한 줄 — 기본 + 값들. 고른 것을 다시 누르면 기본으로(해제). */
 function ChipRow<K extends string>({
@@ -77,6 +81,8 @@ export function RecordSlotSelector({
   value,
   onChange,
   onSwap,
+  plateOneSide,
+  onPlateOneSide,
 }: {
   exerciseId: string;
   baseEquipment: EquipmentType | null;
@@ -84,12 +90,15 @@ export function RecordSlotSelector({
   onChange: (dims: VariantDims) => void;
   /** 같은 family 의 다른 기구 종목으로 바꾼다 — 없으면 기구 줄을 보이지 않는다 */
   onSwap?: (exerciseId: string) => void;
+  /** 플레이트 칸에서 「한쪽 무게로 입력」(ADR-037) — 넘기지 않으면 토글을 보이지 않는다 @plm SRS-058 */
+  plateOneSide?: boolean;
+  onPlateOneSide?: (on: boolean) => void;
 }) {
   const { machineVariantLabels } = useUser();
   const [open, setOpen] = useState(false);
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [siblings, setSiblings] = useState<Sibling[]>([]);
-  const [axes, setAxes] = useState<Axes>({ attachments: [], grips: [] });
+  const [axes, setAxes] = useState<Axes>({ attachments: [], grips: [], load: false });
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
 
   useEffect(() => {
@@ -99,7 +108,7 @@ export function RecordSlotSelector({
       const [sib, ax] = await Promise.all([meta.familySiblings(exerciseId), meta.variantAxesFor(exerciseId)]);
       if (!alive) return;
       setSiblings(sib);
-      setAxes({ attachments: [...(ax.attachments ?? [])], grips: [...(ax.grips ?? [])] });
+      setAxes({ attachments: [...(ax.attachments ?? [])], grips: [...(ax.grips ?? [])], load: !!ax.load });
     })();
     return () => {
       alive = false;
@@ -111,15 +120,20 @@ export function RecordSlotSelector({
   const brand = value.equipment ?? null;
   const attach = (value.attach ?? null) as AttachKey | null;
   const grip = (value.grip ?? null) as GripKey | null;
+  const load = (value.load ?? null) as LoadKey | null;
+  const hasLoad = isMachine && axes.load;
+  const showOneSide = hasLoad && load === "plate" && !!onPlateOneSide;
   const canSwap = !!onSwap && siblings.length > 1;
   const hasAttach = isCable && axes.attachments.length > 0;
   const hasGrip = axes.grips.length > 0;
   // 고를 것이 아무것도 없는 종목(맨몸 고유 동작 등)은 칩 자체를 두지 않는다.
-  if (!canSwap && !isMachine && !hasAttach && !hasGrip) return null;
+  if (!canSwap && !isMachine && !hasAttach && !hasGrip) return null; // hasLoad ⊂ isMachine
 
   // 칩에 보이는 요약 — 고른 조건들, 없으면 종목의 기구.
   const parts = [
     brand ? equipmentVariantLabel(brand, lang, machineVariantLabels) : null,
+    load ? loadLabel(load, lang) : null,
+    load === "plate" && plateOneSide ? t("variant.plateOneSide") : null,
     attach ? attachLabel(attach, lang) : null,
     grip ? gripLabel(grip, lang) : null,
   ].filter(Boolean) as string[];
@@ -198,6 +212,42 @@ export function RecordSlotSelector({
                     label={(k) => equipmentVariantLabel(k, lang, machineVariantLabels)}
                     onPick={(k) => onChange({ ...value, equipment: k })}
                   />
+                ) : null}
+
+                {/* 적재 방식 — 같은 브랜드라도 핀로드와 플레이트는 무게가 다르다(#57 · ADR-034) */}
+                {hasLoad ? (
+                  <ChipRow
+                    title={t("variant.load")}
+                    testId="slot-load"
+                    keys={LOAD_KEYS}
+                    value={load}
+                    label={(k) => loadLabel(k, lang)}
+                    onPick={(k) => onChange({ ...value, load: k })}
+                  />
+                ) : null}
+
+                {/* 플레이트 한쪽 입력 — 입력은 한쪽, 볼륨·PR 은 ×2(#53 · ADR-037). 사용자 × 종목 선호라 다음에도 유지된다. */}
+                {showOneSide ? (
+                  <label
+                    data-testid="slot-plate-one-side"
+                    className="mt-[var(--spacing-md)] flex cursor-pointer items-start gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]"
+                  >
+                    <input
+                      type="checkbox"
+                      data-testid="slot-plate-one-side-input"
+                      checked={!!plateOneSide}
+                      onChange={(e) => onPlateOneSide?.(e.target.checked)}
+                      className="mt-[3px] h-4 w-4 accent-(--color-brand)"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <AppText variant="body" className="block">
+                        {t("variant.plateOneSide")}
+                      </AppText>
+                      <AppText variant="caption" color="textMuted" className="block">
+                        {t("variant.plateOneSideHint")}
+                      </AppText>
+                    </span>
+                  </label>
                 ) : null}
 
                 {hasAttach ? (
