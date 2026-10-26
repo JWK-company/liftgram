@@ -58,7 +58,8 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - 안 옮기는 것: 세션 토큰·푸시 토큰·카탈로그(시드). **사진은 DB에 없다** — 저장소를 따로 이어야 한다
 
 ## 다음 작업
-1. 사용자 확인: 옛 계정 로그인·기록 표시 · 서비스워커(오프라인 앱셸) 웹 스택에 없음 — 별도 작업
+1. **오프라인 서비스워커 ✓ v0.17.0**(`67803d9` · 설계안 1A2A3A4A · e2e offline 3/3 운영 통과) — 미검증: 새 버전 띠(다음 배포 때 확인) · 웹 푸시는 범위 밖(자리만)
+   - 사용자 확인 대기: `admin@example.com` 임시 비번 재설정(옛 해시 `~/liftgram/backups/admin-hash-before-reset.txt`) → 로그인·기록 표시 · **비밀번호 변경 기능 없음 → 추가 필요**
 2. **@plm 오염 — 정리 완료**(2026-10-26): SRS-049(실행·배포 기반)·SRS-050(API 경계)·SRS-051(앱 셸·UI) 발급 → 87줄 재매핑(+도메인 오태깅 루틴→SRS-002·발견→SRS-018) · `.plmignore`의 `src/**` 해제(생성물만 제외) · **codescan 400 원인 = Code ID 64자 초과 32개**(plm_codescan.py:219 무축약) → plugin 수정 후 전체 스캔 필요. 보고서 `docs/report/20261026_plm-contamination_report.md`
 3. codescan ID 축약+청크(plugin) · sync_bulk 413 · SRS-048 잔여(assertTrainerEligible 스텁·sync LWW) · ADR-012/013 dangling·ADR-025→026 Replaced(대시보드)
 4. 사용자 결정 대기: ADR-029 게이트 · 3D 움짤 에셋 라이선스
