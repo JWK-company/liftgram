@@ -1,4 +1,10 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
+## 활성 작업 — 종목 카탈로그 대개편 (Project · 스펙 승인 2026-10-26 → /qa spec → /execute P0~P5 무질문 완주)
+- 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
+- Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
+- 작업 범위: src/core(seed·domain·migrations·sync·db) · src/frontend(Picker·CatalogClient·VariantSelector·session) · src/backend(exercise) · src/proto/exercise · src/database(0014·0015) · src/scripts/gen-catalog.mjs
+- 현재 위치: **P0+P1 완료·배포 v0.30.1(build 307, 279be00)** — 정본 CSV·gen-catalog·무결성/이관 계획·부팅 파이프라인·D10·v22·ADR-034 키. 다음 = **P2**(시드=catalog.generated 전환·KEY 이전·0014 staged→migrations·proto aliases/family/archived·be/cmd/migrate-records·CATALOG_NORMALIZE_ENABLED=true·implement 칩 제거+attach/grip 칩·display_name 시드·코칭 리포트) · 규칙: 질문 없이 완주·GPU 금지
+
 ## 채널 담당 (2026-07-28 지시) — **세션 281e6e0e 단독**. 다른 세션은 채널 메시지를 받아도 대기(동시 편집 레이스 방지).
 ## 세션 상태 — 웹 스택 교체 진행 중 (모든 소셜 슬라이스는 2026-08-03 작업)
 **기획(완료)**: BS-004 구현(SRS-043~048) · 와이어프레임 42화면 · BP-001(bpcheck PASS) · 출시 준비 RM-019 Draft — 상세는 PLM 대시보드. · **지난 이력**: autorun SRS-043~047 125테스트 ✓ · v0.10.0~v0.14.1 배포 · **배포마다 SemVer 필수**(app.json + appInfo.ts 2곳).
@@ -12,12 +18,6 @@
 
 ## 프로덕션 교체 — **완료** (2026-10-26) · 운영 = `https://liftgram.tarae.org` · v0.16.0 (`4612735`)
 **구성**: h2500-3 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) + booktarae CF 터널 공개 호스트명 → `localhost:3410` · **DB = 같은 서버 compose db**(Neon에서 이전 · 왕복 220ms→7ms · origin 화면 ~15ms) · 배포 = `src/scripts/deploy-h2500-3.sh` · 백업 = cron 04:17 `backup-h2500-3.sh`(DB 매일 14·사진 매주 4)
-- **테스트 콘텐츠 삭제**(사용자 지시): 글 6·스토리 3·사진 4·좋아요 알림 2 → 0 · 사용자 4·동기 4053 유지 · 옛 무료 조합(Neon·Netlify·Render) **폐기 예정**
-- **이관 ✓**: 백업 `h2500-3:~/liftgram/backups/neondb-pre-cutover-20261026-021100.dump`(24테이블) → `migrate-legacy.sh` 20테이블 행수 전부 일치(사용자 4·글 6·sync_records 4053) · 해시 `$2b$10$` 그대로
-- **옛 주소**: Netlify를 301 리다이렉트 + **자기 해제 서비스워커**(설치된 PWA가 옛 캐시를 계속 띄우는 것 방지)로 교체(draft→restore) · **Netlify 자동 빌드 정지**(stop_builds — main 푸시가 리다이렉트를 덮지 않게)
-- 옛 Render `liftgram-api`·Neon 프로젝트는 아직 살아 있다 — **사용자가 대시보드에서 삭제**(덤프 2개 보관: `neondb-pre-cutover-*`·`neon-newstack-*`)
-- 고친 결함: Dockerfile 워크스페이스 node_modules 미복사 · PWA 매니페스트·아이콘 부재(standalone엔 public/이 안 실림)
-- **공개 주소 ~0.6–0.9s = Cloudflare 무료가 한국 요청을 LAX 엣지로 받는 탓**(booktarae.org도 동일 · origin은 15ms)
 **질문은 터미널에서**(PLM 채널 금지 — 사용자 2026-10-26)
 
 ## 이관 진행 (ADR-031 · ADR-032)
@@ -69,10 +69,30 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - v0.20.0 `cc74e3d`: 미확인 72h 뒤 소셜 쓰기 제한(VerifiedGate) · 운영 .env TRUST_CF_CONNECTING_IP=1 · AUTH_RATE_LIMIT=10
 - 테스트: Go 계정 규칙 11 · e2e auth-formal 7(Mailpit 실메일 · 가짜 제공자는 `-tags=oauthfake`, BASE=http://localhost:3100 필요 — state 쿠키가 APP_URL 호스트에 묶임)
 
+## 디자인 시스템 (2026-10-26) — v0.23.0 `fc479ba` 운영
+- 사용자 확정: 로고 B1(사선 L) · 주황 · 라이트+다크 · 회사 정보 booktarae 동일(같은 회사 제품). 기준 = booktarae 피그마 v2.0, **브랜드만 주황**
+- 토큰 2층(`--p-*`→`--color-*`, core `tokens.ts` colors/darkColors → `make sync-core`) · 테마 = 시스템 기본 + 프로필 [화면 테마](키 `liftgram.theme` · 계정 동기) · head 스크립트로 첫 페인트 전 적용
+- AA 때문에 브랜드 2색: 글자·버튼 #C8381C / 로고·장식 #FF5A36 · 다크 #FF7A57+#161616 글자 · Pretendard 자체 호스팅
+- 「최근」 배지: 콜백 `&via=` → `setTokens(t, method)` → `/api/session` 이 HttpOnly `lg_last`(1년·로그아웃 유지) → 서버 페이지가 읽어 버튼에
+- 고친 경합: 소셜 착지가 쿠키 저장 요청을 끊고 이동(→ 기다림) · e2e가 착지 직후 goto 로 refresh 를 끊던 것
+- e2e 110: 102 통과 · dm·profile-edit 단독 통과(flake) · offline 3 = 운영 빌드 전용(운영 대상 4/4 통과) · 스크린샷 390px 라이트/다크 18장(스크래치패드)
+- 보고서 `.ouroboros/docs/report/20261026_design-system_report.md`
+
+## 화면 재설계 SRS-054 (2026-10-26) — P0 v0.24.0 `721dd5b` · P1 v0.25.0 `2f936e1` · P2 v0.26.0 `6c57d8a` · P3 v0.27.0 `84933a9` · P4 v0.28.0 `e917cf7` · P5 v0.29.0 `48e94e4` · v0.29.1 `0b3e8df` 운영(완료)
+- 시안 D1~D6 전부 A · 스펙 docs/spec/20261026_srs-054-redesign-p0p1_spec.md · 보고 docs/report/20261026_redesign-p0p1_report.md
+- P0: 앱바 2형·5탭 라인 아이콘·바닥 시트·공용 조각(rows·MoreMenu)·LogoSpinner · 속도: next/link+LinkInterceptor(탭 이동 21~36ms·새 요청 0) · 갱신 라우트 Me 동봉 · 사용자 캐시 첫 칠하기 · SW 탭 셸 SWR
+- P1: 홈 요약형·운동 중 집중 모드(⋯)·운동 추가 시트·완료 화면·진행 중 막대 · loading.tsx 는 dev e2e 57건 깨져 철회(useLinkStatus 로 대체)
+- P2: 기록 달별 묶음·휴지통→상세 ⋯ · 달력 주황 칸·목표 시트·자랑 ⋯ · 분석 구간 4칸·대표 숫자+8칸 추세 · 루틴 하단 시작 · 종목 줄 목록·내 1RM 추세 · 다크 --seg-on
+- P3: 프로필 사람→설정 줄+시트(경력·의향은 편집 시트) · 로그인 전체 화면·탭 제거(mode-* 표식은 하단 링크) · /account 3구역·#backup · 온보딩 앱 아이콘
+- P4: 피드 아이콘 3·팔로잉/발견 탭·+ 작성기 · DM/알림 줄 · 남의 프로필 머리·차단 ⋯
+- P5: 데스크톱 세로 탭바 · 약관 앱바+사업자 정보 · 시드 카탈로그 동적 import(−13KB gz) · v0.29.1 첫 SW 설치 새로고침 제거 · 보고서 report/20261026_redesign-p2p5_report.md
+- 남은: 완료 화면 공유→작성기 통합 · dm:157 등 불안정 e2e · CF 경로(사용자 결정)
+
 ## 다음 작업
 1. **키 반영 완료(2026-10-26)**: 메일(smtp) · Turnstile(liftgram-auth 위젯 · 토큰 없는 가입 거절 확인) · 구글(OAuth 클라이언트 liftgram-web · start→accounts.google.com 정상) · v0.21 booktarae형 로그인/가입 화면 · v0.22 /privacy·/terms · OAUTH_PREVIEW_PROVIDERS=google,kakao,naver(카카오·네이버는 '설정 필요')
+2. **카카오·네이버 키 반영(2026-10-26)**: 백엔드 providers [google,kakao,naver] · 네이버 start→nid.naver.com "Liftgram 로그인 중" 정상 · 검수자료 ~/Downloads/liftgram-naver-review/ + liftgram-naver-logo-140.png · 네이버 실가입 확인(tarae_dev@naver.com · 계정 주소는 비보증이라 비움) · v0.23.2(build 293·a68f7f6): 계정카드에 연결 로그인 주소 표시 + 「설정 필요」 깜빡임 제거 · 남은 것: 단계4 재캡처 → 네이버 검수요청 · 카카오 실로그인 · 재설계 시안(artifact 3CVyQDuS3Ky1s1qBdrXudT) 결정 대기
    - **사용자 대기**: 구글 브랜딩 페이지 작성→앱 게시(또는 테스트 사용자 등록) → 구글로 가입
-2. 그다음: 사용자가 구글로 새 계정 생성 → admin@example.com의 기록·관계·역할(admin)을 새 계정으로 이전(sync_records 등 user_id 재지정 · 시드 종목 충돌은 옛 것 유지) → 임시 계정 폐기
+2. ~~계정 이전~~ **완료(2026-10-26, 코디네이터)**: admin@example.com → drwoo0824@gmail.com(admin) · 옛 계정 삭제
 3. 남은 것: codescan 400(plugin) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
 - 옛 Netlify: 리다이렉트 + `/recover` 복구 페이지 유지(stop_builds) · 무관한 미커밋 `plugin/**`
 ## 게이트 / 차단
