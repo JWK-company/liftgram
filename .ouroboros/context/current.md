@@ -1,5 +1,9 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 종목 카탈로그 대개편 (Project · **완료** 2026-10-26 · v0.30.0~v0.34.1 운영)
+## 활성 작업 — 운동 완료 시 루틴 반영·루틴으로 저장 (Feature · **완료** 2026-10-27 · v0.35.0 운영 build 324 · bb53b04)
+- 요구 URS-019·UCS-022·SRS-059(변경점 선택 반영)·SRS-060(루틴으로 저장) · 스펙 `.ouroboros/docs/spec/20261027_finish-routine-sync/spec.md` · 피드백 #46·#60·#59(일부) · 출시 v0.35.0
+- 작업 범위: core(domain/routineDiff·workoutRepository·routineRepository·schema v24) · frontend(ActiveWorkout·WorkoutSummary·history 상세·i18n) · e2e
+- 현재 위치: spec→qa spec→execute(6dd965c)→qa code(높음2·중간4·낮음6 전부 조치)→release v0.35.0 · 운영 빠른 운동→저장 시트·「루틴으로 저장했어요」 실확인 · PLM #46·#60 완료(#59 유지) · 리포트 `.ouroboros/docs/qa/20261027_finish-routine-sync-{spec,code}_qa.md`
+## 직전 작업 — 종목 카탈로그 대개편 (Project · **완료** 2026-10-26 · v0.30.0~v0.34.1 운영)
 - 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
 - Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
 - 작업 범위: src/core(seed·domain·migrations·sync·db) · src/frontend(Picker·CatalogClient·VariantSelector·session) · src/backend(exercise) · src/proto/exercise · src/database(0014·0015) · src/scripts/gen-catalog.mjs
@@ -94,7 +98,3 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
    - **사용자 대기**: 구글 브랜딩 페이지 작성→앱 게시(또는 테스트 사용자 등록) → 구글로 가입
 2. ~~계정 이전~~ **완료(2026-10-26, 코디네이터)**: admin@example.com → drwoo0824@gmail.com(admin) · 옛 계정 삭제
 3. 남은 것: codescan 400(plugin) · SRS-048 잔여 · ADR 정리 · ADR-029·3D 라이선스(사용자 결정)
-- 옛 Netlify: 리다이렉트 + `/recover` 복구 페이지 유지(stop_builds) · 무관한 미커밋 `plugin/**`
-## 게이트 / 차단
-G1·G2 pass · G3 = @plm 주석 완료, codescan 400으로 딥링크 미동기. 범위 밖 기존 이슈: ADR-012·013 supersedes dangling, ADR-025→026 Replaced 전이 필요.
-**차단 요소 없음** — 방향·이관 전략·배포 경로 확정(ADR-031·032). 파리티까지 직진 가능.
