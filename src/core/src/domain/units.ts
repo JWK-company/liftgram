@@ -52,3 +52,12 @@ export function formatEnteredWeight(kg: number, unit: WeightUnit, opts?: { withU
   const str = String(displayWeight(kg, unit));
   return opts?.withUnit === false ? str : `${str}${unit}`;
 }
+
+/**
+ * 제안 무게를 블록 단위의 보통 증분으로(kg 0.5 · lb 1) — lb 블록에 0.1kg 반올림 제안이 「89.95lb」로 보이던 것(/qa code M-2).
+ * 저장 kg 를 돌려준다. 원판 단위 반올림(기구별)은 prescription.roundLoadKg 가 맡는다.
+ */
+export function roundSuggestionKg(kg: number, unit: WeightUnit): number {
+  if (!Number.isFinite(kg) || kg <= 0) return 0;
+  return toKg(roundToIncrement(fromKg(kg, unit), unit === 'kg' ? 0.5 : 1), unit);
+}

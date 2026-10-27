@@ -169,6 +169,7 @@
     "src/core/src/data/finishRoutine.ts:1",
     "src/core/src/domain/__tests__/routineDiff.test.ts:1",
     "src/core/src/domain/routineDiff.ts:1",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:82",
     "src/frontend/app/components/session/FinishRoutineSheets.tsx:2",
     "src/frontend/e2e/finish-routine.spec.ts:1"
   ]

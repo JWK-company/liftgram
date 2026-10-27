@@ -41,6 +41,7 @@ export default class WorkoutExercise extends Model {
   @text('superset_group') declare supersetGroup: string | null; // v7: 세션 슈퍼셋 그룹(#20)
   @field('routine_exercise_id') declare routineExerciseId: string | null; // v24: 루틴의 어느 줄에서 왔나 @plm SRS-059
   @text('weight_unit') declare weightUnit: 'kg' | 'lb' | null; // v25: 블록 무게 단위(null=kg) @plm SRS-067
+  @field('unit_by_user') declare unitByUser: boolean | null; // v25: 사람이 이번 운동에서 단위를 골랐다(/qa code H-2) @plm SRS-067
   @json('cardio_target', sanitizeCardioTarget) declare cardioTarget: CardioTargetJson | null; // v13: 유산소 목표(루틴서 복사). @plm SRS-030
   @json('prescription', sanitizePrescription) declare prescription: PrescribedSet[] | null; // v16: 처방(루틴서 복사 — 세션 렌더). @plm SRS-043
   @readonly @date('created_at') declare createdAt: Date;

@@ -9,7 +9,16 @@ import { t } from "@/lib/i18n";
 
 const UNITS: WeightUnit[] = ["kg", "lb"];
 
-export function UnitToggle({ value, onChange }: { value: WeightUnit; onChange: (u: WeightUnit) => void }) {
+export function UnitToggle({
+  value,
+  onChange,
+  disabled = false,
+}: {
+  value: WeightUnit;
+  onChange: (u: WeightUnit) => void;
+  /** 단위를 정하는 중·바꾸는 중 — 겹친 토글을 막는다(/qa code H-1·M-4) */
+  disabled?: boolean;
+}) {
   return (
     <fieldset
       aria-label={t("session.unitToggleLabel")}
@@ -24,8 +33,9 @@ export function UnitToggle({ value, onChange }: { value: WeightUnit; onChange: (
             type="button"
             data-testid={`unit-toggle-${u}`}
             aria-pressed={on}
+            disabled={disabled}
             onClick={() => onChange(u)}
-            className={`min-w-[34px] rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px] font-semibold text-[length:var(--text-xs)] leading-[18px] ${
+            className={`min-w-[34px] disabled:opacity-60 rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px] font-semibold text-[length:var(--text-xs)] leading-[18px] ${
               on
                 ? "bg-(--color-brand) text-(--color-on-brand)"
                 : "text-(--color-ink3) active:bg-(--color-line)"

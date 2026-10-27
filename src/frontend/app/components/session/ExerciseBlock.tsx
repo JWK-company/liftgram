@@ -27,6 +27,7 @@ import {
   type SlotSummary,
   effectiveWeightKg,
   formatEnteredWeight,
+  roundSuggestionKg,
   formatWeight,
   resolveLoadMode,
   restSecondsForSetType,
@@ -177,14 +178,23 @@ export function ExerciseBlock({
   const [blockUnit, setBlockUnit] = useState<WeightUnit>(() =>
     we.weightUnit === "lb" ? "lb" : we.weightUnit === "kg" ? "kg" : unit,
   );
+  // 단위가 정해지기 전(종목 추가·교체 직후)·토글이 쓰는 동안은 토글을 막는다 — 정하기와 토글이 겹치면 숫자 의미가
+  // 달라졌다(/qa code M-4·H-1). 저장소가 writer 안에서 판단하고, 화면은 돌려받은 단위를 따른다. @plm SRS-067
+  const [unitReady, setUnitReady] = useState(() => we.weightUnit === "lb" || we.weightUnit === "kg");
+  const [unitBusy, setUnitBusy] = useState(false);
   useEffect(() => {
     let alive = true;
     void repo
       .ensureBlockUnit(we.id)
       .then((u) => {
-        if (alive) setBlockUnit(u);
+        if (alive) {
+          setBlockUnit(u);
+          setUnitReady(true);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (alive) setUnitReady(true);
+      });
     return () => {
       alive = false;
     };
@@ -218,12 +228,29 @@ export function ExerciseBlock({
   }, [repo, we.id, we.exerciseId]);
 
   /** 사람이 누른 토글(Q4 B) — 이 블록 세트의 숫자는 그대로, 단위만. 다시 누르면 정확히 원래로. */
+  // [원본] 낙관적으로 단위를 바꾸고 호출을 기다리지 않았다 — 연타하면 DB lb·화면 kg 로 어긋나 100 이 45.36 으로 보였다(/qa code H-1)
+  // const switchUnit = (to: WeightUnit) => {
+  //   if (to === blockUnit) return;
+  //   setBlockUnit(to);
+  //   void write(() => repo.switchBlockWeightUnit(we.id, to)).then(…).catch(() => setBlockUnit(blockUnit));
+  // };
+  // [개선] 한 번에 하나 — 끝날 때까지 토글을 막고, 저장소가 돌려준 단위를 따른다(화면이 본 단위를 넘겨 낡은 판단은 무시된다)
   const switchUnit = (to: WeightUnit) => {
-    if (to === blockUnit) return;
-    setBlockUnit(to);
-    void write(() => repo.switchBlockWeightUnit(we.id, to))
-      .then(() => toast(t("session.unitSwitched", { unit: to })))
-      .catch(() => setBlockUnit(blockUnit));
+    if (to === blockUnit || unitBusy || !unitReady) return;
+    const from = blockUnit;
+    setUnitBusy(true);
+    void (async () => {
+      try {
+        const got = await repo.switchBlockWeightUnit(we.id, to, from);
+        setBlockUnit(got);
+        await onChanged();
+        if (got === to) toast(t("session.unitSwitched", { unit: to }));
+      } catch (e) {
+        toast(e instanceof Error ? e.message : String(e), "error");
+      } finally {
+        setUnitBusy(false);
+      }
+    })();
   };
 
   // ── 종목 자체의 성질(기구·유산소·하중 모드) ──
@@ -667,7 +694,7 @@ export function ExerciseBlock({
 
           {/* kg/lb 토글 — PR 칩 옆(2026-10-27 사용자). 맨몸·유산소는 무게 단위가 없다. @plm SRS-067 */}
           {!isCardio && loadMode === "external" ? (
-            <UnitToggle value={blockUnit} onChange={switchUnit} />
+            <UnitToggle value={blockUnit} onChange={switchUnit} disabled={unitBusy || !unitReady} />
           ) : null}
 
           {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
@@ -789,7 +816,11 @@ export function ExerciseBlock({
                 onApplySuggestion={() => {
                   const sug = suggestions[s.id];
                   if (!sug) return;
-                  void write(() => repo.updateSetLog(s.id, { weightKg: sug.weightKg }));
+                  // [원본] void write(() => repo.updateSetLog(s.id, { weightKg: sug.weightKg }));
+                  // [개선] 블록 단위의 보통 증분으로(lb 블록에 89.95 가 들어가던 것 · /qa code M-2) @plm SRS-067
+                  void write(() =>
+                    repo.updateSetLog(s.id, { weightKg: roundSuggestionKg(sug.weightKg, blockUnit) }),
+                  );
                   setSuggestions((m) => {
                     const { [s.id]: _drop, ...rest } = m;
                     return rest;
@@ -890,13 +921,17 @@ export function ExerciseBlock({
                   </AppText>
                   <AppText variant="caption" className="block" data-testid="slot-last-sets">
                     {x.lastSets
-                      .map((ls) => `${formatEnteredWeight(ls.weightKg, blockUnit)}×${ls.reps}`)
+                      // [원본] 지금 블록의 단위로 보였다 — 해머(lb) 칸의 100lb 가 kg 블록에서 45.36kg(/qa code M-2) @plm SRS-067
+                      .map(
+                        (ls) =>
+                          `${formatEnteredWeight(ls.weightKg, x.weightUnit === "lb" ? "lb" : "kg")}×${ls.reps}`,
+                      )
                       .join(" · ")}
                   </AppText>
                   {x.best ? (
                     <AppText variant="caption" color="pr" className="block">
                       {t("session.slotBest", {
-                        weight: formatEnteredWeight(x.best.weightKg, blockUnit),
+                        weight: formatEnteredWeight(x.best.weightKg, x.weightUnit === "lb" ? "lb" : "kg"),
                         reps: x.best.reps,
                       })}
                     </AppText>

@@ -5,7 +5,8 @@
 // 볼륨·추정 1RM. 값은 전부 `getWorkoutDetail`이 준 것을 그대로 놓는다(집계는 저장소 몫).
 //
 // 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
-import { displayWeight, formatEnteredWeight, formatWeight, toKg, type WeightUnit } from "@app/core";
+import { displayWeight, formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
+import { enteredWeightToKg } from "@app/core/domain/blockUnit"; // /qa code M-1 @plm SRS-067
 import { type GripKey, gripLabel, variantLabelFromKey } from "@app/core/domain/variants";
 import type { AppLanguage } from "@app/core/domain/types";
 import { useRouter } from "next/navigation";
@@ -475,9 +476,13 @@ function EditSetSheet({
     })();
   };
 
-  const kg = toKg(Number.parseFloat(w.replace(",", ".")), unit);
+  // [원본] const kg = toKg(Number.parseFloat(w.replace(",", ".")), unit);
+  // [개선] 무게 칸을 그대로 두고 횟수만 고쳐도 2자리 표시 반올림으로 kg 가 미세하게 바뀌던 것(/qa code M-1) @plm SRS-067
+  const enteredW = Number.parseFloat(w.replace(",", "."));
+  const kg = enteredWeightToKg(enteredW, unit, set.weightKg as number) ?? (set.weightKg as number);
   const reps = Number.parseInt(r, 10);
-  const valid = Number.isFinite(kg) && kg >= 0 && Number.isFinite(reps) && reps >= 0;
+  const valid =
+    Number.isFinite(enteredW) && enteredW >= 0 && Number.isFinite(kg) && Number.isFinite(reps) && reps >= 0;
 
   return (
     <SheetShell

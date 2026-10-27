@@ -42,3 +42,12 @@ export function calcPlates(targetKg: number, inv: PlateInventory = DEFAULT_INVEN
   const achievableKg = inv.barKg + loadedPerSide * 2;
   return { perSide: result, achievableKg, leftoverKg: targetKg - achievableKg };
 }
+
+// lb 블록의 원판 계산(/qa code M-2) — 미국식 45lb 봉·lb 원판. 계산은 kg 정본으로 하고(같은 함수) 화면이 lb 로 보인다.
+// 봉 무게는 프로필(kg)이 아니라 45lb 로 본다 — lb 원판이 걸린 기구의 봉은 대개 45lb 다. @plm SRS-067
+export const LB_PLATES_LB = [45, 35, 25, 10, 5, 2.5];
+export const LB_BAR_LB = 45;
+export function lbPlateInventory(): PlateInventory {
+  const k = 0.45359237;
+  return { barKg: LB_BAR_LB * k, platesKg: LB_PLATES_LB.map((p) => p * k) };
+}

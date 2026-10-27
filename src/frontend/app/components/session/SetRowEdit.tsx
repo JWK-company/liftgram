@@ -18,14 +18,18 @@ import {
   // [원본] GRIP_KEYS, — 세트별 그립 선택을 없앴다(ADR-034: 그립은 블록 칸)
   type GripKey,
   calcPlates,
+  formatEnteredWeight,
+  lbPlateInventory,
+  roundSuggestionKg,
   displayWeight, // 세트 무게 표시는 한 곳 — 100lb 왕복이 정확(/qa spec Q1) @plm SRS-067
   formatWeight,
   gripLabel,
   gripShortLabel,
   repRangeLabel,
-  toKg,
   type WeightUnit,
 } from "@app/core";
+// 보이던 숫자를 그대로 두고 떠나면 저장 kg 를 바꾸지 않는다(/qa code M-1) @plm SRS-067
+import { enteredWeightToKg } from "@app/core/domain/blockUnit";
 import { useEffect, useRef, useState } from "react";
 import { useSetDrafts } from "./setDrafts";
 import { lang, t } from "@/lib/i18n";
@@ -151,11 +155,23 @@ export function SetRowEdit({
   }, [set.reps]);
   useEffect(() => setPt(set.partialReps ? String(set.partialReps) : ""), [set.partialReps]);
 
+  // [원본] 누르고 떼기만 해도 toKg(표시 숫자) 로 다시 썼다 — 2자리 표시 반올림 때문에 60kg 이 60.0012 가 되어 거짓 PR(/qa code M-1)
+  // const commitWeight = () => {
+  //   drafts.set(set.id, { weightKg: undefined });
+  //   const n = Number.parseFloat(w.replace(",", "."));
+  //   if (!Number.isNaN(n) && n >= 0) onUpdate({ weightKg: toKg(n, unit) });
+  //   else setW(String(displayWeight(set.weightKg, unit)));
+  // };
+  // [개선] 보이던 숫자 그대로면 아무것도 쓰지 않는다(사람이 고친 세트로 표시되지도 않는다) @plm SRS-067
   const commitWeight = () => {
     drafts.set(set.id, { weightKg: undefined });
     const n = Number.parseFloat(w.replace(",", "."));
-    if (!Number.isNaN(n) && n >= 0) onUpdate({ weightKg: toKg(n, unit) });
-    else setW(String(displayWeight(set.weightKg, unit)));
+    if (Number.isNaN(n) || n < 0) {
+      setW(String(displayWeight(set.weightKg, unit)));
+      return;
+    }
+    const kg = enteredWeightToKg(n, unit, set.weightKg);
+    if (kg !== null) onUpdate({ weightKg: kg });
   };
   const commitReps = () => {
     drafts.set(set.id, { reps: undefined });
@@ -178,10 +194,10 @@ export function SetRowEdit({
   const currentValues = (): [number | undefined, number | undefined] => {
     const kg = Number.parseFloat(w.replace(",", "."));
     const n = Number.parseInt(r, 10);
-    return [
-      Number.isNaN(kg) || kg < 0 ? undefined : toKg(kg, unit),
-      Number.isNaN(n) || n < 0 ? undefined : n,
-    ];
+    // [원본] Number.isNaN(kg) || kg < 0 ? undefined : toKg(kg, unit), — 보이던 숫자면 저장 kg 그대로(/qa code M-1)
+    const entered =
+      Number.isNaN(kg) || kg < 0 ? undefined : (enteredWeightToKg(kg, unit, set.weightKg) ?? set.weightKg);
+    return [entered, Number.isNaN(n) || n < 0 ? undefined : n];
   };
 
   const applyPrev = () => {
@@ -205,14 +221,20 @@ export function SetRowEdit({
 
   // 플레이트 계산 — 목표 무게를 만들려면 한쪽에 무엇을 끼우는지. app과 같은 문구·같은 계산이다.
   const showPlates = () => {
-    const bd = calcPlates(set.weightKg, { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG });
+    // [원본] kg 원판·프로필 봉만 썼다 — lb 블록에 「목표 103lb / 한쪽 20 + 1.25kg」가 섞여 보였다(/qa code M-2)
+    // const bd = calcPlates(set.weightKg, { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG });
+    // [개선] lb 블록은 45lb 봉·lb 원판으로 계산하고 lb 로 보인다. 목표는 적은 숫자 그대로 @plm SRS-067
+    const inv = unit === "lb" ? lbPlateInventory() : { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG };
+    const bd = calcPlates(set.weightKg, inv);
     if (!bd.perSide.length) {
-      setPlates(t("session.plateBarOnly", { barWeight: formatWeight(barWeightKg, unit) }));
+      setPlates(t("session.plateBarOnly", { barWeight: formatEnteredWeight(inv.barKg, unit) }));
       return;
     }
-    const perSide = bd.perSide.map((p) => `${p.plateKg}${p.count > 1 ? `×${p.count}` : ""}`).join(" + ");
+    const perSide = bd.perSide
+      .map((p) => `${displayWeight(p.plateKg, unit)}${p.count > 1 ? `×${p.count}` : ""}`)
+      .join(" + ");
     const lines = [
-      t("session.plateTarget", { targetWeight: formatWeight(set.weightKg, unit) }),
+      t("session.plateTarget", { targetWeight: formatEnteredWeight(set.weightKg, unit) }),
       t("session.platePerSide", { perSide }),
       bd.leftoverKg > 0.01
         ? t("session.plateLeftover", {
@@ -282,7 +304,13 @@ export function SetRowEdit({
           onChange={(e) => {
             setW(e.target.value);
             const n = Number.parseFloat(e.target.value.replace(",", "."));
-            drafts.set(set.id, { weightKg: Number.isNaN(n) || n < 0 ? undefined : toKg(n, unit) });
+            // [원본] toKg(n, unit) — 보이던 숫자면 저장 kg 그대로(/qa code M-1) @plm SRS-067
+            drafts.set(set.id, {
+              weightKg:
+                Number.isNaN(n) || n < 0
+                  ? undefined
+                  : (enteredWeightToKg(n, unit, set.weightKg) ?? set.weightKg),
+            });
           }}
           onBlur={commitWeight}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
@@ -386,7 +414,7 @@ export function SetRowEdit({
       {!isDone && suggestion ? (
         <div className="flex items-center gap-[var(--spacing-sm)] pb-[2px] pl-[42px]">
           <AppText variant="label" color="pr" className="min-w-0 shrink truncate">
-            {`${t("session.rxSuggest", { weight: `${displayWeight(suggestion.weightKg, unit)}` })} — ${t(
+            {`${t("session.rxSuggest", { weight: `${displayWeight(roundSuggestionKg(suggestion.weightKg, unit), unit)}` })} — ${t(
               suggestion.reasonKey as Parameters<typeof t>[0],
             )}`}
           </AppText>

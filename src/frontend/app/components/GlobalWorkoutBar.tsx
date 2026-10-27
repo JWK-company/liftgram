@@ -32,13 +32,14 @@ export function GlobalWorkoutBar() {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [discarding, setDiscarding] = useState(false);
   const toast = useToast();
-  const discard = () => {
+  // [원본] 클로저 state 가드 — 같은 프레임 이중 탭이 둘 다 통과했고, 다른 기기에서 이미 지운 운동이면 오류 토스트만 뜨고
+  // 막대가 남았다(/qa code M-3). 원복 시 아래 discardV1 을 discard 로 되돌린다.
+  const discardV1 = () => {
     if (!activeWorkoutId || discarding) return;
     const id = activeWorkoutId;
     setDiscarding(true);
     void (async () => {
       try {
-        // 순서는 운동 화면과 같다: 폐기 → 내려쓰기 → 셸 상태 해제 → 휴식 정리. 화면은 그대로 둔다.
         const repo = await import("@app/core/data/workoutRepository");
         await repo.discardWorkout(id);
         const { flushLocalDb } = await import("@/lib/localDb");
@@ -50,6 +51,39 @@ export function GlobalWorkoutBar() {
       } finally {
         setDiscarding(false);
         setConfirmDiscard(false);
+      }
+    })();
+  };
+  void discardV1;
+  // [개선] ref 가드(같은 프레임 이중 탭도 한 번) · 확인창은 먼저 닫는다 · 이미 없는 운동이면 성공으로 보고 셸 상태를 푼다.
+  // 실패(그 밖의 오류)면 토스트만 — 운동·막대는 그대로 남는다. @plm SRS-068
+  const discardingRef = useRef(false);
+  const discard = () => {
+    if (!activeWorkoutId || discardingRef.current) return;
+    discardingRef.current = true;
+    const id = activeWorkoutId;
+    setDiscarding(true);
+    setConfirmDiscard(false);
+    void (async () => {
+      const repo = await import("@app/core/data/workoutRepository");
+      const { flushLocalDb } = await import("@/lib/localDb");
+      try {
+        await repo.discardWorkout(id);
+        await flushLocalDb();
+        setActive(null);
+        clearRest();
+      } catch (e) {
+        const still = await repo.getActiveWorkout().catch(() => null);
+        if (!still || still.id !== id) {
+          // 다른 기기·화면에서 이미 끝났거나 지워졌다 — 막대만 남겨 두지 않는다
+          setActive(null);
+          clearRest();
+        } else {
+          toast(e instanceof Error ? e.message : String(e), "error");
+        }
+      } finally {
+        discardingRef.current = false;
+        setDiscarding(false);
       }
     })();
   };

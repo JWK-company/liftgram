@@ -87,6 +87,9 @@ message WorkoutExercise {
   repeated WorkoutSet sets = 3 [(buf.validate.field).repeated = {max_items: 60}];
   // 종목 id(시드 id 는 모든 사용자에게 같다) — 가져가는 쪽이 이름보다 먼저 찾는다(/qa code H-2). 비면 이름으로.
   string exercise_id = 4 [(buf.validate.field).string = {max_len: 64}];
+  // 이 종목에 적은 무게 단위(kg|lb) — weight_kg 는 늘 kg 이고, 보는 사람에게 **적은 단위**로 보여 준다(SRS-067 · Q2 A).
+  // 비면 옛 글(보는 사람 단위). 한 헬스장 안에 kg·lb 기구가 섞여 있어 종목마다 다르다.
+  string weight_unit = 5 [(buf.validate.field).string = {in: ["", "kg", "lb"]}];
 }
 
 message Post {

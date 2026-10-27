@@ -151,6 +151,7 @@ export const mySchema = appSchema({
         { name: 'prescription', type: 'string', isOptional: true }, // v16: 처방 JSON(루틴서 복사 — 세션 렌더 근거). @plm SRS-043
         { name: 'routine_exercise_id', type: 'string', isOptional: true }, // v24: 루틴의 어느 줄에서 왔나 — 완료 시 변경점 짝짓기. @plm SRS-059
         { name: 'weight_unit', type: 'string', isOptional: true }, // v25: 이 블록의 무게 단위 kg|lb(null=kg) — 블록 세트가 한 단위를 공유한다. @plm SRS-067
+        { name: 'unit_by_user', type: 'boolean', isOptional: true }, // v25: 사람이 이번 운동에서 단위를 골랐다(칸 변경에도 유지 · /qa code H-2) @plm SRS-067
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -185,6 +186,7 @@ export const mySchema = appSchema({
         // v22: 무게 배수 — 플레이트 한쪽 입력이면 2(ADR-037). **optional, null = 1**: WatermelonDB 는 기본값이 없어
         // non-optional number 는 0 이 되고, 그러면 기존 세트의 볼륨·PR 이 전부 0 이 된다(QA B1). 읽기는 effectiveMultiplier 하나로. @plm SRS-058
         { name: 'load_multiplier', type: 'number', isOptional: true },
+        { name: 'user_edited', type: 'boolean', isOptional: true }, // v25: 사람이 무게·횟수를 고쳤다(false=자동 채움 · null=옛 세트) @plm SRS-067
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

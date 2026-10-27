@@ -362,7 +362,18 @@ export default schemaMigrations({
       steps: [
         addColumns({
           table: 'workout_exercises',
-          columns: [{ name: 'weight_unit', type: 'string', isOptional: true }],
+          // [원본] columns: [{ name: 'weight_unit', type: 'string', isOptional: true }],
+          // [개선] 사람이 이번 운동에서 단위를 골랐는지(/qa code H-2 — 칸을 바꿔도 그 단위 유지) @plm SRS-067
+          columns: [
+            { name: 'weight_unit', type: 'string', isOptional: true },
+            { name: 'unit_by_user', type: 'boolean', isOptional: true },
+          ],
+        }),
+        // 세트를 사람이 고쳤는지(/qa code H-3) — 자동 채움(프리필·처방·환산)과 사람이 적은 숫자를 구분한다.
+        // updated_at 은 시스템 쓰기(환산·처방 채움)에도 바뀌어 「사람이 고친 세트」 판정이 오염됐다. null = 옛 세트(updated_at 로 판정) @plm SRS-067
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'user_edited', type: 'boolean', isOptional: true }],
         }),
       ],
     },

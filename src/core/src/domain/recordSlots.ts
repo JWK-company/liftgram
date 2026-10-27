@@ -36,6 +36,7 @@ export function carryWeightAcrossMultiplier(weightKg: number, fromMultiplier: nu
 export interface SlotSession {
   variantKey: string | null;
   completedAt: number;
+  weightUnit?: 'kg' | 'lb' | null; // v25: 그 블록에 적은 단위(/qa code M-2 — 다른 칸의 기록도 적은 단위로) @plm SRS-067
   sets: LoggedSet[]; // 수행한 세트(완료·미완료 판정은 호출 측이 이미 했다)
 }
 
@@ -47,6 +48,8 @@ export interface SlotSummary {
   lastSets: { weightKg: number; reps: number; loadMultiplier: number | null }[];
   /** 이 칸의 최고 계산 무게(배수 반영)와 그때의 횟수 */
   best: { weightKg: number; reps: number } | null;
+  /** 가장 최근 세션에 적은 단위(null=kg) — 칸 시트가 이 단위로 보인다(Q2 A · /qa code M-2) */
+  weightUnit?: 'kg' | 'lb' | null;
 }
 
 /** 수행 이력을 칸별로 묶는다 — 최근 수행 칸이 먼저. 같은 키는 한 줄. */
@@ -77,6 +80,7 @@ export function summarizeSlots(sessions: SlotSession[]): SlotSummary[] {
         .filter((s) => !s.isWarmup && !s.isFailed)
         .map((s) => ({ weightKg: s.weightKg, reps: s.reps, loadMultiplier: s.loadMultiplier ?? null })),
       best,
+      weightUnit: latest.weightUnit ?? null,
     });
   }
   return out.sort((a, b) => b.lastAt - a.lastAt);
@@ -90,14 +94,17 @@ export function summarizeSlots(sessions: SlotSession[]): SlotSummary[] {
  * (양쪽 100 → 한쪽 50). 바꿀 것이 없으면 빈 목록.
  */
 export function planBlockMultiplierResync(
-  sets: { id: string; done: boolean | null; weightKg: number; loadMultiplier: number | null | undefined }[],
+  // [원본] sets: { id; done; weightKg; loadMultiplier }[] — 안 한 세트는 전부 환산했다
+  // [개선] touched — 사람이 이미 적은 숫자는 그대로 두고 배수만(늦게 도착한 환산이 입력 중 값을 덮던 것 · /qa code H-3 원칙) @plm SRS-067
+  sets: { id: string; done: boolean | null; weightKg: number; loadMultiplier: number | null | undefined; touched?: boolean }[],
   toMultiplier: number | null,
 ): { id: string; weightKg: number; loadMultiplier: number | null }[] {
   const out: { id: string; weightKg: number; loadMultiplier: number | null }[] = [];
   for (const s of sets) {
     if (s.done !== false) continue;
     if ((s.loadMultiplier ?? null) === toMultiplier) continue;
-    out.push({ id: s.id, weightKg: carryWeightAcrossMultiplier(s.weightKg, s.loadMultiplier, toMultiplier), loadMultiplier: toMultiplier });
+    const weightKg = s.touched ? s.weightKg : carryWeightAcrossMultiplier(s.weightKg, s.loadMultiplier, toMultiplier);
+    out.push({ id: s.id, weightKg, loadMultiplier: toMultiplier });
   }
   return out;
 }

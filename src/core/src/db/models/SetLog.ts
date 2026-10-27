@@ -32,6 +32,7 @@ export default class SetLog extends Model {
   @field('set_type') declare setType: string | null; // 'warmup'|'top'|'backoff'
   @field('target_rir') declare targetRir: number | null; // 0~6
   @field('load_multiplier') declare loadMultiplier: number | null; // v22: 무게 배수(플레이트 한쪽=2) — null=1(QA B1). @plm SRS-058
+  @field('user_edited') declare userEdited: boolean | null; // v25: 사람이 무게·횟수를 고쳤다(false=자동 채움 · null=옛 세트) @plm SRS-067
   @field('done') declare done: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') declare completedAt: number | null;
   @readonly @date('created_at') declare createdAt: Date;

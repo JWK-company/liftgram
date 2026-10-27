@@ -225,5 +225,11 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/data/exercisePrefs.ts:1",
+    "src/core/src/domain/__tests__/recordSlots.test.ts:1",
+    "src/core/src/domain/recordSlots.ts:1",
+    "src/frontend/app/components/ui/RecordSlotSelector.tsx:2"
+  ]
 }

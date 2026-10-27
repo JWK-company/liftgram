@@ -155,3 +155,85 @@ test("운동 중 막대의 취소 — 같은 확인창을 거치고, 확인하�
   await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
   await expect(page.getByTestId("resume-card")).toHaveCount(0);
 });
+
+// ── /qa code 조치(2026-10-27) ── @plm SRS-067
+async function 칸_시트(page: Page) {
+  await page.getByTestId("variant-trigger").first().click();
+  await expect(page.getByTestId("variant-sheet")).toBeVisible();
+}
+async function 시트_닫기(page: Page) {
+  await page
+    .getByTestId("variant-sheet")
+    .locator("xpath=..")
+    .locator('button[aria-label="닫기"]')
+    .click({ position: { x: 5, y: 5 } });
+  await expect(page.getByTestId("variant-sheet")).toHaveCount(0);
+}
+
+test("H-2: lb 를 고르고 그립(칸)을 바꿔도 lb·100 그대로 — 사람이 고른 단위는 칸 기억이 덮지 않는다", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동(page, "케이블 랫풀다운");
+  const toggle = 블록(page).getByTestId("unit-toggle");
+  await expect(toggle.getByTestId("unit-toggle-kg")).toHaveAttribute("aria-pressed", "true", {
+    timeout: 20_000,
+  });
+  await toggle.getByTestId("unit-toggle-lb").click();
+  await expect(toggle.getByTestId("unit-toggle-lb")).toHaveAttribute("aria-pressed", "true");
+  await expect(toggle.getByTestId("unit-toggle-kg")).toBeEnabled();
+
+  const weight = 블록(page).getByTestId("set-list").locator("> div").nth(0).getByTestId("set-weight");
+  await weight.fill("100");
+  await weight.blur();
+
+  await 칸_시트(page);
+  await page.getByTestId("slot-grip-wide").click();
+  await 시트_닫기(page);
+
+  await expect(toggle.getByTestId("unit-toggle-lb")).toHaveAttribute("aria-pressed", "true");
+  await expect(weight).toHaveValue("100");
+  await expect(블록(page)).toContainText("무게 (lb)");
+});
+
+test("H-1: 토글을 연타해도 단위와 숫자가 어긋나지 않는다(적은 100 이 45.36 으로 바뀌지 않는다)", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동(page, "바벨 벤치프레스");
+  const toggle = 블록(page).getByTestId("unit-toggle");
+  await expect(toggle.getByTestId("unit-toggle-kg")).toHaveAttribute("aria-pressed", "true", {
+    timeout: 20_000,
+  });
+  await expect(toggle.getByTestId("unit-toggle-lb")).toBeEnabled();
+  const weight = 블록(page).getByTestId("set-list").locator("> div").nth(0).getByTestId("set-weight");
+  await weight.fill("100");
+  await weight.blur();
+
+  // 같은 프레임에 lb → kg 두 번(버튼이 막히기 전에)
+  await page.evaluate(() => {
+    const lb = document.querySelector('[data-testid="unit-toggle-lb"]') as HTMLButtonElement;
+    const kg = document.querySelector('[data-testid="unit-toggle-kg"]') as HTMLButtonElement;
+    lb.click();
+    kg.click();
+  });
+  await expect(toggle.getByTestId("unit-toggle-lb")).toBeEnabled({ timeout: 10_000 });
+  const lbOn = (await toggle.getByTestId("unit-toggle-lb").getAttribute("aria-pressed")) === "true";
+  await expect(블록(page)).toContainText(lbOn ? "무게 (lb)" : "무게 (kg)");
+  await expect(weight).toHaveValue("100");
+
+  // 다시 그려도(화면을 나갔다 오기) 같은 단위·같은 숫자 — DB 와 화면이 같다
+  await page.getByTestId("btn-close-session").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await page.goto("/workout");
+  await expect(블록(page).getByTestId(lbOn ? "unit-toggle-lb" : "unit-toggle-kg")).toHaveAttribute(
+    "aria-pressed",
+    "true",
+    { timeout: 20_000 },
+  );
+  await expect(
+    블록(page).getByTestId("set-list").locator("> div").nth(0).getByTestId("set-weight"),
+  ).toHaveValue("100");
+});

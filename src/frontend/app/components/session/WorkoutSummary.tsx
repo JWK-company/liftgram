@@ -7,7 +7,7 @@
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
-import { formatWeight, type WeightUnit } from "@app/core";
+import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
@@ -29,6 +29,7 @@ export interface Summary {
     exerciseId: string;
     exerciseName: string;
     prs: { type: string; previous: number; current: number }[];
+    weightUnit?: "kg" | "lb" | null; // 그 블록에 적은 단위(/qa code M-2) @plm SRS-067
   }[];
 }
 
@@ -111,23 +112,25 @@ export function WorkoutSummary({
             />
             <ListGroup testId="summary-pr-list">
               {summary.prs.flatMap((d) =>
-                d.prs.map((p) => (
-                  <ListRow
-                    key={`${d.exerciseId}_${p.type}`}
-                    leading={<Icon name="trophy" size={18} color="var(--color-pr)" />}
-                    title={`${d.exerciseName} · ${t(
-                      p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume",
-                    )}`}
-                    subtitle={
-                      p.previous > 0
-                        ? t("session.prPrev", { value: formatWeight(p.previous, unit) })
-                        : undefined
-                    }
-                    value={
-                      <span className="font-bold text-(--color-pr)">{formatWeight(p.current, unit)}</span>
-                    }
-                  />
-                )),
+                d.prs.map((p) => {
+                  // [원본] 중량·볼륨 둘 다 kg·0.5 증분으로 보였다 — lb 블록 100lb PR 이 「45.5kg」(/qa code M-2)
+                  // [개선] 중량 PR 은 그 블록에 적은 단위·적은 숫자 그대로, 볼륨은 kg(Q2 A) @plm SRS-067
+                  const show = (v: number) =>
+                    p.type === "maxWeight" && d.weightUnit === "lb"
+                      ? formatEnteredWeight(v, "lb")
+                      : formatWeight(v, unit);
+                  return (
+                    <ListRow
+                      key={`${d.exerciseId}_${p.type}`}
+                      leading={<Icon name="trophy" size={18} color="var(--color-pr)" />}
+                      title={`${d.exerciseName} · ${t(
+                        p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume",
+                      )}`}
+                      subtitle={p.previous > 0 ? t("session.prPrev", { value: show(p.previous) }) : undefined}
+                      value={<span className="font-bold text-(--color-pr)">{show(p.current)}</span>}
+                    />
+                  );
+                }),
               )}
             </ListGroup>
           </>
