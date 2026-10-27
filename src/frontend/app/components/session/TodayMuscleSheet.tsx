@@ -97,7 +97,12 @@ function TodayMuscleSheet({
               load={data.done}
               selected={selected}
               height={180}
-              ariaLabel={muscleMapAriaLabel(data.done)}
+              // 줄을 누르면 그림 이름 앞에 「표시: ○」 — 스크린리더도 선택 변화를 듣는다(/qa P2-8)
+              ariaLabel={
+                selected
+                  ? `${t("muscleMap.mapSelected", { muscle: muscleLabel(selected, lang) })} · ${muscleMapAriaLabel(data.done)}`
+                  : muscleMapAriaLabel(data.done)
+              }
               testId="muscle-sheet-map"
             />
           </div>
@@ -118,7 +123,7 @@ function TodayMuscleSheet({
                     aria-label={t("muscleMap.sheetRowAria", { muscle: name, done, planned })}
                     onClick={() => setSelected(isSel ? null : r.m)}
                     className={`flex min-h-[44px] w-full items-center justify-between gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-sm)] text-left ${
-                      isSel ? "bg-(--color-surface-alt)" : ""
+                      isSel ? "bg-(--color-surface-alt) shadow-[inset_2px_0_0_var(--color-brand-vivid)]" : ""
                     }`}
                   >
                     <span className="flex min-w-0 items-center gap-[6px]">

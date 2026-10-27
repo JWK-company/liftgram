@@ -17,12 +17,14 @@ export function readMuscleQuery(search: string): MuscleGroup | null {
 
 export function useMuscleQuerySync(muscle: MuscleGroup | "", setMuscle: (m: MuscleGroup | "") => void): void {
   const applied = useRef(false);
+  const pending = useRef<MuscleGroup | null>(null); // 쿼리에서 읽어 칩에 넣는 중인 값
   const setRef = useRef(setMuscle);
   setRef.current = setMuscle;
 
   // 처음 한 번: 쿼리 → 칩. 칩 줄이 가로로 넘치므로 고른 칩을 보이게 굴린다.
   useEffect(() => {
     const m = readMuscleQuery(window.location.search);
+    pending.current = m;
     if (m) {
       setRef.current(m);
       requestAnimationFrame(() => {
@@ -32,14 +34,21 @@ export function useMuscleQuerySync(muscle: MuscleGroup | "", setMuscle: (m: Musc
       });
     }
     applied.current = true;
+    // 뒤로/앞으로: 칩이 주소를 따른다(바뀐 칩 값 = 주소 값이라 아래 효과는 쓰지 않는다 — pending 불필요)
     const onPop = () => setRef.current(readMuscleQuery(window.location.search) ?? "");
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   // 칩 → 쿼리(처음 적용 전에는 쓰지 않는다 — 빈 상태로 쿼리를 지워 버리지 않게)
+  // /qa P2-6: 위 효과가 같은 커밋에서 applied 를 먼저 세우므로 applied 만으로는 첫 실행(muscle="" 초기값)을 못 막았다 →
+  // 쿼리에서 읽은 값(pending)을 칩 상태가 따라잡을 때까지는 쓰지 않는다(StrictMode 의 효과 재실행에도 안전).
   useEffect(() => {
     if (!applied.current) return;
+    if (pending.current !== null) {
+      if (muscle === pending.current) pending.current = null;
+      return;
+    }
     const url = new URL(window.location.href);
     const cur = url.searchParams.get(MUSCLE_QUERY) ?? "";
     if (cur === muscle) return;

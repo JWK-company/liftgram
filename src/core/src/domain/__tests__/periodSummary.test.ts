@@ -313,6 +313,14 @@ test('부위별 세트(ADR-039) · 노력 요약 · 체중 시작·끝·변화',
 
 // ── 섹션 제거 ─────────────────────────────────────────────────────────
 
+test('부위별 세트는 실패 표시 세트를 뺀다(ADR-039 개정 — 작업 세트 정의와 같다)', () => {
+  const defs: WorkoutDef[] = [
+    { at: R4.startMs + DAY, blocks: [{ ex: EX.bench, sets: [{ w: 60, r: 5 }, { w: 65, r: 2, fail: true }, { w: 65, r: 1, fail: true }] }] },
+  ];
+  const s = memberSummary(buildRaw(defs, 80), R4, 80);
+  assert.deepEqual(s.muscleSets, { byMuscle: { chest: 1, shoulders: 0.5, triceps: 0.5 }, fullBody: 0 });
+});
+
 test('없는 섹션은 키째 없다 — 노력·체중·PR 목록·종목·근육', () => {
   const s = memberSummary(buildRaw([{ at: R4.startMs + DAY, blocks: [{ ex: EX.run, sets: [{ w: 0, r: 0 }] }] }], null), R4, null);
   for (const k of ['effort', 'bodyweight', 'prs', 'topExercises', 'muscleSets']) assert.equal(k in s, false, k);

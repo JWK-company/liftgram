@@ -2,7 +2,9 @@
 // @plm SRS-076 ADR-039  통계 「근육 균형」 카드 — 기존 「근육군 분포」(주근육 볼륨 kg)를 **대체**한다(U-5)
 //
 // · 단위는 작업 세트 수(주근육 1 · 보조근 0.5 · core setsByMuscle 한 함수 — 회원 리포트·성과 요약과 같은 값). 볼륨 kg 은
-//   줄마다 보조 숫자(주근육 기준 · 예전 분포와 같은 집계 getMuscleDistribution)로 남긴다.
+//   줄마다 보조 숫자로 남긴다 — 세트 수와 **같은 세트**를 주근육 각각에 더한다(periodMuscleBalance 한 번의 조회 · /qa P2-4·P2-5).
+// · 기간 표시(/qa P2-3): 창은 위쪽 숫자·전 기간 비교와 같은 「지금 − N일」 롤링이다. 그래서 경계가 하루 가운데에 걸려
+//   날짜로 적으면 앞뒤 기간이 같은 날짜를 함께 보인다 → 날짜 대신 「최근 N일」·「N~2N일 전」으로 적는다(겹침 없는 사실).
 // · 기간은 페이지 위쪽 구간 선택기를 따른다(U-6). 카드 안에는 ‹ › 하나만 — 같은 길이만큼 앞뒤로 옮긴다(「전체」면 없음).
 //   위쪽 기간을 바꾸면 지금 기간(오프셋 0)으로 돌아온다.
 // · 그림(무채 농도 + 선택 근육 brand)은 대략, 숫자 목록(많은 순)이 정확한 값. 목록 줄을 누르면 그 근육을 그림에 표시한다.
@@ -10,8 +12,9 @@
 // 문구는 사실만(웰니스 — 「부족」·「불균형」 같은 평가·권고 없음).
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { formatWeight, muscleLabel, type MuscleGroup } from "@app/core";
+import { formatWeight, muscleLabel } from "@app/core";
 import {
+  emptyMuscleLoad,
   type MapMuscle,
   type MuscleLoad,
   rankedMuscles,
@@ -27,9 +30,11 @@ import { SectionLabel } from "../ui/rows";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function md(ms: number): string {
-  const d = new Date(ms);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+/** 기간 글자 — 오프셋 0 = 「최근 N일」, k ≥ 1 = 「kN~(k+1)N일 전」. 롤링 창이라 날짜 대신 상대 일수로 적는다(/qa P2-3). */
+export function muscleRangeText(days: number, offset: number): string {
+  return offset === 0
+    ? t("muscleMap.rangeRecent", { days })
+    : t("muscleMap.rangeAgo", { from: offset * days, to: (offset + 1) * days });
 }
 
 export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null = 전체) */ days: number | null }) {
@@ -38,7 +43,7 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
   const [data, setData] = useState<{
     key: string;
     load: MuscleLoad;
-    volume: Map<MuscleGroup, number>;
+    volume: Map<MapMuscle, number>;
   } | null>(null);
   const [selected, setSelected] = useState<MapMuscle | null>(null);
   // 기준 시각은 기간·오프셋이 바뀔 때만 다시 잡는다(그리기마다 범위가 흔들리지 않게)
@@ -58,22 +63,19 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([
-      import("@app/core/data/muscleLoadRepository"),
-      import("@app/core/data/analyticsRepository"),
-    ])
-      .then(([ml, an]) =>
-        // 지금 기간(오프셋 0)은 끝을 열어 둔다 — 「지금 − N일」 이후 전부(위쪽 숫자들과 같은 기준)
-        Promise.all([
-          ml.periodMuscleLoad(startMs, offset === 0 ? undefined : endMs),
-          an.getMuscleDistribution(startMs, offset === 0 ? undefined : endMs),
-        ]),
-      )
-      .then(([load, dist]) => {
+    // [원본] periodMuscleLoad + getMuscleDistribution 두 조회(같은 범위를 두 번 읽음 · 볼륨은 첫 주근육 귀속) — /qa P2-4·P2-5
+    // void Promise.all([import("@app/core/data/muscleLoadRepository"), import("@app/core/data/analyticsRepository")])
+    //   .then(([ml, an]) => Promise.all([ml.periodMuscleLoad(...), an.getMuscleDistribution(...)])) …
+    // [개선] 한 번의 조회로 세트와 볼륨을 같은 세트·같은 귀속으로
+    void import("@app/core/data/muscleLoadRepository")
+      // 지금 기간(오프셋 0)은 끝을 열어 둔다 — 「지금 − N일」 이후 전부(위쪽 숫자들과 같은 기준)
+      .then((ml) => ml.periodMuscleBalance(startMs, offset === 0 ? undefined : endMs))
+      .then((b) => {
         if (cancelled) return;
-        setData({ key, load, volume: new Map(dist.map((d) => [d.muscle, d.volumeKg])) });
+        setData({ key, load: b.load, volume: b.volumeKg });
       })
-      .catch(() => !cancelled && setData(null));
+      // 조회 실패는 「읽는 중」 빈 자리로 남기지 않고 빈 문구로 떨어진다(/qa P2-11)
+      .catch(() => !cancelled && setData({ key, load: emptyMuscleLoad(), volume: new Map() }));
     return () => {
       cancelled = true;
     };
@@ -84,10 +86,13 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
   const total = ready ? totalMuscleSets(ready.load) : 0;
   const fullBody = ready?.load.fullBody ?? 0;
   const missing = ready && total > 0 ? untrained(ready.load) : [];
-  const rangeText =
-    startMs !== undefined && endMs !== undefined
-      ? t("muscleMap.range", { start: md(startMs), end: md(endMs - 1) })
-      : null;
+  const rangeText = days ? muscleRangeText(days, offset) : null;
+  // 줄을 누르면 그림의 그 구역만 바뀐다 — 스크린리더에는 그림 이름 앞에 「표시: ○」를 붙여 알린다(/qa P2-8)
+  const mapAria = ready
+    ? selected
+      ? `${t("muscleMap.mapSelected", { muscle: muscleLabel(selected, lang) })} · ${muscleMapAriaLabel(ready.load)}`
+      : muscleMapAriaLabel(ready.load)
+    : "";
 
   return (
     <>
@@ -130,7 +135,7 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
                 load={ready.load}
                 selected={selected}
                 height={160}
-                ariaLabel={muscleMapAriaLabel(ready.load)}
+                ariaLabel={mapAria}
                 testId="muscle-balance-map"
               />
             </div>
@@ -154,8 +159,11 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
                           : t("muscleMap.rowAriaNoVolume", { muscle: name, count })
                       }
                       onClick={() => setSelected(isSel ? null : r.muscle)}
+                      // 선택 줄: 바탕(대비 약함)에 더해 왼쪽 2px brand-vivid 막대(빨강 = 선택 규칙 안 · /qa P2-8)
                       className={`flex min-h-[44px] w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-sm)] text-left ${
-                        isSel ? "bg-(--color-surface-alt)" : ""
+                        isSel
+                          ? "bg-(--color-surface-alt) shadow-[inset_2px_0_0_var(--color-brand-vivid)]"
+                          : ""
                       }`}
                     >
                       <span
@@ -197,6 +205,14 @@ export function MuscleBalanceCard({ days }: { /** 위쪽 기간의 일수(null =
             </ul>
             <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
               {t("muscleMap.halfNote")}
+            </AppText>
+            <AppText
+              variant="caption"
+              color="textFaint"
+              className="block"
+              data-testid="muscle-balance-volume-note"
+            >
+              {t("muscleMap.volumeNote")}
             </AppText>
 
             {missing.length > 0 ? (

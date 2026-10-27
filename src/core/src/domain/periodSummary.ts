@@ -400,7 +400,7 @@ export function buildPeriodSummary(input: PeriodSummaryInput): SummaryV1 {
       for (const s of setsByBlock.get(b.id) ?? []) {
         effortItems.push({ completedAt: w.startedAt, rir: s.rir, rpe: s.rpe, done: s.done, isWarmup: s.isWarmup, setType: s.setType });
         if (!ex || cardio) continue;
-        muscleItems.push({ primaryMuscles: ex.primaryMuscles, secondaryMuscles: ex.secondaryMuscles, isWarmup: s.isWarmup, setType: s.setType });
+        muscleItems.push({ primaryMuscles: ex.primaryMuscles, secondaryMuscles: ex.secondaryMuscles, isWarmup: s.isWarmup, setType: s.setType, isFailed: s.isFailed }); // 실패 세트 제외는 setsByMuscle(ADR-039 개정)
         const arr = byEx.get(b.exerciseId);
         const l = toLogged(s, ex, bw);
         if (arr) arr.push(l);

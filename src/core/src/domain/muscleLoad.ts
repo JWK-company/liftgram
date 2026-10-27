@@ -3,12 +3,14 @@
 // 규칙(ADR-039):
 //   · 단위는 「작업 세트 수」. 한 세트가 주근육 각각에 1, 보조근육 각각에 SECONDARY_WEIGHT(0.5)를 더한다.
 //   · 워밍업(is_warmup 또는 처방 set_type='warmup')은 뺀다.
+//   · 실패 표시(is_failed) 세트도 뺀다 — 앱의 「작업 세트」(isWorkingSet)·KPI 작업 세트·볼륨과 같은 정의(ADR-039 개정).
 //   · fullBody 는 그림에 칠하지 않고 별도 「전신」 숫자로만 센다. other 는 어디에도 세지 않는다.
 //   · 같은 근육이 주·보조에 함께 있으면 주(1)로 한 번만 센다. 목록 안 중복도 한 번.
 // 가중치를 바꾸려면 ADR-039 를 대체하는 새 ADR 이 필요하다.
 import { ALL_MUSCLE_GROUPS, type MuscleGroup } from './types';
 import { muscleLabel } from './labels';
 import type { AppLanguage } from './types';
+import type { PrescribedSet } from './prescription';
 
 /** 보조근육 한 세트의 무게(주근육 = 1). @plm SRS-075 */
 export const SECONDARY_WEIGHT = 0.5;
@@ -36,6 +38,8 @@ export interface MuscleLoadItem {
   isWarmup?: boolean | null;
   /** 처방 세트 타입 — 'warmup' 이면 워밍업 */
   setType?: string | null;
+  /** 실패 표시 세트 — 집계에서 뺀다(ADR-039 개정 · 작업 세트 정의와 맞춤) */
+  isFailed?: boolean | null;
 }
 
 export function emptyMuscleLoad(): MuscleLoad {
@@ -53,14 +57,19 @@ export function isWarmupItem(i: Pick<MuscleLoadItem, 'isWarmup' | 'setType'>): b
   return i.isWarmup === true || i.setType === 'warmup';
 }
 
+/** 근육 집계에서 빼는 세트인가 — 워밍업 또는 실패 표시. 판정은 여기 한 곳(ADR-039). */
+export function isExcludedItem(i: Pick<MuscleLoadItem, 'isWarmup' | 'setType' | 'isFailed'>): boolean {
+  return isWarmupItem(i) || i.isFailed === true;
+}
+
 /**
- * 근육별 세트 수. 워밍업은 빼고, 주근육 1 · 보조근육 0.5, fullBody 는 별도, other 는 제외.
+ * 근육별 세트 수. 워밍업·실패 세트는 빼고, 주근육 1 · 보조근육 0.5, fullBody 는 별도, other 는 제외.
  * 결과는 0.5 단위로만 움직인다(부동소수 오차 없음).
  */
 export function setsByMuscle(items: readonly MuscleLoadItem[]): MuscleLoad {
   const out = emptyMuscleLoad();
   for (const it of items) {
-    if (isWarmupItem(it)) continue;
+    if (isExcludedItem(it)) continue;
     const n = it.sets ?? 1;
     if (!Number.isFinite(n) || n <= 0) continue;
     const primary = new Set(it.primaryMuscles ?? []);
@@ -75,6 +84,20 @@ export function setsByMuscle(items: readonly MuscleLoadItem[]): MuscleLoad {
     }
   }
   return out;
+}
+
+/**
+ * 루틴 종목 한 줄의 계획 작업 세트 수 — 처방이 있으면 처방 중 워밍업 아닌 줄 수, 없으면 target_sets(유한한 양수만).
+ * 순수 함수라 domain 에 둔다(저장소 muscleLoadRepository 가 다시 내보낸다 · 단위 테스트 대상).
+ */
+export function plannedWorkingSets(re: {
+  targetSets?: number | null;
+  prescription?: readonly Pick<PrescribedSet, 'setType'>[] | null;
+}): number {
+  const rx = re.prescription;
+  if (rx && rx.length > 0) return rx.filter((s) => s.setType !== 'warmup').length;
+  const n = re.targetSets;
+  return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 /** 두 집계를 더한다(주 이동·기간 합산용). */

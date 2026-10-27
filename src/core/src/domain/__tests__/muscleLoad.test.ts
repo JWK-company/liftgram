@@ -15,6 +15,8 @@ import {
   muscleShadeLevel,
   primarySecondaryMuscles,
   emptyMuscleLoad,
+  isExcludedItem,
+  plannedWorkingSets,
   type MuscleLoadItem,
 } from '../muscleLoad';
 import type { MuscleGroup } from '../types';
@@ -155,4 +157,41 @@ test('primarySecondaryMuscles — 미니 그림 2단계(주에 있으면 보조�
   const r = primarySecondaryMuscles([bench, { primaryMuscles: ['triceps'], secondaryMuscles: ['fullBody', 'other'] }]);
   assert.deepEqual(r.primary, ['chest', 'triceps']);
   assert.deepEqual(r.secondary, ['shoulders']);
+});
+
+test('실패 표시(is_failed) 세트는 뺀다 — 작업 세트 정의와 같다(ADR-039 개정)', () => {
+  const l = setsByMuscle([
+    { ...bench, isFailed: true },
+    { ...bench, isFailed: false },
+    { ...bench, isFailed: null },
+    { ...bench, isFailed: true, sets: 3 },
+  ]);
+  assert.equal(l.byMuscle.chest, 2);
+  assert.equal(l.byMuscle.triceps, 1);
+  assert.equal(isExcludedItem({ isFailed: true }), true);
+  assert.equal(isExcludedItem({ isWarmup: true }), true);
+  assert.equal(isExcludedItem({ setType: 'warmup' }), true);
+  assert.equal(isExcludedItem({ setType: 'top', isFailed: false, isWarmup: false }), false);
+});
+
+test('실패 세트만 있으면 0 — 그림·목록이 비고 「안 한 근육」은 12', () => {
+  const l = setsByMuscle([{ ...squat, isFailed: true }]);
+  assert.equal(totalMuscleSets(l), 0);
+  assert.equal(untrained(l).length, 12);
+});
+
+test('plannedWorkingSets — 처방은 워밍업 아닌 줄 수, 없으면 target_sets(유한한 양수만)', () => {
+  assert.equal(plannedWorkingSets({ targetSets: 3, prescription: null }), 3);
+  assert.equal(
+    plannedWorkingSets({ targetSets: 5, prescription: [{ setType: 'warmup' }, { setType: 'top' }, { setType: 'backoff' }] }),
+    2,
+  );
+  // 처방이 워밍업뿐이면 0 (target_sets 로 되돌아가지 않는다)
+  assert.equal(plannedWorkingSets({ targetSets: 4, prescription: [{ setType: 'warmup' }] }), 0);
+  // 빈 처방은 처방 없음과 같다
+  assert.equal(plannedWorkingSets({ targetSets: 2, prescription: [] }), 2);
+  assert.equal(plannedWorkingSets({ targetSets: 0 }), 0);
+  assert.equal(plannedWorkingSets({ targetSets: Number.NaN }), 0);
+  assert.equal(plannedWorkingSets({ targetSets: -1 }), 0);
+  assert.equal(plannedWorkingSets({ targetSets: null }), 0);
 });

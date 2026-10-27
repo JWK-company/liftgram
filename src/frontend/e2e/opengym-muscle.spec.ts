@@ -9,13 +9,18 @@
 //   6. 360·390 좌표 겹침(카드 글자·그림·버튼 / 시트 줄 / 통계 줄)
 // SHOTS=1 이면 라이트·다크 캡처를 .ouroboros-work/shots/p2/ 에 남긴다(커밋 안 함).
 import { expect, test } from "@playwright/test";
-import { 마치기, 세트_기록, 안내_띠_닫기, 내려쓰기_대기, 준비 } from "./helpers/opengym";
+import { 마치기, 세트_기록, 세트_줄, 안내_띠_닫기, 내려쓰기_대기, 준비 } from "./helpers/opengym";
 
 type Page = import("@playwright/test").Page;
 type Locator = import("@playwright/test").Locator;
 
 const SHOTS = process.env.SHOTS === "1";
 const SHOT_DIR = process.env.SHOT_DIR ?? "../../.ouroboros-work/shots/p2"; // 실행 위치 = src/frontend
+
+/** 오늘 카드 글자 열(이름 칸) — 카드 첫 자식 */
+function 이름_열(card: Locator): Locator {
+  return card.locator(":scope > div").first();
+}
 
 async function 근육그림_설정(page: Page, on: boolean): Promise<void> {
   await page.goto("/profile");
@@ -192,7 +197,12 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
   await expect(card.getByTestId("routine-muscle-focus")).toHaveText(/가슴.*중심/);
   await expect(page.getByTestId("routine-muscle-mini")).toHaveCount(1); // 목록 줄(RoutineRow)에는 없다
   const slot = await 상자(card.getByTestId("routine-muscle-slot"));
-  expect(Math.round(slot.height)).toBe(56);
+  expect(Math.round(slot.height)).toBe(40); // /qa P2-2: 「시작」 아래 40px
+  // 그림은 「시작」 버튼 아래(같은 오른쪽 열) — 이름 칸을 줄이지 않는다
+  const startBtn = await 상자(card.getByTestId("btn-start-today"));
+  expect(slot.y).toBeGreaterThanOrEqual(startBtn.y + startBtn.height - 0.5);
+  expect(slot.x).toBeGreaterThanOrEqual(startBtn.x - 0.5);
+  expect(slot.x + slot.width).toBeLessThanOrEqual(startBtn.x + startBtn.width + 0.5);
 
   // ── 2. 끄면 카드 그림·버튼 없음, 좌표 = 기준선 ──
   await 근육그림_설정(page, false);
@@ -265,10 +275,7 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
   const planned = Number(await sheet.getByTestId("muscle-row-chest").getAttribute("data-planned"));
   expect(planned).toBeGreaterThanOrEqual(2);
   await expect(sheet.getByTestId("muscle-sheet-map")).toHaveAttribute("role", "img");
-  await expect(sheet.getByTestId("muscle-sheet-map")).toHaveAttribute(
-    "aria-label",
-    /많이 한 근육: 가슴 1세트/,
-  );
+  await expect(sheet.getByTestId("muscle-sheet-map")).toHaveAttribute("aria-label", /^한 근육: 가슴 1세트/);
   await expect(sheet.getByTestId("muscle-sheet-list")).toBeVisible(); // 실제 <ul> 목록
   // 줄을 누르면 그 근육만 brand(선택)
   await sheet.getByTestId("muscle-row-triceps").click();
@@ -276,6 +283,8 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
   await expect(
     sheet.locator('[data-testid="muscle-sheet-map"] g[data-muscle="triceps"]').first(),
   ).toHaveAttribute("data-level", "sel");
+  // 스크린리더: 그림 이름 앞에 「표시: 삼두」(/qa P2-8)
+  await expect(sheet.getByTestId("muscle-sheet-map")).toHaveAttribute("aria-label", /^표시: 삼두 · 한 근육:/);
   await page.keyboard.press("Escape");
   await expect(sheet).toHaveCount(0);
   await expect(page.getByTestId("btn-today-muscles")).toBeFocused();
@@ -298,11 +307,16 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
   await expect(bal.getByTestId("muscle-balance-row-chest")).toHaveAttribute("data-sets", "2");
   await expect(bal.getByTestId("muscle-balance-row-triceps")).toHaveAttribute("data-sets", "1");
   await expect(bal.getByTestId("muscle-balance-row-chest")).toHaveAttribute("aria-label", /가슴 2세트, 볼륨/);
+  // 볼륨은 세트와 같은 세트를 주근육에 — 안내 한 줄(/qa P2-4)
+  await expect(bal.getByTestId("muscle-balance-volume-note")).toHaveText(
+    "볼륨은 주근육으로 쓰인 세트만 더해요",
+  );
   // 주 이동: 다음은 막혀 있고, 이전으로 가면 빈 기간 → 다시 다음으로
+  // 기간 글자는 롤링 창이라 날짜 대신 상대 일수(앞뒤 기간이 같은 날짜를 함께 보이지 않게 · /qa P2-3)
   await expect(page.getByTestId("muscle-balance-next")).toBeDisabled();
-  const range0 = await page.getByTestId("muscle-balance-range").textContent();
+  await expect(page.getByTestId("muscle-balance-range")).toHaveText("최근 7일");
   await page.getByTestId("muscle-balance-prev").click();
-  await expect(page.getByTestId("muscle-balance-range")).not.toHaveText(range0 ?? "");
+  await expect(page.getByTestId("muscle-balance-range")).toHaveText("7~14일 전");
   await expect(bal.getByTestId("muscle-balance-empty")).toBeVisible({ timeout: 15_000 });
   await page.getByTestId("muscle-balance-next").click();
   await expect(bal.getByTestId("muscle-balance-row-chest")).toBeVisible({ timeout: 15_000 });
@@ -377,6 +391,13 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
       const slot = await 상자(card.getByTestId("routine-muscle-slot"));
       const start = await 상자(card.getByTestId("btn-start-today"));
       const focus = await 상자(card.getByTestId("routine-muscle-focus"));
+      const nameCol = await 상자(이름_열(card));
+      // /qa P2-2: 그림은 「시작」 아래 — 이름 칸 오른쪽 끝이 버튼 왼쪽 바로 앞까지(그림 폭만큼 줄지 않는다)
+      expect(start.x - (nameCol.x + nameCol.width)).toBeLessThanOrEqual(17);
+      expect(slot.y).toBeGreaterThanOrEqual(start.y + start.height - 0.5);
+      console.log(
+        `오늘 카드 ${w} ${scheme}: 이름 칸 ${Math.round(nameCol.width)}px · 카드 높이 ${Math.round(cardBox.height)}px · 시작 ${Math.round(start.x)},${Math.round(start.y)} ${Math.round(start.width)}×${Math.round(start.height)} · 그림 ${Math.round(slot.x)},${Math.round(slot.y)}`,
+      );
       expect(겹침(slot, start)).toBe(false);
       expect(겹침(slot, focus)).toBe(false);
       expect(slot.x >= cardBox.x && slot.x + slot.width <= cardBox.x + cardBox.width).toBe(true);
@@ -467,6 +488,88 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
       await 캡처(page, `catalog-filter-${w}-${scheme}`);
     }
   }
+});
+
+test("360 오늘 카드 — 켬/끔 이름 칸 폭·카드 높이(/qa P2-2 가드)", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 360, height: 640 });
+  await 준비(page);
+  const 이름 = `아주긴이름의상체루틴${Date.now().toString(36)}`;
+  await 오늘_루틴(page, 이름);
+  await 안내_띠_닫기(page);
+  const 재기 = async () => {
+    await page.goto("/");
+    const card = page.getByTestId("today-card");
+    await expect(card).toBeVisible({ timeout: 20_000 });
+    await page.waitForTimeout(600);
+    const name = card.getByText(이름);
+    const clipped = await name.evaluate((el) => el.scrollWidth > el.clientWidth + 0.5);
+    const start = await 상자(card.getByTestId("btn-start-today"));
+    return {
+      col: (await 상자(이름_열(card))).width,
+      card: (await 상자(page.getByTestId("today-card"))).height,
+      start,
+      clipped,
+      redStart: await card
+        .getByTestId("btn-start-today")
+        .evaluate((el) => getComputedStyle(el).backgroundColor),
+    };
+  };
+  const on = await 재기();
+  await expect(page.getByTestId("routine-muscle-mini")).toBeVisible();
+  await 근육그림_설정(page, false);
+  const off = await 재기();
+  await expect(page.getByTestId("routine-muscle-slot")).toHaveCount(0);
+  console.log(
+    `360 오늘 카드 이름 칸 켬 ${Math.round(on.col)} / 끔 ${Math.round(off.col)}px · 카드 높이 켬 ${Math.round(on.card)} / 끔 ${Math.round(off.card)}px · 잘림 켬 ${on.clipped} 끔 ${off.clipped}`,
+  );
+  expect(on.col).toBeGreaterThanOrEqual(off.col * 0.85);
+  // 주 행동(빨강 「시작」)은 같은 자리·같은 크기·같은 색
+  expect(Math.round(on.start.x)).toBe(Math.round(off.start.x));
+  expect(Math.round(on.start.width)).toBe(Math.round(off.start.width));
+  expect(Math.round(on.start.height)).toBe(Math.round(off.start.height));
+  expect(on.redStart).toBe(off.redStart);
+  await 근육그림_설정(page, true);
+});
+
+test("실패 표시 세트는 근육 집계에서 빠진다 · 운동 화면을 연 채 다른 탭에서 끄면 바로 사라진다", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(240_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await 준비(page);
+  const 이름 = `실패세트${Date.now().toString(36)}`;
+  await 오늘_루틴(page, 이름);
+  await page.getByTestId("btn-start-today").click();
+  await expect(page.getByTestId("btn-today-muscles")).toBeVisible({ timeout: 20_000 });
+  await 안내_띠_닫기(page);
+  // 첫 세트 = 실패 표시 후 완료 · 둘째 세트 = 일반 완료
+  await 세트_줄(page, 0, 0).getByTestId("set-type").click();
+  await page.getByTestId("set-type-sheet").getByText("실패 (F)").click();
+  await 세트_기록(page, 0, 0, 60, 3);
+  await 세트_기록(page, 0, 1, 60, 8);
+  await page.getByTestId("btn-today-muscles").click();
+  const sheet = page.getByTestId("muscle-sheet");
+  await expect(sheet.getByTestId("muscle-row-chest")).toHaveAttribute("data-done", "1", { timeout: 15_000 });
+  await expect(sheet.getByTestId("muscle-row-triceps")).toHaveAttribute("data-done", "0.5");
+  await page.keyboard.press("Escape");
+
+  // 다른 탭에서 「근육 그림 보기」를 끄면 이 운동 화면의 버튼이 바로 사라진다(다시 켜면 생긴다)
+  const other = await context.newPage();
+  await 근육그림_설정(other, false);
+  await expect(page.getByTestId("btn-today-muscles")).toHaveCount(0, { timeout: 10_000 });
+  await 근육그림_설정(other, true);
+  await expect(page.getByTestId("btn-today-muscles")).toHaveCount(1, { timeout: 10_000 });
+  await other.close();
+
+  await 마치기(page);
+  await page.goto("/stats");
+  const bal = page.getByTestId("muscle-balance-card");
+  await expect(bal.getByTestId("muscle-balance-row-chest")).toHaveAttribute("data-sets", "1", {
+    timeout: 20_000,
+  });
+  await expect(bal.getByTestId("muscle-balance-row-triceps")).toHaveAttribute("data-sets", "0.5");
 });
 
 test("시안 비교 캡처(빨강 농도 vs 무채 농도)", async ({ page }) => {

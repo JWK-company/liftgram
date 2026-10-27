@@ -844,18 +844,21 @@ function TodayCard({
             </AppText>
             <RoutineMuscleFocus routineId={routine.id} />
           </div>
-          <RoutineMuscleMini routineId={routine.id} />
-          {/* 화면 정리 P4 /qa M-1 — 루틴 「시작」은 회색 상자. 단 오늘 할 루틴이 주 행동이면 빨강(M-2) @plm SRS-072 */}
-          <Button
-            title={t("routines.start")}
-            icon="play"
-            size="sm"
-            variant={primary ? "primary" : "secondary"}
-            fullWidth={false}
-            disabled={busy}
-            testId="btn-start-today"
-            onPress={() => onStart(routine.id)}
-          />
+          {/* 오른쪽 열 = 「시작」 + 그 아래 근육 그림(이름 칸 폭을 지킨다 · P2 /qa P2-2) @plm SRS-075 */}
+          <div className="flex shrink-0 flex-col items-center">
+            {/* 화면 정리 P4 /qa M-1 — 루틴 「시작」은 회색 상자. 단 오늘 할 루틴이 주 행동이면 빨강(M-2) @plm SRS-072 */}
+            <Button
+              title={t("routines.start")}
+              icon="play"
+              size="sm"
+              variant={primary ? "primary" : "secondary"}
+              fullWidth={false}
+              disabled={busy}
+              testId="btn-start-today"
+              onPress={() => onStart(routine.id)}
+            />
+            <RoutineMuscleMini routineId={routine.id} />
+          </div>
         </div>
       </Card>
     );
@@ -1011,18 +1014,21 @@ function RecoCard({
           </AppText>
           <RoutineMuscleFocus routineId={reco.routineId} />
         </div>
-        <RoutineMuscleMini routineId={reco.routineId} />
-        {/* 화면 정리 P4 /qa M-1 · M-2(주 행동이면 빨강) @plm SRS-072 */}
-        <Button
-          title={t("routines.start")}
-          icon="play"
-          size="sm"
-          variant={primary ? "primary" : "secondary"}
-          fullWidth={false}
-          disabled={busy}
-          testId="btn-start-reco"
-          onPress={() => reco.routineId && onStart(reco.routineId)}
-        />
+        {/* 오른쪽 열 = 「시작」 + 그 아래 근육 그림(P2 /qa P2-2) @plm SRS-075 */}
+        <div className="flex shrink-0 flex-col items-center">
+          {/* 화면 정리 P4 /qa M-1 · M-2(주 행동이면 빨강) @plm SRS-072 */}
+          <Button
+            title={t("routines.start")}
+            icon="play"
+            size="sm"
+            variant={primary ? "primary" : "secondary"}
+            fullWidth={false}
+            disabled={busy}
+            testId="btn-start-reco"
+            onPress={() => reco.routineId && onStart(reco.routineId)}
+          />
+          <RoutineMuscleMini routineId={reco.routineId} />
+        </div>
       </div>
     </Card>
   );

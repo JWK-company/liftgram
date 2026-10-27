@@ -1118,8 +1118,8 @@ export const ko = {
   // 근육 지도·균형 화면(P2 · SRS-075·076) — 세트 수 사실만, 평가·권고 없음(웰니스 · guideCopy 게이트 `muscleMap.`). @plm SRS-075 SRS-076
   "muscleMap.settingTitle": "근육 그림 보기",
   "muscleMap.settingCaption": "오늘·추천 루틴 카드와 운동 중 「오늘 근육」 버튼에 근육 그림을 보여요",
-  "muscleMap.ariaSummary": "많이 한 근육: {list}",
-  "muscleMap.ariaEmpty": "아직 센 근육이 없어요",
+  "muscleMap.ariaSummary": "한 근육: {list}",
+  "muscleMap.ariaEmpty": "아직 기록된 근육이 없어요",
   "muscleMap.todayButton": "오늘 근육",
   "muscleMap.sheetTitle": "오늘 근육",
   "muscleMap.sheetRow": "끝낸 {done} / 계획 {planned}세트",
@@ -1127,7 +1127,7 @@ export const ko = {
   "muscleMap.sheetEmpty": "아직 근육이 잡힌 세트가 없어요",
   "muscleMap.halfNote": "보조로 쓰인 근육은 0.5세트로 세요",
   "muscleMap.balanceTitle": "근육 균형",
-  "muscleMap.balanceEmpty": "이 기간에 센 근육이 없어요",
+  "muscleMap.balanceEmpty": "이 기간에 기록된 근육이 없어요",
   "muscleMap.rowAria": "{muscle} {count}세트, 볼륨 {volume}",
   "muscleMap.rowAriaNoVolume": "{muscle} {count}세트",
   "muscleMap.prevPeriod": "이전 기간",
@@ -1135,6 +1135,10 @@ export const ko = {
   "muscleMap.untrainedTitle": "이 기간에 안 한 근육",
   "muscleMap.untrainedChipAria": "{muscle} 종목 보기",
   "muscleMap.range": "{start} ~ {end}",
+  "muscleMap.rangeRecent": "최근 {days}일",
+  "muscleMap.rangeAgo": "{from}~{to}일 전",
+  "muscleMap.mapSelected": "표시: {muscle}",
+  "muscleMap.volumeNote": "볼륨은 주근육으로 쓰인 세트만 더해요",
 } as const;
 
 export type TransKey = keyof typeof ko;
