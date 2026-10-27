@@ -1011,6 +1011,9 @@ export const en: Record<TransKey, string> = {
   // History replay (SRS-064·065)
   "replay.start": "Start this workout again", // @plm SRS-065
   "replay.nothing": "No sets to start again", // @plm SRS-065
+  "replay.activeExists": "A workout is in progress — finish or discard it first", // @plm SRS-065
+  "replay.nothingMatched": "None of these exercises are in your list", // @plm SRS-065
+  "feed.startNowUnmatched": "Started without {count} exercise(s) not in your list", // @plm SRS-065
   "feed.startNow": "Start now", // @plm SRS-065
   "feed.startNowFallback": "{author}'s workout", // @plm SRS-065
   "note.title": "Workout review", // @plm SRS-064

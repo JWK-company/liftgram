@@ -1,7 +1,7 @@
 // @plm SRS-065  「이 운동 그대로 다시 시작」·피드 「바로 시작」 — 시작 계획(순수 함수)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planReplay, planFromSpec, type ReplaySourceBlock } from '../replay';
+import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type RoutineLineLike } from '../replay';
 
 const V0 = {
   variantKey: null,
@@ -108,4 +108,59 @@ test('피드 바로 시작 — 세트 수·순서·묶음만 · 변형·연결 �
     ],
   );
   assert.ok(rows[1].supersetGroup && rows[1].supersetGroup === rows[2].supersetGroup);
+});
+
+// ── 루틴 시작 매핑 회귀(QA M-4) — startWorkoutFromRoutine 이 공통 시작으로 옮겨 간 뒤에도 V1 규칙 그대로 ──
+
+const line = (id: string, extra: Partial<RoutineLineLike> = {}): RoutineLineLike => ({
+  id,
+  exerciseId: `ex-${id}`,
+  targetSets: 3,
+  targetRepsMin: 8,
+  targetRepsMax: 12,
+  targetWeightKg: 60,
+  restSeconds: 120,
+  machineVariant: null,
+  variantKey: null,
+  variantEquipment: null,
+  variantGrip: null,
+  variantArm: null,
+  variantLoad: null,
+  variantAttach: null,
+  supersetGroup: null,
+  prescription: null,
+  cardioTarget: null,
+  note: null,
+  ...extra,
+});
+
+test('루틴 줄 → 시작할 줄: 목표·휴식·무게·메모·처방·줄 연결을 그대로, 칸은 미지정이면 지난 조합 승계(variantExact=false)', () => {
+  const rx = [{ setType: 'top' as const, targetRir: 1, repMin: 5, repMax: 5, loadHint: null }];
+  const [r] = routineLinesToStartRows([line('a', { note: '팔꿈치 45도', prescription: rx })]);
+  assert.equal(r.exerciseId, 'ex-a');
+  assert.equal(r.targetSets, 3);
+  assert.equal(r.warmupSets, 0);
+  assert.deepEqual([r.targetRepsMin, r.targetRepsMax, r.targetWeightKg, r.restSeconds], [8, 12, 60, 120]);
+  assert.equal(r.note, '팔꿈치 45도');
+  assert.deepEqual(r.prescription, rx);
+  assert.equal(r.routineExerciseId, 'a');
+  assert.equal(r.variantExact, false);
+});
+
+test('루틴 슈퍼셋 그룹 id 는 그대로 — 묶음 표식(g:)이 아니라 저장소가 새 id 로 바꾸지 않는다(V1 동작)', () => {
+  const rows = routineLinesToStartRows([line('a', { supersetGroup: 'ss_1' }), line('b', { supersetGroup: 'ss_1' })]);
+  assert.deepEqual(
+    rows.map((r) => r.supersetGroup),
+    ['ss_1', 'ss_1'],
+  );
+  assert.ok(rows.every((r) => !r.supersetGroup?.startsWith('g:')));
+});
+
+test('레거시 머신 미러만 있는 줄은 그 브랜드 칸으로 시작한다(V1 effectiveVariantKey 와 같다)', () => {
+  const [r] = routineLinesToStartRows([line('a', { machineVariant: 'hammer' })]);
+  assert.ok(r.variant);
+  assert.equal(r.variant?.machineVariant, 'hammer');
+  assert.ok(r.variant?.variantKey, '미러에서 칸 키를 만든다');
+  const [plain] = routineLinesToStartRows([line('b')]);
+  assert.equal(plain.variant?.variantKey, null);
 });

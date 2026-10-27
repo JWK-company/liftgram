@@ -1009,6 +1009,9 @@ export const ko = {
   // 기록 돌아보기·다시 하기(SRS-064·065)
   "replay.start": "이 운동 그대로 다시 시작", // @plm SRS-065
   "replay.nothing": "다시 시작할 세트가 없어요", // @plm SRS-065
+  "replay.activeExists": "진행 중인 운동이 있어요 — 먼저 마치거나 폐기해 주세요", // @plm SRS-065
+  "replay.nothingMatched": "이 운동의 종목을 내 종목에서 찾지 못했어요", // @plm SRS-065
+  "feed.startNowUnmatched": "내 종목에서 찾지 못한 {count}개는 빼고 시작했어요", // @plm SRS-065
   "feed.startNow": "바로 시작", // @plm SRS-065
   "feed.startNowFallback": "{author}님의 운동", // @plm SRS-065
   "note.title": "운동 총평", // @plm SRS-064

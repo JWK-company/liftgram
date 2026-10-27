@@ -194,3 +194,41 @@ test.describe("360×560 · 탭바가 있는 화면의 입력창", () => {
     await 위에(page, "global-workout-bar", "shell-nav");
   });
 });
+
+// QA M-2 — 넓은 화면(lg)에서는 진행 중 막대가 바닥에서 16px 떠 있다. 높이를 60px 로 박아 두면 하단 막대가 그 밑에 9px 깔렸다.
+test.describe("1280×560 · 넓은 화면(세로 탭바)", () => {
+  test.use({ viewport: { width: 1280, height: 560 } });
+
+  test("루틴 편집 하단 막대가 진행 중 막대 밑에 깔리지 않는다", async ({ page }) => {
+    test.setTimeout(180_000);
+    await 카탈로그_준비(page);
+    await 빠른_운동(page, ["바벨 벤치프레스"]); // 진행 중 막대를 띄운다
+    await page.goto("/");
+    await page.getByTestId("btn-new-routine").click();
+    await expect(page.getByTestId("routine-name")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("routine-name").fill(`넓은 ${Date.now().toString(36)}`);
+    await page.getByTestId("routine-name").blur();
+    const rows = page.getByTestId("routine-exercises").locator("> div");
+    for (const [i, 종목] of 네종목.entries()) {
+      await page.getByTestId("btn-add-routine-exercise").focus();
+      await page.keyboard.press("Enter");
+      await page.getByTestId("picker-search").fill(종목);
+      await page.getByTestId("picker-list").locator("button").first().click();
+      await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
+    }
+    await 맨위로(page);
+    await expect(page.getByTestId("global-workout-bar")).toBeVisible();
+    // 버튼이 든 **sticky 상자**의 아래 끝이 진행 중 막대 위 끝보다 위에 있어야 한다
+    const got = await page.evaluate(() => {
+      let el = document.querySelector<HTMLElement>('[data-testid="btn-routine-done"]');
+      while (el && getComputedStyle(el).position !== "sticky") el = el.parentElement;
+      const bar = document.querySelector('[data-testid="global-workout-bar"]')?.getBoundingClientRect();
+      return el && bar ? { stickyBottom: el.getBoundingClientRect().bottom, barTop: bar.top } : null;
+    });
+    expect(got, "sticky 하단·막대가 그려지지 않았다").toBeTruthy();
+    if (!got) return;
+    expect(got.stickyBottom, "루틴 편집 하단이 진행 중 막대 밑에 깔린다").toBeLessThanOrEqual(
+      got.barTop + 0.5,
+    );
+  });
+});

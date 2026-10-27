@@ -9,6 +9,7 @@
 //   · 원본 블록의 목표(횟수 범위·휴식·처방·유산소 목표)와 기록 칸 조합을 복사 · **무게는 담지 않는다**(이전 기록으로 채움)
 //   · 슈퍼셋은 새 묶음 표식으로(세션 그룹 id 가 새 운동으로 새지 않게) · 짝이 빠져 혼자 남은 묶음은 푼다
 import type { PrescribedSet } from './prescription';
+import { legacyMachineVariantToV6 } from './variants';
 
 export interface VariantColumnsLike {
   variantKey: string | null;
@@ -98,13 +99,16 @@ export function planReplay(source: ReplaySourceBlock[]): StartRow[] {
   }));
 }
 
+/** 피드 「바로 시작」 한 종목의 세트 상한 — 남의 글이 수천 세트를 시켜도 운동 하나가 이 이상 커지지 않는다(QA M-1). */
+export const START_MAX_SETS = 20;
+
 /** 피드의 남의 운동 — 종목은 이미 내 기기 종목으로 해석된 뒤다(가져오기와 같은 매칭). 루틴·변형은 잇지 않는다. */
 export function planFromSpec(items: { exerciseId: string; sets: number; supersetGroup?: string | null }[]): StartRow[] {
   const keyed = items.map((it, i) => ({ ...it, key: String(i) }));
   const tokens = groupTokens(keyed.map((it) => ({ key: it.key, group: it.supersetGroup ?? null })));
   return keyed.map((it) => ({
     exerciseId: it.exerciseId,
-    targetSets: Math.max(1, Math.round(it.sets) || 1),
+    targetSets: Math.min(START_MAX_SETS, Math.max(1, Math.round(it.sets) || 1)),
     warmupSets: 0,
     targetRepsMin: null,
     targetRepsMax: null,
@@ -117,4 +121,61 @@ export function planFromSpec(items: { exerciseId: string; sets: number; superset
     prescription: null,
     cardioTarget: null,
   }));
+}
+
+/** 루틴 한 줄(저장소 행의 필요한 칸만). */
+export interface RoutineLineLike {
+  id: string;
+  exerciseId: string;
+  targetSets: number;
+  targetRepsMin: number | null;
+  targetRepsMax: number | null;
+  targetWeightKg: number | null;
+  restSeconds: number;
+  machineVariant: string | null;
+  variantKey: string | null;
+  variantEquipment: string | null;
+  variantGrip: string | null;
+  variantArm: string | null;
+  variantLoad: string | null;
+  variantAttach: string | null;
+  supersetGroup: string | null;
+  prescription: PrescribedSet[] | null;
+  cardioTarget: unknown;
+  note: string | null;
+}
+
+/**
+ * 루틴 시작 — 루틴 줄 → 시작할 줄. 저장소 `startWorkoutFromRoutine` 이 쓴다(V1 과 같은 규칙: 명시 칸 · 미지정이면
+ * 지난 조합 승계(variantExact=false) · 레거시 머신 미러 승계 · 처방·메모 시드 · 루틴 그룹 id 그대로 · 루틴 줄 연결).
+ * 순수 함수로 떼어 회귀 테스트로 고정한다(QA M-4). @plm SRS-065
+ */
+export function routineLinesToStartRows(lines: RoutineLineLike[]): StartRow[] {
+  return lines.map((re) => {
+    const legacy = legacyMachineVariantToV6(re.machineVariant);
+    return {
+      exerciseId: re.exerciseId,
+      targetSets: re.targetSets,
+      warmupSets: 0,
+      targetRepsMin: re.targetRepsMin,
+      targetRepsMax: re.targetRepsMax,
+      targetWeightKg: re.targetWeightKg,
+      restSeconds: re.restSeconds,
+      variant: {
+        variantKey: re.variantKey ?? legacy.key,
+        variantEquipment: re.variantEquipment ?? legacy.dims.equipment ?? null,
+        variantGrip: re.variantGrip ?? null,
+        variantArm: re.variantArm ?? null,
+        variantLoad: re.variantLoad ?? null,
+        variantAttach: re.variantAttach ?? null,
+        machineVariant: re.machineVariant ?? null,
+      },
+      variantExact: false,
+      supersetGroup: re.supersetGroup,
+      routineExerciseId: re.id,
+      prescription: re.prescription ?? null,
+      cardioTarget: re.cardioTarget ?? null,
+      note: re.note,
+    };
+  });
 }

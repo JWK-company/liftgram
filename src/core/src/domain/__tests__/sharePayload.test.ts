@@ -37,3 +37,25 @@ test('공유 데이터는 고정된 키만 — 운동 총평(notes)이 원본에
   assert.equal(out.exercises[0].note, '팔꿈치 45도');
   assert.deepEqual(out.exercises[0].sets, [{ weightKg: 80, reps: 8, loadMultiplier: null }]);
 });
+
+test('서버로 보내는 객체(toCreatePostWorkout)에도 총평이 없다 — 실제 전송 경로를 지킨다(QA M-4)', async () => {
+  const { toCreatePostWorkout } = await import('../sharePayload');
+  const shared = buildSharedWorkout({
+    summary: {
+      workoutId: 'w1',
+      totalVolumeKg: 100,
+      durationSeconds: 60,
+      workingSets: 1,
+      prCount: 0,
+      notes: '나만 보는 총평',
+    } as unknown as Parameters<typeof buildSharedWorkout>[0]['summary'],
+    workoutName: '가슴',
+    streakDays: 0,
+    exercises: [{ exerciseName: '벤치', exerciseId: 'seed-bench', note: null, sets: [{ weightKg: 50, reps: 2, isWarmup: false, isFailed: false }] }],
+  });
+  // 누군가 펼쳐 넣는 실수를 흉내 — 공유 객체에 notes 가 붙어 와도 전송 객체에는 없다
+  const sent = toCreatePostWorkout({ ...shared, notes: '새면 안 됨' } as unknown as typeof shared);
+  assert.deepEqual(Object.keys(sent).sort(), [...SHARED_WORKOUT_KEYS].sort());
+  assert.ok(!JSON.stringify(sent).includes('총평') && !JSON.stringify(sent).includes('새면 안 됨'));
+  assert.deepEqual(sent.exercises[0], { name: '벤치', exerciseId: 'seed-bench', note: '', sets: [{ weightKg: 50, reps: 2, loadMultiplier: 0 }] });
+});

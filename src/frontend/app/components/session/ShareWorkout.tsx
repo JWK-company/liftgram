@@ -18,6 +18,7 @@
 // 기록은 계정 없이도 남는다(그게 이 앱의 전제다). 공유만 계정이 필요하니 그 사실을 말한다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { formatWeight, type WeightUnit } from "@app/core";
+import { toCreatePostWorkout } from "@app/core/domain/sharePayload";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { feedClient } from "@/lib/feedClient";
@@ -149,25 +150,8 @@ export function ShareWorkout({ payload, unit }: { payload: ShareablePayload; uni
     try {
       await feedClient().createPost({
         caption: caption.trim() || autoCaption(),
-        workout: {
-          workoutId: payload.workoutId,
-          workoutName: payload.workoutName,
-          totalVolumeKg: payload.totalVolumeKg,
-          durationSeconds: payload.durationSeconds,
-          workingSets: payload.workingSets,
-          prCount: payload.prCount,
-          streakDays: payload.streakDays,
-          exercises: payload.exercises.map((ex) => ({
-            name: ex.name,
-            exerciseId: ex.exerciseId ?? "",
-            note: ex.note ?? "",
-            sets: ex.sets.map((s) => ({
-              weightKg: s.weightKg,
-              reps: s.reps,
-              loadMultiplier: s.loadMultiplier ?? 0,
-            })),
-          })),
-        },
+        // 보내는 객체는 core 순수 함수 하나가 만든다 — 총평(notes)이 새지 않음을 테스트가 이 경로에서 지킨다(QA M-4)
+        workout: toCreatePostWorkout(payload),
       });
       // 한 번 올린 운동을 또 올리면 피드에 같은 카드가 둘 남는다.
       setShared(true);

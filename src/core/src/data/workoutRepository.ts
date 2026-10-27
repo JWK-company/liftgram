@@ -26,7 +26,7 @@ import {
 import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
 import { resolvePrescribedLoad, planPrescribedLoadFills } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
-import { planReplay, planFromSpec, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
+import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
 import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
 import {
   legacyMachineVariantToV6,
@@ -872,8 +872,48 @@ const EMPTY_VARIANT: VariantColumns = {
   machineVariant: null,
 };
 
-async function startWorkoutFromRows(opts: { routineId: string | null; name: string; rows: StartRow[] }): Promise<Workout> {
-  const rows = opts.rows;
+/**
+ * 시작 옵션 — `replacing` 은 「폐기하고 새로 시작」에서 바꿀 진행 중 운동 id.
+ * 새 운동을 **만든 같은 write 안에서** 그 운동을 지운다 — 시작이 실패하면(시작할 줄이 없음·종목 해석 실패·DB 오류)
+ * 진행 중이던 운동은 그대로 남는다(QA H-1: 먼저 폐기하고 시작이 실패하면 운동만 사라졌다). @plm SRS-065
+ */
+export type StartOptions = { replacing?: string | null };
+
+/** 진행 중(active·paused) 운동 id 전부. */
+async function activeWorkoutIds(): Promise<string[]> {
+  const res = await workouts().query(Q.where('state', Q.oneOf(['active', 'paused']))).fetch();
+  return res.map((w) => w.id);
+}
+
+/**
+ * 운동은 하나만 진행한다 — 바꿀 운동(replacing) 말고 진행 중인 것이 있으면 시작하지 않는다(QA L-5).
+ * 화면 가드는 기기 메모리의 세션 상태만 보므로, 아직 그것을 다 읽기 전에 누른 경우를 여기서 막는다.
+ */
+async function assertCanStart(replacing: string | null | undefined): Promise<void> {
+  const others = (await activeWorkoutIds()).filter((id) => id !== replacing);
+  if (others.length) throw new Error('ACTIVE_EXISTS');
+}
+
+/** 운동 하나를 지울 준비(세트·블록·운동) — 부르는 쪽의 write 안에서 batch 로 함께 쓴다. */
+async function prepareDiscardRecords(id: string): Promise<(Workout | WorkoutExercise | SetLog)[]> {
+  const w = await workouts()
+    .find(id)
+    .catch(() => null);
+  if (!w) return []; // 이미 없으면(다른 기기에서 지움) 지울 것도 없다
+  const wes = await workoutExercises().query(Q.where('workout_id', id)).fetch();
+  const weIds = wes.map((x) => x.id);
+  const sets = weIds.length ? await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(weIds))).fetch() : [];
+  return [...sets.map((x) => x.prepareMarkAsDeleted()), ...wes.map((x) => x.prepareMarkAsDeleted()), w.prepareMarkAsDeleted()];
+}
+
+async function startWorkoutFromRows(opts: {
+  routineId: string | null;
+  name: string;
+  rows: StartRow[];
+  replacing?: string | null;
+}): Promise<Workout> {
+  const rows = opts.rows; // 빈 루틴은 예전처럼 빈 운동으로 시작한다(다시 시작·피드는 부르기 전에 막는다)
+  await assertCanStart(opts.replacing);
   // 칸 결정 — 다시 시작은 원본 칸 그대로(variantExact), 루틴·피드는 미지정이면 지난 조합 승계(resolveStartVariant).
   const variants: VariantColumns[] = [];
   for (const r of rows) {
@@ -942,7 +982,7 @@ async function startWorkoutFromRows(opts: { routineId: string | null; name: stri
     }
     return id;
   };
-  return database.write(async () => {
+  const created = await database.write(async () => {
     const now = Date.now();
     const workout = await workouts().create((w) => {
       w.routineId = opts.routineId;
@@ -1005,45 +1045,45 @@ async function startWorkoutFromRows(opts: { routineId: string | null; name: stri
         ),
       );
     });
-    await database.batch(...weRecords, ...setRecords);
+    // 바꿀 운동은 새 운동과 **같은 batch** 로 지운다 — 둘 다 되거나 둘 다 안 된다(QA H-1).
+    const discards = opts.replacing ? await prepareDiscardRecords(opts.replacing) : [];
+    await database.batch(...weRecords, ...setRecords, ...discards);
     return workout;
   });
+  if (opts.replacing) scheduleSync(); // 지운 운동을 서버·다른 기기에 반영
+  return created;
 }
 
 // [개선] 루틴 시작 — 루틴 줄 → 시작할 줄 → 공통 시작(규칙은 V1 과 같다: 명시 칸 · 미지정이면 지난 조합 · 처방 · 메모 시드) @plm SRS-065
-export async function startWorkoutFromRoutine(routineId: string): Promise<Workout> {
+export async function startWorkoutFromRoutine(routineId: string, startOpts: StartOptions = {}): Promise<Workout> {
   const routine = await routines().find(routineId);
   const res = await routineExercises()
     .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
     .fetch();
-  const rows: StartRow[] = res.map((re) => {
-    const legacy = legacyMachineVariantToV6(re.machineVariant);
-    return {
+  // 줄 → 시작할 줄 매핑은 순수 함수(domain/replay.routineLinesToStartRows — 회귀 테스트로 고정 · QA M-4)
+  const rows: StartRow[] = routineLinesToStartRows(
+    res.map((re) => ({
+      id: re.id,
       exerciseId: re.exerciseId,
       targetSets: re.targetSets,
-      warmupSets: 0,
       targetRepsMin: re.targetRepsMin,
       targetRepsMax: re.targetRepsMax,
       targetWeightKg: re.targetWeightKg,
       restSeconds: re.restSeconds,
-      variant: {
-        variantKey: effectiveVariantKey(re),
-        variantEquipment: re.variantEquipment ?? legacy.dims.equipment ?? null,
-        variantGrip: re.variantGrip ?? null,
-        variantArm: re.variantArm ?? null,
-        variantLoad: re.variantLoad ?? null,
-        variantAttach: re.variantAttach ?? null,
-        machineVariant: re.machineVariant ?? null,
-      },
-      variantExact: false,
-      supersetGroup: re.supersetGroup,
-      routineExerciseId: re.id,
+      machineVariant: re.machineVariant ?? null,
+      variantKey: re.variantKey ?? null,
+      variantEquipment: re.variantEquipment ?? null,
+      variantGrip: re.variantGrip ?? null,
+      variantArm: re.variantArm ?? null,
+      variantLoad: re.variantLoad ?? null,
+      variantAttach: re.variantAttach ?? null,
+      supersetGroup: re.supersetGroup ?? null,
       prescription: re.prescription ?? null,
       cardioTarget: re.cardioTarget ?? null,
-      note: re.note,
-    };
-  });
-  return startWorkoutFromRows({ routineId, name: routine.name, rows });
+      note: re.note ?? null,
+    })),
+  );
+  return startWorkoutFromRows({ routineId, name: routine.name, rows, replacing: startOpts.replacing });
 }
 
 /** 시작한 루틴이 아직 있으면 그 id(보관·삭제면 null — 빠른 운동처럼). */
@@ -1061,7 +1101,7 @@ async function liveRoutineId(routineId: string | null): Promise<string | null> {
  * 「이 운동 그대로 다시 시작」 — 지난 운동의 종목·순서·세트 수(워밍업 포함)·슈퍼셋·칸·목표로, 무게는 이전 기록으로.
  * 원본이 루틴에서 왔고 그 루틴이 남아 있으면 그 루틴에 잇는다(끝낼 때 루틴 반영이 그대로 돈다). @plm SRS-065
  */
-export async function startWorkoutFromWorkout(sourceWorkoutId: string): Promise<Workout> {
+export async function startWorkoutFromWorkout(sourceWorkoutId: string, startOpts: StartOptions = {}): Promise<Workout> {
   const source = await workouts().find(sourceWorkoutId);
   const wes = await workoutExercises()
     .query(Q.where('workout_id', sourceWorkoutId), Q.sortBy('sort_order', Q.asc))
@@ -1072,7 +1112,15 @@ export async function startWorkoutFromWorkout(sourceWorkoutId: string): Promise<
   const exIds = [...new Set(wes.map((w) => w.exerciseId))];
   const exRows = exIds.length ? await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(exIds))).fetch() : [];
   const kindOf = new Map(exRows.map((e) => [e.id, e.kind]));
-  const routineId = await liveRoutineId(source.routineId);
+  // 루틴에 잇는 것은 **그 루틴의 가장 최근 운동**을 다시 할 때뿐 — 몇 주 전 운동을 다시 하고 끝내면 루틴 반영(SRS-059)이
+  // 지금 루틴을 옛 구성으로 되돌리자고 묻게 된다(QA L-3). 그 밖에는 빠른 운동처럼 시작한다.
+  let routineId = await liveRoutineId(source.routineId);
+  if (routineId) {
+    const latest = await workouts()
+      .query(Q.where('routine_id', routineId), Q.where('state', 'completed'), Q.sortBy('completed_at', Q.desc), Q.take(1))
+      .fetch();
+    if (latest[0] && latest[0].id !== source.id) routineId = null;
+  }
   const liveLines = routineId
     ? new Set((await routineExercises().query(Q.where('routine_id', routineId)).fetch()).map((re) => re.id))
     : new Set<string>();
@@ -1097,17 +1145,18 @@ export async function startWorkoutFromWorkout(sourceWorkoutId: string): Promise<
   }));
   const rows = planReplay(source_);
   if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
-  return startWorkoutFromRows({ routineId, name: source.name?.trim() || '빠른 운동', rows });
+  return startWorkoutFromRows({ routineId, name: source.name?.trim() || '빠른 운동', rows, replacing: startOpts.replacing });
 }
 
 /** 피드의 남의 운동으로 바로 시작 — 종목은 이미 내 기기 종목으로 해석된 뒤다. 루틴을 만들지 않는다. @plm SRS-065 */
 export async function startWorkoutFromSpec(
   name: string,
   items: { exerciseId: string; sets: number; supersetGroup?: string | null }[],
+  startOpts: StartOptions = {},
 ): Promise<Workout> {
   const rows = planFromSpec(items);
   if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
-  return startWorkoutFromRows({ routineId: null, name: name.trim() || '빠른 운동', rows });
+  return startWorkoutFromRows({ routineId: null, name: name.trim() || '빠른 운동', rows, replacing: startOpts.replacing });
 }
 
 /** 운동 총평(나만 보는 운동 한 줄 평 · 피드 글과 별개) — 2,000자 · 공백만이면 지운다. @plm SRS-064 */

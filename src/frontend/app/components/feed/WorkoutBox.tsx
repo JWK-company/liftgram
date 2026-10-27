@@ -65,7 +65,7 @@ export function WorkoutBox({
    * 글의 종목을 내 기기 종목으로 해석한다 — 「루틴 가져오기」와 「바로 시작」이 같은 규칙을 쓴다(SRS-065 · 복붙 금지).
    * 종목 id → 대표 이름·별칭·영문 정확 일치(정규화) → 그래도 없으면 커스텀(/qa code H-2).
    */
-  async function resolveExercises() {
+  async function resolveExercises(mode: "import" | "start") {
     // 저장소는 브라우저에서만 쓸 수 있다 — 서버 렌더에 끌려 들어가지 않게 눌러서 가져온다.
     const [exerciseRepo, routineRepo] = await Promise.all([
       import("@app/core/data/exerciseRepository"),
@@ -95,13 +95,16 @@ export function WorkoutBox({
     /** 맞은 별칭이 칸을 함축하면(「로프 푸시다운」 → 로프) 가져온 루틴 줄에도 적용한다 — resolved 와 같은 순서 */
     const axesByIndex = new Map<number, Awaited<ReturnType<typeof names.impliedAxesForAlias>>>();
     let skipped = 0;
+    let unmatched = 0;
+    // 남의 글은 믿지 않는다 — 모양을 확인하고 상한(종목 40·세트 50·이름 80자)에서 자른다(QA M-1) @plm SRS-065
+    const { clampSharedExercises } = await import("@app/core/domain/sharePayload");
+    const received = clampSharedExercises(exercises);
+    skipped += Math.max(0, exercises.length - received.length);
+    /** 이번 가져오기에서 새로 만든 커스텀 — 같은 이름이 두 번 나와도 하나만 만든다(QA M-1) */
+    const createdByName = new Map<string, string>();
 
-    for (const ex of exercises) {
-      const nm = ex.name.trim();
-      if (!nm) {
-        skipped++;
-        continue;
-      }
+    for (const ex of received) {
+      const nm = ex.name;
       const match = resolveSharedExercise(index, { exerciseId: ex.exerciseId, name: nm });
       let exerciseId: string;
       if (match) {
@@ -110,13 +113,24 @@ export function WorkoutBox({
           const axes = await names.impliedAxesForAlias(match.id, match.hit.matched);
           if (axes) axesByIndex.set(resolved.length, axes);
         }
+      } else if (mode === "start") {
+        // 「바로 시작」은 누르는 순간 커스텀 종목을 영구로 만들지 않는다 — 못 찾은 종목은 빼고 알린다(QA M-1).
+        // 「가져오기」는 확인 창을 거친 뒤라 그 줄을 내 종목으로 만든다.
+        unmatched++;
+        continue;
       } else {
-        const created = await exerciseRepo.createCustomExercise({
-          nameKo: nm,
-          primaryMuscles: ["other"],
-          equipment: "other",
-        });
-        exerciseId = created.id;
+        const key = nm.toLowerCase();
+        const made = createdByName.get(key);
+        if (made) exerciseId = made;
+        else {
+          const created = await exerciseRepo.createCustomExercise({
+            nameKo: nm,
+            primaryMuscles: ["other"],
+            equipment: "other",
+          });
+          exerciseId = created.id;
+          createdByName.set(key, exerciseId);
+        }
       }
       const working = ex.sets.filter((s) => !s.isWarmup);
       const src = working.length ? working : ex.sets;
@@ -132,19 +146,32 @@ export function WorkoutBox({
       });
     }
 
-    return { resolved, axesByIndex, skipped, routineRepo, names };
+    return { resolved, axesByIndex, skipped, unmatched, routineRepo, names };
   }
 
   /** 남의 운동 그대로 바로 시작 — 루틴을 만들지 않는다. 무게는 내 이전 기록으로 채운다(남의 무게는 남의 것). @plm SRS-065 */
   function startNow() {
-    starter.guard(async () => {
-      const { resolved } = await resolveExercises();
+    starter.guard(async (replacing) => {
+      const { resolved, axesByIndex, unmatched, names } = await resolveExercises("start");
+      // 하나도 못 찾았으면 시작하지 않는다 — 진행 중인 운동도 그대로(QA H-1)
+      if (!resolved.length) throw new Error("NOTHING_MATCHED");
       const repo = await import("@app/core/data/workoutRepository");
       const name = workout.workoutName?.trim() || t("feed.startNowFallback", { author: authorName });
-      return (await repo.startWorkoutFromSpec(
+      const w = (await repo.startWorkoutFromSpec(
         name,
         resolved.map((r) => ({ exerciseId: r.exerciseId, sets: r.targetSets ?? 1 })),
+        { replacing },
       )) as unknown as { id: string; startedAt: number; name: string | null };
+      // 맞은 별칭이 칸을 함축하면(「로프 푸시다운」 → 로프) 바로 시작에도 — 가져오기와 같은 결과(QA L-2)
+      if (axesByIndex.size) {
+        const blocks = await repo.queryWorkoutExercises(w.id).fetch();
+        for (const [i, axes] of axesByIndex) {
+          const b = blocks[i];
+          if (b && axes) await names.applyImpliedAxesToWorkoutExercise(b.id, axes).catch(() => {});
+        }
+      }
+      if (unmatched > 0) toast(t("feed.startNowUnmatched", { count: unmatched }));
+      return w;
     });
   }
 
@@ -153,7 +180,7 @@ export function WorkoutBox({
     setImporting(true);
     setConfirm(false);
     try {
-      const { resolved, axesByIndex, skipped, routineRepo, names } = await resolveExercises();
+      const { resolved, axesByIndex, skipped, routineRepo, names } = await resolveExercises("import");
       if (!resolved.length) {
         toast(t("feed.importRoutineNone"));
         return;

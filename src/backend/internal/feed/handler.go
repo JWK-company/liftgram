@@ -413,11 +413,35 @@ func toProtoExercises(list []WorkoutExercise) []*feedv1.WorkoutExercise {
 	return out
 }
 
+// 오운완에 싣는 운동의 상한 — 받는 기기가 그대로 내 기기에 쓰므로(바로 시작·가져오기) 조작한 글이 기기를 멈추지 못하게
+// 서버에서도 자른다. 앱의 core/domain/sharePayload.ts SHARE_LIMITS 와 같은 값이다(QA M-1). @plm SRS-065
+const (
+	maxShareExercises       = 40
+	maxShareSetsPerExercise = 50
+	maxShareNameRunes       = 80
+	maxShareNoteRunes       = 500
+)
+
+func clipRunes(s string, n int) string {
+	r := []rune(s)
+	if len(r) <= n {
+		return s
+	}
+	return string(r[:n])
+}
+
 func fromProtoExercises(list []*feedv1.WorkoutExercise) []WorkoutExercise {
+	if len(list) > maxShareExercises {
+		list = list[:maxShareExercises]
+	}
 	out := make([]WorkoutExercise, 0, len(list))
 	for _, ex := range list {
-		sets := make([]WorkoutSet, 0, len(ex.GetSets()))
-		for _, st := range ex.GetSets() {
+		src := ex.GetSets()
+		if len(src) > maxShareSetsPerExercise {
+			src = src[:maxShareSetsPerExercise]
+		}
+		sets := make([]WorkoutSet, 0, len(src))
+		for _, st := range src {
 			sets = append(sets, WorkoutSet{
 				WeightKg:       st.GetWeightKg(),
 				Reps:           st.GetReps(),
@@ -426,7 +450,12 @@ func fromProtoExercises(list []*feedv1.WorkoutExercise) []WorkoutExercise {
 				LoadMultiplier: st.GetLoadMultiplier(),
 			})
 		}
-		out = append(out, WorkoutExercise{Name: ex.GetName(), Note: ex.GetNote(), Sets: sets, ExerciseID: ex.GetExerciseId()})
+		out = append(out, WorkoutExercise{
+			Name:       clipRunes(ex.GetName(), maxShareNameRunes),
+			Note:       clipRunes(ex.GetNote(), maxShareNoteRunes),
+			Sets:       sets,
+			ExerciseID: clipRunes(ex.GetExerciseId(), 64),
+		})
 	}
 	return out
 }

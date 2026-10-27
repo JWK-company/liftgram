@@ -10,7 +10,7 @@
 // 세션 화면에서는 **숨긴다**: 거기엔 자체 헤더 타이머와 휴식 바가 이미 있다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { useSession } from "./SessionProvider";
 import { Icon } from "./ui/Icon";
@@ -37,10 +37,35 @@ export function GlobalWorkoutBar() {
   // 막대가 떠 있는 동안 그 높이를 셸 변수로 알린다 — 화면 안의 sticky 하단(댓글·DM 입력, 루틴 편집 하단)이
   // 막대 밑에 깔리지 않고 그만큼 위에 앉는다(SRS-066 — sticky 가 화면 기준으로 붙게 된 뒤 필요해졌다).
   const visible = !!activeWorkoutId && !pathname.startsWith("/workout");
+  const barRef = useRef<HTMLDivElement>(null);
+  // [원본] 높이를 60px 로 박아 두었다 — 데스크톱(lg)에서는 막대가 바닥에서 16px 떠 있어 아래 요소가 9px 깔렸다(QA M-2)
+  // root.style.setProperty("--shell-workout-bar", visible ? "60px" : "0px");
+  // [개선] 막대가 **실제로 차지하는 높이**를 잰다(ResizeObserver · 창 크기 변화). 기준은 하단 요소가 앉는 바닥:
+  //   · 폰(탭바가 아래): 탭바 위끝 − 막대 위끝(하단 요소는 `56px + 이 값` 에 앉는다)
+  //   · 넓은 화면(탭바가 왼쪽 세로): 화면 아래끝 − 막대 위끝(하단 요소는 `이 값` 에 앉는다)
+  // 글자를 키우거나 이름이 길어 두 줄이 돼도 맞는다.
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty("--shell-workout-bar", visible ? "60px" : "0px");
+    if (!visible) {
+      root.style.setProperty("--shell-workout-bar", "0px");
+      return;
+    }
+    const el = barRef.current;
+    const measure = () => {
+      if (!el) return;
+      const top = el.getBoundingClientRect().top;
+      const nav = document.querySelector<HTMLElement>('[data-testid="shell-nav"]');
+      const wide = window.matchMedia("(min-width: 1024px)").matches;
+      const base = !wide && nav ? nav.getBoundingClientRect().top : window.innerHeight;
+      root.style.setProperty("--shell-workout-bar", `${Math.max(0, Math.ceil(base - top))}px`);
+    };
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (el && ro) ro.observe(el);
+    window.addEventListener("resize", measure);
     return () => {
+      ro?.disconnect();
+      window.removeEventListener("resize", measure);
       root.style.setProperty("--shell-workout-bar", "0px");
     };
   }, [visible]);
@@ -53,10 +78,13 @@ export function GlobalWorkoutBar() {
   return (
     <>
       {/* 막대 높이만큼 흐름에 자리를 낸다 — 화면 맨 아래 내용이 막대 밑에 깔리지 않게. */}
-      <div aria-hidden className="h-[60px] shrink-0" />
+      <div aria-hidden className="shrink-0" style={{ height: "var(--shell-workout-bar, 60px)" }} />
       {/* 진행 중 막대(SRS-054 시안 11 · 결정 D2) — 운동 화면을 ⌄ 로 내리면 **모든 탭 위에** 붙는다(음악 앱의 재생 막대).
           탭바 바로 위에 떠 있고, 폰 폭 칼럼 안에 맞춘다. 휴식 중이면 남은 시간이 주인공이다. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[560px] lg:bottom-4">
+      <div
+        ref={barRef}
+        className="pointer-events-none fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[560px] lg:bottom-4"
+      >
         <a
           href="/workout"
           data-testid="global-workout-bar"

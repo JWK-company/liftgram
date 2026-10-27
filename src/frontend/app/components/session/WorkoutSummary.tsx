@@ -194,9 +194,11 @@ export function WorkoutSummary({
               testId="btn-summary-replay"
               loading={replay.busy}
               onPress={() =>
-                replay.guard(async () => {
+                replay.guard(async (replacing) => {
                   const repo = await import("@app/core/data/workoutRepository");
-                  return (await repo.startWorkoutFromWorkout(summary.workoutId)) as unknown as {
+                  return (await repo.startWorkoutFromWorkout(summary.workoutId, {
+                    replacing,
+                  })) as unknown as {
                     id: string;
                     startedAt: number;
                     name: string | null;

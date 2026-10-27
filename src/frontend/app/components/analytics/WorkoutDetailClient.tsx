@@ -54,9 +54,9 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const toast = useToast();
 
   const startReplay = () =>
-    replay.guard(async () => {
+    replay.guard(async (replacing) => {
       const repo = await import("@app/core/data/workoutRepository");
-      const w = (await repo.startWorkoutFromWorkout(workoutId)) as unknown as {
+      const w = (await repo.startWorkoutFromWorkout(workoutId, { replacing })) as unknown as {
         id: string;
         startedAt: number;
         name: string | null;
@@ -185,7 +185,9 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
               />
             </Card>
 
-            {detail.exercises.length > 0 ? (
+            {/* 다시 시작할 것이 있을 때만(워킹 세트가 있는 종목 · 유산소는 세트 하나라도) — 워밍업만 한 운동에서
+                눌러 진행 중 운동만 폐기되던 길을 화면에서도 막는다(QA H-1 · planReplay 와 같은 기준) */}
+            {detail.exercises.some((ex) => ex.sets.some((st) => ex.isCardio || !st.isWarmup)) ? (
               <div className="mb-[var(--spacing-lg)]">
                 <Button
                   title={t("replay.start")}
