@@ -13,6 +13,7 @@ import type { BodyweightLog, UserProfile } from '../db/models';
 import type { BodyweightSource } from '../db/models/BodyweightLog';
 import {
   BODYWEIGHT_PROFILE_LOG_PREFIX,
+  isFutureMeasuredAt,
   isValidBodyweightKg,
   mirrorAfterLogWrite,
   planBodyweightMirror,
@@ -106,10 +107,14 @@ export interface AddBodyweightInput {
   note?: string | null;
 }
 
-/** 측정 한 줄을 더하고, 같은 write 안에서 미러를 맞춘다. 범위 밖 값은 오류. */
+/** 미래 측정 시각 거부 문구 — 화면은 날짜를 지금으로 잘라서 보내므로 여기까지 오는 일은 없어야 한다(qa P3-1 · 마지막 방어선). */
+const FUTURE_ERROR = '측정 시각이 지금보다 뒤예요';
+
+/** 측정 한 줄을 더하고, 같은 write 안에서 미러를 맞춘다. 범위 밖 값·미래 측정 시각(1분 넘게)은 오류. */
 export async function addBodyweightLog(input: AddBodyweightInput): Promise<BodyweightLog> {
   const kg = toKg(input.weight, input.unit);
   if (!isValidBodyweightKg(kg)) throw new Error('체중 값이 범위를 벗어났어요');
+  if (input.measuredAt !== undefined && isFutureMeasuredAt(input.measuredAt)) throw new Error(FUTURE_ERROR);
   // write 밖에서 프로필을 먼저 확보한다 — getOrCreateLocalUser 는 없으면 자기 write 를 연다(교착 방지).
   await getOrCreateLocalUser();
   const created = await database.write(async () => {
@@ -134,7 +139,7 @@ export interface UpdateBodyweightPatch {
   note?: string | null;
 }
 
-/** 한 줄을 고치고 미러를 맞춘다. */
+/** 한 줄을 고치고 미러를 맞춘다. 미래 측정 시각(1분 넘게)은 오류 — 그 줄이 「가장 최근」이 되어 뒤에 적은 기록을 가린다(qa P3-1). */
 export async function updateBodyweightLog(id: string, patch: UpdateBodyweightPatch): Promise<void> {
   let kg: number | undefined;
   if (patch.weight !== undefined) {
@@ -142,6 +147,8 @@ export async function updateBodyweightLog(id: string, patch: UpdateBodyweightPat
     kg = toKg(patch.weight, patch.unit);
     if (!isValidBodyweightKg(kg)) throw new Error('체중 값이 범위를 벗어났어요');
   }
+  if (patch.measuredAt !== undefined && (!Number.isFinite(patch.measuredAt) || isFutureMeasuredAt(patch.measuredAt)))
+    throw new Error(FUTURE_ERROR);
   await database.write(async () => {
     const rec = await logs().find(id);
     await rec.update((l) => {

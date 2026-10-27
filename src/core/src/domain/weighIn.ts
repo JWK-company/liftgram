@@ -53,9 +53,28 @@ export function shouldOfferWeighIn(i: WeighInGateInput): boolean {
   return Number.isFinite(since) && since >= -60_000 && since <= WEIGH_IN_WINDOW_MS; // 시계 차이 1분까지는 「방금 시작」
 }
 
-/** 체중을 보일 단위 — 예전 프로필 단위가 lb 면 lb, 아니면 kg(프로필 단위 줄은 없어졌지만 값은 남아 있다 · SRS-067) */
-export function bodyweightUnitOf(profileUnit: string | null | undefined): WeightUnit {
-  return profileUnit === 'lb' ? 'lb' : 'kg';
+/**
+ * 체중을 보일 단위 — **늘 kg**(SRS-067: 「프로필의 kg/lb 선택은 없애고 바 무게·체중은 kg로 고정」 · qa P3-3).
+ * 예전 프로필 단위가 lb 인 사람에게만 lb 로 보이면 같은 화면의 바 무게(kg)와 어긋나고, 단위 줄이 없어 kg 로 돌아갈 길도 없다.
+ * lb 스텝·왕복 로직(BODYWEIGHT_STEPS.lb · enteredBodyweightToKg)은 그대로 둔다 — 나중에 「체중 단위」 설정이 생기면 여기만 바꾼다.
+ */
+export function bodyweightUnitOf(_profileUnit: string | null | undefined): WeightUnit {
+  // [원본] 원복 시 아래를 주석 해제하고 kg 고정 줄을 주석 처리
+  // return _profileUnit === 'lb' ? 'lb' : 'kg';
+  // [개선] kg 고정
+  return 'kg';
+}
+
+/** 직접 입력의 하한(kg) — 웰니스 평가가 아니라 오타 방지(「72」를 치다 「7」에서 저장하는 일 · qa P3-6) */
+export const WEIGH_IN_MIN_ENTRY_KG = 20;
+
+/** 지난 값과 이만큼(비율) 넘게 다르면 저장 전에 한 번 확인한다(qa P3-6) */
+export const WEIGH_IN_JUMP_RATIO = 0.3;
+
+/** 지난 값 대비 ±30% 를 넘게 다른가 — 비교할 값이 없으면 false */
+export function isLargeBodyweightJump(kg: number, refKg: number | null | undefined): boolean {
+  if (typeof refKg !== 'number' || !Number.isFinite(refKg) || refKg <= 0 || !Number.isFinite(kg)) return false;
+  return Math.abs(kg - refKg) / refKg > WEIGH_IN_JUMP_RATIO;
 }
 
 /** 시트·목록에 보이는 숫자(소수 첫째 자리) */
@@ -70,14 +89,16 @@ export function formatBodyweight(kg: number, unit: WeightUnit): string {
 
 /**
  * 직접 입력한 표시 단위 숫자 → 저장 kg. 보이던 숫자(baseKg 의 표시값)와 같으면 baseKg 그대로(왕복 오차 없음 · U-8).
- * 그 밖에는 소수 첫째 자리로 맞춰 kg 로. 범위 밖(0 이하·상한 초과)·숫자 아님 = null(저장 안 함).
+ * 그 밖에는 소수 첫째 자리로 맞춰 kg 로. 범위 밖(하한 20kg 미만·상한 초과)·숫자 아님 = null(저장 안 함 — 화면이 이유를 한 줄로 알린다).
  */
 export function enteredBodyweightToKg(entered: number, unit: WeightUnit, baseKg: number | null): number | null {
   if (!Number.isFinite(entered) || entered <= 0) return null;
   const rounded = Math.round(entered * 10) / 10;
   if (baseKg != null && Number.isFinite(baseKg) && rounded === shownBodyweight(baseKg, unit)) return baseKg;
   const kg = toKg(rounded, unit);
-  return kg > 0 && kg <= BODYWEIGHT_MAX_KG ? kg : null;
+  // [원본] return kg > 0 && kg <= BODYWEIGHT_MAX_KG ? kg : null;
+  // [개선] 하한 20kg(오타 방지 · qa P3-6)
+  return kg >= WEIGH_IN_MIN_ENTRY_KG && kg <= BODYWEIGHT_MAX_KG ? kg : null;
 }
 
 /** 지난 값이 없을 때 시트가 출발하는 값(kg) — 표시 단위의 반올림 숫자(70kg · 155lb) */

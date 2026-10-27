@@ -7,24 +7,30 @@
 // 숫자(U-8): 상태는 kg 로 든다. ± 는 core stepBodyweightKg(보이는 숫자 + 스텝 → kg), 직접 입력은 enteredBodyweightToKg
 //   (보이던 숫자 그대로면 kg 원값) — lb 로 보여도 75kg 가 74.98kg 로 바뀌지 않는다.
 // 닫기: 스크림·Esc·(trapBack 이면) 브라우저 뒤로 = onDismiss — 체크인에서는 「체중 없이 계속」과 같다(U-7 ②).
+//   직접 입력 중 스크림을 누르면 닫지 않고 입력만 확정한다(키보드를 내리려는 손짓 · iOS 숫자 키패드엔 Enter 가 없다 · qa P3-7).
+// 접근성(qa P3-5): 스크림은 포커스·낭독 대상이 아니다(Esc·둘째 버튼이 같은 동작). Tab 은 패널 안에서 돈다. 닫으면 연 곳으로 포커스를 돌려준다.
+// 오타 방지(qa P3-6): 직접 입력은 20~300kg 밖이면 받지 않고 이유를 한 줄로 알린다. 지난 값과 ±30% 넘게 다르면 한 번 더 눌러야 저장.
 //
 // WeighInCheckin: ActiveWorkout 첫 진입에서 띄울지 판정하고(core shouldOfferWeighIn) 저장은 source='checkin'.
 import {
+  BODYWEIGHT_MAX_KG,
   BODYWEIGHT_STEPS,
   latest,
   stepBodyweightKg,
   type BodyweightLogLike,
 } from "@app/core/domain/bodyweight";
 import {
+  WEIGH_IN_MIN_ENTRY_KG,
   bodyweightUnitOf,
   enteredBodyweightToKg,
   formatBodyweight,
   hasLogOnLocalDay,
+  isLargeBodyweightJump,
   localDayRange,
   shouldOfferWeighIn,
   weighInStartKg,
 } from "@app/core/domain/weighIn";
-import type { WeightUnit } from "@app/core";
+import { fromKg, type WeightUnit } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -54,6 +60,7 @@ export function WeighInSheet({
   onDismiss,
   trapBack = false,
   extra,
+  compareKg,
   testId = "weighin-sheet",
 }: {
   title: string;
@@ -74,6 +81,8 @@ export function WeighInSheet({
   trapBack?: boolean;
   /** 값 아래 덧붙일 것(고치기의 날짜 칸 등) */
   extra?: ReactNode;
+  /** ±30% 확인의 기준값(kg) — 없으면 last 의 값. 목표 시트처럼 last 가 없으면 확인하지 않는다 */
+  compareKg?: number | null;
   testId?: string;
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
@@ -81,16 +90,53 @@ export function WeighInSheet({
   const [typing, setTyping] = useState(false);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  /** 직접 입력을 받지 않은 이유(범위 밖·숫자 아님) — 입력칸 아래 한 줄 */
+  const [entryError, setEntryError] = useState(false);
+  /** ±30% 확인을 띄운 kg — 같은 값으로 한 번 더 누르면 저장 */
+  const [jumpAsk, setJumpAsk] = useState<number | null>(null);
   const closed = useRef(false);
   const focused = useRef(false);
   const dismissRef = useRef(onDismiss);
   dismissRef.current = onDismiss;
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const typingRef = useRef(false);
+  typingRef.current = typing;
+  /** 스크림을 누르기 시작할 때 입력 중이었나 — 누르는 순간 입력칸이 blur 되어 click 때는 이미 typing=false 다 */
+  const scrimDownWhileTyping = useRef(false);
 
-  useEffect(() => setRoot(document.getElementById("modal-root")), []);
+  // 연 곳(버튼)을 기억했다가 닫힐 때 돌려준다(qa P3-5 ③) — 포탈이 붙기 전 첫 effect 에서 잡는다
+  useEffect(() => {
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setRoot(document.getElementById("modal-root"));
+    return () => {
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
+  }, []);
 
   // Esc = 닫기(공용 Overlay 와 같다)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Tab 은 패널 안에서 돈다(aria-modal · qa P3-5 ②)
+      if (e.key === "Tab" && panelRef.current) {
+        const items = [
+          ...panelRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        ];
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        const inside = active instanceof Node && panelRef.current.contains(active);
+        if (e.shiftKey && (active === first || !inside)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (active === last || !inside)) {
+          e.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       if (e.key !== "Escape" || closed.current) return;
       closed.current = true;
       dismissRef.current();
@@ -100,17 +146,16 @@ export function WeighInSheet({
   }, []);
 
   // 뒤로 가기 = 닫기(체크인 · U-7 ②). 열 때 한 칸 쌓고, 버튼으로 닫으면 그 칸을 되돌린다(주소는 그대로).
+  // [원본] 되돌림 popstate 를 무시하려던 ignorePop — 리스너를 먼저 떼어 아무 일도 하지 않았다(qa P3-10 · 정리).
+  // 걷기(history.back)는 cleanup 에서 **바로** 부른다. 한 틱 미루면 바로 뒤의 이동(새로고침·링크)과 겹쳐 그 이동을 끊는다(e2e 로 확인).
+  //   back 과 그 뒤의 pushState 는 브라우저 세션 기록 순회 큐에서 차례로 처리된다 — 뒤에 연 새 화면을 되돌리지 않는다.
+  //   우리 칸(history.state.liftgramWeighIn)이 맨 위일 때만 걷는다. 개발 StrictMode 의 push→back→push 는 한 칸이 남는다(운영 무관).
   const pushed = useRef(false);
-  const ignorePop = useRef(false);
   useEffect(() => {
     if (!trapBack) return;
     history.pushState({ ...(history.state ?? {}), liftgramWeighIn: true }, "");
     pushed.current = true;
     const onPop = () => {
-      if (ignorePop.current) {
-        ignorePop.current = false;
-        return;
-      }
       pushed.current = false;
       if (closed.current) return;
       closed.current = true;
@@ -119,31 +164,44 @@ export function WeighInSheet({
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      // 버튼으로 닫혔다 — 쌓아 둔 칸을 걷는다(되돌림 popstate 는 위에서 무시)
-      if (pushed.current && history.state?.liftgramWeighIn) {
-        ignorePop.current = true;
-        pushed.current = false;
-        history.back();
-      }
+      if (pushed.current && history.state?.liftgramWeighIn) history.back();
+      pushed.current = false;
     };
   }, [trapBack]);
 
   const steps = BODYWEIGHT_STEPS[unit];
   const shown = formatBodyweight(kg, unit);
 
-  /** 직접 입력칸의 숫자를 반영한 kg — 보이던 숫자 그대로면 지금 kg(왕복 오차 없음) */
-  const commitTyped = (): number => {
-    if (!typing) return kg;
+  /**
+   * 직접 입력칸의 숫자를 반영한 kg — 보이던 숫자 그대로면 지금 kg(왕복 오차 없음).
+   * 받지 않는 값(범위 밖·숫자 아님)은 예전 값을 두고 이유를 한 줄로 알린다 — ok=false.
+   */
+  const commitTyped = (): { kg: number; ok: boolean } => {
+    if (!typingRef.current) return { kg, ok: true };
+    typingRef.current = false;
     const v = Number.parseFloat(draft.replace(",", "."));
-    const next = enteredBodyweightToKg(v, unit, kg) ?? kg;
-    setKg(next);
+    const entered = enteredBodyweightToKg(v, unit, kg);
     setTyping(false);
-    return next;
+    if (entered == null) {
+      setEntryError(true);
+      return { kg, ok: false };
+    }
+    setEntryError(false);
+    setKg(entered);
+    return { kg: entered, ok: true };
   };
+
+  const refKg = compareKg !== undefined ? compareKg : (last?.kg ?? null);
 
   const save = () => {
     if (busy || closed.current) return;
-    const value = commitTyped();
+    const { kg: value, ok } = commitTyped();
+    if (!ok || entryError) return; // 받지 않은 입력 — 이유 줄을 본 뒤 다시 고치거나 ± 로 맞춘다
+    // 지난 값과 ±30% 넘게 다르면 한 번 더 누르게 한다(같은 값일 때만 통과 · qa P3-6)
+    if (isLargeBodyweightJump(value, refKg) && jumpAsk !== value) {
+      setJumpAsk(value);
+      return;
+    }
     setBusy(true);
     void (async () => {
       try {
@@ -172,7 +230,8 @@ export function WeighInSheet({
         aria-label={t(s > 0 ? "bodyweight.stepInc" : "bodyweight.stepDec", { step: label, unit })}
         disabled={busy}
         onClick={() => {
-          const base = commitTyped();
+          const base = commitTyped().kg;
+          setEntryError(false);
           setKg(stepBodyweightKg(base, s, unit));
         }}
         className="flex h-[44px] min-w-[44px] flex-1 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums active:bg-(--color-line) disabled:opacity-60"
@@ -185,11 +244,22 @@ export function WeighInSheet({
 
   return createPortal(
     <div data-testid={testId} className="fixed inset-0 z-50 flex items-end justify-center">
+      {/* 스크림 — 포커스·낭독 대상이 아니다(같은 이름 버튼이 대화상자 밖에 하나 더 들리지 않게 · qa P3-5 ①). Esc·둘째 버튼이 같은 동작 */}
       <button
         type="button"
-        aria-label={secondaryLabel}
+        tabIndex={-1}
+        aria-hidden="true"
         data-testid="weighin-scrim"
+        onPointerDown={() => {
+          scrimDownWhileTyping.current = typingRef.current;
+        }}
         onClick={() => {
+          // 직접 입력 중이었다 — 닫지 않고 입력만 확정(키보드 내리기 · qa P3-7). 다음 누름에 닫는다
+          if (scrimDownWhileTyping.current || typingRef.current) {
+            scrimDownWhileTyping.current = false;
+            commitTyped();
+            return;
+          }
           if (closed.current) return;
           closed.current = true;
           onDismiss();
@@ -197,6 +267,7 @@ export function WeighInSheet({
         className="absolute inset-0 bg-black/50"
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${testId}-title`}
@@ -245,7 +316,11 @@ export function WeighInSheet({
                   }
                 }}
                 value={draft}
-                onChange={(e) => setDraft(e.target.value)}
+                enterKeyHint="done"
+                onChange={(e) => {
+                  setDraft(e.target.value);
+                  setEntryError(false);
+                }}
                 onBlur={() => commitTyped()}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
@@ -264,6 +339,7 @@ export function WeighInSheet({
               aria-label={`${t("bodyweight.directInput")} — ${shown}${unit}`}
               onClick={() => {
                 setDraft(shown);
+                setEntryError(false);
                 setTyping(true);
               }}
               className="flex min-h-[44px] items-baseline gap-[4px] rounded-[var(--radius-md)] px-[var(--spacing-sm)]"
@@ -274,12 +350,23 @@ export function WeighInSheet({
               <span className="text-(--color-ink2) text-[length:var(--text-md)]">{unit}</span>
             </button>
           )}
-          {typing ? null : (
+          {typing ? (
+            // 숫자 키패드에 Enter 가 없는 기기(iOS)에서 입력을 확정하는 길(qa P3-7) — 누르기 시작할 때 blur 가 확정한다
+            <button
+              type="button"
+              data-testid="weighin-input-done"
+              onClick={() => commitTyped()}
+              className="flex h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-pill)] border border-(--color-line-strong) px-[var(--spacing-sm)] font-medium text-(--color-ink) text-[length:var(--text-sm)]"
+            >
+              {t("bodyweight.done")}
+            </button>
+          ) : (
             <button
               type="button"
               data-testid="weighin-type"
               onClick={() => {
                 setDraft(shown);
+                setEntryError(false);
                 setTyping(true);
               }}
               className="flex h-[44px] items-center rounded-[var(--radius-pill)] px-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)] underline underline-offset-2"
@@ -289,12 +376,36 @@ export function WeighInSheet({
           )}
         </div>
 
+        {entryError ? (
+          <p
+            role="alert"
+            data-testid="weighin-entry-error"
+            className="text-center text-(--color-bad) text-[length:var(--text-sm)]"
+          >
+            {t("bodyweight.entryOutOfRange", {
+              min: Math.ceil(fromKg(WEIGH_IN_MIN_ENTRY_KG, unit)),
+              max: Math.floor(fromKg(BODYWEIGHT_MAX_KG, unit)),
+              unit,
+            })}
+          </p>
+        ) : null}
+
         <div className="mt-[var(--spacing-xs)] flex flex-col gap-[6px]" data-testid="weighin-steps">
           <div className="flex gap-[6px]">{[-steps[2], -steps[1], -steps[0]].map(stepBtn)}</div>
           <div className="flex gap-[6px]">{[steps[0], steps[1], steps[2]].map(stepBtn)}</div>
         </div>
 
         {extra ? <div className="mt-[var(--spacing-sm)]">{extra}</div> : null}
+
+        {jumpAsk != null && jumpAsk === kg && refKg != null ? (
+          <p
+            role="alert"
+            data-testid="weighin-jump-confirm"
+            className="mt-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]"
+          >
+            {t("bodyweight.jumpConfirm", { value: `${formatBodyweight(refKg, unit)}${unit}` })}
+          </p>
+        ) : null}
 
         <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
           <button
@@ -314,7 +425,7 @@ export function WeighInSheet({
             aria-busy={busy}
             className="h-[44px] flex-1 rounded-[var(--radius-md)] bg-(--color-brand) font-semibold text-(--color-on-brand) text-[length:var(--text-md)] disabled:opacity-60"
           >
-            {primaryLabel}
+            {jumpAsk != null && jumpAsk === kg ? t("bodyweight.saveAnyway") : primaryLabel}
           </button>
         </div>
       </div>
@@ -347,7 +458,12 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
     judged.current = workoutId;
     clearWeighInMarks({ keep: workoutId }); // 끝난 운동들의 남은 표시를 걷는다
     if (!readWeighInEnabled() || hasWeighInMark(workoutId)) return;
+    // [원본] 표시는 비동기 판정이 끝난 뒤(setGate 직전)에 남겼다 — 같은 운동을 탭 두 개로 열면 둘 다 판정을 통과해 시트가 두 번 떴다.
+    // [개선] 판정을 시작할 때 먼저 남기고(다른 탭은 이 표시를 보고 멈춘다), 띄우지 않기로 하면·판정이 끊기면 지운다(qa P3-9).
+    setWeighInMark(workoutId);
     let cancelled = false;
+    let decided = false;
+    const release = () => clearWeighInMarks({ workoutId });
     void (async () => {
       try {
         const [w, bw] = await Promise.all([
@@ -367,20 +483,31 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
           startedAt,
           now,
           loggedToday: hasLogOnLocalDay(todayLogs, now),
-          marked: hasWeighInMark(workoutId),
+          marked: false, // 위에서 확인하고 이 판정이 남긴 표시다
         });
-        if (cancelled || !offer) return;
+        if (cancelled) return;
+        if (!offer) {
+          decided = true;
+          release();
+          return;
+        }
         const all = (await bw.listBodyweightLogs()).map(bw.toBodyweightLogLike);
         if (cancelled) return;
-        setWeighInMark(workoutId);
+        decided = true;
         setGate({ last: lastEntryOf(all) });
       } catch {
         // 판정 실패 — 띄우지 않는다(운동을 막지 않는다)
+        if (!cancelled) {
+          decided = true;
+          release();
+        }
       }
     })();
     return () => {
       cancelled = true;
       judged.current = null;
+      // 판정 도중 끊겼다(StrictMode 재실행·화면 이탈) — 남긴 표시를 걷어 다음 판정이 다시 볼 수 있게
+      if (!decided) release();
     };
   }, [workoutId, startedAt]);
 

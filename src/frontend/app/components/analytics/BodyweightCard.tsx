@@ -6,8 +6,12 @@
 //   하루 평균 3점 이상 최소제곱, 기간 선택과 무관). 주간 변화가 없으면 「한 번 더 적으면 추세가 보여요」.
 // · 기록이 기간 안에 하나뿐이면 곡선 대신 값과 안내(SRS-078). 하나도 없으면 「이 기간에 기록이 없어요」.
 // · 「최근」 = 가장 최근 측정(유효 행). 남은 차이는 그 값과 목표의 차이.
+// · 주간 변화의 기준 시각은 max(기간 기준 시각, 가장 최근 측정) — 카드에서 막 적은 기록이 바로 주간 변화에 들어간다(qa P3-2).
+// · 안내 문구는 최근 28일의 서로 다른 날 수로 가른다 — 「한 번 더」가 약속을 지킬 때만 그 말을 쓴다(qa P3-12 ⓑ).
+// · 이력을 읽기 전에는 곡선 자리만 비워 둔다(「기록이 없어요」가 잠깐 보이지 않게 · qa P3-12 ⓒ).
+// · 이력 0 인데 프로필 값만 있으면 그 값을 보여 준다 — 프로필 화면과 말이 같게(qa P3-8).
 // 문구는 숫자만 — 감량·증량 권고나 평가 없음(웰니스 · guideCopy `bodyweight.`).
-import { goalGap, sortBodyweightLogs, weeklyRate } from "@app/core/domain/bodyweight";
+import { goalGap, sortBodyweightLogs, weeklyRate, weeklyRateDaysNeeded } from "@app/core/domain/bodyweight";
 import { bodyweightUnitOf, formatBodyweight, shownBodyweight } from "@app/core/domain/weighIn";
 import { fromKg } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
@@ -39,7 +43,7 @@ function signed(v: number, digits = 1): string {
 }
 
 export function BodyweightCard() {
-  const { user } = useUser();
+  const { user, bodyweightKg } = useUser();
   const { logs, loaded } = useBodyweightLogs();
   const goalKg = useBodyweightGoalKg();
   const [range, setRange] = useState<Range>("3m");
@@ -55,7 +59,13 @@ export function BodyweightCard() {
   const inRange = valid.filter((l) => l.measuredAt >= from && l.measuredAt <= nowMs + DAY_MS);
   const latest = valid[valid.length - 1] ?? null;
   const gap = goalGap(latest?.weightKg, goalKg);
-  const rate = weeklyRate(valid, nowMs);
+  // [원본] const rate = weeklyRate(valid, nowMs);
+  // [개선] 카드를 연 뒤에 적은 기록도 들어가게(qa P3-2)
+  const rateNow = Math.max(nowMs, latest?.measuredAt ?? 0);
+  const rate = weeklyRate(valid, rateNow);
+  const daysNeeded = weeklyRateDaysNeeded(valid, rateNow);
+  const needMoreText =
+    daysNeeded <= 1 ? t("bodyweight.weeklyNeedMore") : t("bodyweight.weeklyNeedMoreN", { count: daysNeeded });
   const first = inRange[0];
   const end = inRange[inRange.length - 1];
   const change = first && end && inRange.length >= 2 ? end.weightKg - first.weightKg : null;
@@ -94,9 +104,14 @@ export function BodyweightCard() {
         }
       />
       <Card className="mb-[var(--spacing-lg)]" data-testid="bodyweight-card">
-        {loaded && valid.length === 0 ? (
+        {!loaded ? (
+          // 읽는 중 — 빈 안내를 잠깐 보이지 않는다(qa P3-12 ⓒ)
+          <div aria-busy="true" data-testid="bodyweight-card-loading" className="min-h-[96px]" />
+        ) : valid.length === 0 ? (
           <AppText variant="caption" color="textMuted" className="block" data-testid="bodyweight-card-empty">
-            {t("bodyweight.cardEmpty")}
+            {bodyweightKg != null
+              ? t("bodyweight.cardEmptyProfile", { value: fmt(bodyweightKg) })
+              : t("bodyweight.cardEmpty")}
           </AppText>
         ) : (
           <>
@@ -157,7 +172,7 @@ export function BodyweightCard() {
                       kg: `${signed(fromKg(rate.kgPerWeek, unit), Math.abs(fromKg(rate.kgPerWeek, unit)) >= 1 ? 1 : 2)}${unit}`,
                       pct: `${signed(rate.pctPerWeek)}%`,
                     })
-                  : t("bodyweight.weeklyNeedMore")}
+                  : needMoreText}
               </p>
             )}
             {rate ? (
@@ -191,7 +206,7 @@ export function BodyweightCard() {
                   className="block"
                   data-testid="bodyweight-chart-empty"
                 >
-                  {inRange.length === 1 ? t("bodyweight.weeklyNeedMore") : t("bodyweight.rangeEmpty")}
+                  {inRange.length === 1 ? needMoreText : t("bodyweight.rangeEmpty")}
                 </AppText>
               )}
             </div>

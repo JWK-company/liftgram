@@ -46,6 +46,17 @@ export const WEEKLY_RATE_MIN_POINTS = 3;
 
 const DAY_MS = 86_400_000;
 
+/**
+ * 측정 시각이 지금보다 이만큼 넘게 뒤면 저장하지 않는다(ms · 기기 시계 차이 1분까지는 받는다).
+ * 미래 측정은 「가장 최근 측정」이 되어 그 뒤에 적은 진짜 기록을 가린다 — 미러·맨몸 볼륨·체크인 판정이 틀어진다(qa P3-1).
+ */
+export const BODYWEIGHT_FUTURE_TOLERANCE_MS = 60_000;
+
+/** 이 측정 시각은 미래인가(지금 + 허용 오차보다 뒤) @plm SRS-077 */
+export function isFutureMeasuredAt(measuredAt: number, now = Date.now()): boolean {
+  return Number.isFinite(measuredAt) && measuredAt > now + BODYWEIGHT_FUTURE_TOLERANCE_MS;
+}
+
 export function isValidBodyweightKg(kg: number | null | undefined): kg is number {
   return typeof kg === 'number' && Number.isFinite(kg) && kg > 0 && kg <= BODYWEIGHT_MAX_KG;
 }
@@ -195,6 +206,21 @@ export function weeklyRate(logs: readonly BodyweightLogLike[], now: number): Wee
   const kgPerWeek = (sxy / sxx) * 7;
   const last = pts[n - 1].y;
   return { kgPerWeek, pctPerWeek: last > 0 ? (kgPerWeek / last) * 100 : 0, days: n };
+}
+
+/**
+ * 주간 변화가 보이려면 최근 28일 안에 **서로 다른 날**을 몇 번 더 적어야 하나(0 = 이미 충분 · weeklyRate 와 같은 창·같은 날 세기).
+ * 카드 안내가 「한 번 더」라고 약속했는데 한 번 더 적어도 안 나오는 일을 막는다(qa P3-12 ⓑ). @plm SRS-078
+ */
+export function weeklyRateDaysNeeded(logs: readonly BodyweightLogLike[], now: number): number {
+  const from = now - WEEKLY_RATE_WINDOW_DAYS * DAY_MS;
+  const days = new Set<number>();
+  for (const l of logs) {
+    if (!isValidBodyweightLog(l)) continue;
+    if (l.measuredAt <= from || l.measuredAt > now) continue;
+    days.add(dayNumber(l.measuredAt));
+  }
+  return Math.max(0, WEEKLY_RATE_MIN_POINTS - days.size);
 }
 
 /**
@@ -354,7 +380,13 @@ export function planProfileBodyweightWrite(
 
   const same = top ? (w === 0 ? isBodyweightClearMarker(top) : sameKg(entryKg(top), w)) : w === 0 && historyComplete;
   if (!same) {
+    // [원본] const mergeable =
+    //   top != null &&
+    //   last != null && … (값·표식 구분 없이 합쳤다 — 다른 기기의 v0.43 값 줄이 동기된 지 1분 안에 미설정을 누르면 그 측정이 표식으로 바뀌었다)
+    // [개선] 합치기는 값 ↔ 값끼리만(연타). 「설정 안 함」 표식은 늘 새 줄 — 측정값을 지우지 않는다(qa P3-11).
     const mergeable =
+      w > 0 &&
+      (top?.weightKg ?? 0) > 0 &&
       top != null &&
       last != null &&
       last.id === top.id &&

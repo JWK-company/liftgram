@@ -2,13 +2,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { stepBodyweightKg } from '../bodyweight';
+import { isFutureMeasuredAt, stepBodyweightKg, weeklyRateDaysNeeded } from '../bodyweight';
 import { toKg } from '../units';
 import {
   WEIGH_IN_WINDOW_MS,
   bodyweightUnitOf,
   enteredBodyweightToKg,
   formatBodyweight,
+  isLargeBodyweightJump,
   hasLogOnLocalDay,
   localDayRange,
   shouldOfferWeighIn,
@@ -46,8 +47,9 @@ test('오늘 기록 — 로컬 날짜 · 표식(0)·깨진 행은 세지 않는�
   assert.equal(hasLogOnLocalDay([], NOW), false);
 });
 
-test('표시 단위 — 예전 프로필 단위가 lb 일 때만 lb', () => {
-  assert.equal(bodyweightUnitOf('lb'), 'lb');
+test('표시 단위 — 늘 kg(SRS-067 · 예전 프로필 단위가 lb 여도 · qa P3-3)', () => {
+  // [원본] assert.equal(bodyweightUnitOf('lb'), 'lb');
+  assert.equal(bodyweightUnitOf('lb'), 'kg');
   assert.equal(bodyweightUnitOf('kg'), 'kg');
   assert.equal(bodyweightUnitOf(null), 'kg');
   assert.equal(bodyweightUnitOf(undefined), 'kg');
@@ -88,4 +90,33 @@ test('지난 값이 없으면 출발값 70kg · 155lb', () => {
   assert.equal(shownBodyweight(weighInStartKg(null, 'lb'), 'lb'), 155);
   assert.equal(weighInStartKg(81.2, 'lb'), 81.2);
   assert.equal(weighInStartKg(0, 'kg'), 70);
+});
+
+test('직접 입력 오타 방지 — 하한 20kg · 지난 값 ±30% 넘으면 확인(qa P3-6)', () => {
+  assert.equal(enteredBodyweightToKg(7, 'kg', 72), null); // 「72」를 치다 「7」
+  assert.equal(enteredBodyweightToKg(19.9, 'kg', 72), null);
+  assert.equal(enteredBodyweightToKg(20, 'kg', 72), 20);
+  assert.equal(isLargeBodyweightJump(100, 72), true);
+  assert.equal(isLargeBodyweightJump(50, 72), true);
+  assert.equal(isLargeBodyweightJump(80, 72), false);
+  assert.equal(isLargeBodyweightJump(93.6, 72), false); // 정확히 30% 는 확인 안 함
+  assert.equal(isLargeBodyweightJump(100, null), false);
+  assert.equal(isLargeBodyweightJump(100, 0), false);
+});
+
+test('미래 측정 시각 — 1분 넘게 뒤면 미래(qa P3-1)', () => {
+  assert.equal(isFutureMeasuredAt(NOW + 30_000, NOW), false);
+  assert.equal(isFutureMeasuredAt(NOW + 60_001, NOW), true);
+  assert.equal(isFutureMeasuredAt(NOW - 86_400_000, NOW), false);
+});
+
+test('주간 변화까지 남은 날 수 — 최근 28일 안의 서로 다른 날로 센다(qa P3-12 ⓑ)', () => {
+  const D = 86_400_000;
+  const log = (id: string, at: number, kg = 72) => ({ id, measuredAt: at, weightKg: kg, updatedAt: 0 });
+  assert.equal(weeklyRateDaysNeeded([], NOW), 3);
+  assert.equal(weeklyRateDaysNeeded([log('a', NOW - 60 * D), log('b', NOW)], NOW), 2); // 60일 전은 창 밖
+  assert.equal(weeklyRateDaysNeeded([log('a', NOW - 5 * D), log('b', NOW)], NOW), 1);
+  assert.equal(weeklyRateDaysNeeded([log('a', NOW - 1000), log('b', NOW)], NOW), 2); // 같은 날 두 번 = 하루
+  assert.equal(weeklyRateDaysNeeded([log('a', NOW - 9 * D), log('b', NOW - 5 * D), log('c', NOW)], NOW), 0);
+  assert.equal(weeklyRateDaysNeeded([log('a', NOW - 5 * D, 0), log('b', NOW)], NOW), 2); // 표식(0)은 안 셈
 });

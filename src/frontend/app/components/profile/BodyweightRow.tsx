@@ -6,7 +6,9 @@
 //   · 마지막 기록을 지우면 체중이 미설정으로 돌아간다 — 지우기 전에 그 사실을 확인받는다(U-9 · 저장소가 미러를 null 로).
 //   · 「체중 미설정으로 두기」 — 예전 스테퍼의 0(설정 안 함)을 잇는 길. 이력은 지우지 않고 core 표식 한 줄(무게 0)을 남긴다(CD-2):
 //     updateUserSettings({ bodyweightKg: null }) → 같은 write 안에서 표식 + 미러 null. 다음 기록이 오면 다시 그 값이 내 체중이다.
-// 표시 단위: 예전 프로필 단위가 lb 면 lb(core bodyweightUnitOf) — 저장은 늘 kg.
+//     이력이 0 이고 프로필 값만 있는 기기(로그인 안 한 기기는 bw-init 을 심지 않는다 · CD-5)에서도 보인다(qa P3-8).
+// 표시 단위: kg 고정(SRS-067 · core bodyweightUnitOf) — 저장도 kg.
+// 고치기 날짜: 날짜만 바꾸고 시각은 두되 **지금보다 뒤면 지금으로 자른다**(미래 측정은 뒤에 적은 기록을 가린다 · qa P3-1 · core 도 거부).
 import {
   isValidBodyweightLog,
   sortBodyweightLogs,
@@ -169,9 +171,13 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
             />
           </label>
         }
+        compareKg={editing.weightKg}
         onSave={async (kg) => {
           const e = editing;
-          const measuredAt = withDate(e.measuredAt, editDate) ?? e.measuredAt;
+          // [원본] const measuredAt = withDate(e.measuredAt, editDate) ?? e.measuredAt;
+          // [개선] 오늘로 옮기면서 시각이 지금보다 뒤면 지금으로(qa P3-1)
+          const picked = withDate(e.measuredAt, editDate) ?? e.measuredAt;
+          const measuredAt = picked === e.measuredAt ? picked : Math.min(picked, Date.now());
           const changedKg = kg !== e.weightKg;
           const changedAt = measuredAt !== e.measuredAt;
           if (changedKg || changedAt)
@@ -204,64 +210,74 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
           </p>
         ) : (
           <ul className="mt-[var(--spacing-sm)] flex flex-col" data-testid="bodyweight-history-list">
-            {rows.map((l, i) => (
-              <li
-                key={l.id}
-                data-testid="bodyweight-history-row"
-                style={{ borderTopWidth: i === 0 ? 0 : 1, borderColor: "var(--color-line)" }}
-                className="flex items-center gap-[var(--spacing-sm)] py-[4px]"
-              >
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span
-                    className="font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums"
-                    data-testid="bodyweight-history-value"
+            {rows.map((l, i) => {
+              const entry = `${formatBodyweight(l.weightKg, unit)}${unit} · ${formatBodyweightDate(l.measuredAt, true)}`;
+              return (
+                <li
+                  key={l.id}
+                  data-testid="bodyweight-history-row"
+                  style={{ borderTopWidth: i === 0 ? 0 : 1, borderColor: "var(--color-line)" }}
+                  className="flex items-center gap-[var(--spacing-sm)] py-[4px]"
+                >
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span
+                      className="font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums"
+                      data-testid="bodyweight-history-value"
+                    >
+                      {formatBodyweight(l.weightKg, unit)}
+                      {unit}
+                    </span>
+                    <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">
+                      {formatBodyweightDate(l.measuredAt, true)}
+                      {l.source === "checkin"
+                        ? ` · ${t("bodyweight.sourceCheckin")}`
+                        : l.source === "legacy"
+                          ? ` · ${t("bodyweight.sourceLegacy")}`
+                          : ""}
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    data-testid="bodyweight-history-edit"
+                    // 줄마다 같은 「고치기」만 들리지 않게 — 어느 기록인지 함께(qa P3-4)
+                    aria-label={t("bodyweight.editAria", { entry })}
+                    onClick={() => {
+                      setEditDate(ymdOf(l.measuredAt));
+                      setEditing(l);
+                    }}
+                    className="flex h-[44px] min-w-[44px] items-center justify-center px-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)] underline underline-offset-2"
                   >
-                    {formatBodyweight(l.weightKg, unit)}
-                    {unit}
-                  </span>
-                  <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">
-                    {formatBodyweightDate(l.measuredAt, true)}
-                    {l.source === "checkin"
-                      ? ` · ${t("bodyweight.sourceCheckin")}`
-                      : l.source === "legacy"
-                        ? ` · ${t("bodyweight.sourceLegacy")}`
-                        : ""}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  data-testid="bodyweight-history-edit"
-                  onClick={() => {
-                    setEditDate(ymdOf(l.measuredAt));
-                    setEditing(l);
-                  }}
-                  className="flex h-[44px] min-w-[44px] items-center justify-center px-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)] underline underline-offset-2"
-                >
-                  {t("bodyweight.edit")}
-                </button>
-                <button
-                  type="button"
-                  data-testid="bodyweight-history-delete"
-                  onClick={() => setDeleting(l)}
-                  className="flex h-[44px] min-w-[44px] items-center justify-center px-[var(--spacing-sm)] text-(--color-bad) text-[length:var(--text-sm)] underline underline-offset-2"
-                >
-                  {t("bodyweight.delete")}
-                </button>
-              </li>
-            ))}
+                    {t("bodyweight.edit")}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="bodyweight-history-delete"
+                    aria-label={t("bodyweight.deleteAria", { entry })}
+                    onClick={() => setDeleting(l)}
+                    className="flex h-[44px] min-w-[44px] items-center justify-center px-[var(--spacing-sm)] text-(--color-bad) text-[length:var(--text-sm)] underline underline-offset-2"
+                  >
+                    {t("bodyweight.delete")}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
-        {rows.length > 0 && bodyweightKg != null && userId ? (
-          <div className="mt-[var(--spacing-md)] border-(--color-line) border-t pt-[var(--spacing-sm)]">
+        {/* [원본] 이력이 있을 때만 · 보통 글자: {rows.length > 0 && bodyweightKg != null && userId ? ( … ) : null}
+            [개선] 프로필 값만 있어도(이력 0) 보이고, 테두리 버튼으로(qa P3-8) */}
+        {bodyweightKg != null && userId ? (
+          <div className="mt-[var(--spacing-md)] border-(--color-line) border-t pt-[var(--spacing-md)]">
             <button
               type="button"
               data-testid="btn-bodyweight-unset"
               onClick={() => setConfirmUnset(true)}
-              className="flex min-h-[44px] w-full items-center text-left font-medium text-(--color-ink) text-[length:var(--text-sm)]"
+              className="flex h-[44px] w-full items-center justify-center rounded-[var(--radius-md)] border border-(--color-line-strong) font-medium text-(--color-ink) text-[length:var(--text-md)] active:bg-(--color-surface-alt)"
             >
               {t("bodyweight.unsetAction")}
             </button>
-            <p className="text-(--color-ink2) text-[length:var(--text-sm)]">{t("bodyweight.unsetCaption")}</p>
+            <p className="mt-[4px] text-(--color-ink2) text-[length:var(--text-sm)]">
+              {t("bodyweight.unsetCaption")}
+            </p>
           </div>
         ) : null}
         <div className="mt-[var(--spacing-md)]">
@@ -282,7 +298,8 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
           title={rows.length <= 1 ? t("bodyweight.deleteLastTitle") : t("bodyweight.deleteTitle")}
           message={
             rows.length <= 1
-              ? t("bodyweight.deleteLastConfirm")
+              ? // 마지막 기록도 어느 값인지 한 줄 덧붙인다(qa P3-4)
+                `${formatBodyweight(deleting.weightKg, unit)}${unit} · ${formatBodyweightDate(deleting.measuredAt, true)} — ${t("bodyweight.deleteLastConfirm")}`
               : `${formatBodyweight(deleting.weightKg, unit)}${unit} · ${formatBodyweightDate(deleting.measuredAt, true)}`
           }
           confirmLabel={t("bodyweight.delete")}

@@ -231,18 +231,16 @@ export function LineChart({
               data-testid={testId ? `${testId}-line` : undefined}
             />
             {showDots
-              ? points
-                  .slice(0, -1)
-                  .map((p) => (
-                    <circle
-                      key={`p${p.x}`}
-                      cx={px(p.x)}
-                      cy={py(p.y)}
-                      r={2.5}
-                      fill="var(--color-brand)"
-                      data-point=""
-                    />
-                  ))
+              ? dotKeys(points.slice(0, -1)).map(({ p, key }) => (
+                  <circle
+                    key={key}
+                    cx={px(p.x)}
+                    cy={py(p.y)}
+                    r={2.5}
+                    fill="var(--color-brand)"
+                    data-point=""
+                  />
+                ))
               : null}
             {last ? (
               <circle
@@ -270,4 +268,14 @@ export function LineChart({
       </div>
     </div>
   );
+}
+
+/** 점 key — 같은 x(같은 측정 시각 두 줄: 가져오기·두 기기)도 겹치지 않게 같은 x 안 순번을 붙인다(qa P3-12 ⓐ) */
+function dotKeys<P extends { x: number }>(points: readonly P[]): { p: P; key: string }[] {
+  const seen = new Map<number, number>();
+  return points.map((p) => {
+    const n = seen.get(p.x) ?? 0;
+    seen.set(p.x, n + 1);
+    return { p, key: `p${p.x}-${n}` };
+  });
 }

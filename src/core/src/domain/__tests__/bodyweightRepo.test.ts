@@ -133,3 +133,56 @@ test('범위 밖 체중은 오류 — 아무것도 쓰지 않는다', async () =
   assert.equal((await rows()).length, 0);
   assert.equal(await mirror(), null);
 });
+
+test('미래 측정 시각은 거부 — 고치기·추가 모두 · 거부 뒤 새 기록이 내 체중이 된다(qa P3-1)', async () => {
+  await reset();
+  await userRepo.getOrCreateLocalUser();
+  const now = Date.now();
+  // 어제 같은 시각보다 2시간 뒤(=오늘로 옮기면 지금보다 뒤가 되는 시각)
+  const yesterdayLate = now - 86_400_000 + 2 * 3_600_000;
+  const old = await bwRepo.addBodyweightLog({ weight: 78, unit: 'kg', measuredAt: yesterdayLate });
+  // 날짜만 오늘로 바꾸면 measured_at = 지금 + 2시간 — 저장소가 거부한다
+  await assert.rejects(bwRepo.updateBodyweightLog(old.id, { measuredAt: yesterdayLate + 86_400_000 }), /지금보다 뒤/);
+  await assert.rejects(bwRepo.addBodyweightLog({ weight: 70, unit: 'kg', measuredAt: now + 3_600_000 }), /지금보다 뒤/);
+  assert.equal((await rows()).length, 1);
+  assert.equal((await rows())[0].measured_at, yesterdayLate);
+  // 시계 차이 1분 안은 받는다
+  await bwRepo.updateBodyweightLog(old.id, { measuredAt: Date.now() + 30_000 });
+  // 화면이 지금으로 자른 고치기(오늘로 옮김) 뒤에 새로 적은 기록이 내 체중
+  await bwRepo.updateBodyweightLog(old.id, { measuredAt: Date.now() - 60_000 });
+  await bwRepo.addBodyweightLog({ weight: 80, unit: 'kg' });
+  assert.equal(await mirror(), 80);
+});
+
+test('「미설정으로 두기」는 1분 안의 값 줄(다른 기기 v0.43 스테퍼)을 표식으로 바꾸지 않는다 — 늘 새 표식 줄(qa P3-11)', async () => {
+  await reset();
+  const me = await userRepo.getOrCreateLocalUser();
+  await userRepo.updateUserSettings(me.id, { bodyweightKg: 81 }); // bw-profile-* 값 줄 · 방금 씀(합치기 창 안)
+  await userRepo.updateUserSettings(me.id, { bodyweightKg: null });
+  const rs = await rows();
+  assert.equal(rs.length, 2);
+  assert.deepEqual(rs.map((r) => r.weight_kg).sort(), [0, 81]);
+  assert.equal(await mirror(), null);
+  // 값끼리의 연타 합치기는 그대로
+  await reset();
+  const me2 = await userRepo.getOrCreateLocalUser();
+  await userRepo.updateUserSettings(me2.id, { bodyweightKg: 81 });
+  await userRepo.updateUserSettings(me2.id, { bodyweightKg: 82 });
+  assert.equal((await rows()).length, 1);
+});
+
+test('이력 0 · 프로필 값만 있는 기기(로그인 안 함)도 미설정으로 둘 수 있다 — 정리가 되살리지 않는다(qa P3-8)', async () => {
+  await reset();
+  engine.installSyncTransport(null);
+  const me = await userRepo.getOrCreateLocalUser();
+  await database.write(async () => {
+    await me.update((p) => {
+      p.bodyweightKg = 75;
+    });
+  });
+  assert.equal(await mirror(), 75);
+  await userRepo.updateUserSettings(me.id, { bodyweightKg: null });
+  assert.equal(await mirror(), null);
+  for (let i = 0; i < 2; i++) await bwRepo.reconcileBodyweightMirror();
+  assert.equal(await mirror(), null);
+});
