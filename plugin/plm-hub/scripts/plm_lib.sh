@@ -28,8 +28,8 @@ plm_resolve() {
 
   # .env 로드 (PLM_* 만)
   if [[ -f "$env_file" ]]; then
-    # shellcheck disable=SC2046
-    set -a; . <(grep -E '^PLM_(API_URL|API_TOKEN|PROJECT|ENABLED|CODE_ROOT|BRANCH)=' "$env_file" 2>/dev/null) 2>/dev/null; set +a
+    # `. <(…)`는 macOS 기본 bash 3.2에서 아무것도 읽지 않아 토큰이 비고 401이 난다 → eval로 읽는다.
+    set -a; eval "$(grep -E '^PLM_(API_URL|API_TOKEN|PROJECT|ENABLED|CODE_ROOT|BRANCH)=' "$env_file" 2>/dev/null)" 2>/dev/null; set +a
   fi
   # config/plm.json 에서 project/api_url/code_root 보강 (env 미설정 시)
   if [[ -f "$cfg_file" ]] && command -v python3 >/dev/null 2>&1; then
