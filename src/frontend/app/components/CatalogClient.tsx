@@ -250,10 +250,13 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
           type="button"
           data-testid="btn-wizard"
           onClick={() => setWizardOpen(true)}
-          className="flex items-center gap-[4px] rounded-[var(--radius-pill)] border border-(--color-brand) bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[var(--spacing-xs)]"
+          // [원본] 빨강 테두리·분홍 바탕·빨강 글자 — 검색 바로 아래에서 화면의 가장 큰 빨강이 됐다(화면 정리 P4)
+          // className="… border border-(--color-brand) bg-(--color-brand-muted) …" · Icon color brand · AppText color primary
+          // [개선] 조용한 칩(무채 바탕·회색 글자) — 도우미는 부가 행동이다 @plm SRS-072
+          className="flex min-h-[32px] items-center gap-[4px] rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]"
         >
-          <Icon name="compass-outline" size={16} color="var(--color-brand)" />
-          <AppText variant="caption" color="primary" className="font-bold">
+          <Icon name="compass-outline" size={16} color="var(--color-ink2)" />
+          <AppText variant="caption" color="textMuted" className="font-semibold">
             {t("wizard.open")}
           </AppText>
         </button>

@@ -9,7 +9,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { LogoSpinner } from "./LogoSpinner";
 import { Icon, type IconName } from "./Icon";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "quiet";
 type Size = "sm" | "md" | "lg";
 
 const HEIGHT: Record<Size, number> = { sm: 36, md: 48, lg: 54 };
@@ -25,6 +25,9 @@ function palette(variant: Variant): { bg: string; fg: string; border?: string } 
       return { bg: "transparent", fg: "var(--color-brand)" };
     case "danger":
       return { bg: "transparent", fg: "var(--color-bad)", border: "var(--color-bad)" };
+    // 조용한 부가 행동 — 상자·빨강 없이 회색 글자(화면 정리 공용 규칙: 빨강은 화면의 주 행동 하나) @plm SRS-072
+    case "quiet":
+      return { bg: "transparent", fg: "var(--color-ink2)" };
   }
 }
 

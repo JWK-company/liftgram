@@ -198,7 +198,9 @@ export default function AuthClient({
             <div className="mt-[var(--spacing-md)]">
               <Button
                 title={t("profile.signOut")}
-                variant="danger"
+                // [원본] variant="danger" — 빨강 테두리·글자. 로그아웃은 데이터를 지우지 않는 일상 행동이다(화면 정리 P4)
+                // [개선] 회색 상자 버튼 @plm SRS-072
+                variant="secondary"
                 icon="exit-outline"
                 testId="btn-logout"
                 onPress={() => {

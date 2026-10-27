@@ -153,7 +153,10 @@ export function NumberStepper({
             setDraft(fmt(value));
             setEditing(true);
           }}
-          className="flex h-10 min-w-14 items-center justify-center border-(--color-ink3) border-b border-dashed"
+          // [원본] 점선 밑줄로 「눌러서 입력」을 알렸다 — 루틴 편집·프로필에 점선이 줄줄이 생겨 소음이 됐다(화면 정리 P4)
+          // className="flex h-10 min-w-14 items-center justify-center border-(--color-ink3) border-b border-dashed"
+          // [개선] 밑줄 없이 숫자만 — 양옆 −·＋ 상자가 이미 「조절하는 값」임을 말한다. 누르면 입력칸(그대로) @plm SRS-072
+          className="flex h-10 min-w-14 items-center justify-center rounded-[var(--radius-sm)] active:bg-(--color-surface-alt)"
         >
           <AppText variant="heading">
             {fmt(value)}

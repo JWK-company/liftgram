@@ -874,9 +874,14 @@ function RoutineRow({
           <ExerciseCount repo={repo} routineId={routine.id} />
         </div>
         <div className="flex items-center gap-[var(--spacing-xs)]">
+          {/* [원본] 루틴마다 빨강 채움 「시작」 — 위 「빠른 운동 시작」과 주 행동이 둘(셋, 넷…)이 됐다(화면 정리 P4)
+          <Button title={t("routines.start")} size="sm" fullWidth={false} disabled={busy} testId="btn-start-routine" onPress={onStart} /> */}
+          {/* [개선] 회색 상자 버튼 — 빨강 채움은 화면에 하나(빠른 운동 시작) @plm SRS-072 */}
           <Button
             title={t("routines.start")}
             size="sm"
+            variant="secondary"
+            icon="play"
             fullWidth={false}
             disabled={busy}
             testId="btn-start-routine"

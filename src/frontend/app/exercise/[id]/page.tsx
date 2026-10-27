@@ -188,7 +188,17 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
           </AppText>
           <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[var(--spacing-xs)]">
             {exercise.primaryMuscles.length ? (
-              exercise.primaryMuscles.map((m) => <Tag key={m} label={muscleLabel(m)} tone="primary" />)
+              // [원본] exercise.primaryMuscles.map((m) => <Tag key={m} label={muscleLabel(m)} tone="primary" />) — 빨강 칩
+              // [개선] 주동근은 굵은 진한 글자 칩, 보조근은 그대로 — 빨강은 행동에만(화면 정리 P4) @plm SRS-072
+              exercise.primaryMuscles.map((m) => (
+                <span
+                  key={m}
+                  data-testid="detail-primary-muscle"
+                  className="rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[2px] font-semibold text-(--color-ink) text-[length:var(--text-sm)]"
+                >
+                  {muscleLabel(m)}
+                </span>
+              ))
             ) : (
               <AppText variant="caption" color="textFaint">
                 {t("common.none")}

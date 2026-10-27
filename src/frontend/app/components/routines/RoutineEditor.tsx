@@ -735,17 +735,22 @@ function ExerciseEditRow({
             <Button
               title={grouped ? t("routines.supersetUnlink") : t("routines.supersetLink")}
               size="sm"
-              variant="ghost"
+              // [원본] variant="ghost" — 빨강 글자·아이콘(P4: 부가 행동은 회색) @plm SRS-072
+              variant="quiet"
               icon="git-merge-outline"
               fullWidth={false}
               testId="btn-re-superset"
               onPress={grouped ? onUnsuperset : onSuperset}
             />
           ) : null}
+          {/* [원본] 대체 = ghost(빨강 글자) · 삭제 = 빨강 아이콘 — 종목마다 빨강 셋이 화면의 「완료·시작」과 경쟁했다
+          <Button title={t("routines.swap")} size="sm" variant="ghost" fullWidth={false} testId="btn-re-swap" onPress={onSwap} />
+          <IconButton icon="trash-outline" size={18} label={t("routines.removeExerciseTitle")} color="var(--color-bad)" testId="btn-re-remove" onPress={onRemove} /> */}
+          {/* [개선] 부가 행동은 회색 — 삭제의 위험은 확인창이 말한다(화면 정리 P4 · 빨강 = 주 행동만) @plm SRS-072 */}
           <Button
             title={t("routines.swap")}
             size="sm"
-            variant="ghost"
+            variant="quiet"
             fullWidth={false}
             testId="btn-re-swap"
             onPress={onSwap}
@@ -754,7 +759,7 @@ function ExerciseEditRow({
             icon="trash-outline"
             size={18}
             label={t("routines.removeExerciseTitle")}
-            color="var(--color-bad)"
+            color="var(--color-ink3)"
             testId="btn-re-remove"
             onPress={onRemove}
           />

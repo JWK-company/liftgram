@@ -37,7 +37,8 @@ import { SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { MoreMenu } from "../ui/MoreMenu";
 import { Segmented } from "../ui/rows";
-import { AppText, Card, Tag } from "../ui/primitives";
+// [원본] import { AppText, Card, Tag } from "../ui/primitives"; — Tag 는 PR 칩에만 썼다(금색 글자로 바꿈 · P4)
+import { AppText, Card } from "../ui/primitives";
 import { formatWorkoutDuration } from "@/lib/duration";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
@@ -592,7 +593,11 @@ export default function CalendarClient() {
                     </span>
                   ) : null}
                 </span>
-                {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null}
+                {/* [원본] {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null} — 금색 바탕 칩 */}
+                {/* [개선] 금색 글자(기록 목록·홈과 같다) @plm SRS-072 */}
+                {w.prCount > 0 ? (
+                  <span className="whitespace-nowrap font-semibold text-(--color-pr) text-[length:var(--text-sm)]">{`PR ${w.prCount}`}</span>
+                ) : null}
                 <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
               </a>
             ))}

@@ -13,7 +13,8 @@ import { useUser } from "@app/core/state/userContext";
 import { useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Icon } from "../ui/Icon";
-import { EmptyState, Tag } from "../ui/primitives";
+// [원본] import { EmptyState, Tag } from "../ui/primitives"; — Tag 는 PR 칩에만 썼다(금색 글자로 바꿈 · P4)
+import { EmptyState } from "../ui/primitives";
 import { formatWorkoutDuration } from "@/lib/duration";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
@@ -129,7 +130,11 @@ function HistoryRow({ w, unit }: { w: WorkoutRow; unit: Parameters<typeof format
           {parts.join(" · ")}
         </span>
       </span>
-      {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null}
+      {/* [원본] {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null} — 금색 바탕 칩 */}
+      {/* [개선] 홈 「최근 운동」과 같은 금색 글자(PR 의미는 금색 하나 · 칩 없음) @plm SRS-072 */}
+      {w.prCount > 0 ? (
+        <span className="whitespace-nowrap font-semibold text-(--color-pr) text-[length:var(--text-sm)]">{`PR ${w.prCount}`}</span>
+      ) : null}
       <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
     </a>
   );
