@@ -13,6 +13,7 @@ import { useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
 import { BackupCard } from "../sync/BackupCard";
+import { ImportCard } from "../sync/ImportCard";
 import { AuthFooter } from "../auth/AuthPage";
 import { SubAppBar } from "../ui/AppBar";
 import { SectionLabel } from "../ui/rows";
@@ -228,6 +229,10 @@ export default function AuthClient({
           <div id="backup">
             <BackupCard />
           </div>
+          {/* 다른 앱(Strong·Hevy) 기록 가져오기 입구 — 로그인·로그아웃 두 분기 모두(U-20) @plm SRS-081 */}
+          <div id="import">
+            <ImportCard />
+          </div>
           {/* [원본] <OfflineNote /> — 로그인한 화면에도 「로그인하면 서버 백업…」 안내가 떴다(/qa P4 L-5 · 불필요 안내 생략) @plm SRS-072 */}
         </div>
       </div>
@@ -405,6 +410,10 @@ export default function AuthClient({
       {deviceData ? (
         <div id="backup" className="mt-[var(--spacing-sm)]">
           <BackupCard />
+          {/* 다른 앱 기록 가져오기 — 로그인 없이도(U-20) @plm SRS-081 */}
+          <div id="import">
+            <ImportCard />
+          </div>
           <OfflineNote />
         </div>
       ) : (

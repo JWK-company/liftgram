@@ -53,6 +53,9 @@ const weCol = () => database.get<WorkoutExercise>('workout_exercises');
 const setsCol = () => database.get<SetLog>('set_logs');
 const routineExCol = () => database.get<RoutineExercise>('routine_exercises');
 
+/** 가져오기 전 두 번째 pull 까지 기다림 — 서버 커서 겹침(1초)보다 조금 길게 */
+const PULL_OVERLAP_WAIT_MS = 1100;
+
 /** 한 write 에 넣는 최대 행 수(쓰기·지우기 공통 · ADR-043 개정) */
 export const IMPORT_WRITE_MAX_ROWS = 2000;
 
@@ -240,6 +243,11 @@ export async function importPlan(
       onProgress?.({ phase: 'sync', chunk: 0, chunks: 0, workoutsDone: 0, workoutsTotal: plan.workouts.length });
       try {
         await syncWithServer(); // 예전 되돌리기의 삭제 표시를 먼저 받는다(D-2)
+        // [개선] 서버 커서는 조회 상한에서 1초 물린다(sync service cursorOverlap) — 방금 받은 삭제 표시가 다음 pull 에 또 온다.
+        // 그 pull 이 쓰기 **뒤**에 오면 같은 id 로 새로 쓴 행이 지워진다(원격 삭제 우선 · P5 e2e D-2 실측: 다른 기기 되돌리기 직후
+        // 1초 안에 로그인·가져오기 → 60개 전부 사라짐). 겹침을 넘긴 뒤 한 번 더 받아 커서를 그 삭제 표시 너머로 옮긴다.
+        await new Promise((r) => setTimeout(r, PULL_OVERLAP_WAIT_MS));
+        await syncWithServer();
       } catch {
         throw new ImportBlockedError('sync_failed');
       }

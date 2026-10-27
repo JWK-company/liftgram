@@ -1,6 +1,10 @@
 // openGym 추천(SRS-073~082) e2e 공용 헬퍼 — 이 한 파일에만 둔다(스펙 충돌 방지 규칙 8).
 //
 // 로그인 없이 기기 안 저장소만으로 시작할 수 있게 하고, 동기가 필요한 검사만 가입·로그인한다.
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { expect } from "@playwright/test";
 
 type Page = import("@playwright/test").Page;
@@ -346,4 +350,127 @@ export async function idb_행(page: Page, table: string): Promise<Record<string,
     }
     return out;
   }, table);
+}
+
+// ── P5 가져오기(SRS-081·082) ─────────────────────────────────────────────────
+
+/**
+ * 큰 Strong 쉼표 파일(값은 전부 지어낸 것 · 결정적) — core `__tests__/fixtures/import/generateLarge.ts` 와 같은 규칙.
+ * 기본 운동 1000 × 종목 5 × 세트 2 = 1만 세트.
+ */
+export function 큰_Strong_파일(opts: { workouts?: number; exercisesPer?: number; setsPer?: number } = {}): {
+  text: string;
+  workouts: number;
+  sets: number;
+} {
+  const NAMES = [
+    "Bench Press (Barbell)",
+    "Squat (Barbell)",
+    "Deadlift (Barbell)",
+    "Lat Pulldown (Cable)",
+    "Bicep Curl (Dumbbell)",
+  ];
+  const workouts = opts.workouts ?? 1000;
+  const exercisesPer = opts.exercisesPer ?? 5;
+  const setsPer = opts.setsPer ?? 2;
+  const lines = [
+    "Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE",
+  ];
+  const day0 = Date.UTC(2023, 0, 1);
+  let sets = 0;
+  for (let w = 0; w < workouts; w++) {
+    const d = new Date(day0 + w * 86_400_000);
+    const date = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")} 18:${String(w % 60).padStart(2, "0")}:00`;
+    for (let e = 0; e < exercisesPer; e++)
+      for (let s = 0; s < setsPer; s++) {
+        sets++;
+        lines.push(
+          `${date},"Session ${w + 1}",1h 2m,"${NAMES[e % NAMES.length]}",${s + 1},${20 + ((w + e * 7 + s) % 80)},${5 + ((w + s) % 6)},,0,,,`,
+        );
+      }
+  }
+  return { text: `${lines.join("\n")}\n`, workouts, sets };
+}
+
+/** core 시험 파일 읽기(`core/src/domain/__tests__/fixtures/import/<name>`) */
+export function 시험_파일(name: string): string {
+  // 저장소 안 상대 경로(e2e/helpers → src/core)
+  const here = dirname(fileURLToPath(import.meta.url));
+  return readFileSync(join(here, "../../../core/src/domain/__tests__/fixtures/import", name), "utf8");
+}
+
+/** /account/import 에서 파일을 골라 「확인」 단계까지 */
+export async function 가져오기_파일(page: Page, name: string, text: string): Promise<void> {
+  if (!page.url().endsWith("/account/import")) await page.goto("/account/import");
+  await expect(page.getByTestId("btn-import-pick")).toBeEnabled({ timeout: 30_000 });
+  await page
+    .getByTestId("import-file-input")
+    .setInputFiles({ name, mimeType: "text/csv", buffer: Buffer.from(text, "utf8") });
+  await expect(page.getByTestId("import-step-summary")).toBeVisible({ timeout: 60_000 });
+}
+
+/** 확인 → (단위) → 맞추기 → 가져오기 → 끝. 끝 화면의 운동 수 글자를 돌려준다. */
+export async function 가져오기_끝까지(
+  page: Page,
+  unit: "kg" | "lb" | null = "kg",
+  timeout = 120_000,
+): Promise<void> {
+  if (unit && (await page.getByTestId("import-unit-select").count()) > 0)
+    await page.getByTestId(`import-unit-${unit}`).click();
+  await page.getByTestId("btn-import-to-match").click();
+  await expect(page.getByTestId("import-match-head")).toBeVisible();
+  await page.getByTestId("btn-import-start").click();
+  await expect(page.getByTestId("import-step-done")).toBeVisible({ timeout });
+}
+
+/** IndexedDB 에서 표별 「살아 있는」 행 수(삭제 표시 제외) — prefix 로 id 를 거른다(빈_문서에서). */
+export async function idb_행_수(page: Page, tables: string[], prefix = ""): Promise<Record<string, number>> {
+  return page.evaluate(
+    async ({ tables, prefix }) => {
+      const db: IDBDatabase = await new Promise((res, rej) => {
+        const r = indexedDB.open("repset", 1);
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      const tx = db.transaction(["LokiIncrementalData"], "readonly");
+      const all: { key: string; value: string }[] = await new Promise((res, rej) => {
+        const r = tx.objectStore("LokiIncrementalData").getAll();
+        r.onsuccess = () => res(r.result as { key: string; value: string }[]);
+        r.onerror = () => rej(r.error);
+      });
+      db.close();
+      const out: Record<string, number> = {};
+      for (const t of tables) out[t] = 0;
+      for (const rec of all) {
+        const [name, kind] = rec.key.split(".");
+        if (kind !== "chunk" || !(name in out)) continue;
+        for (const d of JSON.parse(rec.value) as { id: string; _status?: string }[])
+          if (d.id.startsWith(prefix) && d._status !== "deleted") out[name] += 1;
+      }
+      return out;
+    },
+    { tables, prefix },
+  );
+}
+
+/** 서버 DB 에 직접 묻는다(docker 공유 db · `E2E_DB` 가 없으면 null) — 숫자 하나를 돌려주는 SQL */
+export function 서버_숫자(sql: string): number | null {
+  const db = process.env.E2E_DB;
+  if (!db) return null;
+  const out = execFileSync(
+    "docker",
+    ["exec", "-i", "liftgram-db-1", "psql", "-U", "app", "-d", db, "-tAc", sql],
+    {
+      encoding: "utf8",
+    },
+  );
+  return Number(out.trim());
+}
+
+/** 서버 sync_records 에서 이 사람의 가져온(imp-) 살아 있는 레코드 수 */
+export function 서버_가져온_수(email: string, collection: string): number | null {
+  const safe = email.replace(/'/g, "''");
+  return 서버_숫자(
+    `select count(*) from sync_records s join users u on u.id = s.user_id where u.email = '${safe}' and s.collection = '${collection}' and s.record_id like 'imp-%' and not s.deleted`,
+  );
 }
