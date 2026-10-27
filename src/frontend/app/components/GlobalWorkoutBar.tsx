@@ -13,6 +13,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { useSession } from "./SessionProvider";
+import { useToast } from "./Toast";
+import { ConfirmDialog } from "./ui/Dialog";
 import { Icon } from "./ui/Icon";
 import { AppText } from "./ui/primitives";
 
@@ -24,8 +26,33 @@ function clock(sec: number): string {
 
 export function GlobalWorkoutBar() {
   const pathname = usePathname();
-  const { activeWorkoutId, activeStartedAt, activeName, restRemaining } = useSession();
+  const { activeWorkoutId, activeStartedAt, activeName, restRemaining, setActive, clearRest } = useSession();
   const [now, setNow] = useState<number | null>(null);
+  // 막대에서 바로 운동 취소(2026-10-27) — 운동 화면 ⋯ 「운동 취소」와 **같은 확인창**을 거친다(잘못 눌러도 안 지워진다). @plm SRS-068
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const toast = useToast();
+  const discard = () => {
+    if (!activeWorkoutId || discarding) return;
+    const id = activeWorkoutId;
+    setDiscarding(true);
+    void (async () => {
+      try {
+        // 순서는 운동 화면과 같다: 폐기 → 내려쓰기 → 셸 상태 해제 → 휴식 정리. 화면은 그대로 둔다.
+        const repo = await import("@app/core/data/workoutRepository");
+        await repo.discardWorkout(id);
+        const { flushLocalDb } = await import("@/lib/localDb");
+        await flushLocalDb();
+        setActive(null);
+        clearRest();
+      } catch (e) {
+        toast(e instanceof Error ? e.message : String(e), "error");
+      } finally {
+        setDiscarding(false);
+        setConfirmDiscard(false);
+      }
+    })();
+  };
 
   useEffect(() => {
     if (!activeWorkoutId) return;
@@ -85,40 +112,65 @@ export function GlobalWorkoutBar() {
         ref={barRef}
         className="pointer-events-none fixed inset-x-0 bottom-[calc(57px+env(safe-area-inset-bottom))] z-40 mx-auto max-w-[560px] lg:bottom-4"
       >
-        <a
-          href="/workout"
-          data-testid="global-workout-bar"
-          className="pointer-events-auto flex items-center gap-[var(--spacing-md)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-[0_-4px_16px_rgba(0,0,0,0.08)]"
-        >
-          <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-            style={{ backgroundColor: resting ? "var(--color-pr-soft)" : "var(--color-brand-muted)" }}
+        {/* 링크와 취소 버튼은 **형제**다 — 링크 안에 버튼을 두면 누르는 순간 운동 화면으로 가 버린다(/qa spec Q5) @plm SRS-068 */}
+        <div className="pointer-events-auto flex items-center border-(--color-line) border-t bg-(--color-surface) pr-[var(--spacing-sm)] shadow-[0_-4px_16px_rgba(0,0,0,0.08)]">
+          <a
+            href="/workout"
+            data-testid="global-workout-bar"
+            className="flex min-w-0 flex-1 items-center gap-[var(--spacing-md)] py-[var(--spacing-sm)] pl-[var(--spacing-lg)]"
           >
-            <Icon
-              name={resting ? "timer-outline" : "barbell-outline"}
-              size={18}
-              color={resting ? "var(--color-pr)" : "var(--color-brand)"}
-            />
-          </span>
-          <span className="min-w-0 flex-1">
-            <AppText variant="label" className="block truncate">
-              {t("session.inProgressBar", { name: activeName || t("routines.activeWorkout") })}
-            </AppText>
-            <AppText
-              variant="caption"
-              color={resting ? "pr" : "textMuted"}
-              className="block truncate tabular-nums"
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+              style={{ backgroundColor: resting ? "var(--color-pr-soft)" : "var(--color-brand-muted)" }}
             >
-              {resting
-                ? t("session.restingBar", { time: clock(restRemaining ?? 0) })
-                : t("session.elapsedBar", { time: clock(elapsed) })}
-            </AppText>
-          </span>
-          <span className="rounded-full bg-(--color-brand) px-[var(--spacing-md)] py-[6px] font-semibold text-(--color-on-brand) text-[length:var(--text-sm)]">
-            {t("session.openBar")}
-          </span>
-        </a>
+              <Icon
+                name={resting ? "timer-outline" : "barbell-outline"}
+                size={18}
+                color={resting ? "var(--color-pr)" : "var(--color-brand)"}
+              />
+            </span>
+            <span className="min-w-0 flex-1">
+              <AppText variant="label" className="block truncate">
+                {t("session.inProgressBar", { name: activeName || t("routines.activeWorkout") })}
+              </AppText>
+              <AppText
+                variant="caption"
+                color={resting ? "pr" : "textMuted"}
+                className="block truncate tabular-nums"
+              >
+                {resting
+                  ? t("session.restingBar", { time: clock(restRemaining ?? 0) })
+                  : t("session.elapsedBar", { time: clock(elapsed) })}
+              </AppText>
+            </span>
+            <span className="rounded-full bg-(--color-brand) px-[var(--spacing-md)] py-[6px] font-semibold text-(--color-on-brand) text-[length:var(--text-sm)]">
+              {t("session.openBar")}
+            </span>
+          </a>
+          <button
+            type="button"
+            data-testid="global-workout-cancel"
+            aria-label={t("session.cancelBarLabel")}
+            onClick={() => setConfirmDiscard(true)}
+            className="ml-[var(--spacing-xs)] shrink-0 rounded-full border border-(--color-line) px-[var(--spacing-md)] py-[5px] font-semibold text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt)"
+          >
+            {t("session.cancelBar")}
+          </button>
+        </div>
       </div>
+
+      {confirmDiscard ? (
+        // 운동 화면 ⋯ 「운동 취소」와 같은 확인창 — 같은 문구·같은 파괴 버튼(ActiveWorkout confirm-discard) @plm SRS-068
+        <ConfirmDialog
+          testId="confirm-discard"
+          title={t("session.discardWorkout.title")}
+          message={t("session.discardWorkout.message")}
+          confirmLabel={t("common.delete")}
+          destructive
+          onCancel={() => setConfirmDiscard(false)}
+          onConfirm={discard}
+        />
+      ) : null}
     </>
   );
 }

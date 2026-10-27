@@ -2,7 +2,7 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 24;
+export const SCHEMA_VERSION = 25;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -150,6 +150,7 @@ export const mySchema = appSchema({
         { name: 'cardio_target', type: 'string', isOptional: true }, // v13: 유산소 목표 JSON(루틴서 복사). @plm SRS-030
         { name: 'prescription', type: 'string', isOptional: true }, // v16: 처방 JSON(루틴서 복사 — 세션 렌더 근거). @plm SRS-043
         { name: 'routine_exercise_id', type: 'string', isOptional: true }, // v24: 루틴의 어느 줄에서 왔나 — 완료 시 변경점 짝짓기. @plm SRS-059
+        { name: 'weight_unit', type: 'string', isOptional: true }, // v25: 이 블록의 무게 단위 kg|lb(null=kg) — 블록 세트가 한 단위를 공유한다. @plm SRS-067
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

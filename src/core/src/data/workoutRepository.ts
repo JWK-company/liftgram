@@ -28,6 +28,7 @@ import { resolvePrescribedLoad, planPrescribedLoadFills } from '../domain/prescr
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
 import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
 import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
+import { pickStartUnit, planUnitSwitch } from '../domain/blockUnit'; // 블록별 kg/lb @plm SRS-067
 import {
   legacyMachineVariantToV6,
   variantColumns,
@@ -504,6 +505,97 @@ async function getUserWeightUnit(): Promise<'kg' | 'lb'> {
   }
 }
 
+// ── 블록별 무게 단위(kg|lb) ── @plm SRS-067
+// 한 헬스장 안에 kg·lb 기구가 섞여 있다 — 단위는 프로필 하나가 아니라 **블록**마다 있다(v25 workout_exercises.weight_unit, null=kg).
+// 칸별 기억은 따로 저장하지 않고 **완료한 블록**에서 유도한다(블록이 이미 동기되므로 기기 간 같다). 규칙은 domain/blockUnit.
+
+/** 이 블록의 단위 — 비어 있으면 kg(운영 기존 기록은 전부 kg 로 적혔다 · 2026-10-27 확인). */
+export function blockWeightUnit(we: { weightUnit?: string | null }): 'kg' | 'lb' {
+  return we.weightUnit === 'lb' ? 'lb' : 'kg';
+}
+
+/** 같은 종목·같은 기록 칸으로 가장 최근에 완료한 블록의 단위(없으면 예전 프로필 단위 → kg). */
+export async function getBlockStartUnit(exerciseId: string, variantKey: string | null): Promise<'kg' | 'lb'> {
+  const legacy = await getUserWeightUnit();
+  const blocks = await workoutExercises().query(Q.where('exercise_id', exerciseId), Q.where('weight_unit', Q.notEq(null))).fetch();
+  if (!blocks.length) return legacy;
+  const wids = [...new Set(blocks.map((b) => b.workoutId))];
+  const done = await workouts().query(Q.where('id', Q.oneOf(wids)), Q.where('state', 'completed')).fetch();
+  const doneAt = new Map(done.map((w) => [w.id, w.completedAt ?? w.startedAt]));
+  return pickStartUnit(
+    blocks.map((b) => ({
+      variantKey: effectiveVariantKey(b),
+      weightUnit: b.weightUnit === 'lb' ? 'lb' : b.weightUnit === 'kg' ? 'kg' : null,
+      completedAt: doneAt.get(b.workoutId) ?? null,
+    })),
+    variantKey,
+    legacy,
+  );
+}
+
+/** 단위가 비어 있는 (진행 중) 블록에 기본 단위를 정한다 — **환산 없음**(실제 무게 그대로, 표시만). 종목 추가·교체 경로 공용. */
+export async function ensureBlockUnit(workoutExerciseId: string): Promise<'kg' | 'lb'> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  if (we.weightUnit === 'kg' || we.weightUnit === 'lb') return we.weightUnit;
+  const unit = await getBlockStartUnit(we.exerciseId, effectiveVariantKey(we));
+  await database.write(async () => {
+    const cur = await workoutExercises().find(workoutExerciseId);
+    if (cur.weightUnit) return; // 그 사이 다른 쪽이 정했다
+    await cur.update((rec) => {
+      rec.weightUnit = unit;
+    });
+  });
+  return unit;
+}
+
+/**
+ * 기록 칸이 바뀐 뒤 — 그 블록에 완료한 세트가 없으면 새 칸이 기억하는 단위로(환산 없음). 완료 세트가 있으면 그대로 둔다
+ * (이미 적은 숫자의 의미를 흔들지 않는다).
+ */
+export async function adoptSlotUnit(workoutExerciseId: string): Promise<'kg' | 'lb'> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  const cur = blockWeightUnit(we);
+  const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
+  if (sets.some((x) => x.done === true)) return cur;
+  const unit = await getBlockStartUnit(we.exerciseId, effectiveVariantKey(we));
+  if (unit === we.weightUnit) return unit;
+  await database.write(async () => {
+    const rec0 = await workoutExercises().find(workoutExerciseId);
+    await rec0.update((rec) => {
+      rec.weightUnit = unit;
+    });
+  });
+  return unit;
+}
+
+/**
+ * 사람이 누른 토글(Q4 B) — 그 블록 세트(완료 포함)의 **보이는 숫자는 그대로, 단위만** 바꾼다. 저장 kg 를 다시 환산한다.
+ * 한 번의 write(블록 단위 + 세트). 진행 중 운동만 — 지난 운동 기록은 바꾸지 않는다.
+ */
+export async function switchBlockWeightUnit(workoutExerciseId: string, to: 'kg' | 'lb'): Promise<void> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  const w = await workouts().find(we.workoutId);
+  if (w.state === 'completed') throw new Error('완료한 운동의 단위는 바꾸지 않는다');
+  const from = blockWeightUnit(we);
+  if (from === to && we.weightUnit === to) return;
+  const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
+  const plan = planUnitSwitch(sets.map((x) => ({ id: x.id, weightKg: x.weightKg })), from, to);
+  const byId = new Map(sets.map((x) => [x.id, x]));
+  await database.write(async () => {
+    const rec0 = await workoutExercises().find(workoutExerciseId);
+    await database.batch(
+      rec0.prepareUpdate((rec) => {
+        rec.weightUnit = to;
+      }),
+      ...plan.map((p) =>
+        (byId.get(p.id) as SetLog).prepareUpdate((rec) => {
+          rec.weightKg = p.weightKg;
+        }),
+      ),
+    );
+  });
+}
+
 // 같은 칸(종목×조합)의 완료 기록으로 추정한 1RM(계산 무게 kg) — 처방 「1RM 의 N%」 기준(#56-3 A). 없으면 0. @plm SRS-063
 export async function estimatedOneRmForSlot(exerciseId: string, variant?: string | null): Promise<number> {
   const completed = await workouts().query(Q.where('state', 'completed')).fetch();
@@ -598,7 +690,9 @@ export async function fillPrescribedLoadsAfter(
     doneReps,
     has1rm: (await estimatedOneRmForSlot(we.exerciseId, effectiveVariantKey(we))) > 0,
     equipment: ex.equipment,
-    unit: await getUserWeightUnit(),
+    // [원본] unit: await getUserWeightUnit(),
+    // [개선] 원판 반올림 단위 = 이 블록의 단위(프로필 단위 선택은 없어졌다 · /qa spec Q3) @plm SRS-067
+    unit: we.weightUnit ? blockWeightUnit(we) : await getUserWeightUnit(),
   });
   if (!plan.length) return [];
   const byId = new Map(sets.map((x) => [x.id, x]));
@@ -940,11 +1034,15 @@ async function startWorkoutFromRows(opts: {
       bwByExercise.set(exId, await isBodyweightExerciseId(exId));
     }
   }
+  // 블록별 시작 단위 — 같은 종목·칸으로 마지막에 완료한 블록의 단위(Q1 A). 처방 원판 반올림도 이 단위로. @plm SRS-067
+  const unitAt: ('kg' | 'lb')[] = [];
+  for (let i = 0; i < rows.length; i++) unitAt.push(await getBlockStartUnit(rows[i].exerciseId, variants[i].variantKey));
   // 처방 무게 기준(1RM 의 N%·직접) — 루틴 시작과 같은 계산 @plm SRS-063
   const rxLoadAt = new Map<number, (number | null)[]>();
   {
-    const unit = await getUserWeightUnit();
+    // [원본] const unit = await getUserWeightUnit();
     for (let i = 0; i < rows.length; i++) {
+      const unit = unitAt[i];
       const rx = rows[i].prescription;
       if (!rx?.some((r) => r.loadBasis === 'pct1rm' || r.loadBasis === 'fixed')) continue;
       if (cardioByExercise.get(rows[i].exerciseId)) continue;
@@ -1017,6 +1115,7 @@ async function startWorkoutFromRows(opts: {
         we.variantAttach = v.variantAttach ?? null;
         we.supersetGroup = groupOf(r.supersetGroup);
         we.routineExerciseId = r.routineExerciseId; // v24 — 완료 때 루틴과 짝 @plm SRS-059
+        we.weightUnit = unitAt[i]; // v25 블록 단위 @plm SRS-067
         we.note = r.note?.trim() || null;
         we.cardioTarget = (r.cardioTarget as CardioTargetJson | null) ?? null;
         we.prescription = r.prescription ?? null;
@@ -1592,22 +1691,25 @@ async function blockMultiplierOf(workoutExerciseId: string): Promise<number | nu
 
 /** 블록 세트의 배수를 블록 규칙에 맞춘다(다른 것만 쓴다). */
 export async function syncBlockLoadMultiplier(workoutExerciseId: string): Promise<void> {
-  let m: number | null;
-  try {
-    m = await blockMultiplierOf(workoutExerciseId);
-  } catch {
-    return; // 블록이 지워졌다
-  }
-  const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
-  // [원본] 블록의 **모든** 세트(이미 한 세트 포함) 배수를 바꾸고 무게는 그대로 — 운동 도중 토글하면 완료 세트의
-  // 계산 무게가 두 배·절반이 되어 거짓 PR·볼륨이 남았다(/qa code M-1)
-  // const stale = sets.filter((x) => (x.loadMultiplier ?? null) !== m);
-  // ... stale.map((x) => x.prepareUpdate((rec) => { rec.loadMultiplier = m; }))
-  // [개선] 안 한 세트만 옮기고, 적힌 무게는 계산 무게가 같도록 환산한다 — 한 세트는 그 배수로 적은 그대로 둔다
-  const plan = planBlockMultiplierResync(sets, m);
-  if (!plan.length) return;
-  const byId = new Map(sets.map((x) => [x.id, x]));
+  // [원본] 배수를 writer 밖에서 먼저 정했다 — 먼저 시작한 호출이 옛 선호(배수 1)로 나중에 써서 되돌릴 수 있었다
+  // let m: number | null; try { m = await blockMultiplierOf(workoutExerciseId); } catch { return; }
+  // [원본] 쓰기 밖에서 읽고 계획했다 — 두 호출(칸 바꾸기 + 한쪽 입력 켜기)이 겹치면 둘 다 옛 배수(1)를 읽고 둘 다 절반으로
+  // 환산해 40kg 이 10kg 이 됐다(2026-10-27 블록 단위 작업 중 e2e 로 드러남 · 쓰기 사이 지연이 늘며 겹침이 잦아졌다).
+  // const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
+  // const plan = planBlockMultiplierResync(sets, m); … await database.write(async () => { … });
+  // [개선] 읽기·계획·쓰기를 **한 writer 안에서** — writer 는 줄을 서므로 뒤 호출은 앞 호출이 바꾼 배수를 보고 할 일이 없다.
+  // (/qa code M-1: 안 한 세트만 옮기고, 적힌 무게는 계산 무게가 같도록 환산 — 한 세트는 그 배수로 적은 그대로) @plm SRS-058
   await database.write(async () => {
+    let m: number | null;
+    try {
+      m = await blockMultiplierOf(workoutExerciseId); // 줄을 선 뒤의 최신 선호·칸으로
+    } catch {
+      return; // 블록이 지워졌다
+    }
+    const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
+    const plan = planBlockMultiplierResync(sets, m);
+    if (!plan.length) return;
+    const byId = new Map(sets.map((x) => [x.id, x]));
     await database.batch(
       ...plan.map((u) =>
         (byId.get(u.id) as SetLog).prepareUpdate((rec) => {

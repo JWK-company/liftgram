@@ -26,6 +26,7 @@ import {
   variantLabelFromKey,
   type SlotSummary,
   effectiveWeightKg,
+  formatEnteredWeight,
   formatWeight,
   resolveLoadMode,
   restSecondsForSetType,
@@ -46,7 +47,7 @@ import { useToast } from "../Toast";
 import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { lang, t } from "@/lib/i18n";
 import { firePrCelebration } from "../PrCelebration";
 import { Button } from "../ui/Button";
@@ -58,6 +59,7 @@ import { NumberStepper } from "../ui/inputs";
 import { AppText, Card, Tag } from "../ui/primitives";
 // [원본] import { VariantSelector } from "../ui/VariantSelector";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
+import { UnitToggle } from "../ui/UnitToggle";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { ExerciseName } from "./ExerciseName";
 import { Pictogram } from "../Pictogram";
@@ -76,6 +78,8 @@ export interface WorkoutExerciseRow {
   restSeconds: number | null;
   note: string | null;
   variant: VariantDims | null;
+  /** v25 이 블록의 무게 단위(null = 아직 안 정함 → kg/칸 기억) @plm SRS-067 */
+  weightUnit?: "kg" | "lb" | null;
   prescription:
     | { repMin?: number | null; repMax?: number | null; loadBasis?: string; loadPct?: number }[]
     | null;
@@ -166,6 +170,26 @@ export function ExerciseBlock({
   const [slots, setSlots] = useState<SlotSummary[]>([]);
   const [slotsOpen, setSlotsOpen] = useState(false);
 
+  // ── 블록 무게 단위(kg|lb) — 한 헬스장에 kg·lb 기구가 섞여 있다(2026-10-27) @plm SRS-067 ──
+  // 기본값 = 같은 종목·칸으로 마지막에 완료한 블록의 단위(저장소가 정한다 · 환산 없음). 토글은 숫자 유지·단위만(Q4 B).
+  // 블록 안의 무게(머리·입력·이전 기록·PR·제안)는 이 단위, **볼륨은 kg**(Q2 A).
+  // `unit` prop 은 이제 「정하기 전 잠깐」의 자리값일 뿐이다.
+  const [blockUnit, setBlockUnit] = useState<WeightUnit>(() =>
+    we.weightUnit === "lb" ? "lb" : we.weightUnit === "kg" ? "kg" : unit,
+  );
+  useEffect(() => {
+    let alive = true;
+    void repo
+      .ensureBlockUnit(we.id)
+      .then((u) => {
+        if (alive) setBlockUnit(u);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [repo, we.id]);
+
   // 종목이 바뀌면(기구 바꾸기·대체) 저장소가 새 종목의 지난 조합을 승계해 둔다 — 그 값을 다시 따른다.
   // [원본] 종목이 바뀔 때만 따라갔다 — 그래서 고른 직후 저장소가 칸을 정하면(별칭 「로프 푸시다운」 → 로프 · P3) 화면이 몰랐다
   // useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId]);
@@ -175,6 +199,32 @@ export function ExerciseBlock({
   useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId, storedVariantKey]);
 
   const variantKey = useMemo(() => canonicalVariantKey(variant), [variant]);
+
+  // 종목이 바뀌면(기구 바꾸기·대체) 완료 세트가 없을 때 새 종목·칸이 기억하는 단위로(환산 없음) @plm SRS-067
+  const firstExercise = useRef(we.exerciseId);
+  useEffect(() => {
+    if (firstExercise.current === we.exerciseId) return;
+    firstExercise.current = we.exerciseId;
+    let alive = true;
+    void repo
+      .adoptSlotUnit(we.id)
+      .then((u) => {
+        if (alive) setBlockUnit(u);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [repo, we.id, we.exerciseId]);
+
+  /** 사람이 누른 토글(Q4 B) — 이 블록 세트의 숫자는 그대로, 단위만. 다시 누르면 정확히 원래로. */
+  const switchUnit = (to: WeightUnit) => {
+    if (to === blockUnit) return;
+    setBlockUnit(to);
+    void write(() => repo.switchBlockWeightUnit(we.id, to))
+      .then(() => toast(t("session.unitSwitched", { unit: to })))
+      .catch(() => setBlockUnit(blockUnit));
+  };
 
   // ── 종목 자체의 성질(기구·유산소·하중 모드) ──
   useEffect(() => {
@@ -385,7 +435,7 @@ export function ExerciseBlock({
                 const nextNotes = { ...m };
                 for (const f of filled) {
                   nextNotes[f.setLogId] = t(f.reasonKey as Parameters<typeof t>[0], {
-                    base: formatWeight(f.params.base ?? 0, unit),
+                    base: formatEnteredWeight(f.params.base ?? 0, blockUnit),
                     pct: f.params.pct ?? 0,
                   });
                 }
@@ -418,7 +468,9 @@ export function ExerciseBlock({
   function prChips(): { kind: "weight" | "volume" | "both"; label: string; ref: PrRef }[] {
     const w = prs.weight;
     const v = prs.volume;
-    const fmt = (r: PrRef) => ({ weight: formatWeight(r.effectiveKg, unit), reps: r.reps });
+    // [원본] const fmt = (r: PrRef) => ({ weight: formatWeight(r.effectiveKg, unit), reps: r.reps });
+    // [개선] 블록 단위 · 적은 숫자 그대로(증분 반올림 없음 — /qa spec Q2) @plm SRS-067
+    const fmt = (r: PrRef) => ({ weight: formatEnteredWeight(r.effectiveKg, blockUnit), reps: r.reps });
     if (w && v && w.setLogId === v.setLogId)
       return [{ kind: "both", label: t("session.prBothChip", fmt(w)), ref: w }];
     const out: { kind: "weight" | "volume" | "both"; label: string; ref: PrRef }[] = [];
@@ -441,7 +493,7 @@ export function ExerciseBlock({
       blockLoadMultiplier(variant, plateOneSide),
     );
     void write(() => repo.updateSetLog(target.id, { weightKg, reps: ref.reps })).then(() =>
-      toast(t("session.prFilled", { weight: formatWeight(weightKg, unit), reps: ref.reps })),
+      toast(t("session.prFilled", { weight: formatEnteredWeight(weightKg, blockUnit), reps: ref.reps })),
     );
   }
 
@@ -559,7 +611,14 @@ export function ExerciseBlock({
               value={variant}
               onChange={(dims) => {
                 setVariant(dims);
-                void write(() => repo.setVariant(we.id, dims));
+                // [원본] void write(() => repo.setVariant(we.id, dims));
+                // [개선] 칸이 바뀌면 그 칸이 기억하는 단위로(완료 세트가 없을 때만 · 환산 없음) @plm SRS-067
+                void write(() => repo.setVariant(we.id, dims)).then(() =>
+                  repo
+                    .adoptSlotUnit(we.id)
+                    .then(setBlockUnit)
+                    .catch(() => {}),
+                );
               }}
               onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
               plateOneSide={plateOneSide}
@@ -606,12 +665,17 @@ export function ExerciseBlock({
               ))
             : null}
 
+          {/* kg/lb 토글 — PR 칩 옆(2026-10-27 사용자). 맨몸·유산소는 무게 단위가 없다. @plm SRS-067 */}
+          {!isCardio && loadMode === "external" ? (
+            <UnitToggle value={blockUnit} onChange={switchUnit} />
+          ) : null}
+
           {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
             <Tag
               tone="primary"
               label={
                 exVol.volume > 0
-                  ? t("session.exVolume", { volume: formatWeight(exVol.volume, unit) })
+                  ? t("session.exVolume", { volume: formatWeight(exVol.volume, "kg") }) // 볼륨은 kg(Q2 A) @plm SRS-067
                   : t("session.exTotalReps", { reps: exVol.reps })
               }
             />
@@ -677,8 +741,8 @@ export function ExerciseBlock({
                   : loadMode === "bodyweight"
                     ? t("session.addedColHeader")
                     : oneSide
-                      ? t("session.weightOneSideLabel", { weightUnit: unit }) // 플레이트 한쪽 입력(ADR-037)
-                      : t("session.weightLabel", { weightUnit: unit })}
+                      ? t("session.weightOneSideLabel", { weightUnit: blockUnit }) // 플레이트 한쪽 입력(ADR-037)
+                      : t("session.weightLabel", { weightUnit: blockUnit })}
               </HeadCell>
               <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell>
             </>
@@ -712,7 +776,7 @@ export function ExerciseBlock({
                 prev={shownPrev[i] ?? null}
                 rx={we.prescription?.[s.setNumber - 1] ?? null}
                 suggestion={suggestions[s.id] ?? null}
-                unit={unit}
+                unit={blockUnit}
                 barWeightKg={barWeightKg}
                 onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
                 onToggleDone={onToggleDone(s)}
@@ -825,12 +889,14 @@ export function ExerciseBlock({
                     })}
                   </AppText>
                   <AppText variant="caption" className="block" data-testid="slot-last-sets">
-                    {x.lastSets.map((ls) => `${formatWeight(ls.weightKg, unit)}×${ls.reps}`).join(" · ")}
+                    {x.lastSets
+                      .map((ls) => `${formatEnteredWeight(ls.weightKg, blockUnit)}×${ls.reps}`)
+                      .join(" · ")}
                   </AppText>
                   {x.best ? (
                     <AppText variant="caption" color="pr" className="block">
                       {t("session.slotBest", {
-                        weight: formatWeight(x.best.weightKg, unit),
+                        weight: formatEnteredWeight(x.best.weightKg, blockUnit),
                         reps: x.best.reps,
                       })}
                     </AppText>

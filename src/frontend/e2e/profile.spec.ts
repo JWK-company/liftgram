@@ -11,20 +11,16 @@ async function 카탈로그_준비(page: Page) {
   await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 }
 
-test("단위를 lb로 바꾸면 세션의 무게 표기가 따라간다", async ({ page }) => {
+// [원본] 「단위를 lb로 바꾸면 세션의 무게 표기가 따라간다」 — 프로필 단위 선택이 없어졌다(2026-10-27 · SRS-067 Q3 A).
+// 한 헬스장에 kg·lb 기구가 섞여 있어 단위는 운동 블록마다 토글한다 → e2e/unit-toggle.spec.ts.
+test("프로필에 단위가 없고, 세션의 무게 표기는 블록 토글을 따라간다", async ({ page }) => {
   await 카탈로그_준비(page);
 
   await page.goto("/profile");
-  await expect(page.getByTestId("unit")).toBeVisible({ timeout: 20_000 });
-  // 설정은 줄 + 현재값 → 선택 시트(SRS-054 시안 09).
-  await page.getByTestId("unit").click();
-  await page.getByTestId("unit-lb").click();
-  // 저장이 **끝난 뒤** 옮겨 간다. 페이지를 떠나면 JS 컨텍스트가 갈리므로,
-  // 아직 로컬 저장소에 안 내려간 변경은 그대로 사라진다(LokiJS는 비동기로 flush한다).
-  // 줄의 현재값은 저장→flush→재조회가 **다 끝난 뒤** 재조회된 설정으로 바뀐다 — 그것을 기다린다.
-  await expect(page.getByTestId("unit")).toContainText("lb", { timeout: 20_000 });
+  await expect(page.getByTestId("bar-weight")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("unit")).toHaveCount(0);
 
-  // 세션을 열면 무게 컬럼이 lb로 바뀌어 있다(저장은 계속 kg — 표시만 바뀐다).
+  // 세션을 열면 기본 kg — 블록의 lb 를 누르면 무게 컬럼이 lb 로 바뀐다(저장은 계속 kg — 표시만 바뀐다).
   await page.goto("/");
   await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
   await page.getByTestId("btn-quick-start").click();
@@ -32,6 +28,8 @@ test("단위를 lb로 바꾸면 세션의 무게 표기가 따라간다", async 
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
 
+  await expect(page.getByTestId("workout-exercises")).toContainText("무게 (kg)", { timeout: 20_000 });
+  await page.getByTestId("unit-toggle-lb").click();
   await expect(page.getByTestId("workout-exercises")).toContainText("무게 (lb)", { timeout: 20_000 });
 });
 

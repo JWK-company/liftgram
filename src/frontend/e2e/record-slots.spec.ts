@@ -138,6 +138,9 @@ test("머신 적재 방식 — 핀로드와 플레이트는 다른 칸 · 플레
   await 시트_닫기(page);
   await expect(page.getByTestId("variant-trigger").first()).toContainText("플레이트");
   await expect(page.getByTestId("workout-exercises")).toContainText("한쪽(kg)");
+  // 한쪽 입력을 켜면 안 한 세트의 미리 채운 무게가 계산 무게가 같도록 절반이 된다(20 → 10 · /qa code M-1).
+  // 그 환산이 끝난 뒤에 적는다 — 환산이 입력을 덮지 않게(이 기다림이 없으면 타이밍에 따라 40 이 10 으로 덮였다).
+  await expect(첫세트(page).getByTestId("set-weight")).toHaveValue("10", { timeout: 10_000 });
 
   // 한쪽 40kg × 10회 = 볼륨 800kg (양쪽 80kg)
   await 세트_기록(page, 40, 10);

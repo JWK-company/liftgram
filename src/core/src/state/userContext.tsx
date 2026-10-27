@@ -49,7 +49,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const value: UserContextValue = {
     user,
     loading,
-    weightUnit: user?.weightUnit ?? 'kg',
+    // [원본] weightUnit: user?.weightUnit ?? 'kg',
+    // [개선] 앱이 보여 주는 합계·통계·체중·바 무게는 kg 하나(프로필 단위 선택 제거 · Q2 A·Q3 A). 세트 무게의 단위는
+    // 블록마다 있다(workout_exercises.weight_unit). 예전 프로필 단위는 저장소가 「칸 기록이 없을 때의 첫 기본값」으로만 읽는다. @plm SRS-067
+    weightUnit: 'kg',
     language: user?.preferredLanguage ?? 'ko',
     barWeightKg: user?.barWeightKg ?? DEFAULT_BAR_KG,
     bodyweightKg: user?.bodyweightKg ?? null,

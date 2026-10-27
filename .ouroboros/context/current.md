@@ -1,5 +1,8 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 없음 · 남은 피드백 보류 #55(파트너 운동 — 해석 미확정)·#25(팔로우 추천 — 사용자 늘면) · 다음 작업은 사용자 지시 대기
+## 활성 작업 — 블록별 kg/lb 토글·운동 중 막대 취소 (Feature · **/qa code 대기 · 미배포** 2026-10-27 · 출시 예정 v0.38.0) · URS-022·SRS-067(단위)·SRS-068(막대 취소) · 스펙 `.ouroboros/docs/spec/20261027_unit-toggle/spec.md` · spec QA `.ouroboros/docs/qa/20261027_unit-toggle-spec_qa.md`
+- 결정 Q1 A(종목×칸 기억 — 완료 블록에서 유도) · Q2 A(세트는 적은 단위·합계 kg) · Q3 A(프로필 단위 제거·바/체중 kg) · Q4 B(토글=숫자 유지·단위만) · 스키마 v25 `workout_exercises.weight_unit`(null=kg) · 피드 proto `WorkoutExercise.weight_unit=5`
+- 검증: make verify(core 288·go) · 로컬 운영 빌드 e2e 81/81 · 새 e2e 4건은 옛 코드(운영 v0.37.0)에서 실패 확인 · 스샷 spec 폴더 · 보류 #55·#25 그대로
+- 작업 범위: core(domain/units·blockUnit·data/workoutRepository·analyticsRepository·schema v25·userContext·sharePayload·i18n) · backend/feed · proto/feed · frontend(ExerciseBlock·SetRowEdit·UnitToggle·GlobalWorkoutBar·WorkoutDetailClient·WorkoutBox·ProfileClient) · e2e
 ## 직전 작업 — 묶음 2 「기록 돌아보기·다시 하기」 (Feature · **완료** 2026-10-27 · v0.37.0 운영 build 331 · 9b726a2) · URS-021·SRS-064(총평 #52)·SRS-065(세트 조합·다시 시작·피드 바로 시작 #59)·SRS-066(하단 sticky #45·#43) · 스펙 `.ouroboros/docs/spec/20261027_history-replay/spec.md`
 - /qa code 조치 `.ouroboros/docs/qa/20261027_history-replay-code_qa.md`: H-1(폐기·시작 한 batch)·M-1(공유 상한 앱+서버·바로 시작 미매칭 건너뜀)·M-2(막대 실측)·M-3(총평 숨김·멈춤 저장)·M-4(루틴 시작 회귀·슈퍼셋/워밍업 e2e)·L-1~L-5 수정 · L-6·L-7·L-8 보류
 - 검증: core 280 · go · 로컬 운영 빌드 e2e 36+12 통과 · 운영 360×560 휴식 막대 bottom 544·요약 548 / 390×844(다크) 828·832 · 콘솔 오류 0 · PLM #52·#59·#45·#43 완료
@@ -95,6 +98,3 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - P4: 피드 아이콘 3·팔로잉/발견 탭·+ 작성기 · DM/알림 줄 · 남의 프로필 머리·차단 ⋯
 - P5: 데스크톱 세로 탭바 · 약관 앱바+사업자 정보 · 시드 카탈로그 동적 import(−13KB gz) · v0.29.1 첫 SW 설치 새로고침 제거 · 보고서 report/20261026_redesign-p2p5_report.md
 - 남은: 완료 화면 공유→작성기 통합 · dm:157 등 불안정 e2e · CF 경로(사용자 결정)
-
-## 다음 작업
-1. **키 반영 완료(2026-10-26)**: 메일(smtp) · Turnstile(liftgram-auth 위젯 · 토큰 없는 가입 거절 확인) · 구글(OAuth 클라이언트 liftgram-web · start→accounts.google.com 정상) · v0.21 booktarae형 로그인/가입 화면 · v0.22 /privacy·/terms · OAUTH_PREVIEW_PROVIDERS=google,kakao,naver(카카오·네이버는 '설정 필요')

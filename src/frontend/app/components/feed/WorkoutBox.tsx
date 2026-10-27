@@ -13,7 +13,7 @@
 // 목표 세트·횟수·무게는 **워킹세트만** 보고 정한다(웜업이 섞이면 목표가 내려간다).
 // 웜업만 있는 종목은 어쩔 수 없이 전체 세트를 쓴다.
 // ─────────────────────────────────────────────────────────────────────────────
-import { formatWeight, type WeightUnit } from "@app/core";
+import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
 import type { WorkoutSummary } from "@app/contracts";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
@@ -215,7 +215,8 @@ export function WorkoutBox({
       ) : null}
 
       <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-xl)]">
-        <Stat label={t("session.totalVolume")} value={formatWeight(workout.totalVolumeKg, unit)} />
+        {/* 볼륨은 kg(SRS-067 Q2 A) */}
+        <Stat label={t("session.totalVolume")} value={formatWeight(workout.totalVolumeKg, "kg")} />
         <Stat label={t("session.duration")} value={duration(workout.durationSeconds)} />
         <Stat label={t("session.setCount")} value={String(workout.workingSets)} />
       </div>
@@ -290,7 +291,8 @@ export function WorkoutBox({
                       .map(
                         (s) =>
                           // 한쪽 입력으로 적은 세트도 계산 무게로 보인다 — 같은 글의 총 볼륨과 숫자가 맞게(/qa code L-5)
-                          `${formatWeight(s.weightKg * (s.loadMultiplier || 1), unit)}×${s.reps}${s.partialReps ? `+${s.partialReps}` : ""}${
+                          // [원본] 보는 사람의 단위로 바꿔 그렸다 — 이제 작성자가 **적은 단위** 그대로(옛 글은 보는 사람 단위 · SRS-067 Q2 A)
+                          `${formatEnteredWeight(s.weightKg * (s.loadMultiplier || 1), ex.weightUnit === "lb" || ex.weightUnit === "kg" ? ex.weightUnit : unit)}×${s.reps}${s.partialReps ? `+${s.partialReps}` : ""}${
                             s.isWarmup ? " (W)" : ""
                           }`,
                       )

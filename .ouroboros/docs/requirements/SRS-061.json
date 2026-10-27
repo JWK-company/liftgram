@@ -9,24 +9,135 @@
   "created": "2026-10-27T03:00:00Z",
   "updated": "2026-10-27T03:00:00Z",
   "sync": true,
-  "tags": ["session", "pr", "history"],
+  "tags": [
+    "session",
+    "pr",
+    "history"
+  ],
   "kind": "FR",
   "acceptance_criteria": "종목 머리에 중량 PR·볼륨 PR 칩 2개 · 칩 탭 = 안 한 첫 세트에 무게·횟수 채움 · 칩 길게/⋯ = PR 출처 세션·세트로 이동 · 기록 상세에서 세트 수정·삭제 후 PR·세션 볼륨 재계산.",
-  "relations": {"derives_from": ["URS-020"]},
+  "relations": {
+    "derives_from": [
+      "URS-020"
+    ]
+  },
   "doc": {
     "type": "doc",
     "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "운동 블록 머리의 PR 표시를 「중량 PR(최고 무게 세트)」·「볼륨 PR(무게×횟수 최대 세트)」 두 칩으로 나눈다. 두 PR 은 같은 기록 칸(변형 키) 안에서, 완료 세션의 워킹 세트(워밍업·실패 제외)만으로, 한쪽 입력 배수·하중 모드를 반영해 계산한다. 칩을 누르면 그 블록에서 아직 완료하지 않은 첫 세트의 무게·횟수를 그 PR 값으로 채운다(한쪽 입력이면 한쪽 값으로 환산)."}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "PR 이 잘못 입력된 기록에서 나왔으면 사용자는 칩의 「기록 보기」로 그 세션 상세의 해당 세트로 이동해 무게·횟수를 고치거나 세트를 지운다. 기록 상세에 세트 편집을 추가하며, 편집 뒤 그 세션의 볼륨·PR 수 캐시를 다시 계산한다. 별도의 PR 초기화 기준점은 두지 않는다(기록이 정본)."}]},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
-      {"type": "bullet_list", "content": [
-        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "100×5(중량)·80×12(볼륨) 기록이 있는 종목에 두 칩이 보이고, 볼륨 칩을 누르면 안 한 첫 세트가 80×12 가 되며 완료한 세트는 바뀌지 않는다."}]}]},
-        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「기록 보기」가 PR 출처 세션 상세로 열리고 그 세트가 강조된다. 그 세트를 지우면 PR 칩이 다음 최고 기록으로 바뀌고 세션 볼륨이 줄어든다."}]}]},
-        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "PR 이 같은 세트이면 칩 하나로 합쳐 보이고, 기록이 없으면 칩이 없다."}]}]}
-      ]},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-020. 피드백 #50 · #51. 기존 PR 2종 규칙(personalRecords MAJOR_PR_TYPES) 재사용."}]}
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "운동 블록 머리의 PR 표시를 「중량 PR(최고 무게 세트)」·「볼륨 PR(무게×횟수 최대 세트)」 두 칩으로 나눈다. 두 PR 은 같은 기록 칸(변형 키) 안에서, 완료 세션의 워킹 세트(워밍업·실패 제외)만으로, 한쪽 입력 배수·하중 모드를 반영해 계산한다. 칩을 누르면 그 블록에서 아직 완료하지 않은 첫 세트의 무게·횟수를 그 PR 값으로 채운다(한쪽 입력이면 한쪽 값으로 환산)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "PR 이 잘못 입력된 기록에서 나왔으면 사용자는 칩의 「기록 보기」로 그 세션 상세의 해당 세트로 이동해 무게·횟수를 고치거나 세트를 지운다. 기록 상세에 세트 편집을 추가하며, 편집 뒤 그 세션의 볼륨·PR 수 캐시를 다시 계산한다. 별도의 PR 초기화 기준점은 두지 않는다(기록이 정본)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "100×5(중량)·80×12(볼륨) 기록이 있는 종목에 두 칩이 보이고, 볼륨 칩을 누르면 안 한 첫 세트가 80×12 가 되며 완료한 세트는 바뀌지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "「기록 보기」가 PR 출처 세션 상세로 열리고 그 세트가 강조된다. 그 세트를 지우면 PR 칩이 다음 최고 기록으로 바뀌고 세션 볼륨이 줄어든다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "PR 이 같은 세트이면 칩 하나로 합쳐 보이고, 기록이 없으면 칩이 없다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-020. 피드백 #50 · #51. 기존 PR 2종 규칙(personalRecords MAJOR_PR_TYPES) 재사용."
+          }
+        ]
+      }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/domain/__tests__/sessionAssist.test.ts:1",
+    "src/frontend/e2e/session-assist.spec.ts:1"
+  ]
 }

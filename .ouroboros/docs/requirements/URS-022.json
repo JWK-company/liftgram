@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-022",
+  "type": "URS",
+  "title": "한 헬스장 안에서도 kg·lb 기구가 섞여 있으니, 운동하면서 종목·기구마다 단위를 바로 바꾸고 싶다 — 그리고 운동 중 막대에서 바로 운동을 취소하고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:00:00Z",
+  "updated": "2026-10-27T05:00:00Z",
+  "sync": true,
+  "tags": ["unit", "session", "workout-bar"],
+  "stakeholder": "매일 기록하는 리프터(P2 기록러) · 수입 머신(lb)과 국산 머신(kg)이 섞인 헬스장 이용자",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "배경 / 이해관계자"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "지금은 무게 단위를 프로필에서 한 번 고른다. 그런데 같은 헬스장에서도 해머스트렝스 플레이트 머신은 lb, 국산 핀로드 머신과 원판은 kg처럼 기구마다 단위가 다르다. 사용자는 기구에 적힌 숫자를 그대로 적고 싶어 하고, 앱이 볼륨을 하나의 단위로 맞춰 주기를 원한다(2026-10-27 사용자 요청). 또 집중 모드를 나와 다른 화면에 있을 때 하단의 운동 중 막대에서 운동을 바로 취소할 방법이 없다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "운동 중 각 종목에서 kg/lb를 바로 바꾸고, 같은 종목·같은 기구(기록 칸)는 다음에도 그 단위로 뜨기를 원한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "기구에 적힌 숫자를 그대로 남기고(입력한 단위로 다시 보이고), 볼륨·통계는 앱이 kg로 통일해 계산하기를 원한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "프로필의 전역 단위 선택은 필요 없다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "운동 중 막대에서 운동을 취소하되, 잘못 누르지 않게 확인을 거치기를 원한다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "100lb로 적은 세트는 기록·이전 기록·피드에서 100lb로 보이고, 볼륨에는 45.36kg로 들어간다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "같은 종목·기록 칸을 다음에 열면 지난 단위가 기본으로 선택된다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "운동 중 막대의 취소는 운동 화면 ⋯ 의 취소와 같은 확인창을 거친다."}]}]}
+      ]}
+    ]
+  }
+}

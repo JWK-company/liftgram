@@ -408,7 +408,7 @@ func toProtoExercises(list []WorkoutExercise) []*feedv1.WorkoutExercise {
 				LoadMultiplier: st.LoadMultiplier,
 			})
 		}
-		out = append(out, &feedv1.WorkoutExercise{Name: ex.Name, Note: ex.Note, Sets: sets, ExerciseId: ex.ExerciseID})
+		out = append(out, &feedv1.WorkoutExercise{Name: ex.Name, Note: ex.Note, Sets: sets, ExerciseId: ex.ExerciseID, WeightUnit: ex.WeightUnit})
 	}
 	return out
 }
@@ -421,6 +421,14 @@ const (
 	maxShareNameRunes       = 80
 	maxShareNoteRunes       = 500
 )
+
+// 공유 종목의 무게 단위 — kg|lb 만 싣는다(그 밖은 옛 글처럼 비운다). @plm SRS-067
+func shareWeightUnit(u string) string {
+	if u == "kg" || u == "lb" {
+		return u
+	}
+	return ""
+}
 
 func clipRunes(s string, n int) string {
 	r := []rune(s)
@@ -455,6 +463,7 @@ func fromProtoExercises(list []*feedv1.WorkoutExercise) []WorkoutExercise {
 			Note:       clipRunes(ex.GetNote(), maxShareNoteRunes),
 			Sets:       sets,
 			ExerciseID: clipRunes(ex.GetExerciseId(), 64),
+			WeightUnit: shareWeightUnit(ex.GetWeightUnit()),
 		})
 	}
 	return out

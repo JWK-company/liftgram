@@ -356,5 +356,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // v25: 블록별 무게 단위(kg|lb) — 한 헬스장 안에 kg·lb 기구가 섞여 있다. null = kg(운영 기존 기록 전부 kg). @plm SRS-067
+      toVersion: 25,
+      steps: [
+        addColumns({
+          table: 'workout_exercises',
+          columns: [{ name: 'weight_unit', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

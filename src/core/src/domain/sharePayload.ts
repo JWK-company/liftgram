@@ -15,6 +15,8 @@ export interface ShareSourceExercise {
   exerciseId: string;
   /** 종목 메모(작성자 팁) — 공유에 함께 가는 것이 원래 동작이다. 운동 총평과 다르다. */
   note: string | null;
+  /** 이 블록에 적은 무게 단위(SRS-067) — 없으면 kg */
+  weightUnit?: 'kg' | 'lb' | null;
   sets: ShareSourceSet[];
 }
 
@@ -23,6 +25,8 @@ export interface SharedExercise {
   exerciseId?: string;
   sets: { weightKg: number; reps: number; loadMultiplier?: number | null }[];
   note?: string;
+  /** 적은 무게 단위(kg|lb) — 보는 사람에게 이 단위로 보인다(SRS-067 · Q2 A) */
+  weightUnit?: 'kg' | 'lb';
 }
 
 export interface SharedWorkout {
@@ -66,6 +70,7 @@ export function buildSharedWorkout(input: {
       name: ex.exerciseName,
       exerciseId: ex.exerciseId,
       note: ex.note ?? undefined,
+      weightUnit: ex.weightUnit === 'lb' ? 'lb' : 'kg', // @plm SRS-067
       // 워밍업·실패 세트는 빼고 보낸다 — 카드에 실리는 것은 실제로 해낸 세트다.
       sets: ex.sets
         .filter((st) => !st.isWarmup && !st.isFailed)
@@ -89,6 +94,7 @@ export interface ReceivedSet {
 export interface ReceivedExercise {
   name: string;
   exerciseId?: string;
+  weightUnit?: 'kg' | 'lb';
   note?: string;
   sets: ReceivedSet[];
 }
@@ -114,6 +120,7 @@ export function clampSharedExercises(raw: unknown): ReceivedExercise[] {
       });
     const ex: ReceivedExercise = { name, sets };
     if (typeof o.exerciseId === 'string' && o.exerciseId.length <= 64) ex.exerciseId = o.exerciseId;
+    if (o.weightUnit === 'kg' || o.weightUnit === 'lb') ex.weightUnit = o.weightUnit; // @plm SRS-067
     if (typeof o.note === 'string' && o.note.trim()) ex.note = o.note.trim().slice(0, SHARE_LIMITS.noteLen);
     out.push(ex);
   }
@@ -132,7 +139,7 @@ export function toCreatePostWorkout(w: SharedWorkout): {
   workingSets: number;
   prCount: number;
   streakDays: number;
-  exercises: { name: string; exerciseId: string; note: string; sets: { weightKg: number; reps: number; loadMultiplier: number }[] }[];
+  exercises: { name: string; exerciseId: string; note: string; weightUnit: string; sets: { weightKg: number; reps: number; loadMultiplier: number }[] }[];
 } {
   return {
     workoutId: w.workoutId,
@@ -146,6 +153,7 @@ export function toCreatePostWorkout(w: SharedWorkout): {
       name: ex.name,
       exerciseId: ex.exerciseId ?? '',
       note: ex.note ?? '',
+      weightUnit: ex.weightUnit ?? '', // @plm SRS-067
       sets: ex.sets.map((st) => ({ weightKg: st.weightKg, reps: st.reps, loadMultiplier: st.loadMultiplier ?? 0 })),
     })),
   };

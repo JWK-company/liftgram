@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-068",
+  "type": "SRS",
+  "title": "운동 중 막대(집중 모드 밖)에 운동 취소 버튼 — 운동 화면 ⋯ 의 취소와 같은 확인창",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:00:00Z",
+  "updated": "2026-10-27T05:00:00Z",
+  "sync": true,
+  "tags": [
+    "session",
+    "workout-bar"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "막대에 「열기」 옆 취소 · 같은 확인창(제목·문구·삭제) · 확인 시 화면 유지·막대 사라짐 · 휴식 정리 · 취소 누름 ≠ 열기.",
+  "relations": {
+    "derives_from": [
+      "URS-022"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "운동 화면을 내려 다른 화면에 있을 때 하단에 뜨는 운동 중 막대의 「열기」 옆에 취소 버튼을 둔다. 누르면 운동 화면 ⋯ 메뉴의 「운동 취소」와 같은 확인창(같은 제목·문구·파괴 버튼)을 띄우고, 확인하면 진행 중 운동을 폐기한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "폐기 순서는 운동 화면과 같다: 저장소 폐기 → 로컬 DB 내려쓰기 → 셸의 진행 중 상태 해제 → 휴식 정리. 사용자는 보던 화면에 그대로 머물고 막대만 사라진다. 취소 버튼을 누르는 것이 막대(열기 링크)를 누른 것으로 처리되면 안 된다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "피드 화면에서 막대의 취소 → 확인창 → 삭제를 누르면 피드에 머문 채 막대가 사라지고, 운동 탭에 진행 중 카드가 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "확인창에서 취소를 누르면 아무 일도 없고 막대가 남는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-022."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/frontend/e2e/unit-toggle.spec.ts:1"
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-067",
+  "type": "SRS",
+  "title": "운동 블록별 kg/lb 토글 — 종목×기록 칸마다 기억 · 입력한 단위로 표시 · 볼륨·통계는 kg · 토글은 숫자 유지(단위만 교체) · 프로필 단위 선택 제거",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:00:00Z",
+  "updated": "2026-10-27T05:00:00Z",
+  "sync": true,
+  "tags": [
+    "unit",
+    "session",
+    "volume"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "블록 머리 kg/lb 토글 · 칸별 지난 단위 기본 · 100lb 왕복 표시 정확 · 볼륨·통계 kg · 토글 = 그 블록 세트 숫자 유지·단위 교체 · 지난 운동 불변 · 프로필 단위 선택 없음.",
+  "relations": {
+    "derives_from": [
+      "URS-022"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "운동 블록마다 무게 단위(kg|lb)를 가진다. 블록 머리의 PR 칩 옆 세그먼트 토글로 바꾸며, 새 블록의 기본 단위는 같은 종목·같은 기록 칸(variant key)으로 가장 최근에 완료한 블록의 단위, 없으면 예전 프로필 단위(없으면 kg)다. 기본 단위를 고르는 것은 실제 무게를 바꾸지 않는다(표시만)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "저장은 kg 정본이며 lb 입력은 정확히 환산해 저장하고, 표시는 소수 둘째 자리 반올림으로 입력한 숫자를 그대로 돌려준다. 기록 상세·이전 기록·PR 칩·피드는 그 블록의 단위로, 볼륨·총무게·통계·그래프·코칭·이관 검증은 kg로 계산·표시한다. 사용자가 토글을 누르면 그 운동의 그 블록 세트(완료 포함)는 보이는 숫자를 유지한 채 단위만 바뀌고(저장 kg 재환산 · 볼륨·PR 재계산), 지난 운동 기록은 바뀌지 않는다. 프로필의 kg/lb 선택은 없애고 바 무게·체중은 kg로 고정한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "lb 블록에 100을 적으면 저장 45.359237kg, 다시 열어도 100lb, 볼륨 칩·요약은 kg."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "kg 블록에서 100×10 완료 뒤 lb로 토글하면 100lb×10으로 바뀌고 운동 볼륨이 그만큼 줄어든다. 지난 운동의 같은 종목 기록은 그대로."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 종목·칸의 다음 운동은 lb로 시작하고, 다른 칸(다른 브랜드)은 kg로 시작한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "프로필 설정에 단위 줄이 없다. 운영 기존 데이터(전 사용자 kg)는 kg로 보인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-022."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/domain/__tests__/unitToggle.test.ts:1",
+    "src/frontend/app/components/ui/UnitToggle.tsx:2",
+    "src/frontend/e2e/unit-toggle.spec.ts:1"
+  ]
+}

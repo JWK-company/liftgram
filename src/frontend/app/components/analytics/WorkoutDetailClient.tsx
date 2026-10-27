@@ -5,7 +5,7 @@
 // 볼륨·추정 1RM. 값은 전부 `getWorkoutDetail`이 준 것을 그대로 놓는다(집계는 저장소 몫).
 //
 // 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
-import { formatWeight, fromKg, toKg, type WeightUnit } from "@app/core";
+import { displayWeight, formatEnteredWeight, formatWeight, toKg, type WeightUnit } from "@app/core";
 import { type GripKey, gripLabel, variantLabelFromKey } from "@app/core/domain/variants";
 import type { AppLanguage } from "@app/core/domain/types";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,8 @@ type ExerciseDetail = Detail["exercises"][number];
 export default function WorkoutDetailClient({ workoutId }: { workoutId: string }) {
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
-  const [unit, setUnit] = useState<WeightUnit>("kg");
+  // [원본] 화면 하나의 단위(프로필) — 이제 블록마다 단위가 있고 합계는 kg 다 @plm SRS-067
+  // const [unit, setUnit] = useState<WeightUnit>("kg");
   // 칸 라벨(브랜드·커스텀 슬롯 이름)·언어 — 기록 상세에 수행 조합을 보인다(#59) @plm SRS-065
   const [lang, setLang] = useState<AppLanguage>("ko");
   const [slotLabels, setSlotLabels] = useState<string[]>([]);
@@ -39,7 +40,9 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   // 세트 고치기·지우기(#51 A — PR 칩 「이 기록 보기」로 와서 잘못 남은 기록을 바로잡는다) @plm SRS-061
-  const [editing, setEditing] = useState<null | { set: DetailSet; isCardio: boolean }>(null);
+  const [editing, setEditing] = useState<null | { set: DetailSet; isCardio: boolean; unit: WeightUnit }>(
+    null,
+  );
   const [reloadTick, setReloadTick] = useState(0);
   // ?set=<id> 로 오면 그 세트를 강조한다(PR 칩에서 온 경우)
   const [focusSet, setFocusSet] = useState<string | null>(null);
@@ -85,7 +88,7 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
           preferredLanguage?: AppLanguage;
           machineVariantLabels?: string[];
         } | null;
-        setUnit((u?.weightUnit ?? "kg") as WeightUnit);
+        // [원본] setUnit((u?.weightUnit ?? "kg") as WeightUnit);
         setLang(u?.preferredLanguage ?? "ko");
         setSlotLabels(u?.machineVariantLabels ?? []);
       } catch {
@@ -173,7 +176,7 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 items={[
                   {
                     label: t("analytics.totalVolumeLabel"),
-                    value: formatWeight(detail.totalVolumeKg, unit),
+                    value: formatWeight(detail.totalVolumeKg, "kg"), // 합계는 kg(Q2 A) @plm SRS-067
                     testId: "detail-volume",
                   },
                   { label: t("analytics.durationLabel"), value: duration(detail.workout.durationSeconds) },
@@ -208,9 +211,12 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                   <ExerciseCard
                     key={ex.workoutExerciseId}
                     ex={ex}
-                    unit={unit}
+                    // [원본] unit={unit}
+                    unit={ex.weightUnit ?? "kg"} // 이 블록에 적은 단위 @plm SRS-067
                     focusSet={focusSet}
-                    onEditSet={(set) => setEditing({ set, isCardio: !!ex.isCardio })}
+                    onEditSet={(set) =>
+                      setEditing({ set, isCardio: !!ex.isCardio, unit: ex.weightUnit ?? "kg" })
+                    }
                     lang={lang}
                     slotLabels={slotLabels}
                   />
@@ -232,7 +238,8 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
         <EditSetSheet
           set={editing.set}
           isCardio={editing.isCardio}
-          unit={unit}
+          // [원본] unit={unit}
+          unit={editing.unit} // 고치는 세트는 그 블록 단위로 @plm SRS-067
           onClose={() => setEditing(null)}
           onDone={(msg) => {
             setEditing(null);
@@ -358,7 +365,7 @@ function ExerciseCard({
           </span>
           <div className="flex-1">
             <AppText variant="body">
-              {`${formatWeight(s.weightKg, unit)} × ${s.reps}`}
+              {`${formatEnteredWeight(s.weightKg, unit)} × ${s.reps}`}
               {s.partialReps ? (
                 <AppText variant="body" color="textFaint">{` +${s.partialReps}`}</AppText>
               ) : null}
@@ -377,7 +384,7 @@ function ExerciseCard({
                 <span data-testid="detail-set-oneside">
                   <Tag
                     label={t("analytics.oneSideTag", {
-                      weight: formatWeight(s.weightKg, unit),
+                      weight: formatEnteredWeight(s.weightKg, unit),
                       n: s.loadMultiplier,
                     })}
                     tone="primary"
@@ -400,7 +407,7 @@ function ExerciseCard({
           {t("analytics.volumeLabel")}
         </AppText>
         <AppText variant="body" className="font-semibold">
-          {formatWeight(ex.volumeKg, unit)}
+          {formatWeight(ex.volumeKg, "kg")}
         </AppText>
       </div>
       <div className="flex items-center justify-between py-[var(--spacing-xs)]">
@@ -408,7 +415,7 @@ function ExerciseCard({
           {t("wellness.oneRepMaxLabel")}
         </AppText>
         <AppText variant="body" className="font-bold">
-          {formatWeight(ex.bestEstimated1RM, unit)}
+          {formatWeight(ex.bestEstimated1RM, "kg")}
         </AppText>
       </div>
       <AppText variant="caption" color="textFaint" className="mt-[2px] block">
@@ -441,7 +448,7 @@ function EditSetSheet({
   onDone: (message: string) => void;
   onError: (message: string) => void;
 }) {
-  const [w, setW] = useState(() => String(fromKg(set.weightKg, unit)));
+  const [w, setW] = useState(() => String(displayWeight(set.weightKg, unit)));
   const [r, setR] = useState(() => String(set.reps));
   const [confirmDel, setConfirmDel] = useState(false);
   const [busy, setBusy] = useState(false);

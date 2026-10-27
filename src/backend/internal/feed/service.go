@@ -89,6 +89,8 @@ type WorkoutExercise struct {
 	Sets []WorkoutSet
 	// 종목 id — 가져가는 쪽이 이름보다 먼저 찾는다(/qa code H-2). 옛 글에는 없다.
 	ExerciseID string `json:",omitempty"`
+	// 이 종목에 적은 무게 단위(kg|lb — 비면 옛 글). 무게는 그대로 kg 다(SRS-067).
+	WeightUnit string `json:",omitempty"`
 }
 
 // GearTag는 글에 붙는 착용장비다. 규칙(허용 분류·링크 생성)은 **화면 쪽 도메인**이 갖고 있고,

@@ -462,7 +462,10 @@ type WorkoutExercise struct {
 	Note string        `protobuf:"bytes,2,opt,name=note,proto3" json:"note,omitempty"`
 	Sets []*WorkoutSet `protobuf:"bytes,3,rep,name=sets,proto3" json:"sets,omitempty"`
 	// 종목 id(시드 id 는 모든 사용자에게 같다) — 가져가는 쪽이 이름보다 먼저 찾는다(/qa code H-2). 비면 이름으로.
-	ExerciseId    string `protobuf:"bytes,4,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
+	ExerciseId string `protobuf:"bytes,4,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
+	// 이 종목에 적은 무게 단위(kg|lb) — weight_kg 는 늘 kg 이고, 보는 사람에게 **적은 단위**로 보여 준다(SRS-067 · Q2 A).
+	// 비면 옛 글(보는 사람 단위). 한 헬스장 안에 kg·lb 기구가 섞여 있어 종목마다 다르다.
+	WeightUnit    string `protobuf:"bytes,5,opt,name=weight_unit,json=weightUnit,proto3" json:"weight_unit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -521,6 +524,13 @@ func (x *WorkoutExercise) GetSets() []*WorkoutSet {
 func (x *WorkoutExercise) GetExerciseId() string {
 	if x != nil {
 		return x.ExerciseId
+	}
+	return ""
+}
+
+func (x *WorkoutExercise) GetWeightUnit() string {
+	if x != nil {
+		return x.WeightUnit
 	}
 	return ""
 }
@@ -3861,13 +3871,16 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\x04reps\x18\x02 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\x04reps\x12\x1b\n" +
 	"\tis_warmup\x18\x03 \x01(\bR\bisWarmup\x12*\n" +
 	"\fpartial_reps\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x00R\vpartialReps\x12@\n" +
-	"\x0fload_multiplier\x18\x05 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00$@)\x00\x00\x00\x00\x00\x00\x00\x00R\x0eloadMultiplier\"\xab\x01\n" +
+	"\x0fload_multiplier\x18\x05 \x01(\x01B\x17\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00$@)\x00\x00\x00\x00\x00\x00\x00\x00R\x0eloadMultiplier\"\xdd\x01\n" +
 	"\x0fWorkoutExercise\x12\x1d\n" +
 	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18xR\x04name\x12\x1c\n" +
 	"\x04note\x18\x02 \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03R\x04note\x121\n" +
 	"\x04sets\x18\x03 \x03(\v2\x13.feed.v1.WorkoutSetB\b\xbaH\x05\x92\x01\x02\x10<R\x04sets\x12(\n" +
 	"\vexercise_id\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18@R\n" +
-	"exerciseId\"\x80\x04\n" +
+	"exerciseId\x120\n" +
+	"\vweight_unit\x18\x05 \x01(\tB\x0f\xbaH\fr\n" +
+	"R\x00R\x02kgR\x02lbR\n" +
+	"weightUnit\"\x80\x04\n" +
 	"\x04Post\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x06author\x18\x02 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12%\n" +

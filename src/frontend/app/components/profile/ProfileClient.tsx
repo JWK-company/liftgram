@@ -228,12 +228,13 @@ export default function ProfileClient() {
         {/* ── 설정: 줄 + 현재값. 누르면 선택 시트(시안 09) — 토글이 한 화면에 줄지어 있던 것을 줄 하나씩으로. */}
         <SectionLabel title={t("profile.settings")} />
         <ListGroup className="mb-[var(--spacing-xl)]">
+          {/* [원본] 무게 단위 줄 — 한 헬스장 안에 kg·lb 기구가 섞여 있어 전역 단위 대신 운동 블록마다 토글한다(2026-10-27 · Q3 A) @plm SRS-067
           <ListRow
             testId="unit"
             title={t("profile.unit")}
             value={weightUnit}
             onPress={() => setSheet("unit")}
-          />
+          /> */}
           <ListRow
             testId="theme"
             title={t("profile.theme")}

@@ -38,3 +38,17 @@ export function formatWeight(kg: number, unit: WeightUnit, opts?: { increment?: 
     : rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   return opts?.withUnit === false ? str : `${str}${unit}`;
 }
+
+// ── 세트 무게 표시(2026-10-27 · 블록별 kg/lb) ── @plm SRS-067
+// kg 정본은 부동소수 그대로 저장한다(lbToKg(100)=45.359237). 표시는 **여기 한 곳**에서 소수 둘째 자리로 반올림해
+// 적은 숫자를 그대로 돌려준다(100lb → 100 · 102.5lb → 102.5). 증분(0.5kg·1lb) 반올림은 하지 않는다 —
+// 102.5lb 가 「103lb」로 보이면 기구에 적힌 숫자와 다르다(/qa spec Q1·Q2). 합계(볼륨)는 formatWeight 를 쓴다.
+export function displayWeight(kg: number, unit: WeightUnit): number {
+  if (!Number.isFinite(kg)) return 0;
+  return Math.round(fromKg(kg, unit) * 100) / 100;
+}
+
+export function formatEnteredWeight(kg: number, unit: WeightUnit, opts?: { withUnit?: boolean }): string {
+  const str = String(displayWeight(kg, unit));
+  return opts?.withUnit === false ? str : `${str}${unit}`;
+}

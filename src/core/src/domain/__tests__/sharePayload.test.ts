@@ -57,5 +57,24 @@ test('서버로 보내는 객체(toCreatePostWorkout)에도 총평이 없다 —
   const sent = toCreatePostWorkout({ ...shared, notes: '새면 안 됨' } as unknown as typeof shared);
   assert.deepEqual(Object.keys(sent).sort(), [...SHARED_WORKOUT_KEYS].sort());
   assert.ok(!JSON.stringify(sent).includes('총평') && !JSON.stringify(sent).includes('새면 안 됨'));
-  assert.deepEqual(sent.exercises[0], { name: '벤치', exerciseId: 'seed-bench', note: '', sets: [{ weightKg: 50, reps: 2, loadMultiplier: 0 }] });
+  // weightUnit: 적은 단위가 함께 간다(SRS-067) — 블록 단위가 없으면 kg
+  assert.deepEqual(sent.exercises[0], { name: '벤치', exerciseId: 'seed-bench', note: '', weightUnit: 'kg', sets: [{ weightKg: 50, reps: 2, loadMultiplier: 0 }] });
+});
+
+test('lb 로 적은 종목은 공유에도 lb 로 실린다 — 무게는 그대로 kg(SRS-067 Q2 A)', async () => {
+  const { toCreatePostWorkout, clampSharedExercises } = await import('../sharePayload');
+  const shared = buildSharedWorkout({
+    summary: { workoutId: 'w1', totalVolumeKg: 453.59, durationSeconds: 60, workingSets: 1, prCount: 0 },
+    workoutName: '가슴',
+    streakDays: 0,
+    exercises: [
+      { exerciseName: '머신 체스트 프레스', exerciseId: 'seed-x', note: null, weightUnit: 'lb', sets: [{ weightKg: 45.359237, reps: 10, isWarmup: false, isFailed: false }] },
+    ],
+  });
+  const sent = toCreatePostWorkout(shared);
+  assert.equal(sent.exercises[0].weightUnit, 'lb');
+  assert.equal(sent.exercises[0].sets[0].weightKg, 45.359237);
+  // 받는 쪽: kg|lb 만 믿는다
+  assert.equal(clampSharedExercises([{ name: 'a', weightUnit: 'lb', sets: [] }])[0].weightUnit, 'lb');
+  assert.equal(clampSharedExercises([{ name: 'a', weightUnit: 'stone', sets: [] }])[0].weightUnit, undefined);
 });

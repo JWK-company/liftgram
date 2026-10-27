@@ -18,8 +18,8 @@ import {
   // [원본] GRIP_KEYS, — 세트별 그립 선택을 없앴다(ADR-034: 그립은 블록 칸)
   type GripKey,
   calcPlates,
+  displayWeight, // 세트 무게 표시는 한 곳 — 100lb 왕복이 정확(/qa spec Q1) @plm SRS-067
   formatWeight,
-  fromKg,
   gripLabel,
   gripShortLabel,
   repRangeLabel,
@@ -129,7 +129,7 @@ export function SetRowEdit({
   const drafts = useSetDrafts();
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longFired = useRef(false);
-  const [w, setW] = useState(() => String(fromKg(set.weightKg, unit)));
+  const [w, setW] = useState(() => String(displayWeight(set.weightKg, unit)));
   const [r, setR] = useState(() => String(set.reps));
   const [pt, setPt] = useState(() => (set.partialReps ? String(set.partialReps) : ""));
   const [expanded, setExpanded] = useState(false);
@@ -141,7 +141,7 @@ export function SetRowEdit({
   // 밖에서 값이 바뀌면 등록부의 입력 중 값도 버린다 — 옛 입력이 묶음 완료 때 새 값을 덮지 않게(SRS-062)
   // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 무게가 바뀔 때만 따라간다
   useEffect(() => {
-    setW(String(fromKg(set.weightKg, unit)));
+    setW(String(displayWeight(set.weightKg, unit)));
     drafts.set(set.id, { weightKg: undefined });
   }, [set.weightKg, unit]);
   // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 횟수가 바뀔 때만 따라간다
@@ -155,7 +155,7 @@ export function SetRowEdit({
     drafts.set(set.id, { weightKg: undefined });
     const n = Number.parseFloat(w.replace(",", "."));
     if (!Number.isNaN(n) && n >= 0) onUpdate({ weightKg: toKg(n, unit) });
-    else setW(String(fromKg(set.weightKg, unit)));
+    else setW(String(displayWeight(set.weightKg, unit)));
   };
   const commitReps = () => {
     drafts.set(set.id, { reps: undefined });
@@ -259,7 +259,7 @@ export function SetRowEdit({
           {prev ? (
             <span className="block rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-surface-alt) px-[5px] py-[3px]">
               <AppText variant="caption" color="primary" center className="block truncate">
-                {`${fromKg(prev.weightKg, unit)}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
+                {`${displayWeight(prev.weightKg, unit)}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
               </AppText>
               {prevOptionLabel(prev) ? (
                 <AppText variant="label" color="textFaint" center className="block truncate">
@@ -386,7 +386,7 @@ export function SetRowEdit({
       {!isDone && suggestion ? (
         <div className="flex items-center gap-[var(--spacing-sm)] pb-[2px] pl-[42px]">
           <AppText variant="label" color="pr" className="min-w-0 shrink truncate">
-            {`${t("session.rxSuggest", { weight: `${fromKg(suggestion.weightKg, unit)}` })} — ${t(
+            {`${t("session.rxSuggest", { weight: `${displayWeight(suggestion.weightKg, unit)}` })} — ${t(
               suggestion.reasonKey as Parameters<typeof t>[0],
             )}`}
           </AppText>
