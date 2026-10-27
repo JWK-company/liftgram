@@ -1,6 +1,6 @@
 {
-  "active_skill": "execute",
-  "skill_step": 0,
+  "active_skill": null,
+  "skill_step": null,
   "active_artifact": "SRS-064",
   "autorun": {
     "queue": [
@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-10-27T01:58:01Z",
+  "last_gate_check": "2026-10-27T02:57:52Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -32,7 +32,7 @@
       "MRPT"
     ]
   },
-  "last_updated": "2026-10-27T02:30:00Z",
+  "last_updated": "2026-10-27T03:30:00Z",
   "tasks": {
     "bp-001-blueprint": "done",
     "dr-002-design-research": "done",
@@ -99,7 +99,12 @@
       "release": "v0.34.1",
       "qa_code": ".ouroboros/docs/qa/20261026_catalog-revamp-code_qa.md"
     },
-    "catalog-revamp-p5": "done"
+    "catalog-revamp-p5": "done",
+    "history-replay": {
+      "status": "done",
+      "release": "v0.37.0",
+      "commit": "9b726a2"
+    }
   },
   "active_files": [
     "src/compose.prod.yaml",
@@ -113,7 +118,7 @@
   },
   "grade": "Feature",
   "spec_path": ".ouroboros/docs/spec/20261027_history-replay/",
-  "phase": "묶음2 execute 대기 (묶음1 v0.36.0 완료)",
+  "phase": "완료",
   "tasks_exec": {
     "catalog-expansion": {
       "name": "운동 카탈로그 대확장",
@@ -122,6 +127,6 @@
       "current_phase": "done"
     }
   },
-  "release_tag": "v0.36.0",
+  "release_tag": "v0.37.0",
   "last_verified": "2026-08-04"
 }
