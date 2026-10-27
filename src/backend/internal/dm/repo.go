@@ -50,6 +50,9 @@ func (r *pgRepo) FindOrCreateDirect(ctx context.Context, id, directKey, a, b str
 	})
 	if err != nil {
 		// 동시에 눌렀다 — 유일 제약이 하나만 남겼으므로 이미 있는 것을 쓴다.
+		// 실패한 트랜잭션의 연결을 **먼저 돌려준다** — 쥔 채 풀에서 새 연결을 기다리면, 동시 요청이 풀 크기를
+		// 넘을 때 모두가 서로를 기다려 멈춘다(요약 동시 25건 PG 테스트가 찾음 · /qa code CS-5 조치 중).
+		_ = tx.Rollback(ctx)
 		if existing, e := r.q.FindDirectConversation(ctx, &directKey); e == nil {
 			return r.view(ctx, a, existing)
 		}

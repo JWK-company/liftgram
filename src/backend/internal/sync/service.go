@@ -32,6 +32,7 @@ import (
 	"time"
 
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
+	"github.com/JWK-company/liftgram/src/backend/internal/jsonguard"
 )
 
 const (
@@ -203,8 +204,11 @@ func validateCollection(name string) error {
 
 // parseRecord는 레코드를 **되돌려 줄 수 있는 모양인지**만 확인한다. 컬럼은 보지 않는다.
 //
-// 확인하는 것: ① JSON 객체인가 ② `id`(빈 문자열이 아닌 문자열)가 있는가 ③ 너무 크지 않은가.
+// 확인하는 것: ① JSON 객체인가 ② `id`(빈 문자열이 아닌 문자열)가 있는가 ③ 너무 크지 않은가
+// ④ 숫자가 jsonb 에서 펼쳐질 모양이 아닌가(jsonguard — 글자 ≤ 32자·|지수| ≤ 30·유한. 값의 크기는 보지 않는다).
 // id가 없으면 무엇을 덮어야 할지 알 수 없고, 객체가 아니면 다른 기기가 받아도 쓸 수 없다.
+// ④가 없으면 `1e130000` 한 칸이 pull·트레이너 리포트에서 13만 자로 펼쳐져 서버 메모리를 다 쓴다(/qa code CS-1 참고).
+// JS(JSON.stringify)는 이런 글자를 만들 수 없다 — 정상 앱 레코드는 걸리지 않는다(개발 DB 실측 최대 13자).
 func parseRecord(raw string) (string, []byte, error) {
 	if len(raw) > maxRecordBytes {
 		return "", nil, errs.New(errs.Validation, "record too large")
@@ -212,6 +216,9 @@ func parseRecord(raw string) (string, []byte, error) {
 	var obj map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(raw), &obj); err != nil {
 		return "", nil, errs.New(errs.Validation, "record must be a JSON object")
+	}
+	if err := jsonguard.Check([]byte(raw), jsonguard.Options{}); err != nil {
+		return "", nil, errs.New(errs.Validation, "record rejected: %v", err)
 	}
 	rawID, ok := obj["id"]
 	if !ok {

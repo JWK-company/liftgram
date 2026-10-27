@@ -8,6 +8,7 @@ package coaching
 
 import (
 	"context"
+	"net/http"
 
 	"connectrpc.com/connect"
 
@@ -293,9 +294,16 @@ func prescriptionDomain(rows []*coachingv1.PrescribedSet) []PrescribedSet {
 // 넷 다 응답에 `Cache-Control: no-store`를 붙인다(S-20) — 회원 기록이 브라우저·중간 캐시에 남지 않게.
 // (계약에 NO_SIDE_EFFECTS 를 달지 않았으므로 connect-web 은 POST 로 부른다.)
 
-// ReadMaxBytes는 코칭 RPC 요청 본문 상한이다(스냅샷 64KB + 여유 · S-6). main.go 가 이 서비스에만 건다 —
+// ReadMaxBytes는 코칭 RPC 요청 본문 상한이다(스냅샷 64KB + 여유 · S-6). NewConnectHandler 가 이 서비스에만 건다 —
 // 전역으로 걸면 sync push(최대 5000 레코드)가 막힌다.
 const ReadMaxBytes = 256 << 10
+
+// NewConnectHandler는 코칭 Connect 핸들러를 **본문 상한을 붙여** 만든다(CS-8). main.go 와 테스트가 같이 쓴다 —
+// 조립하는 쪽이 상한을 빠뜨릴 수 없게(상한은 opts 뒤에 붙어 같은 옵션을 덮어쓰지 못하게 한다).
+func NewConnectHandler(svc *Service, opts ...connect.HandlerOption) (string, http.Handler) {
+	return coachingv1connect.NewCoachingServiceHandler(NewHandler(svc),
+		append(append([]connect.HandlerOption{}, opts...), connect.WithReadMaxBytes(ReadMaxBytes))...)
+}
 
 func noStore[T any](res *connect.Response[T]) *connect.Response[T] {
 	res.Header().Set("Cache-Control", "no-store")

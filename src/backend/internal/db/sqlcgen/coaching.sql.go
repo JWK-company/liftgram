@@ -78,6 +78,46 @@ func (q *Queries) CreateAudit(ctx context.Context, arg CreateAuditParams) error 
 	return err
 }
 
+const createAuditOnce = `-- name: CreateAuditOnce :execrows
+INSERT INTO coaching_audits (id, grant_id, actor_id, action, detail)
+SELECT $1::text, $2::text, $3::text, $4::text, $5::jsonb
+WHERE NOT EXISTS (
+  SELECT 1 FROM coaching_audits a
+  WHERE a.grant_id = $2::text AND a.actor_id = $3::text AND a.action = $4::text
+    AND a.created_at > $6::timestamptz
+    AND ($7::boolean = false OR a.detail = $5::jsonb)
+)
+`
+
+type CreateAuditOnceParams struct {
+	ID          string
+	GrantID     string
+	ActorID     string
+	Action      string
+	Detail      []byte
+	Since       pgtype.Timestamptz
+	MatchDetail bool
+}
+
+// 같은 열람을 되풀이하면 감사를 한 번만 남긴다(CS-7) — 트레이너 화면이 카드를 그릴 때마다 Get 해도
+// 회원 이력(최근 100개)이 열람 기록으로 밀려나지 않게. since 뒤에 같은 (grant, actor, action)이 있으면 0행.
+// match_detail 이면 detail 까지 같아야 같은 것으로 본다(요약 id 별 — 다른 요약 열람은 따로 남는다).
+func (q *Queries) CreateAuditOnce(ctx context.Context, arg CreateAuditOnceParams) (int64, error) {
+	result, err := q.db.Exec(ctx, createAuditOnce,
+		arg.ID,
+		arg.GrantID,
+		arg.ActorID,
+		arg.Action,
+		arg.Detail,
+		arg.Since,
+		arg.MatchDetail,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createGrant = `-- name: CreateGrant :one
 INSERT INTO coaching_grants (id, trainer_id, member_id, status, requested_by)
 VALUES ($1, $2, $3, 'pending', $4)
@@ -210,17 +250,37 @@ func (q *Queries) GetProgressSummary(ctx context.Context, id string) (ProgressSu
 }
 
 const getProgressSummaryByMemberClient = `-- name: GetProgressSummaryByMemberClient :one
-SELECT id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id, message_id, created_at FROM progress_summaries WHERE member_id = $1::text AND client_id = $2::text
+SELECT id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, client_id,
+       message_id, created_at, (snapshot = $1::jsonb)::boolean AS same_snapshot
+FROM progress_summaries
+WHERE member_id = $2::text AND client_id = $3::text
 `
 
 type GetProgressSummaryByMemberClientParams struct {
+	Snapshot []byte
 	MemberID string
 	ClientID string
 }
 
-func (q *Queries) GetProgressSummaryByMemberClient(ctx context.Context, arg GetProgressSummaryByMemberClientParams) (ProgressSummary, error) {
-	row := q.db.QueryRow(ctx, getProgressSummaryByMemberClient, arg.MemberID, arg.ClientID)
-	var i ProgressSummary
+type GetProgressSummaryByMemberClientRow struct {
+	ID             string
+	MemberID       string
+	TrainerID      string
+	GrantConsentAt pgtype.Timestamptz
+	PeriodStart    pgtype.Timestamptz
+	PeriodEnd      pgtype.Timestamptz
+	SchemaVersion  int32
+	ClientID       string
+	MessageID      *string
+	CreatedAt      pgtype.Timestamptz
+	SameSnapshot   bool
+}
+
+// 같은 client_id 재전송 비교용 — 스냅샷은 싣지 않고 **SQL 에서 jsonb 동등**으로 판정한다(CS-1: 글로 펼쳐 읽지 않는다).
+// jsonb 동등은 키 순서·공백·숫자 표기(1.0 = 1)를 무시한다.
+func (q *Queries) GetProgressSummaryByMemberClient(ctx context.Context, arg GetProgressSummaryByMemberClientParams) (GetProgressSummaryByMemberClientRow, error) {
+	row := q.db.QueryRow(ctx, getProgressSummaryByMemberClient, arg.Snapshot, arg.MemberID, arg.ClientID)
+	var i GetProgressSummaryByMemberClientRow
 	err := row.Scan(
 		&i.ID,
 		&i.MemberID,
@@ -229,10 +289,10 @@ func (q *Queries) GetProgressSummaryByMemberClient(ctx context.Context, arg GetP
 		&i.PeriodStart,
 		&i.PeriodEnd,
 		&i.SchemaVersion,
-		&i.Snapshot,
 		&i.ClientID,
 		&i.MessageID,
 		&i.CreatedAt,
+		&i.SameSnapshot,
 	)
 	return i, err
 }
@@ -246,7 +306,7 @@ INSERT INTO progress_summaries (
   $5::timestamptz, $6::timestamptz, $7::int, $8::jsonb, $9::text
 )
 ON CONFLICT (member_id, client_id) DO NOTHING
-RETURNING id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id, message_id, created_at
+RETURNING id, created_at
 `
 
 type InsertProgressSummaryParams struct {
@@ -261,11 +321,17 @@ type InsertProgressSummaryParams struct {
 	ClientID       string
 }
 
+type InsertProgressSummaryRow struct {
+	ID        string
+	CreatedAt pgtype.Timestamptz
+}
+
 // ── 기간 성과 요약(SRS-080 · ADR-041) ──────────────────────────────────────────
 // @plm SRS-080
 // 같은 (회원, client_id)면 새 행을 만들지 않는다 — 오프라인 재전송이 한 행으로 모인다.
 // 충돌이면 행이 안 나온다(pgx.ErrNoRows) → 부르는 쪽이 GetProgressSummaryByMemberClient로 기존 행을 읽는다.
-func (q *Queries) InsertProgressSummary(ctx context.Context, arg InsertProgressSummaryParams) (ProgressSummary, error) {
+// 스냅샷은 돌려받지 않는다(CS-1) — 요청에 이미 있고, jsonb 를 글로 다시 받는 일이 곧 숫자 펼침 비용이다.
+func (q *Queries) InsertProgressSummary(ctx context.Context, arg InsertProgressSummaryParams) (InsertProgressSummaryRow, error) {
 	row := q.db.QueryRow(ctx, insertProgressSummary,
 		arg.ID,
 		arg.MemberID,
@@ -277,20 +343,8 @@ func (q *Queries) InsertProgressSummary(ctx context.Context, arg InsertProgressS
 		arg.Snapshot,
 		arg.ClientID,
 	)
-	var i ProgressSummary
-	err := row.Scan(
-		&i.ID,
-		&i.MemberID,
-		&i.TrainerID,
-		&i.GrantConsentAt,
-		&i.PeriodStart,
-		&i.PeriodEnd,
-		&i.SchemaVersion,
-		&i.Snapshot,
-		&i.ClientID,
-		&i.MessageID,
-		&i.CreatedAt,
-	)
+	var i InsertProgressSummaryRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err
 }
 
@@ -486,6 +540,175 @@ func (q *Queries) ListMemberRecords(ctx context.Context, arg ListMemberRecordsPa
 	return items, nil
 }
 
+const listMemberRecordsByIDs = `-- name: ListMemberRecordsByIDs :many
+SELECT record_id, payload
+FROM sync_records
+WHERE user_id = $1::text
+  AND collection = $2::text
+  AND deleted = false
+  AND record_id > $3::text
+  AND record_id = ANY ($4::text[])
+ORDER BY record_id
+LIMIT $5::int
+`
+
+type ListMemberRecordsByIDsParams struct {
+	MemberID   string
+	Collection string
+	AfterID    string
+	Ids        []string
+	Lim        int32
+}
+
+type ListMemberRecordsByIDsRow struct {
+	RecordID string
+	Payload  []byte
+}
+
+// record_id 가 ids 중 하나인 행 — 쓰인 종목(exercises). (user_id, collection, record_id) 유일 인덱스를 탄다.
+func (q *Queries) ListMemberRecordsByIDs(ctx context.Context, arg ListMemberRecordsByIDsParams) ([]ListMemberRecordsByIDsRow, error) {
+	rows, err := q.db.Query(ctx, listMemberRecordsByIDs,
+		arg.MemberID,
+		arg.Collection,
+		arg.AfterID,
+		arg.Ids,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMemberRecordsByIDsRow
+	for rows.Next() {
+		var i ListMemberRecordsByIDsRow
+		if err := rows.Scan(&i.RecordID, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMemberRecordsByParent = `-- name: ListMemberRecordsByParent :many
+SELECT record_id, payload
+FROM sync_records
+WHERE user_id = $1::text
+  AND collection = $2::text
+  AND deleted = false
+  AND record_id > $3::text
+  AND CASE WHEN jsonb_typeof(payload->($4::text)) = 'string'
+           THEN payload->>($4::text) = ANY ($5::text[])
+           ELSE false END
+ORDER BY record_id
+LIMIT $6::int
+`
+
+type ListMemberRecordsByParentParams struct {
+	MemberID    string
+	Collection  string
+	AfterID     string
+	ParentField string
+	ParentIds   []string
+	Lim         int32
+}
+
+type ListMemberRecordsByParentRow struct {
+	RecordID string
+	Payload  []byte
+}
+
+// 부모 id 칸(parent_field)이 parent_ids 중 하나인 행 — 블록(workout_id)·세트(workout_exercise_id).
+func (q *Queries) ListMemberRecordsByParent(ctx context.Context, arg ListMemberRecordsByParentParams) ([]ListMemberRecordsByParentRow, error) {
+	rows, err := q.db.Query(ctx, listMemberRecordsByParent,
+		arg.MemberID,
+		arg.Collection,
+		arg.AfterID,
+		arg.ParentField,
+		arg.ParentIds,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMemberRecordsByParentRow
+	for rows.Next() {
+		var i ListMemberRecordsByParentRow
+		if err := rows.Scan(&i.RecordID, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMemberWorkoutsStartedIn = `-- name: ListMemberWorkoutsStartedIn :many
+
+SELECT record_id, payload
+FROM sync_records
+WHERE user_id = $1::text
+  AND collection = 'workouts'
+  AND deleted = false
+  AND record_id > $2::text
+  AND payload->'state' = '"completed"'::jsonb
+  AND CASE WHEN jsonb_typeof(payload->'started_at') = 'number'
+           THEN (payload->'started_at')::numeric >= $3::bigint
+                AND (payload->'started_at')::numeric < $4::bigint
+           ELSE false END
+ORDER BY record_id
+LIMIT $5::int
+`
+
+type ListMemberWorkoutsStartedInParams struct {
+	MemberID string
+	AfterID  string
+	FromMs   int64
+	ToMs     int64
+	Lim      int32
+}
+
+type ListMemberWorkoutsStartedInRow struct {
+	RecordID string
+	Payload  []byte
+}
+
+// ── GetMemberRecords(SRS-080) — 기간·부모 id 로 **SQL 에서** 거른다(CS-4) ─────────────────────────────
+// 전 이력을 Go 로 올리지 않는다. 모두 record_id 키셋 페이지(after_id 다음 lim 개)라 저장소가 읽은 바이트를 세다가
+// 상한을 넘으면 그 자리에서 멈춘다. jsonb 칸은 `->`(jsonb)로 꺼내 비교한다 — `->>`(글)로 꺼내면 큰 숫자가 펼쳐진다.
+// CASE 는 평가 순서를 보장한다(WHERE 의 AND 는 보장하지 않아 글자 started_at 에서 캐스트 오류가 날 수 있다).
+// [from_ms, to_ms)에 시작한 완료 운동.
+func (q *Queries) ListMemberWorkoutsStartedIn(ctx context.Context, arg ListMemberWorkoutsStartedInParams) ([]ListMemberWorkoutsStartedInRow, error) {
+	rows, err := q.db.Query(ctx, listMemberWorkoutsStartedIn,
+		arg.MemberID,
+		arg.AfterID,
+		arg.FromMs,
+		arg.ToMs,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMemberWorkoutsStartedInRow
+	for rows.Next() {
+		var i ListMemberWorkoutsStartedInRow
+		if err := rows.Scan(&i.RecordID, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProgressSummariesByMember = `-- name: ListProgressSummariesByMember :many
 SELECT id, trainer_id, period_start, period_end, schema_version, message_id, created_at
 FROM progress_summaries
@@ -548,6 +771,17 @@ func (q *Queries) ListProgressSummariesByMember(ctx context.Context, arg ListPro
 		return nil, err
 	}
 	return items, nil
+}
+
+const lockMemberSummaries = `-- name: LockMemberSummaries :exec
+SELECT pg_advisory_xact_lock(hashtextextended($1::text, 80))
+`
+
+// 하루 상한 세기와 넣기 사이의 경쟁을 막는다(CS-5) — 같은 회원의 보내기는 이 트랜잭션 잠금으로 한 줄로 선다.
+// 키 80 = SRS-080(다른 advisory 잠금과 이름 공간을 가른다). 트랜잭션이 끝나면 저절로 풀린다.
+func (q *Queries) LockMemberSummaries(ctx context.Context, memberID string) error {
+	_, err := q.db.Exec(ctx, lockMemberSummaries, memberID)
+	return err
 }
 
 const reopenGrant = `-- name: ReopenGrant :one

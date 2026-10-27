@@ -40,7 +40,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/JWK-company/liftgram/src/backend/gen/auth/v1/authv1connect"
-	"github.com/JWK-company/liftgram/src/backend/gen/coaching/v1/coachingv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/dm/v1/dmv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/exercise/v1/exercisev1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/feed/v1/feedv1connect"
@@ -263,8 +262,8 @@ func main() {
 		WithSummaryDelivery(dmSvc, notifyAdapter{notificationSvc})
 	// 요청 본문 상한 256KB — 코칭 서비스에만 건다. 스냅샷 64KB 검사 전에 큰 본문을 메모리에 다 올리지 않게(S-6).
 	// 전역으로 걸지 않는 이유: sync push(최대 5000 레코드)가 이 상한을 정상적으로 넘는다.
-	coachingPath, coachingHTTP := coachingv1connect.NewCoachingServiceHandler(coaching.NewHandler(coachingSvc), opts,
-		connect.WithReadMaxBytes(coaching.ReadMaxBytes))
+	// NewConnectHandler 가 상한을 안에서 붙인다(CS-8) — 여기서 빠뜨릴 수 없다.
+	coachingPath, coachingHTTP := coaching.NewConnectHandler(coachingSvc, opts)
 	mount(mux, coachingPath, coachingHTTP)
 
 	// 오프라인 동기(SRS-006) — 기기의 로컬 DB와 서버를 맞춘다. 레코드의 속은 해석하지 않는다.

@@ -16,9 +16,17 @@
 // 동기는 payload 를 해석하지 않는다. 기간 필터를 위해 여기서 started_at·state·*_id 를 읽는 것은
 // ADR-040 개정이 명시한 예외다. 모르는 모양에는 관대하다 — 못 읽는 레코드는 그 레코드만 뺀다.
 //
-// ── 성능 메모(S-15) ─────────────────────────────────────────────────────────
-// 지금은 회원의 4개 컬렉션 전체를 읽고 Go 에서 거른다. SQL 단계에서 `payload->>'started_at'`로
-// 거르려면 표현식 인덱스가 필요하다 — 응답 시간이 문제 되면 그때 0018 로 넣는다.
+// ── 읽기 비용(S-15 · /qa code CS-4) ─────────────────────────────────────────
+// 전 이력을 Go 로 올리지 않는다. SQL 이 ① 기간 안에 시작한 완료 운동 → ② 그 운동 id 의 블록 → ③ 그 블록 id 의
+// 세트 → ④ 쓰인 종목 id 의 종목 순서로 거르고(record_id 키셋 500개씩), 읽은 payload 바이트를 16MB 예산에서 뺀다 —
+// 넘으면 다음 페이지를 읽지 않고 ResourceExhausted. Go 필터(selectMemberRecords)는 그대로 한 번 더 돈다(방어).
+// 표현식 인덱스는 아직 없다 — (user_id, collection, record_id) 유일 인덱스가 회원·컬렉션까지 좁히고, 나머지는 PG 가
+// 그 회원의 행만 훑는다. 운영 표가 커져 응답 시간이 문제 되면 started_at·workout_id 표현식 인덱스를 새 마이그레이션으로.
+//
+// ── 내주는 기간(CS-9 · 문서화) ──────────────────────────────────────────────
+// 요청 길이 ≤ 400일이고, 내주는 기간은 직전 같은 길이까지라 **최대 800일**이다(core periodSummary 의 직전 대비가
+// 같은 길이를 요구한다). 동의 시각(consent_at)보다 앞선 기록도 포함된다 — 회원이 logView 를 켠 것이 "기록 열람" 동의이고,
+// 옛 GetMemberReport 도 동의 이전 기록을 집계했다. 이 상한·정책은 ADR-040 개정에 적어 둔다(서버 상수 = maxPeriod).
 // ─────────────────────────────────────────────────────────────────────────────
 package coaching
 
@@ -33,6 +41,27 @@ import (
 
 // 응답 상한 — 1년 표본 추정 2–4MB 를 projection 이 1/3 로 줄인다(S-15). 넘으면 기간을 줄이게 한다.
 const maxMemberRecordsBytes = 2 << 20
+
+// 읽기 예산 — 저장소가 읽은 원본 payload 바이트 합(CS-4). 응답 상한의 8배: 허용 칸만 남기면 1/3 안팎이라
+// 정상 기록은 응답 상한에 먼저 닿는다. 이 예산은 큰 레코드로 부풀린 이력을 끝까지 읽지 않게 하는 안전망이다.
+const maxMemberRecordsReadBytes = 16 << 20
+
+// 트레이너가 같은 회원 원본을 되풀이해 열면 감사는 10분에 한 번만(CS-7) — 기간이 달라도 같은 열람으로 본다.
+const recordsViewAuditWindow = 10 * time.Minute
+
+// ReadBudget은 저장소가 읽어도 되는 바이트가 얼마 남았는지다. 넘으면 ResourceExhausted.
+type ReadBudget struct{ left int }
+
+func newReadBudget(n int) *ReadBudget { return &ReadBudget{left: n} }
+
+// Take는 n 바이트를 쓴다. 예산을 넘으면 오류 — 부르는 쪽은 더 읽지 않고 멈춘다.
+func (b *ReadBudget) Take(n int) error {
+	b.left -= n
+	if b.left < 0 {
+		return errs.New(errs.ResourceExhausted, "too many records for this period — choose a shorter period")
+	}
+	return nil
+}
 
 // memberRecordCollections는 GetMemberRecords 가 읽는 컬렉션 **전부**다. 여기 없는 컬렉션은 나가지 않는다.
 // bodyweight_logs·import_batches·import_aliases·user_profiles 를 넣지 않는다(SRS-048 · S-2 · D-17 테스트).
@@ -79,17 +108,18 @@ func (s *Service) GetMemberRecords(ctx context.Context, viewerID, memberID strin
 	if err != nil {
 		return MemberRecords{}, err
 	}
-	g, err := s.assertActiveGrant(ctx, viewerID, memberID, ScopeLogView)
+	// 차단도 본다(CS-3).
+	g, err := s.assertCoachingAccess(ctx, viewerID, memberID, ScopeLogView)
 	if err != nil {
 		return MemberRecords{}, err
 	}
 
-	recs, err := s.repo.ListMemberRecords(ctx, memberID, memberRecordCollections)
+	// 직전 같은 길이까지 — delta 계산용(ADR-040 개정 · S-3).
+	servedStart := start.Add(-end.Sub(start))
+	recs, err := s.loadMemberRecords(ctx, memberID, servedStart, end)
 	if err != nil {
 		return MemberRecords{}, err
 	}
-	// 직전 같은 길이까지 — delta 계산용(ADR-040 개정 · S-3).
-	servedStart := start.Add(-end.Sub(start))
 	out, err := selectMemberRecords(recs, servedStart, end)
 	if err != nil {
 		return MemberRecords{}, err
@@ -103,8 +133,67 @@ func (s *Service) GetMemberRecords(ctx context.Context, viewerID, memberID strin
 		"setLogs":          len(out.SetLogs),
 		"exercises":        len(out.Exercises),
 	})
-	s.audit(ctx, g.ID, viewerID, ActionRecordsView, detail)
+	s.auditOnce(ctx, g.ID, viewerID, ActionRecordsView, detail, recordsViewAuditWindow, false)
 	return out, nil
+}
+
+// loadMemberRecords는 [from, to)에 필요한 행만 SQL 로 거른다(CS-4) — 운동 → 블록 → 세트 → 쓰인 종목.
+// 부모 id 가 하나도 없으면 다음 단계를 묻지 않는다. 컬렉션 이름은 memberRecordCollections 에서만 나온다.
+func (s *Service) loadMemberRecords(ctx context.Context, memberID string, from, to time.Time) ([]MemberRecord, error) {
+	b := newReadBudget(maxMemberRecordsReadBytes)
+	workouts, err := s.repo.ListMemberWorkoutsStartedIn(ctx, memberID, from.UnixMilli(), to.UnixMilli(), b)
+	if err != nil {
+		return nil, err
+	}
+	out := append([]MemberRecord{}, workouts...)
+	workoutIDs := recordIDs(workouts)
+	if len(workoutIDs) == 0 {
+		return out, nil
+	}
+	blocks, err := s.repo.ListMemberRecordsByParent(ctx, memberID, "workout_exercises", "workout_id", workoutIDs, b)
+	if err != nil {
+		return nil, err
+	}
+	out = append(out, blocks...)
+	blockIDs := recordIDs(blocks)
+	if len(blockIDs) == 0 {
+		return out, nil
+	}
+	sets, err := s.repo.ListMemberRecordsByParent(ctx, memberID, "set_logs", "workout_exercise_id", blockIDs, b)
+	if err != nil {
+		return nil, err
+	}
+	out = append(out, sets...)
+	seen := map[string]bool{}
+	var exerciseIDs []string
+	for _, we := range blocks {
+		var obj map[string]json.RawMessage
+		if json.Unmarshal(we.Payload, &obj) != nil {
+			continue
+		}
+		if ex := rawStr(obj, "exercise_id"); ex != "" && !seen[ex] {
+			seen[ex] = true
+			exerciseIDs = append(exerciseIDs, ex)
+		}
+	}
+	if len(exerciseIDs) == 0 {
+		return out, nil
+	}
+	exercises, err := s.repo.ListMemberRecordsByIDs(ctx, memberID, "exercises", exerciseIDs, b)
+	if err != nil {
+		return nil, err
+	}
+	return append(out, exercises...), nil
+}
+
+func recordIDs(recs []MemberRecord) []string {
+	out := make([]string, 0, len(recs))
+	for _, r := range recs {
+		if r.RecordID != "" {
+			out = append(out, r.RecordID)
+		}
+	}
+	return out
 }
 
 // selectMemberRecords는 [from, to)에 시작한 **완료된** 운동과 그 자식만 골라 허용 칸으로 줄인다.

@@ -19,7 +19,7 @@
 // 동시에 두 번 와도 메시지 id 가 같아 messages 기본 키가 둘째를 막는다.
 //
 // ── 알려진 한계(기존 부채 · SRS-048) ───────────────────────────────────────
-// assertActiveGrant 는 status·scope 만 본다(구독 여부는 보지 않는다). 차단은 여기서 따로 본다.
+// assertActiveGrant 는 status·scope 만 본다(구독 여부는 보지 않는다). 차단은 assertCoachingAccess 가 함께 본다(CS-3).
 // ─────────────────────────────────────────────────────────────────────────────
 package coaching
 
@@ -28,12 +28,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
+	"github.com/JWK-company/liftgram/src/backend/internal/jsonguard"
 )
 
 // 감사 action — snake_case(기존 report_view 와 같은 규약 · 화면 i18n `coaching.action.<action>`이 점을
@@ -57,6 +57,19 @@ const (
 	maxSummariesPerDay = 20
 	// 보낸 요약 목록 한 페이지.
 	sentSummariesPageSize = 50
+	// 스냅샷 숫자 |값| 상한(CS-1) — kg·횟수·epoch ms(≈1.8e12)뿐이라 1e15 면 넉넉하다. 글자 모양 상한은 jsonguard.
+	maxSnapshotNumber = 1e15
+	// 같은 요약을 같은 트레이너가 다시 열면 감사는 하루 한 번만(CS-7).
+	summaryViewAuditWindow = 24 * time.Hour
+)
+
+// InsertOutcome은 InsertProgressSummary 의 결과다.
+type InsertOutcome int
+
+const (
+	InsertDone    InsertOutcome = iota + 1 // 새 행을 넣었다
+	InsertExists                           // 같은 (회원, client_id)가 이미 있다 — 행은 돌려주지 않는다
+	InsertOverCap                          // 하루 상한에 걸려 넣지 않았다
 )
 
 // 지원하는 스냅샷 판.
@@ -121,14 +134,16 @@ type SendSummaryInput struct {
 
 // SummaryRepo는 progress_summaries 저장소다(Repo 에 함께 들어 있다).
 type SummaryRepo interface {
-	// InsertProgressSummary는 (회원, client_id)가 이미 있으면 inserted=false 다(행은 돌려주지 않는다).
-	InsertProgressSummary(ctx context.Context, s ProgressSummary) (row ProgressSummary, inserted bool, err error)
-	GetProgressSummaryByMemberClient(ctx context.Context, memberID, clientID string) (ProgressSummary, error)
+	// InsertProgressSummary는 **한 트랜잭션에서** 회원 잠금 → since 뒤 개수 < maxPerDay 확인 → 넣기다(CS-5).
+	// 스냅샷을 DB 에서 다시 받지 않는다(CS-1) — 돌려주는 행의 스냅샷은 넣은 값이다.
+	InsertProgressSummary(ctx context.Context, s ProgressSummary, since time.Time, maxPerDay int) (ProgressSummary, InsertOutcome, error)
+	// GetProgressSummaryByMemberClient는 스냅샷을 싣지 않는다 — snapshot 과 같은지는 SQL 이 jsonb 로 판정해
+	// sameSnapshot 으로 돌려준다(CS-1: 저장된 jsonb 를 글로 펼쳐 읽지 않는다).
+	GetProgressSummaryByMemberClient(ctx context.Context, memberID, clientID string, snapshot []byte) (row ProgressSummary, sameSnapshot bool, err error)
 	GetProgressSummary(ctx context.Context, id string) (ProgressSummary, error)
 	// SetProgressSummaryMessageID는 message_id 가 비었을 때만 쓴다. 썼으면 true.
 	SetProgressSummaryMessageID(ctx context.Context, id, messageID string) (bool, error)
 	ListSentSummaries(ctx context.Context, memberID string, cursor *SummaryCursor, limit int) ([]SentSummary, error)
-	CountSummariesSince(ctx context.Context, memberID string, since time.Time) (int, error)
 }
 
 // WithSummaryDelivery는 요약 전달에 필요한 DM·알림을 끼운다(main.go 조립). 없으면 보내기는 Unavailable.
@@ -163,16 +178,9 @@ func (s *Service) SendProgressSummary(ctx context.Context, viewerID string, in S
 	}
 
 	// ① 가드와 차단을 **저장 전에**(S-5) — 보낼 수 없는 사이면 고아 행을 만들지 않는다.
-	g, err := s.assertActiveGrant(ctx, in.TrainerID, viewerID, ScopeLogView)
+	g, err := s.assertCoachingAccess(ctx, in.TrainerID, viewerID, ScopeLogView)
 	if err != nil {
 		return "", err
-	}
-	blocked, err := s.repo.Blocked(ctx, viewerID, in.TrainerID)
-	if err != nil {
-		return "", err
-	}
-	if blocked {
-		return "", errs.New(errs.Forbidden, "blocked relation")
 	}
 
 	want := ProgressSummary{
@@ -182,36 +190,32 @@ func (s *Service) SendProgressSummary(ctx context.Context, viewerID string, in S
 	}
 
 	// ② 같은 client_id 면 기존 행 — 내용이 다르면 조용히 옛 id 를 돌려주지 않고 Conflict.
-	row, err := s.repo.GetProgressSummaryByMemberClient(ctx, viewerID, in.ClientID)
+	row, same, err := s.repo.GetProgressSummaryByMemberClient(ctx, viewerID, in.ClientID, want.Snapshot)
 	switch {
 	case err == nil:
-		if !sameSummary(row, want) {
-			return "", errs.New(errs.Conflict, "client_id already used for a different summary")
+		if err := checkExistingSummary(g, row, want, same); err != nil {
+			return "", err
 		}
 	case isNotFound(err):
-		n, err := s.repo.CountSummariesSince(ctx, viewerID, s.now().Add(-24*time.Hour))
-		if err != nil {
-			return "", err
-		}
-		if n >= maxSummariesPerDay {
-			return "", errs.New(errs.ResourceExhausted, "too many summaries today (max %d)", maxSummariesPerDay)
-		}
 		want.ID = s.newID()
-		inserted, ok, err := s.repo.InsertProgressSummary(ctx, want)
+		inserted, outcome, err := s.repo.InsertProgressSummary(ctx, want, s.now().Add(-24*time.Hour), maxSummariesPerDay)
 		if err != nil {
 			return "", err
 		}
-		if ok {
+		if outcome == InsertDone {
 			row = inserted
-		} else {
-			// 동시에 같은 client_id 가 먼저 들어갔다 — 그 행을 쓴다.
-			row, err = s.repo.GetProgressSummaryByMemberClient(ctx, viewerID, in.ClientID)
-			if err != nil {
-				return "", err
+			break
+		}
+		// 동시에 같은 client_id 가 먼저 들어갔다(또는 그 행 덕에 상한에 닿았다) — 그 행을 쓴다.
+		row, same, err = s.repo.GetProgressSummaryByMemberClient(ctx, viewerID, in.ClientID, want.Snapshot)
+		if err != nil {
+			if isNotFound(err) && outcome == InsertOverCap {
+				return "", errs.New(errs.ResourceExhausted, "too many summaries today (max %d)", maxSummariesPerDay)
 			}
-			if !sameSummary(row, want) {
-				return "", errs.New(errs.Conflict, "client_id already used for a different summary")
-			}
+			return "", err
+		}
+		if err := checkExistingSummary(g, row, want, same); err != nil {
+			return "", err
 		}
 	default:
 		return "", err
@@ -275,7 +279,8 @@ func (s *Service) GetProgressSummary(ctx context.Context, viewerID, id string) (
 	case row.MemberID:
 		return row, nil
 	case row.TrainerID:
-		g, err := s.assertActiveGrant(ctx, viewerID, row.MemberID, ScopeLogView)
+		// 차단도 본다(CS-3) — 회원이 트레이너를 차단하면 예전 요약도 그 순간 닫힌다.
+		g, err := s.assertCoachingAccess(ctx, viewerID, row.MemberID, ScopeLogView)
 		if err != nil {
 			return ProgressSummary{}, err // Forbidden — 당사자라 "끝났다"는 말해도 된다
 		}
@@ -284,7 +289,8 @@ func (s *Service) GetProgressSummary(ctx context.Context, viewerID, id string) (
 			return ProgressSummary{}, errs.New(errs.Forbidden, "summary belongs to an earlier coaching relation")
 		}
 		detail, _ := json.Marshal(map[string]any{"summaryId": row.ID})
-		s.audit(ctx, g.ID, viewerID, ActionSummaryView, detail)
+		// 같은 요약을 되풀이해 열면 하루 한 번만 남긴다(CS-7) — 다른 요약 열람은 따로 남는다.
+		s.auditOnce(ctx, g.ID, viewerID, ActionSummaryView, detail, summaryViewAuditWindow, true)
 		return row, nil
 	}
 	return ProgressSummary{}, errs.New(errs.NotFound, "summary not found")
@@ -337,13 +343,17 @@ func checkPeriod(startMs, endMs int64, now time.Time) (time.Time, time.Time, err
 }
 
 // checkSnapshot은 스냅샷을 **해석하지 않고** 받을 수 있는 모양인지만 본다(S-6):
-// 크기 · 올바른 JSON · 최상위 객체 · 최상위 schemaVersion == 요청 값 · `\u0000` 없음(Postgres jsonb 가 거부 → 500 방지).
+// 크기 · 올바른 JSON · 최상위 객체 · 최상위 schemaVersion == 요청 값 · `\u0000` 없음(Postgres jsonb 가 거부 → 500 방지)
+// · 숫자 글자 모양과 |값| ≤ 1e15(jsonb 가 글로 펼칠 때 커지는 숫자 — CS-1) · 짝 없는 서로게이트 없음(PG 거부 → 500 · CS-2).
 func checkSnapshot(b []byte, schemaVersion int) error {
 	if len(b) > maxSnapshotBytes {
 		return errs.New(errs.Validation, "snapshot too large (max %d bytes)", maxSnapshotBytes)
 	}
 	if !json.Valid(b) {
 		return errs.New(errs.Validation, "snapshot must be valid JSON")
+	}
+	if err := jsonguard.Check(b, jsonguard.Options{MaxAbs: maxSnapshotNumber, RejectLoneSurrogates: true}); err != nil {
+		return errs.New(errs.Validation, "snapshot rejected: %v", err)
 	}
 	dec := json.NewDecoder(bytes.NewReader(b))
 	dec.UseNumber()
@@ -387,24 +397,28 @@ func hasNUL(v any) bool {
 }
 
 // sameSummary는 같은 client_id 재전송이 **같은 요약**인지 본다 — 트레이너·기간·판·스냅샷 내용.
-// 스냅샷은 바이트가 아니라 **내용**으로 비교한다: jsonb 는 키 순서·공백을 바꿔 저장한다.
-func sameSummary(a, b ProgressSummary) bool {
+// 스냅샷 내용 비교는 저장소가 jsonb 동등으로 했다(sameSnapshot) — 키 순서·공백이 달라도 같다.
+func sameSummary(a, b ProgressSummary, sameSnapshot bool) bool {
 	return a.TrainerID == b.TrainerID &&
 		a.PeriodStart.UnixMilli() == b.PeriodStart.UnixMilli() &&
 		a.PeriodEnd.UnixMilli() == b.PeriodEnd.UnixMilli() &&
 		a.SchemaVersion == b.SchemaVersion &&
-		sameJSON(a.Snapshot, b.Snapshot)
+		sameSnapshot
 }
 
-func sameJSON(a, b []byte) bool {
-	var x, y any
-	if err := json.Unmarshal(a, &x); err != nil {
-		return false
+// checkExistingSummary는 같은 client_id 로 이미 있는 행을 이어 쓸 수 있는지 본다.
+//
+//	· 내용이 다르면 Conflict
+//	· 그 행이 **지금 관계가 아닌** 옛 동의(consent_at)로 만들어졌으면 Forbidden(CS-6) — 오프라인 대기열이 해지·재계약
+//	  뒤에 옛 요약을 다시 내밀어 새 관계에 전달·알림·감사가 남지 않게. 기기는 영구 실패로 버린다.
+func checkExistingSummary(g Grant, row, want ProgressSummary, sameSnapshot bool) error {
+	if !sameSummary(row, want, sameSnapshot) {
+		return errs.New(errs.Conflict, "client_id already used for a different summary")
 	}
-	if err := json.Unmarshal(b, &y); err != nil {
-		return false
+	if !g.ConsentAt.Equal(row.GrantConsentAt) {
+		return errs.New(errs.Forbidden, "summary belongs to an earlier coaching relation")
 	}
-	return reflect.DeepEqual(x, y)
+	return nil
 }
 
 func isUUID(s string) bool {

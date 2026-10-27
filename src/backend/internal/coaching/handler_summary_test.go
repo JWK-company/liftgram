@@ -37,7 +37,9 @@ func connectCode(t *testing.T, res *http.Response) string {
 func TestHandler_본문_256KB_를_넘으면_읽기_전에_거부(t *testing.T) {
 	repo := newRepo()
 	svc, _, _ := summarySvc(repo)
-	_, h := coachingv1connect.NewCoachingServiceHandler(NewHandler(svc), connect.WithReadMaxBytes(ReadMaxBytes))
+	// main.go 와 같은 생성자 — 상한을 테스트가 끼우지 않는다(CS-8: 조립에서 빠지면 이 테스트가 깨진다).
+	// 더 큰 상한을 opts 로 줘도 덮어쓰지 못한다.
+	_, h := NewConnectHandler(svc, connect.WithReadMaxBytes(64<<20))
 	srv := httptest.NewServer(h)
 	defer srv.Close()
 	method := coachingv1connect.CoachingServiceSendProgressSummaryProcedure

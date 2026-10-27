@@ -19,10 +19,12 @@ import (
 )
 
 type pgRepo struct {
-	q *sqlcgen.Queries
+	// 트랜잭션용(요약 하루 상한 잠금 · CS-5). 나머지는 q 로 충분하다.
+	pool *pgxpool.Pool
+	q    *sqlcgen.Queries
 }
 
-func NewRepo(pool *pgxpool.Pool) Repo { return &pgRepo{q: sqlcgen.New(pool)} }
+func NewRepo(pool *pgxpool.Pool) Repo { return &pgRepo{pool: pool, q: sqlcgen.New(pool)} }
 
 // tsOf는 nullable timestamptz를 시각으로 옮긴다. 값이 없으면 제로 시각(=아직 없음).
 func tsOf(t pgtype.Timestamptz) time.Time {
@@ -183,6 +185,14 @@ func (r *pgRepo) Audit(ctx context.Context, id, grantID, actorID, action string,
 	})
 }
 
+func (r *pgRepo) AuditOnce(ctx context.Context, id, grantID, actorID, action string, detail []byte, since time.Time, matchDetail bool) error {
+	_, err := r.q.CreateAuditOnce(ctx, sqlcgen.CreateAuditOnceParams{
+		ID: id, GrantID: grantID, ActorID: actorID, Action: action, Detail: detail,
+		Since: tsAt(since), MatchDetail: matchDetail,
+	})
+	return err
+}
+
 func (r *pgRepo) ListAudit(ctx context.Context, grantID string) ([]AuditEntry, error) {
 	rows, err := r.q.ListAudit(ctx, grantID)
 	if err != nil {
@@ -209,6 +219,74 @@ func (r *pgRepo) ListMemberRecords(ctx context.Context, memberID string, collect
 		out = append(out, MemberRecord{Collection: row.Collection, RecordID: row.RecordID, Payload: row.Payload})
 	}
 	return out, nil
+}
+
+// ── GetMemberRecords 의 기간·부모 id 조회(CS-4) ─────────────────────────────
+// 모두 record_id 키셋으로 memberRecordsPage 개씩 읽고, 읽은 payload 바이트를 budget 에서 뺀다 —
+// 넘으면 다음 페이지를 읽지 않고 ResourceExhausted 로 멈춘다(전 이력을 메모리에 올리지 않는다).
+
+const memberRecordsPage = 500
+
+func pageRecords(collection string, b *ReadBudget, fetch func(after string) ([]MemberRecord, error)) ([]MemberRecord, error) {
+	var out []MemberRecord
+	after := ""
+	for {
+		page, err := fetch(after)
+		if err != nil {
+			return nil, err
+		}
+		for i := range page {
+			page[i].Collection = collection
+			if err := b.Take(len(page[i].Payload)); err != nil {
+				return nil, err
+			}
+		}
+		out = append(out, page...)
+		if len(page) < memberRecordsPage {
+			return out, nil
+		}
+		after = page[len(page)-1].RecordID
+	}
+}
+
+func (r *pgRepo) ListMemberWorkoutsStartedIn(ctx context.Context, memberID string, fromMs, toMs int64, b *ReadBudget) ([]MemberRecord, error) {
+	return pageRecords("workouts", b, func(after string) ([]MemberRecord, error) {
+		rows, err := r.q.ListMemberWorkoutsStartedIn(ctx, sqlcgen.ListMemberWorkoutsStartedInParams{
+			MemberID: memberID, AfterID: after, FromMs: fromMs, ToMs: toMs, Lim: memberRecordsPage,
+		})
+		out := make([]MemberRecord, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, MemberRecord{RecordID: row.RecordID, Payload: row.Payload})
+		}
+		return out, err
+	})
+}
+
+func (r *pgRepo) ListMemberRecordsByParent(ctx context.Context, memberID, collection, parentField string, parentIDs []string, b *ReadBudget) ([]MemberRecord, error) {
+	return pageRecords(collection, b, func(after string) ([]MemberRecord, error) {
+		rows, err := r.q.ListMemberRecordsByParent(ctx, sqlcgen.ListMemberRecordsByParentParams{
+			MemberID: memberID, Collection: collection, AfterID: after,
+			ParentField: parentField, ParentIds: parentIDs, Lim: memberRecordsPage,
+		})
+		out := make([]MemberRecord, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, MemberRecord{RecordID: row.RecordID, Payload: row.Payload})
+		}
+		return out, err
+	})
+}
+
+func (r *pgRepo) ListMemberRecordsByIDs(ctx context.Context, memberID, collection string, ids []string, b *ReadBudget) ([]MemberRecord, error) {
+	return pageRecords(collection, b, func(after string) ([]MemberRecord, error) {
+		rows, err := r.q.ListMemberRecordsByIDs(ctx, sqlcgen.ListMemberRecordsByIDsParams{
+			MemberID: memberID, Collection: collection, AfterID: after, Ids: ids, Lim: memberRecordsPage,
+		})
+		out := make([]MemberRecord, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, MemberRecord{RecordID: row.RecordID, Payload: row.Payload})
+		}
+		return out, err
+	})
 }
 
 func (r *pgRepo) CatalogMeta(ctx context.Context) (map[string]CatalogExercise, error) {
@@ -277,32 +355,62 @@ func summaryFrom(row sqlcgen.ProgressSummary) ProgressSummary {
 	}
 }
 
-func (r *pgRepo) InsertProgressSummary(ctx context.Context, s ProgressSummary) (ProgressSummary, bool, error) {
-	row, err := r.q.InsertProgressSummary(ctx, sqlcgen.InsertProgressSummaryParams{
+// InsertProgressSummary는 한 트랜잭션에서 회원 잠금 → 하루 개수 세기 → 넣기(CS-5). 동시 요청도 상한을 넘지 못한다.
+func (r *pgRepo) InsertProgressSummary(ctx context.Context, s ProgressSummary, since time.Time, maxPerDay int) (ProgressSummary, InsertOutcome, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return ProgressSummary{}, 0, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	q := r.q.WithTx(tx)
+	if err := q.LockMemberSummaries(ctx, s.MemberID); err != nil {
+		return ProgressSummary{}, 0, err
+	}
+	n, err := q.CountProgressSummariesByMemberSince(ctx, sqlcgen.CountProgressSummariesByMemberSinceParams{
+		MemberID: s.MemberID, Since: tsAt(since),
+	})
+	if err != nil {
+		return ProgressSummary{}, 0, err
+	}
+	if int(n) >= maxPerDay {
+		return ProgressSummary{}, InsertOverCap, nil
+	}
+	row, err := q.InsertProgressSummary(ctx, sqlcgen.InsertProgressSummaryParams{
 		ID: s.ID, MemberID: s.MemberID, TrainerID: s.TrainerID,
 		GrantConsentAt: tsAt(s.GrantConsentAt), PeriodStart: tsAt(s.PeriodStart), PeriodEnd: tsAt(s.PeriodEnd),
 		SchemaVersion: int32(s.SchemaVersion), Snapshot: s.Snapshot, ClientID: s.ClientID,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return ProgressSummary{}, false, nil // ON CONFLICT DO NOTHING — 이미 있다
+			return ProgressSummary{}, InsertExists, nil // ON CONFLICT DO NOTHING — 이미 있다
 		}
-		return ProgressSummary{}, false, err
+		return ProgressSummary{}, 0, err
 	}
-	return summaryFrom(row), true, nil
+	if err := tx.Commit(ctx); err != nil {
+		return ProgressSummary{}, 0, err
+	}
+	// 스냅샷은 DB 에서 다시 받지 않는다(CS-1) — 넣은 값 그대로다.
+	s.ID, s.CreatedAt = row.ID, tsOf(row.CreatedAt)
+	return s, InsertDone, nil
 }
 
-func (r *pgRepo) GetProgressSummaryByMemberClient(ctx context.Context, memberID, clientID string) (ProgressSummary, error) {
+func (r *pgRepo) GetProgressSummaryByMemberClient(ctx context.Context, memberID, clientID string, snapshot []byte) (ProgressSummary, bool, error) {
 	row, err := r.q.GetProgressSummaryByMemberClient(ctx, sqlcgen.GetProgressSummaryByMemberClientParams{
-		MemberID: memberID, ClientID: clientID,
+		MemberID: memberID, ClientID: clientID, Snapshot: snapshot,
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return ProgressSummary{}, errs.New(errs.NotFound, "summary not found")
+			return ProgressSummary{}, false, errs.New(errs.NotFound, "summary not found")
 		}
-		return ProgressSummary{}, err
+		return ProgressSummary{}, false, err
 	}
-	return summaryFrom(row), nil
+	// Snapshot 은 비워 둔다 — 비교는 SQL 이 했다(same_snapshot).
+	return ProgressSummary{
+		ID: row.ID, MemberID: row.MemberID, TrainerID: row.TrainerID,
+		GrantConsentAt: tsOf(row.GrantConsentAt), PeriodStart: tsOf(row.PeriodStart), PeriodEnd: tsOf(row.PeriodEnd),
+		SchemaVersion: int(row.SchemaVersion), ClientID: row.ClientID,
+		MessageID: text(row.MessageID), CreatedAt: tsOf(row.CreatedAt),
+	}, row.SameSnapshot, nil
 }
 
 func (r *pgRepo) GetProgressSummary(ctx context.Context, id string) (ProgressSummary, error) {
@@ -348,11 +456,4 @@ func (r *pgRepo) ListSentSummaries(ctx context.Context, memberID string, cursor 
 		})
 	}
 	return out, nil
-}
-
-func (r *pgRepo) CountSummariesSince(ctx context.Context, memberID string, since time.Time) (int, error) {
-	n, err := r.q.CountProgressSummariesByMemberSince(ctx, sqlcgen.CountProgressSummariesByMemberSinceParams{
-		MemberID: memberID, Since: tsAt(since),
-	})
-	return int(n), err
 }

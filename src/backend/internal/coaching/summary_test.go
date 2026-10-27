@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
@@ -18,29 +19,52 @@ import (
 
 // ── 가짜 요약 저장소(fakeRepo 에 붙는다) ─────────────────────────────────────
 
-func (f *fakeRepo) InsertProgressSummary(_ context.Context, s ProgressSummary) (ProgressSummary, bool, error) {
+func (f *fakeRepo) InsertProgressSummary(_ context.Context, s ProgressSummary, since time.Time, maxPerDay int) (ProgressSummary, InsertOutcome, error) {
 	if f.insertRace != nil {
 		// 동시에 온 다른 요청이 같은 client_id 로 먼저 넣었다.
 		f.summaries = append(f.summaries, *f.insertRace)
 		f.insertRace = nil
 	}
+	n := 0
+	for _, x := range f.summaries {
+		if x.MemberID == s.MemberID && !x.CreatedAt.Before(since) {
+			n++
+		}
+	}
+	if n >= maxPerDay {
+		return ProgressSummary{}, InsertOverCap, nil
+	}
 	for _, x := range f.summaries {
 		if x.MemberID == s.MemberID && x.ClientID == s.ClientID {
-			return ProgressSummary{}, false, nil
+			return ProgressSummary{}, InsertExists, nil
 		}
 	}
 	s.CreatedAt = time.UnixMicro(1_700_000_000_000_000 + int64(len(f.summaries)))
 	f.summaries = append(f.summaries, s)
-	return s, true, nil
+	return s, InsertDone, nil
 }
 
-func (f *fakeRepo) GetProgressSummaryByMemberClient(_ context.Context, memberID, clientID string) (ProgressSummary, error) {
+// 실제 저장소처럼 스냅샷을 싣지 않고, 같은지만 돌려준다(jsonb 동등 ≈ 디코드한 값 비교).
+func (f *fakeRepo) GetProgressSummaryByMemberClient(_ context.Context, memberID, clientID string, snapshot []byte) (ProgressSummary, bool, error) {
 	for _, x := range f.summaries {
 		if x.MemberID == memberID && x.ClientID == clientID {
-			return x, nil
+			same := sameJSON(x.Snapshot, snapshot)
+			x.Snapshot = nil
+			return x, same, nil
 		}
 	}
-	return ProgressSummary{}, errs.New(errs.NotFound, "summary not found")
+	return ProgressSummary{}, false, errs.New(errs.NotFound, "summary not found")
+}
+
+func sameJSON(a, b []byte) bool {
+	var x, y any
+	if err := json.Unmarshal(a, &x); err != nil {
+		return false
+	}
+	if err := json.Unmarshal(b, &y); err != nil {
+		return false
+	}
+	return reflect.DeepEqual(x, y)
 }
 
 func (f *fakeRepo) GetProgressSummary(_ context.Context, id string) (ProgressSummary, error) {
@@ -93,16 +117,6 @@ func (f *fakeRepo) ListSentSummaries(_ context.Context, memberID string, cursor 
 		}
 	}
 	return out, nil
-}
-
-func (f *fakeRepo) CountSummariesSince(_ context.Context, memberID string, since time.Time) (int, error) {
-	n := 0
-	for _, x := range f.summaries {
-		if x.MemberID == memberID && !x.CreatedAt.Before(since) {
-			n++
-		}
-	}
-	return n, nil
 }
 
 // ── 가짜 DM·알림 ─────────────────────────────────────────────────────────────
@@ -635,8 +649,9 @@ func TestMemberRecords_완료_운동과_자식_쓰인_커스텀_종목만_직전
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(repo.listedFor, memberRecordCollections) {
-		t.Fatalf("허용 컬렉션만 읽는다: %v", repo.listedFor)
+	if !slices.Equal(repo.periodReads, memberRecordCollections) || repo.listedFor != nil {
+		t.Fatalf("허용 컬렉션만, 기간·부모 조회로 읽는다(전 이력 ListMemberRecords 를 쓰지 않는다): %v %v",
+			repo.periodReads, repo.listedFor)
 	}
 	if got := ids(decodeAll(t, r.Workouts)); !slices.Equal(got, []string{"w1", "w2"}) {
 		t.Fatalf("완료 + [start−len, end) 만: %v", got)

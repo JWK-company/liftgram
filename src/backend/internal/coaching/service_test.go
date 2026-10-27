@@ -38,12 +38,16 @@ type fakeRepo struct {
 	accepts      int
 	insertRace   *ProgressSummary // 설정하면 Insert 직전에 "남이 먼저 넣은" 행으로 들어간다(동시 요청 흉내)
 	listedFor    []string         // ListMemberRecords 가 받은 컬렉션
+	periodReads  []string         // GetMemberRecords 의 기간·부모 조회가 물은 컬렉션(순서대로)
+	auditAt      []time.Time      // 감사마다 clock — AuditOnce 의 창(window) 판정용
+	clock        time.Time        // 가짜 DB 시각(기본 = 테스트 now)
 }
 
 func newRepo() *fakeRepo {
 	return &fakeRepo{
 		eligible: map[string]bool{}, users: map[string]bool{},
 		grants: map[string]Grant{}, updated: map[string][]byte{},
+		clock: time.UnixMilli(1_700_000_000_000),
 	}
 }
 
@@ -125,12 +129,53 @@ func (f *fakeRepo) Audit(_ context.Context, id, grantID, actorID, action string,
 	}
 	f.audits = append(f.audits, AuditEntry{ID: id, ActorID: actorID, Action: action})
 	f.auditDetails = append(f.auditDetails, detail)
+	f.auditAt = append(f.auditAt, f.clock)
 	return nil
+}
+
+// AuditOnce는 실제 SQL(CreateAuditOnce)과 같은 판정: since 뒤에 같은 (actor, action[, detail])이 있으면 쓰지 않는다.
+func (f *fakeRepo) AuditOnce(ctx context.Context, id, grantID, actorID, action string, detail []byte, since time.Time, matchDetail bool) error {
+	for i, a := range f.audits {
+		if a.ActorID == actorID && a.Action == action && f.auditAt[i].After(since) &&
+			(!matchDetail || string(f.auditDetails[i]) == string(detail)) {
+			return nil
+		}
+	}
+	return f.Audit(ctx, id, grantID, actorID, action, detail)
 }
 func (f *fakeRepo) ListAudit(context.Context, string) ([]AuditEntry, error) { return f.audits, nil }
 func (f *fakeRepo) ListMemberRecords(_ context.Context, _ string, collections []string) ([]MemberRecord, error) {
 	f.listedFor = collections
 	return f.records, f.failWith
+}
+
+// 기간·부모 조회 — 가짜는 컬렉션만 맞춰 돌려준다(기간·부모 거르기는 실제 SQL 몫이고 PG 테스트가 본다.
+// Go 필터 selectMemberRecords 가 한 번 더 거르므로 결과는 같다). 읽은 바이트는 예산에서 뺀다.
+func (f *fakeRepo) periodRead(collection string, b *ReadBudget) ([]MemberRecord, error) {
+	f.periodReads = append(f.periodReads, collection)
+	if f.failWith != nil {
+		return nil, f.failWith
+	}
+	var out []MemberRecord
+	for _, r := range f.records {
+		if r.Collection != collection {
+			continue
+		}
+		if err := b.Take(len(r.Payload)); err != nil {
+			return nil, err
+		}
+		out = append(out, r)
+	}
+	return out, nil
+}
+func (f *fakeRepo) ListMemberWorkoutsStartedIn(_ context.Context, _ string, _, _ int64, b *ReadBudget) ([]MemberRecord, error) {
+	return f.periodRead("workouts", b)
+}
+func (f *fakeRepo) ListMemberRecordsByParent(_ context.Context, _, collection, _ string, _ []string, b *ReadBudget) ([]MemberRecord, error) {
+	return f.periodRead(collection, b)
+}
+func (f *fakeRepo) ListMemberRecordsByIDs(_ context.Context, _, collection string, _ []string, b *ReadBudget) ([]MemberRecord, error) {
+	return f.periodRead(collection, b)
 }
 func (f *fakeRepo) CatalogMeta(context.Context) (map[string]CatalogExercise, error) {
 	return f.catalog, nil

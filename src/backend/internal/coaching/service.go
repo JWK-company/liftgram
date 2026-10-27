@@ -110,9 +110,15 @@ type Repo interface {
 	RevokeGrant(ctx context.Context, grantID string) (Grant, error)
 
 	Audit(ctx context.Context, id, grantID, actorID, action string, detail []byte) error
+	// AuditOnce는 since 뒤에 같은 (grant, actor, action[, detail])이 있으면 쓰지 않는다(열람 반복 · CS-7).
+	AuditOnce(ctx context.Context, id, grantID, actorID, action string, detail []byte, since time.Time, matchDetail bool) error
 	ListAudit(ctx context.Context, grantID string) ([]AuditEntry, error)
 
 	ListMemberRecords(ctx context.Context, memberID string, collections []string) ([]MemberRecord, error)
+	// GetMemberRecords 용 — SQL 이 기간·부모 id 로 거르고, 읽은 바이트를 budget 에서 뺀다(CS-4). @plm SRS-080
+	ListMemberWorkoutsStartedIn(ctx context.Context, memberID string, fromMs, toMs int64, b *ReadBudget) ([]MemberRecord, error)
+	ListMemberRecordsByParent(ctx context.Context, memberID, collection, parentField string, parentIDs []string, b *ReadBudget) ([]MemberRecord, error)
+	ListMemberRecordsByIDs(ctx context.Context, memberID, collection string, ids []string, b *ReadBudget) ([]MemberRecord, error)
 	// 서버 카탈로그(시드 종목)의 이름·주 근육 — 종목 해석의 정본(QA H4). @plm SRS-048 SRS-055
 	CatalogMeta(ctx context.Context) (map[string]CatalogExercise, error)
 	GetMemberRecord(ctx context.Context, memberID, collection, recordID string) (rowID string, payload []byte, err error)
@@ -318,13 +324,31 @@ func (s *Service) assertActiveGrant(ctx context.Context, trainerID, memberID, sc
 	return g, nil
 }
 
+// assertCoachingAccess는 assertActiveGrant + **차단 아님**이다(CS-3). 회원 데이터에 닿는 모든 코칭 경로
+// (옛 리포트·루틴·처방 · 요약 보내기·열기 · 원본 레코드)가 이것을 쓴다 — 회원이 트레이너를 차단하면
+// grant 가 active 로 남아 있어도 그 순간부터 읽기·쓰기가 모두 막힌다(SRS-048 3조건). 어느 쪽이 차단했든 같다.
+func (s *Service) assertCoachingAccess(ctx context.Context, trainerID, memberID, scope string) (Grant, error) {
+	g, err := s.assertActiveGrant(ctx, trainerID, memberID, scope)
+	if err != nil {
+		return Grant{}, err
+	}
+	blocked, err := s.repo.Blocked(ctx, trainerID, memberID)
+	if err != nil {
+		return Grant{}, err
+	}
+	if blocked {
+		return Grant{}, errs.New(errs.Forbidden, "blocked relation")
+	}
+	return g, nil
+}
+
 // GetMemberReport는 회원이 동기해 둔 기록을 **그 자리에서** 집계한다.
 // 복사해 두지 않는 이유: 해지한 뒤에도 남아 있게 되기 때문이다.
 func (s *Service) GetMemberReport(ctx context.Context, viewerID, memberID string) (Report, error) {
 	if err := requireIdentity(viewerID); err != nil {
 		return Report{}, err
 	}
-	g, err := s.assertActiveGrant(ctx, viewerID, memberID, ScopeLogView)
+	g, err := s.assertCoachingAccess(ctx, viewerID, memberID, ScopeLogView)
 	if err != nil {
 		return Report{}, err
 	}
@@ -348,7 +372,7 @@ func (s *Service) ListMemberRoutines(ctx context.Context, viewerID, memberID str
 	if err := requireIdentity(viewerID); err != nil {
 		return nil, err
 	}
-	g, err := s.assertActiveGrant(ctx, viewerID, memberID, ScopeRoutineEdit)
+	g, err := s.assertCoachingAccess(ctx, viewerID, memberID, ScopeRoutineEdit)
 	if err != nil {
 		return nil, err
 	}
@@ -380,7 +404,7 @@ func (s *Service) SetMemberPrescription(
 	if err := requireIdentity(viewerID); err != nil {
 		return nil, err
 	}
-	g, err := s.assertActiveGrant(ctx, viewerID, memberID, ScopeRoutineEdit)
+	g, err := s.assertCoachingAccess(ctx, viewerID, memberID, ScopeRoutineEdit)
 	if err != nil {
 		return nil, err
 	}
@@ -459,6 +483,11 @@ func (s *Service) assertTrainerEligible(ctx context.Context, trainerID string) e
 // 이미 일어난 수락·해지를 되돌릴 수는 없다(되돌리면 화면과 DB가 갈라진다).
 func (s *Service) audit(ctx context.Context, grantID, actorID, action string, detail []byte) {
 	_ = s.repo.Audit(ctx, s.newID(), grantID, actorID, action, detail)
+}
+
+// auditOnce는 window 안에 같은 열람이 있으면 남기지 않는다(CS-7). 실패해도 본 동작을 막지 않는다.
+func (s *Service) auditOnce(ctx context.Context, grantID, actorID, action string, detail []byte, window time.Duration, matchDetail bool) {
+	_ = s.repo.AuditOnce(ctx, s.newID(), grantID, actorID, action, detail, s.now().Add(-window), matchDetail)
 }
 
 func (s *Service) viewFor(ctx context.Context, grantID, viewerID string) (Grant, error) {

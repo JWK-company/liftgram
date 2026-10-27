@@ -307,3 +307,40 @@ func TestPush_컬렉션_이름_검사(t *testing.T) {
 		})
 	}
 }
+
+// /qa code CS-1 후속 — jsonb 가 글로 펼칠 숫자는 들어오는 길에 막는다. 실제 앱 레코드 값은 그대로 받는다.
+func TestPush_펼쳐지는_숫자는_거절하고_실제_값은_받는다(t *testing.T) {
+	for name, raw := range map[string]string{
+		"1e130000": `{"id":"x","weight_kg":1e130000}`,
+		"0e-99999": `{"id":"x","reps":0e-99999}`,
+		"1e400":    `{"id":"x","a":[1,{"b":1e400}]}`,
+		"긴 숫자 글자":  `{"id":"x","n":1` + strings.Repeat("0", 40) + `}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			repo := &fakeRepo{}
+			err := newSvc(repo).Push(context.Background(), "u1", map[string]TableChanges{
+				"set_logs": {Created: []string{`{"id":"ok","reps":1}`, raw}},
+			})
+			if codeOf(t, err) != errs.Validation {
+				t.Fatalf("거절해야 한다: %v", err)
+			}
+			if len(repo.upserted) != 0 {
+				t.Fatalf("한 push 는 전부 아니면 전무: %+v", repo.upserted)
+			}
+		})
+	}
+	// 개발 DB 실측 범위(epoch ms 13자 · 정수·소수 무게) + JS 가 낼 수 있는 표기(찌꺼기·MAX_SAFE_INTEGER·1e21·음수·0).
+	real := []string{
+		`{"id":"w1","started_at":1793068086256,"completed_at":1793068099999,"duration_seconds":3600,"total_volume_kg":12345.5}`,
+		`{"id":"s1","weight_kg":102.5,"reps":10,"rir":-1,"rpe":8.5,"load_adjust_kg":-2.5,"load_multiplier":2,"done":true}`,
+		`{"id":"s2","weight_kg":0.30000000000000004,"x":5.551115123125783e-17,"updated_at":9007199254740991,"y":1e+21,"z":-0}`,
+		`{"id":"e1","name_ko":"1e130000 은 글자","primary_muscles":"[\"chest\"]","seed_id":"bench-001"}`,
+	}
+	repo := &fakeRepo{}
+	if err := newSvc(repo).Push(context.Background(), "u1", map[string]TableChanges{"set_logs": {Updated: real}}); err != nil {
+		t.Fatalf("실제 값은 받아야 한다: %v", err)
+	}
+	if len(repo.upserted) != len(real) {
+		t.Fatalf("전부 저장: %d", len(repo.upserted))
+	}
+}
