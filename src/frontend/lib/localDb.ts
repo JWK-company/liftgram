@@ -34,16 +34,24 @@ async function findLoki(): Promise<LokiLike | null> {
  */
 import { navigate } from "./nav";
 export async function flushLocalDb(): Promise<boolean> {
+  return (await flushLocalDbResult()) !== "unreachable";
+}
+
+/**
+ * flushLocalDb 와 같되 **내려쓰기가 실제로 성공했는지**까지 돌려준다.
+ * "saved" = IndexedDB 트랜잭션 완료 · "failed" = 저장 콜백이 오류를 받았다(트랜잭션 중단 등) · "unreachable" = 어댑터 내부에 닿지 못함.
+ * 설정 쓰기 대기 표식(lib/prefs.ts)은 "saved" 를 보고서야 지운다 — 실패한 내려쓰기 뒤 새로고침하면 옛 값이 되돌아오므로.
+ */
+export async function flushLocalDbResult(): Promise<"saved" | "failed" | "unreachable"> {
   const loki = await findLoki();
-  if (!loki?.saveDatabase) return false;
-  await new Promise<void>((resolve) => {
+  if (!loki?.saveDatabase) return "unreachable";
+  return new Promise((resolve) => {
     try {
-      loki.saveDatabase?.(() => resolve());
+      loki.saveDatabase?.((err) => resolve(err ? "failed" : "saved"));
     } catch {
-      resolve();
+      resolve("failed");
     }
   });
-  return true;
 }
 
 /**
