@@ -23,3 +23,7 @@ Thumbs.db
 
 # Local Netlify folder
 .netlify
+
+# ── 로컬 부산물 ──
+.media/
+/lefthook.yml
