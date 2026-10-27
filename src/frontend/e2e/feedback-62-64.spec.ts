@@ -58,7 +58,8 @@ async function 가짜_서비스워커(page: Page): Promise<void> {
 const 메시지 = (page: Page) =>
   page.evaluate(() => (window as unknown as { __swMsgs?: string[] }).__swMsgs ?? []);
 
-test("#64 완료 직후 요약·루틴 저장 시트가 떠 있는 동안은 새 버전을 적용하지 않고, 홈으로 가면 적용한다", async ({
+// [원본 제목] #64 완료 직후 요약·루틴 저장 시트가 떠 있는 동안은 새 버전을 적용하지 않고, 홈으로 가면 적용한다
+test("#64 완료 직후 요약·루틴 저장 시트 위에서도, 요약을 닫고 홈으로 가도 새 버전을 저절로 적용·새로고침하지 않는다", async ({
   page,
 }) => {
   test.setTimeout(180_000);

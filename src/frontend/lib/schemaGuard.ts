@@ -12,6 +12,7 @@
 //
 // 기다리는 서비스워커의 skip-waiting 은 이미 components/ServiceWorker.tsx 가 「운동 중이 아닐 때」 보낸다 — 여기서 또 보내지 않는다.
 
+import { activateWaiting } from "./swActivate";
 import { SCHEMA_VERSION } from "@app/core/db/schema";
 import { getSchemaGuardState, PAGES_CACHE_CLEANED_KEY } from "@app/core/db/schemaGuard";
 import { PAGES_CACHE_PREFIX, refreshShellCaches, type ShellRefreshResult } from "./shellCache";
@@ -83,7 +84,10 @@ export async function reloadToNewVersion(): Promise<void> {
     // [원본] await deletePageCaches(); — 오프라인에서 누르면 지금 셸·/offline 까지 지워 앱이 아예 안 열렸다(CD-3).
     await refreshShellsNow(); // 온라인이면 가장 새 셸로 바꿔 넣는다 · 오프라인이면 그대로(다시 열어도 이 화면 — 기록은 안전)
     const reg = await navigator.serviceWorker?.getRegistration?.();
-    reg?.waiting?.postMessage("skip-waiting");
+    // [원본] reg?.waiting?.postMessage("skip-waiting"); — 곧바로 새로고침. 크롬은 load 직후 보내면 워커가 멈추고
+    //        그 탭의 새로고침까지 20초 넘게 걸렸다(QA code M-1 · SRS-085)
+    // [개선] 같은 헬퍼로 load+여유 뒤 보내고, 멈추면 숨은 iframe 으로 풀어 활성화를 기다린 뒤 새로고침(최대 6초 — 못 해도 새로고침은 한다)
+    if (reg?.waiting) await activateWaiting(reg.waiting, { timeoutMs: 6_000 });
   } catch {
     // 정리에 실패해도 새로고침은 한다.
   }

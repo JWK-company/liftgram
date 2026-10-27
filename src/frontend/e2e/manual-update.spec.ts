@@ -321,3 +321,71 @@ test("E7 필수 업데이트 — 운동 화면 밖이면 덮개로 저절로 · 
   await expect(page.getByTestId("update-overlay")).toHaveCount(0);
   expect(await 기다리는_워커(page)).toBe(true);
 });
+
+test("E9 load 직후 보낸 skip-waiting 에 멈춘 새 워커도 「업데이트」가 숨은 iframe 으로 풀어 새 문서로 간다(크롬 함정 · QA code M-1)", async ({
+  browser,
+}, testInfo) => {
+  test.setTimeout(240_000);
+  const use = testInfo.project.use;
+  // 검토자 재현: 문서 load 직후 곧바로 skip-waiting → 크롬에서 「installed」 에 멈춤(다시 보내도 안 풀림).
+  // 멈춘 문서는 그리기조차 못 할 때가 있다 — 버튼이 그려진 채 멈춘 상태가 나올 때까지 새 컨텍스트로 최대 4번 만든다
+  // (새 탭을 열면 그 자체가 활성화를 풀어 버리므로 같은 컨텍스트에서 다시 열지 않는다).
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    const ctx = await browser.newContext({ baseURL: use.baseURL, storageState: use.storageState });
+    const page = await ctx.newPage();
+    try {
+      await 워커_제어(page, "/profile");
+      const build = await 새_워커(page);
+      await page.addInitScript(() => {
+        addEventListener(
+          "load",
+          () => {
+            void navigator.serviceWorker
+              ?.getRegistration()
+              .then((r) => r?.waiting?.postMessage("skip-waiting"));
+          },
+          { once: true },
+        );
+      });
+      await page.goto("/profile", { timeout: 15_000 }).catch(() => {});
+      const alive = await page
+        .getByTestId("app-update-btn")
+        .waitFor({ state: "visible", timeout: 15_000 })
+        .then(() => true)
+        .catch(() => false);
+      await page.waitForTimeout(2_500);
+      const stuck = alive
+        ? await page
+            .evaluate(
+              async () => (await navigator.serviceWorker.getRegistration())?.waiting?.state === "installed",
+            )
+            .catch(() => false)
+        : false;
+      console.log(`E9 시도 ${attempt}: 그려짐=${alive} 멈춤=${stuck}`);
+      if (!alive || !stuck) continue;
+      testInfo.annotations.push({
+        type: "재현",
+        description: `시도 ${attempt} — 버튼이 그려진 채 installed 에 멈춤`,
+      });
+      await page.getByTestId("app-update-btn").click();
+      await expect
+        .poll(
+          async () => {
+            const reason = await page
+              .locator('[data-testid="update-overlay"][data-phase="failed"]')
+              .getAttribute("data-reason", { timeout: 200 })
+              .catch(() => null);
+            if (reason) return `실패:${reason}`;
+            return (await 제어_빌드(page).catch(() => null)) ?? "";
+          },
+          { timeout: 30_000 },
+        )
+        .toContain(build);
+      return;
+    } finally {
+      await ctx.close().catch(() => {});
+      if (original) writeFileSync(SW_FILE, original);
+    }
+  }
+  throw new Error("멈춤을 재현하지 못했다(4번) — 크롬 동작이 바뀌었으면 이 테스트를 다시 본다");
+});

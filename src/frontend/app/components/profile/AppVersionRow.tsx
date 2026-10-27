@@ -10,6 +10,8 @@ import { useId } from "react";
 import { APP_VERSION, isMandatoryNow, startUpdate, useAppUpdate } from "@/lib/appUpdate";
 import { tw } from "@/lib/i18n";
 import { useSession } from "../SessionProvider";
+// 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh) — 옛 꼬리 「Liftgram vX (build)」 를 이 줄로 합쳤다(QA code L-5)
+import buildInfo from "../../build-info.json";
 
 export function AppVersionRow() {
   const { activeWorkoutId, activeLoaded } = useSession();
@@ -42,6 +44,9 @@ export function AppVersionRow() {
           data-testid="app-version-current"
         >
           {tw("web.sw.appVersion", { version: APP_VERSION })}
+        </span>
+        <span className="text-(--color-ink3) text-[length:var(--text-xs)]" data-testid="app-version">
+          build {buildInfo.build}
         </span>
         {subtitle ? (
           <span

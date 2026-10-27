@@ -77,7 +77,9 @@ export function UpdateOverlay() {
           {failed
             ? workout
               ? tw("web.sw.blockedWorkout")
-              : tw("web.sw.failedHint")
+              : failReason === "timeout"
+                ? tw("web.sw.failedHintReopen") // 새 워커가 기다리는 채 — 완전히 닫았다 열면 적용(QA code M-1)
+                : tw("web.sw.failedHint")
             : tw("web.sw.updatingHint")}
         </p>
         {failed ? (

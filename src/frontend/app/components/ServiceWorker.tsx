@@ -31,6 +31,7 @@ import {
   getAppUpdateState,
   initUpdateTracking,
   onControllerChange,
+  resetDismissedOnVisible,
   setWaiting,
   startUpdate,
   useAppUpdate,
@@ -207,6 +208,7 @@ export function ServiceWorker() {
     void checkServerVersion(true);
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
+      resetDismissedOnVisible(); // 필수 업데이트를 닫았어도 다음 보임에 다시(QA code L-1 · 스펙 §6)
       void checkServerVersion();
       const now = Date.now();
       if (now - lastRegUpdate.current < 10 * 60_000) return;

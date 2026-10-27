@@ -20,6 +20,7 @@ import {
   readBootMarker,
 } from "@app/core/domain/swUpdatePolicy";
 import { useSyncExternalStore } from "react";
+import { activateWaiting } from "./swActivate";
 import { version as APP_VERSION_RAW } from "../package.json";
 
 export const APP_VERSION: string = APP_VERSION_RAW;
@@ -97,7 +98,7 @@ export function isMandatoryNow(s: Pick<AppUpdateState, "minVersion" | "serverVer
 // ── 워커와 이야기하기 ─────────────────────────────────────────────────────────
 
 let registration: ServiceWorkerRegistration | null = null;
-// 셸의 register() 가 끝났다는 신호 — skip-waiting 은 등록을 다 읽은 뒤 보낸다(아래 BOOT_SETTLE_MS 와 함께).
+// 셸의 register() 가 끝났다는 신호 — skip-waiting 은 등록을 다 읽은 뒤 보낸다(보내는 시점·멈춤 복구는 lib/swActivate.ts).
 let resolveRegReady: (r: ServiceWorkerRegistration) => void = () => {};
 const regReady: Promise<ServiceWorkerRegistration> = new Promise((r) => {
   resolveRegReady = r;
@@ -162,6 +163,11 @@ export function setWaiting(sw: ServiceWorker | null): void {
   set({ waiting: sw, newVersion: sw ? state.newVersion : null });
   if (!sw) return;
   sw.addEventListener("statechange", () => {
+    // 다른 탭·다른 클라이언트가 활성화시켰는데 이 문서에 controllerchange 가 안 온 경우의 대비(QA code M-1 재현 중 실측)
+    if (sw.state === "activated" && state.waiting === sw && !applying) {
+      set({ waiting: registration?.waiting ?? null, activatedElsewhere: true });
+      return;
+    }
     if (sw.state !== "redundant" || state.waiting !== sw) return;
     const next = registration?.waiting ?? null;
     set({ waiting: next && next !== sw ? next : null, newVersion: null });
@@ -222,14 +228,15 @@ function fail(reason: FailReason): void {
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-/**
- * 문서가 열린 뒤 이만큼 지나서야 skip-waiting 을 보낸다.
- * 실측(2026-10-27 · 크롬 · 로컬 운영 빌드): 새로고침이 끝난 바로 그 순간 보내면 페이지 코드와 무관하게(테스트가 직접 보내도)
- * 새 워커가 「installed」 에 멈춰 **영영 활성화되지 않는** 경우가 있다(직접 4번 중 1번 · 앱 경로 8번 중 최대 6번).
- * 0.8초 뒤부터는 실패가 드물고 3초 뒤는 매번 정상이었다. 사람이 누르는 경우는 대개 이보다 늦고, 부팅 직후 시작하는
- * 필수 업데이트를 위해 둔다(덮개는 그동안 이미 떠 있다 · 15초 상한 안).
- */
-const BOOT_SETTLE_MS = 3_000;
+// [원본] 3초 대기(QA M-1 로 lib/swActivate.ts 의 load+여유·iframe 찌르기로 바뀜)
+// /**
+//  * 문서가 열린 뒤 이만큼 지나서야 skip-waiting 을 보낸다.
+//  * 실측(2026-10-27 · 크롬 · 로컬 운영 빌드): 새로고침이 끝난 바로 그 순간 보내면 페이지 코드와 무관하게(테스트가 직접 보내도)
+//  * 새 워커가 「installed」 에 멈춰 **영영 활성화되지 않는** 경우가 있다(직접 4번 중 1번 · 앱 경로 8번 중 최대 6번).
+//  * 0.8초 뒤부터는 실패가 드물고 3초 뒤는 매번 정상이었다. 사람이 누르는 경우는 대개 이보다 늦고, 부팅 직후 시작하는
+//  * 필수 업데이트를 위해 둔다(덮개는 그동안 이미 떠 있다 · 15초 상한 안).
+//  */
+// const BOOT_SETTLE_MS = 3_000;
 /** await 사이에 타이머가 실패로 바꿨을 수 있다 — 매번 새로 읽는다. */
 const stillUpdating = (): boolean => getAppUpdateState().phase === "updating";
 
@@ -291,6 +298,8 @@ export async function startUpdate(): Promise<void> {
   writeMarker();
 
   // ④ 이미 새 워커가 제어 중(다른 탭이 적용)이고 기다리는 것이 없으면 새로고침만
+  //    보던 대기 워커가 이미 activated 가 됐으면(이벤트를 놓쳤어도) 같은 경우다
+  if (state.waiting?.state === "activated" && !registration?.waiting) return reloadOnce();
   if (state.activatedElsewhere && !registration?.waiting) return reloadOnce();
   const w = await findWaiting();
   if (!stillUpdating()) return;
@@ -298,14 +307,24 @@ export async function startUpdate(): Promise<void> {
     if (state.activatedElsewhere) return reloadOnce();
     return fail("no-worker");
   }
-  const settle = BOOT_SETTLE_MS - performance.now();
-  if (settle > 0) await sleep(settle);
-  if (!stillUpdating()) return;
+  // [원본] 문서가 열린 지 3초(performance.now 기준) 뒤 보내기만 했다 — 느린 기기에선 여전히 load 직후일 수 있고, 멈추면 복구가 없었다
+  // const settle = BOOT_SETTLE_MS - performance.now();
+  // if (settle > 0) await sleep(settle);
+  // if (!stillUpdating()) return;
+  // w.addEventListener("statechange", () => { if (w.state === "activated" && applying) reloadOnce(); });
+  // w.postMessage("skip-waiting");
+  // [개선 QA code M-1] load+여유 뒤 보내고, 1.5초 안에 활성화가 안 되면 숨은 iframe 으로 찔러 푼다(「다시 시도」도 이 길)
   // controllerchange 가 오지 않는 경우(이 문서가 제어받지 않는 등)의 대비 — 활성화되면 새로고침
   w.addEventListener("statechange", () => {
     if (w.state === "activated" && applying) reloadOnce();
   });
-  w.postMessage("skip-waiting");
+  await activateWaiting(w, { stillWanted: stillUpdating, timeoutMs: UPDATE_TIMEOUT_MS });
+  // 활성화되면 controllerchange(또는 위 activated 대비)가 새로고침한다. 못 하면 15초 타이머가 실패 화면으로 바꾼다(상한은 그 하나).
+}
+
+/** 화면이 다시 보이면 「닫음」을 푼다 — 필수 업데이트가 다음 보임에 다시 시작(스펙 §6 · QA code L-1). */
+export function resetDismissedOnVisible(): void {
+  if (state.dismissed && state.phase === "idle") set({ dismissed: false });
 }
 
 /** 실패 화면 「닫기」 — 덮개를 내리고 버튼 상태로 돌아간다. */

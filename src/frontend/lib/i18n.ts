@@ -65,6 +65,11 @@ const WEB_ONLY: Record<string, Record<AppLanguage, string>> = {
     ko: "기록은 이 기기에 그대로 있어요. 잠시 뒤 다시 시도해 주세요.",
     en: "Your records are safe on this device. Please try again in a moment.",
   },
+  // 시간 초과(새 워커가 기다리는 채) — 완전히 닫았다 열면 브라우저가 적용한다(QA code M-1 ③)
+  "web.sw.failedHintReopen": {
+    ko: "기록은 이 기기에 그대로 있어요. 다시 시도하거나, 앱을 완전히 닫았다 다시 열면 적용돼요.",
+    en: "Your records are safe on this device. Try again, or fully close and reopen the app to apply it.",
+  },
   "web.sw.retry": { ko: "다시 시도", en: "Try again" },
   "web.sw.close": { ko: "닫기", en: "Close" },
   "web.sw.hasUpdate": { ko: "새 버전 있음", en: "New version available" },

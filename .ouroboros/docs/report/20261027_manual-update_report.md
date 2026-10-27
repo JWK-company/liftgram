@@ -56,3 +56,25 @@
 - 배포 스크립트 변경 없음. `/app-version` 은 Next 를 거치지 않는 web 서버 경로라 헬스처럼 로그에서 뺐다.
 - 검토 포인트: `src/frontend/lib/appUpdate.ts`(상태·절차) · `app/components/ServiceWorker.tsx` · `UpdateOverlay.tsx` · `profile/AppVersionRow.tsx` · `ui/TabBar.tsx` · `layout.tsx`(부팅 덮개) · `sw/sw.template.js`·`scripts/build-sw.mjs` · `server.mjs` · core `domain/swUpdatePolicy.ts`.
 - 정리: 비교용 worktree `liftgram-wt-update-base` 는 제거했다. 로컬 e2e DB(`e2e_mu_*`)는 남겨 둠.
+
+## 6. 독립 qa code 조치 (2026-10-28 · `.ouroboros/docs/qa/20261027_manual-update-code_qa.md` · 판정 「배포 가능」 · 높음 0 · 중간 1 · 낮음 7)
+
+| # | 조치 |
+|---|------|
+| M-1 크롬 load 직후 skip-waiting 멈춤 | `src/frontend/lib/swActivate.ts` 신규 — load+800ms 뒤 보내기 · 1.5초 안에 활성화 안 되면 숨은 같은 출처 iframe(`public/sw-nudge.html` 빈 문서)으로 찔러 풀기(최대 2번) · 「다시 시도」도 같은 길 · 실패 문구 「…앱을 완전히 닫았다 다시 열면 적용돼요」 · `lib/schemaGuard.ts reloadToNewVersion` 도 같은 헬퍼. 보던 대기 워커가 이벤트 없이 activated 가 되면 「새로고침만」 |
+| L-1 | 화면이 다시 보이면 필수 업데이트 「닫음」 해제(스펙 §6 과 일치) |
+| L-5 | 프로필 꼬리 버전 지움(주석 보존) · 빌드 번호는 「앱 버전」 줄 안으로 |
+| L-6 | #64 e2e 제목 갱신 |
+| L-2·L-3·L-4·L-7 | **보류·알림** — L-2: 필수 업데이트를 켜면 루틴 편집·피드 작성 중에도(운동 화면 밖) 덮개 → 새로고침으로 저장 안 한 입력이 사라질 수 있다(켤 때 공지) · L-3: 덮개를 연 뒤 생긴 포털(토스트)은 inert 가 아니라 Tab 초점을 받을 수 있다(클릭은 막힘) · 부팅 정적 덮개도 하이드레이션 전 잠깐 키보드를 막지 않음 · L-4: 뒤로 가기·가장자리 스와이프(R4) · L-7: 전환기 한 번의 저절로 업데이트(R1)를 릴리스 메모·사용자 안내에. 부팅 덮개 문구가 영어 사용자에게도 한국어(1초 미만) |
+
+**테스트(조치 뒤)**
+
+| 항목 | 결과 |
+|------|------|
+| 새 e2e **E9**(검토자 재현 고정 — 새 컨텍스트에서 문서 load 직후 skip-waiting → 버튼이 그려진 채 `installed` 에 멈춘 상태를 만든 뒤 「업데이트」) | 수정 전(b214b3c 운영 빌드 · 웹 3510) **2/2 실패**(`실패:timeout`) · 같은 탭 버전 초안도 수정 전 3/3 실패 → 수정 뒤 **6/6 통과**(전체 2회 + 반복 3회 + 첫 확인 3회 중) |
+| manual-update 9건 | 전체 **9/9 × 2회** · E7·E9 각 ×3 통과 |
+| feedback-62-64 · offline · profile(·profile-edit) | **18/18** |
+| `make verify` | 통과(507/507 · lint · typecheck · go · 드리프트) |
+| 스크린샷 | `shots/390-{light,dark}-profile-update.png`·`overlay-failed.png` 다시 찍음(버전 한 줄 · 새 실패 문구) |
+
+진행 중 잡은 것: 검토 결과를 고치다 `lib/appUpdate.ts` 뒷부분을 실수로 잘라 빌드가 깨진 것을 다음 빌드에서 발견해 원본에서 복원했다(커밋 전 · 위 테스트는 복원 뒤 빌드 기준).

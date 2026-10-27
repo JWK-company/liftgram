@@ -55,8 +55,8 @@ import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
 import { WeighInSettingRow } from "./WeighInSettingRow"; // 운동 전 체중 체크인 스위치 @plm SRS-077
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
-import { version as APP_VERSION } from "../../../package.json";
-import buildInfo from "../../build-info.json";
+// import { version as APP_VERSION } from "../../../package.json"; — [원본] 버전 꼬리(아래 주석) · 지금은 AppVersionRow 가 보인다
+// import buildInfo from "../../build-info.json";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppVersionRow } from "./AppVersionRow"; // 앱 버전 줄 + 업데이트 버튼 @plm SRS-085
 
@@ -367,6 +367,7 @@ export default function ProfileClient() {
         </ListGroup>
 
         <div className="pb-[var(--spacing-xl)]">
+          {/* [원본] 앱 버전 꼬리 — 위 「앱 버전」 줄과 겹쳐 지운다(QA code L-5 · 빌드 번호는 그 줄로 옮김 · 화면 정리 「반복 문구」)
           <AppText
             variant="caption"
             color="textMuted"
@@ -374,7 +375,7 @@ export default function ProfileClient() {
             data-testid="app-version"
           >
             Liftgram v{APP_VERSION} ({buildInfo.build})
-          </AppText>
+          </AppText> */}
           <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-md)] block">
             {t("wellness.noMedicalClaimNotice")}
           </AppText>

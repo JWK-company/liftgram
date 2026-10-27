@@ -203,3 +203,11 @@ available = (waiting != null || activatedElsewhere)
 
 - **부팅 직후 skip-waiting 이 멈춤(크롬)**: 새로고침이 끝난 바로 그 순간 skip-waiting 을 보내면 페이지 코드와 무관하게(테스트가 직접 보내도 4번 중 1번) 새 워커가 `installed` 에 멈춰 활성화되지 않았다. 다시 보내도 풀리지 않는다. 3초 뒤는 매번 정상. → `startUpdate` 가 문서가 열린 지 3초(`BOOT_SETTLE_MS`)가 지나기 전엔 보내지 않는다(필수 업데이트가 부팅 직후 시작하는 경우에 해당 · 덮개는 이미 떠 있고 15초 상한 안).
 - e2e 의 `/app-version` 바꿔 끼우기는 page.route 대신 문서 안 fetch 교체로 한다(라우트는 진단 중 변수를 늘렸다).
+
+## 12. qa code 반영 (`.ouroboros/docs/qa/20261027_manual-update-code_qa.md` · 2026-10-28)
+
+- **M-1** 3초(`performance.now` = 내비게이션 시작 기준) 대기를 걷고 `lib/swActivate.ts` `activateWaiting` 로: ① `load` + 800ms 뒤에 보낸다 ② 보낸 뒤 1.5초 안에 활성화가 안 되면 숨은 같은 출처 iframe(`/sw-nudge.html` · 빈 정적 문서 — 앱 셸을 띄우지 않는다)을 붙였다 떼어 활성화를 다시 일으킨다(최대 2번) · 「다시 시도」도 같은 절차 ③ 시간 초과 실패 문구에 「앱을 완전히 닫았다 다시 열면 적용돼요」. 실패 판정은 15초 타이머 하나. `lib/schemaGuard.ts reloadToNewVersion` 도 같은 헬퍼(최대 6초 기다린 뒤 새로고침). 보던 대기 워커가 이벤트 없이 activated 가 된 경우(다른 클라이언트가 풀어 줌)도 「새로고침만」으로 본다.
+- **L-1** 필수 업데이트 실패를 닫아도 화면이 다시 보이면(visibilitychange → visible) 「닫음」을 풀어 다시 시도한다 — §6 문구와 일치.
+- **L-5** 프로필 아래 꼬리 「Liftgram vX (build)」 를 지우고(주석 보존) 빌드 번호는 「앱 버전」 줄 안 작은 회색 줄로.
+- **L-6** #64 e2e 첫 테스트 제목을 새 기대로.
+- 보류: L-2(필수 업데이트가 작성 중 화면을 날릴 수 있음 — 켤 때 운영 메모) · L-3(덮개 뒤 늦게 붙은 포털의 Tab 초점) · L-4(뒤로 가기·스와이프) · L-7(전환기 한 번의 자동 업데이트 안내).

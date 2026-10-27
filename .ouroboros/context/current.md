@@ -2,6 +2,7 @@
 ## 직전 작업 — 수동 업데이트(프로필 버튼 하나) (Feature · SRS-085 · v0.48.0 · **커밋 완료·미배포 — 독립 qa code 대기**) · 2026-10-27
 - 브랜치 `feat/manual-update` · worktree `../liftgram-wt-update` · 스펙 `.ouroboros/docs/spec/20261027_manual-update/spec.md` · QA spec `.ouroboros/docs/qa/20261027_manual-update-spec_qa.md` · 보고 `.ouroboros/docs/report/20261027_manual-update_report.md`
 - 띠·자동 적용·/workout 보류 제거(주석 보존) · 프로필 「앱 버전」 줄 버튼만 · 덮개(15초 실패) · 운동 중 비활성 · 탭 점 · `GET /app-version`+`MIN_CLIENT_VERSION` · 크롬 부팅 직후 skip-waiting 멈춤 → 3초 대기 · e2e manual-update 8/8(수정 전 8/8 실패) · make verify 통과
+- qa code 조치(2026-10-28): M-1 load+여유 뒤 보내기·숨은 iframe 찌르기(`lib/swActivate.ts`·schemaGuard 도) · L-1 보임 때 재시도 · L-5 버전 한 줄 · L-6 · E9(수정 전 2/2 실패) · 보류 L-2·L-3·L-4·L-7
 ## 직전 작업 — 피드백 #62·#63·#64 (Feature · **커밋 완료·배포 안 함** · `feat/feedback-62-64` 4219a66+fb21767 v0.45.0+qa code 조치 1037250(M-1·M-2·L-1·L-3 · M-3 사용자 확인) · 40d6c46 위 · worktree `../liftgram-wt-fb6264` 포트 3200/3201·3220 · 2026-10-27) · **다음: 독립 qa code → main ff-only·배포**
 - SRS-084 · 스펙 `.ouroboros/docs/spec/20261027_feedback-62-64/spec.md` · QA spec `.ouroboros/docs/qa/20261027_feedback-62-64-spec_qa.md`(H-1 어시스트 제외 등) · 보고서 `.ouroboros/docs/report/20261027_feedback-62-64_report.md`
 - #64 `/workout` 동안 새 버전 자동 적용·controllerchange 새로고침 보류(core `swUpdatePolicy`) · #63 플레이트 후보 머신 = family `load_default`(plate 19·pin 27) → 한쪽 기본 ×2 + 미정 종목 1회 질문(`plate-ask`)·미답 완료=한쪽 기록·옛 null 프리필 그대로·소급 없음 · #62 블록 도구 줄(휴식·메모 미리보기·⌃⌄ 44px) · 새 e2e 6건 옛 빌드 6/6 실패 → 새 빌드 통과
