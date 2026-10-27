@@ -228,7 +228,7 @@ export default function AuthClient({
           <div id="backup">
             <BackupCard />
           </div>
-          <OfflineNote />
+          {/* [원본] <OfflineNote /> — 로그인한 화면에도 「로그인하면 서버 백업…」 안내가 떴다(/qa P4 L-5 · 불필요 안내 생략) @plm SRS-072 */}
         </div>
       </div>
     );

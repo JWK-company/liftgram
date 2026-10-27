@@ -57,8 +57,10 @@ export function BackupCard() {
       </AppText>
       {/* [원본] <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]"> — 두 버튼이 한 줄에 끼어
           360폭에서 「백업 파일 내보 / 내기」로 글자가 꺾였다(화면 정리 P4)
-          [개선] 좁으면 세로로 쌓는다(넓은 화면은 그대로 나란히) @plm SRS-072 */}
-      <div className="mt-[var(--spacing-md)] flex flex-col gap-[var(--spacing-sm)] min-[420px]:flex-row [&>button]:whitespace-nowrap">
+          [개선 1] 좁으면 세로로 쌓는다(420px 이상은 나란히) — 420~460px·영어에서 넘침(/qa P4 M-3)
+          <div className="… flex flex-col … min-[420px]:flex-row [&>button]:whitespace-nowrap">
+          [개선 2] 늘 세로로 쌓는다 — 카드 폭과 문구 길이에 상관없이 넘치지 않는다 @plm SRS-072 */}
+      <div className="mt-[var(--spacing-md)] flex flex-col gap-[var(--spacing-sm)] [&>button]:whitespace-nowrap">
         <Button
           title={t("backup.export")}
           variant="secondary"

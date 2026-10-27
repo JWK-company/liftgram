@@ -709,12 +709,15 @@ function TodayCard({
               {t("schedule.todayHint")}
             </AppText>
           </div>
+          {/* 화면 정리 P4 /qa M-1 — 루틴 「시작」은 모두 회색 상자(빨강 채움은 빠른 운동 시작 하나) @plm SRS-072 */}
           <Button
             title={t("routines.start")}
             icon="play"
             size="sm"
+            variant="secondary"
             fullWidth={false}
             disabled={busy}
+            testId="btn-start-today"
             onPress={() => onStart(routine.id)}
           />
         </div>
@@ -771,12 +774,15 @@ function RecoCard({
             {t("routines.todayRecoHint", { muscle: muscleLabel(reco.muscle, lang) })}
           </AppText>
         </div>
+        {/* 화면 정리 P4 /qa M-1 @plm SRS-072 */}
         <Button
           title={t("routines.start")}
           icon="play"
           size="sm"
+          variant="secondary"
           fullWidth={false}
           disabled={busy}
+          testId="btn-start-reco"
           onPress={() => reco.routineId && onStart(reco.routineId)}
         />
       </div>
@@ -806,7 +812,12 @@ function FolderGroup({
 }) {
   return (
     <Card className="mb-[var(--spacing-md)]">
-      <button type="button" onClick={onToggle} className="flex w-full items-center gap-[var(--spacing-sm)]">
+      <button
+        type="button"
+        onClick={onToggle}
+        data-testid="folder-toggle"
+        className="flex w-full items-center gap-[var(--spacing-sm)]"
+      >
         <Icon name={open ? "folder-open" : "folder"} size={20} color="var(--color-brand)" />
         <span className="min-w-0 flex-1 text-left">
           <AppText variant="heading" className="block truncate">
@@ -831,11 +842,15 @@ function FolderGroup({
                 </AppText>
                 <ExerciseCount repo={repo} routineId={r.id} />
               </span>
+              {/* 화면 정리 P4 /qa M-1 — 폴더 밖 루틴 줄과 같은 회색 상자 @plm SRS-072 */}
               <Button
                 title={t("routines.start")}
                 size="sm"
+                variant="secondary"
+                icon="play"
                 fullWidth={false}
                 disabled={busy}
+                testId="btn-start-folder-routine"
                 onPress={() => onStart(r.id)}
               />
               <IconButton

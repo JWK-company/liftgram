@@ -461,7 +461,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                     className="flex w-full items-center justify-between border-(--color-line) border-b py-[var(--spacing-sm)] text-left"
                   >
                     <ExerciseName exerciseId={x.exerciseId} variant="body" base />
-                    {x.supersetGroup ? <Tag label={t("routines.supersetTag")} tone="primary" /> : null}
+                    {x.supersetGroup ? <Tag label={t("routines.supersetTag")} /> : null}
                   </button>
                 ))
             )}
@@ -664,7 +664,8 @@ function ExerciseEditRow({
               </div>
             ) : null}
           </div>
-          {grouped ? <Tag label={t("routines.supersetTag")} tone="primary" /> : null}
+          {/* /qa P4 L-3 — 슈퍼셋 칩은 무채(빨강 = 주 행동만) @plm SRS-072 */}
+          {grouped ? <Tag label={t("routines.supersetTag")} /> : null}
         </div>
 
         {isCardio ? (

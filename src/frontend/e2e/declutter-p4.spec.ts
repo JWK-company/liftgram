@@ -32,6 +32,38 @@ async function filledBrandButtons(page: Page): Promise<number> {
   }, brand);
 }
 
+/** 강조색(브랜드 빨강·경고 빨강)이 이 요소의 글자·바탕·보이는 테두리 어디에라도 쓰였나(/qa P4 M-4).
+ *  속성 하나만 재면 다른 형태(분홍 바탕·빨강 테두리)로 되돌아가는 회귀를 놓친다. */
+async function accentUse(page: Page, testId: string): Promise<string[]> {
+  return page
+    .getByTestId(testId)
+    .first()
+    .evaluate((el) => {
+      const probe = (v: string) => {
+        const s = document.createElement("span");
+        s.style.color = v;
+        document.body.appendChild(s);
+        const c = getComputedStyle(s).color;
+        s.remove();
+        return c;
+      };
+      const accents = new Set([probe("var(--color-brand)"), probe("var(--color-bad)")]);
+      const muted = probe("var(--color-brand-muted)");
+      const hits: string[] = [];
+      const nodes = [el, ...el.querySelectorAll("*")] as Element[];
+      for (const n of nodes) {
+        const cs = getComputedStyle(n);
+        if (accents.has(cs.color)) hits.push(`color:${n.tagName}`);
+        if (accents.has(cs.backgroundColor) || cs.backgroundColor === muted) hits.push(`bg:${n.tagName}`);
+        if (Number.parseFloat(cs.borderTopWidth) > 0 && accents.has(cs.borderTopColor))
+          hits.push(`border:${n.tagName}`);
+        if (n instanceof SVGElement && (accents.has(cs.stroke) || accents.has(cs.fill)))
+          hits.push(`svg:${n.tagName}`);
+      }
+      return hits;
+    });
+}
+
 async function 가입(page: Page) {
   await page.goto("/account");
   await page.getByTestId("mode-signup").click();
@@ -68,14 +100,20 @@ test("숫자 스테퍼 값에 점선 밑줄이 없다(루틴 편집·프로필)"
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
-  const value = page.getByTestId("re-sets-value");
+  // 슈퍼셋 버튼은 종목이 둘 이상일 때만 보인다 — 하나 더 담아 셋 다 잰다(/qa P4 M-4)
+  await page.getByTestId("btn-add-routine-exercise").click();
+  await page.getByTestId("picker-search").fill("케이블 푸시다운");
+  await page.getByTestId("picker-list").locator("button").first().click();
+  await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(2, { timeout: 20_000 });
+  const value = page.getByTestId("re-sets-value").first();
   await expect(value).toBeVisible();
   expect(await value.evaluate((el) => getComputedStyle(el).borderBottomStyle)).not.toBe("dashed");
 
   // 종목 줄의 부가 행동(슈퍼셋·대체·삭제)은 빨강이 아니다 — 빨강은 이 화면의 주 행동 하나에만.
-  const brand = await brandRgb(page);
-  const swapColor = await page.getByTestId("btn-re-swap").evaluate((el) => getComputedStyle(el).color);
-  expect(swapColor, "대체 버튼 글자색").not.toBe(brand);
+  // [원본] 대체 글자색 하나만 쟀다 — 슈퍼셋·삭제가 빨강으로 돌아가도 통과했다(/qa P4 M-4)
+  for (const id of ["btn-re-swap", "btn-re-superset", "btn-re-remove"]) {
+    expect(await accentUse(page, id), `${id} 강조색`).toEqual([]);
+  }
 
   await page.goto("/profile");
   const bw = page.getByTestId("bodyweight-value");
@@ -107,7 +145,8 @@ test("종목 탭 「종목 찾기 도우미」·종목 상세 주동근은 빨�
   const brand = await brandRgb(page);
   const wizard = page.getByTestId("btn-wizard");
   await expect(wizard).toBeVisible();
-  expect(await wizard.evaluate((el) => getComputedStyle(el).borderTopColor)).not.toBe(brand);
+  // [원본] 테두리 색만 쟀다(폭 0 이라 늘 currentColor) — 분홍 바탕·빨강 글자로 돌아가도 통과했다(/qa P4 M-4)
+  expect(await accentUse(page, "btn-wizard"), "도우미 강조색").toEqual([]);
 
   await page.getByTestId("search-input").fill("바벨 벤치프레스");
   await page.locator('[data-testid^="exercise-seed-"]').first().click();
@@ -123,19 +162,18 @@ test("계정 — 로그아웃은 빨강 테두리가 아니고, 백업 버튼 �
   await 가입(page);
   const out = page.getByTestId("btn-logout");
   await expect(out).toBeVisible();
-  const style = await out.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { border: s.borderTopColor, color: s.color, width: s.borderTopWidth };
-  });
-  const bad = await page.evaluate(() => {
-    const el = document.createElement("span");
-    el.style.color = "var(--color-bad)";
-    document.body.appendChild(el);
-    const c = getComputedStyle(el).color;
-    el.remove();
-    return c;
-  });
-  expect(style.color, "로그아웃 글자색").not.toBe(bad);
+  // [원본] 테두리 값을 모으고 단언하지 않았다(죽은 코드) — 글자·바탕·테두리 전부 본다(/qa P4 M-4)
+  expect(await accentUse(page, "btn-logout"), "로그아웃 강조색").toEqual([]);
+  await 백업_버튼_검사(page);
+  // 420·440폭 — 예전 420px 분기에서 나란히 놓이며 카드 밖으로 넘쳤다(/qa P4 M-3)
+  for (const width of [420, 440]) {
+    await page.setViewportSize({ width, height: 800 });
+    await 백업_버튼_검사(page, `${width}px`);
+  }
+});
+
+async function 백업_버튼_검사(page: Page, tag = "360px") {
+  const card = await page.getByTestId("backup-card").boundingBox();
   for (const id of ["btn-backup-export", "btn-backup-import"]) {
     const b = page.getByTestId(id);
     await b.scrollIntoViewIfNeeded();
@@ -150,6 +188,43 @@ test("계정 — 로그아웃은 빨강 테두리가 아니고, 백업 버튼 �
       const tops = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
       return tops.size;
     });
-    expect(lines, `${id} 글자 줄 수`).toBe(1);
+    expect(lines, `${tag} ${id} 글자 줄 수`).toBe(1);
+    const fits = await b.evaluate((el) => el.scrollWidth <= el.clientWidth);
+    expect(fits, `${tag} ${id} 글자 넘침`).toBe(true);
+    const r = await b.boundingBox();
+    expect(card && r && r.x + r.width <= card.x + card.width + 0.5, `${tag} ${id} 카드 안`).toBe(true);
   }
+}
+
+test("폴더 안 루틴·오늘 카드가 있어도 홈의 빨강 채움은 하나", async ({ page }) => {
+  // /qa P4 M-1 — 루틴을 폴더에 넣고(펼침) 오늘 요일에 배정하면 「시작」 버튼이 셋이 된다. 전부 회색이어야 한다.
+  test.setTimeout(240_000);
+  await 카탈로그_준비(page);
+  const 이름 = `폴더루틴${Date.now().toString(36)}`;
+  await page.goto("/");
+  await page.getByTestId("btn-new-routine").click();
+  await page.getByTestId("routine-name").fill(이름);
+  await page.getByTestId("routine-name").blur();
+  await page.getByTestId("routine-folder").fill("상체");
+  await page.getByTestId("routine-folder").blur();
+  await page.getByTestId("btn-add-routine-exercise").click();
+  await page.getByTestId("picker-search").fill("바벨 벤치프레스");
+  await page.getByTestId("picker-list").locator("button").first().click();
+  await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
+  await page.getByTestId("btn-routine-done").click();
+
+  // 오늘 요일에 배정 — 오늘 카드(TodayCard)가 뜬다.
+  await page.goto("/");
+  await page.getByTestId("entry-schedule").click();
+  await expect(page.getByTestId("schedule-editor")).toBeVisible({ timeout: 20_000 });
+  const today = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][new Date().getDay()];
+  await page.getByTestId(`schedule-day-${today}`).click();
+  await page.getByTestId("schedule-day-picker").getByText(이름).click();
+  await page.getByTestId("schedule-save").click();
+  await expect(page.getByTestId("schedule-editor")).toHaveCount(0, { timeout: 20_000 });
+
+  await page.getByTestId("folder-toggle").first().click();
+  await expect(page.getByTestId("btn-start-folder-routine").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("btn-start-today")).toBeVisible();
+  expect(await filledBrandButtons(page)).toBe(1);
 });

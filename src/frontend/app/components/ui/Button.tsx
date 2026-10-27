@@ -59,9 +59,11 @@ export function Button({
 }) {
   const p = palette(variant);
   const isDisabled = disabled || loading;
+  const quiet = variant === "quiet";
   const style: CSSProperties = {
     height: HEIGHT[size],
-    backgroundColor: p.bg,
+    // quiet 는 바탕을 인라인으로 박지 않는다 — 눌림·hover 바탕을 클래스로 줘야 「누를 수 있음」이 보인다(/qa P4 L-2)
+    backgroundColor: quiet ? undefined : p.bg,
     color: p.fg,
     borderColor: p.border,
     borderWidth: p.border ? 1 : 0,
@@ -78,7 +80,8 @@ export function Button({
       className={`relative inline-flex items-center justify-center gap-[6px] rounded-[var(--radius-sm)] px-[var(--spacing-lg)] font-semibold focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2
         ${size === "sm" ? "text-[length:var(--text-sm)]" : "text-[length:var(--text-md)]"}
         ${fullWidth ? "w-full" : "self-start px-[var(--spacing-xl)]"}
-        ${isDisabled ? "opacity-45" : "active:opacity-85"} ${className}`}
+        ${isDisabled ? "opacity-45" : "active:opacity-85"}
+        ${quiet && !isDisabled ? "bg-transparent hover:bg-(--color-surface-alt) active:bg-(--color-surface-alt)" : ""} ${className}`}
     >
       {loading ? (
         // 앱 공용 로딩 = 로고 색 채우기(SRS-054 · booktarae 와 같다). 버튼 글자색을 따른다.

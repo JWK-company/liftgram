@@ -181,7 +181,7 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
           </Card>
         ) : null}
 
-        {/* 분류 — 주동근·보조근·기구. app과 같은 태그 톤을 쓴다(주동근만 primary). */}
+        {/* 분류 — 주동근·보조근·기구. 주동근도 무채 칩(화면 정리 P4 — 빨강은 주 행동만). */}
         <Card>
           <AppText variant="label" color="textMuted">
             {t("exercises.primaryMuscles")}
