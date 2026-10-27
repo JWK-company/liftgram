@@ -3,7 +3,7 @@
 //
 // 운영 빌드에서만 등록한다 — 개발 서버에 붙으면 HMR과 캐시가 엉켜 고친 코드가 안 보인다.
 //
-// 새 버전은 **사람이 눌러야** 적용된다(설계안 결정 2A). 운동 세션이 진행 중이면 띠를 띄우지 않는다:
+// 새 버전은 운동 중이 아니면 곧바로 적용한다(2026-10-27 — 아래 useEffect). 운동 세션이 진행 중이면 띠도 띄우지 않는다:
 // 세트를 적는 도중 새로고침되면 안 되기 때문이다. 세션이 끝나면 그때 뜬다. 다음에 앱을 새로 열면
 // 브라우저가 알아서 새 워커로 바꾸므로, 끝내 누르지 않아도 오래 옛 버전에 머물지는 않는다.
 //
@@ -55,6 +55,30 @@ export function ServiceWorker() {
       navigator.serviceWorker.removeEventListener("controllerchange", onChange);
     };
   }, []);
+
+  // ── 운동 중이 아니면 새 버전을 **곧바로** 적용한다 (2026-10-27) ──
+  // 띠를 사람이 누를 때까지 기다렸더니, 누르지 않은 기기는 새로고침할 때마다 기기에 남은 옛 화면을 먼저 그렸다
+  // (지운 「진행 중인 운동 · 빠른 운동 시작」 빈 화면이 당겨서 새로고침 때 잠깐 보였다 — 피드백 #61 후속).
+  // 세트를 적는 도중 새로고침하지 않는다는 원칙은 그대로 — 진행 중인 운동이 있으면 끝날 때까지 기다린다.
+  // 운동 여부는 셸 상태가 아니라 **기기 DB** 로 본다(부팅 직후 셸 상태는 아직 비어 있을 수 있다).
+  useEffect(() => {
+    if (!waiting || activeWorkoutId) return;
+    let stop = false;
+    void (async () => {
+      try {
+        const repo = await import("@app/core/data/workoutRepository");
+        if (stop || (await repo.getActiveWorkout())) return;
+        const { flushLocalDb } = await import("@/lib/localDb");
+        await flushLocalDb();
+        if (!stop) waiting.postMessage("skip-waiting");
+      } catch {
+        // 확인하지 못하면 예전처럼 띠로 맡긴다.
+      }
+    })();
+    return () => {
+      stop = true;
+    };
+  }, [waiting, activeWorkoutId]);
 
   if (!waiting || activeWorkoutId) return null;
 

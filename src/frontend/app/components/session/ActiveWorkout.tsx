@@ -220,36 +220,6 @@ export default function ActiveWorkout() {
     return <EmptyState icon="hourglass-outline" title={t("session.loading")} />;
   }
 
-  // [원본] 진행 중인 운동이 없을 때의 빈 화면 — 위 이동으로 대체(원복 시 위 `|| !workout` 을 빼고 아래 블록 주석 해제)
-  /* if (!workout) {
-    return (
-      // app에서는 이 자리가 없다 — 진행 중인 운동이 없으면 세션 화면 자체가 열리지 않고
-      // 운동 탭(루틴 화면)이 뜬다. 웹은 주소로 바로 들어올 수 있어 이 상태가 생긴다.
-      <EmptyState
-        icon="barbell-outline"
-        title={t("routines.activeWorkout")}
-        message={t("session.noExercises.message")}
-        action={
-          <Button
-            testId="btn-start"
-            title={t("routines.quickStart")}
-            icon="play"
-            fullWidth={false}
-            disabled={busy}
-            onPress={() =>
-              guard(async () => {
-                const w = (await repo.startBlankWorkout()) as unknown as WorkoutRow;
-                setWorkout(w);
-                // 셸의 전역 운동 바가 곧바로 뜨도록 알린다.
-                setActive({ id: w.id, startedAt: w.startedAt, name: w.name });
-              })
-            }
-          />
-        }
-      />
-    );
-  } */
-
   const elapsed =
     now == null
       ? 0
