@@ -66,3 +66,37 @@ export function detectNewPRs(current: PRSnapshot, historicalBest: PRSnapshot): P
   }
   return out;
 }
+
+// ── PR 2종 칩(#50) — 중량 PR·볼륨 PR 이 **어느 세트**인지 ── @plm SRS-061
+// snapshotFromSets 와 같은 규칙(워밍업·실패 제외 · 유효무게)으로 세트를 고른다 — 칩에 보이는 값과 PR 판정이 같아야 한다.
+// 중량: 유효무게 최대(같으면 횟수 많은 것) · 볼륨: 세트 볼륨 최대(같으면 무거운 것).
+export function pickPrSets<T extends LoggedSet>(sets: T[]): { weight: T | null; volume: T | null } {
+  let weight: T | null = null;
+  let volume: T | null = null;
+  for (const s of sets) {
+    if (s.isWarmup || s.isFailed) continue;
+    const w = effectiveWeightKg(s);
+    const r = effectiveReps(s);
+    if (w <= 0 && r <= 0) continue;
+    if (!weight) weight = s;
+    else {
+      const bw = effectiveWeightKg(weight);
+      if (w > bw || (w === bw && r > effectiveReps(weight))) weight = s;
+    }
+    const v = setVolumeKg(s);
+    if (v > 0) {
+      if (!volume) volume = s;
+      else {
+        const bv = setVolumeKg(volume);
+        if (v > bv || (v === bv && w > effectiveWeightKg(volume))) volume = s;
+      }
+    }
+  }
+  return { weight, volume };
+}
+
+// ── PR 수 다시 세기(#51 · QA Q2) — 과거 세트를 고친 뒤 운동의 pr_count 를 맞춘다 ── @plm SRS-061
+// completeWorkout 의 판정(종목×칸마다 detectMajorPRs)과 같은 규칙. historyBest 는 **그 운동보다 앞선** 기록만.
+export function countMajorPrs(groups: { current: LoggedSet[]; historyBest: PRSnapshot }[]): number {
+  return groups.reduce((n, g) => n + detectMajorPRs(snapshotFromSets(g.current), g.historyBest).length, 0);
+}

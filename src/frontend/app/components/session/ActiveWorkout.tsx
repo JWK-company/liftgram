@@ -42,6 +42,8 @@ import { RestBar, clock } from "./RestBar";
 import { SessionGuideButtons } from "./SessionGuides";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
+import { SetDraftContext, createSetDraftRegistry } from "./setDrafts";
+import { firePrCelebration } from "../PrCelebration";
 
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type WorkoutRow = {
@@ -72,6 +74,8 @@ export default function ActiveWorkout() {
   const [now, setNow] = useState<number | null>(null);
   const [liveVolume, setLiveVolume] = useState(0);
   const [version, setVersion] = useState(0);
+  // 입력 중인 세트 값 — 슈퍼셋 함께 완료가 멤버 칸의 미저장 값을 반영하려고(QA Q3) @plm SRS-062
+  const [drafts] = useState(createSetDraftRegistry);
 
   const [picking, setPicking] = useState<null | { mode: "add" } | { mode: "swap"; weId: string }>(null);
   const [renaming, setRenaming] = useState(false);
@@ -257,344 +261,404 @@ export default function ActiveWorkout() {
         );
 
   return (
-    <div className="flex flex-1 flex-col">
-      {/* ── 헤더 ── */}
-      <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]">
-        {/* 세션을 **끝내지 않고** 화면만 벗어난다 — 진행 중인 운동은 그대로 남는다(app과 같다). */}
-        <a
-          href="/"
-          data-testid="btn-close-session"
-          aria-label={t("routines.activeWorkout")}
-          className="flex h-10 w-10 shrink-0 items-center justify-center"
-        >
-          <Icon name="chevron-down" size={22} color="var(--color-ink)" />
-        </a>
-
-        <div className="ml-[4px] min-w-0 flex-1">
-          <AppText variant="title" data-testid="elapsed" className="block font-bold">
-            {now == null ? "" : clock(elapsed)}
-          </AppText>
-          <button
-            type="button"
-            data-testid="workout-name"
-            onClick={() => {
-              setNameDraft(workout.name ?? "");
-              setRenaming(true);
-            }}
-            className="flex items-center"
+    <SetDraftContext.Provider value={drafts}>
+      <div className="flex flex-1 flex-col">
+        {/* ── 헤더 ── */}
+        <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]">
+          {/* 세션을 **끝내지 않고** 화면만 벗어난다 — 진행 중인 운동은 그대로 남는다(app과 같다). */}
+          <a
+            href="/"
+            data-testid="btn-close-session"
+            aria-label={t("routines.activeWorkout")}
+            className="flex h-10 w-10 shrink-0 items-center justify-center"
           >
-            <AppText variant="label" color={paused ? "warning" : "textMuted"} className="truncate">
-              {paused ? t("session.paused") : (workout.name ?? t("session.inProgress"))}
+            <Icon name="chevron-down" size={22} color="var(--color-ink)" />
+          </a>
+
+          <div className="ml-[4px] min-w-0 flex-1">
+            <AppText variant="title" data-testid="elapsed" className="block font-bold">
+              {now == null ? "" : clock(elapsed)}
             </AppText>
-            <Icon name="pencil" size={12} color="var(--color-ink3)" className="ml-[4px]" />
-          </button>
-          <AppText variant="caption" color="pr" data-testid="live-volume" className="block">
-            {t("session.liveVolume", { volume: formatWeight(liveVolume, weightUnit) })}
-          </AppText>
-        </div>
-
-        <IconButton
-          icon={paused ? "play" : "pause"}
-          label={paused ? t("session.done") : t("session.paused")}
-          color="var(--color-ink)"
-          filled
-          testId="btn-pause"
-          onPress={() =>
-            guard(async () => {
-              if (paused) await repo.resumeWorkout(workout.id);
-              else await repo.pauseWorkout(workout.id);
-              const w = await repo.getWorkout(workout.id);
-              setWorkout(w as unknown as WorkoutRow);
-            })
-          }
-        />
-
-        <Button
-          title={t("session.done")}
-          size="sm"
-          fullWidth={false}
-          loading={busy}
-          testId="btn-complete"
-          className="rounded-[var(--radius-pill)]!"
-          onPress={() =>
-            void (async () => {
-              const undone = await repo.getWorkoutUndoneSetCount(workout.id).catch(() => 0);
-              setConfirmFinish(
-                undone > 0
-                  ? `${t("session.finishUndoneCount", { count: undone })}\n${t("session.finishWorkout.message")}`
-                  : t("session.finishWorkout.message"),
-              );
-            })()
-          }
-        />
-
-        {/* 드문·위험 동작은 ⋯ 안으로(SRS-054) — 이름 바꾸기 · 운동 취소(삭제). 취소는 확인창을 그대로 거친다. */}
-        <MoreMenu
-          testId="btn-session-menu"
-          options={[
-            {
-              label: t("session.renameTitle"),
-              testId: "btn-rename",
-              onPress: () => {
+            <button
+              type="button"
+              data-testid="workout-name"
+              onClick={() => {
                 setNameDraft(workout.name ?? "");
                 setRenaming(true);
-              },
-            },
-            {
-              label: t("session.discardWorkoutButton"),
-              destructive: true,
-              testId: "btn-discard",
-              onPress: () => setConfirmDiscard(true),
-            },
-          ]}
-        />
-      </div>
-
-      <SessionGuideButtons />
-
-      <div className="flex-1 p-[var(--spacing-lg)]">
-        {exercises.length === 0 ? (
-          <EmptyState
-            icon="add-circle"
-            title={t("session.noExercises.title")}
-            message={t("session.noExercises.message")}
-          />
-        ) : (
-          <div data-testid="workout-exercises">
-            {rows.map((row, i) =>
-              row.kind === "group" ? (
-                <SupersetContainer
-                  key={row.group}
-                  onUnlink={() => unlink(row.members)}
-                  onMoveUp={i > 0 ? () => moveRow(i, -1) : undefined}
-                  onMoveDown={i < rows.length - 1 ? () => moveRow(i, 1) : undefined}
-                >
-                  {row.members.map((m, mi) => (
-                    <div key={m.id}>
-                      {mi > 0 ? <div className="my-[4px] h-px bg-(--color-line)" /> : null}
-                      {block(m, { insideSuperset: true })}
-                    </div>
-                  ))}
-                </SupersetContainer>
-              ) : (
-                <div key={row.we.id}>
-                  {block(row.we, {
-                    onMoveUp: i > 0 ? () => moveRow(i, -1) : undefined,
-                    onMoveDown: i < rows.length - 1 ? () => moveRow(i, 1) : undefined,
-                  })}
-                </div>
-              ),
-            )}
+              }}
+              className="flex items-center"
+            >
+              <AppText variant="label" color={paused ? "warning" : "textMuted"} className="truncate">
+                {paused ? t("session.paused") : (workout.name ?? t("session.inProgress"))}
+              </AppText>
+              <Icon name="pencil" size={12} color="var(--color-ink3)" className="ml-[4px]" />
+            </button>
+            <AppText variant="caption" color="pr" data-testid="live-volume" className="block">
+              {t("session.liveVolume", { volume: formatWeight(liveVolume, weightUnit) })}
+            </AppText>
           </div>
-        )}
 
-        <div className="mt-[var(--spacing-sm)]">
-          <Button
-            title={t("session.addExercise")}
-            icon="add"
-            variant="secondary"
-            disabled={busy}
-            testId="btn-add-exercise"
-            onPress={() => setPicking({ mode: "add" })}
-          />
-        </div>
-        {/* 「운동 취소(삭제)」는 머리의 ⋯ 안에 있다 — 세트 추가보다 크고 붉게 늘 떠 있던 자리(SRS-054). */}
-        <div className="h-[var(--spacing-xxl)]" />
-      </div>
-
-      <RestBar />
-      <PrCelebrationHost />
-
-      {picking ? (
-        // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
-        <Overlay onClose={() => setPicking(null)} placement="bottom" testId="picker-sheet">
-          <ExercisePicker
-            bare
-            onClose={() => setPicking(null)}
-            onPick={(exerciseId, info) =>
+          <IconButton
+            icon={paused ? "play" : "pause"}
+            label={paused ? t("session.done") : t("session.paused")}
+            color="var(--color-ink)"
+            filled
+            testId="btn-pause"
+            onPress={() =>
               guard(async () => {
-                // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
-                const { applyPick } = await import("@/lib/exerciseNames");
-                if (picking.mode === "swap") {
-                  const from = exercises.find((x) => x.id === picking.weId)?.exerciseId ?? null;
-                  await repo.swapWorkoutExercise(picking.weId, exerciseId);
-                  await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
-                  setVersion((v) => v + 1);
-                  // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고르므로 묻지 않는다(D3 · SRS-059)
-                  // if (from) await askRoutineScope(from, exerciseId);
-                  void from;
-                } else {
-                  const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
-                  await applyPick(exerciseId, info, { workoutExerciseId: we.id });
-                  if (info) setVersion((v) => v + 1);
-                }
-                setPicking(null);
+                if (paused) await repo.resumeWorkout(workout.id);
+                else await repo.pauseWorkout(workout.id);
+                const w = await repo.getWorkout(workout.id);
+                setWorkout(w as unknown as WorkoutRow);
               })
             }
           />
-        </Overlay>
-      ) : null}
 
-      {renaming ? (
-        <SheetShell
-          title={t("session.renameTitle")}
-          onClose={() => setRenaming(false)}
-          hideOk
-          testId="rename-sheet"
-        >
+          <Button
+            title={t("session.done")}
+            size="sm"
+            fullWidth={false}
+            loading={busy}
+            testId="btn-complete"
+            className="rounded-[var(--radius-pill)]!"
+            onPress={() =>
+              void (async () => {
+                const undone = await repo.getWorkoutUndoneSetCount(workout.id).catch(() => 0);
+                setConfirmFinish(
+                  undone > 0
+                    ? `${t("session.finishUndoneCount", { count: undone })}\n${t("session.finishWorkout.message")}`
+                    : t("session.finishWorkout.message"),
+                );
+              })()
+            }
+          />
+
+          {/* 드문·위험 동작은 ⋯ 안으로(SRS-054) — 이름 바꾸기 · 운동 취소(삭제). 취소는 확인창을 그대로 거친다. */}
+          <MoreMenu
+            testId="btn-session-menu"
+            options={[
+              {
+                label: t("session.renameTitle"),
+                testId: "btn-rename",
+                onPress: () => {
+                  setNameDraft(workout.name ?? "");
+                  setRenaming(true);
+                },
+              },
+              {
+                label: t("session.discardWorkoutButton"),
+                destructive: true,
+                testId: "btn-discard",
+                onPress: () => setConfirmDiscard(true),
+              },
+            ]}
+          />
+        </div>
+
+        <SessionGuideButtons />
+
+        <div className="flex-1 p-[var(--spacing-lg)]">
+          {exercises.length === 0 ? (
+            <EmptyState
+              icon="add-circle"
+              title={t("session.noExercises.title")}
+              message={t("session.noExercises.message")}
+            />
+          ) : (
+            <div data-testid="workout-exercises">
+              {rows.map((row, i) =>
+                row.kind === "group" ? (
+                  <SupersetContainer
+                    key={row.group}
+                    onUnlink={() => unlink(row.members)}
+                    onMoveUp={i > 0 ? () => moveRow(i, -1) : undefined}
+                    onMoveDown={i < rows.length - 1 ? () => moveRow(i, 1) : undefined}
+                  >
+                    {row.members.map((m, mi) => (
+                      <div key={m.id}>
+                        {mi > 0 ? <div className="my-[4px] h-px bg-(--color-line)" /> : null}
+                        {block(m, {
+                          insideSuperset: true,
+                          onRoundToggle: (setNumber, next, setId, kg, reps) =>
+                            roundToggle(row.members, setNumber, next, setId, kg, reps),
+                        })}
+                      </div>
+                    ))}
+                  </SupersetContainer>
+                ) : (
+                  <div key={row.we.id}>
+                    {block(row.we, {
+                      onMoveUp: i > 0 ? () => moveRow(i, -1) : undefined,
+                      onMoveDown: i < rows.length - 1 ? () => moveRow(i, 1) : undefined,
+                    })}
+                  </div>
+                ),
+              )}
+            </div>
+          )}
+
           <div className="mt-[var(--spacing-sm)]">
-            <TextField
-              testId="rename-input"
-              value={nameDraft}
-              placeholder={t("session.renamePlaceholder")}
-              onChange={(e) => setNameDraft(e.target.value)}
-              // 이름을 고치러 연 창이라 바로 입력할 수 있어야 한다
-              autoFocus
+            <Button
+              title={t("session.addExercise")}
+              icon="add"
+              variant="secondary"
+              disabled={busy}
+              testId="btn-add-exercise"
+              onPress={() => setPicking({ mode: "add" })}
             />
           </div>
-          <div className="flex gap-[var(--spacing-sm)]">
-            <div className="flex-1">
-              <Button title={t("common.cancel")} variant="secondary" onPress={() => setRenaming(false)} />
-            </div>
-            <div className="flex-1">
-              <Button
-                title={t("common.save")}
-                testId="rename-save"
-                onPress={() => {
-                  setRenaming(false);
-                  guard(async () => {
-                    await repo.renameWorkout(workout.id, nameDraft);
-                    const w = (await repo.getWorkout(workout.id)) as unknown as WorkoutRow;
-                    setWorkout(w);
-                    setActive({ id: w.id, startedAt: w.startedAt, name: w.name });
-                  });
-                }}
+          {/* 「운동 취소(삭제)」는 머리의 ⋯ 안에 있다 — 세트 추가보다 크고 붉게 늘 떠 있던 자리(SRS-054). */}
+          <div className="h-[var(--spacing-xxl)]" />
+        </div>
+
+        <RestBar />
+        <PrCelebrationHost />
+
+        {picking ? (
+          // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
+          <Overlay onClose={() => setPicking(null)} placement="bottom" testId="picker-sheet">
+            <ExercisePicker
+              bare
+              onClose={() => setPicking(null)}
+              onPick={(exerciseId, info) =>
+                guard(async () => {
+                  // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
+                  const { applyPick } = await import("@/lib/exerciseNames");
+                  if (picking.mode === "swap") {
+                    const from = exercises.find((x) => x.id === picking.weId)?.exerciseId ?? null;
+                    await repo.swapWorkoutExercise(picking.weId, exerciseId);
+                    await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
+                    setVersion((v) => v + 1);
+                    // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고르므로 묻지 않는다(D3 · SRS-059)
+                    // if (from) await askRoutineScope(from, exerciseId);
+                    void from;
+                  } else {
+                    const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
+                    await applyPick(exerciseId, info, { workoutExerciseId: we.id });
+                    if (info) setVersion((v) => v + 1);
+                  }
+                  setPicking(null);
+                })
+              }
+            />
+          </Overlay>
+        ) : null}
+
+        {renaming ? (
+          <SheetShell
+            title={t("session.renameTitle")}
+            onClose={() => setRenaming(false)}
+            hideOk
+            testId="rename-sheet"
+          >
+            <div className="mt-[var(--spacing-sm)]">
+              <TextField
+                testId="rename-input"
+                value={nameDraft}
+                placeholder={t("session.renamePlaceholder")}
+                onChange={(e) => setNameDraft(e.target.value)}
+                // 이름을 고치러 연 창이라 바로 입력할 수 있어야 한다
+                autoFocus
               />
             </div>
-          </div>
-        </SheetShell>
-      ) : null}
+            <div className="flex gap-[var(--spacing-sm)]">
+              <div className="flex-1">
+                <Button title={t("common.cancel")} variant="secondary" onPress={() => setRenaming(false)} />
+              </div>
+              <div className="flex-1">
+                <Button
+                  title={t("common.save")}
+                  testId="rename-save"
+                  onPress={() => {
+                    setRenaming(false);
+                    guard(async () => {
+                      await repo.renameWorkout(workout.id, nameDraft);
+                      const w = (await repo.getWorkout(workout.id)) as unknown as WorkoutRow;
+                      setWorkout(w);
+                      setActive({ id: w.id, startedAt: w.startedAt, name: w.name });
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          </SheetShell>
+        ) : null}
 
-      {supersetTarget ? (
-        <SheetShell
-          title={t("routines.supersetPickTitle")}
-          onClose={() => setSupersetTarget(null)}
-          hideOk
-          testId="superset-sheet"
-        >
-          <ul className="mt-[var(--spacing-sm)] max-h-[320px] overflow-y-auto">
-            {exercises
-              .filter((x) => x.id !== supersetTarget.id)
-              .map((x) => (
-                <li key={x.id}>
-                  <button
-                    type="button"
-                    data-testid="superset-option"
-                    onClick={() => pairSuperset(supersetTarget, x)}
-                    className="flex w-full items-center justify-between border-(--color-line) border-b py-[var(--spacing-sm)] text-left"
-                  >
-                    <ExerciseName exerciseId={x.exerciseId} variant="body" base />
-                    {x.supersetGroup ? (
-                      <span className="rounded-[var(--radius-pill)] bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[2px]">
-                        <AppText variant="label" color="primary">
-                          {t("session.superset")}
-                        </AppText>
-                      </span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
-          </ul>
-          <div className="mt-[var(--spacing-md)]">
-            <Button title={t("common.cancel")} variant="secondary" onPress={() => setSupersetTarget(null)} />
-          </div>
-        </SheetShell>
-      ) : null}
+        {supersetTarget ? (
+          <SheetShell
+            title={t("routines.supersetPickTitle")}
+            onClose={() => setSupersetTarget(null)}
+            hideOk
+            testId="superset-sheet"
+          >
+            <ul className="mt-[var(--spacing-sm)] max-h-[320px] overflow-y-auto">
+              {exercises
+                .filter((x) => x.id !== supersetTarget.id)
+                .map((x) => (
+                  <li key={x.id}>
+                    <button
+                      type="button"
+                      data-testid="superset-option"
+                      onClick={() => pairSuperset(supersetTarget, x)}
+                      className="flex w-full items-center justify-between border-(--color-line) border-b py-[var(--spacing-sm)] text-left"
+                    >
+                      <ExerciseName exerciseId={x.exerciseId} variant="body" base />
+                      {x.supersetGroup ? (
+                        <span className="rounded-[var(--radius-pill)] bg-(--color-brand-muted) px-[var(--spacing-sm)] py-[2px]">
+                          <AppText variant="label" color="primary">
+                            {t("session.superset")}
+                          </AppText>
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
+                ))}
+            </ul>
+            <div className="mt-[var(--spacing-md)]">
+              <Button
+                title={t("common.cancel")}
+                variant="secondary"
+                onPress={() => setSupersetTarget(null)}
+              />
+            </div>
+          </SheetShell>
+        ) : null}
 
-      {swapScope ? (
-        <ActionSheet
-          testId="swap-scope"
-          title={t("session.swapScopeTitle", { routine: swapScope.routineName })}
-          onClose={() => setSwapScope(null)}
-          options={[
-            { label: t("session.swapThisTime"), testId: "btn-swap-this-time", onPress: () => {} },
-            {
-              label: t("session.swapAlsoRoutine"),
-              testId: "btn-swap-routine",
-              onPress: () => {
-                const s = swapScope;
-                guard(async () => {
-                  const rr = await import("@app/core/data/routineRepository");
-                  const n = await rr.swapExerciseInRoutine(s.routineId, s.from, s.to);
-                  if (n > 0) toast(t("session.swapRoutineDone"));
-                });
+        {swapScope ? (
+          <ActionSheet
+            testId="swap-scope"
+            title={t("session.swapScopeTitle", { routine: swapScope.routineName })}
+            onClose={() => setSwapScope(null)}
+            options={[
+              { label: t("session.swapThisTime"), testId: "btn-swap-this-time", onPress: () => {} },
+              {
+                label: t("session.swapAlsoRoutine"),
+                testId: "btn-swap-routine",
+                onPress: () => {
+                  const s = swapScope;
+                  guard(async () => {
+                    const rr = await import("@app/core/data/routineRepository");
+                    const n = await rr.swapExerciseInRoutine(s.routineId, s.from, s.to);
+                    if (n > 0) toast(t("session.swapRoutineDone"));
+                  });
+                },
               },
-            },
-          ]}
-        />
-      ) : null}
+            ]}
+          />
+        ) : null}
 
-      {confirmFinish ? (
-        <ConfirmDialog
-          testId="confirm-finish"
-          title={t("session.finishWorkout.title")}
-          message={confirmFinish}
-          confirmLabel={t("session.finishWorkout.confirm")}
-          onCancel={() => setConfirmFinish(null)}
-          onConfirm={() => {
-            setConfirmFinish(null);
-            guard(async () => {
-              // 완료 **전에** 무엇을 물을지 본다 — 완료가 세트 0 블록·체크 안 한 세트를 지운다(QA Q1). 실패해도 완료는 막지 않는다.
-              const fr = await import("@app/core/data/finishRoutine");
-              // [원본] 순서를 화면이 지켰다 — core 함수가 순서를 고정한다(QA M3)
-              // const ask = await fr.getFinishPrompt(workout.id).catch(() => null);
-              // const s = await repo.completeWorkout(workout.id);
-              const { summary: s, prompt: ask } = await fr.finishWorkoutWithPrompt(
-                workout.id,
-                repo.completeWorkout,
-              );
-              const { flushLocalDb } = await import("@/lib/localDb");
-              await flushLocalDb();
-              clearRest();
-              setActive(null);
-              setSummary(s as Summary);
-              if (ask && ask.kind !== "none")
-                setFinishPrompt({
-                  kind: ask.kind,
-                  workoutId: workout.id,
-                  routineName: ask.routineName,
-                  plan: ask.plan,
-                  blocks: ask.blocks,
-                });
-              setWorkout(null);
-            });
-          }}
-        />
-      ) : null}
+        {confirmFinish ? (
+          <ConfirmDialog
+            testId="confirm-finish"
+            title={t("session.finishWorkout.title")}
+            message={confirmFinish}
+            confirmLabel={t("session.finishWorkout.confirm")}
+            onCancel={() => setConfirmFinish(null)}
+            onConfirm={() => {
+              setConfirmFinish(null);
+              guard(async () => {
+                // 완료 **전에** 무엇을 물을지 본다 — 완료가 세트 0 블록·체크 안 한 세트를 지운다(QA Q1). 실패해도 완료는 막지 않는다.
+                const fr = await import("@app/core/data/finishRoutine");
+                // [원본] 순서를 화면이 지켰다 — core 함수가 순서를 고정한다(QA M3)
+                // const ask = await fr.getFinishPrompt(workout.id).catch(() => null);
+                // const s = await repo.completeWorkout(workout.id);
+                const { summary: s, prompt: ask } = await fr.finishWorkoutWithPrompt(
+                  workout.id,
+                  repo.completeWorkout,
+                );
+                const { flushLocalDb } = await import("@/lib/localDb");
+                await flushLocalDb();
+                clearRest();
+                setActive(null);
+                setSummary(s as Summary);
+                if (ask && ask.kind !== "none")
+                  setFinishPrompt({
+                    kind: ask.kind,
+                    workoutId: workout.id,
+                    routineName: ask.routineName,
+                    plan: ask.plan,
+                    blocks: ask.blocks,
+                  });
+                setWorkout(null);
+              });
+            }}
+          />
+        ) : null}
 
-      {confirmDiscard ? (
-        <ConfirmDialog
-          testId="confirm-discard"
-          title={t("session.discardWorkout.title")}
-          message={t("session.discardWorkout.message")}
-          confirmLabel={t("common.delete")}
-          destructive
-          onCancel={() => setConfirmDiscard(false)}
-          onConfirm={() => {
-            setConfirmDiscard(false);
-            guard(async () => {
-              await repo.discardWorkout(workout.id);
-              const { flushLocalDb } = await import("@/lib/localDb");
-              await flushLocalDb();
-              clearRest();
-              setActive(null);
-              setWorkout(null);
-            });
-          }}
-        />
-      ) : null}
-    </div>
+        {confirmDiscard ? (
+          <ConfirmDialog
+            testId="confirm-discard"
+            title={t("session.discardWorkout.title")}
+            message={t("session.discardWorkout.message")}
+            confirmLabel={t("common.delete")}
+            destructive
+            onCancel={() => setConfirmDiscard(false)}
+            onConfirm={() => {
+              setConfirmDiscard(false);
+              guard(async () => {
+                await repo.discardWorkout(workout.id);
+                const { flushLocalDb } = await import("@/lib/localDb");
+                await flushLocalDb();
+                clearRest();
+                setActive(null);
+                setWorkout(null);
+              });
+            }}
+          />
+        ) : null}
+      </div>
+    </SetDraftContext.Provider>
   );
+
+  /**
+   * 슈퍼셋 한 바퀴 함께 완료(#48 A) — 누른 세트와 같은 번호의 멤버 세트를 한 번의 write 로 바꾼다.
+   * 멤버 칸의 입력 중 값은 등록부에서 가져와 먼저 반영하고(QA Q3), PR 축하는 모아서 한 번(QA Q6).
+   * 휴식은 누른 블록이 한 번 건다. 같은 번호가 없는 멤버는 건너뛴다. @plm SRS-062
+   */
+  async function roundToggle(
+    members: WorkoutExerciseRow[],
+    setNumber: number,
+    next: boolean,
+    pressedId: string,
+    kg: number,
+    reps: number,
+  ) {
+    if (!repo) return;
+    const round = await repo.getSupersetRoundSets(
+      members.map((m) => m.id),
+      setNumber,
+    );
+    const entries = round.map((r) => {
+      if (r.setLogId === pressedId) return { setLogId: r.setLogId, weightKg: kg, reps };
+      const d = drafts.get(r.setLogId);
+      return { setLogId: r.setLogId, weightKg: d?.weightKg, reps: d?.reps };
+    });
+    await repo.completeSupersetRound(entries, next);
+    for (const e of entries) drafts.clear(e.setLogId);
+    if (!next) return;
+    try {
+      const names: string[] = [];
+      const types = new Set<string>();
+      const exRepo = await import("@app/core/data/exerciseNames");
+      for (const r of round) {
+        const e = entries.find((x) => x.setLogId === r.setLogId);
+        const got = await repo.evalLiveSetPr(r.workoutExerciseId, r.setLogId, e?.weightKg, e?.reps);
+        if (!got.length) continue;
+        const exId = members.find((m) => m.id === r.workoutExerciseId)?.exerciseId;
+        const name = exId ? ((await exRepo.getExerciseDisplayNameMap([exId])).get(exId) ?? "") : "";
+        if (name) names.push(name);
+        for (const p of got) types.add(p.type);
+      }
+      if (types.size) {
+        firePrCelebration({
+          exerciseName: names.join(" · "),
+          types: [...types] as Parameters<typeof firePrCelebration>[0]["types"],
+        });
+      }
+    } catch {
+      // 축하가 실패해도 기록은 남는다
+    }
+  }
 
   function block(we: WorkoutExerciseRow, extra: Partial<Parameters<typeof ExerciseBlock>[0]> = {}) {
     return (

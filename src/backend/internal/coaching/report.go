@@ -50,12 +50,17 @@ type Report struct {
 	RecentSessions  []SessionSummary
 }
 
+// json 태그는 앱(core sanitizePrescriptionValue)이 읽는 키와 같아야 한다 — 서버가 회원 루틴에 써 넣는 `@json` 문자열이
+// 이 이름으로 직렬화된다(태그가 없으면 SetType 처럼 나가 앱이 전부 「일반 세트」로 읽었다).
 type PrescribedSet struct {
-	SetType   string
-	TargetRIR *int
-	RepMin    *int
-	RepMax    *int
-	LoadHint  string
+	SetType   string   `json:"setType"`
+	TargetRIR *int     `json:"targetRir"`
+	RepMin    *int     `json:"repMin"`
+	RepMax    *int     `json:"repMax"`
+	LoadHint  string   `json:"loadHint"`
+	LoadBasis string   `json:"loadBasis,omitempty"` // @plm SRS-063 pct1rm·pctTop·fixed · 빈 값 = 무게 기준 없음
+	LoadPct   *int     `json:"loadPct,omitempty"`
+	LoadKg    *float64 `json:"loadKg,omitempty"`
 }
 
 type RoutineExercise struct {
@@ -317,20 +322,29 @@ func parsePrescription(v any) []PrescribedSet {
 		return nil
 	}
 	var rows []struct {
-		SetType   string `json:"setType"`
-		TargetRIR *int   `json:"targetRir"`
-		RepMin    *int   `json:"repMin"`
-		RepMax    *int   `json:"repMax"`
-		LoadHint  string `json:"loadHint"`
+		SetType   string   `json:"setType"`
+		TargetRIR *int     `json:"targetRir"`
+		RepMin    *int     `json:"repMin"`
+		RepMax    *int     `json:"repMax"`
+		LoadHint  string   `json:"loadHint"`
+		LoadBasis string   `json:"loadBasis"`
+		LoadPct   *float64 `json:"loadPct"` // 앱이 소수로 적어도 읽는다(정리에서 정수로)
+		LoadKg    *float64 `json:"loadKg"`
 	}
 	if err := json.Unmarshal([]byte(s), &rows); err != nil {
 		return nil
 	}
 	out := make([]PrescribedSet, 0, len(rows))
 	for _, r := range rows {
-		out = append(out, PrescribedSet{
+		row := PrescribedSet{
 			SetType: r.SetType, TargetRIR: r.TargetRIR, RepMin: r.RepMin, RepMax: r.RepMax, LoadHint: r.LoadHint,
-		})
+			LoadBasis: r.LoadBasis, LoadKg: r.LoadKg,
+		}
+		if r.LoadPct != nil {
+			v := int(*r.LoadPct + 0.5)
+			row.LoadPct = &v
+		}
+		out = append(out, row)
 	}
 	return SanitizePrescription(out)
 }

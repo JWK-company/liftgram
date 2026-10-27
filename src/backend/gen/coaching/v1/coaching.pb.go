@@ -253,6 +253,59 @@ func (LoadHint) EnumDescriptor() ([]byte, []int) {
 	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{3}
 }
 
+// 처방 무게 기준(#56 · SRS-063) — 처방을 쓴 사람이 고른 계산 방식. 미지정이면 무게 기준 없음(기존 처방).
+type LoadBasis int32
+
+const (
+	LoadBasis_LOAD_BASIS_UNSPECIFIED LoadBasis = 0
+	LoadBasis_LOAD_BASIS_PCT_1RM     LoadBasis = 1 // 기록으로 추정한 1RM 의 N%
+	LoadBasis_LOAD_BASIS_PCT_TOP     LoadBasis = 2 // 같은 블록 탑셋의 N%(백오프)
+	LoadBasis_LOAD_BASIS_FIXED       LoadBasis = 3 // 무게 직접(kg)
+)
+
+// Enum value maps for LoadBasis.
+var (
+	LoadBasis_name = map[int32]string{
+		0: "LOAD_BASIS_UNSPECIFIED",
+		1: "LOAD_BASIS_PCT_1RM",
+		2: "LOAD_BASIS_PCT_TOP",
+		3: "LOAD_BASIS_FIXED",
+	}
+	LoadBasis_value = map[string]int32{
+		"LOAD_BASIS_UNSPECIFIED": 0,
+		"LOAD_BASIS_PCT_1RM":     1,
+		"LOAD_BASIS_PCT_TOP":     2,
+		"LOAD_BASIS_FIXED":       3,
+	}
+)
+
+func (x LoadBasis) Enum() *LoadBasis {
+	p := new(LoadBasis)
+	*p = x
+	return p
+}
+
+func (x LoadBasis) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LoadBasis) Descriptor() protoreflect.EnumDescriptor {
+	return file_coaching_v1_coaching_proto_enumTypes[4].Descriptor()
+}
+
+func (LoadBasis) Type() protoreflect.EnumType {
+	return &file_coaching_v1_coaching_proto_enumTypes[4]
+}
+
+func (x LoadBasis) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LoadBasis.Descriptor instead.
+func (LoadBasis) EnumDescriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{4}
+}
+
 // 상대방. 트레이너가 보면 회원, 회원이 보면 트레이너다.
 type Peer struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
@@ -431,9 +484,14 @@ type PrescribedSet struct {
 	// 남길 여유 반복(RIR). 0~6 밖의 값은 서버가 잘라 낸다. 미지정이면 -1.
 	TargetRir int32 `protobuf:"varint,2,opt,name=target_rir,json=targetRir,proto3" json:"target_rir,omitempty"`
 	// 반복 범위. 미지정이면 0.
-	RepMin        int32    `protobuf:"varint,3,opt,name=rep_min,json=repMin,proto3" json:"rep_min,omitempty"`
-	RepMax        int32    `protobuf:"varint,4,opt,name=rep_max,json=repMax,proto3" json:"rep_max,omitempty"`
-	LoadHint      LoadHint `protobuf:"varint,5,opt,name=load_hint,json=loadHint,proto3,enum=coaching.v1.LoadHint" json:"load_hint,omitempty"`
+	RepMin   int32    `protobuf:"varint,3,opt,name=rep_min,json=repMin,proto3" json:"rep_min,omitempty"`
+	RepMax   int32    `protobuf:"varint,4,opt,name=rep_max,json=repMax,proto3" json:"rep_max,omitempty"`
+	LoadHint LoadHint `protobuf:"varint,5,opt,name=load_hint,json=loadHint,proto3,enum=coaching.v1.LoadHint" json:"load_hint,omitempty"`
+	// 무게 기준(SRS-063). load_pct 는 pct_1rm 30~100 · pct_top 50~100(밖이면 서버가 버린다), 미지정이면 0.
+	LoadBasis LoadBasis `protobuf:"varint,6,opt,name=load_basis,json=loadBasis,proto3,enum=coaching.v1.LoadBasis" json:"load_basis,omitempty"`
+	LoadPct   int32     `protobuf:"varint,7,opt,name=load_pct,json=loadPct,proto3" json:"load_pct,omitempty"`
+	// fixed 의 무게(정규 kg · 0~500). 미지정이면 0.
+	LoadKg        float64 `protobuf:"fixed64,8,opt,name=load_kg,json=loadKg,proto3" json:"load_kg,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -501,6 +559,27 @@ func (x *PrescribedSet) GetLoadHint() LoadHint {
 		return x.LoadHint
 	}
 	return LoadHint_LOAD_HINT_UNSPECIFIED
+}
+
+func (x *PrescribedSet) GetLoadBasis() LoadBasis {
+	if x != nil {
+		return x.LoadBasis
+	}
+	return LoadBasis_LOAD_BASIS_UNSPECIFIED
+}
+
+func (x *PrescribedSet) GetLoadPct() int32 {
+	if x != nil {
+		return x.LoadPct
+	}
+	return 0
+}
+
+func (x *PrescribedSet) GetLoadKg() float64 {
+	if x != nil {
+		return x.LoadKg
+	}
+	return 0
 }
 
 type RoutineExercise struct {
@@ -1762,14 +1841,18 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"consent_at\x18\a \x01(\x03R\tconsentAt\"\xc5\x01\n" +
+	"consent_at\x18\a \x01(\x03R\tconsentAt\"\xb0\x02\n" +
 	"\rPrescribedSet\x12/\n" +
 	"\bset_type\x18\x01 \x01(\x0e2\x14.coaching.v1.SetTypeR\asetType\x12\x1d\n" +
 	"\n" +
 	"target_rir\x18\x02 \x01(\x05R\ttargetRir\x12\x17\n" +
 	"\arep_min\x18\x03 \x01(\x05R\x06repMin\x12\x17\n" +
 	"\arep_max\x18\x04 \x01(\x05R\x06repMax\x122\n" +
-	"\tload_hint\x18\x05 \x01(\x0e2\x15.coaching.v1.LoadHintR\bloadHint\"\xc8\x01\n" +
+	"\tload_hint\x18\x05 \x01(\x0e2\x15.coaching.v1.LoadHintR\bloadHint\x125\n" +
+	"\n" +
+	"load_basis\x18\x06 \x01(\x0e2\x16.coaching.v1.LoadBasisR\tloadBasis\x12\x19\n" +
+	"\bload_pct\x18\a \x01(\x05R\aloadPct\x12\x17\n" +
+	"\aload_kg\x18\b \x01(\x01R\x06loadKg\"\xc8\x01\n" +
 	"\x0fRoutineExercise\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vexercise_id\x18\x02 \x01(\tR\n" +
@@ -1866,7 +1949,12 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x15LOAD_HINT_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fLOAD_HINT_LIGHT\x10\x01\x12\x14\n" +
 	"\x10LOAD_HINT_MEDIUM\x10\x02\x12\x13\n" +
-	"\x0fLOAD_HINT_HEAVY\x10\x032\xd0\x06\n" +
+	"\x0fLOAD_HINT_HEAVY\x10\x03*m\n" +
+	"\tLoadBasis\x12\x1a\n" +
+	"\x16LOAD_BASIS_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12LOAD_BASIS_PCT_1RM\x10\x01\x12\x16\n" +
+	"\x12LOAD_BASIS_PCT_TOP\x10\x02\x12\x14\n" +
+	"\x10LOAD_BASIS_FIXED\x10\x032\xd0\x06\n" +
 	"\x0fCoachingService\x12[\n" +
 	"\x0eSearchTrainers\x12\".coaching.v1.SearchTrainersRequest\x1a#.coaching.v1.SearchTrainersResponse\"\x00\x12^\n" +
 	"\x0fRequestCoaching\x12#.coaching.v1.RequestCoachingRequest\x1a$.coaching.v1.RequestCoachingResponse\"\x00\x12O\n" +
@@ -1892,85 +1980,87 @@ func file_coaching_v1_coaching_proto_rawDescGZIP() []byte {
 	return file_coaching_v1_coaching_proto_rawDescData
 }
 
-var file_coaching_v1_coaching_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_coaching_v1_coaching_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_coaching_v1_coaching_proto_goTypes = []any{
 	(GrantStatus)(0),                      // 0: coaching.v1.GrantStatus
 	(Side)(0),                             // 1: coaching.v1.Side
 	(SetType)(0),                          // 2: coaching.v1.SetType
 	(LoadHint)(0),                         // 3: coaching.v1.LoadHint
-	(*Peer)(nil),                          // 4: coaching.v1.Peer
-	(*Grant)(nil),                         // 5: coaching.v1.Grant
-	(*PrescribedSet)(nil),                 // 6: coaching.v1.PrescribedSet
-	(*RoutineExercise)(nil),               // 7: coaching.v1.RoutineExercise
-	(*Routine)(nil),                       // 8: coaching.v1.Routine
-	(*MuscleVolume)(nil),                  // 9: coaching.v1.MuscleVolume
-	(*SessionSummary)(nil),                // 10: coaching.v1.SessionSummary
-	(*MemberReport)(nil),                  // 11: coaching.v1.MemberReport
-	(*AuditEntry)(nil),                    // 12: coaching.v1.AuditEntry
-	(*SearchTrainersRequest)(nil),         // 13: coaching.v1.SearchTrainersRequest
-	(*SearchTrainersResponse)(nil),        // 14: coaching.v1.SearchTrainersResponse
-	(*RequestCoachingRequest)(nil),        // 15: coaching.v1.RequestCoachingRequest
-	(*RequestCoachingResponse)(nil),       // 16: coaching.v1.RequestCoachingResponse
-	(*ListGrantsRequest)(nil),             // 17: coaching.v1.ListGrantsRequest
-	(*ListGrantsResponse)(nil),            // 18: coaching.v1.ListGrantsResponse
-	(*AcceptGrantRequest)(nil),            // 19: coaching.v1.AcceptGrantRequest
-	(*AcceptGrantResponse)(nil),           // 20: coaching.v1.AcceptGrantResponse
-	(*RevokeGrantRequest)(nil),            // 21: coaching.v1.RevokeGrantRequest
-	(*RevokeGrantResponse)(nil),           // 22: coaching.v1.RevokeGrantResponse
-	(*GetMemberReportRequest)(nil),        // 23: coaching.v1.GetMemberReportRequest
-	(*GetMemberReportResponse)(nil),       // 24: coaching.v1.GetMemberReportResponse
-	(*ListMemberRoutinesRequest)(nil),     // 25: coaching.v1.ListMemberRoutinesRequest
-	(*ListMemberRoutinesResponse)(nil),    // 26: coaching.v1.ListMemberRoutinesResponse
-	(*SetMemberPrescriptionRequest)(nil),  // 27: coaching.v1.SetMemberPrescriptionRequest
-	(*SetMemberPrescriptionResponse)(nil), // 28: coaching.v1.SetMemberPrescriptionResponse
-	(*ListAuditRequest)(nil),              // 29: coaching.v1.ListAuditRequest
-	(*ListAuditResponse)(nil),             // 30: coaching.v1.ListAuditResponse
+	(LoadBasis)(0),                        // 4: coaching.v1.LoadBasis
+	(*Peer)(nil),                          // 5: coaching.v1.Peer
+	(*Grant)(nil),                         // 6: coaching.v1.Grant
+	(*PrescribedSet)(nil),                 // 7: coaching.v1.PrescribedSet
+	(*RoutineExercise)(nil),               // 8: coaching.v1.RoutineExercise
+	(*Routine)(nil),                       // 9: coaching.v1.Routine
+	(*MuscleVolume)(nil),                  // 10: coaching.v1.MuscleVolume
+	(*SessionSummary)(nil),                // 11: coaching.v1.SessionSummary
+	(*MemberReport)(nil),                  // 12: coaching.v1.MemberReport
+	(*AuditEntry)(nil),                    // 13: coaching.v1.AuditEntry
+	(*SearchTrainersRequest)(nil),         // 14: coaching.v1.SearchTrainersRequest
+	(*SearchTrainersResponse)(nil),        // 15: coaching.v1.SearchTrainersResponse
+	(*RequestCoachingRequest)(nil),        // 16: coaching.v1.RequestCoachingRequest
+	(*RequestCoachingResponse)(nil),       // 17: coaching.v1.RequestCoachingResponse
+	(*ListGrantsRequest)(nil),             // 18: coaching.v1.ListGrantsRequest
+	(*ListGrantsResponse)(nil),            // 19: coaching.v1.ListGrantsResponse
+	(*AcceptGrantRequest)(nil),            // 20: coaching.v1.AcceptGrantRequest
+	(*AcceptGrantResponse)(nil),           // 21: coaching.v1.AcceptGrantResponse
+	(*RevokeGrantRequest)(nil),            // 22: coaching.v1.RevokeGrantRequest
+	(*RevokeGrantResponse)(nil),           // 23: coaching.v1.RevokeGrantResponse
+	(*GetMemberReportRequest)(nil),        // 24: coaching.v1.GetMemberReportRequest
+	(*GetMemberReportResponse)(nil),       // 25: coaching.v1.GetMemberReportResponse
+	(*ListMemberRoutinesRequest)(nil),     // 26: coaching.v1.ListMemberRoutinesRequest
+	(*ListMemberRoutinesResponse)(nil),    // 27: coaching.v1.ListMemberRoutinesResponse
+	(*SetMemberPrescriptionRequest)(nil),  // 28: coaching.v1.SetMemberPrescriptionRequest
+	(*SetMemberPrescriptionResponse)(nil), // 29: coaching.v1.SetMemberPrescriptionResponse
+	(*ListAuditRequest)(nil),              // 30: coaching.v1.ListAuditRequest
+	(*ListAuditResponse)(nil),             // 31: coaching.v1.ListAuditResponse
 }
 var file_coaching_v1_coaching_proto_depIdxs = []int32{
 	0,  // 0: coaching.v1.Grant.status:type_name -> coaching.v1.GrantStatus
 	1,  // 1: coaching.v1.Grant.requested_by:type_name -> coaching.v1.Side
 	1,  // 2: coaching.v1.Grant.role_of_me:type_name -> coaching.v1.Side
-	4,  // 3: coaching.v1.Grant.peer:type_name -> coaching.v1.Peer
+	5,  // 3: coaching.v1.Grant.peer:type_name -> coaching.v1.Peer
 	2,  // 4: coaching.v1.PrescribedSet.set_type:type_name -> coaching.v1.SetType
 	3,  // 5: coaching.v1.PrescribedSet.load_hint:type_name -> coaching.v1.LoadHint
-	6,  // 6: coaching.v1.RoutineExercise.prescription:type_name -> coaching.v1.PrescribedSet
-	7,  // 7: coaching.v1.Routine.exercises:type_name -> coaching.v1.RoutineExercise
-	9,  // 8: coaching.v1.MemberReport.muscle_volume:type_name -> coaching.v1.MuscleVolume
-	10, // 9: coaching.v1.MemberReport.recent_sessions:type_name -> coaching.v1.SessionSummary
-	4,  // 10: coaching.v1.SearchTrainersResponse.peers:type_name -> coaching.v1.Peer
-	5,  // 11: coaching.v1.RequestCoachingResponse.grant:type_name -> coaching.v1.Grant
-	5,  // 12: coaching.v1.ListGrantsResponse.grants:type_name -> coaching.v1.Grant
-	5,  // 13: coaching.v1.AcceptGrantResponse.grant:type_name -> coaching.v1.Grant
-	5,  // 14: coaching.v1.RevokeGrantResponse.grant:type_name -> coaching.v1.Grant
-	11, // 15: coaching.v1.GetMemberReportResponse.report:type_name -> coaching.v1.MemberReport
-	8,  // 16: coaching.v1.ListMemberRoutinesResponse.routines:type_name -> coaching.v1.Routine
-	6,  // 17: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
-	6,  // 18: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
-	12, // 19: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
-	13, // 20: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
-	15, // 21: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
-	17, // 22: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
-	19, // 23: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
-	21, // 24: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
-	23, // 25: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
-	25, // 26: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
-	27, // 27: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
-	29, // 28: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
-	14, // 29: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
-	16, // 30: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
-	18, // 31: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
-	20, // 32: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
-	22, // 33: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
-	24, // 34: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
-	26, // 35: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
-	28, // 36: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
-	30, // 37: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
-	29, // [29:38] is the sub-list for method output_type
-	20, // [20:29] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	4,  // 6: coaching.v1.PrescribedSet.load_basis:type_name -> coaching.v1.LoadBasis
+	7,  // 7: coaching.v1.RoutineExercise.prescription:type_name -> coaching.v1.PrescribedSet
+	8,  // 8: coaching.v1.Routine.exercises:type_name -> coaching.v1.RoutineExercise
+	10, // 9: coaching.v1.MemberReport.muscle_volume:type_name -> coaching.v1.MuscleVolume
+	11, // 10: coaching.v1.MemberReport.recent_sessions:type_name -> coaching.v1.SessionSummary
+	5,  // 11: coaching.v1.SearchTrainersResponse.peers:type_name -> coaching.v1.Peer
+	6,  // 12: coaching.v1.RequestCoachingResponse.grant:type_name -> coaching.v1.Grant
+	6,  // 13: coaching.v1.ListGrantsResponse.grants:type_name -> coaching.v1.Grant
+	6,  // 14: coaching.v1.AcceptGrantResponse.grant:type_name -> coaching.v1.Grant
+	6,  // 15: coaching.v1.RevokeGrantResponse.grant:type_name -> coaching.v1.Grant
+	12, // 16: coaching.v1.GetMemberReportResponse.report:type_name -> coaching.v1.MemberReport
+	9,  // 17: coaching.v1.ListMemberRoutinesResponse.routines:type_name -> coaching.v1.Routine
+	7,  // 18: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
+	7,  // 19: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
+	13, // 20: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
+	14, // 21: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
+	16, // 22: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
+	18, // 23: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
+	20, // 24: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
+	22, // 25: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
+	24, // 26: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
+	26, // 27: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
+	28, // 28: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
+	30, // 29: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
+	15, // 30: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
+	17, // 31: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
+	19, // 32: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
+	21, // 33: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
+	23, // 34: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
+	25, // 35: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
+	27, // 36: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
+	29, // 37: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
+	31, // 38: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
+	30, // [30:39] is the sub-list for method output_type
+	21, // [21:30] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_coaching_v1_coaching_proto_init() }
@@ -1983,7 +2073,7 @@ func file_coaching_v1_coaching_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_coaching_v1_coaching_proto_rawDesc), len(file_coaching_v1_coaching_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,

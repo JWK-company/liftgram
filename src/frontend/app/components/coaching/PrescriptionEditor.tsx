@@ -13,12 +13,12 @@
 // 그래서 저장 버튼 옆에 "이력에 남는다"고 적어 둔다. 숨기고 고치는 것이 아니라는 표시다.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { Peer, Routine, RoutineExercise } from "@app/contracts";
-import { LoadHint as LoadHintPB, SetType as SetTypePB } from "@app/contracts";
+import { LoadBasis as LoadBasisPB, LoadHint as LoadHintPB, SetType as SetTypePB } from "@app/contracts";
 import type { PrescribedSet } from "@app/core";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
-import { emptyRxRow, PrescriptionRows } from "../routines/PrescriptionRows";
+import { emptyRxRow, PrescriptionRows, rxMeaningful } from "../routines/PrescriptionRows";
 import { useToast } from "../Toast";
 import { Panel } from "./Panel";
 import { Button } from "../ui/Button";
@@ -52,15 +52,36 @@ const LOAD_PB: Record<string, LoadHintPB> = {
   heavy: LoadHintPB.HEAVY,
 };
 
+// 무게 기준(#56) — 계약 enum ↔ 도메인 문자열. 0(미지정)은 「기준 없음」. @plm SRS-063
+const BASIS_NAME: Partial<Record<LoadBasisPB, NonNullable<PrescribedSet["loadBasis"]>>> = {
+  [LoadBasisPB.PCT_1RM]: "pct1rm",
+  [LoadBasisPB.PCT_TOP]: "pctTop",
+  [LoadBasisPB.FIXED]: "fixed",
+};
+const BASIS_PB: Record<string, LoadBasisPB> = {
+  pct1rm: LoadBasisPB.PCT_1RM,
+  pctTop: LoadBasisPB.PCT_TOP,
+  fixed: LoadBasisPB.FIXED,
+};
+
 /** 계약 → 도메인. 화면은 이 모양만 안다. */
 export function toDomainRows(rows: RoutineExercise["prescription"]): PrescribedSet[] {
-  return rows.map((r) => ({
-    setType: SET_TYPE_NAME[r.setType] ?? "normal",
-    targetRir: r.targetRir === RIR_UNSET ? null : r.targetRir,
-    repMin: r.repMin > 0 ? r.repMin : null,
-    repMax: r.repMax > 0 ? r.repMax : null,
-    loadHint: LOAD_NAME[r.loadHint] ?? null,
-  }));
+  return rows.map((r) => {
+    const basis = BASIS_NAME[r.loadBasis];
+    return {
+      setType: SET_TYPE_NAME[r.setType] ?? "normal",
+      targetRir: r.targetRir === RIR_UNSET ? null : r.targetRir,
+      repMin: r.repMin > 0 ? r.repMin : null,
+      repMax: r.repMax > 0 ? r.repMax : null,
+      loadHint: LOAD_NAME[r.loadHint] ?? null,
+      // 회원이 넣은 무게 기준을 트레이너 화면이 받아야 저장할 때 지우지 않는다(QA Q1)
+      ...(basis
+        ? basis === "fixed"
+          ? { loadBasis: basis, loadKg: r.loadKg }
+          : { loadBasis: basis, loadPct: r.loadPct }
+        : {}),
+    };
+  });
 }
 
 /** 도메인 → 계약. `null`은 계약이 아는 "없음"(-1·0)으로 옮긴다. */
@@ -71,6 +92,9 @@ function toContractRows(rows: PrescribedSet[]) {
     repMin: r.repMin ?? 0,
     repMax: r.repMax ?? 0,
     loadHint: r.loadHint ? (LOAD_PB[r.loadHint] ?? LoadHintPB.UNSPECIFIED) : LoadHintPB.UNSPECIFIED,
+    loadBasis: r.loadBasis ? (BASIS_PB[r.loadBasis] ?? LoadBasisPB.UNSPECIFIED) : LoadBasisPB.UNSPECIFIED,
+    loadPct: r.loadBasis && r.loadBasis !== "fixed" ? (r.loadPct ?? 0) : 0,
+    loadKg: r.loadBasis === "fixed" ? (r.loadKg ?? 0) : 0,
   }));
 }
 
@@ -98,9 +122,11 @@ export function PrescriptionEditor({
 
   // 아무것도 지정하지 않은 처방은 **처방이 아니다** — 그대로 저장하면 회원 화면에
   // 의미 없는 표시만 는다. 그럴 땐 지우는 것으로 본다.
-  const meaningful = rows.some(
-    (r) => r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null,
-  );
+  // [원본] 무게 기준만 있는 처방을 빈 처방으로 봤다
+  // const meaningful = rows.some(
+  //   (r) => r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null,
+  // );
+  const meaningful = rxMeaningful(rows); // @plm SRS-063
 
   async function save() {
     if (saving) return;

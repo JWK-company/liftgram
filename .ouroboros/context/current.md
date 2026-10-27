@@ -1,7 +1,8 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 남은 피드백 묶음 1 「운동 중 보조」 (Feature · qa spec 완료 → execute 대기 2026-10-27 · 출시 v0.36.0)
+## 활성 작업 — 남은 피드백 묶음 1 「운동 중 보조」 (Feature · execute 완료 → **/qa code 대기·미배포** 2026-10-27 · 출시 v0.36.0)
 - 요구 URS-020·SRS-061(PR 칩·기록 바로잡기 #50·#51)·SRS-062(슈퍼셋 함께 완료 #48)·SRS-063(처방 무게 기준 #56) · 스펙 `.ouroboros/docs/spec/20261027_session-assist/spec.md` · QA `.ouroboros/docs/qa/20261027_session-assist-spec_qa.md`(조건부 통과 Q1~Q8 반영)
 - 작업 범위: core(domain prescription·personalRecords · workoutRepository) · frontend(ExerciseBlock·SetRowEdit·ActiveWorkout·WorkoutDetailClient·RoutineEditor·coaching/PrescriptionEditor) · proto/coaching · backend/internal/coaching
+- 현재 위치: execute 커밋(미배포·버전 미변경) · core 255 통과 · 새 e2e session-assist 3/3 · 관련 e2e 47/47(profile lb 1건은 단독 재실행 통과) · 다음 = 독립 /qa code → 수정 → release v0.36.0 → PLM #50·#51·#48·#56
 - 다음 묶음 2 「기록 돌아보기·다시 하기」 v0.37.0 — URS-021·SRS-064(총평 #52)·SRS-065(세트 조합·다시 시작·피드 바로 시작 #59)·SRS-066(하단 sticky 수정 #45·#43 — 운영 재현: main overflow-x-hidden) · 스펙 `.ouroboros/docs/spec/20261027_history-replay/spec.md` · 보류 #55·#25
 ## 직전 작업 — 운동 완료 시 루틴 반영·루틴으로 저장 (Feature · **완료** 2026-10-27 · v0.35.0 운영 build 324 · bb53b04)
 - 요구 URS-019·UCS-022·SRS-059(변경점 선택 반영)·SRS-060(루틴으로 저장) · 스펙 `.ouroboros/docs/spec/20261027_finish-routine-sync/spec.md` · 피드백 #46·#60·#59(일부) · 출시 v0.35.0
@@ -97,4 +98,3 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 
 ## 다음 작업
 1. **키 반영 완료(2026-10-26)**: 메일(smtp) · Turnstile(liftgram-auth 위젯 · 토큰 없는 가입 거절 확인) · 구글(OAuth 클라이언트 liftgram-web · start→accounts.google.com 정상) · v0.21 booktarae형 로그인/가입 화면 · v0.22 /privacy·/terms · OAUTH_PREVIEW_PROVIDERS=google,kakao,naver(카카오·네이버는 '설정 필요')
-2. **카카오·네이버 키 반영(2026-10-26)**: 백엔드 providers [google,kakao,naver] · 네이버 start→nid.naver.com "Liftgram 로그인 중" 정상 · 검수자료 ~/Downloads/liftgram-naver-review/ + liftgram-naver-logo-140.png · 네이버 실가입 확인(tarae_dev@naver.com · 계정 주소는 비보증이라 비움) · v0.23.2(build 293·a68f7f6): 계정카드에 연결 로그인 주소 표시 + 「설정 필요」 깜빡임 제거 · 남은 것: 단계4 재캡처 → 네이버 검수요청 · 카카오 실로그인 · 재설계 시안(artifact 3CVyQDuS3Ky1s1qBdrXudT) 결정 대기

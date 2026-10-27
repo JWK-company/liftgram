@@ -80,7 +80,8 @@ test("기구 바꾸기 — 바벨 벤치프레스를 덤벨로 바꿔 마친 기
   // 처음부터 덤벨 벤치프레스를 고르면 — 방금 기록이 이전 기록·PR 로 온다
   await 운동_시작(page, "덤벨 벤치프레스");
   await expect(첫세트(page).getByTestId("set-prev")).toContainText("30×10", { timeout: 15_000 });
-  await expect(page.getByTestId("pr-chip")).toContainText("30");
+  // [원본] await expect(page.getByTestId("pr-chip")).toContainText("30");
+  await expect(page.getByTestId("pr-chip-both")).toContainText("30"); // 같은 세트가 중량·볼륨 PR(#50)
 });
 
 test("케이블 부착물 — 로프와 일자바 기록이 섞이지 않고, 지난 조합을 기억하고, 다른 조합 기록을 볼 수 있다", async ({

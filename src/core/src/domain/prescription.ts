@@ -6,13 +6,25 @@
 export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal';
 export type LoadHint = 'light' | 'medium' | 'heavy';
 
+// v24(JSON 안 필드 — 스키마 변경 없음): 무게 기준. 없으면 기존과 같다(옛 처방 하위호환). @plm SRS-063
+//   pct1rm = 기록으로 추정한 1RM 의 N% · pctTop = 같은 블록 탑셋의 N%(백오프) · fixed = 무게 직접
+export type LoadBasis = 'pct1rm' | 'pctTop' | 'fixed';
+
 export interface PrescribedSet {
   setType: PrescribedSetType;
   targetRir: number | null; // 0~6, null=미지정
   repMin: number | null;
   repMax: number | null;
   loadHint: LoadHint | null;
+  loadBasis?: LoadBasis; // 없으면 무게 기준 없음(기존 처방)
+  loadPct?: number; // pct1rm 30~100 · pctTop 50~100
+  loadKg?: number; // fixed 0~500(정규 kg)
 }
+
+// 무게 기준 값의 허용 범위 — 밖이면 기준째 버린다(엉뚱한 무게를 채우는 것보다 안 채우는 게 낫다). 서버와 같은 값.
+export const LOAD_PCT_RANGE: Record<'pct1rm' | 'pctTop', [number, number]> = { pct1rm: [30, 100], pctTop: [50, 100] };
+export const LOAD_KG_MAX = 500;
+const LOAD_BASES: LoadBasis[] = ['pct1rm', 'pctTop', 'fixed'];
 
 export const RIR_MIN = 0;
 export const RIR_MAX = 6;
@@ -36,6 +48,7 @@ export function sanitizePrescriptionValue(raw: unknown): PrescribedSet[] | null 
       repMin: num(o.repMin),
       repMax: num(o.repMax),
       loadHint: LOAD_HINTS.includes(o.loadHint as LoadHint) ? (o.loadHint as LoadHint) : null,
+      ...sanitizeLoadBasis(o),
     });
   }
   return out.length > 0 ? out : null;
@@ -90,4 +103,69 @@ export function repRangeLabel(repMin: number | null, repMax: number | null): str
   if (repMin != null) return `${repMin}+`;
   if (repMax != null) return `~${repMax}`;
   return '';
+}
+
+// ── 처방 무게 기준(#56) ── @plm SRS-063
+// 처방은 사람이 쓴다(ADR-028). 여기서는 사람이 쓴 「1RM 의 80%」를 숫자로 바꾸는 계산만 한다 — 처방을 바꾸지 않는다.
+function sanitizeLoadBasis(o: Record<string, unknown>): Pick<PrescribedSet, 'loadBasis' | 'loadPct' | 'loadKg'> {
+  const basis = o.loadBasis as LoadBasis;
+  if (!LOAD_BASES.includes(basis)) return {};
+  if (basis === 'fixed') {
+    const kg = o.loadKg;
+    if (typeof kg !== 'number' || !Number.isFinite(kg) || kg < 0 || kg > LOAD_KG_MAX) return {};
+    return { loadBasis: 'fixed', loadKg: Math.round(kg * 100) / 100 };
+  }
+  const pct = o.loadPct;
+  const [lo, hi] = LOAD_PCT_RANGE[basis];
+  if (typeof pct !== 'number' || !Number.isFinite(pct) || pct < lo || pct > hi) return {};
+  return { loadBasis: basis, loadPct: Math.round(pct) };
+}
+
+// 원판 단위 반올림(QA Q8 — v1 고정): 바벨류 2.5kg · 그 밖 1kg · lb 는 5lb/2.5lb(=kg 환산 후 반올림).
+const BAR_LIKE = new Set(['barbell', 'smith', 'ezbar', 'trapbar']);
+export function roundLoadKg(kg: number, equipment: string | null | undefined, unit: 'kg' | 'lb'): number {
+  if (!Number.isFinite(kg) || kg <= 0) return 0;
+  const bar = BAR_LIKE.has(equipment ?? '');
+  if (unit === 'lb') {
+    const LB = 0.45359237;
+    const step = bar ? 5 : 2.5;
+    return Math.round((Math.round(kg / LB / step) * step * LB) * 1000) / 1000;
+  }
+  const step = bar ? 2.5 : 1;
+  return Math.round(kg / step) * step;
+}
+
+export type ResolvedLoad =
+  | { weightKg: number; reasonKey: string; params: Record<string, number> }
+  | { pending: 'needFirstSet' | 'needTop' };
+
+// 처방 무게 기준 → 이번 세트 무게(계산 무게 kg). 기록이 없으면 pending — 화면은 직접 입력·첫 세트를 기다린다.
+export function resolvePrescribedLoad(input: {
+  basis: LoadBasis;
+  pct?: number | null;
+  kg?: number | null;
+  est1rmKg?: number | null;
+  topKg?: number | null;
+  equipment?: string | null;
+  unit: 'kg' | 'lb';
+}): ResolvedLoad {
+  const { basis, pct, kg, est1rmKg, topKg, equipment, unit } = input;
+  if (basis === 'fixed') {
+    return { weightKg: kg != null && kg > 0 ? kg : 0, reasonKey: 'prescription.load.reasonFixed', params: {} };
+  }
+  const p = pct ?? 0;
+  if (basis === 'pct1rm') {
+    if (!est1rmKg || est1rmKg <= 0) return { pending: 'needFirstSet' };
+    return {
+      weightKg: roundLoadKg((est1rmKg * p) / 100, equipment, unit),
+      reasonKey: 'prescription.load.reasonPct1rm',
+      params: { base: est1rmKg, pct: p },
+    };
+  }
+  if (!topKg || topKg <= 0) return { pending: 'needTop' };
+  return {
+    weightKg: roundLoadKg((topKg * p) / 100, equipment, unit),
+    reasonKey: 'prescription.load.reasonPctTop',
+    params: { base: topKg, pct: p },
+  };
 }

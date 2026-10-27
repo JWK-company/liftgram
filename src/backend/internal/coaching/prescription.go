@@ -23,6 +23,11 @@ const (
 var validSetTypes = map[string]bool{"warmup": true, "top": true, "backoff": true, "normal": true}
 var validLoadHints = map[string]bool{"light": true, "medium": true, "heavy": true}
 
+// 무게 기준(#56) 허용 범위 — 앱(core prescription.ts LOAD_PCT_RANGE·LOAD_KG_MAX)과 같은 값. @plm SRS-063
+var loadPctRange = map[string][2]int{"pct1rm": {30, 100}, "pctTop": {50, 100}}
+
+const loadKgMax = 500.0
+
 // SanitizePrescription은 들어온 처방을 저장해도 되는 모양으로 만든다.
 //
 //	· 모르는 세트 타입 → `normal`(빼 버리면 줄 수가 어긋나 세트 수가 달라진다)
@@ -48,15 +53,37 @@ func SanitizePrescription(rows []PrescribedSet) []PrescribedSet {
 		if !validLoadHints[loadHint] {
 			loadHint = ""
 		}
-		out = append(out, PrescribedSet{
+		row := PrescribedSet{
 			SetType:   setType,
 			TargetRIR: clampRIR(r.TargetRIR),
 			RepMin:    nonNegative(r.RepMin),
 			RepMax:    nonNegative(r.RepMax),
 			LoadHint:  loadHint,
-		})
+		}
+		row.LoadBasis, row.LoadPct, row.LoadKg = sanitizeLoadBasis(r)
+		out = append(out, row)
 	}
 	return out
+}
+
+// 무게 기준은 범위 밖이면 **기준째** 버린다 — 엉뚱한 무게를 채우는 것보다 안 채우는 게 낫다(앱과 같은 규칙).
+func sanitizeLoadBasis(r PrescribedSet) (string, *int, *float64) {
+	switch r.LoadBasis {
+	case "fixed":
+		if r.LoadKg == nil || *r.LoadKg < 0 || *r.LoadKg > loadKgMax {
+			return "", nil, nil
+		}
+		kg := float64(int64(*r.LoadKg*100+0.5)) / 100
+		return "fixed", nil, &kg
+	case "pct1rm", "pctTop":
+		rng := loadPctRange[r.LoadBasis]
+		if r.LoadPct == nil || *r.LoadPct < rng[0] || *r.LoadPct > rng[1] {
+			return "", nil, nil
+		}
+		v := *r.LoadPct
+		return r.LoadBasis, &v, nil
+	}
+	return "", nil, nil
 }
 
 func clampRIR(v *int) *int {

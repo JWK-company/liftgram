@@ -77,6 +77,14 @@ enum LoadHint {
   LOAD_HINT_HEAVY = 3;
 }
 
+// 처방 무게 기준(#56 · SRS-063) — 처방을 쓴 사람이 고른 계산 방식. 미지정이면 무게 기준 없음(기존 처방).
+enum LoadBasis {
+  LOAD_BASIS_UNSPECIFIED = 0;
+  LOAD_BASIS_PCT_1RM = 1; // 기록으로 추정한 1RM 의 N%
+  LOAD_BASIS_PCT_TOP = 2; // 같은 블록 탑셋의 N%(백오프)
+  LOAD_BASIS_FIXED = 3; // 무게 직접(kg)
+}
+
 message PrescribedSet {
   SetType set_type = 1;
   // 남길 여유 반복(RIR). 0~6 밖의 값은 서버가 잘라 낸다. 미지정이면 -1.
@@ -85,6 +93,11 @@ message PrescribedSet {
   int32 rep_min = 3;
   int32 rep_max = 4;
   LoadHint load_hint = 5;
+  // 무게 기준(SRS-063). load_pct 는 pct_1rm 30~100 · pct_top 50~100(밖이면 서버가 버린다), 미지정이면 0.
+  LoadBasis load_basis = 6;
+  int32 load_pct = 7;
+  // fixed 의 무게(정규 kg · 0~500). 미지정이면 0.
+  double load_kg = 8;
 }
 
 message RoutineExercise {

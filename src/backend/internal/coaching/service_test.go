@@ -20,7 +20,7 @@ import (
 )
 
 type fakeRepo struct {
-	catalog map[string]CatalogExercise // 서버 카탈로그(시드 종목) — QA H4
+	catalog    map[string]CatalogExercise // 서버 카탈로그(시드 종목) — QA H4
 	trainers   []Peer
 	eligible   map[string]bool
 	users      map[string]bool
@@ -633,5 +633,73 @@ func TestSanitize_상한을_넘으면_자른다(t *testing.T) {
 	}
 	if got := len(SanitizePrescription(rows)); got != maxPrescriptionRows {
 		t.Fatalf("상한이 지켜지지 않았다: %d", got)
+	}
+}
+
+// ── 처방 무게 기준(#56 · QA Q1) ── @plm SRS-063
+// 트레이너가 처방을 고칠 때 회원이 넣은 무게 기준(1RM 의 N%·탑셋의 N%·직접)이 사라지면 안 된다.
+func TestSanitize_무게_기준을_지키고_범위_밖은_버린다(t *testing.T) {
+	p80, p140, p90 := 80, 140, 90
+	kg := 62.5
+	rows := SanitizePrescription([]PrescribedSet{
+		{SetType: "top", LoadBasis: "pct1rm", LoadPct: &p80},
+		{SetType: "backoff", LoadBasis: "pctTop", LoadPct: &p140},
+		{SetType: "backoff", LoadBasis: "pctTop", LoadPct: &p90},
+		{SetType: "normal", LoadBasis: "fixed", LoadKg: &kg},
+		{SetType: "normal", LoadBasis: "모르는기준", LoadPct: &p80},
+	})
+	if rows[0].LoadBasis != "pct1rm" || rows[0].LoadPct == nil || *rows[0].LoadPct != 80 {
+		t.Fatalf("1RM 80%% 가 남아야 한다: %+v", rows[0])
+	}
+	if rows[1].LoadBasis != "" || rows[1].LoadPct != nil {
+		t.Fatalf("탑셋 140%% 는 버려야 한다: %+v", rows[1])
+	}
+	if rows[2].LoadBasis != "pctTop" || *rows[2].LoadPct != 90 {
+		t.Fatalf("탑셋 90%% 가 남아야 한다: %+v", rows[2])
+	}
+	if rows[3].LoadBasis != "fixed" || rows[3].LoadKg == nil || *rows[3].LoadKg != 62.5 {
+		t.Fatalf("직접 무게가 남아야 한다: %+v", rows[3])
+	}
+	if rows[4].LoadBasis != "" {
+		t.Fatalf("모르는 기준은 버려야 한다: %+v", rows[4])
+	}
+}
+
+// 저장한 처방 JSON 의 키는 앱(core sanitizePrescriptionValue)이 읽는 이름이어야 한다 — Go 기본 필드명(SetType)이면
+// 앱이 모르는 키라 전부 「일반 세트」로 읽힌다.
+func TestPrescription_저장_JSON_은_앱과_같은_키_무게_기준_왕복(t *testing.T) {
+	repo := newRepo()
+	activeGrant(repo, fullScope())
+	repo.records = []MemberRecord{
+		rec("routine_exercises", "re1", map[string]any{"id": "re1", "routine_id": "r1", "exercise_id": "e1", "target_sets": 2}),
+	}
+	p80 := 80
+	_, err := newSvc(repo).SetMemberPrescription(context.Background(), "t1", "m1", "r1", "re1",
+		[]PrescribedSet{{SetType: "top", LoadBasis: "pct1rm", LoadPct: &p80}, {SetType: "backoff"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var saved map[string]any
+	if err := json.Unmarshal(repo.updated["row-re1"], &saved); err != nil {
+		t.Fatal(err)
+	}
+	s, _ := saved["prescription"].(string)
+	var rows []map[string]any
+	if err := json.Unmarshal([]byte(s), &rows); err != nil {
+		t.Fatal(err)
+	}
+	if rows[0]["setType"] != "top" || rows[0]["loadBasis"] != "pct1rm" || rows[0]["loadPct"] != float64(80) {
+		t.Fatalf("앱이 읽는 키(setType·loadBasis·loadPct)로 저장돼야 한다: %s", s)
+	}
+	// 다시 읽어도(리포트 경로) 기준이 남는다
+	back := parsePrescription(s)
+	if len(back) != 2 || back[0].LoadBasis != "pct1rm" || back[0].LoadPct == nil || *back[0].LoadPct != 80 {
+		t.Fatalf("되읽기에서 무게 기준이 사라졌다: %+v", back)
+	}
+	// proto 왕복에서도 남는다(트레이너 화면 → 서버)
+	pb := prescriptionPB(back)
+	dom := prescriptionDomain(pb)
+	if dom[0].LoadBasis != "pct1rm" || dom[0].LoadPct == nil || *dom[0].LoadPct != 80 {
+		t.Fatalf("proto 왕복에서 무게 기준이 사라졌다: %+v", dom[0])
 	}
 }

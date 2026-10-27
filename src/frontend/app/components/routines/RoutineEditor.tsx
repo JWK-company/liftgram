@@ -53,7 +53,7 @@ import { useSession } from "../SessionProvider";
 import { SubAppBar } from "../ui/AppBar";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { MoreMenu } from "../ui/MoreMenu";
-import { PrescriptionRows, emptyRxRow, rxSummary } from "./PrescriptionRows";
+import { PrescriptionRows, emptyRxRow, rxMeaningful, rxSummary } from "./PrescriptionRows";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 
@@ -856,6 +856,31 @@ function PrescriptionEditor({
   const [saved, setSaved] = useState<PrescribedSet[] | null>(re.prescription ?? null);
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<PrescribedSet[]>([]);
+  // 맨몸·어시스트 종목은 % 무게 기준을 고를 수 없다(SRS-063) — 편집 시트를 열 때 종목 성질을 본다
+  const [allowLoad, setAllowLoad] = useState(true);
+  useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const [exRepo, dom] = await Promise.all([
+          import("@app/core/data/exerciseRepository"),
+          import("@app/core"),
+        ]);
+        const e = await exRepo.getExercise(re.exerciseId);
+        if (alive)
+          setAllowLoad(
+            e.kind !== "cardio" &&
+              dom.resolveLoadMode(e as Parameters<typeof dom.resolveLoadMode>[0]) === "external",
+          );
+      } catch {
+        // 못 읽으면 고를 수 있게 둔다
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [open, re.exerciseId]);
 
   const summary = rxSummary(saved);
 
@@ -893,7 +918,7 @@ function PrescriptionEditor({
           <AppText variant="caption" color="textMuted" className="mt-[2px] mb-[var(--spacing-sm)] block">
             {t("routines.rxHint")}
           </AppText>
-          <PrescriptionRows rows={rows} onChange={setRows} />
+          <PrescriptionRows rows={rows} onChange={setRows} allowLoad={allowLoad} />
           <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
             <div className="flex-1">
               <Button title={t("common.cancel")} variant="secondary" onPress={() => setOpen(false)} />
@@ -904,10 +929,12 @@ function PrescriptionEditor({
                 testId="btn-rx-save"
                 onPress={() => {
                   // 한 행이라도 뜻이 있으면 처방으로 본다 — 전부 비어 있으면 처방 자체를 지운다.
-                  const hasAny = rows.some(
-                    (r) =>
-                      r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null,
-                  );
+                  // [원본] 무게 기준만 있는 처방을 「빈 처방」으로 봤다
+                  // const hasAny = rows.some(
+                  //   (r) =>
+                  //     r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null,
+                  // );
+                  const hasAny = rxMeaningful(rows); // @plm SRS-063
                   const next = hasAny ? rows : null;
                   void repo.setRoutineExercisePrescription(re.id, next).then(() => {
                     scheduleFlush();

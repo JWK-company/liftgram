@@ -26,7 +26,8 @@ import {
   toKg,
   type WeightUnit,
 } from "@app/core";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSetDrafts } from "./setDrafts";
 import { lang, t } from "@/lib/i18n";
 import { ActionSheet, InfoDialog, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
@@ -100,6 +101,8 @@ export function SetRowEdit({
   onSetGrip,
   onDelete,
   onApplySuggestion,
+  onToggleDoneSingle,
+  loadNote,
 }: {
   set: SetRow;
   /** 표시 순번 — 일반 세트만 번호가 오르고 나머지는 W/D/F/T. */
@@ -117,8 +120,15 @@ export function SetRowEdit({
   onSetGrip: (grip: string | null) => void;
   onDelete: () => void;
   onApplySuggestion: () => void;
+  /** 슈퍼셋 안에서 — 길게 누르거나 ⋯ 에서 「이 종목만」 완료(체크 한 번은 묶음 전체 · #48) @plm SRS-062 */
+  onToggleDoneSingle?: (next: boolean, weightKg: number, reps: number) => void;
+  /** 처방 무게의 근거(「추정 1RM 100kg의 80%」) — 계산된 무게가 어디서 왔는지(ADR-028) @plm SRS-063 */
+  loadNote?: string | null;
 }) {
   const isDone = set.done;
+  const drafts = useSetDrafts();
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longFired = useRef(false);
   const [w, setW] = useState(() => String(fromKg(set.weightKg, unit)));
   const [r, setR] = useState(() => String(set.reps));
   const [pt, setPt] = useState(() => (set.partialReps ? String(set.partialReps) : ""));
@@ -128,16 +138,27 @@ export function SetRowEdit({
   const [plates, setPlates] = useState<string | null>(null);
 
   // 밖에서 값이 바뀌면(이전 칩 적용·제안 적용) 입력칸도 따라간다.
-  useEffect(() => setW(String(fromKg(set.weightKg, unit))), [set.weightKg, unit]);
-  useEffect(() => setR(String(set.reps)), [set.reps]);
+  // 밖에서 값이 바뀌면 등록부의 입력 중 값도 버린다 — 옛 입력이 묶음 완료 때 새 값을 덮지 않게(SRS-062)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 무게가 바뀔 때만 따라간다
+  useEffect(() => {
+    setW(String(fromKg(set.weightKg, unit)));
+    drafts.set(set.id, { weightKg: undefined });
+  }, [set.weightKg, unit]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 횟수가 바뀔 때만 따라간다
+  useEffect(() => {
+    setR(String(set.reps));
+    drafts.set(set.id, { reps: undefined });
+  }, [set.reps]);
   useEffect(() => setPt(set.partialReps ? String(set.partialReps) : ""), [set.partialReps]);
 
   const commitWeight = () => {
+    drafts.set(set.id, { weightKg: undefined });
     const n = Number.parseFloat(w.replace(",", "."));
     if (!Number.isNaN(n) && n >= 0) onUpdate({ weightKg: toKg(n, unit) });
     else setW(String(fromKg(set.weightKg, unit)));
   };
   const commitReps = () => {
+    drafts.set(set.id, { reps: undefined });
     const n = Number.parseInt(r, 10);
     if (!Number.isNaN(n) && n >= 0) onUpdate({ reps: n });
     else setR(String(set.reps));
@@ -146,6 +167,12 @@ export function SetRowEdit({
     const n = Number.parseInt(pt, 10);
     onUpdate({ partialReps: Number.isNaN(n) || n <= 0 ? null : n });
   };
+
+  /** 지금 입력칸에 보이는 값(kg · 횟수) — 저장 커밋을 기다리지 않는다. */
+  const currentValues = (): [number, number] => [
+    toKg(Number.parseFloat(w.replace(",", ".")) || 0, unit),
+    Number.parseInt(r, 10) || 0,
+  ];
 
   const applyPrev = () => {
     if (!prev || isDone) return;
@@ -242,7 +269,11 @@ export function SetRowEdit({
           inputMode="decimal"
           value={w}
           disabled={isDone}
-          onChange={(e) => setW(e.target.value)}
+          onChange={(e) => {
+            setW(e.target.value);
+            const n = Number.parseFloat(e.target.value.replace(",", "."));
+            drafts.set(set.id, { weightKg: Number.isNaN(n) || n < 0 ? undefined : toKg(n, unit) });
+          }}
           onBlur={commitWeight}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           onFocus={(e) => e.currentTarget.select()}
@@ -253,7 +284,11 @@ export function SetRowEdit({
           inputMode="numeric"
           value={r}
           disabled={isDone}
-          onChange={(e) => setR(e.target.value)}
+          onChange={(e) => {
+            setR(e.target.value);
+            const n = Number.parseInt(e.target.value, 10);
+            drafts.set(set.id, { reps: Number.isNaN(n) || n < 0 ? undefined : n });
+          }}
           onBlur={commitReps}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           onFocus={(e) => e.currentTarget.select()}
@@ -264,12 +299,26 @@ export function SetRowEdit({
           type="button"
           data-testid="set-done"
           aria-pressed={isDone}
-          aria-label={isDone ? "완료 해제" : "세트 완료"}
+          aria-label={isDone ? "완료 해제" : onToggleDoneSingle ? t("session.supersetDone") : "세트 완료"}
+          // 슈퍼셋 안이면 길게 눌러(500ms) 이 종목만 — 한 번 누르기는 묶음 전체(#48 A) @plm SRS-062
+          onPointerDown={() => {
+            if (!onToggleDoneSingle) return;
+            longFired.current = false;
+            pressTimer.current = setTimeout(() => {
+              longFired.current = true;
+              onToggleDoneSingle(!isDone, ...currentValues());
+            }, 500);
+          }}
+          onPointerUp={() => pressTimer.current && clearTimeout(pressTimer.current)}
+          onPointerLeave={() => pressTimer.current && clearTimeout(pressTimer.current)}
+          onContextMenu={(e) => onToggleDoneSingle && e.preventDefault()}
           onClick={() => {
+            if (longFired.current) {
+              longFired.current = false;
+              return;
+            }
             // 입력칸의 blur 커밋을 기다리지 않고 **지금 화면의 값**을 함께 넘긴다.
-            const kg = toKg(Number.parseFloat(w.replace(",", ".")) || 0, unit);
-            const reps = Number.parseInt(r, 10) || 0;
-            onToggleDone(!isDone, kg, reps);
+            onToggleDone(!isDone, ...currentValues());
           }}
           style={{
             backgroundColor: isDone ? "var(--color-ok)" : "var(--color-surface-alt)",
@@ -309,6 +358,15 @@ export function SetRowEdit({
               {t("session.rxRir", { rir: set.targetRir })}
             </AppText>
           ) : null}
+        </div>
+      ) : null}
+
+      {/* 처방 무게의 근거 — 사람이 쓴 처방을 계산한 것임을 보인다(ADR-028) @plm SRS-063 */}
+      {loadNote ? (
+        <div className="pb-[2px] pl-[42px]">
+          <AppText variant="label" color="textMuted" data-testid="set-load-note" className="block truncate">
+            {loadNote}
+          </AppText>
         </div>
       ) : null}
 
@@ -374,6 +432,21 @@ export function SetRowEdit({
               </button>
             </div>
           </div>
+
+          {/* 길게 누르기의 대안(접근성) — 슈퍼셋 안에서 이 종목만 완료·해제 @plm SRS-062 */}
+          {onToggleDoneSingle ? (
+            <button
+              type="button"
+              data-testid="set-done-single"
+              onClick={() => onToggleDoneSingle(!isDone, ...currentValues())}
+              className="mt-[var(--spacing-sm)] flex items-center gap-[4px] px-[var(--spacing-sm)] py-[4px]"
+            >
+              <Icon name="checkmark" size={16} color="var(--color-brand)" />
+              <AppText variant="label" color="primary">
+                {isDone ? t("session.onlyThisUndone") : t("session.onlyThisDone")}
+              </AppText>
+            </button>
+          ) : null}
 
           <button
             type="button"

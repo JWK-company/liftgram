@@ -240,7 +240,8 @@ export interface WorkoutExerciseDetail {
   machineVariant: string | null; // 머신 기구/브랜드 키(null=기본, 레거시)
   variantKey: string | null; // v6 변형 버킷 키(기구·그립·팔). @plm SRS-028
   note: string | null; // 세션 종목 메모(그날 느낌·포인트). @plm SRS-004
-  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null }[];
+  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; id?: string }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
+  isCardio?: boolean; // 유산소는 고치기 없이 지우기만(QA Q7) @plm SRS-061
   volumeKg: number;
   bestEstimated1RM: number;
 }
@@ -287,7 +288,9 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       machineVariant: we.machineVariant,
       variantKey: we.variantKey ?? legacyMachineVariantToV6(we.machineVariant).key, // 레거시 행 즉석 승계
       note: we.note ?? null,
+      isCardio: exList.find((e) => e.id === we.exerciseId)?.kind === 'cardio',
       sets: sets.map((s) => ({
+        id: s.id, // @plm SRS-061
         setNumber: s.setNumber,
         weightKg: s.weightKg,
         reps: s.reps,

@@ -23,6 +23,9 @@ import {
   type EquipmentType,
   type PrescribedSet, // v16: 처방 어휘(프리레이·복사). @plm SRS-043
 } from '../domain';
+import { pickPrSets, countMajorPrs } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
+import { resolvePrescribedLoad } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
+import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
 import {
   legacyMachineVariantToV6,
   variantColumns,
@@ -439,6 +442,132 @@ export async function getExercisePR(
   return best;
 }
 
+// ── PR 2종 칩(#50·#51) ── @plm SRS-061
+// getExercisePR(보존)은 「중량 하나」만 돌려준다. 칩은 중량 PR·볼륨 PR 을 따로 보이고, 누르면 입력 칸에 채우고,
+// 「기록 보기」로 그 세트가 있는 운동으로 간다 — 그래서 세트 출처까지 돌려준다(QA Q4: 입력 무게·계산 무게 분리).
+export interface PrSetRef {
+  inputWeightKg: number; // 그 세트에 적은 무게(한쪽 입력이면 한쪽)
+  effectiveKg: number; // 계산 무게(배수·하중모드 반영) — 칩에 보이는 값
+  reps: number;
+  volumeKg: number;
+  loadMultiplier: number | null;
+  setLogId: string;
+  workoutId: string;
+  completedAt: number | null;
+}
+export async function getExercisePRs(
+  exerciseId: string,
+  variant?: string | null,
+): Promise<{ weight: PrSetRef | null; volume: PrSetRef | null }> {
+  const none = { weight: null, volume: null };
+  const completed = await workouts().query(Q.where('state', 'completed')).fetch();
+  if (!completed.length) return none;
+  const doneAt = new Map(completed.map((w) => [w.id, w.completedAt ?? null]));
+  const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id)))];
+  if (variant !== undefined) clauses.push(Q.where('variant_key', variant));
+  const wes = await workoutExercises().query(...clauses).fetch();
+  if (!wes.length) return none;
+  const workoutOf = new Map(wes.map((x) => [x.id, x.workoutId]));
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch()).filter(
+    isPerformed,
+  );
+  const cands = sets.map((s) => ({ ...toLoggedSet(s, loadMode, bw), _s: s }));
+  const picked = pickPrSets(cands);
+  const ref = (c: (typeof cands)[number] | null): PrSetRef | null => {
+    if (!c) return null;
+    const workoutId = workoutOf.get(c._s.workoutExerciseId) ?? '';
+    return {
+      inputWeightKg: c._s.weightKg,
+      effectiveKg: effectiveWeightKg(c),
+      reps: effectiveReps(c),
+      volumeKg: setVolumeKg(c),
+      loadMultiplier: c._s.loadMultiplier ?? null,
+      setLogId: c._s.id,
+      workoutId,
+      completedAt: doneAt.get(workoutId) ?? null,
+    };
+  };
+  return { weight: ref(picked.weight), volume: ref(picked.volume) };
+}
+
+// 사용자 무게 단위 — 처방 무게 반올림(lb 원판) 용. 못 읽으면 kg.
+async function getUserWeightUnit(): Promise<'kg' | 'lb'> {
+  try {
+    const [u] = await database.get<UserProfile>('user_profiles').query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
+    return u?.weightUnit === 'lb' ? 'lb' : 'kg';
+  } catch {
+    return 'kg';
+  }
+}
+
+// 같은 칸(종목×조합)의 완료 기록으로 추정한 1RM(계산 무게 kg) — 처방 「1RM 의 N%」 기준(#56-3 A). 없으면 0. @plm SRS-063
+export async function estimatedOneRmForSlot(exerciseId: string, variant?: string | null): Promise<number> {
+  const completed = await workouts().query(Q.where('state', 'completed')).fetch();
+  if (!completed.length) return 0;
+  const clauses = [Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(completed.map((w) => w.id)))];
+  if (variant !== undefined) clauses.push(Q.where('variant_key', variant));
+  const wes = await workoutExercises().query(...clauses).fetch();
+  if (!wes.length) return 0;
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch()).filter(
+    isPerformed,
+  );
+  return bestEstimatedOneRepMax(sets.map((s) => toLoggedSet(s, loadMode, bw)));
+}
+
+// 탑셋을 마쳤을 때 — 같은 블록에서 **아직 손대지 않은**(done=false 이고 만든 뒤 고친 적 없는 · QA Q5) 세트 중
+// 「탑셋의 N%」, 그리고 기록이 없어 기다리던 「1RM 의 N%」 세트에 무게를 채운다(첫 완료 세트로 1RM 추정 · #56-2).
+// 사람이 이미 고친 세트는 건드리지 않는다 — 화면은 제안 칩으로 보인다. 채운 세트 id 와 근거를 돌려준다. @plm SRS-063
+export async function fillPrescribedLoadsAfter(
+  workoutExerciseId: string,
+  doneSetId: string,
+  doneWeightKg: number,
+  doneReps: number,
+): Promise<{ setLogId: string; weightKg: number; reasonKey: string; params: Record<string, number> }[]> {
+  const we = await workoutExercises().find(workoutExerciseId);
+  const rx = we.prescription;
+  if (!rx?.some((r) => r.loadBasis === 'pctTop' || r.loadBasis === 'pct1rm')) return [];
+  const ex = await database.get<Exercise>('exercises').find(we.exerciseId).catch(() => null);
+  if (!ex || ex.kind === 'cardio' || resolveLoadMode(ex) !== 'external') return [];
+  const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId), Q.sortBy('set_number', Q.asc)).fetch();
+  const doneIdx = sets.findIndex((s) => s.id === doneSetId);
+  if (doneIdx < 0) return [];
+  const done = sets[doneIdx];
+  const mult = done.loadMultiplier && done.loadMultiplier > 0 ? done.loadMultiplier : 1;
+  const doneCalcKg = doneWeightKg * mult; // 화면 입력 무게(blur 경합 대비) × 배수
+  const isTop = rx[doneIdx]?.setType === 'top' || done.setType === 'top';
+  const unit = await getUserWeightUnit();
+  const has1rm = (await estimatedOneRmForSlot(we.exerciseId, effectiveVariantKey(we))) > 0;
+  const est = estimateFromSet(doneCalcKg, doneReps);
+  const out: { setLogId: string; weightKg: number; reasonKey: string; params: Record<string, number> }[] = [];
+  const updates: SetLog[] = [];
+  for (let i = doneIdx + 1; i < sets.length; i++) {
+    const s = sets[i];
+    const r = rx[i];
+    if (!r?.loadBasis || s.done !== false) continue;
+    if (s.updatedAt.getTime() !== s.createdAt.getTime()) continue; // 사람이 고친 세트는 그대로(QA Q5)
+    let got: ReturnType<typeof resolvePrescribedLoad> | null = null;
+    if (r.loadBasis === 'pctTop' && isTop) {
+      got = resolvePrescribedLoad({ basis: 'pctTop', pct: r.loadPct, topKg: doneCalcKg, equipment: ex.equipment, unit });
+    } else if (r.loadBasis === 'pct1rm' && !has1rm) {
+      got = resolvePrescribedLoad({ basis: 'pct1rm', pct: r.loadPct, est1rmKg: est, equipment: ex.equipment, unit });
+    }
+    if (!got || !('weightKg' in got) || got.weightKg <= 0) continue;
+    const sm = s.loadMultiplier && s.loadMultiplier > 0 ? s.loadMultiplier : 1;
+    const input = got.weightKg / sm;
+    updates.push(s.prepareUpdate((rec) => { rec.weightKg = input; }));
+    out.push({ setLogId: s.id, weightKg: input, reasonKey: got.reasonKey, params: got.params });
+  }
+  if (updates.length) await database.write(async () => { await database.batch(...updates); });
+  return out;
+}
+function estimateFromSet(kg: number, reps: number): number {
+  return bestEstimatedOneRepMax([{ weightKg: kg, reps, isWarmup: false, isFailed: false }]);
+}
+
 // ── 세션 시작 ──────────────────────────────────────────────────────
 // 종목에 템플릿 세트를 프리레이(done=false, 미완료). 무게/반복 = 루틴 target 우선 →
 // 없으면 지난 세션의 해당 세트값 → 없으면 지난 세션 마지막 세트 → 기본(20kg/8회).
@@ -474,6 +603,7 @@ function prepareTemplateSets(
   cardioTarget: CardioTargetJson | null = null,
   prescription: PrescribedSet[] | null = null, // v16: 세트별 처방(사람 작성 — 렌더·휴식·RIR 라벨 근거). @plm SRS-043
   loadMultiplier: number | null = null, // v22: 이 블록의 배수(플레이트 한쪽=2 · ADR-037) @plm SRS-058
+  rxLoadKg: (number | null)[] = [], // 처방 무게 기준으로 계산한 세트별 무게(계산 kg · 없으면 null) @plm SRS-063
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
@@ -486,7 +616,11 @@ function prepareTemplateSets(
     // [원본] const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
     // [개선] 지난 세트를 다른 입력 방식(양쪽 합 ↔ 한쪽)으로 적었으면 이번 방식으로 환산 — 계산 무게가 같게 @plm SRS-058
     const prevWeight = prev ? carryWeightAcrossMultiplier(prev.weightKg, prev.loadMultiplier, loadMultiplier) : undefined;
-    const weight = isCardio ? 0 : prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // [원본] const weight = isCardio ? 0 : prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // [개선] 사람이 쓴 처방 무게(1RM 의 N%·직접)가 있으면 그 무게가 먼저다 — 입력 칸은 한쪽 입력 배수로 나눈다 @plm SRS-063
+    const rxKg = rxLoadKg[i];
+    const rxInput = rxKg != null && rxKg > 0 ? rxKg / (loadMultiplier && loadMultiplier > 0 ? loadMultiplier : 1) : null;
+    const weight = isCardio ? 0 : rxInput ?? prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
     // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
     const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
     recs.push(
@@ -574,6 +708,36 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
       bwByExercise.set(re.exerciseId, await isBodyweightExerciseId(re.exerciseId));
     }
   }
+  // 처방 무게 기준(1RM 의 N%·직접) — 쓰기 전에 계산해 둔다(탑셋 % 는 탑셋을 한 뒤에 채운다) @plm SRS-063
+  const rxLoadByRe = new Map<string, (number | null)[]>();
+  {
+    const unit = await getUserWeightUnit();
+    for (const re of res) {
+      const rx = re.prescription;
+      if (!rx?.some((r) => r.loadBasis === 'pct1rm' || r.loadBasis === 'fixed')) continue;
+      if (cardioByExercise.get(re.exerciseId)) continue;
+      const ex = await database.get<Exercise>('exercises').find(re.exerciseId).catch(() => null);
+      if (!ex || resolveLoadMode(ex) !== 'external') continue; // 맨몸·어시스트는 % 기준 없음
+      const est = rx.some((r) => r.loadBasis === 'pct1rm')
+        ? await estimatedOneRmForSlot(re.exerciseId, variantOf(re).variantKey)
+        : 0;
+      rxLoadByRe.set(
+        re.id,
+        rx.map((r) => {
+          if (r.loadBasis !== 'pct1rm' && r.loadBasis !== 'fixed') return null;
+          const got = resolvePrescribedLoad({
+            basis: r.loadBasis,
+            pct: r.loadPct,
+            kg: r.loadKg,
+            est1rmKg: est,
+            equipment: ex.equipment,
+            unit,
+          });
+          return 'weightKg' in got && got.weightKg > 0 ? got.weightKg : null;
+        }),
+      );
+    }
+  }
   return database.write(async () => {
     const now = Date.now();
     const workout = await workouts().create((w) => {
@@ -637,6 +801,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
           re.cardioTarget ?? null,
           rx,
           multiplierOf(re),
+          rxLoadByRe.get(re.id) ?? [],
         ),
       );
     });
@@ -900,6 +1065,44 @@ export async function setSetDone(id: string, done: boolean): Promise<void> {
   });
 }
 
+// ── 슈퍼셋 함께 완료(#48) ── @plm SRS-062
+// 묶음의 같은 번호 세트를 한 번에 완료·해제한다. 멤버 칸에 **입력만 하고 아직 저장 안 된 값**(화면이 모아 준다 ·
+// QA Q3)을 먼저 반영하고 done 을 바꾼다 — 한 번의 write 라 중간에 끊겨도 반쪽 상태가 남지 않는다.
+export async function completeSupersetRound(
+  entries: { setLogId: string; weightKg?: number; reps?: number }[],
+  done: boolean,
+): Promise<void> {
+  if (!entries.length) return;
+  await database.write(async () => {
+    const now = Date.now();
+    const recs = await setLogs().query(Q.where('id', Q.oneOf(entries.map((e) => e.setLogId)))).fetch();
+    const byId = new Map(entries.map((e) => [e.setLogId, e]));
+    await database.batch(
+      ...recs.map((s) =>
+        s.prepareUpdate((rec) => {
+          const e = byId.get(s.id);
+          if (e?.weightKg != null && Number.isFinite(e.weightKg) && e.weightKg >= 0) rec.weightKg = e.weightKg;
+          if (e?.reps != null && Number.isFinite(e.reps) && e.reps >= 0) rec.reps = e.reps;
+          rec.done = done;
+          rec.completedAt = done ? now : null;
+        }),
+      ),
+    );
+  });
+}
+
+// 슈퍼셋 한 바퀴의 대상 — 묶음 멤버마다 같은 번호(set_number) 세트. 없는 멤버는 건너뛴다(#48 A). @plm SRS-062
+export async function getSupersetRoundSets(
+  workoutExerciseIds: string[],
+  setNumber: number,
+): Promise<{ workoutExerciseId: string; setLogId: string; done: boolean }[]> {
+  if (!workoutExerciseIds.length) return [];
+  const sets = await setLogs()
+    .query(Q.where('workout_exercise_id', Q.oneOf(workoutExerciseIds)), Q.where('set_number', setNumber))
+    .fetch();
+  return sets.map((s) => ({ workoutExerciseId: s.workoutExerciseId, setLogId: s.id, done: s.done === true }));
+}
+
 // 세트 타입(일반/워밍업/드롭/실패) — 상호 배타. 표시 W/숫자/D/F.
 export type SetType = 'normal' | 'warmup' | 'drop' | 'failed';
 export async function setSetType(id: string, type: SetType): Promise<void> {
@@ -1161,6 +1364,80 @@ export async function deleteSetLog(id: string): Promise<void> {
       .fetch();
     await database.batch(...remaining.map((s, i) => s.prepareUpdate((rec) => { rec.setNumber = i + 1; })));
   });
+}
+
+// ── 지난 운동의 세트를 고친 뒤(#51) ── @plm SRS-061
+// 그 운동의 총 볼륨과, 그 종목이 들어 있는 **그 운동과 이후** 완료 운동들의 PR 수를 시간순으로 다시 센다.
+// 이력은 「그 운동보다 먼저 끝난 운동」만 본다(QA Q2 — 기존 historicalSnapshotForExercise 는 이후 운동까지 섞는다).
+export async function recomputeWorkoutTotals(workoutId: string): Promise<void> {
+  const target = await workouts().find(workoutId);
+  const all = (await workouts().query(Q.where('state', 'completed')).fetch()).sort(
+    (a, b) => (a.completedAt ?? 0) - (b.completedAt ?? 0),
+  );
+  const t0 = target.completedAt ?? 0;
+  const later = all.filter((w) => (w.completedAt ?? 0) >= t0);
+  const bw = await getUserBodyweightKg();
+  // 이 운동에 든 종목만 영향을 받는다
+  const targetWes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
+  const touched = new Set(targetWes.map((x) => x.exerciseId));
+  const updates: Workout[] = [];
+  for (const w of later) {
+    const wes = await workoutExercises().query(Q.where('workout_id', w.id)).fetch();
+    let volume = 0;
+    const groups = new Map<string, { exerciseId: string; variant: string | null; logged: LoggedSet[] }>();
+    const modeAll = await loadModeByExerciseId(wes.map((x) => x.exerciseId));
+    const cardioAll = await cardioExerciseIdSet(wes.map((x) => x.exerciseId));
+    for (const we of wes) {
+      const sets = (await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch()).filter(isPerformed);
+      const loadMode = modeAll.get(we.exerciseId) ?? null;
+      const logged = sets.map((s) => toLoggedSet(s, loadMode, bw));
+      volume += totalVolumeKg(logged);
+      if (cardioAll.has(we.exerciseId)) continue;
+      const vk = effectiveVariantKey(we);
+      const key = `${we.exerciseId}::${vk ?? ''}`;
+      const g = groups.get(key);
+      if (g) g.logged.push(...logged);
+      else groups.set(key, { exerciseId: we.exerciseId, variant: vk, logged: [...logged] });
+    }
+    const prGroups: { current: LoggedSet[]; historyBest: PRSnapshot }[] = [];
+    for (const g of groups.values()) {
+      prGroups.push({ current: g.logged, historyBest: await historicalSnapshotBefore(g.exerciseId, g.variant, w) });
+    }
+    const prCount = countMajorPrs(prGroups);
+    const isTarget = w.id === workoutId;
+    const affectsLater = [...groups.values()].some((g) => touched.has(g.exerciseId));
+    if (!isTarget && !affectsLater) continue;
+    if (Math.abs((w.totalVolumeKg ?? 0) - volume) > 1e-6 || w.prCount !== prCount) {
+      updates.push(
+        w.prepareUpdate((rec) => {
+          rec.totalVolumeKg = volume;
+          rec.prCount = prCount;
+        }),
+      );
+    }
+  }
+  if (updates.length) await database.write(async () => { await database.batch(...updates); });
+  scheduleSync();
+}
+
+// 그 운동보다 **먼저 끝난** 완료 운동들의 같은 칸 최고치(QA Q2). 같은 시각이면 id 로 순서를 정한다.
+async function historicalSnapshotBefore(exerciseId: string, variant: string | null, before: Workout): Promise<PRSnapshot> {
+  const t = before.completedAt ?? 0;
+  const prior = (await workouts().query(Q.where('state', 'completed')).fetch()).filter((w) => {
+    const c = w.completedAt ?? 0;
+    return w.id !== before.id && (c < t || (c === t && w.id < before.id));
+  });
+  if (!prior.length) return EMPTY_PR;
+  const wes = await workoutExercises()
+    .query(Q.where('exercise_id', exerciseId), Q.where('workout_id', Q.oneOf(prior.map((w) => w.id))), Q.where('variant_key', variant))
+    .fetch();
+  if (!wes.length) return EMPTY_PR;
+  const sets = (await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch()).filter(
+    isPerformed,
+  );
+  const bw = await getUserBodyweightKg();
+  const loadMode = (await loadModeByExerciseId([exerciseId])).get(exerciseId) ?? null;
+  return snapshotFromSets(sets.map((s) => toLoggedSet(s, loadMode, bw)));
 }
 
 // ── 일시정지 / 재개 (SRS-004) ──────────────────────────────────────

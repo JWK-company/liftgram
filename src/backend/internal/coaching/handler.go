@@ -215,6 +215,18 @@ var loadHintName = map[coachingv1.LoadHint]string{
 	coachingv1.LoadHint_LOAD_HINT_HEAVY:  "heavy",
 }
 
+// 무게 기준(#56) @plm SRS-063
+var loadBasisPB = map[string]coachingv1.LoadBasis{
+	"pct1rm": coachingv1.LoadBasis_LOAD_BASIS_PCT_1RM,
+	"pctTop": coachingv1.LoadBasis_LOAD_BASIS_PCT_TOP,
+	"fixed":  coachingv1.LoadBasis_LOAD_BASIS_FIXED,
+}
+var loadBasisName = map[coachingv1.LoadBasis]string{
+	coachingv1.LoadBasis_LOAD_BASIS_PCT_1RM: "pct1rm",
+	coachingv1.LoadBasis_LOAD_BASIS_PCT_TOP: "pctTop",
+	coachingv1.LoadBasis_LOAD_BASIS_FIXED:   "fixed",
+}
+
 func prescriptionPB(rows []PrescribedSet) []*coachingv1.PrescribedSet {
 	out := make([]*coachingv1.PrescribedSet, 0, len(rows))
 	for _, r := range rows {
@@ -230,6 +242,13 @@ func prescriptionPB(rows []PrescribedSet) []*coachingv1.PrescribedSet {
 		}
 		if r.RepMax != nil {
 			row.RepMax = int32(*r.RepMax)
+		}
+		row.LoadBasis = loadBasisPB[r.LoadBasis]
+		if r.LoadPct != nil {
+			row.LoadPct = int32(*r.LoadPct)
+		}
+		if r.LoadKg != nil {
+			row.LoadKg = *r.LoadKg
 		}
 		out = append(out, row)
 	}
@@ -252,6 +271,16 @@ func prescriptionDomain(rows []*coachingv1.PrescribedSet) []PrescribedSet {
 		if r.GetRepMax() > 0 {
 			v := int(r.GetRepMax())
 			row.RepMax = &v
+		}
+		// 무게 기준 — 미지정(0)은 기준 없음. 범위 검사는 SanitizePrescription 몫.
+		row.LoadBasis = loadBasisName[r.GetLoadBasis()]
+		switch row.LoadBasis {
+		case "pct1rm", "pctTop":
+			v := int(r.GetLoadPct())
+			row.LoadPct = &v
+		case "fixed":
+			v := r.GetLoadKg()
+			row.LoadKg = &v
 		}
 		out = append(out, row)
 	}

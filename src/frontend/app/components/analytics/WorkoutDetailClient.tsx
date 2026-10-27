@@ -5,13 +5,14 @@
 // 볼륨·추정 1RM. 값은 전부 `getWorkoutDetail`이 준 것을 그대로 놓는다(집계는 저장소 몫).
 //
 // 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
-import { formatWeight, type WeightUnit } from "@app/core";
+import { formatWeight, fromKg, toKg, type WeightUnit } from "@app/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { useToast } from "../Toast";
 import { SubAppBar } from "../ui/AppBar";
-import { ConfirmDialog } from "../ui/Dialog";
+import { ConfirmDialog, SheetShell } from "../ui/Dialog";
+import { Button } from "../ui/Button";
 import { MoreMenu } from "../ui/MoreMenu";
 import { KpiRow } from "../ui/rows";
 import { AppText, Card, Divider, EmptyState, Tag } from "../ui/primitives";
@@ -28,9 +29,22 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const [unit, setUnit] = useState<WeightUnit>("kg");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
+  // 세트 고치기·지우기(#51 A — PR 칩 「이 기록 보기」로 와서 잘못 남은 기록을 바로잡는다) @plm SRS-061
+  const [editing, setEditing] = useState<null | { set: DetailSet; isCardio: boolean }>(null);
+  const [reloadTick, setReloadTick] = useState(0);
+  // ?set=<id> 로 오면 그 세트를 강조한다(PR 칩에서 온 경우)
+  const [focusSet, setFocusSet] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      setFocusSet(new URLSearchParams(window.location.search).get("set"));
+    } catch {
+      // 주소를 못 읽어도 화면은 그대로
+    }
+  }, []);
   const router = useRouter();
   const toast = useToast();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reloadTick — 세트를 고친 뒤 다시 읽는다(#51)
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -57,7 +71,13 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
     return () => {
       cancelled = true;
     };
-  }, [workoutId]);
+  }, [workoutId, reloadTick]);
+
+  // 강조할 세트가 그려지면 그 자리로 스크롤
+  useEffect(() => {
+    if (!focusSet || !detail) return;
+    document.querySelector(`[data-set-id="${focusSet}"]`)?.scrollIntoView({ block: "center" });
+  }, [focusSet, detail]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -138,13 +158,35 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
             ) : (
               <div data-testid="detail-exercises">
                 {detail.exercises.map((ex) => (
-                  <ExerciseCard key={ex.workoutExerciseId} ex={ex} unit={unit} />
+                  <ExerciseCard
+                    key={ex.workoutExerciseId}
+                    ex={ex}
+                    unit={unit}
+                    focusSet={focusSet}
+                    onEditSet={(set) => setEditing({ set, isCardio: !!ex.isCardio })}
+                  />
                 ))}
               </div>
             )}
           </>
         )}
       </div>
+
+      {editing ? (
+        <EditSetSheet
+          set={editing.set}
+          isCardio={editing.isCardio}
+          unit={unit}
+          onClose={() => setEditing(null)}
+          onDone={(msg) => {
+            setEditing(null);
+            toast(msg);
+            setReloadTick((n) => n + 1);
+          }}
+          onError={(e) => toast(e, "error")}
+          workoutId={workoutId}
+        />
+      ) : null}
 
       {makeRoutine ? (
         <NameRoutine
@@ -182,7 +224,17 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   );
 }
 
-function ExerciseCard({ ex, unit }: { ex: ExerciseDetail; unit: WeightUnit }) {
+function ExerciseCard({
+  ex,
+  unit,
+  focusSet,
+  onEditSet,
+}: {
+  ex: ExerciseDetail;
+  unit: WeightUnit;
+  focusSet?: string | null;
+  onEditSet?: (set: DetailSet) => void;
+}) {
   return (
     <Card className="mb-[var(--spacing-lg)]">
       <AppText variant="heading" className="block truncate">
@@ -217,7 +269,17 @@ function ExerciseCard({ ex, unit }: { ex: ExerciseDetail; unit: WeightUnit }) {
       <Divider className="my-[var(--spacing-xs)]!" />
 
       {ex.sets.map((s) => (
-        <div key={s.setNumber} className="flex items-center py-[var(--spacing-xs)]">
+        // 세트 줄을 누르면 고치기·지우기 시트(#51) @plm SRS-061
+        <button
+          type="button"
+          key={s.setNumber}
+          data-testid="detail-set"
+          data-set-id={s.id}
+          disabled={!s.id || !onEditSet}
+          onClick={() => onEditSet?.(s)}
+          style={{ backgroundColor: focusSet && s.id === focusSet ? "var(--color-brand-muted)" : undefined }}
+          className="flex w-full items-center rounded-[var(--radius-sm)] py-[var(--spacing-xs)] text-left"
+        >
           <span className="w-10">
             <AppText variant="body" color="textMuted">
               {String(s.setNumber)}
@@ -241,7 +303,7 @@ function ExerciseCard({ ex, unit }: { ex: ExerciseDetail; unit: WeightUnit }) {
               {s.rpe != null ? String(s.rpe) : "-"}
             </AppText>
           </span>
-        </div>
+        </button>
       ))}
 
       <Divider />
@@ -265,6 +327,143 @@ function ExerciseCard({ ex, unit }: { ex: ExerciseDetail; unit: WeightUnit }) {
         {t("wellness.oneRepMaxCaption")}
       </AppText>
     </Card>
+  );
+}
+
+type DetailSet = ExerciseDetail["sets"][number];
+
+/**
+ * 지난 세트 고치기·지우기(#51 A) — 저장 뒤 그 운동의 볼륨과, 그 운동·이후 운동의 PR 수를 다시 센다
+ * (`recomputeWorkoutTotals` · QA Q2). 유산소는 지우기만(QA Q7). @plm SRS-061
+ */
+function EditSetSheet({
+  set,
+  isCardio,
+  unit,
+  workoutId,
+  onClose,
+  onDone,
+  onError,
+}: {
+  set: DetailSet;
+  isCardio: boolean;
+  unit: WeightUnit;
+  workoutId: string;
+  onClose: () => void;
+  onDone: (message: string) => void;
+  onError: (message: string) => void;
+}) {
+  const [w, setW] = useState(() => String(fromKg(set.weightKg, unit)));
+  const [r, setR] = useState(() => String(set.reps));
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const run = (
+    fn: (repo: typeof import("@app/core/data/workoutRepository")) => Promise<void>,
+    msg: string,
+  ) => {
+    if (busy || !set.id) return;
+    setBusy(true);
+    void (async () => {
+      try {
+        const repo = await import("@app/core/data/workoutRepository");
+        await fn(repo);
+        await repo.recomputeWorkoutTotals(workoutId);
+        const { flushLocalDb } = await import("@/lib/localDb");
+        await flushLocalDb();
+        onDone(msg);
+      } catch (e) {
+        onError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusy(false);
+      }
+    })();
+  };
+
+  const kg = toKg(Number.parseFloat(w.replace(",", ".")), unit);
+  const reps = Number.parseInt(r, 10);
+  const valid = Number.isFinite(kg) && kg >= 0 && Number.isFinite(reps) && reps >= 0;
+
+  return (
+    <SheetShell
+      title={t("history.editSetTitle", { n: set.setNumber })}
+      onClose={onClose}
+      hideOk
+      testId="edit-set-sheet"
+    >
+      {isCardio ? (
+        <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
+          {t("history.cardioDeleteOnly")}
+        </AppText>
+      ) : (
+        <div className="mb-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
+          <label className="flex-1">
+            <AppText variant="label" color="textMuted" className="mb-[4px] block">
+              {unit}
+            </AppText>
+            <input
+              data-testid="edit-set-weight"
+              inputMode="decimal"
+              value={w}
+              onChange={(e) => setW(e.target.value)}
+              className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-(--color-ink)"
+            />
+          </label>
+          <label className="flex-1">
+            <AppText variant="label" color="textMuted" className="mb-[4px] block">
+              {t("analytics.weightRepsColumnHeader")}
+            </AppText>
+            <input
+              data-testid="edit-set-reps"
+              inputMode="numeric"
+              value={r}
+              onChange={(e) => setR(e.target.value)}
+              className="h-11 w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-(--color-ink)"
+            />
+          </label>
+        </div>
+      )}
+      <div className="flex gap-[var(--spacing-sm)]">
+        <div className="flex-1">
+          <Button
+            title={t("history.deleteSet")}
+            variant="secondary"
+            testId="edit-set-delete"
+            onPress={() => setConfirmDel(true)}
+          />
+        </div>
+        {!isCardio ? (
+          <div className="flex-1">
+            <Button
+              title={t("common.save")}
+              testId="edit-set-save"
+              loading={busy}
+              disabled={!valid}
+              onPress={() =>
+                run(
+                  (repo) => repo.updateSetLog(set.id as string, { weightKg: kg, reps }),
+                  t("history.editSetSaved"),
+                )
+              }
+            />
+          </div>
+        ) : null}
+      </div>
+      {confirmDel ? (
+        <ConfirmDialog
+          testId="confirm-delete-set"
+          title={t("history.deleteSet")}
+          message={t("history.deleteSetConfirm")}
+          confirmLabel={t("common.delete")}
+          destructive
+          onCancel={() => setConfirmDel(false)}
+          onConfirm={() => {
+            setConfirmDel(false);
+            run((repo) => repo.deleteSetLog(set.id as string), t("history.setDeleted"));
+          }}
+        />
+      ) : null}
+    </SheetShell>
   );
 }
 

@@ -109,8 +109,9 @@ test("지난 세션의 기록이 '이전'으로 오고, 누르면 그대로 채�
   const prev = 세트(page, 0, 0).getByTestId("set-prev");
   await expect(prev).toContainText("140×3");
 
-  // PR 칩 — 첫 세션이 곧 최고 기록이다.
-  await expect(page.getByTestId("pr-chip")).toContainText("PR");
+  // PR 칩 — 첫 세션이 곧 최고 기록이다(세트 하나라 중량·볼륨이 같은 세트 → 칩 하나 · #50).
+  // [원본] await expect(page.getByTestId("pr-chip")).toContainText("PR");
+  await expect(page.getByTestId("pr-chip-both")).toContainText("PR");
 
   // '이전'을 누르면 그 값이 그대로 들어온다(헬스장에서 제일 빠른 길).
   await prev.click();

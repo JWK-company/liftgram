@@ -39,6 +39,8 @@ import {
   sumCardio,
   type CardioMetric,
 } from "@app/core";
+import { carryWeightAcrossMultiplier } from "@app/core/domain/recordSlots";
+import { useToast } from "../Toast";
 // import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5: 팁 유무는 hasPictogram, 사진 표는 팁 패널이 펼칠 때 불러온다
 import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useQueryData } from "@app/core/db/hooks";
@@ -73,7 +75,9 @@ export interface WorkoutExerciseRow {
   restSeconds: number | null;
   note: string | null;
   variant: VariantDims | null;
-  prescription: { repMin?: number | null; repMax?: number | null }[] | null;
+  prescription:
+    | { repMin?: number | null; repMax?: number | null; loadBasis?: string; loadPct?: number }[]
+    | null;
 }
 
 export function ExerciseBlock({
@@ -92,6 +96,7 @@ export function ExerciseBlock({
   canSuperset,
   insideSuperset,
   onChanged,
+  onRoundToggle,
 }: {
   we: WorkoutExerciseRow;
   repo: WorkoutRepo;
@@ -109,10 +114,31 @@ export function ExerciseBlock({
   canSuperset?: boolean;
   insideSuperset?: boolean;
   onChanged: () => Promise<void>;
+  /**
+   * 슈퍼셋 묶음 함께 완료(#48) — 있으면 세트 체크 한 번이 묶음의 같은 번호 세트를 함께 바꾼다(묶음이 저장·PR 축하).
+   * 이 블록은 휴식(1회)·다음 세트 제안만 맡는다. 길게 누르기는 이 종목만(기존 단일 토글). @plm SRS-062
+   */
+  onRoundToggle?: (
+    setNumber: number,
+    next: boolean,
+    setId: string,
+    kg: number,
+    reps: number,
+  ) => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
   const [prevSets, setPrevSets] = useState<PrevSet[]>([]);
-  const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
+  // [원본] 중량 PR 한 줄만 들고 있었다
+  // const [pr, setPr] = useState<{ weightKg: number; reps: number } | null>(null);
+  // [개선] 중량 PR·볼륨 PR 을 출처 세트까지(#50·#51) @plm SRS-061
+  const [prs, setPrs] = useState<Awaited<ReturnType<WorkoutRepo["getExercisePRs"]>>>({
+    weight: null,
+    volume: null,
+  });
+  const pr = prs.weight;
+  const toast = useToast();
+  // 처방 무게 근거(세트 id → 문구) — 탑셋을 마친 뒤 채운 세트(SRS-063)
+  const [loadNotes, setLoadNotes] = useState<Record<string, string>>({});
   const [prevCleared, setPrevCleared] = useState(false);
   const [loadMode, setLoadMode] = useState<"external" | "assisted" | "bodyweight">("external");
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
@@ -182,12 +208,14 @@ export function ExerciseBlock({
     void (async () => {
       const [sets, best, pnote] = await Promise.all([
         repo.getPreviousExerciseSets(we.exerciseId, variantKey).catch(() => []),
-        repo.getExercisePR(we.exerciseId, variantKey).catch(() => null),
+        // [원본] repo.getExercisePR(we.exerciseId, variantKey).catch(() => null),
+        repo.getExercisePRs(we.exerciseId, variantKey).catch(() => ({ weight: null, volume: null })), // @plm SRS-061
         repo.getPreviousExerciseNote(we.exerciseId, variantKey).catch(() => null),
       ]);
       if (!alive) return;
       setPrevSets(sets as PrevSet[]);
-      setPr(best);
+      // [원본] setPr(best);
+      setPrs(best);
       setPrevNote(pnote);
       setPrevCleared(false);
     })();
@@ -314,37 +342,102 @@ export function ExerciseBlock({
    *
    * 무게·횟수는 **화면 입력값**을 그대로 받는다(저장 커밋과 경합해 옛 값으로 PR을 판정하면 놓친다).
    */
-  const onToggleDone = (s: SetRow) => (next: boolean, kg: number, reps: number) =>
-    void (async () => {
-      await write(() => repo.setSetDone(s.id, next));
-      if (!next) return;
+  const onToggleDone =
+    (s: SetRow, single = false) =>
+    (next: boolean, kg: number, reps: number) =>
+      void (async () => {
+        // [원본] await write(() => repo.setSetDone(s.id, next));
+        // [개선] 슈퍼셋 안이면 묶음 전체의 같은 번호 세트를 함께(#48) — 길게 누르기(single)는 이 종목만 @plm SRS-062
+        const grouped = !!onRoundToggle && !single;
+        if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, kg, reps));
+        else await write(() => repo.setSetDone(s.id, next));
+        if (!next) return;
 
-      // 휴식은 세트 타입이 정한다 — 웜업은 짧게, 탑세트는 길게(처방이 없으면 종목 설정값).
-      onStartRest(
-        restSecondsForSetType(s.setType as Parameters<typeof restSecondsForSetType>[0], restSeconds),
-      );
+        // 휴식은 세트 타입이 정한다 — 웜업은 짧게, 탑세트는 길게(처방이 없으면 종목 설정값).
+        onStartRest(
+          restSecondsForSetType(s.setType as Parameters<typeof restSecondsForSetType>[0], restSeconds),
+        );
 
-      try {
-        const prs = await repo.evalLiveSetPr(we.id, s.id, kg, reps);
-        if (prs.length && exName) firePrCelebration({ exerciseName: exName, types: prs.map((p) => p.type) });
-      } catch {
-        // PR 판정이 실패해도 기록은 남는다 — 축하만 건너뛴다.
-      }
-
-      // 다음 처방 세트가 있으면 무게를 권한다(웜업 사다리·탑→백오프 비율은 도메인이 안다).
-      if (kg > 0) {
-        const idx = sets.findIndex((x) => x.id === s.id);
-        const nextSet = sets.slice(idx + 1).find((x) => !x.done && x.setType != null);
-        if (nextSet) {
-          const sug = suggestNextSetWeightKg({
-            prevWeightKg: kg,
-            prevType: s.setType as Parameters<typeof suggestNextSetWeightKg>[0]["prevType"],
-            nextType: nextSet.setType as Parameters<typeof suggestNextSetWeightKg>[0]["nextType"],
-          });
-          if (sug) setSuggestions((m) => ({ ...m, [nextSet.id]: sug }));
+        // 묶음 완료는 PR 축하를 묶음이 모아서 한 번 한다(QA Q6)
+        if (!grouped) {
+          try {
+            const livePrs = await repo.evalLiveSetPr(we.id, s.id, kg, reps);
+            if (livePrs.length && exName)
+              firePrCelebration({ exerciseName: exName, types: livePrs.map((p) => p.type) });
+          } catch {
+            // PR 판정이 실패해도 기록은 남는다 — 축하만 건너뛴다.
+          }
         }
-      }
-    })();
+
+        // 처방 무게 기준(#56) — 탑셋을 마치면 백오프(탑셋의 N%), 기록이 없던 「1RM 의 N%」를 채운다.
+        // 사람이 이미 고친 세트는 저장소가 건너뛴다(QA Q5). 채운 세트는 제안 칩 대신 근거를 보인다. @plm SRS-063
+        let filledIds = new Set<string>();
+        if (kg > 0) {
+          try {
+            const filled = await repo.fillPrescribedLoadsAfter(we.id, s.id, kg, reps);
+            if (filled.length) {
+              filledIds = new Set(filled.map((f) => f.setLogId));
+              setLoadNotes((m) => {
+                const nextNotes = { ...m };
+                for (const f of filled) {
+                  nextNotes[f.setLogId] = t(f.reasonKey as Parameters<typeof t>[0], {
+                    base: formatWeight(f.params.base ?? 0, unit),
+                    pct: f.params.pct ?? 0,
+                  });
+                }
+                return nextNotes;
+              });
+              await onChanged();
+            }
+          } catch {
+            // 채우지 못해도 기록은 남는다 — 아래 제안 칩이 남는다.
+          }
+        }
+
+        // 다음 처방 세트가 있으면 무게를 권한다(웜업 사다리·탑→백오프 비율은 도메인이 안다).
+        if (kg > 0) {
+          const idx = sets.findIndex((x) => x.id === s.id);
+          const nextSet = sets.slice(idx + 1).find((x) => !x.done && x.setType != null);
+          if (nextSet && !filledIds.has(nextSet.id)) {
+            const sug = suggestNextSetWeightKg({
+              prevWeightKg: kg,
+              prevType: s.setType as Parameters<typeof suggestNextSetWeightKg>[0]["prevType"],
+              nextType: nextSet.setType as Parameters<typeof suggestNextSetWeightKg>[0]["nextType"],
+            });
+            if (sug) setSuggestions((m) => ({ ...m, [nextSet.id]: sug }));
+          }
+        }
+      })();
+
+  type PrRef = NonNullable<typeof prs.weight>;
+  /** 보일 PR 칩 — 중량·볼륨이 같은 세트면 하나로. */
+  function prChips(): { kind: "weight" | "volume" | "both"; label: string; ref: PrRef }[] {
+    const w = prs.weight;
+    const v = prs.volume;
+    const fmt = (r: PrRef) => ({ weight: formatWeight(r.effectiveKg, unit), reps: r.reps });
+    if (w && v && w.setLogId === v.setLogId)
+      return [{ kind: "both", label: t("session.prBothChip", fmt(w)), ref: w }];
+    const out: { kind: "weight" | "volume" | "both"; label: string; ref: PrRef }[] = [];
+    if (w) out.push({ kind: "weight", label: t("session.prWeightChip", fmt(w)), ref: w });
+    if (v) out.push({ kind: "volume", label: t("session.prVolumeChip", fmt(v)), ref: v });
+    return out;
+  }
+  /** PR 칩을 누르면 — 아직 안 한 첫 세트 하나에 그 무게·횟수(#50 A). 한쪽 입력 블록이면 입력 방식대로 환산. */
+  function fillFromPr(ref: PrRef) {
+    const target = sets.find((x) => x.done !== true);
+    if (!target) {
+      toast(t("session.prNoOpenSet"));
+      return;
+    }
+    const weightKg = carryWeightAcrossMultiplier(
+      ref.inputWeightKg,
+      ref.loadMultiplier,
+      blockLoadMultiplier(variant, plateOneSide),
+    );
+    void write(() => repo.updateSetLog(target.id, { weightKg, reps: ref.reps })).then(() =>
+      toast(t("session.prFilled", { weight: formatWeight(weightKg, unit), reps: ref.reps })),
+    );
+  }
 
   const prevClearBtn =
     !isCardio && (hasPrev || prevCleared) ? (
@@ -473,11 +566,39 @@ export function ExerciseBlock({
 
           {we.supersetGroup && !insideSuperset ? <Tag label={t("session.superset")} tone="primary" /> : null}
 
+          {/* [원본] PR 한 줄(중량만, 누를 수 없음)
           {!isCardio && pr && !prevCleared ? (
             <AppText variant="caption" color="pr" data-testid="pr-chip">
               {t("session.prLine", { weight: formatWeight(pr.weightKg, unit), reps: pr.reps })}
             </AppText>
-          ) : null}
+          ) : null} */}
+          {/* [개선] 중량 PR·볼륨 PR 칩 — 누르면 아직 안 한 첫 세트에 채운다 · ⓘ 는 그 기록으로(#50·#51) @plm SRS-061 */}
+          {!isCardio && !prevCleared && (prs.weight || prs.volume)
+            ? prChips().map((c) => (
+                <span key={c.kind} className="inline-flex items-center gap-[2px]">
+                  <button
+                    type="button"
+                    data-testid={`pr-chip-${c.kind}`}
+                    aria-label={`${c.label} — ${t("session.prChipFill")}`}
+                    onClick={() => fillFromPr(c.ref)}
+                    className="rounded-[var(--radius-pill)] border border-(--color-pr) px-[var(--spacing-sm)] py-[2px]"
+                  >
+                    <AppText variant="caption" color="pr" className="font-semibold">
+                      {c.label}
+                    </AppText>
+                  </button>
+                  <IconButton
+                    icon="information-circle-outline"
+                    size={16}
+                    label={t("session.prChipHistory")}
+                    color="var(--color-ink3)"
+                    className="h-7! w-7!"
+                    testId={`pr-chip-${c.kind}-history`}
+                    onPress={() => navigate(`/history/${c.ref.workoutId}?set=${c.ref.setLogId}`)}
+                  />
+                </span>
+              ))
+            : null}
 
           {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
             <Tag
@@ -589,6 +710,8 @@ export function ExerciseBlock({
                 barWeightKg={barWeightKg}
                 onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
                 onToggleDone={onToggleDone(s)}
+                onToggleDoneSingle={onRoundToggle ? onToggleDone(s, true) : undefined}
+                loadNote={loadNotes[s.id] ?? rxLoadLabel(we.prescription?.[s.setNumber - 1] ?? null)}
                 onSetType={(type) => void write(() => repo.setSetType(s.id, type))}
                 onSetArm={(arm) => void write(() => repo.setSetArm(s.id, arm))}
                 onSetGrip={(grip) => void write(() => repo.setSetGrip(s.id, grip))}
@@ -756,4 +879,12 @@ function HeadCell({ children, className = "" }: { children: React.ReactNode; cla
       </AppText>
     </span>
   );
+}
+
+/** 처방 세트의 무게 기준 한 줄(아직 계산 근거가 없을 때) — 「1RM의 80%」 · 「탑셋의 90%」 · 「처방 무게」 @plm SRS-063 */
+function rxLoadLabel(rx: { loadBasis?: string; loadPct?: number } | null): string | null {
+  if (!rx?.loadBasis) return null;
+  if (rx.loadBasis === "pct1rm") return t("prescription.load.labelPct1rm", { pct: rx.loadPct ?? 0 });
+  if (rx.loadBasis === "pctTop") return t("prescription.load.labelPctTop", { pct: rx.loadPct ?? 0 });
+  return t("prescription.load.reasonFixed");
 }
