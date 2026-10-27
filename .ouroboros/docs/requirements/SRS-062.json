@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-062",
+  "type": "SRS",
+  "title": "슈퍼셋 묶음 세트 함께 완료 — 같은 번호 세트 일괄 체크·휴식 1회 · 길게 누르면 한 종목만",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T03:00:00Z",
+  "updated": "2026-10-27T03:00:00Z",
+  "sync": true,
+  "tags": ["session", "superset"],
+  "kind": "FR",
+  "acceptance_criteria": "슈퍼셋 블록 세트 체크 = 묶음 내 같은 번호 세트 전부 완료(입력 중 값 반영) · 휴식 1회 · 길게 누르기 = 그 종목만 · 같은 번호 없는 종목은 건너뜀 · 해제도 같은 규칙.",
+  "relations": {"derives_from": ["URS-020"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "슈퍼셋으로 묶인 블록에서 N번째 세트의 완료를 누르면 묶음 안 모든 종목의 N번째 워킹 세트를 한 번의 쓰기로 함께 완료한다. 각 종목 칸에 입력 중인(아직 저장 전) 무게·횟수가 있으면 먼저 그 값으로 저장한 뒤 완료한다. 휴식 타이머는 묶음당 한 번만 시작하고, PR 판정·다음 세트 무게 제안은 종목별로 그대로 한다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "길게 누르면 그 종목의 그 세트만 완료·해제한다. N번째 세트가 없는 종목, 이미 완료된 세트는 건너뛴다. 완료 해제(다시 누르기)도 같은 규칙으로 묶음 전체에 적용한다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "벤치(3세트)+로우(3세트) 묶음에서 벤치 1세트 체크 한 번에 로우 1세트도 완료되고 휴식 막대가 한 번 뜬다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "로우 칸에 입력만 하고 체크 안 한 75kg 가 벤치 체크로 함께 완료될 때 75kg 로 저장된다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "길게 누르면 벤치만 완료된다. 4세트가 벤치에만 있으면 4세트 체크는 벤치만 완료한다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-020. 피드백 #48."}]}
+    ]
+  }
+}

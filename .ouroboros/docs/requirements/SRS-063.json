@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-063",
+  "type": "SRS",
+  "title": "처방 무게 기준 — 「1RM 의 N%」·「탑셋의 N%」·「무게 직접」 · 운동 시작·탑셋 완료 시 계산해 채우고 근거 표시(ADR-028 준수)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T03:00:00Z",
+  "updated": "2026-10-27T03:00:00Z",
+  "sync": true,
+  "tags": ["prescription", "routine", "session", "coaching"],
+  "kind": "FR",
+  "acceptance_criteria": "처방 세트에 무게 기준(pct1rm·pctTop·fixed) 선택적 필드 · 시작 시 1RM% 계산 채움(기록 없으면 직접 무게/첫 세트 기준 안내) · 탑셋 완료 시 백오프 % 채움 · 원판 단위 반올림 · 근거 표시 · 옛 처방 JSON 하위호환.",
+  "relations": {"derives_from": ["URS-020"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "처방 세트(PrescribedSet)에 선택적 무게 기준을 더한다: 「1RM 의 N%」(N 30~100), 「탑셋의 N%」(백오프용, N 50~100), 「무게 직접」(kg). 작성은 루틴을 짜는 본인과 트레이너 모두 루틴 편집기의 처방 편집에서 한다. 기존 처방 JSON 은 새 필드가 없으면 지금과 똑같이 동작한다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "운동을 시작할 때 1RM% 세트는 그 종목·기록 칸의 추정 1RM(완료 워킹 세트의 최고 추정치)으로 무게를 계산해 채우고, 기록이 없으면 무게를 비워 두고 「기록이 없어 % 를 계산할 수 없어요 — 첫 세트 무게를 넣으면 그 기준으로 계산」 안내를 보인다(첫 세트 완료 시 그 세트를 1RM 추정 기준으로 남은 % 세트를 채움). 탑셋% 세트는 같은 블록의 탑셋을 완료하면 그 무게 기준으로 채운다. 채운 무게는 원판 단위(바벨·스미스 2.5kg, 그 밖 1kg 또는 사용자 단위)로 반올림하고 「1RM 100kg 의 80%」 같은 근거를 표시한다. 사람이 쓴 처방의 계산일 뿐 처방 자체는 바꾸지 않는다(ADR-028)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "추정 1RM 100kg 종목에 「80%×5」 처방 → 시작 시 80kg 가 채워지고 근거가 보인다(바벨 77.6 → 77.5)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "탑셋 100kg 완료 → 「탑셋의 90%」 백오프 세트에 90kg 가 채워진다. 사용자가 손으로 바꾼 값은 덮어쓰지 않는다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "기록 없는 종목은 안내가 보이고, 첫 세트 완료 뒤 남은 % 세트가 채워진다. 옛 처방 루틴은 변화 없음."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-020. 피드백 #56. ADR-028(처방 자동 변경 금지) · SRS-043(처방 어휘)."}]}
+    ]
+  }
+}

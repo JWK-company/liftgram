@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-020",
+  "type": "URS",
+  "title": "운동 중에 PR·처방·슈퍼셋을 손을 덜 쓰고 바로 활용하고, 잘못 남은 기록은 바로잡고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T03:00:00Z",
+  "updated": "2026-10-27T03:00:00Z",
+  "sync": true,
+  "tags": ["session", "pr", "prescription", "superset", "feedback"],
+  "stakeholder": "매일 기록하는 리프터(P2 기록러)·트레이너(코치)·루틴을 직접 짜는 중급자",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "배경 / 이해관계자"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "운동 중에는 손이 바쁘고 화면을 오래 볼 수 없다. 지금은 PR 이 한 줄 글자로만 보여 그 무게를 다시 손으로 입력해야 하고(#50), 잘못 입력된 세트가 PR 로 영구히 남아도 고칠 길이 없다(#51). 슈퍼셋은 묶여 있는데도 종목마다 체크를 따로 눌러야 하고(#48), 처방은 「가볍게/무겁게」 힌트뿐이라 1RM 몇 % 같은 무게를 매번 계산해 넣어야 한다(#56). 사용자 두 명이 운동하며 직접 제기했다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "중량 PR 과 볼륨 PR 을 따로 보고, 눌러서 아직 안 한 세트에 바로 채우고 싶다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "PR 이 잘못된 기록에서 나왔으면 그 기록으로 바로 가서 고치거나 지우고, PR 이 저절로 다시 맞춰지기를 원한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "슈퍼셋 묶음은 한 번 눌러 같은 번호 세트를 함께 완료하고 싶다(예외적으로 한 종목만도 가능)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "루틴(본인 또는 트레이너 작성)에 「1RM 의 N%」·「탑셋의 N%」·「무게 직접」을 적어 두면 운동할 때 그 무게가 계산되어 채워지기를 원한다(기록이 없는 종목도 쓸 수 있게)."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "PR 칩 한 번 누르기로 다음 세트 무게·횟수가 채워지고, 잘못된 PR 기록은 두 번 이내 이동으로 고칠 수 있다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "슈퍼셋 세트 체크 한 번에 묶음 전체의 같은 번호 세트가 완료되고 휴식은 한 번만 시작한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "% 처방이 있는 세트는 운동 화면에 계산 무게와 근거(예: 「1RM 100kg 의 80%」)가 보인다."}]}]}
+      ]}
+    ]
+  }
+}
