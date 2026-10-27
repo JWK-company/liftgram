@@ -6,6 +6,8 @@
 //
 // 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
 import { displayWeight, formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
+import { effectiveRir, isRirConverted } from "@app/core"; // v26 힘든 정도 — rir 우선, 없고 rpe 만 있으면 환산(ADR-038) @plm SRS-073
+import { formatRir } from "../session/RirSheet";
 import { enteredWeightToKg } from "@app/core/domain/blockUnit"; // /qa code M-1 @plm SRS-067
 import { type GripKey, gripLabel, variantLabelFromKey } from "@app/core/domain/variants";
 import type { AppLanguage } from "@app/core/domain/types";
@@ -334,7 +336,9 @@ function ExerciseCard({
   const mixedOneSide = new Set(mults).size > 1;
   const oneSide = mixedOneSide ? 1 : (mults[0] ?? 1);
   // RPE 를 하나도 적지 않은 종목은 RPE 열을 그리지 않는다(빈 「-」 열 · D6)
-  const hasRpe = ex.sets.some((s) => s.rpe != null);
+  // [원본] const hasRpe = ex.sets.some((s) => s.rpe != null);
+  // [개선] 열은 RIR 하나(ADR-038) — 적은 rir 우선, 없고 rpe 만 있으면 「≈RIR n」. 둘 다 없는 종목은 열을 숨긴다(D6 그대로) @plm SRS-073
+  const hasRpe = ex.sets.some((s) => effectiveRir(s) != null);
   return (
     <Card className="mb-[var(--spacing-lg)]">
       {/* 머리 — 이름(왼쪽) · 추정 1RM(오른쪽, 회색 · 그 블록에 적은 단위 · F5) */}
@@ -388,9 +392,10 @@ function ExerciseCard({
           </AppText>
         </span>
         {hasRpe ? (
-          <span className="w-12 text-right">
+          <span className="w-16 text-right">
+            {/* [원본] RPE */}
             <AppText variant="caption" color="textFaint">
-              RPE
+              {t("effort.detailColumn")}
             </AppText>
           </span>
         ) : null}
@@ -446,10 +451,9 @@ function ExerciseCard({
             </MetaLine>
           </div>
           {hasRpe ? (
-            <span className="w-12 text-right">
-              <AppText variant="body" color="textMuted">
-                {s.rpe != null ? String(s.rpe) : "-"}
-              </AppText>
+            <span className="w-16 text-right" data-testid="detail-set-rir">
+              {/* [원본] {s.rpe != null ? String(s.rpe) : "-"} */}
+              <DetailRir set={s} />
             </span>
           ) : null}
         </button>
@@ -460,6 +464,35 @@ function ExerciseCard({
 }
 
 type DetailSet = ExerciseDetail["sets"][number];
+
+/** 세트의 RIR 칸 — 적은 값은 숫자, rpe 에서 바꾼 값은 「≈RIR n」(회색 작은 글자), 없으면 「-」 @plm SRS-073 */
+function DetailRir({ set }: { set: DetailSet }) {
+  const v = effectiveRir(set);
+  if (v == null) {
+    return (
+      <AppText variant="body" color="textMuted">
+        -
+      </AppText>
+    );
+  }
+  if (isRirConverted(set)) {
+    return (
+      <AppText
+        variant="caption"
+        color="textMuted"
+        className="whitespace-nowrap"
+        aria-label={t("effort.detailConvertedAria", { rpe: String(set.rpe), value: formatRir(v) })}
+      >
+        {t("effort.detailConverted", { value: formatRir(v) })}
+      </AppText>
+    );
+  }
+  return (
+    <AppText variant="body" color="textMuted" className="tabular-nums">
+      {formatRir(v)}
+    </AppText>
+  );
+}
 
 /**
  * 지난 세트 고치기·지우기(#51 A) — 저장 뒤 그 운동의 볼륨과, 그 운동·이후 운동의 PR 수를 다시 센다

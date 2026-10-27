@@ -7,7 +7,9 @@
 import { formatWeight } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
+import { t } from "@/lib/i18n";
 import { AppText, Card } from "../ui/primitives";
+import { effortFill, useExerciseEffortByWorkout } from "./exerciseEffort"; // 막대 채움 = 그날 평균 RIR @plm SRS-074
 
 type Point = { bucketMs: number; label: string; value: number };
 
@@ -16,6 +18,7 @@ const MAX = 12;
 export default function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
   const { weightUnit } = useUser();
   const [points, setPoints] = useState<Point[] | null>(null);
+  const effort = useExerciseEffortByWorkout(exerciseId);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,6 +38,7 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
   const max = Math.max(1, ...recent.map((p) => p.value));
   const min = Math.min(...recent.map((p) => p.value));
   const H = 64;
+  const hasEffort = recent.some((p) => effort.has(p.bucketMs));
 
   return (
     <Card>
@@ -61,10 +65,12 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
         {recent.map((p, i) => {
           const floor = min * 0.85;
           const h = Math.max(4, ((p.value - floor) / Math.max(1, max - floor)) * H);
+          const rir = effort.get(p.bucketMs);
           return (
             <span
               key={p.bucketMs}
-              title={`${p.label} · ${Math.round(p.value)}`}
+              // [원본] title={`${p.label} · ${Math.round(p.value)}`}
+              title={`${p.label} · ${Math.round(p.value)}${rir != null ? ` · RIR ${Math.round(rir * 10) / 10}` : ""}`}
               style={{
                 height: h,
                 backgroundColor:
@@ -72,8 +78,18 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
                     ? "var(--color-brand)"
                     : "color-mix(in srgb, var(--color-brand) 35%, transparent)",
               }}
-              className="max-w-6 flex-1 rounded-[4px]"
-            />
+              // [원본] className="max-w-6 flex-1 rounded-[4px]" />
+              className="relative max-w-6 flex-1 overflow-hidden rounded-[4px]"
+            >
+              {/* 진한 채움 — 그날 작업 세트의 평균 여유가 적을수록 길다(범례 아래 한 줄) @plm SRS-074 */}
+              {rir != null ? (
+                <span
+                  data-testid="progress-effort-fill"
+                  style={{ height: `${effortFill(rir) * 100}%` }}
+                  className="absolute inset-x-0 bottom-0 block bg-black/35"
+                />
+              ) : null}
+            </span>
           );
         })}
       </div>
@@ -82,6 +98,16 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
         <span>{`${points.length}회 기록`}</span>
         <span>{last.label}</span>
       </div>
+      {hasEffort ? (
+        <AppText
+          variant="caption"
+          color="textMuted"
+          className="mt-[2px] block"
+          data-testid="progress-effort-legend"
+        >
+          {t("effort.progressLegend")}
+        </AppText>
+      ) : null}
     </Card>
   );
 }

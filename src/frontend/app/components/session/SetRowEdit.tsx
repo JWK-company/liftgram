@@ -32,6 +32,8 @@ import {
 import { enteredWeightToKg } from "@app/core/domain/blockUnit";
 import { useEffect, useRef, useState } from "react";
 import { useSetDrafts } from "./setDrafts";
+import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) @plm SRS-073
+import { useEffortLogging } from "@/lib/effortPref";
 import { lang, t } from "@/lib/i18n";
 import { ActionSheet, InfoDialog, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
@@ -54,6 +56,8 @@ export interface SetRow {
   grip: string | null;
   setType: string | null;
   targetRir: number | null;
+  /** v26 실제 RIR(0~10, 0.5 단위 · null = 적지 않음) @plm SRS-073 */
+  rir?: number | null;
   // 유산소 지표(SRS-030) — 같은 세트 행이 근력·유산소 둘 다를 담는다.
   // 근력 종목에서는 늘 비어 있고, 유산소에서는 무게·횟수 쪽이 비어 있다.
   durationSec?: number | null;
@@ -119,7 +123,12 @@ export function SetRowEdit({
   suggestion: Suggestion | null;
   unit: WeightUnit;
   barWeightKg: number;
-  onUpdate: (patch: { weightKg?: number; reps?: number; partialReps?: number | null }) => void;
+  onUpdate: (patch: {
+    weightKg?: number;
+    reps?: number;
+    partialReps?: number | null;
+    rir?: number | null;
+  }) => void;
   onToggleDone: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
   onSetType: (type: "normal" | "warmup" | "drop" | "failed") => void;
   onSetArm: (arm: "uni" | null) => void;
@@ -142,6 +151,7 @@ export function SetRowEdit({
   const [typeMenu, setTypeMenu] = useState(false);
   const [varOpen, setVarOpen] = useState(false);
   const [plates, setPlates] = useState<string | null>(null);
+  const effortOn = useEffortLogging(); // 켰을 때만 처방 줄에 RIR 칩(끄면 DOM 0 · U-1) @plm SRS-073
 
   // 밖에서 값이 바뀌면(이전 칩 적용·제안 적용) 입력칸도 따라간다.
   // 밖에서 값이 바뀌면 등록부의 입력 중 값도 버린다 — 옛 입력이 묶음 완료 때 새 값을 덮지 않게(SRS-062)
@@ -409,18 +419,29 @@ export function SetRowEdit({
         </button>
       </div>
 
-      {/* 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. */}
-      {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? (
+      {/* 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 힘든 정도 기록을 켜면 처방이 없어도 이 줄에 칩(U-1) @plm SRS-073 */}
+      {/* [원본] {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
+      {effortOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? (
         <div className="flex items-center gap-[var(--spacing-sm)] pb-[2px] pl-[42px]">
           {rx?.repMin != null || rx?.repMax != null ? (
             <AppText variant="label" color="textMuted">
               {t("session.rxRepRange", { range: repRangeLabel(rx.repMin ?? null, rx.repMax ?? null) })}
             </AppText>
           ) : null}
-          {set.targetRir != null ? (
+          {/* [원본] {set.targetRir != null ? ( — 켜면 처방 RIR 글자는 칩 하나로 합친다(「목표 2」·「2 · 목표 2」 · U-10) */}
+          {!effortOn && set.targetRir != null ? (
             <AppText variant="label" color="primary" className="font-bold">
               {t("session.rxRir", { rir: set.targetRir })}
             </AppText>
+          ) : null}
+          {effortOn ? (
+            <RirChip
+              setId={set.id}
+              rir={set.rir}
+              savedAt={savedAt}
+              target={set.targetRir}
+              onSave={(v) => onUpdate({ rir: v })}
+            />
           ) : null}
         </div>
       ) : null}

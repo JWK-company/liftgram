@@ -23,6 +23,7 @@ import { DistributionBars } from "../ui/charts";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 import { KpiRow, ListGroup, ListRow, SectionLabel, Segmented } from "../ui/rows";
 import { LogoSpinner } from "../ui/LogoSpinner";
+import { EffortCard } from "./EffortCard"; // 세트 힘든 정도(SRS-074)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Overview = Awaited<ReturnType<AnalyticsRepo["getOverview"]>>;
@@ -239,6 +240,8 @@ export default function StatsClient() {
                 formatValue={(v) => formatWeight(v, weightUnit)}
               />
             </Card>
+            {/* 세트 힘든 정도 — 위쪽 기간을 따른다(U-6) @plm SRS-074 */}
+            <EffortCard days={SPAN[period]} />
 
             {/* 최근 PR — 위 1RM 목록에 있는 종목은 거기 「최근 갱신」 으로 붙었으니 뺀다 · 종목당 가장 최근 한 줄.
                 [원본] 종목마다 갱신 이력 여러 줄 + 줄마다 금색 「추정치」 태그(7개) — 같은 종목이 위아래 두 번 나왔다 */}

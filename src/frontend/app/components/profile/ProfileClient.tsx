@@ -50,6 +50,7 @@ import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
+import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 import { version as APP_VERSION } from "../../../package.json";
 import buildInfo from "../../build-info.json";
@@ -283,6 +284,7 @@ export default function ProfileClient() {
             value={`${t(REST_SOUND_LABEL[restSound])} · ${t(REST_VOLUME_LABEL[restVol])}`}
             onPress={() => setSheet("sound")}
           />
+          <EffortLoggingRow />
           <ListRow
             testId="row-equipment"
             title={t("profile.availableEquipment")}
