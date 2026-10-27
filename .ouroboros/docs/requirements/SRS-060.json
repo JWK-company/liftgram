@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-060",
+  "type": "SRS",
+  "title": "운동을 루틴으로 저장 — 빠른 운동 완료 시 묻기 · 루틴 운동 「새 루틴으로 저장」 · 요약·기록 상세 「이 운동으로 루틴 만들기」",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T01:00:00Z",
+  "updated": "2026-10-27T01:00:00Z",
+  "sync": true,
+  "tags": ["routine", "session", "quick-start", "history"],
+  "kind": "FR",
+  "acceptance_criteria": "빠른 운동 완료 시 저장 여부 질문 · 저장 루틴 = 종목·순서·슈퍼셋·완료 세트 수·횟수 범위(무게 제외) · 기본 이름 자동 · 요약·기록 상세에서도 저장 가능.",
+  "relations": {"derives_from": ["URS-019"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "완료 세트가 1개 이상인 운동 하나를 루틴으로 저장하는 단일 기능을 둔다. 저장되는 루틴은 완료 세트가 있는 종목만, 오늘의 순서·슈퍼셋 묶음, 종목별 완료한 워킹 세트 수, 횟수 범위(루틴 운동이면 원래 루틴의 목표 범위, 아니면 그날 한 워킹 세트 횟수의 최소~최대), 휴식(원래 값 또는 기본값)을 담고 무게와 기록 칸 변형은 담지 않는다(다음 시작 때 지난 기록·지난 조합으로 채워진다)."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "진입은 세 곳: ① 빠른 운동 완료 시 「루틴으로 저장할까요?」 ② 루틴 운동 완료 시트의 「새 루틴으로 저장」 ③ 요약 화면·기록 상세의 「이 운동으로 루틴 만들기」. 기본 이름은 루틴 운동이면 「원래 이름 (수정)」, 아니면 「M/D 주요 부위」(완료 세트가 많은 주 근육 상위 2개)이고 저장 전에 고칠 수 있다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "빠른 운동 완료 시 질문이 뜨고, 저장하면 루틴 목록에 생기며 그 루틴으로 시작하면 같은 종목·순서·세트 수·슈퍼셋이 뜬다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "완료 세트가 없는 종목은 저장되지 않고, 무게는 저장되지 않는다(시작 시 이전 기록으로 채움)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「저장 안 함」·닫기면 루틴이 생기지 않는다. 요약·기록 상세에서도 같은 결과로 저장된다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "같은 이름이 있으면 「(2)」를 붙인다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-019. 피드백 #60 · #59(요약에서 루틴으로 가져오기 일부)."}]}
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-019",
+  "type": "URS",
+  "title": "그날 실제로 한 운동을 끝낼 때, 루틴에 남길지·새 루틴으로 저장할지·오늘만으로 둘지 내가 고르고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T01:00:00Z",
+  "updated": "2026-10-27T01:00:00Z",
+  "sync": true,
+  "tags": ["routine", "session", "finish", "feedback"],
+  "stakeholder": "매일 기록하는 리프터(P2 기록러)·루틴을 조금씩 고쳐 가는 중급자",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "배경 / 이해관계자"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "헬스장에서는 계획대로만 운동하지 않는다. 기구가 비어 있지 않아 바벨 벤치프레스를 덤벨로 바꾸거나, 컨디션이 좋아 케이블 플라이를 한 세트 더 하거나, 빠른 운동으로 즉석에서 종목을 넣어 운동한다. 지금은 이렇게 바뀐 운동이 루틴에 남지 않아 다음에 같은 루틴을 열면 예전 모습으로 나오고(피드백 #46), 빠른 운동으로 잘 짠 구성은 다시 만들 방법이 없다(#60). 사용자 두 명(운영자 겸 리프터)이 직접 제기했다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "루틴으로 한 운동을 끝낼 때, 루틴과 무엇이 달라졌는지 보고 원하는 변경만 루틴에 남기고 싶다(일시적인 대체는 남기지 않고, 계속 할 변경만)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "바뀐 구성을 원래 루틴과 별개인 새 루틴으로 저장하거나, 오늘만 이렇게 한 것으로 두고 루틴은 그대로 두고 싶다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "빠른 운동으로 한 구성도 끝낼 때 루틴으로 저장할지 묻고, 지난 운동 기록에서도 루틴을 만들고 싶다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "그립·적재 방식·브랜드 같은 기록 칸 변형은 다음에 자동으로 지난 조합이 뜨므로 변경으로 묻지 않기를 원한다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "루틴 운동 완료 시 달라진 점이 있으면 항목별 선택 반영·새 루틴 저장·오늘만 세 가지를 고를 수 있고, 선택한 항목만 루틴에 반영된다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "빠른 운동 완료 시 루틴 저장 여부를 묻고, 저장한 루틴으로 다음에 바로 시작할 수 있다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "기록 칸 변형(그립·적재·브랜드·부착물)만 바뀐 운동에서는 묻지 않는다."}]}]}
+      ]}
+    ]
+  }
+}

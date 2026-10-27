@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-022",
+  "type": "UCS",
+  "title": "운동을 마치며 달라진 점을 루틴에 반영하거나 새 루틴으로 저장한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T01:00:00Z",
+  "updated": "2026-10-27T01:00:00Z",
+  "sync": true,
+  "tags": ["routine", "session", "finish"],
+  "relations": {"elaborates": ["URS-019"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "사전 조건"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "진행 중인 운동이 있고, 완료한 세트가 1개 이상이다. 루틴에서 시작했으면 그 루틴이 아직 있다(삭제됐으면 루틴 운동이 아닌 것으로 본다)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "주 흐름 — 루틴 운동"}]},
+      {"type": "ordered_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "사용자가 「완료」를 누르고 확인한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "시스템이 오늘 운동과 루틴을 비교해 달라진 점(종목 교체·추가·삭제·세트 수·순서·슈퍼셋)을 찾는다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "달라진 점이 있으면 시트가 뜬다: 「바뀐 대로 루틴 바꾸기」·「새 루틴으로 저장」·「오늘만」."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「바뀐 대로 루틴 바꾸기」를 고르면 항목 목록(예: 바벨 벤치프레스 → 덤벨 벤치프레스 / 케이블 플라이 2 → 3세트)이 체크된 채로 보이고, 사용자가 원하지 않는 항목의 체크를 끄고 「반영」을 누른다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "시스템이 체크한 항목만 루틴에 반영하고 요약 화면으로 넘어간다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "대안 흐름"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "A1 새 루틴으로 저장: 이름(기본 「원래 이름 (수정)」)을 확인·수정하고 저장 — 원래 루틴은 그대로."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "A2 오늘만 / 시트 닫기: 루틴은 그대로, 요약으로."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "A3 빠른 운동: 「루틴으로 저장할까요?」 → 이름(기본 「10/27 가슴·삼두」) → 저장 / 「저장 안 함」."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "A4 세트별 처방이 있는 루틴: 「바꾸기」는 비활성(이유 표시), 새 저장·오늘만만."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "A5 요약 화면·기록 상세의 「이 운동으로 루틴 만들기」: A1 과 같은 저장."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "예외 흐름"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "변형 칸(그립·적재·브랜드·부착물)만 달라졌거나 아무것도 다르지 않으면 시트를 띄우지 않는다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "반영·저장이 실패해도 운동 완료와 기록은 이미 저장되어 있다(오류 알림만)."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "사후 조건"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "운동은 완료 상태로 기록되고, 선택에 따라 원래 루틴이 갱신되거나 새 루틴이 생긴다. 다음에 그 루틴으로 시작하면 반영된 구성이 뜬다."}]}
+    ]
+  }
+}
