@@ -20,21 +20,26 @@ const AUTH_ROUTES = ["/signin", "/signup", "/forgot", "/reset", "/verify-email",
 type TabKey = "workout" | "records" | "feed" | "stats" | "profile" | "feedback";
 type Tab = { key: TabKey; href: string; label: string; testId: string; match: (p: string) => boolean };
 
+/**
+ * 경로가 그 구역 **안**인가 — 글자 접두가 아니라 경로 조각 단위로 본다.
+ * `startsWith("/feed")` 는 `/feedback` 도 참이라 피드·피드백 두 탭이 함께 켜졌다(2026-10-27 사용자 제보).
+ */
+const under = (p: string, ...bases: string[]) => bases.some((b) => p === b || p.startsWith(`${b}/`));
+
 const TABS: Tab[] = [
   {
     key: "workout",
     href: "/",
     label: "운동",
     testId: "nav-workout",
-    match: (p) =>
-      p === "/" || p.startsWith("/exercise") || p.startsWith("/routines") || p.startsWith("/program"),
+    match: (p) => p === "/" || under(p, "/exercise", "/exercises", "/routines", "/program"),
   },
   {
     key: "records",
     href: "/history",
     label: "기록",
     testId: "nav-history",
-    match: (p) => p.startsWith("/history") || p.startsWith("/calendar"),
+    match: (p) => under(p, "/history", "/calendar"),
   },
   {
     key: "feed",
@@ -42,18 +47,25 @@ const TABS: Tab[] = [
     label: "피드",
     testId: "nav-feed",
     match: (p) =>
-      ["/feed", "/discover", "/explore", "/hashtag", "/messages", "/notifications", "/u/", "/bookmarks"].some(
-        (x) => p.startsWith(x),
+      under(
+        p,
+        "/feed",
+        "/discover",
+        "/explore",
+        "/hashtag",
+        "/messages",
+        "/notifications",
+        "/u",
+        "/bookmarks",
       ),
   },
-  { key: "stats", href: "/stats", label: "분석", testId: "nav-stats", match: (p) => p.startsWith("/stats") },
+  { key: "stats", href: "/stats", label: "분석", testId: "nav-stats", match: (p) => under(p, "/stats") },
   {
     key: "profile",
     href: "/profile",
     label: "프로필",
     testId: "nav-profile",
-    match: (p) =>
-      ["/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"].some((x) => p.startsWith(x)),
+    match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
   },
 ];
 
@@ -62,7 +74,7 @@ const FEEDBACK: Tab = {
   href: "/feedback",
   label: "피드백",
   testId: "nav-feedback",
-  match: (p) => p.startsWith("/feedback"),
+  match: (p) => under(p, "/feedback"),
 };
 
 /** 라인 아이콘 — 24 격자 · 선 1.8 · 둥근 끝. 켜진 탭은 같은 선에 브랜드색만 입힌다. */

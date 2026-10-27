@@ -69,6 +69,9 @@ test("내부 사람은 적어 올리고 목록에서 확인한다", async ({ pag
   await expect(page.getByTestId("nav-feedback")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("nav-feedback").click();
   await expect(page.getByTestId("feedback-body")).toBeVisible({ timeout: 20_000 });
+  // 켜진 탭은 피드백 하나뿐 — `/feedback` 이 `/feed` 로 시작해 피드 탭도 켜지던 것(2026-10-27).
+  await expect(page.getByTestId("nav-feedback")).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("nav-feed")).not.toHaveAttribute("aria-current", "page");
 
   // 제목이 짧으면 올릴 수 없다.
   const 제목 = `버튼이 안 눌려요 ${Date.now()}`;
