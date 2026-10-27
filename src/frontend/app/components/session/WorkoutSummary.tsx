@@ -7,12 +7,14 @@
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
-import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
+import { formatWeight, type WeightUnit } from "@app/core";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
-import { AppText, Tag } from "../ui/primitives";
+import { AppText } from "../ui/primitives";
+import { SheetShell } from "../ui/Dialog";
+import { QuietAction } from "../ui/quiet";
 import { KpiRow, ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { NameRoutine } from "./FinishRoutineSheets";
 import { WorkoutNoteField } from "./WorkoutNoteField";
@@ -62,10 +64,16 @@ export function WorkoutSummary({
   }, [summary]);
 
   const today = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+  // 종목별 PR 수 — 「PR n」 을 그 종목 줄 오른쪽에 붙인다(D5). 같은 종목이 두 블록이면 한 번만 단다(첫 줄).
+  const prByExercise = new Map(summary.prs.map((d) => [d.exerciseId, d]));
+  const prShown = new Set<string>();
+  const [sharing, setSharing] = useState(false); // 공유 시트 — 한마디 입력은 시트 안(D5)
+  const [shared, setShared] = useState(false); // 한 번 올리면 시트를 다시 열어도 버튼이 잠긴 채
+  const done = routineMade || routineSaved;
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        {/* 축하는 위에 짧게(시안 04) — 깬 기록은 아래 목록으로 읽힌다. */}
+      <div className="flex flex-1 flex-col p-[var(--spacing-lg)]" data-testid="summary-body">
+        {/* 축하는 위에 짧게(시안 04) — PR 수는 아래 숫자 줄로, 깬 기록은 종목 줄 오른쪽 금색으로(D5). */}
         <div className="flex flex-col items-center pt-[var(--spacing-md)]">
           <Icon name="trophy" size={36} color="var(--color-pr)" />
           <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-sm)] block">
@@ -74,14 +82,24 @@ export function WorkoutSummary({
           <AppText variant="title" center className="mt-[2px] block">
             {t("session.workoutComplete")}
           </AppText>
+          {/* PR 수 — 상자 없는 금색 글자 한 줄(색 의미: 금색 = PR · D5) */}
+          {summary.prCount > 0 ? (
+            <AppText
+              variant="caption"
+              className="mt-[var(--spacing-xs)] block font-semibold text-(--color-pr)"
+            >
+              {t("session.prCount", { count: summary.prCount })}
+            </AppText>
+          ) : null}
+          {/* [원본] PR 갱신 n회 배지(Tag 상자) — 상자를 걷어 내고 위 금색 글자로(D5)
           {summary.prCount > 0 ? (
             <div className="mt-[var(--spacing-sm)]">
               <Tag label={t("session.prCount", { count: summary.prCount })} tone="pr" />
             </div>
-          ) : null}
+          ) : null} */}
         </div>
 
-        {/* 숫자 상자 셋 → 한 줄(같은 무게의 숫자는 칸 나눔으로). */}
+        {/* 숫자 셋 — 볼륨·시간·세트(PR 수는 위 금색 글자 한 줄 · 4칸이면 360 폭에서 다섯 자리 볼륨이 넘친다). */}
         <div className="mt-[var(--spacing-lg)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) py-[var(--spacing-lg)]">
           <KpiRow
             items={[
@@ -103,69 +121,64 @@ export function WorkoutSummary({
           {summary.prCount}
         </span>
 
-        {/* 이번에 깬 기록 — "벤치프레스 · 중량  105kg (이전 100kg)". */}
-        {summary.prs.length > 0 ? (
-          <>
-            <SectionLabel
-              className="mt-[var(--spacing-xl)]"
-              title={t("session.prCount", { count: summary.prCount })}
-            />
-            <ListGroup testId="summary-pr-list">
-              {summary.prs.flatMap((d) =>
-                d.prs.map((p) => {
-                  // [원본] 중량·볼륨 둘 다 kg·0.5 증분으로 보였다 — lb 블록 100lb PR 이 「45.5kg」(/qa code M-2)
-                  // [개선] 중량 PR 은 그 블록에 적은 단위·적은 숫자 그대로, 볼륨은 kg(Q2 A) @plm SRS-067
-                  const show = (v: number) =>
-                    p.type === "maxWeight" && d.weightUnit === "lb"
-                      ? formatEnteredWeight(v, "lb")
-                      : formatWeight(v, unit);
-                  return (
-                    <ListRow
-                      key={`${d.exerciseId}_${p.type}`}
-                      leading={<Icon name="trophy" size={18} color="var(--color-pr)" />}
-                      title={`${d.exerciseName} · ${t(
-                        p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume",
-                      )}`}
-                      subtitle={p.previous > 0 ? t("session.prPrev", { value: show(p.previous) }) : undefined}
-                      value={<span className="font-bold text-(--color-pr)">{show(p.current)}</span>}
-                    />
-                  );
-                }),
-              )}
-            </ListGroup>
-          </>
-        ) : null}
+        {/* [원본] 「이번에 깬 기록」 목록 — 종목 × (중량·볼륨) 두 줄씩 종목 이름이 반복됐다(4종목 = 8줄 · D5).
+            원복 시 커밋 2c7735c 의 이 자리를 되살린다. 이제 그 사실은 아래 종목 줄 오른쪽 「PR n」 하나로 말한다. */}
 
-        {/* 종목별 — 무엇을 얼마나 했는지. 요약 숫자만으로는 다음에 뭘 올릴지 못 정한다. */}
+        {/* 종목별 — 무엇을 얼마나 했는지 + 깬 기록 수. 1RM 은 회색 보조 글자·그 블록에 적은 단위(F5). */}
         <SectionLabel className="mt-[var(--spacing-xl)]" title={t("session.perExerciseRecords")} />
         {extras && extras.breakdown.length === 0 ? (
           <AppText variant="caption" color="textMuted">
             {t("session.noExercisesRecorded")}
           </AppText>
         ) : (
-          <ListGroup testId="summary-breakdown">
-            {extras?.breakdown.map((ex) => (
-              <ListRow
-                key={ex.id}
-                title={ex.name}
-                subtitle={t("session.exerciseSetsVolume", {
-                  count: ex.setCount,
-                  volume: formatWeight(ex.volumeKg, unit),
-                })}
-                value={
-                  ex.best1RM > 0 ? (
-                    // 추정값임을 함께 적는다 — 실제로 든 무게가 아니다(웰니스 규약).
-                    <span className="flex flex-col items-end">
-                      <span className="font-bold text-(--color-brand)">{formatWeight(ex.best1RM, unit)}</span>
-                      <span className="text-(--color-ink3) text-[length:var(--text-xs)]">
-                        {t("wellness.oneRepMaxLabel")}
-                      </span>
-                    </span>
-                  ) : undefined
-                }
-              />
-            ))}
-          </ListGroup>
+          // `summary-pr-list` 는 PR 목록이 있던 자리의 testid — 이제 PR 이 이 종목 줄 안에 산다(스펙 P2)
+          <div data-testid="summary-pr-list">
+            <ListGroup testId="summary-breakdown">
+              {extras?.breakdown.map((ex) => {
+                const pr = !prShown.has(ex.exerciseId) ? prByExercise.get(ex.exerciseId) : undefined;
+                if (pr) prShown.add(ex.exerciseId);
+                const n = pr?.prs.length ?? 0;
+                return (
+                  <ListRow
+                    key={ex.id}
+                    testId="summary-row"
+                    title={ex.name}
+                    subtitle={
+                      <>
+                        {t("session.exerciseSetsVolume", {
+                          count: ex.setCount,
+                          volume: formatWeight(ex.volumeKg, unit),
+                        })}
+                        {ex.best1RM > 0 ? (
+                          <span className="text-(--color-ink3)" data-testid="summary-row-1rm">
+                            {` · ${t("summary.oneRm", {
+                              // [원본] formatWeight(ex.best1RM, unit) — lb 블록도 kg 로 보였다(F5)
+                              value: formatWeight(ex.best1RM, ex.weightUnit),
+                            })}`}
+                          </span>
+                        ) : null}
+                      </>
+                    }
+                    value={
+                      n > 0 ? (
+                        <span data-testid="summary-row-pr" className="font-semibold text-(--color-pr)">
+                          {t("summary.prShort", { count: n })}
+                          {/* 무엇을 깼는지는 읽어 주는 글로만(화면에는 「PR n」 하나) */}
+                          <span className="sr-only">
+                            {` (${pr?.prs
+                              .map((p) =>
+                                t(p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume"),
+                              )
+                              .join(" · ")})`}
+                          </span>
+                        </span>
+                      ) : undefined
+                    }
+                  />
+                );
+              })}
+            </ListGroup>
+          </div>
         )}
         {extras?.breakdown.some((ex) => ex.best1RM > 0) ? (
           <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-xs)] block">
@@ -173,29 +186,26 @@ export function WorkoutSummary({
           </AppText>
         ) : null}
 
-        {/* 방금 마친 운동 그대로 루틴으로(#59 일부) — 빠른 운동이면 완료 직후에도 묻는다. @plm SRS-060 */}
+        {/* 부가 행동 한 줄 — 루틴 저장 · 다시 시작 · 공유(D5). 주 행동은 아래 「완료」 하나뿐.
+            [원본] 루틴 만들기·다시 시작이 각각 전체 폭 버튼, 공유는 한마디 입력과 함께 화면 끝에 있었다(세로로 3화면). */}
         {summary.workingSets > 0 ? (
-          <div className="mt-[var(--spacing-lg)]">
-            <Button
-              title={routineMade || routineSaved ? t("finish.madeRoutine") : t("finish.makeRoutine")}
-              variant="secondary"
-              icon={routineMade || routineSaved ? "checkmark" : "list-outline"}
+          <div className="mt-[var(--spacing-lg)] flex gap-[var(--spacing-xs)]" data-testid="summary-actions">
+            {/* 방금 마친 운동 그대로 루틴으로(#59 일부) — 빠른 운동이면 완료 직후에도 묻는다. @plm SRS-060 */}
+            <QuietAction
+              icon={done ? "checkmark" : "list-outline"}
+              label={done ? t("summary.actionMadeRoutine") : t("summary.actionMakeRoutine")}
+              ariaLabel={done ? t("finish.madeRoutine") : t("finish.makeRoutine")}
               testId="btn-summary-make-routine"
-              disabled={routineMade || routineSaved}
+              disabled={done}
               onPress={() => setMakeRoutine(true)}
             />
-          </div>
-        ) : null}
-
-        {/* 같은 구성으로 한 번 더(#59) — 무게는 이전 기록(방금 한 것)으로 채운다 @plm SRS-065 */}
-        {summary.workingSets > 0 ? (
-          <div className="mt-[var(--spacing-sm)]">
-            <Button
-              title={t("replay.start")}
-              variant="secondary"
+            {/* 같은 구성으로 한 번 더(#59) — 무게는 이전 기록(방금 한 것)으로 채운다 @plm SRS-065 */}
+            <QuietAction
               icon="play"
+              label={t("summary.actionReplay")}
+              ariaLabel={t("replay.start")}
               testId="btn-summary-replay"
-              loading={replay.busy}
+              busy={replay.busy}
               onPress={() =>
                 replay.guard(async (replacing) => {
                   const repo = await import("@app/core/data/workoutRepository");
@@ -209,19 +219,42 @@ export function WorkoutSummary({
                 })
               }
             />
+            {/* 피드 공유 — 한마디 입력은 시트 안(요약 화면에 입력칸이 둘이던 것 · D5) */}
+            <QuietAction
+              icon={shared ? "checkmark" : "share-social-outline"}
+              label={shared ? t("summary.actionShared") : t("summary.actionShare")}
+              ariaLabel={shared ? t("session.sharedToFeed") : t("session.shareToFeed")}
+              testId="btn-summary-share"
+              disabled={!extras || shared}
+              onPress={() => setSharing(true)}
+            />
           </div>
         ) : null}
 
         {/* 운동 총평 — 나만 본다 · 피드 글과 별개(#52) @plm SRS-064 */}
         <WorkoutNoteField workoutId={summary.workoutId} initial={null} />
-
-        {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
-        {extras ? (
-          <div className="mt-[var(--spacing-xl)]">
-            <ShareWorkout payload={extras.share} unit={unit} />
-          </div>
-        ) : null}
       </div>
+
+      {sharing && extras ? (
+        <SheetShell
+          title={t("summary.shareSheetTitle")}
+          onClose={() => setSharing(false)}
+          hideOk
+          testId="share-sheet"
+        >
+          {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
+          <ShareWorkout
+            payload={extras.share}
+            unit={unit}
+            inSheet
+            shared={shared}
+            onShared={() => {
+              setShared(true);
+              setSharing(false); // 올렸으면 시트를 닫는다 — 요약의 「공유」 가 「공유했어요」 로 잠긴다
+            }}
+          />
+        </SheetShell>
+      ) : null}
 
       {replay.sheet}
 

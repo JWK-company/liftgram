@@ -1029,4 +1029,15 @@ export const en: Record<TransKey, string> = {
   "note.hint": "Only you can see this · separate from feed posts", // @plm SRS-064
   "note.saved": "Review saved", // @plm SRS-064
   "analytics.oneSideTag": "One side {weight} ×{n}", // @plm SRS-065
+  // Declutter P2 — summary · workout detail · stats(D5·D6·F5) @plm SRS-070
+  "summary.prShort": "PR {count}",
+  "summary.oneRm": "1RM {value}",
+  "summary.actionMakeRoutine": "Save routine",
+  "summary.actionMadeRoutine": "Saved",
+  "summary.actionReplay": "Do again",
+  "summary.actionShare": "Share",
+  "summary.actionShared": "Shared",
+  "summary.shareSheetTitle": "Share to feed",
+  "analytics.oneSideHeader": "One side input (volume ×{n})",
+  "analytics.lastPrOn": "Last PR {date}",
 };

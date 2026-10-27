@@ -1027,6 +1027,17 @@ export const ko = {
   "note.hint": "나만 봐요 · 피드 글과 따로 남아요", // @plm SRS-064
   "note.saved": "총평을 저장했어요", // @plm SRS-064
   "analytics.oneSideTag": "한쪽 {weight} ×{n}", // @plm SRS-065
+  // 화면 정리 P2 — 요약·기록 상세·분석(D5·D6·F5) @plm SRS-070
+  "summary.prShort": "PR {count}",
+  "summary.oneRm": "1RM {value}",
+  "summary.actionMakeRoutine": "루틴으로 저장",
+  "summary.actionMadeRoutine": "저장했어요",
+  "summary.actionReplay": "다시 시작",
+  "summary.actionShare": "공유",
+  "summary.actionShared": "공유했어요",
+  "summary.shareSheetTitle": "피드에 공유",
+  "analytics.oneSideHeader": "한쪽 입력(볼륨 ×{n})",
+  "analytics.lastPrOn": "최근 갱신 {date}",
 } as const;
 
 export type TransKey = keyof typeof ko;

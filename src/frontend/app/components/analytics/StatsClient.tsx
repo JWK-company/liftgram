@@ -20,7 +20,7 @@ import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
 import { lang, t } from "@/lib/i18n";
 import { DistributionBars } from "../ui/charts";
-import { AppText, Card, EmptyState, Tag } from "../ui/primitives";
+import { AppText, Card, EmptyState } from "../ui/primitives";
 import { KpiRow, ListGroup, ListRow, SectionLabel, Segmented } from "../ui/rows";
 import { LogoSpinner } from "../ui/LogoSpinner";
 
@@ -113,6 +113,15 @@ export default function StatsClient() {
   }, [period]);
 
   const hasData = !!overview && overview.sessionCount > 0;
+  // 종목별 가장 최근 1RM 갱신 시각 · 위 1RM 목록에 없는 종목의 최근 PR(종목당 한 줄) — 화면 정리 P2
+  const lastPrOf = new Map<string, number>();
+  for (const pr of recentPRs) {
+    if ((lastPrOf.get(pr.exerciseId) ?? 0) < pr.completedAt) lastPrOf.set(pr.exerciseId, pr.completedAt);
+  }
+  const topIds = new Set(overview?.topOneRM.map((r) => r.exerciseId) ?? []);
+  const otherPRs = recentPRs.filter(
+    (pr) => !topIds.has(pr.exerciseId) && lastPrOf.get(pr.exerciseId) === pr.completedAt,
+  );
   const meta = PERIODS.find((p) => p.key === period) ?? PERIODS[0];
 
   return (
@@ -196,6 +205,20 @@ export default function StatsClient() {
                   <ListRow
                     key={row.exerciseId}
                     title={row.exerciseName}
+                    // 최근에 언제 깼는지 — 아래 「최근 PR」 목록과 같은 종목을 두 번 쓰지 않으려고 여기 붙인다(화면 정리 P2)
+                    subtitle={
+                      lastPrOf.get(row.exerciseId)
+                        ? t("analytics.lastPrOn", {
+                            date: new Date(lastPrOf.get(row.exerciseId) as number).toLocaleDateString(
+                              "ko-KR",
+                              {
+                                month: "numeric",
+                                day: "numeric",
+                              },
+                            ),
+                          })
+                        : undefined
+                    }
                     value={
                       <span className="font-bold text-(--color-ink)">
                         {formatWeight(row.estimated1RM, weightUnit)}
@@ -206,13 +229,8 @@ export default function StatsClient() {
                 ))}
               </ListGroup>
             )}
-            <AppText
-              variant="caption"
-              color="textFaint"
-              className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
-            >
-              {t("wellness.oneRepMaxCaption")}
-            </AppText>
+            {/* [원본] 추정 주석이 여기 — 아래 「최근 PR」 의 「추정치」 태그(줄마다)와 같은 말이었다. 주석은 두 목록 끝에 한 번. */}
+            <div className="mb-[var(--spacing-lg)]" />
 
             <SectionLabel title={t("analytics.muscleDistribution")} />
             <Card className="mb-[var(--spacing-lg)]">
@@ -222,34 +240,47 @@ export default function StatsClient() {
               />
             </Card>
 
-            <SectionLabel title={t("analytics.recentPRs")} />
-            {recentPRs.length === 0 ? (
+            {/* 최근 PR — 위 1RM 목록에 있는 종목은 거기 「최근 갱신」 으로 붙었으니 뺀다 · 종목당 가장 최근 한 줄.
+                [원본] 종목마다 갱신 이력 여러 줄 + 줄마다 금색 「추정치」 태그(7개) — 같은 종목이 위아래 두 번 나왔다 */}
+            {/* 위 목록에 다 나왔으면 구역째 숨긴다(빈 안내 문장만 남지 않게) — 기록이 아예 없을 때만 빈 안내 */}
+            {otherPRs.length > 0 || recentPRs.length === 0 ? (
+              <>
+                <SectionLabel title={t("analytics.recentPRs")} />
+                {otherPRs.length === 0 ? (
+                  <AppText
+                    variant="caption"
+                    color="textFaint"
+                    className="mb-[var(--spacing-xs)] block px-[var(--spacing-xs)]"
+                  >
+                    {t("analytics.recentPRsEmpty")}
+                  </AppText>
+                ) : (
+                  <ListGroup className="mb-[var(--spacing-xs)]" testId="stats-recent-prs">
+                    {otherPRs.map((pr) => (
+                      <ListRow
+                        key={`${pr.exerciseId}-${pr.completedAt}`}
+                        title={pr.exerciseName}
+                        subtitle={new Date(pr.completedAt).toLocaleDateString("ko-KR")}
+                        value={
+                          <span className="font-bold text-(--color-ink) text-[length:var(--text-md)]">
+                            {formatWeight(pr.estimated1RM, weightUnit)}
+                          </span>
+                        }
+                      />
+                    ))}
+                  </ListGroup>
+                )}
+              </>
+            ) : null}
+            {overview.topOneRM.length > 0 || recentPRs.length > 0 ? (
               <AppText
                 variant="caption"
                 color="textFaint"
                 className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
               >
-                {t("analytics.recentPRsEmpty")}
+                {t("wellness.oneRepMaxCaption")}
               </AppText>
-            ) : (
-              <ListGroup className="mb-[var(--spacing-lg)]">
-                {recentPRs.map((pr) => (
-                  <ListRow
-                    key={`${pr.exerciseId}-${pr.completedAt}`}
-                    title={pr.exerciseName}
-                    subtitle={new Date(pr.completedAt).toLocaleDateString("ko-KR")}
-                    trailing={
-                      <span className="flex items-center gap-[var(--spacing-sm)]">
-                        <span className="font-bold text-(--color-ink) text-[length:var(--text-md)]">
-                          {formatWeight(pr.estimated1RM, weightUnit)}
-                        </span>
-                        <Tag label={t("analytics.estimateTag")} tone="pr" />
-                      </span>
-                    }
-                  />
-                ))}
-              </ListGroup>
-            )}
+            ) : null}
           </>
         )}
 

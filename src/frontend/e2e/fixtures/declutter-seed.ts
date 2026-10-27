@@ -117,3 +117,45 @@ export async function 붐비는_운동_화면(page: Page): Promise<void> {
   ).toContainText("40", { timeout: 15_000 });
   await expect(블록(page, 0).getByTestId("pr-chip-volume")).toBeVisible({ timeout: 15_000 });
 }
+
+/** 완료를 누르고 요약에서 멈춘다(완료 시트 질문은 「오늘만/저장 안 함」으로 닫는다) — P2 측정용. */
+export async function 요약에서_멈추기(page: Page): Promise<void> {
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
+}
+
+/**
+ * P2(요약·기록 상세·분석) 재료 — 한 운동에 세 종목, 모두 첫 기록이라 종목마다 PR 2개(중량·볼륨)가 선다.
+ *   · 덤벨 플라이: **lb** 블록(30·35lb) → 1RM 이 lb 로 보여야 한다(F5)
+ *   · 머신 체스트 프레스: 플레이트 + 한쪽 입력 3세트 → 「한쪽 입력(볼륨 ×2)」 은 종목 머리에 한 번(D6)
+ *   · 바벨 벤치프레스: 기본 칸
+ * 끝나면 요약 화면(닫지 않음).
+ */
+export async function 요약_재료(page: Page): Promise<void> {
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "덤벨 플라이");
+  await 블록(page, 0).getByTestId("unit-toggle").getByTestId("unit-toggle-lb").click();
+  await expect(블록(page, 0).getByTestId("unit-toggle-lb")).toHaveAttribute("aria-pressed", "true");
+  await 세트_기록(page, 0, 0, 30, 12);
+  await 블록(page, 0).getByTestId("btn-add-set").click();
+  await 세트_기록(page, 0, 1, 35, 11);
+  await 종목_추가(page, "머신 체스트 프레스");
+  await 칸_고르기(page, 1, ["slot-load-plate", "slot-plate-one-side-input"]);
+  await 세트_기록(page, 1, 0, 40, 12);
+  for (const [i, kg, reps] of [
+    [1, 45, 11],
+    [2, 50, 10],
+  ] as const) {
+    await 블록(page, 1).getByTestId("btn-add-set").click();
+    await 세트_기록(page, 1, i, kg, reps);
+  }
+  await 종목_추가(page, "바벨 벤치프레스");
+  await 세트_기록(page, 2, 0, 60, 10);
+  await 안내_띠_닫기(page);
+  await 요약에서_멈추기(page);
+}

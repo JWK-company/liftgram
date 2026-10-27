@@ -18,7 +18,8 @@ import { ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { MoreMenu } from "../ui/MoreMenu";
 import { KpiRow } from "../ui/rows";
-import { AppText, Card, Divider, EmptyState, Tag } from "../ui/primitives";
+import { AppText, Card, Divider, EmptyState } from "../ui/primitives";
+import { MetaLine } from "../ui/quiet";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { NameRoutine } from "../session/FinishRoutineSheets";
 import { WorkoutNoteField } from "../session/WorkoutNoteField";
@@ -224,6 +225,12 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 ))}
               </div>
             )}
+            {detail.exercises.some((ex) => ex.bestEstimated1RM > 0) ? (
+              // 추정 1RM 주석은 화면에 한 번(D6) — 종목마다 붙던 것
+              <AppText variant="caption" color="textFaint" className="mb-[var(--spacing-lg)] block">
+                {t("wellness.oneRepMaxCaption")}
+              </AppText>
+            ) : null}
 
             {/* 운동 총평 — 나만 본다 · 나중에 써도 된다(#52 A) @plm SRS-064 */}
             <WorkoutNoteField
@@ -309,16 +316,41 @@ function ExerciseCard({
   const shown = useExerciseName(ex.exerciseId);
   // 수행 조합(브랜드·핀/플레이트·부착물·손 그립) — 기본 칸이면 적지 않는다(#59) @plm SRS-065
   const slot = !ex.isCardio && ex.variantKey ? variantLabelFromKey(ex.variantKey, lang, slotLabels) : null;
+  // 한쪽 입력 — 세트마다 배지를 달던 것을 종목 머리에 한 번(D6). 가장 큰 배수(보통 2)를 적는다. @plm SRS-070
+  const oneSide = ex.sets.reduce((m, s) => Math.max(m, s.loadMultiplier ?? 1), 1);
+  // RPE 를 하나도 적지 않은 종목은 RPE 열을 그리지 않는다(빈 「-」 열 · D6)
+  const hasRpe = ex.sets.some((s) => s.rpe != null);
   return (
     <Card className="mb-[var(--spacing-lg)]">
-      <AppText variant="heading" className="block truncate">
-        {shown ?? ex.exerciseName}
-      </AppText>
-      {slot ? (
-        <AppText variant="caption" color="textMuted" className="mt-[2px] block" data-testid="detail-slot">
-          {slot}
+      {/* 머리 — 이름(왼쪽) · 추정 1RM(오른쪽, 회색 · 그 블록에 적은 단위 · F5) */}
+      <div className="flex items-baseline justify-between gap-[var(--spacing-sm)]">
+        <AppText variant="heading" className="block min-w-0 truncate">
+          {shown ?? ex.exerciseName}
         </AppText>
-      ) : null}
+        {ex.bestEstimated1RM > 0 ? (
+          <span
+            data-testid="detail-1rm"
+            className="shrink-0 text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums"
+          >
+            {/* [원본] formatWeight(ex.bestEstimated1RM, "kg") — 카드 맨 아래 따로 한 줄, lb 블록도 kg(F5) */}
+            {t("summary.oneRm", { value: formatWeight(ex.bestEstimated1RM, unit) })}
+          </span>
+        ) : null}
+      </div>
+      {/* 메타 한 줄 — 조합 · 한쪽 입력 · 볼륨(상자·배지 없이 · D6) */}
+      <MetaLine className="mt-[2px]">
+        {slot ? (
+          <span key="slot" data-testid="detail-slot">
+            {slot}
+          </span>
+        ) : null}
+        {oneSide > 1 ? (
+          <span key="oneside" data-testid="detail-set-oneside">
+            {t("analytics.oneSideHeader", { n: oneSide })}
+          </span>
+        ) : null}
+        <span key="vol">{`${t("analytics.volumeLabel")} ${formatWeight(ex.volumeKg, "kg")}`}</span>
+      </MetaLine>
 
       {ex.note ? (
         <div className="mt-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]">
@@ -330,20 +362,22 @@ function ExerciseCard({
 
       <div className="mt-[var(--spacing-md)] flex items-center">
         <span className="w-10">
-          <AppText variant="label" color="textFaint">
+          <AppText variant="caption" color="textFaint">
             {t("analytics.setColumnHeader")}
           </AppText>
         </span>
         <span className="flex-1">
-          <AppText variant="label" color="textFaint">
+          <AppText variant="caption" color="textFaint">
             {t("analytics.weightRepsColumnHeader")}
           </AppText>
         </span>
-        <span className="w-12 text-right">
-          <AppText variant="label" color="textFaint">
-            RPE
-          </AppText>
-        </span>
+        {hasRpe ? (
+          <span className="w-12 text-right">
+            <AppText variant="caption" color="textFaint">
+              RPE
+            </AppText>
+          </span>
+        ) : null}
       </div>
       <Divider className="my-[var(--spacing-xs)]!" />
 
@@ -364,64 +398,40 @@ function ExerciseCard({
               {String(s.setNumber)}
             </AppText>
           </span>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <AppText variant="body">
               {`${formatEnteredWeight(s.weightKg, unit)} × ${s.reps}`}
               {s.partialReps ? (
                 <AppText variant="body" color="textFaint">{` +${s.partialReps}`}</AppText>
               ) : null}
             </AppText>
-            <div className="mt-[2px] flex gap-[var(--spacing-xs)]">
-              {s.isWarmup ? <Tag label={t("analytics.warmupTag")} tone="muted" /> : null}
-              {s.isFailed ? <Tag label={t("analytics.failedTag")} /> : null}
-              {s.arm === "uni" ? <Tag label={t("session.armUni")} tone="primary" /> : null}
-              {/* 세트에 남은 옛 손 그립(ADR-034 전 기록) · 플레이트 한쪽 입력 — 무엇을 어떻게 들었는지 @plm SRS-065 */}
+            {/* 세트 표시 — 태그 상자 대신 회색 한 줄(워밍업·실패·원암·옛 손 그립) · 한쪽 입력은 머리에 한 번(D6)
+                [원본] Tag(muted·danger·primary) 여러 개 + 세트마다 「한쪽 40kg ×2」 빨간 배지 */}
+            <MetaLine className="text-[length:var(--text-xs)]">
+              {s.isWarmup ? <span key="w">{t("analytics.warmupTag")}</span> : null}
+              {s.isFailed ? (
+                <span key="f" className="text-(--color-warn)">
+                  {t("analytics.failedTag")}
+                </span>
+              ) : null}
+              {s.arm === "uni" ? <span key="a">{t("session.armUni")}</span> : null}
               {s.grip ? (
-                <span data-testid="detail-set-grip">
-                  <Tag label={gripLabel(s.grip as GripKey, lang) || s.grip} tone="muted" />
+                <span key="g" data-testid="detail-set-grip">
+                  {gripLabel(s.grip as GripKey, lang) || s.grip}
                 </span>
               ) : null}
-              {s.loadMultiplier && s.loadMultiplier > 1 ? (
-                <span data-testid="detail-set-oneside">
-                  <Tag
-                    label={t("analytics.oneSideTag", {
-                      weight: formatEnteredWeight(s.weightKg, unit),
-                      n: s.loadMultiplier,
-                    })}
-                    tone="primary"
-                  />
-                </span>
-              ) : null}
-            </div>
+            </MetaLine>
           </div>
-          <span className="w-12 text-right">
-            <AppText variant="body" color="textMuted">
-              {s.rpe != null ? String(s.rpe) : "-"}
-            </AppText>
-          </span>
+          {hasRpe ? (
+            <span className="w-12 text-right">
+              <AppText variant="body" color="textMuted">
+                {s.rpe != null ? String(s.rpe) : "-"}
+              </AppText>
+            </span>
+          ) : null}
         </button>
       ))}
-
-      <Divider />
-      <div className="flex items-center justify-between py-[var(--spacing-xs)]">
-        <AppText variant="caption" color="textMuted">
-          {t("analytics.volumeLabel")}
-        </AppText>
-        <AppText variant="body" className="font-semibold">
-          {formatWeight(ex.volumeKg, "kg")}
-        </AppText>
-      </div>
-      <div className="flex items-center justify-between py-[var(--spacing-xs)]">
-        <AppText variant="caption" color="textMuted">
-          {t("wellness.oneRepMaxLabel")}
-        </AppText>
-        <AppText variant="body" className="font-bold">
-          {formatWeight(ex.bestEstimated1RM, "kg")}
-        </AppText>
-      </div>
-      <AppText variant="caption" color="textFaint" className="mt-[2px] block">
-        {t("wellness.oneRepMaxCaption")}
-      </AppText>
+      {/* [원본] 카드 끝 「볼륨」·「추정 1RM」 두 줄 + Epley 주석 — 볼륨은 메타 줄, 1RM 은 머리 오른쪽, 주석은 화면 끝 한 번(D6) */}
     </Card>
   );
 }

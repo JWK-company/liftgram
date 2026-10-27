@@ -134,9 +134,12 @@ test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({
   await page.getByTestId("btn-finish-dont-save").click();
 
   // 요약에 공유 자리가 있다 — 한마디를 비워도 올릴 수 있다.
+  // 공유 한마디는 시트 안(화면 정리 D5) — 「공유」 를 눌러 연다. 올리면 시트가 닫히고 「공유했어요」 로 잠긴다.
+  await expect(page.getByTestId("btn-summary-share")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-summary-share").click();
   await expect(page.getByTestId("share-workout")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-share-workout").click();
-  await expect(page.getByTestId("btn-share-workout")).toBeDisabled({ timeout: 20_000 });
+  await expect(page.getByTestId("btn-summary-share")).toBeDisabled({ timeout: 20_000 });
 
   // 피드에 **오운완 카드**로 뜬다 — 숫자가 실리고, 펼치면 종목·세트까지 있다.
   await page.goto("/feed");

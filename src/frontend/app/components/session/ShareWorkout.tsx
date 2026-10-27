@@ -50,10 +50,14 @@ export interface ShareablePayload {
 /** 요약 화면이 보여 주는 종목 한 줄 — 몇 세트·얼마나·최고 추정 1RM. */
 export interface BreakdownRow {
   id: string;
+  /** 종목 id — 요약이 그 종목의 PR 수를 줄 오른쪽에 붙인다(D5) @plm SRS-070 */
+  exerciseId: string;
   name: string;
   setCount: number;
   volumeKg: number;
   best1RM: number;
+  /** 그 블록에 적은 단위 — 1RM 을 이 단위로 보인다(F5) @plm SRS-070 */
+  weightUnit: "kg" | "lb";
 }
 
 /**
@@ -109,10 +113,12 @@ export async function loadSummaryExtras(summary: {
       }),
       breakdown: detail.exercises.map((ex) => ({
         id: ex.workoutExerciseId,
+        exerciseId: ex.exerciseId,
         name: ex.exerciseName,
         setCount: ex.sets.length,
         volumeKg: ex.volumeKg,
         best1RM: ex.bestEstimated1RM,
+        weightUnit: ex.weightUnit === "lb" ? "lb" : "kg",
       })),
     };
   } catch {
@@ -120,12 +126,27 @@ export async function loadSummaryExtras(summary: {
   }
 }
 
-export function ShareWorkout({ payload, unit }: { payload: ShareablePayload; unit: WeightUnit }) {
+export function ShareWorkout({
+  payload,
+  unit,
+  inSheet = false,
+  shared: sharedProp,
+  onShared,
+}: {
+  payload: ShareablePayload;
+  unit: WeightUnit;
+  /** 공유 시트 안 — 시트 제목이 같은 말이라 위 라벨을 뺀다(D5) @plm SRS-070 */
+  inSheet?: boolean;
+  /** 올렸는지를 부르는 쪽이 들고 있다 — 시트를 닫았다 열어도 두 번 올리지 않게 @plm SRS-070 */
+  shared?: boolean;
+  onShared?: () => void;
+}) {
   const { user } = useAuth();
   const toast = useToast();
   const [caption, setCaption] = useState("");
   const [sharing, setSharing] = useState(false);
-  const [shared, setShared] = useState(false);
+  const [sharedLocal, setShared] = useState(false);
+  const shared = sharedProp || sharedLocal;
 
   /** 한마디를 비워 뒀을 때 대신 들어갈 문장 — app과 같은 구성이다. */
   function autoCaption(): string {
@@ -155,6 +176,7 @@ export function ShareWorkout({ payload, unit }: { payload: ShareablePayload; uni
       });
       // 한 번 올린 운동을 또 올리면 피드에 같은 카드가 둘 남는다.
       setShared(true);
+      onShared?.();
       toast(t("session.sharedToFeed"));
     } catch {
       toast(t("common.error"), "error");
@@ -164,10 +186,15 @@ export function ShareWorkout({ payload, unit }: { payload: ShareablePayload; uni
   }
 
   return (
-    <div className="mt-[var(--spacing-lg)]" data-testid="share-workout">
-      <AppText variant="label" color="textMuted" className="mb-[var(--spacing-xs)] block">
-        {t("session.shareToFeed")}
-      </AppText>
+    <div
+      className={inSheet ? "mt-[var(--spacing-md)]" : "mt-[var(--spacing-lg)]"}
+      data-testid="share-workout"
+    >
+      {inSheet ? null : (
+        <AppText variant="label" color="textMuted" className="mb-[var(--spacing-xs)] block">
+          {t("session.shareToFeed")}
+        </AppText>
+      )}
       <TextArea
         value={caption}
         onChange={(e) => setCaption(e.target.value)}

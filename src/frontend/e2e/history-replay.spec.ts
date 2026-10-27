@@ -163,9 +163,12 @@ test("피드의 남의 운동 「바로 시작」 — 루틴을 만들지 않고
   await 세트_하기(page, 0, 3, 100, 5);
   await 세트_하기(page, 1, 2, 12, 10);
   await 완료(page);
+  // 공유 한마디는 시트 안(화면 정리 D5) — 「공유」 를 눌러 연다. 올리면 시트가 닫히고 「공유했어요」 로 잠긴다.
+  await expect(page.getByTestId("btn-summary-share")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-summary-share").click();
   await expect(page.getByTestId("share-workout")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-share-workout").click();
-  await expect(page.getByTestId("btn-share-workout")).toBeDisabled({ timeout: 20_000 });
+  await expect(page.getByTestId("btn-summary-share")).toBeDisabled({ timeout: 20_000 });
   await page.getByTestId("btn-summary-close").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 

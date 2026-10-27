@@ -17,7 +17,7 @@
 //   PrText     금색 PR 조각 — 금색 한 가지가 「누를 수 있음」 신호. 누르면 콜백, 옆 ⓘ 는 기록으로(길게 누르기 안 씀 · Q7)
 // ─────────────────────────────────────────────────────────────────────────────
 import { Children, Fragment, type ReactNode, isValidElement, useSyncExternalStore } from "react";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 /** 「 · 」 로 잇는 회색 한 줄. 빈 조각(null·false)은 건너뛴다. 넘치면 다음 줄로 흐른다. */
 export function MetaLine({
@@ -265,5 +265,42 @@ export function PrText({
         </button>
       ) : null}
     </span>
+  );
+}
+
+/**
+ * 조용한 부가 행동 — 아이콘 위·짧은 글자 아래, 상자 없이(요약의 「루틴 저장·다시 시작·공유」 한 줄 · D5) @plm SRS-070
+ * 주 행동(채운 빨강 버튼)은 화면에 하나만 두고, 나머지는 이 모양으로 한 줄에 나란히 둔다. 누르는 칸 44px 이상.
+ */
+export function QuietAction({
+  icon,
+  label,
+  onPress,
+  testId,
+  ariaLabel,
+  disabled = false,
+  busy = false,
+}: {
+  icon: IconName;
+  label: string;
+  onPress: () => void;
+  testId?: string;
+  ariaLabel?: string;
+  disabled?: boolean;
+  busy?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      data-testid={testId}
+      aria-label={ariaLabel}
+      aria-busy={busy || undefined}
+      disabled={disabled || busy}
+      onClick={onPress}
+      className="flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-[4px] rounded-[var(--radius-sm)] px-[var(--spacing-xs)] text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-60"
+    >
+      <Icon name={icon} size={20} color="var(--color-ink2)" />
+      <span className="max-w-full truncate">{label}</span>
+    </button>
   );
 }
