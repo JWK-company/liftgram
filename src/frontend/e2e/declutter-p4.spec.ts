@@ -121,7 +121,7 @@ test("숫자 스테퍼 값에 점선 밑줄이 없다(루틴 편집·프로필)"
   expect(await bw.evaluate((el) => getComputedStyle(el).borderBottomStyle)).not.toBe("dashed");
 });
 
-test("루틴이 있는 홈 — 빨강 채움 버튼은 하나(빠른 운동 시작)", async ({ page }) => {
+test("루틴이 있는 홈 — 빨강 채움 버튼은 하나(오늘 할 루틴 시작 · M-2)", async ({ page }) => {
   test.setTimeout(180_000);
   await 카탈로그_준비(page);
   await page.goto("/");

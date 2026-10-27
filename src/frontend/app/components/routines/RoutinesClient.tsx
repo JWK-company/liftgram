@@ -28,6 +28,7 @@ import {
   type MissedPlan,
 } from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
+import { type HomePrimary, pickHomePrimary } from "@app/core/domain/homePrimary";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { lang, t, tw } from "@/lib/i18n";
@@ -227,7 +228,69 @@ export default function RoutinesClient() {
     ? missedCatchUp(weeklySchedule, doneDayNums, Date.now())
     : null;
   const block = currentBlockWeek(weeklySchedule, Date.now());
+
+  // ── 주 행동 하나(화면 정리 M-2 확정 A) ── 빨강 채움은 화면에 하나다. 무엇을 빨강으로 할지는 core 가 고른다.
+  // 추천(오늘 운동 여부·최근 루틴)을 읽기 전에는 판단하지 않는다 — 빠른 시작이 빨강이었다가 루틴으로 옮겨 가는 깜빡임을 막는다.
+  // @plm SRS-072
+  const homeReady = !!repos && (routines.length === 0 || reco !== null);
+  const primary: HomePrimary | null = homeReady
+    ? pickHomePrimary({
+        active: !!activeWorkoutId,
+        routineIds: [...loose, ...folderGroups.flatMap(([, members]) => members)].map((r) => r.id),
+        plan:
+          plan.kind === "routine" && plan.routineId
+            ? { kind: "routine", routineId: plan.routineId }
+            : plan.kind === "rest"
+              ? { kind: "rest" }
+              : { kind: "none" },
+        workedOutToday: !!reco?.alreadyWorkedOutToday,
+        recoRoutineId: reco?.status === "ok" ? (reco.routineId ?? null) : null,
+        recentRoutineId: reco?.lastRoutineId ?? null,
+      })
+    : null;
+  const primaryRoutineId = primary?.kind === "routine" ? primary.routineId : null;
+  // 오늘 카드·추천 카드가 이미 그 루틴을 보여 주면 거기 「시작」이 주 행동이다. 아니면 「다음 운동」 카드를 하나 띄운다.
+  const todayCardShows = !activeWorkoutId && !!weeklySchedule;
+  const recoCardShows = !activeWorkoutId && !weeklySchedule && !!reco && !reco.alreadyWorkedOutToday;
+  const primaryInToday = primary?.kind === "routine" && primary.source === "schedule" && todayCardShows;
+  const primaryInReco = primary?.kind === "routine" && primary.source === "reco" && recoCardShows;
+  const primaryRoutine =
+    primaryRoutineId && !primaryInToday && !primaryInReco
+      ? (routines.find((r) => r.id === primaryRoutineId) ?? null)
+      : null;
   const assignedCount = weeklySchedule?.days.filter((d) => d !== null && d !== "rest").length ?? 0;
+
+  /** 오늘의 안내 한 덩어리 — 오늘 카드 / 추천 카드 / (주 행동이 그 둘에 없을 때) 다음 운동 카드. */
+  const todayGuide = () => (
+    <>
+      {primaryRoutine ? (
+        <NextCard
+          routine={primaryRoutine}
+          source={primary?.kind === "routine" ? primary.source : "first"}
+          busy={busy}
+          onStart={() => guardActive(startFromRoutine(primaryRoutine.id))}
+        />
+      ) : null}
+      {todayCardShows ? (
+        <TodayCard
+          plan={plan}
+          routines={routines}
+          dotColor={dotColor}
+          onStart={(id) => guardActive(startFromRoutine(id))}
+          busy={busy}
+          primary={primaryInToday}
+        />
+      ) : recoCardShows && reco && !(primaryRoutine && reco.status !== "ok") ? (
+        // 「다음 운동」 카드가 이미 할 일을 보여 주면 「추천 불가 안내」는 소음 — 그때는 숨긴다(M-2)
+        <RecoCard
+          reco={reco}
+          onStart={(id) => guardActive(startFromRoutine(id))}
+          busy={busy}
+          primary={primaryInReco}
+        />
+      ) : null}
+    </>
+  );
 
   return (
     <div className="flex flex-1 flex-col">
@@ -275,13 +338,21 @@ export default function RoutinesClient() {
         {/* ── 이번 주 — 목표·연속일·볼륨 한 장(시안 01 · 결정 D3) ── */}
         <WeekSummary />
 
-        {/* ── 빈 운동 시작 — 할 일 1순위 ── */}
+        {/* 주 행동 계산이 끝났다는 표식(e2e 가 깜빡임 도중을 재지 않게) */}
+        {homeReady ? <span hidden data-testid="home-ready" /> : null}
+
+        {/* ── 오늘 할 루틴이 주 행동이면 그 카드가 빠른 시작보다 위(주 행동이 먼저 보인다 · M-2) ── */}
+        {primary?.kind === "routine" ? todayGuide() : null}
+
+        {/* ── 빈 운동 시작 ── */}
         <div className="mb-[var(--spacing-md)]">
-          {/* 진행 중이면 주 행동은 아래 막대의 「열기」 — 빠른 시작은 보조로 낮춘다(빨강 채움 = 화면당 1개 · P3 QA M5) @plm SRS-071 */}
+          {/* [원본] 진행 중이 아니면 늘 빨강 — 루틴이 있는 사람의 주 동선(루틴으로 시작)과 위계가 거꾸로였다(P4 /qa M-2)
+          variant={activeWorkoutId ? "secondary" : "primary"} */}
+          {/* [개선] 주 행동이 「빠른 운동」일 때만 빨강 — 루틴 없음·오늘 이미 운동·휴식일(pickHomePrimary) @plm SRS-072 */}
           <Button
             title={t("routines.quickStart")}
             icon="play"
-            variant={activeWorkoutId ? "secondary" : "primary"}
+            variant={primary?.kind === "quick" ? "primary" : "secondary"}
             loading={busy}
             testId="btn-quick-start"
             onPress={() => guardActive(startBlank)}
@@ -289,17 +360,7 @@ export default function RoutinesClient() {
         </div>
 
         {/* ── 오늘의 안내 ── */}
-        {!activeWorkoutId && weeklySchedule ? (
-          <TodayCard
-            plan={plan}
-            routines={routines}
-            dotColor={dotColor}
-            onStart={(id) => guardActive(startFromRoutine(id))}
-            busy={busy}
-          />
-        ) : !activeWorkoutId && reco && !reco.alreadyWorkedOutToday ? (
-          <RecoCard reco={reco} onStart={(id) => guardActive(startFromRoutine(id))} busy={busy} />
-        ) : null}
+        {primary?.kind === "routine" ? null : todayGuide()}
 
         {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
         {catchUp &&
@@ -681,12 +742,15 @@ function TodayCard({
   dotColor,
   onStart,
   busy,
+  primary = false,
 }: {
   plan: { kind: string; routineId?: string | null };
   routines: Routine[];
   dotColor: (id: string) => string;
   onStart: (routineId: string) => void;
   busy: boolean;
+  /** 이 카드의 「시작」이 화면의 주 행동인가(M-2) — 빨강 채움은 화면에 하나. */
+  primary?: boolean;
 }) {
   if (plan.kind === "routine" && plan.routineId) {
     const routine = routines.find((r) => r.id === plan.routineId);
@@ -709,12 +773,12 @@ function TodayCard({
               {t("schedule.todayHint")}
             </AppText>
           </div>
-          {/* 화면 정리 P4 /qa M-1 — 루틴 「시작」은 모두 회색 상자(빨강 채움은 빠른 운동 시작 하나) @plm SRS-072 */}
+          {/* 화면 정리 P4 /qa M-1 — 루틴 「시작」은 회색 상자. 단 오늘 할 루틴이 주 행동이면 빨강(M-2) @plm SRS-072 */}
           <Button
             title={t("routines.start")}
             icon="play"
             size="sm"
-            variant="secondary"
+            variant={primary ? "primary" : "secondary"}
             fullWidth={false}
             disabled={busy}
             testId="btn-start-today"
@@ -737,15 +801,65 @@ function TodayCard({
   );
 }
 
+/**
+ * 다음 운동 — 오늘 할 루틴이 오늘 카드·추천 카드에 없을 때(최근 수행·첫 루틴, 또는 스케줄 미배정일의 추천) 그 루틴을 한 장으로.
+ * 「시작」이 화면의 주 행동(빨강 채움)이다(화면 정리 M-2 확정 A). @plm SRS-072
+ */
+function NextCard({
+  routine,
+  source,
+  busy,
+  onStart,
+}: {
+  routine: Routine;
+  source: "schedule" | "reco" | "recent" | "first";
+  busy: boolean;
+  onStart: () => void;
+}) {
+  const label =
+    source === "recent"
+      ? t("routines.nextRecentLabel")
+      : source === "reco"
+        ? t("routines.todayRecoLabel")
+        : t("routines.nextFirstLabel");
+  return (
+    <Card className="mb-[var(--spacing-sm)]">
+      <div className="flex items-center" data-testid="next-card">
+        <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
+          <AppText variant="label" color="textMuted">
+            {label}
+          </AppText>
+          <AppText variant="heading" className="mt-[2px] block truncate">
+            {routine.name}
+          </AppText>
+        </div>
+        <Button
+          title={t("routines.start")}
+          icon="play"
+          size="sm"
+          variant="primary"
+          fullWidth={false}
+          disabled={busy}
+          testId="btn-start-next"
+          onPress={onStart}
+        />
+      </div>
+    </Card>
+  );
+}
+
 /** 스케줄이 없을 때의 안내 — 꾸준히 하면 도메인이 다음 부위를 골라 준다. */
 function RecoCard({
   reco,
   onStart,
   busy,
+  primary = false,
 }: {
   reco: Reco;
   onStart: (routineId: string) => void;
   busy: boolean;
+  /** 이 카드의 「시작」이 화면의 주 행동인가(M-2). */
+  primary?: boolean;
 }) {
   if (reco.status !== "ok" || !reco.routineId || !reco.muscle) {
     return (
@@ -774,12 +888,12 @@ function RecoCard({
             {t("routines.todayRecoHint", { muscle: muscleLabel(reco.muscle, lang) })}
           </AppText>
         </div>
-        {/* 화면 정리 P4 /qa M-1 @plm SRS-072 */}
+        {/* 화면 정리 P4 /qa M-1 · M-2(주 행동이면 빨강) @plm SRS-072 */}
         <Button
           title={t("routines.start")}
           icon="play"
           size="sm"
-          variant="secondary"
+          variant={primary ? "primary" : "secondary"}
           fullWidth={false}
           disabled={busy}
           testId="btn-start-reco"
@@ -1060,9 +1174,11 @@ function CatchUpCard({
             {t("schedule.catchUpDaysAgo", { days: catchUp.daysAgo })}
           </AppText>
         </div>
+        {/* 빨강 채움은 화면에 하나(주 행동은 pickHomePrimary 가 고른다) — 놓친 루틴은 보조 @plm SRS-072 */}
         <Button
           title={t("schedule.startThis")}
           size="sm"
+          variant="secondary"
           fullWidth={false}
           disabled={busy}
           onPress={onStart}

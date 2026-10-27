@@ -172,9 +172,8 @@
     "src/frontend/app/components/CatalogClient.tsx:162",
     "src/frontend/app/components/analytics/CalendarClient.tsx:579#formatWeight",
     "src/frontend/app/components/analytics/HistoryClient.tsx:108",
-    "src/frontend/app/components/routines/RoutinesClient.tsx:247",
-    "src/frontend/app/components/routines/RoutinesClient.tsx:280",
-    "src/frontend/app/components/routines/RoutinesClient.tsx:351",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:309",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:411",
     "src/frontend/e2e/declutter-p3.spec.ts:1"
   ]
 }

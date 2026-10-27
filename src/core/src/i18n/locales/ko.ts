@@ -700,6 +700,8 @@ export const ko = {
   "routines.swap": "대체",
   "routines.title": "운동",
   "routines.todayRecoLabel": "오늘의 추천 루틴",
+  "routines.nextRecentLabel": "최근에 한 루틴",
+  "routines.nextFirstLabel": "내 루틴",
   "routines.todayRecoHint": "오늘은 {muscle} 차례예요",
   "routines.weekdayHabitLabel": "지난주 이 요일엔",
   "routines.weekdayHabitHint": "이 요일마다 하던 루틴이에요 — 예정대로 갈까요?",

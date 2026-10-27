@@ -702,6 +702,8 @@ export const en: Record<TransKey, string> = {
   "routines.swap": "Swap",
   "routines.title": "Workout",
   "routines.todayRecoLabel": "Today's Recommended Routine",
+  "routines.nextRecentLabel": "Last routine",
+  "routines.nextFirstLabel": "Your routine",
   "routines.todayRecoHint": "{muscle} day today",
   "routines.weekdayHabitLabel": "Same day last week",
   "routines.weekdayHabitHint": "Your usual routine for this weekday — stick to the plan?",

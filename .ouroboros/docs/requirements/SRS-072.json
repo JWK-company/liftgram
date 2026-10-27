@@ -123,13 +123,22 @@
     ]
   },
   "code_refs": [
+    "src/core/src/domain/__tests__/homePrimary.test.ts:1",
+    "src/core/src/domain/homePrimary.ts:1",
     "src/frontend/app/components/CatalogClient.tsx:255#var",
     "src/frontend/app/components/analytics/CalendarClient.tsx:596#var",
     "src/frontend/app/components/analytics/HistoryClient.tsx:133#var",
     "src/frontend/app/components/profile/AuthClient.tsx:202",
     "src/frontend/app/components/routines/RoutineEditor.tsx:738",
     "src/frontend/app/components/routines/RoutineEditor.tsx:749",
-    "src/frontend/app/components/routines/RoutinesClient.tsx:879",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:1007",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:1176",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:234",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:350",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:775",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:805#NextCard",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:890",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:958",
     "src/frontend/app/components/sync/BackupCard.tsx:60#var",
     "src/frontend/app/components/ui/inputs.tsx:158#var",
     "src/frontend/app/exercise/[id]/page.tsx:192#map"

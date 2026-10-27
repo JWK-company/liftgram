@@ -320,6 +320,8 @@ export interface TodayRoutineReco extends RoutineRecommendation {
   alreadyWorkedOutToday: boolean; // 오늘 이미 완료 세션이 있으면 추천 숨김
   // 보조 카드: "지난주 이 요일엔 ~" — 요일 습관이 뚜렷하고 주 추천과 다를 때만(두 카드 UX).
   weekdayHabit: WeekdayHabit | null;
+  /** 가장 최근에 마친 **지금 있는** 루틴의 id — 홈 주 행동의 「최근 수행」 폴백(화면 정리 M-2). @plm SRS-072 */
+  lastRoutineId?: string | null;
 }
 
 export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco> {
@@ -330,7 +332,7 @@ export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco>
     .fetch();
   const todayNum = dayNum(now);
   const alreadyWorkedOutToday = ws.some((w) => dayNum(w.completedAt ?? w.startedAt) === todayNum);
-  if (!ws.length) return { status: 'insufficient', alreadyWorkedOutToday, weekdayHabit: null };
+  if (!ws.length) return { status: 'insufficient', alreadyWorkedOutToday, weekdayHabit: null, lastRoutineId: null };
 
   // 세션별 종목 주근육 수집.
   const wes = await workoutExercises().query(Q.where('workout_id', Q.oneOf(ws.map((w) => w.id)))).fetch();
@@ -362,12 +364,18 @@ export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco>
   });
 
   const reco = recommendTodayRoutine(entries, now);
+  // 최근 수행 루틴 — 완료 시각이 가장 늦은, 지금 있는 루틴(화면 정리 M-2 폴백) @plm SRS-072
+  const lastRoutineId =
+    entries
+      .filter((e) => e.routineId)
+      .sort((a, b) => b.completedAtMs - a.completedAtMs)[0]?.routineId ?? null;
   // 요일 습관 보조 추천 — 주 추천이 성립하고, 습관 루틴이 주 추천과 다를 때만 두 번째 카드.
   const habit = reco.status === 'ok' ? weekdayHabitRoutine(entries, now) : null;
   return {
     ...reco,
     alreadyWorkedOutToday,
     weekdayHabit: habit && habit.routineId !== reco.routineId ? habit : null,
+    lastRoutineId,
   };
 }
 
