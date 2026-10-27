@@ -26,6 +26,7 @@
 import { synchronize, type SyncDatabaseChangeSet } from '@nozbe/watermelondb/sync';
 import { database } from '../db/database';
 import { SCHEMA_VERSION } from '../db/schema';
+import { isSchemaDowngradeBlocked } from '../db/schemaGuard'; // v26 다운그레이드 가드 @plm SRS-073
 import { bootPipelineSettled } from '../migrations/runner';
 import { dropCatalogRows } from './catalogFilter';
 import { countPendingUserChanges } from './pending';
@@ -306,6 +307,12 @@ let inFlight: Promise<void> | null = null;
  * 사람이 누른 '지금 동기'는 실패를 보여 줘야 하고, 배경 동기는 아래에서 삼킨다.
  */
 export function syncWithServer(): Promise<void> {
+  // 다운그레이드 가드로 진짜 DB 를 열지 않은 실행(D-5)은 동기하지 않는다 — 빈 가드용 DB 로 받고 올리면 아무 이득 없이
+  // 건강 기록(마지막 성공 시각)만 흐린다. 첫 동기 기다림도 곧바로 풀어 준다. @plm SRS-073 SAD-023
+  if (isSchemaDowngradeBlocked()) {
+    markFirstSettled();
+    return Promise.resolve();
+  }
   if (!inFlight) {
     const startedAt = Date.now();
     setHealth({ lastAttemptAt: startedAt });

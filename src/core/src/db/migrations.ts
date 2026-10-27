@@ -377,5 +377,64 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // v26: openGym 추천(P1) — 이 한 번에 P1~P5 가 쓸 로컬 칸을 전부 넣는다(이후 Phase 는 v26 을 바꾸지 않는다 · 필요하면 v27).
+      // **전부 optional** — 옛 행은 null 이고 뜻은: rir=적지 않음(rpe 만 있으면 환산) · source=앱 기록 · import_batch_id=가져온 것 아님.
+      // non-optional number 는 0 이 되어 「RIR 0」 같은 거짓 값이 생긴다(ADR-037 QA B1). @plm SRS-073 SRS-077 SRS-081 SRS-082
+      toVersion: 26,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'rir', type: 'number', isOptional: true }],
+        }),
+        addColumns({
+          table: 'workouts',
+          columns: [
+            { name: 'source', type: 'string', isOptional: true },
+            { name: 'import_batch_id', type: 'string', isOptional: true, isIndexed: true },
+          ],
+        }),
+        addColumns({
+          table: 'exercises',
+          columns: [{ name: 'import_batch_id', type: 'string', isOptional: true }],
+        }),
+        createTable({
+          name: 'bodyweight_logs',
+          columns: [
+            { name: 'measured_at', type: 'number', isOptional: true, isIndexed: true },
+            { name: 'weight_kg', type: 'number', isOptional: true },
+            { name: 'source', type: 'string', isOptional: true },
+            { name: 'note', type: 'string', isOptional: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+        createTable({
+          name: 'import_batches',
+          columns: [
+            { name: 'source', type: 'string', isOptional: true },
+            { name: 'file_label', type: 'string', isOptional: true },
+            { name: 'workout_count', type: 'number', isOptional: true },
+            { name: 'set_count', type: 'number', isOptional: true },
+            { name: 'status', type: 'string', isOptional: true },
+            { name: 'undone_at', type: 'number', isOptional: true },
+            { name: 'weight_unit', type: 'string', isOptional: true },
+            { name: 'tz_offset_min', type: 'number', isOptional: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+        createTable({
+          name: 'import_aliases',
+          columns: [
+            { name: 'source', type: 'string', isOptional: true },
+            { name: 'source_name', type: 'string', isOptional: true },
+            { name: 'exercise_id', type: 'string', isOptional: true, isIndexed: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
   ],
 });

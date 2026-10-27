@@ -23,3 +23,4 @@ export * from './routineRecommendation';
 export * from './gyms';
 export * from './gear';
 export * from './recordSlots'; // @plm SRS-057 SRS-058
+export * from './effort'; // v26 힘든 정도(RIR) @plm SRS-073 SRS-074

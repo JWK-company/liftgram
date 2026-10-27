@@ -21,6 +21,7 @@ import { SessionProvider } from "./components/SessionProvider";
 import { ToastProvider } from "./components/Toast";
 import { OnboardingOverlay } from "./components/OnboardingOverlay";
 import { ServiceWorker } from "./components/ServiceWorker";
+import { SchemaGuard } from "./components/SchemaGuard";
 import { PrefsBridge } from "./components/PrefsBridge";
 import { AccountGuard } from "./components/sync/AccountGuard";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
@@ -94,6 +95,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <PrefsBridge />
                 {/* 앱 안 <a href> 를 클라이언트 이동으로 — 탭마다 문서를 새로 받지 않게(SRS-054). */}
                 <LinkInterceptor />
+                {/* 옛 번들이 새 스키마 DB 를 만나면 열지 않고 새로고침만 보인다(D-5 · 다운그레이드 가드). @plm SRS-073 */}
+                <SchemaGuard />
               </div>
             </ToastProvider>
           </SessionProvider>

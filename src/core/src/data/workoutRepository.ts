@@ -66,6 +66,7 @@ function toLoggedSet(s: SetLog, loadMode: LoadMode | null = null, bodyweightKg: 
     weightKg: s.weightKg,
     reps: s.reps,
     rpe: s.rpe,
+    rir: s.rir, // v26: 실제 RIR(null = 적지 않음) @plm SRS-073
     isWarmup: s.isWarmup,
     isFailed: s.isFailed,
     partialReps: s.partialReps, // v9: 부분반복(깔짝) — 표시전용, 볼륨/PR 제외 @plm SRS-029
@@ -1922,6 +1923,7 @@ export async function updateSetLog(
     weightKg?: number;
     reps?: number;
     rpe?: number | null;
+    rir?: number | null; // v26: 실제 RIR(0~10, 0.5 단위 · null = 지우기). 사람이 고른 값이지만 무게·횟수가 아니라 user_edited 는 건드리지 않는다. @plm SRS-073
     isWarmup?: boolean;
     isFailed?: boolean;
     partialReps?: number | null; // v9: 부분반복(깔짝) — 볼륨/PR 제외 표시전용. @plm SRS-029
@@ -1940,6 +1942,7 @@ export async function updateSetLog(
       // v25: 사람이 무게·횟수를 적었다 — 이후 자동 환산·처방 채움이 이 숫자를 덮지 않는다(/qa code H-3) @plm SRS-067
       if (patch.weightKg !== undefined || patch.reps !== undefined) rec.userEdited = true;
       if (patch.rpe !== undefined) rec.rpe = patch.rpe;
+      if (patch.rir !== undefined) rec.rir = patch.rir; // v26 @plm SRS-073
       if (patch.isWarmup !== undefined) rec.isWarmup = patch.isWarmup;
       if (patch.isFailed !== undefined) rec.isFailed = patch.isFailed;
       if (patch.partialReps !== undefined) rec.partialReps = patch.partialReps;

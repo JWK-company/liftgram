@@ -68,6 +68,19 @@ if [ -n "$PREV_VERSION" ] && [ "$VERSION" = "$PREV_VERSION" ] && [ "$PREV" != "$
   echo "   (기능 = MINOR · 고침·설정·문구 = PATCH · 깨지는 변경 = MAJOR)"
   exit 1
 fi
+# ── 로컬 스키마 하강 차단(D-5) — @plm SRS-073 SAD-023 ──────────────────────────────
+# 기기 DB(LokiJS)는 앱 스키마보다 높은 버전을 만나면 **기록을 전부 지운다**. 그래서 지금 떠 있는 배포본보다
+# SCHEMA_VERSION 이 낮은 번들은 내보내지 않는다(롤백은 앞으로만 고치기). 비교 대상은 서버에 동기된 소스 사본이다.
+schema_of() { sed -n 's/^export const SCHEMA_VERSION = \([0-9][0-9]*\);.*/\1/p' | head -1; }
+SCHEMA=$(schema_of < "$CLEAN/src/core/src/db/schema.ts")
+PREV_SCHEMA=$($SSH "cat $REMOTE/src/core/src/db/schema.ts 2>/dev/null" | schema_of || true)
+[ -n "$SCHEMA" ] || { echo "!! 배포 사본에서 SCHEMA_VERSION 을 읽지 못했다(core/src/db/schema.ts)"; exit 1; }
+echo "     로컬 스키마 v${SCHEMA} · 지금 떠 있는 것 v${PREV_SCHEMA:-?}"
+if [ -n "$PREV_SCHEMA" ] && [ "$SCHEMA" -lt "$PREV_SCHEMA" ]; then
+  echo "!! 로컬 스키마가 v${PREV_SCHEMA} → v${SCHEMA} 로 **내려간다** — 배포하지 않는다"
+  echo "   (옛 번들이 새 DB 를 열면 기기 기록이 지워진다 · 롤백 대신 앞으로 고쳐서 내보내라)"
+  exit 1
+fi
 # 프로필 하단에 보이는 빌드 번호·커밋 — 커밋된 것은 "dev" 자리표시자이고, 배포 사본에만 찍는다.
 printf '{ "build": "%s", "commit": "%s" }\n' "$BUILD" "$SHORT" > "$CLEAN/src/frontend/app/build-info.json"
 

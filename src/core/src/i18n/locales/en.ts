@@ -1054,4 +1054,8 @@ export const en: Record<TransKey, string> = {
   "analytics.oneSideSet": "One side", // 한 블록에 배수가 섞였을 때 세트마다(P2 /qa code L-4)
   "analytics.oneSideHeader": "One side input (volume ×{n})",
   "analytics.lastPrOn": "Last PR {date}",
+  // ── openGym 추천(SRS-073~082) ──
+  "schemaGuard.title": "Please reload to the new version", // @plm SRS-073
+  "schemaGuard.body": "Your records on this device were saved by a newer version of the app. To keep them safe, this screen didn't open them.",
+  "schemaGuard.reload": "Reload",
 };

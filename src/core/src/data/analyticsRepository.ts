@@ -28,16 +28,36 @@ const setLogs = () => database.get<SetLog>('set_logs');
 const exercises = () => database.get<Exercise>('exercises');
 const routines = () => database.get<Routine>('routines');
 
-interface EnrichedSet {
+// v26: 노력 분석(SRS-074)·근육 균형(P2)이 같은 조회를 쓰도록 export 한다. 기존 호출자는 `set` 만 읽으므로
+// 아래에 칸을 **덧붙이기만** 했다(set 안의 값·행 수·순서는 그대로 · endMs 미지정 = 예전 질의). @plm SRS-074
+export interface EnrichedSet {
   workoutId: string;
   completedAt: number;
   exerciseId: string;
   set: LoggedSet;
+  // ── v26 덧붙임(effort.summarizeEffort 입력) ──
+  setLogId: string;
+  /** 수행 완료 체크. null(레거시) = 수행됨으로 취급 — 판정은 domain/effort 한 곳. */
+  done: boolean | null;
+  isWarmup: boolean;
+  /** 처방 세트 타입 warmup|top|backoff(null = 비처방). 처방 워밍업도 워밍업이다. */
+  setType: string | null;
+  /** 실제 RIR(null = 적지 않음). */
+  rir: number | null;
+  /** 원본 RPE(옛 세트·가져온 세트). rir 가 없으면 10−rpe 로 환산해 읽는다(ADR-038). */
+  rpe: number | null;
 }
 
-async function getCompletedSets(sinceMs?: number): Promise<EnrichedSet[]> {
+/**
+ * 완료한 운동의 세트 전부(종목·완료 시각을 붙여서).
+ *
+ * @param sinceMs 이 시각(포함) 이후 완료한 운동만 — 미지정·0 이면 전부(예전 그대로)
+ * @param endMs   v26: 이 시각(제외) 전에 완료한 운동만 — 미지정이면 상한 없음(예전 그대로)
+ */
+export async function getCompletedSets(sinceMs?: number, endMs?: number): Promise<EnrichedSet[]> {
   const wClauses: Q.Clause[] = [Q.where('state', 'completed')];
   if (sinceMs) wClauses.push(Q.where('completed_at', Q.gte(sinceMs)));
+  if (endMs !== undefined) wClauses.push(Q.where('completed_at', Q.lt(endMs))); // v26 @plm SRS-074
   const ws = await workouts().query(...wClauses).fetch();
   if (!ws.length) return [];
   const wById = new Map(ws.map((w) => [w.id, w]));
@@ -68,7 +88,15 @@ async function getCompletedSets(sinceMs?: number): Promise<EnrichedSet[]> {
         loadMode: modeByEx.get(we.exerciseId) ?? null,
         bodyweightKg: bw,
         loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
+        // v26 rir 는 set 에 넣지 않는다 — 기존 호출자가 받는 set 값을 바꾸지 않기 위해(아래 rir 칸으로 읽는다).
       },
+      // v26 덧붙임 @plm SRS-074
+      setLogId: s.id,
+      done: s.done ?? null,
+      isWarmup: s.isWarmup,
+      setType: s.setType ?? null,
+      rir: s.rir ?? null,
+      rpe: s.rpe ?? null,
     });
   }
   return out;
@@ -241,7 +269,7 @@ export interface WorkoutExerciseDetail {
   variantKey: string | null; // v6 변형 버킷 키(기구·그립·팔). @plm SRS-028
   note: string | null; // 세션 종목 메모(그날 느낌·포인트). @plm SRS-004
   weightUnit: 'kg' | 'lb'; // v25 이 블록에 적은 단위 — 세트 무게는 이 단위로 보인다(합계는 kg) @plm SRS-067
-  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; grip?: string | null; id?: string }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
+  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; rir?: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; grip?: string | null; id?: string }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
   isCardio?: boolean; // 유산소는 고치기 없이 지우기만(QA Q7) @plm SRS-061
   volumeKg: number;
   bestEstimated1RM: number;
@@ -297,6 +325,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
         weightKg: s.weightKg,
         reps: s.reps,
         rpe: s.rpe,
+        rir: s.rir ?? null, // v26: 기록 상세는 rir 우선, 없고 rpe 만 있으면 환산 표시(ADR-038) @plm SRS-073
         isWarmup: s.isWarmup,
         isFailed: s.isFailed,
         arm: s.arm ?? null,

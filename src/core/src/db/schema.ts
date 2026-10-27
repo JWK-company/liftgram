@@ -2,7 +2,9 @@
 // 무게는 항상 kg 정규화 저장. WatermelonDB가 id/_status/_changed 컬럼은 자동 관리(동기 추적 — ADR-002).
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
-export const SCHEMA_VERSION = 25;
+// v26(openGym 추천 P1): set_logs.rir · workouts.source/import_batch_id · exercises.import_batch_id + 새 표 3개. @plm SRS-073 SRS-077 SRS-081 SRS-082
+// ⚠ v26 배포 뒤에는 SCHEMA_VERSION<26 번들을 내보내지 않는다 — 옛 번들이 새 DB를 열면 LokiJS가 DB 전체를 지운다(D-5 · db/schemaGuard.ts).
+export const SCHEMA_VERSION = 26;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -54,6 +56,8 @@ export const mySchema = appSchema({
         { name: 'aliases', type: 'string', isOptional: true }, // JSON string[] (한·영 별칭)
         { name: 'similar', type: 'string', isOptional: true }, // JSON string[] (family 또는 nameEn)
         { name: 'media_ref', type: 'string', isOptional: true },
+        // v26: 가져오기 묶음이 만든 커스텀 종목(null = 앱에서 만든 종목·기본 카탈로그) — 되돌리기 판단용. @plm SRS-082
+        { name: 'import_batch_id', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -117,6 +121,10 @@ export const mySchema = appSchema({
         { name: 'duration_seconds', type: 'number', isOptional: true },
         { name: 'pr_count', type: 'number' },
         { name: 'notes', type: 'string', isOptional: true },
+        // v26: 기록 출처 — null = 앱에서 기록(옛 행 전부) · 'strong' | 'hevy' = 다른 앱에서 가져옴. @plm SRS-081
+        { name: 'source', type: 'string', isOptional: true },
+        // v26: 가져오기 묶음 id(import_batches.id · null = 앱 기록) — 묶음 되돌리기가 이것으로 찾는다. @plm SRS-082
+        { name: 'import_batch_id', type: 'string', isOptional: true, isIndexed: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],
@@ -187,6 +195,9 @@ export const mySchema = appSchema({
         // non-optional number 는 0 이 되고, 그러면 기존 세트의 볼륨·PR 이 전부 0 이 된다(QA B1). 읽기는 effectiveMultiplier 하나로. @plm SRS-058
         { name: 'load_multiplier', type: 'number', isOptional: true },
         { name: 'user_edited', type: 'boolean', isOptional: true }, // v25: 사람이 무게·횟수를 고쳤다(false=자동 채움 · null=옛 세트) @plm SRS-067
+        // v26: 실제 RIR(몇 개 더 할 수 있었나 · 0~10, 0.5 단위). **null = 적지 않음**(옛 세트 전부) — rpe 만 있으면
+        // 읽을 때 domain/effort.effectiveRir 가 10−rpe 로 환산한다(ADR-038 · rpe 칸은 가져온 원본 보관용). @plm SRS-073
+        { name: 'rir', type: 'number', isOptional: true },
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },
@@ -203,6 +214,45 @@ export const mySchema = appSchema({
         { name: 'plate_one_side', type: 'boolean', isOptional: true },
         // v23: 기본 종목 숨기기 — 시드 행은 동기에 싣지 않으므로(D10) 숨김을 사용자 선호로 옮긴다(/qa code M-4)
         { name: 'hidden', type: 'boolean', isOptional: true },
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+    // v26: 체중 이력 — 측정 한 번이 한 줄. user_profiles.bodyweight_kg 는 최신 측정의 캐시(미러 · D-10). @plm SRS-077
+    tableSchema({
+      name: 'bodyweight_logs',
+      columns: [
+        { name: 'measured_at', type: 'number', isOptional: true, isIndexed: true }, // 측정 시각(ms)
+        { name: 'weight_kg', type: 'number', isOptional: true }, // 정규 kg
+        { name: 'source', type: 'string', isOptional: true }, // 'checkin'|'manual'|'legacy' · null = manual
+        { name: 'note', type: 'string', isOptional: true },
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+    // v26: 다른 앱 기록 가져오기 묶음 — 묶음 단위로 되돌린다(ADR-043). 원래 파일 이름은 저장하지 않는다(D-16). @plm SRS-081 SRS-082
+    tableSchema({
+      name: 'import_batches',
+      columns: [
+        { name: 'source', type: 'string', isOptional: true }, // 'strong'|'hevy'
+        { name: 'file_label', type: 'string', isOptional: true }, // 표시용 40자 이하
+        { name: 'workout_count', type: 'number', isOptional: true },
+        { name: 'set_count', type: 'number', isOptional: true },
+        { name: 'status', type: 'string', isOptional: true }, // 'writing'|'done'|'undone' · null = done(D-6)
+        { name: 'undone_at', type: 'number', isOptional: true },
+        { name: 'weight_unit', type: 'string', isOptional: true }, // 가져올 때 고른 단위 kg|lb(재현용)
+        { name: 'tz_offset_min', type: 'number', isOptional: true }, // 가져올 때 해석한 시간대(D-7)
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ],
+    }),
+    // v26: 가져오기 종목 별칭 — 다른 앱의 종목 이름 → 우리 종목. id 결정적 `ia-<source>-<sha16(정규화 이름)>`. @plm SRS-081
+    tableSchema({
+      name: 'import_aliases',
+      columns: [
+        { name: 'source', type: 'string', isOptional: true },
+        { name: 'source_name', type: 'string', isOptional: true },
+        { name: 'exercise_id', type: 'string', isOptional: true, isIndexed: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

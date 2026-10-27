@@ -22,6 +22,10 @@ export default class Workout extends Model {
   @field('duration_seconds') declare durationSeconds: number | null;
   @field('pr_count') declare prCount: number;
   @text('notes') declare notes: string | null;
+  // v26: 기록 출처 — null = 앱에서 기록(옛 행 전부) · 'strong'|'hevy' = 가져옴. @plm SRS-081
+  @field('source') declare source: string | null;
+  // v26: 가져오기 묶음 id(null = 앱 기록) — 묶음 되돌리기(SRS-082). @plm SRS-082
+  @field('import_batch_id') declare importBatchId: string | null;
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
 

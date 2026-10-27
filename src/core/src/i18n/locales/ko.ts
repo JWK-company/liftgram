@@ -1052,6 +1052,11 @@ export const ko = {
   "analytics.oneSideSet": "한쪽", // 한 블록에 배수가 섞였을 때 세트마다(P2 /qa code L-4)
   "analytics.oneSideHeader": "한쪽 입력(볼륨 ×{n})",
   "analytics.lastPrOn": "최근 갱신 {date}",
+  // ── openGym 추천(SRS-073~082) ──
+  // 다운그레이드 가드(D-5) — 이 기기 기록이 더 새 버전 앱으로 저장돼 있어 옛 화면이 열지 않았다. @plm SRS-073
+  "schemaGuard.title": "새 버전으로 새로고침해 주세요",
+  "schemaGuard.body": "이 기기의 기록은 더 새 버전 앱으로 저장돼 있어요. 기록을 지키려고 지금 화면에서는 열지 않았어요.",
+  "schemaGuard.reload": "새로고침",
 } as const;
 
 export type TransKey = keyof typeof ko;

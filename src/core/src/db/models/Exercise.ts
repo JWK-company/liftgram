@@ -30,6 +30,8 @@ export default class Exercise extends Model {
   @json('aliases', sanitizeStringArray) declare aliases: string[];
   @json('similar', sanitizeStringArray) declare similar: string[];
   @text('media_ref') declare mediaRef: string | null;
+  // v26: 가져오기 묶음이 만든 커스텀 종목(null = 앱에서 만든 종목·기본 카탈로그) — 되돌리기 판단용(D-9). @plm SRS-082
+  @field('import_batch_id') declare importBatchId: string | null;
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
 }

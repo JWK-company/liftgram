@@ -60,6 +60,7 @@ export interface LoggedSet {
   weightKg: number;
   reps: number;
   rpe?: number | null;
+  rir?: number | null; // v26: 실제 RIR(null = 적지 않음 — rpe 만 있으면 effort.effectiveRir 가 환산 · ADR-038). @plm SRS-073
   isWarmup: boolean;
   isFailed: boolean;
   partialReps?: number | null; // v9: 부분반복(깔짝) — 정자세 후 반동/보조로 추가한 횟수. 볼륨/PR 제외·표시전용. @plm SRS-029
