@@ -108,6 +108,18 @@ def slug(rel):
     return re.sub(r"[^A-Za-z0-9]+", "-", rel).strip("-")[:60]
 
 
+CODE_MAX = 64  # 서버 artifacts.code 상한(validation: code too long)
+
+
+def fit_code(code):
+    """64자 이하는 그대로(기존 Code 키 불변). 넘으면 앞 51자 + '-' + 원래 문자열 sha1 앞 12자 — 결정적이라
+    같은 경로·심볼은 늘 같은 키가 되고, 잘린 앞부분이 같아도 해시로 갈린다."""
+    if len(code) <= CODE_MAX:
+        return code
+    import hashlib
+    return f"{code[:CODE_MAX - 13].rstrip('-')}-{hashlib.sha1(code.encode()).hexdigest()[:12]}"
+
+
 # @plm 주석 다음의 실제 선언에서 심볼명 추출 → 라인보다 안정적인 키.
 SYM_SKIP = re.compile(r"^\s*(//|#|/\*|\*|<!--|@|UCLASS|UFUNCTION|UPROPERTY|USTRUCT|UENUM|GENERATED_BODY|#pragma|#include|\{|\}|$)")
 SYM_PAT = [
@@ -216,7 +228,10 @@ def _extract(relp, lines, arts, rels, refs):
             continue
         loc = f"{relp}:{i}"
         # 키: 심볼 기반(라인 이동에 안정) → 없으면 라인 폴백.
-        ccode = f"CODE-{slug(relp)}-{slug(sym)}" if sym else f"CODE-{slug(relp)}-{i}"
+        # [원본] 원복 시 아래를 주석 해제하고 새 ccode 를 주석 처리
+        # ccode = f"CODE-{slug(relp)}-{slug(sym)}" if sym else f"CODE-{slug(relp)}-{i}"
+        # [개선] 서버 code 상한 64자 — 긴 경로는 400(validation: code too long)으로 통째 실패했다. 64자 이하는 그대로.
+        ccode = fit_code(f"CODE-{slug(relp)}-{slug(sym)}" if sym else f"CODE-{slug(relp)}-{i}")
         title = (sym or desc or f"{relp}:{i}")[:120]
         snippet = _snippet(lines, i - 1, ext)  # RAW 코드(펜스 없음)
         # ADR-019 동형: 본문 canonical = doc(ProseMirror). body는 빈 문자열(중복 저장 방지 — plm_sync_one/sync_bulk와

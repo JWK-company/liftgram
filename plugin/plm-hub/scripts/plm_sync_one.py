@@ -176,7 +176,11 @@ def main():
         #    막기 위해 3회 backoff 재시도 + 타임아웃 상향(8→15s). ⑤ 최종 실패 시 마커를 남겨 다음 Stop의 plm-gate가 표면화.
         if doc is not None:
             from urllib.parse import quote
-            durl = f"{api}/artifacts/{quote(project)}/{quote(code)}/doc"
+            # [원본] 원복 시 아래를 주석 해제하고 새 durl을 주석 처리
+            # durl = f"{api}/artifacts/{quote(project)}/{quote(code)}/doc"
+            # [개선] import와 같은 branch로 저장 — 없으면 서버가 main을 찾아, 이 브랜치에서 처음 만든 아티팩트는 404
+            durl = (f"{api}/artifacts/{quote(project)}/{quote(code)}/doc"
+                    f"?branch={quote(artifact['branch'], safe='')}")
             dpayload = json.dumps(
                 {"doc": doc, "schema_version": int(float(fm.get("schemaVersion", 1) or 1))}
             ).encode()
