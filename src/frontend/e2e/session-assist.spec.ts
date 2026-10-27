@@ -136,6 +136,48 @@ test("슈퍼셋 — 체크 한 번에 같은 번호 세트 함께 완료 · 적�
   await expect(b1b.getByTestId("set-done")).toHaveAttribute("aria-pressed", "true");
 });
 
+// /qa code M3 — 한쪽에만 워밍업이 있어도 화면 번호 「1」끼리 함께 완료된다(set_number 로 짝지으면 W 와 1 이 짝이 됐다)
+test("슈퍼셋 — 한쪽에만 워밍업이 있어도 화면 번호끼리 짝짓는다", async ({ page }) => {
+  test.setTimeout(180_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동(page, ["바벨 벤치프레스", "바벨 로우"]);
+  await 블록(page, 0).getByTestId("btn-we-menu").click();
+  await page.getByTestId("btn-superset").click();
+  await page.getByTestId("superset-option").first().click();
+  await expect(page.getByTestId("btn-unlink-superset")).toBeVisible({ timeout: 10_000 });
+
+  const group = page.getByTestId("workout-exercises").locator("> div").first();
+  const lists = group.getByTestId("set-list");
+  await expect(lists).toHaveCount(2);
+  // 벤치 — 세트를 하나 더 두고 첫 세트를 워밍업으로: [W, 1]
+  const aCount = await lists.nth(0).locator("> div").count();
+  await group.getByTestId("btn-add-set").first().click();
+  await expect(lists.nth(0).locator("> div")).toHaveCount(aCount + 1, { timeout: 10_000 });
+  await lists.nth(0).locator("> div").nth(0).getByTestId("set-type").click();
+  await page.getByTestId("set-type-sheet").getByText("워밍업").click();
+  await expect(lists.nth(0).locator("> div").nth(0).getByTestId("set-type")).toHaveText("W", { timeout: 10_000 });
+
+  // 벤치 화면 「1」(두 번째 줄)을 체크 → 로우 「1」(첫 줄)이 함께, 워밍업은 그대로
+  const aW = lists.nth(0).locator("> div").nth(0);
+  const a1 = lists.nth(0).locator("> div").nth(1);
+  const b1 = lists.nth(1).locator("> div").nth(0);
+  await a1.getByTestId("set-weight").fill("60");
+  await a1.getByTestId("set-reps").fill("8");
+  await a1.getByTestId("set-reps").blur();
+  await a1.getByTestId("set-done").click();
+  await expect(a1.getByTestId("set-done")).toHaveAttribute("aria-pressed", "true");
+  await expect(b1.getByTestId("set-done")).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
+  await expect(aW.getByTestId("set-done")).toHaveAttribute("aria-pressed", "false");
+
+  // 워밍업 칸 체크는 그 종목만(로우 2번째 줄 이후는 그대로)
+  await aW.getByTestId("set-done").click();
+  await expect(aW.getByTestId("set-done")).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
+  const bRows = await lists.nth(1).locator("> div").count();
+  for (let k = 1; k < bRows; k++) {
+    await expect(lists.nth(1).locator("> div").nth(k).getByTestId("set-done")).toHaveAttribute("aria-pressed", "false");
+  }
+});
+
 test("처방 무게 — 1RM의 80% 로 시작 · 탑셋을 마치면 탑셋의 90% 백오프", async ({ page }) => {
   test.setTimeout(240_000);
   await 카탈로그_준비(page);

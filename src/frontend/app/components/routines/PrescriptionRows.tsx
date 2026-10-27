@@ -161,6 +161,13 @@ export function PrescriptionRows({
                           });
                         }
                       }}
+                      // 입력 중에는 하한을 강제하지 않고(「8」→「80」), 칸을 떠날 때 하한까지 올린다 — 범위 밖 % 는
+                      // 저장 때 기준째 조용히 사라졌다(/qa code L4) @plm SRS-063
+                      onBlur={() => {
+                        if (r.loadBasis === "fixed" || r.loadPct == null) return;
+                        const [lo] = LOAD_PCT_RANGE[r.loadBasis as "pct1rm" | "pctTop"];
+                        if (r.loadPct < lo) patch(i, { loadPct: lo });
+                      }}
                       className="h-[34px] w-[64px] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center text-[length:var(--text-md)] text-(--color-ink)"
                     />
                     <AppText variant="caption" color="textMuted">

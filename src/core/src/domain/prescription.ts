@@ -2,6 +2,7 @@
 // 처방의 작성 주체는 사람(트레이너·프리셋 루틴)이다 — 이 모듈은 저장 포맷과 "제안형 편의"(중량
 // 이어달리기·타입별 권장 휴식)만 제공하며 처방을 자동으로 변경하는 함수를 두지 않는다(ADR-028).
 // 모든 제안은 reasonKey(i18n)와 함께 표시되어 사용자가 근거를 보고 무시할 수 있다(SRS-015 웰니스).
+import { estimateOneRepMax } from './oneRepMax';
 
 export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal';
 export type LoadHint = 'light' | 'medium' | 'heavy';
@@ -32,13 +33,41 @@ export const RIR_MAX = 6;
 const SET_TYPES: PrescribedSetType[] = ['warmup', 'top', 'backoff', 'normal'];
 const LOAD_HINTS: LoadHint[] = ['light', 'medium', 'heavy'];
 
+// 옛 Go 마샬 키 → 새 키. 새 키가 이미 있으면 그대로 둔다.
+const LEGACY_PRESCRIPTION_KEYS: [string, string[]][] = [
+  ['setType', ['SetType']],
+  ['targetRir', ['TargetRIR', 'TargetRir']],
+  ['repMin', ['RepMin']],
+  ['repMax', ['RepMax']],
+  ['loadHint', ['LoadHint']],
+  ['loadBasis', ['LoadBasis']],
+  ['loadPct', ['LoadPct']],
+  ['loadKg', ['LoadKg', 'LoadKG']],
+];
+function withLegacyPrescriptionKeys(o: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...o };
+  for (const [key, legacy] of LEGACY_PRESCRIPTION_KEYS) {
+    if (out[key] !== undefined) continue;
+    for (const k of legacy) {
+      if (o[k] !== undefined) {
+        out[key] = o[k];
+        break;
+      }
+    }
+  }
+  return out;
+}
+
 // 방어적 파서 — DB @json 원시값(불량 JSON·타 타입 포함)을 안전한 PrescribedSet[]로. 빈 배열→null.
 export function sanitizePrescriptionValue(raw: unknown): PrescribedSet[] | null {
   if (!Array.isArray(raw)) return null;
   const out: PrescribedSet[] = [];
   for (const item of raw) {
     if (typeof item !== 'object' || item === null) continue;
-    const o = item as Record<string, unknown>;
+    // [원본] const o = item as Record<string, unknown>;
+    // [개선] 운영에 남은 옛 처방은 Go 기본 마샬 키(PascalCase · v0.18~v0.35 코칭 저장분)다 — 새 camelCase 가 있으면 그것을,
+    // 없으면 옛 키를 읽는다(읽기 하위호환 · /qa code H2). 다음 저장 때 camelCase 로 바뀐다. @plm SRS-043 SRS-063
+    const o = withLegacyPrescriptionKeys(item as Record<string, unknown>);
     const setType = SET_TYPES.includes(o.setType as PrescribedSetType) ? (o.setType as PrescribedSetType) : 'normal';
     const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null);
     const rir = num(o.targetRir);
@@ -168,4 +197,58 @@ export function resolvePrescribedLoad(input: {
     reasonKey: 'prescription.load.reasonPctTop',
     params: { base: topKg, pct: p },
   };
+}
+
+// ── 처방 무게 채우기 계획(순수 · /qa code H1) ── @plm SRS-063
+// 세트를 마쳤을 때 그 뒤의 「탑셋의 N%」·(기록 없는) 「1RM 의 N%」 세트에 넣을 무게를 정한다. 저장은 호출자가 한다.
+// - 마친 세트가 워밍업·실패면 아무것도 채우지 않는다: 워밍업 20kg×10 으로 1RM 을 추정하면 탑셋이 엉뚱하게 가벼워지고,
+//   채운 세트는 「손댄 세트」가 되어 진짜 작업 세트를 한 뒤에도 다시 채워지지 않는다.
+// - 사람이 고친 세트(touched)·이미 한 세트는 건드리지 않는다(QA Q5).
+export interface LoadFillSet {
+  id: string;
+  done: boolean | null;
+  touched: boolean;
+  loadMultiplier: number | null;
+}
+export interface LoadFill {
+  setLogId: string;
+  weightKg: number; // 입력 칸 무게(한쪽 입력이면 한쪽)
+  reasonKey: string;
+  params: Record<string, number>;
+}
+export function planPrescribedLoadFills(input: {
+  rx: PrescribedSet[] | null;
+  sets: LoadFillSet[];
+  doneIdx: number;
+  done: { isWarmup: boolean | null; isFailed: boolean | null; setType: string | null };
+  doneCalcKg: number;
+  doneReps: number;
+  has1rm: boolean;
+  equipment: string | null | undefined;
+  unit: 'kg' | 'lb';
+}): LoadFill[] {
+  const { rx, sets, doneIdx, done, doneCalcKg, doneReps, has1rm, equipment, unit } = input;
+  if (!rx || doneIdx < 0 || doneIdx >= sets.length) return [];
+  if (!Number.isFinite(doneCalcKg) || doneCalcKg <= 0) return [];
+  const rxType = rx[doneIdx]?.setType ?? null;
+  const warmOrFail = done.isWarmup === true || done.isFailed === true || done.setType === 'warmup' || rxType === 'warmup';
+  if (warmOrFail) return [];
+  const isTop = rxType === 'top' || done.setType === 'top';
+  const est = estimateOneRepMax(doneCalcKg, doneReps);
+  const out: LoadFill[] = [];
+  for (let i = doneIdx + 1; i < sets.length; i++) {
+    const s = sets[i];
+    const r = rx[i];
+    if (!r?.loadBasis || s.done !== false || s.touched) continue;
+    let got: ResolvedLoad | null = null;
+    if (r.loadBasis === 'pctTop' && isTop) {
+      got = resolvePrescribedLoad({ basis: 'pctTop', pct: r.loadPct, topKg: doneCalcKg, equipment, unit });
+    } else if (r.loadBasis === 'pct1rm' && !has1rm) {
+      got = resolvePrescribedLoad({ basis: 'pct1rm', pct: r.loadPct, est1rmKg: est, equipment, unit });
+    }
+    if (!got || !('weightKg' in got) || got.weightKg <= 0) continue;
+    const sm = s.loadMultiplier && s.loadMultiplier > 0 ? s.loadMultiplier : 1;
+    out.push({ setLogId: s.id, weightKg: got.weightKg / sm, reasonKey: got.reasonKey, params: got.params });
+  }
+  return out;
 }

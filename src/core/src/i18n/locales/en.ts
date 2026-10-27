@@ -670,6 +670,7 @@ export const en: Record<TransKey, string> = {
   "session.prFilled": "Filled {weight} × {reps} into your next set",
   "session.prNoOpenSet": "No open set to fill — add a set",
   "session.supersetDone": "Complete the superset round",
+  "session.supersetEmptyKept": "Empty fields kept their saved values",
   "session.onlyThisDone": "Complete this exercise only",
   "session.onlyThisUndone": "Undo this exercise only",
   "session.supersetPrs": "PR — {names}",

@@ -620,13 +620,17 @@ export default function ActiveWorkout() {
     setNumber: number,
     next: boolean,
     pressedId: string,
-    kg: number,
-    reps: number,
+    kg: number | undefined,
+    reps: number | undefined,
   ) {
     if (!repo) return;
-    const round = await repo.getSupersetRoundSets(
+    // [원본] set_number(워밍업 포함) 로 짝지었다 — 화면 번호와 다른 세트가 함께 완료됐다(/qa code M3)
+    // const round = await repo.getSupersetRoundSets(members.map((m) => m.id), setNumber);
+    // [개선] 화면에 보이는 번호로 짝짓는다(워밍업·드롭·실패 칸은 그 종목만)
+    void setNumber;
+    const round = await repo.getSupersetRoundSetsFor(
       members.map((m) => m.id),
-      setNumber,
+      pressedId,
     );
     const entries = round.map((r) => {
       if (r.setLogId === pressedId) return { setLogId: r.setLogId, weightKg: kg, reps };
@@ -636,6 +640,19 @@ export default function ActiveWorkout() {
     await repo.completeSupersetRound(entries, next);
     for (const e of entries) drafts.clear(e.setLogId);
     if (!next) return;
+    // 누른 칸이 비어 있었으면 0 으로 저장하지 않고 원래 값을 둔다 — 왜 그대로인지 알린다(M4)
+    if (kg === undefined || reps === undefined) toast(t("session.supersetEmptyKept"));
+    // 묶음으로 함께 완료된 다른 종목에도 처방 무게(탑셋 → 백오프 %)를 채운다(M5) — 누른 블록은 자기가 채운다
+    try {
+      for (const r of round) {
+        if (r.setLogId === pressedId) continue;
+        const e = entries.find((x) => x.setLogId === r.setLogId);
+        const w = e?.weightKg ?? r.weightKg;
+        if (w > 0) await repo.fillPrescribedLoadsAfter(r.workoutExerciseId, r.setLogId, w, e?.reps ?? r.reps);
+      }
+    } catch {
+      // 채우지 못해도 기록은 남는다
+    }
     try {
       const names: string[] = [];
       const types = new Set<string>();

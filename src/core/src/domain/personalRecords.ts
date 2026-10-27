@@ -100,3 +100,25 @@ export function pickPrSets<T extends LoggedSet>(sets: T[]): { weight: T | null; 
 export function countMajorPrs(groups: { current: LoggedSet[]; historyBest: PRSnapshot }[]): number {
   return groups.reduce((n, g) => n + detectMajorPRs(snapshotFromSets(g.current), g.historyBest).length, 0);
 }
+
+// ── PR 수 다시 세기 — 한 번 훑기(prefix sweep · /qa code M1) ── @plm SRS-061
+// 완료 운동을 (completedAt, id) 순으로 한 번 훑으며 칸(key)별 「앞선 최고」를 누적한다 — 운동마다 전체 이력을 다시
+// 읽던 O(이후 운동 × 종목 × 전체 운동)를 O(운동 수 + 칸 수)로. 판정 규칙은 countMajorPrs 와 같다.
+// 같은 운동 안에 같은 칸 블록이 여럿이면 호출자가 한 그룹으로 합쳐 넘긴다.
+export interface PrSweepWorkout {
+  id: string;
+  completedAt: number;
+  groups: { key: string; current: PRSnapshot }[];
+}
+export function sweepPrCounts(workouts: PrSweepWorkout[]): Map<string, number> {
+  const order = [...workouts].sort((a, b) => a.completedAt - b.completedAt || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const best = new Map<string, PRSnapshot>();
+  const out = new Map<string, number>();
+  for (const w of order) {
+    let n = 0;
+    for (const g of w.groups) n += detectMajorPRs(g.current, best.get(g.key) ?? EMPTY_PR).length;
+    for (const g of w.groups) best.set(g.key, mergeSnapshots(best.get(g.key) ?? EMPTY_PR, g.current));
+    out.set(w.id, n);
+  }
+  return out;
+}

@@ -703,3 +703,13 @@ func TestPrescription_저장_JSON_은_앱과_같은_키_무게_기준_왕복(t *
 		t.Fatalf("proto 왕복에서 무게 기준이 사라졌다: %+v", dom[0])
 	}
 }
+
+// /qa code M6 — 운영에 남은 옛 처방(태그 없는 json.Marshal 의 PascalCase 키)도 서버가 읽는다는 사실을 고정한다.
+// encoding/json 의 대소문자 무시 매칭에 기대는 동작이라, 그 성질이 바뀌면 이 테스트가 먼저 알린다. @plm SRS-063
+func TestParsePrescription_옛_PascalCase_키도_읽는다(t *testing.T) {
+	got := parsePrescription(`[{"SetType":"top","TargetRIR":2,"RepMin":5,"RepMax":8,"LoadHint":"heavy"}]`)
+	if len(got) != 1 || got[0].SetType != "top" || got[0].TargetRIR == nil || *got[0].TargetRIR != 2 ||
+		got[0].RepMin == nil || *got[0].RepMin != 5 || got[0].LoadHint != "heavy" {
+		t.Fatalf("옛 처방을 읽지 못했다: %+v", got)
+	}
+}

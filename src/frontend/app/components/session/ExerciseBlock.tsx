@@ -40,6 +40,7 @@ import {
   type CardioMetric,
 } from "@app/core";
 import { carryWeightAcrossMultiplier } from "@app/core/domain/recordSlots";
+import { firstOpenWorkingSet } from "@app/core/domain/supersetRound";
 import { useToast } from "../Toast";
 // import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5: 팁 유무는 hasPictogram, 사진 표는 팁 패널이 펼칠 때 불러온다
 import { hasPictogram } from "@app/core/data/exerciseVisual";
@@ -122,8 +123,8 @@ export function ExerciseBlock({
     setNumber: number,
     next: boolean,
     setId: string,
-    kg: number,
-    reps: number,
+    kg: number | undefined, // 읽을 수 없는 입력은 undefined — 저장하지 않는다(/qa code M4)
+    reps: number | undefined,
   ) => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
@@ -344,12 +345,15 @@ export function ExerciseBlock({
    */
   const onToggleDone =
     (s: SetRow, single = false) =>
-    (next: boolean, kg: number, reps: number) =>
+    (next: boolean, uiKg: number | undefined, uiReps: number | undefined) =>
       void (async () => {
+        // 화면 값을 읽을 수 없으면 저장된 값으로 판정·계산한다(묶음 저장은 undefined 를 쓰지 않는다 · M4)
+        const kg = uiKg ?? s.weightKg;
+        const reps = uiReps ?? s.reps;
         // [원본] await write(() => repo.setSetDone(s.id, next));
         // [개선] 슈퍼셋 안이면 묶음 전체의 같은 번호 세트를 함께(#48) — 길게 누르기(single)는 이 종목만 @plm SRS-062
         const grouped = !!onRoundToggle && !single;
-        if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, kg, reps));
+        if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
         else await write(() => repo.setSetDone(s.id, next));
         if (!next) return;
 
@@ -424,7 +428,9 @@ export function ExerciseBlock({
   }
   /** PR 칩을 누르면 — 아직 안 한 첫 세트 하나에 그 무게·횟수(#50 A). 한쪽 입력 블록이면 입력 방식대로 환산. */
   function fillFromPr(ref: PrRef) {
-    const target = sets.find((x) => x.done !== true);
+    // [원본] const target = sets.find((x) => x.done !== true);
+    // [개선] 워밍업 칸이 아니라 첫 「작업」 세트에(/qa code L1) — 작업 세트가 없으면 첫 미완료 @plm SRS-061
+    const target = firstOpenWorkingSet(sets);
     if (!target) {
       toast(t("session.prNoOpenSet"));
       return;

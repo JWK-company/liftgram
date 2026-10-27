@@ -668,6 +668,7 @@ export const ko = {
   "session.prFilled": "다음 세트에 {weight} × {reps}를 채웠어요",
   "session.prNoOpenSet": "채울 세트가 없어요 — 세트를 추가하세요",
   "session.supersetDone": "묶음 함께 완료",
+  "session.supersetEmptyKept": "비어 있는 칸은 저장된 값 그대로 두고 완료했어요",
   "session.onlyThisDone": "이 종목만 완료",
   "session.onlyThisUndone": "이 종목만 완료 해제",
   "session.supersetPrs": "PR — {names}",

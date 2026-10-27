@@ -114,14 +114,14 @@ export function SetRowEdit({
   unit: WeightUnit;
   barWeightKg: number;
   onUpdate: (patch: { weightKg?: number; reps?: number; partialReps?: number | null }) => void;
-  onToggleDone: (next: boolean, weightKg: number, reps: number) => void;
+  onToggleDone: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
   onSetType: (type: "normal" | "warmup" | "drop" | "failed") => void;
   onSetArm: (arm: "uni" | null) => void;
   onSetGrip: (grip: string | null) => void;
   onDelete: () => void;
   onApplySuggestion: () => void;
   /** 슈퍼셋 안에서 — 길게 누르거나 ⋯ 에서 「이 종목만」 완료(체크 한 번은 묶음 전체 · #48) @plm SRS-062 */
-  onToggleDoneSingle?: (next: boolean, weightKg: number, reps: number) => void;
+  onToggleDoneSingle?: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
   /** 처방 무게의 근거(「추정 1RM 100kg의 80%」) — 계산된 무게가 어디서 왔는지(ADR-028) @plm SRS-063 */
   loadNote?: string | null;
 }) {
@@ -169,10 +169,20 @@ export function SetRowEdit({
   };
 
   /** 지금 입력칸에 보이는 값(kg · 횟수) — 저장 커밋을 기다리지 않는다. */
-  const currentValues = (): [number, number] => [
-    toKg(Number.parseFloat(w.replace(",", ".")) || 0, unit),
-    Number.parseInt(r, 10) || 0,
-  ];
+  // [원본] 빈칸·잘못된 입력이 0 이 되어 묶음 완료가 0kg·0회를 저장했다(/qa code M4)
+  // const currentValues = (): [number, number] => [
+  //   toKg(Number.parseFloat(w.replace(",", ".")) || 0, unit),
+  //   Number.parseInt(r, 10) || 0,
+  // ];
+  // [개선] 읽을 수 없으면 undefined — 저장소는 그 값을 쓰지 않는다(blur 커밋과 같은 규칙) @plm SRS-062
+  const currentValues = (): [number | undefined, number | undefined] => {
+    const kg = Number.parseFloat(w.replace(",", "."));
+    const n = Number.parseInt(r, 10);
+    return [
+      Number.isNaN(kg) || kg < 0 ? undefined : toKg(kg, unit),
+      Number.isNaN(n) || n < 0 ? undefined : n,
+    ];
+  };
 
   const applyPrev = () => {
     if (!prev || isDone) return;
@@ -301,8 +311,9 @@ export function SetRowEdit({
           aria-pressed={isDone}
           aria-label={isDone ? "완료 해제" : onToggleDoneSingle ? t("session.supersetDone") : "세트 완료"}
           // 슈퍼셋 안이면 길게 눌러(500ms) 이 종목만 — 한 번 누르기는 묶음 전체(#48 A) @plm SRS-062
-          onPointerDown={() => {
-            if (!onToggleDoneSingle) return;
+          onPointerDown={(e) => {
+            // 주 버튼(터치·왼쪽 클릭)만 — 오른쪽 버튼을 누르고 있어도 단독 토글이 되던 것(/qa code L8)
+            if (!onToggleDoneSingle || e.button !== 0) return;
             longFired.current = false;
             pressTimer.current = setTimeout(() => {
               longFired.current = true;
@@ -311,6 +322,7 @@ export function SetRowEdit({
           }}
           onPointerUp={() => pressTimer.current && clearTimeout(pressTimer.current)}
           onPointerLeave={() => pressTimer.current && clearTimeout(pressTimer.current)}
+          onPointerCancel={() => pressTimer.current && clearTimeout(pressTimer.current)}
           onContextMenu={(e) => onToggleDoneSingle && e.preventDefault()}
           onClick={() => {
             if (longFired.current) {
