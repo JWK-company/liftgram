@@ -9,13 +9,25 @@
 //
 // `navigator.storage.persist()`: Safari는 홈 화면에 추가하지 않은 사이트의 저장소를 7일 방문이
 // 없으면 지운다. 기록이 기기 DB에 있으니 보존을 요청해 둔다(거절돼도 동작은 같다).
-import { useEffect, useState } from "react";
+import {
+  controllerChangeAction,
+  isUpdateHoldPath,
+  shouldAutoApplyUpdate,
+} from "@app/core/domain/swUpdatePolicy";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { tw } from "@/lib/i18n";
 import { useSession } from "./SessionProvider";
 
 export function ServiceWorker() {
   const { activeWorkoutId } = useSession();
   const [waiting, setWaiting] = useState<ServiceWorker | null>(null);
+  // 운동 화면(/workout — 진행 중·요약·완료 시트)에 있는 동안은 새 버전 적용·새로고침을 미룬다(피드백 #64) @plm SRS-084
+  // 완료 순간 셸의 진행 중 운동은 null 이 되지만, 사람은 아직 요약·「바뀐 루틴 저장」을 보고 고르는 중이다.
+  const pathname = usePathname();
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
+  const [pendingReload, setPendingReload] = useState(false);
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
@@ -45,9 +57,13 @@ export function ServiceWorker() {
     const hadController = navigator.serviceWorker.controller != null;
     let reloaded = false;
     const onChange = () => {
-      if (reloaded || !hadController) return;
+      // [원본] if (reloaded || !hadController) return; reloaded = true; window.location.reload();
+      // [개선] 운동 화면이면 미룬다 — 다른 탭이 새 버전을 적용해도 이 탭의 요약이 날아가지 않게(피드백 #64) @plm SRS-084
+      const act = controllerChangeAction({ hadController, reloaded, pathname: pathRef.current });
+      if (act === "ignore") return;
       reloaded = true;
-      window.location.reload();
+      if (act === "defer") setPendingReload(true);
+      else window.location.reload();
     };
     navigator.serviceWorker.addEventListener("controllerchange", onChange);
     return () => {
@@ -61,8 +77,15 @@ export function ServiceWorker() {
   // (지운 「진행 중인 운동 · 빠른 운동 시작」 빈 화면이 당겨서 새로고침 때 잠깐 보였다 — 피드백 #61 후속).
   // 세트를 적는 도중 새로고침하지 않는다는 원칙은 그대로 — 진행 중인 운동이 있으면 끝날 때까지 기다린다.
   // 운동 여부는 셸 상태가 아니라 **기기 DB** 로 본다(부팅 직후 셸 상태는 아직 비어 있을 수 있다).
+  // 미뤄 둔 새로고침 — 운동 화면을 떠나면(요약 닫기 → 홈) 그때 한 번 @plm SRS-084
   useEffect(() => {
-    if (!waiting || activeWorkoutId) return;
+    if (pendingReload && !isUpdateHoldPath(pathname)) window.location.reload();
+  }, [pendingReload, pathname]);
+
+  useEffect(() => {
+    // [원본] if (!waiting || activeWorkoutId) return;
+    // [개선] 운동 화면(요약·완료 시트 포함)에서는 적용하지 않는다 — 떠나면 경로가 바뀌어 다시 판단한다(피드백 #64) @plm SRS-084
+    if (!waiting || !shouldAutoApplyUpdate({ hasWaiting: true, activeWorkoutId, pathname })) return;
     let stop = false;
     void (async () => {
       try {
@@ -78,9 +101,11 @@ export function ServiceWorker() {
     return () => {
       stop = true;
     };
-  }, [waiting, activeWorkoutId]);
+  }, [waiting, activeWorkoutId, pathname]);
 
-  if (!waiting || activeWorkoutId) return null;
+  // [원본] if (!waiting || activeWorkoutId) return null;
+  // [개선] 운동 화면에서는 띠도 띄우지 않는다 — 요약 위에서 눌러도 요약이 날아간다 @plm SRS-084
+  if (!waiting || activeWorkoutId || isUpdateHoldPath(pathname)) return null;
 
   return (
     <div

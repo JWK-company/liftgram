@@ -37,6 +37,29 @@ export async function variantAxesFor(exerciseId: string): Promise<VariantAxesAll
   }
 }
 
+/**
+ * 플레이트 후보 종목의 흔한 적재 방식(2026-10-27 피드백 #63) — 기구 머신 + family 적재 축 + 하중 모드 external 이면
+ * family 의 load_default(plate|pin), 아니면 null. 카탈로그 키 축은 바꾸지 않는다(빈 적재 칸의 기본일 뿐이다). @plm SRS-084
+ */
+export async function plateDefaultLoadMap(exerciseIds: string[]): Promise<Map<string, 'plate' | 'pin' | null>> {
+  const [{ plateDefaultLoad }, { resolveLoadMode }] = await Promise.all([
+    import('../domain/recordSlots'),
+    import('../domain/volume'),
+  ]);
+  const out = new Map<string, 'plate' | 'pin' | null>();
+  for (const id of [...new Set(exerciseIds)].filter(Boolean)) {
+    try {
+      const ex = await database.get<Exercise>('exercises').find(id);
+      const meta = await getFamilyMeta(ex.family);
+      const mode = resolveLoadMode(ex as unknown as Parameters<typeof resolveLoadMode>[0]);
+      out.set(id, plateDefaultLoad(ex.equipment ?? null, meta?.load ?? false, mode, meta?.loadDefault));
+    } catch {
+      out.set(id, null);
+    }
+  }
+  return out;
+}
+
 export interface SiblingExercise {
   id: string;
   equipment: string;

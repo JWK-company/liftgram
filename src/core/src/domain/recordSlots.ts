@@ -7,7 +7,7 @@
 //   · 플레이트 한쪽 입력: 적재 방식이 plate 인 블록에서 사용자가 「한쪽 무게로 입력」을 켜면 세트 배수 = 2.
 //     입력·표시는 한쪽, 볼륨·PR 은 effectiveWeightKg(×배수)가 계산한다(ADR-037). 핀로드·프리웨이트에는 없다.
 //   · 조합별 기록 요약: 한 종목의 수행 이력을 칸(variant_key)별로 묶어 「다른 조합 기록 보기」에 쓴다.
-import type { LoggedSet } from './types';
+import type { LoadMode, LoggedSet } from './types';
 import { effectiveMultiplier } from './volume';
 import type { VariantDims } from './variants';
 
@@ -31,6 +31,99 @@ export function carryWeightAcrossMultiplier(weightKg: number, fromMultiplier: nu
   const to = effectiveMultiplier({ loadMultiplier: toMultiplier });
   if (from === to) return weightKg;
   return Math.round(((weightKg * from) / to) * 100) / 100;
+}
+
+// ── 플레이트 머신 한쪽 입력 기본(2026-10-27 피드백 #63 · SRS-084) ─────────────────────────
+// 사람들은 「한쪽 무게로 입력」을 일일이 켜지 않았다 — 운영 오늘 기록의 머신 세트가 전부 배수 null(=1)이라 볼륨이 절반이었다.
+// 새 규칙: 플레이트 후보 머신은 **기본이 한쪽(×2)**. 종목의 입력 방식을 아직 안 정했으면(선택 null) 한 번 묻고,
+// 답은 종목별로 기억한다(true=한쪽 · false=양쪽 합·핀). 핀 칸은 늘 1. 옛 함수(blockLoadMultiplier)는 원복용으로 둔다.
+
+/** 플레이트 후보 — 종목 기구가 머신이고 family 에 적재 축이 있으며 하중 모드가 external(어시스트·맨몸 기준 머신 제외 · /qa spec H-1). */
+export function isPlateLoadCandidate(
+  baseEquipment: string | null | undefined,
+  axesLoad: boolean | null | undefined,
+  loadMode: LoadMode | string | null | undefined,
+): boolean {
+  return baseEquipment === 'machine' && axesLoad === true && (loadMode == null || loadMode === 'external');
+}
+
+/**
+ * 플레이트 후보의 「흔한 적재 방식」 — 후보가 아니면 null. 적재 칸이 비었을 때 이 값으로 본다(family 메타 load_default ·
+ * 레그 프레스·하이 로우처럼 원판을 거는 머신은 plate, 레그 익스텐션·펙 덱처럼 핀 스택이 흔한 머신은 pin).
+ */
+export function plateDefaultLoad(
+  baseEquipment: string | null | undefined,
+  axesLoad: boolean | null | undefined,
+  loadMode: LoadMode | string | null | undefined,
+  loadDefault: 'plate' | 'pin' | null | undefined,
+): 'plate' | 'pin' | null {
+  if (!isPlateLoadCandidate(baseEquipment, axesLoad, loadMode)) return null;
+  return loadDefault === 'pin' ? 'pin' : 'plate';
+}
+
+/**
+ * 블록 배수(V2) — 후보 아님 → null · 적재 칸(비면 흔한 적재 방식)이 핀 → null(=1) · 「양쪽 합」으로 정함 → **명시 1**
+ * (프리필 환산이 「양쪽 합」을 알도록) · 한쪽으로 정함·아직 안 정함 → 2(플레이트는 기본이 한쪽).
+ */
+export function blockLoadMultiplierV2(
+  dims: Pick<VariantDims, 'load'> | null | undefined,
+  choice: boolean | null | undefined,
+  defaultLoad: 'plate' | 'pin' | null | undefined,
+): number | null {
+  if (!defaultLoad) return null;
+  if ((dims?.load ?? defaultLoad) === 'pin') return null;
+  return choice === false ? 1 : 2;
+}
+
+/** 「원판 한쪽 무게로 적나요?」를 물을 블록인가 — 후보 · 플레이트 칸(비면 흔한 적재 방식) · 아직 안 정함. */
+export function needsPlateOneSideQuestion(
+  dims: Pick<VariantDims, 'load'> | null | undefined,
+  choice: boolean | null | undefined,
+  defaultLoad: 'plate' | 'pin' | null | undefined,
+): boolean {
+  return !!defaultLoad && (dims?.load ?? defaultLoad) === 'plate' && choice == null;
+}
+
+/**
+ * 프리필 환산(V2) — 지난 배수가 **null(옛 기록·모름)이면 숫자 그대로**. 옛 null 기록은 「옵션을 안 누른」 기록이라
+ * 실제로는 한쪽 숫자인 경우가 많다(이번 사용자) — 옛 규칙(null=양쪽)으로 절반 환산하면 40 이 20 이 된다.
+ * 명시 배수(1·2)끼리만 계산 무게가 같도록 옮긴다.
+ */
+export function carryWeightAcrossMultiplierV2(
+  weightKg: number,
+  fromMultiplier: number | null | undefined,
+  toMultiplier: number | null | undefined,
+): number {
+  if (fromMultiplier == null) return weightKg;
+  return carryWeightAcrossMultiplier(weightKg, fromMultiplier, toMultiplier);
+}
+
+/** planBlockMultiplierResync 와 같되 환산은 V2(옛 null 세트는 숫자 그대로 배수만). 칸 시트 토글·칸 바꾸기가 쓴다. */
+export function planBlockMultiplierResyncV2(
+  sets: { id: string; done: boolean | null; weightKg: number; loadMultiplier: number | null | undefined; touched?: boolean }[],
+  toMultiplier: number | null,
+): { id: string; weightKg: number; loadMultiplier: number | null }[] {
+  const out: { id: string; weightKg: number; loadMultiplier: number | null }[] = [];
+  for (const s of sets) {
+    if (s.done !== false) continue;
+    if ((s.loadMultiplier ?? null) === toMultiplier) continue;
+    const weightKg = s.touched ? s.weightKg : carryWeightAcrossMultiplierV2(s.weightKg, s.loadMultiplier, toMultiplier);
+    out.push({ id: s.id, weightKg, loadMultiplier: toMultiplier });
+  }
+  return out;
+}
+
+/**
+ * 질문 답의 재표기 — 블록 세트 **전부(한 세트 포함)** 의 배수만 바꾸고 숫자는 그대로. 답은 「적은 숫자의 뜻」을 밝힌 것이라
+ * 숫자를 환산하면 안 되고, 질문 전 기본(×2)으로 체크한 세트가 「양쪽 합」 답에도 ×2 로 남으면 거짓 볼륨이다(/qa spec M-2).
+ */
+export function planBlockMultiplierRetag(
+  sets: { id: string; done: boolean | null; weightKg: number; loadMultiplier: number | null | undefined }[],
+  toMultiplier: number | null,
+): { id: string; weightKg: number; loadMultiplier: number | null }[] {
+  return sets
+    .filter((s) => (s.loadMultiplier ?? null) !== toMultiplier)
+    .map((s) => ({ id: s.id, weightKg: s.weightKg, loadMultiplier: toMultiplier }));
 }
 
 export interface SlotSession {

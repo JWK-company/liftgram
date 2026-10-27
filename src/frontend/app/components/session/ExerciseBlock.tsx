@@ -20,7 +20,7 @@
 // 그래서 볼륨처럼 값이 바뀌어야 다시 그려야 하는 것은 app과 같이 1.5초 폴링으로 따라간다.
 // ─────────────────────────────────────────────────────────────────────────────
 import {
-  blockLoadMultiplier,
+  // blockLoadMultiplier, // [원본] V1 배수 — 플레이트 칸 + 「한쪽」 켬일 때만 2(피드백 #63 전)
   canonicalVariantKey,
   parseVariantKey,
   variantLabelFromKey,
@@ -41,7 +41,11 @@ import {
   sumCardio,
   type CardioMetric,
 } from "@app/core";
-import { carryWeightAcrossMultiplier } from "@app/core/domain/recordSlots";
+// [원본] import { carryWeightAcrossMultiplier } from "@app/core/domain/recordSlots";
+import { carryWeightAcrossMultiplierV2 } from "@app/core/domain/recordSlots"; // 옛 null 기록은 숫자 그대로 @plm SRS-084
+import { usePlateOneSide } from "@/lib/usePlateOneSide";
+import { BlockTools } from "./BlockTools";
+import { PlateAskLine } from "./PlateAskLine";
 import { firstOpenWorkingSet } from "@app/core/domain/supersetRound";
 import { useToast } from "../Toast";
 // import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5: 팁 유무는 hasPictogram, 사진 표는 팁 패널이 펼칠 때 불러온다
@@ -165,12 +169,16 @@ export function ExerciseBlock({
   const [confirmRemove, setConfirmRemove] = useState(false);
   // 메모·휴식 시간은 종목 ⋯ 안의 설정이다(SRS-054) — 입력칸이 늘 펼쳐져 세트 표를 밀어내지 않게.
   // 메모는 써 둔 것이 있으면 처음부터 보인다.
-  const [noteOpen, setNoteOpen] = useState(() => !!we.note?.trim());
+  // [원본] const [noteOpen, setNoteOpen] = useState(() => !!we.note?.trim());
+  // [개선] 메모는 블록 도구 줄의 첫 줄 미리보기로 보이고, 누르면 입력칸이 열린다(피드백 #62) — noteOpen = 쓰는 중 @plm SRS-084
+  const [noteOpen, setNoteOpen] = useState(false);
   const [restSheet, setRestSheet] = useState(false);
   const [volTick, setVolTick] = useState(0);
   // ── 기록 칸(조합) — 플레이트 한쪽 입력 · 다른 조합 기록(ADR-034 · ADR-037) @plm SRS-058 ──
   const { machineVariantLabels } = useUser();
-  const [plateOneSide, setPlateOneSideState] = useState(false);
+  // [원본] const [plateOneSide, setPlateOneSideState] = useState(false);
+  // [개선] 입력 방식 선택(tri-state)·플레이트 후보 — 후보 머신은 기본이 한쪽(피드백 #63) @plm SRS-084
+  const plate = usePlateOneSide(we.exerciseId);
   const [slots, setSlots] = useState<SlotSummary[]>([]);
   const [slotsOpen, setSlotsOpen] = useState(false);
   // 「더 보기」 펼침 — 블록 전체가 하나(종목마다 따로 두지 않는다 · /qa spec Q6) @plm SRS-069
@@ -309,17 +317,17 @@ export function ExerciseBlock({
     };
   }, [repo, we.exerciseId, variantKey]);
 
-  // 한쪽 입력 선호(사용자 × 종목) — 종목이 바뀌면 다시 읽는다
-  useEffect(() => {
-    let alive = true;
-    void import("@app/core/data/exercisePrefs").then(async (m) => {
-      const on = await m.getPlateOneSide(we.exerciseId);
-      if (alive) setPlateOneSideState(on);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [we.exerciseId]);
+  // [원본] 한쪽 입력 선호(사용자 × 종목) — 종목이 바뀌면 다시 읽는다 → usePlateOneSide 가 맡는다(피드백 #63)
+  // useEffect(() => {
+  //   let alive = true;
+  //   void import("@app/core/data/exercisePrefs").then(async (m) => {
+  //     const on = await m.getPlateOneSide(we.exerciseId);
+  //     if (alive) setPlateOneSideState(on);
+  //   });
+  //   return () => {
+  //     alive = false;
+  //   };
+  // }, [we.exerciseId]);
 
   // 조합별 기록(이 종목을 어떤 칸으로 해 왔나) — 「이전 기록 · 로프」와 「다른 조합 기록 보기」의 재료
   useEffect(() => {
@@ -335,7 +343,11 @@ export function ExerciseBlock({
     };
   }, [repo, we.exerciseId]);
 
-  const oneSide = blockLoadMultiplier(variant, plateOneSide) === 2;
+  // [원본] const oneSide = blockLoadMultiplier(variant, plateOneSide) === 2;
+  const blockMultiplier = plate.multiplier(variant); // @plm SRS-084
+  const oneSide = blockMultiplier === 2;
+  const plateOneSide = plate.choice !== false && blockMultiplier === 2; // 칸 시트 토글의 체크(실효값)
+  const askPlate = !isCardio && plate.needsAsk(variant);
   const otherSlots = slots.filter((x) => (x.variantKey ?? null) !== (variantKey ?? null));
 
   // ── 세트 목록(반응형) ──
@@ -532,11 +544,8 @@ export function ExerciseBlock({
       toast(t("session.prNoOpenSet"));
       return;
     }
-    const weightKg = carryWeightAcrossMultiplier(
-      ref.inputWeightKg,
-      ref.loadMultiplier,
-      blockLoadMultiplier(variant, plateOneSide),
-    );
+    // [원본] const weightKg = carryWeightAcrossMultiplier(ref.inputWeightKg, ref.loadMultiplier, blockLoadMultiplier(variant, plateOneSide));
+    const weightKg = carryWeightAcrossMultiplierV2(ref.inputWeightKg, ref.loadMultiplier, blockMultiplier); // @plm SRS-084
     void write(() => repo.updateSetLog(target.id, { weightKg, reps: ref.reps })).then(() =>
       toast(t("session.prFilled", { weight: formatEnteredWeight(weightKg, blockUnit), reps: ref.reps })),
     );
@@ -580,6 +589,8 @@ export function ExerciseBlock({
   //   더 보기    운동 방법 · 다른 조합 · 이전기록 지우기 (펼침은 기기에 기억 — 전역 하나)
   //   표 머리    세트 · 이전 · 무게 kg│lb · 횟수
   // [원본] 메타 칩 줄(테두리 알약 변형·PR 칩·kg/lb 알약·볼륨 태그) + 「이전 기록 · 조합」 줄 + 팁 줄 — 커밋 5222c61 의 이 파일
+  //   (피드백 #62 · SRS-084) 세트 추가 아래 도구 한 줄 — ⏱ 휴식 · ✎ 메모 · ⌃⌄ 순서(메뉴에서 꺼냄 · 회색 · 44px)
+  //   (피드백 #63 · SRS-084) 세트 표 아래 「원판 한쪽 무게로 적나요?」 — 플레이트 후보 머신에서 입력 방식을 안 정했을 때 한 번
   // ─────────────────────────────────────────────────────────────────────────────
   return (
     <Card
@@ -646,13 +657,14 @@ export function ExerciseBlock({
                 testId: "btn-we-info",
                 onPress: () => navigate(`/exercise/${we.exerciseId}`),
               },
-              // 순서 바꾸기 — 머리 화살표 대신(/qa code M-5 · H-3) @plm SRS-069
-              ...(onMoveUp
-                ? [{ label: t("session.moveUp"), testId: "btn-move-up", onPress: () => onMoveUp() }]
-                : []),
-              ...(onMoveDown
-                ? [{ label: t("session.moveDown"), testId: "btn-move-down", onPress: () => onMoveDown() }]
-                : []),
+              // [원본] 순서 바꾸기 — 머리 화살표 대신(/qa code M-5 · H-3) @plm SRS-069
+              // [개선] 블록 아래 도구 줄의 ⌃ ⌄(누르는 자리 44px)로 꺼냈다(피드백 #62) — 원복 시 아래를 되살리고 BlockTools 의 순서 버튼을 뺀다 @plm SRS-084
+              // ...(onMoveUp
+              //   ? [{ label: t("session.moveUp"), testId: "btn-move-up", onPress: () => onMoveUp() }]
+              //   : []),
+              // ...(onMoveDown
+              //   ? [{ label: t("session.moveDown"), testId: "btn-move-down", onPress: () => onMoveDown() }]
+              //   : []),
               ...(!insideSuperset && canSuperset && (onSuperset || onUnsuperset)
                 ? [
                     {
@@ -665,20 +677,15 @@ export function ExerciseBlock({
               ...(onSwap
                 ? [{ label: t("routines.swap"), testId: "btn-swap", onPress: () => onSwap(we.id) }]
                 : []),
-              {
-                label: `${t("session.restTime")} · ${restSeconds}${t("session.secondsSuffix")}`,
-                testId: "btn-rest-setting",
-                onPress: () => setRestSheet(true),
-              },
-              ...(noteOpen
-                ? []
-                : [
-                    {
-                      label: t("session.notePlaceholder"),
-                      testId: "btn-note-open",
-                      onPress: () => setNoteOpen(true),
-                    },
-                  ]),
+              // [원본] 휴식 시간·메모 열기도 메뉴 안이었다 → 블록 도구 줄로(피드백 #62) @plm SRS-084
+              // {
+              //   label: `${t("session.restTime")} · ${restSeconds}${t("session.secondsSuffix")}`,
+              //   testId: "btn-rest-setting",
+              //   onPress: () => setRestSheet(true),
+              // },
+              // ...(noteOpen
+              //   ? []
+              //   : [{ label: t("session.notePlaceholder"), testId: "btn-note-open", onPress: () => setNoteOpen(true) }]),
               {
                 label: t("session.removeExerciseTitle"),
                 destructive: true,
@@ -713,9 +720,13 @@ export function ExerciseBlock({
                 }}
                 onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
                 plateOneSide={plateOneSide}
+                plateDefaultLoad={plate.defaultLoad}
                 onPlateOneSide={(on) => {
-                  setPlateOneSideState(on);
-                  void write(() => repo.setPlateOneSideForExercise(we.exerciseId, on));
+                  // [원본] setPlateOneSideState(on);
+                  // void write(() => repo.setPlateOneSideForExercise(we.exerciseId, on));
+                  // [개선] 끄기(양쪽 합)도 선택으로 기억 — 다시 묻지 않는다(피드백 #63) @plm SRS-084
+                  plate.setChoiceLocal(on);
+                  void write(() => repo.setPlateOneSideForExerciseV2(we.exerciseId, on));
                 }}
               />
             ) : null}
@@ -922,6 +933,16 @@ export function ExerciseBlock({
           )}
         </div>
 
+        {/* 「원판 한쪽 무게로 적나요?」 — 플레이트 후보 머신에서 입력 방식을 아직 안 정했을 때 한 번(피드백 #63) @plm SRS-084 */}
+        {askPlate ? (
+          <PlateAskLine
+            onAnswer={(on) => {
+              plate.setChoiceLocal(on);
+              void write(() => repo.answerPlateOneSide(we.exerciseId, on));
+            }}
+          />
+        ) : null}
+
         <div className="mt-[var(--spacing-sm)]">
           <Button
             title={t("session.addSet")}
@@ -933,15 +954,32 @@ export function ExerciseBlock({
           />
         </div>
 
+        {/* 블록 도구 한 줄 — 휴식 · 메모 · 순서(⋯ 메뉴에서 꺼냄 · 피드백 #62) @plm SRS-084 */}
+        <BlockTools
+          restSeconds={restSeconds}
+          onRest={() => setRestSheet(true)}
+          note={note}
+          onNote={() => setNoteOpen(true)}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+        />
+
         {/* 메모 — 그날의 느낌·포인트. 다음에 같은 종목을 할 때 지난 메모로 보인다. */}
         {noteOpen ? (
           <textarea
             data-testid="we-note"
             value={note}
             rows={2}
+            // biome-ignore lint/a11y/noAutofocus: 사람이 「메모」를 눌러 연 입력칸이다 — 곧바로 쓰게
+            autoFocus
             placeholder={t("session.notePlaceholder")}
             onChange={(e) => setNote(e.target.value)}
-            onBlur={() => void write(() => repo.setWorkoutExerciseNote(we.id, note))}
+            // [원본] onBlur={() => void write(() => repo.setWorkoutExerciseNote(we.id, note))}
+            // [개선] 저장하고 접는다 — 도구 줄이 첫 줄을 미리 보인다(피드백 #62) @plm SRS-084
+            onBlur={() => {
+              setNoteOpen(false);
+              void write(() => repo.setWorkoutExerciseNote(we.id, note));
+            }}
             className="mt-[var(--spacing-sm)] min-h-[38px] w-full rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface-alt) p-[var(--spacing-md)] text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
           />
         ) : null}

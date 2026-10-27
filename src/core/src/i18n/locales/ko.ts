@@ -891,6 +891,13 @@ export const ko = {
   "session.restOverMessage": "다음 세트를 시작하세요.",
   "session.restOverTitle": "휴식 종료",
   "session.restTime": "휴식 시간",
+  "session.restShort": "휴식 {time}", // @plm SRS-084
+  "session.noteShort": "메모", // @plm SRS-084
+  "session.noteEditAria": "메모 쓰기 — {note}", // @plm SRS-084
+  "session.plateAsk": "원판 한쪽 무게로 적나요?", // @plm SRS-084
+  "session.plateAskOne": "한쪽", // @plm SRS-084
+  "session.plateAskBoth": "양쪽 합·핀", // @plm SRS-084
+  "session.plateAskHint": "한쪽이면 볼륨·PR은 ×2로 계산해요", // @plm SRS-084
   "session.rpeLabel": "RPE (0=없음)",
   "session.secondsSuffix": "초",
   "session.setCount": "세트 수",

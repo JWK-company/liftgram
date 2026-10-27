@@ -16,7 +16,7 @@
 // 만들지 않는다** — 결과는 같고(빈 초안이 쌓이지 않는다) 지우는 코드가 필요 없다.
 // ─────────────────────────────────────────────────────────────────────────────
 import {
-  blockLoadMultiplier,
+  // blockLoadMultiplier, // [원본] V1 — 피드백 #63 뒤 usePlateOneSide(V2)
   canonicalVariantKey,
   cardioMetricsFor,
   fromKg,
@@ -38,6 +38,7 @@ import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { scheduleFlush } from "@/lib/localDb";
+import { usePlateOneSide } from "@/lib/usePlateOneSide";
 import ExercisePicker from "../ExercisePicker";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
@@ -581,18 +582,13 @@ function ExerciseEditRow({
   // biome-ignore lint/correctness/useExhaustiveDependencies: 종목·저장된 칸이 바뀔 때만 따라간다
   useEffect(() => setVariant(re.variant ?? {}), [re.exerciseId, storedVariantKey]);
   // 플레이트 「한쪽 무게로 입력」(사용자 × 종목 선호 — 세션과 같은 값) @plm SRS-058
-  const [plateOneSide, setPlateOneSideState] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    void import("@app/core/data/exercisePrefs").then(async (m) => {
-      const on = await m.getPlateOneSide(re.exerciseId);
-      if (alive) setPlateOneSideState(on);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [re.exerciseId]);
-  const oneSide = blockLoadMultiplier(variant, plateOneSide) === 2;
+  // [원본] const [plateOneSide, setPlateOneSideState] = useState(false);
+  // useEffect(() => { …m.getPlateOneSide(re.exerciseId)… setPlateOneSideState(on) }, [re.exerciseId]);
+  // const oneSide = blockLoadMultiplier(variant, plateOneSide) === 2;
+  // [개선] 세션 블록과 같은 규칙 — 플레이트 후보 머신은 기본이 한쪽(피드백 #63) @plm SRS-084
+  const plate = usePlateOneSide(re.exerciseId);
+  const oneSide = plate.multiplier(variant) === 2;
+  const plateOneSide = plate.choice !== false && oneSide;
   const [baseEquipment, setBaseEquipment] = useState<EquipmentType | null>(null);
   const [isCardio, setIsCardio] = useState(false);
   const [metrics, setMetrics] = useState<CardioMetric[]>([]);
@@ -654,10 +650,12 @@ function ExerciseEditRow({
                   }}
                   onSwap={onSwapTo}
                   plateOneSide={plateOneSide}
+                  plateDefaultLoad={plate.defaultLoad}
                   onPlateOneSide={(on) => {
-                    setPlateOneSideState(on);
+                    // [원본] setPlateOneSideState(on); … m.setPlateOneSide(re.exerciseId, on) — 끄기는 기억되지 않았다
+                    plate.setChoiceLocal(on);
                     void import("@app/core/data/exercisePrefs")
-                      .then((m) => m.setPlateOneSide(re.exerciseId, on))
+                      .then((m) => m.setPlateOneSideChoice(re.exerciseId, on))
                       .then(scheduleFlush);
                   }}
                 />

@@ -6,7 +6,7 @@
 //
 // 입력 (core/src/data/catalog/)
 //   catalog.master.csv       종목 마스터 — 열 의미는 spec `_context.md` §2 (+ name_rule)
-//   catalog.families.csv     동작 그룹 메타 — 허용 부착물·손 그립·적재 방식(ADR-034)
+//   catalog.families.csv     동작 그룹 메타 — 허용 부착물·손 그립·적재 방식(ADR-034)·흔한 적재 방식 load_default(SRS-084)
 //   migration-overrides.csv  같은 family 로 풀리지 않는 운영 칸의 명시 예외(QA H6)
 // 출력
 //   core/src/data/catalog/catalog.generated.ts       종목·family 표(시드 원천 — P2 에서 시드가 이것을 쓴다)
@@ -145,13 +145,25 @@ const rows = master.map((r) => {
   };
 });
 
-const fams = families.map((f) => ({
-  family: f.family,
-  equipments: list(f.equipments),
-  attachments: list(f.attachments),
-  grips: list(f.grips),
-  load: list(f.load).length > 0,
-}));
+// [원본] 적재 축 유무만 실었다
+// const fams = families.map((f) => ({ family: f.family, equipments: …, attachments: …, grips: …, load: list(f.load).length > 0 }));
+// [개선] 적재 축이 있는 family 는 「흔한 적재 방식」(load_default = plate|pin)도 싣는다 — 빈 적재 칸의 기본(피드백 #63 · SRS-084).
+// 축이 없는 family 줄은 예전과 같은 모양(생성물 diff 를 줄인다). 키 축(ADR-034)은 바뀌지 않는다.
+const fams = families.map((f) => {
+  const load = list(f.load).length > 0;
+  const def = (f.load_default ?? "").trim();
+  if (def && !["plate", "pin"].includes(def)) die(`family ${f.family}: load_default 는 plate|pin — ${def}`);
+  if (load && !def) die(`family ${f.family}: 적재 축이 있으면 load_default(plate|pin)가 필요합니다`);
+  if (!load && def) die(`family ${f.family}: 적재 축이 없는데 load_default 가 있습니다`);
+  return {
+    family: f.family,
+    equipments: list(f.equipments),
+    attachments: list(f.attachments),
+    grips: list(f.grips),
+    load,
+    ...(load ? { loadDefault: def } : {}),
+  };
+});
 
 const ovr = overrides.map((o) => ({
   sourceId: resolve(o.source_id_en, "override source"),

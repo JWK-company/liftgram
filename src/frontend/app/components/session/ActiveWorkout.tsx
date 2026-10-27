@@ -37,6 +37,7 @@ import { IconButton } from "../ui/IconButton";
 import { TextField } from "../ui/inputs";
 import { AppText, EmptyState } from "../ui/primitives";
 import { ExerciseBlock, type WorkoutExerciseRow } from "./ExerciseBlock";
+import { MoveButtons } from "./BlockTools";
 import { ExerciseName } from "./ExerciseName";
 import { RestBar, clock } from "./RestBar";
 import { SessionGuideButtons } from "./SessionGuides";
@@ -579,6 +580,8 @@ export default function ActiveWorkout() {
                   workout.id,
                   repo.completeWorkout,
                 );
+                // 플레이트 질문에 답하지 않은 종목은 기본(한쪽)을 답으로 — 다음엔 묻지 않는다(피드백 #63 · 실패해도 완료는 그대로) @plm SRS-084
+                await repo.settleUndecidedPlateOneSide(workout.id).catch(() => []);
                 const { flushLocalDb } = await import("@/lib/localDb");
                 await flushLocalDb();
                 clearRest();
@@ -794,32 +797,22 @@ function SupersetContainer({
     // <div className="… border-[1.5px] border-(--color-brand) …"><div className="… bg-(--color-brand-muted) …">
     <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-line-strong) bg-(--color-surface)">
       <div className="flex items-center bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)]">
+        {/* [원본] 20×20 위아래가 세로로 붙어 있었다 — 블록과 같은 이유(잘못 눌림 · /qa code M-5)로 좌우·누르는 자리 44px(피드백 #62) @plm SRS-084
         {onMoveUp || onMoveDown ? (
           <div className="mr-[6px] flex flex-col gap-[2px]">
-            <IconButton
-              icon="chevron-up"
-              size={16}
-              label={t("session.moveUp")}
-              disabled={!onMoveUp}
-              color={onMoveUp ? "var(--color-ink2)" : "var(--color-line)"}
-              onPress={onMoveUp}
-              className="h-5! w-5!"
-            />
-            <IconButton
-              icon="chevron-down"
-              size={16}
-              label={t("session.moveDown")}
-              disabled={!onMoveDown}
-              color={onMoveDown ? "var(--color-ink2)" : "var(--color-line)"}
-              onPress={onMoveDown}
-              className="h-5! w-5!"
-            />
+            <IconButton icon="chevron-up" size={16} label={t("session.moveUp")} disabled={!onMoveUp}
+              color={onMoveUp ? "var(--color-ink2)" : "var(--color-line)"} onPress={onMoveUp} className="h-5! w-5!" />
+            <IconButton icon="chevron-down" size={16} label={t("session.moveDown")} disabled={!onMoveDown}
+              color={onMoveDown ? "var(--color-ink2)" : "var(--color-line)"} onPress={onMoveDown} className="h-5! w-5!" />
           </div>
-        ) : null}
+        ) : null} */}
         <Icon name="git-merge-outline" size={15} color="var(--color-ink2)" />
         <AppText variant="caption" color="textMuted" className="ml-[6px] flex-1 font-semibold">
           {t("session.superset")}
         </AppText>
+        <span className="mr-[var(--spacing-sm)]">
+          <MoveButtons compact onMoveUp={onMoveUp} onMoveDown={onMoveDown} testIdPrefix="btn-superset-move" />
+        </span>
         <button
           type="button"
           data-testid="btn-unlink-superset"

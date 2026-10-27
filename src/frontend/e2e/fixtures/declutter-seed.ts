@@ -48,7 +48,12 @@ export async function 세트_기록(page: Page, n: number, i: number, kg: number
 export async function 칸_고르기(page: Page, n: number, testIds: string[]): Promise<void> {
   await page.getByTestId("variant-trigger").nth(n).click();
   await expect(page.getByTestId("variant-sheet")).toBeVisible();
-  for (const id of testIds) await page.getByTestId(id).click();
+  // [원본] for (const id of testIds) await page.getByTestId(id).click();
+  // [개선] 체크박스(…-input)는 켜기만 — 플레이트 머신은 이제 기본이 한쪽이라 이미 켜져 있으면 누르면 꺼진다(피드백 #63 · SRS-084)
+  for (const id of testIds) {
+    if (id.endsWith("-input")) await page.getByTestId(id).check();
+    else await page.getByTestId(id).click();
+  }
   await page
     .getByTestId("variant-sheet")
     .locator("xpath=..")

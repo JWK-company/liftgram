@@ -44,9 +44,15 @@ import {
 } from '../domain/variants'; // @plm SRS-028
 import {
   pickStartSlot,
-  blockLoadMultiplier,
-  carryWeightAcrossMultiplier,
-  planBlockMultiplierResync,
+  // [원본] 배수·환산·동기 계획 V1 — 원복 시 아래 V2 대신 되살린다(피드백 #63 · SRS-084)
+  // blockLoadMultiplier,
+  // carryWeightAcrossMultiplier,
+  // planBlockMultiplierResync,
+  blockLoadMultiplierV2,
+  carryWeightAcrossMultiplierV2,
+  planBlockMultiplierResyncV2,
+  planBlockMultiplierRetag,
+  needsPlateOneSideQuestion,
   summarizeSlots,
   pickRecentBrands,
   type SlotSummary,
@@ -836,7 +842,9 @@ function prepareTemplateSets(
     const bwDefault = isBodyweight ? 0 : 20;
     // [원본] const weight = isCardio ? 0 : prev?.weightKg ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
     // [개선] 지난 세트를 다른 입력 방식(양쪽 합 ↔ 한쪽)으로 적었으면 이번 방식으로 환산 — 계산 무게가 같게 @plm SRS-058
-    const prevWeight = prev ? carryWeightAcrossMultiplier(prev.weightKg, prev.loadMultiplier, loadMultiplier) : undefined;
+    // const prevWeight = prev ? carryWeightAcrossMultiplier(prev.weightKg, prev.loadMultiplier, loadMultiplier) : undefined;
+    // [개선] 지난 배수가 null(옛 기록·모름)이면 숫자 그대로 — 옛 하이로우 「40」은 실제로 한쪽 40 이었다(피드백 #63) @plm SRS-084
+    const prevWeight = prev ? carryWeightAcrossMultiplierV2(prev.weightKg, prev.loadMultiplier, loadMultiplier) : undefined;
     // [원본] const weight = isCardio ? 0 : prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
     // [개선] 사람이 쓴 처방 무게(1RM 의 N%·직접)가 있으면 그 무게가 먼저다 — 입력 칸은 한쪽 입력 배수로 나눈다 @plm SRS-063
     const rxKg = rxLoadKg[i];
@@ -912,10 +920,14 @@ export async function startWorkoutFromRoutineV1(routineId: string): Promise<Work
   }
   const variantOf = (re: (typeof res)[number]) => variantByRe.get(re.id) as VariantColumns;
   // v22: 블록 배수 — 플레이트 칸 + 「한쪽 무게로 입력」 선호(ADR-037) @plm SRS-058
-  const { getPlateOneSideMap } = await import('./exercisePrefs');
-  const plateMap = await getPlateOneSideMap(res.map((re) => re.exerciseId));
+  // [원본] const { getPlateOneSideMap } = await import('./exercisePrefs');
+  // const plateMap = await getPlateOneSideMap(res.map((re) => re.exerciseId));
+  // const multiplierOf = (re: (typeof res)[number]) =>
+  //   blockLoadMultiplier(dimsFromColumns(variantOf(re)), plateMap.get(re.exerciseId));
+  // [개선] 플레이트 후보 머신은 기본이 한쪽(피드백 #63) — 선택(tri-state) × 후보 @plm SRS-084
+  const plate = await plateInputsFor(res.map((re) => re.exerciseId));
   const multiplierOf = (re: (typeof res)[number]) =>
-    blockLoadMultiplier(dimsFromColumns(variantOf(re)), plateMap.get(re.exerciseId));
+    blockLoadMultiplierV2(dimsFromColumns(variantOf(re)), plate.choice.get(re.exerciseId), plate.defaultLoad.get(re.exerciseId));
   // (종목×기구)별 지난 세션 스냅샷 + 전체 세트를 write 전에 미리 조회(프리레이 값 폴백용).
   const vkey = (re: (typeof res)[number]) => `${re.exerciseId}::${variantOf(re).variantKey ?? ''}`;
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
@@ -1096,9 +1108,13 @@ async function startWorkoutFromRows(opts: {
     const stored: VariantColumns = r.variant ? { ...EMPTY_VARIANT, ...r.variant } : EMPTY_VARIANT;
     variants.push(r.variant && r.variantExact ? stored : await resolveStartVariant(r.exerciseId, stored));
   }
-  const { getPlateOneSideMap } = await import('./exercisePrefs');
-  const plateMap = await getPlateOneSideMap(rows.map((r) => r.exerciseId));
-  const multiplierAt = (i: number) => blockLoadMultiplier(dimsFromColumns(variants[i]), plateMap.get(rows[i].exerciseId));
+  // [원본] const { getPlateOneSideMap } = await import('./exercisePrefs');
+  // const plateMap = await getPlateOneSideMap(rows.map((r) => r.exerciseId));
+  // const multiplierAt = (i: number) => blockLoadMultiplier(dimsFromColumns(variants[i]), plateMap.get(rows[i].exerciseId));
+  // [개선] 플레이트 후보 머신은 기본이 한쪽(피드백 #63) @plm SRS-084
+  const plate = await plateInputsFor(rows.map((r) => r.exerciseId));
+  const multiplierAt = (i: number) =>
+    blockLoadMultiplierV2(dimsFromColumns(variants[i]), plate.choice.get(rows[i].exerciseId), plate.defaultLoad.get(rows[i].exerciseId));
   const vkey = (i: number) => `${rows[i].exerciseId}::${variants[i].variantKey ?? ''}`;
   const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
   const prevSetsByKey = new Map<string, LogSetInput[]>();
@@ -1399,8 +1415,11 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
   const prevSets = await getPreviousExerciseSets(exerciseId, variant.variantKey);
   const cardio = await isCardioExerciseId(exerciseId);
   const bodyweight = await isBodyweightExerciseId(exerciseId);
-  const { getPlateOneSide } = await import('./exercisePrefs');
-  const multiplier = blockLoadMultiplier(dimsFromColumns(variant), await getPlateOneSide(exerciseId)); // v22 @plm SRS-058
+  // [원본] const { getPlateOneSide } = await import('./exercisePrefs');
+  // const multiplier = blockLoadMultiplier(dimsFromColumns(variant), await getPlateOneSide(exerciseId)); // v22 @plm SRS-058
+  // [개선] 플레이트 후보 머신은 기본이 한쪽(피드백 #63) @plm SRS-084
+  const plate = await plateInputsFor([exerciseId]);
+  const multiplier = blockLoadMultiplierV2(dimsFromColumns(variant), plate.choice.get(exerciseId), plate.defaultLoad.get(exerciseId));
   return database.write(async () => {
     const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
     const setsCount = Math.max(1, prevSets.length || 1); // 지난 세션 세트수(없으면 1) — 블랭크/중간추가 종목
@@ -1582,7 +1601,8 @@ export async function addSet(
     const cardio = input.cardio ?? false;
     const bwDefault = input.bodyweight ? 0 : 20; // 맨몸은 첫 세트 기본 0(가중 시 입력). @plm SRS-005
     // v22: 블록의 배수(플레이트 한쪽=2) — 세트가 있으면 같은 블록의 마지막 세트를 따른다(블록 안에서 같게 유지된다) @plm SRS-058
-    const multiplier = cardio ? null : last ? last.loadMultiplier ?? null : await blockMultiplierOf(workoutExerciseId);
+    // [원본] const multiplier = cardio ? null : last ? last.loadMultiplier ?? null : await blockMultiplierOf(workoutExerciseId);
+    const multiplier = cardio ? null : last ? last.loadMultiplier ?? null : await blockMultiplierOfV2(workoutExerciseId); // @plm SRS-084
     return setLogs().create((s) => {
       s.workoutExerciseId = workoutExerciseId;
       s.setNumber = existing.length + 1;
@@ -1781,10 +1801,32 @@ export async function setVariant(workoutExerciseId: string, dims: VariantDims): 
 // ── 플레이트 한쪽 입력(ADR-037) ───────────────────────────────────────
 // 블록의 배수 = (적재 방식 plate) × (사용자 × 종목 「한쪽 무게로 입력」). 블록 안 세트는 모두 같은 배수다 —
 // 화면의 숫자를 어떻게 적는지가 블록 단위로 정해지기 때문이다. 과거 세션 세트는 저장된 배수로 의미가 보존된다. @plm SRS-058
-async function blockMultiplierOf(workoutExerciseId: string): Promise<number | null> {
+// [원본] V1 — 플레이트 칸 + 「한쪽」을 켰을 때만 2. 원복 시 아래 호출부의 V2 를 이것으로(이름이 같은 V1 import 도 되살린다).
+// async function blockMultiplierOf(workoutExerciseId: string): Promise<number | null> {
+//   const we = await workoutExercises().find(workoutExerciseId);
+//   const { getPlateOneSide } = await import('./exercisePrefs');
+//   return blockLoadMultiplier(dimsFromColumns(we), await getPlateOneSide(we.exerciseId));
+// }
+
+/**
+ * 배수 판단 재료 — 종목별 입력 방식 선택(tri-state)과 플레이트 후보 여부(피드백 #63). 화면도 같은 규칙을 쓴다. @plm SRS-084
+ */
+async function plateInputsFor(
+  exerciseIds: string[],
+): Promise<{ choice: Map<string, boolean | null>; defaultLoad: Map<string, 'plate' | 'pin' | null> }> {
+  const [{ getPlateOneSideChoiceMap }, { plateDefaultLoadMap }] = await Promise.all([
+    import('./exercisePrefs'),
+    import('./catalogMeta'),
+  ]);
+  const [choice, defaultLoad] = await Promise.all([getPlateOneSideChoiceMap(exerciseIds), plateDefaultLoadMap(exerciseIds)]);
+  return { choice, defaultLoad };
+}
+
+/** 블록 배수(V2) — 플레이트 후보 머신은 기본이 한쪽(×2) · 핀 칸 1 · 「양쪽 합」으로 정했으면 명시 1. @plm SRS-084 */
+async function blockMultiplierOfV2(workoutExerciseId: string): Promise<number | null> {
   const we = await workoutExercises().find(workoutExerciseId);
-  const { getPlateOneSide } = await import('./exercisePrefs');
-  return blockLoadMultiplier(dimsFromColumns(we), await getPlateOneSide(we.exerciseId));
+  const plate = await plateInputsFor([we.exerciseId]);
+  return blockLoadMultiplierV2(dimsFromColumns(we), plate.choice.get(we.exerciseId), plate.defaultLoad.get(we.exerciseId));
 }
 
 /** 블록 세트의 배수를 블록 규칙에 맞춘다(다른 것만 쓴다). */
@@ -1800,14 +1842,17 @@ export async function syncBlockLoadMultiplier(workoutExerciseId: string): Promis
   await database.write(async () => {
     let m: number | null;
     try {
-      m = await blockMultiplierOf(workoutExerciseId); // 줄을 선 뒤의 최신 선호·칸으로
+      // [원본] m = await blockMultiplierOf(workoutExerciseId); // 줄을 선 뒤의 최신 선호·칸으로
+      m = await blockMultiplierOfV2(workoutExerciseId); // 줄을 선 뒤의 최신 선택·칸으로(피드백 #63) @plm SRS-084
     } catch {
       return; // 블록이 지워졌다
     }
     const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
     // [원본] const plan = planBlockMultiplierResync(sets, m);
     // [개선] 사람이 적은 숫자는 환산하지 않는다 — 켜고 곧바로 적은 40 을 늦게 도착한 환산이 10 으로 덮던 것(/qa code H-3 원칙) @plm SRS-067
-    const plan = planBlockMultiplierResync(
+    // [원본] const plan = planBlockMultiplierResync(…) — 옛 null 세트를 양쪽으로 보고 절반 환산했다
+    // [개선] V2 — 옛 null 세트는 숫자 그대로 배수만(피드백 #63) @plm SRS-084
+    const plan = planBlockMultiplierResyncV2(
       sets.map((x) => ({ id: x.id, done: x.done, weightKg: x.weightKg, loadMultiplier: x.loadMultiplier, touched: touchedByUser(x) })),
       m,
     );
@@ -1834,6 +1879,82 @@ export async function setPlateOneSideForExercise(exerciseId: string, on: boolean
     .query(Q.where('workout_id', active.id), Q.where('exercise_id', exerciseId))
     .fetch();
   for (const we of wes) await syncBlockLoadMultiplier(we.id);
+}
+
+/**
+ * 「한쪽 무게로 입력」 토글(V2 · 칸 시트) — 「양쪽 합(끔)」도 선택으로 기억하고(행이 없어도), 진행 중인 운동의 그 종목
+ * 블록을 V2 규칙으로 맞춘다(안 한 세트만 · 한 세트 보존). 옛 setPlateOneSideForExercise 는 원복용으로 둔다. @plm SRS-084
+ */
+export async function setPlateOneSideForExerciseV2(exerciseId: string, on: boolean): Promise<void> {
+  const { setPlateOneSideChoice } = await import('./exercisePrefs');
+  await setPlateOneSideChoice(exerciseId, on);
+  const active = await getActiveWorkout();
+  if (!active) return;
+  const wes = await workoutExercises()
+    .query(Q.where('workout_id', active.id), Q.where('exercise_id', exerciseId))
+    .fetch();
+  for (const we of wes) await syncBlockLoadMultiplier(we.id);
+}
+
+/**
+ * 「원판 한쪽 무게로 적나요?」 답(피드백 #63) — 선택을 기억하고, 진행 중인 운동의 그 종목 블록 세트 **전부의 배수만**
+ * 새 규칙으로 바꾼다(숫자 그대로 · 한 세트 포함 · /qa spec M-2). 답은 적은 숫자의 뜻을 밝힌 것이기 때문이다. @plm SRS-084
+ */
+export async function answerPlateOneSide(exerciseId: string, on: boolean): Promise<void> {
+  const { setPlateOneSideChoice } = await import('./exercisePrefs');
+  await setPlateOneSideChoice(exerciseId, on);
+  const active = await getActiveWorkout();
+  if (!active) return;
+  const wes = await workoutExercises()
+    .query(Q.where('workout_id', active.id), Q.where('exercise_id', exerciseId))
+    .fetch();
+  for (const we of wes) {
+    await database.write(async () => {
+      let m: number | null;
+      try {
+        m = await blockMultiplierOfV2(we.id);
+      } catch {
+        return;
+      }
+      const sets = await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch();
+      const plan = planBlockMultiplierRetag(
+        sets.map((x) => ({ id: x.id, done: x.done, weightKg: x.weightKg, loadMultiplier: x.loadMultiplier })),
+        m,
+      );
+      if (!plan.length) return;
+      const byId = new Map(sets.map((x) => [x.id, x]));
+      await database.batch(
+        ...plan.map((u) =>
+          (byId.get(u.id) as SetLog).prepareUpdate((rec) => {
+            rec.loadMultiplier = u.loadMultiplier;
+          }),
+        ),
+      );
+    });
+  }
+}
+
+/**
+ * 운동 완료 뒤 — 질문에 답하지 않은 플레이트 후보 종목(완료 세트가 있는 블록)은 기본(한쪽)을 답으로 기억한다.
+ * 그래야 「한 번만」 묻는다(피드백 #63 · Q4). 실패해도 완료에는 영향이 없다. @plm SRS-084
+ */
+export async function settleUndecidedPlateOneSide(workoutId: string): Promise<string[]> {
+  const wes = await workoutExercises().query(Q.where('workout_id', workoutId)).fetch();
+  if (!wes.length) return [];
+  const plate = await plateInputsFor(wes.map((we) => we.exerciseId));
+  const settle: string[] = [];
+  for (const we of wes) {
+    if (settle.includes(we.exerciseId)) continue;
+    if (!needsPlateOneSideQuestion(dimsFromColumns(we), plate.choice.get(we.exerciseId), plate.defaultLoad.get(we.exerciseId))) continue;
+    const doneCount = await setLogs()
+      .query(Q.where('workout_exercise_id', we.id), Q.where('done', true))
+      .fetchCount();
+    if (doneCount > 0) settle.push(we.exerciseId);
+  }
+  if (!settle.length) return [];
+  const { setPlateOneSideChoice } = await import('./exercisePrefs');
+  for (const id of settle) await setPlateOneSideChoice(id, true);
+  return settle;
 }
 
 // ── 다른 조합 기록 보기(ADR-034) ─────────────────────────────────────

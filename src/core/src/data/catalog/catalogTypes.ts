@@ -51,6 +51,8 @@ export interface CatalogFamily {
   grips: string[];
   /** 머신 종목에 적재 방식(pin|plate) 축이 있는가 */
   load: boolean;
+  /** 적재 축이 있을 때 흔한 적재 방식 — 빈 적재 칸의 기본(plate 면 한쪽 입력 기본 · 피드백 #63) @plm SRS-084 */
+  loadDefault?: 'plate' | 'pin';
 }
 
 /** 같은 family 로 풀리지 않는 운영 칸의 명시 예외(QA H6). */

@@ -82,6 +82,7 @@ export function RecordSlotSelector({
   onChange,
   onSwap,
   plateOneSide,
+  plateDefaultLoad,
   onPlateOneSide,
 }: {
   exerciseId: string;
@@ -92,6 +93,8 @@ export function RecordSlotSelector({
   onSwap?: (exerciseId: string) => void;
   /** 플레이트 칸에서 「한쪽 무게로 입력」(ADR-037) — 넘기지 않으면 토글을 보이지 않는다 @plm SRS-058 */
   plateOneSide?: boolean;
+  /** 플레이트 후보 종목의 흔한 적재 방식(후보 아니면 null) — 주면 빈 적재 칸도 이 방식으로 보고 토글을 정한다(피드백 #63) @plm SRS-084 */
+  plateDefaultLoad?: "plate" | "pin" | null;
   onPlateOneSide?: (on: boolean) => void;
 }) {
   const { machineVariantLabels } = useUser();
@@ -132,7 +135,12 @@ export function RecordSlotSelector({
   const grip = (value.grip ?? null) as GripKey | null;
   const load = (value.load ?? null) as LoadKey | null;
   const hasLoad = isMachine && axes.load;
-  const showOneSide = hasLoad && load === "plate" && !!onPlateOneSide;
+  // [원본] const showOneSide = hasLoad && load === "plate" && !!onPlateOneSide;
+  // [개선] 후보 머신은 적재 칸이 비어도 기본이 한쪽이라 토글을 보인다 — 핀 칸에만 없다(피드백 #63) @plm SRS-084
+  const showOneSide =
+    plateDefaultLoad === undefined
+      ? hasLoad && load === "plate" && !!onPlateOneSide
+      : plateDefaultLoad != null && (load ?? plateDefaultLoad) === "plate" && !!onPlateOneSide;
   const canSwap = !!onSwap && siblings.length > 1;
   const hasAttach = isCable && axes.attachments.length > 0;
   const hasGrip = axes.grips.length > 0;

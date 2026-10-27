@@ -889,6 +889,13 @@ export const en: Record<TransKey, string> = {
   "session.restOverMessage": "Start your next set.",
   "session.restOverTitle": "Rest Over",
   "session.restTime": "Rest Time",
+  "session.restShort": "Rest {time}", // @plm SRS-084
+  "session.noteShort": "Note", // @plm SRS-084
+  "session.noteEditAria": "Edit note — {note}", // @plm SRS-084
+  "session.plateAsk": "Logging one side of the plates?", // @plm SRS-084
+  "session.plateAskOne": "One side", // @plm SRS-084
+  "session.plateAskBoth": "Total · pin", // @plm SRS-084
+  "session.plateAskHint": "One side counts ×2 for volume and PRs", // @plm SRS-084
   "session.rpeLabel": "RPE (0=none)",
   "session.secondsSuffix": "s",
   "session.setCount": "Sets",

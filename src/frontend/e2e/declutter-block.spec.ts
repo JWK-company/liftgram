@@ -146,8 +146,18 @@ test("운동 블록 — 첫 세트까지 짧고, 머리에 빨강이 없고, 그
   const top390 = await 첫세트_체크_top(page);
   const red = [await 빨강(page, 0), await 빨강(page, 1), await 빨강(page, 2)];
   const gap = await 그림_이름_간격(page, 0);
-  const headArrows = await 블록(page, 0).getByTestId("btn-move-down").count();
-  const oldArrows = await 블록(page, 0).getByRole("button", { name: "아래로 이동" }).count();
+  // [원본] 블록 안 어디든 센다 — 피드백 #62 로 순서 버튼이 세트 표 뒤 도구 줄로 나왔다(머리에는 여전히 없어야 한다) @plm SRS-084
+  // const headArrows = await 블록(page, 0).getByTestId("btn-move-down").count();
+  // const oldArrows = await 블록(page, 0).getByRole("button", { name: "아래로 이동" }).count();
+  const 머리_화살표 = (sel: string) =>
+    블록(page, 0).evaluate((card, s) => {
+      const list = card.querySelector('[data-testid="set-list"]');
+      return Array.from(card.querySelectorAll(s)).filter(
+        (el) => !list || !!(list.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_PRECEDING),
+      ).length;
+    }, sel);
+  const headArrows = await 머리_화살표('[data-testid="btn-move-down"],[data-testid="btn-move-up"]');
+  const oldArrows = await 머리_화살표('button[aria-label="아래로 이동"],button[aria-label="위로 이동"]');
   const unit = await 단위_누르는_자리(page);
 
   await page.setViewportSize({ width: 360, height: 640 });
@@ -275,7 +285,8 @@ test("운동 블록 — PR 은 금색 글자, 누르면 안 한 첫 세트에 �
   await expect(page).toHaveURL(/\/history\//, { timeout: 15_000 });
 });
 
-test("운동 블록 — 순서는 ⋯ 메뉴의 「아래로 이동」으로 바꾼다", async ({ page }) => {
+// [원본] 「순서는 ⋯ 메뉴의 「아래로 이동」으로 바꾼다」 — 피드백 #62 로 블록 아래 도구 줄 ⌄ 로 바뀌었다 @plm SRS-084
+test("운동 블록 — 순서는 블록 아래 도구 줄의 「아래로 이동」으로 바꾼다", async ({ page }) => {
   test.setTimeout(240_000);
   await 카탈로그_준비(page);
   await 빠른_운동_시작(page);
@@ -284,8 +295,8 @@ test("운동 블록 — 순서는 ⋯ 메뉴의 「아래로 이동」으로 바
   await 안내_띠_닫기(page);
 
   await expect(블록(page, 0).getByTestId("we-name")).toContainText("푸시다운");
-  await 블록(page, 0).getByTestId("btn-we-menu").click();
-  await page.getByTestId("btn-move-down").click();
+  // [원본] await 블록(page, 0).getByTestId("btn-we-menu").click(); await page.getByTestId("btn-move-down").click();
+  await 블록(page, 0).getByTestId("btn-move-down").click();
   await expect(블록(page, 0).getByTestId("we-name")).toContainText("벤치프레스", { timeout: 10_000 });
   await expect(블록(page, 1).getByTestId("we-name")).toContainText("푸시다운");
 });
