@@ -6,6 +6,8 @@
 //   2. 오프라인 전송 → 복귀 후 1건(중복 없음)
 //   3. A 가 못 보낸 채(대기열) 로그아웃 → B 로그인 → 서버 0건 · 대기열 비어 있음
 //   4. 1년 표본 — 응답 바이트·서버 시간·트레이너 계산 시간·회원 계산 시간 기록(CPU 4배 느리게 = 360 기기 흉내)
+//   (P4 /qa code 조치 2026-10-27) 표본에 맨몸 풀업 — 기본값으로 보낸 스냅샷 전체에 체중 값(72.5 · 725)이 없다(P4S-1) ·
+//   시트 포커스(P4U-8) · 5. 오프라인 첫 진입(셸 · 코치 모름 안내 · P4U-5·18) · 6. 영구 실패 표시(P4U-6) · 기기 주인 멈춤(P4S-2)
 import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -56,21 +58,51 @@ async function 수락(pageT: Page) {
 }
 
 async function 체중_입력(page: Page, kg: string) {
+  // [원본] bodyweight-value 를 눌러 바로 고치던 칸 — P3(체중 기록 시트)로 바뀌었다(opengym-bodyweight 의 프로필_입력과 같은 길)
   await page.goto("/profile");
   await expect(page.getByTestId("bodyweight")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("bodyweight-value").click();
-  await page.getByTestId("bodyweight-input").fill(kg);
-  await page.getByTestId("bodyweight-input").press("Enter");
-  await expect(page.getByTestId("bodyweight-value")).toHaveText(`${kg}kg`);
+  await page.getByTestId("btn-bodyweight-record").click();
+  const sheet = page.getByTestId("bodyweight-record-sheet");
+  await sheet.getByTestId("weighin-type").click();
+  await sheet.getByTestId("weighin-input").fill(kg);
+  await sheet.getByTestId("weighin-input").press("Enter");
+  await sheet.getByTestId("weighin-save").click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByTestId("bodyweight-value")).toContainText(kg);
 }
 
-/** 회원(page) — 체중 80 · 벤치 60×10 한 번 */
+/** 회원 체중 — 이 값이 보내는 스냅샷 어디에도 숫자로 나오면 안 된다(P4S-1) */
+const 체중 = "72.5";
+
+/** 회원(page) — 체중 72.5 · 벤치 60×10 + 맨몸 풀업 0×10 한 번 */
 async function 회원_운동(page: Page) {
-  await 체중_입력(page, "80");
+  // [원본] await 체중_입력(page, "80"); — 벤치만 해서 맨몸 종목 체중 누출을 못 잡았다(P4U-17)
+  await 체중_입력(page, 체중);
   await 빠른_운동_시작(page);
   await 종목_추가(page, "바벨 벤치프레스");
   await 세트_기록(page, 0, 0, 60, 10);
+  await 종목_추가(page, "풀업");
+  await 세트_기록(page, 1, 0, 0, 10);
   await 마치기(page);
+}
+
+/** 스냅샷 전체의 숫자 값에 체중이 없다 — 체중 · 맨몸 세트 볼륨(72.5×10) · 캐시 총 볼륨(600+725). 시각(ms)은 값 비교라 안 걸린다. */
+function 체중_없음(json: string) {
+  expect(json.includes(체중), json).toBe(false);
+  expect(json.includes("bodyweight")).toBe(false);
+  const nums: number[] = [];
+  const walk = (v: unknown) => {
+    if (typeof v === "number") nums.push(v);
+    else if (Array.isArray(v)) v.forEach(walk);
+    else if (v && typeof v === "object") Object.values(v).forEach(walk);
+  };
+  walk(JSON.parse(json));
+  expect(nums.length).toBeGreaterThan(5);
+  for (const bad of [72.5, 725, 1325]) expect(nums.includes(bad), `${bad} in ${json}`).toBe(false);
+}
+
+async function 포커스(page: Page): Promise<string | null> {
+  return page.evaluate(() => document.activeElement?.getAttribute("data-testid") ?? null);
 }
 
 /** 트레이너(새 기기) + 회원(page) 연결. 회원은 운동 1회를 마치고 올려 둔다. */
@@ -175,8 +207,23 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     await expect(page.getByTestId("ps-bodyweight")).toHaveCount(0);
     const 회원숫자 = await 숫자(page.getByTestId("ps-view"));
     expect(회원숫자.muscles.length).toBeGreaterThan(0);
+    // 맨몸 종목은 추가 무게만 — 총 볼륨 600(벤치) · 풀업 0kg × 10 · 안내 한 줄(P4S-1)
+    await expect(page.getByTestId("ps-volume")).toHaveText("600kg");
+    await expect(page.getByTestId("ps-bw-free")).toHaveText("맨몸 종목은 추가 무게만 셉니다");
+    await expect(page.getByTestId("ps-basis")).toContainText("통계 화면과 다를 수 있어요");
+    await expect(
+      page.getByTestId("ps-top-row").filter({ hasText: "풀업" }).getByTestId("ps-top-change"),
+    ).toHaveText("0kg × 10 → 0kg × 10");
 
-    // ── 보내기(아무 토글도 바꾸지 않은 상태) — 요청 본문의 스냅샷에 bodyweight 키가 없다 ──
+    // 시트 포커스(U-23 · P4U-8) — 열면 제목, 닫으면 여는 버튼
+    await page.getByTestId("ps-send").click();
+    await expect(page.getByTestId("ps-send-sheet")).toBeVisible();
+    await expect.poll(() => 포커스(page)).toBe("ps-send-title");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("ps-send-sheet")).toHaveCount(0);
+    await expect.poll(() => 포커스(page)).toBe("ps-send");
+
+    // ── 보내기(아무 토글도 바꾸지 않은 상태) — 요청 본문의 스냅샷에 bodyweight 키도 체중 값도 없다 ──
     await page.getByTestId("ps-send").click();
     await expect(page.getByTestId("ps-send-sheet")).toBeVisible();
     await expect(page.getByTestId("ps-send-includes")).not.toContainText("체중");
@@ -192,6 +239,7 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     const snap = JSON.parse(body.snapshotJson) as Record<string, unknown>;
     expect(snap.schemaVersion).toBe(1);
     expect("bodyweight" in snap).toBe(false);
+    체중_없음(body.snapshotJson);
     expect(body.clientId).toMatch(/^[0-9a-f-]{36}$/);
     await expect(page.getByTestId("ps-send-sheet")).toHaveCount(0);
     await 보낸목록_펼치기(page);
@@ -209,6 +257,7 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     const got = (await (await getP).json()) as { summary: { memberId: string; snapshotJson: string } };
     const 회원id = got.summary.memberId;
     expect("bodyweight" in JSON.parse(got.summary.snapshotJson)).toBe(false); // 서버에 저장된 스냅샷
+    체중_없음(got.summary.snapshotJson);
     const open = pageT.getByTestId("ps-open");
     await expect(open.getByTestId("ps-sent-label")).toContainText("회원이 보낸 요약(보낸 시점");
     await expect(open.getByTestId("ps-bodyweight")).toHaveCount(0);
@@ -341,6 +390,139 @@ test("A 가 못 보낸 채 로그아웃 → B 로그인 → 서버 0건 · 대�
     }
     await pageT.goto("/messages");
     await expect(pageT.getByTestId("dm-row").filter({ hasText: 회원 })).toHaveCount(0);
+  } finally {
+    await ctxT.close();
+  }
+});
+
+/** 서비스워커가 이 페이지를 제어하고 요약 셸이 설치 캐시에 있을 때까지 */
+async function 워커_요약셸(page: Page) {
+  await page.goto("/");
+  const controlled = () =>
+    page.waitForFunction(() => navigator.serviceWorker?.controller != null, null, { timeout: 20_000 });
+  await controlled().catch(async () => {
+    await page.reload();
+    await controlled();
+  });
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async () => {
+          for (const k of await caches.keys())
+            if (k.startsWith("liftgram-pages-") && (await (await caches.open(k)).match("/stats/summary")))
+              return true;
+          return false;
+        }),
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+}
+
+test("오프라인 첫 진입 — 셸로 열리고 기기에서 계산 · 코치를 못 불러와 봤으면 「연결되면 코치를 불러와요」(거짓 「코치 없음」 아님)", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(240_000);
+  await 준비(page);
+  await 가입(page, 새_메일("m-off1"), `회원o${Date.now().toString(36)}`);
+  await 회원_운동(page);
+  await 워커_요약셸(page);
+  await page.waitForTimeout(2_000); // LokiJS 내려쓰기
+  await context.setOffline(true);
+  try {
+    // 이 기기에서 요약 화면을 한 번도 열지 않았다 — 설치 때 받아 둔 셸로 연다
+    await page.goto("/stats/summary");
+    await expect(page.getByTestId("offline-page")).toHaveCount(0);
+    await expect(page.getByTestId("ps-ready")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("ps-workouts")).toHaveText("1회");
+    await expect(page.getByTestId("ps-coach-unknown")).toContainText("연결되면 코치를 불러와요", {
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("ps-nocoach")).toHaveCount(0);
+  } finally {
+    await context.setOffline(false);
+  }
+  // 연결되면 다시 시도 → 실제로 코치가 없으니 그때 「코칭 중인 코치가 없어요」
+  await page.getByTestId("ps-coach-retry").click();
+  await expect(page.getByTestId("ps-nocoach")).toContainText("코칭 중인 코치가 없어요", { timeout: 20_000 });
+});
+
+test("백그라운드 재전송의 영구 실패는 접힌 목록 밖에 뜨고 알린다 · 앱을 오프라인으로 열어 기기 주인 판정이 없으면 보내지 않는다", async ({
+  page,
+  context,
+  browser,
+}) => {
+  test.setTimeout(360_000);
+  const { ctxT } = await 짝(page, browser, "d");
+  try {
+    await 요약_열기(page);
+    // 재전송 대상 오류(끊김)로 대기열에 둔다
+    await page.route(SEND_RPC, (r) => r.abort("internetdisconnected"));
+    await page.getByTestId("ps-send").click();
+    await page.getByTestId("ps-send-confirm").click();
+    await expect(page.getByTestId("ps-queued")).toBeVisible();
+    await expect(page.getByTestId("ps-sent-toggle")).toContainText("대기 1");
+    // 다시 연결됐는데 서버가 하루 상한(ResourceExhausted)으로 거절 — 영구 실패
+    await page.unroute(SEND_RPC);
+    await page.route(SEND_RPC, (r) =>
+      r.fulfill({
+        status: 429,
+        contentType: "application/json",
+        body: JSON.stringify({ code: "resource_exhausted", message: "daily limit" }),
+      }),
+    );
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await expect(page.getByTestId("ps-failed-note")).toHaveText("못 보낸 요약 1 · 이유 보기", {
+      timeout: 20_000,
+    });
+    await expect(page.getByText("못 보낸 요약이 있어요")).toBeVisible(); // 한 번 알림(toast)
+    await expect(page.getByTestId("ps-sent-toggle")).toContainText("못 보냄 1");
+    await expect(page.getByTestId("ps-sent-toggle")).not.toContainText("대기");
+    await page.getByTestId("ps-failed-note").click();
+    await expect(page.getByTestId("ps-sent-failed")).toContainText("오늘은 더 보낼 수 없어요");
+    await page.unroute(SEND_RPC);
+
+    // ── 기기 주인(P4S-2): 다른 계정 기록이 남아 동기가 멈춘 기기를 오프라인으로 연다(메모리 대조 결과 없음) ──
+    await 워커_요약셸(page);
+    await page.evaluate(() => {
+      localStorage.setItem("sync_owner_blocked", "someone-else");
+      // 멈추기 전에 쌓여 있던 대기 항목 하나(이 사람 것) — 연결돼도 나가면 안 된다
+      const key = Object.keys(localStorage).find((k) => k.startsWith("liftgram.summaryOutbox:")) ?? "";
+      const box = JSON.parse(localStorage.getItem(key) ?? "{}");
+      box.pending = [
+        {
+          clientId: crypto.randomUUID(),
+          ownerUserId: key.slice("liftgram.summaryOutbox:".length),
+          trainerId: "t",
+          periodStart: Date.now() - 86_400_000,
+          periodEnd: Date.now(),
+          schemaVersion: 1,
+          snapshotJson: "{}",
+          queuedAt: Date.now(),
+        },
+      ];
+      localStorage.setItem(key, JSON.stringify(box));
+    });
+    let sends = 0;
+    page.on("request", (r) => {
+      if (r.url().includes("SendProgressSummary")) sends++;
+    });
+    await context.setOffline(true);
+    try {
+      await page.goto("/stats/summary");
+      await expect(page.getByTestId("ps-ready")).toBeVisible({ timeout: 30_000 });
+      await expect(page.getByTestId("ps-owner-conflict")).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId("ps-send")).toHaveCount(0);
+    } finally {
+      await context.setOffline(false);
+    }
+    // 화면에 머문 채 연결 — 대조 없이 대기열이 돌아도 기기 주인 판정이 막는다
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await page.waitForTimeout(3_000);
+    expect(sends).toBe(0);
+    await expect(page.getByTestId("ps-owner-conflict")).toBeVisible();
+    await expect(page.getByTestId("ps-sent-toggle")).toContainText("대기 1"); // 버리지 않고 남겨 둔다(풀리면 다시)
+    await page.evaluate(() => localStorage.setItem("sync_owner_blocked", ""));
   } finally {
     await ctxT.close();
   }

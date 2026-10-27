@@ -181,8 +181,13 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
     await expect(pageT.getByTestId("ps-workouts")).toHaveText("1회", { timeout: 20_000 });
     await expect(pageT.getByTestId("ps-volume")).toHaveText("600kg");
     await expect(pageT.getByTestId("ps-muscle-chest")).toHaveAttribute("data-sets", "1");
-    // 판단은 코치가 한다는 고지가 함께 있다.
-    await expect(pageT.getByTestId("coaching-report-view")).toContainText("다음 처방 판단은 코치가 합니다");
+    // [원본] 판단은 코치가 한다는 고지가 함께 있다.
+    // await expect(pageT.getByTestId("coaching-report-view")).toContainText("다음 처방 판단은 코치가 합니다");
+    // [개선] 보는 사람이 코치면 사실 문장만(P4U-16) — 문구 전체가 아니라 testid 로 고지가 있는지 본다(P4U-17)
+    await expect(pageT.getByTestId("coaching-report-view").getByTestId("ps-factonly")).toBeVisible();
+    await expect(pageT.getByTestId("coaching-report-view").getByTestId("ps-factonly")).not.toContainText(
+      "다음 처방 판단은 코치가 합니다",
+    );
     await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click();
 
     // 회원이 해지하면 트레이너 쪽에서 즉시 닫힌다.

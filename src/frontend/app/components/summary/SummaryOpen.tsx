@@ -86,8 +86,9 @@ export function SummaryOpenDialog({
         const code = ConnectError.from(e).code;
         if (code === Code.PermissionDenied) setState({ kind: "ended" });
         else if (code === Code.NotFound) setState({ kind: "notFound" });
-        else if (navigator.onLine === false || code === Code.Unavailable || code === Code.Unknown)
-          setState({ kind: "offline" });
+        // [원본] else if (navigator.onLine === false || code === Code.Unavailable || code === Code.Unknown)
+        // [개선] Unknown(서버 오류일 수 있다)은 기기가 오프라인일 때만 「연결되면」 — 아니면 오류 + 다시 시도(P4U-14)
+        else if (navigator.onLine === false || code === Code.Unavailable) setState({ kind: "offline" });
         else setState({ kind: "error" });
       }
     })();

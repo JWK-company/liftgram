@@ -51,7 +51,9 @@ export function MemberReportDialog({
 }) {
   const [preset, setPreset] = useState<SummaryPreset>("4w");
   const [state, setState] = useState<ReportState>({ kind: "loading" });
+  const [attempt, setAttempt] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt 는 다시 시도 방아쇠다
   useEffect(() => {
     let cancelled = false;
     setState({ kind: "loading" });
@@ -75,8 +77,22 @@ export function MemberReportDialog({
           setState({ kind: "error" });
           return;
         }
-        const names = new Map<string, string>();
-        for (const e of catalog) names.set(e.id, e.nameKo);
+        // [원본] const names = new Map<string, string>(); for (const e of catalog) names.set(e.id, e.nameKo);
+        // [개선] 보는 사람 언어의 표시 이름(받은 카드 SummaryOpen 과 같은 함수 · P4U-13). 못 읽으면 스냅샷 이름.
+        const ids = [
+          ...(summary.topExercises ?? []).map((x) => x.exerciseId),
+          ...(summary.prs ?? []).map((p) => p.exerciseId),
+        ];
+        let names = new Map<string, string>();
+        if (ids.length) {
+          try {
+            const { getExerciseDisplayNameMap } = await import("@app/core/data/exerciseNames");
+            names = await getExerciseDisplayNameMap(ids);
+          } catch {
+            names = new Map();
+          }
+        }
+        if (cancelled) return;
         setState({
           kind: "ok",
           summary,
@@ -96,7 +112,7 @@ export function MemberReportDialog({
     return () => {
       cancelled = true;
     };
-  }, [peer.id, preset]);
+  }, [peer.id, preset, attempt]);
 
   return (
     <Panel
@@ -142,20 +158,30 @@ export function MemberReportDialog({
           />
         </div>
       ) : (
-        <AppText
-          variant="body"
-          color="textMuted"
-          className="block py-[var(--spacing-md)]"
-          data-testid={`report-${state.kind}`}
-        >
-          {t(
-            state.kind === "tooLarge"
-              ? "progressSummary.reportTooLarge"
-              : state.kind === "ended"
-                ? "progressSummary.ended"
-                : "progressSummary.reportFailed",
-          )}
-        </AppText>
+        <div className="py-[var(--spacing-md)]" data-testid={`report-${state.kind}`}>
+          <AppText variant="body" color="textMuted" className="block">
+            {t(
+              state.kind === "tooLarge"
+                ? "progressSummary.reportTooLarge"
+                : state.kind === "ended"
+                  ? "progressSummary.ended"
+                  : "progressSummary.reportFailed",
+            )}
+          </AppText>
+          {/* 읽기 실패는 다시 시도(P4U-14) — 너무 큼은 기간을 줄이는 것이 답이고, 끝난 코칭은 다시 해도 같다 */}
+          {state.kind === "error" ? (
+            <div className="mt-[var(--spacing-sm)]">
+              <Button
+                title={t("common.retry")}
+                size="sm"
+                variant="secondary"
+                fullWidth={false}
+                onPress={() => setAttempt((n) => n + 1)}
+                testId="report-retry"
+              />
+            </div>
+          ) : null}
+        </div>
       )}
     </Panel>
   );

@@ -7,7 +7,7 @@
 //   · 목록을 만들지 않을 때 — [직전 기간 시작, 기간 끝) 만(트레이너 쪽 서버 응답과 같은 범위).
 //   · 목록은 기간이 PR_LIST_MAX_DAYS(100일 — 「3개월」까지) 이하일 때만 만든다. 그보다 긴 「직접」 기간은 개수(prCount)만.
 //     목록 50개 상한(SUMMARY_MAX_PRS)이 긴 기간에서는 가장 최근 것만 남겨 오히려 기간 전체를 말하지 못한다.
-//   · 체중 섹션 재료는 기간 안 측정만(보내기 기본 꺼짐 — 화면이 끈다 · S-11).
+//   · 체중 섹션 재료는 기간 안 측정만(보내기 기본 꺼짐 — 화면이 끈다 · S-11). 세트·볼륨 계산에는 체중을 쓰지 않는다(P4S-1).
 // 측정(1년 표본 · e2e opengym-summary)은 보고서 p4-ui-report.md 에 적었다.
 import { Q } from '@nozbe/watermelondb';
 import type { Model } from '@nozbe/watermelondb';
@@ -23,7 +23,7 @@ import type { SummaryExerciseRec } from '../domain/periodSummary';
 import { exerciseFromRaw, summaryInputFromRaw } from '../domain/summaryRecords';
 import type { AppLanguage } from '../domain/types';
 import { listBodyweightLogs, toBodyweightLogLike } from './bodyweightRepository';
-import { getUserBodyweightKg } from './workoutRepository';
+// [원본] import { getUserBodyweightKg } from './workoutRepository'; — 요약은 체중 없이 계산한다(P4S-1)
 
 /** 새 기록 목록을 만드는 최장 기간(일) — 「3개월」(최대 92일)을 덮는다 */
 export const PR_LIST_MAX_DAYS = 100;
@@ -71,14 +71,15 @@ export async function buildMemberSummary(range: SummaryRange, opts: MemberSummar
   // 표시 이름(ADR-033) — 운동 화면·분석과 같은 이름
   const { getExerciseDisplayNameMap } = await import('./exerciseNames');
   const names = await getExerciseDisplayNameMap(exIds);
-  // 체중 — 완료 판정과 같은 값(맨몸·보조 유효무게) · 이력은 기간 안 측정만
-  const bodyweightKg = await getUserBodyweightKg();
+  // [원본] 체중 — 완료 판정과 같은 값(맨몸·보조 유효무게) · 이력은 기간 안 측정만
+  // const bodyweightKg = await getUserBodyweightKg();
+  // [개선] 세트 계산에 체중을 넣지 않는다 — 체중 섹션을 꺼도 맨몸 종목 무게로 체중이 코치에게 갔다(P4S-1). 이력은 기간 안 측정만.
   const logs = (await listBodyweightLogs({ startMs: range.startMs, endMs: range.endMs })).map(toBodyweightLogLike);
   const t1 = Date.now();
 
   const input = summaryInputFromRaw(
     { workouts, workoutExercises, setLogs, exercises },
-    { range, bodyweightKg, bodyweightLogs: logs, prList, lang: opts.lang, displayName: (id) => names.get(id) },
+    { range, bodyweightKg: null, bodyweightLogs: logs, prList, lang: opts.lang, displayName: (id) => names.get(id) },
   );
   const summary = buildPeriodSummary(input);
   const t2 = Date.now();

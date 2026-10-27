@@ -4,9 +4,13 @@
 //   · 기간은 [startMs, endMs) 이고 운동은 **started_at** 으로 넣고 뺀다. 서버 GetMemberRecords 가 started_at 으로 거르므로
 //     회원·트레이너가 같은 운동 집합을 보게 하려면 같은 기준이어야 한다(통계 카드의 completed_at 기준과 하루 경계에서 다를 수 있다).
 //   · 직전 비교(delta)는 바로 앞의 같은 길이 [startMs − 길이, startMs) 이다.
-//   · 총 볼륨 = workouts.total_volume_kg(완료 때 저장한 캐시) 합, PR 수 = workouts.pr_count 합. 맨몸·보조 종목 볼륨은 체중이
-//     있어야 계산되는데 트레이너는 체중을 받지 않는다 — 캐시를 양쪽이 같이 써서 「같은 숫자」를 지킨다(S-12).
-//   · 세트 단위 계산(최고 세트·PR 목록)은 넘겨받은 체중으로 한다. 체중이 없으면(트레이너) 맨몸 = 가중분만이다.
+//   · **요약은 늘 체중 없이 계산한다**(P4 /qa code P4S-1·P4U-1 · 2026-10-27). 맨몸 = 추가 무게만 · 보조 = 입력 무게 그대로
+//     (트레이너 리포트와 같은 규칙 · S-12). 예전에는 회원 쪽만 현재 체중을 넣어, 체중 섹션을 꺼도 「풀업 72.5kg × 10」처럼
+//     체중이 종목 무게·새 기록·총 볼륨에 실려 코치에게 갔다. 그래서 input.bodyweightKg 는 **읽지 않는다**.
+//   · 총 볼륨 = 기간 운동의 수행 세트를 체중 없이 다시 계산한 합(세트가 하나도 없는 운동만 total_volume_kg 캐시로 메운다).
+//     캐시는 완료 때 체중을 넣어 계산했으므로 맨몸 종목이 있으면 체중이 실린다 — 회원·트레이너 모두 같은 세트로 다시 센다.
+//   · PR 수 = workouts.pr_count 합(트레이너 — 기준선 이력이 없다). 새 기록 목록을 만들 때(회원)는 그 목록의 개수(잘리기 전)다 —
+//     머리 줄 「새 기록 n개」와 목록 줄 수가 같은 출처여야 한다(P4U-3). 보조 종목은 체중 없이는 무게가 거꾸로라 목록에서 뺀다.
 //   · 부위별 세트 = muscleLoad.setsByMuscle(ADR-039) · 힘든 정도 = effort.summarizeEffort(ADR-038) · 체중 = bodyweight 이력.
 //   · 값이 없는 섹션은 키째 뺀다(undefined 키도 남기지 않는다) — 화면·보낼 항목 목록에 빈 칸이 생기지 않게.
 //   · 사실 숫자만 담는다. 평가·권고 문장은 core 에도 화면에도 없다(SRS-015 웰니스).
@@ -15,7 +19,7 @@ import { emptyMuscleLoad, MAP_MUSCLES, setsByMuscle, type MapMuscle, type Muscle
 import { summarizeEffort, type EffortInputSet } from './effort';
 import { sortBodyweightLogs, type BodyweightLogLike } from './bodyweight';
 import { detectMajorPRs, EMPTY_PR, mergeSnapshots, pickPrSets, snapshotFromSets, type PRSnapshot } from './personalRecords';
-import { effectiveReps, effectiveWeightKg, resolveLoadMode } from './volume';
+import { effectiveReps, effectiveWeightKg, resolveLoadMode, setVolumeKg } from './volume';
 import { legacyMachineVariantToV6 } from './variants';
 import { isCardioKind, type AppLanguage, type ExerciseKind, type LoadMode, type LoggedSet, type MuscleGroup } from './types';
 
@@ -122,7 +126,7 @@ export interface SummaryV1 {
   counts: SummaryCounts;
   /** 이번 − 직전 같은 길이 기간 */
   delta?: SummaryCounts;
-  /** 기간 PR 수(workouts.pr_count 합) */
+  /** 기간 PR 수 — 목록이 있으면 목록 전체 개수(잘리기 전), 없으면 workouts.pr_count 합 */
   prCount?: number;
   /** 기간 새 기록 목록(회원 쪽만 · 트레이너 리포트는 개수만) */
   prs?: SummaryPr[];
@@ -194,7 +198,7 @@ export interface PeriodSummaryInput {
   blocks: readonly SummaryBlockRec[];
   sets: readonly SummarySetRec[];
   exercises: readonly SummaryExerciseRec[];
-  /** 세트 계산 체중(kg). null = 맨몸은 가중분만(트레이너 쪽) */
+  /** [폐기 · 읽지 않음] 세트 계산 체중 — 요약은 늘 체중 없이 계산한다(P4S-1). 옛 호출 호환으로만 남긴다. */
   bodyweightKg?: number | null;
   /** 체중 이력 — 없으면 bodyweight 섹션 없음(트레이너 쪽은 늘 없음) */
   bodyweightLogs?: readonly BodyweightLogLike[];
@@ -299,12 +303,17 @@ function workoutDurationSec(w: SummaryWorkoutRec): number {
   return 0;
 }
 
-function countsOf(ws: readonly SummaryWorkoutRec[], days: number): SummaryCounts {
+/** volumeOf = 운동 id → 체중 없이 다시 센 볼륨(세트가 없는 운동은 없음 → 캐시) */
+function countsOf(ws: readonly SummaryWorkoutRec[], days: number, volumeOf: (id: string) => number | undefined): SummaryCounts {
   let durationSec = 0;
   let volumeKg = 0;
   for (const w of ws) {
     durationSec += workoutDurationSec(w);
-    if (finite(w.totalVolumeKg) && w.totalVolumeKg > 0) volumeKg += w.totalVolumeKg;
+    // [원본] if (finite(w.totalVolumeKg) && w.totalVolumeKg > 0) volumeKg += w.totalVolumeKg;
+    // [개선] 체중 없이 다시 센 세트 볼륨 — 캐시에는 완료 때 체중이 실려 있다(P4S-1)
+    const v = volumeOf(w.id);
+    if (v !== undefined) volumeKg += v;
+    else if (finite(w.totalVolumeKg) && w.totalVolumeKg > 0) volumeKg += w.totalVolumeKg;
   }
   return {
     workouts: ws.length,
@@ -355,7 +364,9 @@ export function buildPeriodSummary(input: PeriodSummaryInput): SummaryV1 {
   const { startMs, endMs } = range;
   const prev = previousRange(range);
   const days = summaryRangeDays(range);
-  const bw = finite(input.bodyweightKg) && input.bodyweightKg > 0 ? input.bodyweightKg : null;
+  // [원본] const bw = finite(input.bodyweightKg) && input.bodyweightKg > 0 ? input.bodyweightKg : null;
+  // [개선] 늘 체중 없이 — 보내는 요약에 체중이 숫자로 실리지 않게(P4S-1 · P4U-1). 트레이너 리포트와 같은 규칙.
+  const bw: number | null = null;
 
   const exById = new Map<string, SummaryExerciseRec>();
   for (const e of input.exercises) exById.set(e.id, e);
@@ -377,8 +388,23 @@ export function buildPeriodSummary(input: PeriodSummaryInput): SummaryV1 {
   const current = completed.filter((w) => w.startedAt >= startMs && w.startedAt < endMs).sort(compareWorkoutTime);
   const before = completed.filter((w) => w.startedAt >= prev.startMs && w.startedAt < prev.endMs);
 
-  const counts = countsOf(current, days);
-  const prevCounts = countsOf(before, days);
+  // 운동별 볼륨(체중 없이) — 수행 세트가 하나라도 있는 운동만 값이 있다
+  const volumeByWorkout = new Map<string, number>();
+  for (const w of [...current, ...before]) {
+    let v = 0;
+    let any = false;
+    for (const b of blocksByWorkout.get(w.id) ?? []) {
+      const ex = exById.get(b.exerciseId);
+      for (const s of setsByBlock.get(b.id) ?? []) {
+        any = true;
+        v += setVolumeKg(toLogged(s, ex, bw));
+      }
+    }
+    if (any) volumeByWorkout.set(w.id, v);
+  }
+  const volumeOf = (id: string) => volumeByWorkout.get(id);
+  const counts = countsOf(current, days, volumeOf);
+  const prevCounts = countsOf(before, days, volumeOf);
   const delta: SummaryCounts = {
     workouts: counts.workouts - prevCounts.workouts,
     durationSec: counts.durationSec - prevCounts.durationSec,
@@ -434,6 +460,8 @@ export function buildPeriodSummary(input: PeriodSummaryInput): SummaryV1 {
       for (const b of blocksByWorkout.get(w.id) ?? []) {
         const ex = exById.get(b.exerciseId);
         if (ex && isCardioKind(ex.kind)) continue;
+        // 보조 종목 — 체중 없이는 보조 무게가 클수록 「기록」이 되어 거꾸로다(P4S-1 뒤) → 목록에서 뺀다
+        if (ex && resolveLoadMode({ loadMode: ex.loadMode ?? null, equipment: ex.equipment }) === 'assisted') continue;
         const key = `${b.exerciseId}::${variantOf(b) ?? ''}`;
         const logged = (setsByBlock.get(b.id) ?? []).map((s) => toLogged(s, ex, bw));
         const g = groups.get(key);
@@ -457,6 +485,8 @@ export function buildPeriodSummary(input: PeriodSummaryInput): SummaryV1 {
       }
       for (const g of snaps) best.set(g.key, mergeSnapshots(best.get(g.key) ?? EMPTY_PR, g.snap));
     }
+    // 머리 줄 개수 = 이 목록의 개수(잘리기 전) — 캐시 pr_count 는 완료 때 체중을 넣어 판정해 목록과 어긋날 수 있다(P4U-3)
+    out.prCount = prs.length;
     if (prs.length) {
       prs.sort((a, b) => a.atMs - b.atMs);
       out.prs = prs.slice(-SUMMARY_MAX_PRS);

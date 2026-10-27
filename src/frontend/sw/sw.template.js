@@ -21,7 +21,10 @@ const PAGES = `liftgram-pages-${BUILD_ID}`;
 const MEDIA = "liftgram-media";
 const PRECACHE = __PRECACHE__;
 // 주요 탭 셸 — 설치 때 받아 두면 한 번도 안 연 탭도 오프라인에서 열린다.
-const SHELLS = ["/", "/workout", "/history", "/calendar", "/stats", "/exercises", "/profile", "/offline"];
+// /stats/summary(성과 요약)는 탭이 아니지만 계산이 전부 기기에서 되고 대기열이 있다 — 체육관(오프라인)에서 처음 열어
+// 「보내기 → 연결되면 감」이 되게 미리 받는다(P4 /qa code P4U-18 · @plm SRS-080). 탭 셸이 아니라 SWR_SHELLS 에는 넣지 않는다.
+// biome-ignore format: 셸 대조 테스트(shellCache.test.ts)가 이 줄을 한 줄 JSON 으로 읽는다
+const SHELLS = ["/", "/workout", "/history", "/calendar", "/stats", "/stats/summary", "/exercises", "/profile", "/offline"];
 // 곧바로 내줘도 되는 셸 — 쿠키를 읽지 않는 클라이언트 화면만(데이터는 기기 DB·API 에서 따로 온다).
 // signin·signup·account 는 서버가 쿠키(「최근」 배지)를 읽어 그린다 — 여기 넣지 않는다.
 // 캐시는 **이 빌드의 PAGES** 뿐이다: 셸 HTML 이 가리키는 정적 조각이 같은 워커의 STATIC 에 들어 있다(버전 어긋남 없음).

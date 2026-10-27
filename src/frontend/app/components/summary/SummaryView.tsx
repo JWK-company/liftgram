@@ -4,9 +4,17 @@
 // 받는 값은 반드시 core parseSummaryV1 을 지난 SummaryV1 이다(S-18) — 이 파일은 다시 거르지 않는다.
 // 스냅샷 값으로 링크·style 을 만들지 않는다(글자는 React 가 이스케이프한다). 없는 섹션은 그리지 않는다(빈 칸 없음).
 // 숫자는 사실만 — 「좋아요·부족해요」 같은 평가·권고 문구는 없다(SRS-015 · 웰니스 게이트 `progressSummary.`).
-// 무게는 **보는 사람 단위**로(스냅샷은 kg · U-17). 날짜는 스냅샷 range.tz(회원 기준) 로 그린다.
+// 무게는 **보는 사람 단위**로(스냅샷은 kg · U-17) — 체중만 kg 고정(SRS-067 · P4U-2). 날짜는 스냅샷 range.tz(회원 기준) 로 그린다.
+// 기준 안내(P4U-4): 운동 시작 날짜 기준 · 체중 없이 다시 센 볼륨 — 같은 기기 통계 카드(완료 시각 · 체중 포함)와 다를 수 있다.
+// 새 기록 머리 줄(P4U-3): 목록이 있으면 목록 개수(50개로 잘렸으면 「최근 50개」를 덧붙인다), 없으면 prCount.
 import { formatWeight, muscleLabel, type WeightUnit } from "@app/core";
-import { muscleLoadFromSummary, summaryRangeDays, type SummaryV1 } from "@app/core/domain/periodSummary";
+import {
+  muscleLoadFromSummary,
+  SUMMARY_MAX_PRS,
+  summaryRangeDays,
+  type SummaryV1,
+} from "@app/core/domain/periodSummary";
+import { bodyweightUnitOf } from "@app/core/domain/weighIn";
 import { rankedMuscles } from "@app/core/domain/muscleLoad";
 import type { ReactNode } from "react";
 import { lang, t } from "@/lib/i18n";
@@ -97,12 +105,25 @@ export function SummaryView({
   const name = (id: string, fallback: string) => nameOf?.(id) || fallback || id;
   const load = s.muscleSets ? muscleLoadFromSummary(s) : null;
   const ranked = load ? rankedMuscles(load) : [];
+  // 체중은 kg 고정(SRS-067 — 체중 추세 카드와 같은 단위). 무게·볼륨만 보는 사람 단위.
+  const bwUnit = bodyweightUnitOf(unit);
+  // 새 기록 개수 — 목록과 같은 출처(P4U-3). 목록이 상한으로 잘렸을 때만 prCount(전체)를 쓴다.
+  const prShown = s.prs?.length ?? 0;
+  const prTruncated = !!s.prs && prShown >= SUMMARY_MAX_PRS && (s.prCount ?? 0) > prShown;
+  const prTotal = s.prs ? (prTruncated ? (s.prCount ?? prShown) : prShown) : (s.prCount ?? 0);
 
   return (
     <div data-testid="ps-view" data-viewer={viewer}>
       {header}
       <AppText variant="caption" color="textMuted" className="block" data-testid="ps-range">
         {`${formatSummaryRange(s.range.startMs, s.range.endMs, s.range.tz)} · ${t("progressSummary.rangeDays", { days })}`}
+      </AppText>
+      <AppText variant="caption" color="textFaint" className="block" data-testid="ps-basis">
+        {/* 「통계 화면과 다를 수 있어요」는 같은 기기 통계를 보는 회원 본인에게만(P4U-4) */}
+        {t(viewer === "member" ? "progressSummary.basis" : "progressSummary.basisShort")}
+      </AppText>
+      <AppText variant="caption" color="textFaint" className="block" data-testid="ps-bw-free">
+        {t("progressSummary.bodyweightFree")}
       </AppText>
 
       <div className="mt-[var(--spacing-sm)] grid grid-cols-2 gap-[var(--spacing-sm)]">
@@ -140,7 +161,10 @@ export function SummaryView({
       {s.prCount !== undefined || s.prs ? (
         <Section title={t("progressSummary.prs")} testId="ps-prs">
           <AppText variant="body" className="block px-[var(--spacing-xs)]" data-testid="ps-prcount">
-            {t("progressSummary.prCount", { count: s.prCount ?? s.prs?.length ?? 0 })}
+            {/* [원본] t("progressSummary.prCount", { count: s.prCount ?? s.prs?.length ?? 0 }) */}
+            {prTruncated
+              ? t("progressSummary.prCountTruncated", { count: prTotal, shown: prShown })
+              : t("progressSummary.prCount", { count: prTotal })}
           </AppText>
           {s.prs && s.prs.length > 0 ? (
             <ListGroup className="mt-[var(--spacing-sm)]">
@@ -174,14 +198,28 @@ export function SummaryView({
         <Section title={t("progressSummary.topExercises")} testId="ps-top">
           <ListGroup>
             {s.topExercises.map((x) => (
+              // [원본] 처음→끝을 value(줄지 않음)에 두어 360 Panel 에서 종목 이름이 거의 다 잘렸다(P4U-7) — 부제 둘째 줄로 옮긴다
               <ListRow
                 key={x.exerciseId}
+                testId="ps-top-row"
                 title={name(x.exerciseId, x.name)}
-                subtitle={t("progressSummary.topSets", { sets: x.sets, sessions: x.sessions })}
-                value={t("progressSummary.firstToLast", {
-                  first: t("progressSummary.bestSet", { weight: w(x.first.weightKg), reps: x.first.reps }),
-                  last: t("progressSummary.bestSet", { weight: w(x.last.weightKg), reps: x.last.reps }),
-                })}
+                wrapSubtitle
+                subtitle={
+                  <>
+                    <span className="block">
+                      {t("progressSummary.topSets", { sets: x.sets, sessions: x.sessions })}
+                    </span>
+                    <span className="block tabular-nums" data-testid="ps-top-change">
+                      {t("progressSummary.firstToLast", {
+                        first: t("progressSummary.bestSet", {
+                          weight: w(x.first.weightKg),
+                          reps: x.first.reps,
+                        }),
+                        last: t("progressSummary.bestSet", { weight: w(x.last.weightKg), reps: x.last.reps }),
+                      })}
+                    </span>
+                  </>
+                }
               />
             ))}
           </ListGroup>
@@ -252,9 +290,9 @@ export function SummaryView({
           <Card>
             <AppText variant="body" className="block tabular-nums">
               {t("progressSummary.bodyweightValue", {
-                start: formatWeight(s.bodyweight.startKg, unit, { increment: 0.1 }),
-                end: formatWeight(s.bodyweight.endKg, unit, { increment: 0.1 }),
-                change: signed(s.bodyweight.changeKg, (a) => formatWeight(a, unit, { increment: 0.1 })),
+                start: formatWeight(s.bodyweight.startKg, bwUnit, { increment: 0.1 }),
+                end: formatWeight(s.bodyweight.endKg, bwUnit, { increment: 0.1 }),
+                change: signed(s.bodyweight.changeKg, (a) => formatWeight(a, bwUnit, { increment: 0.1 })),
               })}
             </AppText>
             <AppText variant="caption" color="textMuted" className="block">
@@ -264,8 +302,14 @@ export function SummaryView({
         </Section>
       ) : null}
 
-      <AppText variant="caption" color="textFaint" className="mt-[var(--spacing-lg)] block">
-        {t("progressSummary.factOnly")}
+      {/* 「다음 처방 판단은 코치가 합니다」는 회원 본인에게만 — 보는 사람이 코치면 사실 문장만(P4U-16) */}
+      <AppText
+        variant="caption"
+        color="textFaint"
+        className="mt-[var(--spacing-lg)] block"
+        data-testid="ps-factonly"
+      >
+        {t(viewer === "member" ? "progressSummary.factOnly" : "progressSummary.factOnlyCoach")}
       </AppText>
     </div>
   );

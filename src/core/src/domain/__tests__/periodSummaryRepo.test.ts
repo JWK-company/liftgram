@@ -111,14 +111,19 @@ test('회원 요약 — 기간 운동만 · 진행 중 제외 · 직전 대비 �
   assert.equal(stats.prList, true);
   assert.equal(stats.workouts, 4); // 기간 끝 전 완료 운동 전부(진행 중 제외)
   assert.equal(summary.counts.workouts, 2);
-  assert.equal(summary.counts.volumeKg, 2700);
+  // [원본] assert.equal(summary.counts.volumeKg, 2700); — 캐시(1200+1500) 합이었다
+  // [개선] 총 볼륨 = 세트를 체중 없이 다시 센 합(P4S-1): 벤치 50×8×2 + 55×8×2 = 1680 · 턱걸이(맨몸 0kg) = 0
+  assert.equal(summary.counts.volumeKg, 1680);
   assert.equal(summary.delta?.workouts, 1); // 2 − 1
-  assert.equal(summary.prCount, 3);
+  // 새 기록 개수 = 목록 개수(P4U-3) — 캐시 pr_count(1+2) 가 아니다
   assert.ok((summary.prs?.length ?? 0) > 0, '새 기록 목록이 있다');
+  assert.equal(summary.prCount, summary.prs?.length);
+  // 맨몸 턱걸이(0kg) 는 체중 없이 세므로 무게 기록이 아니다
+  assert.equal(summary.prs?.some((p) => p.exerciseId === 'cx-pull'), false);
   assert.ok(summary.muscleSets && (summary.muscleSets.byMuscle.chest ?? 0) > 0);
 });
 
-test('트레이너 리포트(서버 모양 응답) = 회원 요약 — 세션 수·총 볼륨(캐시)·부위별 세트', async () => {
+test('트레이너 리포트(서버 모양 응답) = 회원 요약 — 세션 수·총 볼륨(체중 없이)·부위별 세트·맨몸 종목', async () => {
   await reset();
   const d = await seed();
   const member = (await repo.buildMemberSummary(range)).summary;
@@ -127,8 +132,16 @@ test('트레이너 리포트(서버 모양 응답) = 회원 요약 — 세션 �
   assert.equal(trainer.counts.workouts, member.counts.workouts);
   assert.equal(trainer.counts.volumeKg, member.counts.volumeKg);
   assert.deepEqual(trainer.muscleSets, member.muscleSets);
-  assert.equal(trainer.prCount, member.prCount);
+  // [원본] assert.equal(trainer.prCount, member.prCount);
+  // [개선] 트레이너는 기준선 이력이 없어 캐시 pr_count 합, 회원은 목록 개수 — 서로 다를 수 있다(P4U-3)
+  assert.equal(trainer.prCount, 3);
+  assert.equal(member.prCount, member.prs?.length);
   assert.equal(trainer.prs, undefined, '트레이너는 새 기록 개수만');
+  // 맨몸 종목 최고 세트 — 양쪽 모두 가중분만(같은 세트 = 같은 숫자 · P4S-1)
+  assert.deepEqual(
+    trainer.topExercises?.find((t) => t.exerciseId === 'cx-pull'),
+    member.topExercises?.find((t) => t.exerciseId === 'cx-pull'),
+  );
 });
 
 test('100일 넘는 직접 기간 — 새 기록 목록 없이 개수만 · 직전 기간만 읽는다', async () => {

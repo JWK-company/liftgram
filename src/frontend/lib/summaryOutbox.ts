@@ -11,10 +11,17 @@
 //   · 그 밖(망 끊김·Unavailable·Internal·Unauthenticated…) = 다시 보낼 것 → 같은 client_id·같은 내용 그대로 다시.
 //   · 섹션을 바꿔 다시 보내면 **새 client_id** 다(같은 client_id 에 다른 내용 = AlreadyExists). 화면이 매번 새로 만든다.
 // 재전송 방아쇠: 앱 시작·로그인(syncTransport.onLoggedIn) · 온라인 복귀(window online) · 보내기 직후.
+// 기기 주인(P4 /qa code P4S-2): 보내기·재전송마다 **저장소에서 직접** 기기 주인·동기 멈춤을 읽는다(deviceOwnerMatches).
+//   메모리 상태(ownerConflict)는 앱을 오프라인으로 열면 비어 있다 — 그 틈에 남의 기록으로 만든 요약이 나가면 안 된다.
+// 세션 종료(P4S-3): 로그아웃을 거치지 않는 종료(갱신 401·다른 탭 로그아웃)도 대기열을 지운다(onSessionChange·storage).
+// 관계 기준(P4S-4): 대기 항목에 만든 시점의 grant(id·consent_at)를 적고, 보낼 때 지금 관계와 다르면(해지 뒤 재계약 포함)
+//   보내지 않고 「못 보냄 · 코칭 중인 관계가 아니에요」로 옮긴다. 관계를 확인하지 못하면(망) 다음 방아쇠로 미룬다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { GrantStatus, Side } from "@app/contracts";
+import { deviceOwnerMatches } from "@app/core/sync/syncOwner";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { coachingClient } from "./coachingClient";
-import { hasSession } from "./session";
+import { hasSession, onSessionChange } from "./session";
 
 export const OUTBOX_PREFIX = "liftgram.summaryOutbox:";
 export const OUTBOX_MAX = 10;
@@ -22,7 +29,16 @@ export const OUTBOX_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const FAILED_MAX = 20;
 const EVENT = "liftgram:summaryOutbox";
 
-export type FailReason = "ended" | "invalid" | "conflict" | "dailyLimit" | "expired" | "full" | "unknown";
+export type FailReason =
+  | "ended"
+  | "invalid"
+  | "conflict"
+  | "dailyLimit"
+  | "expired"
+  | "full"
+  /** 이 기기 기록의 주인이 아니다(동기 멈춤 포함) — 보내기 시트에서만 보인다(대기열에 쌓지 않는다) */
+  | "owner"
+  | "unknown";
 
 export interface OutboxItem {
   clientId: string;
@@ -33,6 +49,9 @@ export interface OutboxItem {
   schemaVersion: number;
   snapshotJson: string;
   queuedAt: number;
+  /** 만든 시점의 관계(grant id · consent_at ms) — 보낼 때 지금 관계와 다르면 버린다(P4S-4). 옛 항목엔 없다. */
+  grantId?: string;
+  consentAt?: number;
 }
 
 /** 못 보낸 것 — 스냅샷 없이 무엇을·누구에게·왜만 */
@@ -48,6 +67,9 @@ export interface FailedItem {
 export interface CoachRef {
   id: string;
   name: string;
+  /** 관계 기준(P4S-4) — 보내기 때 대기 항목에 적는다 */
+  grantId?: string;
+  consentAt?: number;
 }
 
 interface Box {
@@ -56,6 +78,8 @@ interface Box {
   failed: FailedItem[];
   /** 마지막으로 본 코칭 중 코치(오프라인에서 연 화면이 받을 사람을 고를 수 있게 — 내 관계 정보만) */
   coaches?: CoachRef[];
+  /** 보낸 적 있는 코치 이름(id → 이름 · 누적 ≤20) — 해지한 코치에게 보낸 행도 이름이 보이게(P4U-9) */
+  names?: Record<string, string>;
 }
 
 const keyOf = (userId: string) => OUTBOX_PREFIX + userId;
@@ -75,7 +99,10 @@ function readBox(userId: string): Box {
     const coaches = Array.isArray(v.coaches)
       ? v.coaches.filter((c): c is CoachRef => !!c && typeof c.id === "string" && typeof c.name === "string")
       : undefined;
-    return { v: 1, pending, failed, coaches };
+    const names: Record<string, string> = {};
+    if (v.names && typeof v.names === "object")
+      for (const [k, n] of Object.entries(v.names)) if (typeof n === "string") names[k] = n;
+    return { v: 1, pending, failed, coaches, names: Object.keys(names).length ? names : undefined };
   } catch {
     return emptyBox();
   }
@@ -83,7 +110,12 @@ function readBox(userId: string): Box {
 
 function writeBox(userId: string, box: Box): void {
   try {
-    if (!box.pending.length && !box.failed.length && !box.coaches?.length)
+    if (
+      !box.pending.length &&
+      !box.failed.length &&
+      box.coaches === undefined &&
+      !Object.keys(box.names ?? {}).length
+    )
       localStorage.removeItem(keyOf(userId));
     else localStorage.setItem(keyOf(userId), JSON.stringify(box));
   } catch {
@@ -140,21 +172,44 @@ function prune(userId: string, box: Box, now: number): Box {
 export function readOutbox(userId: string): {
   pending: OutboxItem[];
   failed: FailedItem[];
-  coaches: CoachRef[];
+  /** 코치 목록을 한 번이라도 받아 둔 적이 없으면 null(오프라인 첫 진입 — 「코치 없음」과 구분 · P4U-5) */
+  coaches: CoachRef[] | null;
+  /** 이름 기억(id → 이름) — 지금 목록에 없는 코치 행에 쓴다 */
+  names: Record<string, string>;
 } {
   const box = readBox(userId);
   const pruned = prune(userId, box, Date.now());
   if (pruned.pending.length !== box.pending.length || pruned.failed.length !== box.failed.length)
     writeBox(userId, pruned);
-  return { pending: pruned.pending, failed: pruned.failed, coaches: pruned.coaches ?? [] };
+  return {
+    pending: pruned.pending,
+    failed: pruned.failed,
+    coaches: pruned.coaches ?? null,
+    names: pruned.names ?? {},
+  };
 }
 
-/** 마지막으로 본 코칭 중 코치를 기억한다(오프라인 화면용). */
+const NAMES_MAX = 20;
+
+/** 마지막으로 본 코칭 중 코치를 기억한다(오프라인 화면용). 이름은 덮어쓰지 않고 합친다(P4U-9). */
 export function rememberCoaches(userId: string, coaches: CoachRef[]): void {
   const box = readBox(userId);
   const next = coaches.slice(0, 20);
-  if (JSON.stringify(box.coaches ?? []) === JSON.stringify(next)) return; // 같으면 쓰지 않는다(변경 알림도 없음)
-  writeBox(userId, { ...box, coaches: next });
+  const merged: Record<string, string> = { ...(box.names ?? {}) };
+  for (const c of next) {
+    delete merged[c.id]; // 지금 이름을 맨 뒤로(가장 최근)
+    merged[c.id] = c.name;
+  }
+  const keys = Object.keys(merged);
+  for (const k of keys.slice(0, Math.max(0, keys.length - NAMES_MAX))) delete merged[k];
+  // 빈 목록도 「받아 봤다」는 표시로 남긴다(coaches: []) — null(못 받아 봄)과 구분한다
+  if (
+    box.coaches !== undefined &&
+    JSON.stringify(box.coaches) === JSON.stringify(next) &&
+    JSON.stringify(box.names ?? {}) === JSON.stringify(merged)
+  )
+    return; // 같으면 쓰지 않는다(변경 알림도 없음)
+  writeBox(userId, { ...box, coaches: next, names: merged });
 }
 
 export function onOutboxChange(fn: () => void): () => void {
@@ -230,6 +285,8 @@ export type SendResult = { kind: "sent" } | { kind: "queued" } | { kind: "failed
  */
 export async function sendSummary(item: Omit<OutboxItem, "queuedAt">): Promise<SendResult> {
   const it: OutboxItem = { ...item, queuedAt: Date.now() };
+  // 이 기기 기록의 주인이 아니면(또는 동기가 멈췄으면) 보내지도 쌓지도 않는다 — 남의 기록일 수 있다(P4S-2)
+  if (!(await deviceOwnerMatches(it.ownerUserId))) return { kind: "failed", reason: "owner" };
   const offline = typeof navigator !== "undefined" && navigator.onLine === false;
   if (!offline) {
     try {
@@ -269,22 +326,87 @@ export function flushSummaryOutbox(userId: string): Promise<void> {
   return p;
 }
 
+/** 지금 코칭 중(내가 회원)인 관계 — trainerId → {grantId, consentAt}. 못 받으면 null(망 — 다음 방아쇠로). */
+async function activeGrants(): Promise<Map<string, { grantId: string; consentAt: number }> | null> {
+  try {
+    const res = await coachingClient().listGrants({});
+    const out = new Map<string, { grantId: string; consentAt: number }>();
+    for (const g of res.grants)
+      if (g.roleOfMe === Side.MEMBER && g.status === GrantStatus.ACTIVE && g.peer?.id)
+        out.set(g.peer.id, { grantId: g.id, consentAt: Number(g.consentAt) });
+    return out;
+  } catch {
+    return null;
+  }
+}
+
+/** 만든 시점의 관계와 지금 관계가 같은가(옛 항목처럼 기준이 없으면 서버 검사에 맡긴다) */
+function sameGrant(it: OutboxItem, now: { grantId: string; consentAt: number } | undefined): boolean {
+  if (it.grantId === undefined && it.consentAt === undefined) return true;
+  if (!now) return false;
+  return (
+    (it.grantId === undefined || it.grantId === now.grantId) &&
+    (it.consentAt === undefined || it.consentAt === now.consentAt)
+  );
+}
+
 async function runFlush(userId: string): Promise<void> {
   const { pending } = readOutbox(userId);
+  if (!pending.length) return;
+  let grants: Map<string, { grantId: string; consentAt: number }> | null | undefined;
   for (const it of pending) {
     // 그 사이 로그아웃·계정 전환이면 멈춘다(다른 사람 세션으로 보내지 않는다)
     if (currentUser !== userId || !hasSession()) return;
     if (typeof navigator !== "undefined" && navigator.onLine === false) return;
+    // 기기 주인이 아니게 됐으면(다른 계정 기록이 남아 동기 멈춤) 보내지 않고 남겨 둔다 — 풀리면 다시(P4S-2)
+    if (!(await deviceOwnerMatches(userId))) return;
+    // 만든 시점의 관계가 아니면(해지·재계약) 보내지 않는다(P4S-4)
+    if (it.grantId !== undefined || it.consentAt !== undefined) {
+      if (grants === undefined) grants = await activeGrants();
+      if (grants === null) return; // 관계를 못 봤다(망) — 다음 방아쇠에서
+      if (currentUser !== userId || !hasSession()) return; // 기다리는 사이 로그아웃 — 지운 대기열을 다시 쓰지 않는다
+      if (!sameGrant(it, grants.get(it.trainerId))) {
+        removeItem(userId, it.clientId, toFailed(it, "ended", Date.now()));
+        continue;
+      }
+    }
+    // 위의 기다림(기기 주인·관계 확인) 사이에 로그아웃·계정 전환·대기열 정리가 있었을 수 있다 — 보내기 직전에 다시 본다
+    if (currentUser !== userId || !hasSession()) return;
+    if (!readBox(userId).pending.some((p) => p.clientId === it.clientId && p.ownerUserId === userId))
+      continue;
     try {
       await sendOnce(it);
-      removeItem(userId, it.clientId);
+      if (currentUser === userId) removeItem(userId, it.clientId);
     } catch (e) {
       const reason = permanentReason(e);
-      if (reason) removeItem(userId, it.clientId, toFailed(it, reason, Date.now()));
+      if (reason && currentUser === userId) removeItem(userId, it.clientId, toFailed(it, reason, Date.now()));
       else return; // 망 오류 — 다음 방아쇠에서 다시
     }
   }
 }
+
+let stopSessionWatch: (() => void) | null = null;
+
+/**
+ * 세션이 로그아웃을 거치지 않고 끝나도(갱신 401 · 다른 탭 로그아웃) 대기열을 지운다(P4S-3).
+ * 모듈을 처음 쓸 때 한 번 건다 — 대기열이 시작되지 않은 채(blocked) 남은 다른 사람 것도 지워야 해서 start 와 따로다.
+ */
+function watchSession(): void {
+  if (stopSessionWatch || typeof window === "undefined") return;
+  const check = () => {
+    if (!hasSession()) stopSummaryOutbox();
+  };
+  const offSession = onSessionChange(check);
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === null || e.key === "liftgram.session") check(); // 다른 탭이 깃발을 내렸다
+  };
+  window.addEventListener("storage", onStorage);
+  stopSessionWatch = () => {
+    offSession();
+    window.removeEventListener("storage", onStorage);
+  };
+}
+watchSession();
 
 /** 로그인(앱 시작 포함) 뒤 — 다른 사람 대기열을 지우고, 온라인 복귀를 듣고, 한 번 보낸다. */
 export function startSummaryOutbox(userId: string, opts: { wiped?: boolean } = {}): void {
@@ -296,6 +418,15 @@ export function startSummaryOutbox(userId: string, opts: { wiped?: boolean } = {
     listening = true;
   }
   void flushSummaryOutbox(userId);
+}
+
+/**
+ * 로그인했지만 동기가 멈췄다(blocked — 이 기기에 다른 계정의 올라가지 않은 기록) — 지금 사람 것만 남기고 지운다.
+ * 보내기는 시작하지 않는다(풀린 뒤 onLoggedIn·discardAndAdopt 가 시작한다 · P4S-3).
+ */
+export function pruneSummaryOutboxesFor(userId: string): void {
+  currentUser = null;
+  clearSummaryOutboxes(userId);
 }
 
 /** 로그아웃 — 모두 지우고 그만 듣는다. */

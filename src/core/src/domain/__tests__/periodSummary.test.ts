@@ -12,6 +12,7 @@ import {
   previousRange,
   summaryRange,
   summaryRangeDays,
+  SUMMARY_DEFAULT_OFF,
   SUMMARY_MAX_PRS,
   type SummaryExerciseRec,
   type SummaryRange,
@@ -441,7 +442,7 @@ test('1년치 표본 — 스냅샷 64KB 이하 · parse 왕복이 같다', () =>
 
 // ── 회원 요약 = 트레이너 리포트(같은 숫자) ─────────────────────────────
 
-test('맨몸·보조 표본 — 회원 요약과 memberReportFromRecords 의 세션 수·총 볼륨(캐시)·부위별 세트 수·PR 수가 같다', () => {
+test('맨몸·보조 표본 — 회원 요약과 memberReportFromRecords 의 세션 수·총 볼륨·부위별 세트 수·종목 최고 세트가 같다', () => {
   const raw = buildRaw(yearDefs(NOW), 80);
   for (const preset of ['7d', '4w', '3m'] as const) {
     const range = summaryRange(preset, NOW, 'Asia/Seoul');
@@ -456,17 +457,22 @@ test('맨몸·보조 표본 — 회원 요약과 memberReportFromRecords 의 세
     assert.equal(trainer.counts.durationSec, member.counts.durationSec, preset);
     assert.deepEqual(trainer.delta, member.delta, preset);
     assert.deepEqual(trainer.muscleSets, member.muscleSets, preset);
-    assert.equal(trainer.prCount, member.prCount, preset);
+    // PR 수: 트레이너 = 캐시 pr_count 합 · 회원 = 목록 개수(P4U-3) — 맨몸·보조 종목에서 다를 수 있어 같음을 묶지 않는다
+    // 목록 상한(50)으로 잘려도 개수는 전체다
+    assert.equal(member.prCount, Math.max(member.prs?.length ?? 0, member.prCount ?? 0), preset);
+    assert.ok((member.prs?.length ?? 0) <= SUMMARY_MAX_PRS, preset);
     assert.deepEqual(trainer.effort, member.effort, preset);
     // 트레이너 쪽: 새 기록 목록·체중 없음
     assert.equal('prs' in trainer, false);
     assert.equal('bodyweight' in trainer, false);
     assert.ok(member.bodyweight);
-    // 맨몸 종목 최고 세트: 회원 = 체중 + 가중분, 트레이너 = 가중분만(S-12)
+    // [원본] 맨몸 종목 최고 세트: 회원 = 체중 + 가중분, 트레이너 = 가중분만(S-12) — 차이 80
+    // [개선] 양쪽 모두 가중분만(P4S-1) → 같은 세트 = 같은 숫자. 보조(딥스)도 같은 규칙.
     const mp = member.topExercises!.find((t) => t.exerciseId === EX.pullup.id);
     const tp = trainer.topExercises!.find((t) => t.exerciseId === EX.pullup.id);
     assert.ok(mp && tp, preset);
-    assert.equal(Math.round((mp.last.weightKg - tp.last.weightKg) * 10) / 10, 80);
+    assert.deepEqual(mp, tp, preset);
+    assert.deepEqual(trainer.topExercises, member.topExercises, preset);
   }
 });
 
@@ -481,4 +487,34 @@ test('memberReportFromRecords — 깨진 줄·객체 아닌 줄은 건너뛴다 
   const s = buildPeriodSummary(input);
   assert.deepEqual(s.muscleSets, { byMuscle: { back: 1, biceps: 0.5 }, fullBody: 0 }); // 커스텀만 응답에 있다
   assert.equal(s.counts.workouts, 1);
+});
+
+// ── P4 /qa code P4S-1·P4U-1 — 체중이 숫자로 실리지 않는다 ────────────────────
+
+test('체중 섹션 꺼짐 — 맨몸 풀업·보조 딥스가 있어도 직렬화 스냅샷에 체중 값이 없다(종목 무게·새 기록·총 볼륨)', () => {
+  const BW = 72.5;
+  const defs: WorkoutDef[] = [
+    { at: R4.startMs + DAY, blocks: [{ ex: EX.pullup, sets: [{ w: 0, r: 8 }, { w: 0, r: 10 }] }, { ex: EX.dip, sets: [{ w: 20, r: 8 }] }] },
+    { at: R4.startMs + 3 * DAY, blocks: [{ ex: EX.pullup, sets: [{ w: 0, r: 10 }, { w: 2.5, r: 6 }] }, { ex: EX.bench, sets: [{ w: 60, r: 10 }] }] },
+  ];
+  const raw = buildRaw(defs, BW); // 기기 캐시(total_volume_kg)에는 완료 때 체중이 실려 있다
+  const logs = [{ id: 'b1', measuredAt: R4.startMs + DAY, weightKg: BW, updatedAt: 1 }];
+  // 저장소처럼 체중을 넘겨도(옛 호출) 세트 계산에는 쓰지 않는다
+  const full = buildPeriodSummary(summaryInputFromRaw(raw, { range: R4, bodyweightKg: BW, bodyweightLogs: logs, prList: true }));
+  assert.ok(full.bodyweight, '체중 섹션 재료는 있다(화면이 기본으로 끈다)');
+  const sent = serializeSummaryV1(omitSections(full, SUMMARY_DEFAULT_OFF));
+  assert.equal(sent.includes('72.5'), false, sent);
+  assert.equal(sent.includes('725'), false, sent); // 72.5 × 10 (맨몸 세트 볼륨)
+  assert.equal(sent.includes('bodyweight'), false);
+  const pull = full.topExercises!.find((t) => t.exerciseId === EX.pullup.id)!;
+  assert.deepEqual([pull.first.weightKg, pull.last.weightKg], [0, 2.5]); // 가중분만
+  // 총 볼륨 = 세트를 체중 없이 다시 센 합: 딥스(보조 20kg ×8 = 160) + 풀업 2.5×6 = 15 + 벤치 600
+  assert.equal(full.counts.volumeKg, 775);
+  // 보조 종목은 새 기록 목록에서 뺀다(체중 없이는 보조 무게가 클수록 기록이 되어 거꾸로)
+  assert.equal(full.prs?.some((p) => p.exerciseId === EX.dip.id) ?? false, false);
+  assert.equal(full.prCount, full.prs?.length ?? 0);
+  // 트레이너 리포트와 같은 숫자
+  const trainer = buildPeriodSummary(memberReportFromRecords(serverRecords(raw, R4), R4, { catalog }));
+  assert.deepEqual(trainer.topExercises, full.topExercises);
+  assert.equal(trainer.counts.volumeKg, full.counts.volumeKg);
 });

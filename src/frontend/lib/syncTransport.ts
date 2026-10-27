@@ -136,10 +136,17 @@ export async function onLoggedIn(userId: string): Promise<ReconcileResult> {
   // 비웠으면 서버에서 받아 채우고, 아니면 로컬 변경을 밀어 올린다 — 어느 쪽이든 동기 한 번이다.
   if (result.kind !== "blocked") scheduleSync(0);
   // 성과 요약 대기열 — 다른 사람 것은 지우고(비웠으면 전부) 이 사람 것을 보낸다(S-4) @plm SRS-080
-  if (result.kind !== "blocked")
-    void import("./summaryOutbox").then((m) =>
-      m.startSummaryOutbox(userId, { wiped: result.kind === "wiped" }),
-    );
+  // [원본] blocked 면 아무것도 하지 않았다 — 앞 사람(A)의 대기열 스냅샷이 B 사용 중에도 기기에 남았다(P4S-3)
+  // if (result.kind !== "blocked")
+  //   void import("./summaryOutbox").then((m) =>
+  //     m.startSummaryOutbox(userId, { wiped: result.kind === "wiped" }),
+  //   );
+  // [개선] blocked 면 지금 사람 것만 남기고 지운다(보내기는 시작하지 않는다)
+  void import("./summaryOutbox").then((m) =>
+    result.kind === "blocked"
+      ? m.pruneSummaryOutboxesFor(userId)
+      : m.startSummaryOutbox(userId, { wiped: result.kind === "wiped" }),
+  );
   return result;
 }
 

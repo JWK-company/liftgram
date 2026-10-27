@@ -50,6 +50,21 @@ export function isSyncBlocked(): boolean {
   return blockedFor !== null;
 }
 
+/**
+ * 이 기기 기록의 주인이 이 계정이고 동기가 멈추지 않았는가 — **저장소에서 직접 읽는다**(읽기 전용 · @plm SRS-080 P4S-2).
+ * 메모리 상태(로그인 대조 결과)는 앱을 오프라인으로 열면 비어 있으므로, 「이 기기 기록으로 만든 것을 이 계정 이름으로
+ * 내보내도 되는가」는 이것으로 본다. 저장소가 없거나 주인 표시가 없으면(아직 대조 전) false — 판정 전에는 막는다.
+ */
+export async function deviceOwnerMatches(userId: string): Promise<boolean> {
+  if (!store || !userId) return false;
+  try {
+    const [owner, blocked] = await Promise.all([Promise.resolve(store.get(OWNER_KEY)), Promise.resolve(store.get(BLOCK_KEY))]);
+    return owner === userId && !blocked;
+  } catch {
+    return false;
+  }
+}
+
 export type ReconcileResult =
   | { kind: 'same' }
   | { kind: 'adopted' }

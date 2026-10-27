@@ -30,8 +30,20 @@ export function SummaryBubble({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLButtonElement | null>(null);
 
+  // [원본] useEffect(() => { if (highlight) ref.current?.scrollIntoView({ block: "center" }); }, [highlight]);
+  // [개선] 자식 effect 가 먼저 돌고 부모(대화)의 「맨 아래로」가 뒤에 돌아 강조 카드가 화면 밖으로 밀렸다(P4U-12) —
+  //        부모 effect 뒤(다음 프레임)에 한 번 더 굴린다.
   useEffect(() => {
-    if (highlight) ref.current?.scrollIntoView({ block: "center" });
+    if (!highlight) return;
+    ref.current?.scrollIntoView({ block: "center" });
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => ref.current?.scrollIntoView({ block: "center" }));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
   }, [highlight]);
 
   return (
