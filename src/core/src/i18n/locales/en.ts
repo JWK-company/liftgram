@@ -1030,14 +1030,16 @@ export const en: Record<TransKey, string> = {
   "note.saved": "Review saved", // @plm SRS-064
   "analytics.oneSideTag": "One side {weight} ×{n}", // @plm SRS-065
   // Declutter P2 — summary · workout detail · stats(D5·D6·F5) @plm SRS-070
+  "summary.lbEntered": "lb entry", // lb 블록 — 볼륨(kg)·1RM(lb) 이 섞인 이유(P2 /qa code M-2) @plm SRS-070
   "summary.prShort": "PR {count}",
-  "summary.oneRm": "1RM {value}",
+  "summary.oneRm": "Est. 1RM {value}", // 추정값임을 값 옆에 밝힌다(P2 /qa code L-3)
   "summary.actionMakeRoutine": "Save routine",
   "summary.actionMadeRoutine": "Saved",
   "summary.actionReplay": "Do again",
   "summary.actionShare": "Share",
   "summary.actionShared": "Shared",
   "summary.shareSheetTitle": "Share to feed",
+  "analytics.oneSideSet": "One side", // 한 블록에 배수가 섞였을 때 세트마다(P2 /qa code L-4)
   "analytics.oneSideHeader": "One side input (volume ×{n})",
   "analytics.lastPrOn": "Last PR {date}",
 };

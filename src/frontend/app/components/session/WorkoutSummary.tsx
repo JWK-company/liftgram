@@ -7,7 +7,7 @@
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
-import { formatWeight, type WeightUnit } from "@app/core";
+import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
@@ -32,6 +32,7 @@ export interface Summary {
     exerciseName: string;
     prs: { type: string; previous: number; current: number }[];
     weightUnit?: "kg" | "lb" | null; // 그 블록에 적은 단위(/qa code M-2) @plm SRS-067
+    variantKey?: string | null; // PR 버킷의 기록 칸(P2 /qa code H-1) @plm SRS-070
   }[];
 }
 
@@ -64,11 +65,19 @@ export function WorkoutSummary({
   }, [summary]);
 
   const today = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
-  // 종목별 PR 수 — 「PR n」 을 그 종목 줄 오른쪽에 붙인다(D5). 같은 종목이 두 블록이면 한 번만 단다(첫 줄).
-  const prByExercise = new Map(summary.prs.map((d) => [d.exerciseId, d]));
+  // [원본] 종목 id 하나로 묶었다 — PR 은 (종목 × 칸) 버킷마다 따로 서서, 같은 종목·다른 브랜드 두 블록이면
+  //        뒤 버킷이 앞을 덮고 엉뚱한 줄에 붙었다(P2 /qa code H-1). 원복 시 아래 두 줄을 되살린다.
+  // const prByExercise = new Map(summary.prs.map((d) => [d.exerciseId, d]));
+  // [개선] (종목 × 칸) 버킷으로 짝짓는다. 같은 버킷이 두 블록(슈퍼셋·중복)이면 첫 줄에 한 번만 단다.
+  const bucketOf = (exerciseId: string, variantKey: string | null | undefined) =>
+    `${exerciseId}::${variantKey ?? ""}`;
+  const prByBucket = new Map(summary.prs.map((d) => [bucketOf(d.exerciseId, d.variantKey), d]));
   const prShown = new Set<string>();
+  const [openPr, setOpenPr] = useState<string | null>(null); // 「PR n」 을 누르면 그 줄 아래에 무엇을 얼마로 깼는지(M-3)
   const [sharing, setSharing] = useState(false); // 공유 시트 — 한마디 입력은 시트 안(D5)
   const [shared, setShared] = useState(false); // 한 번 올리면 시트를 다시 열어도 버튼이 잠긴 채
+  const [shareBusy, setShareBusy] = useState(false); // 올리는 중 — 시트를 닫았다 열어 두 번 올리지 않게(M-1)
+  const [caption, setCaption] = useState(""); // 공유 한마디 — 시트를 닫아도 남는다(L-1)
   const done = routineMade || routineSaved;
   return (
     <div className="flex flex-1 flex-col">
@@ -135,43 +144,91 @@ export function WorkoutSummary({
           <div data-testid="summary-pr-list">
             <ListGroup testId="summary-breakdown">
               {extras?.breakdown.map((ex) => {
-                const pr = !prShown.has(ex.exerciseId) ? prByExercise.get(ex.exerciseId) : undefined;
-                if (pr) prShown.add(ex.exerciseId);
+                const bucket = bucketOf(ex.exerciseId, ex.variantKey);
+                const pr = !prShown.has(bucket) ? prByBucket.get(bucket) : undefined;
+                if (pr) prShown.add(bucket);
                 const n = pr?.prs.length ?? 0;
+                const open = openPr === ex.id && n > 0;
+                // 중량 PR 은 그 블록에 적은 단위·숫자 그대로, 볼륨은 kg(Q2 A) — 옛 목록과 같은 규칙
+                const show = (type: string, v: number) =>
+                  type === "maxWeight" && pr?.weightUnit === "lb"
+                    ? formatEnteredWeight(v, "lb")
+                    : formatWeight(v, unit);
+                const prText = (pr?.prs ?? [])
+                  .map(
+                    (p) =>
+                      `${t(p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume")} ${show(p.type, p.current)}${
+                        p.previous > 0 ? ` (${t("session.prPrev", { value: show(p.type, p.previous) })})` : ""
+                      }`,
+                  )
+                  .join(" · ");
                 return (
                   <ListRow
                     key={ex.id}
                     testId="summary-row"
                     title={ex.name}
+                    wrapSubtitle
                     subtitle={
                       <>
-                        {t("session.exerciseSetsVolume", {
-                          count: ex.setCount,
-                          volume: formatWeight(ex.volumeKg, unit),
-                        })}
+                        {/* 같은 종목이 다른 칸으로 두 줄이면 칸 이름으로 구분한다(H-1) */}
+                        {/* 칸 이름·lb 입력은 윗줄 하나로(lb 블록이면 볼륨 kg·1RM lb 가 섞인 이유를 밝힌다 · M-2) */}
+                        {ex.slotLabel || ex.weightUnit === "lb" ? (
+                          <span className="block">
+                            {ex.slotLabel ? <span data-testid="summary-row-slot">{ex.slotLabel}</span> : null}
+                            {ex.slotLabel && ex.weightUnit === "lb" ? " · " : null}
+                            {ex.weightUnit === "lb" ? (
+                              <span data-testid="summary-row-lb">{t("summary.lbEntered")}</span>
+                            ) : null}
+                          </span>
+                        ) : null}
+                        {/* 조각 단위로만 줄을 바꾼다 — 「볼륨 / 338kg」 처럼 값이 쪼개지지 않게 */}
+                        <span className="whitespace-nowrap">
+                          {t("session.exerciseSetsVolume", {
+                            count: ex.setCount,
+                            volume: formatWeight(ex.volumeKg, unit),
+                          })}
+                          {/* 구분점은 앞 조각 끝에 — 줄이 바뀌어도 다음 줄이 「·」 로 시작하지 않게 */}
+                          {ex.best1RM > 0 ? " ·" : null}
+                        </span>
                         {ex.best1RM > 0 ? (
-                          <span className="text-(--color-ink3)" data-testid="summary-row-1rm">
-                            {` · ${t("summary.oneRm", {
+                          <span
+                            className="whitespace-nowrap text-(--color-ink3)"
+                            data-testid="summary-row-1rm"
+                          >
+                            {` ${t("summary.oneRm", {
                               // [원본] formatWeight(ex.best1RM, unit) — lb 블록도 kg 로 보였다(F5)
                               value: formatWeight(ex.best1RM, ex.weightUnit),
                             })}`}
+                          </span>
+                        ) : null}
+                        {open ? (
+                          <span
+                            className="mt-[2px] block font-medium text-(--color-pr)"
+                            data-testid="summary-row-pr-detail"
+                          >
+                            {prText}
                           </span>
                         ) : null}
                       </>
                     }
                     value={
                       n > 0 ? (
-                        <span data-testid="summary-row-pr" className="font-semibold text-(--color-pr)">
+                        // 누르면 무엇을 얼마로 깼는지 펼친다(기본 접힘 · M-3). 읽어 주는 글에는 값까지 싣는다.
+                        <button
+                          type="button"
+                          data-testid="summary-row-pr"
+                          aria-expanded={open}
+                          aria-label={`${t("summary.prShort", { count: n })} — ${prText}`}
+                          onClick={() => setOpenPr(open ? null : ex.id)}
+                          className="-my-[10px] -mr-[6px] inline-flex min-h-[44px] min-w-[44px] items-center justify-end gap-[2px] px-[6px] font-semibold text-(--color-pr)"
+                        >
                           {t("summary.prShort", { count: n })}
-                          {/* 무엇을 깼는지는 읽어 주는 글로만(화면에는 「PR n」 하나) */}
-                          <span className="sr-only">
-                            {` (${pr?.prs
-                              .map((p) =>
-                                t(p.type === "maxWeight" ? "session.prTypeWeight" : "session.prTypeVolume"),
-                              )
-                              .join(" · ")})`}
-                          </span>
-                        </span>
+                          <Icon
+                            name={open ? "chevron-up" : "chevron-down"}
+                            size={14}
+                            color="var(--color-pr)"
+                          />
+                        </button>
                       ) : undefined
                     }
                   />
@@ -197,6 +254,7 @@ export function WorkoutSummary({
               ariaLabel={done ? t("finish.madeRoutine") : t("finish.makeRoutine")}
               testId="btn-summary-make-routine"
               disabled={done}
+              done={done}
               onPress={() => setMakeRoutine(true)}
             />
             {/* 같은 구성으로 한 번 더(#59) — 무게는 이전 기록(방금 한 것)으로 채운다 @plm SRS-065 */}
@@ -225,7 +283,9 @@ export function WorkoutSummary({
               label={shared ? t("summary.actionShared") : t("summary.actionShare")}
               ariaLabel={shared ? t("session.sharedToFeed") : t("session.shareToFeed")}
               testId="btn-summary-share"
-              disabled={!extras || shared}
+              disabled={!extras || shared || shareBusy}
+              busy={shareBusy}
+              done={shared}
               onPress={() => setSharing(true)}
             />
           </div>
@@ -238,7 +298,10 @@ export function WorkoutSummary({
       {sharing && extras ? (
         <SheetShell
           title={t("summary.shareSheetTitle")}
-          onClose={() => setSharing(false)}
+          // 올리는 중에는 닫지 않는다 — 닫았다 다시 열면 두 번 올릴 수 있었다(M-1)
+          onClose={() => {
+            if (!shareBusy) setSharing(false);
+          }}
           hideOk
           testId="share-sheet"
         >
@@ -248,6 +311,9 @@ export function WorkoutSummary({
             unit={unit}
             inSheet
             shared={shared}
+            onBusyChange={setShareBusy}
+            caption={caption}
+            onCaptionChange={setCaption}
             onShared={() => {
               setShared(true);
               setSharing(false); // 올렸으면 시트를 닫는다 — 요약의 「공유」 가 「공유했어요」 로 잠긴다

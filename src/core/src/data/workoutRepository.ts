@@ -2169,6 +2169,8 @@ export interface WorkoutPRDetail {
   prs: PRResult[];
   /** 그 블록에 적은 단위(null=kg) — 요약의 중량 PR 줄이 이 단위로 보인다(Q2 A · /qa code M-2) @plm SRS-067 */
   weightUnit?: 'kg' | 'lb' | null;
+  /** PR 버킷의 기록 칸 키(null=기본) — 요약이 (종목 × 칸) 줄에 PR 을 붙인다(화면 정리 P2 /qa code H-1) @plm SRS-070 */
+  variantKey?: string | null;
 }
 
 export interface WorkoutSummary {
@@ -2238,7 +2240,7 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
       } catch {
         /* 종목이 삭제된 경우 기본명 유지 */
       }
-      prDetails.push({ exerciseId, exerciseName: name, prs, weightUnit: unit });
+      prDetails.push({ exerciseId, exerciseName: name, prs, weightUnit: unit, variantKey: variant });
     }
   }
 

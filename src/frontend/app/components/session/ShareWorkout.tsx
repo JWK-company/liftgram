@@ -58,6 +58,10 @@ export interface BreakdownRow {
   best1RM: number;
   /** 그 블록에 적은 단위 — 1RM 을 이 단위로 보인다(F5) @plm SRS-070 */
   weightUnit: "kg" | "lb";
+  /** 기록 칸 키(null=기본) — PR 은 (종목 × 칸) 버킷이라 요약 줄도 이 키로 짝짓는다(P2 /qa code H-1) */
+  variantKey: string | null;
+  /** 기록 칸 이름(브랜드·적재·부착물·그립) — 같은 종목 두 줄을 구분한다. 기본 칸·유산소면 null */
+  slotLabel: string | null;
 }
 
 /**
@@ -82,10 +86,16 @@ export async function loadSummaryExtras(summary: {
   try {
     const analytics = await import("@app/core/data/analyticsRepository");
     const { computeStreak } = await import("@app/core");
-    const [detail, dayNums] = await Promise.all([
+    const [detail, dayNums, user] = await Promise.all([
       analytics.getWorkoutDetail(summary.workoutId),
       analytics.getCompletedDayNumsSince(400),
+      import("@app/core/data/userRepository").then((u) => u.getOrCreateLocalUser()).catch(() => null),
     ]);
+    // 칸 이름(브랜드·커스텀 슬롯) — 기록 상세와 같은 라벨(P2 /qa code H-1)
+    const { variantLabelFromKey } = await import("@app/core/domain/variants");
+    const u = user as unknown as { preferredLanguage?: "ko" | "en"; machineVariantLabels?: string[] } | null;
+    const lang = u?.preferredLanguage ?? "ko";
+    const slotLabels = u?.machineVariantLabels ?? [];
     const streak = computeStreak([...dayNums], Date.now());
     // [원본] 공유 데이터를 여기서 바로 만들었다 — 운동 총평(SRS-064)이 생기면서 「무엇을 싣지 않는가」를 테스트로 고정하려고
     // core 순수 함수로 옮겼다(QA R5). 원복 시 아래 주석을 풀고 buildSharedWorkout 호출을 지운다.
@@ -119,6 +129,9 @@ export async function loadSummaryExtras(summary: {
         volumeKg: ex.volumeKg,
         best1RM: ex.bestEstimated1RM,
         weightUnit: ex.weightUnit === "lb" ? "lb" : "kg",
+        variantKey: ex.variantKey ?? null,
+        slotLabel:
+          !ex.isCardio && ex.variantKey ? variantLabelFromKey(ex.variantKey, lang, slotLabels) || null : null,
       })),
     };
   } catch {
@@ -132,6 +145,9 @@ export function ShareWorkout({
   inSheet = false,
   shared: sharedProp,
   onShared,
+  onBusyChange,
+  caption: captionProp,
+  onCaptionChange,
 }: {
   payload: ShareablePayload;
   unit: WeightUnit;
@@ -140,11 +156,22 @@ export function ShareWorkout({
   /** 올렸는지를 부르는 쪽이 들고 있다 — 시트를 닫았다 열어도 두 번 올리지 않게 @plm SRS-070 */
   shared?: boolean;
   onShared?: () => void;
+  /** 올리는 중인지를 부르는 쪽에 알린다 — 시트를 닫았다 다시 열어 두 번 올리지 않게(P2 /qa code M-1) */
+  onBusyChange?: (busy: boolean) => void;
+  /** 한마디를 부르는 쪽이 들고 있다 — 시트를 닫아도 적던 글이 남는다(P2 /qa code L-1) */
+  caption?: string;
+  onCaptionChange?: (v: string) => void;
 }) {
   const { user } = useAuth();
   const toast = useToast();
-  const [caption, setCaption] = useState("");
-  const [sharing, setSharing] = useState(false);
+  const [captionLocal, setCaptionLocal] = useState("");
+  const caption = captionProp ?? captionLocal;
+  const setCaption = (v: string) => (onCaptionChange ? onCaptionChange(v) : setCaptionLocal(v));
+  const [sharing, setSharingState] = useState(false);
+  const setSharing = (v: boolean) => {
+    setSharingState(v);
+    onBusyChange?.(v);
+  };
   const [sharedLocal, setShared] = useState(false);
   const shared = sharedProp || sharedLocal;
 

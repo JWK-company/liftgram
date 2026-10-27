@@ -317,7 +317,12 @@ function ExerciseCard({
   // 수행 조합(브랜드·핀/플레이트·부착물·손 그립) — 기본 칸이면 적지 않는다(#59) @plm SRS-065
   const slot = !ex.isCardio && ex.variantKey ? variantLabelFromKey(ex.variantKey, lang, slotLabels) : null;
   // 한쪽 입력 — 세트마다 배지를 달던 것을 종목 머리에 한 번(D6). 가장 큰 배수(보통 2)를 적는다. @plm SRS-070
-  const oneSide = ex.sets.reduce((m, s) => Math.max(m, s.loadMultiplier ?? 1), 1);
+  // [원본] 가장 큰 배수 하나를 머리에 — ×1·×2 세트가 섞이면 어느 세트가 한쪽인지 알 수 없었다(P2 /qa code L-4)
+  // const oneSide = ex.sets.reduce((m, s) => Math.max(m, s.loadMultiplier ?? 1), 1);
+  // [개선] 배수가 모두 같을 때만 머리에 한 번, 섞였으면 그 세트 줄에 「한쪽」
+  const mults = ex.sets.map((s) => s.loadMultiplier ?? 1);
+  const mixedOneSide = new Set(mults).size > 1;
+  const oneSide = mixedOneSide ? 1 : (mults[0] ?? 1);
   // RPE 를 하나도 적지 않은 종목은 RPE 열을 그리지 않는다(빈 「-」 열 · D6)
   const hasRpe = ex.sets.some((s) => s.rpe != null);
   return (
@@ -349,6 +354,7 @@ function ExerciseCard({
             {t("analytics.oneSideHeader", { n: oneSide })}
           </span>
         ) : null}
+        {unit === "lb" ? <span key="lb">{t("summary.lbEntered")}</span> : null}
         <span key="vol">{`${t("analytics.volumeLabel")} ${formatWeight(ex.volumeKg, "kg")}`}</span>
       </MetaLine>
 
@@ -409,9 +415,16 @@ function ExerciseCard({
                 [원본] Tag(muted·danger·primary) 여러 개 + 세트마다 「한쪽 40kg ×2」 빨간 배지 */}
             <MetaLine className="text-[length:var(--text-xs)]">
               {s.isWarmup ? <span key="w">{t("analytics.warmupTag")}</span> : null}
+              {/* [원본] text-(--color-warn) — 다크에서 PR 금색과 거의 같았다(금색 = PR 만 · P2 /qa code M-4).
+                  「실패」는 오류가 아니라 기록 속성이라 진한 회색 + 굵게 */}
               {s.isFailed ? (
-                <span key="f" className="text-(--color-warn)">
+                <span key="f" className="font-semibold text-(--color-ink)">
                   {t("analytics.failedTag")}
+                </span>
+              ) : null}
+              {mixedOneSide && (s.loadMultiplier ?? 1) > 1 ? (
+                <span key="o" data-testid="detail-set-oneside-row">
+                  {t("analytics.oneSideSet")}
                 </span>
               ) : null}
               {s.arm === "uni" ? <span key="a">{t("session.armUni")}</span> : null}

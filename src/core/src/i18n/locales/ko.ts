@@ -1028,14 +1028,16 @@ export const ko = {
   "note.saved": "총평을 저장했어요", // @plm SRS-064
   "analytics.oneSideTag": "한쪽 {weight} ×{n}", // @plm SRS-065
   // 화면 정리 P2 — 요약·기록 상세·분석(D5·D6·F5) @plm SRS-070
+  "summary.lbEntered": "lb 입력", // lb 블록 — 볼륨(kg)·1RM(lb) 이 섞인 이유(P2 /qa code M-2) @plm SRS-070
   "summary.prShort": "PR {count}",
-  "summary.oneRm": "1RM {value}",
+  "summary.oneRm": "추정 1RM {value}", // 추정값임을 값 옆에 밝힌다(P2 /qa code L-3)
   "summary.actionMakeRoutine": "루틴으로 저장",
   "summary.actionMadeRoutine": "저장했어요",
   "summary.actionReplay": "다시 시작",
   "summary.actionShare": "공유",
   "summary.actionShared": "공유했어요",
   "summary.shareSheetTitle": "피드에 공유",
+  "analytics.oneSideSet": "한쪽", // 한 블록에 배수가 섞였을 때 세트마다(P2 /qa code L-4)
   "analytics.oneSideHeader": "한쪽 입력(볼륨 ×{n})",
   "analytics.lastPrOn": "최근 갱신 {date}",
 } as const;

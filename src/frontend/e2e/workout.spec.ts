@@ -71,6 +71,10 @@ test("운동 한 바퀴 — 시작·종목 추가·세트 기록·완료", async
   // 첫 운동이라 중량·볼륨 PR이 선다(도메인이 인정하는 PR은 이 2종뿐이다).
   await expect(page.getByTestId("summary-prs")).not.toHaveText("0");
   await expect(page.getByTestId("summary-pr-list")).toContainText("벤치프레스");
+  // PR 이 감지돼 그 종목 줄에 붙었는가(목록이 종목 줄로 바뀌어 이름만으로는 PR 0 개여도 통과했다 · P2 /qa code M-6)
+  await expect(
+    page.getByTestId("summary-row").filter({ hasText: "벤치프레스" }).getByTestId("summary-row-pr"),
+  ).toContainText("PR");
 });
 
 test("진행 중인 운동은 새로고침해도 이어진다", async ({ page }) => {

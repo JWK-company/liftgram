@@ -66,9 +66,12 @@ export function ListRow({
   onPress,
   testId,
   danger,
+  wrapSubtitle = false,
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
+  /** 부제를 말줄임 대신 줄바꿈 — 끝 조각(1RM 등)이 「…」 뒤로 숨지 않게(화면 정리 P2 /qa code M-5) */
+  wrapSubtitle?: boolean;
   leading?: ReactNode;
   icon?: IconName;
   value?: ReactNode;
@@ -94,7 +97,11 @@ export function ListRow({
           {title}
         </span>
         {subtitle ? (
-          <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">{subtitle}</span>
+          <span
+            className={`${wrapSubtitle ? "break-words" : "truncate"} text-(--color-ink2) text-[length:var(--text-sm)]`}
+          >
+            {subtitle}
+          </span>
         ) : null}
       </span>
       {value != null ? (

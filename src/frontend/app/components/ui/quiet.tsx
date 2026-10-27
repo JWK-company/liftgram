@@ -280,6 +280,7 @@ export function QuietAction({
   ariaLabel,
   disabled = false,
   busy = false,
+  done = false,
 }: {
   icon: IconName;
   label: string;
@@ -288,6 +289,8 @@ export function QuietAction({
   ariaLabel?: string;
   disabled?: boolean;
   busy?: boolean;
+  /** 끝난 상태(「저장했어요」·「공유했어요」) — 흐리게 하지 않고 글자 대비를 지킨다(P2 /qa code L-6) */
+  done?: boolean;
 }) {
   return (
     <button
@@ -297,7 +300,7 @@ export function QuietAction({
       aria-busy={busy || undefined}
       disabled={disabled || busy}
       onClick={onPress}
-      className="flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-[4px] rounded-[var(--radius-sm)] px-[var(--spacing-xs)] text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) disabled:opacity-60"
+      className={`flex min-h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-[4px] rounded-[var(--radius-sm)] px-[var(--spacing-xs)] text-(--color-ink2) text-[length:var(--text-sm)] active:bg-(--color-surface-alt) ${done ? "" : "disabled:opacity-60"}`}
     >
       <Icon name={icon} size={20} color="var(--color-ink2)" />
       <span className="max-w-full truncate">{label}</span>

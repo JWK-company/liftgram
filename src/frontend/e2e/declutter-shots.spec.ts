@@ -58,6 +58,16 @@ test("요약·기록 상세·분석 캡처 — 390 라이트·다크 · 360×640
   await 요약_재료(page);
   await page.waitForTimeout(800);
   await snap("summary");
+  // 화면 단위 캡처 — 전체 길이 캡처는 sticky 「완료」 바가 부가 행동 줄을 덮는다(P2 /qa code L-7).
+  // 첫 종목의 「PR n」 을 펼친 채 끝까지 내린 실제 뷰포트를 남긴다.
+  await page.getByTestId("summary-row-pr").first().click();
+  for (const s of shots) {
+    await page.setViewportSize({ width: s.w, height: s.h });
+    await page.emulateMedia({ colorScheme: s.scheme });
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: `${OUT}/summary-end-${s.tag}.png` });
+  }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByTestId("btn-summary-close").click();
   await page.goto("/history");
