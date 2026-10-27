@@ -24,6 +24,7 @@ import { ServiceWorker } from "./components/ServiceWorker";
 import { SchemaGuard } from "./components/SchemaGuard";
 import { PrefsBridge } from "./components/PrefsBridge";
 import { AccountGuard } from "./components/sync/AccountGuard";
+import { ImportElsewhereNotice } from "./components/sync/ImportElsewhereNotice";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
 import { TabBar } from "./components/ui/TabBar";
 import "./globals.css";
@@ -97,6 +98,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <LinkInterceptor />
                 {/* 옛 번들이 새 스키마 DB 를 만나면 열지 않고 새로고침만 보인다(D-5 · 다운그레이드 가드). @plm SRS-073 */}
                 <SchemaGuard />
+                {/* 다른 탭에서 기록을 가져오는 중이면 이 탭은 쓰지 않고 안내만 보인다(P5-1). @plm SRS-082 */}
+                <ImportElsewhereNotice />
               </div>
             </ToastProvider>
           </SessionProvider>

@@ -84,6 +84,9 @@ async function runOnMain(
 
 /** Worker 가 이만큼 아무 말이 없으면 죽은 것으로 보고 메인에서 다시 한다(첫 청크 받기 포함) */
 const WORKER_SILENCE_MS = 15_000;
+/** Worker 가 한 번이라도 말했으면(살아서 계산 중) 더 기다린다 — 저사양 폰에서 큰 파일 파싱 한 단계가 15초를 넘기면
+ *  메인에서 같은 계산을 한 번 더 돌려 화면이 굳었다(P5-10). 파일 크기 상한(화면 · 30MB)과 함께 쓴다. */
+const WORKER_BUSY_SILENCE_MS = 60_000;
 
 /**
  * 계산을 돌린다 — Worker 먼저, 안 되면 메인. 계산 자체의 오류(unit_required 등)는 메인으로 다시 하지 않고 그대로 던진다.
@@ -98,9 +101,11 @@ export async function runImportTask(
   const id = ++seq;
   const viaWorker = await new Promise<ImportTaskResult | ImportTaskError | null>((resolve) => {
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let heard = false;
     const arm = () => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(() => finish(null), WORKER_SILENCE_MS);
+      // [원본] timer = setTimeout(() => finish(null), WORKER_SILENCE_MS);
+      timer = setTimeout(() => finish(null), heard ? WORKER_BUSY_SILENCE_MS : WORKER_SILENCE_MS);
     };
     const finish = (v: ImportTaskResult | ImportTaskError | null) => {
       if (timer) clearTimeout(timer);
@@ -112,6 +117,7 @@ export async function runImportTask(
     const onMsg = (ev: MessageEvent<WorkerOutbound>) => {
       const m = ev.data;
       if (!m || m.id !== id) return;
+      heard = true;
       arm();
       if (m.type === "progress") onProgress(m.progress);
       else if (m.type === "done") finish(m.result);

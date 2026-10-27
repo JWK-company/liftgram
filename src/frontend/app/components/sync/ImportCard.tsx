@@ -6,11 +6,15 @@
 //
 // 되돌리기: 묶음의 운동·세트를 지운다(importRepository.undoImportBatch). 가져온 뒤 사람이 고친 세트(user_edited)가 있으면
 // 확인창에 먼저 알린다(D-9). 끝나면 디스크까지 내려쓴 뒤 동기를 재개한다(flush 를 넘긴다 · D-11).
+// 다른 탭이 열려 있으면 되돌리지 않는다(P5-1 · 확인창 전에 한 번, 지우기 직전에 core 가 잠금을 쥐며 한 번 더).
+// 확인창은 고친 세트(무게·횟수·RPE·RIR)·고친 운동(이름·메모)을 알리고(P5-12), 지울 운동이 0인데 묶음이 운동을 기억하면
+// 다른 기기가 같은 파일을 다시 가져가 소유가 넘어갔다고 알린다(P5-11).
 import type ImportBatch from "@app/core/db/models/ImportBatch";
 import { useQueryData } from "@app/core/db/hooks";
 import { useEffect, useState } from "react";
 import { flushLocalDb } from "@/lib/localDb";
 import { navigate } from "@/lib/nav";
+import { countOtherTabs } from "@/lib/tabGuard";
 import { t, type TransKey } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { ConfirmDialog } from "../ui/Dialog";
@@ -55,6 +59,10 @@ export function ImportCard() {
   const askUndo = async (id: string) => {
     if (!repo || busyId) return;
     setMsg(null);
+    if ((await countOtherTabs().catch(() => 0)) > 0) {
+      setMsg({ text: t("import.blocked.other_tab"), bad: true });
+      return;
+    }
     const p = await repo.previewUndoImportBatch(id);
     if (p) setAsking(p);
   };
@@ -65,7 +73,7 @@ export function ImportCard() {
     setAsking(null);
     setBusyId(p.batchId);
     try {
-      // 확인창에서 user_edited 경고를 이미 보였다 → confirmUserEdited
+      // 확인창에서 고친 세트·운동·소유 경고를 이미 보였다 → confirmUserEdited
       const r = await repo.undoImportBatch(p.batchId, {
         confirmUserEdited: true,
         flush: async () => {
@@ -86,8 +94,12 @@ export function ImportCard() {
 
   const undoMessage = (p: UndoPreview) =>
     [
-      t("import.undoConfirm", { workouts: p.workouts, sets: p.sets }),
+      // 지울 것이 0인데 묶음이 운동을 기억한다 — 다른 기기가 같은 파일을 다시 가져갔다(P5-11)
+      p.workouts === 0 && p.recordedWorkouts > 0
+        ? t("import.undoOwnedElsewhere")
+        : t("import.undoConfirm", { workouts: p.workouts, sets: p.sets }),
       p.userEditedSets > 0 ? t("import.undoEditedWarn", { count: p.userEditedSets }) : "",
+      p.editedWorkouts > 0 ? t("import.undoEditedWorkoutsWarn", { count: p.editedWorkouts }) : "",
       p.customExercises.keep.length > 0
         ? t("import.undoKeepsExercises", { count: p.customExercises.keep.length })
         : "",

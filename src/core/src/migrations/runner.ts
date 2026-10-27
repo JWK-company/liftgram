@@ -48,6 +48,8 @@ export interface BootReport {
   normalized: number;
   deferred: number;
   errors: string[];
+  /** 파이프라인 전체를 건너뛴 이유(다른 탭에서 가져오는 중 · P5-1) */
+  skipped?: 'import_elsewhere';
 }
 
 /** 등록된 백필을 순서대로, 아직 안 돈 것만. 실패하면 거기서 멈추고 다음 부팅에 다시. */
@@ -90,6 +92,18 @@ async function pipeline(store: MarkerStore | null): Promise<BootReport> {
       report.errors.push(`${name}: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
+  // 다른 탭에서 가져오기·되돌리기가 진행 중이면 이 탭은 아무것도 쓰지 않는다(P5-1) — 쓰다 만 묶음을 지우지 않고, 이 탭의 쓰기가
+  // 디스크를 덮어쓰지 않게. 화면은 「다른 탭에서 가져오는 중」 안내만 띄운다(웹 lib/tabGuard). @plm SRS-082
+  try {
+    const { isImportRunningElsewhere } = await import('../data/importTabGuard');
+    if (await isImportRunningElsewhere()) {
+      report.skipped = 'import_elsewhere';
+      console.info('[boot] 데이터 파이프라인', report);
+      return report;
+    }
+  } catch {
+    // 판정 실패는 평소처럼 돈다
+  }
   await step('seed', async () => {
     const { topUpSeedCatalog } = await import('../data/seedRunner');
     report.seeded = await topUpSeedCatalog();

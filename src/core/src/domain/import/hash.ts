@@ -135,12 +135,12 @@ export function importWorkoutId(source: string, localStart: string, ordinal = 1)
   return `imp-${source}-${sha16(ordinal > 1 ? `${localStart}#${ordinal}` : localStart)}`;
 }
 
-/** 운동 종목 줄 id — 운동 id + 순번(0부터) */
+/** 운동 종목 줄 id — 운동 id + 파일 안 원래 순번(0부터 · 「가져오지 않기」로 빠진 줄도 센다 · P5-3) */
 export function importWorkoutExerciseId(workoutId: string, index: number): string {
   return `${workoutId}-e${index}`;
 }
 
-/** 세트 id — 운동 종목 줄 id + 순번(0부터) */
+/** 세트 id — 운동 종목 줄 id + 파일 안 원래 세트 순번(0부터) */
 export function importSetId(workoutExerciseId: string, index: number): string {
   return `${workoutExerciseId}-s${index}`;
 }

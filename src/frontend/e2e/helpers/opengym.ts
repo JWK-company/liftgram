@@ -419,8 +419,19 @@ export async function 가져오기_끝까지(
     await page.getByTestId(`import-unit-${unit}`).click();
   await page.getByTestId("btn-import-to-match").click();
   await expect(page.getByTestId("import-match-head")).toBeVisible();
-  await page.getByTestId("btn-import-start").click();
+  await 가져오기_시작(page);
   await expect(page.getByTestId("import-step-done")).toBeVisible({ timeout });
+}
+
+/** 「가져오기」를 누른다 — 확인 안 한 종목이 있으면 뜨는 확인창(P5-4)을 받아들인다 */
+export async function 가져오기_시작(page: Page): Promise<void> {
+  const unconfirmed = await page.getByTestId("import-unconfirmed").count();
+  await page.getByTestId("btn-import-start").click();
+  if (unconfirmed > 0) {
+    const dlg = page.getByTestId("import-unconfirmed-dialog");
+    await expect(dlg).toBeVisible();
+    await dlg.getByTestId("dialog-confirm").click();
+  }
 }
 
 /** IndexedDB 에서 표별 「살아 있는」 행 수(삭제 표시 제외) — prefix 로 id 를 거른다(빈_문서에서). */

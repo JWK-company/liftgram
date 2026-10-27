@@ -233,6 +233,39 @@ test('결정 — skip 종목은 빠지고, 종목이 하나도 안 남은 운동
   assert.equal(same.aliases.length, 0);
 });
 
+test('P5-3 — 하위 id 는 파일 안 원래 순번 · 「가져오지 않기」 결정이 달라도 같은 원본 줄 = 같은 id', () => {
+  const all = plan(fx('strong-comma.csv'), { weightUnit: 'kg' });
+  const some = plan(fx('strong-comma.csv'), { weightUnit: 'kg' }, { ...DEFAULT, 'Bench Press (Barbell)': { kind: 'skip' }, 'Squat (Barbell)': { kind: 'skip' } });
+  /** 종목 줄 id → (종목 id · 세트 id 목록 · 세트 칸 값) */
+  const index = (p: ImportPlan) => {
+    const m = new Map<string, { exerciseId: unknown; sets: string[]; values: string[] }>();
+    for (const w of p.workouts)
+      for (const we of w.exercises) {
+        const sets = w.sets.filter((s) => s.workout_exercise_id === we.id);
+        m.set(we.id as string, {
+          exerciseId: we.exercise_id,
+          sets: sets.map((s) => s.id as string),
+          values: sets.map((s) => `${s.set_number}:${s.weight_kg}x${s.reps}:${s.is_warmup}${s.is_drop}${s.is_failed}`),
+        });
+      }
+    return m;
+  };
+  const a = index(all);
+  const b = index(some);
+  assert.equal(b.size, 2, '벤치·스쿼트를 빼면 푸시다운·러닝 두 줄');
+  for (const [id, row] of b) {
+    assert.ok(a.has(id), `${id} 는 전부 가져오기에도 있다`);
+    assert.deepEqual(row, a.get(id), `${id} — 같은 종목·같은 세트 id·같은 세트 값`);
+  }
+  // 첫 종목을 뺐으므로 남은 줄은 e1 — 원래 순번을 쓴다
+  assert.ok([...b.keys()].every((id) => id.endsWith('-e1')));
+  // sort_order 는 가져온 줄 순번(빈 자리 없음)
+  for (const w of some.workouts) assert.deepEqual(w.exercises.map((r) => r.sort_order), w.exercises.map((_, i) => i));
+  // 같은 결정 두 번 → 같은 id 집합(재가져오기 멱등)
+  const again = plan(fx('strong-comma.csv'), { weightUnit: 'kg' }, { ...DEFAULT, 'Bench Press (Barbell)': { kind: 'skip' }, 'Squat (Barbell)': { kind: 'skip' } });
+  assert.deepEqual(again.workouts.flatMap(plannedIds), some.workouts.flatMap(plannedIds));
+});
+
 test('묶음 자르기 — 운동 단위 ≤2000행 · 큰 운동은 혼자', () => {
   const ws = [900, 900, 300, 2500, 10, 1990].map((rowCount, i) => ({ rowCount, i }));
   const chunks = chunkPlannedWorkouts(ws, 2000);

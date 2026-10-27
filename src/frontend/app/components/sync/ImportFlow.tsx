@@ -11,6 +11,13 @@
 //   · 나가기: 확인·맞추기 단계는 확인창, 진행 단계는 막는다(링크·뒤로 가기·새로고침).
 //   · 가져오기 전 조건(U-19·D-2): 진행 중 운동 → 막음 · 로그인 ∧ 오프라인 ∧ 되돌린 묶음 → 막음 · 다른 가져오기 중 → 막음.
 //   · 가져온 운동은 피드·스토리·PR 폭죽·완료 요약을 타지 않는다 — finishWorkout 경로를 쓰지 않는다(importRepository).
+//   · /qa code 조치(P5):
+//     - 다른 탭이 열려 있으면 막는다(P5-1 · 탭이 열리고 닫히면 곧바로 다시 판정 · 시작 때 core 가 잠금을 쥐며 한 번 더).
+//     - 확인 안 한 「확인 필요」·「못 맞춤」 수를 바닥 막대에 알리고, 누르면 한 번 묻는다(P5-4).
+//     - 운동 0개 파일은 확인 단계에서 막고, 전부 「가져오지 않기」면 시작을 막는다 · 결과 문구는 건너뛴 이유로 고른다(P5-5).
+//     - 시험용 실패 주입은 e2e 빌드(NEXT_PUBLIC_E2E_FAULTS=1)에서만 읽는다(P5-6).
+//     - 진행 중 뒤로 → 「나갈 수 없어요」 · 진행 라벨 aria-live · 단계가 바뀌면 단계 머리로 초점(P5-9).
+//     - 파일 크기 상한 30MB(P5-10).
 // 원본 내용(파일 본문·종목 이름)은 console 에 찍지 않는다.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { ExerciseDecision, ExerciseMatch, ImportWeightUnit } from "@app/core/domain/import/index";
@@ -24,6 +31,8 @@ import { importFileLabel } from "@app/core/domain/import/index";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushLocalDb } from "@/lib/localDb";
 import { navigate } from "@/lib/nav";
+import { E2E_FAULTS } from "@/lib/e2eFlags";
+import { subscribeTabs } from "@/lib/tabGuard";
 import { t, type TransKey } from "@/lib/i18n";
 import {
   disposeImportWorker,
@@ -84,8 +93,10 @@ function clearDraft(): void {
   }
 }
 
-/** 시험 전용 실패 주입(e2e) — localStorage `liftgram.e2e.importFault` = `throw:<n>` | `reload:<n>` | `hold:<n>`(n번째 묶음 뒤 멈춤 — 진행 화면 확인용) */
+/** 시험 전용 실패 주입(e2e) — localStorage `liftgram.e2e.importFault` = `throw:<n>` | `reload:<n>` | `hold:<n>`(n번째 묶음 뒤 멈춤 — 진행 화면 확인용).
+ * e2e 빌드(NEXT_PUBLIC_E2E_FAULTS=1)에서만 읽는다 — 운영 번들에서는 빌드 때 상수로 접혀 죽은 코드가 된다(P5-6: hold 는 이 탭의 모든 쓰기를 세운다). */
 function readFault(): { kind: "throw" | "reload" | "hold"; chunk: number } | null {
+  if (!E2E_FAULTS) return null;
   try {
     const m = /^(throw|reload|hold):(\d+)$/.exec(localStorage.getItem("liftgram.e2e.importFault") ?? "");
     return m ? { kind: m[1] as "throw" | "reload" | "hold", chunk: Number(m[2]) } : null;
@@ -107,6 +118,9 @@ function defaultRow(m: ExerciseMatch): RowState {
     confirmed: false,
   };
 }
+
+/** 파일 크기 상한(P5-10) — 수년치 Hevy 도 대개 수 MB 다. 넘으면 저사양 폰에서 파싱이 길고 원본 사본이 2~3벌 생긴다 */
+const MAX_FILE_MB = 30;
 
 function localDateLabel(local: string | null): string {
   if (!local) return "";
@@ -210,6 +224,7 @@ function ProgressBar({ ratio, label, testId }: { ratio: number | null; label: st
         variant="caption"
         color="textMuted"
         className="block"
+        aria-live="polite"
         data-testid={testId ? `${testId}-label` : undefined}
       >
         {label}
@@ -266,8 +281,14 @@ export default function ImportFlow() {
   const [autoOpen, setAutoOpen] = useState(false);
   const [issuesOpen, setIssuesOpen] = useState(false);
   const [draftKept, setDraftKept] = useState(false);
+  /** 확인 안 한 종목이 있는데 가져오기를 눌렀다 — 한 번 묻는다(P5-4) */
+  const [askUnconfirmed, setAskUnconfirmed] = useState(false);
+  /** 진행 중 뒤로를 눌렀다(P5-9) */
+  const [cantLeave, setCantLeave] = useState(false);
   const textRef = useRef<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const stepHeadRef = useRef<HTMLDivElement>(null);
+  const firstStep = useRef(true);
 
   // 재료: 저장소 · 계획 재료 · 가져오기 전 조건
   const refreshReadiness = useCallback(async (r: Repo) => {
@@ -293,11 +314,26 @@ export default function ImportFlow() {
     const on = () => void refreshReadiness(repo);
     window.addEventListener("online", on);
     window.addEventListener("offline", on);
+    // 다른 탭이 열리고 닫힐 때 다시 판정한다(P5-1). 알림을 못 받는 경우(닫힘 알림 유실)를 위해 3초마다도 본다.
+    const stopTabs = subscribeTabs(on);
+    const timer = setInterval(on, 3000);
     return () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", on);
+      stopTabs();
+      clearInterval(timer);
     };
   }, [repo, refreshReadiness]);
+
+  // 단계가 바뀌면 단계 머리로 초점을 옮긴다 — 스크린리더가 새 단계를 읽는다(P5-9). 첫 화면은 그대로.
+  useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false;
+      return;
+    }
+    stepHeadRef.current?.focus();
+    if (step !== "progress") setCantLeave(false);
+  }, [step]);
 
   // 임시 저장 — 확인·맞추기 단계에서 바뀔 때마다
   useEffect(() => {
@@ -324,6 +360,14 @@ export default function ImportFlow() {
   const onFile = async (file: File) => {
     if (!ctx) return;
     setError(null);
+    if (file.size > MAX_FILE_MB * 1024 * 1024) {
+      setError({
+        key: "import.fatal.too_large",
+        vars: { mb: Math.ceil(file.size / (1024 * 1024)), limit: MAX_FILE_MB },
+      });
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     setTaskProgress({ stage: "hash", ratio: 0 });
     try {
       const text = await file.text();
@@ -359,6 +403,7 @@ export default function ImportFlow() {
   // ── 가져오기 ──
   const start = async () => {
     if (!repo || !ctx || !analysis) return;
+    setAskUnconfirmed(false);
     setError(null);
     setPlanning(true);
     setStep("progress");
@@ -454,6 +499,16 @@ export default function ImportFlow() {
   const review = matches.filter((m) => m.status === "review");
   const none = matches.filter((m) => m.status === "none");
   const auto = matches.filter((m) => m.status === "auto");
+  // 확인 안 한 줄(P5-4) — 손대지 않은 「확인 필요」는 첫 후보로, 「못 맞춤」은 새 내 종목으로 간다
+  const unconfirmedReview = review.filter((m) => !rows[m.sourceName]?.confirmed).length;
+  const unconfirmedNone = none.filter((m) => !rows[m.sourceName]?.confirmed).length;
+  const unconfirmed = unconfirmedReview + unconfirmedNone;
+  // 전부 「가져오지 않기」면 가져올 것이 없다(P5-5)
+  const allSkipped = matches.length > 0 && matches.every((m) => rows[m.sourceName]?.decision.kind === "skip");
+  const onStart = () => {
+    if (unconfirmed > 0) setAskUnconfirmed(true);
+    else void start();
+  };
 
   const sampleLine = (() => {
     const s = analysis?.sample;
@@ -598,7 +653,11 @@ export default function ImportFlow() {
           guardMode === "off"
             ? undefined
             : () => {
-                if (guardMode === "block") return;
+                // [원본] if (guardMode === "block") return; — 아무 반응이 없어 고장처럼 보였다(P5-9)
+                if (guardMode === "block") {
+                  setCantLeave(true);
+                  return;
+                }
                 setLeaveAsk(() => () => {
                   clearDraft();
                   disarm();
@@ -611,14 +670,17 @@ export default function ImportFlow() {
       <div
         className={`flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-md)] ${step === "match" ? "" : "pb-[var(--spacing-xl)]"}`}
       >
-        <AppText
-          variant="caption"
-          color="textMuted"
-          className="mb-[var(--spacing-sm)] block"
-          data-testid="import-step"
-        >
-          {t("import.stepOf", { n: idx + 1, total: steps.length, name: t(stepName[step]) })}
-        </AppText>
+        {/* 단계 머리 — 단계가 바뀌면 여기로 초점(P5-9) */}
+        <div ref={stepHeadRef} tabIndex={-1} className="outline-none" data-testid="import-step-head">
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="mb-[var(--spacing-sm)] block"
+            data-testid="import-step"
+          >
+            {t("import.stepOf", { n: idx + 1, total: steps.length, name: t(stepName[step]) })}
+          </AppText>
+        </div>
 
         {blockedKey && (step === "file" || step === "summary" || step === "match") ? (
           <Card className="mb-[var(--spacing-md)]" data-testid="import-blocked">
@@ -773,9 +835,16 @@ export default function ImportFlow() {
                 </div>
               ) : null}
             </Card>
+            {analysis.workouts === 0 ? (
+              <Card className="mb-[var(--spacing-md)]" data-testid="import-no-workouts">
+                <AppText variant="body" color="warning" role="status">
+                  {t("import.noWorkouts")}
+                </AppText>
+              </Card>
+            ) : null}
             <Button
               title={t("import.toMatch")}
-              disabled={!unit || !ready?.ok}
+              disabled={!unit || !ready?.ok || analysis.workouts === 0}
               onPress={() => {
                 setError(null);
                 setStep("match");
@@ -827,10 +896,30 @@ export default function ImportFlow() {
             ) : null}
             {/* 탭바 위에 붙는 바닥 막대(루틴 편집·댓글과 같은 자리 규칙) */}
             <div className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 -mx-[var(--spacing-lg)] mt-auto border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]">
+              {allSkipped ? (
+                <AppText
+                  variant="caption"
+                  color="warning"
+                  className="mb-[var(--spacing-sm)] block"
+                  data-testid="import-nothing-to-import"
+                >
+                  {t("import.nothingToImport")}
+                </AppText>
+              ) : unconfirmed > 0 ? (
+                <AppText
+                  variant="caption"
+                  color="warning"
+                  className="mb-[var(--spacing-sm)] block"
+                  data-testid="import-unconfirmed"
+                  data-count={unconfirmed}
+                >
+                  {t("import.unconfirmed", { count: unconfirmed })}
+                </AppText>
+              ) : null}
               <Button
                 title={t("import.start", { workouts: analysis.workouts.toLocaleString() })}
-                disabled={!ready?.ok}
-                onPress={() => void start()}
+                disabled={!ready?.ok || allSkipped}
+                onPress={onStart}
                 testId="btn-import-start"
               />
             </div>
@@ -842,6 +931,17 @@ export default function ImportFlow() {
             <AppText variant="heading" className="block" role="status">
               {t("import.progress.head")}
             </AppText>
+            {cantLeave ? (
+              <AppText
+                variant="caption"
+                color="warning"
+                className="mt-[2px] block"
+                role="alert"
+                data-testid="import-cant-leave"
+              >
+                {t("import.progress.cantLeave")}
+              </AppText>
+            ) : null}
             {planning ? (
               <ProgressBar
                 ratio={taskProgress?.ratio ?? 0}
@@ -864,8 +964,14 @@ export default function ImportFlow() {
 
         {step === "done" && result ? (
           <Card data-testid="import-step-done">
-            <AppText variant="heading" className="block">
-              {result.workouts > 0 ? t("import.done") : t("import.nothingNew")}
+            <AppText variant="heading" className="block" data-testid="import-done-head">
+              {/* [원본] {result.workouts > 0 ? t("import.done") : t("import.nothingNew")} — 운동 0개 파일·전부 「가져오지 않기」도
+                  「이미 모두 가져왔어요」라고 했다(P5-5). 「이미 있음」만으로 건너뛰었을 때만 그렇게 말한다. */}
+              {result.workouts > 0
+                ? t("import.done")
+                : result.skipped.length > 0 && result.skipped.every((x) => x.reason === "exists")
+                  ? t("import.nothingNew")
+                  : t("import.nothingImported")}
             </AppText>
             {result.workouts > 0 ? (
               <AppText variant="body" className="mt-[2px] block" data-testid="import-done-summary">
@@ -930,6 +1036,23 @@ export default function ImportFlow() {
             }}
           />
         </Overlay>
+      ) : null}
+
+      {askUnconfirmed ? (
+        <ConfirmDialog
+          title={t("import.unconfirmedTitle")}
+          message={
+            unconfirmedReview > 0 && unconfirmedNone > 0
+              ? t("import.unconfirmedConfirm", { review: unconfirmedReview, none: unconfirmedNone })
+              : unconfirmedReview > 0
+                ? t("import.unconfirmedConfirmReview", { review: unconfirmedReview })
+                : t("import.unconfirmedConfirmNone", { none: unconfirmedNone })
+          }
+          confirmLabel={t("import.unconfirmedGo")}
+          onConfirm={() => void start()}
+          onCancel={() => setAskUnconfirmed(false)}
+          testId="import-unconfirmed-dialog"
+        />
       ) : null}
 
       {leaveAsk ? (

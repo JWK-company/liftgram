@@ -3,7 +3,7 @@
 // ── 쓰기 전략(ADR-043 개정 · D-11) ──────────────────────────────────────────
 // 웹 어댑터는 LokiJS 이고 메인 스레드에서 동기적으로 돌며 트랜잭션이 없다(batch 실패 시 드라이버가 망가짐 상태). 그래서
 //   ① import_batches 행을 status='writing' 으로 먼저 만들고(커스텀 종목·별칭도 같은 write)
-//   ② 운동 단위 묶음(≤2000행)씩 write + 사이 양보(setTimeout 0)
+//   ② 운동 단위 묶음(≤1000행 · P5-8)씩 write + 사이 양보(setTimeout 0)
 //   ③ 마지막에 status='done'.
 // 탭이 닫히거나 예외가 나면 status='writing' 이 남는다 → 부팅 정리(cleanupUnfinishedImports)가 그 행들을 지우고 묶음도 지운다.
 // 쓰는 동안 동기는 멈춘다(pauseSync) — 반쯤 쓴 묶음이 서버로 가지 않게. 그래서 부팅 정리가 지우는 created 행은 서버에 없다.
@@ -26,6 +26,7 @@ import type { SearchableExercise } from '../domain/exerciseSearch';
 import { resolveBodyweightKg } from '../domain/bodyweight';
 import { chunkPlannedWorkouts, plannedIds, type ImportPlan, type SkippedWorkout } from '../domain/import/plan';
 import { markLocalWins } from '../sync/localWins';
+import { getImportTabGuard, isImportRunningElsewhere } from './importTabGuard';
 import { isSyncLoggedIn, pauseSync, scheduleSync, syncWithServer } from '../sync/syncEngine';
 
 /** 내려쓰기(flush) 기다림 상한 — 끝나지 않는 flush 가 동기 재개(release)를 막지 않게(CD-6). */
@@ -53,11 +54,13 @@ const weCol = () => database.get<WorkoutExercise>('workout_exercises');
 const setsCol = () => database.get<SetLog>('set_logs');
 const routineExCol = () => database.get<RoutineExercise>('routine_exercises');
 
-/** 가져오기 전 두 번째 pull 까지 기다림 — 서버 커서 겹침(1초)보다 조금 길게 */
-const PULL_OVERLAP_WAIT_MS = 1100;
+/** 가져오기 전 두 번째 pull 까지 기다림 — 서버 커서 겹침(1초)보다 조금 길게. [원본 · P5-2 로 걷음 — 원복용으로 남긴다] */
+export const PULL_OVERLAP_WAIT_MS = 1100;
 
-/** 한 write 에 넣는 최대 행 수(쓰기·지우기 공통 · ADR-043 개정) */
-export const IMPORT_WRITE_MAX_ROWS = 2000;
+/** 한 write 에 넣는 최대 행 수(쓰기·지우기 공통 · ADR-043 개정).
+ * [원본] 2000 — 6× CPU 에서 가장 긴 long task 588ms(P5-8). [개선] 1000 — long task 약 절반, 양보가 몇 번 늘 뿐이다. */
+// export const IMPORT_WRITE_MAX_ROWS = 2000;
+export const IMPORT_WRITE_MAX_ROWS = 1000;
 
 const yieldToUi = () => new Promise<void>((r) => setTimeout(r, 0));
 
@@ -72,6 +75,8 @@ export type ImportBlockReason =
   | 'offline_with_undone'
   /** 다른 가져오기·되돌리기가 진행 중이다 */
   | 'import_in_progress'
+  /** 같은 브라우저에 리프트그램 탭이 더 열려 있다 — 다른 탭의 자동 저장이 가져온 기록을 디스크에서 덮어쓴다(P5-1) */
+  | 'other_tab'
   /** 가져오기 직전 동기가 실패했다(로그인 상태 · D-2) */
   | 'sync_failed'
   /** 쓰다가 실패했고 정리도 못 했다 — 새로고침하면 부팅 정리가 지운다(그때까지 동기는 멈춘 채) */
@@ -96,6 +101,24 @@ export interface ImportReadiness {
 }
 
 let busy = false;
+
+// ── 다른 탭 가드(P5-1 · 갈고리는 ./importTabGuard — 부팅 파이프라인도 이 파일을 열지 않고 묻는다) ─────────────────
+export { installImportTabGuard, isImportRunningElsewhere, type ImportTabGuard } from './importTabGuard';
+
+/** 다른 탭에서 가져오는 중이라 부팅 정리를 미뤘나(이 실행에서) */
+let cleanupDeferred = false;
+export function isImportCleanupDeferred(): boolean {
+  return cleanupDeferred;
+}
+
+/** 이 탭 혼자인지 확인하고 「가져오는 중」 잠금을 쥔다. 다른 탭이 있으면 ImportBlockedError('other_tab') */
+async function acquireTabLock(): Promise<() => void> {
+  const tabGuard = getImportTabGuard();
+  if (!tabGuard) return () => undefined;
+  const release = await tabGuard.acquire();
+  if (!release) throw new ImportBlockedError('other_tab');
+  return release;
+}
 
 /** 진행 중인 운동이 있나(active·paused) — workoutRepository.getActiveWorkout 과 같은 조건 */
 async function hasActiveWorkout(): Promise<boolean> {
@@ -122,6 +145,10 @@ async function evaluateReadiness(online: boolean, selfBusy: boolean): Promise<Im
   const base = { needsSync: loggedIn && online, loggedIn };
   if ((busy && !selfBusy) || (await batches().query(Q.where('status', 'writing')).fetchCount()) > 0)
     return { ok: false, reason: 'import_in_progress', ...base };
+  // 이 탭이 쥔 잠금 안(selfBusy)에서는 acquire 가 이미 셌다
+  const tabGuard = getImportTabGuard();
+  if (!selfBusy && tabGuard && (await tabGuard.countOtherTabs().catch(() => 0)) > 0)
+    return { ok: false, reason: 'other_tab', ...base };
   if (await hasActiveWorkout()) return { ok: false, reason: 'active_workout', ...base };
   if (loggedIn && !online && (await hasUndoneImportBatch())) return { ok: false, reason: 'offline_with_undone', ...base };
   return { ok: true, reason: null, ...base };
@@ -236,18 +263,23 @@ export async function importPlan(
 ): Promise<ImportResult> {
   if (busy) throw new ImportBlockedError('import_in_progress');
   busy = true;
+  let tabRelease: (() => void) | null = null;
+  let holdTabLock = false;
   try {
+    // 다른 탭이 열려 있으면 시작하지 않는다 — 쥔 잠금은 flush·동기 재개가 끝날 때까지 놓지 않는다(P5-1)
+    tabRelease = await acquireTabLock();
     const ready = await evaluateReadiness(opts.online ?? true, true);
     if (!ready.ok) throw new ImportBlockedError(ready.reason ?? 'import_in_progress');
     if (ready.needsSync) {
       onProgress?.({ phase: 'sync', chunk: 0, chunks: 0, workoutsDone: 0, workoutsTotal: plan.workouts.length });
       try {
         await syncWithServer(); // 예전 되돌리기의 삭제 표시를 먼저 받는다(D-2)
-        // [개선] 서버 커서는 조회 상한에서 1초 물린다(sync service cursorOverlap) — 방금 받은 삭제 표시가 다음 pull 에 또 온다.
-        // 그 pull 이 쓰기 **뒤**에 오면 같은 id 로 새로 쓴 행이 지워진다(원격 삭제 우선 · P5 e2e D-2 실측: 다른 기기 되돌리기 직후
-        // 1초 안에 로그인·가져오기 → 60개 전부 사라짐). 겹침을 넘긴 뒤 한 번 더 받아 커서를 그 삭제 표시 너머로 옮긴다.
-        await new Promise((r) => setTimeout(r, PULL_OVERLAP_WAIT_MS));
-        await syncWithServer();
+        // [원본 · P5-2 로 걷음] 서버 커서는 조회 상한에서 1초 물린다(sync service cursorOverlap) — 방금 받은 삭제 표시가 다음 pull 에
+        // 또 온다. 그 pull 이 쓰기 **뒤**에 오면 같은 id 로 새로 쓴 행이 지워졌다(P5 e2e D-2 실측). 겹침을 넘긴 뒤 한 번 더 받았다.
+        // 이제 pull 보호(sync/importPullGuard)가 로컬 created 인 가져온 행의 원격 삭제를 적용하지 않으므로(다음 push 가 되살린다)
+        // 대기·재동기가 필요 없다. 원복하려면 아래 두 줄의 주석을 푼다.
+        // await new Promise((r) => setTimeout(r, PULL_OVERLAP_WAIT_MS));
+        // await syncWithServer();
       } catch {
         throw new ImportBlockedError('sync_failed');
       }
@@ -269,6 +301,7 @@ export async function importPlan(
           await removeBatch(plan.batch.id, 'cleanup', false);
         } catch {
           keepPaused = true;
+          holdTabLock = true; // 새로고침 전까지 「가져오는 중」 — 새로 연 탭이 반쯤 쓴 묶음을 건드리지 않게(이 탭의 새로고침이 정리한다)
           throw new ImportBlockedError('write_failed_reload');
         }
         throw new ImportBlockedError('write_failed');
@@ -287,6 +320,7 @@ export async function importPlan(
     }
   } finally {
     busy = false;
+    if (!holdTabLock) tabRelease?.();
   }
 }
 
@@ -304,7 +338,10 @@ async function writePlan(plan: ImportPlan, onProgress: ((p: ImportProgress) => v
 
   // ① 묶음 행(writing) + 커스텀 종목 + 별칭
   await database.write(async () => {
-    if ((await existingIdsIn(batches() as unknown as Collection<Model>, [b.id])).length) throw new Error('같은 묶음 id 가 이미 있다');
+    // [원본] 일반 Error → catch 가 removeBatch(b.id,'cleanup') 로 **이미 있던 남의 묶음**을 지웠다(P5-7)
+    // if ((await existingIdsIn(batches() as unknown as Collection<Model>, [b.id])).length) throw new Error('같은 묶음 id 가 이미 있다');
+    // [개선] ImportBlockedError 는 catch 가 그대로 통과시킨다 — 정리하지 않는다
+    if ((await existingIdsIn(batches() as unknown as Collection<Model>, [b.id])).length) throw new ImportBlockedError('import_in_progress');
     const ops: Model[] = [
       batches().prepareCreateFromDirtyRaw({
         id: b.id,
@@ -458,8 +495,13 @@ export interface UndoPreview {
   status: 'writing' | 'done' | 'undone';
   workouts: number;
   sets: number;
-  /** 가져온 뒤 사람이 고친 세트(user_edited) — 있으면 화면이 먼저 묻는다(D-9) */
+  /** 가져온 뒤 고친 세트 — 무게·횟수(user_edited) · RIR(가져온 세트는 늘 null) · RPE 등 그 밖의 칸(updated_at>created_at).
+   * 있으면 화면이 먼저 묻는다(D-9 · P5-12) */
   userEditedSets: number;
+  /** 가져온 뒤 고친 운동(이름·메모 — updated_at>created_at · P5-12) */
+  editedWorkouts: number;
+  /** 묶음 행이 기억하는 가져온 운동 수 — 지울 운동이 0인데 이것이 0보다 크면 다른 기기가 같은 파일을 다시 가져가 소유가 넘어갔다(P5-11) */
+  recordedWorkouts: number;
   /** 지울 커스텀 종목(묶음 밖 참조 0) / 남길 종목(참조가 있어 import_batch_id 만 비운다) */
   customExercises: { remove: string[]; keep: string[] };
   /** 지울 별칭(지울 종목을 가리키는 것만) */
@@ -505,13 +547,25 @@ function statusOf(b: ImportBatch): UndoPreview['status'] {
   return b.status === 'writing' ? 'writing' : b.status === 'undone' ? 'undone' : 'done';
 }
 
+const ms = (d: Date | null | undefined): number => d?.getTime?.() ?? 0;
+/** 가져온 뒤 고쳤나 — 가져오기는 created_at=updated_at 으로 쓰고(plan.ts), 모델 update 는 updated_at 을 새로 찍는다 */
+const changedAfterImport = (m: { createdAt: Date; updatedAt: Date }) => ms(m.updatedAt) > ms(m.createdAt);
+
+/** 가져온 뒤 고친 세트인가(P5-12) — 무게·횟수(user_edited) · RIR(가져온 세트는 rir=null) · 그 밖의 칸(RPE 등) */
+export function isSetEditedAfterImport(s: { userEdited: boolean | null; rir: number | null; createdAt: Date; updatedAt: Date }): boolean {
+  return s.userEdited === true || s.rir != null || changedAfterImport(s);
+}
+
 function previewOf(r: BatchRows): UndoPreview {
   return {
     batchId: r.batch.id,
     status: statusOf(r.batch),
     workouts: r.workouts.length,
     sets: r.sets.length,
-    userEditedSets: r.sets.filter((s) => s.userEdited === true).length,
+    // [원본] userEditedSets: r.sets.filter((s) => s.userEdited === true).length,
+    userEditedSets: r.sets.filter((s) => isSetEditedAfterImport(s)).length,
+    editedWorkouts: r.workouts.filter((w) => changedAfterImport(w)).length,
+    recordedWorkouts: r.batch.workoutCount ?? 0,
     customExercises: { remove: r.customRemove.map((c) => c.id), keep: r.customKeep.map((c) => c.id) },
     aliasesToRemove: r.aliases.length,
   };
@@ -588,6 +642,11 @@ async function removeBatch(batchId: string, mode: 'undo' | 'cleanup', loggedIn: 
 
 export type UndoResult = { status: 'needs_confirm'; preview: UndoPreview } | { status: 'undone'; preview: UndoPreview };
 
+/** 되돌리기 전에 사람에게 한 번 물어야 하나 — 고친 세트·운동(P5-12) · 지울 것이 0인데 묶음은 가져온 운동을 기억(P5-11) */
+export function undoNeedsConfirm(p: UndoPreview): boolean {
+  return p.userEditedSets > 0 || p.editedWorkouts > 0 || (p.workouts === 0 && p.recordedWorkouts > 0);
+}
+
 /**
  * 묶음 되돌리기. 가져온 뒤 사람이 고친 세트가 있으면 `confirmUserEdited` 없이는 지우지 않고 'needs_confirm' 을 돌려준다.
  * 이미 되돌렸으면 아무것도 안 하고 'undone'. 쓰는 동안 동기를 멈추고, 끝나면 flush 뒤 재개한다.
@@ -599,11 +658,15 @@ export async function undoImportBatch(
 ): Promise<UndoResult> {
   if (busy) throw new ImportBlockedError('import_in_progress');
   busy = true;
+  let tabRelease: (() => void) | null = null;
   try {
     const preview = previewOf(await collectBatchRows(batchId));
     if (preview.status === 'undone') return { status: 'undone', preview };
     if (preview.status === 'writing') throw new ImportBlockedError('import_in_progress');
-    if (preview.userEditedSets > 0 && !opts.confirmUserEdited) return { status: 'needs_confirm', preview };
+    // [원본] if (preview.userEditedSets > 0 && !opts.confirmUserEdited) return { status: 'needs_confirm', preview };
+    if (undoNeedsConfirm(preview) && !opts.confirmUserEdited) return { status: 'needs_confirm', preview };
+    // 다른 탭이 열려 있으면 지우지 않는다 — 쥔 잠금은 flush·동기 재개가 끝날 때까지(P5-1)
+    tabRelease = await acquireTabLock();
     const loggedIn = await isSyncLoggedIn();
     const release = await pauseSync();
     try {
@@ -621,6 +684,7 @@ export async function undoImportBatch(
     }
   } finally {
     busy = false;
+    tabRelease?.();
   }
 }
 
@@ -631,6 +695,11 @@ export async function undoImportBatch(
 export async function cleanupUnfinishedImports(): Promise<number> {
   if (busy) return 0;
   const writing = await batches().query(Q.where('status', 'writing')).fetch();
+  // 다른 탭이 지금 쓰고 있는 묶음일 수 있다 — 지우지 않는다(P5-1 · 그 탭이 끝내거나, 닫힌 뒤 다음 부팅이 지운다)
+  if (writing.length && (await isImportRunningElsewhere())) {
+    cleanupDeferred = true;
+    return 0;
+  }
   let n = 0;
   for (const b of writing) {
     await removeBatch(b.id, 'cleanup', false);

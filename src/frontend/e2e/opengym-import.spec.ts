@@ -16,6 +16,7 @@ import {
   idb_행_수,
   가입,
   가져오기_끝까지,
+  가져오기_시작,
   가져오기_파일,
   내려쓰기_대기,
   동기,
@@ -42,14 +43,15 @@ async function 가져온_행(page: Page): Promise<Record<string, number>> {
   return { ...n, import_batches: b.import_batches };
 }
 
-async function 되돌리기(page: Page, editedWarn = false): Promise<void> {
+async function 되돌리기(page: Page, editedWarn = false, editedWorkoutWarn = false): Promise<void> {
   await page.goto("/account");
   const row = page.getByTestId("import-history").locator('[data-status="done"]').first();
   await expect(row).toBeVisible({ timeout: 20_000 });
   await row.getByTestId("btn-import-undo").click();
   const dlg = page.getByTestId("import-undo-dialog");
   await expect(dlg).toBeVisible();
-  if (editedWarn) await expect(dlg).toContainText("고친 세트 1개");
+  if (editedWarn) await expect(dlg).toContainText("고친 세트(무게·횟수·RPE·RIR 등) 1개");
+  if (editedWorkoutWarn) await expect(dlg).toContainText("이름·메모를 고친 운동 1개");
   await dlg.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("import-card-status")).toContainText("되돌렸어요", { timeout: 60_000 });
 }
@@ -125,7 +127,12 @@ test.describe("로그아웃 기기 — Strong 표본", () => {
     const sets = (await idb_행(page, "set_logs")).filter((r) => String(r.id).startsWith("imp-"));
     expect(sets.length).toBe(9);
     await idb_행_고치기(page, "set_logs", [{ id: String(sets[0].id), set: { user_edited: true } }]);
-    await 되돌리기(page, true);
+    // 가져온 운동 하나의 이름을 고친 것으로(updated_at 이 created_at 보다 뒤) → 「고친 운동 1개」 경고(P5-12)
+    const ws = (await idb_행(page, "workouts")).filter((r) => String(r.id).startsWith("imp-"));
+    await idb_행_고치기(page, "workouts", [
+      { id: String(ws[0].id), set: { name: "이름 바꿈" }, shiftUpdatedAt: 60_000 },
+    ]);
+    await 되돌리기(page, true, true);
     await expect(page.getByTestId("import-batch-undone")).toBeVisible();
     await 내려쓰기_대기(page);
     const left = await 가져온_행(page);
@@ -194,7 +201,7 @@ test.describe("로그아웃 기기 — Strong 표본", () => {
     await 가져오기_파일(page, "big.csv", big.text);
     await page.getByTestId("import-unit-kg").click();
     await page.getByTestId("btn-import-to-match").click();
-    await page.getByTestId("btn-import-start").click();
+    await 가져오기_시작(page);
     await expect(page.getByTestId("import-error")).toContainText("쓴 것은 모두 지웠어요", {
       timeout: 120_000,
     });
@@ -225,7 +232,7 @@ test.describe("로그아웃 기기 — Strong 표본", () => {
         : route.continue(),
     );
     const reloaded = page.waitForEvent("load", { timeout: 120_000 });
-    await page.getByTestId("btn-import-start").click();
+    await 가져오기_시작(page);
     await reloaded;
     const half = await idb_행_수(page, 표, "imp-");
     const halfBatches = (await idb_행(page, "import_batches")).map((b) => b.status);
@@ -266,8 +273,8 @@ test.describe("진행 화면은 닫을 수 없다", () => {
     await 가져오기_파일(page, "big.csv", 큰_Strong_파일({ workouts: 300 }).text);
     await page.getByTestId("import-unit-kg").click();
     await page.getByTestId("btn-import-to-match").click();
-    await page.getByTestId("btn-import-start").click();
-    await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음 1/3", {
+    await 가져오기_시작(page);
+    await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음 1/5", {
       timeout: 60_000,
     });
     await page.getByTestId("shell-nav").locator('a[href="/stats"]').click();
@@ -396,7 +403,7 @@ test.describe("로그인 기기", () => {
     await page.getByTestId("import-unit-kg").click();
     await page.getByTestId("btn-import-to-match").click();
     const t1 = Date.now();
-    await page.getByTestId("btn-import-start").click();
+    await 가져오기_시작(page);
     await expect(page.getByTestId("import-step-done")).toBeVisible({ timeout: 300_000 });
     const tImport = Date.now() - t1;
     await expect(page.getByTestId("import-done-summary")).toContainText("운동 1,000개 · 세트 10,000개");
@@ -477,5 +484,158 @@ test.describe("로그인 기기", () => {
     await 동기(page);
     await 내려쓰기_대기(page);
     expect((await 가져온_행(page)).workouts).toBe(60);
+  });
+});
+
+// ── /qa code P5 조치 ────────────────────────────────────────────────────────
+test.describe("다른 탭 가드(P5-1)", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("탭 둘이면 가져오기·되돌리기가 막히고, 다른 탭을 닫으면 풀린다", async ({ page, context }) => {
+    test.setTimeout(240_000);
+    const csv = 시험_파일("strong-comma.csv");
+    await 준비(page);
+    // 혼자일 때 한 번 가져온다(되돌리기 막힘을 보려고)
+    await 가져오기_파일(page, "strong_export.csv", csv);
+    await 가져오기_끝까지(page, "kg");
+    await expect(page.getByTestId("import-done-summary")).toContainText("운동 2개");
+
+    const other = await context.newPage();
+    await other.goto("/");
+    await expect(other.getByTestId("shell-nav")).toBeVisible({ timeout: 30_000 });
+
+    // 가져오기: 파일 고르기 전부터 막힌다
+    await page.goto("/account/import");
+    await expect(page.getByTestId("import-blocked")).toContainText("다른 탭에 열린 리프트그램을 닫은 뒤", {
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId("btn-import-pick")).toBeDisabled();
+    // 다른 탭은 안내를 띄우지 않는다(가져오는 중이 아니다)
+    await expect(other.getByTestId("import-elsewhere-notice")).toHaveCount(0);
+
+    // 되돌리기: 확인창 전에 막힌다 · 묶음은 그대로
+    await page.goto("/account");
+    const row = page.getByTestId("import-history").locator('[data-status="done"]').first();
+    await expect(row).toBeVisible({ timeout: 20_000 });
+    await row.getByTestId("btn-import-undo").click();
+    await expect(page.getByTestId("import-card-status")).toContainText("다른 탭에 열린 리프트그램을 닫은 뒤");
+    await expect(page.getByTestId("import-undo-dialog")).toHaveCount(0);
+    await expect(row).toHaveAttribute("data-status", "done");
+
+    // 다른 탭을 닫으면 곧바로 풀린다
+    await page.goto("/account/import");
+    await expect(page.getByTestId("import-blocked")).toBeVisible({ timeout: 20_000 });
+    await other.close();
+    await expect(page.getByTestId("import-blocked")).toHaveCount(0, { timeout: 10_000 });
+    await expect(page.getByTestId("btn-import-pick")).toBeEnabled();
+  });
+
+  test("가져오는 중에 새로 연 탭은 부팅 정리를 하지 않고 안내만 · 가져오던 탭이 닫힌 뒤 새로고침하면 정리", async ({
+    page,
+    context,
+  }) => {
+    test.setTimeout(240_000);
+    await 준비(page);
+    await page.evaluate(() => localStorage.setItem("liftgram.e2e.importFault", "hold:1"));
+    await page.goto("/account/import");
+    await 가져오기_파일(page, "big.csv", 큰_Strong_파일({ workouts: 300 }).text);
+    await page.getByTestId("import-unit-kg").click();
+    await page.getByTestId("btn-import-to-match").click();
+    await 가져오기_시작(page);
+    await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음 1/5", {
+      timeout: 60_000,
+    });
+    // 진행 중 앱바 뒤로 → 「나갈 수 없어요」(P5-9)
+    await page.getByTestId("btn-back").click();
+    await expect(page.getByTestId("import-cant-leave")).toBeVisible();
+    await page.evaluate(() => localStorage.removeItem("liftgram.e2e.importFault"));
+    await 내려쓰기_대기(page); // 1묶음이 디스크에 내려가게(자동 저장)
+
+    const other = await context.newPage();
+    await other.goto("/");
+    const notice = other.getByTestId("import-elsewhere-notice");
+    await expect(notice).toBeVisible({ timeout: 30_000 });
+    await expect(notice).toHaveAttribute("data-state", "importing");
+    await expect(notice).toContainText("다른 탭에서 기록을 가져오는 중이에요");
+    await other.waitForTimeout(3_000); // 부팅 파이프라인이 돌았으면 지웠을 시간
+    // 디스크: 쓰다 만 묶음이 그대로다(새 탭이 지우지 않았다)
+    const batches = await idb_행(other, "import_batches");
+    expect(batches.map((b) => b.status)).toEqual(["writing"]);
+    const half = await idb_행_수(other, 표, "imp-");
+    expect(half.workouts).toBeGreaterThan(0);
+
+    // 가져오던 탭이 닫힌다(탭이 닫힌 것 = 쓰다 만 묶음) → 새 탭을 새로고침하면 부팅 정리가 지운다
+    page.on("dialog", (d) => void d.accept());
+    await page.close({ runBeforeUnload: false });
+    await other.reload();
+    await expect(other.getByTestId("shell-nav")).toBeVisible({ timeout: 30_000 });
+    await expect(other.getByTestId("import-elsewhere-notice")).toHaveCount(0);
+    await other.waitForTimeout(3_000);
+    expect(await 가져온_행(other)).toEqual({
+      workouts: 0,
+      workout_exercises: 0,
+      set_logs: 0,
+      import_batches: 0,
+    });
+  });
+});
+
+test.describe("가져올 것이 없을 때(P5-5)", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("운동 0개 파일은 확인 단계에서 막고, 전부 「가져오지 않기」면 시작을 막는다", async ({ page }) => {
+    test.setTimeout(120_000);
+    await 준비(page);
+    const broken =
+      "Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE\n" +
+      'not-a-date,"Push Day",1h,"Bench Press (Barbell)",1,80,5,,0,,,\n';
+    await 가져오기_파일(page, "broken.csv", broken);
+    await expect(page.getByTestId("import-no-workouts")).toContainText("읽을 수 있는 운동이 없어요");
+    await expect(page.getByTestId("btn-import-to-match")).toBeDisabled();
+
+    await page.goto("/account");
+    await 가져오기_파일(page, "strong_export.csv", 시험_파일("strong-comma.csv"));
+    await page.getByTestId("import-unit-kg").click();
+    await page.getByTestId("btn-import-to-match").click();
+    if ((await page.getByTestId("import-match-auto-toggle").count()) > 0)
+      await page.getByTestId("import-match-auto-toggle").click();
+    for (;;) {
+      const skip = page.getByTestId("import-match-skip");
+      if ((await skip.count()) === 0) break;
+      await skip.first().click();
+    }
+    await expect(page.getByTestId("import-nothing-to-import")).toBeVisible();
+    await expect(page.getByTestId("btn-import-start")).toBeDisabled();
+  });
+});
+
+test.describe("확인 안 한 종목(P5-4)", () => {
+  test.use({ serviceWorkers: "block" });
+
+  test("확인 필요·못 맞춤 수를 알리고, 가져오기를 누르면 한 번 묻는다 · 취소하면 그대로", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await 준비(page);
+    // 우리 카탈로그에 없는 이름 → 「못 맞춤」
+    const csv =
+      "Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE\n" +
+      '2026-08-25 10:10:00,"Day",1h,"Zorblax Gizmo Press",1,50,5,,0,,,\n';
+    await 가져오기_파일(page, "odd.csv", csv);
+    await page.getByTestId("import-unit-kg").click();
+    await page.getByTestId("btn-import-to-match").click();
+    await expect(page.getByTestId("import-unconfirmed")).toContainText("확인 안 한 종목 1개");
+    await page.getByTestId("btn-import-start").click();
+    const dlg = page.getByTestId("import-unconfirmed-dialog");
+    await expect(dlg).toBeVisible();
+    await expect(dlg).toContainText("「못 맞춤」 1개는 새 내 종목으로 가져와요. 이대로");
+    await dlg.getByTestId("dialog-cancel").click();
+    await expect(page.getByTestId("import-flow")).toHaveAttribute("data-step", "match");
+    // 「가져오지 않기」 대신 「내 종목 만들기」로 확인하면 알림이 사라지고 묻지 않는다
+    await page.getByTestId("import-match-custom-name").fill("내 기묘한 프레스");
+    await expect(page.getByTestId("import-unconfirmed")).toHaveCount(0);
+    await page.getByTestId("btn-import-start").click();
+    await expect(page.getByTestId("import-step-done")).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByTestId("import-done-summary")).toContainText("운동 1개");
   });
 });

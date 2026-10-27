@@ -29,6 +29,7 @@ import { SCHEMA_VERSION } from '../db/schema';
 import { isSchemaDowngradeBlocked } from '../db/schemaGuard'; // v26 다운그레이드 가드 @plm SRS-073
 import { bootPipelineSettled } from '../migrations/runner';
 import { dropCatalogRows } from './catalogFilter';
+import { protectLocallyCreatedImports } from './importPullGuard';
 import { countPendingUserChanges } from './pending';
 import { isSyncBlocked } from './syncOwner';
 
@@ -256,10 +257,15 @@ async function runSynchronize(): Promise<void> {
     sendCreatedAsUpdated: true,
     pullChanges: async ({ lastPulledAt }) => {
       const res = await t.pull(lastPulledAt ?? 0);
-      return {
-        changes: dropCatalogRows(dropInProgressWorkouts(stripInternalFields(decode(res.changes))), knownTables),
-        timestamp: res.timestamp,
-      };
+      // [원본]
+      // return {
+      //   changes: dropCatalogRows(dropInProgressWorkouts(stripInternalFields(decode(res.changes))), knownTables),
+      //   timestamp: res.timestamp,
+      // };
+      // [개선] 원격 삭제 표시가 이 기기에서 새로 가져온(created) 행을 지우지 않게 한다 — 다음 push 가 되살린다(P5-2). @plm SRS-082
+      const filtered = dropCatalogRows(dropInProgressWorkouts(stripInternalFields(decode(res.changes))), knownTables);
+      const guarded = await protectLocallyCreatedImports(database, filtered);
+      return { changes: guarded.changes, timestamp: res.timestamp };
     },
     pushChanges: async ({ changes }) => {
       // 시드 종목 행은 올리지 않는다(D10). 걸러낸 행도 WatermelonDB 는 '보냈다'로 표시한다 — 그래서 매번 다시 세지 않는다.

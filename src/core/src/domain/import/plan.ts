@@ -11,7 +11,8 @@
 // import_batches     tz_offset_min · weight_unit · file_label(40자)
 //
 // ── id(ADR-042 개정 · D-7) ──────────────────────────────────────────────────
-// 운동 `imp-<source>-<sha16(정규화 현지 시각)>`(같은 시각 두 번이면 `#n`) · 하위 id 는 순번 파생 · 커스텀 종목 `cx-…` · 별칭 `ia-…`.
+// 운동 `imp-<source>-<sha16(정규화 현지 시각)>`(같은 시각 두 번이면 `#n`) · 하위 id 는 **파일 안 원래 순번** 파생(종목 줄·세트 —
+// 「가져오지 않기」 결정과 무관 · P5-3) · 커스텀 종목 `cx-…` · 별칭 `ia-…`.
 // 시간대는 epoch 변환에만 쓴다 — 같은 파일은 어느 시간대의 기기에서도 같은 id 집합이 된다.
 import type { EquipmentType, LoadMode, LoggedSet, MuscleGroup } from '../types';
 import { resolveLoadMode, totalVolumeKg } from '../volume';
@@ -231,10 +232,16 @@ export function buildImportPlan(input: PlanInput): ImportPlan {
     const customIds = new Set<string>();
     const logged: LoggedSet[] = [];
     let weIndex = 0;
-    for (const pe of pw.exercises) {
+    // [원본] 종목 줄 id 가 「가져온 줄」 순번(weIndex)이라 「가져오지 않기」 결정에 따라 밀렸다 — 두 기기가 다른 결정으로 가져오면
+    //        같은 id 가 다른 원본 줄을 가리켜 종목·세트가 섞였다(P5-3).
+    // for (const pe of pw.exercises) {
+    // [개선] id 는 파일 안 원래 순번(빠진 줄도 센다) — 결정과 무관하게 같은 id = 같은 원본 줄. sort_order 는 가져온 줄 순번 그대로
+    //        (빈 자리 없이 0..n-1 — 기록 화면의 종목 추가가 count 를 sort_order 로 쓴다).
+    for (const [peIndex, pe] of pw.exercises.entries()) {
       const r = resolve(pe.name);
       if (!r || pe.sets.length === 0) continue;
-      const weId = importWorkoutExerciseId(wid, weIndex);
+      // [원본] const weId = importWorkoutExerciseId(wid, weIndex);
+      const weId = importWorkoutExerciseId(wid, peIndex);
       if (customById.has(r.exerciseId)) customIds.add(r.exerciseId);
       const notes = [pe.note, ...pe.sets.map((s) => s.note)].filter((n): n is string => !!n);
       const vc = variantColumns(r.variant ?? {});

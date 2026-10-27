@@ -4,6 +4,8 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const config: NextConfig = {
+  // e2e 빌드 깃발(SRS-082 P5-6) — 빌드 때 브라우저 번들에 상수로 박는다. 운영 빌드는 빈 값이라 시험용 실패 주입이 죽은 코드가 된다(lib/e2eFlags).
+  env: { NEXT_PUBLIC_E2E_FAULTS: process.env.NEXT_PUBLIC_E2E_FAULTS === "1" ? "1" : "" },
   // 빌드 산출물을 .next/standalone 으로 — 런타임 이미지에 소스와 devDeps를 넣지 않는다.
   output: "standalone",
 

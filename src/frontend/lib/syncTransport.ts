@@ -15,6 +15,7 @@
 // 폰으로 기록하는 동안 노트북에 띄워 둔 화면이 그 경우다. 탭이 숨겨져 있으면 쉰다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { SyncService } from "@app/contracts";
+import { installImportTabGuard } from "@app/core/data/importTabGuard";
 import { runBootPipeline } from "@app/core/migrations/runner";
 import { PUSH_CHUNK_MAX, splitSyncChanges } from "@app/core/sync/pushChunks";
 import {
@@ -35,6 +36,7 @@ import {
 import { createClient } from "@connectrpc/connect";
 import { invalidateExerciseNames } from "./exerciseNames";
 import { getPref, setPref } from "./prefs";
+import { importTabGuard, startTabGuard } from "./tabGuard";
 import { authedTransport, hasSession } from "./session";
 
 function client() {
@@ -47,6 +49,9 @@ function client() {
  * 꽂기 전까지 저장소의 `scheduleSync()`는 아무 일도 하지 않는다 — 로컬 저장은 그대로 동작한다.
  */
 export function installSync(): void {
+  // 다른 탭 가드(P5-1) — 부팅 파이프라인보다 먼저: 다른 탭이 가져오는 중이면 이 탭은 부팅 정리를 하지 않는다. @plm SRS-082
+  startTabGuard();
+  installImportTabGuard(importTabGuard);
   // 부팅 데이터 파이프라인(시드 top-up → 백필 → 기록 정규화) — 첫 동기가 이것을 기다린다(QA H3).
   // 표식은 기기 로컬(localStorage)에만 둔다 — 계정과 함께 동기되는 곳에 두면 다른 기기가 건너뛴다(QA B2).
   void runBootPipeline({

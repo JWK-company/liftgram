@@ -137,6 +137,8 @@ console.log("\n  설정 접근 — process.env를 직접 읽는 곳이 한 곳�
     "frontend/next.config.ts",
     "frontend/e2e/",
     "frontend/playwright.config.ts",
+    // e2e 빌드 깃발(NEXT_PUBLIC_E2E_FAULTS) — 서버 전용 env.ts 를 브라우저가 못 읽는다. 운영 빌드에선 상수로 접힌다(SRS-082 P5-6).
+    "frontend/lib/e2eFlags.ts",
     // e2e 전용 가짜 OAuth 제공자 — `//go:build oauthfake` 라 프로덕션 바이너리에 존재하지 않는다(SRS-052).
     "backend/internal/oauth/fake_provider.go",
     // 실 DB 테스트 — `//go:build pgtest` 라 프로덕션 바이너리에 없다. 임시 DB 를 만들 관리자 URL 만 읽는다(SRS-083).
