@@ -108,3 +108,21 @@ export function planBlockMultiplierResync(
   }
   return out;
 }
+
+/**
+ * 칸 시트 「최근 쓴 브랜드」 — 수행 이력(최신순)의 브랜드를 겹치지 않게 앞에서부터 limit 개(화면 정리 D9).
+ * 허용 목록(머신 브랜드·커스텀 키) 밖 값(기구 키·빈 값)은 건너뛴다. @plm SRS-071
+ */
+export function pickRecentBrands(
+  brandsNewestFirst: readonly (string | null | undefined)[],
+  allowed: readonly string[],
+  limit = 3,
+): string[] {
+  const out: string[] = [];
+  for (const b of brandsNewestFirst) {
+    if (!b || !allowed.includes(b) || out.includes(b)) continue;
+    out.push(b);
+    if (out.length >= limit) break;
+  }
+  return out;
+}

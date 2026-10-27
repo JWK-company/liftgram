@@ -31,7 +31,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { lang, t } from "@/lib/i18n";
 import { AppText } from "./primitives";
-import { MetaAction } from "./quiet";
+import { MetaAction, QuietChip } from "./quiet";
 
 type Sibling = { id: string; equipment: string; nameKo: string };
 type Axes = { attachments: string[]; grips: string[]; load: boolean };
@@ -99,15 +99,25 @@ export function RecordSlotSelector({
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [siblings, setSiblings] = useState<Sibling[]>([]);
   const [axes, setAxes] = useState<Axes>({ attachments: [], grips: [], load: false });
+  /** 이 종목을 할 때 최근 쓴 브랜드(≤3, 최신순) — 칸 시트 위 줄(화면 정리 D9) @plm SRS-071 */
+  const [recentBrands, setRecentBrands] = useState<string[]>([]);
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
 
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const meta = await import("@app/core/data/catalogMeta");
-      const [sib, ax] = await Promise.all([meta.familySiblings(exerciseId), meta.variantAxesFor(exerciseId)]);
+      const [meta, repo] = await Promise.all([
+        import("@app/core/data/catalogMeta"),
+        import("@app/core/data/workoutRepository"),
+      ]);
+      const [sib, ax, recent] = await Promise.all([
+        meta.familySiblings(exerciseId),
+        meta.variantAxesFor(exerciseId),
+        repo.getRecentBrands(exerciseId).catch(() => [] as string[]),
+      ]);
       if (!alive) return;
       setSiblings(sib);
+      setRecentBrands(recent);
       setAxes({ attachments: [...(ax.attachments ?? [])], grips: [...(ax.grips ?? [])], load: !!ax.load });
     })();
     return () => {
@@ -178,39 +188,17 @@ export function RecordSlotSelector({
               >
                 <AppText variant="heading">{t("variant.selectTitle")}</AppText>
 
-                {/* 기구 바꾸기 — 같은 동작의 다른 기구 **종목**으로 바뀐다(기록도 그 종목에 쌓인다 · #44) */}
-                {canSwap ? (
-                  <div className="mt-[var(--spacing-md)]" data-testid="swap-equipment">
-                    <div className="mb-[var(--spacing-xs)]">
-                      <AppText variant="label" color="textMuted">
-                        {t("variant.changeEquipment")}
-                      </AppText>
-                    </div>
-                    <div className="flex flex-wrap gap-[var(--spacing-xs)]">
-                      {siblings.map((s) => (
-                        <SelectChip
-                          key={s.id}
-                          label={equipmentLabel(s.equipment as EquipmentType, lang)}
-                          active={s.id === exerciseId}
-                          testId={`swap-${s.equipment}`}
-                          onPress={() => {
-                            if (s.id === exerciseId) return;
-                            setOpen(false);
-                            onSwap?.(s.id);
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
+                {/* [원본] 브랜드 16개(이름 없는 커스텀 1~3 포함)를 같은 무게의 테두리 칩으로 한꺼번에 깔았다 — 실제로 쓰는 건 1~2개(화면 정리 D9)
                 {isMachine ? (
-                  <ChipRow
-                    title={t("variant.machineBrand")}
-                    testId="slot-brand"
-                    keys={MACHINE_BRAND_VARIANT_KEYS}
+                  <ChipRow title={t("variant.machineBrand")} testId="slot-brand" keys={MACHINE_BRAND_VARIANT_KEYS} value={brand}
+                    label={(k) => equipmentVariantLabel(k, lang, machineVariantLabels)} onPick={(k) => onChange({ ...value, equipment: k })} />
+                ) : null} */}
+                {/* [개선] 최근 쓴 브랜드(≤3)는 위 줄 보통 칩, 나머지는 작은 무채 칩 · 이름 없는 커스텀은 숨김(고른 칸이면 보임) @plm SRS-071 */}
+                {isMachine ? (
+                  <BrandRow
                     value={brand}
-                    label={(k) => equipmentVariantLabel(k, lang, machineVariantLabels)}
+                    recent={recentBrands}
+                    customLabels={machineVariantLabels}
                     onPick={(k) => onChange({ ...value, equipment: k })}
                   />
                 ) : null}
@@ -272,12 +260,102 @@ export function RecordSlotSelector({
                     onPick={(k) => onChange({ ...value, grip: k })}
                   />
                 ) : null}
+
+                {/* 기구 바꾸기 — 같은 동작의 다른 기구 **종목**으로 바뀐다(기록도 그 종목에 쌓인다 · #44).
+                    가장 드물게 쓰는 줄이라 맨 아래(화면 정리 D9 — [원본] 시트 맨 위) */}
+                {canSwap ? (
+                  <div className="mt-[var(--spacing-md)]" data-testid="swap-equipment">
+                    <div className="mb-[var(--spacing-xs)]">
+                      <AppText variant="label" color="textMuted">
+                        {t("variant.changeEquipment")}
+                      </AppText>
+                    </div>
+                    <div className="flex flex-wrap gap-[var(--spacing-xs)]">
+                      {siblings.map((s) => (
+                        <SelectChip
+                          key={s.id}
+                          label={equipmentLabel(s.equipment as EquipmentType, lang)}
+                          active={s.id === exerciseId}
+                          testId={`swap-${s.equipment}`}
+                          onPress={() => {
+                            if (s.id === exerciseId) return;
+                            setOpen(false);
+                            onSwap?.(s.id);
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>,
             root,
           )
         : null}
     </>
+  );
+}
+
+/**
+ * 머신 브랜드 줄 — 최근 쓴 브랜드는 위 줄 보통 칩(기본 포함), 나머지는 아래 작은 무채 칩.
+ * 이름을 붙이지 않은 커스텀 슬롯(custom1~3)은 숨긴다 — 지금 고른 칸이면 예외로 보인다(화면 정리 D9) @plm SRS-071
+ * 칩마다 testId 는 하나(`slot-brand-<키>`) — 위 줄에 오른 브랜드는 아래 목록에서 뺀다.
+ */
+function BrandRow({
+  value,
+  recent,
+  customLabels,
+  onPick,
+}: {
+  value: string | null;
+  recent: string[];
+  customLabels: string[];
+  onPick: (k: string | null) => void;
+}) {
+  const isCustom = (k: string) => k.startsWith("custom");
+  const named = (k: string) => {
+    if (!isCustom(k)) return true;
+    const i = Number(k.slice("custom".length)) - 1;
+    return !!customLabels[i]?.trim();
+  };
+  const visible = MACHINE_BRAND_VARIANT_KEYS.filter((k) => named(k) || k === value);
+  const top = recent.filter((k) => visible.includes(k));
+  const rest = visible.filter((k) => !top.includes(k));
+  const label = (k: string) => equipmentVariantLabel(k, lang, customLabels);
+  return (
+    <div className="mt-[var(--spacing-md)]" data-testid="slot-brand">
+      <div className="mb-[var(--spacing-xs)]">
+        <AppText variant="label" color="textMuted">
+          {t("variant.machineBrand")}
+        </AppText>
+      </div>
+      <div className="flex flex-wrap gap-[var(--spacing-xs)]" data-testid="slot-brand-recent">
+        <SelectChip label={t("variant.default")} active={value == null} onPress={() => onPick(null)} />
+        {top.map((k) => (
+          <SelectChip
+            key={k}
+            label={label(k)}
+            active={value === k}
+            testId={`slot-brand-${k}`}
+            onPress={() => onPick(value === k ? null : k)}
+          />
+        ))}
+      </div>
+      {rest.length ? (
+        <div className="mt-[var(--spacing-sm)] flex flex-wrap gap-[6px]">
+          {rest.map((k) => (
+            <QuietChip
+              key={k}
+              compact
+              label={label(k)}
+              active={value === k}
+              testId={`slot-brand-${k}`}
+              onPress={() => onPick(value === k ? null : k)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

@@ -323,7 +323,13 @@ export default function FeedClient() {
             onAdd={addStory}
           />
 
-          <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-list">
+          {/* [원본] p-lg — 마지막 글의 발(좋아요 줄)이 + 버튼(FAB) 밑에 깔렸다(F2)
+          <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-list"> */}
+          {/* [개선] 목록 끝 여백 = FAB 높이(56) + 탭바 위 띄움(20) + 여유(20). 진행 막대 높이는 FAB 와 목록이 같이 받는다. @plm SRS-071 */}
+          <div
+            className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[96px]"
+            data-testid="feed-list"
+          >
             {posts.length === 0 ? (
               <>
                 <ListState

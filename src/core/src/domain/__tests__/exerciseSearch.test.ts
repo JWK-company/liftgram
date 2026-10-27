@@ -157,3 +157,10 @@ test('가져오기 매칭(H-2): 별칭으로 맞으면 그 별칭을 돌려준�
   const r = resolveSharedExercise(INDEX, { name: '로프 푸시다운' });
   assert.equal(r?.hit?.matchedKind, 'alias');
 });
+
+// 화면 정리 F6 — 빈 검색(종목 탭 첫 화면) 정렬은 한글 이름 먼저 @plm SRS-071
+test('빈 질의 정렬 — 「EZ바 …」 같은 영문 접두 이름은 한글 이름 뒤로', async () => {
+  const { compareKoFirst } = await import('../exerciseSearch');
+  const names = ['EZ바 컬', '바벨 컬', '덤벨 컬', '3/4 스쿼트', '가슴 프레스'];
+  assert.deepEqual([...names].sort(compareKoFirst), ['가슴 프레스', '덤벨 컬', '바벨 컬', '3/4 스쿼트', 'EZ바 컬']);
+});

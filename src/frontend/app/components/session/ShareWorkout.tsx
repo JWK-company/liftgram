@@ -176,6 +176,7 @@ export function ShareWorkout({
   const shared = sharedProp || sharedLocal;
 
   /** 한마디를 비워 뒀을 때 대신 들어갈 문장 — app과 같은 구성이다. */
+  // biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙 · 화면 정리 D7)
   function autoCaption(): string {
     return [
       t("session.workoutComplete"),
@@ -197,7 +198,11 @@ export function ShareWorkout({
     setSharing(true);
     try {
       await feedClient().createPost({
-        caption: caption.trim() || autoCaption(),
+        // [원본] 한마디가 비면 자동 문구(「운동 완료! · … · PR 갱신 n회」)를 본문으로 저장했다 — 카드 숫자를 다시 말할 뿐이라
+        //        피드가 시끄러웠다(화면 정리 D7 · /qa spec Q2). 이미 올라간 글의 본문은 건드리지 않는다.
+        // caption: caption.trim() || autoCaption(),
+        // [개선] 빈 한마디 = 본문 없음(서버는 운동이 있으면 빈 본문을 받는다) @plm SRS-071
+        caption: caption.trim(),
         // 보내는 객체는 core 순수 함수 하나가 만든다 — 총평(notes)이 새지 않음을 테스트가 이 경로에서 지킨다(QA M-4)
         workout: toCreatePostWorkout(payload),
       });

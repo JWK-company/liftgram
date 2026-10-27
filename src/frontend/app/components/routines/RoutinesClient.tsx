@@ -40,7 +40,7 @@ import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 import { ScheduleEditor } from "./ScheduleEditor";
 import { AppBar, AppBarAction } from "../ui/AppBar";
-import { MoreMenu } from "../ui/MoreMenu";
+// [원본] import { MoreMenu } from "../ui/MoreMenu"; — 진행 카드의 ⋯ 메뉴(화면 정리 D8 로 렌더 중단)
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
 
@@ -65,7 +65,8 @@ const ROUTINE_DOT_PALETTE = [
 
 export default function RoutinesClient() {
   const { user, weeklySchedule } = useUser();
-  const { activeWorkoutId, activeName, setActive, refreshActive } = useSession();
+  // [원본] activeName 도 꺼냈다 — 진행 카드 제목(화면 정리 D8 로 렌더 중단)
+  const { activeWorkoutId, setActive, refreshActive } = useSession();
   const toast = useToast();
 
   const [repos, setRepos] = useState<{
@@ -241,7 +242,8 @@ export default function RoutinesClient() {
         />
       />
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
-        {/* ── 진행 중인 운동 — 폐기는 ⋯ 안으로(위험 동작은 화면에 늘 두지 않는다) ── */}
+        {/* ── 진행 중인 운동 ── [원본] 분홍 진행 카드 — 아래 진행 막대(열기·취소)와 같은 사실을 두 번 알렸다(화면 정리 D8).
+            원복 시 아래 주석을 푼다. 진행 중 표시는 이제 셸의 하단 막대(GlobalWorkoutBar) 하나다. @plm SRS-071
         {activeWorkoutId ? (
           <div
             className="mb-[var(--spacing-lg)] flex items-center gap-[var(--spacing-md)] rounded-[var(--radius-md)] border border-(--color-brand) bg-(--color-brand-muted) py-[var(--spacing-md)] pr-[var(--spacing-xs)] pl-[var(--spacing-lg)]"
@@ -267,7 +269,7 @@ export default function RoutinesClient() {
               ]}
             />
           </div>
-        ) : null}
+        ) : null} */}
 
         {/* ── 이번 주 — 목표·연속일·볼륨 한 장(시안 01 · 결정 D3) ── */}
         <WeekSummary />

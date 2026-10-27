@@ -150,10 +150,10 @@ test("운동 중 막대의 취소 — 같은 확인창을 거치고, 확인하�
   await expect(bar).toHaveCount(0, { timeout: 15_000 });
   await expect(page).toHaveURL(/\/exercises/);
 
-  // 운동 탭에도 진행 중 카드가 없다
+  // 운동 탭에도 진행 중 표시(하단 막대)가 없다 — 홈 진행 카드는 화면 정리 D8 로 없어졌다
   await page.goto("/");
   await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
-  await expect(page.getByTestId("resume-card")).toHaveCount(0);
+  await expect(page.getByTestId("global-workout-bar")).toHaveCount(0);
 });
 
 // ── /qa code 조치(2026-10-27) ── @plm SRS-067

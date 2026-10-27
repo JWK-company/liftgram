@@ -21,6 +21,7 @@ import {
   type PRResult,
   type PRSnapshot,
   type EquipmentType,
+  type MuscleGroup,
   type PrescribedSet, // v16: 처방 어휘(프리레이·복사). @plm SRS-043
 } from '../domain';
 import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
@@ -28,6 +29,7 @@ import { resolvePrescribedLoad, planPrescribedLoadFills, roundLoadKg } from '../
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
 import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
 import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
+import { autoWorkoutName, isDefaultWorkoutName } from '../domain/workoutAutoName'; // 빠른 운동 자동 이름 @plm SRS-071
 import { pickStartUnit, planUnitSwitch, planUnitSwitchV2, isUserTouched } from '../domain/blockUnit'; // 블록별 kg/lb @plm SRS-067
 import {
   legacyMachineVariantToV6,
@@ -35,6 +37,7 @@ import {
   normalizeVariantDims,
   normalizeVariantDimsV34,
   dimsFromColumns,
+  MACHINE_BRAND_VARIANT_KEYS,
   type VariantDims,
   type GripKey,
   type ArmKey,
@@ -45,6 +48,7 @@ import {
   carryWeightAcrossMultiplier,
   planBlockMultiplierResync,
   summarizeSlots,
+  pickRecentBrands,
   type SlotSummary,
 } from '../domain/recordSlots'; // ADR-034 지난 조합 · ADR-037 한쪽 입력 @plm SRS-057 SRS-058
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
@@ -1480,6 +1484,16 @@ async function performedInstancesOf(exerciseId: string): Promise<{ we: WorkoutEx
     .sort((a, b) => b.completedAt - a.completedAt);
 }
 
+// 칸 시트 「최근 쓴 브랜드」 — 이 종목을 수행한 완료 블록의 브랜드(최신순·중복 제거·최대 3) @plm SRS-071
+export async function getRecentBrands(exerciseId: string, limit = 3): Promise<string[]> {
+  const instances = await performedInstancesOf(exerciseId);
+  return pickRecentBrands(
+    instances.map(({ we }) => dimsFromColumns(variantColumnsOf(we)).equipment ?? null),
+    MACHINE_BRAND_VARIANT_KEYS,
+    limit,
+  );
+}
+
 // 종목의 '가장 최근 수행' 변형 컨텍스트(완료 세션·수행 세트 있는 인스턴스 기준) — 종목 교체 시 승계용.
 // 이전기록·PR은 (종목×변형) 버킷으로 분리 조회되므로, 버킷을 무조건 기본(null)으로 리셋하면
 // 변형으로만 수행해 온 종목은 교체 직후 이전기록이 비어 보인다. 이력 없으면 null.
@@ -2201,6 +2215,8 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   // equipment='bodyweight'로 등재된 유산소는 유효무게가 '체중'으로 잡혀 체중이 그대로
   // maxWeight PR로 오탐되므로(체중 갱신 때마다 재발), PR 감지 대상에서 제외한다. @plm SRS-030
   const cardioIds = await cardioExerciseIdSet(wes.map((w) => w.exerciseId));
+  /** 빠른 운동 자동 이름 재료 — 수행한 종목과 워킹 세트 수(화면 정리 F7) @plm SRS-071 */
+  const autoNameInput: { exerciseId: string; workingSets: number }[] = [];
 
   for (const we of wes) {
     const all = await setLogs().query(Q.where('workout_exercise_id', we.id)).fetch();
@@ -2214,6 +2230,7 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
     const logged = performed.map((s) => toLoggedSet(s, loadMode, bw));
     totalVolume += totalVolumeKg(logged);
     workingSets += logged.filter((s) => !s.isWarmup && !s.isFailed).length;
+    autoNameInput.push({ exerciseId: we.exerciseId, workingSets: logged.filter((s) => !s.isWarmup && !s.isFailed).length });
     if (cardioIds.has(we.exerciseId)) continue; // 유산소는 PR 감지 제외(볼륨은 위에서 이미 합산 — reps=0이라 0)
     const vk = effectiveVariantKey(we); // v6: (종목×변형) 버킷 키
     const key = `${we.exerciseId}::${vk ?? ''}`;
@@ -2251,6 +2268,23 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
   );
   const prCount = prDetails.reduce((n, d) => n + d.prs.length, 0);
 
+  // 빠른 운동이 기본 이름(「빠른 운동」)이면 부위·종목 수로 이름을 붙인다 — 사용자가 바꾼 이름·루틴 운동은 그대로(F7) @plm SRS-071
+  let autoName: string | null = null;
+  if (!workout.routineId && isDefaultWorkoutName(workout.name) && autoNameInput.length) {
+    const muscles = new Map<string, MuscleGroup | null>();
+    for (const { exerciseId } of autoNameInput) {
+      if (muscles.has(exerciseId)) continue;
+      try {
+        muscles.set(exerciseId, (await getExercise(exerciseId)).primaryMuscles?.[0] ?? null);
+      } catch {
+        muscles.set(exerciseId, null); // 종목이 지워졌으면 부위 없이 센다
+      }
+    }
+    autoName = autoWorkoutName(
+      autoNameInput.map((b) => ({ primaryMuscle: muscles.get(b.exerciseId) ?? null, workingSets: b.workingSets })),
+    );
+  }
+
   await database.write(async () => {
     // 체크 안 한 템플릿 세트 + 세트 0개 종목은 실제 수행이 아니므로 기록에서 제거(이력·볼륨·피드 오염 방지).
     const dels = [
@@ -2264,6 +2298,7 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
       rec.totalVolumeKg = totalVolume;
       rec.durationSeconds = durationSeconds;
       rec.prCount = prCount;
+      if (autoName) rec.name = autoName;
     });
   });
 

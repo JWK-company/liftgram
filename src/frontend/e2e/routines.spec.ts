@@ -67,9 +67,10 @@ test("진행 중인 운동이 있으면 새로 시작하기 전에 묻는다", a
   await page.getByTestId("btn-quick-start").click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
 
-  // 운동 탭으로 돌아오면 진행 중 카드와 전역 바가 보인다.
+  // 운동 탭으로 돌아오면 진행 중 표시는 하단 막대 하나다(화면 정리 D8 — 홈 진행 카드 없음).
   await page.goto("/");
-  await expect(page.getByTestId("resume-card")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("global-workout-bar")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("resume-card")).toHaveCount(0);
 
   // 이 상태에서 또 시작하려 하면 선택지를 준다.
   await page.getByTestId("btn-quick-start").click();

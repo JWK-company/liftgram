@@ -19,8 +19,10 @@ import { useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
 import { getPref, PREFS_EVENT } from "@/lib/prefs";
 import { Icon } from "../ui/Icon";
-import { KpiRow, ListGroup, ListRow, SectionLabel } from "../ui/rows";
-import { Tag } from "../ui/primitives";
+// [원본] KpiRow 도 썼다 — 주간 요약 KPI 3칸(화면 정리 D8 로 한 줄 메타)
+import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { MetaLine } from "../ui/quiet";
+// [원본] import { Tag } from "../ui/primitives"; — 최근 운동 PR 칩(금색 글자로 바꿈)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 interface WorkoutRow {
@@ -99,6 +101,47 @@ export function WeekSummary() {
 
   const pct = Math.min(100, s.week.goal > 0 ? (s.week.done / s.week.goal) * 100 : 0);
 
+  // [원본] 카드 안에 제목 줄 + 막대 + KPI 3칸(라벨·값 두 줄) — 홈 첫 화면에서 카드 하나가 ≈170px 를 썼다(화면 정리 D8).
+  //        원복 시 아래 주석의 옛 return 을 되살린다.
+  // [개선] 제목 줄 + 얇은 막대 + 숫자 메타 한 줄(볼륨 · 세션 · PR 금색) @plm SRS-071
+  return (
+    <section
+      data-testid="week-summary"
+      className="mb-[var(--spacing-lg)] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) px-[var(--spacing-lg)] py-[var(--spacing-md)]"
+    >
+      <a
+        href="/calendar"
+        className="flex items-center gap-[var(--spacing-sm)]"
+        data-testid="week-summary-link"
+      >
+        <span className="font-bold text-[length:var(--text-md)]">{t("calendar.weeklyGoalTitle")}</span>
+        {s.streak.current > 0 ? (
+          <span className="flex items-center gap-[2px] text-(--color-ink2) text-[length:var(--text-sm)]">
+            <Icon name="flame" size={14} color="var(--color-warn)" />
+            {s.streak.current}
+          </span>
+        ) : null}
+        <span className="ml-auto text-(--color-ink2) text-[length:var(--text-sm)]">
+          {t("calendar.weeklyProgress", { done: s.week.done, goal: s.week.goal })}
+        </span>
+        <Icon name="chevron-forward" size={16} color="var(--color-ink3)" />
+      </a>
+      <div className="mt-[6px] h-1.5 overflow-hidden rounded-full bg-(--color-surface-alt)">
+        <div
+          className="h-full rounded-full bg-(--color-brand) transition-[width] duration-500"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <MetaLine testId="week-summary-meta" className="mt-[6px]">
+        <span className="whitespace-nowrap">{formatWeight(s.volume, weightUnit)}</span>
+        <span className="whitespace-nowrap">{t("home.weekSessions", { count: s.sessions })}</span>
+        {s.prs > 0 ? (
+          <span className="whitespace-nowrap font-semibold text-(--color-pr)">{`PR ${s.prs}`}</span>
+        ) : null}
+      </MetaLine>
+    </section>
+  );
+  /* [원본]
   return (
     <section
       data-testid="week-summary"
@@ -137,6 +180,7 @@ export function WeekSummary() {
       />
     </section>
   );
+  */
 }
 
 /** 최근 운동 — 마친 세션 세 줄. 누르면 기록 상세. */
@@ -162,7 +206,13 @@ export function RecentWorkouts() {
               href={`/history/${w.id}`}
               title={w.name || t("analytics.workoutNameFallback")}
               subtitle={`${date} · ${minutes(w.durationSeconds)} · ${formatWeight(w.totalVolumeKg, weightUnit)}`}
-              trailing={w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : undefined}
+              // [원본] trailing={w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : undefined}
+              // [개선] 칩 대신 금색 글자 — PR 의미는 금색 하나(화면 정리 공용 규칙) @plm SRS-071
+              trailing={
+                w.prCount > 0 ? (
+                  <span className="whitespace-nowrap font-semibold text-(--color-pr) text-[length:var(--text-sm)]">{`PR ${w.prCount}`}</span>
+                ) : undefined
+              }
               chevron
             />
           );

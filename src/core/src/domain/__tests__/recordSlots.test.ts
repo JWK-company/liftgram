@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { canonicalVariantKey, normalizeVariantDimsV34, parseVariantKey } from '../variants';
 import {
+  pickRecentBrands,
   blockLoadMultiplier,
   carryWeightAcrossMultiplier,
   pickStartSlot,
@@ -120,4 +121,15 @@ test('배수 재조정(M-1): 끄면(2 → null) 안 한 세트의 한쪽 40 이 
     { id: 'x', weightKg: 80, loadMultiplier: null },
   ]);
   assert.deepEqual(planBlockMultiplierResync([{ id: 'y', done: false, weightKg: 40, loadMultiplier: 2 }], 2), []);
+});
+
+// 화면 정리 D9 — 칸 시트 「최근 쓴 브랜드」 @plm SRS-071
+test('최근 쓴 브랜드 — 최신순·중복 제거·허용 목록 밖 건너뜀·최대 3개', () => {
+  const allowed = ['hammer', 'technogym', 'cybex', 'matrix', 'custom1'];
+  assert.deepEqual(
+    pickRecentBrands(['technogym', null, 'technogym', 'dumbbell', 'hammer', 'custom1', 'cybex'], allowed),
+    ['technogym', 'hammer', 'custom1'],
+  );
+  assert.deepEqual(pickRecentBrands([], allowed), []);
+  assert.deepEqual(pickRecentBrands(['matrix'], allowed, 1), ['matrix']);
 });

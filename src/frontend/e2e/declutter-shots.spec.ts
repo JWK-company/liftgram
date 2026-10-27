@@ -78,3 +78,92 @@ test("요약·기록 상세·분석 캡처 — 390 라이트·다크 · 360×640
   await page.getByTestId("stat-volume").waitFor({ timeout: 20_000 });
   await snap("stats");
 });
+
+// P3 — 홈(진행 중)·피드 운동 카드·칸 시트. 피드는 내 글도 팔로잉 목록에 보인다(로그인 필요).
+test("홈·피드·칸 시트 캡처 — 390 라이트·다크 · 360×640", async ({ page }) => {
+  test.skip(!OUT, "DECLUTTER_SHOTS 가 없으면 건너뛴다");
+  test.setTimeout(360_000);
+  const shots: { w: number; h: number; scheme: "light" | "dark"; tag: string }[] = [
+    { w: 390, h: 844, scheme: "light", tag: "390-light" },
+    { w: 390, h: 844, scheme: "dark", tag: "390-dark" },
+    { w: 360, h: 640, scheme: "light", tag: "360x640" },
+  ];
+  const snap = async (name: string, top = true) => {
+    for (const s of shots) {
+      await page.setViewportSize({ width: s.w, height: s.h });
+      await page.emulateMedia({ colorScheme: s.scheme });
+      if (top) await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(600);
+      await page.screenshot({ path: `${OUT}/${name}-${s.tag}.png` });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ colorScheme: "light" });
+  };
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/account");
+  await page.getByTestId("mode-signup").click();
+  await page.getByTestId("auth-email-input").fill(`e2e-dcshots-${Date.now()}@example.com`);
+  await page.getByTestId("auth-password-input").fill("hunter22!");
+  await page.getByTestId("auth-name-input").fill("정리캡처");
+  await page.getByTestId("btn-auth-submit").click();
+  await page.getByTestId("auth-email").waitFor({ timeout: 20_000 });
+  await 카탈로그_준비(page);
+  // 지난 기록 — 머신 체스트 프레스(테크노짐) + 벤치 → 공유
+  await page.goto("/");
+  await page.getByTestId("btn-quick-start").click();
+  for (const [name, kg, reps] of [
+    ["머신 체스트 프레스", 40, 10],
+    ["바벨 벤치프레스", 60, 10],
+  ] as const) {
+    await page.getByTestId("btn-add-exercise").click();
+    await page.getByTestId("picker-search").fill(name);
+    await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
+    const i = (await page.getByTestId("set-list").count()) - 1;
+    const row = page.getByTestId("set-list").nth(i).locator("> div").first();
+    if (name === "머신 체스트 프레스") {
+      await page.getByTestId("variant-trigger").nth(i).click();
+      await page.getByTestId("slot-brand-technogym").click();
+      await page
+        .getByTestId("variant-sheet")
+        .locator("xpath=..")
+        .locator('button[aria-label="닫기"]')
+        .click({ position: { x: 5, y: 5 } });
+    }
+    await row.getByTestId("set-weight").fill(String(kg));
+    await row.getByTestId("set-reps").fill(String(reps));
+    await row.getByTestId("set-reps").blur();
+    await row.getByTestId("set-done").click();
+  }
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await page.getByTestId("summary-volume").waitFor({ timeout: 15_000 });
+  const skip = page.getByTestId("btn-finish-dont-save");
+  if (await skip.isVisible()) await skip.click();
+  await page.getByTestId("btn-summary-share").click();
+  await page.getByTestId("btn-share-workout").click();
+  await page.waitForTimeout(1500);
+  await page.getByTestId("btn-summary-close").click();
+  await page.goto("/feed");
+  await page.getByTestId("post-workout").first().waitFor({ timeout: 20_000 });
+  await snap("feed");
+  // 홈 — 진행 중 운동이 있는 상태
+  await page.goto("/");
+  await page.getByTestId("btn-quick-start").click();
+  await page.getByTestId("btn-add-exercise").click();
+  await page.getByTestId("picker-search").fill("머신 체스트 프레스");
+  await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
+  // 칸 시트
+  await page.getByTestId("variant-trigger").first().click();
+  await page.getByTestId("variant-sheet").waitFor();
+  await snap("sheet", false);
+  await page
+    .getByTestId("variant-sheet")
+    .locator("xpath=..")
+    .locator('button[aria-label="닫기"]')
+    .click({ position: { x: 5, y: 5 } });
+  await page.goto("/");
+  await page.getByTestId("global-workout-bar").waitFor({ timeout: 20_000 });
+  await snap("home");
+});

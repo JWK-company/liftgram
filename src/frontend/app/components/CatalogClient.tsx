@@ -24,7 +24,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5 에서 썸네일이 픽토그램으로
 import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { exerciseAltName, exerciseListName } from "@app/core/domain/exerciseName";
-import { buildExerciseSearchIndex, matchedLabel, searchExercises } from "@app/core/domain/exerciseSearch";
+import {
+  buildExerciseSearchIndex,
+  compareKoFirst,
+  matchedLabel,
+  searchExercises,
+} from "@app/core/domain/exerciseSearch";
 import { t } from "@/lib/i18n";
 import { equipmentLabelFromDomain, muscleLabelFromDomain } from "@/lib/labels";
 import ExerciseFinderWizard, { type WizardResult } from "./ExerciseFinderWizard";
@@ -153,7 +158,9 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
     //   (e) => e.nameKo.toLowerCase().includes(q) || (e.nameEn ?? "").toLowerCase().includes(q),
     // );
     // [개선] 피커와 같은 검색(띄어쓰기·초성·별칭·영문 · 관련도 순 — core/domain/exerciseSearch) @plm SRS-056
-    if (!query.trim()) return narrowed;
+    // [원본] if (!query.trim()) return narrowed; — 저장소 정렬(name_ko 오름차순)은 「EZ바 …」 를 맨 위에 뒀다(화면 정리 F6)
+    // [개선] 한글 이름 먼저 · 가나다 — 빈 검색과 같은 정렬(compareKoFirst) @plm SRS-071
+    if (!query.trim()) return [...narrowed].sort((a, b) => compareKoFirst(a.nameKo, b.nameKo));
     const byId = new Map(narrowed.map((e) => [e.id, e]));
     return searchExercises(buildExerciseSearchIndex(narrowed), query).hits.flatMap((h) => {
       const e = byId.get(h.id);

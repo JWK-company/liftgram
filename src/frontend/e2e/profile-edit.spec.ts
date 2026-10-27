@@ -144,7 +144,8 @@ test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({
   // 피드에 **오운완 카드**로 뜬다 — 숫자가 실리고, 펼치면 종목·세트까지 있다.
   await page.goto("/feed");
   await expect(page.getByTestId("feed-list")).toContainText("560kg", { timeout: 20_000 });
-  await expect(page.getByTestId("feed-list")).toContainText("PR 갱신 2회");
-  await page.getByTestId("feed-list").getByText("루틴 보기").first().click();
+  // 카드 숫자는 한 줄 메타(화면 정리 D7) — PR 은 금색 「PR n」, 「종목 n개 보기」 로 펼친다
+  await expect(page.getByTestId("post-workout-meta").first()).toContainText("PR 2");
+  await page.getByTestId("post-routine-toggle").first().click();
   await expect(page.getByTestId("feed-list")).toContainText("벤치프레스", { timeout: 20_000 });
 });

@@ -175,8 +175,9 @@ test("하는 중인 운동은 다른 기기로 건너가지 않는다", async ({
     await 동기(pageB);
 
     await pageB.goto("/");
-    // '이어서 하기'가 보이면 남의 기기 세션이 건너온 것이다.
-    await expect(pageB.getByTestId("btn-resume")).toHaveCount(0);
+    // 진행 중 막대가 보이면 남의 기기 세션이 건너온 것이다(홈 진행 카드는 화면 정리 D8 로 없어지고 하단 막대 하나).
+    await expect(pageB.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+    await expect(pageB.getByTestId("global-workout-bar")).toHaveCount(0);
   } finally {
     await ctxB.close();
   }

@@ -160,6 +160,15 @@ function compareTerm(ta: SearchTier, sa: number, a: Term, tb: SearchTier, sb: nu
 const SIMILAR_SEED_HITS = 5;
 const SIMILAR_LIMIT = 10;
 
+const HANGUL_START = /^[\u3131-\u318E\uAC00-\uD7A3]/;
+
+/** 이름 정렬 — 한글로 시작하는 이름이 영문·숫자 접두(「EZ바 …」)보다 먼저, 같은 무리 안은 가나다(F6). */
+export function compareKoFirst(a: string, b: string): number {
+  const ka = HANGUL_START.test(a) ? 0 : 1;
+  const kb = HANGUL_START.test(b) ? 0 : 1;
+  return ka - kb || a.localeCompare(b, 'ko');
+}
+
 /**
  * 질의 → 관련도 순 결과 + 비슷한 운동.
  * 빈 질의면 전 종목을 대표 이름 가나다순으로(검색 전 목록과 같다), 비슷한 운동은 없다.
@@ -167,8 +176,11 @@ const SIMILAR_LIMIT = 10;
 export function searchExercises(index: ExerciseSearchIndex, query: string): SearchResult {
   const q = toCompatCho(normalizeNameKey(query));
   if (!q) {
+    // [원본] .sort((a, b) => a.ex.nameKo.localeCompare(b.ex.nameKo, 'ko')) — ICU 'ko' 는 라틴 글자를 한글보다 먼저 둬서
+    //        종목 탭 첫 화면이 「EZ바 …」 로 시작했다(화면 정리 F6)
+    // [개선] 한글로 시작하는 이름 먼저, 그다음 가나다(같은 무리 안은 그대로 localeCompare) @plm SRS-071
     const hits = [...index.entries]
-      .sort((a, b) => a.ex.nameKo.localeCompare(b.ex.nameKo, 'ko'))
+      .sort((a, b) => compareKoFirst(a.ex.nameKo, b.ex.nameKo))
       .map((e) => ({ id: e.ex.id, tier: 0 as SearchTier, matched: e.ex.nameKo, matchedKind: 'name' as const, exact: false }));
     return { hits, similar: [] };
   }

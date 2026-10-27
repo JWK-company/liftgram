@@ -20,8 +20,9 @@ import { t } from "@/lib/i18n";
 import { scheduleFlush } from "@/lib/localDb";
 import { useToast } from "../Toast";
 import { ConfirmDialog } from "../ui/Dialog";
-import { Icon } from "../ui/Icon";
-import { AppText, Tag } from "../ui/primitives";
+import { Button } from "../ui/Button";
+import { AppText } from "../ui/primitives";
+import { MetaAction, MetaLine } from "../ui/quiet";
 import { useStartGuard } from "../useStartGuard";
 
 function duration(seconds: number): string {
@@ -29,6 +30,8 @@ function duration(seconds: number): string {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
+// [원본] 숫자 칸 — 한 줄 메타로 바뀌어 지금은 쓰지 않는다(원복용 보존 · 화면 정리 D7)
+// biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -214,8 +217,9 @@ export function WorkoutBox({
         </AppText>
       ) : null}
 
+      {/* [원본] 화면 정리 전 숫자·태그·행동 줄 — 원복 시 아래 주석을 풀고 위 [개선] 블록을 지운다
       <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-xl)]">
-        {/* 볼륨은 kg(SRS-067 Q2 A) */}
+        {/* 볼륨은 kg(SRS-067 Q2 A) *\/}
         <Stat label={t("session.totalVolume")} value={formatWeight(workout.totalVolumeKg, "kg")} />
         <Stat label={t("session.duration")} value={duration(workout.durationSeconds)} />
         <Stat label={t("session.setCount")} value={String(workout.workingSets)} />
@@ -276,6 +280,34 @@ export function WorkoutBox({
             </button>
           </div>
 
+      */}
+      {/* [원본] 라벨·값 두 줄짜리 숫자 3칸 + 스트릭·PR 태그 줄 + 행동 3개를 한 줄에 — 360폭에서 「바로 시 / 작」 처럼 글자가 꺾였다(F1) */}
+      {/* [개선] 숫자는 한 줄 메타(PR 은 금색 글자) · 「종목 n개 보기」 는 메타 링크 · 행동은 아래 2칸 버튼 @plm SRS-071 */}
+      <MetaLine testId="post-workout-meta" className="mt-[2px]">
+        {/* 볼륨은 kg(SRS-067 Q2 A) */}
+        <span className="whitespace-nowrap">{formatWeight(workout.totalVolumeKg, "kg")}</span>
+        <span className="whitespace-nowrap">{duration(workout.durationSeconds)}</span>
+        <span className="whitespace-nowrap">{t("feed.metaSets", { count: workout.workingSets })}</span>
+        {workout.prCount > 0 ? (
+          <span className="whitespace-nowrap font-semibold text-(--color-pr)">{`PR ${workout.prCount}`}</span>
+        ) : null}
+        {workout.streakDays > 0 ? (
+          <span className="whitespace-nowrap">{t("session.streakDays", { count: workout.streakDays })}</span>
+        ) : null}
+      </MetaLine>
+
+      {exercises.length ? (
+        <>
+          <MetaAction
+            testId="post-routine-toggle"
+            onPress={() => setOpen((v) => !v)}
+            trailingIcon={open ? "chevron-up" : "chevron-down"}
+            ariaExpanded={open}
+          >
+            {/* [원본] 「종목 n개 · 루틴 보기」 — 짧게(D7) */}
+            {open ? t("feed.hideRoutine") : t("feed.showExercises", { count: exercises.length })}
+          </MetaAction>
+
           {open ? (
             <div className="mt-[var(--spacing-xs)] border-(--color-line) border-t pt-[var(--spacing-xs)]">
               {/* 게시된 운동은 **바뀌지 않는 스냅샷**이다 — 순서가 흔들리지 않으므로 위치가 곧 신원이다.
@@ -307,6 +339,29 @@ export function WorkoutBox({
               ))}
             </div>
           ) : null}
+
+          {/* 2칸 버튼 — 주 행동(바로 시작)만 채운다. 글자가 꺾이지 않게 한 줄(F1 · D7) */}
+          <div className="mt-[var(--spacing-sm)] grid grid-cols-2 gap-[var(--spacing-sm)]">
+            <Button
+              testId="post-start-now"
+              title={t("feed.startNow")}
+              icon="play"
+              size="sm"
+              onPress={startNow}
+              disabled={starter.busy}
+              className="min-w-0 whitespace-nowrap px-[var(--spacing-sm)]!"
+            />
+            <Button
+              testId="post-routine-import"
+              title={importing ? t("feed.importing") : t("feed.importRoutine")}
+              variant="secondary"
+              size="sm"
+              onPress={() => setConfirm(true)}
+              disabled={importing}
+              // 상자 바탕(surface-alt)과 secondary 버튼 바탕이 같아 글자만 떠 보였다 — 외곽선·카드 바탕으로 버튼임을 보인다
+              className="min-w-0 whitespace-nowrap border! border-(--color-line)! bg-(--color-card)! px-[var(--spacing-sm)]!"
+            />
+          </div>
         </>
       ) : null}
 

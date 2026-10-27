@@ -2,7 +2,7 @@
 // @plm SRS-007  게시물 카드 — app의 FeedTabScreen 안 PostCard를 웹으로
 //
 // ─────────────────────────────────────────────────────────────────────────────
-//   머리   아바타 · 이름 · 날짜 · [운동] 배지 · (내 글이면) 점 세 개 메뉴
+//   머리   아바타 · 이름 · 날짜 · (내 글이면) 점 세 개 메뉴  (「운동」 배지는 화면 정리 D7 에서 뺐다)
 //   운동   이름 · 총 볼륨/시간/세트 · 스트릭·PR 칩 · 종목 펼쳐보기 · 루틴 가져오기
 //   본문   캡션(해시태그는 링크)
 //   발     좋아요 · 댓글 · (오른쪽 끝) 저장
@@ -24,7 +24,7 @@ import { feedClient } from "@/lib/feedClient";
 import { mediaSrc } from "@/lib/mediaClient";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
-import { AppText, Card, Tag } from "../ui/primitives";
+import { AppText, Card } from "../ui/primitives";
 import { GearChips, GearDisclosure, readGearTags } from "./GearChips";
 import { useGearConfig } from "./useGearConfig";
 import { HashtagText } from "./HashtagText";
@@ -110,7 +110,8 @@ export function PostCard({
             </AppText>
           </span>
         </a>
-        {post.workout ? <Tag label={t("feed.workoutBadge")} tone="primary" /> : null}
+        {/* [원본] 「운동」 배지 — 아래 운동 상자가 이미 운동 글임을 말한다(같은 말 두 번 · 화면 정리 D7) @plm SRS-071
+        {post.workout ? <Tag label={t("feed.workoutBadge")} tone="primary" /> : null} */}
         {isOwn ? (
           <OwnPostMenu post={post} onUpdated={onChanged} onDeleted={onDeleted} />
         ) : meId ? (

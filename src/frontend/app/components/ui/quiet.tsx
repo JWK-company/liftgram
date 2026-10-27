@@ -102,11 +102,14 @@ export function QuietChip({
   active = false,
   onPress,
   testId,
+  compact = false,
 }: {
   label: string;
   active?: boolean;
   onPress: () => void;
   testId?: string;
+  /** 작은 칩 — 글자 한 단계 작게·옆 여백 좁게(높이 32 는 그대로 · 장갑 낀 손가락). 칸 시트 「나머지 브랜드」(화면 정리 D9) @plm SRS-071 */
+  compact?: boolean;
 }) {
   return (
     <button
@@ -115,9 +118,11 @@ export function QuietChip({
       aria-pressed={active}
       onClick={onPress}
       style={{ borderColor: active ? "var(--color-brand)" : "transparent" }}
-      className={`min-h-[32px] rounded-[var(--radius-pill)] border bg-(--color-surface-alt) px-[var(--spacing-md)] text-[length:var(--text-sm)] ${
-        active ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"
-      }`}
+      className={`min-h-[32px] rounded-[var(--radius-pill)] border bg-(--color-surface-alt) ${
+        compact
+          ? "px-[10px] text-[length:var(--text-xs)]"
+          : "px-[var(--spacing-md)] text-[length:var(--text-sm)]"
+      } ${active ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`}
     >
       {label}
     </button>
