@@ -41,6 +41,8 @@ import { AppText } from "../ui/primitives";
 export interface SetRow {
   id: string;
   setNumber: number;
+  /** 저장 시각 — 같은 값으로 되돌아온 저장(3 → 5 → … 마지막 그림은 둘 다 5)도 입력칸이 따라가게 한다 */
+  updatedAt?: Date | null;
   weightKg: number;
   reps: number;
   done: boolean;
@@ -143,16 +145,24 @@ export function SetRowEdit({
 
   // 밖에서 값이 바뀌면(이전 칩 적용·제안 적용) 입력칸도 따라간다.
   // 밖에서 값이 바뀌면 등록부의 입력 중 값도 버린다 — 옛 입력이 묶음 완료 때 새 값을 덮지 않게(SRS-062)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 무게가 바뀔 때만 따라간다
+  // [원본] deps [set.weightKg, unit] / [set.reps] — 세트 표는 행의 증감만 관찰해 두 저장(입력 blur → PR 채우기)이 한 그림에
+  //        묶이면 마지막 값이 처음 그림과 같아(5 → 3 → 5) 입력칸이 「3」에 남았다(화면 정리 P1 e2e). 저장 시각도 함께 본다.
+  //        지금 그 칸에 입력 중이면 덮지 않는다 — 다른 칸 저장이 쓰던 숫자를 지우지 않게.
+  const savedAt = set.updatedAt ? new Date(set.updatedAt).getTime() : 0;
+  const weightRef = useRef<HTMLInputElement>(null);
+  const repsRef = useRef<HTMLInputElement>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 무게·저장 시각이 바뀔 때만 따라간다
   useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === weightRef.current) return;
     setW(String(displayWeight(set.weightKg, unit)));
     drafts.set(set.id, { weightKg: undefined });
-  }, [set.weightKg, unit]);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 횟수가 바뀔 때만 따라간다
+  }, [set.weightKg, unit, savedAt]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장된 횟수·저장 시각이 바뀔 때만 따라간다
   useEffect(() => {
+    if (typeof document !== "undefined" && document.activeElement === repsRef.current) return;
     setR(String(set.reps));
     drafts.set(set.id, { reps: undefined });
-  }, [set.reps]);
+  }, [set.reps, savedAt]);
   useEffect(() => setPt(set.partialReps ? String(set.partialReps) : ""), [set.partialReps]);
 
   // [원본] 누르고 떼기만 해도 toKg(표시 숫자) 로 다시 썼다 — 2자리 표시 반올림 때문에 60kg 이 60.0012 가 되어 거짓 PR(/qa code M-1)
@@ -281,14 +291,15 @@ export function SetRowEdit({
           {/* [원본] 빨간 테두리 상자 + 빨간 숫자(세트마다 — 블록에서 빨강이 가장 많던 곳)
             <span className="block rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-surface-alt) px-[5px] py-[3px]">
               <AppText variant="caption" color="primary" …> */}
-          {/* [개선] 테두리 없는 회색 숫자 — 누를 수 있다는 표시는 점선 밑줄(누르면 채우기 그대로 · 화면 정리 D4) @plm SRS-069 */}
+          {/* [개선] 테두리 없는 회색 숫자 — 누르면 채우기는 그대로(화면 정리 D4) @plm SRS-069
+              점선 밑줄은 세트마다 반복되는 새 소음이라 뺐다(/qa code L-1) — 「이전」 칸은 회색 숫자만 */}
           {prev ? (
             <span className="block px-[2px] py-[3px]">
               <AppText
                 variant="caption"
                 color={isDone ? "textFaint" : "textMuted"}
                 center
-                className="block truncate tabular-nums underline decoration-dotted decoration-[1px] underline-offset-[3px]"
+                className="block truncate tabular-nums"
               >
                 {`${displayWeight(prev.weightKg, unit)}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
               </AppText>
@@ -306,6 +317,7 @@ export function SetRowEdit({
         </button>
 
         <input
+          ref={weightRef}
           data-testid="set-weight"
           inputMode="decimal"
           value={w}
@@ -327,6 +339,7 @@ export function SetRowEdit({
           className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
         <input
+          ref={repsRef}
           data-testid="set-reps"
           inputMode="numeric"
           value={r}

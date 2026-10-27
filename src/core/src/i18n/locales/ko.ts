@@ -663,6 +663,7 @@ export const ko = {
   "session.prWeightChip": "PR {weight}×{reps}",
   "session.prVolumeChip": "볼륨 PR {weight}×{reps}",
   "session.prBothChip": "PR {weight}×{reps}",
+  "session.prBothAria": "중량·볼륨 PR({label})",
   "session.blockMore": "더 보기",
   "session.blockMoreClose": "접기",
   "session.oneSideShort": "한쪽",

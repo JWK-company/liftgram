@@ -55,7 +55,7 @@ import { Button } from "../ui/Button";
 import { ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { MoreMenu } from "../ui/MoreMenu";
 import { navigate } from "@/lib/nav";
-import { IconButton } from "../ui/IconButton";
+// import { IconButton } from "../ui/IconButton"; // 머리 순서 화살표 원복 시(/qa code M-5)
 import { NumberStepper } from "../ui/inputs";
 import { AppText, Card, Tag } from "../ui/primitives";
 // [원본] import { VariantSelector } from "../ui/VariantSelector";
@@ -77,6 +77,8 @@ export interface WorkoutExerciseRow {
   id: string;
   exerciseId: string;
   supersetGroup: string | null;
+  /** 이 블록이 속한 운동 — 「더 보기」 펼침을 이번 운동 동안만 기억하는 데 쓴다(/qa code M-1) */
+  workoutId?: string;
   restSeconds: number | null;
   note: string | null;
   variant: VariantDims | null;
@@ -171,8 +173,10 @@ export function ExerciseBlock({
   const [plateOneSide, setPlateOneSideState] = useState(false);
   const [slots, setSlots] = useState<SlotSummary[]>([]);
   const [slotsOpen, setSlotsOpen] = useState(false);
-  // 「더 보기」 펼침 — 기기에 기억하는 전역 하나(종목마다 따로 두지 않는다 · /qa spec Q6) @plm SRS-069
-  const [foldOpen, setFoldOpen] = useFold("block");
+  // 「더 보기」 펼침 — 블록 전체가 하나(종목마다 따로 두지 않는다 · /qa spec Q6) @plm SRS-069
+  // [원본] const [foldOpen, setFoldOpen] = useFold("block"); — 한 번 펴면 다음 운동까지 영원히 펴졌다(/qa code M-1)
+  // [개선] 이번 운동 동안만 기억 — 새 운동은 접힌 채로 시작한다
+  const [foldOpen, setFoldOpen] = useFold(`block:${we.workoutId ?? "-"}`);
 
   // ── 블록 무게 단위(kg|lb) — 한 헬스장에 kg·lb 기구가 섞여 있다(2026-10-27) @plm SRS-067 ──
   // 기본값 = 같은 종목·칸으로 마지막에 완료한 블록의 단위(저장소가 정한다 · 환산 없음). 토글은 숫자 유지·단위만(Q4 B).
@@ -400,10 +404,21 @@ export function ExerciseBlock({
   const bwRelative = loadMode === "assisted" || loadMode === "bodyweight";
   const bwMissing = bwRelative && bodyweightKg == null;
 
+  // [원본] 쓰기마다 따로 돌았다 — 횟수 칸 blur 직후 PR 을 누르면 blur 저장이 PR 채우기보다 늦게 끝나 PR 값을 덮었다
+  //        (화면 정리 P1 e2e 가 잡음 · 폰에서 입력 뒤 바로 PR 을 누를 때와 같다).
+  // const write = useCallback(async (fn: () => Promise<unknown>) => { await fn(); await onChanged(); }, [onChanged]);
+  // [개선] 블록 안의 쓰기는 부른 순서대로 하나씩 — 앞 쓰기가 실패해도 다음 쓰기는 돈다 @plm SRS-061
+  const writeChain = useRef<Promise<unknown>>(Promise.resolve());
   const write = useCallback(
-    async (fn: () => Promise<unknown>) => {
-      await fn();
-      await onChanged();
+    (fn: () => Promise<unknown>) => {
+      const run = writeChain.current
+        .catch(() => {})
+        .then(async () => {
+          await fn();
+          await onChanged();
+        });
+      writeChain.current = run;
+      return run;
     },
     [onChanged],
   );
@@ -540,9 +555,15 @@ export function ExerciseBlock({
         {t("session.otherSlots")} ({otherSlots.length})
       </MetaAction>
     ) : null;
+  // 이번 칸에 기록이 하나도 없으면 「다른 조합 기록 보기」는 접지 않고 메타 줄에 꺼내 둔다 —
+  // 빈 칸에서 지난 조합의 무게를 찾는 단서라서(/qa code M-4). 기록이 있는 평소에는 「더 보기」 안.
+  const otherSlotsOut = !!otherSlotsBtn && prevSets.length === 0 && !prs.weight && !prs.volume;
   // 「더 보기」에 넣을 것이 있을 때만 토글을 둔다(운동 방법 · 다른 조합 · 이전기록 지우기)
-  const hasFold = !isCardio && (hasTip || !!otherSlotsBtn || !!prevClearBtn);
+  // [원본] const hasFold = !isCardio && (hasTip || !!otherSlotsBtn || !!prevClearBtn);
+  const hasFold = !isCardio && (hasTip || (!!otherSlotsBtn && !otherSlotsOut) || !!prevClearBtn);
   const showPr = !isCardio && !prevCleared && (prs.weight || prs.volume);
+  // 중량 PR 과 볼륨 PR 이 다른 세트면 두 조각 — 메타 줄 가운데서 꺾이지 않게 자기 줄로 내린다(/qa code M-7)
+  const prOwnLine = !!showPr && !!prs.weight && !!prs.volume && prs.weight.setLogId !== prs.volume.setLogId;
   const volumeText =
     !isCardio && (exVol.volume > 0 || exVol.reps > 0)
       ? exVol.volume > 0
@@ -569,29 +590,31 @@ export function ExerciseBlock({
       <div data-testid={`we-${we.id}`}>
         {/* 헤더 — 화살표는 그림 왼쪽 자기 열(F3: 겹치지 않게) */}
         <div className="flex items-center gap-[var(--spacing-sm)]">
-          {onMoveUp || onMoveDown ? (
-            <div className="flex w-[28px] shrink-0 flex-col items-center">
+          {/* [원본] 그림 왼쪽 순서 화살표 열 — 22×28px 두 개가 붙어 있어 잘못 누르기 쉬웠다(/qa code M-5, 순서 변경은 되돌리기가 없다).
+              [개선] ⋯ 메뉴의 「위로 이동 · 아래로 이동」(줄 높이 44px+). 블록 머리 소음도 한 열 준다. 원복 시 아래를 되살린다.
+              {onMoveUp || onMoveDown ? (
+              <div className="flex w-[28px] shrink-0 flex-col items-center">
               <IconButton
-                icon="chevron-up"
-                size={18}
-                label={t("session.moveUp")}
-                disabled={!onMoveUp}
-                color={onMoveUp ? "var(--color-ink2)" : "var(--color-line)"}
-                onPress={onMoveUp}
-                className="h-[22px]! w-[28px]!"
+              icon="chevron-up"
+              size={18}
+              label={t("session.moveUp")}
+              disabled={!onMoveUp}
+              color={onMoveUp ? "var(--color-ink2)" : "var(--color-line)"}
+              onPress={onMoveUp}
+              className="h-[22px]! w-[28px]!"
               />
               <IconButton
-                icon="chevron-down"
-                size={18}
-                label={t("session.moveDown")}
-                disabled={!onMoveDown}
-                color={onMoveDown ? "var(--color-ink2)" : "var(--color-line)"}
-                onPress={onMoveDown}
-                className="h-[22px]! w-[28px]!"
+              icon="chevron-down"
+              size={18}
+              label={t("session.moveDown")}
+              disabled={!onMoveDown}
+              color={onMoveDown ? "var(--color-ink2)" : "var(--color-line)"}
+              onPress={onMoveDown}
+              className="h-[22px]! w-[28px]!"
               />
-            </div>
-          ) : null}
-
+              </div>
+              ) : null}
+          */}
           {/* P5: 종목 그림(정지) — 이름만으로 헷갈리는 종목을 한눈에(피드백 #8) @plm SRS-055 */}
           {hasPictogram(we.exerciseId) ? (
             <span className="h-9 w-11 shrink-0 overflow-hidden rounded-[var(--radius-sm)] bg-(--color-surface-alt)">
@@ -623,6 +646,13 @@ export function ExerciseBlock({
                 testId: "btn-we-info",
                 onPress: () => navigate(`/exercise/${we.exerciseId}`),
               },
+              // 순서 바꾸기 — 머리 화살표 대신(/qa code M-5 · H-3) @plm SRS-069
+              ...(onMoveUp
+                ? [{ label: t("session.moveUp"), testId: "btn-move-up", onPress: () => onMoveUp() }]
+                : []),
+              ...(onMoveDown
+                ? [{ label: t("session.moveDown"), testId: "btn-move-down", onPress: () => onMoveDown() }]
+                : []),
               ...(!insideSuperset && canSuperset && (onSuperset || onUnsuperset)
                 ? [
                     {
@@ -694,13 +724,15 @@ export function ExerciseBlock({
                 {t("session.superset")}
               </span>
             ) : null}
-            {/* 중량 PR·볼륨 PR — 금색 글자 조각. 누르면 아직 안 한 첫 세트에 채우고 ⓘ 는 그 기록으로(#50·#51 · D3) @plm SRS-061 SRS-069 */}
-            {showPr
+            {/* 중량 PR·볼륨 PR — 금색 글자 조각. 누르면 아직 안 한 첫 세트에 채우고 ⓘ 는 그 기록으로(#50·#51 · D3) @plm SRS-061 SRS-069
+                PR 이 한 조각이면 이 줄에, 두 조각이면 아래 자기 줄에(좁은 폭에서 줄 가운데가 꺾여 「·」 만 남던 것 · /qa code M-7) */}
+            {showPr && !prOwnLine
               ? prChips().map((c) => (
                   <PrText
                     key={`pr-${c.kind}`}
                     label={c.label}
-                    ariaLabel={`${c.label} — ${t("session.prChipFill")}`}
+                    // 중량·볼륨이 같은 세트면 그렇다고 읽어 준다 — 화면 글자는 「PR …」 하나(/qa code L-2)
+                    ariaLabel={`${c.kind === "both" ? t("session.prBothAria", { label: c.label }) : c.label} — ${t("session.prChipFill")}`}
                     testId={`pr-chip-${c.kind}`}
                     onPress={() => fillFromPr(c.ref)}
                     historyLabel={t("session.prChipHistory")}
@@ -709,6 +741,7 @@ export function ExerciseBlock({
                   />
                 ))
               : null}
+            {otherSlotsOut ? <span key="other">{otherSlotsBtn}</span> : null}
             {bwMissing ? (
               <span
                 key="bw"
@@ -725,30 +758,44 @@ export function ExerciseBlock({
                 open={foldOpen}
                 onToggle={() => setFoldOpen(!foldOpen)}
                 label={t("session.blockMore")}
-                openLabel={t("session.blockMoreClose")}
+                controls={`block-more-${we.id}`}
               />
             </span>
           ) : null}
         </div>
 
-        {/* 이전 기록이 어느 칸의 것인지 — 지금 칸과 늘 같아(이전 기록을 그 칸에서 읽는다) 화면에는 반복이라 숨기고,
-            읽어 주는 글로만 둔다(화면 정리 · 반복 제거). @plm SRS-058 SRS-069 */}
-        {!isCardio && (variantKey || otherSlots.length > 0) ? (
-          <span className="sr-only" data-testid="prev-slot">
-            {t("session.prevSlot", { slot: variantLabelFromKey(variantKey, lang, machineVariantLabels) })}
-          </span>
+        {/* PR 두 조각(중량 ≠ 볼륨) — 금색 한 줄 */}
+        {showPr && prOwnLine ? (
+          <MetaLine testId="we-pr-line">
+            {prChips().map((c) => (
+              <PrText
+                key={`pr-${c.kind}`}
+                label={c.label}
+                // 중량·볼륨이 같은 세트면 그렇다고 읽어 준다 — 화면 글자는 「PR …」 하나(/qa code L-2)
+                ariaLabel={`${c.kind === "both" ? t("session.prBothAria", { label: c.label }) : c.label} — ${t("session.prChipFill")}`}
+                testId={`pr-chip-${c.kind}`}
+                onPress={() => fillFromPr(c.ref)}
+                historyLabel={t("session.prChipHistory")}
+                historyTestId={`pr-chip-${c.kind}-history`}
+                onHistory={() => navigate(`/history/${c.ref.workoutId}?set=${c.ref.setLogId}`)}
+              />
+            ))}
+          </MetaLine>
         ) : null}
 
+        {/* [원본] 「이전 기록 · 조합」을 읽어 주는 글로만 남겨 두었다(sr-only prev-slot) — 이전 기록은 늘 지금 칸에서 읽으므로
+            조합 트리거(「변형 선택 — 일자바」)와 같은 말을 한 번 더 읽을 뿐이라 지운다(/qa code L-4).
+            원복 시 커밋 432f53f 의 이 자리 span 을 되살린다. @plm SRS-058 SRS-069 */}
         {/* 더 보기 — 운동 방법 · 다른 조합 · 이전기록 지우기 */}
         {hasFold && foldOpen ? (
-          <div data-testid="block-more-panel" className="mb-[2px]">
+          <div id={`block-more-${we.id}`} data-testid="block-more-panel" className="mb-[2px]">
             {hasTip ? (
               <ExerciseTipPanel
                 exerciseId={we.exerciseId}
                 trailing={
-                  otherSlotsBtn || prevClearBtn ? (
+                  (otherSlotsBtn && !otherSlotsOut) || prevClearBtn ? (
                     <MetaLine>
-                      {otherSlotsBtn}
+                      {otherSlotsOut ? null : otherSlotsBtn}
                       {prevClearBtn}
                     </MetaLine>
                   ) : undefined
@@ -756,7 +803,7 @@ export function ExerciseBlock({
               />
             ) : (
               <MetaLine>
-                {otherSlotsBtn}
+                {otherSlotsOut ? null : otherSlotsBtn}
                 {prevClearBtn}
               </MetaLine>
             )}
@@ -764,7 +811,8 @@ export function ExerciseBlock({
         ) : null}
 
         {/* 표 머리 — 「무게」 칸 안에 kg│lb(D2 · /qa spec Q8). 한쪽 입력이면 칸 위에 「한쪽」 */}
-        <div className="mt-[var(--spacing-sm)] flex items-end gap-[4px] pb-[2px]">
+        {/* [원본] mt-[var(--spacing-sm)] — 메타 줄(32px 누르는 자리)이 이미 여백을 갖고 있어 반만 둔다 */}
+        <div className="mt-[var(--spacing-xs)] flex items-end gap-[4px] pb-[2px]">
           <HeadCell className="w-[34px]">{t("session.setColHeader")}</HeadCell>
           <HeadCell className="w-[66px]">{t("session.prevColHeader")}</HeadCell>
           {isCardio ? (

@@ -32,12 +32,18 @@ export function UnitToggle({
         data-testid="unit-toggle"
         className="m-0 inline-flex min-w-0 shrink-0 items-center border-0 p-0"
       >
+        {/* 읽어 주는 legend — legend 없는 fieldset 의 그룹을 건너뛰는 스크린리더가 있다(/qa code L-6) */}
+        <legend className="sr-only">{t("session.unitToggleLabel")}</legend>
         {UNITS.map((u, i) => {
           const on = u === value;
           return (
             <span key={u} className="inline-flex items-center">
+              {/* 두 버튼 사이 간격 — 누르는 자리(아래 after:)가 서로 닿지 않게(/qa code H-1) */}
               {i > 0 ? (
-                <span aria-hidden className="text-(--color-line-strong) text-[length:var(--text-xs)]">
+                <span
+                  aria-hidden
+                  className="px-[3px] text-(--color-line-strong) text-[length:var(--text-xs)]"
+                >
                   │
                 </span>
               ) : null}
@@ -47,7 +53,9 @@ export function UnitToggle({
                 aria-pressed={on}
                 disabled={disabled}
                 onClick={() => onChange(u)}
-                className={`inline-flex h-7 min-w-[24px] items-center justify-center px-[2px] text-[length:var(--text-xs)] disabled:opacity-60 ${
+                // [원본] h-7 min-w-[24px] — 누르는 자리 28×24px(잘못 누르면 숫자 그대로 단위만 바뀐다 · /qa code H-1)
+                // [개선] 보이는 글자는 그대로, 누르는 자리만 위(12px)·아래(4px)로 넓힌다(after: 44px 높이) — 표 머리 높이는 그대로, 아래 무게 칸은 침범하지 않는다
+                className={`relative inline-flex h-7 min-w-[22px] items-center justify-center px-[2px] text-[length:var(--text-xs)] after:absolute after:inset-x-[-2px] after:top-[-12px] after:bottom-[-4px] after:content-[''] disabled:opacity-60 ${
                   on ? "font-bold text-(--color-ink)" : "font-medium text-(--color-ink3)"
                 }`}
               >

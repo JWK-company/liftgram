@@ -56,7 +56,7 @@
   - 머리: [▲▼(F3: 픽토그램 왼쪽 별도 열, 겹침 없음)] [픽토그램] [이름] [오른쪽: 회색 볼륨 숫자 `ex-volume`(신규 testid) · ⋯]
   - 이름 아래 `MetaLine`: 기록 칸 조합(누르면 칸 시트) · 슈퍼셋 표시 · 체중 미설정 경고(경고색 유지)
   - 그 아래 `PrText` 한 줄: 「PR 100kg×10」(`pr-chip-weight`) · 「볼륨 PR 60kg×10」(`pr-chip-volume`) · 같은 세트면 `pr-chip-both` · 각 ⓘ(`pr-chip-*-history`) 유지
-  - `prev-slot` 줄(「이전 기록 · 조합」)은 **조합이 지금 칸과 다를 때만** MetaLine 끝에 「이전: …」로 — 같으면 숨김(반복 제거)
+  - `prev-slot` 줄(「이전 기록 · 조합」)은 **지운다** — 이전 기록은 늘 지금 칸에서 읽으므로 「다를 때」가 일어나지 않는다(/qa code L-4 정정)
   - `Fold`(scope=block, key=exerciseId): 운동 방법(ExerciseTipPanel) · 다른 조합(`btn-other-slots`) · 이전기록 지우기(`prev-clear`)
   - 표 머리 「무게」 칸에 `UnitToggle compact`(`unit-toggle` 유지). 한쪽 입력이면 「한쪽 kg│lb」
 - `session/SetRowEdit.tsx`: 이전 칸 테두리·배경 제거 → 회색 숫자(`set-prev` 유지, 누를 수 있음 표시는 밑줄 점선)
@@ -87,7 +87,7 @@
 | 파일 | 지금 기대 | 바뀜 |
 |---|---|---|
 | `record-slots.spec.ts` | `btn-other-slots` 가 바로 보임 | `Fold` 펼침 후 클릭(헬퍼 `블록_더보기()`) |
-| `record-slots.spec.ts` | `prev-slot` 에 「일자바」 | 조합이 다를 때만 보임 — 이 시나리오(다른 조합)는 유지되나 위치가 MetaLine 으로 |
+| `record-slots.spec.ts` | `prev-slot` 에 「일자바」 | `prev-slot` 제거 → `variant-trigger` 로 검증(/qa code L-4) |
 | `routines.spec.ts`·`unit-toggle.spec.ts` | `resume-card` 보임/없음 | P3 후 홈엔 늘 없음 → 하단 막대(`global-workout-bar` 계열) 로 검사 |
 | `workout.spec.ts` | `summary-pr-list` 에 종목명 | testid 가 종목 줄 목록으로 이동 — 그대로 통과해야 함 |
 | `session.spec.ts`·`session-assist.spec.ts` | `pr-chip-*` | 같은 testid(글자 모양) — 통과해야 함 |
@@ -119,7 +119,7 @@
 | Q3 | e2e 표에 `tip-toggle`(pictogram.spec) 추가 · 공용 헬퍼 `블록_더보기()` 를 `e2e/helpers` 로 | P1 |
 | Q4 | F4 는 쌓임 맥락 재현 e2e(`elementFromPoint`) 먼저 → 재현 시 수정 / 미재현 시 닫음 | P3 |
 | Q5 | 홈 막대·이번 주 요약 겹침 좌표 검사 · `routines.spec` resume 시나리오 → `global-workout-bar` · 카드 폐기는 `global-workout-cancel` 로 대체 | P3 |
-| Q6 | `Fold` 기억은 전역 하나(`fold:block`) — 종목별 기억 안 함 | P1 |
+| Q6 | `Fold` 기억은 블록 전체가 하나 — 종목별 기억 안 함. **이번 운동 동안만**(`fold:block:<운동 id>` · /qa code M-1 보완) | P1 |
 | Q7 | PR 조각 간격 8px·높이 ≥32px · ⓘ 는 조각 안 아이콘이며 **누르면 기록으로**(길게 누르기 안 씀) · 넘치면 두 줄 | P1 |
 | Q8 | 표 머리 토글은 라벨 없는 「kg│lb」(`compact`) · 한쪽이면 칸 라벨 위 caption 「한쪽」 · 360 좌표 검사 | P1 |
 | L1~L3 | `label` 미사용은 리뷰 체크리스트 · EZ바는 정렬만 · F7 자동 이름은 새 완료분부터 | P1·P3 |

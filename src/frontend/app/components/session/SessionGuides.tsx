@@ -18,7 +18,8 @@ export function SessionGuideButtons() {
   const [open, setOpen] = useState<"rir" | "warmup" | null>(null);
 
   return (
-    <div className="flex gap-[var(--spacing-sm)] pt-[var(--spacing-sm)]">
+    // [원본] <div className="flex gap-[var(--spacing-sm)] pt-[var(--spacing-sm)]"> — 좌우 여백이 없어 버튼이 화면 끝에 닿았다(/qa code M-8)
+    <div className="flex gap-[var(--spacing-sm)] px-[var(--spacing-lg)] pt-[var(--spacing-sm)]">
       <GuideButton label={t("guide.rir.button")} onPress={() => setOpen("rir")} testId="btn-guide-rir" />
       <GuideButton
         label={t("guide.warmup.button")}
@@ -50,7 +51,7 @@ function GuideButton({ label, onPress, testId }: { label: string; onPress: () =>
       type="button"
       data-testid={testId}
       onClick={onPress}
-      className="flex-1 rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) py-[4px] text-center"
+      className="min-h-[36px] flex-1 rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) py-[4px] text-center"
     >
       <AppText variant="caption" className="font-semibold">
         {label}

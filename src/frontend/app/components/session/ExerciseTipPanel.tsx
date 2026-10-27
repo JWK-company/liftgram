@@ -77,12 +77,13 @@ export function ExerciseTipPanel({
 
   return (
     <div className="mt-[var(--spacing-xs)]">
-      <div className="flex items-center justify-between">
+      {/* [원본] flex items-center justify-between — 좁은 폭에서 「운동 방법 보기」가 두 줄로 꺾였다(화면 정리 P1) */}
+      <div className="flex flex-wrap items-center justify-between gap-x-[var(--spacing-sm)]">
         <button
           type="button"
           data-testid="tip-toggle"
           onClick={toggle}
-          className="flex items-center gap-[4px] self-start py-[2px]"
+          className="flex min-h-[32px] shrink-0 items-center gap-[4px] self-start whitespace-nowrap py-[2px]"
         >
           <Icon name="film-outline" size={14} color="var(--color-ink2)" />
           <AppText variant="label" color="textMuted">

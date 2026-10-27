@@ -233,6 +233,7 @@
     "src/core/src/domain/recordSlots.ts:1",
     "src/core/src/migrations/catalogNormalize.ts:1",
     "src/frontend/app/components/session/ActiveWorkout.tsx:621#askRoutineScope",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:115",
     "src/frontend/app/components/ui/RecordSlotSelector.tsx:2",
     "src/scripts/migrate-records.ts:1"
   ]

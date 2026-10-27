@@ -665,6 +665,7 @@ export const en: Record<TransKey, string> = {
   "session.prWeightChip": "PR {weight}×{reps}",
   "session.prVolumeChip": "Volume PR {weight}×{reps}",
   "session.prBothChip": "PR {weight}×{reps}",
+  "session.prBothAria": "Weight and volume PR ({label})",
   "session.blockMore": "More",
   "session.blockMoreClose": "Less",
   "session.oneSideShort": "One side",

@@ -152,6 +152,15 @@
   },
   "code_refs": [
     "src/core/src/domain/__tests__/unitToggle.test.ts:1",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:177",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:185",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:216",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:502",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:549#t",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:676#write",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:83",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:861#write",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:965#map",
     "src/frontend/app/components/ui/UnitToggle.tsx:2",
     "src/frontend/e2e/unit-toggle.spec.ts:1"
   ]

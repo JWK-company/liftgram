@@ -1,9 +1,10 @@
 // 화면 정리(SRS-069~072) 측정·캡처용 시드 — 실제로 쓰는 모습에 가깝게 기록을 채운다.
 //
 // 로그인 없이 기기 안 저장소만으로 채운다(운동 기록은 로컬이 정본 — ADR-002). 같은 테스트 안에서 부르면 된다.
-//   · 케이블 푸시다운: 로프로 한 번, 일자바로 한 번 → 지난 조합·다른 조합·PR·이전 기록이 다 있는 블록
-//   · 머신 체스트 프레스: 플레이트 + 한쪽 입력 → 「한쪽」 표 머리
-//   · 바벨 벤치프레스: 기본 칸 → 슈퍼셋·순서 화살표 재료
+//   · 케이블 푸시다운: 로프로 한 번, 일자바로 한 번(40×5 · 35×10) → 지난 조합·다른 조합·이전 기록 +
+//     **중량 PR(40×5) ≠ 볼륨 PR(35×10)** — PR 이 두 조각이 되는 가장 붐비는 메타 줄(/qa code M-7)
+//   · 머신 체스트 프레스: 플레이트 + 한쪽 입력 → 「한쪽」 표 머리(머리가 한 줄 더 높은 블록 · M-7)
+//   · 바벨 벤치프레스: 기본 칸 → 슈퍼셋·순서 재료
 import { expect } from "@playwright/test";
 
 type Page = import("@playwright/test").Page;
@@ -84,20 +85,35 @@ export async function 지난_기록_채우기(page: Page): Promise<void> {
   await 빠른_운동_시작(page);
   await 종목_추가(page, "케이블 푸시다운");
   await 칸_고르기(page, 0, ["slot-attach-straight"]);
-  await 세트_기록(page, 0, 0, 35, 10);
+  await 세트_기록(page, 0, 0, 40, 5);
+  await 블록(page, 0).getByTestId("btn-add-set").click();
+  await 세트_기록(page, 0, 1, 35, 10);
   await 마치기(page);
 }
 
-/** 측정·캡처용 운동 화면 — 푸시다운(정보가 가장 많은 블록) + 벤치프레스(순서 화살표가 생긴다). 끝나면 운동 화면. */
+/** 안내 띠(「이 기기에만 저장」)를 닫는다 — 늦게 떠도 기다렸다 닫는다(즉시 판정이면 측정이 +124px 로 흔들린다 · L-7). */
+export async function 안내_띠_닫기(page: Page): Promise<void> {
+  const later = page.getByTestId("sync-localonly-banner").getByRole("button", { name: "나중에" });
+  await later.waitFor({ state: "visible", timeout: 3_000 }).catch(() => {});
+  if (await later.isVisible()) await later.click();
+}
+
+/**
+ * 측정·캡처용 운동 화면 — 푸시다운(PR 두 조각 · 정보가 가장 많은 블록) + 벤치프레스 + 머신 체스트 프레스(플레이트·한쪽).
+ * 끝나면 운동 화면.
+ */
 export async function 붐비는_운동_화면(page: Page): Promise<void> {
   await 빠른_운동_시작(page);
   await 종목_추가(page, "케이블 푸시다운");
   await 종목_추가(page, "바벨 벤치프레스");
+  await 종목_추가(page, "머신 체스트 프레스");
+  await 칸_고르기(page, 2, ["slot-load-plate", "slot-plate-one-side-input"]);
   // 로그인하지 않은 기기라 위에 「이 기기에만 저장」 안내가 뜬다 — 실제 사용자(로그인)는 보지 않는 띠라 닫고 잰다.
-  const later = page.getByTestId("sync-localonly-banner").getByRole("button", { name: "나중에" });
-  if (await later.isVisible()) await later.click();
+  await 안내_띠_닫기(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
   // 첫 블록에 이전 기록·PR 이 왔는지(시드가 들어갔는지)
   await expect(
     page.getByTestId("set-list").first().locator("> div").first().getByTestId("set-prev"),
-  ).toContainText("35", { timeout: 15_000 });
+  ).toContainText("40", { timeout: 15_000 });
+  await expect(블록(page, 0).getByTestId("pr-chip-volume")).toBeVisible({ timeout: 15_000 });
 }

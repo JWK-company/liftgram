@@ -139,6 +139,8 @@
   },
   "code_refs": [
     "src/core/src/domain/__tests__/sessionAssist.test.ts:1",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:1032#rxLoadLabel",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:457",
     "src/frontend/e2e/session-assist.spec.ts:1"
   ]
 }

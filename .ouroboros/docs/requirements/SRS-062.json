@@ -137,6 +137,8 @@
   },
   "code_refs": [
     "src/core/src/domain/__tests__/sessionAssist.test.ts:1",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:126",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:434",
     "src/frontend/app/components/session/setDrafts.tsx:2",
     "src/frontend/e2e/session-assist.spec.ts:1"
   ]
