@@ -1,0 +1,9 @@
+Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE
+2026-08-25 10:10:00,Push,1h,Bench Press (Barbell),1,80,5,,0,,,
+2026-13-40 10:10:00,Push,1h,Bench Press (Barbell),2,80,5,,0,,,
+2026-08-25 10:10:00,Push,1h,Bench Press (Barbell),3,eighty,5,,0,,,
+2026-08-25 10:10:00,Push,1h,,1,80,5,,0,,,
+2026-08-25 10:10:00,Push
+2026-08-25 10:10:00,Push,1h,Bench Press (Barbell),X,80,5,,0,,,
+2026-08-25 10:10:00,Push,1h,Bench Press (Barbell),4,80,5,,0,,,
+"2026-08-26 10:00:00,Pull,1h,Deadlift,1,100,5,,0,,,

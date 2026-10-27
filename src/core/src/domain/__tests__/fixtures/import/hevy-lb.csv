@@ -1,0 +1,5 @@
+title,start_time,end_time,description,exercise_title,superset_id,exercise_notes,set_index,set_type,weight_lbs,reps,distance_miles,duration_seconds,rpe
+"Legs","25 Aug 2026, 10:10","25 Aug 2026, 11:20","","Squat (Barbell)",,"",0,normal,225,5,,,
+"Legs","25 Aug 2026, 10:10","25 Aug 2026, 11:20","","Squat (Barbell)",,"",1,normal,225,5,,,
+"Legs","25 Aug 2026, 10:10","25 Aug 2026, 11:20","","Leg Press (Machine)",,"",0,normal,400,10,,,
+"Walk","26 Aug 2026, 19:05","26 Aug 2026, 19:45","","Walking",,"",0,normal,,,2,2400,

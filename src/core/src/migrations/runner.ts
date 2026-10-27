@@ -97,6 +97,12 @@ async function pipeline(store: MarkerStore | null): Promise<BootReport> {
   await step('migrations', async () => {
     report.migrations = await runBootMigrations(store);
   });
+  // 끝나지 않은 가져오기 묶음(status='writing' — 탭이 닫혔거나 쓰다 실패) 정리 — 그 행들을 지우고 묶음도 지운다(ADR-043 개정 · D-6).
+  // 첫 동기 전에 돌아야 한다 — 반쯤 쓴 행이 서버로 올라가지 않게(쓰는 동안 동기를 멈췄으므로 이 행들은 아직 서버에 없다). @plm SRS-082
+  await step('importCleanup', async () => {
+    const { cleanupUnfinishedImports } = await import('../data/importRepository');
+    await cleanupUnfinishedImports();
+  });
   await step('normalize', async () => {
     const { normalizeCatalogRecords } = await import('./catalogNormalize');
     const r = await normalizeCatalogRecords();

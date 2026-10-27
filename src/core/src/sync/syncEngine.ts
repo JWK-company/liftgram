@@ -327,6 +327,50 @@ export function awaitFirstSync(ms = 4000): Promise<void> {
 // 겹쳐 부르면 커서가 깨진다 — 진행 중이면 그 약속을 함께 기다린다.
 let inFlight: Promise<void> | null = null;
 
+// ── 가져오기 중 동기 미루기(D-3 · ADR-043 개정) ─────────────────────────────
+// 가져오기·되돌리기는 여러 write 로 나눠 쓴다(운동 단위 ≤2000행). 그 사이에 동기가 돌면 ① 반쯤 쓴 묶음이 서버로 올라가
+// 부팅 정리(status='writing' 묶음 삭제)가 지운 행이 다른 기기에 남고 ② pull 이 같은 id 를 받아 다음 묶음 insert 가
+// Loki 드라이버를 망가뜨린다. 그래서 inFlight 와 같은 자리에서 막는다: 멈춘 동안 들어온 동기 요청은 **재개 뒤 한 번**으로 합친다.
+let pauseDepth = 0;
+let resumeWaiters: Array<() => void> = [];
+
+/** 지금 동기가 멈춰 있는가(가져오기 중) */
+export function isSyncPaused(): boolean {
+  return pauseDepth > 0;
+}
+
+/**
+ * 동기를 멈춘다 — 진행 중인 동기가 있으면 끝날 때까지 기다린 뒤 돌아온다(성공·실패 무관). 돌려준 함수로 푼다(여러 번 불러도 한 번).
+ * 겹쳐 멈출 수 있다(깊이를 센다). 마지막으로 풀릴 때 미뤄 둔 요청이 이어서 돈다.
+ * @plm SRS-082
+ */
+export async function pauseSync(): Promise<() => void> {
+  pauseDepth++;
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    pauseDepth = Math.max(0, pauseDepth - 1);
+    if (pauseDepth === 0) {
+      const ws = resumeWaiters;
+      resumeWaiters = [];
+      for (const w of ws) w();
+    }
+  };
+  if (inFlight) await inFlight.catch(() => undefined);
+  return release;
+}
+
+/** 서버와 동기하는 기기인가(전송 계층이 꽂혔고 로그인 상태). 가져오기 전 조건·되돌리기 삭제 방식이 쓴다. @plm SRS-082 */
+export async function isSyncLoggedIn(): Promise<boolean> {
+  if (!transport) return false;
+  return transport.isLoggedIn().catch(() => false);
+}
+
+function waitForResume(): Promise<void> {
+  return new Promise<void>((r) => resumeWaiters.push(r));
+}
+
 /**
  * 지금 동기한다. 실패는 **부르는 쪽으로 그대로 전한다** —
  * 사람이 누른 '지금 동기'는 실패를 보여 줘야 하고, 배경 동기는 아래에서 삼킨다.
@@ -338,6 +382,8 @@ export function syncWithServer(): Promise<void> {
     markFirstSettled();
     return Promise.resolve();
   }
+  // 가져오기 중이면 재개 뒤로 미룬다(여러 요청은 재개 뒤 inFlight 하나로 합쳐진다). @plm SRS-082
+  if (pauseDepth > 0 && !inFlight) return waitForResume().then(() => syncWithServer());
   if (!inFlight) {
     const startedAt = Date.now();
     setHealth({ lastAttemptAt: startedAt });

@@ -1,0 +1,7 @@
+title,start_time,end_time,description,exercise_title,superset_id,exercise_notes,set_index,set_type,weight_kg,reps,distance_km,duration_seconds,rpe
+"Upper A","2026-08-30T09:00:00","2026-08-30T10:15:00","주간 첫 운동","Bench Press (Barbell)",,"",0,warmup,40,10,,,
+"Upper A","2026-08-30T09:00:00","2026-08-30T10:15:00","주간 첫 운동","Bench Press (Barbell)",,"",1,normal,82.5,5,,,8
+"Upper A","2026-08-30T09:00:00","2026-08-30T10:15:00","주간 첫 운동","Bench Press (Barbell)",,"",2,failure,82.5,3,,,10
+"Upper A","2026-08-30T09:00:00","2026-08-30T10:15:00","주간 첫 운동","Bicep Curl (Dumbbell)",0,"천천히",0,normal,14,12,,,
+"Upper A","2026-08-30T09:00:00","2026-08-30T10:15:00","주간 첫 운동","Triceps Pushdown (Cable)",0,"",0,dropset,30,10,,,
+"Cardio","2026-08-31T19:00:00","2026-08-31T19:30:00","","Running",,"",0,normal,,,5,1800,

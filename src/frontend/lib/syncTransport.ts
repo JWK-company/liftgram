@@ -16,6 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { SyncService } from "@app/contracts";
 import { runBootPipeline } from "@app/core/migrations/runner";
+import { PUSH_CHUNK_MAX, splitSyncChanges } from "@app/core/sync/pushChunks";
 import {
   awaitFirstSync,
   installSyncTransport,
@@ -93,12 +94,18 @@ export function installSync(): void {
       return { changes, timestamp: Number(res.timestamp) };
     },
 
+    // @plm SRS-081 SRS-082  나눠 보내기(D-1) — 서버 상한 5000건. ≤2000건씩 순서대로, 하나라도 실패하면 그대로 던진다
+    // (WatermelonDB 가 synced 로 표시하지 않아 다음 회차에 전부 다시 보낸다 — 서버 upsert 가 멱등이라 결과가 같다).
+    // 작은 동기는 예전과 똑같이 한 번이다(splitSyncChanges 가 받은 객체를 그대로 돌려준다).
     push: async (changes: Record<string, SyncTableChanges>) => {
-      const payload: Record<string, { created: string[]; updated: string[]; deleted: string[] }> = {};
-      for (const [table, t] of Object.entries(changes)) {
-        payload[table] = { created: t.created ?? [], updated: t.updated ?? [], deleted: t.deleted ?? [] };
+      const c = client();
+      for (const part of splitSyncChanges(changes, PUSH_CHUNK_MAX)) {
+        const payload: Record<string, { created: string[]; updated: string[]; deleted: string[] }> = {};
+        for (const [table, t] of Object.entries(part)) {
+          payload[table] = { created: t.created ?? [], updated: t.updated ?? [], deleted: t.deleted ?? [] };
+        }
+        await c.push({ changes: payload });
       }
-      await client().push({ changes: payload });
     },
 
     // 받은 것을 IndexedDB로 내려쓴다. 웹에서 화면 전환은 JS 컨텍스트를 갈아치우므로,

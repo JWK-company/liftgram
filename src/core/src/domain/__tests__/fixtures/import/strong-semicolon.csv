@@ -1,0 +1,5 @@
+﻿"Workout #";"Date";"Workout Name";"Duration (sec)";"Exercise Name";"Set Order";"Weight (kg)";"Reps";"RPE";"Distance (meters)";"Seconds";"Notes";"Workout Notes"
+"1";"2026-09-01 07:00:00";"Morning";"3000";"Deadlift (Barbell)";"W";"60";"5";"";"";"";"";"새벽 운동; 졸림"
+"1";"2026-09-01 07:00:00";"Morning";"3000";"Deadlift (Barbell)";"1";"140,5";"3";"9";"";"";"";""
+"1";"2026-09-01 07:00:00";"Morning";"3000";"Lat Pulldown (Cable)";"1";"55";"10";"";"";"";"";""
+"2";"2026-09-01 07:00:00";"Morning";"1200";"Rowing (Machine)";"1";"0";"0";"";"2000";"480";"";""

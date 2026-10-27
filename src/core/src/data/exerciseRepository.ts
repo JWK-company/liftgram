@@ -84,7 +84,46 @@ export interface CustomExerciseInput {
   imageUrl?: string | null;
 }
 
+/**
+ * 커스텀 종목을 **만들 준비만** 한다(Model 을 돌려준다 — database.batch 에 넣는다). write 를 열지 않으므로 다른 write 안에서
+ * 부를 수 있다(가져오기 묶음 쓰기 — write 안에서 write 를 부르면 writer 큐가 서로 기다려 멈춘다 · D-8).
+ * id 를 주면 그 id 로(가져오기의 결정적 `cx-…` — `seed-` 로 시작하면 동기에서 빠지므로 쓰지 않는다), importBatchId 는 처음 만든 묶음.
+ * @plm SRS-081 SRS-082
+ */
+export function prepareCustomExercise(
+  input: CustomExerciseInput,
+  opts: { id?: string; importBatchId?: string | null } = {},
+): Exercise {
+  if (opts.id?.startsWith('seed-')) throw new Error('커스텀 종목 id 는 seed- 로 시작할 수 없다');
+  return exercises().prepareCreate((e) => {
+    if (opts.id) e._raw.id = opts.id;
+    e.nameKo = input.nameKo.trim();
+    e.nameEn = input.nameEn?.trim() || null;
+    e.primaryMuscles = input.primaryMuscles;
+    e.secondaryMuscles = input.secondaryMuscles ?? [];
+    e.equipment = input.equipment;
+    e.category = input.category ?? null;
+    e.imageUrl = input.imageUrl ?? null;
+    e.isCustom = true;
+    e.substituteIds = [];
+    e.isArchived = false;
+    if (opts.importBatchId !== undefined) e.importBatchId = opts.importBatchId;
+  });
+}
+
+// [개선] prepareCustomExercise 를 감싼다(같은 칸 값 · 가져오기와 한 규칙). @plm SRS-081
 export async function createCustomExercise(input: CustomExerciseInput): Promise<Exercise> {
+  // [원본] 원복 시 아래를 주석 해제하고 새 호출을 주석 처리
+  // return createCustomExerciseV1(input);
+  return database.write(async () => {
+    const e = prepareCustomExercise(input);
+    await database.batch(e);
+    return e;
+  });
+}
+
+// [원본] 가져오기 전의 만들기 — 원복용으로 남긴다(호출 없음).
+export async function createCustomExerciseV1(input: CustomExerciseInput): Promise<Exercise> {
   return database.write(async () =>
     exercises().create((e) => {
       e.nameKo = input.nameKo.trim();

@@ -1,0 +1,12 @@
+Date,Workout Name,Duration,Exercise Name,Set Order,Weight,Reps,Distance,Seconds,Notes,Workout Notes,RPE
+2026-08-25 10:10:00,"Push Day",1h 5m,"Bench Press (Barbell)",W,40,10,,0,,"가슴 날, 컨디션 좋음",
+2026-08-25 10:10:00,"Push Day",1h 5m,"Bench Press (Barbell)",1,80,5,,0,"그립 좁게",,8
+2026-08-25 10:10:00,"Push Day",1h 5m,"Bench Press (Barbell)",2,80,5,,0,,,8.5
+2026-08-25 10:10:00,"Push Day",1h 5m,"Bench Press (Barbell)",D,60,8,,0,,,
+2026-08-25 10:10:00,"Push Day",1h 5m,"Bench Press (Barbell)",Rest Timer,,,,90,,,
+2026-08-25 10:10:00,"Push Day",1h 5m,"Triceps Pushdown (Cable - Rope)",1,25,12,,0,,,
+2026-08-25 10:10:00,"Push Day",1h 5m,"Triceps Pushdown (Cable - Rope)",F,25,6,,0,,,
+2026-08-27 18:30:00,"Leg Day",45m,"Squat (Barbell)",1,100,5,,0,"무릎 괜찮음
+다음엔 105",,
+2026-08-27 18:30:00,"Leg Day",45m,"Squat (Barbell)",2,100,5,,0,,,
+2026-08-27 18:30:00,"Leg Day",45m,"Running",1,0,0,3.2,1200,,,
