@@ -61,6 +61,7 @@ import { AppText, Card, Tag } from "../ui/primitives";
 // [원본] import { VariantSelector } from "../ui/VariantSelector";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { UnitToggle } from "../ui/UnitToggle";
+import { FoldToggle, MetaAction, MetaLine, PrText, useFold } from "../ui/quiet";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { ExerciseName } from "./ExerciseName";
 import { Pictogram } from "../Pictogram";
@@ -170,6 +171,8 @@ export function ExerciseBlock({
   const [plateOneSide, setPlateOneSideState] = useState(false);
   const [slots, setSlots] = useState<SlotSummary[]>([]);
   const [slotsOpen, setSlotsOpen] = useState(false);
+  // 「더 보기」 펼침 — 기기에 기억하는 전역 하나(종목마다 따로 두지 않는다 · /qa spec Q6) @plm SRS-069
+  const [foldOpen, setFoldOpen] = useFold("block");
 
   // ── 블록 무게 단위(kg|lb) — 한 헬스장에 kg·lb 기구가 섞여 있다(2026-10-27) @plm SRS-067 ──
   // 기본값 = 같은 종목·칸으로 마지막에 완료한 블록의 단위(저장소가 정한다 · 환산 없음). 토글은 숫자 유지·단위만(Q4 B).
@@ -524,20 +527,39 @@ export function ExerciseBlock({
     );
   }
 
+  // [원본] 「이전기록 지우기」는 팁 줄 오른쪽(또는 메타 칩 줄 끝)에 늘 보였다 — 화면 정리 뒤엔 「더 보기」 안 @plm SRS-069
   const prevClearBtn =
     !isCardio && (hasPrev || prevCleared) ? (
-      <button
-        type="button"
-        data-testid="prev-clear"
-        onClick={() => setPrevCleared((v) => !v)}
-        className="py-[2px]"
-      >
-        <AppText variant="label" color="textFaint">
-          {prevCleared ? t("session.showPrev") : t("session.clearPrev")}
-        </AppText>
-      </button>
-    ) : undefined;
+      <MetaAction testId="prev-clear" onPress={() => setPrevCleared((v) => !v)}>
+        {prevCleared ? t("session.showPrev") : t("session.clearPrev")}
+      </MetaAction>
+    ) : null;
+  const otherSlotsBtn =
+    !isCardio && otherSlots.length > 0 ? (
+      <MetaAction testId="btn-other-slots" onPress={() => setSlotsOpen(true)}>
+        {t("session.otherSlots")} ({otherSlots.length})
+      </MetaAction>
+    ) : null;
+  // 「더 보기」에 넣을 것이 있을 때만 토글을 둔다(운동 방법 · 다른 조합 · 이전기록 지우기)
+  const hasFold = !isCardio && (hasTip || !!otherSlotsBtn || !!prevClearBtn);
+  const showPr = !isCardio && !prevCleared && (prs.weight || prs.volume);
+  const volumeText =
+    !isCardio && (exVol.volume > 0 || exVol.reps > 0)
+      ? exVol.volume > 0
+        ? t("session.exVolume", { volume: formatWeight(exVol.volume, "kg") }) // 볼륨은 kg(Q2 A) @plm SRS-067
+        : t("session.exTotalReps", { reps: exVol.reps })
+      : isCardio && cardioTotal
+        ? t("session.cardioTotal", { total: cardioTotal })
+        : null;
 
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 화면 정리 P1(D2·D3·D4 · SRS-069) — 정보는 그대로, 상자·빨강을 걷어 낸다.
+  //   머리      [▲▼] [그림] 이름 ············ 회색 볼륨 · ⋯
+  //   메타 줄    조합 ▾ · 슈퍼세트 · 금색 PR(누르면 채움 · ⓘ 기록) · 경고            더 보기 ▾
+  //   더 보기    운동 방법 · 다른 조합 · 이전기록 지우기 (펼침은 기기에 기억 — 전역 하나)
+  //   표 머리    세트 · 이전 · 무게 kg│lb · 횟수
+  // [원본] 메타 칩 줄(테두리 알약 변형·PR 칩·kg/lb 알약·볼륨 태그) + 「이전 기록 · 조합」 줄 + 팁 줄 — 커밋 5222c61 의 이 파일
+  // ─────────────────────────────────────────────────────────────────────────────
   return (
     <Card
       className={
@@ -545,27 +567,27 @@ export function ExerciseBlock({
       }
     >
       <div data-testid={`we-${we.id}`}>
-        {/* 헤더 */}
-        <div className="flex items-start">
+        {/* 헤더 — 화살표는 그림 왼쪽 자기 열(F3: 겹치지 않게) */}
+        <div className="flex items-center gap-[var(--spacing-sm)]">
           {onMoveUp || onMoveDown ? (
-            <div className="mr-[2px] flex w-[30px] shrink-0 flex-col gap-[2px]">
+            <div className="flex w-[28px] shrink-0 flex-col items-center">
               <IconButton
                 icon="chevron-up"
-                size={20}
+                size={18}
                 label={t("session.moveUp")}
                 disabled={!onMoveUp}
                 color={onMoveUp ? "var(--color-ink2)" : "var(--color-line)"}
                 onPress={onMoveUp}
-                className="h-6! w-[30px]!"
+                className="h-[22px]! w-[28px]!"
               />
               <IconButton
                 icon="chevron-down"
-                size={20}
+                size={18}
                 label={t("session.moveDown")}
                 disabled={!onMoveDown}
                 color={onMoveDown ? "var(--color-ink2)" : "var(--color-line)"}
                 onPress={onMoveDown}
-                className="h-6! w-[30px]!"
+                className="h-[22px]! w-[28px]!"
               />
             </div>
           ) : null}
@@ -579,6 +601,16 @@ export function ExerciseBlock({
           <div className="min-w-0 flex-1">
             <ExerciseName exerciseId={we.exerciseId} variant="heading" base revealOnTap testId="we-name" />
           </div>
+
+          {/* 이 종목 볼륨 — 오른쪽 회색 숫자(정보일 뿐 행동이 아니다 · 빨강 태그였던 것) */}
+          {volumeText ? (
+            <span
+              data-testid="ex-volume"
+              className="shrink-0 text-[length:var(--text-xs)] text-(--color-ink3) tabular-nums"
+            >
+              {volumeText}
+            </span>
+          ) : null}
 
           {/* 종목 동작은 ⋯ 하나로(아이콘 셋 → 하나 · SRS-054). 표식(btn-superset·btn-swap·btn-remove-exercise)은 시트 안 선택지가 잇는다. */}
           <MoreMenu
@@ -627,131 +659,112 @@ export function ExerciseBlock({
           />
         </div>
 
-        {/* 메타 칩 — 변형 · 슈퍼셋 · PR · 볼륨 · 경고 */}
-        <div className="mt-[4px] flex flex-wrap items-center gap-[var(--spacing-sm)]">
-          {!isCardio ? (
-            // [원본] 기구 칩이 같은 종목의 변형 칸이던 선택기 — P2 에서 기구 바꾸기 = 종목 바꾸기(ADR-033·034)
-            // <VariantSelector baseEquipment={baseEquipment} value={variant} onChange={...} />
-            <RecordSlotSelector
-              exerciseId={we.exerciseId}
-              baseEquipment={baseEquipment}
-              value={variant}
-              onChange={(dims) => {
-                setVariant(dims);
-                // [원본] void write(() => repo.setVariant(we.id, dims));
-                // [개선] 칸이 바뀌면 그 칸이 기억하는 단위로(완료 세트가 없을 때만 · 환산 없음) @plm SRS-067
-                void write(() => repo.setVariant(we.id, dims)).then(() =>
-                  repo
-                    .adoptSlotUnit(we.id)
-                    .then(setBlockUnit)
-                    .catch(() => {}),
-                );
-              }}
-              onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
-              plateOneSide={plateOneSide}
-              onPlateOneSide={(on) => {
-                setPlateOneSideState(on);
-                void write(() => repo.setPlateOneSideForExercise(we.exerciseId, on));
-              }}
-            />
-          ) : null}
-
-          {we.supersetGroup && !insideSuperset ? <Tag label={t("session.superset")} tone="primary" /> : null}
-
-          {/* [원본] PR 한 줄(중량만, 누를 수 없음)
-          {!isCardio && pr && !prevCleared ? (
-            <AppText variant="caption" color="pr" data-testid="pr-chip">
-              {t("session.prLine", { weight: formatWeight(pr.weightKg, unit), reps: pr.reps })}
-            </AppText>
-          ) : null} */}
-          {/* [개선] 중량 PR·볼륨 PR 칩 — 누르면 아직 안 한 첫 세트에 채운다 · ⓘ 는 그 기록으로(#50·#51) @plm SRS-061 */}
-          {!isCardio && !prevCleared && (prs.weight || prs.volume)
-            ? prChips().map((c) => (
-                <span key={c.kind} className="inline-flex items-center gap-[2px]">
-                  <button
-                    type="button"
-                    data-testid={`pr-chip-${c.kind}`}
-                    aria-label={`${c.label} — ${t("session.prChipFill")}`}
-                    onClick={() => fillFromPr(c.ref)}
-                    className="rounded-[var(--radius-pill)] border border-(--color-pr) px-[var(--spacing-sm)] py-[2px]"
-                  >
-                    <AppText variant="caption" color="pr" className="font-semibold">
-                      {c.label}
-                    </AppText>
-                  </button>
-                  <IconButton
-                    icon="information-circle-outline"
-                    size={16}
-                    label={t("session.prChipHistory")}
-                    color="var(--color-ink3)"
-                    className="h-7! w-7!"
-                    testId={`pr-chip-${c.kind}-history`}
-                    onPress={() => navigate(`/history/${c.ref.workoutId}?set=${c.ref.setLogId}`)}
+        {/* 메타 줄 — 조합 · 슈퍼셋 · PR · 경고 (회색, PR 만 금색) + 오른쪽 「더 보기」 */}
+        <div className="mt-[2px] flex items-start gap-[var(--spacing-sm)]">
+          <MetaLine className="flex-1" testId="we-meta">
+            {!isCardio ? (
+              // [원본] 기구 칩이 같은 종목의 변형 칸이던 선택기 — P2 에서 기구 바꾸기 = 종목 바꾸기(ADR-033·034)
+              // <VariantSelector baseEquipment={baseEquipment} value={variant} onChange={...} />
+              <RecordSlotSelector
+                key="slot"
+                exerciseId={we.exerciseId}
+                baseEquipment={baseEquipment}
+                value={variant}
+                onChange={(dims) => {
+                  setVariant(dims);
+                  // [원본] void write(() => repo.setVariant(we.id, dims));
+                  // [개선] 칸이 바뀌면 그 칸이 기억하는 단위로(완료 세트가 없을 때만 · 환산 없음) @plm SRS-067
+                  void write(() => repo.setVariant(we.id, dims)).then(() =>
+                    repo
+                      .adoptSlotUnit(we.id)
+                      .then(setBlockUnit)
+                      .catch(() => {}),
+                  );
+                }}
+                onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
+                plateOneSide={plateOneSide}
+                onPlateOneSide={(on) => {
+                  setPlateOneSideState(on);
+                  void write(() => repo.setPlateOneSideForExercise(we.exerciseId, on));
+                }}
+              />
+            ) : null}
+            {we.supersetGroup && !insideSuperset ? (
+              <span key="ss" className="inline-flex min-h-[32px] items-center">
+                {t("session.superset")}
+              </span>
+            ) : null}
+            {/* 중량 PR·볼륨 PR — 금색 글자 조각. 누르면 아직 안 한 첫 세트에 채우고 ⓘ 는 그 기록으로(#50·#51 · D3) @plm SRS-061 SRS-069 */}
+            {showPr
+              ? prChips().map((c) => (
+                  <PrText
+                    key={`pr-${c.kind}`}
+                    label={c.label}
+                    ariaLabel={`${c.label} — ${t("session.prChipFill")}`}
+                    testId={`pr-chip-${c.kind}`}
+                    onPress={() => fillFromPr(c.ref)}
+                    historyLabel={t("session.prChipHistory")}
+                    historyTestId={`pr-chip-${c.kind}-history`}
+                    onHistory={() => navigate(`/history/${c.ref.workoutId}?set=${c.ref.setLogId}`)}
                   />
-                </span>
-              ))
-            : null}
-
-          {/* kg/lb 토글 — PR 칩 옆(2026-10-27 사용자). 맨몸·유산소는 무게 단위가 없다. @plm SRS-067 */}
-          {!isCardio && loadMode === "external" ? (
-            <UnitToggle value={blockUnit} onChange={switchUnit} disabled={unitBusy || !unitReady} />
+                ))
+              : null}
+            {bwMissing ? (
+              <span
+                key="bw"
+                className="inline-flex min-h-[32px] items-center font-semibold text-(--color-warn)"
+              >
+                {t("session.bodyweightNeeded")}
+              </span>
+            ) : null}
+          </MetaLine>
+          {hasFold ? (
+            <span className="shrink-0">
+              <FoldToggle
+                testId="block-more"
+                open={foldOpen}
+                onToggle={() => setFoldOpen(!foldOpen)}
+                label={t("session.blockMore")}
+                openLabel={t("session.blockMoreClose")}
+              />
+            </span>
           ) : null}
-
-          {!isCardio && (exVol.volume > 0 || exVol.reps > 0) ? (
-            <Tag
-              tone="primary"
-              label={
-                exVol.volume > 0
-                  ? t("session.exVolume", { volume: formatWeight(exVol.volume, "kg") }) // 볼륨은 kg(Q2 A) @plm SRS-067
-                  : t("session.exTotalReps", { reps: exVol.reps })
-              }
-            />
-          ) : null}
-
-          {/* 유산소는 볼륨 대신 총 시간·거리를 보여 준다 — 무게·횟수가 없으니 볼륨 칩은 늘 0이다. */}
-          {isCardio && cardioTotal ? (
-            <Tag tone="primary" label={t("session.cardioTotal", { total: cardioTotal })} />
-          ) : null}
-
-          {bwMissing ? (
-            <AppText variant="label" color="warning">
-              {t("session.bodyweightNeeded")}
-            </AppText>
-          ) : null}
-
-          {!hasTip ? prevClearBtn : null}
         </div>
 
-        {/* 이전 기록이 어느 조합의 것인지 — 기본 칸이 아니거나 다른 조합 기록이 있을 때만(ADR-034) @plm SRS-058 */}
+        {/* 이전 기록이 어느 칸의 것인지 — 지금 칸과 늘 같아(이전 기록을 그 칸에서 읽는다) 화면에는 반복이라 숨기고,
+            읽어 주는 글로만 둔다(화면 정리 · 반복 제거). @plm SRS-058 SRS-069 */}
         {!isCardio && (variantKey || otherSlots.length > 0) ? (
-          <div
-            className="mt-[4px] flex flex-wrap items-center gap-x-[var(--spacing-sm)]"
-            data-testid="slot-line"
-          >
-            <AppText variant="label" color="textFaint" data-testid="prev-slot">
-              {t("session.prevSlot", { slot: variantLabelFromKey(variantKey, lang, machineVariantLabels) })}
-            </AppText>
-            {otherSlots.length > 0 ? (
-              <button
-                type="button"
-                data-testid="btn-other-slots"
-                onClick={() => setSlotsOpen(true)}
-                className="py-[2px]"
-              >
-                <AppText variant="label" color="primary">
-                  {t("session.otherSlots")} ({otherSlots.length})
-                </AppText>
-              </button>
-            ) : null}
+          <span className="sr-only" data-testid="prev-slot">
+            {t("session.prevSlot", { slot: variantLabelFromKey(variantKey, lang, machineVariantLabels) })}
+          </span>
+        ) : null}
+
+        {/* 더 보기 — 운동 방법 · 다른 조합 · 이전기록 지우기 */}
+        {hasFold && foldOpen ? (
+          <div data-testid="block-more-panel" className="mb-[2px]">
+            {hasTip ? (
+              <ExerciseTipPanel
+                exerciseId={we.exerciseId}
+                trailing={
+                  otherSlotsBtn || prevClearBtn ? (
+                    <MetaLine>
+                      {otherSlotsBtn}
+                      {prevClearBtn}
+                    </MetaLine>
+                  ) : undefined
+                }
+              />
+            ) : (
+              <MetaLine>
+                {otherSlotsBtn}
+                {prevClearBtn}
+              </MetaLine>
+            )}
           </div>
         ) : null}
 
-        {!isCardio ? (
-          <ExerciseTipPanel exerciseId={we.exerciseId} trailing={hasTip ? prevClearBtn : undefined} />
-        ) : null}
-
-        {/* 표 머리 */}
-        <div className="mt-[var(--spacing-md)] flex gap-[4px] pb-[4px]">
+        {/* 표 머리 — 「무게」 칸 안에 kg│lb(D2 · /qa spec Q8). 한쪽 입력이면 칸 위에 「한쪽」 */}
+        <div className="mt-[var(--spacing-sm)] flex items-end gap-[4px] pb-[2px]">
           <HeadCell className="w-[34px]">{t("session.setColHeader")}</HeadCell>
           <HeadCell className="w-[66px]">{t("session.prevColHeader")}</HeadCell>
           {isCardio ? (
@@ -762,15 +775,43 @@ export function ExerciseBlock({
             ))
           ) : (
             <>
-              <HeadCell className="flex-1">
-                {loadMode === "assisted"
-                  ? t("session.assistColHeader")
-                  : loadMode === "bodyweight"
-                    ? t("session.addedColHeader")
-                    : oneSide
-                      ? t("session.weightOneSideLabel", { weightUnit: blockUnit }) // 플레이트 한쪽 입력(ADR-037)
+              {/* [원본] 「무게 (kg)」·「한쪽(kg)」 글자 칸 — 단위 토글은 PR 칩 옆 알약이었다 */}
+              {loadMode === "external" ? (
+                <span
+                  data-testid="head-weight"
+                  data-unit={blockUnit}
+                  data-one-side={oneSide ? "1" : "0"}
+                  className="flex min-w-0 flex-1 flex-col items-center"
+                >
+                  {/* 읽어 주는 글 — 「무게 (kg)」·「한쪽(kg)」(보이는 글은 짧게) */}
+                  <span className="sr-only">
+                    {oneSide
+                      ? t("session.weightOneSideLabel", { weightUnit: blockUnit })
                       : t("session.weightLabel", { weightUnit: blockUnit })}
-              </HeadCell>
+                  </span>
+                  {oneSide ? (
+                    <span
+                      aria-hidden
+                      className="font-semibold text-[length:var(--text-xs)] text-(--color-ink2) leading-none"
+                    >
+                      {t("session.oneSideShort")}
+                    </span>
+                  ) : null}
+                  {/* 칸 이름 자리에 단위 토글 그대로 — 「무게」 글자를 따로 두면 좁은 칸에서 꺾인다(라벨 없는 kg│lb · Q8) */}
+                  <span className="inline-flex items-center whitespace-nowrap">
+                    <UnitToggle
+                      compact
+                      value={blockUnit}
+                      onChange={switchUnit}
+                      disabled={unitBusy || !unitReady}
+                    />
+                  </span>
+                </span>
+              ) : (
+                <HeadCell className="flex-1">
+                  {loadMode === "assisted" ? t("session.assistColHeader") : t("session.addedColHeader")}
+                </HeadCell>
+              )}
               <HeadCell className="flex-1">{t("session.repsLabel")}</HeadCell>
             </>
           )}

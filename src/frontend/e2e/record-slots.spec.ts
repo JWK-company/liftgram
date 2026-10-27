@@ -7,6 +7,7 @@
 //   · 플레이트 「한쪽 무게로 입력」 — 입력은 한쪽, 볼륨은 ×2
 //   · 루틴 편집의 대체가 한 번에 바뀐다(#47) · 운동 중 기구 바꾸기를 「루틴에도」 반영한다
 import { expect, test } from "@playwright/test";
+import { 블록_더보기 } from "./helpers/block";
 
 type Page = import("@playwright/test").Page;
 
@@ -109,6 +110,7 @@ test("케이블 부착물 — 로프와 일자바 기록이 섞이지 않고, �
   await 시트_닫기(page);
   await expect(page.getByTestId("prev-slot")).toContainText("일자바");
   await expect(첫세트(page).getByTestId("set-prev")).not.toContainText("25×12");
+  await 블록_더보기(page); // 화면 정리 뒤 「다른 조합」은 「더 보기」 안(SRS-069)
   await expect(page.getByTestId("btn-other-slots")).toBeVisible();
   await 세트_기록(page, 35, 10);
   await 마치기(page);
@@ -117,6 +119,7 @@ test("케이블 부착물 — 로프와 일자바 기록이 섞이지 않고, �
   await 운동_시작(page, "케이블 푸시다운");
   await expect(page.getByTestId("variant-trigger").first()).toContainText("일자바", { timeout: 15_000 });
   await expect(첫세트(page).getByTestId("set-prev")).toContainText("35×10");
+  await 블록_더보기(page);
   await page.getByTestId("btn-other-slots").click();
   const rope = page.getByTestId("slots-sheet").getByTestId("slot-attach:rope");
   await expect(rope).toContainText("25");

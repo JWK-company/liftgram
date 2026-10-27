@@ -13,12 +13,52 @@ export function UnitToggle({
   value,
   onChange,
   disabled = false,
+  compact = false,
 }: {
   value: WeightUnit;
   onChange: (u: WeightUnit) => void;
   /** 단위를 정하는 중·바꾸는 중 — 겹친 토글을 막는다(/qa code H-1·M-4) */
   disabled?: boolean;
+  /**
+   * 세트 표 머리 「무게」 칸 안에 넣는 모양(화면 정리 D2 · /qa spec Q8) — 라벨 없는 「kg│lb」 글자 둘.
+   * 켜진 쪽은 진한 굵은 글자, 꺼진 쪽은 흐린 글자 — 상자·빨강 없이. @plm SRS-069
+   */
+  compact?: boolean;
 }) {
+  if (compact) {
+    return (
+      <fieldset
+        aria-label={t("session.unitToggleLabel")}
+        data-testid="unit-toggle"
+        className="m-0 inline-flex min-w-0 shrink-0 items-center border-0 p-0"
+      >
+        {UNITS.map((u, i) => {
+          const on = u === value;
+          return (
+            <span key={u} className="inline-flex items-center">
+              {i > 0 ? (
+                <span aria-hidden className="text-(--color-line-strong) text-[length:var(--text-xs)]">
+                  │
+                </span>
+              ) : null}
+              <button
+                type="button"
+                data-testid={`unit-toggle-${u}`}
+                aria-pressed={on}
+                disabled={disabled}
+                onClick={() => onChange(u)}
+                className={`inline-flex h-7 min-w-[24px] items-center justify-center px-[2px] text-[length:var(--text-xs)] disabled:opacity-60 ${
+                  on ? "font-bold text-(--color-ink)" : "font-medium text-(--color-ink3)"
+                }`}
+              >
+                {u}
+              </button>
+            </span>
+          );
+        })}
+      </fieldset>
+    );
+  }
   return (
     <fieldset
       aria-label={t("session.unitToggleLabel")}

@@ -3,6 +3,7 @@
 // 여기서 보는 것: 그림이 **자체 생성 SVG** 로 뜨는가(사진 CDN 이 아니라), 움직임 그림이 프레임을 바꾸는가,
 // 동작 줄이기 설정이면 멈춰 있는가.
 import { expect, test } from "@playwright/test";
+import { 블록_더보기 } from "./helpers/block";
 
 type Page = import("@playwright/test").Page;
 
@@ -38,6 +39,7 @@ test("종목 고르기·운동 블록에 그림이 있고, 팁을 펴면 움직�
   await page.getByTestId("picker-list").locator("button").first().click();
   await expect(page.getByTestId("we-picto").first().locator("svg")).toBeVisible({ timeout: 15_000 });
 
+  await 블록_더보기(page); // 운동 방법은 「더 보기」 안(SRS-069)
   await page.getByTestId("tip-toggle").first().click();
   const tip = page.getByTestId("tip-picto");
   await expect(tip.locator("svg")).toBeVisible({ timeout: 15_000 });

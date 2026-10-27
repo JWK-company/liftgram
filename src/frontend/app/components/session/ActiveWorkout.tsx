@@ -783,8 +783,10 @@ function SupersetContainer({
   onMoveDown?: () => void;
 }) {
   return (
-    <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-brand) bg-(--color-surface)">
-      <div className="flex items-center bg-(--color-brand-muted) px-[var(--spacing-md)] py-[var(--spacing-sm)]">
+    // [원본] 빨간 테두리 + 빨간 머리띠 — 묶음은 「구역」 표시라 진한 회색 테두리 + 회색 caption(화면 정리 P1) @plm SRS-069
+    // <div className="… border-[1.5px] border-(--color-brand) …"><div className="… bg-(--color-brand-muted) …">
+    <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-line-strong) bg-(--color-surface)">
+      <div className="flex items-center bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)]">
         {onMoveUp || onMoveDown ? (
           <div className="mr-[6px] flex flex-col gap-[2px]">
             <IconButton
@@ -792,7 +794,7 @@ function SupersetContainer({
               size={16}
               label={t("session.moveUp")}
               disabled={!onMoveUp}
-              color={onMoveUp ? "var(--color-brand)" : "var(--color-line)"}
+              color={onMoveUp ? "var(--color-ink2)" : "var(--color-line)"}
               onPress={onMoveUp}
               className="h-5! w-5!"
             />
@@ -801,14 +803,14 @@ function SupersetContainer({
               size={16}
               label={t("session.moveDown")}
               disabled={!onMoveDown}
-              color={onMoveDown ? "var(--color-brand)" : "var(--color-line)"}
+              color={onMoveDown ? "var(--color-ink2)" : "var(--color-line)"}
               onPress={onMoveDown}
               className="h-5! w-5!"
             />
           </div>
         ) : null}
-        <Icon name="git-merge-outline" size={15} color="var(--color-brand)" />
-        <AppText variant="label" color="primary" className="ml-[6px] flex-1 font-bold">
+        <Icon name="git-merge-outline" size={15} color="var(--color-ink2)" />
+        <AppText variant="caption" color="textMuted" className="ml-[6px] flex-1 font-semibold">
           {t("session.superset")}
         </AppText>
         <button

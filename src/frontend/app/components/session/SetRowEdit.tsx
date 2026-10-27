@@ -278,9 +278,18 @@ export function SetRowEdit({
           onClick={applyPrev}
           className="w-[66px] shrink-0"
         >
-          {prev ? (
+          {/* [원본] 빨간 테두리 상자 + 빨간 숫자(세트마다 — 블록에서 빨강이 가장 많던 곳)
             <span className="block rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-surface-alt) px-[5px] py-[3px]">
-              <AppText variant="caption" color="primary" center className="block truncate">
+              <AppText variant="caption" color="primary" …> */}
+          {/* [개선] 테두리 없는 회색 숫자 — 누를 수 있다는 표시는 점선 밑줄(누르면 채우기 그대로 · 화면 정리 D4) @plm SRS-069 */}
+          {prev ? (
+            <span className="block px-[2px] py-[3px]">
+              <AppText
+                variant="caption"
+                color={isDone ? "textFaint" : "textMuted"}
+                center
+                className="block truncate tabular-nums underline decoration-dotted decoration-[1px] underline-offset-[3px]"
+              >
                 {`${displayWeight(prev.weightKg, unit)}×${prev.partialReps ? `(${prev.reps}+${prev.partialReps})` : prev.reps}`}
               </AppText>
               {prevOptionLabel(prev) ? (
@@ -374,13 +383,15 @@ export function SetRowEdit({
           data-testid="set-more"
           aria-label="세트 상세"
           onClick={() => setExpanded((v) => !v)}
-          style={{ backgroundColor: expanded || hasDetail ? "var(--color-brand-muted)" : undefined }}
+          // [원본] 상세가 있으면 빨간 바탕·빨간 화살표 — 빨강은 완료·주 행동에만(화면 정리 공용 규칙) @plm SRS-069
+          // style={{ backgroundColor: expanded || hasDetail ? "var(--color-brand-muted)" : undefined }}
+          style={{ backgroundColor: expanded || hasDetail ? "var(--color-surface-alt)" : undefined }}
           className="ml-[2px] flex h-10 w-[34px] shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
         >
           <Icon
             name={expanded ? "chevron-up" : "chevron-down"}
             size={16}
-            color={expanded || hasDetail ? "var(--color-brand)" : "var(--color-ink3)"}
+            color={expanded || hasDetail ? "var(--color-ink)" : "var(--color-ink3)"}
           />
         </button>
       </div>

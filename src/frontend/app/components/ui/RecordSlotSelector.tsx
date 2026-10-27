@@ -30,8 +30,8 @@ import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { lang, t } from "@/lib/i18n";
-import { Icon } from "./Icon";
 import { AppText } from "./primitives";
+import { MetaAction } from "./quiet";
 
 type Sibling = { id: string; equipment: string; nameKo: string };
 type Axes = { attachments: string[]; grips: string[]; load: boolean };
@@ -146,19 +146,20 @@ export function RecordSlotSelector({
 
   return (
     <>
-      <button
-        type="button"
-        data-testid="variant-trigger"
-        onClick={() => setOpen(true)}
-        style={{ borderColor: "var(--color-line)" }}
-        className="flex min-w-0 shrink items-center gap-[3px] rounded-[var(--radius-pill)] border bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[3px]"
+      {/* [원본] 테두리 알약 칩 — 고른 조합이면 빨강(블록 머리에서 빨강이 경쟁하던 곳 · 화면 정리 기준선)
+      <button type="button" data-testid="variant-trigger" onClick={() => setOpen(true)} style={{ borderColor: "var(--color-line)" }}
+        className="flex min-w-0 shrink items-center gap-[3px] rounded-[var(--radius-pill)] border bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[3px]">
+        <Icon name="options-outline" … /> <AppText variant="caption" color={active ? "primary" : "textMuted"}>{summary}</AppText> <Icon name="chevron-down" … />
+      </button> */}
+      {/* [개선] 회색 메타 조각(점선 밑줄 = 누를 수 있음) — 조합은 「무엇인지」를 알리는 정보라 빨강을 쓰지 않는다 @plm SRS-069 */}
+      <MetaAction
+        testId="variant-trigger"
+        onPress={() => setOpen(true)}
+        trailingIcon="chevron-down"
+        ariaLabel={`${t("variant.selectTitle")} — ${summary}`}
       >
-        <Icon name="options-outline" size={12} color={active ? "var(--color-brand)" : "var(--color-ink2)"} />
-        <AppText variant="caption" color={active ? "primary" : "textMuted"} className="truncate">
-          {summary}
-        </AppText>
-        <Icon name="chevron-down" size={12} color={active ? "var(--color-brand)" : "var(--color-ink2)"} />
-      </button>
+        {summary}
+      </MetaAction>
 
       {open && root
         ? createPortal(
