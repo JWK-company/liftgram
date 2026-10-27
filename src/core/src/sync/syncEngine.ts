@@ -274,12 +274,37 @@ async function runSynchronize(): Promise<void> {
   } catch (e) {
     console.warn('[sync] 기록 정규화 실패 — 다음 동기에 다시', e);
   }
+
+  // 체중 미러 정리(D-10) — 다른 기기 이력이 pull 로 들어왔거나 옛 경로가 프로필 칸을 고쳤으면 미러를 최신 측정에 맞춘다(멱등).
+  // 정규화와 따로 잡는다: 한쪽이 실패해도 다른 쪽은 돈다. @plm SRS-077
+  try {
+    const { reconcileBodyweightMirror } = await import('../data/bodyweightRepository');
+    const r = await reconcileBodyweightMirror();
+    if (r.created || r.mirrorChanged) {
+      await t.flush?.();
+      scheduleSync(0);
+    }
+  } catch (e) {
+    console.warn('[sync] 체중 미러 정리 실패 — 다음 동기에 다시', e);
+  }
 }
 
 /** WatermelonDB 의 pull 커서 키(sync/impl). 스키마가 바뀌면 지워서 전량 다시 받는다. */
 const LAST_PULLED_KEY = '__watermelon_last_pulled_at';
 /** 마지막으로 동기에 성공한 로컬 스키마 버전 — 기기 로컬(어댑터 local storage, DB 와 함께 비워진다). */
 const SYNCED_SCHEMA_KEY = 'liftgram_synced_schema_version';
+
+/**
+ * 이 기기의 사용자 기록이 「서버에 있는 것을 다 받은」 상태인가(또는 서버와 동기한 적이 아예 없는 로컬 기기인가).
+ * 지금 스키마로 동기에 한 번 성공했으면 true · 동기 흔적이 전혀 없으면(로그인 안 한 기기) true ·
+ * 옛 스키마로만 동기했으면 false(새 표 행을 아직 못 받았다 — 체중 초기 한 줄을 심으면 중복된다 · D-10). @plm SRS-077
+ */
+export async function isLocalPullComplete(): Promise<boolean> {
+  const synced = await database.adapter.getLocal(SYNCED_SCHEMA_KEY);
+  if (synced === String(SCHEMA_VERSION)) return true;
+  if (synced != null) return false;
+  return (await database.adapter.getLocal(LAST_PULLED_KEY)) == null;
+}
 
 // ── 첫 동기 ────────────────────────────────────────────────────────────────
 // 새 기기에 로그인하면, 서버의 프로필이 내려오기 **전에** 화면이 빈 프로필을 만들곤 했다.

@@ -152,5 +152,13 @@ export async function importBackup(json: unknown): Promise<ImportReport> {
     }
     if (batch.length) await database.batch(...batch);
   });
+  // 백업은 bodyweight_logs·user_profiles 를 날것으로 합친다 — 새 계정에 가져오면 프로필이 둘이 되고 미러가 최신 측정과
+  // 어긋날 수 있다. write 가 끝난 **뒤에** 정리한다(정리는 자기 write 를 연다 · D-10). 실패해도 가져오기는 이미 끝났다. @plm SRS-077
+  try {
+    const { reconcileBodyweightMirror } = await import('../data/bodyweightRepository');
+    await reconcileBodyweightMirror();
+  } catch (e) {
+    console.warn('[backup] 체중 미러 정리 실패 — 다음 동기에 다시', e);
+  }
   return report;
 }

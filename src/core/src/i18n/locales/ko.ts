@@ -1057,6 +1057,14 @@ export const ko = {
   "schemaGuard.title": "새 버전으로 새로고침해 주세요",
   "schemaGuard.body": "이 기기의 기록은 더 새 버전 앱으로 저장돼 있어요. 기록을 지키려고 지금 화면에서는 열지 않았어요.",
   "schemaGuard.reload": "새로고침",
+  // 근육 지도·균형(SRS-075·076) — core 는 근육 이름만 잇고(topMusclesLabel) 문장은 이 키로 만든다. @plm SRS-075 SRS-076
+  "muscleMap.focus": "{muscles} 중심",
+  "muscleMap.fullBody": "전신 {count}세트",
+  "muscleMap.setsCount": "{count}세트",
+  // 체중 이력(SRS-077·078) — 숫자만, 평가·권고 없음(웰니스). @plm SRS-077 SRS-078
+  "bodyweight.deleteLastConfirm": "마지막 기록을 지우면 체중이 미설정으로 돌아가요",
+  "bodyweight.weeklyNeedMore": "한 번 더 적으면 추세가 보여요",
+  "bodyweight.sourceLegacy": "이전에 적은 값",
 } as const;
 
 export type TransKey = keyof typeof ko;

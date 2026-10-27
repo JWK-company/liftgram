@@ -6,7 +6,7 @@ import { containsMedicalClaim } from '../wellness';
 import { ko } from '../../i18n/locales/ko';
 import { en } from '../../i18n/locales/en';
 
-const PREFIXES = ['guide.', 'prescription.', 'session.rx', 'experience.', 'schedule.', 'onboarding.exp', 'onboarding.trainerIntent'];
+const PREFIXES = ['guide.', 'prescription.', 'session.rx', 'experience.', 'schedule.', 'onboarding.exp', 'onboarding.trainerIntent', 'muscleMap.', 'bodyweight.']; // openGym 근육·체중 문구도 웰니스 게이트(SRS-075~078)
 
 function gatedEntries(bundle: Record<string, string>): [string, string][] {
   return Object.entries(bundle).filter(([k]) => PREFIXES.some((p) => k.startsWith(p)));

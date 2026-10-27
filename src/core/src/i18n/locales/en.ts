@@ -1058,4 +1058,10 @@ export const en: Record<TransKey, string> = {
   "schemaGuard.title": "Please reload to the new version", // @plm SRS-073
   "schemaGuard.body": "Your records on this device were saved by a newer version of the app. To keep them safe, this screen didn't open them.",
   "schemaGuard.reload": "Reload",
+  "muscleMap.focus": "Mostly {muscles}", // @plm SRS-075 SRS-076
+  "muscleMap.fullBody": "Full body {count} sets",
+  "muscleMap.setsCount": "{count} sets",
+  "bodyweight.deleteLastConfirm": "Deleting the last entry leaves your bodyweight unset", // @plm SRS-077 SRS-078
+  "bodyweight.weeklyNeedMore": "Log once more to see a trend",
+  "bodyweight.sourceLegacy": "Entered earlier",
 };

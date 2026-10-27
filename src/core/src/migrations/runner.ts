@@ -103,6 +103,12 @@ async function pipeline(store: MarkerStore | null): Promise<BootReport> {
     report.normalized = r.changed;
     report.deferred = r.deferred;
   });
+  // v26 첫 부팅(로그인 안 한 기기 포함): 프로필 체중을 이력 첫 줄로 옮겨 심고 미러를 맞춘다(D-10 · 멱등 — 매 부팅 돈다).
+  // 프로필이 아직 없으면(새 기기) 아무것도 안 하고 첫 동기 뒤 정리에 맡긴다. @plm SRS-077
+  await step('bodyweightMirror', async () => {
+    const { reconcileBodyweightMirror } = await import('../data/bodyweightRepository');
+    await reconcileBodyweightMirror();
+  });
   if (report.seeded || report.migrations.length || report.normalized || report.errors.length)
     console.info('[boot] 데이터 파이프라인', report);
   return report;
