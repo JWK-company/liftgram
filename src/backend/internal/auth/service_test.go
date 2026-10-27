@@ -21,6 +21,8 @@ type fakeRepo struct {
 	tokens map[string]RefreshToken // hash → token
 	// 폐기된 토큰도 남겨 둔다 — "다시 쓰면 거절되는가"를 확인해야 하므로.
 	revoked map[string]bool
+	// 서비스와 같은 시계(만료 판단 · SRS-083 유예 테스트가 시간을 옮긴다).
+	now func() time.Time
 }
 
 func newFakeRepo() *fakeRepo {
@@ -29,6 +31,7 @@ func newFakeRepo() *fakeRepo {
 		byMail:  map[string]string{},
 		tokens:  map[string]RefreshToken{},
 		revoked: map[string]bool{},
+		now:     time.Now,
 	}
 }
 
@@ -76,28 +79,62 @@ func (f *fakeRepo) UpdateProfile(_ context.Context, id string, p ProfilePatch) (
 	return u, nil
 }
 
-func (f *fakeRepo) CreateRefreshToken(_ context.Context, hash, userID string, exp time.Time) error {
-	f.tokens[hash] = RefreshToken{UserID: userID, ExpiresAt: exp}
+func (f *fakeRepo) CreateRefreshToken(_ context.Context, hash, userID, familyID string, exp time.Time) error {
+	f.tokens[hash] = RefreshToken{UserID: userID, ExpiresAt: exp, FamilyID: familyID}
 	return nil
 }
 
-func (f *fakeRepo) GetLiveRefreshToken(_ context.Context, hash string) (RefreshToken, error) {
+// 만료되지 않았으면 폐기됐어도 돌려준다(pgRepo 와 같은 의미 · SRS-083).
+func (f *fakeRepo) GetRefreshToken(_ context.Context, hash string) (RefreshToken, error) {
 	t, ok := f.tokens[hash]
-	if !ok || f.revoked[hash] || t.ExpiresAt.Before(time.Now()) {
+	if !ok || !t.ExpiresAt.After(f.now()) {
 		return RefreshToken{}, errs.New(errs.NotFound, "세션 없음")
 	}
 	return t, nil
 }
 
-func (f *fakeRepo) RevokeRefreshToken(_ context.Context, hash string) error {
+func (f *fakeRepo) RotateRefreshToken(_ context.Context, hash string, at time.Time) (bool, error) {
+	t, ok := f.tokens[hash]
+	if !ok || t.RevokedAt != nil {
+		return false, nil
+	}
+	t.RevokedAt, t.RevokeReason = &at, revokeRotated
+	f.tokens[hash] = t
 	f.revoked[hash] = true
+	return true, nil
+}
+
+func (f *fakeRepo) LatestRotationAt(_ context.Context, family string) (time.Time, error) {
+	var latest time.Time
+	for _, t := range f.tokens {
+		if t.FamilyID == family && t.RevokeReason == revokeRotated && t.RevokedAt != nil && t.RevokedAt.After(latest) {
+			latest = *t.RevokedAt
+		}
+	}
+	return latest, nil
+}
+
+func (f *fakeRepo) RevokeRefreshFamily(_ context.Context, family, reason string, at time.Time) error {
+	for h, t := range f.tokens {
+		if t.FamilyID != family {
+			continue
+		}
+		if t.RevokedAt == nil {
+			t.RevokedAt = &at
+		}
+		t.RevokeReason = reason
+		f.tokens[h] = t
+		f.revoked[h] = true
+	}
 	return nil
 }
 
 func newTestService() (*Service, *fakeRepo) {
 	repo := newFakeRepo()
 	// 32자 이상 — 서비스가 요구하는 조건과 같은 자리에서 검사한다.
-	return NewService(repo, NewHMACSigner("test-secret-0123456789abcdefghijkl")), repo
+	svc := NewService(repo, NewHMACSigner("test-secret-0123456789abcdefghijkl"))
+	repo.now = func() time.Time { return svc.now() }
+	return svc, repo
 }
 
 func domainCode(t *testing.T, err error) errs.Code {
@@ -188,10 +225,11 @@ func TestRefreshRotatesAndOldTokenStopsWorking(t *testing.T) {
 		t.Fatal("refresh가 회전하지 않았다 — 같은 토큰이 다시 나왔다")
 	}
 
-	// 쓴 토큰은 죽는다. 훔친 토큰을 쓰면 진짜 사용자의 것이 무효가 되어 도난이 드러난다.
-	if _, _, err := svc.Refresh(ctx, first.RefreshToken); domainCode(t, err) != errs.Unauthorized {
-		t.Fatal("이미 쓴 refresh가 다시 통했다")
-	}
+	// [원본] 쓴 토큰은 곧바로 죽는다 — 이 규칙이 응답 유실·탭 경합에서 세션을 죽였다(SRS-083 H-1).
+	// if _, _, err := svc.Refresh(ctx, first.RefreshToken); domainCode(t, err) != errs.Unauthorized {
+	// 	t.Fatal("이미 쓴 refresh가 다시 통했다")
+	// }
+	// [개선] 옛 토큰의 재사용 규칙(유예·재사용 탐지)은 refresh_race_test.go 가 못 박는다.
 	// 새 토큰은 살아 있다.
 	if _, _, err := svc.Refresh(ctx, second.RefreshToken); err != nil {
 		t.Fatalf("새 refresh가 통하지 않는다: %v", err)

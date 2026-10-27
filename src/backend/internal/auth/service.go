@@ -74,7 +74,22 @@ type User struct {
 type RefreshToken struct {
 	UserID    string
 	ExpiresAt time.Time
+	// 0018 · SRS-083 — 회전 유예·재사용 탐지에 쓴다. 폐기되지 않았으면 RevokedAt 은 nil.
+	FamilyID     string
+	RevokedAt    *time.Time
+	RevokeReason string
 }
+
+// 폐기 사유(0018 · SRS-083). 유예는 rotated 에만 준다.
+const (
+	revokeRotated = "rotated"
+	revokeLogout  = "logout"
+	revokeReuse   = "reuse"
+)
+
+// refreshReuseGrace — 회전으로 폐기된 토큰을 다시 받아 주는 짧은 창. 같은 쿠키로 탭 둘이 동시에 갱신하거나,
+// 응답이 오는 중에 문서가 사라진 경우를 살린다. 그 밖에도 「계열의 마지막 회전」이면 받아 준다(Refresh 주석).
+const refreshReuseGrace = 30 * time.Second
 
 // ProfilePatch는 "보낸 것만 바꾼다"를 표현한다 — 빈 문자열로 지우는 것과 안 보낸 것을 구분한다.
 type ProfilePatch struct {
@@ -95,9 +110,21 @@ type Repo interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	UpdateProfile(ctx context.Context, id string, p ProfilePatch) (User, error)
 
-	CreateRefreshToken(ctx context.Context, hash, userID string, expiresAt time.Time) error
-	GetLiveRefreshToken(ctx context.Context, hash string) (RefreshToken, error)
-	RevokeRefreshToken(ctx context.Context, hash string) error
+	// [원본] 회전 유예가 없던 때의 세 가지 — pgRepo 에 함수는 남아 있다(GetLiveRefreshToken·RevokeRefreshToken).
+	// CreateRefreshToken(ctx context.Context, hash, userID string, expiresAt time.Time) error
+	// GetLiveRefreshToken(ctx context.Context, hash string) (RefreshToken, error)
+	// RevokeRefreshToken(ctx context.Context, hash string) error
+
+	// [개선] 0018 · SRS-083 — 계열(family)과 폐기 사유로 회전 유예·재사용 탐지를 가린다.
+	CreateRefreshToken(ctx context.Context, hash, userID, familyID string, expiresAt time.Time) error
+	// 만료되지 않았으면 폐기됐어도 돌려준다. 없거나 만료면 NotFound.
+	GetRefreshToken(ctx context.Context, hash string) (RefreshToken, error)
+	// 살아 있을 때만 rotated 로 폐기한다. true = 내가 회전했다(동시 갱신의 승자).
+	RotateRefreshToken(ctx context.Context, hash string, at time.Time) (bool, error)
+	// 계열에서 가장 최근 회전 시각.
+	LatestRotationAt(ctx context.Context, familyID string) (time.Time, error)
+	// 계열 전체를 그 사유로 끊는다. 이미 폐기된 행의 사유도 덮어쓴다(유예를 닫는다).
+	RevokeRefreshFamily(ctx context.Context, familyID, reason string, at time.Time) error
 }
 
 // Tokens는 세션 한 벌이다.
@@ -186,10 +213,12 @@ func (s *Service) LogIn(ctx context.Context, email, password string) (User, Toke
 
 // ── 갱신(회전) ───────────────────────────────────────────────────────────────
 
-func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, error) {
+// [원본] 유예 없는 회전 — 응답을 못 받은 갱신 하나·탭 둘의 동시 갱신이 세션 전체를 죽였다(H-1).
+// 원복하려면 아래 RefreshV1 을 Refresh 로 되돌린다.
+func (s *Service) RefreshV1(ctx context.Context, rawToken string) (User, Tokens, error) {
 	hash := hashToken(rawToken)
-	rt, err := s.repo.GetLiveRefreshToken(ctx, hash)
-	if err != nil {
+	rt, err := s.repo.GetRefreshToken(ctx, hash)
+	if err != nil || rt.RevokedAt != nil {
 		// 없거나 이미 폐기됐거나 만료됐다 — 어느 쪽인지 알려 주지 않는다.
 		return User{}, Tokens{}, errs.New(errs.Unauthorized, "세션이 만료되었습니다. 다시 로그인해 주세요")
 	}
@@ -200,7 +229,7 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, e
 	}
 
 	// **먼저 폐기하고** 새로 준다. 순서가 반대면 실패 시 두 토큰이 동시에 살아 있을 수 있다.
-	if err := s.repo.RevokeRefreshToken(ctx, hash); err != nil {
+	if _, err := s.repo.RotateRefreshToken(ctx, hash, s.now()); err != nil {
 		return User{}, Tokens{}, err
 	}
 
@@ -208,12 +237,97 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, e
 	return u, tokens, err
 }
 
+// @plm SRS-083  [개선] 회전 + 유예 + 계열 재사용 탐지
+//
+// 회전은 그대로 한다(먼저 폐기, 그다음 같은 계열로 새 토큰). 회전으로 폐기된 토큰이 다시 오면:
+//   - 30초 안이면 받아 준다 — 같은 쿠키로 탭 둘이 동시에 갱신한 경우.
+//   - 그 토큰이 계열의 **마지막 회전**이면 받아 준다 — 그 뒤 새 토큰이 한 번도 쓰이지 않았다는 뜻이고,
+//     정상 클라이언트가 응답(새 쿠키)을 못 받은 채 앱을 닫았다가 다시 연 경우다.
+//   - 그 밖(이미 다음 회전이 일어난 옛 토큰을 30초 밖에서)은 **탈취**로 본다 → 계열 전체를 끊는다.
+//
+// 로그아웃·재사용 탐지·전체 폐기로 끊긴 토큰에는 유예가 없다.
+func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, error) {
+	expired := errs.New(errs.Unauthorized, "세션이 만료되었습니다. 다시 로그인해 주세요")
+	hash := hashToken(rawToken)
+	rt, err := s.repo.GetRefreshToken(ctx, hash)
+	if err != nil {
+		// 없거나 만료됐다 — 어느 쪽인지 알려 주지 않는다.
+		return User{}, Tokens{}, expired
+	}
+	u, err := s.repo.GetUserByID(ctx, rt.UserID)
+	if err != nil {
+		return User{}, Tokens{}, expired
+	}
+	family := rt.FamilyID
+	if family == "" {
+		family = hash // 0018 이전 토큰은 저마다 자기 계열이다
+	}
+	now := s.now()
+
+	if rt.RevokedAt == nil {
+		won, err := s.repo.RotateRefreshToken(ctx, hash, now)
+		if err != nil {
+			return User{}, Tokens{}, err
+		}
+		if won {
+			tokens, err := s.issueInFamily(ctx, u, family)
+			return u, tokens, err
+		}
+		// 같은 순간 다른 요청이 먼저 회전했다 — 방금 폐기된 토큰으로 다시 읽어 유예 규칙을 탄다.
+		if rt, err = s.repo.GetRefreshToken(ctx, hash); err != nil || rt.RevokedAt == nil {
+			return User{}, Tokens{}, expired
+		}
+	}
+
+	if rt.RevokeReason != revokeRotated {
+		return User{}, Tokens{}, expired
+	}
+	if !s.reuseAllowed(ctx, rt, family, now) {
+		// 재사용 탐지 — 훔친 토큰이 쓰였거나 정상 사용자가 옛 쿠키를 들고 있다. 어느 쪽이든 그 계열을 끊는다.
+		if err := s.repo.RevokeRefreshFamily(ctx, family, revokeReuse, now); err != nil {
+			slog.Error("[auth] 재사용 탐지 뒤 계열 폐기 실패", "err", err)
+		}
+		slog.Warn("[auth] refresh 재사용 탐지 — 계열 폐기", "user", rt.UserID)
+		return User{}, Tokens{}, expired
+	}
+	tokens, err := s.issueInFamily(ctx, u, family)
+	return u, tokens, err
+}
+
+// reuseAllowed — 회전으로 폐기된 토큰을 다시 받아 줄지.
+func (s *Service) reuseAllowed(ctx context.Context, rt RefreshToken, family string, now time.Time) bool {
+	if rt.RevokedAt == nil {
+		return false
+	}
+	if now.Sub(*rt.RevokedAt) <= refreshReuseGrace {
+		return true
+	}
+	latest, err := s.repo.LatestRotationAt(ctx, family)
+	if err != nil {
+		return false
+	}
+	// 이 토큰보다 뒤에 일어난 회전이 없다 = 새 토큰이 쓰인 적 없다.
+	return !latest.After(*rt.RevokedAt)
+}
+
 // ── 로그아웃 ─────────────────────────────────────────────────────────────────
 
 // 이 기기의 세션만 끊는다. 없는 토큰이어도 성공으로 답한다 — 로그아웃은 멱등이어야 하고,
 // 실패를 알려 주면 "그 토큰은 유효했다"는 정보가 된다.
 func (s *Service) LogOut(ctx context.Context, rawToken string) error {
-	return s.repo.RevokeRefreshToken(ctx, hashToken(rawToken))
+	// [원본] 토큰 하나만 폐기 — 회전 유예로 생긴 형제 토큰이 살아남는다(SRS-083 · QA Q3).
+	// return s.repo.RevokeRefreshToken(ctx, hashToken(rawToken))
+	// [개선] 그 토큰의 계열 전체를 끊는다. 다른 기기(다른 계열)는 그대로.
+	hash := hashToken(rawToken)
+	rt, err := s.repo.GetRefreshToken(ctx, hash)
+	if err != nil {
+		return nil // 없거나 만료 — 로그아웃은 멱등
+	}
+	family := rt.FamilyID
+	if family == "" {
+		family = hash
+	}
+	return s.repo.RevokeRefreshFamily(ctx, family, revokeLogout, s.now())
 }
 
 // ── 조회·수정 ────────────────────────────────────────────────────────────────
@@ -247,7 +361,13 @@ func (s *Service) VerifyAccess(token string) (userID, role string, err error) {
 
 // ── 내부 ─────────────────────────────────────────────────────────────────────
 
+// issue — 새 로그인(새 계열).
 func (s *Service) issue(ctx context.Context, u User) (Tokens, error) {
+	return s.issueInFamily(ctx, u, "")
+}
+
+// issueInFamily — family 가 비면 새 계열(자기 해시), 아니면 그 계열에 잇는다(회전·유예 재발급 · SRS-083).
+func (s *Service) issueInFamily(ctx context.Context, u User, family string) (Tokens, error) {
 	access, err := s.signer.Sign(u.ID, u.Role, AccessTTL)
 	if err != nil {
 		return Tokens{}, err
@@ -257,7 +377,11 @@ func (s *Service) issue(ctx context.Context, u User) (Tokens, error) {
 	if err != nil {
 		return Tokens{}, err
 	}
-	if err := s.repo.CreateRefreshToken(ctx, hashToken(raw), u.ID, s.now().Add(refreshTTL)); err != nil {
+	hash := hashToken(raw)
+	if family == "" {
+		family = hash
+	}
+	if err := s.repo.CreateRefreshToken(ctx, hash, u.ID, family, s.now().Add(refreshTTL)); err != nil {
 		return Tokens{}, err
 	}
 

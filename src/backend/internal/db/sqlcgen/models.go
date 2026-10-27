@@ -221,11 +221,13 @@ type PostLike struct {
 }
 
 type RefreshToken struct {
-	TokenHash string
-	UserID    string
-	ExpiresAt pgtype.Timestamptz
-	RevokedAt pgtype.Timestamptz
-	CreatedAt pgtype.Timestamptz
+	TokenHash    string
+	UserID       string
+	ExpiresAt    pgtype.Timestamptz
+	RevokedAt    pgtype.Timestamptz
+	CreatedAt    pgtype.Timestamptz
+	FamilyID     *string
+	RevokeReason *string
 }
 
 type Report struct {

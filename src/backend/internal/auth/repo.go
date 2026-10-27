@@ -94,11 +94,53 @@ func (r *pgRepo) UpdateProfile(ctx context.Context, id string, p ProfilePatch) (
 	return toDomain(row), nil
 }
 
-func (r *pgRepo) CreateRefreshToken(ctx context.Context, hash, userID string, expiresAt time.Time) error {
+func (r *pgRepo) CreateRefreshToken(ctx context.Context, hash, userID, familyID string, expiresAt time.Time) error {
 	return r.q.CreateRefreshToken(ctx, sqlcgen.CreateRefreshTokenParams{
 		TokenHash: hash,
 		UserID:    userID,
 		ExpiresAt: pgtype.Timestamptz{Time: expiresAt, Valid: true},
+		FamilyID:  &familyID,
+	})
+}
+
+// GetRefreshToken — 만료되지 않았으면 폐기됐어도 돌려준다(SRS-083).
+func (r *pgRepo) GetRefreshToken(ctx context.Context, hash string) (RefreshToken, error) {
+	row, err := r.q.GetRefreshToken(ctx, hash)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return RefreshToken{}, errs.New(errs.NotFound, "세션 없음")
+	}
+	if err != nil {
+		return RefreshToken{}, err
+	}
+	rt := RefreshToken{UserID: row.UserID, ExpiresAt: row.ExpiresAt.Time, FamilyID: deref(row.FamilyID), RevokeReason: deref(row.RevokeReason)}
+	if row.RevokedAt.Valid {
+		at := row.RevokedAt.Time
+		rt.RevokedAt = &at
+	}
+	return rt, nil
+}
+
+func (r *pgRepo) RotateRefreshToken(ctx context.Context, hash string, at time.Time) (bool, error) {
+	n, err := r.q.RotateRefreshToken(ctx, sqlcgen.RotateRefreshTokenParams{
+		At:        pgtype.Timestamptz{Time: at, Valid: true},
+		TokenHash: hash,
+	})
+	return n == 1, err
+}
+
+func (r *pgRepo) LatestRotationAt(ctx context.Context, familyID string) (time.Time, error) {
+	t, err := r.q.LatestRotationAt(ctx, &familyID)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t.Time, nil
+}
+
+func (r *pgRepo) RevokeRefreshFamily(ctx context.Context, familyID, reason string, at time.Time) error {
+	return r.q.RevokeRefreshFamily(ctx, sqlcgen.RevokeRefreshFamilyParams{
+		At:       pgtype.Timestamptz{Time: at, Valid: true},
+		Reason:   reason,
+		FamilyID: &familyID,
 	})
 }
 

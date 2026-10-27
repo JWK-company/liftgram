@@ -146,14 +146,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           { email, password, displayName },
           { headers: humanToken ? { [HUMAN_HEADER]: humanToken } : {} },
         );
-        if (res.tokens) setTokens(res.tokens, "email");
+        // 쿠키가 구워질 때까지 기다린다 — 곧바로 전체 이동하면 그 요청이 끊겨 쿠키가 없다(SRS-083 보조 경로).
+        if (res.tokens) await setTokens(res.tokens, "email");
         setUser(res.user ?? null);
         // 로그인 전에 쌓은 기록을 이 계정 것으로 삼는다(대조가 먼저, 그다음 동기).
         if (res.user) await reconcile(res.user.id);
       },
       logIn: async (email, password) => {
         const res = await authClient().logIn({ email, password });
-        if (res.tokens) setTokens(res.tokens, "email");
+        // 쿠키가 구워질 때까지 기다린다 — 곧바로 전체 이동하면 그 요청이 끊겨 쿠키가 없다(SRS-083 보조 경로).
+        if (res.tokens) await setTokens(res.tokens, "email");
         setUser(res.user ?? null);
         // **다른 계정이면** 이전 사람의 기록이 올라가면 안 된다 — 남은 기록이 없으면 비우고,
         // 있으면 멈추고 고르게 한다(AccountGuard).

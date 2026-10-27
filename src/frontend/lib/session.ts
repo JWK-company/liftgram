@@ -217,6 +217,51 @@ function transport() {
  * 동시에 세 요청이 401을 받아도 세 번 갱신하면 안 된다 — refresh는 쓰는 순간 회전하므로
  * 두 번째·세 번째가 이미 죽은 토큰을 들고 가서 **로그아웃돼 버린다.**
  */
+// [원본] 문서 하나 안에서만 단일 비행 · 401 한 번이면 곧장 로그아웃(SRS-083 H-1). 원복하려면 refreshOnce 가 이것을 부르게.
+async function refreshOnceV1(): Promise<boolean> {
+  try {
+    await migrateLegacyToken();
+    const res = await fetch("/api/session/refresh", { method: "POST", headers: GUARD });
+    if (res.status === 401) {
+      accessToken = null;
+      setFlag(false);
+      notify();
+      return false;
+    }
+    if (!res.ok) return false;
+    const body = (await res.json()) as { accessToken?: string; user?: unknown };
+    if (!body.accessToken) return false;
+    accessToken = body.accessToken;
+    refreshedMe = body.user ?? null;
+    setFlag(true);
+    notify();
+    return true;
+  } catch {
+    return false;
+  }
+}
+void refreshOnceV1;
+
+/** 갱신 401 뒤 한 번 더 시도하기 전 기다림 — 그사이 다른 탭이 새 쿠키를 구웠을 수 있다. */
+const RETRY_AFTER_401_MS = 600;
+
+/**
+ * 탭 사이에서 갱신을 하나씩 돌린다(Web Locks). 같은 쿠키로 두 문서가 동시에 회전하면 하나만 이긴다 —
+ * 서버가 유예로 받아 주지만(SRS-083), 줄을 세우면 두 번째는 첫 번째가 구운 새 쿠키로 간다. 잠금이 없는
+ * 브라우저는 그냥 실행한다(서버 유예가 받친다).
+ */
+async function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
+  const locks =
+    typeof navigator !== "undefined" ? (navigator as Navigator & { locks?: LockManager }).locks : undefined;
+  if (!locks?.request) return fn();
+  return locks.request("liftgram-refresh", fn) as Promise<T>;
+}
+
+async function refreshRequest(): Promise<Response | null> {
+  return fetch("/api/session/refresh", { method: "POST", headers: GUARD }).catch(() => null);
+}
+
+// @plm SRS-083  [개선] 탭 간 직렬화 + 401 한 번 재시도
 async function refreshOnce(): Promise<boolean> {
   if (refreshing) return refreshing;
   refreshing = (async () => {
@@ -225,15 +270,21 @@ async function refreshOnce(): Promise<boolean> {
       await migrateLegacyToken();
 
       // 갱신은 **우리 서버에** 부탁한다 — refresh 값은 쿠키에 있고 여기서는 읽을 수 없다.
-      const res = await fetch("/api/session/refresh", { method: "POST", headers: GUARD });
-      if (res.status === 401) {
-        // 토큰이 죽었다 — 진짜 로그아웃이다(쿠키는 서버가 이미 지웠다).
+      let res = await withRefreshLock(refreshRequest);
+      if (res?.status === 401) {
+        // 다른 탭이 방금 회전했을 수 있다 — 잠깐 기다렸다 그 새 쿠키로 한 번 더.
+        await new Promise((r) => setTimeout(r, RETRY_AFTER_401_MS));
+        res = await withRefreshLock(refreshRequest);
+      }
+      if (res?.status === 401) {
+        // 두 번 다 죽었다 — 진짜 로그아웃이다. 쿠키는 지우지 않는다(다른 탭의 새 쿠키를 지울 수 있다 ·
+        // QA Q2). 깃발을 내리면 다음 문서는 갱신하지 않고, 다음 로그인이 쿠키를 덮어쓴다.
         accessToken = null;
         setFlag(false);
         notify();
         return false;
       }
-      if (!res.ok) return false; // 서버에 못 닿았다 — 로그아웃시키지 않는다(다음에 다시 시도)
+      if (!res?.ok) return false; // 서버에 못 닿았다 — 로그아웃시키지 않는다(다음에 다시 시도)
 
       const body = (await res.json()) as { accessToken?: string; user?: unknown };
       if (!body.accessToken) return false;

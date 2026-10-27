@@ -29,8 +29,31 @@ WHERE id = @id::text
 RETURNING *;
 
 -- name: CreateRefreshToken :exec
-INSERT INTO refresh_tokens (token_hash, user_id, expires_at)
-VALUES ($1, $2, $3);
+-- family_id: 새 로그인이면 자기 해시, 회전·유예 재발급이면 옛 토큰의 계열(0018 · SRS-083).
+INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id)
+VALUES ($1, $2, $3, $4);
+
+-- 갱신이 쓴다(0018 · SRS-083). **폐기된 것도** 돌려준다 — 회전 유예·재사용 탐지를 가려야 하므로.
+-- 만료는 여기서 거른다.
+-- name: GetRefreshToken :one
+SELECT * FROM refresh_tokens
+WHERE token_hash = $1 AND expires_at > now();
+
+-- 회전. 살아 있을 때만 폐기한다 — 영향 행 수가 곧 동시 갱신의 승패다(1 = 내가 회전했다).
+-- 시각은 서비스 시계로 받는다(유예 판단과 같은 시계).
+-- name: RotateRefreshToken :execrows
+UPDATE refresh_tokens SET revoked_at = @at::timestamptz, revoke_reason = 'rotated'
+WHERE token_hash = @token_hash AND revoked_at IS NULL;
+
+-- 이 계열에서 가장 최근 회전 시각. 회전된 토큰이 「마지막 회전」이면 그 뒤 새 토큰이 쓰인 적 없다.
+-- name: LatestRotationAt :one
+SELECT max(revoked_at)::timestamptz AS latest FROM refresh_tokens
+WHERE family_id = $1 AND revoke_reason = 'rotated';
+
+-- 계열 전체를 끊는다(로그아웃·재사용 탐지). **이미 폐기된 행의 사유도 덮어쓴다** — 그래야 유예가 닫힌다.
+-- name: RevokeRefreshFamily :exec
+UPDATE refresh_tokens SET revoked_at = COALESCE(revoked_at, @at::timestamptz), revoke_reason = @reason::text
+WHERE family_id = @family_id;
 
 -- 갱신이 쓴다. **살아 있는 것만** 돌려준다 — 폐기·만료 판단을 Go로 미루지 않는다.
 -- name: GetLiveRefreshToken :one
@@ -39,13 +62,15 @@ WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > now();
 
 -- 회전·로그아웃. 이미 폐기된 것을 다시 폐기해도 문제 없다(멱등).
 -- name: RevokeRefreshToken :exec
-UPDATE refresh_tokens SET revoked_at = now()
+UPDATE refresh_tokens SET revoked_at = now(), revoke_reason = 'logout'
 WHERE token_hash = $1 AND revoked_at IS NULL;
 
 -- 이 사용자의 모든 세션을 끊는다. 토큰 도난이 드러났을 때 쓸 자리다.
 -- name: RevokeAllRefreshTokensForUser :exec
-UPDATE refresh_tokens SET revoked_at = now()
-WHERE user_id = $1 AND revoked_at IS NULL;
+-- 이미 회전으로 폐기된 행의 사유도 'all'로 덮어쓴다 — 아니면 비밀번호를 바꾼 뒤에도 옛 기기가 회전 유예로
+-- 되살아난다(0018 · SRS-083 · QA Q4).
+UPDATE refresh_tokens SET revoked_at = COALESCE(revoked_at, now()), revoke_reason = 'all'
+WHERE user_id = $1;
 
 -- 만료된 토큰 청소 — 쌓아 둘 이유가 없다.
 -- name: DeleteExpiredRefreshTokens :exec

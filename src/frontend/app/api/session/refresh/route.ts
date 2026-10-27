@@ -8,6 +8,7 @@
 // XSS가 나도 훔쳐 갈 것이 15분짜리 access뿐이다.
 //
 // 쿠키가 없으면 401이다. 로그인한 적이 없거나 만료됐다는 뜻이고, 화면은 그때 로그아웃 상태가 된다.
+// 갱신 401에서도 쿠키를 지우지 않는다(SRS-083) — 탭 경합에서 이긴 쪽의 새 쿠키를 지우지 않으려고.
 // ─────────────────────────────────────────────────────────────────────────────
 import { env } from "@/lib/env";
 import { SESSION_COOKIE } from "../route";
@@ -47,9 +48,13 @@ export async function POST(req: Request): Promise<Response> {
   // backend에 닿지 못한 것과 토큰이 죽은 것은 다르다 — 전자는 재시도할 값어치가 있고,
   // 후자는 쿠키를 지워야 한다(남겨 두면 매 요청이 같은 실패를 반복한다).
   if (!res) return new Response("upstream unreachable", { status: 503 });
-  if (!res.ok) {
-    return new Response("refresh failed", { status: 401, headers: { "set-cookie": cookieHeader("", 0) } });
-  }
+  // [원본] 401이면 쿠키를 지웠다 — 다른 탭이 막 구운 새 쿠키까지 지워 모든 탭이 로그아웃됐다(SRS-083 H-1).
+  // if (!res.ok) {
+  //   return new Response("refresh failed", { status: 401, headers: { "set-cookie": cookieHeader("", 0) } });
+  // }
+  // [개선] @plm SRS-083 쿠키는 건드리지 않고 401만 알린다. 화면이 한 번 더 시도하고(그사이 다른 탭이 새 쿠키를
+  // 구웠을 수 있다), 그래도 401이면 깃발만 내린다. 죽은 쿠키는 다음 로그인이 덮어쓴다.
+  if (!res.ok) return new Response("refresh failed", { status: 401 });
 
   const body = (await res.json()) as { tokens?: { accessToken?: string; refreshToken?: string } };
   const access = body.tokens?.accessToken ?? "";

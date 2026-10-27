@@ -108,18 +108,25 @@ func (q *Queries) CreateIdentity(ctx context.Context, arg CreateIdentityParams) 
 }
 
 const createRefreshToken = `-- name: CreateRefreshToken :exec
-INSERT INTO refresh_tokens (token_hash, user_id, expires_at)
-VALUES ($1, $2, $3)
+INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id)
+VALUES ($1, $2, $3, $4)
 `
 
 type CreateRefreshTokenParams struct {
 	TokenHash string
 	UserID    string
 	ExpiresAt pgtype.Timestamptz
+	FamilyID  *string
 }
 
+// family_id: 새 로그인이면 자기 해시, 회전·유예 재발급이면 옛 토큰의 계열(0018 · SRS-083).
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error {
-	_, err := q.db.Exec(ctx, createRefreshToken, arg.TokenHash, arg.UserID, arg.ExpiresAt)
+	_, err := q.db.Exec(ctx, createRefreshToken,
+		arg.TokenHash,
+		arg.UserID,
+		arg.ExpiresAt,
+		arg.FamilyID,
+	)
 	return err
 }
 
@@ -230,7 +237,7 @@ func (q *Queries) GetIdentity(ctx context.Context, arg GetIdentityParams) (AuthI
 }
 
 const getLiveRefreshToken = `-- name: GetLiveRefreshToken :one
-SELECT token_hash, user_id, expires_at, revoked_at, created_at FROM refresh_tokens
+SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason FROM refresh_tokens
 WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > now()
 `
 
@@ -244,6 +251,30 @@ func (q *Queries) GetLiveRefreshToken(ctx context.Context, tokenHash string) (Re
 		&i.ExpiresAt,
 		&i.RevokedAt,
 		&i.CreatedAt,
+		&i.FamilyID,
+		&i.RevokeReason,
+	)
+	return i, err
+}
+
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason FROM refresh_tokens
+WHERE token_hash = $1 AND expires_at > now()
+`
+
+// 갱신이 쓴다(0018 · SRS-083). **폐기된 것도** 돌려준다 — 회전 유예·재사용 탐지를 가려야 하므로.
+// 만료는 여기서 거른다.
+func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash string) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getRefreshToken, tokenHash)
+	var i RefreshToken
+	err := row.Scan(
+		&i.TokenHash,
+		&i.UserID,
+		&i.ExpiresAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.FamilyID,
+		&i.RevokeReason,
 	)
 	return i, err
 }
@@ -331,6 +362,19 @@ func (q *Queries) LastAuthTokenAt(ctx context.Context, arg LastAuthTokenAtParams
 	return last_at, err
 }
 
+const latestRotationAt = `-- name: LatestRotationAt :one
+SELECT max(revoked_at)::timestamptz AS latest FROM refresh_tokens
+WHERE family_id = $1 AND revoke_reason = 'rotated'
+`
+
+// 이 계열에서 가장 최근 회전 시각. 회전된 토큰이 「마지막 회전」이면 그 뒤 새 토큰이 쓰인 적 없다.
+func (q *Queries) LatestRotationAt(ctx context.Context, familyID *string) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, latestRotationAt, familyID)
+	var latest pgtype.Timestamptz
+	err := row.Scan(&latest)
+	return latest, err
+}
+
 const listIdentities = `-- name: ListIdentities :many
 SELECT id, user_id, provider, provider_user_id, email, created_at FROM auth_identities WHERE user_id = $1 ORDER BY created_at
 `
@@ -363,18 +407,37 @@ func (q *Queries) ListIdentities(ctx context.Context, userID string) ([]AuthIden
 }
 
 const revokeAllRefreshTokensForUser = `-- name: RevokeAllRefreshTokensForUser :exec
-UPDATE refresh_tokens SET revoked_at = now()
-WHERE user_id = $1 AND revoked_at IS NULL
+UPDATE refresh_tokens SET revoked_at = COALESCE(revoked_at, now()), revoke_reason = 'all'
+WHERE user_id = $1
 `
 
 // 이 사용자의 모든 세션을 끊는다. 토큰 도난이 드러났을 때 쓸 자리다.
+// 이미 회전으로 폐기된 행의 사유도 'all'로 덮어쓴다 — 아니면 비밀번호를 바꾼 뒤에도 옛 기기가 회전 유예로
+// 되살아난다(0018 · SRS-083 · QA Q4).
 func (q *Queries) RevokeAllRefreshTokensForUser(ctx context.Context, userID string) error {
 	_, err := q.db.Exec(ctx, revokeAllRefreshTokensForUser, userID)
 	return err
 }
 
+const revokeRefreshFamily = `-- name: RevokeRefreshFamily :exec
+UPDATE refresh_tokens SET revoked_at = COALESCE(revoked_at, $1::timestamptz), revoke_reason = $2::text
+WHERE family_id = $3
+`
+
+type RevokeRefreshFamilyParams struct {
+	At       pgtype.Timestamptz
+	Reason   string
+	FamilyID *string
+}
+
+// 계열 전체를 끊는다(로그아웃·재사용 탐지). **이미 폐기된 행의 사유도 덮어쓴다** — 그래야 유예가 닫힌다.
+func (q *Queries) RevokeRefreshFamily(ctx context.Context, arg RevokeRefreshFamilyParams) error {
+	_, err := q.db.Exec(ctx, revokeRefreshFamily, arg.At, arg.Reason, arg.FamilyID)
+	return err
+}
+
 const revokeRefreshToken = `-- name: RevokeRefreshToken :exec
-UPDATE refresh_tokens SET revoked_at = now()
+UPDATE refresh_tokens SET revoked_at = now(), revoke_reason = 'logout'
 WHERE token_hash = $1 AND revoked_at IS NULL
 `
 
@@ -382,6 +445,26 @@ WHERE token_hash = $1 AND revoked_at IS NULL
 func (q *Queries) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
 	_, err := q.db.Exec(ctx, revokeRefreshToken, tokenHash)
 	return err
+}
+
+const rotateRefreshToken = `-- name: RotateRefreshToken :execrows
+UPDATE refresh_tokens SET revoked_at = $1::timestamptz, revoke_reason = 'rotated'
+WHERE token_hash = $2 AND revoked_at IS NULL
+`
+
+type RotateRefreshTokenParams struct {
+	At        pgtype.Timestamptz
+	TokenHash string
+}
+
+// 회전. 살아 있을 때만 폐기한다 — 영향 행 수가 곧 동시 갱신의 승패다(1 = 내가 회전했다).
+// 시각은 서비스 시계로 받는다(유예 판단과 같은 시계).
+func (q *Queries) RotateRefreshToken(ctx context.Context, arg RotateRefreshTokenParams) (int64, error) {
+	result, err := q.db.Exec(ctx, rotateRefreshToken, arg.At, arg.TokenHash)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const setEmailVerified = `-- name: SetEmailVerified :exec
