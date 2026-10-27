@@ -14,7 +14,25 @@ export function isDefaultWorkoutName(name: string | null | undefined): boolean {
   return n === '' || DEFAULT_QUICK_WORKOUT_NAMES.includes(n);
 }
 
+/**
+ * 자동으로 지은 이름 모양인가 — 「가슴·삼두 · 2종목」 / 「2 exercises」.
+ * 다시 시작·피드 바로 시작이 이 이름을 그대로 복사하면 종목을 바꿔도 「n종목」이 낡은 채 남는다(P3 QA M3).
+ * 그런 복사는 기본 이름으로 시작해 완료 때 다시 짓게 한다.
+ */
+export function isAutoWorkoutName(name: string | null | undefined): boolean {
+  const n = (name ?? '').trim();
+  return /(^|· )\d+종목$/.test(n) || /(^|· )\d+ exercises?$/.test(n);
+}
+
+/** 다른 운동에서 이름을 이어받을 때 — 자동 이름·기본 이름이면 기본 이름으로(완료 때 다시 지어진다). */
+export function inheritedWorkoutName(name: string | null | undefined, fallback = '빠른 운동'): string {
+  const n = (name ?? '').trim();
+  return !n || isAutoWorkoutName(n) || isDefaultWorkoutName(n) ? fallback : n;
+}
+
 export interface AutoNameBlock {
+  /** 종목 수는 종목 기준으로 센다 — 같은 종목 블록이 둘이어도 1종목(P3 QA L3). 없으면 블록마다 따로 센다. */
+  exerciseId?: string;
   primaryMuscle: MuscleGroup | null;
   /** 완료한 워킹 세트 수(워밍업 제외). 0 이면 수행하지 않은 종목으로 본다. */
   workingSets: number;
@@ -33,6 +51,8 @@ export function autoWorkoutName(blocks: AutoNameBlock[], lang: AppLanguage = 'ko
     .sort((a, b) => b[1] - a[1])
     .slice(0, 2)
     .map(([m]) => muscleLabel(m, lang));
-  const count = lang === 'ko' ? `${done.length}종목` : `${done.length} exercise${done.length === 1 ? '' : 's'}`;
+  // [원본] done.length — 같은 종목 블록 둘이면 「2종목」(P3 QA L3)
+  const n = new Set(done.map((b, i) => b.exerciseId ?? `#${i}`)).size;
+  const count = lang === 'ko' ? `${n}종목` : `${n} exercise${n === 1 ? '' : 's'}`;
   return top.length ? `${top.join('·')} · ${count}` : count;
 }

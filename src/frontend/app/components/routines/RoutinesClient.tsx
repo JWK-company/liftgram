@@ -66,7 +66,8 @@ const ROUTINE_DOT_PALETTE = [
 export default function RoutinesClient() {
   const { user, weeklySchedule } = useUser();
   // [원본] activeName 도 꺼냈다 — 진행 카드 제목(화면 정리 D8 로 렌더 중단)
-  const { activeWorkoutId, setActive, refreshActive } = useSession();
+  // [원본] const { activeWorkoutId, setActive, refreshActive } = useSession(); — refreshActive 는 아래 고아 확인창에서만 썼다
+  const { activeWorkoutId, setActive } = useSession();
   const toast = useToast();
 
   const [repos, setRepos] = useState<{
@@ -80,7 +81,7 @@ export default function RoutinesClient() {
   const [concept, setConcept] = useState<ConceptRoutine | null>(null);
   const [actionsFor, setActionsFor] = useState<Routine | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
-  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  // [원본] const [confirmDiscard, setConfirmDiscard] = useState(false); — 진행 카드 ⋯(D8 로 제거)만 열던 상태(P3 QA L1)
   const [activeExists, setActiveExists] = useState<null | (() => Promise<void>)>(null);
   const [editingSchedule, setEditingSchedule] = useState(false);
   /** 최근 8일 중 운동을 마친 날. 캐치업 판정이 이걸 본다. */
@@ -276,9 +277,11 @@ export default function RoutinesClient() {
 
         {/* ── 빈 운동 시작 — 할 일 1순위 ── */}
         <div className="mb-[var(--spacing-md)]">
+          {/* 진행 중이면 주 행동은 아래 막대의 「열기」 — 빠른 시작은 보조로 낮춘다(빨강 채움 = 화면당 1개 · P3 QA M5) @plm SRS-071 */}
           <Button
             title={t("routines.quickStart")}
             icon="play"
+            variant={activeWorkoutId ? "secondary" : "primary"}
             loading={busy}
             testId="btn-quick-start"
             onPress={() => guardActive(startBlank)}
@@ -344,11 +347,8 @@ export default function RoutinesClient() {
             icon="clipboard-outline"
             title={t("routines.listEmptyTitle")}
             message={t("routines.listEmptyMessage")}
-            action={
-              <a href="/routines/new">
-                <Button title={t("routines.createRoutine")} icon="add" fullWidth={false} />
-              </a>
-            }
+            // [원본] action={<a href="/routines/new"><Button title={t("routines.createRoutine")} icon="add" fullWidth={false} /></a>}
+            // [개선] 빈 상태는 안내만 — 같은 행동이 머리 「+ 새 루틴」에 있고, 빨강 채움이 「빠른 운동 시작」과 겹쳤다(P3 QA M2) @plm SRS-071
           />
         ) : (
           <ListGroup testId="routine-list">
@@ -537,6 +537,7 @@ export default function RoutinesClient() {
           />
         ) : null}
 
+        {/* [원본] 진행 중 운동 폐기 확인창 — 열어 주던 진행 카드 ⋯ 가 D8 로 빠져 도달할 수 없었다(P3 QA L1). 취소는 하단 막대가 맡는다.
         {confirmDiscard ? (
           <ConfirmDialog
             testId="confirm-discard-active"
@@ -555,6 +556,7 @@ export default function RoutinesClient() {
             }}
           />
         ) : null}
+        */}
 
         {activeExists ? (
           <ActionSheet

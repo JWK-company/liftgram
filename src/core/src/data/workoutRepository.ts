@@ -29,7 +29,7 @@ import { resolvePrescribedLoad, planPrescribedLoadFills, roundLoadKg } from '../
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
 import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
 import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
-import { autoWorkoutName, isDefaultWorkoutName } from '../domain/workoutAutoName'; // 빠른 운동 자동 이름 @plm SRS-071
+import { autoWorkoutName, inheritedWorkoutName, isDefaultWorkoutName } from '../domain/workoutAutoName'; // 빠른 운동 자동 이름 @plm SRS-071
 import { pickStartUnit, planUnitSwitch, planUnitSwitchV2, isUserTouched } from '../domain/blockUnit'; // 블록별 kg/lb @plm SRS-067
 import {
   legacyMachineVariantToV6,
@@ -1325,7 +1325,10 @@ export async function startWorkoutFromWorkout(sourceWorkoutId: string, startOpts
   }));
   const rows = planReplay(source_);
   if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
-  return startWorkoutFromRows({ routineId, name: source.name?.trim() || '빠른 운동', rows, replacing: startOpts.replacing });
+  // [원본] name: source.name?.trim() || '빠른 운동' — 자동 이름(「가슴·삼두 · 2종목」)까지 복사돼 종목이 바뀌어도 낡은 채 남았다(P3 QA M3)
+  // [개선] 루틴 운동은 루틴 이름 그대로, 빠른 운동의 자동 이름은 기본 이름으로 — 완료 때 다시 짓는다 @plm SRS-071
+  const name = routineId ? source.name?.trim() || '빠른 운동' : inheritedWorkoutName(source.name);
+  return startWorkoutFromRows({ routineId, name, rows, replacing: startOpts.replacing });
 }
 
 /** 피드의 남의 운동으로 바로 시작 — 종목은 이미 내 기기 종목으로 해석된 뒤다. 루틴을 만들지 않는다. @plm SRS-065 */
@@ -1336,7 +1339,8 @@ export async function startWorkoutFromSpec(
 ): Promise<Workout> {
   const rows = planFromSpec(items);
   if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
-  return startWorkoutFromRows({ routineId: null, name: name.trim() || '빠른 운동', rows, replacing: startOpts.replacing });
+  // [원본] name: name.trim() || '빠른 운동' — 남의 자동 이름을 그대로 받아 종목 수가 틀렸다(P3 QA M3) @plm SRS-071
+  return startWorkoutFromRows({ routineId: null, name: inheritedWorkoutName(name), rows, replacing: startOpts.replacing });
 }
 
 /** 운동 총평(나만 보는 운동 한 줄 평 · 피드 글과 별개) — 2,000자 · 공백만이면 지운다. @plm SRS-064 */
@@ -2281,7 +2285,11 @@ export async function completeWorkout(id: string): Promise<WorkoutSummary> {
       }
     }
     autoName = autoWorkoutName(
-      autoNameInput.map((b) => ({ primaryMuscle: muscles.get(b.exerciseId) ?? null, workingSets: b.workingSets })),
+      autoNameInput.map((b) => ({
+        exerciseId: b.exerciseId,
+        primaryMuscle: muscles.get(b.exerciseId) ?? null,
+        workingSets: b.workingSets,
+      })),
     );
   }
 

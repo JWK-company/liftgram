@@ -20,6 +20,7 @@ import { NameRoutine } from "./FinishRoutineSheets";
 import { WorkoutNoteField } from "./WorkoutNoteField";
 import { useStartGuard } from "../useStartGuard";
 import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
+import { formatWorkoutDuration } from "@/lib/duration";
 
 export interface Summary {
   workoutId: string;
@@ -117,11 +118,17 @@ export function WorkoutSummary({
                 value: formatWeight(summary.totalVolumeKg, unit),
                 testId: "summary-volume",
               },
-              {
-                label: t("session.duration"),
-                value: duration(summary.durationSeconds),
-                testId: "summary-duration",
-              },
+              // [원본] { label: t("session.duration"), value: duration(summary.durationSeconds), testId: "summary-duration" },
+              // [개선] 1분 미만이면 칸을 뺀다(「00:00」 금지 · P3 QA M1) @plm SRS-071
+              ...(formatWorkoutDuration(summary.durationSeconds)
+                ? [
+                    {
+                      label: t("session.duration"),
+                      value: formatWorkoutDuration(summary.durationSeconds),
+                      testId: "summary-duration",
+                    },
+                  ]
+                : []),
               { label: t("session.setCount"), value: String(summary.workingSets), testId: "summary-sets" },
             ]}
           />
@@ -344,6 +351,7 @@ export function WorkoutSummary({
 }
 
 /** `MM:SS` — app과 같이 분도 두 자리로 채운다. */
+// biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function duration(seconds: number | null): string {
   const s = Math.max(0, Math.round(seconds ?? 0));
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;

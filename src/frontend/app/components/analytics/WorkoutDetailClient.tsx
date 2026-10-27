@@ -25,6 +25,7 @@ import { NameRoutine } from "../session/FinishRoutineSheets";
 import { WorkoutNoteField } from "../session/WorkoutNoteField";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { useStartGuard } from "../useStartGuard";
+import { formatWorkoutDuration } from "@/lib/duration";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -181,7 +182,16 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                     value: formatWeight(detail.totalVolumeKg, "kg"), // 합계는 kg(Q2 A) @plm SRS-067
                     testId: "detail-volume",
                   },
-                  { label: t("analytics.durationLabel"), value: duration(detail.workout.durationSeconds) },
+                  // [원본] { label: t("analytics.durationLabel"), value: duration(detail.workout.durationSeconds) },
+                  // [개선] 1분 미만이면 칸을 뺀다(「-」 금지 · P3 QA M1) @plm SRS-071
+                  ...(formatWorkoutDuration(detail.workout.durationSeconds)
+                    ? [
+                        {
+                          label: t("analytics.durationLabel"),
+                          value: formatWorkoutDuration(detail.workout.durationSeconds),
+                        },
+                      ]
+                    : []),
                   {
                     label: "세트",
                     value: String(detail.exercises.reduce((n, ex) => n + ex.sets.length, 0)),
@@ -590,6 +600,7 @@ function EditSetSheet({
   );
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function duration(seconds: number | null): string {
   if (!seconds || seconds <= 0) return "-";
   return t("common.minutesShort", { minutes: Math.round(seconds / 60) });

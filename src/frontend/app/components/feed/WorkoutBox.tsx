@@ -24,7 +24,9 @@ import { Button } from "../ui/Button";
 import { AppText } from "../ui/primitives";
 import { MetaAction, MetaLine } from "../ui/quiet";
 import { useStartGuard } from "../useStartGuard";
+import { formatWorkoutDuration } from "@/lib/duration";
 
+// biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function duration(seconds: number): string {
   const s = Math.max(0, Math.round(seconds));
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
@@ -286,7 +288,10 @@ export function WorkoutBox({
       <MetaLine testId="post-workout-meta" className="mt-[2px]">
         {/* 볼륨은 kg(SRS-067 Q2 A) */}
         <span className="whitespace-nowrap">{formatWeight(workout.totalVolumeKg, "kg")}</span>
-        <span className="whitespace-nowrap">{duration(workout.durationSeconds)}</span>
+        {/* [원본] <span className="whitespace-nowrap">{duration(workout.durationSeconds)}</span> — 0이면 「00:00」(P3 QA M1) */}
+        {formatWorkoutDuration(workout.durationSeconds) ? (
+          <span className="whitespace-nowrap">{formatWorkoutDuration(workout.durationSeconds)}</span>
+        ) : null}
         <span className="whitespace-nowrap">{t("feed.metaSets", { count: workout.workingSets })}</span>
         {workout.prCount > 0 ? (
           <span className="whitespace-nowrap font-semibold text-(--color-pr)">{`PR ${workout.prCount}`}</span>

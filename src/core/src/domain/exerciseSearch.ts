@@ -197,7 +197,8 @@ export function searchExercises(index: ExerciseSearchIndex, query: string): Sear
       KIND_RANK[a.term.kind] - KIND_RANK[b.term.kind] ||
       a.entry.equipRank - b.entry.equipRank ||
       a.term.key.length - b.term.key.length ||
-      a.entry.ex.nameKo.localeCompare(b.entry.ex.nameKo, 'ko'),
+      // [원본] a.entry.ex.nameKo.localeCompare(b.entry.ex.nameKo, 'ko') — 동점이면 「EZ바 …」 가 한글 이름보다 앞섰다(P3 QA L8)
+      compareKoFirst(a.entry.ex.nameKo, b.entry.ex.nameKo),
   );
   const hits: SearchHit[] = scored.map(({ entry, term, tier }) => ({
     id: entry.ex.id,

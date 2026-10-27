@@ -22,6 +22,7 @@ import { Icon } from "../ui/Icon";
 // [원본] KpiRow 도 썼다 — 주간 요약 KPI 3칸(화면 정리 D8 로 한 줄 메타)
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { MetaLine } from "../ui/quiet";
+import { formatWorkoutDuration } from "@/lib/duration";
 // [원본] import { Tag } from "../ui/primitives"; — 최근 운동 PR 칩(금색 글자로 바꿈)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
@@ -67,6 +68,7 @@ function usePrefsGoal() {
   return { goal, skipWeekends };
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function minutes(sec: number | null): string {
   return sec && sec > 0 ? t("common.minutesShort", { minutes: Math.round(sec / 60) }) : "-";
 }
@@ -205,7 +207,15 @@ export function RecentWorkouts() {
               key={w.id}
               href={`/history/${w.id}`}
               title={w.name || t("analytics.workoutNameFallback")}
-              subtitle={`${date} · ${minutes(w.durationSeconds)} · ${formatWeight(w.totalVolumeKg, weightUnit)}`}
+              // [원본] subtitle={`${date} · ${minutes(w.durationSeconds)} · ${formatWeight(w.totalVolumeKg, weightUnit)}`}
+              // [개선] 시간이 1분 미만·없으면 그 조각을 뺀다(「· - ·」 금지 · P3 QA M1) @plm SRS-071
+              subtitle={[
+                date,
+                formatWorkoutDuration(w.durationSeconds),
+                formatWeight(w.totalVolumeKg, weightUnit),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
               // [원본] trailing={w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : undefined}
               // [개선] 칩 대신 금색 글자 — PR 의미는 금색 하나(화면 정리 공용 규칙) @plm SRS-071
               trailing={

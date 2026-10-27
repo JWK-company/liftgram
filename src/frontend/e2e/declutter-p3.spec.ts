@@ -70,6 +70,60 @@ test("F7 — 빠른 운동은 마치면 부위·종목 수로 이름이 붙는�
   await expect(recent).not.toContainText("빠른 운동");
 });
 
+test("F7 음성 — 운동 중 바꾼 이름은 지킨다 · 1분 미만 운동은 시간 칸을 그리지 않는다(QA M1·M4)", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "바벨 스쿼트");
+  await 세트_기록(page, 0, 0, 80, 5);
+  // 이름 바꾸기 — ⋯ → 이름 바꾸기 → 「하체 데이」
+  await page.getByTestId("btn-session-menu").click();
+  await page.getByTestId("btn-rename").click();
+  await page.getByTestId("rename-input").fill("하체 데이");
+  await page.getByTestId("rename-save").click();
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+  // 1분 미만 — 요약에 「00:00」 시간 칸이 없다
+  await expect(page.getByTestId("summary-duration")).toHaveCount(0);
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
+  await page.getByTestId("btn-summary-close").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  const recent = page.getByTestId("recent-workouts");
+  await expect(recent).toContainText("하체 데이", { timeout: 20_000 });
+  await expect(recent).not.toContainText("1종목");
+  // 홈 최근 운동 줄에 시간 자리 「-」 가 남지 않는다
+  await expect(recent).not.toContainText("· - ·");
+});
+
+test("F7 이어받기 — 자동 이름 운동을 그대로 다시 시작해 종목을 더하면 이름이 새로 지어진다(QA M3)", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "바벨 벤치프레스");
+  await 세트_기록(page, 0, 0, 60, 10);
+  await 마치기(page);
+  const recent = page.getByTestId("recent-workouts");
+  await expect(recent).toContainText("가슴 · 1종목", { timeout: 20_000 });
+  // 기록 상세 → 그대로 다시 시작 → 종목 하나 더 → 마침
+  await recent.getByRole("link", { name: /가슴 · 1종목/ }).click();
+  await page.getByTestId("btn-replay").click();
+  await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
+  await 세트_기록(page, 0, 0, 60, 10);
+  await 종목_추가(page, "케이블 푸시다운");
+  await 세트_기록(page, 1, 0, 25, 12);
+  await 마치기(page);
+  // 낡은 「가슴 · 1종목」 을 복사하지 않고 다시 지었다
+  await expect(recent).toContainText("가슴·삼두 · 2종목", { timeout: 20_000 });
+});
+
 test("D9 — 칸 시트: 최근 브랜드 위 줄 · 이름 없는 커스텀 숨김 · 브랜드 → 적재 → 기구 바꾸기", async ({
   page,
 }) => {

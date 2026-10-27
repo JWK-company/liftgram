@@ -38,6 +38,7 @@ import { Icon } from "../ui/Icon";
 import { MoreMenu } from "../ui/MoreMenu";
 import { Segmented } from "../ui/rows";
 import { AppText, Card, Tag } from "../ui/primitives";
+import { formatWorkoutDuration } from "@/lib/duration";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 
@@ -574,9 +575,8 @@ export default function CalendarClient() {
                   </span>
                   <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums">
                     {[
-                      w.durationSeconds
-                        ? t("common.minutesShort", { minutes: Math.round(w.durationSeconds / 60) })
-                        : "",
+                      // [원본] w.durationSeconds ? t("common.minutesShort", { minutes: Math.round(w.durationSeconds / 60) }) : "",
+                      formatWorkoutDuration(w.durationSeconds), // 공용 — 1분 미만 생략(P3 QA M1) @plm SRS-071
                       formatWeight(w.totalVolumeKg, weightUnit),
                     ]
                       .filter(Boolean)

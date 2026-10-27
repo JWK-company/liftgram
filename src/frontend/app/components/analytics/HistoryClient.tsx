@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Icon } from "../ui/Icon";
 import { EmptyState, Tag } from "../ui/primitives";
+import { formatWorkoutDuration } from "@/lib/duration";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 
@@ -103,7 +104,11 @@ export default function HistoryClient() {
 
 function HistoryRow({ w, unit }: { w: WorkoutRow; unit: Parameters<typeof formatWeight>[1] }) {
   const d = new Date(w.completedAt ?? w.startedAt);
-  const parts = [duration(w.durationSeconds), formatWeight(w.totalVolumeKg, unit)].filter(Boolean);
+  // [원본] const parts = [duration(w.durationSeconds), formatWeight(w.totalVolumeKg, unit)].filter(Boolean);
+  // [개선] 공용 소요시간(1시간 n분 · 1분 미만 생략 — P3 QA M1) @plm SRS-071
+  const parts = [formatWorkoutDuration(w.durationSeconds), formatWeight(w.totalVolumeKg, unit)].filter(
+    Boolean,
+  );
   return (
     <a
       href={`/history/${w.id}`}
@@ -131,6 +136,7 @@ function HistoryRow({ w, unit }: { w: WorkoutRow; unit: Parameters<typeof format
 }
 
 /** 분 단위로만 보여 준다 — 초까지 볼 이유가 없다(app과 같다). */
+// biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function duration(seconds: number | null): string {
   if (!seconds || seconds <= 0) return "";
   return t("common.minutesShort", { minutes: Math.round(seconds / 60) });
