@@ -62,6 +62,11 @@ async function 운동하고_마치기(page: Page, 종목 = "바벨 벤치프레�
   await page.getByTestId("btn-complete").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 20_000 });
+  // 완료 직후 루틴 저장·반영 질문(SRS-059·060)이 요약 위에 뜨면 「저장 안 함 / 오늘만」으로 닫는다.
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
   await page.getByTestId("btn-summary-close").click();
   // 요약을 닫으면 운동 탭으로 옮겨 간다(#61) — 그 이동이 끝난 뒤 다음 주소로 간다.
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });

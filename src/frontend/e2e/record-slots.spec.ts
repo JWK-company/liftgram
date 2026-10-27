@@ -43,6 +43,11 @@ async function 마치기(page: Page) {
   await page.getByTestId("btn-complete").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+  // 완료 직후 루틴 저장·반영 질문(SRS-059·060)이 요약 위에 뜨면 「저장 안 함 / 오늘만」으로 닫는다.
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
   await page.getByTestId("btn-summary-close").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 }
@@ -139,6 +144,11 @@ test("머신 적재 방식 — 핀로드와 플레이트는 다른 칸 · 플레
   await page.getByTestId("btn-complete").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toHaveText("800kg", { timeout: 15_000 });
+  // 완료 직후 루틴 저장·반영 질문(SRS-059·060)이 요약 위에 뜨면 「저장 안 함 / 오늘만」으로 닫는다.
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
   await page.getByTestId("btn-summary-close").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
 
@@ -231,15 +241,22 @@ test("루틴 편집 대체는 한 번에 바뀌고(#47), 운동 중 기구 바�
   await page.goto(`/routines/${routineId}`);
   await expect(rows.first()).toContainText("스미스 벤치프레스", { timeout: 20_000 });
 
-  // 루틴으로 시작 → 운동 중 기구 바꾸기 → 「루틴에도 바꾸기」
+  // 루틴으로 시작 → 운동 중 기구 바꾸기 → 운동 중에는 묻지 않는다 → 완료 때 「바뀐 대로 루틴 바꾸기」(SRS-059 · D3)
   await page.goto("/");
   await page.getByTestId(`routine-${routineId}`).getByTestId("btn-start-routine").click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
   await 칸_시트(page);
   await page.getByTestId("swap-barbell").click();
-  await expect(page.getByTestId("swap-scope")).toBeVisible({ timeout: 10_000 });
-  await page.getByTestId("btn-swap-routine").click();
   await expect(page.getByTestId("we-name").first()).toHaveText("바벨 벤치프레스");
+  await expect(page.getByTestId("swap-scope")).toHaveCount(0);
+  await 세트_기록(page, 60, 8);
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("finish-routine")).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId("btn-finish-apply").click();
+  await expect(page.getByTestId("finish-change-swap")).toBeVisible();
+  await page.getByTestId("btn-finish-apply-confirm").click();
+  await expect(page.getByTestId("finish-pick")).toHaveCount(0, { timeout: 10_000 });
 
   await page.goto(`/routines/${routineId}`);
   await expect(rows.first()).toContainText("바벨 벤치프레스", { timeout: 20_000 });

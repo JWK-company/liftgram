@@ -772,6 +772,30 @@ export const en: Record<TransKey, string> = {
   "session.swapThisTime": "This time only",
   "session.swapAlsoRoutine": "Also in routine",
   "session.swapRoutineDone": "Routine updated",
+  "finish.routineTitle": "Today differs from “{routine}”", // @plm SRS-059 SRS-060
+  "finish.routineMessage": "Keep today's changes in the routine?", // @plm SRS-059 SRS-060
+  "finish.applyToRoutine": "Update the routine", // @plm SRS-059 SRS-060
+  "finish.saveAsNew": "Save as a new routine", // @plm SRS-059 SRS-060
+  "finish.todayOnly": "Just today (keep routine)", // @plm SRS-059 SRS-060
+  "finish.prescriptionLocked": "This routine has per-set prescriptions, so it can't be changed. You can save a new routine instead.", // @plm SRS-059 SRS-060
+  "finish.pickTitle": "Changes to keep", // @plm SRS-059 SRS-060
+  "finish.pickMessage": "Only the checked changes go into the routine.", // @plm SRS-059 SRS-060
+  "finish.apply": "Apply", // @plm SRS-059 SRS-060
+  "finish.applied": "Routine updated", // @plm SRS-059 SRS-060
+  "finish.change.swap": "{from} → {to}", // @plm SRS-059 SRS-060
+  "finish.change.sets": "{name} {from} → {to} sets", // @plm SRS-059 SRS-060
+  "finish.change.add": "Add {name}", // @plm SRS-059 SRS-060
+  "finish.change.remove": "Remove {name}", // @plm SRS-059 SRS-060
+  "finish.change.removeSkipped": "Remove {name} (skipped today)", // @plm SRS-059 SRS-060
+  "finish.change.order": "Use today's order", // @plm SRS-059 SRS-060
+  "finish.change.superset": "Use today's supersets", // @plm SRS-059 SRS-060
+  "finish.quickTitle": "Save as a routine?", // @plm SRS-059 SRS-060
+  "finish.quickMessage": "Makes a routine from today's exercises and set counts. Weights fill in from your last session.", // @plm SRS-059 SRS-060
+  "finish.save": "Save", // @plm SRS-059 SRS-060
+  "finish.dontSave": "Don't save", // @plm SRS-059 SRS-060
+  "finish.nameLabel": "Routine name", // @plm SRS-059 SRS-060
+  "finish.saved": "Saved routine “{name}”", // @plm SRS-059 SRS-060
+  "finish.makeRoutine": "Make a routine from this workout", // @plm SRS-059 SRS-060
   "variant.default": "Default",
   "variant.armBoth": "Both arms/legs",
   "session.editPrecision": "Precision log",

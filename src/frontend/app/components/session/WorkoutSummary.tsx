@@ -14,6 +14,7 @@ import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { AppText, Tag } from "../ui/primitives";
 import { KpiRow, ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { NameRoutine } from "./FinishRoutineSheets";
 import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
 
 export interface Summary {
@@ -40,6 +41,7 @@ export function WorkoutSummary({
 }) {
   // 종목별 분해와 공유용 한 벌은 **같은 조회**에서 나온다(요약에는 둘 다 없다).
   const [extras, setExtras] = useState<{ share: ShareablePayload; breakdown: BreakdownRow[] } | null>(null);
+  const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   useEffect(() => {
     let alive = true;
     void loadSummaryExtras(summary).then((x) => alive && setExtras(x));
@@ -158,6 +160,19 @@ export function WorkoutSummary({
           </AppText>
         ) : null}
 
+        {/* 방금 마친 운동 그대로 루틴으로(#59 일부) — 빠른 운동이면 완료 직후에도 묻는다. @plm SRS-060 */}
+        {summary.workingSets > 0 ? (
+          <div className="mt-[var(--spacing-lg)]">
+            <Button
+              title={t("finish.makeRoutine")}
+              variant="secondary"
+              icon="list-outline"
+              testId="btn-summary-make-routine"
+              onPress={() => setMakeRoutine(true)}
+            />
+          </div>
+        ) : null}
+
         {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
         {extras ? (
           <div className="mt-[var(--spacing-xl)]">
@@ -165,6 +180,14 @@ export function WorkoutSummary({
           </div>
         ) : null}
       </div>
+
+      {makeRoutine ? (
+        <NameRoutine
+          workoutId={summary.workoutId}
+          onCancel={() => setMakeRoutine(false)}
+          onDone={() => setMakeRoutine(false)}
+        />
+      ) : null}
 
       {/* 하단 고정 — 할 일은 「완료」 하나. app은 여기서 탭으로 돌아간다 — 웹에서는 이 화면 자체가 세션 경로라 요약만 닫는다. */}
       <div className="sticky bottom-0 border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)] pb-[calc(var(--spacing-md)+env(safe-area-inset-bottom))]">

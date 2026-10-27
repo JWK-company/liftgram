@@ -130,6 +130,8 @@ test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({
   await page.getByTestId("btn-complete").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 20_000 });
+  // 빠른 운동이라 「루틴으로 저장할까요?」가 먼저 뜬다(SRS-060) — 저장하지 않고 닫는다.
+  await page.getByTestId("btn-finish-dont-save").click();
 
   // 요약에 공유 자리가 있다 — 한마디를 비워도 올릴 수 있다.
   await expect(page.getByTestId("share-workout")).toBeVisible({ timeout: 20_000 });

@@ -96,6 +96,11 @@ test("지난 세션의 기록이 '이전'으로 오고, 누르면 그대로 채�
   await expect(page.getByTestId("summary-volume")).toHaveText("420kg", { timeout: 15_000 });
 
   // ② 요약을 닫고 같은 종목으로 다시 시작하면 지난 기록이 따라온다.
+  // 완료 직후 루틴 저장·반영 질문(SRS-059·060)이 요약 위에 뜨면 「저장 안 함 / 오늘만」으로 닫는다.
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
   await page.getByTestId("btn-summary-close").click();
   // 요약을 닫으면 운동 탭으로 옮겨 간다(#61) — 그 이동이 끝난 뒤 다음 주소로 간다.
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
@@ -152,6 +157,11 @@ test("운동을 취소하거나 마치면 운동 탭으로 돌아간다 — 빈 
   await page.getByTestId("btn-complete").click();
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+  // 완료 직후 루틴 저장·반영 질문(SRS-059·060)이 요약 위에 뜨면 「저장 안 함 / 오늘만」으로 닫는다.
+  for (const id of ["btn-finish-dont-save", "btn-finish-today"]) {
+    const b = page.getByTestId(id);
+    if (await b.isVisible()) await b.click();
+  }
   await page.getByTestId("btn-summary-close").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
   await expect(page.getByTestId("nav-workout")).toBeVisible();

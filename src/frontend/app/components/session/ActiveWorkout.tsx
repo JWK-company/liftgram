@@ -41,6 +41,7 @@ import { ExerciseName } from "./ExerciseName";
 import { RestBar, clock } from "./RestBar";
 import { SessionGuideButtons } from "./SessionGuides";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
+import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
 
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type WorkoutRow = {
@@ -78,6 +79,8 @@ export default function ActiveWorkout() {
   const [supersetTarget, setSupersetTarget] = useState<WorkoutExerciseRow | null>(null);
   const [confirmFinish, setConfirmFinish] = useState<string | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  // 완료 직후 — 루틴과 달라진 점·루틴으로 저장을 묻는다(요약 위에 뜬다). @plm SRS-059 SRS-060
+  const [finishPrompt, setFinishPrompt] = useState<FinishPromptState | null>(null);
   // 루틴으로 시작한 운동에서 종목을 바꾸면 「이번만 / 루틴에도」를 묻는다(SRS-057 · 4.1)
   const [swapScope, setSwapScope] = useState<null | {
     routineId: string;
@@ -212,7 +215,15 @@ export default function ActiveWorkout() {
   // [원본] 요약을 닫으면 세션 화면에 그대로 남아 빈 「진행 중인 운동」이 떴다(탭바도 숨겨진 채 — 피드백 #61)
   // if (summary) return <WorkoutSummary summary={summary} unit={weightUnit} onClose={() => setSummary(null)} />;
   // [개선] 요약을 닫으면 운동 탭으로 — app 과 같다
-  if (summary) return <WorkoutSummary summary={summary} unit={weightUnit} onClose={leaveSession} />;
+  if (summary)
+    return (
+      <>
+        <WorkoutSummary summary={summary} unit={weightUnit} onClose={leaveSession} />
+        {finishPrompt ? (
+          <FinishRoutineSheets prompt={finishPrompt} onDone={() => setFinishPrompt(null)} />
+        ) : null}
+      </>
+    );
 
   // [개선] 진행 중인 운동이 없으면(취소 직후·완료 뒤 뒤로 가기·주소 직접 입력) 이 화면에 머물지 않는다.
   // 세션 화면은 탭바를 숨기므로 여기 남으면 갈 곳이 없다(#61). 이동하는 동안은 불러오는 중으로 보인다.
@@ -397,7 +408,9 @@ export default function ActiveWorkout() {
                   await repo.swapWorkoutExercise(picking.weId, exerciseId);
                   await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
                   setVersion((v) => v + 1);
-                  if (from) await askRoutineScope(from, exerciseId);
+                  // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고르므로 묻지 않는다(D3 · SRS-059)
+                  // if (from) await askRoutineScope(from, exerciseId);
+                  void from;
                 } else {
                   const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
                   await applyPick(exerciseId, info, { workoutExerciseId: we.id });
@@ -519,12 +532,23 @@ export default function ActiveWorkout() {
           onConfirm={() => {
             setConfirmFinish(null);
             guard(async () => {
+              // 완료 **전에** 무엇을 물을지 본다 — 완료가 세트 0 블록·체크 안 한 세트를 지운다(QA Q1). 실패해도 완료는 막지 않는다.
+              const fr = await import("@app/core/data/finishRoutine");
+              const ask = await fr.getFinishPrompt(workout.id).catch(() => null);
               const s = await repo.completeWorkout(workout.id);
               const { flushLocalDb } = await import("@/lib/localDb");
               await flushLocalDb();
               clearRest();
               setActive(null);
               setSummary(s as Summary);
+              if (ask && ask.kind !== "none")
+                setFinishPrompt({
+                  kind: ask.kind,
+                  workoutId: workout.id,
+                  routineName: ask.routineName,
+                  plan: ask.plan,
+                  blocks: ask.blocks,
+                });
               setWorkout(null);
             });
           }}
@@ -571,7 +595,9 @@ export default function ActiveWorkout() {
             const from = we.exerciseId;
             await repo.swapWorkoutExercise(weId, exerciseId);
             setVersion((v) => v + 1);
-            await askRoutineScope(from, exerciseId);
+            // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고른다(D3 · SRS-059)
+            // await askRoutineScope(from, exerciseId);
+            void from;
           })
         }
         canSuperset={exercises.length > 1}
@@ -592,6 +618,7 @@ export default function ActiveWorkout() {
    * 루틴으로 시작한 운동이고 그 루틴에 바꾸기 전 종목이 아직 있으면 「이번만 / 루틴에도」를 묻는다.
    * 빠른 운동이거나 루틴에서 이미 빠진 종목이면 묻지 않는다(이번만). @plm SRS-057
    */
+  // biome-ignore lint/correctness/noUnusedVariables: 원복용 보존 — 운동 중 질문은 D3 로 막았다(SRS-059)
   async function askRoutineScope(from: string, to: string) {
     if (!workout?.routineId || from === to) return;
     try {

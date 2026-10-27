@@ -16,6 +16,7 @@ import { MoreMenu } from "../ui/MoreMenu";
 import { KpiRow } from "../ui/rows";
 import { AppText, Card, Divider, EmptyState, Tag } from "../ui/primitives";
 import { LogoSpinner } from "../ui/LogoSpinner";
+import { NameRoutine } from "../session/FinishRoutineSheets";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -26,6 +27,7 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const [detail, setDetail] = useState<Detail | null>(null);
   const [unit, setUnit] = useState<WeightUnit>("kg");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   const router = useRouter();
   const toast = useToast();
 
@@ -68,6 +70,16 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
               testId="btn-detail-menu"
               sheetTestId="detail-menu"
               options={[
+                // 지난 운동 그대로 루틴으로(#59 일부) @plm SRS-060
+                ...(detail.exercises.length > 0
+                  ? [
+                      {
+                        label: t("finish.makeRoutine"),
+                        testId: "btn-make-routine",
+                        onPress: () => setMakeRoutine(true),
+                      },
+                    ]
+                  : []),
                 {
                   label: t("analytics.deleteWorkoutTitle"),
                   destructive: true,
@@ -133,6 +145,14 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
           </>
         )}
       </div>
+
+      {makeRoutine ? (
+        <NameRoutine
+          workoutId={workoutId}
+          onCancel={() => setMakeRoutine(false)}
+          onDone={() => setMakeRoutine(false)}
+        />
+      ) : null}
 
       {confirmDelete ? (
         <ConfirmDialog

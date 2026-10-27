@@ -346,5 +346,15 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // v24: 운동 블록 ↔ 루틴 줄 연결 — 운동 완료 때 루틴과 달라진 점(교체·세트 수…)을 짝짓는다. @plm SRS-059
+      toVersion: 24,
+      steps: [
+        addColumns({
+          table: 'workout_exercises',
+          columns: [{ name: 'routine_exercise_id', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

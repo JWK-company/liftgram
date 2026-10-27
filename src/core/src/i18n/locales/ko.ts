@@ -774,6 +774,30 @@ export const ko = {
   "session.swapThisTime": "이번만",
   "session.swapAlsoRoutine": "루틴에도 바꾸기",
   "session.swapRoutineDone": "루틴도 바꿨어요",
+  "finish.routineTitle": "「{routine}」 루틴과 달라졌어요", // @plm SRS-059 SRS-060
+  "finish.routineMessage": "오늘 바뀐 점을 루틴에 남길까요?", // @plm SRS-059 SRS-060
+  "finish.applyToRoutine": "바뀐 대로 루틴 바꾸기", // @plm SRS-059 SRS-060
+  "finish.saveAsNew": "새 루틴으로 저장", // @plm SRS-059 SRS-060
+  "finish.todayOnly": "오늘만 (루틴은 그대로)", // @plm SRS-059 SRS-060
+  "finish.prescriptionLocked": "세트별 처방이 있는 루틴이라 바꿀 수 없어요. 새 루틴으로 저장할 수 있어요.", // @plm SRS-059 SRS-060
+  "finish.pickTitle": "루틴에 남길 변경", // @plm SRS-059 SRS-060
+  "finish.pickMessage": "체크한 것만 루틴에 반영해요.", // @plm SRS-059 SRS-060
+  "finish.apply": "반영", // @plm SRS-059 SRS-060
+  "finish.applied": "루틴을 바꿨어요", // @plm SRS-059 SRS-060
+  "finish.change.swap": "{from} → {to}", // @plm SRS-059 SRS-060
+  "finish.change.sets": "{name} {from} → {to}세트", // @plm SRS-059 SRS-060
+  "finish.change.add": "{name} 추가", // @plm SRS-059 SRS-060
+  "finish.change.remove": "{name} 빼기", // @plm SRS-059 SRS-060
+  "finish.change.removeSkipped": "{name} 빼기 (오늘 안 함)", // @plm SRS-059 SRS-060
+  "finish.change.order": "순서를 오늘 한 대로", // @plm SRS-059 SRS-060
+  "finish.change.superset": "슈퍼셋 묶음을 오늘 한 대로", // @plm SRS-059 SRS-060
+  "finish.quickTitle": "루틴으로 저장할까요?", // @plm SRS-059 SRS-060
+  "finish.quickMessage": "오늘 한 종목·세트 수로 루틴을 만들어요. 무게는 다음에 이전 기록으로 채워져요.", // @plm SRS-059 SRS-060
+  "finish.save": "저장", // @plm SRS-059 SRS-060
+  "finish.dontSave": "저장 안 함", // @plm SRS-059 SRS-060
+  "finish.nameLabel": "루틴 이름", // @plm SRS-059 SRS-060
+  "finish.saved": "루틴 「{name}」을 저장했어요", // @plm SRS-059 SRS-060
+  "finish.makeRoutine": "이 운동으로 루틴 만들기", // @plm SRS-059 SRS-060
   "variant.default": "기본",
   "variant.armBoth": "양팔(양다리)",
   "session.editPrecision": "정밀 기록",

@@ -611,6 +611,7 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
         we.variantLoad = v.variantLoad ?? null; // v22 @plm SRS-058
         we.variantAttach = v.variantAttach ?? null;
         we.supersetGroup = re.supersetGroup; // v7: 루틴 슈퍼셋 그룹 복사(#20)
+        we.routineExerciseId = re.id; // v24: 완료 때 루틴과 짝짓는 연결(종목을 바꿔도 같은 행이라 유지) @plm SRS-059
         we.note = re.note?.trim() || null; // 루틴 종목 메모·팁을 세션 메모에 시드(가져온 상급자 팁 노출 — 티칭). @plm SRS-004 SRS-007
         we.cardioTarget = re.cardioTarget ?? null; // v13: 루틴 유산소 목표 복사. @plm SRS-030
         we.prescription = re.prescription ?? null; // v16: 처방 복사(세션 렌더 근거 — 사람 작성분 그대로). @plm SRS-043
