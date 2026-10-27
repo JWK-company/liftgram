@@ -40,13 +40,24 @@ async function 유지(read: () => Promise<string | null>, want: string, ms = 3_0
 test.describe("체중 입력 되돌림 없음(CD-1·CD-2)", () => {
   test.use({ serviceWorkers: "block" });
 
+  // [원본] 프로필 스테퍼에 직접 입력(0 = 설정 안 함) — P3 에서 스테퍼가 「기록」 시트 + 「체중 미설정으로 두기」로 바뀌었다(SRS-077 U-9).
+  //   같은 되돌림 회귀를 새 입력 경로로 지킨다: 값은 기록 시트(측정 한 줄), 0 은 미설정으로 두기(core 표식 · updateUserSettings 경로 그대로).
   async function 체중_입력(page: Page, kg: string): Promise<void> {
     await page.goto("/profile");
     await expect(page.getByTestId("bodyweight")).toBeVisible({ timeout: 20_000 });
-    await page.getByTestId("bodyweight-value").click();
-    await page.getByTestId("bodyweight-input").fill(kg);
-    await page.getByTestId("bodyweight-input").press("Enter");
-    await expect(page.getByTestId("bodyweight-value")).toHaveText(`${kg}kg`);
+    if (kg === "0") {
+      await page.getByTestId("row-bodyweight-history").click();
+      await page.getByTestId("btn-bodyweight-unset").click();
+      await page.getByTestId("dialog-confirm").click();
+      await expect(page.getByTestId("bodyweight-value")).toHaveText("미설정");
+    } else {
+      await page.getByTestId("btn-bodyweight-record").click();
+      await page.getByTestId("weighin-type").click();
+      await page.getByTestId("weighin-input").fill(kg);
+      await page.getByTestId("weighin-input").press("Enter");
+      await page.getByTestId("weighin-save").click();
+      await expect(page.getByTestId("bodyweight-value")).toHaveText(`${kg}.0kg`);
+    }
     await 내려쓰기_대기(page);
   }
   /** 다시 열어(부팅 정리 · 1분 넘게 지난 것으로 되감은 뒤) 보이는 값 */
@@ -67,16 +78,16 @@ test.describe("체중 입력 되돌림 없음(CD-1·CD-2)", () => {
     test.setTimeout(180_000);
     await 준비(page);
     await 체중_입력(page, "80");
-    expect(await 되감고_다시_열기(page)).toBe("80kg");
+    expect(await 되감고_다시_열기(page)).toBe("80.0kg");
     await 체중_입력(page, "82");
-    expect(await 되감고_다시_열기(page)).toBe("82kg");
+    expect(await 되감고_다시_열기(page)).toBe("82.0kg");
     await 체중_입력(page, "80");
-    expect(await 되감고_다시_열기(page)).toBe("80kg");
-    expect(await 되감고_다시_열기(page)).toBe("80kg"); // 한 번 더(멱등)
+    expect(await 되감고_다시_열기(page)).toBe("80.0kg");
+    expect(await 되감고_다시_열기(page)).toBe("80.0kg"); // 한 번 더(멱등)
 
     await 체중_입력(page, "0");
-    expect(await 되감고_다시_열기(page)).toBe("0kg");
-    expect(await 되감고_다시_열기(page)).toBe("0kg");
+    expect(await 되감고_다시_열기(page)).toBe("미설정");
+    expect(await 되감고_다시_열기(page)).toBe("미설정");
 
     await 빈_문서(page);
     const rows = await idb_행(page, "bodyweight_logs");
@@ -85,7 +96,10 @@ test.describe("체중 입력 되돌림 없음(CD-1·CD-2)", () => {
       description: JSON.stringify(rows.map((r) => ({ id: r.id, kg: r.weight_kg, src: r.source }))),
     });
     expect(rows.map((r) => r.weight_kg)).toEqual([80, 82, 80, 0]);
-    expect(rows.every((r) => String(r.id).startsWith("bw-profile-") && r.source === "manual")).toBe(true);
+    // [원본] 네 줄 모두 프로필 입력 줄(bw-profile-*) — 이제 값은 기록 시트(일반 id), 미설정 표식만 프로필 경로(bw-profile-*)다
+    // expect(rows.every((r) => String(r.id).startsWith("bw-profile-") && r.source === "manual")).toBe(true);
+    expect(rows.every((r) => r.source === "manual")).toBe(true);
+    expect(rows.map((r) => String(r.id).startsWith("bw-profile-"))).toEqual([false, false, false, true]);
     const profiles = await idb_행(page, "user_profiles");
     expect(profiles[0]?.bodyweight_kg ?? null).toBeNull();
   });

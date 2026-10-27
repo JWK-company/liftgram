@@ -31,6 +31,8 @@ export const SYNCED_PREF_KEYS = [
   "liftgram.theme", // 시스템·라이트·다크 — lib/theme.ts
   "liftgram.effortLogging", // 세트 힘든 정도 기록("1" = 켬 · 없음/"0" = 끔 — 기본 끔) — lib/effortPref.ts @plm SRS-073
   "liftgram.muscleMap", // 근육 그림 보기("0" = 끔 · 없음/"1" = 켬 — 기본 켬) — lib/muscleMapPref.ts @plm SRS-075
+  "liftgram.weighInBeforeWorkout", // 운동 전 체중 체크인("1" = 켬 · 기본 끔) — lib/bodyweightPref.ts @plm SRS-077
+  "liftgram.bodyweightGoalKg", // 목표 체중 kg(""= 없음) — lib/bodyweightPref.ts @plm SRS-078
 ] as const;
 const SYNCED = new Set<string>(SYNCED_PREF_KEYS);
 

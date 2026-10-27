@@ -52,6 +52,8 @@ import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
 import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
+import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
+import { WeighInSettingRow } from "./WeighInSettingRow"; // 운동 전 체중 체크인 스위치 @plm SRS-077
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 import { version as APP_VERSION } from "../../../package.json";
 import buildInfo from "../../build-info.json";
@@ -86,7 +88,7 @@ export default function ProfileClient() {
     weightUnit,
     language,
     barWeightKg,
-    bodyweightKg,
+    // bodyweightKg, — 체중 칸은 BodyweightRow 가 읽는다(옛 스테퍼는 주석으로 보존) @plm SRS-077
     availableEquipment,
     machineVariantLabels,
     experienceLevel,
@@ -263,6 +265,8 @@ export default function ProfileClient() {
               />
             }
           />
+          {/* [원본] 체중 스테퍼 — onChange 마다 저장해 + 한 번에 이력 한 줄씩 쌓였다(U-9). 최신값 읽기 전용 + 「기록」 시트 + 「체중 기록 전체」로 바꾼다.
+              (0 = 설정 안 함은 「체중 기록 전체 › 체중 미설정으로 두기」가 같은 core 경로 updateUserSettings({ bodyweightKg: null })로 잇는다) @plm SRS-077
           <ListRow
             title={t("profile.bodyweight")}
             subtitle={t("profile.bodyweightCaption")}
@@ -279,6 +283,9 @@ export default function ProfileClient() {
               />
             }
           />
+          */}
+          {/* [개선] 체중 = 이력의 최신값(읽기 전용) + 「기록」 · 「체중 기록 전체」 @plm SRS-077 */}
+          <BodyweightRow />
           <ListRow
             testId="row-rest-sound"
             title={t("profile.restSound")}
@@ -287,6 +294,7 @@ export default function ProfileClient() {
           />
           <EffortLoggingRow />
           <MuscleMapRow />
+          <WeighInSettingRow />
           <ListRow
             testId="row-equipment"
             title={t("profile.availableEquipment")}

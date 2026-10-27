@@ -44,6 +44,8 @@ import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
 import { SetDraftContext, createSetDraftRegistry } from "./setDrafts";
 import { firePrCelebration } from "../PrCelebration";
+import { WeighInCheckin } from "./WeighInSheet"; // 운동 전 체중 체크인 @plm SRS-077
+import { clearWeighInMarks } from "@/lib/bodyweightPref";
 
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type WorkoutRow = {
@@ -422,6 +424,8 @@ export default function ActiveWorkout() {
 
         <RestBar />
         <PrCelebrationHost />
+        {/* 운동 전 체중 체크인 — 설정을 켠 사람에게만, 이 운동 첫 진입에서 한 번(U-7) @plm SRS-077 */}
+        <WeighInCheckin workoutId={workout.id} startedAt={workout.startedAt} />
 
         {picking ? (
           // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
@@ -578,6 +582,7 @@ export default function ActiveWorkout() {
                 const { flushLocalDb } = await import("@/lib/localDb");
                 await flushLocalDb();
                 clearRest();
+                clearWeighInMarks({ workoutId: workout.id }); // 체크인 표시는 운동이 끝나면 지운다 @plm SRS-077
                 setActive(null);
                 setSummary(s as Summary);
                 if (ask && ask.kind !== "none")
@@ -609,6 +614,7 @@ export default function ActiveWorkout() {
                 const { flushLocalDb } = await import("@/lib/localDb");
                 await flushLocalDb();
                 clearRest();
+                clearWeighInMarks({ workoutId: workout.id }); // @plm SRS-077
                 setActive(null);
                 setWorkout(null);
               });

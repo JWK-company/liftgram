@@ -26,6 +26,7 @@ import { KpiRow, ListGroup, ListRow, SectionLabel, Segmented } from "../ui/rows"
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { EffortCard } from "./EffortCard"; // 세트 힘든 정도(SRS-074)
 import { MuscleBalanceCard } from "./MuscleBalanceCard"; // 근육 균형(SRS-076)
+import { BodyweightCard } from "./BodyweightCard"; // 체중 추세(SRS-078)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Overview = Awaited<ReturnType<AnalyticsRepo["getOverview"]>>;
@@ -311,6 +312,9 @@ export default function StatsClient() {
             ) : null}
           </>
         )}
+
+        {/* 체중 — 운동 기록이 없어도 보인다(자기 기간 선택) @plm SRS-078 */}
+        {!loading || overview ? <BodyweightCard /> : null}
 
         <AppText
           variant="caption"

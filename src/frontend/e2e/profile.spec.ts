@@ -48,12 +48,16 @@ test("체중을 넣으면 세션의 '체중 미설정' 경고가 사라진다", 
 
   await expect(page.getByTestId("workout-exercises")).toContainText("체중 미설정", { timeout: 20_000 });
 
-  // 체중을 넣는다 — 스테퍼의 값을 눌러 직접 입력한다.
+  // 체중을 넣는다 — 「기록」 시트에서 직접 입력한다(스테퍼 → 이력 기록 · SRS-077 U-9).
   await page.goto("/profile");
   await expect(page.getByTestId("bodyweight")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("bodyweight-value").click();
-  await page.getByTestId("bodyweight-input").fill("70");
-  await page.getByTestId("bodyweight-input").press("Enter");
+  // [원본] 스테퍼의 값을 눌러 직접 입력 — bodyweight-value 클릭 → bodyweight-input 70 → Enter
+  await page.getByTestId("btn-bodyweight-record").click();
+  await page.getByTestId("weighin-type").click();
+  await page.getByTestId("weighin-input").fill("70");
+  await page.getByTestId("weighin-input").press("Enter");
+  await page.getByTestId("weighin-save").click();
+  await expect(page.getByTestId("bodyweight-value")).toHaveText("70.0kg");
 
   await page.goto("/workout");
   await expect(page.getByTestId("workout-exercises")).not.toContainText("체중 미설정", { timeout: 20_000 });
