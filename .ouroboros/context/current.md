@@ -1,5 +1,5 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 화면 정리(declutter) (Feature×4 · P1 v0.39.0 · **P2 v0.40.0 운영(build 344, 001b7e1)** · 다음 P3 execute · 2026-10-27)
+## 활성 작업 — 화면 정리(declutter) (Feature×4 · P1 v0.39.0 · P2 v0.40.0 운영(build 344) · **P3 execute 완료 e6c3dd7 — /qa code 대기·미배포** · 2026-10-27)
 - 요구 URS-023·SRS-069(P1 공용 규칙+운동 블록 D1~D4·F3)·SRS-070(P2 요약·기록 상세·분석 D5·D6·F5)·SRS-071(P3 홈·피드·칸 시트 D7~D9·F1·F2·F4·F6·F7)·SRS-072(P4 나머지 점검) · 스펙 `.ouroboros/docs/spec/20261027_declutter/spec.md` · QA `.ouroboros/docs/qa/20261027_declutter-spec_qa.md`
 - P1 v0.39.0 운영: ui/quiet.tsx(MetaLine·MetaAction·QuietChip·Fold·PrText) · 블록 머리 조합=회색 메타·PR=금색 글자(두 조각이면 자기 줄)·볼륨=회색 숫자·kg│lb 표 머리 compact(누르는 자리 높이 44px)·순서=⋯ 메뉴·「더 보기」는 이번 운동 동안만(fold:block:<운동 id>)·점선 밑줄 없음 · 측정(붐비는 시드) 첫 세트 397→317(360·390) · 머리 247/213/192→165/133/145 · /qa code 18건 조치(L-3 보류) · QA `.ouroboros/docs/qa/20261027_declutter-p1-code_qa.md` · 잡은 결함: 횟수 blur 저장+PR 채우기 한 그림 경합 → 입력칸이 저장 시각도 따라감+블록 쓰기 직렬화
 - P2 완료(v0.40.0): 요약 = (종목×칸) 줄·칸 이름·「lb 입력」·「PR n」 누르면 깬 값(이전→새)·조각 단위 줄바꿈·공유 올리는 중 재진입 차단·한마디 유지 · 기록 상세 「한쪽」 배수 섞이면 세트 줄·실패=진한 회색·「추정 1RM」 · /qa code `.ouroboros/docs/qa/20261027_declutter-p2-code_qa.md`(보류 L-2·L-5·키보드 겹침 실기기) · 요약 높이 1503→878px
