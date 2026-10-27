@@ -1,10 +1,10 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 화면 정리(declutter) (Feature×4 · P1 v0.39.0 운영 · **P2 execute 커밋 — /qa code 대기·미배포** · 2026-10-27)
+## 활성 작업 — 화면 정리(declutter) (Feature×4 · P1 v0.39.0 · **P2 v0.40.0 운영(build 344, 001b7e1)** · 다음 P3 execute · 2026-10-27)
 - 요구 URS-023·SRS-069(P1 공용 규칙+운동 블록 D1~D4·F3)·SRS-070(P2 요약·기록 상세·분석 D5·D6·F5)·SRS-071(P3 홈·피드·칸 시트 D7~D9·F1·F2·F4·F6·F7)·SRS-072(P4 나머지 점검) · 스펙 `.ouroboros/docs/spec/20261027_declutter/spec.md` · QA `.ouroboros/docs/qa/20261027_declutter-spec_qa.md`
 - P1 v0.39.0 운영: ui/quiet.tsx(MetaLine·MetaAction·QuietChip·Fold·PrText) · 블록 머리 조합=회색 메타·PR=금색 글자(두 조각이면 자기 줄)·볼륨=회색 숫자·kg│lb 표 머리 compact(누르는 자리 높이 44px)·순서=⋯ 메뉴·「더 보기」는 이번 운동 동안만(fold:block:<운동 id>)·점선 밑줄 없음 · 측정(붐비는 시드) 첫 세트 397→317(360·390) · 머리 247/213/192→165/133/145 · /qa code 18건 조치(L-3 보류) · QA `.ouroboros/docs/qa/20261027_declutter-p1-code_qa.md` · 잡은 결함: 횟수 blur 저장+PR 채우기 한 그림 경합 → 입력칸이 저장 시각도 따라감+블록 쓰기 직렬화
-- P2(미배포): 요약 PR 목록→종목 줄 오른쪽 금색 「PR n」(`summary-pr-list`=종목 줄 목록)·PR 수는 제목 아래 금색 글자·1RM 회색 보조·부가 행동 한 줄(QuietAction: 루틴 저장·다시 시작·공유)·공유 한마디는 시트(`btn-summary-share`)·기록 상세 메타 줄(조합·「한쪽 입력(볼륨 ×2)」 1회·볼륨)·1RM 머리 오른쪽·빈 RPE 열 숨김·주석 1회·lb 1RM(F5)·분석 「추정치」 태그 0·1RM/최근 PR 중복 제거 · 측정 e2e `declutter-summary.spec.ts` 옛 코드 3/3 실패 확인 · 요약 화면 높이 1503→878px
+- P2 완료(v0.40.0): 요약 = (종목×칸) 줄·칸 이름·「lb 입력」·「PR n」 누르면 깬 값(이전→새)·조각 단위 줄바꿈·공유 올리는 중 재진입 차단·한마디 유지 · 기록 상세 「한쪽」 배수 섞이면 세트 줄·실패=진한 회색·「추정 1RM」 · /qa code `.ouroboros/docs/qa/20261027_declutter-p2-code_qa.md`(보류 L-2·L-5·키보드 겹침 실기기) · 요약 높이 1503→878px
 - 작업 범위: frontend(ui/quiet.tsx 신규·UnitToggle·RecordSlotSelector·session/ExerciseBlock·SetRowEdit·WorkoutSummary·analytics/*·routines/RoutinesClient·WeekSummary·feed/*·ShareWorkout·CatalogClient) · core(getRecentBrands·빠른 운동 자동 이름) · e2e(helpers·좌표 검사)
-## 대기 작업 — openGym 추천 1~5 (Project×5 · **spec 완료 → 다음 /qa spec** · 2026-10-27 · 스펙 `.ouroboros/docs/spec/20261027_opengym-recs/`)
+## 병행 작업 — openGym 추천 1~5 (Project×5 · **qa spec 통과(2판) → P1 화면 밖·P4 서버 execute 중** · 2026-10-27 · 스펙 `.ouroboros/docs/spec/20261027_opengym-recs/` · QA `.ouroboros/docs/qa/20261027_opengym-spec_qa.md` · ADR-040·042·043 개정)
 - 추적 URS-024~026·UCS-023~025·SRS-073~082·SAD-023~025·ADR-038~043 · G1·G2 pass · 결정 4건 전부 권장(5단계 순차·카드만 근육 그림·28일 회귀·표본 직접 제작) · P1 RIR+v26 → P2 근육 → P3 체중 → P4 요약·DM·리포트 이관(0017) → P5 CSV
 - **충돌 방지**: 코드는 worktree `../liftgram-wt-opengym`(브랜치 feat/opengym-recs)만 · 포트 3300/3301 · 겹치는 화면은 화면 정리 P2(P1·P4)·P3(P2·P3) 커밋 뒤 · qa code 뒤 ff-only 합치기(원래 폴더 src 깨끗·5분 정지 시만) · 버전은 배포 시점 다음 minor
 ## 직전 작업 — 운동 중 kg/lb 토글 · 막대 취소 (Feature · **완료** v0.38.0 build 334 · 5222c61 · 2026-10-27)

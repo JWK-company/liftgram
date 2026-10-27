@@ -1,6 +1,6 @@
 {
   "active_skill": "execute",
-  "skill_step": 6,
+  "skill_step": 0,
   "active_artifact": "SRS-070",
   "autorun": {
     "queue": [
@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-10-27T06:22:38Z",
+  "last_gate_check": "2026-10-27T06:49:10Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -32,7 +32,7 @@
       "MRPT"
     ]
   },
-  "last_updated": "2026-10-27T06:20:00Z",
+  "last_updated": "2026-10-27T07:00:00Z",
   "tasks": {
     "bp-001-blueprint": "done",
     "dr-002-design-research": "done",
@@ -129,6 +129,18 @@
     "opengym-recs-spec": {
       "status": "done",
       "note": "Project×5 · .ouroboros/docs/spec/20261027_opengym-recs/ · 다음 /qa spec · worktree 분리 규칙"
+    },
+    "opengym-recs-qa-spec": {
+      "status": "done",
+      "note": "3인 조건부 통과 60건 전부 반영 → spec 2판"
+    },
+    "opengym-recs-p1-core": {
+      "status": "in_progress",
+      "note": "worktree feat/opengym-recs · v26·가드·effort"
+    },
+    "opengym-recs-p4-server": {
+      "status": "in_progress",
+      "note": "worktree · 0017·RPC·DM SUMMARY"
     }
   },
   "active_files": [
@@ -143,7 +155,7 @@
   },
   "grade": "Feature",
   "spec_path": ".ouroboros/docs/spec/20261027_declutter/",
-  "phase": "화면 정리 P2 execute 커밋 → /qa code 대기·미배포",
+  "phase": "화면 정리 P2 완료(v0.40.0) → P3 execute 대기",
   "tasks_exec": {
     "catalog-expansion": {
       "name": "운동 카탈로그 대확장",
@@ -152,6 +164,6 @@
       "current_phase": "done"
     }
   },
-  "release_tag": "v0.39.0",
+  "release_tag": "v0.40.0",
   "last_verified": "2026-08-04"
 }
