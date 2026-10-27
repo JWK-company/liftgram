@@ -23,9 +23,9 @@ cat << 'EOF'
     └─ Dashboard — 웹 대시보드
 
   Template (이 프로젝트에 설치됨)
-    ├─ 13개 스킬    — /patch, /spec, /execute, /fix, /qa 등
+    ├─ 15개 스킬    — /patch, /spec, /execute, /fix, /qa, /autorun 등
     ├─ 6개 Hook     — 자동 가이드, 범위 감시, 대화 동기화
-    ├─ 10개 프로토콜 — Auto-collection, Signal, RRF 검색
+    ├─ 12개 프로토콜 — Auto-collection, Signal, RRF 검색
     └─ 동적 전문가   — 작업 성격에 맞는 전문가를 Claude가 자동 구성
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -48,7 +48,7 @@ cat << 'EOF'
 📖 상세 가이드 (터미널에서 실행, 토큰 소비 없음)
 
   make guide                    전체 개요 (지금 보는 것)
-  make guide TOPIC=skills       13개 스킬 상세
+  make guide TOPIC=skills       15개 스킬 상세
   make guide TOPIC=memory       메모리 시스템
   make guide TOPIC=hooks        Hook 시스템
   make guide TOPIC=tiers        5-Tier 복잡도
@@ -62,7 +62,7 @@ EOF
 
 skills)
 cat << 'EOF'
-📋 13개 스킬 상세
+📋 15개 스킬 상세
 
 ━━ Core (매일 사용) ━━
 
@@ -89,6 +89,11 @@ cat << 'EOF'
     동적 전문가 패널이 코드/설계를 리뷰합니다.
     /qa spec (설계 리뷰) / /qa code (코드 리뷰)
     Feature 등급: 3인, Project+: 5인.
+
+  /autorun
+    승인된 계획(큐)을 무인으로 연속 실행합니다. 큐 순서대로 1건씩,
+    문제·질의만 홀딩하고 정상 단계는 조용히 진행합니다.
+    --dry 로 DAG(순서)만 미리 보고, --from <SRS> 로 홀딩 지점부터 재개합니다.
 
 ━━ Periodic (주기적) ━━
 
@@ -274,11 +279,11 @@ cat << 'EOF'
     PROJECT_ID         — 프로젝트 ID
     EVENT_LOG_URL      — 대시보드 URL (대화 동기화)
 
-  .mcp.json
-    ouroboros          — MCP 서버 연결 (type: "http", URL에 key 포함)
-    sequential-thinking — 단계적 사고
-    context7           — 라이브러리 문서
-    serena             — 코드 구조 분석
+  .mcp.json  (서버 2개 — 인증은 headersHelper 가 .ouroboros/env/.env 토큰으로)
+    ouroboros          — 메모리/KG   (type:"http" · mcp-auth.sh ouro → OURO_MCP_TOKEN)
+    plm                — PLM 거버넌스 (type:"http" · mcp-auth.sh plm  → PLM_API_TOKEN)
+    ※ serena·context7·chrome-devtools 는 .mcp.json 이 아니라 `make plugins` 로
+      설치되는 공식 MCP **플러그인**이다 (sequential-thinking 은 설치 대상이 아니다).
 
   ${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json
     Hook 설정 (수정 불필요)

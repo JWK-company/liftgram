@@ -6,7 +6,7 @@
 
 ## 트리거 조건
 - gotcha + pattern 합계 50건+ 시 `distill-ready` Signal 자동 발생
-- 소규모 프로젝트(1-5명): 20건+부터 유의미. knowledge_distill(min_count=20) 사용
+- 소규모 프로젝트(1-5명): 20건+부터 유의미 (건수는 **실행 여부 판단 기준**일 뿐 — `knowledge_distill`에 건수 파라미터는 없다. 서버 DBSCAN `min_samples=3` 고정)
 - 대규모 프로젝트(10명+): 50건+ 권장 (기본값)
 - 수동 실행도 가능
 
@@ -16,8 +16,15 @@
 
 **MCP 도구 (서버 측 DBSCAN 클러스터링):**
 ```
-knowledge_distill(min_count=50)
+knowledge_distill(
+    source_types=["gotcha", "pattern"],
+    user_id="{DEVELOPER_USER_ID}",
+    project_id="{PROJECT_ID}",
+    similarity_threshold=0.80
+)
 ```
+- `source_types` **필수** (미지정 시 서버 기본 = insight·pattern·gotcha·decision)
+- `similarity_threshold` 기본 0.80 · 클러스터 최소 크기(min_samples=3)는 서버 고정
 
 **서버 처리 내용:**
 1. gotcha + pattern 메모리 로드 (임베딩 벡터 포함)
@@ -56,8 +63,8 @@ knowledge_distill(min_count=50)
 
 **MCP 실패 시 수동 분석 fallback:**
 ```
-memory_search(type="gotcha", limit=30)
-memory_search(type="pattern", limit=20)
+memory_search(query="{도메인/기술 키워드}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=30)
+memory_search(query="{도메인/기술 키워드}", memory_type="pattern", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=20)
 ```
 → 태그 기반 수동 클러스터링 (3건+ 동일 태그 묶음)
 → 시맨틱 유사도 그룹화 (memory_search로 0.80+ 확인)
@@ -68,12 +75,10 @@ memory_search(type="pattern", limit=20)
 
 각 클러스터의 source_memories를 읽고 일반 원칙으로 재작성:
 
-**단계적 일반화 (sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="다음 {N}개의 구체적 경험에서 공통 원칙을 추출: {클러스터 요약}")
-```
+**단계적 일반화 (도구 없이 직접):**
+- "다음 {N}개의 구체적 경험에서 공통 원칙을 추출: {클러스터 요약}"을 직접 단계적으로 수행
 → 구체적 경험 → 일반 원칙 변환 과정을 구조화
-- **fallback:** sequential-thinking MCP 미연결 시 직접 추론
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 **프롬프트 전략:**
 "다음 {N}개의 구체적 경험을 하나의 일반 원칙으로 요약하세요.
@@ -101,10 +106,13 @@ mcp__sequential-thinking__sequentialthinking(thought="다음 {N}개의 구체적
 **MCP 도구:**
 ```
 knowledge_store(
-    type="{suggested_type}",
-    title="{일반 패턴 이름}",
-    content="{일반화된 설명}",
-    sources=["{원본 메모리 ID 목록}"]
+    node_type="{suggested_type}",              # Preference | TechStack | Pattern | Term | Insight
+    name="{일반 패턴 이름}",
+    description="{일반화된 설명}",
+    namespace="project",                        # "user"(기본) | "project"
+    user_id="{DEVELOPER_USER_ID}",
+    project_id="{PROJECT_ID}",
+    properties={"sources": ["{원본 메모리 ID 목록}"]}
 )
 ```
 

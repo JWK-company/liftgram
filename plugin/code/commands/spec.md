@@ -46,45 +46,48 @@
 
 **Phase A — 벡터 시맨틱 검색 (3축 병렬):**
 ```
-memory_search(query="{도메인}", limit=5)
-memory_search(query="{기술}", type="gotcha", limit=5)
-knowledge_query(query="{도메인}", limit=5)
-knowledge_query(query="{기술}", type="convention", limit=3)
+memory_search(query="{도메인}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+memory_search(query="{기술}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+knowledge_query(query_type="all", key="{도메인}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
+knowledge_query(query_type="patterns", key="{기술}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
 ```
+- `memory_search`: 필수 = `query`. 유형 필터는 `memory_type`(`type` 아님). 시맨틱 검색이라 자유 텍스트가 들어간다.
+- `knowledge_query`: 필수 = `query_type` (`preferences`|`tech_stack`|`patterns`|`terms`|`all`|`neighborhood`).
+  자유 텍스트 `query`·`tags`·`limit` 파라미터는 **없다** — 이름 부분일치는 `key`, 분류 필터는 `category`.
 
-**Phase B — 그래프 확장 (score >= 0.82 결과 존재 시):**
+**Phase B — 그래프 확장 (Phase A에서 관련 KG 노드를 찾은 경우):**
 ```
-memory_search(related_to="{고관련 메모리 ID}", depth=2)
+knowledge_query(query_type="neighborhood", center_label="{노드 라벨}", category="{분류}", key="{노드 이름}", depth=2, user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
 ```
+- 그래프 확장은 **KG 전용**이다. `memory_search`에는 `related_to`·`depth` 같은 그래프 파라미터가 **없다**(시맨틱 검색 전용).
+- `neighborhood`는 `center_label` + `category` + `key` 3종이 함께 있어야 한다. `depth`는 1-3(기본 1).
 
 **Phase C — 코드 구조 활용 (수정 대상 파일 명확 시):**
 ```
-project_query(path="{수정 대상}", direction="both", depth=2)
-knowledge_query(query="{파일명}", tags="{파일 경로}", limit=3)
+project_query(query_type="search", path_filter="{수정 대상 경로}", project_id="{PROJECT_ID}", limit=50)
 ```
+- 필수 = `query_type` (`file_tree`|`languages`|`recent_changes`|`search`). `path`·`direction`·`depth` 파라미터는 **없다** — 경로 필터는 `path_filter`(부분일치).
 
 **Phase D — 코드 구조 분석 (serena, 수정 대상 파일 명확 시):**
 ```
-mcp__serena__get_symbols_overview(relative_path="{수정 대상 파일}")
-mcp__serena__find_referencing_symbols(symbol_name="{핵심 심볼}")
+mcp__plugin_serena_serena__get_symbols_overview(relative_path="{수정 대상 파일}")
+mcp__plugin_serena_serena__find_referencing_symbols(name_path="{핵심 심볼}", relative_path="{심볼이 정의된 파일}")
 ```
 → 영향 범위 파악 → spec "코드 영향 범위" 섹션에 반영
 - **fallback:** serena MCP 미연결 시 Phase C의 project_query + Grep으로 대체
 
 **Phase E — 새 기술/라이브러리 포함 시 (context7):**
 ```
-mcp__context7__resolve-library-id(library="{기술명}")
-→ mcp__context7__query-docs(library_id="{id}", query="{핵심 기능}")
+mcp__plugin_context7_context7__resolve-library-id(libraryName="{기술명}", query="{핵심 기능}")
+→ mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="{핵심 기능}")
 ```
 → 최신 API 확인 → spec 작업 목록에 반영
 - **fallback:** context7 MCP 미연결 시 WebSearch로 대체
 
-**Phase F — 복잡한 설계가 필요한 경우 (Feature+ 등급, sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="현재 아키텍처를 분석하고 변경 전략을 단계적으로 수립")
-```
+**Phase F — 복잡한 설계가 필요한 경우 (Feature+ 등급, 단계적 사고 — 도구 없이 직접):**
+- "현재 아키텍처를 분석하고 변경 전략을 수립"을 직접 단계적으로 수행
 → 단계적 사고로 설계 결정 구조화
-- **fallback:** sequential-thinking MCP 미연결 시 직접 단계별 분석 수행
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 **Phase G — 외부 사례/패턴 조사 (WebSearch, 새 기술이거나 메모리 미축적 시):**
 ```

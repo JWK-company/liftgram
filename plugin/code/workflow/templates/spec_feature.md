@@ -37,7 +37,7 @@
 ### 영향 범위
 
 ```
-project_query(path="{{진입점}}", direction="both", depth=2)
+project_query(query_type="search", path_filter="{{진입점}}", project_id="{PROJECT_ID}", limit=50)
 ```
 
 | 영향 파일 | 관계 | 변경 필요 |
@@ -47,8 +47,8 @@ project_query(path="{{진입점}}", direction="both", depth=2)
 ### 관련 메모리
 
 ```
-memory_search(query="{{도메인}}", limit=5)
-memory_search(query="{{기술}}", type="gotcha", limit=5)
+memory_search(query="{{도메인}}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+memory_search(query="{{기술}}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
 ```
 
 | 유형 | 내용 요약 | score | 적용 |

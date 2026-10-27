@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """spec-S — PLM-Hub 로컬 ↔ DB 양방향 동기 CLI (ADR-019 동형 JSON 우선).
 
-export: DB → docs/{category}/{CODE}.md (frontmatter + 본문, 레거시). 콘텐츠 해시 스냅샷 기록.
+export: DB → docs/{category}/{CODE}.json (CODE.json 래퍼 + doc · ADR-019 canonical. 동명 레거시 .md는 삭제).
+        **로컬을 무조건 재작성**한다(병합·충돌 감지 없음 — `/plm-hub:pull` 참조). 콘텐츠 해시 스냅샷 기록.
 import: docs/*.json(canonical, doc 포함) + docs/*.md(레거시) → POST /import + PUT /doc (upsert, 관계 추가).
         충돌(로컬·DB 양쪽 변경) 해시 비교로 경고.
 
@@ -32,6 +33,7 @@ CATEGORY = {  # type → 디렉토리
     "Business": "product",  # ADR-027: 시장·경쟁·수익화 통합 조사(BIZ-00N — 구 Report 리네임)
     "Blueprint": "blueprint",  # ADR-032: 아키텍처 설계도(BP-00N) — 미추적이나 [아키텍처] 탭 렌더 위해 동기
     "DesignResearch": "design-research",  # DR-00N: BP 선행 설계 조사(도메인 로직·트레이드오프·수치) — 미추적이나 문서 뷰 열람 위해 동기
+    "Wireframe": "wireframes",  # ADR-031: 프레임당 WF-<SCREEN_CODE>(SAE 명세) — 누락 시 export가 misc/로 떨구고 import가 스킵해 왕복 불가였다(감사 H-4)
     "Report": "product",  # (레거시 → Business — 구 파일 하위호환)
     "MR": "product",   # MR(시장조사)는 비추적 싱글턴이나 대시보드 표시 위해 동기(PRD와 동일 취급)
     "CA": "product",   # CA(경쟁조사)는 비추적 싱글턴이나 대시보드 표시 위해 동기(PRD와 동일 취급)
@@ -182,7 +184,13 @@ def do_import(project, force):
 
     # ADR-019 동형: .json(canonical) 우선, .md는 이행기 레거시. doc_map=code→doc(import 후 PUT /doc).
     artifacts, relations, conflicts, doc_map, schema_map = [], [], [], {}, {}
-    for root, _, files in os.walk(DOCS):
+    # [원본] 하위 디렉터리를 전부 순회했다 — Wireframe이 CATEGORY 밖이라 무해했다. 원복 시 아래를 주석 해제.
+    # for root, _, files in os.walk(DOCS):
+    # [개선] `_`/`.` 로 시작하는 **디렉터리**는 순회에서 제외한다(파일 규칙과 동일 · 감사 W11).
+    #   Wireframe을 CATEGORY에 넣는 순간 사본 작업의 스테이징(`wireframes/.working/<사본페이지>/WF-*.json`)이
+    #   일괄 import 대상이 된다 = 승격 없이 사본 명세가 PLM 정본 본문으로 올라가는 구멍. 그것을 먼저 막는다.
+    for root, dirs, files in os.walk(DOCS):
+        dirs[:] = [d for d in dirs if not d.startswith("_") and not d.startswith(".")]
         for fn in files:
             if fn.startswith("_") or not (fn.endswith(".json") or fn.endswith(".md")):
                 continue

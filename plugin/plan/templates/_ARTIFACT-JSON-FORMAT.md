@@ -21,11 +21,11 @@
   "doc": { "type": "doc", "content": [ /* 본문 노드 */ ] }
 }
 ```
-- `tags`(선택·다중 자유 라벨 — type 외 분류·필터). 기존 frontmatter 필드 = JSON 최상위. **`relations`** = owner 관계키(derives_from·refs·informs·supersedes·realizes·covers·elaborates) + 비-owner 소프트관계 **`relates_to`** + BS 전용 **`targets`**. URS는 owner relations 없음(피참조 루트).
-  - **`relates_to`**(선택·비-owner): 디스커버리 근거(BS·MR·CA)를 향한 소프트 "관련" 링크. **비추적** — G1/G2 게이트·추적 매트릭스에서 자동제외. src=`PRD|URS|SRS|SAD`, **dst=`BS|Business`**(구 MR/CA는 Business로 이행). /business·/plan이 기재(`{"relates_to":["BIZ-001"]}`).
-- **`targets`**(BS 전용·P0-3): BS가 피드백을 겨냥하는 대상 아티팩트. src=`BS`, dst=BS·MR·CA 제외 전 타입. **비추적**(게이트·매트릭스 제외·그래프 표시) — "적용"(스냅샷, P1)의 대상 지정. 예: `{"targets":["SRS-005"]}`. 후지정 가능(발급 시 없어도 됨).
+- `tags`(선택·다중 자유 라벨 — type 외 분류·필터). 기존 frontmatter 필드 = JSON 최상위. **`relations`** = owner 관계키(derives_from·refs·informs·supersedes·realizes·covers·elaborates) + 비-owner 소프트관계 **`relates_to`** + BS 전용 **`targets`** + 계보 **`generated_from`**(아래). URS는 owner relations 없음(피참조 루트). **`covers`는 두 용법**: `Roadmap→URS|SRS`(로드맵 커버) 와 `Wireframe→UCS|SRS`(ADR-031·SRS-041 — penpot 프레임 추적).
+  - **`relates_to`**(선택·비-owner): 디스커버리 근거(BS·Business)를 향한 소프트 "관련" 링크. **비추적** — G1/G2 게이트·추적 매트릭스에서 자동제외. src=`PRD|URS|SRS|SAD`, **dst=`BS|Business`**(구 MR/CA는 Business로 이행). /business·/plan이 기재(`{"relates_to":["BIZ-001"]}`).
+- **`targets`**(BS 전용·P0-3): BS가 피드백을 겨냥하는 대상 아티팩트. src=`BS`, dst=**BS·Business**(및 구 MR/CA) 제외 전 타입. **비추적**(게이트·매트릭스 제외·그래프 표시) — "적용"(스냅샷, P1)의 대상 지정. 예: `{"targets":["SRS-005"]}`. 후지정 가능(발급 시 없어도 됨).
 - **`generated_from`**(계보·P1-2): "무엇으로부터 만들어졌나" — `Business→BS`·`PRD→BS*`(다수 병합)·`Roadmap→PRD`. **비추적**(그래프 계보 레인 전용). /business·/plan이 발급 시 자동 기재. 예: PRD에 `{"generated_from":["BS-001","BS-002"]}`.
-- 타입별 추가 필드: URS=`stakeholder`,`priority` / SRS=`kind`("FR"|"NFR"),`acceptance_criteria` / **BS=`kind`("idea"|"feedback" — 발급 시 명시, 미지정=idea)** / Code=`granularity`,`build_state` 등. **BS**=다수 발급(P0-3: `BS-001`,`BS-002`… 채번·`product/`·targets 관계 보유 가능). **Business**=통합 조사 보고서(구 MR+CA — ADR-027): 다수 발급(`BIZ-00N`)·`product/`·완성 보고서 파일 첨부가 본체·`generated_from`(→BS)만 발신. MR/CA 신규 발급은 서버가 400 거부.
+- 타입별 추가 필드: URS=`stakeholder`,`priority` / SRS=`kind`("FR"|"NFR"),`acceptance_criteria` / **BS=`kind`("idea"|"feedback" — 발급 시 명시, 미지정=idea)** / Code=`granularity`,`build_state` / **Wireframe=`screen_code`,`route`,`note`**(`docs/wireframes/WF-<SCREEN_CODE>.json` · 본문=SAE 표 · `relations.covers`→UCS|SRS) 등. **BS**=다수 발급(P0-3: `BS-001`,`BS-002`… 채번·`product/`·targets 관계 보유 가능). **Business**=통합 조사 보고서(구 MR+CA — ADR-027): 다수 발급(`BIZ-00N`)·`product/`·완성 보고서 파일 첨부가 본체·`generated_from`(→BS)만 발신. MR/CA 신규 발급은 서버가 400 거부.
 - **본문 = `doc`**(ProseMirror 트리). 아래 노드 어휘만 사용.
 
 ## 2. doc 노드 어휘 (이것만 사용 — doc-schema 계약)
@@ -66,6 +66,19 @@
   ] }
 }
 ```
+
+### 3.1 Wireframe 래퍼 예시 (ADR-031·SRS-041)
+```json
+{
+  "schemaVersion": 1, "id": "WF-LIST", "type": "Wireframe", "title": "LIST 모임 목록",
+  "status": "Draft", "screen_code": "LIST", "route": "/",
+  "note": "화면 의도 1문단(무엇을 보여주고 무엇이 핵심 액션인가).",
+  "relations": { "covers": ["UCS-001", "SRS-001"] },
+  "doc": { "type": "doc", "content": [ /* 요소별 SAE(상태·액션·이펙트) 표 */ ] }
+}
+```
+- 저장 위치 = `.ouroboros/docs/wireframes/WF-<SCREEN_CODE>.json`. **이 디렉토리는 `plm-sync` 대상이 아니다** — PLM `Wireframe` 아티팩트는 `/plm-hub:wfscan`이 penpot 프레임을 스캔해 멱등 발급한다(loc=`penpot:<file-id>:<frame-id>`).
+- 작업용 사본(working copy)의 명세 편집은 스테이징 `docs/wireframes/.working/<사본페이지>/`에만. 정본 `WF-*.json`은 **읽기만** 한다(정본 반영은 승격 후 `stage-apply`).
 
 ## 4. 규칙
 - 파일명 = `CODE.json`(`docs/{type→dir}/URS-001.json`). **.md 생성 금지.**

@@ -33,7 +33,7 @@ claude --channels plugin:plm-channel@jwk-platform
 - 세션 기동 → 릴레이가 백엔드 SSE 구독(presence online).
 - 웹에서 누군가 나를 assignee로 [Sync] enqueue → 세션에 `<channel source="plm" work_id=…>` 도착.
 - 처리 후 Claude가 `report` 도구로 결과 회신 → 웹이 `done` 확인.
-- 세션 닫히면 60s TTL로 offline → enqueue는 비실행+알림(ADR-018).
+- 세션 닫히면 **120s TTL**(`CHANNEL_PRESENCE_TTL_SECS` 기본값) 후 offline → enqueue는 비실행+알림(ADR-018). 이 값은 와이어프레임 버전 게이트의 **실효 판정창**이기도 하다(`/plm-hub:update` 참조).
 
 > 토큰은 시작 시 1회 로드 — 갱신하면 세션 재시작 필요. 영속 토큰이라 만료 걱정 없음.
 > 설계: `plugin/plm-channel/README.md` · SAD-006 · SRS-020. 라우팅·큐·presence는 PLM 백엔드 소유.

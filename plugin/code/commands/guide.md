@@ -272,11 +272,13 @@ Ouroboros 워크플로우 시스템 가이드를 보여줍니다. 인자에 따�
     PROJECT_ID         — 프로젝트 ID
     EVENT_LOG_URL      — 대시보드 URL (대화 동기화)
 
-  .mcp.json
-    ouroboros          — MCP 서버 연결 (type: "http", URL에 key 포함)
-    sequential-thinking — 단계적 사고
-    context7           — 라이브러리 문서
-    serena             — 코드 구조 분석
+  .mcp.json  (서버 2개 — 인증은 headersHelper 가 .ouroboros/env/.env 토큰으로)
+    ouroboros          — 메모리/KG   (type:"http" · mcp-auth.sh ouro → OURO_MCP_TOKEN)
+    plm                — PLM 거버넌스 (type:"http" · mcp-auth.sh plm  → PLM_API_TOKEN)
+    ※ serena·context7·chrome-devtools 는 .mcp.json 이 아니라 `make plugins` 로
+      설치되는 공식 MCP **플러그인**이다 (sequential-thinking 은 설치 대상이 아니다).
+      도구명 접두사도 플러그인 형식 — mcp__plugin_serena_serena__* ·
+      mcp__plugin_context7_context7__* · mcp__plugin_chrome-devtools-mcp_chrome-devtools__*
 
   ${CLAUDE_PLUGIN_ROOT}/hooks/hooks.json
     Hook 설정 (수정 불필요)

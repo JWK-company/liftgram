@@ -15,7 +15,7 @@ current.md에서 최근 완료 작업 확인:
 
 **코드 변경 영향 파악 (serena):**
 ```
-mcp__serena__find_referencing_symbols(symbol_name="{변경한 핵심 심볼}")
+mcp__plugin_serena_serena__find_referencing_symbols(name_path="{변경한 핵심 심볼}", relative_path="{심볼이 정의된 파일}")
 ```
 → 작업 중 변경한 코드가 다른 곳에 미친 영향을 파악하여 인사이트 발굴에 활용
 - **fallback:** serena MCP 미연결 시 git diff 기반으로 파악
@@ -26,7 +26,7 @@ mcp__serena__find_referencing_symbols(symbol_name="{변경한 핵심 심볼}")
 
 **MCP 도구:**
 ```
-memory_search(query="{작업 기술 키워드}", limit=10)
+memory_search(query="{작업 기술 키워드}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=10)
 ```
 
 **중복 판단 기준:**
@@ -111,7 +111,9 @@ knowledge_store(
     node_type="Pattern" 또는 "Preference",
     name="{패턴/컨벤션 이름}",
     description="{설명}",
-    namespace="project"
+    namespace="project",
+    user_id="{DEVELOPER_USER_ID}",
+    project_id="{PROJECT_ID}"
 )
 ```
 → /spec, /execute에서 knowledge_query로 검색되어 팀 전체에 적용

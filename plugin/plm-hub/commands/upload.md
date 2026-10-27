@@ -16,7 +16,8 @@ argument-hint: "<파일경로> [파일경로2 ...]"
    python3 ${CLAUDE_PLUGIN_ROOT}/scripts/plm_upload.py <파일경로> [파일경로2 ...]
    ```
    - env(`.ouroboros/env/.env`): `PLM_API_TOKEN`(필수)·`PLM_DASH_URL`(없으면 `PLM_API_URL`에서 유도). 미바인딩이면 `/plm-hub:link` 선행.
-   - stdout = 삽입용 **노드 JSON**(이미지=`image`, 그 외=`file`). stderr = 진행/에러(415 미지원·413 초과·401 토큰).
+   - `PLM_PROJECT`(plm.json 바인딩)가 있으면 업로드가 **파일 레지스트리에 등록**된다. 없으면 `[warn]`과 함께 진행되는데, **임베드·서빙은 정상이지만 `file_get` 으로 조회할 수 없다**(등록 실패 시에도 같은 경고가 뜬다).
+   - stdout = 삽입용 **노드 JSON**(이미지=`image`, 그 외=`file`). stderr = 진행/에러(415 미지원·413 초과·401 토큰·레지스트리 경고).
 3. 반환된 노드를 **편집 중인 아티팩트 `.json`의 `doc.content`** 알맞은 위치에 삽입한다(이미지=본문 흐름, 파일=참조/근거 자리). 여러 파일이면 반환 배열의 각 노드를 순서대로.
 4. 저장하면 `plm-sync` hook이 PLM에 동기 → 대시보드 본문에서 렌더(이미지 표시·PDF 임베드/다운로드 카드). 서빙 경로는 `/api/files/<key>`.
 

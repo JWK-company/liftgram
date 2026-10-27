@@ -5,7 +5,14 @@ JWK-company 통합 플랫폼의 **plugin** 도메인 repo. 우산: [claude-workf
 
 ## 경계 (SAD-001)
 
-Claude Code 플러그인 3종(plan·code·plm-hub, 워크플로우 3세대) + 마켓플레이스 + 번들 빌드 파이프라인(SRS-005). 비소유: 프로젝트 시드·installer(workflow).
+Claude Code 플러그인 4종(plan·code·plm-hub·plm-channel, 워크플로우 3세대) + 마켓플레이스 + 번들 빌드 파이프라인(SRS-005). 비소유: 프로젝트 시드·installer(workflow).
+
+| 플러그인 | 네임스페이스 | 역할 |
+|----------|--------------|------|
+| `plan` | `plan:<cmd>` | 기획 산출물(URS·UCS·SRS·SAD·ADR·Roadmap) + 추적성(G1/G2) |
+| `code` | `code:<cmd>` | 5-Tier 스펙·실행·QA·디버깅 등 코딩 워크플로우 |
+| `plm-hub` | `plm-hub:<cmd>` | PLM 거버넌스 브리지(동기·게이트·딥링크·와이어프레임) + hooks |
+| `plm-channel` | (채널) | 대시보드 [Sync] → 터미널 세션 push 릴레이 + hooks(no-ask·plm-activity·plm-idle). 사용: `claude --channels plugin:plm-channel@jwk-platform` |
 
 ## 규약
 

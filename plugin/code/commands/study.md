@@ -11,9 +11,9 @@
 주제를 분석하여 학습 범위를 정의한다.
 
 **주제가 프로젝트 코드인 경우 (serena):**
-- `mcp__serena__get_symbols_overview(relative_path="{파일}")` → 코드 구조 파악
-- `mcp__serena__find_symbol(name_path="{클래스/함수}", depth=1)` → 핵심 클래스/함수 목록
-- `mcp__serena__find_referencing_symbols(symbol_name="{심볼}")` → 사용 패턴 확인
+- `mcp__plugin_serena_serena__get_symbols_overview(relative_path="{파일}")` → 코드 구조 파악
+- `mcp__plugin_serena_serena__find_symbol(name_path_pattern="{클래스/함수}", depth=1)` → 핵심 클래스/함수 목록
+- `mcp__plugin_serena_serena__find_referencing_symbols(name_path="{심볼}", relative_path="{심볼이 정의된 파일}")` → 사용 패턴 확인
 - 파일 전체 Read 대신 심볼 단위 분석으로 토큰 절약
 - **fallback:** serena MCP 미연결 시 기존 Read + Grep으로 대체
 
@@ -24,13 +24,14 @@
 **주제가 기술명/개념인 경우:**
 - 메모리 검색:
   ```
-  memory_search(query="{주제}", limit=10)
-  knowledge_query(query="{주제}", limit=5)
+  memory_search(query="{주제}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=10)
+  knowledge_query(query_type="all", key="{주제}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
   ```
+  - `knowledge_query`: 필수 = `query_type` (`preferences`|`tech_stack`|`patterns`|`terms`|`all`|`neighborhood`). 자유 텍스트 `query`·`limit` 파라미터는 **없다**(이름 부분일치 = `key`).
 - Context7 문서 조회 (라이브러리인 경우):
   ```
-  mcp__context7__resolve-library-id(library="{주제}")
-  → mcp__context7__query-docs(library_id="{id}", query="overview getting started")
+  mcp__plugin_context7_context7__resolve-library-id(libraryName="{주제}", query="overview getting started")
+  → mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="overview getting started")
   ```
 - **WebSearch로 최신 정보 적극 수집:**
   ```
@@ -39,12 +40,10 @@
   ```
   → context7 문서와 함께 최신 블로그, 튜토리얼, 비교 자료를 교육 자료에 반영
 
-**복잡한 주제의 학습 구조화 (sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="주제: {주제}. 학습자가 이해해야 할 핵심 개념을 선행 지식 → 기본 → 심화 순서로 구조화")
-```
+**복잡한 주제의 학습 구조화 (도구 없이 직접):**
+- "주제: {주제}. 학습자가 이해해야 할 핵심 개념을 선행 지식 → 기본 → 심화 순서로 구조화"를 직접 수행
 → 교육 자료의 목차와 학습 순서를 체계적으로 설계
-- **fallback:** sequential-thinking MCP 미연결 시 직접 구조화
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 **산출물:** 주제의 핵심 개념 목록 (5-15개 항목)
 
@@ -151,15 +150,20 @@ AskUserQuestion으로 문서를 사용자에게 제시:
 - 만족 → 완료
 
 **완료 시:**
-- 학습 이력을 메모리에 저장 (선택):
+- 학습 이력을 지식 그래프(KG)에 저장 (선택):
   ```
-  memory_store(
-      memory_type="preference",
-      title="{사용자ID}의 {주제} 학습 수준: {수준}",
-      content="{주제에 대해 {수준} 수준. {핵심 파악 내용 요약}",
-      scope="personal"
+  knowledge_store(
+      node_type="Preference",
+      name="{사용자ID}의 {주제} 학습 수준",
+      description="{주제}에 대해 {수준} 수준. {핵심 파악 내용 요약}",
+      namespace="user",
+      category="learning",
+      user_id="{DEVELOPER_USER_ID}",
+      project_id="{PROJECT_ID}"
   )
   ```
+  - `memory_store`의 `memory_type`은 **gotcha·pattern·decision·insight·domain_knowledge 5종뿐**이다
+    (`preference`를 넘기면 서버가 `Invalid memory_type`으로 거절한다). 선호는 KG의 `Preference` 노드로 저장한다.
 
 ---
 

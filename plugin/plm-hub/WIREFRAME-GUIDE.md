@@ -44,10 +44,12 @@
 Claude가 수행하는 것(자동):
 
 1. **화면 도출(개수 제한 없음)** — 계획(BS·Roadmap·PRD·UCS/SRS)을 읽어 이 제품에 필요한 화면을 **전부** 정한다. 각 화면에 `SCREEN_CODE`(대문자 토큰, 예 `LIST`·`DTL`) 부여. 계획이 비어 화면을 못 정하면 **어떤 화면이 필요한지 먼저 물어본다.**
-2. **SAE 스펙 저작(화면마다 1개)** — `.ouroboros/docs/wireframes/WF-<CODE>.json`을 만든다. **모든 UI 요소에 요소코드(`<SCREEN>.<NN>`) + 상태(State)·액션(Action)·이펙트(Effect)** 를 명세(방법론=`_WIREFRAME-SAE-METHODOLOGY.md`). 이게 화면의 "설계도"다.
-3. **생성(헤드리스)** — `wfgen.py`가 저작된 스펙 **전량**을 penpot Wireframes에 실제 화면 목업으로 그린다(요소를 유형별 시각표현·공간배치, 컴포넌트로 승격해 Assets 등록, 화면코드 라벨은 접이식 그룹).
-4. **아티팩트 발급·추적** — `wfscan.py`가 각 프레임을 PLM `Wireframe` 아티팩트(WF-<CODE>)로 발급하고, `covers`로 UCS/SRS와 연결한다.
-5. **렌더 검증** — 각 화면을 이미지로 렌더해 의도대로·도메인에 맞게 그려졌는지 확인한 뒤 보고한다.
+2. **SAE 스펙 저작(화면마다 1개)** — `.ouroboros/docs/wireframes/WF-<CODE>.json`을 만든다. **모든 UI 요소에 요소코드(`<SCREEN>.<NN>`) + 상태(State)·액션(Action)·이펙트(Effect)** + 화면 **note**(자유서술)를 명세(방법론=`_WIREFRAME-SAE-METHODOLOGY.md`). 이게 화면의 "설계도"이자 세 서피스(목업·주석 패널·PLM 본문)의 SSOT다.
+3. **생성(목업 + 주석 패널)** — `wfgen.py`(주석 패널 **기본 on** · 끄려면 `--no-anno`)가 저작된 스펙 **전량**을 penpot Wireframes에 실제 화면 목업으로 그리고, **각 프레임 우측에 SAE 주석 패널**(코드·라벨·유형·상태·액션·이펙트 + note — 그림 옆에서 바로 읽는 명세)을 함께 그린다.
+4. **아티팩트 발급·추적** — `wfscan.py`가 각 프레임을 PLM `Wireframe` 아티팩트(WF-<CODE>)로 발급(본문=SAE 표 + note 블록)하고, `covers`로 UCS/SRS와 연결한다.
+5. **렌더 검증** — 각 화면 + 우측 주석 패널을 이미지로 렌더해 의도대로·도메인에 맞게 그려졌는지 확인한 뒤 보고한다.
+
+> **기존(penpot에만 알맹이 있는) 와이어프레임**은 `wfanno.py sync`/`extract`로 penpot 주석 패널을 SAE 명세·PLM 본문으로 역추출한다(penpot 읽기만 — 원천 보호). 명세만 고쳐 주석 패널을 갱신할 땐 `wfanno.py render`. → `/plm-hub:wfanno`.
 
 결과는 **와이어프레임 탭의 penpot 미리보기**에 바로 뜬다(새로고침).
 
@@ -59,7 +61,12 @@ Claude가 수행하는 것(자동):
 
 penpot 미리보기(또는 렌더 이미지)를 보며 채팅으로 계속 고친다.
 
-| 요청 예 | Claude 동작 |
+> ⚠ **먼저 어느 경로인지 정하라 — 규칙이 다르다.**
+> · **초기 저작**(아직 아무도 리뷰하지 않은 화면을 만들어 가는 중) = 아래 표. 정본 명세를 직접 고친다.
+> · **penpot 댓글 피드백 반영**(캔버스 댓글을 골라 빌더로 보낸 작업) = **§"penpot 댓글 반영은 작업용 사본에서만"**.
+>   이 경로에서는 정본 명세를 고치는 것이 **금지**다(도구가 막는다). 표의 절차를 쓰면 안 된다.
+
+| 요청 예 | Claude 동작 (초기 저작 경로) |
 |---------|-------------|
 | "이 화면 검색바를 상단으로 올려줘" | 해당 `WF-<CODE>.json` 스펙 수정 → 그 화면만 재생성 → 재렌더 |
 | "정산 상세에 '완료' 배지 추가" | 스펙에 요소 추가 → 재생성 |
@@ -69,6 +76,32 @@ penpot 미리보기(또는 렌더 이미지)를 보며 채팅으로 계속 고�
 - 변경은 **penpot에 직접 반영**된다(문서 빌더와 달리 별도 [반영] 버튼 없음). 미리보기를 새로고침해 확인.
 - 세밀한 단건 수정은 update-file RPC로 개별 요소만 바꾸기도 한다.
 - 만족스러우면 그대로 두면 된다 — Wireframe 아티팩트·covers·추적 매트릭스가 이미 서 있다.
+
+> ⚠ **`wfgen`은 "재생성"이 아니라 매 실행 *새 penpot 파일*을 만든다**(`create-file` 고정 · 멱등 아님).
+> 기존 파일을 갈아끼우려면 `--delete-file <구파일ID>`. 그냥 다시 돌리면 **댓글·핀·사본 대장이 옛 파일에 남아**
+> 목업과 영구히 분리된다. 그래서 **이미 댓글이 달린 화면의 수정은 wfgen 재실행이 아니라**
+> 그 페이지 안에서의 제자리 수정(`wfanno render --page …` + update-file)으로 한다.
+
+### penpot **댓글** 반영은 작업용 사본에서만(강제)
+캔버스에 찍은 댓글을 골라 빌더로 보내는 경로는 위 대화형 수정과 **규칙이 다르다**.
+
+- 댓글을 담아 보내면 화면이 그 화면의 **작업용 사본**을 보장한다 — 없으면 **자동으로 만들고**, 있으면 그 사본을 재사용한다. 사본을 만들 수 없으면(편집자 권한 없음 등) **전송이 막히고 사유가 뜬다**(담아둔 댓글은 그대로 남는다).
+- 세션은 **사본 페이지 안에서만** 고친다(`wfanno … --page <사본>`). PLM 정본 본문 push(`wfanno sync`)는 하지 않는다.
+- 정본에 들어가는 시점은 관리자가 배너에서 **[정본으로 올리기(promote)]** 를 누를 때다. 그 전까지 원본 페이지와 PLM 문서는 그대로다(잘못 올렸으면 **[되돌리기]**).
+- 사본이 없는 상태로 작업이 세션에 도달하면 세션은 **아무것도 쓰지 않고 보류**하고 "사본이 없어 진행하지 않았습니다"로 회신한다 — 그 댓글은 '할 일'로 되돌아온다.
+
+**이 경로에서 세션이 지키는 것(도구가 강제한다):**
+
+| 대상 | 규칙 | 강제 지점 |
+|------|------|-----------|
+| penpot 페이지 | `--page <사본페이지>` + `--expect-page-role working` 예외 없이 | `wfanno.py` 역할 가드 |
+| SAE 명세 | **스테이징에만** 쓴다 — `--sae-dir .ouroboros/docs/wireframes/.working/<사본페이지>`. 정본 `docs/wireframes/WF-*.json`은 **읽기만**(고치지도, 커밋하지도 않는다) | `wfanno.py` 정본 쓰기 가드(W10) |
+| PLM 정본 본문 | `wfanno sync`를 **실행하지 않는다** | 상동 |
+
+- **정본 반영 시점** = 관리자가 대시보드에서 [정본으로 올리기(promote)]를 누른 뒤:
+  `wfanno.py stage-apply --project <P> --page <사본>` (스테이징 → 정본 명세) → `wfanno.py sync --project <P> --page <사본>` (PLM 본문).
+- **정본 페이지를 직접 편집하는 경로는 없다** — 선택지가 아니라 존재하지 않는다. 정본 명세를 승격 없이 고치는 것이
+  "승격 게이트가 우회되는 유일한 구멍"이라 도구 차원에서 막혀 있다.
 
 ---
 
@@ -101,8 +134,9 @@ Wireframe (화면 — WF-<CODE>)
 
 | 도구 | 역할 |
 |------|------|
-| `plugin/plm-hub/scripts/wfgen.py` | SAE 스펙 → penpot 화면 보드 생성(헤드리스·전량·컴포넌트·archetype 자동) |
-| `plugin/plm-hub/scripts/wfscan.py` | penpot 프레임 → PLM `Wireframe` 아티팩트 멱등 발급 |
+| `plugin/plm-hub/scripts/wfgen.py` | SAE 스펙 → penpot 화면 보드 생성(헤드리스·전량·컴포넌트·archetype 자동 · 주석 패널 동시 — 기본 on, `--no-anno`로 끔) |
+| `plugin/plm-hub/scripts/wfanno.py` | 주석 패널 ↔ SAE 명세 양방향(`render`·`extract`·`sync`) + 사본 안전장치(`page-role` 역할 조회 · `stage-apply` 스테이징→정본 반영). **페이지가 2개 이상인 파일은 `--page` 필수 — 없으면 실행 거부**(사본을 정본으로 착각해 쓰는 것 방지) |
+| `plugin/plm-hub/scripts/wfscan.py` | penpot 프레임 → PLM `Wireframe` 아티팩트 멱등 발급(SAE 표 + note) |
 | `.ouroboros/docs/_WIREFRAME-SAE-METHODOLOGY.md` | SAE 표기법(요소코드·상태·액션·이펙트·archetype) |
 | 와이어프레임 탭 채팅(빌더) | 위 전 과정을 대화로 구동(SRS-042) |
 

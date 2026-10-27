@@ -21,7 +21,7 @@
 
 **MCP 도구:**
 ```
-memory_search(query="{task keywords}", limit=5)
+memory_search(query="{task keywords}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
 ```
 
 과거 gotcha/패턴 발견 시 → 전문가에게 컨텍스트로 전달.
@@ -29,26 +29,24 @@ MCP 실패 → 히스토리 없이 진행.
 
 **코드 관련 질문 시 (serena):**
 ```
-mcp__serena__get_symbols_overview(relative_path="{관련 파일}")
-mcp__serena__find_symbol(name_path="{질문 대상 심볼}", include_body=true)
+mcp__plugin_serena_serena__get_symbols_overview(relative_path="{관련 파일}")
+mcp__plugin_serena_serena__find_symbol(name_path_pattern="{질문 대상 심볼}", include_body=true)
 ```
 → 질문 대상 코드의 구조와 본문을 전문가에게 컨텍스트로 전달
 - **fallback:** serena MCP 미연결 시 Read로 대체
 
 **기술 비교/선택 질문 시 (context7):**
 ```
-mcp__context7__resolve-library-id(library="{비교 대상}")
-→ mcp__context7__query-docs(library_id="{id}", query="{비교 기준}")
+mcp__plugin_context7_context7__resolve-library-id(libraryName="{비교 대상}", query="{비교 기준}")
+→ mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="{비교 기준}")
 ```
 → 최신 공식 문서 기반 비교 자료를 전문가에게 전달
 - **fallback:** context7 MCP 미연결 시 WebSearch로 대체
 
-**복잡한 질문 시 (sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="{질문 내용}을 분석하기 위한 체계적 접근 방법 수립")
-```
+**복잡한 질문 시 (단계적 사고 — 도구 없이 직접):**
+- "{질문 내용}을 분석하기 위한 체계적 접근 방법"을 직접 단계적으로 수립
 → 전문가에게 전달하기 전에 질문을 구조화
-- **fallback:** sequential-thinking MCP 미연결 시 직접 구조화
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 ---
 

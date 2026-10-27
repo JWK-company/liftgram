@@ -21,7 +21,7 @@ git ls-files  # 500개 제한
 
 ### Step 3: 심볼 추출 (serena 활용)
 ```
-mcp__serena__get_symbols_overview(relative_path="{파일}")
+mcp__plugin_serena_serena__get_symbols_overview(relative_path="{파일}")
 ```
 → 정규식 대신 serena의 심볼 분석 도구로 정확한 함수/클래스/인터페이스 추출
 → 100개 코드 파일 제한 내에서 토큰 효율적 처리
@@ -33,30 +33,35 @@ import/require 패턴에서 파일 간 의존성 추출.
 
 **심볼 참조 기반 의존성 보강 (serena):**
 ```
-mcp__serena__find_referencing_symbols(symbol_name="{핵심 심볼}")
+mcp__plugin_serena_serena__find_referencing_symbols(name_path="{핵심 심볼}", relative_path="{심볼이 정의된 파일}")
 ```
 → import 패턴 외에 실제 함수 호출/상속 관계까지 파악
 
 **프로젝트 기술 스택 문서 확인 (context7):**
 ```
-mcp__context7__resolve-library-id(library="{주요 프레임워크}")
-→ mcp__context7__query-docs(library_id="{id}", query="architecture project structure")
+mcp__plugin_context7_context7__resolve-library-id(libraryName="{주요 프레임워크}", query="architecture project structure")
+→ mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="architecture project structure")
 ```
 → 프레임워크 공식 구조와 프로젝트 구조 대조
 - **fallback:** context7 MCP 미연결 시 WebSearch로 대체
 
-**대규모 프로젝트 분석 시 (sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="프로젝트 구조를 레이어별로 분석: 진입점 → 라우팅 → 비즈니스 로직 → 데이터 접근")
-```
+**대규모 프로젝트 분석 시 (단계적 사고 — 도구 없이 직접):**
+- "프로젝트 구조를 레이어별로 분석: 진입점 → 라우팅 → 비즈니스 로직 → 데이터 접근"을 직접 단계적으로 수행
 → 체계적 온보딩 순서 수립
-- **fallback:** sequential-thinking MCP 미연결 시 직접 분석
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 ### Step 5: 배치 전송
 **MCP 도구:**
 ```
-project_sync(files=[...], dependencies=[...])   # 50개씩 배치
+project_sync(
+    files=[{"path": "src/main.rs", "size": 1234, "modified": "{ISO8601}", "language": "rust", "change_type": "modified"}],
+    project_id="{PROJECT_ID}",
+    full_resync=false
+)   # 50개씩 배치
 ```
+- 파라미터는 `files`(필수)·`project_id`·`full_resync` **3개뿐**. `dependencies` 파라미터는 **없다**
+  (의존성은 `files[].path`/`language` 기반으로 서버가 파생한다).
+- `files[]` 항목 = `path`(필수) · `size` · `modified` · `language` · `change_type`(added|modified|deleted).
 
 ### Step 6: Staleness 감지
 
@@ -83,16 +88,17 @@ JSONL 트랜스크립트 + 이벤트 데이터 분석 → 사용자 선호도 �
 ### Step 1: 이벤트 분석
 **MCP 도구:**
 ```
-event_query(type="tools", limit=20)
-event_query(type="sessions", limit=20)
+event_query(query_type="tool_usage", limit=20)
+event_query(query_type="session_timeline", limit=20)
 ```
+- 필수 = `query_type` (`daily_summary`|`tool_usage`|`session_timeline`|`agent_activity`). `type` 파라미터는 **없다**.
 
 ### Step 2: JSONL 트랜스크립트 샘플링
 최근 10세션, 각 head -100줄 분석.
 
 ### Step 3: 기존 preference/workflow 메모리 조회
 ```
-memory_search(query="preference workflow style", limit=10)
+memory_search(query="preference workflow style", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=10)
 ```
 중복 방지용.
 
@@ -121,9 +127,9 @@ memory_search(query="preference workflow style", limit=10)
 `$ARGUMENTS` 또는 AskUserQuestion으로 분석 범위 확인.
 
 ### Step 2: 소스 코드 읽기 + 아키텍처 파악 (serena + context7)
-- `mcp__serena__get_symbols_overview(relative_path="{파일}")` → 파일별 심볼 구조
-- `mcp__serena__find_referencing_symbols(symbol_name="{핵심 심볼}")` → 모듈 간 의존성
-- 새 라이브러리 발견 시 `mcp__context7__resolve-library-id` → `mcp__context7__query-docs`로 문서 확인
+- `mcp__plugin_serena_serena__get_symbols_overview(relative_path="{파일}")` → 파일별 심볼 구조
+- `mcp__plugin_serena_serena__find_referencing_symbols(name_path="{핵심 심볼}", relative_path="{심볼이 정의된 파일}")` → 모듈 간 의존성
+- 새 라이브러리 발견 시 `mcp__plugin_context7_context7__resolve-library-id` → `mcp__plugin_context7_context7__query-docs`로 문서 확인
 - 파일 전체 Read 대신 심볼 단위 분석으로 토큰 절약
 - **fallback:** serena/context7 MCP 미연결 시 기존 Read + WebSearch로 대체
 
@@ -131,7 +137,7 @@ memory_search(query="preference workflow style", limit=10)
 
 ### Step 3: 기존 메모리 중복 확인
 ```
-memory_search(query="{분석 대상 키워드}", limit=10)
+memory_search(query="{분석 대상 키워드}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=10)
 ```
 
 ### Step 4: 인사이트 추출
@@ -142,9 +148,19 @@ memory_search(query="{분석 대상 키워드}", limit=10)
 
 ### Step 5: 메모리 저장 + 프로젝트 공유 판단
 ```
-memory_store(type="{유형}", title="{제목}", content="{내용}", tags="{태그}")
+memory_store(
+    memory_type="{유형}",                     # gotcha | pattern | decision | insight | domain_knowledge
+    title="{제목}",
+    content="{내용}",
+    scope="personal",                         # "personal"(기본) | "project"
+    user_id="{DEVELOPER_USER_ID}",
+    project_id="{PROJECT_ID}",
+    domain_tags=["{도메인}"], tech_tags=["{기술}"], file_tags=["{파일 경로}"]
+)
 ```
-프로젝트 특유 지식 → `knowledge_store` (프로젝트 공유)
+- 필수 = `memory_type`·`title`·`content` (`type` 아님). 태그는 단일 `tags`가 아니라 **3축**(`domain_tags`·`tech_tags`·`file_tags`) 배열이다.
+
+프로젝트 특유 지식 → `knowledge_store(node_type=…, name=…, description=…, namespace="project")` (프로젝트 공유)
 범용 지식 → 개인 `memory_store`
 
 **Idea-Only 준수:** content에 파일 경로, 코드 스니펫, 라인 번호 포함 금지. related_files로 별도 첨부.

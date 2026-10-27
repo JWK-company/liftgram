@@ -9,16 +9,19 @@
 ```
 릴레이는 **Node 의존성 0**, `.ouroboros/config/plm.json`(api_url·project)과 `.ouroboros/env/.env`(PLM_API_TOKEN)를 CWD에서 위로 **자동 발견**한다.
 
-## 설치 (3단계 — 전부 1회)
+## 설치 (2단계 — 전부 1회 · 개인 계정은 sudo 없음)
 1. **플러그인 설치**: `claude plugin install plm-channel@jwk-platform` (또는 `make setup`).
-2. **채널 정책 활성화**(sudo·멱등): `make channels` — Claude Code managed-settings에 `channelsEnabled`+`allowedChannelPlugins` 병합. 커스텀 채널은 정책 게이트로 막히므로 이 승인 필요.
-3. **토큰**: `/plm-hub:link <project>` — 영속 `plmhub-` 토큰을 `.ouroboros/env/.env`에 발급(만료 없음).
+2. **토큰**: `/plm-hub:link <project>` — 영속 `plmhub-` 토큰을 `.ouroboros/env/.env`에 발급(만료 없음).
+
+> **(조직 관리형 계정만) 채널 정책 등록**: `make channels-policy` — managed-settings에 `channelsEnabled`+`allowedChannelPlugins`를 멱등 병합(sudo 1회). **개인 Pro/Max 계정은 정책 체크를 건너뛰므로 이 단계가 필요 없다.** `make channels`(및 `make setup` 마지막)는 sudo 없이 **사용 안내만** 출력한다.
 
 ## 사용
 ```bash
-claude --channels plugin:plm-channel@jwk-platform
+claude --dangerously-skip-permissions --channels plugin:plm-channel@jwk-platform
 ```
 세션이 대기 상태로 떠 있으면, 웹에서 [Sync]를 누른 작업이 `<channel>`로 도착하고 Claude가 처리 후 `report` 도구로 백엔드에 회신한다(work state→done).
 
-## 왜 managed-settings(sudo)가 필요한가
-Claude Code는 보안상 커스텀(`server:`/`plugin:`) 채널의 인바운드 주입을 **정책 게이트**로 차단한다. 게이트는 `allowedChannelPlugins`(정책 스코프=managed-settings)에 등록된 플러그인만 통과시킨다. dev 플래그(`--dangerously-load-development-channels`)는 주입을 활성화하지 못한다(검증됨). 따라서 마켓플레이스 플러그인 + managed-settings allowlist가 정식 경로다.
+## 언제 managed-settings(sudo)가 필요한가
+Claude Code는 보안상 커스텀(`server:`/`plugin:`) 채널의 인바운드 주입을 **정책 게이트**로 차단한다. 게이트는 `allowedChannelPlugins`(정책 스코프=managed-settings)에 등록된 플러그인만 통과시킨다. dev 플래그(`--dangerously-load-development-channels`)는 주입을 활성화하지 못한다(검증됨). 따라서 **마켓플레이스 플러그인**(`plugin:` 형태)이 유일한 정식 경로다.
+
+다만 이 정책 게이트는 **조직 관리형(Team/Enterprise/관리 Console) 계정에만** 적용된다 — 개인 Pro/Max 계정은 체크를 건너뛰므로 allowlist 등록 없이 곧바로 `--channels plugin:plm-channel@jwk-platform` 이 동작한다. 조직 계정이라면 `make channels-policy`(= `bash scripts/setup-channels.sh --policy`)로 1회 등록한다.

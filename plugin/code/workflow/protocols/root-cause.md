@@ -44,8 +44,8 @@
 **목표**: 유사 문제의 과거 경험을 활용한다.
 
 ```
-memory_search(query="{에러 키워드}", type="gotcha", limit=5)
-memory_search(query="{관련 기술}", type="pattern", limit=3)
+memory_search(query="{에러 키워드}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+memory_search(query="{관련 기술}", memory_type="pattern", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=3)
 ```
 
 - score >= 0.85: 가설에 반영 (우선순위 조정)
@@ -61,7 +61,7 @@ memory_search(query="{관련 기술}", type="pattern", limit=3)
 
 **검증 방법**:
 1. 로그 분석 (`Grep`, `Read`)
-2. 코드 추적 (`project_query`)
+2. 코드 추적 (`project_query(query_type="search", path_filter="{경로}", project_id="{PROJECT_ID}")`)
 3. 최소 재현 테스트
 4. 변수 격리 (한 번에 하나씩 변경)
 

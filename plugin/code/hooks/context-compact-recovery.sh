@@ -40,7 +40,13 @@ ACTIVE_SKILL=$(read_state '.active_skill')
 SKILL_STEP=$(read_state '.skill_step')
 GRADE=$(read_first_task '.grade')
 PHASE=$(read_first_task '.current_phase')  # BUG-③: state.json task는 .current_phase(.phase 아님)
-PLAN_PATH=$(read_first_task '.plan_path')
+# BUG-④(감사 2026-07-31): state.json task 의 실제 키는 `.spec_path` 다(CLAUDE.md §8·시드·실측 모두).
+#   `.plan_path` 만 읽던 탓에 이 값이 **항상 비어** "Spec:" 줄이 사라지고 복구 지침이
+#   "2. spec 문서 읽기 ()" 로 나갔다 — §10 CC 복구 프로토콜이 조용히 무력화되던 지점.
+#   구 키는 폴백으로만 유지(옛 state.json 을 든 세션 호환).
+PLAN_PATH=$(read_first_task '.spec_path')
+[ -z "$PLAN_PATH" ] && PLAN_PATH=$(read_first_task '.plan_path')
+[ -z "$PLAN_PATH" ] && PLAN_PATH=$(read_state '.spec_path')
 
 if [ -n "$ACTIVE_SKILL" ]; then
   echo "## 실행 상태"

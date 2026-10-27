@@ -13,14 +13,6 @@ v2 (2026-07-20 재설계): 요소를 세로로 나열하던 v1의 "태그 리스
        auto       : 범용 폴백 — 역할별 세로 섹션(요약 타일·컨트롤·리스트·패널·카드). 도메인 중립.
 SAE 스펙(WF-<CODE>.json)에서 요소코드·라벨·유형·상태·이펙트를 읽어 **내용**을 채우되,
 **배치는 화면유형 템플릿**이 결정한다(요소코드 role 추론: 유형 + 라벨 키워드 + 순서).
-
-v2.1 (2026-07-26 시나리오 재편성): 스펙 wrapper 의 선택 필드 4종을 읽어 캔버스를 구성한다.
-  - order(number)  : 앱 사용 시나리오 순서(오름차순 정렬 · 없으면 뒤로+코드순).
-  - phase(string)  : 시나리오 단계 라벨 — 같은 phase 끼리 한 행(row)으로 배치 + 행 좌상단 헤더.
-  - impl(string)   : implemented|partial|planned — board 테두리(초록 실선/주황 실선/보라 점선)·
-                     설명 패널 배지. 캔버스 좌상단에 범례 자동 표시(IMPL_STYLE).
-  - desc(string)   : 화면 설명 — board 우측 설명 패널(제목·상태 배지·라우트·설명·covers)로 렌더.
-  ※ 4필드 전부 없으면 종전과 동일한 단일 행(코드순) — 하위호환.
 표시 텍스트는 전적으로 SAE(라벨·상태·이펙트)에서 유도하거나 도메인 중립 placeholder로 채운다
 (빌더에 특정 제품 도메인 문자열을 하드코딩하지 않는다 — 어떤 제품 SAE든 그 도메인으로 정확히 렌더).
 
@@ -64,6 +56,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _sae_parse import (  # noqa: E402
     CODE_RE,
     parse_sae_doc,
+    parse_note as _parse_note,
     doc_covers as _doc_covers,
     find_bullet_list as _find_bullet_list,
     heading_name_route as _heading_name_route,
@@ -79,16 +72,6 @@ C = {
     "accent": "#4F46E5", "soft": "#E7E9FE", "ok": "#12B76A", "warn": "#F79009",
     "ph": "#F2F4F7", "ph2": "#E4E7EC", "scrim": "#101828",
 }
-
-# 구현상태(스펙 wrapper `impl`) → board 테두리·설명패널 배지 스타일 (v2.1 · 시나리오 재편성)
-IMPL_STYLE = {
-    "implemented": {"stroke": "#12B76A", "dashed": False, "label": "구현됨", "mark": "●"},
-    "partial":     {"stroke": "#F79009", "dashed": False, "label": "부분 구현 · 확장 예정", "mark": "◐"},
-    "planned":     {"stroke": "#4F46E5", "dashed": True,  "label": "계획 (미구현)", "mark": "○"},
-}
-PANEL_W = 330      # 화면 우측 설명 패널 폭
-ROW_GAP = 150      # phase 행 간 간격
-SCREEN_GAP = 110   # 행 내 화면(보드+패널) 간 간격
 
 # 이 코드들에 한해 이름·archetype 힌트를 주는 선택적 사전(book-tarae 예시 화면).
 # ※ 화면의 "기본 집합"이 아니다 — 화면은 프로젝트의 WF-*.json SAE 스펙에서 나오며 개수 제한이 없다.
@@ -259,6 +242,12 @@ def delete_file(base, token, file_id):
 
 
 def file_revn_vern_page(f):
+    # 페이지 스코핑 확인 완료(감사 G4 후속 · 2026-07-31): 첫 페이지를 무조건 고르지만 **위험 경로가 아니다**.
+    #   근거 ① main() 은 언제나 `create-file` 로 **새 파일**을 만든 직후 이 함수를 부른다(페이지 정확히 1개).
+    #        ② 내보내는 change-op 은 add-obj/add-component 뿐 — **지우지 않는다**(del-obj 0).
+    #        ③ PLM 아티팩트를 발급하지도 않는다(loc 을 사본으로 뒤집을 경로 없음 — 그건 wfscan 이 한다).
+    # TODO(P1): 기존(다중 페이지) 파일에 **이어 그리는** 용법이 생기면 그때 wfanno/wfscan 과 같은 규약
+    #           (`--page` + 대장 조회 + 다중 페이지 실행 거부)을 도입한다. 지금 도입하면 쓰이지 않는 분기다.
     revn = _pget(f, "revn", default=0)
     vern = _pget(f, "vern", default=0)
     data = _pget(f, "data")
@@ -275,6 +264,8 @@ def file_revn_vern_page(f):
 
 
 def board_child_counts(f):
+    # TODO(P1 · 페이지 스코핑): 전 페이지 병합 집계 — **단순 조회**(방금 만든 파일의 검증 리포트용 · 읽기전용,
+    # 쓰기·발급 없음)라 감사 G4 의 대상이 아니다. 다중 페이지 파일에 쓰이게 되면 과대집계 가능.
     out = {}
     data = _pget(f, "data")
     pages = _pget(data, "pagesIndex", "pages-index") if isinstance(data, dict) else None
@@ -354,15 +345,12 @@ def text_obj(oid, name, x, y, w, h, board_id, s, color="#1D2939", size: float = 
     return o
 
 
-def board_obj(bid, name, x, y, w, h, child_ids, fill="#F4F5F7", stroke=None, dashed=False, stroke_w=3):
+def board_obj(bid, name, x, y, w, h, child_ids, fill="#F4F5F7"):
     o = {
         "id": bid, "name": name, "type": "frame",
         "x": x, "y": y, "width": w, "height": h, "rotation": 0,
         "parentId": ROOT_UUID, "frameId": ROOT_UUID,
-        "fills": [{"fillColor": fill, "fillOpacity": 1}],
-        "strokes": ([{"strokeColor": stroke, "strokeStyle": ("dashed" if dashed else "solid"),
-                      "strokeWidth": stroke_w, "strokeAlignment": "inner", "strokeOpacity": 1}]
-                    if stroke else []),
+        "fills": [{"fillColor": fill, "fillOpacity": 1}], "strokes": [],
         "proportion": 1, "proportionLock": False,
         "constraintsH": "left", "constraintsV": "top",
         "r1": 0, "r2": 0, "r3": 0, "r4": 0, "shapes": child_ids,
@@ -439,8 +427,6 @@ class Screen:
         self.code = code
         self.name = name
         self.ox, self.oy, self.w, self.h = ox, oy, w, h
-        # 구현상태 테두리(impl) — finalize 시 board_obj 에 전달. main 이 스펙 meta 로 세팅.
-        self.board_stroke, self.board_dashed = None, False
         self.bid = _uid()
         self.kids = []          # board 직접 자식 id(그룹 · 소수 board-direct · 코드그룹)
         self.body_ops = []      # board 다음 emit 되는 add-change(그룹+자식 · board-direct)
@@ -453,8 +439,13 @@ class Screen:
         # group_end 로 닫히는 요소 역할 그룹만 적재('🏷 코드' 그룹은 group_end 미경유 → 제외).
         # componentFile 은 file_id 확정 후 component_changes()에서 주입.
         self.components = []
+        # 이 board 가 emit 한 모든 shape/그룹의 **이름** — 완전성 감사(잔여 요소 sweep)의 근거.
+        # 요소코드는 code_tag(text 이름=코드) 또는 요소 그룹명(_gname → 'CODE 역할')으로 나타난다.
+        # 둘 다 penpot 레이어 패널에서 사람이 보는 표기이므로, 이름에 없으면 = 화면에 없다.
+        self.names = []
 
     def _add(self, obj):
+        self.names.append(str(obj.get("name") or ""))
         # 라우팅: 코드태그 > 활성그룹 > board-direct. 그룹/코드 소속이면 parentId 재지정(frameId=board 유지).
         if self._code_on:
             frame = self._code
@@ -487,6 +478,7 @@ class Screen:
         g = self._stack.pop()
         if not g["child_ids"]:
             return None  # 빈 그룹(요소 부재) → 스킵
+        self.names.append(str(g["name"]))
         x, y, w, h = _bbox_of(g["objs"])
         parent = self._stack[-1] if self._stack else None
         gobj = group_obj(g["id"], g["name"], x, y, w, h, self.bid, g["child_ids"],
@@ -656,8 +648,7 @@ class Screen:
             self.kids.append(self._code["id"])
             body = body + [add_change(self.page, cobj)] + self._code["ops"]
         board = board_obj(self.bid, f"{self.code} {self.name}", self.ox, self.oy,
-                          self.w, self.h, self.kids, fill=C["bg"],
-                          stroke=self.board_stroke, dashed=self.board_dashed)
+                          self.w, self.h, self.kids, fill=C["bg"])
         return [add_change(self.page, board)] + body
 
 
@@ -781,10 +772,10 @@ def first_state(elements):
 
 
 # ================================================================== archetype: list_grid (서재형)
-def build_list_grid(page, code, name, route, covers, elements, ox, oy=0):
+def build_list_grid(page, code, name, route, covers, elements, ox):
     W = 1180
     b = bucket(elements)
-    s = Screen(page, code, name, ox, oy, W, 100)  # 높이는 나중에 세팅
+    s = Screen(page, code, name, ox, 0, W, 100)  # 높이는 나중에 세팅
 
     # 상단 네비바
     s.group_start("네비바 배경")
@@ -852,7 +843,10 @@ def build_list_grid(page, code, name, route, covers, elements, ox, oy=0):
     left = 24
     grid_top = 156
     if sect_els:
-        sections = [(_trunc(se.get("label", ""), 30), se) for se in sect_els[:2]]
+        # [원본] 앞 2개만 — 3번째 섹션부터 **조용히 유실**(감사 2026-07-31). 원복 시 아래 주석 해제.
+        # sections = [(_trunc(se.get("label", ""), 30), se) for se in sect_els[:2]]
+        # [개선] 전량 — 섹션마다 1행 그리드, cy 흐름이 이미 일반화돼 있다.
+        sections = [(_trunc(se.get("label", ""), 30), se) for se in sect_els]
     else:
         sections = [("", None)]      # 섹션 요소 없으면 헤더 없는 단일 그리드
     cy = grid_top
@@ -898,10 +892,10 @@ def build_list_grid(page, code, name, route, covers, elements, ox, oy=0):
 
 
 # ================================================================== archetype: workspace (리더형)
-def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
+def build_workspace(page, code, name, route, covers, elements, ox):
     W, H = 1180, 812
     b = bucket(elements)
-    s = Screen(page, code, name, ox, oy, W, H)
+    s = Screen(page, code, name, ox, 0, W, H)
 
     # 상단 툴바
     s.group_start("툴바 배경")
@@ -933,9 +927,23 @@ def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
         s.group_end()
     # 툴바 토글 그룹(오른쪽) — pager 제외
     toggles = [t for t in b.get("toggle", []) if not _has(t.get("label", ""), "pager")]
-    tx = W - 16
-    for t in reversed(toggles[:7]):
+    # [원본] 앞 7개 고정(magic number) — 8번째부터 **조용히 유실**. 원복 시 아래 주석 해제.
+    # tx = W - 16
+    # for t in reversed(toggles[:7]):
+    #     tw = max(46, 20 + len(_trunc(t.get("label", ""), 10)) * 8)
+    #     tx -= tw + 8   … (이하 동일)
+    # [개선] 툴바는 폭이 유한한 고정 슬롯이므로 **기하 기준**으로 들어가는 만큼 배치하고,
+    #   넘치는 요소는 잘라 버리지 않고 build_screens 의 완전성 sweep 이 '미배치 요소' board 에 전량 표기한다.
+    TOOLBAR_LEFT = 660          # 제목·모드배지 우측 한계(좌측 침범 금지선)
+    fit, used = [], 0
+    for t in toggles:
         tw = max(46, 20 + len(_trunc(t.get("label", ""), 10)) * 8)
+        if (W - 16) - (used + tw + 8) < TOOLBAR_LEFT:
+            break
+        used += tw + 8
+        fit.append((t, tw))
+    tx = W - 16
+    for t, tw in reversed(fit):
         tx -= tw + 8
         s.group_start(_gname(t, "토글"))
         s.toggle(tx, 10, tw, 32, _trunc(t.get("label", ""), 10))
@@ -981,21 +989,30 @@ def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
     inline_btns = [el for el in b.get("button", [])
                    if not _has(el.get("label", ""), "search")
                    and not any(k in (el.get("label", "") or "") for k in CLOSE_KW)]
-    concept_lbls = [_trunc(e.get("label", ""), 12) for e in inline_btns[:3]] or ["항목"]
-    while len(concept_lbls) < 3:
-        concept_lbls.append(concept_lbls[-1])
-    s.group_start(_gname(inline_btns[0] if inline_btns else {}, "인라인 칩"))
-    chx = cx + 16
-    chy = top + 280
-    for i, lbl in enumerate(concept_lbls):
+    # [원본] 앞 3개만 라벨로 쓰고 나머지 버튼을 **조용히 버렸다**(inline_btns[:3] · 그룹도 1개로 뭉뚱그림).
+    #   원복 시 아래 주석 해제하고 아래 [개선] 블록을 주석 처리.
+    # concept_lbls = [_trunc(e.get("label", ""), 12) for e in inline_btns[:3]] or ["항목"]
+    # while len(concept_lbls) < 3:
+    #     concept_lbls.append(concept_lbls[-1])
+    # s.group_start(_gname(inline_btns[0] if inline_btns else {}, "인라인 칩")) … (단일 행)
+    # [개선] 요소 1개 = 칩 1개 = 그룹 1개(코드 추적 가능). 폭을 넘치면 줄바꿈해 **전량** 배치.
+    chx0, chy = cx + 16, top + 280
+    chx, crow = chx0, 0
+    for i, el in enumerate(inline_btns or [{}]):
+        lbl = _trunc(el.get("label", ""), 12) or "항목"
         cw = self_chip_w(lbl)
-        s.rect(chx, chy, cw, 24, fill=C["soft"] if i == 0 else C["ph"], radius=12, name="concept")
-        s.text(chx + 8, chy + 5, cw - 10, 14, lbl, size=10.5,
+        if chx + cw > cx + cp_w - 16 and chx > chx0:
+            crow += 1
+            chx = chx0
+        cyy = chy + crow * 30
+        s.group_start(_gname(el, "인라인 칩"))
+        s.rect(chx, cyy, cw, 24, fill=C["soft"] if i == 0 else C["ph"], radius=12, name="concept")
+        s.text(chx + 8, cyy + 5, cw - 10, 14, lbl, size=10.5,
                color=C["accent"] if i == 0 else C["ink3"], weight=600)
+        if el.get("code"):
+            s.code_tag_left(chx, cyy - 15, el["code"])
+        s.group_end()
         chx += cw + 8
-    if inline_btns and inline_btns[0].get("code"):
-        s.code_tag(cx + cp_w - 24, top + 274, inline_btns[0]["code"])
-    s.group_end()
     # 우: 사이드바
     s.group_start(_gname((b.get("sidebar_tab") or [{}])[0], "사이드바 패널"))
     s.panel(sx, top, sb_w, ph, fill=C["card"])
@@ -1018,7 +1035,10 @@ def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
         sy += 46
     # 사이드 리스트 아이템(navitem·card·list 버킷 병합 — 워크스페이스엔 카드 그리드 없음)
     listitems = b.get("navitem", []) + b.get("card", []) + b.get("list", [])
-    for it in listitems[:6]:
+    # [원본] listitems[:6] — 7번째 항목부터 **조용히 유실**. 원복 시 아래 주석 해제.
+    # for it in listitems[:6]:
+    # [개선] 전량 — 사이드바는 세로 스택(sy 흐름)이라 개수에 이미 일반화돼 있다. 넘치면 board 높이를 늘린다.
+    for it in listitems:
         s.group_start(_gname(it, "리스트 아이템"))
         s.rect(sx + 12, sy, sb_w - 24, 40, fill=C["card"], stroke=C["line"], radius=6, name="li")
         s.text(sx + 22, sy + 6, sb_w - 44, 14, _trunc(it.get("label", ""), 30), size=11.5, color=C["ink"], weight=500)
@@ -1027,8 +1047,10 @@ def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
             s.code_tag(sx + sb_w - 12, sy + 2, it["code"])
         s.group_end()
         sy += 46
-    # 하단 페이지 컨트롤
-    fy = H - 50
+    # 하단 페이지 컨트롤 — 사이드 리스트가 기본 높이를 넘기면 board 를 늘려 **겹침 없이** 전량 수용.
+    if sy > H - 70:
+        s.h = sy + 70
+    fy = s.h - 50
     s.group_start("페이지 컨트롤 배경")
     s.bar(0, fy, W, 50, fill=C["card"])
     s.line(0, fy, W, C["line"])
@@ -1050,11 +1072,15 @@ def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
         close_el = next((el for el in btns
                          if any(w in (el.get("label", "") or "") for w in CLOSE_KW2)), {})
         # 오버레이 섹션 = 검색·닫기 제외 버튼(라벨을 섹션 헤더로) — 없으면 중립 단일 섹션
+        # [원본] [:3] — 4번째 섹션부터 조용히 유실. 원복 시 아래 주석 해제.
+        # sec_btns = [el for el in btns if el is not close_el
+        #             and not _has(el.get("label", ""), "search")][:3]
+        # [개선] 전량 — oy 세로 흐름이 개수에 일반화돼 있고, 넘치면 board 높이를 늘린다(아래 o.h).
         sec_btns = [el for el in btns if el is not close_el
-                    and not _has(el.get("label", ""), "search")][:3]
+                    and not _has(el.get("label", ""), "search")]
         sec_defs = [(_trunc(el.get("label", ""), 24), el) for el in sec_btns] or [("항목", {})]
         subtitle = _trunc(ov.get("effect", ""), 40)
-        o = Screen(page, code + "-A", _trunc(ov.get("label", "오버레이 패널"), 24), ox + W + 40, oy, 420, 560)
+        o = Screen(page, code + "-A", _trunc(ov.get("label", "오버레이 패널"), 24), ox + W + 40, 0, 420, 560)
         o.group_start("오버레이 배경")
         o.rect(0, 0, 420, 560, fill=C["scrim"], opacity=0.12, name="scrim")
         o.group_end()
@@ -1072,22 +1098,25 @@ def build_workspace(page, code, name, route, covers, elements, ox, oy=0):
         if close_el.get("code"):
             o.code_tag(358, 74, close_el["code"])
         o.group_end()
-        ovy = 110
+        oy = 110
         for si, (sec, sel) in enumerate(sec_defs):
             o.group_start(_gname(sel, "섹션 " + str(si + 1)))
-            o.text(44, ovy, 320, 16, sec, size=12.5, color=C["ink"], weight=600)
+            o.text(44, oy, 320, 16, sec, size=12.5, color=C["ink"], weight=600)
             if sel.get("code"):
-                o.code_tag(388, ovy - 2, sel["code"])
-            ovy += 26
+                o.code_tag(388, oy - 2, sel["code"])
+            oy += 26
             for j in range(2):
                 cwid = 150
                 px = 44 + j * (cwid + 12)
-                o.rect(px, ovy, cwid, 34, fill=C["soft"] if si == 0 else C["card"],
+                o.rect(px, oy, cwid, 34, fill=C["soft"] if si == 0 else C["card"],
                        stroke=None if si == 0 else C["border"], radius=8, name="ochip")
-                o.placeholder(px + 12, ovy + 9, 88, 8, color=C["accent"] if si == 0 else C["ph2"])
-                o.placeholder(px + 12, ovy + 21, 52, 6, color=C["ph2"])
-            ovy += 52
+                o.placeholder(px + 12, oy + 9, 88, 8, color=C["accent"] if si == 0 else C["ph2"])
+                o.placeholder(px + 12, oy + 21, 52, 6, color=C["ph2"])
+            oy += 52
             o.group_end()
+        # 섹션이 기본 높이를 넘기면 board·배경·패널을 늘려 전량 수용(잘라내지 않는다).
+        if oy + 40 > o.h:
+            o.h = oy + 40
         screens.append(o)
     return screens
 
@@ -1097,10 +1126,10 @@ def self_chip_w(label):
 
 
 # ================================================================== archetype: console (파이프라인형)
-def build_console(page, code, name, route, covers, elements, ox, oy=0):
+def build_console(page, code, name, route, covers, elements, ox):
     W = 1180
     b = bucket(elements)
-    s = Screen(page, code, name, ox, oy, W, 100)
+    s = Screen(page, code, name, ox, 0, W, 100)
 
     # 헤더 — 큰 제목은 화면명(SAE), eyebrow 는 flow/display 요소 라벨 또는 중립
     flow_el = (b.get("flow") or b.get("display") or [{}])[0]
@@ -1207,12 +1236,12 @@ def build_console(page, code, name, route, covers, elements, ox, oy=0):
 
 
 # ================================================================== archetype: auto (범용)
-def build_auto(page, code, name, route, covers, elements, ox, oy=0):
+def build_auto(page, code, name, route, covers, elements, ox):
     """범용 폴백 · 도메인 중립 — 역할별 세로 섹션(상단바 → 요약 타일 → 컨트롤 → 리스트 → 패널 → 카드).
     상세/요약형 화면(뒤로+헤더+리스트 반복)에 적합. 모든 표시 텍스트는 SAE 라벨·상태에서."""
     W = 1180
     b = bucket(elements)
-    s = Screen(page, code, name, ox, oy, W, 100)
+    s = Screen(page, code, name, ox, 0, W, 100)
     left, right = 24, W - 24
     inner = W - 48
 
@@ -1238,9 +1267,21 @@ def build_auto(page, code, name, route, covers, elements, ox, oy=0):
         if lead.get("code"):
             s.code_tag_left(72 + text_px(blab, 14.5) + 8, 14, lead["code"])
     s.group_end()
-    rx = right
-    for it in reversed((b.get("usermenu", []) + b.get("navitem", []))[:4]):
+    # [원본] [:4] — 5번째 네비 항목부터 **조용히 유실**. 원복 시 아래 주석 해제.
+    # for it in reversed((b.get("usermenu", []) + b.get("navitem", []))[:4]):
+    # [개선] 상단바는 폭이 유한하므로 **기하 기준**으로 들어가는 만큼 배치(로고 우측 침범 금지선).
+    #   넘치는 항목은 잘라 버리지 않고 완전성 sweep 이 '미배치 요소' board 에 전량 표기한다.
+    navs = b.get("usermenu", []) + b.get("navitem", [])
+    TOPBAR_LEFT = 480
+    fit, used = [], 0
+    for it in navs:
         tw = max(70, 20 + len(_trunc(it.get("label", ""), 12)) * 7.5)
+        if right - (used + tw + 10) < TOPBAR_LEFT:
+            break
+        used += tw + 10
+        fit.append((it, tw))
+    rx = right
+    for it, tw in reversed(fit):
         rx -= tw + 10
         s.group_start(_gname(it, "네비 항목"))
         s.text(rx, 22, tw, 16, _trunc(it.get("label", ""), 12), size=12, color=C["ink2"], weight=500, align="center")
@@ -1258,57 +1299,83 @@ def build_auto(page, code, name, route, covers, elements, ox, oy=0):
             and (el.get("type") in ("display", "badge")
                  or role_of(el) in ("display", "section", "modebadge"))]
     if summ:
-        tiles = summ[:4]
+        # [원본] 앞 4개만 그리고 나머지를 **조용히 버렸다**(summ[:4]) — 명세 17요소 중 14개만
+        # 실리고 코드 번호가 밀리는 실사용 결함(2026-07-31 tarae-web 보고). 원복 시 아래 주석 해제.
+        # tiles = summ[:4]
+        # [개선] 한 줄 4개씩 접어 **전부** 표시 — 생성기는 명세 요소를 절대 잘라내지 않는다.
         gapp = 16
-        tw = (inner - gapp * (len(tiles) - 1)) // len(tiles)
-        for i, el in enumerate(tiles):
-            tx = left + i * (tw + gapp)
+        per = 4
+        tw = (inner - gapp * (per - 1)) // per
+        for i, el in enumerate(summ):
+            tx = left + (i % per) * (tw + gapp)
+            ty = y + (i // per) * 92
             s.group_start(_gname(el, "요약"))
-            s.panel(tx, y, tw, 76, fill=C["card"])
-            s.text(tx + 14, y + 14, tw - 28, 14, _trunc(el.get("label", ""), 22),
+            s.panel(tx, ty, tw, 76, fill=C["card"])
+            s.text(tx + 14, ty + 14, tw - 28, 14, _trunc(el.get("label", ""), 22),
                    size=11, color=C["ink3"], weight=600)
             vs = state_variants(el.get("state", ""))
             if vs:
                 bl, bt = vs[0]
-                s.chip(tx + 14, y + 38, bl or "—", tone=bt)
+                s.chip(tx + 14, ty + 38, bl or "—", tone=bt)
             else:
-                s.placeholder(tx + 14, y + 42, int((tw - 28) * 0.6), 10)
+                s.placeholder(tx + 14, ty + 42, int((tw - 28) * 0.6), 10)
             if el.get("code"):
-                s.code_tag(tx + tw - 8, y + 6, el["code"])
+                s.code_tag(tx + tw - 8, ty + 6, el["code"])
             s.group_end()
-        y += 92
+        y += 92 * ((len(summ) + per - 1) // per)
 
     # 컨트롤 바 — search/input/toggle/button 가로 흐름
     controls = (b.get("search", []) + b.get("input", []) + b.get("search_btn", []) +
                 b.get("toggle", []) + b.get("button", []))
     if controls:
-        s.group_start("컨트롤 바 배경")
-        s.panel(left, y, inner, 60, fill=C["card"])
-        s.group_end()
+        # [원본] 앞 6개만 한 줄에 그리고 나머지를 버렸다(controls[:6]) — 같은 실사용 결함.
+        # for el in controls[:6]: … (단일 행 흐름)
+        # [개선] 잘라내지 않는다 — 폭을 넘치면 줄바꿈하고 배경 패널 높이도 따라 늘린다.
+        #   배경을 먼저 그려야 하므로(z-순서) 배치를 선계산한 뒤 패널→요소 순으로 그린다.
+        def _ctrl_w(r, lbl):
+            if r == "search":
+                return 260
+            if r == "input":
+                return 190
+            if r == "toggle":
+                return max(90, 20 + len(_trunc(lbl, 12)) * 8)
+            return max(110, 20 + len(_trunc(lbl, 12)) * 8)
+        layout = []
         x = left + 16
-        for el in controls[:6]:
+        row = 0
+        for el in controls:
             r = role_of(el)
             lbl = el.get("label", "")
+            w = _ctrl_w(r, lbl)
+            if x + w > left + inner - 16 and x > left + 16:
+                row += 1
+                x = left + 16
+            layout.append((el, r, lbl, w, x, row))
+            x += w + 12
+        nrows = row + 1
+        bar_h = 60 + (nrows - 1) * 50
+        s.group_start("컨트롤 바 배경")
+        s.panel(left, y, inner, bar_h, fill=C["card"])
+        s.group_end()
+        for el, r, lbl, w, cx, ri in layout:
+            cy = y + 11 + ri * 50
             nm = {"search": "검색", "input": "입력", "toggle": "토글",
                   "button": "버튼", "search_btn": "버튼"}.get(r, "컨트롤")
             s.group_start(_gname(el, nm))
             if r in ("search", "input"):
-                w = 260 if r == "search" else 190
-                s.field(x, y + 11, w, 38, placeholder=_trunc(lbl, 30), icon="⌕" if r == "search" else None)
+                s.field(cx, cy, w, 38, placeholder=_trunc(lbl, 30), icon="⌕" if r == "search" else None)
             elif r == "toggle":
-                w = max(90, 20 + len(_trunc(lbl, 12)) * 8)
-                s.toggle(x, y + 11, w, 38, _trunc(lbl, 12))
+                s.toggle(cx, cy, w, 38, _trunc(lbl, 12))
             else:
-                w = max(110, 20 + len(_trunc(lbl, 12)) * 8)
-                s.button(x, y + 11, w, 38, _trunc(lbl, 14), primary=(r == "search_btn"))
+                s.button(cx, cy, w, 38, _trunc(lbl, 14), primary=(r == "search_btn"))
             if el.get("code"):
-                s.code_tag(x + w, y - 2, el["code"])
-            x += w + 12
+                s.code_tag(cx + w, cy - 13, el["code"])
             s.group_end()
-        y += 76
+        y += bar_h + 16
 
     # 리스트 섹션 — list 요소(type=='list')마다 헤더(라벨) + N 반복 행(중립 스켈레톤)
-    for le in lists[:3]:
+    # [원본] lists[:3] — 4번째 리스트부터 조용히 유실. [개선] 전부(높이는 y 흐름이 이미 일반화).
+    for le in lists:
         s.group_start(_gname(le, "리스트"))
         s.text(left, y, 500, 18, _trunc(le.get("label", ""), 40), size=13, color=C["head"], weight=700)
         if le.get("code"):
@@ -1333,22 +1400,29 @@ def build_auto(page, code, name, route, covers, elements, ox, oy=0):
     if panels:
         ncol = min(2, len(panels))
         pw = (inner - (ncol - 1) * 16) // ncol
-        for i, p in enumerate(panels[:2]):
+        # [원본] panels[:2] — 3번째 패널부터 **조용히 유실**(2열 1행 고정). 원복 시 아래 주석 해제.
+        # for i, p in enumerate(panels[:2]):
+        #     px = left + (i % ncol) * (pw + 16)  … y 고정
+        # [개선] 2열 그리드로 접어 전량 배치 — 행 수만큼 y 를 늘린다.
+        for i, p in enumerate(panels):
             px = left + (i % ncol) * (pw + 16)
+            py = y + (i // ncol) * 166
             s.group_start(_gname(p, "패널"))
-            s.panel(px, y, pw, 150, title=_trunc(p.get("label", ""), 30), dashed=True)
+            s.panel(px, py, pw, 150, title=_trunc(p.get("label", ""), 30), dashed=True)
             for k in range(4):
-                s.placeholder(px + 16, y + 44 + k * 20, pw - 40 - (k % 2) * 40, 9)
+                s.placeholder(px + 16, py + 44 + k * 20, pw - 40 - (k % 2) * 40, 9)
             if p.get("code"):
-                s.code_tag(px + pw - 8, y + 8, p["code"])
+                s.code_tag(px + pw - 8, py + 8, p["code"])
             s.group_end()
-        y += 166
+        y += 166 * ((len(panels) + ncol - 1) // ncol)
 
     # 카드 그리드 — card 요소만(section/display 는 요약 타일에서 이미 처리)
     cards = b.get("card", [])
     if cards:
         cols, cw, chh, gx, gy = 3, 372, 150, 16, 16
-        for i, el in enumerate(cards[:6]):
+        # [원본] cards[:6] · rows = (min(len(cards), 6)+cols-1)//cols — 7번째부터 조용히 유실.
+        # [개선] 전부 그린다(그리드 수식은 이미 행 수에 일반화돼 있다).
+        for i, el in enumerate(cards):
             cx = left + (i % cols) * (cw + gx)
             cyy = y + (i // cols) * (chh + gy)
             s.group_start(_gname(el, "카드"))
@@ -1357,11 +1431,14 @@ def build_auto(page, code, name, route, covers, elements, ox, oy=0):
             if el.get("code"):
                 s.code_tag(cx + cw - 8, cyy + 8, el["code"])
             s.group_end()
-        rows = (min(len(cards), 6) + cols - 1) // cols
+        rows = (len(cards) + cols - 1) // cols
         y += rows * (chh + gy)
 
     # 오버레이(있으면 힌트 행)
-    for o in b.get("overlay", [])[:1]:
+    # [원본] overlay[:1] — 2번째 오버레이부터 조용히 유실. 원복 시 아래 주석 해제.
+    # for o in b.get("overlay", [])[:1]:
+    # [개선] 전량 — 힌트 행은 y 흐름이라 개수에 일반화돼 있다.
+    for o in b.get("overlay", []):
         s.group_start(_gname(o, "오버레이"))
         s.panel(left, y, inner, 56, fill=C["soft"])
         s.text(left + 16, y + 20, inner - 32, 16, "▤  " + _trunc(o.get("label", ""), 40),
@@ -1376,13 +1453,13 @@ def build_auto(page, code, name, route, covers, elements, ox, oy=0):
 
 
 # ================================================================== archetype: form (폼/입력형)
-def build_form(page, code, name, route, covers, elements, ox, oy=0):
+def build_form(page, code, name, route, covers, elements, ox):
     """폼/입력형 · 도메인 중립 — 상단 바 + 제목 + 라벨·입력 필드 세로 스택 + 제출 버튼.
     field(input/search)·select(toggle=세그먼트)·button(제출) 역할을 세로 폼으로 배치.
     표시 텍스트는 SAE 라벨·상태에서. 값 없는 필드는 회색 placeholder."""
     W = 760
     b = bucket(elements)
-    s = Screen(page, code, name, ox, oy, W, 100)
+    s = Screen(page, code, name, ox, 0, W, 100)
     left = 40
     inner = W - 80
 
@@ -1456,17 +1533,25 @@ def build_form(page, code, name, route, covers, elements, ox, oy=0):
     y += body_h + 16
     # 버튼 — 마지막 = primary 제출, 나머지 = secondary(우측 정렬)
     if buttons:
+        # [원본] buttons[:3] — 4번째 버튼부터 **조용히 유실**. 원복 시 아래 주석 해제.
+        # bx = left + inner
+        # for bel in buttons[:3]:
+        #     primary = (bel is buttons[-1]); bw = 150; bx -= bw + 12  … (단일 행)
+        # [개선] 우측정렬 흐름을 유지하되 좌변을 넘치면 줄바꿈해 **전량** 배치.
+        bw, brow = 150, 0
         bx = left + inner
-        for bel in buttons[:3]:
-            primary = (bel is buttons[-1])
-            bw = 150
+        for bel in buttons:
+            if bx - (bw + 12) < left and bx < left + inner:
+                brow += 1
+                bx = left + inner
             bx -= bw + 12
             s.group_start(_gname(bel, "버튼"))
-            s.button(bx, y, bw, 44, _trunc(bel.get("label", "제출"), 16), primary=primary)
+            s.button(bx, y + brow * 56, bw, 44, _trunc(bel.get("label", "제출"), 16),
+                     primary=(bel is buttons[-1]))
             if bel.get("code"):
-                s.code_tag(bx + bw, y - 2, bel["code"])
+                s.code_tag(bx + bw, y + brow * 56 - 2, bel["code"])
             s.group_end()
-        y += 60
+        y += 60 + brow * 56
     s.h = y + 16
     return [s]
 
@@ -1478,6 +1563,112 @@ ARCHETYPES = {
     "form": build_form,
     "auto": build_auto,
 }
+
+
+# ============================================================ 완전성 sweep(잔여 요소)
+def _name_tokens(names):
+    """emit 된 shape/그룹 이름들 → 토큰 집합. 'ZZ.1' 이 'ZZ.10' 에 오탐 매칭되지 않게 토큰 단위."""
+    out = set()
+    for nm in names:
+        for tok in re.split(r"\s+", nm or ""):
+            if tok:
+                out.add(tok)
+    return out
+
+
+def missing_codes(screens, elements):
+    """명세 요소 중 **어느 board 에도 나타나지 않은** 코드 목록(명세 순서 보존).
+
+    아키타입은 '슬롯이 정해진 레이아웃'이라 버킷마다 대표 1개만 쓰는 슬롯이 많다(로고·검색바 등).
+    그 결과 명세에 있는 요소가 화면에서 조용히 사라질 수 있다 — 이 함수가 그 차집합을 드러낸다.
+    """
+    seen = set()
+    for s in screens:
+        seen |= _name_tokens(s.names)
+    return [el["code"] for el in elements
+            if el.get("code") and el["code"] not in seen]
+
+
+def build_residual(page, code, name, elements, miss, ox):
+    """미배치 요소 전량을 **명시적 board** 로 발급 — 잘라내는 대신 보이게 한다.
+
+    한 요소 = 한 행(코드 배지 + 라벨[유형] + 상태/조작/효과). 아키타입 슬롯이 없는 요소도
+    화면 어딘가에는 반드시 존재하게 만드는 최후 안전망(불변식 ①의 근거).
+    """
+    by_code = {el.get("code"): el for el in elements if el.get("code")}
+    W, ROW = 560, 62
+    s = Screen(page, code + "-Z", "미배치 요소", ox, 0, W, 100)
+    s.group_start("미배치 헤더")
+    s.bar(0, 0, W, 56, fill=C["card"])
+    s.line(0, 56, W, C["line"])
+    s.text(20, 12, W - 40, 18, "⚠ 미배치 요소 (아키타입 슬롯 없음)", size=13, color="#B54708", weight=700)
+    s.text(20, 32, W - 40, 14, f"{name} — 명세에 있으나 목업에 배치되지 않은 {len(miss)}개. 레이아웃 보완 대상.",
+           size=10.5, color=C["ink3"])
+    s.group_end()
+    y = 68
+    for c in miss:
+        el = by_code.get(c) or {}
+        typ = (el.get("type") or "").strip()
+        lbl = _trunc(el.get("label", ""), 34) + (f"  [{typ}]" if typ else "")
+        s.group_start(_gname(el, "미배치"))
+        s.rect(16, y, W - 32, ROW - 10, fill=C["card"], stroke=C["border"], radius=8, name="miss")
+        s.code_tag_left(28, y + 8, c)
+        s.text(28 + 9 + len(c) * 6.4 + 8, y + 9, W - 120, 15, lbl, size=11.5, color=C["ink"], weight=600)
+        det = "  ·  ".join(x for x in (
+            (f"상태: {_trunc(el.get('state', ''), 20)}" if el.get("state") else ""),
+            (f"조작: {_trunc(el.get('action', ''), 20)}" if el.get("action") else ""),
+            (f"효과: {_trunc(el.get('effect', ''), 24)}" if el.get("effect") else "")) if x)
+        if det:
+            s.text(28, y + 30, W - 56, 14, det, size=10, color=C["ink3"])
+        s.group_end()
+        y += ROW
+    s.h = y + 12
+    return s
+
+
+def anno_anchor(screens):
+    """[SSOT 위임] 이 화면의 주석 패널 앵커 — wfanno.panel_anchor 와 **같은 규약**을 쓴다.
+
+    Screen 객체를 wfanno 가 아는 frame dict 로 바꿔 넘기므로, 최초 생성(wfgen)과 재렌더(wfanno)가
+    한 함수의 결과를 공유한다(과거엔 각자 계산해 오버레이 board 위로 패널이 겹쳤다).
+    """
+    from wfanno import panel_anchor  # 지연 import(순환 회피)
+    frames = [{"id": s.bid, "name": f"{s.code} {s.name}", "code": (s.code if s is screens[0] else None),
+               "x": s.ox, "y": s.oy, "w": s.w, "h": s.h} for s in screens]
+    return panel_anchor(frames[0], frames)
+
+
+def build_screens(page, code, name, route, covers, elements, ox, arch, warn=True,
+                  allow_fallback=False):
+    """[SSOT] 아키타입 렌더 + **완전성 sweep**. 모든 호출부(dry-run·실행·테스트)가 이 함수를 쓴다.
+
+    아키타입 빌더는 '최선의 배치'만 담당하고, 명세 요소가 하나도 유실되지 않는 책임은 여기에 있다.
+    반환 (screens, miss) — miss 가 비어 있지 않으면 잔여 board 가 screens 마지막에 붙어 있다.
+
+    allow_fallback: 아키타입을 **휴리스틱으로 추측한** 경우에만 True(강제 지정·스펙 선언은 존중).
+      전문 아키타입이 명세의 절반도 못 담으면 범용 auto 가 더 나은 목업을 만든다 — 측정해서 갈아탄다.
+    """
+    screens = list(ARCHETYPES[arch](page, code, name, route, covers, elements, ox))
+    miss = missing_codes(screens, elements)
+    # 슬롯 적합도 폴백 — '조용한 유실'은 sweep 이 이미 막았지만, 목업 품질(얼마나 실제로 그려지는가)은
+    # 아키타입 선택의 문제다. 추측으로 고른 전문 아키타입이 auto 보다 못하면 auto 로 갈아탄다.
+    if allow_fallback and arch != "auto" and len(miss) > len(elements) * 0.4:
+        alt = list(ARCHETYPES["auto"](page, code, name, route, covers, elements, ox))
+        alt_miss = missing_codes(alt, elements)
+        if len(alt_miss) < len(miss):
+            if warn:
+                print(f"[wfgen] {code}: [{arch}] 이 명세 {len(elements)}개 중 {len(miss)}개를 담지 못해 "
+                      f"[auto] 로 전환(미배치 {len(miss)}→{len(alt_miss)}).")
+            screens, miss, arch = alt, alt_miss, "auto"
+    screens[0].arch_used = arch   # 실제로 쓰인 아키타입(폴백 반영) — 보고·검증 표에 표시
+    if miss:
+        rx = max((s.ox + s.w) for s in screens) + 40
+        screens.append(build_residual(page, code, name, elements, miss, rx))
+        if warn:
+            print(f"[wfgen] ⚠ {code}[{arch}]: 명세 {len(elements)}개 중 {len(miss)}개가 "
+                  f"아키타입 슬롯에 배치되지 않음 → '미배치 요소' board 로 전량 표기 "
+                  f"({', '.join(miss[:8])}{' …' if len(miss) > 8 else ''})")
+    return screens, miss
 
 
 def pick_archetype(code, elements, forced=None, spec_arch=None):
@@ -1512,8 +1703,7 @@ def pick_archetype(code, elements, forced=None, spec_arch=None):
 
 
 def load_screen(sae_dir, screen_code):
-    """WF-<CODE>.json 있으면 SAE 파싱, 없으면 폴백. 반환 (name,route,covers,els,arch,meta).
-    meta = 스펙 wrapper 의 재편성 필드(order·phase·impl·desc — 없으면 None)."""
+    """WF-<CODE>.json 있으면 SAE 파싱, 없으면 폴백. 반환 (name,route,covers,els,arch,note)."""
     fb = DEFAULT_SCREENS.get(screen_code)
     fb_name = fb[0] if fb else screen_code
     fb_route = fb[1] if fb else "/"
@@ -1525,133 +1715,13 @@ def load_screen(sae_dir, screen_code):
             name, route = _heading_name_route(doc, art.get("title") or fb_name, art.get("route") or fb_route)
             covers = _doc_covers(art)
             els = parse_sae_doc(doc)
-            meta = {k: art.get(k) for k in ("order", "phase", "impl", "desc")}
-            return name, route, covers, els, art.get("archetype"), meta
+            note = art.get("note")
+            if note is None:
+                note = _parse_note(doc)
+            return name, route, covers, els, art.get("archetype"), (note or "")
         except Exception as e:
             print(f"[wfgen] ⚠ WF-{screen_code}.json 파싱 실패 → 골격 생성: {str(e)[:80]}")
-    return fb_name, fb_route, [], [], None, {}
-
-
-# ================================================================== 재편성 v2.1 — 범례·설명 패널·행 배치
-def _wrap_px(s, size, maxw):
-    """픽셀폭(text_px 추정) 기준 줄바꿈 — CJK 안전. 개행 유지."""
-    lines = []
-    for raw in (s or "").split("\n"):
-        cur = ""
-        for ch in raw:
-            cur += ch
-            if text_px(cur, size) > maxw:
-                sp = cur.rfind(" ")
-                if sp > 6:
-                    lines.append(cur[:sp])
-                    cur = cur[sp + 1:]
-                else:
-                    lines.append(cur[:-1])
-                    cur = ch
-        if cur.strip():
-            lines.append(cur)
-    return lines
-
-
-def legend_ops(page_id, project):
-    """캔버스 최상단 제목 + 구현상태 범례(페이지 루트 객체)."""
-    ops = []
-
-    def emit(o):
-        ops.append(add_change(page_id, o))
-
-    emit(text_obj(_uid(), "문서 제목", 0, 0, 1100, 32, ROOT_UUID,
-                  f"{project} 와이어프레임 — 앱 사용 시나리오 순서", color=C["head"], size=23, weight=700))
-    x = 0
-    for key in ("implemented", "partial", "planned"):
-        st = IMPL_STYLE[key]
-        emit(rect_obj(_uid(), "범례 스와치", x, 46, 26, 16, ROOT_UUID,
-                      fill=C["card"], stroke=st["stroke"], dashed=st["dashed"], radius=4, stroke_w=2))
-        emit(text_obj(_uid(), "범례", x + 34, 46, 300, 16, ROOT_UUID,
-                      f"{st['mark']} {st['label']}", color=C["ink2"], size=12, weight=600))
-        x += 34 + int(text_px(f"{st['mark']} {st['label']}", 12)) + 44
-    return ops
-
-
-def desc_panel_ops(page_id, x, y, code, name, route, covers, meta):
-    """화면 board 우측 설명 패널(페이지 루트 객체) — 제목·구현상태 배지·라우트·설명·covers.
-    반환 (ops, 패널폭, 패널높이)."""
-    impl = (meta.get("impl") or "planned").lower()
-    st = IMPL_STYLE.get(impl, IMPL_STYLE["planned"])
-    inner = PANEL_W - 48
-    lines = _wrap_px((meta.get("desc") or "").strip(), 12, inner)
-    cov_lines = _wrap_px("covers: " + " · ".join(covers), 10.5, inner) if covers else []
-    h = max(170, 20 + 26 + 22 + 24 + len(lines) * 19 + (8 + len(cov_lines) * 15 if cov_lines else 0) + 22)
-    ops = []
-
-    def emit(o):
-        ops.append(add_change(page_id, o))
-
-    emit(rect_obj(_uid(), f"{code} 설명 패널", x, y, PANEL_W, h, ROOT_UUID,
-                  fill=C["card"], stroke=st["stroke"], dashed=st["dashed"], radius=12, stroke_w=2))
-    yy = y + 20
-    emit(text_obj(_uid(), "패널 제목", x + 24, yy, inner, 20, ROOT_UUID,
-                  f"{code} · {name}", color=C["head"], size=14.5, weight=700))
-    yy += 26
-    emit(text_obj(_uid(), "구현상태", x + 24, yy, inner, 16, ROOT_UUID,
-                  f"{st['mark']} {st['label']}", color=st["stroke"], size=12, weight=700))
-    yy += 22
-    emit(text_obj(_uid(), "라우트", x + 24, yy, inner, 14, ROOT_UUID,
-                  route or "", color=C["ink3"], size=10.5))
-    yy += 24
-    for ln in lines:
-        emit(text_obj(_uid(), "설명", x + 24, yy, inner, 16, ROOT_UUID, ln, color=C["ink2"], size=12))
-        yy += 19
-    if cov_lines:
-        yy += 8
-        for ln in cov_lines:
-            emit(text_obj(_uid(), "covers", x + 24, yy, inner, 13, ROOT_UUID, ln, color=C["ink3"], size=10.5))
-            yy += 15
-    return ops, PANEL_W, h
-
-
-def assemble(page_id, screens_data, project):
-    """정렬된 screens_data 를 phase 행으로 배치해 change-ops 조립(범례·phase 헤더·board 테두리·설명 패널 포함).
-    반환 (all_ops, screens_objs, plan, stats) — components 는 file_id 확정 후 별도 emit."""
-    all_ops = list(legend_ops(page_id, project))
-    plan, screens_objs, stats = [], [], []
-    row_y, cur_phase, first_row = 96, object(), True
-    ox, row_max_h = 0, 0
-    for (sc, name, route, covers, els, arch, meta) in screens_data:
-        ph = (meta.get("phase") or "").strip() or "화면"
-        if ph != cur_phase:
-            if not first_row:
-                row_y += row_max_h + ROW_GAP
-            first_row, cur_phase, ox, row_max_h = False, ph, 0, 0
-            all_ops.append(add_change(page_id, text_obj(
-                _uid(), "단계 헤더", 0, row_y, 1400, 28, ROOT_UUID, ph,
-                color=C["head"], size=17, weight=700)))
-        oy = row_y + 46
-        builder = ARCHETYPES[arch]
-        scr = builder(page_id, sc, name, route, covers, els, ox, oy)
-        st = IMPL_STYLE.get((meta.get("impl") or "planned").lower(), IMPL_STYLE["planned"])
-        wmax, nops, ncomp = ox, 0, 0
-        for s in scr:
-            s.board_stroke, s.board_dashed = st["stroke"], st["dashed"]
-            sops = s.finalize()
-            all_ops.extend(sops)
-            nops += len(sops)
-            ncomp += len(s.components)
-            plan.append((f"{s.code}", s.bid, len(els), len(s.kids), arch))
-            wmax = max(wmax, s.ox + s.w)
-            row_max_h = max(row_max_h, (s.oy - row_y) + s.h)
-            screens_objs.append(s)
-        pops, pw, ph_h = desc_panel_ops(page_id, wmax + 28, oy, sc, name, route, covers, meta)
-        all_ops.extend(pops)
-        row_max_h = max(row_max_h, (oy - row_y) + ph_h)
-        ox = wmax + 28 + pw + SCREEN_GAP
-        stats.append((sc, arch, len(els), len(scr), nops, ncomp))
-    return all_ops, screens_objs, plan, stats
-
-
-def _order_key(t):
-    o = t[6].get("order")
-    return (o if isinstance(o, (int, float)) else 10 ** 6, t[0])
+    return fb_name, fb_route, [], [], None, ""
 
 
 # ================================================================== main
@@ -1665,6 +1735,9 @@ def main():
     ap.add_argument("--archetype", choices=list(ARCHETYPES.keys()))
     ap.add_argument("--delete-file", dest="delete_file_id")
     ap.add_argument("--dry-run", action="store_true")
+    # 주석 패널(SAE 요약 + note) 동시 생성 — 기본 on. --no-anno 로 목업만.
+    ap.add_argument("--no-anno", dest="anno", action="store_false")
+    ap.set_defaults(anno=True)
     args = ap.parse_args()
 
     cfg = resolve()
@@ -1697,23 +1770,52 @@ def main():
 
     screens_data = []
     for sc in codes:
-        name, route, covers, els, spec_arch, meta = load_screen(sae_dir, sc)
+        name, route, covers, els, spec_arch, note = load_screen(sae_dir, sc)
         arch = pick_archetype(sc, els, forced=args.archetype, spec_arch=spec_arch)
-        screens_data.append((sc, name, route, covers, els, arch, meta))
-    # 시나리오 순서 정렬(스펙 wrapper `order` 오름차순 · 없으면 뒤로+코드순)
-    screens_data.sort(key=_order_key)
+        # 강제(--archetype)·스펙 선언은 사용자 의도 → 폴백 금지. 휴리스틱 추측일 때만 허용.
+        heur = not (args.archetype or spec_arch)
+        screens_data.append((sc, name, route, covers, els, arch, note, heur))
 
     file_name = args.file_name or f"{project} 와이어프레임 (SAE)"
 
     # --dry-run
     if args.dry_run:
-        print(f"[wfgen --dry-run] file='{file_name}' · sae_dir={sae_dir}")
-        all_ops, screens_objs, plan, stats = assemble(_uid(), screens_data, project or "?")
-        total = len(all_ops) + sum(st[5] for st in stats)
-        for (sc, arch, nels, nb, nops, ncomp) in stats:
-            print(f"  {sc:<5} [{arch:<9}] 요소 {nels:>2} · board {nb} · "
-                  f"ops {nops:>3} · 컴포넌트 {ncomp:>2}")
-        print(f"  합계 change-ops(컴포넌트·범례·패널 포함): {total}")
+        dummy_page = _uid()
+        dummy_file = ROOT_UUID
+        total = 0
+        ox = 0
+        print(f"[wfgen --dry-run] file='{file_name}' · sae_dir={sae_dir} · anno={'on' if args.anno else 'off'}")
+        for (sc, name, route, covers, els, arch, note, heur) in screens_data:
+            scr, miss = build_screens(dummy_page, sc, name, route, covers, els, ox, arch,
+                                      allow_fallback=heur)
+            arch = getattr(scr[0], "arch_used", arch)
+            ops = []
+            nch = 0
+            ncomp = 0
+            nanno = 0
+            wmax = ox
+            for s in scr:
+                sops = s.finalize()
+                ops.extend(sops)
+                ncomp += len(s.component_changes(dummy_file))  # 승격 그룹(=컴포넌트) 수
+                nch += len(s.kids)
+                wmax = max(wmax, s.ox + s.w)
+            if args.anno and scr:
+                from wfanno import build_anno_panel  # 지연 import(순환 회피)
+                # 배치 SSOT(anno_anchor→wfanno.panel_anchor) — dry-run 추정이 실배치와 갈라지지 않게.
+                afx, afy, afw, afh = anno_anchor(scr)
+                aops, _px, apw, _ph = build_anno_panel(dummy_page, sc, name, note, els,
+                                                       afx, afy, afw, afh)
+                nanno = len(aops)
+                total += nanno
+                wmax = wmax + 28 + apw
+            total += len(ops) + ncomp
+            print(f"  {sc:<5} [{arch:<9}] '{name}'  요소 {len(els):>2} · board {len(scr)} · "
+                  f"자식 {nch:>3} · ops {len(ops):>3} · 컴포넌트 {ncomp:>2}"
+                  + (f" · 주석 {nanno:>3}" if args.anno else "")
+                  + (f" · ⚠미배치 {len(miss)}" if miss else " · 완전"))
+            ox = wmax + 60
+        print(f"  합계 change-ops(컴포넌트·주석 포함): {total}")
         return
 
     if not cfg["penpot_token"]:
@@ -1778,14 +1880,46 @@ def main():
         return
     print(f"[wfgen] revn={revn} vern={vern} pageId={page_id}")
 
-    # 3) change-ops 조립 — 시나리오 순서·phase 행·구현상태 테두리·설명 패널(assemble)
-    all_ops, screens_objs, plan, stats = assemble(page_id, screens_data, project)
+    # 3) change-ops 조립
+    all_ops = []
     comp_ops = []   # add-component — 모든 add-obj 뒤에 append(레지스트리 등록 · 참조패턴 순서)
-    for s in screens_objs:
-        comp_ops.extend(s.component_changes(file_id))  # add-component(승격 그룹만)
+    anno_ops = []   # 주석 패널 add-obj(anno:<CODE> 그룹) — 목업 add-obj 뒤에 append
+    plan = []
+    ox = 0
+    n_miss_total = 0
+    for (sc, name, route, covers, els, arch, note, heur) in screens_data:
+        scr, miss = build_screens(page_id, sc, name, route, covers, els, ox, arch,
+                                  allow_fallback=heur)
+        arch = getattr(scr[0], "arch_used", arch)
+        n_miss_total += len(miss)
+        wmax = ox
+        for s in scr:
+            all_ops.extend(s.finalize())                   # add-obj(board+그룹+자식) — 그룹 승격 완료
+            comp_ops.extend(s.component_changes(file_id))  # add-component(승격 그룹만)
+            plan.append((f"{s.code}", s.bid, len(els), len(s.kids), arch))
+            wmax = max(wmax, s.ox + s.w)
+        # 주석 패널(--anno 기본 on) — SAE 요약 + note 패널.
+        if args.anno and scr:
+            from wfanno import build_anno_panel  # 지연 import(순환 회피)
+            s0 = scr[0]
+            # [원본] 대표 board(scr[0]) 우측(s0.ox, …, s0.w) 기준 — 보조 board(SHELL 토스트 영역 등)가
+            #   s0 우측에 있으면 패널이 그 위를 **덮었다**(2026-07-31 실사용 보고). 원복 시 아래 주석 해제.
+            # aops, _px, apw, _ph = build_anno_panel(page_id, sc, name, note, els, s0.ox, s0.oy, s0.w, s0.h)
+            # [개선] 배치 SSOT — wfanno.panel_anchor 를 공유해 재렌더와 좌표가 100% 일치한다.
+            #   (직전 개선인 `wmax - s0.ox` 인라인 계산은 wfanno 와 규약이 갈라져 겹침이 남아 있었다.)
+            afx, afy, afw, afh = anno_anchor(scr)
+            aops, _px, apw, _ph = build_anno_panel(page_id, sc, name, note, els,
+                                                   afx, afy, afw, afh)
+            anno_ops.extend(aops)
+            wmax = wmax + 28 + apw   # 다음 board 를 패널 폭만큼 우측으로
+        ox = wmax + 60
     all_ops.extend(comp_ops)  # 메인 인스턴스 add-obj 모두 emit 후 컴포넌트 등록(Assets)
+    all_ops.extend(anno_ops)  # 주석 패널(그룹+자식) — 목업·컴포넌트 뒤(z 최상단)
     print(f"[wfgen] change-ops 조립: {len(all_ops)}개 "
-          f"(board {len(plan)} · 화면 {len(screens_data)} · 컴포넌트 {len(comp_ops)})")
+          f"(board {len(plan)} · 화면 {len(screens_data)} · 컴포넌트 {len(comp_ops)} · 주석 {len(anno_ops)})")
+    if n_miss_total:
+        print(f"[wfgen] ⚠ 총 {n_miss_total}개 요소가 아키타입 슬롯 밖 → 각 화면의 '미배치 요소' board 참조 "
+              f"(유실 0 · 레이아웃 보완 대상)")
 
     # 4) update-file
     session_id = _uid()

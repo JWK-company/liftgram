@@ -34,21 +34,26 @@ spec 문서 또는 Phase 문서에서 3축 키워드를 추출한다.
 ### Phase 시작 시 (포괄 검색)
 
 ```
-memory_search(query="{도메인 키워드}", limit=5)
-memory_search(query="{기술 키워드}", type="gotcha", limit=5)
-knowledge_query(query="{기술 키워드}", type="convention", limit=3)
+memory_search(query="{도메인 키워드}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+memory_search(query="{기술 키워드}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+knowledge_query(query_type="tech_stack", key="{기술 키워드}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
 ```
+
+> **스키마 주의**
+> - `memory_search`: 필수 = `query`. 유형 필터는 `memory_type`(`type` 아님). `limit`은 서버에서 50으로 절삭.
+> - `knowledge_query`: 필수 = `query_type` (`preferences`|`tech_stack`|`patterns`|`terms`|`all`|`neighborhood`).
+>   자유 텍스트 `query`·`limit` 파라미터는 **없다** — 이름 부분일치는 `key`, 분류 필터는 `category`.
 
 ### 파일 단위 검색 (좁은 범위)
 
 ```
-memory_search(query="{파일명 또는 모듈명}", limit=3)
+memory_search(query="{파일명 또는 모듈명}", file_tags=["{파일 경로}"], user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=3)
 ```
 
 ### 에러 발생 시 (문제 중심)
 
 ```
-memory_search(query="{에러 메시지 키워드}", type="gotcha", limit=5)
+memory_search(query="{에러 메시지 키워드}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
 ```
 
 ---

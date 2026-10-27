@@ -19,7 +19,7 @@
 
 **MCP 도구:**
 ```
-memory_search(query="{problem keywords}", limit=5)
+memory_search(query="{problem keywords}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
 ```
 
 - 이전 유사 문제 발견 (score >= 0.85) → 해결 방법 공유 + 자동 에스컬레이션 가능
@@ -39,8 +39,8 @@ memory_search(query="{problem keywords}", limit=5)
 ## Step 2: 빠른 진단 (코드 분석)
 
 1. 에러 위치에서 관련 코드 분석:
-   - `mcp__serena__find_symbol(name_path="{에러 심볼}", include_body=true)` → 에러 발생 심볼의 본문 확인
-   - `mcp__serena__find_referencing_symbols(symbol_name="{에러 심볼}")` → 호출자 추적
+   - `mcp__plugin_serena_serena__find_symbol(name_path_pattern="{에러 심볼}", include_body=true)` → 에러 발생 심볼의 본문 확인
+   - `mcp__plugin_serena_serena__find_referencing_symbols(name_path="{에러 심볼}", relative_path="{심볼이 정의된 파일}")` → 호출자 추적
    - Read + Grep은 심볼명을 모를 때만 사용
    - **fallback:** serena MCP 미연결 시 기존 Read + Grep으로 대체
 2. 에러 메시지 기반 원인 추론
@@ -53,12 +53,10 @@ memory_search(query="{problem keywords}", limit=5)
 
 ## Step 3: 심화 분석 (프로토콜 매칭)
 
-**복잡한 문제 시 단계적 분석 (sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="증상: {증상}. 가능한 원인을 체계적으로 열거하고 각각의 검증 방법을 수립")
-```
+**복잡한 문제 시 단계적 분석 (도구 없이 직접):**
+- "증상: {증상}. 가능한 원인을 체계적으로 열거하고 각각의 검증 방법 수립"을 직접 단계적으로 수행
 → 다단계 디버깅을 구조화하여 원인 범위를 체계적으로 좁혀감
-- **fallback:** sequential-thinking MCP 미연결 시 직접 단계별 분석 수행
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 1. 문제 유형별 프로토콜 매칭:
    - 원인 불명 → Root Cause Analysis 프로토콜
@@ -78,8 +76,8 @@ mcp__sequential-thinking__sequentialthinking(thought="증상: {증상}. 가능�
 
 1. **Context7 라이브러리 문서 조회:**
    ```
-   mcp__context7__resolve-library-id(library="{라이브러리명}")
-   → mcp__context7__query-docs(library_id="{id}", query="{문제 관련 쿼리}")
+   mcp__plugin_context7_context7__resolve-library-id(libraryName="{라이브러리명}", query="{문제 관련 쿼리}")
+   → mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="{문제 관련 쿼리}")
    ```
 
 2. **WebSearch 유사 사례 검색:**

@@ -25,7 +25,8 @@
 {
   "schemaVersion": 1,
   "id": "SRS-001",                       // PLM artifact id (= 파일명)
-  "type": "SRS",                          // URS/UCS/SRS/SAD/ADR/Roadmap/Code/BS/PRD/MR/CA
+  "type": "SRS",                          // URS/UCS/SRS/SAD/ADR/Roadmap/Code/BS/PRD/Business/Wireframe/Blueprint/DesignResearch
+                                          //   (구 MR·CA는 Business로 병합 — 신규 발급 시 서버가 400 거부)
   "title": "…",
   "status": "Draft",                      // Status는 PLM 권위 — 로컬에서 임의 전이 금지(대시보드에서)
   "relations": { "derives_from": ["URS-001"] },  // owner(작성) 방향만. 역방향은 PLM이 역산
@@ -35,13 +36,13 @@
 
 규칙:
 - **저장 = 자동 동기**: `CODE.json`을 Edit/Write하면 `plm-sync` hook이 래퍼(메타)+`doc`(본문)+`relations`(owner관계)를 PLM에 즉시 upsert.
-- **경로·파일명 = 결정적 링크**: `docs/{type→dir}/{code}.json` (URS/UCS/SRS=`requirements`, SAD=`design`, ADR=`decisions`, Roadmap=`roadmap`, PRD=`product`). 규약이 곧 아티팩트↔파일 매핑.
-- **`relations`엔 owner 방향만**: `derives_from`(SRS→URS)·`refs`(SAD→SRS)·`informs`(ADR→…) 등 *작성 방향*만. 역방향(피참조)은 적지 않는다(매트릭스 역산). URS는 outgoing 관계 없음(피참조 루트). 예외: **`relates_to`**(`PRD|URS|SRS|SAD → BS|Business` — 구 MR/CA는 Business로 병합)는 비-owner 소프트관계(비추적·게이트/매트릭스 제외)로, /plan:business 디스커버리 근거(BS·MR·CA)를 참조할 때만 기재. **`targets`**(`BS → BS·MR·CA 제외 전 타입`)는 BS(feedback)가 겨냥하는 대상 지정 — 역시 비추적(그래프 표시·적용 대상, P0-3). BS는 다수 발급(`BS-001`… 채번)·`kind`("idea"|"feedback") 명시. **`generated_from`**(`Business|PRD→BS`·`Roadmap→PRD`)은 생성 계보 — /business·/plan이 자동 기재(비추적·계보 레인).
+- **경로·파일명 = 결정적 링크**: `docs/{type→dir}/{code}.json` (URS/UCS/SRS=`requirements`, SAD=`design`, ADR=`decisions`, Roadmap=`roadmap`, PRD·BS·Business=`product`, Blueprint=`blueprint`, DesignResearch=`design-research`). 규약이 곧 아티팩트↔파일 매핑. (예외: Wireframe의 SAE 명세는 `docs/wireframes/WF-<SCREEN_CODE>.json`에 두되 **plm-sync 대상이 아니며**, PLM 아티팩트는 `/plm-hub:wfscan`이 penpot 프레임을 스캔해 발급한다.)
+- **`relations`엔 owner 방향만**: `derives_from`(SRS→URS)·`refs`(SAD→SRS)·`informs`(ADR→…) 등 *작성 방향*만. 역방향(피참조)은 적지 않는다(매트릭스 역산). URS는 outgoing 관계 없음(피참조 루트). 예외: **`relates_to`**(`PRD|URS|SRS|SAD → BS|Business` — 구 MR/CA는 Business로 병합)는 비-owner 소프트관계(비추적·게이트/매트릭스 제외)로, /plan:business 디스커버리 근거(BS·Business)를 참조할 때만 기재. **`targets`**(`BS → BS·Business·구 MR/CA 제외 전 타입`)는 BS(feedback)가 겨냥하는 대상 지정 — 역시 비추적(그래프 표시·적용 대상, P0-3). BS는 다수 발급(`BS-001`… 채번)·`kind`("idea"|"feedback") 명시. **`generated_from`**(`Business|PRD→BS`·`Roadmap→PRD`)은 생성 계보 — /business·/plan이 자동 기재(비추적·계보 레인).
 - **SSOT 분담**: 본문(`doc`)·관계(`relations`) = **로컬 `CODE.json`**, Status·게이트·추적 = **PLM**. 대시보드 편집분은 `/plm-hub:pull`로 회수.
 - **본문 조회 주의**(빈 문서 오판 금지): PLM은 본문을 `body`(레거시 평문)와 `doc`(ProseMirror·canonical) 두 곳에 둔다. **BS·웹에디터 문서는 본문이 `doc`에만 있어 `body`가 빔.** `artifact_get`은 body가 비면 doc 텍스트를 자동으로 채워주지만, 그래도 비어 보이면 **"빈 문서"로 단정 말고** `doc_get(project, code)`로 실제 본문을 확인하라.
-- **동기 제외**: `_`로 시작하는 파일·`research/`·래퍼 `"sync": false`는 PLM에 본문 반출 안 함. (**`product/`의 PRD·BS·MR·CA는 미추적 싱글턴이나 대시보드 표시 위해 동기.**)
+- **동기 제외**: `_`로 시작하는 파일·`research/`·래퍼 `"sync": false`는 PLM에 본문 반출 안 함. (**`product/`의 PRD(싱글턴)·BS(BS-00N·다수)·Business(BIZ-00N·다수)는 미추적이나 대시보드 표시 위해 동기.** `blueprint/`의 BP-00N·`design-research/`의 DR-00N도 동일.)
 
-→ 발급은 `/plan:business`(디스커버리·BS·MR·CA) `/plan:requirement` `/plan:design` `/plan:decision` `/plan:plan`. 일괄 동기 `/plm-hub:sync`, 점검 `/plan:trace`.
+→ 발급은 `/plan:business`(디스커버리·BS·Business) `/plan:requirement` `/plan:design` `/plan:decision` `/plan:plan`. 일괄 동기 `/plm-hub:sync`, 점검 `/plan:trace`.
 
 ## 2. 코드 연동 — `@plm` 주석 + codescan (이것만 주석 필요)
 

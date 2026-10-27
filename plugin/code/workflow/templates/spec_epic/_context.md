@@ -68,7 +68,7 @@ Client → API Gateway → AuthService → DB
 ### 의존성 그래프
 
 ```
-project_query(path="{{진입점}}", direction="both", depth=3)
+project_query(query_type="search", path_filter="{{진입점}}", project_id="{PROJECT_ID}", limit=50)
 ```
 
 | 소스 | 방향 | 대상 | 관계 유형 |
@@ -89,8 +89,8 @@ project_query(path="{{진입점}}", direction="both", depth=3)
 ## 관련 메모리
 
 ```
-memory_search(query="{{에픽 도메인}}", limit=10)
-knowledge_query(query="{{기술 스택}}", type="convention", limit=5)
+memory_search(query="{{에픽 도메인}}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=10)
+knowledge_query(query_type="tech_stack", key="{{기술 스택}}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
 ```
 
 | # | 유형 | 내용 요약 | score | 적용 |

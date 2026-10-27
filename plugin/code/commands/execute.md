@@ -57,9 +57,9 @@ Signal 큐 조회 → 등급별 차등 처리:
   "skill_step": 1,
   "grade": "<patch|task|feature|project|epic>",
   "phase": null,
-  "plan_path": "<spec path>",
+  "spec_path": "<spec path>",
   "active_files": [],
-  "tasks": { "<spec_id>": { "name": "<name>", "plan_path": "<path>", "grade": "<등급>" } }
+  "tasks": { "<spec_id>": { "name": "<name>", "spec_path": "<path>", "grade": "<등급>", "current_phase": null } }
 }
 ```
 
@@ -79,10 +79,12 @@ Signal 큐 조회 → 등급별 차등 처리:
 
 spec 문서에서 3축 키워드 추출 → 병렬 검색:
 ```
-memory_search(query="{도메인}", limit=5)
-memory_search(query="{기술}", type="gotcha", limit=5)
-knowledge_query(query="{기술}", type="convention", limit=3)
+memory_search(query="{도메인}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+memory_search(query="{기술}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
+knowledge_query(query_type="tech_stack", key="{기술}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}")
 ```
+- `memory_search`: 필수 = `query`. 유형 필터는 `memory_type`(`type` 아님).
+- `knowledge_query`: 필수 = `query_type` (`preferences`|`tech_stack`|`patterns`|`terms`|`all`|`neighborhood`). 자유 텍스트 `query`·`limit` 파라미터는 **없다** — 이름 부분일치는 `key`, 분류는 `category`.
 
 검색 결과 활용:
 - score >= 0.85 → 반드시 준수
@@ -95,19 +97,19 @@ knowledge_query(query="{기술}", type="convention", limit=3)
 
 각 작업마다:
 1. 관련 파일 분석 (serena 우선, Read는 최후 수단):
-   - `mcp__serena__get_symbols_overview(relative_path="{파일}")` → 파일 구조 파악
-   - `mcp__serena__find_symbol(name_path="{심볼}", include_body=true)` → 수정 대상 심볼만 읽기
-   - `mcp__serena__find_referencing_symbols(symbol_name="{심볼}")` → 변경 시 영향받는 코드 확인
+   - `mcp__plugin_serena_serena__get_symbols_overview(relative_path="{파일}")` → 파일 구조 파악
+   - `mcp__plugin_serena_serena__find_symbol(name_path_pattern="{심볼}", include_body=true)` → 수정 대상 심볼만 읽기
+   - `mcp__plugin_serena_serena__find_referencing_symbols(name_path="{심볼}", relative_path="{심볼이 정의된 파일}")` → 변경 시 영향받는 코드 확인
    - 파일 전체 Read는 심볼 구조가 불명확할 때만 사용
    - **fallback:** serena MCP 미연결 시 기존 Read + Grep으로 대체
    **라이브러리 사용법 확인 필요 시 (context7):**
-   - `mcp__context7__resolve-library-id(library="{라이브러리명}")` → `mcp__context7__query-docs(library_id="{id}", query="{사용법}")`
+   - `mcp__plugin_context7_context7__resolve-library-id(libraryName="{라이브러리명}", query="{사용법}")` → `mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="{사용법}")`
    - 공식 문서 기반으로 올바른 API 호출 방식 확인
    - **fallback:** context7 MCP 미연결 시 WebSearch로 대체
-   **복잡한 구현 로직 시 (sequential-thinking):**
-   - `mcp__sequential-thinking__sequentialthinking(thought="구현 목표: {체크리스트 항목}. 구현 순서와 주의점을 단계적으로 정리")`
+   **복잡한 구현 로직 시 (단계적 사고 — 도구 없이 직접):**
+   - "구현 목표: {체크리스트 항목}. 구현 순서와 주의점"을 직접 단계적으로 정리
    - 여러 파일에 걸친 변경, 상태 관리, 비동기 처리 등에 활용
-   - **fallback:** sequential-thinking MCP 미연결 시 직접 단계별 분석
+   - **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
    **구현 중 막히거나 사례가 필요할 때 (WebSearch):**
    - `WebSearch(query="{에러 메시지 또는 구현 패턴} {기술 스택}")` → 커뮤니티 해결책/구현 사례 참고
    - context7에서 문서를 못 찾았거나, 에러 메시지 기반 검색이 필요할 때 적극 사용

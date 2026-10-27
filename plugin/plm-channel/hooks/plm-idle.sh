@@ -32,9 +32,15 @@ fi
 API="${API%/}"
 [ -n "$API" ] && [ -n "$PROJECT" ] && [ -n "$TOKEN" ] || exit 0
 
+# 감사 Z2(치명 · R5) — 세션 스코프. `PLM_SESSION`이 있으면 그 세션만 idle로 내린다(없으면 서버가
+# 가장 신선한 세션 1건만 갱신 — 전 행 갱신은 좀비를 되살려 버전 게이트를 영구 차단했다).
+BODY="{\"project\":\"$PROJECT\",\"state\":\"idle\""
+[ -n "${PLM_SESSION:-}" ] && BODY="$BODY,\"session\":\"$PLM_SESSION\""
+BODY="$BODY}"
+
 curl -s -m 5 -o /dev/null \
   -H "authorization: Bearer $TOKEN" \
   -H "content-type: application/json" \
   -H "user-agent: plm-hook/1.0" \
-  -X POST "$API/channel/activity" -d "{\"project\":\"$PROJECT\",\"state\":\"idle\"}" 2>/dev/null || true
+  -X POST "$API/channel/activity" -d "$BODY" 2>/dev/null || true
 exit 0

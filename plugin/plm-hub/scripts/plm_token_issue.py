@@ -2,7 +2,8 @@
 """셀프 PLM 쓰기 토큰 발급 → .env 자동 기입 (plm-hub:link Step에서 호출).
 
 원리: 사용자가 이미 승인한 Claude MCP OAuth(JWT, ~/.claude/.credentials.json)를 재사용해
-PLM `POST /tokens`(OIDC 전용)를 호출 → 본인 realm 역할(없으면 editor)로 발급된 토큰을
+PLM `POST /tokens`(OIDC 전용)를 호출 → 본인 realm 역할(명시 역할이 없으면 **viewer**=읽기 전용 — D9c
+자가승격 차단. 과거엔 editor였다)로 발급된 토큰을
 `.ouroboros/env/.env`의 PLM_API_TOKEN에 기입. 평문 토큰은 서버가 1회만 반환(해시 저장).
 
 사용: python3 plm_token_issue.py [--force]   (기본: PLM_API_TOKEN이 비어있을 때만 발급)

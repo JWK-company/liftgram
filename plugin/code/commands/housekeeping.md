@@ -10,13 +10,15 @@
 
 **MCP 도구:**
 ```
-memory_search(query="*", limit=100)
+memory_search(query="{프로젝트 주요 도메인·기술 키워드}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", include_stale=true, include_archived=true, limit=50)
 ```
+- `query`는 **필수**(시맨틱 검색 — 와일드카드 `*` 없음). 전수 파악이 필요하면 키워드를 바꿔 여러 번 호출한다.
+- `limit`은 서버에서 **50으로 절삭**된다(더 큰 값을 줘도 50건만 온다).
 
 **코드 변경 연동 검증 (serena):**
 - Staleness 리뷰 시 `related_files`의 현재 상태를 serena로 확인:
 ```
-mcp__serena__get_symbols_overview(relative_path="{related_file}")
+mcp__plugin_serena_serena__get_symbols_overview(relative_path="{related_file}")
 ```
 → 파일이 삭제/리네이밍되었는지, 심볼이 변경되었는지 정확히 파악
 - **fallback:** serena MCP 미연결 시 `git log` + `ls` 기반으로 확인
@@ -33,8 +35,10 @@ mcp__serena__get_symbols_overview(relative_path="{related_file}")
 
 **stale_candidate 상태 메모리 조회:**
 ```
-memory_search(status="stale_candidate", limit=20)
+memory_search(query="{프로젝트 주요 도메인·기술 키워드}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", include_stale=true, limit=50)
 ```
+- `status` 파라미터는 **없다**. 상태 필터는 `include_stale`(기본 true)·`include_archived`(기본 false)뿐이므로,
+  **결과에서 `status == "stale_candidate"` 항목만 골라내** 아래 절차를 적용한다.
 
 각 stale_candidate에 대해:
 1. `related_files` 변경 여부 확인:
@@ -58,7 +62,7 @@ memory_search(status="stale_candidate", limit=20)
 
 **시맨틱 중복 (유사도 0.85+):**
 ```
-memory_search(query="{메모리 content}", limit=5)
+memory_search(query="{메모리 content}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)
 ```
 - 유사도 >= 0.85 → AskUserQuestion: "병합" / "유지"
 - 병합 시: 최신 메모리에 정보 통합 → 나머지 archived

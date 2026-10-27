@@ -84,13 +84,21 @@ Hook이 bash grep으로 T1 키워드를 사전 스캔한다.
 
 ```
 knowledge_store(
-    type="preference",
-    category="convention",
-    content="{선호 내용}",
-    source="user_response",
-    confidence=0.95  // T1
+    node_type="Preference",              # Preference | TechStack | Pattern | Term | Insight
+    name="{선호 이름 — 검색 가능한 짧은 키}",
+    description="{선호 내용}",
+    namespace="user",                    # "user"(기본) | "project"
+    user_id="{DEVELOPER_USER_ID}",
+    project_id="{PROJECT_ID}",
+    properties={"category": "convention", "source": "user_response", "confidence": 0.95}   # T1
 )
 ```
+
+> **스키마 주의**
+> - 필수 = `node_type`·`name`·`description`. `type`·`content`·`source`·`confidence`는 **파라미터가 아니다**
+>   (부가 정보는 전부 `properties` 안에 넣는다).
+> - `properties`를 직접 주면 별도 `category` 인자는 **무시된다**(서버는 `properties` 미지정일 때만
+>   `category`로 `{"category": …}`를 만든다). 둘 다 필요하면 `properties` 안에 `category`를 넣어라.
 
 ---
 

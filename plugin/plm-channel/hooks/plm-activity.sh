@@ -32,10 +32,18 @@ fi
 API="${API%/}"
 [ -n "$API" ] && [ -n "$PROJECT" ] && [ -n "$TOKEN" ] || exit 0
 
+# 감사 Z2(치명 · R5) — **어느 세션의 활동인가**를 함께 보낸다. 예전엔 서버가 세션을 몰라 그
+# 사용자×프로젝트의 *모든* 행을 갱신했고, 죽은 세션이 영원히 '살아 있는 busy'로 남아 버전 게이트를
+# 100% 차단했다. 세션 키는 릴레이와 같은 값(`PLM_SESSION`)이어야 의미가 있다 — 미설정이면 필드를
+# 생략하고 서버가 '가장 신선한 세션 1건'만 갱신한다(전 행 갱신은 서버에서도 이제 하지 않는다).
+BODY="{\"project\":\"$PROJECT\",\"state\":\"busy\""
+[ -n "${PLM_SESSION:-}" ] && BODY="$BODY,\"session\":\"$PLM_SESSION\""
+BODY="$BODY}"
+
 # 비차단: 백그라운드 서브셸로 detach → 도구 실행을 지연시키지 않음(서버 지연·다운이어도 도구 안 느려짐).
 ( curl -s -m 3 -o /dev/null \
     -H "authorization: Bearer $TOKEN" \
     -H "content-type: application/json" \
     -H "user-agent: plm-hook/1.0" \
-    -X POST "$API/channel/activity" -d "{\"project\":\"$PROJECT\",\"state\":\"busy\"}" >/dev/null 2>&1 & )
+    -X POST "$API/channel/activity" -d "$BODY" >/dev/null 2>&1 & )
 exit 0

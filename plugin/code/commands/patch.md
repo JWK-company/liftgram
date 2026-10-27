@@ -16,7 +16,7 @@ spec 없이 단순 수정을 즉시 실행한다. 파일 1-2개, 단일 관심�
    - FE + BE 동시 수정 → `/spec`으로 안내 후 종료
 3. **gotcha 검색 (1회):**
    ```
-   memory_search(query="{작업 키워드}", type="gotcha", limit=3)
+   memory_search(query="{작업 키워드}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=3)
    ```
    - score >= 0.85 → 주의사항으로 표시
    - MCP 실패 → 경고 없이 진행
@@ -26,18 +26,18 @@ spec 없이 단순 수정을 즉시 실행한다. 파일 1-2개, 단일 관심�
 ## Step 2: 즉시 구현
 
 **코드 분석 (serena 우선):**
-- `mcp__serena__get_symbols_overview(relative_path="{파일}")` → 파일 구조 파악
-- `mcp__serena__find_symbol(name_path="{심볼}", include_body=true)` → 수정 대상 심볼만 읽기
+- `mcp__plugin_serena_serena__get_symbols_overview(relative_path="{파일}")` → 파일 구조 파악
+- `mcp__plugin_serena_serena__find_symbol(name_path_pattern="{심볼}", include_body=true)` → 수정 대상 심볼만 읽기
 - 파일 전체를 읽지 말고 심볼 단위로 필요한 부분만 읽기 (토큰 절약)
 - **fallback:** serena MCP 미연결 시 기존 Read로 대체
 
 **라이브러리 API 확인 필요 시 (context7):**
-- `mcp__context7__resolve-library-id(library="{라이브러리}")` → `mcp__context7__query-docs(library_id="{id}", query="{수정 관련 API}")`
+- `mcp__plugin_context7_context7__resolve-library-id(libraryName="{라이브러리}", query="{수정 관련 API}")` → `mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="{수정 관련 API}")`
 - **fallback:** context7 MCP 미연결 시 WebSearch로 대체
 
-**수정 방향이 불확실할 때 (sequential-thinking):**
-- `mcp__sequential-thinking__sequentialthinking(thought="수정 목표: {목표}. 가장 안전한 수정 방법을 단계적으로 도출")`
-- **fallback:** sequential-thinking MCP 미연결 시 직접 분석
+**수정 방향이 불확실할 때 (단계적 사고 — 도구 없이 직접):**
+- "수정 목표: {목표}. 가장 안전한 수정 방법"을 직접 단계적으로 도출
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 1. 대상 파일 분석 (serena 우선, Read는 심볼 구조가 불명확할 때만)
 2. 수정 수행

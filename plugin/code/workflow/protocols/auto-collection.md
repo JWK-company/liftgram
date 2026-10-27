@@ -63,7 +63,7 @@ SHA-256(content) 계산
 ### 2단계: 시맨틱 유사도 (의미적 중복)
 
 ```
-memory_search(query="{저장할 content}", limit=3)
+memory_search(query="{저장할 content}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=3)
 ```
 
 | 유사도 | 판정 | 행동 |

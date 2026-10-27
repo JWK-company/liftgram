@@ -54,16 +54,16 @@ AskUserQuestion으로 추천 패널 확인/수정
 
 **spec 모드:**
 - spec 문서 전문 읽기
-- 관련 메모리 검색: `memory_search(query="{spec 주제}", limit=5)` → gotcha/decision 포함
+- 관련 메모리 검색: `memory_search(query="{spec 주제}", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)` → gotcha/decision 포함
 
 **code 모드:**
 - `git diff` → 변경된 코드 수집
-- `mcp__serena__find_referencing_symbols(symbol_name="{변경된 핵심 심볼}")` → 영향 범위
-- `mcp__serena__get_symbols_overview(relative_path="{변경 파일}")` → 파일 구조
-- `memory_search(query="{기술 키워드}", type="gotcha", limit=5)` → 과거 함정
+- `mcp__plugin_serena_serena__find_referencing_symbols(name_path="{변경된 핵심 심볼}", relative_path="{심볼이 정의된 파일}")` → 영향 범위
+- `mcp__plugin_serena_serena__get_symbols_overview(relative_path="{변경 파일}")` → 파일 구조
+- `memory_search(query="{기술 키워드}", memory_type="gotcha", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)` → 과거 함정
 
 **공통:**
-- `mcp__context7__query-docs(library_id="{사용 라이브러리}", query="best practices pitfalls")` → 공식 권장 사항
+- `mcp__plugin_context7_context7__resolve-library-id(libraryName="{사용 라이브러리}", query="best practices pitfalls")` → `mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="best practices pitfalls")` → 공식 권장 사항
 - 프로젝트 기술 스택 요약 (언어, 프레임워크, DB 등)
 
 ---
@@ -124,29 +124,28 @@ FOR each expert in panel:
 
 **MCP 도구:**
 ```
-project_query(path="{관련 파일}", direction="both", depth=2)    # 영향 범위 파악
-memory_search(query="{원래 의도}", type="decision", limit=3)     # 기획의도 확인
+project_query(query_type="search", path_filter="{관련 파일}", project_id="{PROJECT_ID}", limit=50)   # 영향 범위 파악
+memory_search(query="{원래 의도}", memory_type="decision", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=3)   # 기획의도 확인
 ```
+- `project_query`: 필수 = `query_type` (`file_tree`|`languages`|`recent_changes`|`search`). `path`·`direction`·`depth` 파라미터는 **없다** — 경로 필터는 `path_filter`(부분일치).
 
 **코드 영향 범위 분석 (serena):**
 ```
-mcp__serena__find_referencing_symbols(symbol_name="{변경된 심볼}")
+mcp__plugin_serena_serena__find_referencing_symbols(name_path="{변경된 심볼}", relative_path="{심볼이 정의된 파일}")
 ```
 → 개선안이 다른 코드에 미치는 영향을 심볼 참조 기반으로 정밀 분석
 - 파일 전체 Read 대신 심볼 단위 분석으로 토큰 절약
 - **fallback:** serena MCP 미연결 시 project_query + Grep으로 대체
 
-**복잡한 리뷰 시 구조화된 분석 (sequential-thinking):**
-```
-mcp__sequential-thinking__sequentialthinking(thought="이 변경이 기존 아키텍처에 미치는 영향을 체계적으로 분석")
-```
+**복잡한 리뷰 시 구조화된 분석 (도구 없이 직접):**
+- "이 변경이 기존 아키텍처에 미치는 영향"을 직접 체계적으로 분석
 → 다각도 영향 분석을 단계적으로 수행
-- **fallback:** sequential-thinking MCP 미연결 시 직접 단계별 분석 수행
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 **기술 선택/API 사용법 검증 (context7):**
 ```
-mcp__context7__resolve-library-id(library="{리뷰 대상 라이브러리}")
-→ mcp__context7__query-docs(library_id="{id}", query="{사용 패턴 best practice}")
+mcp__plugin_context7_context7__resolve-library-id(libraryName="{리뷰 대상 라이브러리}", query="{사용 패턴 best practice}")
+→ mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="{사용 패턴 best practice}")
 ```
 → 공식 문서 기반으로 코드가 올바른 API 사용법을 따르는지 검증
 - **fallback:** context7 MCP 미연결 시 WebSearch로 대체

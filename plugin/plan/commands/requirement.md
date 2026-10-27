@@ -9,7 +9,7 @@ URS·UCS·SRS를 **JSON 아티팩트(`CODE.json`)** 로 발급한다. 포맷 = `
 
 ## 절차
 1. **포맷 숙지**: `${CLAUDE_PLUGIN_ROOT}/templates/_ARTIFACT-JSON-FORMAT.md` 의 래퍼 구조 + doc 노드 어휘를 따른다.
-2. **URS** (`${CLAUDE_PLUGIN_ROOT}/templates/artifact_urs.json`) → `.ouroboros/docs/requirements/URS-NNN.json`. relations 없음(피참조 루트). `stakeholder`·`priority` 채움. **(선택)** URS가 `/business` 디스커버리 근거(BS·MR·CA)에서 나왔다면 `relations.relates_to`에 해당 디스커버리 아티팩트 기재(예 `["MR","CA"]` · 비추적 소프트 관계 — 추적 게이트/매트릭스엔 무영향).
+2. **URS** (`${CLAUDE_PLUGIN_ROOT}/templates/artifact_urs.json`) → `.ouroboros/docs/requirements/URS-NNN.json`. relations 없음(피참조 루트). `stakeholder`·`priority` 채움. **(선택)** URS가 `/business` 디스커버리 근거(BS·Business)에서 나왔다면 `relations.relates_to`에 해당 디스커버리 아티팩트 기재(예 `["BIZ-001"]` · 비추적 소프트 관계 — 추적 게이트/매트릭스엔 무영향). **구 MR/CA는 Business로 병합돼 신규 발급 불가**(ADR-027 — 서버가 400).
 3. **UCS** (`templates/artifact_ucs.json`) → `UCS-NNN.json`. `relations.elaborates: ["URS-..."]`.
 4. **SRS** (`templates/artifact_srs.json`) → `SRS-NNN.json`. `kind`(FR/NFR)·`acceptance_criteria` + **`relations.derives_from: ["URS-..."]`**(G1 필수).
 5. ID 채번: 해당 디렉토리 기존 `*.json` 최대 번호 +1. `created`/`updated`=현재 UTC, `status: "Draft"`, `schemaVersion: 1`.

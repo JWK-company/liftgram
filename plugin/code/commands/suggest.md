@@ -12,29 +12,28 @@
 2. `.ouroboros/context/current.md` 읽기 — 활성 작업, 차단 요소
 3. `git status` — 변경된 파일, 커밋 안 된 것
 4. `git log --oneline -5` — 최근 커밋
-5. memory_search("현재 프로젝트 상태") — 관련 메모리 (있으면)
+5. `memory_search(query="현재 프로젝트 상태", user_id="{DEVELOPER_USER_ID}", project_id="{PROJECT_ID}", limit=5)` — 관련 메모리 (있으면)
 6. 프로젝트 구조 파악 (serena):
    ```
-   mcp__serena__get_symbols_overview(relative_path="{현재 작업 파일}")
+   mcp__plugin_serena_serena__get_symbols_overview(relative_path="{현재 작업 파일}")
    ```
    → 현재 작업 중인 코드의 복잡도를 파악하여 더 정확한 스킬 추천
    - **fallback:** serena MCP 미연결 시 git status만으로 판단
 7. 사용 중인 기술 스택 최신 상태 확인 (context7):
    ```
-   mcp__context7__resolve-library-id(library="{주요 프레임워크/라이브러리}")
-   → mcp__context7__query-docs(library_id="{id}", query="latest changes migration guide")
+   mcp__plugin_context7_context7__resolve-library-id(libraryName="{주요 프레임워크/라이브러리}", query="latest changes migration guide")
+   → mcp__plugin_context7_context7__query-docs(libraryId="{id}", query="latest changes migration guide")
    ```
    → 라이브러리 업데이트/마이그레이션 필요 여부 감지 → 추천에 반영
    - **fallback:** context7 MCP 미연결 시 생략
 
-### Step 1.5: 상태 종합 분석 (sequential-thinking)
+### Step 1.5: 상태 종합 분석 (도구 없이 직접)
 
 수집된 모든 정보를 종합하여 현재 상황을 체계적으로 분석:
-```
-mcp__sequential-thinking__sequentialthinking(thought="수집된 정보 종합: state={active_skill}, git 변경={파일 수}, 메모리={관련 gotcha 수}, 코드 복잡도={serena 결과}. 현재 가장 효과적인 다음 액션을 우선순위별로 도출")
-```
+- "state={active_skill}, git 변경={파일 수}, 메모리={관련 gotcha 수}, 코드 복잡도={serena 결과}를 종합해 가장 효과적인 다음 액션을 우선순위별로 도출"을 직접 수행
+
 → 단순 규칙 매칭이 아닌, 프로젝트 전체 맥락을 고려한 정밀 추천
-- **fallback:** sequential-thinking MCP 미연결 시 상태별 추천 가이드 테이블로 판단
+- **주의:** sequential-thinking MCP는 이 워크플로우의 설치 대상이 아니다(`setup.sh` PLUGINS = chrome-devtools·context7·serena). 호출하지 말고 직접 수행.
 
 ### Step 2: 상태 판단
 
@@ -88,7 +87,7 @@ mcp__sequential-thinking__sequentialthinking(thought="수집된 정보 종합: s
 **spec-ready (설계 완료, 구현 대기)**
 - 1순위: `/qa spec` — 구현 전 설계 리뷰 (권장)
 - 2순위: `/execute` — 리뷰 건너뛰고 바로 구현
-- 참고: state.json의 plan_path에 있는 스펙 문서 경로 알려주기
+- 참고: state.json의 `spec_path`(또는 `tasks.<id>.spec_path`)에 있는 스펙 문서 경로 알려주기
 
 **executing (구현 중)**
 - 진행: `/execute --continue` — 현재 Phase 이어서 진행

@@ -10,7 +10,7 @@
                             │ SSE  ▲ 이 릴레이가 토큰으로 구독(outbound, NAT 우회)
                      [plm-channel.mjs (세션 옆 subprocess)]
                             │ notifications/claude/channel (stdio)
-                     [claude --channels server:plm-channel]  ← <channel> 태그 수신
+        [claude --channels plugin:plm-channel@jwk-platform]  ← <channel> 태그 수신
 ```
 
 브로커(라우팅·큐·presence·레지스트리)는 **전부 백엔드**. 릴레이는 Claude Code가 채널을 로컬
@@ -26,12 +26,17 @@ stdio MCP로만 받기에 필요한 얇은 릴레이 — 자기 OIDC 토큰으�
 
 ## 설치 (자동)
 
-`/plm-hub:link <project>` 또는 `/plm-hub:channel` 이 프로젝트 `.mcp.json`에 `plm-channel` 서버를
-자동 등록한다(비밀 없음 — 릴레이가 자동 발견). 그 후:
+릴레이는 **플러그인이 자체 `.mcp.json`으로 선언**한다(`plugin/plm-channel/.mcp.json` → `node relay/plm-channel.mjs`).
+프로젝트 `.mcp.json`을 편집할 필요가 없고 비밀도 담기지 않는다 — 위 자동 발견이 전부 처리한다.
+토큰만 `/plm-hub:link <project>` 가 `.ouroboros/env/.env`에 발급한다. 그 후:
 
 ```bash
-claude --channels server:plm-channel --dangerously-load-development-channels
+claude --dangerously-skip-permissions --channels plugin:plm-channel@jwk-platform
 ```
+
+> `server:plm-channel`(raw MCP)과 `--dangerously-load-development-channels` 로는 인바운드 주입이
+> **활성화되지 않는다**(검증됨). 마켓플레이스 플러그인 형태(`plugin:<name>@<marketplace>`)가 유일한 경로다.
+> 조직 관리형 계정만 `make channels-policy`(sudo 1회)로 allowlist를 등록한다 — 개인 Pro/Max는 불필요.
 
 ## 환경변수 (선택 — 오버라이드)
 | 변수 | 기본(자동발견) | 설명 |
@@ -47,6 +52,6 @@ claude --channels server:plm-channel --dangerously-load-development-channels
 - 재접속 시 미처리 `queued` 자동 재생. 끊기면 60s TTL offline → enqueue는 비실행+알림.
 
 ## 요구사항 · 한계(정직)
-- Node ≥ 18(내장 fetch), Claude Code **v2.1.80+**(channels=연구 프리뷰, 커스텀은
-  `--dangerously-load-development-channels` 필요).
+- Node ≥ 18(내장 fetch), Claude Code **v2.1.80+**(channels=연구 프리뷰. 커스텀 채널은
+  **마켓플레이스 플러그인 형태만** 주입된다 — dev 플래그로는 안 된다).
 - 세션 열림 시에만 수신·전달 보장 없음 → 정합 진실원 = `report`/PLM 상태. 터미널 CLI 전용.
