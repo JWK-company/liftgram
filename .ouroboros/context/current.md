@@ -1,9 +1,9 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 남은 피드백 묶음 1 「운동 중 보조」 (Feature · execute 완료 → **/qa code 대기·미배포** 2026-10-27 · 출시 v0.36.0)
-- 요구 URS-020·SRS-061(PR 칩·기록 바로잡기 #50·#51)·SRS-062(슈퍼셋 함께 완료 #48)·SRS-063(처방 무게 기준 #56) · 스펙 `.ouroboros/docs/spec/20261027_session-assist/spec.md` · QA `.ouroboros/docs/qa/20261027_session-assist-spec_qa.md`(조건부 통과 Q1~Q8 반영)
-- 작업 범위: core(domain prescription·personalRecords · workoutRepository) · frontend(ExerciseBlock·SetRowEdit·ActiveWorkout·WorkoutDetailClient·RoutineEditor·coaching/PrescriptionEditor) · proto/coaching · backend/internal/coaching
-- 현재 위치: execute 커밋(미배포·버전 미변경) · core 255 통과 · 새 e2e session-assist 3/3 · 관련 e2e 47/47(profile lb 1건은 단독 재실행 통과) · 다음 = 독립 /qa code → 수정 → release v0.36.0 → PLM #50·#51·#48·#56
-- 다음 묶음 2 「기록 돌아보기·다시 하기」 v0.37.0 — URS-021·SRS-064(총평 #52)·SRS-065(세트 조합·다시 시작·피드 바로 시작 #59)·SRS-066(하단 sticky 수정 #45·#43 — 운영 재현: main overflow-x-hidden) · 스펙 `.ouroboros/docs/spec/20261027_history-replay/spec.md` · 보류 #55·#25
+## 활성 작업 — 남은 피드백 묶음 2 「기록 돌아보기·다시 하기」 (Feature · qa spec 완료 → **execute 대기** · 출시 v0.37.0)
+- 요구 URS-021·SRS-064(총평 #52)·SRS-065(세트 조합·다시 시작·피드 바로 시작 #59)·SRS-066(하단 sticky 수정 #45·#43 — 운영 재현: main overflow-x-hidden) · 스펙 `.ouroboros/docs/spec/20261027_history-replay/spec.md` · 보류 #55·#25
+- 작업 범위: frontend(layout·WorkoutDetailClient·WorkoutSummary·Calendar·feed 카드·session 하단) · core(workoutRepository 다시 시작·notes) · e2e
+- 현재 위치: 다음 = 묶음 2 execute(커밋만) → 독립 /qa code → 수정 → release v0.37.0 → PLM #52·#59·#45·#43
+## 직전 작업 — 묶음 1 「운동 중 보조」 (Feature · **완료** 2026-10-27 · v0.36.0 운영 build 328 · e53f2b8) · URS-020·SRS-061~063 · /qa code 조치 리포트 `.ouroboros/docs/qa/20261027_session-assist-code_qa.md`(H1·H2·M1~M6·L1·L4·L6·L8 수정, L2·L3·L5·L7·L9~L11 보류) · PLM #50·#51·#48·#56 완료
 ## 직전 작업 — 운동 완료 시 루틴 반영·루틴으로 저장 (Feature · **완료** 2026-10-27 · v0.35.0 운영 build 324 · bb53b04)
 - 요구 URS-019·UCS-022·SRS-059(변경점 선택 반영)·SRS-060(루틴으로 저장) · 스펙 `.ouroboros/docs/spec/20261027_finish-routine-sync/spec.md` · 피드백 #46·#60·#59(일부) · 출시 v0.35.0
 - 현재 위치: spec→qa spec→execute(6dd965c)→qa code(높음2·중간4·낮음6 전부 조치)→release v0.35.0 · 운영 빠른 운동→저장 시트·「루틴으로 저장했어요」 실확인 · PLM #46·#60 완료(#59 유지) · 리포트 `.ouroboros/docs/qa/20261027_finish-routine-sync-{spec,code}_qa.md`
