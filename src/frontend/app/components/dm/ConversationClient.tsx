@@ -31,6 +31,7 @@ import { AppText } from "../ui/primitives";
 import { ConfirmDialog } from "../ui/Dialog";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { conversationTitle } from "./ConversationsClient";
+import { SummaryBubble } from "../summary/SummaryBubble"; // 성과 요약 카드(SRS-080)
 
 /** 입력 중 표시를 이 시간 동안 유지한다(app과 같은 3초). */
 const TYPING_HOLD_MS = 3000;
@@ -223,6 +224,13 @@ export default function ConversationClient({ conversationId }: { conversationId:
     }
   }
 
+  // 알림 「성과 요약」에서 들어왔다 — 가장 최근 요약 카드를 강조한다(U-17) @plm SRS-080
+  const highlightId =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("highlight") === "summary"
+      ? messages.filter((m) => m.kind === MessageKind.SUMMARY && m.sender?.id !== meId).at(-1)?.id
+      : undefined;
+
   return (
     <div className="flex flex-1 flex-col">
       <ScreenHeader
@@ -274,7 +282,21 @@ export default function ConversationClient({ conversationId }: { conversationId:
             emptyTitle="dm.threadEmpty"
           />
         ) : (
-          messages.map((m) => <Bubble key={m.id} msg={m} mine={m.sender?.id === meId} showSender={isGroup} />)
+          // [원본] messages.map((m) => <Bubble key={m.id} msg={m} mine={m.sender?.id === meId} showSender={isGroup} />)
+          // [개선] 성과 요약(SUMMARY)은 카드로 — 알림에서 왔으면(?highlight=summary) 가장 최근 요약을 강조 @plm SRS-080
+          messages.map((m) =>
+            m.kind === MessageKind.SUMMARY ? (
+              <SummaryBubble
+                key={m.id}
+                msg={m}
+                mine={m.sender?.id === meId}
+                memberName={m.sender?.displayName}
+                highlight={m.id === highlightId}
+              />
+            ) : (
+              <Bubble key={m.id} msg={m} mine={m.sender?.id === meId} showSender={isGroup} />
+            ),
+          )
         )}
         <div ref={bottomRef} />
       </div>

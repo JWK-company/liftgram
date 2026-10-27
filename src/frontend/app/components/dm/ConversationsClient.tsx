@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { navigate } from "@/lib/nav";
 import type { Conversation } from "@app/contracts";
-import { routes } from "@app/contracts";
+import { MessageKind, routes } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { dmClient } from "@/lib/dmClient";
@@ -109,7 +109,13 @@ export default function ConversationsClient() {
           <div className="overflow-hidden rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) [&>*+*]:border-(--color-line) [&>*+*]:border-t">
             {convs.map((c) => {
               const title = conversationTitle(c, meId);
-              const preview = c.lastMessage ? c.lastMessage.body || t("dm.imageMessage") : "";
+              // [원본] const preview = c.lastMessage ? c.lastMessage.body || t("dm.imageMessage") : "";
+              // [개선] 성과 요약은 숫자 없는 고정 문구(S-7 · body 는 옛 앱용 대체 문구) @plm SRS-080
+              const preview = c.lastMessage
+                ? c.lastMessage.kind === MessageKind.SUMMARY
+                  ? t("progressSummary.preview")
+                  : c.lastMessage.body || t("dm.imageMessage")
+                : "";
               return (
                 <a
                   key={c.id}

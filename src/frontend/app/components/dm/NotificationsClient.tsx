@@ -10,7 +10,8 @@ import type { Notification } from "@app/contracts";
 import { NotificationKind, routes } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
-import { notificationClient } from "@/lib/dmClient";
+import { dmClient, notificationClient } from "@/lib/dmClient";
+import { navigate } from "@/lib/nav";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 import { ListState } from "../ui/ListState";
@@ -26,6 +27,8 @@ function sentence(n: Notification): string {
       return t("notif.like", { name });
     case NotificationKind.COMMENT:
       return t("notif.comment", { name });
+    case NotificationKind.COACHING_SUMMARY: // 숫자 없음(S-7) @plm SRS-080
+      return t("notif.coaching_summary", { name });
     default:
       return t("notif.generic", { name });
   }
@@ -34,7 +37,21 @@ function sentence(n: Notification): string {
 /** 눌렀을 때 갈 곳 — 팔로우는 그 사람, 좋아요·댓글은 그 글. */
 function target(n: Notification): string {
   if (n.kind === NotificationKind.FOLLOW) return routes.userProfile(n.actor?.id ?? "");
+  if (n.kind === NotificationKind.COACHING_SUMMARY) return "/messages"; // 실제 이동은 openSummary(그 회원과의 대화) @plm SRS-080
   return n.postId ? routes.postComments(n.postId) : "/feed";
+}
+
+/** 성과 요약 알림 — 보낸 회원(actor)과의 1:1 대화로 가서 그 카드를 강조한다(postId 는 비어 있다 · S-16·U-17). @plm SRS-080 */
+async function openSummary(n: Notification): Promise<void> {
+  const memberId = n.actor?.id;
+  if (!memberId) return navigate("/messages");
+  try {
+    const res = await dmClient().getOrCreateDirect({ userId: memberId });
+    const id = res.conversation?.id;
+    navigate(id ? `${routes.conversation(id)}?highlight=summary` : "/messages");
+  } catch {
+    navigate("/messages");
+  }
 }
 
 export default function NotificationsClient() {
@@ -89,6 +106,14 @@ export default function NotificationsClient() {
               <a
                 key={n.id}
                 href={target(n)}
+                onClick={
+                  n.kind === NotificationKind.COACHING_SUMMARY
+                    ? (e) => {
+                        e.preventDefault();
+                        void openSummary(n);
+                      }
+                    : undefined
+                }
                 data-testid="notif-row"
                 className={`block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt) ${
                   n.read ? "" : "bg-(--color-brand-muted)"

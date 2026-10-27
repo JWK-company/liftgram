@@ -135,6 +135,11 @@ export async function onLoggedIn(userId: string): Promise<ReconcileResult> {
   const result = await reconcileAccount(userId);
   // 비웠으면 서버에서 받아 채우고, 아니면 로컬 변경을 밀어 올린다 — 어느 쪽이든 동기 한 번이다.
   if (result.kind !== "blocked") scheduleSync(0);
+  // 성과 요약 대기열 — 다른 사람 것은 지우고(비웠으면 전부) 이 사람 것을 보낸다(S-4) @plm SRS-080
+  if (result.kind !== "blocked")
+    void import("./summaryOutbox").then((m) =>
+      m.startSummaryOutbox(userId, { wiped: result.kind === "wiped" }),
+    );
   return result;
 }
 
@@ -142,10 +147,12 @@ export async function onLoggedIn(userId: string): Promise<ReconcileResult> {
 export async function discardAndAdopt(userId: string): Promise<void> {
   await discardLocalAndAdopt(userId);
   scheduleSync(0);
+  void import("./summaryOutbox").then((m) => m.startSummaryOutbox(userId, { wiped: true })); // 비운 기기 — 요약 대기열도 전부 버림 @plm SRS-080
 }
 
 /** 로그아웃 — 멈춤을 푼다(이 기기 주인은 그대로라, 원래 계정으로 로그인하면 올라간다). */
 export async function onLoggedOut(): Promise<void> {
+  (await import("./summaryOutbox")).stopSummaryOutbox(); // 요약 대기열 지움(S-4) @plm SRS-080
   await clearSyncBlock();
 }
 

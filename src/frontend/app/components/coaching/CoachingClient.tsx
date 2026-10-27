@@ -34,6 +34,7 @@ import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { useToast } from "../Toast";
 import { LogoSpinner } from "../ui/LogoSpinner";
+import { MemberReportDialog } from "../summary/MemberReportDialog"; // 원본 레코드 + core 계산(ADR-040) @plm SRS-079 SRS-080
 
 const STATUS_KEY: Record<GrantStatus, TransKey> = {
   [GrantStatus.UNSPECIFIED]: "coaching.status.pending",
@@ -54,6 +55,7 @@ export default function CoachingClient() {
 
   // 겹쳐 뜨는 판: 리포트 · 루틴 처방 · 이력. 한 번에 하나만 연다.
   const [report, setReport] = useState<{ peer: Peer; data: MemberReport } | null>(null);
+  const [reportFor, setReportFor] = useState<Peer | null>(null); // 새 리포트(GetMemberRecords) @plm SRS-079
   const [routinesFor, setRoutinesFor] = useState<Peer | null>(null);
   const [history, setHistory] = useState<{ grant: Grant; lines: string[] } | null>(null);
 
@@ -94,12 +96,15 @@ export default function CoachingClient() {
 
   async function openReport(g: Grant) {
     if (!g.peer) return;
-    try {
-      const res = await coachingClient().getMemberReport({ memberId: g.peer.id });
-      if (res.report) setReport({ peer: g.peer, data: res.report });
-    } catch {
-      toast(t("common.error"), "error");
-    }
+    // [원본] 원복 시 아래를 주석 해제하고 새 호출(setReportFor)을 주석 처리 — 옛 GetMemberReport(Go 집계)는 서버에 그대로 있다(ADR-040 개정)
+    // try {
+    //   const res = await coachingClient().getMemberReport({ memberId: g.peer.id });
+    //   if (res.report) setReport({ peer: g.peer, data: res.report });
+    // } catch {
+    //   toast(t("common.error"), "error");
+    // }
+    // [개선] 원본 레코드를 받아 이 기기의 core 가 계산한다(회원 요약과 같은 숫자) — 결과는 판 상태에만(S-20)
+    setReportFor(g.peer);
   }
 
   async function openHistory(g: Grant) {
@@ -262,6 +267,9 @@ export default function CoachingClient() {
 
       {report ? (
         <ReportDialog report={report.data} peer={report.peer} unit={unit} onClose={() => setReport(null)} />
+      ) : null}
+      {reportFor ? (
+        <MemberReportDialog peer={reportFor} unit={unit} onClose={() => setReportFor(null)} />
       ) : null}
 
       {routinesFor ? <MemberRoutinesDialog peer={routinesFor} onClose={() => setRoutinesFor(null)} /> : null}
@@ -462,8 +470,8 @@ function ReportDialog({
   );
 }
 
-/** 회원 루틴 처방 — 종목을 누르면 편집기가 열린다. */
-function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: () => void }) {
+/** 회원 루틴 처방 — 종목을 누르면 편집기가 열린다. DM 요약 카드의 「루틴 처방」도 이 판을 연다(SRS-080). */
+export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: () => void }) {
   const toast = useToast();
   const [routines, setRoutines] = useState<Routine[] | null>(null);
   const [editing, setEditing] = useState<{ routine: Routine; block: RoutineExercise } | null>(null);

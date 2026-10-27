@@ -27,6 +27,7 @@ import { LogoSpinner } from "../ui/LogoSpinner";
 import { EffortCard } from "./EffortCard"; // 세트 힘든 정도(SRS-074)
 import { MuscleBalanceCard } from "./MuscleBalanceCard"; // 근육 균형(SRS-076)
 import { BodyweightCard } from "./BodyweightCard"; // 체중 추세(SRS-078)
+import { SummaryEntry } from "../summary/SummaryEntry"; // 기간 성과 요약(SRS-079)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Overview = Awaited<ReturnType<AnalyticsRepo["getOverview"]>>;
@@ -136,6 +137,7 @@ export default function StatsClient() {
     <div className="flex flex-1 flex-col">
       <AppBar title={t("analytics.title")} />
       <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
+        <SummaryEntry /* 기간 성과 요약 입구(SRS-079) */ />
         <Segmented
           testId="stats-period"
           className="mb-[var(--spacing-lg)]"

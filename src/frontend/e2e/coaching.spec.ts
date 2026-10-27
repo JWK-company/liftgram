@@ -176,11 +176,13 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
     await expect(pageT.getByTestId("coaching-members")).toContainText("코칭 중", { timeout: 20_000 });
     await pageT.getByTestId("coaching-report").click();
 
-    // **사실만** 보인다 — 세션 1회, 부위별 볼륨 600kg.
-    await expect(pageT.getByTestId("report-sessions")).toHaveText("1", { timeout: 20_000 });
-    await expect(pageT.getByTestId("report-muscles")).toContainText("600kg");
+    // **사실만** 보인다 — 세션 1회, 총 볼륨 600kg, 가슴 1세트(SRS-079: 원본 레코드 → 이 기기 core 계산 · 부위별은 세트 단위).
+    // [원본] report-sessions "1" · report-muscles "600kg" · "사실 집계만"(옛 GetMemberReport Go 집계 화면)
+    await expect(pageT.getByTestId("ps-workouts")).toHaveText("1회", { timeout: 20_000 });
+    await expect(pageT.getByTestId("ps-volume")).toHaveText("600kg");
+    await expect(pageT.getByTestId("ps-muscle-chest")).toHaveAttribute("data-sets", "1");
     // 판단은 코치가 한다는 고지가 함께 있다.
-    await expect(pageT.getByTestId("coaching-report-view")).toContainText("사실 집계만");
+    await expect(pageT.getByTestId("coaching-report-view")).toContainText("다음 처방 판단은 코치가 합니다");
     await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click();
 
     // 회원이 해지하면 트레이너 쪽에서 즉시 닫힌다.
