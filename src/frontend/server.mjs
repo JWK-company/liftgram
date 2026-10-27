@@ -44,7 +44,17 @@ const handle = app.getRequestHandler();
 await app.prepare();
 
 // 헬스체크는 몇 초마다 오므로 로그에서 뺀다 — 진짜 트래픽이 묻힌다.
-const QUIET = new Set(["/healthz", "/readyz", "/api/healthz", "/api/readyz"]);
+const QUIET = new Set(["/healthz", "/readyz", "/api/healthz", "/api/readyz", "/app-version"]);
+
+// 배포된 화면의 버전 — 필수 업데이트 판정에서 「서버가 그 버전을 실제로 갖고 있나」를 본다(SRS-085 · QA H-1).
+// 못 읽으면 null(화면은 필수가 아니라고 본다 — fail-open).
+let webVersion = null;
+try {
+  const { readFile } = await import("node:fs/promises");
+  webVersion = JSON.parse(await readFile(new URL("./package.json", import.meta.url), "utf8")).version ?? null;
+} catch {
+  webVersion = null;
+}
 
 /**
  * **web 자신의** 헬스. api의 것(`/api/healthz`)과 경로를 나눈 이유가 있다.
@@ -60,6 +70,13 @@ async function ownHealth(req, res) {
   if (path === "/healthz") {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify({ status: "ok", uptime: process.uptime() }));
+    return true;
+  }
+  // @plm SRS-085  공개 버전 확인 — { version, minClientVersion }. Next·프록시·DB 를 거치지 않는다(가볍고, 아플 때도 답한다).
+  // 서비스워커는 이 주소를 가로채지 않는다(navigate·미리받기 아님) — 늘 네트워크의 값이다.
+  if (path === "/app-version" && (req.method === "GET" || req.method === "HEAD")) {
+    res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+    res.end(JSON.stringify({ version: webVersion, minClientVersion: env.MIN_CLIENT_VERSION || "" }));
     return true;
   }
   if (path === "/readyz") {

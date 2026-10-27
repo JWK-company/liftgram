@@ -13,6 +13,8 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "../AuthProvider";
 import { isInsider } from "../FeedbackClient";
 import { LogoSpinner } from "./LogoSpinner";
+import { useAppUpdate } from "@/lib/appUpdate";
+import { tw } from "@/lib/i18n";
 
 /** 탭바 없이 전체 화면으로 여는 인증 흐름(SRS-054 P3). /account 는 프로필의 하위 화면이라 탭바를 둔다. */
 const AUTH_ROUTES = ["/signin", "/signup", "/forgot", "/reset", "/verify-email", "/auth"];
@@ -151,6 +153,8 @@ function TabIcon({ k }: { k: TabKey }) {
 export function TabBar() {
   const pathname = usePathname();
   const { user } = useAuth();
+  // 새 버전이 기다리면 프로필 탭에 조용한 점(빨강·금색 아님 — 화면 정리 규칙) @plm SRS-085
+  const { available: updateAvailable } = useAppUpdate();
   if (pathname.startsWith("/workout")) return null;
   // 로그인·가입·비밀번호·확인 화면은 전체 화면이다(시안 10) — 탭바가 아래 내용을 가리던 자리.
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) return null;
@@ -184,9 +188,21 @@ export function TabBar() {
                 className="absolute inset-x-[22%] top-0 h-[2.5px] rounded-b-full bg-(--color-brand) lg:inset-x-auto lg:inset-y-[18%] lg:left-0 lg:h-auto lg:w-[2.5px] lg:rounded-b-none lg:rounded-r-full"
               />
             ) : null}
-            <TabIcon k={t.key} />
+            <span className="relative inline-flex">
+              <TabIcon k={t.key} />
+              {t.key === "profile" && updateAvailable ? (
+                <span
+                  aria-hidden
+                  data-testid="nav-profile-update-dot"
+                  className="absolute -top-[1px] -right-[3px] h-[6px] w-[6px] rounded-full bg-(--color-ink2) ring-2 ring-(--color-surface)"
+                />
+              ) : null}
+            </span>
             <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>
               {t.label}
+              {t.key === "profile" && updateAvailable ? (
+                <span className="sr-only">{` · ${tw("web.sw.hasUpdate")}`}</span>
+              ) : null}
             </span>
           </Link>
         );

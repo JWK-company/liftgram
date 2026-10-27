@@ -131,6 +131,8 @@ services:
       TRUST_CF_CONNECTING_IP: ${TRUST_CF_CONNECTING_IP:-0}
       TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
       OAUTH_PREVIEW_PROVIDERS: ${OAUTH_PREVIEW_PROVIDERS:-}
+      # 필수 업데이트 최소 버전(비면 필수 아님 · /app-version) — SRS-085
+      MIN_CLIENT_VERSION: ${MIN_CLIENT_VERSION:-}
     ports: ["${WEB_PORT:-3000}:3000"]
     healthcheck:
       # **frontend 자신의** 경로를 본다(/healthz). /api/healthz 는 프록시라 backend의 상태를

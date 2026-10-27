@@ -1,6 +1,8 @@
 // 피드백 #62·#63·#64 (SRS-084 · 2026-10-27) — 스펙 .ouroboros/docs/spec/20261027_feedback-62-64/spec.md
 //
 //   #64 완료 직후 요약·완료 시트가 떠 있는 동안 새 버전을 자동 적용하지 않는다(가짜 waiting 워커 — 운영 빌드에서만 켜진다)
+//       ※ 2026-10-27 SRS-085(수동 업데이트)로 정책이 바뀌었다 — 「홈으로 가면 적용」은 이제 **틀린 기대**다.
+//         아무 화면에서도 저절로 적용·새로고침하지 않고, 프로필 「업데이트」를 누를 때만 skip-waiting 한다(아래 두 테스트의 끝부분).
 //   #63 플레이트 머신은 기본이 한쪽(×2) · 입력 방식을 안 정한 종목은 한 번 묻고 기억한다 · 핀 스택이 흔한 머신은 묻지 않는다
 //   #62 휴식·메모·순서는 ⋯ 메뉴 밖 블록 도구 줄(누르는 자리 44px · 빨강 없음)
 //
@@ -31,7 +33,8 @@ async function 가짜_서비스워커(page: Page): Promise<void> {
     const swListeners: L[] = [];
     const sw = {
       state: "installing",
-      postMessage: (m: string) => (w.__swMsgs as string[]).push(m),
+      // 버전 묻기({type:"version"} · SRS-085)는 문자열 메시지가 아니다 — 적용 신호(skip-waiting)만 모은다
+      postMessage: (m: unknown) => typeof m === "string" && (w.__swMsgs as string[]).push(m),
       addEventListener: (_t: string, fn: L) => swListeners.push(fn),
     };
     const reg = {
@@ -91,18 +94,24 @@ test("#64 완료 직후 요약·루틴 저장 시트가 떠 있는 동안은 새
   ).toBe(pageId);
   await expect(page.getByTestId("finish-name")).toBeVisible();
 
-  // 시트를 닫고 요약을 닫으면 홈 — 그때 미뤄 둔 새로고침이 일어난다(새 문서 = 새 pageId)
+  // 시트를 닫고 요약을 닫으면 홈 — [원본] 그때 미뤄 둔 새로고침이 일어난다(새 문서 = 새 pageId)
+  // [개선 SRS-085] 홈에 가도 새로고침하지 않는다 — 업데이트는 프로필 버튼으로만
   await page.getByTestId("btn-finish-dont-save").click();
   await page.getByTestId("btn-summary-close").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
-  await expect
-    .poll(() => page.evaluate(() => (window as unknown as { __pageId?: number }).__pageId), {
-      timeout: 15_000,
-    })
-    .not.toBe(pageId);
+  await page.waitForTimeout(5_000);
+  expect(
+    await page.evaluate(() => (window as unknown as { __pageId?: number }).__pageId),
+    "홈에서도 저절로 새로고침하지 않는다",
+  ).toBe(pageId);
+  expect(await 메시지(page), "홈에서도 skip-waiting 없음").toEqual([]);
 });
 
-test("#64 요약을 닫고 홈으로 가면 기다리던 새 버전을 적용한다(controllerchange 없이)", async ({ page }) => {
+// [원본] test("#64 요약을 닫고 홈으로 가면 기다리던 새 버전을 적용한다(controllerchange 없이)", …)
+// [개선 SRS-085] 홈에 가도 적용하지 않고, 프로필 「업데이트」를 눌러야 skip-waiting 한다
+test("#64 요약을 닫고 홈으로 가도 새 버전을 저절로 적용하지 않는다 — 프로필 「업데이트」를 누를 때만", async ({
+  page,
+}) => {
   test.setTimeout(180_000);
   await 가짜_서비스워커(page);
   await 카탈로그_준비(page);
@@ -119,6 +128,14 @@ test("#64 요약을 닫고 홈으로 가면 기다리던 새 버전을 적용한
   await page.getByTestId("btn-finish-dont-save").click();
   await page.getByTestId("btn-summary-close").click();
   await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  // [원본] await expect.poll(() => 메시지(page), { timeout: 15_000 }).toEqual(["skip-waiting"]);
+  await page.waitForTimeout(5_000);
+  expect(await 메시지(page), "홈에서 저절로 skip-waiting 하지 않는다").toEqual([]);
+  // 프로필 탭(클라이언트 이동 — 가짜 워커 유지)의 「업데이트」를 누르면 그때 보낸다
+  await expect(page.getByTestId("nav-profile-update-dot")).toBeVisible();
+  await page.getByTestId("nav-profile").click();
+  await page.getByTestId("app-update-btn").click();
+  await expect(page.getByTestId("update-overlay")).toBeVisible();
   await expect.poll(() => 메시지(page), { timeout: 15_000 }).toEqual(["skip-waiting"]);
 });
 

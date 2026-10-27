@@ -43,6 +43,31 @@ const WEB_ONLY: Record<string, Record<AppLanguage, string>> = {
   // 서비스워커(오프라인 셸·새 버전) — 앱은 스토어가 업데이트를 맡아 이 문구가 없다.
   "web.sw.updateReady": { ko: "새 버전이 있어요", en: "A new version is ready" },
   "web.sw.updateApply": { ko: "새로고침", en: "Reload" },
+  // 수동 업데이트(프로필 버튼 하나 · 덮개) — 위 두 키는 옛 띠의 것(보존 · 쓰지 않음) @plm SRS-085
+  "web.sw.appVersion": { ko: "앱 버전 v{version}", en: "App version v{version}" },
+  "web.sw.newVersion": { ko: "새 버전 v{version}", en: "New version v{version}" },
+  "web.sw.newVersionUnknown": { ko: "새 버전이 있어요", en: "A new version is available" },
+  "web.sw.reloadToApply": { ko: "새로고침하면 새 버전이 적용돼요", en: "Reload to use the new version" },
+  "web.sw.update": { ko: "업데이트", en: "Update" },
+  "web.sw.blockedWorkout": {
+    ko: "운동을 끝낸 뒤 업데이트할 수 있어요",
+    en: "You can update after you finish your workout",
+  },
+  "web.sw.mandatory": { ko: "필수 업데이트예요", en: "This update is required" },
+  "web.sw.mandatoryWait": {
+    ko: "필수 업데이트예요 · 운동을 끝내면 업데이트해요",
+    en: "Required update · it will install after your workout",
+  },
+  "web.sw.updating": { ko: "업데이트하는 중이에요", en: "Updating" },
+  "web.sw.updatingHint": { ko: "잠시만 기다려 주세요", en: "This takes a few seconds" },
+  "web.sw.failed": { ko: "업데이트하지 못했어요", en: "Couldn't update" },
+  "web.sw.failedHint": {
+    ko: "기록은 이 기기에 그대로 있어요. 잠시 뒤 다시 시도해 주세요.",
+    en: "Your records are safe on this device. Please try again in a moment.",
+  },
+  "web.sw.retry": { ko: "다시 시도", en: "Try again" },
+  "web.sw.close": { ko: "닫기", en: "Close" },
+  "web.sw.hasUpdate": { ko: "새 버전 있음", en: "New version available" },
   "web.offline.title": { ko: "오프라인이에요", en: "You're offline" },
   "web.offline.message": {
     ko: "이 화면은 아직 기기에 없어요. 운동·기록·캘린더·분석 탭은 오프라인에서도 열려요.",

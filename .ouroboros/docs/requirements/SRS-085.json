@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-085",
+  "type": "SRS",
+  "title": "앱 업데이트는 프로필 버튼 하나로 — 덮개로 입력을 막고 기다림 · 운동 중 비활성 · 프로필 탭 점 · 필수 업데이트(최소 클라이언트 버전)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T14:00:00Z",
+  "updated": "2026-10-27T14:00:00Z",
+  "sync": true,
+  "tags": ["web-stack", "service-worker", "pwa", "update", "reliability"],
+  "kind": "FR",
+  "acceptance_criteria": "앱 사용 중 저절로 업데이트·새로고침 없음(띠·자동 적용 제거) · 프로필 「앱 버전」 줄의 「업데이트」만 적용 · 누르면 전체 화면 덮개가 새 문서 첫 그림까지 유지 · 15초 실패 화면(다시 시도·닫기) · 운동 중 비활성+이유 · 대기 중이면 프로필 탭 조용한 점 · 서버 최소 버전보다 낮으면 운동 화면 밖에서 같은 덮개로 업데이트",
+  "relations": {
+    "derives_from": ["URS-001", "URS-008", "URS-023"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "웹 앱(PWA)의 새 버전 적용이 하단 띠·운동 중 아니면 자동 적용·다른 탭의 적용이라는 세 경로로 흩어져, 버튼을 눌러도 다른 동작이 끼어들어 충돌하고, 업데이트가 될 때도 안 될 때도 있었다. 2026-10-27 에는 운동 완료 직후 자동 적용 새로고침이 요약·루틴 반영 시트를 날렸다(#64). 시스템은 새 버전 적용을 프로필의 버튼 한 곳으로 모으고, 사람이 누르지 않으면 앱을 쓰는 동안 업데이트하거나 새로고침하지 않는다. 앱을 완전히 닫았다 다시 열 때 브라우저가 기다리던 워커를 활성화하는 것은 허용한다."
+          }
+        ]
+      },
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
+      {
+        "type": "bullet_list",
+        "content": [
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "프로필에 「앱 버전 vX.Y.Z」 줄이 있고, 기다리는 새 워커가 있으면 「업데이트」 버튼과 새 버전 번호(새 워커가 답한 값 → 서버 값 → 「새 버전」)를 보인다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "누르면 로고 스피너 전체 화면 덮개가 모든 입력을 막고, 기기 DB 내려쓰기 → skip-waiting → controllerchange → 새로고침을 기다린다. 덮개는 새 문서의 첫 그림까지 이어진다(sessionStorage 표식 + 첫 칠하기 전 스크립트)." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "15초 안에 새로고침에 이르지 못하면 「업데이트하지 못했어요」와 다시 시도·닫기를 보인다. 무한 대기는 없다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "하단 띠·자동 적용·/workout 보류 새로고침이 없다. 요약 화면을 포함한 어느 화면에서도 저절로 새로고침되지 않는다. 다른 탭이 적용해 controllerchange 가 와도 이 탭은 새로고침하지 않고 「업데이트」(새로고침만)로 표시한다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "진행 중인 운동이 있으면(셸 상태 · 누른 순간 기기 DB 재확인) 버튼이 비활성이고 「운동을 끝낸 뒤 업데이트할 수 있어요」를 보인다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "새 버전이 기다리고 있으면 하단 「프로필」 탭에 조용한 색(빨강·금색 아님)의 작은 점이 있고 접근 이름에 「새 버전 있음」이 붙는다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "web 서버의 공개 GET /app-version 이 {version, minClientVersion}(환경변수 MIN_CLIENT_VERSION · 기본 빈 값 = 필수 아님)을 no-store 로 답한다. 현재 버전이 최소 버전보다 낮으면 운동 중·운동 화면이 아닐 때 같은 덮개로 업데이트한다(운동 중에는 끝날 때까지 기다린다). 잘못된 값은 필수 아님으로 본다." }] }] },
+          { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "문구는 한/영(웹 전용 사전). 화면 정리 규칙(색 의미 2개 · 빨강 채움 화면당 1개 · 탭 44px)을 지킨다." }] }] }
+        ]
+      },
+      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "근거" }] },
+      { "type": "paragraph", "content": [{ "type": "text", "text": "스펙 .ouroboros/docs/spec/20261027_manual-update/spec.md · 이전 동작 SRS-051(셸)·SRS-084(#64 /workout 보류 — 이 요구가 대체)" }] }
+    ]
+  }
+}

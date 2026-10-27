@@ -58,6 +58,7 @@ import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 import { version as APP_VERSION } from "../../../package.json";
 import buildInfo from "../../build-info.json";
 import { LogoSpinner } from "../ui/LogoSpinner";
+import { AppVersionRow } from "./AppVersionRow"; // 앱 버전 줄 + 업데이트 버튼 @plm SRS-085
 
 type Language = "ko" | "en";
 
@@ -358,6 +359,11 @@ export default function ProfileClient() {
               ) : null}
             </>
           ) : null}
+        </ListGroup>
+
+        {/* 앱 버전 · 업데이트 — 새 버전 적용은 이 버튼 한 곳에서만(SRS-085 · 띠·자동 적용 없음) */}
+        <ListGroup>
+          <AppVersionRow />
         </ListGroup>
 
         <div className="pb-[var(--spacing-xl)]">

@@ -70,6 +70,11 @@ const schema = z.object({
    * 키가 들어와 켜진 제공자는 자동으로 진짜 버튼이 된다. 다 켜지면 비운다.
    */
   OAUTH_PREVIEW_PROVIDERS: z.string().default(""),
+  /**
+   * 필수 업데이트의 최소 클라이언트 버전(SemVer · 예: 0.46.0). 비면 필수 아님(기본).
+   * 공개 GET /app-version 이 그대로 내보낸다 — 화면이 자기 버전과 비교해 낮으면 덮개로 업데이트한다. @plm SRS-085
+   */
+  MIN_CLIENT_VERSION: z.string().default(""),
 });
 export type WebEnv = z.infer<typeof schema>;
 

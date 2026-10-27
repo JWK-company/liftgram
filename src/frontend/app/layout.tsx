@@ -27,6 +27,8 @@ import { AccountGuard } from "./components/sync/AccountGuard";
 import { ImportElsewhereNotice } from "./components/sync/ImportElsewhereNotice";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
 import { TabBar } from "./components/ui/TabBar";
+import { LogoSpinner } from "./components/ui/LogoSpinner";
+import { tw } from "@/lib/i18n";
 import "./globals.css";
 
 // metadataBase(절대 URL)를 **일부러 두지 않는다.**
@@ -58,6 +60,10 @@ export const viewport: Viewport = {
 // 기기 설정(prefers-color-scheme)을 따른다 — CSS 가 처리하므로 data-theme 을 달지 않는다(lib/theme.ts).
 const THEME_INIT = `(function(){try{var t=localStorage.getItem("liftgram.theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}})()`;
 
+// 업데이트 새로고침 직후 — 첫 칠하기 **전에** 덮개를 켠다(표식 60초 이내만). 하이드레이션 뒤 ServiceWorker 가 내린다.
+// 하이드레이션이 깨져도 15초 뒤엔 스스로 내린다(앱을 가린 채 남지 않게 · 스펙 R5). 표식 이름·유효 시간은 core swUpdatePolicy(BOOT_MARKER_KEY·BOOT_MARKER_TTL_MS)와 같다. @plm SRS-085
+const UPDATE_BOOT_INIT = `(function(){try{var m=sessionStorage.getItem("liftgram.updating");if(!m)return;var o=JSON.parse(m);if(o&&typeof o.at==="number"&&Math.abs(Date.now()-o.at)<60000){document.documentElement.setAttribute("data-updating","1");setTimeout(function(){document.documentElement.removeAttribute("data-updating")},15000)}else sessionStorage.removeItem("liftgram.updating")}catch(e){}})()`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" suppressHydrationWarning>
@@ -66,6 +72,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 첫 칠하기 전 테마를 정하는 고정 문자열 */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 업데이트 직후 첫 칠하기 전 덮개를 켜는 고정 문자열 */}
+        <script dangerouslySetInnerHTML={{ __html: UPDATE_BOOT_INIT }} />
       </head>
       <body className="min-h-dvh bg-(--color-bg) font-sans text-(--color-ink) antialiased">
         {/* 로그인 상태·진행 중인 운동·휴식은 **화면을 옮겨도 유지된다** — 그래서 셸이 들고 있는다. */}
@@ -104,6 +112,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ToastProvider>
           </SessionProvider>
         </AuthProvider>
+        {/* 업데이트 새로고침 직후 첫 그림까지의 덮개 — html[data-updating] 일 때만 보인다(globals.css · SRS-085) */}
+        <div id="update-boot-cover" data-testid="update-boot-cover" role="status" aria-busy="true">
+          <LogoSpinner size={56} />
+          <p className="font-semibold text-[length:var(--text-lg)]">{tw("web.sw.updating")}</p>
+        </div>
         <div id="toast-root" data-testid="toast-root" className="fixed right-4 bottom-20 z-50" />
         <div id="modal-root" data-testid="modal-root" />
       </body>

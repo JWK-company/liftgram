@@ -11,11 +11,16 @@
 //   /fonts/*              캐시 우선(정적 캐시 — Pretendard 서브셋은 그 글자를 처음 쓸 때 받는다)
 //   /media/file/*         캐시 우선 · 최대 200장 · 7일(키가 무작위라 내용이 안 바뀐다)
 //
-// ⚠ 새 워커는 **스스로 활성화하지 않는다**(skipWaiting 없음). 화면이 "새 버전" 띠를 띄우고,
+// ⚠ 새 워커는 **스스로 활성화하지 않는다**(skipWaiting 없음). [원본] 화면이 "새 버전" 띠를 띄우고,
 //   운동 중이 아닐 때 사람이 누르면 그때 바꾼다 — 세트를 적는 도중 새로고침되지 않게.
+//   [개선 2026-10-27 · SRS-085] 사람이 **프로필 「업데이트」** 를 누를 때만 "skip-waiting" 을 받는다(띠·자동 적용 없음).
+//   앱을 완전히 닫았다 열면 브라우저가 알아서 이 워커를 활성화한다 — 그건 허용(새 문서가 처음부터 새 워커).
+//   화면이 새 버전 번호를 보여 주도록 {type:"version"} 메시지에 APP_VERSION·BUILD_ID 를 답한다.
 // ⚠ 옛 정적 캐시는 **한 세대 남긴다**. 바로 지우면 열려 있던 옛 탭이 화면 조각을 못 찾아 깨진다.
 
 const BUILD_ID = "__BUILD_ID__";
+// 앱 버전(frontend/package.json) — 기다리는 동안 화면이 물어 「새 버전 vX.Y.Z」 로 보인다 @plm SRS-085
+const APP_VERSION = "__APP_VERSION__";
 const STATIC = `liftgram-static-${BUILD_ID}`;
 const PAGES = `liftgram-pages-${BUILD_ID}`;
 const MEDIA = "liftgram-media";
@@ -28,7 +33,7 @@ const SHELLS = ["/", "/workout", "/history", "/calendar", "/stats", "/stats/summ
 // 곧바로 내줘도 되는 셸 — 쿠키를 읽지 않는 클라이언트 화면만(데이터는 기기 DB·API 에서 따로 온다).
 // signin·signup·account 는 서버가 쿠키(「최근」 배지)를 읽어 그린다 — 여기 넣지 않는다.
 // 캐시는 **이 빌드의 PAGES** 뿐이다: 셸 HTML 이 가리키는 정적 조각이 같은 워커의 STATIC 에 들어 있다(버전 어긋남 없음).
-// 새 배포는 새 워커가 기다리다 「새 버전」 띠로 사람이 바꾼다(ServiceWorker.tsx) — 그때 새 셸로 넘어간다.
+// 새 배포는 새 워커가 기다리다 사람이 프로필 「업데이트」로 바꾼다(ServiceWorker.tsx · SRS-085) — 그때 새 셸로 넘어간다.
 const SWR_SHELLS = new Set([
   "/",
   "/workout",
@@ -88,6 +93,9 @@ async function rememberBuild() {
 
 self.addEventListener("message", (event) => {
   if (event.data === "skip-waiting") self.skipWaiting();
+  // 버전 묻기 — 포트로 답한다(옛 워커는 답하지 않으니 화면은 짧게 기다리고 넘어간다) @plm SRS-085
+  if (event.data && event.data.type === "version")
+    event.ports?.[0]?.postMessage({ version: APP_VERSION, build: BUILD_ID });
   // 로그아웃하면 본 사진을 기기에서 지운다(다음 사람이 이 기기를 쓸 수 있다).
   if (event.data === "clear-media") event.waitUntil(caches.delete(MEDIA));
 });

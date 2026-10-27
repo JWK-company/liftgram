@@ -16,6 +16,8 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("../frontend/", import.meta.url));
 const next = join(root, ".next");
 const buildId = readFileSync(join(next, "BUILD_ID"), "utf8").trim();
+// 앱 버전 — 기다리는 새 워커가 화면에 「새 버전 vX.Y.Z」 를 답한다(프로필 업데이트 줄) @plm SRS-085
+const appVersion = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
 
 const files = [];
 (function walk(dir) {
@@ -38,9 +40,16 @@ const pub = [
 const precache = [...pub, ...files.sort()];
 
 const template = readFileSync(join(root, "sw", "sw.template.js"), "utf8");
-if (!template.includes("__BUILD_ID__") || !template.includes("__PRECACHE__")) {
-  throw new Error("sw.template.js 에 자리표시자가 없다(__BUILD_ID__ · __PRECACHE__)");
+if (
+  !template.includes("__BUILD_ID__") ||
+  !template.includes("__PRECACHE__") ||
+  !template.includes("__APP_VERSION__")
+) {
+  throw new Error("sw.template.js 에 자리표시자가 없다(__BUILD_ID__ · __PRECACHE__ · __APP_VERSION__)");
 }
-const out = template.replace("__BUILD_ID__", buildId).replace("__PRECACHE__", JSON.stringify(precache));
+const out = template
+  .replace("__BUILD_ID__", buildId)
+  .replace("__APP_VERSION__", appVersion)
+  .replace("__PRECACHE__", JSON.stringify(precache));
 writeFileSync(join(root, "public", "sw.js"), out);
-console.log(`[build-sw] public/sw.js · build ${buildId} · 미리 받기 ${precache.length}개`);
+console.log(`[build-sw] public/sw.js · v${appVersion} · build ${buildId} · 미리 받기 ${precache.length}개`);
