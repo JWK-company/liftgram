@@ -5,13 +5,17 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  BODYWEIGHT_PROFILE_LOG_PREFIX,
   BODYWEIGHT_STEPS,
   bodyweightInitLogId,
   bodyweightLegacyLogId,
   goalGap,
+  isBodyweightClearMarker,
   latest,
+  latestEntry,
   mirrorAfterLogWrite,
   planBodyweightMirror,
+  planProfileBodyweightWrite,
   resolveBodyweightKg,
   sortBodyweightLogs,
   stepBodyweightKg,
@@ -201,14 +205,174 @@ test('두 기기 교차 기록 → pull 뒤 미러 = 측정 시각상 최신(마
   assert.equal(again.create, null);
 });
 
-test('다른 설정과 함께 올라온 낡은 미러(이력 값과 같음)는 흡수하지 않고 최신 측정으로 되돌린다', () => {
+// [원본] 「다른 설정과 함께 올라온 낡은 미러(이력 값과 같음)는 흡수하지 않고 최신 측정으로 되돌린다」 — CD-1 의 되돌림을 의도로 굳힌
+//        잘못된 기대였다. 같은 모양(이력에 있는 예전 값 + 프로필이 마지막 이력보다 나중)은 사람이 예전 값으로 되돌린 옛 경로 입력이다.
+test('옛 경로로 예전 값(이력에 있는 값)으로 되돌린 입력도 흡수한다 — 직전 값으로 되돌리지 않는다(CD-1)', () => {
   const old = log(at(5), 82, at(5), 'old');
   const fresh = log(at(1), 80, at(1), 'fresh');
-  // 낡은 기기가 알림음 설정을 바꾸며 프로필 행 전체(bodyweight_kg=82)를 올렸다 — updated_at 은 최신 이력보다 나중
+  // v25 화면이 프로필 칸을 82 로 직접 고쳤다(82 는 5일 전에 적은 적 있는 값) — updated_at 은 마지막 이력보다 나중
   const plan = planBodyweightMirror(P(82, NOW), [old, fresh]);
+  assert.equal(plan.create?.reason, 'legacy');
+  assert.equal(plan.create?.weightKg, 82);
+  assert.equal(plan.mirrorKg, 82);
+  assert.equal(plan.updateMirror, false);
+});
+
+test('두 기기 교차 — 다른 기기가 기록하며 올린 미러(그 기기가 마지막에 쓴 줄 값)는 흡수하지 않는다', () => {
+  // B 가 b1(81)을 적으며 미러 81 을 같은 write 로 올렸다 — 프로필 updated_at 이 b1 보다 1ms 늦어도 흡수 아님
+  const a2 = log(at(1), 79, at(1), 'a2');
+  const b1 = log(at(2), 81, NOW - 1000, 'b1');
+  const plan = planBodyweightMirror(P(81, NOW - 999), [log(at(3), 80, at(3), 'a1'), a2, b1]);
   assert.equal(plan.create, null);
+  assert.equal(plan.mirrorKg, 79);
+});
+
+test('옛 측정을 늦게 적은 뒤(프로필은 안 바뀜) — 마지막에 쓴 줄보다 먼저 고쳐진 미러는 흡수하지 않는다', () => {
+  const recent = log(at(1), 79, at(1), 'recent');
+  const back = log(at(10), 85, NOW - 10, 'backfill'); // 늦게 적은 옛 측정
+  const plan = planBodyweightMirror(P(81, at(1) + 5), [recent, back]);
+  assert.equal(plan.create, null);
+  assert.equal(plan.mirrorKg, 79);
+});
+
+// ── 프로필 체중 입력(CD-1 ① · CD-2) — 같은 write 안에서 이력 한 줄 + 미러, 그 뒤 정리를 돌려도 그대로 ─────────
+
+/** 기기 한 대 — 프로필 입력(planProfileBodyweightWrite)과 정리(planBodyweightMirror)를 저장소처럼 적용한다 */
+function device(profileKg: number | null, t0: number) {
+  let profile: MirrorProfile = P(profileKg, t0);
+  let logs: BodyweightLogLike[] = [];
+  let n = 0;
+  return {
+    get profile() {
+      return profile;
+    },
+    get logs() {
+      return logs;
+    },
+    /** 프로필 스테퍼 한 번(같은 write: 줄 + 미러 — 미러 쓰기가 줄보다 1ms 늦다고 본다) */
+    input(kg: number | null, now: number, historyComplete = true) {
+      const w = planProfileBodyweightWrite(kg, logs, now, historyComplete);
+      if (w.update) {
+        const u = w.update;
+        logs = logs.map((l) => (l.id === u.id ? { ...l, measuredAt: u.measuredAt, weightKg: u.weightKg, updatedAt: now } : l));
+      }
+      if (w.create) logs = [...logs, { id: `${BODYWEIGHT_PROFILE_LOG_PREFIX}${++n}`, ...w.create, updatedAt: now }];
+      profile = { ...profile, bodyweightKg: w.mirrorKg, updatedAt: now + 1 };
+      return w;
+    },
+    /** 동기 뒤·부팅 정리 한 번 */
+    reconcile(now: number) {
+      const plan = planBodyweightMirror(profile, logs);
+      const s = apply(profile, logs, plan, now);
+      profile = s.profile;
+      logs = s.logs;
+      return plan;
+    },
+  };
+}
+
+test('회귀 CD-1 — 80 → 82 → 80: 입력마다 정리를 돌려도 80 이 유지된다(이력 최신 80)', () => {
+  const d = device(80, at(30));
+  assert.equal(d.reconcile(at(20)).create?.reason, 'init'); // v26 첫 정리: bw-init(80)
+  d.input(82, at(10));
+  assert.equal(d.reconcile(at(10) + 5000).updateMirror, false);
+  assert.equal(d.profile.bodyweightKg, 82);
+  d.input(80, at(3)); // 며칠 뒤 다시 80(이력에 이미 있는 값)
+  const plan = d.reconcile(at(3) + 5000);
+  assert.equal(plan.create, null);
+  assert.equal(plan.updateMirror, false);
+  assert.equal(d.profile.bodyweightKg, 80);
+  assert.equal(latest(d.logs)?.weightKg, 80);
+  assert.equal(resolveBodyweightKg(d.profile, d.logs), 80);
+  // 다음 부팅 정리도 그대로(멱등)
+  assert.deepEqual(d.reconcile(NOW), { create: null, mirrorKg: 80, updateMirror: false });
+});
+
+test('회귀 CD-1(옛 경로 · v25 클라이언트) — 프로필 칸 직접 수정 80 → 82 → 80 도 흡수되어 80 이 유지된다', () => {
+  let profile = P(80, at(30));
+  let logs: BodyweightLogLike[] = [];
+  const step = (now: number) => {
+    const s = apply(profile, logs, planBodyweightMirror(profile, logs), now);
+    profile = s.profile;
+    logs = s.logs;
+  };
+  step(at(20)); // bw-init(80)
+  profile = { ...profile, bodyweightKg: 82, updatedAt: at(10) };
+  step(at(10) + 5000); // bw-legacy(82)
+  profile = { ...profile, bodyweightKg: 80, updatedAt: at(3) };
+  const plan = planBodyweightMirror(profile, logs);
+  assert.equal(plan.create?.reason, 'legacy');
   assert.equal(plan.mirrorKg, 80);
-  assert.equal(plan.updateMirror, true);
+  step(at(3) + 5000);
+  assert.equal(profile.bodyweightKg, 80);
+  assert.equal(latest(logs)?.weightKg, 80);
+  assert.deepEqual(planBodyweightMirror(profile, logs), { create: null, mirrorKg: 80, updateMirror: false });
+});
+
+test('회귀 CD-2 — 0(설정 안 함)은 표식 한 줄 · 미러 null · 정리가 이력 최신값으로 되살리지 않는다', () => {
+  const d = device(80, at(30));
+  d.reconcile(at(20));
+  d.input(82, at(10));
+  const w = d.input(0, at(2)); // 스테퍼를 0 까지 — 화면은 null 을 넘긴다(0 도 같다)
+  assert.equal(w.create?.weightKg, 0);
+  assert.equal(w.mirrorKg, null);
+  assert.equal(d.profile.bodyweightKg, null);
+  assert.deepEqual(d.reconcile(at(2) + 5000), { create: null, mirrorKg: null, updateMirror: false });
+  assert.deepEqual(d.reconcile(NOW), { create: null, mirrorKg: null, updateMirror: false });
+  assert.equal(resolveBodyweightKg(d.profile, d.logs), null);
+  // 표식은 그래프·주간 변화에 나오지 않는다(유효 행만)
+  assert.equal(sortBodyweightLogs(d.logs).some((l) => l.weightKg === 0), false);
+  assert.equal(latest(d.logs)?.weightKg, 82);
+  // 표식 뒤 새 입력 → 그 값이 다시 내 체중
+  d.input(79, at(1));
+  assert.equal(d.reconcile(at(1) + 5000).updateMirror, false);
+  assert.equal(resolveBodyweightKg(d.profile, d.logs), 79);
+});
+
+test('표식 규칙 — 무게가 정확히 0 이고 측정 시각이 있는 줄만 표식(null·음수는 깨진 행)', () => {
+  assert.equal(isBodyweightClearMarker({ id: 'm', measuredAt: at(1), weightKg: 0, updatedAt: at(1) }), true);
+  assert.equal(isBodyweightClearMarker({ id: 'x', measuredAt: at(1), weightKg: null, updatedAt: at(1) }), false);
+  assert.equal(isBodyweightClearMarker({ id: 'x', measuredAt: null, weightKg: 0, updatedAt: at(1) }), false);
+  assert.equal(isBodyweightClearMarker({ id: 'x', measuredAt: at(1), weightKg: -1, updatedAt: at(1) }), false);
+  // 표식보다 나중 측정이 있으면 그 값 · 표식이 가장 최근이면 null · 이력 쓰기 직후 미러도 같은 규칙
+  const m = { id: 'm', measuredAt: at(2), weightKg: 0, updatedAt: at(2) };
+  assert.equal(resolveBodyweightKg({ bodyweightKg: 70 }, [log(at(5), 80), m]), null);
+  assert.equal(resolveBodyweightKg({ bodyweightKg: 70 }, [log(at(5), 80), m, log(at(1), 78)]), 78);
+  assert.equal(mirrorAfterLogWrite([log(at(5), 80), m]), null);
+  assert.equal(latestEntry([log(at(5), 80), m])?.id, 'm');
+});
+
+test('스테퍼 연타 — 1분 안의 입력은 프로필 입력 줄 하나를 고친다(줄이 쌓이지 않는다) · 1분 뒤는 새 줄', () => {
+  const d = device(null, at(30));
+  d.input(80, NOW - 120_000);
+  d.input(80.5, NOW - 119_000);
+  d.input(81, NOW - 118_000);
+  assert.equal(d.logs.length, 1);
+  assert.equal(d.logs[0].weightKg, 81);
+  assert.equal(d.profile.bodyweightKg, 81);
+  d.input(81.5, NOW);
+  assert.equal(d.logs.length, 2);
+  // 다른 화면이 적은 측정(체크인 등)은 합치지 않는다
+  const w = planProfileBodyweightWrite(70, [log(NOW - 1000, 71, NOW - 1000, 'checkin-1')], NOW);
+  assert.equal(w.update, null);
+  assert.equal(w.create?.weightKg, 70);
+});
+
+test('같은 값·이미 미설정 — 줄을 쓰지 않는다 · 이력을 아직 못 받은 기기의 미설정은 표식을 남긴다', () => {
+  assert.deepEqual(planProfileBodyweightWrite(80, [log(at(1), 80)], NOW), { create: null, update: null, mirrorKg: 80 });
+  assert.deepEqual(planProfileBodyweightWrite(null, [], NOW), { create: null, update: null, mirrorKg: null });
+  const m = { id: 'm', measuredAt: at(1), weightKg: 0, updatedAt: at(1) };
+  assert.deepEqual(planProfileBodyweightWrite(0, [m], NOW), { create: null, update: null, mirrorKg: null });
+  assert.equal(planProfileBodyweightWrite(null, [], NOW, false).create?.weightKg, 0);
+});
+
+test('미래 시각 측정이 있으면 미러는 규칙대로 그 값 — 정리가 이 입력을 흡수·되돌림하지 않는다', () => {
+  const future = log(NOW + 3 * DAY, 90, NOW - 5000, 'skew'); // 시계가 빠른 다른 기기
+  const w = planProfileBodyweightWrite(80, [future], NOW);
+  assert.equal(w.create?.weightKg, 80);
+  assert.equal(w.mirrorKg, 90);
+  const logs = [future, { id: 'bw-profile-x', ...(w.create as NonNullable<typeof w.create>), updatedAt: NOW }];
+  assert.deepEqual(planBodyweightMirror(P(90, NOW + 1), logs), { create: null, mirrorKg: 90, updateMirror: false });
 });
 
 test('옛 경로 흡수 — 프로필 updated_at > 최신 이력 updated_at ∧ 처음 보는 값 → legacy 한 줄(결정적 id)', () => {
@@ -286,4 +450,13 @@ test('v26 첫 동기 전(allowCreate=false) — 옛 경로 흡수도 미러 쓰�
   assert.deepEqual(plan, { create: null, mirrorKg: 77.5, updateMirror: false });
   // 동기 뒤 정리에서 흡수된다
   assert.equal(planBodyweightMirror(P(77.5, at(1)), [log(at(5), 80, at(5))]).create?.reason, 'legacy');
+});
+
+test('로그인 안 한 기기(allowInit=false) — 첫 줄을 심지 않는다 · 옛 경로 흡수는 그대로(CD-5)', () => {
+  assert.deepEqual(planBodyweightMirror(P(70, at(30)), [], new Set(), true, false), {
+    create: null,
+    mirrorKg: 70,
+    updateMirror: false,
+  });
+  assert.equal(planBodyweightMirror(P(77.5, at(1)), [log(at(5), 80, at(5))], new Set(), true, false).create?.reason, 'legacy');
 });

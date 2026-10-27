@@ -27,6 +27,21 @@ import { resolveBodyweightKg } from '../domain/bodyweight';
 import { chunkPlannedWorkouts, plannedIds, type ImportPlan, type SkippedWorkout } from '../domain/import/plan';
 import { markLocalWins } from '../sync/localWins';
 import { isSyncLoggedIn, pauseSync, scheduleSync, syncWithServer } from '../sync/syncEngine';
+
+/** 내려쓰기(flush) 기다림 상한 — 끝나지 않는 flush 가 동기 재개(release)를 막지 않게(CD-6). */
+const FLUSH_TIMEOUT_MS = 5000;
+async function flushWithTimeout(flush: (() => Promise<void>) | undefined): Promise<void> {
+  if (!flush) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const limit = new Promise<void>((r) => {
+      timer = setTimeout(r, FLUSH_TIMEOUT_MS);
+    });
+    await Promise.race([flush(), limit]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 import { prepareCustomExercise } from './exerciseRepository';
 import { getOrCreateLocalUser } from './userRepository';
 
@@ -253,7 +268,8 @@ export async function importPlan(
     } finally {
       if (!keepPaused) {
         try {
-          await opts.flush?.();
+          // [원본] await opts.flush?.();
+          await flushWithTimeout(opts.flush);
         } catch {
           // 내려쓰기 실패는 다음 자동 저장이 다시 한다 — 동기 재개는 막지 않는다.
         }
@@ -587,7 +603,8 @@ export async function undoImportBatch(
       return { status: 'undone', preview: done ?? preview };
     } finally {
       try {
-        await opts.flush?.();
+        // [원본] await opts.flush?.();
+        await flushWithTimeout(opts.flush);
       } catch {
         // 다음 자동 저장이 다시 내려쓴다
       }

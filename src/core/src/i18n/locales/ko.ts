@@ -1057,6 +1057,7 @@ export const ko = {
   "schemaGuard.title": "새 버전으로 새로고침해 주세요",
   "schemaGuard.body": "이 기기의 기록은 더 새 버전 앱으로 저장돼 있어요. 기록을 지키려고 지금 화면에서는 열지 않았어요.",
   "schemaGuard.reload": "새로고침",
+  "schemaGuard.safe": "기록은 이 기기에 그대로 있어요.", // QA CU-6 — 안심 한 문장
   // 근육 지도·균형(SRS-075·076) — core 는 근육 이름만 잇고(topMusclesLabel) 문장은 이 키로 만든다. @plm SRS-075 SRS-076
   "muscleMap.focus": "{muscles} 중심",
   "muscleMap.fullBody": "전신 {count}세트",
@@ -1071,8 +1072,11 @@ export const ko = {
   "effort.chipEmpty": "힘든 정도",
   "effort.chipTarget": "목표 {rir}",
   "effort.chipValueTarget": "{value} · 목표 {rir}",
-  "effort.chipAriaEmpty": "세트 힘든 정도 적기",
-  "effort.chipAriaValue": "세트 힘든 정도 여유 {value}개 — 바꾸기",
+  // 접근 이름은 보이는 글자({label})로 시작한다(WCAG 2.5.3 · QA CU-5) — 세트 번호·목표를 풀어 쓴다
+  // [원본] "effort.chipAriaEmpty": "세트 힘든 정도 적기", "effort.chipAriaValue": "세트 힘든 정도 여유 {value}개 — 바꾸기",
+  "effort.chipAriaEmpty": "{label} — 세트 {set} 힘든 정도 적기",
+  "effort.chipAriaValue": "{label} — 세트 {set} 힘든 정도 바꾸기, 여유 {value}개",
+  "effort.chipAriaTarget": ", 목표 여유 {rir}개",
   "effort.sheetTitle": "몇 개 더 할 수 있었나요?",
   "effort.sheetTarget": "목표 여유 {rir}개",
   "effort.opt0": "더는 못 했어요",
@@ -1080,31 +1084,37 @@ export const ko = {
   "effort.opt1": "1개 더 할 수 있었어요",
   "effort.opt2": "2개 더 할 수 있었어요",
   "effort.opt3": "3개 더 할 수 있었어요",
-  "effort.opt4": "4개 넘게 남았어요",
+  "effort.opt4": "4개 이상 남았어요", // [원본] 「4개 넘게」 — 저장값은 4(=4개 포함 · QA CU-10)
   "effort.stepperLabel": "0.5 단위로",
-  "effort.stepperEmpty": "—",
+  "effort.stepperEmpty": "안 적음", // [원본] 「—」 — 옆 「−」 버튼과 같은 모양이었다(QA CU-9)
+  "effort.stepDec": "여유 0.5개 줄이기",
+  "effort.stepInc": "여유 0.5개 늘리기",
   "effort.clear": "지우기",
   "effort.close": "닫기",
   "effort.cardTitle": "세트 힘든 정도",
   "effort.head": "평균 여유 {avg}개 · 여유 3개 이하 {pct}%",
-  "effort.coverage": "적은 세트 {rated}/{total}",
+  "effort.coverage": "기록한 세트 {rated}/{total}", // [원본] 「적은 세트」 — 「수가 적은」으로도 읽혔다(QA CU-10)
   "effort.coverageRpe": "RPE 로 적은 {count}세트 포함",
+  // 분포 칸 이름 = 실제 범위(core rirBucket: 칸 k = (k−1, k] 올림 · 값은 0.5 단위) — QA CU-3
+  // [원본] 여유 0개 · 여유 1개 · 여유 2개 · 여유 3개 · 여유 4개 이상 (0.5 가 「1개」, 3.5 가 「4개 이상」 칸에 들어가 이름과 어긋났다)
   "effort.bucket0": "여유 0개",
-  "effort.bucket1": "여유 1개",
-  "effort.bucket2": "여유 2개",
-  "effort.bucket3": "여유 3개",
-  "effort.bucket4": "여유 4개 이상",
+  "effort.bucket1": "여유 0.5~1개",
+  "effort.bucket2": "여유 1.5~2개",
+  "effort.bucket3": "여유 2.5~3개",
+  "effort.bucket4": "여유 3.5개 이상",
   "effort.setsCount": "{count}세트",
   "effort.weekly": "주별 추이",
   "effort.weekOf": "{date} 주",
   "effort.weekValue": "평균 여유 {avg}개 · {count}세트",
   "effort.weekNone": "기록 없음",
   "effort.emptyFold": "세트 힘든 정도 · 아직 기록이 없어요",
+  "effort.emptyFoldPeriod": "세트 힘든 정도 · 이 기간에 기록이 없어요", // 기간이 전체가 아닐 때(QA CU-4)
   "effort.emptyHint": "설정에서 켜면 운동 중에 적을 수 있어요",
   "effort.detailColumn": "RIR",
   "effort.detailConverted": "≈RIR {value}",
   "effort.detailConvertedAria": "RPE {rpe} 를 바꾼 값 RIR {value}",
-  "effort.progressLegend": "진한 부분이 길수록 그날 세트에 남은 여유가 적었어요",
+  // [원본] "진한 부분이 길수록 그날 세트에 남은 여유가 적었어요" — 채움이 다크에서 바탕에 묻혀 가운데 줄로 바꿨다(QA CU-2)
+  "effort.progressLegend": "가운데 줄이 길수록 그날 세트에 남은 여유가 적었어요",
 } as const;
 
 export type TransKey = keyof typeof ko;

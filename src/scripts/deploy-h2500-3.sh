@@ -70,12 +70,31 @@ if [ -n "$PREV_VERSION" ] && [ "$VERSION" = "$PREV_VERSION" ] && [ "$PREV" != "$
 fi
 # ── 로컬 스키마 하강 차단(D-5) — @plm SRS-073 SAD-023 ──────────────────────────────
 # 기기 DB(LokiJS)는 앱 스키마보다 높은 버전을 만나면 **기록을 전부 지운다**. 그래서 지금 떠 있는 배포본보다
-# SCHEMA_VERSION 이 낮은 번들은 내보내지 않는다(롤백은 앞으로만 고치기). 비교 대상은 서버에 동기된 소스 사본이다.
+# SCHEMA_VERSION 이 낮은 번들은 내보내지 않는다(롤백은 앞으로만 고치기).
+# [원본] 비교 대상 = 서버에 동기된 소스 사본 하나 — 못 읽으면(ssh 일시 실패·형식 변경) 검사 없이 통과했고, 빌드가 실패한
+#        배포 뒤에는 「마지막으로 rsync 한 소스」가 라이브와 달랐다(QA CD-8).
+# [개선] 기준 = 라이브 커밋(서버 DEPLOYED_REF — 빌드·기동이 끝난 뒤에만 적힌다)의 schema.ts(git show) · 서버 사본은 보조.
+#        라이브 커밋이 있는데 둘 다 못 읽으면 **멈춘다**(ALLOW_UNKNOWN_SCHEMA=1 로만 넘긴다).
 schema_of() { sed -n 's/^export const SCHEMA_VERSION = \([0-9][0-9]*\);.*/\1/p' | head -1; }
 SCHEMA=$(schema_of < "$CLEAN/src/core/src/db/schema.ts")
-PREV_SCHEMA=$($SSH "cat $REMOTE/src/core/src/db/schema.ts 2>/dev/null" | schema_of || true)
+PREV_SCHEMA=""
+SCHEMA_FROM=""
+if [ -n "$PREV" ]; then
+  PREV_SCHEMA=$(git -C "$ROOT" show "$PREV:src/core/src/db/schema.ts" 2>/dev/null | schema_of || true)
+  [ -n "$PREV_SCHEMA" ] && SCHEMA_FROM="라이브 커밋 ${PREV:0:7}"
+fi
+if [ -z "$PREV_SCHEMA" ]; then
+  PREV_SCHEMA=$($SSH "cat $REMOTE/src/core/src/db/schema.ts 2>/dev/null" | schema_of || true)
+  [ -n "$PREV_SCHEMA" ] && SCHEMA_FROM="서버 소스 사본"
+fi
 [ -n "$SCHEMA" ] || { echo "!! 배포 사본에서 SCHEMA_VERSION 을 읽지 못했다(core/src/db/schema.ts)"; exit 1; }
-echo "     로컬 스키마 v${SCHEMA} · 지금 떠 있는 것 v${PREV_SCHEMA:-?}"
+echo "     로컬 스키마 v${SCHEMA} · 지금 떠 있는 것 v${PREV_SCHEMA:-?}${SCHEMA_FROM:+ (${SCHEMA_FROM})}"
+if [ -n "$PREV" ] && [ -z "$PREV_SCHEMA" ]; then
+  echo "!! 지금 떠 있는 배포본(${PREV:0:7})의 스키마 버전을 읽지 못했다 — 하강 검사를 할 수 없어 멈춘다"
+  echo "   (git fetch 로 그 커밋을 받거나 ssh 를 확인하라 · 알고 넘기려면 ALLOW_UNKNOWN_SCHEMA=1)"
+  [ "${ALLOW_UNKNOWN_SCHEMA:-0}" = "1" ] || exit 1
+  echo "   ALLOW_UNKNOWN_SCHEMA=1 — 검사 없이 계속한다"
+fi
 if [ -n "$PREV_SCHEMA" ] && [ "$SCHEMA" -lt "$PREV_SCHEMA" ]; then
   echo "!! 로컬 스키마가 v${PREV_SCHEMA} → v${SCHEMA} 로 **내려간다** — 배포하지 않는다"
   echo "   (옛 번들이 새 DB 를 열면 기기 기록이 지워진다 · 롤백 대신 앞으로 고쳐서 내보내라)"

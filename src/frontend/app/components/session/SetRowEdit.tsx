@@ -123,12 +123,13 @@ export function SetRowEdit({
   suggestion: Suggestion | null;
   unit: WeightUnit;
   barWeightKg: number;
+  // 저장 약속을 돌려줄 수 있다(블록 write) — RIR 칩이 그 약속이 끝난 뒤에만 다른 저장을 따른다(QA CU-7)
   onUpdate: (patch: {
     weightKg?: number;
     reps?: number;
     partialReps?: number | null;
     rir?: number | null;
-  }) => void;
+  }) => unknown;
   onToggleDone: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
   onSetType: (type: "normal" | "warmup" | "drop" | "failed") => void;
   onSetArm: (arm: "uni" | null) => void;
@@ -152,6 +153,8 @@ export function SetRowEdit({
   const [varOpen, setVarOpen] = useState(false);
   const [plates, setPlates] = useState<string | null>(null);
   const effortOn = useEffortLogging(); // 켰을 때만 처방 줄에 RIR 칩(끄면 DOM 0 · U-1) @plm SRS-073
+  // 워밍업은 칩 없음(분석 대상 밖 · QA CU-8) — 처방 RIR 글자는 꺼짐일 때처럼 그대로 보인다
+  const chipOn = effortOn && !set.isWarmup && set.setType !== "warmup";
 
   // 밖에서 값이 바뀌면(이전 칩 적용·제안 적용) 입력칸도 따라간다.
   // 밖에서 값이 바뀌면 등록부의 입력 중 값도 버린다 — 옛 입력이 묶음 완료 때 새 값을 덮지 않게(SRS-062)
@@ -421,7 +424,9 @@ export function SetRowEdit({
 
       {/* 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 힘든 정도 기록을 켜면 처방이 없어도 이 줄에 칩(U-1) @plm SRS-073 */}
       {/* [원본] {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
-      {effortOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? (
+      {/* 워밍업 세트에는 칩을 두지 않는다 — 분석(isEffortTarget)이 워밍업을 빼서 적어도 어디에도 안 나온다(QA CU-8) */}
+      {/* [원본] {effortOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
+      {chipOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? (
         <div className="flex items-center gap-[var(--spacing-sm)] pb-[2px] pl-[42px]">
           {rx?.repMin != null || rx?.repMax != null ? (
             <AppText variant="label" color="textMuted">
@@ -429,18 +434,19 @@ export function SetRowEdit({
             </AppText>
           ) : null}
           {/* [원본] {set.targetRir != null ? ( — 켜면 처방 RIR 글자는 칩 하나로 합친다(「목표 2」·「2 · 목표 2」 · U-10) */}
-          {!effortOn && set.targetRir != null ? (
+          {!chipOn && set.targetRir != null ? (
             <AppText variant="label" color="primary" className="font-bold">
               {t("session.rxRir", { rir: set.targetRir })}
             </AppText>
           ) : null}
-          {effortOn ? (
+          {chipOn ? (
             <RirChip
               setId={set.id}
+              setLabel={label}
               rir={set.rir}
               savedAt={savedAt}
               target={set.targetRir}
-              onSave={(v) => onUpdate({ rir: v })}
+              onSave={(v) => onUpdate({ rir: v })} // 약속을 그대로 넘긴다(CU-7)
             />
           ) : null}
         </div>

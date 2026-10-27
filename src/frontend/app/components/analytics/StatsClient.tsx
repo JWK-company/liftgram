@@ -124,6 +124,9 @@ export default function StatsClient() {
     (pr) => !topIds.has(pr.exerciseId) && lastPrOf.get(pr.exerciseId) === pr.completedAt,
   );
   const meta = PERIODS.find((p) => p.key === period) ?? PERIODS[0];
+  // 「최근 PR」 구역을 보이는가(위 목록에 다 나왔으면 숨긴다 — 기록이 아예 없을 때만 빈 안내) · Epley 주석을 둘 목록이 있는가
+  const showRecentPRs = otherPRs.length > 0 || recentPRs.length === 0;
+  const hasOneRmCaption = (overview?.topOneRM.length ?? 0) > 0 || recentPRs.length > 0;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -231,6 +234,18 @@ export default function StatsClient() {
               </ListGroup>
             )}
             {/* [원본] 추정 주석이 여기 — 아래 「최근 PR」 의 「추정치」 태그(줄마다)와 같은 말이었다. 주석은 두 목록 끝에 한 번. */}
+            {/* [개선] 「최근 PR」 구역이 숨으면(흔한 경우) 두 목록의 끝 = 1RM 목록 끝이다 — 주석을 1RM 바로 밑에 붙인다.
+                예전에는 이때도 맨 아래에 남아 근육군 분포·세트 힘든 정도 밑에 붙었고, 그 수치가 추정처럼 읽혔다(QA CU-1). */}
+            {!showRecentPRs && hasOneRmCaption ? (
+              <AppText
+                variant="caption"
+                color="textFaint"
+                className="block px-[var(--spacing-xs)]"
+                data-testid="stats-1rm-caption"
+              >
+                {t("wellness.oneRepMaxCaption")}
+              </AppText>
+            ) : null}
             <div className="mb-[var(--spacing-lg)]" />
 
             <SectionLabel title={t("analytics.muscleDistribution")} />
@@ -240,13 +255,14 @@ export default function StatsClient() {
                 formatValue={(v) => formatWeight(v, weightUnit)}
               />
             </Card>
-            {/* 세트 힘든 정도 — 위쪽 기간을 따른다(U-6) @plm SRS-074 */}
+            {/* 세트 힘든 정도 — 위쪽 기간을 따른다(U-6). Epley 주석은 이 카드 밑에 오지 않는다(1RM 밑 또는 최근 PR 밑 · QA CU-1) @plm SRS-074 */}
             <EffortCard days={SPAN[period]} />
 
             {/* 최근 PR — 위 1RM 목록에 있는 종목은 거기 「최근 갱신」 으로 붙었으니 뺀다 · 종목당 가장 최근 한 줄.
                 [원본] 종목마다 갱신 이력 여러 줄 + 줄마다 금색 「추정치」 태그(7개) — 같은 종목이 위아래 두 번 나왔다 */}
             {/* 위 목록에 다 나왔으면 구역째 숨긴다(빈 안내 문장만 남지 않게) — 기록이 아예 없을 때만 빈 안내 */}
-            {otherPRs.length > 0 || recentPRs.length === 0 ? (
+            {/* [원본] {otherPRs.length > 0 || recentPRs.length === 0 ? ( */}
+            {showRecentPRs ? (
               <>
                 <SectionLabel title={t("analytics.recentPRs")} />
                 {otherPRs.length === 0 ? (
@@ -275,7 +291,8 @@ export default function StatsClient() {
                 )}
               </>
             ) : null}
-            {overview.topOneRM.length > 0 || recentPRs.length > 0 ? (
+            {/* [원본] {overview.topOneRM.length > 0 || recentPRs.length > 0 ? ( — 구역이 숨어도 여기 남았다(CU-1) */}
+            {showRecentPRs && hasOneRmCaption ? (
               <AppText
                 variant="caption"
                 color="textFaint"

@@ -11,6 +11,7 @@
 // 웰니스: 권고·평가 문구를 두지 않는다(「더 세게」 등 없음).
 import { summarizeEffort, type EffortSummary } from "@app/core";
 import { useEffect, useState } from "react";
+import { useEffortLogging } from "@/lib/effortPref";
 import { t } from "@/lib/i18n";
 import { DistributionBars } from "../ui/charts";
 import { AppText, Card } from "../ui/primitives";
@@ -29,12 +30,20 @@ const BUCKET_KEYS = [
 
 /** 평균 표시 — 소수 한 자리(1.8) */
 const avg1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
+/** 머리 줄 평균 — 정수면 정수(「2개」 · 「2.0개」 아님 · QA CU-10), 아니면 소수 한 자리 */
+const avgHead = (v: number) => {
+  const r = Math.round(v * 10) / 10;
+  return Number.isInteger(r) ? String(r) : r.toFixed(1);
+};
+/** 주별 추이 최대 줄 수 — 「전체」 기간이면 첫 기록 주부터 수백 줄이 될 수 있다(QA CU-11 ②) */
+const WEEKS_MAX = 12;
 
 export function EffortCard({ days }: { /** 위쪽 기간의 일수(null = 전체) */ days: number | null }) {
   const [summary, setSummary] = useState<EffortSummary | null>(null);
   // 접기 기억은 기기 로컬(Fold 규칙) — scope 에 「:」를 넣지 않는다(같은 무리의 다른 키를 지우는 규칙에 걸리지 않게)
   const [weeklyOpen, setWeeklyOpen] = useFold("statsEffortWeekly");
   const [emptyOpen, setEmptyOpen] = useFold("statsEffortEmpty");
+  const loggingOn = useEffortLogging();
 
   useEffect(() => {
     let cancelled = false;
@@ -48,15 +57,30 @@ export function EffortCard({ days }: { /** 위쪽 기간의 일수(null = 전체
     };
   }, [days]);
 
-  if (!summary) return null;
+  // [원본] if (!summary) return null; — 늦게 끼어들며 아래를 밀어냈다(QA CU-11 ①). 접힌 안내 한 줄만큼 자리를 둔다.
+  if (!summary)
+    return <div aria-hidden data-testid="effort-loading" className="mb-[var(--spacing-lg)] min-h-[24px]" />;
 
   if (summary.coverage.rated === 0) {
+    // 기록을 이미 켠 사람에게 「설정에서 켜면」을 보이지 않는다 — 이 기간에 없을 뿐이다(QA CU-4). 기간이 전체가 아니면 「이 기간에」.
+    const emptyLabel = t(days != null ? "effort.emptyFoldPeriod" : "effort.emptyFold");
+    if (loggingOn)
+      return (
+        <AppText
+          variant="caption"
+          color="textMuted"
+          className="mb-[var(--spacing-lg)] block px-[var(--spacing-xs)]"
+          data-testid="effort-empty"
+        >
+          {emptyLabel}
+        </AppText>
+      );
     return (
       <div className="mb-[var(--spacing-lg)] px-[var(--spacing-xs)]" data-testid="effort-empty">
         <FoldToggle
           open={emptyOpen}
           onToggle={() => setEmptyOpen(!emptyOpen)}
-          label={t("effort.emptyFold")}
+          label={emptyLabel}
           testId="effort-empty-toggle"
           controls="effort-empty-hint"
         />
@@ -70,7 +94,8 @@ export function EffortCard({ days }: { /** 위쪽 기간의 일수(null = 전체
   }
 
   const { avg, shareAtOrBelow3, buckets, weekly, coverage } = summary;
-  const weeks = [...weekly].reverse(); // 최근 주가 위
+  // [원본] const weeks = [...weekly].reverse(); // 최근 주가 위
+  const weeks = [...weekly].reverse().slice(0, WEEKS_MAX); // 최근 주가 위 · 최근 12주
 
   return (
     <>
@@ -81,7 +106,8 @@ export function EffortCard({ days }: { /** 위쪽 기간의 일수(null = 전체
           className="font-semibold text-(--color-ink) text-[length:var(--text-md)]"
         >
           {t("effort.head", {
-            avg: avg != null ? avg1(avg) : "-",
+            // [원본] avg: avg != null ? avg1(avg) : "-",
+            avg: avg != null ? avgHead(avg) : "-",
             pct: shareAtOrBelow3 != null ? String(Math.round(shareAtOrBelow3 * 100)) : "-",
           })}
         </p>

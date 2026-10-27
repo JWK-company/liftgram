@@ -12,16 +12,18 @@ import { database } from '../db/database';
 import type { BodyweightLog, UserProfile } from '../db/models';
 import type { BodyweightSource } from '../db/models/BodyweightLog';
 import {
+  BODYWEIGHT_PROFILE_LOG_PREFIX,
   isValidBodyweightKg,
   mirrorAfterLogWrite,
   planBodyweightMirror,
+  planProfileBodyweightWrite,
   type BodyweightLogLike,
   type MirrorPlan,
 } from '../domain/bodyweight';
 import { toKg } from '../domain/units';
 import type { WeightUnit } from '../domain/types';
 import { getOrCreateLocalUser } from './userRepository';
-import { isLocalPullComplete, scheduleSync } from '../sync/syncEngine';
+import { isLocalPullComplete, isSyncLoggedIn, scheduleSync } from '../sync/syncEngine';
 
 const TABLE = 'bodyweight_logs';
 const logs = () => database.get<BodyweightLog>(TABLE);
@@ -167,6 +169,59 @@ export async function deleteBodyweightLog(id: string): Promise<number | null> {
   return next;
 }
 
+// ── 프로필 체중 입력(CD-1 ① · CD-2) ─────────────────────────────────────
+
+/** 프로필 입력 줄 id — 앞부분으로 연타 합치기 대상을 가린다(결정적일 필요 없다: 사람이 누른 한 번이다). */
+function profileLogId(now: number): string {
+  return `${BODYWEIGHT_PROFILE_LOG_PREFIX}${now.toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * **write 안에서** 부른다(userRepository.updateUserSettings 의 bodyweightKg). 프로필 입력을 미러 규칙 안으로 넣는다:
+ * manual 이력 한 줄(연타면 같은 줄 고치기 · 0 은 「설정 안 함」 표식)을 쓰고, 미러로 쓸 값을 돌려준다 — 부르는 쪽이 같은 write 안의
+ * 프로필 update 에서 그 값을 쓴다. 그러면 동기 뒤·부팅 정리가 이 입력을 「옛 경로 수정」으로 판정할 일이 없다(CD-1).
+ * `historyComplete` 는 write **밖에서** isLocalPullComplete() 로 구해 넘긴다.
+ * @returns 미러 값(null = 미설정)
+ */
+export async function writeProfileBodyweightInWrite(
+  kg: number | null,
+  historyComplete: boolean,
+  now = Date.now(),
+): Promise<number | null> {
+  if (kg != null && kg > 0 && !isValidBodyweightKg(kg)) throw new Error('체중 값이 범위를 벗어났어요');
+  const all = await logs().query().fetch();
+  const plan = planProfileBodyweightWrite(kg, all.map(toBodyweightLogLike), now, historyComplete);
+  if (plan.update) {
+    const u = plan.update;
+    const rec = all.find((l) => l.id === u.id);
+    if (rec)
+      await rec.update((l) => {
+        l.measuredAt = u.measuredAt;
+        l.weightKg = u.weightKg;
+      });
+  }
+  if (plan.create) {
+    const c = plan.create;
+    await logs().create((l) => {
+      l._raw.id = profileLogId(now);
+      l.measuredAt = c.measuredAt;
+      l.weightKg = c.weightKg;
+      l.source = c.source;
+      l.note = null;
+    });
+  }
+  return plan.mirrorKg;
+}
+
+/** write 밖에서: 이 기기가 서버 이력을 다 받았는가(프로필 입력 표식 판정용 — 실패하면 받지 못한 것으로 본다). */
+export async function bodyweightHistoryComplete(): Promise<boolean> {
+  try {
+    return await isLocalPullComplete();
+  } catch {
+    return false;
+  }
+}
+
 // ── 멱등 정리(D-10) ─────────────────────────────────────────────────────
 
 export interface ReconcileResult {
@@ -190,6 +245,8 @@ export async function reconcileBodyweightMirror(): Promise<ReconcileResult> {
   const deleted = new Set(await database.adapter.getDeletedRecords(TABLE));
   // v26 첫 동기 전(옛 스키마로만 동기한 기기)에는 서버 이력을 아직 못 받았다 — 아무것도 하지 않는다(부팅 정리의 bw-init 중복·흡수 증거 유실 방지).
   const allowCreate = await isLocalPullComplete();
+  // 로그인 안 한 기기는 첫 줄(bw-init)을 심지 않는다 — 계정에 합쳐질 때 낡은 프로필 값이 계정 체중을 덮지 않게(CD-5).
+  const allowInit = await isSyncLoggedIn();
   const result = await database.write(async () => {
     // write 안에서 다시 읽는다 — 그사이 다른 쓰기가 끼었을 수 있다.
     const profile = (await oldestProfile()) ?? pre;
@@ -201,6 +258,7 @@ export async function reconcileBodyweightMirror(): Promise<ReconcileResult> {
       all,
       taken,
       allowCreate,
+      allowInit,
     );
     if (!plan.create && !plan.updateMirror) return { created: null, mirrorChanged: false, mirrorKg: plan.mirrorKg };
     const c = plan.create;

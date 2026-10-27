@@ -142,7 +142,8 @@ export function RirSheet({
         <button
           type="button"
           data-testid="rir-step-minus"
-          aria-label="감소"
+          // [원본] aria-label="감소" — en 이 없고 무엇을 줄이는지 말하지 않았다(QA CU-9)
+          aria-label={t("effort.stepDec")}
           disabled={draft !== null && draft <= EFFORT_RIR_MIN}
           onClick={() => step(-1)}
           className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) disabled:opacity-40"
@@ -152,14 +153,20 @@ export function RirSheet({
         <span
           data-testid="rir-step-value"
           aria-live="polite"
-          className="min-w-[40px] text-center font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums"
+          // 빈 값은 회색 짧은 글자(「안 적음」) — [원본] 「—」 가 옆 「−」 버튼과 같은 모양이었다(QA CU-9)
+          className={`min-w-[40px] text-center tabular-nums ${
+            draft === null
+              ? "text-(--color-ink3) text-[length:var(--text-sm)]"
+              : "font-semibold text-(--color-ink) text-[length:var(--text-md)]"
+          }`}
         >
           {draft === null ? t("effort.stepperEmpty") : formatRir(draft)}
         </span>
         <button
           type="button"
           data-testid="rir-step-plus"
-          aria-label="증가"
+          // [원본] aria-label="증가"
+          aria-label={t("effort.stepInc")}
           disabled={draft !== null && draft >= EFFORT_RIR_MAX}
           onClick={() => step(1)}
           className="flex h-[44px] w-[44px] items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) disabled:opacity-40"

@@ -74,13 +74,27 @@ export interface UserSettingsPatch {
 }
 
 export async function updateUserSettings(id: string, patch: UserSettingsPatch): Promise<void> {
+  // 체중은 미러 규칙 안으로(CD-1 ① · D-10): 같은 write 안에서 manual 이력 한 줄 + 미러. 동적 import — 저장소끼리 정적 순환을 만들지 않게.
+  const bw = patch.bodyweightKg !== undefined ? await import('./bodyweightRepository') : null;
+  const historyComplete = bw ? await bw.bodyweightHistoryComplete() : true;
   await database.write(async () => {
     const u = await profiles().find(id);
+    let mirrorKg: number | null | undefined;
+    if (bw) {
+      mirrorKg = await bw.writeProfileBodyweightInWrite(patch.bodyweightKg ?? null, historyComplete);
+      // 미러는 「가장 오래된 프로필」이 들고 있다(읽기와 같은 프로필) — 고치는 프로필이 그것이 아니면 그쪽도 맞춘다.
+      const [oldest] = await profiles().query(Q.sortBy('created_at', Q.asc), Q.take(1)).fetch();
+      if (oldest && oldest.id !== u.id && (oldest.bodyweightKg ?? null) !== mirrorKg)
+        await oldest.update((rec) => {
+          rec.bodyweightKg = mirrorKg ?? null;
+        });
+    }
     await u.update((rec) => {
       if (patch.weightUnit !== undefined) rec.weightUnit = patch.weightUnit;
       if (patch.preferredLanguage !== undefined) rec.preferredLanguage = patch.preferredLanguage;
       if (patch.barWeightKg !== undefined) rec.barWeightKg = patch.barWeightKg;
-      if (patch.bodyweightKg !== undefined) rec.bodyweightKg = patch.bodyweightKg;
+      // [원본] if (patch.bodyweightKg !== undefined) rec.bodyweightKg = patch.bodyweightKg;
+      if (mirrorKg !== undefined) rec.bodyweightKg = mirrorKg;
       if (patch.displayName !== undefined) rec.displayName = patch.displayName;
       if (patch.availableEquipment !== undefined) rec.availableEquipment = patch.availableEquipment;
       if (patch.machineVariantLabels !== undefined) rec.machineVariantLabels = patch.machineVariantLabels;

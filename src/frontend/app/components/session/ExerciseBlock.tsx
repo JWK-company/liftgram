@@ -894,7 +894,9 @@ export function ExerciseBlock({
                 suggestion={suggestions[s.id] ?? null}
                 unit={blockUnit}
                 barWeightKg={barWeightKg}
-                onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
+                // [원본] onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
+                // [개선] 저장 약속을 돌려준다 — RIR 칩 낙관 표시가 이 쓰기가 끝난 뒤에만 다른 저장을 따른다(QA CU-7)
+                onUpdate={(patch) => write(() => repo.updateSetLog(s.id, patch))}
                 onToggleDone={onToggleDone(s)}
                 onToggleDoneSingle={onRoundToggle ? onToggleDone(s, true) : undefined}
                 loadNote={loadNotes[s.id] ?? rxLoadLabel(we.prescription?.[s.setNumber - 1] ?? null)}

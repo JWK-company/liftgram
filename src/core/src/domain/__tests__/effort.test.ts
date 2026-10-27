@@ -162,3 +162,21 @@ test('summarizeEffort: rpe 만 있는 옛 세트만 있어도 카드가 그릴 �
   assert.equal(r.coverage.fromRpe, 2);
   assert.equal(r.shareAtOrBelow3, 1);
 });
+
+test('분포 칸 이름 = 실제 범위 — 0~10 의 모든 0.5 값이 자기 칸 이름의 범위 안(QA CU-3 · ko·en)', async () => {
+  const { ko } = await import('../../i18n/locales/ko');
+  const { en } = await import('../../i18n/locales/en');
+  const range = (label: string): [number, number] => {
+    const nums = (label.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
+    if (/이상|\+/.test(label)) return [nums[0], Number.POSITIVE_INFINITY];
+    return nums.length === 2 ? [nums[0], nums[1]] : [nums[0], nums[0]];
+  };
+  for (const dict of [ko, en] as Record<string, string>[]) {
+    for (let v = 0; v <= 10; v += 0.5) {
+      const label = dict[`effort.bucket${rirBucket(v)}`];
+      const [lo, hi] = range(label);
+      assert.ok(v >= lo && v <= hi, `${v} → 「${label}」`);
+    }
+  }
+  assert.equal(rirBucket(3.5), 4); // 3.5 → 마지막 칸(「3.5개 이상」)
+});

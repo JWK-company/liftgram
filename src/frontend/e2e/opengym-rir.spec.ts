@@ -117,10 +117,11 @@ test("켜면 세트에 힘든 정도를 적고 · 다른 값에서 바꾸고 · 
 
   // 분석 — 노력 카드 머리 한 줄 · 종목 진척 막대 채움 + 범례(SRS-074)
   await page.goto("/stats");
-  await expect(page.getByTestId("effort-head")).toHaveText("평균 여유 2.0개 · 여유 3개 이하 100%", {
+  // [원본] "평균 여유 2.0개 …" — 정수 평균은 정수로(QA CU-10)
+  await expect(page.getByTestId("effort-head")).toHaveText("평균 여유 2개 · 여유 3개 이하 100%", {
     timeout: 20_000,
   });
-  await expect(page.getByTestId("effort-coverage")).toContainText("적은 세트 1/1");
+  await expect(page.getByTestId("effort-coverage")).toContainText("기록한 세트 1/1"); // [원본] 「적은 세트」(QA CU-10)
   await page.getByTestId("stats-1rm").locator("a").first().click();
   await expect(page.getByTestId("progress-effort-legend")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("progress-effort-fill")).toHaveCount(1);

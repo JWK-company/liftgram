@@ -141,6 +141,18 @@ export class SyncBlockedError extends Error {
   }
 }
 
+/**
+ * 가져오기·되돌리기가 동기를 멈춘 동안 **사람이 부른** 동기(지금 동기·로그아웃 전 동기)는 기다리지 않고 이 오류로 곧바로 끝난다(CD-6).
+ * 멈춘 채 두는 길(write_failed_reload)에서는 재개가 오지 않으므로, 기다리면 그 화면이 영원히 반응하지 않는다.
+ * 배경 동기(scheduleSync)는 오류 없이 재개 뒤로 미룬다. @plm SRS-082
+ */
+export class SyncPausedError extends Error {
+  constructor() {
+    super('가져오기 중이라 동기를 잠시 멈췄어요 — 끝나면 이어서 해요');
+    this.name = 'SyncPausedError';
+  }
+}
+
 type RawRec = Record<string, unknown>;
 type Tbl = { created?: RawRec[]; updated?: RawRec[]; deleted?: string[] };
 
@@ -383,7 +395,9 @@ export function syncWithServer(): Promise<void> {
     return Promise.resolve();
   }
   // 가져오기 중이면 재개 뒤로 미룬다(여러 요청은 재개 뒤 inFlight 하나로 합쳐진다). @plm SRS-082
-  if (pauseDepth > 0 && !inFlight) return waitForResume().then(() => syncWithServer());
+  // [원본] if (pauseDepth > 0 && !inFlight) return waitForResume().then(() => syncWithServer());
+  // [개선] 사람이 부른 동기는 기다리지 않는다 — 멈춘 채 두는 길에서는 재개가 오지 않는다(CD-6). 배경 동기는 scheduleSync 가 미룬다.
+  if (pauseDepth > 0 && !inFlight) return Promise.reject(new SyncPausedError());
   if (!inFlight) {
     const startedAt = Date.now();
     setHealth({ lastAttemptAt: startedAt });
@@ -422,13 +436,31 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null;
  *
  * @param delayMs 몰아치는 호출을 합칠 시간
  */
+let deferredWhilePaused = false;
+
 export function scheduleSync(delayMs = 1500): void {
+  // 멈춘 동안의 배경 동기는 재개 뒤 한 번으로 합친다(CD-6 — syncWithServer 는 멈춘 동안 곧바로 실패하므로 여기서 미룬다).
+  if (pauseDepth > 0) {
+    if (!deferredWhilePaused) {
+      deferredWhilePaused = true;
+      void waitForResume().then(() => {
+        deferredWhilePaused = false;
+        scheduleSync(0);
+      });
+    }
+    return;
+  }
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
     void refreshPendingCount();
     void (async () => {
       try {
+        // 예약과 실행 사이에 멈췄으면 재개 뒤로 다시 미룬다(CD-6)
+        if (pauseDepth > 0) {
+          scheduleSync(0);
+          return;
+        }
         if (transport && (await transport.isLoggedIn())) await syncWithServer();
         else markFirstSettled(); // 로그인 안 했다 — 기다릴 서버가 없다
       } catch {

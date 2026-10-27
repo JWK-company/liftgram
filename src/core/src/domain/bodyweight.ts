@@ -76,6 +76,51 @@ export function sortBodyweightLogs<T extends BodyweightLogLike>(logs: readonly T
     .sort((a, b) => -newerFirst(a, b));
 }
 
+// ── 「설정 안 함」 표식(CD-2) ────────────────────────────────────────────
+//
+// 프로필에서 체중을 0(설정 안 함)으로 내리면 이력을 지우지 않고 **표식 한 줄**을 남긴다: 측정 시각은 있고 무게가 정확히 0.
+// 규칙: 표식은 「내 체중」 판정(최신 한 줄 고르기)에만 참여한다 — 가장 최근 줄이 표식이면 내 체중 = null(미설정).
+//   그래프·주간 변화·기간 요약·가져오기 볼륨은 지금처럼 유효 행(isValidBodyweightLog)만 본다 → 표식은 보이지 않는다.
+//   그 뒤에 새 측정이 오면(측정 시각이 더 나중) 그 값이 다시 내 체중이다.
+// 왜 이력을 지우지 않는가: 스테퍼를 한 번 더 내린 것으로 지난 측정을 전부 지우면 되돌릴 수 없다. 미러만 null 이면 정리가
+//   이력 최신값으로 되살린다(CD-2) — 그래서 「미설정」 자체를 측정 시각이 있는 한 줄로 남긴다.
+
+/** 표식 줄인가 — 측정 시각이 있고 무게가 정확히 0. (null·음수·NaN 은 표식이 아니라 깨진 행이다.) */
+export function isBodyweightClearMarker(l: BodyweightLogLike): l is BodyweightLogLike & { measuredAt: number; weightKg: 0 } {
+  return typeof l.measuredAt === 'number' && Number.isFinite(l.measuredAt) && l.weightKg === 0;
+}
+
+/** 유효 행 또는 표식 — 「내 체중」 판정에 참여하는 줄 */
+function isEntry(l: BodyweightLogLike): l is BodyweightLogLike & { measuredAt: number; weightKg: number } {
+  return isValidBodyweightLog(l) || isBodyweightClearMarker(l);
+}
+
+/** 가장 최근 줄(유효 행 ∪ 표식) — 순서 규칙은 latest 와 같다. */
+export function latestEntry<T extends BodyweightLogLike>(logs: readonly T[]): (T & ValidBodyweightLog) | null {
+  let best: (T & ValidBodyweightLog) | null = null;
+  for (const l of logs) {
+    if (!isEntry(l)) continue;
+    const v = l as T & ValidBodyweightLog;
+    if (!best || newerFirst(v, best) < 0) best = v;
+  }
+  return best;
+}
+
+/** 가장 나중에 **쓴** 줄(updated_at 최대, 동률이면 id) — 옛 경로 흡수 판정(유효 행 ∪ 표식) */
+function lastWritten(logs: readonly BodyweightLogLike[]): (BodyweightLogLike & { measuredAt: number; weightKg: number }) | null {
+  let best: (BodyweightLogLike & { measuredAt: number; weightKg: number }) | null = null;
+  for (const l of logs) {
+    if (!isEntry(l)) continue;
+    if (!best || l.updatedAt > best.updatedAt || (l.updatedAt === best.updatedAt && l.id > best.id)) best = l;
+  }
+  return best;
+}
+
+/** 줄 → 내 체중(표식이면 null) */
+function entryKg(l: { weightKg: number }): number | null {
+  return isValidBodyweightKg(l.weightKg) ? l.weightKg : null;
+}
+
 /**
  * 「내 체중」(D-10) — 최신 측정 이력, 없으면 프로필 값. 볼륨 계산·체크인 「지난 값」·통계 카드가 모두 이 값을 쓴다.
  * (볼륨 계산은 이 값의 캐시인 프로필 미러를 읽는다 — 미러는 reconcileBodyweightMirror 가 맞춘다.)
@@ -84,8 +129,10 @@ export function resolveBodyweightKg(
   profile: { bodyweightKg: number | null | undefined } | null | undefined,
   logs: readonly BodyweightLogLike[],
 ): number | null {
-  const l = latest(logs);
-  if (l) return l.weightKg;
+  // [원본] const l = latest(logs); if (l) return l.weightKg;
+  // [개선] 「설정 안 함」 표식이 가장 최근이면 미설정(null) — 프로필에서 0 으로 내린 사람(CD-2)
+  const e = latestEntry(logs);
+  if (e) return entryKg(e);
   const p = profile?.bodyweightKg;
   return isValidBodyweightKg(p) ? p : null;
 }
@@ -199,13 +246,14 @@ function sameKg(a: number | null | undefined, b: number | null | undefined): boo
 /**
  * 미러를 어떻게 맞출지 정한다(순수 · 멱등). 규칙:
  *  1. 유효 이력 0 ∧ 프로필 값 있음 → `bw-init-<profileId>` 한 줄(measured_at = 프로필 updated_at, source=legacy). 미러는 그대로.
- *  2. 이력 있음 ∧ 프로필 updated_at > 최신 이력 updated_at ∧ 값이 최신 이력과 다름 ∧ **어느 이력 값과도 다름** →
- *     옛 경로 수정으로 보고 `bw-legacy-<profileId>-<updated_at>` 한 줄로 흡수.
- *     「어느 이력 값과도 다름」은 스펙에 덧붙인 조건이다 — 다른 기기가 최신 이력을 받기 전의 **낡은 미러**를 다른 설정과 함께
- *     올리면(프로필은 행 전체를 올린다) updated_at 만 보고는 옛 경로 수정과 구분되지 않아 낡은 값이 「최신 측정」이 된다.
+ *  2. 이력 있음 ∧ 프로필 updated_at > **가장 나중에 쓴 줄**의 updated_at ∧ 값이 그 줄과도·최신 측정과도 다름 →
+ *     옛 경로 수정으로 보고 `bw-legacy-<profileId>-<updated_at>` 한 줄로 흡수. 예전에 쓴 적 있는 값으로 되돌린 것도 흡수한다(CD-1).
+ *     (첫 판의 「어느 이력 값과도 다름」 조건은 되돌림 입력을 직전 값으로 되돌려서 뺐다 — 본문 주석 참고.)
+ *  · 표식(무게 0 · 설정 안 함)도 줄로 본다 — 가장 최근이 표식이면 미러 = null(CD-2).
  *  3. 미러 = 위를 반영한 resolveBodyweightKg. 값이 같으면 쓰지 않는다.
  *  · `unavailableIds`: 이 기기에서 지운 표시가 남은 id(같은 id 로 다시 만들 수 없다). init 이 막히면 legacy id 로, legacy 가 막히면 심지 않는다.
  *  · 이력이 0 이고 프로필 값도 없으면 아무것도 하지 않는다(마지막 기록을 지운 뒤 = 미설정).
+ *  · `allowInit=false`: 로그인 안 한 기기 — 규칙 1(첫 줄 심기)만 건너뛴다(CD-5).
  *  · `allowCreate=false`: 서버 이력을 아직 다 받지 못한 기기(v26 첫 동기 전) — **아무것도 하지 않는다**. 심으면 서버에 이미 있는
  *    이력 옆에 bw-init 한 줄이 더 생기고(중복), 미러를 덮으면 옛 경로가 고친 값(흡수할 증거)이 사라진다. 동기 뒤 정리가 맡는다.
  */
@@ -214,44 +262,120 @@ export function planBodyweightMirror(
   logs: readonly BodyweightLogLike[],
   unavailableIds: ReadonlySet<string> = new Set(),
   allowCreate = true,
+  allowInit = true,
 ): MirrorPlan {
-  const valid = logs.filter(isValidBodyweightLog);
+  // [원본] const valid = logs.filter(isValidBodyweightLog); — 표식(설정 안 함)도 판정에 참여한다(CD-2)
+  const entries = logs.filter(isEntry);
   const p = isValidBodyweightKg(profile.bodyweightKg) ? profile.bodyweightKg : null;
   let create: MirrorPlan['create'] = null;
 
   if (!allowCreate) return { create: null, mirrorKg: profile.bodyweightKg ?? null, updateMirror: false };
-  if (!valid.length) {
-    if (p != null) {
+  if (!entries.length) {
+    // allowInit=false(로그인 안 한 기기): 첫 줄을 심지 않는다 — 나중에 계정에 합쳐질 때 이 기기의 낡은 프로필 값이 「최근 측정」으로
+    // 올라가 계정 체중을 덮지 않게(CD-5). 이력이 없으면 내 체중 = 프로필 값이라 이 기기 안에서는 달라지는 것이 없다.
+    if (p != null && allowInit) {
       const initId = bodyweightInitLogId(profile.id);
       const id = unavailableIds.has(initId) ? bodyweightLegacyLogId(profile.id, profile.updatedAt) : initId;
       if (!unavailableIds.has(id))
         create = { id, measuredAt: profile.updatedAt, weightKg: p, source: 'legacy', reason: id === initId ? 'init' : 'legacy' };
     }
   } else {
-    const top = latest(valid) as ValidBodyweightLog;
+    const top = latestEntry(entries) as ValidBodyweightLog;
+    const last = lastWritten(entries) as ValidBodyweightLog;
+    // [원본] 「어느 이력 값과도 다름」 — 예전에 쓴 값으로 되돌린 옛 경로 수정까지 막아 사용자 입력이 직전 값으로 되돌아갔다(CD-1).
+    // const legacyEdit =
+    //   p != null &&
+    //   profile.updatedAt > top.updatedAt &&
+    //   !sameKg(p, top.weightKg) &&
+    //   !valid.some((l) => sameKg(l.weightKg, p));
+    // [개선] 비교 상대는 「가장 나중에 쓴 줄」 하나다. 이력 쓰기는 같은 write 안에서 미러를 그 값(또는 최신 측정값)으로 맞추므로,
+    //   미러가 마지막으로 쓴 줄 이후에 고쳐졌고 그 줄 값과도·최신 측정값과도 다르면 그것은 이력 밖에서 고친 값(옛 경로)이다.
+    //   · 다른 기기가 기록하며 올린 미러(그 기기에서 최신이던 값 = 그 기기가 마지막에 쓴 줄 값)는 흡수하지 않는다(두 기기 교차).
+    //   · 옛 측정을 늦게 적은 뒤의 미러(프로필은 안 바뀜 → 마지막에 쓴 줄보다 먼저 고쳐짐)도 흡수하지 않는다.
+    //   · 받아들인 대가: pull 과 push 사이 수 초에 다른 기기가 끼어든 낡은 미러는 흡수될 수 있다(CD-1 수정안 ② — 드문 경합).
+    //   v26 프로필 입력은 더는 이 길을 타지 않는다(같은 write 안에서 manual 한 줄 · planProfileBodyweightWrite) — 남는 것은 v25 클라이언트다.
     const legacyEdit =
-      p != null &&
-      profile.updatedAt > top.updatedAt &&
-      !sameKg(p, top.weightKg) &&
-      !valid.some((l) => sameKg(l.weightKg, p));
+      p != null && profile.updatedAt > last.updatedAt && !sameKg(p, entryKg(top)) && !sameKg(p, entryKg(last));
     if (legacyEdit) {
       const id = bodyweightLegacyLogId(profile.id, profile.updatedAt);
-      if (!unavailableIds.has(id) && !valid.some((l) => l.id === id))
+      if (!unavailableIds.has(id) && !entries.some((l) => l.id === id))
         create = { id, measuredAt: profile.updatedAt, weightKg: p as number, source: 'legacy', reason: 'legacy' };
     }
   }
 
   const after: BodyweightLogLike[] = create
-    ? [...valid, { id: create.id, measuredAt: create.measuredAt, weightKg: create.weightKg, updatedAt: Number.MAX_SAFE_INTEGER }]
-    : valid;
-  const top = latest(after);
+    ? [...entries, { id: create.id, measuredAt: create.measuredAt, weightKg: create.weightKg, updatedAt: Number.MAX_SAFE_INTEGER }]
+    : entries;
+  const top = latestEntry(after);
   // 이력이 하나도 없으면 미러는 프로필 값 그대로(심지 못한 경우 포함) — 지우는 쓰기(마지막 기록 삭제)만 null 로 만든다.
-  const mirrorKg = top ? top.weightKg : p;
-  const cur = profile.bodyweightKg ?? null;
+  // 가장 최근 줄이 표식이면 미러 = null(설정 안 함 유지 — 정리가 이력 최신값으로 되살리지 않는다 · CD-2).
+  const mirrorKg = top ? entryKg(top) : p;
+  const cur = isValidBodyweightKg(profile.bodyweightKg) ? profile.bodyweightKg : null;
   return { create, mirrorKg, updateMirror: !sameKg(cur, mirrorKg) };
+}
+
+// ── 프로필 체중 입력(CD-1 ①) ────────────────────────────────────────────
+
+/** 프로필 입력이 만든 줄의 id 앞부분 — 스테퍼 연타 합치기는 이 줄만 고친다(다른 화면이 적은 측정은 건드리지 않는다). */
+export const BODYWEIGHT_PROFILE_LOG_PREFIX = 'bw-profile-';
+/** 스테퍼 연타를 한 줄로 합치는 창(ms) — 마지막으로 고친 지 이 시간 안이면 새 줄 대신 그 줄을 고친다. */
+export const BODYWEIGHT_PROFILE_MERGE_MS = 60_000;
+
+export interface ProfileBodyweightWritePlan {
+  /** 새로 만들 줄(id 는 저장소가 BODYWEIGHT_PROFILE_LOG_PREFIX 로 만든다) — weightKg 0 = 설정 안 함 표식 */
+  create: { measuredAt: number; weightKg: number; source: 'manual' } | null;
+  /** 고칠 줄(연타 합치기) */
+  update: { id: string; measuredAt: number; weightKg: number } | null;
+  /** 같은 write 안에서 쓸 미러 값(null = 미설정) */
+  mirrorKg: number | null;
+}
+
+/**
+ * 프로필 스테퍼 입력 한 번 → 같은 write 안에서 쓸 이력 한 줄 + 미러(순수). 미러 규칙(D-10) 안으로 들어온 입력이라
+ * 정리(planBodyweightMirror)가 흡수·되돌림을 판정할 일이 없다(CD-1).
+ *  · kg 가 유효하면 그 값, null·0 이하면 「설정 안 함」 표식(weightKg 0).
+ *  · 가장 최근 줄이 이미 같은 값(표식이면 표식)이면 쓰지 않는다 — 미러만 맞춘다.
+ *  · 가장 최근 줄이 프로필 입력이 만든 줄이고 그 줄을 고친 지 BODYWEIGHT_PROFILE_MERGE_MS 안이면 그 줄을 고친다(연타 → 한 줄).
+ *  · 줄이 하나도 없는데 미설정으로 바꾸면: 이력을 다 받은 기기는 쓰지 않는다. 아직 못 받은 기기(historyComplete=false)는
+ *    표식을 남긴다 — 나중에 받는 서버 이력이 이 입력을 덮지 않게.
+ */
+export function planProfileBodyweightWrite(
+  kg: number | null | undefined,
+  logs: readonly BodyweightLogLike[],
+  now: number,
+  historyComplete = true,
+): ProfileBodyweightWritePlan {
+  const w = isValidBodyweightKg(kg) ? kg : 0;
+  const entries = logs.filter(isEntry);
+  const top = latestEntry(entries);
+  const last = lastWritten(entries);
+  let create: ProfileBodyweightWritePlan['create'] = null;
+  let update: ProfileBodyweightWritePlan['update'] = null;
+
+  const same = top ? (w === 0 ? isBodyweightClearMarker(top) : sameKg(entryKg(top), w)) : w === 0 && historyComplete;
+  if (!same) {
+    const mergeable =
+      top != null &&
+      last != null &&
+      last.id === top.id &&
+      top.id.startsWith(BODYWEIGHT_PROFILE_LOG_PREFIX) &&
+      now - top.updatedAt >= 0 &&
+      now - top.updatedAt < BODYWEIGHT_PROFILE_MERGE_MS;
+    if (mergeable && top) update = { id: top.id, measuredAt: Math.max(now, top.measuredAt), weightKg: w };
+    else create = { measuredAt: now, weightKg: w, source: 'manual' };
+  }
+
+  const after: BodyweightLogLike[] = entries.map((l) =>
+    update && l.id === update.id ? { ...l, measuredAt: update.measuredAt, weightKg: update.weightKg, updatedAt: now } : l,
+  );
+  if (create) after.push({ id: '__new__', measuredAt: create.measuredAt, weightKg: create.weightKg, updatedAt: Number.MAX_SAFE_INTEGER });
+  const t = latestEntry(after);
+  return { create, update, mirrorKg: t ? entryKg(t) : w === 0 ? null : w };
 }
 
 /** 이력 쓰기(추가·수정·삭제) 직후 미러 값 — 남은 이력의 최신값, 하나도 없으면 null(「체중 미설정으로 돌아가요」 U-9). */
 export function mirrorAfterLogWrite(logs: readonly BodyweightLogLike[]): number | null {
-  return latest(logs)?.weightKg ?? null;
+  // [원본] return latest(logs)?.weightKg ?? null;
+  const e = latestEntry(logs); // 표식이 가장 최근이면 null(설정 안 함)
+  return e ? entryKg(e) : null;
 }

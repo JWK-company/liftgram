@@ -273,3 +273,77 @@ export async function idb_요약(page: Page): Promise<{
     return { version, sets, workouts, setsWithRirKey, newTables };
   });
 }
+
+/**
+ * IndexedDB `repset` 의 한 표 행을 앱 없이 고친다(빈_문서에서 부른다 · QA CU-12 ③ · CD-1).
+ * edits: id 가 없으면 모든 행에 적용. set = 칸 덮어쓰기 · shiftUpdatedAt = updated_at 에 더할 ms(음수 = 과거로).
+ * 고친 행 수를 돌려준다.
+ */
+export async function idb_행_고치기(
+  page: Page,
+  table: string,
+  edits: { id?: string; set?: Record<string, unknown>; shiftUpdatedAt?: number }[],
+): Promise<number> {
+  return page.evaluate(
+    async ({ table, edits }) => {
+      const db: IDBDatabase = await new Promise((res, rej) => {
+        const r = indexedDB.open("repset", 1);
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      const tx = db.transaction(["LokiIncrementalData"], "readwrite");
+      const store = tx.objectStore("LokiIncrementalData");
+      const all: { key: string; value: string }[] = await new Promise((res, rej) => {
+        const r = store.getAll();
+        r.onsuccess = () => res(r.result as { key: string; value: string }[]);
+        r.onerror = () => rej(r.error);
+      });
+      let n = 0;
+      for (const rec of all) {
+        const [name, kind] = rec.key.split(".");
+        if (name !== table || kind !== "chunk") continue;
+        const docs = JSON.parse(rec.value) as Record<string, unknown>[];
+        for (const d of docs)
+          for (const e of edits) {
+            if (e.id && d.id !== e.id) continue;
+            if (e.set) Object.assign(d, e.set);
+            if (e.shiftUpdatedAt) d.updated_at = Number(d.updated_at) + e.shiftUpdatedAt;
+            n += 1;
+          }
+        store.put({ key: rec.key, value: JSON.stringify(docs) });
+      }
+      await new Promise<void>((res, rej) => {
+        tx.oncomplete = () => res();
+        tx.onerror = () => rej(tx.error);
+      });
+      db.close();
+      return n;
+    },
+    { table, edits },
+  );
+}
+
+/** IndexedDB `repset` 의 한 표 행을 그대로 읽는다(빈_문서에서). */
+export async function idb_행(page: Page, table: string): Promise<Record<string, unknown>[]> {
+  return page.evaluate(async (table) => {
+    const db: IDBDatabase = await new Promise((res, rej) => {
+      const r = indexedDB.open("repset", 1);
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    });
+    const tx = db.transaction(["LokiIncrementalData"], "readonly");
+    const all: { key: string; value: string }[] = await new Promise((res, rej) => {
+      const r = tx.objectStore("LokiIncrementalData").getAll();
+      r.onsuccess = () => res(r.result as { key: string; value: string }[]);
+      r.onerror = () => rej(r.error);
+    });
+    db.close();
+    const out: Record<string, unknown>[] = [];
+    for (const rec of all) {
+      const [name, kind] = rec.key.split(".");
+      if (name === table && kind === "chunk")
+        out.push(...(JSON.parse(rec.value) as Record<string, unknown>[]));
+    }
+    return out;
+  }, table);
+}
