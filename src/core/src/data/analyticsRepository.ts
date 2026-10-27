@@ -179,8 +179,12 @@ export async function getVolumeTrend(sinceMs?: number): Promise<TrendPoint[]> {
 }
 
 // ── 근육군 분포(주근육 기준 볼륨 귀속) ─────────────────────────────
-export async function getMuscleDistribution(sinceMs?: number): Promise<{ muscle: MuscleGroup; volumeKg: number }[]> {
-  const enriched = await getCompletedSets(sinceMs);
+// endMs(제외)는 통계 근육 균형 카드의 주 이동(‹ ›)용 — 미지정이면 예전과 같다. @plm SRS-076
+export async function getMuscleDistribution(
+  sinceMs?: number,
+  endMs?: number,
+): Promise<{ muscle: MuscleGroup; volumeKg: number }[]> {
+  const enriched = await getCompletedSets(sinceMs, endMs);
   const meta = await exerciseMeta([...new Set(enriched.map((e) => e.exerciseId))]);
   const byMuscle = new Map<MuscleGroup, number>();
   for (const e of enriched) {

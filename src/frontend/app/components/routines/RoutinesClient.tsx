@@ -44,6 +44,7 @@ import { AppBar, AppBarAction } from "../ui/AppBar";
 // [원본] import { MoreMenu } from "../ui/MoreMenu"; — 진행 카드의 ⋯ 메뉴(화면 정리 D8 로 렌더 중단)
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
+import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 오늘·추천 카드 근육 그림 @plm SRS-075
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -841,7 +842,9 @@ function TodayCard({
             <AppText variant="caption" color="textMuted" className="mt-[2px] block">
               {t("schedule.todayHint")}
             </AppText>
+            <RoutineMuscleFocus routineId={routine.id} />
           </div>
+          <RoutineMuscleMini routineId={routine.id} />
           {/* 화면 정리 P4 /qa M-1 — 루틴 「시작」은 회색 상자. 단 오늘 할 루틴이 주 행동이면 빨강(M-2) @plm SRS-072 */}
           <Button
             title={t("routines.start")}
@@ -1006,7 +1009,9 @@ function RecoCard({
           <AppText variant="caption" color="textMuted" className="mt-[2px] block">
             {t("routines.todayRecoHint", { muscle: muscleLabel(reco.muscle, lang) })}
           </AppText>
+          <RoutineMuscleFocus routineId={reco.routineId} />
         </div>
+        <RoutineMuscleMini routineId={reco.routineId} />
         {/* 화면 정리 P4 /qa M-1 · M-2(주 행동이면 빨강) @plm SRS-072 */}
         <Button
           title={t("routines.start")}

@@ -363,7 +363,8 @@ export default function ActiveWorkout() {
           />
         </div>
 
-        <SessionGuideButtons />
+        {/* [원본] <SessionGuideButtons /> — 「오늘 근육」 버튼에 운동 id 를 넘긴다 @plm SRS-075 */}
+        <SessionGuideButtons workoutId={workout.id} />
 
         <div className="flex-1 p-[var(--spacing-lg)]">
           {exercises.length === 0 ? (

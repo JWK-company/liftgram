@@ -1115,6 +1115,26 @@ export const ko = {
   "effort.detailConvertedAria": "RPE {rpe} 를 바꾼 값 RIR {value}",
   // [원본] "진한 부분이 길수록 그날 세트에 남은 여유가 적었어요" — 채움이 다크에서 바탕에 묻혀 가운데 줄로 바꿨다(QA CU-2)
   "effort.progressLegend": "가운데 줄이 길수록 그날 세트에 남은 여유가 적었어요",
+  // 근육 지도·균형 화면(P2 · SRS-075·076) — 세트 수 사실만, 평가·권고 없음(웰니스 · guideCopy 게이트 `muscleMap.`). @plm SRS-075 SRS-076
+  "muscleMap.settingTitle": "근육 그림 보기",
+  "muscleMap.settingCaption": "오늘·추천 루틴 카드와 운동 중 「오늘 근육」 버튼에 근육 그림을 보여요",
+  "muscleMap.ariaSummary": "많이 한 근육: {list}",
+  "muscleMap.ariaEmpty": "아직 센 근육이 없어요",
+  "muscleMap.todayButton": "오늘 근육",
+  "muscleMap.sheetTitle": "오늘 근육",
+  "muscleMap.sheetRow": "끝낸 {done} / 계획 {planned}세트",
+  "muscleMap.sheetRowAria": "{muscle} 끝낸 {done}세트, 계획 {planned}세트",
+  "muscleMap.sheetEmpty": "아직 근육이 잡힌 세트가 없어요",
+  "muscleMap.halfNote": "보조로 쓰인 근육은 0.5세트로 세요",
+  "muscleMap.balanceTitle": "근육 균형",
+  "muscleMap.balanceEmpty": "이 기간에 센 근육이 없어요",
+  "muscleMap.rowAria": "{muscle} {count}세트, 볼륨 {volume}",
+  "muscleMap.rowAriaNoVolume": "{muscle} {count}세트",
+  "muscleMap.prevPeriod": "이전 기간",
+  "muscleMap.nextPeriod": "다음 기간",
+  "muscleMap.untrainedTitle": "이 기간에 안 한 근육",
+  "muscleMap.untrainedChipAria": "{muscle} 종목 보기",
+  "muscleMap.range": "{start} ~ {end}",
 } as const;
 
 export type TransKey = keyof typeof ko;

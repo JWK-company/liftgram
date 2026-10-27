@@ -32,6 +32,7 @@ import {
 } from "@app/core/domain/exerciseSearch";
 import { t } from "@/lib/i18n";
 import { equipmentLabelFromDomain, muscleLabelFromDomain } from "@/lib/labels";
+import { useMuscleQuerySync } from "@/lib/muscleQuery"; // ?muscle= ↔ 부위 칩 @plm SRS-076
 import ExerciseFinderWizard, { type WizardResult } from "./ExerciseFinderWizard";
 import { Pictogram } from "./Pictogram";
 import { ErrorState } from "./States";
@@ -72,6 +73,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
   const [query, setQuery] = useState("");
   const [equipment, setEquipment] = useState<EquipmentType | "">("");
   const [muscle, setMuscle] = useState<MuscleGroup | "">("");
+  useMuscleQuerySync(muscle, setMuscle); // 통계 「안 한 근육」 칩에서 들어오면 그 부위로 연다(양방향) @plm SRS-076
   // 유산소는 부위와 별개 축이다(app과 같다) — 이 칩을 켜면 부위 선택은 풀린다.
   const [kind, setKind] = useState<"cardio" | "">("");
   // 스무고개가 골라 준 동작/자세 종목집합. 있으면 그 종목들로만 좁힌다(SRS-031).

@@ -15,15 +15,17 @@
 // 맨 아래 고지는 지우지 않는다: 이 앱은 웰니스 도구이지 의학적 판단을 하지 않는다(SRS-015).
 import { AppBar } from "../ui/AppBar";
 import { routes } from "@app/contracts";
-import { formatWeight, muscleLabel, type MuscleGroup } from "@app/core";
+// [원본] import { formatWeight, muscleLabel, type MuscleGroup } from "@app/core"; — 근육군 분포 렌더를 막아 muscleLabel·MuscleGroup 를 안 쓴다(SRS-076)
+import { formatWeight } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
-import { lang, t } from "@/lib/i18n";
-import { DistributionBars } from "../ui/charts";
+// [원본] import { lang, t } from "@/lib/i18n"; · import { DistributionBars } from "../ui/charts"; — 근육군 분포 전용(SRS-076)
+import { t } from "@/lib/i18n";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 import { KpiRow, ListGroup, ListRow, SectionLabel, Segmented } from "../ui/rows";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { EffortCard } from "./EffortCard"; // 세트 힘든 정도(SRS-074)
+import { MuscleBalanceCard } from "./MuscleBalanceCard"; // 근육 균형(SRS-076)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Overview = Awaited<ReturnType<AnalyticsRepo["getOverview"]>>;
@@ -77,7 +79,7 @@ export default function StatsClient() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [prevVolume, setPrevVolume] = useState<number | null>(null);
   const [trend, setTrend] = useState<TrendPoint[]>([]);
-  const [dist, setDist] = useState<{ muscle: MuscleGroup; volumeKg: number }[]>([]);
+  // [원본] const [dist, setDist] = useState<{ muscle: MuscleGroup; volumeKg: number }[]>([]); — 근육 균형 카드가 직접 읽는다(SRS-076)
   const [recentPRs, setRecentPRs] = useState<RecentPR[]>([]);
 
   useEffect(() => {
@@ -90,19 +92,20 @@ export default function StatsClient() {
     void (async () => {
       try {
         const repo = await import("@app/core/data/analyticsRepository");
-        const [o, o2, tr, d, prs] = await Promise.all([
+        // [원본] const [o, o2, tr, d, prs] = await Promise.all([
+        const [o, o2, tr, prs] = await Promise.all([
           repo.getOverview(sinceMs),
           prevSince ? repo.getOverview(prevSince) : Promise.resolve(null),
           // 추세는 기간과 상관없이 최근 몇 주를 본다 — 「이번 주」 를 골라도 막대가 하나만 남지 않게.
           repo.getVolumeTrend(now - MAX_BARS * 7 * DAY_MS),
-          repo.getMuscleDistribution(sinceMs),
+          // [원본] repo.getMuscleDistribution(sinceMs), — 근육 균형 카드(MuscleBalanceCard)가 기간·주 이동에 맞춰 읽는다(U-5)
           repo.getRecentPRs(10),
         ]);
         if (cancelled) return;
         setOverview(o);
         setPrevVolume(o2 ? o2.totalVolumeKg - o.totalVolumeKg : null);
         setTrend(tr);
-        setDist(d);
+        // [원본] setDist(d);
         setRecentPRs(prs);
       } finally {
         if (!cancelled) setLoading(false);
@@ -248,6 +251,8 @@ export default function StatsClient() {
             ) : null}
             <div className="mb-[var(--spacing-lg)]" />
 
+            {/* [원본] 근육군 분포(주근육 볼륨 kg) — 근육 균형 카드(세트 수 · 볼륨 kg 은 줄마다 보조 숫자)가 대체한다(U-5 · 섹션 하나).
+                원복하려면 아래 주석을 풀고 <MuscleBalanceCard /> 를 주석 처리한다.
             <SectionLabel title={t("analytics.muscleDistribution")} />
             <Card className="mb-[var(--spacing-lg)]">
               <DistributionBars
@@ -255,6 +260,9 @@ export default function StatsClient() {
                 formatValue={(v) => formatWeight(v, weightUnit)}
               />
             </Card>
+            */}
+            {/* [개선] 근육 균형 — 위쪽 기간을 따르고 카드 안 ‹ › 로 옮긴다 @plm SRS-076 */}
+            <MuscleBalanceCard days={SPAN[period]} />
             {/* 세트 힘든 정도 — 위쪽 기간을 따른다(U-6). Epley 주석은 이 카드 밑에 오지 않는다(1RM 밑 또는 최근 PR 밑 · QA CU-1) @plm SRS-074 */}
             <EffortCard days={SPAN[period]} />
 

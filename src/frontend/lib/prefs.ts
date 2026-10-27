@@ -30,6 +30,7 @@ export const SYNCED_PREF_KEYS = [
   "liftgram.restVolume",
   "liftgram.theme", // 시스템·라이트·다크 — lib/theme.ts
   "liftgram.effortLogging", // 세트 힘든 정도 기록("1" = 켬 · 없음/"0" = 끔 — 기본 끔) — lib/effortPref.ts @plm SRS-073
+  "liftgram.muscleMap", // 근육 그림 보기("0" = 끔 · 없음/"1" = 켬 — 기본 켬) — lib/muscleMapPref.ts @plm SRS-075
 ] as const;
 const SYNCED = new Set<string>(SYNCED_PREF_KEYS);
 

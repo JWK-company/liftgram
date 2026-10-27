@@ -10,11 +10,13 @@ import { t, type TransKey } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
 import { AppText } from "../ui/primitives";
+import { TodayMuscleButton } from "./TodayMuscleSheet"; // 「오늘 근육」(설정 끄면 없음) @plm SRS-075
 
 const RIR_PAGES = ["p1", "p2", "p3", "p4"] as const;
 const WARMUP_PAGES = ["p1", "p2", "p3"] as const;
 
-export function SessionGuideButtons() {
+// workoutId 가 있으면 줄 끝에 「오늘 근육」 버튼(근육 그림 보기 설정을 따름 · SRS-075)
+export function SessionGuideButtons({ workoutId }: { workoutId?: string } = {}) {
   const [open, setOpen] = useState<"rir" | "warmup" | null>(null);
 
   return (
@@ -26,6 +28,7 @@ export function SessionGuideButtons() {
         onPress={() => setOpen("warmup")}
         testId="btn-guide-warmup"
       />
+      {workoutId ? <TodayMuscleButton workoutId={workoutId} /> : null}
 
       {open === "rir" ? (
         <GuideModal

@@ -51,6 +51,7 @@ import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
 import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
+import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 import { version as APP_VERSION } from "../../../package.json";
 import buildInfo from "../../build-info.json";
@@ -285,6 +286,7 @@ export default function ProfileClient() {
             onPress={() => setSheet("sound")}
           />
           <EffortLoggingRow />
+          <MuscleMapRow />
           <ListRow
             testId="row-equipment"
             title={t("profile.availableEquipment")}
