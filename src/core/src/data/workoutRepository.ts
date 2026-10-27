@@ -26,6 +26,7 @@ import {
 import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
 import { resolvePrescribedLoad, planPrescribedLoadFills } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
+import { planReplay, planFromSpec, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
 import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
 import {
   legacyMachineVariantToV6,
@@ -648,6 +649,7 @@ function prepareTemplateSets(
   prescription: PrescribedSet[] | null = null, // v16: 세트별 처방(사람 작성 — 렌더·휴식·RIR 라벨 근거). @plm SRS-043
   loadMultiplier: number | null = null, // v22: 이 블록의 배수(플레이트 한쪽=2 · ADR-037) @plm SRS-058
   rxLoadKg: (number | null)[] = [], // 처방 무게 기준으로 계산한 세트별 무게(계산 kg · 없으면 null) @plm SRS-063
+  warmupCount = 0, // 앞의 몇 세트를 워밍업으로(「그대로 다시 시작」 — 원본에서 한 워밍업 수 · 처방이 있으면 처방이 정한다) @plm SRS-065
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
@@ -699,6 +701,7 @@ function prepareTemplateSets(
           s.setType = null;
           s.targetRir = rx?.targetRir ?? null;
         }
+        if (!rx && i < warmupCount) s.isWarmup = true; // @plm SRS-065
         s.done = false;
         s.completedAt = null;
       }),
@@ -707,7 +710,9 @@ function prepareTemplateSets(
   return recs;
 }
 
-export async function startWorkoutFromRoutine(routineId: string): Promise<Workout> {
+// [원본] 루틴 시작 — 「그대로 다시 시작」·피드 「바로 시작」이 같은 프리레이를 쓰도록 공통 시작(startWorkoutFromRows)으로
+// 옮겼다(SRS-065 · 복붙 금지). 원복 시 아래 이름을 startWorkoutFromRoutine 으로 되돌리고 새 함수를 지운다.
+export async function startWorkoutFromRoutineV1(routineId: string): Promise<Workout> {
   const routine = await routines().find(routineId);
   const res = await routineExercises()
     .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
@@ -852,6 +857,271 @@ export async function startWorkoutFromRoutine(routineId: string): Promise<Workou
     await database.batch(...weRecords, ...setRecords);
     return workout;
   });
+}
+
+// ── 공통 시작(SRS-065) ───────────────────────────────────────────────────────
+// 「시작할 줄」 목록(domain/replay.StartRow) → 운동 1개. 루틴·「그대로 다시 시작」·피드 「바로 시작」이 모두 여기로 온다:
+//   칸 결정(명시/지난 조합) · 한쪽 입력 배수 · 지난 기록 프리레이 · 처방 무게 · 슈퍼셋 · 루틴 줄 연결이 한 규칙이다.
+const EMPTY_VARIANT: VariantColumns = {
+  variantKey: null,
+  variantEquipment: null,
+  variantGrip: null,
+  variantArm: null,
+  variantLoad: null,
+  variantAttach: null,
+  machineVariant: null,
+};
+
+async function startWorkoutFromRows(opts: { routineId: string | null; name: string; rows: StartRow[] }): Promise<Workout> {
+  const rows = opts.rows;
+  // 칸 결정 — 다시 시작은 원본 칸 그대로(variantExact), 루틴·피드는 미지정이면 지난 조합 승계(resolveStartVariant).
+  const variants: VariantColumns[] = [];
+  for (const r of rows) {
+    const stored: VariantColumns = r.variant ? { ...EMPTY_VARIANT, ...r.variant } : EMPTY_VARIANT;
+    variants.push(r.variant && r.variantExact ? stored : await resolveStartVariant(r.exerciseId, stored));
+  }
+  const { getPlateOneSideMap } = await import('./exercisePrefs');
+  const plateMap = await getPlateOneSideMap(rows.map((r) => r.exerciseId));
+  const multiplierAt = (i: number) => blockLoadMultiplier(dimsFromColumns(variants[i]), plateMap.get(rows[i].exerciseId));
+  const vkey = (i: number) => `${rows[i].exerciseId}::${variants[i].variantKey ?? ''}`;
+  const prevSnapByKey = new Map<string, { weightKg: number; reps: number } | null>();
+  const prevSetsByKey = new Map<string, LogSetInput[]>();
+  const cardioByExercise = new Map<string, boolean>();
+  const bwByExercise = new Map<string, boolean>();
+  for (let i = 0; i < rows.length; i++) {
+    const k = vkey(i);
+    if (!prevSnapByKey.has(k)) {
+      prevSnapByKey.set(k, await getPreviousExerciseSnapshot(rows[i].exerciseId, variants[i].variantKey));
+      prevSetsByKey.set(k, await getPreviousExerciseSets(rows[i].exerciseId, variants[i].variantKey));
+    }
+    const exId = rows[i].exerciseId;
+    if (!cardioByExercise.has(exId)) {
+      cardioByExercise.set(exId, await isCardioExerciseId(exId));
+      bwByExercise.set(exId, await isBodyweightExerciseId(exId));
+    }
+  }
+  // 처방 무게 기준(1RM 의 N%·직접) — 루틴 시작과 같은 계산 @plm SRS-063
+  const rxLoadAt = new Map<number, (number | null)[]>();
+  {
+    const unit = await getUserWeightUnit();
+    for (let i = 0; i < rows.length; i++) {
+      const rx = rows[i].prescription;
+      if (!rx?.some((r) => r.loadBasis === 'pct1rm' || r.loadBasis === 'fixed')) continue;
+      if (cardioByExercise.get(rows[i].exerciseId)) continue;
+      const ex = await database.get<Exercise>('exercises').find(rows[i].exerciseId).catch(() => null);
+      if (!ex || resolveLoadMode(ex) !== 'external') continue;
+      const est = rx.some((r) => r.loadBasis === 'pct1rm')
+        ? await estimatedOneRmForSlot(rows[i].exerciseId, variants[i].variantKey)
+        : 0;
+      rxLoadAt.set(
+        i,
+        rx.map((r) => {
+          if (r.loadBasis !== 'pct1rm' && r.loadBasis !== 'fixed') return null;
+          const got = resolvePrescribedLoad({
+            basis: r.loadBasis,
+            pct: r.loadPct,
+            kg: r.loadKg,
+            est1rmKg: est,
+            equipment: ex.equipment,
+            unit,
+          });
+          return 'weightKg' in got && got.weightKg > 0 ? got.weightKg : null;
+        }),
+      );
+    }
+  }
+  // 묶음 표식(g:…)은 새 그룹 id 로 — 원본 세션·남의 글의 그룹 id 가 새 운동으로 새지 않게. 루틴의 그룹 id 는 그대로(기존 동작).
+  const groupIds = new Map<string, string>();
+  const groupOf = (g: string | null): string | null => {
+    if (!g) return null;
+    if (!g.startsWith('g:')) return g;
+    let id = groupIds.get(g);
+    if (!id) {
+      id = randomId('ss_');
+      groupIds.set(g, id);
+    }
+    return id;
+  };
+  return database.write(async () => {
+    const now = Date.now();
+    const workout = await workouts().create((w) => {
+      w.routineId = opts.routineId;
+      w.name = opts.name;
+      w.state = 'active';
+      w.startedAt = now;
+      w.accumulatedPauseMs = 0;
+      w.totalVolumeKg = 0;
+      w.prCount = 0;
+      w.userId = null;
+    });
+    const weRecords = rows.map((r, i) =>
+      workoutExercises().prepareCreate((we) => {
+        we.workoutId = workout.id;
+        we.exerciseId = r.exerciseId;
+        we.sortOrder = i;
+        const prev = prevSnapByKey.get(vkey(i)) ?? null;
+        we.prevWeightKg = prev?.weightKg ?? null;
+        we.prevReps = prev?.reps ?? null;
+        we.targetSets = r.targetSets + r.warmupSets;
+        we.targetRepsMin = r.targetRepsMin;
+        we.targetRepsMax = r.targetRepsMax;
+        we.targetWeightKg = r.targetWeightKg;
+        we.restSeconds = r.restSeconds;
+        const v = variants[i];
+        we.machineVariant = v.machineVariant;
+        we.variantKey = v.variantKey;
+        we.variantEquipment = v.variantEquipment;
+        we.variantGrip = v.variantGrip;
+        we.variantArm = v.variantArm;
+        we.variantLoad = v.variantLoad ?? null;
+        we.variantAttach = v.variantAttach ?? null;
+        we.supersetGroup = groupOf(r.supersetGroup);
+        we.routineExerciseId = r.routineExerciseId; // v24 — 완료 때 루틴과 짝 @plm SRS-059
+        we.note = r.note?.trim() || null;
+        we.cardioTarget = (r.cardioTarget as CardioTargetJson | null) ?? null;
+        we.prescription = r.prescription ?? null;
+      }),
+    );
+    const setRecords: SetLog[] = [];
+    rows.forEach((r, i) => {
+      const isCardioEx = cardioByExercise.get(r.exerciseId) ?? false;
+      const rx = !isCardioEx ? r.prescription : null;
+      const count = isCardioEx ? 1 : rx && rx.length > 0 ? rx.length : Math.max(1, r.targetSets + r.warmupSets || 1);
+      setRecords.push(
+        ...prepareTemplateSets(
+          weRecords[i].id,
+          count,
+          r.targetWeightKg,
+          r.targetRepsMin,
+          prevSetsByKey.get(vkey(i)) ?? [],
+          prevSnapByKey.get(vkey(i)) ?? null,
+          isCardioEx,
+          bwByExercise.get(r.exerciseId) ?? false,
+          (r.cardioTarget as CardioTargetJson | null) ?? null,
+          rx,
+          multiplierAt(i),
+          rxLoadAt.get(i) ?? [],
+          isCardioEx ? 0 : r.warmupSets,
+        ),
+      );
+    });
+    await database.batch(...weRecords, ...setRecords);
+    return workout;
+  });
+}
+
+// [개선] 루틴 시작 — 루틴 줄 → 시작할 줄 → 공통 시작(규칙은 V1 과 같다: 명시 칸 · 미지정이면 지난 조합 · 처방 · 메모 시드) @plm SRS-065
+export async function startWorkoutFromRoutine(routineId: string): Promise<Workout> {
+  const routine = await routines().find(routineId);
+  const res = await routineExercises()
+    .query(Q.where('routine_id', routineId), Q.sortBy('sort_order', Q.asc))
+    .fetch();
+  const rows: StartRow[] = res.map((re) => {
+    const legacy = legacyMachineVariantToV6(re.machineVariant);
+    return {
+      exerciseId: re.exerciseId,
+      targetSets: re.targetSets,
+      warmupSets: 0,
+      targetRepsMin: re.targetRepsMin,
+      targetRepsMax: re.targetRepsMax,
+      targetWeightKg: re.targetWeightKg,
+      restSeconds: re.restSeconds,
+      variant: {
+        variantKey: effectiveVariantKey(re),
+        variantEquipment: re.variantEquipment ?? legacy.dims.equipment ?? null,
+        variantGrip: re.variantGrip ?? null,
+        variantArm: re.variantArm ?? null,
+        variantLoad: re.variantLoad ?? null,
+        variantAttach: re.variantAttach ?? null,
+        machineVariant: re.machineVariant ?? null,
+      },
+      variantExact: false,
+      supersetGroup: re.supersetGroup,
+      routineExerciseId: re.id,
+      prescription: re.prescription ?? null,
+      cardioTarget: re.cardioTarget ?? null,
+      note: re.note,
+    };
+  });
+  return startWorkoutFromRows({ routineId, name: routine.name, rows });
+}
+
+/** 시작한 루틴이 아직 있으면 그 id(보관·삭제면 null — 빠른 운동처럼). */
+async function liveRoutineId(routineId: string | null): Promise<string | null> {
+  if (!routineId) return null;
+  try {
+    const r = await routines().find(routineId);
+    return r.isArchived ? null : r.id;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 「이 운동 그대로 다시 시작」 — 지난 운동의 종목·순서·세트 수(워밍업 포함)·슈퍼셋·칸·목표로, 무게는 이전 기록으로.
+ * 원본이 루틴에서 왔고 그 루틴이 남아 있으면 그 루틴에 잇는다(끝낼 때 루틴 반영이 그대로 돈다). @plm SRS-065
+ */
+export async function startWorkoutFromWorkout(sourceWorkoutId: string): Promise<Workout> {
+  const source = await workouts().find(sourceWorkoutId);
+  const wes = await workoutExercises()
+    .query(Q.where('workout_id', sourceWorkoutId), Q.sortBy('sort_order', Q.asc))
+    .fetch();
+  const sets = wes.length
+    ? await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((w) => w.id)))).fetch()
+    : [];
+  const exIds = [...new Set(wes.map((w) => w.exerciseId))];
+  const exRows = exIds.length ? await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf(exIds))).fetch() : [];
+  const kindOf = new Map(exRows.map((e) => [e.id, e.kind]));
+  const routineId = await liveRoutineId(source.routineId);
+  const liveLines = routineId
+    ? new Set((await routineExercises().query(Q.where('routine_id', routineId)).fetch()).map((re) => re.id))
+    : new Set<string>();
+  // 화면과 같은 순서(sort_order → 만든 시각) — 운동 중 지우고 추가해 sort_order 가 겹친 운동도 그날 순서대로
+  const ordered = [...wes].sort(
+    (a, b) => a.sortOrder - b.sortOrder || (a.createdAt?.getTime?.() ?? 0) - (b.createdAt?.getTime?.() ?? 0),
+  );
+  const source_: ReplaySourceBlock[] = ordered.map((we, i) => ({
+    id: we.id,
+    exerciseId: we.exerciseId,
+    sortOrder: i,
+    supersetGroup: we.supersetGroup ?? null,
+    routineExerciseId: we.routineExerciseId && liveLines.has(we.routineExerciseId) ? we.routineExerciseId : null,
+    isCardio: kindOf.get(we.exerciseId) === 'cardio',
+    targetRepsMin: we.targetRepsMin ?? null,
+    targetRepsMax: we.targetRepsMax ?? null,
+    restSeconds: we.restSeconds ?? null,
+    prescription: we.prescription ?? null,
+    cardioTarget: we.cardioTarget ?? null,
+    variant: { ...EMPTY_VARIANT, ...variantColumnsOf(we), variantLoad: we.variantLoad ?? null, variantAttach: we.variantAttach ?? null },
+    sets: sets.filter((st) => st.workoutExerciseId === we.id).map((st) => ({ done: st.done, isWarmup: st.isWarmup })),
+  }));
+  const rows = planReplay(source_);
+  if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
+  return startWorkoutFromRows({ routineId, name: source.name?.trim() || '빠른 운동', rows });
+}
+
+/** 피드의 남의 운동으로 바로 시작 — 종목은 이미 내 기기 종목으로 해석된 뒤다. 루틴을 만들지 않는다. @plm SRS-065 */
+export async function startWorkoutFromSpec(
+  name: string,
+  items: { exerciseId: string; sets: number; supersetGroup?: string | null }[],
+): Promise<Workout> {
+  const rows = planFromSpec(items);
+  if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
+  return startWorkoutFromRows({ routineId: null, name: name.trim() || '빠른 운동', rows });
+}
+
+/** 운동 총평(나만 보는 운동 한 줄 평 · 피드 글과 별개) — 2,000자 · 공백만이면 지운다. @plm SRS-064 */
+export const WORKOUT_NOTE_MAX = 2000;
+export async function setWorkoutNote(workoutId: string, text: string): Promise<void> {
+  const v = text.trim().slice(0, WORKOUT_NOTE_MAX);
+  await database.write(async () => {
+    const w = await workouts().find(workoutId);
+    if ((w.notes ?? '') === v) return;
+    await w.update((rec) => {
+      rec.notes = v || null;
+    });
+  });
+  scheduleSync();
 }
 
 export async function startBlankWorkout(): Promise<Workout> {

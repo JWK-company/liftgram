@@ -15,6 +15,8 @@ import { Icon } from "../ui/Icon";
 import { AppText, Tag } from "../ui/primitives";
 import { KpiRow, ListGroup, ListRow, SectionLabel } from "../ui/rows";
 import { NameRoutine } from "./FinishRoutineSheets";
+import { WorkoutNoteField } from "./WorkoutNoteField";
+import { useStartGuard } from "../useStartGuard";
 import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
 
 export interface Summary {
@@ -35,10 +37,13 @@ export function WorkoutSummary({
   unit,
   onClose,
   routineSaved = false,
+  onReplayStarted,
 }: {
   summary: Summary;
   unit: WeightUnit;
   onClose: () => void;
+  /** 「그대로 다시 시작」으로 새 운동이 시작됐다 — 운동 화면이 요약을 닫고 그 운동을 띄운다. @plm SRS-065 */
+  onReplayStarted?: (w: { id: string; startedAt: number; name: string | null }) => void;
   /** 완료 시트에서 이미 새 루틴으로 저장했다(QA L5). */
   routineSaved?: boolean;
 }) {
@@ -46,6 +51,7 @@ export function WorkoutSummary({
   const [extras, setExtras] = useState<{ share: ShareablePayload; breakdown: BreakdownRow[] } | null>(null);
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   const [routineMade, setRoutineMade] = useState(false); // 여기서 저장했다(QA L5)
+  const replay = useStartGuard({ onStarted: onReplayStarted }); // @plm SRS-065
   useEffect(() => {
     let alive = true;
     void loadSummaryExtras(summary).then((x) => alive && setExtras(x));
@@ -178,6 +184,32 @@ export function WorkoutSummary({
           </div>
         ) : null}
 
+        {/* 같은 구성으로 한 번 더(#59) — 무게는 이전 기록(방금 한 것)으로 채운다 @plm SRS-065 */}
+        {summary.workingSets > 0 ? (
+          <div className="mt-[var(--spacing-sm)]">
+            <Button
+              title={t("replay.start")}
+              variant="secondary"
+              icon="play"
+              testId="btn-summary-replay"
+              loading={replay.busy}
+              onPress={() =>
+                replay.guard(async () => {
+                  const repo = await import("@app/core/data/workoutRepository");
+                  return (await repo.startWorkoutFromWorkout(summary.workoutId)) as unknown as {
+                    id: string;
+                    startedAt: number;
+                    name: string | null;
+                  };
+                })
+              }
+            />
+          </div>
+        ) : null}
+
+        {/* 운동 총평 — 나만 본다 · 피드 글과 별개(#52) @plm SRS-064 */}
+        <WorkoutNoteField workoutId={summary.workoutId} initial={null} />
+
         {/* 방금 마친 운동을 피드에 올린다. 계정이 없으면 그 사실을 알리고 아무것도 하지 않는다. */}
         {extras ? (
           <div className="mt-[var(--spacing-xl)]">
@@ -185,6 +217,8 @@ export function WorkoutSummary({
           </div>
         ) : null}
       </div>
+
+      {replay.sheet}
 
       {makeRoutine ? (
         <NameRoutine

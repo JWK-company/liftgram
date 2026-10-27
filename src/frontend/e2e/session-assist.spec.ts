@@ -155,7 +155,9 @@ test("슈퍼셋 — 한쪽에만 워밍업이 있어도 화면 번호끼리 짝�
   await expect(lists.nth(0).locator("> div")).toHaveCount(aCount + 1, { timeout: 10_000 });
   await lists.nth(0).locator("> div").nth(0).getByTestId("set-type").click();
   await page.getByTestId("set-type-sheet").getByText("워밍업").click();
-  await expect(lists.nth(0).locator("> div").nth(0).getByTestId("set-type")).toHaveText("W", { timeout: 10_000 });
+  await expect(lists.nth(0).locator("> div").nth(0).getByTestId("set-type")).toHaveText("W", {
+    timeout: 10_000,
+  });
 
   // 벤치 화면 「1」(두 번째 줄)을 체크 → 로우 「1」(첫 줄)이 함께, 워밍업은 그대로
   const aW = lists.nth(0).locator("> div").nth(0);
@@ -174,7 +176,10 @@ test("슈퍼셋 — 한쪽에만 워밍업이 있어도 화면 번호끼리 짝�
   await expect(aW.getByTestId("set-done")).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 });
   const bRows = await lists.nth(1).locator("> div").count();
   for (let k = 1; k < bRows; k++) {
-    await expect(lists.nth(1).locator("> div").nth(k).getByTestId("set-done")).toHaveAttribute("aria-pressed", "false");
+    await expect(lists.nth(1).locator("> div").nth(k).getByTestId("set-done")).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
   }
 });
 

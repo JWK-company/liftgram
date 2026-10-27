@@ -82,21 +82,30 @@ export async function loadSummaryExtras(summary: {
       analytics.getCompletedDayNumsSince(400),
     ]);
     const streak = computeStreak([...dayNums], Date.now());
+    // [원본] 공유 데이터를 여기서 바로 만들었다 — 운동 총평(SRS-064)이 생기면서 「무엇을 싣지 않는가」를 테스트로 고정하려고
+    // core 순수 함수로 옮겼다(QA R5). 원복 시 아래 주석을 풀고 buildSharedWorkout 호출을 지운다.
+    // share: {
+    //   ...base,
+    //   workoutName: detail.workout?.name ?? "",
+    //   streakDays: streak.current,
+    //   exercises: detail.exercises.map((ex) => ({
+    //     name: ex.exerciseName,
+    //     exerciseId: ex.exerciseId,
+    //     note: ex.note ?? undefined,
+    //     sets: ex.sets
+    //       .filter((st) => !st.isWarmup && !st.isFailed)
+    //       .map((st) => ({ weightKg: st.weightKg, reps: st.reps, loadMultiplier: st.loadMultiplier })),
+    //   })),
+    // },
+    const { buildSharedWorkout } = await import("@app/core/domain/sharePayload");
     return {
-      share: {
-        ...base,
+      // [개선] 고정된 키만 싣는다 — 운동 총평(notes)은 나만 본다 @plm SRS-064
+      share: buildSharedWorkout({
+        summary,
         workoutName: detail.workout?.name ?? "",
         streakDays: streak.current,
-        exercises: detail.exercises.map((ex) => ({
-          name: ex.exerciseName,
-          exerciseId: ex.exerciseId,
-          note: ex.note ?? undefined,
-          // 워밍업·실패 세트는 빼고 보낸다 — 카드에 실리는 것은 실제로 해낸 세트다.
-          sets: ex.sets
-            .filter((st) => !st.isWarmup && !st.isFailed)
-            .map((st) => ({ weightKg: st.weightKg, reps: st.reps, loadMultiplier: st.loadMultiplier })),
-        })),
-      },
+        exercises: detail.exercises,
+      }),
       breakdown: detail.exercises.map((ex) => ({
         id: ex.workoutExerciseId,
         name: ex.exerciseName,

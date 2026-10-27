@@ -49,6 +49,7 @@ interface WorkoutRow {
   totalVolumeKg: number;
   durationSeconds: number | null;
   prCount: number;
+  notes?: string | null; // 운동 총평(SRS-064) — 날짜 상세에서 두 줄 미리보기
 }
 
 const GOAL_KEY = "liftgram.weeklyGoal";
@@ -581,6 +582,15 @@ export default function CalendarClient() {
                       .filter(Boolean)
                       .join(" · ")}
                   </span>
+                  {/* 운동 총평 두 줄 미리보기 — 누르면 기록 상세에서 전부(#52) @plm SRS-064 */}
+                  {w.notes?.trim() ? (
+                    <span
+                      data-testid="calendar-workout-note"
+                      className="mt-[2px] line-clamp-2 whitespace-pre-line text-(--color-ink3) text-[length:var(--text-sm)]"
+                    >
+                      {w.notes.trim()}
+                    </span>
+                  ) : null}
                 </span>
                 {w.prCount > 0 ? <Tag label={`PR ${w.prCount}`} tone="pr" /> : null}
                 <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />

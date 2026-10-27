@@ -9,23 +9,121 @@
   "created": "2026-10-27T03:00:00Z",
   "updated": "2026-10-27T03:00:00Z",
   "sync": true,
-  "tags": ["layout", "session", "nfr"],
+  "tags": [
+    "layout",
+    "session",
+    "nfr"
+  ],
   "kind": "NFR",
   "acceptance_criteria": "360×560·390×844·412×915 에서 종목 4개 이상 운동 중 휴식 막대가 스크롤 위치와 무관하게 화면 하단에 붙어 있음 · 안전 영역 여백 · 다른 sticky 하단(루틴 편집·요약·댓글·DM)도 동일 · 가로 넘침 없음 유지.",
-  "relations": {"derives_from": ["URS-021"]},
+  "relations": {
+    "derives_from": [
+      "URS-021"
+    ]
+  },
   "doc": {
     "type": "doc",
     "content": [
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "2026-10-27 운영 점검에서 앱 셸의 main 요소에 걸린 가로 넘침 숨김(overflow-x: hidden)이 main 을 스크롤 컨테이너로 만들어, 그 안의 sticky 하단 요소들이 화면이 아니라 main 상자 기준으로 붙는 것을 확인했다. 그 결과 종목이 많은 운동에서 휴식 막대가 페이지 맨 끝으로 밀려 보이지 않고(390×844 · 종목 4개: 막대 top 1566 > 화면 844), 짧은 화면(360×560)에서는 막대 아래쪽이 잘린다."}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "가로 넘침은 스크롤 컨테이너를 만들지 않는 방식(overflow-x: clip)으로 막고, 하단 고정 요소에 안전 영역(env(safe-area-inset-bottom)) 여백을 더한다. 운동 화면 맨 아래에는 휴식 막대 높이만큼 여백을 두어 마지막 버튼을 가리지 않는다."}]},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
-      {"type": "bullet_list", "content": [
-        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "세 가지 폭·짧은 높이에서 휴식 막대·루틴 편집 하단 버튼·요약 하단·댓글/DM 입력이 스크롤 위치와 무관하게 화면 안 하단에 있다(e2e 로 좌표 검사)."}]}]},
-        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "휴식 막대가 마지막 「운동 추가」 버튼을 가리지 않는다. 화면에 가로 스크롤이 생기지 않는다."}]}]}
-      ]},
-      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
-      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-021. 피드백 #45 · #43. 점검 스크린샷: .ouroboros/docs/spec/20261027_history-replay/shots/."}]}
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "2026-10-27 운영 점검에서 앱 셸의 main 요소에 걸린 가로 넘침 숨김(overflow-x: hidden)이 main 을 스크롤 컨테이너로 만들어, 그 안의 sticky 하단 요소들이 화면이 아니라 main 상자 기준으로 붙는 것을 확인했다. 그 결과 종목이 많은 운동에서 휴식 막대가 페이지 맨 끝으로 밀려 보이지 않고(390×844 · 종목 4개: 막대 top 1566 > 화면 844), 짧은 화면(360×560)에서는 막대 아래쪽이 잘린다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가로 넘침은 스크롤 컨테이너를 만들지 않는 방식(overflow-x: clip)으로 막고, 하단 고정 요소에 안전 영역(env(safe-area-inset-bottom)) 여백을 더한다. 운동 화면 맨 아래에는 휴식 막대 높이만큼 여백을 두어 마지막 버튼을 가리지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세 가지 폭·짧은 높이에서 휴식 막대·루틴 편집 하단 버튼·요약 하단·댓글/DM 입력이 스크롤 위치와 무관하게 화면 안 하단에 있다(e2e 로 좌표 검사)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "휴식 막대가 마지막 「운동 추가」 버튼을 가리지 않는다. 화면에 가로 스크롤이 생기지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-021. 피드백 #45 · #43. 점검 스크린샷: .ouroboros/docs/spec/20261027_history-replay/shots/."
+          }
+        ]
+      }
     ]
-  }
+  },
+  "code_refs": [
+    "src/frontend/app/layout.tsx:82",
+    "src/frontend/e2e/sticky-bottom.spec.ts:1"
+  ]
 }

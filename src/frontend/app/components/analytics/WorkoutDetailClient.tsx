@@ -6,6 +6,8 @@
 //
 // 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
 import { formatWeight, fromKg, toKg, type WeightUnit } from "@app/core";
+import { type GripKey, gripLabel, variantLabelFromKey } from "@app/core/domain/variants";
+import type { AppLanguage } from "@app/core/domain/types";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -18,6 +20,9 @@ import { KpiRow } from "../ui/rows";
 import { AppText, Card, Divider, EmptyState, Tag } from "../ui/primitives";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { NameRoutine } from "../session/FinishRoutineSheets";
+import { WorkoutNoteField } from "../session/WorkoutNoteField";
+import { useExerciseName } from "@/lib/exerciseNames";
+import { useStartGuard } from "../useStartGuard";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -27,6 +32,10 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [unit, setUnit] = useState<WeightUnit>("kg");
+  // 칸 라벨(브랜드·커스텀 슬롯 이름)·언어 — 기록 상세에 수행 조합을 보인다(#59) @plm SRS-065
+  const [lang, setLang] = useState<AppLanguage>("ko");
+  const [slotLabels, setSlotLabels] = useState<string[]>([]);
+  const replay = useStartGuard(); // 「이 운동 그대로 다시 시작」 @plm SRS-065
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   // 세트 고치기·지우기(#51 A — PR 칩 「이 기록 보기」로 와서 잘못 남은 기록을 바로잡는다) @plm SRS-061
@@ -44,6 +53,17 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const router = useRouter();
   const toast = useToast();
 
+  const startReplay = () =>
+    replay.guard(async () => {
+      const repo = await import("@app/core/data/workoutRepository");
+      const w = (await repo.startWorkoutFromWorkout(workoutId)) as unknown as {
+        id: string;
+        startedAt: number;
+        name: string | null;
+      };
+      return w;
+    });
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: reloadTick — 세트를 고친 뒤 다시 읽는다(#51)
   useEffect(() => {
     let cancelled = false;
@@ -60,7 +80,14 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
         ]);
         if (cancelled) return;
         setDetail(d);
-        setUnit(((user as unknown as { weightUnit?: WeightUnit } | null)?.weightUnit ?? "kg") as WeightUnit);
+        const u = user as unknown as {
+          weightUnit?: WeightUnit;
+          preferredLanguage?: AppLanguage;
+          machineVariantLabels?: string[];
+        } | null;
+        setUnit((u?.weightUnit ?? "kg") as WeightUnit);
+        setLang(u?.preferredLanguage ?? "ko");
+        setSlotLabels(u?.machineVariantLabels ?? []);
       } catch {
         // 지워졌거나 없는 세션 — 빈 상태로 알린다.
         if (!cancelled) setDetail(null);
@@ -93,6 +120,11 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 // 지난 운동 그대로 루틴으로(#59 일부) @plm SRS-060
                 ...(detail.exercises.length > 0
                   ? [
+                      {
+                        label: t("replay.start"),
+                        testId: "btn-replay-menu",
+                        onPress: () => startReplay(),
+                      },
                       {
                         label: t("finish.makeRoutine"),
                         testId: "btn-make-routine",
@@ -153,6 +185,19 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
               />
             </Card>
 
+            {detail.exercises.length > 0 ? (
+              <div className="mb-[var(--spacing-lg)]">
+                <Button
+                  title={t("replay.start")}
+                  icon="play"
+                  variant="secondary"
+                  testId="btn-replay"
+                  loading={replay.busy}
+                  onPress={startReplay}
+                />
+              </div>
+            ) : null}
+
             {detail.exercises.length === 0 ? (
               <EmptyState icon="barbell-outline" title={t("analytics.noSetsTitle")} />
             ) : (
@@ -164,10 +209,19 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                     unit={unit}
                     focusSet={focusSet}
                     onEditSet={(set) => setEditing({ set, isCardio: !!ex.isCardio })}
+                    lang={lang}
+                    slotLabels={slotLabels}
                   />
                 ))}
               </div>
             )}
+
+            {/* 운동 총평 — 나만 본다 · 나중에 써도 된다(#52 A) @plm SRS-064 */}
+            <WorkoutNoteField
+              key={detail.workout.id}
+              workoutId={detail.workout.id}
+              initial={detail.workout.notes ?? null}
+            />
           </>
         )}
       </div>
@@ -187,6 +241,8 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
           workoutId={workoutId}
         />
       ) : null}
+
+      {replay.sheet}
 
       {makeRoutine ? (
         <NameRoutine
@@ -229,17 +285,30 @@ function ExerciseCard({
   unit,
   focusSet,
   onEditSet,
+  lang = "ko",
+  slotLabels = [],
 }: {
   ex: ExerciseDetail;
   unit: WeightUnit;
   focusSet?: string | null;
   onEditSet?: (set: DetailSet) => void;
+  lang?: AppLanguage;
+  slotLabels?: string[];
 }) {
+  // 표시 이름(사용자가 고른 이름 ?? 대표 이름) — 다른 화면과 같은 이름 @plm SRS-056
+  const shown = useExerciseName(ex.exerciseId);
+  // 수행 조합(브랜드·핀/플레이트·부착물·손 그립) — 기본 칸이면 적지 않는다(#59) @plm SRS-065
+  const slot = !ex.isCardio && ex.variantKey ? variantLabelFromKey(ex.variantKey, lang, slotLabels) : null;
   return (
     <Card className="mb-[var(--spacing-lg)]">
       <AppText variant="heading" className="block truncate">
-        {ex.exerciseName}
+        {shown ?? ex.exerciseName}
       </AppText>
+      {slot ? (
+        <AppText variant="caption" color="textMuted" className="mt-[2px] block" data-testid="detail-slot">
+          {slot}
+        </AppText>
+      ) : null}
 
       {ex.note ? (
         <div className="mt-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-xs)]">
@@ -296,6 +365,23 @@ function ExerciseCard({
               {s.isWarmup ? <Tag label={t("analytics.warmupTag")} tone="muted" /> : null}
               {s.isFailed ? <Tag label={t("analytics.failedTag")} /> : null}
               {s.arm === "uni" ? <Tag label={t("session.armUni")} tone="primary" /> : null}
+              {/* 세트에 남은 옛 손 그립(ADR-034 전 기록) · 플레이트 한쪽 입력 — 무엇을 어떻게 들었는지 @plm SRS-065 */}
+              {s.grip ? (
+                <span data-testid="detail-set-grip">
+                  <Tag label={gripLabel(s.grip as GripKey, lang) || s.grip} tone="muted" />
+                </span>
+              ) : null}
+              {s.loadMultiplier && s.loadMultiplier > 1 ? (
+                <span data-testid="detail-set-oneside">
+                  <Tag
+                    label={t("analytics.oneSideTag", {
+                      weight: formatWeight(s.weightKg, unit),
+                      n: s.loadMultiplier,
+                    })}
+                    tone="primary"
+                  />
+                </span>
+              ) : null}
             </div>
           </div>
           <span className="w-12 text-right">

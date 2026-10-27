@@ -240,7 +240,7 @@ export interface WorkoutExerciseDetail {
   machineVariant: string | null; // 머신 기구/브랜드 키(null=기본, 레거시)
   variantKey: string | null; // v6 변형 버킷 키(기구·그립·팔). @plm SRS-028
   note: string | null; // 세션 종목 메모(그날 느낌·포인트). @plm SRS-004
-  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; id?: string }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
+  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; grip?: string | null; id?: string }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
   isCardio?: boolean; // 유산소는 고치기 없이 지우기만(QA Q7) @plm SRS-061
   volumeKg: number;
   bestEstimated1RM: number;
@@ -300,6 +300,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
         arm: s.arm ?? null,
         partialReps: s.partialReps ?? null,
         loadMultiplier: s.loadMultiplier ?? null, // 공유·가져오기가 계산 무게를 알게(/qa code L-5) @plm SRS-058
+        grip: s.grip ?? null, // 옛 세트 손 그립(ADR-034 전) — 기록 상세에 보인다 @plm SRS-065
       })),
       volumeKg,
       bestEstimated1RM: bestEstimatedOneRepMax(logged),

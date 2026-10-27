@@ -294,7 +294,7 @@ export default function ConversationClient({ conversationId }: { conversationId:
         </div>
       ) : null}
 
-      <div className="sticky bottom-0 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)]">
+      <div className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]">
         {/* 사진 — 고르는 즉시 올라가고 보내진다. 미리보기 단계를 두지 않는다(메신저의 관례다). */}
         <label className="flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt)">
           <input

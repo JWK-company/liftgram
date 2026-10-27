@@ -258,7 +258,7 @@ export default function CommentsClient({ postId }: { postId: string }) {
         />
       ) : null}
 
-      <div className="sticky bottom-0 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)]">
+      <div className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex items-end gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) p-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]">
         <div className="flex-1">
           <TextArea
             value={text}

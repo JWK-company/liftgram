@@ -34,7 +34,18 @@ export function GlobalWorkoutBar() {
     return () => clearInterval(iv);
   }, [activeWorkoutId]);
 
-  if (!activeWorkoutId || pathname.startsWith("/workout")) return null;
+  // 막대가 떠 있는 동안 그 높이를 셸 변수로 알린다 — 화면 안의 sticky 하단(댓글·DM 입력, 루틴 편집 하단)이
+  // 막대 밑에 깔리지 않고 그만큼 위에 앉는다(SRS-066 — sticky 가 화면 기준으로 붙게 된 뒤 필요해졌다).
+  const visible = !!activeWorkoutId && !pathname.startsWith("/workout");
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--shell-workout-bar", visible ? "60px" : "0px");
+    return () => {
+      root.style.setProperty("--shell-workout-bar", "0px");
+    };
+  }, [visible]);
+
+  if (!visible) return null;
 
   const elapsed = activeStartedAt && now ? Math.round((now - activeStartedAt) / 1000) : 0;
   const resting = restRemaining != null;

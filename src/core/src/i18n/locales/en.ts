@@ -1008,4 +1008,14 @@ export const en: Record<TransKey, string> = {
   "profile.themeSystem": "System",
   "profile.themeLight": "Light",
   "profile.themeDark": "Dark",
+  // History replay (SRS-064·065)
+  "replay.start": "Start this workout again", // @plm SRS-065
+  "replay.nothing": "No sets to start again", // @plm SRS-065
+  "feed.startNow": "Start now", // @plm SRS-065
+  "feed.startNowFallback": "{author}'s workout", // @plm SRS-065
+  "note.title": "Workout review", // @plm SRS-064
+  "note.placeholder": "How did it go? Energy, what you felt, what to change next time", // @plm SRS-064
+  "note.hint": "Only you can see this · separate from feed posts", // @plm SRS-064
+  "note.saved": "Review saved", // @plm SRS-064
+  "analytics.oneSideTag": "One side {weight} ×{n}", // @plm SRS-065
 };

@@ -1006,6 +1006,16 @@ export const ko = {
   "profile.themeSystem": "시스템",
   "profile.themeLight": "라이트",
   "profile.themeDark": "다크",
+  // 기록 돌아보기·다시 하기(SRS-064·065)
+  "replay.start": "이 운동 그대로 다시 시작", // @plm SRS-065
+  "replay.nothing": "다시 시작할 세트가 없어요", // @plm SRS-065
+  "feed.startNow": "바로 시작", // @plm SRS-065
+  "feed.startNowFallback": "{author}님의 운동", // @plm SRS-065
+  "note.title": "운동 총평", // @plm SRS-064
+  "note.placeholder": "오늘 운동은 어땠나요? 컨디션·느낀 점·다음에 바꿀 것", // @plm SRS-064
+  "note.hint": "나만 봐요 · 피드 글과 따로 남아요", // @plm SRS-064
+  "note.saved": "총평을 저장했어요", // @plm SRS-064
+  "analytics.oneSideTag": "한쪽 {weight} ×{n}", // @plm SRS-065
 } as const;
 
 export type TransKey = keyof typeof ko;

@@ -240,8 +240,15 @@
     ]
   },
   "code_refs": [
+    "src/core/src/data/exerciseNames.ts:1",
     "src/core/src/domain/__tests__/catalogRevamp.test.ts:1",
+    "src/core/src/domain/__tests__/exerciseSearch.test.ts:1",
     "src/core/src/domain/catalogIntegrity.ts:1",
-    "src/core/src/domain/nameKey.ts:1#normalizeNameKey"
+    "src/core/src/domain/exerciseSearch.ts:1",
+    "src/core/src/domain/nameKey.ts:1#normalizeNameKey",
+    "src/frontend/app/components/ExerciseNameHeader.tsx:2",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:404",
+    "src/frontend/app/exercise/[id]/page.tsx:124",
+    "src/frontend/lib/exerciseNames.ts:2"
   ]
 }

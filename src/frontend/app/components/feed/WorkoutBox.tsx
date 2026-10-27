@@ -22,6 +22,7 @@ import { useToast } from "../Toast";
 import { ConfirmDialog } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { AppText, Tag } from "../ui/primitives";
+import { useStartGuard } from "../useStartGuard";
 
 function duration(seconds: number): string {
   const s = Math.max(0, Math.round(seconds));
@@ -54,82 +55,105 @@ export function WorkoutBox({
   const [confirm, setConfirm] = useState(false);
   const [importing, setImporting] = useState(false);
   const toast = useToast();
+  const starter = useStartGuard(); // 「바로 시작」 — 진행 중인 운동이 있으면 묻는다 @plm SRS-065
 
   const exercises = workout.exercises ?? [];
   const routineName =
     workout.workoutName?.trim() || t("feed.importRoutineDefaultName", { author: authorName });
+
+  /**
+   * 글의 종목을 내 기기 종목으로 해석한다 — 「루틴 가져오기」와 「바로 시작」이 같은 규칙을 쓴다(SRS-065 · 복붙 금지).
+   * 종목 id → 대표 이름·별칭·영문 정확 일치(정규화) → 그래도 없으면 커스텀(/qa code H-2).
+   */
+  async function resolveExercises() {
+    // 저장소는 브라우저에서만 쓸 수 있다 — 서버 렌더에 끌려 들어가지 않게 눌러서 가져온다.
+    const [exerciseRepo, routineRepo] = await Promise.all([
+      import("@app/core/data/exerciseRepository"),
+      import("@app/core/data/routineRepository"),
+    ]);
+    const [catalog, { buildExerciseSearchIndex, resolveSharedExercise }, names] = await Promise.all([
+      exerciseRepo.queryExercises({}).fetch(),
+      import("@app/core/domain/exerciseSearch"),
+      import("@app/core/data/exerciseNames"),
+    ]);
+    // [원본] 대표 이름·영문명이 정확히 같을 때만 찾았다 — 개편으로 이름이 바뀐 142종·사용자 별칭으로 공유된 종목을 못 찾아
+    // 근육·기구가 「기타」인 커스텀을 만들었다(/qa code H-2)
+    // const match = catalog.find((c) => c.nameKo.toLowerCase() === lower || (c.nameEn?.toLowerCase() ?? "") === lower);
+    // [개선] 종목 id → 대표 이름·별칭·영문 정확 일치(정규화) → 그래도 없으면 커스텀
+    const index = buildExerciseSearchIndex(
+      catalog.map((c) => ({
+        id: c.id,
+        nameKo: c.nameKo,
+        nameEn: c.nameEn,
+        aliases: c.aliases ?? [],
+        family: c.family,
+        equipment: c.equipment,
+        isArchived: c.isArchived,
+      })),
+    );
+    const resolved: Parameters<typeof routineRepo.importRoutine>[1] = [];
+    /** 맞은 별칭이 칸을 함축하면(「로프 푸시다운」 → 로프) 가져온 루틴 줄에도 적용한다 — resolved 와 같은 순서 */
+    const axesByIndex = new Map<number, Awaited<ReturnType<typeof names.impliedAxesForAlias>>>();
+    let skipped = 0;
+
+    for (const ex of exercises) {
+      const nm = ex.name.trim();
+      if (!nm) {
+        skipped++;
+        continue;
+      }
+      const match = resolveSharedExercise(index, { exerciseId: ex.exerciseId, name: nm });
+      let exerciseId: string;
+      if (match) {
+        exerciseId = match.id;
+        if (match.hit?.matchedKind === "alias") {
+          const axes = await names.impliedAxesForAlias(match.id, match.hit.matched);
+          if (axes) axesByIndex.set(resolved.length, axes);
+        }
+      } else {
+        const created = await exerciseRepo.createCustomExercise({
+          nameKo: nm,
+          primaryMuscles: ["other"],
+          equipment: "other",
+        });
+        exerciseId = created.id;
+      }
+      const working = ex.sets.filter((s) => !s.isWarmup);
+      const src = working.length ? working : ex.sets;
+      const reps = src.map((s) => s.reps).filter((r) => r > 0);
+      // 목표 무게는 계산 무게(한쪽 입력이면 ×배수) — 받는 사람은 한쪽 입력을 켰는지 모른다(/qa code L-5)
+      const weights = src.map((s) => s.weightKg * (s.loadMultiplier || 1)).filter((w) => w > 0);
+      resolved.push({
+        exerciseId,
+        targetSets: src.length || undefined,
+        targetRepsMin: reps.length ? Math.min(...reps) : undefined,
+        targetWeightKg: weights.length ? Math.max(...weights) : undefined,
+        note: ex.note || undefined, // 작성자 메모·팁도 함께 간다
+      });
+    }
+
+    return { resolved, axesByIndex, skipped, routineRepo, names };
+  }
+
+  /** 남의 운동 그대로 바로 시작 — 루틴을 만들지 않는다. 무게는 내 이전 기록으로 채운다(남의 무게는 남의 것). @plm SRS-065 */
+  function startNow() {
+    starter.guard(async () => {
+      const { resolved } = await resolveExercises();
+      const repo = await import("@app/core/data/workoutRepository");
+      const name = workout.workoutName?.trim() || t("feed.startNowFallback", { author: authorName });
+      return (await repo.startWorkoutFromSpec(
+        name,
+        resolved.map((r) => ({ exerciseId: r.exerciseId, sets: r.targetSets ?? 1 })),
+      )) as unknown as { id: string; startedAt: number; name: string | null };
+    });
+  }
 
   async function importRoutine() {
     if (importing) return;
     setImporting(true);
     setConfirm(false);
     try {
-      // 저장소는 브라우저에서만 쓸 수 있다 — 서버 렌더에 끌려 들어가지 않게 눌러서 가져온다.
-      const [exerciseRepo, routineRepo] = await Promise.all([
-        import("@app/core/data/exerciseRepository"),
-        import("@app/core/data/routineRepository"),
-      ]);
-      const [catalog, { buildExerciseSearchIndex, resolveSharedExercise }, names] = await Promise.all([
-        exerciseRepo.queryExercises({}).fetch(),
-        import("@app/core/domain/exerciseSearch"),
-        import("@app/core/data/exerciseNames"),
-      ]);
-      // [원본] 대표 이름·영문명이 정확히 같을 때만 찾았다 — 개편으로 이름이 바뀐 142종·사용자 별칭으로 공유된 종목을 못 찾아
-      // 근육·기구가 「기타」인 커스텀을 만들었다(/qa code H-2)
-      // const match = catalog.find((c) => c.nameKo.toLowerCase() === lower || (c.nameEn?.toLowerCase() ?? "") === lower);
-      // [개선] 종목 id → 대표 이름·별칭·영문 정확 일치(정규화) → 그래도 없으면 커스텀
-      const index = buildExerciseSearchIndex(
-        catalog.map((c) => ({
-          id: c.id,
-          nameKo: c.nameKo,
-          nameEn: c.nameEn,
-          aliases: c.aliases ?? [],
-          family: c.family,
-          equipment: c.equipment,
-          isArchived: c.isArchived,
-        })),
-      );
-      const resolved: Parameters<typeof routineRepo.importRoutine>[1] = [];
-      /** 맞은 별칭이 칸을 함축하면(「로프 푸시다운」 → 로프) 가져온 루틴 줄에도 적용한다 — resolved 와 같은 순서 */
-      const axesByIndex = new Map<number, Awaited<ReturnType<typeof names.impliedAxesForAlias>>>();
-      let skipped = 0;
-
-      for (const ex of exercises) {
-        const nm = ex.name.trim();
-        if (!nm) {
-          skipped++;
-          continue;
-        }
-        const match = resolveSharedExercise(index, { exerciseId: ex.exerciseId, name: nm });
-        let exerciseId: string;
-        if (match) {
-          exerciseId = match.id;
-          if (match.hit?.matchedKind === "alias") {
-            const axes = await names.impliedAxesForAlias(match.id, match.hit.matched);
-            if (axes) axesByIndex.set(resolved.length, axes);
-          }
-        } else {
-          const created = await exerciseRepo.createCustomExercise({
-            nameKo: nm,
-            primaryMuscles: ["other"],
-            equipment: "other",
-          });
-          exerciseId = created.id;
-        }
-        const working = ex.sets.filter((s) => !s.isWarmup);
-        const src = working.length ? working : ex.sets;
-        const reps = src.map((s) => s.reps).filter((r) => r > 0);
-        // 목표 무게는 계산 무게(한쪽 입력이면 ×배수) — 받는 사람은 한쪽 입력을 켰는지 모른다(/qa code L-5)
-        const weights = src.map((s) => s.weightKg * (s.loadMultiplier || 1)).filter((w) => w > 0);
-        resolved.push({
-          exerciseId,
-          targetSets: src.length || undefined,
-          targetRepsMin: reps.length ? Math.min(...reps) : undefined,
-          targetWeightKg: weights.length ? Math.max(...weights) : undefined,
-          note: ex.note || undefined, // 작성자 메모·팁도 함께 간다
-        });
-      }
-
+      const { resolved, axesByIndex, skipped, routineRepo, names } = await resolveExercises();
       if (!resolved.length) {
         toast(t("feed.importRoutineNone"));
         return;
@@ -200,6 +224,18 @@ export function WorkoutBox({
             <div className="flex-1" />
             <button
               type="button"
+              onClick={startNow}
+              disabled={starter.busy}
+              data-testid="post-start-now"
+              className="mr-[var(--spacing-md)] flex items-center gap-[4px] py-[var(--spacing-xs)]"
+            >
+              <Icon name="play" size={16} color="var(--color-brand)" />
+              <AppText variant="caption" color="primary" className="font-medium!">
+                {t("feed.startNow")}
+              </AppText>
+            </button>
+            <button
+              type="button"
               onClick={() => setConfirm(true)}
               disabled={importing}
               data-testid="post-routine-import"
@@ -244,6 +280,8 @@ export function WorkoutBox({
           ) : null}
         </>
       ) : null}
+
+      {starter.sheet}
 
       {confirm ? (
         <ConfirmDialog

@@ -76,7 +76,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   제목·액션을 다르게 두기 때문이다. 셸은 자리만 내어 준다. */}
                 {/* 백업이 멈췄거나 기록이 이 기기에만 쌓이면 화면 위에 알린다 — 조용한 실패 금지(2026-10-26). */}
                 <SyncHealthBanner />
-                <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">{children}</main>
+                {/* [원본] overflow-x-hidden — overflow-y 가 auto 로 바뀌어 main 이 스크롤 상자가 되고, 그 안의 sticky 하단
+                    (휴식 막대·루틴 편집 하단·요약 하단·댓글/DM 입력)이 화면이 아니라 main 끝에 붙었다(#45·#43 · SRS-066).
+                  <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">{children}</main> */}
+                {/* [개선] clip — 가로 넘침은 똑같이 잘라 내되 스크롤 상자를 만들지 않는다. @plm SRS-066 */}
+                <main className="flex min-w-0 flex-1 flex-col overflow-x-clip">{children}</main>
 
                 <GlobalWorkoutBar />
                 <TabBar />

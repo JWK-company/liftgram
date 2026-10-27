@@ -370,7 +370,8 @@ export default function FeedClient() {
         aria-label={t("feed.post")}
         data-testid="feed-compose"
         onClick={() => setComposing(true)}
-        className="fixed right-[max(16px,calc(50vw-264px))] bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 lg:bottom-6 items-center justify-center rounded-full bg-(--color-brand) shadow-lg active:opacity-80"
+        // 운동 중 막대가 떠 있으면 그 높이만큼 위로 — 막대 밑에 깔려 눌리지 않던 것 @plm SRS-066
+        className="fixed right-[max(16px,calc(50vw-264px))] bottom-[calc(76px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 lg:bottom-[calc(24px+var(--shell-workout-bar,0px))] items-center justify-center rounded-full bg-(--color-brand) shadow-lg active:opacity-80"
       >
         <Icon name="add" size={28} color="var(--color-on-brand)" />
       </button>

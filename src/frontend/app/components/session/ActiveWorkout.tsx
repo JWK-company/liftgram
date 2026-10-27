@@ -228,6 +228,14 @@ export default function ActiveWorkout() {
           unit={weightUnit}
           onClose={leaveSession}
           routineSaved={routineSaved}
+          // 「그대로 다시 시작」 — 같은 운동 화면에서 요약을 닫고 새 운동을 띄운다(주소가 같아 이동으로는 안 바뀐다) @plm SRS-065
+          onReplayStarted={(w) => {
+            setFinishPrompt(null);
+            setRoutineSaved(false);
+            setSummary(null);
+            setWorkout(w as unknown as WorkoutRow);
+            setVersion((v) => v + 1);
+          }}
         />
         {finishPrompt ? (
           <FinishRoutineSheets

@@ -3,6 +3,7 @@
 //
 // 골드(PR 색)로 칠한 알약. 세트를 체크하면 나타나 남은 시간을 세고, 다 되면 사라진다.
 // **+15초**와 **건너뛰기** 두 갈래만 둔다 — 헬스장에서 한 손으로 누르는 자리다.
+// 하단은 안전 영역(홈 인디케이터·삼성 하단 막대)만큼 띄운다 @plm SRS-066
 import { useSession } from "../SessionProvider";
 import { t } from "@/lib/i18n";
 import { Icon } from "../ui/Icon";
@@ -16,7 +17,7 @@ export function RestBar() {
     <div
       data-testid="rest-bar"
       style={{ backgroundColor: "var(--color-pr)" }}
-      className="sticky bottom-[var(--spacing-lg)] z-40 mx-[var(--spacing-lg)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-pill)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-lg"
+      className="sticky bottom-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))] z-40 mx-[var(--spacing-lg)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-pill)] px-[var(--spacing-lg)] py-[var(--spacing-sm)] shadow-lg"
     >
       <Icon name="timer-outline" size={18} color="var(--color-bg)" />
       <AppText variant="body" className="flex-1 font-bold" style={{ color: "var(--color-bg)" }}>
