@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file coaching/v1/coaching.proto.
  */
 export const file_coaching_v1_coaching: GenFile = /*@__PURE__*/
-  fileDesc("Chpjb2FjaGluZy92MS9jb2FjaGluZy5wcm90bxILY29hY2hpbmcudjEibgoEUGVlchIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSEgoKYXZhdGFyX3VybBgDIAEoCRIYChBleHBlcmllbmNlX2xldmVsGAQgASgJEhYKDnRyYWluZXJfaW50ZW50GAUgASgIItYBCgVHcmFudBIKCgJpZBgBIAEoCRIoCgZzdGF0dXMYAiABKA4yGC5jb2FjaGluZy52MS5HcmFudFN0YXR1cxInCgxyZXF1ZXN0ZWRfYnkYAyABKA4yES5jb2FjaGluZy52MS5TaWRlEiUKCnJvbGVfb2ZfbWUYBCABKA4yES5jb2FjaGluZy52MS5TaWRlEh8KBHBlZXIYBSABKAsyES5jb2FjaGluZy52MS5QZWVyEhIKCmNyZWF0ZWRfYXQYBiABKAMSEgoKY29uc2VudF9hdBgHIAEoAyLmAQoNUHJlc2NyaWJlZFNldBImCghzZXRfdHlwZRgBIAEoDjIULmNvYWNoaW5nLnYxLlNldFR5cGUSEgoKdGFyZ2V0X3JpchgCIAEoBRIPCgdyZXBfbWluGAMgASgFEg8KB3JlcF9tYXgYBCABKAUSKAoJbG9hZF9oaW50GAUgASgOMhUuY29hY2hpbmcudjEuTG9hZEhpbnQSKgoKbG9hZF9iYXNpcxgGIAEoDjIWLmNvYWNoaW5nLnYxLkxvYWRCYXNpcxIQCghsb2FkX3BjdBgHIAEoBRIPCgdsb2FkX2tnGAggASgBIpABCg9Sb3V0aW5lRXhlcmNpc2USCgoCaWQYASABKAkSEwoLZXhlcmNpc2VfaWQYAiABKAkSFQoNZXhlcmNpc2VfbmFtZRgDIAEoCRITCgt0YXJnZXRfc2V0cxgEIAEoBRIwCgxwcmVzY3JpcHRpb24YBSADKAsyGi5jb2FjaGluZy52MS5QcmVzY3JpYmVkU2V0IlQKB1JvdXRpbmUSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIvCglleGVyY2lzZXMYAyADKAsyHC5jb2FjaGluZy52MS5Sb3V0aW5lRXhlcmNpc2UiMQoMTXVzY2xlVm9sdW1lEg4KBm11c2NsZRgBIAEoCRIRCgl2b2x1bWVfa2cYAiABKAEidwoOU2Vzc2lvblN1bW1hcnkSDAoEbmFtZRgBIAEoCRISCgpzdGFydGVkX2F0GAIgASgDEhgKEGR1cmF0aW9uX3NlY29uZHMYAyABKAUSFwoPdG90YWxfdm9sdW1lX2tnGAQgASgBEhAKCHByX2NvdW50GAUgASgFItEBCgxNZW1iZXJSZXBvcnQSDQoFd2Vla3MYASABKAUSFgoOc2Vzc2lvbnNfY291bnQYAiABKAUSGQoRc2Vzc2lvbnNfcGVyX3dlZWsYAyABKAESFwoPdG90YWxfdm9sdW1lX2tnGAQgASgBEjAKDW11c2NsZV92b2x1bWUYBSADKAsyGS5jb2FjaGluZy52MS5NdXNjbGVWb2x1bWUSNAoPcmVjZW50X3Nlc3Npb25zGAYgAygLMhsuY29hY2hpbmcudjEuU2Vzc2lvblN1bW1hcnkiTgoKQXVkaXRFbnRyeRIKCgJpZBgBIAEoCRIQCghhY3Rvcl9pZBgCIAEoCRIOCgZhY3Rpb24YAyABKAkSEgoKY3JlYXRlZF9hdBgEIAEoAyIvChVTZWFyY2hUcmFpbmVyc1JlcXVlc3QSFgoFcXVlcnkYASABKAlCB7pIBHICGGQiOgoWU2VhcmNoVHJhaW5lcnNSZXNwb25zZRIgCgVwZWVycxgBIAMoCzIRLmNvYWNoaW5nLnYxLlBlZXIiPwoWUmVxdWVzdENvYWNoaW5nUmVxdWVzdBISCgp0cmFpbmVyX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSI8ChdSZXF1ZXN0Q29hY2hpbmdSZXNwb25zZRIhCgVncmFudBgBIAEoCzISLmNvYWNoaW5nLnYxLkdyYW50IhMKEUxpc3RHcmFudHNSZXF1ZXN0IjgKEkxpc3RHcmFudHNSZXNwb25zZRIiCgZncmFudHMYASADKAsyEi5jb2FjaGluZy52MS5HcmFudCIvChJBY2NlcHRHcmFudFJlcXVlc3QSGQoIZ3JhbnRfaWQYASABKAlCB7pIBHICEAEiOAoTQWNjZXB0R3JhbnRSZXNwb25zZRIhCgVncmFudBgBIAEoCzISLmNvYWNoaW5nLnYxLkdyYW50Ii8KElJldm9rZUdyYW50UmVxdWVzdBIZCghncmFudF9pZBgBIAEoCUIHukgEcgIQASI4ChNSZXZva2VHcmFudFJlc3BvbnNlEiEKBWdyYW50GAEgASgLMhIuY29hY2hpbmcudjEuR3JhbnQiNAoWR2V0TWVtYmVyUmVwb3J0UmVxdWVzdBIaCgltZW1iZXJfaWQYASABKAlCB7pIBHICEAEiRAoXR2V0TWVtYmVyUmVwb3J0UmVzcG9uc2USKQoGcmVwb3J0GAEgASgLMhkuY29hY2hpbmcudjEuTWVtYmVyUmVwb3J0IjcKGUxpc3RNZW1iZXJSb3V0aW5lc1JlcXVlc3QSGgoJbWVtYmVyX2lkGAEgASgJQge6SARyAhABIkQKGkxpc3RNZW1iZXJSb3V0aW5lc1Jlc3BvbnNlEiYKCHJvdXRpbmVzGAEgAygLMhQuY29hY2hpbmcudjEuUm91dGluZSKvAQocU2V0TWVtYmVyUHJlc2NyaXB0aW9uUmVxdWVzdBIaCgltZW1iZXJfaWQYASABKAlCB7pIBHICEAESGwoKcm91dGluZV9pZBgCIAEoCUIHukgEcgIQARIkChNyb3V0aW5lX2V4ZXJjaXNlX2lkGAMgASgJQge6SARyAhABEjAKDHByZXNjcmlwdGlvbhgEIAMoCzIaLmNvYWNoaW5nLnYxLlByZXNjcmliZWRTZXQiUQodU2V0TWVtYmVyUHJlc2NyaXB0aW9uUmVzcG9uc2USMAoMcHJlc2NyaXB0aW9uGAEgAygLMhouY29hY2hpbmcudjEuUHJlc2NyaWJlZFNldCItChBMaXN0QXVkaXRSZXF1ZXN0EhkKCGdyYW50X2lkGAEgASgJQge6SARyAhABIj0KEUxpc3RBdWRpdFJlc3BvbnNlEigKB2VudHJpZXMYASADKAsyFy5jb2FjaGluZy52MS5BdWRpdEVudHJ5KngKC0dyYW50U3RhdHVzEhwKGEdSQU5UX1NUQVRVU19VTlNQRUNJRklFRBAAEhgKFEdSQU5UX1NUQVRVU19QRU5ESU5HEAESFwoTR1JBTlRfU1RBVFVTX0FDVElWRRACEhgKFEdSQU5UX1NUQVRVU19SRVZPS0VEEAMqPwoEU2lkZRIUChBTSURFX1VOU1BFQ0lGSUVEEAASEAoMU0lERV9UUkFJTkVSEAESDwoLU0lERV9NRU1CRVIQAip1CgdTZXRUeXBlEhgKFFNFVF9UWVBFX1VOU1BFQ0lGSUVEEAASEwoPU0VUX1RZUEVfV0FSTVVQEAESEAoMU0VUX1RZUEVfVE9QEAISFAoQU0VUX1RZUEVfQkFDS09GRhADEhMKD1NFVF9UWVBFX05PUk1BTBAEKmUKCExvYWRIaW50EhkKFUxPQURfSElOVF9VTlNQRUNJRklFRBAAEhMKD0xPQURfSElOVF9MSUdIVBABEhQKEExPQURfSElOVF9NRURJVU0QAhITCg9MT0FEX0hJTlRfSEVBVlkQAyptCglMb2FkQmFzaXMSGgoWTE9BRF9CQVNJU19VTlNQRUNJRklFRBAAEhYKEkxPQURfQkFTSVNfUENUXzFSTRABEhYKEkxPQURfQkFTSVNfUENUX1RPUBACEhQKEExPQURfQkFTSVNfRklYRUQQAzLQBgoPQ29hY2hpbmdTZXJ2aWNlElsKDlNlYXJjaFRyYWluZXJzEiIuY29hY2hpbmcudjEuU2VhcmNoVHJhaW5lcnNSZXF1ZXN0GiMuY29hY2hpbmcudjEuU2VhcmNoVHJhaW5lcnNSZXNwb25zZSIAEl4KD1JlcXVlc3RDb2FjaGluZxIjLmNvYWNoaW5nLnYxLlJlcXVlc3RDb2FjaGluZ1JlcXVlc3QaJC5jb2FjaGluZy52MS5SZXF1ZXN0Q29hY2hpbmdSZXNwb25zZSIAEk8KCkxpc3RHcmFudHMSHi5jb2FjaGluZy52MS5MaXN0R3JhbnRzUmVxdWVzdBofLmNvYWNoaW5nLnYxLkxpc3RHcmFudHNSZXNwb25zZSIAElIKC0FjY2VwdEdyYW50Eh8uY29hY2hpbmcudjEuQWNjZXB0R3JhbnRSZXF1ZXN0GiAuY29hY2hpbmcudjEuQWNjZXB0R3JhbnRSZXNwb25zZSIAElIKC1Jldm9rZUdyYW50Eh8uY29hY2hpbmcudjEuUmV2b2tlR3JhbnRSZXF1ZXN0GiAuY29hY2hpbmcudjEuUmV2b2tlR3JhbnRSZXNwb25zZSIAEl4KD0dldE1lbWJlclJlcG9ydBIjLmNvYWNoaW5nLnYxLkdldE1lbWJlclJlcG9ydFJlcXVlc3QaJC5jb2FjaGluZy52MS5HZXRNZW1iZXJSZXBvcnRSZXNwb25zZSIAEmcKEkxpc3RNZW1iZXJSb3V0aW5lcxImLmNvYWNoaW5nLnYxLkxpc3RNZW1iZXJSb3V0aW5lc1JlcXVlc3QaJy5jb2FjaGluZy52MS5MaXN0TWVtYmVyUm91dGluZXNSZXNwb25zZSIAEnAKFVNldE1lbWJlclByZXNjcmlwdGlvbhIpLmNvYWNoaW5nLnYxLlNldE1lbWJlclByZXNjcmlwdGlvblJlcXVlc3QaKi5jb2FjaGluZy52MS5TZXRNZW1iZXJQcmVzY3JpcHRpb25SZXNwb25zZSIAEkwKCUxpc3RBdWRpdBIdLmNvYWNoaW5nLnYxLkxpc3RBdWRpdFJlcXVlc3QaHi5jb2FjaGluZy52MS5MaXN0QXVkaXRSZXNwb25zZSIAQrUBCg9jb20uY29hY2hpbmcudjFCDUNvYWNoaW5nUHJvdG9QAVpGZ2l0aHViLmNvbS9KV0stY29tcGFueS9saWZ0Z3JhbS9zcmMvYmFja2VuZC9nZW4vY29hY2hpbmcvdjE7Y29hY2hpbmd2MaICA0NYWKoCC0NvYWNoaW5nLlYxygILQ29hY2hpbmdcVjHiAhdDb2FjaGluZ1xWMVxHUEJNZXRhZGF0YeoCDENvYWNoaW5nOjpWMWIGcHJvdG8z", [file_buf_validate_validate]);
+  fileDesc("Chpjb2FjaGluZy92MS9jb2FjaGluZy5wcm90bxILY29hY2hpbmcudjEibgoEUGVlchIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkSEgoKYXZhdGFyX3VybBgDIAEoCRIYChBleHBlcmllbmNlX2xldmVsGAQgASgJEhYKDnRyYWluZXJfaW50ZW50GAUgASgIItYBCgVHcmFudBIKCgJpZBgBIAEoCRIoCgZzdGF0dXMYAiABKA4yGC5jb2FjaGluZy52MS5HcmFudFN0YXR1cxInCgxyZXF1ZXN0ZWRfYnkYAyABKA4yES5jb2FjaGluZy52MS5TaWRlEiUKCnJvbGVfb2ZfbWUYBCABKA4yES5jb2FjaGluZy52MS5TaWRlEh8KBHBlZXIYBSABKAsyES5jb2FjaGluZy52MS5QZWVyEhIKCmNyZWF0ZWRfYXQYBiABKAMSEgoKY29uc2VudF9hdBgHIAEoAyLmAQoNUHJlc2NyaWJlZFNldBImCghzZXRfdHlwZRgBIAEoDjIULmNvYWNoaW5nLnYxLlNldFR5cGUSEgoKdGFyZ2V0X3JpchgCIAEoBRIPCgdyZXBfbWluGAMgASgFEg8KB3JlcF9tYXgYBCABKAUSKAoJbG9hZF9oaW50GAUgASgOMhUuY29hY2hpbmcudjEuTG9hZEhpbnQSKgoKbG9hZF9iYXNpcxgGIAEoDjIWLmNvYWNoaW5nLnYxLkxvYWRCYXNpcxIQCghsb2FkX3BjdBgHIAEoBRIPCgdsb2FkX2tnGAggASgBIpABCg9Sb3V0aW5lRXhlcmNpc2USCgoCaWQYASABKAkSEwoLZXhlcmNpc2VfaWQYAiABKAkSFQoNZXhlcmNpc2VfbmFtZRgDIAEoCRITCgt0YXJnZXRfc2V0cxgEIAEoBRIwCgxwcmVzY3JpcHRpb24YBSADKAsyGi5jb2FjaGluZy52MS5QcmVzY3JpYmVkU2V0IlQKB1JvdXRpbmUSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIvCglleGVyY2lzZXMYAyADKAsyHC5jb2FjaGluZy52MS5Sb3V0aW5lRXhlcmNpc2UiMQoMTXVzY2xlVm9sdW1lEg4KBm11c2NsZRgBIAEoCRIRCgl2b2x1bWVfa2cYAiABKAEidwoOU2Vzc2lvblN1bW1hcnkSDAoEbmFtZRgBIAEoCRISCgpzdGFydGVkX2F0GAIgASgDEhgKEGR1cmF0aW9uX3NlY29uZHMYAyABKAUSFwoPdG90YWxfdm9sdW1lX2tnGAQgASgBEhAKCHByX2NvdW50GAUgASgFItEBCgxNZW1iZXJSZXBvcnQSDQoFd2Vla3MYASABKAUSFgoOc2Vzc2lvbnNfY291bnQYAiABKAUSGQoRc2Vzc2lvbnNfcGVyX3dlZWsYAyABKAESFwoPdG90YWxfdm9sdW1lX2tnGAQgASgBEjAKDW11c2NsZV92b2x1bWUYBSADKAsyGS5jb2FjaGluZy52MS5NdXNjbGVWb2x1bWUSNAoPcmVjZW50X3Nlc3Npb25zGAYgAygLMhsuY29hY2hpbmcudjEuU2Vzc2lvblN1bW1hcnkiTgoKQXVkaXRFbnRyeRIKCgJpZBgBIAEoCRIQCghhY3Rvcl9pZBgCIAEoCRIOCgZhY3Rpb24YAyABKAkSEgoKY3JlYXRlZF9hdBgEIAEoAyIvChVTZWFyY2hUcmFpbmVyc1JlcXVlc3QSFgoFcXVlcnkYASABKAlCB7pIBHICGGQiOgoWU2VhcmNoVHJhaW5lcnNSZXNwb25zZRIgCgVwZWVycxgBIAMoCzIRLmNvYWNoaW5nLnYxLlBlZXIiPwoWUmVxdWVzdENvYWNoaW5nUmVxdWVzdBISCgp0cmFpbmVyX2lkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCSI8ChdSZXF1ZXN0Q29hY2hpbmdSZXNwb25zZRIhCgVncmFudBgBIAEoCzISLmNvYWNoaW5nLnYxLkdyYW50IhMKEUxpc3RHcmFudHNSZXF1ZXN0IjgKEkxpc3RHcmFudHNSZXNwb25zZRIiCgZncmFudHMYASADKAsyEi5jb2FjaGluZy52MS5HcmFudCIvChJBY2NlcHRHcmFudFJlcXVlc3QSGQoIZ3JhbnRfaWQYASABKAlCB7pIBHICEAEiOAoTQWNjZXB0R3JhbnRSZXNwb25zZRIhCgVncmFudBgBIAEoCzISLmNvYWNoaW5nLnYxLkdyYW50Ii8KElJldm9rZUdyYW50UmVxdWVzdBIZCghncmFudF9pZBgBIAEoCUIHukgEcgIQASI4ChNSZXZva2VHcmFudFJlc3BvbnNlEiEKBWdyYW50GAEgASgLMhIuY29hY2hpbmcudjEuR3JhbnQiNAoWR2V0TWVtYmVyUmVwb3J0UmVxdWVzdBIaCgltZW1iZXJfaWQYASABKAlCB7pIBHICEAEiRAoXR2V0TWVtYmVyUmVwb3J0UmVzcG9uc2USKQoGcmVwb3J0GAEgASgLMhkuY29hY2hpbmcudjEuTWVtYmVyUmVwb3J0IjcKGUxpc3RNZW1iZXJSb3V0aW5lc1JlcXVlc3QSGgoJbWVtYmVyX2lkGAEgASgJQge6SARyAhABIkQKGkxpc3RNZW1iZXJSb3V0aW5lc1Jlc3BvbnNlEiYKCHJvdXRpbmVzGAEgAygLMhQuY29hY2hpbmcudjEuUm91dGluZSKvAQocU2V0TWVtYmVyUHJlc2NyaXB0aW9uUmVxdWVzdBIaCgltZW1iZXJfaWQYASABKAlCB7pIBHICEAESGwoKcm91dGluZV9pZBgCIAEoCUIHukgEcgIQARIkChNyb3V0aW5lX2V4ZXJjaXNlX2lkGAMgASgJQge6SARyAhABEjAKDHByZXNjcmlwdGlvbhgEIAMoCzIaLmNvYWNoaW5nLnYxLlByZXNjcmliZWRTZXQiUQodU2V0TWVtYmVyUHJlc2NyaXB0aW9uUmVzcG9uc2USMAoMcHJlc2NyaXB0aW9uGAEgAygLMhouY29hY2hpbmcudjEuUHJlc2NyaWJlZFNldCItChBMaXN0QXVkaXRSZXF1ZXN0EhkKCGdyYW50X2lkGAEgASgJQge6SARyAhABIj0KEUxpc3RBdWRpdFJlc3BvbnNlEigKB2VudHJpZXMYASADKAsyFy5jb2FjaGluZy52MS5BdWRpdEVudHJ5ItkBChpTZW5kUHJvZ3Jlc3NTdW1tYXJ5UmVxdWVzdBIdCgp0cmFpbmVyX2lkGAEgASgJQgm6SAZyBBABGEASHQoMcGVyaW9kX3N0YXJ0GAIgASgDQge6SAQiAiAAEhsKCnBlcmlvZF9lbmQYAyABKANCB7pIBCICIAASHwoOc2NoZW1hX3ZlcnNpb24YBCABKAVCB7pIBBoCKAESIgoNc25hcHNob3RfanNvbhgFIAEoCUILukgIcgYQAiiAgAQSGwoJY2xpZW50X2lkGAYgASgJQgi6SAVyA7ABASIxChtTZW5kUHJvZ3Jlc3NTdW1tYXJ5UmVzcG9uc2USEgoKc3VtbWFyeV9pZBgBIAEoCSKxAQoPUHJvZ3Jlc3NTdW1tYXJ5EgoKAmlkGAEgASgJEhEKCW1lbWJlcl9pZBgCIAEoCRISCgp0cmFpbmVyX2lkGAMgASgJEhQKDHBlcmlvZF9zdGFydBgEIAEoAxISCgpwZXJpb2RfZW5kGAUgASgDEhYKDnNjaGVtYV92ZXJzaW9uGAYgASgFEhUKDXNuYXBzaG90X2pzb24YByABKAkSEgoKY3JlYXRlZF9hdBgIIAEoAyIyChlHZXRQcm9ncmVzc1N1bW1hcnlSZXF1ZXN0EhUKAmlkGAEgASgJQgm6SAZyBBABGEAiSwoaR2V0UHJvZ3Jlc3NTdW1tYXJ5UmVzcG9uc2USLQoHc3VtbWFyeRgBIAEoCzIcLmNvYWNoaW5nLnYxLlByb2dyZXNzU3VtbWFyeSKWAQoLU2VudFN1bW1hcnkSCgoCaWQYASABKAkSEgoKdHJhaW5lcl9pZBgCIAEoCRIUCgxwZXJpb2Rfc3RhcnQYAyABKAMSEgoKcGVyaW9kX2VuZBgEIAEoAxIWCg5zY2hlbWFfdmVyc2lvbhgFIAEoBRIRCglkZWxpdmVyZWQYBiABKAgSEgoKY3JlYXRlZF9hdBgHIAEoAyI0ChhMaXN0U2VudFN1bW1hcmllc1JlcXVlc3QSGAoGY3Vyc29yGAEgASgJQgi6SAVyAxjIASJdChlMaXN0U2VudFN1bW1hcmllc1Jlc3BvbnNlEisKCXN1bW1hcmllcxgBIAMoCzIYLmNvYWNoaW5nLnYxLlNlbnRTdW1tYXJ5EhMKC25leHRfY3Vyc29yGAIgASgJInMKF0dldE1lbWJlclJlY29yZHNSZXF1ZXN0EhwKCW1lbWJlcl9pZBgBIAEoCUIJukgGcgQQARhAEh0KDHBlcmlvZF9zdGFydBgCIAEoA0IHukgEIgIgABIbCgpwZXJpb2RfZW5kGAMgASgDQge6SAQiAiAAIpYBChhHZXRNZW1iZXJSZWNvcmRzUmVzcG9uc2USEAoId29ya291dHMYASADKAkSGQoRd29ya291dF9leGVyY2lzZXMYAiADKAkSEAoIc2V0X2xvZ3MYAyADKAkSEQoJZXhlcmNpc2VzGAQgAygJEhQKDHNlcnZlZF9zdGFydBgFIAEoAxISCgpzZXJ2ZWRfZW5kGAYgASgDKngKC0dyYW50U3RhdHVzEhwKGEdSQU5UX1NUQVRVU19VTlNQRUNJRklFRBAAEhgKFEdSQU5UX1NUQVRVU19QRU5ESU5HEAESFwoTR1JBTlRfU1RBVFVTX0FDVElWRRACEhgKFEdSQU5UX1NUQVRVU19SRVZPS0VEEAMqPwoEU2lkZRIUChBTSURFX1VOU1BFQ0lGSUVEEAASEAoMU0lERV9UUkFJTkVSEAESDwoLU0lERV9NRU1CRVIQAip1CgdTZXRUeXBlEhgKFFNFVF9UWVBFX1VOU1BFQ0lGSUVEEAASEwoPU0VUX1RZUEVfV0FSTVVQEAESEAoMU0VUX1RZUEVfVE9QEAISFAoQU0VUX1RZUEVfQkFDS09GRhADEhMKD1NFVF9UWVBFX05PUk1BTBAEKmUKCExvYWRIaW50EhkKFUxPQURfSElOVF9VTlNQRUNJRklFRBAAEhMKD0xPQURfSElOVF9MSUdIVBABEhQKEExPQURfSElOVF9NRURJVU0QAhITCg9MT0FEX0hJTlRfSEVBVlkQAyptCglMb2FkQmFzaXMSGgoWTE9BRF9CQVNJU19VTlNQRUNJRklFRBAAEhYKEkxPQURfQkFTSVNfUENUXzFSTRABEhYKEkxPQURfQkFTSVNfUENUX1RPUBACEhQKEExPQURfQkFTSVNfRklYRUQQAzLuCQoPQ29hY2hpbmdTZXJ2aWNlElsKDlNlYXJjaFRyYWluZXJzEiIuY29hY2hpbmcudjEuU2VhcmNoVHJhaW5lcnNSZXF1ZXN0GiMuY29hY2hpbmcudjEuU2VhcmNoVHJhaW5lcnNSZXNwb25zZSIAEl4KD1JlcXVlc3RDb2FjaGluZxIjLmNvYWNoaW5nLnYxLlJlcXVlc3RDb2FjaGluZ1JlcXVlc3QaJC5jb2FjaGluZy52MS5SZXF1ZXN0Q29hY2hpbmdSZXNwb25zZSIAEk8KCkxpc3RHcmFudHMSHi5jb2FjaGluZy52MS5MaXN0R3JhbnRzUmVxdWVzdBofLmNvYWNoaW5nLnYxLkxpc3RHcmFudHNSZXNwb25zZSIAElIKC0FjY2VwdEdyYW50Eh8uY29hY2hpbmcudjEuQWNjZXB0R3JhbnRSZXF1ZXN0GiAuY29hY2hpbmcudjEuQWNjZXB0R3JhbnRSZXNwb25zZSIAElIKC1Jldm9rZUdyYW50Eh8uY29hY2hpbmcudjEuUmV2b2tlR3JhbnRSZXF1ZXN0GiAuY29hY2hpbmcudjEuUmV2b2tlR3JhbnRSZXNwb25zZSIAEl4KD0dldE1lbWJlclJlcG9ydBIjLmNvYWNoaW5nLnYxLkdldE1lbWJlclJlcG9ydFJlcXVlc3QaJC5jb2FjaGluZy52MS5HZXRNZW1iZXJSZXBvcnRSZXNwb25zZSIAEmcKEkxpc3RNZW1iZXJSb3V0aW5lcxImLmNvYWNoaW5nLnYxLkxpc3RNZW1iZXJSb3V0aW5lc1JlcXVlc3QaJy5jb2FjaGluZy52MS5MaXN0TWVtYmVyUm91dGluZXNSZXNwb25zZSIAEnAKFVNldE1lbWJlclByZXNjcmlwdGlvbhIpLmNvYWNoaW5nLnYxLlNldE1lbWJlclByZXNjcmlwdGlvblJlcXVlc3QaKi5jb2FjaGluZy52MS5TZXRNZW1iZXJQcmVzY3JpcHRpb25SZXNwb25zZSIAEkwKCUxpc3RBdWRpdBIdLmNvYWNoaW5nLnYxLkxpc3RBdWRpdFJlcXVlc3QaHi5jb2FjaGluZy52MS5MaXN0QXVkaXRSZXNwb25zZSIAEmoKE1NlbmRQcm9ncmVzc1N1bW1hcnkSJy5jb2FjaGluZy52MS5TZW5kUHJvZ3Jlc3NTdW1tYXJ5UmVxdWVzdBooLmNvYWNoaW5nLnYxLlNlbmRQcm9ncmVzc1N1bW1hcnlSZXNwb25zZSIAEmcKEkdldFByb2dyZXNzU3VtbWFyeRImLmNvYWNoaW5nLnYxLkdldFByb2dyZXNzU3VtbWFyeVJlcXVlc3QaJy5jb2FjaGluZy52MS5HZXRQcm9ncmVzc1N1bW1hcnlSZXNwb25zZSIAEmQKEUxpc3RTZW50U3VtbWFyaWVzEiUuY29hY2hpbmcudjEuTGlzdFNlbnRTdW1tYXJpZXNSZXF1ZXN0GiYuY29hY2hpbmcudjEuTGlzdFNlbnRTdW1tYXJpZXNSZXNwb25zZSIAEmEKEEdldE1lbWJlclJlY29yZHMSJC5jb2FjaGluZy52MS5HZXRNZW1iZXJSZWNvcmRzUmVxdWVzdBolLmNvYWNoaW5nLnYxLkdldE1lbWJlclJlY29yZHNSZXNwb25zZSIAQrUBCg9jb20uY29hY2hpbmcudjFCDUNvYWNoaW5nUHJvdG9QAVpGZ2l0aHViLmNvbS9KV0stY29tcGFueS9saWZ0Z3JhbS9zcmMvYmFja2VuZC9nZW4vY29hY2hpbmcvdjE7Y29hY2hpbmd2MaICA0NYWKoCC0NvYWNoaW5nLlYxygILQ29hY2hpbmdcVjHiAhdDb2FjaGluZ1xWMVxHUEJNZXRhZGF0YeoCDENvYWNoaW5nOjpWMWIGcHJvdG8z", [file_buf_validate_validate]);
 
 /**
  * 상대방. 트레이너가 보면 회원, 회원이 보면 트레이너다.
@@ -370,7 +370,8 @@ export type AuditEntry = Message<"coaching.v1.AuditEntry"> & {
   actorId: string;
 
   /**
-   * 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit.
+   * 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit
+   * ·summary_send·summary_view·records_view(SRS-080).
    *
    * @generated from field: string action = 3;
    */
@@ -716,6 +717,336 @@ export const ListAuditResponseSchema: GenMessage<ListAuditResponse> = /*@__PURE_
   messageDesc(file_coaching_v1_coaching, 26);
 
 /**
+ * @generated from message coaching.v1.SendProgressSummaryRequest
+ */
+export type SendProgressSummaryRequest = Message<"coaching.v1.SendProgressSummaryRequest"> & {
+  /**
+   * 받을 트레이너. 회원(=나) → 이 트레이너 관계가 active ∧ logView 여야 한다.
+   *
+   * @generated from field: string trainer_id = 1;
+   */
+  trainerId: string;
+
+  /**
+   * @generated from field: int64 period_start = 2;
+   */
+  periodStart: bigint;
+
+  /**
+   * @generated from field: int64 period_end = 3;
+   */
+  periodEnd: bigint;
+
+  /**
+   * 지원 목록은 서버가 정한다(지금 {1}). 스냅샷 최상위 schemaVersion 과 같아야 한다.
+   *
+   * @generated from field: int32 schema_version = 4;
+   */
+  schemaVersion: number;
+
+  /**
+   * SummaryV1 JSON 객체(회원이 끈 섹션은 키째 빠진다). 64KB 상한.
+   *
+   * @generated from field: string snapshot_json = 5;
+   */
+  snapshotJson: string;
+
+  /**
+   * 기기가 만든 uuid — 같은 값으로 다시 보내면 같은 요약·같은 DM 하나로 끝난다.
+   *
+   * @generated from field: string client_id = 6;
+   */
+  clientId: string;
+};
+
+/**
+ * Describes the message coaching.v1.SendProgressSummaryRequest.
+ * Use `create(SendProgressSummaryRequestSchema)` to create a new message.
+ */
+export const SendProgressSummaryRequestSchema: GenMessage<SendProgressSummaryRequest> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 27);
+
+/**
+ * @generated from message coaching.v1.SendProgressSummaryResponse
+ */
+export type SendProgressSummaryResponse = Message<"coaching.v1.SendProgressSummaryResponse"> & {
+  /**
+   * @generated from field: string summary_id = 1;
+   */
+  summaryId: string;
+};
+
+/**
+ * Describes the message coaching.v1.SendProgressSummaryResponse.
+ * Use `create(SendProgressSummaryResponseSchema)` to create a new message.
+ */
+export const SendProgressSummaryResponseSchema: GenMessage<SendProgressSummaryResponse> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 28);
+
+/**
+ * @generated from message coaching.v1.ProgressSummary
+ */
+export type ProgressSummary = Message<"coaching.v1.ProgressSummary"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string member_id = 2;
+   */
+  memberId: string;
+
+  /**
+   * @generated from field: string trainer_id = 3;
+   */
+  trainerId: string;
+
+  /**
+   * @generated from field: int64 period_start = 4;
+   */
+  periodStart: bigint;
+
+  /**
+   * @generated from field: int64 period_end = 5;
+   */
+  periodEnd: bigint;
+
+  /**
+   * @generated from field: int32 schema_version = 6;
+   */
+  schemaVersion: number;
+
+  /**
+   * 보낸 그대로의 JSON(서버는 해석하지 않았다). 화면은 core parseSummaryV1 로 거른 뒤에 그린다(S-18).
+   *
+   * @generated from field: string snapshot_json = 7;
+   */
+  snapshotJson: string;
+
+  /**
+   * @generated from field: int64 created_at = 8;
+   */
+  createdAt: bigint;
+};
+
+/**
+ * Describes the message coaching.v1.ProgressSummary.
+ * Use `create(ProgressSummarySchema)` to create a new message.
+ */
+export const ProgressSummarySchema: GenMessage<ProgressSummary> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 29);
+
+/**
+ * @generated from message coaching.v1.GetProgressSummaryRequest
+ */
+export type GetProgressSummaryRequest = Message<"coaching.v1.GetProgressSummaryRequest"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+};
+
+/**
+ * Describes the message coaching.v1.GetProgressSummaryRequest.
+ * Use `create(GetProgressSummaryRequestSchema)` to create a new message.
+ */
+export const GetProgressSummaryRequestSchema: GenMessage<GetProgressSummaryRequest> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 30);
+
+/**
+ * @generated from message coaching.v1.GetProgressSummaryResponse
+ */
+export type GetProgressSummaryResponse = Message<"coaching.v1.GetProgressSummaryResponse"> & {
+  /**
+   * @generated from field: coaching.v1.ProgressSummary summary = 1;
+   */
+  summary?: ProgressSummary | undefined;
+};
+
+/**
+ * Describes the message coaching.v1.GetProgressSummaryResponse.
+ * Use `create(GetProgressSummaryResponseSchema)` to create a new message.
+ */
+export const GetProgressSummaryResponseSchema: GenMessage<GetProgressSummaryResponse> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 31);
+
+/**
+ * 보낸 요약 목록의 한 줄 — 스냅샷은 싣지 않는다(펼칠 때 GetProgressSummary).
+ *
+ * @generated from message coaching.v1.SentSummary
+ */
+export type SentSummary = Message<"coaching.v1.SentSummary"> & {
+  /**
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * @generated from field: string trainer_id = 2;
+   */
+  trainerId: string;
+
+  /**
+   * @generated from field: int64 period_start = 3;
+   */
+  periodStart: bigint;
+
+  /**
+   * @generated from field: int64 period_end = 4;
+   */
+  periodEnd: bigint;
+
+  /**
+   * @generated from field: int32 schema_version = 5;
+   */
+  schemaVersion: number;
+
+  /**
+   * DM 까지 갔나. false 면 저장만 되고 전달 전(같은 client_id 로 다시 보내면 그때 간다).
+   *
+   * @generated from field: bool delivered = 6;
+   */
+  delivered: boolean;
+
+  /**
+   * @generated from field: int64 created_at = 7;
+   */
+  createdAt: bigint;
+};
+
+/**
+ * Describes the message coaching.v1.SentSummary.
+ * Use `create(SentSummarySchema)` to create a new message.
+ */
+export const SentSummarySchema: GenMessage<SentSummary> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 32);
+
+/**
+ * @generated from message coaching.v1.ListSentSummariesRequest
+ */
+export type ListSentSummariesRequest = Message<"coaching.v1.ListSentSummariesRequest"> & {
+  /**
+   * 앞 페이지의 next_cursor. 비우면 최신부터.
+   *
+   * @generated from field: string cursor = 1;
+   */
+  cursor: string;
+};
+
+/**
+ * Describes the message coaching.v1.ListSentSummariesRequest.
+ * Use `create(ListSentSummariesRequestSchema)` to create a new message.
+ */
+export const ListSentSummariesRequestSchema: GenMessage<ListSentSummariesRequest> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 33);
+
+/**
+ * @generated from message coaching.v1.ListSentSummariesResponse
+ */
+export type ListSentSummariesResponse = Message<"coaching.v1.ListSentSummariesResponse"> & {
+  /**
+   * 최근 것부터 최대 50개.
+   *
+   * @generated from field: repeated coaching.v1.SentSummary summaries = 1;
+   */
+  summaries: SentSummary[];
+
+  /**
+   * 다음 페이지가 없으면 빈 문자열.
+   *
+   * @generated from field: string next_cursor = 2;
+   */
+  nextCursor: string;
+};
+
+/**
+ * Describes the message coaching.v1.ListSentSummariesResponse.
+ * Use `create(ListSentSummariesResponseSchema)` to create a new message.
+ */
+export const ListSentSummariesResponseSchema: GenMessage<ListSentSummariesResponse> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 34);
+
+/**
+ * 트레이너 리포트용 원본 레코드(scope=logView · ADR-040 개정).
+ * 서버가 내주는 기간 = [period_start − (period_end − period_start), period_end) — 직전 기간 비교용.
+ * 길이 ≤ 400일 · start < end · end ≤ now+1일. 컬렉션·칸은 **서버 상수 허용 목록**만이다
+ * (notes·note·image_url·prescription·prev_* 없음 · user_profiles·bodyweight_logs·import_* 는 영원히 없다).
+ *
+ * @generated from message coaching.v1.GetMemberRecordsRequest
+ */
+export type GetMemberRecordsRequest = Message<"coaching.v1.GetMemberRecordsRequest"> & {
+  /**
+   * @generated from field: string member_id = 1;
+   */
+  memberId: string;
+
+  /**
+   * @generated from field: int64 period_start = 2;
+   */
+  periodStart: bigint;
+
+  /**
+   * @generated from field: int64 period_end = 3;
+   */
+  periodEnd: bigint;
+};
+
+/**
+ * Describes the message coaching.v1.GetMemberRecordsRequest.
+ * Use `create(GetMemberRecordsRequestSchema)` to create a new message.
+ */
+export const GetMemberRecordsRequestSchema: GenMessage<GetMemberRecordsRequest> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 35);
+
+/**
+ * @generated from message coaching.v1.GetMemberRecordsResponse
+ */
+export type GetMemberRecordsResponse = Message<"coaching.v1.GetMemberRecordsResponse"> & {
+  /**
+   * 각 원소 = 허용 칸만 남긴 JSON 객체 하나(기기 raw 레코드와 같은 snake_case 키).
+   * 완료된 운동과 그 자식, 그 운동에 실제로 쓰인 커스텀 종목만.
+   *
+   * @generated from field: repeated string workouts = 1;
+   */
+  workouts: string[];
+
+  /**
+   * @generated from field: repeated string workout_exercises = 2;
+   */
+  workoutExercises: string[];
+
+  /**
+   * @generated from field: repeated string set_logs = 3;
+   */
+  setLogs: string[];
+
+  /**
+   * @generated from field: repeated string exercises = 4;
+   */
+  exercises: string[];
+
+  /**
+   * 실제로 내준 기간(epoch ms) [served_start, served_end).
+   *
+   * @generated from field: int64 served_start = 5;
+   */
+  servedStart: bigint;
+
+  /**
+   * @generated from field: int64 served_end = 6;
+   */
+  servedEnd: bigint;
+};
+
+/**
+ * Describes the message coaching.v1.GetMemberRecordsResponse.
+ * Use `create(GetMemberRecordsResponseSchema)` to create a new message.
+ */
+export const GetMemberRecordsResponseSchema: GenMessage<GetMemberRecordsResponse> = /*@__PURE__*/
+  messageDesc(file_coaching_v1_coaching, 36);
+
+/**
  * @generated from enum coaching.v1.GrantStatus
  */
 export enum GrantStatus {
@@ -969,6 +1300,47 @@ export const CoachingService: GenService<{
     methodKind: "unary";
     input: typeof ListAuditRequestSchema;
     output: typeof ListAuditResponseSchema;
+  },
+  /**
+   * ── 기간 성과 요약(SRS-080) ── 넷 다 NO_SIDE_EFFECTS 를 달지 않는다(S-20).
+   * 회원 → 담당 트레이너. 저장 + 1:1 DM(SUMMARY) + 알림(coaching_summary). 같은 client_id 는 한 번만 도착한다.
+   *
+   * @generated from rpc coaching.v1.CoachingService.SendProgressSummary
+   */
+  sendProgressSummary: {
+    methodKind: "unary";
+    input: typeof SendProgressSummaryRequestSchema;
+    output: typeof SendProgressSummaryResponseSchema;
+  },
+  /**
+   * 그 요약의 회원 ∨ 받은 트레이너(지금 active ∧ logView ∧ 보낸 때와 같은 동의)만. 남이면 NotFound.
+   *
+   * @generated from rpc coaching.v1.CoachingService.GetProgressSummary
+   */
+  getProgressSummary: {
+    methodKind: "unary";
+    input: typeof GetProgressSummaryRequestSchema;
+    output: typeof GetProgressSummaryResponseSchema;
+  },
+  /**
+   * 내가 보낸 요약(최근 50 + 커서).
+   *
+   * @generated from rpc coaching.v1.CoachingService.ListSentSummaries
+   */
+  listSentSummaries: {
+    methodKind: "unary";
+    input: typeof ListSentSummariesRequestSchema;
+    output: typeof ListSentSummariesResponseSchema;
+  },
+  /**
+   * 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
+   *
+   * @generated from rpc coaching.v1.CoachingService.GetMemberRecords
+   */
+  getMemberRecords: {
+    methodKind: "unary";
+    input: typeof GetMemberRecordsRequestSchema;
+    output: typeof GetMemberRecordsResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_coaching_v1_coaching, 0);

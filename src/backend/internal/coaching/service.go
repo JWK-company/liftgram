@@ -54,6 +54,7 @@ const (
 	ActionReportView       = "report_view"
 	ActionRoutinesView     = "routines_view"
 	ActionPrescriptionEdit = "prescription_edit"
+	// summary_send·summary_view·records_view 는 summary.go(SRS-080) — 목록 전체는 0017 주석.
 )
 
 type Peer struct {
@@ -116,12 +117,18 @@ type Repo interface {
 	CatalogMeta(ctx context.Context) (map[string]CatalogExercise, error)
 	GetMemberRecord(ctx context.Context, memberID, collection, recordID string) (rowID string, payload []byte, err error)
 	UpdateMemberRecord(ctx context.Context, rowID string, payload []byte) error
+
+	// 기간 성과 요약(progress_summaries · 0017). @plm SRS-080
+	SummaryRepo
 }
 
 type Service struct {
 	repo  Repo
 	newID func() string
 	now   func() time.Time
+	// 요약 전달(SRS-080) — WithSummaryDelivery 로 끼운다. dm 의 좁은 포트·알림 포트만 안다.
+	messenger SummaryMessenger
+	notifier  Notifier
 }
 
 func NewService(repo Repo, newID func() string, now func() time.Time) *Service {

@@ -936,7 +936,8 @@ type AuditEntry struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	ActorId string                 `protobuf:"bytes,2,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
-	// 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit.
+	// 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit
+	// ·summary_send·summary_view·records_view(SRS-080).
 	Action        string `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
 	CreatedAt     int64  `protobuf:"varint,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1819,6 +1820,671 @@ func (x *ListAuditResponse) GetEntries() []*AuditEntry {
 	return nil
 }
 
+type SendProgressSummaryRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 받을 트레이너. 회원(=나) → 이 트레이너 관계가 active ∧ logView 여야 한다.
+	TrainerId   string `protobuf:"bytes,1,opt,name=trainer_id,json=trainerId,proto3" json:"trainer_id,omitempty"`
+	PeriodStart int64  `protobuf:"varint,2,opt,name=period_start,json=periodStart,proto3" json:"period_start,omitempty"`
+	PeriodEnd   int64  `protobuf:"varint,3,opt,name=period_end,json=periodEnd,proto3" json:"period_end,omitempty"`
+	// 지원 목록은 서버가 정한다(지금 {1}). 스냅샷 최상위 schemaVersion 과 같아야 한다.
+	SchemaVersion int32 `protobuf:"varint,4,opt,name=schema_version,json=schemaVersion,proto3" json:"schema_version,omitempty"`
+	// SummaryV1 JSON 객체(회원이 끈 섹션은 키째 빠진다). 64KB 상한.
+	SnapshotJson string `protobuf:"bytes,5,opt,name=snapshot_json,json=snapshotJson,proto3" json:"snapshot_json,omitempty"`
+	// 기기가 만든 uuid — 같은 값으로 다시 보내면 같은 요약·같은 DM 하나로 끝난다.
+	ClientId      string `protobuf:"bytes,6,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendProgressSummaryRequest) Reset() {
+	*x = SendProgressSummaryRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendProgressSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendProgressSummaryRequest) ProtoMessage() {}
+
+func (x *SendProgressSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendProgressSummaryRequest.ProtoReflect.Descriptor instead.
+func (*SendProgressSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SendProgressSummaryRequest) GetTrainerId() string {
+	if x != nil {
+		return x.TrainerId
+	}
+	return ""
+}
+
+func (x *SendProgressSummaryRequest) GetPeriodStart() int64 {
+	if x != nil {
+		return x.PeriodStart
+	}
+	return 0
+}
+
+func (x *SendProgressSummaryRequest) GetPeriodEnd() int64 {
+	if x != nil {
+		return x.PeriodEnd
+	}
+	return 0
+}
+
+func (x *SendProgressSummaryRequest) GetSchemaVersion() int32 {
+	if x != nil {
+		return x.SchemaVersion
+	}
+	return 0
+}
+
+func (x *SendProgressSummaryRequest) GetSnapshotJson() string {
+	if x != nil {
+		return x.SnapshotJson
+	}
+	return ""
+}
+
+func (x *SendProgressSummaryRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+type SendProgressSummaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SummaryId     string                 `protobuf:"bytes,1,opt,name=summary_id,json=summaryId,proto3" json:"summary_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendProgressSummaryResponse) Reset() {
+	*x = SendProgressSummaryResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendProgressSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendProgressSummaryResponse) ProtoMessage() {}
+
+func (x *SendProgressSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendProgressSummaryResponse.ProtoReflect.Descriptor instead.
+func (*SendProgressSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *SendProgressSummaryResponse) GetSummaryId() string {
+	if x != nil {
+		return x.SummaryId
+	}
+	return ""
+}
+
+type ProgressSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	MemberId      string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	TrainerId     string                 `protobuf:"bytes,3,opt,name=trainer_id,json=trainerId,proto3" json:"trainer_id,omitempty"`
+	PeriodStart   int64                  `protobuf:"varint,4,opt,name=period_start,json=periodStart,proto3" json:"period_start,omitempty"`
+	PeriodEnd     int64                  `protobuf:"varint,5,opt,name=period_end,json=periodEnd,proto3" json:"period_end,omitempty"`
+	SchemaVersion int32                  `protobuf:"varint,6,opt,name=schema_version,json=schemaVersion,proto3" json:"schema_version,omitempty"`
+	// 보낸 그대로의 JSON(서버는 해석하지 않았다). 화면은 core parseSummaryV1 로 거른 뒤에 그린다(S-18).
+	SnapshotJson  string `protobuf:"bytes,7,opt,name=snapshot_json,json=snapshotJson,proto3" json:"snapshot_json,omitempty"`
+	CreatedAt     int64  `protobuf:"varint,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProgressSummary) Reset() {
+	*x = ProgressSummary{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProgressSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProgressSummary) ProtoMessage() {}
+
+func (x *ProgressSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProgressSummary.ProtoReflect.Descriptor instead.
+func (*ProgressSummary) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *ProgressSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ProgressSummary) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *ProgressSummary) GetTrainerId() string {
+	if x != nil {
+		return x.TrainerId
+	}
+	return ""
+}
+
+func (x *ProgressSummary) GetPeriodStart() int64 {
+	if x != nil {
+		return x.PeriodStart
+	}
+	return 0
+}
+
+func (x *ProgressSummary) GetPeriodEnd() int64 {
+	if x != nil {
+		return x.PeriodEnd
+	}
+	return 0
+}
+
+func (x *ProgressSummary) GetSchemaVersion() int32 {
+	if x != nil {
+		return x.SchemaVersion
+	}
+	return 0
+}
+
+func (x *ProgressSummary) GetSnapshotJson() string {
+	if x != nil {
+		return x.SnapshotJson
+	}
+	return ""
+}
+
+func (x *ProgressSummary) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type GetProgressSummaryRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProgressSummaryRequest) Reset() {
+	*x = GetProgressSummaryRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProgressSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProgressSummaryRequest) ProtoMessage() {}
+
+func (x *GetProgressSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProgressSummaryRequest.ProtoReflect.Descriptor instead.
+func (*GetProgressSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetProgressSummaryRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetProgressSummaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Summary       *ProgressSummary       `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProgressSummaryResponse) Reset() {
+	*x = GetProgressSummaryResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProgressSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProgressSummaryResponse) ProtoMessage() {}
+
+func (x *GetProgressSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProgressSummaryResponse.ProtoReflect.Descriptor instead.
+func (*GetProgressSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetProgressSummaryResponse) GetSummary() *ProgressSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
+// 보낸 요약 목록의 한 줄 — 스냅샷은 싣지 않는다(펼칠 때 GetProgressSummary).
+type SentSummary struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	TrainerId     string                 `protobuf:"bytes,2,opt,name=trainer_id,json=trainerId,proto3" json:"trainer_id,omitempty"`
+	PeriodStart   int64                  `protobuf:"varint,3,opt,name=period_start,json=periodStart,proto3" json:"period_start,omitempty"`
+	PeriodEnd     int64                  `protobuf:"varint,4,opt,name=period_end,json=periodEnd,proto3" json:"period_end,omitempty"`
+	SchemaVersion int32                  `protobuf:"varint,5,opt,name=schema_version,json=schemaVersion,proto3" json:"schema_version,omitempty"`
+	// DM 까지 갔나. false 면 저장만 되고 전달 전(같은 client_id 로 다시 보내면 그때 간다).
+	Delivered     bool  `protobuf:"varint,6,opt,name=delivered,proto3" json:"delivered,omitempty"`
+	CreatedAt     int64 `protobuf:"varint,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SentSummary) Reset() {
+	*x = SentSummary{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SentSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SentSummary) ProtoMessage() {}
+
+func (x *SentSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SentSummary.ProtoReflect.Descriptor instead.
+func (*SentSummary) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *SentSummary) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SentSummary) GetTrainerId() string {
+	if x != nil {
+		return x.TrainerId
+	}
+	return ""
+}
+
+func (x *SentSummary) GetPeriodStart() int64 {
+	if x != nil {
+		return x.PeriodStart
+	}
+	return 0
+}
+
+func (x *SentSummary) GetPeriodEnd() int64 {
+	if x != nil {
+		return x.PeriodEnd
+	}
+	return 0
+}
+
+func (x *SentSummary) GetSchemaVersion() int32 {
+	if x != nil {
+		return x.SchemaVersion
+	}
+	return 0
+}
+
+func (x *SentSummary) GetDelivered() bool {
+	if x != nil {
+		return x.Delivered
+	}
+	return false
+}
+
+func (x *SentSummary) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+type ListSentSummariesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 앞 페이지의 next_cursor. 비우면 최신부터.
+	Cursor        string `protobuf:"bytes,1,opt,name=cursor,proto3" json:"cursor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSentSummariesRequest) Reset() {
+	*x = ListSentSummariesRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSentSummariesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSentSummariesRequest) ProtoMessage() {}
+
+func (x *ListSentSummariesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSentSummariesRequest.ProtoReflect.Descriptor instead.
+func (*ListSentSummariesRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ListSentSummariesRequest) GetCursor() string {
+	if x != nil {
+		return x.Cursor
+	}
+	return ""
+}
+
+type ListSentSummariesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 최근 것부터 최대 50개.
+	Summaries []*SentSummary `protobuf:"bytes,1,rep,name=summaries,proto3" json:"summaries,omitempty"`
+	// 다음 페이지가 없으면 빈 문자열.
+	NextCursor    string `protobuf:"bytes,2,opt,name=next_cursor,json=nextCursor,proto3" json:"next_cursor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSentSummariesResponse) Reset() {
+	*x = ListSentSummariesResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSentSummariesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSentSummariesResponse) ProtoMessage() {}
+
+func (x *ListSentSummariesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSentSummariesResponse.ProtoReflect.Descriptor instead.
+func (*ListSentSummariesResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ListSentSummariesResponse) GetSummaries() []*SentSummary {
+	if x != nil {
+		return x.Summaries
+	}
+	return nil
+}
+
+func (x *ListSentSummariesResponse) GetNextCursor() string {
+	if x != nil {
+		return x.NextCursor
+	}
+	return ""
+}
+
+// 트레이너 리포트용 원본 레코드(scope=logView · ADR-040 개정).
+// 서버가 내주는 기간 = [period_start − (period_end − period_start), period_end) — 직전 기간 비교용.
+// 길이 ≤ 400일 · start < end · end ≤ now+1일. 컬렉션·칸은 **서버 상수 허용 목록**만이다
+// (notes·note·image_url·prescription·prev_* 없음 · user_profiles·bodyweight_logs·import_* 는 영원히 없다).
+type GetMemberRecordsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	PeriodStart   int64                  `protobuf:"varint,2,opt,name=period_start,json=periodStart,proto3" json:"period_start,omitempty"`
+	PeriodEnd     int64                  `protobuf:"varint,3,opt,name=period_end,json=periodEnd,proto3" json:"period_end,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMemberRecordsRequest) Reset() {
+	*x = GetMemberRecordsRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMemberRecordsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMemberRecordsRequest) ProtoMessage() {}
+
+func (x *GetMemberRecordsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMemberRecordsRequest.ProtoReflect.Descriptor instead.
+func (*GetMemberRecordsRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{35}
+}
+
+func (x *GetMemberRecordsRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *GetMemberRecordsRequest) GetPeriodStart() int64 {
+	if x != nil {
+		return x.PeriodStart
+	}
+	return 0
+}
+
+func (x *GetMemberRecordsRequest) GetPeriodEnd() int64 {
+	if x != nil {
+		return x.PeriodEnd
+	}
+	return 0
+}
+
+type GetMemberRecordsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 각 원소 = 허용 칸만 남긴 JSON 객체 하나(기기 raw 레코드와 같은 snake_case 키).
+	// 완료된 운동과 그 자식, 그 운동에 실제로 쓰인 커스텀 종목만.
+	Workouts         []string `protobuf:"bytes,1,rep,name=workouts,proto3" json:"workouts,omitempty"`
+	WorkoutExercises []string `protobuf:"bytes,2,rep,name=workout_exercises,json=workoutExercises,proto3" json:"workout_exercises,omitempty"`
+	SetLogs          []string `protobuf:"bytes,3,rep,name=set_logs,json=setLogs,proto3" json:"set_logs,omitempty"`
+	Exercises        []string `protobuf:"bytes,4,rep,name=exercises,proto3" json:"exercises,omitempty"`
+	// 실제로 내준 기간(epoch ms) [served_start, served_end).
+	ServedStart   int64 `protobuf:"varint,5,opt,name=served_start,json=servedStart,proto3" json:"served_start,omitempty"`
+	ServedEnd     int64 `protobuf:"varint,6,opt,name=served_end,json=servedEnd,proto3" json:"served_end,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMemberRecordsResponse) Reset() {
+	*x = GetMemberRecordsResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMemberRecordsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMemberRecordsResponse) ProtoMessage() {}
+
+func (x *GetMemberRecordsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMemberRecordsResponse.ProtoReflect.Descriptor instead.
+func (*GetMemberRecordsResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *GetMemberRecordsResponse) GetWorkouts() []string {
+	if x != nil {
+		return x.Workouts
+	}
+	return nil
+}
+
+func (x *GetMemberRecordsResponse) GetWorkoutExercises() []string {
+	if x != nil {
+		return x.WorkoutExercises
+	}
+	return nil
+}
+
+func (x *GetMemberRecordsResponse) GetSetLogs() []string {
+	if x != nil {
+		return x.SetLogs
+	}
+	return nil
+}
+
+func (x *GetMemberRecordsResponse) GetExercises() []string {
+	if x != nil {
+		return x.Exercises
+	}
+	return nil
+}
+
+func (x *GetMemberRecordsResponse) GetServedStart() int64 {
+	if x != nil {
+		return x.ServedStart
+	}
+	return 0
+}
+
+func (x *GetMemberRecordsResponse) GetServedEnd() int64 {
+	if x != nil {
+		return x.ServedEnd
+	}
+	return 0
+}
+
 var File_coaching_v1_coaching_proto protoreflect.FileDescriptor
 
 const file_coaching_v1_coaching_proto_rawDesc = "" +
@@ -1929,7 +2595,65 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x10ListAuditRequest\x12\"\n" +
 	"\bgrant_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\agrantId\"F\n" +
 	"\x11ListAuditResponse\x121\n" +
-	"\aentries\x18\x01 \x03(\v2\x17.coaching.v1.AuditEntryR\aentries*x\n" +
+	"\aentries\x18\x01 \x03(\v2\x17.coaching.v1.AuditEntryR\aentries\"\xa3\x02\n" +
+	"\x1aSendProgressSummaryRequest\x12(\n" +
+	"\n" +
+	"trainer_id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\ttrainerId\x12*\n" +
+	"\fperiod_start\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\vperiodStart\x12&\n" +
+	"\n" +
+	"period_end\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\tperiodEnd\x12.\n" +
+	"\x0eschema_version\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02(\x01R\rschemaVersion\x120\n" +
+	"\rsnapshot_json\x18\x05 \x01(\tB\v\xbaH\br\x06\x10\x02(\x80\x80\x04R\fsnapshotJson\x12%\n" +
+	"\tclient_id\x18\x06 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bclientId\"<\n" +
+	"\x1bSendProgressSummaryResponse\x12\x1d\n" +
+	"\n" +
+	"summary_id\x18\x01 \x01(\tR\tsummaryId\"\x8a\x02\n" +
+	"\x0fProgressSummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x12\x1d\n" +
+	"\n" +
+	"trainer_id\x18\x03 \x01(\tR\ttrainerId\x12!\n" +
+	"\fperiod_start\x18\x04 \x01(\x03R\vperiodStart\x12\x1d\n" +
+	"\n" +
+	"period_end\x18\x05 \x01(\x03R\tperiodEnd\x12%\n" +
+	"\x0eschema_version\x18\x06 \x01(\x05R\rschemaVersion\x12#\n" +
+	"\rsnapshot_json\x18\a \x01(\tR\fsnapshotJson\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\x03R\tcreatedAt\"6\n" +
+	"\x19GetProgressSummaryRequest\x12\x19\n" +
+	"\x02id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x02id\"T\n" +
+	"\x1aGetProgressSummaryResponse\x126\n" +
+	"\asummary\x18\x01 \x01(\v2\x1c.coaching.v1.ProgressSummaryR\asummary\"\xe2\x01\n" +
+	"\vSentSummary\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	"\n" +
+	"trainer_id\x18\x02 \x01(\tR\ttrainerId\x12!\n" +
+	"\fperiod_start\x18\x03 \x01(\x03R\vperiodStart\x12\x1d\n" +
+	"\n" +
+	"period_end\x18\x04 \x01(\x03R\tperiodEnd\x12%\n" +
+	"\x0eschema_version\x18\x05 \x01(\x05R\rschemaVersion\x12\x1c\n" +
+	"\tdelivered\x18\x06 \x01(\bR\tdelivered\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\a \x01(\x03R\tcreatedAt\"<\n" +
+	"\x18ListSentSummariesRequest\x12 \n" +
+	"\x06cursor\x18\x01 \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06cursor\"t\n" +
+	"\x19ListSentSummariesResponse\x126\n" +
+	"\tsummaries\x18\x01 \x03(\v2\x18.coaching.v1.SentSummaryR\tsummaries\x12\x1f\n" +
+	"\vnext_cursor\x18\x02 \x01(\tR\n" +
+	"nextCursor\"\x95\x01\n" +
+	"\x17GetMemberRecordsRequest\x12&\n" +
+	"\tmember_id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\bmemberId\x12*\n" +
+	"\fperiod_start\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\vperiodStart\x12&\n" +
+	"\n" +
+	"period_end\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\tperiodEnd\"\xde\x01\n" +
+	"\x18GetMemberRecordsResponse\x12\x1a\n" +
+	"\bworkouts\x18\x01 \x03(\tR\bworkouts\x12+\n" +
+	"\x11workout_exercises\x18\x02 \x03(\tR\x10workoutExercises\x12\x19\n" +
+	"\bset_logs\x18\x03 \x03(\tR\asetLogs\x12\x1c\n" +
+	"\texercises\x18\x04 \x03(\tR\texercises\x12!\n" +
+	"\fserved_start\x18\x05 \x01(\x03R\vservedStart\x12\x1d\n" +
+	"\n" +
+	"served_end\x18\x06 \x01(\x03R\tservedEnd*x\n" +
 	"\vGrantStatus\x12\x1c\n" +
 	"\x18GRANT_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14GRANT_STATUS_PENDING\x10\x01\x12\x17\n" +
@@ -1954,7 +2678,7 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x16LOAD_BASIS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12LOAD_BASIS_PCT_1RM\x10\x01\x12\x16\n" +
 	"\x12LOAD_BASIS_PCT_TOP\x10\x02\x12\x14\n" +
-	"\x10LOAD_BASIS_FIXED\x10\x032\xd0\x06\n" +
+	"\x10LOAD_BASIS_FIXED\x10\x032\xee\t\n" +
 	"\x0fCoachingService\x12[\n" +
 	"\x0eSearchTrainers\x12\".coaching.v1.SearchTrainersRequest\x1a#.coaching.v1.SearchTrainersResponse\"\x00\x12^\n" +
 	"\x0fRequestCoaching\x12#.coaching.v1.RequestCoachingRequest\x1a$.coaching.v1.RequestCoachingResponse\"\x00\x12O\n" +
@@ -1965,7 +2689,11 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x0fGetMemberReport\x12#.coaching.v1.GetMemberReportRequest\x1a$.coaching.v1.GetMemberReportResponse\"\x00\x12g\n" +
 	"\x12ListMemberRoutines\x12&.coaching.v1.ListMemberRoutinesRequest\x1a'.coaching.v1.ListMemberRoutinesResponse\"\x00\x12p\n" +
 	"\x15SetMemberPrescription\x12).coaching.v1.SetMemberPrescriptionRequest\x1a*.coaching.v1.SetMemberPrescriptionResponse\"\x00\x12L\n" +
-	"\tListAudit\x12\x1d.coaching.v1.ListAuditRequest\x1a\x1e.coaching.v1.ListAuditResponse\"\x00B\xb5\x01\n" +
+	"\tListAudit\x12\x1d.coaching.v1.ListAuditRequest\x1a\x1e.coaching.v1.ListAuditResponse\"\x00\x12j\n" +
+	"\x13SendProgressSummary\x12'.coaching.v1.SendProgressSummaryRequest\x1a(.coaching.v1.SendProgressSummaryResponse\"\x00\x12g\n" +
+	"\x12GetProgressSummary\x12&.coaching.v1.GetProgressSummaryRequest\x1a'.coaching.v1.GetProgressSummaryResponse\"\x00\x12d\n" +
+	"\x11ListSentSummaries\x12%.coaching.v1.ListSentSummariesRequest\x1a&.coaching.v1.ListSentSummariesResponse\"\x00\x12a\n" +
+	"\x10GetMemberRecords\x12$.coaching.v1.GetMemberRecordsRequest\x1a%.coaching.v1.GetMemberRecordsResponse\"\x00B\xb5\x01\n" +
 	"\x0fcom.coaching.v1B\rCoachingProtoP\x01ZFgithub.com/JWK-company/liftgram/src/backend/gen/coaching/v1;coachingv1\xa2\x02\x03CXX\xaa\x02\vCoaching.V1\xca\x02\vCoaching\\V1\xe2\x02\x17Coaching\\V1\\GPBMetadata\xea\x02\fCoaching::V1b\x06proto3"
 
 var (
@@ -1981,7 +2709,7 @@ func file_coaching_v1_coaching_proto_rawDescGZIP() []byte {
 }
 
 var file_coaching_v1_coaching_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_coaching_v1_coaching_proto_goTypes = []any{
 	(GrantStatus)(0),                      // 0: coaching.v1.GrantStatus
 	(Side)(0),                             // 1: coaching.v1.Side
@@ -2015,6 +2743,16 @@ var file_coaching_v1_coaching_proto_goTypes = []any{
 	(*SetMemberPrescriptionResponse)(nil), // 29: coaching.v1.SetMemberPrescriptionResponse
 	(*ListAuditRequest)(nil),              // 30: coaching.v1.ListAuditRequest
 	(*ListAuditResponse)(nil),             // 31: coaching.v1.ListAuditResponse
+	(*SendProgressSummaryRequest)(nil),    // 32: coaching.v1.SendProgressSummaryRequest
+	(*SendProgressSummaryResponse)(nil),   // 33: coaching.v1.SendProgressSummaryResponse
+	(*ProgressSummary)(nil),               // 34: coaching.v1.ProgressSummary
+	(*GetProgressSummaryRequest)(nil),     // 35: coaching.v1.GetProgressSummaryRequest
+	(*GetProgressSummaryResponse)(nil),    // 36: coaching.v1.GetProgressSummaryResponse
+	(*SentSummary)(nil),                   // 37: coaching.v1.SentSummary
+	(*ListSentSummariesRequest)(nil),      // 38: coaching.v1.ListSentSummariesRequest
+	(*ListSentSummariesResponse)(nil),     // 39: coaching.v1.ListSentSummariesResponse
+	(*GetMemberRecordsRequest)(nil),       // 40: coaching.v1.GetMemberRecordsRequest
+	(*GetMemberRecordsResponse)(nil),      // 41: coaching.v1.GetMemberRecordsResponse
 }
 var file_coaching_v1_coaching_proto_depIdxs = []int32{
 	0,  // 0: coaching.v1.Grant.status:type_name -> coaching.v1.GrantStatus
@@ -2038,29 +2776,39 @@ var file_coaching_v1_coaching_proto_depIdxs = []int32{
 	7,  // 18: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
 	7,  // 19: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
 	13, // 20: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
-	14, // 21: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
-	16, // 22: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
-	18, // 23: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
-	20, // 24: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
-	22, // 25: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
-	24, // 26: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
-	26, // 27: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
-	28, // 28: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
-	30, // 29: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
-	15, // 30: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
-	17, // 31: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
-	19, // 32: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
-	21, // 33: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
-	23, // 34: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
-	25, // 35: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
-	27, // 36: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
-	29, // 37: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
-	31, // 38: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
-	30, // [30:39] is the sub-list for method output_type
-	21, // [21:30] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	34, // 21: coaching.v1.GetProgressSummaryResponse.summary:type_name -> coaching.v1.ProgressSummary
+	37, // 22: coaching.v1.ListSentSummariesResponse.summaries:type_name -> coaching.v1.SentSummary
+	14, // 23: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
+	16, // 24: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
+	18, // 25: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
+	20, // 26: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
+	22, // 27: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
+	24, // 28: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
+	26, // 29: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
+	28, // 30: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
+	30, // 31: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
+	32, // 32: coaching.v1.CoachingService.SendProgressSummary:input_type -> coaching.v1.SendProgressSummaryRequest
+	35, // 33: coaching.v1.CoachingService.GetProgressSummary:input_type -> coaching.v1.GetProgressSummaryRequest
+	38, // 34: coaching.v1.CoachingService.ListSentSummaries:input_type -> coaching.v1.ListSentSummariesRequest
+	40, // 35: coaching.v1.CoachingService.GetMemberRecords:input_type -> coaching.v1.GetMemberRecordsRequest
+	15, // 36: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
+	17, // 37: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
+	19, // 38: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
+	21, // 39: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
+	23, // 40: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
+	25, // 41: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
+	27, // 42: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
+	29, // 43: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
+	31, // 44: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
+	33, // 45: coaching.v1.CoachingService.SendProgressSummary:output_type -> coaching.v1.SendProgressSummaryResponse
+	36, // 46: coaching.v1.CoachingService.GetProgressSummary:output_type -> coaching.v1.GetProgressSummaryResponse
+	39, // 47: coaching.v1.CoachingService.ListSentSummaries:output_type -> coaching.v1.ListSentSummariesResponse
+	41, // 48: coaching.v1.CoachingService.GetMemberRecords:output_type -> coaching.v1.GetMemberRecordsResponse
+	36, // [36:49] is the sub-list for method output_type
+	23, // [23:36] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_coaching_v1_coaching_proto_init() }
@@ -2074,7 +2822,7 @@ func file_coaching_v1_coaching_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_coaching_v1_coaching_proto_rawDesc), len(file_coaching_v1_coaching_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   27,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

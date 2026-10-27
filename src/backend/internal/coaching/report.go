@@ -25,6 +25,11 @@ import (
 // 리포트가 보는 기간. 8주면 한 사이클을 넘겨 추세가 보이고, 옛날 일에 휘둘리지 않는다.
 const reportWeeks = 8
 
+// reportCollections는 옛 GetMemberReport(서버 집계 — ADR-040 개정으로 그대로 둔다)가 읽는 컬렉션이다.
+// **v26 의 새 로컬 테이블(bodyweight_logs·import_batches·import_aliases)과 user_profiles 를 넣지 않는다** —
+// 체중은 신체정보라 코칭 범위 밖이고(SRS-048 기본 제외), 가져오기 표는 회원 기기 살림이다.
+// 서버 동기는 컬렉션 허용 목록이 없어 이 표들도 sync_records 에 올라오므로, 이 목록이 마지막 관문이다
+// (TestCollections_신체정보와_가져오기_표는_코칭에_없다가 고정 · D-17 · S-2). @plm SRS-080
 var reportCollections = []string{"workouts", "workout_exercises", "set_logs", "exercises"}
 var routineCollections = []string{"routines", "routine_exercises", "exercises"}
 

@@ -27,6 +27,11 @@ enum MessageKind {
   MESSAGE_KIND_UNSPECIFIED = 0;
   MESSAGE_KIND_TEXT = 1;
   MESSAGE_KIND_IMAGE = 2;
+  // 회원이 담당 트레이너에게 보낸 기간 성과 요약(SRS-080 · ADR-041). **서버만 만든다** —
+  // SendMessage 로 이 종류를 보내면 거부한다. body 는 숫자 없는 대체 문구(옛 앱용)이고,
+  // 새 앱은 body 를 무시하고 ref_id 로 coaching.v1.GetProgressSummary 를 부른다.
+  // @plm SRS-080
+  MESSAGE_KIND_SUMMARY = 3;
 }
 
 message Participant {
@@ -44,6 +49,8 @@ message Message {
   // 사진 메시지일 때만. `/media/file/<key>` — **내가 올린 사진**이어야 한다.
   string media_url = 6;
   google.protobuf.Timestamp created_at = 7;
+  // 메시지가 가리키는 대상 id — SUMMARY 일 때 요약 id. 다른 종류는 빈 문자열.
+  string ref_id = 8;
 }
 
 message Conversation {

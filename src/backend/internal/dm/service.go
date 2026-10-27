@@ -21,6 +21,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 )
 
@@ -36,7 +38,20 @@ type Kind string
 const (
 	KindText  Kind = "text"
 	KindImage Kind = "image"
+	// 회원이 담당 트레이너에게 보낸 기간 성과 요약(SRS-080 · ADR-041). **서버만 만든다**
+	// (SendSummaryNotice) — 클라이언트 Send 로는 거부한다. @plm SRS-080
+	KindSummary Kind = "summary"
 )
+
+// SummaryFallbackBody는 SUMMARY 메시지의 body 다 — **숫자를 넣지 않는다**(S-7·S-8).
+// 옛 앱은 kind 를 몰라 body 를 글로 그리고, 대화 목록 미리보기·푸시도 이 문구를 쓴다. 숫자가 여기 있으면
+// 코칭을 해지한 뒤에도 대화에 남는다(회수는 ref_id 뒤의 가드가 한다). 받는 사람 언어를 몰라 ko·en 을 함께 짧게.
+// @plm SRS-080
+const SummaryFallbackBody = "성과 요약을 보냈어요 — 앱을 새로 고치면 볼 수 있어요 · Sent a progress summary — refresh the app to view"
+
+// SummaryMessageID는 요약 하나에 메시지 하나를 **결정적으로** 묶는다. 동시 두 요청·전송 뒤 실패한 재시도가
+// 와도 messages 의 기본 키가 두 번째를 막는다(S-5). @plm SRS-080
+func SummaryMessageID(summaryID string) string { return "summary-" + summaryID }
 
 type Participant struct {
 	ID          string
@@ -52,6 +67,8 @@ type Message struct {
 	Body           string
 	MediaURL       string
 	CreatedAt      time.Time
+	// 가리키는 대상 — SUMMARY 면 요약 id. 다른 종류는 빈 문자열. @plm SRS-080
+	RefID string
 }
 
 type Conversation struct {
@@ -68,6 +85,7 @@ type NewMessage struct {
 	Kind     Kind
 	Body     string
 	MediaURL string
+	RefID    string
 }
 
 type Repo interface {
@@ -84,6 +102,9 @@ type Repo interface {
 	ListMessagesAfter(ctx context.Context, viewerID, conversationID string, after time.Time, limit int32) ([]Message, error)
 	// 메시지를 넣고 대화의 시각을 올린다 — 한 트랜잭션(목록 정렬이 어긋나지 않게).
 	CreateMessage(ctx context.Context, id, conversationID, senderID string, m NewMessage) (Message, error)
+	// CreateRefMessage는 id 가 이미 있으면 **아무것도 하지 않고** created=false 를 돌려준다(멱등 전달).
+	// 새로 넣었을 때만 대화 시각도 올린다 — 한 트랜잭션. @plm SRS-080
+	CreateRefMessage(ctx context.Context, id, conversationID, senderID string, m NewMessage) (created bool, err error)
 	MarkRead(ctx context.Context, conversationID, userID string) error
 
 	IsBlockedEitherWay(ctx context.Context, a, b string) (bool, error)
@@ -253,9 +274,13 @@ func (s *Service) Send(ctx context.Context, viewerID, conversationID string, m N
 		if _, err := s.media.CheckOwned(ctx, m.MediaURL, viewerID); err != nil {
 			return Message{}, err
 		}
+	case KindSummary:
+		// 서버만 만든다 — 클라이언트가 보내면 요약 id 를 위조해 남의 카드처럼 보이게 할 수 있다(S-14).
+		return Message{}, errs.New(errs.Validation, "이 종류는 직접 보낼 수 없습니다")
 	default:
 		return Message{}, errs.New(errs.Validation, "알 수 없는 메시지 종류입니다")
 	}
+	m.RefID = "" // 클라이언트 메시지는 대상을 가리키지 않는다
 
 	msg, err := s.repo.CreateMessage(ctx, s.newID(), conversationID, viewerID, m)
 	if err != nil {
@@ -267,6 +292,49 @@ func (s *Service) Send(ctx context.Context, viewerID, conversationID string, m N
 		_ = s.bus.Publish(ctx, MessageTopic(conversationID))
 	}
 	return msg, nil
+}
+
+// SendSummaryNotice는 회원 → 트레이너 1:1 대화에 SUMMARY 메시지를 **서버가 대신** 넣는다(SRS-080 · S-14).
+//
+// 범용 "아무 종류나 보내기"를 두지 않는 이유: 그런 통로가 있으면 사진 소유·길이·참여자 검사를 우회하고
+// 보낸 사람을 위조할 수 있다. 그래서 종류는 SUMMARY 로 고정, body 는 서버 상수, 대상은 uuid 형식만 받는다.
+// 코칭은 이 메서드 하나만 가진 좁은 인터페이스(coaching.SummaryMessenger)로 이것을 받는다.
+//
+// 멱등: 메시지 id = SummaryMessageID(summaryID). 이미 보냈으면 created=false 와 같은 id 를 돌려준다 —
+// 부르는 쪽은 그 id 를 요약에 기록하고(한 번만), 알림·감사는 그 기록이 실제로 일어났을 때만 남긴다.
+// @plm SRS-080
+func (s *Service) SendSummaryNotice(ctx context.Context, memberID, trainerID, summaryID string) (messageID string, created bool, err error) {
+	if memberID == "" || trainerID == "" {
+		return "", false, errs.New(errs.Validation, "보내는 사람과 받는 사람이 필요합니다")
+	}
+	if memberID == trainerID {
+		return "", false, errs.New(errs.Validation, "자기 자신에게는 보낼 수 없습니다")
+	}
+	if uuid.Validate(summaryID) != nil {
+		return "", false, errs.New(errs.Validation, "요약 id 가 올바르지 않습니다")
+	}
+	blocked, err := s.repo.IsBlockedEitherWay(ctx, memberID, trainerID)
+	if err != nil {
+		return "", false, err
+	}
+	if blocked {
+		return "", false, errs.New(errs.Forbidden, "이 사용자에게는 보낼 수 없습니다")
+	}
+	conv, err := s.repo.FindOrCreateDirect(ctx, s.newID(), DirectKey(memberID, trainerID), memberID, trainerID)
+	if err != nil {
+		return "", false, err
+	}
+	messageID = SummaryMessageID(summaryID)
+	created, err = s.repo.CreateRefMessage(ctx, messageID, conv.ID, memberID, NewMessage{
+		Kind: KindSummary, Body: SummaryFallbackBody, RefID: summaryID,
+	})
+	if err != nil {
+		return "", false, err
+	}
+	if created && s.bus != nil {
+		_ = s.bus.Publish(ctx, MessageTopic(conv.ID))
+	}
+	return messageID, created, nil
 }
 
 func (s *Service) MarkRead(ctx context.Context, viewerID, conversationID string) error {

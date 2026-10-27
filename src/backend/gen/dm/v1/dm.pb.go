@@ -46,6 +46,11 @@ const (
 	MessageKind_MESSAGE_KIND_UNSPECIFIED MessageKind = 0
 	MessageKind_MESSAGE_KIND_TEXT        MessageKind = 1
 	MessageKind_MESSAGE_KIND_IMAGE       MessageKind = 2
+	// 회원이 담당 트레이너에게 보낸 기간 성과 요약(SRS-080 · ADR-041). **서버만 만든다** —
+	// SendMessage 로 이 종류를 보내면 거부한다. body 는 숫자 없는 대체 문구(옛 앱용)이고,
+	// 새 앱은 body 를 무시하고 ref_id 로 coaching.v1.GetProgressSummary 를 부른다.
+	// @plm SRS-080
+	MessageKind_MESSAGE_KIND_SUMMARY MessageKind = 3
 )
 
 // Enum value maps for MessageKind.
@@ -54,11 +59,13 @@ var (
 		0: "MESSAGE_KIND_UNSPECIFIED",
 		1: "MESSAGE_KIND_TEXT",
 		2: "MESSAGE_KIND_IMAGE",
+		3: "MESSAGE_KIND_SUMMARY",
 	}
 	MessageKind_value = map[string]int32{
 		"MESSAGE_KIND_UNSPECIFIED": 0,
 		"MESSAGE_KIND_TEXT":        1,
 		"MESSAGE_KIND_IMAGE":       2,
+		"MESSAGE_KIND_SUMMARY":     3,
 	}
 )
 
@@ -211,8 +218,10 @@ type Message struct {
 	Kind           MessageKind            `protobuf:"varint,4,opt,name=kind,proto3,enum=dm.v1.MessageKind" json:"kind,omitempty"`
 	Body           string                 `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
 	// 사진 메시지일 때만. `/media/file/<key>` — **내가 올린 사진**이어야 한다.
-	MediaUrl      string                 `protobuf:"bytes,6,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	MediaUrl  string                 `protobuf:"bytes,6,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 메시지가 가리키는 대상 id — SUMMARY 일 때 요약 id. 다른 종류는 빈 문자열.
+	RefId         string `protobuf:"bytes,8,opt,name=ref_id,json=refId,proto3" json:"ref_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -294,6 +303,13 @@ func (x *Message) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *Message) GetRefId() string {
+	if x != nil {
+		return x.RefId
+	}
+	return ""
 }
 
 type Conversation struct {
@@ -1229,7 +1245,7 @@ const file_dm_v1_dm_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"\x82\x02\n" +
+	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"\x99\x02\n" +
 	"\aMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x0fconversation_id\x18\x02 \x01(\tR\x0econversationId\x12*\n" +
@@ -1238,7 +1254,8 @@ const file_dm_v1_dm_proto_rawDesc = "" +
 	"\x04body\x18\x05 \x01(\tR\x04body\x12\x1b\n" +
 	"\tmedia_url\x18\x06 \x01(\tR\bmediaUrl\x129\n" +
 	"\n" +
-	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x98\x02\n" +
+	"created_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x15\n" +
+	"\x06ref_id\x18\b \x01(\tR\x05refId\"\x98\x02\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bis_group\x18\x02 \x01(\bR\aisGroup\x12\x14\n" +
@@ -1293,11 +1310,12 @@ const file_dm_v1_dm_proto_rawDesc = "" +
 	"\x10KIND_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fKIND_MESSAGE\x10\x01\x12\x0f\n" +
 	"\vKIND_TYPING\x10\x02\x12\x12\n" +
-	"\x0eKIND_HEARTBEAT\x10\x03*Z\n" +
+	"\x0eKIND_HEARTBEAT\x10\x03*t\n" +
 	"\vMessageKind\x12\x1c\n" +
 	"\x18MESSAGE_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11MESSAGE_KIND_TEXT\x10\x01\x12\x16\n" +
-	"\x12MESSAGE_KIND_IMAGE\x10\x022\xbc\x05\n" +
+	"\x12MESSAGE_KIND_IMAGE\x10\x02\x12\x18\n" +
+	"\x14MESSAGE_KIND_SUMMARY\x10\x032\xbc\x05\n" +
 	"\tDmService\x12X\n" +
 	"\x11ListConversations\x12\x1f.dm.v1.ListConversationsRequest\x1a .dm.v1.ListConversationsResponse\"\x00\x12X\n" +
 	"\x11GetOrCreateDirect\x12\x1f.dm.v1.GetOrCreateDirectRequest\x1a .dm.v1.GetOrCreateDirectResponse\"\x00\x12F\n" +

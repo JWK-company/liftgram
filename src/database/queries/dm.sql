@@ -117,3 +117,13 @@ WHERE follower_id = @follower_id::text AND followee_id = ANY (@user_ids::text[])
 
 -- name: CountUsersAmong :one
 SELECT count(*)::int FROM users WHERE id = ANY (@user_ids::text[]);
+
+-- 서버가 대신 보내는 성과 요약 알림 메시지(SRS-080 · S-5·S-14).
+-- 메시지 id 가 요약에서 **결정적으로** 나온다 — 동시 두 요청·재시도가 와도 메시지는 하나다.
+-- 이미 있으면 행이 안 나온다(pgx.ErrNoRows) → 부르는 쪽이 "이미 보냄"으로 본다.
+-- @plm SRS-080
+-- name: CreateRefMessage :one
+INSERT INTO messages (id, conversation_id, sender_id, kind, body, ref_id)
+VALUES (@id::text, @conversation_id::text, @sender_id::text, @kind::text, @body::text, @ref_id::text)
+ON CONFLICT (id) DO NOTHING
+RETURNING *;

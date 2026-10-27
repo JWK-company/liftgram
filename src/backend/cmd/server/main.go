@@ -257,8 +257,14 @@ func main() {
 
 	// 코칭(SRS-048) — 사람이 사람을 가르친다. 회원 기록은 **동기 저장소를 그 자리에서** 읽는다
 	// (복사해 두면 해지한 뒤에도 남는다).
-	coachingSvc := coaching.NewService(coaching.NewRepo(pool), uuid.NewString, time.Now)
-	coachingPath, coachingHTTP := coachingv1connect.NewCoachingServiceHandler(coaching.NewHandler(coachingSvc), opts)
+	// 성과 요약(SRS-080)은 DM 의 좁은 포트(SendSummaryNotice 하나 — coaching.SummaryMessenger)와 알림만 받는다.
+	// @plm SRS-080
+	coachingSvc := coaching.NewService(coaching.NewRepo(pool), uuid.NewString, time.Now).
+		WithSummaryDelivery(dmSvc, notifyAdapter{notificationSvc})
+	// 요청 본문 상한 256KB — 코칭 서비스에만 건다. 스냅샷 64KB 검사 전에 큰 본문을 메모리에 다 올리지 않게(S-6).
+	// 전역으로 걸지 않는 이유: sync push(최대 5000 레코드)가 이 상한을 정상적으로 넘는다.
+	coachingPath, coachingHTTP := coachingv1connect.NewCoachingServiceHandler(coaching.NewHandler(coachingSvc), opts,
+		connect.WithReadMaxBytes(coaching.ReadMaxBytes))
 	mount(mux, coachingPath, coachingHTTP)
 
 	// 오프라인 동기(SRS-006) — 기기의 로컬 DB와 서버를 맞춘다. 레코드의 속은 해석하지 않는다.

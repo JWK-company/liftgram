@@ -229,23 +229,31 @@ func toProtoMessage(m Message) *dmv1.Message {
 		Body:           m.Body,
 		MediaUrl:       m.MediaURL,
 		CreatedAt:      timestamppb.New(m.CreatedAt),
+		RefId:          m.RefID,
 	}
 }
 
 func toProtoKind(k Kind) dmv1.MessageKind {
-	if k == KindImage {
+	switch k {
+	case KindImage:
 		return dmv1.MessageKind_MESSAGE_KIND_IMAGE
+	case KindSummary: // @plm SRS-080
+		return dmv1.MessageKind_MESSAGE_KIND_SUMMARY
 	}
 	return dmv1.MessageKind_MESSAGE_KIND_TEXT
 }
 
 // UNSPECIFIED는 빈 값으로 — service가 기본값(text)을 채운다.
+// SUMMARY 는 **KindSummary 로 옮긴다** — ""로 떨어뜨리면 service 가 text 로 저장해 버린다.
+// service.Send 가 그 종류를 거부한다(S-14).
 func fromProtoKind(k dmv1.MessageKind) Kind {
 	switch k {
 	case dmv1.MessageKind_MESSAGE_KIND_TEXT:
 		return KindText
 	case dmv1.MessageKind_MESSAGE_KIND_IMAGE:
 		return KindImage
+	case dmv1.MessageKind_MESSAGE_KIND_SUMMARY:
+		return KindSummary
 	}
 	return ""
 }

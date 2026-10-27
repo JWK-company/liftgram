@@ -4,7 +4,7 @@
 // 알림은 **부수적**이다. 팔로우·좋아요·댓글이 일어날 때 곁들여 쌓이고,
 // 그 쌓기가 실패해도 원래 동작(팔로우 자체)은 성공한다 — 알림 때문에 좋아요가 안 눌리면 안 된다.
 //
-// 내용을 저장하지 않는다: 종류(follow|like|comment)와 **누가**·**어느 글**만 남긴다.
+// 내용을 저장하지 않는다: 종류(follow|like|comment|coaching_summary)와 **누가**·**어느 글**만 남긴다.
 // 문구는 화면이 만든다 — 서버는 보는 사람의 언어를 모른다(옛 서버와 같은 판단).
 // ─────────────────────────────────────────────────────────────────────────────
 syntax = "proto3";
@@ -21,6 +21,10 @@ enum NotificationKind {
   NOTIFICATION_KIND_FOLLOW = 1;
   NOTIFICATION_KIND_LIKE = 2;
   NOTIFICATION_KIND_COMMENT = 3;
+  // 회원이 나(트레이너)에게 성과 요약을 보냈다(SRS-080). actor = 회원 · post_id 는 비어 있다 —
+  // 화면은 그 회원과의 대화로 간다. 옛 앱은 모르는 종류라 generic 문구로 보인다(S-16).
+  // @plm SRS-080
+  NOTIFICATION_KIND_COACHING_SUMMARY = 4;
 }
 
 message Actor {

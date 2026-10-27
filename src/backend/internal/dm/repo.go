@@ -194,7 +194,7 @@ func (r *pgRepo) ListMessages(ctx context.Context, viewerID, conversationID stri
 		m := rows[i]
 		out = append(out, Message{
 			ID: m.ID, ConversationID: m.ConversationID, Kind: Kind(m.Kind),
-			Body: deref(m.Body), MediaURL: deref(m.MediaUrl), CreatedAt: m.CreatedAt.Time,
+			Body: deref(m.Body), MediaURL: deref(m.MediaUrl), CreatedAt: m.CreatedAt.Time, RefID: deref(m.RefID),
 			Sender: Participant{ID: m.SenderID, DisplayName: deref(m.SenderName), AvatarURL: deref(m.SenderAvatar)},
 		})
 	}
@@ -215,7 +215,7 @@ func (r *pgRepo) ListMessagesAfter(ctx context.Context, viewerID, conversationID
 	for _, m := range rows {
 		out = append(out, Message{
 			ID: m.ID, ConversationID: m.ConversationID, Kind: Kind(m.Kind),
-			Body: deref(m.Body), MediaURL: deref(m.MediaUrl), CreatedAt: m.CreatedAt.Time,
+			Body: deref(m.Body), MediaURL: deref(m.MediaUrl), CreatedAt: m.CreatedAt.Time, RefID: deref(m.RefID),
 			Sender: Participant{ID: m.SenderID, DisplayName: deref(m.SenderName), AvatarURL: deref(m.SenderAvatar)},
 		})
 	}
@@ -255,9 +255,37 @@ func (r *pgRepo) CreateMessage(ctx context.Context, id, conversationID, senderID
 	}
 	return Message{
 		ID: row.ID, ConversationID: row.ConversationID, Kind: Kind(row.Kind),
-		Body: deref(row.Body), MediaURL: deref(row.MediaUrl), CreatedAt: row.CreatedAt.Time,
+		Body: deref(row.Body), MediaURL: deref(row.MediaUrl), CreatedAt: row.CreatedAt.Time, RefID: deref(row.RefID),
 		Sender: Participant{ID: senderID, DisplayName: deref(sender.DisplayName), AvatarURL: deref(sender.AvatarUrl)},
 	}, nil
+}
+
+// CreateRefMessage는 서버가 대신 넣는 메시지(SUMMARY)다. id 가 결정적이라 두 번째 호출은 0행 → created=false.
+// 새로 넣었을 때만 대화 시각을 올린다(같은 트랜잭션 — 재시도가 목록 순서를 흔들지 않게). @plm SRS-080
+func (r *pgRepo) CreateRefMessage(ctx context.Context, id, conversationID, senderID string, m NewMessage) (bool, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return false, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	q := r.q.WithTx(tx)
+
+	if _, err := q.CreateRefMessage(ctx, sqlcgen.CreateRefMessageParams{
+		ID: id, ConversationID: conversationID, SenderID: senderID,
+		Kind: string(m.Kind), Body: m.Body, RefID: m.RefID,
+	}); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, nil // 이미 보냈다
+		}
+		return false, err
+	}
+	if err := q.TouchConversation(ctx, conversationID); err != nil {
+		return false, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *pgRepo) MarkRead(ctx context.Context, conversationID, userID string) error {
@@ -322,7 +350,7 @@ func (r *pgRepo) fill(ctx context.Context, viewerID string, c sqlcgen.Conversati
 	if last, err := r.q.GetLastMessage(ctx, c.ID); err == nil {
 		conv.LastMessage = &Message{
 			ID: last.ID, ConversationID: last.ConversationID, Kind: Kind(last.Kind),
-			Body: deref(last.Body), MediaURL: deref(last.MediaUrl), CreatedAt: last.CreatedAt.Time,
+			Body: deref(last.Body), MediaURL: deref(last.MediaUrl), CreatedAt: last.CreatedAt.Time, RefID: deref(last.RefID),
 			Sender: Participant{ID: last.SenderID, DisplayName: deref(last.SenderName), AvatarURL: deref(last.SenderAvatar)},
 		}
 	} else if !errors.Is(err, pgx.ErrNoRows) {

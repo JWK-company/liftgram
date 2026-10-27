@@ -4,7 +4,7 @@
 // 알림은 **부수적**이다. 팔로우·좋아요·댓글이 일어날 때 곁들여 쌓이고,
 // 그 쌓기가 실패해도 원래 동작(팔로우 자체)은 성공한다 — 알림 때문에 좋아요가 안 눌리면 안 된다.
 //
-// 내용을 저장하지 않는다: 종류(follow|like|comment)와 **누가**·**어느 글**만 남긴다.
+// 내용을 저장하지 않는다: 종류(follow|like|comment|coaching_summary)와 **누가**·**어느 글**만 남긴다.
 // 문구는 화면이 만든다 — 서버는 보는 사람의 언어를 모른다(옛 서버와 같은 판단).
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file notification/v1/notification.proto.
  */
 export const file_notification_v1_notification: GenFile = /*@__PURE__*/
-  fileDesc("CiJub3RpZmljYXRpb24vdjEvbm90aWZpY2F0aW9uLnByb3RvEg9ub3RpZmljYXRpb24udjEiPQoFQWN0b3ISCgoCaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEhIKCmF2YXRhcl91cmwYAyABKAkiwQEKDE5vdGlmaWNhdGlvbhIKCgJpZBgBIAEoCRIvCgRraW5kGAIgASgOMiEubm90aWZpY2F0aW9uLnYxLk5vdGlmaWNhdGlvbktpbmQSJQoFYWN0b3IYAyABKAsyFi5ub3RpZmljYXRpb24udjEuQWN0b3ISDwoHcG9zdF9pZBgEIAEoCRIMCgRyZWFkGAUgASgIEi4KCmNyZWF0ZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIjQKGExpc3ROb3RpZmljYXRpb25zUmVxdWVzdBIYCgVsaW1pdBgBIAEoBUIJukgGGgQYZCgAIlEKGUxpc3ROb3RpZmljYXRpb25zUmVzcG9uc2USNAoNbm90aWZpY2F0aW9ucxgBIAMoCzIdLm5vdGlmaWNhdGlvbi52MS5Ob3RpZmljYXRpb24iFAoSVW5yZWFkQ291bnRSZXF1ZXN0IiQKE1VucmVhZENvdW50UmVzcG9uc2USDQoFY291bnQYASABKAUiFAoSTWFya0FsbFJlYWRSZXF1ZXN0IhUKE01hcmtBbGxSZWFkUmVzcG9uc2UqjgEKEE5vdGlmaWNhdGlvbktpbmQSIQodTk9USUZJQ0FUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIcChhOT1RJRklDQVRJT05fS0lORF9GT0xMT1cQARIaChZOT1RJRklDQVRJT05fS0lORF9MSUtFEAISHQoZTk9USUZJQ0FUSU9OX0tJTkRfQ09NTUVOVBADMrsCChNOb3RpZmljYXRpb25TZXJ2aWNlEmwKEUxpc3ROb3RpZmljYXRpb25zEikubm90aWZpY2F0aW9uLnYxLkxpc3ROb3RpZmljYXRpb25zUmVxdWVzdBoqLm5vdGlmaWNhdGlvbi52MS5MaXN0Tm90aWZpY2F0aW9uc1Jlc3BvbnNlIgASWgoLVW5yZWFkQ291bnQSIy5ub3RpZmljYXRpb24udjEuVW5yZWFkQ291bnRSZXF1ZXN0GiQubm90aWZpY2F0aW9uLnYxLlVucmVhZENvdW50UmVzcG9uc2UiABJaCgtNYXJrQWxsUmVhZBIjLm5vdGlmaWNhdGlvbi52MS5NYXJrQWxsUmVhZFJlcXVlc3QaJC5ub3RpZmljYXRpb24udjEuTWFya0FsbFJlYWRSZXNwb25zZSIAQtUBChNjb20ubm90aWZpY2F0aW9uLnYxQhFOb3RpZmljYXRpb25Qcm90b1ABWk5naXRodWIuY29tL0pXSy1jb21wYW55L2xpZnRncmFtL3NyYy9iYWNrZW5kL2dlbi9ub3RpZmljYXRpb24vdjE7bm90aWZpY2F0aW9udjGiAgNOWFiqAg9Ob3RpZmljYXRpb24uVjHKAg9Ob3RpZmljYXRpb25cVjHiAhtOb3RpZmljYXRpb25cVjFcR1BCTWV0YWRhdGHqAhBOb3RpZmljYXRpb246OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("CiJub3RpZmljYXRpb24vdjEvbm90aWZpY2F0aW9uLnByb3RvEg9ub3RpZmljYXRpb24udjEiPQoFQWN0b3ISCgoCaWQYASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEhIKCmF2YXRhcl91cmwYAyABKAkiwQEKDE5vdGlmaWNhdGlvbhIKCgJpZBgBIAEoCRIvCgRraW5kGAIgASgOMiEubm90aWZpY2F0aW9uLnYxLk5vdGlmaWNhdGlvbktpbmQSJQoFYWN0b3IYAyABKAsyFi5ub3RpZmljYXRpb24udjEuQWN0b3ISDwoHcG9zdF9pZBgEIAEoCRIMCgRyZWFkGAUgASgIEi4KCmNyZWF0ZWRfYXQYBiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIjQKGExpc3ROb3RpZmljYXRpb25zUmVxdWVzdBIYCgVsaW1pdBgBIAEoBUIJukgGGgQYZCgAIlEKGUxpc3ROb3RpZmljYXRpb25zUmVzcG9uc2USNAoNbm90aWZpY2F0aW9ucxgBIAMoCzIdLm5vdGlmaWNhdGlvbi52MS5Ob3RpZmljYXRpb24iFAoSVW5yZWFkQ291bnRSZXF1ZXN0IiQKE1VucmVhZENvdW50UmVzcG9uc2USDQoFY291bnQYASABKAUiFAoSTWFya0FsbFJlYWRSZXF1ZXN0IhUKE01hcmtBbGxSZWFkUmVzcG9uc2UqtgEKEE5vdGlmaWNhdGlvbktpbmQSIQodTk9USUZJQ0FUSU9OX0tJTkRfVU5TUEVDSUZJRUQQABIcChhOT1RJRklDQVRJT05fS0lORF9GT0xMT1cQARIaChZOT1RJRklDQVRJT05fS0lORF9MSUtFEAISHQoZTk9USUZJQ0FUSU9OX0tJTkRfQ09NTUVOVBADEiYKIk5PVElGSUNBVElPTl9LSU5EX0NPQUNISU5HX1NVTU1BUlkQBDK7AgoTTm90aWZpY2F0aW9uU2VydmljZRJsChFMaXN0Tm90aWZpY2F0aW9ucxIpLm5vdGlmaWNhdGlvbi52MS5MaXN0Tm90aWZpY2F0aW9uc1JlcXVlc3QaKi5ub3RpZmljYXRpb24udjEuTGlzdE5vdGlmaWNhdGlvbnNSZXNwb25zZSIAEloKC1VucmVhZENvdW50EiMubm90aWZpY2F0aW9uLnYxLlVucmVhZENvdW50UmVxdWVzdBokLm5vdGlmaWNhdGlvbi52MS5VbnJlYWRDb3VudFJlc3BvbnNlIgASWgoLTWFya0FsbFJlYWQSIy5ub3RpZmljYXRpb24udjEuTWFya0FsbFJlYWRSZXF1ZXN0GiQubm90aWZpY2F0aW9uLnYxLk1hcmtBbGxSZWFkUmVzcG9uc2UiAELVAQoTY29tLm5vdGlmaWNhdGlvbi52MUIRTm90aWZpY2F0aW9uUHJvdG9QAVpOZ2l0aHViLmNvbS9KV0stY29tcGFueS9saWZ0Z3JhbS9zcmMvYmFja2VuZC9nZW4vbm90aWZpY2F0aW9uL3YxO25vdGlmaWNhdGlvbnYxogIDTlhYqgIPTm90aWZpY2F0aW9uLlYxygIPTm90aWZpY2F0aW9uXFYx4gIbTm90aWZpY2F0aW9uXFYxXEdQQk1ldGFkYXRh6gIQTm90aWZpY2F0aW9uOjpWMWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message notification.v1.Actor
@@ -209,6 +209,15 @@ export enum NotificationKind {
    * @generated from enum value: NOTIFICATION_KIND_COMMENT = 3;
    */
   COMMENT = 3,
+
+  /**
+   * 회원이 나(트레이너)에게 성과 요약을 보냈다(SRS-080). actor = 회원 · post_id 는 비어 있다 —
+   * 화면은 그 회원과의 대화로 간다. 옛 앱은 모르는 종류라 generic 문구로 보인다(S-16).
+   * @plm SRS-080
+   *
+   * @generated from enum value: NOTIFICATION_KIND_COACHING_SUMMARY = 4;
+   */
+  COACHING_SUMMARY = 4,
 }
 
 /**

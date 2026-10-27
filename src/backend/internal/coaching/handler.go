@@ -286,3 +286,71 @@ func prescriptionDomain(rows []*coachingv1.PrescribedSet) []PrescribedSet {
 	}
 	return out
 }
+
+// ── 기간 성과 요약(SRS-080) ─────────────────────────────────────────────────
+// @plm SRS-080
+//
+// 넷 다 응답에 `Cache-Control: no-store`를 붙인다(S-20) — 회원 기록이 브라우저·중간 캐시에 남지 않게.
+// (계약에 NO_SIDE_EFFECTS 를 달지 않았으므로 connect-web 은 POST 로 부른다.)
+
+// ReadMaxBytes는 코칭 RPC 요청 본문 상한이다(스냅샷 64KB + 여유 · S-6). main.go 가 이 서비스에만 건다 —
+// 전역으로 걸면 sync push(최대 5000 레코드)가 막힌다.
+const ReadMaxBytes = 256 << 10
+
+func noStore[T any](res *connect.Response[T]) *connect.Response[T] {
+	res.Header().Set("Cache-Control", "no-store")
+	return res
+}
+
+func (h *Handler) SendProgressSummary(ctx context.Context, req *connect.Request[coachingv1.SendProgressSummaryRequest]) (*connect.Response[coachingv1.SendProgressSummaryResponse], error) {
+	m := req.Msg
+	id, err := h.svc.SendProgressSummary(ctx, viewer(ctx), SendSummaryInput{
+		TrainerID: m.GetTrainerId(), PeriodStartMs: m.GetPeriodStart(), PeriodEndMs: m.GetPeriodEnd(),
+		SchemaVersion: int(m.GetSchemaVersion()), SnapshotJSON: m.GetSnapshotJson(), ClientID: m.GetClientId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return noStore(connect.NewResponse(&coachingv1.SendProgressSummaryResponse{SummaryId: id})), nil
+}
+
+func (h *Handler) GetProgressSummary(ctx context.Context, req *connect.Request[coachingv1.GetProgressSummaryRequest]) (*connect.Response[coachingv1.GetProgressSummaryResponse], error) {
+	s, err := h.svc.GetProgressSummary(ctx, viewer(ctx), req.Msg.GetId())
+	if err != nil {
+		return nil, err
+	}
+	return noStore(connect.NewResponse(&coachingv1.GetProgressSummaryResponse{Summary: &coachingv1.ProgressSummary{
+		Id: s.ID, MemberId: s.MemberID, TrainerId: s.TrainerID,
+		PeriodStart: s.PeriodStart.UnixMilli(), PeriodEnd: s.PeriodEnd.UnixMilli(),
+		SchemaVersion: int32(s.SchemaVersion), SnapshotJson: string(s.Snapshot),
+		CreatedAt: s.CreatedAt.UnixMilli(),
+	}})), nil
+}
+
+func (h *Handler) ListSentSummaries(ctx context.Context, req *connect.Request[coachingv1.ListSentSummariesRequest]) (*connect.Response[coachingv1.ListSentSummariesResponse], error) {
+	rows, next, err := h.svc.ListSentSummaries(ctx, viewer(ctx), req.Msg.GetCursor())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]*coachingv1.SentSummary, 0, len(rows))
+	for _, s := range rows {
+		out = append(out, &coachingv1.SentSummary{
+			Id: s.ID, TrainerId: s.TrainerID,
+			PeriodStart: s.PeriodStart.UnixMilli(), PeriodEnd: s.PeriodEnd.UnixMilli(),
+			SchemaVersion: int32(s.SchemaVersion), Delivered: s.Delivered, CreatedAt: s.CreatedAt.UnixMilli(),
+		})
+	}
+	return noStore(connect.NewResponse(&coachingv1.ListSentSummariesResponse{Summaries: out, NextCursor: next})), nil
+}
+
+func (h *Handler) GetMemberRecords(ctx context.Context, req *connect.Request[coachingv1.GetMemberRecordsRequest]) (*connect.Response[coachingv1.GetMemberRecordsResponse], error) {
+	m := req.Msg
+	r, err := h.svc.GetMemberRecords(ctx, viewer(ctx), m.GetMemberId(), m.GetPeriodStart(), m.GetPeriodEnd())
+	if err != nil {
+		return nil, err
+	}
+	return noStore(connect.NewResponse(&coachingv1.GetMemberRecordsResponse{
+		Workouts: r.Workouts, WorkoutExercises: r.WorkoutExercises, SetLogs: r.SetLogs, Exercises: r.Exercises,
+		ServedStart: r.ServedStart.UnixMilli(), ServedEnd: r.ServedEnd.UnixMilli(),
+	})), nil
+}

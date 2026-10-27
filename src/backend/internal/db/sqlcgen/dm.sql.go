@@ -124,7 +124,7 @@ func (q *Queries) CreateConversation(ctx context.Context, arg CreateConversation
 const createMessage = `-- name: CreateMessage :one
 INSERT INTO messages (id, conversation_id, sender_id, kind, body, media_url)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, conversation_id, sender_id, kind, body, media_url, created_at
+RETURNING id, conversation_id, sender_id, kind, body, media_url, created_at, ref_id
 `
 
 type CreateMessageParams struct {
@@ -154,6 +154,50 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 		&i.Body,
 		&i.MediaUrl,
 		&i.CreatedAt,
+		&i.RefID,
+	)
+	return i, err
+}
+
+const createRefMessage = `-- name: CreateRefMessage :one
+INSERT INTO messages (id, conversation_id, sender_id, kind, body, ref_id)
+VALUES ($1::text, $2::text, $3::text, $4::text, $5::text, $6::text)
+ON CONFLICT (id) DO NOTHING
+RETURNING id, conversation_id, sender_id, kind, body, media_url, created_at, ref_id
+`
+
+type CreateRefMessageParams struct {
+	ID             string
+	ConversationID string
+	SenderID       string
+	Kind           string
+	Body           string
+	RefID          string
+}
+
+// 서버가 대신 보내는 성과 요약 알림 메시지(SRS-080 · S-5·S-14).
+// 메시지 id 가 요약에서 **결정적으로** 나온다 — 동시 두 요청·재시도가 와도 메시지는 하나다.
+// 이미 있으면 행이 안 나온다(pgx.ErrNoRows) → 부르는 쪽이 "이미 보냄"으로 본다.
+// @plm SRS-080
+func (q *Queries) CreateRefMessage(ctx context.Context, arg CreateRefMessageParams) (Message, error) {
+	row := q.db.QueryRow(ctx, createRefMessage,
+		arg.ID,
+		arg.ConversationID,
+		arg.SenderID,
+		arg.Kind,
+		arg.Body,
+		arg.RefID,
+	)
+	var i Message
+	err := row.Scan(
+		&i.ID,
+		&i.ConversationID,
+		&i.SenderID,
+		&i.Kind,
+		&i.Body,
+		&i.MediaUrl,
+		&i.CreatedAt,
+		&i.RefID,
 	)
 	return i, err
 }
@@ -210,7 +254,7 @@ func (q *Queries) GetConversation(ctx context.Context, id string) (Conversation,
 }
 
 const getLastMessage = `-- name: GetLastMessage :one
-SELECT m.id, m.conversation_id, m.sender_id, m.kind, m.body, m.media_url, m.created_at, u.display_name AS sender_name, u.avatar_url AS sender_avatar
+SELECT m.id, m.conversation_id, m.sender_id, m.kind, m.body, m.media_url, m.created_at, m.ref_id, u.display_name AS sender_name, u.avatar_url AS sender_avatar
 FROM messages m
 JOIN users u ON u.id = m.sender_id
 WHERE m.conversation_id = $1
@@ -226,6 +270,7 @@ type GetLastMessageRow struct {
 	Body           *string
 	MediaUrl       *string
 	CreatedAt      pgtype.Timestamptz
+	RefID          *string
 	SenderName     *string
 	SenderAvatar   *string
 }
@@ -242,6 +287,7 @@ func (q *Queries) GetLastMessage(ctx context.Context, conversationID string) (Ge
 		&i.Body,
 		&i.MediaUrl,
 		&i.CreatedAt,
+		&i.RefID,
 		&i.SenderName,
 		&i.SenderAvatar,
 	)
@@ -267,7 +313,7 @@ func (q *Queries) IsParticipant(ctx context.Context, arg IsParticipantParams) (b
 }
 
 const listMessages = `-- name: ListMessages :many
-SELECT m.id, m.conversation_id, m.sender_id, m.kind, m.body, m.media_url, m.created_at, u.display_name AS sender_name, u.avatar_url AS sender_avatar
+SELECT m.id, m.conversation_id, m.sender_id, m.kind, m.body, m.media_url, m.created_at, m.ref_id, u.display_name AS sender_name, u.avatar_url AS sender_avatar
 FROM messages m
 JOIN users u ON u.id = m.sender_id
 WHERE m.conversation_id = $1::text
@@ -297,6 +343,7 @@ type ListMessagesRow struct {
 	Body           *string
 	MediaUrl       *string
 	CreatedAt      pgtype.Timestamptz
+	RefID          *string
 	SenderName     *string
 	SenderAvatar   *string
 }
@@ -325,6 +372,7 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]L
 			&i.Body,
 			&i.MediaUrl,
 			&i.CreatedAt,
+			&i.RefID,
 			&i.SenderName,
 			&i.SenderAvatar,
 		); err != nil {
@@ -339,7 +387,7 @@ func (q *Queries) ListMessages(ctx context.Context, arg ListMessagesParams) ([]L
 }
 
 const listMessagesAfter = `-- name: ListMessagesAfter :many
-SELECT m.id, m.conversation_id, m.sender_id, m.kind, m.body, m.media_url, m.created_at, u.display_name AS sender_name, u.avatar_url AS sender_avatar
+SELECT m.id, m.conversation_id, m.sender_id, m.kind, m.body, m.media_url, m.created_at, m.ref_id, u.display_name AS sender_name, u.avatar_url AS sender_avatar
 FROM messages m
 JOIN users u ON u.id = m.sender_id
 WHERE m.conversation_id = $1::text
@@ -368,6 +416,7 @@ type ListMessagesAfterRow struct {
 	Body           *string
 	MediaUrl       *string
 	CreatedAt      pgtype.Timestamptz
+	RefID          *string
 	SenderName     *string
 	SenderAvatar   *string
 }
@@ -395,6 +444,7 @@ func (q *Queries) ListMessagesAfter(ctx context.Context, arg ListMessagesAfterPa
 			&i.Body,
 			&i.MediaUrl,
 			&i.CreatedAt,
+			&i.RefID,
 			&i.SenderName,
 			&i.SenderAvatar,
 		); err != nil {

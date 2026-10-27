@@ -262,3 +262,97 @@ func parseScope(payload []byte) map[string]bool {
 	}
 	return out
 }
+
+// ── 기간 성과 요약(progress_summaries · 0017) ─────────────────────────────────
+// @plm SRS-080
+
+func tsAt(t time.Time) pgtype.Timestamptz { return pgtype.Timestamptz{Time: t, Valid: true} }
+
+func summaryFrom(row sqlcgen.ProgressSummary) ProgressSummary {
+	return ProgressSummary{
+		ID: row.ID, MemberID: row.MemberID, TrainerID: row.TrainerID,
+		GrantConsentAt: tsOf(row.GrantConsentAt), PeriodStart: tsOf(row.PeriodStart), PeriodEnd: tsOf(row.PeriodEnd),
+		SchemaVersion: int(row.SchemaVersion), Snapshot: row.Snapshot, ClientID: row.ClientID,
+		MessageID: text(row.MessageID), CreatedAt: tsOf(row.CreatedAt),
+	}
+}
+
+func (r *pgRepo) InsertProgressSummary(ctx context.Context, s ProgressSummary) (ProgressSummary, bool, error) {
+	row, err := r.q.InsertProgressSummary(ctx, sqlcgen.InsertProgressSummaryParams{
+		ID: s.ID, MemberID: s.MemberID, TrainerID: s.TrainerID,
+		GrantConsentAt: tsAt(s.GrantConsentAt), PeriodStart: tsAt(s.PeriodStart), PeriodEnd: tsAt(s.PeriodEnd),
+		SchemaVersion: int32(s.SchemaVersion), Snapshot: s.Snapshot, ClientID: s.ClientID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ProgressSummary{}, false, nil // ON CONFLICT DO NOTHING — 이미 있다
+		}
+		return ProgressSummary{}, false, err
+	}
+	return summaryFrom(row), true, nil
+}
+
+func (r *pgRepo) GetProgressSummaryByMemberClient(ctx context.Context, memberID, clientID string) (ProgressSummary, error) {
+	row, err := r.q.GetProgressSummaryByMemberClient(ctx, sqlcgen.GetProgressSummaryByMemberClientParams{
+		MemberID: memberID, ClientID: clientID,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ProgressSummary{}, errs.New(errs.NotFound, "summary not found")
+		}
+		return ProgressSummary{}, err
+	}
+	return summaryFrom(row), nil
+}
+
+func (r *pgRepo) GetProgressSummary(ctx context.Context, id string) (ProgressSummary, error) {
+	row, err := r.q.GetProgressSummary(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ProgressSummary{}, errs.New(errs.NotFound, "summary not found")
+		}
+		return ProgressSummary{}, err
+	}
+	return summaryFrom(row), nil
+}
+
+func (r *pgRepo) SetProgressSummaryMessageID(ctx context.Context, id, messageID string) (bool, error) {
+	n, err := r.q.SetProgressSummaryMessageID(ctx, sqlcgen.SetProgressSummaryMessageIDParams{
+		ID: id, MessageID: messageID,
+	})
+	return n == 1, err
+}
+
+func (r *pgRepo) ListSentSummaries(ctx context.Context, memberID string, cursor *SummaryCursor, limit int) ([]SentSummary, error) {
+	arg := sqlcgen.ListProgressSummariesByMemberParams{
+		MemberID: memberID, Lim: int32(limit),
+		// 커서가 없어도 타입이 맞는 값을 넣는다(has_cursor=false 면 쓰이지 않는다).
+		CursorCreatedAt: tsAt(time.Unix(0, 0)),
+	}
+	if cursor != nil {
+		arg.HasCursor = true
+		arg.CursorCreatedAt = tsAt(cursor.CreatedAt)
+		arg.CursorID = cursor.ID
+	}
+	rows, err := r.q.ListProgressSummariesByMember(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SentSummary, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, SentSummary{
+			ID: row.ID, TrainerID: row.TrainerID,
+			PeriodStart: tsOf(row.PeriodStart), PeriodEnd: tsOf(row.PeriodEnd),
+			SchemaVersion: int(row.SchemaVersion), Delivered: text(row.MessageID) != "",
+			CreatedAt: tsOf(row.CreatedAt),
+		})
+	}
+	return out, nil
+}
+
+func (r *pgRepo) CountSummariesSince(ctx context.Context, memberID string, since time.Time) (int, error) {
+	n, err := r.q.CountProgressSummariesByMemberSince(ctx, sqlcgen.CountProgressSummariesByMemberSinceParams{
+		MemberID: memberID, Since: tsAt(since),
+	})
+	return int(n), err
+}

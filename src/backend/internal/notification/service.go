@@ -23,6 +23,9 @@ const (
 	KindFollow  Kind = "follow"
 	KindLike    Kind = "like"
 	KindComment Kind = "comment"
+	// 회원이 트레이너에게 성과 요약을 보냈다(SRS-080). post_id 는 비운다 — 옛 앱이 글 화면으로 가지 않게(S-16).
+	// 요약의 **첫 실제 전달**에서만 부른다(재전송마다 쌓이지 않게). @plm SRS-080
+	KindCoachingSummary Kind = "coaching_summary"
 )
 
 type Actor struct {

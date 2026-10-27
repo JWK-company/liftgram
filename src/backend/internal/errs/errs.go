@@ -26,6 +26,9 @@ const (
 	// **우리 잘못이 아니다** — 우리가 의존하는 바깥(외부 API 등)이 지금 대답하지 않는다.
 	// Internal과 갈라 두는 이유: 화면이 "다시 시도"를 권할 수 있는 실패는 이것뿐이다.
 	Unavailable Code = "unavailable"
+	// 요청은 맞지만 **한도를 넘었다**(하루 전송 상한·응답 크기 상한). 화면이 "기간을 줄여 주세요"·
+	// "내일 다시"를 보일 신호다 — Validation(입력이 틀림)과 갈라 둔다. @plm SRS-080
+	ResourceExhausted Code = "resource_exhausted"
 )
 
 // DomainError는 도메인이 실패를 표현하는 유일한 방법이다.

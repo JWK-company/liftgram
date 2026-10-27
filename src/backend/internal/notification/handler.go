@@ -66,6 +66,8 @@ func toProtoKind(k Kind) notificationv1.NotificationKind {
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_LIKE
 	case KindComment:
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_COMMENT
+	case KindCoachingSummary: // @plm SRS-080
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_SUMMARY
 	}
 	return notificationv1.NotificationKind_NOTIFICATION_KIND_UNSPECIFIED
 }

@@ -36,6 +36,24 @@ func (q *Queries) AcceptGrant(ctx context.Context, id string) (CoachingGrant, er
 	return i, err
 }
 
+const countProgressSummariesByMemberSince = `-- name: CountProgressSummariesByMemberSince :one
+SELECT count(*)::int FROM progress_summaries
+WHERE member_id = $1::text AND created_at >= $2::timestamptz
+`
+
+type CountProgressSummariesByMemberSinceParams struct {
+	MemberID string
+	Since    pgtype.Timestamptz
+}
+
+// 하루 전송 상한(트레이너 DM·알림 도배 방지 · S-19).
+func (q *Queries) CountProgressSummariesByMemberSince(ctx context.Context, arg CountProgressSummariesByMemberSinceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, countProgressSummariesByMemberSince, arg.MemberID, arg.Since)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createAudit = `-- name: CreateAudit :exec
 INSERT INTO coaching_audits (id, grant_id, actor_id, action, detail)
 VALUES ($1, $2, $3, $4, $5)
@@ -165,6 +183,114 @@ func (q *Queries) GetMemberRecord(ctx context.Context, arg GetMemberRecordParams
 	row := q.db.QueryRow(ctx, getMemberRecord, arg.UserID, arg.Collection, arg.RecordID)
 	var i GetMemberRecordRow
 	err := row.Scan(&i.ID, &i.Payload)
+	return i, err
+}
+
+const getProgressSummary = `-- name: GetProgressSummary :one
+SELECT id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id, message_id, created_at FROM progress_summaries WHERE id = $1
+`
+
+func (q *Queries) GetProgressSummary(ctx context.Context, id string) (ProgressSummary, error) {
+	row := q.db.QueryRow(ctx, getProgressSummary, id)
+	var i ProgressSummary
+	err := row.Scan(
+		&i.ID,
+		&i.MemberID,
+		&i.TrainerID,
+		&i.GrantConsentAt,
+		&i.PeriodStart,
+		&i.PeriodEnd,
+		&i.SchemaVersion,
+		&i.Snapshot,
+		&i.ClientID,
+		&i.MessageID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getProgressSummaryByMemberClient = `-- name: GetProgressSummaryByMemberClient :one
+SELECT id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id, message_id, created_at FROM progress_summaries WHERE member_id = $1::text AND client_id = $2::text
+`
+
+type GetProgressSummaryByMemberClientParams struct {
+	MemberID string
+	ClientID string
+}
+
+func (q *Queries) GetProgressSummaryByMemberClient(ctx context.Context, arg GetProgressSummaryByMemberClientParams) (ProgressSummary, error) {
+	row := q.db.QueryRow(ctx, getProgressSummaryByMemberClient, arg.MemberID, arg.ClientID)
+	var i ProgressSummary
+	err := row.Scan(
+		&i.ID,
+		&i.MemberID,
+		&i.TrainerID,
+		&i.GrantConsentAt,
+		&i.PeriodStart,
+		&i.PeriodEnd,
+		&i.SchemaVersion,
+		&i.Snapshot,
+		&i.ClientID,
+		&i.MessageID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const insertProgressSummary = `-- name: InsertProgressSummary :one
+
+INSERT INTO progress_summaries (
+  id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id
+) VALUES (
+  $1::text, $2::text, $3::text, $4::timestamptz,
+  $5::timestamptz, $6::timestamptz, $7::int, $8::jsonb, $9::text
+)
+ON CONFLICT (member_id, client_id) DO NOTHING
+RETURNING id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id, message_id, created_at
+`
+
+type InsertProgressSummaryParams struct {
+	ID             string
+	MemberID       string
+	TrainerID      string
+	GrantConsentAt pgtype.Timestamptz
+	PeriodStart    pgtype.Timestamptz
+	PeriodEnd      pgtype.Timestamptz
+	SchemaVersion  int32
+	Snapshot       []byte
+	ClientID       string
+}
+
+// ── 기간 성과 요약(SRS-080 · ADR-041) ──────────────────────────────────────────
+// @plm SRS-080
+// 같은 (회원, client_id)면 새 행을 만들지 않는다 — 오프라인 재전송이 한 행으로 모인다.
+// 충돌이면 행이 안 나온다(pgx.ErrNoRows) → 부르는 쪽이 GetProgressSummaryByMemberClient로 기존 행을 읽는다.
+func (q *Queries) InsertProgressSummary(ctx context.Context, arg InsertProgressSummaryParams) (ProgressSummary, error) {
+	row := q.db.QueryRow(ctx, insertProgressSummary,
+		arg.ID,
+		arg.MemberID,
+		arg.TrainerID,
+		arg.GrantConsentAt,
+		arg.PeriodStart,
+		arg.PeriodEnd,
+		arg.SchemaVersion,
+		arg.Snapshot,
+		arg.ClientID,
+	)
+	var i ProgressSummary
+	err := row.Scan(
+		&i.ID,
+		&i.MemberID,
+		&i.TrainerID,
+		&i.GrantConsentAt,
+		&i.PeriodStart,
+		&i.PeriodEnd,
+		&i.SchemaVersion,
+		&i.Snapshot,
+		&i.ClientID,
+		&i.MessageID,
+		&i.CreatedAt,
+	)
 	return i, err
 }
 
@@ -360,6 +486,70 @@ func (q *Queries) ListMemberRecords(ctx context.Context, arg ListMemberRecordsPa
 	return items, nil
 }
 
+const listProgressSummariesByMember = `-- name: ListProgressSummariesByMember :many
+SELECT id, trainer_id, period_start, period_end, schema_version, message_id, created_at
+FROM progress_summaries
+WHERE member_id = $1::text
+  AND ($2::boolean = false
+       OR (created_at, id) < ($3::timestamptz, $4::text))
+ORDER BY created_at DESC, id DESC
+LIMIT $5::int
+`
+
+type ListProgressSummariesByMemberParams struct {
+	MemberID        string
+	HasCursor       bool
+	CursorCreatedAt pgtype.Timestamptz
+	CursorID        string
+	Lim             int32
+}
+
+type ListProgressSummariesByMemberRow struct {
+	ID            string
+	TrainerID     string
+	PeriodStart   pgtype.Timestamptz
+	PeriodEnd     pgtype.Timestamptz
+	SchemaVersion int32
+	MessageID     *string
+	CreatedAt     pgtype.Timestamptz
+}
+
+// 회원이 보낸 요약(최근 것부터). 커서 = 마지막으로 받은 (created_at, id) — 그보다 앞선 것만.
+// 스냅샷은 싣지 않는다(목록이 50 × 64KB가 되지 않게) — 펼칠 때 GetProgressSummary.
+func (q *Queries) ListProgressSummariesByMember(ctx context.Context, arg ListProgressSummariesByMemberParams) ([]ListProgressSummariesByMemberRow, error) {
+	rows, err := q.db.Query(ctx, listProgressSummariesByMember,
+		arg.MemberID,
+		arg.HasCursor,
+		arg.CursorCreatedAt,
+		arg.CursorID,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListProgressSummariesByMemberRow
+	for rows.Next() {
+		var i ListProgressSummariesByMemberRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.TrainerID,
+			&i.PeriodStart,
+			&i.PeriodEnd,
+			&i.SchemaVersion,
+			&i.MessageID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const reopenGrant = `-- name: ReopenGrant :one
 UPDATE coaching_grants
 SET status = 'pending', requested_by = $2, consent_at = NULL, revoked_at = NULL, updated_at = now()
@@ -471,6 +661,25 @@ func (q *Queries) SearchTrainers(ctx context.Context, arg SearchTrainersParams) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const setProgressSummaryMessageID = `-- name: SetProgressSummaryMessageID :execrows
+UPDATE progress_summaries SET message_id = $1::text
+WHERE id = $2::text AND message_id IS NULL
+`
+
+type SetProgressSummaryMessageIDParams struct {
+	MessageID string
+	ID        string
+}
+
+// DM 전달을 **한 번만** 기록한다. 이미 적혀 있으면 0행 — 부르는 쪽은 알림·감사를 건너뛴다.
+func (q *Queries) SetProgressSummaryMessageID(ctx context.Context, arg SetProgressSummaryMessageIDParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setProgressSummaryMessageID, arg.MessageID, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateMemberRecord = `-- name: UpdateMemberRecord :exec

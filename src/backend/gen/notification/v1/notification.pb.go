@@ -4,7 +4,7 @@
 // 알림은 **부수적**이다. 팔로우·좋아요·댓글이 일어날 때 곁들여 쌓이고,
 // 그 쌓기가 실패해도 원래 동작(팔로우 자체)은 성공한다 — 알림 때문에 좋아요가 안 눌리면 안 된다.
 //
-// 내용을 저장하지 않는다: 종류(follow|like|comment)와 **누가**·**어느 글**만 남긴다.
+// 내용을 저장하지 않는다: 종류(follow|like|comment|coaching_summary)와 **누가**·**어느 글**만 남긴다.
 // 문구는 화면이 만든다 — 서버는 보는 사람의 언어를 모른다(옛 서버와 같은 판단).
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -40,6 +40,10 @@ const (
 	NotificationKind_NOTIFICATION_KIND_FOLLOW      NotificationKind = 1
 	NotificationKind_NOTIFICATION_KIND_LIKE        NotificationKind = 2
 	NotificationKind_NOTIFICATION_KIND_COMMENT     NotificationKind = 3
+	// 회원이 나(트레이너)에게 성과 요약을 보냈다(SRS-080). actor = 회원 · post_id 는 비어 있다 —
+	// 화면은 그 회원과의 대화로 간다. 옛 앱은 모르는 종류라 generic 문구로 보인다(S-16).
+	// @plm SRS-080
+	NotificationKind_NOTIFICATION_KIND_COACHING_SUMMARY NotificationKind = 4
 )
 
 // Enum value maps for NotificationKind.
@@ -49,12 +53,14 @@ var (
 		1: "NOTIFICATION_KIND_FOLLOW",
 		2: "NOTIFICATION_KIND_LIKE",
 		3: "NOTIFICATION_KIND_COMMENT",
+		4: "NOTIFICATION_KIND_COACHING_SUMMARY",
 	}
 	NotificationKind_value = map[string]int32{
-		"NOTIFICATION_KIND_UNSPECIFIED": 0,
-		"NOTIFICATION_KIND_FOLLOW":      1,
-		"NOTIFICATION_KIND_LIKE":        2,
-		"NOTIFICATION_KIND_COMMENT":     3,
+		"NOTIFICATION_KIND_UNSPECIFIED":      0,
+		"NOTIFICATION_KIND_FOLLOW":           1,
+		"NOTIFICATION_KIND_LIKE":             2,
+		"NOTIFICATION_KIND_COMMENT":          3,
+		"NOTIFICATION_KIND_COACHING_SUMMARY": 4,
 	}
 )
 
@@ -496,12 +502,13 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\x13UnreadCountResponse\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\"\x14\n" +
 	"\x12MarkAllReadRequest\"\x15\n" +
-	"\x13MarkAllReadResponse*\x8e\x01\n" +
+	"\x13MarkAllReadResponse*\xb6\x01\n" +
 	"\x10NotificationKind\x12!\n" +
 	"\x1dNOTIFICATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18NOTIFICATION_KIND_FOLLOW\x10\x01\x12\x1a\n" +
 	"\x16NOTIFICATION_KIND_LIKE\x10\x02\x12\x1d\n" +
-	"\x19NOTIFICATION_KIND_COMMENT\x10\x032\xbb\x02\n" +
+	"\x19NOTIFICATION_KIND_COMMENT\x10\x03\x12&\n" +
+	"\"NOTIFICATION_KIND_COACHING_SUMMARY\x10\x042\xbb\x02\n" +
 	"\x13NotificationService\x12l\n" +
 	"\x11ListNotifications\x12).notification.v1.ListNotificationsRequest\x1a*.notification.v1.ListNotificationsResponse\"\x00\x12Z\n" +
 	"\vUnreadCount\x12#.notification.v1.UnreadCountRequest\x1a$.notification.v1.UnreadCountResponse\"\x00\x12Z\n" +

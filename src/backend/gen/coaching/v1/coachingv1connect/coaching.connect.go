@@ -81,6 +81,18 @@ const (
 	// CoachingServiceListAuditProcedure is the fully-qualified name of the CoachingService's ListAudit
 	// RPC.
 	CoachingServiceListAuditProcedure = "/coaching.v1.CoachingService/ListAudit"
+	// CoachingServiceSendProgressSummaryProcedure is the fully-qualified name of the CoachingService's
+	// SendProgressSummary RPC.
+	CoachingServiceSendProgressSummaryProcedure = "/coaching.v1.CoachingService/SendProgressSummary"
+	// CoachingServiceGetProgressSummaryProcedure is the fully-qualified name of the CoachingService's
+	// GetProgressSummary RPC.
+	CoachingServiceGetProgressSummaryProcedure = "/coaching.v1.CoachingService/GetProgressSummary"
+	// CoachingServiceListSentSummariesProcedure is the fully-qualified name of the CoachingService's
+	// ListSentSummaries RPC.
+	CoachingServiceListSentSummariesProcedure = "/coaching.v1.CoachingService/ListSentSummaries"
+	// CoachingServiceGetMemberRecordsProcedure is the fully-qualified name of the CoachingService's
+	// GetMemberRecords RPC.
+	CoachingServiceGetMemberRecordsProcedure = "/coaching.v1.CoachingService/GetMemberRecords"
 )
 
 // CoachingServiceClient is a client for the coaching.v1.CoachingService service.
@@ -100,6 +112,15 @@ type CoachingServiceClient interface {
 	SetMemberPrescription(context.Context, *connect.Request[v1.SetMemberPrescriptionRequest]) (*connect.Response[v1.SetMemberPrescriptionResponse], error)
 	// 코칭 이력. **양쪽 다 읽을 수 있다** — 회원이 볼 수 없으면 신뢰 장치가 아니다.
 	ListAudit(context.Context, *connect.Request[v1.ListAuditRequest]) (*connect.Response[v1.ListAuditResponse], error)
+	// ── 기간 성과 요약(SRS-080) ── 넷 다 NO_SIDE_EFFECTS 를 달지 않는다(S-20).
+	// 회원 → 담당 트레이너. 저장 + 1:1 DM(SUMMARY) + 알림(coaching_summary). 같은 client_id 는 한 번만 도착한다.
+	SendProgressSummary(context.Context, *connect.Request[v1.SendProgressSummaryRequest]) (*connect.Response[v1.SendProgressSummaryResponse], error)
+	// 그 요약의 회원 ∨ 받은 트레이너(지금 active ∧ logView ∧ 보낸 때와 같은 동의)만. 남이면 NotFound.
+	GetProgressSummary(context.Context, *connect.Request[v1.GetProgressSummaryRequest]) (*connect.Response[v1.GetProgressSummaryResponse], error)
+	// 내가 보낸 요약(최근 50 + 커서).
+	ListSentSummaries(context.Context, *connect.Request[v1.ListSentSummariesRequest]) (*connect.Response[v1.ListSentSummariesResponse], error)
+	// 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
+	GetMemberRecords(context.Context, *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error)
 }
 
 // NewCoachingServiceClient constructs a client for the coaching.v1.CoachingService service. By
@@ -167,6 +188,30 @@ func NewCoachingServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(coachingServiceMethods.ByName("ListAudit")),
 			connect.WithClientOptions(opts...),
 		),
+		sendProgressSummary: connect.NewClient[v1.SendProgressSummaryRequest, v1.SendProgressSummaryResponse](
+			httpClient,
+			baseURL+CoachingServiceSendProgressSummaryProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("SendProgressSummary")),
+			connect.WithClientOptions(opts...),
+		),
+		getProgressSummary: connect.NewClient[v1.GetProgressSummaryRequest, v1.GetProgressSummaryResponse](
+			httpClient,
+			baseURL+CoachingServiceGetProgressSummaryProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("GetProgressSummary")),
+			connect.WithClientOptions(opts...),
+		),
+		listSentSummaries: connect.NewClient[v1.ListSentSummariesRequest, v1.ListSentSummariesResponse](
+			httpClient,
+			baseURL+CoachingServiceListSentSummariesProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("ListSentSummaries")),
+			connect.WithClientOptions(opts...),
+		),
+		getMemberRecords: connect.NewClient[v1.GetMemberRecordsRequest, v1.GetMemberRecordsResponse](
+			httpClient,
+			baseURL+CoachingServiceGetMemberRecordsProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("GetMemberRecords")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -181,6 +226,10 @@ type coachingServiceClient struct {
 	listMemberRoutines    *connect.Client[v1.ListMemberRoutinesRequest, v1.ListMemberRoutinesResponse]
 	setMemberPrescription *connect.Client[v1.SetMemberPrescriptionRequest, v1.SetMemberPrescriptionResponse]
 	listAudit             *connect.Client[v1.ListAuditRequest, v1.ListAuditResponse]
+	sendProgressSummary   *connect.Client[v1.SendProgressSummaryRequest, v1.SendProgressSummaryResponse]
+	getProgressSummary    *connect.Client[v1.GetProgressSummaryRequest, v1.GetProgressSummaryResponse]
+	listSentSummaries     *connect.Client[v1.ListSentSummariesRequest, v1.ListSentSummariesResponse]
+	getMemberRecords      *connect.Client[v1.GetMemberRecordsRequest, v1.GetMemberRecordsResponse]
 }
 
 // SearchTrainers calls coaching.v1.CoachingService.SearchTrainers.
@@ -228,6 +277,26 @@ func (c *coachingServiceClient) ListAudit(ctx context.Context, req *connect.Requ
 	return c.listAudit.CallUnary(ctx, req)
 }
 
+// SendProgressSummary calls coaching.v1.CoachingService.SendProgressSummary.
+func (c *coachingServiceClient) SendProgressSummary(ctx context.Context, req *connect.Request[v1.SendProgressSummaryRequest]) (*connect.Response[v1.SendProgressSummaryResponse], error) {
+	return c.sendProgressSummary.CallUnary(ctx, req)
+}
+
+// GetProgressSummary calls coaching.v1.CoachingService.GetProgressSummary.
+func (c *coachingServiceClient) GetProgressSummary(ctx context.Context, req *connect.Request[v1.GetProgressSummaryRequest]) (*connect.Response[v1.GetProgressSummaryResponse], error) {
+	return c.getProgressSummary.CallUnary(ctx, req)
+}
+
+// ListSentSummaries calls coaching.v1.CoachingService.ListSentSummaries.
+func (c *coachingServiceClient) ListSentSummaries(ctx context.Context, req *connect.Request[v1.ListSentSummariesRequest]) (*connect.Response[v1.ListSentSummariesResponse], error) {
+	return c.listSentSummaries.CallUnary(ctx, req)
+}
+
+// GetMemberRecords calls coaching.v1.CoachingService.GetMemberRecords.
+func (c *coachingServiceClient) GetMemberRecords(ctx context.Context, req *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error) {
+	return c.getMemberRecords.CallUnary(ctx, req)
+}
+
 // CoachingServiceHandler is an implementation of the coaching.v1.CoachingService service.
 type CoachingServiceHandler interface {
 	// 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
@@ -245,6 +314,15 @@ type CoachingServiceHandler interface {
 	SetMemberPrescription(context.Context, *connect.Request[v1.SetMemberPrescriptionRequest]) (*connect.Response[v1.SetMemberPrescriptionResponse], error)
 	// 코칭 이력. **양쪽 다 읽을 수 있다** — 회원이 볼 수 없으면 신뢰 장치가 아니다.
 	ListAudit(context.Context, *connect.Request[v1.ListAuditRequest]) (*connect.Response[v1.ListAuditResponse], error)
+	// ── 기간 성과 요약(SRS-080) ── 넷 다 NO_SIDE_EFFECTS 를 달지 않는다(S-20).
+	// 회원 → 담당 트레이너. 저장 + 1:1 DM(SUMMARY) + 알림(coaching_summary). 같은 client_id 는 한 번만 도착한다.
+	SendProgressSummary(context.Context, *connect.Request[v1.SendProgressSummaryRequest]) (*connect.Response[v1.SendProgressSummaryResponse], error)
+	// 그 요약의 회원 ∨ 받은 트레이너(지금 active ∧ logView ∧ 보낸 때와 같은 동의)만. 남이면 NotFound.
+	GetProgressSummary(context.Context, *connect.Request[v1.GetProgressSummaryRequest]) (*connect.Response[v1.GetProgressSummaryResponse], error)
+	// 내가 보낸 요약(최근 50 + 커서).
+	ListSentSummaries(context.Context, *connect.Request[v1.ListSentSummariesRequest]) (*connect.Response[v1.ListSentSummariesResponse], error)
+	// 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
+	GetMemberRecords(context.Context, *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error)
 }
 
 // NewCoachingServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -308,6 +386,30 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 		connect.WithSchema(coachingServiceMethods.ByName("ListAudit")),
 		connect.WithHandlerOptions(opts...),
 	)
+	coachingServiceSendProgressSummaryHandler := connect.NewUnaryHandler(
+		CoachingServiceSendProgressSummaryProcedure,
+		svc.SendProgressSummary,
+		connect.WithSchema(coachingServiceMethods.ByName("SendProgressSummary")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceGetProgressSummaryHandler := connect.NewUnaryHandler(
+		CoachingServiceGetProgressSummaryProcedure,
+		svc.GetProgressSummary,
+		connect.WithSchema(coachingServiceMethods.ByName("GetProgressSummary")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceListSentSummariesHandler := connect.NewUnaryHandler(
+		CoachingServiceListSentSummariesProcedure,
+		svc.ListSentSummaries,
+		connect.WithSchema(coachingServiceMethods.ByName("ListSentSummaries")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceGetMemberRecordsHandler := connect.NewUnaryHandler(
+		CoachingServiceGetMemberRecordsProcedure,
+		svc.GetMemberRecords,
+		connect.WithSchema(coachingServiceMethods.ByName("GetMemberRecords")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/coaching.v1.CoachingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CoachingServiceSearchTrainersProcedure:
@@ -328,6 +430,14 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 			coachingServiceSetMemberPrescriptionHandler.ServeHTTP(w, r)
 		case CoachingServiceListAuditProcedure:
 			coachingServiceListAuditHandler.ServeHTTP(w, r)
+		case CoachingServiceSendProgressSummaryProcedure:
+			coachingServiceSendProgressSummaryHandler.ServeHTTP(w, r)
+		case CoachingServiceGetProgressSummaryProcedure:
+			coachingServiceGetProgressSummaryHandler.ServeHTTP(w, r)
+		case CoachingServiceListSentSummariesProcedure:
+			coachingServiceListSentSummariesHandler.ServeHTTP(w, r)
+		case CoachingServiceGetMemberRecordsProcedure:
+			coachingServiceGetMemberRecordsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -371,4 +481,20 @@ func (UnimplementedCoachingServiceHandler) SetMemberPrescription(context.Context
 
 func (UnimplementedCoachingServiceHandler) ListAudit(context.Context, *connect.Request[v1.ListAuditRequest]) (*connect.Response[v1.ListAuditResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.ListAudit is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) SendProgressSummary(context.Context, *connect.Request[v1.SendProgressSummaryRequest]) (*connect.Response[v1.SendProgressSummaryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.SendProgressSummary is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) GetProgressSummary(context.Context, *connect.Request[v1.GetProgressSummaryRequest]) (*connect.Response[v1.GetProgressSummaryResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.GetProgressSummary is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) ListSentSummaries(context.Context, *connect.Request[v1.ListSentSummariesRequest]) (*connect.Response[v1.ListSentSummariesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.ListSentSummaries is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) GetMemberRecords(context.Context, *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.GetMemberRecords is not implemented"))
 }

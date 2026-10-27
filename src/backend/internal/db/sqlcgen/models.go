@@ -164,6 +164,7 @@ type Message struct {
 	Body           *string
 	MediaUrl       *string
 	CreatedAt      pgtype.Timestamptz
+	RefID          *string
 }
 
 type Notification struct {
@@ -218,6 +219,20 @@ type PostLike struct {
 	PostID    string
 	UserID    string
 	CreatedAt pgtype.Timestamptz
+}
+
+type ProgressSummary struct {
+	ID             string
+	MemberID       string
+	TrainerID      string
+	GrantConsentAt pgtype.Timestamptz
+	PeriodStart    pgtype.Timestamptz
+	PeriodEnd      pgtype.Timestamptz
+	SchemaVersion  int32
+	Snapshot       []byte
+	ClientID       string
+	MessageID      *string
+	CreatedAt      pgtype.Timestamptz
 }
 
 type RefreshToken struct {

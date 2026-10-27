@@ -139,7 +139,8 @@ message MemberReport {
 message AuditEntry {
   string id = 1;
   string actor_id = 2;
-  // 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit.
+  // 무엇을 했나: request·accept·revoke·report_view·routines_view·prescription_edit
+  // ·summary_send·summary_view·records_view(SRS-080).
   string action = 3;
   int64 created_at = 4;
 }
@@ -211,6 +212,95 @@ message ListAuditResponse {
   repeated AuditEntry entries = 1;
 }
 
+// ── 기간 성과 요약(SRS-079·080 · ADR-040·041 · SAD-024) ──────────────────────
+// @plm SRS-080
+//
+// 요약은 **회원 기기가 계산한다**(core periodSummary — ADR-040). 서버는 가드·보관·전달만 한다:
+// 스냅샷을 해석하지 않고, 최상위 schemaVersion 이 요청의 schema_version 과 같은지·JSON 객체인지만 본다.
+// 기간은 epoch ms(UTC 절대값) [start, end) — 날짜 경계는 스냅샷 range.tz 가 회원 기준으로 싣는다.
+//
+// 이 넷에는 `idempotency_level = NO_SIDE_EFFECTS`를 달지 않는다 — 달면 connect-web 이 GET으로 바꿔
+// 브라우저·CDN 캐시 대상이 된다(S-20). 응답에는 서버가 `Cache-Control: no-store`를 붙인다.
+
+message SendProgressSummaryRequest {
+  // 받을 트레이너. 회원(=나) → 이 트레이너 관계가 active ∧ logView 여야 한다.
+  string trainer_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  int64 period_start = 2 [(buf.validate.field).int64.gt = 0];
+  int64 period_end = 3 [(buf.validate.field).int64.gt = 0];
+  // 지원 목록은 서버가 정한다(지금 {1}). 스냅샷 최상위 schemaVersion 과 같아야 한다.
+  int32 schema_version = 4 [(buf.validate.field).int32.gte = 1];
+  // SummaryV1 JSON 객체(회원이 끈 섹션은 키째 빠진다). 64KB 상한.
+  string snapshot_json = 5 [(buf.validate.field).string = {min_len: 2, max_bytes: 65536}];
+  // 기기가 만든 uuid — 같은 값으로 다시 보내면 같은 요약·같은 DM 하나로 끝난다.
+  string client_id = 6 [(buf.validate.field).string.uuid = true];
+}
+message SendProgressSummaryResponse {
+  string summary_id = 1;
+}
+
+message ProgressSummary {
+  string id = 1;
+  string member_id = 2;
+  string trainer_id = 3;
+  int64 period_start = 4;
+  int64 period_end = 5;
+  int32 schema_version = 6;
+  // 보낸 그대로의 JSON(서버는 해석하지 않았다). 화면은 core parseSummaryV1 로 거른 뒤에 그린다(S-18).
+  string snapshot_json = 7;
+  int64 created_at = 8;
+}
+
+message GetProgressSummaryRequest {
+  string id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+message GetProgressSummaryResponse {
+  ProgressSummary summary = 1;
+}
+
+// 보낸 요약 목록의 한 줄 — 스냅샷은 싣지 않는다(펼칠 때 GetProgressSummary).
+message SentSummary {
+  string id = 1;
+  string trainer_id = 2;
+  int64 period_start = 3;
+  int64 period_end = 4;
+  int32 schema_version = 5;
+  // DM 까지 갔나. false 면 저장만 되고 전달 전(같은 client_id 로 다시 보내면 그때 간다).
+  bool delivered = 6;
+  int64 created_at = 7;
+}
+
+message ListSentSummariesRequest {
+  // 앞 페이지의 next_cursor. 비우면 최신부터.
+  string cursor = 1 [(buf.validate.field).string.max_len = 200];
+}
+message ListSentSummariesResponse {
+  // 최근 것부터 최대 50개.
+  repeated SentSummary summaries = 1;
+  // 다음 페이지가 없으면 빈 문자열.
+  string next_cursor = 2;
+}
+
+// 트레이너 리포트용 원본 레코드(scope=logView · ADR-040 개정).
+// 서버가 내주는 기간 = [period_start − (period_end − period_start), period_end) — 직전 기간 비교용.
+// 길이 ≤ 400일 · start < end · end ≤ now+1일. 컬렉션·칸은 **서버 상수 허용 목록**만이다
+// (notes·note·image_url·prescription·prev_* 없음 · user_profiles·bodyweight_logs·import_* 는 영원히 없다).
+message GetMemberRecordsRequest {
+  string member_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  int64 period_start = 2 [(buf.validate.field).int64.gt = 0];
+  int64 period_end = 3 [(buf.validate.field).int64.gt = 0];
+}
+message GetMemberRecordsResponse {
+  // 각 원소 = 허용 칸만 남긴 JSON 객체 하나(기기 raw 레코드와 같은 snake_case 키).
+  // 완료된 운동과 그 자식, 그 운동에 실제로 쓰인 커스텀 종목만.
+  repeated string workouts = 1;
+  repeated string workout_exercises = 2;
+  repeated string set_logs = 3;
+  repeated string exercises = 4;
+  // 실제로 내준 기간(epoch ms) [served_start, served_end).
+  int64 served_start = 5;
+  int64 served_end = 6;
+}
+
 service CoachingService {
   // 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
   rpc SearchTrainers(SearchTrainersRequest) returns (SearchTrainersResponse) {}
@@ -229,4 +319,14 @@ service CoachingService {
 
   // 코칭 이력. **양쪽 다 읽을 수 있다** — 회원이 볼 수 없으면 신뢰 장치가 아니다.
   rpc ListAudit(ListAuditRequest) returns (ListAuditResponse) {}
+
+  // ── 기간 성과 요약(SRS-080) ── 넷 다 NO_SIDE_EFFECTS 를 달지 않는다(S-20).
+  // 회원 → 담당 트레이너. 저장 + 1:1 DM(SUMMARY) + 알림(coaching_summary). 같은 client_id 는 한 번만 도착한다.
+  rpc SendProgressSummary(SendProgressSummaryRequest) returns (SendProgressSummaryResponse) {}
+  // 그 요약의 회원 ∨ 받은 트레이너(지금 active ∧ logView ∧ 보낸 때와 같은 동의)만. 남이면 NotFound.
+  rpc GetProgressSummary(GetProgressSummaryRequest) returns (GetProgressSummaryResponse) {}
+  // 내가 보낸 요약(최근 50 + 커서).
+  rpc ListSentSummaries(ListSentSummariesRequest) returns (ListSentSummariesResponse) {}
+  // 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
+  rpc GetMemberRecords(GetMemberRecordsRequest) returns (GetMemberRecordsResponse) {}
 }

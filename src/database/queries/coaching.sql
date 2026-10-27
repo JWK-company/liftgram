@@ -97,3 +97,45 @@ WHERE id = $1;
 -- 기기는 이제 시드 종목 행을 동기하지 않아(D10) sync_records 에는 커스텀 종목만 있다.
 -- name: ListCatalogExerciseMeta :many
 SELECT id, name_ko, primary_muscles FROM exercises WHERE is_custom = false;
+
+-- ── 기간 성과 요약(SRS-080 · ADR-041) ──────────────────────────────────────────
+-- @plm SRS-080
+
+-- 같은 (회원, client_id)면 새 행을 만들지 않는다 — 오프라인 재전송이 한 행으로 모인다.
+-- 충돌이면 행이 안 나온다(pgx.ErrNoRows) → 부르는 쪽이 GetProgressSummaryByMemberClient로 기존 행을 읽는다.
+-- name: InsertProgressSummary :one
+INSERT INTO progress_summaries (
+  id, member_id, trainer_id, grant_consent_at, period_start, period_end, schema_version, snapshot, client_id
+) VALUES (
+  @id::text, @member_id::text, @trainer_id::text, @grant_consent_at::timestamptz,
+  @period_start::timestamptz, @period_end::timestamptz, @schema_version::int, @snapshot::jsonb, @client_id::text
+)
+ON CONFLICT (member_id, client_id) DO NOTHING
+RETURNING *;
+
+-- name: GetProgressSummaryByMemberClient :one
+SELECT * FROM progress_summaries WHERE member_id = @member_id::text AND client_id = @client_id::text;
+
+-- name: GetProgressSummary :one
+SELECT * FROM progress_summaries WHERE id = $1;
+
+-- DM 전달을 **한 번만** 기록한다. 이미 적혀 있으면 0행 — 부르는 쪽은 알림·감사를 건너뛴다.
+-- name: SetProgressSummaryMessageID :execrows
+UPDATE progress_summaries SET message_id = @message_id::text
+WHERE id = @id::text AND message_id IS NULL;
+
+-- 회원이 보낸 요약(최근 것부터). 커서 = 마지막으로 받은 (created_at, id) — 그보다 앞선 것만.
+-- 스냅샷은 싣지 않는다(목록이 50 × 64KB가 되지 않게) — 펼칠 때 GetProgressSummary.
+-- name: ListProgressSummariesByMember :many
+SELECT id, trainer_id, period_start, period_end, schema_version, message_id, created_at
+FROM progress_summaries
+WHERE member_id = @member_id::text
+  AND (@has_cursor::boolean = false
+       OR (created_at, id) < (@cursor_created_at::timestamptz, @cursor_id::text))
+ORDER BY created_at DESC, id DESC
+LIMIT @lim::int;
+
+-- 하루 전송 상한(트레이너 DM·알림 도배 방지 · S-19).
+-- name: CountProgressSummariesByMemberSince :one
+SELECT count(*)::int FROM progress_summaries
+WHERE member_id = @member_id::text AND created_at >= @since::timestamptz;

@@ -31,6 +31,13 @@ type fakeRepo struct {
 	updated    map[string][]byte
 	failWith   error
 	auditFails bool
+
+	// 성과 요약(SRS-080) — summary_test.go 가 쓴다.
+	summaries    []ProgressSummary
+	auditDetails [][]byte
+	accepts      int
+	insertRace   *ProgressSummary // 설정하면 Insert 직전에 "남이 먼저 넣은" 행으로 들어간다(동시 요청 흉내)
+	listedFor    []string         // ListMemberRecords 가 받은 컬렉션
 }
 
 func newRepo() *fakeRepo {
@@ -100,7 +107,9 @@ func (f *fakeRepo) ReopenGrant(_ context.Context, id, requestedBy string) (Grant
 }
 func (f *fakeRepo) AcceptGrant(_ context.Context, id string) (Grant, error) {
 	g := f.grants[id]
-	g.Status, g.ConsentAt = StatusActive, time.Unix(1, 0)
+	// 수락할 때마다 새 동의 시각 — 재계약이면 consent_at 이 바뀐다(실제 AcceptGrant 의 now()).
+	f.accepts++
+	g.Status, g.ConsentAt = StatusActive, time.Unix(int64(f.accepts), 0)
 	f.grants[id] = g
 	return g, nil
 }
@@ -110,15 +119,17 @@ func (f *fakeRepo) RevokeGrant(_ context.Context, id string) (Grant, error) {
 	f.grants[id] = g
 	return g, nil
 }
-func (f *fakeRepo) Audit(_ context.Context, id, grantID, actorID, action string, _ []byte) error {
+func (f *fakeRepo) Audit(_ context.Context, id, grantID, actorID, action string, detail []byte) error {
 	if f.auditFails {
 		return errors.New("감사 기록 실패")
 	}
 	f.audits = append(f.audits, AuditEntry{ID: id, ActorID: actorID, Action: action})
+	f.auditDetails = append(f.auditDetails, detail)
 	return nil
 }
 func (f *fakeRepo) ListAudit(context.Context, string) ([]AuditEntry, error) { return f.audits, nil }
-func (f *fakeRepo) ListMemberRecords(context.Context, string, []string) ([]MemberRecord, error) {
+func (f *fakeRepo) ListMemberRecords(_ context.Context, _ string, collections []string) ([]MemberRecord, error) {
+	f.listedFor = collections
 	return f.records, f.failWith
 }
 func (f *fakeRepo) CatalogMeta(context.Context) (map[string]CatalogExercise, error) {
