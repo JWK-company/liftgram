@@ -7,17 +7,16 @@ package coaching
 
 import (
 	"context"
-	"os"
 	gosync "sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/JWK-company/liftgram/src/backend/internal/dm"
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 	"github.com/JWK-company/liftgram/src/backend/internal/notification"
+	"github.com/JWK-company/liftgram/src/backend/internal/testpg"
 )
 
 type pgNotify struct{ svc *notification.Service }
@@ -27,16 +26,8 @@ func (a pgNotify) Notify(ctx context.Context, userID, actorID, kind, postID stri
 }
 
 func TestSummary_실제_Postgres_흐름(t *testing.T) {
-	url := os.Getenv("LIFTGRAM_TEST_DATABASE_URL")
-	if url == "" {
-		t.Skip("LIFTGRAM_TEST_DATABASE_URL 없음")
-	}
+	pool := testpg.Pool(t)
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, url)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer pool.Close()
 
 	member, trainer := "it-m-"+uuid.NewString()[:8], "it-t-"+uuid.NewString()[:8]
 	for _, u := range []string{member, trainer} {

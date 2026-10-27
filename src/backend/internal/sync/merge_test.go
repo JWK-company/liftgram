@@ -18,7 +18,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/JWK-company/liftgram/src/backend/internal/testpg"
 )
 
 // v26 기기가 올려 둔 세트(서버에 저장된 모양).
@@ -102,16 +102,8 @@ func TestUpsertSQL_은_얕은_병합이다(t *testing.T) {
 
 // ③ 실제 Postgres 로도 본다(선택) — LIFTGRAM_TEST_DATABASE_URL 이 있을 때만. 읽기 전용 SELECT 하나다.
 func TestJsonbConcat_실제_Postgres(t *testing.T) {
-	url := os.Getenv("LIFTGRAM_TEST_DATABASE_URL")
-	if url == "" {
-		t.Skip("LIFTGRAM_TEST_DATABASE_URL 없음 — Go 흉내로만 확인")
-	}
+	pool := testpg.Pool(t) // 주소가 없으면 건너뜀 — Go 흉내(위 ③)로만 확인
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, url)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer pool.Close()
 	_, cleaned, err := parseRecord(pushedV25)
 	if err != nil {
 		t.Fatal(err)

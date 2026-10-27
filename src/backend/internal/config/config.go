@@ -305,3 +305,14 @@ func loadDotenv() {
 		dir = parent
 	}
 }
+
+// ── 테스트 전용 설정 ────────────────────────────────────────────────────────
+// 실제 Postgres 통합 테스트(`*_pg_test.go` 등)가 붙을 **마이그레이션만 끝난 빈 스크래치 DB** 주소.
+// 런타임 Config 가 아니다 — 서버·마이그레이션 러너는 읽지 않고, 부팅 검증·.env.example 대상도 아니다
+// (운영·개발 .env 에 두면 안 되는 값이라 예시에 적지 않는다). 그래도 os.Getenv 는 이 파일 한 곳에서만
+// 부른다는 규칙(check-docs ⑤)은 지킨다 — 테스트는 internal/testpg 를 거쳐 이 함수만 부른다.
+// 비어 있으면 통합 테스트는 건너뛴다.
+const integrationDatabaseURLKey = "LIFTGRAM_TEST_DATABASE_URL"
+
+// IntegrationDatabaseURL은 통합 테스트용 스크래치 DB 주소다(없으면 "").
+func IntegrationDatabaseURL() string { return os.Getenv(integrationDatabaseURLKey) }

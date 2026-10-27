@@ -42,7 +42,10 @@ const (
 	// 레코드 하나의 크기 상한. 오프라인 앱의 레코드는 수 KB를 넘지 않는다 —
 	// 이보다 크면 버그이거나 남의 저장소를 우리 것으로 쓰려는 시도다.
 	maxRecordBytes = 256 << 10
-	// 한 번의 push에 담을 수 있는 레코드 수. 넘으면 나눠 보내면 된다(클라이언트가 알아서 한다).
+	// 한 번의 push에 담을 수 있는 레코드 수. 넘으면 클라이언트가 나눠 보낸다 — ≤2000건씩 순서대로
+	// (frontend/lib/syncTransport.ts push · core/src/sync/pushChunks.ts splitSyncChanges · SRS-081).
+	// 중간 묶음이 실패하면 다음 회차에 전부 다시 오는데, upsert·삭제 표시가 멱등이라 결과가 같다 —
+	// 그 성질은 push_idempotency_test.go 가 고정한다.
 	maxRecordsPerPush = 5000
 	// 컬렉션 이름 길이 상한. 서버는 이름의 목록을 모르지만 길이는 안다.
 	maxCollectionLen = 64
