@@ -7,7 +7,7 @@
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-10-27T09:00:00Z",
-  "updated": "2026-10-27T09:00:00Z",
+  "updated": "2026-10-27T09:10:00Z",
   "sync": true,
   "tags": [
     "auth",
@@ -16,7 +16,7 @@
     "bug"
   ],
   "kind": "NFR",
-  "acceptance_criteria": "같은 refresh로 동시에·응답 유실 뒤(몇 분 뒤라도 새 토큰이 쓰이지 않았으면) 다시 갱신해도 로그아웃되지 않음 · 다음 회전이 일어난 옛 토큰을 30초 밖에서 재사용하면 계열 전체 폐기 · 로그아웃·전체 폐기 뒤엔 유예 없음 · 탭 둘 동시 갱신 e2e 통과.",
+  "acceptance_criteria": "같은 refresh로 동시에·응답 유실 뒤(후계가 쓰이지 않았으면) 다시 갱신해도 로그아웃되지 않음 · 계열당 살아 있는 토큰 1개 · 후계가 쓰인 옛 토큰·30초 밖 대체 토큰 재사용은 계열 전체 폐기 · 갱신·로그아웃·전체 폐기는 사용자 잠금 트랜잭션으로 직렬 · 탭 둘 갱신은 Web Locks로 직렬(e2e).",
   "relations": {
     "derives_from": [
       "URS-008",
@@ -93,7 +93,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "갱신 응답을 받지 못하고(요청이 끊긴 뒤) 같은 쿠키로 다시 갱신하면 통한다 — 30초 안이거나, 몇 분 뒤라도 그 사이 새 토큰이 한 번도 쓰이지 않았으면(그 토큰이 계열의 마지막 회전)."
+                    "text": "갱신 응답을 받지 못하고(요청이 끊긴 뒤) 같은 쿠키로 다시 갱신하면 통한다 — 그 사이 새 토큰(후계)이 한 번도 쓰이지 않았으면 그 후계를 대체해 새 토큰을 준다(「미사용 후계」 규칙 · /qa code H-1). 한 계열에 살아 있는 토큰은 언제나 하나다."
                   }
                 ]
               }
@@ -107,7 +107,7 @@
                 "content": [
                   {
                     "type": "text",
-                    "text": "이미 다음 회전이 일어난 옛 토큰을 30초 밖에서 다시 쓰면 401이고, 그 계열의 살아 있던 토큰도 함께 폐기된다(재사용 탐지)."
+                    "text": "후계가 이미 쓰인 옛 토큰, 또는 대체된 토큰을 30초 밖에서 다시 쓰면 401이고, 그 계열의 살아 있던 토큰도 함께 폐기된다(재사용 탐지 · RFC 9700 §4.14.2). 공격자가 먼저 쓰든 나중에 쓰든 결국 한쪽이 무효 토큰을 내밀어 드러난다."
                   }
                 ]
               }
@@ -167,7 +167,9 @@
     ]
   },
   "code_refs": [
+    "src/backend/internal/auth/refresh_pg_test.go:3",
     "src/backend/internal/auth/refresh_race_test.go:1",
+    "src/backend/internal/auth/refresh_security_test.go:1",
     "src/frontend/e2e/session-refresh-race.spec.ts:1"
   ]
 }

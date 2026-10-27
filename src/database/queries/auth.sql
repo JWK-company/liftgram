@@ -30,8 +30,9 @@ RETURNING *;
 
 -- name: CreateRefreshToken :exec
 -- family_id: 새 로그인이면 자기 해시, 회전·유예 재발급이면 옛 토큰의 계열(0018 · SRS-083).
-INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id)
-VALUES ($1, $2, $3, $4);
+-- parent_hash: 회전으로 만들어졌으면 옛 토큰 해시, 새 로그인이면 NULL(0019 · 「미사용 후계」 규칙).
+INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash)
+VALUES ($1, $2, $3, $4, sqlc.narg('parent_hash'));
 
 -- 갱신이 쓴다(0018 · SRS-083). **폐기된 것도** 돌려준다 — 회전 유예·재사용 탐지를 가려야 하므로.
 -- 만료는 여기서 거른다.
@@ -45,10 +46,27 @@ WHERE token_hash = $1 AND expires_at > now();
 UPDATE refresh_tokens SET revoked_at = @at::timestamptz, revoke_reason = 'rotated'
 WHERE token_hash = @token_hash AND revoked_at IS NULL;
 
+-- [원본] 「마지막 회전이면 허용」 판단용 — /qa code H-1 로 쓰지 않는다(생성물은 남겨 둔다).
 -- 이 계열에서 가장 최근 회전 시각. 회전된 토큰이 「마지막 회전」이면 그 뒤 새 토큰이 쓰인 적 없다.
 -- name: LatestRotationAt :one
 SELECT max(revoked_at)::timestamptz AS latest FROM refresh_tokens
 WHERE family_id = $1 AND revoke_reason = 'rotated';
+
+-- 계열의 살아 있는 토큰(0019 · SRS-083). 「미사용 후계」 규칙에서 언제나 하나다 — 가장 최근 것을 준다.
+-- name: LiveRefreshInFamily :one
+SELECT * FROM refresh_tokens
+WHERE family_id = $1 AND revoked_at IS NULL AND expires_at > now()
+ORDER BY created_at DESC
+LIMIT 1;
+
+-- 미사용 후계를 대체한다(응답 유실·탭 경합 구제 · 0019). 살아 있을 때만.
+-- name: SupersedeRefreshToken :exec
+UPDATE refresh_tokens SET revoked_at = @at::timestamptz, revoke_reason = 'superseded'
+WHERE token_hash = @token_hash AND revoked_at IS NULL;
+
+-- 한 사용자의 세션 결정(갱신·로그아웃·전체 폐기)을 한 줄로 세운다 — 트랜잭션이 끝나면 풀린다(H-3).
+-- name: LockUserSessions :exec
+SELECT pg_advisory_xact_lock(hashtextextended('refresh:' || @user_id::text, 0));
 
 -- 계열 전체를 끊는다(로그아웃·재사용 탐지). **이미 폐기된 행의 사유도 덮어쓴다** — 그래야 유예가 닫힌다.
 -- name: RevokeRefreshFamily :exec
@@ -69,8 +87,9 @@ WHERE token_hash = $1 AND revoked_at IS NULL;
 -- name: RevokeAllRefreshTokensForUser :exec
 -- 이미 회전으로 폐기된 행의 사유도 'all'로 덮어쓴다 — 아니면 비밀번호를 바꾼 뒤에도 옛 기기가 회전 유예로
 -- 되살아난다(0018 · SRS-083 · QA Q4).
+-- [개선] 살아 있는 것과 유예 대상(rotated·superseded)만 — 역사 행 전부를 매번 고치지 않는다(QA L-3).
 UPDATE refresh_tokens SET revoked_at = COALESCE(revoked_at, now()), revoke_reason = 'all'
-WHERE user_id = $1;
+WHERE user_id = $1 AND (revoked_at IS NULL OR revoke_reason IN ('rotated', 'superseded'));
 
 -- 만료된 토큰 청소 — 쌓아 둘 이유가 없다.
 -- name: DeleteExpiredRefreshTokens :exec

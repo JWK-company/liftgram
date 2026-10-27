@@ -25,18 +25,20 @@ async function 로그인_상태(page: Page) {
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 }
 
-test("같은 쿠키로 갱신 두 번을 동시에 보내도 둘 다 통하고 로그인이 이어진다(탭 경합)", async ({ page }) => {
+// [원본] fetch 를 직접 두 번 보냈다 — 앱의 Web Locks·재시도를 거치지 않아 서버 유예만 확인했다(/qa code M-4).
+// [개선] 앱 경로 그대로: 첫 갱신을 일부러 401 로 돌려도 앱이 600ms 뒤 한 번 더 시도해 로그인이 이어진다.
+test("갱신이 한 번 401 이어도 앱이 다시 시도해 로그인이 이어진다(재시도 경로)", async ({ page }) => {
   test.setTimeout(120_000);
   await 가입(page);
-  const statuses = await page.evaluate(async (h) => {
-    const rs = await Promise.all(
-      [1, 2].map(() => fetch("/api/session/refresh", { method: "POST", headers: h })),
-    );
-    return rs.map((r) => r.status);
-  }, GUARD);
-  expect(statuses).toEqual([200, 200]);
-  await page.reload();
+  let seen = 0;
+  await page.route("**/api/session/refresh", async (route) => {
+    seen += 1;
+    if (seen === 1) return route.fulfill({ status: 401, body: "refresh failed" }); // 다른 탭이 막 회전한 것처럼
+    return route.fallback();
+  });
+  await page.reload(); // 새 문서 — 메모리에 access 가 없어 복원 갱신이 돈다
   await 로그인_상태(page);
+  expect(seen).toBeGreaterThanOrEqual(2); // 정말로 두 번 갔다(재시도)
 });
 
 test("갱신 응답이 브라우저에 닿지 못해도(새 쿠키 유실) 다음에 열면 로그인이 이어진다", async ({ page }) => {
@@ -68,15 +70,36 @@ test("갱신 응답이 브라우저에 닿지 못해도(새 쿠키 유실) 다�
   await 로그인_상태(page);
 });
 
-// 경합은 타이밍이 맞아야 나서 이 테스트만으로는 결정적으로 재현되지 않는다 — 회귀 확인용(게이트는 위 두 테스트).
-test("탭 두 개를 동시에 열어도 둘 다 로그인 상태다", async ({ page, context }) => {
+// [원본] 두 탭을 동시에 열기만 했다 — 옛 코드에서도 통과해 경합을 재현하지 못했다(/qa code M-4).
+// [개선] 첫 갱신 응답을 1.5초 붙잡아 경합 창을 일부러 넓힌다. Web Locks 가 동작하면 두 번째 탭의 갱신은
+// 첫 응답이 끝난 **뒤에** 떠나고, 첫 갱신이 구운 **새 쿠키**를 들고 간다(같은 쿠키로 동시에 가지 않는다).
+test("탭 두 개가 동시에 복원 갱신해도 갱신은 한 줄로 서고, 둘째는 새 쿠키로 간다(Web Locks)", async ({
+  page,
+  context,
+}) => {
   test.setTimeout(120_000);
   await 가입(page);
   const 둘째: Page = await (context as BrowserContext).newPage();
+  const calls: { cookie: string; start: number; end: number }[] = [];
+  await (context as BrowserContext).route("**/api/session/refresh", async (route) => {
+    const call = { cookie: route.request().headers().cookie ?? "", start: Date.now(), end: 0 };
+    calls.push(call);
+    if (calls.length === 1) await new Promise((r) => setTimeout(r, 1_500));
+    const res = await route.fetch();
+    call.end = Date.now();
+    await route.fulfill({ response: res });
+  });
   await Promise.all([page.goto("/account"), 둘째.goto("/account")]);
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await expect(둘째.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
-  // 그 뒤에도 갱신이 통한다(어느 쪽 쿠키가 남았든).
+  // 화면은 캐시된 내 정보로 먼저 그려진다 — 두 갱신이 실제로 끝날 때까지 기다린다.
+  await expect
+    .poll(() => calls.filter((c) => c.end > 0).length, { timeout: 20_000 })
+    .toBeGreaterThanOrEqual(2);
+  const [a, b] = [...calls].sort((x, y) => x.start - y.start);
+  expect(b.start).toBeGreaterThanOrEqual(a.end - 50); // 직렬: 둘째는 첫 응답 뒤에 떠났다
+  expect(b.cookie).not.toBe(a.cookie); // 첫 회전이 구운 새 쿠키를 들고 갔다
+  await (context as BrowserContext).unroute("**/api/session/refresh");
   await page.reload();
   await 로그인_상태(page);
 });

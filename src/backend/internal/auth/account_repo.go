@@ -66,8 +66,16 @@ func (r *pgRepo) SetPasswordHash(ctx context.Context, userID, hash string) error
 	return r.q.SetPasswordHash(ctx, sqlcgen.SetPasswordHashParams{ID: userID, PasswordHash: ptr(hash)})
 }
 
+// [원본] 잠금 없이 폐기 — 같은 순간 진행 중인 갱신이 폐기 뒤에 새 토큰을 쓸 수 있었다(SRS-083 /qa code H-3).
+// return r.q.RevokeAllRefreshTokensForUser(ctx, userID)
+// [개선] 갱신과 같은 사용자 잠금 안에서 폐기한다.
 func (r *pgRepo) RevokeAllRefreshTokens(ctx context.Context, userID string) error {
-	return r.q.RevokeAllRefreshTokensForUser(ctx, userID)
+	if r.pool == nil { // 이미 잠금 트랜잭션 안
+		return r.q.RevokeAllRefreshTokensForUser(ctx, userID)
+	}
+	return r.WithUserLock(ctx, userID, func(tx Repo) error {
+		return tx.(*pgRepo).q.RevokeAllRefreshTokensForUser(ctx, userID)
+	})
 }
 
 func (r *pgRepo) CreateAuthToken(ctx context.Context, hash, userID, purpose, email string, expiresAt time.Time) error {

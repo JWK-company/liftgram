@@ -139,6 +139,8 @@ console.log("\n  설정 접근 — process.env를 직접 읽는 곳이 한 곳�
     "frontend/playwright.config.ts",
     // e2e 전용 가짜 OAuth 제공자 — `//go:build oauthfake` 라 프로덕션 바이너리에 존재하지 않는다(SRS-052).
     "backend/internal/oauth/fake_provider.go",
+    // 실 DB 테스트 — `//go:build pgtest` 라 프로덕션 바이너리에 없다. 임시 DB 를 만들 관리자 URL 만 읽는다(SRS-083).
+    "backend/internal/auth/refresh_pg_test.go",
   ];
   const NODE_ENV_OK = /process\.env\.(NODE_ENV|__NEXT_|CI)/; // 런타임 모드 판별은 스키마 대상이 아니다
   const files = execSync("git ls-files -co --exclude-standard", { cwd: root })

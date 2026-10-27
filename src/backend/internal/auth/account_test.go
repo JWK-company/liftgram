@@ -61,7 +61,8 @@ func (f *fakeAcct) RevokeAllRefreshTokens(_ context.Context, id string) error {
 	// 실제 쿼리와 같은 의미 — 이미 회전으로 폐기된 행의 사유도 'all'로 덮어써 유예를 닫는다(SRS-083 Q4).
 	now := f.base.now()
 	for h, t := range f.base.tokens {
-		if t.UserID == id {
+		// 실제 쿼리처럼 살아 있는 것·유예 대상(rotated·superseded)만 고친다(QA L-3).
+		if t.UserID == id && (t.RevokedAt == nil || t.RevokeReason == revokeRotated || t.RevokeReason == revokeSuperseded) {
 			if t.RevokedAt == nil {
 				t.RevokedAt = &now
 			}

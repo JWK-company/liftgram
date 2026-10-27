@@ -111,8 +111,11 @@ export function setTokens(
     // method = 로그인 수단(「최근」 배지). 로그인·가입만 싣는다 — 비밀번호 변경 등은 비워 둬 쿠키를 건드리지 않는다.
     body: JSON.stringify({ refreshToken: t.refreshToken, method }),
   })
-    .then(() => {})
-    .catch(() => {});
+    .then((res) => {
+      // 요청이 끝났다 ≠ 쿠키가 구워졌다(QA L-8). 실패는 남겨 둔다 — 새로고침하면 로그아웃돼 보일 원인이다.
+      if (!res.ok) console.warn("[session] refresh 쿠키 저장 실패", res.status);
+    })
+    .catch((e) => console.warn("[session] refresh 쿠키 저장 실패", e));
   notify();
   return saved;
 }
@@ -244,6 +247,30 @@ void refreshOnceV1;
 
 /** 갱신 401 뒤 한 번 더 시도하기 전 기다림 — 그사이 다른 탭이 새 쿠키를 구웠을 수 있다. */
 const RETRY_AFTER_401_MS = 600;
+/** 갱신 요청 하나의 한도 — 반쯤 끊긴 망에서 잠금을 쥔 채 매달리지 않게(QA M-2). */
+const REFRESH_TIMEOUT_MS = 10_000;
+/** 잠금을 기다리는 한도 — 다른 탭이 잠금을 쥔 채 얼었으면 잠금 없이 간다(서버 유예가 받친다). */
+const LOCK_WAIT_MS = 15_000;
+/** 다른 탭이 방금 갱신에 성공했다는 표시(localStorage) — 이 안의 401 은 깃발을 내리지 않는다(QA M-3). */
+const OK_AT_KEY = "liftgram.session.okAt";
+const RECENT_OK_MS = 10_000;
+
+function markRefreshOk(): void {
+  try {
+    localStorage.setItem(OK_AT_KEY, String(Date.now()));
+  } catch {
+    // 저장소가 막혀 있어도 갱신은 성공이다
+  }
+}
+
+function refreshedRecentlyElsewhere(): boolean {
+  try {
+    const at = Number(localStorage.getItem(OK_AT_KEY) ?? 0);
+    return Date.now() - at < RECENT_OK_MS;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * 탭 사이에서 갱신을 하나씩 돌린다(Web Locks). 같은 쿠키로 두 문서가 동시에 회전하면 하나만 이긴다 —
@@ -253,12 +280,22 @@ const RETRY_AFTER_401_MS = 600;
 async function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
   const locks =
     typeof navigator !== "undefined" ? (navigator as Navigator & { locks?: LockManager }).locks : undefined;
+  // 잠금이 없는 환경(Safari 15.4 미만·구형 Samsung Internet·http LAN 주소) — 그냥 실행한다(QA L-7).
   if (!locks?.request) return fn();
-  return locks.request("liftgram-refresh", fn) as Promise<T>;
+  try {
+    // signal 은 **잠금을 기다리는 동안만** 걸린다 — 쥔 뒤의 일은 fn 안의 요청 한도가 막는다.
+    const signal = typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(LOCK_WAIT_MS) : undefined;
+    return (await locks.request("liftgram-refresh", signal ? { signal } : {}, fn)) as T;
+  } catch (e) {
+    if (e instanceof DOMException && (e.name === "AbortError" || e.name === "TimeoutError")) return fn();
+    throw e;
+  }
 }
 
 async function refreshRequest(): Promise<Response | null> {
-  return fetch("/api/session/refresh", { method: "POST", headers: GUARD }).catch(() => null);
+  const signal =
+    typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(REFRESH_TIMEOUT_MS) : undefined;
+  return fetch("/api/session/refresh", { method: "POST", headers: GUARD, signal }).catch(() => null);
 }
 
 // @plm SRS-083  [개선] 탭 간 직렬화 + 401 한 번 재시도
@@ -277,8 +314,15 @@ async function refreshOnce(): Promise<boolean> {
         res = await withRefreshLock(refreshRequest);
       }
       if (res?.status === 401) {
+        // 다른 탭이 방금 성공했다면 이 401 은 낡은 쿠키 탓일 수 있다 — 공유 깃발은 그대로 둔다(QA M-3).
+        if (refreshedRecentlyElsewhere()) {
+          accessToken = null;
+          notify();
+          return false;
+        }
         // 두 번 다 죽었다 — 진짜 로그아웃이다. 쿠키는 지우지 않는다(다른 탭의 새 쿠키를 지울 수 있다 ·
-        // QA Q2). 깃발을 내리면 다음 문서는 갱신하지 않고, 다음 로그인이 쿠키를 덮어쓴다.
+        // QA Q2). 깃발을 내리면 다음 문서는 갱신하지 않고(무한 재시도·깜빡임 없음), 다음 로그인이 죽은 쿠키를
+        // 덮어쓴다. 쿠키 자체는 Max-Age(30일)에 사라진다.
         accessToken = null;
         setFlag(false);
         notify();
@@ -291,6 +335,7 @@ async function refreshOnce(): Promise<boolean> {
       accessToken = body.accessToken;
       refreshedMe = body.user ?? null;
       setFlag(true);
+      markRefreshOk();
       notify();
       return true;
     } catch {

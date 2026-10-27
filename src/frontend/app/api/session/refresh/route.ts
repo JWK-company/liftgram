@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 const GUARD_HEADER = "x-liftgram-session";
 const MAX_AGE_SEC = 30 * 24 * 60 * 60;
+const UPSTREAM_TIMEOUT_MS = 8_000;
 
 function cookieHeader(value: string, maxAge: number): string {
   const parts = [`${SESSION_COOKIE}=${value}`, "Path=/", "HttpOnly", "SameSite=Strict", `Max-Age=${maxAge}`];
@@ -43,6 +44,8 @@ export async function POST(req: Request): Promise<Response> {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ refreshToken: token }),
+    // 백엔드가 매달리면 화면의 잠금도 매달린다 — 한도를 둔다(QA M-2).
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   }).catch(() => null);
 
   // backend에 닿지 못한 것과 토큰이 죽은 것은 다르다 — 전자는 재시도할 값어치가 있고,
@@ -54,7 +57,11 @@ export async function POST(req: Request): Promise<Response> {
   // }
   // [개선] @plm SRS-083 쿠키는 건드리지 않고 401만 알린다. 화면이 한 번 더 시도하고(그사이 다른 탭이 새 쿠키를
   // 구웠을 수 있다), 그래도 401이면 깃발만 내린다. 죽은 쿠키는 다음 로그인이 덮어쓴다.
-  if (!res.ok) return new Response("refresh failed", { status: 401 });
+  // [원본] 백엔드 응답이 ok 가 아니면 모두 401 — DB 순간 장애(5xx)가 로그아웃이 됐다(QA M-1).
+  // if (!res.ok) return new Response("refresh failed", { status: 401 });
+  // [개선] 토큰이 죽은 것(401 = Connect unauthenticated)만 401. 그 밖은 503 — 화면이 「다음에 다시」로 간다.
+  if (res.status === 401) return new Response("refresh failed", { status: 401 });
+  if (!res.ok) return new Response("upstream error", { status: 503 });
 
   const body = (await res.json()) as { tokens?: { accessToken?: string; refreshToken?: string } };
   const access = body.tokens?.accessToken ?? "";
@@ -67,6 +74,7 @@ export async function POST(req: Request): Promise<Response> {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
     body: "{}",
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
   })
     .then((r) => (r.ok ? (r.json() as Promise<{ user?: unknown }>) : null))
     .catch(() => null);

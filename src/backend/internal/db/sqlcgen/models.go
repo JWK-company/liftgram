@@ -228,6 +228,7 @@ type RefreshToken struct {
 	CreatedAt    pgtype.Timestamptz
 	FamilyID     *string
 	RevokeReason *string
+	ParentHash   *string
 }
 
 type Report struct {

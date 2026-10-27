@@ -7,6 +7,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,6 +24,8 @@ type fakeRepo struct {
 	revoked map[string]bool
 	// 서비스와 같은 시계(만료 판단 · SRS-083 유예 테스트가 시간을 옮긴다).
 	now func() time.Time
+	// WithUserLock 흉내 — 세션 결정을 한 줄로 세운다(pgRepo 의 advisory 잠금과 같은 의미).
+	mu sync.Mutex
 }
 
 func newFakeRepo() *fakeRepo {
@@ -79,9 +82,36 @@ func (f *fakeRepo) UpdateProfile(_ context.Context, id string, p ProfilePatch) (
 	return u, nil
 }
 
-func (f *fakeRepo) CreateRefreshToken(_ context.Context, hash, userID, familyID string, exp time.Time) error {
-	f.tokens[hash] = RefreshToken{UserID: userID, ExpiresAt: exp, FamilyID: familyID}
+func (f *fakeRepo) CreateRefreshToken(_ context.Context, hash, userID, familyID, parentHash string, exp time.Time) error {
+	f.tokens[hash] = RefreshToken{TokenHash: hash, UserID: userID, ExpiresAt: exp, FamilyID: familyID, ParentHash: parentHash}
 	return nil
+}
+
+// 계열의 살아 있는 토큰(pgRepo 와 같은 의미 · 0019).
+func (f *fakeRepo) LiveRefreshInFamily(_ context.Context, family string) (RefreshToken, bool, error) {
+	for _, t := range f.tokens {
+		if t.FamilyID == family && t.RevokedAt == nil && t.ExpiresAt.After(f.now()) {
+			return t, true, nil
+		}
+	}
+	return RefreshToken{}, false, nil
+}
+
+func (f *fakeRepo) SupersedeRefreshToken(_ context.Context, hash string, at time.Time) error {
+	t, ok := f.tokens[hash]
+	if !ok || t.RevokedAt != nil {
+		return nil
+	}
+	t.RevokedAt, t.RevokeReason = &at, revokeSuperseded
+	f.tokens[hash] = t
+	f.revoked[hash] = true
+	return nil
+}
+
+func (f *fakeRepo) WithUserLock(_ context.Context, _ string, fn func(Repo) error) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return fn(f)
 }
 
 // 만료되지 않았으면 폐기됐어도 돌려준다(pgRepo 와 같은 의미 · SRS-083).
