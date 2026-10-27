@@ -1,7 +1,7 @@
 {
   "active_skill": "execute",
-  "skill_step": 0,
-  "active_artifact": "SRS-069",
+  "skill_step": 6,
+  "active_artifact": "SRS-070",
   "autorun": {
     "queue": [
       "SRS-043",
@@ -18,7 +18,7 @@
     "G1": "pass",
     "G2": "pass"
   },
-  "last_gate_check": "2026-10-27T06:10:35Z",
+  "last_gate_check": "2026-10-27T06:22:38Z",
   "last_sync": "2026-07-26T12:45:00Z",
   "wireframe": {
     "file_id": "734044e5-a8b9-818b-8008-629fb599d7bc",
@@ -121,6 +121,14 @@
     "opengym-recs-decision": {
       "status": "done",
       "note": "ADR-038~043 권장안 · 다음 /trace → /spec"
+    },
+    "opengym-recs-trace": {
+      "status": "done",
+      "note": "G1·G2 pass · 새 SRS 10건 전부 SAD·ADR 연결"
+    },
+    "opengym-recs-spec": {
+      "status": "done",
+      "note": "Project×5 · .ouroboros/docs/spec/20261027_opengym-recs/ · 다음 /qa spec · worktree 분리 규칙"
     }
   },
   "active_files": [
@@ -135,7 +143,7 @@
   },
   "grade": "Feature",
   "spec_path": ".ouroboros/docs/spec/20261027_declutter/",
-  "phase": "화면 정리 P1 완료(v0.39.0) → P2 execute 대기",
+  "phase": "화면 정리 P2 execute 커밋 → /qa code 대기·미배포",
   "tasks_exec": {
     "catalog-expansion": {
       "name": "운동 카탈로그 대확장",
