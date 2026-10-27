@@ -1,8 +1,10 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 화면 정리(declutter) (Feature×4 · qa spec 완료 → P1(v0.39.0) execute 대기 · 2026-10-27)
+## 활성 작업 — 화면 정리(declutter) (Feature×4 · **P1 execute 완료 432f53f → /qa code 대기·미배포** · 2026-10-27)
 - 요구 URS-023·SRS-069(P1 공용 규칙+운동 블록 D1~D4·F3)·SRS-070(P2 요약·기록 상세·분석 D5·D6·F5)·SRS-071(P3 홈·피드·칸 시트 D7~D9·F1·F2·F4·F6·F7)·SRS-072(P4 나머지 점검) · 스펙 `.ouroboros/docs/spec/20261027_declutter/spec.md` · QA `.ouroboros/docs/qa/20261027_declutter-spec_qa.md`
-- 결정 전부 권장(보고서 artifact ADULRE6tUBr8wuSUGRA6w7) · 핵심 QA: QuietChip 글자 ink2(대비)·자동 공유 문구는 생성 중단·Fold 전역 기억·ⓘ 탭=기록·표 머리 compact 토글·F4 재현 먼저
+- P1(v0.39.0 예정·미배포): ui/quiet.tsx(MetaLine·MetaAction·QuietChip·Fold·PrText) · 블록 머리 조합=회색 메타·PR=금색 글자·볼륨=회색 숫자·kg│lb=표 머리 compact·더 보기 접기(전역 기억 `fold:block`)·이전 칸 회색 숫자·슈퍼셋/세트 상세 빨강 제거 · 측정 첫 세트 체크 395→287(360)·359→287(390)·머리 빨강 2→0 · e2e 53/53·make verify(core 297) · 캡처 spec shots/p1 · 결정 전부 권장 · QA 핵심(ink2 대비·Fold 전역·ⓘ 탭=기록·compact 토글)
 - 작업 범위: frontend(ui/quiet.tsx 신규·UnitToggle·RecordSlotSelector·session/ExerciseBlock·SetRowEdit·WorkoutSummary·analytics/*·routines/RoutinesClient·WeekSummary·feed/*·ShareWorkout·CatalogClient) · core(getRecentBrands·빠른 운동 자동 이름) · e2e(helpers·좌표 검사)
+## 대기 작업 — openGym 대조 추천 1~5 (요구 발급 완료 2026-10-27 · 다음 /design · 보고서 `.ouroboros/docs/report/20261027_opengym-compare_report.html`)
+- URS-024(UCS-023·SRS-073 RIR 입력·074 노력 분석·075 근육 지도·076 근육 균형·077 체중 이력·체크인·078 체중 추세) · URS-025(UCS-024·SRS-079 기간 성과 요약·080 코치에게 보내기 — SRS-048 확장) · URS-026(UCS-025·SRS-081 CSV 변환·매칭·082 가져오기 안전) · 스펙 단계 열린 질문: RIR 저장 척도·보조근 가중치·체중 주간 변화 계산·카드 저장 위치·성능 목표
 ## 직전 작업 — 운동 중 kg/lb 토글 · 막대 취소 (Feature · **완료** v0.38.0 build 334 · 5222c61 · 2026-10-27)
 - /qa code 조치: H-1 writer 안 판단·토글 막음 · H-2 v25 unit_by_user · H-3 v25 set_logs.user_edited(Q4 B 는 사람이 적은/완료 세트만, 자동 채움은 실제 무게 유지) · H-4 feed.proto · M-1~M-4 · 리포트 `.ouroboros/docs/qa/20261027_unit-toggle-code_qa.md` · 남은 피드백 #55·#25 보류
 - 결정 Q1 A(종목×칸 기억 — 완료 블록에서 유도) · Q2 A(세트는 적은 단위·합계 kg) · Q3 A(프로필 단위 제거·바/체중 kg) · Q4 B(토글=숫자 유지·단위만) · 스키마 v25 `workout_exercises.weight_unit`(null=kg) · 피드 proto `WorkoutExercise.weight_unit=5`
@@ -13,8 +15,7 @@
 - 검증: core 280 · go · 로컬 운영 빌드 e2e 36+12 통과 · 운영 360×560 휴식 막대 bottom 544·요약 548 / 390×844(다크) 828·832 · 콘솔 오류 0 · PLM #52·#59·#45·#43 완료
 ## 직전 작업 — 묶음 1 「운동 중 보조」 (Feature · **완료** 2026-10-27 · v0.36.0 운영 build 328 · e53f2b8) · URS-020·SRS-061~063 · /qa code 조치 리포트 `.ouroboros/docs/qa/20261027_session-assist-code_qa.md`(H1·H2·M1~M6·L1·L4·L6·L8 수정, L2·L3·L5·L7·L9~L11 보류) · PLM #50·#51·#48·#56 완료
 ## 직전 작업 — 운동 완료 시 루틴 반영·루틴으로 저장 (Feature · **완료** 2026-10-27 · v0.35.0 운영 build 324 · bb53b04)
-- 요구 URS-019·UCS-022·SRS-059(변경점 선택 반영)·SRS-060(루틴으로 저장) · 스펙 `.ouroboros/docs/spec/20261027_finish-routine-sync/spec.md` · 피드백 #46·#60·#59(일부) · 출시 v0.35.0
-- 현재 위치: spec→qa spec→execute(6dd965c)→qa code(높음2·중간4·낮음6 전부 조치)→release v0.35.0 · 운영 빠른 운동→저장 시트·「루틴으로 저장했어요」 실확인 · PLM #46·#60 완료(#59 유지) · 리포트 `.ouroboros/docs/qa/20261027_finish-routine-sync-{spec,code}_qa.md`
+- URS-019·UCS-022·SRS-059·SRS-060 · 스펙 `.ouroboros/docs/spec/20261027_finish-routine-sync/` · qa code 전부 조치 → v0.35.0 운영 확인 · PLM #46·#60 완료(#59 유지)
 ## 직전 작업 — 종목 카탈로그 대개편 (Project · **완료** 2026-10-26 · v0.30.0~v0.34.1 운영)
 - 요구 URS-018·UCS-020/021·SRS-055~058 · 결정 ADR-033~037(034=026·030 대체) · 스펙 `.ouroboros/docs/spec/20261026_exercise-catalog-revamp/`(spec.md·catalog-master.csv 480행·_context·_analysis)
 - Phase: P0 기반(정본 CSV·gen-catalog·부팅 이관·동기 시드 무시)+P1 기록 칸 축 v0.30 → P2 카탈로그+운영 이관 v0.31 → P3 검색·별칭 v0.32 → P4 운동 중 UI v0.33 → P5 픽토그램 v0.34
