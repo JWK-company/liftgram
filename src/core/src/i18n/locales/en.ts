@@ -1414,7 +1414,7 @@ export const en: Record<TransKey, string> = {
   "progressSummary.reportTitle": "{name} — member report",
   "progressSummary.reportScope": "Calculated on this device from records within the member's consent",
   "progressSummary.reportUnitNote": "Muscle breakdown now counts sets instead of volume (kg)",
-  "progressSummary.prListTrainerNote": "New records show as a count only",
+  "progressSummary.prListTrainerNote": "New records show as a count only · counted when each workout was finished, so it may differ from the member's summary",
   "progressSummary.reportTooLarge": "Too many records — pick a shorter period",
   "progressSummary.reportFailed": "Couldn't load the report",
   // P4 /qa code fixes (2026-10-27) @plm SRS-079 SRS-080

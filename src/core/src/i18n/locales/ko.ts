@@ -1425,7 +1425,7 @@ export const ko = {
   "progressSummary.reportTitle": "{name} 회원 리포트",
   "progressSummary.reportScope": "회원 동의 범위의 기록으로 이 기기에서 계산해요",
   "progressSummary.reportUnitNote": "부위별은 이제 볼륨(kg) 대신 세트 수로 보여요",
-  "progressSummary.prListTrainerNote": "새 기록은 개수만 보여요",
+  "progressSummary.prListTrainerNote": "새 기록은 개수만 보여요 · 운동을 마칠 때 센 값이라 회원이 보낸 요약과 다를 수 있어요", // P4 수정 판단: 트레이너는 이전 기록을 받지 않아 저장된 pr_count 를 쓴다(ADR-040)
   "progressSummary.reportTooLarge": "기록이 너무 많아요 — 기간을 줄여 주세요",
   "progressSummary.reportFailed": "리포트를 불러오지 못했어요",
   // P4 /qa code 조치(2026-10-27) @plm SRS-079 SRS-080
