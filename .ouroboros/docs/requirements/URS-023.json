@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-023",
+  "type": "URS",
+  "title": "앱이 보여 주는 정보가 늘어도 화면은 조용하고, 지금 할 일이 한눈에 보이기를 원한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:00:00Z",
+  "updated": "2026-10-27T06:00:00Z",
+  "sync": true,
+  "tags": ["design", "declutter", "hierarchy", "session"],
+  "stakeholder": "매일 기록하는 리프터(P2 기록러)·헬스장에서 한 손으로 기록하는 사용자·피드를 보는 사용자",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "배경 / 이해관계자"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "최근 두 주 동안 운동 블록에 PR 칩 2개·kg/lb 토글·기록 칸 조합·처방 근거·픽토그램이 더해졌고, 요약·기록 상세·피드에도 행동 버튼이 늘었다. 사용자(운영자 겸 리프터)는 「변형이 많아지고 정보가 늘어 화면이 번잡하고 지저분해 보일 수 있다」고 제기했다. 전 화면 전수 검사(29화면 × 3 크기, 2026-10-27)에서 운동 블록 머리 칩·버튼 9개, 강조 빨강 7곳, 360×640 에서 첫 세트 체크까지 486px 가 측정됐다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "운동 중에는 세트를 적고 체크하는 일이 화면에서 가장 먼저 보이고, 나머지 정보는 조용히 곁에 있기를 원한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "색이 뜻을 갖기를 원한다 — 눌러야 할 것과 기록(PR)만 색으로 구분되고 나머지는 무채색."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "같은 사실을 한 화면에서 두 번 읽지 않기를 원한다. 정보는 줄이지 않되, 늘 보일 필요 없는 것은 접혀 있기를 원한다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "360×640 운동 화면에서 첫 종목의 첫 세트 체크 버튼이 위에서 320px 이내."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "운동 블록에서 브랜드 빨강을 쓰는 곳이 「완료」·세트 체크 두 종류 이하."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "지금 보이는 정보·기능은 하나도 사라지지 않는다(접힌 곳에서 한 번 눌러 닿는다)."}]}]}
+      ]}
+    ]
+  }
+}

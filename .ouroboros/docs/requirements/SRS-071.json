@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-071",
+  "type": "SRS",
+  "title": "화면 정리 P3 — 홈·피드 운동 카드·기록 칸 시트(D7~D9) + 전수 검사 결함 수정",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:00:00Z",
+  "updated": "2026-10-27T06:00:00Z",
+  "sync": true,
+  "tags": ["design", "declutter", "home", "feed", "variant-sheet"],
+  "kind": "FR",
+  "acceptance_criteria": "홈 진행 중 카드 제거(하단 막대 하나) · 피드 운동 카드 숫자 한 줄 + 2칸 버튼(글자 꺾임 0) · 칸 시트 최근 브랜드 위 줄 + 나머지 작은 무채 칩 · 이름 없는 커스텀 숨김 · 결함 6건(FAB 가림·휴식 막대 겹침 순서·EZ바 정렬·빠른 운동 이름 등) 수정.",
+  "relations": {"derives_from": ["URS-023"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "운동 탭 홈의 진행 중 카드는 하단 진행 막대와 같은 사실을 반복하므로 없애고 막대 하나로 알린다(취소·열기는 막대에 이미 있다). 이번 주 요약은 막대와 숫자 한 줄로 줄인다. 피드 운동 카드는 숫자를 한 줄 메타로 쓰고, 「종목 n개 보기」는 링크, 아래에 [바로 시작][루틴 가져오기] 2칸 버튼(주 행동 하나만 채움)을 두며 「운동」 배지와 본문 자동 문구 반복을 없앤다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "기록 칸 시트는 그 종목에서 최근 쓴 브랜드(최대 3)를 위 줄에, 나머지 브랜드를 작은 무채 칩으로 두고, 이름을 붙이지 않은 커스텀 슬롯 1~3은 숨긴다. 순서는 브랜드 → 적재 방식 → 한쪽 입력 → 기구 바꾸기. 함께 피드 + 버튼이 마지막 글을 가리는 것, 휴식 막대가 시트 배경 위로 뜨는 것, 종목 탭 기본 정렬에서 「EZ바」가 맨 위로 오는 것, 빠른 운동 이름이 모두 「빠른 운동」으로 남는 것을 고친다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "진행 중 운동이 있을 때 홈에 resume-card 가 없고 하단 막대(열기·취소)가 보인다. 이어서 하기 경로는 막대로 유지된다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "360px 피드 카드에서 버튼 글자가 한 줄(줄바꿈 0)이고 post-start-now·post-routine-import 가 동작한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "머신 칸 시트에서 최근 브랜드가 맨 위에, 라벨 없는 custom1~3 은 보이지 않는다(라벨을 붙이면 보인다)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "피드 목록 마지막 글 본문이 + 버튼에 가리지 않고, 칸 시트를 열면 휴식 막대가 배경 아래로 들어간다(좌표·겹침 e2e)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "종목 탭 기본 정렬이 한글 이름 순으로 「EZ바 …」가 맨 위에 오지 않고, 빠른 운동은 완료 시 「등 · 3종목」처럼 주 부위 이름을 받는다(사용자가 이름을 정했으면 유지)."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-023. 결정 D7·D8·D9, 결함 1·2·4·6·7. 스펙 20261027_declutter P3(v0.41.0)."}]}
+    ]
+  }
+}

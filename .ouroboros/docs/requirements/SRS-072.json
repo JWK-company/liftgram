@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-072",
+  "type": "SRS",
+  "title": "화면 정리 P4 — 나머지 화면 점검(종목 탭·상세·피커·루틴 편집·분석·프로필·코칭·DM)에 공용 규칙 적용",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:00:00Z",
+  "updated": "2026-10-27T06:00:00Z",
+  "sync": true,
+  "tags": ["design", "declutter", "sweep"],
+  "kind": "NFR",
+  "acceptance_criteria": "전수 검사에서 빠진 4화면 포함 전 화면을 P1 공용 규칙으로 재캡처·점검 · 화면별 강조 빨강 ≤ 2종 · 테두리 칩은 필터처럼 고르는 칩에만 · 점수표 전후 비교 리포트.",
+  "relations": {"derives_from": ["URS-023"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "P1~P3 에서 만든 공용 조각(메타 줄·조용한 칩·접기·색 의미 2)을 나머지 화면에 적용하고 남는 곳만 손본다. 2026-10-27 전수 검사에서 캡처하지 못한 종목 상세·루틴 편집·종목 검색·피커를 포함해 전 화면을 다시 찍고, 점수표(정보 요소·칩·강조색·글자 단계)를 이전 값과 비교한 리포트를 남긴다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "선택형 칩(근육·기구 필터, 세트 타입 등 사용자가 고르는 칩)은 테두리를 유지하고, 상태를 알리는 칩은 메타 글자로 바꾼다. 화면마다 브랜드 빨강은 주 행동과 선택 상태에만 쓴다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "전 화면 390 라이트·다크·360 캡처와 전후 점수표가 리포트로 남고, 점수표의 강조색 수가 화면별 2 이하."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "전 화면 e2e 회귀 통과 · 가로 스크롤 0."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-023. 스펙 20261027_declutter P4(v0.41.x)."}]}
+    ]
+  }
+}

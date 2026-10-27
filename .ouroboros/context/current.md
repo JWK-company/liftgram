@@ -1,5 +1,9 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 운동 중 kg/lb 토글 · 막대 취소 (Feature · **완료** v0.38.0 build 334 · 5222c61 · 2026-10-27)
+## 활성 작업 — 화면 정리(declutter) (Feature×4 · qa spec 완료 → P1(v0.39.0) execute 대기 · 2026-10-27)
+- 요구 URS-023·SRS-069(P1 공용 규칙+운동 블록 D1~D4·F3)·SRS-070(P2 요약·기록 상세·분석 D5·D6·F5)·SRS-071(P3 홈·피드·칸 시트 D7~D9·F1·F2·F4·F6·F7)·SRS-072(P4 나머지 점검) · 스펙 `.ouroboros/docs/spec/20261027_declutter/spec.md` · QA `.ouroboros/docs/qa/20261027_declutter-spec_qa.md`
+- 결정 전부 권장(보고서 artifact ADULRE6tUBr8wuSUGRA6w7) · 핵심 QA: QuietChip 글자 ink2(대비)·자동 공유 문구는 생성 중단·Fold 전역 기억·ⓘ 탭=기록·표 머리 compact 토글·F4 재현 먼저
+- 작업 범위: frontend(ui/quiet.tsx 신규·UnitToggle·RecordSlotSelector·session/ExerciseBlock·SetRowEdit·WorkoutSummary·analytics/*·routines/RoutinesClient·WeekSummary·feed/*·ShareWorkout·CatalogClient) · core(getRecentBrands·빠른 운동 자동 이름) · e2e(helpers·좌표 검사)
+## 직전 작업 — 운동 중 kg/lb 토글 · 막대 취소 (Feature · **완료** v0.38.0 build 334 · 5222c61 · 2026-10-27)
 - /qa code 조치: H-1 writer 안 판단·토글 막음 · H-2 v25 unit_by_user · H-3 v25 set_logs.user_edited(Q4 B 는 사람이 적은/완료 세트만, 자동 채움은 실제 무게 유지) · H-4 feed.proto · M-1~M-4 · 리포트 `.ouroboros/docs/qa/20261027_unit-toggle-code_qa.md` · 남은 피드백 #55·#25 보류
 - 결정 Q1 A(종목×칸 기억 — 완료 블록에서 유도) · Q2 A(세트는 적은 단위·합계 kg) · Q3 A(프로필 단위 제거·바/체중 kg) · Q4 B(토글=숫자 유지·단위만) · 스키마 v25 `workout_exercises.weight_unit`(null=kg) · 피드 proto `WorkoutExercise.weight_unit=5`
 - 검증: make verify(core 288·go) · 로컬 운영 빌드 e2e 81/81 · 새 e2e 4건은 옛 코드(운영 v0.37.0)에서 실패 확인 · 스샷 spec 폴더 · 보류 #55·#25 그대로
@@ -94,7 +98,3 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - 시안 D1~D6 전부 A · 스펙 docs/spec/20261026_srs-054-redesign-p0p1_spec.md · 보고 docs/report/20261026_redesign-p0p1_report.md
 - P0: 앱바 2형·5탭 라인 아이콘·바닥 시트·공용 조각(rows·MoreMenu)·LogoSpinner · 속도: next/link+LinkInterceptor(탭 이동 21~36ms·새 요청 0) · 갱신 라우트 Me 동봉 · 사용자 캐시 첫 칠하기 · SW 탭 셸 SWR
 - P1: 홈 요약형·운동 중 집중 모드(⋯)·운동 추가 시트·완료 화면·진행 중 막대 · loading.tsx 는 dev e2e 57건 깨져 철회(useLinkStatus 로 대체)
-- P2: 기록 달별 묶음·휴지통→상세 ⋯ · 달력 주황 칸·목표 시트·자랑 ⋯ · 분석 구간 4칸·대표 숫자+8칸 추세 · 루틴 하단 시작 · 종목 줄 목록·내 1RM 추세 · 다크 --seg-on
-- P3: 프로필 사람→설정 줄+시트(경력·의향은 편집 시트) · 로그인 전체 화면·탭 제거(mode-* 표식은 하단 링크) · /account 3구역·#backup · 온보딩 앱 아이콘
-- P4: 피드 아이콘 3·팔로잉/발견 탭·+ 작성기 · DM/알림 줄 · 남의 프로필 머리·차단 ⋯
-- P5: 데스크톱 세로 탭바 · 약관 앱바+사업자 정보 · 시드 카탈로그 동적 import(−13KB gz) · v0.29.1 첫 SW 설치 새로고침 제거 · 보고서 report/20261026_redesign-p2p5_report.md
