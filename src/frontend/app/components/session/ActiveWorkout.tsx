@@ -796,7 +796,8 @@ function SupersetContainer({
     // [원본] 빨간 테두리 + 빨간 머리띠 — 묶음은 「구역」 표시라 진한 회색 테두리 + 회색 caption(화면 정리 P1) @plm SRS-069
     // <div className="… border-[1.5px] border-(--color-brand) …"><div className="… bg-(--color-brand-muted) …">
     <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-line-strong) bg-(--color-surface)">
-      <div className="flex items-center bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)]">
+      {/* [원본] py-[var(--spacing-xs)] — compact 순서 버튼의 넓힌 누르는 자리(44px)가 overflow-hidden 에 위아래로 잘렸다(/qa code L-1) */}
+      <div className="flex items-center bg-(--color-surface-alt) px-[var(--spacing-md)] py-[8px]">
         {/* [원본] 20×20 위아래가 세로로 붙어 있었다 — 블록과 같은 이유(잘못 눌림 · /qa code M-5)로 좌우·누르는 자리 44px(피드백 #62) @plm SRS-084
         {onMoveUp || onMoveDown ? (
           <div className="mr-[6px] flex flex-col gap-[2px]">
@@ -810,7 +811,8 @@ function SupersetContainer({
         <AppText variant="caption" color="textMuted" className="ml-[6px] flex-1 font-semibold">
           {t("session.superset")}
         </AppText>
-        <span className="mr-[var(--spacing-sm)]">
+        {/* [원본] mr-[var(--spacing-sm)] — ⌄ 누르는 자리가 「해제」와 맞닿았다(/qa code L-1) → 16px 띄운다 @plm SRS-084 */}
+        <span className="mr-[16px]">
           <MoveButtons compact onMoveUp={onMoveUp} onMoveDown={onMoveDown} testIdPrefix="btn-superset-move" />
         </span>
         <button

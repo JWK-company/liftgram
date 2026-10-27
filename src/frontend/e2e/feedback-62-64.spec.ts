@@ -14,6 +14,7 @@ import {
   카탈로그_준비,
   종목_추가,
 } from "./fixtures/declutter-seed";
+import { idb_행_고치기, 내려쓰기_대기, 빈_문서 } from "./helpers/opengym";
 
 type Page = import("@playwright/test").Page;
 
@@ -329,4 +330,107 @@ test("#62 휴식·메모·순서는 ⋯ 메뉴 밖 도구 줄 — 44px · 빨강
   await expect(note).toContainText("팔꿈치 고정");
   await expect(note).not.toContainText("다음엔");
   expect(await 빨강(page, '[data-testid="block-tools"]'), "메모 있는 도구 줄 빨강").toEqual([]);
+});
+
+// ── /qa code M-1 — 아직 안 정한 종목에서 칸 시트로 정해도 숫자는 그대로(질문 답과 같다) ─────────────────────
+
+async function 칸_시트_닫기(page: Page): Promise<void> {
+  await page
+    .getByTestId("variant-sheet")
+    .locator("xpath=..")
+    .locator('button[aria-label="닫기"]')
+    .click({ position: { x: 5, y: 5 } });
+  await expect(page.getByTestId("variant-sheet")).toHaveCount(0);
+}
+
+const 첫_무게 = (page: Page, n: number) =>
+  블록(page, n).getByTestId("set-list").locator("> div").first().getByTestId("set-weight");
+
+test("M-1 미정 종목에서 칸 시트로 「핀」 — 프리필 20 이 20 그대로 · 「양쪽 합·핀」으로 기억 · 「한쪽」 끄기도 숫자 그대로", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "머신 체스트 프레스");
+  await 종목_추가(page, "머신 하이 로우");
+  await 안내_띠_닫기(page);
+  await expect(블록(page, 0).getByTestId("plate-ask")).toBeVisible({ timeout: 15_000 });
+  await expect(첫_무게(page, 0)).toHaveValue("20");
+
+  // ① 체스트 프레스 — 적재 칸 「핀」
+  await page.getByTestId("variant-trigger").nth(0).click();
+  await page.getByTestId("slot-load-pin").click();
+  await 칸_시트_닫기(page);
+  await expect(블록(page, 0).getByTestId("plate-ask")).toHaveCount(0);
+  await expect(블록(page, 0).getByTestId("head-weight")).toHaveAttribute("data-one-side", "0");
+  await page.waitForTimeout(1_500);
+  await expect(첫_무게(page, 0), "핀을 골라도 숫자 그대로(옛: 40)").toHaveValue("20");
+
+  // ② 하이 로우 — 「한쪽 무게로 입력」 끄기
+  await expect(블록(page, 1).getByTestId("plate-ask")).toBeVisible();
+  await page.getByTestId("variant-trigger").nth(1).click();
+  await page.getByTestId("slot-plate-one-side-input").uncheck();
+  await 칸_시트_닫기(page);
+  await expect(블록(page, 1).getByTestId("plate-ask")).toHaveCount(0);
+  await page.waitForTimeout(1_500);
+  await expect(첫_무게(page, 1), "끄기도 숫자 그대로(옛: 40)").toHaveValue("20");
+  await 세트_기록(page, 1, 0, 30, 10);
+  await expect(볼륨(page, 1)).toContainText("300", { timeout: 10_000 });
+
+  const skipDone = async () => {
+    const skip = page.getByTestId("btn-finish-dont-save");
+    if (await skip.isVisible()) await skip.click();
+  };
+  await 세트_기록(page, 0, 0, 20, 10);
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("summary-volume")).toHaveText("500kg", { timeout: 15_000 });
+  await skipDone();
+  await page.getByTestId("btn-summary-close").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+
+  // 다음 운동 — 하이 로우는 「양쪽 합」으로 기억돼 묻지 않는다
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "머신 하이 로우");
+  await expect(블록(page, 0).getByTestId("head-weight")).toHaveAttribute("data-one-side", "0", {
+    timeout: 15_000,
+  });
+  await page.waitForTimeout(1_500);
+  await expect(블록(page, 0).getByTestId("plate-ask")).toHaveCount(0);
+  await expect(첫_무게(page, 0)).toHaveValue("30");
+});
+
+test("M-1 옛 기록(배수 null)이 있는 플레이트 머신 — 프리필은 옛 숫자, 칸 시트로 「핀」을 골라도 그대로(이번 사용자 사례)", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await 카탈로그_준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "머신 체스트 서포티드 로우");
+  await 안내_띠_닫기(page);
+  await 세트_기록(page, 0, 0, 50, 10);
+  await page.getByTestId("btn-complete").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 15_000 });
+  const skip = page.getByTestId("btn-finish-dont-save");
+  if (await skip.isVisible()) await skip.click();
+  await page.getByTestId("btn-summary-close").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+
+  // 옛 기기 모양으로 — 세트 배수 null · 입력 방식 선택 없음(피드백 #63 전의 기록)
+  await 내려쓰기_대기(page);
+  await 빈_문서(page);
+  expect(await idb_행_고치기(page, "set_logs", [{ set: { load_multiplier: null } }])).toBeGreaterThan(0);
+  await idb_행_고치기(page, "exercise_user_prefs", [{ set: { plate_one_side: null } }]);
+
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "머신 체스트 서포티드 로우");
+  await expect(블록(page, 0).getByTestId("plate-ask")).toBeVisible({ timeout: 15_000 });
+  await expect(첫_무게(page, 0), "옛 50 은 50 으로(절반 환산 없음)").toHaveValue("50");
+  await page.getByTestId("variant-trigger").nth(0).click();
+  await page.getByTestId("slot-load-pin").click();
+  await 칸_시트_닫기(page);
+  await page.waitForTimeout(1_500);
+  await expect(첫_무게(page, 0), "핀을 골라도 50(옛: 100)").toHaveValue("50");
 });

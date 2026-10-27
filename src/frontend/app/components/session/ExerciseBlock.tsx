@@ -709,6 +709,9 @@ export function ExerciseBlock({
                 value={variant}
                 onChange={(dims) => {
                   setVariant(dims);
+                  // 아직 안 정한 종목에서 핀을 고르면 「양쪽 합·핀」으로 답한 것이다(저장소가 기록 · /qa code M-1) @plm SRS-084
+                  if (plate.candidate && plate.choice == null && dims.load === "pin")
+                    plate.setChoiceLocal(false);
                   // [원본] void write(() => repo.setVariant(we.id, dims));
                   // [개선] 칸이 바뀌면 그 칸이 기억하는 단위로(완료 세트가 없을 때만 · 환산 없음) @plm SRS-067
                   void write(() => repo.setVariant(we.id, dims)).then(() =>

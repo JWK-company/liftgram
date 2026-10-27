@@ -78,9 +78,26 @@ export function ServiceWorker() {
   // 세트를 적는 도중 새로고침하지 않는다는 원칙은 그대로 — 진행 중인 운동이 있으면 끝날 때까지 기다린다.
   // 운동 여부는 셸 상태가 아니라 **기기 DB** 로 본다(부팅 직후 셸 상태는 아직 비어 있을 수 있다).
   // 미뤄 둔 새로고침 — 운동 화면을 떠나면(요약 닫기 → 홈) 그때 한 번 @plm SRS-084
+  // [원본] if (pendingReload && !isUpdateHoldPath(pathname)) window.location.reload();
+  // [개선] 새로고침 전에 기기 DB 를 내려쓰고, 진행 중 운동이 있으면 계속 미룬다(그대로 다시 시작 → 홈에 잠깐 나간 경우 · /qa code L-3)
   useEffect(() => {
-    if (pendingReload && !isUpdateHoldPath(pathname)) window.location.reload();
-  }, [pendingReload, pathname]);
+    if (!pendingReload || isUpdateHoldPath(pathname) || activeWorkoutId) return;
+    let stop = false;
+    void (async () => {
+      try {
+        const repo = await import("@app/core/data/workoutRepository");
+        if (stop || (await repo.getActiveWorkout())) return;
+        const { flushLocalDb } = await import("@/lib/localDb");
+        await flushLocalDb();
+      } catch {
+        // 확인하지 못해도 예전처럼 새로고침한다(떠난 화면이다)
+      }
+      if (!stop) window.location.reload();
+    })();
+    return () => {
+      stop = true;
+    };
+  }, [pendingReload, pathname, activeWorkoutId]);
 
   useEffect(() => {
     // [원본] if (!waiting || activeWorkoutId) return;

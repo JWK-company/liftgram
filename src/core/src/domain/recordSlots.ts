@@ -126,6 +126,28 @@ export function planBlockMultiplierRetag(
     .map((s) => ({ id: s.id, weightKg: s.weightKg, loadMultiplier: toMultiplier }));
 }
 
+/**
+ * /qa code M-1 — 칸 시트(적재 칸·「한쪽 무게로 입력」)를 바꿀 때 세트를 어떻게 맞출지. 아직 입력 방식을 안 정한 후보 종목이면
+ * 지금 붙은 ×2 는 「기본」일 뿐 사람이 한쪽이라고 한 근거가 없다 → 질문 답과 똑같이 **재표기**(숫자 그대로 배수만).
+ * 정했거나 후보가 아니면 기존 규칙(안 한 세트만 계산 무게 보존 환산). @plm SRS-084
+ */
+export function plateChangeMode(
+  choiceBefore: boolean | null | undefined,
+  defaultLoad: 'plate' | 'pin' | null | undefined,
+): 'retag' | 'resync' {
+  return defaultLoad && choiceBefore == null ? 'retag' : 'resync';
+}
+
+/**
+ * /qa code M-2 — 옛 기록(배수 null)을 지금 블록 배수로 읽는다. 프리필과 같은 규칙 「플레이트 머신의 옛 null 기록 = 예전과
+ * 같은 숫자로 보인다」를 1RM % 처방에도 적용하려고, 1RM 을 추정하기 전에 null 배수를 블록 배수로 채운다. 블록 배수가 null 이면
+ * 그대로(=1). 명시 배수 기록은 바꾸지 않는다. @plm SRS-084
+ */
+export function adoptLegacyMultiplier<T extends { loadMultiplier?: number | null }>(sets: T[], blockMultiplier: number | null | undefined): T[] {
+  if (blockMultiplier == null) return sets;
+  return sets.map((s) => (s.loadMultiplier == null ? { ...s, loadMultiplier: blockMultiplier } : s));
+}
+
 export interface SlotSession {
   variantKey: string | null;
   completedAt: number;

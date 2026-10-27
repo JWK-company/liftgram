@@ -103,3 +103,34 @@ test('토글 동기(V2) — 안 한 세트만, 옛 null 세트는 숫자 그대�
     { id: 'typed', weightKg: 70, loadMultiplier: 2 },
   ]);
 });
+
+// ── /qa code M-1·M-2 (2026-10-27) ──────────────────────────────────────────
+import { adoptLegacyMultiplier, plateChangeMode } from '../recordSlots';
+import { bestEstimatedOneRepMax } from '../oneRepMax';
+
+test('M-1 칸·토글 변경 방식 — 아직 안 정한 후보는 질문 답과 같이 재표기(숫자 그대로), 정했거나 후보 아니면 기존 환산', () => {
+  assert.equal(plateChangeMode(null, 'plate'), 'retag');
+  assert.equal(plateChangeMode(undefined, 'pin'), 'retag');
+  assert.equal(plateChangeMode(true, 'plate'), 'resync');
+  assert.equal(plateChangeMode(false, 'plate'), 'resync');
+  assert.equal(plateChangeMode(null, null), 'resync');
+});
+
+test('M-1 미정 → 핀: 재표기면 프리필 20 이 20 그대로(환산이면 40 이 되던 것)', () => {
+  const sets = [{ id: 'a', done: false, weightKg: 20, loadMultiplier: 2 }];
+  assert.deepEqual(planBlockMultiplierRetag(sets, null), [{ id: 'a', weightKg: 20, loadMultiplier: null }]);
+  assert.deepEqual(planBlockMultiplierResyncV2(sets, null), [{ id: 'a', weightKg: 40, loadMultiplier: null }]);
+});
+
+test('M-2 옛 null 기록은 지금 블록 배수로 읽는다 — 1RM % 처방 프리필이 옛 숫자 기준(절반이 되지 않는다)', () => {
+  const legacy = [{ weightKg: 100, reps: 10, isWarmup: false, isFailed: false, loadMultiplier: null }];
+  const est1 = bestEstimatedOneRepMax(legacy as never);
+  const est2 = bestEstimatedOneRepMax(adoptLegacyMultiplier(legacy, 2) as never);
+  assert.ok(Math.abs(est2 - est1 * 2) < 1e-9);
+  // 75% 처방 → 계산 kg ÷ 블록 배수 2 = 입력 숫자는 옛 숫자 기준 75%
+  assert.ok(Math.abs((0.75 * est2) / 2 - 0.75 * est1) < 1e-9);
+  // 명시 배수 기록·블록 배수 null 이면 그대로
+  const explicit = [{ weightKg: 50, reps: 10, isWarmup: false, isFailed: false, loadMultiplier: 2 }];
+  assert.deepEqual(adoptLegacyMultiplier(explicit, 1), explicit);
+  assert.deepEqual(adoptLegacyMultiplier(legacy, null), legacy);
+});
