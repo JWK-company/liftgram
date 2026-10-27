@@ -136,6 +136,11 @@ test("루틴이 있는 홈 — 빨강 채움 버튼은 하나(오늘 할 루틴 
   await expect(page.getByTestId("routine-list")).toContainText("측정 루틴", { timeout: 20_000 });
   await page.goto("/");
   await expect(page.getByTestId("btn-start-routine").first()).toBeVisible({ timeout: 20_000 });
+  // [원본] 표시 직후 개수만 쟀다 — 판단 전 0개·빠른 시작이 빨강인 순간에 걸려 틀린 버튼으로도 통과했다(/qa M-2 M-6-4)
+  // expect(await filledBrandButtons(page)).toBe(1);
+  // [개선] 판단 표식을 기다린 뒤 개수를 잰다 — 어느 버튼인지는 home-primary.spec 이 고정한다
+  await expect(page.getByTestId("home-ready")).toHaveCount(1, { timeout: 20_000 });
+  await expect(page.getByTestId("btn-start-next")).toBeVisible();
   expect(await filledBrandButtons(page)).toBe(1);
 });
 

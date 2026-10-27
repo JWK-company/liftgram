@@ -350,7 +350,12 @@ export async function getTodayRoutineRecommendation(): Promise<TodayRoutineReco>
 
   // 현존 루틴만 추천 가능(삭제된 루틴은 시작 불가).
   const routineIds = [...new Set(ws.map((w) => w.routineId).filter((r): r is string => !!r))];
-  const rList = routineIds.length ? await routines().query(Q.where('id', Q.oneOf(routineIds))).fetch() : [];
+  // [원본] 보관(archived) 루틴도 걸러지지 않아 홈이 보관 루틴을 추천·「최근」으로 골랐다(화면 정리 M-2 /qa M-4·L-4)
+  // const rList = routineIds.length ? await routines().query(Q.where('id', Q.oneOf(routineIds))).fetch() : [];
+  // [개선] 화면 목록(queryRoutines)과 같은 기준 — 보관 루틴은 추천·최근 후보가 아니다 @plm SRS-072
+  const rList = routineIds.length
+    ? await routines().query(Q.where('id', Q.oneOf(routineIds)), Q.where('is_archived', false)).fetch()
+    : [];
   const nameById = new Map<string, string>(rList.map((r) => [r.id, r.name]));
 
   const entries: RecoWorkout[] = ws.map((w) => {

@@ -27,7 +27,7 @@ import {
   type ConceptRoutine,
   type MissedPlan,
 } from "@app/core";
-import { useQueryData } from "@app/core/db/hooks";
+import { useQueryData, useQueryDataStatus } from "@app/core/db/hooks";
 import { type HomePrimary, pickHomePrimary } from "@app/core/domain/homePrimary";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -68,7 +68,8 @@ export default function RoutinesClient() {
   const { user, weeklySchedule } = useUser();
   // [원본] activeName 도 꺼냈다 — 진행 카드 제목(화면 정리 D8 로 렌더 중단)
   // [원본] const { activeWorkoutId, setActive, refreshActive } = useSession(); — refreshActive 는 아래 고아 확인창에서만 썼다
-  const { activeWorkoutId, setActive } = useSession();
+  // activeLoaded — 진행 중인 운동을 읽기 전의 null 은 「없음」이 아니라 「모름」(화면 정리 M-2 /qa H-2) @plm SRS-072
+  const { activeWorkoutId, setActive, activeLoaded } = useSession();
   const toast = useToast();
 
   const [repos, setRepos] = useState<{
@@ -77,7 +78,11 @@ export default function RoutinesClient() {
     analytics: AnalyticsRepo;
   } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [reco, setReco] = useState<Reco | null>(null);
+  // [원본] const [reco, setReco] = useState<Reco | null>(null); — 다시 읽는 동안 지난 값(운동 전·어제)이 그대로 쓰였다(/qa M-2 H-2·L-3)
+  // [개선] 추천에 「무엇을 보고 계산했나」 열쇠를 붙여 둔다 — 열쇠가 지금과 다르면 지난 값이라 쓰지 않는다 @plm SRS-072
+  const [recoEntry, setRecoEntry] = useState<{ key: string; value: Reco } | null>(null);
+  // 오늘(로컬 달력일) — 홈을 띄워 둔 채 자정을 넘기면 추천의 「오늘 운동함」이 어제 값으로 남는다(/qa L-3)
+  const [todayNum, setTodayNum] = useState(() => localDayNum(Date.now()));
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
   const [concept, setConcept] = useState<ConceptRoutine | null>(null);
   const [actionsFor, setActionsFor] = useState<Routine | null>(null);
@@ -103,22 +108,55 @@ export default function RoutinesClient() {
     };
   }, []);
 
-  const models = useQueryData(() => (repos ? repos.routine.queryRoutines() : null), [repos]);
+  // [원본] const models = useQueryData(() => (repos ? repos.routine.queryRoutines() : null), [repos]);
+  // [개선] 첫 결과가 왔는지도 함께 — 읽기 전 []를 「루틴 0개」로 보면 빠른 시작이 잠깐 빨강이 된다(/qa M-2 H-1) @plm SRS-072
+  const { data: models, loaded: routinesLoaded } = useQueryDataStatus(
+    () => (repos ? repos.routine.queryRoutines() : null),
+    [repos],
+  );
   const routines: Routine[] = useMemo(() => models.map((m) => m as unknown as Routine), [models]);
 
   // 추천은 완료 이력을 훑어야 나온다 — 목록·진행 상태가 바뀔 때만 다시 읽는다.
   const analytics = repos?.analytics ?? null;
   const routineCount = routines.length;
-  // 아래 두 의존(routineCount·activeWorkoutId)은 **다시 읽는 계기**다 — 효과 본문이 값을 읽지는
-  // 않지만, 루틴이 늘거나 운동을 시작·끝내면 추천이 달라지므로 그때 다시 계산해야 한다.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: 값이 아니라 계기로 쓰는 의존
+  // 루틴이 늘거나 운동을 시작·끝내거나 날이 바뀌면 추천이 달라진다 — 그 셋을 열쇠로 묶어 다시 읽는 계기로 쓴다.
+  // 추천이 무엇을 보고 계산됐나 — 루틴 수·진행 중 운동·오늘. 셋 중 하나라도 바뀌면 지난 추천은 쓰지 않는다.
+  const recoKey = `${routineCount}|${activeWorkoutId ?? ""}|${todayNum}`;
+  const reco: Reco | null = recoEntry && recoEntry.key === recoKey ? recoEntry.value : null;
+
+  // 자정을 넘겨 돌아오면 오늘을 다시 잡는다(→ 열쇠가 바뀌어 추천을 다시 읽는다)
+  useEffect(() => {
+    const sync = () => setTodayNum(localDayNum(Date.now()));
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, []);
+
   useEffect(() => {
     if (!analytics) return;
     let cancelled = false;
+    const key = recoKey;
     void analytics
       .getTodayRoutineRecommendation()
-      .then((r) => !cancelled && setReco(r))
-      .catch(() => !cancelled && setReco(null));
+      .then((r) => !cancelled && setRecoEntry({ key, value: r }))
+      // [원본] .catch(() => !cancelled && setReco(null)); — 실패하면 판단을 영원히 못 해 주 행동이 사라졌다(/qa M-5)
+      // [개선] 실패는 「추천 없음」으로 — 스케줄·첫 루틴 규칙으로라도 주 행동을 정한다 @plm SRS-072
+      .catch(
+        () =>
+          !cancelled &&
+          setRecoEntry({
+            key,
+            value: {
+              status: "insufficient",
+              alreadyWorkedOutToday: false,
+              weekdayHabit: null,
+              lastRoutineId: null,
+            },
+          }),
+      );
     void analytics
       .getCompletedDayNumsSince(8)
       .then((d) => !cancelled && setDoneDayNums(d))
@@ -126,7 +164,7 @@ export default function RoutinesClient() {
     return () => {
       cancelled = true;
     };
-  }, [analytics, routineCount, activeWorkoutId]);
+  }, [analytics, recoKey]);
 
   /**
    * 낱개 루틴의 순서를 한 칸 옮긴다.
@@ -232,11 +270,20 @@ export default function RoutinesClient() {
   // ── 주 행동 하나(화면 정리 M-2 확정 A) ── 빨강 채움은 화면에 하나다. 무엇을 빨강으로 할지는 core 가 고른다.
   // 추천(오늘 운동 여부·최근 루틴)을 읽기 전에는 판단하지 않는다 — 빠른 시작이 빨강이었다가 루틴으로 옮겨 가는 깜빡임을 막는다.
   // @plm SRS-072
-  const homeReady = !!repos && (routines.length === 0 || reco !== null);
+  // [원본] const homeReady = !!repos && (routines.length === 0 || reco !== null);
+  //   — 루틴 목록·진행 중 운동을 읽기 전 상태와 지난 추천으로도 판단해 빨강이 옮겨 다녔다(/qa M-2 H-1·H-2)
+  // [개선] 루틴 목록·진행 중 운동을 다 읽었고, (운동 중이거나 루틴이 0개이거나) 지금 열쇠의 추천이 왔을 때만 판단한다
+  const homeReady =
+    !!repos &&
+    routinesLoaded &&
+    activeLoaded &&
+    (!!activeWorkoutId || routines.length === 0 || reco !== null);
   const primary: HomePrimary | null = homeReady
     ? pickHomePrimary({
         active: !!activeWorkoutId,
-        routineIds: [...loose, ...folderGroups.flatMap(([, members]) => members)].map((r) => r.id),
+        // [원본] routineIds: [...loose, ...folderGroups.flatMap(([, members]) => members)].map((r) => r.id),
+        // [개선] 화면 순서 그대로 — 폴더 묶음이 위, 낱개가 아래(/qa L-1)
+        routineIds: [...folderGroups.flatMap(([, members]) => members), ...loose].map((r) => r.id),
         plan:
           plan.kind === "routine" && plan.routineId
             ? { kind: "routine", routineId: plan.routineId }
@@ -250,8 +297,19 @@ export default function RoutinesClient() {
     : null;
   const primaryRoutineId = primary?.kind === "routine" ? primary.routineId : null;
   // 오늘 카드·추천 카드가 이미 그 루틴을 보여 주면 거기 「시작」이 주 행동이다. 아니면 「다음 운동」 카드를 하나 띄운다.
-  const todayCardShows = !activeWorkoutId && !!weeklySchedule;
-  const recoCardShows = !activeWorkoutId && !weeklySchedule && !!reco && !reco.alreadyWorkedOutToday;
+  // [원본] const todayCardShows = !activeWorkoutId && !!weeklySchedule;
+  // [개선] 미배정일에 「다음 운동」을 권하면서 「오늘은 배정된 루틴이 없어요」를 함께 띄우지 않는다(/qa L-2)
+  const todayCardShows =
+    !activeWorkoutId && !!weeklySchedule && !(plan.kind === "none" && primary?.kind === "routine");
+  // [원본] const recoCardShows = !activeWorkoutId && !weeklySchedule && !!reco && !reco.alreadyWorkedOutToday;
+  // [개선] 화면 목록에 없는 루틴(보관 등)을 권하지 않는다(/qa M-4) · 루틴 0개면 「추천 불가 안내」는 소음(/qa L-5)
+  const recoCardShows =
+    !activeWorkoutId &&
+    !weeklySchedule &&
+    routines.length > 0 &&
+    !!reco &&
+    !reco.alreadyWorkedOutToday &&
+    (reco.status !== "ok" || routines.some((r) => r.id === reco.routineId));
   const primaryInToday = primary?.kind === "routine" && primary.source === "schedule" && todayCardShows;
   const primaryInReco = primary?.kind === "routine" && primary.source === "reco" && recoCardShows;
   const primaryRoutine =
@@ -267,6 +325,9 @@ export default function RoutinesClient() {
         <NextCard
           routine={primaryRoutine}
           source={primary?.kind === "routine" ? primary.source : "first"}
+          muscle={
+            reco?.status === "ok" && reco.routineId === primaryRoutine.id ? (reco.muscle ?? null) : null
+          }
           busy={busy}
           onStart={() => guardActive(startFromRoutine(primaryRoutine.id))}
         />
@@ -343,6 +404,8 @@ export default function RoutinesClient() {
 
         {/* ── 오늘 할 루틴이 주 행동이면 그 카드가 빠른 시작보다 위(주 행동이 먼저 보인다 · M-2) ── */}
         {primary?.kind === "routine" ? todayGuide() : null}
+        {/* 판단 전 — 루틴이 있으면 그 카드 자리를 미리 잡아 둔다(빠른 시작이 밀려 내려가 오탭되지 않게 · /qa M-2 M-2) */}
+        {!homeReady && routinesLoaded && routines.length > 0 ? <NextCardSkeleton /> : null}
 
         {/* ── 빈 운동 시작 ── */}
         <div className="mb-[var(--spacing-md)]">
@@ -354,6 +417,8 @@ export default function RoutinesClient() {
             icon="play"
             variant={primary?.kind === "quick" ? "primary" : "secondary"}
             loading={busy}
+            // 판단 전에는 누를 수 없다 — 아래로 밀려 다른 카드의 「시작」이 눌리는 오탭을 막는다(/qa M-2 M-2)
+            disabled={!homeReady}
             testId="btn-quick-start"
             onPress={() => guardActive(startBlank)}
           />
@@ -363,8 +428,10 @@ export default function RoutinesClient() {
         {primary?.kind === "routine" ? null : todayGuide()}
 
         {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
+        {/* [개선] 오늘 할 루틴(주 행동)과 같은 루틴이면 카드 한 장이면 된다(/qa M-2 M-3) */}
         {catchUp &&
         !reco?.alreadyWorkedOutToday &&
+        catchUp.routineId !== primaryRoutineId &&
         !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
           <CatchUpCard
             catchUp={catchUp}
@@ -400,6 +467,7 @@ export default function RoutinesClient() {
             onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
             onStart={(id) => guardActive(startFromRoutine(id))}
             onActions={setActionsFor}
+            todayId={primaryRoutineId}
           />
         ))}
 
@@ -419,6 +487,7 @@ export default function RoutinesClient() {
                 routine={r}
                 repo={repos?.routine ?? null}
                 busy={busy}
+                today={r.id === primaryRoutineId}
                 onStart={() => guardActive(startFromRoutine(r.id))}
                 onActions={() => setActionsFor(r)}
               />
@@ -808,20 +877,37 @@ function TodayCard({
 function NextCard({
   routine,
   source,
+  muscle,
   busy,
   onStart,
 }: {
   routine: Routine;
   source: "schedule" | "reco" | "recent" | "first";
+  /** 추천 근거 부위(추천일 때만). */
+  muscle: string | null;
   busy: boolean;
   onStart: () => void;
 }) {
+  // [원본] 최근·첫 루틴 머리말이 「최근에 한 루틴」·「내 루틴」 — 아래 구역 제목 「내 루틴」과 겹치고 왜 위에 있는지 말하지 않았다(/qa M-2 M-1)
+  // [개선] 머리말은 근거별(스케줄 「오늘 할 운동」·추천 「추천 루틴」·최근/첫 「다음 운동」) + 근거 한 줄 @plm SRS-072
   const label =
-    source === "recent"
-      ? t("routines.nextRecentLabel")
+    source === "schedule"
+      ? t("schedule.todayLabel")
       : source === "reco"
         ? t("routines.todayRecoLabel")
-        : t("routines.nextFirstLabel");
+        : t("routines.nextLabel");
+  const reason =
+    source === "schedule"
+      ? t("schedule.todayHint")
+      : source === "reco"
+        ? muscle
+          ? t("routines.todayRecoHint", {
+              muscle: muscleLabel(muscle as Parameters<typeof muscleLabel>[0], lang),
+            })
+          : null
+        : source === "recent"
+          ? t("routines.nextReasonRecent")
+          : t("routines.nextReasonFirst");
   return (
     <Card className="mb-[var(--spacing-sm)]">
       <div className="flex items-center" data-testid="next-card">
@@ -832,6 +918,11 @@ function NextCard({
           <AppText variant="heading" className="mt-[2px] block truncate">
             {routine.name}
           </AppText>
+          {reason ? (
+            <AppText variant="caption" color="textMuted" className="mt-[2px] block" data-testid="next-reason">
+              {reason}
+            </AppText>
+          ) : null}
         </div>
         <Button
           title={t("routines.start")}
@@ -845,6 +936,34 @@ function NextCard({
         />
       </div>
     </Card>
+  );
+}
+
+/** 주 행동을 정하기 전 「다음 운동」 카드 자리 — 같은 높이로 비워 둔다(빠른 시작이 밀려 내려가지 않게 · /qa M-2 M-2). */
+function NextCardSkeleton() {
+  return (
+    <Card className="mb-[var(--spacing-sm)]" aria-hidden>
+      <div className="flex items-center" data-testid="next-card-skeleton">
+        <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
+          <div className="h-[14px] w-[64px] rounded-[4px] bg-(--color-surface-alt)" />
+          <div className="mt-[6px] h-[20px] w-[60%] rounded-[4px] bg-(--color-surface-alt)" />
+          <div className="mt-[6px] h-[14px] w-[45%] rounded-[4px] bg-(--color-surface-alt)" />
+        </div>
+        <div className="h-[36px] w-[72px] rounded-[var(--radius-md)] bg-(--color-surface-alt)" />
+      </div>
+    </Card>
+  );
+}
+
+/** 목록에서 오늘 할 루틴 표시 — 위 카드와 같은 루틴임을 알린다(무채 · 빨강 아님 · /qa M-2 M-1). */
+function TodayChip() {
+  return (
+    <span
+      data-testid="today-chip"
+      className="ml-[6px] shrink-0 rounded-[var(--radius-pill)] bg-(--color-surface-alt) px-[8px] py-[1px] text-[length:var(--text-xs)] font-semibold text-(--color-ink2)"
+    >
+      {t("routines.todayChip")}
+    </span>
   );
 }
 
@@ -914,6 +1033,7 @@ function FolderGroup({
   onToggle,
   onStart,
   onActions,
+  todayId = null,
 }: {
   name: string;
   members: Routine[];
@@ -923,6 +1043,8 @@ function FolderGroup({
   onToggle: () => void;
   onStart: (routineId: string) => void;
   onActions: (r: Routine) => void;
+  /** 오늘 할 루틴 id — 그 줄에 「오늘」 칩. */
+  todayId?: string | null;
 }) {
   return (
     <Card className="mb-[var(--spacing-md)]">
@@ -951,9 +1073,12 @@ function FolderGroup({
               className="mt-[var(--spacing-sm)] flex items-center border-(--color-line) border-t pt-[var(--spacing-sm)] pl-[var(--spacing-md)]"
             >
               <span className="mr-[var(--spacing-sm)] min-w-0 flex-1">
-                <AppText variant="body" className="block truncate font-bold">
-                  {r.name}
-                </AppText>
+                <span className="flex min-w-0 items-center">
+                  <AppText variant="body" className="block truncate font-bold">
+                    {r.name}
+                  </AppText>
+                  {r.id === todayId ? <TodayChip /> : null}
+                </span>
                 <ExerciseCount repo={repo} routineId={r.id} />
               </span>
               {/* 화면 정리 P4 /qa M-1 — 폴더 밖 루틴 줄과 같은 회색 상자 @plm SRS-072 */}
@@ -984,12 +1109,15 @@ function RoutineRow({
   routine,
   repo,
   busy,
+  today = false,
   onStart,
   onActions,
 }: {
   routine: Routine;
   repo: RoutineRepo | null;
   busy: boolean;
+  /** 오늘 할 루틴(위 카드와 같은 루틴)이면 「오늘」 칩. */
+  today?: boolean;
   onStart: () => void;
   onActions: () => void;
 }) {
@@ -997,9 +1125,12 @@ function RoutineRow({
     <div className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
       <div className="flex items-center justify-between" data-testid={`routine-${routine.id}`}>
         <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
-          <AppText variant="heading" className="block truncate">
-            {routine.name}
-          </AppText>
+          <span className="flex min-w-0 items-center">
+            <AppText variant="heading" className="block truncate">
+              {routine.name}
+            </AppText>
+            {today ? <TodayChip /> : null}
+          </span>
           <ExerciseCount repo={repo} routineId={routine.id} />
         </div>
         <div className="flex items-center gap-[var(--spacing-xs)]">
@@ -1187,4 +1318,10 @@ function CatchUpCard({
       </div>
     </Card>
   );
+}
+
+/** 로컬 달력일 일련번호(streak.dayNumber 와 같은 관례) — 추천 열쇠의 「오늘」. */
+function localDayNum(ms: number): number {
+  const d = new Date(ms);
+  return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
 }

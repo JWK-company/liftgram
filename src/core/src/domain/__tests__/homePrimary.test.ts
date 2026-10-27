@@ -56,3 +56,26 @@ test('지운 루틴은 건너뛰고 다음 순위로', () => {
     { kind: 'routine', routineId: 'r2', source: 'recent' },
   );
 });
+
+// /qa M-2 M-6-5 — 경계
+test('오늘 운동함 + 휴식일이 겹치면 이유는 「오늘 운동함」(먼저 걸리는 규칙)', () => {
+  assert.deepEqual(pickHomePrimary({ ...base, workedOutToday: true, plan: { kind: 'rest' } }), {
+    kind: 'quick',
+    reason: 'workedOutToday',
+  });
+});
+
+test('스케줄 배정 루틴이 추천·최근과 같은 id 여도 근거는 스케줄', () => {
+  assert.deepEqual(
+    pickHomePrimary({ ...base, plan: { kind: 'routine', routineId: 'r2' }, recoRoutineId: 'r2', recentRoutineId: 'r2' }),
+    { kind: 'routine', routineId: 'r2', source: 'schedule' },
+  );
+});
+
+test('첫 루틴은 넘겨준 목록 순서를 따른다(화면 순서 — 폴더 묶음이 먼저)', () => {
+  assert.deepEqual(pickHomePrimary({ ...base, routineIds: ['f1', 'l1'] }), {
+    kind: 'routine',
+    routineId: 'f1',
+    source: 'first',
+  });
+});

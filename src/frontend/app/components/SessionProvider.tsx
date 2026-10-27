@@ -28,6 +28,11 @@ interface SessionContextValue {
   setActive: (v: { id: string; startedAt: number; name: string | null } | null) => void;
   /** 저장소에서 진행 중인 운동을 다시 읽는다(다른 화면에서 시작·종료했을 때). */
   refreshActive: () => Promise<void>;
+  /**
+   * 진행 중인 운동을 **한 번이라도** 저장소에서 읽었는가.
+   * 그 전의 `activeWorkoutId=null` 은 「없음」이 아니라 「모름」이다(운동 홈의 주 행동 판단 · 화면 정리 M-2 /qa H-2). @plm SRS-072
+   */
+  activeLoaded: boolean;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -39,6 +44,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     startedAt: number;
     name: string | null;
   } | null>(null);
+
+  const [activeLoaded, setActiveLoaded] = useState(false);
 
   const endAtRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -60,6 +67,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setActiveState(w ? { id: w.id, startedAt: w.startedAt, name: w.name } : null);
     } catch {
       // 저장소를 못 열었다 — 바를 띄우지 않을 뿐 화면은 그대로 돈다.
+    } finally {
+      // 실패해도 「읽기를 시도했다」 — 판단을 영원히 미루지 않는다
+      setActiveLoaded(true);
     }
   }, []);
 
@@ -131,8 +141,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       activeName: active?.name ?? null,
       setActive: setActiveState,
       refreshActive,
+      activeLoaded,
     }),
-    [restRemaining, startRest, clearRest, active, refreshActive],
+    [restRemaining, startRest, clearRest, active, refreshActive, activeLoaded],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
