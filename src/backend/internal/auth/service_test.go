@@ -25,7 +25,8 @@ type fakeRepo struct {
 	// 서비스와 같은 시계(만료 판단 · SRS-083 유예 테스트가 시간을 옮긴다).
 	now func() time.Time
 	// WithUserLock 흉내 — 세션 결정을 한 줄로 세운다(pgRepo 의 advisory 잠금과 같은 의미).
-	mu sync.Mutex
+	mu        sync.Mutex
+	lockCalls int // 재검토 N-5 — 끝난 토큰이 잠금을 잡는지 센다
 }
 
 func newFakeRepo() *fakeRepo {
@@ -110,6 +111,7 @@ func (f *fakeRepo) SupersedeRefreshToken(_ context.Context, hash string, at time
 
 func (f *fakeRepo) WithUserLock(_ context.Context, _ string, fn func(Repo) error) error {
 	f.mu.Lock()
+	f.lockCalls++
 	defer f.mu.Unlock()
 	return fn(f)
 }

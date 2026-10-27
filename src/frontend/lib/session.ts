@@ -280,15 +280,75 @@ function refreshedRecentlyElsewhere(): boolean {
 async function withRefreshLock<T>(fn: () => Promise<T>): Promise<T> {
   const locks =
     typeof navigator !== "undefined" ? (navigator as Navigator & { locks?: LockManager }).locks : undefined;
-  // 잠금이 없는 환경(Safari 15.4 미만·구형 Samsung Internet·http LAN 주소) — 그냥 실행한다(QA L-7).
-  if (!locks?.request) return fn();
+  // [원본] 잠금이 없는 환경(Safari 15.4 미만·구형 Samsung Internet·http LAN 주소) — 그냥 실행했다(QA L-7).
+  // if (!locks?.request) return fn();
+  // [개선] 재검토 N-2 — 저장소 대체 잠금으로 줄을 세운다. 그냥 실행하면 두 탭이 같은 쿠키로 회전하고 응답 순서가
+  // 뒤집힐 때 진 쪽 쿠키가 남아, 15분 뒤 다음 갱신이 계열 폐기(로그아웃)가 된다.
+  if (!locks?.request) return withStorageLock(fn);
   try {
     // signal 은 **잠금을 기다리는 동안만** 걸린다 — 쥔 뒤의 일은 fn 안의 요청 한도가 막는다.
     const signal = typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(LOCK_WAIT_MS) : undefined;
     return (await locks.request("liftgram-refresh", signal ? { signal } : {}, fn)) as T;
   } catch (e) {
-    if (e instanceof DOMException && (e.name === "AbortError" || e.name === "TimeoutError")) return fn();
+    // [원본] if (... AbortError | TimeoutError) return fn();
+    // [개선] 잠금을 쥔 탭이 얼었다 — 그래도 저장소 잠금으로 한 번 더 줄을 세운다(재검토 N-2).
+    if (e instanceof DOMException && (e.name === "AbortError" || e.name === "TimeoutError"))
+      return withStorageLock(fn);
     throw e;
+  }
+}
+
+/** 저장소 대체 잠금의 열쇠 — 「누가 언제부터 갱신 중」(재검토 N-2). */
+const REFRESHING_KEY = "liftgram.session.refreshing";
+/** 잠금 주인이 이보다 오래 소식이 없으면 버려진 것으로 본다 — 갱신 요청 한도(10초)보다 조금 길게. */
+const STORAGE_LOCK_STALE_MS = REFRESH_TIMEOUT_MS + 2_000;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Web Locks 가 없거나 쓸 수 없을 때의 대체 잠금(재검토 N-2). localStorage 는 원자적이지 않아 완벽하지 않다 —
+ * 무작위 지연으로 동시 진입 확률을 낮추고, 쓴 뒤 다시 읽어 주인임을 확인한다. 끝내 못 얻으면(LOCK_WAIT_MS) 그냥
+ * 실행한다 — 서버의 30초 유예가 받친다. 저장소가 막힌 환경도 그냥 실행한다.
+ */
+async function withStorageLock<T>(fn: () => Promise<T>): Promise<T> {
+  let storage: Storage;
+  try {
+    storage = localStorage;
+    storage.getItem(REFRESHING_KEY);
+  } catch {
+    return fn();
+  }
+  const me = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  let owned = false;
+  await sleep(Math.floor(Math.random() * 150)); // 같은 순간 깨어난 탭끼리 엇갈리게
+  while (Date.now() < deadline) {
+    const raw = storage.getItem(REFRESHING_KEY);
+    const at = raw ? Number(raw.split(":")[0]) : 0;
+    if (!raw || Date.now() - at > STORAGE_LOCK_STALE_MS) {
+      try {
+        storage.setItem(REFRESHING_KEY, `${Date.now()}:${me}`);
+      } catch {
+        return fn();
+      }
+      await sleep(40); // 같은 틈에 쓴 다른 탭이 있으면 마지막에 쓴 쪽이 이긴다
+      if (storage.getItem(REFRESHING_KEY)?.endsWith(`:${me}`)) {
+        owned = true;
+        break;
+      }
+    }
+    await sleep(120 + Math.floor(Math.random() * 80));
+  }
+  try {
+    return await fn();
+  } finally {
+    if (owned) {
+      try {
+        if (storage.getItem(REFRESHING_KEY)?.endsWith(`:${me}`)) storage.removeItem(REFRESHING_KEY);
+      } catch {
+        // 지우지 못하면 STORAGE_LOCK_STALE_MS 뒤 버려진 것으로 처리된다
+      }
+    }
   }
 }
 

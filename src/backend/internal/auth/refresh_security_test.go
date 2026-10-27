@@ -68,7 +68,10 @@ func TestRefreshAttackerLaterIsDetected(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	now = now.Add(48 * time.Hour)
+	// [원본] 48시간 뒤 — 회전된 토큰 구제에 시간 상한이 없던 때의 시나리오(재검토 N-1). 상한(60분) 밖 재사용은
+	// 이제 즉시 계열 폐기다 → TestRefreshRotatedRescueCapped 가 맡는다.
+	// now = now.Add(48 * time.Hour)
+	now = now.Add(30 * time.Minute)
 	_, ta, err := svc.Refresh(ctx, t0.RefreshToken) // 공격자가 로그·백업에서 얻은 T0
 	if err != nil {
 		t.Fatal(err)
@@ -149,5 +152,76 @@ func TestChangePasswordClosesGrace(t *testing.T) {
 		if _, _, err := svc.Refresh(ctx, tok); domainCode(t, err) != errs.Unauthorized {
 			t.Fatalf("비밀번호 변경 뒤 %s 토큰이 통했다", name)
 		}
+	}
+}
+
+// 회전된 토큰의 「미사용 후계」 구제는 회전 시각부터 60분까지만이다(재검토 N-1). 그 밖은 재사용 → 계열 폐기.
+// 잠수한 기기의 옛 토큰을 공격자가 수 주 동안 쓰는 창을 닫는다.
+func TestRefreshRotatedRescueCapped(t *testing.T) {
+	svc, repo := newTestService()
+	ctx := context.Background()
+	now := time.Date(2026, 10, 27, 9, 0, 0, 0, time.UTC)
+	svc.now = func() time.Time { return now }
+	_, t0, err := svc.SignUp(ctx, "a@b.com", "hunter22!", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, t1, err := svc.Refresh(ctx, t0.RefreshToken) // 회전 — 피해자는 T1 을 들고 잠수
+	if err != nil {
+		t.Fatal(err)
+	}
+	now = now.Add(refreshRotatedRescue + time.Minute)
+	if _, _, err := svc.Refresh(ctx, t0.RefreshToken); domainCode(t, err) != errs.Unauthorized {
+		t.Fatal("회전 뒤 상한을 넘긴 옛 토큰이 통했다")
+	}
+	if n := liveInFamily(repo, t0.RefreshToken); n != 0 {
+		t.Fatalf("상한 밖 재사용인데 계열이 끊기지 않았다(살아 있는 토큰 %d개)", n)
+	}
+	if _, _, err := svc.Refresh(ctx, t1.RefreshToken); domainCode(t, err) != errs.Unauthorized {
+		t.Fatal("계열이 끊겼는데 후계 T1 이 살아 있다")
+	}
+}
+
+// 상한 안(응답 유실 뒤 앱을 닫았다 59분 만에 다시 연 경우)은 계속 구제된다.
+func TestRefreshRotatedRescueWithinCap(t *testing.T) {
+	svc, _ := newTestService()
+	ctx := context.Background()
+	now := time.Date(2026, 10, 27, 9, 0, 0, 0, time.UTC)
+	svc.now = func() time.Time { return now }
+	_, t0, err := svc.SignUp(ctx, "a@b.com", "hunter22!", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := svc.Refresh(ctx, t0.RefreshToken); err != nil { // 응답이 길에서 사라졌다
+		t.Fatal(err)
+	}
+	now = now.Add(refreshRotatedRescue - time.Minute)
+	if _, _, err := svc.Refresh(ctx, t0.RefreshToken); err != nil {
+		t.Fatalf("상한 안의 응답 유실이 구제되지 않았다: %v", err)
+	}
+}
+
+// 이미 끝난 토큰(재사용·로그아웃·전체 폐기)은 사용자 잠금을 잡지 않고 바로 거절한다(재검토 N-5) — 폐기는 되돌아가지
+// 않으므로 잠금 밖 판단이 안전하고, 탐지된 토큰 폭주가 계열 UPDATE·연결을 소모하지 않는다.
+func TestRefreshDeadTokenSkipsLock(t *testing.T) {
+	svc, repo := newTestService()
+	ctx := context.Background()
+	now := time.Date(2026, 10, 27, 9, 0, 0, 0, time.UTC)
+	svc.now = func() time.Time { return now }
+	_, t0, err := svc.SignUp(ctx, "a@b.com", "hunter22!", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := svc.LogOut(ctx, t0.RefreshToken); err != nil {
+		t.Fatal(err)
+	}
+	before := repo.lockCalls
+	for i := 0; i < 5; i++ {
+		if _, _, err := svc.Refresh(ctx, t0.RefreshToken); domainCode(t, err) != errs.Unauthorized {
+			t.Fatal("로그아웃한 토큰이 통했다")
+		}
+	}
+	if got := repo.lockCalls - before; got != 0 {
+		t.Fatalf("끝난 토큰 갱신이 잠금을 %d번 잡았다", got)
 	}
 }

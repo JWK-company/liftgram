@@ -34,6 +34,17 @@ function readCookie(req: Request): string {
   return "";
 }
 
+const IP_HEADERS = ["x-forwarded-for", "x-real-ip", "cf-connecting-ip"];
+
+function clientIpHeaders(req: Request): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const k of IP_HEADERS) {
+    const v = req.headers.get(k);
+    if (v) out[k] = v;
+  }
+  return out;
+}
+
 export async function POST(req: Request): Promise<Response> {
   if (req.headers.get(GUARD_HEADER) !== "1") return new Response("forbidden", { status: 403 });
 
@@ -42,7 +53,9 @@ export async function POST(req: Request): Promise<Response> {
 
   const res = await fetch(`${env.API_URL.replace(/\/$/, "")}/api/auth.v1.AuthService/Refresh`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // 재검토 N-6 — 범용 프록시(`[...path]`)처럼 클라이언트 IP 헤더를 넘긴다. 빼면 백엔드 요청 제한이 모든 사용자의
+    // 갱신을 한 버킷(`unknown`)으로 세어, 사용자가 늘면 갱신이 429(→503)를 받는다.
+    headers: { "content-type": "application/json", ...clientIpHeaders(req) },
     body: JSON.stringify({ refreshToken: token }),
     // 백엔드가 매달리면 화면의 잠금도 매달린다 — 한도를 둔다(QA M-2).
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
@@ -63,23 +76,27 @@ export async function POST(req: Request): Promise<Response> {
   if (res.status === 401) return new Response("refresh failed", { status: 401 });
   if (!res.ok) return new Response("upstream error", { status: 503 });
 
-  const body = (await res.json()) as { tokens?: { accessToken?: string; refreshToken?: string } };
+  // 재검토 N-2·N-4 — 갱신 응답에 이미 내 정보(user)가 실려 온다. 예전에는 Me 를 한 번 더 불러(최대 8초) 회전과 응답
+  // 사이 간격이 벌어졌고, 그 편차가 탭 경합에서 응답 순서를 뒤집어 진 쪽 쿠키를 남겼다. 이제 회전 응답을 곧바로 돌려준다.
+  const body = (await res.json()) as {
+    tokens?: { accessToken?: string; refreshToken?: string };
+    user?: unknown;
+  };
   const access = body.tokens?.accessToken ?? "";
   const rotated = body.tokens?.refreshToken ?? "";
   if (!access || !rotated) return new Response("unexpected response", { status: 502 });
 
-  // 내 정보도 같이 싣는다(SRS-054 · 왕복 줄이기). 브라우저가 갱신 다음에 Me 를 따로 부르면 길 위에서 한 번(≈0.6s)을
-  // 더 쓴다 — 여기서는 같은 서버 안이라 수 ms 다. 실패해도 갱신은 성공으로 두고 화면이 Me 를 부른다.
-  const me = await fetch(`${env.API_URL.replace(/\/$/, "")}/api/auth.v1.AuthService/Me`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
-    body: "{}",
-    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
-  })
-    .then((r) => (r.ok ? (r.json() as Promise<{ user?: unknown }>) : null))
-    .catch(() => null);
+  // [원본] 내 정보는 Me 를 따로 불러 실었다(SRS-054) — 재검토 N-2·N-4 로 대체(원복 시 아래 주석 해제·user 를 me?.user 로).
+  // const me = await fetch(`${env.API_URL.replace(/\/$/, "")}/api/auth.v1.AuthService/Me`, {
+  //   method: "POST",
+  //   headers: { "content-type": "application/json", authorization: `Bearer ${access}` },
+  //   body: "{}",
+  //   signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  // })
+  //   .then((r) => (r.ok ? (r.json() as Promise<{ user?: unknown }>) : null))
+  //   .catch(() => null);
 
-  return new Response(JSON.stringify({ accessToken: access, user: me?.user ?? null }), {
+  return new Response(JSON.stringify({ accessToken: access, user: body.user ?? null }), {
     status: 200,
     headers: { "content-type": "application/json", "set-cookie": cookieHeader(rotated, MAX_AGE_SEC) },
   });

@@ -103,3 +103,40 @@ test("탭 두 개가 동시에 복원 갱신해도 갱신은 한 줄로 서고, 
   await page.reload();
   await 로그인_상태(page);
 });
+
+// 재검토 N-2 — Web Locks 가 없는 브라우저(구형 Samsung Internet·Safari 15.4 미만)에서도 두 탭의 갱신이 겹치지 않는다.
+// 겹치면 같은 쿠키로 둘 다 회전해 응답 순서가 뒤집힐 때 진 쪽 쿠키가 남고, 15분 뒤 계열 폐기로 로그아웃된다.
+test("Web Locks 가 없어도 탭 두 개의 갱신은 한 줄로 선다(저장소 대체 잠금)", async ({ page, context }) => {
+  test.setTimeout(120_000);
+  await (context as BrowserContext).addInitScript(() => {
+    try {
+      Object.defineProperty(navigator, "locks", { value: undefined, configurable: true });
+    } catch {
+      // 지울 수 없으면 그대로 — 이 테스트가 잠금 없는 경로를 못 재므로 아래 단언이 의미를 잃는다
+    }
+  });
+  await 가입(page);
+  const 둘째: Page = await (context as BrowserContext).newPage();
+  const calls: { cookie: string; start: number; end: number }[] = [];
+  await (context as BrowserContext).route("**/api/session/refresh", async (route) => {
+    const call = { cookie: route.request().headers().cookie ?? "", start: Date.now(), end: 0 };
+    calls.push(call);
+    if (calls.length === 1) await new Promise((r) => setTimeout(r, 1_500));
+    const res = await route.fetch();
+    call.end = Date.now();
+    await route.fulfill({ response: res });
+  });
+  await Promise.all([page.goto("/account"), 둘째.goto("/account")]);
+  expect(await page.evaluate(() => "locks" in navigator && navigator.locks === undefined)).toBe(true);
+  await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
+  await expect(둘째.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
+  await expect
+    .poll(() => calls.filter((c) => c.end > 0).length, { timeout: 20_000 })
+    .toBeGreaterThanOrEqual(2);
+  const [a, b] = [...calls].sort((x, y) => x.start - y.start);
+  expect(b.start).toBeGreaterThanOrEqual(a.end - 50);
+  expect(b.cookie).not.toBe(a.cookie);
+  await (context as BrowserContext).unroute("**/api/session/refresh");
+  await page.reload();
+  await 로그인_상태(page);
+});

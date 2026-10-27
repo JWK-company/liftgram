@@ -89,6 +89,19 @@ refresh 토큰은 갱신할 때마다 회전한다(`backend/internal/auth/servic
 
 실 DB 테스트 실행: `TEST_ADMIN_DATABASE_URL=postgres://app:app@127.0.0.1:5434/postgres?sslmode=disable go test -tags pgtest -race ./internal/auth/ -run PG`(backend/).
 
+## 보안 재검토 반영 (2026-10-27 — 아래가 위 모든 반영보다 우선)
+
+근거: `.ouroboros/docs/qa/20261027_session-refresh-race-recheck_qa.md`(조건부 배포 가능 · 중간 2 · 낮음 5).
+
+| 항목 | 결정 |
+|---|---|
+| N-1 | rotated 토큰의 「미사용 후계」 구제 상한 **60분**(`refreshRotatedRescue`, 기준 = 그 토큰이 회전된 시각) — 갱신 도중 앱이 닫혀도 1시간 안에 다시 열면 유지. 그 밖 재사용은 계열 폐기 |
+| N-2 | Web Locks 가 없거나 잠금 대기가 넘치면 **저장소 대체 잠금**(localStorage + 무작위 지연·재확인)으로 줄을 세운다. refresh 라우트는 Me 를 다시 부르지 않고 Refresh 응답의 user 를 쓴다(회전→응답 간격 축소). 탐지 로그에 사유(rotated 구제 상한 밖·superseded 유예 밖·후계 불일치) |
+| N-4 | Me 호출 제거로 라우트 최악 = Refresh 8초 < 화면 한도 10초 |
+| N-5 | 끝난 토큰(reuse·logout·all·legacy)은 잠금 없이 즉시 거절. 토큰 단위 속도 제한은 보류(N-6 IP 전달이 운영에서 확인된 뒤) |
+| N-6 | refresh 라우트가 클라이언트 IP 헤더(x-forwarded-for·x-real-ip·cf-connecting-ip)를 넘긴다 |
+| N-3·N-7 | 보류 — N-3 은 상대가 30초 안에 계속 응수해야만 이어지고 한쪽이 정상 회전하면 즉시 탐지(악용 가치 낮음), N-7 은 보안 영향 없음 |
+
 ## 리스크
 
 | 리스크 | 대응 |

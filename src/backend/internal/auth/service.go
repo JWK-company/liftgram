@@ -97,6 +97,11 @@ const (
 // 없다 — 「미사용 후계」 규칙이 판단한다(Refresh 주석).
 const refreshReuseGrace = 30 * time.Second
 
+// refreshRotatedRescue — **회전된(rotated)** 토큰의 「미사용 후계」 구제 상한(재검토 N-1). 기준은 그 토큰이 회전된 시각.
+// 갱신 응답이 길에서 사라진 뒤 앱을 닫았다가 1시간 안에 다시 열면 세션이 유지된다. 그 밖의 옛 토큰 재사용은 계열 폐기 —
+// 잠수한 기기의 옛 토큰을 공격자가 수 주 동안 쓰는 창을 닫는다.
+const refreshRotatedRescue = 60 * time.Minute
+
 // ProfilePatch는 "보낸 것만 바꾼다"를 표현한다 — 빈 문자열로 지우는 것과 안 보낸 것을 구분한다.
 type ProfilePatch struct {
 	DisplayName        string
@@ -343,6 +348,11 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, e
 	if err != nil {
 		return User{}, Tokens{}, expired // 없거나 만료 — 어느 쪽인지 알려 주지 않는다
 	}
+	// 재검토 N-5 — 이미 끝난 토큰(재사용·로그아웃·전체 폐기·legacy)은 잠금 없이 거절한다. 폐기는 되돌아가지 않으므로
+	// 잠금 밖 판단이 안전하고, 탐지된 토큰의 폭주가 트랜잭션·연결·계열 UPDATE 를 소모하지 않는다.
+	if peek.RevokedAt != nil && peek.RevokeReason != revokeRotated && peek.RevokeReason != revokeSuperseded {
+		return User{}, Tokens{}, expired
+	}
 	u, err := s.repo.GetUserByID(ctx, peek.UserID)
 	if err != nil {
 		return User{}, Tokens{}, expired
@@ -352,6 +362,7 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, e
 		tokens   Tokens
 		ok       bool
 		detected string // 재사용으로 끊은 계열(로그용)
+		why      string // 재검토 N-2 — 탐지 사유(유예 밖 오탐과 진짜 재사용을 운영 로그에서 구분)
 	)
 	err = s.repo.WithUserLock(ctx, u.ID, func(r Repo) error {
 		rt, err := r.GetRefreshToken(ctx, hash)
@@ -385,12 +396,22 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, e
 				return nil // 계열이 이미 끝났다(로그아웃·전체 폐기·만료) — 조용히 거절
 			}
 			want := hash // rotated R: 살아 있는 토큰이 R 의 후계여야 한다
+			// 재검토 N-1 — rotated R 의 구제는 회전 시각부터 refreshRotatedRescue 까지만. 그 밖은 재사용.
+			if rt.RevokeReason == revokeRotated && now.Sub(*rt.RevokedAt) > refreshRotatedRescue {
+				want = ""
+				why = "rotated 구제 상한 밖"
+			}
 			if rt.RevokeReason == revokeSuperseded {
 				// superseded X: 30초 안 + 살아 있는 토큰이 X 의 형제(같은 부모)여야 한다.
 				want = ""
+				why = "superseded 유예 밖"
 				if rt.ParentHash != "" && now.Sub(*rt.RevokedAt) <= refreshReuseGrace {
 					want = rt.ParentHash
+					why = ""
 				}
+			}
+			if want != "" && live.ParentHash != want {
+				why = "후계 불일치"
 			}
 			if want == "" || live.ParentHash != want {
 				// 재사용 — 훔친 토큰이 쓰였거나 정상 사용자가 오래된 쿠키를 들고 있다. 어느 쪽이든 그 계열을 끊는다.
@@ -419,7 +440,7 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (User, Tokens, e
 	}
 	if detected != "" {
 		// 침해 대응 근거 — 원문 토큰은 남기지 않는다(QA L-5 일부).
-		slog.Warn("[auth] refresh 재사용 탐지 — 계열 폐기", "user", u.ID, "family", shortHash(detected))
+		slog.Warn("[auth] refresh 재사용 탐지 — 계열 폐기", "user", u.ID, "family", shortHash(detected), "reason", why)
 	}
 	if !ok {
 		return User{}, Tokens{}, expired
