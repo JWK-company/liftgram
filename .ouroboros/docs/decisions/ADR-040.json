@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-040",
+  "type": "ADR",
+  "title": "트레이너 회원 리포트 집계를 core로 옮긴다 — 새 화면은 GetMemberRecords(허용 컬렉션·칸·기간만) + core 계산, 옛 GetMemberReport는 이관 기간 동안 그대로 둔다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:50:00Z",
+  "updated": "2026-10-27T10:30:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "report",
+    "architecture",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-079",
+      "SRS-076",
+      "SAD-024",
+      "SAD-022"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "회원 리포트(SRS-048, SAD-022 ③)는 지금 Go(backend/internal/coaching/report.go)가 sync_records를 읽어 세션 수·볼륨·주근육 볼륨을 계산한다. 새 기간 성과 요약(SRS-079)과 근육 균형(SRS-076)은 core TS 함수(periodSummary·muscleLoad, ADR-039)로 계산하고, 요구사항은 '같은 회원·같은 기간이면 두 화면 숫자가 같다'를 수용 기준으로 둔다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이관 원칙(ADR-032)은 도메인 계산을 Go로 다시 짜지 않는 것이다. 지금의 Go 집계는 이 원칙 이전에 만든 예외다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "GetMemberReport가 코칭 권한 가드(SAD-022 ①)를 통과한 경우 동의 범위의 원본 레코드(운동·종목·세트, 요청 기간만)를 돌려주도록 계약을 넓힌다. 트레이너 웹(같은 Next 앱이라 core를 쓸 수 있다)이 periodSummary로 리포트를 계산해 SummaryView로 그린다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Go의 buildReport·buildReportWith는 지우지 않는다. 호출하는 자리는 주석 처리해 실행만 막고, 바로 아래에 새 경로를 둔다(코드 보존 규칙). 안정성을 확인한 뒤 /reflect에서 제거 여부를 정한다. 응답 메시지는 기존 report 필드를 당분간 비운 채 유지해 구버전 클라이언트가 깨지지 않게 한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 계산이 한 곳(core)이라 회원 요약과 트레이너 리포트가 구조적으로 같은 숫자를 낸다. 드리프트를 테스트로 막을 필요 자체가 사라진다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: ADR-032 이관 원칙과 맞는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 권한 판단은 그대로 서버 가드 한 곳이라 보안 경계는 바뀌지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: Go 집계 유지 + 가중치·세트 수를 Go에 다시 구현 — 서버가 계산을 쥐지만, TS와 Go 두 벌을 영원히 맞춰야 하고 이관 원칙에 어긋난다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: Go 집계 유지 + 단위 차이를 화면에 명시 — 일이 가장 적지만 수용 기준(같은 숫자)을 못 지킨다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장점: 단일 계산, 원칙 준수, 기존 Go 코드 원복 가능."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이드오프: 리포트를 열 때 원본 레코드를 내려받으므로 응답이 커진다. 기간을 요청 범위로 자르고 필요한 칸만 보내 줄인다. 트레이너 기기에서 계산하므로 아주 긴 기간은 몇 백 ms 걸릴 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌림 비용: 중간. 주석 처리한 Go 호출을 되살리고 트레이너 화면을 기존 report 필드로 돌리면 된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 (2026-10-27 /qa spec S-2·S-3·S-10·S-12)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "옛 RPC(GetMemberReport)는 막지 않는다. 막고 빈 값을 돌려주면 옛 탭·옛 서비스워커 셸이 트레이너에게 '0회·0kg'이라는 거짓 사실을 보인다. 새 클라이언트는 부르지 않으며, 호출을 막을지는 다음 /reflect에서 정한다(Go 집계 코드는 그대로 보존)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "GetMemberRecords가 내주는 범위를 서버 상수로 고정한다: 컬렉션 workouts·workout_exercises·set_logs·exercises(커스텀) 4종만, 칸 허용 목록(projection — notes·note·image_url·prescription·prev_* 제외), 완료된 운동과 그 자식만. user_profiles·bodyweight_logs·import_*는 영원히 넣지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기간: 요청 [start, end)에 대해 서버는 [start − (end − start), end)를 내준다(직전 기간 비교용). 길이 ≤ 400일 · start < end · end ≤ now+1일, 아니면 Validation. 기간 필터는 서버가 payload의 started_at을 읽어 거르며, '서버는 payload를 해석하지 않는다'의 명시적 예외다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "PR은 완료 때 저장된 workouts.pr_count를 쓴다. 트레이너 리포트는 새 기록 '목록' 대신 개수만 보인다. 맨몸·보조 종목 볼륨은 체중이 필요하므로 총 볼륨은 저장된 workouts.total_volume_kg 캐시를 양쪽이 공통으로 쓰고, '같은 숫자' 수용 기준은 세션 수·총 볼륨(캐시)·부위별 세트 수로 한정한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "(/qa code CS-9·CS-4) 요청 기간은 최대 400일이고 서버는 직전 비교용으로 그 두 배인 최대 800일을 내준다 — 동의 이전 기록이 포함될 수 있다(회원 기록 열람 범위 ScopeLogView 안에서). 서버는 완료 운동을 SQL에서 기간으로 거르고 자식은 부모 id로 걸러 500개씩 읽으며, 16MB를 넘으면 ResourceExhausted로 멈춘다. 회원이 트레이너를 차단하면 요약·원본 레코드·옛 리포트 모두 거부한다(CS-3)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SAD-024 ④, SAD-022 ③ · SRS-079·076 · 관련 ADR-032(이관 원칙), ADR-039(집계 규칙)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/domain/__tests__/periodSummary.test.ts:1",
+    "src/core/src/domain/periodSummary.ts:1",
+    "src/core/src/domain/summaryRecords.ts:1",
+    "src/frontend/app/components/summary/MemberReportDialog.tsx:2"
+  ]
+}

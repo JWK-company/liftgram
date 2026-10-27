@@ -1,0 +1,365 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-023",
+  "type": "UCS",
+  "title": "운동 전에 체중을 적고, 오늘 쓸 근육을 확인한 뒤, 세트마다 힘든 정도를 남긴다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T08:30:00Z",
+  "sync": true,
+  "tags": [
+    "session",
+    "rir",
+    "bodyweight",
+    "muscle-map"
+  ],
+  "relations": {
+    "elaborates": [
+      "URS-024"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사전 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자는 루틴이 하나 이상 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "설정에서 「운동 전 체중 체크인」과 「세트 힘든 정도 기록」을 켜 두었다(둘 다 기본 꺼짐)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "로그인 여부·네트워크 연결과 무관하다(오프라인 우선)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "주 흐름"
+          }
+        ]
+      },
+      {
+        "type": "ordered_list",
+        "attrs": {
+          "order": 1
+        },
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자가 운동 탭에서 오늘 루틴 카드를 본다. 카드에 오늘 쓰는 근육이 작은 앞·뒤 인체 그림으로 표시된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "「시작」을 눌러 운동 화면에 들어가면 체중 체크인 시트가 뜨고, 지난번 체중이 미리 채워져 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자가 ±0.1·±0.5·±1 버튼으로 값을 맞추고 「저장」을 누른다. 체중 이력에 오늘 값이 쌓이고 그대로 운동을 이어 간다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중 상단의 근육 표시를 누르면 근육별로 끝낸 세트/계획 세트가 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트를 완료하고 그 세트의 힘든 정도 칸을 눌러 「2 — 두 개 더」를 고른다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동을 마치면 기록 상세에 세트별 힘든 정도가 함께 보인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "대안 / 예외 흐름"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "2a. 체크인 시트에서 「체중 없이 계속」(또는 바깥 누르기·뒤로 가기)을 누르면 이력에 아무것도 쌓이지 않고 운동을 이어 간다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "2b. 체크인을 꺼 둔 사용자는 시트 없이 바로 시작한다(현재 동작과 같다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "2c. 이미 오늘 체중을 적은 사용자는 체크인 시트를 다시 보지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "5a. 힘든 정도를 꺼 둔 사용자에게는 세트 줄에 칸이 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "5b. 잘못 고른 값은 같은 칸을 다시 눌러 바꾸거나 지운다. 완료 전·후 모두 가능하다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "5c. 코치가 처방한 목표 RIR(SRS-043)이 있으면 칸에 목표가 흐리게 보이고, 사용자가 실제 값을 적는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "1a. 근육 정보가 없는 커스텀 종목만 있는 루틴은 그림이 비어 있는 대신 그림을 숨긴다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "사후 조건"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "체중 이력에 오늘 값이 하나 있다(건너뛰지 않은 경우). 기존 '내 체중' 값은 이 최신값을 따른다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기록한 세트에 힘든 정도 값이 저장되고, 계정이 있으면 다른 기기와 동기된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "통계의 힘든 정도·근육 균형·체중 블록에 이번 운동이 반영된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

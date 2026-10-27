@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-27T12:38:37.976Z",
+  "sample": {
+    "workouts": 208,
+    "blocks": 1248,
+    "sets": 4992
+  },
+  "cpuThrottle": 4,
+  "viewport": 360,
+  "member": {
+    "7d": {
+      "read": 21,
+      "compute": 8,
+      "workouts": 208,
+      "sets": 4992
+    },
+    "4w": {
+      "read": 17,
+      "compute": 11,
+      "workouts": 208,
+      "sets": 4992
+    },
+    "3m": {
+      "read": 16,
+      "compute": 12,
+      "workouts": 208,
+      "sets": 4992
+    }
+  },
+  "trainer": {
+    "4w": {
+      "bytes": 158393,
+      "serverMs": 18,
+      "computeMs": 13,
+      "rows": 961
+    },
+    "3m": {
+      "bytes": 535787,
+      "serverMs": 34,
+      "computeMs": 12,
+      "rows": 3255
+    },
+    "7d": {
+      "bytes": 35869,
+      "serverMs": 10,
+      "computeMs": 2,
+      "rows": 217
+    }
+  }
+}

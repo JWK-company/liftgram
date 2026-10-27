@@ -9,43 +9,290 @@
   "created": "2026-10-26T04:00:00Z",
   "updated": "2026-10-26T04:00:00Z",
   "sync": true,
-  "tags": ["auth", "account", "oauth", "email", "security"],
+  "tags": [
+    "auth",
+    "account",
+    "oauth",
+    "email",
+    "security"
+  ],
   "kind": "FR",
   "acceptance_criteria": "이메일 가입 시 검증 메일이 실제 받은편지함에 도착하고 링크로 소유가 확인된다(SPF·DKIM·DMARC pass). 비밀번호를 잊으면 재설정 메일로 바꿀 수 있고, 바꾸면 다른 기기 세션이 끊긴다. 로그인 상태에서 비밀번호를 바꿀 수 있다. 구글로 로그인·가입할 수 있고(카카오·네이버는 키가 들어오면 같은 경로로 켜진다), 같은 이메일의 기존 계정과는 사용자 확인 뒤에만 연결된다. 실패 응답은 계정 존재를 드러내지 않으며, 가입·로그인·메일 요청은 실제 사용자 IP 기준으로 제한되고 봇 방어(Turnstile)를 거친다. 기존 계정(bcrypt)은 그대로 로그인된다.",
   "relations": {
-    "derives_from": ["URS-008", "URS-001"]
+    "derives_from": [
+      "URS-008",
+      "URS-001"
+    ]
   },
   "doc": {
     "type": "doc",
     "content": [
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "text": "지금까지 가입은 이메일·비밀번호를 받기만 했다. 주소가 진짜인지 확인하지 않았고, 비밀번호를 잊으면 되찾을 길이 없었다(2026-10-26 운영진 계정이 그렇게 잠겨 DB에서 직접 바꿨다). booktarae.org가 운영 중인 방식을 그대로 들여온다: " },
-        { "type": "text", "marks": [{ "type": "strong" }], "text": "가입 → 소유 검증 → 로그인 · 재설정 · 소셜" },
-        { "type": "text", "text": "." }
-      ]},
-      { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "이메일" }] },
-      { "type": "bulletList", "content": [
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "가입하면 검증 링크 메일을 보낸다(24시간 유효·재발송 60초 간격). 검증 전에도 기록은 쓸 수 있고, 72시간 안에 검증하지 않으면 소셜 기능을 막는다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "비밀번호 찾기 → 재설정 링크(30분·1회). 재설정하면 모든 기기의 세션을 끊는다. 소셜로만 가입한 사람에게는 어느 제공자로 가입했는지 알린다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "로그인 상태에서 비밀번호 변경(현재 비밀번호 확인). 소셜 전용 계정은 비밀번호를 새로 설정할 수 있다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "메일은 Cloudflare Email Sending(no-reply@tarae.org)으로 보내고, 발송 실패를 로그·배포 점검에서 드러낸다(조용히 \"보냈다\"고 하지 않는다)." }] }] }
-      ]},
-      { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "소셜" }] },
-      { "type": "bulletList", "content": [
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "구글(1차)·카카오·네이버. OAuth 인가 코드 + PKCE, state 서명 쿠키, 백채널 교환. 제공자 사용자 ID가 앵커이고 이메일은 앵커가 아니다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "같은 이메일의 기존 계정이 있으면 자동으로 합치지 않는다 — 기존 계정으로 로그인한 상태에서 연결하거나, 확인 메일로 소유를 증명한 뒤에만 연결한다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "콜백은 일회용 로그인 코드(60초·1회)를 붙여 화면으로 돌려보내고, 화면이 그 코드를 토큰으로 바꾼다 — refresh는 지금처럼 httpOnly 쿠키에만 있다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "연결된 로그인 수단 목록·해제(마지막 수단은 해제 불가)." }] }] }
-      ]},
-      { "type": "heading", "attrs": { "level": 3 }, "content": [{ "type": "text", "text": "보안 바닥" }] },
-      { "type": "bulletList", "content": [
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "실제 사용자 IP는 CF-Connecting-IP로만 본다(터널 뒤라 소켓 IP는 전부 같다) — 가입·로그인·메일 요청 제한이 그 IP 기준으로 돈다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "가입·비밀번호 찾기에 Cloudflare Turnstile. 키가 없으면(개발) 건너뛴다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "검증·재설정 토큰은 해시로만 저장하고 1회 사용. 응답 문구는 계정 존재를 드러내지 않는다." }] }] }
-      ]},
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "연결" }] },
-      { "type": "paragraph", "content": [{ "type": "text", "text": "SRS-006(계정·동기)을 정식화한다. 참조 구현: booktarae src/backend/internal/{auth,oauth,mailer}." }] }
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "지금까지 가입은 이메일·비밀번호를 받기만 했다. 주소가 진짜인지 확인하지 않았고, 비밀번호를 잊으면 되찾을 길이 없었다(2026-10-26 운영진 계정이 그렇게 잠겨 DB에서 직접 바꿨다). booktarae.org가 운영 중인 방식을 그대로 들여온다: "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "가입 → 소유 검증 → 로그인 · 재설정 · 소셜"
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "이메일"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가입하면 검증 링크 메일을 보낸다(24시간 유효·재발송 60초 간격). 검증 전에도 기록은 쓸 수 있고, 72시간 안에 검증하지 않으면 소셜 기능을 막는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "비밀번호 찾기 → 재설정 링크(30분·1회). 재설정하면 모든 기기의 세션을 끊는다. 소셜로만 가입한 사람에게는 어느 제공자로 가입했는지 알린다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "로그인 상태에서 비밀번호 변경(현재 비밀번호 확인). 소셜 전용 계정은 비밀번호를 새로 설정할 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "메일은 Cloudflare Email Sending(no-reply@tarae.org)으로 보내고, 발송 실패를 로그·배포 점검에서 드러낸다(조용히 \"보냈다\"고 하지 않는다)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "소셜"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "구글(1차)·카카오·네이버. OAuth 인가 코드 + PKCE, state 서명 쿠키, 백채널 교환. 제공자 사용자 ID가 앵커이고 이메일은 앵커가 아니다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 이메일의 기존 계정이 있으면 자동으로 합치지 않는다 — 기존 계정으로 로그인한 상태에서 연결하거나, 확인 메일로 소유를 증명한 뒤에만 연결한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "콜백은 일회용 로그인 코드(60초·1회)를 붙여 화면으로 돌려보내고, 화면이 그 코드를 토큰으로 바꾼다 — refresh는 지금처럼 httpOnly 쿠키에만 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "연결된 로그인 수단 목록·해제(마지막 수단은 해제 불가)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "보안 바닥"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "실제 사용자 IP는 CF-Connecting-IP로만 본다(터널 뒤라 소켓 IP는 전부 같다) — 가입·로그인·메일 요청 제한이 그 IP 기준으로 돈다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가입·비밀번호 찾기에 Cloudflare Turnstile. 키가 없으면(개발) 건너뛴다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검증·재설정 토큰은 해시로만 저장하고 1회 사용. 응답 문구는 계정 존재를 드러내지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SRS-006(계정·동기)을 정식화한다. 참조 구현: booktarae src/backend/internal/{auth,oauth,mailer}."
+          }
+        ]
+      }
     ]
-  }
+  },
+  "code_refs": [
+    "src/backend/internal/auth/account.go:1",
+    "src/backend/internal/auth/handler_account.go:1",
+    "src/backend/internal/auth/verified_gate.go:1",
+    "src/frontend/app/components/auth/SecurityCard.tsx:2"
+  ]
 }

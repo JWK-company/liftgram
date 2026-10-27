@@ -204,6 +204,10 @@
     "app/src/domain/exerciseFinder.ts:59",
     "app/src/domain/exerciseFinder.ts:61",
     "app/src/domain/movementPatterns.ts:1",
-    "app/src/domain/movementPatterns.ts:120"
+    "app/src/domain/movementPatterns.ts:120",
+    "src/core/src/data/exerciseRepository.ts:11#getExerciseIdsByNames",
+    "src/core/src/data/exerciseRepository.ts:20#getActiveExerciseIds",
+    "src/core/src/domain/index.ts:14",
+    "src/core/src/domain/index.ts:15"
   ]
 }

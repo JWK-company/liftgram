@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-038",
+  "type": "ADR",
+  "title": "세트 힘든 정도는 set_logs.rir 새 칸(RIR 척도)에 저장하고, rpe 칸은 외부 원본 보관용으로 남긴다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:50:00Z",
+  "updated": "2026-10-27T06:50:00Z",
+  "sync": true,
+  "tags": [
+    "rir",
+    "schema",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-073",
+      "SRS-074",
+      "SRS-081",
+      "SAD-023",
+      "SAD-025"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "세트 기록에는 처음부터 rpe 칸이 있었지만 운동 중에 입력하는 화면이 없어 사실상 비어 있고, 기록 상세에서만 표시한다. 새로 만드는 입력(SRS-073)과 분석(SRS-074)은 '몇 개 더 할 수 있었나(RIR)'로 묻고 보여 준다. 반면 Strong·Hevy 내보내기 파일에는 RPE 값이 들어 있다(SRS-081)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "한 칸에 두 척도를 섞으면 분석이 매번 척도를 추측해야 하고, 한 칸을 다른 뜻으로 바꾸면 이미 들어 있을지 모르는 옛 값의 뜻이 조용히 바뀐다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "스키마 v26에서 set_logs에 rir 칸(number, optional, 0~10, 0.5 단위)을 추가한다. 앱의 입력·분석·표시는 rir만 읽고 쓴다. 기존 rpe 칸은 지우지 않으며, 가져오기 때 원본 RPE를 그대로 보관하는 용도로만 쓴다. 가져오기는 rir = 10 − RPE 로 환산해 함께 채운다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "기록 상세는 rir가 있으면 rir를 보이고, rir가 없고 rpe만 있는 옛 세트는 10 − rpe 를 '환산'으로 표시한다. 환산 규칙은 core 함수 한 곳에 둔다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 화면과 분석이 척도 하나만 다루니 경계값 테스트가 단순하다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 원본 RPE가 남아 있어 환산 규칙을 나중에 바꿔도 다시 계산할 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 처방 칸 target_rir(SRS-043)와 같은 척도라 '목표 vs 실제'를 바로 비교한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: rpe 칸 하나에 RPE로 저장하고 화면에서 RIR로 환산 — 칸 추가는 없지만 모든 읽기 지점에 환산이 퍼지고, 사용자가 고른 값(RIR 2)이 저장 값(RPE 8)과 달라 디버깅·동기 검증이 헷갈린다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: rpe 칸을 rir 뜻으로 재해석 — 마이그레이션은 없지만 이미 들어 있을 수 있는 RPE 값의 뜻이 조용히 뒤집혀 분석이 틀어진다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장점: 입력·분석·처방 비교가 같은 척도. 원본 보존."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이드오프: 칸 하나가 늘고 v26 마이그레이션이 필요하다(optional 칸이라 기존 행은 null = 기록 안 함)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌림 비용: 낮음. rir를 안 읽게 하고 rpe 표시로 돌리면 된다. 칸은 남겨도 해가 없다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SAD-023 ①, SAD-025 ③ · SRS-073·074·081. 관련: SRS-043(target_rir), ADR-037(optional 칸 null 함정)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/domain/__tests__/effort.test.ts:1",
+    "src/core/src/domain/effort.ts:1",
+    "src/frontend/app/components/analytics/EffortCard.tsx:2",
+    "src/frontend/app/components/analytics/exerciseEffort.ts:1",
+    "src/frontend/app/components/session/RirChip.tsx:2",
+    "src/frontend/app/components/session/RirSheet.tsx:2"
+  ]
+}

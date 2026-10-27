@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-074",
+  "type": "SRS",
+  "title": "힘든 정도 분석 — 통계 블록(평균·구간 분포·주별 추이·기록률) · 종목 진척 점에 반영",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "rir",
+    "stats",
+    "effort"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "통계 블록(평균·RIR≤3 비율·구간 분포·주별 추이·기록률, 워밍업 제외, 추정 없음) · 기록 0이면 안내 · 종목 진척 점에 반영 · 웰니스 카피.",
+  "relations": {
+    "derives_from": [
+      "URS-024"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "통계에 「힘든 정도」 블록을 둔다. 기간(30일·90일·1년·전체)을 고르면 그 기간 작업 세트 중 힘든 정도를 적은 세트로 평균 RIR, RIR 3 이하 비율, RIR 0·1·2·3·4+ 구간 분포(세트 수·비율), 주별 평균 추이, 기록률(적은 세트/전체 작업 세트)을 보여 준다. 워밍업은 뺀다. 값을 추정해 채우지 않고 적은 값만 쓴다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "종목별 진척 그래프에서는 힘든 정도를 적은 세트의 점 모양(채움 정도)으로 '같은 무게를 더 쉽게 들었다'를 구분해 보여 준다. 문구는 사실 집계만 쓰고 강도 권고나 의료 표현을 쓰지 않는다(SRS-015 웰니스 가드레일)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기간 안에 적은 값이 하나도 없으면 블록 대신 '힘든 정도 기록을 켜면 여기서 볼 수 있어요' 안내만 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "평균·분포·기록률이 워밍업을 뺀 작업 세트로 계산되고, 단위 테스트로 경계(0, 0.5, 4 이상)가 검증된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "종목 진척 그래프에서 힘든 정도를 적은 세트와 안 적은 세트가 구분된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "블록의 모든 문구가 웰니스 카피 게이트(containsMedicalClaim)를 통과한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-024. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/data/analyticsRepository.ts:32#EnrichedSet",
+    "src/core/src/data/analyticsRepository.ts:60",
+    "src/core/src/data/analyticsRepository.ts:93",
+    "src/core/src/domain/__tests__/effort.test.ts:1",
+    "src/core/src/domain/effort.ts:1",
+    "src/core/src/domain/index.ts:26",
+    "src/core/src/i18n/locales/en.ts:1138",
+    "src/core/src/i18n/locales/ko.ts:1140",
+    "src/frontend/app/components/analytics/EffortCard.tsx:2",
+    "src/frontend/app/components/analytics/ExerciseProgress.tsx:12",
+    "src/frontend/app/components/analytics/ExerciseProgress.tsx:92",
+    "src/frontend/app/components/analytics/StatsClient.tsx:269",
+    "src/frontend/app/components/analytics/exerciseEffort.ts:1",
+    "src/frontend/e2e/opengym-qa1.spec.ts:1",
+    "src/frontend/e2e/opengym-rir.spec.ts:1"
+  ]
+}

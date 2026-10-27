@@ -375,7 +375,12 @@
     ]
   },
   "code_refs": [
+    "src/frontend/app/components/analytics/ExerciseProgress.tsx:2",
+    "src/frontend/app/components/analytics/HistoryClient.tsx:2",
     "src/frontend/app/components/analytics/RecordsHeader.tsx:2",
+    "src/frontend/app/components/analytics/StatsClient.tsx:2",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:2",
+    "src/frontend/app/components/routines/WeekSummary.tsx:2",
     "src/frontend/app/components/ui/AppBar.tsx:2",
     "src/frontend/app/components/ui/LogoSpinner.tsx:1#Symbol",
     "src/frontend/app/components/ui/MoreMenu.tsx:2",

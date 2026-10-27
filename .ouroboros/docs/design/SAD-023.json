@@ -1,0 +1,651 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-023",
+  "type": "SAD",
+  "title": "세트 힘든 정도·근육 지도·체중 이력 — core 집계 함수 3개 + 세트 칸·인체 그림·체중 표를 기존 화면에 얹는다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:20:00Z",
+  "updated": "2026-10-27T07:30:00Z",
+  "sync": true,
+  "tags": [
+    "rir",
+    "effort",
+    "muscle-map",
+    "bodyweight",
+    "stats",
+    "architecture"
+  ],
+  "component": "Effort · MuscleLoad · Bodyweight (URS-024)",
+  "relations": {
+    "refs": [
+      "SRS-073",
+      "SRS-074",
+      "SRS-075",
+      "SRS-076",
+      "SRS-077",
+      "SRS-078"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개요"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "URS-024의 세 가지 요구(세트 강도, 근육 분포, 체중 변화)는 모두 '이미 쌓이는 기록을 다른 축으로 다시 세는' 문제다. 그래서 새 화면을 늘리지 않고, core에 순수 집계 함수 세 개(effort·muscleLoad·bodyweight)를 만든 뒤 운동 중 세트 줄, 루틴 카드, 통계 화면에 작은 블록으로 얹는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "저장은 오프라인 우선 구조를 그대로 따른다. 새 데이터는 로컬 WatermelonDB 스키마 v26으로 넣고 서버 동기는 스키마를 모르는 sync_records가 그대로 실어 나르므로, 서버 변경은 없다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "컴포넌트 / 책임"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "① 세트 힘든 정도 입력 (SRS-073)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "저장: set_logs에 v26 rir 칸(number, optional, 0~10, 0.5 단위)을 새로 둔다. 기존 rpe 칸은 지우지 않고 '외부에서 들어온 원본 RPE' 보관용으로 남긴다(가져오기 SRS-081은 rpe에 원본, rir에 10−RPE 환산값). 칸을 재사용할지 새로 둘지는 ADR 후보 ①로 결정한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "켜기: app_prefs(v21, 계정과 함께 동기)의 effortLogging 키, 기본 false. lib/prefs.ts에 같은 키를 둔다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "UI: SetRowEdit 끝에 RIR 칩 하나(켰을 때만 렌더). 누르면 components/ui의 RirSheet(6단계 + 0.5 단위 스테퍼 + 지우기)가 열린다. target_rir(SRS-043)가 있으면 칩에 흐린 목표를 보인다. 저장은 workoutRepository의 세트 갱신 경로를 그대로 쓰고, 휴식 타이머 시작과 독립이다(완료 체크 핸들러에 끼우지 않는다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기록 상세(WorkoutDetailClient)는 지금 rpe를 표시하는 자리를 rir 우선, 없으면 rpe를 환산해 보이도록 바꾼다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "② 노력 분석 (SRS-074)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "core/domain/effort.ts: summarizeEffort(sets, range) → {평균 RIR, RIR≤3 비율, 구간 0·1·2·3·4+ 분포, 주별 평균, 기록률}. 대상 = 완료(done≠false)한 작업 세트. 워밍업(is_warmup 또는 set_type=warmup)은 뺀다. 값을 추정해 채우지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "analyticsRepository에 기간 세트 조회를 하나 더한다(기존 통계 쿼리와 같은 범위 규칙)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "통계(StatsClient)에 EffortCard를 둔다. 기간 안 기록이 0이면 안내 문구만 보인다. ExerciseProgress의 점은 rir가 있으면 채움 정도로 표시한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "③ 근육 지도 (SRS-075)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "core/domain/muscleLoad.ts: setsByMuscle(sets, exerciseOf, weights) → Record<MuscleGroup, number>. 어휘는 카탈로그의 MuscleGroup 12종(chest·back·shoulders·biceps·triceps·forearms·quads·hamstrings·glutes·calves·abs·traps)이다. 주근육 1, 보조근육 0.5(초기값, ADR 후보 ②). fullBody·other는 그림에 칠하지 않고 '전신' 숫자로만 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "components/ui/BodyMap: 앞·뒤 두 장 인라인 SVG, 12개 영역 path. 농도는 테마 토큰(brandVivid 단계)에서 정하고 숫자 라벨을 같이 준다(색만으로 구분하지 않음). size=mini(루틴 카드·칩)·full(시트·통계) 두 가지."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴 카드(RoutinesClient·WeekSummary 오늘 카드): 루틴 종목의 계획 세트를 muscleLoad로 계산해 mini를 보인다. app_prefs muscleMapOnCards(기본 true, 끄면 자리도 없앤다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중: 세션 상단에 '오늘 근육' 버튼 → 시트에 근육별 끝낸/계획 세트. 세션 상태에서 파생값으로 계산해 세트 완료 즉시 갱신된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "커스텀 종목은 primary_muscles가 없으면 집계에서 빠진다. 루틴 전체가 그런 종목이면 mini를 숨긴다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "④ 근육 균형 통계 (SRS-076)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "StatsClient에 MuscleBalanceCard: 기간(이번 주·30일·90일·전체) + 주 이동. setsByMuscle 결과를 BodyMap full과 많은 순 목록으로 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "'이 기간에 안 한 근육' 칩 → /exercises?muscle=<group>. CatalogClient와 피커가 muscle 쿼리를 받아 거르도록 한다(지금은 부위 필터가 화면 상태라 URL 진입점이 필요하다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원 리포트(SRS-048)와 숫자를 맞추는 문제는 SAD-024 ④에서 다룬다(지금 서버 리포트는 주근육 볼륨 kg라 단위가 다르다)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "⑤ 체중 이력·체크인 (SRS-077)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "저장: v26 새 테이블 bodyweight_logs(measured_at, weight_kg, created_at, updated_at). 동기는 sync_records가 그대로 받는다. sync/backup.ts의 내보내기·가져오기 테이블 목록에 넣는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "호환: userRepository가 이력을 쓰거나 지울 때마다 user_profiles.bodyweight_kg를 최신값으로 같이 고친다(한 write 안에서). 맨몸·보조 볼륨 계산(SRS-033)은 손대지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "체크인: app_prefs weighInBeforeWorkout(기본 false). 운동 시작 진입점이 루틴 카드·빠른 운동·다시 시작(SRS-065)·피드 바로 시작·루틴 편집기로 흩어져 있어(프론트 공통 훅이 없다), WeighInSheet는 운동 화면(ActiveWorkout)에 처음 들어올 때 한 번 띄운다(완료 세트 0 · 오늘 로컬 날짜 기록 없음 · 이번 운동에서 아직 안 띄움). 두 버튼 모두 운동을 막지 않는다. 시작 경로마다 시트를 거는 방식은 진입점 5곳을 고쳐야 해서 택하지 않았다(2026-10-27 스펙 조사)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "입력 단위는 사용자 표시 단위를 따르고 저장은 kg(units.ts 변환 한 곳)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "⑥ 체중 추세 (SRS-078)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "core/domain/bodyweight.ts: latest, goalGap(goalKg), weeklyRate(logs) — 간격이 불규칙해도 되도록 최근 구간 선형 회귀 기울기 × 7일(구간 길이는 스펙에서 확정, 단위 테스트 필수)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "목표 체중은 app_prefs bodyweightGoalKg. 지금 차트는 라이브러리 없이 div 막대(ui/charts.tsx)라 선 그래프가 없다. 통계 BodyweightCard용으로 ui/LineChart(인라인 SVG, 날짜 축 비례·목표선·끝점 강조)를 새로 만든다. 기간 1M·3M·1Y·전체."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 원칙 / 제약"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "계산은 전부 core(TS) 순수 함수로 한다. 화면·서버는 그 결과를 쓰기만 하고, Go로 도메인 계산을 다시 짜지 않는다(ADR-032 이관 원칙)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 입력은 켜야만 보인다(기본 꺼짐). 끈 사용자의 운동 화면 DOM은 지금과 같아야 하며 e2e로 고정한다(URS-023 화면 정리와 같은 방향)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "표시 문구는 i18n 사전(ko·en)에서만 가져오고, 분석·요약 문구는 웰니스 카피 게이트(containsMedicalClaim) 테스트를 통과해야 한다(SRS-015)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "스키마는 v25 → v26 한 번에 올린다(set_logs.rir · bodyweight_logs · SAD-025의 가져오기 칸 포함). migrations.ts에 addColumns·createTable 한 단계로 넣고, 기존 행의 null 의미를 주석으로 고정한다(null = 기록 안 함)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "WatermelonDB optional number는 기본값이 없으므로, 읽을 때 null 처리를 집계 함수 안 한 곳에서 한다(load_multiplier QA B1과 같은 함정)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "통계 카드 셋(Effort·MuscleBalance·Bodyweight)은 데이터가 없으면 접힌 한 줄 안내로만 보인다. 빈 차트를 그리지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "ADR 후보"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "① 힘든 정도 저장 척도: set_logs.rir 새 칸 + rpe는 원본 보관(권장) vs rpe 칸 하나에 RPE로 저장하고 화면에서 RIR로 환산."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "② 근육 집계 가중치·단위: 보조근 0.5 + 세트 수(권장) vs 볼륨 kg. SAD-024 ④의 회원 리포트 통일과 함께 정한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "다루는 SRS: SRS-073·SRS-074·SRS-075·SRS-076·SRS-077·SRS-078 (URS-024 · UCS-023). 연관 설계: SAD-022(회원 리포트), SAD-024 ④(집계 통일)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/db/adapter.ts:13",
+    "src/core/src/db/adapter.ts:18",
+    "src/core/src/db/schemaGuard.ts:1",
+    "src/core/src/domain/__tests__/schemaGuard.test.ts:1",
+    "src/core/src/sync/syncEngine.ts:398",
+    "src/frontend/app/components/SchemaGuard.tsx:2",
+    "src/frontend/lib/schemaGuard.ts:1",
+    "src/scripts/deploy-h2500-3.sh:71#schema_of"
+  ]
+}

@@ -190,6 +190,7 @@
     "app/src/domain/__tests__/catalogGap.test.ts:13",
     "app/src/features/session/ExerciseTipPanel.tsx:1",
     "app/src/features/session/ExerciseTipPanel.tsx:30",
-    "app/src/features/session/ExerciseTipPanel.tsx:88#TwoFrameLoop"
+    "app/src/features/session/ExerciseTipPanel.tsx:88#TwoFrameLoop",
+    "src/frontend/app/components/session/SessionGuides.tsx:2"
   ]
 }

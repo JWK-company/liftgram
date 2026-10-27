@@ -209,5 +209,20 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/data/workoutRepository.ts:1046",
+    "src/core/src/data/workoutRepository.ts:1053",
+    "src/core/src/data/workoutRepository.ts:1658#getWorkoutUndoneSetCount",
+    "src/core/src/data/workoutRepository.ts:25",
+    "src/core/src/data/workoutRepository.ts:856",
+    "src/core/src/data/workoutRepository.ts:879",
+    "src/core/src/data/workoutRepository.ts:905",
+    "src/core/src/db/migrations.ts:218",
+    "src/core/src/db/models/SetLog.ts:31",
+    "src/core/src/db/schema.ts:103",
+    "src/core/src/db/schema.ts:159",
+    "src/core/src/db/schema.ts:191",
+    "src/core/src/domain/index.ts:12"
+  ]
 }

@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-075",
+  "type": "SRS",
+  "title": "근육 지도 — 앞·뒤 인체 그림 요소 · 루틴 카드 미리보기 · 운동 중 근육별 끝낸/계획 세트",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "muscle-map",
+    "routine",
+    "session"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "앞·뒤 인체 그림 요소 · 루틴 카드 미리보기(끌 수 있음) · 운동 중 근육별 끝낸/계획 세트 즉시 갱신 · 두 테마 대비 · 근육 계산 함수 하나로 통일.",
+  "relations": {
+    "derives_from": [
+      "URS-024"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "카탈로그의 주·보조 근육 어휘로 칠하는 앞·뒤 인체 그림 요소를 하나 만들어 여러 화면에서 쓴다. 한 세트가 근육에 주는 몫은 주근육 1, 보조근육은 그보다 작은 가중치로 계산하며, 정확한 값과 근육 묶음 단위는 스펙에서 정한다. 라이트·다크 테마에서 모두 읽히고, 색만이 아니라 숫자·이름으로도 구분된다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "루틴 카드와 오늘 운동 카드에 작은 그림으로 그 루틴이 쓰는 근육을 보여 준다(설정에서 끌 수 있다). 운동 중에는 상단에서 열 수 있는 「오늘 근육」 시트가 근육별 끝낸 세트/계획 세트를 보여 주며, 세트를 완료할 때마다 바로 갱신된다. 근육 정보가 없는 커스텀 종목은 집계에서 빠지고, 그런 종목만 있으면 그림을 숨긴다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴 카드에서 운동을 시작하기 전에 그 루틴의 근육 그림이 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중 세트 하나를 완료하면 시트의 해당 근육 '끝낸 세트'가 그 종목 가중치만큼 바로 늘어난다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "라이트·다크 두 테마에서 그림과 숫자가 대비 기준(비텍스트 3:1, 글자 4.5:1)을 만족한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "설정에서 끄면 루틴 카드에서 그림이 사라지고 레이아웃이 밀리지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "근육 계산은 하나의 도메인 함수로 하며, SRS-076·SRS-079·회원 리포트(SRS-048)의 부위별 집계와 같은 값을 낸다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-024. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/data/muscleLoadRepository.ts:1",
+    "src/core/src/domain/__tests__/muscleLoad.test.ts:1",
+    "src/core/src/domain/index.ts:27",
+    "src/core/src/domain/muscleLoad.ts:1",
+    "src/core/src/domain/muscleLoad.ts:15",
+    "src/core/src/i18n/locales/en.ts:1069",
+    "src/core/src/i18n/locales/en.ts:1181",
+    "src/core/src/i18n/locales/ko.ts:1068",
+    "src/core/src/i18n/locales/ko.ts:1189",
+    "src/frontend/app/components/profile/MuscleMapRow.tsx:2",
+    "src/frontend/app/components/profile/ProfileClient.tsx:54",
+    "src/frontend/app/components/routines/RoutineMuscleMini.tsx:2",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:1017",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:47#import",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:847",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:369",
+    "src/frontend/app/components/session/SessionGuides.tsx:13",
+    "src/frontend/app/components/session/TodayMuscleSheet.tsx:2",
+    "src/frontend/app/components/ui/BodyMap.tsx:1",
+    "src/frontend/e2e/opengym-muscle.spec.ts:1",
+    "src/frontend/lib/muscleMapPref.ts:1",
+    "src/frontend/lib/prefs.ts:33"
+  ]
+}

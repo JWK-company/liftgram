@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-081",
+  "type": "SRS",
+  "title": "CSV 가져오기 — Strong·Hevy 형식 인식 · 운동/세트 변환 · 종목 맞추기(자동·후보·내 종목)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "import",
+    "exercise",
+    "migration"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "Strong·Hevy 머리 행 인식 · 운동/종목/세트 변환(단위·유산소·세트 종류·RPE) · 기기 처리 · 종목 맞추기(자동·후보·내 종목·맞춤 기억) · 변형 칸은 확실할 때만.",
+  "relations": {
+    "derives_from": [
+      "URS-026"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "CSV 파일의 머리 행으로 Strong·Hevy 내보내기 형식을 알아내고, 같은 운동(날짜·시작 시각·운동 이름)으로 행을 묶어 운동 → 종목 → 세트 순서로 바꾼다. 무게 단위(kg·lb), 반복, 유산소의 시간·거리, 세트 종류(워밍업·드롭 등), 메모, 파일에 있으면 RPE까지 옮기며 RPE는 SRS-073 칸에 넣는다. 파일 처리는 기기에서 하고 원본 파일을 서버에 올리지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "종목 이름은 카탈로그 영문 이름·별칭·검색(초성·NFKC 함정 포함)으로 맞춘다. 확실하면 자동으로, 애매하면 후보 몇 개를 보여 사용자가 고르게, 못 맞추면 내 종목 만들기나 직접 고르기를 제공한다. 사용자가 정한 맞춤은 '원본 이름 → 종목' 표로 기억해 다음 가져오기에 쓴다. 기구 변형 칸(브랜드·적재·부착물·그립)은 원본 이름에서 확실히 알 수 있을 때만 채우고, 아니면 비워 둔다(ADR-034 변형 불변식)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Strong·Hevy 실제 내보내기 표본 각 1개 이상으로 운동 수·세트 수·총 볼륨이 원본과 같다(테스트 고정 파일)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "lb로 기록된 파일은 무게가 kg로 정확히 바뀌고, 그 종목 기록 단위는 lb로 남는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "자동 맞춤·후보·못 맞춤 세 갈래가 맞추기 화면에서 구분되고, 사용자가 정한 맞춤이 다음 가져오기에 다시 쓰인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "알 수 없는 형식·빈 파일·깨진 행이 있는 파일에서 앱이 멈추지 않고 이유를 보여 준다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "원본 CSV가 네트워크로 나가지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-026. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/backend/internal/sync/merge_test.go:1",
+    "src/core/src/data/exerciseRepository.ts:114#createCustomExercise",
+    "src/core/src/data/exerciseRepository.ts:91#prepareCustomExercise",
+    "src/core/src/data/importRepository.ts:1",
+    "src/core/src/db/migrations.ts:383",
+    "src/core/src/db/models/ImportAlias.ts:1",
+    "src/core/src/db/models/ImportBatch.ts:1",
+    "src/core/src/db/models/Workout.ts:25",
+    "src/core/src/db/models/index.ts:11",
+    "src/core/src/db/models/index.ts:12",
+    "src/core/src/db/schema.ts:124",
+    "src/core/src/db/schema.ts:233#tableSchema",
+    "src/core/src/db/schema.ts:249#tableSchema",
+    "src/core/src/db/schema.ts:5",
+    "src/core/src/domain/__tests__/importHash.test.ts:1",
+    "src/core/src/domain/__tests__/importMatch.test.ts:1",
+    "src/core/src/domain/__tests__/importParse.test.ts:1",
+    "src/core/src/domain/__tests__/importPlan.test.ts:1",
+    "src/core/src/domain/__tests__/pushChunks.test.ts:1",
+    "src/core/src/domain/__tests__/schemaV26.test.ts:1",
+    "src/core/src/domain/__tests__/syncPause.test.ts:1",
+    "src/core/src/domain/import/common.ts:1",
+    "src/core/src/domain/import/csv.ts:1",
+    "src/core/src/domain/import/formats/hevy.ts:1",
+    "src/core/src/domain/import/formats/strong.ts:1",
+    "src/core/src/domain/import/hash.ts:1",
+    "src/core/src/domain/import/index.ts:1",
+    "src/core/src/domain/import/match.ts:1",
+    "src/core/src/domain/import/parse.ts:1",
+    "src/core/src/domain/import/plan.ts:1",
+    "src/core/src/sync/pending.ts:20",
+    "src/core/src/sync/pushChunks.ts:1#ChunkTableChanges",
+    "src/frontend/app/account/import/page.tsx:1",
+    "src/frontend/app/components/profile/AuthClient.tsx:232",
+    "src/frontend/app/components/profile/AuthClient.tsx:413",
+    "src/frontend/app/components/sync/ImportCard.tsx:2",
+    "src/frontend/app/components/sync/ImportFlow.tsx:2",
+    "src/frontend/e2e/opengym-import.spec.ts:1",
+    "src/frontend/lib/importTask.ts:1",
+    "src/frontend/lib/importWorker.entry.ts:1",
+    "src/frontend/lib/importWorker.ts:1",
+    "src/frontend/lib/syncTransport.ts:102#async"
+  ]
+}

@@ -249,8 +249,25 @@
     ]
   },
   "code_refs": [
+    "src/backend/internal/coaching/service.go:122#CatalogMeta",
     "src/core/src/data/catalog/catalogTypes.ts:1",
+    "src/core/src/data/exerciseRepository.ts:20#getActiveExerciseIds",
+    "src/core/src/data/pictograms/poses.ts:1",
+    "src/core/src/data/pictograms/render.ts:1",
+    "src/core/src/data/pictograms/rig.ts:1",
+    "src/core/src/db/migrations.ts:295",
+    "src/core/src/db/models/Exercise.ts:28",
+    "src/core/src/db/schema.ts:54",
     "src/core/src/domain/__tests__/catalogRevamp.test.ts:1",
-    "src/core/src/domain/catalogIntegrity.ts:1"
+    "src/core/src/domain/__tests__/pictograms.test.ts:1",
+    "src/core/src/domain/catalogIntegrity.ts:1",
+    "src/core/src/domain/types.ts:102",
+    "src/core/src/domain/types.ts:18",
+    "src/core/src/migrations/runner.ts:34",
+    "src/database/migrations/0016_substitutes_remap.sql:1",
+    "src/frontend/app/components/Pictogram.tsx:2",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:397",
+    "src/frontend/app/components/session/ExerciseBlock.tsx:595#var",
+    "src/frontend/app/exercise/[id]/page.tsx:107"
   ]
 }

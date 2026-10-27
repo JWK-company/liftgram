@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-026",
+  "type": "URS",
+  "title": "다른 기록 앱(Strong·Hevy)에서 쌓은 운동 기록을 잃지 않고 리프트그램으로 옮기고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "import",
+    "onboarding",
+    "migration",
+    "opengym"
+  ],
+  "stakeholder": "다른 기록 앱에서 넘어오는 신규 사용자·담당 트레이너",
+  "priority": "Medium",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경 / 이해관계자"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "다른 앱을 오래 쓴 사람은 몇 년 치 기록 때문에 앱을 바꾸지 못한다. 리프트그램은 자체 백업 파일만 읽을 수 있어서, 넘어오면 기록과 개인 기록(PR)을 처음부터 다시 쌓아야 한다. Strong·Hevy는 운동 기록을 CSV 파일로 내보내는 기능을 제공한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이해관계자: 다른 기록 앱에서 넘어오는 신규 사용자 · 넘어온 사용자의 과거 기록이 필요한 담당 트레이너."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조). openGym은 FitNotes·Strong·Hevy·Gravl CSV를 가져오며, 가져오기 전 요약과 여러 번 실행해도 중복이 생기지 않는 동작을 제공한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Strong 또는 Hevy에서 내보낸 CSV 파일을 골라, 운동·세트·무게·반복·날짜가 그대로 리프트그램 기록이 되기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가져오기 전에 몇 개 운동·세트가 어떤 기간으로 들어오는지, 어떤 종목이 무엇으로 맞춰지는지 보고 고치고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "리프트그램에 없는 종목은 내 종목으로 만들거나 비슷한 종목으로 직접 고르고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 파일을 실수로 두 번 가져와도 기록이 두 배가 되지 않고, 잘못 가져왔으면 그 가져오기를 통째로 되돌리고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가져온 기록이 통계·개인 기록·캘린더에 바로 반영되되, 피드에 저절로 올라가지는 않기를 원한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Strong·Hevy 실제 내보내기 파일 표본에서 운동 수·세트 수가 원본과 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 파일을 두 번 가져오면 두 번째에는 새로 들어오는 운동이 0개다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가져오기 되돌리기 뒤에는 그 가져오기로 생긴 운동이 하나도 남지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가져온 운동이 피드·친구 알림에 나타나지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

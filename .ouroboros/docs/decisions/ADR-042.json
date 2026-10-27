@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-042",
+  "type": "ADR",
+  "title": "가져온 기록은 결정적 id를 쓰고, 가져온 운동 행에는 markLocalWins를 쓰지 않는다 — 사용자가 고른 값(종목 맞춤·이름 붙인 커스텀 종목)만 로컬 우선",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:50:00Z",
+  "updated": "2026-10-27T08:30:00Z",
+  "sync": true,
+  "tags": [
+    "import",
+    "sync",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-082",
+      "SAD-025"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가져오기 중복 방지(SRS-082)를 위해 운동·종목·세트 id를 출처·시작 시각·이름으로 결정적으로 만든다. 그래서 같은 파일을 두 기기에서 가져오면 같은 id의 행이 양쪽에서 '새로 만든 행'으로 생긴다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "WatermelonDB는 아직 동기 안 된 created 행에 _changed를 기록하지 않아서, 같은 id의 원격 행이 오면 로컬 행이 조용히 진다(메모리 'Watermelon created 행 충돌'). 결정적 id를 쓰는 사용자 행에는 이미 markLocalWins를 쓰고 있다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가져오기로 만든 행 중 아직 동기 안 된 행에는 기존 markLocalWins(sync/localWins.ts)를 적용해, 두 기기가 같은 파일을 가져왔을 때 각 기기가 자기 내용을 올린다. 내용이 같으므로 어느 쪽이 이겨도 결과는 같고, 사용자가 가져온 직후 고친 세트(user_edited)가 원격 원본에 덮이는 것을 막는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가져오기 전 '이미 있는 운동' 판정은 로컬 DB의 id 존재로 하며, 동기 직후라면 원격에서 내려온 행도 이 판정에 잡힌다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 이미 쓰고 있는 검증된 장치라 새 충돌 규칙을 만들지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 가져온 직후 고친 값을 잃는 경우를 막는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: 원격 승리 허용 — 내용이 같으니 대부분 무해하지만, 가져온 직후 고친 세트가 다른 기기의 원본으로 조용히 되돌아갈 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: 가져오기마다 무작위 id — 충돌은 없지만 같은 파일 재실행·다른 기기 가져오기에서 중복이 생겨 SRS-082 수용 기준을 못 지킨다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장점: 중복 0과 사용자 수정 보존을 같이 지킨다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이드오프: 두 기기에서 같은 파일을 가져온 뒤 서로 다르게 고치면 마지막에 동기한 쪽이 이긴다(일반 동기 규칙과 같다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌림 비용: 낮음. 가져오기 경로의 markLocalWins 호출만 빼면 된다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 (2026-10-27 /qa spec D-2·D-3·D-4·D-7)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "원래 결정의 근거가 틀렸다. WatermelonDB는 created 행을 나중에 update해도 _changed를 기록하므로, 가져온 뒤 사람이 고친 칸은 markLocalWins 없이도 로컬이 이긴다. 반대로 만들 때 모든 칸에 markLocalWins를 걸면 다른 기기에서 사람이 고친 값을 가져오기 원본이 칸 단위로 덮는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "그래서 가져온 운동·운동 종목·세트는 원격 우선을 허용한다(내용이 같아 대부분 무해하고, 원격의 사람 수정이 보존된다). markLocalWins는 사람이 고른 값인 import_aliases.exercise_id와 사용자가 이름을 붙인 커스텀 종목의 name_ko에만 쓴다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "로그인 상태에서는 가져오기 직전에 동기 한 번을 필수로 한다(예전 되돌리기의 삭제 표시를 먼저 받아, 새로 가져온 같은 id 행이 다음 pull에 지워지지 않게). 오프라인이고 이 계정에 되돌린 묶음이 있으면 '온라인에서 다시 시도'로 막는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이미 있는 id 판정은 쓰기 안에서 다시 한다 — 보이는 행과 로컬 삭제 표시(adapter.getDeletedRecords) 둘 다. 걸리는 운동은 통째로 건너뛴다(LokiJS는 id 중복 insert에서 드라이버가 망가짐 상태가 된다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "id 입력은 시간대 해석 전의 원본 현지 시각 문자열(정규화)과 source로 만들고, 같은 시각이 두 번이면 원본 순번을 붙인다. 해시는 SHA-256 앞 16바이트(hex 32자)로 고정한다. 서버 고유키가 (user_id, collection, record_id)라 다른 사용자끼리는 충돌하지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SAD-025 ③ · SRS-082 · 관련 메모리: Watermelon created 행 충돌, 결정적 id 사용자 행."
+          }
+        ]
+      }
+    ]
+  }
+}

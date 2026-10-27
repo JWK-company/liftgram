@@ -138,10 +138,24 @@
     ]
   },
   "code_refs": [
+    "src/backend/internal/coaching/handler.go:219",
+    "src/backend/internal/coaching/report.go:66",
+    "src/core/src/data/workoutRepository.ts:1166",
+    "src/core/src/data/workoutRepository.ts:28",
+    "src/core/src/data/workoutRepository.ts:686#estimatedOneRmForSlot",
+    "src/core/src/data/workoutRepository.ts:728#fillPrescribedLoadsAfterV1",
+    "src/core/src/data/workoutRepository.ts:773#fillPrescribedLoadsAfter",
+    "src/core/src/data/workoutRepository.ts:858",
+    "src/core/src/data/workoutRepository.ts:875",
+    "src/core/src/data/workoutRepository.ts:974",
     "src/core/src/domain/__tests__/sessionAssist.test.ts:1",
+    "src/core/src/i18n/locales/en.ts:658",
+    "src/core/src/i18n/locales/ko.ts:656",
     "src/frontend/app/components/routines/RoutineEditor.tsx:942",
     "src/frontend/app/components/session/ExerciseBlock.tsx:1032#rxLoadLabel",
     "src/frontend/app/components/session/ExerciseBlock.tsx:457",
+    "src/frontend/app/components/session/SetRowEdit.tsx:141",
+    "src/frontend/app/components/session/SetRowEdit.tsx:455",
     "src/frontend/e2e/session-assist.spec.ts:1"
   ]
 }

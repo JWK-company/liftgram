@@ -167,13 +167,20 @@
     ]
   },
   "code_refs": [
+    "src/core/src/data/workoutRepository.ts:1376",
+    "src/core/src/data/workoutRepository.ts:1389",
+    "src/core/src/data/workoutRepository.ts:1541#getRecentBrands",
+    "src/core/src/data/workoutRepository.ts:2396",
+    "src/core/src/data/workoutRepository.ts:2449",
+    "src/core/src/data/workoutRepository.ts:32",
     "src/core/src/domain/__tests__/workoutAutoName.test.ts:1",
     "src/core/src/domain/workoutAutoName.ts:1",
-    "src/frontend/app/components/CatalogClient.tsx:162",
+    "src/frontend/app/components/CatalogClient.tsx:164",
     "src/frontend/app/components/analytics/CalendarClient.tsx:579#formatWeight",
     "src/frontend/app/components/analytics/HistoryClient.tsx:108",
-    "src/frontend/app/components/routines/RoutinesClient.tsx:309",
-    "src/frontend/app/components/routines/RoutinesClient.tsx:411",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:188#formatWorkoutDuration",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:372",
+    "src/frontend/app/components/routines/RoutinesClient.tsx:481",
     "src/frontend/e2e/declutter-p3.spec.ts:1"
   ]
 }

@@ -9,48 +9,257 @@
   "created": "2026-10-26T03:00:00Z",
   "updated": "2026-10-26T03:00:00Z",
   "sync": true,
-  "tags": ["infra", "web-stack", "deploy", "backup", "ci", "nfr"],
+  "tags": [
+    "infra",
+    "web-stack",
+    "deploy",
+    "backup",
+    "ci",
+    "nfr"
+  ],
   "kind": "NFR",
   "acceptance_criteria": "frontend·backend·migrate·db·broker가 compose의 독립 실행 단위로 뜨고, 필수 설정이 빠지면 부팅이 실패하며, 헬스(생존)와 레디(DB 도달)가 분리돼 있다. 운영 배포는 커밋된 소스만 내보내고 배포 전 디스크·설정을, 배포 후 DB 도달을 확인한다. DB는 매일·사진은 매주 백업되고 덤프 판독까지 확인된다. 옛 배포 데이터 이관은 멱등이며 행 수 대조로 끝난다. lint·타입·테스트·문서 드리프트·e2e가 한 줄(make ci)로 돈다.",
-  "relations": { "derives_from": ["URS-008"] },
+  "relations": {
+    "derives_from": [
+      "URS-008"
+    ]
+  },
   "doc": {
     "type": "doc",
     "content": [
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구 서술" }] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "text": "liftgram 웹 스택(ADR-031·ADR-032)이 " },
-        { "type": "text", "marks": [{ "type": "strong" }], "text": "믿을 수 있게 뜨고, 믿을 수 있게 배포되고, 데이터를 잃지 않게" },
-        { "type": "text", "text": " 하는 운영 기반이다. 사용자 기록이 사라지거나 서비스가 조용히 망가지는 것은 신뢰(URS-008)를 직접 깎는다." }
-      ] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "marks": [{ "type": "strong" }], "text": "실행 단위: " },
-        { "type": "text", "text": "frontend(화면+프록시)·backend(API)·migrate(one-shot)·db·broker를 compose로 정의하고, 같은 Dockerfile에서 non-root 이미지를 만든다. migrate가 정상 종료해야 backend가 뜬다. 설정은 각 단위에서 한 곳(config.go·env.ts)만 읽고 필수 값이 없으면 부팅이 실패한다. SIGTERM에는 정해진 시간 안에 연결을 정리하고 끝낸다." }
-      ] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "marks": [{ "type": "strong" }], "text": "관측: " },
-        { "type": "text", "text": "healthz(프로세스 생존 — 실패 시 재시작)와 readyz(DB 도달 — 실패 시 트래픽만 끊음)를 나눈다. 요청마다 식별자와 구조화 로그를 남기고, 기본 보안 헤더는 프레임워크 설정에서 한 번에 건다." }
-      ] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "marks": [{ "type": "strong" }], "text": "배포·백업·이관: " },
-        { "type": "text", "text": "운영(h2500-3 + Cloudflare 터널 liftgram.tarae.org)은 커밋된 사본에서만 배포하고, 서버를 건드리기 전에 디스크 여유와 설정을, 끝에 readyz를 확인하며, 배포 커밋을 서버에 기록한다. DB는 매일·사진은 매주 백업하고 보관 개수를 제한한다. 옛 배포 데이터는 전환 시점에 한 번, 멱등하게 옮기고 행 수를 대조한다." }
-      ] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "marks": [{ "type": "strong" }], "text": "품질 게이트·운영 피드백: " },
-        { "type": "text", "text": "lint·타입·테스트·문서 드리프트·생성물 드리프트·e2e를 플랫폼 중립 CI 한 줄로 돌리고, 커밋 전 훅이 같은 검사를 먼저 본다. 도메인·화면 제너레이터는 레퍼런스와 같은 모양을 찍어낸다. 내부 사용자가 앱 안에서 적은 문제·개선은 서버를 거쳐 PLM 아이디어보드로 간다(토큰은 서버에만)." }
-      ] },
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "수용 기준" }] },
-      { "type": "bullet_list", "content": [
-        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "필수 설정(DATABASE_URL·JWT_SECRET 등)이 비면 backend·frontend가 부팅하지 않는다." }] }] },
-        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "DB가 내려가면 readyz는 503(degraded)이고 healthz는 200이다 — 재시작 루프가 생기지 않는다." }] }] },
-        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "배포 스크립트는 작업 트리의 미커밋 변경을 내보내지 않으며, 디스크 여유가 최소치 미만이면 서버를 건드리지 않고 멈춘다." }] }] },
-        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "백업 덤프는 pg_restore -l로 판독돼야 성공으로 기록된다." }] }] },
-        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "데이터 이관을 두 번 돌려도 결과가 같고, 끝에 테이블별 행 수 대조표가 전부 일치한다." }] }] },
-        { "type": "list_item", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "make ci 한 줄이 로컬과 러너에서 같은 검사를 돌린다." }] }] }
-      ] },
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "구현 위치" }] },
-      { "type": "paragraph", "content": [
-        { "type": "text", "text": "src/compose*.yaml · src/Dockerfile · src/backend/cmd · src/backend/internal/{config,db} · src/backend/internal/middleware/requestlog.go · src/frontend/{server.mjs,next.config.ts,lib/env.ts} · src/scripts/{deploy,backup}-h2500-3.sh · src/scripts/migrate-legacy.sh · src/scripts/ci.sh·check-*·gen-* · src/backend/internal/feedback" }
-      ] }
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "liftgram 웹 스택(ADR-031·ADR-032)이 "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "믿을 수 있게 뜨고, 믿을 수 있게 배포되고, 데이터를 잃지 않게"
+          },
+          {
+            "type": "text",
+            "text": " 하는 운영 기반이다. 사용자 기록이 사라지거나 서비스가 조용히 망가지는 것은 신뢰(URS-008)를 직접 깎는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "실행 단위: "
+          },
+          {
+            "type": "text",
+            "text": "frontend(화면+프록시)·backend(API)·migrate(one-shot)·db·broker를 compose로 정의하고, 같은 Dockerfile에서 non-root 이미지를 만든다. migrate가 정상 종료해야 backend가 뜬다. 설정은 각 단위에서 한 곳(config.go·env.ts)만 읽고 필수 값이 없으면 부팅이 실패한다. SIGTERM에는 정해진 시간 안에 연결을 정리하고 끝낸다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "관측: "
+          },
+          {
+            "type": "text",
+            "text": "healthz(프로세스 생존 — 실패 시 재시작)와 readyz(DB 도달 — 실패 시 트래픽만 끊음)를 나눈다. 요청마다 식별자와 구조화 로그를 남기고, 기본 보안 헤더는 프레임워크 설정에서 한 번에 건다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "배포·백업·이관: "
+          },
+          {
+            "type": "text",
+            "text": "운영(h2500-3 + Cloudflare 터널 liftgram.tarae.org)은 커밋된 사본에서만 배포하고, 서버를 건드리기 전에 디스크 여유와 설정을, 끝에 readyz를 확인하며, 배포 커밋을 서버에 기록한다. DB는 매일·사진은 매주 백업하고 보관 개수를 제한한다. 옛 배포 데이터는 전환 시점에 한 번, 멱등하게 옮기고 행 수를 대조한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "품질 게이트·운영 피드백: "
+          },
+          {
+            "type": "text",
+            "text": "lint·타입·테스트·문서 드리프트·생성물 드리프트·e2e를 플랫폼 중립 CI 한 줄로 돌리고, 커밋 전 훅이 같은 검사를 먼저 본다. 도메인·화면 제너레이터는 레퍼런스와 같은 모양을 찍어낸다. 내부 사용자가 앱 안에서 적은 문제·개선은 서버를 거쳐 PLM 아이디어보드로 간다(토큰은 서버에만)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "필수 설정(DATABASE_URL·JWT_SECRET 등)이 비면 backend·frontend가 부팅하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "DB가 내려가면 readyz는 503(degraded)이고 healthz는 200이다 — 재시작 루프가 생기지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "배포 스크립트는 작업 트리의 미커밋 변경을 내보내지 않으며, 디스크 여유가 최소치 미만이면 서버를 건드리지 않고 멈춘다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "백업 덤프는 pg_restore -l로 판독돼야 성공으로 기록된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "데이터 이관을 두 번 돌려도 결과가 같고, 끝에 테이블별 행 수 대조표가 전부 일치한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "make ci 한 줄이 로컬과 러너에서 같은 검사를 돌린다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "구현 위치"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "src/compose*.yaml · src/Dockerfile · src/backend/cmd · src/backend/internal/{config,db} · src/backend/internal/middleware/requestlog.go · src/frontend/{server.mjs,next.config.ts,lib/env.ts} · src/scripts/{deploy,backup}-h2500-3.sh · src/scripts/migrate-legacy.sh · src/scripts/ci.sh·check-*·gen-* · src/backend/internal/feedback"
+          }
+        ]
+      }
     ]
-  }
+  },
+  "code_refs": [
+    "src/backend/cmd/server/main.go:1",
+    "src/backend/cmd/server/main.go:2",
+    "src/scripts/deploy-h2500-3.sh:2"
+  ]
 }

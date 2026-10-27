@@ -1,0 +1,297 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-039",
+  "type": "ADR",
+  "title": "근육 집계는 세트 수로 하고 주근육 1·보조근육 0.5 가중치를 쓴다 — 계산은 core muscleLoad 하나",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:50:00Z",
+  "updated": "2026-10-27T11:00:00Z",
+  "sync": true,
+  "tags": [
+    "muscle-map",
+    "stats",
+    "decision"
+  ],
+  "relations": {
+    "informs": [
+      "SRS-075",
+      "SRS-076",
+      "SRS-079",
+      "SAD-023",
+      "SAD-024"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "맥락 (Context)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근육 지도(SRS-075), 근육 균형(SRS-076), 기간 성과 요약(SRS-079)이 모두 '근육별로 얼마나 했나'를 보여 준다. 카탈로그는 종목마다 주근육(primary)과 보조근육(secondary) 목록을 갖고 있고, 어휘는 MuscleGroup 12종 + fullBody·other다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "지금 트레이너 회원 리포트(SRS-048)는 주근육 하나에 볼륨(kg)을 몰아 준다. 볼륨 kg는 하체 머신처럼 무거운 종목이 근육 분포를 왜곡하고, 맨몸·밴드 종목은 0에 가깝게 잡힌다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결정 (Decision)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근육 집계 단위는 '완료한 작업 세트 수'로 한다. 한 세트는 주근육 각각에 1, 보조근육 각각에 0.5를 더한다. 워밍업은 뺀다. fullBody·other는 그림에 칠하지 않고 별도 '전신' 숫자로만 보인다. 이 규칙은 core/domain/muscleLoad.ts의 setsByMuscle 하나로만 계산하고, 루틴 카드·운동 중 시트·통계·성과 요약·회원 리포트가 모두 이 함수를 쓴다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가중치 0.5는 상수 하나로 두고, 바꿀 때는 이 ADR을 대체하는 새 ADR로 바꾼다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거 / 대안"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 세트 수는 운동 과학에서 흔히 쓰는 '근육별 주간 세트' 감각과 맞아 사용자와 트레이너가 읽기 쉽다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: 무게에 영향받지 않아 맨몸·머신·덤벨 종목이 공정하게 잡힌다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택 이유: openGym도 세트 기반 + 보조근 가중치(기본 0.4)를 쓰며 사용자 반응이 좋다. 우리는 반올림이 깔끔한 0.5를 쓴다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: 볼륨 kg 유지 — 회원 리포트와 그대로 맞지만 무거운 종목 편향과 맨몸 0 문제가 남는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: 주근육만 1(보조 0) — 단순하지만 벤치프레스의 삼두·어깨가 안 잡혀 '안 한 근육' 목록이 틀어진다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "검토한 대안: 종목별 근육 기여도를 따로 매김 — 정확하지만 480행 데이터 작업이 필요하고 근거가 약하다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "결과 (Consequences)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "장점: 화면마다 같은 숫자. 무게와 무관한 공정한 분포."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이드오프: 기존 회원 리포트의 '부위별 볼륨(kg)'이 '부위별 세트'로 바뀐다(ADR-040에서 함께 이관). 트레이너에게 단위 변경 안내가 필요하다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌림 비용: 낮음. 가중치 상수와 집계 단위가 함수 한 곳에 있다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 (2026-10-27 /qa code P2-1)"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "실패 표시(is_failed) 세트는 근육 집계에서 뺀다. 같은 화면의 작업 세트 수·볼륨(isWorkingSet)이 실패 세트를 빼므로, 근육 세트 수만 넣으면 숫자가 어긋난다. 유산소·워밍업 제외와 같은 규칙 한 곳(muscleLoad)에서 판정한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "SAD-023 ③④, SAD-024 ① · SRS-075·076·079. 관련: ADR-040(회원 리포트 통일)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/domain/__tests__/muscleLoad.test.ts:1",
+    "src/frontend/app/components/analytics/MuscleBalanceCard.tsx:2"
+  ]
+}

@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-080",
+  "type": "SRS",
+  "title": "성과 요약 보내기 — 담당 코치에게 · 보낼 항목 고르기 · 보낸 시점 고정 · 해지 시 회수 · 처방으로 이동",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T08:30:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "report",
+    "dm",
+    "privacy"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "코칭 중인 코치에게만 · 항목 고르기(뺀 항목 서버 미저장) · 보낸 시점 고정 · 해지·동의 철회 시 열람 불가(서버 검사) · 처방 화면 바로 가기 · 오프라인 대기열 1회 전달.",
+  "relations": {
+    "derives_from": [
+      "URS-025"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "코칭 중인 코치가 있는 회원은 성과 요약에서 「코치에게 보내기」를 누르고, 보낼 항목(체중·힘든 정도·종목 변화 등)을 켜고 끄고(체중은 처음에 꺼짐 — 신체정보 기본 제외, SRS-048), 받을 코치를 고른다. 보내면 서버에 보낸 시점의 요약 내용이 그대로 저장되고, 코치에게 알림과 함께 대화(또는 코칭 화면)로 카드가 간다. 카드 저장 위치·대화 연동 방식은 스펙에서 정한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "트레이너는 카드를 열어 요약 전체를 보고 「루틴 처방」으로 그 회원 처방 화면(SRS-048)에 간다. 회원이 코칭을 해지하거나 동의를 거두면 보낸 요약도 트레이너가 볼 수 없게 된다. 회원은 보낸 요약 목록(언제·누구에게·어떤 기간)을 본다. 오프라인에서 보내면 대기열에 두었다가 연결되면 보낸다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원이 끈 항목은 서버에 저장된 요약에도, 트레이너 화면에도 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보낸 뒤 회원이 그 기간 기록을 고쳐도 트레이너가 보는 요약은 바뀌지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "코칭 관계가 '코칭 중'이 아닌 사용자는 요약을 보낼 수도, 받은 요약을 열 수도 없다(서버 권한 검사)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너가 카드에서 한 번 눌러 그 회원의 루틴 처방 화면에 간다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "오프라인에서 보낸 요약이 연결 뒤 한 번만 도착한다(중복 없음)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-025. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/backend/cmd/server/main.go:260#NewService",
+    "src/backend/internal/coaching/handler.go:292",
+    "src/backend/internal/coaching/handler_summary_test.go:1",
+    "src/backend/internal/coaching/records.go:1",
+    "src/backend/internal/coaching/repo.go:345#tsAt",
+    "src/backend/internal/coaching/report.go:32",
+    "src/backend/internal/coaching/service.go:118#ListMemberWorkoutsStartedIn",
+    "src/backend/internal/coaching/service.go:127",
+    "src/backend/internal/coaching/summary.go:1",
+    "src/backend/internal/coaching/summary_pg_test.go:1",
+    "src/backend/internal/coaching/summary_qa_pg_test.go:1",
+    "src/backend/internal/coaching/summary_qa_test.go:1",
+    "src/backend/internal/coaching/summary_test.go:1",
+    "src/backend/internal/dm/handler.go:240",
+    "src/backend/internal/dm/repo.go:267#func",
+    "src/backend/internal/dm/service.go:106#CreateRefMessage",
+    "src/backend/internal/dm/service.go:305#func",
+    "src/backend/internal/dm/service.go:42",
+    "src/backend/internal/dm/service.go:49",
+    "src/backend/internal/dm/service.go:53#SummaryMessageID",
+    "src/backend/internal/dm/service.go:70",
+    "src/backend/internal/dm/summary_test.go:1",
+    "src/backend/internal/errs/errs.go:30",
+    "src/backend/internal/jsonguard/jsonguard.go:1",
+    "src/backend/internal/jsonguard/jsonguard_test.go:1",
+    "src/backend/internal/middleware/errors.go:28",
+    "src/backend/internal/notification/handler.go:69",
+    "src/backend/internal/notification/service.go:27",
+    "src/core/src/data/periodSummaryRepository.ts:1",
+    "src/core/src/domain/__tests__/periodSummary.test.ts:1",
+    "src/core/src/domain/__tests__/periodSummaryRepo.test.ts:1",
+    "src/core/src/domain/periodSummary.ts:1",
+    "src/core/src/domain/summaryRecords.ts:1",
+    "src/core/src/domain/summarySchema.ts:1",
+    "src/core/src/i18n/locales/en.ts:1315",
+    "src/core/src/i18n/locales/en.ts:1420",
+    "src/core/src/i18n/locales/ko.ts:1324",
+    "src/core/src/i18n/locales/ko.ts:1431",
+    "src/core/src/sync/syncOwner.ts:54#deviceOwnerMatches",
+    "src/database/migrations/0017_progress_summaries.sql:1",
+    "src/database/queries/coaching.sql:162#같은",
+    "src/database/queries/dm.sql:124",
+    "src/frontend/app/components/coaching/CoachingClient.tsx:37",
+    "src/frontend/app/components/dm/ConversationClient.tsx:227",
+    "src/frontend/app/components/dm/ConversationClient.tsx:286#map",
+    "src/frontend/app/components/dm/ConversationsClient.tsx:113",
+    "src/frontend/app/components/dm/NotificationsClient.tsx:30",
+    "src/frontend/app/components/dm/NotificationsClient.tsx:40",
+    "src/frontend/app/components/dm/NotificationsClient.tsx:44#openSummary",
+    "src/frontend/app/components/summary/MemberReportDialog.tsx:2",
+    "src/frontend/app/components/summary/ProgressSummaryClient.tsx:2",
+    "src/frontend/app/components/summary/SummaryBubble.tsx:2",
+    "src/frontend/app/components/summary/SummaryOpen.tsx:2",
+    "src/frontend/app/components/summary/SummaryView.tsx:2",
+    "src/frontend/app/stats/summary/page.tsx:1",
+    "src/frontend/e2e/opengym-summary.spec.ts:1",
+    "src/frontend/lib/summaryOutbox.ts:1",
+    "src/frontend/lib/syncTransport.ts:138#import",
+    "src/frontend/lib/syncTransport.ts:157#onLoggedOut",
+    "src/frontend/lib/syncTransport.ts:162",
+    "src/frontend/sw/sw.template.js:25"
+  ]
+}

@@ -1,0 +1,535 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-024",
+  "type": "SAD",
+  "title": "기간 성과 요약·코치에게 보내기 — 회원 기기에서 core로 요약을 만들고, 서버는 권한 검사와 스냅샷 보관만 한다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T06:20:00Z",
+  "updated": "2026-10-27T06:20:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "report",
+    "dm",
+    "privacy",
+    "architecture"
+  ],
+  "component": "PeriodSummary · Summary Delivery (URS-025)",
+  "relations": {
+    "refs": [
+      "SRS-079",
+      "SRS-080"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개요"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "요약 계산은 회원 기기의 core 순수 함수 periodSummary 하나로만 한다. 기록의 원본이 기기(오프라인 우선)에 있고, SAD-023의 effort·muscleLoad·bodyweight와 personalRecords를 그대로 조합할 수 있기 때문이다. 서버는 보낸 요약을 '보낸 시점 스냅샷'으로 보관하고, 누가 읽을 수 있는지만 코칭 권한 가드(SAD-022 ①)로 판단한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "트레이너에게 가는 길은 DM이다. 대화에는 요약 데이터 대신 요약 id만 실은 새 메시지 종류를 보내서, 코칭을 해지하면 같은 가드가 열람을 막는다. 메시지에 데이터를 넣으면 해지 뒤에도 남는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "컴포넌트 / 책임"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "① periodSummary (core 도메인, SRS-079)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "입력: 기간 [start, end) · 운동·세트·종목 · 체중 이력. 출력: SummaryV1 JSON(schemaVersion 포함) = {range, counts(운동 수·총 시간·총 볼륨·주당), delta(직전 같은 길이 기간 대비), prs[], topExercises[](최고 세트 처음→끝), muscleSets(SAD-023 ③), effort?(SAD-023 ②), bodyweight?(시작·끝·변화)}."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "데이터가 없는 섹션은 키를 빼서(undefined) 화면과 보낼 항목 목록에 나오지 않게 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "볼륨·PR은 기존 volume.ts(effectiveWeightKg·loadMultiplier)·personalRecords를 재사용한다. 기간 경계는 로컬 날짜 기준이고 테스트로 고정한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "② 회원 화면"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "/stats/summary(통계에서 진입): 기간 선택 7일·4주·3개월·직접 → 미리보기 SummaryView. SummaryView는 회원 미리보기와 트레이너 열람이 함께 쓰는 하나의 렌더 컴포넌트다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "「코치에게 보내기」: 코칭 grant가 active인 코치가 없으면 버튼 대신 /coaching 안내. 코치가 여럿이면 받을 사람을 고른다. 보낼 항목 토글(체중·힘든 정도·종목 변화·부위별) → 끈 섹션은 기기에서 제거한 뒤 전송한다(서버에 닿지 않음)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보낸 목록: 내가 보낸 요약(언제·누구·기간)을 같은 화면 아래에 보인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "③ 서버: 보관·전달 (SRS-080)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 마이그레이션: progress_summaries(id, member_id, trainer_id, period_start, period_end, schema_version, snapshot jsonb, client_id, created_at, UNIQUE(member_id, client_id)). client_id는 기기에서 만든 uuid로, 오프라인 재전송이 한 번만 들어가게 한다(idempotency 패키지와 같은 원리)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "coaching.proto RPC 추가: SendProgressSummary(trainer_id, period, snapshot_json, client_id) · GetProgressSummary(id) · ListSentSummaries(). Send는 grant active(회원→트레이너)를 가드로 확인하고, 감사 로그(SAD-022 ②)에 남기고, GetOrCreateDirect로 둘의 대화를 찾아 MESSAGE_KIND_SUMMARY(=3, body=요약 id) 메시지를 보낸 뒤 알림을 만든다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Get은 요청자가 회원 본인이거나 지금 active grant를 가진 트레이너일 때만 스냅샷을 돌려준다. 아니면 PermissionDenied → 화면은 '코칭이 끝나 볼 수 없어요'."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "스냅샷 크기 상한(예: 64KB)과 schema_version 검사를 서버에서 한다. 서버는 스냅샷 내용을 다시 계산하거나 해석하지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "④ 트레이너 화면과 회원 리포트 통일"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "DM 말풍선: kind=SUMMARY면 요약 카드(기간·핵심 숫자 3개)를 그리고, 누르면 GetProgressSummary → SummaryView 전체. 아래에 「루틴 처방」 → 기존 회원 처방 화면(SRS-048)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "통일 문제: 지금 GetMemberReport는 Go가 sync_records를 읽어 주근육 볼륨(kg)으로 모은다. SRS-076·079는 보조근 가중 세트 수를 쓰므로, 같은 '부위별'이 두 화면에서 다른 숫자가 된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "권장(ADR 후보 ③): GetMemberReport가 동의 범위의 원본 레코드를 그대로 돌려주고, 트레이너 웹(같은 Next 앱이라 core를 쓸 수 있다)이 periodSummary로 계산한다. Go 집계(report.go buildReportWith)는 지우지 않고 호출만 막아 원복할 수 있게 둔다(코드 보존 규칙). 대안은 Go에 같은 가중치를 다시 구현하는 것인데, 이관 원칙(Go로 도메인 재구현 금지)에 어긋나고 드리프트가 생긴다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "⑤ 오프라인 전송"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보내기는 서버가 필요하다. 오프라인이면 core의 작은 대기열(prefs가 아니라 로컬 테이블 또는 localStorage + client_id)에 넣고, 온라인 복귀·앱 시작 때 다시 보낸다. 같은 client_id라 중복 도착이 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대기 중인 요약은 보낸 목록에 '보내는 중'으로 보인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "설계 원칙 / 제약"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "계산은 전부 core(TS) 순수 함수로 한다. 화면·서버는 그 결과를 쓰기만 하고, Go로 도메인 계산을 다시 짜지 않는다(ADR-032 이관 원칙)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 입력은 켜야만 보인다(기본 꺼짐). 끈 사용자의 운동 화면 DOM은 지금과 같아야 하며 e2e로 고정한다(URS-023 화면 정리와 같은 방향)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "표시 문구는 i18n 사전(ko·en)에서만 가져오고, 분석·요약 문구는 웰니스 카피 게이트(containsMedicalClaim) 테스트를 통과해야 한다(SRS-015)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "권한 판단은 서버 가드 한 곳에서만 한다. 클라이언트의 '코치 없음' 분기는 안내일 뿐 보안 경계가 아니다(SAD-022 원칙)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너 쪽에는 회원이 보낸 스냅샷만 간다. 서버가 회원 기기 데이터를 새로 모아 만들지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "MessageKind에 값을 추가하므로 구버전 클라이언트가 SUMMARY를 받으면 '요약을 보려면 앱을 새로 고쳐 주세요' 텍스트로 보이게 body 대체 문구 규칙을 둔다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "ADR 후보"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "③ 회원 리포트 집계를 core로 옮겨 트레이너 웹에서 계산(권장) vs Go 집계 유지·가중치 재구현."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "④ 전달 채널: DM 새 메시지 종류(권장) vs 코칭 화면 전용 수신함."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "다루는 SRS: SRS-079·SRS-080 (URS-025 · UCS-024). 의존: SAD-023(effort·muscleLoad·bodyweight), SAD-022(코칭 가드·감사 로그·회원 리포트)."
+          }
+        ]
+      }
+    ]
+  }
+}

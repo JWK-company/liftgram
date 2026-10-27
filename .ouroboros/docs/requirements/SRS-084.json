@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-084",
+  "type": "SRS",
+  "title": "운동 완료 직후 새 버전 자동 적용 보류 · 플레이트 머신 한쪽 입력 기본과 1회 질문 · 블록 도구(휴식·메모·순서) 꺼내기",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T11:30:00Z",
+  "updated": "2026-10-27T11:30:00Z",
+  "sync": true,
+  "tags": [
+    "session",
+    "bug",
+    "plate",
+    "service-worker",
+    "declutter",
+    "feedback"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "완료 요약·시트 동안 skip-waiting 없음·홈 가면 적용 · 미정 플레이트 후보 머신은 한쪽 기본(×2)+질문 1회·답 기억·미답 완료=한쪽 기록·과거 소급 없음 · 휴식·메모·순서가 메뉴 밖 도구 줄(44px·회색)",
+  "relations": {
+    "derives_from": [
+      "URS-018",
+      "URS-019",
+      "URS-023"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "사용자 피드백 3건(2026-10-27)을 한 묶음으로 고친다. (#64) 운동을 완료한 직후 요약·「바뀐 루틴 저장」 시트가 떠 있는 동안 새 버전이 자동 적용되어 페이지가 새로고침되고 홈으로 가 루틴 반영이 사라졌다. (#63) 플레이트 머신은 원판 한쪽 무게로 적는데, 「한쪽 무게로 입력」을 직접 켜지 않으면 배수가 1이라 볼륨·PR이 절반으로 계산됐다. (#62) 메모·휴식 시간·종목 순서 바꾸기가 ⋯ 메뉴 안에 숨어 있었다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "시스템은 운동 화면(/workout)에 있는 동안 새 버전을 자동 적용하지 않고 떠난 뒤 적용한다. 기구가 머신이고 적재 방식 축이 있는 종목은 적재 칸이 핀이 아니면 한쪽 입력(×2)을 기본으로 보고, 그 종목의 입력 방식을 아직 정하지 않았으면 세트 표 아래 조용한 한 줄로 한 번만 묻고 답을 종목별로 기억한다(답하지 않고 완료하면 기본을 기록). 과거 기록은 바꾸지 않는다. 휴식·메모·순서는 블록 아래 도구 한 줄로 꺼낸다(누르는 자리 44px · 회색 · 빨강 없음)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "#64: 완료 직후 요약·완료 시트가 떠 있는 동안 기다리는 새 워커에 skip-waiting 을 보내지 않고, 요약을 닫고 홈으로 가면 보낸다(e2e — 가짜 waiting 워커). /workout 에서는 controllerchange 새로고침을 미루고 띠도 띄우지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "#63: 선택이 없는 플레이트 후보 머신 블록에 질문 줄(plate-ask)이 보이고 기본은 한쪽 — 40kg×10 = 볼륨 800kg. 「양쪽 합·핀」을 고르면 이 블록 세트 배수가 1(숫자 그대로) — 볼륨 400kg, 다음 운동에는 묻지 않는다. 답하지 않고 완료하면 다음 운동에 묻지 않고 한쪽으로 시작한다. 적재 칸이 핀이면 묻지 않고 배수 1."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "#63: 지난 기록의 배수가 null 이면 프리필 숫자는 그대로, 명시 1·2 일 때만 계산 무게가 같도록 환산한다. 과거 세트의 load_multiplier 는 바꾸지 않는다. 합계 무게는 따로 표시하지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "#62: ⋯ 메뉴를 열지 않고 위로/아래로(btn-move-up·down)·휴식(btn-rest-setting, 「휴식 m:ss」)·메모(btn-note-open, 있으면 첫 줄 미리보기)를 누를 수 있다. 각 누르는 자리는 44px 이상, 블록 머리 높이·첫 세트 체크 위치(화면 정리 측정)는 그대로, 블록 머리·표 아래에 빨강 없음. 첫 블록 위·마지막 블록 아래는 비활성, 슈퍼셋 안 멤버에는 순서 버튼이 없다(묶음 머리가 옮긴다). ⋯ 메뉴에는 운동 방법·슈퍼셋·교체·삭제만 남는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "근거·결정"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "스펙 .ouroboros/docs/spec/20261027_feedback-62-64/spec.md(확정 결정 Q1~Q12) · QA .ouroboros/docs/qa/20261027_feedback-62-64-spec_qa.md · 관련 SRS-051(서비스워커)·SRS-058(플레이트 한쪽 입력 · ADR-037)·SRS-069(화면 정리 P1)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/data/workoutRepository.ts:1142",
+    "src/core/src/data/workoutRepository.ts:1178",
+    "src/core/src/data/workoutRepository.ts:1450",
+    "src/core/src/data/workoutRepository.ts:1635",
+    "src/core/src/data/workoutRepository.ts:1815",
+    "src/core/src/data/workoutRepository.ts:1853#plateInputsFor",
+    "src/core/src/data/workoutRepository.ts:1866#blockMultiplierOfV2",
+    "src/core/src/data/workoutRepository.ts:1887",
+    "src/core/src/data/workoutRepository.ts:1895",
+    "src/core/src/data/workoutRepository.ts:1927#setPlateOneSideForExerciseV2",
+    "src/core/src/data/workoutRepository.ts:1930",
+    "src/core/src/data/workoutRepository.ts:1948#answerPlateOneSide",
+    "src/core/src/data/workoutRepository.ts:1961#retagBlockLoadMultiplier",
+    "src/core/src/data/workoutRepository.ts:1989#settleUndecidedPlateOneSide",
+    "src/core/src/data/workoutRepository.ts:705#estimatedOneRmForSlotV2",
+    "src/core/src/data/workoutRepository.ts:872",
+    "src/core/src/data/workoutRepository.ts:953",
+    "src/core/src/data/workoutRepository.ts:985",
+    "src/core/src/i18n/locales/en.ts:892",
+    "src/core/src/i18n/locales/en.ts:893",
+    "src/core/src/i18n/locales/en.ts:894",
+    "src/core/src/i18n/locales/en.ts:895",
+    "src/core/src/i18n/locales/en.ts:896",
+    "src/core/src/i18n/locales/en.ts:897",
+    "src/core/src/i18n/locales/en.ts:898#RPE",
+    "src/core/src/i18n/locales/ko.ts:894",
+    "src/core/src/i18n/locales/ko.ts:895",
+    "src/core/src/i18n/locales/ko.ts:896",
+    "src/core/src/i18n/locales/ko.ts:897",
+    "src/core/src/i18n/locales/ko.ts:898",
+    "src/core/src/i18n/locales/ko.ts:899",
+    "src/core/src/i18n/locales/ko.ts:900#RPE",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:583",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:801",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:814"
+  ]
+}

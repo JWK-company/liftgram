@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-024",
+  "type": "URS",
+  "title": "세트마다 얼마나 힘들었는지 남기고, 몸 어디를 얼마나 썼는지·체중이 어떻게 변하는지 한눈에 보고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "rir",
+    "effort",
+    "muscle-map",
+    "bodyweight",
+    "stats",
+    "opengym"
+  ],
+  "stakeholder": "매일 기록하는 리프터(P2 기록러)·체중을 관리하는 사용자·담당 트레이너",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경 / 이해관계자"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "매일 기록하는 리프터는 지금 무게·반복만 남길 수 있어서, 같은 80kg×10이라도 여유 있게 한 날과 실패 직전까지 간 날이 기록에서 구분되지 않는다. 세트 기록에는 힘든 정도(RPE) 칸이 이미 있지만 운동 중에 적을 곳이 없다. 부위별로 얼마나 했는지는 트레이너가 여는 회원 리포트(SRS-048)에만 있고 본인은 볼 수 없다. 체중은 볼륨 계산용 값 하나라서 변화가 남지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이해관계자: 매일 기록하는 리프터(P2 기록러) · 체중을 관리하며 운동하는 사용자 · 회원 강도를 보고 처방하는 담당 트레이너."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조). openGym은 세트별 RIR 시트·노력 분석·근육 지도·체중 곡선을 제공하며, 이 넷이 사용자가 매일 앱을 여는 이유로 작동한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중 세트마다 '몇 개 더 할 수 있었는지'를 한두 번 탭으로 남기고, 나중에 기간별로 내가 평소 얼마나 세게 하는지 보고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴을 시작하기 전에 오늘 쓰는 근육을 그림으로 보고, 운동 중에는 어느 근육을 얼마나 했는지 확인하고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "일주일·한 달 동안 어느 근육을 많이 했고 어느 근육을 빠뜨렸는지 보고, 빠뜨린 근육의 종목으로 바로 가고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "체중을 자주 적고, 목표까지 얼마나 남았는지와 주마다 얼마나 변하는지 곡선으로 보고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "이 기능을 쓰지 않는 사람의 운동 화면은 지금처럼 조용해야 한다(URS-023 — 화면이 늘어도 지금 할 일이 한눈에)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트 하나의 힘든 정도를 탭 두 번 이내(칸 → 값)로 남길 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "루틴 카드 또는 운동 시작 화면에서 오늘 쓰는 근육을 운동 시작 전에 확인할 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "통계에서 지난 7일 동안 한 세트도 하지 않은 근육 목록을 볼 수 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "체중을 두 번 이상 적으면 통계에서 날짜별 곡선과 목표까지 남은 차이가 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "힘든 정도 기록·체중 체크인을 켜지 않은 사용자는 운동 중 화면에 새 입력칸이나 시트가 나타나지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

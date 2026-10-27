@@ -240,17 +240,30 @@
     ]
   },
   "code_refs": [
+    "src/core/src/data/analyticsRepository.ts:110",
     "src/core/src/data/exerciseNames.ts:1",
+    "src/core/src/data/exerciseRepository.ts:57#getExerciseDisplayName",
+    "src/core/src/data/workoutRepository.ts:2432",
+    "src/core/src/db/migrations.ts:339",
+    "src/core/src/db/models/Exercise.ts:28",
+    "src/core/src/db/models/index.ts:9",
+    "src/core/src/db/schema.ts:208#tableSchema",
+    "src/core/src/db/schema.ts:54",
     "src/core/src/domain/__tests__/catalogRevamp.test.ts:1",
     "src/core/src/domain/__tests__/exerciseSearch.test.ts:1",
     "src/core/src/domain/catalogIntegrity.ts:1",
     "src/core/src/domain/exerciseSearch.ts:1",
     "src/core/src/domain/nameKey.ts:1#normalizeNameKey",
+    "src/core/src/sync/pending.ts:16",
+    "src/frontend/app/components/CatalogClient.tsx:162",
+    "src/frontend/app/components/CatalogClient.tsx:56",
     "src/frontend/app/components/ExerciseNameHeader.tsx:2",
-    "src/frontend/app/components/session/ActiveWorkout.tsx:404",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:327",
+    "src/frontend/app/components/routines/RoutineEditor.tsx:353",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:439",
     "src/frontend/app/components/session/ExerciseBlock.tsx:156",
     "src/frontend/app/components/session/ExerciseBlock.tsx:209",
-    "src/frontend/app/exercise/[id]/page.tsx:124",
+    "src/frontend/app/exercise/[id]/page.tsx:130",
     "src/frontend/lib/exerciseNames.ts:2"
   ]
 }

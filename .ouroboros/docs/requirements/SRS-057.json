@@ -227,12 +227,17 @@
     ]
   },
   "code_refs": [
+    "src/core/src/data/workoutRepository.ts:61",
     "src/core/src/domain/__tests__/catalogMigration.test.ts:1",
     "src/core/src/domain/__tests__/recordSlots.test.ts:1",
     "src/core/src/domain/catalogMigrationPlan.ts:1",
+    "src/core/src/domain/index.ts:25",
     "src/core/src/domain/recordSlots.ts:1",
     "src/core/src/migrations/catalogNormalize.ts:1",
-    "src/frontend/app/components/session/ActiveWorkout.tsx:621#askRoutineScope",
+    "src/core/src/migrations/runner.ts:1",
+    "src/frontend/app/components/routines/RoutineEditor.tsx:565",
+    "src/frontend/app/components/routines/RoutineEditor.tsx:579",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:735#askRoutineScope",
     "src/frontend/app/components/session/ExerciseBlock.tsx:115",
     "src/frontend/app/components/ui/RecordSlotSelector.tsx:2",
     "src/scripts/migrate-records.ts:1"

@@ -168,5 +168,11 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/data/analyticsRepository.ts:420#getCompletedDayNumsSince",
+    "src/core/src/db/migrations.ts:239",
+    "src/core/src/db/schema.ts:26",
+    "src/core/src/domain/index.ts:13"
+  ]
 }

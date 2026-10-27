@@ -152,10 +152,13 @@
     ]
   },
   "code_refs": [
+    "src/frontend/app/components/session/ActiveWorkout.tsx:796#var",
     "src/frontend/app/components/session/ExerciseBlock.tsx:174",
     "src/frontend/app/components/session/ExerciseBlock.tsx:530",
     "src/frontend/app/components/session/ExerciseBlock.tsx:697#prChips",
     "src/frontend/app/components/session/ExerciseBlock.tsx:735",
+    "src/frontend/app/components/session/SetRowEdit.tsx:307#뺐다",
+    "src/frontend/app/components/session/SetRowEdit.tsx:412#var",
     "src/frontend/app/components/ui/quiet.tsx:2",
     "src/frontend/app/components/ui/quiet.tsx:78"
   ]

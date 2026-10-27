@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-025",
+  "type": "URS",
+  "title": "내 기간 성과를 골라 정리해서 담당 트레이너에게 보내고, 트레이너는 그걸 보고 다음 처방을 정하고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "report",
+    "stats",
+    "opengym"
+  ],
+  "stakeholder": "코칭받는 회원·담당 트레이너",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경 / 이해관계자"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "트레이너는 코칭 화면에서 회원 리포트(SRS-048)를 열 수 있지만, 최근 몇 주로 고정된 세션 수·주당 횟수·총 볼륨·부위별 볼륨·최근 세션뿐이고 회원이 먼저 꺼내 보여 줄 방법이 없다. 회원이 '이번 달 이만큼 했다'를 말하려면 화면을 캡처해 DM으로 보내야 한다. 코칭 주체는 사람이다(BS-004 v2) — 앱은 사실을 정리해 전달하고, 처방은 트레이너가 한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이해관계자: 코칭받는 회원 · 담당 트레이너."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조). openGym은 기간별 성과 리포트를 'Frame it, print it or send it to your coach'로 내세운다. 우리는 코치가 앱 안에 있으므로 파일이 아니라 앱 안에서 바로 전달한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원은 기간(지난 7일·4주·3개월·직접 고름)을 골라 그동안의 운동 횟수·볼륨·새 기록·종목별 변화·부위별 세트·힘든 정도·체중 변화를 한 장으로 보고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원은 그 요약을 담당 트레이너에게 보내고, 보내기 전에 넣을 항목(예: 체중)을 빼고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너는 받은 요약을 열어 보고, 거기서 바로 그 회원의 루틴 처방으로 가고 싶다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보낸 요약은 보낸 시점 그대로 남아야 하고, 코칭을 해지하면 트레이너가 더는 볼 수 없어야 한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원이 기간을 고르고 보내기까지 화면 3개 이내로 끝난다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "트레이너가 받은 요약에서 한 번 눌러 그 회원의 루틴 처방 화면으로 간다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "회원이 뺀 항목은 트레이너에게 보이지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "코칭 해지 뒤 트레이너가 예전에 받은 요약을 열면 볼 수 없다는 안내가 나온다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -180,5 +180,11 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/db/migrations.ts:249",
+    "src/core/src/db/schema.ts:27",
+    "src/core/src/db/schema.ts:28",
+    "src/core/src/domain/types.ts:51"
+  ]
 }

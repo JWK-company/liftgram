@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-073",
+  "type": "SRS",
+  "title": "세트 힘든 정도(RIR) 입력 — 기본 꺼짐 · 쉬운 말 6단계 시트 · 직접 입력 · 처방 목표 표시",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "rir",
+    "session",
+    "settings"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "스위치 기본 꺼짐 · 칸→값 2탭 저장 · 완료 후 수정·지우기 · 기록 상세 표시 · 동기 · 처방 목표와 구분 · 휴식 타이머 무영향.",
+  "relations": {
+    "derives_from": [
+      "URS-024"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "설정에 「세트 힘든 정도 기록」 스위치를 둔다(기본 꺼짐). 켜면 운동 중 세트 줄마다 힘든 정도 칸이 생기고, 누르면 시트가 열린다. 시트는 0(더 못 함, 실패까지) · 0.5 · 1(하나 더) · 2 · 3 · 4+(쉬움, 워밍업 수준) 여섯 단계를 쉬운 말로 설명하고, 0.5 단위 직접 입력과 지우기를 제공한다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "값은 세트 완료 전·후 언제든 적고 고칠 수 있고, 기록 상세·세트 편집에서도 보이고 바뀐다. 코치가 처방한 목표 RIR(SRS-043)이 있으면 칸에 목표를 흐리게 보여 실제 값과 구분한다. 저장은 기존 세트 기록의 힘든 정도 칸을 재사용하며, 저장 척도(RIR 그대로 vs RPE 환산)는 스펙에서 정한다. 워밍업 세트에도 적을 수 있지만 분석(SRS-074)에서는 뺀다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "스위치가 꺼져 있으면 운동 화면·세트 줄에 새 요소가 하나도 없다(현재 화면과 같다)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "켜면 세트 칸 → 값 선택 두 번으로 저장되고, 기록 상세에 같은 값이 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "완료한 세트의 값을 바꾸거나 지울 수 있고, 다른 기기에서 로그인하면 같은 값이 보인다(동기)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "처방 목표 RIR이 있는 세트는 목표와 실제 값이 시각적으로 구분된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "값 입력이 세트 완료·휴식 타이머 시작을 막거나 늦추지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-024. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/backend/internal/sync/merge_test.go:1",
+    "src/core/src/data/analyticsRepository.ts:332",
+    "src/core/src/data/workoutRepository.ts:2097",
+    "src/core/src/data/workoutRepository.ts:2116",
+    "src/core/src/data/workoutRepository.ts:77",
+    "src/core/src/db/adapter.ts:13",
+    "src/core/src/db/adapter.ts:18",
+    "src/core/src/db/migrations.ts:383",
+    "src/core/src/db/models/SetLog.ts:36",
+    "src/core/src/db/schema.ts:199",
+    "src/core/src/db/schema.ts:5",
+    "src/core/src/db/schemaGuard.ts:1",
+    "src/core/src/domain/__tests__/effort.test.ts:1",
+    "src/core/src/domain/__tests__/schemaGuard.test.ts:1",
+    "src/core/src/domain/__tests__/schemaV26.test.ts:1",
+    "src/core/src/domain/effort.ts:1",
+    "src/core/src/domain/index.ts:26",
+    "src/core/src/domain/types.ts:63",
+    "src/core/src/i18n/locales/en.ts:1065",
+    "src/core/src/i18n/locales/en.ts:1138",
+    "src/core/src/i18n/locales/ko.ts:1063",
+    "src/core/src/i18n/locales/ko.ts:1140",
+    "src/core/src/sync/syncEngine.ts:29",
+    "src/core/src/sync/syncEngine.ts:398",
+    "src/frontend/app/components/SchemaGuard.tsx:2",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:340",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:468#DetailRir",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:9",
+    "src/frontend/app/components/profile/EffortLoggingRow.tsx:2",
+    "src/frontend/app/components/profile/ProfileClient.tsx:53",
+    "src/frontend/app/components/session/RirChip.tsx:2",
+    "src/frontend/app/components/session/RirSheet.tsx:2",
+    "src/frontend/app/components/session/SetRowEdit.tsx:155",
+    "src/frontend/app/components/session/SetRowEdit.tsx:35",
+    "src/frontend/app/components/session/SetRowEdit.tsx:425#var",
+    "src/frontend/app/components/session/SetRowEdit.tsx:59",
+    "src/frontend/app/layout.tsx:99",
+    "src/frontend/e2e/opengym-qa1.spec.ts:1",
+    "src/frontend/e2e/opengym-rir.spec.ts:1",
+    "src/frontend/lib/effortPref.ts:1",
+    "src/frontend/lib/prefs.ts:32",
+    "src/frontend/lib/schemaGuard.ts:1",
+    "src/scripts/deploy-h2500-3.sh:71#schema_of"
+  ]
+}

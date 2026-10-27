@@ -123,9 +123,19 @@
     ]
   },
   "code_refs": [
+    "src/core/src/data/workoutRepository.ts:1393",
     "src/core/src/domain/__tests__/sharePayload.test.ts:1",
     "src/core/src/domain/sharePayload.ts:1#ShareSourceSet",
+    "src/core/src/i18n/locales/en.ts:1046",
+    "src/core/src/i18n/locales/en.ts:1047",
+    "src/core/src/i18n/locales/en.ts:1048",
+    "src/core/src/i18n/locales/en.ts:1049",
+    "src/core/src/i18n/locales/ko.ts:1044",
+    "src/core/src/i18n/locales/ko.ts:1045",
+    "src/core/src/i18n/locales/ko.ts:1046",
+    "src/core/src/i18n/locales/ko.ts:1047",
     "src/frontend/app/components/analytics/CalendarClient.tsx:585",
+    "src/frontend/app/components/analytics/WorkoutDetailClient.tsx:247",
     "src/frontend/app/components/session/WorkoutNoteField.tsx:2",
     "src/frontend/e2e/history-replay.spec.ts:1"
   ]

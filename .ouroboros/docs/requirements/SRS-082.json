@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-082",
+  "type": "SRS",
+  "title": "가져오기 안전 — 미리보기 후 실행 · 같은 파일 재실행 중복 0 · 한 묶음 기록·통째 되돌리기 · 피드 미공유 · 1만 세트 처리",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T05:45:00Z",
+  "sync": true,
+  "tags": [
+    "import",
+    "data-safety",
+    "performance"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "미리보기 후 실행 · 결정적 식별자로 재실행 중복 0 · 묶음 단위 원자 처리·통째 되돌리기 · 피드 미공유 · 1만 세트 30초 목표·UI 무정지.",
+  "relations": {
+    "derives_from": [
+      "URS-026"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "가져오기는 요약(운동 수·세트 수·기간·새 내 종목 수·건너뛸 중복 수)과 종목 맞추기를 확인한 뒤에만 실행한다. 원본 운동마다 출처와 시작 시각·이름으로 만든 결정적 식별자를 붙여서, 같은 파일이나 겹치는 파일을 다시 가져와도 이미 있는 운동은 건너뛴다. 리프트그램에서 직접 한 운동과 시간이 겹쳐도 합치지 않고 따로 둔다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "한 번의 가져오기는 하나의 묶음으로 기록하고, 중간에 실패하면 그 묶음 전체를 되돌린다. 나중에 그 묶음을 통째로 되돌릴 수 있다. 가져온 운동은 기록·캘린더·통계·개인 기록에는 들어가지만 피드·스토리·친구 알림으로 나가지 않는다. 운동 1,000개·세트 1만 개 규모 파일을 보통 폰에서 30초 안에 처리하고, 처리 중에도 화면이 멈추지 않는다(성능 목표 수치는 스펙에서 확정)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 파일을 두 번 가져오면 두 번째에 새로 들어오는 운동이 0개다(로그인 상태에서 다른 기기에서도)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가져오는 도중 강제로 실패시키면 그 가져오기의 운동이 하나도 남지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "되돌리기 뒤 그 묶음으로 생긴 운동·내 종목이 지워지고, 다른 기록은 그대로다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "가져온 운동이 피드·친구 알림에 나오지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "세트 1만 개 표본을 목표 시간 안에 처리하고, 처리 중 화면 입력이 막히지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-026. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/data/exerciseRepository.ts:91#prepareCustomExercise",
+    "src/core/src/data/importRepository.ts:1",
+    "src/core/src/data/importRepository.ts:693#cleanupUnfinishedImports",
+    "src/core/src/data/importTabGuard.ts:1#ImportTabGuard",
+    "src/core/src/db/migrations.ts:383",
+    "src/core/src/db/models/Exercise.ts:33",
+    "src/core/src/db/models/ImportBatch.ts:1",
+    "src/core/src/db/models/Workout.ts:27",
+    "src/core/src/db/models/index.ts:11",
+    "src/core/src/db/schema.ts:126",
+    "src/core/src/db/schema.ts:233#tableSchema",
+    "src/core/src/db/schema.ts:5",
+    "src/core/src/db/schema.ts:59",
+    "src/core/src/domain/__tests__/fixtures/import/generateLarge.ts:1",
+    "src/core/src/domain/__tests__/importHash.test.ts:1",
+    "src/core/src/domain/__tests__/importPlan.test.ts:1",
+    "src/core/src/domain/__tests__/importPullGuard.test.ts:1",
+    "src/core/src/domain/__tests__/pushChunks.test.ts:1",
+    "src/core/src/domain/__tests__/schemaV26.test.ts:1",
+    "src/core/src/domain/__tests__/syncPause.test.ts:1",
+    "src/core/src/domain/import/hash.ts:1",
+    "src/core/src/domain/import/index.ts:1",
+    "src/core/src/domain/import/plan.ts:1",
+    "src/core/src/migrations/runner.ts:115",
+    "src/core/src/migrations/runner.ts:96",
+    "src/core/src/sync/importPullGuard.ts:1",
+    "src/core/src/sync/pending.ts:20",
+    "src/core/src/sync/pushChunks.ts:1#ChunkTableChanges",
+    "src/core/src/sync/syncEngine.ts:148#SyncPausedError",
+    "src/core/src/sync/syncEngine.ts:265",
+    "src/core/src/sync/syncEngine.ts:363#pauseSync",
+    "src/core/src/sync/syncEngine.ts:382#isSyncLoggedIn",
+    "src/core/src/sync/syncEngine.ts:403",
+    "src/frontend/app/account/import/page.tsx:1",
+    "src/frontend/app/components/sync/ImportCard.tsx:2",
+    "src/frontend/app/components/sync/ImportElsewhereNotice.tsx:2",
+    "src/frontend/app/components/sync/ImportFlow.tsx:2",
+    "src/frontend/app/layout.tsx:101",
+    "src/frontend/e2e/opengym-import.spec.ts:1",
+    "src/frontend/lib/e2eFlags.ts:1",
+    "src/frontend/lib/importTask.ts:1",
+    "src/frontend/lib/importWorker.ts:1",
+    "src/frontend/lib/syncTransport.ts:102#async",
+    "src/frontend/lib/syncTransport.ts:52#startTabGuard",
+    "src/frontend/lib/tabGuard.ts:1"
+  ]
+}

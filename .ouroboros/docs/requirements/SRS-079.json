@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-079",
+  "type": "SRS",
+  "title": "기간 성과 요약 — 기간 고르기 · 직전 같은 기간 대비 · 새 기록·종목 변화·부위별·힘든 정도·체중",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-27T05:45:00Z",
+  "updated": "2026-10-27T13:00:00Z",
+  "sync": true,
+  "tags": [
+    "coaching",
+    "report",
+    "stats"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "기간(7일·4주·3개월·직접) 요약: 횟수·시간·볼륨·주당·직전 대비·PR·종목 변화·부위별·힘든 정도·체중 · 회원 리포트와 같은 집계 함수 · 사실만.",
+  "relations": {
+    "derives_from": [
+      "URS-025"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "회원 본인 통계 화면에서 「성과 요약」을 연다. 기간은 지난 7일·4주·3개월·직접 고름(시작·끝 날짜)이고, 요약은 기기에 있는 기록으로 만든다. 내용은 운동 횟수·총 운동 시간·총 볼륨·주당 횟수와 직전 같은 길이 기간 대비 증감, 기간 중 새 기록(PR) 목록, 많이 한 종목 상위 몇 개의 최고 세트 변화, 부위별 세트(SRS-075 계산), 힘든 정도 요약(SRS-074, 적은 값이 있을 때), 체중 시작·끝·변화(SRS-077, 기록이 있을 때)다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "집계는 사실만 쓰고 평가·권고 문구를 넣지 않는다(SRS-015, '다음 처방 판단은 코치가 합니다'와 같은 원칙). 같은 집계 함수를 트레이너가 여는 회원 리포트(SRS-048)에도 써서 두 화면 수치가 어긋나지 않게 하며, 기존 리포트에 기간 고르기·새 기록·힘든 정도·체중 항목을 넓힐지는 스펙에서 정한다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "4주를 고르면 그 4주 안의 운동만 집계되고, 직전 4주 대비 증감이 맞다(경계일 포함 테스트)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "힘든 정도·체중 기록이 없으면 그 항목이 요약에서 빠지고 빈 칸이 남지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 기록 목록이 그 기간 PR 기록(personalRecords)과 일치한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 회원·같은 기간에서 회원 리포트(SRS-048)의 세션 수·총 볼륨·부위별 수치와 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "요약 문구가 웰니스 카피 게이트를 통과한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "개정 (2026-10-27 /qa code P4S-1·P4U-1·P4U-3·P4U-4)"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "요약(미리보기 = 보내는 스냅샷)은 체중 없이 계산한다: 맨몸 종목은 추가 무게만, 보조 종목은 입력 무게 그대로, 총 볼륨도 세트를 체중 없이 다시 센다. 체중 섹션을 꺼도 맨몸 종목 무게로 체중이 드러나던 것을 막기 위해서이며, 트레이너 리포트와 같은 규칙이다. 화면에 「맨몸 종목은 추가 무게만 셉니다」를 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "그래서 맨몸 종목이 있으면 운동 완료 요약·통계 카드의 볼륨과 다를 수 있다. 기간 기준도 운동 시작 날짜라 회원 화면에 「운동 시작 날짜 기준 · 통계 화면과 다를 수 있어요」를 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 기록: 회원 요약은 이전 이력을 기준으로 체중 없이 다시 판정한 목록과 개수, 트레이너 리포트는 이전 이력을 받지 않으므로 운동을 마칠 때 저장한 개수(pr_count)를 쓰고 그 기준을 안내한다. 보조 종목은 새 기록 목록에서 뺀다(체중 없이 세면 보조 무게가 클수록 기록이 되어 방향이 거꾸로)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-025. 근거: openGym 대조 보고서 .ouroboros/docs/report/20261027_opengym-compare_report.html (2026-10-27 웹 데모 실측·소스·문서 대조)."
+          }
+        ]
+      }
+    ]
+  },
+  "code_refs": [
+    "src/core/src/data/periodSummaryRepository.ts:1",
+    "src/core/src/domain/__tests__/periodSummary.test.ts:1",
+    "src/core/src/domain/__tests__/periodSummaryRepo.test.ts:1",
+    "src/core/src/domain/periodSummary.ts:1",
+    "src/core/src/domain/summaryRecords.ts:1",
+    "src/core/src/domain/summarySchema.ts:1",
+    "src/core/src/i18n/locales/en.ts:1315",
+    "src/core/src/i18n/locales/en.ts:1420",
+    "src/core/src/i18n/locales/ko.ts:1324",
+    "src/core/src/i18n/locales/ko.ts:1431",
+    "src/frontend/app/components/coaching/CoachingClient.tsx:37",
+    "src/frontend/app/components/coaching/CoachingClient.tsx:58",
+    "src/frontend/app/components/summary/MemberReportDialog.tsx:2",
+    "src/frontend/app/components/summary/ProgressSummaryClient.tsx:2",
+    "src/frontend/app/components/summary/SummaryEntry.tsx:2",
+    "src/frontend/app/components/summary/SummaryView.tsx:2",
+    "src/frontend/app/stats/summary/page.tsx:1",
+    "src/frontend/e2e/opengym-summary.spec.ts:1"
+  ]
+}

@@ -9,25 +9,137 @@
   "created": "2026-10-26T04:00:00Z",
   "updated": "2026-10-26T04:00:00Z",
   "sync": true,
-  "tags": ["offline", "sync", "backup", "data-loss", "nfr"],
+  "tags": [
+    "offline",
+    "sync",
+    "backup",
+    "data-loss",
+    "nfr"
+  ],
   "kind": "NFR",
   "acceptance_criteria": "동기가 연속 실패하거나 하루 넘게 성공하지 못하면 화면 위에 경고가 뜨고 안 올라간 기록 수가 보인다. 다른 계정의 미동기 기록이 있는 기기에서 로그인하면 지우지 않고 동기를 멈춘 뒤 고르게 한다. 이 기기의 기록을 백업 파일로 내보내 다른 기기에서 지우지 않고 가져올 수 있다(옛 앱 복구 파일 포함). 주간 목표·주말 제외·알림음이 계정을 따라간다. 새 기기에서 첫 동기 전에 빈 프로필을 만들지 않는다.",
   "relations": {
-    "derives_from": ["URS-008", "URS-002"]
+    "derives_from": [
+      "URS-008",
+      "URS-002"
+    ]
   },
   "doc": {
     "type": "doc",
     "content": [
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "배경" }] },
-      { "type": "paragraph", "content": [{ "type": "text", "text": "2026-10-26 컷오버 때 드러났다. 옛 앱의 동기가 8월부터 매번 실패했는데(서버 레코드 65건에 섞인 _status가 pull을 죽였다) 화면은 아무 말도 하지 않았고, 운동 32건을 포함한 두 달치 기록이 기기에만 있었다. 주소를 옮기자 꺼낼 길이 없어 임시 복구 페이지로 IndexedDB를 덤프해 되살렸다." }] },
-      { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "요구" }] },
-      { "type": "bulletList", "content": [
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "동기 건강(마지막 성공·연속 실패·안 올라간 사용자 기록 수)을 들고, 멈췄으면 경고 띠로 알린다. 로그인하지 않은 채 기록이 쌓이면 백업을 권한다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "계정 전환 시 미동기 기록이 있으면 지우지 않는다 — 원래 계정으로 돌아가거나, 백업 파일로 내보낸 뒤 지운다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "백업 파일 내보내기·가져오기. 가져오기는 지우지 않고, 더 최근에 고친 것만 덮으며, 기본 카탈로그는 건너뛴다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "계정과 함께 옮길 앱 설정은 프로필(app_prefs)에 싣는다." }] }] },
-        { "type": "listItem", "content": [{ "type": "paragraph", "content": [{ "type": "text", "text": "서버·클라이언트 양쪽에서 WatermelonDB 내부 필드(_status·_changed)를 걸러낸다." }] }] }
-      ]}
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "2026-10-26 컷오버 때 드러났다. 옛 앱의 동기가 8월부터 매번 실패했는데(서버 레코드 65건에 섞인 _status가 pull을 죽였다) 화면은 아무 말도 하지 않았고, 운동 32건을 포함한 두 달치 기록이 기기에만 있었다. 주소를 옮기자 꺼낼 길이 없어 임시 복구 페이지로 IndexedDB를 덤프해 되살렸다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "동기 건강(마지막 성공·연속 실패·안 올라간 사용자 기록 수)을 들고, 멈췄으면 경고 띠로 알린다. 로그인하지 않은 채 기록이 쌓이면 백업을 권한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "계정 전환 시 미동기 기록이 있으면 지우지 않는다 — 원래 계정으로 돌아가거나, 백업 파일로 내보낸 뒤 지운다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "백업 파일 내보내기·가져오기. 가져오기는 지우지 않고, 더 최근에 고친 것만 덮으며, 기본 카탈로그는 건너뛴다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "계정과 함께 옮길 앱 설정은 프로필(app_prefs)에 싣는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "서버·클라이언트 양쪽에서 WatermelonDB 내부 필드(_status·_changed)를 걸러낸다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     ]
-  }
+  },
+  "code_refs": [
+    "src/core/src/sync/backup.ts:1",
+    "src/core/src/sync/pending.ts:1",
+    "src/frontend/app/components/sync/BackupCard.tsx:2"
+  ]
 }

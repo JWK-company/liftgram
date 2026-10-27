@@ -136,9 +136,21 @@
     ]
   },
   "code_refs": [
+    "src/core/src/data/workoutRepository.ts:1678#completeSupersetRound",
+    "src/core/src/data/workoutRepository.ts:1709#getSupersetRoundSets",
+    "src/core/src/data/workoutRepository.ts:1722#getSupersetRoundSetsFor",
+    "src/core/src/data/workoutRepository.ts:29",
     "src/core/src/domain/__tests__/sessionAssist.test.ts:1",
+    "src/core/src/i18n/locales/en.ts:658",
+    "src/core/src/i18n/locales/ko.ts:656",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:634#roundToggle",
+    "src/frontend/app/components/session/ActiveWorkout.tsx:80",
     "src/frontend/app/components/session/ExerciseBlock.tsx:126",
     "src/frontend/app/components/session/ExerciseBlock.tsx:434",
+    "src/frontend/app/components/session/SetRowEdit.tsx:139",
+    "src/frontend/app/components/session/SetRowEdit.tsx:216",
+    "src/frontend/app/components/session/SetRowEdit.tsx:376",
+    "src/frontend/app/components/session/SetRowEdit.tsx:527",
     "src/frontend/app/components/session/setDrafts.tsx:2",
     "src/frontend/e2e/session-assist.spec.ts:1"
   ]

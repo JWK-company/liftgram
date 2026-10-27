@@ -175,5 +175,14 @@
         ]
       }
     ]
-  }
+  },
+  "code_refs": [
+    "src/backend/internal/coaching/handler.go:1",
+    "src/backend/internal/coaching/repo.go:1",
+    "src/backend/internal/coaching/report.go:1",
+    "src/backend/internal/coaching/service.go:1",
+    "src/backend/internal/coaching/service.go:122#CatalogMeta",
+    "src/database/queries/coaching.sql:1",
+    "src/frontend/app/components/coaching/CoachingClient.tsx:2"
+  ]
 }

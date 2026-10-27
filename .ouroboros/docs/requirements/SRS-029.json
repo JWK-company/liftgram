@@ -345,6 +345,13 @@
     "app/src/db/schema.ts:154",
     "app/src/domain/types.ts:58",
     "app/src/domain/volume.ts:14#effectiveWeightKg",
-    "app/src/features/session/ExerciseBlock.tsx:4"
+    "app/src/features/session/ExerciseBlock.tsx:4",
+    "src/core/src/data/workoutRepository.ts:2100",
+    "src/core/src/data/workoutRepository.ts:80",
+    "src/core/src/db/migrations.ts:122",
+    "src/core/src/db/models/SetLog.ts:20",
+    "src/core/src/db/schema.ts:179",
+    "src/core/src/db/schema.ts:184",
+    "src/core/src/domain/types.ts:66"
   ]
 }

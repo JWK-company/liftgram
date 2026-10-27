@@ -123,7 +123,7 @@
     ]
   },
   "code_refs": [
-    "src/frontend/app/layout.tsx:82",
+    "src/frontend/app/layout.tsx:84",
     "src/frontend/e2e/sticky-bottom.spec.ts:1"
   ]
 }
