@@ -10,6 +10,7 @@ import type { Exercise, Routine, RoutineExercise, SetLog, Workout, WorkoutExerci
 import {
   dedupeName,
   diffRoutine,
+  performed,
   planRoutineApply,
   routineLinesFromWorkout,
   suggestRoutineName,
@@ -37,7 +38,13 @@ export async function getSessionBlocks(workoutId: string): Promise<SessionBlock[
   const exIds = [...new Set(wes.map((w) => w.exerciseId))];
   const exRows = await exercises().query(Q.where('id', Q.oneOf(exIds))).fetch();
   const exById = new Map(exRows.map((e) => [e.id, e]));
-  return wes.map((we) => {
+  // 순번을 화면과 같은 기준(sort_order → 만든 시각)으로 0..n 다시 매긴다 — 운동 중 지우고 추가하면 sort_order 가
+  // 겹쳐(추가는 count 를 쓴다) 추가 종목이 오늘 한 자리보다 앞에 끼던 것(QA M1).
+  const ordered = [...wes].sort(
+    (a, b) => a.sortOrder - b.sortOrder || (a.createdAt?.getTime?.() ?? 0) - (b.createdAt?.getTime?.() ?? 0),
+  );
+  const rank = new Map(ordered.map((we, i) => [we.id, i]));
+  return ordered.map((we) => {
     const mine = sets.filter((s) => s.workoutExerciseId === we.id && s.done !== false);
     const working = mine.filter((s) => !s.isWarmup);
     const ex = exById.get(we.exerciseId);
@@ -45,7 +52,7 @@ export async function getSessionBlocks(workoutId: string): Promise<SessionBlock[
       id: we.id,
       exerciseId: we.exerciseId,
       routineExerciseId: we.routineExerciseId ?? null,
-      sortOrder: we.sortOrder,
+      sortOrder: rank.get(we.id) as number,
       supersetGroup: we.supersetGroup ?? null,
       doneSets: mine.length,
       doneWorkingSets: working.length,
@@ -85,7 +92,7 @@ export interface FinishPrompt {
 export async function getFinishPrompt(workoutId: string): Promise<FinishPrompt> {
   const workout = await workouts().find(workoutId);
   const blocks = await getSessionBlocks(workoutId);
-  if (!blocks.some((b) => b.doneSets > 0)) return { kind: 'none', routineName: null, plan: null, blocks };
+  if (!blocks.some(performed)) return { kind: 'none', routineName: null, plan: null, blocks };
   const routine = await liveRoutineOf(workout);
   if (!routine) return { kind: 'quick', routineName: null, plan: null, blocks };
   const res = await routineExercises().query(Q.where('routine_id', routine.id), Q.sortBy('sort_order', Q.asc)).fetch();
@@ -100,6 +107,25 @@ export async function getFinishPrompt(workoutId: string): Promise<FinishPrompt> 
   const plan = diffRoutine(routine.id, lines, blocks);
   if (plan.changes.length === 0) return { kind: 'none', routineName: routine.name, plan, blocks };
   return { kind: 'routine', routineName: routine.name, plan, blocks };
+}
+
+/**
+ * 운동을 끝낸다 — **완료 전에** 물을 것을 읽고(QA Q1) 그다음 완료한다. 순서를 화면에 맡기지 않는다(QA M3):
+ * 완료가 세트 0 블록을 지우므로, 거꾸로 하면 「건너뜀(기본 해제)」이 「운동 중 삭제(기본 체크)」로 바뀌어
+ * 건너뛴 종목이 루틴에서 기본으로 지워진다. 물을 것을 읽지 못해도 완료는 막지 않는다(로그만).
+ */
+export async function finishWorkoutWithPrompt<S>(
+  workoutId: string,
+  complete: (id: string) => Promise<S>,
+): Promise<{ summary: S; prompt: FinishPrompt | null }> {
+  let prompt: FinishPrompt | null = null;
+  try {
+    prompt = await getFinishPrompt(workoutId);
+  } catch (e) {
+    console.warn('[finish] prompt', e); // QA L4 — 조용히 삼키지 않는다
+  }
+  const summary = await complete(workoutId);
+  return { summary, prompt };
 }
 
 /** 묶음 표식 → 새 그룹 id(세션 그룹 id 가 루틴으로 새지 않게 — QA Q7). */
@@ -162,6 +188,14 @@ export async function applyRoutineChanges(plan: FinishPlan, selectedIds: string[
       ...ap.updates.flatMap((u) => {
         const r = byId.get(u.lineId);
         if (!r) return [];
+        // 값이 그대로인 줄은 쓰지 않는다 — 다른 기기의 같은 루틴 편집을 덮는 범위를 줄인다(QA L6).
+        const nextGroup = u.group === undefined ? r.supersetGroup : u.group === null ? null : 'new';
+        const same =
+          r.sortOrder === u.sortOrder &&
+          (u.exerciseId === undefined || u.exerciseId === r.exerciseId) &&
+          (u.targetSets === undefined || u.targetSets === r.targetSets) &&
+          (nextGroup === r.supersetGroup || (nextGroup === null && !r.supersetGroup));
+        if (same) return [];
         return [
           r.prepareUpdate((rec) => {
             rec.sortOrder = u.sortOrder;

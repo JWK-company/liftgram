@@ -798,6 +798,7 @@ export const ko = {
   "finish.nameLabel": "루틴 이름", // @plm SRS-059 SRS-060
   "finish.saved": "루틴 「{name}」을 저장했어요", // @plm SRS-059 SRS-060
   "finish.makeRoutine": "이 운동으로 루틴 만들기", // @plm SRS-059 SRS-060
+  "finish.madeRoutine": "루틴으로 저장했어요", // QA L5 — 저장 뒤 같은 루틴이 또 생기지 않게
   "variant.default": "기본",
   "variant.armBoth": "양팔(양다리)",
   "session.editPrecision": "정밀 기록",

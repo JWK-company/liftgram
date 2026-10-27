@@ -34,14 +34,18 @@ export function WorkoutSummary({
   summary,
   unit,
   onClose,
+  routineSaved = false,
 }: {
   summary: Summary;
   unit: WeightUnit;
   onClose: () => void;
+  /** 완료 시트에서 이미 새 루틴으로 저장했다(QA L5). */
+  routineSaved?: boolean;
 }) {
   // 종목별 분해와 공유용 한 벌은 **같은 조회**에서 나온다(요약에는 둘 다 없다).
   const [extras, setExtras] = useState<{ share: ShareablePayload; breakdown: BreakdownRow[] } | null>(null);
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
+  const [routineMade, setRoutineMade] = useState(false); // 여기서 저장했다(QA L5)
   useEffect(() => {
     let alive = true;
     void loadSummaryExtras(summary).then((x) => alive && setExtras(x));
@@ -164,10 +168,11 @@ export function WorkoutSummary({
         {summary.workingSets > 0 ? (
           <div className="mt-[var(--spacing-lg)]">
             <Button
-              title={t("finish.makeRoutine")}
+              title={routineMade || routineSaved ? t("finish.madeRoutine") : t("finish.makeRoutine")}
               variant="secondary"
-              icon="list-outline"
+              icon={routineMade || routineSaved ? "checkmark" : "list-outline"}
               testId="btn-summary-make-routine"
+              disabled={routineMade || routineSaved}
               onPress={() => setMakeRoutine(true)}
             />
           </div>
@@ -185,7 +190,10 @@ export function WorkoutSummary({
         <NameRoutine
           workoutId={summary.workoutId}
           onCancel={() => setMakeRoutine(false)}
-          onDone={() => setMakeRoutine(false)}
+          onDone={(saved) => {
+            setMakeRoutine(false);
+            if (saved) setRoutineMade(true);
+          }}
         />
       ) : null}
 

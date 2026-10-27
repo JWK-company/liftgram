@@ -209,3 +209,83 @@ test('기본 이름 — 루틴 (수정) · 빠른 운동은 M/D 주 근육 2개 
   );
   assert.equal(dedupeName('A', ['A', 'A (2)']), 'A (3)');
 });
+
+// ── /qa code 반영(20261027_finish-routine-sync-code_qa.md) ─────────────────────
+
+test('QA H1 — 즉석 추가 종목을 기존 줄과 슈퍼셋으로 묶으면 묶음 변경으로 잡히고, 함께 반영하면 같은 그룹', () => {
+  const lines = [line('r1', 'a', 0), line('r2', 'b', 1)];
+  const blocks = [
+    block('wa', 'a', 0, { routineExerciseId: 'r1', supersetGroup: 'S' }),
+    block('wc', 'c', 1, { supersetGroup: 'S' }),
+    block('wb', 'b', 2, { routineExerciseId: 'r2' }),
+  ];
+  const plan = diffRoutine('R', lines, blocks);
+  assert.deepEqual(kinds(plan), ['add', 'superset']);
+  const ap = planRoutineApply(plan, defaultSelection(plan.changes));
+  const a = ap.updates.find((u) => u.lineId === 'r1');
+  const c = ap.creates.find((n) => n.exerciseId === 'c');
+  assert.ok(a?.group && c?.group && a.group === c.group);
+  assert.equal(ap.updates.find((u) => u.lineId === 'r2')?.group ?? null, null);
+});
+
+test('QA H2 — 「슈퍼셋」만 반영해도 바뀌지 않은 묶음(건너뛴 멤버 포함)은 그대로, 혼자 남는 그룹 없음', () => {
+  const lines = [
+    line('r1', 'a', 0, { supersetGroup: 'G' }),
+    line('r2', 'b', 1, { supersetGroup: 'G' }),
+    line('r3', 'c', 2),
+    line('r4', 'd', 3),
+  ];
+  const blocks = [
+    block('wa', 'a', 0, { routineExerciseId: 'r1', supersetGroup: 'X' }),
+    block('wb', 'b', 1, { routineExerciseId: 'r2', supersetGroup: 'X', doneSets: 0, doneWorkingSets: 0, workingReps: [] }),
+    block('wc', 'c', 2, { routineExerciseId: 'r3', supersetGroup: 'H' }),
+    block('wd', 'd', 3, { routineExerciseId: 'r4', supersetGroup: 'H' }),
+  ];
+  const plan = diffRoutine('R', lines, blocks);
+  assert.deepEqual(kinds(plan), ['remove', 'superset']);
+  const ap = planRoutineApply(plan, new Set(['superset']));
+  const g = (id: string) => ap.updates.find((u) => u.lineId === id)?.group;
+  assert.equal(g('r1'), undefined); // a+b 묶음은 그대로(undefined = 손대지 않음)
+  assert.equal(g('r2'), undefined);
+  assert.ok(g('r3') && g('r3') === g('r4')); // c+d 새 묶음
+});
+
+test('QA L2 — 묶음 짝을 지우면 남은 한 줄의 그룹은 풀린다', () => {
+  const lines = [line('r1', 'a', 0, { supersetGroup: 'G' }), line('r2', 'b', 1, { supersetGroup: 'G' })];
+  const blocks = [block('wa', 'a', 0, { routineExerciseId: 'r1', supersetGroup: 'G' })]; // b 는 운동 중 지움
+  const plan = diffRoutine('R', lines, blocks);
+  const ap = planRoutineApply(plan, defaultSelection(plan.changes));
+  assert.deepEqual(ap.deletes, ['r2']);
+  assert.equal(ap.updates.find((u) => u.lineId === 'r1')?.group, null);
+});
+
+test('QA M2 — 교체된 줄의 세트 수 항목은 루틴 줄 종목 이름으로(실제로 그 줄에 적용된다)', () => {
+  const lines = [line('r1', 'bb-bench', 0, { targetSets: 3 })];
+  const blocks = [block('w1', 'db-bench', 0, { routineExerciseId: 'r1', doneSets: 4, doneWorkingSets: 4 })];
+  const plan = diffRoutine('R', lines, blocks);
+  const sets = plan.changes.find((c) => c.kind === 'sets');
+  assert.ok(sets && sets.kind === 'sets' && sets.exerciseId === 'bb-bench');
+});
+
+test('QA M4 — 워밍업만 한 종목은 한 종목이 아니다(추가·저장·세트 수에서 빠지고 루틴 줄이면 건너뜀)', () => {
+  const warmOnly = { doneSets: 2, doneWorkingSets: 0, workingReps: [] };
+  const lines = [line('r1', 'a', 0)];
+  const blocks = [block('wa', 'a', 0, { routineExerciseId: 'r1', ...warmOnly }), block('wx', 'x', 1, warmOnly)];
+  const plan = diffRoutine('R', lines, blocks);
+  assert.deepEqual(
+    plan.changes.map((c) => c.id),
+    ['remove:r1'],
+  );
+  assert.equal(plan.changes[0].kind === 'remove' && plan.changes[0].reason, 'skipped');
+  assert.deepEqual(routineLinesFromWorkout(blocks, false), []);
+});
+
+test('QA L3 — 연결 없는 옛 운동에서 같은 종목 두 줄이면 세트 수가 가까운 줄과 짝', () => {
+  const lines = [line('r1', 'a', 0, { targetSets: 5 }), line('r2', 'a', 1, { targetSets: 2 })];
+  const blocks = [block('w1', 'a', 0, { doneSets: 2, doneWorkingSets: 2 })];
+  const plan = diffRoutine('R', lines, blocks);
+  assert.deepEqual(
+    plan.changes.map((c) => c.id),
+    ['remove:r1'],
+  );
+});

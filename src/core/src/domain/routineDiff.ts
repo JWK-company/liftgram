@@ -65,6 +65,14 @@ export interface FinishPlan {
   canApply: boolean;
 }
 
+/**
+ * 「한 종목」인가 — 근력은 완료 **워킹** 세트가 있어야 하고(워밍업만 한 종목은 하지 않은 것 — D2 · QA M4),
+ * 유산소는 완료 세트가 있으면 된다. 실패 세트도 워킹 세트로 센다(D2 「완료 워킹」 — 실패해도 그 세트를 한 것이다 · QA L1).
+ */
+export function performed(b: SessionBlock): boolean {
+  return b.isCardio ? b.doneSets > 0 : b.doneWorkingSets > 0;
+}
+
 // ── 짝짓기 ─────────────────────────────────────────────────────────────────
 
 /** 블록 id → 루틴 줄 id. 연결 id 가 먼저, 없으면 같은 종목의 남은 줄을 순서대로(옛 운동·연결 없는 블록). */
@@ -82,7 +90,13 @@ export function pairBlocks(lines: RoutineLine[], blocks: SessionBlock[]): Map<st
   const sortedLines = [...lines].sort((a, b) => a.sortOrder - b.sortOrder);
   for (const b of ordered) {
     if (out.has(b.id) || b.routineExerciseId) continue; // 연결이 있었는데 그 줄이 없다 = 루틴에서 빠진 줄 → 추가로 본다
-    const line = sortedLines.find((l) => !taken.has(l.id) && l.exerciseId === b.exerciseId);
+    // 같은 종목 줄이 여럿이면 세트 수가 가장 가까운 줄(동률이면 앞 줄) — 하나만 한 날 엉뚱한 줄을 지우지 않게(QA L3).
+    const cands = sortedLines.filter((l) => !taken.has(l.id) && l.exerciseId === b.exerciseId);
+    const line = cands.reduce<RoutineLine | undefined>(
+      (best, l) =>
+        !best || Math.abs(l.targetSets - b.doneWorkingSets) < Math.abs(best.targetSets - b.doneWorkingSets) ? l : best,
+      undefined,
+    );
     if (line) {
       out.set(b.id, line.id);
       taken.add(line.id);
@@ -125,7 +139,7 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
       changes.push({ kind: 'remove', id: `remove:${line.id}`, lineId: line.id, exerciseId: line.exerciseId, reason: 'deleted', defaultOn: true });
       continue;
     }
-    if (b.doneSets === 0) {
+    if (!performed(b)) {
       changes.push({ kind: 'remove', id: `remove:${line.id}`, lineId: line.id, exerciseId: line.exerciseId, reason: 'skipped', defaultOn: false });
       continue;
     }
@@ -139,7 +153,7 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
         id: `sets:${line.id}`,
         lineId: line.id,
         blockId: b.id,
-        exerciseId: b.exerciseId,
+        exerciseId: line.exerciseId, // 루틴 **줄** 기준 — 교체를 끄고 세트만 남기면 원래 종목 줄에 적용된다(QA M2)
         from: line.targetSets,
         to: b.doneWorkingSets,
         defaultOn: true,
@@ -149,14 +163,14 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
 
   const sortedBlocks = [...blocks].sort((a, b) => a.sortOrder - b.sortOrder);
   for (const b of sortedBlocks) {
-    if (pair.has(b.id) || b.doneSets === 0) continue;
+    if (pair.has(b.id) || !performed(b)) continue;
     changes.push({ kind: 'add', id: `add:${b.id}`, blockId: b.id, exerciseId: b.exerciseId, defaultOn: true });
   }
 
   // 순서·묶음은 **양쪽에 다 있는** 줄(한 줄 이상 한 것)끼리만 비교한다 — 추가·삭제는 각자의 항목이 따로 있다.
   const both = sortedLines.filter((l) => {
     const b = blockOfLine.get(l.id);
-    return b && b.doneSets > 0;
+    return b && performed(b);
   });
   const routineOrder = both.map((l) => l.id).join(',');
   const todayOrder = [...both]
@@ -165,8 +179,16 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
     .join(',');
   if (routineOrder !== todayOrder) changes.push({ kind: 'order', id: 'order', defaultOn: true });
 
-  const routineGroups = new Map(both.map((l) => [l.id, l.supersetGroup]));
-  const todayGroups = new Map(both.map((l) => [l.id, (blockOfLine.get(l.id) as SessionBlock).supersetGroup]));
+  // 묶음은 추가 종목까지 넣어 비교한다 — 즉석 추가 종목을 기존 줄과 묶은 것도 묶음 변경이다(QA H1).
+  const addedBlocks = sortedBlocks.filter((b) => !pair.has(b.id) && performed(b));
+  const routineGroups = new Map<string, string | null>([
+    ...both.map((l) => [l.id, l.supersetGroup] as [string, string | null]),
+    ...addedBlocks.map((b) => [b.id, null] as [string, string | null]),
+  ]);
+  const todayGroups = new Map<string, string | null>([
+    ...both.map((l) => [l.id, (blockOfLine.get(l.id) as SessionBlock).supersetGroup] as [string, string | null]),
+    ...addedBlocks.map((b) => [b.id, b.supersetGroup] as [string, string | null]),
+  ]);
   if (partitionKey(routineGroups) !== partitionKey(todayGroups)) changes.push({ kind: 'superset', id: 'superset', defaultOn: true });
 
   return { routineId, lines, blocks, changes, canApply: !lines.some((l) => l.hasPrescription) };
@@ -213,7 +235,7 @@ function lineValuesFromBlock(b: SessionBlock, useBlockTargets: boolean): Omit<Ne
     max = Math.max(...b.workingReps);
   }
   return {
-    targetSets: b.isCardio ? 1 : Math.max(1, b.doneWorkingSets || b.doneSets),
+    targetSets: b.isCardio ? 1 : Math.max(1, b.doneWorkingSets), // 워밍업은 세트 수에 넣지 않는다(D2 · QA M4)
     targetRepsMin: min && min > 0 ? min : 8,
     targetRepsMax: max && max > 0 ? max : 12,
     restSeconds: b.restSeconds && b.restSeconds > 0 ? b.restSeconds : DEFAULT_REST,
@@ -245,7 +267,7 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
   const regroup = has('superset');
 
   const sortedLines = [...plan.lines].sort((a, b) => a.sortOrder - b.sortOrder).filter((l) => !deletes.has(l.id));
-  const live = (b: SessionBlock | undefined) => (b && b.doneSets > 0 ? b : undefined);
+  const live = (b: SessionBlock | undefined) => (b && performed(b) ? b : undefined);
 
   // 순위 — 정렬해 0..n 으로 다시 매긴다.
   type Item = { key: string; rank: number; lineId?: string; block?: SessionBlock };
@@ -281,6 +303,23 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
     ? groupTokens(items.filter((it) => it.block).map((it) => ({ key: it.key, group: (it.block as SessionBlock).supersetGroup })))
     : new Map<string, string | null>();
 
+  // 오늘 손대지 않은 루틴 묶음은 그대로 둔다(QA H2) — 그 묶음 멤버들의 오늘 블록(건너뛴 것 포함)이 모두 같은
+  // 오늘 묶음에 있고, 그 오늘 묶음에 다른 블록이 없으면 「그대로」다. 건너뛴 멤버 때문에 묶음이 풀리지 않는다.
+  const keptGroups = new Set<string>();
+  if (regroup) {
+    const routineGroupIds = new Set(sortedLines.map((l) => l.supersetGroup).filter((g): g is string => !!g));
+    for (const g of routineGroupIds) {
+      const mine = sortedLines.filter((l) => l.supersetGroup === g).map((l) => blockOfLine.get(l.id)).filter((b): b is SessionBlock => !!b);
+      if (mine.length === 0) {
+        keptGroups.add(g);
+        continue;
+      }
+      const x = mine[0].supersetGroup;
+      if (x && mine.every((b) => b.supersetGroup === x) && plan.blocks.every((b) => b.supersetGroup !== x || mine.includes(b))) keptGroups.add(g);
+    }
+  }
+  const lineById = new Map(plan.lines.map((l) => [l.id, l]));
+
   const updates: ApplyPlan['updates'] = [];
   const creates: NewLine[] = [];
   items.forEach((it, i) => {
@@ -290,7 +329,8 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
       if (to) u.exerciseId = to;
       const sets = setsTo.get(it.lineId);
       if (sets !== undefined) u.targetSets = sets;
-      if (regroup && it.block) u.group = tokens.get(it.key) ?? null;
+      const old = lineById.get(it.lineId)?.supersetGroup ?? null;
+      if (regroup && it.block && !(old && keptGroups.has(old))) u.group = tokens.get(it.key) ?? null;
       updates.push(u);
     } else if (it.block) {
       const b = it.block;
@@ -303,6 +343,27 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
       });
     }
   });
+
+  // 혼자 남는 묶음은 풀어 둔다 — 짝을 지웠거나, 짝만 새 묶음으로 옮겨 갔을 때(QA H2 · L2).
+  const groupKey = (u: ApplyPlan['updates'][number]): string | null => {
+    if (u.group === undefined) {
+      const old = lineById.get(u.lineId)?.supersetGroup ?? null;
+      return old ? `o:${old}` : null;
+    }
+    return u.group ? `n:${u.group}` : null;
+  };
+  const used = new Map<string, number>();
+  const bump = (k: string | null) => {
+    if (k) used.set(k, (used.get(k) ?? 0) + 1);
+  };
+  for (const u of updates) bump(groupKey(u));
+  for (const c of creates) bump(c.group ? `n:${c.group}` : null);
+  for (const u of updates) {
+    const k = groupKey(u);
+    if (k && (used.get(k) ?? 0) < 2) u.group = null;
+  }
+  for (const c of creates) if (c.group && (used.get(`n:${c.group}`) ?? 0) < 2) c.group = null;
+
   return { updates, creates, deletes: [...deletes] };
 }
 
@@ -313,7 +374,7 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
  * fromRoutine=루틴 운동이면 루틴에서 온 블록의 목표 횟수를, 아니면 그날 한 횟수의 최소~최대를 쓴다.
  */
 export function routineLinesFromWorkout(blocks: SessionBlock[], fromRoutine: boolean): NewLine[] {
-  const done = [...blocks].filter((b) => b.doneSets > 0).sort((a, b) => a.sortOrder - b.sortOrder);
+  const done = [...blocks].filter(performed).sort((a, b) => a.sortOrder - b.sortOrder);
   const tokens = groupTokens(done.map((b) => ({ key: b.id, group: b.supersetGroup })));
   return done.map((b, i) => ({
     exerciseId: b.exerciseId,
@@ -349,7 +410,7 @@ export function suggestRoutineName(input: {
   if (input.routineName) return dedupeName(`${input.routineName} ${lang === 'ko' ? '(수정)' : '(edited)'}`, input.existing);
   const bySets = new Map<MuscleGroup, number>();
   for (const b of input.blocks) {
-    if (b.doneSets === 0 || !b.primaryMuscle || b.primaryMuscle === 'other') continue;
+    if (!performed(b) || !b.primaryMuscle || b.primaryMuscle === 'other') continue;
     bySets.set(b.primaryMuscle, (bySets.get(b.primaryMuscle) ?? 0) + b.doneSets);
   }
   const top = [...bySets.entries()]

@@ -29,7 +29,14 @@ export interface FinishPromptState {
 
 type Step = "choose" | "pick" | "name";
 
-export function FinishRoutineSheets({ prompt, onDone }: { prompt: FinishPromptState; onDone: () => void }) {
+/** onDone(saved) — saved=새 루틴을 저장했다(요약의 「이 운동으로 루틴 만들기」를 「저장했어요」로 — QA L5). */
+export function FinishRoutineSheets({
+  prompt,
+  onDone,
+}: {
+  prompt: FinishPromptState;
+  onDone: (saved?: boolean) => void;
+}) {
   const [step, setStep] = useState<Step>(prompt.kind === "routine" ? "choose" : "name");
   if (step === "pick" && prompt.plan)
     return <PickChanges plan={prompt.plan} onBack={() => setStep("choose")} onDone={onDone} />;
@@ -39,7 +46,7 @@ export function FinishRoutineSheets({ prompt, onDone }: { prompt: FinishPromptSt
         workoutId={prompt.workoutId}
         snapshot={prompt.blocks}
         quick={prompt.kind === "quick"}
-        onCancel={prompt.kind === "routine" ? () => setStep("choose") : onDone}
+        onCancel={prompt.kind === "routine" ? () => setStep("choose") : () => onDone()}
         onDone={onDone}
       />
     );
@@ -49,7 +56,7 @@ export function FinishRoutineSheets({ prompt, onDone }: { prompt: FinishPromptSt
     <SheetShell
       testId="finish-routine"
       title={t("finish.routineTitle", { routine: prompt.routineName ?? "" })}
-      onClose={onDone}
+      onClose={() => onDone()}
       hideOk
     >
       <AppText variant="body" color="textMuted" className="mt-[var(--spacing-xs)] block">
@@ -77,7 +84,7 @@ export function FinishRoutineSheets({ prompt, onDone }: { prompt: FinishPromptSt
           title={t("finish.todayOnly")}
           variant="secondary"
           testId="btn-finish-today"
-          onPress={onDone}
+          onPress={() => onDone()}
         />
       </div>
     </SheetShell>
@@ -85,7 +92,15 @@ export function FinishRoutineSheets({ prompt, onDone }: { prompt: FinishPromptSt
 }
 
 /** 바뀐 항목 체크 목록 — 기본은 core 가 정한 대로(운동 중 지운 줄·교체·세트 수·추가는 켜짐, 건너뛴 종목 빼기는 꺼짐). */
-function PickChanges({ plan, onBack, onDone }: { plan: FinishPlan; onBack: () => void; onDone: () => void }) {
+function PickChanges({
+  plan,
+  onBack,
+  onDone,
+}: {
+  plan: FinishPlan;
+  onBack: () => void;
+  onDone: (saved?: boolean) => void;
+}) {
   const toast = useToast();
   const [sel, setSel] = useState<Set<string>>(
     () => new Set(plan.changes.filter((c) => c.defaultOn).map((c) => c.id)),
@@ -199,7 +214,7 @@ export function NameRoutine({
   snapshot?: SessionBlock[];
   quick?: boolean;
   onCancel: () => void;
-  onDone: () => void;
+  onDone: (saved?: boolean) => void;
 }) {
   const toast = useToast();
   const [name, setName] = useState("");
@@ -256,7 +271,7 @@ export function NameRoutine({
                 const { flushLocalDb } = await import("@/lib/localDb");
                 await flushLocalDb();
                 if (r) toast(t("finish.saved", { name: (r as unknown as { name: string }).name }));
-                onDone();
+                onDone(r != null);
               } catch (e) {
                 toast(e instanceof Error ? e.message : String(e), "error");
                 setBusy(false);

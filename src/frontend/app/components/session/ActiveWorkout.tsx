@@ -81,6 +81,7 @@ export default function ActiveWorkout() {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   // 완료 직후 — 루틴과 달라진 점·루틴으로 저장을 묻는다(요약 위에 뜬다). @plm SRS-059 SRS-060
   const [finishPrompt, setFinishPrompt] = useState<FinishPromptState | null>(null);
+  const [routineSaved, setRoutineSaved] = useState(false); // 완료 시트에서 새 루틴으로 저장했다(QA L5)
   // 루틴으로 시작한 운동에서 종목을 바꾸면 「이번만 / 루틴에도」를 묻는다(SRS-057 · 4.1)
   const [swapScope, setSwapScope] = useState<null | {
     routineId: string;
@@ -218,9 +219,20 @@ export default function ActiveWorkout() {
   if (summary)
     return (
       <>
-        <WorkoutSummary summary={summary} unit={weightUnit} onClose={leaveSession} />
+        <WorkoutSummary
+          summary={summary}
+          unit={weightUnit}
+          onClose={leaveSession}
+          routineSaved={routineSaved}
+        />
         {finishPrompt ? (
-          <FinishRoutineSheets prompt={finishPrompt} onDone={() => setFinishPrompt(null)} />
+          <FinishRoutineSheets
+            prompt={finishPrompt}
+            onDone={(saved) => {
+              setFinishPrompt(null);
+              if (saved) setRoutineSaved(true);
+            }}
+          />
         ) : null}
       </>
     );
@@ -534,8 +546,13 @@ export default function ActiveWorkout() {
             guard(async () => {
               // 완료 **전에** 무엇을 물을지 본다 — 완료가 세트 0 블록·체크 안 한 세트를 지운다(QA Q1). 실패해도 완료는 막지 않는다.
               const fr = await import("@app/core/data/finishRoutine");
-              const ask = await fr.getFinishPrompt(workout.id).catch(() => null);
-              const s = await repo.completeWorkout(workout.id);
+              // [원본] 순서를 화면이 지켰다 — core 함수가 순서를 고정한다(QA M3)
+              // const ask = await fr.getFinishPrompt(workout.id).catch(() => null);
+              // const s = await repo.completeWorkout(workout.id);
+              const { summary: s, prompt: ask } = await fr.finishWorkoutWithPrompt(
+                workout.id,
+                repo.completeWorkout,
+              );
               const { flushLocalDb } = await import("@/lib/localDb");
               await flushLocalDb();
               clearRest();

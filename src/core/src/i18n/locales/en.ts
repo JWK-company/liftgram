@@ -796,6 +796,7 @@ export const en: Record<TransKey, string> = {
   "finish.nameLabel": "Routine name", // @plm SRS-059 SRS-060
   "finish.saved": "Saved routine “{name}”", // @plm SRS-059 SRS-060
   "finish.makeRoutine": "Make a routine from this workout", // @plm SRS-059 SRS-060
+  "finish.madeRoutine": "Saved as a routine",
   "variant.default": "Default",
   "variant.armBoth": "Both arms/legs",
   "session.editPrecision": "Precision log",

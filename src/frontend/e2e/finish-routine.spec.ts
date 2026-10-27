@@ -200,3 +200,29 @@ test("「저장 안 함」이면 루틴이 생기지 않고, 요약의 「이 �
   await page.getByTestId("btn-summary-close").click();
   await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 15_000 });
 });
+
+// QA M3 — 완료 **전에** 변경점을 읽어야 건너뛴 종목이 「빼기(기본 해제)」로 나온다.
+// 완료가 세트 0 블록을 먼저 지우면 「운동 중 삭제(기본 체크)」로 바뀌어 건너뛴 종목이 루틴에서 기본으로 지워진다.
+test("하루 건너뛴 종목은 「루틴에서 빼기」가 기본 해제 — 그대로 반영해도 루틴에 남는다", async ({ page }) => {
+  test.setTimeout(180_000);
+  await 카탈로그_준비(page);
+  const id = await 루틴_만들기(page, `건너뜀 ${Date.now().toString(36)}`, ["바벨 벤치프레스", "덤벨 플라이"]);
+
+  await 루틴_시작(page, id);
+  await 세트_다_하기(page, 0, 2); // 벤치는 2세트만(3 → 2) — 변경이 있어야 시트가 뜬다
+  // 플라이는 한 세트도 안 한다
+  await 완료(page);
+  await expect(page.getByTestId("finish-routine")).toBeVisible();
+  await page.getByTestId("btn-finish-apply").click();
+  const remove = page.getByTestId("finish-change-remove");
+  await expect(remove).toBeVisible();
+  await expect(remove.locator("input")).not.toBeChecked();
+  await page.getByTestId("btn-finish-apply-confirm").click();
+  await expect(page.getByTestId("finish-pick")).toHaveCount(0, { timeout: 10_000 });
+
+  await page.getByTestId("btn-summary-close").click();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await 루틴_시작(page, id);
+  await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(2); // 플라이가 남아 있다
+  await expect(블록(page, 0).getByTestId("set-list").locator("> div")).toHaveCount(2); // 벤치는 2세트
+});
