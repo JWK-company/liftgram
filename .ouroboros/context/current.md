@@ -1,5 +1,6 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 블록별 kg/lb 토글·운동 중 막대 취소 (Feature · **/qa code 대기 · 미배포** 2026-10-27 · 출시 예정 v0.38.0) · URS-022·SRS-067(단위)·SRS-068(막대 취소) · 스펙 `.ouroboros/docs/spec/20261027_unit-toggle/spec.md` · spec QA `.ouroboros/docs/qa/20261027_unit-toggle-spec_qa.md`
+## 활성 작업 — 운동 중 kg/lb 토글 · 막대 취소 (Feature · **완료** v0.38.0 build 334 · 5222c61 · 2026-10-27)
+- /qa code 조치: H-1 writer 안 판단·토글 막음 · H-2 v25 unit_by_user · H-3 v25 set_logs.user_edited(Q4 B 는 사람이 적은/완료 세트만, 자동 채움은 실제 무게 유지) · H-4 feed.proto · M-1~M-4 · 리포트 `.ouroboros/docs/qa/20261027_unit-toggle-code_qa.md` · 남은 피드백 #55·#25 보류
 - 결정 Q1 A(종목×칸 기억 — 완료 블록에서 유도) · Q2 A(세트는 적은 단위·합계 kg) · Q3 A(프로필 단위 제거·바/체중 kg) · Q4 B(토글=숫자 유지·단위만) · 스키마 v25 `workout_exercises.weight_unit`(null=kg) · 피드 proto `WorkoutExercise.weight_unit=5`
 - 검증: make verify(core 288·go) · 로컬 운영 빌드 e2e 81/81 · 새 e2e 4건은 옛 코드(운영 v0.37.0)에서 실패 확인 · 스샷 spec 폴더 · 보류 #55·#25 그대로
 - 작업 범위: core(domain/units·blockUnit·data/workoutRepository·analyticsRepository·schema v25·userContext·sharePayload·i18n) · backend/feed · proto/feed · frontend(ExerciseBlock·SetRowEdit·UnitToggle·GlobalWorkoutBar·WorkoutDetailClient·WorkoutBox·ProfileClient) · e2e
@@ -97,4 +98,3 @@ i18n 키를 app↔web으로 대조해 **화면 밖 갭**을 찾았다(화면 수
 - P3: 프로필 사람→설정 줄+시트(경력·의향은 편집 시트) · 로그인 전체 화면·탭 제거(mode-* 표식은 하단 링크) · /account 3구역·#backup · 온보딩 앱 아이콘
 - P4: 피드 아이콘 3·팔로잉/발견 탭·+ 작성기 · DM/알림 줄 · 남의 프로필 머리·차단 ⋯
 - P5: 데스크톱 세로 탭바 · 약관 앱바+사업자 정보 · 시드 카탈로그 동적 import(−13KB gz) · v0.29.1 첫 SW 설치 새로고침 제거 · 보고서 report/20261026_redesign-p2p5_report.md
-- 남은: 완료 화면 공유→작성기 통합 · dm:157 등 불안정 e2e · CF 경로(사용자 결정)
