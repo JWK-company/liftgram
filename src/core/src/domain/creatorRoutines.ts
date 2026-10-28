@@ -50,6 +50,8 @@ export interface CreatorRoutine {
     /** 사람이 영상과 대조한 날짜(YYYY-MM-DD) — 30일 지나면 check 가 경고 */
     verifiedAt: string;
   };
+  /** 세트·횟수의 근거가 설명란이 아니라 영상을 분석한 2차 자료일 때(예: 기사) — 화면에 따로 밝힌다 */
+  basis?: { labelKo: string; url: string };
   summaryKo: string;
   days: CreatorRoutineDay[];
   draft?: true;
@@ -80,6 +82,7 @@ export const CREATOR_TOPICS: CreatorTopic[] = [
   },
 ];
 
+// biome-ignore lint/correctness/noUnusedVariables: 자리 잡기 도우미(새 버전 초안용)
 const D = (sets: number, repsMin: number, repsMax: number): Pick<CreatorRoutineItem, 'sets' | 'repsMin' | 'repsMax' | 'src'> => ({
   sets,
   repsMin,
@@ -87,32 +90,9 @@ const D = (sets: number, repsMin: number, repsMax: number): Pick<CreatorRoutineI
   src: { sets: 'default', reps: 'default' },
 });
 
-// 아래 내용은 설명란(공식 Data API)·영상 확인 전의 자리 잡기다 — draft 를 걷기 전에 영상과 대조해 고친다.
+// 내용 근거 = 공식 Data API 로 읽은 설명란(타임스탬프·요약) — 2026-10-28. 종목 순서는 설명란 그대로, 수치는 설명란에 있을 때만 'video'.
+// 설명란 원문은 보관하지 않는다(qa H-3). 영상만 보고 확인한 값은 없다 — 검수자가 영상을 보고 고치면 src 를 'video' 로.
 export const CREATOR_ROUTINES: CreatorRoutine[] = [
-  {
-    id: 'cr-shoulders-minimal',
-    topicId: 'boulder-shoulders',
-    labelKo: '어깨 미니멀',
-    source: {
-      videoId: 'bZbfXY0-BhA',
-      title: '최소한의 운동으로 진짜 어깨깡패 되는 어깨 루틴 요령!',
-      channel: '제로범TV _김영범',
-      channelUrl: 'https://www.youtube.com/@boom__star',
-      verifiedAt: '2026-10-28',
-    },
-    summaryKo: '적은 종목으로 전면·측면·후면 삼각근을 고르게 다루는 구성이에요.',
-    days: [
-      {
-        nameKo: '어깨',
-        items: [
-          { exerciseId: 'seed-dumbbell-shoulder-press', ...D(4, 8, 12) },
-          { exerciseId: 'seed-side-lateral-raise', ...D(4, 12, 15) },
-          { exerciseId: 'seed-rear-delt-fly', ...D(4, 12, 15) },
-        ],
-      },
-    ],
-    draft: true,
-  },
   {
     id: 'cr-shoulders-season',
     topicId: 'boulder-shoulders',
@@ -124,46 +104,77 @@ export const CREATOR_ROUTINES: CreatorRoutine[] = [
       channelUrl: 'https://www.youtube.com/@leejangmin',
       verifiedAt: '2026-10-28',
     },
-    summaryKo: '프레스 두 가지로 시작해 측면·후면을 거쳐 승모근으로 마무리하는 시즌 중 어깨 운동이에요.',
+    summaryKo: '프레스 두 가지로 시작해 측면·후면 삼각근을 거쳐 승모근으로 마무리하는 시즌 중 어깨 운동이에요.',
     days: [
       {
         nameKo: '어깨·승모',
         items: [
-          { exerciseId: 'seed-shoulder-press-smith', ...D(4, 8, 12) },
-          { exerciseId: 'seed-shoulder-press-machine', ...D(3, 10, 12) },
-          { exerciseId: 'seed-side-lateral-raise', ...D(4, 12, 15) },
-          { exerciseId: 'seed-reverse-pec-deck', ...D(3, 12, 15) },
-          { exerciseId: 'seed-barbell-shrug', ...D(3, 10, 12) },
-          { exerciseId: 'seed-dumbbell-shrug', ...D(3, 12, 15) },
+          { exerciseId: 'seed-shoulder-press-smith', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 4, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-reverse-pec-deck', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-shrug', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-shrug', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
         ],
       },
     ],
-    draft: true,
   },
   {
-    id: 'cr-shoulders-growth',
+    id: 'cr-shoulders-5split',
     topicId: 'boulder-shoulders',
-    labelKo: '어깨 성장',
+    labelKo: '어깨 6종',
     source: {
-      videoId: 'd2r9nVh-yx4',
-      title: '솔직히 어깨는 이 운동루틴 하고부터 커졌어요',
-      channel: '준규빌더',
-      channelUrl: 'https://www.youtube.com/@junkyubd',
+      videoId: 'pkd3pPUpi-Y',
+      title: '가장 고민을 많이 한 어깨루틴 | 5분할 루틴 [2025]',
+      channel: '킹유진',
+      channelUrl: 'https://www.youtube.com/@%ED%82%B9%EC%9C%A0%EC%A7%84',
       verifiedAt: '2026-10-28',
     },
-    summaryKo: '측면 삼각근 비중을 높인 어깨 루틴이에요.',
+    summaryKo: '프레스 두 가지 뒤에 케이블·덤벨로 측면을 두 번, 업라이트 로우와 벤트오버로 마무리하는 5분할 중 어깨 날이에요. 영상은 시작 전 스트레칭·월슬라이드도 다뤄요.',
     days: [
       {
         nameKo: '어깨',
         items: [
-          { exerciseId: 'seed-overhead-press', ...D(4, 6, 10) },
-          { exerciseId: 'seed-side-lateral-raise', ...D(5, 12, 15) },
-          { exerciseId: 'seed-cable-lateral-raise', ...D(3, 12, 15) },
-          { exerciseId: 'seed-reverse-pec-deck', ...D(4, 12, 15) },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-behind-the-neck-press', sets: 3, repsMin: 8, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-upright-row-cable', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-cable-rear-delt-fly', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
         ],
       },
     ],
-    draft: true,
+  },
+  {
+    id: 'cr-shoulders-olympia',
+    topicId: 'boulder-shoulders',
+    labelKo: '올림피아 어깨',
+    source: {
+      videoId: 'hpvAcZtNcPY',
+      title: 'ANABOLIC POST WORKOUT MEAL | BIG FAT SHOULDERS',
+      channel: 'Chris Bumstead',
+      channelUrl: 'https://www.youtube.com/@ChrisBumstead',
+      verifiedAt: '2026-10-28',
+    },
+    // 공식 채널 설명란에는 루틴이 없다 — 다음 날 Fitness Volt 가 이 영상을 보고 정리한 종목·세트·횟수(추정치라고 밝힘)를 따른다.
+    basis: {
+      labelKo: 'Fitness Volt 영상 분석 기사(2022-06-28)',
+      url: 'https://fitnessvolt.com/chris-bumstead-shoulders-workout/',
+    },
+    summaryKo:
+      '미스터 올림피아 클래식 피지크 6연패 선수의 어깨 날이에요. 앉아서 하는 덤벨 프레스로 무겁게 시작해 머신 프레스, 측면, 후면 순으로 마무리해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '어깨',
+        items: [
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 4, repsMin: 6, repsMax: 9, src: { sets: 'video', reps: 'video' }, noteKo: '앉아서 · 워밍업 1세트 뒤' },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '워밍업 1세트 뒤' },
+          { exerciseId: 'seed-side-lateral-raise', sets: 4, repsMin: 7, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '앉아서' },
+          { exerciseId: 'seed-reverse-pec-deck', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-machine-lateral-raise', sets: 1, repsMin: 7, repsMax: 7, src: { sets: 'video', reps: 'video' }, noteKo: '선 채로 마무리 1세트' },
+        ],
+      },
+    ],
   },
   {
     id: 'cr-big3-5x5',
@@ -176,89 +187,45 @@ export const CREATOR_ROUTINES: CreatorRoutine[] = [
       channelUrl: 'https://www.youtube.com/@%EB%A9%94%EB%A3%A8%EC%B9%98%EC%96%91%EC%8B%9D%EC%9E%A5',
       verifiedAt: '2026-10-28',
     },
-    summaryKo: '세 종목을 5세트 5회로 꾸준히 올리는 근력 프로그램이에요.',
+    summaryKo: '5대 운동을 5세트 5회로 하고 성공하면 다음에 조금씩 무게를 올리는 근력 프로그램이에요(스트롱리프트 방식). A·B 를 번갈아 해요.',
     days: [
       {
         nameKo: 'A',
         items: [
-          { exerciseId: 'seed-barbell-squat', ...D(5, 5, 5) },
-          { exerciseId: 'seed-barbell-bench-press', ...D(5, 5, 5) },
-          { exerciseId: 'seed-barbell-row', ...D(5, 5, 5) },
+          { exerciseId: 'seed-barbell-squat', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-bench-press', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-row', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'video', reps: 'video' } },
         ],
       },
       {
         nameKo: 'B',
         items: [
-          { exerciseId: 'seed-barbell-squat', ...D(5, 5, 5) },
-          { exerciseId: 'seed-overhead-press', ...D(5, 5, 5) },
-          { exerciseId: 'seed-deadlift', ...D(1, 5, 5) },
+          { exerciseId: 'seed-barbell-squat', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-overhead-press', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-deadlift', sets: 1, repsMin: 5, repsMax: 5, src: { sets: 'default', reps: 'video' }, noteKo: '스트롱리프트 기본은 데드리프트 1세트 5회' },
         ],
       },
     ],
-    draft: true,
   },
   {
-    id: 'cr-big3-powerbuilding',
+    id: 'cr-big3-mq-5x5',
     topicId: 'big3-500',
-    labelKo: '파워빌딩',
+    labelKo: '회사원 5×5',
     source: {
-      videoId: 'CgiGNRGA7aQ',
-      title: '3대 500이 어려운 분들을 위한 필수 영상 | 파워빌딩 이렇게만 하세요',
-      channel: '캐나디안 보디빌더 조피터',
-      channelUrl: 'https://www.youtube.com/@peterfit_',
+      videoId: '4xOfS_1bgZo',
+      title: '5×5로 3대 500 가뿐히 넘기는 방법 (5x5 프로그램 공개)  | 3대 710kg 회사원의 운동 QnA | 방구석 레슨 | 메탈퀄리티 35화',
+      channel: 'MQ',
+      channelUrl: 'https://www.youtube.com/@Metalquality_official',
       verifiedAt: '2026-10-28',
     },
-    summaryKo: '무거운 3대 운동 뒤에 보조 운동으로 근육량도 챙기는 파워빌딩 구성이에요.',
+    summaryKo: '(검수 필요) 회사원이 3대 운동을 5세트 5회로 꾸준히 올리는 프로그램이에요.',
     days: [
       {
-        nameKo: '하체',
+        nameKo: '3대',
         items: [
-          { exerciseId: 'seed-barbell-squat', ...D(4, 3, 5) },
-          { exerciseId: 'seed-leg-press', ...D(3, 8, 12) },
-          { exerciseId: 'seed-lying-leg-curl', ...D(3, 10, 12) },
-        ],
-      },
-      {
-        nameKo: '상체',
-        items: [
-          { exerciseId: 'seed-barbell-bench-press', ...D(4, 3, 5) },
-          { exerciseId: 'seed-dumbbell-bench-press', ...D(3, 8, 12) },
-          { exerciseId: 'seed-lat-pulldown', ...D(3, 8, 12) },
-        ],
-      },
-      {
-        nameKo: '데드',
-        items: [
-          { exerciseId: 'seed-deadlift', ...D(4, 3, 5) },
-          { exerciseId: 'seed-barbell-row', ...D(3, 8, 10) },
-          { exerciseId: 'seed-romanian-deadlift', ...D(3, 8, 10) },
-        ],
-      },
-    ],
-    draft: true,
-  },
-  {
-    id: 'cr-afterwork-six',
-    topicId: 'after-work',
-    labelKo: '퇴근 후 전신 6종',
-    source: {
-      videoId: '92SXBcTzoco',
-      title: '퇴근 후 헬스장 가면 이 전신루틴 6가지만 하세요｜직장인 초보 운동',
-      channel: '제로범TV _김영범',
-      channelUrl: 'https://www.youtube.com/@boom__star',
-      verifiedAt: '2026-10-28',
-    },
-    summaryKo: '기구 위주 6가지로 전신을 한 번에 다루는 초보용 구성이에요.',
-    days: [
-      {
-        nameKo: '전신',
-        items: [
-          { exerciseId: 'seed-leg-press', ...D(3, 10, 12) },
-          { exerciseId: 'seed-chest-press-machine', ...D(3, 10, 12) },
-          { exerciseId: 'seed-lat-pulldown', ...D(3, 10, 12) },
-          { exerciseId: 'seed-shoulder-press-machine', ...D(3, 10, 12) },
-          { exerciseId: 'seed-seated-cable-row', ...D(3, 10, 12) },
-          { exerciseId: 'seed-plank', ...D(3, 1, 1) },
+          { exerciseId: 'seed-barbell-squat', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-bench-press', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-deadlift', sets: 5, repsMin: 5, repsMax: 5, src: { sets: 'default', reps: 'default' } },
         ],
       },
     ],
@@ -275,21 +242,45 @@ export const CREATOR_ROUTINES: CreatorRoutine[] = [
       channelUrl: 'https://www.youtube.com/@fitvely',
       verifiedAt: '2026-10-28',
     },
-    summaryKo: '자주 못 가는 주에 큰 근육부터 차례로 다루는 무분할 전신 구성이에요.',
+    summaryKo: '가슴과 등을 번갈아 하며 미는 근육이 쉬는 동안 당기는 근육을 쓰고, 하체로 마무리하는 무분할 전신 구성이에요. 가볍게 15회씩 해요.',
     days: [
       {
         nameKo: '전신',
         items: [
-          { exerciseId: 'seed-barbell-squat', ...D(3, 8, 12) },
-          { exerciseId: 'seed-romanian-deadlift', ...D(3, 8, 12) },
-          { exerciseId: 'seed-barbell-bench-press', ...D(3, 8, 12) },
-          { exerciseId: 'seed-lat-pulldown', ...D(3, 8, 12) },
-          { exerciseId: 'seed-dumbbell-shoulder-press', ...D(3, 10, 12) },
-          { exerciseId: 'seed-seated-cable-row', ...D(3, 10, 12) },
+          { exerciseId: 'seed-barbell-bench-press', sets: 5, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '20kg 바가 힘들면 덤벨 프레스로' },
+          { exerciseId: 'seed-assisted-pull-up', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '세 번째 세트는 언더그립' },
+          { exerciseId: 'seed-chest-press-machine', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-leg-press', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
         ],
       },
     ],
-    draft: true,
+  },
+  {
+    id: 'cr-afterwork-1hour',
+    topicId: 'after-work',
+    labelKo: '헬스장 1시간',
+    source: {
+      videoId: 'E-DCLPwZwUI',
+      title: '헬스 초보 탈출 루틴!! 헬스장 1시간 완전 공략(스트레칭,근력,유산소)',
+      channel: '웨이트연구소 I 덕코치',
+      channelUrl: 'https://www.youtube.com/@%EC%9B%A8%EC%9D%B4%ED%8A%B8%EC%97%B0%EA%B5%AC%EC%86%8C%EB%8D%95%EC%BD%94%EC%B9%98',
+      verifiedAt: '2026-10-28',
+    },
+    summaryKo: '유산소·스트레칭으로 몸을 데운 뒤 등·가슴·하체·어깨를 기구 하나씩으로 끝내고, 인터벌과 스트레칭으로 마무리하는 1시간 구성이에요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-smith-machine-bench-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-leg-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
   },
 ];
 

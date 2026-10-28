@@ -2,7 +2,7 @@
 //
 // 쓰는 법: node scripts/check-creator-routines.mjs   (배포 전 필수 · 실패면 종료 코드 1)
 //   ✗ 실패 = 404(삭제·비공개) · 제목/채널 불일치 — 데이터를 고치거나 hidden: true
-//   ! 경고 = 401/403(퍼가기 금지일 수 있음 — 링크는 동작) · verifiedAt 30일 경과(다시 확인)
+//   ! 경고 = 401/403(퍼가기 금지일 수 있음 — 링크는 동작) · verifiedAt 30일 경과(다시 확인) · draft(검수 전 — 화면 미노출)
 // 데이터 파일을 import 하지 않고 텍스트로 읽는다(TS 빌드 없이 돌게). 영상·자막은 내려받지 않는다(ADR-045).
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -29,8 +29,8 @@ if (drafts)
   console.log(`✗ draft: true 가 ${drafts}개 — 사람 검수 전 버전은 화면에 안 나간다(검수 뒤 지울 것)`);
 
 const STALE_DAYS = 30;
-let bad = drafts;
-let warn = 0;
+let bad = 0;
+let warn = drafts;
 for (const r of rows) {
   const age = Math.floor((Date.now() - Date.parse(`${r.verifiedAt}T00:00:00Z`)) / 86_400_000);
   if (age > STALE_DAYS) {

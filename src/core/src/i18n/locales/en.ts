@@ -121,6 +121,7 @@ export const en: Record<TransKey, string> = {
   "creator.source": "Source: {channel} · \"{title}\"",
   "creator.verified": "Summarized from the video · checked {date}",
   "creator.koreanContent": "Korean content",
+  "creator.basis": "Sets·reps per {label}",
   "creator.defaultChip": "Default",
   "creator.missingExercise": "not on this device",
   "creator.openVideo": "Watch the original video",

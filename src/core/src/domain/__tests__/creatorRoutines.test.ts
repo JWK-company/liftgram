@@ -36,6 +36,7 @@ test('버전 데이터: 종목 실존·처방 범위·하루 안 중복 없음·
     assert.match(r.source.channelUrl, /^https:\/\/www\.youtube\.com\/@/, `${r.id} 채널 주소`);
     assert.match(r.source.verifiedAt, /^\d{4}-\d{2}-\d{2}$/, `${r.id} verifiedAt`);
     assert.ok(r.days.length >= 1, `${r.id} 일 없음`);
+    if (r.basis) assert.match(r.basis.url, /^https:\/\//, `${r.id} basis url`);
     for (const d of r.days) {
       const seen = new Set<string>();
       assert.ok(d.items.length >= 1, `${r.id}/${d.nameKo} 종목 없음`);

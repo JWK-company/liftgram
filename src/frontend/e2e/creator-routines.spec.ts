@@ -1,5 +1,6 @@
 // @plm SRS-091  크리에이터 루틴 e2e — 주제 → 버전 → 출처·고지·원본 링크 → 저장(이름에 채널명 없음 · 메모에 출처 · 세트×횟수)
 import { expect, type Page, test } from "@playwright/test";
+import { 내려쓰기_대기 } from "./helpers/opengym";
 
 async function 카탈로그_준비(page: Page) {
   await page.goto("/exercises");
@@ -47,6 +48,8 @@ test("어깨깡패 → 버전 하나 저장 — 출처 인용·제휴 아님 고
   await expect(list).not.toContainText(channel);
 
   // 루틴 편집기: 메모에 출처 · 첫 종목 세트 수(세션 프리필이 아니라 편집기 기준 — qa L-1)
+  // 새로 불러오기 전에 LokiJS 가 디스크에 내려쓸 시간을 준다(메모리 「LokiJS 비동기 flush」)
+  await 내려쓰기_대기(page);
   const tid = await list.locator("[data-testid^=routine-]").first().getAttribute("data-testid");
   await page.goto(`/routines/${(tid ?? "").replace("routine-", "")}`);
   await expect(page.getByTestId("routine-notes")).toHaveValue(/youtube\.com\/watch\?v=/, { timeout: 20_000 });

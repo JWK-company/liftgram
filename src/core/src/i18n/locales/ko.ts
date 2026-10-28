@@ -119,6 +119,7 @@ export const ko = {
   "creator.source": "출처: {channel} · 「{title}」",
   "creator.verified": "영상 기준 정리 · 확인 {date}",
   "creator.koreanContent": "한국어 콘텐츠",
+  "creator.basis": "세트·횟수: {label} 기준",
   "creator.defaultChip": "기본값",
   "creator.missingExercise": "이 기기에 없는 종목",
   "creator.openVideo": "원본 영상 보기",

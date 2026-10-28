@@ -184,20 +184,34 @@ function CreatorVersionStep({
   const url = youtubeWatchUrl(routine.source.videoId);
   return (
     <SheetShell title={routine.labelKo} onClose={onClose} hideOk testId="creator-sheet">
-      <button
-        type="button"
-        onClick={onBack}
-        data-testid="creator-back"
-        className="mt-[2px] min-h-[44px] self-start text-left text-(--color-brand) text-[length:var(--text-sm)]"
-      >
-        ‹ {t("creator.backToList", { topic: topicTitle })}
-      </button>
+      <div className="mt-[2px] block">
+        <button
+          type="button"
+          onClick={onBack}
+          data-testid="creator-back"
+          className="min-h-[44px] text-left text-(--color-brand) text-[length:var(--text-sm)]"
+        >
+          ‹ {t("creator.backToList", { topic: topicTitle })}
+        </button>
+      </div>
       <AppText variant="caption" color="textMuted" className="block" data-testid="creator-source">
         {t("creator.source", { channel: routine.source.channel, title: routine.source.title })}
       </AppText>
       <AppText variant="label" color="textMuted" className="mt-[2px] block">
         {t("creator.verified", { date: routine.source.verifiedAt })}
       </AppText>
+      {routine.basis ? (
+        // 세트·횟수가 영상을 분석한 2차 자료 기준일 때 — 어디서 왔는지 밝힌다
+        <a
+          href={routine.basis.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="creator-basis"
+          className="mt-[2px] block text-(--color-ink3) text-[length:var(--text-xs)] underline"
+        >
+          {t("creator.basis", { label: routine.basis.labelKo })}
+        </a>
+      ) : null}
       {lang === "ko" ? null : (
         <AppText variant="label" color="textMuted" className="block">
           {t("creator.koreanContent")}
@@ -226,7 +240,7 @@ function CreatorVersionStep({
                 <li
                   key={i.exerciseId}
                   data-testid={`creator-item-${i.exerciseId}`}
-                  className={`flex min-w-0 items-baseline gap-[var(--spacing-sm)] ${missing ? "opacity-50" : ""}`}
+                  className={`flex min-w-0 flex-wrap items-baseline gap-x-[var(--spacing-sm)] ${missing ? "opacity-50" : ""}`}
                 >
                   <span className="min-w-0 flex-1 truncate text-(--color-ink) text-[length:var(--text-sm)]">
                     {names.get(i.exerciseId) ?? i.exerciseId}
@@ -240,18 +254,15 @@ function CreatorVersionStep({
                       {t("creator.defaultChip")}
                     </span>
                   ) : null}
+                  {i.noteKo ? (
+                    <span className="basis-full text-(--color-ink3) text-[length:var(--text-xs)]">
+                      {i.noteKo}
+                    </span>
+                  ) : null}
                 </li>
               );
             })}
           </ul>
-          {d.items.some((i) => i.noteKo) ? (
-            <AppText variant="label" color="textMuted" className="mt-[4px] block">
-              {d.items
-                .filter((i) => i.noteKo)
-                .map((i) => i.noteKo)
-                .join(" · ")}
-            </AppText>
-          ) : null}
         </div>
       ))}
 
