@@ -147,10 +147,16 @@ export async function syncCatalogToLocal(): Promise<CatalogSyncResult> {
 
   // 받은 것을 **디스크까지** 내려쓴다. 여기서 안 하면 곧바로 새로고침했을 때 되돌아간다
   // (LokiJS는 메모리에 쓰고 주기적으로 내려쓴다 — 실측으로 로컬이 0종이 됐다).
-  const { flushLocalDb } = await import("@/lib/localDb");
-  await flushLocalDb();
+  // [원본] const { flushLocalDb } = await import("@/lib/localDb");
+  // await flushLocalDb();
+  //
+  // if (typeof localStorage !== "undefined" && serverRev) localStorage.setItem(REVISION_KEY, serverRev);
+  // [개선] 개정 번호는 디스크에 남았거나 확인할 길이 없을 때만 — 봉인·실패한 탭이 공유 표식만 올리지 않게(재검토 H-4) @plm SRS-089
+  const { flushLocalDbResult } = await import("@/lib/localDb");
+  const flushed = await flushLocalDbResult();
 
-  if (typeof localStorage !== "undefined" && serverRev) localStorage.setItem(REVISION_KEY, serverRev);
+  if (typeof localStorage !== "undefined" && serverRev && (flushed === "saved" || flushed === "unreachable"))
+    localStorage.setItem(REVISION_KEY, serverRev);
 
   void Exercise; // 모델 클래스를 번들에 남긴다(컬렉션이 이름으로 찾으므로 트리셰이킹 방지)
   return { status: "synced", count: await activeCount(), written };

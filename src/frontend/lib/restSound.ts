@@ -57,6 +57,20 @@ const TANH_CURVE = (() => {
 })();
 
 let ctxRef: AudioContext | null = null;
+let silenced = false;
+
+/**
+ * 이 탭의 휴식 소리를 끈다(되돌리지 않는다) — 탭이 봉인되면(다른 탭이 기록을 이어받음) 부른다.
+ * 오디오 클록에 예약해 둔 소리도 함께 멈추도록 문맥을 멈춘다. @plm SRS-089
+ */
+export function silenceRestSound(): void {
+  silenced = true;
+  try {
+    void ctxRef?.suspend();
+  } catch {
+    // 이미 닫힘
+  }
+}
 let busRef: GainNode | null = null;
 
 function audioContext(): AudioContext | null {
@@ -116,6 +130,7 @@ function beep(
  * 막히면 조용히 넘어간다(알림이 안 되는 것이 화면이 죽는 것보다 낫다).
  */
 export function playRestSound(kind: RestSoundKind = getRestSoundKind()): void {
+  if (silenced) return; // 다른 탭이 쓰기 주인이 됐다 — 그 탭이 휴식을 이어받는다 @plm SRS-089
   try {
     const ctx = audioContext();
     if (!ctx) return;

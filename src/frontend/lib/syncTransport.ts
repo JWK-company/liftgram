@@ -60,6 +60,11 @@ export function installSync(): void {
     remove: (k) => {
       if (typeof localStorage !== "undefined") localStorage.removeItem(k);
     },
+    // 백필 표식은 디스크에 실제로 남았을 때만(재검토 H-4 · 봉인·거부된 탭이 표식만 남기지 않게) @plm SRS-089
+    persist: async () => {
+      const { flushLocalDbResult } = await import("./localDb");
+      return (await flushLocalDbResult()) === "saved";
+    },
   });
   // 첫 동기가 끝나면 서버 카탈로그를 한 번 받는다(예전엔 종목 탭에서만 — 이제 시드 행이 사용자 동기로 오지 않는다, D10).
   void awaitFirstSync(15_000).then(async () => {

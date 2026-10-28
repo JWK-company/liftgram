@@ -1303,6 +1303,12 @@ export const en: Record<TransKey, string> = {
   "import.elsewhere.body": "This tab won't save anything until the import finishes. Reload this tab when it's done.",
   "import.elsewhere.endedTitle": "The import in another tab finished",
   "import.elsewhere.endedBody": "Reload this tab to see the imported workouts.",
+  // Multiple tabs — one tab records at a time (SRS-089)
+  "tabs.elsewhere.title": "Open in another tab",
+  "tabs.elsewhere.body": "Only one tab can record at a time. Continuing here pauses the other tab. Your last change in this tab may not have been saved.",
+  "tabs.external.title": "Storage changed outside this tab",
+  "tabs.external.body": "This device's records changed outside this tab, so this tab won't save anymore. Your last change here may not have been saved. Reload to continue with the latest records.",
+  "tabs.takeOver": "Continue here",
   "import.unconfirmed": "{count} unchecked exercises will use the first suggestion (or a new custom exercise)",
   "import.unconfirmedTitle": "Some exercises aren't checked",
   "import.unconfirmedConfirm": "{review} \"needs review\" exercises will use the first suggestion and {none} unmatched ones become new custom exercises. Wrong matches mix into PRs and stats. Import anyway?",

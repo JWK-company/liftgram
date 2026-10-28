@@ -21,6 +21,12 @@ export interface MarkerStore {
   get(key: string): string | null;
   set(key: string, value: string): void;
   remove?(key: string): void;
+  /**
+   * 메모리 변경을 디스크에 내려쓰고 **실제로 남았는지** 돌려준다(웹 = flushLocalDbResult() === "saved").
+   * 있으면 백필 표식은 이것이 true 일 때만 남긴다 — 저장이 거부·봉인되거나 실패한 뒤 새로고침하면 표식만 남고
+   * 디스크에는 백필 결과가 없는 채로 영영 건너뛰기 때문이다(재검토 H-4). 백필은 멱등이라 다시 돌아도 안전하다. @plm SRS-089
+   */
+  persist?(): Promise<boolean>;
 }
 
 export interface BootMigration {
@@ -59,6 +65,12 @@ export async function runBootMigrations(store: MarkerStore | null, list: BootMig
     const key = MARK_PREFIX + m.id;
     if (store?.get(key)) continue;
     await m.run();
+    // [원본] store?.set(key, String(Date.now()));
+    // [개선] 디스크 반영을 확인한 뒤에만 표식 — 못 했으면 표식 없이 멈춘다(다음 부팅에 다시) @plm SRS-089
+    if (store?.persist && !(await store.persist())) {
+      console.warn(`[boot] 백필 ${m.id} — 디스크 반영을 확인하지 못해 표식을 남기지 않는다(다음 부팅에 다시)`);
+      break;
+    }
     store?.set(key, String(Date.now()));
     done.push(m.id);
   }

@@ -234,3 +234,27 @@ test('표시 이름 출처(H-1): 만든 시각을 모르면 출처로 치지 않
   const use = displayNameSourceUse([{ ...block('seed-incline-press'), createdAt: null }], idx);
   assert.equal(use.size, 0);
 });
+
+// @plm SRS-089  재검토 H-4 — 백필 표식은 디스크 반영(persist)이 확인됐을 때만
+test('부팅 백필 표식: persist 가 false 면(봉인·거부·실패) 표식 없이 멈추고 다음 실행에 다시 돈다', async () => {
+  const { runBootMigrations } = await import('../../migrations/runner');
+  const mem = new Map<string, string>();
+  let ok = false;
+  const store = {
+    get: (k: string) => mem.get(k) ?? null,
+    set: (k: string, v: string) => void mem.set(k, v),
+    persist: async () => ok,
+  };
+  let n = 0;
+  const list = [
+    { id: 'p1', run: async () => void n++ },
+    { id: 'p2', run: async () => void n++ },
+  ];
+  assert.deepEqual(await runBootMigrations(store, list), []);
+  assert.equal(n, 1, '첫 백필 뒤 반영 실패 → 거기서 멈춘다');
+  assert.equal(mem.size, 0);
+  ok = true;
+  assert.deepEqual(await runBootMigrations(store, list), ['p1', 'p2']);
+  assert.equal(n, 3);
+  assert.ok(mem.has('liftgram.migration.p1') && mem.has('liftgram.migration.p2'));
+});

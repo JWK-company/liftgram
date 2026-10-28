@@ -288,6 +288,8 @@ export async function startUpdate(): Promise<void> {
     let r = await flushLocalDbResult();
     if (r === "failed") r = await flushLocalDbResult();
     if (r === "failed") return fail("flush");
+    // 봉인된 탭(다른 탭이 쓰기 주인)은 디스크에 못 쓴다 — 성공으로 보지 않는다 @plm SRS-089
+    if (r === "sealed") return fail("flush");
     if (r === "unreachable") await sleep(600); // 자동 저장 주기(500ms)를 한 번 넘겨 기다린다
   } catch {
     return fail("flush");

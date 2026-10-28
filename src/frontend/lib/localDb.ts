@@ -13,7 +13,11 @@
 // 자가진단(/diag/db)이 그것을 검사한다.
 // ─────────────────────────────────────────────────────────────────────────────
 
-type LokiLike = { saveDatabase?: (cb?: (err?: unknown) => void) => void };
+type LokiLike = {
+  saveDatabase?: (cb?: (err?: unknown) => void) => void;
+  autosaveDirty?: () => boolean;
+  autosaveDisable?: () => void;
+};
 
 /** 어댑터 내부의 Loki 인스턴스를 찾는다. 못 찾으면 null. */
 async function findLoki(): Promise<LokiLike | null> {
@@ -33,25 +37,75 @@ async function findLoki(): Promise<LokiLike | null> {
  *          자동 저장이 결국 처리하므로 막을 이유는 없다).
  */
 import { navigate } from "./nav";
+import { isLocalDbSealed } from "@app/core/db/writeGate";
+// 봉인("sealed")된 탭에서도 true 다 — 90여 호출부는 「내려썼으니 이동해도 된다」로 읽는데, 봉인 탭은 어차피 디스크에 못 쓰고
+// 덮개가 화면을 막으므로 이동해도 잃을 것이 없다. 디스크 반영을 확인해야 하는 곳은 flushLocalDbResult 를 쓴다. @plm SRS-089
 export async function flushLocalDb(): Promise<boolean> {
   return (await flushLocalDbResult()) !== "unreachable";
 }
 
+/** 내려쓰기 결과 — "sealed" 는 이 탭이 봉인돼 디스크에 닿지 않았다(다른 탭이 디스크를 바꿨거나 쓰기 주인을 가져갔다 · SRS-089). */
+export type FlushResult = "saved" | "failed" | "unreachable" | "sealed";
+
 /**
  * flushLocalDb 와 같되 **내려쓰기가 실제로 성공했는지**까지 돌려준다.
- * "saved" = IndexedDB 트랜잭션 완료 · "failed" = 저장 콜백이 오류를 받았다(트랜잭션 중단 등) · "unreachable" = 어댑터 내부에 닿지 못함.
+ * "saved" = IndexedDB 트랜잭션 완료 · "failed" = 저장 콜백이 오류를 받았다(트랜잭션 중단 등) · "unreachable" = 어댑터 내부에 닿지 못함
+ * · "sealed" = 봉인된 탭(디스크에 닿지 않음 — lokijs 패치가 LOKI_STALE·LOKI_SEALED 로 거부).
  * 설정 쓰기 대기 표식(lib/prefs.ts)은 "saved" 를 보고서야 지운다 — 실패한 내려쓰기 뒤 새로고침하면 옛 값이 되돌아오므로.
  */
-export async function flushLocalDbResult(): Promise<"saved" | "failed" | "unreachable"> {
+// [원본] export async function flushLocalDbResult(): Promise<"saved" | "failed" | "unreachable"> {
+//   const loki = await findLoki();
+//   if (!loki?.saveDatabase) return "unreachable";
+//   return new Promise((resolve) => {
+//     try {
+//       loki.saveDatabase?.((err) => resolve(err ? "failed" : "saved"));
+//     } catch {
+//       resolve("failed");
+//     }
+//   });
+// }
+// [개선] 봉인 탭은 디스크에 닿지 않고 "sealed" — 패치의 거부 오류(code)도 "sealed" 로 돌려준다. @plm SRS-089
+export async function flushLocalDbResult(): Promise<FlushResult> {
+  if (isLocalDbSealed()) return "sealed";
   const loki = await findLoki();
-  if (!loki?.saveDatabase) return "unreachable";
+  if (!loki?.saveDatabase) {
+    console.warn("[DB] 내려쓰기 — 어댑터 내부에 닿지 못했다(unreachable · 자동 저장에 맡긴다)");
+    return "unreachable";
+  }
   return new Promise((resolve) => {
     try {
-      loki.saveDatabase?.((err) => resolve(err ? "failed" : "saved"));
+      loki.saveDatabase?.((err) => resolve(err ? classifyFlushError(err) : "saved"));
     } catch {
-      resolve("failed");
+      resolve(isLocalDbSealed() ? "sealed" : "failed");
     }
   });
+}
+
+function classifyFlushError(err: unknown): FlushResult {
+  const code = (err as { code?: unknown } | null)?.code;
+  if (code === "LOKI_STALE" || code === "LOKI_SEALED" || isLocalDbSealed()) return "sealed";
+  return "failed";
+}
+
+/**
+ * 쓰기 주인을 빼앗긴 탭의 마지막 내려쓰기 — **바뀐 것이 있을 때만** 저장한다(@plm SRS-089).
+ * 명시 저장은 바뀐 게 없어도 디스크 versionId 를 새로 써서, 이미 디스크를 읽은 새 탭을 낡게 만든다(→ 새 탭이 한 번 더 새로고침).
+ * "clean" = 메모리에 내려쓸 것이 없었다.
+ */
+export async function flushLocalDbIfDirty(): Promise<FlushResult | "clean"> {
+  if (isLocalDbSealed()) return "sealed";
+  const loki = await findLoki();
+  if (loki?.autosaveDirty && !loki.autosaveDirty()) return "clean";
+  return flushLocalDbResult();
+}
+
+/** 봉인 뒤 Loki 자동 저장을 멈춘다(거부를 500ms 마다 되풀이하지 않게 — 디스크는 어차피 문이 지킨다). */
+export async function stopLocalDbAutosave(): Promise<void> {
+  try {
+    (await findLoki())?.autosaveDisable?.();
+  } catch {
+    // 닿지 못하면 그만 — 패치가 저장 진입에서 막는다
+  }
 }
 
 /**

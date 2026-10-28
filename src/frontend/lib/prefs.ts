@@ -144,7 +144,10 @@ async function writeToProfileNow(patch: Record<string, string>, settle?: Pending
   const flushed = await flushLocalDbResult();
   // "saved" 일 때만 표식을 지운다. "failed" 면 남겨 다음 부팅에 다시 쓴다.
   // "unreachable"(어댑터 내부 구조가 바뀜 — /diag/db 가 잡는다)은 확인할 길이 없어 예전처럼 자동 저장을 믿고 지운다.
-  if (settle && flushed !== "failed") writePending(settlePendingPrefs(readPending(), settle));
+  // [원본] if (settle && flushed !== "failed") writePending(settlePendingPrefs(readPending(), settle));
+  // [개선] 봉인("sealed")된 탭은 디스크에 못 썼다 — 표식을 남긴다(QA M-1 · @plm SRS-089)
+  if (settle && (flushed === "saved" || flushed === "unreachable"))
+    writePending(settlePendingPrefs(readPending(), settle));
   if (changed) scheduleSync();
 }
 

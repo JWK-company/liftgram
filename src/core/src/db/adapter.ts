@@ -4,6 +4,7 @@ import LokiJSAdapter from '@nozbe/watermelondb/adapters/lokijs';
 import { mySchema, SCHEMA_VERSION } from './schema';
 import migrations from './migrations';
 import { checkSchemaGuardOnBoot } from './schemaGuard';
+import { lokiGateOptions } from './writeGate';
 
 /** 진짜 기록 DB 이름 — 바꾸면 기기의 모든 기록을 잃는다. */
 const DB_NAME = 'repset';
@@ -39,6 +40,8 @@ export function buildAdapter() {
     useWebWorker: false,
     useIncrementalIndexedDB: true,
     dbName: DB_NAME,
+    // 다중 탭 덮어쓰기 거부 + 쓰기 문(lokijs 패치 옵션 · 참조 그대로 증분 IDB 어댑터까지 간다). 가드용 빈 DB 에는 걸지 않는다. @plm SRS-089
+    extraIncrementalIDBOptions: lokiGateOptions(),
     onSetUpError: (error: Error) => {
       console.error('[DB] LokiJS setup failed', error);
     },

@@ -30,12 +30,14 @@ export interface SealInfo {
 type Listener = (info: SealInfo) => void;
 interface GateState {
   sealed: SealInfo | null;
+  /** 새 database.write 를 받지 않는다(넘겨주기 중 — 봉인 직전 단계) */
+  writesClosed: boolean;
   listeners: Set<Listener>;
 }
 
 function gate(): GateState {
   const g = globalThis as typeof globalThis & { __liftgramWriteGate?: GateState };
-  if (!g.__liftgramWriteGate) g.__liftgramWriteGate = { sealed: null, listeners: new Set() };
+  if (!g.__liftgramWriteGate) g.__liftgramWriteGate = { sealed: null, writesClosed: false, listeners: new Set() };
   return g.__liftgramWriteGate;
 }
 
@@ -46,6 +48,26 @@ export function isLocalDbSealed(): boolean {
 
 export function getSealInfo(): SealInfo | null {
   return gate().sealed;
+}
+
+/** 새 쓰기(database.write)를 받는가 — 봉인됐거나 넘겨주기 중이면 false */
+export function acceptsLocalDbWrites(): boolean {
+  const s = gate();
+  return !s.sealed && !s.writesClosed;
+}
+
+/** 새 쓰기를 받지 않는다(쓰기 주인을 빼앗긴 탭 — 대기열 장벽·마지막 내려쓰기 전에). 되돌릴 수 없다. */
+export function closeLocalDbWrites(): void {
+  gate().writesClosed = true;
+}
+
+/** 봉인 탭에서 database.write 가 돌려주는 오류 */
+export class LocalDbSealedError extends Error {
+  readonly code = 'LOCAL_DB_SEALED';
+  constructor() {
+    super('이 탭은 기기 DB 에 더 쓰지 않는다(다른 탭이 쓰기 주인이거나 디스크가 바뀌었다)');
+    this.name = 'LocalDbSealedError';
+  }
 }
 
 /** 문을 닫는다. 여러 번 불러도 첫 이유가 남는다(되돌릴 수 없다 — 새로고침만 푼다). */
@@ -88,6 +110,8 @@ export function lokiGateOptions() {
     },
     // 다른 탭이 DB 를 지웠다(계정 전환 리셋 등) — 이 탭의 사본은 낡았다
     onversionchange: () => sealLocalDb('versionchange'),
+    // 거부 모드에서는 slow path 덮어쓰기가 일어나면 안 된다 — 불리면 불변식 위반(패치가 빠진 번들 등)
+    onDidOverwrite: () => console.error('[DB] 불변식 위반 — 거부 모드인데 다른 탭의 디스크를 덮어썼다(lokijs 패치 확인)'),
   };
 }
 
@@ -95,5 +119,6 @@ export function lokiGateOptions() {
 export function __resetWriteGateForTests(): void {
   const s = gate();
   s.sealed = null;
+  s.writesClosed = false;
   s.listeners.clear();
 }

@@ -1311,6 +1311,12 @@ export const ko = {
   "import.elsewhere.body": "가져오기가 끝날 때까지 이 탭에서는 아무것도 저장하지 않아요. 끝나면 이 탭을 새로고침해 주세요.",
   "import.elsewhere.endedTitle": "다른 탭에서 가져오기가 끝났어요",
   "import.elsewhere.endedBody": "이 탭을 새로고침하면 가져온 기록이 보여요.",
+  // 다중 탭 — 한 번에 한 탭만 기록(SRS-089)
+  "tabs.elsewhere.title": "다른 탭에서 열려 있어요",
+  "tabs.elsewhere.body": "한 번에 한 탭에서만 기록할 수 있어요. 이 탭에서 계속하면 다른 탭이 멈춰요. 이 탭의 마지막 변경은 반영되지 않았을 수 있어요.",
+  "tabs.external.title": "저장소가 바깥에서 바뀌었어요",
+  "tabs.external.body": "이 기기의 기록이 이 탭 밖에서 바뀌어서 이 탭은 더 저장하지 않아요. 이 탭의 마지막 변경은 반영되지 않았을 수 있어요. 새로고침하면 최신 기록으로 이어져요.",
+  "tabs.takeOver": "여기서 계속하기",
   "import.unconfirmed": "확인 안 한 종목 {count}개는 첫 후보(못 맞춤은 새 내 종목)로 가져와요",
   "import.unconfirmedTitle": "확인 안 한 종목이 있어요",
   "import.unconfirmedConfirm": "「확인 필요」 {review}개는 첫 후보로, 「못 맞춤」 {none}개는 새 내 종목으로 가져와요. 잘못 맞춘 종목은 PR·통계에 섞여요. 이대로 가져올까요?",

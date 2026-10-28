@@ -25,6 +25,7 @@ import { SchemaGuard } from "./components/SchemaGuard";
 import { PrefsBridge } from "./components/PrefsBridge";
 import { AccountGuard } from "./components/sync/AccountGuard";
 import { ImportElsewhereNotice } from "./components/sync/ImportElsewhereNotice";
+import { TabElsewhereOverlay } from "./components/TabElsewhereOverlay";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
 import { TabBar } from "./components/ui/TabBar";
 import { LogoSpinner } from "./components/ui/LogoSpinner";
@@ -108,6 +109,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <SchemaGuard />
                 {/* 다른 탭에서 기록을 가져오는 중이면 이 탭은 쓰지 않고 안내만 보인다(P5-1). @plm SRS-082 */}
                 <ImportElsewhereNotice />
+                {/* 다른 탭이 쓰기 주인이 됐거나 디스크가 바깥에서 바뀌면 이 탭은 봉인되고 덮개만 보인다(다중 탭 덮어쓰기 방지). @plm SRS-089 */}
+                <TabElsewhereOverlay />
               </div>
             </ToastProvider>
           </SessionProvider>
