@@ -1,12 +1,15 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 세션 상태 (2026-10-28) — **활성 작업 없음 · 다음: 사용자 지시 대기**
-- 운영 = `https://liftgram.tarae.org` **v0.48.0 (build 391 · 7b1b935)** · 질문·보고는 터미널(PLM 채널 금지) · 배포마다 SemVer+태그
-- 마지막 완료: 최근 변경 웹 보고서(Claude Docs `https://claude.ai/artifact/NfDMSjDGLLfARSpTuNNa54`) + **팀원 기록 복구 안내**
-  - 팀원(추정 jh21… 계정 83d38b89) 서버 운동 기록이 2026-08-25 에서 끊김 = 사용자와 같은 옛 앱 동기 사망 → 나머지는 옛 주소(Netlify) 폰 저장소에만
-  - 셀프 복구 2단계: 옛 아이콘/옛 주소 `/recover` → 「기록 꺼내기」 파일 → 새 앱 프로필 › 백업 파일 › 파일에서 가져오기(로그인 후) · 대안 = 파일 받아 `scratchpad/recover/import_recover.py` 로 서버 직접(백업 먼저)
-  - 검증: 사용자 10/26 실제 덤프를 v0.48.0 로컬 운영 빌드 새 계정에 화면 가져오기 → 1,475건·운동 46·루틴 14·세트 982 서버까지 일치(테스트 DB·임시 spec 삭제)
-  - ⚠ 옛 Netlify 사이트(stop_builds·복구 페이지)는 옛 앱 사용자 회수 끝날 때까지 지우지 말 것
-- 보류: 수동 업데이트 L-2(필수 업데이트 시 미저장 입력)·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안 · 다중 탭 덮어쓰기(사용자 확인) · worktree 정리 대기(`../liftgram-wt-fb6264`·`../liftgram-wt-update`·opengym 4개는 그 세션 몫)
+## 활성 작업 — 기록 보호 2차 (Project · URS-027 · SRS-086~089) · 2026-10-28
+- 스펙 `.ouroboros/docs/spec/20261028_data-safety-2/spec.md`(§11 rev2·rev3 가 앞을 덮어씀) · qa spec `qa/20261028_data-safety-2-spec_qa.md`(조건부) · P4 재검토 `qa/20261028_data-safety-2-p4-respec_qa.md`(조건부 → rev3 「트랜잭션 안 거부 + 모듈 문」 채택)
+- worktree `../liftgram-wt-safety` · 브랜치 `feat/data-safety-2` · 로컬 운영 빌드 3200/3201 (`scratchpad/ds2/up.sh`)
+- P1 v0.49.0 로그인 유도 + 사용자 피드백(운동 헤더 sticky · 순서 버튼 맨 왼쪽) — 커밋 5de8810·4dac32a · e2e 26/26 · 새 e2e 옛 빌드(운영)에서 실패 확인 · **독립 qa code 진행 중** → 조치 → ff-only·배포
+- P2+P3 v0.50.0 백업 결과·복원 시험 + 운영 상태(/ops·admin 점) — 구현 에이전트 진행 중(미커밋) · 보고 `docs/report/_work/20261028_p2p3_execute.md`
+- P4 v0.51.0 다중 탭 — rev3 로 execute 예정(lokijs bun patch · fake-indexeddb 단위 테스트가 첫 checkpoint)
+- 운영진: jh21star@gmail.com admin 부여(직전 백업 `pre-admin-grant-20261028-004109.dump`) · 백업 디스크 = /home(sda) ≠ DB(sdb) · /m2 는 동업자 영역이라 안 씀
+## 세션 상태 (2026-10-28)
+- 운영 = `https://liftgram.tarae.org` **v0.48.0 (build 391)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
+- 팀원 기록 복구 완료(운동 36→73 · 8/25~10/26 이어짐 · 오늘 0볼륨 2건은 팀원이 지우면 됨) · 보고서 Docs `https://claude.ai/artifact/NfDMSjDGLLfARSpTuNNa54`
+- 보류: 수동 업데이트 L-2·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안 · 「tar」 네이버 계정 주인 확인
 ## 최근 완료 (2026-10-26~28 · 상세는 각 spec/qa/report 와 git 로그)
 - v0.48.0 수동 업데이트(SRS-085): 띠·자동 적용 제거(주석 보존) · 프로필 「업데이트」 버튼+덮개(15초 실패) · 운동 중 비활성 · 탭 점 · `/app-version`+`MIN_CLIENT_VERSION`(비어 있음=꺼짐) · 크롬 load 직후 skip-waiting 멈춤 → `lib/swActivate.ts` · 스펙 `docs/spec/20261027_manual-update/` · QA `docs/qa/20261027_manual-update-{spec,code}_qa.md`
 - v0.45.0 피드백 #62~#64(SRS-084): 블록 도구 줄 · 플레이트 한쪽 기본(family `load_default`·미정 1회 질문) · 완료 직후 새 버전 보류 · PLM #62~#64 완료 · `docs/spec/20261027_feedback-62-64/`

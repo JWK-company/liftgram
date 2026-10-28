@@ -198,3 +198,59 @@ create table client_health (
 - 각 Phase: make verify 통과 · 새 e2e 가 수정 전 빌드에서 실패·수정 뒤 통과 · 기존 관련 e2e(data-safety·manual-update·finish-routine·import) 통과 · 독립 qa code 조치 · 운영 배포·확인.
 - P2+P3 배포 뒤 운영 `/ops` 를 admin 으로 열어 백업 두 줄(daily·restore_test)과 사용자 목록이 보이는 것을 확인.
 - current.md·state.json 갱신 · 보고서 `.ouroboros/docs/report/20261028_data-safety-2_report.md`.
+
+---
+
+## 11. rev2 — /qa spec 반영 (2026-10-28 · `qa/20261028_data-safety-2-spec_qa.md` 조건부 통과)
+
+아래가 §4~§7 의 해당 부분을 **덮어쓴다**.
+
+### 11.1 P1 (반영 완료 · 5de8810 이후)
+- H-3: 로컬 띠 = 비로그인 · **완료한 운동 1회 이상**(`liftgram.nudge.anonCompleted ≥ 1`)일 때 미동기 1건부터 · 이 판정 전부터 쓰던 기기(완료 수 0)는 예전 기준 5건 · **`/workout` 에서는 숨김**. e2e 「운동 중 세트 저장 뒤에도 띠 없음 → 완료 뒤 보임」.
+- L-8: 「그대로 다시 시작」이 시트를 닫는다(`setLoginNudge(false)`) · 시트는 `#modal-root` 덮개(휴식 막대·소리와 독립).
+- L-9: `lastShownAt > now`(시계 되돌림)는 없는 것으로 본다 · 단위 테스트.
+- 사용자 피드백(같은 릴리스 v0.49.0): ① 운동 화면 헤더(경과 시간·일시정지·완료) **sticky top-0**(앱 바와 같은 방식) ② 블록 도구 줄 순서 버튼 **맨 왼쪽**·두 버튼 붙임(36×44 · 사이 0). e2e `session-header-tools.spec.ts` · 기존 #62 너비 기준 44→36.
+
+### 11.2 P2 백업 (M-1·M-2·M-3·L-2·L-3·L-4·L-7)
+- 기록: `trap 'record' EXIT` 하나 + 상태 변수(`STAGE`·`OK`) · insert 는 `psql -v ON_ERROR_STOP=1 -v ok=… -v detail=…` 변수 인용(`:'detail'`) · 기록 insert 실패 시 backup.log 에 `RECORD_FAILED`.
+- 표 칸 추가: `counts jsonb`(daily: 덤프 직전 같은 트랜잭션 `REPEATABLE READ` 로 센 `users`·`sync_records` 행 수).
+- 복원 시험 ok = **그 덤프에 기록된 counts 와 정확히 같음**(운영 현재 수는 detail 에 참고로만) · 시작 시 남은 `liftgram_restore_test_%` 먼저 drop · `/var/lib/docker` 여유 < 덤프×3 이면 건너뛰고 `ok=false detail=low_disk_db` · `pg_restore --exit-on-error` · 대조 쿼리는 `-d` 명시.
+- 0020 SQL 은 저장소 관례(`CREATE TABLE IF NOT EXISTS` · `@plm` 머리말 · 인덱스 이름).
+- 경보 이유에 「기록 없음」(daily·restore_test 0줄)도 넣는다.
+- crontab 확인: `(crontab -l 2>/dev/null || true)` · 스크립트 경로로 grep(중복 방지).
+- 사진 주간 백업 결과 기록은 이번 범위 밖(다음 후보).
+
+### 11.3 P3 운영 상태 (H-1·H-2·H-5·M-8·M-10·L-5·L-6)
+- **보고 방아쇠 = 시도가 끝났을 때**(`lastSuccessAt` 또는 `consecutiveFailures`·`lastError` 가 바뀐 순간) · 즉시 보고: 실패 0→양수 · **연속 실패가 3 이상이 된 순간** · 실패→성공 · blocked 변화 · 그 밖 10분 쓰로틀.
+- **stalled 식 = 기기 `isBackupStalled` 와 같은 식**(pending>0 && (blocked || failures≥3 || (stale24h && attempt 있음 && failures>0))) — 식은 core 한 곳(`core/src/domain/syncStall.ts`)에 두고 `useSyncHealth` 가 그것을 쓰게 바꾼다(원본 주석 보존) · Go 에는 같은 경계 표 테스트 복제.
+- `client_health.first_reported_at`(upsert 에서 안 바꿈) · 기기는 `success_age_ms`·`attempt_age_ms`(= 기기 now − 시각)를 보내고 **서버가 server_now − age 로 시각을 계산**(시계 틀어짐 무관) · 음수 나이 0 · 「N일째」 = now − last_success(없으면 first_reported_at).
+- 남용 방지: 사용자당 최신 8줄만 유지(같은 트랜잭션) · 사용자당 분당 6회(넘으면 조용히 무시) · `consecutive_failures` 0..10000 · `pending` 0..10^7 · `device_id` `[A-Za-z0-9_-]{1,64}` · `last_error` 제어문자 제거 200자 · 경보는 안내(남용은 /ops 에서 바로 보인다).
+- admin 검사: claim 빠른 거부 뒤 **`users.role` 을 DB 에서 다시 읽어** admin 확인(`requireAdmin` · service 안 · Go 테스트 「claim admin · DB user → 거부」).
+- 「마지막 로그인」 → 「마지막 활동(토큰 갱신)」(refresh_tokens max created_at).
+- 비admin 은 클라이언트가 role 로 먼저 걸러 GetOpsAlert 를 부르지 않는다.
+- device_id 는 보고 때 `sha256(device_id + user_id)` 앞 16자(계정 간 같은 기기 연결 숨김).
+
+### 11.4 P4 다중 탭 — §7 을 이것으로 **바꾼다**(재 /qa spec 대상)
+원리: 잠금·채널은 「누가 주인인가」를 정하고, **디스크 덮어쓰기 자체는 가장 아래에서 거부**한다(어느 경로가 어긋나도 남의 쓰기를 지우지 않게).
+
+1. **안전망(1순위 · B-3)**: Loki 증분 어댑터의 저장을 감싼다. 저장 직전 디스크의 `loki` 청크 versionId 를 읽어 자기가 마지막에 본 값과 다르면 **저장하지 않고 봉인**(= 다른 탭이 썼다 → slow path 덮어쓰기 대신 거부) → 덮개(문구에 「이 탭의 저장 안 된 변경은 반영되지 않았어요」 · 로그). 이것만으로 다중 탭 소실의 근본 경로(slow path)가 닫힌다.
+2. **autosave 끈 채로 열기(B-1)**: `core/src/db/adapter.ts` 진짜 DB `autosave:false` 로 연다 → 넘겨주기 끝(released 수신 · 이전 주인 없음 · 시간 초과) 뒤 `autosaveEnable()`. 그 전 `flushLocalDbResult()` = `"deferred"`(디스크 안 닿음). 넘겨주기 동안 `pauseSync()` · `runBootPipeline` 은 `writerReady` 를 기다린다. (a)안(DB 열기 전 대기)은 버린다.
+3. **봉인(B-2)**: `lib/localDb.ts` `sealLocalDb()` — `autosaveDisable()` + 어댑터 saveDatabase 를 「디스크에 닿지 않고 오류 콜백」으로 바꿔 끼움 → flush 97곳·숨김 flush·Watermelon 내부가 전부 막힌다 · `flushLocalDbResult` = `"sealed"`(호출부 prefs 대기 표식·appUpdate 가 성공으로 오인하지 않는지 확인 목록) · 봉인된 탭을 새로고침하면 `buildAdapter()` 가 sessionStorage 표식을 동기적으로 읽어 스키마 가드처럼 **버리는 DB**(GUARD_DB_NAME 패턴 · autosave false)를 연다.
+4. **넘겨주기 순서(H-4·M-7)**: 새 탭 = presence 잠금 → `isImportRunningElsewhere()`(중이면 claim 안 함·기존 안내) → writer steal → claim. 이전 주인 = 새 write 거부 문 닫기 → Watermelon 대기열 장벽(`await database.write(async()=>{})`) → flush(안전망 통과 시에만) → 봉인 → released. 기다림 = released 또는 `{t:"releasing"}` 진행 신호가 있으면 최대 5초 · 없으면 1.5초.
+5. **봉인된 탭과 가져오기(M-5·M-9)**: 봉인된 탭은 presence 잠금을 놓는다(가져오기 판정 = 쓰기 가능한 다른 탭 수) · 「다른 탭에서 가져오는 중」 상태도 봉인을 부른다(기존 결함 M-9 함께 고침).
+6. **범위(M-4)**: `@app/core/db` 를 여는 모든 문서(`/diag/db` 포함)가 writer 절차를 탄다 · 정적 페이지·`/sw-nudge.html` 만 예외.
+7. L-1: flush 결과 이름 `"saved"|"failed"|"unreachable"|"deferred"|"sealed"` · unreachable 이면 경고 로그 + 진행.
+8. e2e(M-6·B-2·B-3): ① **덮개와 무관한 소실 단언** — A 저장 → B 열기·저장 → A 에서 한 번 더 저장 시도 → 두 page 닫고 새 page 에서 세트 수(수정 전 빌드는 B 세트 소실로 실패) ② 숨김 이벤트(visibilitychange·pagehide)를 일부러 일으킨 뒤 IndexedDB 키·versionId 불변 ③ CDP `Page.setWebLifecycleState frozen` 으로 A 를 얼린 채 B 시간 초과·저장 → A 깨움 → B 세트 남음 ④ 넘겨받기 왕복 ⑤ 가져오는 탭이 있을 때 다른 탭 숨김·보임 뒤 가져온 행 남음.
+
+### 11.5 P4 rev3 — 재검토(`qa/20261028_data-safety-2-p4-respec_qa.md` 조건부) 반영 · **§11.4 를 대체**
+
+**결정: 「더 단순한 대안」을 채택한다.** 소실 방지는 저장 트랜잭션 안의 비교·거부 + 모듈 수준 문 두 가지로만 한다. 잠금 steal·claim 은 진 탭이 마지막 동작 하나를 잃지 않게 하는 UX 역할만 한다. autosave 끄기·`deferred`·넘겨주기 응답 대기(1.5/5초)·버리는 DB 는 **쓰지 않는다**(재검토 B-3·H-1·H-2 의 원인이 사라진다).
+
+1. **트랜잭션 안 거부(B-1)**: lokijs `incremental-indexeddb-adapter.js` 의 `getLokiThenSave`(같은 readwrite 트랜잭션에서 `loki` 청크 versionId 를 읽고 다르면 slow path 로 덮는 분기)를 **`bun patch`** 로 고쳐, versionId 가 자기가 마지막에 본 값과 다르면 **트랜잭션을 중단하고 오류 콜백**(`LOKI_STALE`)으로 끝내게 한다(덮지 않는다). 패치 파일을 저장소에 둔다. 단위 테스트(fake-indexeddb · 두 어댑터 인스턴스로 A 저장 → B 저장 거부 · 단일 인스턴스 연속 저장은 거부 없음 · 자기 저장 뒤 versionId 갱신) 를 execute 첫 checkpoint 로 둔다.
+2. **모듈 수준 문(H-2)**: `lib/localDb.ts` 에 `sealed` 상태(모듈 변수) — 저장이 `LOKI_STALE` 로 거부되면 그 자리에서 봉인. 봉인 뒤 `flushLocalDb*` 는 `"sealed"` 를 돌려주고 디스크에 닿지 않으며, Loki autosave 가 거부를 재시도해도 문에서 막힌다(리셋으로 새 Loki 가 생겨도 문은 모듈에 남는다).
+3. **거부 뒤 규칙(B-2 (다))**: 쓰기 잠금(`liftgram-writer`)을 쥔 탭이 거부되면 = 「내가 주인인데 디스크가 바뀜」(넘겨주기 경합 · 다른 경로) → **1회 새로고침**(sessionStorage 표식 · 같은 탭 반복 방지 · 디스크 최신본으로 다시 읽기). 잠금이 없는 탭이 거부되면 → 봉인 + 덮개 `tab-elsewhere`(「다른 탭에서 열려 있어요 · 이 탭의 마지막 변경은 반영되지 않았을 수 있어요」 · `btn-tab-take-over`).
+4. **UX 넘겨주기**: 앱 셸 시작 시 presence 잠금 → `isImportRunningElsewhere()`(중이면 기존 안내) → writer 잠금 steal. 빼앗긴 탭은 BroadcastChannel 로 즉시 알고: 새 write 문을 닫음 → Watermelon 대기열 장벽 → flush(안전망을 통과하면 저장, 아니면 봉인) → 봉인 → 덮개. 새 탭은 기다리지 않는다(경합은 1·3 이 처리). 「여기서 계속하기」 = **새로고침**(새로 연 탭과 같은 절차 — 봉인 탭 전용 모드 없음 · B-3).
+5. **혼자 쓰는 사용자 회귀 금지(H-3)**: 새로고침·업데이트 새로고침·계정 전환 리셋·bfcache 복귀·한 문서 안 DB 재생성에서 덮개가 뜨지 않아야 한다 — 같은 탭의 이전 문서는 잠금을 놓고 사라지므로 steal 대상이 없고, 같은 문서의 리셋은 versionId 를 이어받는지 단위·e2e 로 확인.
+6. **백필 표식(H-4)**: `runner.ts` 의 완료 표식은 flush 결과가 `saved` 일 때만 남긴다.
+7. 봉인된 탭은 presence 잠금을 놓는다(M-5) · 「다른 탭에서 가져오는 중」 상태도 봉인(M-9) · `@app/core/db` 를 여는 모든 문서가 절차를 탄다(M-4).
+8. **e2e(H-5)**: 모든 단언은 화면 클릭이 아니라 **IndexedDB 를 직접 읽어** 센다. ① A·B 두 탭 — B 저장이 디스크에 닿은 것을 확인 → A 에 숨김 이벤트(visibilitychange hidden·pagehide)로 flush 를 일으킴 → 디스크의 세트 수에 B 세트가 남음(수정 전 빌드: A 의 slow path 가 B 세트를 지워 실패) ② 언 탭: CDP frozen → B 저장 → A 깨운 뒤 숨김 이벤트 → B 세트 남음 ③ 넘겨받기 왕복(덮개·버튼) ④ 혼자 쓰는 사용자: 새로고침·업데이트 새로고침 뒤 덮개 없음 ⑤ 가져오는 탭이 있을 때 다른 탭 숨김 뒤 가져온 행 남음.
