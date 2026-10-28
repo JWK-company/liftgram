@@ -21,7 +21,7 @@
 import { formatWeight } from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { navigate } from "@/lib/nav";
 import ExercisePicker from "../ExercisePicker";
@@ -131,6 +131,24 @@ export default function ActiveWorkout() {
   useEffect(() => {
     if (repo && !workout && !summary) leaveSession();
   }, [repo, workout, summary, leaveSession]);
+
+  // 고정 헤더가 입력칸을 가리지 않게 — 헤더 높이만큼 문서 스크롤 여백을 둔다(초점·scrollIntoView 가 그만큼 아래로 맞춘다 · qa code M-1)
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const apply = () => {
+      root.style.scrollPaddingTop = `${Math.ceil(el.getBoundingClientRect().height) + 8}px`;
+    };
+    apply();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(apply) : null;
+    ro?.observe(el);
+    return () => {
+      ro?.disconnect();
+      root.style.scrollPaddingTop = "";
+    };
+  }, [workout?.id]);
 
   // 기록한 직후 탭을 닫아도 남아야 한다(SRS-006).
   useEffect(() => {
@@ -287,6 +305,7 @@ export default function ActiveWorkout() {
         <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]"> */}
         {/* [개선] 늘 위에 붙는다(앱 바와 같은 sticky 방식) — 경과 시간·일시정지·완료가 어디서나 보인다 @plm SRS-004 */}
         <div
+          ref={headerRef}
           data-testid="session-header"
           className="sticky top-0 z-30 flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b bg-(--color-surface)/95 px-[var(--spacing-md)] py-[var(--spacing-sm)] backdrop-blur"
         >

@@ -8,6 +8,10 @@ import { getPref, setPref } from "./prefs";
 const COUNT_KEY = "liftgram.nudge.anonCompleted";
 const LAST_COUNTED_KEY = "liftgram.nudge.lastCountedWorkout";
 const LAST_SHOWN_KEY = "liftgram.nudge.lastShownAt";
+/** 띄울 차례였는데 아직 안 보인 권유(루틴 질문 중 앱을 닫음 등) — 다음 완료에 띄운다(qa code M-3) */
+const DUE_KEY = "liftgram.nudge.due";
+/** 띠 「나중에」와 같은 키 — 시트의 「나중에」가 띠도 하루 접는다(qa code M-2) */
+const BANNER_DISMISS_KEY = "sync_localonly_dismissed_at";
 
 /**
  * e2e 기본 상태 표식 — 첫 실행 안내(onboarding_seen_v1)와 같은 이유다. 비로그인으로 운동을 마치는 수십 개 테스트가
@@ -29,7 +33,11 @@ export function noteAnonCompletion(workoutId: string, now = Date.now()): boolean
     return false;
   }
   const last = Number(getPref(LAST_SHOWN_KEY) ?? 0);
-  return shouldShowLoginNudge({ anonCompletedCount: count, lastShownAt: last > 0 ? last : null, now });
+  const show =
+    !!getPref(DUE_KEY) ||
+    shouldShowLoginNudge({ anonCompletedCount: count, lastShownAt: last > 0 ? last : null, now });
+  if (show) setPref(DUE_KEY, workoutId);
+  return show;
 }
 
 /** 이 기기에서 비로그인으로 마친 운동 수(띠 판정이 쓴다). */
@@ -40,4 +48,14 @@ export function anonCompletedCount(): number {
 /** 권유 시트가 보였다. */
 export function markLoginNudgeShown(now = Date.now()): void {
   setPref(LAST_SHOWN_KEY, String(now));
+  try {
+    localStorage.removeItem(DUE_KEY);
+  } catch {
+    /* 저장소를 못 쓰면 다음 완료에 한 번 더 뜬다 — 해롭지 않다 */
+  }
+}
+
+/** 시트에서 「나중에」 — 같은 말을 하는 띠도 하루 접는다. */
+export function snoozeLocalOnlyBanner(now = Date.now()): void {
+  setPref(BANNER_DISMISS_KEY, String(now));
 }

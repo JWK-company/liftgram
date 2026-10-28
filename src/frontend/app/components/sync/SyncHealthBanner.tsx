@@ -39,14 +39,16 @@ export function SyncHealthBanner() {
     localOnlyBannerVisible({
       pending: h.pending,
       anonCompletedCount: anonCompletedCount(),
-      dismissedAt,
+      // 권유 시트의 「나중에」도 이 키를 쓴다 — 마운트 때 한 번 읽은 값이 아니라 그릴 때마다 읽는다(qa code M-2)
+      dismissedAt: Math.max(dismissedAt, Number(getPref(DISMISS_KEY) ?? 0)),
       now: Date.now(),
     });
   if (!stalled && !localOnly) return null;
 
   return (
     <div
-      role="alert"
+      // 멈춤 경고는 alert, 로컬 띠는 덜 급한 status(qa code M-2 — 곧바로 읽어 내리지 않게)
+      role={stalled ? "alert" : "status"}
       data-testid={stalled ? "sync-stalled-banner" : "sync-localonly-banner"}
       className="mx-[var(--spacing-md)] mt-[var(--spacing-sm)] flex items-start gap-[var(--spacing-sm)] rounded-[var(--radius-md)] border border-(--color-warn) bg-(--color-card) p-[var(--spacing-md)] text-sm"
     >

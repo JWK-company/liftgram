@@ -111,23 +111,37 @@ test("「이 기기에만 있는 기록」 띠는 운동을 한 번 마친 뒤 �
   await page.getByTestId("dialog-confirm").click();
   await expect(page.getByTestId("summary-volume")).toBeVisible({ timeout: 20_000 });
   await 질문_닫기(page);
-  // 첫 완료 — 권유 시트가 뜬다(닫고 간다)
+  // 첫 완료 — 권유 시트가 뜬다 · 시트의 「나중에」는 같은 말의 띠도 하루 접는다(qa code M-2)
   await expect(page.getByTestId("login-nudge")).toBeVisible({ timeout: 5_000 });
   await page.getByTestId("btn-login-nudge-later").click();
   await 요약_닫기(page);
+  await page.waitForTimeout(2_000);
+  await expect(page.getByTestId("sync-localonly-banner")).toHaveCount(0);
+  // 하루(25시간) 지남 — 띠가 뜬다
+  await page.evaluate(() =>
+    localStorage.setItem("sync_localonly_dismissed_at", String(Date.now() - 25 * 3600_000)),
+  );
+  await page.reload();
   const banner = page.getByTestId("sync-localonly-banner");
   await expect(banner).toBeVisible({ timeout: 15_000 });
+  await expect(banner).toHaveAttribute("role", "status");
   await banner.getByRole("button", { name: "나중에" }).click();
   await expect(banner).toHaveCount(0);
   await page.reload();
   await expect(page.getByTestId("btn-quick-start")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("sync-localonly-banner")).toHaveCount(0);
-  // 접은 지 25시간 — 다시 뜬다
-  await page.evaluate(() =>
-    localStorage.setItem("sync_localonly_dismissed_at", String(Date.now() - 25 * 3600_000)),
-  );
+});
+
+test("루틴 질문 중 앱을 닫아 못 본 권유는 다음 완료에 뜬다", async ({ page }) => {
+  test.setTimeout(240_000);
+  await 준비(page);
+  await 운동_마치기(page);
+  // 질문이 떠 있는 채로 새로고침(앱을 닫았다 연 것과 같다) — 1번째 권유를 못 봤다
+  await expect(page.getByTestId("btn-finish-dont-save")).toBeVisible({ timeout: 10_000 });
   await page.reload();
-  await expect(page.getByTestId("sync-localonly-banner")).toBeVisible({ timeout: 15_000 });
+  await 운동_마치기(page);
+  await 질문_닫기(page);
+  await expect(page.getByTestId("login-nudge")).toBeVisible({ timeout: 5_000 });
 });
 
 test("로그인한 기기에는 권유 시트도 로컬 띠도 없다", async ({ page }) => {

@@ -6,7 +6,7 @@
 import { useEffect } from "react";
 import { t } from "@/lib/i18n";
 import { navigateAfterFlush } from "@/lib/localDb";
-import { markLoginNudgeShown } from "@/lib/loginNudge";
+import { markLoginNudgeShown, snoozeLocalOnlyBanner } from "@/lib/loginNudge";
 import { Button } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
 import { AppText } from "../ui/primitives";
@@ -14,7 +14,15 @@ import { AppText } from "../ui/primitives";
 export function LoginNudgeSheet({ onClose }: { onClose: () => void }) {
   useEffect(() => markLoginNudgeShown(), []);
   return (
-    <SheetShell testId="login-nudge" title={t("loginNudge.title")} onClose={onClose} hideOk>
+    <SheetShell
+      testId="login-nudge"
+      title={t("loginNudge.title")}
+      onClose={() => {
+        snoozeLocalOnlyBanner();
+        onClose();
+      }}
+      hideOk
+    >
       <AppText variant="body" color="textMuted" className="mt-[var(--spacing-xs)] block">
         {t("loginNudge.body")}
       </AppText>
@@ -31,7 +39,10 @@ export function LoginNudgeSheet({ onClose }: { onClose: () => void }) {
           title={t("loginNudge.later")}
           variant="quiet"
           testId="btn-login-nudge-later"
-          onPress={onClose}
+          onPress={() => {
+            snoozeLocalOnlyBanner();
+            onClose();
+          }}
         />
       </div>
     </SheetShell>

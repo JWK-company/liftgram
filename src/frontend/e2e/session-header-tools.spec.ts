@@ -28,6 +28,22 @@ test("헤더는 맨 아래까지 스크롤해도 보이고, 순서 버튼은 도
   await expect(page.getByTestId("dialog-confirm")).toBeVisible({ timeout: 10_000 });
   await page.getByRole("button", { name: "취소" }).last().click();
 
+  // 헤더 밑에 걸친 입력칸을 눌러도 가려진 채 두지 않는다(scroll-padding · qa code M-1)
+  const input = 블록(page, 2).getByTestId("set-weight").first();
+  const hdr = await page.getByTestId("session-header").boundingBox();
+  await input.evaluate(
+    (el, top) => {
+      const r = el.getBoundingClientRect();
+      window.scrollBy(0, r.top - top);
+    },
+    (hdr?.height ?? 90) / 2,
+  );
+  await input.focus();
+  await page.waitForTimeout(400);
+  const ib = await input.boundingBox();
+  const hb = await page.getByTestId("session-header").boundingBox();
+  expect(ib && hb && ib.y >= hb.y + hb.height - 1, "입력칸이 헤더 아래로 내려온다").toBeTruthy();
+
   // ② 도구 줄: ⌃⌄ 가 휴식·메모보다 왼쪽 · 두 버튼 사이가 붙어 있다
   const card = 블록(page, 1);
   const up = await card.getByTestId("btn-move-up").boundingBox();
