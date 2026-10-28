@@ -133,9 +133,11 @@ export default function ActiveWorkout() {
   }, [repo, workout, summary, leaveSession]);
 
   // 고정 헤더가 입력칸을 가리지 않게 — 헤더 높이만큼 문서 스크롤 여백을 둔다(초점·scrollIntoView 가 그만큼 아래로 맞춘다 · qa code M-1)
-  const headerRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = headerRef.current;
+  // 헤더는 운동을 불러온 뒤에야 그려지므로 콜백 ref 로 붙고 떨어질 때마다 맞춘다.
+  const headerCleanup = useRef<(() => void) | null>(null);
+  const headerRef = useCallback((el: HTMLDivElement | null) => {
+    headerCleanup.current?.();
+    headerCleanup.current = null;
     if (!el) return;
     const root = document.documentElement;
     const apply = () => {
@@ -144,11 +146,11 @@ export default function ActiveWorkout() {
     apply();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(apply) : null;
     ro?.observe(el);
-    return () => {
+    headerCleanup.current = () => {
       ro?.disconnect();
       root.style.scrollPaddingTop = "";
     };
-  }, [workout?.id]);
+  }, []);
 
   // 기록한 직후 탭을 닫아도 남아야 한다(SRS-006).
   useEffect(() => {
