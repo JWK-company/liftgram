@@ -62,6 +62,9 @@ COPY package.json bun.lock* ./
 COPY frontend/package.json ./frontend/
 COPY contracts/package.json ./contracts/
 COPY core/package.json ./core/
+# lokijs 패치(다중 탭 덮어쓰기 거부 · SRS-089) — bun install 이 patchedDependencies 를 적용하려면 패치 파일이 먼저 있어야 한다.
+# 빠뜨리면 설치가 실패하거나(--frozen-lockfile) **패치 없는** lokijs 로 빌드된다.
+COPY patches ./patches
 RUN bun install --frozen-lockfile 2>/dev/null || bun install
 
 # ── frontend 빌드 ────────────────────────────────────────────────────────────

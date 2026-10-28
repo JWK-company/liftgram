@@ -1,0 +1,105 @@
+diff --git a/src/incremental-indexeddb-adapter.js b/src/incremental-indexeddb-adapter.js
+index eddd73e181477f54d47e62dd529c25a44273fef3..fdd6a299abe0757d5a4a98a9d45e52bce0d0df92 100644
+--- a/src/incremental-indexeddb-adapter.js
++++ b/src/incremental-indexeddb-adapter.js
+@@ -50,6 +50,11 @@
+      *     Can be tuned for a specific application
+      * @param {array} options.lazyCollections Names of collections that should be deserialized lazily
+      *     Only use this for collections that aren't used at launch
++     * @param {boolean} options.rejectForeignWrites [liftgram 패치 · SRS-089] true 면 다른 쓰기 주체가 디스크를 바꾼 것을
++     *     보았을 때 slow path(자기 메모리 사본으로 전부 덮어쓰기) 대신 **트랜잭션을 중단하고** 오류(code LOKI_STALE)로 끝낸다.
++     *     비교와 중단이 같은 readwrite 트랜잭션 안에서 일어나므로 경합 창이 없다.
++     * @param {function} options.onForeignWrite [liftgram 패치] rejectForeignWrites 로 거부했을 때 한 번 불린다({ prev, disk }).
++     * @param {function} options.isSealed [liftgram 패치] true 를 돌려주면 저장·삭제가 디스크에 닿지 않고 오류(code LOKI_SEALED)로 끝난다.
+      */
+     function IncrementalIndexedDBAdapter(options) {
+       this.mode = "incremental";
+@@ -153,6 +158,14 @@
+     IncrementalIndexedDBAdapter.prototype.saveDatabase = function(dbname, getLokiCopy, callback) {
+       var that = this;
+ 
++      // [liftgram 패치 · SRS-089] 봉인된 탭은 디스크에 닿지 않는다(IDB 를 열지도 않는다) — getLokiCopy 를 부르지 않으므로 dirty 는 남는다.
++      if (this.options.isSealed && this.options.isSealed()) {
++        setTimeout(function() {
++          callback(liftgramError("LOKI_SEALED", "save refused - this tab is sealed"));
++        }, 0);
++        return;
++      }
++
+       if (!this.idb) {
+         this._initializeIDB(dbname, callback, function() {
+           that.saveDatabase(dbname, getLokiCopy, callback);
+@@ -167,7 +180,15 @@
+ 
+       DEBUG && console.log("saveDatabase - begin");
+       DEBUG && console.time("saveDatabase");
++      var finished = false;
++      var staleError = null;
+       function finish(e) {
++        // [liftgram 패치] 거부 모드에서는 콜백을 꼭 한 번만 부른다(abort 뒤 error·abort 가 겹쳐 와도) — 원래 동작은 그대로
++        if (that.options.rejectForeignWrites) {
++          if (finished) return;
++          finished = true;
++          if (staleError) e = staleError;
++        }
+         DEBUG && e && console.error(e);
+         DEBUG && console.timeEnd("saveDatabase");
+         that.operationInProgress = false;
+@@ -244,8 +265,29 @@
+ 
+         var getLokiThenSave = function() {
+           idbReq(store.get('loki'), function(e) {
+-            if (lokiChunkVersionId(e.target.result) === that._prevLokiVersionId) {
++            var diskVersionId = lokiChunkVersionId(e.target.result);
++            if (diskVersionId === that._prevLokiVersionId) {
+               performSave();
++            } else if (that.options.rejectForeignWrites) {
++              // [liftgram 패치 · SRS-089] 다른 탭이 디스크를 바꿨다 — 덮어쓰지 않고 이 트랜잭션을 중단한다.
++              // getLokiCopy 를 부르지 않으므로 이 탭의 dirty 표시는 남고, 디스크·_prevLokiVersionId 는 그대로다.
++              var info = { prev: that._prevLokiVersionId, disk: diskVersionId };
++              staleError = liftgramError("LOKI_STALE", "save refused - another writer changed IndexedDB");
++              staleError.prev = info.prev;
++              staleError.disk = info.disk;
++              try {
++                tx.abort();
++              } catch (abortError) {
++                // 이미 끝난 트랜잭션 — 아래에서 직접 끝낸다
++                finish(staleError);
++              }
++              if (that.options.onForeignWrite) {
++                try {
++                  that.options.onForeignWrite(info);
++                } catch (handlerError) {
++                  console.error('onForeignWrite failed: ', handlerError);
++                }
++              }
+             } else {
+               DEBUG && console.warn('Another writer changed Loki IDB, using slow path...');
+               didOverwrite = true;
+@@ -754,6 +796,12 @@
+      * @memberof IncrementalIndexedDBAdapter
+      */
+     IncrementalIndexedDBAdapter.prototype.deleteDatabase = function(dbname, callback) {
++      // [liftgram 패치 · SRS-089] 봉인된 탭은 공유 DB 를 지우지 않는다
++      if (this.options.isSealed && this.options.isSealed()) {
++        console.error("deleteDatabase refused - this tab is sealed");
++        callback && callback({ success: false, code: "LOKI_SEALED" });
++        return;
++      }
+       if (this.operationInProgress) {
+         throw new Error("Error while deleting database - another operation is already in progress. Please use throttledSaves=true option on Loki object");
+       }
+@@ -793,6 +841,13 @@
+       };
+     };
+ 
++    // [liftgram 패치] code 를 단 오류
++    function liftgramError(code, message) {
++      var error = new Error(message);
++      error.code = code;
++      return error;
++    }
++
+     function randomVersionId() {
+       // Appears to have enough entropy for chunk version IDs
+       // (Only has to be different than enough of its own previous versions that there's no writer

@@ -40,9 +40,13 @@
     "@types/node": "^26.1.1",
     "@types/ws": "^8.18.1",
     "concurrently": "^9.2.1",
+    "fake-indexeddb": "^6.2.6",
     "lefthook": "^2.1.10",
     "tsx": "^4.22.4",
     "typescript": "5",
     "ws": "^8.21.1"
+  },
+  "patchedDependencies": {
+    "@nozbe/lokijs@1.5.12-wmelon6": "patches/@nozbe%2Flokijs@1.5.12-wmelon6.patch"
   }
 }
