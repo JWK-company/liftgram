@@ -58,3 +58,49 @@ test("어깨깡패 → 버전 하나 저장 — 출처 인용·제휴 아님 고
   );
   await expect(page.getByTestId("re-sets").first()).toContainText(String(firstSets));
 });
+
+test("여러 날 버전(3대 5×5 A·B) — 날마다 루틴 · 다시 저장하면 중복 확인 · 확인 연타에도 한 벌만 더 (qa code M-2)", async ({
+  page,
+}) => {
+  await 카탈로그_준비(page);
+  await page.goto("/");
+  const open = async () => {
+    await page.getByTestId("concept-topic-big3-500").click();
+    await page.getByTestId("creator-version-cr-big3-5x5").click();
+    await expect(page.getByTestId("creator-sheet")).toBeVisible();
+    await expect(page.getByTestId("creator-save")).toBeEnabled({ timeout: 10_000 });
+  };
+  await open();
+  await page.getByTestId("creator-save").click();
+  const list = page.getByTestId("routine-list");
+  await expect(list).toContainText("3대 5×5 — A", { timeout: 20_000 });
+  await expect(list).toContainText("3대 5×5 — B");
+  const rows = list.locator("[data-testid^=routine-]");
+  await expect(rows).toHaveCount(2);
+
+  await open();
+  await page.getByTestId("creator-save").click();
+  const dupe = page.getByTestId("creator-dupe");
+  await expect(dupe).toBeVisible();
+  const confirm = dupe.getByRole("button", { name: "저장" });
+  await confirm.click({ clickCount: 3 });
+  await expect(rows).toHaveCount(4, { timeout: 20_000 });
+  await page.waitForTimeout(1500);
+  await expect(rows).toHaveCount(4);
+});
+
+test("분석 자료 근거가 있는 버전(씨범) — 근거 링크·문구", async ({ page }) => {
+  await 카탈로그_준비(page);
+  await page.goto("/");
+  await page.getByTestId("concept-topic-boulder-shoulders").click();
+  await page.getByTestId("creator-version-cr-shoulders-olympia").click();
+  const basis = page.getByTestId("creator-basis");
+  await expect(basis).toContainText("Fitness Volt");
+  await expect(basis).toHaveAttribute("href", /^https:\/\/fitnessvolt\.com\//);
+  await expect(basis).toHaveAttribute("target", "_blank");
+  await expect(page.getByTestId("creator-source")).toContainText("Chris Bumstead");
+  await expect(page.getByTestId("creator-open-video")).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=hpvAcZtNcPY",
+  );
+});

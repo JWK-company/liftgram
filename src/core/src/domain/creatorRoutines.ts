@@ -2,10 +2,10 @@
 //
 // 규칙(ADR-045 · spec 20261028_creator-routines rev1):
 //   · 출처(source)의 title·channel 은 공식 oEmbed 값 그대로 — 점검: node scripts/check-creator-routines.mjs
-//   · 루틴(종목·세트·횟수)은 사실 정보만, 사람이 영상을 보고 확인한 칸은 src 'video', 아니면 'default'(화면에 「기본값」)
+//   · 루틴(종목·세트·횟수)은 사실 정보만 · src 'video' = 출처(영상 설명란, 또는 basis 로 밝힌 영상 분석 자료)에 적힌 값 · 'default' = 출처에 없어 우리가 채운 값(화면에 「기본값」)
 //   · 대본·설명란 원문·썸네일은 넣지 않는다. summaryKo·labelKo 는 우리 말로 — 채널명(실명)을 넣지 않는다(공유 시 이름만 퍼짐 · qa H-2)
 //   · 균일하지 않은 처방(피라미드·탑셋)은 근삿값 + reps 'default' + noteKo 로 원래 방식을 적는다 · 하루 안 같은 종목 두 번 금지
-//   · draft: true = 아직 사람 검수 전 — 화면에 내지 않는다(check 스크립트도 실패로 본다)
+//   · draft: true = 아직 사람 검수 전 — 화면에 내지 않는다(check 스크립트는 경고로 알린다)
 //   · 영상이 삭제·비공개면 hidden: true
 // 옛 AI 콘셉트 루틴(conceptRoutines.ts)은 사용자 결정(2026-10-28)으로 화면에서 뺐다 — 데이터는 원복용 보존.
 
@@ -91,7 +91,7 @@ const D = (sets: number, repsMin: number, repsMax: number): Pick<CreatorRoutineI
 });
 
 // 내용 근거 = 공식 Data API 로 읽은 설명란(타임스탬프·요약) — 2026-10-28. 종목 순서는 설명란 그대로, 수치는 설명란에 있을 때만 'video'.
-// 설명란 원문은 보관하지 않는다(qa H-3). 영상만 보고 확인한 값은 없다 — 검수자가 영상을 보고 고치면 src 를 'video' 로.
+// 설명란 원문은 보관하지 않는다(qa H-3). 영상 본편과 대조한 값은 없다 — 사용자 검수(2026-10-28)는 이 표 기준.
 export const CREATOR_ROUTINES: CreatorRoutine[] = [
   {
     id: 'cr-shoulders-season',

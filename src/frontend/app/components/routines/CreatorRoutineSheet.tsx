@@ -10,7 +10,7 @@ import {
   type CreatorTopic,
   youtubeWatchUrl,
 } from "@app/core";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lang, t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { ConfirmDialog, SheetShell } from "../ui/Dialog";
@@ -106,6 +106,8 @@ function CreatorVersionStep({
   const [active, setActive] = useState<Set<string> | null>(null);
   const [saving, setSaving] = useState(false);
   const [dupe, setDupe] = useState(false);
+  // 저장 재진입 막기 — 확인창 「저장」 연타로 같은 루틴이 두 벌 생기던 것(qa code M-2)
+  const savingRef = useRef(false);
 
   useEffect(() => {
     let alive = true;
@@ -130,6 +132,10 @@ function CreatorVersionStep({
   }, [routine]);
 
   const save = async () => {
+    // 종목 조회 전(active=null)에는 저장하지 않는다 — 0개만 저장되던 것(qa code M-1)
+    if (savingRef.current || active === null) return;
+    savingRef.current = true;
+    setDupe(false);
     setSaving(true);
     let made = 0;
     try {
@@ -151,9 +157,11 @@ function CreatorVersionStep({
         await routineRepo.importRoutine(creatorRoutineName(routine, d.nameKo), items, { notes });
         made += 1;
       }
-    } catch {
-      // 중간에 실패해도 만든 만큼은 알린다(qa L-2)
+    } catch (e) {
+      // 중간에 실패해도 만든 만큼은 알린다(qa L-2) — 원인은 콘솔에 남긴다
+      console.error("크리에이터 루틴 저장 실패", e);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
     onSaved(made, routine.days.length);
@@ -198,7 +206,10 @@ function CreatorVersionStep({
         {t("creator.source", { channel: routine.source.channel, title: routine.source.title })}
       </AppText>
       <AppText variant="label" color="textMuted" className="mt-[2px] block">
-        {t("creator.verified", { date: routine.source.verifiedAt })}
+        {/* 근거 문구는 실제 근거대로(qa code M-3): 분석 자료가 있으면 그 줄이 대신한다 */}
+        {routine.basis
+          ? t("creator.checkedOnly", { date: routine.source.verifiedAt })
+          : t("creator.verified", { date: routine.source.verifiedAt })}
       </AppText>
       {routine.basis ? (
         // 세트·횟수가 영상을 분석한 2차 자료 기준일 때 — 어디서 왔는지 밝힌다
@@ -207,7 +218,7 @@ function CreatorVersionStep({
           target="_blank"
           rel="noopener noreferrer"
           data-testid="creator-basis"
-          className="mt-[2px] block text-(--color-ink3) text-[length:var(--text-xs)] underline"
+          className="mt-[2px] flex min-h-[32px] items-center text-(--color-ink3) text-[length:var(--text-xs)] underline"
         >
           {t("creator.basis", { label: routine.basis.labelKo })}
         </a>
@@ -277,7 +288,13 @@ function CreatorVersionStep({
         {t("creator.openVideo")} ↗
       </a>
       <div className="mt-[var(--spacing-sm)]">
-        <Button title={t("concept.saveButton")} loading={saving} testId="creator-save" onPress={onSave} />
+        <Button
+          title={t("concept.saveButton")}
+          loading={saving}
+          disabled={active === null}
+          testId="creator-save"
+          onPress={onSave}
+        />
       </div>
       <AppText
         variant="label"
