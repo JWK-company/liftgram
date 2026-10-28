@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-028",
+  "type": "URS",
+  "title": "믿을 만한 사람이 실제로 하는 루틴을 영상으로 배우고 바로 내 루틴으로 — 같은 주제의 여러 유명 운동인 버전 비교",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T02:20:00Z",
+  "updated": "2026-10-28T02:20:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator", "youtube"],
+  "stakeholder": "회원(헬린이·중급) · 운영자",
+  "priority": "Medium",
+  "relations": {"relates_to": ["BS-005", "BIZ-001"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "배경 / 이해관계자"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "회원은 유명 운동 유튜버·보디빌더의 루틴 영상을 보고 따라 하면서, 그 내용을 기록 앱에 손으로 옮겨 적는다. 앱의 콘셉트 루틴 4개는 AI 가 짠 종목 목록이라 「누가 실제로 이렇게 하나」에 대한 신뢰가 약하다(사용자 제안 2026-10-28 · BIZ-001)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "회원은 「어깨깡패」 같은 주제 안에서 여러 유명 운동인이 같은 주제로 올린 영상 루틴을 비교하고, 원본 영상으로 방법을 배운 뒤, 그 루틴을 바로 내 루틴으로 가져와 기록하고 싶다. 크리에이터는 원본 영상으로 시청이 돌아가길 바라고, 운영자는 저작권·초상·플랫폼 약관 문제 없이 이 콘텐츠를 제공하고 싶다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "시범 주제 3개 이상 각각에 서로 다른 채널의 영상 루틴이 2개 이상 있다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "각 루틴에서 원본 영상으로 한 번에 갈 수 있고, 출처(채널·영상 제목)가 보인다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「내 루틴에 저장」 한 번으로 종목·세트·횟수가 담긴 루틴이 생긴다."}]}]}
+      ]}
+    ]
+  }
+}

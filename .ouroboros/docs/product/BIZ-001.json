@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "id": "BIZ-001",
+  "type": "Business",
+  "title": "크리에이터 루틴 조사 — 한국 운동 유튜버 영상 루틴을 출처 연결형 콘셉트 루틴으로 (경쟁·법적·기술 제약 · 기능 단위 Go)",
+  "status": "Draft",
+  "owner": "디스커버리",
+  "product": "health-practice",
+  "created": "2026-10-28T02:05:00Z",
+  "updated": "2026-10-28T02:10:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator", "youtube", "discovery"],
+  "relations": {"generated_from": ["BS-005"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "핵심 요약"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "앱 안의 무료 콘텐츠 기능(별도 제품·과금 아님)이라 시장 사이징·BEP 게이트는 구조적 비적용으로 두고, 경쟁 사례·법적 제약·기술 경로·콘텐츠 공급 가능성을 조사했다. 결론: 출처 표기형(이름은 인용으로만 · 원본 링크/공식 임베드 · 우리가 새로 쓴 요약 · 사실 정보인 종목·세트·횟수만)이면 진행 가능(Go · 기능). 자막·음성 수집은 YouTube 약관상 하지 않고, 공식 경로(oEmbed·Data API 설명란)와 사람 검수로 만든다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "1. 시장 개요"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "1.1 사이징: N/A—구조적 비적용(앱 내 무료 기능). 1.2 수요 신호: 국내 근력 앱은 루틴 「추천·프로그램」을 핵심으로 내세운다 — 번핏은 4~12주 프로그램 제공(2025-11 한경 매거진 · 앱스토어), 플랜핏은 기구 맞춤 루틴 추천(앱스토어). 유튜브에는 같은 주제(어깨·3대 500·직장인)의 루틴 영상이 유명 채널마다 있다(oEmbed 로 실존 확인: 제로범TV·핏블리·Bodybuilder이장민·준규빌더·메루치양식장·조피터 등 16편 중 15편 확인)."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "시사점: 사용자는 이미 「영상 보고 → 따라 하고 → 기록 앱에 옮겨 적기」를 손으로 한다. 이 옮겨 적기를 없애는 것이 기능의 가치다(확신도 중 — 직접 사용자 조사 없음)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "2. 경쟁 분석"}]},
+      {"type": "table", "content": [
+        {"type": "table_row", "content": [
+          {"type": "table_header", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "대상"}]}]},
+          {"type": "table_header", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "유형"}]}]},
+          {"type": "table_header", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "루틴 출처"}]}]},
+          {"type": "table_header", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "근거"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Gymwork"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "직접(가장 가까움)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "프로 선수·한국 피트니스 인플루언서가 만든 루틴 + 권장 무게·횟수(제휴형으로 보임 · 조건 미확인)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "App Store id1563624436"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "번핏"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "직접(국내 기록 앱)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "자체 4~12주 프로그램 · AI agent 개발 중"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "App Store id1503464984 · 벤처스퀘어 2021 · 한경 2025-11"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "플랜핏"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "직접(국내 추천 앱)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "알고리즘 추천 루틴 · 음성 코칭"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "App Store id1511876936"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Plankk · Fitic"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "간접(글로벌 크리에이터 앱)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "크리에이터 계약·수익 배분(사용자당 지급)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "TechCrunch 2019 · Startland News"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "CreatorLogic"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "간접"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "AI 가 크리에이터 유튜브 채널을 분석해 프로그램 생성(비제휴 · 우리가 피하려는 방식)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "App Store id6755343863"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "유튜브 + 메모장"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "대체재"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "영상 보고 손으로 옮겨 적기"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "관측(커뮤니티 루틴 공유글 — 블라인드)"}]}]}
+        ]},
+        {"type": "table_row", "content": [
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "리프트그램(우리)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "—"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "주제별 여러 크리에이터 영상 루틴 비교 + 원본 연결 + 저장(출처 표기형)"}]}]},
+          {"type": "table_cell", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "—"}]}]}
+        ]}
+      ]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "2.3 지형: 「한 주제 안에서 여러 크리에이터 버전을 나란히 비교」하는 국내 기록 앱은 찾지 못했다(근거불충분 — 앱 내부까지 확인 못함). 2.4 체험 대상: Gymwork(크리에이터 루틴 화면 구성·출처 표기 방식) — 루틴 확인 시간·저장 마찰을 1/3/5 로 채점 권장."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "3. 차별화 가설"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "같은 주제 여러 버전 비교 + 영상 → 기록 한 번에(방어가능성 하 — 카피 쉬움, 다만 검수된 콘텐츠 누적은 중)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "우리 종목 카탈로그·별칭·기구 변형에 정확히 대응(통합 깊이 — 중)"}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "4·5. 수익·손익"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "구조적 비적용 — 무료 기능. 가변원가 ≈ 0(정적 데이터 · 영상은 유튜브가 호스팅). 비용은 큐레이션 인력 시간뿐."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "6. 리스크"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "퍼블리시티: 부정경쟁방지법(2022~ 유명인 성명·초상 무단 상업 이용) — 이름은 「출처: 채널 · 영상 제목」 인용으로만, 이름을 앞세운 상품명·배지는 허락받은 채널만. (법률 자문 아님 — 출시 확대 전 확인 권장)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "저작권: 종목·세트·횟수는 사실 정보 · 대본 문장·썸네일·캡처는 쓰지 않음 · 설명은 우리 말로."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "YouTube 약관: 영상·음성·자막 내려받기 금지 → 자막 수집·Whisper 받아쓰기 안 함. oEmbed(제목·채널)·공식 임베드·Data API(설명란)만."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "인물 리스크: 형사 사건 등 논란 인물 제외(예: 2024 수감 보도된 인물)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "정확도: 영상이 세트·횟수를 말하지 않는 경우 — 「영상 기준 정리」 표시·검수 필수 · 영상 삭제 시 카드 숨김."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "7. 단계"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "시범(주제 3 × 영상 2~3, 출처 표기형) → 큐레이션 도구 → 크리에이터 제휴(배지)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "8. 판정"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "Go(기능 단위) — 시장·마진 게이트는 구조적 비적용(0 처리 · 게이트 안 죽임), 수요 프록시는 경쟁 앱이 같은 가치를 내세움(Gymwork·번핏) + 대체 행동 관측(확신도 중). 조건: 출처 표기형 · 공식 경로만 · 사람 검수."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "참고 출처"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "https://apps.apple.com/app/id1563624436 (Gymwork)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "https://apps.apple.com/KR/app/id1503464984 (번핏) · https://www.venturesquare.net/840931/ · https://magazine.hankyung.com/job-joy/article/202511167099d"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "https://apps.apple.com/kr/app/id1511876936 (플랜핏)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "https://techcrunch.com/2019/01/24/the-plankk-launches-mobile-app-providing-fitness-classes-from-influencers/ · https://apps.apple.com/gb/app/creatorlogic/id6755343863"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "https://m.seoul.co.kr/news/2024/12/26/20241226500002 (인물 리스크)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "YouTube oEmbed 실존 확인(2026-10-28): ogkP-jjvu8U · bZbfXY0-BhA · g_LNj4Syh6g · d2r9nVh-yx4 · ihp5OAsqrTw · qtz6xPIpWh0 · fdpMOjGwMvU · CgiGNRGA7aQ · Pe_6jBsMRoY · 92SXBcTzoco · O8D81rCN0XY · -ogDuhLJhKQ · utgZ4gzAyVU"}]}]}
+      ]}
+    ]
+  }
+}

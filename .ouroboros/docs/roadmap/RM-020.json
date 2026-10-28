@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "RM-020",
+  "type": "Roadmap",
+  "title": "크리에이터 루틴 — 시범(주제 3 × 채널 2~3) → 큐레이션 도구 → 채널 제휴",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T02:30:00Z",
+  "updated": "2026-10-28T02:30:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator"],
+  "relations": {"covers": ["URS-028", "SRS-091", "SRS-092"], "generated_from": ["PRD"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "단계"}]},
+      {"type": "ordered_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "시범(이번): 어깨깡패·3대 500·퇴근 후 짧게 — 주제마다 채널 2~3개 · 출처 인용·원본 링크·세트×횟수 저장 (SRS-091·092 · ADR-045)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "확장: 후보 찾기(Data API 검색) → 설명란 1차 정리 → 검수 도구 · 주제 추가(바디프로필 등)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "제휴: 허락받은 채널은 이름 배지·크리에이터 페이지·공식 임베드."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "근거"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "BS-005 · BIZ-001(기능 단위 Go — 출처 인용형·공식 경로·사람 검수 조건)."}]}
+    ]
+  }
+}

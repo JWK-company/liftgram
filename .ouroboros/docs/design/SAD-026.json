@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "SAD-026",
+  "type": "SAD",
+  "title": "크리에이터 루틴 — core 정적 데이터(주제별 버전·출처) + 콘셉트 시트 확장 + 세트·횟수 가져오기 + oEmbed 점검 스크립트",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T02:30:00Z",
+  "updated": "2026-10-28T03:00:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator", "architecture"],
+  "component": "CreatorRoutines (URS-028)",
+  "relations": {"refs": ["SRS-091", "SRS-092"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "개요"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "크리에이터 루틴은 서버·스키마 변경 없이 core 정적 데이터로 시작한다. 콘셉트 루틴(conceptRoutines.ts)과 같은 결로 creatorRoutines.ts 에 주제(conceptId)별 버전 목록을 두고, 루틴 탭의 콘셉트 시트가 그 주제의 버전을 함께 보여 준다. 저장은 기존 importRoutine 을 세트·반복 범위·메모까지 받도록 넓혀 쓴다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "컴포넌트 / 책임"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "core/domain/creatorRoutines.ts — CreatorRoutine{id·conceptId·source{videoId·title·channel·channelUrl·verifiedAt}·summaryKo·days[{nameKo·items[{exerciseId·sets·repsMin·repsMax·restSec?·from:'video'|'default'}]}]} · creatorRoutinesFor(conceptId)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "core 테스트 — 종목 id 카탈로그 실존 · videoId 형식 · 출처 필드 필수 · 주제당 채널 ≥2 · 문구 가드(guideCopy)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "routineRepository.importRoutine — 선택 인자 targetRepsMax·restSeconds·routineNotes 추가(기존 호출 결과 불변)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "RoutinesClient 콘셉트 섹션 — 주제 카드(버전 0개 주제 숨김) → 시트 하나 안에서 단계 전환(버전 목록 → 버전: 출처 줄·제휴 아님 고지·종목 세트×횟수·「원본 영상 보기」·「내 루틴에 저장」). 옛 AI 콘셉트 4개는 호출부 주석(데이터 보존)."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "scripts/check-creator-routines.mjs — oEmbed 로 영상 실존·제목·채널 대조(배포 전 수동/CI 선택). 영상·자막을 내려받는 코드는 두지 않는다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "refs: SRS-091(화면·저장) · SRS-092(큐레이션 규칙·점검). 결정 ADR-045."}]}
+    ]
+  }
+}

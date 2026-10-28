@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-092",
+  "type": "SRS",
+  "title": "크리에이터 루틴 큐레이션 규칙 — 공식 경로만(oEmbed·Data API) · 자막·음성 수집 금지 · 사람 검수 · 영상 실존 점검",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T02:20:00Z",
+  "updated": "2026-10-28T02:20:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator", "youtube", "compliance"],
+  "kind": "NFR",
+  "acceptance_criteria": "영상 정보는 oEmbed·Data API 로만 · 내려받기/자막 수집 없음 · 버전마다 검수 날짜 · 점검 스크립트가 삭제·비공개 영상을 찾아냄",
+  "relations": {"derives_from": ["URS-028"], "relates_to": ["BIZ-001"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "크리에이터 루틴은 YouTube 약관과 저작권·퍼블리시티를 지키는 방식으로만 만든다. 영상 제목·채널은 공식 oEmbed 로, 설명란은 공식 Data API(키가 있을 때)로 읽는다. 영상·음성·자막을 내려받거나 받아쓰지 않는다. 루틴 내용(종목·세트·횟수)은 운영자가 영상을 보고 확인한 사실만 적고, 확인하지 못한 세트·횟수는 우리 기본값임을 표시한다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "형사 사건 등 논란이 보도된 인물의 영상은 싣지 않는다. 영상이 삭제·비공개되면 해당 버전을 숨긴다 — 점검 스크립트가 oEmbed 응답으로 찾아낸다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "점검 스크립트: 모든 버전 영상 id 를 oEmbed 로 조회해 제목·채널이 데이터와 다르거나 404/401 이면 실패를 보고한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "버전 데이터에 verifiedAt(검수 날짜)·prescription 출처(영상 명시 / 우리 기본값) 표시가 있다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "코드·스크립트 어디에도 영상·자막 다운로드 경로가 없다(리뷰 체크)."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-028. BIZ-001 §6 리스크의 완화 요구."}]}
+    ]
+  }
+}

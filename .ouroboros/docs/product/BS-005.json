@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "BS-005",
+  "type": "BS",
+  "kind": "idea",
+  "title": "크리에이터 루틴 — 콘셉트 루틴을 한국 운동 유튜버·보디빌더의 실제 영상 루틴으로 (주제별 여러 버전 · 원본 링크)",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T02:00:00Z",
+  "updated": "2026-10-28T02:10:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator", "youtube"],
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "프로그램명(가칭)"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "크리에이터 루틴 — 「어깨깡패」 같은 주제 안에서 유명 운동 유튜버·보디빌더가 같은 주제로 올린 영상의 루틴을 나란히 보여 준다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "목적"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "지금 콘셉트 루틴 4개는 AI 가 짠 종목 목록이라 신뢰·동기 부여가 약하다. 사람들이 이미 보고 따라 하는 영상 루틴을 앱으로 가져오면, 영상으로 방법을 배우고 앱으로 기록하는 흐름이 생기고, 원본 영상으로 조회수를 돌려 크리에이터에게도 이득이 된다(사용자 제안 2026-10-28)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "사용자 종류(role)"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "헬린이·중급 회원 — 믿을 만한 루틴을 골라 영상으로 자세를 배우고 바로 기록한다"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "크리에이터 — 영상 조회수·채널 유입(나중엔 허락한 채널에 배지)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "운영자(우리) — 영상 후보를 찾고 루틴을 정리·검수해 올린다"}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "사용 흐름"}]},
+      {"type": "ordered_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "루틴 탭 콘셉트 루틴 → 주제(어깨깡패 등) 선택"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "주제 안 크리에이터 버전 카드(채널명·영상 제목·종목 수) 비교"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "카드 열기 → 원본 영상(링크/임베드) · 우리가 정리한 종목·세트·횟수"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「내 루틴에 저장」 → 기존 루틴 기록 흐름"}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수익화 포인트"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "직접 과금 없음(무료 콘텐츠). 리텐션·신규 유입 보조. 장기적으로 허락받은 크리에이터와 제휴(채널 배지·공동 프로그램) 가능성."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "로드맵 시드"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "시범: 주제 3개(어깨깡패·3대 500·퇴근 후) × 영상 2~3개, 출처 표기형"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "확장: 주제·영상 추가 도구(후보 찾기 → 정리 → 검수)"}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "제휴: 허락받은 채널은 이름 배지·크리에이터 페이지"}]}]}
+      ]}
+    ]
+  }
+}

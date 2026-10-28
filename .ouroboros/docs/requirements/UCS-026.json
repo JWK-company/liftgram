@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "UCS-026",
+  "type": "UCS",
+  "title": "주제 안 크리에이터 루틴 고르기 → 원본 영상 보기 → 내 루틴에 저장",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T02:20:00Z",
+  "updated": "2026-10-28T03:00:00Z",
+  "sync": true,
+  "tags": ["concept-routine", "creator"],
+  "relations": {"elaborates": ["URS-028"]},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "사전 조건"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "운영자가 검수한 크리에이터 루틴이 앱 데이터에 있다. 로그인 여부와 무관(기기 로컬 루틴 저장)."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "주 흐름"}]},
+      {"type": "ordered_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "회원이 루틴 탭 「콘셉트 루틴」에서 주제 카드(예: 어깨깡패)를 연다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "주제 시트에 크리에이터 버전 목록(채널명·영상 제목·종목 수·일 수)이 보인다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "버전 하나를 열면 종목·세트×횟수 목록, 「영상 기준 정리」 표시, 「원본 영상 보기」가 보인다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「원본 영상 보기」 → 유튜브(앱/새 탭)로 이동한다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "「내 루틴에 저장」 → 「{버전 이름} — {일 이름}」(채널명 없음) 루틴이 세트·횟수까지 담겨 생기고 토스트가 뜬다. 출처(채널·제목·주소)는 루틴 메모에 남는다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "대안 / 예외 흐름"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "같은 이름 루틴이 있으면 기존 「이미 있는 루틴」 확인을 거친다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "오프라인이면 원본 영상 열기는 브라우저에 맡기고 저장은 그대로 된다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "기존 AI 콘셉트 루틴 4개는 더 이상 보이지 않는다(이미 저장한 루틴은 그대로). 버전이 없는 주제는 숨는다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "사후 조건"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "내 루틴 목록에 루틴이 추가되고, 루틴 설명(메모)에 원본 영상 주소가 남는다."}]}
+    ]
+  }
+}
