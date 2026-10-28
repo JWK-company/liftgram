@@ -6,14 +6,15 @@
 - **P2+P3 = v0.51.0 운영 배포 완료**(build 406 · e231a56 · tag) · qa code `qa/20261028_data-safety-2-p2p3-code_qa.md`(H-1 72h 창·M-1~4 조치) · 배포 전 `pre-ops-0020-20261028-021756.dump` · 첫 backup·restore-test 손으로 OK(users 3·sync 6890 일치) · cron 04:17 daily·매월 1일 04:47 복원 시험 · 테스트 계정 2개는 다른 세션이 01:26 삭제(`pre-delete-test-accounts-*` 백업)
 - **P4 = v0.52.0 운영 배포 완료**(build 413 · a359f3e · tag) — lokijs 패치(트랜잭션 안 거부 LOKI_STALE)+쓰기 문+주인 잠금·덮개 · qa code `qa/20261028_data-safety-2-p4-code_qa.md`(H 없음·M-1~5 조치) · 로컬 e2e 36/36 · 운영 스모크 multi-tab ①③④⑦⑨⑩ 통과(④-2 는 운영 Turnstile 로 가입 불가) · 남은 L-3~L-6 · 후속: 빈 DB 첫 실행 시드·카탈로그 Duplicate key 경합(부하 1회 재현) 조사
 - 운영진: jh21star@gmail.com admin 부여(직전 백업 `pre-admin-grant-20261028-004109.dump`) · 백업 디스크 = /home(sda) ≠ DB(sdb) · /m2 는 동업자 영역이라 안 씀
-## ⚠ 병행 세션 6710ac69 알림 (2026-10-28 10:14)
-- **운영은 이미 v0.49.0 (build 395 · 11bb386 · 태그 v0.49.0 푸시됨)** = 근육 지도 MuscleMap 교체(SRS-090·ADR-044). 기록 보호 P1 은 rebase 뒤 **v0.50.0** 부터(스펙 규칙 「병행 세션이 버전을 올렸으면 다음 minor」) — package.json·커밋 제목의 v0.49.0 을 고칠 것.
-- 진행 중(6710ac69): 크리에이터 루틴(SRS-091·092 · ADR-045) — worktree `../liftgram-wt-creator`(feat/creator-routines · 5ef78ea · e231a56 위로 rebase · 웹 3500) · qa code 조치 완료 · core 529·e2e 6 통과 · **배포 대기: P4 v0.52.0 가 먼저 나간 뒤 그 위로 rebase → v0.53.0** (지금 합치면 P4 미배포 커밋이 섞임). 겹침: `routines/RoutinesClient.tsx`·`core/data/routineRepository.ts`·i18n `creator.*`·`e2e/routines.spec.ts`(옛 콘셉트 skip)
-- 운영 테스트 계정 2개 삭제(poc1@test.com·네이버 tar) · 백업 `pre-delete-test-accounts-20261028-012646.dump`
+## 크리에이터 루틴 — v0.53.0 운영 배포 완료 (세션 6710ac69 · 2026-10-28)
+- SRS-091·092 · ADR-045 · build 420 · e69c7b5 · 콘셉트 루틴 = 주제 3(어깨깡패·3대 500·퇴근 후 짧게) × 유튜버 영상 버전 6(이장민·킹유진·Chris Bumstead / 메루치 5×5 / 핏블리·덕코치) · MQ 5×5 draft · 옛 AI 콘셉트 4개 화면 제외(데이터 보존)
+- 근거 = 공식 Data API 설명란(키 `src/.env` YOUTUBE_API_KEY · 보관 안 함) · 씨범은 Fitness Volt 분석 기사 basis · 점검 `node src/scripts/check-creator-routines.mjs`(30일마다) · 설명란 읽기 `src/scripts/youtube-describe.mjs`
+- 운영 확인: /app-version 0.53.0 · 운영 e2e(씨범 근거 링크) 통과 · qa `docs/qa/20261028_creator-routines-{spec,code}_qa.md`
+- 이전: v0.49.0 근육 지도 MuscleMap 교체(SRS-090) · 운영 테스트 계정 2개 삭제(`pre-delete-test-accounts-20261028-012646.dump`)
 ## 세션 상태 (2026-10-28)
-- 운영 = `https://liftgram.tarae.org` **v0.49.0 (build 395)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
+- 운영 = `https://liftgram.tarae.org` **v0.53.0 (build 420)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
 - 팀원 기록 복구 완료(운동 36→73 · 8/25~10/26 이어짐 · 오늘 0볼륨 2건은 팀원이 지우면 됨) · 보고서 Docs `https://claude.ai/artifact/NfDMSjDGLLfARSpTuNNa54`
-- 보류: 수동 업데이트 L-2·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안 · 「tar」 네이버 계정 주인 확인
+- 보류: 수동 업데이트 L-2·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안
 ## 최근 완료 (2026-10-26~28 · 상세는 각 spec/qa/report 와 git 로그)
 - v0.48.0 수동 업데이트(SRS-085): 띠·자동 적용 제거(주석 보존) · 프로필 「업데이트」 버튼+덮개(15초 실패) · 운동 중 비활성 · 탭 점 · `/app-version`+`MIN_CLIENT_VERSION`(비어 있음=꺼짐) · 크롬 load 직후 skip-waiting 멈춤 → `lib/swActivate.ts` · 스펙 `docs/spec/20261027_manual-update/` · QA `docs/qa/20261027_manual-update-{spec,code}_qa.md`
 - v0.45.0 피드백 #62~#64(SRS-084): 블록 도구 줄 · 플레이트 한쪽 기본(family `load_default`·미정 1회 질문) · 완료 직후 새 버전 보류 · PLM #62~#64 완료 · `docs/spec/20261027_feedback-62-64/`
