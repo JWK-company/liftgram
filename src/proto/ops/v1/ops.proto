@@ -47,7 +47,10 @@ message ReportClientHealthRequest {
   string last_error = 8 [(buf.validate.field).string = {max_len: 4000}];
 }
 
-message ReportClientHealthResponse {}
+message ReportClientHealthResponse {
+  // 서버가 저장했는가. 분당 상한에 걸려 조용히 버렸으면 false — 기기는 true 일 때만 「보냈다」고 적는다(qa code M-1).
+  bool accepted = 1;
+}
 
 // 기기 한 대의 마지막 보고(시각은 서버가 다시 계산한 값).
 message DeviceHealth {
@@ -78,6 +81,7 @@ message OpsUser {
 }
 
 // 동기가 멈춘 기기 — 판정 식은 기기의 isBackupStalled(core/src/domain/syncStall.ts)와 같다.
+// 단 서버는 최근(72시간) 보고만 「멈춤」으로 보고, 더 새 건강한 보고·그 뒤의 동기 쓰기가 있으면 뺀다(qa code H-1).
 message StalledDevice {
   string user_id = 1;
   string email_hint = 2;
@@ -117,6 +121,9 @@ message GetOpsStatusResponse {
   //   · restore_failed · low_disk
   repeated string alert_reasons = 5;
   google.protobuf.Timestamp server_now = 6;
+  // 연락 끊긴 기기 — 멈춤 식에 걸리지만 마지막 보고가 72시간 넘게 지났다(이탈·재설치·기기 id 바뀜).
+  // 회색 목록 · 경보 이유에 들지 않는다(qa code H-1).
+  repeated StalledDevice disconnected = 7;
 }
 
 message GetOpsAlertRequest {}
@@ -129,7 +136,7 @@ message GetOpsAlertResponse {
 }
 
 service OpsService {
-  // 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 빈 답).
+  // 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 accepted=false).
   rpc ReportClientHealth(ReportClientHealthRequest) returns (ReportClientHealthResponse) {}
 
   // 여기부터는 admin 만(claim 뒤 DB 역할 재확인).

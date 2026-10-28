@@ -12,6 +12,11 @@
 //	· 시각은 기기가 보낸 「나이」로 **서버 시계에서** 다시 계산한다(기기 시계 틀어짐 무관 · qa spec H-2).
 //	· 멈춤 판정은 기기의 isBackupStalled(core/src/domain/syncStall.ts)와 **같은 식**이다(qa spec H-1).
 //	  어긋나면 사용자 화면은 경고가 없는데 운영 화면만 빨갛거나, 그 반대가 된다.
+//	· 단 `now` 의 뜻이 다르다(qa code H-1): 기기는 앱이 열려 있을 때만 판정하고 곧 다시 시도하지만, 서버는 마지막
+//	  보고를 그대로 둔 채 **서버의 지금**으로 판정한다. 그래서 서버는 식 앞에 거름망을 둔다(Classify):
+//	  ① 같은 사용자의 더 새 건강한 보고가 있거나 서버 마지막 동기 쓰기가 그 보고보다 뒤면 → 풀린 것(목록에서 뺌)
+//	  ② 보고가 72시간 넘게 없으면 → 「연락 끊긴 기기」(회색 · 경보 아님) — 이탈·재설치·기기 id 바뀜
+//	  ③ 나머지만 「멈춤」(경보). 진짜 멈춘 기기는 앱을 쓰는 동안 최소 10분 간격으로 계속 보고하므로 ③ 에 잡힌다.
 //	· 운영 화면은 admin 만 — claim 으로 빠르게 거르고 DB 역할을 다시 읽는다(qa spec M-8).
 //	· 경보는 **안내**다. 남용(가짜 보고)으로 켜질 수 있지만, 화면이 원인 사용자를 보여 주므로 바로 드러난다.
 //
@@ -48,6 +53,8 @@ const (
 	RestoreStaleDays = 40
 	// 90일 넘게 보고 없는 줄은 조회에서 뺀다(지우지는 않는다).
 	HealthWindow = 90 * 24 * time.Hour
+	// 경보·「멈춘 사용자」는 이 안의 보고만 판정한다(qa code H-1). 넘으면 「연락 끊긴 기기」(경보 아님).
+	ActiveReportWindow = 72 * time.Hour
 	// 운영 화면 사용자 목록 상한(지금 규모의 수십 배).
 	maxUsers = 1000
 )
@@ -119,6 +126,8 @@ type Repo interface {
 	ListHealthSince(ctx context.Context, since time.Time) ([]Health, error)
 	// 없으면 (BackupRun{}, false, nil). okOnly 면 성공 줄만.
 	LastBackupRun(ctx context.Context, kind string, okOnly bool) (BackupRun, bool, error)
+	// 사용자별 서버 마지막 동기 쓰기(max sync_records.updated_at) — 기록이 없는 사용자는 map 에 없다(qa code H-1 ②).
+	LastSyncByUser(ctx context.Context, userIDs []string) (map[string]time.Time, error)
 }
 
 type Service struct {
@@ -257,6 +266,55 @@ func IsStalled(h Health, now time.Time) bool {
 	return stale && h.LastAttemptAt != nil && h.ConsecutiveFailures > 0
 }
 
+// Classify — 식(IsStalled)에 걸린 줄을 「멈춤」(경보)과 「연락 끊긴 기기」(경보 아님)로 나눈다(qa code H-1).
+// 풀린 줄(같은 사용자의 더 새 건강한 보고 · 그 보고 뒤의 서버 동기 쓰기)은 어느 쪽에도 넣지 않는다.
+// health 순서를 그대로 지킨다(저장소가 사용자별 최신순으로 준다).
+func Classify(health []Health, lastSync map[string]time.Time, now time.Time) (stalled, disconnected []Health) {
+	for _, h := range health {
+		if !IsStalled(h, now) {
+			continue
+		}
+		if t, ok := lastSync[h.UserID]; ok && t.After(h.ReportedAt) {
+			continue // 그 보고 뒤에 서버에 동기 쓰기가 있었다 — 기기 교체·재설치 뒤 잘 도는 중
+		}
+		if newerHealthy(health, h, now) {
+			continue
+		}
+		if now.Sub(h.ReportedAt) > ActiveReportWindow {
+			disconnected = append(disconnected, h)
+			continue
+		}
+		stalled = append(stalled, h)
+	}
+	return stalled, disconnected
+}
+
+// 같은 사용자의 다른 기기 줄 중 h 보다 나중에 보고했고 멈춤이 아닌 것이 있는가.
+func newerHealthy(health []Health, h Health, now time.Time) bool {
+	for _, o := range health {
+		if o.UserID == h.UserID && o.DeviceID != h.DeviceID && o.ReportedAt.After(h.ReportedAt) && !IsStalled(o, now) {
+			return true
+		}
+	}
+	return false
+}
+
+// 식(IsStalled)에 걸린 줄의 사용자만 — 거름망 ② 에 쓸 마지막 동기 쓰기를 묻는다.
+func (s *Service) lastSyncFor(ctx context.Context, health []Health, now time.Time) (map[string]time.Time, error) {
+	seen := map[string]bool{}
+	ids := []string{}
+	for _, h := range health {
+		if IsStalled(h, now) && !seen[h.UserID] {
+			seen[h.UserID] = true
+			ids = append(ids, h.UserID)
+		}
+	}
+	if len(ids) == 0 {
+		return map[string]time.Time{}, nil
+	}
+	return s.repo.LastSyncByUser(ctx, ids)
+}
+
 // StalledDays — now − 마지막 성공(없으면 첫 보고)의 날 수(내림 · 음수 0).
 func StalledDays(h Health, now time.Time) int32 {
 	from := h.FirstReportedAt
@@ -319,10 +377,12 @@ type Stalled struct {
 type Status struct {
 	Users   []UserStatus
 	Stalled []Stalled
-	Backup  BackupFacts
-	Alert   bool
-	Reasons []string
-	Now     time.Time
+	// 보고가 72시간 넘게 끊긴 멈춤 줄 — 회색 목록 · 경보 아님(qa code H-1).
+	Disconnected []Stalled
+	Backup       BackupFacts
+	Alert        bool
+	Reasons      []string
+	Now          time.Time
 }
 
 func (s *Service) GetOpsStatus(ctx context.Context, viewerID, role string) (Status, error) {
@@ -353,15 +413,35 @@ func (s *Service) GetOpsStatus(ctx context.Context, viewerID, role string) (Stat
 		known[u.ID] = u
 		st.Users = append(st.Users, UserStatus{User: u, Devices: byUser[u.ID]})
 	}
-	for _, h := range health {
-		if !IsStalled(h, now) {
-			continue
-		}
+	// [원본] 90일 창 전체를 서버의 지금으로 판정 — 끊긴 기기가 최대 90일 상시 경보가 됐다(qa code H-1)
+	// for _, h := range health {
+	// 	if !IsStalled(h, now) {
+	// 		continue
+	// 	}
+	// 	u, ok := known[h.UserID]
+	// 	if !ok {
+	// 		u = UserRow{ID: h.UserID} // 목록 상한 밖의 사용자도 멈춤에는 싣는다
+	// 	}
+	// 	st.Stalled = append(st.Stalled, Stalled{User: u, Device: h, Days: StalledDays(h, now)})
+	// }
+	// [개선] 거름망(Classify) — 최근 보고만 멈춤 · 오래된 줄은 연락 끊긴 기기 · 풀린 줄은 뺌
+	lastSync, err := s.lastSyncFor(ctx, health, now)
+	if err != nil {
+		return Status{}, err
+	}
+	stalled, disconnected := Classify(health, lastSync, now)
+	row := func(h Health) Stalled {
 		u, ok := known[h.UserID]
 		if !ok {
 			u = UserRow{ID: h.UserID} // 목록 상한 밖의 사용자도 멈춤에는 싣는다
 		}
-		st.Stalled = append(st.Stalled, Stalled{User: u, Device: h, Days: StalledDays(h, now)})
+		return Stalled{User: u, Device: h, Days: StalledDays(h, now)}
+	}
+	for _, h := range stalled {
+		st.Stalled = append(st.Stalled, row(h))
+	}
+	for _, h := range disconnected {
+		st.Disconnected = append(st.Disconnected, row(h))
 	}
 	st.Reasons = AlertReasons(len(st.Stalled), backup, now)
 	st.Alert = len(st.Reasons) > 0
@@ -382,12 +462,19 @@ func (s *Service) GetOpsAlert(ctx context.Context, viewerID, role string) (bool,
 	if err != nil {
 		return false, 0, err
 	}
-	n := 0
-	for _, h := range health {
-		if IsStalled(h, now) {
-			n++
-		}
+	// [원본] n := 0
+	// for _, h := range health {
+	// 	if IsStalled(h, now) {
+	// 		n++
+	// 	}
+	// }
+	// [개선] GetOpsStatus 와 같은 거름망 — 탭 점과 /ops 화면이 같은 답을 낸다
+	lastSync, err := s.lastSyncFor(ctx, health, now)
+	if err != nil {
+		return false, 0, err
 	}
+	stalled, _ := Classify(health, lastSync, now)
+	n := len(stalled)
 	reasons := AlertReasons(n, backup, now)
 	return len(reasons) > 0, len(reasons), nil
 }

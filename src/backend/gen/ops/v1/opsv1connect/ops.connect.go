@@ -65,7 +65,7 @@ const (
 
 // OpsServiceClient is a client for the ops.v1.OpsService service.
 type OpsServiceClient interface {
-	// 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 빈 답).
+	// 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 accepted=false).
 	ReportClientHealth(context.Context, *connect.Request[v1.ReportClientHealthRequest]) (*connect.Response[v1.ReportClientHealthResponse], error)
 	// 여기부터는 admin 만(claim 뒤 DB 역할 재확인).
 	GetOpsStatus(context.Context, *connect.Request[v1.GetOpsStatusRequest]) (*connect.Response[v1.GetOpsStatusResponse], error)
@@ -128,7 +128,7 @@ func (c *opsServiceClient) GetOpsAlert(ctx context.Context, req *connect.Request
 
 // OpsServiceHandler is an implementation of the ops.v1.OpsService service.
 type OpsServiceHandler interface {
-	// 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 빈 답).
+	// 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 accepted=false).
 	ReportClientHealth(context.Context, *connect.Request[v1.ReportClientHealthRequest]) (*connect.Response[v1.ReportClientHealthResponse], error)
 	// 여기부터는 admin 만(claim 뒤 DB 역할 재확인).
 	GetOpsStatus(context.Context, *connect.Request[v1.GetOpsStatusRequest]) (*connect.Response[v1.GetOpsStatusResponse], error)

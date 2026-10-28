@@ -132,6 +132,20 @@ func (r *pgRepo) LastBackupRun(ctx context.Context, kind string, okOnly bool) (B
 	return b, true, nil
 }
 
+func (r *pgRepo) LastSyncByUser(ctx context.Context, userIDs []string) (map[string]time.Time, error) {
+	rows, err := r.q.LastSyncByUsers(ctx, userIDs)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[string]time.Time, len(rows))
+	for _, row := range rows {
+		if row.LastSyncAt.Valid {
+			out[row.UserID] = row.LastSyncAt.Time
+		}
+	}
+	return out, nil
+}
+
 func ts(t *time.Time) pgtype.Timestamptz {
 	if t == nil {
 		return pgtype.Timestamptz{}

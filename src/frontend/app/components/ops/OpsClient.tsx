@@ -3,7 +3,7 @@
 // @plm SRS-087  백업: 마지막 일일 백업(시각·크기·남은 디스크) · 마지막 복원 시험(시각·결과)
 //
 // 맨 위 한 줄이 판단이다: 문제 없으면 「이상 없음」(회색), 있으면 이유 목록(빨강 **글자** — 채움 아님 · 화면 정리 규칙).
-// 그 아래 「동기가 멈춘 사용자」 · 「백업」 · 「사용자」(접기) 순. 이메일은 앞부분만, 오류는 앞부분만 싣는다(서버가 자른다).
+// 그 아래 「동기가 멈춘 사용자」 · 「연락 끊긴 기기」(있을 때만 · 회색) · 「백업」 · 「사용자」(접기) 순. 이메일은 앞부분만, 오류는 앞부분만 싣는다(서버가 자른다).
 // admin 판정은 서버가 한다(DB 역할 재확인) — 이 화면은 거절 이유를 그대로 보여 줄 뿐이다.
 import { Code, ConnectError } from "@connectrpc/connect";
 import type { BackupRun, DeviceHealth, GetOpsStatusResponse } from "@app/contracts";
@@ -232,6 +232,36 @@ export default function OpsClient() {
                 ))
               )}
             </Card>
+
+            {/* 연락 끊긴 기기 — 회색 · 경보 아님(qa code H-1). 없으면 칸째 숨긴다(빈 칸이 판단을 흐리지 않게). */}
+            {data.disconnected.length > 0 ? (
+              <>
+                <SectionLabel title={t("ops.disconnectedTitle")} />
+                <Card className="mb-[var(--spacing-xl)]" data-testid="ops-disconnected">
+                  <AppText variant="caption" color="textFaint" className="mb-[var(--spacing-xs)] block">
+                    {t("ops.disconnectedNote")}
+                  </AppText>
+                  {data.disconnected.map((s) => (
+                    <div
+                      key={`${s.userId}:${s.device?.deviceId ?? ""}`}
+                      className="border-(--color-line) border-b py-[var(--spacing-sm)] last:border-b-0"
+                      data-testid="ops-disconnected-item"
+                      data-user={s.userId}
+                    >
+                      <div className="flex items-baseline gap-[var(--spacing-sm)]">
+                        <AppText variant="body" color="textMuted" className="min-w-0 flex-1 truncate">
+                          {[s.emailHint, s.displayName].filter(Boolean).join(" · ") || s.userId}
+                        </AppText>
+                        <AppText variant="caption" color="textMuted" className="shrink-0">
+                          {t("ops.lastReport", { time: when(s.device?.reportedAt) })}
+                        </AppText>
+                      </div>
+                      {s.device ? <DeviceLine d={s.device} /> : null}
+                    </div>
+                  ))}
+                </Card>
+              </>
+            ) : null}
 
             <SectionLabel title={t("ops.backupTitle")} />
             <Card className="mb-[var(--spacing-xl)]" data-testid="ops-backup">

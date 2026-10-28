@@ -152,7 +152,9 @@ $SSH 'set -e
 }$R"; added="$added 복원시험"; }
   if [ -n "$added" ]; then
     printf "%s\n" "$new" | crontab -
-    echo "  ⚠ crontab 에 추가:$added — 첫 배포면 두 스크립트를 손으로 한 번씩 돌려 첫 줄을 만든다(운영 화면 「기록 없음」 방지)"
+    # [원본] echo "  ⚠ crontab 에 추가:$added — 첫 배포면 두 스크립트를 손으로 한 번씩 돌려 첫 줄을 만든다(운영 화면 「기록 없음」 방지)"
+    # [개선] 순서를 말한다(qa code M-3) — 끝의 「첫 백업 기록 확인」이 명령까지 다시 안내한다
+    echo "  ⚠ crontab 에 추가:$added — 첫 배포면 ① backup-h2500-3.sh → ② restore-test-h2500-3.sh 순서로 손으로 한 번씩"
   else
     echo "  crontab 두 줄 있음(매일 백업 · 월 복원 시험)"
   fi'
@@ -189,5 +191,22 @@ if [ "$code" = "200" ]; then
   echo "  $SITE → readyz 200"
 else
   echo "  ⚠ $SITE/api/readyz → ${code:-응답 없음} (터널 공개 호스트명 설정을 확인 — deploy/README.md)"
+fi
+# ── 첫 백업 기록 확인 — @plm SRS-087 (qa code M-3) ───────────────────────────────
+# 복원 시험은 「counts 가 있는 성공 daily 줄」이 있어야 시험할 수 있다. 이 기록 방식 전에 뜬 덤프에는 counts 가 없다 —
+# 그래서 첫 배포 뒤 복원 시험을 **먼저** 돌리면 ok=false 가 남아 다음 달 1일까지 /ops 가 restore_failed 로 빨갛다.
+# 안 돌리면 restore_none 이 다음 달 1일까지 켜진다. 기록이 없을 때만 순서를 못박아 안내한다(읽기만 · 자동 실행 안 함).
+echo "── 첫 백업 기록 확인 ──"
+first=$($SSH "cd $REMOTE/src && U=\$(grep '^POSTGRES_USER=' .env | cut -d= -f2-) && D=\$(grep '^POSTGRES_DB=' .env | cut -d= -f2-) &&
+  docker exec liftgram-db-1 psql -q -t -A -U \"\$U\" -d \"\$D\" -c \"SELECT count(*) FILTER (WHERE kind='daily' AND ok AND counts IS NOT NULL) || ' ' || count(*) FILTER (WHERE kind='restore_test') FROM ops_backup_runs\"" 2>/dev/null || echo "? ?")
+okd=${first%% *}
+rst=${first##* }
+if [ "$okd" = "0" ] || [ "$rst" = "0" ] || [ "$okd" = "?" ]; then
+  echo "  ⚠ 첫 백업 기록이 아직 없다(성공 daily ${okd} · 복원 시험 ${rst}) — 서버에서 **이 순서로** 한 번:"
+  echo "     ① ~/liftgram/src/scripts/backup-h2500-3.sh       >> ~/liftgram/backups/backup.log 2>&1"
+  echo "     ② ~/liftgram/src/scripts/restore-test-h2500-3.sh >> ~/liftgram/backups/backup.log 2>&1"
+  echo "     (②를 먼저 돌리면 counts 없는 옛 덤프만 있어 ok=false → 다음 달 1일까지 /ops 「복원 시험 실패」)"
+else
+  echo "  성공 daily ${okd}줄 · 복원 시험 ${rst}줄"
 fi
 echo "── 끝: v${VERSION} (build ${BUILD}) · ${SHORT} ──"

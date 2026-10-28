@@ -19,11 +19,13 @@ import (
 var t0 = time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
 
 type fakeRepo struct {
-	roles   map[string]string
-	health  map[string]map[string]Health // user → device → row
-	users   []UserRow
-	backups []BackupRun // 시간순
-	upserts int
+	roles    map[string]string
+	health   map[string]map[string]Health // user → device → row
+	users    []UserRow
+	backups  []BackupRun // 시간순
+	upserts  int
+	lastSync map[string]time.Time // 사용자 → 서버 마지막 동기 쓰기
+	syncAsks int                  // LastSyncByUser 호출 수
 }
 
 func newFake() *fakeRepo {
@@ -81,6 +83,17 @@ func (f *fakeRepo) LastBackupRun(_ context.Context, kind string, okOnly bool) (B
 		}
 	}
 	return BackupRun{}, false, nil
+}
+
+func (f *fakeRepo) LastSyncByUser(_ context.Context, ids []string) (map[string]time.Time, error) {
+	f.syncAsks++
+	out := map[string]time.Time{}
+	for _, id := range ids {
+		if t, ok := f.lastSync[id]; ok {
+			out[id] = t
+		}
+	}
+	return out, nil
 }
 
 func i64(v int64) *int64 { return &v }
@@ -291,6 +304,91 @@ func TestIsStalled_경계표(t *testing.T) {
 		if got := IsStalled(c.h, t0); got != c.want {
 			t.Errorf("%s: got %v want %v", c.name, got, c.want)
 		}
+	}
+}
+
+// ── 서버 거름망(qa code H-1) ────────────────────────────────────────────────
+// 위 표(IsStalled)는 기기와 같은 식이다. 서버는 그 앞에 거름망을 둔다 — 기기는 앱이 열려 있을 때만 판정하지만
+// 서버는 마지막 보고를 그대로 둔 채 서버의 지금으로 판정하기 때문이다. 그래서 이 표는 기기 쪽(syncStall.test.ts)에 없다.
+
+func TestClassify_경계표(t *testing.T) {
+	h := func(user, dev string, reportedAgo time.Duration, failures int32, successAgo time.Duration) Health {
+		rep := t0.Add(-reportedAgo)
+		return Health{
+			UserID: user, DeviceID: dev, Pending: i32(2), ConsecutiveFailures: failures,
+			LastSuccessAt: at(successAgo), LastAttemptAt: &rep, FirstReportedAt: rep, ReportedAt: rep,
+		}
+	}
+	healthy := func(user, dev string, reportedAgo time.Duration) Health {
+		rep := t0.Add(-reportedAgo)
+		return Health{UserID: user, DeviceID: dev, Pending: i32(0), LastSuccessAt: &rep, LastAttemptAt: &rep, FirstReportedAt: rep, ReportedAt: rep}
+	}
+	day := 24 * time.Hour
+	cases := []struct {
+		name         string
+		health       []Health
+		lastSync     map[string]time.Time
+		stalled      int
+		disconnected int
+	}{
+		{"보고 4일 전·실패 1·성공 (보고 시점) 25시간 전 → 경보 아님(연락 끊김)", []Health{h("u", "d", 4*day, 1, 4*day+25*time.Hour)}, nil, 0, 1},
+		{"보고 4일 전·실패 3 → 경보 아님(연락 끊김)", []Health{h("u", "d", 4*day, 3, 5*day)}, nil, 0, 1},
+		{"보고 71h 전·실패 3 → 멈춤", []Health{h("u", "d", 71*time.Hour, 3, 80*time.Hour)}, nil, 1, 0},
+		{"보고 72h 전(경계 포함)·실패 3 → 멈춤", []Health{h("u", "d", 72*time.Hour, 3, 80*time.Hour)}, nil, 1, 0},
+		{"보고 72h1m 전·실패 3 → 연락 끊김", []Health{h("u", "d", 72*time.Hour+time.Minute, 3, 80*time.Hour)}, nil, 0, 1},
+		{"방금 보고·실패 3 → 멈춤", []Health{h("u", "d", 0, 3, time.Hour)}, nil, 1, 0},
+		{"같은 사용자의 더 새 건강한 보고(기기 교체) → 뺌", []Health{healthy("u", "new", time.Hour), h("u", "old", 2*time.Hour, 3, 3*day)}, nil, 0, 0},
+		{"더 새 건강한 보고는 오래된 끊김 줄도 뺀다", []Health{healthy("u", "new", time.Hour), h("u", "old", 10*day, 3, 11*day)}, nil, 0, 0},
+		{"건강한 보고가 더 오래됐으면 멈춤 유지", []Health{h("u", "d2", time.Hour, 3, 2*day), healthy("u", "d1", 2*time.Hour)}, nil, 1, 0},
+		{"더 새 보고도 멈춤이면 둘 다 멈춤", []Health{h("u", "a", time.Hour, 3, 2*day), h("u", "b", 2*time.Hour, 3, 2*day)}, nil, 2, 0},
+		{"다른 사용자의 건강한 보고는 상관없다", []Health{healthy("v", "x", 0), h("u", "d", time.Hour, 3, 2*day)}, nil, 1, 0},
+		{"서버 동기 쓰기가 보고보다 뒤 → 뺌", []Health{h("u", "d", 2*time.Hour, 3, 2*day)}, map[string]time.Time{"u": t0.Add(-time.Hour)}, 0, 0},
+		{"서버 동기 쓰기가 보고보다 앞 → 멈춤", []Health{h("u", "d", 2*time.Hour, 3, 2*day)}, map[string]time.Time{"u": t0.Add(-3 * time.Hour)}, 1, 0},
+		{"서버 동기 쓰기가 보고와 같은 시각 → 멈춤(뒤가 아님)", []Health{h("u", "d", 2*time.Hour, 3, 2*day)}, map[string]time.Time{"u": t0.Add(-2 * time.Hour)}, 1, 0},
+		{"식에 안 걸리면 오래돼도 어느 목록에도 없다", []Health{healthy("u", "d", 10*day)}, nil, 0, 0},
+	}
+	for _, c := range cases {
+		st, dc := Classify(c.health, c.lastSync, t0)
+		if len(st) != c.stalled || len(dc) != c.disconnected {
+			t.Errorf("%s: 멈춤 %d·끊김 %d (want %d·%d)", c.name, len(st), len(dc), c.stalled, c.disconnected)
+		}
+	}
+}
+
+func TestGetOpsStatus_오래된보고는_경보아님(t *testing.T) {
+	f := newFake()
+	f.roles = map[string]string{"admin1": "admin"}
+	f.backups = healthyBackups()
+	f.users = []UserRow{{ID: "gone", Email: "gone@example.com"}, {ID: "moved", Email: "moved@example.com"}}
+	old := t0.Add(-4 * 24 * time.Hour)
+	recent := t0.Add(-time.Hour)
+	f.health = map[string]map[string]Health{
+		// 4일 전 실패 1 보고 뒤 앱을 안 연 사용자 — 연락 끊김
+		"gone": {"g1": {UserID: "gone", DeviceID: "g1", Pending: i32(3), ConsecutiveFailures: 1, LastSuccessAt: at(5 * 24 * time.Hour), LastAttemptAt: &old, FirstReportedAt: old, ReportedAt: old}},
+		// 최근 실패 3 보고 — 그런데 그 뒤에 서버 동기 쓰기가 있었다(다른 기기로 옮김)
+		"moved": {"m1": {UserID: "moved", DeviceID: "m1", Pending: i32(3), ConsecutiveFailures: 3, LastSuccessAt: at(2 * 24 * time.Hour), LastAttemptAt: &recent, FirstReportedAt: recent, ReportedAt: recent}},
+	}
+	f.lastSync = map[string]time.Time{"moved": t0.Add(-time.Minute)}
+	s := svcAt(f, &t0)
+	st, err := s.GetOpsStatus(context.Background(), "admin1", "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Alert || len(st.Stalled) != 0 {
+		t.Fatalf("경보 아님: alert=%v reasons=%v stalled=%+v", st.Alert, st.Reasons, st.Stalled)
+	}
+	if len(st.Disconnected) != 1 || st.Disconnected[0].User.ID != "gone" || st.Disconnected[0].User.Email == "" {
+		t.Fatalf("연락 끊김은 gone 하나(사용자 정보 포함): %+v", st.Disconnected)
+	}
+	alert, n, err := s.GetOpsAlert(context.Background(), "admin1", "admin")
+	if err != nil || alert || n != 0 {
+		t.Fatalf("GetOpsAlert 도 경보 아님: %v %d %v", alert, n, err)
+	}
+	// 식에 걸린 줄이 없으면 동기 시각을 묻지 않는다
+	f.health = map[string]map[string]Health{}
+	f.syncAsks = 0
+	if _, _, err := s.GetOpsAlert(context.Background(), "admin1", "admin"); err != nil || f.syncAsks != 0 {
+		t.Fatalf("멈춤 후보 없으면 LastSyncByUser 안 부름: %d %v", f.syncAsks, err)
 	}
 }
 

@@ -63,6 +63,39 @@ func (q *Queries) LastOkBackupRun(ctx context.Context, kind string) (OpsBackupRu
 	return i, err
 }
 
+const lastSyncByUsers = `-- name: LastSyncByUsers :many
+SELECT s.user_id, max(s.updated_at)::timestamptz AS last_sync_at
+FROM sync_records s
+WHERE s.user_id = ANY($1::text[])
+GROUP BY s.user_id
+`
+
+type LastSyncByUsersRow struct {
+	UserID     string
+	LastSyncAt pgtype.Timestamptz
+}
+
+// 멈춤 거름망(qa code H-1 ②) — 사용자별 서버 마지막 동기 쓰기. 기록이 없는 사용자는 줄이 없다.
+func (q *Queries) LastSyncByUsers(ctx context.Context, userIds []string) ([]LastSyncByUsersRow, error) {
+	rows, err := q.db.Query(ctx, lastSyncByUsers, userIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LastSyncByUsersRow
+	for rows.Next() {
+		var i LastSyncByUsersRow
+		if err := rows.Scan(&i.UserID, &i.LastSyncAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listClientHealthSince = `-- name: ListClientHealthSince :many
 SELECT user_id, device_id, app_version, last_success_at, last_attempt_at,
        consecutive_failures, pending, blocked, last_error, first_reported_at, reported_at

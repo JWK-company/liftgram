@@ -154,7 +154,9 @@ func (x *ReportClientHealthRequest) GetLastError() string {
 }
 
 type ReportClientHealthResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 서버가 저장했는가. 분당 상한에 걸려 조용히 버렸으면 false — 기기는 true 일 때만 「보냈다」고 적는다(qa code M-1).
+	Accepted      bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -187,6 +189,13 @@ func (x *ReportClientHealthResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use ReportClientHealthResponse.ProtoReflect.Descriptor instead.
 func (*ReportClientHealthResponse) Descriptor() ([]byte, []int) {
 	return file_ops_v1_ops_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ReportClientHealthResponse) GetAccepted() bool {
+	if x != nil {
+		return x.Accepted
+	}
+	return false
 }
 
 // 기기 한 대의 마지막 보고(시각은 서버가 다시 계산한 값).
@@ -396,6 +405,7 @@ func (x *OpsUser) GetDevices() []*DeviceHealth {
 }
 
 // 동기가 멈춘 기기 — 판정 식은 기기의 isBackupStalled(core/src/domain/syncStall.ts)와 같다.
+// 단 서버는 최근(72시간) 보고만 「멈춤」으로 보고, 더 새 건강한 보고·그 뒤의 동기 쓰기가 있으면 뺀다(qa code H-1).
 type StalledDevice struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
 	UserId      string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -673,8 +683,11 @@ type GetOpsStatusResponse struct {
 	//
 	//	stalled · daily_none · daily_stale(마지막 성공 daily 36시간 넘음) · restore_none · restore_old(40일 넘음)
 	//	· restore_failed · low_disk
-	AlertReasons  []string               `protobuf:"bytes,5,rep,name=alert_reasons,json=alertReasons,proto3" json:"alert_reasons,omitempty"`
-	ServerNow     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=server_now,json=serverNow,proto3" json:"server_now,omitempty"`
+	AlertReasons []string               `protobuf:"bytes,5,rep,name=alert_reasons,json=alertReasons,proto3" json:"alert_reasons,omitempty"`
+	ServerNow    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=server_now,json=serverNow,proto3" json:"server_now,omitempty"`
+	// 연락 끊긴 기기 — 멈춤 식에 걸리지만 마지막 보고가 72시간 넘게 지났다(이탈·재설치·기기 id 바뀜).
+	// 회색 목록 · 경보 이유에 들지 않는다(qa code H-1).
+	Disconnected  []*StalledDevice `protobuf:"bytes,7,rep,name=disconnected,proto3" json:"disconnected,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -747,6 +760,13 @@ func (x *GetOpsStatusResponse) GetAlertReasons() []string {
 func (x *GetOpsStatusResponse) GetServerNow() *timestamppb.Timestamp {
 	if x != nil {
 		return x.ServerNow
+	}
+	return nil
+}
+
+func (x *GetOpsStatusResponse) GetDisconnected() []*StalledDevice {
+	if x != nil {
+		return x.Disconnected
 	}
 	return nil
 }
@@ -860,8 +880,9 @@ const file_ops_v1_ops_proto_rawDesc = "" +
 	"\x0f_success_age_msB\x11\n" +
 	"\x0f_attempt_age_msB\n" +
 	"\n" +
-	"\b_pending\"\x1c\n" +
-	"\x1aReportClientHealthResponse\"\xdf\x03\n" +
+	"\b_pending\"8\n" +
+	"\x1aReportClientHealthResponse\x12\x1a\n" +
+	"\baccepted\x18\x01 \x01(\bR\baccepted\"\xdf\x03\n" +
 	"\fDeviceHealth\x12\x1b\n" +
 	"\tdevice_id\x18\x01 \x01(\tR\bdeviceId\x12\x1f\n" +
 	"\vapp_version\x18\x02 \x01(\tR\n" +
@@ -908,7 +929,7 @@ const file_ops_v1_ops_proto_rawDesc = "" +
 	"last_daily\x18\x01 \x01(\v2\x11.ops.v1.BackupRunR\tlastDaily\x12C\n" +
 	"\x10last_ok_daily_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\rlastOkDailyAt\x12=\n" +
 	"\x11last_restore_test\x18\x03 \x01(\v2\x11.ops.v1.BackupRunR\x0flastRestoreTest\"\x15\n" +
-	"\x13GetOpsStatusRequest\"\x92\x02\n" +
+	"\x13GetOpsStatusRequest\"\xcd\x02\n" +
 	"\x14GetOpsStatusResponse\x12%\n" +
 	"\x05users\x18\x01 \x03(\v2\x0f.ops.v1.OpsUserR\x05users\x12/\n" +
 	"\astalled\x18\x02 \x03(\v2\x15.ops.v1.StalledDeviceR\astalled\x12,\n" +
@@ -916,7 +937,8 @@ const file_ops_v1_ops_proto_rawDesc = "" +
 	"\x05alert\x18\x04 \x01(\bR\x05alert\x12#\n" +
 	"\ralert_reasons\x18\x05 \x03(\tR\falertReasons\x129\n" +
 	"\n" +
-	"server_now\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tserverNow\"\x14\n" +
+	"server_now\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tserverNow\x129\n" +
+	"\fdisconnected\x18\a \x03(\v2\x15.ops.v1.StalledDeviceR\fdisconnected\"\x14\n" +
 	"\x12GetOpsAlertRequest\"A\n" +
 	"\x13GetOpsAlertResponse\x12\x14\n" +
 	"\x05alert\x18\x01 \x01(\bR\x05alert\x12\x14\n" +
@@ -973,17 +995,18 @@ var file_ops_v1_ops_proto_depIdxs = []int32{
 	4,  // 13: ops.v1.GetOpsStatusResponse.stalled:type_name -> ops.v1.StalledDevice
 	6,  // 14: ops.v1.GetOpsStatusResponse.backup:type_name -> ops.v1.BackupStatus
 	11, // 15: ops.v1.GetOpsStatusResponse.server_now:type_name -> google.protobuf.Timestamp
-	0,  // 16: ops.v1.OpsService.ReportClientHealth:input_type -> ops.v1.ReportClientHealthRequest
-	7,  // 17: ops.v1.OpsService.GetOpsStatus:input_type -> ops.v1.GetOpsStatusRequest
-	9,  // 18: ops.v1.OpsService.GetOpsAlert:input_type -> ops.v1.GetOpsAlertRequest
-	1,  // 19: ops.v1.OpsService.ReportClientHealth:output_type -> ops.v1.ReportClientHealthResponse
-	8,  // 20: ops.v1.OpsService.GetOpsStatus:output_type -> ops.v1.GetOpsStatusResponse
-	10, // 21: ops.v1.OpsService.GetOpsAlert:output_type -> ops.v1.GetOpsAlertResponse
-	19, // [19:22] is the sub-list for method output_type
-	16, // [16:19] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	4,  // 16: ops.v1.GetOpsStatusResponse.disconnected:type_name -> ops.v1.StalledDevice
+	0,  // 17: ops.v1.OpsService.ReportClientHealth:input_type -> ops.v1.ReportClientHealthRequest
+	7,  // 18: ops.v1.OpsService.GetOpsStatus:input_type -> ops.v1.GetOpsStatusRequest
+	9,  // 19: ops.v1.OpsService.GetOpsAlert:input_type -> ops.v1.GetOpsAlertRequest
+	1,  // 20: ops.v1.OpsService.ReportClientHealth:output_type -> ops.v1.ReportClientHealthResponse
+	8,  // 21: ops.v1.OpsService.GetOpsStatus:output_type -> ops.v1.GetOpsStatusResponse
+	10, // 22: ops.v1.OpsService.GetOpsAlert:output_type -> ops.v1.GetOpsAlertResponse
+	20, // [20:23] is the sub-list for method output_type
+	17, // [17:20] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_ops_v1_ops_proto_init() }

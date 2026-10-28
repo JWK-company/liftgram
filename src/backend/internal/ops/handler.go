@@ -45,10 +45,17 @@ func (h *Handler) ReportClientHealth(ctx context.Context, req *connect.Request[o
 		r.Pending = &p
 	}
 	// 분당 상한에 걸려도 오류로 답하지 않는다 — 기기는 다음 시도에 다시 보낸다.
-	if _, err := h.svc.ReportClientHealth(ctx, id, r); err != nil {
+	// [원본] accepted 를 버리고 빈 답 — 기기가 버려진 보고를 「보냈다」고 적었다(qa code M-1)
+	// if _, err := h.svc.ReportClientHealth(ctx, id, r); err != nil {
+	// 	return nil, err
+	// }
+	// return connect.NewResponse(&opsv1.ReportClientHealthResponse{}), nil
+	// [개선] accepted 를 답에 싣는다 — 기기는 true 일 때만 보낸 것으로 적는다
+	accepted, err := h.svc.ReportClientHealth(ctx, id, r)
+	if err != nil {
 		return nil, err
 	}
-	return connect.NewResponse(&opsv1.ReportClientHealthResponse{}), nil
+	return connect.NewResponse(&opsv1.ReportClientHealthResponse{Accepted: accepted}), nil
 }
 
 func (h *Handler) GetOpsStatus(ctx context.Context, _ *connect.Request[opsv1.GetOpsStatusRequest]) (*connect.Response[opsv1.GetOpsStatusResponse], error) {
@@ -84,13 +91,10 @@ func (h *Handler) GetOpsStatus(ctx context.Context, _ *connect.Request[opsv1.Get
 		})
 	}
 	for _, s := range st.Stalled {
-		out.Stalled = append(out.Stalled, &opsv1.StalledDevice{
-			UserId:      s.User.ID,
-			EmailHint:   EmailHint(s.User.Email),
-			DisplayName: s.User.DisplayName,
-			Device:      toDevice(s.Device),
-			Days:        s.Days,
-		})
+		out.Stalled = append(out.Stalled, toStalled(s))
+	}
+	for _, s := range st.Disconnected {
+		out.Disconnected = append(out.Disconnected, toStalled(s))
 	}
 	return connect.NewResponse(out), nil
 }
@@ -122,6 +126,16 @@ func toDevice(d Health) *opsv1.DeviceHealth {
 		LastError:           d.LastError,
 		FirstReportedAt:     timestamppb.New(d.FirstReportedAt),
 		ReportedAt:          timestamppb.New(d.ReportedAt),
+	}
+}
+
+func toStalled(s Stalled) *opsv1.StalledDevice {
+	return &opsv1.StalledDevice{
+		UserId:      s.User.ID,
+		EmailHint:   EmailHint(s.User.Email),
+		DisplayName: s.User.DisplayName,
+		Device:      toDevice(s.Device),
+		Days:        s.Days,
 	}
 }
 

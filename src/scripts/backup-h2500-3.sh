@@ -23,7 +23,14 @@
 # 로컬 시험용으로 바꿔 끼울 수 있는 값(운영에서는 쓰지 않는다):
 #   LIFTGRAM_DB_CONTAINER(기본 liftgram-db-1) · BACKUP_DIR(기본 ~/liftgram/backups) · LIFTGRAM_SRC(.env 위치 · 기본 ~/liftgram/src)
 #   BACKUP_PG_USER·BACKUP_PG_DB(.env 대신) · SKIP_MEDIA=1 · LOW_DISK_BYTES(기본 20GB)
+#
+# ── 부분 파일(qa code M-2) ──────────────────────────────────────────────────
+#   · umask 077 — 덤프·사진 tar 는 **쓰는 동안에도** 600(전에는 mv 뒤에야 chmod 600 이라 쓰는 동안 644).
+#   · 덤프는 `.part` 로 받아 **그 상태에서** 읽히는지 본 뒤에만 `.dump` 로 바꾼다 — 실패한 덤프는 `.dump` 가 되지 않는다
+#     (복원 시험이 실패한 날의 덤프를 고르지 않게 · qa code M-4).
+#   · 끝날 때(trap) 이번 실행의 `.part` 를 지우고, 하루 넘은 `.part` 도 정리한다 — 매일 실패해도 디스크에 쌓이지 않는다.
 set -euo pipefail
+umask 077
 # [원본] DIR="$HOME/liftgram/backups"
 DIR="${BACKUP_DIR:-$HOME/liftgram/backups}"
 C="${LIFTGRAM_DB_CONTAINER:-liftgram-db-1}"
@@ -47,6 +54,8 @@ FREE=""
 COUNTS=""
 DETAIL=""
 SNAP_PID=""
+f=""
+m=""
 WORK=$(mktemp -d)
 
 # 백업 디렉터리 디스크의 남은 바이트(GNU df · 안 되면 BSD df 로).
@@ -62,10 +71,15 @@ record() {
   set +e
   # 스냅샷을 쥔 세션이 남아 있으면 닫는다(덤프 중 죽은 경우).
   if [ -n "$SNAP_PID" ]; then
-    exec 3>&- 2>/dev/null
+    # [원본] exec 3>&- 2>/dev/null   ← 명령 없는 exec 라 셸의 stderr 를 그 뒤 계속 /dev/null 로 돌렸다(qa code L-1)
+    { exec 3>&-; } 2>/dev/null
     wait "$SNAP_PID" 2>/dev/null
   fi
   rm -rf "$WORK"
+  # 부분 파일 정리(qa code M-2) — 이번 실행 것 + 하루 넘은 것(같은 시각에 도는 다른 실행의 것은 건드리지 않는다)
+  [ -n "$f" ] && rm -f "$f.part"
+  [ -n "$m" ] && rm -f "$m.part"
+  find "$DIR/daily" "$DIR/media" -maxdepth 1 -name '*.part' -mmin +1440 -delete 2>/dev/null
   FREE=$(free_bytes "$DIR")
   if [ -n "$FREE" ] && [ "$FREE" -lt "$LOW_DISK_BYTES" ]; then
     DETAIL="${DETAIL:+$DETAIL · }low_disk free=$((FREE / 1024 / 1024 / 1024))G"
@@ -131,12 +145,15 @@ if [ -n "$SNAP_PID" ]; then
   wait "$SNAP_PID" || true
   SNAP_PID=""
 fi
-mv "$f.part" "$f"; chmod 600 "$f"
+# [원본] mv "$f.part" "$f"; chmod 600 "$f"
 # 받은 덤프가 읽히는지까지 본다 — 0바이트·잘린 파일을 "백업했다"고 믿지 않는다.
 STAGE=verify
 # [원본] n=$(docker exec -i liftgram-db-1 pg_restore -l < "$f" | grep -c 'TABLE DATA' || true)
-n=$(docker exec -i "$C" pg_restore -l <"$f" | grep -c 'TABLE DATA' || true)
+# [원본] n=$(docker exec -i "$C" pg_restore -l <"$f" | grep -c 'TABLE DATA' || true)
+# [개선] `.part` 상태에서 보고, 통과해야 `.dump` 로 바꾼다(qa code M-4) — 실패하면 trap 이 `.part` 를 지운다
+n=$(docker exec -i "$C" pg_restore -l <"$f.part" | grep -c 'TABLE DATA' || true)
 [ "$n" -gt 0 ] || { DETAIL="${DETAIL:+$DETAIL · }empty_dump"; exit 1; }
+mv "$f.part" "$f"; chmod 600 "$f"
 SIZE=$(wc -c <"$f" | tr -d ' ')
 TABLES="$n"
 # 복원 시험이 이 덤프의 counts 를 찾는 열쇠(파일 이름).

@@ -152,7 +152,7 @@ async function report(h: SyncHealthLike): Promise<void> {
   try {
     const successAge = ageMs(h.lastSuccessAt, now);
     const attemptAge = ageMs(h.lastAttemptAt, now);
-    await opsClient().reportClientHealth({
+    const res = await opsClient().reportClientHealth({
       deviceId: await hashedDeviceId(uid),
       appVersion: APP_VERSION,
       successAgeMs: successAge === undefined ? undefined : BigInt(successAge),
@@ -164,7 +164,10 @@ async function report(h: SyncHealthLike): Promise<void> {
       lastError: (h.lastError ?? "").slice(0, 1000),
     });
     // 보낸 뒤에만 적는다 — 실패한 보고는 다음 시도가 끝날 때 다시 간다.
-    writeSent(uid, { at: now, failures: h.consecutiveFailures, blocked: h.blocked });
+    // [원본] writeSent(uid, { at: now, failures: h.consecutiveFailures, blocked: h.blocked });
+    // [개선] 서버가 받았을 때만(qa code M-1) — 분당 상한에 걸려 버려진 보고를 「보냈다」고 적으면
+    //   3회째 실패(멈춤 문턱) 같은 급한 변화가 쓰로틀(10분)에 묻혀 사라진다. 안 받았으면 다음 시도 끝에 다시 보낸다.
+    if (res.accepted) writeSent(uid, { at: now, failures: h.consecutiveFailures, blocked: h.blocked });
   } catch {
     // 삼킨다(보고는 안내다 · 동기와 무관)
   } finally {

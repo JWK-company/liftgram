@@ -48,6 +48,13 @@ FROM users u
 ORDER BY last_active_at DESC NULLS LAST, u.created_at DESC
 LIMIT @lim::int;
 
+-- 멈춤 거름망(qa code H-1 ②) — 사용자별 서버 마지막 동기 쓰기. 기록이 없는 사용자는 줄이 없다.
+-- name: LastSyncByUsers :many
+SELECT s.user_id, max(s.updated_at)::timestamptz AS last_sync_at
+FROM sync_records s
+WHERE s.user_id = ANY(@user_ids::text[])
+GROUP BY s.user_id;
+
 -- 종류별 마지막 줄.
 -- name: LastBackupRun :one
 SELECT id, kind, ok, size_bytes, tables, disk_free_bytes, detail, counts, created_at

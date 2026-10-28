@@ -90,6 +90,20 @@ func TestPgRepo_보고_upsert_정리_조회(t *testing.T) {
 		t.Fatal("없는 사용자")
 	}
 
+	// 멈춤 거름망 ②(qa code H-1) — 사용자별 서버 마지막 동기 쓰기. 기록 없는 사용자는 map 에 없다.
+	if m, err := r.LastSyncByUser(ctx, []string{uid, uid + "-none"}); err != nil || len(m) != 0 {
+		t.Fatalf("동기 기록 없음 → 빈 map: %v %v", m, err)
+	}
+	if _, err := pool.Exec(ctx, `INSERT INTO sync_records (id, user_id, collection, record_id, payload, updated_at)
+		VALUES ($1, $2, 'workouts', 'r1', '{}', now() - interval '2 hours'), ($3, $2, 'workouts', 'r2', '{}', now() - interval '1 hour')`,
+		uid+"-s1", uid, uid+"-s2"); err != nil {
+		t.Fatal(err)
+	}
+	m, err := r.LastSyncByUser(ctx, []string{uid})
+	if err != nil || len(m) != 1 || time.Since(m[uid]) > 61*time.Minute || time.Since(m[uid]) < 59*time.Minute {
+		t.Fatalf("max(updated_at) ≈ 1시간 전: %v %v", m, err)
+	}
+
 	// 백업 줄 읽기(넣는 쪽은 스크립트 psql — 여기서는 같은 모양으로 넣는다).
 	if _, err := pool.Exec(ctx, `INSERT INTO ops_backup_runs (kind, ok, size_bytes, tables, disk_free_bytes, detail, counts, created_at)
 		VALUES ('daily', true, 1234, 40, 99, 'test', '{"users":1}', now() + interval '100 years'),
