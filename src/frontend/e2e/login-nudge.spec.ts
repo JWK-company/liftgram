@@ -7,6 +7,11 @@ import { expect, test } from "@playwright/test";
 
 type Page = import("@playwright/test").Page;
 
+// 설정의 기본 표식(권유 「이미 다룸」)을 지우고 진짜 첫 사용자로 시작한다.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.removeItem("liftgram.nudge.suppressed"));
+});
+
 async function 준비(page: Page) {
   await page.goto("/exercises");
   await expect(page.getByTestId("sync-state")).toBeVisible({ timeout: 30_000 });

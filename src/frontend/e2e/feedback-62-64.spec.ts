@@ -302,7 +302,9 @@ test("#62 휴식·메모·순서는 ⋯ 메뉴 밖 도구 줄 — 44px · 빨강
   for (const id of ["btn-move-up", "btn-move-down", "btn-rest-setting", "btn-note-open"]) {
     const box = await 블록(page, 1).getByTestId(id).boundingBox();
     expect(box?.height ?? 0, `${id} 높이`).toBeGreaterThanOrEqual(44);
-    if (id.startsWith("btn-move")) expect(box?.width ?? 0, `${id} 너비`).toBeGreaterThanOrEqual(44);
+    // [원본] 너비도 44 — 2026-10-28 피드백으로 두 버튼을 붙였다(폭 36 · 높이 44 · 사이 0)
+    // if (id.startsWith("btn-move")) expect(box?.width ?? 0, `${id} 너비`).toBeGreaterThanOrEqual(44);
+    if (id.startsWith("btn-move")) expect(box?.width ?? 0, `${id} 너비`).toBeGreaterThanOrEqual(36);
   }
   // 도구 줄은 세트 표 뒤(머리를 늘리지 않는다)
   const after = await 블록(page, 0).evaluate((card) => {

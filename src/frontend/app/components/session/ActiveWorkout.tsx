@@ -283,7 +283,13 @@ export default function ActiveWorkout() {
     <SetDraftContext.Provider value={drafts}>
       <div className="flex flex-1 flex-col">
         {/* ── 헤더 ── */}
-        <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]">
+        {/* [원본] 스크롤하면 위로 사라졌다 — 마지막 종목까지 내려간 뒤 완료하려면 맨 위로 올라가야 했고, 운동 시간도 안 보였다(피드백)
+        <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]"> */}
+        {/* [개선] 늘 위에 붙는다(앱 바와 같은 sticky 방식) — 경과 시간·일시정지·완료가 어디서나 보인다 @plm SRS-004 */}
+        <div
+          data-testid="session-header"
+          className="sticky top-0 z-30 flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b bg-(--color-surface)/95 px-[var(--spacing-md)] py-[var(--spacing-sm)] backdrop-blur"
+        >
           {/* 세션을 **끝내지 않고** 화면만 벗어난다 — 진행 중인 운동은 그대로 남는다(app과 같다). */}
           <a
             href="/"

@@ -9,8 +9,16 @@ const COUNT_KEY = "liftgram.nudge.anonCompleted";
 const LAST_COUNTED_KEY = "liftgram.nudge.lastCountedWorkout";
 const LAST_SHOWN_KEY = "liftgram.nudge.lastShownAt";
 
+/**
+ * e2e 기본 상태 표식 — 첫 실행 안내(onboarding_seen_v1)와 같은 이유다. 비로그인으로 운동을 마치는 수십 개 테스트가
+ * 권유 시트·띠부터 닫아야 하지 않게, playwright 설정이 이 값을 넣고 시작한다(`login-nudge.spec.ts`만 지운다).
+ * 있으면 세지도 띄우지도 않는다(완료 수 0 → 띠는 예전 기준).
+ */
+const SUPPRESS_KEY = "liftgram.nudge.suppressed";
+
 /** 비로그인으로 마친 운동 하나를 세고, 이번에 권유 시트를 띄울지 돌려준다. */
 export function noteAnonCompletion(workoutId: string, now = Date.now()): boolean {
+  if (getPref(SUPPRESS_KEY)) return false;
   let count = Number(getPref(COUNT_KEY) ?? 0) || 0;
   if (getPref(LAST_COUNTED_KEY) !== workoutId) {
     count += 1;

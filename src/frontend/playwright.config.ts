@@ -27,7 +27,11 @@ export default defineConfig({
       origins: [
         {
           origin: process.env.BASE ?? "http://127.0.0.1:3100",
-          localStorage: [{ name: "onboarding_seen_v1", value: "yes" }],
+          // 로그인 권유(SRS-086)도 같은 이유로 「이미 다룬」 상태 — `login-nudge.spec.ts`가 지우고 확인한다.
+          localStorage: [
+            { name: "onboarding_seen_v1", value: "yes" },
+            { name: "liftgram.nudge.suppressed", value: "e2e" },
+          ],
         },
       ],
     },
