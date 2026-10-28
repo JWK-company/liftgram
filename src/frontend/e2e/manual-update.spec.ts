@@ -13,6 +13,13 @@ import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
 import { 빠른_운동_시작, 세트_기록, 안내_띠_닫기, 종목_추가, 카탈로그_준비 } from "./fixtures/declutter-seed";
 
+// 버전을 박아 두면 배포마다 테스트가 깨진다(v0.49.0 에서 실측) — 이 빌드의 package.json 에서 읽고, 「새 버전」은 다음 minor 로.
+const CUR: string = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+const NEXT = (() => {
+  const [a, b] = CUR.split(".").map(Number);
+  return `${a}.${b + 1}.0`;
+})();
+
 const SW_FILE = process.env.SW_FILE ?? fileURLToPath(new URL("../public/sw.js", import.meta.url));
 let original = "";
 let n = 0;
@@ -71,7 +78,7 @@ async function 새_워커(page: Page, opts: { version?: string; ignoreSkip?: boo
   n += 1;
   const build = `e2e${Date.now()}x${n}`;
   let s = original.replace(/const BUILD_ID = "([^"]*)";/, `const BUILD_ID = "$1-${build}";`);
-  s = s.replace(/const APP_VERSION = "[^"]*";/, `const APP_VERSION = "${opts.version ?? "0.49.0"}";`);
+  s = s.replace(/const APP_VERSION = "[^"]*";/, `const APP_VERSION = "${opts.version ?? NEXT}";`);
   if (opts.ignoreSkip) s = s.replace(`if (event.data === "skip-waiting") self.skipWaiting();`, "");
   writeFileSync(SW_FILE, s);
   await page.evaluate(async () => {
@@ -113,12 +120,12 @@ test("E8 /app-version — 버전·최소 버전(기본 빈 값) · 캐시 금지
   const r = await request.get("/app-version");
   expect(r.status()).toBe(200);
   expect(r.headers()["cache-control"]).toBe("no-store");
-  expect(await r.json()).toEqual({ version: "0.48.0", minClientVersion: "" });
+  expect(await r.json()).toEqual({ version: CUR, minClientVersion: "" });
 });
 
-test("E1 대기 없음 — 프로필 「앱 버전 v0.48.0」 · 버튼·탭 점 없음", async ({ page }) => {
+test("E1 대기 없음 — 프로필 「앱 버전 v현재」 · 버튼·탭 점 없음", async ({ page }) => {
   await 워커_제어(page, "/profile");
-  await expect(page.getByTestId("app-version-current")).toHaveText("앱 버전 v0.48.0");
+  await expect(page.getByTestId("app-version-current")).toHaveText(`앱 버전 v${CUR}`);
   await expect(page.getByTestId("app-update-btn")).toHaveCount(0);
   await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
 });
@@ -128,7 +135,7 @@ test("E2·E3 새 버전 대기 → 띠·자동 적용 없음 → 프로필 「�
   await 문서_표식(page);
   await 워커_제어(page);
   const id0 = await pageId(page);
-  const build = await 새_워커(page, { version: "0.49.0" });
+  const build = await 새_워커(page, { version: NEXT });
 
   // E2 — 탭 점 + 접근 이름 · 띠 없음 · 저절로 적용·새로고침 없음(10초 + 화면 이동)
   await expect(page.getByTestId("nav-profile-update-dot")).toBeVisible({ timeout: 10_000 });
@@ -143,7 +150,7 @@ test("E2·E3 새 버전 대기 → 띠·자동 적용 없음 → 프로필 「�
 
   // E3 — 프로필 「업데이트」
   await page.getByTestId("nav-profile").click();
-  await expect(page.getByTestId("app-new-version")).toHaveText("새 버전 v0.49.0");
+  await expect(page.getByTestId("app-new-version")).toHaveText(`새 버전 v${NEXT}`);
   await expect(page.getByTestId("app-update-btn")).toBeEnabled();
   const box = await page.getByTestId("app-update-btn").boundingBox();
   expect(box?.height ?? 0, "누르는 자리 44px").toBeGreaterThanOrEqual(44);
@@ -277,11 +284,9 @@ test("E7 필수 업데이트 — 운동 화면 밖이면 덮개로 저절로 · 
   await expect(page).toHaveURL(/\/history/);
   // 서버가 「최소 0.49.0 · 배포 0.49.0」 이라고 답한다 — 다음 부팅 한 번만(이 테스트의 새 번들은 실제로 0.48.0 이라
   // 업데이트 뒤 문서까지 같은 답이면 다시 필수가 된다 — 실제 배포에서는 새 번들이 0.49.0 이다)
-  await page.evaluate(() =>
-    sessionStorage.setItem(
-      "__appver_once",
-      JSON.stringify({ version: "0.49.0", minClientVersion: "0.49.0" }),
-    ),
+  await page.evaluate(
+    (v) => sessionStorage.setItem("__appver_once", JSON.stringify({ version: v, minClientVersion: v })),
+    NEXT,
   );
   await page.reload();
   await expect
