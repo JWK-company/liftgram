@@ -66,6 +66,14 @@ COPY core/package.json ./core/
 # 빠뜨리면 설치가 실패하거나(--frozen-lockfile) **패치 없는** lokijs 로 빌드된다.
 COPY patches ./patches
 RUN bun install --frozen-lockfile 2>/dev/null || bun install
+# 패치가 실제로 들어갔는지 단언한다(/qa code P4 L-1) — 위 `|| bun install` 이 lock 을 다시 풀면 lokijs 버전이 바뀌어
+# 패치 키가 맞지 않고 **패치 없이** 조용히 빌드될 수 있다. 설치된 증분 IDB 어댑터 사본 전부에 LOKI_STALE 이 없으면 빌드를 멈춘다. @plm SRS-089
+RUN n=0; for f in $(find node_modules -name incremental-indexeddb-adapter.js -path '*/src/*'); do \
+      grep -q LOKI_STALE "$f" || { echo "lokijs 패치 빠짐: $f (patches/ · patchedDependencies 확인)"; exit 1; }; \
+      n=$((n+1)); \
+    done; \
+    [ "$n" -gt 0 ] || { echo "lokijs 증분 IDB 어댑터를 찾지 못했다"; exit 1; }; \
+    echo "lokijs 패치 확인: $n 곳"
 
 # ── frontend 빌드 ────────────────────────────────────────────────────────────
 FROM oven/bun:1 AS frontend-build

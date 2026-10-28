@@ -3,7 +3,7 @@
 // 「탭」 = 같은 IndexedDB 를 여는 Loki 인스턴스 둘. 패치가 없던 원래 동작(slow path 덮어쓰기)도 함께 재현해,
 // 이 테스트가 실제로 소실을 잡는다는 것을 보인다(옵션을 빼면 B 가 A 의 기록을 지운다).
 import 'fake-indexeddb/auto';
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 
@@ -11,6 +11,25 @@ import { createRequire } from 'node:module';
 const wmRequire = createRequire(createRequire(import.meta.url).resolve('@nozbe/watermelondb/package.json'));
 const Loki = wmRequire('lokijs');
 const IncrementalIDBAdapter = wmRequire('lokijs/src/incremental-indexeddb-adapter');
+
+// ── 간헐 실패 처방(/qa code P4 §8) ─────────────────────────────────────────────────────────────
+// 「Unable to deserialize cloned data」 — node:test 러너는 자식 프로세스의 결과를 v8 직렬화로 stdout 에 싣는다.
+// Watermelon 로거가 stdout 에 [🍉] 줄을 대량으로 찍으면(전체 실행 = 자식 여럿 동시) 그 프레임과 섞일 수 있다 → 로거를 끈다.
+// 또 이 파일이 연 Loki·IDB 연결을 끝에 닫는다(프로세스 종료 때 fake-indexeddb 예약 작업이 남지 않게).
+createRequire(import.meta.url)('@nozbe/watermelondb/utils/common/logger').default.silence();
+const opened: LokiDb[] = [];
+after(async () => {
+  for (const l of opened.splice(0)) {
+    await new Promise<void>((res) => {
+      try {
+        l.close(() => res());
+      } catch {
+        res();
+      }
+      setTimeout(res, 50); // close 콜백이 없을 수도 있다
+    });
+  }
+});
 
 type Opts = Record<string, unknown>;
 type LokiDb = {
@@ -30,6 +49,7 @@ const dbName = () => `liftgram-test-${process.pid}-${++seq}`;
 async function openTab(name: string, adapterOptions?: Opts): Promise<{ loki: LokiDb; adapter: { _prevLokiVersionId: string | null } }> {
   const adapter = new IncrementalIDBAdapter(adapterOptions);
   const loki: LokiDb = new Loki(name, { adapter, autosave: false });
+  opened.push(loki);
   await new Promise<void>((res, rej) => loki.loadDatabase({}, (e) => (e ? rej(e) : res())));
   if (!loki.getCollection('sets')) loki.addCollection('sets');
   return { loki, adapter };
@@ -295,6 +315,7 @@ async function openWm(name: string): Promise<WmAdapter> {
   }) as unknown as WmAdapter;
   // setUp 이 끝날 때까지(첫 질의가 줄을 선다)
   await wmBatch(adapter, []);
+  if (adapter._driver?.loki) opened.push(adapter._driver.loki);
   return adapter;
 }
 
@@ -352,3 +373,62 @@ async function diskSetIds(name: string): Promise<string[]> {
   const { loki } = await openTab(name);
   return ((loki.getCollection('sets')?.find() ?? []) as unknown as Array<{ id: string }>).map((d) => d.id).sort();
 }
+
+test('미리 렌더 보류(/qa code P4 M-2) — 보류 중 저장은 디스크에 닿지 않고 dirty 가 남으며, 풀면 이어 저장된다 · 봉인과 달리 되돌릴 수 있다', async () => {
+  const {
+    __resetWriteGateForTests,
+    holdLocalDbDisk,
+    releaseLocalDbDisk,
+    isLocalDbSealed,
+    acceptsLocalDbWrites,
+    whenLocalDbDiskOpen,
+    lokiGateOptions,
+  } = await import('../../db/writeGate');
+  __resetWriteGateForTests();
+  const name = dbName();
+  holdLocalDbDisk();
+  const p = await openTab(name, lokiGateOptions());
+  addSet(p.loki, 'P1');
+  assert.equal((await save(p.loki))?.code, 'LOKI_SEALED');
+  assert.equal(await diskVersion(name), null, '보류 중에는 디스크에 아무것도 없다');
+  assert.equal(p.loki.autosaveDirty(), true);
+  // 메모리 쓰기는 받는다 · 봉인이 아니다
+  assert.equal(acceptsLocalDbWrites(), true);
+  assert.equal(isLocalDbSealed(), false);
+  let opened = false;
+  const waiting = whenLocalDbDiskOpen().then(() => (opened = true));
+  await new Promise((r) => setTimeout(r, 10));
+  assert.equal(opened, false, '보류가 풀리기 전에는 기다린다');
+  releaseLocalDbDisk();
+  await waiting;
+  assert.equal(await save(p.loki), null);
+  assert.deepEqual(await diskSets(name), ['P1']);
+  __resetWriteGateForTests();
+});
+
+test('미리 렌더 보류 — 보류 중 다른 탭이 저장했으면 풀린 뒤 첫 저장은 거부(덮어쓰지 않음)', async () => {
+  const { __resetWriteGateForTests, holdLocalDbDisk, releaseLocalDbDisk, isLocalDbSealed, lokiGateOptions } = await import(
+    '../../db/writeGate'
+  );
+  __resetWriteGateForTests();
+  const name = dbName();
+  const m = await openTab(name); // 열려 있던 주인 탭(옵션 없음)
+  addSet(m.loki, 'M0');
+  await save(m.loki);
+  holdLocalDbDisk();
+  const p = await openTab(name, lokiGateOptions());
+  addSet(p.loki, 'P1');
+  await save(p.loki); // 보류 — 거부(LOKI_SEALED)
+  addSet(m.loki, 'M1');
+  assert.equal(await save(m.loki), null, '주인 탭은 미리 렌더 문서 때문에 거부되지 않는다');
+  releaseLocalDbDisk();
+  assert.equal((await save(p.loki))?.code, 'LOKI_STALE');
+  assert.equal(isLocalDbSealed(), true);
+  assert.deepEqual(await diskSets(name), ['M0', 'M1']);
+  __resetWriteGateForTests();
+});
+
+test('프레임 판정 — 문서가 없는 환경(node·네이티브)은 프레임이 아니다', async () => {
+  const { isFramedDocument } = await import('../../db/writeGate');
+  assert.equal(isFramedDocument(), false);
+});
