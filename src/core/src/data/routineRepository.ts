@@ -189,15 +189,23 @@ export interface ImportRoutineExercise {
   targetRepsMin?: number | null;
   targetWeightKg?: number | null;
   note?: string | null; // 작성자(상급자)가 남긴 종목별 메모·팁 — 티칭 느낌 전파. @plm SRS-007
+  targetRepsMax?: number | null; // 크리에이터 루틴 반복 범위 위쪽(없으면 기존 12). @plm SRS-091
+  restSeconds?: number | null; // 크리에이터 루틴 휴식(없으면 기존 120). @plm SRS-091
 }
 
-export async function importRoutine(name: string, exercises: ImportRoutineExercise[]): Promise<Routine> {
+export async function importRoutine(
+  name: string,
+  exercises: ImportRoutineExercise[],
+  // 루틴 메모 — 크리에이터 루틴 출처(채널·제목·주소). 없으면 기존처럼 null. @plm SRS-091
+  opts?: { notes?: string | null },
+): Promise<Routine> {
   return database.write(async () => {
     const count = await routines().query(Q.where('is_archived', false)).fetchCount();
     const routine = await routines().create((r) => {
       r.name = name.trim() || '가져온 루틴';
       r.folder = null;
-      r.notes = null;
+      // [원본] r.notes = null;
+      r.notes = opts?.notes?.trim() || null;
       r.sortOrder = count;
       r.isArchived = false;
       r.userId = null;
@@ -209,9 +217,11 @@ export async function importRoutine(name: string, exercises: ImportRoutineExerci
           re.exerciseId = ex.exerciseId;
           re.targetSets = ex.targetSets ?? 3;
           re.targetRepsMin = ex.targetRepsMin ?? 8;
-          re.targetRepsMax = 12;
+          // [원본] re.targetRepsMax = 12;
+          re.targetRepsMax = ex.targetRepsMax ?? 12;
           re.targetWeightKg = ex.targetWeightKg ?? null;
-          re.restSeconds = 120;
+          // [원본] re.restSeconds = 120;
+          re.restSeconds = ex.restSeconds ?? 120;
           re.supersetGroup = null;
           re.sortOrder = i;
           re.note = ex.note?.trim() || null; // 가져온 루틴에 작성자 종목 메모·팁 보존(구: 무조건 null). @plm SRS-007

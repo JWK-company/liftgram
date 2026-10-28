@@ -19,7 +19,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { navigate } from "@/lib/nav";
 import {
-  CONCEPT_ROUTINES,
+  // [원본] CONCEPT_ROUTINES, — 옛 콘셉트 그리드 원복 시 살린다(SRS-091)
+  type CreatorTopic,
+  creatorRoutinesFor,
+  visibleCreatorTopics,
   currentBlockWeek,
   missedCatchUp,
   muscleLabel,
@@ -40,6 +43,7 @@ import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { AppText, Card, EmptyState } from "../ui/primitives";
 import { ScheduleEditor } from "./ScheduleEditor";
+import { CreatorTopicSheet } from "./CreatorRoutineSheet"; // 크리에이터 루틴 @plm SRS-091
 import { AppBar, AppBarAction } from "../ui/AppBar";
 // [원본] import { MoreMenu } from "../ui/MoreMenu"; — 진행 카드의 ⋯ 메뉴(화면 정리 D8 로 렌더 중단)
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
@@ -86,6 +90,8 @@ export default function RoutinesClient() {
   const [todayNum, setTodayNum] = useState(() => localDayNum(Date.now()));
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
   const [concept, setConcept] = useState<ConceptRoutine | null>(null);
+  const [creatorTopic, setCreatorTopic] = useState<CreatorTopic | null>(null); // @plm SRS-091
+  const creatorTopics = useMemo(() => visibleCreatorTopics(), []);
   const [actionsFor, setActionsFor] = useState<Routine | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
   // [원본] const [confirmDiscard, setConfirmDiscard] = useState(false); — 진행 카드 ⋯(D8 로 제거)만 열던 상태(P3 QA L1)
@@ -555,31 +561,60 @@ export default function RoutinesClient() {
           <ListRow href="/program" testId="btn-program" icon="sparkles" title={t("program.title")} />
           <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} />
         </ListGroup>
-        {/* ── 콘셉트 루틴 ── */}
-        <div className="mb-[var(--spacing-sm)]">
-          <AppText variant="label" color="textMuted" className="mb-[4px] block">
-            {t("concept.sectionTitle")}
-          </AppText>
-          <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
-            {CONCEPT_ROUTINES.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                data-testid={`concept-${c.id}`}
-                onClick={() => setConcept(c)}
-                // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
-                className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
-              >
-                <AppText variant="body" className="block truncate font-bold">
-                  {lang === "ko" ? c.nameKo : c.nameEn}
-                </AppText>
-                <AppText variant="label" color="textMuted">
-                  {t("concept.dayCount", { count: c.days.length })}
-                </AppText>
-              </button>
-            ))}
+        {/* [원본] 옛 AI 콘셉트 루틴 4개 그리드 — 사용자 결정(2026-10-28)으로 크리에이터 루틴으로 교체. 원복 시 아래 주석을 풀고 새 섹션을 주석 처리
+        // {/ * ── 콘셉트 루틴 ── * /}
+        // <div className="mb-[var(--spacing-sm)]">
+        //   <AppText variant="label" color="textMuted" className="mb-[4px] block">
+        //     {t("concept.sectionTitle")}
+        //   </AppText>
+        //   <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
+        //     {CONCEPT_ROUTINES.map((c) => (
+        //       <button
+        //         key={c.id}
+        //         type="button"
+        //         data-testid={`concept-${c.id}`}
+        //         onClick={() => setConcept(c)}
+        //         // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
+        //         className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+        //       >
+        //         <AppText variant="body" className="block truncate font-bold">
+        //           {lang === "ko" ? c.nameKo : c.nameEn}
+        //         </AppText>
+        //         <AppText variant="label" color="textMuted">
+        //           {t("concept.dayCount", { count: c.days.length })}
+        //         </AppText>
+        //       </button>
+        //     ))}
+        //   </div>
+        // </div>
+        */}
+        {/* [개선] 콘셉트 루틴 = 크리에이터 루틴 주제(버전 0개 주제는 숨김) @plm SRS-091 */}
+        {creatorTopics.length ? (
+          <div className="mb-[var(--spacing-sm)]">
+            <AppText variant="label" color="textMuted" className="mb-[4px] block">
+              {t("concept.sectionTitle")}
+            </AppText>
+            <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
+              {creatorTopics.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  data-testid={`concept-topic-${c.id}`}
+                  onClick={() => setCreatorTopic(c)}
+                  // min-w-0 이 없으면 긴 이름이 카드를 밀어 화면 전체가 가로로 넘친다(flex 기본값 함정).
+                  className="flex min-w-0 flex-1 flex-col gap-[2px] rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) p-[var(--spacing-md)] text-left"
+                >
+                  <AppText variant="body" className="block truncate font-bold">
+                    {lang === "ko" ? c.nameKo : c.nameEn}
+                  </AppText>
+                  <AppText variant="label" color="textMuted">
+                    {t("creator.topicCount", { count: creatorRoutinesFor(c.id).length })}
+                  </AppText>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {/* ── 대화상자들 ── */}
         {concept ? (
@@ -590,6 +625,22 @@ export default function RoutinesClient() {
             onSaved={(count) => {
               setConcept(null);
               toast(t("concept.savedMessage", { count }));
+            }}
+          />
+        ) : null}
+
+        {creatorTopic ? (
+          <CreatorTopicSheet
+            topic={creatorTopic}
+            existingNames={routines.map((r) => r.name)}
+            onClose={() => setCreatorTopic(null)}
+            onSaved={(made, total) => {
+              setCreatorTopic(null);
+              toast(
+                made < total
+                  ? t("creator.savedPartial", { count: made, total })
+                  : t("creator.savedMessage", { count: made }),
+              );
             }}
           />
         ) : null}

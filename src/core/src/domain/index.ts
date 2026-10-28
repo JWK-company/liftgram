@@ -13,6 +13,7 @@ export * from './prescription'; // @plm SRS-043
 export * from './weeklySchedule'; // @plm SRS-044
 export * from './movementPatterns'; // @plm SRS-047
 export * from './conceptRoutines'; // @plm SRS-047
+export * from './creatorRoutines'; // @plm SRS-091
 export * from './programGenerator';
 export * from './plateCalculator';
 export * from './wellness';

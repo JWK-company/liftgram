@@ -78,7 +78,8 @@ test("진행 중인 운동이 있으면 새로 시작하기 전에 묻는다", a
   await expect(page.getByTestId("active-exists")).toContainText("이어서 하기");
 });
 
-test("콘셉트 루틴을 저장하면 Day 수만큼 루틴이 생긴다", async ({ page }) => {
+// [원본] 옛 AI 콘셉트 루틴(퇴근 후 30분) — 사용자 결정(2026-10-28)으로 화면에서 빠졌다. 새 흐름은 e2e/creator-routines.spec.ts. @plm SRS-091
+test.skip("콘셉트 루틴을 저장하면 Day 수만큼 루틴이 생긴다", async ({ page }) => {
   await 카탈로그_준비(page);
   await page.goto("/");
 
