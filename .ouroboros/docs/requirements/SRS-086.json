@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-086",
+  "type": "SRS",
+  "title": "로그인 유도 강화 — 비로그인 운동 완료 시 보관 권유 시트(1·3번째·이후 주 1회) · 기기에만 쌓인 기록 띠 1건부터·하루 접기",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T01:00:00Z",
+  "updated": "2026-10-28T01:00:00Z",
+  "sync": true,
+  "tags": [
+    "auth",
+    "data-safety",
+    "onboarding"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "비로그인 완료 1·3번째와 그 뒤 7일마다 권유 시트 · 띠는 미동기 사용자 기록 1건부터 · 「나중에」 24시간 · 로그인하면 기기 기록이 그 계정으로 올라감(기존)",
+  "relations": {
+    "derives_from": [
+      "URS-027"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "로그인하지 않은 기기에서 운동을 완료하면, 시스템은 완료 요약 위에 「이 기록은 이 폰에만 있어요」 권유 시트를 띄운다. 시트는 이 기기의 비로그인 완료 1번째·3번째에 뜨고, 그 뒤로는 마지막으로 보인 때부터 7일이 지난 다음 완료에 뜬다. 시트의 주 행동은 로그인(가입) 화면으로 가는 것이고 「나중에」로 닫을 수 있다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "화면 위 「이 기기에만 있는 기록」 띠는 올라가지 않은 사용자 기록이 1건 이상이면 뜨고, 「나중에」는 24시간 접는다. 로그인하면 기기의 기록이 그 계정으로 올라가는 기존 동작은 그대로다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "비로그인 1·2·3·4번째 완료에서 시트는 1·3번째에만 보이고, 3번째에서 7일 뒤 완료에 다시 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "로그인 상태에서는 시트·로컬 띠가 보이지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "띠는 기록 1건에서 뜨고 「나중에」 뒤 24시간 안 보였다가 다시 뜬다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "시트가 루틴 저장·반영 질문과 겹치지 않는다(그 질문이 끝난 뒤 뜬다)."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-027. 이전 동작 SRS-053(5건·7일)."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-087",
+  "type": "SRS",
+  "title": "서버 백업 검증·월 복원 시험·결과 기록 — 백업은 DB와 다른 디스크(h2500-3 /home)에, 매일 결과·매월 복원 시험을 DB 표에 남김",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T01:00:00Z",
+  "updated": "2026-10-28T01:00:00Z",
+  "sync": true,
+  "tags": [
+    "backup",
+    "ops",
+    "server"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "매일 백업 결과(성공·크기·테이블 수·남은 디스크)와 월 1회 복원 시험(임시 DB 복원·행 수 대조) 결과가 ops_backup_runs 에 남는다",
+  "relations": {
+    "derives_from": [
+      "URS-027"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "매일 백업 스크립트는 덤프를 DB와 다른 물리 디스크(h2500-3 /home)에 남기고, 덤프가 읽히는지 확인한 결과(성공 여부·크기·테이블 데이터 수·백업 디스크 남은 공간)를 운영 DB의 백업 기록 표에 한 줄 남긴다. 실패해도 그 실패를 남긴다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "매월 1일 복원 시험은 가장 최근 덤프를 같은 DB 서버의 임시 데이터베이스에 되살려, 핵심 표(users·sync_records)의 행 수를 운영 DB와 대조하고 결과를 남긴 뒤 임시 DB를 지운다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "백업이 성공하면 kind=daily ok=true 한 줄이, 덤프가 비거나 읽히지 않으면 ok=false 한 줄이 생긴다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "복원 시험은 임시 DB를 남기지 않고, 행 수 차이가 0이거나 백업 뒤 늘어난 만큼(운영 ≥ 복원)이면 ok=true다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "백업 디스크 여유가 20GB 아래면 결과에 경고가 실린다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-027. 이전 SRS-049(백업). 표시는 SRS-088."
+          }
+        ]
+      }
+    ]
+  }
+}

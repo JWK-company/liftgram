@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-027",
+  "type": "URS",
+  "title": "정식 오픈 전, 사용자 운동 기록이 조용히 사라지는 일을 막고 운영진이 먼저 알고 싶다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T01:00:00Z",
+  "updated": "2026-10-28T01:00:00Z",
+  "sync": true,
+  "tags": [
+    "data-safety",
+    "ops",
+    "sync",
+    "backup"
+  ],
+  "stakeholder": "모든 사용자(특히 로그인하지 않은 사용자)·운영진(admin)",
+  "priority": "High",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경 / 이해관계자"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "2026-10 옛 앱의 동기가 8월부터 두 달간 조용히 실패해 운영진 두 명의 기록이 폰에만 남았다. 주소 이전 뒤 복구 페이지로 겨우 되살렸고, 운영진은 사용자가 말할 때까지 몰랐다. 정식 오픈 뒤 같은 일이 일반 사용자에게 생기면 신뢰를 잃는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이해관계자: 로그인하지 않고 쓰는 사용자 · 로그인 사용자 · 매일 앱으로 운동하는 운영진(admin 계정)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "로그인하지 않은 사용자가 기록이 이 폰에만 있다는 것을 알고, 쉽게 로그인해 보관하기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운영진은 메일이 아니라 평소 쓰는 앱 안에서, 동기가 멈춘 사용자와 서버 백업 이상을 먼저 알기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "서버 DB 백업이 실제로 되살릴 수 있는 상태인지 정기적으로 확인되기를 원한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "같은 폰에서 탭을 두 개 열어도 기록이 덮여 사라지지 않기를 원한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "로그인하지 않은 기기에서 첫 운동을 마치면 로그인 권유가 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "동기가 하루 넘게 실패하는 사용자가 생기면 admin 계정 프로필 탭에 점이 켜지고 운영 상태 화면에 그 사용자가 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "월 1회 복원 시험 결과가 운영 상태 화면에 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "두 탭을 번갈아 써도 어느 탭에서 쓴 기록도 사라지지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

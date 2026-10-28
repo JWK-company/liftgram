@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-088",
+  "type": "SRS",
+  "title": "운영 상태 화면(admin) — 기기 동기 건강 보고·N일째 멈춘 사용자·백업 상태 · 문제 있을 때 프로필 탭 점",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T01:00:00Z",
+  "updated": "2026-10-28T01:00:00Z",
+  "sync": true,
+  "tags": [
+    "ops",
+    "admin",
+    "sync"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "기기가 동기 건강을 서버에 보고 · admin 만 프로필 › 운영 상태에서 사용자별 상태·멈춘 사용자·백업 상태를 보고, 문제가 있으면 프로필 탭에 점",
+  "relations": {
+    "derives_from": [
+      "URS-027"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "로그인한 기기는 동기를 시도한 뒤(성공·실패 모두, 기기당 10분에 한 번 이하, 실패가 바뀐 순간은 즉시) 동기와 별개의 가벼운 호출로 자기 동기 건강(마지막 성공·시도 시각, 연속 실패, 안 올라간 기록 수, 멈춤 여부, 마지막 오류 앞부분, 앱 버전)을 서버에 보고한다. 서버는 사용자·기기별 최신 한 줄만 둔다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "admin 계정은 프로필 › 「운영 상태」에서 사용자별 상태, 하루 넘게 동기가 성공하지 않았는데 올라갈 기록이 있는 사용자 목록, 백업 상태(마지막 일일 백업·마지막 복원 시험)를 본다. 그런 사용자가 있거나 백업이 36시간 넘게 성공하지 않았거나 복원 시험이 40일 넘었거나 실패했으면, admin의 하단 프로필 탭에 빨간 점이 켜진다. admin이 아니면 화면·호출 모두 막힌다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "연속 3회 실패하는 기기의 보고가 서버에 남고 운영 상태 화면 멈춘 사용자 목록에 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "admin 이 아닌 계정은 운영 상태 호출이 권한 오류이고 프로필에 줄이 없다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "문제가 없으면 점이 없고, 생기면 점이 켜진다(앱을 열 때·10분마다 확인)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "사용자는 이메일 앞부분과 이름으로만 보인다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "derives_from: URS-027. 기기 쪽 건강 = SRS-053."
+          }
+        ]
+      }
+    ]
+  }
+}
