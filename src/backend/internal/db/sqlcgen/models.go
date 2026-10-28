@@ -49,6 +49,20 @@ type CatalogNew struct {
 	MediaRef         *string
 }
 
+type ClientHealth struct {
+	UserID              string
+	DeviceID            string
+	AppVersion          string
+	LastSuccessAt       pgtype.Timestamptz
+	LastAttemptAt       pgtype.Timestamptz
+	ConsecutiveFailures int32
+	Pending             *int32
+	Blocked             bool
+	LastError           *string
+	FirstReportedAt     pgtype.Timestamptz
+	ReportedAt          pgtype.Timestamptz
+}
+
 type CoachingAudit struct {
 	ID        string
 	GrantID   string
@@ -175,6 +189,18 @@ type Notification struct {
 	PostID    *string
 	ReadAt    pgtype.Timestamptz
 	CreatedAt pgtype.Timestamptz
+}
+
+type OpsBackupRun struct {
+	ID            int64
+	Kind          string
+	Ok            bool
+	SizeBytes     *int64
+	Tables        *int32
+	DiskFreeBytes *int64
+	Detail        *string
+	Counts        []byte
+	CreatedAt     pgtype.Timestamptz
 }
 
 type Post struct {

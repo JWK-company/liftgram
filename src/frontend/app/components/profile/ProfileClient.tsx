@@ -47,6 +47,7 @@ import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { Icon } from "../ui/Icon";
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
@@ -59,6 +60,7 @@ import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 // import buildInfo from "../../build-info.json";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppVersionRow } from "./AppVersionRow"; // 앱 버전 줄 + 업데이트 버튼 @plm SRS-085
+import { useOpsAlert } from "@/lib/opsAlert"; // 운영 경보 점(admin) @plm SRS-088
 
 type Language = "ko" | "en";
 
@@ -98,6 +100,7 @@ export default function ProfileClient() {
   } = useUser();
   const toast = useToast();
   const { user: account } = useAuth();
+  const opsAlert = useOpsAlert(); // admin 이 아니면 늘 꺼져 있다(lib/opsAlert 가 묻지 않는다) @plm SRS-088
   const [busy, setBusy] = useState(false);
   const [customLabels, setCustomLabels] = useState<string[]>(() => {
     const a = machineVariantLabels.slice(0, CUSTOM_VARIANT_COUNT);
@@ -355,6 +358,28 @@ export default function ProfileClient() {
                   icon="flag-outline"
                   title={t("moderation.entry")}
                   href="/moderation"
+                />
+              ) : null}
+              {/* 운영 상태(/ops)는 admin 에게만 — 경보면 줄 오른쪽 빨간 점. 판정은 서버가 DB 역할로 한다. @plm SRS-088 */}
+              {account.role === Role.ADMIN ? (
+                <ListRow
+                  testId="row-ops"
+                  icon="stats-chart"
+                  title={t("ops.entry")}
+                  href="/ops"
+                  trailing={
+                    <span className="flex items-center gap-[var(--spacing-sm)]">
+                      {opsAlert.alert ? (
+                        <span
+                          data-testid="row-ops-dot"
+                          className="h-[8px] w-[8px] rounded-full bg-(--color-bad)"
+                          role="img"
+                          aria-label={t("ops.needsCheck")}
+                        />
+                      ) : null}
+                      <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+                    </span>
+                  }
                 />
               ) : null}
             </>

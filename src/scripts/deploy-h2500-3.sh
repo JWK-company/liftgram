@@ -134,6 +134,29 @@ $SSH "docker builder prune -f --keep-storage ${CACHE_CAP_GB}GB 2>&1 | tail -1
   docker image prune -f --filter 'label=project=liftgram' --filter 'until=${IMAGE_KEEP_H}h' 2>&1 | tail -1
   df -h / | tail -1"
 
+# ── 백업 cron 확인 — @plm SRS-087 ────────────────────────────────────────────────
+# 사용자 crontab 에 매일 백업·월 복원 시험 두 줄이 있어야 한다. 없으면 더하고 알린다 · 있으면 그대로 둔다.
+# 빈 crontab 은 `crontab -l` 이 1 로 끝난다 → set -e 에 안 걸리게 `|| true`(qa spec L-4). 중복은 스크립트 경로로 grep 해 막는다
+# (시각을 사람이 손으로 바꿔 둔 줄도 「있음」으로 본다).
+echo "── 백업 cron 확인 ──"
+$SSH 'set -e
+  chmod +x $HOME/liftgram/src/scripts/backup-h2500-3.sh $HOME/liftgram/src/scripts/restore-test-h2500-3.sh
+  cur=$(crontab -l 2>/dev/null || true)
+  new="$cur"
+  added=""
+  B="17 4 * * * \$HOME/liftgram/src/scripts/backup-h2500-3.sh >> \$HOME/liftgram/backups/backup.log 2>&1"
+  R="47 4 1 * * \$HOME/liftgram/src/scripts/restore-test-h2500-3.sh >> \$HOME/liftgram/backups/backup.log 2>&1"
+  printf "%s\n" "$cur" | grep -q "liftgram/src/scripts/backup-h2500-3.sh" || { new="${new:+$new
+}$B"; added="$added 매일백업"; }
+  printf "%s\n" "$cur" | grep -q "liftgram/src/scripts/restore-test-h2500-3.sh" || { new="${new:+$new
+}$R"; added="$added 복원시험"; }
+  if [ -n "$added" ]; then
+    printf "%s\n" "$new" | crontab -
+    echo "  ⚠ crontab 에 추가:$added — 첫 배포면 두 스크립트를 손으로 한 번씩 돌려 첫 줄을 만든다(운영 화면 「기록 없음」 방지)"
+  else
+    echo "  crontab 두 줄 있음(매일 백업 · 월 복원 시험)"
+  fi'
+
 $SSH "echo $DEPLOY_SHA > $REMOTE/DEPLOYED_REF; echo $VERSION > $REMOTE/DEPLOYED_VERSION"
 # 배포된 버전에 태그를 단다 — 「v0.18.2 에 무엇이 들어 있었나」를 git 이 답하게.
 if git -C "$ROOT" rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then

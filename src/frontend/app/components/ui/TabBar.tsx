@@ -12,9 +12,11 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../AuthProvider";
 import { isInsider } from "../FeedbackClient";
+import { Role } from "@app/contracts";
 import { LogoSpinner } from "./LogoSpinner";
 import { useAppUpdate } from "@/lib/appUpdate";
-import { tw } from "@/lib/i18n";
+import { t as tr, tw } from "@/lib/i18n";
+import { useOpsAlert } from "@/lib/opsAlert";
 
 /** 탭바 없이 전체 화면으로 여는 인증 흐름(SRS-054 P3). /account 는 프로필의 하위 화면이라 탭바를 둔다. */
 const AUTH_ROUTES = ["/signin", "/signup", "/forgot", "/reset", "/verify-email", "/auth"];
@@ -67,7 +69,9 @@ const TABS: Tab[] = [
     href: "/profile",
     label: "프로필",
     testId: "nav-profile",
-    match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
+    // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
+    // [개선] 운영 상태(/ops)도 프로필의 하위 화면이다 @plm SRS-088
+    match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked", "/ops"),
   },
 ];
 
@@ -155,6 +159,9 @@ export function TabBar() {
   const { user } = useAuth();
   // 새 버전이 기다리면 프로필 탭에 조용한 점(빨강·금색 아님 — 화면 정리 규칙) @plm SRS-085
   const { available: updateAvailable } = useAppUpdate();
+  // admin 이고 운영 경보면 프로필 탭에 빨간 점 — 업데이트 회색 점보다 우선(같이면 빨강만) @plm SRS-088
+  const { alert: opsAlert } = useOpsAlert();
+  const opsDot = opsAlert && user?.role === Role.ADMIN;
   if (pathname.startsWith("/workout")) return null;
   // 로그인·가입·비밀번호·확인 화면은 전체 화면이다(시안 10) — 탭바가 아래 내용을 가리던 자리.
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) return null;
@@ -190,7 +197,15 @@ export function TabBar() {
             ) : null}
             <span className="relative inline-flex">
               <TabIcon k={t.key} />
-              {t.key === "profile" && updateAvailable ? (
+              {t.key === "profile" && opsDot ? (
+                <span
+                  aria-hidden
+                  data-testid="nav-profile-ops-dot"
+                  className="absolute -top-[1px] -right-[3px] h-[7px] w-[7px] rounded-full bg-(--color-bad) ring-2 ring-(--color-surface)"
+                />
+              ) : null}
+              {/* [원본] {t.key === "profile" && updateAvailable ? ( — [개선] 운영 점이 있으면 회색 점은 그리지 않는다 @plm SRS-088 */}
+              {t.key === "profile" && updateAvailable && !opsDot ? (
                 <span
                   aria-hidden
                   data-testid="nav-profile-update-dot"
@@ -200,6 +215,9 @@ export function TabBar() {
             </span>
             <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>
               {t.label}
+              {t.key === "profile" && opsDot ? (
+                <span className="sr-only">{` · ${tr("ops.needsCheck")}`}</span>
+              ) : null}
               {t.key === "profile" && updateAvailable ? (
                 <span className="sr-only">{` · ${tw("web.sw.hasUpdate")}`}</span>
               ) : null}

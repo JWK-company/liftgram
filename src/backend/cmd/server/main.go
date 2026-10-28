@@ -49,6 +49,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/gen/meta/v1/metav1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/moderation/v1/moderationv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/notification/v1/notificationv1connect"
+	"github.com/JWK-company/liftgram/src/backend/gen/ops/v1/opsv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/story/v1/storyv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/sync/v1/syncv1connect"
 	"github.com/JWK-company/liftgram/src/backend/internal/auth"
@@ -68,6 +69,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/moderation"
 	"github.com/JWK-company/liftgram/src/backend/internal/notification"
 	"github.com/JWK-company/liftgram/src/backend/internal/oauth"
+	"github.com/JWK-company/liftgram/src/backend/internal/ops"
 	"github.com/JWK-company/liftgram/src/backend/internal/realtime"
 	"github.com/JWK-company/liftgram/src/backend/internal/story"
 	syncdomain "github.com/JWK-company/liftgram/src/backend/internal/sync"
@@ -284,6 +286,13 @@ func main() {
 	moderationSvc := moderation.NewService(moderation.NewRepo(pool), uuid.NewString)
 	moderationPath, moderationHTTP := moderationv1connect.NewModerationServiceHandler(moderation.NewHandler(moderationSvc), opts)
 	mount(mux, moderationPath, moderationHTTP)
+
+	// ── 운영 상태(SRS-088) ──
+	// 기기 동기 건강 보고(로그인 누구나 · 동기와 다른 길) + admin 운영 화면. admin 판정은 service 가 claim 뒤 DB 역할로 한다.
+	// @plm SRS-088
+	opsSvc := ops.NewService(ops.NewRepo(pool), time.Now)
+	opsPath, opsHTTP := opsv1connect.NewOpsServiceHandler(ops.NewHandler(opsSvc), opts)
+	mount(mux, opsPath, opsHTTP)
 
 	// ── 스토리 ──
 	// 24시간 뒤 안 보인다. 시계는 주입한다(테스트가 시간을 움직일 수 있게).

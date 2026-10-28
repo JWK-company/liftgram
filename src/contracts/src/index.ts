@@ -23,6 +23,7 @@ export * from "../gen/feedback/v1/feedback_pb";
 export * from "../gen/sync/v1/sync_pb";
 export * from "../gen/coaching/v1/coaching_pb";
 export * from "../gen/meta/v1/meta_pb";
+export * from "../gen/ops/v1/ops_pb"; // @plm SRS-088
 
 /**
  * 브라우저가 보는 경로.

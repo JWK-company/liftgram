@@ -3,7 +3,7 @@
 //
 // 셸에 한 번 올려 두고, 새로고침하면 저장된 refresh로 조용히 세션을 되살린다.
 // **로그인하지 않은 상태가 정상**이다 — user가 null이어도 화면 대부분은 그대로 동작한다.
-import { type User, UserSchema } from "@app/contracts";
+import { Role, type User, UserSchema } from "@app/contracts";
 import { fromJson, toJson } from "@bufbuild/protobuf";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -26,6 +26,8 @@ import {
   watchSyncTriggers,
 } from "@/lib/syncTransport";
 import { parseLastLogin } from "@/lib/last-login";
+import { installClientHealthReport, setClientHealthUser } from "@/lib/clientHealth"; // @plm SRS-088
+import { setOpsAlertViewer } from "@/lib/opsAlert"; // @plm SRS-088
 
 interface AuthValue {
   /** 로그인하지 않았으면 null. 아직 확인 중이어도 null이다(loading으로 구분한다). */
@@ -125,6 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // core의 동기 규칙에 "말하는 방법"을 꽂는다. 이 전까지 저장소의 예약은 아무 일도 하지 않는다.
     installSync();
     const stopTriggers = watchSyncTriggers();
+    // 동기를 시도한 뒤 이 기기 상태를 운영진에게 보고한다(동기와 다른 길 · 로그인일 때만) @plm SRS-088
+    const stopHealth = installClientHealthReport();
     void load();
     // 다른 탭에서 로그아웃하면 여기도 따라간다.
     const stopSession = onSessionChange(() => {
@@ -133,8 +137,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       stopTriggers();
       stopSession();
+      stopHealth();
     };
   }, [load, setUser]);
+
+  // 신원이 바뀔 때마다 — 건강 보고의 주인 · admin 이면 운영 경보 점을 묻기 시작(로그인 직후) @plm SRS-088
+  useEffect(() => {
+    setClientHealthUser(user?.id ?? null);
+    setOpsAlertViewer(user?.id ?? null, user?.role === Role.ADMIN);
+  }, [user?.id, user?.role]);
 
   const value = useMemo<AuthValue>(
     () => ({

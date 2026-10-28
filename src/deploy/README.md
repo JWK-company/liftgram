@@ -9,7 +9,7 @@ booktarae(`booktarae.org`)와 같은 방식이다. 도메인을 따로 사지 �
 | 화면 + API | 공용 서버 **h2500-3**의 docker compose(`-p liftgram -f compose.yaml -f compose.prod.yaml`) · frontend는 `127.0.0.1:3410`에만 열린다 |
 | 공개 주소 | Cloudflare 터널의 공개 호스트명 `liftgram.tarae.org` → `http://localhost:3410` |
 | PostgreSQL | **같은 서버의 compose db**(named volume `liftgram_pgdata` · 호스트 비노출). 2026-10-26 Neon에서 옮겨 왔다(DB 왕복 220ms → 7ms) |
-| 백업 | `scripts/backup-h2500-3.sh`(crontab 04:17) — DB 매일 14개 · 사진 매주 4개 · `~/liftgram/backups/`. ⚠ 같은 디스크다 |
+| 백업 | `scripts/backup-h2500-3.sh`(crontab 04:17) — DB 매일 14개 · 사진 매주 4개 · `~/liftgram/backups/`(/home = DB volume 과 다른 물리 디스크). 끝날 때마다 결과를 `ops_backup_runs` 에 한 줄(덤프와 같은 스냅샷의 행 수 포함) · 월 1회 `scripts/restore-test-h2500-3.sh`(crontab 매월 1일 04:47)가 임시 DB 로 되살려 행 수를 대조한다 · 결과는 admin `/ops` 에 보인다(SRS-087·088). 두 cron 줄은 배포 스크립트가 확인·추가한다 |
 | Redis | compose의 broker(호스트에 노출하지 않음) |
 | 사진 | 서버 디스크(named volume `liftgram_media`) — 재배포해도 남는다 |
 

@@ -1,0 +1,138 @@
+// @plm SRS-088  운영 상태 계약 — 기기 동기 건강 보고 · 운영진(admin) 화면 · 탭 빨간 점
+// @plm SRS-087  백업 결과(매일 백업 · 월 복원 시험)를 운영 화면에 싣는다
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// 2026-10 사고: 옛 앱의 동기가 두 달 동안 조용히 실패했는데, 경고는 **사용자 화면에만** 있어 운영진은 몰랐다.
+// 그래서 기기가 동기를 시도한 뒤 자기 상태를 보고하고, 운영진은 앱 안(/ops)에서 한눈에 본다.
+//
+// ── 보고는 동기와 다른 길이다 ──────────────────────────────────────────────
+// 동기가 죽을 때 보고가 가장 필요하다 — 그래서 SyncService 가 아니라 이 서비스로 따로 보낸다.
+// 로그인만 하면 누구나(역할 무관) 보낸다. 서버는 길이·범위를 자르고, 사용자당 최신 8줄·분당 6회로 묶는다.
+//
+// ── 시각은 「나이」로 받는다 ────────────────────────────────────────────────
+// 기기 시계는 몇 시간·며칠씩 틀어져 있을 수 있다. 그래서 기기는 「지금 − 그 시각」(ms)을 보내고,
+// 서버가 자기 시계로 시각을 다시 계산한다(qa spec H-2). 「24시간 넘게 성공 없음」이 기기 시계와 무관해진다.
+//
+// ── 읽기는 admin 만 ────────────────────────────────────────────────────────
+// 이메일 앞부분·이름·오류 앞부분이 실린다(전문은 싣지 않는다). 판정은 서버가 한다 — 토큰 claim 으로 빠르게
+// 거르고, DB 의 users.role 을 다시 읽어 확인한다(claim 은 최대 15분 낡았다 — qa spec M-8).
+// 화면이 줄·점을 숨기는 것은 안내일 뿐이다.
+// ─────────────────────────────────────────────────────────────────────────────
+syntax = "proto3";
+
+package ops.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/ops/v1;opsv1";
+
+message ReportClientHealthRequest {
+  // 기기 id 해시(sha256(device_id + user_id) 앞 16자). 서버는 [A-Za-z0-9_-]{1,64} 만 받는다.
+  // 계약의 상한은 본문 크기만 묶는다 — 자르기·문자 검사는 service 가 한다.
+  string device_id = 1 [(buf.validate.field).string = {max_len: 128}];
+  // 서버가 32자로 자른다.
+  string app_version = 2 [(buf.validate.field).string = {max_len: 128}];
+  // 기기 now − 마지막 성공 시각(ms). 한 번도 성공 못 했으면 비운다. 음수는 0 으로 본다.
+  optional int64 success_age_ms = 3;
+  // 기기 now − 마지막 시도 시각(ms). 시도가 없었으면 비운다.
+  optional int64 attempt_age_ms = 4;
+  // 서버가 0..10000 으로 자른다.
+  int32 consecutive_failures = 5;
+  // 올라가지 않은 사용자 기록 수 · 모르면 비운다. 서버가 0..10^7 로 자른다.
+  optional int32 pending = 6;
+  // 다른 계정의 기록이 남아 동기를 멈춘 상태.
+  bool blocked = 7;
+  // 마지막 실패의 진단용 원문 — 서버가 제어문자를 지우고 200자로 자른다.
+  string last_error = 8 [(buf.validate.field).string = {max_len: 4000}];
+}
+
+message ReportClientHealthResponse {}
+
+// 기기 한 대의 마지막 보고(시각은 서버가 다시 계산한 값).
+message DeviceHealth {
+  string device_id = 1;
+  string app_version = 2;
+  google.protobuf.Timestamp last_success_at = 3;
+  google.protobuf.Timestamp last_attempt_at = 4;
+  int32 consecutive_failures = 5;
+  // 모르면 -1.
+  int32 pending = 6;
+  bool blocked = 7;
+  string last_error = 8;
+  google.protobuf.Timestamp first_reported_at = 9;
+  google.protobuf.Timestamp reported_at = 10;
+}
+
+message OpsUser {
+  string user_id = 1;
+  // `@` 앞 3글자 + `…` (전체 주소는 싣지 않는다).
+  string email_hint = 2;
+  string display_name = 3;
+  // 서버 관점 마지막 동기 쓰기(max sync_records.updated_at) · 없으면 비어 있다.
+  google.protobuf.Timestamp last_sync_at = 4;
+  // 마지막 활동(토큰 갱신 · refresh_tokens max created_at) — 「마지막 로그인」이 아니다(qa spec M-10).
+  google.protobuf.Timestamp last_active_at = 5;
+  // 90일 안 보고 줄 전부 · 최신순.
+  repeated DeviceHealth devices = 6;
+}
+
+// 동기가 멈춘 기기 — 판정 식은 기기의 isBackupStalled(core/src/domain/syncStall.ts)와 같다.
+message StalledDevice {
+  string user_id = 1;
+  string email_hint = 2;
+  string display_name = 3;
+  DeviceHealth device = 4;
+  // now − 마지막 성공(없으면 첫 보고)의 날 수(내림).
+  int32 days = 5;
+}
+
+message BackupRun {
+  // "daily" | "restore_test"
+  string kind = 1;
+  bool ok = 2;
+  int64 size_bytes = 3;
+  int32 tables = 4;
+  int64 disk_free_bytes = 5;
+  string detail = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message BackupStatus {
+  // 줄이 없으면 비어 있다.
+  BackupRun last_daily = 1;
+  google.protobuf.Timestamp last_ok_daily_at = 2;
+  BackupRun last_restore_test = 3;
+}
+
+message GetOpsStatusRequest {}
+
+message GetOpsStatusResponse {
+  repeated OpsUser users = 1;
+  repeated StalledDevice stalled = 2;
+  BackupStatus backup = 3;
+  bool alert = 4;
+  // 경보 이유 코드(화면이 문구로 바꾼다):
+  //   stalled · daily_none · daily_stale(마지막 성공 daily 36시간 넘음) · restore_none · restore_old(40일 넘음)
+  //   · restore_failed · low_disk
+  repeated string alert_reasons = 5;
+  google.protobuf.Timestamp server_now = 6;
+}
+
+message GetOpsAlertRequest {}
+
+// 탭 점용 가벼운 답 — 사용자 목록을 싣지 않는다.
+message GetOpsAlertResponse {
+  bool alert = 1;
+  // 경보 이유 수.
+  int32 count = 2;
+}
+
+service OpsService {
+  // 로그인 필수 · 역할 무관. 분당 6회를 넘으면 조용히 무시한다(오류 없이 빈 답).
+  rpc ReportClientHealth(ReportClientHealthRequest) returns (ReportClientHealthResponse) {}
+
+  // 여기부터는 admin 만(claim 뒤 DB 역할 재확인).
+  rpc GetOpsStatus(GetOpsStatusRequest) returns (GetOpsStatusResponse) {}
+  rpc GetOpsAlert(GetOpsAlertRequest) returns (GetOpsAlertResponse) {}
+}
