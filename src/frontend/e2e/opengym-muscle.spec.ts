@@ -7,6 +7,7 @@
 //   4. 통계: 근육 섹션은 하나(옛 「근육군 분포」 없음) · 줄 숫자 · 주 이동 ‹ › · 「안 한 근육」 칩 → 카탈로그 부위 필터(양방향)
 //   5. 대비(칠한 구역·윤곽선 vs 바탕 ≥3:1 · 글자 ≥4.5:1) — 화면의 실제 계산된 색으로 잰다(라이트·다크)
 //   6. 360·390 좌표 겹침(카드 글자·그림·버튼 / 시트 줄 / 통계 줄)
+//   7. (SRS-090) 그림 = MuscleMap 실제 근육 · 안 한 근육 = 회색 칠 · 1~3단계 = 주황 농도+brand 윤곽선 · 프로필 → 오픈소스 고지
 // SHOTS=1 이면 라이트·다크 캡처를 .ouroboros-work/shots/p2/ 에 남긴다(커밋 안 함).
 import { expect, test } from "@playwright/test";
 import { 마치기, 세트_기록, 세트_줄, 안내_띠_닫기, 내려쓰기_대기, 준비 } from "./helpers/opengym";
@@ -78,6 +79,10 @@ async function 대비_재기(
   fill2: number | null;
   outline1: number | null;
   outline0: number | null;
+  /** SRS-090: 2단계는 칠 또는 윤곽선 중 센 쪽 · 0단계는 회색 바탕 칠(장식 실루엣 — 모양만 보이면 됨) */
+  outline2: number | null;
+  outline3: number | null;
+  fill0: number | null;
 }> {
   return page.evaluate((tid) => {
     const parse = (s: string): [number, number, number, number] => {
@@ -130,8 +135,20 @@ async function 대비_재기(
       fill2: z2 ? ratio(fillOf(z2), bg) : null,
       outline1: z1 ? ratio(strokeOf(z1), bg) : null,
       outline0: z0 ? ratio(strokeOf(z0), bg) : null,
+      outline2: z2 ? ratio(strokeOf(z2), bg) : null,
+      outline3: z3 ? ratio(strokeOf(z3), bg) : null,
+      fill0: z0 ? ratio(fillOf(z0), bg) : null,
     };
   }, svgTestId);
+}
+
+/** SRS-090 /qa M-1: 윤곽선이 3:1 을 대신 채워도 칠 자체의 순서(0 < 1 < 2 < 3 · 바탕 대비)는 따로 지킨다 — 칠이 사라지거나 단계가 뒤집히는 회귀 가드 */
+function 칠_순서(c: { fill0: number | null; fill2: number | null; fill3: number }, 어디: string): void {
+  expect(c.fill3, `${어디}: 3단계 칠이 보여야 함`).toBeGreaterThanOrEqual(2.5);
+  if (c.fill2 !== null) expect(c.fill2, `${어디}: 2단계 칠 < 3단계`).toBeLessThan(c.fill3);
+  if (c.fill2 !== null && c.fill0 !== null)
+    expect(c.fill0, `${어디}: 안 한 근육 < 2단계`).toBeLessThan(c.fill2);
+  if (c.fill0 !== null) expect(c.fill0, `${어디}: 안 한 근육 < 3단계`).toBeLessThan(c.fill3);
 }
 
 async function 글자_대비(l: Locator): Promise<number> {
@@ -330,10 +347,12 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
 
   // 대비(라이트) — 통계 그림
   const cLight = await 대비_재기(page, "muscle-balance-map");
-  expect(cLight.fill3).toBeGreaterThanOrEqual(3);
-  if (cLight.fill2 !== null) expect(cLight.fill2).toBeGreaterThanOrEqual(3);
+  expect(Math.max(cLight.fill3, cLight.outline3 ?? 0)).toBeGreaterThanOrEqual(3); // SRS-090: 칠 또는 brand 윤곽선
+  칠_순서(cLight, "통계 라이트");
+  if (cLight.fill2 !== null) expect(Math.max(cLight.fill2, cLight.outline2 ?? 0)).toBeGreaterThanOrEqual(3);
   if (cLight.outline1 !== null) expect(cLight.outline1).toBeGreaterThanOrEqual(3);
-  expect(cLight.outline0 ?? 0).toBeGreaterThanOrEqual(3);
+  // [원본] expect(cLight.outline0 ?? 0).toBeGreaterThanOrEqual(3); — 옛 실루엣(윤곽선만) 기준
+  expect(cLight.fill0 ?? 0).toBeGreaterThanOrEqual(1.15); // SRS-090: 안 한 근육 = 회색 칠(모양만 보이면 됨)
   expect(
     await 글자_대비(bal.getByTestId("muscle-balance-row-chest").locator("span").nth(1)),
   ).toBeGreaterThanOrEqual(4.5);
@@ -403,9 +422,11 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
       expect(slot.x >= cardBox.x && slot.x + slot.width <= cardBox.x + cardBox.width).toBe(true);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       const cMini = await 대비_재기(page, "routine-muscle-mini");
-      expect(cMini.fill3).toBeGreaterThanOrEqual(3);
-      if (cMini.fill2 !== null) expect(cMini.fill2).toBeGreaterThanOrEqual(3);
-      expect(cMini.outline0 ?? 0).toBeGreaterThanOrEqual(3);
+      expect(Math.max(cMini.fill3, cMini.outline3 ?? 0)).toBeGreaterThanOrEqual(3); // SRS-090: 칠 또는 brand 윤곽선
+      칠_순서(cMini, "오늘 카드 mini");
+      if (cMini.fill2 !== null) expect(Math.max(cMini.fill2, cMini.outline2 ?? 0)).toBeGreaterThanOrEqual(3);
+      // [원본] expect(cMini.outline0 ?? 0).toBeGreaterThanOrEqual(3); — 옛 실루엣(윤곽선만) 기준
+      expect(cMini.fill0 ?? 0).toBeGreaterThanOrEqual(1.15); // SRS-090: 안 한 근육 = 회색 칠(모양만 보이면 됨)
       expect(await 글자_대비(card.getByTestId("routine-muscle-focus"))).toBeGreaterThanOrEqual(4.5);
       if (w === 360) console.log(`대비 ${scheme}(오늘 카드 mini)`, JSON.stringify(cMini));
       await 캡처(page, `home-todaycard-${w}-${scheme}`, card);
@@ -433,8 +454,10 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
         if (i > 0) expect(겹침(r, await 상자(rows.nth(i - 1)))).toBe(false);
       }
       const cSheet = await 대비_재기(page, "muscle-sheet-map");
-      expect(cSheet.fill3).toBeGreaterThanOrEqual(3);
-      expect(cSheet.outline0 ?? 0).toBeGreaterThanOrEqual(3);
+      expect(Math.max(cSheet.fill3, cSheet.outline3 ?? 0)).toBeGreaterThanOrEqual(3); // SRS-090: 칠 또는 brand 윤곽선
+      칠_순서(cSheet, "시트");
+      // [원본] expect(cSheet.outline0 ?? 0).toBeGreaterThanOrEqual(3); — 옛 실루엣(윤곽선만) 기준
+      expect(cSheet.fill0 ?? 0).toBeGreaterThanOrEqual(1.15); // SRS-090: 안 한 근육 = 회색 칠(모양만 보이면 됨)
       if (w === 360) console.log(`대비 ${scheme}(시트)`, JSON.stringify(cSheet));
       await 캡처(page, `session-sheet-${w}-${scheme}`);
       await page.keyboard.press("Escape");
@@ -469,8 +492,10 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
         for (let j = i + 1; j < cn; j++) expect(겹침(chipBoxes[i], chipBoxes[j])).toBe(false);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       const cStats = await 대비_재기(page, "muscle-balance-map");
-      expect(cStats.fill3).toBeGreaterThanOrEqual(3);
-      expect(cStats.outline0 ?? 0).toBeGreaterThanOrEqual(3);
+      expect(Math.max(cStats.fill3, cStats.outline3 ?? 0)).toBeGreaterThanOrEqual(3); // SRS-090: 칠 또는 brand 윤곽선
+      칠_순서(cStats, "통계");
+      // [원본] expect(cStats.outline0 ?? 0).toBeGreaterThanOrEqual(3); — 옛 실루엣(윤곽선만) 기준
+      expect(cStats.fill0 ?? 0).toBeGreaterThanOrEqual(1.15); // SRS-090: 안 한 근육 = 회색 칠(모양만 보이면 됨)
       if (w === 360) console.log(`대비 ${scheme}(통계)`, JSON.stringify(cStats));
       if (SHOTS) {
         await bal.scrollIntoViewIfNeeded();
@@ -579,4 +604,16 @@ test("시안 비교 캡처(빨강 농도 vs 무채 농도)", async ({ page }) =>
     await page.goto(`file://${process.env.PROPOSAL_DIR}/sheet-${scheme}.html`);
     await page.screenshot({ path: `${SHOT_DIR}/proposal-${scheme}.png`, fullPage: true });
   }
+});
+
+// @plm SRS-090  실제 근육 그림 · 오픈소스 고지
+test("프로필 → 오픈소스 고지에 MuscleMap MIT 전문", async ({ page }) => {
+  await page.goto("/profile");
+  const link = page.getByTestId("link-licenses");
+  await expect(link).toBeVisible({ timeout: 20_000 });
+  await link.click();
+  await expect(page).toHaveURL(/\/licenses$/);
+  const lic = page.getByTestId("license-musclemap");
+  await expect(lic).toContainText("Copyright (c) 2026 Melih Colpan");
+  await expect(lic).toContainText("The above copyright notice and this permission notice shall be included");
 });

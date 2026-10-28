@@ -389,6 +389,10 @@ export default function ProfileClient() {
             <a href="/privacy" className="underline">
               개인정보처리방침
             </a>
+            {/* MIT 리소스 고지(MuscleMap) @plm SRS-090 */}
+            <a href="/licenses" className="underline" data-testid="link-licenses">
+              오픈소스 고지
+            </a>
           </p>
           <BusinessInfo className="mt-[var(--spacing-md)]" />
         </div>

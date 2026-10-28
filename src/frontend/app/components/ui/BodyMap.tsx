@@ -1,6 +1,12 @@
-// @plm SRS-075 SRS-076  근육 지도 — 앞·뒤 인라인 SVG 12구역(ADR-039 · UX U-4·U-12·U-13)
+// @plm SRS-075 SRS-076 SRS-090  근육 지도 — 앞·뒤 인라인 SVG 12구역(ADR-039 · UX U-4·U-12·U-13)
+//
+// [개선 · SRS-090 · ADR-044] 그림 = MuscleMap(MIT) 실제 근육 윤곽(bodyMapPaths.ts) · 칠하기 = 회색 바탕 위 주황(brandVivid) 농도.
+//   · 단계 0 = 회색(--color-line) · 1~3 = brandVivid 불투명도 45%·75%·100% + brand 윤곽선(회색 카드 바탕에서도 3:1).
+//   · 선택 근육 = ink(무채 진함) · 머리카락 = ink3 · 그 밖 부위 = 회색 바탕.
+//   · 아래 옛 실루엣(FRONT/BACK·zoneStyle·Body)은 원복용으로 남긴다 — 호출부는 주석 처리.
 //
 // 그림은 「대략 어디를 했나」만 보여 준다. 단계 사이 구분은 그림이 아니라 옆·아래의 **숫자 목록**이 맡는다(U-4).
+// ↓ 아래 「단계·색」 두 줄과 「구역 모양」 단락은 [원본] 옛 실루엣 설명이다(지금 그림은 위 [개선] 줄) — full/mini 접근성 규칙은 그대로.
 //   · 단계: 0 = 안 함(윤곽선만 `--color-line-strong`) · 칠함 1~3(30%·60%·100%). 30% 구역은 진한 윤곽선(`--color-ink2`)을 둘러
 //     「칠한 구역 vs 바탕」 3:1 을 윤곽선으로 확보한다.
 //   · 색(채택 시안 — 보고서 p2-ui-report): **무채 농도(`--color-ink2`) + 선택한 근육만 brand-vivid**.
@@ -16,6 +22,7 @@ import type { CSSProperties } from "react";
 import { MAP_MUSCLES, type MapMuscle, type MuscleLoad, muscleShadeLevel } from "@app/core/domain/muscleLoad";
 import { muscleLabel } from "@app/core";
 import { lang, t } from "@/lib/i18n";
+import { BODY_PATHS } from "./bodyMapPaths";
 
 // ── 모양 데이터(한 몸 = 폭 100 · 높이 200 좌표, 가운데 x=50) ──────────────────────────────
 
@@ -88,7 +95,9 @@ const BACK: Partial<Record<MapMuscle, Shape[]>> = {
 const BODY_X0 = 13;
 const BODY_W = 74;
 const GAP = 8;
+// biome-ignore lint/correctness/noUnusedVariables: 옛 실루엣 원복용 보존(SRS-090 · 코드 보존 규칙)
 const VIEW_W = BODY_W * 2 + GAP;
+// biome-ignore lint/correctness/noUnusedVariables: 옛 실루엣 원복용 보존(SRS-090)
 const VIEW_H = 198;
 
 // ── 칠하기 ──────────────────────────────────────────────────────────────────
@@ -149,6 +158,7 @@ function ShapePaths({
   );
 }
 
+// biome-ignore lint/correctness/noUnusedVariables: 옛 실루엣 원복용 보존(SRS-090) — 호출부는 주석
 function Body({
   side,
   levelOf,
@@ -187,6 +197,82 @@ function Body({
   );
 }
 
+// ── 실제 근육 그림(SRS-090) ─────────────────────────────────────────────────
+
+/** 앞·뒤 한 몸의 그릴 범위(MuscleMap 좌표) — 빈 여백을 잘라 둘을 붙인다. */
+const REAL_CROP: Record<"front" | "back", [number, number, number, number]> = {
+  // 경로 getBBox 실측(앞 x 53~675 · 뒤 x 773~1394 · y 96~1342) + 여백 5
+  front: [48, 92, 632, 1254],
+  back: [767, 92, 632, 1254],
+};
+const REAL_GAP = 40;
+const REAL_W = REAL_CROP.front[2];
+const REAL_H = REAL_CROP.front[3];
+const REAL_VIEW_W = REAL_W * 2 + REAL_GAP;
+const REAL_VIEW_H = REAL_H;
+
+function realZoneStyle(level: Level): CSSProperties {
+  // 선택 근육 = ink(무채 진함) — 주황 단계 어느 것과도 섞이지 않는다
+  if (level === "sel")
+    return { fill: "var(--color-ink)", stroke: "var(--color-ink)", strokeWidth: 1, strokeLinejoin: "round" };
+  if (level === 0) return { fill: "var(--color-line)" };
+  // 진할수록 많이: brandVivid 불투명도 45%·75%·100% — 라이트·다크 어느 쪽이든 바탕에 가까울수록 적다.
+  // 칠은 회색 카드 바탕(#F7F7F7 등)에서 3:1 이 안 나올 수 있어 칠한 단계는 모두 brand 윤곽선을 두른다(U-4 와 같은 방법).
+  return {
+    fill: "var(--color-brand-vivid)",
+    fillOpacity: level === 3 ? 1 : level === 2 ? 0.75 : 0.45,
+    stroke: "var(--color-brand)",
+    strokeWidth: 0.75,
+    strokeLinejoin: "round",
+  };
+}
+
+function RealBody({
+  side,
+  levelOf,
+  titles,
+}: {
+  side: "front" | "back";
+  levelOf: (m: MapMuscle) => Level;
+  titles: boolean;
+}) {
+  const data = BODY_PATHS[side];
+  const [x, y, w, h] = REAL_CROP[side];
+  return (
+    <svg
+      x={side === "front" ? 0 : REAL_W + REAL_GAP}
+      y={0}
+      width={REAL_W}
+      height={REAL_H}
+      viewBox={`${x} ${y} ${w} ${h}`}
+      data-side={side}
+      overflow="visible"
+      aria-hidden="true"
+    >
+      {data.base.map((d) => (
+        <path key={d} d={d} style={{ fill: "var(--color-line)" }} />
+      ))}
+      {data.hair.map((d) => (
+        <path key={d} d={d} style={{ fill: "var(--color-ink3)" }} />
+      ))}
+      {MAP_MUSCLES.map((m) => {
+        const paths = data.zones[m];
+        if (!paths) return null;
+        const level = levelOf(m);
+        const style = realZoneStyle(level);
+        return (
+          <g key={m} data-muscle={m} data-level={String(level)}>
+            {titles ? <title>{muscleLabel(m, lang)}</title> : null}
+            {paths.map((d) => (
+              <path key={d} d={d} style={style} vectorEffect="non-scaling-stroke" />
+            ))}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
 // ── 접근 이름 ────────────────────────────────────────────────────────────────
 
 /** 세트 수 표기 — 0.5 단위(보조근육)만 소수 한 자리 */
@@ -212,7 +298,8 @@ export function muscleMapAriaLabel(load: MuscleLoad): string {
 export function BodyMapFull({
   load,
   selected = null,
-  tone = "neutral",
+  // 옛 실루엣 전용(새 그림은 늘 주황 · ADR-044) — 부르는 쪽 호환을 위해 받기만 한다. 원복 시 `_tone` → `tone` 으로 되돌린다.
+  tone: _tone = "neutral",
   height = 180,
   ariaLabel,
   testId,
@@ -232,15 +319,21 @@ export function BodyMapFull({
       aria-label={ariaLabel ?? muscleMapAriaLabel(load)}
       data-testid={testId}
       data-size="full"
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      // [원본] viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} · width={(height * VIEW_W) / VIEW_H}
+      viewBox={`0 0 ${REAL_VIEW_W} ${REAL_VIEW_H}`}
       height={height}
-      width={(height * VIEW_W) / VIEW_H}
+      width={(height * REAL_VIEW_W) / REAL_VIEW_H}
       className="block shrink-0"
     >
       {/* role="img" 의 자식은 표시용(presentational children)이라 보조기기가 구역을 따로 읽지 않는다 — aria-hidden 을 따로 달지 않는다 */}
       <g>
+        {/* [원본] 원복 시 아래 두 줄을 살리고 RealBody 를 주석 처리(viewBox·width 도 [원본]으로)
         <Body side="front" levelOf={levelOf} tone={tone} strokeWidth={1.25} titles />
         <Body side="back" levelOf={levelOf} tone={tone} strokeWidth={1.25} titles />
+        */}
+        {/* [개선] 실제 근육 그림 · 주황 농도(tone 은 옛 그림 전용 — 새 그림은 늘 주황) @plm SRS-090 */}
+        <RealBody side="front" levelOf={levelOf} titles />
+        <RealBody side="back" levelOf={levelOf} titles />
       </g>
     </svg>
   );
@@ -250,7 +343,7 @@ export function BodyMapFull({
 export function BodyMapMini({
   primary,
   secondary,
-  tone = "neutral",
+  tone: _tone = "neutral", // 원복 시 `tone` 으로(위 BodyMapFull 주석)
   height = 56,
   testId,
 }: {
@@ -270,18 +363,25 @@ export function BodyMapMini({
       focusable="false"
       data-testid={testId}
       data-size="mini"
-      viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+      // [원본] viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} · width={Math.round((height * VIEW_W) / VIEW_H)}
+      viewBox={`0 0 ${REAL_VIEW_W} ${REAL_VIEW_H}`}
       height={height}
-      width={Math.round((height * VIEW_W) / VIEW_H)}
+      width={bodyMapMiniWidth(height)}
       className="block shrink-0"
     >
+      {/* [원본] 원복 시 아래 두 줄을 살리고 RealBody 를 주석 처리
       <Body side="front" levelOf={levelOf} tone={tone} strokeWidth={1} titles={false} />
       <Body side="back" levelOf={levelOf} tone={tone} strokeWidth={1} titles={false} />
+      */}
+      {/* [개선] @plm SRS-090 */}
+      <RealBody side="front" levelOf={levelOf} titles={false} />
+      <RealBody side="back" levelOf={levelOf} titles={false} />
     </svg>
   );
 }
 
 /** mini 그림 폭(px) — 자리 고정용 */
 export function bodyMapMiniWidth(height = 56): number {
-  return Math.round((height * VIEW_W) / VIEW_H);
+  // [원본] return Math.round((height * VIEW_W) / VIEW_H);
+  return Math.round((height * REAL_VIEW_W) / REAL_VIEW_H);
 }
