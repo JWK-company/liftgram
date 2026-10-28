@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-090",
+  "type": "SRS",
+  "title": "근육 지도 그림 교체 — 실제 근육 윤곽(MuscleMap · MIT) · 많이 한 근육일수록 진한 주황 · 오픈소스 고지 화면",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T01:10:00Z",
+  "updated": "2026-10-28T01:15:00Z",
+  "sync": true,
+  "tags": ["muscle-map", "visual", "license"],
+  "kind": "FR",
+  "acceptance_criteria": "근육 지도(큰 그림·루틴 미니) 4곳이 실제 근육 윤곽으로 그려짐 · 단계 1~3은 주황 농도로 구분 · 프로필 아래 링크(/licenses)에서 MuscleMap MIT 고지 전문을 볼 수 있음 · 기존 집계·숫자 목록·접근 이름은 그대로",
+  "relations": {
+    "derives_from": ["URS-024"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "요구 서술"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "근육 지도(SRS-075·076)의 그림을 단순 실루엣 12구역에서 실제 근육 윤곽으로 바꾼다. 그림 데이터는 MIT 라이선스인 MuscleMap(Melih Colpan)의 남성 앞·뒤 경로를 쓰고, 세부 구역(윗가슴·바깥 대퇴 등)은 빼고 큰 근육만 앱의 12구역에 대응시킨다. 머리·손·발·무릎·정강이 등 대응이 없는 부위는 회색 바탕으로만 그린다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "칠하기는 앱의 기조색인 주황(brandVivid)의 농도로 한다 — 안 한 근육은 회색, 1~3단계는 옅은 주황에서 진한 주황으로(불투명도 45%·75%·100%, 칠한 구역은 brand 윤곽선). 선택한 근육은 ink(무채 진함)로 구분한다. 집계(core muscleLoad)·단계 계산·숫자 목록·접근 이름은 바꾸지 않는다."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "MIT 라이선스는 사본에 저작권·허락 고지를 함께 두라고 요구하므로, 앱 안에 오픈소스 고지 화면(/licenses)을 두고 프로필 아래 이용약관·개인정보처리방침 링크 옆에서 갈 수 있게 한다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "수용 기준"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "근육 균형 카드·오늘 근육 시트·기간 요약·루틴 카드 미니 4곳이 새 그림으로 보이고, 각 근육 구역에 data-muscle·data-level 이 그대로 붙는다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "단계 0·1·2·3과 선택 근육이 서로 다른 색으로 칠해지고, 칠한 구역은 카드 바탕과 비텍스트 대비 3:1 이상(칠 또는 brand 윤곽선)이고, 안 한 근육 회색은 바탕과 구분된다(1.15:1 이상 · 장식 실루엣). 라이트·다크 둘 다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "프로필 아래 「오픈소스 고지」 링크(/licenses)에서 MuscleMap 의 MIT 전문을 볼 수 있다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "그림 데이터는 화면 묶음 크기를 크게 늘리지 않는다(경로 데이터 gzip 30KB 이하)."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "연결"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "derives_from: URS-024. SRS-075·076의 그림 요소를 바꾼다. 결정 근거 ADR-044(MIT 고지형 리소스 허용·주황 농도 채택). 운동 사진·썸네일 픽토그램(SRS-055)은 범위 밖 — openGym 의 운동 그림은 Gym visual 유료 라이선스라 쓰지 않는다."}]}
+    ]
+  }
+}

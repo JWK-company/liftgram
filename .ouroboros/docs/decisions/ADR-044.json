@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "ADR-044",
+  "type": "ADR",
+  "title": "근육 지도는 MuscleMap(MIT) 경로를 쓰고 고지 화면으로 의무를 지킨다 · 칠하기는 무채 농도 대신 주황 농도",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-28T01:10:00Z",
+  "updated": "2026-10-28T01:10:00Z",
+  "sync": true,
+  "tags": ["muscle-map", "license", "color"],
+  "relations": {
+    "informs": ["SRS-090", "SRS-075", "SRS-076"]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "맥락"}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "v0.43.0 근육 지도는 픽토그램 결의 단순 실루엣 12구역을 직접 그렸고, 색은 무채 농도(ink2)에 선택 근육만 brandVivid 로 칠했다. 사용자가 openGym 처럼 실제 근육 모양과 앱 기조색 주황의 농도로 바꾸길 요청했다(2026-10-28)."}]},
+      {"type": "paragraph", "content": [{"type": "text", "text": "openGym 은 근육 지도에 MuscleMap(Melih Colpan · MIT)을 쓰고, 운동 그림은 Gym visual 유료 라이선스를 쓴다. 지금 그림 출처 규칙(exerciseVisual.ts)은 출처 표기 의무가 있는 라이선스를 허용하지 않는데, MIT 는 사본에 고지문을 함께 두라는 의무가 있다."}]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "결정"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "근육 지도 그림 = MuscleMap 남성 앞·뒤 경로를 우리가 직접 변환(openGym 의 AGPL 변환본은 쓰지 않음). 세부 구역은 버리고 큰 근육을 12구역에 대응, 나머지는 회색 바탕."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "허용 라이선스에 「MIT(고지 화면 포함)」을 더한다 — 앱 안 오픈소스 고지 화면에 전문을 두는 조건. 출처 표기·동일조건 공개 의무가 있는 CC BY / BY-SA 는 계속 제외."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "칠하기 = 안 한 근육은 회색(line) · 1~3단계는 brandVivid 불투명도 45%·75%·100% + brand 윤곽선(회색 카드 바탕에서도 칠한 구역 3:1). 선택 근육 = ink. (color-mix 로 회색과 섞는 안·brand 를 3단계로 쓰는 안은 다크에서 brand 가 vivid 보다 밝아 2·3단계가 뒤집혀 버렸다 — 2026-10-28 실측)"}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "근거와 대안"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "react-native-body-highlighter(MIT): 웹 지원이 명시되지 않고 구역 수(24)가 적다. MuscleMap 은 openGym 이 웹·앱에서 실제로 검증해 쓴다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "직접 다시 그리기: 실제 근육 윤곽 품질을 내기 어렵고 시간이 든다."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "무채 농도 유지: 이전에 「빨강이 몸 전체에 칠해지면 통증처럼 읽힌다」는 이유로 택했지만, 회색 바탕에 주황 농도는 openGym·MuscleMap 히트맵과 같은 익숙한 표현이고 사용자가 명시적으로 원했다. 화면별 강조색 개수 규칙은 그림을 「장식 면」으로 보아 예외로 둔다."}]}]}
+      ]},
+      {"type": "heading", "attrs": {"level": 2}, "content": [{"type": "text", "text": "결과"}]},
+      {"type": "bullet_list", "content": [
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "장점: 실제 같은 근육 모양 · 주근육이 한눈에 보임 · 무료."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "트레이드오프: 고지 화면 유지 의무 · 경로 데이터만큼 묶음 증가(지연 로드 불필요한 수준으로 제한) · 여성 몸은 이번엔 넣지 않음."}]}]},
+        {"type": "list_item", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "되돌림: 기존 실루엣 데이터·zoneStyle 은 주석 보존 — 호출 한 줄로 원복."}]}]}
+      ]}
+    ]
+  }
+}
