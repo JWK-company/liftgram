@@ -587,6 +587,11 @@ test("실패 표시 세트는 근육 집계에서 빠진다 · 운동 화면을 
   await 근육그림_설정(other, true);
   await expect(page.getByTestId("btn-today-muscles")).toHaveCount(1, { timeout: 10_000 });
   await other.close();
+  // P4(SRS-089): 다른 탭이 열린 동안 이 탭은 쓰기 주인을 잃고 봉인됐다 — 「여기서 계속하기」(새로고침)로 이어 간다 @plm SRS-089
+  await expect(page.getByTestId("tab-elsewhere")).toBeVisible();
+  await page.getByTestId("btn-tab-take-over").click();
+  await expect(page.getByTestId("btn-complete")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
 
   await 마치기(page);
   await page.goto("/stats");

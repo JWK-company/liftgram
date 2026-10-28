@@ -491,7 +491,47 @@ test.describe("로그인 기기", () => {
 test.describe("다른 탭 가드(P5-1)", () => {
   test.use({ serviceWorkers: "block" });
 
-  test("탭 둘이면 가져오기·되돌리기가 막히고, 다른 탭을 닫으면 풀린다", async ({ page, context }) => {
+  // @plm SRS-089  P4(다중 탭 단일 쓰기) 뒤: 나중에 연 탭이 쓰기 주인이 되고 진 탭은 봉인돼 presence 를 놓는다(재검토 M-5) —
+  // 봉인 탭은 어떤 경로로도 디스크에 쓰지 못하므로 가져오기를 막을 이유가 없다. 그래서 「다른 탭이 열려 있으면 막힘」은
+  // Web Locks 브라우저에서 더는 닿지 않는다(코드는 판정 수단이 없는 브라우저의 대비로 남긴다).
+  test("다른 탭이 열려 있어도 그 탭은 봉인(덮개)돼 가져오기·되돌리기가 막히지 않는다", async ({
+    page,
+    context,
+  }) => {
+    test.setTimeout(240_000);
+    const csv = 시험_파일("strong-comma.csv");
+    await 준비(page);
+    await 가져오기_파일(page, "strong_export.csv", csv);
+    await 가져오기_끝까지(page, "kg");
+    await expect(page.getByTestId("import-done-summary")).toContainText("운동 2개");
+
+    const other = await context.newPage();
+    await other.goto("/");
+    await expect(other.getByTestId("shell-nav")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("tab-elsewhere")).toBeVisible({ timeout: 15_000 }); // 나중 탭이 주인
+
+    // 가져오기 화면을 다시 열면(새 문서 = 새 주인) 다른 탭이 멈추고 막힘이 없다
+    await page.goto("/account/import");
+    await expect(other.getByTestId("tab-elsewhere")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("btn-import-pick")).toBeEnabled({ timeout: 20_000 });
+    await expect(page.getByTestId("import-blocked")).toHaveCount(0);
+    await expect(other.getByTestId("import-elsewhere-notice")).toHaveCount(0);
+
+    // 되돌리기: 확인창까지 간다(취소)
+    await page.goto("/account");
+    await expect(other.getByTestId("tab-elsewhere")).toBeVisible({ timeout: 15_000 });
+    const row = page.getByTestId("import-history").locator('[data-status="done"]').first();
+    await expect(row).toBeVisible({ timeout: 20_000 });
+    await row.getByTestId("btn-import-undo").click();
+    const dlg = page.getByTestId("import-undo-dialog");
+    await expect(dlg).toBeVisible();
+    await dlg.getByTestId("dialog-cancel").click();
+    await expect(row).toHaveAttribute("data-status", "done");
+    await other.close();
+  });
+
+  // [원본] P4 이전 — 다른 탭이 쓰기 가능한 채 열려 있던 때의 막힘 확인(위 테스트로 바뀜 · 원복 시 skip 을 푼다)
+  test.skip("탭 둘이면 가져오기·되돌리기가 막히고, 다른 탭을 닫으면 풀린다", async ({ page, context }) => {
     test.setTimeout(240_000);
     const csv = 시험_파일("strong-comma.csv");
     await 준비(page);

@@ -302,30 +302,36 @@ test("⑤ 가져오는 탭이 있으면 새 탭은 주인을 빼앗지 않고 �
   page,
   context,
 }) => {
-  test.setTimeout(240_000);
+  test.setTimeout(300_000);
+  const 운동수 = 2000;
   await 준비(page);
-  await page.evaluate(() => localStorage.setItem("liftgram.e2e.importFault", "hold:1"));
-  await 가져오기_파일(page, "big.csv", 큰_Strong_파일({ workouts: 300 }).text);
+  await 가져오기_파일(
+    page,
+    "big.csv",
+    큰_Strong_파일({ workouts: 운동수, exercisesPer: 3, setsPer: 2 }).text,
+  );
   await page.getByTestId("import-unit-kg").click();
   await page.getByTestId("btn-import-to-match").click();
   await 가져오기_시작(page);
-  await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음 1/5", {
-    timeout: 60_000,
-  });
-  await page.evaluate(() => localStorage.removeItem("liftgram.e2e.importFault"));
+  // 쓰는 중(묶음 진행)에 새 탭을 연다
+  await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음", { timeout: 120_000 });
 
   const other = await context.newPage();
   await other.goto("/");
-  await expect(other.getByTestId("import-elsewhere-notice")).toBeVisible({ timeout: 30_000 });
+  const notice = other.getByTestId("import-elsewhere-notice");
+  await expect(notice).toBeVisible({ timeout: 30_000 });
   await expect(other.getByTestId("tab-elsewhere")).toHaveCount(0);
-  // 가져오던 탭은 주인을 잃지 않았다(덮개 없음)
+  // 새 탭은 주인을 빼앗지 않았다 — 가져오던 탭에 덮개 없음 · 새 탭은 봉인돼 쓰기 주인 아님
   await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
+  expect(await other.evaluate(() => document.documentElement.dataset.tabWriter ?? "unknown")).not.toBe(
+    "owner",
+  );
   await 숨김_이벤트(other);
-  await expect(page.getByTestId("import-step-done")).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByTestId("import-step-done")).toBeVisible({ timeout: 240_000 });
   await page.waitForTimeout(2_000);
-  await 숨김_이벤트(other);
+  await 숨김_이벤트(other); // 끝난 뒤에도 낡은 사본이 덮지 않는다
   await other.waitForTimeout(1_500);
   const n = await idb_행_수(other, ["workouts"], "imp-");
-  expect(n.workouts).toBe(300);
+  expect(n.workouts).toBe(운동수);
   await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
 });
