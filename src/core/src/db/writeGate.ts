@@ -33,12 +33,63 @@ interface GateState {
   /** 새 database.write 를 받지 않는다(넘겨주기 중 — 봉인 직전 단계) */
   writesClosed: boolean;
   listeners: Set<Listener>;
+  /** 디스크 보류(되돌릴 수 있다) — 주소창 미리 렌더 문서가 활성화되기 전(/qa code P4 M-2). 메모리 쓰기는 받되 디스크에는 닿지 않는다. */
+  diskHeld?: boolean;
+  diskWaiters?: Array<() => void>;
 }
 
 function gate(): GateState {
   const g = globalThis as typeof globalThis & { __liftgramWriteGate?: GateState };
   if (!g.__liftgramWriteGate) g.__liftgramWriteGate = { sealed: null, writesClosed: false, listeners: new Set() };
   return g.__liftgramWriteGate;
+}
+
+/**
+ * 이 문서가 다른 문서 안의 프레임(iframe)인가(/qa code P4 M-1).
+ * 앱은 프레임 안에서 쓰일 일이 없다 — 서비스워커 활성화 찌르기(swActivate nudge)의 숨은 iframe 이 오프라인 대체로
+ * 앱 셸을 받으면 그 문서가 쓰기 주인을 빼앗고 진짜 DB 에 썼다. 프레임 문서는 진짜 DB 를 열지 않는다(adapter).
+ * 네이티브(RN)는 document 가 없어 false.
+ */
+export function isFramedDocument(): boolean {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  try {
+    return window.top !== window.self;
+  } catch {
+    return true; // 접근이 막혔다 = 다른 출처의 프레임
+  }
+}
+
+/** 디스크에 닿지 못하게 보류한다(되돌릴 수 있다 · 미리 렌더 문서 — 활성화 때 releaseLocalDbDisk). 봉인과 달리 메모리 쓰기는 받는다. */
+export function holdLocalDbDisk(): void {
+  gate().diskHeld = true;
+}
+
+/** 보류를 푼다 — 기다리던 내려쓰기(whenLocalDbDiskOpen)를 깨운다 */
+export function releaseLocalDbDisk(): void {
+  const s = gate();
+  s.diskHeld = false;
+  const ws = s.diskWaiters ?? [];
+  s.diskWaiters = [];
+  for (const w of ws) w();
+}
+
+export function isLocalDbDiskHeld(): boolean {
+  return gate().diskHeld === true;
+}
+
+/** 디스크 보류가 풀릴 때까지(보류 중이 아니면 곧바로) — 명시 내려쓰기가 「거부」 대신 활성화 뒤로 미뤄지게 */
+export function whenLocalDbDiskOpen(): Promise<void> {
+  const s = gate();
+  if (!s.diskHeld) return Promise.resolve();
+  return new Promise((resolve) => {
+    (s.diskWaiters ??= []).push(resolve);
+  });
+}
+
+/** 패치가 저장·삭제 진입 때 보는 값 — 봉인됐거나 보류 중이면 디스크에 닿지 않는다(dirty 는 남는다) */
+export function isLocalDbDiskBlocked(): boolean {
+  const s = gate();
+  return s.sealed !== null || s.diskHeld === true;
 }
 
 /** 이 문서의 기기 DB 가 봉인됐는가(디스크에 더는 쓰지 않는다) */
@@ -103,7 +154,9 @@ export function subscribeSeal(fn: Listener): () => void {
 export function lokiGateOptions() {
   return {
     rejectForeignWrites: true,
-    isSealed: isLocalDbSealed,
+    // [원본] isSealed: isLocalDbSealed,
+    // [개선] 봉인 + 미리 렌더 보류(되돌릴 수 있음) 둘 다 디스크를 막는다 — 보류 중 거부는 dirty 를 남기므로 활성화 뒤 autosave 가 이어 쓴다(/qa code P4 M-2)
+    isSealed: isLocalDbDiskBlocked,
     onForeignWrite: (info: { prev: string | null; disk: string | null }) => {
       console.warn('[DB] 다른 탭이 기기 DB 를 바꿨다 — 덮어쓰지 않고 이 탭을 봉인한다', info);
       sealLocalDb('stale', info);
@@ -121,4 +174,6 @@ export function __resetWriteGateForTests(): void {
   s.sealed = null;
   s.writesClosed = false;
   s.listeners.clear();
+  s.diskHeld = false;
+  s.diskWaiters = [];
 }

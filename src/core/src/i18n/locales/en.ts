@@ -1309,6 +1309,7 @@ export const en: Record<TransKey, string> = {
   "tabs.external.title": "Storage changed outside this tab",
   "tabs.external.body": "This device's records changed outside this tab, so this tab won't save anymore. Your last change here may not have been saved. Reload to continue with the latest records.",
   "tabs.takeOver": "Continue here",
+  "tabs.legacy.body": "An older version of Liftgram is open in another tab, so that tab stopped saving. Please reload that tab.",
   "import.unconfirmed": "{count} unchecked exercises will use the first suggestion (or a new custom exercise)",
   "import.unconfirmedTitle": "Some exercises aren't checked",
   "import.unconfirmedConfirm": "{review} \"needs review\" exercises will use the first suggestion and {none} unmatched ones become new custom exercises. Wrong matches mix into PRs and stats. Import anyway?",

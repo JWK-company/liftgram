@@ -25,7 +25,7 @@ import { SchemaGuard } from "./components/SchemaGuard";
 import { PrefsBridge } from "./components/PrefsBridge";
 import { AccountGuard } from "./components/sync/AccountGuard";
 import { ImportElsewhereNotice } from "./components/sync/ImportElsewhereNotice";
-import { TabElsewhereOverlay } from "./components/TabElsewhereOverlay";
+import { LegacyTabBand, TabElsewhereOverlay } from "./components/TabElsewhereOverlay";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
 import { TabBar } from "./components/ui/TabBar";
 import { LogoSpinner } from "./components/ui/LogoSpinner";
@@ -111,6 +111,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ImportElsewhereNotice />
                 {/* 다른 탭이 쓰기 주인이 됐거나 디스크가 바깥에서 바뀌면 이 탭은 봉인되고 덮개만 보인다(다중 탭 덮어쓰기 방지). @plm SRS-089 */}
                 <TabElsewhereOverlay />
+                {/* 배포 과도기 — 옛 버전 탭을 얼렸으면 그 탭을 새로고침하라는 띠(/qa code P4 M-3). @plm SRS-089 */}
+                <LegacyTabBand />
               </div>
             </ToastProvider>
           </SessionProvider>

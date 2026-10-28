@@ -112,6 +112,9 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname.startsWith("/media/file/")) return event.respondWith(media(req));
   // 화면 사이 이동 데이터는 캐시하지 않는다 — 오래된 화면 조각이 섞인다.
   if (url.searchParams.has("_rsc") || req.headers.get("RSC") === "1") return;
+  // 활성화 찌르기용 빈 문서(lib/swActivate nudgeActivation 의 숨은 iframe)는 네트워크만 — 느린 망·오프라인에 앱 셸(/offline)을
+  // 대신 주면 iframe 안에 앱 전체가 떠 본 탭의 쓰기 주인을 빼앗았다(/qa code P4 M-1). 실패하면 빈 문서로 끝낸다. @plm SRS-089
+  if (url.pathname === "/sw-nudge.html") return event.respondWith(nudgeDoc(req));
   if (req.mode === "navigate") return event.respondWith(page(req, event));
   if (PRECACHE.includes(url.pathname)) return event.respondWith(cacheFirst(req, STATIC));
 });
@@ -122,6 +125,17 @@ async function cacheFirst(req, name) {
   const res = await fetch(req);
   if (res.ok) (await caches.open(name)).put(req, res.clone());
   return res;
+}
+
+async function nudgeDoc(req) {
+  try {
+    return await fetch(req);
+  } catch {
+    return new Response("<!doctype html><title>.</title>", {
+      status: 503,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }
 }
 
 async function page(req, event) {

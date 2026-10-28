@@ -204,6 +204,8 @@ export default function ActiveWorkout() {
         await fn();
         await afterWrite();
       } catch (e) {
+        // 봉인 탭의 쓰기 거부는 덮개가 안내한다 — 덮개 뒤 오류 토스트를 쌓지 않는다(/qa code P4 M-5) @plm SRS-089
+        if ((e as { code?: unknown } | null)?.code === "LOCAL_DB_SEALED") return;
         const detail = e instanceof Error ? e.message : String(e);
         setErr(detail);
         toast(detail, "error");
@@ -617,8 +619,17 @@ export default function ActiveWorkout() {
                 );
                 // 플레이트 질문에 답하지 않은 종목은 기본(한쪽)을 답으로 — 다음엔 묻지 않는다(피드백 #63 · 실패해도 완료는 그대로) @plm SRS-084
                 await repo.settleUndecidedPlateOneSide(workout.id).catch(() => []);
-                const { flushLocalDb } = await import("@/lib/localDb");
-                await flushLocalDb();
+                // [원본] const { flushLocalDb } = await import("@/lib/localDb");
+                // await flushLocalDb();
+                // [개선] 완료 도중 이 탭이 봉인됐으면(다른 탭이 쓰기 주인을 가져감 · 디스크가 바깥에서 바뀜) 요약으로 넘어가지 않는다(/qa code P4 M-5).
+                //        flushLocalDb 는 봉인 탭에서도 true 라 덮개 뒤에서 「완료 요약」·PR 축하가 그려졌다 — 그 요약은 디스크와 다를 수 있다.
+                //        덮개(TabElsewhereOverlay)가 이미 화면을 막고 있고, 봉인 전에 끝난 쓰기는 넘겨주기에서 내려쓰였으므로 세트 기록은
+                //        디스크에 있다. 「여기서 계속하기」(새로고침) 뒤 화면이 디스크 그대로를 보여 준다. 여기서는 화면을 바꾸지 않는다. @plm SRS-089
+                const { flushLocalDbResult } = await import("@/lib/localDb");
+                if ((await flushLocalDbResult()) === "sealed") {
+                  console.warn("[workout] 완료 중 이 탭이 봉인됐다 — 요약을 보이지 않는다(덮개가 안내)");
+                  return;
+                }
                 clearRest();
                 clearWeighInMarks({ workoutId: workout.id }); // 체크인 표시는 운동이 끝나면 지운다 @plm SRS-077
                 setActive(null);

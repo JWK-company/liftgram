@@ -370,3 +370,145 @@ test("⑥ Web Locks 없는 브라우저 — BroadcastChannel 의 claim 으로 �
   expect(await 디스크_무게(B)).toEqual([67, 78]);
   await expect(B.getByTestId("tab-elsewhere")).toHaveCount(0);
 });
+
+// ── /qa code P4 조치(M-1·M-3·M-4) ────────────────────────────────────────────────────────────
+
+test("⑦ 앱 문서를 iframe 으로 띄워도(M-1 · 찌르기 iframe 이 /offline 셸을 받은 경우) 본 탭은 주인 그대로 — 거짓 덮개·봉인 없음", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const logs = 봉인_로그(page);
+  await 준비(page);
+  await 주인(page);
+  const inner = await page.evaluate(async () => {
+    const f = document.createElement("iframe");
+    f.src = "/offline";
+    f.style.cssText = "position:fixed;width:1px;height:1px;left:-9999px;top:-9999px";
+    const loaded = new Promise((r) => f.addEventListener("load", r, { once: true }));
+    document.body.appendChild(f);
+    await loaded;
+    // 앱이 뜨고 부팅(동기·쓰기 주인)을 시도할 시간
+    await new Promise((r) => setTimeout(r, 4_000));
+    const w = f.contentDocument?.documentElement.dataset.tabWriter ?? null;
+    f.remove();
+    return w;
+  });
+  expect(inner, "프레임 문서는 탭으로 나서지 않는다").toBe("framed");
+  await page.waitForTimeout(1_500);
+  expect(await page.evaluate(() => document.documentElement.dataset.tabWriter)).toBe("owner");
+  await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
+  expect(logs).toEqual([]);
+});
+
+test("⑧ 배포 과도기 옛 번들 탭(M-3) — 판 없는 pong·hello 를 낸 탭을 import-start→import-end 로 얼리고 띠 · 이 탭은 주인 그대로", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(120_000);
+  // 옛 번들 흉내 — 같은 출처 문서에서 옛 tabGuard 처럼 핑에 판(proto) 없이 답한다
+  const old = await context.newPage();
+  await old.goto("/sw-nudge.html");
+  await old.evaluate(() => {
+    const w = window as unknown as { __got: string[]; __ch: BroadcastChannel };
+    w.__got = [];
+    w.__ch = new BroadcastChannel("liftgram-tabs");
+    w.__ch.onmessage = (e) => {
+      const m = e.data as { t: string; nonce?: string; legacyFreeze?: boolean };
+      w.__got.push(m.t + (m.legacyFreeze ? ":freeze" : ""));
+      if (m.t === "ping")
+        w.__ch.postMessage({ t: "pong", from: "old-tab", nonce: m.nonce, importing: false });
+    };
+  });
+  const got = () =>
+    old.evaluate(() => (window as unknown as { __got: string[] }).__got.filter((x) => x.endsWith(":freeze")));
+  const logs = 봉인_로그(page);
+  await 준비(page);
+  await 주인(page);
+  await expect.poll(got, { timeout: 15_000 }).toEqual(["import-start:freeze", "import-end:freeze"]);
+  await expect(page.getByTestId("legacy-tab-band")).toBeVisible();
+  // 나중에 열린 옛 탭(판 없는 hello)도 얼린다
+  await old.evaluate(() =>
+    (window as unknown as { __ch: BroadcastChannel }).__ch.postMessage({ t: "hello", from: "old-tab-2" }),
+  );
+  await expect
+    .poll(got, { timeout: 15_000 })
+    .toEqual(["import-start:freeze", "import-end:freeze", "import-start:freeze", "import-end:freeze"]);
+  // 새 번들인 이 탭은 얼리기 신호에 반응하지 않는다
+  await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
+  await expect(page.getByTestId("import-elsewhere-notice")).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.dataset.tabWriter)).toBe("owner");
+  await page.getByTestId("btn-legacy-tab-dismiss").click();
+  await expect(page.getByTestId("legacy-tab-band")).toHaveCount(0);
+  expect(logs).toEqual([]);
+});
+
+test("⑨ bfcache 복귀(M-4) — 새로고침 전에 내려쓴다 · 방금 기록한 세트가 남고 덮개·봉인 없음", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  const logs = 봉인_로그(page);
+  const flushed: string[] = [];
+  page.on("console", (m) => {
+    if (m.text().includes("bfcache 복귀 — 내려쓰고 새로고침")) flushed.push(m.text());
+  });
+  await 준비(page);
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "바벨 벤치프레스");
+  await 세트_기록(page, 0, 0, 57, 8);
+  // 곧바로(자동 저장 전일 수 있다) bfcache 복귀를 흉내 — 내려쓰기 → 새로고침
+  await Promise.all([
+    page.waitForEvent("load", { timeout: 20_000 }),
+    page.evaluate(() => window.dispatchEvent(new PageTransitionEvent("pageshow", { persisted: true }))),
+  ]);
+  expect(flushed.length, "새로고침 전에 내려쓰기 경로를 탔다").toBeGreaterThan(0);
+  await expect(page.getByTestId("btn-add-exercise")).toBeVisible({ timeout: 30_000 });
+  await 주인(page);
+  expect(await 디스크_무게(page)).toEqual([57]);
+  await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
+  expect(logs).toEqual([]);
+});
+
+test.describe("서비스워커 켬", () => {
+  test.use({ serviceWorkers: "allow" });
+
+  test("⑩ 오프라인 찌르기 iframe(/sw-nudge.html)은 앱 셸(/offline) 대체를 받지 않는다(M-1) · 본 탭 덮개 없음", async ({
+    page,
+    context,
+  }) => {
+    test.setTimeout(120_000);
+    await page.goto("/");
+    const ok = await page
+      .waitForFunction(() => navigator.serviceWorker?.controller != null, null, { timeout: 15_000 })
+      .then(() => true)
+      .catch(async () => {
+        await page.reload();
+        return page
+          .waitForFunction(() => navigator.serviceWorker?.controller != null, null, { timeout: 15_000 })
+          .then(() => true)
+          .catch(() => false);
+      });
+    expect(ok, "서비스워커가 이 문서를 제어한다").toBe(true);
+    await 주인(page);
+    await context.setOffline(true);
+    const r = await page.evaluate(async () => {
+      const f = document.createElement("iframe");
+      f.src = `/sw-nudge.html?t=${Date.now()}`;
+      const loaded = new Promise((res) => f.addEventListener("load", res, { once: true }));
+      document.body.appendChild(f);
+      await loaded;
+      await new Promise((res) => setTimeout(res, 1_500));
+      const d = f.contentDocument;
+      const out = {
+        app: !!d?.querySelector("[data-testid]"),
+        writer: d?.documentElement.dataset.tabWriter ?? null,
+      };
+      f.remove();
+      return out;
+    });
+    await context.setOffline(false);
+    expect(r).toEqual({ app: false, writer: null });
+    await page.waitForTimeout(1_000);
+    expect(await page.evaluate(() => document.documentElement.dataset.tabWriter)).toBe("owner");
+    await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
+  });
+});

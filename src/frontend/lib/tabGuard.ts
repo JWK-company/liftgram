@@ -20,6 +20,7 @@
 import type { ImportTabGuard } from "@app/core/data/importTabGuard";
 import {
   closeLocalDbWrites,
+  isFramedDocument,
   isLocalDbSealed,
   type SealInfo,
   sealLocalDb,
@@ -32,13 +33,20 @@ const IMPORT_LOCK = "liftgram-import";
 /** 핑 답을 기다리는 시간(Web Locks 없는 브라우저만) */
 const PING_MS = 250;
 
+/**
+ * 채널 프로토콜 판(/qa code P4 M-3). 이 판부터 hello·pong 에 싣는다 — 싣지 않은 hello·pong = **옛 번들 탭**(쓰기 주인·봉인을 모른다).
+ * 옛 번들은 패치 전 lokijs 라 slow path 로 남의 기록을 덮어쓴다 → 옛 번들이 아는 import-start/import-end 로 얼린다(아래 freezeLegacyTabs).
+ */
+const PROTO = 2;
+
 type Msg =
-  | { t: "hello"; from: string }
+  | { t: "hello"; from: string; proto?: number }
   | { t: "bye"; from: string }
   | { t: "ping"; from: string; nonce: string }
-  | { t: "pong"; from: string; nonce: string; importing: boolean }
-  | { t: "import-start"; from: string }
-  | { t: "import-end"; from: string }
+  | { t: "pong"; from: string; nonce: string; importing: boolean; proto?: number }
+  // legacyFreeze: 옛 번들 얼리기용(진짜 가져오기 아님) — 새 번들은 무시한다
+  | { t: "import-start"; from: string; legacyFreeze?: boolean }
+  | { t: "import-end"; from: string; legacyFreeze?: boolean }
   | { t: "claim"; from: string };
 
 /** 다른 탭의 가져오기 — none · importing(지금 쓰는 중) · ended(이 탭이 열린 뒤 끝났다 — 새로고침 필요) */
@@ -93,22 +101,30 @@ function onMessage(m: Msg | null): void {
     case "ping":
       // 봉인된 탭은 「쓰는 탭」으로 세지 않는다(Web Locks 없는 브라우저의 탭 수 · 재검토 M-5) @plm SRS-089
       if (isLocalDbSealed()) break;
-      post({ t: "pong", nonce: m.nonce, importing: importingHere });
+      // [원본] post({ t: "pong", nonce: m.nonce, importing: importingHere });
+      // [개선] 프로토콜 판을 싣는다 — 싣지 않은 pong 은 옛 번들(/qa code P4 M-3)
+      post({ t: "pong", nonce: m.nonce, importing: importingHere, proto: PROTO });
       break;
     case "pong":
       pongWaiters.get(m.nonce)?.(m);
+      if (m.proto === undefined) freezeLegacyTabs(m.from);
       break;
     case "hello":
       if (importingHere) post({ t: "import-start" }); // 새로 열린 탭에 다시 알린다
+      // 판을 싣지 않은 hello = 옛 번들 탭이 새로 열렸다(서비스워커가 옛 셸을 준 경우 등) @plm SRS-089
+      if (m.proto === undefined) freezeLegacyTabs(m.from);
       for (const fn of tabsListeners) fn();
       break;
     case "bye":
       for (const fn of tabsListeners) fn();
       break;
     case "import-start":
+      // 옛 번들 얼리기용 신호는 새 번들에게는 뜻이 없다(/qa code P4 M-3)
+      if (m.legacyFreeze) break;
       if (!importingHere) setElsewhere("importing");
       break;
     case "import-end":
+      if (m.legacyFreeze) break;
       if (elsewhere === "importing") setElsewhere("ended");
       break;
     case "claim":
@@ -137,6 +153,12 @@ function ping(): Promise<Array<Extract<Msg, { t: "pong" }>>> {
 export function startTabGuard(): void {
   if (started || typeof window === "undefined") return;
   started = true;
+  // 프레임 안 문서(서비스워커 찌르기 iframe 이 오프라인 대체로 앱 셸을 받은 경우 등)는 탭이 아니다 — presence·채널·쓰기 주인 어느 것도
+  // 하지 않는다(진짜 DB 도 열지 않는다 — core adapter). 그러지 않으면 혼자 쓰는 사용자의 본 탭이 거짓 덮개를 본다(/qa code P4 M-1) @plm SRS-089
+  if (isFramedDocument()) {
+    setWriter("framed");
+    return;
+  }
   const lm = lockManager();
   if (lm) {
     presenceReady = new Promise<void>((resolve) => {
@@ -165,7 +187,9 @@ export function startTabGuard(): void {
     try {
       channel = new BroadcastChannel(CHANNEL);
       channel.onmessage = (e: MessageEvent<Msg>) => onMessage(e.data);
-      post({ t: "hello" });
+      // [원본] post({ t: "hello" });
+      // [개선] 판을 싣는다(옛 번들 판별 · /qa code P4 M-3)
+      post({ t: "hello", proto: PROTO });
     } catch {
       channel = null;
     }
@@ -174,16 +198,32 @@ export function startTabGuard(): void {
   // 봉인되면(거부·빼앗김·가져오는 중) 이 탭을 멈춘다 — 거부 뒤 규칙은 onSealed @plm SRS-089
   subscribeSeal((info) => void onSealed(info));
   // bfcache 로 되살아난 문서의 메모리 사본은 낡았을 수 있다 — 거짓 덮개 대신 새로 읽는다(재검토 H-3) @plm SRS-089
+  // [원본] window.addEventListener("pageshow", (e) => {
+  //   if ((e as PageTransitionEvent).persisted) location.reload();
+  // });
+  // [개선] 새로고침 **전에** 메모리의 바뀐 것을 내려쓴다 — 얼기 전 pagehide 내려쓰기가 못 끝났으면 그 변경(≤500ms)을 버렸다(/qa code P4 M-4).
+  //        그사이 다른 탭이 디스크를 바꿨다면 패치가 STALE 로 거부하므로 덮어쓸 위험은 없다. 봉인 탭은 곧바로 새로고침. @plm SRS-089
   window.addEventListener("pageshow", (e) => {
-    if ((e as PageTransitionEvent).persisted) location.reload();
+    if ((e as PageTransitionEvent).persisted) void reloadAfterBfcache();
   });
   // [원본] 새로 열린 탭 — 다른 탭이 지금 가져오는 중이면 안내만 띄운다
   // void isImportRunningElsewhere().then((v) => v && setElsewhere("importing"));
   // [개선] presence → 가져오기 판정 → (아니면) 쓰기 주인 빼앗기(재검토 M-7 순서) · 주소창 미리 렌더 중에는 시작하지 않는다(L-2) @plm SRS-089
+  // [원본] const begin = () =>
+  //   void isImportRunningElsewhere()
+  //     .catch(() => false)
+  //     .then((v) => (v ? setElsewhere("importing") : claimWriter()));
+  // [개선] 다운그레이드 가드에 막힌 문서(진짜 DB 를 열지 않는 옛 번들)는 주인을 빼앗지 않는다(/qa code P4 L-2) ·
+  //        시작 때 옛 번들 탭을 찾아 얼린다(M-3)
   const begin = () =>
     void isImportRunningElsewhere()
       .catch(() => false)
-      .then((v) => (v ? setElsewhere("importing") : claimWriter()));
+      .then(async (v) => {
+        if (v) return setElsewhere("importing");
+        if (await schemaGuardBlocked()) return;
+        claimWriter();
+        void detectLegacyTabs();
+      });
   const doc = document as Document & { prerendering?: boolean };
   if (doc.prerendering) document.addEventListener("prerenderingchange", begin, { once: true });
   else begin();
@@ -298,7 +338,7 @@ const STALE_RELOAD_WINDOW_MS = 60_000;
 const BARRIER_MAX_MS = 3_000;
 
 /** 이 탭의 쓰기 주인 상태 — unknown: 아직 빼앗지 않음/판정 수단 없음 */
-export type WriterState = "unknown" | "owner" | "lost";
+export type WriterState = "unknown" | "owner" | "lost" | "framed";
 /** 덮개 — elsewhere: 다른 탭이 주인 · external: 주인인데 디스크가 바깥에서 바뀜(새로고침 뒤에도) */
 export type TabOverlayState = "none" | "elsewhere" | "external";
 
@@ -381,6 +421,8 @@ async function onSealed(info: SealInfo): Promise<void> {
   void import("./restSound").then(({ silenceRestSound }) => silenceRestSound()).catch(() => undefined);
   releasePresence?.();
   post({ t: "bye" }); // 가져오기 화면이 탭 수를 다시 센다
+  // bfcache 복귀 새로고침 중(내려쓰기가 거부됐다) — 곧 새로고침하므로 덮개·표식을 만들지 않는다(M-4)
+  if (reloadingFromBfcache) return;
   // 「다른 탭에서 가져오는 중」은 ImportElsewhereNotice 가 그린다
   if (info.reason === "import_elsewhere") return;
   if (info.reason === "writer_lost" || writer === "lost") {
@@ -418,4 +460,77 @@ export function subscribeTabOverlay(fn: (s: TabOverlayState) => void): () => voi
   overlayListeners.add(fn);
   fn(overlay);
   return () => overlayListeners.delete(fn);
+}
+
+// ── bfcache 복귀(/qa code P4 M-4) ─────────────────────────────────────────────────────────────
+
+let reloadingFromBfcache = false;
+
+/** bfcache 로 되살아났다 — 바뀐 것이 있으면 내려쓰고(거부되면 그만 · 다른 탭의 디스크는 패치가 지킨다) 새로 읽는다 */
+async function reloadAfterBfcache(): Promise<void> {
+  if (reloadingFromBfcache) return;
+  reloadingFromBfcache = true;
+  if (!isLocalDbSealed()) {
+    try {
+      const { flushLocalDbIfDirty } = await import("./localDb");
+      const r = await Promise.race([
+        flushLocalDbIfDirty(),
+        new Promise((res) => setTimeout(() => res("timeout"), BARRIER_MAX_MS)),
+      ]);
+      console.info("[tabs] bfcache 복귀 — 내려쓰고 새로고침", { flushed: r });
+    } catch {
+      // 내려쓰기 실패 — 그래도 새로 읽는다(디스크에 있던 기록은 그대로다)
+    }
+  }
+  location.reload();
+}
+
+// ── 다운그레이드 가드(/qa code P4 L-2) ─────────────────────────────────────────────────────────
+
+async function schemaGuardBlocked(): Promise<boolean> {
+  try {
+    await import("@app/core/db"); // buildAdapter → checkSchemaGuardOnBoot(판정이 끝난 뒤 읽는다)
+    const { getSchemaGuardState } = await import("@app/core/db/schemaGuard");
+    return getSchemaGuardState()?.blocked === true;
+  } catch {
+    return false;
+  }
+}
+
+// ── 배포 과도기 옛 번들 탭(/qa code P4 M-3) ────────────────────────────────────────────────────
+//
+// 옛 번들(쓰기 주인·봉인·lokijs 패치 이전)은 다른 탭이 디스크를 바꾼 것을 보면 자기 메모리 사본으로 전부 덮어쓴다.
+// 패치된 탭은 자기 저장만 지키므로, 숨은 옛 탭이 백그라운드 동기·타이머로 한 번 쓰면 새 탭의 기록(동기 전 분 · 비로그인은 전부)을 지운다.
+// 옛 번들이 이해하는 말로 얼린다: import-start → 옛 탭은 동기를 멈추고 화면 전체 안내(되돌아오지 않는다) · import-end → 안내가
+// 「끝났어요 — 새로고침」으로 바뀌어 사용자가 그 탭을 새로고침한다(새로고침하면 새 번들이 된다).
+// 한계: 얼리기 전에 옛 탭 메모리에 이미 바뀐 것이 있으면 그 탭의 autosave 한 번은 막지 못한다(옛 코드라 고칠 수 없다).
+// 이 탭에는 「다른 탭을 새로고침해 주세요」 띠를 띄운다(LegacyTabBand).
+
+const legacyFrozen = new Set<string>();
+let legacyTabs = false;
+const legacyListeners = new Set<(v: boolean) => void>();
+
+function freezeLegacyTabs(from: string): void {
+  if (isLocalDbSealed() || legacyFrozen.has(from)) return;
+  legacyFrozen.add(from);
+  console.warn("[tabs] 옛 버전 탭을 찾았다 — 얼린다(새로고침 안내)", { from });
+  post({ t: "import-start", legacyFreeze: true });
+  post({ t: "import-end", legacyFreeze: true }); // 같은 보낸이의 메시지는 순서대로 닿는다
+  if (!legacyTabs) {
+    legacyTabs = true;
+    if (typeof document !== "undefined") document.documentElement.dataset.legacyTabs = "1";
+    for (const fn of legacyListeners) fn(true);
+  }
+}
+
+/** 시작 때 한 번 — 핑에 판 없이 답한 탭(옛 번들)을 얼린다(답 처리는 onMessage 의 pong) */
+async function detectLegacyTabs(): Promise<void> {
+  if (!channel) return;
+  await ping();
+}
+
+export function subscribeLegacyTabs(fn: (v: boolean) => void): () => void {
+  legacyListeners.add(fn);
+  fn(legacyTabs);
+  return () => legacyListeners.delete(fn);
 }

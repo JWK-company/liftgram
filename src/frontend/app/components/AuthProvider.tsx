@@ -26,6 +26,8 @@ import {
   watchSyncTriggers,
 } from "@/lib/syncTransport";
 import { parseLastLogin } from "@/lib/last-login";
+import { isFramedDocument } from "@app/core/db/writeGate"; // @plm SRS-089
+import { startTabGuard } from "@/lib/tabGuard";
 import { installClientHealthReport, setClientHealthUser } from "@/lib/clientHealth"; // @plm SRS-088
 import { setOpsAlertViewer } from "@/lib/opsAlert"; // @plm SRS-088
 
@@ -124,6 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [reconcile, setUser]);
 
   useEffect(() => {
+    // 프레임 안 문서(서비스워커 찌르기 iframe 이 오프라인 대체로 앱 셸을 받은 경우 등)는 동기·세션 복원·건강 보고를 하지 않는다 —
+    // 본 탭과 같은 저장소(세션 갱신 토큰·localStorage 표식)를 건드리고, 진짜 DB 대신 버리는 빈 DB 를 보고 있다(/qa code P4 M-1) @plm SRS-089
+    if (isFramedDocument()) {
+      startTabGuard(); // 프레임 문서는 아무것도 하지 않고 표식만 남긴다(html[data-tab-writer=framed])
+      setLoading(false);
+      setRestoring(false);
+      return;
+    }
     // core의 동기 규칙에 "말하는 방법"을 꽂는다. 이 전까지 저장소의 예약은 아무 일도 하지 않는다.
     installSync();
     const stopTriggers = watchSyncTriggers();

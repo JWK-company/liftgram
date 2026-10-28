@@ -37,7 +37,7 @@ async function findLoki(): Promise<LokiLike | null> {
  *          자동 저장이 결국 처리하므로 막을 이유는 없다).
  */
 import { navigate } from "./nav";
-import { isLocalDbSealed } from "@app/core/db/writeGate";
+import { isLocalDbSealed, whenLocalDbDiskOpen } from "@app/core/db/writeGate";
 // 봉인("sealed")된 탭에서도 true 다 — 90여 호출부는 「내려썼으니 이동해도 된다」로 읽는데, 봉인 탭은 어차피 디스크에 못 쓰고
 // 덮개가 화면을 막으므로 이동해도 잃을 것이 없다. 디스크 반영을 확인해야 하는 곳은 flushLocalDbResult 를 쓴다. @plm SRS-089
 export async function flushLocalDb(): Promise<boolean> {
@@ -66,6 +66,9 @@ export type FlushResult = "saved" | "failed" | "unreachable" | "sealed";
 // }
 // [개선] 봉인 탭은 디스크에 닿지 않고 "sealed" — 패치의 거부 오류(code)도 "sealed" 로 돌려준다. @plm SRS-089
 export async function flushLocalDbResult(): Promise<FlushResult> {
+  if (isLocalDbSealed()) return "sealed";
+  // 미리 렌더 문서 — 활성화될 때까지 기다렸다 내려쓴다(거부 대신 · /qa code P4 M-2) @plm SRS-089
+  await whenLocalDbDiskOpen();
   if (isLocalDbSealed()) return "sealed";
   const loki = await findLoki();
   if (!loki?.saveDatabase) {
