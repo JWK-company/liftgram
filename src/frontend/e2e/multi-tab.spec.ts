@@ -212,7 +212,7 @@ test("③ 넘겨받기 왕복 — 덮개 · 「여기서 계속하기」 · 세 
   expect(await 디스크_무게(빈)).toEqual([65, 75, 76]);
 });
 
-test("④ 혼자 쓰는 사용자 — 새로고침 ×5 · 업데이트 새로고침 · /diag/db 왕복 · 계정 전환 뒤에도 덮개·봉인 없음", async ({
+test("④ 혼자 쓰는 사용자 — 새로고침 ×5 · 업데이트 새로고침 · /diag/db 왕복 뒤에도 덮개·봉인 없음", async ({
   page,
 }) => {
   test.setTimeout(240_000);
@@ -334,4 +334,39 @@ test("⑤ 가져오는 탭이 있으면 새 탭은 주인을 빼앗지 않고 �
   const n = await idb_행_수(other, ["workouts"], "imp-");
   expect(n.workouts).toBe(운동수);
   await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
+});
+
+test("⑥ Web Locks 없는 브라우저 — BroadcastChannel 의 claim 으로 나중 탭이 주인 · 진 탭이 숨겨져도 B 의 세트가 남는다", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(150_000);
+  const A = page;
+  // 새 기기 첫 실행(빈 DB 시드)은 잠금이 있는 채로 끝낸다 — 빈 DB 의 시드 top-up 과 카탈로그 받기가 겹치는 기존 경합
+  // (보고서 「남은 위험」)이 이 테스트를 흔들지 않게. 그 뒤 잠금을 지우고 다시 연다.
+  await 준비(A);
+  await context.addInitScript(() => {
+    try {
+      Object.defineProperty(navigator, "locks", { value: undefined, configurable: true });
+    } catch {
+      // 지울 수 없으면 아래 단언이 잡는다
+    }
+  });
+  await A.reload();
+  await expect(A.getByTestId("sync-state")).toHaveText("최신", { timeout: 30_000 });
+  expect(await A.evaluate(() => "locks" in navigator && navigator.locks === undefined)).toBe(true);
+  await 빠른_운동_시작(A);
+  await 종목_추가(A, "바벨 벤치프레스");
+  await 세트_기록(A, 0, 0, 67, 10);
+  await 디스크에_닿음(A, 67);
+
+  const B = await context.newPage();
+  await 운동_화면(B);
+  await expect(A.getByTestId("tab-elsewhere")).toBeVisible({ timeout: 15_000 });
+  await 종목_추가(B, "바벨 스쿼트");
+  await 세트_기록(B, 1, 0, 78, 5);
+  await 디스크에_닿음(B, 78);
+  await 숨김_이벤트(A);
+  expect(await 디스크_무게(B)).toEqual([67, 78]);
+  await expect(B.getByTestId("tab-elsewhere")).toHaveCount(0);
 });
