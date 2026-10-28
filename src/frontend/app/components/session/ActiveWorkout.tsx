@@ -43,6 +43,9 @@ import { RestBar, clock } from "./RestBar";
 import { SessionGuideButtons } from "./SessionGuides";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
+import { LoginNudgeSheet } from "./LoginNudgeSheet"; // 비로그인 완료 뒤 보관 권유 @plm SRS-086
+import { noteAnonCompletion } from "@/lib/loginNudge";
+import { useAuth } from "../AuthProvider";
 import { SetDraftContext, createSetDraftRegistry } from "./setDrafts";
 import { firePrCelebration } from "../PrCelebration";
 import { WeighInCheckin } from "./WeighInSheet"; // 운동 전 체중 체크인 @plm SRS-077
@@ -89,6 +92,9 @@ export default function ActiveWorkout() {
   // 완료 직후 — 루틴과 달라진 점·루틴으로 저장을 묻는다(요약 위에 뜬다). @plm SRS-059 SRS-060
   const [finishPrompt, setFinishPrompt] = useState<FinishPromptState | null>(null);
   const [routineSaved, setRoutineSaved] = useState(false); // 완료 시트에서 새 루틴으로 저장했다(QA L5)
+  // 비로그인 기기에서 마친 운동 — 루틴 질문이 끝난 뒤 보관 권유 시트를 띄울지 @plm SRS-086
+  const { user: authUser, loading: authLoading } = useAuth();
+  const [loginNudge, setLoginNudge] = useState(false);
   // 루틴으로 시작한 운동에서 종목을 바꾸면 「이번만 / 루틴에도」를 묻는다(SRS-057 · 4.1)
   const [swapScope, setSwapScope] = useState<null | {
     routineId: string;
@@ -235,6 +241,7 @@ export default function ActiveWorkout() {
           onReplayStarted={(w) => {
             setFinishPrompt(null);
             setRoutineSaved(false);
+            setLoginNudge(false);
             setSummary(null);
             setWorkout(w as unknown as WorkoutRow);
             setVersion((v) => v + 1);
@@ -249,6 +256,7 @@ export default function ActiveWorkout() {
             }}
           />
         ) : null}
+        {!finishPrompt && loginNudge ? <LoginNudgeSheet onClose={() => setLoginNudge(false)} /> : null}
       </>
     );
 
@@ -588,6 +596,8 @@ export default function ActiveWorkout() {
                 clearWeighInMarks({ workoutId: workout.id }); // 체크인 표시는 운동이 끝나면 지운다 @plm SRS-077
                 setActive(null);
                 setSummary(s as Summary);
+                // 로그인 상태를 아직 모르면 세지 않는다(로그인한 사람을 비로그인으로 세지 않게) @plm SRS-086
+                if (!authLoading && !authUser) setLoginNudge(noteAnonCompletion(workout.id));
                 if (ask && ask.kind !== "none")
                   setFinishPrompt({
                     kind: ask.kind,

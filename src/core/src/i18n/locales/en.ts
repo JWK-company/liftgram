@@ -953,6 +953,11 @@ export const en: Record<TransKey, string> = {
   "syncHealth.localOnlyBody": "Log in to back them up. Clearing browser data or switching devices can lose them.",
   "syncHealth.blockedTitle": "Sync paused: another account's records are here",
   "syncHealth.later": "Later",
+  // Login nudge sheet @plm SRS-086
+  "loginNudge.title": "This workout is only on this phone",
+  "loginNudge.body": "Sign in to keep your records safe in your account, even if you change phones.",
+  "loginNudge.login": "Sign in to keep it",
+  "loginNudge.later": "Later",
   "syncHealth.openProfile": "Review",
   "backup.title": "Backup file",
   "backup.caption": "Export this device's records to a file, or restore from one. Importing never deletes anything.",

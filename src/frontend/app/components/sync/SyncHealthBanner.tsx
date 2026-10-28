@@ -3,7 +3,7 @@
 //
 // 두 경우에만 뜬다:
 //   ① 로그인했는데 백업이 멈췄다(연속 실패·하루 넘게 성공 없음·다른 계정 기록으로 멈춤) — 닫을 수 없다
-//   ② 로그인하지 않았는데 이 기기에만 기록이 쌓였다(5건 이상) — "나중에"로 7일 접을 수 있다
+//   ② 로그인하지 않았는데 이 기기에만 기록이 쌓였다(1건 이상 · SRS-086 — 전에는 5건) — "나중에"로 하루 접는다(전에는 7일)
 // 누르면 계정 화면의 서버 동기·백업 카드로 간다(지금 동기 · 백업 파일 내보내기가 거기 있다).
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -12,9 +12,13 @@ import { getPref, setPref } from "@/lib/prefs";
 import { useAuth } from "../AuthProvider";
 import { Icon } from "../ui/Icon";
 import { isBackupStalled, useSyncHealth } from "./useSyncHealth";
+import { localOnlyBannerVisible } from "@app/core/domain/loginNudge";
+import { anonCompletedCount } from "@/lib/loginNudge";
 
 const DISMISS_KEY = "sync_localonly_dismissed_at";
-const LOCAL_ONLY_MIN = 5;
+// [원본] 5건부터 · 「나중에」 7일 — 비로그인 기기 기록을 너무 늦게·오래 숨겼다(SRS-086)
+// const LOCAL_ONLY_MIN = 5;
+// [개선] 1건부터 · 하루 접기 — 판정은 core localOnlyBannerVisible @plm SRS-086
 
 export function SyncHealthBanner() {
   const { user, loading } = useAuth();
@@ -26,8 +30,18 @@ export function SyncHealthBanner() {
   if (loading || path?.startsWith("/account")) return null;
 
   const stalled = !!user && isBackupStalled(h);
+  // [원본] const localOnly =
+  //   !user && (h.pending ?? 0) >= LOCAL_ONLY_MIN && Date.now() - dismissedAt > 7 * 24 * 3600_000;
+  // 진행 중인 운동 화면에서는 띄우지 않는다 — 운동 흐름을 끊지 않게(qa spec H-3)
   const localOnly =
-    !user && (h.pending ?? 0) >= LOCAL_ONLY_MIN && Date.now() - dismissedAt > 7 * 24 * 3600_000;
+    !user &&
+    !path?.startsWith("/workout") &&
+    localOnlyBannerVisible({
+      pending: h.pending,
+      anonCompletedCount: anonCompletedCount(),
+      dismissedAt,
+      now: Date.now(),
+    });
   if (!stalled && !localOnly) return null;
 
   return (

@@ -951,6 +951,11 @@ export const ko = {
   "syncHealth.localOnlyBody": "로그인하면 서버에 백업돼요. 브라우저 데이터를 지우거나 기기를 바꾸면 사라질 수 있어요.",
   "syncHealth.blockedTitle": "다른 계정의 기록 때문에 동기를 멈췄어요",
   "syncHealth.later": "나중에",
+  // 로그인 권유 시트 @plm SRS-086
+  "loginNudge.title": "이 기록은 이 폰에만 있어요",
+  "loginNudge.body": "로그인하면 기록이 계정에 안전하게 보관되고, 폰을 바꿔도 그대로예요.",
+  "loginNudge.login": "로그인하고 보관하기",
+  "loginNudge.later": "나중에",
   "syncHealth.openProfile": "확인하기",
   "backup.title": "백업 파일",
   "backup.caption": "이 기기의 기록을 파일로 꺼내 두거나 파일에서 되살려요. 가져오기는 아무것도 지우지 않아요.",
