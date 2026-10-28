@@ -307,12 +307,10 @@ test("E7 필수 업데이트 — 운동 화면 밖이면 덮개로 저절로 · 
 
   // 운동 중이면 — 덮개 없이 기다린다(운동을 먼저 시작한 뒤 서버가 최소 버전을 올린다)
   await 빠른_운동_시작(page);
-  await 새_워커(page, { version: "0.50.0" });
-  await page.evaluate(() =>
-    sessionStorage.setItem(
-      "__appver_always",
-      JSON.stringify({ version: "0.50.0", minClientVersion: "0.50.0" }),
-    ),
+  await 새_워커(page, { version: NEXT });
+  await page.evaluate(
+    (v) => sessionStorage.setItem("__appver_always", JSON.stringify({ version: v, minClientVersion: v })),
+    NEXT,
   );
   await page.reload(); // 운동 화면에서 부팅 — 필수지만 운동 화면·진행 중이라 기다린다
   await page.waitForTimeout(5_000);
