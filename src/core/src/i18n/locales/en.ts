@@ -126,7 +126,7 @@ export const en: Record<TransKey, string> = {
   "creator.missingExercise": "not on this device",
   "creator.openVideo": "Watch the original video",
   "creator.openVideoAria": "Watch the original video (YouTube, new window)",
-  "creator.disclaimer": "Not affiliated with or endorsed by the channel. Liftgram summarized the video; \"Default\" values were not stated in the video. Corrections or removal: {email}",
+  "creator.disclaimer": "Not partnered with or endorsed by the channel. Liftgram summarized the video; \"Default\" values were not stated in the video. Corrections or removal: {email}",
   "creator.savedMessage": "Added {count} routines. Check the original video for technique.",
   "creator.savedPartial": "Saved {count} of {total} routines.",
   "concept.sectionTitle": "Concept routines",
