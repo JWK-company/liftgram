@@ -1,13 +1,17 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
-## 활성 작업 — 기록 보호 2차 (Project · URS-027 · SRS-086~089) · 2026-10-28
+## 직전 작업(완료) — 기록 보호 2차 (Project · URS-027 · SRS-086~089) · 2026-10-28
 - 스펙 `.ouroboros/docs/spec/20261028_data-safety-2/spec.md`(§11 rev2·rev3 가 앞을 덮어씀) · qa spec `qa/20261028_data-safety-2-spec_qa.md`(조건부) · P4 재검토 `qa/20261028_data-safety-2-p4-respec_qa.md`(조건부 → rev3 「트랜잭션 안 거부 + 모듈 문」 채택)
 - worktree `../liftgram-wt-safety` · 브랜치 `feat/data-safety-2` · 로컬 운영 빌드 3200/3201 (`scratchpad/ds2/up.sh`)
-- P1 v0.49.0 로그인 유도 + 사용자 피드백(운동 헤더 sticky · 순서 버튼 맨 왼쪽) — 커밋 5de8810·4dac32a · e2e 26/26 · 새 e2e 옛 빌드(운영)에서 실패 확인 · **독립 qa code 진행 중** → 조치 → ff-only·배포
-- P2+P3 v0.50.0 백업 결과·복원 시험 + 운영 상태(/ops·admin 점) — 구현 에이전트 진행 중(미커밋) · 보고 `docs/report/_work/20261028_p2p3_execute.md`
-- P4 v0.51.0 다중 탭 — rev3 로 execute 예정(lokijs bun patch · fake-indexeddb 단위 테스트가 첫 checkpoint)
+- **P1 = v0.50.0 운영 배포 완료**(build 403 · e06e59a · tag v0.50.0 · 병행 세션이 v0.49.0 근육 지도를 먼저 배포) — 로그인 유도 + 피드백(운동 헤더 sticky·순서 버튼 왼쪽) · qa code `qa/20261028_data-safety-2-p1-code_qa.md`(H 없음·M-1~3 조치) · e2e 32+9 · 운영 스모크 2/2 · 남은 L(슈퍼셋 머리 순서 버튼·접근 이름·데스크톱 문구) 보류
+- **P2+P3 = v0.51.0 운영 배포 완료**(build 406 · e231a56 · tag) · qa code `qa/20261028_data-safety-2-p2p3-code_qa.md`(H-1 72h 창·M-1~4 조치) · 배포 전 `pre-ops-0020-20261028-021756.dump` · 첫 backup·restore-test 손으로 OK(users 3·sync 6890 일치) · cron 04:17 daily·매월 1일 04:47 복원 시험 · 테스트 계정 2개는 다른 세션이 01:26 삭제(`pre-delete-test-accounts-*` 백업)
+- **P4 = v0.52.0 운영 배포 완료**(build 413 · a359f3e · tag) — lokijs 패치(트랜잭션 안 거부 LOKI_STALE)+쓰기 문+주인 잠금·덮개 · qa code `qa/20261028_data-safety-2-p4-code_qa.md`(H 없음·M-1~5 조치) · 로컬 e2e 36/36 · 운영 스모크 multi-tab ①③④⑦⑨⑩ 통과(④-2 는 운영 Turnstile 로 가입 불가) · 남은 L-3~L-6 · 후속: 빈 DB 첫 실행 시드·카탈로그 Duplicate key 경합(부하 1회 재현) 조사
 - 운영진: jh21star@gmail.com admin 부여(직전 백업 `pre-admin-grant-20261028-004109.dump`) · 백업 디스크 = /home(sda) ≠ DB(sdb) · /m2 는 동업자 영역이라 안 씀
+## ⚠ 병행 세션 6710ac69 알림 (2026-10-28 10:14)
+- **운영은 이미 v0.49.0 (build 395 · 11bb386 · 태그 v0.49.0 푸시됨)** = 근육 지도 MuscleMap 교체(SRS-090·ADR-044). 기록 보호 P1 은 rebase 뒤 **v0.50.0** 부터(스펙 규칙 「병행 세션이 버전을 올렸으면 다음 minor」) — package.json·커밋 제목의 v0.49.0 을 고칠 것.
+- 진행 중(6710ac69): 크리에이터 루틴(SRS-091·092 · ADR-045) — worktree `../liftgram-wt-creator`(feat/creator-routines · 5ef78ea · e231a56 위로 rebase · 웹 3500) · qa code 조치 완료 · core 529·e2e 6 통과 · **배포 대기: P4 v0.52.0 가 먼저 나간 뒤 그 위로 rebase → v0.53.0** (지금 합치면 P4 미배포 커밋이 섞임). 겹침: `routines/RoutinesClient.tsx`·`core/data/routineRepository.ts`·i18n `creator.*`·`e2e/routines.spec.ts`(옛 콘셉트 skip)
+- 운영 테스트 계정 2개 삭제(poc1@test.com·네이버 tar) · 백업 `pre-delete-test-accounts-20261028-012646.dump`
 ## 세션 상태 (2026-10-28)
-- 운영 = `https://liftgram.tarae.org` **v0.48.0 (build 391)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
+- 운영 = `https://liftgram.tarae.org` **v0.49.0 (build 395)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
 - 팀원 기록 복구 완료(운동 36→73 · 8/25~10/26 이어짐 · 오늘 0볼륨 2건은 팀원이 지우면 됨) · 보고서 Docs `https://claude.ai/artifact/NfDMSjDGLLfARSpTuNNa54`
 - 보류: 수동 업데이트 L-2·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안 · 「tar」 네이버 계정 주인 확인
 ## 최근 완료 (2026-10-26~28 · 상세는 각 spec/qa/report 와 git 로그)
