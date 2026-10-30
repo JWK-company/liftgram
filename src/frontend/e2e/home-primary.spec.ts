@@ -67,6 +67,7 @@ async function 빨강_관찰(page: Page) {
     w.__seen = [];
     w.__atReady = null;
     w.__quickTops = [];
+    w.__newTops = [];
     const loop = () => {
       try {
         // 홈 화면만 잰다 — 요약의 「완료」 같은 다른 화면의 주 행동은 셈하지 않는다
@@ -99,6 +100,13 @@ async function 빨강_관찰(page: Page) {
             const tops = w.__quickTops as number[];
             if (tops[tops.length - 1] !== top) tops.push(top);
           }
+          // 새 루틴 만들기도 누를 수 있는 동안 자리가 바뀌면 오탭이다(qa M-2)
+          const n = document.querySelector('[data-testid="btn-new-routine"]') as HTMLButtonElement | null;
+          if (n && !n.disabled) {
+            const top = Math.round(n.getBoundingClientRect().top + window.scrollY);
+            const tops = w.__newTops as number[];
+            if (tops[tops.length - 1] !== top) tops.push(top);
+          }
         }
       } catch {
         // 측정 실패는 다음 프레임에 다시
@@ -111,7 +119,7 @@ async function 빨강_관찰(page: Page) {
 
 async function 빨강_기록(
   page: Page,
-): Promise<{ seen: string[]; atReady: string[] | null; quickTops: number[] }> {
+): Promise<{ seen: string[]; atReady: string[] | null; quickTops: number[]; newTops: number[] }> {
   // 표식 뒤에도 잠깐 더 본다 — 늦게 오는 값(진행 중 운동·추천)이 빨강을 옮기는지
   await page.waitForTimeout(1500);
   return page.evaluate(() => {
@@ -120,6 +128,7 @@ async function 빨강_기록(
       seen: w.__seen as string[],
       atReady: w.__atReady as string[] | null,
       quickTops: w.__quickTops as number[],
+      newTops: (w.__newTops as number[]) ?? [],
     };
   });
 }
@@ -130,6 +139,7 @@ async function 빨강_기록_초기화(page: Page) {
     w.__seen = [];
     w.__atReady = null;
     w.__quickTops = [];
+    w.__newTops = [];
   });
 }
 
@@ -330,4 +340,46 @@ test("어제 놓친 루틴이 곧 오늘 할 루틴이면 카드는 한 장 — 
   await expect(page.getByTestId("next-card")).toContainText(이름);
   await expect(page.getByTestId("catchup-card")).toHaveCount(0);
   expect(await filledBrand(page)).toEqual(["btn-start-next"]);
+});
+
+test("오늘 할 운동 → 놓친 루틴 → 새 루틴·빠른 운동 순서 · 콜드 로드 동안 누를 수 있는 버튼이 밀리지 않는다(피드백 2026-10-30)", async ({
+  page,
+}) => {
+  test.setTimeout(240_000);
+  await 카탈로그_준비(page);
+  const 오늘 = `오늘루틴${Date.now().toString(36)}`;
+  const 어제 = `어제루틴${Date.now().toString(36)}`;
+  await 루틴_만들기(page, 오늘);
+  await 루틴_만들기(page, 어제);
+  await page.goto("/");
+  await page.getByTestId("entry-schedule").click();
+  await expect(page.getByTestId("schedule-editor")).toBeVisible({ timeout: 20_000 });
+  const keys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const d = new Date().getDay();
+  await page.getByTestId(`schedule-day-${keys[d]}`).click();
+  await page.getByTestId("schedule-day-picker").getByText(오늘).click();
+  await page.getByTestId(`schedule-day-${keys[(d + 6) % 7]}`).click();
+  await page.getByTestId("schedule-day-picker").getByText(어제).click();
+  await page.getByTestId("schedule-save").click();
+  await expect(page.getByTestId("schedule-editor")).toHaveCount(0, { timeout: 20_000 });
+
+  await 빨강_관찰(page);
+  await 홈(page);
+  await expect(page.getByTestId("today-card")).toContainText(오늘);
+  await expect(page.getByTestId("catchup-card")).toContainText(어제);
+  const top = async (id: string) => (await page.getByTestId(id).boundingBox())?.y ?? -1;
+  const [next, catchup, newR, quick] = [
+    await top("today-card"),
+    await top("catchup-card"),
+    await top("btn-new-routine"),
+    await top("btn-quick-start"),
+  ];
+  expect(next).toBeLessThan(catchup);
+  expect(catchup).toBeLessThan(newR);
+  expect(Math.abs(newR - quick)).toBeLessThanOrEqual(1);
+  const log = await 빨강_기록(page);
+  expect(log.quickTops.length).toBeLessThanOrEqual(1);
+  expect(log.newTops.length).toBeLessThanOrEqual(1);
+  // 판단 전에는 놓친 루틴 카드가 없었다 — 판단 표식이 붙은 첫 프레임에도 빨강은 오늘 카드 하나
+  expect(log.atReady).toEqual(["btn-start-today"]);
 });

@@ -70,7 +70,8 @@ const ROUTINE_DOT_PALETTE = [
 ];
 
 export default function RoutinesClient() {
-  const { user, weeklySchedule } = useUser();
+  // loading — 사용자 레코드(스케줄)를 읽기 전의 null 을 「스케줄 없음」으로 보지 않으려고(qa M-1)
+  const { user, weeklySchedule, loading: userLoading } = useUser();
   // [원본] activeName 도 꺼냈다 — 진행 카드 제목(화면 정리 D8 로 렌더 중단)
   // [원본] const { activeWorkoutId, setActive, refreshActive } = useSession(); — refreshActive 는 아래 고아 확인창에서만 썼다
   // activeLoaded — 진행 중인 운동을 읽기 전의 null 은 「없음」이 아니라 「모름」(화면 정리 M-2 /qa H-2) @plm SRS-072
@@ -99,6 +100,9 @@ export default function RoutinesClient() {
   const [editingSchedule, setEditingSchedule] = useState(false);
   /** 최근 8일 중 운동을 마친 날. 캐치업 판정이 이걸 본다. */
   const [doneDayNums, setDoneDayNums] = useState<Set<number>>(() => new Set());
+  // 완료일을 읽었나 — 읽기 전 빈 집합으로는 「놓친 루틴」이 떴다가 사라진다(버튼 위 카드라 버튼이 밀린다 · SRS-093).
+  // 추천과 같은 열쇠로 — 자정·운동 시작으로 열쇠가 바뀌면 지난 완료일로 판단하지 않는다(qa L-2)
+  const [doneKey, setDoneKey] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,6 +133,7 @@ export default function RoutinesClient() {
   // 루틴이 늘거나 운동을 시작·끝내거나 날이 바뀌면 추천이 달라진다 — 그 셋을 열쇠로 묶어 다시 읽는 계기로 쓴다.
   // 추천이 무엇을 보고 계산됐나 — 루틴 수·진행 중 운동·오늘. 셋 중 하나라도 바뀌면 지난 추천은 쓰지 않는다.
   const recoKey = `${routineCount}|${activeWorkoutId ?? ""}|${todayNum}`;
+  const doneLoaded = doneKey === recoKey;
   const reco: Reco | null = recoEntry && recoEntry.key === recoKey ? recoEntry.value : null;
 
   // 자정을 넘겨 돌아오면 오늘을 다시 잡는다(→ 열쇠가 바뀌어 추천을 다시 읽는다)
@@ -167,7 +172,8 @@ export default function RoutinesClient() {
     void analytics
       .getCompletedDayNumsSince(8)
       .then((d) => !cancelled && setDoneDayNums(d))
-      .catch(() => !cancelled && setDoneDayNums(new Set()));
+      .catch(() => !cancelled && setDoneDayNums(new Set()))
+      .finally(() => !cancelled && setDoneKey(key));
     return () => {
       cancelled = true;
     };
@@ -284,7 +290,12 @@ export default function RoutinesClient() {
     !!repos &&
     routinesLoaded &&
     activeLoaded &&
-    (!!activeWorkoutId || routines.length === 0 || reco !== null);
+    (!!activeWorkoutId || routines.length === 0 || reco !== null) &&
+    // [원본] 여기까지(… || reco !== null) — v0.54.1 에서 아래 두 조건을 더함
+    // 사용자 레코드(스케줄)를 읽었고, 스케줄을 쓰면 놓친 루틴 판단(완료일)까지 — 그 카드들이 버튼 위라
+    // 판단 뒤에 나타나면 이미 누를 수 있는 버튼이 밀려 오탭이다(SRS-093 · qa M-1)
+    !userLoading &&
+    (!weeklySchedule || doneLoaded);
   const primary: HomePrimary | null = homeReady
     ? pickHomePrimary({
         active: !!activeWorkoutId,
@@ -416,6 +427,22 @@ export default function RoutinesClient() {
         {/* 판단 전 — 루틴이 있으면 그 카드 자리를 미리 잡아 둔다(빠른 시작이 밀려 내려가 오탭되지 않게 · /qa M-2 M-2) */}
         {!homeReady && routinesLoaded && routines.length > 0 ? <NextCardSkeleton /> : null}
 
+        {/* [개선] 할 루틴 카드(오늘 할 운동 → 놓친 루틴)를 먼저, 그다음 새 루틴·빠른 운동 버튼 줄 — 판단(homeReady) 뒤에만 그린다 @plm SRS-093 */}
+        {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
+        {/* [개선] 오늘 할 루틴(주 행동)과 같은 루틴이면 카드 한 장이면 된다(/qa M-2 M-3) */}
+        {homeReady &&
+        catchUp &&
+        !reco?.alreadyWorkedOutToday &&
+        catchUp.routineId !== primaryRoutineId &&
+        !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
+          <CatchUpCard
+            catchUp={catchUp}
+            name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
+            busy={busy}
+            onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
+          />
+        ) : null}
+
         {/* ── 빈 운동 시작 ── */}
         {/* [원본] 빠른 운동 시작 한 개만 화면 폭 — 「+ 새 루틴」은 섹션 머리의 작은 글자라 잘 안 보였다(피드백 2026-10-30)
         <div className="mb-[var(--spacing-md)]">
@@ -430,6 +457,8 @@ export default function RoutinesClient() {
               title={t("routines.createRoutine")}
               icon="add"
               variant={newRoutinePrimary ? "primary" : "secondary"}
+              // 판단 전에는 누를 수 없다 — 위 카드 수가 정해지기 전이라 자리가 바뀐다(빠른 시작과 같은 이유 · qa M-2)
+              disabled={!homeReady}
               testId="btn-new-routine"
               onPress={() => {
                 void import("@/lib/localDb").then((m) => m.navigateAfterFlush("/routines/new"));
@@ -456,19 +485,14 @@ export default function RoutinesClient() {
         {/* ── 오늘의 안내 ── */}
         {primary?.kind === "routine" ? null : todayGuide()}
 
-        {/* 놓친 루틴 — 오늘 예정과 같으면 카드 한 장으로 충분하다. */}
-        {/* [개선] 오늘 할 루틴(주 행동)과 같은 루틴이면 카드 한 장이면 된다(/qa M-2 M-3) */}
+        {/* [원본] 놓친 루틴 카드는 「오늘의 안내」 아래(버튼 줄 아래)였다 — 피드백 2026-10-30 으로 버튼 줄 위로 옮김
         {catchUp &&
         !reco?.alreadyWorkedOutToday &&
         catchUp.routineId !== primaryRoutineId &&
         !(plan.kind === "routine" && plan.routineId === catchUp.routineId) ? (
-          <CatchUpCard
-            catchUp={catchUp}
-            name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
-            busy={busy}
-            onStart={() => guardActive(startFromRoutine(catchUp.routineId))}
-          />
-        ) : null}
+          <CatchUpCard catchUp={catchUp} name={routines.find((r) => r.id === catchUp.routineId)?.name ?? null}
+            busy={busy} onStart={() => guardActive(startFromRoutine(catchUp.routineId))} />
+        ) : null} */}
 
         {/* ── 내 루틴 — 줄마다 바로 시작(시안 01) ── */}
         <SectionLabel
