@@ -26,6 +26,7 @@ async function 종목_추가(page: Page, 검색: string) {
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(검색);
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("exercise-picker")).toHaveCount(0);
 }
 

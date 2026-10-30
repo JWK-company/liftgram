@@ -20,6 +20,7 @@ async function 운동_시작(page: import("@playwright/test").Page, 종목검색
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(종목검색);
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(1);
 }
 

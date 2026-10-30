@@ -30,9 +30,11 @@ import {
   finishBootCover,
   getAppUpdateState,
   initUpdateTracking,
-  onControllerChange,
+  // onControllerChange, // [원본] 버전을 보지 않고 「표시」 — 같은 버전 대기 워커에도 알림이 남았다(2026-10-30)
+  onControllerChangeChecked,
   resetDismissedOnVisible,
-  setWaiting,
+  // setWaiting, // [원본]
+  setWaitingChecked,
   startUpdate,
   useAppUpdate,
 } from "@/lib/appUpdate";
@@ -187,11 +189,15 @@ export function ServiceWorker() {
     const track = (reg: ServiceWorkerRegistration) => {
       attachRegistration(reg, hadController);
       // 이미 기다리는 워커가 있으면(지난 방문에 받아 둔 것) 곧바로 「새 버전 대기」
-      if (reg.waiting && navigator.serviceWorker.controller) setWaiting(reg.waiting);
+      // [원본] if (reg.waiting && navigator.serviceWorker.controller) setWaiting(reg.waiting);
+      // [개선] 대기 워커가 지금 문서와 같은 버전이면 알리지 않고 조용히 넘긴다 @plm SRS-085
+      if (reg.waiting && navigator.serviceWorker.controller) setWaitingChecked(reg.waiting);
       reg.addEventListener("updatefound", () => {
         const sw = reg.installing;
         sw?.addEventListener("statechange", () => {
-          if (!cancelled && sw.state === "installed" && navigator.serviceWorker.controller) setWaiting(sw);
+          // [원본] … setWaiting(sw);
+          if (!cancelled && sw.state === "installed" && navigator.serviceWorker.controller)
+            setWaitingChecked(sw);
         });
       });
     };
@@ -202,7 +208,8 @@ export function ServiceWorker() {
 
     // [원본] const act = controllerChangeAction({ hadController, reloaded, pathname: pathRef.current }); … reload / defer
     // [개선] 누른 업데이트일 때만 새로고침 — 그 밖(첫 설치·다른 탭·브라우저 활성화)은 새로고침하지 않는다
-    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+    // [원본] navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChangeChecked);
 
     // 화면이 다시 보이면: 서버 최소 버전(60초 간격) · 새 버전 받아 두기(10분 간격 — 적용은 하지 않는다 · QA L-3)
     void checkServerVersion(true);
@@ -222,7 +229,7 @@ export function ServiceWorker() {
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChangeChecked);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);

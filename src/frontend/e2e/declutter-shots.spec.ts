@@ -118,6 +118,7 @@ test("홈·피드·칸 시트 캡처 — 390 라이트·다크 · 360×640", asy
     await page.getByTestId("btn-add-exercise").click();
     await page.getByTestId("picker-search").fill(name);
     await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
     await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
     const i = (await page.getByTestId("set-list").count()) - 1;
     const row = page.getByTestId("set-list").nth(i).locator("> div").first();
@@ -153,6 +154,7 @@ test("홈·피드·칸 시트 캡처 — 390 라이트·다크 · 360×640", asy
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("머신 체스트 프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
   // 칸 시트
   await page.getByTestId("variant-trigger").first().click();
@@ -305,6 +307,7 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
   {
     const row = page.getByTestId("set-list").first().locator("> div").first();
@@ -438,6 +441,7 @@ test("나머지 화면 캡처(로그인) — 390 라이트·다크 · 360×640",
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
   {
     const row = page.getByTestId("set-list").first().locator("> div").first();

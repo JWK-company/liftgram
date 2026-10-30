@@ -153,9 +153,12 @@ export function WeighInSheet({
   const pushed = useRef(false);
   useEffect(() => {
     if (!trapBack) return;
-    history.pushState({ ...(history.state ?? {}), liftgramWeighIn: true }, "");
+    // 칸마다 고유 토큰(liftgramTop) — 위 칸이 닫혀 돌아온 popstate 는 무시, 닫을 때도 맨 위가 우리 칸일 때만 걷는다(SRS-093 qa M-3)
+    const token = `weighin-${Math.random().toString(36).slice(2)}`;
+    history.pushState({ ...(history.state ?? {}), liftgramWeighIn: true, liftgramTop: token }, "");
     pushed.current = true;
     const onPop = () => {
+      if (history.state?.liftgramTop === token) return;
       pushed.current = false;
       if (closed.current) return;
       closed.current = true;
@@ -164,7 +167,8 @@ export function WeighInSheet({
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      if (pushed.current && history.state?.liftgramWeighIn) history.back();
+      // [원본] if (pushed.current && history.state?.liftgramWeighIn) history.back();
+      if (pushed.current && history.state?.liftgramTop === token) history.back();
       pushed.current = false;
     };
   }, [trapBack]);

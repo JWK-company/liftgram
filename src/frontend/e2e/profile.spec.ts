@@ -27,6 +27,7 @@ test("프로필에 단위가 없고, 세션의 무게 표기는 블록 토글을
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
 
   await expect(page.getByTestId("workout-exercises")).toContainText("무게 (kg)", { timeout: 20_000 });
   await page.getByTestId("unit-toggle-lb").click();
@@ -45,6 +46,7 @@ test("체중을 넣으면 세션의 '체중 미설정' 경고가 사라진다", 
   const first = page.getByTestId("picker-list").locator("button").first();
   if ((await first.count()) === 0) test.skip(true, "어시스트 종목이 카탈로그에 없다");
   await first.click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
 
   await expect(page.getByTestId("workout-exercises")).toContainText("체중 미설정", { timeout: 20_000 });
 

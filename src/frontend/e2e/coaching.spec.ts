@@ -142,6 +142,7 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await page.getByTestId("set-weight").first().fill("60");
   await page.getByTestId("set-reps").first().fill("10");
   await page.getByTestId("set-done").first().click();

@@ -22,6 +22,7 @@ async function 빠른_운동(page: Page, 종목들: string[]) {
     await page.getByTestId("btn-add-exercise").click();
     await page.getByTestId("picker-search").fill(종목);
     await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
     await expect(page.getByTestId("exercise-picker")).toHaveCount(0);
   }
   await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(종목들.length);

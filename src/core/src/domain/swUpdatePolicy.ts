@@ -88,6 +88,23 @@ export function controllerChangeDecision(input: {
   return input.applying ? 'reload' : 'mark';
 }
 
+/**
+ * 새 워커가 사람에게 「업데이트」를 권할 만한가(2026-10-30 · 피드백).
+ * 화면 요청은 네트워크 우선이라, 새로고침하면 **문서는 이미 새 번들**인데 옛 워커가 제어하고 새 워커는 대기로 남는다.
+ * 그 대기 워커의 버전이 지금 문서와 같으면 사람이 할 일이 없다 — 알리지 않고 조용히 자리를 넘긴다(새로고침 없음).
+ * 버전을 모르면(옛 워커는 답하지 않는다) 예전처럼 알린다.
+ */
+export function workerUpdateKind(
+  workerVersion: string | null | undefined,
+  appVersion: string,
+): 'same' | 'older' | 'offer' {
+  const c = compareVersions(workerVersion, appVersion);
+  if (c === 0) return 'same';
+  // 지금보다 낮은 버전(미리 받아 둔 옛 대기 워커 · 새 설치 실패) — 권하지도 넘기지도 않는다. 누르면 옛 셸로 내려간다(qa M-2)
+  if (c === -1) return 'older';
+  return 'offer';
+}
+
 /** 프로필 「앱 버전」 줄 — 버튼을 그릴지·누를 수 있는지. 셸이 진행 중 운동을 읽기 전은 「모름」(checking). */
 export function updateRowState(input: {
   available: boolean;

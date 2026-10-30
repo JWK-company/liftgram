@@ -113,25 +113,36 @@ export default function ExercisePickerScreen({
 
   // 뒤로 가기 = 피커 닫기(qa code M-4) — 열 때 한 칸 쌓고, 버튼·고르기로 닫으면 그 칸을 되돌린다(WeighInSheet 와 같은 방식).
   // 우리 칸(history.state.liftgramPicker)이 맨 위일 때만 걷는다 — 바로 뒤의 이동을 되돌리지 않게.
+  // 칸마다 고유 토큰(liftgramTop) — 위에 다른 시트(체크인)가 칸을 쌓았다 닫혀 우리 칸으로 돌아온 popstate 는 무시하고,
+  // 닫을 때도 맨 위가 우리 칸일 때만 걷는다(qa M-3 · WeighInSheet 와 같은 규약).
   useEffect(() => {
     let pushed = true;
-    history.pushState({ ...(history.state ?? {}), liftgramPicker: true }, "");
+    const token = `picker-${Math.random().toString(36).slice(2)}`;
+    history.pushState({ ...(history.state ?? {}), liftgramPicker: true, liftgramTop: token }, "");
     const onPop = () => {
+      if (history.state?.liftgramTop === token) return; // 위 칸이 닫혀 우리 칸으로 돌아왔다
       pushed = false;
       onCloseRef.current();
     };
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      if (pushed && history.state?.liftgramPicker) history.back();
+      if (pushed && history.state?.liftgramTop === token) history.back();
     };
   }, []);
 
   // 포커스(qa code M-3): 열 때 덮개로 옮기고, Tab 은 덮개 안에서만 돌고, 닫으면 연 버튼으로 돌려준다
   const dialogRef = useRef<HTMLDivElement>(null);
+  // 포털 자리(root)가 잡힌 뒤에야 덮개가 그려진다 — 그때 옮긴다(첫 그림엔 덮개가 없어 옮기지 못했다 · qa L-7)
+  const openerRef = useRef<HTMLElement | null>(null);
+  if (openerRef.current === null && typeof document !== "undefined") {
+    openerRef.current = document.activeElement as HTMLElement | null;
+  }
   useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
-    dialogRef.current?.focus();
+    if (root) dialogRef.current?.focus();
+  }, [root]);
+  useEffect(() => {
+    const opener = openerRef.current;
     return () => opener?.focus?.();
   }, []);
   const trapTab = (e: React.KeyboardEvent) => {

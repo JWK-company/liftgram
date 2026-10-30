@@ -195,3 +195,28 @@ test("하나 지운 뒤 넣어도 새 종목은 맨 뒤 — 순서값이 겹치�
   await expect(rows(page).nth(0)).toContainText("데드리프트");
   await expect(rows(page).nth(2)).toContainText("컬");
 });
+
+test("운동 중 「종목 추가」도 전체 화면 — 둘을 골라 고른 순서대로 블록이 생긴다(2026-10-30)", async ({
+  page,
+}) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await 카탈로그_준비(page);
+  await page.goto("/");
+  await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("btn-quick-start").click();
+  await page.getByTestId("btn-add-exercise").click();
+  const screen = page.getByTestId("picker-screen");
+  await expect(screen).toBeVisible();
+  expect(await screen.boundingBox()).toEqual({ x: 0, y: 0, width: 390, height: 844 });
+  await page.getByTestId("picker-search").fill("데드리프트");
+  await page.getByTestId("pick-seed-deadlift").click();
+  await page.getByTestId("picker-search").fill("바벨 스쿼트");
+  await page.getByTestId("pick-seed-barbell-squat").click();
+  await page.getByTestId("picker-confirm").click();
+  await expect(screen).toHaveCount(0);
+  const names = page.getByTestId("we-name");
+  await expect(names).toHaveCount(2, { timeout: 20_000 });
+  await expect(names.nth(0)).toContainText("데드리프트");
+  await expect(names.nth(1)).toContainText("스쿼트");
+});

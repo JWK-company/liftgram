@@ -18,6 +18,7 @@ async function 운동_하나_완료(page: Page) {
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
 
   const row = page.getByTestId("set-list").locator("> div").first();
   await row.getByTestId("set-weight").fill("100");

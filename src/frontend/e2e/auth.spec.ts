@@ -34,6 +34,7 @@ test("로그인하지 않아도 운동을 기록할 수 있다", async ({ page }
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
 
   // 계정이 없어도 세트가 깔리고 기록된다.
   await expect(page.getByTestId("set-list").locator("> div")).toHaveCount(1, { timeout: 20_000 });

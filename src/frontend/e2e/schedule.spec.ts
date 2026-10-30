@@ -123,6 +123,7 @@ test("이번 달 자랑하기는 운동이 있을 때만 뜬다", async ({ page 
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await page.getByTestId("set-weight").first().fill("60");
   await page.getByTestId("set-reps").first().fill("10");
   await page.getByTestId("set-done").first().click();

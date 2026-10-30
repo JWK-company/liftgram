@@ -51,6 +51,7 @@ async function 운동하고_마치기(page: Page, 종목 = "바벨 벤치프레�
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(종목);
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   // 카드에는 이름과 기구가 붙어 나온다 — 이름만 확인한다.
   await expect(page.getByTestId("workout-exercises")).toContainText("벤치프레스", { timeout: 20_000 });
 
@@ -164,6 +165,7 @@ test("하는 중인 운동은 다른 기기로 건너가지 않는다", async ({
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("workout-exercises")).toContainText("벤치프레스", { timeout: 20_000 });
   await 동기(page);
 

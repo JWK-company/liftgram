@@ -1451,7 +1451,13 @@ export async function addExerciseToWorkout(workoutId: string, exerciseId: string
   const plate = await plateInputsFor([exerciseId]);
   const multiplier = blockLoadMultiplierV2(dimsFromColumns(variant), plate.choice.get(exerciseId), plate.defaultLoad.get(exerciseId));
   return database.write(async () => {
-    const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
+    // [원본] const count = await workoutExercises().query(Q.where('workout_id', workoutId)).fetchCount();
+    // — 지운 종목의 번호를 다시 매기지 않아, 하나 지운 뒤 넣으면 남은 종목과 순서값이 겹쳤다(루틴과 같은 결함 · SRS-093 qa M-2)
+    // [개선] 남은 종목의 가장 큰 순서값 다음
+    const count = (await workoutExercises().query(Q.where('workout_id', workoutId)).fetch()).reduce(
+      (m, r) => Math.max(m, (r.sortOrder ?? -1) + 1),
+      0,
+    );
     const setsCount = Math.max(1, prevSets.length || 1); // 지난 세션 세트수(없으면 1) — 블랭크/중간추가 종목
     const we = workoutExercises().prepareCreate((rec) => {
       rec.workoutId = workoutId;

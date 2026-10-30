@@ -25,6 +25,7 @@ export async function 종목_추가(page: Page, 이름: string): Promise<void> {
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(이름);
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("exercise-picker")).toHaveCount(0);
   await expect(page.getByTestId("we-name").filter({ hasText: 이름 }).first()).toBeVisible({
     timeout: 15_000,

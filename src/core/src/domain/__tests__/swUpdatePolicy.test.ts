@@ -44,6 +44,7 @@ import {
   updateRowState,
   BOOT_MARKER_TTL_MS,
   UPDATE_TIMEOUT_MS,
+  workerUpdateKind,
 } from '../swUpdatePolicy';
 
 test('SemVer 비교 — 자리마다 숫자로 · 접두 v 허용 · 모르는 모양은 null', () => {
@@ -114,4 +115,14 @@ test('부팅 표식 — 없음·깨짐·오래됨은 무시', () => {
     fromVersion: '0.45.0',
   });
   assert.equal(UPDATE_TIMEOUT_MS, 15_000);
+});
+
+test('workerUpdateKind: 대기 워커가 지금 문서와 같은 버전이면 권하지 않는다(새로고침으로 이미 새 번들)', () => {
+  assert.equal(workerUpdateKind('0.54.1', '0.54.1'), 'same');
+  assert.equal(workerUpdateKind('0.54.2', '0.54.1'), 'offer');
+  assert.equal(workerUpdateKind('0.54.0', '0.54.1'), 'older'); // 낮은 버전은 권하지 않는다(qa M-2)
+  assert.equal(workerUpdateKind('0.9.0', '0.10.0'), 'older');
+  // 버전을 모르면(옛 워커) 예전처럼 알린다
+  assert.equal(workerUpdateKind(null, '0.54.1'), 'offer');
+  assert.equal(workerUpdateKind(undefined, '0.54.1'), 'offer');
 });

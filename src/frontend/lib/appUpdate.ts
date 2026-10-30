@@ -18,6 +18,7 @@ import {
   compareVersions,
   controllerChangeDecision,
   readBootMarker,
+  workerUpdateKind,
 } from "@app/core/domain/swUpdatePolicy";
 import { useSyncExternalStore } from "react";
 import { activateWaiting } from "./swActivate";
@@ -80,9 +81,12 @@ export function useAppUpdate(): AppUpdateState & { available: boolean; displayNe
     () => SERVER_SNAPSHOT,
   );
   const fromServer = compareVersions(s.serverVersion, APP_VERSION) === 1 ? s.serverVersion : null;
+  // 워커가 답한 버전이 지금 문서보다 높지 않으면 권하지 않는다 — 같은 버전 판정이 늦게 와도 점이 남지 않게(2026-10-30 · qa M-1·M-2)
+  const notNewer = s.newVersion != null && workerUpdateKind(s.newVersion, APP_VERSION) !== "offer";
   return {
     ...s,
-    available: s.waiting != null || s.activatedElsewhere,
+    // [원본] available: s.waiting != null || s.activatedElsewhere,
+    available: (s.waiting != null || s.activatedElsewhere) && !notNewer,
     displayNewVersion: s.newVersion ?? fromServer,
   };
 }
@@ -175,6 +179,61 @@ export function setWaiting(sw: ServiceWorker | null): void {
   });
   void askWorkerVersion(sw).then((v) => {
     if (v && state.waiting === sw) set({ newVersion: v.version });
+  });
+}
+
+// ── 같은 버전 대기 워커(2026-10-30 · 피드백 「이미 최신인데 알림이 남는다」) ─────────────────────────
+// 화면 요청은 네트워크 우선이라 새로고침하면 문서는 이미 새 번들이고, 옛 워커가 제어한 채 새 워커만 대기로 남는다.
+// 그 워커가 지금 문서와 같은 버전이면 사람에게 권하지 않고 조용히 자리를 넘긴다(새로고침 없음 — 문서가 이미 그 버전).
+// @plm SRS-085
+
+const checking = new Set<ServiceWorker>();
+let adopting: ServiceWorker | null = null;
+
+/** 셸이 부른다 — 대기 워커의 버전을 먼저 묻고, 같은 버전이면 조용히 넘기고, 아니면(또는 모르면) setWaiting. */
+export function setWaitingChecked(sw: ServiceWorker | null): void {
+  if (!sw) return setWaiting(null);
+  if (state.waiting === sw || checking.has(sw) || adopting === sw) return;
+  checking.add(sw);
+  // 막 설치된 워커는 늦게 깨어날 수 있다 — 넉넉히(3초) 기다리고, 그래도 모르면 예전처럼 알린다(qa M-1)
+  void askWorkerVersion(sw, 3_000).then((v) => {
+    checking.delete(sw);
+    if (sw.state === "redundant") return;
+    const kind = workerUpdateKind(v?.version, APP_VERSION);
+    if (kind === "same") return adoptSameVersion(sw);
+    if (kind === "older") return; // 권하지도 넘기지도 않는다(qa M-2)
+    setWaiting(sw);
+  });
+}
+
+function adoptSameVersion(sw: ServiceWorker): void {
+  if (applying || state.phase !== "idle") return;
+  adopting = sw;
+  // 크롬은 load 직후 skip-waiting 이 멈출 수 있다 — 활성화 도우미가 load+여유·iframe 찌르기로 푼다(lib/swActivate.ts)
+  void activateWaiting(sw, { stillWanted: () => !applying && state.phase === "idle" })
+    .catch(() => false)
+    .finally(() => {
+      if (adopting === sw) adopting = null;
+    });
+}
+
+/**
+ * controllerchange — 원래 판정(onControllerChange)과 같되, 「표시만」 갈래에서 새 제어 워커가
+ * 지금 문서와 같은 버전이면 표시하지 않는다(위 조용한 넘김 · 다른 탭이 같은 버전을 적용).
+ */
+export function onControllerChangeChecked(): void {
+  const act = controllerChangeDecision({ hadController, applying });
+  if (act !== "mark") return onControllerChange();
+  void askWorkerVersion(navigator.serviceWorker.controller, 3_000).then((v) => {
+    if (workerUpdateKind(v?.version, APP_VERSION) !== "offer" && v) {
+      // 이 문서가 이미 새 워커와 같은(또는 더 새) 버전 — 표시를 내리고 남은 대기 워커만 다시 본다(qa M-1)
+      const next = registration?.waiting ?? null;
+      set({ activatedElsewhere: false });
+      if (state.waiting && state.waiting.state !== "installed") set({ waiting: null, newVersion: null });
+      if (next) setWaitingChecked(next);
+      return;
+    }
+    onControllerChange();
   });
 }
 

@@ -147,6 +147,7 @@ test("빠른 운동 — 끝날 때 루틴으로 저장하고, 그 루틴으로 �
     await page.getByTestId("btn-add-exercise").click();
     await page.getByTestId("picker-search").fill(종목);
     await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
     await expect(page.getByTestId("exercise-picker")).toHaveCount(0);
   }
   await 세트_다_하기(page, 0);
@@ -188,6 +189,7 @@ test("「저장 안 함」이면 루틴이 생기지 않고, 요약의 「이 �
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 데드리프트");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await 세트_다_하기(page, 0, 1);
   await 완료(page);
   await page.getByTestId("btn-finish-dont-save").click();

@@ -37,6 +37,7 @@ test("종목 고르기·운동 블록에 그림이 있고, 팁을 펴면 움직�
     timeout: 15_000,
   });
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("we-picto").first().locator("svg")).toBeVisible({ timeout: 15_000 });
 
   await 블록_더보기(page.getByTestId("workout-exercises").locator("> div").first()); // 운동 방법은 「더 보기」 안(SRS-069)

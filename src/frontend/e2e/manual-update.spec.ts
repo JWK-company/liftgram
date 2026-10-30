@@ -74,7 +74,10 @@ async function 워커_제어(page: Page, path = "/"): Promise<void> {
 }
 
 /** 디스크의 sw.js 를 바꿔 진짜 새 워커를 기다리게 한다. */
-async function 새_워커(page: Page, opts: { version?: string; ignoreSkip?: boolean } = {}): Promise<string> {
+async function 새_워커(
+  page: Page,
+  opts: { version?: string; ignoreSkip?: boolean; noWait?: boolean } = {},
+): Promise<string> {
   n += 1;
   const build = `e2e${Date.now()}x${n}`;
   let s = original.replace(/const BUILD_ID = "([^"]*)";/, `const BUILD_ID = "$1-${build}";`);
@@ -85,6 +88,8 @@ async function 새_워커(page: Page, opts: { version?: string; ignoreSkip?: boo
     const reg = await navigator.serviceWorker.getRegistration();
     await reg?.update();
   });
+  // 같은 버전 워커는 앱이 곧바로 넘겨받아 대기 상태를 못 볼 수 있다 — 부르는 쪽이 제어 빌드로 확인한다(E10)
+  if (opts.noWait) return build;
   await expect
     .poll(
       () => page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.waiting != null),
@@ -391,4 +396,52 @@ test("E9 load 직후 보낸 skip-waiting 에 멈춘 새 워커도 「업데이�
     }
   }
   throw new Error("멈춤을 재현하지 못했다(4번) — 크롬 동작이 바뀌었으면 이 테스트를 다시 본다");
+});
+
+test("E10 대기 워커가 지금 문서와 같은 버전이면(새로고침으로 이미 새 번들) 점·버튼 없이 조용히 넘긴다 — 새로고침 없음(2026-10-30)", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await 문서_표식(page);
+  await 워커_제어(page, "/profile");
+  const id0 = await pageId(page);
+  const build = await 새_워커(page, { version: CUR, noWait: true });
+  // 새 워커가 이 문서를 제어하게 된다(조용한 넘김) — 사람이 누른 것 없음
+  await expect.poll(() => 제어_빌드(page), { timeout: 30_000 }).toContain(build);
+  await expect.poll(() => 기다리는_워커(page), { timeout: 10_000 }).toBe(false);
+  await page.waitForTimeout(1_500);
+  await expect(page.getByTestId("app-update-btn")).toHaveCount(0);
+  await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
+  await expect(page.getByTestId("app-version-current")).toHaveText(`앱 버전 v${CUR}`);
+  expect(await pageId(page)).toBe(id0); // 새로고침하지 않았다
+  // 새로고침한 뒤에도 점이 없다(피드백 재현 경로)
+  await page.reload();
+  await expect(page.getByTestId("app-version-current")).toHaveText(`앱 버전 v${CUR}`, { timeout: 20_000 });
+  await page.waitForTimeout(2_000);
+  await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
+  await expect(page.getByTestId("app-update-btn")).toHaveCount(0);
+});
+
+test("E10b 다른 버전이면 예전처럼 점·버튼이 남는다(같은 버전 넘김이 진짜 업데이트를 삼키지 않는다)", async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await 워커_제어(page, "/profile");
+  await 새_워커(page, { version: NEXT });
+  await page.waitForTimeout(3_000);
+  expect(await 기다리는_워커(page)).toBe(true);
+  await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(1);
+  await expect(page.getByTestId("app-update-btn")).toBeVisible();
+});
+
+test("E10c 지금보다 낮은 버전 대기 워커는 권하지도 넘기지도 않는다(qa M-2)", async ({ page }) => {
+  test.setTimeout(90_000);
+  await 워커_제어(page, "/profile");
+  const before = await 제어_빌드(page);
+  await 새_워커(page, { version: "0.0.1" });
+  await page.waitForTimeout(4_000);
+  expect(await 기다리는_워커(page)).toBe(true);
+  expect(await 제어_빌드(page)).toBe(before);
+  await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
+  await expect(page.getByTestId("app-update-btn")).toHaveCount(0);
 });

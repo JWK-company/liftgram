@@ -24,13 +24,14 @@ import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { navigate } from "@/lib/nav";
-import ExercisePicker from "../ExercisePicker";
+// import ExercisePicker from "../ExercisePicker"; // [원본] 바닥 시트 피커 — SRS-093 에서 전체 화면으로
+import ExercisePickerScreen from "../ExercisePickerScreen";
 import { PrCelebrationHost } from "../PrCelebration";
 import { useSession } from "../SessionProvider";
 import { ErrorState } from "../States";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
-import { ActionSheet, ConfirmDialog, Overlay, SheetShell } from "../ui/Dialog";
+import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog"; // Overlay — 옛 바닥 시트 피커(주석)만 썼다
 import { MoreMenu } from "../ui/MoreMenu";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
@@ -77,6 +78,8 @@ export default function ActiveWorkout() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** 피커에서 고른 종목을 넣는 중 — guard 의 busy 는 겹친 작업이 먼저 끝나면 풀리므로 따로 잠근다(qa M-4) */
+  const [adding, setAdding] = useState(false);
   const [now, setNow] = useState<number | null>(null);
   const [liveVolume, setLiveVolume] = useState(0);
   const [version, setVersion] = useState(0);
@@ -366,7 +369,7 @@ export default function ActiveWorkout() {
             title={t("session.done")}
             size="sm"
             fullWidth={false}
-            loading={busy}
+            loading={busy || adding}
             testId="btn-complete"
             className="rounded-[var(--radius-pill)]!"
             onPress={() =>
@@ -451,7 +454,7 @@ export default function ActiveWorkout() {
               title={t("session.addExercise")}
               icon="add"
               variant="secondary"
-              disabled={busy}
+              disabled={busy || adding}
               testId="btn-add-exercise"
               onPress={() => setPicking({ mode: "add" })}
             />
@@ -465,34 +468,72 @@ export default function ActiveWorkout() {
         {/* 운동 전 체중 체크인 — 설정을 켠 사람에게만, 이 운동 첫 진입에서 한 번(U-7) @plm SRS-077 */}
         <WeighInCheckin workoutId={workout.id} startedAt={workout.startedAt} />
 
+        {/* [원본] 바닥 시트의 작은 피커 — 몇 줄만 보이고 부위로 못 좁히고 하나씩만 골랐다(피드백 2026-10-30)
+        // {picking ? (
+        //   // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
+        //   <Overlay onClose={() => setPicking(null)} placement="bottom" testId="picker-sheet">
+        //     <ExercisePicker
+        //       bare
+        //       onClose={() => setPicking(null)}
+        //       onPick={(exerciseId, info) =>
+        //         guard(async () => {
+        //           // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
+        //           const { applyPick } = await import("@/lib/exerciseNames");
+        //           if (picking.mode === "swap") {
+        //             const from = exercises.find((x) => x.id === picking.weId)?.exerciseId ?? null;
+        //             await repo.swapWorkoutExercise(picking.weId, exerciseId);
+        //             await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
+        //             setVersion((v) => v + 1);
+        //             // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고르므로 묻지 않는다(D3 · SRS-059)
+        //             // if (from) await askRoutineScope(from, exerciseId);
+        //             void from;
+        //           } else {
+        //             const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
+        //             await applyPick(exerciseId, info, { workoutExerciseId: we.id });
+        //             if (info) setVersion((v) => v + 1);
+        //           }
+        //           setPicking(null);
+        //         })
+        //       }
+        //     />
+        //   </Overlay>
+        // ) : null}
+        */}
+        {/* [개선] 루틴 편집과 같은 전체 화면 피커 — 추가는 여러 개를 고른 순서대로 · 교체는 한 개 즉시 @plm SRS-093 */}
         {picking ? (
-          // 운동 추가는 화면 이동 없이 바닥 시트(시안 03) — 흐름이 끊기지 않는다.
-          <Overlay onClose={() => setPicking(null)} placement="bottom" testId="picker-sheet">
-            <ExercisePicker
-              bare
-              onClose={() => setPicking(null)}
-              onPick={(exerciseId, info) =>
-                guard(async () => {
+          <ExercisePickerScreen
+            mode={picking.mode === "add" ? "multi" : "single"}
+            title={t(picking.mode === "add" ? "routines.pickerTitle" : "routines.pickerSwapTitle")}
+            onClose={() => setPicking(null)}
+            onDone={(picks) => {
+              const p = picking;
+              setPicking(null);
+              // adding 이 「완료」·「운동 추가」를 잠근다 — 다 넣기 전에 끝나지 않는다(qa M-4)
+              setAdding(true);
+              guard(async () => {
+                try {
                   // 고른 이름(별칭)이 표시 이름·함축 칸(로프 등)을 정한다 — lib/exerciseNames.applyPick @plm SRS-056
                   const { applyPick } = await import("@/lib/exerciseNames");
-                  if (picking.mode === "swap") {
-                    const from = exercises.find((x) => x.id === picking.weId)?.exerciseId ?? null;
-                    await repo.swapWorkoutExercise(picking.weId, exerciseId);
-                    await applyPick(exerciseId, info, { workoutExerciseId: picking.weId });
+                  if (p.mode === "swap") {
+                    const first = picks[0];
+                    if (!first) return;
+                    await repo.swapWorkoutExercise(p.weId, first.exerciseId);
+                    await applyPick(first.exerciseId, first.info, { workoutExerciseId: p.weId });
                     setVersion((v) => v + 1);
-                    // [원본] 운동 중 「이번만 / 루틴에도」 — 완료 때 한 번에 고르므로 묻지 않는다(D3 · SRS-059)
-                    // if (from) await askRoutineScope(from, exerciseId);
-                    void from;
                   } else {
-                    const we = await repo.addExerciseToWorkout(workout.id, exerciseId);
-                    await applyPick(exerciseId, info, { workoutExerciseId: we.id });
-                    if (info) setVersion((v) => v + 1);
+                    // 하나씩 차례로 — 종목마다 지난 기록·변형을 읽어 블록을 만든다(순서값 = 최댓값+1 이라 고른 순서 그대로)
+                    for (const pick of picks) {
+                      const we = await repo.addExerciseToWorkout(workout.id, pick.exerciseId);
+                      await applyPick(pick.exerciseId, pick.info, { workoutExerciseId: we.id });
+                    }
+                    setVersion((v) => v + 1);
                   }
-                  setPicking(null);
-                })
-              }
-            />
-          </Overlay>
+                } finally {
+                  setAdding(false);
+                }
+              });
+            }}
+          />
         ) : null}
 
         {renaming ? (

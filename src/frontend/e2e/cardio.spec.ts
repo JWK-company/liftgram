@@ -22,6 +22,7 @@ async function 세션에_담기(page: Page, 검색어: string) {
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill(검색어);
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("set-list")).toBeVisible({ timeout: 20_000 });
 }
 

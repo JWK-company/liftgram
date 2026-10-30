@@ -62,6 +62,7 @@ test("끊긴 상태에서 운동을 시작하고 세트를 기록한다", async 
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("벤치");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(1);
 
   const row = page.getByTestId("set-list").locator("> div").nth(0);

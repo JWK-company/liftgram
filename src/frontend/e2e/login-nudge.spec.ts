@@ -25,6 +25,7 @@ async function 운동_마치기(page: Page) {
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("workout-exercises")).toContainText("벤치프레스", { timeout: 20_000 });
   await page.getByTestId("set-weight").first().fill("60");
   await page.getByTestId("set-reps").first().fill("10");
@@ -102,6 +103,7 @@ test("「이 기기에만 있는 기록」 띠는 운동을 한 번 마친 뒤 �
   await page.getByTestId("btn-add-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await page.getByTestId("set-weight").first().fill("60");
   await page.getByTestId("set-reps").first().fill("10");
   await page.getByTestId("set-done").first().click();
