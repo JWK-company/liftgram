@@ -1949,9 +1949,7 @@
   "name_en": "Kneeling Leg Curl",
   "equipment": "machine",
   "primary": "hamstrings",
-  "secondary": [
-   "calves"
-  ],
+  "secondary": [],
   "load_mode": "weight",
   "family": "kneeling_leg_curl",
   "family_is_new": true,
@@ -2205,9 +2203,7 @@
    "standing tibialis raise wall supported",
    "toe raise"
   ],
-  "similar": [
-   "calf_raise"
-  ],
+  "similar": [],
   "tier": "B",
   "why": "카프 레이즈는 발끝을 내리는 동작, 이건 발끝을 들어 정강이 앞(전경골근)을 쓰는 반대 동작",
   "chunk": "misc",

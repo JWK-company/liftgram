@@ -4,11 +4,12 @@ import csv, io, json, os, re, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WT = sys.argv[1]
+BASE = "8ba8a60"  # 갭 보강 직전(v0.55.0) — 언제나 이 원본에서 다시 만든다(커밋 뒤 다시 돌려도 같은 결과)
 B = f"{HERE}/out-build"
 TAG = "// 오픈짐 대조 갭 보강 @plm SRS-094"
 
 def head(rel):
-    return subprocess.run(["git", "-C", WT, "show", f"HEAD:{rel}"], capture_output=True, text=True, check=True).stdout
+    return subprocess.run(["git", "-C", WT, "show", f"{BASE}:{rel}"], capture_output=True, text=True, check=True).stdout
 
 def write(rel, s):
     open(f"{WT}/{rel}", "w", encoding="utf-8").write(s)
@@ -35,7 +36,7 @@ assert hit == set(extra), set(extra) - hit
 out = io.StringIO()
 csv.writer(out, lineterminator="\n").writerows(mrows)
 src2 = out.getvalue()
-add = open(f"{B}/rows.csv", encoding="utf-8").read()
+add = open(f"{B}/rows.csv", encoding="utf-8").read() + open(f"{B}/merge_rows.csv", encoding="utf-8").read()
 write(rel, src2 + add)
 # 다시 쓴 CSV 가 별칭 칸 말고는 원본과 같은가(따옴표 방식 차이로 다른 줄이 바뀌지 않게)
 changed = [a for a, b in zip(src.splitlines(), src2.splitlines()) if a != b]

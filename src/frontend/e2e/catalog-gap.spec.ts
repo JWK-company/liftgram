@@ -19,7 +19,8 @@ test("새 종목을 검색해 고르면 그림과 함께 운동에 들어가고 
   await page.getByTestId("picker-search").fill("싱글레그데드");
   const sld = page.getByTestId("pick-seed-single-leg-deadlift");
   await expect(sld).toBeVisible({ timeout: 15_000 });
-  await expect(sld.locator("svg").first()).toBeVisible();
+  // 그림이 없을 때의 기구 아이콘도 svg 다 — 픽토그램 표식으로 본다(qa code M-3)
+  await expect(sld.locator("[data-picto]").first()).toBeVisible();
   await sld.click();
   await page.getByTestId("picker-search").fill("티비알리스");
   await page.getByTestId("pick-seed-tibialis-raise").click();
@@ -31,6 +32,33 @@ test("새 종목을 검색해 고르면 그림과 함께 운동에 들어가고 
   await page.getByTestId("set-reps").first().fill("12");
   await page.getByTestId("set-done").first().click();
   await expect(page.getByTestId("set-done").first()).toHaveAttribute("aria-pressed", "true");
+  // 새로고침 뒤에도 남는다(qa code L-6)
+  await page.waitForTimeout(800);
+  await page.reload();
+  await expect(page.getByTestId("we-name").first()).toContainText("싱글 레그 데드리프트", {
+    timeout: 20_000,
+  });
+  await expect(page.getByTestId("set-reps").first()).toHaveValue("12");
+});
+
+test("서버 카탈로그가 새 판(587행 · 보관 포함)이고 기기가 두 페이지를 받아 맞춘다(qa code L-5)", async ({
+  page,
+}) => {
+  // 번들 top-up 이 새 종목을 먼저 만들어 화면만으로는 서버 경로를 증명하지 못한다 — 받은 판과 응답을 직접 본다
+  const pulls: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("PullCatalog")) pulls.push(r.postData() ?? "");
+  });
+  const bodies: string[] = [];
+  page.on("response", async (r) => {
+    if (r.url().includes("PullCatalog")) bodies.push(await r.text().catch(() => ""));
+  });
+  await 카탈로그_준비(page);
+  const rev = await page.evaluate(() => localStorage.getItem("liftgram.catalog.revision"));
+  expect(rev?.startsWith("587:")).toBe(true);
+  // 첫 1건(판 확인) + 500 + 나머지 = 3번 이상
+  expect(pulls.length).toBeGreaterThanOrEqual(3);
+  expect(bodies.join("").includes("seed-stomach-vacuum")).toBe(true);
 });
 
 test("별칭으로도 찾는다 — 「Z 프레스」 · 같은 동작은 기존 종목으로(「SDHP」→ 데드리프트 하이 풀 · qa spec H-2)", async ({

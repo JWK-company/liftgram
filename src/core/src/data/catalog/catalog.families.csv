@@ -20,7 +20,7 @@ bear_plank,bodyweight,,,,
 behind_back_cable_curl,cable,,,,
 behind_back_wrist_curl,barbell,,,,
 behind_neck_press,barbell;smith,,,,
-behind_neck_pulldown,cable,lat_bar;straight;v;neutral_bar;single;mag_wide;mag_close,wide;close;neutral;under,,
+behind_neck_pulldown,cable,lat_bar;straight,wide;close,,
 belt_squat,machine,,,pin;plate,plate
 bench_dip,bodyweight,,,,
 bench_press,barbell;cable;dumbbell;machine;smith,,wide;close,pin;plate,plate

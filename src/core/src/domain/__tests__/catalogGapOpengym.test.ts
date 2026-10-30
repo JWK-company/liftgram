@@ -122,7 +122,7 @@ const ADDED = [
 
 // 같은 동작이라 새 종목 대신 기존 종목에 단 별칭(qa spec H-2·L-9·M-7) — 기존 행에 허용되는 유일한 변경
 const ALIASES_ADDED: Record<string, string[]> = {
-  'seed-incline-press': ["인클라인 클로즈그립 벤치프레스", "인클라인 클로즈 벤치", "incline close grip bench press"],
+  'seed-incline-press': ["인클라인 클로즈그립 벤치프레스", "incline close grip bench press"],
   'seed-barbell-shrug': ["비하인드 백 슈러그", "바벨 비하인드 백 슈러그", "백 슈러그", "behind the back shrug"],
   'seed-shrug-smith': ["스미스 비하인드 백 슈러그", "스미스 백 슈러그", "smith behind the back shrug"],
   'seed-pull-up': ["L-싯 풀업", "엘싯 풀업", "l-sit pull-up"],
@@ -134,6 +134,9 @@ const ALIASES_ADDED: Record<string, string[]> = {
 // 갭 보강 직전(v0.55.0) 카탈로그 480행의 지문(별칭 포함) — 위 별칭을 빼면 이것과 같아야 한다.
 const BEFORE_ROWS = 480;
 const BEFORE_SHA1 = '71dec135f71d6b1edce476d00be3d98bb99d4f96';
+
+// 같은 동작인데 기록 칸(그립)이 다른 이름 — 통합(보관) 행이 「이 별칭 = 대상 + 그립 close」를 함축한다(qa code M-1 · 클로즈그립 풀다운 선례)
+const MERGED = 'seed-barbell-incline-close-grip-bench-press';
 
 const byId = new Map(CATALOG.map((r) => [r.id, r]));
 
@@ -161,7 +164,15 @@ test('기존 480행은 별칭 추가 말고 바뀌지 않았다 — 새 행은 �
   });
   const sha = createHash('sha1').update(JSON.stringify(before)).digest('hex');
   assert.equal(sha, BEFORE_SHA1);
-  assert.deepEqual(CATALOG.slice(BEFORE_ROWS).map((r) => r.id), ADDED);
+  assert.deepEqual(CATALOG.slice(BEFORE_ROWS).map((r) => r.id), [...ADDED, MERGED]);
+});
+
+test('「인클라인 클로즈그립 벤치프레스」 = 바벨 인클라인 프레스 + 그립 close(보관 행 · 함축 축)', () => {
+  const m = byId.get(MERGED)!;
+  assert.equal(m.isArchived, true);
+  assert.equal(m.mergeInto, 'seed-incline-press');
+  assert.deepEqual(m.impliedAxes, { grip: 'close' });
+  assert.ok(byId.get('seed-incline-press')!.aliasesKo.includes(m.nameKo), '옛 이름이 대상 별칭이어야 함축이 걸린다');
 });
 
 test('이름·별칭은 활성 종목끼리 겹치지 않는다(공백·대소문자 무시)', () => {

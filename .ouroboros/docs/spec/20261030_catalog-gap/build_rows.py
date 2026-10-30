@@ -12,12 +12,13 @@
 import csv, io, json, re, sys, os, collections, subprocess
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-WT = sys.argv[1]  # worktree 루트
+WT = sys.argv[1]
+BASE = "8ba8a60"  # 갭 보강 직전(v0.55.0) — 언제나 이 원본에서 다시 만든다(커밋 뒤 다시 돌려도 같은 결과)  # worktree 루트
 CAT = f"{WT}/src/core/src/data/catalog"
 OUT = f"{HERE}/out-build"
 
 def head(rel):  # 언제나 git HEAD 원본을 읽는다(적용 뒤 다시 돌려도 같은 결과)
-    return subprocess.run(["git", "-C", WT, "show", f"HEAD:{rel}"], capture_output=True, text=True, check=True).stdout
+    return subprocess.run(["git", "-C", WT, "show", f"{BASE}:{rel}"], capture_output=True, text=True, check=True).stdout
 os.makedirs(OUT, exist_ok=True)
 
 def seed_id(en):
@@ -60,7 +61,8 @@ pin["aliases_en"] = [a for a in pin["aliases_en"] if "bench press" not in a]
 # ── qa spec 반영(docs/qa/20261030_catalog-gap-spec_qa.md) ──
 # H-2·L-9: 같은 동작(그립 칸·바 위치·수행 디테일)은 새 종목 대신 기존 종목의 별칭으로. L-4: 넥 브릿지는 경추 부하가 커서 뺀다.
 EXISTING_ALIASES = {  # 기존 종목 id_en → (한국어 별칭, 영문 별칭) — 기존 행에는 별칭 **추가만** 한다
-    "Incline Press": (["인클라인 클로즈그립 벤치프레스", "인클라인 클로즈 벤치"], ["incline close grip bench press"]),
+    # qa code M-1: 이 별칭은 그립 칸(close)을 함축한다 — 아래 MERGE_ROWS 의 통합(보관) 행이 근거(「클로즈그립 풀다운」 선례)
+    "Incline Press": (["인클라인 클로즈그립 벤치프레스"], ["incline close grip bench press"]),
     "Barbell Shrug": (["비하인드 백 슈러그", "바벨 비하인드 백 슈러그", "백 슈러그"], ["behind the back shrug"]),
     "Shrug (Smith)": (["스미스 비하인드 백 슈러그", "스미스 백 슈러그"], ["smith behind the back shrug"]),
     "Pull Up": (["L-싯 풀업", "엘싯 풀업"], ["l-sit pull-up"]),
@@ -76,6 +78,9 @@ cand = [n for n in cand if n["name_ko"] not in DROP]
 # M-7: 너무 일반적인 별칭(「triceps press」가 덤벨 오버헤드 익스텐션의 첫 자리를 빼앗는다)
 bwt = by_ko["맨몸 트라이셉스 익스텐션"]
 bwt["aliases_en"] = [a for a in bwt["aliases_en"] if a.lower() not in ("triceps press",)]
+# qa code L-2: 다른 레그 컬처럼 보조근 없음 · L-3: 티비알리스는 카프 레이즈의 반대 동작이라 「비슷한 운동」으로 잇지 않는다
+by_ko["닐링 레그 컬"]["secondary"] = []
+by_ko["티비알리스 레이즈"]["similar"] = []
 # L-5·L-6: 현장에서 더 흔한 이름을 대표로
 for old, new in (("시티드 니 턱", "시티드 니업"), ("스토머크 배큠", "복부 배큠")):
     n = by_ko[old]
@@ -198,6 +203,8 @@ for f, eqs in new_fams.items():
             row["attachments"] = par["attachments"]
         if "machine" in eqs and par["load"]:
             row["load"], row["load_default"] = par["load"], par["load_default"]
+    if f == "behind_neck_pulldown":  # qa code L-1 — 목 뒤로 내리는 동작에 V·뉴트럴·싱글 손잡이와 언더·뉴트럴 그립은 성립하지 않는다
+        row["attachments"], row["grips"] = "lat_bar;straight", "wide;close"
     if f == "ab_coaster" and row["load"]:
         row["load_default"] = "plate"  # qa spec L-8 — 무릎 캐리지 플레이트 적재가 흔하다
     fam_patch["new"].append(row)
@@ -218,6 +225,9 @@ ARCH = {
     "handstand_walk": "handstand", "wall_walk": "handstand", "neck_side_flexion": "neck_curl", "neck_bridge": "neck_ext",
     # qa spec M-5: 반대·다른 동작을 그리던 셋은 전용 원형(poses.ts)
     "back_lever": "back_lever", "tibialis_raise": "tibialis_raise", "vacuum": "vacuum",
+    # qa code M-2: 다른 자세를 그리던 넷도 전용 원형
+    "crab_walk": "crab_walk", "butt_kick": "butt_kick", "kneeling_hip_thrust": "kneeling_hip_thrust",
+    "standing_knee_to_elbow": "standing_knee_to_elbow",
     "seated_knee_tuck": "v_sit", "double_crunch": "crunch", "inchworm": "plank_high",
     "incline_close_grip_bench_press": "incline_press",
 }
@@ -317,6 +327,18 @@ json.dump({f: ARCH[f] for f in new_fams if f in ARCH}, open(f"{OUT}/arch.json", 
 json.dump(finder, open(f"{OUT}/finder.json", "w"), indent=1)
 json.dump(pattern, open(f"{OUT}/pattern.json", "w"), indent=1)
 json.dump(cand, open(f"{OUT}/final.json", "w"), ensure_ascii=False, indent=1)
+# 별칭이 함축하는 기록 칸의 근거 — 보관(merge) 행. 옛 이름 = 대상 별칭 · implied_axes = 축 값(exerciseNames.impliedAxesForAlias)
+MERGE_ROWS = [{
+    "status": "merge", "id_en": "Barbell Incline Close Grip Bench Press", "old_name_ko": "인클라인 클로즈그립 벤치프레스",
+    "new_name_ko": "바벨 인클라인 프레스", "name_rule": "prefix", "equipment": "barbell", "primary": "chest",
+    "secondary": "triceps;shoulders", "kind": "strength", "load_mode": "weight", "family": "incline_press",
+    "merge_into": "Incline Press", "implied_axes": "grip=close", "similar": "bench_press;decline_press;incline_fly",
+    "media": "inherit:Incline Press", "note": "오픈짐 대조 2026-10-30 — 같은 동작(인클라인 프레스 + 그립 close) · qa code M-1",
+}]
+with open(f"{OUT}/merge_rows.csv", "w", encoding="utf-8", newline="") as fh:
+    w = csv.writer(fh, lineterminator="\n")
+    for m in MERGE_ROWS:
+        w.writerow([m.get(k, "") for k in HDR])
 json.dump(EXISTING_ALIASES, open(f"{OUT}/existing_aliases.json", "w"), ensure_ascii=False, indent=1)
 open(f"{OUT}/report.txt", "w").write("\n".join(report))
 print(f"종목 {len(cand)} · 새 family {len(new_fams)} · 넓힌 family {len(widen)} · 스무고개 {len(finder)} · 패턴 {len(pattern)}")
