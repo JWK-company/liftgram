@@ -1,4 +1,11 @@
 <!-- 기획 워크플로우 컨텍스트 뷰. 작업 완료 시마다 갱신. -->
+## 직전 작업(완료) — 종목 갭 보강: 오픈짐 대조로 없는 동작 106종목 (Task · URS-030 · SRS-094) · 2026-10-30
+- **v0.56.0 운영 배포 완료**(build 430 · 8782ecd · tag) · 서버 종목 480 → 587(활성 575 · 통합 행 1) · 배포 전 `pre-catalog-gap-20261030-073147.dump`
+- 오픈짐 근력 4,073줄 전수 대조(이미 있음 2,161 · 넣지 않음 1,487 · 없는 동작 183 = A10·B104·C69) → 사용자 A+B 선택 → qa 반영 106 · 같은 동작 6종은 기존 별칭(인클라인 클로즈그립은 통합 행 grip=close)
+- family 안 기구 유일(형제 맵) 때문에 30종목 제 family · 새 family 62 · 전용 픽토그램 원형 7(백 레버·티비알리스·배큠·크랩 워크·버트 킥·스탠딩 니 투 엘보·닐링 힙 쓰러스트)
+- 근거·스크립트 `docs/spec/20261030_catalog-gap/`(build_rows·apply = 8ba8a60 기준 재생성) · qa `docs/qa/20261030_catalog-gap-{spec,code}_qa.md` · 운영 dry-run 기록 블록 774 변화 0
+- 검증: make verify 554 · 로컬 전체 e2e 284/305(실패 4 = 환경 기지) · 카탈로그 e2e 29 · 운영 e2e catalog-gap 4/4 · 카탈로그 받기 첫 2페이지 경로
+- 보류: C등급 69 · 새 종목 대체 운동 큐레이션 · 기존 행 similar 역링크 · qa L(원암 풀업 예외 메모·케이블 사이드 크런치 영상 확인 등) · worktree `../liftgram-wt-catalog`
 ## 직전 작업(완료) — 루틴 만들기 입구·전체 화면 종목 고르기 (Task · URS-029 · SRS-093) · 2026-10-30
 - **v0.54.0 운영 배포 완료**(build 422 · 25f9d2b · tag) · 홈 「새 루틴 만들기」=「빠른 운동 시작」 같은 크기(루틴 0개면 빨강) · 루틴 편집 「운동 추가」=전체 화면 피커(검색·도우미·근육군·기구 · 다중 선택 「N개 추가」 · 교체 즉시) `ExercisePickerScreen.tsx`
 - qa code `docs/qa/20261030_routine-picker-code_qa.md`(H 없음 · M-1~6 조치: batch 추가 `addExercisesToRoutine`·순서값 최댓값+1·포커스·뒤로=닫기·memo) · 운영 e2e routine-picker 7/7 · 로컬 회귀 73+28 · 단위 545
@@ -17,7 +24,7 @@
 - 운영 확인: /app-version 0.53.0 · 운영 e2e(씨범 근거 링크) 통과 · qa `docs/qa/20261028_creator-routines-{spec,code}_qa.md`
 - 이전: v0.49.0 근육 지도 MuscleMap 교체(SRS-090) · 운영 테스트 계정 2개 삭제(`pre-delete-test-accounts-20261028-012646.dump`)
 ## 세션 상태 (2026-10-30)
-- 운영 = `https://liftgram.tarae.org` **v0.55.0 (build 426)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
+- 운영 = `https://liftgram.tarae.org` **v0.56.0 (build 430)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
 - 팀원 기록 복구 완료(운동 36→73 · 8/25~10/26 이어짐 · 오늘 0볼륨 2건은 팀원이 지우면 됨) · 보고서 Docs `https://claude.ai/artifact/NfDMSjDGLLfARSpTuNNa54`
 - 보류: 수동 업데이트 L-2·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안
 ## 최근 완료 (2026-10-26~28 · 상세는 각 spec/qa/report 와 git 로그)
