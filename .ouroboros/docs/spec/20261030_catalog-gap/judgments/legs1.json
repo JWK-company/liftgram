@@ -1,0 +1,1469 @@
+{
+ "chunk": "legs1",
+ "total": 567,
+ "matched": [
+  {
+   "og": [
+    "4714",
+    "2560",
+    "6541",
+    "10168",
+    "9691",
+    "4561",
+    "7577",
+    "5630",
+    "9702",
+    "3535",
+    "10914",
+    "6600",
+    "8220"
+   ],
+   "seed": "seed-air-squat"
+  },
+  {
+   "og": [
+    "4442",
+    "4443",
+    "4444",
+    "7551",
+    "9315",
+    "3743",
+    "1550",
+    "2290",
+    "7550",
+    "7598",
+    "7590",
+    "7549",
+    "0410"
+   ],
+   "seed": "seed-bulgarian-split-squat"
+  },
+  {
+   "og": [
+    "6327",
+    "3691",
+    "5028",
+    "2956",
+    "2957",
+    "4048",
+    "6328",
+    "4290"
+   ],
+   "seed": "seed-split-squat"
+  },
+  {
+   "og": [
+    "1027"
+   ],
+   "seed": "seed-leg-press"
+  },
+  {
+   "og": [
+    "4035",
+    "0980",
+    "0901",
+    "4034",
+    "0906",
+    "4677"
+   ],
+   "seed": "seed-band-glute-kickback"
+  },
+  {
+   "og": [
+    "4136",
+    "6785"
+   ],
+   "seed": "seed-band-hip-abduction"
+  },
+  {
+   "og": [
+    "6607"
+   ],
+   "seed": "seed-lateral-band-walk"
+  },
+  {
+   "og": [
+    "0912"
+   ],
+   "seed": "seed-lateral-leg-raise"
+  },
+  {
+   "og": [
+    "0911",
+    "4033"
+   ],
+   "seed": "seed-band-leg-curl"
+  },
+  {
+   "og": [
+    "4985",
+    "4849",
+    "4905",
+    "0496",
+    "2400",
+    "4988",
+    "3415",
+    "3235"
+   ],
+   "seed": "seed-nordic-curl"
+  },
+  {
+   "og": [
+    "1408"
+   ],
+   "seed": "seed-band-hip-thrust"
+  },
+  {
+   "og": [
+    "4841",
+    "4199",
+    "3308",
+    "0966",
+    "0967",
+    "7237",
+    "5014",
+    "2354",
+    "2357",
+    "1535"
+   ],
+   "seed": "seed-deadlift"
+  },
+  {
+   "og": [
+    "5659",
+    "5701",
+    "3530",
+    "4064",
+    "3184",
+    "0043",
+    "1461",
+    "1462",
+    "0878",
+    "1436",
+    "1435",
+    "1868",
+    "0101",
+    "2361",
+    "2359",
+    "1527",
+    "4178",
+    "0063",
+    "5633",
+    "1514"
+   ],
+   "seed": "seed-barbell-squat"
+  },
+  {
+   "og": [
+    "4362"
+   ],
+   "seed": "seed-pause-squat"
+  },
+  {
+   "og": [
+    "4848",
+    "0024",
+    "3727",
+    "0029",
+    "0042",
+    "0039",
+    "3871",
+    "3311",
+    "3309",
+    "9516"
+   ],
+   "seed": "seed-front-squat"
+  },
+  {
+   "og": [
+    "4851",
+    "0115"
+   ],
+   "seed": "seed-good-morning"
+  },
+  {
+   "og": [
+    "4061",
+    "0026",
+    "1509",
+    "4962"
+   ],
+   "seed": "seed-box-squat"
+  },
+  {
+   "og": [
+    "4173",
+    "0085",
+    "1532"
+   ],
+   "seed": "seed-romanian-deadlift"
+  },
+  {
+   "og": [
+    "4203",
+    "5577",
+    "0117",
+    "4107",
+    "4864",
+    "5912"
+   ],
+   "seed": "seed-sumo-deadlift"
+  },
+  {
+   "og": [
+    "5663"
+   ],
+   "seed": "seed-barbell-hack-squat"
+  },
+  {
+   "og": [
+    "6797",
+    "3728",
+    "4401"
+   ],
+   "seed": "seed-barbell-step-up"
+  },
+  {
+   "og": [
+    "0028"
+   ],
+   "seed": "seed-clean-and-press"
+  },
+  {
+   "og": [
+    "1515",
+    "5705"
+   ],
+   "seed": "seed-clean-pull"
+  },
+  {
+   "og": [
+    "6034",
+    "0074"
+   ],
+   "seed": "seed-rack-pull"
+  },
+  {
+   "og": [
+    "5702"
+   ],
+   "seed": "seed-deficit-deadlift"
+  },
+  {
+   "og": [
+    "3399",
+    "4382"
+   ],
+   "seed": "seed-lunge-barbell"
+  },
+  {
+   "og": [
+    "4390",
+    "0078",
+    "0077"
+   ],
+   "seed": "seed-barbell-reverse-lunge"
+  },
+  {
+   "og": [
+    "4397",
+    "6329",
+    "10054"
+   ],
+   "seed": "seed-barbell-split-squat"
+  },
+  {
+   "og": [
+    "4409"
+   ],
+   "seed": "seed-barbell-walking-lunge"
+  },
+  {
+   "og": [
+    "1545",
+    "0127",
+    "1446"
+   ],
+   "seed": "seed-zercher-squat"
+  },
+  {
+   "og": [
+    "2964",
+    "3562",
+    "0058"
+   ],
+   "seed": "seed-glute-bridge"
+  },
+  {
+   "og": [
+    "5704"
+   ],
+   "seed": "seed-hang-clean"
+  },
+  {
+   "og": [
+    "3873",
+    "4448",
+    "5451",
+    "1061",
+    "5476"
+   ],
+   "seed": "seed-hip-thrust"
+  },
+  {
+   "og": [
+    "0068",
+    "4349",
+    "0099",
+    "7552"
+   ],
+   "seed": "seed-bulgarian-split-squat-barbell"
+  },
+  {
+   "og": [
+    "0069"
+   ],
+   "seed": "seed-overhead-squat"
+  },
+  {
+   "og": [
+    "1542",
+    "1543",
+    "0116",
+    "1544"
+   ],
+   "seed": "seed-stiff-leg-deadlift"
+  },
+  {
+   "og": [
+    "4937",
+    "9314",
+    "1170",
+    "4762",
+    "4765"
+   ],
+   "seed": "seed-hyperextension"
+  },
+  {
+   "og": [
+    "0130",
+    "3180",
+    "3870",
+    "6145"
+   ],
+   "seed": "seed-reverse-hyperextension"
+  },
+  {
+   "og": [
+    "4890"
+   ],
+   "seed": "seed-glute-ham-raise"
+  },
+  {
+   "og": [
+    "2394"
+   ],
+   "seed": "seed-superman"
+  },
+  {
+   "og": [
+    "6316",
+    "3034"
+   ],
+   "seed": "seed-glute-kickback"
+  },
+  {
+   "og": [
+    "3035"
+   ],
+   "seed": "seed-fire-hydrant"
+  },
+  {
+   "og": [
+    "3543",
+    "3704",
+    "1552",
+    "0371"
+   ],
+   "seed": "seed-jump-squat"
+  },
+  {
+   "og": [
+    "4949",
+    "4950",
+    "3635",
+    "1175",
+    "3398",
+    "3339"
+   ],
+   "seed": "seed-lunge"
+  },
+  {
+   "og": [
+    "6464",
+    "3181",
+    "2757",
+    "6160"
+   ],
+   "seed": "seed-frog-pump"
+  },
+  {
+   "og": [
+    "5277",
+    "4579",
+    "10864",
+    "0479",
+    "5314",
+    "2468",
+    "2925",
+    "4821",
+    "4565"
+   ],
+   "seed": "seed-step-up"
+  },
+  {
+   "og": [
+    "4722",
+    "4723"
+   ],
+   "seed": "seed-sissy-squat"
+  },
+  {
+   "og": [
+    "1581",
+    "6551"
+   ],
+   "seed": "seed-reverse-lunge"
+  },
+  {
+   "og": [
+    "7560",
+    "7561",
+    "4892",
+    "0882",
+    "0411",
+    "3767",
+    "0544"
+   ],
+   "seed": "seed-pistol-squat"
+  },
+  {
+   "og": [
+    "4072",
+    "1546",
+    "1558",
+    "7559",
+    "6558"
+   ],
+   "seed": "seed-wall-sit"
+  },
+  {
+   "og": [
+    "9700",
+    "1557"
+   ],
+   "seed": "seed-walking-lunge"
+  },
+  {
+   "og": [
+    "2471",
+    "2473",
+    "2474",
+    "2475",
+    "3523",
+    "0145",
+    "0486",
+    "0485",
+    "6435",
+    "10549",
+    "5671"
+   ],
+   "seed": "seed-bodyweight-glute-bridge"
+  },
+  {
+   "og": [
+    "4291"
+   ],
+   "seed": "seed-dumbbell-glute-bridge"
+  },
+  {
+   "og": [
+    "6735",
+    "5554",
+    "4755",
+    "8075"
+   ],
+   "seed": "seed-hip-thrust-dumbbell"
+  },
+  {
+   "og": [
+    "6742",
+    "4421",
+    "7589",
+    "0228",
+    "0880",
+    "11259",
+    "8083",
+    "5470"
+   ],
+   "seed": "seed-cable-kickback"
+  },
+  {
+   "og": [
+    "2756",
+    "2755",
+    "11266",
+    "6739",
+    "10860"
+   ],
+   "seed": "seed-cable-hip-abduction"
+  },
+  {
+   "og": [
+    "11267"
+   ],
+   "seed": "seed-cable-hip-adduction"
+  },
+  {
+   "og": [
+    "3352",
+    "0196",
+    "2324",
+    "2744"
+   ],
+   "seed": "seed-cable-pull-through"
+  },
+  {
+   "og": [
+    "2836"
+   ],
+   "seed": "seed-cable-romanian-deadlift"
+  },
+  {
+   "og": [
+    "2569",
+    "4732",
+    "4562",
+    "6193",
+    "4754"
+   ],
+   "seed": "seed-lateral-squat"
+  },
+  {
+   "og": [
+    "3769"
+   ],
+   "seed": "seed-curtsy-lunge"
+  },
+  {
+   "og": [
+    "4030",
+    "5121",
+    "2323",
+    "7547",
+    "2431"
+   ],
+   "seed": "seed-sumo-squat"
+  },
+  {
+   "og": [
+    "2751",
+    "5301",
+    "2753"
+   ],
+   "seed": "seed-kettlebell-sumo-squat"
+  },
+  {
+   "og": [
+    "0291",
+    "5634",
+    "2803",
+    "2804"
+   ],
+   "seed": "seed-dumbbell-squat"
+  },
+  {
+   "og": [
+    "4914"
+   ],
+   "seed": "seed-dumbbell-deadlift"
+  },
+  {
+   "og": [
+    "4733",
+    "0339",
+    "4292"
+   ],
+   "seed": "seed-dumbbell-lying-leg-curl"
+  },
+  {
+   "og": [
+    "9690"
+   ],
+   "seed": "seed-dumbbell-front-squat"
+  },
+  {
+   "og": [
+    "3397"
+   ],
+   "seed": "seed-dumbbell-swing"
+  },
+  {
+   "og": [
+    "4816",
+    "3692"
+   ],
+   "seed": "seed-goblet-squat"
+  },
+  {
+   "og": [
+    "4963",
+    "5496",
+    "10673"
+   ],
+   "seed": "seed-kettlebell-goblet-squat"
+  },
+  {
+   "og": [
+    "4739"
+   ],
+   "seed": "seed-dumbbell-clean"
+  },
+  {
+   "og": [
+    "0535"
+   ],
+   "seed": "seed-kettlebell-clean"
+  },
+  {
+   "og": [
+    "2910"
+   ],
+   "seed": "seed-suitcase-carry"
+  },
+  {
+   "og": [
+    "3888"
+   ],
+   "seed": "seed-dumbbell-snatch"
+  },
+  {
+   "og": [
+    "5076",
+    "4865",
+    "5095"
+   ],
+   "seed": "seed-overhead-lunge"
+  },
+  {
+   "og": [
+    "3707"
+   ],
+   "seed": "seed-dumbbell-thruster"
+  },
+  {
+   "og": [
+    "0381",
+    "2367",
+    "7326"
+   ],
+   "seed": "seed-dumbbell-reverse-lunge"
+  },
+  {
+   "og": [
+    "1215",
+    "3448"
+   ],
+   "seed": "seed-dumbbell-lateral-lunge"
+  },
+  {
+   "og": [
+    "1554",
+    "1166",
+    "4771",
+    "5148"
+   ],
+   "seed": "seed-jump-lunge"
+  },
+  {
+   "og": [
+    "1556",
+    "0434",
+    "4293"
+   ],
+   "seed": "seed-dumbbell-stiff-leg-deadlift"
+  },
+  {
+   "og": [
+    "5310"
+   ],
+   "seed": "seed-lateral-lunge"
+  },
+  {
+   "og": [
+    "5036"
+   ],
+   "seed": "seed-stability-ball-leg-curl"
+  },
+  {
+   "og": [
+    "4870"
+   ],
+   "seed": "seed-clamshell"
+  },
+  {
+   "og": [
+    "3650",
+    "4965",
+    "3887",
+    "3892",
+    "11781"
+   ],
+   "seed": "seed-box-jump"
+  },
+  {
+   "og": [
+    "1472"
+   ],
+   "seed": "seed-broad-jump"
+  },
+  {
+   "og": [
+    "4167",
+    "3571",
+    "3680",
+    "4527"
+   ],
+   "seed": "seed-kettlebell-swing"
+  },
+  {
+   "og": [
+    "3574",
+    "5336",
+    "4441"
+   ],
+   "seed": "seed-kettlebell-lunge"
+  },
+  {
+   "og": [
+    "4123"
+   ],
+   "seed": "seed-kettlebell-front-squat"
+  },
+  {
+   "og": [
+    "0124"
+   ],
+   "seed": "seed-barbell-sumo-squat"
+  }
+ ],
+ "new": [
+  {
+   "og": [
+    "1757",
+    "2805",
+    "2806",
+    "2750",
+    "3338",
+    "7648",
+    "10865"
+   ],
+   "name_ko": "덤벨 싱글 레그 데드리프트",
+   "name_en": "Dumbbell Single Leg Deadlift",
+   "equipment": "dumbbell",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "single_leg_deadlift",
+   "family_is_new": true,
+   "aliases_ko": [
+    "덤벨 싱글 레그 RDL",
+    "덤벨 원레그 데드리프트",
+    "덤벨 외발 데드리프트"
+   ],
+   "aliases_en": [
+    "dumbbell single leg RDL",
+    "dumbbell single stiff leg deadlift",
+    "dumbbell one leg deadlift"
+   ],
+   "similar": [
+    "romanian_deadlift",
+    "stiff_leg_deadlift",
+    "good_morning"
+   ],
+   "tier": "A",
+   "why": "우리 RDL·스티프는 두 발 지지 — 한 발로 서서 힌지하는 균형·둔근 중심 동작은 없음"
+  },
+  {
+   "og": [
+    "3928",
+    "4971",
+    "10915",
+    "10916"
+   ],
+   "name_ko": "싱글 레그 데드리프트",
+   "name_en": "Single Leg Deadlift",
+   "equipment": "bodyweight",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "bodyweight",
+   "family": "single_leg_deadlift",
+   "family_is_new": true,
+   "aliases_ko": [
+    "싱글 레그 RDL",
+    "원레그 데드리프트",
+    "외발 데드리프트",
+    "맨몸 싱글 레그 데드리프트"
+   ],
+   "aliases_en": [
+    "single leg RDL",
+    "bodyweight single leg deadlift",
+    "one leg deadlift"
+   ],
+   "similar": [
+    "romanian_deadlift",
+    "stiff_leg_deadlift"
+   ],
+   "tier": "A",
+   "why": "맨몸 한 발 힌지 — 우리에겐 한 발 데드리프트 계열 자체가 없음"
+  },
+  {
+   "og": [
+    "4523",
+    "1569"
+   ],
+   "name_ko": "케틀벨 싱글 레그 데드리프트",
+   "name_en": "Kettlebell Single Leg Deadlift",
+   "equipment": "kettlebell",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "single_leg_deadlift",
+   "family_is_new": true,
+   "aliases_ko": [
+    "케틀벨 싱글 레그 RDL",
+    "케틀벨 원레그 데드리프트"
+   ],
+   "aliases_en": [
+    "kettlebell single leg RDL",
+    "kettlebell one legged deadlift"
+   ],
+   "similar": [
+    "romanian_deadlift",
+    "deadlift"
+   ],
+   "tier": "B",
+   "why": "케틀벨 RDL·데드리프트는 두 발 — 한 발 힌지 없음"
+  },
+  {
+   "og": [
+    "4757"
+   ],
+   "name_ko": "덤벨 B스탠스 루마니안 데드리프트",
+   "name_en": "Dumbbell B-Stance Romanian Deadlift",
+   "equipment": "dumbbell",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "romanian_deadlift",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 스태거드 RDL",
+    "덤벨 킥스탠드 RDL",
+    "덤벨 B스탠스 RDL"
+   ],
+   "aliases_en": [
+    "dumbbell staggered stance RDL",
+    "dumbbell kickstand RDL"
+   ],
+   "similar": [
+    "romanian_deadlift",
+    "stiff_leg_deadlift"
+   ],
+   "tier": "B",
+   "why": "한 발을 뒤에 살짝 받친 엇갈린 자세로 앞다리에 부하를 싣는 셋업 — 일반 RDL과 자극 부위가 다름"
+  },
+  {
+   "og": [
+    "10047",
+    "11789"
+   ],
+   "name_ko": "바벨 B스탠스 루마니안 데드리프트",
+   "name_en": "Barbell B-Stance Romanian Deadlift",
+   "equipment": "barbell",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "romanian_deadlift",
+   "family_is_new": false,
+   "aliases_ko": [
+    "바벨 스태거드 RDL",
+    "바벨 킥스탠드 RDL",
+    "스플릿 스탠스 RDL"
+   ],
+   "aliases_en": [
+    "barbell split stance RDL",
+    "barbell staggered stance stiff legged deadlift"
+   ],
+   "similar": [
+    "romanian_deadlift",
+    "stiff_leg_deadlift"
+   ],
+   "tier": "B",
+   "why": "바벨 RDL을 엇갈린 발 자세로 — 한쪽 다리 편중 셋업"
+  },
+  {
+   "og": [
+    "3731"
+   ],
+   "name_ko": "바벨 스모 루마니안 데드리프트",
+   "name_en": "Barbell Sumo Romanian Deadlift",
+   "equipment": "barbell",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "romanian_deadlift",
+   "family_is_new": false,
+   "aliases_ko": [
+    "스모 RDL",
+    "와이드 스탠스 RDL"
+   ],
+   "aliases_en": [
+    "sumo RDL",
+    "barbell sumo romanian deadlift"
+   ],
+   "similar": [
+    "sumo_deadlift",
+    "romanian_deadlift"
+   ],
+   "tier": "B",
+   "why": "넓은 스탠스로 내전근·둔근 비중을 높인 RDL — 스모 데드(바닥부터)와도, 일반 RDL과도 다름"
+  },
+  {
+   "og": [
+    "8192"
+   ],
+   "name_ko": "덤벨 스모 데드리프트",
+   "name_en": "Dumbbell Sumo Deadlift",
+   "equipment": "dumbbell",
+   "primary": "glutes",
+   "secondary": [
+    "hamstrings",
+    "quads"
+   ],
+   "load_mode": "weight",
+   "family": "sumo_deadlift",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 스모 데드"
+   ],
+   "aliases_en": [
+    "dumbbell sumo deadlift"
+   ],
+   "similar": [
+    "sumo_deadlift",
+    "sumo_squat",
+    "deadlift"
+   ],
+   "tier": "B",
+   "why": "스모 데드리프트는 바벨·케틀벨만 있고 덤벨 기구판이 없음"
+  },
+  {
+   "og": [
+    "2072",
+    "7413",
+    "4902"
+   ],
+   "name_ko": "맨몸 힙 쓰러스트",
+   "name_en": "Bodyweight Hip Thrust",
+   "equipment": "bodyweight",
+   "primary": "glutes",
+   "secondary": [
+    "hamstrings"
+   ],
+   "load_mode": "bodyweight",
+   "family": "hip_thrust",
+   "family_is_new": false,
+   "aliases_ko": [
+    "벤치 힙 쓰러스트",
+    "맨몸 힙쓰"
+   ],
+   "aliases_en": [
+    "bodyweight hip thrust",
+    "elevated hip thrust",
+    "hip thrusts"
+   ],
+   "similar": [
+    "hip_thrust",
+    "glute_bridge",
+    "frog_pump"
+   ],
+   "tier": "B",
+   "why": "힙 쓰러스트는 바벨·덤벨·스미스·머신·밴드뿐 — 등을 벤치에 기댄 맨몸판 없음(바닥 글루트 브릿지와 셋업 다름)"
+  },
+  {
+   "og": [
+    "8358",
+    "10904"
+   ],
+   "name_ko": "햄스트링 브릿지",
+   "name_en": "Hamstring Bridge",
+   "equipment": "bodyweight",
+   "primary": "hamstrings",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "bodyweight",
+   "family": "glute_bridge",
+   "family_is_new": false,
+   "aliases_ko": [
+    "힐 브릿지",
+    "벤치 햄스트링 브릿지"
+   ],
+   "aliases_en": [
+    "hamstring bridge",
+    "feet elevated hamstring bridge"
+   ],
+   "similar": [
+    "glute_bridge",
+    "ball_leg_curl",
+    "nordic_curl"
+   ],
+   "tier": "B",
+   "why": "발을 멀리·높게 두고 무릎을 거의 펴서 햄스트링으로 버티는 브릿지 — 둔근 위주 글루트 브릿지와 자극 부위가 다름"
+  },
+  {
+   "og": [
+    "0881",
+    "8664",
+    "3683"
+   ],
+   "name_ko": "덤벨 커시 런지",
+   "name_en": "Dumbbell Curtsy Lunge",
+   "equipment": "dumbbell",
+   "primary": "glutes",
+   "secondary": [
+    "quads"
+   ],
+   "load_mode": "weight",
+   "family": "curtsy_lunge",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 커트시 런지",
+    "덤벨 크로스 런지",
+    "고블릿 커시 런지"
+   ],
+   "aliases_en": [
+    "dumbbell curtsy lunge",
+    "dumbbell curtsey lunge",
+    "goblet curtsy lunge"
+   ],
+   "similar": [
+    "curtsy_lunge",
+    "reverse_lunge",
+    "lateral_lunge"
+   ],
+   "tier": "B",
+   "why": "커시 런지는 맨몸뿐 — 덤벨 기구판 없음"
+  },
+  {
+   "og": [
+    "0053"
+   ],
+   "name_ko": "바벨 점프 스쿼트",
+   "name_en": "Barbell Jump Squat",
+   "equipment": "barbell",
+   "primary": "quads",
+   "secondary": [
+    "glutes",
+    "calves"
+   ],
+   "load_mode": "weight",
+   "family": "jump_squat",
+   "family_is_new": false,
+   "aliases_ko": [
+    "바벨 스쿼트 점프"
+   ],
+   "aliases_en": [
+    "barbell jump squat",
+    "barbell squat jump"
+   ],
+   "similar": [
+    "jump_squat",
+    "squat",
+    "box_jump"
+   ],
+   "tier": "B",
+   "why": "점프 스쿼트는 맨몸(가중) 하나 — 바를 등에 지고 뛰는 파워 훈련용 바벨판 없음"
+  },
+  {
+   "og": [
+    "6544",
+    "3349",
+    "3354",
+    "7578",
+    "11268",
+    "9878"
+   ],
+   "name_ko": "케이블 고블릿 스쿼트",
+   "name_en": "Cable Goblet Squat",
+   "equipment": "cable",
+   "primary": "quads",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "goblet_squat",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케이블 스쿼트",
+    "케이블 프론트 스쿼트"
+   ],
+   "aliases_en": [
+    "cable goblet squat",
+    "cable squat",
+    "cable front squat"
+   ],
+   "similar": [
+    "goblet_squat",
+    "front_squat",
+    "squat"
+   ],
+   "tier": "B",
+   "why": "고블릿 스쿼트는 덤벨·케틀벨뿐 — 낮은 도르래 손잡이를 가슴 앞에 쥐는 케이블판 없음"
+  },
+  {
+   "og": [
+    "4363"
+   ],
+   "name_ko": "스케이터 스쿼트",
+   "name_en": "Skater Squat",
+   "equipment": "bodyweight",
+   "primary": "quads",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "bodyweight",
+   "family": "skater_squat",
+   "family_is_new": true,
+   "aliases_ko": [
+    "카운터밸런스 스케이터 스쿼트",
+    "싱글 레그 스케이터 스쿼트"
+   ],
+   "aliases_en": [
+    "skater squat",
+    "counterbalanced skater squat"
+   ],
+   "similar": [
+    "pistol_squat",
+    "bulgarian_split_squat",
+    "split_squat"
+   ],
+   "tier": "B",
+   "why": "뒷다리를 접어 무릎을 바닥 쪽으로 내리는 한 발 스쿼트 — 앞다리를 뻗는 피스톨과 동작이 다름"
+  },
+  {
+   "og": [
+    "3575",
+    "5070",
+    "7581",
+    "7582"
+   ],
+   "name_ko": "케틀벨 리버스 런지",
+   "name_en": "Kettlebell Reverse Lunge",
+   "equipment": "kettlebell",
+   "primary": "quads",
+   "secondary": [
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "reverse_lunge",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 백 런지",
+    "케틀벨 리어 런지"
+   ],
+   "aliases_en": [
+    "kettlebell reverse lunge",
+    "kettlebell rear lunge",
+    "kettlebell backward lunge"
+   ],
+   "similar": [
+    "reverse_lunge",
+    "lunge",
+    "split_squat"
+   ],
+   "tier": "B",
+   "why": "리버스 런지는 맨몸·덤벨·바벨·스미스뿐 — 케틀벨판 없음(케틀벨 런지는 앞으로 딛는 런지)"
+  }
+ ],
+ "excluded": [
+  {
+   "og": [
+    "4209",
+    "4208",
+    "10818",
+    "3479",
+    "3480",
+    "1473",
+    "5985",
+    "9068",
+    "9606",
+    "10160",
+    "10738",
+    "4242",
+    "4844",
+    "4843",
+    "4198",
+    "9514",
+    "9513",
+    "7194",
+    "5684",
+    "1698",
+    "7341",
+    "10053",
+    "3863",
+    "4168",
+    "4169",
+    "1525",
+    "1539",
+    "11784",
+    "3867",
+    "3365",
+    "3194",
+    "4435"
+   ],
+   "reason": "스포츠·플라이오 드릴"
+  },
+  {
+   "og": [
+    "3483",
+    "3771",
+    "3772",
+    "3782",
+    "3773",
+    "3781",
+    "3770",
+    "3774",
+    "3775",
+    "3776",
+    "3524",
+    "1003",
+    "2798",
+    "2797",
+    "1541",
+    "4161",
+    "10096",
+    "9484",
+    "9485",
+    "5880",
+    "7469",
+    "3522",
+    "10186",
+    "5240",
+    "3961",
+    "2795",
+    "2796",
+    "2812",
+    "10562",
+    "4692",
+    "6442",
+    "10905",
+    "0536",
+    "10561"
+   ],
+   "reason": "두세 동작을 이어 붙인 조합"
+  },
+  {
+   "og": [
+    "9994",
+    "10014",
+    "10651",
+    "1416",
+    "1417",
+    "1562",
+    "0412",
+    "0435",
+    "3710",
+    "10862"
+   ],
+   "reason": "안정볼·보수·메디신볼 등 드문 도구"
+  },
+  {
+   "og": [
+    "5988",
+    "6047",
+    "6044",
+    "6050",
+    "6051",
+    "6048",
+    "6041",
+    "6042",
+    "6046",
+    "6049",
+    "6045",
+    "6043"
+   ],
+   "reason": "물병 가중(홈트 도구)"
+  },
+  {
+   "og": [
+    "0016",
+    "1507",
+    "1021",
+    "0927",
+    "0982",
+    "3023",
+    "0995",
+    "0996",
+    "9601",
+    "9602",
+    "9605",
+    "9603",
+    "9604",
+    "3561",
+    "3394",
+    "6570",
+    "4881",
+    "8876",
+    "8875",
+    "8191",
+    "11265",
+    "4294",
+    "0461",
+    "8956",
+    "1445",
+    "3651",
+    "6108",
+    "7129",
+    "4560",
+    "4547",
+    "5313",
+    "6344",
+    "3747",
+    "9607"
+   ],
+   "reason": "재활·스트레칭·모빌리티성"
+  },
+  {
+   "og": [
+    "4029",
+    "0909",
+    "4681",
+    "0987",
+    "1001",
+    "4135",
+    "4679",
+    "3518",
+    "0926",
+    "1008",
+    "1009",
+    "1023",
+    "0919",
+    "4678",
+    "4701",
+    "5864"
+   ],
+   "reason": "밴드 기구판 — 한국 헬스장에서 드묾"
+  },
+  {
+   "og": [
+    "11093",
+    "10092",
+    "9696",
+    "2811",
+    "0066",
+    "4116",
+    "0102",
+    "5706",
+    "0051",
+    "2915",
+    "5670",
+    "3723",
+    "1410",
+    "0098",
+    "0097",
+    "1756",
+    "3725",
+    "0090",
+    "4850",
+    "1518",
+    "1551",
+    "5672",
+    "3734",
+    "6336",
+    "4552",
+    "10051",
+    "10055",
+    "5152",
+    "3686",
+    "5064",
+    "6424",
+    "7566",
+    "2911",
+    "2916",
+    "11058",
+    "10987",
+    "10988",
+    "11077",
+    "1694",
+    "3709",
+    "5071",
+    "1566",
+    "4752",
+    "2808",
+    "2807",
+    "10199",
+    "2835",
+    "2758",
+    "9927",
+    "9928",
+    "9863",
+    "11276",
+    "2837",
+    "5664",
+    "3356",
+    "3351",
+    "3350",
+    "3355",
+    "11255",
+    "5315",
+    "7586",
+    "10048",
+    "10120",
+    "10119",
+    "0157",
+    "11252",
+    "10191",
+    "3732",
+    "3187",
+    "4817",
+    "6425",
+    "4045",
+    "4098",
+    "5886",
+    "4524",
+    "4134",
+    "4210",
+    "4059",
+    "10674",
+    "9611",
+    "3702",
+    "9612"
+   ],
+   "reason": "지나치게 특이하거나 드문 변형"
+  }
+ ]
+}

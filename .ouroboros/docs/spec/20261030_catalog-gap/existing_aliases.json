@@ -1,0 +1,65 @@
+{
+ "Incline Press": [
+  [
+   "인클라인 클로즈그립 벤치프레스",
+   "인클라인 클로즈 벤치"
+  ],
+  [
+   "incline close grip bench press"
+  ]
+ ],
+ "Barbell Shrug": [
+  [
+   "비하인드 백 슈러그",
+   "바벨 비하인드 백 슈러그",
+   "백 슈러그"
+  ],
+  [
+   "behind the back shrug"
+  ]
+ ],
+ "Shrug (Smith)": [
+  [
+   "스미스 비하인드 백 슈러그",
+   "스미스 백 슈러그"
+  ],
+  [
+   "smith behind the back shrug"
+  ]
+ ],
+ "Pull Up": [
+  [
+   "L-싯 풀업",
+   "엘싯 풀업"
+  ],
+  [
+   "l-sit pull-up"
+  ]
+ ],
+ "Deadlift High Pull": [
+  [
+   "스모 데드리프트 하이 풀",
+   "바벨 스모 데드리프트 하이 풀",
+   "스모 하이 풀",
+   "SDHP"
+  ],
+  [
+   "sumo deadlift high pull"
+  ]
+ ],
+ "Hanging Knee Raise": [
+  [
+   "행잉 오블리크 니 레이즈",
+   "행잉 트위스트 니 레이즈"
+  ],
+  [
+   "hanging oblique knee raise"
+  ]
+ ],
+ "Chest Supported Row (Dumbbell)": [
+  [
+   "인클라인 로우"
+  ],
+  []
+ ]
+}

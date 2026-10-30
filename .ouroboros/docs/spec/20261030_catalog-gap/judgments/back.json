@@ -1,0 +1,1605 @@
+{
+ "chunk": "back",
+ "total": 528,
+ "matched": [
+  {
+   "og": [
+    "5813",
+    "1465",
+    "4455",
+    "8895",
+    "8991",
+    "7328",
+    "10977",
+    "1234",
+    "5035",
+    "11317",
+    "0488"
+   ],
+   "seed": "seed-hyperextension"
+  },
+  {
+   "og": [
+    "0007",
+    "0150",
+    "1047",
+    "0153",
+    "4948",
+    "11253",
+    "5581",
+    "2330",
+    "0177",
+    "6392",
+    "2616",
+    "7583",
+    "9304",
+    "1204",
+    "3563",
+    "3358",
+    "0198",
+    "0197",
+    "5123",
+    "10503",
+    "0245",
+    "2291",
+    "4217",
+    "0818"
+   ],
+   "seed": "seed-lat-pulldown"
+  },
+  {
+   "og": [
+    "4702",
+    "4715",
+    "4935",
+    "3454",
+    "4924",
+    "3228",
+    "6019",
+    "1352",
+    "10345"
+   ],
+   "seed": "seed-superman"
+  },
+  {
+   "og": [
+    "4716",
+    "4970",
+    "1222",
+    "1431",
+    "0572",
+    "4724",
+    "4773",
+    "4781",
+    "4780"
+   ],
+   "seed": "seed-assisted-chin-up"
+  },
+  {
+   "og": [
+    "0015",
+    "1432",
+    "4785",
+    "4783",
+    "4784",
+    "9317",
+    "4806"
+   ],
+   "seed": "seed-assisted-pull-up"
+  },
+  {
+   "og": [
+    "3326",
+    "0974",
+    "3117",
+    "3116",
+    "4358",
+    "0983",
+    "0905",
+    "1013"
+   ],
+   "seed": "seed-band-lat-pulldown"
+  },
+  {
+   "og": [
+    "3325",
+    "4145",
+    "10668",
+    "0988",
+    "4453",
+    "0990",
+    "3121",
+    "5005",
+    "4454",
+    "3845",
+    "0930",
+    "4575",
+    "4146",
+    "3144"
+   ],
+   "seed": "seed-band-seated-row"
+  },
+  {
+   "og": [
+    "4718",
+    "4206"
+   ],
+   "seed": "seed-band-assisted-pull-up"
+  },
+  {
+   "og": [
+    "4415",
+    "5236",
+    "4725",
+    "0253",
+    "1327",
+    "9320",
+    "0627",
+    "0674",
+    "5474",
+    "4102",
+    "2987",
+    "4181",
+    "8189"
+   ],
+   "seed": "seed-chin-up"
+  },
+  {
+   "og": [
+    "4576"
+   ],
+   "seed": "seed-band-straight-arm-pulldown"
+  },
+  {
+   "og": [
+    "1316",
+    "7565",
+    "4340",
+    "1448"
+   ],
+   "seed": "seed-barbell-pullover"
+  },
+  {
+   "og": [
+    "3991",
+    "3721",
+    "3992",
+    "0062",
+    "0064",
+    "0118",
+    "2343"
+   ],
+   "seed": "seed-barbell-row"
+  },
+  {
+   "og": [
+    "4126",
+    "3017"
+   ],
+   "seed": "seed-pendlay-row"
+  },
+  {
+   "og": [
+    "4424",
+    "4423",
+    "3654",
+    "8798",
+    "0248"
+   ],
+   "seed": "seed-seal-row"
+  },
+  {
+   "og": [
+    "5662"
+   ],
+   "seed": "seed-jump-shrug"
+  },
+  {
+   "og": [
+    "4016",
+    "4862",
+    "5224"
+   ],
+   "seed": "seed-barbell-shrug"
+  },
+  {
+   "og": [
+    "3019",
+    "4917",
+    "2300",
+    "2298",
+    "4770",
+    "7554",
+    "5517",
+    "1223",
+    "1184",
+    "4379"
+   ],
+   "seed": "seed-inverted-row"
+  },
+  {
+   "og": [
+    "5194",
+    "0558",
+    "3286",
+    "3312"
+   ],
+   "seed": "seed-muscle-up"
+  },
+  {
+   "og": [
+    "0159",
+    "0160",
+    "0163",
+    "4391",
+    "0180",
+    "6032",
+    "1323",
+    "3357",
+    "0214",
+    "0861",
+    "1238",
+    "2661",
+    "10112",
+    "3233",
+    "0218",
+    "0239",
+    "5553",
+    "10437",
+    "1205",
+    "9875",
+    "1320",
+    "1321",
+    "1046",
+    "1319"
+   ],
+   "seed": "seed-seated-cable-row"
+  },
+  {
+   "og": [
+    "0167",
+    "0213",
+    "11257",
+    "6510",
+    "0208",
+    "0193",
+    "1210",
+    "1324",
+    "7597",
+    "7587"
+   ],
+   "seed": "seed-cable-high-row"
+  },
+  {
+   "og": [
+    "0172",
+    "0199",
+    "1229",
+    "0238",
+    "8297",
+    "0237",
+    "6036",
+    "1067",
+    "5844",
+    "0184",
+    "4180"
+   ],
+   "seed": "seed-straight-arm-pulldown"
+  },
+  {
+   "og": [
+    "4226"
+   ],
+   "seed": "seed-cable-shrug"
+  },
+  {
+   "og": [
+    "5479",
+    "1865",
+    "4983",
+    "1198",
+    "0651",
+    "4913",
+    "1763",
+    "5473",
+    "2986",
+    "1866"
+   ],
+   "seed": "seed-pull-up"
+  },
+  {
+   "og": [
+    "3799",
+    "4741",
+    "2326",
+    "2325",
+    "2327",
+    "1329"
+   ],
+   "seed": "seed-dumbbell-bent-over-row"
+  },
+  {
+   "og": [
+    "6146",
+    "4730",
+    "2393",
+    "0292",
+    "1236",
+    "4837",
+    "10329"
+   ],
+   "seed": "seed-dumbbell-row"
+  },
+  {
+   "og": [
+    "5661",
+    "9698",
+    "9699",
+    "3320",
+    "4744",
+    "0327",
+    "1330",
+    "1331",
+    "2511"
+   ],
+   "seed": "seed-chest-supported-row-dumbbell"
+  },
+  {
+   "og": [
+    "4425",
+    "5697",
+    "4426"
+   ],
+   "seed": "seed-dumbbell-seal-row"
+  },
+  {
+   "og": [
+    "3541"
+   ],
+   "seed": "seed-chest-supported-y-raise"
+  },
+  {
+   "og": [
+    "4318"
+   ],
+   "seed": "seed-dumbbell-pullover"
+  },
+  {
+   "og": [
+    "10901"
+   ],
+   "seed": "seed-dumbbell-shrug"
+  },
+  {
+   "og": [
+    "7234",
+    "7235"
+   ],
+   "seed": "seed-dumbbell-external-rotation"
+  },
+  {
+   "og": [
+    "10902",
+    "7385"
+   ],
+   "seed": "seed-negative-pull-up"
+  },
+  {
+   "og": [
+    "3295"
+   ],
+   "seed": "seed-front-lever-raise"
+  },
+  {
+   "og": [
+    "4177"
+   ],
+   "seed": "seed-scapular-pull-up"
+  },
+  {
+   "og": [
+    "0498",
+    "4911",
+    "4818",
+    "4921",
+    "0808",
+    "1071",
+    "6220",
+    "2834",
+    "4450",
+    "1080",
+    "5006",
+    "4451"
+   ],
+   "seed": "seed-ring-row"
+  },
+  {
+   "og": [
+    "7228",
+    "1127",
+    "1088",
+    "5008"
+   ],
+   "seed": "seed-ring-pull-up"
+  },
+  {
+   "og": [
+    "0521"
+   ],
+   "seed": "seed-kettlebell-renegade-row"
+  },
+  {
+   "og": [
+    "0522",
+    "1345",
+    "5867"
+   ],
+   "seed": "seed-kettlebell-bent-over-row"
+  },
+  {
+   "og": [
+    "7230"
+   ],
+   "seed": "seed-gorilla-row"
+  },
+  {
+   "og": [
+    "10731",
+    "10439"
+   ],
+   "seed": "seed-rope-climb"
+  },
+  {
+   "og": [
+    "4039",
+    "4038",
+    "5034",
+    "0589"
+   ],
+   "seed": "seed-meadows-row"
+  },
+  {
+   "og": [
+    "0571",
+    "3096",
+    "0588",
+    "3102",
+    "1235",
+    "5447",
+    "1350",
+    "2664",
+    "2265",
+    "1237",
+    "1313",
+    "1348"
+   ],
+   "seed": "seed-machine-row"
+  },
+  {
+   "og": [
+    "0573",
+    "2266"
+   ],
+   "seed": "seed-back-extension-machine"
+  },
+  {
+   "og": [
+    "6514",
+    "6513",
+    "10866",
+    "6515",
+    "6517",
+    "6516",
+    "4899",
+    "10867",
+    "10646"
+   ],
+   "seed": "seed-chest-supported-row"
+  },
+  {
+   "og": [
+    "0574",
+    "3200"
+   ],
+   "seed": "seed-t-bar-row"
+  },
+  {
+   "og": [
+    "1863",
+    "6881",
+    "0579",
+    "1870",
+    "2665",
+    "5326",
+    "1347",
+    "6356",
+    "2736",
+    "11309",
+    "0673"
+   ],
+   "seed": "seed-machine-lat-pulldown"
+  },
+  {
+   "og": [
+    "0580",
+    "1439",
+    "1221"
+   ],
+   "seed": "seed-shrug-machine"
+  },
+  {
+   "og": [
+    "0581",
+    "2662",
+    "2663",
+    "1356",
+    "4378"
+   ],
+   "seed": "seed-high-row"
+  },
+  {
+   "og": [
+    "4214",
+    "4215"
+   ],
+   "seed": "seed-low-row"
+  },
+  {
+   "og": [
+    "4062",
+    "1194",
+    "1349",
+    "0606",
+    "11880",
+    "1351"
+   ],
+   "seed": "seed-chest-supported-t-bar-row"
+  },
+  {
+   "og": [
+    "5241"
+   ],
+   "seed": "seed-reverse-hyperextension"
+  },
+  {
+   "og": [
+    "1354"
+   ],
+   "seed": "seed-medicine-ball-slam"
+  },
+  {
+   "og": [
+    "9939",
+    "2563"
+   ],
+   "seed": "seed-sled-pull"
+  },
+  {
+   "og": [
+    "5316",
+    "0761",
+    "2671",
+    "1361",
+    "1360",
+    "3945"
+   ],
+   "seed": "seed-row-smith"
+  },
+  {
+   "og": [
+    "5223"
+   ],
+   "seed": "seed-shrug-smith"
+  },
+  {
+   "og": [
+    "4103"
+   ],
+   "seed": "seed-trap-bar-shrug"
+  }
+ ],
+ "new": [
+  {
+   "og": [
+    "3293"
+   ],
+   "name_ko": "아처 풀업",
+   "name_en": "Archer Pull-up",
+   "equipment": "bodyweight",
+   "primary": "back",
+   "secondary": [
+    "biceps"
+   ],
+   "load_mode": "bodyweight",
+   "family": "archer_pull_up",
+   "family_is_new": true,
+   "aliases_ko": [
+    "아쳐 풀업",
+    "아처 턱걸이"
+   ],
+   "aliases_en": [
+    "archer pull up",
+    "archer chin up"
+   ],
+   "similar": [
+    "pull_up",
+    "archer_push_up"
+   ],
+   "tier": "B",
+   "why": "한쪽 팔로 당기고 다른 팔은 펴서 보조하는 편측 풀업 — 일반 풀업과 동작이 다름"
+  },
+  {
+   "og": [
+    "3297"
+   ],
+   "name_ko": "백 레버",
+   "name_en": "Back Lever",
+   "equipment": "bodyweight",
+   "primary": "back",
+   "secondary": [
+    "shoulders",
+    "abs"
+   ],
+   "load_mode": "bodyweight",
+   "family": "back_lever",
+   "family_is_new": true,
+   "aliases_ko": [
+    "백레버",
+    "백 레버 홀드"
+   ],
+   "aliases_en": [
+    "back lever hold"
+   ],
+   "similar": [
+    "front_lever",
+    "l_sit"
+   ],
+   "tier": "B",
+   "why": "철봉에 엎드린 자세로 몸을 수평 유지하는 등척 기술 — 프론트 레버와 방향이 반대"
+  },
+  {
+   "og": [
+    "3899",
+    "0892",
+    "4698",
+    "4452",
+    "3858",
+    "4570",
+    "4569"
+   ],
+   "name_ko": "밴드 벤트오버 로우",
+   "name_en": "Band Bent Over Row",
+   "equipment": "band",
+   "primary": "back",
+   "secondary": [
+    "biceps"
+   ],
+   "load_mode": "weight",
+   "family": "bent_over_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "밴드 벤트 오버 로우",
+    "튜빙 벤트오버 로우"
+   ],
+   "aliases_en": [
+    "band bent over row",
+    "resistance band bent over row"
+   ],
+   "similar": [
+    "bent_over_row",
+    "seated_row"
+   ],
+   "tier": "B",
+   "why": "밴드를 밟고 상체를 숙여 당기는 로우 — 우리 밴드 로우는 시티드뿐"
+  },
+  {
+   "og": [
+    "4147",
+    "4148"
+   ],
+   "name_ko": "밴드 하이 로우",
+   "name_en": "Band High Row",
+   "equipment": "band",
+   "primary": "back",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "high_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "밴드 하이로우"
+   ],
+   "aliases_en": [
+    "band narrow grip high row",
+    "band high row"
+   ],
+   "similar": [
+    "high_row",
+    "face_pull"
+   ],
+   "tier": "C",
+   "why": "밴드로 위에서 아래로 당기는 하이 로우 — 우리 하이 로우는 머신·케이블뿐"
+  },
+  {
+   "og": [
+    "1018"
+   ],
+   "name_ko": "밴드 슈러그",
+   "name_en": "Band Shrug",
+   "equipment": "band",
+   "primary": "traps",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "shrug",
+   "family_is_new": false,
+   "aliases_ko": [
+    "밴드 쉬러그",
+    "튜빙 슈러그"
+   ],
+   "aliases_en": [
+    "band shrug"
+   ],
+   "similar": [
+    "shrug"
+   ],
+   "tier": "C",
+   "why": "밴드를 밟고 하는 슈러그 — 기구가 다름"
+  },
+  {
+   "og": [
+    "1010"
+   ],
+   "name_ko": "밴드 스티프 레그 데드리프트",
+   "name_en": "Band Stiff Leg Deadlift",
+   "equipment": "band",
+   "primary": "hamstrings",
+   "secondary": [
+    "back",
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "stiff_leg_deadlift",
+   "family_is_new": false,
+   "aliases_ko": [
+    "밴드 스티프 데드",
+    "밴드 SLDL"
+   ],
+   "aliases_en": [
+    "band straight leg deadlift",
+    "band SLDL"
+   ],
+   "similar": [
+    "stiff_leg_deadlift",
+    "good_morning",
+    "deadlift"
+   ],
+   "tier": "C",
+   "why": "무릎을 거의 편 채 밴드로 하는 데드리프트 — 우리 밴드 데드리프트·굿모닝과 셋업이 다름"
+  },
+  {
+   "og": [
+    "5226",
+    "3730"
+   ],
+   "name_ko": "바벨 비하인드 백 슈러그",
+   "name_en": "Barbell Behind the Back Shrug",
+   "equipment": "barbell",
+   "primary": "traps",
+   "secondary": [
+    "forearms"
+   ],
+   "load_mode": "weight",
+   "family": "shrug",
+   "family_is_new": false,
+   "aliases_ko": [
+    "비하인드 백 슈러그",
+    "백 슈러그",
+    "바벨 백 슈러그"
+   ],
+   "aliases_en": [
+    "behind the back shrug",
+    "barbell behind the back shrug",
+    "barbell back shrug"
+   ],
+   "similar": [
+    "shrug"
+   ],
+   "tier": "B",
+   "why": "바벨을 엉덩이 뒤로 잡고 하는 슈러그 — 앞으로 드는 바벨 슈러그와 궤적·자극이 다름"
+  },
+  {
+   "og": [
+    "0049",
+    "1317",
+    "2509"
+   ],
+   "name_ko": "바벨 인클라인 로우",
+   "name_en": "Barbell Incline Bench Row",
+   "equipment": "barbell",
+   "primary": "back",
+   "secondary": [
+    "biceps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "seal_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "바벨 인클라인 벤치 로우",
+    "인클라인 바벨 로우",
+    "바벨 프론 로우"
+   ],
+   "aliases_en": [
+    "barbell incline row",
+    "barbell incline bench row"
+   ],
+   "similar": [
+    "seal_row",
+    "chest_supported_row",
+    "bent_over_row"
+   ],
+   "tier": "B",
+   "why": "인클라인 벤치에 엎드려 바벨을 당기는 로우 — 플랫 벤치 씰 로우와 벤치 각도가 다름"
+  },
+  {
+   "og": [
+    "2928"
+   ],
+   "name_ko": "바벨 오버헤드 슈러그",
+   "name_en": "Barbell Overhead Shrug",
+   "equipment": "barbell",
+   "primary": "traps",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "shrug",
+   "family_is_new": false,
+   "aliases_ko": [
+    "오버헤드 슈러그",
+    "스내치 그립 오버헤드 슈러그"
+   ],
+   "aliases_en": [
+    "overhead shrug",
+    "barbell overhead shrug"
+   ],
+   "similar": [
+    "shrug",
+    "overhead_press",
+    "snatch"
+   ],
+   "tier": "C",
+   "why": "바벨을 머리 위로 든 채 어깨를 으쓱하는 동작 — 일반 슈러그와 팔 위치가 완전히 다름"
+  },
+  {
+   "og": [
+    "0205",
+    "1325",
+    "2544"
+   ],
+   "name_ko": "케이블 비하인드 넥 랫풀다운",
+   "name_en": "Cable Behind the Neck Pulldown",
+   "equipment": "cable",
+   "primary": "back",
+   "secondary": [
+    "biceps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "lat_pulldown",
+   "family_is_new": false,
+   "aliases_ko": [
+    "비하인드 넥 랫풀다운",
+    "비하인드 넥 풀다운",
+    "뒤로 랫풀다운"
+   ],
+   "aliases_en": [
+    "behind the neck lat pulldown",
+    "rear pulldown",
+    "cable rear pulldown"
+   ],
+   "similar": [
+    "lat_pulldown",
+    "behind_neck_press"
+   ],
+   "tier": "B",
+   "why": "바를 목 뒤로 당겨 내리는 랫풀다운 — 앞으로 당기는 랫풀다운과 어깨 각도·궤적이 다름"
+  },
+  {
+   "og": [
+    "0670",
+    "1367"
+   ],
+   "name_ko": "비하인드 넥 풀업",
+   "name_en": "Behind the Neck Pull-up",
+   "equipment": "bodyweight",
+   "primary": "back",
+   "secondary": [
+    "biceps",
+    "shoulders"
+   ],
+   "load_mode": "bodyweight",
+   "family": "pull_up",
+   "family_is_new": false,
+   "aliases_ko": [
+    "비하인드 넥 턱걸이",
+    "목 뒤 풀업"
+   ],
+   "aliases_en": [
+    "behind the neck pull up",
+    "rear pull-up"
+   ],
+   "similar": [
+    "pull_up",
+    "lat_pulldown"
+   ],
+   "tier": "C",
+   "why": "목 뒤로 바를 당기는 풀업 — 일반 풀업과 어깨 각도가 다름(드묾)"
+  },
+  {
+   "og": [
+    "4367",
+    "3859",
+    "4011",
+    "4368",
+    "11269",
+    "0189"
+   ],
+   "name_ko": "케이블 벤트오버 로우",
+   "name_en": "Cable Bent Over Row",
+   "equipment": "cable",
+   "primary": "back",
+   "secondary": [
+    "biceps"
+   ],
+   "load_mode": "weight",
+   "family": "bent_over_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케이블 벤트 오버 로우",
+    "케이블 숙여 로우"
+   ],
+   "aliases_en": [
+    "cable bent over row",
+    "cable one arm bent over row"
+   ],
+   "similar": [
+    "bent_over_row",
+    "seated_row"
+   ],
+   "tier": "B",
+   "why": "로우 풀리 앞에서 상체를 숙이고 서서 당기는 로우 — 앉아서 하는 시티드 로우와 셋업이 다름"
+  },
+  {
+   "og": [
+    "8299",
+    "5518",
+    "5369",
+    "10667",
+    "7564",
+    "5090",
+    "0234",
+    "0236",
+    "5179",
+    "1212",
+    "11263",
+    "0244"
+   ],
+   "name_ko": "케이블 스탠딩 로우",
+   "name_en": "Cable Standing Row",
+   "equipment": "cable",
+   "primary": "back",
+   "secondary": [
+    "biceps",
+    "abs"
+   ],
+   "load_mode": "weight",
+   "family": "seated_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "스탠딩 케이블 로우",
+    "케이블 원암 스탠딩 로우",
+    "스플릿 스탠스 케이블 로우"
+   ],
+   "aliases_en": [
+    "cable standing row",
+    "standing cable row",
+    "split stance cable row"
+   ],
+   "similar": [
+    "seated_row",
+    "high_row",
+    "bent_over_row"
+   ],
+   "tier": "B",
+   "why": "서거나 한쪽 무릎을 꿇고 가슴 높이 케이블을 당기는 로우 — 앉아서 발을 받치는 시티드 로우와 셋업이 다름"
+  },
+  {
+   "og": [
+    "1328"
+   ],
+   "name_ko": "덤벨 리어 델트 로우",
+   "name_en": "Dumbbell Rear Delt Row",
+   "equipment": "dumbbell",
+   "primary": "shoulders",
+   "secondary": [
+    "back"
+   ],
+   "load_mode": "weight",
+   "family": "rear_delt_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 리어델트 로우",
+    "라잉 리어 델트 로우"
+   ],
+   "aliases_en": [
+    "dumbbell rear delt row",
+    "dumbbell lying rear delt row"
+   ],
+   "similar": [
+    "rear_delt_row",
+    "rear_delt_fly",
+    "chest_supported_row"
+   ],
+   "tier": "B",
+   "why": "팔꿈치를 벌려 후면 삼각근으로 당기는 덤벨 로우 — 우리 리어 델트 로우는 케이블뿐"
+  },
+  {
+   "og": [
+    "0329"
+   ],
+   "name_ko": "덤벨 인클라인 슈러그",
+   "name_en": "Dumbbell Incline Shrug",
+   "equipment": "dumbbell",
+   "primary": "traps",
+   "secondary": [
+    "back"
+   ],
+   "load_mode": "weight",
+   "family": "shrug",
+   "family_is_new": false,
+   "aliases_ko": [
+    "인클라인 슈러그",
+    "프론 덤벨 슈러그"
+   ],
+   "aliases_en": [
+    "dumbbell incline shrug",
+    "incline shrug"
+   ],
+   "similar": [
+    "shrug",
+    "y_raise"
+   ],
+   "tier": "B",
+   "why": "인클라인 벤치에 엎드려 견갑을 모으며 하는 슈러그 — 선 자세 슈러그와 당기는 방향(중·하부 승모)이 다름"
+  },
+  {
+   "og": [
+    "3010"
+   ],
+   "name_ko": "EZ바 풀오버",
+   "name_en": "EZ Bar Pullover",
+   "equipment": "ezbar",
+   "primary": "back",
+   "secondary": [
+    "chest",
+    "triceps"
+   ],
+   "load_mode": "weight",
+   "family": "pullover",
+   "family_is_new": false,
+   "aliases_ko": [
+    "EZ바 벤트암 풀오버",
+    "이지바 풀오버"
+   ],
+   "aliases_en": [
+    "ez bar pullover",
+    "ez bar lying bent arms pullover"
+   ],
+   "similar": [
+    "pullover"
+   ],
+   "tier": "B",
+   "why": "EZ바로 하는 풀오버 — 기구가 다름"
+  },
+  {
+   "og": [
+    "1344"
+   ],
+   "name_ko": "EZ바 벤트오버 로우",
+   "name_en": "EZ Bar Bent Over Row",
+   "equipment": "ezbar",
+   "primary": "back",
+   "secondary": [
+    "biceps"
+   ],
+   "load_mode": "weight",
+   "family": "bent_over_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "EZ바 로우",
+    "이지바 로우",
+    "EZ바 리버스 그립 로우"
+   ],
+   "aliases_en": [
+    "ez bar bent over row",
+    "ez bar row"
+   ],
+   "similar": [
+    "bent_over_row"
+   ],
+   "tier": "C",
+   "why": "EZ바로 하는 벤트오버 로우 — 기구가 다름"
+  },
+  {
+   "og": [
+    "3418"
+   ],
+   "name_ko": "L-싯 풀업",
+   "name_en": "L-sit Pull-up",
+   "equipment": "bodyweight",
+   "primary": "back",
+   "secondary": [
+    "abs",
+    "biceps"
+   ],
+   "load_mode": "bodyweight",
+   "family": "pull_up",
+   "family_is_new": false,
+   "aliases_ko": [
+    "L싯 풀업",
+    "엘싯 풀업",
+    "L 풀업"
+   ],
+   "aliases_en": [
+    "l-sit pull up",
+    "l pull up"
+   ],
+   "similar": [
+    "pull_up",
+    "l_sit"
+   ],
+   "tier": "B",
+   "why": "다리를 앞으로 들어 L자를 유지한 채 하는 풀업 — 코어 부하가 더해진 별도 동작"
+  },
+  {
+   "og": [
+    "0638",
+    "3290"
+   ],
+   "name_ko": "원암 풀업",
+   "name_en": "One Arm Pull-up",
+   "equipment": "bodyweight",
+   "primary": "back",
+   "secondary": [
+    "biceps",
+    "forearms"
+   ],
+   "load_mode": "bodyweight",
+   "family": "one_arm_pull_up",
+   "family_is_new": true,
+   "aliases_ko": [
+    "원암 친업",
+    "외팔 턱걸이",
+    "한 팔 풀업"
+   ],
+   "aliases_en": [
+    "one arm pull up",
+    "one arm chin-up",
+    "one hand pull up"
+   ],
+   "similar": [
+    "pull_up",
+    "chin_up",
+    "one_arm_push_up"
+   ],
+   "tier": "B",
+   "why": "한 팔로만 몸 전체를 끌어올리는 고난도 기술 — 원암 푸시업처럼 별도 종목"
+  },
+  {
+   "og": [
+    "0746",
+    "5225"
+   ],
+   "name_ko": "스미스 비하인드 백 슈러그",
+   "name_en": "Smith Behind the Back Shrug",
+   "equipment": "smith",
+   "primary": "traps",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "shrug",
+   "family_is_new": false,
+   "aliases_ko": [
+    "스미스 백 슈러그",
+    "스미스 비하인드 슈러그"
+   ],
+   "aliases_en": [
+    "smith behind the back shrug",
+    "smith back shrug"
+   ],
+   "similar": [
+    "shrug"
+   ],
+   "tier": "B",
+   "why": "스미스 바를 몸 뒤로 잡고 하는 슈러그 — 앞으로 드는 스미스 슈러그와 궤적이 다름"
+  },
+  {
+   "og": [
+    "4104"
+   ],
+   "name_ko": "트랩바 벤트오버 로우",
+   "name_en": "Trap Bar Bent Over Row",
+   "equipment": "trapbar",
+   "primary": "back",
+   "secondary": [
+    "biceps"
+   ],
+   "load_mode": "weight",
+   "family": "bent_over_row",
+   "family_is_new": false,
+   "aliases_ko": [
+    "트랩바 로우",
+    "헥스바 로우"
+   ],
+   "aliases_en": [
+    "trap bar bent over row",
+    "hex bar row"
+   ],
+   "similar": [
+    "bent_over_row",
+    "chest_supported_row"
+   ],
+   "tier": "C",
+   "why": "트랩바 뉴트럴 그립으로 하는 벤트오버 로우 — 기구가 다름"
+  }
+ ],
+ "excluded": [
+  {
+   "og": [
+    "0891",
+    "0902",
+    "2423"
+   ],
+   "reason": "밴드 저항 백 익스텐션 — 드묾"
+  },
+  {
+   "og": [
+    "4144"
+   ],
+   "reason": "밴드 벤트오버 풀다운 — 특이"
+  },
+  {
+   "og": [
+    "1501",
+    "3664",
+    "3229",
+    "0022",
+    "5232",
+    "4749",
+    "11258",
+    "2902",
+    "1717"
+   ],
+   "reason": "두 동작 조합"
+  },
+  {
+   "og": [
+    "5801"
+   ],
+   "reason": "밴드 보조 머슬업 — 드묾"
+  },
+  {
+   "og": [
+    "4717",
+    "4726",
+    "4782"
+   ],
+   "reason": "코만도 풀업 — 특이"
+  },
+  {
+   "og": [
+    "1314",
+    "1332",
+    "1333",
+    "1334",
+    "1335",
+    "1336",
+    "1343",
+    "0835",
+    "5311"
+   ],
+   "reason": "짐볼 위주 변형"
+  },
+  {
+   "og": [
+    "0034",
+    "0037"
+   ],
+   "reason": "디클라인 풀오버 — 드묾"
+  },
+  {
+   "og": [
+    "8896",
+    "6136",
+    "6511",
+    "6512",
+    "4111",
+    "11057",
+    "5448",
+    "11056",
+    "7155",
+    "6123",
+    "2940"
+   ],
+   "reason": "견갑 보조·재활성 동작"
+  },
+  {
+   "og": [
+    "3828",
+    "3506",
+    "3168",
+    "3167",
+    "3156",
+    "3158",
+    "3162",
+    "3161",
+    "3166",
+    "3165",
+    "6137",
+    "1773",
+    "3848",
+    "3746",
+    "3559",
+    "3536",
+    "3537",
+    "3382",
+    "3388",
+    "3381",
+    "3749",
+    "3485",
+    "3538",
+    "3487",
+    "3550",
+    "1355",
+    "4769",
+    "4974",
+    "3495",
+    "3497",
+    "4831"
+   ],
+   "reason": "수건·의자·문틀 홈트 변형"
+  },
+  {
+   "og": [
+    "5800",
+    "3225",
+    "7217",
+    "11648",
+    "5040",
+    "5041",
+    "5042",
+    "5043",
+    "5044",
+    "6350",
+    "5822",
+    "5049",
+    "5048",
+    "4939",
+    "10045",
+    "3230",
+    "3226",
+    "1612",
+    "3227",
+    "7216"
+   ],
+   "reason": "바닥 엎드려 하는 재활·자세 교정성 동작"
+  },
+  {
+   "og": [
+    "11715",
+    "11714",
+    "2709",
+    "0609"
+   ],
+   "reason": "로프 매달리기 변형 — 드묾"
+  },
+  {
+   "og": [
+    "4361"
+   ],
+   "reason": "맨몸 슈러그 — 무의미"
+  },
+  {
+   "og": [
+    "6059",
+    "7276",
+    "6060"
+   ],
+   "reason": "물병 무게 홈트"
+  },
+  {
+   "og": [
+    "9511",
+    "9512",
+    "9510",
+    "4919"
+   ],
+   "reason": "박스·파트너 보조 — 특이"
+  },
+  {
+   "og": [
+    "1318",
+    "1322"
+   ],
+   "reason": "케이블 인클라인 벤치 로우 — 드묾"
+  },
+  {
+   "og": [
+    "2464"
+   ],
+   "reason": "티보도 카약 로우 — 특이"
+  },
+  {
+   "og": [
+    "4207",
+    "0720",
+    "6961"
+   ],
+   "reason": "특이한 풀업 변형"
+  },
+  {
+   "og": [
+    "0305",
+    "0304"
+   ],
+   "reason": "덤벨 디클라인 슈러그 — 특이"
+  },
+  {
+   "og": [
+    "4053"
+   ],
+   "reason": "기틀슨 슈러그 — 특이"
+  },
+  {
+   "og": [
+    "9515"
+   ],
+   "reason": "덤벨 시티드 굿모닝 — 드묾"
+  },
+  {
+   "og": [
+    "6964",
+    "1772",
+    "3292",
+    "3555",
+    "3822",
+    "8585",
+    "5128",
+    "5133",
+    "5132",
+    "6913",
+    "6914",
+    "6017"
+   ],
+   "reason": "스트레칭·가동성 동작"
+  },
+  {
+   "og": [
+    "4117",
+    "5024",
+    "5026"
+   ],
+   "reason": "전거근 재활성 동작"
+  },
+  {
+   "og": [
+    "4049",
+    "4043",
+    "4176",
+    "3012"
+   ],
+   "reason": "스캐퓰러 딥·슈러그 — 보조 동작"
+  },
+  {
+   "og": [
+    "4538",
+    "3735"
+   ],
+   "reason": "케틀벨 풀오버 — 드묾"
+  },
+  {
+   "og": [
+    "4536"
+   ],
+   "reason": "케틀벨 리어 델트 로우 — 드묾"
+  },
+  {
+   "og": [
+    "6194"
+   ],
+   "reason": "케틀벨 슈러그 — 드묾"
+  },
+  {
+   "og": [
+    "4920",
+    "8750",
+    "10661",
+    "10662",
+    "0678",
+    "7512",
+    "7517"
+   ],
+   "reason": "링·서스펜션 특이 변형"
+  },
+  {
+   "og": [
+    "1401"
+   ],
+   "reason": "수직 바 머슬업 — 특이"
+  },
+  {
+   "og": [
+    "10660",
+    "10903"
+   ],
+   "reason": "밴드 보조 원암 풀업 — 드묾"
+  },
+  {
+   "og": [
+    "1353",
+    "10595"
+   ],
+   "reason": "메디신볼 던지기"
+  },
+  {
+   "og": [
+    "3499",
+    "10948"
+   ],
+   "reason": "특이한 매달리기 동작"
+  },
+  {
+   "og": [
+    "11762"
+   ],
+   "reason": "스미스 체스트 서포티드 로우 — 드묾"
+  },
+  {
+   "og": [
+    "3657",
+    "3660",
+    "3661",
+    "3658"
+   ],
+   "reason": "정적 자세 유지(재활성)"
+  },
+  {
+   "og": [
+    "1130",
+    "1079",
+    "1086",
+    "1094"
+   ],
+   "reason": "서스펜션 위주 변형"
+  },
+  {
+   "og": [
+    "4957"
+   ],
+   "reason": "바닥 라잉 랫풀다운 — 특이"
+  },
+  {
+   "og": [
+    "3860"
+   ],
+   "reason": "플레이트 로우 — 드묾"
+  },
+  {
+   "og": [
+    "10389"
+   ],
+   "reason": "샌드백 — 드묾"
+  }
+ ]
+}

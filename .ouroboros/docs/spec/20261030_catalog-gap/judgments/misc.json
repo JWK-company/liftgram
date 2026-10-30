@@ -1,0 +1,1388 @@
+{
+ "chunk": "misc",
+ "total": 304,
+ "matched": [
+  {
+   "og": [
+    "0999",
+    "1369",
+    "2425"
+   ],
+   "seed": "seed-band-calf-raise"
+  },
+  {
+   "og": [
+    "3779",
+    "3795"
+   ],
+   "seed": "seed-band-straight-arm-pulldown"
+  },
+  {
+   "og": [
+    "5122",
+    "5190"
+   ],
+   "seed": "seed-clean-and-jerk"
+  },
+  {
+   "og": [
+    "1517"
+   ],
+   "seed": "seed-clean-pull"
+  },
+  {
+   "og": [
+    "1370",
+    "9410",
+    "1372",
+    "0108",
+    "0111"
+   ],
+   "seed": "seed-barbell-calf-raise"
+  },
+  {
+   "og": [
+    "5287"
+   ],
+   "seed": "seed-power-clean"
+  },
+  {
+   "og": [
+    "1520",
+    "1521",
+    "3183"
+   ],
+   "seed": "seed-hang-clean"
+  },
+  {
+   "og": [
+    "1522",
+    "1523"
+   ],
+   "seed": "seed-hang-snatch"
+  },
+  {
+   "og": [
+    "1529"
+   ],
+   "seed": "seed-power-jerk"
+  },
+  {
+   "og": [
+    "1530"
+   ],
+   "seed": "seed-power-snatch"
+  },
+  {
+   "og": [
+    "1533"
+   ],
+   "seed": "seed-snatch"
+  },
+  {
+   "og": [
+    "1538"
+   ],
+   "seed": "seed-split-jerk"
+  },
+  {
+   "og": [
+    "1540"
+   ],
+   "seed": "seed-thruster"
+  },
+  {
+   "og": [
+    "6599",
+    "3965"
+   ],
+   "seed": "seed-bear-crawl"
+  },
+  {
+   "og": [
+    "1373",
+    "3534",
+    "5700",
+    "3390",
+    "4760",
+    "5009",
+    "4761",
+    "0727",
+    "1387",
+    "10819",
+    "9411",
+    "9409",
+    "1490",
+    "4895",
+    "3120",
+    "1397",
+    "5003",
+    "4796",
+    "3712",
+    "10548",
+    "9310",
+    "5052"
+   ],
+   "seed": "seed-bodyweight-calf-raise"
+  },
+  {
+   "og": [
+    "4548"
+   ],
+   "seed": "seed-burpee"
+  },
+  {
+   "og": [
+    "11283",
+    "1570"
+   ],
+   "seed": "seed-tuck-jump"
+  },
+  {
+   "og": [
+    "3220",
+    "5105",
+    "3108",
+    "3223"
+   ],
+   "seed": "seed-jumping-jack"
+  },
+  {
+   "og": [
+    "9693",
+    "4540",
+    "5066"
+   ],
+   "seed": "seed-dumbbell-thruster"
+  },
+  {
+   "og": [
+    "4164"
+   ],
+   "seed": "seed-devil-press"
+  },
+  {
+   "og": [
+    "4449",
+    "4889",
+    "5101"
+   ],
+   "seed": "seed-dumbbell-clean"
+  },
+  {
+   "og": [
+    "10044",
+    "6152"
+   ],
+   "seed": "seed-dumbbell-snatch"
+  },
+  {
+   "og": [
+    "0400",
+    "1380",
+    "1381",
+    "4155",
+    "5483",
+    "5484"
+   ],
+   "seed": "seed-dumbbell-seated-calf-raise"
+  },
+  {
+   "og": [
+    "0409",
+    "3973",
+    "1178",
+    "3713",
+    "0417",
+    "5698"
+   ],
+   "seed": "seed-dumbbell-calf-raise"
+  },
+  {
+   "og": [
+    "3221"
+   ],
+   "seed": "seed-air-squat"
+  },
+  {
+   "og": [
+    "9679"
+   ],
+   "seed": "seed-high-knees"
+  },
+  {
+   "og": [
+    "9692",
+    "4541",
+    "4518"
+   ],
+   "seed": "seed-kettlebell-thruster"
+  },
+  {
+   "og": [
+    "4230",
+    "3323",
+    "4057"
+   ],
+   "seed": "seed-turkish-get-up"
+  },
+  {
+   "og": [
+    "1565",
+    "4543",
+    "4530",
+    "1567"
+   ],
+   "seed": "seed-kettlebell-clean"
+  },
+  {
+   "og": [
+    "3576",
+    "5099"
+   ],
+   "seed": "seed-kettlebell-farmer-s-walk"
+  },
+  {
+   "og": [
+    "1568"
+   ],
+   "seed": "seed-kettlebell-swing"
+  },
+  {
+   "og": [
+    "4132"
+   ],
+   "seed": "seed-kettlebell-high-pull"
+  },
+  {
+   "og": [
+    "2976"
+   ],
+   "seed": "seed-landmine-squat-to-press"
+  },
+  {
+   "og": [
+    "2289",
+    "2335",
+    "7176",
+    "7177",
+    "1385",
+    "0738",
+    "1391",
+    "1392",
+    "0742",
+    "2334"
+   ],
+   "seed": "seed-leg-press-calf-raise"
+  },
+  {
+   "og": [
+    "1253",
+    "1386",
+    "0833"
+   ],
+   "seed": "seed-donkey-calf-raise"
+  },
+  {
+   "og": [
+    "2315",
+    "0605"
+   ],
+   "seed": "seed-standing-calf-raise"
+  },
+  {
+   "og": [
+    "0594",
+    "2666",
+    "1216"
+   ],
+   "seed": "seed-seated-calf-raise"
+  },
+  {
+   "og": [
+    "2961"
+   ],
+   "seed": "seed-renegade-row"
+  },
+  {
+   "og": [
+    "2793"
+   ],
+   "seed": "seed-plank-push-up"
+  },
+  {
+   "og": [
+    "5143"
+   ],
+   "seed": "seed-sled-pull"
+  },
+  {
+   "og": [
+    "4428"
+   ],
+   "seed": "seed-sled-push"
+  },
+  {
+   "og": [
+    "3219"
+   ],
+   "seed": "seed-jump-lunge"
+  },
+  {
+   "og": [
+    "3222"
+   ],
+   "seed": "seed-jump-squat"
+  },
+  {
+   "og": [
+    "3361"
+   ],
+   "seed": "seed-skater-jump"
+  },
+  {
+   "og": [
+    "1050",
+    "1393",
+    "0773"
+   ],
+   "seed": "seed-smith-calf-raise"
+  }
+ ],
+ "new": [
+  {
+   "og": [
+    "8536",
+    "10859",
+    "9803"
+   ],
+   "name_ko": "티비알리스 레이즈",
+   "name_en": "Tibialis Raise",
+   "equipment": "bodyweight",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "tibialis_raise",
+   "family_is_new": true,
+   "aliases_ko": [
+    "티비 레이즈",
+    "정강이 레이즈",
+    "토 레이즈",
+    "벽 기대 티비알리스 레이즈"
+   ],
+   "aliases_en": [
+    "tib raise",
+    "standing tibialis raise wall supported",
+    "toe raise"
+   ],
+   "similar": [
+    "calf_raise"
+   ],
+   "tier": "B",
+   "why": "카프 레이즈는 발끝을 내리는 동작, 이건 발끝을 들어 정강이 앞(전경골근)을 쓰는 반대 동작"
+  },
+  {
+   "og": [
+    "0763",
+    "1394",
+    "1396"
+   ],
+   "name_ko": "스미스 티비알리스 레이즈",
+   "name_en": "Smith Tibialis Raise",
+   "equipment": "smith",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "tibialis_raise",
+   "family_is_new": true,
+   "aliases_ko": [
+    "스미스 토 레이즈",
+    "스미스 리버스 카프 레이즈"
+   ],
+   "aliases_en": [
+    "smith toe raise",
+    "smith reverse calf raise"
+   ],
+   "similar": [
+    "calf_raise"
+   ],
+   "tier": "C",
+   "why": "스미스 카프 레이즈와 반대로 발끝을 드는 전경골근 동작"
+  },
+  {
+   "og": [
+    "1000",
+    "10366"
+   ],
+   "name_ko": "밴드 티비알리스 레이즈",
+   "name_en": "Band Tibialis Raise",
+   "equipment": "band",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "tibialis_raise",
+   "family_is_new": true,
+   "aliases_ko": [
+    "밴드 토 레이즈",
+    "밴드 리버스 카프 레이즈"
+   ],
+   "aliases_en": [
+    "band reverse calf raise",
+    "band tibialis press"
+   ],
+   "similar": [
+    "calf_raise"
+   ],
+   "tier": "C",
+   "why": "밴드 카프 레이즈와 반대 방향(발등 당기기) 저항"
+  },
+  {
+   "og": [
+    "9509"
+   ],
+   "name_ko": "머신 티비알리스 레이즈",
+   "name_en": "Machine Tibialis Raise",
+   "equipment": "machine",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "tibialis_raise",
+   "family_is_new": true,
+   "aliases_ko": [
+    "시티드 토 레이즈 머신",
+    "티바 머신"
+   ],
+   "aliases_en": [
+    "lever sitting toe raise",
+    "tib bar raise"
+   ],
+   "similar": [
+    "calf_raise",
+    "seated_calf_raise"
+   ],
+   "tier": "C",
+   "why": "머신 카프는 발끝 내리기, 이건 앉아서 발끝을 드는 전경골근 머신"
+  },
+  {
+   "og": [
+    "10367"
+   ],
+   "name_ko": "케틀벨 티비알리스 레이즈",
+   "name_en": "Kettlebell Tibialis Raise",
+   "equipment": "kettlebell",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "tibialis_raise",
+   "family_is_new": true,
+   "aliases_ko": [
+    "케틀벨 토 레이즈"
+   ],
+   "aliases_en": [
+    "kettlebell sitting tibialis press"
+   ],
+   "similar": [
+    "calf_raise"
+   ],
+   "tier": "C",
+   "why": "발등에 케틀벨을 걸고 발끝을 드는 전경골근 동작 — 우리 카프 종목과 반대 방향"
+  },
+  {
+   "og": [
+    "1524",
+    "1534"
+   ],
+   "name_ko": "바벨 스내치 밸런스",
+   "name_en": "Snatch Balance",
+   "equipment": "barbell",
+   "primary": "fullBody",
+   "secondary": [
+    "quads",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "snatch_balance",
+   "family_is_new": true,
+   "aliases_ko": [
+    "스내치 밸런스",
+    "히빙 스내치 밸런스"
+   ],
+   "aliases_en": [
+    "barbell snatch balance",
+    "heaving snatch balance"
+   ],
+   "similar": [
+    "snatch",
+    "overhead_squat",
+    "press_under"
+   ],
+   "tier": "B",
+   "why": "프레스 언더는 버티며 밀어 내려가는 동작, 이건 디핑 후 바 밑으로 빠르게 떨어져 오버헤드 스쿼트로 받는 동작"
+  },
+  {
+   "og": [
+    "5075"
+   ],
+   "name_ko": "바벨 머슬 클린",
+   "name_en": "Muscle Clean",
+   "equipment": "barbell",
+   "primary": "fullBody",
+   "secondary": [
+    "traps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "muscle_clean",
+   "family_is_new": true,
+   "aliases_ko": [
+    "머슬 클린"
+   ],
+   "aliases_en": [
+    "barbell muscle clean"
+   ],
+   "similar": [
+    "clean",
+    "clean_pull",
+    "deadlift_high_pull"
+   ],
+   "tier": "C",
+   "why": "파워 클린과 달리 무릎을 다시 굽혀 받지 않고 팔로 끝까지 당겨 랙 자세로 돌리는 보조 동작"
+  },
+  {
+   "og": [
+    "1526"
+   ],
+   "name_ko": "바벨 머슬 스내치",
+   "name_en": "Muscle Snatch",
+   "equipment": "barbell",
+   "primary": "fullBody",
+   "secondary": [
+    "traps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "muscle_snatch",
+   "family_is_new": true,
+   "aliases_ko": [
+    "머슬 스내치"
+   ],
+   "aliases_en": [
+    "barbell muscle snatch"
+   ],
+   "similar": [
+    "snatch",
+    "power_snatch",
+    "high_row"
+   ],
+   "tier": "C",
+   "why": "파워 스내치와 달리 받기 동작 없이 팔로 머리 위까지 돌려 올리는 보조 동작"
+  },
+  {
+   "og": [
+    "1516",
+    "1528"
+   ],
+   "name_ko": "바벨 블록 클린",
+   "name_en": "Block Clean",
+   "equipment": "barbell",
+   "primary": "fullBody",
+   "secondary": [
+    "quads",
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "block_clean",
+   "family_is_new": true,
+   "aliases_ko": [
+    "블록 클린",
+    "블록 파워 클린"
+   ],
+   "aliases_en": [
+    "barbell clean from blocks",
+    "power clean from blocks"
+   ],
+   "similar": [
+    "clean",
+    "hang_clean"
+   ],
+   "tier": "C",
+   "why": "바닥·행이 아니라 블록 위에서 시작하는 클린 — 시작 높이가 달라 행 클린처럼 따로 셈"
+  },
+  {
+   "og": [
+    "1531",
+    "1536"
+   ],
+   "name_ko": "바벨 블록 스내치",
+   "name_en": "Block Snatch",
+   "equipment": "barbell",
+   "primary": "fullBody",
+   "secondary": [
+    "quads",
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "block_snatch",
+   "family_is_new": true,
+   "aliases_ko": [
+    "블록 스내치",
+    "블록 파워 스내치"
+   ],
+   "aliases_en": [
+    "barbell snatch from blocks",
+    "power snatch from blocks"
+   ],
+   "similar": [
+    "snatch",
+    "hang_snatch"
+   ],
+   "tier": "C",
+   "why": "블록 위에서 시작하는 스내치 — 시작 높이가 달라 행 스내치처럼 따로 셈"
+  },
+  {
+   "og": [
+    "5192",
+    "5188"
+   ],
+   "name_ko": "바벨 클러스터",
+   "name_en": "Barbell Cluster",
+   "equipment": "barbell",
+   "primary": "fullBody",
+   "secondary": [
+    "quads",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "cluster",
+   "family_is_new": true,
+   "aliases_ko": [
+    "클러스터",
+    "스쿼트 클린 쓰러스터",
+    "클린 쓰러스터"
+   ],
+   "aliases_en": [
+    "cluster",
+    "squat clean thruster",
+    "power clean thruster"
+   ],
+   "similar": [
+    "thruster",
+    "clean"
+   ],
+   "tier": "C",
+   "why": "쓰러스터는 랙에서 시작, 이건 매 반복 바닥에서 클린해 바로 쓰러스터로 잇는 크로스핏 동작"
+  },
+  {
+   "og": [
+    "1375",
+    "1376"
+   ],
+   "name_ko": "케이블 카프 레이즈",
+   "name_en": "Cable Calf Raise",
+   "equipment": "cable",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "calf_raise",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케이블 스탠딩 카프 레이즈"
+   ],
+   "aliases_en": [
+    "cable standing calf raise"
+   ],
+   "similar": [
+    "calf_raise"
+   ],
+   "tier": "C",
+   "why": "같은 카프 레이즈지만 케이블 기구 — 기구가 달라 별도 종목"
+  },
+  {
+   "og": [
+    "5854"
+   ],
+   "name_ko": "케틀벨 카프 레이즈",
+   "name_en": "Kettlebell Calf Raise",
+   "equipment": "kettlebell",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "calf_raise",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 스탠딩 카프 레이즈"
+   ],
+   "aliases_en": [
+    "kettlebell standing calf raise"
+   ],
+   "similar": [
+    "calf_raise"
+   ],
+   "tier": "C",
+   "why": "덤벨 카프 레이즈와 동작은 같지만 케틀벨 기구 — 기구가 달라 별도 종목"
+  },
+  {
+   "og": [
+    "1383",
+    "1384"
+   ],
+   "name_ko": "핵 카프 레이즈",
+   "name_en": "Hack Calf Raise",
+   "equipment": "machine",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "hack_calf_raise",
+   "family_is_new": true,
+   "aliases_ko": [
+    "핵 스쿼트 카프 레이즈",
+    "핵 머신 카프"
+   ],
+   "aliases_en": [
+    "hack machine calf raise",
+    "hack one leg calf raise"
+   ],
+   "similar": [
+    "calf_raise",
+    "leg_press_calf_raise",
+    "donkey_calf_raise"
+   ],
+   "tier": "B",
+   "why": "핵 스쿼트 머신에 어깨를 대고 서서 하는 카프 — 레그 프레스 카프(밀기)·스탠딩 머신과 셋업이 다름"
+  },
+  {
+   "og": [
+    "4370",
+    "1395"
+   ],
+   "name_ko": "스미스 시티드 카프 레이즈",
+   "name_en": "Smith Seated Calf Raise",
+   "equipment": "smith",
+   "primary": "calves",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "seated_calf_raise",
+   "family_is_new": false,
+   "aliases_ko": [
+    "스미스 앉아서 카프"
+   ],
+   "aliases_en": [
+    "smith seated calf raise"
+   ],
+   "similar": [
+    "seated_calf_raise",
+    "calf_raise"
+   ],
+   "tier": "B",
+   "why": "스미스 카프 레이즈는 서서, 이건 앉아 무릎 위에 바를 얹는 시티드(가자미근) 셋업"
+  },
+  {
+   "og": [
+    "10751",
+    "10756",
+    "10757",
+    "10754",
+    "10755",
+    "9070",
+    "11647",
+    "4904",
+    "9408"
+   ],
+   "name_ko": "포고 점프",
+   "name_en": "Pogo Jump",
+   "equipment": "bodyweight",
+   "primary": "calves",
+   "secondary": [
+    "quads"
+   ],
+   "load_mode": "bodyweight",
+   "family": "pogo_jump",
+   "family_is_new": true,
+   "aliases_ko": [
+    "포고",
+    "발목 점프",
+    "까치발 점프",
+    "카프 점프",
+    "싱글 레그 포고"
+   ],
+   "aliases_en": [
+    "pogo jump",
+    "calf jump",
+    "toe jump",
+    "pogo hops"
+   ],
+   "similar": [
+    "calf_raise",
+    "jump_squat",
+    "box_jump"
+   ],
+   "tier": "B",
+   "why": "줄넘기·점프 스쿼트와 달리 무릎을 거의 안 굽히고 발목 반동만으로 짧게 반복 튀는 종아리 플라이오"
+  },
+  {
+   "og": [
+    "5881",
+    "10995"
+   ],
+   "name_ko": "크랩 워크",
+   "name_en": "Crab Walk",
+   "equipment": "bodyweight",
+   "primary": "fullBody",
+   "secondary": [
+    "triceps",
+    "glutes",
+    "shoulders"
+   ],
+   "load_mode": "bodyweight",
+   "family": "crab_walk",
+   "family_is_new": true,
+   "aliases_ko": [
+    "게걸음",
+    "크랩 걷기"
+   ],
+   "aliases_en": [
+    "crab walk",
+    "forward and backward crab walk"
+   ],
+   "similar": [
+    "bear_crawl",
+    "reverse_plank"
+   ],
+   "tier": "B",
+   "why": "베어 크롤은 엎드려 기기, 이건 하늘을 보고 손발로 기는 동작"
+  },
+  {
+   "og": [
+    "1589",
+    "1549"
+   ],
+   "name_ko": "버트 킥",
+   "name_en": "Butt Kick",
+   "equipment": "bodyweight",
+   "primary": "fullBody",
+   "secondary": [
+    "hamstrings",
+    "calves"
+   ],
+   "load_mode": "bodyweight",
+   "family": "butt_kick",
+   "family_is_new": true,
+   "aliases_ko": [
+    "버트킥",
+    "엉덩이 차기",
+    "벗킥"
+   ],
+   "aliases_en": [
+    "butt kicks",
+    "single leg butt kick",
+    "double leg butt kick"
+   ],
+   "similar": [
+    "high_knees",
+    "jumping_jack"
+   ],
+   "tier": "B",
+   "why": "하이 니는 무릎을 앞으로, 이건 제자리 뛰며 발뒤꿈치로 엉덩이를 차는 유산소 워밍업"
+  },
+  {
+   "og": [
+    "2792"
+   ],
+   "name_ko": "플랭크 잭",
+   "name_en": "Plank Jack",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "shoulders",
+    "fullBody"
+   ],
+   "load_mode": "bodyweight",
+   "family": "plank_jack",
+   "family_is_new": true,
+   "aliases_ko": [
+    "플랭크 점프",
+    "플랭크 점핑잭"
+   ],
+   "aliases_en": [
+    "plank jacks",
+    "plank jump"
+   ],
+   "similar": [
+    "plank",
+    "jumping_jack",
+    "mountain_climber"
+   ],
+   "tier": "B",
+   "why": "플랭크 자세에서 다리를 점프로 벌렸다 모으는 유산소 동작 — 플랭크(정적)·점핑 잭(서서)과 다름"
+  },
+  {
+   "og": [
+    "8704"
+   ],
+   "name_ko": "버피 박스 점프",
+   "name_en": "Burpee Box Jump",
+   "equipment": "bodyweight",
+   "primary": "fullBody",
+   "secondary": [
+    "quads"
+   ],
+   "load_mode": "bodyweight",
+   "family": "burpee_box_jump",
+   "family_is_new": true,
+   "aliases_ko": [
+    "버피 박스 점프 오버",
+    "박스 버피"
+   ],
+   "aliases_en": [
+    "burpee box jump over",
+    "burpee jump box"
+   ],
+   "similar": [
+    "burpee",
+    "box_jump",
+    "burpee_over_bar"
+   ],
+   "tier": "B",
+   "why": "버피 오버 더 바는 바를 넘고, 이건 버피 뒤 박스 위로 뛰어오르는 크로스핏 동작"
+  },
+  {
+   "og": [
+    "3400"
+   ],
+   "name_ko": "덤벨 클린 앤 프레스",
+   "name_en": "Dumbbell Clean and Press",
+   "equipment": "dumbbell",
+   "primary": "fullBody",
+   "secondary": [
+    "shoulders",
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "clean_and_press",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 클린 프레스",
+    "원암 덤벨 클린 앤 프레스"
+   ],
+   "aliases_en": [
+    "dumbbell clean and press"
+   ],
+   "similar": [
+    "clean",
+    "overhead_press",
+    "thruster"
+   ],
+   "tier": "B",
+   "why": "바벨 클린 앤 프레스와 동작은 같지만 덤벨 — 기구가 달라 별도 종목"
+  },
+  {
+   "og": [
+    "4531"
+   ],
+   "name_ko": "케틀벨 클린 앤 프레스",
+   "name_en": "Kettlebell Clean and Press",
+   "equipment": "kettlebell",
+   "primary": "fullBody",
+   "secondary": [
+    "shoulders",
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "clean_and_press",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 클린 프레스",
+    "원암 케틀벨 클린 앤 프레스"
+   ],
+   "aliases_en": [
+    "kettlebell clean and press",
+    "kettlebell single arm clean and press"
+   ],
+   "similar": [
+    "clean",
+    "overhead_press"
+   ],
+   "tier": "B",
+   "why": "바벨 클린 앤 프레스와 동작은 같지만 케틀벨 — 기구가 달라 별도 종목"
+  },
+  {
+   "og": [
+    "4377",
+    "4740",
+    "4439",
+    "2732"
+   ],
+   "name_ko": "덤벨 클린 앤 저크",
+   "name_en": "Dumbbell Clean and Jerk",
+   "equipment": "dumbbell",
+   "primary": "fullBody",
+   "secondary": [
+    "shoulders",
+    "quads"
+   ],
+   "load_mode": "weight",
+   "family": "clean_and_jerk",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 용상",
+    "원암 덤벨 클린 앤 저크",
+    "덤벨 행 클린 앤 저크"
+   ],
+   "aliases_en": [
+    "dumbbell clean and jerk",
+    "dumbbell power clean and jerk"
+   ],
+   "similar": [
+    "clean",
+    "push_press",
+    "power_jerk"
+   ],
+   "tier": "C",
+   "why": "바벨 클린 앤 저크와 동작은 같지만 덤벨 — 기구가 달라 별도 종목"
+  },
+  {
+   "og": [
+    "4542"
+   ],
+   "name_ko": "케틀벨 클린 앤 저크",
+   "name_en": "Kettlebell Clean and Jerk",
+   "equipment": "kettlebell",
+   "primary": "fullBody",
+   "secondary": [
+    "shoulders",
+    "quads"
+   ],
+   "load_mode": "weight",
+   "family": "clean_and_jerk",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 롱 사이클",
+    "케틀벨 용상"
+   ],
+   "aliases_en": [
+    "kettlebell clean and jerk",
+    "kettlebell long cycle"
+   ],
+   "similar": [
+    "clean",
+    "push_press"
+   ],
+   "tier": "C",
+   "why": "바벨 클린 앤 저크와 동작은 같지만 케틀벨 — 기구가 달라 별도 종목"
+  },
+  {
+   "og": [
+    "4244"
+   ],
+   "name_ko": "케틀벨 오버헤드 캐리",
+   "name_en": "Kettlebell Overhead Carry",
+   "equipment": "kettlebell",
+   "primary": "shoulders",
+   "secondary": [
+    "abs"
+   ],
+   "load_mode": "weight",
+   "family": "overhead_carry",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 웨이터 캐리",
+    "케틀벨 웨이터 워크"
+   ],
+   "aliases_en": [
+    "kettlebell overhead carry",
+    "kettlebell waiter walk"
+   ],
+   "similar": [
+    "farmers_walk",
+    "suitcase_carry"
+   ],
+   "tier": "C",
+   "why": "덤벨 오버헤드 캐리와 동작은 같지만 케틀벨 — 기구가 달라 별도 종목"
+  }
+ ],
+ "excluded": [
+  {
+   "og": [
+    "5965",
+    "5984",
+    "9066",
+    "5967",
+    "4918",
+    "5986",
+    "5969",
+    "5989",
+    "9248",
+    "5971",
+    "5972",
+    "5973",
+    "0565",
+    "5991",
+    "5974",
+    "5976",
+    "5979",
+    "9040",
+    "0782",
+    "4257",
+    "1588",
+    "5153",
+    "8916",
+    "7543",
+    "3198",
+    "5990",
+    "6100"
+   ],
+   "reason": "민첩성·스포츠 드릴(콘·사다리·홉 패턴)"
+  },
+  {
+   "og": [
+    "6097",
+    "3328",
+    "3316",
+    "3370",
+    "3378",
+    "5337",
+    "7499",
+    "4738",
+    "1553",
+    "4753",
+    "4822",
+    "4629",
+    "4564",
+    "4758",
+    "3886",
+    "4736",
+    "4533",
+    "3577",
+    "5335",
+    "7548",
+    "0510",
+    "4706",
+    "10326",
+    "10189",
+    "5968",
+    "3529",
+    "0611",
+    "10050"
+   ],
+   "reason": "두세 동작을 이어 붙인 조합"
+  },
+  {
+   "og": [
+    "2970"
+   ],
+   "reason": "밴드 쓰러스터 — 거의 안 함"
+  },
+  {
+   "og": [
+    "1537"
+   ],
+   "reason": "스플릿 클린 — 현대 역도에서 거의 안 쓰는 구식 변형"
+  },
+  {
+   "og": [
+    "2990"
+   ],
+   "reason": "바벨 메고 까치발 걷기 — 워밍업·특이"
+  },
+  {
+   "og": [
+    "4709",
+    "6010",
+    "4824",
+    "6013",
+    "4328",
+    "5966",
+    "10187",
+    "4898",
+    "3765"
+   ],
+   "reason": "특이한 플라이오·체조성 동작"
+  },
+  {
+   "og": [
+    "4499",
+    "4703",
+    "5529"
+   ],
+   "reason": "맨몸·불특정 무게 스쿼트+프레스 — 특이"
+  },
+  {
+   "og": [
+    "6056"
+   ],
+   "reason": "물병 스쿼트 웨이브 — 특이"
+  },
+  {
+   "og": [
+    "1374"
+   ],
+   "reason": "박스 다운 착지 안정화 — 재활성 드릴"
+  },
+  {
+   "og": [
+    "6745",
+    "6746"
+   ],
+   "reason": "발목 내번·외번 — 재활"
+  },
+  {
+   "og": [
+    "3950"
+   ],
+   "reason": "크롤 투 크랩 — 체조성 연결 동작"
+  },
+  {
+   "og": [
+    "4563",
+    "4160"
+   ],
+   "reason": "스쿼트 버티며 카프 — 특이"
+  },
+  {
+   "og": [
+    "4900",
+    "11650"
+   ],
+   "reason": "맨몸 앉아 카프 — 부하가 거의 없어 재활성"
+  },
+  {
+   "og": [
+    "1382",
+    "3241",
+    "3240"
+   ],
+   "reason": "짐볼 벽 카프 — 드문 도구"
+  },
+  {
+   "og": [
+    "10890"
+   ],
+   "reason": "트램펄린 점프 — 드문 도구"
+  },
+  {
+   "og": [
+    "4976"
+   ],
+   "reason": "마운틴 클라이머 점프 — 특이 변형"
+  },
+  {
+   "og": [
+    "3579"
+   ],
+   "reason": "케틀벨 덱 스쿼트 — 특이"
+  },
+  {
+   "og": [
+    "2814"
+   ],
+   "reason": "트위스트 클린 앤 프레스 — 특이"
+  },
+  {
+   "og": [
+    "1220"
+   ],
+   "reason": "벤치프레스 머신으로 카프 — 기구 오용성 특이"
+  },
+  {
+   "og": [
+    "10540",
+    "6759",
+    "10535"
+   ],
+   "reason": "맨몸 앉아·누워 정강이 누르기 — 재활"
+  },
+  {
+   "og": [
+    "6559"
+   ],
+   "reason": "원판 티비알리스 컬 — 지나치게 특이"
+  },
+  {
+   "og": [
+    "10109",
+    "3439",
+    "10118",
+    "4243",
+    "10108",
+    "4383"
+   ],
+   "reason": "메디신볼 투척 — 드문 도구·스포츠"
+  },
+  {
+   "og": [
+    "2943"
+   ],
+   "reason": "밴드 스파이더 크롤 — 특이"
+  },
+  {
+   "og": [
+    "4802",
+    "10762",
+    "10760",
+    "10761"
+   ],
+   "reason": "발끝 걷기 — 재활·워밍업"
+  },
+  {
+   "og": [
+    "9986"
+   ],
+   "reason": "수건 발가락 말기 — 재활"
+  },
+  {
+   "og": [
+    "3673",
+    "3674",
+    "3659"
+   ],
+   "reason": "자세 확인용 정지 자세 — 운동 아님"
+  },
+  {
+   "og": [
+    "5142"
+   ],
+   "reason": "스미스 행 클린 — 지나치게 특이"
+  },
+  {
+   "og": [
+    "2733",
+    "2724",
+    "2734",
+    "3317",
+    "2716",
+    "3306",
+    "2726",
+    "2722",
+    "2714",
+    "3307",
+    "2721",
+    "2707",
+    "2708",
+    "2725",
+    "2712",
+    "2727",
+    "2715",
+    "2710",
+    "2731",
+    "2723",
+    "2735"
+   ],
+   "reason": "스트롱맨 특수 장비 종목"
+  },
+  {
+   "og": [
+    "10387",
+    "10386",
+    "10385"
+   ],
+   "reason": "샌드백 — 한국 헬스장에서 드문 도구"
+  },
+  {
+   "og": [
+    "1154",
+    "9704"
+   ],
+   "reason": "서스펜션 트레이너"
+  }
+ ]
+}

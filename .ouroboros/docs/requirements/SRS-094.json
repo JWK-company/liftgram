@@ -1,0 +1,203 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-094",
+  "type": "SRS",
+  "title": "오픈짐 대조로 찾은 없는 동작 종목 추가(흔함·덜 흔함 등급) — 마스터 표·동작 그룹·픽토그램·스무고개·대체 패턴·서버 마이그레이션",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-30T06:00:00Z",
+  "updated": "2026-10-30T08:00:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "exercise"
+  ],
+  "kind": "FR",
+  "acceptance_criteria": "새 106종목이 시드·서버에 있고 픽토그램 100%·스무고개 분류를 가지며, 기존 480행은 별칭 추가 말고는 id·이름·필드가 그대로다",
+  "relations": {
+    "derives_from": [
+      "URS-030"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "오픈짐 데이터셋(근력·맨몸·플라이오·버티기·역도, 스트레칭·요가·재활·드문 도구 제외)의 각 줄을 우리 카탈로그와 대조해, 우리 모델(같은 동작 = 한 종목 + 별칭 + 변형 칸 · 기구가 다르면 다른 종목 · 팔은 세트 속성)로 접히지 않는 동작만 새 종목으로 만든다. 흔함(A)·덜 흔함(B) 등급만 넣고 드묾(C)은 넣지 않는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "새 종목은 종목 마스터 표(정본 CSV)에 status=new 로 들어가고, 생성기가 시드 표·판 해시·서버 마이그레이션을 만든다. 기기는 다음 부팅에 시드 top-up 으로 받는다. 새 동작 그룹은 동작 그룹 표에 허용 기구와 함께 들어가고, 픽토그램은 가장 가까운 기존 원형을 쓴다. 기존 동작 그룹에 새 기구가 들어오면 그 그룹의 허용 기구 목록을 넓힌다. 이름은 한국 헬스장 표기, 이름·별칭은 기존 종목과 겹치지 않는다. 사진은 넣지 않는다(픽토그램만 · 오픈짐 미디어는 유료 라이선스)."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "구현 결과(2026-10-30): A+B 114 → 손 정리·qa spec 반영 106종목. 같은 동작 6종목은 기존 종목의 별칭으로, 넥 브릿지는 제외. family 안 기구 유일 규칙 때문에 기존과 같은 family·기구가 되는 종목은 제 family 로 떼고 원형·스무고개를 잇는다. 반대 동작을 그리던 원형 3개(백 레버·티비알리스 레이즈·배큠)는 전용 원형을 둔다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 종목의 한국어 이름·영문 이름·별칭이 기존 종목 및 서로와 겹치지 않는다(대소문자·공백 무시)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "근력 종목 픽토그램 100% · 모든 동작 그룹이 원형을 가진다(pictograms.test)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "스무고개 트리가 있는 부위의 새 근력 종목은 모두 어느 세부 질문엔가 속한다(domain.test)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "새 종목은 같은 동작 그룹의 기존 종목 대체 패턴을 잇고, 새 그룹은 가장 가까운 패턴을 갖는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "make catalog 가 새 번호 카탈로그 마이그레이션을 만들고 이미 적용된 마이그레이션은 바뀌지 않는다 · 운영 적용 뒤 서버 종목 수 = 마스터 활성+보관 행 수."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존 480행은 id·이름·필드가 바뀌지 않는다 — 같은 동작을 새 종목 대신 별칭으로 붙일 때의 별칭 추가만 허용(qa spec H-2)."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "대조 근거(오픈짐 id ↔ 판정)가 문서로 남는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "도출: URS-030. 모델 근거: ADR-033(카탈로그 정본)·ADR-034(변형 칸 키)·SRS-055·SRS-056(별칭·표시 이름)."
+          }
+        ]
+      }
+    ]
+  }
+}

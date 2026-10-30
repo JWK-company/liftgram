@@ -1137,6 +1137,26 @@ export const ARCH: Record<string, Arch> = {
     scene: [{ k: 'bar', at: [96, 26] }],
     hold: 'none',
   },
+  // 오픈짐 대조 갭 보강(qa spec M-5) — 가까운 원형이 반대 동작을 그려서 따로 둔다 @plm SRS-094
+  // 백 레버: 프론트 레버를 뒤집은 것 — 팔을 몸 뒤로 뻗어 바를 잡고 엎드린 채 수평
+  back_lever: {
+    start: { t: 0, a: [-100, -100], l: [180, 180, 0], at: ['wr', 150, 26] },
+    end: { t: 0, a: [-100, -100], l: [180, 180, 0], at: ['wr', 150, 26] },
+    scene: [{ k: 'bar', at: [150, 26] }],
+    hold: 'none',
+  },
+  // 티비알리스 레이즈: 발뒤꿈치를 딛고 발끝을 든다(카프 레이즈의 반대)
+  tibialis_raise: {
+    start: stand([90, 90]),
+    end: stand([90, 90], { l: [90, 90, -32] }),
+    hold: 'none',
+  },
+  // 복부 배큠: 선 채 숨을 내쉬고 배를 끌어당겨 버틴다 — 움직임이 거의 없다
+  vacuum: {
+    start: stand([90, 90]),
+    end: stand([90, 90], { t: -87 }),
+    hold: 'none',
+  },
   dead_hang: {
     start: hang([-90, -90], [92, 92, 30]),
     end: hang([-90, -90], [92, 92, 30]),

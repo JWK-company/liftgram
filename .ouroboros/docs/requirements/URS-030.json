@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-030",
+  "type": "URS",
+  "title": "내가 하는 운동이 목록에 없어 커스텀으로 만들지 않도록, 헬스장에서 실제로 하는 동작이 종목에 더 많이 있으면 좋겠다",
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-10-30T06:00:00Z",
+  "updated": "2026-10-30T06:00:00Z",
+  "sync": true,
+  "tags": [
+    "catalog",
+    "exercise"
+  ],
+  "stakeholder": "회원(루틴을 짜고 기록하는 사람)",
+  "priority": "Medium",
+  "relations": {},
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "리프트그램 종목은 480개다. 비교 대상 오픈짐은 5,632개를 내세우지만 같은 동작을 그립·손잡이·영상 버전·한 팔/두 팔마다 따로 세고, 스트레칭·요가·재활까지 포함한다. 사용자는 종목 수 차이를 보고 「우리도 더 있어야 한다」고 느꼈다. 우리는 같은 동작을 한 종목과 별칭·변형 칸으로 묶는 모델이라 숫자만 맞추면 목록이 지저분해진다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이해관계자: 루틴을 짜는 회원(원하는 동작을 찾고 싶다), 기록을 돌아보는 회원(커스텀 종목은 대체 운동·근육 지도·픽토그램이 없다)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "헬스장에서 실제로 하는 동작인데 우리 목록에 없는 것을 종목으로 갖고 싶다. 이미 있는 동작의 그립·손잡이·한 팔 변형을 새 종목으로 늘리지는 않는다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "오픈짐 근력 계열 4,073줄을 대조해 「이미 있음 / 없는 동작 / 넣지 않음」으로 전수 분류한 근거가 남는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "없는 동작 중 흔한·덜 흔한 등급(114개 전후)이 카탈로그에 들어가 검색·스무고개·픽토그램·대체 운동에서 다른 종목과 똑같이 쓰인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "기존 종목 id·이름·기록은 하나도 바뀌지 않는다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

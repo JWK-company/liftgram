@@ -271,6 +271,70 @@ const PATTERN_BY_ID: Record<string, MovementPattern> = {
   "seed-smith-inverted-row": 'horizontalPull', // 스미스 인버티드 로우
   "seed-kettlebell-bent-over-row": 'horizontalPull', // 케틀벨 벤트오버 로우
   "seed-smith-sumo-squat": 'squat', // 스미스 스모 스쿼트
+  // 오픈짐 대조 갭 보강 @plm SRS-094(같은 family 기존 종목의 패턴을 잇는다)
+  "seed-dumbbell-drag-curl": 'curl', // 덤벨 드래그 컬
+  "seed-barbell-pin-press": 'horizontalPress', // 바벨 핀 프레스
+  "seed-dumbbell-curl-and-press": 'curl', // 덤벨 컬 앤 프레스
+  "seed-archer-pull-up": 'verticalPull', // 아처 풀업
+  "seed-band-bent-over-row": 'horizontalPull', // 밴드 벤트오버 로우
+  "seed-barbell-incline-bench-row": 'horizontalPull', // 바벨 인클라인 로우
+  "seed-cable-behind-the-neck-pulldown": 'verticalPull', // 케이블 비하인드 넥 랫풀다운
+  "seed-cable-bent-over-row": 'horizontalPull', // 케이블 벤트오버 로우
+  "seed-cable-standing-row": 'horizontalPull', // 케이블 스탠딩 로우
+  "seed-ez-bar-pullover": 'verticalPull', // EZ바 풀오버
+  "seed-one-arm-pull-up": 'verticalPull', // 원암 풀업
+  "seed-straight-bar-dip": 'horizontalPress', // 스트레이트 바 딥스
+  "seed-dumbbell-incline-squeeze-press": 'horizontalPress', // 덤벨 인클라인 스퀴즈 프레스
+  "seed-dumbbell-floor-fly": 'fly', // 덤벨 플로어 플라이
+  "seed-pseudo-planche-push-up": 'horizontalPress', // 슈도 플란체 푸시업
+  "seed-landmine-squeeze-press": 'horizontalPress', // 랜드마인 스퀴즈 프레스
+  "seed-machine-incline-fly": 'fly', // 머신 인클라인 플라이
+  "seed-dumbbell-single-leg-deadlift": 'hinge', // 덤벨 싱글 레그 데드리프트
+  "seed-single-leg-deadlift": 'hinge', // 싱글 레그 데드리프트
+  "seed-kettlebell-single-leg-deadlift": 'hinge', // 케틀벨 싱글 레그 데드리프트
+  "seed-dumbbell-b-stance-romanian-deadlift": 'hinge', // 덤벨 B스탠스 루마니안 데드리프트
+  "seed-barbell-b-stance-romanian-deadlift": 'hinge', // 바벨 B스탠스 루마니안 데드리프트
+  "seed-barbell-sumo-romanian-deadlift": 'hinge', // 바벨 스모 루마니안 데드리프트
+  "seed-dumbbell-sumo-deadlift": 'hinge', // 덤벨 스모 데드리프트
+  "seed-bodyweight-hip-thrust": 'hinge', // 맨몸 힙 쓰러스트
+  "seed-hamstring-bridge": 'hinge', // 햄스트링 브릿지
+  "seed-dumbbell-curtsy-lunge": 'lungeStep', // 덤벨 커시 런지
+  "seed-barbell-jump-squat": 'squat', // 바벨 점프 스쿼트
+  "seed-cable-goblet-squat": 'squat', // 케이블 고블릿 스쿼트
+  "seed-skater-squat": 'lungeStep', // 스케이터 스쿼트
+  "seed-kettlebell-reverse-lunge": 'lungeStep', // 케틀벨 리버스 런지
+  "seed-kettlebell-step-up": 'lungeStep', // 케틀벨 스텝업
+  "seed-bodyweight-step-up": 'lungeStep', // 맨몸 스텝업
+  "seed-lateral-step-up": 'lungeStep', // 레터럴 스텝업
+  "seed-smith-step-up": 'lungeStep', // 스미스 스텝업
+  "seed-kneeling-hip-thrust": 'hinge', // 닐링 힙 쓰러스트
+  "seed-band-kneeling-hip-thrust": 'hinge', // 밴드 닐링 힙 쓰러스트
+  "seed-smith-kneeling-hip-thrust": 'hinge', // 스미스 닐링 힙 쓰러스트
+  "seed-landmine-romanian-deadlift": 'hinge', // 랜드마인 루마니안 데드리프트
+  "seed-landmine-single-leg-romanian-deadlift": 'hinge', // 랜드마인 싱글 레그 루마니안 데드리프트
+  "seed-landmine-reverse-lunge": 'lungeStep', // 랜드마인 리버스 런지
+  "seed-bodyweight-lunge": 'lungeStep', // 맨몸 런지
+  "seed-bodyweight-split-squat": 'lungeStep', // 맨몸 스플릿 스쿼트
+  "seed-reverse-hack-squat": 'squat', // 리버스 핵 스쿼트
+  "seed-smith-hack-squat": 'squat', // 스미스 핵 스쿼트
+  "seed-bench-reverse-hyperextension": 'hinge', // 벤치 리버스 하이퍼익스텐션
+  "seed-shrimp-squat": 'lungeStep', // 쉬림프 스쿼트
+  "seed-band-glute-bridge": 'hinge', // 밴드 글루트 브릿지
+  "seed-smith-curtsy-lunge": 'lungeStep', // 스미스 커시 런지
+  "seed-snatch-pull": 'hinge', // 바벨 스내치 풀
+  "seed-hack-calf-raise": 'calf', // 핵 카프 레이즈
+  "seed-plank-jack": 'core', // 플랭크 잭
+  "seed-dumbbell-incline-rear-delt-fly": 'fly', // 덤벨 인클라인 리어 델트 플라이
+  "seed-dumbbell-side-lying-lateral-raise": 'lateralRaise', // 덤벨 사이드 라잉 레터럴 레이즈
+  "seed-dumbbell-side-lying-rear-delt-raise": 'fly', // 덤벨 사이드 라잉 리어 델트 레이즈
+  "seed-dumbbell-cuban-press": 'lateralRaise', // 덤벨 쿠반 프레스
+  "seed-dumbbell-z-press": 'verticalPress', // 덤벨 Z 프레스
+  "seed-barbell-z-press": 'verticalPress', // 바벨 Z 프레스
+  "seed-landmine-lateral-raise": 'lateralRaise', // 랜드마인 레터럴 레이즈
+  "seed-seated-knee-tuck": 'core', // 시티드 니업
+  "seed-double-crunch": 'core', // 더블 크런치
+  "seed-inchworm": 'core', // 인치웜
+  "seed-stomach-vacuum": 'core', // 복부 배큠
 };
 
 export function movementPatternOf(exerciseId: string): MovementPattern | null {

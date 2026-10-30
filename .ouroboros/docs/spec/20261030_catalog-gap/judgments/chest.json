@@ -1,0 +1,1175 @@
+{
+ "chunk": "chest",
+ "total": 396,
+ "matched": [
+  {
+   "og": [
+    "0009",
+    "2364"
+   ],
+   "seed": "seed-assisted-dip"
+  },
+  {
+   "og": [
+    "1172",
+    "6959",
+    "0915",
+    "3947",
+    "4521",
+    "5997",
+    "1486",
+    "2351",
+    "2350",
+    "0667",
+    "4571",
+    "5556",
+    "8076",
+    "3910",
+    "1311",
+    "4192"
+   ],
+   "seed": "seed-push-up"
+  },
+  {
+   "og": [
+    "3324",
+    "1254",
+    "4076",
+    "4544",
+    "4684",
+    "4077",
+    "4074",
+    "0989",
+    "4079",
+    "3780",
+    "5608",
+    "0923",
+    "11285",
+    "3124"
+   ],
+   "seed": "seed-band-chest-press"
+  },
+  {
+   "og": [
+    "4078",
+    "3757",
+    "4073",
+    "0908",
+    "0913"
+   ],
+   "seed": "seed-band-chest-fly"
+  },
+  {
+   "og": [
+    "7620",
+    "9932",
+    "3185",
+    "4201",
+    "4414",
+    "2336",
+    "6584",
+    "5013",
+    "1497",
+    "5091",
+    "3310",
+    "0122",
+    "1258",
+    "2341",
+    "2338",
+    "2342",
+    "2339",
+    "2340"
+   ],
+   "seed": "seed-barbell-bench-press"
+  },
+  {
+   "og": [
+    "3174"
+   ],
+   "seed": "seed-feet-up-bench-press"
+  },
+  {
+   "og": [
+    "6271",
+    "6270"
+   ],
+   "seed": "seed-larsen-press"
+  },
+  {
+   "og": [
+    "0033",
+    "10115",
+    "0036",
+    "5010",
+    "1256"
+   ],
+   "seed": "seed-decline-barbell-press"
+  },
+  {
+   "og": [
+    "1255"
+   ],
+   "seed": "seed-barbell-pullover"
+  },
+  {
+   "og": [
+    "3724"
+   ],
+   "seed": "seed-floor-press"
+  },
+  {
+   "og": [
+    "0047",
+    "1173",
+    "5011",
+    "1257"
+   ],
+   "seed": "seed-incline-press"
+  },
+  {
+   "og": [
+    "0155",
+    "6542",
+    "0188",
+    "8141",
+    "0227",
+    "11250",
+    "7416",
+    "6219",
+    "1269"
+   ],
+   "seed": "seed-cable-crossover"
+  },
+  {
+   "og": [
+    "0169",
+    "11264",
+    "1265"
+   ],
+   "seed": "seed-cable-incline-chest-press"
+  },
+  {
+   "og": [
+    "5814",
+    "11274",
+    "3359",
+    "11764",
+    "1211"
+   ],
+   "seed": "seed-standing-cable-chest-press"
+  },
+  {
+   "og": [
+    "0179",
+    "4374",
+    "1270"
+   ],
+   "seed": "seed-low-cable-fly"
+  },
+  {
+   "og": [
+    "0191"
+   ],
+   "seed": "seed-cable-rear-delt-fly"
+  },
+  {
+   "og": [
+    "3869"
+   ],
+   "seed": "seed-seated-cable-fly"
+  },
+  {
+   "og": [
+    "2144"
+   ],
+   "seed": "seed-seated-cable-chest-press"
+  },
+  {
+   "og": [
+    "1430",
+    "2363"
+   ],
+   "seed": "seed-dips"
+  },
+  {
+   "og": [
+    "5866",
+    "4539"
+   ],
+   "seed": "seed-diamond-push-up"
+  },
+  {
+   "og": [
+    "3490",
+    "3935",
+    "3491",
+    "3812"
+   ],
+   "seed": "seed-decline-push-up"
+  },
+  {
+   "og": [
+    "3823",
+    "3348"
+   ],
+   "seed": "seed-shoulder-taps"
+  },
+  {
+   "og": [
+    "1274",
+    "6910",
+    "3580"
+   ],
+   "seed": "seed-deficit-push-up"
+  },
+  {
+   "og": [
+    "1275",
+    "5460",
+    "10882",
+    "1310",
+    "10650"
+   ],
+   "seed": "seed-clap-push-up"
+  },
+  {
+   "og": [
+    "3695",
+    "4184",
+    "0340",
+    "1177",
+    "0343",
+    "0342",
+    "1622",
+    "3333",
+    "1624",
+    "4835"
+   ],
+   "seed": "seed-dumbbell-bench-press"
+  },
+  {
+   "og": [
+    "2982",
+    "3668",
+    "3319",
+    "5093"
+   ],
+   "seed": "seed-dumbbell-floor-press"
+  },
+  {
+   "og": [
+    "0288"
+   ],
+   "seed": "seed-dumbbell-around-the-world"
+  },
+  {
+   "og": [
+    "4326",
+    "1444",
+    "2566",
+    "0433",
+    "3176",
+    "3188",
+    "7113",
+    "2365"
+   ],
+   "seed": "seed-dumbbell-pullover"
+  },
+  {
+   "og": [
+    "2337",
+    "1450",
+    "3175",
+    "3911",
+    "1285",
+    "4150",
+    "5098",
+    "4342",
+    "4200"
+   ],
+   "seed": "seed-dumbbell-fly"
+  },
+  {
+   "og": [
+    "0301",
+    "0303",
+    "1287",
+    "5097"
+   ],
+   "seed": "seed-decline-dumbbell-press"
+  },
+  {
+   "og": [
+    "0302",
+    "1276",
+    "0307"
+   ],
+   "seed": "seed-decline-dumbbell-fly"
+  },
+  {
+   "og": [
+    "1449",
+    "0319",
+    "6162",
+    "1279",
+    "0331"
+   ],
+   "seed": "seed-incline-dumbbell-fly"
+  },
+  {
+   "og": [
+    "3545",
+    "0314",
+    "0321",
+    "1281",
+    "0324",
+    "1214",
+    "6218",
+    "1289"
+   ],
+   "seed": "seed-incline-press-dumbbell"
+  },
+  {
+   "og": [
+    "10042",
+    "3681"
+   ],
+   "seed": "seed-dumbbell-squeeze-press"
+  },
+  {
+   "og": [
+    "2890"
+   ],
+   "seed": "seed-plank-push-up"
+  },
+  {
+   "og": [
+    "9312",
+    "5637",
+    "6550",
+    "3785",
+    "0494",
+    "4329",
+    "0659",
+    "0658",
+    "2740"
+   ],
+   "seed": "seed-incline-push-up"
+  },
+  {
+   "og": [
+    "0519",
+    "0531",
+    "4845",
+    "4846",
+    "1298"
+   ],
+   "seed": "seed-kettlebell-floor-press"
+  },
+  {
+   "og": [
+    "4984",
+    "3217"
+   ],
+   "seed": "seed-hindu-push-up"
+  },
+  {
+   "og": [
+    "0134",
+    "5278",
+    "3557",
+    "1182"
+   ],
+   "seed": "seed-kneeling-push-up"
+  },
+  {
+   "og": [
+    "4213",
+    "2974",
+    "5815",
+    "1029",
+    "10671",
+    "10672",
+    "3758",
+    "1301"
+   ],
+   "seed": "seed-chest-press-machine"
+  },
+  {
+   "og": [
+    "3344",
+    "1030",
+    "0596",
+    "9398"
+   ],
+   "seed": "seed-pec-deck-fly"
+  },
+  {
+   "og": [
+    "1300",
+    "2278"
+   ],
+   "seed": "seed-decline-chest-press-machine"
+  },
+  {
+   "og": [
+    "1299",
+    "2659",
+    "1479",
+    "1195",
+    "4371",
+    "5576",
+    "10669",
+    "10670"
+   ],
+   "seed": "seed-incline-press-machine"
+  },
+  {
+   "og": [
+    "1041"
+   ],
+   "seed": "seed-lying-chest-press-machine"
+  },
+  {
+   "og": [
+    "10550",
+    "5332",
+    "5068",
+    "0856"
+   ],
+   "seed": "seed-svend-press"
+  },
+  {
+   "og": [
+    "4153"
+   ],
+   "seed": "seed-archer-push-up"
+  },
+  {
+   "og": [
+    "3002",
+    "4617"
+   ],
+   "seed": "seed-one-arm-push-up"
+  },
+  {
+   "og": [
+    "0753",
+    "0754",
+    "1626",
+    "1309"
+   ],
+   "seed": "seed-decline-press-smith"
+  },
+  {
+   "og": [
+    "0757",
+    "0758"
+   ],
+   "seed": "seed-incline-press-smith"
+  },
+  {
+   "og": [
+    "0764",
+    "1308"
+   ],
+   "seed": "seed-smith-machine-bench-press"
+  }
+ ],
+ "new": [
+  {
+   "og": [
+    "7621",
+    "5660"
+   ],
+   "name_ko": "바벨 핀 프레스",
+   "name_en": "Barbell Pin Press",
+   "equipment": "barbell",
+   "primary": "chest",
+   "secondary": [
+    "triceps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "pin_press",
+   "family_is_new": true,
+   "aliases_ko": [
+    "핀 프레스",
+    "핀 벤치프레스",
+    "랙 벤치프레스"
+   ],
+   "aliases_en": [
+    "pin press",
+    "pin bench press",
+    "barbell pin bench press conventional grip"
+   ],
+   "similar": [
+    "bench_press",
+    "floor_press"
+   ],
+   "tier": "B",
+   "why": "파워랙 안전바 위에서 정지 상태로 밀어 올리는 부분 가동 — 일반 벤치프레스·플로어 프레스와 셋업이 다름"
+  },
+  {
+   "og": [
+    "4070",
+    "4069",
+    "4068"
+   ],
+   "name_ko": "바벨 보드 프레스",
+   "name_en": "Barbell Board Press",
+   "equipment": "barbell",
+   "primary": "chest",
+   "secondary": [
+    "triceps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "board_press",
+   "family_is_new": true,
+   "aliases_ko": [
+    "보드 프레스",
+    "보드 벤치프레스"
+   ],
+   "aliases_en": [
+    "board press",
+    "barbell bench press with board"
+   ],
+   "similar": [
+    "bench_press",
+    "floor_press"
+   ],
+   "tier": "C",
+   "why": "가슴 위에 보드를 얹어 가동 범위를 자르는 파워리프팅 보조 — 우리에겐 벤치프레스만 있음"
+  },
+  {
+   "og": [
+    "0045"
+   ],
+   "name_ko": "바벨 기요틴 프레스",
+   "name_en": "Barbell Guillotine Press",
+   "equipment": "barbell",
+   "primary": "chest",
+   "secondary": [
+    "shoulders",
+    "triceps"
+   ],
+   "load_mode": "weight",
+   "family": "guillotine_press",
+   "family_is_new": true,
+   "aliases_ko": [
+    "기요틴 프레스",
+    "넥 프레스"
+   ],
+   "aliases_en": [
+    "guillotine press",
+    "neck press",
+    "barbell guillotine bench press"
+   ],
+   "similar": [
+    "bench_press",
+    "incline_press"
+   ],
+   "tier": "C",
+   "why": "바를 목 쪽으로 내리고 팔꿈치를 벌리는 상부 가슴 변형 — 바 경로가 일반 벤치프레스와 다름"
+  },
+  {
+   "og": [
+    "0158",
+    "1262"
+   ],
+   "name_ko": "케이블 디클라인 플라이",
+   "name_en": "Cable Decline Fly",
+   "equipment": "cable",
+   "primary": "chest",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "decline_fly",
+   "family_is_new": false,
+   "aliases_ko": [
+    "디클라인 케이블 플라이"
+   ],
+   "aliases_en": [
+    "cable decline fly",
+    "decline cable fly"
+   ],
+   "similar": [
+    "decline_fly",
+    "cable_crossover",
+    "chest_fly"
+   ],
+   "tier": "C",
+   "why": "디클라인 벤치에 누운 케이블 플라이 — 우리에겐 덤벨 디클라인 플라이·케이블 플랫/인클라인만 있음"
+  },
+  {
+   "og": [
+    "1260",
+    "1261"
+   ],
+   "name_ko": "케이블 디클라인 프레스",
+   "name_en": "Cable Decline Press",
+   "equipment": "cable",
+   "primary": "chest",
+   "secondary": [
+    "triceps"
+   ],
+   "load_mode": "weight",
+   "family": "decline_press",
+   "family_is_new": false,
+   "aliases_ko": [
+    "디클라인 케이블 프레스",
+    "디클라인 케이블 체스트 프레스"
+   ],
+   "aliases_en": [
+    "cable decline press",
+    "decline cable chest press"
+   ],
+   "similar": [
+    "decline_press",
+    "bench_press",
+    "chest_press"
+   ],
+   "tier": "C",
+   "why": "디클라인 벤치 케이블 프레스 — 케이블은 플랫(라잉)·인클라인만 있음"
+  },
+  {
+   "og": [
+    "2462",
+    "3313"
+   ],
+   "name_ko": "스트레이트 바 딥스",
+   "name_en": "Straight Bar Dip",
+   "equipment": "bodyweight",
+   "primary": "chest",
+   "secondary": [
+    "triceps",
+    "shoulders"
+   ],
+   "load_mode": "bodyweight",
+   "family": "straight_bar_dip",
+   "family_is_new": true,
+   "aliases_ko": [
+    "일자봉 딥스",
+    "스트레이트바 딥",
+    "중량 스트레이트 바 딥스"
+   ],
+   "aliases_en": [
+    "straight bar dip",
+    "chest dip on straight bar",
+    "weighted straight bar dip"
+   ],
+   "similar": [
+    "dips",
+    "muscle_up"
+   ],
+   "tier": "B",
+   "why": "평행봉이 아닌 일자 봉 하나 위에서 몸 앞으로 하는 딥 — 머슬업 전환 연습, 평행봉 딥스와 셋업·궤적이 다름"
+  },
+  {
+   "og": [
+    "5067"
+   ],
+   "name_ko": "덤벨 인클라인 스퀴즈 프레스",
+   "name_en": "Dumbbell Incline Squeeze Press",
+   "equipment": "dumbbell",
+   "primary": "chest",
+   "secondary": [
+    "triceps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "squeeze_press",
+   "family_is_new": false,
+   "aliases_ko": [
+    "인클라인 스퀴즈 프레스",
+    "인클라인 헥스 프레스"
+   ],
+   "aliases_en": [
+    "incline squeeze press",
+    "incline hex press",
+    "dumbbell incline squeeze press"
+   ],
+   "similar": [
+    "squeeze_press",
+    "incline_press"
+   ],
+   "tier": "B",
+   "why": "인클라인 벤치에서 덤벨을 맞붙여 미는 스퀴즈 프레스 — 우리 스퀴즈 프레스는 플랫뿐(벤치 각도 다름)"
+  },
+  {
+   "og": [
+    "4149",
+    "3334",
+    "5079"
+   ],
+   "name_ko": "덤벨 플로어 플라이",
+   "name_en": "Dumbbell Floor Fly",
+   "equipment": "dumbbell",
+   "primary": "chest",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "floor_fly",
+   "family_is_new": true,
+   "aliases_ko": [
+    "플로어 플라이",
+    "바닥 플라이"
+   ],
+   "aliases_en": [
+    "floor fly",
+    "dumbbell floor fly",
+    "lying floor fly"
+   ],
+   "similar": [
+    "chest_fly",
+    "floor_press"
+   ],
+   "tier": "B",
+   "why": "바닥에 누워 팔꿈치가 바닥에 닿는 데서 멈추는 플라이 — 벤치 플라이보다 가동 범위가 짧고 셋업이 다름"
+  },
+  {
+   "og": [
+    "3452"
+   ],
+   "name_ko": "덤벨 스벤드 프레스",
+   "name_en": "Dumbbell Svend Press",
+   "equipment": "dumbbell",
+   "primary": "chest",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "svend_press",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 스벤드"
+   ],
+   "aliases_en": [
+    "dumbbell svend press"
+   ],
+   "similar": [
+    "svend_press",
+    "squeeze_press"
+   ],
+   "tier": "C",
+   "why": "덤벨 하나를 두 손바닥으로 눌러 잡고 앞으로 미는 스벤드 프레스 — 우리 것은 원판(플레이트)용"
+  },
+  {
+   "og": [
+    "3824"
+   ],
+   "name_ko": "슈도 플란체 푸시업",
+   "name_en": "Pseudo Planche Push Up",
+   "equipment": "bodyweight",
+   "primary": "chest",
+   "secondary": [
+    "shoulders",
+    "triceps"
+   ],
+   "load_mode": "bodyweight",
+   "family": "planche_push_up",
+   "family_is_new": true,
+   "aliases_ko": [
+    "슈도 플란체",
+    "의사 플란체 푸시업",
+    "플란체 린 푸시업"
+   ],
+   "aliases_en": [
+    "pseudo planche push up",
+    "PPPU"
+   ],
+   "similar": [
+    "push_up",
+    "pike_push_up"
+   ],
+   "tier": "B",
+   "why": "손을 허리 옆에 두고 몸을 앞으로 기울여 어깨 전면 부하를 크게 거는 맨몸 푸시업 — 일반 푸시업과 손 위치·자극 부위가 다름"
+  },
+  {
+   "og": [
+    "3327"
+   ],
+   "name_ko": "플란체 푸시업",
+   "name_en": "Planche Push Up",
+   "equipment": "bodyweight",
+   "primary": "chest",
+   "secondary": [
+    "shoulders",
+    "triceps"
+   ],
+   "load_mode": "bodyweight",
+   "family": "planche_push_up",
+   "family_is_new": true,
+   "aliases_ko": [
+    "풀 플란체 푸시업"
+   ],
+   "aliases_en": [
+    "planche push up",
+    "full planche push-up"
+   ],
+   "similar": [
+    "push_up",
+    "handstand_push_up"
+   ],
+   "tier": "C",
+   "why": "발을 띄운 플란체 자세에서 하는 최상급 맨몸 푸시업 — 우리에겐 없음"
+  },
+  {
+   "og": [
+    "3021",
+    "3011",
+    "2946",
+    "3145"
+   ],
+   "name_ko": "스캐퓰러 푸시업",
+   "name_en": "Scapular Push Up",
+   "equipment": "bodyweight",
+   "primary": "chest",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "bodyweight",
+   "family": "scapular_push_up",
+   "family_is_new": true,
+   "aliases_ko": [
+    "스캐퓰라 푸시업",
+    "견갑 푸시업",
+    "푸시업 플러스"
+   ],
+   "aliases_en": [
+    "scapular push up",
+    "scapula push-up",
+    "push-up plus"
+   ],
+   "similar": [
+    "push_up",
+    "scapular_pull_up"
+   ],
+   "tier": "B",
+   "why": "팔을 편 채 견갑만 벌렸다 모으는 전거근 운동 — 스캐퓰러 풀업의 미는 짝, 일반 푸시업과 동작이 다름"
+  },
+  {
+   "og": [
+    "3739",
+    "3738"
+   ],
+   "name_ko": "케틀벨 벤치프레스",
+   "name_en": "Kettlebell Bench Press",
+   "equipment": "kettlebell",
+   "primary": "chest",
+   "secondary": [
+    "triceps",
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "bench_press",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 벤치",
+    "바텀업 케틀벨 벤치프레스"
+   ],
+   "aliases_en": [
+    "kettlebell bench press",
+    "kettlebell one arm bench press",
+    "kettlebell bottom up bench press"
+   ],
+   "similar": [
+    "bench_press",
+    "floor_press"
+   ],
+   "tier": "C",
+   "why": "벤치에 누워 케틀벨로 미는 프레스 — 케틀벨은 플로어 프레스만 있음(기구 다름)"
+  },
+  {
+   "og": [
+    "3288"
+   ],
+   "name_ko": "코리안 딥스",
+   "name_en": "Korean Dip",
+   "equipment": "bodyweight",
+   "primary": "chest",
+   "secondary": [
+    "shoulders",
+    "triceps"
+   ],
+   "load_mode": "bodyweight",
+   "family": "korean_dip",
+   "family_is_new": true,
+   "aliases_ko": [
+    "코리안 딥",
+    "리버스 바 딥"
+   ],
+   "aliases_en": [
+    "korean dip",
+    "korean dips"
+   ],
+   "similar": [
+    "dips",
+    "bench_dip"
+   ],
+   "tier": "C",
+   "why": "몸 뒤의 일자 봉을 잡고 내려가는 딥 — 어깨 신전 범위가 커서 평행봉 딥스·벤치 딥스와 다름"
+  },
+  {
+   "og": [
+    "3921"
+   ],
+   "name_ko": "랜드마인 스퀴즈 프레스",
+   "name_en": "Landmine Squeeze Press",
+   "equipment": "barbell",
+   "primary": "chest",
+   "secondary": [
+    "shoulders",
+    "triceps"
+   ],
+   "load_mode": "weight",
+   "family": "landmine_squeeze_press",
+   "family_is_new": true,
+   "aliases_ko": [
+    "랜드마인 체스트 프레스",
+    "투핸드 랜드마인 프레스"
+   ],
+   "aliases_en": [
+    "landmine squeeze press",
+    "landmine chest press",
+    "landmine kneeling squeeze press"
+   ],
+   "similar": [
+    "landmine_press",
+    "squeeze_press"
+   ],
+   "tier": "B",
+   "why": "두 손을 모아 바 끝을 가슴 앞에서 미는 가슴 운동 — 우리 랜드마인 프레스는 한 팔 어깨 프레스"
+  },
+  {
+   "og": [
+    "5843"
+   ],
+   "name_ko": "머신 인클라인 플라이",
+   "name_en": "Machine Incline Fly",
+   "equipment": "machine",
+   "primary": "chest",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "incline_fly",
+   "family_is_new": false,
+   "aliases_ko": [
+    "인클라인 펙덱",
+    "인클라인 플라이 머신"
+   ],
+   "aliases_en": [
+    "machine incline fly",
+    "incline pec deck",
+    "lever incline fly"
+   ],
+   "similar": [
+    "incline_fly",
+    "chest_fly"
+   ],
+   "tier": "B",
+   "why": "등받이가 기운 머신 플라이 — 펙 덱(플랫)과 벤치 각도가 다름"
+  }
+ ],
+ "excluded": [
+  {
+   "og": [
+    "3729",
+    "4834",
+    "0170",
+    "1263",
+    "1264",
+    "1266",
+    "1267",
+    "1268",
+    "1277",
+    "1278",
+    "1280",
+    "1282",
+    "1283",
+    "1284",
+    "1286",
+    "1288",
+    "1290",
+    "0357",
+    "1291",
+    "1292",
+    "1293",
+    "1294",
+    "1295",
+    "0278",
+    "1296",
+    "0657",
+    "0655",
+    "0656",
+    "0842"
+   ],
+   "reason": "안정볼(짐볼) 위 변형"
+  },
+  {
+   "og": [
+    "1302",
+    "5144",
+    "1303",
+    "1304",
+    "1305",
+    "1312",
+    "4099",
+    "10197",
+    "10598",
+    "3442",
+    "0663",
+    "4121"
+   ],
+   "reason": "메디신볼 던지기·드릴/메디신볼 위 변형"
+  },
+  {
+   "og": [
+    "4922",
+    "10950",
+    "0806",
+    "1072",
+    "1073",
+    "1111",
+    "1074",
+    "1116",
+    "1124",
+    "1125",
+    "1126",
+    "1128",
+    "1138",
+    "5738",
+    "5737",
+    "1093"
+   ],
+   "reason": "서스펜션·링 트레이너 변형"
+  },
+  {
+   "og": [
+    "8618",
+    "8620",
+    "8616",
+    "8622",
+    "8621",
+    "8200",
+    "6057",
+    "6058"
+   ],
+   "reason": "의자·물병 등 가정용 대체 동작"
+  },
+  {
+   "og": [
+    "0040",
+    "4060",
+    "3906",
+    "4731",
+    "7994",
+    "3993",
+    "5284",
+    "4775",
+    "3265",
+    "4830",
+    "3492",
+    "3553",
+    "4859",
+    "4658",
+    "0699",
+    "8894",
+    "4159",
+    "6231",
+    "3984",
+    "6537",
+    "4162",
+    "3977",
+    "5030",
+    "0666",
+    "4807",
+    "1689",
+    "0654",
+    "3216"
+   ],
+   "reason": "두세 동작을 이어 붙인 조합"
+  },
+  {
+   "og": [
+    "0050",
+    "0328",
+    "0759",
+    "11800",
+    "9213",
+    "1297",
+    "9325",
+    "9311",
+    "0500",
+    "5077"
+   ],
+   "reason": "견갑·등척성 재활성 동작"
+  },
+  {
+   "og": [
+    "3488",
+    "3489",
+    "2944",
+    "0258",
+    "0261",
+    "3979",
+    "0468",
+    "3985",
+    "4858",
+    "3964",
+    "0803",
+    "6982",
+    "3922",
+    "3924",
+    "7884",
+    "0665"
+   ],
+   "reason": "요가성·특이 맨몸 푸시업 변형"
+  },
+  {
+   "og": [
+    "10594",
+    "10553",
+    "3798",
+    "7882",
+    "0492",
+    "0545"
+   ],
+   "reason": "스포츠·플라이오 드릴"
+  },
+  {
+   "og": [
+    "10560",
+    "9930",
+    "1851",
+    "6272",
+    "2919",
+    "3946",
+    "5816",
+    "5458",
+    "5173",
+    "0458",
+    "3923",
+    "10095",
+    "3868",
+    "0316",
+    "3234",
+    "3981",
+    "6355"
+   ],
+   "reason": "지나치게 특이하거나 정체가 불명확한 변형"
+  },
+  {
+   "og": [
+    "5858",
+    "6820",
+    "11284"
+   ],
+   "reason": "케틀벨 플라이 — 헬스장에서 드묾"
+  }
+ ]
+}

@@ -1,0 +1,2071 @@
+{
+ "chunk": "waist",
+ "total": 673,
+ "matched": [
+  {
+   "og": [
+    "0001",
+    "6555",
+    "3204",
+    "1758",
+    "0021",
+    "3016",
+    "3202",
+    "3203",
+    "3201",
+    "0508",
+    "3679",
+    "3389",
+    "4008",
+    "5963",
+    "0456",
+    "0457",
+    "3889",
+    "7255",
+    "3484",
+    "3951",
+    "5334",
+    "0821",
+    "4756",
+    "4748",
+    "6809",
+    "7417",
+    "4251",
+    "1187",
+    "4535",
+    "0718"
+   ],
+   "seed": "seed-sit-up"
+  },
+  {
+   "og": [
+    "0273",
+    "2429",
+    "4727",
+    "3821",
+    "0267",
+    "0268",
+    "3838",
+    "7414",
+    "2344",
+    "0275",
+    "0274",
+    "4332",
+    "4331",
+    "4095",
+    "4009",
+    "0634",
+    "3279",
+    "1250",
+    "0831",
+    "4252",
+    "0832",
+    "10710",
+    "10877",
+    "10871",
+    "10879",
+    "10873",
+    "4624",
+    "6144",
+    "4248",
+    "6005",
+    "3640",
+    "6752",
+    "3282",
+    "2130"
+   ],
+   "seed": "seed-crunch"
+  },
+  {
+   "og": [
+    "0281",
+    "1864",
+    "4906",
+    "2523",
+    "1190",
+    "0495",
+    "4735",
+    "4734",
+    "5237",
+    "3670",
+    "1858"
+   ],
+   "seed": "seed-decline-sit-up"
+  },
+  {
+   "og": [
+    "0271",
+    "0272",
+    "2297",
+    "3332",
+    "0840",
+    "9010"
+   ],
+   "seed": "seed-exercise-ball-crunch"
+  },
+  {
+   "og": [
+    "5741",
+    "11270",
+    "0175",
+    "0212",
+    "0874",
+    "0226"
+   ],
+   "seed": "seed-cable-crunch"
+  },
+  {
+   "og": [
+    "2314",
+    "2276",
+    "0595",
+    "2268",
+    "3760",
+    "1452",
+    "3881",
+    "3882",
+    "3883",
+    "0600",
+    "1857"
+   ],
+   "seed": "seed-ab-crunch-machine"
+  },
+  {
+   "og": [
+    "0583",
+    "1453",
+    "10065",
+    "5333",
+    "0608"
+   ],
+   "seed": "seed-torso-rotation-machine"
+  },
+  {
+   "og": [
+    "1207",
+    "1208",
+    "0862",
+    "5118",
+    "1069",
+    "0243",
+    "11271",
+    "2399",
+    "2434",
+    "4042",
+    "6760",
+    "11251",
+    "8193",
+    "0230",
+    "7584"
+   ],
+   "seed": "seed-cable-woodchopper"
+  },
+  {
+   "og": [
+    "4573",
+    "4776",
+    "8002",
+    "4696",
+    "0931",
+    "3847",
+    "3591",
+    "1011"
+   ],
+   "seed": "seed-band-woodchop"
+  },
+  {
+   "og": [
+    "1202",
+    "4356",
+    "4193",
+    "4106",
+    "4224",
+    "1213"
+   ],
+   "seed": "seed-pallof-press"
+  },
+  {
+   "og": [
+    "0979",
+    "1015",
+    "4240",
+    "10184"
+   ],
+   "seed": "seed-band-pallof-press"
+  },
+  {
+   "og": [
+    "11278"
+   ],
+   "seed": "seed-cable-side-bend"
+  },
+  {
+   "og": [
+    "6055",
+    "1247",
+    "4041",
+    "4750",
+    "3449",
+    "4249",
+    "4393",
+    "10327",
+    "8371",
+    "0845",
+    "2371",
+    "0846",
+    "4646"
+   ],
+   "seed": "seed-russian-twist"
+  },
+  {
+   "og": [
+    "5265",
+    "0147",
+    "4883",
+    "5250"
+   ],
+   "seed": "seed-bicycle-crunch"
+  },
+  {
+   "og": [
+    "0262",
+    "0263",
+    "0470",
+    "4992",
+    "4354",
+    "0823",
+    "3621",
+    "6016",
+    "4620",
+    "2312",
+    "5266",
+    "5514",
+    "4990"
+   ],
+   "seed": "seed-elbow-to-knee"
+  },
+  {
+   "og": [
+    "0635",
+    "3330",
+    "3331",
+    "4787",
+    "4158",
+    "3515",
+    "6799"
+   ],
+   "seed": "seed-side-crunch"
+  },
+  {
+   "og": [
+    "0006",
+    "6428",
+    "4007"
+   ],
+   "seed": "seed-heel-tap"
+  },
+  {
+   "og": [
+    "5050",
+    "5275",
+    "4101"
+   ],
+   "seed": "seed-toe-touch"
+  },
+  {
+   "og": [
+    "4001",
+    "4826",
+    "3590",
+    "3263",
+    "4419",
+    "1245",
+    "0620",
+    "0623",
+    "1180",
+    "1181",
+    "1854"
+   ],
+   "seed": "seed-lying-leg-raise"
+  },
+  {
+   "og": [
+    "2850",
+    "5472",
+    "8873"
+   ],
+   "seed": "seed-lying-knee-raise"
+  },
+  {
+   "og": [
+    "0138",
+    "0484",
+    "0482",
+    "3393",
+    "4018",
+    "0865",
+    "4886",
+    "1852",
+    "1855",
+    "3459",
+    "4330",
+    "11010"
+   ],
+   "seed": "seed-reverse-crunch"
+  },
+  {
+   "og": [
+    "2333",
+    "0473",
+    "0474",
+    "0475",
+    "1764",
+    "0866",
+    "11878"
+   ],
+   "seed": "seed-hanging-leg-raise"
+  },
+  {
+   "og": [
+    "2355",
+    "0011",
+    "10735"
+   ],
+   "seed": "seed-hanging-knee-raise"
+  },
+  {
+   "og": [
+    "2963",
+    "2127",
+    "0826",
+    "5477",
+    "3623"
+   ],
+   "seed": "seed-parallel-bar-leg-raise"
+  },
+  {
+   "og": [
+    "3891"
+   ],
+   "seed": "seed-toes-to-bar"
+  },
+  {
+   "og": [
+    "11877",
+    "3419",
+    "10951"
+   ],
+   "seed": "seed-l-sit-hold"
+  },
+  {
+   "og": [
+    "9044",
+    "9045",
+    "9043"
+   ],
+   "seed": "seed-front-lever-hold"
+  },
+  {
+   "og": [
+    "7251",
+    "11090"
+   ],
+   "seed": "seed-front-lever-raise"
+  },
+  {
+   "og": [
+    "1248",
+    "1249",
+    "6705",
+    "4891",
+    "4737",
+    "0839"
+   ],
+   "seed": "seed-windshield-wiper"
+  },
+  {
+   "og": [
+    "2891",
+    "9321",
+    "3962",
+    "4768"
+   ],
+   "seed": "seed-flutter-kick"
+  },
+  {
+   "og": [
+    "0621",
+    "0622",
+    "3586",
+    "2892",
+    "9024",
+    "4020",
+    "4880",
+    "4994"
+   ],
+   "seed": "seed-scissor-kick"
+  },
+  {
+   "og": [
+    "1246",
+    "9486",
+    "9451"
+   ],
+   "seed": "seed-hollow-rock"
+  },
+  {
+   "og": [
+    "4127",
+    "9517",
+    "4047",
+    "4840",
+    "4097"
+   ],
+   "seed": "seed-dead-bug"
+  },
+  {
+   "og": [
+    "4058",
+    "9318",
+    "9319",
+    "9322",
+    "4982"
+   ],
+   "seed": "seed-dragon-flag"
+  },
+  {
+   "og": [
+    "6805",
+    "4250",
+    "3336",
+    "0502",
+    "4003",
+    "5046"
+   ],
+   "seed": "seed-v-sit-up"
+  },
+  {
+   "og": [
+    "5159",
+    "3238",
+    "3983",
+    "2135",
+    "1440",
+    "2894",
+    "2895",
+    "2897",
+    "5466",
+    "3501",
+    "2347",
+    "2358",
+    "0142",
+    "0143"
+   ],
+   "seed": "seed-plank"
+  },
+  {
+   "og": [
+    "0133",
+    "3544",
+    "1469",
+    "1470",
+    "2899",
+    "2349",
+    "0701",
+    "5047",
+    "4458",
+    "4894",
+    "0568",
+    "10041",
+    "3337",
+    "4457",
+    "5879",
+    "4863",
+    "6207",
+    "4907",
+    "6208",
+    "6466"
+   ],
+   "seed": "seed-side-plank"
+  },
+  {
+   "og": [
+    "3699",
+    "4506",
+    "3239"
+   ],
+   "seed": "seed-shoulder-taps"
+  },
+  {
+   "og": [
+    "2466",
+    "9821",
+    "5156"
+   ],
+   "seed": "seed-mountain-climber"
+  },
+  {
+   "og": [
+    "6092",
+    "7463"
+   ],
+   "seed": "seed-spiderman-plank"
+  },
+  {
+   "og": [
+    "5045",
+    "3663"
+   ],
+   "seed": "seed-reverse-plank"
+  },
+  {
+   "og": [
+    "2978",
+    "3266"
+   ],
+   "seed": "seed-plank-push-up"
+  },
+  {
+   "og": [
+    "9002",
+    "4416"
+   ],
+   "seed": "seed-bird-dog"
+  },
+  {
+   "og": [
+    "4091"
+   ],
+   "seed": "seed-superman"
+  },
+  {
+   "og": [
+    "1171",
+    "4764",
+    "5051"
+   ],
+   "seed": "seed-hyperextension"
+  },
+  {
+   "og": [
+    "0084",
+    "0083",
+    "0103"
+   ],
+   "seed": "seed-barbell-rollout"
+  },
+  {
+   "og": [
+    "0971"
+   ],
+   "seed": "seed-ab-wheel-rollout"
+  },
+  {
+   "og": [
+    "0517",
+    "0530"
+   ],
+   "seed": "seed-kettlebell-windmill"
+  },
+  {
+   "og": [
+    "12018"
+   ],
+   "seed": "seed-kettlebell-around-the-world"
+  },
+  {
+   "og": [
+    "11092"
+   ],
+   "seed": "seed-landmine-180"
+  },
+  {
+   "og": [
+    "8222"
+   ],
+   "seed": "seed-renegade-row"
+  }
+ ],
+ "new": [
+  {
+   "og": [
+    "6033",
+    "4626",
+    "4623",
+    "3510",
+    "3509",
+    "0570",
+    "3944",
+    "4628"
+   ],
+   "name_ko": "시티드 니 턱",
+   "name_en": "Seated Knee Tuck",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "seated_knee_tuck",
+   "family_is_new": true,
+   "aliases_ko": [
+    "시티드 니업",
+    "앉아서 무릎 당기기",
+    "니 턱",
+    "인앤아웃"
+   ],
+   "aliases_en": [
+    "ab tuck",
+    "seated in and out",
+    "seated tuck crunch",
+    "bench knee tuck"
+   ],
+   "similar": [
+    "lying_knee_raise",
+    "reverse_crunch",
+    "v_sit_up"
+   ],
+   "tier": "A",
+   "why": "앉아 상체를 젖힌 채 무릎을 당기는 동작 — 라잉/행잉/평행봉 니 레이즈와 셋업이 다름"
+  },
+  {
+   "og": [
+    "0871",
+    "5274",
+    "3969",
+    "4002",
+    "0487",
+    "0260"
+   ],
+   "name_ko": "더블 크런치",
+   "name_en": "Double Crunch",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "double_crunch",
+   "family_is_new": true,
+   "aliases_ko": [
+    "턱 크런치",
+    "턱 업",
+    "코쿤"
+   ],
+   "aliases_en": [
+    "tuck crunch",
+    "tuck up",
+    "cocoons"
+   ],
+   "similar": [
+    "crunch",
+    "reverse_crunch",
+    "v_sit_up"
+   ],
+   "tier": "A",
+   "why": "상체 크런치와 무릎 당기기를 동시에 — 크런치·리버스 크런치 어느 한쪽만 하는 기존 종목과 다름"
+  },
+  {
+   "og": [
+    "6548",
+    "3438",
+    "0491",
+    "9049",
+    "4885",
+    "1845"
+   ],
+   "name_ko": "디클라인 레그 레이즈",
+   "name_en": "Decline Bench Leg Raise",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "lying_leg_raise",
+   "family_is_new": false,
+   "aliases_ko": [
+    "벤치 레그 레이즈",
+    "디클라인 벤치 레그레이즈",
+    "디클라인 니 레이즈"
+   ],
+   "aliases_en": [
+    "decline leg raise",
+    "incline leg hip raise",
+    "decline knee raise"
+   ],
+   "similar": [
+    "lying_leg_raise",
+    "reverse_crunch",
+    "decline_crunch"
+   ],
+   "tier": "B",
+   "why": "경사 벤치에 머리를 위로 두고 다리를 들어 바닥 라잉 레그 레이즈보다 가동·부하가 큼"
+  },
+  {
+   "og": [
+    "1761",
+    "0476"
+   ],
+   "name_ko": "행잉 오블리크 니 레이즈",
+   "name_en": "Hanging Oblique Knee Raise",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "hanging_knee_raise",
+   "family_is_new": false,
+   "aliases_ko": [
+    "행잉 트위스트 니 레이즈",
+    "매달려 사선 무릎 들기"
+   ],
+   "aliases_en": [
+    "hanging twisting knee raise",
+    "hanging oblique raise"
+   ],
+   "similar": [
+    "hanging_knee_raise",
+    "windshield_wiper",
+    "hanging_leg_raise"
+   ],
+   "tier": "B",
+   "why": "무릎을 사선으로 들어 옆구리를 겨냥 — 정면으로 드는 행잉 니 레이즈와 다름"
+  },
+  {
+   "og": [
+    "3890"
+   ],
+   "name_ko": "행잉 니 투 엘보",
+   "name_en": "Hanging Knees to Elbows",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "back"
+   ],
+   "load_mode": "bodyweight",
+   "family": "toes_to_bar",
+   "family_is_new": false,
+   "aliases_ko": [
+    "니 투 엘보",
+    "K2E"
+   ],
+   "aliases_en": [
+    "knees to elbows",
+    "K2E"
+   ],
+   "similar": [
+    "toes_to_bar",
+    "hanging_knee_raise",
+    "hanging_leg_raise"
+   ],
+   "tier": "B",
+   "why": "매달려 무릎을 팔꿈치까지 끌어올림 — 니 레이즈보다 높고 토즈 투 바보다 쉬운 중간 단계"
+  },
+  {
+   "og": [
+    "3420",
+    "5344"
+   ],
+   "name_ko": "V 싯 홀드",
+   "name_en": "V-Sit Hold",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "quads"
+   ],
+   "load_mode": "bodyweight",
+   "family": "hollow_rock",
+   "family_is_new": false,
+   "aliases_ko": [
+    "V싯 홀드",
+    "보트 홀드",
+    "V 홀드"
+   ],
+   "aliases_en": [
+    "v-sit",
+    "boat hold",
+    "v up hold"
+   ],
+   "similar": [
+    "hollow_rock",
+    "l_sit",
+    "v_sit_up"
+   ],
+   "tier": "B",
+   "why": "엉덩이로 앉아 상체·다리를 V로 버티는 등척 — 반복하는 V 싯업, 등 대고 버티는 할로우와 다름"
+  },
+  {
+   "og": [
+    "1471",
+    "3698",
+    "3854"
+   ],
+   "name_ko": "인치웜",
+   "name_en": "Inchworm",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "shoulders",
+    "hamstrings"
+   ],
+   "load_mode": "bodyweight",
+   "family": "inchworm",
+   "family_is_new": true,
+   "aliases_ko": [
+    "인치 웜",
+    "플랭크 워크아웃",
+    "자벌레"
+   ],
+   "aliases_en": [
+    "inch worm",
+    "plank walkout",
+    "walkout"
+   ],
+   "similar": [
+    "plank",
+    "bear_crawl",
+    "plank_push_up"
+   ],
+   "tier": "A",
+   "why": "서서 손으로 걸어 나가 플랭크까지 갔다 돌아오는 이동 동작 — 기존 플랭크류에 없음"
+  },
+  {
+   "og": [
+    "3930",
+    "5157",
+    "1478"
+   ],
+   "name_ko": "플랭크 잭",
+   "name_en": "Plank Jack",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "bodyweight",
+   "family": "plank_jack",
+   "family_is_new": true,
+   "aliases_ko": [
+    "플랭크 점핑잭",
+    "잭 플랭크"
+   ],
+   "aliases_en": [
+    "plank jacks",
+    "jack plank"
+   ],
+   "similar": [
+    "plank",
+    "jumping_jack",
+    "mountain_climber"
+   ],
+   "tier": "B",
+   "why": "플랭크 자세로 다리를 점핑잭처럼 벌렸다 모음 — 정적 플랭크·점핑 잭과 다름"
+  },
+  {
+   "og": [
+    "0464",
+    "4385"
+   ],
+   "name_ko": "플랭크 힙 딥",
+   "name_en": "Plank Hip Dip",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "plank",
+   "family_is_new": false,
+   "aliases_ko": [
+    "플랭크 힙 트위스트",
+    "플랭크 트위스트",
+    "힙 딥"
+   ],
+   "aliases_en": [
+    "plank hip twist",
+    "plank with twist",
+    "hip roll plank"
+   ],
+   "similar": [
+    "plank",
+    "side_plank",
+    "russian_twist"
+   ],
+   "tier": "A",
+   "why": "엘보 플랭크에서 골반을 좌우로 떨궈 옆구리를 씀 — 정적 플랭크와 다름"
+  },
+  {
+   "og": [
+    "4991",
+    "0820"
+   ],
+   "name_ko": "사이드 플랭크 로테이션",
+   "name_en": "Side Plank Rotation",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "bodyweight",
+   "family": "side_plank",
+   "family_is_new": false,
+   "aliases_ko": [
+    "스레드 더 니들",
+    "사이드 플랭크 트위스트"
+   ],
+   "aliases_en": [
+    "thread the needle",
+    "side plank twist",
+    "twist side bridge"
+   ],
+   "similar": [
+    "side_plank",
+    "russian_twist",
+    "plank"
+   ],
+   "tier": "B",
+   "why": "사이드 플랭크에서 위팔을 몸 아래로 감아 넣는 회전 — 정적 사이드 플랭크와 다름"
+  },
+  {
+   "og": [
+    "4334",
+    "3503",
+    "6210",
+    "0702"
+   ],
+   "name_ko": "사이드 플랭크 크런치",
+   "name_en": "Side Plank Crunch",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "side_plank",
+   "family_is_new": false,
+   "aliases_ko": [
+    "사이드 플랭크 엘보 투 니",
+    "사이드 플랭크 니 턱"
+   ],
+   "aliases_en": [
+    "side plank oblique crunch",
+    "side plank elbow to knee"
+   ],
+   "similar": [
+    "side_plank",
+    "side_crunch",
+    "elbow_to_knee"
+   ],
+   "tier": "C",
+   "why": "사이드 플랭크를 버티며 팔꿈치·무릎을 맞붙이는 반복 동작 — 정적 사이드 플랭크와 다름"
+  },
+  {
+   "og": [
+    "4170"
+   ],
+   "name_ko": "베어 플랭크",
+   "name_en": "Bear Plank",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "shoulders",
+    "quads"
+   ],
+   "load_mode": "bodyweight",
+   "family": "bear_crawl",
+   "family_is_new": false,
+   "aliases_ko": [
+    "베어 홀드",
+    "무릎 띄운 네발 버티기"
+   ],
+   "aliases_en": [
+    "bear hold",
+    "hover hold"
+   ],
+   "similar": [
+    "bear_crawl",
+    "plank",
+    "bird_dog"
+   ],
+   "tier": "B",
+   "why": "네발 자세로 무릎을 살짝 띄워 버티는 등척 — 이동하는 베어 크롤·팔 편 플랭크와 다름"
+  },
+  {
+   "og": [
+    "5497",
+    "7229",
+    "6026"
+   ],
+   "name_ko": "플랭크 풀 스루",
+   "name_en": "Plank Pull Through",
+   "equipment": "kettlebell",
+   "primary": "abs",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "plank",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 플랭크 풀스루",
+    "덤벨 플랭크 풀 스루",
+    "플랭크 패스 스루"
+   ],
+   "aliases_en": [
+    "kettlebell plank pull through",
+    "plank pass through",
+    "dumbbell plank pull through"
+   ],
+   "similar": [
+    "plank",
+    "renegade_row",
+    "shoulder_tap"
+   ],
+   "tier": "B",
+   "why": "하이 플랭크에서 한 손으로 기구를 반대편으로 끌어 옮기는 항회전 — 숄더 탭·레니게이드 로우와 다름"
+  },
+  {
+   "og": [
+    "3999",
+    "5846",
+    "4366"
+   ],
+   "name_ko": "스탠딩 니 투 엘보",
+   "name_en": "Standing Knee to Elbow",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "elbow_to_knee",
+   "family_is_new": false,
+   "aliases_ko": [
+    "스탠딩 크런치",
+    "서서 무릎 팔꿈치 닿기",
+    "스탠딩 바이시클"
+   ],
+   "aliases_en": [
+    "standing air bike",
+    "standing cross body crunch",
+    "standing bicycle crunch"
+   ],
+   "similar": [
+    "elbow_to_knee",
+    "bicycle_crunch",
+    "high_knees"
+   ],
+   "tier": "B",
+   "why": "서서 무릎을 들어 반대 팔꿈치에 닿게 함 — 누워서 하는 엘보 투 니·바이시클과 셋업이 다름"
+  },
+  {
+   "og": [
+    "5699",
+    "0002",
+    "10875"
+   ],
+   "name_ko": "45도 사이드 벤드",
+   "name_en": "45 Degree Side Bend",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "side_bend",
+   "family_is_new": false,
+   "aliases_ko": [
+    "로만체어 사이드 벤드",
+    "하이퍼 사이드 벤드",
+    "옆구리 하이퍼"
+   ],
+   "aliases_en": [
+    "roman chair side bend",
+    "45 degree side bend",
+    "side hyperextension"
+   ],
+   "similar": [
+    "side_bend",
+    "back_extension",
+    "side_crunch"
+   ],
+   "tier": "B",
+   "why": "45도 하이퍼 벤치에 옆으로 걸쳐 몸통을 옆으로 굽혔다 폄 — 서서 하는 덤벨·케이블 사이드 벤드와 셋업이 다름"
+  },
+  {
+   "og": [
+    "0096"
+   ],
+   "name_ko": "바벨 사이드 벤드",
+   "name_en": "Barbell Side Bend",
+   "equipment": "barbell",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "side_bend",
+   "family_is_new": false,
+   "aliases_ko": [
+    "바벨 옆구리 굽히기"
+   ],
+   "aliases_en": [
+    "barbell side bend"
+   ],
+   "similar": [
+    "side_bend",
+    "good_morning"
+   ],
+   "tier": "C",
+   "why": "바벨을 등에 지고 옆으로 굽힘 — 기존은 덤벨·케이블만"
+  },
+  {
+   "og": [
+    "4396"
+   ],
+   "name_ko": "케틀벨 사이드 벤드",
+   "name_en": "Kettlebell Side Bend",
+   "equipment": "kettlebell",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "side_bend",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 옆구리"
+   ],
+   "aliases_en": [
+    "kettlebell side bend"
+   ],
+   "similar": [
+    "side_bend",
+    "suitcase_carry",
+    "kettlebell_windmill"
+   ],
+   "tier": "C",
+   "why": "케틀벨로 하는 사이드 벤드 — 기존은 덤벨·케이블만"
+  },
+  {
+   "og": [
+    "4746",
+    "4888",
+    "4901"
+   ],
+   "name_ko": "덤벨 윈드밀",
+   "name_en": "Dumbbell Windmill",
+   "equipment": "dumbbell",
+   "primary": "abs",
+   "secondary": [
+    "shoulders",
+    "hamstrings"
+   ],
+   "load_mode": "weight",
+   "family": "kettlebell_windmill",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 윈드 밀"
+   ],
+   "aliases_en": [
+    "dumbbell windmill",
+    "dumbbell low windmill",
+    "dumbbell high windmill"
+   ],
+   "similar": [
+    "kettlebell_windmill",
+    "side_bend",
+    "turkish_get_up"
+   ],
+   "tier": "B",
+   "why": "윈드밀을 덤벨로 — 기존은 케틀벨 윈드밀뿐"
+  },
+  {
+   "og": [
+    "0524"
+   ],
+   "name_ko": "케틀벨 벤트 프레스",
+   "name_en": "Kettlebell Bent Press",
+   "equipment": "kettlebell",
+   "primary": "abs",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "kettlebell_windmill",
+   "family_is_new": false,
+   "aliases_ko": [
+    "벤트 프레스"
+   ],
+   "aliases_en": [
+    "bent press"
+   ],
+   "similar": [
+    "kettlebell_windmill",
+    "overhead_press",
+    "turkish_get_up"
+   ],
+   "tier": "C",
+   "why": "몸을 옆으로 숙이며 케틀벨을 밀어 올리는 고전 리프트 — 윈드밀(팔 고정)·오버헤드 프레스와 다름"
+  },
+  {
+   "og": [
+    "0532"
+   ],
+   "name_ko": "케틀벨 피겨 8",
+   "name_en": "Kettlebell Figure 8",
+   "equipment": "kettlebell",
+   "primary": "abs",
+   "secondary": [
+    "forearms",
+    "glutes"
+   ],
+   "load_mode": "weight",
+   "family": "kettlebell_around_world",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 8자 돌리기",
+    "피겨 에잇"
+   ],
+   "aliases_en": [
+    "figure 8",
+    "kettlebell figure eight"
+   ],
+   "similar": [
+    "kettlebell_around_world",
+    "kettlebell_swing",
+    "kettlebell_halo"
+   ],
+   "tier": "C",
+   "why": "다리 사이로 케틀벨을 8자로 넘김 — 몸통 주위를 도는 어라운드 더 월드와 경로가 다름"
+  },
+  {
+   "og": [
+    "5108",
+    "4572",
+    "4747"
+   ],
+   "name_ko": "덤벨 우드촙",
+   "name_en": "Dumbbell Woodchop",
+   "equipment": "dumbbell",
+   "primary": "abs",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "woodchop",
+   "family_is_new": false,
+   "aliases_ko": [
+    "덤벨 우드찹",
+    "덤벨 우드 초퍼"
+   ],
+   "aliases_en": [
+    "dumbbell wood chop",
+    "dumbbell woodchopper",
+    "dumbbell lift and chop"
+   ],
+   "similar": [
+    "woodchop",
+    "russian_twist",
+    "kettlebell_windmill"
+   ],
+   "tier": "B",
+   "why": "우드촙을 덤벨로 — 기존은 케이블·밴드뿐"
+  },
+  {
+   "og": [
+    "8025"
+   ],
+   "name_ko": "케틀벨 우드촙",
+   "name_en": "Kettlebell Woodchop",
+   "equipment": "kettlebell",
+   "primary": "abs",
+   "secondary": [
+    "shoulders"
+   ],
+   "load_mode": "weight",
+   "family": "woodchop",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케틀벨 우드찹"
+   ],
+   "aliases_en": [
+    "kettlebell wood chop"
+   ],
+   "similar": [
+    "woodchop",
+    "kettlebell_swing",
+    "kettlebell_around_world"
+   ],
+   "tier": "C",
+   "why": "우드촙을 케틀벨로 — 기존은 케이블·밴드뿐"
+  },
+  {
+   "og": [
+    "0094",
+    "0112",
+    "4854",
+    "0855"
+   ],
+   "name_ko": "바벨 트위스트",
+   "name_en": "Barbell Torso Twist",
+   "equipment": "barbell",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "torso_rotation",
+   "family_is_new": false,
+   "aliases_ko": [
+    "바벨 스탠딩 트위스트",
+    "바벨 시티드 트위스트",
+    "봉 트위스트"
+   ],
+   "aliases_en": [
+    "barbell standing twist",
+    "barbell seated twist"
+   ],
+   "similar": [
+    "torso_rotation",
+    "russian_twist",
+    "landmine_180"
+   ],
+   "tier": "C",
+   "why": "바벨을 등에 지고 몸통을 좌우로 비틂 — 머신 토르소 로테이션·랜드마인 180과 기구가 다름"
+  },
+  {
+   "og": [
+    "0873",
+    "0242"
+   ],
+   "name_ko": "케이블 리버스 크런치",
+   "name_en": "Cable Reverse Crunch",
+   "equipment": "cable",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "reverse_crunch",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케이블 리버스크런치"
+   ],
+   "aliases_en": [
+    "cable reverse crunch",
+    "cable tuck reverse crunch"
+   ],
+   "similar": [
+    "reverse_crunch",
+    "crunch",
+    "lying_knee_raise"
+   ],
+   "tier": "C",
+   "why": "발목에 케이블을 걸고 리버스 크런치 — 기존은 맨몸만"
+  },
+  {
+   "og": [
+    "6693",
+    "0223"
+   ],
+   "name_ko": "케이블 사이드 크런치",
+   "name_en": "Cable Side Crunch",
+   "equipment": "cable",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "side_crunch",
+   "family_is_new": false,
+   "aliases_ko": [
+    "케이블 오블리크 크런치",
+    "닐링 케이블 사이드 크런치"
+   ],
+   "aliases_en": [
+    "cable oblique crunch",
+    "cable kneeling side crunch"
+   ],
+   "similar": [
+    "side_crunch",
+    "crunch",
+    "side_bend"
+   ],
+   "tier": "B",
+   "why": "케이블을 당기며 옆으로 말아 내리는 크런치 — 서서 옆으로 굽히는 케이블 사이드 벤드·맨몸 사이드 크런치와 다름"
+  },
+  {
+   "og": [
+    "10639",
+    "11282",
+    "6554",
+    "3329",
+    "3942"
+   ],
+   "name_ko": "GHD 싯업",
+   "name_en": "GHD Sit Up",
+   "equipment": "machine",
+   "primary": "abs",
+   "secondary": [
+    "quads"
+   ],
+   "load_mode": "bodyweight",
+   "family": "sit_up",
+   "family_is_new": false,
+   "aliases_ko": [
+    "지에이치디 싯업",
+    "로만체어 싯업",
+    "글루트 햄 싯업"
+   ],
+   "aliases_en": [
+    "ghd sit up",
+    "glute ham developer sit up",
+    "roman chair sit up"
+   ],
+   "similar": [
+    "sit_up",
+    "decline_sit_up",
+    "back_extension"
+   ],
+   "tier": "B",
+   "why": "GHD에 발을 걸고 수평 아래까지 젖혔다 올라오는 싯업 — 가동 범위·셋업이 디클라인 싯업과 다름"
+  },
+  {
+   "og": [
+    "5583"
+   ],
+   "name_ko": "앱 코스터",
+   "name_en": "Ab Coaster",
+   "equipment": "machine",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "weight",
+   "family": "crunch",
+   "family_is_new": false,
+   "aliases_ko": [
+    "앱코스터",
+    "레버 앱 코스터 크런치"
+   ],
+   "aliases_en": [
+    "ab coaster",
+    "lever ab coaster crunch"
+   ],
+   "similar": [
+    "crunch",
+    "reverse_crunch",
+    "hanging_knee_raise"
+   ],
+   "tier": "B",
+   "why": "무릎 받침 썰매를 레일 따라 끌어올리는 하복부 머신 — 상체를 마는 앱 크런치 머신과 동작이 다름"
+  },
+  {
+   "og": [
+    "5445",
+    "5242"
+   ],
+   "name_ko": "스토머크 배큠",
+   "name_en": "Stomach Vacuum",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [],
+   "load_mode": "bodyweight",
+   "family": "vacuum",
+   "family_is_new": true,
+   "aliases_ko": [
+    "배큠",
+    "복부 진공",
+    "진공 복근"
+   ],
+   "aliases_en": [
+    "abdominal vacuum",
+    "vacuum",
+    "abdominal draw in"
+   ],
+   "similar": [
+    "plank",
+    "dead_bug",
+    "hollow_rock"
+   ],
+   "tier": "B",
+   "why": "숨을 내쉬고 배를 등쪽으로 당겨 버티는 복횡근 운동 — 기존 종목에 없음"
+  },
+  {
+   "og": [
+    "3299",
+    "3298",
+    "3300",
+    "3301"
+   ],
+   "name_ko": "플란체 홀드",
+   "name_en": "Planche Hold",
+   "equipment": "bodyweight",
+   "primary": "shoulders",
+   "secondary": [
+    "abs",
+    "chest"
+   ],
+   "load_mode": "bodyweight",
+   "family": "planche",
+   "family_is_new": true,
+   "aliases_ko": [
+    "플란체",
+    "린 플란체",
+    "턱 플란체"
+   ],
+   "aliases_en": [
+    "planche",
+    "lean planche",
+    "tuck planche",
+    "straddle planche"
+   ],
+   "similar": [
+    "front_lever",
+    "handstand_hold",
+    "l_sit"
+   ],
+   "tier": "C",
+   "why": "팔로만 몸을 수평으로 띄워 버티는 맨몸 기술 — 기존에 없음(프론트 레버의 반대 방향)"
+  },
+  {
+   "og": [
+    "3303"
+   ],
+   "name_ko": "휴먼 플래그",
+   "name_en": "Human Flag",
+   "equipment": "bodyweight",
+   "primary": "abs",
+   "secondary": [
+    "shoulders",
+    "back"
+   ],
+   "load_mode": "bodyweight",
+   "family": "human_flag",
+   "family_is_new": true,
+   "aliases_ko": [
+    "플래그",
+    "인간 깃발"
+   ],
+   "aliases_en": [
+    "flag",
+    "human flag hold"
+   ],
+   "similar": [
+    "side_plank",
+    "front_lever",
+    "dragon_flag"
+   ],
+   "tier": "C",
+   "why": "세로 봉을 잡고 몸을 옆으로 수평 유지하는 맨몸 기술 — 기존에 없음"
+  },
+  {
+   "og": [
+    "2918"
+   ],
+   "name_ko": "바벨 수트케이스 캐리",
+   "name_en": "Barbell Suitcase Carry",
+   "equipment": "barbell",
+   "primary": "abs",
+   "secondary": [
+    "forearms",
+    "traps"
+   ],
+   "load_mode": "weight",
+   "family": "suitcase_carry",
+   "family_is_new": false,
+   "aliases_ko": [
+    "바벨 한손 캐리"
+   ],
+   "aliases_en": [
+    "barbell suitcase carry"
+   ],
+   "similar": [
+    "suitcase_carry",
+    "farmers_walk"
+   ],
+   "tier": "C",
+   "why": "바벨 한쪽을 한 손에 들고 걸어 균형까지 요구 — 기존은 덤벨 수트케이스 캐리뿐"
+  }
+ ],
+ "excluded": [
+  {
+   "og": [
+    "0010",
+    "0012",
+    "0013",
+    "0014"
+   ],
+   "reason": "파트너가 다리를 밀어내는 짝 드릴"
+  },
+  {
+   "og": [
+    "4699",
+    "0969",
+    "0972",
+    "1498",
+    "0981",
+    "4720",
+    "4080",
+    "0985",
+    "6810",
+    "0910",
+    "1002",
+    "4082",
+    "0992",
+    "4081",
+    "3841",
+    "1020",
+    "4137",
+    "1005",
+    "4685",
+    "1007",
+    "3778",
+    "2938",
+    "4083",
+    "1014",
+    "4839",
+    "7212",
+    "3866",
+    "3511",
+    "2152",
+    "5206",
+    "5202",
+    "2155",
+    "7201",
+    "6419",
+    "6418",
+    "6737",
+    "2164",
+    "5203",
+    "2463",
+    "3512",
+    "3792",
+    "2420"
+   ],
+   "reason": "밴드를 덧댄 맨몸 복근 변형 — 헬스장에서 드묾"
+  },
+  {
+   "og": [
+    "3777",
+    "3791",
+    "8224",
+    "7210"
+   ],
+   "reason": "밴드 + 다른 동작 조합"
+  },
+  {
+   "og": [
+    "10195",
+    "10093"
+   ],
+   "reason": "하프 닐링 토르 리프트 — 특이한 리프트"
+  },
+  {
+   "og": [
+    "0071",
+    "4621",
+    "4625",
+    "5309",
+    "5072",
+    "6806",
+    "6800",
+    "6802",
+    "6801"
+   ],
+   "reason": "싯업·트위스트에 프레스를 이어 붙인 조합"
+  },
+  {
+   "og": [
+    "0093",
+    "0131",
+    "0211",
+    "0221",
+    "0269",
+    "0686",
+    "0700",
+    "0850",
+    "0849",
+    "1707",
+    "0650",
+    "0503",
+    "2469",
+    "2815",
+    "3606",
+    "3861",
+    "4056",
+    "7019",
+    "2296",
+    "2937",
+    "1706",
+    "9025",
+    "8223"
+   ],
+   "reason": "안정볼·보수볼 도구 위주 변형"
+  },
+  {
+   "og": [
+    "2800",
+    "2799"
+   ],
+   "reason": "바벨 들고 앉아 다리 들기 — 특이"
+  },
+  {
+   "og": [
+    "4333",
+    "0505",
+    "1468",
+    "2572",
+    "4022",
+    "3978",
+    "6803",
+    "5124",
+    "6335",
+    "7585",
+    "4989",
+    "3865"
+   ],
+   "reason": "기묘한 동작·드릴"
+  },
+  {
+   "og": [
+    "5882",
+    "6006",
+    "3119"
+   ],
+   "reason": "스쿼트·스트레칭성 복합 동작"
+  },
+  {
+   "og": [
+    "6053",
+    "6052",
+    "6054"
+   ],
+   "reason": "물병 홈트 변형"
+  },
+  {
+   "og": [
+    "4384",
+    "1110"
+   ],
+   "reason": "바디 쏘 — 슬라이더·서스펜션 의존, 드묾"
+  },
+  {
+   "og": [
+    "4196",
+    "4197",
+    "4228"
+   ],
+   "reason": "팔로프 프레스 + 다른 동작 조합"
+  },
+  {
+   "og": [
+    "0174",
+    "11262",
+    "11275",
+    "2887"
+   ],
+   "reason": "케이블 특이 변형·조합"
+  },
+  {
+   "og": [
+    "1193",
+    "8610",
+    "3665",
+    "5399",
+    "7389",
+    "4096",
+    "2526"
+   ],
+   "reason": "등척 변형 — 특이하거나 진동판 등 특수 조건"
+  },
+  {
+   "og": [
+    "4124",
+    "4253",
+    "3422",
+    "5031",
+    "1697",
+    "1699",
+    "1704",
+    "0625",
+    "10558",
+    "10552",
+    "0640",
+    "2564",
+    "10554"
+   ],
+   "reason": "메디신볼 위주 변형·던지기"
+  },
+  {
+   "og": [
+    "10185",
+    "8225",
+    "4627",
+    "4622",
+    "8221",
+    "3852",
+    "7854",
+    "10183",
+    "8505"
+   ],
+   "reason": "플랭크·로우·레이즈를 이어 붙인 조합"
+  },
+  {
+   "og": [
+    "4187",
+    "4188",
+    "5308",
+    "4190"
+   ],
+   "reason": "EZ바 특이 변형·조합"
+  },
+  {
+   "og": [
+    "4189",
+    "6215"
+   ],
+   "reason": "롤아웃 기구 대체 변형 — 드묾"
+  },
+  {
+   "og": [
+    "3315",
+    "3314"
+   ],
+   "reason": "말티즈 — 극상급 맨몸 기술"
+  },
+  {
+   "og": [
+    "0467"
+   ],
+   "reason": "친업 + 니 레이즈 조합"
+  },
+  {
+   "og": [
+    "4373",
+    "4766",
+    "6547",
+    "4767",
+    "9489",
+    "11091"
+   ],
+   "reason": "행잉 특이 변형"
+  },
+  {
+   "og": [
+    "4348",
+    "4459",
+    "6094",
+    "3496",
+    "6002",
+    "5106",
+    "4987",
+    "4156",
+    "3268",
+    "5032",
+    "0469",
+    "0719"
+   ],
+   "reason": "재활성·저강도 바닥 드릴"
+  },
+  {
+   "og": [
+    "9518"
+   ],
+   "reason": "케틀벨 풀오버 + 데드 버그 조합"
+  },
+  {
+   "og": [
+    "8366",
+    "10192"
+   ],
+   "reason": "케틀벨 사이드 스윙 — 특이"
+  },
+  {
+   "og": [
+    "5069",
+    "1688"
+   ],
+   "reason": "런지 + 트위스트 조합"
+  },
+  {
+   "og": [
+    "0641"
+   ],
+   "reason": "오티스 업 — 특이"
+  },
+  {
+   "og": [
+    "0756"
+   ],
+   "reason": "스미스 힙 레이즈 — 특이"
+  },
+  {
+   "og": [
+    "9999",
+    "4023",
+    "3814",
+    "3750",
+    "9677",
+    "7859",
+    "3959",
+    "3958",
+    "4386",
+    "3982",
+    "8399",
+    "7342",
+    "6804",
+    "3954",
+    "5165",
+    "5158"
+   ],
+   "reason": "플랭크 탭·점프·이동 변형 — 드릴성"
+  },
+  {
+   "og": [
+    "0664",
+    "0681"
+   ],
+   "reason": "푸시업 + 사이드 플랭크 조합"
+  },
+  {
+   "og": [
+    "4860"
+   ],
+   "reason": "푸시업 + 니 드라이브 조합"
+  },
+  {
+   "og": [
+    "0689",
+    "9487",
+    "5023"
+   ],
+   "reason": "앉아 다리 들기 — 드묾"
+  },
+  {
+   "og": [
+    "0691",
+    "0723",
+    "0724",
+    "0709"
+   ],
+   "reason": "특이 측면 동작"
+  },
+  {
+   "og": [
+    "2889",
+    "3813"
+   ],
+   "reason": "스타피시 크런치 — 특이"
+  },
+  {
+   "og": [
+    "2801",
+    "2802"
+   ],
+   "reason": "트위스트 레그 레이즈 — 특이"
+  },
+  {
+   "og": [
+    "7850",
+    "4980",
+    "4779"
+   ],
+   "reason": "리버스 에어 사이클·엎드려 플러터 — 재활성"
+  },
+  {
+   "og": [
+    "3584"
+   ],
+   "reason": "사이드 브릿지 + 팔다리 스윙 조합"
+  },
+  {
+   "og": [
+    "8434",
+    "8423",
+    "7263",
+    "8199",
+    "8203",
+    "7693"
+   ],
+   "reason": "의자 홈트 변형"
+  },
+  {
+   "og": [
+    "10046"
+   ],
+   "reason": "스노우 엔젤 — 재활성"
+  },
+  {
+   "og": [
+    "0777"
+   ],
+   "reason": "스펠 캐스터 — 특이"
+  },
+  {
+   "og": [
+    "5938"
+   ],
+   "reason": "러시안 트위스트 + 촙 조합"
+  },
+  {
+   "og": [
+    "4977",
+    "9313",
+    "4978",
+    "4820",
+    "4979",
+    "4798",
+    "1112",
+    "1122",
+    "1156",
+    "4799",
+    "1134",
+    "1135",
+    "1137",
+    "1144",
+    "1145",
+    "1146",
+    "1147",
+    "1148",
+    "1151",
+    "1152",
+    "1106",
+    "1081",
+    "1082",
+    "1084",
+    "1091",
+    "1097",
+    "1098",
+    "7275",
+    "7274",
+    "1105",
+    "0805",
+    "0807"
+   ],
+   "reason": "링·서스펜션 도구 위주 변형"
+  },
+  {
+   "og": [
+    "0836"
+   ],
+   "reason": "레그 익스텐션 크런치 — 특이"
+  },
+  {
+   "og": [
+    "0870"
+   ],
+   "reason": "버트 업 — 특이"
+  },
+  {
+   "og": [
+    "6561",
+    "1856"
+   ],
+   "reason": "특이 복근 머신 — 드묾"
+  },
+  {
+   "og": [
+    "10188",
+    "4322",
+    "4810"
+   ],
+   "reason": "맨몸 옆구리 늘리기·스트레칭성"
+  },
+  {
+   "og": [
+    "4972"
+   ],
+   "reason": "디클라인 싯업 + 러시안 트위스트 조합"
+  },
+  {
+   "og": [
+    "4763"
+   ],
+   "reason": "GHD 싯업 + 러시안 트위스트 조합"
+  },
+  {
+   "og": [
+    "1188",
+    "3283",
+    "3280"
+   ],
+   "reason": "벤치 위 트위스팅 크런치 — 특이 변형"
+  }
+ ]
+}

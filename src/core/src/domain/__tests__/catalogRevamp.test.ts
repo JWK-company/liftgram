@@ -83,8 +83,12 @@ test('기구 값: CSV ⊆ 카탈로그 기구 ⊆ proto enum(EZ바·트랩바 �
 test('통계(QA L1) — 활성 = 근력 + 유산소, 근력 ≥ 440', () => {
   const active = CATALOG.filter((r) => !r.isArchived);
   const cardio = active.filter((r) => r.kind === 'cardio').length;
-  assert.equal(CATALOG.length, 480);
-  assert.equal(active.length, 469);
+  // [원본] 개편 직후 480행 · 활성 469
+  // assert.equal(CATALOG.length, 480);
+  // assert.equal(active.length, 469);
+  // [개선] 오픈짐 대조 갭 보강 +106(SRS-094) — 근력만 늘었다
+  assert.equal(CATALOG.length, 586);
+  assert.equal(active.length, 575);
   assert.equal(cardio, 26);
   assert.ok(active.length - cardio >= 440);
 });

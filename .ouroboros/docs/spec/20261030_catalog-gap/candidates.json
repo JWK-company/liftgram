@@ -1,0 +1,3637 @@
+[
+ {
+  "og": [
+   "4338",
+   "0072",
+   "3988"
+  ],
+  "name_ko": "바벨 스파이더 컬",
+  "name_en": "Barbell Spider Curl",
+  "equipment": "barbell",
+  "primary": "biceps",
+  "secondary": [
+   "forearms"
+  ],
+  "load_mode": "weight",
+  "family": "spider_curl",
+  "family_is_new": false,
+  "aliases_ko": [
+   "바벨 프론 인클라인 컬",
+   "인클라인 바벨 스파이더 컬"
+  ],
+  "aliases_en": [
+   "barbell prone incline curl"
+  ],
+  "similar": [
+   "spider_curl",
+   "preacher_curl",
+   "curl"
+  ],
+  "tier": "B",
+  "why": "스파이더 컬은 덤벨·EZ바만 있음 — 바벨은 기구가 달라 별도",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-barbell-spider-curl"
+ },
+ {
+  "og": [
+   "5703",
+   "4345",
+   "11763",
+   "1645"
+  ],
+  "name_ko": "케이블 인클라인 컬",
+  "name_en": "Cable Incline Curl",
+  "equipment": "cable",
+  "primary": "biceps",
+  "secondary": [
+   "forearms"
+  ],
+  "load_mode": "weight",
+  "family": "incline_curl",
+  "family_is_new": false,
+  "aliases_ko": [
+   "인클라인 케이블 컬",
+   "케이블 인클라인 바이셉스 컬"
+  ],
+  "aliases_en": [
+   "cable incline biceps curl",
+   "incline cable curl"
+  ],
+  "similar": [
+   "incline_curl",
+   "curl",
+   "behind_back_cable_curl"
+  ],
+  "tier": "B",
+  "why": "인클라인 컬은 덤벨만 있음 — 케이블+인클라인 벤치 셋업은 별도",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-cable-incline-curl"
+ },
+ {
+  "og": [
+   "1631",
+   "3925",
+   "1642"
+  ],
+  "name_ko": "케이블 컨센트레이션 컬",
+  "name_en": "Cable Concentration Curl",
+  "equipment": "cable",
+  "primary": "biceps",
+  "secondary": [
+   "forearms"
+  ],
+  "load_mode": "weight",
+  "family": "concentration_curl",
+  "family_is_new": false,
+  "aliases_ko": [
+   "케이블 컨센 컬",
+   "원암 케이블 컨센트레이션 컬"
+  ],
+  "aliases_en": [
+   "cable seated concentration curl"
+  ],
+  "similar": [
+   "concentration_curl",
+   "curl",
+   "preacher_curl"
+  ],
+  "tier": "B",
+  "why": "컨센트레이션 컬은 덤벨만 있음 — 케이블은 기구가 다름",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-cable-concentration-curl"
+ },
+ {
+  "og": [
+   "3687",
+   "6149",
+   "5449"
+  ],
+  "name_ko": "덤벨 드래그 컬",
+  "name_en": "Dumbbell Drag Curl",
+  "equipment": "dumbbell",
+  "primary": "biceps",
+  "secondary": [
+   "forearms"
+  ],
+  "load_mode": "weight",
+  "family": "drag_curl",
+  "family_is_new": false,
+  "aliases_ko": [
+   "드래그 컬 (덤벨)",
+   "시티드 덤벨 드래그 컬"
+  ],
+  "aliases_en": [
+   "dumbbell drag bicep curl"
+  ],
+  "similar": [
+   "drag_curl",
+   "curl",
+   "hammer_curl"
+  ],
+  "tier": "B",
+  "why": "드래그 컬은 바벨만 있음 — 덤벨은 기구가 다름",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-dumbbell-drag-curl"
+ },
+ {
+  "og": [
+   "4856",
+   "1751",
+   "7621",
+   "5660"
+  ],
+  "name_ko": "바벨 핀 프레스",
+  "name_en": "Barbell Pin Press",
+  "equipment": "barbell",
+  "primary": "chest",
+  "secondary": [
+   "triceps",
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "pin_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "핀 프레스",
+   "핀 벤치프레스",
+   "데드 스톱 벤치"
+  ],
+  "aliases_en": [
+   "pin press"
+  ],
+  "similar": [
+   "bench_press",
+   "close_grip_bench_press",
+   "floor_press"
+  ],
+  "tier": "B",
+  "why": "랙 핀 위에서 매 회 멈췄다 미는 부분 가동 프레스 — 벤치프레스·플로어 프레스와 셋업이 다름",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-barbell-pin-press"
+ },
+ {
+  "og": [
+   "4344"
+  ],
+  "name_ko": "바벨 인클라인 스컬크러셔",
+  "name_en": "Barbell Incline Skull Crusher",
+  "equipment": "barbell",
+  "primary": "triceps",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "incline_skull_crusher",
+  "family_is_new": true,
+  "aliases_ko": [
+   "인클라인 스컬크러셔 (바벨)",
+   "바벨 인클라인 트라이셉스 익스텐션"
+  ],
+  "aliases_en": [
+   "barbell incline triceps extension"
+  ],
+  "similar": [
+   "skull_crusher",
+   "overhead_triceps_extension"
+  ],
+  "tier": "B",
+  "why": "스컬크러셔는 플랫 벤치 — 인클라인 각도는 별도",
+  "chunk": "arms",
+  "parent": "skull_crusher",
+  "id": "seed-barbell-incline-skull-crusher"
+ },
+ {
+  "og": [
+   "0449"
+  ],
+  "name_ko": "EZ바 인클라인 스컬크러셔",
+  "name_en": "EZ-Bar Incline Skull Crusher",
+  "equipment": "ezbar",
+  "primary": "triceps",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "incline_skull_crusher",
+  "family_is_new": true,
+  "aliases_ko": [
+   "이지바 인클라인 스컬크러셔",
+   "EZ바 인클라인 트라이셉스 익스텐션"
+  ],
+  "aliases_en": [
+   "ez barbell incline triceps extension"
+  ],
+  "similar": [
+   "skull_crusher",
+   "overhead_triceps_extension"
+  ],
+  "tier": "B",
+  "why": "EZ바 스컬크러셔는 플랫 — 인클라인 각도는 별도",
+  "chunk": "arms",
+  "parent": "skull_crusher",
+  "id": "seed-ez-bar-incline-skull-crusher"
+ },
+ {
+  "og": [
+   "0330",
+   "1733"
+  ],
+  "name_ko": "덤벨 인클라인 트라이셉스 익스텐션",
+  "name_en": "Dumbbell Incline Triceps Extension",
+  "equipment": "dumbbell",
+  "primary": "triceps",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "incline_skull_crusher",
+  "family_is_new": true,
+  "aliases_ko": [
+   "덤벨 인클라인 스컬크러셔",
+   "인클라인 덤벨 익스텐션"
+  ],
+  "aliases_en": [
+   "dumbbell incline two arm extension"
+  ],
+  "similar": [
+   "skull_crusher",
+   "overhead_triceps_extension"
+  ],
+  "tier": "B",
+  "why": "덤벨 스컬크러셔는 플랫 — 인클라인 각도는 별도",
+  "chunk": "arms",
+  "parent": "skull_crusher",
+  "id": "seed-dumbbell-incline-triceps-extension"
+ },
+ {
+  "og": [
+   "9385"
+  ],
+  "name_ko": "스미스 JM 프레스",
+  "name_en": "Smith JM Press",
+  "equipment": "smith",
+  "primary": "triceps",
+  "secondary": [
+   "chest"
+  ],
+  "load_mode": "weight",
+  "family": "jm_press",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스미스 머신 JM 프레스"
+  ],
+  "aliases_en": [
+   "smith jm bench press"
+  ],
+  "similar": [
+   "jm_press",
+   "close_grip_bench_press",
+   "skull_crusher"
+  ],
+  "tier": "B",
+  "why": "JM 프레스는 바벨만 있음 — 스미스는 궤도 고정 기구로 별도",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-smith-jm-press"
+ },
+ {
+  "og": [
+   "0137",
+   "1771",
+   "4667",
+   "6423",
+   "1467",
+   "1421",
+   "0816",
+   "4803",
+   "4804"
+  ],
+  "name_ko": "맨몸 트라이셉스 익스텐션",
+  "name_en": "Bodyweight Triceps Extension",
+  "equipment": "bodyweight",
+  "primary": "triceps",
+  "secondary": [
+   "chest",
+   "abs"
+  ],
+  "load_mode": "bodyweight",
+  "family": "skull_crusher",
+  "family_is_new": false,
+  "aliases_ko": [
+   "바디업",
+   "바 트라이셉스 익스텐션",
+   "스미스 바 트라이셉스 익스텐션"
+  ],
+  "aliases_en": [
+   "body-up",
+   "bodyweight skull crusher"
+  ],
+  "similar": [
+   "skull_crusher",
+   "diamond_push_up",
+   "dips"
+  ],
+  "tier": "B",
+  "why": "삼두 맨몸 종목은 딥스·푸시업뿐 — 바·바닥에 팔꿈치를 굽혔다 펴는 익스텐션은 없음",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-bodyweight-triceps-extension"
+ },
+ {
+  "og": [
+   "3347",
+   "3547",
+   "4574",
+   "3560"
+  ],
+  "name_ko": "덤벨 컬 앤 프레스",
+  "name_en": "Dumbbell Curl and Press",
+  "equipment": "dumbbell",
+  "primary": "biceps",
+  "secondary": [
+   "shoulders",
+   "triceps"
+  ],
+  "load_mode": "weight",
+  "family": "curl_to_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "덤벨 컬 투 프레스",
+   "해머 컬 앤 프레스"
+  ],
+  "aliases_en": [
+   "dumbbell curl to press",
+   "dumbbell biceps curl to shoulder press",
+   "hammer curl and press"
+  ],
+  "similar": [
+   "curl",
+   "overhead_press",
+   "clean_and_press"
+  ],
+  "tier": "B",
+  "why": "컬 뒤 바로 머리 위로 미는 2단 복합 동작 — 우리 컬·숄더 프레스는 각각 단일 동작",
+  "chunk": "arms",
+  "parent": null,
+  "id": "seed-dumbbell-curl-and-press"
+ },
+ {
+  "og": [
+   "3293"
+  ],
+  "name_ko": "아처 풀업",
+  "name_en": "Archer Pull-up",
+  "equipment": "bodyweight",
+  "primary": "back",
+  "secondary": [
+   "biceps"
+  ],
+  "load_mode": "bodyweight",
+  "family": "archer_pull_up",
+  "family_is_new": true,
+  "aliases_ko": [
+   "아쳐 풀업",
+   "아처 턱걸이"
+  ],
+  "aliases_en": [
+   "archer pull up",
+   "archer chin up"
+  ],
+  "similar": [
+   "pull_up",
+   "archer_push_up"
+  ],
+  "tier": "B",
+  "why": "한쪽 팔로 당기고 다른 팔은 펴서 보조하는 편측 풀업 — 일반 풀업과 동작이 다름",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-archer-pull-up"
+ },
+ {
+  "og": [
+   "3297"
+  ],
+  "name_ko": "백 레버",
+  "name_en": "Back Lever",
+  "equipment": "bodyweight",
+  "primary": "back",
+  "secondary": [
+   "shoulders",
+   "abs"
+  ],
+  "load_mode": "bodyweight",
+  "family": "back_lever",
+  "family_is_new": true,
+  "aliases_ko": [
+   "백 레버 홀드"
+  ],
+  "aliases_en": [
+   "back lever hold"
+  ],
+  "similar": [
+   "front_lever",
+   "l_sit"
+  ],
+  "tier": "B",
+  "why": "철봉에 엎드린 자세로 몸을 수평 유지하는 등척 기술 — 프론트 레버와 방향이 반대",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-back-lever"
+ },
+ {
+  "og": [
+   "3899",
+   "0892",
+   "4698",
+   "4452",
+   "3858",
+   "4570",
+   "4569"
+  ],
+  "name_ko": "밴드 벤트오버 로우",
+  "name_en": "Band Bent Over Row",
+  "equipment": "band",
+  "primary": "back",
+  "secondary": [
+   "biceps"
+  ],
+  "load_mode": "weight",
+  "family": "bent_over_row",
+  "family_is_new": false,
+  "aliases_ko": [
+   "튜빙 벤트오버 로우"
+  ],
+  "aliases_en": [
+   "resistance band bent over row"
+  ],
+  "similar": [
+   "bent_over_row",
+   "seated_row"
+  ],
+  "tier": "B",
+  "why": "밴드를 밟고 상체를 숙여 당기는 로우 — 우리 밴드 로우는 시티드뿐",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-band-bent-over-row"
+ },
+ {
+  "og": [
+   "0049",
+   "1317",
+   "2509"
+  ],
+  "name_ko": "바벨 인클라인 로우",
+  "name_en": "Barbell Incline Bench Row",
+  "equipment": "barbell",
+  "primary": "back",
+  "secondary": [
+   "biceps",
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "incline_bench_row",
+  "family_is_new": true,
+  "aliases_ko": [
+   "바벨 인클라인 벤치 로우",
+   "인클라인 바벨 로우",
+   "바벨 프론 로우"
+  ],
+  "aliases_en": [
+   "barbell incline row"
+  ],
+  "similar": [
+   "seal_row",
+   "chest_supported_row",
+   "bent_over_row"
+  ],
+  "tier": "B",
+  "why": "인클라인 벤치에 엎드려 바벨을 당기는 로우 — 플랫 벤치 씰 로우와 벤치 각도가 다름",
+  "chunk": "back",
+  "parent": "seal_row",
+  "id": "seed-barbell-incline-bench-row"
+ },
+ {
+  "og": [
+   "0205",
+   "1325",
+   "2544"
+  ],
+  "name_ko": "케이블 비하인드 넥 랫풀다운",
+  "name_en": "Cable Behind the Neck Pulldown",
+  "equipment": "cable",
+  "primary": "back",
+  "secondary": [
+   "biceps",
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "behind_neck_pulldown",
+  "family_is_new": true,
+  "aliases_ko": [
+   "비하인드 넥 랫풀다운",
+   "비하인드 넥 풀다운",
+   "뒤로 랫풀다운"
+  ],
+  "aliases_en": [
+   "behind the neck lat pulldown",
+   "rear pulldown",
+   "cable rear pulldown"
+  ],
+  "similar": [
+   "lat_pulldown",
+   "behind_neck_press"
+  ],
+  "tier": "B",
+  "why": "바를 목 뒤로 당겨 내리는 랫풀다운 — 앞으로 당기는 랫풀다운과 어깨 각도·궤적이 다름",
+  "chunk": "back",
+  "parent": "lat_pulldown",
+  "id": "seed-cable-behind-the-neck-pulldown"
+ },
+ {
+  "og": [
+   "4367",
+   "3859",
+   "4011",
+   "4368",
+   "11269",
+   "0189"
+  ],
+  "name_ko": "케이블 벤트오버 로우",
+  "name_en": "Cable Bent Over Row",
+  "equipment": "cable",
+  "primary": "back",
+  "secondary": [
+   "biceps"
+  ],
+  "load_mode": "weight",
+  "family": "bent_over_row",
+  "family_is_new": false,
+  "aliases_ko": [
+   "케이블 숙여 로우"
+  ],
+  "aliases_en": [
+   "cable one arm bent over row"
+  ],
+  "similar": [
+   "bent_over_row",
+   "seated_row"
+  ],
+  "tier": "B",
+  "why": "로우 풀리 앞에서 상체를 숙이고 서서 당기는 로우 — 앉아서 하는 시티드 로우와 셋업이 다름",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-cable-bent-over-row"
+ },
+ {
+  "og": [
+   "8299",
+   "5518",
+   "5369",
+   "10667",
+   "7564",
+   "5090",
+   "0234",
+   "0236",
+   "5179",
+   "1212",
+   "11263",
+   "0244"
+  ],
+  "name_ko": "케이블 스탠딩 로우",
+  "name_en": "Cable Standing Row",
+  "equipment": "cable",
+  "primary": "back",
+  "secondary": [
+   "biceps",
+   "abs"
+  ],
+  "load_mode": "weight",
+  "family": "standing_cable_row",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스탠딩 케이블 로우",
+   "케이블 원암 스탠딩 로우",
+   "스플릿 스탠스 케이블 로우"
+  ],
+  "aliases_en": [
+   "standing cable row",
+   "split stance cable row"
+  ],
+  "similar": [
+   "seated_row",
+   "high_row",
+   "bent_over_row"
+  ],
+  "tier": "B",
+  "why": "서거나 한쪽 무릎을 꿇고 가슴 높이 케이블을 당기는 로우 — 앉아서 발을 받치는 시티드 로우와 셋업이 다름",
+  "chunk": "back",
+  "parent": "seated_row",
+  "id": "seed-cable-standing-row"
+ },
+ {
+  "og": [
+   "1328"
+  ],
+  "name_ko": "덤벨 리어 델트 로우",
+  "name_en": "Dumbbell Rear Delt Row",
+  "equipment": "dumbbell",
+  "primary": "shoulders",
+  "secondary": [
+   "back"
+  ],
+  "load_mode": "weight",
+  "family": "rear_delt_row",
+  "family_is_new": false,
+  "aliases_ko": [
+   "라잉 리어 델트 로우"
+  ],
+  "aliases_en": [
+   "dumbbell lying rear delt row"
+  ],
+  "similar": [
+   "rear_delt_row",
+   "rear_delt_fly",
+   "chest_supported_row"
+  ],
+  "tier": "B",
+  "why": "팔꿈치를 벌려 후면 삼각근으로 당기는 덤벨 로우 — 우리 리어 델트 로우는 케이블뿐",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-dumbbell-rear-delt-row"
+ },
+ {
+  "og": [
+   "0329"
+  ],
+  "name_ko": "덤벨 인클라인 슈러그",
+  "name_en": "Dumbbell Incline Shrug",
+  "equipment": "dumbbell",
+  "primary": "traps",
+  "secondary": [
+   "back"
+  ],
+  "load_mode": "weight",
+  "family": "incline_shrug",
+  "family_is_new": true,
+  "aliases_ko": [
+   "인클라인 슈러그",
+   "프론 덤벨 슈러그"
+  ],
+  "aliases_en": [
+   "incline shrug"
+  ],
+  "similar": [
+   "shrug",
+   "y_raise"
+  ],
+  "tier": "B",
+  "why": "인클라인 벤치에 엎드려 견갑을 모으며 하는 슈러그 — 선 자세 슈러그와 당기는 방향(중·하부 승모)이 다름",
+  "chunk": "back",
+  "parent": "shrug",
+  "id": "seed-dumbbell-incline-shrug"
+ },
+ {
+  "og": [
+   "3010"
+  ],
+  "name_ko": "EZ바 풀오버",
+  "name_en": "EZ Bar Pullover",
+  "equipment": "ezbar",
+  "primary": "back",
+  "secondary": [
+   "chest",
+   "triceps"
+  ],
+  "load_mode": "weight",
+  "family": "pullover",
+  "family_is_new": false,
+  "aliases_ko": [
+   "EZ바 벤트암 풀오버",
+   "이지바 풀오버"
+  ],
+  "aliases_en": [
+   "ez bar lying bent arms pullover"
+  ],
+  "similar": [
+   "pullover"
+  ],
+  "tier": "B",
+  "why": "EZ바로 하는 풀오버 — 기구가 다름",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-ez-bar-pullover"
+ },
+ {
+  "og": [
+   "0638",
+   "3290"
+  ],
+  "name_ko": "원암 풀업",
+  "name_en": "One Arm Pull-up",
+  "equipment": "bodyweight",
+  "primary": "back",
+  "secondary": [
+   "biceps",
+   "forearms"
+  ],
+  "load_mode": "bodyweight",
+  "family": "one_arm_pull_up",
+  "family_is_new": true,
+  "aliases_ko": [
+   "원암 친업",
+   "외팔 턱걸이",
+   "한 팔 풀업"
+  ],
+  "aliases_en": [
+   "one arm pull up",
+   "one arm chin-up",
+   "one hand pull up"
+  ],
+  "similar": [
+   "pull_up",
+   "chin_up",
+   "one_arm_push_up"
+  ],
+  "tier": "B",
+  "why": "한 팔로만 몸 전체를 끌어올리는 고난도 기술 — 원암 푸시업처럼 별도 종목",
+  "chunk": "back",
+  "parent": null,
+  "id": "seed-one-arm-pull-up"
+ },
+ {
+  "og": [
+   "2462",
+   "3313"
+  ],
+  "name_ko": "스트레이트 바 딥스",
+  "name_en": "Straight Bar Dip",
+  "equipment": "bodyweight",
+  "primary": "chest",
+  "secondary": [
+   "triceps",
+   "shoulders"
+  ],
+  "load_mode": "bodyweight",
+  "family": "straight_bar_dip",
+  "family_is_new": true,
+  "aliases_ko": [
+   "일자봉 딥스",
+   "스트레이트바 딥",
+   "중량 스트레이트 바 딥스"
+  ],
+  "aliases_en": [
+   "chest dip on straight bar",
+   "weighted straight bar dip"
+  ],
+  "similar": [
+   "dips",
+   "muscle_up"
+  ],
+  "tier": "B",
+  "why": "평행봉이 아닌 일자 봉 하나 위에서 몸 앞으로 하는 딥 — 머슬업 전환 연습, 평행봉 딥스와 셋업·궤적이 다름",
+  "chunk": "chest",
+  "parent": null,
+  "id": "seed-straight-bar-dip"
+ },
+ {
+  "og": [
+   "5067"
+  ],
+  "name_ko": "덤벨 인클라인 스퀴즈 프레스",
+  "name_en": "Dumbbell Incline Squeeze Press",
+  "equipment": "dumbbell",
+  "primary": "chest",
+  "secondary": [
+   "triceps",
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "incline_squeeze_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "인클라인 스퀴즈 프레스",
+   "인클라인 헥스 프레스"
+  ],
+  "aliases_en": [
+   "incline squeeze press",
+   "incline hex press"
+  ],
+  "similar": [
+   "squeeze_press",
+   "incline_press"
+  ],
+  "tier": "B",
+  "why": "인클라인 벤치에서 덤벨을 맞붙여 미는 스퀴즈 프레스 — 우리 스퀴즈 프레스는 플랫뿐(벤치 각도 다름)",
+  "chunk": "chest",
+  "parent": "squeeze_press",
+  "id": "seed-dumbbell-incline-squeeze-press"
+ },
+ {
+  "og": [
+   "4149",
+   "3334",
+   "5079"
+  ],
+  "name_ko": "덤벨 플로어 플라이",
+  "name_en": "Dumbbell Floor Fly",
+  "equipment": "dumbbell",
+  "primary": "chest",
+  "secondary": [
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "floor_fly",
+  "family_is_new": true,
+  "aliases_ko": [
+   "플로어 플라이",
+   "바닥 플라이"
+  ],
+  "aliases_en": [
+   "floor fly",
+   "lying floor fly"
+  ],
+  "similar": [
+   "chest_fly",
+   "floor_press"
+  ],
+  "tier": "B",
+  "why": "바닥에 누워 팔꿈치가 바닥에 닿는 데서 멈추는 플라이 — 벤치 플라이보다 가동 범위가 짧고 셋업이 다름",
+  "chunk": "chest",
+  "parent": null,
+  "id": "seed-dumbbell-floor-fly"
+ },
+ {
+  "og": [
+   "3824"
+  ],
+  "name_ko": "슈도 플란체 푸시업",
+  "name_en": "Pseudo Planche Push Up",
+  "equipment": "bodyweight",
+  "primary": "chest",
+  "secondary": [
+   "shoulders",
+   "triceps"
+  ],
+  "load_mode": "bodyweight",
+  "family": "planche_push_up",
+  "family_is_new": true,
+  "aliases_ko": [
+   "슈도 플란체",
+   "의사 플란체 푸시업",
+   "플란체 린 푸시업"
+  ],
+  "aliases_en": [
+   "PPPU"
+  ],
+  "similar": [
+   "push_up",
+   "pike_push_up"
+  ],
+  "tier": "B",
+  "why": "손을 허리 옆에 두고 몸을 앞으로 기울여 어깨 전면 부하를 크게 거는 맨몸 푸시업 — 일반 푸시업과 손 위치·자극 부위가 다름",
+  "chunk": "chest",
+  "parent": null,
+  "id": "seed-pseudo-planche-push-up"
+ },
+ {
+  "og": [
+   "3021",
+   "3011",
+   "2946",
+   "3145"
+  ],
+  "name_ko": "스캐퓰러 푸시업",
+  "name_en": "Scapular Push Up",
+  "equipment": "bodyweight",
+  "primary": "chest",
+  "secondary": [
+   "shoulders"
+  ],
+  "load_mode": "bodyweight",
+  "family": "scapular_push_up",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스캐퓰라 푸시업",
+   "견갑 푸시업",
+   "푸시업 플러스"
+  ],
+  "aliases_en": [
+   "scapula push-up",
+   "push-up plus"
+  ],
+  "similar": [
+   "push_up",
+   "scapular_pull_up"
+  ],
+  "tier": "B",
+  "why": "팔을 편 채 견갑만 벌렸다 모으는 전거근 운동 — 스캐퓰러 풀업의 미는 짝, 일반 푸시업과 동작이 다름",
+  "chunk": "chest",
+  "parent": null,
+  "id": "seed-scapular-push-up"
+ },
+ {
+  "og": [
+   "3921"
+  ],
+  "name_ko": "랜드마인 스퀴즈 프레스",
+  "name_en": "Landmine Squeeze Press",
+  "equipment": "barbell",
+  "primary": "chest",
+  "secondary": [
+   "shoulders",
+   "triceps"
+  ],
+  "load_mode": "weight",
+  "family": "landmine_squeeze_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "랜드마인 체스트 프레스",
+   "투핸드 랜드마인 프레스"
+  ],
+  "aliases_en": [
+   "landmine chest press",
+   "landmine kneeling squeeze press"
+  ],
+  "similar": [
+   "landmine_press",
+   "squeeze_press"
+  ],
+  "tier": "B",
+  "why": "두 손을 모아 바 끝을 가슴 앞에서 미는 가슴 운동 — 우리 랜드마인 프레스는 한 팔 어깨 프레스",
+  "chunk": "chest",
+  "parent": null,
+  "id": "seed-landmine-squeeze-press"
+ },
+ {
+  "og": [
+   "5843"
+  ],
+  "name_ko": "머신 인클라인 플라이",
+  "name_en": "Machine Incline Fly",
+  "equipment": "machine",
+  "primary": "chest",
+  "secondary": [
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "incline_fly",
+  "family_is_new": false,
+  "aliases_ko": [
+   "인클라인 펙덱",
+   "인클라인 플라이 머신"
+  ],
+  "aliases_en": [
+   "incline pec deck",
+   "lever incline fly"
+  ],
+  "similar": [
+   "incline_fly",
+   "chest_fly"
+  ],
+  "tier": "B",
+  "why": "등받이가 기운 머신 플라이 — 펙 덱(플랫)과 벤치 각도가 다름",
+  "chunk": "chest",
+  "parent": null,
+  "id": "seed-machine-incline-fly"
+ },
+ {
+  "og": [
+   "1757",
+   "2805",
+   "2806",
+   "2750",
+   "3338",
+   "7648",
+   "10865"
+  ],
+  "name_ko": "덤벨 싱글 레그 데드리프트",
+  "name_en": "Dumbbell Single Leg Deadlift",
+  "equipment": "dumbbell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "single_leg_deadlift",
+  "family_is_new": true,
+  "aliases_ko": [
+   "덤벨 싱글 레그 RDL",
+   "덤벨 원레그 데드리프트",
+   "덤벨 외발 데드리프트"
+  ],
+  "aliases_en": [
+   "dumbbell single leg RDL",
+   "dumbbell single stiff leg deadlift",
+   "dumbbell one leg deadlift"
+  ],
+  "similar": [
+   "romanian_deadlift",
+   "stiff_leg_deadlift",
+   "good_morning"
+  ],
+  "tier": "A",
+  "why": "우리 RDL·스티프는 두 발 지지 — 한 발로 서서 힌지하는 균형·둔근 중심 동작은 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-dumbbell-single-leg-deadlift"
+ },
+ {
+  "og": [
+   "3928",
+   "4971",
+   "10915",
+   "10916",
+   "2920",
+   "3585",
+   "1702"
+  ],
+  "name_ko": "싱글 레그 데드리프트",
+  "name_en": "Single Leg Deadlift",
+  "equipment": "bodyweight",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "single_leg_deadlift",
+  "family_is_new": true,
+  "aliases_ko": [
+   "싱글 레그 RDL",
+   "원레그 데드리프트",
+   "외발 데드리프트",
+   "맨몸 싱글 레그 데드리프트",
+   "싱글 레그 루마니안 데드리프트",
+   "원레그 RDL"
+  ],
+  "aliases_en": [
+   "single leg RDL",
+   "bodyweight single leg deadlift",
+   "one leg deadlift",
+   "one leg romanian deadlift",
+   "Single Leg Romanian Deadlift"
+  ],
+  "similar": [
+   "romanian_deadlift",
+   "stiff_leg_deadlift"
+  ],
+  "tier": "A",
+  "why": "맨몸 한 발 힌지 — 우리에겐 한 발 데드리프트 계열 자체가 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-single-leg-deadlift"
+ },
+ {
+  "og": [
+   "4523",
+   "1569"
+  ],
+  "name_ko": "케틀벨 싱글 레그 데드리프트",
+  "name_en": "Kettlebell Single Leg Deadlift",
+  "equipment": "kettlebell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "single_leg_deadlift",
+  "family_is_new": true,
+  "aliases_ko": [
+   "케틀벨 싱글 레그 RDL",
+   "케틀벨 원레그 데드리프트"
+  ],
+  "aliases_en": [
+   "kettlebell single leg RDL",
+   "kettlebell one legged deadlift"
+  ],
+  "similar": [
+   "romanian_deadlift",
+   "deadlift"
+  ],
+  "tier": "B",
+  "why": "케틀벨 RDL·데드리프트는 두 발 — 한 발 힌지 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-kettlebell-single-leg-deadlift"
+ },
+ {
+  "og": [
+   "4757"
+  ],
+  "name_ko": "덤벨 B스탠스 루마니안 데드리프트",
+  "name_en": "Dumbbell B-Stance Romanian Deadlift",
+  "equipment": "dumbbell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "b_stance_rdl",
+  "family_is_new": true,
+  "aliases_ko": [
+   "덤벨 스태거드 RDL",
+   "덤벨 킥스탠드 RDL",
+   "덤벨 B스탠스 RDL"
+  ],
+  "aliases_en": [
+   "dumbbell staggered stance RDL",
+   "dumbbell kickstand RDL"
+  ],
+  "similar": [
+   "romanian_deadlift",
+   "stiff_leg_deadlift"
+  ],
+  "tier": "B",
+  "why": "한 발을 뒤에 살짝 받친 엇갈린 자세로 앞다리에 부하를 싣는 셋업 — 일반 RDL과 자극 부위가 다름",
+  "chunk": "legs1",
+  "parent": "romanian_deadlift",
+  "id": "seed-dumbbell-b-stance-romanian-deadlift"
+ },
+ {
+  "og": [
+   "10047",
+   "11789"
+  ],
+  "name_ko": "바벨 B스탠스 루마니안 데드리프트",
+  "name_en": "Barbell B-Stance Romanian Deadlift",
+  "equipment": "barbell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "b_stance_rdl",
+  "family_is_new": true,
+  "aliases_ko": [
+   "바벨 스태거드 RDL",
+   "바벨 킥스탠드 RDL",
+   "스플릿 스탠스 RDL"
+  ],
+  "aliases_en": [
+   "barbell split stance RDL",
+   "barbell staggered stance stiff legged deadlift"
+  ],
+  "similar": [
+   "romanian_deadlift",
+   "stiff_leg_deadlift"
+  ],
+  "tier": "B",
+  "why": "바벨 RDL을 엇갈린 발 자세로 — 한쪽 다리 편중 셋업",
+  "chunk": "legs1",
+  "parent": "romanian_deadlift",
+  "id": "seed-barbell-b-stance-romanian-deadlift"
+ },
+ {
+  "og": [
+   "3731"
+  ],
+  "name_ko": "바벨 스모 루마니안 데드리프트",
+  "name_en": "Barbell Sumo Romanian Deadlift",
+  "equipment": "barbell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "sumo_romanian_deadlift",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스모 RDL",
+   "와이드 스탠스 RDL"
+  ],
+  "aliases_en": [
+   "sumo RDL"
+  ],
+  "similar": [
+   "sumo_deadlift",
+   "romanian_deadlift"
+  ],
+  "tier": "B",
+  "why": "넓은 스탠스로 내전근·둔근 비중을 높인 RDL — 스모 데드(바닥부터)와도, 일반 RDL과도 다름",
+  "chunk": "legs1",
+  "parent": "romanian_deadlift",
+  "id": "seed-barbell-sumo-romanian-deadlift"
+ },
+ {
+  "og": [
+   "8192"
+  ],
+  "name_ko": "덤벨 스모 데드리프트",
+  "name_en": "Dumbbell Sumo Deadlift",
+  "equipment": "dumbbell",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings",
+   "quads"
+  ],
+  "load_mode": "weight",
+  "family": "sumo_deadlift",
+  "family_is_new": false,
+  "aliases_ko": [
+   "덤벨 스모 데드"
+  ],
+  "aliases_en": [],
+  "similar": [
+   "sumo_deadlift",
+   "sumo_squat",
+   "deadlift"
+  ],
+  "tier": "B",
+  "why": "스모 데드리프트는 바벨·케틀벨만 있고 덤벨 기구판이 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-dumbbell-sumo-deadlift"
+ },
+ {
+  "og": [
+   "2072",
+   "7413",
+   "4902",
+   "4792",
+   "2071",
+   "5774"
+  ],
+  "name_ko": "맨몸 힙 쓰러스트",
+  "name_en": "Bodyweight Hip Thrust",
+  "equipment": "bodyweight",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings"
+  ],
+  "load_mode": "bodyweight",
+  "family": "hip_thrust",
+  "family_is_new": false,
+  "aliases_ko": [
+   "벤치 힙 쓰러스트",
+   "맨몸 힙쓰"
+  ],
+  "aliases_en": [
+   "elevated hip thrust",
+   "hip thrusts"
+  ],
+  "similar": [
+   "hip_thrust",
+   "glute_bridge",
+   "frog_pump"
+  ],
+  "tier": "B",
+  "why": "힙 쓰러스트는 바벨·덤벨·스미스·머신·밴드뿐 — 등을 벤치에 기댄 맨몸판 없음(바닥 글루트 브릿지와 셋업 다름)",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-bodyweight-hip-thrust"
+ },
+ {
+  "og": [
+   "8358",
+   "10904"
+  ],
+  "name_ko": "햄스트링 브릿지",
+  "name_en": "Hamstring Bridge",
+  "equipment": "bodyweight",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "hamstring_bridge",
+  "family_is_new": true,
+  "aliases_ko": [
+   "힐 브릿지",
+   "벤치 햄스트링 브릿지"
+  ],
+  "aliases_en": [
+   "feet elevated hamstring bridge"
+  ],
+  "similar": [
+   "glute_bridge",
+   "ball_leg_curl",
+   "nordic_curl"
+  ],
+  "tier": "B",
+  "why": "발을 멀리·높게 두고 무릎을 거의 펴서 햄스트링으로 버티는 브릿지 — 둔근 위주 글루트 브릿지와 자극 부위가 다름",
+  "chunk": "legs1",
+  "parent": "glute_bridge",
+  "id": "seed-hamstring-bridge"
+ },
+ {
+  "og": [
+   "0881",
+   "8664",
+   "3683"
+  ],
+  "name_ko": "덤벨 커시 런지",
+  "name_en": "Dumbbell Curtsy Lunge",
+  "equipment": "dumbbell",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "curtsy_lunge",
+  "family_is_new": false,
+  "aliases_ko": [
+   "덤벨 커트시 런지",
+   "덤벨 크로스 런지",
+   "고블릿 커시 런지"
+  ],
+  "aliases_en": [
+   "dumbbell curtsey lunge",
+   "goblet curtsy lunge"
+  ],
+  "similar": [
+   "curtsy_lunge",
+   "reverse_lunge",
+   "lateral_lunge"
+  ],
+  "tier": "B",
+  "why": "커시 런지는 맨몸뿐 — 덤벨 기구판 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-dumbbell-curtsy-lunge"
+ },
+ {
+  "og": [
+   "0053"
+  ],
+  "name_ko": "바벨 점프 스쿼트",
+  "name_en": "Barbell Jump Squat",
+  "equipment": "barbell",
+  "primary": "quads",
+  "secondary": [
+   "glutes",
+   "calves"
+  ],
+  "load_mode": "weight",
+  "family": "jump_squat",
+  "family_is_new": false,
+  "aliases_ko": [
+   "바벨 스쿼트 점프"
+  ],
+  "aliases_en": [
+   "barbell squat jump"
+  ],
+  "similar": [
+   "jump_squat",
+   "squat",
+   "box_jump"
+  ],
+  "tier": "B",
+  "why": "점프 스쿼트는 맨몸(가중) 하나 — 바를 등에 지고 뛰는 파워 훈련용 바벨판 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-barbell-jump-squat"
+ },
+ {
+  "og": [
+   "6544",
+   "3349",
+   "3354",
+   "7578",
+   "11268",
+   "9878"
+  ],
+  "name_ko": "케이블 고블릿 스쿼트",
+  "name_en": "Cable Goblet Squat",
+  "equipment": "cable",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "goblet_squat",
+  "family_is_new": false,
+  "aliases_ko": [
+   "케이블 스쿼트",
+   "케이블 프론트 스쿼트"
+  ],
+  "aliases_en": [
+   "cable squat",
+   "cable front squat"
+  ],
+  "similar": [
+   "goblet_squat",
+   "front_squat",
+   "squat"
+  ],
+  "tier": "B",
+  "why": "고블릿 스쿼트는 덤벨·케틀벨뿐 — 낮은 도르래 손잡이를 가슴 앞에 쥐는 케이블판 없음",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-cable-goblet-squat"
+ },
+ {
+  "og": [
+   "4363",
+   "3367",
+   "4129"
+  ],
+  "name_ko": "스케이터 스쿼트",
+  "name_en": "Skater Squat",
+  "equipment": "bodyweight",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "skater_squat",
+  "family_is_new": true,
+  "aliases_ko": [
+   "카운터밸런스 스케이터 스쿼트",
+   "싱글 레그 스케이터 스쿼트"
+  ],
+  "aliases_en": [
+   "counterbalanced skater squat"
+  ],
+  "similar": [
+   "pistol_squat",
+   "bulgarian_split_squat",
+   "split_squat"
+  ],
+  "tier": "B",
+  "why": "뒷다리를 접어 무릎을 바닥 쪽으로 내리는 한 발 스쿼트 — 앞다리를 뻗는 피스톨과 동작이 다름",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-skater-squat"
+ },
+ {
+  "og": [
+   "3575",
+   "5070",
+   "7581",
+   "7582"
+  ],
+  "name_ko": "케틀벨 리버스 런지",
+  "name_en": "Kettlebell Reverse Lunge",
+  "equipment": "kettlebell",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "reverse_lunge",
+  "family_is_new": false,
+  "aliases_ko": [
+   "케틀벨 백 런지",
+   "케틀벨 리어 런지"
+  ],
+  "aliases_en": [
+   "kettlebell rear lunge",
+   "kettlebell backward lunge"
+  ],
+  "similar": [
+   "reverse_lunge",
+   "lunge",
+   "split_squat"
+  ],
+  "tier": "B",
+  "why": "리버스 런지는 맨몸·덤벨·바벨·스미스뿐 — 케틀벨판 없음(케틀벨 런지는 앞으로 딛는 런지)",
+  "chunk": "legs1",
+  "parent": null,
+  "id": "seed-kettlebell-reverse-lunge"
+ },
+ {
+  "og": [
+   "4400",
+   "4440"
+  ],
+  "name_ko": "케틀벨 스텝업",
+  "name_en": "Kettlebell Step Up",
+  "equipment": "kettlebell",
+  "primary": "quads",
+  "secondary": [
+   "glutes",
+   "hamstrings"
+  ],
+  "load_mode": "weight",
+  "family": "step_up",
+  "family_is_new": false,
+  "aliases_ko": [],
+  "aliases_en": [],
+  "similar": [
+   "step_up",
+   "lunge"
+  ],
+  "tier": "B",
+  "why": "우리 스텝업은 덤벨·바벨뿐 — 케틀벨은 별도 기구",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-kettlebell-step-up"
+ },
+ {
+  "og": [
+   "0733",
+   "4795",
+   "3711",
+   "11450",
+   "9490",
+   "3444"
+  ],
+  "name_ko": "맨몸 스텝업",
+  "name_en": "Bodyweight Step Up",
+  "equipment": "bodyweight",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "step_up",
+  "family_is_new": false,
+  "aliases_ko": [
+   "의자 스텝업",
+   "계단 스텝업"
+  ],
+  "aliases_en": [
+   "single leg step up",
+   "step up on box"
+  ],
+  "similar": [
+   "step_up",
+   "lunge"
+  ],
+  "tier": "A",
+  "why": "스텝업은 덤벨·바벨 종목만 있음 — 맨몸 버전 없음",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-bodyweight-step-up"
+ },
+ {
+  "og": [
+   "5154",
+   "5155"
+  ],
+  "name_ko": "레터럴 스텝업",
+  "name_en": "Lateral Step Up",
+  "equipment": "bodyweight",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "lateral_step_up",
+  "family_is_new": true,
+  "aliases_ko": [
+   "사이드 스텝업",
+   "옆으로 스텝업"
+  ],
+  "aliases_en": [
+   "side step up"
+  ],
+  "similar": [
+   "step_up",
+   "lateral_lunge"
+  ],
+  "tier": "B",
+  "why": "옆으로 올라서는 스텝업 — 정면 스텝업과 셋업·자극(중둔근)이 다름",
+  "chunk": "legs2",
+  "parent": "step_up",
+  "id": "seed-lateral-step-up"
+ },
+ {
+  "og": [
+   "11879"
+  ],
+  "name_ko": "스미스 스텝업",
+  "name_en": "Smith Step Up",
+  "equipment": "smith",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "step_up",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스미스 머신 스텝업"
+  ],
+  "aliases_en": [
+   "smith machine step up"
+  ],
+  "similar": [
+   "step_up",
+   "split_squat"
+  ],
+  "tier": "B",
+  "why": "스텝업은 덤벨·바벨뿐 — 스미스는 별도 기구",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-smith-step-up"
+ },
+ {
+  "og": [
+   "4669"
+  ],
+  "name_ko": "닐링 힙 쓰러스트",
+  "name_en": "Kneeling Hip Thrust",
+  "equipment": "bodyweight",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings"
+  ],
+  "load_mode": "bodyweight",
+  "family": "kneeling_hip_thrust",
+  "family_is_new": true,
+  "aliases_ko": [
+   "무릎 꿇고 힙 쓰러스트",
+   "닐링 힙쓰"
+  ],
+  "aliases_en": [
+   "kneeling glute thrust"
+  ],
+  "similar": [
+   "hip_thrust",
+   "glute_bridge",
+   "pull_through"
+  ],
+  "tier": "B",
+  "why": "무릎 꿇고 엉덩이를 미는 동작 — 등을 벤치에 대는 힙 쓰러스트와 셋업이 다름",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-kneeling-hip-thrust"
+ },
+ {
+  "og": [
+   "7277",
+   "3236"
+  ],
+  "name_ko": "밴드 닐링 힙 쓰러스트",
+  "name_en": "Band Kneeling Hip Thrust",
+  "equipment": "band",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings"
+  ],
+  "load_mode": "weight",
+  "family": "kneeling_hip_thrust",
+  "family_is_new": true,
+  "aliases_ko": [
+   "밴드 무릎 힙 쓰러스트",
+   "밴드 닐링 힙쓰"
+  ],
+  "aliases_en": [
+   "resistance band hip thrusts on knees"
+  ],
+  "similar": [
+   "hip_thrust",
+   "pull_through",
+   "glute_bridge"
+  ],
+  "tier": "B",
+  "why": "밴드를 뒤에 걸고 무릎 꿇고 미는 힙 힌지 — 우리 밴드 힙 쓰러스트(누운 자세)와 다름",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-band-kneeling-hip-thrust"
+ },
+ {
+  "og": [
+   "3874"
+  ],
+  "name_ko": "스미스 닐링 힙 쓰러스트",
+  "name_en": "Smith Kneeling Hip Thrust",
+  "equipment": "smith",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings"
+  ],
+  "load_mode": "weight",
+  "family": "kneeling_hip_thrust",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스미스 무릎 힙 쓰러스트",
+   "스미스 닐링 힙쓰"
+  ],
+  "aliases_en": [],
+  "similar": [
+   "hip_thrust",
+   "pull_through"
+  ],
+  "tier": "B",
+  "why": "스미스 바를 엉덩이에 대고 무릎 꿇고 미는 동작 — 스미스 힙 쓰러스트(누운 자세)와 다름",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-smith-kneeling-hip-thrust"
+ },
+ {
+  "og": [
+   "4113",
+   "4247"
+  ],
+  "name_ko": "랜드마인 루마니안 데드리프트",
+  "name_en": "Landmine Romanian Deadlift",
+  "equipment": "barbell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes",
+   "back"
+  ],
+  "load_mode": "weight",
+  "family": "landmine_romanian_deadlift",
+  "family_is_new": true,
+  "aliases_ko": [
+   "랜드마인 RDL",
+   "랜드마인 루마니안"
+  ],
+  "aliases_en": [
+   "landmine RDL"
+  ],
+  "similar": [
+   "romanian_deadlift",
+   "landmine_row",
+   "pull_through"
+  ],
+  "tier": "B",
+  "why": "RDL은 바벨·덤벨·스미스·케틀벨·케이블뿐 — 랜드마인은 고정축 셋업이 다름",
+  "chunk": "legs2",
+  "parent": "romanian_deadlift",
+  "id": "seed-landmine-romanian-deadlift"
+ },
+ {
+  "og": [
+   "5307",
+   "3918",
+   "6553"
+  ],
+  "name_ko": "랜드마인 싱글 레그 루마니안 데드리프트",
+  "name_en": "Landmine Single Leg Romanian Deadlift",
+  "equipment": "barbell",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "landmine_single_leg_rdl",
+  "family_is_new": true,
+  "aliases_ko": [
+   "랜드마인 싱글 레그 RDL",
+   "랜드마인 원레그 RDL"
+  ],
+  "aliases_en": [
+   "landmine single leg RDL",
+   "landmine one leg stiff leg deadlift"
+  ],
+  "similar": [
+   "single_leg_deadlift",
+   "romanian_deadlift",
+   "landmine_row"
+  ],
+  "tier": "B",
+  "why": "랜드마인을 한 손에 잡은 외발 힌지 — 우리에게 외발 RDL 자체가 없음",
+  "chunk": "legs2",
+  "parent": "single_leg_deadlift",
+  "id": "seed-landmine-single-leg-romanian-deadlift"
+ },
+ {
+  "og": [
+   "3919",
+   "4040"
+  ],
+  "name_ko": "랜드마인 리버스 런지",
+  "name_en": "Landmine Reverse Lunge",
+  "equipment": "barbell",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "landmine_reverse_lunge",
+  "family_is_new": true,
+  "aliases_ko": [
+   "랜드마인 백 런지",
+   "랜드마인 리어 런지"
+  ],
+  "aliases_en": [
+   "landmine rear lunge"
+  ],
+  "similar": [
+   "reverse_lunge",
+   "landmine_squat",
+   "split_squat"
+  ],
+  "tier": "B",
+  "why": "리버스 런지는 맨몸·덤벨·바벨·스미스뿐 — 랜드마인은 별도 기구",
+  "chunk": "legs2",
+  "parent": "reverse_lunge",
+  "id": "seed-landmine-reverse-lunge"
+ },
+ {
+  "og": [
+   "9701",
+   "4959"
+  ],
+  "name_ko": "맨몸 런지",
+  "name_en": "Bodyweight Lunge",
+  "equipment": "bodyweight",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "lunge",
+  "family_is_new": false,
+  "aliases_ko": [
+   "맨몸 포워드 런지",
+   "바디웨이트 런지"
+  ],
+  "aliases_en": [
+   "bodyweight forward lunge"
+  ],
+  "similar": [
+   "lunge",
+   "reverse_lunge",
+   "split_squat"
+  ],
+  "tier": "A",
+  "why": "앞으로 딛는 런지는 덤벨·바벨·스미스·케틀벨뿐 — 맨몸 버전 없음",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-bodyweight-lunge"
+ },
+ {
+  "og": [
+   "2368",
+   "4000"
+  ],
+  "name_ko": "맨몸 스플릿 스쿼트",
+  "name_en": "Bodyweight Split Squat",
+  "equipment": "bodyweight",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "split_squat",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스태틱 런지",
+   "제자리 런지",
+   "바디웨이트 스플릿 스쿼트"
+  ],
+  "aliases_en": [
+   "static lunge"
+  ],
+  "similar": [
+   "split_squat",
+   "lunge",
+   "bulgarian_split_squat"
+  ],
+  "tier": "B",
+  "why": "스플릿 스쿼트는 덤벨·바벨·스미스뿐 — 맨몸 버전 없음",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-bodyweight-split-squat"
+ },
+ {
+  "og": [
+   "5784",
+   "1583"
+  ],
+  "name_ko": "리버스 핵 스쿼트",
+  "name_en": "Reverse Hack Squat",
+  "equipment": "machine",
+  "primary": "quads",
+  "secondary": [
+   "glutes",
+   "hamstrings"
+  ],
+  "load_mode": "weight",
+  "family": "reverse_hack_squat",
+  "family_is_new": true,
+  "aliases_ko": [
+   "머신 리버스 핵 스쿼트",
+   "리버스 핵"
+  ],
+  "aliases_en": [
+   "reverse vertical hack squat"
+  ],
+  "similar": [
+   "hack_squat",
+   "v_squat",
+   "pendulum_squat"
+  ],
+  "tier": "B",
+  "why": "핵 스쿼트 머신을 마주 보고 서는 반대 방향 — 상체 기울기·엉덩이 자극이 달라 별도 셋업",
+  "chunk": "legs2",
+  "parent": "hack_squat",
+  "id": "seed-reverse-hack-squat"
+ },
+ {
+  "og": [
+   "0755"
+  ],
+  "name_ko": "스미스 핵 스쿼트",
+  "name_en": "Smith Hack Squat",
+  "equipment": "smith",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "hack_squat",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스미스 머신 핵 스쿼트"
+  ],
+  "aliases_en": [
+   "smith machine hack squat"
+  ],
+  "similar": [
+   "hack_squat",
+   "squat"
+  ],
+  "tier": "B",
+  "why": "발을 앞으로 빼고 바를 등에 기대는 스미스 스쿼트 — 우리 핵 스쿼트는 머신·바벨뿐",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-smith-hack-squat"
+ },
+ {
+  "og": [
+   "0582"
+  ],
+  "name_ko": "닐링 레그 컬",
+  "name_en": "Kneeling Leg Curl",
+  "equipment": "machine",
+  "primary": "hamstrings",
+  "secondary": [
+   "calves"
+  ],
+  "load_mode": "weight",
+  "family": "kneeling_leg_curl",
+  "family_is_new": true,
+  "aliases_ko": [
+   "머신 닐링 레그 컬",
+   "무릎 꿇고 레그컬",
+   "닐링 햄스트링 컬"
+  ],
+  "aliases_en": [
+   "lever kneeling leg curl"
+  ],
+  "similar": [
+   "lying_leg_curl",
+   "seated_leg_curl",
+   "standing_leg_curl"
+  ],
+  "tier": "B",
+  "why": "무릎 대는 레그 컬 머신 — 라잉·시티드·스탠딩과 셋업이 다른 별도 기계",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-kneeling-leg-curl"
+ },
+ {
+  "og": [
+   "4897",
+   "3498",
+   "3395",
+   "3742",
+   "3514"
+  ],
+  "name_ko": "슬라이딩 레그 컬",
+  "name_en": "Sliding Leg Curl",
+  "equipment": "bodyweight",
+  "primary": "hamstrings",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "sliding_leg_curl",
+  "family_is_new": true,
+  "aliases_ko": [
+   "수건 레그 컬",
+   "슬라이더 레그 컬",
+   "플로어 슬라이딩 레그컬"
+  ],
+  "aliases_en": [
+   "towel leg curl",
+   "slider hamstring curl"
+  ],
+  "similar": [
+   "ball_leg_curl",
+   "nordic_curl",
+   "glute_bridge"
+  ],
+  "tier": "B",
+  "why": "발밑을 미끄러뜨리는 맨몸 레그 컬 — 짐볼 레그 컬과 도구·궤적이 다름",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-sliding-leg-curl"
+ },
+ {
+  "og": [
+   "1423",
+   "5803"
+  ],
+  "name_ko": "벤치 리버스 하이퍼익스텐션",
+  "name_en": "Bench Reverse Hyperextension",
+  "equipment": "bodyweight",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings",
+   "back"
+  ],
+  "load_mode": "bodyweight",
+  "family": "reverse_hyperextension",
+  "family_is_new": false,
+  "aliases_ko": [
+   "벤치 리버스 하이퍼",
+   "플랫 벤치 리버스 하이퍼"
+  ],
+  "aliases_en": [
+   "reverse hyper on bench"
+  ],
+  "similar": [
+   "reverse_hyperextension",
+   "back_extension",
+   "glute_kickback"
+  ],
+  "tier": "B",
+  "why": "우리 리버스 하이퍼는 전용 머신 — 벤치에 엎드려 다리를 드는 맨몸 버전은 없음",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-bench-reverse-hyperextension"
+ },
+ {
+  "og": [
+   "3366"
+  ],
+  "name_ko": "쉬림프 스쿼트",
+  "name_en": "Shrimp Squat",
+  "equipment": "bodyweight",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "bodyweight",
+  "family": "shrimp_squat",
+  "family_is_new": true,
+  "aliases_ko": [
+   "슈림프 스쿼트",
+   "새우 스쿼트"
+  ],
+  "aliases_en": [],
+  "similar": [
+   "pistol_squat",
+   "bulgarian_split_squat",
+   "split_squat"
+  ],
+  "tier": "B",
+  "why": "뒷발을 잡고 무릎이 바닥에 닿게 앉는 외발 스쿼트 — 피스톨(앞다리 뻗기)과 다름",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-shrimp-squat"
+ },
+ {
+  "og": [
+   "2154",
+   "2555",
+   "4447",
+   "7198",
+   "2159",
+   "2158"
+  ],
+  "name_ko": "밴드 글루트 브릿지",
+  "name_en": "Band Glute Bridge",
+  "equipment": "band",
+  "primary": "glutes",
+  "secondary": [
+   "hamstrings"
+  ],
+  "load_mode": "weight",
+  "family": "glute_bridge",
+  "family_is_new": false,
+  "aliases_ko": [
+   "밴드 힙 브릿지",
+   "미니밴드 브릿지",
+   "밴드 브릿지"
+  ],
+  "aliases_en": [
+   "resistance band glute bridge"
+  ],
+  "similar": [
+   "glute_bridge",
+   "hip_thrust",
+   "hip_abduction"
+  ],
+  "tier": "B",
+  "why": "글루트 브릿지는 맨몸·덤벨·바벨뿐 — 밴드 버전 없음(밴드 힙 쓰러스트는 등을 벤치에 댐)",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-band-glute-bridge"
+ },
+ {
+  "og": [
+   "6606"
+  ],
+  "name_ko": "스미스 커시 런지",
+  "name_en": "Smith Curtsy Lunge",
+  "equipment": "smith",
+  "primary": "quads",
+  "secondary": [
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "curtsy_lunge",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스미스 커트시 런지",
+   "스미스 크로스 런지"
+  ],
+  "aliases_en": [
+   "smith curtsey lunge"
+  ],
+  "similar": [
+   "curtsy_lunge",
+   "reverse_lunge",
+   "split_squat"
+  ],
+  "tier": "B",
+  "why": "커시 런지는 맨몸뿐 — 스미스는 별도 기구",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-smith-curtsy-lunge"
+ },
+ {
+  "og": [
+   "0776"
+  ],
+  "name_ko": "바벨 스내치 풀",
+  "name_en": "Snatch Pull",
+  "equipment": "barbell",
+  "primary": "back",
+  "secondary": [
+   "hamstrings",
+   "glutes",
+   "traps"
+  ],
+  "load_mode": "weight",
+  "family": "snatch_pull",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스내치 풀",
+   "스내치풀"
+  ],
+  "aliases_en": [
+   "barbell snatch pull"
+  ],
+  "similar": [
+   "clean_pull",
+   "snatch",
+   "deadlift_high_pull"
+  ],
+  "tier": "B",
+  "why": "스내치 그립(와이드)으로 끌어올리는 역도 보조 — 우리는 클린 풀만 있음",
+  "chunk": "legs2",
+  "parent": null,
+  "id": "seed-snatch-pull"
+ },
+ {
+  "og": [
+   "8536",
+   "10859",
+   "9803"
+  ],
+  "name_ko": "티비알리스 레이즈",
+  "name_en": "Tibialis Raise",
+  "equipment": "bodyweight",
+  "primary": "calves",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "tibialis_raise",
+  "family_is_new": true,
+  "aliases_ko": [
+   "티비 레이즈",
+   "정강이 레이즈",
+   "토 레이즈",
+   "벽 기대 티비알리스 레이즈"
+  ],
+  "aliases_en": [
+   "tib raise",
+   "standing tibialis raise wall supported",
+   "toe raise"
+  ],
+  "similar": [
+   "calf_raise"
+  ],
+  "tier": "B",
+  "why": "카프 레이즈는 발끝을 내리는 동작, 이건 발끝을 들어 정강이 앞(전경골근)을 쓰는 반대 동작",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-tibialis-raise"
+ },
+ {
+  "og": [
+   "1524",
+   "1534"
+  ],
+  "name_ko": "바벨 스내치 밸런스",
+  "name_en": "Snatch Balance",
+  "equipment": "barbell",
+  "primary": "fullBody",
+  "secondary": [
+   "quads",
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "snatch_balance",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스내치 밸런스",
+   "히빙 스내치 밸런스"
+  ],
+  "aliases_en": [
+   "barbell snatch balance",
+   "heaving snatch balance"
+  ],
+  "similar": [
+   "snatch",
+   "overhead_squat",
+   "press_under"
+  ],
+  "tier": "B",
+  "why": "프레스 언더는 버티며 밀어 내려가는 동작, 이건 디핑 후 바 밑으로 빠르게 떨어져 오버헤드 스쿼트로 받는 동작",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-snatch-balance"
+ },
+ {
+  "og": [
+   "1383",
+   "1384"
+  ],
+  "name_ko": "핵 카프 레이즈",
+  "name_en": "Hack Calf Raise",
+  "equipment": "machine",
+  "primary": "calves",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "hack_calf_raise",
+  "family_is_new": true,
+  "aliases_ko": [
+   "핵 스쿼트 카프 레이즈",
+   "핵 머신 카프"
+  ],
+  "aliases_en": [
+   "hack machine calf raise",
+   "hack one leg calf raise"
+  ],
+  "similar": [
+   "calf_raise",
+   "leg_press_calf_raise",
+   "donkey_calf_raise"
+  ],
+  "tier": "B",
+  "why": "핵 스쿼트 머신에 어깨를 대고 서서 하는 카프 — 레그 프레스 카프(밀기)·스탠딩 머신과 셋업이 다름",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-hack-calf-raise"
+ },
+ {
+  "og": [
+   "4370",
+   "1395"
+  ],
+  "name_ko": "스미스 시티드 카프 레이즈",
+  "name_en": "Smith Seated Calf Raise",
+  "equipment": "smith",
+  "primary": "calves",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "seated_calf_raise",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스미스 앉아서 카프"
+  ],
+  "aliases_en": [],
+  "similar": [
+   "seated_calf_raise",
+   "calf_raise"
+  ],
+  "tier": "B",
+  "why": "스미스 카프 레이즈는 서서, 이건 앉아 무릎 위에 바를 얹는 시티드(가자미근) 셋업",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-smith-seated-calf-raise"
+ },
+ {
+  "og": [
+   "10751",
+   "10756",
+   "10757",
+   "10754",
+   "10755",
+   "9070",
+   "11647",
+   "4904",
+   "9408"
+  ],
+  "name_ko": "포고 점프",
+  "name_en": "Pogo Jump",
+  "equipment": "bodyweight",
+  "primary": "calves",
+  "secondary": [
+   "quads"
+  ],
+  "load_mode": "bodyweight",
+  "family": "pogo_jump",
+  "family_is_new": true,
+  "aliases_ko": [
+   "포고",
+   "발목 점프",
+   "까치발 점프",
+   "카프 점프",
+   "싱글 레그 포고"
+  ],
+  "aliases_en": [
+   "calf jump",
+   "toe jump",
+   "pogo hops"
+  ],
+  "similar": [
+   "calf_raise",
+   "jump_squat",
+   "box_jump"
+  ],
+  "tier": "B",
+  "why": "줄넘기·점프 스쿼트와 달리 무릎을 거의 안 굽히고 발목 반동만으로 짧게 반복 튀는 종아리 플라이오",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-pogo-jump"
+ },
+ {
+  "og": [
+   "5881",
+   "10995"
+  ],
+  "name_ko": "크랩 워크",
+  "name_en": "Crab Walk",
+  "equipment": "bodyweight",
+  "primary": "fullBody",
+  "secondary": [
+   "triceps",
+   "glutes",
+   "shoulders"
+  ],
+  "load_mode": "bodyweight",
+  "family": "crab_walk",
+  "family_is_new": true,
+  "aliases_ko": [
+   "게걸음",
+   "크랩 걷기"
+  ],
+  "aliases_en": [
+   "forward and backward crab walk"
+  ],
+  "similar": [
+   "bear_crawl",
+   "reverse_plank"
+  ],
+  "tier": "B",
+  "why": "베어 크롤은 엎드려 기기, 이건 하늘을 보고 손발로 기는 동작",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-crab-walk"
+ },
+ {
+  "og": [
+   "1589",
+   "1549"
+  ],
+  "name_ko": "버트 킥",
+  "name_en": "Butt Kick",
+  "equipment": "bodyweight",
+  "primary": "fullBody",
+  "secondary": [
+   "hamstrings",
+   "calves"
+  ],
+  "load_mode": "bodyweight",
+  "family": "butt_kick",
+  "family_is_new": true,
+  "aliases_ko": [
+   "엉덩이 차기",
+   "벗킥"
+  ],
+  "aliases_en": [
+   "butt kicks",
+   "single leg butt kick",
+   "double leg butt kick"
+  ],
+  "similar": [
+   "high_knees",
+   "jumping_jack"
+  ],
+  "tier": "B",
+  "why": "하이 니는 무릎을 앞으로, 이건 제자리 뛰며 발뒤꿈치로 엉덩이를 차는 유산소 워밍업",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-butt-kick"
+ },
+ {
+  "og": [
+   "2792",
+   "3930",
+   "5157",
+   "1478"
+  ],
+  "name_ko": "플랭크 잭",
+  "name_en": "Plank Jack",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [
+   "shoulders",
+   "fullBody"
+  ],
+  "load_mode": "bodyweight",
+  "family": "plank_jack",
+  "family_is_new": true,
+  "aliases_ko": [
+   "플랭크 점프",
+   "플랭크 점핑잭"
+  ],
+  "aliases_en": [
+   "plank jacks",
+   "plank jump"
+  ],
+  "similar": [
+   "plank",
+   "jumping_jack",
+   "mountain_climber"
+  ],
+  "tier": "B",
+  "why": "플랭크 자세에서 다리를 점프로 벌렸다 모으는 유산소 동작 — 플랭크(정적)·점핑 잭(서서)과 다름",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-plank-jack"
+ },
+ {
+  "og": [
+   "8704"
+  ],
+  "name_ko": "버피 박스 점프",
+  "name_en": "Burpee Box Jump",
+  "equipment": "bodyweight",
+  "primary": "fullBody",
+  "secondary": [
+   "quads"
+  ],
+  "load_mode": "bodyweight",
+  "family": "burpee_box_jump",
+  "family_is_new": true,
+  "aliases_ko": [
+   "버피 박스 점프 오버",
+   "박스 버피"
+  ],
+  "aliases_en": [
+   "burpee box jump over",
+   "burpee jump box"
+  ],
+  "similar": [
+   "burpee",
+   "box_jump",
+   "burpee_over_bar"
+  ],
+  "tier": "B",
+  "why": "버피 오버 더 바는 바를 넘고, 이건 버피 뒤 박스 위로 뛰어오르는 크로스핏 동작",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-burpee-box-jump"
+ },
+ {
+  "og": [
+   "3400",
+   "10117"
+  ],
+  "name_ko": "덤벨 클린 앤 프레스",
+  "name_en": "Dumbbell Clean and Press",
+  "equipment": "dumbbell",
+  "primary": "fullBody",
+  "secondary": [
+   "shoulders",
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "clean_and_press",
+  "family_is_new": false,
+  "aliases_ko": [
+   "덤벨 클린 프레스",
+   "원암 덤벨 클린 앤 프레스"
+  ],
+  "aliases_en": [],
+  "similar": [
+   "clean",
+   "overhead_press",
+   "thruster"
+  ],
+  "tier": "B",
+  "why": "바벨 클린 앤 프레스와 동작은 같지만 덤벨 — 기구가 달라 별도 종목",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-dumbbell-clean-and-press"
+ },
+ {
+  "og": [
+   "4531",
+   "5855"
+  ],
+  "name_ko": "케틀벨 클린 앤 프레스",
+  "name_en": "Kettlebell Clean and Press",
+  "equipment": "kettlebell",
+  "primary": "fullBody",
+  "secondary": [
+   "shoulders",
+   "glutes"
+  ],
+  "load_mode": "weight",
+  "family": "clean_and_press",
+  "family_is_new": false,
+  "aliases_ko": [
+   "케틀벨 클린 프레스",
+   "원암 케틀벨 클린 앤 프레스"
+  ],
+  "aliases_en": [
+   "kettlebell single arm clean and press"
+  ],
+  "similar": [
+   "clean",
+   "overhead_press"
+  ],
+  "tier": "B",
+  "why": "바벨 클린 앤 프레스와 동작은 같지만 케틀벨 — 기구가 달라 별도 종목",
+  "chunk": "misc",
+  "parent": null,
+  "id": "seed-kettlebell-clean-and-press"
+ },
+ {
+  "og": [
+   "2500",
+   "0326",
+   "3694",
+   "3542",
+   "4832",
+   "0348",
+   "2470"
+  ],
+  "name_ko": "덤벨 인클라인 리어 델트 플라이",
+  "name_en": "Dumbbell Incline Rear Delt Fly",
+  "equipment": "dumbbell",
+  "primary": "shoulders",
+  "secondary": [
+   "back",
+   "traps"
+  ],
+  "load_mode": "weight",
+  "family": "incline_rear_delt_fly",
+  "family_is_new": true,
+  "aliases_ko": [
+   "인클라인 리어 델트 플라이",
+   "체스트 서포티드 리어 델트 플라이",
+   "라잉 리어 레터럴 레이즈",
+   "인클라인 T 레이즈",
+   "엎드려 리어 델트 플라이"
+  ],
+  "aliases_en": [
+   "incline rear delt fly",
+   "chest supported rear delt fly",
+   "dumbbell incline rear lateral raise",
+   "incline T raise",
+   "prone rear delt fly"
+  ],
+  "similar": [
+   "rear_delt_fly",
+   "y_raise",
+   "rear_delt_row"
+  ],
+  "tier": "A",
+  "why": "기존 덤벨 리어 델트 플라이는 서서 숙이는 벤트오버 — 벤치에 가슴을 대는 인클라인/엎드린 셋업은 반동이 없어 자극이 달라 별도 종목",
+  "chunk": "shoulders",
+  "parent": "rear_delt_fly",
+  "id": "seed-dumbbell-incline-rear-delt-fly"
+ },
+ {
+  "og": [
+   "0323",
+   "0408"
+  ],
+  "name_ko": "덤벨 사이드 라잉 레터럴 레이즈",
+  "name_en": "Dumbbell Side Lying Lateral Raise",
+  "equipment": "dumbbell",
+  "primary": "shoulders",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "side_lying_lateral_raise",
+  "family_is_new": true,
+  "aliases_ko": [
+   "사이드 라잉 레터럴 레이즈",
+   "라잉 사레레",
+   "인클라인 원암 레터럴 레이즈"
+  ],
+  "aliases_en": [
+   "side lying lateral raise",
+   "incline one arm lateral raise",
+   "lying lateral raise"
+  ],
+  "similar": [
+   "lateral_raise"
+  ],
+  "tier": "B",
+  "why": "옆으로 누워(또는 인클라인 벤치에 옆으로 기대) 드는 레터럴 레이즈 — 저항 곡선이 서서 하는 덤벨 레터럴 레이즈와 반대(하단 부하)라 셋업이 다름",
+  "chunk": "shoulders",
+  "parent": "lateral_raise",
+  "id": "seed-dumbbell-side-lying-lateral-raise"
+ },
+ {
+  "og": [
+   "0341",
+   "0345",
+   "1048",
+   "10330",
+   "7252"
+  ],
+  "name_ko": "덤벨 사이드 라잉 리어 델트 레이즈",
+  "name_en": "Dumbbell Side Lying Rear Delt Raise",
+  "equipment": "dumbbell",
+  "primary": "shoulders",
+  "secondary": [
+   "back"
+  ],
+  "load_mode": "weight",
+  "family": "side_lying_rear_delt_raise",
+  "family_is_new": true,
+  "aliases_ko": [
+   "사이드 라잉 리어 델트 레이즈",
+   "파월 레이즈",
+   "라잉 원암 리어 레터럴 레이즈"
+  ],
+  "aliases_en": [
+   "side lying rear delt raise",
+   "powell raise",
+   "lying one arm rear lateral raise"
+  ],
+  "similar": [
+   "rear_delt_fly",
+   "lateral_raise"
+  ],
+  "tier": "B",
+  "why": "옆으로 누워 한 팔로 후면을 드는 동작 — 벤트오버 리어 델트 플라이와 자세·저항 방향이 다름",
+  "chunk": "shoulders",
+  "parent": "rear_delt_fly",
+  "id": "seed-dumbbell-side-lying-rear-delt-raise"
+ },
+ {
+  "og": [
+   "0299",
+   "2136",
+   "4183"
+  ],
+  "name_ko": "덤벨 쿠반 프레스",
+  "name_en": "Dumbbell Cuban Press",
+  "equipment": "dumbbell",
+  "primary": "shoulders",
+  "secondary": [
+   "traps"
+  ],
+  "load_mode": "weight",
+  "family": "cuban_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "쿠반 프레스",
+   "큐반 프레스"
+  ],
+  "aliases_en": [
+   "cuban press",
+   "cuban rotation press"
+  ],
+  "similar": [
+   "upright_row",
+   "external_rotation",
+   "overhead_press"
+  ],
+  "tier": "B",
+  "why": "업라이트 로우→외회전→프레스를 한 동작으로 잇는 회전근개 강화 고전 — 카탈로그에 없음",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-dumbbell-cuban-press"
+ },
+ {
+  "og": [
+   "5667",
+   "6890",
+   "6891",
+   "10043"
+  ],
+  "name_ko": "덤벨 Z 프레스",
+  "name_en": "Dumbbell Z Press",
+  "equipment": "dumbbell",
+  "primary": "shoulders",
+  "secondary": [
+   "triceps",
+   "abs"
+  ],
+  "load_mode": "weight",
+  "family": "z_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "Z 프레스 (덤벨)",
+   "덤벨 제트 프레스",
+   "바닥 앉아 덤벨 프레스"
+  ],
+  "aliases_en": [
+   "seated floor dumbbell press"
+  ],
+  "similar": [
+   "overhead_press",
+   "arnold_press"
+  ],
+  "tier": "B",
+  "why": "바닥에 다리 펴고 앉아 등받이 없이 미는 프레스 — 시티드 덤벨 숄더 프레스와 셋업·코어 요구가 다름",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-dumbbell-z-press"
+ },
+ {
+  "og": [
+   "4866"
+  ],
+  "name_ko": "바벨 Z 프레스",
+  "name_en": "Barbell Z Press",
+  "equipment": "barbell",
+  "primary": "shoulders",
+  "secondary": [
+   "triceps",
+   "abs"
+  ],
+  "load_mode": "weight",
+  "family": "z_press",
+  "family_is_new": true,
+  "aliases_ko": [
+   "Z 프레스",
+   "제트 프레스",
+   "바벨 제트 프레스"
+  ],
+  "aliases_en": [
+   "z press"
+  ],
+  "similar": [
+   "overhead_press",
+   "behind_neck_press"
+  ],
+  "tier": "B",
+  "why": "바닥에 앉아 랙에서 바벨을 빼 미는 프레스 — 스탠딩/시티드 OHP와 셋업이 다름",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-barbell-z-press"
+ },
+ {
+  "og": [
+   "0747",
+   "0772"
+  ],
+  "name_ko": "스미스 비하인드 넥 프레스",
+  "name_en": "Smith Behind the Neck Press",
+  "equipment": "smith",
+  "primary": "shoulders",
+  "secondary": [
+   "triceps",
+   "traps"
+  ],
+  "load_mode": "weight",
+  "family": "behind_neck_press",
+  "family_is_new": false,
+  "aliases_ko": [
+   "스미스 비하인드 넥",
+   "스미스 BTN 프레스"
+  ],
+  "aliases_en": [
+   "smith machine behind neck press"
+  ],
+  "similar": [
+   "behind_neck_press",
+   "overhead_press"
+  ],
+  "tier": "B",
+  "why": "기존은 바벨 비하인드 넥 프레스뿐 — 스미스는 기구가 달라 별도",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-smith-behind-the-neck-press"
+ },
+ {
+  "og": [
+   "3237"
+  ],
+  "name_ko": "랜드마인 레터럴 레이즈",
+  "name_en": "Landmine Lateral Raise",
+  "equipment": "barbell",
+  "primary": "shoulders",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "landmine_lateral_raise",
+  "family_is_new": true,
+  "aliases_ko": [
+   "랜드마인 사레레",
+   "랜드마인 사이드 레이즈"
+  ],
+  "aliases_en": [
+   "landmine side raise"
+  ],
+  "similar": [
+   "lateral_raise",
+   "landmine_press"
+  ],
+  "tier": "B",
+  "why": "랜드마인 바 끝을 잡고 몸 앞을 가로질러 드는 레터럴 레이즈 — 덤벨·케이블·머신 버전과 기구·저항 곡선이 다름",
+  "chunk": "shoulders",
+  "parent": "lateral_raise",
+  "id": "seed-landmine-lateral-raise"
+ },
+ {
+  "og": [
+   "4376"
+  ],
+  "name_ko": "핸드스탠드 워크",
+  "name_en": "Handstand Walk",
+  "equipment": "bodyweight",
+  "primary": "shoulders",
+  "secondary": [
+   "triceps",
+   "abs"
+  ],
+  "load_mode": "bodyweight",
+  "family": "handstand_walk",
+  "family_is_new": true,
+  "aliases_ko": [
+   "물구나무 걷기",
+   "핸드스탠드 워킹"
+  ],
+  "aliases_en": [
+   "handstand walking"
+  ],
+  "similar": [
+   "handstand_hold",
+   "handstand_push_up"
+  ],
+  "tier": "B",
+  "why": "물구나무 자세로 손으로 걷는 이동 동작 — 핸드스탠드 홀드(정지)·푸시업과 다름",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-handstand-walk"
+ },
+ {
+  "og": [
+   "5234"
+  ],
+  "name_ko": "월 워크",
+  "name_en": "Wall Walk",
+  "equipment": "bodyweight",
+  "primary": "shoulders",
+  "secondary": [
+   "abs",
+   "triceps"
+  ],
+  "load_mode": "bodyweight",
+  "family": "wall_walk",
+  "family_is_new": true,
+  "aliases_ko": [
+   "벽 걷기",
+   "월 워크업",
+   "벽 타고 물구나무"
+  ],
+  "aliases_en": [
+   "wall climb"
+  ],
+  "similar": [
+   "handstand_hold",
+   "pike_push_up",
+   "bear_crawl"
+  ],
+  "tier": "B",
+  "why": "엎드린 자세에서 발로 벽을 타고 올라 물구나무까지 갔다 내려오는 크로스핏 동작 — 카탈로그에 없음",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-wall-walk"
+ },
+ {
+  "og": [
+   "0848",
+   "2410"
+  ],
+  "name_ko": "넥 하네스 익스텐션",
+  "name_en": "Neck Harness Extension",
+  "equipment": "other",
+  "primary": "other",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "neck_extension",
+  "family_is_new": false,
+  "aliases_ko": [
+   "넥 하네스",
+   "헤드 하네스 넥 익스텐션",
+   "목 하네스"
+  ],
+  "aliases_en": [
+   "head harness neck extension"
+  ],
+  "similar": [
+   "neck_extension",
+   "neck_curl",
+   "shrug"
+  ],
+  "tier": "B",
+  "why": "머리 하네스에 원판을 달고 앉거나 서서 목을 젖히는 동작 — 누워서 하는 라잉 넥 익스텐션과 셋업·기구가 다름",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-neck-harness-extension"
+ },
+ {
+  "og": [
+   "2282"
+  ],
+  "name_ko": "머신 넥 익스텐션",
+  "name_en": "Machine Neck Extension",
+  "equipment": "machine",
+  "primary": "other",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "neck_extension",
+  "family_is_new": false,
+  "aliases_ko": [
+   "넥 머신",
+   "목 머신",
+   "4방향 넥 머신"
+  ],
+  "aliases_en": [
+   "neck machine",
+   "4-way neck machine"
+  ],
+  "similar": [
+   "neck_extension",
+   "neck_curl"
+  ],
+  "tier": "B",
+  "why": "넥 머신 패드에 머리를 대고 미는 동작 — 맨몸·원판 라잉 넥 익스텐션과 기구가 다름",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-machine-neck-extension"
+ },
+ {
+  "og": [
+   "4429",
+   "4430",
+   "0838"
+  ],
+  "name_ko": "라잉 넥 사이드 레이즈",
+  "name_en": "Lying Neck Side Raise",
+  "equipment": "bodyweight",
+  "primary": "other",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "neck_side_flexion",
+  "family_is_new": true,
+  "aliases_ko": [
+   "사이드 라잉 넥 레이즈",
+   "옆으로 누워 목 들기",
+   "넥 사이드 레이즈"
+  ],
+  "aliases_en": [
+   "side lying neck raise",
+   "lateral neck flexion"
+  ],
+  "similar": [
+   "neck_curl",
+   "neck_extension"
+  ],
+  "tier": "B",
+  "why": "옆으로 누워 머리를 옆으로 드는 측굴 — 카탈로그 목 운동은 앞(컬)·뒤(익스텐션)뿐",
+  "chunk": "shoulders",
+  "parent": null,
+  "id": "seed-lying-neck-side-raise"
+ },
+ {
+  "og": [
+   "6033",
+   "4626",
+   "4623",
+   "3510",
+   "3509",
+   "0570",
+   "3944",
+   "4628"
+  ],
+  "name_ko": "시티드 니업",
+  "name_en": "Seated Knee Tuck",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "seated_knee_tuck",
+  "family_is_new": true,
+  "aliases_ko": [
+   "시티드 니 턱",
+   "앉아서 무릎 당기기",
+   "니 턱",
+   "인앤아웃"
+  ],
+  "aliases_en": [
+   "ab tuck",
+   "seated in and out",
+   "seated tuck crunch",
+   "bench knee tuck"
+  ],
+  "similar": [
+   "lying_knee_raise",
+   "reverse_crunch",
+   "v_sit_up"
+  ],
+  "tier": "A",
+  "why": "앉아 상체를 젖힌 채 무릎을 당기는 동작 — 라잉/행잉/평행봉 니 레이즈와 셋업이 다름",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-seated-knee-tuck"
+ },
+ {
+  "og": [
+   "0871",
+   "5274",
+   "3969",
+   "4002",
+   "0487",
+   "0260"
+  ],
+  "name_ko": "더블 크런치",
+  "name_en": "Double Crunch",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "double_crunch",
+  "family_is_new": true,
+  "aliases_ko": [
+   "턱 크런치",
+   "턱 업",
+   "코쿤"
+  ],
+  "aliases_en": [
+   "tuck crunch",
+   "tuck up",
+   "cocoons"
+  ],
+  "similar": [
+   "crunch",
+   "reverse_crunch",
+   "v_sit_up"
+  ],
+  "tier": "A",
+  "why": "상체 크런치와 무릎 당기기를 동시에 — 크런치·리버스 크런치 어느 한쪽만 하는 기존 종목과 다름",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-double-crunch"
+ },
+ {
+  "og": [
+   "6548",
+   "3438",
+   "0491",
+   "9049",
+   "4885",
+   "1845"
+  ],
+  "name_ko": "디클라인 레그 레이즈",
+  "name_en": "Decline Bench Leg Raise",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "decline_leg_raise",
+  "family_is_new": true,
+  "aliases_ko": [
+   "벤치 레그 레이즈",
+   "디클라인 벤치 레그레이즈",
+   "디클라인 니 레이즈"
+  ],
+  "aliases_en": [
+   "decline leg raise",
+   "incline leg hip raise",
+   "decline knee raise"
+  ],
+  "similar": [
+   "lying_leg_raise",
+   "reverse_crunch",
+   "decline_crunch"
+  ],
+  "tier": "B",
+  "why": "경사 벤치에 머리를 위로 두고 다리를 들어 바닥 라잉 레그 레이즈보다 가동·부하가 큼",
+  "chunk": "waist",
+  "parent": "lying_leg_raise",
+  "id": "seed-decline-bench-leg-raise"
+ },
+ {
+  "og": [
+   "3890"
+  ],
+  "name_ko": "행잉 니 투 엘보",
+  "name_en": "Hanging Knees to Elbows",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [
+   "back"
+  ],
+  "load_mode": "bodyweight",
+  "family": "knees_to_elbows",
+  "family_is_new": true,
+  "aliases_ko": [
+   "니 투 엘보",
+   "K2E"
+  ],
+  "aliases_en": [
+   "knees to elbows",
+   "K2E"
+  ],
+  "similar": [
+   "toes_to_bar",
+   "hanging_knee_raise",
+   "hanging_leg_raise"
+  ],
+  "tier": "B",
+  "why": "매달려 무릎을 팔꿈치까지 끌어올림 — 니 레이즈보다 높고 토즈 투 바보다 쉬운 중간 단계",
+  "chunk": "waist",
+  "parent": "toes_to_bar",
+  "id": "seed-hanging-knees-to-elbows"
+ },
+ {
+  "og": [
+   "3420",
+   "5344"
+  ],
+  "name_ko": "V 싯 홀드",
+  "name_en": "V-Sit Hold",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [
+   "quads"
+  ],
+  "load_mode": "bodyweight",
+  "family": "v_sit_hold",
+  "family_is_new": true,
+  "aliases_ko": [
+   "보트 홀드",
+   "V 홀드"
+  ],
+  "aliases_en": [
+   "v-sit",
+   "boat hold",
+   "v up hold"
+  ],
+  "similar": [
+   "hollow_rock",
+   "l_sit",
+   "v_sit_up"
+  ],
+  "tier": "B",
+  "why": "엉덩이로 앉아 상체·다리를 V로 버티는 등척 — 반복하는 V 싯업, 등 대고 버티는 할로우와 다름",
+  "chunk": "waist",
+  "parent": "hollow_rock",
+  "id": "seed-v-sit-hold"
+ },
+ {
+  "og": [
+   "1471",
+   "3698",
+   "3854"
+  ],
+  "name_ko": "인치웜",
+  "name_en": "Inchworm",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [
+   "shoulders",
+   "hamstrings"
+  ],
+  "load_mode": "bodyweight",
+  "family": "inchworm",
+  "family_is_new": true,
+  "aliases_ko": [
+   "플랭크 워크아웃",
+   "자벌레"
+  ],
+  "aliases_en": [
+   "plank walkout",
+   "walkout"
+  ],
+  "similar": [
+   "plank",
+   "bear_crawl",
+   "plank_push_up"
+  ],
+  "tier": "A",
+  "why": "서서 손으로 걸어 나가 플랭크까지 갔다 돌아오는 이동 동작 — 기존 플랭크류에 없음",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-inchworm"
+ },
+ {
+  "og": [
+   "0464",
+   "4385"
+  ],
+  "name_ko": "플랭크 힙 딥",
+  "name_en": "Plank Hip Dip",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "plank_hip_dip",
+  "family_is_new": true,
+  "aliases_ko": [
+   "플랭크 힙 트위스트",
+   "플랭크 트위스트",
+   "힙 딥"
+  ],
+  "aliases_en": [
+   "plank hip twist",
+   "plank with twist",
+   "hip roll plank"
+  ],
+  "similar": [
+   "plank",
+   "side_plank",
+   "russian_twist"
+  ],
+  "tier": "A",
+  "why": "엘보 플랭크에서 골반을 좌우로 떨궈 옆구리를 씀 — 정적 플랭크와 다름",
+  "chunk": "waist",
+  "parent": "plank",
+  "id": "seed-plank-hip-dip"
+ },
+ {
+  "og": [
+   "4991",
+   "0820"
+  ],
+  "name_ko": "사이드 플랭크 로테이션",
+  "name_en": "Side Plank Rotation",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [
+   "shoulders"
+  ],
+  "load_mode": "bodyweight",
+  "family": "side_plank_rotation",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스레드 더 니들",
+   "사이드 플랭크 트위스트"
+  ],
+  "aliases_en": [
+   "thread the needle",
+   "side plank twist",
+   "twist side bridge"
+  ],
+  "similar": [
+   "side_plank",
+   "russian_twist",
+   "plank"
+  ],
+  "tier": "B",
+  "why": "사이드 플랭크에서 위팔을 몸 아래로 감아 넣는 회전 — 정적 사이드 플랭크와 다름",
+  "chunk": "waist",
+  "parent": "side_plank",
+  "id": "seed-side-plank-rotation"
+ },
+ {
+  "og": [
+   "4170"
+  ],
+  "name_ko": "베어 플랭크",
+  "name_en": "Bear Plank",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [
+   "shoulders",
+   "quads"
+  ],
+  "load_mode": "bodyweight",
+  "family": "bear_plank",
+  "family_is_new": true,
+  "aliases_ko": [
+   "베어 홀드",
+   "무릎 띄운 네발 버티기"
+  ],
+  "aliases_en": [
+   "bear hold",
+   "hover hold"
+  ],
+  "similar": [
+   "bear_crawl",
+   "plank",
+   "bird_dog"
+  ],
+  "tier": "B",
+  "why": "네발 자세로 무릎을 살짝 띄워 버티는 등척 — 이동하는 베어 크롤·팔 편 플랭크와 다름",
+  "chunk": "waist",
+  "parent": "bear_crawl",
+  "id": "seed-bear-plank"
+ },
+ {
+  "og": [
+   "5497",
+   "7229",
+   "6026"
+  ],
+  "name_ko": "플랭크 풀 스루",
+  "name_en": "Plank Pull Through",
+  "equipment": "kettlebell",
+  "primary": "abs",
+  "secondary": [
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "plank_pull_through",
+  "family_is_new": true,
+  "aliases_ko": [
+   "케틀벨 플랭크 풀스루",
+   "덤벨 플랭크 풀 스루",
+   "플랭크 패스 스루"
+  ],
+  "aliases_en": [
+   "kettlebell plank pull through",
+   "plank pass through",
+   "dumbbell plank pull through"
+  ],
+  "similar": [
+   "plank",
+   "renegade_row",
+   "shoulder_tap"
+  ],
+  "tier": "B",
+  "why": "하이 플랭크에서 한 손으로 기구를 반대편으로 끌어 옮기는 항회전 — 숄더 탭·레니게이드 로우와 다름",
+  "chunk": "waist",
+  "parent": "plank",
+  "id": "seed-plank-pull-through"
+ },
+ {
+  "og": [
+   "3999",
+   "5846",
+   "4366"
+  ],
+  "name_ko": "스탠딩 니 투 엘보",
+  "name_en": "Standing Knee to Elbow",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "standing_knee_to_elbow",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스탠딩 크런치",
+   "서서 무릎 팔꿈치 닿기",
+   "스탠딩 바이시클"
+  ],
+  "aliases_en": [
+   "standing air bike",
+   "standing cross body crunch",
+   "standing bicycle crunch"
+  ],
+  "similar": [
+   "elbow_to_knee",
+   "bicycle_crunch",
+   "high_knees"
+  ],
+  "tier": "B",
+  "why": "서서 무릎을 들어 반대 팔꿈치에 닿게 함 — 누워서 하는 엘보 투 니·바이시클과 셋업이 다름",
+  "chunk": "waist",
+  "parent": "elbow_to_knee",
+  "id": "seed-standing-knee-to-elbow"
+ },
+ {
+  "og": [
+   "5699",
+   "0002",
+   "10875"
+  ],
+  "name_ko": "45도 사이드 벤드",
+  "name_en": "45 Degree Side Bend",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "roman_chair_side_bend",
+  "family_is_new": true,
+  "aliases_ko": [
+   "로만체어 사이드 벤드",
+   "하이퍼 사이드 벤드",
+   "옆구리 하이퍼"
+  ],
+  "aliases_en": [
+   "roman chair side bend",
+   "side hyperextension"
+  ],
+  "similar": [
+   "side_bend",
+   "back_extension",
+   "side_crunch"
+  ],
+  "tier": "B",
+  "why": "45도 하이퍼 벤치에 옆으로 걸쳐 몸통을 옆으로 굽혔다 폄 — 서서 하는 덤벨·케이블 사이드 벤드와 셋업이 다름",
+  "chunk": "waist",
+  "parent": "side_bend",
+  "id": "seed-45-degree-side-bend"
+ },
+ {
+  "og": [
+   "4746",
+   "4888",
+   "4901"
+  ],
+  "name_ko": "덤벨 윈드밀",
+  "name_en": "Dumbbell Windmill",
+  "equipment": "dumbbell",
+  "primary": "abs",
+  "secondary": [
+   "shoulders",
+   "hamstrings"
+  ],
+  "load_mode": "weight",
+  "family": "kettlebell_windmill",
+  "family_is_new": false,
+  "aliases_ko": [],
+  "aliases_en": [
+   "dumbbell low windmill",
+   "dumbbell high windmill"
+  ],
+  "similar": [
+   "kettlebell_windmill",
+   "side_bend",
+   "turkish_get_up"
+  ],
+  "tier": "B",
+  "why": "윈드밀을 덤벨로 — 기존은 케틀벨 윈드밀뿐",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-dumbbell-windmill"
+ },
+ {
+  "og": [
+   "5108",
+   "4572",
+   "4747"
+  ],
+  "name_ko": "덤벨 우드촙",
+  "name_en": "Dumbbell Woodchop",
+  "equipment": "dumbbell",
+  "primary": "abs",
+  "secondary": [
+   "shoulders"
+  ],
+  "load_mode": "weight",
+  "family": "woodchop",
+  "family_is_new": false,
+  "aliases_ko": [
+   "덤벨 우드찹",
+   "덤벨 우드 초퍼"
+  ],
+  "aliases_en": [
+   "dumbbell woodchopper",
+   "dumbbell lift and chop"
+  ],
+  "similar": [
+   "woodchop",
+   "russian_twist",
+   "kettlebell_windmill"
+  ],
+  "tier": "B",
+  "why": "우드촙을 덤벨로 — 기존은 케이블·밴드뿐",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-dumbbell-woodchop"
+ },
+ {
+  "og": [
+   "6693",
+   "0223"
+  ],
+  "name_ko": "케이블 사이드 크런치",
+  "name_en": "Cable Side Crunch",
+  "equipment": "cable",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "side_crunch",
+  "family_is_new": false,
+  "aliases_ko": [
+   "케이블 오블리크 크런치",
+   "닐링 케이블 사이드 크런치"
+  ],
+  "aliases_en": [
+   "cable oblique crunch",
+   "cable kneeling side crunch"
+  ],
+  "similar": [
+   "side_crunch",
+   "crunch",
+   "side_bend"
+  ],
+  "tier": "B",
+  "why": "케이블을 당기며 옆으로 말아 내리는 크런치 — 서서 옆으로 굽히는 케이블 사이드 벤드·맨몸 사이드 크런치와 다름",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-cable-side-crunch"
+ },
+ {
+  "og": [
+   "10639",
+   "11282",
+   "6554",
+   "3329",
+   "3942"
+  ],
+  "name_ko": "GHD 싯업",
+  "name_en": "GHD Sit Up",
+  "equipment": "machine",
+  "primary": "abs",
+  "secondary": [
+   "quads"
+  ],
+  "load_mode": "bodyweight",
+  "family": "sit_up",
+  "family_is_new": false,
+  "aliases_ko": [
+   "지에이치디 싯업",
+   "로만체어 싯업",
+   "글루트 햄 싯업"
+  ],
+  "aliases_en": [
+   "glute ham developer sit up",
+   "roman chair sit up"
+  ],
+  "similar": [
+   "sit_up",
+   "decline_sit_up",
+   "back_extension"
+  ],
+  "tier": "B",
+  "why": "GHD에 발을 걸고 수평 아래까지 젖혔다 올라오는 싯업 — 가동 범위·셋업이 디클라인 싯업과 다름",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-ghd-sit-up"
+ },
+ {
+  "og": [
+   "5583"
+  ],
+  "name_ko": "앱 코스터",
+  "name_en": "Ab Coaster",
+  "equipment": "machine",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "weight",
+  "family": "ab_coaster",
+  "family_is_new": true,
+  "aliases_ko": [
+   "레버 앱 코스터 크런치"
+  ],
+  "aliases_en": [
+   "lever ab coaster crunch"
+  ],
+  "similar": [
+   "crunch",
+   "reverse_crunch",
+   "hanging_knee_raise"
+  ],
+  "tier": "B",
+  "why": "무릎 받침 썰매를 레일 따라 끌어올리는 하복부 머신 — 상체를 마는 앱 크런치 머신과 동작이 다름",
+  "chunk": "waist",
+  "parent": "crunch",
+  "id": "seed-ab-coaster"
+ },
+ {
+  "og": [
+   "5445",
+   "5242"
+  ],
+  "name_ko": "복부 배큠",
+  "name_en": "Stomach Vacuum",
+  "equipment": "bodyweight",
+  "primary": "abs",
+  "secondary": [],
+  "load_mode": "bodyweight",
+  "family": "vacuum",
+  "family_is_new": true,
+  "aliases_ko": [
+   "스토머크 배큠",
+   "배큠",
+   "복부 진공",
+   "진공 복근"
+  ],
+  "aliases_en": [
+   "abdominal vacuum",
+   "vacuum",
+   "abdominal draw in"
+  ],
+  "similar": [
+   "plank",
+   "dead_bug",
+   "hollow_rock"
+  ],
+  "tier": "B",
+  "why": "숨을 내쉬고 배를 등쪽으로 당겨 버티는 복횡근 운동 — 기존 종목에 없음",
+  "chunk": "waist",
+  "parent": null,
+  "id": "seed-stomach-vacuum"
+ }
+]
