@@ -199,6 +199,7 @@ test("지운 루틴은 다른 기기에서 되살아나지 않는다", async ({ 
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
   await page.getByTestId("btn-routine-done").click();
   await expect(page.getByTestId("routine-list")).toContainText(루틴, { timeout: 20_000 });

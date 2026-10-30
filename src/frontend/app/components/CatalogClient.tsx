@@ -38,6 +38,7 @@ import { Pictogram } from "./Pictogram";
 import { ErrorState } from "./States";
 import { useToast } from "./Toast";
 import { Chip } from "./ui/Chip";
+import { FilterRow } from "./ui/FilterRow";
 import { Icon, type IconName } from "./ui/Icon";
 import { TextField } from "./ui/inputs";
 import { AppText, type ColorKey, EmptyState, Tag } from "./ui/primitives";
@@ -371,17 +372,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
   );
 }
 
-/** 라벨 + 가로 스크롤 칩 줄 — app의 FilterRow와 같다. */
-function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-[var(--spacing-xs)]">
-      <AppText variant="label" color="textFaint">
-        {label}
-      </AppText>
-      <div className="no-scrollbar flex gap-[var(--spacing-sm)] overflow-x-auto py-[2px]">{children}</div>
-    </div>
-  );
-}
+// 라벨 + 칩 줄(FilterRow)은 ui/FilterRow 로 옮겼다 — 루틴 편집 피커와 함께 쓴다(SRS-093).
 
 /**
  * 목록 한 줄 — 썸네일 · 이름 · 대체이름 · 태그 · chevron.

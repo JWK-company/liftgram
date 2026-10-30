@@ -97,7 +97,10 @@ export async function addExerciseToRoutine(
   input: RoutineExerciseInput = {},
 ): Promise<RoutineExercise> {
   return database.write(async () => {
-    const count = await routineExercises().query(Q.where('routine_id', routineId)).fetchCount();
+    // [원본] const count = await routineExercises().query(Q.where('routine_id', routineId)).fetchCount();
+    // — 지운 종목의 번호를 다시 매기지 않아, 하나 지운 뒤 넣으면 남은 종목과 순서값이 겹쳤다(qa code M-2)
+    // [개선] 남은 종목의 가장 큰 순서값 다음 @plm SRS-093
+    const count = await nextSortOrder(routineId);
     return routineExercises().create((re) => {
       re.routineId = routineId;
       re.exerciseId = exerciseId;
@@ -111,6 +114,41 @@ export async function addExerciseToRoutine(
       re.sortOrder = count;
       re.note = input.note ?? null;
     });
+  });
+}
+
+/** 이 루틴에서 다음 종목이 받을 순서값 — 남은 종목의 최댓값 + 1(빈 루틴은 0). write 안에서 부른다. */
+async function nextSortOrder(routineId: string): Promise<number> {
+  const rows = await routineExercises().query(Q.where('routine_id', routineId)).fetch();
+  return rows.reduce((m, r) => Math.max(m, (r.sortOrder ?? -1) + 1), 0);
+}
+
+/**
+ * 여러 종목을 **한 번의 write 로** 차례대로 넣는다 — 전체 화면 피커의 「N개 추가」(SRS-093).
+ * 한 트랜잭션이라 중간에 시작·이동해도 일부만 들어간 루틴이 생기지 않고, 고른 순서가 곧 순서값이다.
+ * 돌려주는 줄은 넣은 순서와 같다. @plm SRS-093
+ */
+export async function addExercisesToRoutine(routineId: string, exerciseIds: readonly string[]): Promise<RoutineExercise[]> {
+  if (exerciseIds.length === 0) return [];
+  return database.write(async () => {
+    const start = await nextSortOrder(routineId);
+    const batch = exerciseIds.map((exerciseId, i) =>
+      routineExercises().prepareCreate((re) => {
+        re.routineId = routineId;
+        re.exerciseId = exerciseId;
+        re.targetSets = 3;
+        re.targetRepsMin = 8;
+        re.targetRepsMax = 12;
+        re.targetWeightKg = null;
+        re.restSeconds = 120;
+        re.machineVariant = null;
+        re.supersetGroup = null;
+        re.sortOrder = start + i;
+        re.note = null;
+      }),
+    );
+    await database.batch(...batch);
+    return batch;
   });
 }
 

@@ -48,6 +48,7 @@ async function 루틴_만들기(page: Page, 이름: string) {
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
   await page.getByTestId("btn-routine-done").click();
   await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 20_000 });
@@ -149,10 +150,18 @@ async function 홈(page: Page) {
   await 주행동_계산_대기(page);
 }
 
-test("루틴이 없으면 빠른 운동 시작이 유일한 주 행동", async ({ page }) => {
+// [원본] 루틴이 없으면 빠른 운동 시작이 유일한 주 행동 — SRS-093 에서 「새 루틴 만들기」로 옮김(루틴을 짜서 하는 것이 주 동선)
+test("루틴이 없으면 「새 루틴 만들기」가 유일한 주 행동 — 빠른 운동 시작은 같은 크기의 보조(SRS-093)", async ({
+  page,
+}) => {
   await 카탈로그_준비(page);
   await 홈(page);
-  expect(await filledBrand(page)).toEqual(["btn-quick-start"]);
+  expect(await filledBrand(page)).toEqual(["btn-new-routine"]);
+  const [a, b] = await Promise.all([
+    page.getByTestId("btn-new-routine").boundingBox(),
+    page.getByTestId("btn-quick-start").boundingBox(),
+  ]);
+  expect(a && b && Math.abs(a.width - b.width) <= 1 && Math.abs(a.height - b.height) <= 1).toBe(true);
 });
 
 test("루틴이 있으면 오늘 할 루틴 「시작」이 주 행동, 빠른 운동 시작은 보조", async ({ page }) => {

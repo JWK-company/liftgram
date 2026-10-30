@@ -181,6 +181,7 @@ test("처방 RIR 이 있으면 칩 하나로 합친다 — 꺼짐 「RIR 2」 ·
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 10_000 });
   await page.getByTestId("btn-rx").click();
   const sheet = page.getByTestId("rx-sheet");

@@ -113,6 +113,7 @@ test.describe("360×560 · 짧은 화면", () => {
       await page.keyboard.press("Enter");
       await page.getByTestId("picker-search").fill(종목);
       await page.getByTestId("picker-list").locator("button").first().click();
+      await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
       await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
     }
     await page.setViewportSize({ width: 360, height: 560 });
@@ -214,6 +215,7 @@ test.describe("1280×560 · 넓은 화면(세로 탭바)", () => {
       await page.keyboard.press("Enter");
       await page.getByTestId("picker-search").fill(종목);
       await page.getByTestId("picker-list").locator("button").first().click();
+      await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
       await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
     }
     await 맨위로(page);

@@ -39,7 +39,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { scheduleFlush } from "@/lib/localDb";
 import { usePlateOneSide } from "@/lib/usePlateOneSide";
-import ExercisePicker from "../ExercisePicker";
+// import ExercisePicker from "../ExercisePicker"; // [원본] 작은 카드 피커 — SRS-093 에서 전체 화면으로
+import ExercisePickerScreen from "../ExercisePickerScreen";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
 import { ConfirmDialog, SheetShell } from "../ui/Dialog";
@@ -92,6 +93,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   const [supersetTarget, setSupersetTarget] = useState<RoutineExerciseRow | null>(null);
   const [confirmDeleteRoutine, setConfirmDeleteRoutine] = useState(false);
   const [starting, setStarting] = useState(false);
+  /** 피커에서 고른 종목을 넣는 중 — 끝나기 전에 시작·완료를 누르지 못하게(qa code M-1) */
+  const [adding, setAdding] = useState(false);
   const { activeWorkoutId, setActive } = useSession();
   const [confirmRemove, setConfirmRemove] = useState<RoutineExerciseRow | null>(null);
 
@@ -343,32 +346,75 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           />
         </div>
 
+        {/* [원본] 편집 화면 아래에 끼운 작은 카드 피커 — 몇 줄밖에 안 보이고 부위로 못 좁히고 하나씩만 골랐다(피드백 2026-10-30)
+        // {picking ? (
+        //   <div className="mt-[var(--spacing-md)]">
+        //     <ExercisePicker
+        //       onClose={() => setPicking(null)}
+        //       onPick={(exerciseId, info) => {
+        //         const p = picking;
+        //         setPicking(null);
+        //         void (async () => {
+        //           // 고른 이름(별칭)이 표시 이름·함축 칸을 정한다 @plm SRS-056
+        //           const { applyPick } = await import("@/lib/exerciseNames");
+        //           if (p.mode === "swap") {
+        //             await repo.swapRoutineExercise(p.reId, exerciseId);
+        //             await applyPick(exerciseId, info, { routineExerciseId: p.reId });
+        //           } else {
+        //             const id = await ensureId();
+        //             if (id) {
+        //               const re = await repo.addExerciseToRoutine(id, exerciseId);
+        //               await applyPick(exerciseId, info, { routineExerciseId: re.id });
+        //             }
+        //           }
+        //           await flush();
+        //           setVersion((v) => v + 1);
+        //         })();
+        //       }}
+        //     />
+        //   </div>
+        // ) : null}
+        */}
+        {/* [개선] 전체 화면 피커 — 검색·부위·기구·도우미, 추가는 여러 개를 고른 순서대로 한 번에 · 교체는 한 개 즉시 @plm SRS-093 */}
         {picking ? (
-          <div className="mt-[var(--spacing-md)]">
-            <ExercisePicker
-              onClose={() => setPicking(null)}
-              onPick={(exerciseId, info) => {
-                const p = picking;
-                setPicking(null);
-                void (async () => {
-                  // 고른 이름(별칭)이 표시 이름·함축 칸을 정한다 @plm SRS-056
-                  const { applyPick } = await import("@/lib/exerciseNames");
-                  if (p.mode === "swap") {
-                    await repo.swapRoutineExercise(p.reId, exerciseId);
-                    await applyPick(exerciseId, info, { routineExerciseId: p.reId });
-                  } else {
-                    const id = await ensureId();
-                    if (id) {
-                      const re = await repo.addExerciseToRoutine(id, exerciseId);
-                      await applyPick(exerciseId, info, { routineExerciseId: re.id });
+          <ExercisePickerScreen
+            mode={picking.mode === "add" ? "multi" : "single"}
+            title={t(picking.mode === "add" ? "routines.pickerTitle" : "routines.pickerSwapTitle")}
+            onClose={() => setPicking(null)}
+            onDone={(picks) => {
+              const p = picking;
+              setPicking(null);
+              setAdding(true);
+              void (async () => {
+                // 고른 이름(별칭)이 표시 이름·함축 칸을 정한다 @plm SRS-056
+                const { applyPick } = await import("@/lib/exerciseNames");
+                if (p.mode === "swap") {
+                  const first = picks[0];
+                  if (first) {
+                    await repo.swapRoutineExercise(p.reId, first.exerciseId);
+                    await applyPick(first.exerciseId, first.info, { routineExerciseId: p.reId });
+                  }
+                } else {
+                  const id = await ensureId();
+                  if (id) {
+                    // 한 번의 write 로 고른 순서대로 — 일부만 들어간 채 시작되지 않는다(qa code M-1·M-2)
+                    const res = await repo.addExercisesToRoutine(
+                      id,
+                      picks.map((x) => x.exerciseId),
+                    );
+                    for (const [i, pick] of picks.entries()) {
+                      const re = res[i];
+                      if (re) await applyPick(pick.exerciseId, pick.info, { routineExerciseId: re.id });
                     }
                   }
-                  await flush();
-                  setVersion((v) => v + 1);
-                })();
-              }}
-            />
-          </div>
+                }
+                await flush();
+                setVersion((v) => v + 1);
+              })()
+                .catch((e) => toast(e instanceof Error ? e.message : String(e), "error"))
+                .finally(() => setAdding(false));
+            }}
+          />
         ) : null}
       </div>
 
@@ -380,7 +426,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             icon="checkmark"
             variant={canStart ? "secondary" : "primary"}
             testId="btn-routine-done"
+            loading={adding}
             onPress={() => {
+              if (adding) return;
               void (async () => {
                 // 타이핑 중이던 이름을 확정하고(포커스가 아직 입력에 있을 수 있다) 내려쓴 뒤 나간다.
                 if (name.trim()) await save({ name: name.trim() });
@@ -396,9 +444,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
               title="이 루틴으로 시작"
               icon="play"
               testId="btn-routine-start"
-              loading={starting}
+              loading={starting || adding}
               onPress={() => {
-                if (starting || !routineId) return;
+                if (starting || adding || !routineId) return;
                 setStarting(true);
                 void (async () => {
                   try {

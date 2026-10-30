@@ -241,6 +241,7 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
     await page.getByTestId("btn-add-routine-exercise").click();
     await page.getByTestId("picker-search").fill(n);
     await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
     await page.getByTestId("exercise-picker").waitFor({ state: "detached" });
   }
   await page.waitForTimeout(600);

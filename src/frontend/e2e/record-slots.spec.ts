@@ -222,6 +222,7 @@ test("루틴 편집 대체는 한 번에 바뀌고(#47), 운동 중 기구 바�
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   const rows = page.getByTestId("routine-exercises").locator("> div");
   await expect(rows).toHaveCount(1, { timeout: 10_000 });
   await page.getByTestId("btn-routine-done").click();

@@ -99,11 +99,13 @@ test("숫자 스테퍼 값에 점선 밑줄이 없다(루틴 편집·프로필)"
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
   // 슈퍼셋 버튼은 종목이 둘 이상일 때만 보인다 — 하나 더 담아 셋 다 잰다(/qa P4 M-4)
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("케이블 푸시다운");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(2, { timeout: 20_000 });
   const value = page.getByTestId("re-sets-value").first();
   await expect(value).toBeVisible();
@@ -131,6 +133,7 @@ test("루틴이 있는 홈 — 빨강 채움 버튼은 하나(오늘 할 루틴 
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
   await page.getByTestId("btn-routine-done").click();
   await expect(page.getByTestId("routine-list")).toContainText("측정 루틴", { timeout: 20_000 });
@@ -215,6 +218,7 @@ test("폴더 안 루틴·오늘 카드가 있어도 홈의 빨강 채움은 하�
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
+  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
   await page.getByTestId("btn-routine-done").click();
 

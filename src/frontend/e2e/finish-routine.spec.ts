@@ -25,6 +25,7 @@ async function 루틴_만들기(page: Page, 이름: string, 종목들: string[])
     await page.getByTestId("btn-add-routine-exercise").click();
     await page.getByTestId("picker-search").fill(종목);
     await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
     await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
   }
   await page.getByTestId("btn-routine-done").click();

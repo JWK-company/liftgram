@@ -303,6 +303,8 @@ export default function RoutinesClient() {
       })
     : null;
   const primaryRoutineId = primary?.kind === "routine" ? primary.routineId : null;
+  // 루틴이 하나도 없으면 주 행동은 「새 루틴 만들기」 — 루틴을 짜서 하는 것이 이 앱의 주 동선이다 @plm SRS-093
+  const newRoutinePrimary = primary?.kind === "quick" && primary.reason === "noRoutines";
   // 오늘 카드·추천 카드가 이미 그 루틴을 보여 주면 거기 「시작」이 주 행동이다. 아니면 「다음 운동」 카드를 하나 띄운다.
   // [원본] const todayCardShows = !activeWorkoutId && !!weeklySchedule;
   // [개선] 미배정일에 「다음 운동」을 권하면서 「오늘은 배정된 루틴이 없어요」를 함께 띄우지 않는다(/qa L-2)
@@ -415,20 +417,40 @@ export default function RoutinesClient() {
         {!homeReady && routinesLoaded && routines.length > 0 ? <NextCardSkeleton /> : null}
 
         {/* ── 빈 운동 시작 ── */}
+        {/* [원본] 빠른 운동 시작 한 개만 화면 폭 — 「+ 새 루틴」은 섹션 머리의 작은 글자라 잘 안 보였다(피드백 2026-10-30)
         <div className="mb-[var(--spacing-md)]">
-          {/* [원본] 진행 중이 아니면 늘 빨강 — 루틴이 있는 사람의 주 동선(루틴으로 시작)과 위계가 거꾸로였다(P4 /qa M-2)
-          variant={activeWorkoutId ? "secondary" : "primary"} */}
-          {/* [개선] 주 행동이 「빠른 운동」일 때만 빨강 — 루틴 없음·오늘 이미 운동·휴식일(pickHomePrimary) @plm SRS-072 */}
-          <Button
-            title={t("routines.quickStart")}
-            icon="play"
-            variant={primary?.kind === "quick" ? "primary" : "secondary"}
-            loading={busy}
-            // 판단 전에는 누를 수 없다 — 아래로 밀려 다른 카드의 「시작」이 눌리는 오탭을 막는다(/qa M-2 M-2)
-            disabled={!homeReady}
-            testId="btn-quick-start"
-            onPress={() => guardActive(startBlank)}
-          />
+          <Button title={t("routines.quickStart")} icon="play" variant={primary?.kind === "quick" ? "primary" : "secondary"}
+            loading={busy} disabled={!homeReady} testId="btn-quick-start" onPress={() => guardActive(startBlank)} />
+        </div> */}
+        {/* [개선] 새 루틴 만들기 · 빠른 운동 시작을 같은 크기로 나란히 — 루틴을 짜서 하는 것이 주 동선이다.
+            루틴이 없으면 새 루틴이 유일한 빨강, 빠른 운동은 보조(noRoutines) · 그 밖은 기존 주 행동 규칙 @plm SRS-093 */}
+        <div className="mb-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
+          <div className="flex-1">
+            <Button
+              title={t("routines.createRoutine")}
+              icon="add"
+              variant={newRoutinePrimary ? "primary" : "secondary"}
+              testId="btn-new-routine"
+              onPress={() => {
+                void import("@/lib/localDb").then((m) => m.navigateAfterFlush("/routines/new"));
+              }}
+            />
+          </div>
+          <div className="flex-1">
+            {/* [원본] 진행 중이 아니면 늘 빨강 — 루틴이 있는 사람의 주 동선(루틴으로 시작)과 위계가 거꾸로였다(P4 /qa M-2)
+            variant={activeWorkoutId ? "secondary" : "primary"} */}
+            {/* [개선] 주 행동이 「빠른 운동」일 때만 빨강 — 오늘 이미 운동·휴식일(pickHomePrimary) @plm SRS-072 */}
+            <Button
+              title={t("routines.quickStart")}
+              icon="play"
+              variant={primary?.kind === "quick" && !newRoutinePrimary ? "primary" : "secondary"}
+              loading={busy}
+              // 판단 전에는 누를 수 없다 — 아래로 밀려 다른 카드의 「시작」이 눌리는 오탭을 막는다(/qa M-2 M-2)
+              disabled={!homeReady}
+              testId="btn-quick-start"
+              onPress={() => guardActive(startBlank)}
+            />
+          </div>
         </div>
 
         {/* ── 오늘의 안내 ── */}
@@ -452,15 +474,8 @@ export default function RoutinesClient() {
         <SectionLabel
           className="mt-[var(--spacing-xl)]"
           title={t("routines.myRoutines")}
-          right={
-            <a
-              href="/routines/new"
-              data-testid="btn-new-routine"
-              className="font-semibold text-(--color-brand)"
-            >
-              + {t("routines.newRoutine")}
-            </a>
-          }
+          // [원본] right={<a href="/routines/new" data-testid="btn-new-routine" className="font-semibold text-(--color-brand)">+ {t("routines.newRoutine")}</a>}
+          // [개선] 같은 행동이 바로 위 「새 루틴 만들기」 버튼에 있다 @plm SRS-093
         />
 
         {folderGroups.map(([name, members]) => (
