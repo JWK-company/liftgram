@@ -2,6 +2,7 @@
 ## 직전 작업(완료) — 루틴 만들기 입구·전체 화면 종목 고르기 (Task · URS-029 · SRS-093) · 2026-10-30
 - **v0.54.0 운영 배포 완료**(build 422 · 25f9d2b · tag) · 홈 「새 루틴 만들기」=「빠른 운동 시작」 같은 크기(루틴 0개면 빨강) · 루틴 편집 「운동 추가」=전체 화면 피커(검색·도우미·근육군·기구 · 다중 선택 「N개 추가」 · 교체 즉시) `ExercisePickerScreen.tsx`
 - qa code `docs/qa/20261030_routine-picker-code_qa.md`(H 없음 · M-1~6 조치: batch 추가 `addExercisesToRoutine`·순서값 최댓값+1·포커스·뒤로=닫기·memo) · 운영 e2e routine-picker 7/7 · 로컬 회귀 73+28 · 단위 545
+- **v0.54.1 운영 배포 완료**(build 424 · 327ae68 · tag) — 홈 순서 오늘 할 운동 → 놓친 루틴 → 새 루틴·빠른 운동 · homeReady 에 사용자 로딩·열쇠별 완료일 · qa `docs/qa/20261030_home-card-order-code_qa.md`(M-1·2 조치 · 원격 동기로 스케줄이 새로 생기는 경우 보류) · 운영 e2e 17/17
 - 운동 중 「종목 추가」 시트(ExercisePicker)는 그대로 — 같은 전체 화면 피커로 바꿀지 사용자 결정 대기 · worktree `../liftgram-wt-picker`
 ## 직전 작업(완료) — 기록 보호 2차 (Project · URS-027 · SRS-086~089) · 2026-10-28
 - 스펙 `.ouroboros/docs/spec/20261028_data-safety-2/spec.md`(§11 rev2·rev3 가 앞을 덮어씀) · qa spec `qa/20261028_data-safety-2-spec_qa.md`(조건부) · P4 재검토 `qa/20261028_data-safety-2-p4-respec_qa.md`(조건부 → rev3 「트랜잭션 안 거부 + 모듈 문」 채택)
@@ -16,7 +17,7 @@
 - 운영 확인: /app-version 0.53.0 · 운영 e2e(씨범 근거 링크) 통과 · qa `docs/qa/20261028_creator-routines-{spec,code}_qa.md`
 - 이전: v0.49.0 근육 지도 MuscleMap 교체(SRS-090) · 운영 테스트 계정 2개 삭제(`pre-delete-test-accounts-20261028-012646.dump`)
 ## 세션 상태 (2026-10-30)
-- 운영 = `https://liftgram.tarae.org` **v0.54.0 (build 422)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
+- 운영 = `https://liftgram.tarae.org` **v0.54.1 (build 424)** · 질문·보고는 터미널 · 배포마다 SemVer+태그
 - 팀원 기록 복구 완료(운동 36→73 · 8/25~10/26 이어짐 · 오늘 0볼륨 2건은 팀원이 지우면 됨) · 보고서 Docs `https://claude.ai/artifact/NfDMSjDGLLfARSpTuNNa54`
 - 보류: 수동 업데이트 L-2·L-3·L-4·L-7·iOS/삼성 실기기 · #63 L-2~L-10 · #55·#25 · 홈 M-3 a/M-1 4안
 ## 최근 완료 (2026-10-26~28 · 상세는 각 spec/qa/report 와 git 로그)
