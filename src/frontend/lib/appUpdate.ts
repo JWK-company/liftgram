@@ -192,7 +192,10 @@ let adopting: ServiceWorker | null = null;
 
 /** 셸이 부른다 — 대기 워커의 버전을 먼저 묻고, 같은 버전이면 조용히 넘기고, 아니면(또는 모르면) setWaiting. */
 export function setWaitingChecked(sw: ServiceWorker | null): void {
-  if (!sw) return setWaiting(null);
+  if (!sw) {
+    setWaiting(null);
+    return;
+  }
   if (state.waiting === sw || checking.has(sw) || adopting === sw) return;
   checking.add(sw);
   // 막 설치된 워커는 늦게 깨어날 수 있다 — 넉넉히(3초) 기다리고, 그래도 모르면 예전처럼 알린다(qa M-1)
@@ -223,7 +226,10 @@ function adoptSameVersion(sw: ServiceWorker): void {
  */
 export function onControllerChangeChecked(): void {
   const act = controllerChangeDecision({ hadController, applying });
-  if (act !== "mark") return onControllerChange();
+  if (act !== "mark") {
+    onControllerChange();
+    return;
+  }
   void askWorkerVersion(navigator.serviceWorker.controller, 3_000).then((v) => {
     if (workerUpdateKind(v?.version, APP_VERSION) !== "offer" && v) {
       // 이 문서가 이미 새 워커와 같은(또는 더 새) 버전 — 표시를 내리고 남은 대기 워커만 다시 본다(qa M-1)
