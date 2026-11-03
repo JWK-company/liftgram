@@ -962,7 +962,9 @@ type GetAuthOptionsResponse struct {
 	Providers []string               `protobuf:"bytes,1,rep,name=providers,proto3" json:"providers,omitempty"`
 	// 계정 메일이 실제로 나가는가(MAIL_TRANSPORT=smtp). 아니면 화면이 확인 안내·비밀번호 찾기를 숨긴다 —
 	// 오지 않을 메일을 기다리게 하지 않는다.
-	MailEnabled   bool `protobuf:"varint,2,opt,name=mail_enabled,json=mailEnabled,proto3" json:"mail_enabled,omitempty"`
+	MailEnabled bool `protobuf:"varint,2,opt,name=mail_enabled,json=mailEnabled,proto3" json:"mail_enabled,omitempty"`
+	// @plm SRS-095  iOS 앱의 Apple 네이티브 로그인이 켜져 있는가(팀·키·.p8 설정). 꺼져 있으면 앱이 Apple 버튼을 숨긴다(qa code M-3).
+	AppleNative   bool `protobuf:"varint,3,opt,name=apple_native,json=appleNative,proto3" json:"apple_native,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1007,6 +1009,13 @@ func (x *GetAuthOptionsResponse) GetProviders() []string {
 func (x *GetAuthOptionsResponse) GetMailEnabled() bool {
 	if x != nil {
 		return x.MailEnabled
+	}
+	return false
+}
+
+func (x *GetAuthOptionsResponse) GetAppleNative() bool {
+	if x != nil {
+		return x.AppleNative
 	}
 	return false
 }
@@ -2039,10 +2048,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x12set_trainer_intent\x18\b \x01(\bR\x10setTrainerIntent\":\n" +
 	"\x15UpdateProfileResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.auth.v1.UserR\x04user\"\x17\n" +
-	"\x15GetAuthOptionsRequest\"Y\n" +
+	"\x15GetAuthOptionsRequest\"|\n" +
 	"\x16GetAuthOptionsResponse\x12\x1c\n" +
 	"\tproviders\x18\x01 \x03(\tR\tproviders\x12!\n" +
-	"\fmail_enabled\x18\x02 \x01(\bR\vmailEnabled\"\x1e\n" +
+	"\fmail_enabled\x18\x02 \x01(\bR\vmailEnabled\x12!\n" +
+	"\fapple_native\x18\x03 \x01(\bR\vappleNative\"\x1e\n" +
 	"\x1cSendEmailVerificationRequest\"G\n" +
 	"\x1dSendEmailVerificationResponse\x12&\n" +
 	"\x0fretry_after_sec\x18\x01 \x01(\x05R\rretryAfterSec\"6\n" +

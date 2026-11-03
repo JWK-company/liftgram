@@ -151,3 +151,13 @@ DELETE FROM users WHERE id = $1;
 -- name: DeleteEmptyConversations :execrows
 DELETE FROM conversations c
 WHERE NOT EXISTS (SELECT 1 FROM conversation_participants p WHERE p.conversation_id = c.id);
+
+-- @plm SRS-095  최근 로그인 시각 — 로그인할 때마다 새 계열(family)이 시작되고 그 첫 토큰의 해시가 곧 family_id 다(0018).
+-- 회전(갱신)은 같은 계열에 잇기 때문에 이 값이 바뀌지 않는다 — 「다시 로그인했는가」를 따로 표 없이 안다(qa code H-2).
+-- name: LastLoginAt :one
+SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS at
+  FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash;
+
+-- 지울 사용자의 사진 저장소 키 — 행이 cascade 로 지워지기 전에 읽어 두고, 커밋 뒤 바이트를 지운다(qa code H-3).
+-- name: ListMediaKeysByOwner :many
+SELECT key FROM media_assets WHERE owner_id = $1;

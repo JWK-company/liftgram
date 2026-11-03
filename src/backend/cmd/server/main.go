@@ -152,9 +152,9 @@ func main() {
 		os.Exit(1)
 	}
 	oauthProviders := oauth.NewRegistry(oauth.Registry{
-		Google:      oauth.ProviderConfig{ClientID: cfg.OAuthGoogleClientID, ClientSecret: cfg.OAuthGoogleClientSecret},
-		Kakao:       oauth.ProviderConfig{ClientID: cfg.OAuthKakaoClientID, ClientSecret: cfg.OAuthKakaoClientSecret},
-		Naver:       oauth.ProviderConfig{ClientID: cfg.OAuthNaverClientID, ClientSecret: cfg.OAuthNaverClientSecret},
+		Google: oauth.ProviderConfig{ClientID: cfg.OAuthGoogleClientID, ClientSecret: cfg.OAuthGoogleClientSecret},
+		Kakao:  oauth.ProviderConfig{ClientID: cfg.OAuthKakaoClientID, ClientSecret: cfg.OAuthKakaoClientSecret},
+		Naver:  oauth.ProviderConfig{ClientID: cfg.OAuthNaverClientID, ClientSecret: cfg.OAuthNaverClientSecret},
 		// @plm SRS-095  Apple 웹(form_post) — 넷이 다 있어야 켜진다
 		Apple: oauth.AppleConfig{
 			ServicesID: cfg.OAuthAppleServicesID, TeamID: cfg.OAuthAppleTeamID,
@@ -162,7 +162,18 @@ func main() {
 		},
 		KakaoLegacy: cfg.OAuthKakaoLegacy,
 	})
+	// @plm SRS-095  iOS 앱 「Apple로 계속」 — 팀·키·.p8 가 있으면 번들 ID 로 교환하는 길을 연다(없으면 404 · 화면도 버튼을 숨긴다)
+	appleNative, appleNativeErr := oauth.NewAppleNative(oauth.AppleConfig{
+		TeamID: cfg.OAuthAppleTeamID, KeyID: cfg.OAuthAppleKeyID, PrivateKeyPEM: cfg.OAuthApplePrivateKey,
+	}, cfg.IOSBundleID)
+	// @plm SRS-095  계정 삭제 뒤 사진 바이트 청소 — 저장소가 아래에서 만들어지므로 늦게 잇는다(qa code H-3)
+	var purgeMedia func(keys []string)
 	authSvc.WithAccount(auth.Account{
+		OnAccountDeleted: func(_ string, keys []string) {
+			if purgeMedia != nil && len(keys) > 0 {
+				go purgeMedia(keys)
+			}
+		},
 		Repo:      auth.NewAccountRepo(authRepo),
 		Mail:      mailSender,
 		Templates: mailTmpl,
@@ -170,6 +181,7 @@ func main() {
 		Providers: oauth.Names(oauthProviders),
 		// 메일이 콘솔로만 나가면 화면이 확인 안내·비밀번호 찾기를 숨긴다(오지 않을 메일을 기다리게 하지 않는다)
 		MailEnabled: cfg.MailTransport == "smtp",
+		AppleNative: appleNativeErr == nil,
 	})
 	slog.Info("정식 계정", "mail", cfg.MailTransport, "turnstile", cfg.TurnstileSecret != "", "providers", oauth.Names(oauthProviders))
 	authLimiter := auth.NewAuthLimiter(cfg.AuthRateLimit, time.Minute)
@@ -216,11 +228,8 @@ func main() {
 		SignInPath:   "/account",
 		CompletePath: "/auth/complete",
 	}, func(key string) bool { return authLimiter.Allow("oauth|" + key) })
-	// @plm SRS-095  iOS 앱 「Apple로 계속」 — 팀·키·.p8 가 있으면 번들 ID 로 교환하는 길을 연다(없으면 404)
-	if an, err := oauth.NewAppleNative(oauth.AppleConfig{
-		TeamID: cfg.OAuthAppleTeamID, KeyID: cfg.OAuthAppleKeyID, PrivateKeyPEM: cfg.OAuthApplePrivateKey,
-	}, cfg.IOSBundleID); err == nil {
-		oauthHandler.WithAppleNative(an)
+	if appleNativeErr == nil {
+		oauthHandler.WithAppleNative(appleNative)
 	}
 	mux.Handle("/api/auth/oauth/", oauthHandler)
 
@@ -230,6 +239,17 @@ func main() {
 	if err != nil {
 		slog.Error("미디어 저장소 준비 실패", "err", err)
 		os.Exit(1)
+	}
+	purgeMedia = func(keys []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+		defer cancel()
+		failed := 0
+		for _, k := range keys {
+			if err := storage.Delete(ctx, k); err != nil {
+				failed++
+			}
+		}
+		slog.Info("[account] 삭제한 계정의 사진 청소", "files", len(keys), "failed", failed)
 	}
 	mediaRepo := media.NewRepo(pool)
 	mediaSvc := media.NewService(mediaRepo, storage, media.NoopScanner{}, uuid.NewString)

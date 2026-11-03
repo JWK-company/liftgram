@@ -78,8 +78,11 @@ func (h *Handler) FileHandler() http.Handler {
 
 		// 헤더는 **스트림을 확보한 뒤에** 쓴다. 먼저 쓰면 실패한 응답이 200으로 캐시된다.
 		w.Header().Set("Content-Type", asset.ContentType)
-		// 키가 내용에 1:1로 묶여 있으므로(한 번 쓰고 안 바꾼다) 영구 캐시가 안전하다.
-		w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		// [원본] 키가 내용에 1:1로 묶여 있으므로(한 번 쓰고 안 바꾼다) 영구 캐시가 안전하다.
+		// w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		// [개선] @plm SRS-095  계정 삭제(스토어 필수) 뒤 지운 사진이 엣지·브라우저 캐시에서 1년 남지 않게 7일로(qa code H-3).
+		//   내용은 여전히 바뀌지 않으므로 7일 안에는 다시 받지 않는다 — 처방침의 「캐시는 최대 7일 뒤 사라짐」과 짝.
+		w.Header().Set("Cache-Control", "public, max-age=604800")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		if r.Method == http.MethodHead {
 			return

@@ -50,14 +50,18 @@ const (
 // Account는 정식 계정 기능에 필요한 것들이다. 조립 지점이 WithAccount로 끼운다.
 // 비어 있으면(테스트·옛 조립) 가입은 지금처럼 메일 없이 동작한다.
 type Account struct {
-	Repo      AccountRepo
-	Mail      mailer.Sender
-	Templates *mailer.Templates
-	Human     *Turnstile // nil 이면 사람 확인을 하지 않는다(키 없음)
+	Repo AccountRepo
+	// @plm SRS-095  계정 삭제가 커밋된 뒤 — 사진 저장소 바이트를 지운다(조립부가 media 저장소를 잇는다). nil 이면 건너뜀.
+	OnAccountDeleted func(userID string, mediaKeys []string)
+	Mail             mailer.Sender
+	Templates        *mailer.Templates
+	Human            *Turnstile // nil 이면 사람 확인을 하지 않는다(키 없음)
 	// 켜진 소셜 제공자(화면이 버튼을 그릴 근거)
 	Providers []string
 	// 메일이 실제로 나가는가(smtp). console 이면 false — 화면이 확인 안내를 숨긴다
 	MailEnabled bool
+	// @plm SRS-095  iOS 앱 Apple 네이티브 로그인이 켜졌는가(GetAuthOptions 로 화면에 알린다)
+	AppleNative bool
 }
 
 // WithAccount — 정식 계정 기능을 켠다.
@@ -80,6 +84,9 @@ func (s *Service) Providers() []string {
 	}
 	return s.acct.Providers
 }
+
+// AppleNative — iOS 앱 「Apple로 계속」이 서버에서 켜졌는가. @plm SRS-095
+func (s *Service) AppleNative() bool { return s.acct != nil && s.acct.AppleNative }
 
 // MailEnabled — 계정 메일이 실제로 나가는가.
 func (s *Service) MailEnabled() bool {
@@ -491,33 +498,55 @@ func LogMailMode(transport string) {
 // ── 계정 삭제 ──────────────────────────────────────────────────────────────────
 // @plm SRS-095  스토어 필수(구글 플레이·App Store 5.1.1(v)) · 즉시 · 되돌릴 수 없다.
 //
-// 다시 확인: 비밀번호가 있는 계정은 비밀번호. 소셜 전용 계정은 비밀번호가 없어 확인 문구만 본다 — 제공자 재로그인을
-// 요구하지 않는 이유는 앱의 시스템 인증 창 왕복을 한 번 더 태우면 실패 경로(취소·코드 만료)가 삭제를 막는 일이 더 잦아서다.
-// 확인 문구는 화면에서 사람이 직접 친 「삭제」 — 버튼 한 번 실수로 지워지지 않게(스펙 §12.1 M-10).
-// 사진 파일: 행이 지워지면 /media/file 이 즉시 404 를 낸다(media.Service.Serve 가 행을 본다). 바이트 청소는 별도 정리 작업.
+// 다시 확인: 비밀번호가 있는 계정은 비밀번호. 소셜 전용 계정은 **최근 10분 안에 다시 로그인**했어야 한다
+// (같이 쓰는 기기·새어 나간 토큰만으로 지우지 못하게 · qa code H-2). 로그인 = 새 세션 계열 시작(LastLoginAt).
+// 확인 문구는 화면에서 사람이 직접 친 「삭제」 또는 「DELETE」(해외 심사 · qa code M-7) — 버튼 한 번 실수로 지워지지 않게.
+// 사진: 행이 지워지면 /media/file 이 즉시 404 를 내고(Serve 가 행을 본다), 커밋 뒤 OnAccountDeleted 가 저장소 바이트를 지운다.
 const DeleteConfirmWord = "삭제"
+
+// DeleteConfirmWordEN — 영어 화면·해외 심사관용 같은 뜻의 확인 문구.
+const DeleteConfirmWordEN = "DELETE"
+
+// ReauthWindow — 소셜 전용 계정 삭제가 요구하는 「최근 로그인」 범위.
+const ReauthWindow = 10 * time.Minute
+
+// ErrReauthRequired — 화면이 이 문구를 보고 「다시 로그인」 버튼을 띄운다(코드는 Forbidden).
+const ErrReauthRequiredMsg = "reauth_required"
 
 func (s *Service) DeleteAccount(ctx context.Context, userID, password, confirm string) error {
 	a, err := s.account()
 	if err != nil {
 		return err
 	}
-	if strings.TrimSpace(confirm) != DeleteConfirmWord {
+	if c := strings.TrimSpace(confirm); c != DeleteConfirmWord && c != DeleteConfirmWordEN {
 		return errs.New(errs.Validation, "확인 문구가 맞지 않습니다")
 	}
 	u, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return errs.New(errs.Unauthorized, "로그인이 필요합니다")
 	}
-	if u.PasswordHash != "" && bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
-		return errs.New(errs.Validation, "비밀번호가 올바르지 않습니다")
+	if u.PasswordHash != "" {
+		if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
+			return errs.New(errs.Validation, "비밀번호가 올바르지 않습니다")
+		}
+	} else {
+		at, err := a.Repo.LastLoginAt(ctx, userID)
+		if err != nil {
+			return err
+		}
+		if s.now().Sub(at) > ReauthWindow {
+			return errs.New(errs.Forbidden, ErrReauthRequiredMsg)
+		}
 	}
-	ok, err := a.Repo.DeleteUserAccount(ctx, userID)
+	ok, keys, err := a.Repo.DeleteUserAccount(ctx, userID)
 	if err != nil {
 		return err
 	}
 	if !ok {
 		return errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	if a.OnAccountDeleted != nil {
+		a.OnAccountDeleted(userID, keys) // 바이트 청소 — 실패해도 계정 삭제는 끝났다(호출자가 기록)
 	}
 	return nil
 }

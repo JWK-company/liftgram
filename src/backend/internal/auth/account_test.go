@@ -33,6 +33,8 @@ type fakeAcct struct {
 		at      time.Time
 	}
 	ids []Identity
+	// @plm SRS-095  소셜 전용 삭제 재확인용 마지막 로그인 시각
+	lastLogin time.Time
 }
 
 func newFakeAcct(base *fakeRepo) *fakeAcct {
@@ -396,10 +398,49 @@ func TestLoginCode_한번만_세션이_된다(t *testing.T) {
 }
 
 // @plm SRS-095
-func (f *fakeAcct) DeleteUserAccount(_ context.Context, id string) (bool, error) {
+func (f *fakeAcct) DeleteUserAccount(_ context.Context, id string) (bool, []string, error) {
 	if _, ok := f.base.users[id]; !ok {
-		return false, nil
+		return false, nil, nil
 	}
 	delete(f.base.users, id)
-	return true, nil
+	return true, nil, nil
+}
+
+func (f *fakeAcct) LastLoginAt(context.Context, string) (time.Time, error) { return f.lastLogin, nil }
+
+// @plm SRS-095  계정 삭제 — 소셜 전용은 최근 10분 안 로그인이 있어야(qa code H-2) · 확인 문구는 「삭제」 또는 「DELETE」(M-7)
+func TestDeleteAccount_소셜전용은_최근_로그인이_필요하다(t *testing.T) {
+	ctx := context.Background()
+	svc, repo, acct, _ := newAccountService(t)
+	u, _, err := svc.SignUp(ctx, "s@x.com", "password1", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 소셜 전용으로 만든다(비밀번호 없음)
+	su := repo.users[u.ID]
+	su.PasswordHash = ""
+	repo.users[u.ID] = su
+	var purged []string
+	svc.acct.OnAccountDeleted = func(_ string, keys []string) { purged = append(purged, "called") }
+
+	acct.lastLogin = time.Now().Add(-ReauthWindow - time.Minute)
+	if err := svc.DeleteAccount(ctx, u.ID, "", DeleteConfirmWord); codeOf(err) != errs.Forbidden {
+		t.Fatalf("오래된 로그인으로 지워졌다: %v", err)
+	}
+	if _, ok := repo.users[u.ID]; !ok {
+		t.Fatal("거절했는데 사용자가 사라졌다")
+	}
+	acct.lastLogin = time.Now().Add(-time.Minute)
+	if err := svc.DeleteAccount(ctx, u.ID, "", "지워"); codeOf(err) != errs.Validation {
+		t.Fatalf("틀린 확인 문구: %v", err)
+	}
+	if err := svc.DeleteAccount(ctx, u.ID, "", DeleteConfirmWordEN); err != nil {
+		t.Fatalf("최근 로그인 + DELETE 인데 실패: %v", err)
+	}
+	if _, ok := repo.users[u.ID]; ok {
+		t.Fatal("지워지지 않았다")
+	}
+	if len(purged) != 1 {
+		t.Fatalf("사진 청소 훅 호출 %d번(1이어야)", len(purged))
+	}
 }

@@ -105,6 +105,12 @@ func (s *s3Storage) Open(ctx context.Context, key string) (io.ReadCloser, error)
 	return out.Body, nil
 }
 
+// Delete — @plm SRS-095  S3 는 없는 키 삭제도 성공으로 답한다.
+func (s *s3Storage) Delete(ctx context.Context, key string) error {
+	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(key)})
+	return err
+}
+
 func joinComma(xs []string) string {
 	out := ""
 	for i, x := range xs {

@@ -13,20 +13,30 @@ import { PROVIDER_STYLE, providerLabel, startUrl, type Provider } from "./provid
 import { appleNativeSignIn, appSignIn, canAppleNative, canAppSignIn } from "@/lib/native";
 
 /** 서버가 켠 인증 기능 — 소셜 제공자 목록과 메일 발송 여부. 화면 여러 곳이 같은 응답을 쓴다(한 번만 묻는다). */
-let optionsOnce: Promise<{ providers: string[]; mailEnabled: boolean }> | null = null;
+let optionsOnce: Promise<{ providers: string[]; mailEnabled: boolean; appleNative: boolean }> | null = null;
 function loadOptions() {
   optionsOnce ??= authClient()
     .getAuthOptions({})
-    .then((r) => ({ providers: r.providers, mailEnabled: r.mailEnabled }))
+    .then((r) => ({ providers: r.providers, mailEnabled: r.mailEnabled, appleNative: r.appleNative }))
     .catch(() => {
       optionsOnce = null; // 다음 화면에서 다시 묻는다
-      return { providers: [], mailEnabled: false };
+      return { providers: [], mailEnabled: false, appleNative: false };
     });
   return optionsOnce;
 }
 
-export function useAuthOptions(): { providers: string[]; mailEnabled: boolean; loaded: boolean } {
-  const [opts, setOpts] = useState({ providers: [] as string[], mailEnabled: false, loaded: false });
+export function useAuthOptions(): {
+  providers: string[];
+  mailEnabled: boolean;
+  appleNative: boolean;
+  loaded: boolean;
+} {
+  const [opts, setOpts] = useState({
+    providers: [] as string[],
+    mailEnabled: false,
+    appleNative: false,
+    loaded: false,
+  });
   useEffect(() => {
     let alive = true;
     void loadOptions().then((o) => alive && setOpts({ ...o, loaded: true }));

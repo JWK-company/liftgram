@@ -68,6 +68,18 @@ func (d *diskStorage) Open(_ context.Context, key string) (io.ReadCloser, error)
 	return os.Open(path)
 }
 
+// Delete — @plm SRS-095  없는 파일은 이미 지워진 것으로 본다.
+func (d *diskStorage) Delete(_ context.Context, key string) error {
+	path, err := d.path(key)
+	if err != nil {
+		return err
+	}
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	return nil
+}
+
 // 키는 **파일 이름 하나**여야 한다 — 경로 구분자나 `..`가 들어오면 저장 폴더 밖을 가리킬 수 있다.
 func (d *diskStorage) path(key string) (string, error) {
 	if key == "" || strings.ContainsAny(key, `/\`) || strings.Contains(key, "..") {

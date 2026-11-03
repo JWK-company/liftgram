@@ -1032,9 +1032,11 @@ export const ko = {
   "security.title": "로그인·보안",
   // @plm SRS-095  계정 삭제(스토어 필수)
   "accountDelete.title": "계정 삭제",
-  "accountDelete.caption": "계정과 서버의 모든 기록(운동·루틴·게시물·댓글·메시지·사진)이 바로 지워지고 되돌릴 수 없어요. 이 기기의 기록도 함께 지워집니다. 남겨 두려면 먼저 백업 파일을 내보내세요.",
+  "accountDelete.caption": "계정과 서버의 모든 기록(운동·루틴·게시물·댓글·메시지)과 올린 사진이 바로 지워지고 되돌릴 수 없어요. 다른 사람 화면에 이미 받아 둔 사진은 최대 7일 안에 사라져요. 이 기기의 기록도 함께 지워지니, 남겨 두려면 먼저 백업 파일을 내보내세요.",
   "accountDelete.password": "비밀번호",
   "accountDelete.confirmLabel": "확인을 위해 「삭제」라고 입력하세요",
+  "accountDelete.reauth": "비밀번호 없이 소셜로 가입한 계정은 삭제 전에 한 번 더 로그인해야 해요(10분 안).",
+  "accountDelete.reauthButton": "{provider}로 다시 로그인",
   "accountDelete.button": "계정 영구 삭제",
   "accountDelete.done": "계정을 삭제했어요.",
   "security.changePassword": "비밀번호 바꾸기",

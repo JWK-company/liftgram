@@ -38,7 +38,11 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!-- @plm SRS-095  공유 링크 경로만(qa code M-2) — 도메인 전체를 열면 /api 로그인 콜백까지 앱이 가로챈다 -->
                 <data android:scheme="https" android:host="liftgram.tarae.org" />
+                <data android:pathPrefix="/feed/" />
+                <data android:pathPrefix="/u/" />
+                <data android:pathPrefix="/hashtag/" />
             </intent-filter>
 
         </activity>

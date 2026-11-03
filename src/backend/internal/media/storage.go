@@ -36,6 +36,8 @@ type Storage interface {
 	Exists(ctx context.Context, key string) (bool, error)
 	// 호출부가 닫는다.
 	Open(ctx context.Context, key string) (io.ReadCloser, error)
+	// @plm SRS-095  바이트를 지운다 — 계정 삭제 뒤(qa code H-3). 없는 키는 오류가 아니다.
+	Delete(ctx context.Context, key string) error
 }
 
 // 확장자는 **저장할 때 정해 둔다.** 나중에 content type을 잃어버려도 파일만 보고 알 수 있고,

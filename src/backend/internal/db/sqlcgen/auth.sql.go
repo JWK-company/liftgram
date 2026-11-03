@@ -395,6 +395,20 @@ func (q *Queries) LastAuthTokenAt(ctx context.Context, arg LastAuthTokenAtParams
 	return last_at, err
 }
 
+const lastLoginAt = `-- name: LastLoginAt :one
+SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS at
+  FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash
+`
+
+// @plm SRS-095  최근 로그인 시각 — 로그인할 때마다 새 계열(family)이 시작되고 그 첫 토큰의 해시가 곧 family_id 다(0018).
+// 회전(갱신)은 같은 계열에 잇기 때문에 이 값이 바뀌지 않는다 — 「다시 로그인했는가」를 따로 표 없이 안다(qa code H-2).
+func (q *Queries) LastLoginAt(ctx context.Context, userID string) (pgtype.Timestamptz, error) {
+	row := q.db.QueryRow(ctx, lastLoginAt, userID)
+	var at pgtype.Timestamptz
+	err := row.Scan(&at)
+	return at, err
+}
+
 const latestRotationAt = `-- name: LatestRotationAt :one
 SELECT max(revoked_at)::timestamptz AS latest FROM refresh_tokens
 WHERE family_id = $1 AND revoke_reason = 'rotated'
@@ -433,6 +447,31 @@ func (q *Queries) ListIdentities(ctx context.Context, userID string) ([]AuthIden
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMediaKeysByOwner = `-- name: ListMediaKeysByOwner :many
+SELECT key FROM media_assets WHERE owner_id = $1
+`
+
+// 지울 사용자의 사진 저장소 키 — 행이 cascade 로 지워지기 전에 읽어 두고, 커밋 뒤 바이트를 지운다(qa code H-3).
+func (q *Queries) ListMediaKeysByOwner(ctx context.Context, ownerID string) ([]string, error) {
+	rows, err := q.db.Query(ctx, listMediaKeysByOwner, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var key string
+		if err := rows.Scan(&key); err != nil {
+			return nil, err
+		}
+		items = append(items, key)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

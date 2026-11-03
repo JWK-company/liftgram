@@ -143,6 +143,8 @@ message GetAuthOptionsResponse {
   // 계정 메일이 실제로 나가는가(MAIL_TRANSPORT=smtp). 아니면 화면이 확인 안내·비밀번호 찾기를 숨긴다 —
   // 오지 않을 메일을 기다리게 하지 않는다.
   bool mail_enabled = 2;
+  // @plm SRS-095  iOS 앱의 Apple 네이티브 로그인이 켜져 있는가(팀·키·.p8 설정). 꺼져 있으면 앱이 Apple 버튼을 숨긴다(qa code M-3).
+  bool apple_native = 3;
 }
 
 // 확인 메일 다시 보내기(로그인 필요). 너무 잦으면 남은 초를 알려 준다.

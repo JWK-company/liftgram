@@ -86,7 +86,7 @@ func (h *Handler) guard(proc string, hd http.Header) error {
 // ── RPC ─────────────────────────────────────────────────────────────────────
 
 func (h *Handler) GetAuthOptions(context.Context, *connect.Request[authv1.GetAuthOptionsRequest]) (*connect.Response[authv1.GetAuthOptionsResponse], error) {
-	return connect.NewResponse(&authv1.GetAuthOptionsResponse{Providers: h.svc.Providers(), MailEnabled: h.svc.MailEnabled()}), nil
+	return connect.NewResponse(&authv1.GetAuthOptionsResponse{Providers: h.svc.Providers(), MailEnabled: h.svc.MailEnabled(), AppleNative: h.svc.AppleNative()}), nil
 }
 
 func (h *Handler) SendEmailVerification(ctx context.Context, req *connect.Request[authv1.SendEmailVerificationRequest]) (*connect.Response[authv1.SendEmailVerificationResponse], error) {

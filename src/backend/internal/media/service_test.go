@@ -47,6 +47,11 @@ func (f *fakeStorage) Exists(_ context.Context, key string) (bool, error) {
 	return ok, nil
 }
 
+func (f *fakeStorage) Delete(_ context.Context, key string) error {
+	delete(f.objects, key)
+	return nil
+}
+
 func (f *fakeStorage) Open(_ context.Context, key string) (io.ReadCloser, error) {
 	data, ok := f.objects[key]
 	if !ok {

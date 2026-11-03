@@ -58,7 +58,10 @@ type AccountRepo interface {
 	DeleteIdentity(ctx context.Context, userID, provider string) (int64, error)
 
 	// @plm SRS-095  계정 삭제 — 사용자 행(→ cascade 전부)과 빈 대화방을 한 트랜잭션에서. 지운 사용자가 없으면 false.
-	DeleteUserAccount(ctx context.Context, userID string) (bool, error)
+	// 지우기 전에 그 사용자 사진의 저장소 키를 읽어 돌려준다(바이트는 커밋 뒤 호출자가 지운다 · qa code H-3).
+	DeleteUserAccount(ctx context.Context, userID string) (deleted bool, mediaKeys []string, err error)
+	// 마지막 로그인(새 세션 계열 시작) 시각 — 소셜 전용 계정 삭제의 재확인(qa code H-2).
+	LastLoginAt(ctx context.Context, userID string) (time.Time, error)
 }
 
 func (r *pgRepo) SetEmailVerified(ctx context.Context, userID string) error {
@@ -167,16 +170,31 @@ func NewAccountRepo(r Repo) AccountRepo {
 
 // DeleteUserAccount — 갱신과 같은 사용자 잠금 안에서 지운다(삭제 순간의 회전이 새 토큰을 쓰지 못하게 · SRS-083 과 같은 이유).
 // @plm SRS-095
-func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, error) {
+func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, []string, error) {
 	var n int64
+	var keys []string
 	err := r.WithUserLock(ctx, userID, func(tx Repo) error {
 		q := tx.(*pgRepo).q
 		var err error
+		if keys, err = q.ListMediaKeysByOwner(ctx, userID); err != nil {
+			return err
+		}
 		if n, err = q.DeleteUser(ctx, userID); err != nil {
 			return err
 		}
 		_, err = q.DeleteEmptyConversations(ctx)
 		return err
 	})
-	return n > 0, err
+	if err != nil {
+		return false, nil, err
+	}
+	return n > 0, keys, nil
+}
+
+func (r *pgRepo) LastLoginAt(ctx context.Context, userID string) (time.Time, error) {
+	t, err := r.q.LastLoginAt(ctx, userID)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t.Time, nil
 }

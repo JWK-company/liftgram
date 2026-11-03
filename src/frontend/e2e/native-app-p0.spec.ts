@@ -164,3 +164,27 @@ test("안드로이드 앱 로그인 — 시스템 인증 창 → liftgram://auth
   // 시스템 인증 창(Custom Tabs)을 한 번 닫았다
   expect(await page.evaluate(() => sessionStorage.getItem("cap-closed"))).toBe("1");
 });
+
+test("소셜 전용 계정 삭제 — 비밀번호 칸 없이, 방금 로그인했으면 DELETE 로 지워진다(qa code H-2·M-7)", async ({
+  page,
+}) => {
+  test.skip(!FAKE_FILE, "OAUTH_FAKE_PROFILE_FILE 없음 — oauthfake 백엔드에서만");
+  const email = freshEmail("sd");
+  writeFileSync(
+    FAKE_FILE,
+    JSON.stringify({
+      ProviderUserID: `sd-${Date.now()}`,
+      Email: email,
+      EmailVerified: true,
+      DisplayName: "소셜삭제",
+    }),
+  );
+  await page.goto("/account");
+  await page.getByTestId("btn-oauth-google").click();
+  await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("delete-account-card").scrollIntoViewIfNeeded();
+  await expect(page.getByTestId("delete-password")).toHaveCount(0);
+  await page.getByTestId("delete-confirm").fill("DELETE");
+  await page.getByTestId("btn-delete-account").click();
+  await expect(page.getByTestId("btn-auth-submit")).toBeVisible({ timeout: 20_000 });
+});
