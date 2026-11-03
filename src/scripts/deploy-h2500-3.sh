@@ -291,7 +291,9 @@ if [ "$APK_ON" = "1" ]; then
   }
   APK_FAIL=$(apk_check 2>&1) && echo "$APK_FAIL" || { echo "  !! $APK_FAIL"; APK_FAIL="${APK_FAIL:-실패}"; }
   # 성공이면 위 echo 가 출력한 문구가 APK_FAIL 에 남지 않게
-  case "$APK_FAIL" in "  versionCode"*) APK_FAIL="" ;; esac
+  # [원본] case "$APK_FAIL" in "  versionCode"*) APK_FAIL="" ;; esac — ssh 경고(post-quantum 등)가 앞줄에 붙으면 성공도 실패로 보였다(2026-11-03 v0.59.0 배포)
+  # [개선] 성공 줄이 어디에든 있으면 성공
+  printf '%s\n' "$APK_FAIL" | grep -q '^  versionCode .* OK$' && APK_FAIL=""
 fi
 # 메일이 켜져 있으면 SMTP 로그인까지 본다(보내지는 않는다) — 배포가 "끝"이라 해도 가입 확인·재설정 메일이
 # 안 나가면 사용자는 오지 않을 메일을 기다린다(booktarae 2026-10-01 실사 F1: 거절을 아무도 몰랐다).
