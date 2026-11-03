@@ -142,3 +142,38 @@ func Test교환코드_만료(t *testing.T) {
 		t.Fatal("만료된 코드가 통했다")
 	}
 }
+
+// SPEC-018 §7  웹 → 앱 넘기기 — auth.CreateAppContinue 가 맡긴 착지도 같은 교환을 탄다(틀린 v 는 소모 안 함 · 한 번만).
+func Test넘기기_맡김_교환(t *testing.T) {
+	h := newTestHandler(stubSessions{})
+	var _ auth.AppHandoff = h // 조립 지점이 넘기는 타입이 계약을 지킨다
+	if auth.AppContinueScheme != AppScheme {
+		t.Fatalf("스킴 불일치 %q != %q", auth.AppContinueScheme, AppScheme)
+	}
+	v, ac := pair()
+	for _, bad := range []struct{ target, ch string }{
+		{"/auth/complete?code=c&via=continue", "short"},
+		{"//evil.example/x", ac},
+		{"https://evil.example/x", ac},
+	} {
+		if _, ok := h.PutAppHandoff(bad.target, bad.ch); ok {
+			t.Fatalf("맡김이 통했다: %+v", bad)
+		}
+	}
+	code, ok := h.PutAppHandoff("/auth/complete?code=C1&via=continue", ac)
+	if !ok {
+		t.Fatal("맡김 실패")
+	}
+	w := do(h, "GET", "/api/auth/oauth/app/handoff?code="+code+"&v=wrong", nil)
+	if !strings.Contains(w.Header().Get("Location"), "err=oauth_state") {
+		t.Fatalf("틀린 v 가 통했다: %q", w.Header().Get("Location"))
+	}
+	w = do(h, "GET", "/api/auth/oauth/app/handoff?code="+code+"&v="+v, nil)
+	if w.Header().Get("Location") != "https://liftgram.example/auth/complete?code=C1&via=continue" {
+		t.Fatalf("착지: %q", w.Header().Get("Location"))
+	}
+	w = do(h, "GET", "/api/auth/oauth/app/handoff?code="+code+"&v="+v, nil)
+	if !strings.Contains(w.Header().Get("Location"), "err=oauth_state") {
+		t.Fatalf("두 번째 교환이 통했다: %q", w.Header().Get("Location"))
+	}
+}

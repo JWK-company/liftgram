@@ -412,7 +412,23 @@ func (f *fakeAcct) DeleteUserAccount(_ context.Context, id string) (bool, []stri
 	return true, nil, nil
 }
 
-func (f *fakeAcct) LastLoginAt(context.Context, string) (time.Time, error) { return f.lastLogin, nil }
+// [원본] func (f *fakeAcct) LastLoginAt(context.Context, string) (time.Time, error) { return f.lastLogin, nil }
+// [개선] SPEC-018 §7 — lastLogin 을 정하지 않은 시험은 실제 쿼리처럼 토큰에서 센다
+// (계열의 첫 토큰 · origin=continue 제외 · 발급 시각 = 만료 - refreshTTL).
+func (f *fakeAcct) LastLoginAt(_ context.Context, uid string) (time.Time, error) {
+	if !f.lastLogin.IsZero() {
+		return f.lastLogin, nil
+	}
+	at := time.Unix(0, 0)
+	for h, t := range f.base.tokens {
+		if t.UserID == uid && t.FamilyID == h && t.Origin != OriginContinue {
+			if c := t.ExpiresAt.Add(-refreshTTL); c.After(at) {
+				at = c
+			}
+		}
+	}
+	return at, nil
+}
 
 // @plm SRS-095  계정 삭제 — 소셜 전용은 최근 10분 안 로그인이 있어야(qa code H-2) · 확인 문구는 「삭제」 또는 「DELETE」(M-7)
 func TestDeleteAccount_소셜전용은_최근_로그인이_필요하다(t *testing.T) {

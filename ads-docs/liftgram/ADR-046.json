@@ -1,0 +1,439 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사용자가 잠금화면 운동 조작·홈 위젯·앱 광고를 위해 전용 앱을 원했고, 구현 방식은 원하는 동작이 다 되면 상관없다고 했다(BS-006). 화면은 Next 16 웹(React DOM)이고, 도메인·로컬 저장소는 TypeScript core 다(ADR-031·032). 예전 Expo/React Native 앱은 웹으로 옮겨 은퇴했다. 잠금화면 카드와 위젯은 어느 방식이든 Swift(ActivityKit·WidgetKit)·Kotlin(알림·위젯) 코드가 필요하다. 북타래가 같은 동업자 계정으로 Capacitor 껍데기·안드로이드 출시 서명·iOS 심사 대비(앱 로그인 교환·Apple 로그인)를 이미 만들었다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "Capacitor 로 안드로이드·iOS 껍데기를 만든다.",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 화면·도메인은 웹과 하나다. 앱 ID org.tarae.liftgram.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "잠금화면·위젯·휴식 알림·광고는 네이티브 확장으로 붙인다",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — iOS: ActivityKit Live Activity + App Intents 버튼(iOS 17+) · WidgetKit · UNUserNotification · AdMob. 안드로이드: 포그라운드 서비스 없는 진행 중 알림(버튼 · 밀어 지우면 다음 갱신에 다시 냄 · 정확한 알람 권한이 없을 때만 휴식 동안 shortService) · 앱 위젯 · AlarmManager/알림 · AdMob.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "세션 상태의 정본은 앱 로컬 기록(core 도메인 함수)이다.",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 웹 화면이 상태가 바뀔 때마다 네이티브에 요약 사본을 넘긴다. 잠금 중 버튼은 네이티브가 사본으로 카드를 먼저 바꾸고, id 붙은 조작을 대기열에 쌓는다. 화면 코드가 살아나면 대기열을 도메인 함수로 적용하고 지운다(멱등). 도메인 계산을 Swift·Kotlin 으로 다시 만들지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "휴식 카운트다운은 끝나는 시각만 넘긴다.",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 시스템 타이머 표시를 쓰고 매초 갱신하지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "화면을 앱에 싣는 방식(빌드에 담기 vs 서버에서 받기 + 오프라인 저장)은 P0 시범에서 정한다.",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 기준: 비행기 모드 첫 실행 · 업데이트 반영 속도 · 심사 4.2.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹(PWA)은 그대로 운영한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "근거 / 대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "React Native 로 돌아가기 — 화면을 다시 짜야 하고(웹으로 옮긴 지 석 달), 잠금화면·위젯은 결국 네이티브 코드라 얻는 게 적다 → 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완전 네이티브(Swift + Kotlin 두 벌) — 화면 두 벌 · 웹과 세 벌 → 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "안드로이드 TWA — 빠르지만 iOS 가 안 되고 네이티브 알림·위젯 연결이 어렵다 → 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "장점: 화면 하나로 웹·두 앱 · 북타래 껍데기·서명·로그인 교환 재사용 · 기록 규칙은 기존 테스트가 그대로 지킨다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "대가: 잠금 중 조작을 나중에 반영하는 대기열을 정확히 만들어야 한다 · 웹뷰 안 오프라인 첫 실행을 시범으로 확인해야 한다 · 아이폰 실기기가 없어 iOS 는 시뮬레이터 + 심사 전 TestFlight 1회로 검증한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "바뀌는 기존 방침: PRD 비목표 「광고 모델 전면 채택 안 함」(앱 광고 채택 · 운동 중 0).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/decisions/ADR-046.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-11-03T06:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-11-03T08:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "ADR-046",
+  "meta": {},
+  "relations": {
+    "informs": [
+      "SRS-095",
+      "SRS-096",
+      "SRS-097",
+      "SRS-098"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "native-app",
+    "architecture"
+  ],
+  "title": "스토어 앱 = Capacitor 껍데기 + 네이티브 확장(Live Activity·위젯·알림·AdMob) · 세션 정본은 앱 로컬 기록, 네이티브는 표시 사본과 조작 대기열",
+  "type": "ADR",
+  "updated": "2026-11-03T03:30:40Z"
+}

@@ -31,8 +31,12 @@ RETURNING *;
 -- name: CreateRefreshToken :exec
 -- family_id: 새 로그인이면 자기 해시, 회전·유예 재발급이면 옛 토큰의 계열(0018 · SRS-083).
 -- parent_hash: 회전으로 만들어졌으면 옛 토큰 해시, 새 로그인이면 NULL(0019 · 「미사용 후계」 규칙).
-INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash)
-VALUES ($1, $2, $3, $4, sqlc.narg('parent_hash'));
+-- origin(0022 · SPEC-018): NULL 이면 'login'. 웹 → 앱 넘기기로 시작한 계열의 첫 토큰만 'continue'.
+-- [원본] INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash)
+-- [원본] VALUES ($1, $2, $3, $4, sqlc.narg('parent_hash'));
+-- [개선]
+INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash, origin)
+VALUES ($1, $2, $3, $4, sqlc.narg('parent_hash'), COALESCE(sqlc.narg('origin')::text, 'login'));
 
 -- 갱신이 쓴다(0018 · SRS-083). **폐기된 것도** 돌려준다 — 회전 유예·재사용 탐지를 가려야 하므로.
 -- 만료는 여기서 거른다.
@@ -155,8 +159,13 @@ WHERE NOT EXISTS (SELECT 1 FROM conversation_participants p WHERE p.conversation
 -- @plm SRS-095  최근 로그인 시각 — 로그인할 때마다 새 계열(family)이 시작되고 그 첫 토큰의 해시가 곧 family_id 다(0018).
 -- 회전(갱신)은 같은 계열에 잇기 때문에 이 값이 바뀌지 않는다 — 「다시 로그인했는가」를 따로 표 없이 안다(qa code H-2).
 -- name: LastLoginAt :one
+-- 웹 → 앱 넘기기로 시작한 계열(origin = 'continue')은 사람이 다시 로그인한 것이 아니라 뺀다(0022 · SPEC-018 §7).
+-- [원본] SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS at
+-- [원본]   FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash;
+-- [개선]
 SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS at
-  FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash;
+-- [원본] … AND origin <> 'continue' — 열린 조건이라 다른 값(오타 등)이 「최근 로그인」으로 세어졌다(REV-012 백엔드 L-7)
+  FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash AND origin = 'login';
 
 -- 지울 사용자의 사진 저장소 키 — 행이 cascade 로 지워지기 전에 읽어 두고, 커밋 뒤 바이트를 지운다(qa code H-3).
 -- name: ListMediaKeysByOwner :many

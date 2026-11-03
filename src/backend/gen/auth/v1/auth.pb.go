@@ -1638,6 +1638,97 @@ func (x *CreateLinkTicketResponse) GetTicket() string {
 	return ""
 }
 
+// SPEC-018 §7  웹 → 앱 로그인 넘기기. 로그인한 웹(크롬 탭)이 「이 계정으로 앱에 로그인」을 누를 때.
+// challenge = base64url(sha256(v)) — v 는 앱 웹뷰가 메모리에 둔다(기존 앱 로그인 교환과 같은 묶음).
+type CreateAppContinueRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Challenge     string                 `protobuf:"bytes,1,opt,name=challenge,proto3" json:"challenge,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAppContinueRequest) Reset() {
+	*x = CreateAppContinueRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAppContinueRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAppContinueRequest) ProtoMessage() {}
+
+func (x *CreateAppContinueRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAppContinueRequest.ProtoReflect.Descriptor instead.
+func (*CreateAppContinueRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *CreateAppContinueRequest) GetChallenge() string {
+	if x != nil {
+		return x.Challenge
+	}
+	return ""
+}
+
+type CreateAppContinueResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// liftgram://auth?code=<교환 코드> — 화면이 이 주소로 이동한다(2분 · 한 번 · v 가 있어야 교환)
+	AppUrl        string `protobuf:"bytes,1,opt,name=app_url,json=appUrl,proto3" json:"app_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateAppContinueResponse) Reset() {
+	*x = CreateAppContinueResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateAppContinueResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateAppContinueResponse) ProtoMessage() {}
+
+func (x *CreateAppContinueResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateAppContinueResponse.ProtoReflect.Descriptor instead.
+func (*CreateAppContinueResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *CreateAppContinueResponse) GetAppUrl() string {
+	if x != nil {
+		return x.AppUrl
+	}
+	return ""
+}
+
 type Identity struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Provider      string                 `protobuf:"bytes,1,opt,name=provider,proto3" json:"provider,omitempty"`
@@ -1649,7 +1740,7 @@ type Identity struct {
 
 func (x *Identity) Reset() {
 	*x = Identity{}
-	mi := &file_auth_v1_auth_proto_msgTypes[29]
+	mi := &file_auth_v1_auth_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1661,7 +1752,7 @@ func (x *Identity) String() string {
 func (*Identity) ProtoMessage() {}
 
 func (x *Identity) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[29]
+	mi := &file_auth_v1_auth_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1674,7 +1765,7 @@ func (x *Identity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Identity.ProtoReflect.Descriptor instead.
 func (*Identity) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{29}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Identity) GetProvider() string {
@@ -1706,7 +1797,7 @@ type ListIdentitiesRequest struct {
 
 func (x *ListIdentitiesRequest) Reset() {
 	*x = ListIdentitiesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[30]
+	mi := &file_auth_v1_auth_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1718,7 +1809,7 @@ func (x *ListIdentitiesRequest) String() string {
 func (*ListIdentitiesRequest) ProtoMessage() {}
 
 func (x *ListIdentitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[30]
+	mi := &file_auth_v1_auth_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1731,7 +1822,7 @@ func (x *ListIdentitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIdentitiesRequest.ProtoReflect.Descriptor instead.
 func (*ListIdentitiesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{30}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{32}
 }
 
 type ListIdentitiesResponse struct {
@@ -1743,7 +1834,7 @@ type ListIdentitiesResponse struct {
 
 func (x *ListIdentitiesResponse) Reset() {
 	*x = ListIdentitiesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[31]
+	mi := &file_auth_v1_auth_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1755,7 +1846,7 @@ func (x *ListIdentitiesResponse) String() string {
 func (*ListIdentitiesResponse) ProtoMessage() {}
 
 func (x *ListIdentitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[31]
+	mi := &file_auth_v1_auth_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1768,7 +1859,7 @@ func (x *ListIdentitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIdentitiesResponse.ProtoReflect.Descriptor instead.
 func (*ListIdentitiesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{31}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListIdentitiesResponse) GetIdentities() []*Identity {
@@ -1788,7 +1879,7 @@ type UnlinkIdentityRequest struct {
 
 func (x *UnlinkIdentityRequest) Reset() {
 	*x = UnlinkIdentityRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[32]
+	mi := &file_auth_v1_auth_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1800,7 +1891,7 @@ func (x *UnlinkIdentityRequest) String() string {
 func (*UnlinkIdentityRequest) ProtoMessage() {}
 
 func (x *UnlinkIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[32]
+	mi := &file_auth_v1_auth_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1813,7 +1904,7 @@ func (x *UnlinkIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnlinkIdentityRequest.ProtoReflect.Descriptor instead.
 func (*UnlinkIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{32}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *UnlinkIdentityRequest) GetProvider() string {
@@ -1831,7 +1922,7 @@ type UnlinkIdentityResponse struct {
 
 func (x *UnlinkIdentityResponse) Reset() {
 	*x = UnlinkIdentityResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[33]
+	mi := &file_auth_v1_auth_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1843,7 +1934,7 @@ func (x *UnlinkIdentityResponse) String() string {
 func (*UnlinkIdentityResponse) ProtoMessage() {}
 
 func (x *UnlinkIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[33]
+	mi := &file_auth_v1_auth_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1856,7 +1947,7 @@ func (x *UnlinkIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnlinkIdentityResponse.ProtoReflect.Descriptor instead.
 func (*UnlinkIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{33}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{35}
 }
 
 // @plm SRS-095  계정 삭제(스토어 필수 · 즉시 · 되돌릴 수 없다). 비밀번호가 있는 계정은 비밀번호로 다시 확인하고,
@@ -1871,7 +1962,7 @@ type DeleteAccountRequest struct {
 
 func (x *DeleteAccountRequest) Reset() {
 	*x = DeleteAccountRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_auth_v1_auth_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1883,7 +1974,7 @@ func (x *DeleteAccountRequest) String() string {
 func (*DeleteAccountRequest) ProtoMessage() {}
 
 func (x *DeleteAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_auth_v1_auth_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1896,7 +1987,7 @@ func (x *DeleteAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAccountRequest.ProtoReflect.Descriptor instead.
 func (*DeleteAccountRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{34}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *DeleteAccountRequest) GetPassword() string {
@@ -1921,7 +2012,7 @@ type DeleteAccountResponse struct {
 
 func (x *DeleteAccountResponse) Reset() {
 	*x = DeleteAccountResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[35]
+	mi := &file_auth_v1_auth_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1933,7 +2024,7 @@ func (x *DeleteAccountResponse) String() string {
 func (*DeleteAccountResponse) ProtoMessage() {}
 
 func (x *DeleteAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[35]
+	mi := &file_auth_v1_auth_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1946,7 +2037,7 @@ func (x *DeleteAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteAccountResponse.ProtoReflect.Descriptor instead.
 func (*DeleteAccountResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{35}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{37}
 }
 
 type LogOutResponse struct {
@@ -1957,7 +2048,7 @@ type LogOutResponse struct {
 
 func (x *LogOutResponse) Reset() {
 	*x = LogOutResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[36]
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1969,7 +2060,7 @@ func (x *LogOutResponse) String() string {
 func (*LogOutResponse) ProtoMessage() {}
 
 func (x *LogOutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[36]
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1982,7 +2073,7 @@ func (x *LogOutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogOutResponse.ProtoReflect.Descriptor instead.
 func (*LogOutResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{36}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{38}
 }
 
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
@@ -2083,7 +2174,11 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\acreated\x18\x03 \x01(\bR\acreated\"\x19\n" +
 	"\x17CreateLinkTicketRequest\"2\n" +
 	"\x18CreateLinkTicketResponse\x12\x16\n" +
-	"\x06ticket\x18\x01 \x01(\tR\x06ticket\"w\n" +
+	"\x06ticket\x18\x01 \x01(\tR\x06ticket\"8\n" +
+	"\x18CreateAppContinueRequest\x12\x1c\n" +
+	"\tchallenge\x18\x01 \x01(\tR\tchallenge\"4\n" +
+	"\x19CreateAppContinueResponse\x12\x17\n" +
+	"\aapp_url\x18\x01 \x01(\tR\x06appUrl\"w\n" +
 	"\bIdentity\x12\x1a\n" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x129\n" +
@@ -2113,8 +2208,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x1cEXPERIENCE_LEVEL_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19EXPERIENCE_LEVEL_BEGINNER\x10\x01\x12!\n" +
 	"\x1dEXPERIENCE_LEVEL_INTERMEDIATE\x10\x02\x12\x1d\n" +
-	"\x19EXPERIENCE_LEVEL_ADVANCED\x10\x032\xd2\n" +
-	"\n" +
+	"\x19EXPERIENCE_LEVEL_ADVANCED\x10\x032\xb0\v\n" +
 	"\vAuthService\x12;\n" +
 	"\x06SignUp\x12\x16.auth.v1.SignUpRequest\x1a\x17.auth.v1.SignUpResponse\"\x00\x128\n" +
 	"\x05LogIn\x12\x15.auth.v1.LogInRequest\x1a\x16.auth.v1.LogInResponse\"\x00\x12>\n" +
@@ -2129,7 +2223,8 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\rResetPassword\x12\x1d.auth.v1.ResetPasswordRequest\x1a\x1e.auth.v1.ResetPasswordResponse\"\x00\x12S\n" +
 	"\x0eChangePassword\x12\x1e.auth.v1.ChangePasswordRequest\x1a\x1f.auth.v1.ChangePasswordResponse\"\x00\x12\\\n" +
 	"\x11ExchangeLoginCode\x12!.auth.v1.ExchangeLoginCodeRequest\x1a\".auth.v1.ExchangeLoginCodeResponse\"\x00\x12Y\n" +
-	"\x10CreateLinkTicket\x12 .auth.v1.CreateLinkTicketRequest\x1a!.auth.v1.CreateLinkTicketResponse\"\x00\x12S\n" +
+	"\x10CreateLinkTicket\x12 .auth.v1.CreateLinkTicketRequest\x1a!.auth.v1.CreateLinkTicketResponse\"\x00\x12\\\n" +
+	"\x11CreateAppContinue\x12!.auth.v1.CreateAppContinueRequest\x1a\".auth.v1.CreateAppContinueResponse\"\x00\x12S\n" +
 	"\x0eListIdentities\x12\x1e.auth.v1.ListIdentitiesRequest\x1a\x1f.auth.v1.ListIdentitiesResponse\"\x00\x12S\n" +
 	"\x0eUnlinkIdentity\x12\x1e.auth.v1.UnlinkIdentityRequest\x1a\x1f.auth.v1.UnlinkIdentityResponse\"\x00\x12P\n" +
 	"\rDeleteAccount\x12\x1d.auth.v1.DeleteAccountRequest\x1a\x1e.auth.v1.DeleteAccountResponse\"\x00B\x95\x01\n" +
@@ -2148,7 +2243,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(Role)(0),                             // 0: auth.v1.Role
 	(ExperienceLevel)(0),                  // 1: auth.v1.ExperienceLevel
@@ -2181,20 +2276,22 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*ExchangeLoginCodeResponse)(nil),     // 28: auth.v1.ExchangeLoginCodeResponse
 	(*CreateLinkTicketRequest)(nil),       // 29: auth.v1.CreateLinkTicketRequest
 	(*CreateLinkTicketResponse)(nil),      // 30: auth.v1.CreateLinkTicketResponse
-	(*Identity)(nil),                      // 31: auth.v1.Identity
-	(*ListIdentitiesRequest)(nil),         // 32: auth.v1.ListIdentitiesRequest
-	(*ListIdentitiesResponse)(nil),        // 33: auth.v1.ListIdentitiesResponse
-	(*UnlinkIdentityRequest)(nil),         // 34: auth.v1.UnlinkIdentityRequest
-	(*UnlinkIdentityResponse)(nil),        // 35: auth.v1.UnlinkIdentityResponse
-	(*DeleteAccountRequest)(nil),          // 36: auth.v1.DeleteAccountRequest
-	(*DeleteAccountResponse)(nil),         // 37: auth.v1.DeleteAccountResponse
-	(*LogOutResponse)(nil),                // 38: auth.v1.LogOutResponse
-	(*timestamppb.Timestamp)(nil),         // 39: google.protobuf.Timestamp
+	(*CreateAppContinueRequest)(nil),      // 31: auth.v1.CreateAppContinueRequest
+	(*CreateAppContinueResponse)(nil),     // 32: auth.v1.CreateAppContinueResponse
+	(*Identity)(nil),                      // 33: auth.v1.Identity
+	(*ListIdentitiesRequest)(nil),         // 34: auth.v1.ListIdentitiesRequest
+	(*ListIdentitiesResponse)(nil),        // 35: auth.v1.ListIdentitiesResponse
+	(*UnlinkIdentityRequest)(nil),         // 36: auth.v1.UnlinkIdentityRequest
+	(*UnlinkIdentityResponse)(nil),        // 37: auth.v1.UnlinkIdentityResponse
+	(*DeleteAccountRequest)(nil),          // 38: auth.v1.DeleteAccountRequest
+	(*DeleteAccountResponse)(nil),         // 39: auth.v1.DeleteAccountResponse
+	(*LogOutResponse)(nil),                // 40: auth.v1.LogOutResponse
+	(*timestamppb.Timestamp)(nil),         // 41: google.protobuf.Timestamp
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: auth.v1.User.role:type_name -> auth.v1.Role
 	1,  // 1: auth.v1.User.experience_level:type_name -> auth.v1.ExperienceLevel
-	39, // 2: auth.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	41, // 2: auth.v1.User.created_at:type_name -> google.protobuf.Timestamp
 	3,  // 3: auth.v1.SignUpResponse.tokens:type_name -> auth.v1.Tokens
 	2,  // 4: auth.v1.SignUpResponse.user:type_name -> auth.v1.User
 	3,  // 5: auth.v1.LogInResponse.tokens:type_name -> auth.v1.Tokens
@@ -2207,8 +2304,8 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	3,  // 12: auth.v1.ChangePasswordResponse.tokens:type_name -> auth.v1.Tokens
 	3,  // 13: auth.v1.ExchangeLoginCodeResponse.tokens:type_name -> auth.v1.Tokens
 	2,  // 14: auth.v1.ExchangeLoginCodeResponse.user:type_name -> auth.v1.User
-	39, // 15: auth.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
-	31, // 16: auth.v1.ListIdentitiesResponse.identities:type_name -> auth.v1.Identity
+	41, // 15: auth.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
+	33, // 16: auth.v1.ListIdentitiesResponse.identities:type_name -> auth.v1.Identity
 	4,  // 17: auth.v1.AuthService.SignUp:input_type -> auth.v1.SignUpRequest
 	5,  // 18: auth.v1.AuthService.LogIn:input_type -> auth.v1.LogInRequest
 	6,  // 19: auth.v1.AuthService.Refresh:input_type -> auth.v1.RefreshRequest
@@ -2223,28 +2320,30 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	25, // 28: auth.v1.AuthService.ChangePassword:input_type -> auth.v1.ChangePasswordRequest
 	27, // 29: auth.v1.AuthService.ExchangeLoginCode:input_type -> auth.v1.ExchangeLoginCodeRequest
 	29, // 30: auth.v1.AuthService.CreateLinkTicket:input_type -> auth.v1.CreateLinkTicketRequest
-	32, // 31: auth.v1.AuthService.ListIdentities:input_type -> auth.v1.ListIdentitiesRequest
-	34, // 32: auth.v1.AuthService.UnlinkIdentity:input_type -> auth.v1.UnlinkIdentityRequest
-	36, // 33: auth.v1.AuthService.DeleteAccount:input_type -> auth.v1.DeleteAccountRequest
-	8,  // 34: auth.v1.AuthService.SignUp:output_type -> auth.v1.SignUpResponse
-	9,  // 35: auth.v1.AuthService.LogIn:output_type -> auth.v1.LogInResponse
-	10, // 36: auth.v1.AuthService.Refresh:output_type -> auth.v1.RefreshResponse
-	38, // 37: auth.v1.AuthService.LogOut:output_type -> auth.v1.LogOutResponse
-	12, // 38: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
-	14, // 39: auth.v1.AuthService.UpdateProfile:output_type -> auth.v1.UpdateProfileResponse
-	16, // 40: auth.v1.AuthService.GetAuthOptions:output_type -> auth.v1.GetAuthOptionsResponse
-	18, // 41: auth.v1.AuthService.SendEmailVerification:output_type -> auth.v1.SendEmailVerificationResponse
-	20, // 42: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
-	22, // 43: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.RequestPasswordResetResponse
-	24, // 44: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.ResetPasswordResponse
-	26, // 45: auth.v1.AuthService.ChangePassword:output_type -> auth.v1.ChangePasswordResponse
-	28, // 46: auth.v1.AuthService.ExchangeLoginCode:output_type -> auth.v1.ExchangeLoginCodeResponse
-	30, // 47: auth.v1.AuthService.CreateLinkTicket:output_type -> auth.v1.CreateLinkTicketResponse
-	33, // 48: auth.v1.AuthService.ListIdentities:output_type -> auth.v1.ListIdentitiesResponse
-	35, // 49: auth.v1.AuthService.UnlinkIdentity:output_type -> auth.v1.UnlinkIdentityResponse
-	37, // 50: auth.v1.AuthService.DeleteAccount:output_type -> auth.v1.DeleteAccountResponse
-	34, // [34:51] is the sub-list for method output_type
-	17, // [17:34] is the sub-list for method input_type
+	31, // 31: auth.v1.AuthService.CreateAppContinue:input_type -> auth.v1.CreateAppContinueRequest
+	34, // 32: auth.v1.AuthService.ListIdentities:input_type -> auth.v1.ListIdentitiesRequest
+	36, // 33: auth.v1.AuthService.UnlinkIdentity:input_type -> auth.v1.UnlinkIdentityRequest
+	38, // 34: auth.v1.AuthService.DeleteAccount:input_type -> auth.v1.DeleteAccountRequest
+	8,  // 35: auth.v1.AuthService.SignUp:output_type -> auth.v1.SignUpResponse
+	9,  // 36: auth.v1.AuthService.LogIn:output_type -> auth.v1.LogInResponse
+	10, // 37: auth.v1.AuthService.Refresh:output_type -> auth.v1.RefreshResponse
+	40, // 38: auth.v1.AuthService.LogOut:output_type -> auth.v1.LogOutResponse
+	12, // 39: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
+	14, // 40: auth.v1.AuthService.UpdateProfile:output_type -> auth.v1.UpdateProfileResponse
+	16, // 41: auth.v1.AuthService.GetAuthOptions:output_type -> auth.v1.GetAuthOptionsResponse
+	18, // 42: auth.v1.AuthService.SendEmailVerification:output_type -> auth.v1.SendEmailVerificationResponse
+	20, // 43: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
+	22, // 44: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.RequestPasswordResetResponse
+	24, // 45: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.ResetPasswordResponse
+	26, // 46: auth.v1.AuthService.ChangePassword:output_type -> auth.v1.ChangePasswordResponse
+	28, // 47: auth.v1.AuthService.ExchangeLoginCode:output_type -> auth.v1.ExchangeLoginCodeResponse
+	30, // 48: auth.v1.AuthService.CreateLinkTicket:output_type -> auth.v1.CreateLinkTicketResponse
+	32, // 49: auth.v1.AuthService.CreateAppContinue:output_type -> auth.v1.CreateAppContinueResponse
+	35, // 50: auth.v1.AuthService.ListIdentities:output_type -> auth.v1.ListIdentitiesResponse
+	37, // 51: auth.v1.AuthService.UnlinkIdentity:output_type -> auth.v1.UnlinkIdentityResponse
+	39, // 52: auth.v1.AuthService.DeleteAccount:output_type -> auth.v1.DeleteAccountResponse
+	35, // [35:53] is the sub-list for method output_type
+	17, // [17:35] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
 	17, // [17:17] is the sub-list for extension extendee
 	0,  // [0:17] is the sub-list for field type_name
@@ -2261,7 +2360,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   37,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

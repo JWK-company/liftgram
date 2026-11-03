@@ -119,10 +119,14 @@ func (r *pgRepo) UpdateProfile(ctx context.Context, id string, p ProfilePatch) (
 	return toDomain(row), nil
 }
 
-func (r *pgRepo) CreateRefreshToken(ctx context.Context, hash, userID, familyID, parentHash string, expiresAt time.Time) error {
+func (r *pgRepo) CreateRefreshToken(ctx context.Context, hash, userID, familyID, parentHash, origin string, expiresAt time.Time) error {
 	var parent *string
 	if parentHash != "" {
 		parent = &parentHash
+	}
+	var org *string // nil → 'login'(쿼리의 COALESCE · nil 슬라이스 함정과 달리 여기서는 의도한 NULL)
+	if origin != "" {
+		org = &origin
 	}
 	return r.q.CreateRefreshToken(ctx, sqlcgen.CreateRefreshTokenParams{
 		TokenHash:  hash,
@@ -130,6 +134,7 @@ func (r *pgRepo) CreateRefreshToken(ctx context.Context, hash, userID, familyID,
 		ExpiresAt:  pgtype.Timestamptz{Time: expiresAt, Valid: true},
 		FamilyID:   &familyID,
 		ParentHash: parent,
+		Origin:     org,
 	})
 }
 

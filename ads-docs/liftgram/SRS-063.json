@@ -1,0 +1,660 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "처방 세트(PrescribedSet)에 선택적 무게 기준을 더한다: 「1RM 의 N%」(N 30~100), 「탑셋의 N%」(백오프용, N 50~100), 「무게 직접」(kg). 작성은 루틴을 짜는 본인과 트레이너 모두 루틴 편집기의 처방 편집에서 한다. 기존 처방 JSON 은 새 필드가 없으면 지금과 똑같이 동작한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "운동을 시작할 때 1RM% 세트는 그 종목·기록 칸의 추정 1RM(완료 워킹 세트의 최고 추정치)으로 무게를 계산해 채우고, 기록이 없으면 무게를 비워 두고 「기록이 없어 % 를 계산할 수 없어요 — 첫 세트 무게를 넣으면 그 기준으로 계산」 안내를 보인다(첫 세트 완료 시 그 세트를 1RM 추정 기준으로 남은 % 세트를 채움). 탑셋% 세트는 같은 블록의 탑셋을 완료하면 그 무게 기준으로 채운다. 채운 무게는 원판 단위(바벨·스미스 2.5kg, 그 밖 1kg 또는 사용자 단위)로 반올림하고 「1RM 100kg 의 80%」 같은 근거를 표시한다. 사람이 쓴 처방의 계산일 뿐 처방 자체는 바꾸지 않는다(ADR-028).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "추정 1RM 100kg 종목에 「80%×5」 처방 → 시작 시 80kg 가 채워지고 근거가 보인다(바벨 77.6 → 77.5).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "탑셋 100kg 완료 → 「탑셋의 90%」 백오프 세트에 90kg 가 채워진다. 사용자가 손으로 바꾼 값은 덮어쓰지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "기록 없는 종목은 안내가 보이고, 첫 세트 완료 뒤 남은 % 세트가 채워진다. 옛 처방 루틴은 변화 없음.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "derives_from: URS-020. 피드백 #56. ADR-028(처방 자동 변경 금지) · SRS-043(처방 어휘).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "코드 위치",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/backend/internal/coaching/handler.go:219",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/backend/internal/coaching/report.go:66",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:1166",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:28",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:686",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — estimatedOneRmForSlot",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:728",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — fillPrescribedLoadsAfterV1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:773",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — fillPrescribedLoadsAfter",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:858",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:875",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:974",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/domain/__tests__/sessionAssist.test.ts:1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/i18n/locales/en.ts:658",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/i18n/locales/ko.ts:656",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/frontend/app/components/routines/RoutineEditor.tsx:942",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/frontend/app/components/session/ExerciseBlock.tsx:1032",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — rxLoadLabel",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/frontend/app/components/session/ExerciseBlock.tsx:457",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/frontend/app/components/session/SetRowEdit.tsx:141",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/frontend/app/components/session/SetRowEdit.tsx:455",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/frontend/e2e/session-assist.spec.ts:1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/SRS-063.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-10-27T03:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-10-27T03:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SRS-063",
+  "meta": {
+    "acceptance_criteria": "처방 세트에 무게 기준(pct1rm·pctTop·fixed) 선택적 필드 · 시작 시 1RM% 계산 채움(기록 없으면 직접 무게/첫 세트 기준 안내) · 탑셋 완료 시 백오프 % 채움 · 원판 단위 반올림 · 근거 표시 · 옛 처방 JSON 하위호환.",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-020"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "prescription",
+    "routine",
+    "session",
+    "coaching"
+  ],
+  "title": "처방 무게 기준 — 「1RM 의 N%」·「탑셋의 N%」·「무게 직접」 · 운동 시작·탑셋 완료 시 계산해 채우고 근거 표시(ADR-028 준수)",
+  "type": "SRS",
+  "updated": "2026-11-03T03:34:51Z"
+}

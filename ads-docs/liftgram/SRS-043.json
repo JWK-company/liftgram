@@ -1,0 +1,599 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "루틴 데이터 모델에 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "처방 어휘",
+            "type": "text"
+          },
+          {
+            "text": " — 세트 타입(웜업/탑/백오프)·목표 RIR(0~6)·반복범위(min~max)·중량대 힌트(저/중간/고중량 또는 수치) — 를 선택적으로 저장한다. 처방의 작성 주체는 사람(트레이너 또는 프리셋 루틴)이며 알고리즘이 자동으로 처방을 변경하지 않는다(BS-004 핵심 결정). 세션 화면은 처방이 있으면 세트 행에 타입 배지·RIR 라벨·목표 반복 placeholder를 렌더하고, 없으면 기존 자유 기록 UI를 그대로 유지한다(옵트인 레이어).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "세션 기록 편의 두 가지를 함께 제공한다. ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "① 중량 이어달리기",
+            "type": "text"
+          },
+          {
+            "text": ": 직전 세트의 실측 중량·횟수를 입력하면 같은 운동의 다음 세트 권장 중량을 순수함수로 계산해 placeholder로 제시한다(웜업 래더 비율·백오프 비율 — 소수점 시 가장 가까운 실중량 안내). 제안은 항상 근거(reasonKey)와 함께 표시되고 사용자가 자유롭게 무시할 수 있다(웰니스 가드레일 — SRS-015). ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "② 세트 완료 마이크로 UX",
+            "type": "text"
+          },
+          {
+            "text": ": 중량·횟수가 모두 입력된 세트만 완료 체크할 수 있고, 완료 행은 잠금(재탭으로 해제)되며 세트 타입별 권장 휴식 시간으로 기존 restAlarm 타이머가 자동 시작된다. 미완료 세트가 있는 종료는 확인 모달을 거친다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "루틴 세트에 setType·targetRir·repMin/repMax·loadHint를 저장·수정할 수 있고, 마이그레이션 후 기존 루틴은 처방 없음(null)으로 무손상 동작한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세션에서 처방 세트는 타입 배지+RIR 라벨+반복 placeholder로 표시되고, 처방 없는 세트는 기존 UI와 픽셀 수준 동일.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "20kg 입력·체크 시 다음 웜업 세트 placeholder가 규칙대로 갱신되고 reasonKey 문구가 노출된다(단위 kg/lbs 각각 검증).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 체크 → 행 잠금·타이머 시작(타입별 시간), 재탭 → 해제·편집 가능. 미완료 종료 시 확인 모달.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "권장 중량 계산은 순수함수 + 단위 테스트(경계: 첫 세트·0/음수·단위 전환) 포함. cd app && npm run typecheck·test 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "도출: URS-001(빠른 기록)·URS-004(코치 필요). 근거: BS-004 A1·B2·B3. 소비처: UCS-018 흐름, SRS-048(트레이너 처방 작성), 기존 progression(SRS-010)·restAlarm 확장.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "코드 위치",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:1046",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:1053",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:1658",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — getWorkoutUndoneSetCount",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:25",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:856",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:879",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/data/workoutRepository.ts:905",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/db/migrations.ts:218",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/db/models/SetLog.ts:31",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/db/schema.ts:103",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/db/schema.ts:159",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/db/schema.ts:191",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/src/core/src/domain/index.ts:12",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/SRS-043.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Approved",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-07-26T05:40:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-07-26T05:40:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SRS-043",
+  "meta": {
+    "acceptance_criteria": "루틴의 각 세트에 세트 타입(warmup/top/backoff)·목표 RIR·반복범위·중량대 처방을 저장할 수 있고, 세션 화면이 이를 타입 배지·RIR 라벨·placeholder로 렌더한다. 직전 세트 실측 입력 시 다음 세트 권장 중량이 근거와 함께 갱신되고(제안형), 세트 체크 시 행 잠금·타입별 권장 휴식 타이머가 동작한다. 처방 없는 자유 기록은 기존과 100% 동일하게 동작한다.",
+    "kind": "FR"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [
+    "coaching",
+    "prescription",
+    "session",
+    "bs004-a1",
+    "bs004-b2",
+    "bs004-b3"
+  ],
+  "title": "처방 어휘 데이터 모델 + 세션 처방 렌더 (세트 타입·RIR·중량 이어달리기·세트 완료 UX)",
+  "type": "SRS",
+  "updated": "2026-11-03T03:34:20Z"
+}

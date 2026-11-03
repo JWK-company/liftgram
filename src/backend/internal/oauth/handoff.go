@@ -85,6 +85,15 @@ func (s *handoffStore) take(code, verifier string, now time.Time) (handoffEntry,
 	return e, true
 }
 
+// PutAppHandoff — SPEC-018 §7  웹 → 앱 넘기기(auth.CreateAppContinue)가 착지 경로를 맡긴다(auth.AppHandoff 구현).
+// challenge 형식이 틀리면 ok=false. target 은 같은 사이트 경로만(handoffServe 도 다시 본다).
+func (h *Handler) PutAppHandoff(target, challenge string) (string, bool) {
+	if !validChallenge(challenge) || !strings.HasPrefix(target, "/") || strings.HasPrefix(target, "//") {
+		return "", false
+	}
+	return h.handoff.put(handoffEntry{target: target, challenge: challenge}, time.Now()), true
+}
+
 // appLand — 앱 모드 콜백의 끝(성공·실패 모두). 착지 경로를 맡기고 교환 코드를 앱 스킴으로 돌려준다.
 func (h *Handler) appLand(w http.ResponseWriter, r *http.Request, challenge, target string) {
 	code := h.handoff.put(handoffEntry{target: target, challenge: challenge}, time.Now())

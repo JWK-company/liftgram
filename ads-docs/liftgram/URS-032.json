@@ -1,0 +1,345 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "배경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "회원은 앱을 스토어에서 찾는다. 웹 앱은 홈 화면에 추가하는 방법을 아는 사람만 설치하고, 잠금화면·위젯·안정적인 알림 같은 폰 기능을 못 쓴다. 운영자는 수익 모델로 앱 광고를 정했다(2026-11-03). 앱 광고(AdMob)는 스토어 앱에서만 쓸 수 있고, 같은 무료 사용자 1명당 웹 광고보다 수익이 크다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "이해관계자: 회원(스토어로 설치하고, 이미 쓰던 계정과 기록이 그대로 있길 바란다), 운영자(같은 화면을 웹과 앱에 한 번에 고치고, 광고로 번다).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "구글 플레이와 애플 앱스토어에서 리프트그램을 설치할 수 있어야 한다. 출시는 안드로이드가 먼저다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱에서 로그인하면 웹과 같은 계정이고, 기록·루틴·피드가 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "헬스장처럼 네트워크가 없어도 앱을 열고 기록할 수 있어야 한다(오프라인 우선 · ADR-032).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹은 지금처럼 계속 운영한다. 화면을 고치면 웹과 앱이 함께 바뀐다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱에 광고를 붙이되 운동 중에는 띄우지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "두 스토어 심사를 통과한다(안드로이드 먼저).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹에서 쓰던 계정으로 앱에 로그인하면 기록 수가 웹과 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "설치 뒤 한 번 온라인으로 연 다음부터는 비행기 모드에서 앱을 처음부터 열어 운동을 기록할 수 있고, 네트워크가 돌아오면 동기된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 세션이 켜져 있는 동안 화면에 광고 요소가 0개다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/URS-032.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-11-03T06:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-11-03T08:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "URS-032",
+  "meta": {
+    "priority": "High",
+    "stakeholder": "회원 · 운영자"
+  },
+  "relations": {
+    "relates_to": [
+      "BS-006"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "native-app",
+    "store",
+    "ads"
+  ],
+  "title": "리프트그램을 앱 스토어(구글 플레이·애플 앱스토어)에서 설치해 웹과 같은 계정·기록으로 쓰고, 운영자는 앱 광고로 수익을 낸다",
+  "type": "URS",
+  "updated": "2026-11-03T03:36:47Z"
+}

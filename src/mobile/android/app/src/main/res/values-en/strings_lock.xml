@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lock_channel_name">Workout in progress</string>
+    <string name="lock_channel_desc">Shows the next set and rest on the lock screen, with a Done button</string>
+    <string name="lock_title_fallback">Workout</string>
+    <string name="lock_no_steps">No sets left — finish in the app</string>
+    <string name="lock_set_of">Set %1$s of %2$d</string>
+    <plurals name="lock_reps">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
+    <string name="lock_one_side">per side</string>
+    <string name="lock_paused">Paused</string>
+    <string name="lock_resting">Rest</string>
+    <string name="lock_action_done">Done</string>
+    <string name="lock_action_open_app">Open app</string>
+    <string name="lock_action_plus30">+30s</string>
+    <string name="lock_action_end_rest">Skip</string>
+    <string name="lock_truncated">Open the app to see the next sets</string>
+    <string name="lock_superset">Superset</string>
+    <string name="lock_label_warmup">Warm-up</string>
+    <string name="lock_label_drop">Drop set</string>
+    <string name="lock_label_failure">Failure set</string>
+    <string name="lock_label_top">Top set</string>
+    <string name="lock_open_app_values">Default values — check in the app</string>
+    <string name="lock_open_app_stalled">Open the app to save your sets</string>
+    <string name="lock_next">Next: %1$s</string>
+    <string name="lock_next_prefix">Next · </string>
+</resources>

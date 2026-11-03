@@ -74,6 +74,7 @@ import { NoteHistoryPanel } from "./NoteHistoryPanel";
 import { CARDIO_COL_LABEL, SetRowCardio } from "./SetRowCardio";
 import { SetRowEdit, type PrevSet, type SetRow, type Suggestion } from "./SetRowEdit";
 
+import { completeSetsFlow, type CompleteSetsResult } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 
 /** 이 블록이 모델에서 읽는 것만. */
@@ -173,6 +174,27 @@ export function ExerciseBlock({
   // [개선] 메모는 블록 도구 줄의 첫 줄 미리보기로 보이고, 누르면 입력칸이 열린다(피드백 #62) — noteOpen = 쓰는 중 @plm SRS-084
   const [noteOpen, setNoteOpen] = useState(false);
   const [restSheet, setRestSheet] = useState(false);
+  // 블록 휴식은 이번 운동 행에 저장된다(SPEC-017 §7 · REV-003 저장소 M-5) — 시트를 **닫을 때 한 번** 쓰고(스테퍼마다 쓰지 않는다),
+  // 화면은 DB 값을 따른다(동기·다른 탭이 바꿔도). 시트가 열려 있는 동안은 사람이 고치는 값을 덮지 않는다.
+  const restSheetOpen = useRef(false);
+  restSheetOpen.current = restSheet;
+  useEffect(() => {
+    const m = we as unknown as {
+      observe?: () => {
+        subscribe: (fn: (x: { restSeconds: number | null }) => void) => { unsubscribe: () => void };
+      };
+    };
+    if (typeof m.observe !== "function") return;
+    const sub = m.observe().subscribe((x) => {
+      if (!restSheetOpen.current) setRestSeconds(x.restSeconds ?? 120);
+    });
+    return () => sub.unsubscribe();
+  }, [we]);
+  const closeRestSheet = () => {
+    setRestSheet(false);
+    if (restSeconds !== (we.restSeconds ?? 120))
+      void write(() => repo.setWorkoutExerciseRestSeconds(we.id, restSeconds));
+  };
   const [volTick, setVolTick] = useState(0);
   // ── 기록 칸(조합) — 플레이트 한쪽 입력 · 다른 조합 기록(ADR-034 · ADR-037) @plm SRS-058 ──
   const { machineVariantLabels } = useUser();
@@ -460,14 +482,46 @@ export function ExerciseBlock({
         // [원본] await write(() => repo.setSetDone(s.id, next));
         // [개선] 슈퍼셋 안이면 묶음 전체의 같은 번호 세트를 함께(#48) — 길게 누르기(single)는 이 종목만 @plm SRS-062
         const grouped = !!onRoundToggle && !single;
-        if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
-        else await write(() => repo.setSetDone(s.id, next));
-        if (!next) return;
-
+        // [원본] if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
+        // else await write(() => repo.setSetDone(s.id, next));
+        // [개선] 완료는 화면·잠금 공용 흐름(SPEC-017 §10) — 완료 + 처방 채우기(planRoundFills · 시뮬레이션과 같은 함수).
+        //   묶음이면 묶음 완료(onRoundToggle) 뒤 이 블록 채우기만 같은 흐름으로(이미 완료라 완료 쓰기는 noop).
+        //   단독 완료는 입력 칸 값을 저장하지 않는다(입력 칸이 blur 로 저장한다 — 지금 동작 그대로) · 채우기 계산에만 쓴다.
+        let flow: CompleteSetsResult | null = null;
+        // 휴식은 완료가 저장된 **바로 뒤**에 건다 — 채우기 계산(1RM 조회 등)을 기다리지 않는다(REV-005 화면 M-1).
         // 휴식은 세트 타입이 정한다 — 웜업은 짧게, 탑세트는 길게(처방이 없으면 종목 설정값).
-        onStartRest(
-          restSecondsForSetType(s.setType as Parameters<typeof restSecondsForSetType>[0], restSeconds),
-        );
+        let restStarted = false;
+        const startRestOnce = () => {
+          if (restStarted) return;
+          restStarted = true;
+          onStartRest(
+            restSecondsForSetType(s.setType as Parameters<typeof restSecondsForSetType>[0], restSeconds),
+          );
+        };
+        if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
+        else if (!next) await write(() => repo.setSetDone(s.id, false));
+        if (!next) return;
+        if (grouped) startRestOnce();
+        if (kg > 0 || !grouped) {
+          try {
+            await write(async () => {
+              flow = await completeSetsFlow(repo, {
+                workoutExerciseIds: [we.id],
+                setIds: [s.id],
+                at: Date.now(),
+                pressedSetId: s.id,
+                values: new Map([[s.id, { weightKg: kg, reps }]]),
+                writeValues: false,
+                onCompleted: startRestOnce,
+              });
+            });
+          } catch (e) {
+            // 단독 완료 쓰기가 실패하면 더 진행하지 않는다(옛 동작과 같다 — 휴식·PR 없음) · 묶음은 완료가 이미 끝났다
+            if (!grouped) throw e;
+          }
+        }
+        // [원본] onStartRest(restSecondsForSetType(s.setType …, restSeconds)); — 위 startRestOnce 로(완료 직후)
+        startRestOnce();
 
         // 묶음 완료는 PR 축하를 묶음이 모아서 한 번 한다(QA Q6)
         if (!grouped) {
@@ -485,7 +539,9 @@ export function ExerciseBlock({
         let filledIds = new Set<string>();
         if (kg > 0) {
           try {
-            const filled = await repo.fillPrescribedLoadsAfter(we.id, s.id, kg, reps);
+            // [원본] const filled = await repo.fillPrescribedLoadsAfter(we.id, s.id, kg, reps);
+            // [개선] 위 완료 흐름이 채운 것(같은 계획 함수) — 이 블록 것만
+            const filled = ((flow as CompleteSetsResult | null)?.fills ?? []).filter((f) => f.weId === we.id);
             if (filled.length) {
               filledIds = new Set(filled.map((f) => f.setLogId));
               setLoadNotes((m) => {
@@ -1076,7 +1132,12 @@ export function ExerciseBlock({
       ) : null}
 
       {restSheet ? (
-        <SheetShell title={t("session.restTime")} onClose={() => setRestSheet(false)} testId="rest-sheet">
+        <SheetShell
+          title={t("session.restTime")}
+          // [원본] onClose={() => setRestSheet(false)} — 저장하지 않았다(세션 동안만)
+          onClose={closeRestSheet}
+          testId="rest-sheet"
+        >
           <div className="mt-[var(--spacing-md)] flex justify-center">
             <NumberStepper
               testId="rest-seconds"
@@ -1085,10 +1146,21 @@ export function ExerciseBlock({
               min={0}
               max={600}
               suffix={t("session.secondsSuffix")}
-              // app과 같이 **이 세션 동안의 설정**이다 — 저장소에 쓰지 않는다.
+              // [원본] app과 같이 **이 세션 동안의 설정**이다 — 저장소에 쓰지 않는다.
+              // [개선] 이번 운동 행에 저장된다(시트를 닫을 때) — 잠금 카드 휴식과 같은 값 · 루틴으로 저장·다시 하기에도 이어진다(SPEC-017 §7)
               onChange={setRestSeconds}
             />
           </div>
+          {/* 바뀐 동작을 알린다 — 이번 운동에 저장되고 루틴으로 저장·다시 하기에 이어진다(REV-005 화면 M-2) */}
+          <AppText
+            variant="caption"
+            color="textMuted"
+            center
+            className="mt-[8px] block"
+            data-testid="rest-saved-hint"
+          >
+            {t("session.restSavedHint")}
+          </AppText>
         </SheetShell>
       ) : null}
 

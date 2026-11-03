@@ -13,10 +13,21 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- 웹 화면이 그려지기 전·스플래시 상한(6초)이 지난 뒤에도 흰 화면이 아니라 앱 바탕색(SPEC-017 REV-003 N-2) -->
+        <item name="android:windowBackground">@color/splash_bg</item>
     </style>
 
 
+    <!-- [원본] android:background 에 그림을 깔면 SplashScreen API 의 아이콘 화면과 두 번 겹쳐 보인다(SPEC-017 REV-003 N-3).
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
+    </style> -->
+    <!-- [개선] 시작 화면 = 앱 바탕색 + 가운데 빈 로고 윤곽(56dp · 웹 부팅 덮개 LogoSpinner 와 같은 자리·크기).
+         core-splashscreen 이 12 미만에서도 같은 화면을 그린다. 끝나면 postSplashScreenTheme 으로 넘어간다. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="windowSplashScreenAnimationDuration">0</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>

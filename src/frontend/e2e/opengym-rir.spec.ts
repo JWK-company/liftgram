@@ -31,6 +31,10 @@ import {
   v25로_되돌리기,
 } from "./helpers/opengym";
 
+// 이 번들의 로컬 스키마 버전(core/src/db/schema.ts SCHEMA_VERSION) — v27 부터 상수 하나로(SPEC-017 Phase 2)
+const BUNDLE_SCHEMA = "27";
+const HIGHER_SCHEMA = String(Number(BUNDLE_SCHEMA) + 1);
+
 type Page = import("@playwright/test").Page;
 type Locator = import("@playwright/test").Locator;
 
@@ -338,7 +342,8 @@ test.describe("로컬 DB 이관·가드", () => {
 
     await 빈_문서(page);
     const before = await idb_요약(page);
-    expect(before.version).toBe("26");
+    // [원본] expect(before.version).toBe("26"); — v27(SPEC-017 · set_logs.value_source)부터 번들 버전을 따른다
+    expect(before.version).toBe(BUNDLE_SCHEMA);
     const cut = await v25로_되돌리기(page);
     const v25 = await idb_요약(page);
     expect(v25).toMatchObject({ version: "25", setsWithRirKey: 0, newTables: [] });
@@ -356,12 +361,12 @@ test.describe("로컬 DB 이관·가드", () => {
     await 빈_문서(page);
     const after = await idb_요약(page);
     test.info().annotations.push({ type: "이관", description: JSON.stringify({ before, v25, after }) });
-    expect(after.version).toBe("26");
+    expect(after.version).toBe(BUNDLE_SCHEMA);
     expect(after.sets).toBe(before.sets);
     expect(after.workouts).toBe(before.workouts);
     expect(after.newTables.sort()).toEqual(["bodyweight_logs", "import_aliases", "import_batches"]);
     expect(after.setsWithRirKey).toBe(after.sets);
-    expect(await page.evaluate(() => localStorage.getItem("liftgram.maxSchemaSeen"))).toBe("26");
+    expect(await page.evaluate(() => localStorage.getItem("liftgram.maxSchemaSeen"))).toBe(BUNDLE_SCHEMA);
 
     // 힘든 정도를 적은 세트가 없으면 노력 카드는 접힌 안내 한 줄(펼치면 설정 입구 문구 · U-22)
     await page.goto("/stats");
@@ -382,8 +387,8 @@ test.describe("로컬 DB 이관·가드", () => {
     await 빈_문서(page);
     const before = await idb_요약(page);
 
-    // 이 번들(v26)보다 높은 v27 을 본 기기 흉내 — 옛 번들이 새 DB 를 만난 상황
-    await page.evaluate(() => localStorage.setItem("liftgram.maxSchemaSeen", "27"));
+    // 이 번들보다 높은 스키마를 본 기기 흉내 — 옛 번들이 새 DB 를 만난 상황([원본] v26 번들 · "27")
+    await page.evaluate((v) => localStorage.setItem("liftgram.maxSchemaSeen", v), HIGHER_SCHEMA);
     await page.goto("/");
     await expect(page.getByTestId("schema-guard")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("schema-guard-reload")).toBeVisible();
@@ -395,6 +400,6 @@ test.describe("로컬 DB 이관·가드", () => {
     test.info().annotations.push({ type: "가드", description: JSON.stringify({ before, after, names }) });
     expect(after).toEqual(before); // 진짜 DB 는 열리지도 지워지지도 않았다
     expect(names).toContain("repset-schema-guard");
-    expect(await page.evaluate(() => localStorage.getItem("liftgram.maxSchemaSeen"))).toBe("27"); // 낮추지 않는다
+    expect(await page.evaluate(() => localStorage.getItem("liftgram.maxSchemaSeen"))).toBe(HIGHER_SCHEMA); // 낮추지 않는다
   });
 });

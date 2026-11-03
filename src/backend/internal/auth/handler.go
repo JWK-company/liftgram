@@ -21,6 +21,9 @@ type Handler struct {
 	svc *Service
 	// 인증 전용 요청 제한(handler_account.go) — nil 이면 제한 없음
 	limiter *AuthLimiter
+	// SPEC-018 §7  웹 → 앱 넘기기 — 착지 맡김(oauth.Handler)과 전용 제한(사용자·IP 각각 분당 5회)
+	handoff       AppHandoff
+	continueLimit *AuthLimiter
 }
 
 func NewHandler(svc *Service) *Handler {

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 위젯 확장 LiftgramWidgets(SPEC-017 Phase 5) — 잠금화면 운동 카드(Live Activity) -->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>리프트그램</string>
+	<key>NSExtension</key>
+	<dict>
+		<key>NSExtensionPointIdentifier</key>
+		<string>com.apple.widgetkit-extension</string>
+	</dict>
+</dict>
+</plist>

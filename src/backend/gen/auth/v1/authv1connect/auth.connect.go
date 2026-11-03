@@ -88,6 +88,9 @@ const (
 	// AuthServiceCreateLinkTicketProcedure is the fully-qualified name of the AuthService's
 	// CreateLinkTicket RPC.
 	AuthServiceCreateLinkTicketProcedure = "/auth.v1.AuthService/CreateLinkTicket"
+	// AuthServiceCreateAppContinueProcedure is the fully-qualified name of the AuthService's
+	// CreateAppContinue RPC.
+	AuthServiceCreateAppContinueProcedure = "/auth.v1.AuthService/CreateAppContinue"
 	// AuthServiceListIdentitiesProcedure is the fully-qualified name of the AuthService's
 	// ListIdentities RPC.
 	AuthServiceListIdentitiesProcedure = "/auth.v1.AuthService/ListIdentities"
@@ -120,6 +123,7 @@ type AuthServiceClient interface {
 	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
 	ExchangeLoginCode(context.Context, *connect.Request[v1.ExchangeLoginCodeRequest]) (*connect.Response[v1.ExchangeLoginCodeResponse], error)
 	CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error)
+	CreateAppContinue(context.Context, *connect.Request[v1.CreateAppContinueRequest]) (*connect.Response[v1.CreateAppContinueResponse], error)
 	ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error)
 	UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
@@ -220,6 +224,12 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("CreateLinkTicket")),
 			connect.WithClientOptions(opts...),
 		),
+		createAppContinue: connect.NewClient[v1.CreateAppContinueRequest, v1.CreateAppContinueResponse](
+			httpClient,
+			baseURL+AuthServiceCreateAppContinueProcedure,
+			connect.WithSchema(authServiceMethods.ByName("CreateAppContinue")),
+			connect.WithClientOptions(opts...),
+		),
 		listIdentities: connect.NewClient[v1.ListIdentitiesRequest, v1.ListIdentitiesResponse](
 			httpClient,
 			baseURL+AuthServiceListIdentitiesProcedure,
@@ -257,6 +267,7 @@ type authServiceClient struct {
 	changePassword        *connect.Client[v1.ChangePasswordRequest, v1.ChangePasswordResponse]
 	exchangeLoginCode     *connect.Client[v1.ExchangeLoginCodeRequest, v1.ExchangeLoginCodeResponse]
 	createLinkTicket      *connect.Client[v1.CreateLinkTicketRequest, v1.CreateLinkTicketResponse]
+	createAppContinue     *connect.Client[v1.CreateAppContinueRequest, v1.CreateAppContinueResponse]
 	listIdentities        *connect.Client[v1.ListIdentitiesRequest, v1.ListIdentitiesResponse]
 	unlinkIdentity        *connect.Client[v1.UnlinkIdentityRequest, v1.UnlinkIdentityResponse]
 	deleteAccount         *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
@@ -332,6 +343,11 @@ func (c *authServiceClient) CreateLinkTicket(ctx context.Context, req *connect.R
 	return c.createLinkTicket.CallUnary(ctx, req)
 }
 
+// CreateAppContinue calls auth.v1.AuthService.CreateAppContinue.
+func (c *authServiceClient) CreateAppContinue(ctx context.Context, req *connect.Request[v1.CreateAppContinueRequest]) (*connect.Response[v1.CreateAppContinueResponse], error) {
+	return c.createAppContinue.CallUnary(ctx, req)
+}
+
 // ListIdentities calls auth.v1.AuthService.ListIdentities.
 func (c *authServiceClient) ListIdentities(ctx context.Context, req *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error) {
 	return c.listIdentities.CallUnary(ctx, req)
@@ -368,6 +384,7 @@ type AuthServiceHandler interface {
 	ChangePassword(context.Context, *connect.Request[v1.ChangePasswordRequest]) (*connect.Response[v1.ChangePasswordResponse], error)
 	ExchangeLoginCode(context.Context, *connect.Request[v1.ExchangeLoginCodeRequest]) (*connect.Response[v1.ExchangeLoginCodeResponse], error)
 	CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error)
+	CreateAppContinue(context.Context, *connect.Request[v1.CreateAppContinueRequest]) (*connect.Response[v1.CreateAppContinueResponse], error)
 	ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error)
 	UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
@@ -464,6 +481,12 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("CreateLinkTicket")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceCreateAppContinueHandler := connect.NewUnaryHandler(
+		AuthServiceCreateAppContinueProcedure,
+		svc.CreateAppContinue,
+		connect.WithSchema(authServiceMethods.ByName("CreateAppContinue")),
+		connect.WithHandlerOptions(opts...),
+	)
 	authServiceListIdentitiesHandler := connect.NewUnaryHandler(
 		AuthServiceListIdentitiesProcedure,
 		svc.ListIdentities,
@@ -512,6 +535,8 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceExchangeLoginCodeHandler.ServeHTTP(w, r)
 		case AuthServiceCreateLinkTicketProcedure:
 			authServiceCreateLinkTicketHandler.ServeHTTP(w, r)
+		case AuthServiceCreateAppContinueProcedure:
+			authServiceCreateAppContinueHandler.ServeHTTP(w, r)
 		case AuthServiceListIdentitiesProcedure:
 			authServiceListIdentitiesHandler.ServeHTTP(w, r)
 		case AuthServiceUnlinkIdentityProcedure:
@@ -581,6 +606,10 @@ func (UnimplementedAuthServiceHandler) ExchangeLoginCode(context.Context, *conne
 
 func (UnimplementedAuthServiceHandler) CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.CreateLinkTicket is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) CreateAppContinue(context.Context, *connect.Request[v1.CreateAppContinueRequest]) (*connect.Response[v1.CreateAppContinueResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.CreateAppContinue is not implemented"))
 }
 
 func (UnimplementedAuthServiceHandler) ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error) {

@@ -1,0 +1,283 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "광고는 앱에서만, 공용 광고 슬롯 하나를 통해서만 그린다. 슬롯은 운동 세션이 켜져 있으면 스스로 비고, 가입 후 첫 7일·하루 노출 상한(8회) 초과·광고 없는 구독자에게도 빈다. 자리는 운동 완료 요약(결과 아래 카드 1개 · 하루 첫 운동만) · 피드(게시물 6개마다 1개) · 기록·통계·종목 둘러보기(스크롤 끝 1개)다. 「광고」 표시를 붙인다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "iOS 맞춤 광고 전에는 추적 허용(ATT)을 묻고, 개인정보처리방침에 광고 항목을 적는다. 웹(PWA)은 지금처럼 광고 없이 둔다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "이 요구는 껍데기 앱 출시(SRS-095) 뒤 단계에서 구현한다. 광고 없는 구독 가격은 앱 결제 수수료를 반영해 따로 정한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "e2e 가 운동 세션 화면 전체(세트·휴식·종목 추가 피커·전역 운동 바)에서 광고 요소 0개를 확인한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "첫 7일 사용자·구독자·하루 상한 초과 사용자에게 슬롯이 비어 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "AdMob 테스트 광고가 세 자리에 뜬다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "도출 URS: URS-032 · 근거: 수익 모델 보고서 2026-11-03 · 결정 ADR-046",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/SRS-098.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-11-03T06:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-11-03T06:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SRS-098",
+  "meta": {
+    "acceptance_criteria": "광고는 공용 슬롯 하나로만 그려지고, 운동 세션 중·첫 7일·하루 상한 초과 시 비며, e2e 가 운동 화면 광고 요소 0개를 지킨다",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-032"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "native-app",
+    "ads"
+  ],
+  "title": "앱 광고(AdMob) 슬롯 — 운동 중 광고 0 가드 · 완료 요약·피드·기록 화면만 · 첫 7일 무광고 · 하루 상한 · 웹은 광고 없음 유지",
+  "type": "SRS",
+  "updated": "2026-11-03T03:35:51Z"
+}

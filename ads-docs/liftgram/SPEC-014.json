@@ -1,0 +1,394 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Task Spec — 근육 지도 실제 근육 그림·주황 농도·오픈소스 고지 (SRS-090 · ADR-044)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "등급 Task · 작업 위치 ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "../liftgram-wt-musclemap",
+                "type": "text"
+              },
+              {
+                "text": "(feat/musclemap-real · 웹 3300) — 옆 세션(기록 보호 2차 · wt-safety)과 파일 분리. 사용자 지시(2026-10-28): openGym 대조 후 「1번만 진행」 = 근육 지도 MuscleMap 교체 + 고지. 운동 사진·썸네일은 범위 밖.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "blockquote"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "그림: MuscleMap(Melih Colpan · MIT) 남성 앞·뒤 Swift 경로 → ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "scripts/gen-body-map-paths.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 가 직접 변환(openGym AGPL 변환본 미사용) → ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ui/bodyMapPaths.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(생성물 · gzip 약 19KB).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "대응: chest · upperBack/lowerBack/rotatorCuff→back · deltoids→shoulders · biceps · triceps · forearm→forearms · quadriceps→quads · hamstring→hamstrings · gluteal→glutes · calves · abs/obliques→abs · trapezius→traps. 세부 구역 11개(윗·아랫가슴 등)는 버림. 머리·목·손·발·무릎·발목·정강이·내전근·고관절굴곡근 = 회색 바탕(전거근은 원본이 복근 옆구리와 같은 경로라 버림 · QA L-1), 머리카락 = ink3.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "색: 0 = line 회색 · 1/2/3 = brandVivid 불투명도 45/75/100% + brand 윤곽선 0.75 · 선택 = ink. (color-mix 안·brand 3단계 안은 다크에서 2·3단계가 뒤집혀 기각 — 실측)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "고지: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/licenses",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(LegalPage) — MuscleMap MIT 전문 + free-exercise-db(Unlicense) 표기 · 프로필 아래 약관 링크 줄에 「오픈소스 고지」(ProfileClient 3줄 — 옆 세션 P3 영역과 다른 hunk).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "보존: 옛 실루엣 FRONT/BACK·zoneStyle·Body 는 남기고 호출부만 주석(코드 보존 규칙). ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "tone",
+                    "type": "text"
+                  },
+                  {
+                    "text": " prop 은 호환용으로 받기만.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수정 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "frontend/app/components/ui/BodyMap.tsx",
+            "type": "text"
+          },
+          {
+            "text": " · ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "ui/bodyMapPaths.ts",
+            "type": "text"
+          },
+          {
+            "text": "(신규 · 생성물) · ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "scripts/gen-body-map-paths.mjs",
+            "type": "text"
+          },
+          {
+            "text": "(신규) · ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "app/licenses/page.tsx",
+            "type": "text"
+          },
+          {
+            "text": "(신규) · ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "profile/ProfileClient.tsx",
+            "type": "text"
+          },
+          {
+            "text": "(링크) · ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "e2e/opengym-muscle.spec.ts",
+            "type": "text"
+          },
+          {
+            "text": "(대비 규칙 갱신 + 고지 테스트). 부르는 쪽 4곳(MuscleBalanceCard · TodayMuscleSheet · SummaryView · RoutineMuscleMini)은 API 불변이라 무변경.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "검증",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "tsc 0 · biome 통과 · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "e2e/opengym-muscle.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 5 통과(1 조건부 skip) — 대비 실측(라이트 카드 mini: 칠 2.79 → 윤곽선 4.68 로 3:1 확보 · 다크 칠3 4.5).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "라이트·다크 화면 캡처 육안 확인(통계·오늘 카드·시트).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/spec/20261028_musclemap-real",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(PLM식 md 스펙 폴더 — _intent·_context·_analysis·phase-*.md를 이어 붙임)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SPEC-014",
+  "meta": {
+    "phases": "0",
+    "phases_done": "0"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "Task Spec — 근육 지도 실제 근육 그림·주황 농도·오픈소스 고지 (SRS-090 · ADR-044)",
+  "type": "Spec",
+  "updated": "2026-11-03T03:33:30Z"
+}

@@ -21,3 +21,11 @@ docs
 .github
 *.md
 !README.md
+
+# 안드로이드·iOS 빌드 산출물 — 웹 이미지에 필요 없다(APK 는 frontend/public/downloads 로만 · SPEC-018 Phase 1 qa 운영 M-3)
+mobile/android/app/build
+mobile/android/build
+mobile/android/.gradle
+mobile/android/capacitor-cordova-android-plugins/build
+mobile/native/lock-core-check/.build
+mobile/ios/App/Pods

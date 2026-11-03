@@ -83,8 +83,8 @@ func (f *fakeRepo) UpdateProfile(_ context.Context, id string, p ProfilePatch) (
 	return u, nil
 }
 
-func (f *fakeRepo) CreateRefreshToken(_ context.Context, hash, userID, familyID, parentHash string, exp time.Time) error {
-	f.tokens[hash] = RefreshToken{TokenHash: hash, UserID: userID, ExpiresAt: exp, FamilyID: familyID, ParentHash: parentHash}
+func (f *fakeRepo) CreateRefreshToken(_ context.Context, hash, userID, familyID, parentHash, origin string, exp time.Time) error {
+	f.tokens[hash] = RefreshToken{TokenHash: hash, UserID: userID, ExpiresAt: exp, FamilyID: familyID, ParentHash: parentHash, Origin: origin}
 	return nil
 }
 

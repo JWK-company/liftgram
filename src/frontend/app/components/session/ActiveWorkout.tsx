@@ -41,16 +41,19 @@ import { ExerciseBlock, type WorkoutExerciseRow } from "./ExerciseBlock";
 import { MoveButtons } from "./BlockTools";
 import { ExerciseName } from "./ExerciseName";
 import { RestBar, clock } from "./RestBar";
+import { LockNotices } from "./LockNotices";
 import { SessionGuideButtons } from "./SessionGuides";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
 import { LoginNudgeSheet } from "./LoginNudgeSheet"; // 비로그인 완료 뒤 보관 권유 @plm SRS-086
 import { noteAnonCompletion } from "@/lib/loginNudge";
 import { useAuth } from "../AuthProvider";
-import { SetDraftContext, createSetDraftRegistry } from "./setDrafts";
+import { SetDraftContext, createSetDraftRegistry, registerDraftCommitter } from "./setDrafts";
 import { firePrCelebration } from "../PrCelebration";
 import { WeighInCheckin } from "./WeighInSheet"; // 운동 전 체중 체크인 @plm SRS-077
 import { clearWeighInMarks } from "@/lib/bodyweightPref";
+import { groupSessionRows } from "@app/core/domain/lockScreen"; // 화면 행 순서 = 잠금 카드 단계 순서(SPEC-017 §4-1)
+import { completeSetsFlow } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
 
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type WorkoutRow = {
@@ -85,6 +88,34 @@ export default function ActiveWorkout() {
   const [version, setVersion] = useState(0);
   // 입력 중인 세트 값 — 슈퍼셋 함께 완료가 멤버 칸의 미저장 값을 반영하려고(QA Q3) @plm SRS-062
   const [drafts] = useState(createSetDraftRegistry);
+  // 잠금 drain·앱 뒤로 가기 전에 입력 중 값을 저장한다(SPEC-017 §9 M-8) — 무게·횟수만, 사람 입력(출처 user)
+  useEffect(
+    () =>
+      registerDraftCommitter(async () => {
+        const r = await import("@app/core/data/workoutRepository");
+        const { database } = await import("@app/core/db");
+        for (const [id, d] of drafts.entries()) {
+          // 저장값과 같은 칸은 쓰지 않는다 — blur 와 같은 규칙(보이던 숫자 그대로면 사람이 고친 것이 아니다 · REV-006 화면 M-3)
+          const cur = (await database
+            .get("set_logs")
+            .find(id)
+            .catch(() => null)) as { weightKg: number; reps: number; done: boolean | null } | null;
+          if (!cur || cur.done === true) {
+            drafts.clear(id);
+            continue;
+          }
+          const patch: { weightKg?: number; reps?: number } = {};
+          if (d.weightKg !== undefined && Math.abs(d.weightKg - cur.weightKg) > 1e-6)
+            patch.weightKg = d.weightKg;
+          if (d.reps !== undefined && d.reps !== cur.reps) patch.reps = d.reps;
+          if (patch.weightKg !== undefined || patch.reps !== undefined) await r.updateSetLog(id, patch);
+          // 쓰는 사이 새로 친 값은 지우지 않는다(REV-006 화면 L-10)
+          const now = drafts.get(id);
+          if (now?.weightKg === d.weightKg && now?.reps === d.reps) drafts.clear(id);
+        }
+      }),
+    [drafts],
+  );
 
   const [picking, setPicking] = useState<null | { mode: "add" } | { mode: "swap"; weId: string }>(null);
   const [renaming, setRenaming] = useState(false);
@@ -218,23 +249,25 @@ export default function ActiveWorkout() {
     })();
 
   // ── 종목 배치: 슈퍼셋 묶음은 한 줄로 접는다 ──
-  const rows: Row[] = useMemo(() => {
-    const done = new Set<string>();
-    const out: Row[] = [];
-    for (const we of exercises) {
-      if (we.supersetGroup) {
-        if (done.has(we.supersetGroup)) continue;
-        const members = exercises.filter((x) => x.supersetGroup === we.supersetGroup);
-        if (members.length >= 2) {
-          done.add(we.supersetGroup);
-          out.push({ kind: "group", group: we.supersetGroup, members });
-          continue;
-        }
-      }
-      out.push({ kind: "single", we });
-    }
-    return out;
-  }, [exercises]);
+  // [원본] 같은 접기를 여기서 직접 돌렸다 — 잠금 카드가 같은 순서를 써야 해서 core 로 옮겼다(SPEC-017 §4-1)
+  // const rows: Row[] = useMemo(() => {
+  //   const done = new Set<string>();
+  //   const out: Row[] = [];
+  //   for (const we of exercises) {
+  //     if (we.supersetGroup) {
+  //       if (done.has(we.supersetGroup)) continue;
+  //       const members = exercises.filter((x) => x.supersetGroup === we.supersetGroup);
+  //       if (members.length >= 2) {
+  //         done.add(we.supersetGroup);
+  //         out.push({ kind: "group", group: we.supersetGroup, members });
+  //         continue;
+  //       }
+  //     }
+  //     out.push({ kind: "single", we });
+  //   }
+  //   return out;
+  // }, [exercises]);
+  const rows: Row[] = useMemo(() => groupSessionRows(exercises), [exercises]);
 
   /** 행 단위 이동 — 묶음은 통째로 움직이고, 안의 순서는 그대로 둔다. */
   const moveRow = (index: number, delta: number) => {
@@ -307,6 +340,8 @@ export default function ActiveWorkout() {
   return (
     <SetDraftContext.Provider value={drafts}>
       <div className="flex flex-1 flex-col">
+        {/* 잠금화면 조작 확인 중 덮개 · 「잠금화면에서 본 값과 다름」 표식(SPEC-017 Phase 3 §5·§6) */}
+        <LockNotices />
         {/* ── 헤더 ── */}
         {/* [원본] 스크롤하면 위로 사라졌다 — 마지막 종목까지 내려간 뒤 완료하려면 맨 위로 올라가야 했고, 운동 시간도 안 보였다(피드백)
         <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]"> */}
@@ -744,22 +779,35 @@ export default function ActiveWorkout() {
       const d = drafts.get(r.setLogId);
       return { setLogId: r.setLogId, weightKg: d?.weightKg, reps: d?.reps };
     });
-    await repo.completeSupersetRound(entries, next);
+    // [원본] await repo.completeSupersetRound(entries, next);
+    // [개선] 완료는 화면·잠금 공용 흐름으로(SPEC-017 §10) — 입력 중 값 저장 · 완료 · 다른 멤버 처방 채우기(planRoundFills)를 한 흐름에서.
+    //   누른 블록의 채우기는 그 블록(ExerciseBlock)이 같은 흐름으로 한다(채운 근거 문구를 그 블록이 보인다).
+    if (next)
+      await completeSetsFlow(repo, {
+        workoutExerciseIds: members.map((m) => m.id),
+        setIds: entries.map((e) => e.setLogId),
+        fillSetIds: entries.map((e) => e.setLogId).filter((id) => id !== pressedId),
+        at: Date.now(),
+        pressedSetId: pressedId,
+        values: new Map(entries.map((e) => [e.setLogId, { weightKg: e.weightKg, reps: e.reps }])),
+        writeValues: true,
+      });
+    else await repo.completeSupersetRound(entries, next);
     for (const e of entries) drafts.clear(e.setLogId);
     if (!next) return;
     // 누른 칸이 비어 있었으면 0 으로 저장하지 않고 원래 값을 둔다 — 왜 그대로인지 알린다(M4)
     if (kg === undefined || reps === undefined) toast(t("session.supersetEmptyKept"));
-    // 묶음으로 함께 완료된 다른 종목에도 처방 무게(탑셋 → 백오프 %)를 채운다(M5) — 누른 블록은 자기가 채운다
-    try {
-      for (const r of round) {
-        if (r.setLogId === pressedId) continue;
-        const e = entries.find((x) => x.setLogId === r.setLogId);
-        const w = e?.weightKg ?? r.weightKg;
-        if (w > 0) await repo.fillPrescribedLoadsAfter(r.workoutExerciseId, r.setLogId, w, e?.reps ?? r.reps);
-      }
-    } catch {
-      // 채우지 못해도 기록은 남는다
-    }
+    // [원본] 묶음으로 함께 완료된 다른 종목에도 처방 무게(탑셋 → 백오프 %)를 채운다(M5) — 위 completeSetsFlow 가 맡는다(SPEC-017 §10)
+    // try {
+    //   for (const r of round) {
+    //     if (r.setLogId === pressedId) continue;
+    //     const e = entries.find((x) => x.setLogId === r.setLogId);
+    //     const w = e?.weightKg ?? r.weightKg;
+    //     if (w > 0) await repo.fillPrescribedLoadsAfter(r.workoutExerciseId, r.setLogId, w, e?.reps ?? r.reps);
+    //   }
+    // } catch {
+    //   // 채우지 못해도 기록은 남는다
+    // }
     try {
       const names: string[] = [];
       const types = new Set<string>();

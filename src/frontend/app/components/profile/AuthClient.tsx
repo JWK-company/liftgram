@@ -24,6 +24,7 @@ import { DeleteAccountCard } from "../auth/DeleteAccountCard";
 import { providerLabel } from "../auth/providers";
 import type { LastLogin } from "@/lib/last-login";
 import { LastLoginBadge, SocialButtons, useAuthOptions } from "../auth/SocialButtons";
+import { AppContinueEntry } from "../auth/AppContinueEntry";
 import { agoText, useSyncHealth } from "../sync/useSyncHealth";
 import { t, type TransKey } from "@/lib/i18n";
 import { useAuth } from "../AuthProvider";
@@ -136,6 +137,8 @@ export default function AuthClient({
   preview = [],
   lastLogin = null,
   deviceData = false,
+  returnTo = "/account",
+  hideAppContinue = false,
 }: {
   siteKey?: string;
   oauthError?: string;
@@ -147,6 +150,10 @@ export default function AuthClient({
   lastLogin?: LastLogin | null;
   /** /account 에서만 — 로그인하지 않은 기기의 백업 파일·오프라인 안내를 함께 보인다(로그인 화면에는 없다 · 시안 10). */
   deviceData?: boolean;
+  /** SPEC-018 §7 — 소셜 로그인 뒤 돌아올 곳(넘기기 확인 화면은 자기 주소로) */
+  returnTo?: string;
+  /** SPEC-018 §7 — 넘기기 확인 화면(크롬 탭) 안에서는 「웹에서 쓰던 계정으로 계속」을 그리지 않는다 */
+  hideAppContinue?: boolean;
 }) {
   const { user, restoring, signUp, logIn, logOut } = useAuth();
   const [human, setHuman] = useState<string | null>(null);
@@ -297,7 +304,10 @@ export default function AuthClient({
         </AppText>
       ) : null}
 
-      <SocialButtons returnTo="/account" preview={preview} last={lastLogin} />
+      {/* SPEC-018 §7 — 안드로이드 앱이면 맨 위에 「웹에서 쓰던 계정으로 계속」(앱이 아니면 아무것도 그리지 않는다) */}
+      {hideAppContinue ? null : <AppContinueEntry />}
+      {/* [원본] <SocialButtons returnTo="/account" preview={preview} last={lastLogin} /> */}
+      <SocialButtons returnTo={returnTo} preview={preview} last={lastLogin} />
       {isSignup ? (
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
           {t("auth.signupEmailNote")}

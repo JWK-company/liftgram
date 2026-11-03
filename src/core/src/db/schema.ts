@@ -4,7 +4,10 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 // v26(openGym 추천 P1): set_logs.rir · workouts.source/import_batch_id · exercises.import_batch_id + 새 표 3개. @plm SRS-073 SRS-077 SRS-081 SRS-082
 // ⚠ v26 배포 뒤에는 SCHEMA_VERSION<26 번들을 내보내지 않는다 — 옛 번들이 새 DB를 열면 LokiJS가 DB 전체를 지운다(D-5 · db/schemaGuard.ts).
-export const SCHEMA_VERSION = 26;
+// v27(잠금화면 카드 · SPEC-017 Phase 2): set_logs.value_source — 표시 칸 중 가장 약한 값 출처(「앱 열기」 판정 · SRS-096).
+// ⚠ v27 도 같은 규칙 — 배포 뒤 SCHEMA_VERSION<27 번들을 내보내지 않는다(Phase 2·3 을 v0.58.0 한 릴리스로).
+// [원본] export const SCHEMA_VERSION = 26;
+export const SCHEMA_VERSION = 27;
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -198,6 +201,8 @@ export const mySchema = appSchema({
         // v26: 실제 RIR(몇 개 더 할 수 있었나 · 0~10, 0.5 단위). **null = 적지 않음**(옛 세트 전부) — rpe 만 있으면
         // 읽을 때 domain/effort.effectiveRir 가 10−rpe 로 환산한다(ADR-038 · rpe 칸은 가져온 원본 보관용). @plm SRS-073
         { name: 'rir', type: 'number', isOptional: true },
+        // v27: 값 출처 default|copied_default|prev_snap|prev|routine|rx|user — 칸마다 다르면 가장 약한 것. null = 옛 세트(앱 열기 아님)
+        { name: 'value_source', type: 'string', isOptional: true },
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

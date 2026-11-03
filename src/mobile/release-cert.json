@@ -1,0 +1,5 @@
+{
+  "note": "안드로이드 출시 키(앱 서명 키)의 SHA-256 지문 — src/scripts/android-release-key.sh 가 만든다. 앱 안 상수(BuildConfig.RELEASE_CERT_SHA256)·빌드 검증·/app 공개 페이지가 이 값을 쓴다. 손으로 고치지 않는다.",
+  "sha256": "7d124a8d64e38b3f2ed6e4308188d336d18f87f23f0a42a3fa7e1e23fae780b8",
+  "colon": "7D:12:4A:8D:64:E3:8B:3F:2E:D6:E4:30:81:88:D3:36:D1:8F:87:F2:3F:0A:42:A3:FA:7E:1E:23:FA:E7:80:B8"
+}

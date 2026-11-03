@@ -1,0 +1,3557 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "Feature Spec — 피드백 #62·#63·#64 (블록 도구 꺼내기 · 플레이트 머신 한쪽 기본 · 완료 직후 새 버전 새로고침)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "text": "생성일: 2026-10-27 · 등급: ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "Feature",
+                "type": "text"
+              },
+              {
+                "text": "(파일 10+ · core 도메인/저장소 + 프론트 화면 3곳 + e2e · 스키마 변경 없음 · 서버 변경 없음) 추적: URS-019·URS-018·URS-023 → ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "SRS-084",
+                "type": "text"
+              },
+              {
+                "text": "(신규) · 관련 SRS-051(서비스워커)·SRS-058(한쪽 입력)·SRS-069(화면 정리 P1) 작업 위치: worktree ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "../liftgram-wt-fb6264",
+                "type": "text"
+              },
+              {
+                "text": "(브랜치 ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "feat/feedback-62-64",
+                "type": "text"
+              },
+              {
+                "text": ", cab9bbe 위) · 포트 3200/3201(로컬 운영 빌드 e2e) — 병행 openGym 세션(3300·3400·3500 worktree)과 분리 · 커밋 뒤 main 이 qa code → ff-only 합치기·배포 QA: ",
+                "type": "text"
+              },
+              {
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": ".ouroboros/docs/qa/20261027_feedback-62-64-spec_qa.md",
+                "type": "text"
+              },
+              {
+                "text": "(H-1·M-1~M-4·L-1~L-5 반영) 사용자 결정(2026-10-27 · main 전달): 아래 「확정 결정」 표. 질문 없이 진행.",
+                "type": "text"
+              }
+            ],
+            "type": "paragraph"
+          }
+        ],
+        "type": "blockquote"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "작업 의도",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#64 [버그]",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 운동을 완료하면 「바뀐 루틴 저장」 시트가 떴다가 곧바로 사라지고 홈으로 간다. 루틴에 반영되지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#63 [버그]",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 플레이트 머신은 원판 한쪽 무게로 적는데 볼륨이 ×2 가 안 된다(운영 오늘 기록의 머신 세트 load_multiplier 전부 null).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "#62 [개선]",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 메모·휴식 시간·종목 순서 바꾸기가 ⋯ 메뉴 안에 숨어 있다. 밖으로 꺼내되, 난잡함이 돌아오지 않게.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "ordered_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "확정 결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "#",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "결정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "근거",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q1",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#64) ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "운동 화면(`/workout`)에 있는 동안은 새 버전을 자동 적용하지 않는다",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(요약·완료 시트 포함). 화면을 떠나면(요약 닫기 → 홈) 그때 적용. 다른 탭이 새 워커를 활성화해 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "controllerchange",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 가 와도 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "/workout",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 에서는 새로고침을 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "미뤘다가",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 떠날 때 한다. 「새 버전」 띠도 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "/workout",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 에서는 띄우지 않는다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "셸 상태(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "activeWorkoutId",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")는 완료 순간 null 이 되어 「운동 중 아님」으로 보인다 — 요약·완료 시트는 셸이 모르는 「결정 중」 상태. 경로는 셸이 확실히 아는 값이라 가장 단순·견고",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q2",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "플레이트 후보 = 종목 기구 `machine` + family 메타 `load` 축(pin;plate) 있음 + 하중 모드 external",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(어시스트·맨몸 기준 머신 제외 — /qa spec H-1). 그리고 **family 메타에 「흔한 적재 방식」 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "load_default",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(plate\\",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "pin) 열을 추가",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": " — 원판을 거는 머신 19 family(체스트·인클라인·디클라인·라잉 체스트 프레스, 숄더 프레스, 하이·로우·체스트 서포티드 로우, 머신 랫풀다운, 핵·레그 프레스, 펜듈럼·V·벨트 스쿼트, 힙 쓰러스트, 슈러그, 동키·시티드 카프, 레그 프레스 카프)는 plate, 핀 스택이 흔한 27 family(레그 익스텐션·레그 컬·펙 덱·래터럴·어브덕션 등)는 pin. 키 축(ADR-034)은 ",
+                        "type": "text"
+                      },
+                      {
+                        "text": "변경 없음** — 빈 적재 칸의 기본일 뿐",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "실행 중 재검토: 적재 축이 있는 46 family 를 모두 한쪽 기본으로 보면 레그 익스텐션·펙 덱처럼 핀 머신이 대부분인 종목도 ×2 가 되고 미답 완료가 「한쪽」으로 굳는다. 「이 머신이 플레이트인가」는 헬스장마다 다르지만, 흔한 쪽을 기본으로 두고 칸 시트에서 바꿀 수 있게 한다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q3",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) 후보 블록의 배수: 적재 칸(비면 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "load_default",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")이 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "pin → 1(null)",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "plate → 한쪽 기본(×2)",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · 사용자가 「양쪽 합·핀」으로 답했으면 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "명시 1",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「기본이 한쪽」(사용자). 핀 머신 사용자는 질문에서 「양쪽 합·핀」을 고르면 된다(사용자). 명시 1 은 아래 Q6 환산이 「양쪽 합」을 알기 위해",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q4",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) 질문 = 후보 블록이고 그 종목의 선택(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "exercise_user_prefs.plate_one_side",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")이 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "null(아직 안 정함)",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 이면 세트 표 바로 아래 조용한 한 줄 「원판 한쪽 무게로 적나요?  ✓한쪽 · 양쪽 합·핀」. 답하면 종목별로 기억하고(행이 없어도 false 를 쓴다) 다시 묻지 않는다. ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "답하지 않고 운동을 완료하면 기본(한쪽)을 답으로 기록",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(그 종목 완료 세트가 있을 때) → 「한 번만」",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운동 흐름을 막지 않는다(시트·모달 아님 · 빨강 없음 · 머리 높이 불변). 「처음 하는 종목」 = 선택이 없는 종목(기존 null 기록이 있는 종목 포함 — 이번 사용자가 바로 이 경우)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q5",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) 질문에 답하면 그 블록의 세트 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "전부(한 세트 포함) 배수만 바꾸고 숫자는 그대로",
+                        "type": "text"
+                      },
+                      {
+                        "text": " — 「적은 숫자의 뜻을 밝힌 것」이라서. 칸 시트의 기존 「한쪽 무게로 입력」 토글은 지금처럼(안 한 세트만 환산 · 한 세트 보존)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "질문 전 기본(×2)으로 적은 세트가 「양쪽 합」 답에도 ×2 로 남으면 거짓 볼륨",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q6",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) 프리필 환산(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "carryWeightAcrossMultiplier",
+                        "type": "text"
+                      },
+                      {
+                        "text": "): ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "지난 배수가 null(옛 기록·모름)이면 숫자 그대로",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", 명시 1·2 일 때만 환산",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "옛 null 기록은 사람들이 「옵션을 안 누른」 기록 — 이번 사용자처럼 실제로는 한쪽 숫자다. 옛 규칙(null=양쪽)으로 절반 환산하면 40 → 20 으로 틀린 프리필",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q7",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "합계 무게는 화면에 따로 표시하지 않는다",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(기존 「한쪽」 표 머리 글자만). 볼륨·PR·1RM 등 계산 무게(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "effectiveWeightKg",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")만 정확히",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "사용자",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q8",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#63) ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "과거 null 기록은 소급 변경하지 않는다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "사용자. 보고서에 남겨 main 이 알림(첫 세션의 볼륨·PR 이 옛 기록 대비 2배로 보일 수 있음)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q9",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#62) 블록 아래 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "도구 한 줄",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(세트 추가 버튼 아래): ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "⏱ 휴식 2:00 · ✎ 메모(또는 메모 첫 줄 미리보기) ··· ⌃ ⌄",
+                        "type": "text"
+                      },
+                      {
+                        "text": ". 회색 글자·아이콘, 누르는 자리 44px, 빨강 없음. ⋯ 메뉴에는 운동 방법·교체·슈퍼셋·삭제만",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "머리(첫 세트까지 거리 · 화면 정리 측정 ≤170/≤320)를 건드리지 않고 표 아래에 둔다 — 세트를 적는 동안 시선 밖, 필요할 때 바로 아래",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q10",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#62) 순서 버튼: 단독 블록만(슈퍼셋 안 멤버는 묶음 머리가 옮긴다). 첫 블록 ⌃ · 마지막 블록 ⌄ 는 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "흐린 비활성",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(자리 유지 — 위치가 흔들리지 않게), 블록이 하나면 둘 다 숨김. 슈퍼셋 묶음 머리의 20×20 위아래도 같은 부품(보이는 크기 작게·누르는 자리 44px)으로",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "원래 문제(22×28 두 개가 위아래로 붙어 잘못 눌림 · /qa code M-5): 좌우로 떨어뜨리고 누르는 자리를 키운다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q11",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(#62) 메모: 써 둔 메모가 있으면 도구 줄에 첫 줄 미리보기(말줄임), 없으면 「메모」. 누르면 입력칸이 열리고(포커스) 벗어나면 저장 후 미리보기로 접힌다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "2줄 입력칸이 늘 펼쳐져 있던 것(메모 있는 블록)보다 조용하다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q12",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "testId 유지: ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "btn-move-up",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "btn-move-down",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "btn-rest-setting",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "btn-note-open",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 은 새 자리 버튼에. e2e 에서 메뉴를 열고 누르던 곳은 고친다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "사용자",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Q13",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "(/qa code M-1·M-2 뒤) 미정 종목에서 칸 시트로 「핀」·「한쪽」 토글을 바꾸면 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "질문 답으로 기록",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(핀 = 양쪽 합·핀)하고 숫자 그대로 배수만 바꾼다(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "plateChangeMode",
+                        "type": "text"
+                      },
+                      {
+                        "text": "). 1RM % 처방의 1RM 추정은 옛 null 기록을 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "이번 블록 배수로",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 읽는다(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "adoptLegacyMultiplier",
+                        "type": "text"
+                      },
+                      {
+                        "text": ") — 프리필 규칙과 같다. ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "고정 kg 처방 = 실제 계산 무게(양쪽 합)",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 로 보고 블록 배수로 나눈다(한쪽 블록이면 처방 100 → 입력 50)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "같은 결정을 어디서 하든 결과가 같아야 한다 · 「옛 null 기록 = 예전과 같은 숫자」 하나의 규칙",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "설계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "#64 — ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "core/src/domain/swUpdatePolicy.ts",
+            "type": "text"
+          },
+          {
+            "text": "(신규 순수 함수) + ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "frontend/app/components/ServiceWorker.tsx",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "isUpdateHoldPath(pathname)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/workout",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 또는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/workout/…",
+                    "type": "text"
+                  },
+                  {
+                    "text": " → true.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "shouldAutoApplyUpdate({ hasWaiting, activeWorkoutId, pathname })",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": waiting 있음 && 진행 중 운동 없음 && 보류 경로 아님.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "controllerChangeAction({ hadController, reloaded, pathname })",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ignore",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(첫 설치·이미 새로고침) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "defer",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(보류 경로) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "reload",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "화면: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "usePathname()",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 을 ref 로도 들고 있어 마운트 effect 의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "controllerchange",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 처리기가 최신 경로를 본다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "defer",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 면 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "pendingReload",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 상태를 켜고, 경로가 보류 밖으로 바뀌면 그때 한 번 새로고침. 자동 적용 effect 의 deps 에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "pathname",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 추가 → 홈으로 가면 다시 판단해 적용(기기 DB 진행 중 운동 확인은 그대로). 띠도 보류 경로에서는 숨김.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본 보존: 기존 판정 줄은 주석 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "[원본]",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", 새 판정 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "[개선]",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "다른 원인 점검: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ActiveWorkout",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "leaveSession",
+                    "type": "text"
+                  },
+                  {
+                    "text": " effect(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "repo && !workout && !summary",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") — 완료 처리에서 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setSummary",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setWorkout(null)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 이 같은 비동기 콜백 안이라 React 18 자동 묶음으로 한 그림에 반영 → 요약이 있는 동안 떠나지 않는다(기존 e2e 「완료 → 요약」이 증명). ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "FinishRoutineSheets",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "WorkoutSummary",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 에 이동·새로고침 없음. 새로고침 원천은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ServiceWorker.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 50행 하나(워커 템플릿은 skipWaiting 을 스스로 하지 않음).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "#63 — core",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "domain/recordSlots.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(추가만):",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "isPlateLoadCandidate(baseEquipment, axesLoad, loadMode)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " = ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine && load 축 && loadMode external",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(/qa spec H-1) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "plateDefaultLoad(…, loadDefault)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " = 후보면 family ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "load_default",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(없으면 plate), 아니면 null.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "blockLoadMultiplierV2(dims, choice, defaultLoad)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 후보 아님 → null · (칸 ?? defaultLoad)=pin → null · choice=false → 1 · 그 밖(true·null) → 2.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "needsPlateOneSideQuestion(dims, choice, defaultLoad)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " = 후보 && (칸 ?? defaultLoad)=plate && choice==null.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "carryWeightAcrossMultiplierV2(w, from, to)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": from==null → w, 아니면 기존 환산.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "planBlockMultiplierResyncV2(sets, to)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 기존과 같되 V2 환산.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "planBlockMultiplierRetag(sets, to)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 배수만(숫자 그대로 · 한 세트 포함) — 질문 답(Q5).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "data/exercisePrefs.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(추가만): ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "getPlateOneSideChoice",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "getPlateOneSideChoiceMap",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(tri-state) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setPlateOneSideChoice",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(false 도 행을 만들어 기록 — markLocalWins).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "data/catalogMeta.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "plateDefaultLoadMap(exerciseIds)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(기구·family 메타·하중 모드로). ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "catalog.families.csv",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "load_default",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 열 + ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "gen-catalog.mjs",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(값 검증) + ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CatalogFamily.loadDefault",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 생성물 재생성(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CATALOG_REVISION",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 이 바뀌어 기기가 refreshSeedCatalog 를 한 번 돈다 · 멱등).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "data/workoutRepository.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 배수 결정 4곳(루틴 시작·행 시작(다시 시작·피드)·즉석 추가·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "blockMultiplierOf",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")을 V2 로(원본 주석 보존), 프리필 환산 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "createSets",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 를 V2 로, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "syncBlockLoadMultiplier",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 계획을 V2 로. 새 export: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setPlateOneSideForExerciseV2",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(토글 — 선택 기록 후 V2 동기) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "answerPlateOneSide(exerciseId, on)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(Q5 — 선택 기록 후 진행 중 운동 그 종목 블록 세트 배수만 바꿈) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "settleUndecidedPlateOneSide(workoutId)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(Q4 — 완료 세트가 있는 후보 블록의 미정 종목을 한쪽으로 기록).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버: 변경 없음(코칭 보고서·피드가 이미 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "load_multiplier",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(null=1) 를 곱한다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "#63 — 화면",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "frontend/lib/usePlateOneSide.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(신규 훅): 종목 id → ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "{ choice, candidate, multiplier(dims), needsAsk(dims), setChoiceLocal }",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ExerciseBlock",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "RoutineEditor",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 가 같이 쓴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ExerciseBlock",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "oneSide",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·PR 채우기 환산을 V2 로. 세트 표 아래 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "PlateAskLine",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(신규 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session/PlateAskLine.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · testid ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "plate-ask",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "plate-ask-one",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "plate-ask-both",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") — 질문이 필요할 때만. 칸 시트 토글은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setPlateOneSideForExerciseV2",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "RecordSlotSelector",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 토글 노출 = 후보 && (칸 ?? load_default)=plate, 체크 = 실효값(선택≠false). 요약 글자 규칙은 그대로(plate 칸 + 한쪽일 때만 덧붙임 — 빈 칸 머신마다 「한쪽…」을 붙이면 소음).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ActiveWorkout",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 완료 직후 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "settleUndecidedPlateOneSide",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(실패 무시).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "i18n(ko·en): ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session.plateAsk",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session.plateAskOne",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session.plateAskBoth",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "#62 — 화면",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session/BlockTools.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(신규): 도구 한 줄 + ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MoveButtons",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(보이는 아이콘 18px · 누르는 자리 44×44 · 좌우 4px 틈). testid: 줄 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "block-tools",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", 버튼은 기존 4종.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ExerciseBlock",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ⋯ 메뉴에서 위로/아래로·휴식·메모 항목을 주석 처리(원본 보존), 세트 추가 아래 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "BlockTools",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". 메모 상태: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "noteOpen",
+                    "type": "text"
+                  },
+                  {
+                    "text": "=편집 중(처음엔 접힘, 미리보기는 도구 줄), 열면 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "autoFocus",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", blur 시 저장 후 접기.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ActiveWorkout.SupersetContainer",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 위아래를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "MoveButtons",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(compact — 머리 줄 높이 유지, 누르는 자리는 의사 요소로 44px).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "i18n: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session.restShort",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(「휴식 {time}」) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "session.noteShort",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(「메모」).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "테스트(먼저 쓰고 수정 전 실패 확인)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "대상",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "종류",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "수정 전 기대",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "swUpdatePolicy",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "core 단위(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "__tests__/swUpdatePolicy.test.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "모듈 없음 → 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "recordSlots",
+                        "type": "text"
+                      },
+                      {
+                        "text": " V2 함수",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "core 단위(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "__tests__/plateDefault.test.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "함수 없음 → 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "완료 뒤 요약 동안 skip-waiting 안 보냄 · 홈 가면 보냄",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "feedback-62-64.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(가짜 waiting 워커 — ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "navigator.serviceWorker.register",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "controller",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 를 init script 로 대체 · 운영 빌드에서만)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "요약 화면에서 skip-waiting 1회 → 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "플레이트 머신 기본 한쪽 · 질문 1회 · 「양쪽 합」 답 = 볼륨 ×1·다음에 안 물음 · 미답 완료 = 다음에 안 물음·한쪽",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e 같은 파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "질문 없음·볼륨 400 → 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "도구 줄: 메뉴 없이 위/아래·휴식·메모 · 누르는 자리 44 · 첫/끝 비활성 · 빨강 0 · 메뉴에 네 항목 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e 같은 파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "메뉴 안에 있음 → 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기존 회귀",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "e2e ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "declutter-block",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(머리 화살표 단언·순서 테스트 수정)·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "record-slots",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(한쪽 기본으로 기대값 수정)·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "history-replay",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "finish-routine*",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "session*",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "—",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "리스크",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R1",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 첫 세션의 볼륨·PR: 옛 null 기록(×1) 대비 새 세트(×2)가 2배 → 머신 종목마다 PR 축하가 뜰 수 있다(소급 없음 결정의 대가). 보고서·사용자 알림.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R2",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 옛 null 기록을 「양쪽 합」으로 적던 사람이 한쪽을 고르면 프리필 숫자가 그대로(80) — 직접 고친다. 질문에서 「양쪽 합·핀」을 고르면 그대로 맞다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R3",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 미답으로 세트를 체크한 뒤 운동 중에 「양쪽 합」으로 답하면 Q5 로 다시 맞춰진다. 완료 뒤에 칸 시트에서 끄면 그 운동의 세트는 바뀌지 않는다(기존 규칙 — 한 세트 보존).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R4",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 커스텀 머신 종목(family 없음)은 후보가 아니다(적재 축이 없다 — 기존과 같음).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R5",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/workout",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 밖에서 무언가 적는 중(루틴 편집·글쓰기)에도 자동 적용될 수 있다 — 이번 범위 밖(루틴 편집은 바꿀 때마다 저장). 보고서에 남김.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R6",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 진행 중 운동이 배포 시점에 이미 있으면 그 블록 세트는 옛 배수(null) — 질문에 답하면 Q5 로 맞춰진다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/spec/20261027_feedback-62-64",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(PLM식 md 스펙 폴더 — _intent·_context·_analysis·phase-*.md를 이어 붙임)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SPEC-004",
+  "meta": {
+    "phases": "0",
+    "phases_done": "0"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "Feature Spec — 피드백 #62·#63·#64 (블록 도구 꺼내기 · 플레이트 머신 한쪽 기본 · 완료 직후 새 버전 새로고침)",
+  "type": "Spec",
+  "updated": "2026-11-03T03:32:18Z"
+}

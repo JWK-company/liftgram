@@ -1,0 +1,298 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "시스템은 사용자가 입력한 조건(반경·24시간·시설·가격대 등)과 등록 헬스장을 위치 기반으로 매칭하고, 반경 내 헬스장에 실수요 리드를 전달한다. 후보 랭킹은 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "수수료(광고비) 납부 비율에 따른 우선순위",
+            "type": "text"
+          },
+          {
+            "text": "를 반영하되, ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "신규 등록 헬스장에는 일정 기간 항상 일정 %의 수요(노출)를 보장",
+            "type": "text"
+          },
+          {
+            "text": "해 유료 순위만으로 마켓이 왜곡되지 않게 한다. 이는 순수 기록앱이 못 가진 로컬 양면 네트워크 축이며 조기 B2B 현금흐름의 기반이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사용자 조건 게시 → 반경 내 헬스장에 리드 전달 → 헬스장 응답까지 왕복이 동작한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "수수료 비율에 따른 우선순위 + 신규 헬스장 노출 보장(랜덤 가중) 규칙이 랭킹에 반영된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "위치 정보는 사용자 동의 기반으로 처리되고 스팸/허위 리드가 필터링된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "매칭 결과·리드→방문 전환 지표가 사용자·헬스장 양측에 기록된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "도출 URS: URS-012(헬스장 운영자 리드·공정 노출), URS-011(입문자 로컬 접근). 관련: SRS-022(광고·리드), ADR-021(매칭·수수료 정책), SAD-014(마켓플레이스 아키텍처).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/SRS-021.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-07-10T05:53:26Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-07-10T05:53:26Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SRS-021",
+  "meta": {
+    "acceptance_criteria": "반경·조건 매칭 + 수수료 비율 우선순위 + 신규 헬스장 노출 보장 규칙이 동작하고 양측에 리드/결과가 기록된다",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-011",
+      "URS-012"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "marketplace",
+    "gym",
+    "geo",
+    "b2b"
+  ],
+  "title": "헬스장 위치 매칭 마켓플레이스 (지오·조건매칭·수수료 우선순위·신규노출 보장)",
+  "type": "SRS",
+  "updated": "2026-11-03T03:33:34Z"
+}

@@ -27,6 +27,7 @@ import {
 import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
 import { resolvePrescribedLoad, planPrescribedLoadFills, roundLoadKg } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
+import { cardioMetricsFor } from '../domain/cardio'; // 잠금 카드 — 유산소 지표(SPEC-017)
 import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
 import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
 import { autoWorkoutName, inheritedWorkoutName, isDefaultWorkoutName } from '../domain/workoutAutoName'; // 빠른 운동 자동 이름 @plm SRS-071
@@ -61,6 +62,23 @@ import {
 } from '../domain/recordSlots'; // ADR-034 지난 조합 · ADR-037 한쪽 입력 @plm SRS-057 SRS-058
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
 import { randomId } from '../utils/id';
+import { decodeValueSource, encodeValueSource, withFieldSource, type ValueSource, type SimBlock } from '../domain/lockScreen'; // v27 값 출처(잠금화면 「앱 열기」 · SPEC-017)
+import {
+  clampCompletedAt,
+  groupSessionRows,
+  judgeLockAction,
+  lockRoundOf,
+  planRoundFills,
+  sameAtDisplayPrecision,
+  type LockAction,
+  type LockApplyVerdict,
+  type LockExpect,
+  type LockRowInput,
+  type LockSnapshotBlock,
+  type LockSnapshotSet,
+  type LockWatermark,
+} from '../domain/lockScreen'; // 잠금 카드 적용기·스냅샷 재료(SPEC-017 Phase 3)
+import { getExerciseDisplayNameMap } from './exerciseNames';
 
 const workouts = () => database.get<Workout>('workouts');
 const workoutExercises = () => database.get<WorkoutExercise>('workout_exercises');
@@ -126,6 +144,29 @@ function touchedByUser(s: SetLog): boolean {
     updatedAt: s.updatedAt?.getTime?.() ?? null,
     createdAt: s.createdAt?.getTime?.() ?? null,
   });
+}
+
+/**
+ * 세트 값 쓰기 헬퍼(SPEC-017 §8 · REV-003 저장소 M-4) — 무게·횟수(·유산소 시간·거리)를 쓸 때 **사람이 고쳤는지(user_edited)와
+ * 값 출처(value_source)를 함께** 찍는다. 출처는 표시 칸 중 가장 약한 것(weakestValueSource)이다. 저장소의 모든 값 쓰기가
+ * 이것을 거친다 — 단위 환산·배수 동기·플레이트 정리처럼 숫자만 옮기는 쓰기는 출처를 바꾸지 않으므로 부르지 않는다.
+ */
+// [원본] 세트의 가장 약한 출처 하나를 덮어썼다 — 처방이 무게만 채워도 횟수 칸 출처를 알 수 없어 default 에 머물렀다(REV-005 H-1).
+// [개선] 칸별로(「무게,횟수」 · domain/lockScreen encodeValueSource) — 쓴 칸의 출처만 바꾼다.
+export function writeSetValues(
+  rec: SetLog,
+  values: { weightKg?: number; reps?: number },
+  source: ValueSource,
+): void {
+  if (values.weightKg !== undefined) {
+    rec.weightKg = values.weightKg;
+    rec.valueSource = withFieldSource(rec.valueSource, 'weight', source);
+  }
+  if (values.reps !== undefined) {
+    rec.reps = values.reps;
+    rec.valueSource = withFieldSource(rec.valueSource, 'reps', source);
+  }
+  if (source === 'user' && (values.weightKg !== undefined || values.reps !== undefined)) rec.userEdited = true;
 }
 
 function isPerformed(s: SetLog): boolean {
@@ -811,11 +852,310 @@ export async function fillPrescribedLoadsAfter(
   const byId = new Map(sets.map((x) => [x.id, x]));
   await database.write(async () => {
     await database.batch(
-      ...plan.map((f) => (byId.get(f.setLogId) as SetLog).prepareUpdate((rec) => { rec.weightKg = f.weightKg; })),
+      // [원본] ...plan.map((f) => (byId.get(f.setLogId) as SetLog).prepareUpdate((rec) => { rec.weightKg = f.weightKg; })),
+      // [개선] v27: 처방이 채운 무게 — 출처 rx(횟수 칸이 더 약하면 그대로 · 가장 약한 칸 규칙) · SPEC-017 §8
+      ...plan.map((f) =>
+        (byId.get(f.setLogId) as SetLog).prepareUpdate((rec) => {
+          writeSetValues(rec, { weightKg: f.weightKg }, 'rx'); // 무게 칸만 rx(REV-005 H-1)
+        }),
+      ),
     );
   });
   return plan;
 }
+// ── 잠금화면·완료 흐름 공용(SPEC-017 §5·§10) ──────────────────────────────────
+// 시뮬레이션(domain/lockScreen.planLockQueueValues)과 실제 완료(domain/completeSetsFlow)가 **같은 입력**을 쓰도록 블록을 모은다.
+// 처방 채우기 조건(무게 기준 있는 처방 · 외부 무게 종목)은 fillPrescribedLoadsAfter 와 같다 — 아니면 rx 를 null 로 넘겨 채우지 않는다.
+export async function loadSimBlocks(workoutExerciseIds: string[]): Promise<(SimBlock & { restSec: number; exerciseId: string })[]> {
+  if (!workoutExerciseIds.length) return [];
+  const wes = await workoutExercises().query(Q.where('id', Q.oneOf(workoutExerciseIds))).fetch();
+  const all = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(workoutExerciseIds)), Q.sortBy('set_number', Q.asc)).fetch();
+  const out: (SimBlock & { restSec: number; exerciseId: string })[] = [];
+  for (const id of workoutExerciseIds) {
+    const we = wes.find((x) => x.id === id);
+    if (!we) continue;
+    const ex = await database.get<Exercise>('exercises').find(we.exerciseId).catch(() => null);
+    const fillable =
+      !!we.prescription?.some((r) => r.loadBasis === 'pctTop' || r.loadBasis === 'pct1rm') &&
+      !!ex &&
+      ex.kind !== 'cardio' &&
+      resolveLoadMode(ex) === 'external';
+    out.push({
+      weId: id,
+      exerciseId: we.exerciseId,
+      restSec: we.restSeconds ?? 120, // 화면 기본값과 같다(ExerciseBlock)
+      rx: fillable ? we.prescription : null,
+      has1rm: fillable ? (await estimatedOneRmForSlot(we.exerciseId, effectiveVariantKey(we))) > 0 : false,
+      equipment: ex?.equipment ?? null,
+      unit: we.weightUnit ? blockWeightUnit(we) : await getUserWeightUnit(),
+      sets: all
+        .filter((x) => x.workoutExerciseId === id)
+        .map((x) => ({
+          id: x.id,
+          setNumber: x.setNumber,
+          done: x.done,
+          isWarmup: x.isWarmup,
+          isDrop: x.isDrop,
+          isFailed: x.isFailed,
+          setType: x.setType,
+          weightKg: x.weightKg,
+          reps: x.reps,
+          seconds: x.durationSec ?? null,
+          touched: touchedByUser(x),
+          loadMultiplier: x.loadMultiplier,
+          valueSource: x.valueSource,
+        })),
+    });
+  }
+  return out;
+}
+
+/** 처방 채우기 계획(planRoundFills)을 저장한다 — 출처 rx(횟수 칸이 더 약하면 그대로). 사람이 그 사이 고친 세트는 건너뛴다. */
+export async function applyLoadFills(fills: { setLogId: string; weightKg: number }[]): Promise<string[]> {
+  if (!fills.length) return [];
+  return database.write(async () => {
+    const recs = await setLogs().query(Q.where('id', Q.oneOf(fills.map((f) => f.setLogId)))).fetch();
+    const byId = new Map(recs.map((r) => [r.id, r]));
+    const ok = fills
+      .map((f) => ({ f, rec: byId.get(f.setLogId) }))
+      .filter((x): x is { f: (typeof fills)[number]; rec: SetLog } => !!x.rec && x.rec.done === false && !touchedByUser(x.rec));
+    const ups = ok.map(({ f, rec }) =>
+        rec.prepareUpdate((r) => {
+          writeSetValues(r, { weightKg: f.weightKg }, 'rx'); // 무게 칸만 rx(REV-005 H-1)
+        }),
+      );
+    if (ups.length) await database.batch(...ups);
+    // 실제로 쓴 세트 — 화면 근거 문구는 이것만(REV-005 화면 L-1 · 쓰기 전에 고른 것)
+    return ok.map((x) => x.f.setLogId);
+  });
+}
+
+// ── 잠금 카드 적용기·스냅샷 재료(SPEC-017 Phase 3 §5·§6·§9) ──────────────────────
+// 워터마크·dbEpoch 는 Watermelon 로컬 저장소(database.localStorage — 같은 Loki DB · 동기 안 함)에 둔다.
+// 새 표(lock_state)를 만들면 동기 push 가 서버로 올려 버린다(§6). DB 를 새로 만들거나 계정을 비우면(unsafeResetDatabase)
+// 로컬 저장소도 비어 dbEpoch 가 새로 생긴다 — 옛 DB 의 조작은 그것으로 버려진다.
+const LOCK_EPOCH_KEY = 'lockDbEpoch';
+const LOCK_WATERMARK_KEY = 'lockAppliedSeq';
+
+/** 이 로컬 DB 의 id — 없으면 만든다(created=true 면 호출자가 네이티브 대기열을 비운다 · §6). */
+export async function getLockDbEpoch(): Promise<{ epoch: string; created: boolean }> {
+  const cur = await database.localStorage.get<string>(LOCK_EPOCH_KEY);
+  if (typeof cur === 'string' && cur) return { epoch: cur, created: false };
+  const epoch = `e-${randomId()}`;
+  await database.localStorage.set(LOCK_EPOCH_KEY, epoch);
+  return { epoch, created: true };
+}
+
+/** 만들지 않고 읽기만 — 스냅샷용(epoch 생성은 drain 한 곳 · REV-006 동시성 H-1). */
+export async function peekLockDbEpoch(): Promise<string | null> {
+  const cur = await database.localStorage.get<string>(LOCK_EPOCH_KEY);
+  return typeof cur === 'string' && cur ? cur : null;
+}
+
+export async function getLockWatermark(): Promise<LockWatermark | null> {
+  const v = await database.localStorage.get<LockWatermark>(LOCK_WATERMARK_KEY);
+  return v && typeof v === 'object' && typeof v.seq === 'number' ? v : null;
+}
+
+export async function setLockWatermark(wm: LockWatermark): Promise<void> {
+  await database.localStorage.set(LOCK_WATERMARK_KEY, wm);
+}
+
+export interface LockMismatch {
+  setId: string;
+  weId: string;
+  exerciseId: string;
+  unit: 'kg' | 'lb';
+  seen: LockExpect;
+  saved: LockExpect;
+  workoutId?: string;
+  oneSide?: boolean;
+}
+
+export interface LockApplyResult {
+  verdict: LockApplyVerdict;
+  setIds: string[];
+  changed: string[];
+  mismatches: LockMismatch[];
+  /** 처방 다시 채우기 기준 — 조작 세트의 라운드 전부(이미 완료한 짝 포함 · REV-005 도메인 L-1) */
+  roundSetIds: string[];
+  workoutExerciseIds: string[];
+}
+
+/**
+ * 잠금 조작 하나를 **한 database.write 안에서** 판정·비교·완료한다(§6 「noop 판정과 쓰기는 같은 write」 · REV-005 도메인 M-8).
+ * - 판정: 다른 dbEpoch · 끝난/다른 세션 · 없는 세트 → discarded / 남은 세트가 전부 완료 → noop(완료 시각을 덮지 않는다)
+ * - 비교: 카드에 보인 값(expect)과 **완료 직전 저장값**을 블록 단위 표시 정밀도로 — 다르면 완료는 하고 mismatches 로 돌려준다(§5)
+ * - 값은 덮지 않는다(drain 은 값을 쓰지 않는다 · §5).
+ */
+export async function applyLockAction(action: LockAction, dbEpoch: string, now: number = Date.now()): Promise<LockApplyResult> {
+  return database.write(async () => {
+    const empty: LockApplyResult = { verdict: 'discarded', setIds: [], changed: [], mismatches: [], roundSetIds: [], workoutExerciseIds: [] };
+    const active = await getActiveWorkout();
+    const recs = action.setIds.length ? await setLogs().query(Q.where('id', Q.oneOf(action.setIds))).fetch() : [];
+    const weIds = [...new Set(recs.map((r) => r.workoutExerciseId))];
+    const wes = weIds.length ? await workoutExercises().query(Q.where('id', Q.oneOf(weIds))).fetch() : [];
+    const weById = new Map(wes.map((w) => [w.id, w]));
+    const sets = new Map(
+      recs.map((r) => [r.id, { done: r.done, sessionId: weById.get(r.workoutExerciseId)?.workoutId ?? '' }]),
+    );
+    const j = judgeLockAction({
+      action,
+      activeSessionId: active?.id ?? null,
+      sessionActive: !!active,
+      epochMatches: action.dbEpoch === dbEpoch,
+      sets,
+    });
+    if (j.verdict === 'discarded' || !active) return empty;
+    const present = recs.filter((r) => j.setIds.includes(r.id));
+    // 라운드(이미 완료한 짝 포함) — 같은 묶음 블록 전부의 세트로 화면 짝 키를 다시 계산한다
+    const groups = new Set(wes.map((w) => w.supersetGroup).filter((g): g is string => !!g));
+    const groupWes = groups.size
+      ? await workoutExercises().query(Q.where('workout_id', active.id), Q.where('superset_group', Q.oneOf([...groups])), Q.sortBy('sort_order', Q.asc)).fetch()
+      : [];
+    const memberIds = [...new Set([...wes.map((w) => w.id), ...groupWes.map((w) => w.id)])];
+    const memberSets = await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(memberIds)), Q.sortBy('set_number', Q.asc)).fetch();
+    const blockOf = (weId: string) => ({
+      weId,
+      sets: memberSets
+        .filter((x) => x.workoutExerciseId === weId)
+        .map((x) => ({ id: x.id, setNumber: x.setNumber, done: x.done, isWarmup: x.isWarmup, isDrop: x.isDrop, isFailed: x.isFailed, setType: x.setType })),
+    });
+    const round = new Set<string>();
+    for (const r of present) {
+      const we = weById.get(r.workoutExerciseId);
+      const members = we?.supersetGroup ? groupWes.filter((w) => w.supersetGroup === we.supersetGroup).map((w) => blockOf(w.id)) : [blockOf(r.workoutExerciseId)];
+      for (const id of lockRoundOf(members, r.id)) round.add(id);
+    }
+    const roundWeIds = [...new Set(memberSets.filter((x) => round.has(x.id)).map((x) => x.workoutExerciseId))];
+    const base = { setIds: j.setIds, roundSetIds: [...round], workoutExerciseIds: roundWeIds.length ? roundWeIds : weIds };
+    if (j.verdict === 'noop') return { ...base, verdict: 'noop', changed: [], mismatches: [] };
+
+    const legacyUnit = await getUserWeightUnit();
+    const at = clampCompletedAt(action.at, active.startedAt, now);
+    const mismatches: LockMismatch[] = [];
+    const ups: SetLog[] = [];
+    for (const r of present) {
+      if (r.done === true) continue; // 이미 완료 — 시각을 덮지 않는다
+      const we = weById.get(r.workoutExerciseId);
+      const unit = we?.weightUnit ? blockWeightUnit(we) : legacyUnit;
+      const seen = action.expect.find((e) => e.setId === r.id);
+      const saved: LockExpect = { weightKg: r.weightKg, reps: r.reps, seconds: r.durationSec ?? null };
+      if (seen && !sameAtDisplayPrecision({ weightKg: seen.weightKg, reps: seen.reps, seconds: seen.seconds }, saved, unit))
+        mismatches.push({ setId: r.id, weId: r.workoutExerciseId, exerciseId: we?.exerciseId ?? '', unit, seen: { weightKg: seen.weightKg, reps: seen.reps, seconds: seen.seconds }, saved, workoutId: active.id, oneSide: (r.loadMultiplier ?? 1) > 1 });
+      ups.push(
+        r.prepareUpdate((rec) => {
+          rec.done = true;
+          rec.completedAt = at;
+        }),
+      );
+    }
+    if (ups.length) await database.batch(...ups);
+    return { ...base, verdict: 'apply', changed: ups.map((u) => u.id), mismatches };
+  });
+}
+
+/** 「본 값으로 바꾸기」(§5) — 카드에 보인 값을 사람이 고른 값으로 저장한다(출처 user). */
+export async function applyLockSeenValues(items: { setId: string; seen: LockExpect }[]): Promise<void> {
+  if (!items.length) return;
+  await database.write(async () => {
+    // 진행 중인 운동의 세트만 — 끝난 운동의 기록(PR·요약·동기)을 고치지 않는다(REV-006 화면 M-5)
+    const active = await getActiveWorkout();
+    if (!active) return;
+    const all = await setLogs().query(Q.where('id', Q.oneOf(items.map((i) => i.setId)))).fetch();
+    const wes = all.length ? await workoutExercises().query(Q.where('id', Q.oneOf([...new Set(all.map((r) => r.workoutExerciseId))]))).fetch() : [];
+    const mine = new Set(wes.filter((w) => w.workoutId === active.id).map((w) => w.id));
+    const recs = all.filter((r) => mine.has(r.workoutExerciseId));
+    const ups = recs.map((rec) => {
+      const it = items.find((i) => i.setId === rec.id);
+      return rec.prepareUpdate((r) => {
+        const v: { weightKg?: number; reps?: number } = {};
+        if (it?.seen.weightKg != null) v.weightKg = it.seen.weightKg;
+        if (it?.seen.reps != null) v.reps = it.seen.reps;
+        writeSetValues(r, v, 'user');
+        if (it?.seen.seconds != null) r.durationSec = it.seen.seconds;
+      });
+    });
+    if (ups.length) await database.batch(...ups);
+  });
+}
+
+/** 「본 값으로 바꾸기」 뒤 처방을 다시 채운다 — drain 은 옛 저장값 기준으로 채웠으므로(REV-006 저장소 M-2). 실제로 쓴 세트 id. */
+export async function refillLoadsAfter(setIds: string[]): Promise<string[]> {
+  if (!setIds.length) return [];
+  const recs = await setLogs().query(Q.where('id', Q.oneOf(setIds))).fetch();
+  const weIds = [...new Set(recs.map((r) => r.workoutExerciseId))];
+  const blocks = await loadSimBlocks(weIds);
+  return applyLoadFills(planRoundFills(blocks, setIds, new Map()));
+}
+
+/**
+ * 스냅샷 재료(§9) — 화면 행 순서(groupSessionRows) · 블록(loadSimBlocks + 이름·출처·사람 손·유산소) · 일시정지.
+ * 화면이 안 떠 있어도 셸이 저장소에서 바로 만든다.
+ */
+export async function loadLockSnapshotInput(workoutId: string): Promise<{
+  title: string;
+  startedAt: number;
+  paused: boolean;
+  rows: LockRowInput<LockSnapshotSet>[];
+  blocks: LockSnapshotBlock[];
+} | null> {
+  const w = await workouts().find(workoutId).catch(() => null);
+  if (!w || (w.state !== 'active' && w.state !== 'paused')) return null;
+  const wes = await queryWorkoutExercises(workoutId).fetch();
+  const sim = await loadSimBlocks(wes.map((x) => x.id));
+  const names = await getExerciseDisplayNameMap(wes.map((x) => x.exerciseId));
+  const recs = wes.length ? await setLogs().query(Q.where('workout_exercise_id', Q.oneOf(wes.map((x) => x.id)))).fetch() : [];
+  const recById = new Map(recs.map((r) => [r.id, r]));
+  const exs = await database.get<Exercise>('exercises').query(Q.where('id', Q.oneOf([...new Set(wes.map((x) => x.exerciseId))]))).fetch();
+  const cardio = new Set(exs.filter((e) => e.kind === 'cardio').map((e) => e.id));
+  // 종목별 유산소 지표 — 시간만 재는 종목은 거리 없이도 잠금 완료(REV-007 표시 H-2)
+  const metricsOf = new Map(exs.map((e) => [e.id, cardioMetricsFor(e) as string[]]));
+  const groupOf = new Map(wes.map((x) => [x.id, x.supersetGroup]));
+  const blocks: LockSnapshotBlock[] = sim.map((b) => {
+    const isCardio = cardio.has(b.exerciseId);
+    const grp = groupOf.get(b.weId);
+    return {
+      ...b,
+      groupWeIds: grp ? wes.filter((x) => x.supersetGroup === grp).map((x) => x.id) : undefined,
+      exerciseName: names.get(b.exerciseId) ?? '',
+      sets: b.sets.map((s) => {
+        const r = recById.get(s.id);
+        return {
+          ...s,
+          userEdited: r?.userEdited ?? null,
+          valueSource: r?.valueSource ?? null,
+          cardio: isCardio ? { distance: r?.distanceM ?? null, seconds: r?.durationSec ?? null, metrics: metricsOf.get(b.exerciseId) } : null,
+        };
+      }),
+    };
+  });
+  const byWe = new Map(blocks.map((b) => [b.weId, b]));
+  const rows: LockRowInput<LockSnapshotSet>[] = groupSessionRows(wes).flatMap((row): LockRowInput<LockSnapshotSet>[] => {
+    if (row.kind === 'single') {
+      const b = byWe.get(row.we.id);
+      return b ? [{ kind: 'single', block: { weId: b.weId, sets: b.sets } }] : [];
+    }
+    const members = row.members.map((m) => byWe.get(m.id)).filter((b): b is LockSnapshotBlock => !!b);
+    return [{ kind: 'group', members: members.map((b) => ({ weId: b.weId, sets: b.sets })) }];
+  });
+  return { title: w.name ?? '', startedAt: w.startedAt, paused: w.state === 'paused', rows, blocks };
+}
+
+/** 블록 휴식(초)을 이번 운동 행에 저장한다 — 휴식 시트를 **닫을 때 한 번**(SPEC-017 §7 · REV-003 저장소 M-5). 같으면 쓰지 않는다. */
+export async function setWorkoutExerciseRestSeconds(workoutExerciseId: string, seconds: number): Promise<boolean> {
+  if (!Number.isFinite(seconds) || seconds < 0) return false;
+  const sec = Math.round(seconds);
+  return database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    if (we.restSeconds === sec) return false;
+    await we.update((r) => {
+      r.restSeconds = sec;
+    });
+    return true;
+  });
+}
+
 function estimateFromSet(kg: number, reps: number): number {
   return bestEstimatedOneRepMax([{ weightKg: kg, reps, isWarmup: false, isFailed: false }]);
 }
@@ -878,6 +1218,19 @@ function prepareTemplateSets(
     const weight = isCardio ? 0 : rxInput ?? prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
     // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
     const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
+    // v27: 칸마다 어디서 온 값인지 — 가장 약한 칸이 세트의 출처(REV-003 저장소 H-2 · 예: 무게=루틴 목표 · 횟수=기본 8 → default)
+    const weightSource: ValueSource =
+      rxInput != null ? 'rx' : prevWeight != null ? 'prev' : routineWeightKg != null ? 'routine' : prevSnap?.weightKg != null ? 'prev_snap' : 'default';
+    const repsSource: ValueSource =
+      prev?.reps != null ? 'prev' : rx?.repMin != null ? 'rx' : routineReps != null ? 'routine' : prevSnap?.reps != null ? 'prev_snap' : 'default';
+    const cardioSource: ValueSource =
+      prev?.durationSec != null || prev?.distanceM != null
+        ? 'prev'
+        : cardioTarget?.durationSec != null || cardioTarget?.distanceM != null
+          ? 'routine'
+          : 'default';
+    // [원본] const valueSource = isCardio ? cardioSource : weakestValueSource(weightSource, repsSource); — 칸별로 담는다(REV-005 H-1)
+    const valueSource = isCardio ? encodeValueSource(cardioSource, cardioSource) : encodeValueSource(weightSource, repsSource);
     recs.push(
       setLogs().prepareCreate((s) => {
         s.workoutExerciseId = weId;
@@ -902,6 +1255,7 @@ function prepareTemplateSets(
         s.grip = null;
         s.loadMultiplier = isCardio ? null : loadMultiplier; // v22 @plm SRS-058
         s.userEdited = false; // v25: 자동 채움 — 사람이 고치면 true(/qa code H-3) @plm SRS-067
+        s.valueSource = valueSource; // v27(SPEC-017 §8)
         // v16: 처방 세트 — 타입·목표 RIR 기입. warmup은 is_warmup 미러(기존 W 라벨·볼륨 제외 재사용). @plm SRS-043
         if (rx && rx.setType !== 'normal') {
           s.setType = rx.setType;
@@ -1625,7 +1979,16 @@ export interface LogSetInput {
 // 운동 중 세트 추가 — 기본은 미완료(done=false) 템플릿. 값 미지정 시 마지막 세트 복제.
 export async function addSet(
   workoutExerciseId: string,
-  input: { weightKg?: number; reps?: number; isWarmup?: boolean; done?: boolean; cardio?: boolean; bodyweight?: boolean } = {},
+  input: {
+    weightKg?: number;
+    reps?: number;
+    isWarmup?: boolean;
+    done?: boolean;
+    cardio?: boolean;
+    bodyweight?: boolean;
+    /** v27: 넘긴 값의 출처(없으면 user — 사람이 적은 값) */
+    source?: ValueSource;
+  } = {},
 ): Promise<SetLog> {
   return database.write(async () => {
     const existing = await setLogs()
@@ -1655,6 +2018,23 @@ export async function addSet(
       s.loadMultiplier = multiplier;
       // v25: 값을 넘겨받았으면 사람이 적은 것, 아니면 앞 세트를 복제한 자동 채움(/qa code H-3) @plm SRS-067
       s.userEdited = input.weightKg !== undefined || input.reps !== undefined || done;
+      // v27(SPEC-017 §8): 넘긴 값 → 넘긴 쪽 출처(없으면 user) · 직전 세트 복제 → 완료했거나 사람이 고친 세트면 user
+      // (사람이 실제로 든 값 · REV-003 도메인 M-6), 아니면 직전 세트 출처(기본값이면 copied_default) · 첫 세트 기본값 → default
+      // 칸별(REV-005 H-1): 넘긴 칸은 넘긴 쪽 출처, 나머지는 복제한 칸의 출처
+      const copied = (v: ValueSource | null): ValueSource | null => (v === 'default' ? 'copied_default' : v);
+      const lastSrc = decodeValueSource(last?.valueSource);
+      const base: { weight: ValueSource | null; reps: ValueSource | null } = done
+        ? { weight: 'user', reps: 'user' }
+        : !last || cardio
+          ? { weight: 'default', reps: 'default' }
+          : last.done === true || last.userEdited === true
+            ? { weight: 'user', reps: 'user' }
+            : { weight: copied(lastSrc.weight), reps: copied(lastSrc.reps) };
+      const passedSrc = input.source ?? 'user';
+      s.valueSource = encodeValueSource(
+        input.weightKg !== undefined ? passedSrc : base.weight,
+        input.reps !== undefined ? passedSrc : base.reps,
+      );
       s.done = done;
       s.completedAt = done ? Date.now() : null;
     });
@@ -1671,13 +2051,26 @@ export async function getWorkoutUndoneSetCount(workoutId: string): Promise<numbe
 }
 
 // 세트 완료 체크 토글 — 볼륨/PR/이력은 done인 세트만 센다.
-export async function setSetDone(id: string, done: boolean): Promise<void> {
-  await database.write(async () => {
+// [원본] export async function setSetDone(id: string, done: boolean): Promise<void> {
+//   await database.write(async () => {
+//     const s = await setLogs().find(id);
+//     await s.update((rec) => {
+//       rec.done = done;
+//       rec.completedAt = done ? Date.now() : null;
+//     });
+//   });
+// }
+// [개선] 완료 시각 인자(잠금 중 누른 시각 · SPEC-017 §10) · 이미 같은 상태면 아무것도 쓰지 않는다 — 판정과 쓰기가 같은 write 안
+// (지금 완료된 세트의 완료 시각을 덮던 것 · REV-003 저장소 M-7). 바꿨으면 true.
+export async function setSetDone(id: string, done: boolean, completedAt: number = Date.now()): Promise<boolean> {
+  return database.write(async () => {
     const s = await setLogs().find(id);
+    if ((s.done === true) === done) return false;
     await s.update((rec) => {
       rec.done = done;
-      rec.completedAt = done ? Date.now() : null;
+      rec.completedAt = done ? completedAt : null;
     });
+    return true;
   });
 }
 
@@ -1687,28 +2080,47 @@ export async function setSetDone(id: string, done: boolean): Promise<void> {
 export async function completeSupersetRound(
   entries: { setLogId: string; weightKg?: number; reps?: number }[],
   done: boolean,
-): Promise<void> {
-  if (!entries.length) return;
-  await database.write(async () => {
-    const now = Date.now();
+  completedAt: number = Date.now(), // 잠금 중 누른 시각(SPEC-017 §10)
+): Promise<string[]> {
+  if (!entries.length) return [];
+  return database.write(async () => {
+    const now = completedAt;
     const recs = await setLogs().query(Q.where('id', Q.oneOf(entries.map((e) => e.setLogId)))).fetch();
     const byId = new Map(entries.map((e) => [e.setLogId, e]));
     // 이미 같은 상태이고 바꿀 값도 없는 세트는 건드리지 않는다 — 먼저 완료한 세트의 완료 시각을 덮지 않게(/qa code L6)
+    const valid = (x: number | undefined) => (x != null && Number.isFinite(x) && x >= 0 ? x : undefined);
+    // [원본] return (s.done === true) !== done || e?.weightKg != null || e?.reps != null;
+    // [개선] 값이 **실제로 다를 때만** 쓴다 — 같은 값 재저장이 updated_at 을 바꿔 동기를 만들던 것(REV-005 저장소 L-3)
     const changed = recs.filter((s) => {
       const e = byId.get(s.id);
-      return (s.done === true) !== done || e?.weightKg != null || e?.reps != null;
+      const w = valid(e?.weightKg);
+      const r = valid(e?.reps);
+      return (s.done === true) !== done || (w !== undefined && w !== s.weightKg) || (r !== undefined && r !== s.reps);
     });
+    const doneChanged = recs.filter((s) => (s.done === true) !== done).map((s) => s.id);
     await database.batch(
       ...changed.map((s) =>
         s.prepareUpdate((rec) => {
           const e = byId.get(s.id);
-          if (e?.weightKg != null && Number.isFinite(e.weightKg) && e.weightKg >= 0) rec.weightKg = e.weightKg;
-          if (e?.reps != null && Number.isFinite(e.reps) && e.reps >= 0) rec.reps = e.reps;
-          rec.done = done;
-          rec.completedAt = done ? now : null;
+          // [원본] if (e?.weightKg != null && …) rec.weightKg = e.weightKg; if (e?.reps != null && …) rec.reps = e.reps;
+          // [개선] 입력 중 값 저장은 사람이 적은 값 — user_edited·출처 user 를 함께(지금은 user_edited 도 안 바꿨다 · SPEC-017 §8)
+          const w = valid(e?.weightKg);
+          const r = valid(e?.reps);
+          writeSetValues(
+            rec,
+            { weightKg: w !== undefined && w !== rec.weightKg ? w : undefined, reps: r !== undefined && r !== rec.reps ? r : undefined },
+            'user',
+          );
+          // 이미 같은 상태인 세트는 완료 시각을 덮지 않는다(/qa code L6)
+          if ((rec.done === true) !== done) {
+            rec.done = done;
+            rec.completedAt = done ? now : null;
+          }
         }),
       ),
     );
+    // 완료 상태가 바뀐 세트만(빈 배열 = 전부 이미 그 상태 — noop · REV-005 화면 L-2)
+    return doneChanged;
   });
 }
 
@@ -2118,6 +2530,11 @@ export async function updateSetLog(
       if (patch.reps !== undefined) rec.reps = patch.reps;
       // v25: 사람이 무게·횟수를 적었다 — 이후 자동 환산·처방 채움이 이 숫자를 덮지 않는다(/qa code H-3) @plm SRS-067
       if (patch.weightKg !== undefined || patch.reps !== undefined) rec.userEdited = true;
+      // v27: 사람이 값을 적었다 — 출처 user(유산소 시간·거리도 · SPEC-017 §8)
+      // [개선] 칸별(REV-005 H-1) — 고친 칸만 user · 유산소 시간·거리는 두 칸 모두
+      if (patch.weightKg !== undefined) rec.valueSource = withFieldSource(rec.valueSource, 'weight', 'user');
+      if (patch.reps !== undefined) rec.valueSource = withFieldSource(rec.valueSource, 'reps', 'user');
+      if (patch.durationSec !== undefined || patch.distanceM !== undefined) rec.valueSource = withFieldSource(rec.valueSource, 'both', 'user');
       if (patch.rpe !== undefined) rec.rpe = patch.rpe;
       if (patch.rir !== undefined) rec.rir = patch.rir; // v26 @plm SRS-073
       if (patch.isWarmup !== undefined) rec.isWarmup = patch.isWarmup;

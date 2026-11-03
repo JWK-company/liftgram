@@ -3,6 +3,8 @@
 
     <application
         android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -47,6 +49,29 @@
 
         </activity>
 
+        <!-- 잠금화면 운동 카드(SPEC-017 Phase 4 · ADR-046) — 카드 버튼·휴식 끝 알람은 앱 안 리시버로만(exported=false) -->
+        <receiver
+            android:name=".lock.LockActionReceiver"
+            android:exported="false" />
+
+        <!-- 정확 알람 권한이 없을 때 3분 미만 휴식의 끝 시각만 지키는 짧은 포그라운드 서비스(ADR-046: 카드는 포그라운드 서비스 없음 · 이것만 예외) -->
+        <service
+            android:name=".lock.RestShortService"
+            android:exported="false"
+            android:foregroundServiceType="shortService" />
+
+        <!-- 앱 설치 파일 업데이트(SPEC-018 §5 · ADR-047) — 세션 설치 결과(명시적 Intent 로만 · exported=false) · 업데이트 완료 알림 -->
+        <receiver
+            android:name=".update.InstallResultReceiver"
+            android:exported="false" />
+        <receiver
+            android:name=".update.PackageReplacedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -56,6 +81,16 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+        <!-- SPEC-018 · P2 보안 M-3  업데이트 APK 전용(cache/updates/ 만) -->
+        <provider
+            android:name=".update.UpdateFileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_paths" />
+        </provider>
     </application>
 
     <!-- Permissions -->
@@ -64,4 +99,14 @@
     <!-- @plm SRS-095  주변 헬스장(웹뷰 geolocation) — Capacitor 가 웹뷰 위치 요청을 이 권한으로 잇는다(qa spec M-13) -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 잠금화면 운동 카드(SPEC-017 §11) — 알림은 첫 운동 시작 때 묻는다 · 정확 알람은 안내(기본 거부) ·
+         FOREGROUND_SERVICE 는 shortService 용(FOREGROUND_SERVICE_SHORT_SERVICE 라는 권한은 없다) · promoted 는 Android 16 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <!-- 앱 설치 파일 업데이트(SPEC-018) — 자체 배포 전용. **플레이 빌드에서는 빼야 한다**(플레이 정책 · ADR-047 결과) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

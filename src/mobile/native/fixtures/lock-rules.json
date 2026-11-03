@@ -1,0 +1,1056 @@
+{
+  "v": 1,
+  "note": "core/src/domain/__tests__/lockFixtures.test.ts 가 만든다 — 손으로 고치지 않는다",
+  "rebase": [
+    {
+      "name": "겹침 없음 — 그대로",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 0,
+      "pending": [
+        {
+          "seq": 1,
+          "setIds": [
+            "zz"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            "a2",
+            "b2"
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "단계 하나 통째로 — 지운다",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 0,
+      "pending": [
+        {
+          "seq": 1,
+          "setIds": [
+            "a1",
+            "b1"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            "a2",
+            "b2"
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "묶음 일부 — 남은 멤버만",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 0,
+      "pending": [
+        {
+          "seq": 1,
+          "setIds": [
+            "b2"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "setIds": [
+            "a2"
+          ],
+          "members": [
+            "a2"
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "이미 스냅샷이 반영한 조작(seq ≤ applied)은 빼지 않는다",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 5,
+      "pending": [
+        {
+          "seq": 5,
+          "setIds": [
+            "a1",
+            "b1"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            "a2",
+            "b2"
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ack 먼저 도착 — 덮이지 않은 조작은 계속 뺀다",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 4,
+      "pending": [
+        {
+          "seq": 5,
+          "setIds": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "seq": 6,
+          "setIds": [
+            "a2",
+            "b2"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "섞임 — 반영된 것은 두고 덮이지 않은 것만 뺀다",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 4,
+      "pending": [
+        {
+          "seq": 4,
+          "setIds": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "seq": 5,
+          "setIds": [
+            "a2"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "setIds": [
+            "b2"
+          ],
+          "members": [
+            "b2"
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "대기열 비었음",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            {
+              "setId": "a1"
+            },
+            {
+              "setId": "b1"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            {
+              "setId": "a2"
+            },
+            {
+              "setId": "b2"
+            }
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            {
+              "setId": "a3"
+            }
+          ]
+        }
+      ],
+      "appliedThroughSeq": 0,
+      "pending": [],
+      "expect": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ],
+          "members": [
+            "a1",
+            "b1"
+          ]
+        },
+        {
+          "setIds": [
+            "a2",
+            "b2"
+          ],
+          "members": [
+            "a2",
+            "b2"
+          ]
+        },
+        {
+          "setIds": [
+            "a3"
+          ],
+          "members": [
+            "a3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "members 없는 단계",
+      "steps": [
+        {
+          "setIds": [
+            "a1",
+            "b1"
+          ]
+        }
+      ],
+      "appliedThroughSeq": 0,
+      "pending": [
+        {
+          "seq": 1,
+          "setIds": [
+            "b1"
+          ]
+        }
+      ],
+      "expect": [
+        {
+          "setIds": [
+            "a1"
+          ],
+          "members": null
+        }
+      ]
+    }
+  ],
+  "acceptSnapshot": [
+    {
+      "name": "처음",
+      "current": null,
+      "next": {
+        "appliedThroughSeq": 0,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "expect": true
+    },
+    {
+      "name": "거꾸로 가는 스냅샷은 버린다",
+      "current": {
+        "appliedThroughSeq": 9,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "next": {
+        "appliedThroughSeq": 8,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "expect": false
+    },
+    {
+      "name": "같은 seq 는 받는다",
+      "current": {
+        "appliedThroughSeq": 9,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "next": {
+        "appliedThroughSeq": 9,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "expect": true
+    },
+    {
+      "name": "dbEpoch 가 바뀌면 seq 비교 없이 받는다",
+      "current": {
+        "appliedThroughSeq": 9,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "next": {
+        "appliedThroughSeq": 0,
+        "storeId": "S",
+        "dbEpoch": "E2",
+        "sessionId": "w1"
+      },
+      "expect": true
+    },
+    {
+      "name": "세션이 바뀌면 받는다",
+      "current": {
+        "appliedThroughSeq": 9,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "next": {
+        "appliedThroughSeq": 0,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w2"
+      },
+      "expect": true
+    },
+    {
+      "name": "storeId 가 바뀌면 seq 비교 없이 받는다",
+      "current": {
+        "appliedThroughSeq": 9,
+        "storeId": "S",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "next": {
+        "appliedThroughSeq": 0,
+        "storeId": "S2",
+        "dbEpoch": "E",
+        "sessionId": "w1"
+      },
+      "expect": true
+    },
+    {
+      "name": "키가 없는 사본끼리는 같은 것으로 본다",
+      "current": {
+        "appliedThroughSeq": 9
+      },
+      "next": {
+        "appliedThroughSeq": 8
+      },
+      "expect": false
+    }
+  ],
+  "canForgetAcked": [
+    {
+      "name": "스냅샷 없음",
+      "seq": 3,
+      "snapshot": null,
+      "expect": false
+    },
+    {
+      "name": "덮였다",
+      "seq": 3,
+      "snapshot": {
+        "appliedThroughSeq": 3
+      },
+      "expect": true
+    },
+    {
+      "name": "아직",
+      "seq": 4,
+      "snapshot": {
+        "appliedThroughSeq": 3
+      },
+      "expect": false
+    },
+    {
+      "name": "더 큰 스냅샷이 덮었다",
+      "seq": 3,
+      "snapshot": {
+        "appliedThroughSeq": 5
+      },
+      "expect": true
+    }
+  ],
+  "mergeRest": [
+    {
+      "name": "늦은 setAt 이 이긴다",
+      "a": {
+        "endsAt": 1000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "web"
+      },
+      "b": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 20,
+        "by": "native"
+      },
+      "expect": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 20,
+        "by": "native"
+      }
+    },
+    {
+      "name": "같은 setAt 이면 native",
+      "a": {
+        "endsAt": 1000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "web"
+      },
+      "b": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "native"
+      },
+      "expect": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "native"
+      }
+    },
+    {
+      "name": "끝내기(endsAt null)도 setAt 으로",
+      "a": {
+        "endsAt": 5000,
+        "totalSec": 60,
+        "setAt": 30,
+        "by": "web"
+      },
+      "b": {
+        "endsAt": null,
+        "totalSec": null,
+        "setAt": 31,
+        "by": "native"
+      },
+      "expect": {
+        "endsAt": null,
+        "totalSec": null,
+        "setAt": 31,
+        "by": "native"
+      }
+    },
+    {
+      "name": "한쪽이 없음",
+      "a": null,
+      "b": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 20,
+        "by": "web"
+      },
+      "expect": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 20,
+        "by": "web"
+      }
+    },
+    {
+      "name": "같은 setAt — native(앞)가 이긴다",
+      "a": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "native"
+      },
+      "b": {
+        "endsAt": 1000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "web"
+      },
+      "expect": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "native"
+      }
+    },
+    {
+      "name": "같은 setAt·같은 by — 앞 값 유지",
+      "a": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "web"
+      },
+      "b": {
+        "endsAt": 1000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "web"
+      },
+      "expect": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 10,
+        "by": "web"
+      }
+    },
+    {
+      "name": "들어온 값이 없음",
+      "a": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 20,
+        "by": "web"
+      },
+      "b": null,
+      "expect": {
+        "endsAt": 2000,
+        "totalSec": 60,
+        "setAt": 20,
+        "by": "web"
+      }
+    },
+    {
+      "name": "둘 다 없음",
+      "a": null,
+      "b": null,
+      "expect": null
+    }
+  ],
+  "queueStalled": [
+    {
+      "name": "비었음",
+      "pendingAts": [],
+      "now": 100000,
+      "expect": false
+    },
+    {
+      "name": "60초 정확히 — 아직",
+      "pendingAts": [
+        40000
+      ],
+      "now": 100000,
+      "expect": false
+    },
+    {
+      "name": "60초 넘음",
+      "pendingAts": [
+        39999
+      ],
+      "now": 100000,
+      "expect": true
+    },
+    {
+      "name": "30개 — 아직",
+      "pendingAts": [
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000
+      ],
+      "now": 100000,
+      "expect": false
+    },
+    {
+      "name": "31개",
+      "pendingAts": [
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000,
+        99000
+      ],
+      "now": 100000,
+      "expect": true
+    },
+    {
+      "name": "섞인 순서 — 가장 오래된 것이 60초 넘음",
+      "pendingAts": [
+        99000,
+        39999,
+        99500
+      ],
+      "now": 100000,
+      "expect": true
+    },
+    {
+      "name": "가장 오래된 것도 60초 안",
+      "pendingAts": [
+        99000,
+        40000
+      ],
+      "now": 100000,
+      "expect": false
+    }
+  ],
+  "restRemainingSec": [
+    {
+      "name": "없음",
+      "rest": null,
+      "now": 0,
+      "expect": 0
+    },
+    {
+      "name": "올림",
+      "rest": {
+        "endsAt": 10500,
+        "totalSec": 60,
+        "setAt": 0,
+        "by": "web"
+      },
+      "now": 1000,
+      "expect": 10
+    },
+    {
+      "name": "지남",
+      "rest": {
+        "endsAt": 1000,
+        "totalSec": 60,
+        "setAt": 0,
+        "by": "web"
+      },
+      "now": 2000,
+      "expect": 0
+    },
+    {
+      "name": "정확히 10초",
+      "rest": {
+        "endsAt": 11000,
+        "totalSec": 60,
+        "setAt": 0,
+        "by": "web"
+      },
+      "now": 1000,
+      "expect": 10
+    },
+    {
+      "name": "정확히 끝",
+      "rest": {
+        "endsAt": 1000,
+        "totalSec": 60,
+        "setAt": 0,
+        "by": "web"
+      },
+      "now": 1000,
+      "expect": 0
+    },
+    {
+      "name": "끝내기(endsAt null)",
+      "rest": {
+        "endsAt": null,
+        "totalSec": null,
+        "setAt": 0,
+        "by": "native"
+      },
+      "now": 0,
+      "expect": 0
+    },
+    {
+      "name": "endsAt 0",
+      "rest": {
+        "endsAt": 0,
+        "totalSec": 0,
+        "setAt": 0,
+        "by": "web"
+      },
+      "now": 0,
+      "expect": 0
+    }
+  ]
+}

@@ -1,0 +1,562 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사용자는 자기가 실제로 쓰는 착용장비(리스트랩·스트랩·리프팅벨트·무릎보호대·그립/장갑·리프팅화·초크·암슬리브)를 한 곳에 모아 관리하고 싶어 한다. SRS-041이 마련한 데이터 계층(user_profiles의 @json 컬럼 · sanitizer · userRepository · userContext 노출) 위에, 본 요구는 그 저장소를 사람이 직접 다루는 화면 계층을 정의한다. 사용자는 '내 장비함' 화면에서 카테고리를 골라 장비를 추가하고, 더는 쓰지 않는 항목을 삭제한다. 저장은 로컬 프로필에 남으므로 서버 왕복이나 별도 계정 상태가 필요 없다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "장비함의 가치는 목록 자체가 아니라 재입력 제거에 있다. Phase 0의 장비 태그는 전량 사용자 수동 입력이다(개정 ADR-027 D5 — 카테고리 8종 + 사용자가 직접 적는 브랜드 문자열. Phase 0에서 brandSource는 항상 \"user\"이며, 비전 모델 자동 감지 제안 경로는 Phase 1 대상이다). 매 게시물마다 같은 장비를 — 브랜드 문자열까지 — 다시 고르고 다시 타이핑하는 마찰이 곧 태그 이탈률이 된다. 따라서 컴포저의 장비 선택기(GearTagPicker)는 저장된 장비를 상단 '내 장비' 영역으로 먼저 제시하고, 사용자는 한 번의 탭으로 그 항목을 이번 게시물의 태그에 넣는다. 저장 장비가 없는 사용자도 전체 카테고리 목록으로 그대로 태그할 수 있어, 장비함은 필수 선행 단계가 아니라 가속 장치로만 작동한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "진입 경로는 프로필 탭 한 곳으로 고정한다. '내 장비함'은 자기 자산을 관리하는 성격이라 피드·탐색이 아니라 프로필 맥락에 속하며, 화면은 임시 모달이 아니라 RootStackParamList에 정식 등록된 라우트로 둔다(딥링크·뒤로가기·타입 안정성 확보). 문자열은 ko.ts / en.ts에 플랫 키로 쌍 추가한다. 게시 후 장비 태그 수정은 서버 UpdatePostDto가 caption·visibility만 허용하므로 Phase 0 범위 밖이며, 본 화면은 '앞으로 붙일 태그'의 소스만 관리한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프로필 탭(ProfileTabScreen)에 '내 장비함' 진입점이 있고, 화면 라우트가 RootStackParamList에 등록되어 RootNavigator에서 타입 안전하게 내비게이션된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "장비 추가·삭제가 즉시 화면에 반영된다 — userContext의 반응형 구독을 경유하며, 화면 재진입이나 수동 새로고침을 요구하지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "장비 추가는 확정 카테고리 8종(wristWrap·strap·belt·kneeSleeve·gloves·shoes·chalk·armSleeve) 중 하나를 고르고, 여기에 사용자가 브랜드·모델을 직접 입력해 함께 저장한다(개정 ADR-027 D5 — 허용 3경로 중 '사용자 직접 입력'. 오인식 개념 자체가 없다). 브랜드는 선택 입력이며 비우면 기존 카테고리 수준 폴백 동작 그대로다. 저장 시 brandSource는 항상 \"user\"로 기록되고, 불변식상 brand가 있으면 brandSource도 반드시 있다(정규화가 brand 없는 brandSource를 제거한다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "내 장비함이 브랜드를 함께 저장·재사용하지 않으면 실재하는 기능적 공백이 생긴다 — SRS-038의 GearTagPicker는 브랜드 입력을 갖는데 장비함이 카테고리만 저장하면, 저장 장비를 재사용하는 순간 브랜드가 유실되어 사용자가 매번 다시 타이핑해야 한다. 따라서 재사용 탭 시 카테고리뿐 아니라 brand·brandSource가 함께 이번 게시물의 태그로 들어가야 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "피드 컴포저의 GearTagPicker에서 저장된 장비가 별도 영역으로 먼저 보이고, 한 번의 탭으로 이번 게시물의 태그(source: \"user\")에 brand·brandSource까지 함께 들어간다. 태그 자체의 원천을 뜻하는 source와 브랜드 문자열의 원천을 뜻하는 brandSource는 별개 축이며 혼동하지 않는다. 이미 태그된 항목은 중복 추가되지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "장비함이 비었을 때 빈 상태 UI가 무엇을 담는 곳인지와 다음 행동(추가하기)을 안내하며, 이 상태에서도 컴포저의 카테고리 태그는 정상 동작한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "신규·변경 문자열이 ko.ts·en.ts에 쌍으로 존재하고, cd app && npm run typecheck 가 통과한다(본 요구는 순수 도메인 모듈을 신설하지 않아 자동 테스트 회귀 대상은 아니다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "작업 범위",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "app/src/features/gear/MyGearScreen.tsx — 신규. 장비 목록·추가·삭제·빈 상태.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "app/src/features/social/GearTagPicker.tsx — SRS-038 산출물. 저장 장비 재사용 영역을 배선.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "app/src/navigation/types.ts · app/src/navigation/RootNavigator.tsx — 라우트 등록.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "app/src/features/profile/ProfileTabScreen.tsx — 진입점 추가.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "app/src/i18n/locales/ko.ts · en.ts — 문자열 쌍 추가.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "도출 URS: URS-017(다른 사람이 쓰는 장비를 알고, 내 장비를 보여주고 싶다). 근거 디스커버리: BS-003(오늘의 착용장비 수익화 전략, 비추적 relates_to). 결정 전제: ADR-027 — Phase 0만 전진 배치(D1), 제휴 파라미터 없이 출발(D2), 브랜드·모델 조건부 허용(개정 D5 — 사용자 직접 입력 / 사용자가 확인한 자동 감지 제안 / 카테고리 수준 폴백의 3경로. Phase 0 범위는 사용자 직접 입력뿐이며 자동 감지는 프로덕션 모델·실사용자 사진 재측정 통과 전까지 비활성인 Phase 1 대상이다. 유일한 금지선은 사용자가 확인하지 않은 자동 감지 결과를 게시·표시하는 것). 개정 근거는 블라인드 14장 실측(.ouroboros/docs/research/20260720_gear-brand-detection-accuracy_research.md — 브랜드 오단정 0건·high 신뢰 9건 전건 적중·카테고리 14/14·로고 미노출 사진 기권 2건)이며, 측정 한계도 함께 둔다: 12/14가 브랜드 공식몰 커머셜 사진이라 낙관 편향 상한선이고, 채점 모델이 Opus급인 반면 프로덕션은 더 작은 모델이 예상되며, 표본 14장·국내 브랜드 0종이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "로컬 스키마 영향: 없다. SRS-041이 만든 user_profiles의 my_gear @json 컬럼은 GearTag[] 를 통째로 담으므로 brand·brandSource 필드가 자연히 포함된다 — 마이그레이션(v14→v15)이나 addColumns가 추가로 필요하지 않고, 변경 지점은 sanitizer의 허용 키 목록과 화면·선택기 UI뿐이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "선행: SRS-037(gear 도메인 상수·정규화) → SRS-041(장비함 데이터 계층 — v13→v14 addColumns @json·sanitizer·userContext 노출). SRS-041이 제공하는 읽기/쓰기 경로가 없으면 본 화면은 성립하지 않는다. SRS-038과의 관계가 특히 중요하다 — GearTagPicker 컴포넌트 자체는 SRS-038(게시물 작성 시 수동 장비 태그)에서 생성되며, 본 요구는 그 선택기에 '저장 장비 재사용' 경로를 덧붙여 확장한다. 따라서 SRS-038 구현 시점에 선택기 상단에 재사용 영역 자리를 비워두고 태그 배열 조작 인터페이스를 외부에서 주입 가능하게 설계해 두는 것이 본 요구의 전제다. 그 자리를 남기지 않으면 042에서 선택기를 다시 헐어야 한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "실행 순서상 본 요구는 Phase 0 위상의 마지막(SRS-037 → 038 → 039 → 040 → 041 → 042)이다. 범위 밖: 게시 후 장비 태그 수정(서버 UpdatePostDto 확장이 필요한 별도 과제), 사용자 프로필 화면에서 타인의 장비함 공개 조회, 브랜드 문자열 기반 검색·집계·상품 매칭, 장비 사용량·클릭 통계 표시(SRS-039 admin 통계 소관).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "구현 상태",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "커밋 7e818fa 로 코드 반영·배포 완료(2026-07-20). 문서가 코드보다 앞선 상태는 해소됐다 — gear.ts 에 brand·brandSource·sanitizeBrand·MAX_GEAR_BRAND_LEN 이 들어갔고, GearTagPicker·GearChips·MyGearScreen 이 브랜드 입력·표시·저장을 담당한다. T8 은 brand 폐기 고정에서 보존 검증으로 뒤집혔고 T21(10항목)이 신설됐다. 검증: typecheck 0 error · npm test 104 pass / 0 fail.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "코드 위치",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/app/src/features/gear/MyGearScreen.tsx:1",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/app/src/features/profile/ProfileTabScreen.tsx:365",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/app/src/features/social/GearTagPicker.tsx:34",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/app/src/navigation/RootNavigator.tsx:29",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/SRS-042.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-07-20T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-07-20T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SRS-042",
+  "meta": {
+    "acceptance_criteria": "사용자는 프로필 탭에서 진입하는 '내 장비함' 화면에서 착용장비를 추가·삭제하고, 피드 컴포저의 GearTagPicker에서 저장된 장비를 한 번의 탭으로 태그에 넣을 수 있다. 라우트는 RootStackParamList에 정식 등록되고, 추가·삭제는 반응형 구독으로 즉시 반영되며, 장비함이 비면 빈 상태 UI가 다음 행동을 안내한다. cd app && npm run typecheck 통과.",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-017"
+    ],
+    "relates_to": [
+      "BS-003"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "gear",
+    "ui",
+    "navigation",
+    "phase0"
+  ],
+  "title": "내 장비함 화면 — 관리 UI·프로필 진입점·컴포저 재사용",
+  "type": "SRS",
+  "updated": "2026-11-03T03:34:18Z"
+}

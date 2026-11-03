@@ -13,5 +13,12 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- SPEC-017 Phase 5  잠금 카드 저장소를 위젯 확장(LiftgramWidgets)과 같이 쓴다 · 휴식 끝 알림은 집중 모드에서도 시간 민감 -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.org.tarae.liftgram</string>
+	</array>
+	<key>com.apple.developer.usernotifications.time-sensitive</key>
+	<true/>
 </dict>
 </plist>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 시작 화면 색 — 다크(웹 p-bg 다크 #161616). 로고 색은 두 테마 같다. -->
+<resources>
+    <color name="splash_bg">#161616</color>
+    <color name="splash_logo">#FF5A36</color>
+</resources>

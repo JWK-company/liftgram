@@ -1,6 +1,15 @@
+import AppIntents
 import AVFoundation
 import Capacitor
+import LiftgramLockKit
 import UIKit
+
+/// SPEC-017 Phase 5  잠금 카드 버튼 intent(LiveActivityIntent)를 앱 프로세스에 등록한다 — 버튼을 누르면 앱 프로세스에서 저장소를 고친다.
+/// 정적 라이브러리 안 intent 는 이렇게 가리켜야 보인다(REV-008 플랫폼 H-1 · Xcode 26 이상).
+@available(iOS 17.0, *)
+struct LiftgramAppIntents: AppIntentsPackage {
+    static var includedPackages: [any AppIntentsPackage.Type] { [LiftgramLockIntents.self] }
+}
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {

@@ -1,0 +1,252 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "배경 / 이해관계자",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "회원 대부분은 자기 루틴을 만들어 그 루틴으로 운동한다(사용자 피드백 2026-10-30). 그런데 운동 홈에서 「빠른 운동 시작」은 화면 폭 버튼이고 「+ 새 루틴」은 섹션 머리의 작은 글자 링크라 잘 보이지 않는다. 루틴 편집에서 종목을 고르는 칸은 편집 화면 아래에 끼운 작은 카드라 목록이 몇 줄밖에 안 보이고, 부위·기구로 좁힐 수 없으며, 종목을 하나 고를 때마다 칸이 닫혀 다시 열어야 한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "회원은 운동 홈에서 루틴 만들기 입구를 빠른 운동만큼 쉽게 찾고 싶다. 루틴에 종목을 넣을 때는 운동 목록 화면처럼 넓은 화면에서 검색·부위·기구로 좁혀 보고, 넣을 종목을 여러 개 골라 한 번에 넣고 싶다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 홈에 「새 루틴 만들기」가 「빠른 운동 시작」과 같은 크기의 버튼으로 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "루틴 편집의 종목 추가가 화면 전체를 쓰고, 검색과 부위·기구 칩이 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "한 번 열어서 종목을 여러 개 고르고 한 번에 넣을 수 있으며, 고른 순서대로 들어간다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/URS-029.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-10-30T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-10-30T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "URS-029",
+  "meta": {
+    "priority": "High",
+    "stakeholder": "회원(루틴을 짜서 운동하는 사람)"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [
+    "routine",
+    "picker",
+    "home"
+  ],
+  "title": "내 루틴을 만드는 일이 앱의 주 동선이니, 만들기 입구가 잘 보이고 종목을 넓은 화면에서 여러 개 한 번에 고르고 싶다",
+  "type": "URS",
+  "updated": "2026-11-03T03:36:44Z"
+}

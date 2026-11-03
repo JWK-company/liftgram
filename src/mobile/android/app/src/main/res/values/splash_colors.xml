@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 시작 화면 색(SPEC-017 Phase 1) — 웹 theme.generated.css 의 p-bg · p-brand-vivid 와 같은 값. 다크는 values-night. -->
+<resources>
+    <color name="splash_bg">#F7F7F7</color>
+    <color name="splash_logo">#FF5A36</color>
+</resources>

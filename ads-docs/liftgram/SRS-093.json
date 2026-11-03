@@ -1,0 +1,316 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "운동 홈의 「빠른 운동 시작」 버튼 줄에 「새 루틴 만들기」를 같은 크기 버튼으로 나란히 둔다. 루틴이 하나도 없으면 「새 루틴 만들기」가 화면의 유일한 빨강 주 행동이고 빠른 운동은 보조다(SRS-072 의 noRoutines 판정을 이 버튼으로 옮김). 루틴이 있으면 기존 주 행동 규칙을 그대로 따르고 새 루틴 버튼은 보조다. 섹션 머리의 작은 「+ 새 루틴」 링크는 같은 행동이 바로 위에 있으므로 없앤다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "운동 중 「종목 추가」도 같은 전체 화면 선택 화면을 쓴다(2026-10-30 추가 요청). 고른 순서대로 블록이 생기고, 넣는 동안 「완료」는 잠긴다. 홈 순서는 오늘 할 운동 → 놓친 루틴 → [새 루틴 만들기 | 빠른 운동 시작]이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "루틴 편집에서 「운동 추가」를 누르면 화면 전체를 덮는 종목 선택 화면이 열린다. 검색칸, 종목 찾기 도우미, 근육군·유산소 칩, 기구 칩, 운동 목록 화면과 같은 줄 목록을 갖는다. 줄을 누르면 선택이 켜지고 꺼지며, 선택된 줄에는 고른 순서 번호가 보인다. 검색어·필터를 바꿔도 선택은 남는다. 아래 고정 버튼 「N개 추가」가 고른 순서대로 루틴에 넣고 화면을 닫는다. 검색으로 고른 종목은 고를 때의 검색 정보(별칭)를 함께 넘겨 표시 이름 규칙(SRS-056)을 지킨다. 종목 교체는 하나만 고르므로 줄을 누르는 즉시 교체하고 닫는다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "루틴 0개: 새 루틴 버튼만 빨강 채움, 빠른 운동 시작은 보조.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "루틴 있음: 빨강은 기존 규칙(오늘 할 루틴 또는 빠른 운동) 그대로, 새 루틴 버튼은 보조.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "선택 화면은 뷰포트 전체를 덮고, 부위·기구 칩으로 목록이 좁혀진다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세 종목을 고르고 「3개 추가」를 누르면 고른 순서대로 세 줄이 루틴에 생긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "닫기(←·Esc)는 아무것도 넣지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "교체 모드에서는 한 줄을 누르면 바로 교체된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "도출 URS-029. 관련 SRS-004(종목 고르기)·SRS-056(별칭 표시 이름)·SRS-072(홈 주 행동).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/requirements/SRS-093.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Draft",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Product",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-10-30T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-10-30T03:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SRS-093",
+  "meta": {
+    "acceptance_criteria": "홈에 새 루틴 버튼이 빠른 운동 시작과 같은 크기(루틴 0개면 빨강) · 루틴 편집 추가 = 전체 화면·검색·부위/기구 칩·여러 개 골라 순서대로 한 번에 추가 · 교체는 한 개 즉시",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-029"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "routine",
+    "picker",
+    "home"
+  ],
+  "title": "루틴 만들기 입구 강조 + 종목 추가(루틴 편집·운동 중)를 전체 화면 다중 선택으로(검색·부위·기구·도우미)",
+  "type": "SRS",
+  "updated": "2026-11-03T03:35:43Z"
+}

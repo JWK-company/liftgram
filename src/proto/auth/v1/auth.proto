@@ -200,6 +200,16 @@ message CreateLinkTicketResponse {
   string ticket = 1;
 }
 
+// SPEC-018 §7  웹 → 앱 로그인 넘기기. 로그인한 웹(크롬 탭)이 「이 계정으로 앱에 로그인」을 누를 때.
+// challenge = base64url(sha256(v)) — v 는 앱 웹뷰가 메모리에 둔다(기존 앱 로그인 교환과 같은 묶음).
+message CreateAppContinueRequest {
+  string challenge = 1;
+}
+message CreateAppContinueResponse {
+  // liftgram://auth?code=<교환 코드> — 화면이 이 주소로 이동한다(2분 · 한 번 · v 가 있어야 교환)
+  string app_url = 1;
+}
+
 message Identity {
   string provider = 1;
   string email = 2;
@@ -250,6 +260,7 @@ service AuthService {
   rpc ChangePassword(ChangePasswordRequest) returns (ChangePasswordResponse) {}
   rpc ExchangeLoginCode(ExchangeLoginCodeRequest) returns (ExchangeLoginCodeResponse) {}
   rpc CreateLinkTicket(CreateLinkTicketRequest) returns (CreateLinkTicketResponse) {}
+  rpc CreateAppContinue(CreateAppContinueRequest) returns (CreateAppContinueResponse) {}
   rpc ListIdentities(ListIdentitiesRequest) returns (ListIdentitiesResponse) {}
   rpc UnlinkIdentity(UnlinkIdentityRequest) returns (UnlinkIdentityResponse) {}
   rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse) {}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- 위젯 확장 권한 — 앱과 같은 App Group(잠금 카드 저장소 파일 liftgram-lock.json 을 같이 읽는다) -->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.org.tarae.liftgram</string>
+	</array>
+</dict>
+</plist>

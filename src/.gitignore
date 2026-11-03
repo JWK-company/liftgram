@@ -23,3 +23,10 @@ blob-report/
 
 # 서비스워커 생성물 — scripts/build-sw.mjs가 빌드마다 찍는다(원본은 frontend/sw/sw.template.js)
 frontend/public/sw.js
+
+# 안드로이드 APK 배포물(SPEC-018) — 배포 스크립트가 깨끗한 사본에만 넣는다(원본은 ~/.liftgram-release/apk/). 서명 키·APK 는 저장소에 넣지 않는다.
+frontend/public/downloads/
+*.jks
+*.keystore
+# Swift 잠금 규칙 검사기 빌드 산출물(SPEC-017) — 미커밋으로 잡혀 APK 캐시를 막는다(SPEC-018 Phase 1 qa 안드로이드 L-5)
+mobile/native/lock-core-check/.build/

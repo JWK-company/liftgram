@@ -221,8 +221,9 @@ func main() {
 
 	// ── 계정·인증 ──
 	// 서비스는 위(인터셉터)에서 이미 만들었다 — 같은 인스턴스를 핸들러도 쓴다.
-	authPath, authHTTP := authv1connect.NewAuthServiceHandler(auth.NewHandler(authSvc).WithLimiter(authLimiter), opts)
-	mount(mux, authPath, authHTTP)
+	// [원본] authPath, authHTTP := authv1connect.NewAuthServiceHandler(auth.NewHandler(authSvc).WithLimiter(authLimiter), opts)
+	// [원본] mount(mux, authPath, authHTTP)
+	// [개선] SPEC-018 §7 — 웹 → 앱 넘기기가 oauth 의 앱 교환 저장소를 쓰므로 oauth 핸들러를 먼저 만든다(아래).
 
 	// 소셜 로그인 왕복 — 브라우저 전면 리다이렉트라 Connect 밖에서 받는다(/media/file 과 같은 선례).
 	oauthHandler := oauth.NewHandler(oauthProviders, authSvc, oauth.Config{
@@ -236,6 +237,9 @@ func main() {
 		oauthHandler.WithAppleNative(appleNative)
 	}
 	mux.Handle("/api/auth/oauth/", oauthHandler)
+
+	authPath, authHTTP := authv1connect.NewAuthServiceHandler(auth.NewHandler(authSvc).WithLimiter(authLimiter).WithAppHandoff(oauthHandler), opts)
+	mount(mux, authPath, authHTTP)
 
 	// ── 미디어 ──
 	// 저장소는 **여기서 한 번** 정해진다. 도메인은 자기가 디스크를 쓰는지 R2를 쓰는지 모른다.

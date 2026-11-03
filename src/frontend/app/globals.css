@@ -142,6 +142,61 @@
   }
 }
 
+/* 앱 시작 덮개(SPEC-017 Phase 1 · SRS-054) — layout.tsx 의 첫 칠하기 전 스크립트가 앱 UA 일 때 html[data-app-boot] 을 켜고,
+   셸 하이드레이션 뒤 AppBootRelease 가 "leaving"(200ms 페이드) → 제거한다. 네이티브 스플래시(빈 로고 윤곽 56 · 화면 가운데)와
+   같은 자리·크기라 스플래시가 내려가는 순간 이음매가 없다. 업데이트 덮개(z 950)가 함께 켜지면 그쪽이 위다. */
+#app-boot-cover {
+  display: none;
+}
+html[data-app-boot] #app-boot-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 940;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh; /* 상태바 영역까지 포함한 화면 가운데 — 네이티브 스플래시의 중심과 같게 */
+  /* [원본] background: var(--color-bg); — 앱에서 고른 테마(data-theme)를 따라, OS 테마를 따르는 네이티브 스플래시와
+     바탕이 달라 내려가는 순간 번쩍였다(REV-004 웹 1). 덮개는 OS 기준 고정색 · 앱 테마로는 200ms 페이드로 넘어간다. */
+  background: #f7f7f7;
+  /* CSS 안전망 — 하이드레이션이 실패해도(스크립트 오류) 8초 뒤 덮개가 스스로 사라진다(REV-003 N-1) */
+  animation: app-boot-safety 0.2s linear 8s forwards;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-app-boot] #app-boot-cover {
+    background: #161616;
+  }
+}
+html[data-app-boot="leaving"] #app-boot-cover {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-out;
+}
+/* visibility 만으로는 실제 페이지에서 끝난 뒤에도 visible 로 남는 것을 봤다(Chromium · 2026-11-03 e2e) —
+   크기를 0 으로 접어 화면도 입력도 막지 않게 한다. */
+@keyframes app-boot-safety {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0);
+  }
+}
+/* 첫 프레임 = 네이티브와 같은 **빈 윤곽 · 불투명도 1**(REV-003 N-4): 당겨 시작(-0.5s)·숨쉬기를 덮개에서만 끈다. */
+#app-boot-cover .logo-spinner-breathe {
+  animation: none;
+  opacity: 1;
+}
+#app-boot-cover .lf-loop .lf-win,
+#app-boot-cover .lf-loop .lf-ink {
+  animation-delay: 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* 움직임 줄이기 — 네이티브와 같은 빈 윤곽에서 멈춘다(다 찬 로고로 튀지 않게) */
+  #app-boot-cover .lf-win {
+    display: none;
+  }
+}
+
 /* 업데이트 새로고침 직후 덮개(SRS-085) — layout.tsx 의 첫 칠하기 전 스크립트가 html[data-updating] 을 켜고,
    하이드레이션 뒤 ServiceWorker(finishBootCover)가 끈다. 뒤 화면의 입력도 덮개가 받는다. */
 #update-boot-cover {

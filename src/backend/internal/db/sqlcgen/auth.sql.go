@@ -108,8 +108,8 @@ func (q *Queries) CreateIdentity(ctx context.Context, arg CreateIdentityParams) 
 }
 
 const createRefreshToken = `-- name: CreateRefreshToken :exec
-INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash, origin)
+VALUES ($1, $2, $3, $4, $5, COALESCE($6::text, 'login'))
 `
 
 type CreateRefreshTokenParams struct {
@@ -118,10 +118,15 @@ type CreateRefreshTokenParams struct {
 	ExpiresAt  pgtype.Timestamptz
 	FamilyID   *string
 	ParentHash *string
+	Origin     *string
 }
 
 // family_id: 새 로그인이면 자기 해시, 회전·유예 재발급이면 옛 토큰의 계열(0018 · SRS-083).
 // parent_hash: 회전으로 만들어졌으면 옛 토큰 해시, 새 로그인이면 NULL(0019 · 「미사용 후계」 규칙).
+// origin(0022 · SPEC-018): NULL 이면 'login'. 웹 → 앱 넘기기로 시작한 계열의 첫 토큰만 'continue'.
+// [원본] INSERT INTO refresh_tokens (token_hash, user_id, expires_at, family_id, parent_hash)
+// [원본] VALUES ($1, $2, $3, $4, sqlc.narg('parent_hash'));
+// [개선]
 func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) error {
 	_, err := q.db.Exec(ctx, createRefreshToken,
 		arg.TokenHash,
@@ -129,6 +134,7 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 		arg.ExpiresAt,
 		arg.FamilyID,
 		arg.ParentHash,
+		arg.Origin,
 	)
 	return err
 }
@@ -268,7 +274,7 @@ func (q *Queries) GetIdentity(ctx context.Context, arg GetIdentityParams) (AuthI
 }
 
 const getLiveRefreshToken = `-- name: GetLiveRefreshToken :one
-SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason, parent_hash FROM refresh_tokens
+SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason, parent_hash, origin FROM refresh_tokens
 WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > now()
 `
 
@@ -285,12 +291,13 @@ func (q *Queries) GetLiveRefreshToken(ctx context.Context, tokenHash string) (Re
 		&i.FamilyID,
 		&i.RevokeReason,
 		&i.ParentHash,
+		&i.Origin,
 	)
 	return i, err
 }
 
 const getRefreshToken = `-- name: GetRefreshToken :one
-SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason, parent_hash FROM refresh_tokens
+SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason, parent_hash, origin FROM refresh_tokens
 WHERE token_hash = $1 AND expires_at > now()
 `
 
@@ -308,6 +315,7 @@ func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash string) (Refres
 		&i.FamilyID,
 		&i.RevokeReason,
 		&i.ParentHash,
+		&i.Origin,
 	)
 	return i, err
 }
@@ -397,11 +405,16 @@ func (q *Queries) LastAuthTokenAt(ctx context.Context, arg LastAuthTokenAtParams
 
 const lastLoginAt = `-- name: LastLoginAt :one
 SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS at
-  FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash
+  FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash AND origin = 'login'
 `
 
 // @plm SRS-095  최근 로그인 시각 — 로그인할 때마다 새 계열(family)이 시작되고 그 첫 토큰의 해시가 곧 family_id 다(0018).
 // 회전(갱신)은 같은 계열에 잇기 때문에 이 값이 바뀌지 않는다 — 「다시 로그인했는가」를 따로 표 없이 안다(qa code H-2).
+// 웹 → 앱 넘기기로 시작한 계열(origin = 'continue')은 사람이 다시 로그인한 것이 아니라 뺀다(0022 · SPEC-018 §7).
+// [원본] SELECT COALESCE(max(created_at), 'epoch'::timestamptz)::timestamptz AS at
+// [원본]   FROM refresh_tokens WHERE user_id = $1 AND family_id = token_hash;
+// [개선]
+// [원본] … AND origin <> 'continue' — 열린 조건이라 다른 값(오타 등)이 「최근 로그인」으로 세어졌다(REV-012 백엔드 L-7)
 func (q *Queries) LastLoginAt(ctx context.Context, userID string) (pgtype.Timestamptz, error) {
 	row := q.db.QueryRow(ctx, lastLoginAt, userID)
 	var at pgtype.Timestamptz
@@ -480,7 +493,7 @@ func (q *Queries) ListMediaKeysByOwner(ctx context.Context, ownerID string) ([]s
 }
 
 const liveRefreshInFamily = `-- name: LiveRefreshInFamily :one
-SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason, parent_hash FROM refresh_tokens
+SELECT token_hash, user_id, expires_at, revoked_at, created_at, family_id, revoke_reason, parent_hash, origin FROM refresh_tokens
 WHERE family_id = $1 AND revoked_at IS NULL AND expires_at > now()
 ORDER BY created_at DESC
 LIMIT 1
@@ -499,6 +512,7 @@ func (q *Queries) LiveRefreshInFamily(ctx context.Context, familyID *string) (Re
 		&i.FamilyID,
 		&i.RevokeReason,
 		&i.ParentHash,
+		&i.Origin,
 	)
 	return i, err
 }

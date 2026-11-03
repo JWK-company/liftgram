@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 앱 설치 파일 업데이트(SPEC-018) — 화면 글은 웹에 있고, 여기는 앱이 꺼져 있을 때 뜨는 알림만 -->
+<resources>
+    <string name="update_channel_name">앱 업데이트</string>
+    <string name="update_done_title">리프트그램 %1$s 로 업데이트했어요</string>
+    <string name="update_done_body">눌러서 열기</string>
+</resources>

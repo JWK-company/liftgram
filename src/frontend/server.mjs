@@ -14,6 +14,7 @@
 // 터널링 방식: 브라우저 소켓과 api 소켓을 각각 열고 프레임을 양방향으로 중계한다.
 // 프로토콜을 해석하지 않으므로 메시지 종류가 늘어도 이 파일은 바뀌지 않는다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import { isIP } from "node:net";
 import next from "next";
@@ -138,6 +139,23 @@ const server = createServer((req, res) => {
       ms: Date.now() - started,
     });
   });
+  // SPEC-018 앱 설치 파일 — 없는 이름이면 Next 의 404 HTML 이 next.config 의 APK 헤더(형식·attachment·immutable)를 달고
+  // 「.apk」로 저장된다(Phase 1 qa 웹 M-1). 파일이 없으면 여기서 짧은 404(no-store)로 끝낸다. 이름은 한 단계·점 두 개 금지.
+  {
+    const path = (req.url ?? "").split("?")[0];
+    if (path.startsWith("/downloads/")) {
+      const name = path.slice("/downloads/".length);
+      const ok =
+        /^[A-Za-z0-9._-]+$/.test(name) &&
+        !name.includes("..") &&
+        existsSync(new URL(`./public/downloads/${name}`, import.meta.url));
+      if (!ok) {
+        res.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
+        res.end("not found");
+        return;
+      }
+    }
+  }
   // 자기 헬스는 Next를 거치지 않는다 — 프레임워크가 아플 때도 답해야 하는 질문이다.
   ownHealth(req, res).then((handled) => {
     if (!handled) handle(req, res);

@@ -9,13 +9,19 @@
   @media (prefers-color-scheme: dark) { :root { --bg:#161616; --ink:#f5f7f9; --muted:#a9b2bd; --brand:#FF7A57 } }
   body { margin:0; min-height:100vh; display:grid; place-content:center; gap:16px; padding:24px; background:var(--bg); color:var(--ink);
          font:16px/1.6 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif; text-align:center }
-  h1 { font-size:20px; margin:0 } p { margin:0; color:var(--muted) }
+  h1 { font-size:20px; margin:0 } .logo { width:56px; height:56px; margin:0 auto } p { margin:0; color:var(--muted) }
   button { font:inherit; font-weight:600; padding:12px 20px; border-radius:10px; border:0; background:var(--brand); color:#fff; min-height:44px }
 </style>
 </head>
 <body>
+  <!-- 시작 화면과 같은 빈 로고 윤곽(SPEC-017 Phase 1 · 생성기 src/mobile/scripts/gen-splash-logo.py) -->
+  <svg aria-hidden="true" class="logo" xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56"><path d="M11.863,9.975 L12.458,8.515 L13.458,7.198 L14.764,6.152 L16.248,5.481 L17.766,5.250 L19.168,5.481 L20.318,6.152 L21.103,7.198 L21.446,8.515 L21.313,9.975 L13.197,42.525 L12.602,43.985 L11.602,45.302 L10.297,46.348 L8.812,47.019 L7.294,47.250 L5.892,47.019 L4.742,46.348 L3.957,45.302 L3.615,43.985 L3.747,42.525 Z M43.863,37.450 L44.798,37.604 L45.564,38.052 L46.087,38.748 L46.316,39.627 L46.227,40.600 L45.830,41.573 L45.164,42.452 L44.293,43.148 L43.304,43.596 L42.292,43.750 L6.592,43.750 L5.657,43.596 L4.890,43.148 L4.367,42.452 L4.139,41.573 L4.227,40.600 L4.624,39.627 L5.291,38.748 L6.161,38.052 L7.151,37.604 L8.163,37.450 Z M33.970,29.400 L34.455,28.210 L35.269,27.137 L36.333,26.285 L37.543,25.738 L38.780,25.550 L39.922,25.738 L40.859,26.285 L41.499,27.137 L41.778,28.210 L41.670,29.400 L36.085,51.800 L35.600,52.990 L34.785,54.063 L33.721,54.915 L32.512,55.462 L31.275,55.650 L30.132,55.462 L29.195,54.915 L28.556,54.063 L28.277,52.990 L28.385,51.800 Z M42.679,33.775 L43.054,32.856 L43.683,32.026 L44.505,31.368 L45.440,30.946 L46.396,30.800 L47.279,30.946 L48.003,31.368 L48.497,32.026 L48.713,32.856 L48.629,33.775 L45.226,47.425 L44.851,48.344 L44.221,49.174 L43.399,49.832 L42.464,50.254 L41.509,50.400 L40.626,50.254 L39.902,49.832 L39.408,49.174 L39.192,48.344 L39.276,47.425 Z" fill="none" stroke="#FF5A36" stroke-width="2.45" stroke-linejoin="round"/></svg>
   <h1>인터넷에 연결되어 있지 않아요</h1>
   <p>처음 한 번은 인터넷이 필요해요. 한 번 열고 나면 헬스장에서 인터넷이 없어도 기록할 수 있어요.</p>
   <button type="button" onclick="location.href='https://liftgram.tarae.org/'">다시 시도</button>
+<script>
+  // 원격 화면을 못 열어 이 파일이 떴다 — 네이티브 스플래시를 내린다(안 내리면 상한 6초까지 스플래시가 가린다 · SPEC-017 Phase 1)
+  try { var p = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen; if (p && p.hide) p.hide(); } catch (e) {}
+</script>
 </body>
 </html>

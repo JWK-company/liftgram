@@ -5,8 +5,8 @@ Claude Code가 세션마다 자동으로 읽는 파일이다. **어디에 무엇
 그런 경우 이 파일을 고쳐 주는 것까지가 작업이다.
 
 > **범위와 우선순위**
-> 이 파일은 `src/` 안의 **스택 사용법**만 다룬다. 기획·메모리·거버넌스·행동 규칙은 저장소 루트의
-> [`../CLAUDE.md`](../CLAUDE.md)가 단일 권위이며, 충돌하면 **루트가 이긴다**.
+> 이 파일은 `src/` 안의 **스택 사용법**만 다룬다. 작업 기준(문서·흐름·회신)은 ADStudio 작업 기준이고,
+> 프로젝트 고유 사항(브랜치·버전·배포·포트)은 저장소 루트 [`../CLAUDE.md`](../CLAUDE.md)에 있다 — 충돌하면 **루트가 이긴다**.
 >
 > **출처**: `tarae-web-stack` 템플릿(2026-08-01 이식). 원본 저장소는 `../../tarae-web-stack`에 그대로 있고
 > 이 디렉터리는 `.git` 없이 복사돼 liftgram 저장소의 일부다 — 원본으로 되돌려 보내는 경로는 없다.
@@ -97,7 +97,6 @@ Claude Code가 세션마다 자동으로 읽는 파일이다. **어디에 무엇
 | `repo.go`만 SQL(생성물)을 안다 | 데이터 접근이 한 겹에 모인다 |
 | 설정을 읽는 곳은 **각 단위에 하나** (`config.go` · `lib/env.ts`) | 누락이 부팅 시점에 잡힌다 |
 | propagation(`bus.Publish`)는 **이름만** 보낸다 · 커밋 뒤에 | 수신자가 최신값을 다시 읽어 순서 문제가 사라진다 |
-| Status·상태 전이는 **PLM 대시보드 소유** | 로컬에서 바꾸지 않는다 |
 | 알고리즘을 교체할 때 기존 함수는 **지우지 않고** 새 함수를 추가, 기존 호출은 주석 처리 | 원복 가능성을 남긴다 |
 
 ---
@@ -119,11 +118,11 @@ make help          # 전체 타깃 목록
 
 ---
 
-## 6. 추적성 — `@plm` 주석
+## 6. 추적성 — 옛 `@plm` 주석
 
-소스 곳곳의 `// @plm SRS-NNN` 주석은 그 코드가 **어떤 요구사항을 구현하는지** 가리킨다.
-새 코드를 쓸 때 관련 요구가 있으면 같은 형식으로 달아 둔다 — 도구가 요구↔코드 딥링크를 만든다.
-생성물(`*/gen/`)은 [`.plmignore`](.plmignore)로 제외한다(계약의 source of truth는 `proto/` 한 곳이다).
+소스 곳곳의 `// @plm SRS-NNN` 주석은 그 코드가 **어떤 옛 PLM 요구사항(`.ouroboros/docs/`)을 구현했는지** 가리키는 기록이다.
+**그대로 두되 새로 달지 않는다** — 2026-11-03부터 문서 원본은 ADStudio(`ads-docs/`)이고, 요구↔코드 연결은
+ADStudio 문서 본문의 파일 경로(`src/backend/…:12`)와 SPEC·EXE 문서가 맡는다. [`.plmignore`](.plmignore)도 기록으로만 남는다.
 
 ---
 
@@ -152,7 +151,7 @@ make help          # 전체 타깃 목록
 | **entry point** | 진입점 | 프로세스가 실제로 시작되는 파일 | `frontend/server.mjs · backend/cmd/server` |
 | **runtime contract** | 실행 규약 | 이미지가 지켜야 하는 약속 — non-root · 포트 · entry point · 설정 누락 시 부팅 실패 | `scripts/check-contract.sh` |
 | **one-shot** | 원샷 | 떠 있는 서비스가 아니라 한 번 돌고 끝나는 실행 단위. 마이그레이션이 그렇다 | `compose의 migrate` |
-| **drift** | 드리프트 | 문서·생성물·PLM이 코드와 어긋난 상태. CI가 매번 확인한다 | `make docs-check · make proto-check` |
+| **drift** | 드리프트 | 문서·생성물이 코드와 어긋난 상태. CI가 매번 확인한다 | `make docs-check · make proto-check` |
 | **smoke test** | 스모크 테스트 | 떠 있는 서버에 대고 최소한의 핵심 경로를 실제로 두드려 보는 검사 | `scripts/smoke.sh` |
 | **scaffold / generator** | 스캐폴더 / 제너레이터 | 새 저장소를 세우는 도구 / 도메인·화면의 뼈대를 찍어내는 도구 | `make create · make gen` |
 | **RSC (React Server Component)** | 서버 컴포넌트 | 서버에서 렌더되어 내려오는 컴포넌트. 첫 값을 props로 확정해 준다 | `frontend/app/page.tsx` |

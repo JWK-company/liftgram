@@ -270,6 +270,7 @@ type RefreshToken struct {
 	FamilyID     *string
 	RevokeReason *string
 	ParentHash   *string
+	Origin       string
 }
 
 type Report struct {

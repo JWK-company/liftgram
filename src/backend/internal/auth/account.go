@@ -28,6 +28,8 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
@@ -399,12 +401,20 @@ func (s *Service) newOneTimeKeep(ctx context.Context, a *Account, userID, purpos
 }
 
 // ExchangeLoginCode — 일회용 코드를 세션으로.
+// [개선] SPEC-018 §7 — 로그인 코드가 아니면 웹 → 앱 넘기기 코드(PurposeAppContinue)로 한 번 더 본다.
+// 넘기기로 시작한 계열은 origin=continue — 「최근 로그인」이 아니다(계정 삭제·첫 비밀번호 설정은 다시 로그인).
 func (s *Service) ExchangeLoginCode(ctx context.Context, code string) (User, Tokens, bool, error) {
 	a, err := s.account()
 	if err != nil {
 		return User{}, Tokens{}, false, err
 	}
+	origin := ""
 	t, err := a.Repo.ConsumeAuthToken(ctx, hashToken(code), PurposeLoginCode)
+	// [원본] if err != nil { — DB 장애도 두 번째 소모를 시도해 「로그인 시간이 지났습니다」로 보였다(REV-012 백엔드 L-1)
+	if isNotFound(err) {
+		t, err = a.Repo.ConsumeAuthToken(ctx, hashToken(code), PurposeAppContinue)
+		origin = OriginContinue
+	}
 	if err != nil {
 		return User{}, Tokens{}, false, errs.New(errs.Unauthorized, "로그인 시간이 지났습니다. 다시 시도해 주세요")
 	}
@@ -412,9 +422,55 @@ func (s *Service) ExchangeLoginCode(ctx context.Context, code string) (User, Tok
 	if err != nil {
 		return User{}, Tokens{}, false, errs.New(errs.Unauthorized, "로그인 시간이 지났습니다. 다시 시도해 주세요")
 	}
-	tokens, err := s.issue(ctx, u)
-	return u, tokens, t.Email == "created", err
+	// [원본] tokens, err := s.issue(ctx, u)
+	tokens, err := s.issueOrigin(ctx, u, origin)
+	return u, tokens, origin == "" && t.Email == "created", err
 }
+
+// AppHandoff — 착지 경로를 앱 교환 저장소에 맡기고 교환 코드를 받는다(oauth.Handler 가 구현 · auth 는 oauth 를 모른다).
+type AppHandoff interface {
+	PutAppHandoff(target, challenge string) (code string, ok bool)
+}
+
+// CreateAppContinue — SPEC-018 §7  로그인한 웹(크롬 탭)이 「이 계정으로 앱에 로그인」을 눌렀을 때.
+// 일회용 넘기기 코드(60초)를 만들고, 착지 /auth/complete?code=…&via=continue 를 challenge 와 함께 맡긴다.
+// 돌려주는 값은 앱 스킴 주소 — v 를 가진 앱 웹뷰만 교환할 수 있다(handoff take).
+func (s *Service) CreateAppContinue(ctx context.Context, h AppHandoff, userID, challenge string) (string, error) {
+	a, err := s.account()
+	if err != nil {
+		return "", err
+	}
+	if h == nil {
+		return "", errs.New(errs.Unavailable, "앱 로그인 넘기기를 쓸 수 없습니다")
+	}
+	if !validContinueChallenge(challenge) {
+		return "", errs.New(errs.Validation, "challenge 형식이 맞지 않습니다")
+	}
+	if _, err := s.repo.GetUserByID(ctx, userID); err != nil {
+		return "", errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	// 같은 사람이 여러 번 눌러도 마지막 것만 살린다(옛 넘기기 코드는 죽인다).
+	code, err := s.newOneTime(ctx, a, userID, PurposeAppContinue, "", appContinueTTL)
+	if err != nil {
+		return "", err
+	}
+	hc, ok := h.PutAppHandoff("/auth/complete?code="+url.QueryEscape(code)+"&via=continue", challenge)
+	if !ok {
+		return "", errs.New(errs.Validation, "challenge 형식이 맞지 않습니다")
+	}
+	return AppContinueScheme + "://auth?code=" + url.QueryEscape(hc), nil
+}
+
+// AppContinueScheme — 앱 껍데기 스킴(oauth.AppScheme 과 같은 값 · import 방향 때문에 따로 둔다 — 시험이 같은지 본다).
+const AppContinueScheme = "liftgram"
+
+// appContinueTTL — 넘기기 코드 수명(로그인 코드와 같다).
+const appContinueTTL = loginCodeTTL
+
+// challenge = base64url(sha256(v)) 43자(oauth.validChallenge 와 같은 규칙).
+var reContinueChallenge = regexp.MustCompile(`^[A-Za-z0-9_-]{43}$`)
+
+func validContinueChallenge(c string) bool { return reContinueChallenge.MatchString(c) }
 
 // CreateLinkTicket — 로그인한 사람이 소셜 연결을 시작할 때.
 func (s *Service) CreateLinkTicket(ctx context.Context, userID string) (string, error) {

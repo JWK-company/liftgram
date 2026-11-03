@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 잠금화면 운동 카드(SPEC-017 Phase 4) — 기본 한국어 · values-en 영어 -->
+<resources>
+    <string name="lock_channel_name">진행 중인 운동</string>
+    <string name="lock_channel_desc">잠금화면에서 다음 세트·휴식을 보여 주고 완료를 누를 수 있어요</string>
+    <string name="lock_title_fallback">운동 중</string>
+    <string name="lock_no_steps">남은 세트가 없어요 — 앱에서 마무리하세요</string>
+    <string name="lock_set_of">%1$s/%2$d세트</string>
+    <plurals name="lock_reps">
+        <item quantity="one">%1$d회</item>
+        <item quantity="other">%1$d회</item>
+    </plurals>
+    <string name="lock_one_side">한쪽</string>
+    <string name="lock_paused">일시정지됨</string>
+    <string name="lock_resting">휴식</string>
+    <string name="lock_action_done">완료</string>
+    <string name="lock_action_open_app">앱 열기</string>
+    <string name="lock_action_plus30">+30초</string>
+    <string name="lock_action_end_rest">건너뛰기</string>
+    <string name="lock_truncated">앱을 열어 다음 세트를 보세요</string>
+    <string name="lock_superset">슈퍼셋</string>
+    <string name="lock_label_warmup">워밍업</string>
+    <string name="lock_label_drop">드롭 세트</string>
+    <string name="lock_label_failure">실패 세트</string>
+    <string name="lock_label_top">탑셋</string>
+    <string name="lock_open_app_values">기본값이에요 — 앱에서 확인하세요</string>
+    <string name="lock_open_app_stalled">앱을 열어 기록을 반영하세요</string>
+    <string name="lock_next">다음: %1$s</string>
+    <string name="lock_next_prefix">다음 · </string>
+</resources>

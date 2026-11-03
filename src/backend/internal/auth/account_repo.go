@@ -23,6 +23,8 @@ const (
 	PurposeResetPassword = "reset_password"
 	PurposeLoginCode     = "login_code"
 	PurposeLinkTicket    = "link_ticket"
+	// SPEC-018 §7 — 웹 세션을 앱으로 넘기는 일회용 로그인 코드(60초 · 0022)
+	PurposeAppContinue = "app_continue"
 )
 
 // AuthToken은 소모된 일회용 토큰이다(원문은 없다 — 해시로만 찾는다).

@@ -11,9 +11,11 @@ export type SetDraftRegistry = {
   set: (setLogId: string, patch: SetDraft) => void;
   get: (setLogId: string) => SetDraft | undefined;
   clear: (setLogId: string) => void;
+  /** 값이 있는 입력 중 칸 전부(SPEC-017 Phase 3 commitAll) */
+  entries: () => [string, SetDraft][];
 };
 
-const NOOP: SetDraftRegistry = { set: () => {}, get: () => undefined, clear: () => {} };
+const NOOP: SetDraftRegistry = { set: () => {}, get: () => undefined, clear: () => {}, entries: () => [] };
 /** 세션 화면이 하나 만들어 Provider 로 내려 준다 — 묶음 완료 핸들러도 같은 등록부를 읽는다. */
 export const SetDraftContext = createContext<SetDraftRegistry>(NOOP);
 
@@ -25,7 +27,39 @@ export function createSetDraftRegistry(): SetDraftRegistry {
     clear: (id) => {
       map.delete(id);
     },
+    entries: () => [...map.entries()].filter(([, d]) => d.weightKg !== undefined || d.reps !== undefined),
   };
+}
+
+// ── 입력 중 값 커밋(SPEC-017 Phase 3 §9 M-8) ─────────────────────────────────
+// 잠금 drain 은 적용 **직전에**, 앱이 뒤로 갈 때(pause·hidden)는 스냅샷 **전에** 입력 중 값을 저장해 둔다 —
+// 그래야 카드에 보이는 값 = 화면에 적어 둔 값이고, drain 이 옛 값으로 완료하지 않는다. 세션 화면이 커밋 함수를 등록한다.
+const committers = new Set<() => Promise<void>>();
+
+/** 세션 화면이 「등록부의 값을 저장하는 함수」를 건다. 돌려준 함수로 뗀다. */
+export function registerDraftCommitter(fn: () => Promise<void>): () => void {
+  committers.add(fn);
+  return () => {
+    committers.delete(fn);
+  };
+}
+
+/** 등록된 모든 입력 중 값을 저장하고 끝나기를 기다린다(실패해도 던지지 않는다 — 진단 로그만). */
+// [원본] Promise<void> — 실패를 삼켜 앱 설치 직전 저장이 실패를 몰랐다(SPEC-018 REV-013 화면 L-14)
+// [개선] 실패한 수를 돌려준다(기존 호출은 그대로 await 만 한다)
+export async function commitAllDrafts(): Promise<number> {
+  const r = await Promise.all(
+    [...committers].map((fn) =>
+      fn().then(
+        () => 0,
+        (e) => {
+          console.warn("[drafts] 입력 중 값 저장 실패", e);
+          return 1;
+        },
+      ),
+    ),
+  );
+  return r.reduce<number>((a, b) => a + b, 0);
 }
 
 export function useSetDrafts(): SetDraftRegistry {

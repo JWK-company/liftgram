@@ -81,6 +81,8 @@ type RefreshToken struct {
 	// 0019 · SRS-083 — 「미사용 후계」 규칙. TokenHash 는 자기 해시, ParentHash 는 이 토큰을 만든 회전의 옛 토큰.
 	TokenHash  string
 	ParentHash string
+	// 0022 · SPEC-018 §7 — 계열 시작 방식(가짜 저장소가 시험에 쓴다 · pg 는 LastLoginAt 쿼리가 직접 본다).
+	Origin string
 }
 
 // 폐기 사유(0018 · SRS-083). 유예는 rotated 에만 준다.
@@ -128,7 +130,9 @@ type Repo interface {
 
 	// [개선] 0018·0019 · SRS-083 — 계열(family)·부모(parent)·폐기 사유로 회전 유예·재사용 탐지를 가린다.
 	// parentHash: 회전으로 만들었으면 옛 토큰 해시, 새 로그인이면 "".
-	CreateRefreshToken(ctx context.Context, hash, userID, familyID, parentHash string, expiresAt time.Time) error
+	// [원본] CreateRefreshToken(ctx context.Context, hash, userID, familyID, parentHash string, expiresAt time.Time) error
+	// [개선] origin(0022 · SPEC-018 §7): "" = login · OriginContinue = 웹 → 앱 넘기기로 시작한 계열(최근 로그인 아님).
+	CreateRefreshToken(ctx context.Context, hash, userID, familyID, parentHash, origin string, expiresAt time.Time) error
 	// 만료되지 않았으면 폐기됐어도 돌려준다. 없거나 만료면 NotFound.
 	GetRefreshToken(ctx context.Context, hash string) (RefreshToken, error)
 	// 살아 있을 때만 rotated 로 폐기한다. true = 내가 회전했다(동시 갱신의 승자).
@@ -515,9 +519,22 @@ func (s *Service) issue(ctx context.Context, u User) (Tokens, error) {
 	return s.issueInFamily(ctx, s.repo, u, "", "")
 }
 
+// OriginContinue — 웹에서 쓰던 세션을 앱으로 넘겨받아 시작한 계열(0022 · SPEC-018 §7). 「최근 로그인」으로 치지 않는다.
+const OriginContinue = "continue"
+
+// issueOrigin — 새 계열을 origin 표시와 함께 시작한다.
+func (s *Service) issueOrigin(ctx context.Context, u User, origin string) (Tokens, error) {
+	return s.issueWith(ctx, s.repo, u, "", "", origin)
+}
+
 // issueInFamily — family 가 비면 새 계열(자기 해시), 아니면 그 계열에 잇는다(회전·유예 재발급 · SRS-083).
 // r: 갱신이면 잠금 트랜잭션에 묶인 저장소. parent: 이 토큰을 만든 회전의 옛 토큰(0019).
 func (s *Service) issueInFamily(ctx context.Context, r Repo, u User, family, parent string) (Tokens, error) {
+	return s.issueWith(ctx, r, u, family, parent, "")
+}
+
+// issueWith — issueInFamily 에 origin(0022)을 더한 것. 회전(family 가 있음)은 언제나 "" 다.
+func (s *Service) issueWith(ctx context.Context, r Repo, u User, family, parent, origin string) (Tokens, error) {
 	access, err := s.signer.Sign(u.ID, u.Role, AccessTTL)
 	if err != nil {
 		return Tokens{}, err
@@ -531,7 +548,7 @@ func (s *Service) issueInFamily(ctx context.Context, r Repo, u User, family, par
 	if family == "" {
 		family = hash
 	}
-	if err := r.CreateRefreshToken(ctx, hash, u.ID, family, parent, s.now().Add(refreshTTL)); err != nil {
+	if err := r.CreateRefreshToken(ctx, hash, u.ID, family, parent, origin, s.now().Add(refreshTTL)); err != nil {
 		return Tokens{}, err
 	}
 

@@ -27,8 +27,11 @@ import { AccountGuard } from "./components/sync/AccountGuard";
 import { ImportElsewhereNotice } from "./components/sync/ImportElsewhereNotice";
 import { LegacyTabBand, TabElsewhereOverlay } from "./components/TabElsewhereOverlay";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
+import { AppDistBanner } from "./components/appdist/AppDistBanner";
 import { TabBar } from "./components/ui/TabBar";
 import { LogoSpinner } from "./components/ui/LogoSpinner";
+import { AppBootRelease } from "./components/AppBootRelease";
+import { LockBridge } from "./components/LockBridge";
 import { tw } from "@/lib/i18n";
 import "./globals.css";
 
@@ -65,6 +68,18 @@ const THEME_INIT = `(function(){try{var t=localStorage.getItem("liftgram.theme")
 // 하이드레이션이 깨져도 15초 뒤엔 스스로 내린다(앱을 가린 채 남지 않게 · 스펙 R5). 표식 이름·유효 시간은 core swUpdatePolicy(BOOT_MARKER_KEY·BOOT_MARKER_TTL_MS)와 같다. @plm SRS-085
 const UPDATE_BOOT_INIT = `(function(){try{var m=sessionStorage.getItem("liftgram.updating");if(!m)return;var o=JSON.parse(m);if(o&&typeof o.at==="number"&&Math.abs(Date.now()-o.at)<60000){document.documentElement.setAttribute("data-updating","1");setTimeout(function(){document.documentElement.removeAttribute("data-updating")},15000)}else sessionStorage.removeItem("liftgram.updating")}catch(e){}})()`;
 
+// 시작 화면(SPEC-017 Phase 1 · SRS-054) — 스토어 앱(UA LiftgramApp/)이면 첫 칠하기 전에 부팅 덮개를 켠다.
+// 덮개는 **항상** HTML 에 실리고(기본 숨김) 여기서 UA 로만 켠다 — 서버가 UA 를 읽으면 전 경로가 동적 렌더가 되고,
+// 서비스 워커가 URL 로 캐시한 셸과 어긋나 두 번째 실행부터 덮개가 빠진다(REV-003 N-1).
+const APP_BOOT_INIT = `(function(){try{if(navigator.userAgent.indexOf("LiftgramApp/")>=0)document.documentElement.setAttribute("data-app-boot","1")}catch(e){}})()`;
+
+// 덮개가 문서에 들어온 직후 네이티브 스플래시를 내린다 — 같은 자리·같은 크기의 빈 윤곽이라 이음매가 없다.
+// rAF 를 기다리지 않는다: 안드로이드 12+ 는 스플래시가 떠 있는 동안 웹뷰 그리기를 막아 rAF 가 돌지 않을 수 있다.
+// 플러그인이 없으면(웹 브라우저·낡은 껍데기) 아무 일도 없다 — 상한 6초(capacitor.config.ts)가 내린다.
+// iOS 는 그리기를 막지 않아, 바로 내리면 덮개가 칠해지기 전 스플래시가 걷히며 웹뷰 기본 배경이 비친다 → 2프레임 뒤(REV-004 iOS M-1).
+// [원본] const APP_BOOT_HIDE = `(function(){try{if(!document.documentElement.hasAttribute("data-app-boot"))return;var c=window.Capacitor,p=c&&c.Plugins&&c.Plugins.SplashScreen;if(p&&p.hide)p.hide()}catch(e){}})()`;
+const APP_BOOT_HIDE = `(function(){try{if(!document.documentElement.hasAttribute("data-app-boot"))return;var c=window.Capacitor,p=c&&c.Plugins&&c.Plugins.SplashScreen;if(!p||!p.hide)return;var ios=c.getPlatform&&c.getPlatform()==="ios";if(ios){requestAnimationFrame(function(){requestAnimationFrame(function(){p.hide()})})}else p.hide()}catch(e){}})()`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" suppressHydrationWarning>
@@ -75,18 +90,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 업데이트 직후 첫 칠하기 전 덮개를 켜는 고정 문자열 */}
         <script dangerouslySetInnerHTML={{ __html: UPDATE_BOOT_INIT }} />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 앱 UA 일 때 첫 칠하기 전 부팅 덮개를 켜는 고정 문자열 */}
+        <script dangerouslySetInnerHTML={{ __html: APP_BOOT_INIT }} />
       </head>
       <body className="min-h-dvh bg-(--color-bg) font-sans text-(--color-ink) antialiased">
         {/* 로그인 상태·진행 중인 운동·휴식은 **화면을 옮겨도 유지된다** — 그래서 셸이 들고 있는다. */}
         <AuthProvider>
           <SessionProvider>
             <ToastProvider>
+              {/* 잠금화면 운동 카드 다리 — 앱 안에서만 움직인다(웹 브라우저는 호출 0 · SPEC-017 Phase 3) */}
+              <LockBridge />
               {/* 폰 앱을 옮긴 화면이라 폭을 폰만큼으로 잡는다 — 넓은 화면에서는 가운데 정렬된다. */}
               <div className="mx-auto flex min-h-dvh max-w-[560px] flex-col border-(--color-line) sm:border-x">
                 {/* 머리는 화면이 각자 그린다(components/ui/ScreenHeader) — app이 화면마다
                   제목·액션을 다르게 두기 때문이다. 셸은 자리만 내어 준다. */}
                 {/* 백업이 멈췄거나 기록이 이 기기에만 쌓이면 화면 위에 알린다 — 조용한 실패 금지(2026-10-26). */}
                 <SyncHealthBanner />
+                {/* SPEC-018 안드로이드 앱 업데이트 · 재설치 · PWA → 전용 앱 바꾸기(홈에서만 · 운동 중 없음) */}
+                <AppDistBanner />
                 {/* [원본] overflow-x-hidden — overflow-y 가 auto 로 바뀌어 main 이 스크롤 상자가 되고, 그 안의 sticky 하단
                     (휴식 막대·루틴 편집 하단·요약 하단·댓글/DM 입력)이 화면이 아니라 main 끝에 붙었다(#45·#43 · SRS-066).
                   <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">{children}</main> */}
@@ -122,6 +143,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LogoSpinner size={56} />
           <p className="font-semibold text-[length:var(--text-lg)]">{tw("web.sw.updating")}</p>
         </div>
+        {/* 앱 시작 덮개 — html[data-app-boot] 일 때만 보인다. 네이티브 스플래시의 빈 윤곽과 같은 자리(화면 가운데)·크기(56)에서
+            로고가 차오르고, 셸 하이드레이션 뒤 AppBootRelease 가 내린다(globals.css · SPEC-017 Phase 1) */}
+        <div id="app-boot-cover" data-testid="app-boot-cover" role="status" aria-busy="true">
+          {/* [원본] aria-label="불러오는 중" — role=status 는 이름이 아니라 내용을 읽는다 → LogoSpinner label(sr-only 글자)로(REV-004 웹 L) */}
+          <LogoSpinner size={56} label={tw("common.loading")} />
+        </div>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 덮개가 문서에 들어온 직후 네이티브 스플래시를 내리는 고정 문자열 */}
+        <script dangerouslySetInnerHTML={{ __html: APP_BOOT_HIDE }} />
+        <AppBootRelease />
         <div id="toast-root" data-testid="toast-root" className="fixed right-4 bottom-20 z-50" />
         <div id="modal-root" data-testid="modal-root" />
       </body>

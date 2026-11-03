@@ -46,6 +46,17 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self)" },
         ],
       },
+      // SPEC-018 §7  넘기기 확인 화면 — 남의 페이지에 끼워 넣어 「계속」을 누르게 하지 못하게(frame-ancestors) ·
+      // 주소의 ac 가 리퍼러·캐시로 새지 않게.
+      {
+        source: "/app/continue",
+        headers: [
+          { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Cache-Control", value: "no-store" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
       // 서비스워커는 브라우저가 매번 새 버전을 확인해야 한다 — 캐시되면 배포가 기기에 닿지 않는다.
       {
         source: "/sw.js",
@@ -53,6 +64,24 @@ const config: NextConfig = {
           { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
           { key: "Service-Worker-Allowed", value: "/" },
         ],
+      },
+      // SPEC-018 안드로이드 APK 자체 배포 — 파일 이름에 버전·해시가 있어(liftgram-<이름>-<코드>-<sha8>.apk) 같은 이름은 늘 같은 바이트다
+      // → 1년 immutable(운영 H-1). 브라우저가 화면으로 열지 않고 받게 attachment(운영 L-2).
+      {
+        // [원본] source: "/downloads/:name(liftgram-.+\\.apk)" — 이름에 아무 글자나 허용돼 Content-Disposition 에 따옴표·세미콜론이 실릴 수 있었다(REV-013 보안 L-4)
+        // [개선] 빌드 스크립트가 만드는 모양만(liftgram-<버전>-<코드>-<sha8>.apk)
+        source: "/downloads/:name(liftgram-[0-9A-Za-z.]+-[0-9]+-[0-9a-f]+\\.apk)",
+        headers: [
+          { key: "Content-Type", value: "application/vnd.android.package-archive" },
+          // 이름을 붙여야 일부 다운로더가 엉뚱한 이름(「download」 등)으로 저장하지 않는다(Phase 1 qa 웹 L-3)
+          { key: "Content-Disposition", value: 'attachment; filename=":name"' },
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
+      // 최신 버전 안내는 늘 새로 — 엣지·브라우저가 옛 json 을 잡고 있으면 업데이트가 안 보인다.
+      {
+        source: "/downloads/android.json",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
       },
     ];
   },

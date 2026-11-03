@@ -21,8 +21,16 @@ const config: CapacitorConfig = {
   },
   // iOS 는 표식에 「(ios)」를 덧붙인다 — 서버가 요청 시점에 아이폰 앱을 알아 Apple 로그인 버튼을 보인다(심사 4.8).
   ios: { appendUserAgent: "LiftgramApp/1.0 (ios)", limitsNavigationsToAppBoundDomains: true },
+  // SPEC-018 · P2 보안 M-2 — 새 브리지(WebMessageListener)만. 옛 브리지는 iframe 의 호출을 가리지 못한다.
+  // 업데이트 플러그인은 옛 브리지면 모든 호출을 origin 으로 거절한다(LiftgramUpdatePlugin.guarded).
+  android: { useLegacyBridge: false },
   plugins: {
-    SplashScreen: { launchShowDuration: 0 }, // 웹앱이 자기 스플래시를 그린다
+    // [원본] SplashScreen: { launchShowDuration: 0 }, // 웹앱이 자기 스플래시를 그린다
+    //   → 네이티브 스플래시가 바로 내려가 원격 화면이 뜰 때까지 빈 웹뷰가 보였다.
+    // [개선] 시작 화면 한 장면(SPEC-017 Phase 1): 네이티브 빈 로고 윤곽 → 같은 자리에서 웹 부팅 덮개가 로고를 채운다.
+    //   웹이 덮개를 그리면 곧바로 SplashScreen.hide() 를 부른다(src/frontend/app/layout.tsx APP_BOOT_HIDE).
+    //   autoHide + 6초 = **상한** — 원격이 느리거나 웹이 hide 를 못 불러도 6초 뒤 내려간다(플러그인이 거는 타이머).
+    SplashScreen: { launchAutoHide: true, launchShowDuration: 6000, launchFadeOutDuration: 0 },
   },
 };
 

@@ -436,5 +436,16 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // v27(SPEC-017 Phase 2 · SRS-096): 세트 값 출처 — 잠금화면 카드가 「사람이 안 고친 기본값」 세트를 「앱 열기」로 바꾼다.
+      // optional string — 옛 행은 null(앱 열기 아님). 서버는 jsonb 병합이라 바꾸지 않는다(REV-003 저장소 M-3).
+      toVersion: 27,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'value_source', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

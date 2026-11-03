@@ -1,0 +1,1603 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "개요 (Summary)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "본 SAD는 SRS-028(종목 변형 차원 모델링)과 SRS-029(변형별 수행기록 버킷팅)를 실현하는 상위 데이터 모델 아키텍처다. 현행 v5의 machine_variant(브랜드 단일 문자열, workout_exercise 레벨 소유)를 결정적 canonical variant_key로 일반화하고, prev/PR/volume/history 조회 단위를 (exercise_id × variant_key) 버킷으로 통일한다. 발급 시점의 변형 축은 [equip, grip, arm] 3차원이었으나 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "as-built 런타임 축은 기구(equip) 1차원",
+            "type": "text"
+          },
+          {
+            "text": "이다 — 그립·팔은 종목 변형 버킷에서 빠져 세트 속성으로 이동했다(ADR-026이 ADR-025를 대체). 키 문자열 규약은 3차원 순서를 그대로 유지하므로(런타임에서 grip·arm 세그먼트가 생성되지 않을 뿐) 향후 축 재도입 시 문자열 호환된다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "WatermelonDB(로컬우선, ADR-003)를 기반으로 SAD-002 record core 스키마를 v6로 확장한다. 순수 도메인 계산 계층(volume·1RM·PR)은 버킷 무관하므로 재사용하고, 리포지토리의 필터/키만 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant → variant_key",
+            "type": "text"
+          },
+          {
+            "text": "로 치환한다. 하위호환의 핵심은 v5 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "machine_variant='hammer'",
+            "type": "text"
+          },
+          {
+            "text": "가 새 규약의 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "equip:hammer",
+            "type": "text"
+          },
+          {
+            "text": " 버킷과 동일 문자열로 병합되도록 설계해, 기존 완료기록과 신규 선택이 무손실로 같은 버킷에 수렴하는 것이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "컴포넌트 / 책임",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "VariantKey (결정적 canonical 키)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 순수 도메인 함수 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "canonicalVariantKey({equip,grip,arm}) → string|null",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". 고정순서 [equip, grip, arm]로 정규화·정렬, 세그먼트 형식 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "\"<dim>:<value>\"",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "|",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 조인. 모든 차원 기본 → ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "null",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(= v5 기본 버킷과 동일 표현). 쓰기 시 개별 차원 컬럼에서 파생(derived-on-write).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "스키마 v6 컬럼 (SchemaExtension)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "SCHEMA_VERSION=6",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (발급 시점 값 — 현재 스키마는 db/schema.ts:5 기준 13)",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". routine_exercises·workout_exercises에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key(indexed)·variant_equipment·variant_grip·variant_arm",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 추가; set_logs에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "strict_reps(치팅 제외 정자세 반복)·load_adjust_kg(어시스티드−/가중+ 보정무게)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 추가. 레거시 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine_variant",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 무손실 fallback 소스로 유지·인덱스 유지(Phase-1 제안 표 반영).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "RecordBucketQuery (버킷 조회면)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — prev(직전 세트)·PR(최고중량·세션종료 검출)·note history를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Q.where('variant_key', key)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 단일 등가 필터로 통일. 규약: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "undefined",
+                    "type": "text"
+                  },
+                  {
+                    "text": "=변형 무관 전체, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "null",
+                    "type": "text"
+                  },
+                  {
+                    "text": "=기본 버킷, 값=해당 버킷. ",
+                    "type": "text"
+                  },
+                  {
+                    "text": "적용 지점(as-built): getPreviousExerciseSnapshot·getPreviousExerciseSets·getExercisePR·historicalSnapshotForExercise·getExerciseNoteHistory. 세션 종료 PR 검출도 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "`${exerciseId}::${variant_key}`",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 그룹으로 버킷을 나눈다. 다만 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "volume의 (exercise×variant) 그룹 합은 제안에 그쳤고 as-built는 미구현",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 누적 볼륨 집계는 아래 '집계 범위' 항목대로 종목 단위다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "Migration v5→v6 (무손실 승계)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — addColumns로 신규 컬럼 추가 후, 기존 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "machine_variant",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 값을 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_equipment",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 승계하고 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key=canonical(machine_variant)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 backfill. 브랜드 키를 equip 값공간에 그대로 편입해 기존 완료기록의 버킷 문자열이 신규 규약과 일치 → 이력·PR 연속성 보존(WatermelonDB dropColumn 부재 대응).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "Migration v11 (축 축소 재매핑)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — v11 스키마 스텝은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "set_logs.grip",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 컬럼 추가만 담당하고(db/migrations.ts:151-158), 기존 버킷 문자열의 재매핑은 부팅 시 멱등 백필 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "backfillDropGripArmV11()",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(data/workoutRepository.ts:186-211 · App.tsx:95)이 수행한다. workout_exercises·routine_exercises의 variant_grip·variant_arm을 null로 지우고 variant_key를 기구만으로 재계산해, 같은 종목이 출처(즉석 추가·루틴 승계)에 따라 다른 버킷으로 파편화되어 이전기록이 비던 문제를 해소한다. 병합은 비가역이다(ADR-026 되돌림 비용).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "VariantSelector UI 연계 (as-built — 기구 축 2레벨)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 종목 변형 셀렉터는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "기구(레벨1)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 와 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "머신 브랜드(레벨2)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 2축만 노출한다(components/VariantSelector.tsx:66-110). 머신 종목은 레벨1을 생략하고 브랜드만 띄우며, 종목 고유 기구를 고르면 기본 버킷(null)으로 저장해 기존 기록을 잇는다. custom equip 라벨은 user_profiles의 machine_variant_labels 재사용. 그립·팔은 셀렉터에서 제외되고, 세트 행 ▼ 펼침의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "SetVariantSheet",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(features/session/ExerciseBlock.tsx:620·633)에서 세트마다 지정한다(ADR-026).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "AnalysisEngine 접점 (SAD-003 정합 · as-built)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 유효값은 세트별 보정필드가 아니라 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "종목 하중모드에서 파생",
+                    "type": "text"
+                  },
+                  {
+                    "text": "한다(domain/volume.ts:5-28). ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "resolveLoadMode(ex)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 명시 load_mode 우선, 없으면 equipment==='bodyweight'→bodyweight·그 외 external을 반환하고, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "effectiveWeightKg(s)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 assisted=max(0, 체중−무게) · bodyweight=체중+무게 · external=raw로 계산한다(체중 미입력이면 raw 폴백). ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "effectiveReps(s)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "s.reps",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 그대로 반환하며(주 입력 reps = 정자세), partial_reps는 볼륨·추정1RM·PR 어디에도 더해지지 않는다. Epley(ADR-010) 1RM도 유효무게 기준으로 통일되어 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "estimateOneRepMax(effectiveWeightKg(s), s.reps)",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "bestEstimatedOneRepMax",
+                    "type": "text"
+                  },
+                  {
+                    "text": "가 같은 기준을 쓴다(domain/oneRepMax.ts:23 · data/analyticsRepository.ts:100·199) — 어시스트 종목에서 보조하중이 클수록 1RM이 높게 잡히던 역설이 해소된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "집계 범위 (as-built 한계)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "analyticsRepository.getCompletedSets",
+                    "type": "text"
+                  },
+                  {
+                    "text": "가 EnrichedSet에 variantKey를 담지 않는다(data/analyticsRepository.ts:29-34). 따라서 주간 볼륨·개요 등 누적 분석은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "종목 단위 집계",
+                    "type": "text"
+                  },
+                  {
+                    "text": "이며, 변형 버킷 분리가 실제로 작동하는 지점은 세션 상세 조회(prev)·PR 검출 계층이다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "v6 스키마 컬럼 (제안)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "Phase-1 schema-design 결과를 구체 반영한다. models 배선은 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "variant_key",
+            "type": "text"
+          },
+          {
+            "text": " 등에 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "@text",
+            "type": "text"
+          },
+          {
+            "text": " 데코레이터(machine_variant 패턴 재사용), ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "strict_reps/load_adjust_kg",
+            "type": "text"
+          },
+          {
+            "text": "는 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "@field",
+            "type": "text"
+          },
+          {
+            "text": "(SetLog 패턴).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "테이블",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "추가 컬럼",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "flags / 의미",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "routine_exercises · workout_exercises",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "variant_key",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "string, optional, indexed — canonical 버킷 키(파생). null=기본",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "routine_exercises · workout_exercises",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "variant_equipment / variant_grip / variant_arm",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "string, optional, 비인덱스 — SSOT·UI편집·분석 group-by (grip: over/under/neutral/wide/close, arm: bi/uni)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "set_logs",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "strict_reps",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "number, optional — 정자세 반복(null=전부 정자세=reps)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "set_logs",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "load_adjust_kg",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "number, optional — 보정무게 signed. 어시스티드(−)/가중(+). null=0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "content": [
+          {
+            "text": "위 표는 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "발급 시점(v6)의 제안 기록",
+            "type": "text"
+          },
+          {
+            "text": "이다. as-built에서는 variant_grip·variant_arm이 버킷 키에서 빠지고(v11 백필), strict_reps·load_adjust_kg는 계산에 연결되지 않은 채 아래 세트 필드로 교체되었다(ADR-026).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "세트 정밀도 필드 (as-built — v8·v9·v11·v12)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "세트 단위 정밀도는 v6 제안(strict_reps·load_adjust_kg)에서 실제 구현으로 교체되었다(ADR-026 결정 2). 현행 컬럼은 다음과 같다(db/schema.ts:149-153).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "set_logs.arm",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (v8, string|null) — 세트별 편측. 'uni'=원암/원레그, null=투암/투레그(기본). 쓰기는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setSetArm",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(data/workoutRepository.ts:699).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "set_logs.grip",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (v11, string|null) — 세트별 그립 over/under/neutral/wide/close, null=기본. 스키마 주석 그대로 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "표시전용",
+                    "type": "text"
+                  },
+                  {
+                    "text": ". 쓰기는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setSetGrip",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(data/workoutRepository.ts:709).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "set_logs.partial_reps",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (v9, number|null) — 부분반복(깔짝). 주 입력 reps는 정자세 반복이며, partial_reps는 볼륨·추정1RM·PR에서 제외된다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "조회 규약",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 세트별 arm·grip은 prev·PR·volume 어느 질의에도 필터로 쓰이지 않는다. 버킷을 나누지 않는 기록·표시 축이다(ADR-026 결정 1).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "dead column",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "strict_reps",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "load_adjust_kg",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(v6)와 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_grip",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_arm",
+                    "type": "text"
+                  },
+                  {
+                    "text": "은 읽기 하위호환용으로 스키마에만 잔존하며 값을 쓰는 코드가 없다. 유효값 계산은 load_mode + user_profiles.bodyweight_kg(v12)로 파생한다(SRS-033).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "입력 위치는 세트 행 자체가 아니라 세트 행의 ▼/⋯ 토글로 펼치는 상세 패널이다(features/session/ExerciseBlock.tsx:582-600). 인앱 피드백 #36(세트 정보 과밀로 휴대폰에서 꾸겨짐) 대응으로 기본 화면의 세트 행을 좁게 유지하기 위한 배치다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "설계 결정 근거 (JSON key 반려)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "JSON 컬럼 반려",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — WatermelonDB는 JSON에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Q.where",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 등가 필터·인덱스를 걸 수 없어 완료세션 누적 시 O(N) 앱측 스캔이 된다. prev/PR는 인덱스된 단일 등가 조회여야 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "개별 컬럼 3-way AND 반려",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 복합 인덱스 부재로 비효율·null 분기 3배. 단일 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "variant_key",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 등가 1clause가 현행 리포지토리 코드에 최소 변경.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "둘 다 저장(채택)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — variant_key(조회·버킷) + 개별 차원 컬럼(SSOT·UI·group-by 분석). ADR-025로 결정 기록, ADR-026이 이를 승계한다 — 다만 as-built에서 실사용되는 차원 컬럼은 variant_equipment 하나이며 나머지는 dead column이다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "grip 축 분리(무효화)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " — 방향(over/under/neutral)과 폭(wide/close)의 직교 분리는 그립이 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "종목 버킷 축",
+                    "type": "text"
+                  },
+                  {
+                    "text": "임을 전제한 후보였다. 그립이 세트 속성으로 이동하면서(ADR-026) 버킷 축 분리 논의로서는 무효이며, 필요해지면 set_logs.grip 값공간 분리로 다룬다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "다루는 SRS: SRS-028(종목 변형 차원 모델링), SRS-029(변형별 수행기록 버킷팅). 유효무게·하중모드 접점은 SRS-033. 정합 SAD: SAD-002(record core 스키마 확장), SAD-003(분석엔진 — 볼륨·1RM 유효값 접점), SAD-004(세션 리포지토리). 결정: ADR-026(변형 축 축소 + 세트 정밀도 필드 교체 — 현행), ADR-025(canonical key + 개별 컬럼 이중저장 — ADR-026으로 대체됨), ADR-003(WatermelonDB 로컬우선), ADR-010(Epley 1RM). Phase-1 schema-design 결과(v6 컬럼·무손실 마이그레이션)를 구체 반영.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "개정 이력",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "2026-07-20 — as-built 코드 감사 결과를 반영해 본문을 개정했다. 변형 버킷 축을 3차원(equip·grip·arm)에서 런타임 기구 1차원으로 정정하고(키 문자열 규약은 3차원 순서 유지), 그립·팔을 세트 속성(set_logs.arm v8 · set_logs.grip v11)으로 옮긴 v11 백필(backfillDropGripArmV11)을 마이그레이션 절에 추가했다. VariantSelector 서술을 기구·머신 브랜드 2축으로 좁히고, AnalysisEngine 접점의 유효값 산출을 폐기된 weight+load_adjust_kg / strict_reps ?? reps에서 실제 구현(load_mode·체중 파생 effectiveWeightKg, effectiveReps=reps, partial_reps 제외, 1RM도 유효무게 기준)으로 교체했으며, 누적 분석이 종목 단위 집계라는 한계를 명시했다. 세트 정밀도 필드 절을 신설해 arm·grip·partial_reps를 기술하고 strict_reps·load_adjust_kg·variant_grip·variant_arm을 dead column으로 표시했다. 근거는 ADR-026(ADR-025 대체)이며, 정확했던 항목(canonical key 도메인 함수·v6 스키마·단일 등가 필터·v5→v6 무손실 마이그레이션)은 그대로 두었다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "옮김 정보 (PLM)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "원본: PLM 워크플로우 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": ".ouroboros/docs/design/SAD-019.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (2026-10-27 ADStudio로 옮김)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM status: Approved",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM owner: Architecture",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM product: health-practice",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM created: 2026-07-11T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM updated: 2026-07-20T00:00:00Z",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "PLM sync: True",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram",
+  "id": "SAD-019",
+  "meta": {
+    "component": "Exercise Variant & Record Bucketing"
+  },
+  "relations": {
+    "refs": [
+      "SRS-028",
+      "SRS-029",
+      "SRS-033"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [
+    "variant",
+    "schema",
+    "watermelondb"
+  ],
+  "title": "종목 변형 데이터 모델 아키텍처 — 변형 차원·기록 버킷·machine_variant 일반화·무손실 마이그레이션",
+  "type": "SAD",
+  "updated": "2026-11-03T03:31:29Z"
+}

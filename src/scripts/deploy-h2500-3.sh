@@ -51,7 +51,9 @@ fi
 
 CLEAN=$(mktemp -d)
 # trap 은 worktree 를 만들기 **전에** 건다 — 그 사이에 죽어도 사본이 남지 않게.
-trap 'git -C "$ROOT" worktree remove --force "$CLEAN" >/dev/null 2>&1 || true; rm -rf "$CLEAN"' EXIT
+# [원본] trap 'git -C "$ROOT" worktree remove --force "$CLEAN" >/dev/null 2>&1 || true; rm -rf "$CLEAN"' EXIT
+# [개선] SPEC-018 Phase 1 qa 운영 L-4 — 지운 사본의 worktree 기록도 걷는다
+trap 'git -C "$ROOT" worktree remove --force "$CLEAN" >/dev/null 2>&1 || true; rm -rf "$CLEAN"; git -C "$ROOT" worktree prune >/dev/null 2>&1 || true' EXIT
 git -C "$ROOT" worktree add --detach --quiet "$CLEAN" "$DEPLOY_SHA"
 d=$(git -C "$ROOT" status --porcelain -- src | wc -l | tr -d ' ')
 [ "$d" != "0" ] && echo "     작업 트리 미커밋 ${d}건 — **배포에는 들어가지 않는다**"
@@ -115,12 +117,100 @@ $SSH "
   done
   echo '  .env 필수 키 OK'"
 
+# ── 안드로이드 APK — SPEC-018 (SRS-099 · ADR-047) ─────────────────────────────────
+# 커밋된 사본($CLEAN)에서 서명 APK + android.json 을 만들어 웹 이미지의 public/downloads 에 싣는다
+# (같은 versionCode 가 이 맥의 캐시에 있으면 다시 확인해 그것을 쓴다 — src/scripts/build-android-release.sh 머리말).
+#   SKIP_APK=1             빌드하지 않고 **지금 사이트의** android.json·APK 를 되받아 검증한 뒤 그대로 싣는다(웹만 되돌릴 때)
+#   ALLOW_APK_DOWNGRADE=1  사이트보다 낮은 versionCode 를 내보낸다(기본은 멈춤 · 운영 H-2)
+#   ALLOW_SAME_APK=1       사이트와 같은 versionCode 인데 바이트가 다른 APK 를 내보낸다(기본은 멈춤 · Phase 1 qa 운영 H-1)
+#   ALLOW_UNKNOWN_APK=1    사이트 android.json 을 읽지 못했어도(404 아닌 오류) 계속한다
+# 출시 키 백업 표식(~/.liftgram-release/BACKED_UP = 지문)이 없으면 APK 를 내보내지 않는다(Phase 1 qa 보안 H-2 —
+# 키를 잃으면 모든 사용자가 다시 설치해야 한다).
+APK_ON=1
+DL="$CLEAN/src/frontend/public/downloads"
+RELDIR=${LIFTGRAM_RELEASE_DIR:-$HOME/.liftgram-release}
+if [ ! -f "$CLEAN/src/mobile/release.json" ]; then
+  # SPEC-018 이전 커밋 — 그 웹은 APK 를 쓰지 않는다(되돌리기 · Phase 1 qa 운영 M-2)
+  APK_ON=0
+  echo "── 안드로이드 APK: 이 커밋에는 src/mobile/release.json 이 없다 — 싣지 않는다(SPEC-018 이전 버전) ──"
+fi
+if [ "$APK_ON" = "1" ]; then
+  echo "── 안드로이드 APK ──"
+  jf() { python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))[sys.argv[2]])' "$1" "$2"; }
+  # 지금 사이트의 android.json — 404 만 「아직 없음」이고 그 밖의 실패는 멈춘다(하강·같은 번호 검사가 조용히 꺼지지 않게 · 운영 M-1)
+  live_tmp=$(mktemp)
+  live_code=$(curl -s -m 20 -o "$live_tmp" -w '%{http_code}' -H 'Cache-Control: no-cache' "$SITE/downloads/android.json?deploy=$(date +%s)" || echo 000)
+  APK_LIVE_VC=""; APK_LIVE_SHA=""
+  if [ "$live_code" = "200" ]; then
+    APK_LIVE_VC=$(python3 -c 'import json,sys;print(int(json.load(open(sys.argv[1]))["versionCode"]))' "$live_tmp" 2>/dev/null || true)
+    APK_LIVE_SHA=$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["sha256"])' "$live_tmp" 2>/dev/null || true)
+    [ -n "$APK_LIVE_VC" ] || { echo "!! 사이트 android.json 형식이 깨졌다"; [ "${ALLOW_UNKNOWN_APK:-0}" = "1" ] || exit 1; }
+    echo "  사이트: versionCode ${APK_LIVE_VC:-?} (sha ${APK_LIVE_SHA:0:12})"
+  elif [ "$live_code" = "404" ]; then
+    echo "  사이트: android.json 없음(첫 APK 배포)"
+  else
+    echo "!! 사이트 android.json 을 읽지 못했다(HTTP ${live_code}) — 하강·같은 번호 검사를 할 수 없어 멈춘다(ALLOW_UNKNOWN_APK=1 로 넘김)"
+    [ "${ALLOW_UNKNOWN_APK:-0}" = "1" ] || exit 1
+  fi
+  if [ "${SKIP_APK:-0}" = "1" ]; then
+    [ -n "$APK_LIVE_VC" ] || { echo "!! SKIP_APK=1 인데 사이트의 android.json 이 없다 — 싣지 않으면 앱 업데이트 안내가 사라진다"; exit 1; }
+    mkdir -p "$DL"
+    cp "$live_tmp" "$DL/android.json"
+    url=$(jf "$DL/android.json" url); want=$(jf "$DL/android.json" sha256); size=$(jf "$DL/android.json" size)
+    vn=$(jf "$DL/android.json" versionName); vc=$(jf "$DL/android.json" versionCode)
+    python3 -c 'import json,sys,re
+d=json.load(open(sys.argv[1]))
+ok=d.get("v")==1 and re.fullmatch(r"[0-9a-f]{64}",d["sha256"]) and re.fullmatch(r"[0-9a-f]{64}",d["certSha256"]) \
+   and 0<int(d["minVersionCode"])<=int(d["versionCode"]) and 0<int(d["minSignedVersionCode"])<=int(d["versionCode"]) \
+   and re.fullmatch(r"/downloads/liftgram-[0-9.]+-[0-9]+-[0-9a-f]{8}\.apk",d["url"]) and d["url"].split("-")[-1][:8]==d["sha256"][:8]
+sys.exit(0 if ok else 1)' "$DL/android.json" || { echo "!! 사이트 android.json 의 값이 규칙에 맞지 않는다 — 다시 싣지 않는다"; exit 1; }
+    curl -sf -m 300 -o "$DL/${url#/downloads/}" "$SITE$url" || { echo "!! 사이트 APK 를 되받지 못했다: $url"; exit 1; }
+    [ "$(shasum -a 256 "$DL/${url#/downloads/}" | cut -d' ' -f1)" = "$want" ] || { echo "!! 되받은 APK 의 sha256 이 json 과 다르다"; exit 1; }
+    [ "$(wc -c < "$DL/${url#/downloads/}" | tr -d ' ')" = "$size" ] || { echo "!! 되받은 APK 크기가 json 과 다르다"; exit 1; }
+    # 빌드와 같은 검증(서명자 수·v2·v3·지문·패키지·버전·debuggable) — 서버를 신뢰 근거로 다시 쓰지 않는다(보안 L-2 · Phase 1 qa 보안 M-5)
+    # 지문 기준은 지금 작업 트리의 release-cert.json(옛 커밋 사본에는 없을 수 있다)
+    bash "$HERE/scripts/build-android-release.sh" --verify "$DL/${url#/downloads/}" "$vn" "$vc" "$ROOT" || { echo "!! 되받은 APK 검증 실패"; exit 1; }
+    echo "  SKIP_APK=1 — 사이트의 versionCode ${APK_LIVE_VC} 를 그대로 싣는다"
+  else
+    cert=$(jf "$CLEAN/src/mobile/release-cert.json" sha256 2>/dev/null || true)
+    marked=$(tr -d ' :\n' < "$RELDIR/BACKED_UP" 2>/dev/null | tr 'A-F' 'a-f' || true)
+    if [ -z "$cert" ] || [ "$marked" != "$cert" ]; then
+      echo "!! 출시 키 백업 표식이 없다(또는 지문이 다르다): $RELDIR/BACKED_UP"
+      echo "   키를 잃으면 모든 사용자가 다시 설치해야 한다 — 암호화 사본 2벌을 만들고 복원 시험(지문 대조)까지 한 뒤:"
+      echo "     echo ${cert:-<지문>} > $RELDIR/BACKED_UP"
+      echo "   (APK 없이 웹만 내보내려면 SKIP_APK=1)"
+      exit 1
+    fi
+    NEW_VC=$(python3 -c 'import json,sys;print(int(json.load(open(sys.argv[1]))["versionCode"]))' "$CLEAN/src/mobile/release.json")
+    if [ -n "$APK_LIVE_VC" ] && [ "$NEW_VC" -lt "$APK_LIVE_VC" ] && [ "${ALLOW_APK_DOWNGRADE:-0}" != "1" ]; then
+      echo "!! 앱 versionCode 가 ${APK_LIVE_VC} → ${NEW_VC} 로 **내려간다** — 이미 받은 사람은 설치할 수 없고 안내만 헷갈린다"
+      echo "   (되돌리기는 웹만: SKIP_APK=1 · 정말 낮추려면 ALLOW_APK_DOWNGRADE=1)"
+      exit 1
+    fi
+    bash "$CLEAN/src/scripts/build-android-release.sh" "$CLEAN" "$DL" || { echo "!! APK 빌드 실패 — 배포하지 않는다(서버는 아직 건드리지 않았다)"; exit 1; }
+    # 같은 versionCode 에 다른 바이트 — 이 맥의 캐시가 없거나(다른 맥·지운 캐시) 커밋이 바뀌었다(Phase 1 qa 운영 H-1)
+    built_sha=$(jf "$DL/android.json" sha256)
+    if [ -n "$APK_LIVE_VC" ] && [ "$NEW_VC" = "$APK_LIVE_VC" ] && [ -n "$APK_LIVE_SHA" ] && [ "$built_sha" != "$APK_LIVE_SHA" ] && [ "${ALLOW_SAME_APK:-0}" != "1" ]; then
+      echo "!! 사이트와 같은 versionCode ${NEW_VC} 인데 APK 바이트가 다르다(${APK_LIVE_SHA:0:12} → ${built_sha:0:12})"
+      echo "   이미 받은 사람은 같은 번호라 업데이트를 못 받는다 — src/mobile/release.json 의 versionCode 를 올려라"
+      echo "   (앱은 그대로 두고 웹만 내보내려면 SKIP_APK=1 · 알고 넘기려면 ALLOW_SAME_APK=1)"
+      exit 1
+    fi
+  fi
+  rm -f "$live_tmp"
+  APK_URL=$(jf "$DL/android.json" url)
+  APK_SHA=$(jf "$DL/android.json" sha256)
+  APK_VC=$(jf "$DL/android.json" versionCode)
+fi
+
 echo "── 소스 동기 ──"
 $SSH "mkdir -p $REMOTE/src"
 rsync -a --delete \
   --exclude '/.env' --exclude '/.env.*' \
   --exclude 'node_modules/' --exclude '.next/' \
   --exclude 'test-results/' --exclude 'playwright-report/' --exclude '.DS_Store' \
+  --exclude '/mobile/android/app/build/' --exclude '/mobile/android/build/' --exclude '/mobile/android/.gradle/' \
+  --exclude '/mobile/android/capacitor-cordova-android-plugins/build/' --exclude '/mobile/native/lock-core-check/.build/' \
   "$CLEAN/src/" "$HOST:$REMOTE/src/"
 
 echo "── 빌드·기동 (migrate 가 먼저 돌고 끝나야 backend 가 뜬다) ──"
@@ -172,6 +262,37 @@ echo "── 결과 확인 ──"
 # 컨테이너 안에서 먼저(터널과 무관하게 앱이 DB 까지 닿는가), 그다음 공개 주소.
 $SSH "cd $REMOTE/src && port=\$(grep '^WEB_PORT=' .env | cut -d= -f2)
   curl -sf -m 10 http://127.0.0.1:\$port/api/readyz || { echo '  !! readyz 실패 — DB 에 닿지 않는다'; exit 1; }; echo"
+# ── APK 끝 확인 — SPEC-018 (운영 M-3 · Phase 1 qa 운영 H-2·M-4 · 웹 L-5) ─────────────────
+# DEPLOYED_REF 를 적은 **뒤**에 본다(웹은 이미 바뀌었다 — 기록이 옛 값으로 남으면 다음 배포의 스키마 하강 검사가 틀린 기준을 쓴다).
+# 실패는 끝에서 0 아닌 코드로 알린다. 엣지 캐시를 피하려고 json 은 캐시 우회 질의로, Range 는 오리진(서버 안)에서 본다.
+APK_FAIL=""
+if [ "$APK_ON" = "1" ]; then
+  echo "── 안드로이드 APK 확인 ──"
+  apk_check() {
+    local j vc sha tmp h code
+    j=$(curl -sf -m 20 -H 'Cache-Control: no-cache' "$SITE/downloads/android.json?check=$(date +%s)") || { echo "android.json 을 받지 못했다"; return 1; }
+    vc=$(printf '%s' "$j" | python3 -c 'import json,sys;print(json.load(sys.stdin)["versionCode"])') || { echo "android.json 형식"; return 1; }
+    sha=$(printf '%s' "$j" | python3 -c 'import json,sys;print(json.load(sys.stdin)["sha256"])')
+    [ "$vc" = "$APK_VC" ] && [ "$sha" = "$APK_SHA" ] || { echo "사이트 android.json 이 새 값과 다르다(versionCode ${vc} · sha ${sha:0:12})"; return 1; }
+    h=$(curl -sI -m 20 "$SITE/downloads/android.json" | tr -d '\r') || { echo "android.json 헤더를 받지 못했다"; return 1; }
+    grep -qi '^cache-control:.*no-store' <<<"$h" || { echo "android.json 에 no-store 가 없다"; return 1; }
+    ! grep -qi '^cf-cache-status: *HIT' <<<"$h" || { echo "android.json 이 엣지 캐시에 잡혀 있다(cf-cache-status HIT)"; return 1; }
+    tmp=$(mktemp)
+    curl -sf -m 300 -o "$tmp" "$SITE$APK_URL" || { rm -f "$tmp"; echo "APK 를 받지 못했다: $APK_URL"; return 1; }
+    [ "$(shasum -a 256 "$tmp" | cut -d' ' -f1)" = "$APK_SHA" ] || { rm -f "$tmp"; echo "받은 APK 의 sha256 이 다르다"; return 1; }
+    rm -f "$tmp"
+    h=$(curl -sI -m 20 "$SITE$APK_URL" | tr -d '\r') || { echo "APK 헤더를 받지 못했다"; return 1; }
+    grep -qi '^content-type: *application/vnd.android.package-archive' <<<"$h" || { echo "APK Content-Type 이 다르다"; return 1; }
+    grep -qi '^content-disposition: *attachment' <<<"$h" || { echo "APK Content-Disposition 이 attachment 가 아니다"; return 1; }
+    grep -qi '^cache-control:.*immutable' <<<"$h" || { echo "APK 에 immutable 이 없다"; return 1; }
+    code=$($SSH "cd $REMOTE/src && port=\$(grep '^WEB_PORT=' .env | cut -d= -f2) && curl -s -o /dev/null -w '%{http_code}' -m 20 -r 0-0 http://127.0.0.1:\$port$APK_URL" || echo 000)
+    [ "$code" = "206" ] || { echo "오리진 APK Range 응답이 206 이 아니다(${code}) — 이어받기가 안 된다"; return 1; }
+    echo "  versionCode ${APK_VC} · sha256 일치 · 헤더·오리진 Range OK"
+  }
+  APK_FAIL=$(apk_check 2>&1) && echo "$APK_FAIL" || { echo "  !! $APK_FAIL"; APK_FAIL="${APK_FAIL:-실패}"; }
+  # 성공이면 위 echo 가 출력한 문구가 APK_FAIL 에 남지 않게
+  case "$APK_FAIL" in "  versionCode"*) APK_FAIL="" ;; esac
+fi
 # 메일이 켜져 있으면 SMTP 로그인까지 본다(보내지는 않는다) — 배포가 "끝"이라 해도 가입 확인·재설정 메일이
 # 안 나가면 사용자는 오지 않을 메일을 기다린다(booktarae 2026-10-01 실사 F1: 거절을 아무도 몰랐다).
 $SSH "cd $REMOTE/src && if grep -q '^MAIL_TRANSPORT=smtp' .env; then
@@ -210,3 +331,8 @@ else
   echo "  성공 daily ${okd}줄 · 복원 시험 ${rst}줄"
 fi
 echo "── 끝: v${VERSION} (build ${BUILD}) · ${SHORT} ──"
+if [ -n "${APK_FAIL:-}" ]; then
+  echo "!! 웹은 배포됐지만 안드로이드 APK 확인이 실패했다: ${APK_FAIL}"
+  echo "   (앱 업데이트 안내가 틀린 파일을 가리킬 수 있다 — 위 「안드로이드 APK 확인」을 보고 고친 뒤 다시 배포)"
+  exit 1
+fi

@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">리프트그램</string>
-    <string name="title_activity_main">리프트그램</string>
-    <string name="package_name">org.tarae.liftgram</string>
-    <string name="custom_url_scheme">org.tarae.liftgram</string>
+    <!-- 영어 문자열(values-en · 잠금 카드)이 생겨 번역 검사가 켜졌다 — 앱 이름·스킴은 언어와 무관(SPEC-017 Phase 4) -->
+    <string name="app_name" translatable="false">리프트그램</string>
+    <string name="title_activity_main" translatable="false">리프트그램</string>
+    <string name="package_name" translatable="false">org.tarae.liftgram</string>
+    <string name="custom_url_scheme" translatable="false">org.tarae.liftgram</string>
 </resources>

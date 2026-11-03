@@ -73,6 +73,18 @@ self.addEventListener("activate", (event) => {
           .filter((k) => !k.endsWith(BUILD_ID) && (prev === null || !k.endsWith(prev)))
           .map((k) => caches.delete(k)),
       );
+      // SPEC-018 — 옛 워커(이 규칙 전)가 navigate 로 받은 APK·json 을 셸 캐시에 담아 두었으면 지운다(운영 M-4).
+      // 청소가 실패해도 활성화(세대 기록·clients.claim)는 이어 간다 — 실패가 번져 다음 배포가 앞 세대를 지우지 않게(Phase 1 qa 웹 M-4).
+      try {
+        for (const k of await caches.keys()) {
+          if (!k.startsWith("liftgram-pages-")) continue;
+          const c = await caches.open(k);
+          for (const r of await c.keys())
+            if (new URL(r.url).pathname.startsWith("/downloads/")) await c.delete(r);
+        }
+      } catch {
+        // 청소는 덤이다 — 다음 활성화가 다시 한다
+      }
       await rememberBuild();
       await self.clients.claim();
     })(),
@@ -105,6 +117,13 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // SPEC-018 앱 설치 파일·버전 안내는 늘 네트워크 그대로 — navigate 여도 셸·오프라인 화면을 대신 주지 않고 캐시에도 담지 않는다
+  // (운영 M-4 · 안드로이드 L-2 · 맨 위에서 통째로).
+  if (url.pathname.startsWith("/downloads/")) return;
+  // SPEC-018 공개 앱 안내(/app)·넘기기 확인(/app/continue)·로그인 착지(/auth/complete)는 셸 캐시에 담지 않는다 —
+  // 느린 망에서 옛 화면(옛 ac·옛 코드)이 떠 원인 모를 실패가 나지 않게(REV-012 보안 L-2 · 화면 L-11)
+  if (url.pathname === "/app" || url.pathname.startsWith("/app/") || url.pathname === "/auth/complete")
+    return;
 
   if (url.pathname.startsWith("/api/") || url.pathname === "/sw.js") return;
   if (url.pathname.startsWith("/_next/static/")) return event.respondWith(cacheFirst(req, STATIC));

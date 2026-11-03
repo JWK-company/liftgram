@@ -55,11 +55,13 @@ import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 �
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
 import { WeighInSettingRow } from "./WeighInSettingRow"; // 운동 전 체중 체크인 스위치 @plm SRS-077
+import { LockScreenRow } from "./LockScreenRow"; // 잠금화면 운동 카드 켜기(앱에서만 · SPEC-017)
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 // import { version as APP_VERSION } from "../../../package.json"; — [원본] 버전 꼬리(아래 주석) · 지금은 AppVersionRow 가 보인다
 // import buildInfo from "../../build-info.json";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppVersionRow } from "./AppVersionRow"; // 앱 버전 줄 + 업데이트 버튼 @plm SRS-085
+import { AppUpdateCard } from "../appdist/AppUpdateCard"; // SPEC-018 앱 설치 파일(APK) 줄
 import { useOpsAlert } from "@/lib/opsAlert"; // 운영 경보 점(admin) @plm SRS-088
 
 type Language = "ko" | "en";
@@ -296,6 +298,7 @@ export default function ProfileClient() {
             value={`${t(REST_SOUND_LABEL[restSound])} · ${t(REST_VOLUME_LABEL[restVol])}`}
             onPress={() => setSheet("sound")}
           />
+          <LockScreenRow />
           <EffortLoggingRow />
           <MuscleMapRow />
           <WeighInSettingRow />
@@ -389,6 +392,8 @@ export default function ProfileClient() {
         {/* 앱 버전 · 업데이트 — 새 버전 적용은 이 버튼 한 곳에서만(SRS-085 · 띠·자동 적용 없음) */}
         <ListGroup>
           <AppVersionRow />
+          {/* SPEC-018 — 「화면 업데이트」(위 · 웹 번들)와 「앱 설치 파일 업데이트」(APK)를 나눈다 */}
+          <AppUpdateCard />
         </ListGroup>
 
         <div className="pb-[var(--spacing-xl)]">

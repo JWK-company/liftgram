@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="update_channel_name">App updates</string>
+    <string name="update_done_title">Liftgram updated to %1$s</string>
+    <string name="update_done_body">Tap to open</string>
+</resources>

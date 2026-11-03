@@ -21,8 +21,9 @@ const ADDED: Record<string, string[]> = {
 };
 
 test('v26: 스키마 버전 = 마지막 마이그레이션', () => {
-  assert.equal(SCHEMA_VERSION, 26);
-  assert.equal(mig.maxVersion, 26);
+  // [원본] assert.equal(SCHEMA_VERSION, 26); assert.equal(mig.maxVersion, 26); — v27(SPEC-017)부터 26 이상 · 같음
+  assert.ok(SCHEMA_VERSION >= 26);
+  assert.equal(mig.maxVersion, SCHEMA_VERSION);
   assert.ok(v26(), 'toVersion 26 마이그레이션이 있어야 한다');
 });
 

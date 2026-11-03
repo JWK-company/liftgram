@@ -165,6 +165,31 @@ func (h *Handler) ExchangeLoginCode(ctx context.Context, req *connect.Request[au
 	}), nil
 }
 
+// WithAppHandoff — 조립 지점이 oauth.Handler 를 넘긴다(없으면 CreateAppContinue 는 Unavailable).
+func (h *Handler) WithAppHandoff(a AppHandoff) *Handler {
+	h.handoff = a
+	h.continueLimit = NewAuthLimiter(appContinuePerMinute, time.Minute)
+	return h
+}
+
+// appContinuePerMinute — 넘기기 요청 제한(사용자별·IP별 각각).
+const appContinuePerMinute = 5
+
+func (h *Handler) CreateAppContinue(ctx context.Context, req *connect.Request[authv1.CreateAppContinueRequest]) (*connect.Response[authv1.CreateAppContinueResponse], error) {
+	id, ok := UserIDFrom(ctx)
+	if !ok {
+		return nil, errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	if !h.continueLimit.Allow("user|"+id) || !h.continueLimit.Allow("ip|"+clientIP(req.Header())) {
+		return nil, errs.New(errs.Unavailable, "요청이 너무 잦아요. 잠시 뒤 다시 시도해 주세요")
+	}
+	u, err := h.svc.CreateAppContinue(ctx, h.handoff, id, req.Msg.GetChallenge())
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&authv1.CreateAppContinueResponse{AppUrl: u}), nil
+}
+
 func (h *Handler) CreateLinkTicket(ctx context.Context, _ *connect.Request[authv1.CreateLinkTicketRequest]) (*connect.Response[authv1.CreateLinkTicketResponse], error) {
 	id, ok := UserIDFrom(ctx)
 	if !ok {

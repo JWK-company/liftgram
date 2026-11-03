@@ -1,0 +1,299 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구 서술",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "안드로이드 앱(org.tarae.liftgram)을 스토어 밖에서 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "리프트그램 사이트가 직접 배포",
+            "type": "text"
+          },
+          {
+            "text": "한다. 배포할 때마다 서명된 APK와 버전 정보(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "/downloads/android.json",
+            "type": "text"
+          },
+          {
+            "text": " — 버전 이름·버전 코드·SHA-256·크기·최소 지원 버전)가 함께 올라간다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "이미 앱을 쓰는 사람",
+            "type": "text"
+          },
+          {
+            "text": "은 새 버전이 나오면 앱 안에서 「업데이트」를 한 번 누른다. 앱이 APK를 받아 SHA-256과 서명을 확인한 뒤 시스템 설치 화면을 띄우고, 사용자는 「설치」를 한 번 누른다(안드로이드는 스토어 밖 앱을 화면 없이 설치하지 못한다). 운동 중에는 업데이트를 띄우지 않는다. 최소 지원 버전보다 낮으면 꼭 해야 하는 업데이트로 안내한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "서명 키가 바뀐 옛 앱(디버그 서명 1.0.x·1.1.x)은 덮어쓸 수 없다. 이 경우 「한 번만 지우고 다시 설치」를 안내한다. 지우기 전에 기기의 미동기 기록을 서버에 올렸는지 먼저 확인한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "아직 웹(PWA)을 쓰는 안드로이드 사용자",
+            "type": "text"
+          },
+          {
+            "text": "에게는 「전용 앱으로 바꾸기」를 보여 준다. 누르면 차례로 진행한다: ① 미동기 기록을 서버에 올린다(0건이 될 때까지 · 실패하면 멈춘다) ② APK를 받는다(처음 한 번은 브라우저의 「이 출처 허용」) ③ 「앱 열기」를 누르면 일회용 로그인 코드가 앱으로 넘어가 같은 계정으로 바로 로그인된다",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "PWA 홈 화면 아이콘은 자동으로 지울 수 없으므로 지워도 된다고 안내한다. iOS(PWA·앱)는 이번 범위가 아니다 — App Store·TestFlight 출시 뒤 따로 한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "배포 스크립트가 출시 키로 서명된 APK와 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "android.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": "을 올리고, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "https://liftgram.tarae.org/downloads/android.json",
+                    "type": "text"
+                  },
+                  {
+                    "text": "이 그 버전을 돌려준다. APK의 SHA-256이 json과 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "버전 코드가 낮은 앱에서 「업데이트」 한 번 → 설치 화면 → 「설치」 한 번이면 새 버전으로 바뀐다. 기록·로그인은 그대로다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "받은 파일의 SHA-256이나 서명이 다르면 설치하지 않고 이유를 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 중에는 업데이트 안내가 뜨지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "안드로이드 Chrome PWA에서 「전용 앱으로 바꾸기」 → 미동기 0건 확인 → APK 받기 → 「앱 열기」를 거치면 앱이 같은 계정으로 로그인된 채 열린다. 웹에서 쓰던 운동 기록 수가 앱 첫 동기 뒤 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "로그인 코드는 앱 패키지로만 넘어간다(intent ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "package=org.tarae.liftgram",
+                    "type": "text"
+                  },
+                  {
+                    "text": "). 한 번만 쓰이고, 수명은 로그인 코드와 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹 브라우저(데스크톱·iOS)에는 바꾸기 안내가 뜨지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "연결",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "도출 URS: URS-032 · 결정 ADR-047(자체 배포·출시 키) · ADR-046(앱 방식) · 관련 SRS-095(앱 껍데기 — 「네이티브가 낡으면 업데이트 안내」를 이 요구가 구체화한다)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-099",
+  "meta": {
+    "acceptance_criteria": "배포마다 서명된 APK·android.json 이 올라가고, 앱은 「업데이트」 한 번 + 시스템 「설치」 한 번으로 바뀌며, 안드로이드 PWA 는 미동기 0건 확인 → APK → 「앱 열기」로 같은 계정의 앱에 로그인된다",
+    "kind": "FR"
+  },
+  "relations": {
+    "derives_from": [
+      "URS-032"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "안드로이드 앱 자체 배포 · 앱 안 업데이트(한 번 눌러 설치) · PWA → 전용 앱 원클릭 교체(미동기 확인 · 자동 로그인)",
+  "type": "SRS",
+  "updated": "2026-11-03T07:20:16Z"
+}

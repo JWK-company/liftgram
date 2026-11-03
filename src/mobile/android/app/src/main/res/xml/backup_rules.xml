@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 이하 자동 백업 — 잠금 카드 저장소(storeId·대기열)는 기기마다 새로(SPEC-017 §6) -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="liftgram_lock.xml" />
+    <exclude domain="sharedpref" path="liftgram_lock_ui.xml" />
+    <!-- SPEC-018(안드로이드 M-9) — 웹뷰 DB·쿠키는 서버가 원본이다. 되살아나면 재설치·새 기기에서 옛 기기 기록·로그인이 섞인다 -->
+    <exclude domain="root" path="app_webview/" />
+    <exclude domain="sharedpref" path="liftgram_update.xml" />
+</full-backup-content>
