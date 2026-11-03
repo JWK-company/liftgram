@@ -1034,9 +1034,10 @@ export const en: Record<TransKey, string> = {
   "security.title": "Sign-in & security",
   // @plm SRS-095  Account deletion (required by the stores)
   "accountDelete.title": "Delete account",
-  "accountDelete.caption": "Your account, every record on the server (workouts, routines, posts, comments, messages) and the photos you uploaded are deleted right away and cannot be restored. Copies already loaded on other people's screens disappear within 7 days. Records on this device are deleted too, so export a backup file first if you want to keep them.",
+  "accountDelete.caption": "Your account, every record on the server (workouts, routines, posts, comments, messages) and the photos you uploaded are deleted right away and cannot be restored. Copies already loaded on other people's screens disappear within 2 weeks. Records on this device are deleted too, so export a backup file first if you want to keep them.",
   "accountDelete.password": "Password",
   "accountDelete.confirmLabel": "Type DELETE to confirm",
+  "security.reauth": "Accounts created with social sign-in must sign in again before setting a password (within 10 minutes).",
   "accountDelete.reauth": "Accounts created with social sign-in (no password) must sign in again before deleting (within 10 minutes).",
   "accountDelete.reauthButton": "Sign in again with {provider}",
   "accountDelete.button": "Delete account permanently",

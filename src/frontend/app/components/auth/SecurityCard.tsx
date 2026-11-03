@@ -47,6 +47,9 @@ export function SecurityCard() {
   const [busy, setBusy] = useState(false);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
+  // @plm SRS-095  소셜 전용의 첫 비밀번호 설정은 최근 로그인이 필요하다 — 서버가 reauth_required 로 거절하면
+  // 연결된 제공자로 다시 로그인하는 버튼을 띄운다(qa 재확인 H-1 · 삭제 카드와 같은 길).
+  const [needReauth, setNeedReauth] = useState(false);
 
   if (!user) return null;
   const linked = new Set(identities.map((i) => i.provider));
@@ -57,7 +60,11 @@ export function SecurityCard() {
     try {
       setMsg({ text: await fn() });
     } catch (e) {
-      setMsg({ text: errText(e), bad: true });
+      const raw = errText(e);
+      if (raw === "reauth_required") {
+        setNeedReauth(true);
+        setMsg({ text: t("security.reauth"), bad: true });
+      } else setMsg({ text: raw, bad: true });
     } finally {
       setBusy(false);
     }
@@ -158,6 +165,26 @@ export function SecurityCard() {
           }
         />
       </div>
+
+      {needReauth && !user.hasPassword ? (
+        <div className="mt-[var(--spacing-sm)] flex flex-col gap-[var(--spacing-xs)]" data-testid="pw-reauth">
+          {identities.map((i) => (
+            <Button
+              key={i.provider}
+              title={t("accountDelete.reauthButton", { provider: providerLabel(i.provider) })}
+              variant="secondary"
+              fullWidth={false}
+              testId={`btn-pw-reauth-${i.provider}`}
+              onPress={() => {
+                const to = startUrl(i.provider, { returnTo: "/account" });
+                void appSignIn(to).then((app) => {
+                  if (!app) window.location.href = to;
+                });
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* ③ 연결된 소셜 로그인 */}
       {providers.length ? (

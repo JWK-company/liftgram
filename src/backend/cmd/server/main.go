@@ -166,6 +166,10 @@ func main() {
 	appleNative, appleNativeErr := oauth.NewAppleNative(oauth.AppleConfig{
 		TeamID: cfg.OAuthAppleTeamID, KeyID: cfg.OAuthAppleKeyID, PrivateKeyPEM: cfg.OAuthApplePrivateKey,
 	}, cfg.IOSBundleID)
+	// 키가 일부만 들어간 설정 오류는 조용히 넘기지 않는다(전부 비었으면 꺼진 것 — 로그 없음 · qa 재확인 M-4)
+	if appleNativeErr != nil && (cfg.OAuthAppleTeamID != "" || cfg.OAuthAppleKeyID != "" || cfg.OAuthApplePrivateKey != "") {
+		slog.Error("[oauth] iOS 앱 Apple 로그인 설정 오류 — 꺼 둔다", "err", appleNativeErr)
+	}
 	// @plm SRS-095  계정 삭제 뒤 사진 바이트 청소 — 저장소가 아래에서 만들어지므로 늦게 잇는다(qa code H-3)
 	var purgeMedia func(keys []string)
 	authSvc.WithAccount(auth.Account{
@@ -243,13 +247,17 @@ func main() {
 	purgeMedia = func(keys []string) {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 		defer cancel()
-		failed := 0
+		var failed []string
 		for _, k := range keys {
 			if err := storage.Delete(ctx, k); err != nil {
-				failed++
+				failed = append(failed, k)
 			}
 		}
-		slog.Info("[account] 삭제한 계정의 사진 청소", "files", len(keys), "failed", failed)
+		slog.Info("[account] 삭제한 계정의 사진 청소", "files", len(keys), "failed", len(failed))
+		if len(failed) > 0 {
+			// @plm SRS-095  재시도 표가 생기기 전까지는 손으로 지울 수 있게 키를 남긴다(qa 재확인 M-2)
+			slog.Error("[account] 사진 파일 청소 실패 — 손으로 지울 것", "keys", failed)
+		}
 	}
 	mediaRepo := media.NewRepo(pool)
 	mediaSvc := media.NewService(mediaRepo, storage, media.NoopScanner{}, uuid.NewString)

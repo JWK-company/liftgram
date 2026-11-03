@@ -367,11 +367,17 @@ func TestSocial_연결_그리고_남의_연결은_거절(t *testing.T) {
 
 func TestUnlink_마지막_수단은_못_푼다(t *testing.T) {
 	ctx := context.Background()
-	svc, _, _, _ := newAccountService(t)
+	svc, _, acct, _ := newAccountService(t)
 	id, _, _ := svc.SocialSignIn(ctx, SocialProfile{Provider: "google", ProviderUserID: "g1", Email: "s@x.com", EmailVerified: true}, "")
 	if err := svc.UnlinkIdentity(ctx, id, "google"); codeOf(err) != errs.Validation {
 		t.Fatalf("마지막 로그인 수단이 풀렸다: %v", err)
 	}
+	// @plm SRS-095  오래된 로그인(=access token 만 가진 사람)은 첫 비밀번호를 못 만든다(qa 재확인 H-1)
+	acct.lastLogin = time.Now().Add(-ReauthWindow - time.Minute)
+	if _, err := svc.ChangePassword(ctx, id, "", "password9"); codeOf(err) != errs.Forbidden {
+		t.Fatalf("오래된 로그인으로 소셜 계정에 비밀번호가 생겼다: %v", err)
+	}
+	acct.lastLogin = time.Now().Add(-time.Minute)
 	if _, err := svc.ChangePassword(ctx, id, "", "password9"); err != nil {
 		t.Fatalf("소셜 전용 계정의 비밀번호 설정 실패: %v", err)
 	}

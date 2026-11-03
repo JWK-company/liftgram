@@ -265,6 +265,10 @@ func (s *Service) ChangePassword(ctx context.Context, userID, current, newPasswo
 		if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(current)) != nil {
 			return Tokens{}, errs.New(errs.Validation, "현재 비밀번호가 올바르지 않습니다")
 		}
+	} else if err := s.requireRecentLogin(ctx, a, u.ID); err != nil {
+		// @plm SRS-095  소셜 전용의 첫 비밀번호 설정도 최근 로그인 — 아니면 access token 만으로 비밀번호를 만들고
+		// 그 비밀번호로 계정 삭제 재인증을 넘는다(qa 재확인 H-1).
+		return Tokens{}, err
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcryptCost)
 	if err != nil {
@@ -513,6 +517,19 @@ const ReauthWindow = 10 * time.Minute
 // ErrReauthRequired — 화면이 이 문구를 보고 「다시 로그인」 버튼을 띄운다(코드는 Forbidden).
 const ErrReauthRequiredMsg = "reauth_required"
 
+// requireRecentLogin — @plm SRS-095  소셜 전용 계정이 위험한 일(계정 삭제·첫 비밀번호 설정)을 하려면
+// ReauthWindow 안에 로그인(새 세션 계열)했어야 한다. 두 경로가 같은 검사를 쓰게 한 곳에 둔다(qa 재확인 H-1).
+func (s *Service) requireRecentLogin(ctx context.Context, a *Account, userID string) error {
+	at, err := a.Repo.LastLoginAt(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if s.now().Sub(at) > ReauthWindow {
+		return errs.New(errs.Forbidden, ErrReauthRequiredMsg)
+	}
+	return nil
+}
+
 func (s *Service) DeleteAccount(ctx context.Context, userID, password, confirm string) error {
 	a, err := s.account()
 	if err != nil {
@@ -529,14 +546,8 @@ func (s *Service) DeleteAccount(ctx context.Context, userID, password, confirm s
 		if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
 			return errs.New(errs.Validation, "비밀번호가 올바르지 않습니다")
 		}
-	} else {
-		at, err := a.Repo.LastLoginAt(ctx, userID)
-		if err != nil {
-			return err
-		}
-		if s.now().Sub(at) > ReauthWindow {
-			return errs.New(errs.Forbidden, ErrReauthRequiredMsg)
-		}
+	} else if err := s.requireRecentLogin(ctx, a, userID); err != nil {
+		return err
 	}
 	ok, keys, err := a.Repo.DeleteUserAccount(ctx, userID)
 	if err != nil {
