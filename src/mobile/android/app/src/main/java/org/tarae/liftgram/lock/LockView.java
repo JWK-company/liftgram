@@ -18,6 +18,13 @@ public final class LockView {
         public Integer reps;
         public Integer seconds;
         public Double distanceM;
+        /** SPEC-019 잠금 운동 화면 — 세트 id · 블록 · 고르는 중인 값(없으면 null = 원래 값) */
+        public String setId = "";
+        public String weId = "";
+        public Double draftWeight;
+        public Integer draftReps;
+        /** 시간·거리 종목 — 조정하지 않는다 */
+        public boolean cardio;
     }
 
     /** 「앱 열기」 이유 — 원인마다 안내가 다르다(REV-007 표시 M-5). */
@@ -40,6 +47,10 @@ public final class LockView {
     public int soundVolume = 2;
     public long gen; // 그리기 세대(실행기 안에서 매김 · 늦게 온 옛 그림을 버린다 · 계약 M-3)
     public Long stalledAt; // 대기열이 막히는 시각(가장 오래된 미확인 + 60초) — 그때 다시 그린다(계약 M-4)
+    /** 무게·횟수 ± 를 켤 수 있나(SPEC-019 · 완료 가능 + 웹 caps values) */
+    public boolean canAdjust;
+    /** 단계가 바뀌어 고른 값을 버렸다 — 화면이 한 번 알린다 */
+    public boolean draftLost;
 
     static Member member(JSONObject m) {
         Member x = new Member();
@@ -49,6 +60,8 @@ public final class LockView {
         x.setTotal = m.optInt("setTotal");
         x.unit = m.optString("unit", "kg");
         x.oneSide = m.optBoolean("oneSide");
+        x.setId = m.optString("setId", "");
+        x.weId = m.optString("weId", "");
         JSONObject d = m.optJSONObject("display");
         if (d != null) {
             x.weight = d.isNull("weight") ? null : d.optDouble("weight");
@@ -56,6 +69,7 @@ public final class LockView {
             x.seconds = d.isNull("seconds") ? null : d.optInt("seconds");
             x.distanceM = d.isNull("distanceM") ? null : d.optDouble("distanceM");
         }
+        x.cardio = x.seconds != null || x.distanceM != null;
         return x;
     }
 
@@ -80,7 +94,18 @@ public final class LockView {
         if (st != null) {
             v.stepToken = LockState.stepToken(st);
             JSONArray ms = st.optJSONArray("members");
-            if (ms != null) for (int i = 0; i < ms.length(); i++) if (ms.optJSONObject(i) != null) v.members.add(member(ms.optJSONObject(i)));
+            JSONObject dv = s.draftFor(v.stepToken);
+            if (ms != null) for (int i = 0; i < ms.length(); i++) {
+                if (ms.optJSONObject(i) == null) continue;
+                Member m = member(ms.optJSONObject(i));
+                JSONObject e = dv.optJSONObject(m.setId);
+                if (e != null) {
+                    if (e.has("weight") && !e.isNull("weight")) m.draftWeight = e.optDouble("weight");
+                    if (e.has("reps") && !e.isNull("reps")) m.draftReps = e.optInt("reps");
+                }
+                v.members.add(m);
+            }
+            v.canAdjust = s.canAdjust(now);
             if (!v.paused && !v.canComplete) v.openApp = s.stalled(now) ? OpenAppReason.STALLED : OpenAppReason.VALUES;
             JSONArray steps = snap.optJSONArray("steps");
             JSONObject nx = steps != null && steps.length() > 1 ? steps.optJSONObject(1) : null;
@@ -99,6 +124,7 @@ public final class LockView {
             v.restSetAt = s.rest.optLong("setAt");
         }
         v.stalledAt = s.stallsAt();
+        v.draftLost = s.draftLost;
         return v;
     }
 }

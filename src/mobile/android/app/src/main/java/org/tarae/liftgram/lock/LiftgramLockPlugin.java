@@ -29,16 +29,20 @@ import org.json.JSONObject;
  */
 @CapacitorPlugin(name = "LiftgramLock")
 public class LiftgramLockPlugin extends Plugin {
-    static final String VERSION = "1.1.0";
+    // [원본] static final String VERSION = "1.1.0";
+    static final String VERSION = "1.2.0"; // SPEC-019 잠금화면 운동 화면(features lockScreen)
     private static volatile java.lang.ref.WeakReference<LiftgramLockPlugin> instance = new java.lang.ref.WeakReference<>(null);
     /** 화면에 보이나(onStart~onStop) — 웹 visibilityState 와 같은 기준이라 소리 담당이 한쪽만(REV-007 플랫폼 M-5 · L-8 기본 false) */
     private static volatile boolean foreground = false;
+    /** 마지막으로 뒤로 간 시각(onStop) — 화면 꺼짐 방송이 onStop 보다 늦게 와도 「앞이었나」를 안다(SPEC-019 · REV-015 플랫폼 M-3) */
+    private static volatile long backgroundedAt = 0;
     private static final int REQ_NOTIF = 7302;
 
     @Override
     public void load() {
         instance = new java.lang.ref.WeakReference<>(this);
         WorkoutNotification.ensureChannel(getContext());
+        LockScreenGate.ensureRegistered(getContext()); // 화면 꺼짐 → 잠금 운동 화면(SPEC-019)
     }
 
     /** 앱이 앞에 있나 — 앞이면 휴식 끝 소리는 웹이 낸다(두 번 울리지 않게). */
@@ -66,10 +70,16 @@ public class LiftgramLockPlugin extends Plugin {
         LockHub.refreshAsync(getContext());
     }
 
+    /** 지금 앞이거나, ms 안에 앞이었나 */
+    public static boolean wasForegroundWithin(long ms) {
+        return isForeground() || (backgroundedAt > 0 && android.os.SystemClock.elapsedRealtime() - backgroundedAt <= ms);
+    }
+
     @Override
     protected void handleOnStop() {
         super.handleOnStop();
         foreground = false;
+        backgroundedAt = android.os.SystemClock.elapsedRealtime();
         // 보이지 않게 되는 순간 — 짧은 휴식이면 shortService 로 시각을 지킨다(메인 스레드는 기다리지 않는다 · 플랫폼 L-5)
         LockHub.refreshAsync(getContext());
     }
@@ -92,9 +102,27 @@ public class LiftgramLockPlugin extends Plugin {
         f.put("session");
         f.put("queue");
         f.put("rest");
+        f.put("lockScreen");
         r.put("features", f);
         r.put("notifications", WorkoutNotification.enabled(getContext())); // 앱 알림 + 카드 채널(플랫폼 L-3)
         r.put("exactAlarm", RestAlarm.canExact(getContext()));
+        // SPEC-019 — 잠금화면 운동 화면 설정 · 전체 화면 알림 허용(알림 · 채널 중요도 · Android 14+ 허용)
+        r.put("lockScreen", LockScreenGate.enabled(getContext()));
+        r.put("fullScreen", LockScreenGate.fullScreenAllowed(getContext()));
+        call.resolve(r);
+    }
+
+    /** 잠금화면 운동 화면 켜기·끄기(프로필 · 기본 켜짐) */
+    @PluginMethod
+    public void setLockScreen(PluginCall call) {
+        Boolean on = call.getBoolean("enabled");
+        if (on == null) {
+            call.reject("enabled 없음");
+            return;
+        }
+        LockScreenGate.setEnabled(getContext(), on);
+        JSObject r = new JSObject();
+        r.put("lockScreen", on);
         call.resolve(r);
     }
 
@@ -108,6 +136,7 @@ public class LiftgramLockPlugin extends Plugin {
         try {
             JSONObject next = new JSONObject(snap.toString());
             boolean accepted = store().write(s -> s.update(next, System.currentTimeMillis()));
+            LockScreenGate.ensureRegistered(getContext());
             LockHub.refresh(getContext());
             askNotificationsOnce();
             JSObject r = new JSObject();
@@ -201,6 +230,16 @@ public class LiftgramLockPlugin extends Plugin {
         Intent i;
         if ("exactAlarm".equals(kind) && Build.VERSION.SDK_INT >= 31) {
             i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + ctx.getPackageName()));
+        } else if ("fullScreen".equals(kind) && Build.VERSION.SDK_INT >= 34 && NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+                && !ctx.getSystemService(android.app.NotificationManager.class).canUseFullScreenIntent()) {
+            // 전체 화면 알림 허용(SPEC-019 · REV-014 #27)
+            i = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, Uri.parse("package:" + ctx.getPackageName()));
+        } else if ("fullScreen".equals(kind) && Build.VERSION.SDK_INT >= 26 && NotificationManagerCompat.from(ctx).areNotificationsEnabled()) {
+            // 허용은 됐는데 채널 중요도가 낮다 — 그 채널 설정으로
+            LockScreenGate.ensureChannel(ctx);
+            i = new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, ctx.getPackageName())
+                    .putExtra(Settings.EXTRA_CHANNEL_ID, LockScreenGate.CHANNEL);
         } else if (Build.VERSION.SDK_INT >= 26 && NotificationManagerCompat.from(ctx).areNotificationsEnabled()) {
             // 앱 알림은 켜져 있고 카드 채널만 꺼짐 — 채널 설정으로 바로
             WorkoutNotification.ensureChannel(ctx);

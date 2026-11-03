@@ -1,0 +1,523 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "SRS-100: 운동 중에 화면을 켜면 갤럭시 잠금화면 대신 앱의 운동 화면이 전체로 보여야 한다. 안드로이드에서 기기 잠금화면 자체를 바꾸는 공개 API는 없다. 앱이 할 수 있는 것은 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "잠금화면 위에 자기 화면을 띄우는 것",
+            "type": "text"
+          },
+          {
+            "text": "(알람·전화 앱 방식)뿐이다. 또 앱이 뒤에 있을 때 화면을 직접 띄우는 것은 안드로이드 10부터 막혀 있다(백그라운드 액티비티 시작 제한).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "전용 액티비티 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "LockWorkoutActivity",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 만든다: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setShowWhenLocked(true)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 휴식 끝일 때만 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "setTurnScreenOn(true)",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "exported=false",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "띄우는 길",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 같은 길 하나를 둘이 쓴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "화면 꺼짐(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "ACTION_SCREEN_OFF",
+                            "type": "text"
+                          },
+                          {
+                            "text": " — 앱 프로세스가 살아 있는 동안 등록)",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "휴식 끝 알람(",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "code"
+                              }
+                            ],
+                            "text": "RestAlarm.onRestDone",
+                            "type": "text"
+                          },
+                          {
+                            "text": ")",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  },
+                  {
+                    "content": [
+                      {
+                        "content": [
+                          {
+                            "text": "이때 높은 중요도·무음 채널에 ",
+                            "type": "text"
+                          },
+                          {
+                            "marks": [
+                              {
+                                "type": "strong"
+                              }
+                            ],
+                            "text": "전체 화면 알림(fullScreenIntent)",
+                            "type": "text"
+                          },
+                          {
+                            "text": "을 게시한다. 기기가 잠겨 있거나 화면이 꺼져 있으면 시스템이 그 액티비티를 바로 연다. 액티비티는 열리자마자 그 알림을 지운다.",
+                            "type": "text"
+                          }
+                        ],
+                        "type": "paragraph"
+                      }
+                    ],
+                    "type": "list_item"
+                  }
+                ],
+                "type": "bullet_list"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "화면은 SRS-096의 저장소(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "LockHub",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")·규칙(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "LockState",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")을 그대로 쓴다. 완료는 같은 대기열 조작이고, 바꾼 무게·횟수는 조작의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "values",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 싣는다(웹 drain이 출처 user로 쓴다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "잠금이 풀린 상태면 액티비티는 곧바로 닫는다(일반 사용을 막지 않는다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "포그라운드 서비스는 두지 않는다(ADR-046 유지).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "포그라운드 서비스로 프로세스를 붙잡기",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 화면 꺼짐을 늘 받을 수 있다. 하지만 배터리·상시 알림 부담이 있고, 안드로이드 14부터는 서비스 형식 선언(specialUse)이 필요하다. 첫 판에서는 하지 않는다. 피드백으로 「가끔 안 뜬다」가 나오면 다시 본다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "MainActivity 자체를 showWhenLocked로",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 잠금 해제 없이 앱 전체(기록·프로필)가 보인다. 보안상 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "갤럭시 나우바만",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 작은 알약이라 조작하기 어렵다. 사용자가 고르지 않았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "안드로이드 14+에서 전체 화면 알림 권한(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "USE_FULL_SCREEN_INTENT",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")은 플레이가 전화·알람 앱이 아니면 회수한다. 자체 배포는 설치 때 허용되지만, 사용자가 끌 수 있다. 꺼져 있으면 프로필에서 설정 화면으로 안내한다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "플레이 빌드를 만들 때는 이 기능을 다시 판단해야 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프로세스가 죽은 뒤(오래 뒤에 있었음) 잠그면 화면 꺼짐을 받지 못해 운동 화면이 뜨지 않는다. 이때는 휴식 끝 알람과 알림 카드가 대신한다(알려진 한계).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "잠금화면 위 화면에는 운동 데이터(종목·무게)만 보인다. 기록·프로필·다른 앱은 기기 잠금 해제를 거친다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "안드로이드 14+에서는 오래 백그라운드에 있던(cached) 앱이나 삼성 「절전 앱」으로 정한 앱에 화면 꺼짐 방송이 늦게 오거나 오지 않는다. 이때도 휴식 끝 경로와 카드가 대신한다. 실기기 확인은 「앱을 보다가 끔」과 「다른 앱을 보다가 끔」을 나눠 한다(REV-014).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "잠금을 풀지 않은 사람도 운동 기록 값(무게·횟수)을 바꿔 완료할 수 있다. 진행 중 운동의 현재 세트만 바꿀 수 있고, 값 범위를 검사하며, 앱에서 고칠 수 있다. 이 위험은 받아들인다(REV-014).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "ADR-048",
+  "meta": {},
+  "relations": {
+    "informs": [
+      "SRS-096",
+      "SRS-100"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "잠금화면 위 운동 화면 = showWhenLocked 전용 액티비티 + 화면 꺼짐·휴식 끝에 전체 화면 알림(FSI)으로 띄움 · 포그라운드 서비스 없음",
+  "type": "ADR",
+  "updated": "2026-11-03T13:35:27Z"
+}

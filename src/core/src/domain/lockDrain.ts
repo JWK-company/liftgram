@@ -8,7 +8,7 @@
 // 「세트는 남고 워터마크는 없음」으로 끊기면 다음 drain 이 같은 조작을 다시 적용한다 — 이미 완료라 noop 이고, noop 이어도
 // ②를 다시 돌려 완료~채우기 사이에 끊긴 채우기를 되살린다(REV-005 도메인 M-8).
 // 저장소는 주입한다(메모리 DB 단위 테스트 · 웹 셸).
-import { alreadyApplied, planRoundFills, type LockAction, type LockApplyVerdict, type LockExpect, type LockWatermark, type SimBlock } from './lockScreen';
+import { alreadyApplied, planRoundFills, wellFormedValues, type LockAction, type LockApplyVerdict, type LockExpect, type LockWatermark, type SimBlock } from './lockScreen';
 
 export interface LockDrainMismatch {
   setId: string;
@@ -79,7 +79,9 @@ export function wellFormed(a: unknown): a is LockAction {
     Array.isArray(x.setIds) &&
     x.setIds.every((id) => typeof id === 'string') &&
     Array.isArray(x.expect) &&
-    typeof x.at === 'number'
+    typeof x.at === 'number' &&
+    // 잠금 운동 화면이 바꾼 값(SPEC-019) — 있으면 형식까지(깨졌으면 조작 전체를 버린다 · 값만 빼고 완료하지 않는다)
+    wellFormedValues(x.values)
   );
 }
 

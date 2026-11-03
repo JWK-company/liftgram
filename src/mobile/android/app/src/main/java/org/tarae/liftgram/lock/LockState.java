@@ -28,6 +28,17 @@ public final class LockState {
     public long rungEndsAt;
     /** 그리기 세대 — 쓰기마다 오른다(늦게 온 옛 그림을 버린다 · 계약 M-3) */
     public long gen;
+    /**
+     * 잠금 운동 화면에서 고르는 중인 값(SPEC-019 · REV-014 화면 H-4) — {token, v: {setId: {weight, reps}}}.
+     * 화면이 다시 만들어져도 남게 저장소에 둔다. 단계(token)가 바뀌면 버리고 draftLost 를 한 번 켠다.
+     */
+    public JSONObject draft;
+    public boolean draftLost;
+    /**
+     * 잠금에서 값을 고쳐 완료한 블록(weId → 그 조작 seq · REV-014 #37). 그 블록의 남은 처방 세트(refill)는 사본의 표시값이
+     * 옛 계산이라, 완료할 때 보인 값을 그대로 values 로 싣는다. 웹이 그 seq 까지 반영한 스냅샷을 보내면 지운다.
+     */
+    public JSONObject editedWe;
 
     public static LockState fresh() {
         LockState s = new LockState();
@@ -48,6 +59,9 @@ public final class LockState {
             s.endedSessionId = o.isNull("endedSessionId") ? null : o.optString("endedSessionId", null);
             s.rungEndsAt = o.optLong("rungEndsAt");
             s.gen = o.optLong("gen");
+            s.draft = o.optJSONObject("draft");
+            s.draftLost = o.optBoolean("draftLost");
+            s.editedWe = o.optJSONObject("editedWe");
             JSONArray q = o.optJSONArray("queue");
             if (q != null) for (int i = 0; i < q.length(); i++) s.queue.add(q.getJSONObject(i));
             return s;
@@ -67,6 +81,9 @@ public final class LockState {
             o.put("endedSessionId", endedSessionId == null ? JSONObject.NULL : endedSessionId);
             o.put("rungEndsAt", rungEndsAt);
             o.put("gen", gen);
+            o.put("draft", draft == null ? JSONObject.NULL : draft);
+            o.put("draftLost", draftLost);
+            o.put("editedWe", editedWe == null ? JSONObject.NULL : editedWe);
             JSONArray q = new JSONArray();
             for (JSONObject e : queue) q.put(e);
             o.put("queue", q);
@@ -117,6 +134,9 @@ public final class LockState {
         snapshot = s;
         if (mine) forgetCovered();
         endedSessionId = null;
+        if (sessionChanged) editedWe = null;
+        else if (mine) pruneEditedWe(applied);
+        dropStaleDraft();
         return true;
     }
 
@@ -129,6 +149,9 @@ public final class LockState {
         if (snapshot != null) endedSessionId = snapshot.optString("sessionId", null);
         snapshot = null;
         rest = null;
+        draft = null;
+        draftLost = false;
+        editedWe = null;
     }
 
     /** 웹 drain — ack 안 된 조작 전부 · 지금 휴식 · storeId. */
@@ -199,11 +222,32 @@ public final class LockState {
         return st != null && !snapshot.optBoolean("paused") && !st.optBoolean("openApp") && !stalled(now);
     }
 
+    /** 이 웹이 조작의 values 를 아나(스냅샷 caps · REV-014 #40) — 옛 웹은 values 를 조용히 버리므로 조정을 끈다. */
+    public boolean hasValuesCap() {
+        JSONArray caps = snapshot == null ? null : snapshot.optJSONArray("caps");
+        if (caps != null) for (int i = 0; i < caps.length(); i++) if ("values".equals(caps.optString(i))) return true;
+        return false;
+    }
+
+    /** 무게·횟수 ± 를 켤 수 있나 — 완료할 수 있고(막힘 아님) 웹이 values 를 안다(REV-014 #34·#40). */
+    public boolean canAdjust(long now) {
+        return canComplete(now) && hasValuesCap();
+    }
+
     /**
      * 잠금 중 「완료」 — 지금 보이는 단계의 setIds 를 조작에 고정하고 사본에서 뺀다(같은 rebase 함수) · 단계 휴식을 건다.
      * 누를 수 없는 상태면 null(낡은 알림의 버튼이 늦게 닿은 경우 — 화면이 바뀌었으니 아무것도 하지 않는다).
      */
+    // [원본] return pressComplete(now, token, true); — 카드 버튼이 화면에 안 보이는 초안 값으로 완료했다(REV-015 정합성 #3)
     public JSONObject pressComplete(long now, String token) throws JSONException {
+        return pressComplete(now, token, false);
+    }
+
+    /**
+     * withDraft — 잠금 운동 화면에서 고른 값(draft · 같은 token 일 때만)을 조작의 values 로 싣는다(SPEC-019).
+     * 바꾸지 않은 필드는 null · 바꾼 것이 하나도 없는 멤버는 빼고, 하나도 없으면 values 키 자체를 넣지 않는다(옛 조작과 같은 모양).
+     */
+    public JSONObject pressComplete(long now, String token, boolean withDraft) throws JSONException {
         if (!canComplete(now)) return null;
         JSONObject st = currentStep();
         // 버튼이 본 단계와 지금 단계가 다르면(연타 두 번째 · 낡은 카드) 아무것도 하지 않는다
@@ -232,6 +276,17 @@ public final class LockState {
         }
         a.put("expect", expect);
         a.put("at", now);
+        // [원본] JSONArray values = withDraft ? draftValues(st) : null; — 옛 웹(caps 없음)에도 실었고, 낡은 처방값 멤버를 몰랐다
+        // [개선] caps 가 있을 때만 · 고른 값(draft) + 같은 블록 앞 세트를 고쳤던 처방 세트의 보인 값(REV-014 #37·#40)
+        Set<String> editedNow = new HashSet<>();
+        JSONArray values = hasValuesCap() ? completeValues(st, withDraft, editedNow) : null;
+        if (values != null && values.length() > 0) a.put("values", values);
+        if (!editedNow.isEmpty()) {
+            if (editedWe == null) editedWe = new JSONObject();
+            for (String we : editedNow) editedWe.put(we, seq);
+        }
+        draft = null;
+        draftLost = false;
         JSONObject entry = new JSONObject();
         entry.put("action", a);
         entry.put("acked", false);
@@ -241,6 +296,141 @@ public final class LockState {
         long restSec = st.optLong("restAfterSec");
         if (restSec > 0) rest = restAt(now + restSec * 1000L, restSec, now);
         return a;
+    }
+
+    /** 고르는 중인 값 하나를 적는다 — 지금 단계(token)의 멤버만. 원래 값으로 돌아오면 그 필드는 지운다. 받으면 true. */
+    public boolean setDraft(String token, String setId, Double weight, Integer reps) throws JSONException {
+        JSONObject st = currentStep();
+        if (st == null || token == null || !token.equals(stepToken(st))) return false;
+        if (!hasValuesCap()) return false; // 옛 웹은 values 를 버린다(REV-014 #40)
+        JSONObject m = memberOf(st, setId);
+        if (m == null) return false;
+        if (draft == null || !token.equals(draft.optString("token"))) {
+            draft = new JSONObject();
+            draft.put("token", token);
+            draft.put("v", new JSONObject());
+        }
+        JSONObject d = m.optJSONObject("display");
+        Double w0 = d == null || d.isNull("weight") ? null : d.optDouble("weight");
+        Integer r0 = d == null || d.isNull("reps") ? null : d.optInt("reps");
+        JSONObject e = new JSONObject();
+        if (weight != null && !LockRules.sameWeight(weight, w0)) e.put("weight", weight);
+        if (reps != null && !reps.equals(r0)) e.put("reps", reps);
+        if (e.length() > 0) {
+            // 고를 때 본 원래 값 — 같은 단계의 새 스냅샷이 표시값을 바꾸면 이 초안은 버린다(REV-014 #48)
+            e.put("w0", w0 == null ? JSONObject.NULL : w0);
+            e.put("r0", r0 == null ? JSONObject.NULL : r0);
+        }
+        JSONObject v = draft.getJSONObject("v");
+        if (e.length() == 0) v.remove(setId);
+        else v.put(setId, e);
+        return true;
+    }
+
+    /** 이 단계의 고르는 중인 값(setId → {weight?, reps?}) — 다른 단계면 빈 것. */
+    public JSONObject draftFor(String token) {
+        if (draft == null || token == null || !token.equals(draft.optString("token"))) return new JSONObject();
+        JSONObject v = draft.optJSONObject("v");
+        return v == null ? new JSONObject() : v;
+    }
+
+    /** 완료 조작의 values — 멤버마다 고른 값(바꾼 칸만), 없으면 낡은 처방값 멤버의 보인 값. editedNow 에 고른 값이 있던 블록을 담는다. */
+    private JSONArray completeValues(JSONObject st, boolean withDraft, Set<String> editedNow) throws JSONException {
+        JSONObject v = withDraft ? draftFor(stepToken(st)) : new JSONObject();
+        JSONArray out = new JSONArray();
+        JSONArray members = st.optJSONArray("members");
+        if (members == null) return out;
+        for (int i = 0; i < members.length(); i++) {
+            JSONObject m = members.getJSONObject(i);
+            String id = m.getString("setId");
+            String we = m.optString("weId", "");
+            JSONObject e = v.optJSONObject(id);
+            JSONObject x = new JSONObject();
+            x.put("setId", id);
+            if (m.has("unit")) x.put("unit", m.optString("unit")); // 없으면 웹이 블록 단위로(#41 · REV-015 정합성 #6)
+            boolean drafted = e != null && (e.has("weight") || e.has("reps"));
+            // 낡은 처방값 — 채우기는 무게만 바꾸므로 무게만 보인 값으로 싣는다(횟수는 정한 것만 · REV-015 정합성 #2·#4)
+            boolean stale = m.optBoolean("refill") && !we.isEmpty() && editedWe != null && editedWe.has(we);
+            JSONObject d = m.optJSONObject("display");
+            Object shownW = d == null || d.isNull("weight") ? JSONObject.NULL : d.get("weight");
+            if (drafted) {
+                x.put("weight", e.has("weight") ? e.get("weight") : (stale ? shownW : JSONObject.NULL));
+                x.put("reps", e.has("reps") ? e.get("reps") : JSONObject.NULL);
+                out.put(x);
+                if (!we.isEmpty()) editedNow.add(we);
+            } else if (stale && shownW != JSONObject.NULL) {
+                x.put("weight", shownW);
+                x.put("reps", JSONObject.NULL);
+                out.put(x);
+            }
+        }
+        return out;
+    }
+
+    /** 웹이 반영한 seq 까지의 「고친 블록」은 지운다 — 새 스냅샷의 값은 웹이 다시 계산했다. */
+    private void pruneEditedWe(long applied) {
+        if (editedWe == null) return;
+        java.util.Iterator<String> it = editedWe.keys();
+        while (it.hasNext()) if (editedWe.optLong(it.next()) <= applied) it.remove();
+        if (editedWe.length() == 0) editedWe = null;
+    }
+
+    // [원본] 첫 판 — completeValues 로 대신(caps · 낡은 처방값 · 단위). 되돌릴 수 있게 남긴다.
+    @SuppressWarnings("unused")
+    private JSONArray draftValues(JSONObject st) throws JSONException {
+        JSONObject v = draftFor(stepToken(st));
+        JSONArray out = new JSONArray();
+        JSONArray members = st.optJSONArray("members");
+        if (members == null) return out;
+        for (int i = 0; i < members.length(); i++) {
+            String id = members.getJSONObject(i).getString("setId");
+            JSONObject e = v.optJSONObject(id);
+            if (e == null || e.length() == 0) continue;
+            JSONObject x = new JSONObject();
+            x.put("setId", id);
+            x.put("weight", e.has("weight") ? e.get("weight") : JSONObject.NULL);
+            x.put("reps", e.has("reps") ? e.get("reps") : JSONObject.NULL);
+            out.put(x);
+        }
+        return out;
+    }
+
+    private static JSONObject memberOf(JSONObject st, String setId) {
+        JSONArray ms = st.optJSONArray("members");
+        if (ms != null) for (int i = 0; i < ms.length(); i++) {
+            JSONObject m = ms.optJSONObject(i);
+            if (m != null && setId.equals(m.optString("setId"))) return m;
+        }
+        return null;
+    }
+
+    /** 새 스냅샷으로 단계가 바뀌었으면 고르던 값을 버린다 — 고른 것이 있었으면 한 번 알린다(화면 H-4). */
+    private void dropStaleDraft() {
+        if (draft == null) return;
+        JSONObject st = currentStep();
+        JSONObject v = draft.optJSONObject("v");
+        if (st != null && stepToken(st).equals(draft.optString("token"))) {
+            // 같은 단계 — 표시값이 바뀐 멤버의 초안만 버린다(REV-014 #48)
+            if (v == null) return;
+            java.util.Iterator<String> it = v.keys();
+            while (it.hasNext()) {
+                String id = it.next();
+                JSONObject e = v.optJSONObject(id);
+                JSONObject m = memberOf(st, id);
+                JSONObject d = m == null ? null : m.optJSONObject("display");
+                Double w = d == null || d.isNull("weight") ? null : d.optDouble("weight");
+                Integer r = d == null || d.isNull("reps") ? null : d.optInt("reps");
+                Double w0 = e == null || e.isNull("w0") ? null : e.optDouble("w0");
+                Integer r0 = e == null || e.isNull("r0") ? null : e.optInt("r0");
+                if (m == null || !LockRules.sameWeight(w, w0) || !java.util.Objects.equals(r, r0)) {
+                    it.remove();
+                    draftLost = true;
+                }
+            }
+            return;
+        }
+        if (v != null && v.length() > 0) draftLost = true;
+        draft = null;
     }
 
     /** +초 — 진행 중이면 끝 시각을 늘리고, 끝났으면 지금부터. */

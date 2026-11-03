@@ -411,3 +411,149 @@ test('본 값으로 바꾸기 뒤 다시 채우기 — 탑셋 값을 바꾸면 �
   assert.notEqual((await stored(A.setIds[2])).weightKg, 80);
   assert.ok(Math.abs((await stored(A.setIds[1])).weightKg - 99) <= 1.25);
 });
+
+// ── SPEC-019 잠금 운동 화면 — 바꾼 무게·횟수 ─────────────────────────────────────
+
+test('SPEC-019 — values: 바꾼 무게·횟수로 완료(출처 user · mismatch 없음) · lb 블록은 표시 단위 역변환 · 바꾸지 않은 멤버는 그대로', async () => {
+  await reset();
+  const w = await create('workouts', { state: 'active', started_at: 1000, name: 't' });
+  const A = await makeBlock(w, 0, '벤치', null, [[60, 8, null], [60, 8, null]], 'g1');
+  const B = await makeBlock(w, 1, '로우', null, [[lock.LOCK_VALUE_MAX_KG / 20, 10, null]], 'g1', { unit: 'lb' });
+  const e = await epoch();
+  const a = action(
+    w,
+    e,
+    [A.setIds[0], B.setIds[0]],
+    [
+      { setId: A.setIds[0], weightKg: 60, reps: 8 },
+      { setId: B.setIds[0], weightKg: 50, reps: 10 },
+    ],
+    { values: [{ setId: A.setIds[0], weight: 62.5, reps: 6 }] },
+  );
+  const r = await drainLockActions(repo, { actions: [a], dbEpoch: e, now: 9000 });
+  assert.equal(r.applied, 1);
+  assert.equal(r.mismatches.length, 0);
+  const sa = await stored(A.setIds[0]);
+  assert.equal(sa.done, true);
+  assert.equal(sa.weightKg, 62.5);
+  assert.equal(sa.reps, 6);
+  assert.equal(sa.userEdited, true);
+  assert.match(String(sa.source), /user/);
+  const sb = await stored(B.setIds[0]);
+  assert.equal(sb.done, true);
+  assert.equal(sb.weightKg, 50, '바꾸지 않은 멤버는 저장 값 그대로');
+
+  // lb 블록 — 화면에 보인 100(lb) → 45.359237kg
+  const C = await makeBlock(w, 2, '컬', null, [[20, 10, null]], null, { unit: 'lb' });
+  const c = action(w, e, [C.setIds[0]], [], { values: [{ setId: C.setIds[0], weight: 100, reps: null }] });
+  await drainLockActions(repo, { actions: [c], dbEpoch: e, now: 9100 });
+  const sc = await stored(C.setIds[0]);
+  assert.ok(Math.abs(sc.weightKg - 45.359237) < 1e-9);
+  assert.equal(sc.reps, 10, 'reps null 은 그대로');
+});
+
+test('SPEC-019 — values 형식·범위: 깨진 values 는 조작 전체를 버림 · 범위 밖 값만 빼고 완료 · values 없는 옛 조작은 그대로', async () => {
+  assert.equal(lock.wellFormedValues(undefined), true);
+  assert.equal(lock.wellFormedValues([{ setId: 'x', weight: 1, reps: null }]), true);
+  assert.equal(lock.wellFormedValues('x'), false);
+  assert.equal(lock.wellFormedValues([{ setId: 1, weight: 1, reps: 1 }]), false);
+  assert.equal(lock.wellFormedValues([{ setId: 'x', weight: Number.NaN, reps: 1 }]), false);
+  assert.equal(lock.wellFormedValues([{ setId: 'x', weight: '5', reps: 1 }]), false);
+  assert.deepEqual(lock.lockValueToSaved({ setId: 'x', weight: 2000, reps: 5 }, 'kg'), { reps: 5 });
+  assert.deepEqual(lock.lockValueToSaved({ setId: 'x', weight: -1, reps: 1000 }, 'kg'), null);
+  assert.deepEqual(lock.lockValueToSaved({ setId: 'x', weight: 0, reps: 0 }, 'kg'), { weightKg: 0, reps: 0 });
+
+  await reset();
+  const w = await create('workouts', { state: 'active', started_at: 1000, name: 't' });
+  const A = await makeBlock(w, 0, '스쿼트', null, [[100, 5, null], [100, 5, null]]);
+  const e = await epoch();
+  const bad = action(w, e, [A.setIds[0]], [], { values: [{ setId: A.setIds[0], weight: 'x', reps: 5 }] });
+  const r = await drainLockActions(repo, { actions: [bad as never], dbEpoch: e, now: 9000 });
+  assert.equal(r.malformed, 1);
+  assert.equal((await stored(A.setIds[0])).done, false);
+
+  const out = action(w, e, [A.setIds[1]], [], { values: [{ setId: A.setIds[1], weight: 5000, reps: 3 }] });
+  await drainLockActions(repo, { actions: [out], dbEpoch: e, now: 9100 });
+  const s = await stored(A.setIds[1]);
+  assert.equal(s.done, true);
+  assert.equal(s.weightKg, 100, '범위 밖 무게는 버림');
+  assert.equal(s.reps, 3);
+});
+
+// ── REV-014 보강 — 바꾼 칸만 · 남은 칸 「다름」 · 단위 · 낡은 처방값 · 유산소·범위 밖 setId · 멱등 ────────────────────
+
+test('REV-014 #38·#39 — 같은 값은 쓰지 않음(저장 kg·출처 유지) · 정한 칸만 「다름」 비교에서 빼고 남은 칸은 비교', async () => {
+  const lw = lock.lockValueWrite({ setId: 'x', weight: 61.23, reps: 8 }, { weightKg: 61.2349, reps: 8 }, 'kg');
+  assert.deepEqual(lw.write, {}, '표시 정밀도로 같으면 쓰지 않는다');
+  assert.deepEqual(lw.covered, { weight: true, reps: true });
+  assert.deepEqual(lock.lockValueWrite({ setId: 'x', weight: null, reps: 6 }, { weightKg: 60, reps: 8 }, 'kg'), { write: { reps: 6 }, covered: { weight: false, reps: true }, chosen: { reps: 6 } });
+  // 조작에 실린 단위가 블록 단위보다 먼저(#41)
+  const u = lock.lockValueWrite({ setId: 'x', weight: 100, reps: null, unit: 'lb' }, { weightKg: 40, reps: 5 }, 'kg');
+  assert.ok(Math.abs((u.write.weightKg ?? 0) - 45.359237) < 1e-9);
+  assert.equal(lock.wellFormedValues([{ setId: 'x', weight: 1, reps: 1, unit: 'st' }]), false);
+
+  await reset();
+  const w = await create('workouts', { state: 'active', started_at: 1000, name: 't' });
+  const A = await makeBlock(w, 0, '벤치', null, [[60, 8, null], [60, 8, null]], null, { source: 'prev' });
+  const e = await epoch();
+  // 무게는 그대로(60) · 횟수만 6 → 무게 칸 출처 prev 유지
+  await drainLockActions(repo, { actions: [action(w, e, [A.setIds[0]], [{ setId: A.setIds[0], weightKg: 60, reps: 8 }], { values: [{ setId: A.setIds[0], weight: 60, reps: 6 }] })], dbEpoch: e, now: 9000 });
+  const s0 = await stored(A.setIds[0]);
+  assert.equal(s0.reps, 6);
+  assert.equal(s0.weightKg, 60);
+  assert.match(String(s0.source), /^prev,user$/, '무게 칸 출처는 그대로');
+  // 횟수만 정했는데 그 사이 무게가 바뀌었다(본 값 55) → 「다름」은 남는다
+  const r = await drainLockActions(repo, { actions: [action(w, e, [A.setIds[1]], [{ setId: A.setIds[1], weightKg: 55, reps: 8 }], { values: [{ setId: A.setIds[1], weight: null, reps: 7 }] })], dbEpoch: e, now: 9100 });
+  assert.equal(r.mismatches.length, 1, '정하지 않은 무게 칸의 다름은 알린다');
+  assert.equal((await stored(A.setIds[1])).reps, 7);
+  // 안내의 본 값: 무게 = 카드에 본 값 · 횟수 = 잠금에서 정한 값 / 저장 값 = 쓴 뒤(REV-015 정합성 #1)
+  assert.deepEqual([r.mismatches[0].seen.weightKg, r.mismatches[0].seen.reps], [55, 7]);
+  assert.deepEqual([r.mismatches[0].saved.weightKg, r.mismatches[0].saved.reps], [60, 7]);
+  // 「본 값으로 바꾸기」가 잠금에서 고친 횟수를 되돌리지 않는다
+  await repo.applyLockSeenValues([{ setId: A.setIds[1], seen: r.mismatches[0].seen }]);
+  assert.equal((await stored(A.setIds[1])).reps, 7);
+  assert.equal((await stored(A.setIds[1])).weightKg, 55);
+});
+
+test('REV-014 #37 — 탑셋을 잠금에서 고친 뒤 백오프는 보인 값(옛 계산) 그대로 기록 · 「다름」 없음', async () => {
+  await reset();
+  const w = await create('workouts', { state: 'active', started_at: 1000, name: 't' });
+  const A = await makeBlock(w, 0, '벤치', rxTopBackoff, [[100, 5, 'top'], [90, 5, 'backoff'], [80, 5, 'backoff']], null, { source: 'rx' });
+  const e = await epoch();
+  const top = action(w, e, [A.setIds[0]], [{ setId: A.setIds[0], weightKg: 100, reps: 5 }], { values: [{ setId: A.setIds[0], weight: 105, reps: null }] });
+  // 네이티브 사본의 백오프는 옛 계산 90 — 보인 값을 values 로 싣는다
+  const back = action(w, e, [A.setIds[1]], [{ setId: A.setIds[1], weightKg: 90, reps: 5 }], { values: [{ setId: A.setIds[1], weight: 90, reps: 5 }] });
+  const r = await drainLockActions(repo, { actions: [top, back], dbEpoch: e, now: 9000 });
+  assert.equal(r.applied, 2);
+  assert.equal(r.mismatches.length, 0);
+  assert.equal((await stored(A.setIds[0])).weightKg, 105);
+  assert.equal((await stored(A.setIds[1])).weightKg, 90, '사용자가 든 값');
+  assert.equal((await stored(A.setIds[1])).userEdited, true);
+});
+
+test('REV-014 #42·L-5 — 유산소 세트·setIds 밖·이미 완료 세트의 values 무시 · 같은 조작 재적용은 noop(값 그대로)', async () => {
+  await reset();
+  const w = await create('workouts', { state: 'active', started_at: 1000, name: 't' });
+  const A = await makeBlock(w, 0, '스쿼트', null, [[100, 5, null], [100, 5, null]]);
+  const e = await epoch();
+  const a = action(w, e, [A.setIds[0]], [], { values: [{ setId: A.setIds[0], weight: 110, reps: 4 }, { setId: A.setIds[1], weight: 1, reps: 1 }] });
+  await drainLockActions(repo, { actions: [a], dbEpoch: e, now: 9000 });
+  assert.equal((await stored(A.setIds[1])).weightKg, 100, 'setIds 밖 values 는 무시');
+  assert.equal((await stored(A.setIds[1])).done, false);
+  // 같은 조작 재적용(워터마크 뒤 다른 저장소로 다시 와도) — 이미 완료라 값을 덮지 않는다
+  const again = { ...a, id: 'again', storeId: 'S2', values: [{ setId: A.setIds[0], weight: 200, reps: 1 }] };
+  const r2 = await drainLockActions(repo, { actions: [again], dbEpoch: e, now: 9100 });
+  assert.equal(r2.applied, 0, '이미 완료 — 다시 쓰지 않는다');
+  assert.equal((await stored(A.setIds[0])).weightKg, 110);
+  // 유산소(시간 세트)
+  const C = await makeBlock(w, 1, '러닝', null, [[0, 0, null]]);
+  await database.write(async () => {
+    const rec = await database.get('set_logs').find(C.setIds[0]);
+    await rec.update((x) => { (x._raw as unknown as Raw).duration_sec = 600; });
+  });
+  await drainLockActions(repo, { actions: [action(w, e, [C.setIds[0]], [], { values: [{ setId: C.setIds[0], weight: 50, reps: 5 }] })], dbEpoch: e, now: 9200 });
+  const sc = await stored(C.setIds[0]);
+  assert.equal(sc.done, true);
+  assert.equal(sc.weightKg, 0);
+  assert.equal(sc.reps, 0);
+});

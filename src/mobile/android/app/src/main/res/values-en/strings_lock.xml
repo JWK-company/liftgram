@@ -26,4 +26,18 @@
     <string name="lock_open_app_stalled">Open the app to save your sets</string>
     <string name="lock_next">Next: %1$s</string>
     <string name="lock_next_prefix">Next · </string>
+    <!-- Lock-screen workout screen (SPEC-019) -->
+    <string name="lock_screen_unlock">Unlock</string>
+    <string name="lock_screen_close">Close</string>
+    <string name="lock_screen_hold">Hold to complete set</string>
+    <string name="lock_screen_in_app">Open in app</string>
+    <string name="lock_screen_weight">Weight</string>
+    <string name="lock_screen_reps">Reps</string>
+    <string name="lock_screen_rest">Rest</string>
+    <string name="lock_screen_minus">decrease</string>
+    <string name="lock_screen_plus">increase</string>
+    <string name="lock_screen_was">was %1$s</string>
+    <string name="lock_screen_draft_lost">The set changed, so your adjustments were cleared</string>
+    <string name="lock_fullscreen_channel">Workout on lock screen</string>
+    <string name="lock_fullscreen_channel_desc">Shows the workout screen over the lock screen when the screen turns off or rest ends</string>
 </resources>

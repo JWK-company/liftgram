@@ -32,6 +32,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="liftgram" android:host="auth" />
                 <data android:scheme="liftgram" android:host="start" />
+                <!-- 잠금 운동 화면 · 카드에서 잠금 해제 → 앱 운동 화면(SPEC-019 · REV-014 #26) -->
+                <data android:scheme="liftgram" android:host="workout" />
             </intent-filter>
 
             <!-- 앱 링크 — liftgram.tarae.org 링크(피드 공유 등)를 이 앱이 연다 @plm SRS-095. 검증은 웹의 /.well-known/assetlinks.json
@@ -53,6 +55,19 @@
         <receiver
             android:name=".lock.LockActionReceiver"
             android:exported="false" />
+
+        <!-- 잠금화면 위 운동 화면(SPEC-019 · ADR-048) — 앱 안에서만 띄운다(exported=false · FSI·직접 시작) ·
+             앱 작업과 섞이지 않게 taskAffinity 분리 · 최근 앱에 안 보임 · 세로 -->
+        <activity
+            android:name=".lock.LockWorkoutActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity="org.tarae.liftgram.lockscreen"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density|fontScale"
+            android:theme="@style/LockScreenTheme" />
 
         <!-- 정확 알람 권한이 없을 때 3분 미만 휴식의 끝 시각만 지키는 짧은 포그라운드 서비스(ADR-046: 카드는 포그라운드 서비스 없음 · 이것만 예외) -->
         <service
@@ -107,6 +122,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
+    <!-- 잠금화면 위 운동 화면(SPEC-019 · ADR-048) — 화면 꺼짐·휴식 끝에 띄운다. 자체 배포는 설치 때 허용 · 플레이 빌드에서는 다시 판단 -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- 앱 설치 파일 업데이트(SPEC-018) — 자체 배포 전용. **플레이 빌드에서는 빼야 한다**(플레이 정책 · ADR-047 결과) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

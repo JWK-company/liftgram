@@ -36,6 +36,11 @@ public class LockActionReceiver extends BroadcastReceiver {
     }
 
     static void handle(Context ctx, String act, String token) throws Exception {
+        handle(ctx, act, token, false);
+    }
+
+    /** withDraft — 잠금 운동 화면의 완료만 고른 값(초안)을 싣는다. 카드 버튼은 화면에 초안이 안 보이므로 싣지 않는다(REV-015 정합성 #3). */
+    static void handle(Context ctx, String act, String token, boolean withDraft) throws Exception {
         if (ACTION_REST_DONE.equals(act)) {
             RestAlarm.onRestDone(ctx);
             return;
@@ -45,7 +50,7 @@ public class LockActionReceiver extends BroadcastReceiver {
         long now = System.currentTimeMillis();
         boolean fire = false;
         if (ACTION_COMPLETE.equals(act)) {
-            fire = store.write(s -> s.pressComplete(now, token)) != null;
+            fire = store.write(s -> s.pressComplete(now, token, withDraft)) != null;
         } else if (ACTION_PLUS30.equals(act)) {
             fire = store.write(s -> {
                 if (s.snapshot == null) return false;

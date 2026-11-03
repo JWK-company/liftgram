@@ -476,3 +476,45 @@ test('스냅샷 — 12단계 상한을 넘으면 truncated', () => {
   assert.equal(snap.truncated, true);
 });
 
+
+test('SPEC-019 스냅샷 — caps values · 멤버 weId · refill 은 채우기 대상만(pctTop · 1RM 없는 pct1rm · 사람 손 안 탐)', () => {
+  const rx = [
+    rxRow({ setType: 'top' }),
+    rxRow({ setType: 'backoff', loadBasis: 'pctTop', loadPct: 90 }),
+    rxRow({ setType: 'normal' }), // 고정 처방 — 채우기 없음
+    rxRow({ setType: 'backoff', loadBasis: 'pctTop', loadPct: 80 }),
+  ];
+  const A: LockSnapshotBlock = {
+    ...simBlock('A', [{ kg: 100, reps: 5, type: 'top' }, { kg: 90, reps: 5, type: 'backoff' }, { kg: 70, reps: 8 }, { kg: 80, reps: 5, type: 'backoff', touched: true }], rx),
+    exerciseName: '벤치',
+    restSec: 120,
+  };
+  const P: LockSnapshotBlock = {
+    ...simBlock('P', [{ kg: 50, reps: 5 }, { kg: 40, reps: 5 }], [rxRow({}), rxRow({ loadBasis: 'pct1rm', loadPct: 70 })], { has1rm: true }),
+    exerciseName: '로우',
+    restSec: 90,
+  };
+  for (const b of [A, P]) for (const s of b.sets) s.valueSource = 'prev';
+  const snap = buildLockSnapshot({
+    sessionId: 'W',
+    title: 't',
+    rows: [single({ weId: 'A', sets: A.sets }), single({ weId: 'P', sets: P.sets })],
+    blocks: [A, P],
+    rest: { endsAt: null, totalSec: null, setAt: 0, by: 'web' },
+    appliedThroughSeq: 0,
+    storeId: 'S',
+    dbEpoch: 'E',
+    paused: false,
+    sound: { enabled: true, preset: 'bell', volume: 2 },
+    now: 1,
+    restAfter: () => 60,
+  });
+  assert.deepEqual(snap.caps, ['values']);
+  const by = new Map(snap.steps.flatMap((s) => s.members).map((m) => [m.setId, m]));
+  assert.equal(by.get('A1')?.weId, 'A');
+  assert.deepEqual(
+    ['A1', 'A2', 'A3', 'A4', 'P1', 'P2'].map((id) => by.get(id)?.refill),
+    [false, true, false, false, false, false],
+    '탑셋 자신 ✗ · pctTop 백오프 ✓ · 고정 ✗ · 사람이 고친 백오프 ✗ · 1RM 있는 pct1rm ✗',
+  );
+});

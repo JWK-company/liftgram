@@ -27,4 +27,18 @@
     <string name="lock_open_app_stalled">앱을 열어 기록을 반영하세요</string>
     <string name="lock_next">다음: %1$s</string>
     <string name="lock_next_prefix">다음 · </string>
+    <!-- 잠금화면 위 운동 화면(SPEC-019) -->
+    <string name="lock_screen_unlock">잠금 해제</string>
+    <string name="lock_screen_close">닫기</string>
+    <string name="lock_screen_hold">길게 눌러 세트 완료</string>
+    <string name="lock_screen_in_app">앱에서 하기</string>
+    <string name="lock_screen_weight">무게</string>
+    <string name="lock_screen_reps">횟수</string>
+    <string name="lock_screen_rest">쉬는 시간</string>
+    <string name="lock_screen_minus">줄이기</string>
+    <string name="lock_screen_plus">늘리기</string>
+    <string name="lock_screen_was">원래 %1$s</string>
+    <string name="lock_screen_draft_lost">세트가 바뀌어 조정한 값을 지웠어요</string>
+    <string name="lock_fullscreen_channel">잠금화면 운동 화면</string>
+    <string name="lock_fullscreen_channel_desc">화면을 끄거나 쉬는 시간이 끝나면 잠금화면 위에 운동 화면을 띄워요</string>
 </resources>

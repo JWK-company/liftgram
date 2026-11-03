@@ -7,7 +7,7 @@
 // 이 파일은 DB·화면·플랫폼을 모른다(node --test 로 바로 돈다). 저장소에서 값을 모아 넘기는 쪽은 웹 셸(Phase 3)이다.
 import { planPrescribedLoadFills, type LoadFill, type PrescribedSet } from './prescription';
 import { roundKeyOf } from './supersetRound';
-import { displayWeight } from './units';
+import { displayWeight, toKg } from './units';
 import type { WeightUnit } from './types';
 
 // ── 타입(§3) ────────────────────────────────────────────────────────────────
@@ -31,6 +31,10 @@ export interface LockMember {
   oneSide: boolean;
   display: { weight: number | null; reps: number | null; seconds: number | null; distanceM: number | null };
   expect: LockExpect;
+  /** 블록 id(SPEC-019 · REV-014 #37) — 네이티브가 「같은 블록 앞 세트를 고쳐 완료했나」를 묶는다 */
+  weId?: string;
+  /** 처방 다시 채우기 대상(처방 있음 · 사람 손 안 탐) — 같은 블록 앞 세트를 잠금에서 고쳤다면 보인 값이 낡았다 */
+  refill?: boolean;
 }
 
 export interface LockExpect {
@@ -60,7 +64,11 @@ export interface LockSnapshot {
   paused: boolean;
   sound: { enabled: boolean; preset: string; volume: 1 | 2 | 3 };
   updatedAt: number;
+  /** 이 웹이 아는 조작 기능(SPEC-019 · REV-014 #40) — 'values' 가 있어야 네이티브가 무게·횟수 조정을 켠다(옛 웹은 values 를 버린다) */
+  caps?: string[];
 }
+
+export const LOCK_CAPS = ['values'];
 
 export interface LockAction {
   id: string;
@@ -73,6 +81,88 @@ export interface LockAction {
   setIds: string[];
   expect: ({ setId: string } & LockExpect)[];
   at: number;
+  /**
+   * 잠금 운동 화면에서 사람이 바꾼 값(SPEC-019 · SRS-100) — 바꾼 멤버만. weight 는 **카드에 보인 단위**(kg·lb · 한쪽 입력이면 한쪽 값).
+   * 없으면 옛 조작(카드 버튼) — 저장된 값 그대로 완료한다.
+   */
+  values?: LockValue[];
+}
+
+export interface LockValue {
+  setId: string;
+  weight: number | null;
+  reps: number | null;
+  /** 누를 때 보인 단위(REV-014 #41) — 없으면 drain 때 블록 단위 */
+  unit?: WeightUnit;
+}
+
+/** 범위 — 넘으면 그 값만 버린다(완료는 한다) */
+export const LOCK_VALUE_MAX_KG = 1000;
+export const LOCK_VALUE_MAX_REPS = 999;
+
+/** values 의 형식 — 배열 · setId 문자열 · weight·reps 는 유한수 또는 null. 없으면(옛 조작) 통과. */
+export function wellFormedValues(v: unknown): boolean {
+  if (v === undefined) return true;
+  if (!Array.isArray(v)) return false;
+  const num = (x: unknown) => x === null || (typeof x === 'number' && Number.isFinite(x));
+  const unitOk = (u: unknown) => u === undefined || u === 'kg' || u === 'lb';
+  return v.every(
+    (e) =>
+      !!e &&
+      typeof e === 'object' &&
+      typeof (e as LockValue).setId === 'string' &&
+      num((e as LockValue).weight) &&
+      num((e as LockValue).reps) &&
+      unitOk((e as LockValue).unit),
+  );
+}
+
+/**
+ * 바꾼 값 → 저장 값(kg · 정수 횟수). 범위 밖·null 은 그 필드를 뺀다. 둘 다 빠지면 null(바꿀 것 없음).
+ * 표시 단위의 역변환 — 카드의 display.weight = displayWeight(kg, unit) 이므로 toKg 로 돌린다.
+ */
+export function lockValueToSaved(v: LockValue, unit: WeightUnit): { weightKg?: number; reps?: number } | null {
+  const out: { weightKg?: number; reps?: number } = {};
+  if (v.weight != null && v.weight >= 0) {
+    const kg = toKg(v.weight, unit);
+    if (kg <= LOCK_VALUE_MAX_KG) out.weightKg = kg;
+  }
+  if (v.reps != null && v.reps >= 0 && v.reps <= LOCK_VALUE_MAX_REPS) out.reps = Math.round(v.reps);
+  return out.weightKg === undefined && out.reps === undefined ? null : out;
+}
+
+/**
+ * 바꾼 값 → 실제로 쓸 칸(REV-014 #38·#39). 칸마다 범위 안이고 **표시 정밀도로 저장값과 다를 때만** 쓴다 —
+ * 같으면 저장 kg·출처를 그대로 둔다. covered = 사람이 이 칸을 정했다(「다름」 비교에서 뺄 칸 — 같아서 안 써도 정한 것이다).
+ * 단위는 조작에 실린 것(누를 때 본 단위) 우선, 없으면 블록 단위.
+ */
+export function lockValueWrite(
+  v: LockValue,
+  saved: { weightKg: number | null; reps: number | null },
+  blockUnit: WeightUnit,
+): {
+  write: { weightKg?: number; reps?: number };
+  covered: { weight: boolean; reps: boolean };
+  /** 사람이 정한 값(kg · 정수 횟수) — 같아서 안 써도 「다름」 안내의 본 값은 이것(REV-015 정합성 #1) */
+  chosen: { weightKg?: number; reps?: number };
+} {
+  const unit = v.unit ?? blockUnit;
+  const write: { weightKg?: number; reps?: number } = {};
+  const covered = { weight: false, reps: false };
+  const chosen: { weightKg?: number; reps?: number } = {};
+  const t = lockValueToSaved({ setId: v.setId, weight: v.weight, reps: v.reps }, unit);
+  if (t?.weightKg !== undefined) {
+    covered.weight = true;
+    chosen.weightKg = t.weightKg;
+    const same = saved.weightKg != null && displayWeight(saved.weightKg, unit) === displayWeight(t.weightKg, unit);
+    if (!same) write.weightKg = t.weightKg;
+  }
+  if (t?.reps !== undefined) {
+    covered.reps = true;
+    chosen.reps = t.reps;
+    if (saved.reps !== t.reps) write.reps = t.reps;
+  }
+  return { write, covered, chosen };
 }
 
 /** 카드 단계 상한(묶음 한 단계 = 1) — 다 쓰면 카드는 「앱을 열어 다음 세트를 보세요」(SPEC-017 §4-4). */
@@ -496,6 +586,14 @@ export interface LockSnapshotBlock extends SimBlock {
   sets: LockSnapshotSet[];
 }
 
+/** 이 세트가 처방 채우기 대상인가(prescription.planPrescribedLoadFills 와 같은 조건 · 세트 번호 순 자리의 처방) */
+function refillable(b: { sets: LockSetInput[]; rx: PrescribedSet[] | null; has1rm: boolean }, id: string): boolean {
+  const idx = bySetNumber(b.sets).findIndex((x) => x.id === id);
+  const r = idx >= 0 ? b.rx?.[idx] : undefined;
+  if (!r?.loadBasis) return false;
+  return r.loadBasis === 'pctTop' || (r.loadBasis === 'pct1rm' && !b.has1rm);
+}
+
 /** 화면과 같은 라벨 — 워밍업 W · 드롭 D · 실패 F · 탑셋 T · 그 밖(일반·백오프)은 1·2·3(ExerciseBlock 표시 규칙 · REV-005 도메인 M-2). */
 function setLabelOf(s: LockSetInput): string | null {
   if (s.isWarmup) return 'W';
@@ -575,6 +673,10 @@ export function buildLockSnapshot(input: {
           distanceM: cardio && wantsDistance ? cardio.distance : null,
         },
         expect: e,
+        weId: b.weId,
+        // [원본] refill: !cardio && !!b.rx?.length && !s.touched — 채우기 대상보다 넓었다(고정 무게 처방 · 1RM 있는 블록 · REV-015 정합성 #4)
+        // [개선] planPrescribedLoadFills 와 같은 조건 — 그 자리의 처방에 loadBasis 가 있고, pctTop 이거나 1RM 이 없는 pct1rm
+        refill: !cardio && !s.touched && refillable(b, id),
       });
     }
     if (!members.length) continue;
@@ -599,5 +701,6 @@ export function buildLockSnapshot(input: {
     paused: input.paused,
     sound: input.sound,
     updatedAt: input.now,
+    caps: [...LOCK_CAPS],
   };
 }

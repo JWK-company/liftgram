@@ -419,15 +419,27 @@ export function lockAvailable(): boolean {
   return !!lockPlugin();
 }
 
-/** 기능 확인 — 모르면 빈 목록(낡은 껍데기 · 예외 금지). notifications·exactAlarm 은 안드로이드 껍데기 1.1.0+(모르면 null). */
+/**
+ * 기능 확인 — 모르면 빈 목록(낡은 껍데기 · 예외 금지). notifications·exactAlarm 은 안드로이드 껍데기 1.1.0+(모르면 null).
+ * lockScreen(잠금화면 운동 화면 설정) · fullScreen(전체 화면 알림 허용)은 안드로이드 앱 1.3.0+ · 플러그인 1.2.0+(SPEC-019 · 모르면 null).
+ */
 export async function lockInfo(): Promise<{
   version: string;
   features: string[];
   notifications: boolean | null;
   exactAlarm: boolean | null;
+  lockScreen: boolean | null;
+  fullScreen: boolean | null;
 }> {
   const p = lockPlugin();
-  const none = { version: "", features: [], notifications: null, exactAlarm: null };
+  const none = {
+    version: "",
+    features: [],
+    notifications: null,
+    exactAlarm: null,
+    lockScreen: null,
+    fullScreen: null,
+  };
   if (!p || typeof p.info !== "function") return none;
   try {
     const r = await p.info();
@@ -436,6 +448,8 @@ export async function lockInfo(): Promise<{
       features: Array.isArray(r.features) ? (r.features as string[]) : [],
       notifications: typeof r.notifications === "boolean" ? r.notifications : null,
       exactAlarm: typeof r.exactAlarm === "boolean" ? r.exactAlarm : null,
+      lockScreen: typeof r.lockScreen === "boolean" ? r.lockScreen : null,
+      fullScreen: typeof r.fullScreen === "boolean" ? r.fullScreen : null,
     };
   } catch {
     return none;
@@ -468,8 +482,11 @@ export const lock = {
   queueAck: (ids: string[]) => call("queueAck", { ids }),
   /** 리셋(새 DB·계정 비움) 직후 — 옛 DB 의 조작을 지운다(§6). */
   queueClear: () => call("queueClear"),
-  /** 시스템 설정 열기 — 앱 알림(잠금 카드) · 정확한 알람(휴식 끝 시각) · SPEC-017 §11 프로필 「켜기」 */
-  openSettings: (kind: "notifications" | "exactAlarm") => call("openSettings", { kind }),
+  /** 시스템 설정 열기 — 앱 알림(잠금 카드) · 정확한 알람(휴식 끝 시각) · 전체 화면 알림(잠금 운동 화면 · SPEC-019) */
+  // [원본] openSettings: (kind: "notifications" | "exactAlarm") => call("openSettings", { kind }),
+  openSettings: (kind: "notifications" | "exactAlarm" | "fullScreen") => call("openSettings", { kind }),
+  /** 잠금화면 운동 화면 켜기·끄기(SPEC-019 · 기본 켜짐) — 옛 껍데기는 null */
+  setLockScreen: (enabled: boolean) => call("setLockScreen", { enabled }),
   /** 앱이 앞에 있을 때 잠금 조작이 생기면(알림 버튼 등) — 같은 drain 을 깨운다. */
   onAction: async (fn: () => void): Promise<Listener | null> => {
     const p = lockPlugin();

@@ -2,22 +2,45 @@
 // 프로필 설정 줄 — 잠금화면 운동 카드(SPEC-017 §11 · SRS-096). 앱 껍데기(플러그인 있음)에서만 보인다 · 웹 브라우저에서는 아무것도 그리지 않는다.
 // 알림이 꺼져 있으면 카드 자체가 없으므로 「꺼짐 — 켜기」로 시스템 설정을 연다. 정확한 알람이 꺼져 있으면 휴식 끝 소리가 늦을 수 있다고 알린다.
 // ProfileClient 에는 이 줄을 끼우는 한 줄만 둔다(병렬 세션과 겹치는 파일 · 최소 diff).
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { lock, lockAvailable, lockInfo, onAppState } from "@/lib/native";
+import { useToast } from "../Toast";
 import { ListRow } from "../ui/rows";
 
+type LockRowState = {
+  notifications: boolean | null;
+  exactAlarm: boolean | null;
+  lockScreen: boolean | null;
+  fullScreen: boolean | null;
+};
+
+const SWITCH_ROW =
+  "flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
+
 export function LockScreenRow() {
-  const [state, setState] = useState<{ notifications: boolean | null; exactAlarm: boolean | null } | null>(
-    null,
-  );
+  // [원본] useState<{ notifications; exactAlarm } | null> — SPEC-019 에서 잠금 운동 화면 두 값을 더함
+  const [state, setState] = useState<LockRowState | null>(null);
+  const [busy, setBusy] = useState(false);
+  // 연타 막기는 ref 로(상태는 다음 그림까지 늦다) · 토글 중 시작된 읽기는 옛 값이라 버린다(REV-015 화면 #9)
+  const busyRef = useRef(false);
+  const writeGen = useRef(0);
+  const toast = useToast();
   useEffect(() => {
     if (!lockAvailable()) return;
     let alive = true;
-    const read = () =>
+    const read = () => {
+      const gen = writeGen.current;
       void lockInfo().then((r) => {
-        if (alive) setState({ notifications: r.notifications, exactAlarm: r.exactAlarm });
+        if (alive && !busyRef.current && gen === writeGen.current)
+          setState({
+            notifications: r.notifications,
+            exactAlarm: r.exactAlarm,
+            lockScreen: r.lockScreen,
+            fullScreen: r.fullScreen,
+          });
       });
+    };
     read();
     // 설정 화면에서 돌아오면 다시 읽는다
     const onVis = () => document.visibilityState === "visible" && read();
@@ -35,6 +58,22 @@ export function LockScreenRow() {
     };
   }, []);
   if (!state || state.notifications == null) return null;
+  const toggleLockScreen = async () => {
+    if (busyRef.current || state.lockScreen == null) return;
+    const next = !state.lockScreen;
+    busyRef.current = true;
+    writeGen.current += 1;
+    setBusy(true);
+    try {
+      const r = await lock.setLockScreen(next);
+      if (r) setState((s) => (s ? { ...s, lockScreen: next } : s));
+    } catch {
+      toast(t("profile.lockScreenFailed")); // 상태는 그대로(실제 설정과 같게)
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  };
   return (
     <>
       <ListRow
@@ -49,6 +88,43 @@ export function LockScreenRow() {
           title={t("profile.lockExactAlarm")}
           value={t("profile.lockExactOff")}
           onPress={() => void lock.openSettings("exactAlarm")}
+        />
+      ) : null}
+      {/* 잠금화면 위 운동 화면(SPEC-019 · 안드로이드 1.3.0+) — 켜기·끄기는 스위치(REV-014 #12) */}
+      {state.notifications && state.lockScreen != null ? (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={state.lockScreen}
+          aria-busy={busy}
+          aria-label={t("profile.lockScreen")}
+          aria-describedby="lock-screen-hint"
+          data-testid="row-lock-screen"
+          onClick={() => void toggleLockScreen()}
+          className={SWITCH_ROW}
+        >
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate font-medium text-(--color-ink) text-[length:var(--text-md)]">
+              {t("profile.lockScreen")}
+            </span>
+            <span
+              id="lock-screen-hint"
+              className="break-words text-(--color-ink2) text-[length:var(--text-sm)]"
+            >
+              {t("profile.lockScreenHint")}
+            </span>
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-(--color-ink2) text-[length:var(--text-sm)]">
+            {state.lockScreen ? t("profile.lockOn") : t("profile.lockOff")}
+          </span>
+        </button>
+      ) : null}
+      {state.notifications && state.lockScreen && state.fullScreen === false ? (
+        <ListRow
+          testId="row-lock-fullscreen"
+          title={t("profile.lockScreenPermission")}
+          value={t("profile.lockScreenNeedsPermission")}
+          onPress={() => void lock.openSettings("fullScreen")}
         />
       ) : null}
     </>

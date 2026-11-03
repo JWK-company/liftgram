@@ -62,7 +62,7 @@ import {
 } from '../domain/recordSlots'; // ADR-034 지난 조합 · ADR-037 한쪽 입력 @plm SRS-057 SRS-058
 import { scheduleSync } from '../sync/syncEngine'; // 운동 완료 후 서버 동기 트리거(@plm SRS-006)
 import { randomId } from '../utils/id';
-import { decodeValueSource, encodeValueSource, withFieldSource, type ValueSource, type SimBlock } from '../domain/lockScreen'; // v27 값 출처(잠금화면 「앱 열기」 · SPEC-017)
+import { decodeValueSource, encodeValueSource, withFieldSource, lockValueWrite, type ValueSource, type SimBlock } from '../domain/lockScreen'; // v27 값 출처(잠금화면 「앱 열기」 · SPEC-017)
 import {
   clampCompletedAt,
   groupSessionRows,
@@ -1039,12 +1039,38 @@ export async function applyLockAction(action: LockAction, dbEpoch: string, now: 
       if (r.done === true) continue; // 이미 완료 — 시각을 덮지 않는다
       const we = weById.get(r.workoutExerciseId);
       const unit = we?.weightUnit ? blockWeightUnit(we) : legacyUnit;
+      // [원본] 잠금 운동 화면에서 사람이 바꾼 값(SPEC-019) — values 가 있으면 무조건 덮어쓰고 「다름」 비교를 통째로 건너뛰었다
+      //   (고치지 않은 칸도 표시 반올림값·출처 user 로 바뀌고, 남은 칸의 다름을 놓쳤다 — REV-014 #38·#39)
+      // const edited = action.values?.find((v) => v.setId === r.id);
+      // const write = edited ? lockValueToSaved(edited, unit) : null;
+      // if (write) { ups.push(r.prepareUpdate((rec) => { writeSetValues(rec, write, 'user'); rec.done = true; rec.completedAt = at; })); continue; }
+      // [개선] 칸마다 — 다를 때만 쓰고(출처 user), 사람이 정한 칸만 비교에서 뺀다. 시간(유산소) 세트의 values 는 무시(#42).
       const seen = action.expect.find((e) => e.setId === r.id);
       const saved: LockExpect = { weightKg: r.weightKg, reps: r.reps, seconds: r.durationSec ?? null };
-      if (seen && !sameAtDisplayPrecision({ weightKg: seen.weightKg, reps: seen.reps, seconds: seen.seconds }, saved, unit))
-        mismatches.push({ setId: r.id, weId: r.workoutExerciseId, exerciseId: we?.exerciseId ?? '', unit, seen: { weightKg: seen.weightKg, reps: seen.reps, seconds: seen.seconds }, saved, workoutId: active.id, oneSide: (r.loadMultiplier ?? 1) > 1 });
+      // [원본] const cardioSet = r.durationSec != null || seen?.seconds != null; — 거리만 재는 유산소가 빠졌다(REV-015 정합성 #5)
+      const cardioSet = r.durationSec != null || r.distanceM != null || seen?.seconds != null;
+      const edited = cardioSet ? undefined : action.values?.find((v) => v.setId === r.id);
+      const ev = edited ? lockValueWrite(edited, saved, unit) : null;
+      const write = ev && (ev.write.weightKg !== undefined || ev.write.reps !== undefined) ? ev.write : null;
+      if (seen) {
+        const cmp = {
+          weightKg: ev?.covered.weight ? saved.weightKg : seen.weightKg,
+          reps: ev?.covered.reps ? saved.reps : seen.reps,
+          seconds: seen.seconds,
+        };
+        // 안내의 본 값 = 사람이 정한 칸은 정한 값 · 저장 값 = 쓴 뒤 — 「본 값으로 바꾸기」가 잠금에서 고친 칸을 되돌리지 않게(REV-015 정합성 #1)
+        const seenOut = {
+          weightKg: ev?.covered.weight ? (ev.chosen.weightKg ?? seen.weightKg) : seen.weightKg,
+          reps: ev?.covered.reps ? (ev.chosen.reps ?? seen.reps) : seen.reps,
+          seconds: seen.seconds,
+        };
+        const savedOut: LockExpect = { ...saved, ...(write ?? {}) };
+        if (!sameAtDisplayPrecision(cmp, saved, unit))
+          mismatches.push({ setId: r.id, weId: r.workoutExerciseId, exerciseId: we?.exerciseId ?? '', unit, seen: seenOut, saved: savedOut, workoutId: active.id, oneSide: (r.loadMultiplier ?? 1) > 1 });
+      }
       ups.push(
         r.prepareUpdate((rec) => {
+          if (write) writeSetValues(rec, write, 'user');
           rec.done = true;
           rec.completedAt = at;
         }),

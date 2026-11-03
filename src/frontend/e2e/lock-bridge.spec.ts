@@ -17,12 +17,15 @@ type Snap = {
     restAfterSec: number;
     members: {
       setId: string;
+      weId?: string;
+      refill?: boolean;
       label: string;
       display: { weight: number | null; reps: number | null };
       expect: { weightKg: number | null; reps: number | null; seconds: number | null };
     }[];
   }[];
   rest: { endsAt: number | null; setAt: number; by: string };
+  caps?: string[];
 };
 type Fake = {
   queue: Record<string, unknown>[];
@@ -32,7 +35,9 @@ type Fake = {
   calls: { name: string; arg?: unknown; t: number }[];
   snapshot: Snap | null;
   drainDelayMs?: number;
-  perm?: { notifications?: boolean; exactAlarm?: boolean };
+  perm?: { notifications?: boolean; exactAlarm?: boolean; lockScreen?: boolean; fullScreen?: boolean };
+  failSet?: boolean;
+  setDelayMs?: number;
 };
 
 /** 가짜 네이티브 — native=false 면 「웹 브라우저」(isNativePlatform false · 플러그인은 있어도 부르면 안 된다). */
@@ -47,6 +52,7 @@ function fakeScript(native: boolean) {
     const LiftgramLock = {
       info: async () => { const s = rec('info'); return { version: 'e2e', features: ['session', 'queue'], ...(s.perm || {}) }; },
       openSettings: async (a) => { rec('openSettings', a); return {}; },
+      setLockScreen: async (a) => { const s = rec('setLockScreen', a); if (s.setDelayMs) await new Promise((r) => setTimeout(r, s.setDelayMs)); if (s.failSet) throw new Error('fail'); s.perm = { ...(s.perm || {}), lockScreen: a.enabled }; save(s); return { lockScreen: a.enabled }; },
       sessionUpdate: async (a) => { rec('sessionUpdate', a); return {}; },
       sessionSetRest: async (a) => { rec('sessionSetRest', a); return {}; },
       sessionEnd: async () => { rec('sessionEnd'); return {}; },
@@ -392,6 +398,79 @@ test.describe("앱(가짜 플러그인) — 프로필 잠금 카드 줄", () => 
     await expect(row).toContainText("켜짐");
     await page.getByTestId("row-lock-exact").click();
     await expect.poll(async () => (await calls(page, "openSettings")).length).toBe(2);
+  });
+});
+
+test.describe("앱(가짜 플러그인) — 잠금 운동 화면(SPEC-019)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(fakeScript(true));
+  });
+  test("사본에 caps values · 멤버 weId — 잠금 화면에서 바꾼 무게·횟수로 완료하면 기록에 그 값(한 번만)", async ({
+    page,
+  }) => {
+    await 카탈로그_준비(page);
+    await 운동_시작(page, "바벨 스쿼트");
+    await 값_적기(page, 0, 0, 100, 5);
+    const snap = await 사본(page, (s) => s.steps[0]?.openApp === false);
+    expect(snap.caps).toContain("values");
+    expect(snap.steps[0].members[0].weId).toBeTruthy();
+    const id = snap.steps[0].setIds[0];
+    const a = await 잠금_완료(page, { values: [{ setId: id, weight: 102.5, reps: 4, unit: "kg" }] });
+    await 앱_복귀(page);
+    await expect(세트(page, 0, 0).getByTestId("set-done")).toHaveAttribute("aria-pressed", "true", {
+      timeout: 10_000,
+    });
+    await expect(세트(page, 0, 0).getByTestId("set-weight")).toHaveValue("102.5");
+    await expect(세트(page, 0, 0).getByTestId("set-reps")).toHaveValue("4");
+    await expect(page.getByTestId("lock-mismatch")).toHaveCount(0);
+    // 같은 조작이 다시 와도(ack 전 죽음) 값을 다시 쓰지 않는다 — 다른 값을 실어 보내도 워터마크로 건너뛴다
+    await patchFake(page, { queue: [{ ...a, values: [{ setId: id, weight: 200, reps: 1, unit: "kg" }] }] });
+    await 앱_복귀(page);
+    await expect.poll(async () => (await fake(page)).queue.length, { timeout: 10_000 }).toBe(0);
+    await page.waitForTimeout(500);
+    await expect(세트(page, 0, 0).getByTestId("set-weight")).toHaveValue("102.5");
+    await expect(세트(page, 0, 0).getByTestId("set-reps")).toHaveValue("4");
+  });
+
+  test("프로필 — 잠금 운동 화면 스위치 · 허용 필요면 설정 열기 · 옛 껍데기(값 없음)면 줄 없음", async ({
+    page,
+  }) => {
+    await 카탈로그_준비(page);
+    await patchFake(page, { perm: { notifications: true, exactAlarm: true } });
+    await page.goto("/profile");
+    await expect(page.getByTestId("row-lock-card")).toContainText("켜짐", { timeout: 15_000 });
+    await expect(page.getByTestId("row-lock-screen")).toHaveCount(0);
+
+    await patchFake(page, {
+      perm: { notifications: true, exactAlarm: true, lockScreen: true, fullScreen: false },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    const sw = page.getByTestId("row-lock-screen");
+    await expect(sw).toHaveAttribute("role", "switch");
+    await expect(sw).toHaveAttribute("aria-checked", "true");
+    await page.getByTestId("row-lock-fullscreen").click();
+    await expect
+      .poll(async () => (await calls(page, "openSettings")).map((c) => (c.arg as { kind: string }).kind))
+      .toEqual(["fullScreen"]);
+    // 허용하고 돌아오면 「허용 필요」 줄이 사라진다
+    await patchFake(page, {
+      perm: { notifications: true, exactAlarm: true, lockScreen: true, fullScreen: true },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("row-lock-fullscreen")).toHaveCount(0);
+    // 실패하면 스위치는 그대로
+    await patchFake(page, { failSet: true });
+    await sw.click();
+    await page.waitForTimeout(300);
+    await expect(sw).toHaveAttribute("aria-checked", "true");
+    await patchFake(page, { failSet: false, calls: [], setDelayMs: 400 });
+    // 연타 — 한 번만 부른다
+    await sw.dblclick();
+    await expect(sw).toHaveAttribute("aria-checked", "false");
+    expect((await calls(page, "setLockScreen")).map((c) => (c.arg as { enabled: boolean }).enabled)).toEqual([
+      false,
+    ]);
+    await expect(page.getByTestId("row-lock-fullscreen")).toHaveCount(0);
   });
 });
 

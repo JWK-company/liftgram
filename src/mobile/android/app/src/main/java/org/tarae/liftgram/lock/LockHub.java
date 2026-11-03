@@ -52,6 +52,11 @@ public final class LockHub {
             LockView v = store(ctx).read(s -> LockView.of(s, System.currentTimeMillis()));
             WorkoutNotification.render(ctx, v);
             RestAlarm.schedule(ctx, v);
+            // 운동이 끝났다 — 잠금 운동 화면·전체 화면 알림도 내린다(SPEC-019 · REV-014 #28)
+            if (!v.active) {
+                LockScreenGate.cancel(ctx);
+                LockWorkoutActivity.finishIfAlive();
+            }
         } catch (Exception e) {
             android.util.Log.w("LiftgramLock", "refresh 실패", e);
         }

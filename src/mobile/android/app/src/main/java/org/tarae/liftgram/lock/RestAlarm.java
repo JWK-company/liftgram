@@ -81,5 +81,7 @@ public final class RestAlarm {
         WorkoutNotification.render(ctx, v);
         schedule(ctx, v);
         if (ring != null && !LiftgramLockPlugin.isForeground() && v.soundEnabled) RestSound.play(ctx, v.soundPreset, v.soundVolume);
+        // 잠금화면 위 운동 화면(SPEC-019 · 잠겼거나 꺼져 있을 때만 화면을 켜서) — 소리는 위에서 이미 냈다(화면은 소리를 내지 않는다)
+        if (ring != null) LockScreenGate.onRestDone(ctx, v);
     }
 }

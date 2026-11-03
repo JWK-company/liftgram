@@ -94,4 +94,30 @@ public final class LockRules {
         if (endsAt == 0) return 0;
         return Math.max(0, (long) Math.ceil((endsAt - now) / 1000.0));
     }
+
+    /** 화면 무게 비교(소수 둘째 자리 — 카드 표시와 같은 정밀도 · SPEC-019) */
+    public static boolean sameWeight(Double a, Double b) {
+        if (a == null || b == null) return a == b;
+        return Math.round(a * 100) == Math.round(b * 100);
+    }
+
+    /** 무게 한 칸(SPEC-019) — kg 2.5 · lb 5 */
+    public static double weightStep(String unit) {
+        return "lb".equals(unit) ? 5.0 : 2.5;
+    }
+
+    /** ± 한 번 — 최소 0 · 소수 둘째 자리. 값이 없으면(null) + 는 한 칸부터, - 는 0. */
+    public static double nudgeWeight(Double cur, String unit, int dir) {
+        double base = cur == null ? 0 : cur;
+        double next = base + dir * weightStep(unit);
+        return Math.max(0, Math.round(next * 100) / 100.0);
+    }
+
+    // [원본] 최소 0 — 「완료 + 0회」가 출처 user 로 남았다(REV-014 #45)
+    // public static int nudgeReps(Integer cur, int dir) { int base = cur == null ? 0 : cur; return Math.max(0, Math.min(999, base + dir)); }
+    /** 횟수 ± 한 번 — 1~999. */
+    public static int nudgeReps(Integer cur, int dir) {
+        int base = cur == null ? 0 : cur;
+        return Math.max(1, Math.min(999, base + dir));
+    }
 }
