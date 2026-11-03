@@ -35,7 +35,15 @@ type Fake = {
   calls: { name: string; arg?: unknown; t: number }[];
   snapshot: Snap | null;
   drainDelayMs?: number;
-  perm?: { notifications?: boolean; exactAlarm?: boolean; lockScreen?: boolean; fullScreen?: boolean };
+  perm?: {
+    notifications?: boolean;
+    exactAlarm?: boolean;
+    lockScreen?: boolean;
+    fullScreen?: boolean;
+    overlay?: boolean;
+    battery?: boolean;
+    diag?: string[];
+  };
   failSet?: boolean;
   setDelayMs?: number;
 };
@@ -471,6 +479,134 @@ test.describe("앱(가짜 플러그인) — 잠금 운동 화면(SPEC-019)", () 
       false,
     ]);
     await expect(page.getByTestId("row-lock-fullscreen")).toHaveCount(0);
+  });
+});
+
+test.describe("앱(가짜 플러그인) — 잠금 운동 화면 진단(SPEC-020)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(fakeScript(true));
+  });
+  test("빠진 허용(다른 앱 위 · 전체 화면 · 배터리)만 줄로 · 누르면 그 설정 · 허용하면 사라짐 · 옛 앱은 없음", async ({
+    page,
+  }) => {
+    await 카탈로그_준비(page);
+    // 옛 앱(값 없음) — 진단 줄 없음
+    await patchFake(page, {
+      perm: { notifications: true, exactAlarm: true, lockScreen: true, fullScreen: true },
+    });
+    await page.goto("/profile");
+    await expect(page.getByTestId("row-lock-screen")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("row-lock-overlay")).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-battery")).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-diag")).toHaveCount(0);
+
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+        // 문자열이 아닌 원소는 버린다(lockInfo 타입 검사)
+        diag: [
+          "11-03 10:00:00 화면 꺼짐 · 직접 시작 못 함",
+          1,
+          null,
+          "11-03 10:00:05 화면 켜짐 · 운동 화면 없음 → 전체 화면 알림",
+        ] as unknown as string[],
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    const ov = page.getByTestId("row-lock-overlay");
+    await expect(ov).toBeVisible();
+    await expect(ov).toContainText("다른 앱 위에 표시 허용");
+    // 다른 앱 위 줄이 전체 화면 줄보다 위(DOM 순서 — 박스가 없으면 거짓 통과하지 않게)
+    const fs = page.getByTestId("row-lock-fullscreen");
+    await expect(fs).toBeVisible();
+    const before = await ov.evaluate(
+      (a, b) => Boolean(a.compareDocumentPosition(b as Node) & Node.DOCUMENT_POSITION_FOLLOWING),
+      await fs.elementHandle(),
+    );
+    expect(before).toBe(true);
+    // 배터리 먼저(다른 앱 위 줄은 안내 토스트를 띄운다 — 토스트가 아래 줄을 가리지 않게)
+    await page.getByTestId("row-lock-battery").click();
+    await expect.poll(async () => (await calls(page, "openSettings")).length).toBe(1);
+    await ov.click();
+    await expect
+      .poll(async () => (await calls(page, "openSettings")).map((c) => (c.arg as { kind: string }).kind))
+      .toEqual(["battery", "overlay"]);
+    await expect(
+      page.getByText("다음 화면에서 '리프트그램'을 찾아 켜 주세요", { exact: false }),
+    ).toBeVisible();
+    // 진단 기록 — 최근 것이 위
+    const diag = page.getByTestId("row-lock-diag");
+    await diag.locator("summary").click();
+    await expect(diag.locator("pre")).toContainText("화면 켜짐");
+    const text = (await diag.locator("pre").textContent()) ?? "";
+    expect(text.indexOf("화면 켜짐")).toBeLessThan(text.indexOf("화면 꺼짐"));
+    expect(text.split("\n")).toHaveLength(2);
+
+    // 허용하고 돌아오면 사라진다
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: true,
+        overlay: true,
+        battery: true,
+        diag: [],
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(ov).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-battery")).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-fullscreen")).toHaveCount(0);
+
+    // 알림이 꺼졌거나 잠금 운동 화면을 끄면 진단 줄 없음
+    await patchFake(page, {
+      perm: {
+        notifications: false,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("row-lock-card")).toContainText("꺼짐");
+    await expect(ov).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-battery")).toHaveCount(0);
+    // 옛 앱(overlay 없음) + 전체 화면만 빠짐 → 전체 화면 줄만
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: "false" as unknown as boolean,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("row-lock-fullscreen")).toBeVisible();
+    await expect(ov).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-battery")).toHaveCount(0);
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: false,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("row-lock-screen")).toHaveAttribute("aria-checked", "false");
+    await expect(ov).toHaveCount(0);
+    await expect(page.getByTestId("row-lock-battery")).toHaveCount(0);
   });
 });
 

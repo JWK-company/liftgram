@@ -26,6 +26,18 @@ public class RestShortService extends Service {
     private final Handler h = new Handler(Looper.getMainLooper());
     private PowerManager.WakeLock lock;
 
+    /** 지금 도나 — 운동 서비스가 같은 카드 id 로 시작하기 전에 이것이 끝나기를 기다린다(SPEC-020 · REV-016 플랫폼 H-5) */
+    static boolean isRunning() {
+        return running;
+    }
+
+    /** 시작을 요청한 시각 — onStartCommand 전에도 「곧 돈다」로 본다(REV-017 서비스 M-1) */
+    private static volatile long requestedAt;
+
+    static boolean isRunningOrRequested() {
+        return running || android.os.SystemClock.elapsedRealtime() - requestedAt < 10_000L;
+    }
+
     static void start(Context ctx, long endsAt) {
         if (Build.VERSION.SDK_INT < 34) return; // shortService 는 Android 14+
         // 다시 시작해도 3분 타임아웃은 처음부터가 아닐 수 있다 — 처음 시작 + 170초를 넘는 끝이면 느슨한 알람에 맡긴다(M-1)
@@ -34,11 +46,13 @@ public class RestShortService extends Service {
             return;
         }
         if (running && endsAt == runningEndsAt) return; // 같은 휴식 — 다시 시작하지 않는다(refresh 되풀이 방지)
+        requestedAt = android.os.SystemClock.elapsedRealtime();
         LockHub.onMain(() -> {
             try {
                 ctx.startForegroundService(new Intent(ctx, RestShortService.class).putExtra(EXTRA_ENDS_AT, endsAt));
             } catch (RuntimeException e) {
                 // 백그라운드 시작 금지 등 — 느슨한 알람이 대신한다
+                requestedAt = 0;
                 android.util.Log.w("LiftgramLock", "shortService 시작 실패", e);
             }
         });
@@ -73,6 +87,7 @@ public class RestShortService extends Service {
         }
         if (!running) firstStartedAt = System.currentTimeMillis();
         running = true;
+        requestedAt = 0;
         if (intent == null || ACTION_STOP.equals(intent.getAction())) {
             finish();
             return START_NOT_STICKY;
@@ -103,6 +118,8 @@ public class RestShortService extends Service {
     }
 
     private void finish() {
+        running = false; // stopSelf ~ onDestroy 사이에 stop 이 새 서비스를 띄우지 않게(REV-017 서비스 L-9)
+        requestedAt = 0;
         h.removeCallbacksAndMessages(null);
         stopForeground(STOP_FOREGROUND_DETACH);
         stopSelf();

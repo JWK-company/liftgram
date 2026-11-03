@@ -30,7 +30,8 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "LiftgramLock")
 public class LiftgramLockPlugin extends Plugin {
     // [원본] static final String VERSION = "1.1.0";
-    static final String VERSION = "1.2.0"; // SPEC-019 잠금화면 운동 화면(features lockScreen)
+    // [원본] static final String VERSION = "1.2.0"; // SPEC-019 잠금화면 운동 화면(features lockScreen)
+    static final String VERSION = "1.3.0"; // SPEC-020 운동 중 포그라운드 서비스 · 「다른 앱 위에 표시」(features lockService · info overlay·service)
     private static volatile java.lang.ref.WeakReference<LiftgramLockPlugin> instance = new java.lang.ref.WeakReference<>(null);
     /** 화면에 보이나(onStart~onStop) — 웹 visibilityState 와 같은 기준이라 소리 담당이 한쪽만(REV-007 플랫폼 M-5 · L-8 기본 false) */
     private static volatile boolean foreground = false;
@@ -60,6 +61,8 @@ public class LiftgramLockPlugin extends Plugin {
     protected void handleOnStart() {
         super.handleOnStart();
         foreground = true;
+        // 앞인 것이 확실한 때 — 운동 서비스를 바로 시작(뒤로 가기 전에 · SPEC-020 · REV-016 수명 M-9)
+        WorkoutService.onAppForeground(getContext());
     }
 
     @Override
@@ -103,12 +106,23 @@ public class LiftgramLockPlugin extends Plugin {
         f.put("queue");
         f.put("rest");
         f.put("lockScreen");
+        f.put("lockService");
         r.put("features", f);
         r.put("notifications", WorkoutNotification.enabled(getContext())); // 앱 알림 + 카드 채널(플랫폼 L-3)
         r.put("exactAlarm", RestAlarm.canExact(getContext()));
         // SPEC-019 — 잠금화면 운동 화면 설정 · 전체 화면 알림 허용(알림 · 채널 중요도 · Android 14+ 허용)
         r.put("lockScreen", LockScreenGate.enabled(getContext()));
         r.put("fullScreen", LockScreenGate.fullScreenAllowed(getContext()));
+        // SPEC-020 — 「다른 앱 위에 표시」 허용 · 운동 서비스가 지금 도나(진단 전용 · 화면에는 안 보임)
+        r.put("overlay", LockScreenGate.overlay(getContext()));
+        r.put("service", WorkoutService.isRunning());
+        // 배터리 최적화 제외(삼성 절전이 서비스까지 멈추지 않게 · REV-016 플랫폼 M-10) · 진단 기록(마지막 30줄)
+        android.os.PowerManager pm = getContext().getSystemService(android.os.PowerManager.class);
+        r.put("battery", Build.VERSION.SDK_INT < 23 || (pm != null && pm.isIgnoringBatteryOptimizations(getContext().getPackageName())));
+        JSArray diag = new JSArray();
+        org.json.JSONArray lines = LockDiag.lines(getContext());
+        for (int k = 0; k < lines.length(); k++) diag.put(lines.optString(k));
+        r.put("diag", diag);
         call.resolve(r);
     }
 
@@ -222,13 +236,20 @@ public class LiftgramLockPlugin extends Plugin {
         }
     }
 
-    /** 설정 화면 열기 — kind: notifications(앱 알림) · exactAlarm(정확한 알람). 프로필의 「켜기」가 부른다. */
+    /** 설정 화면 열기 — kind: notifications(앱 알림) · exactAlarm(정확한 알람) · fullScreen · overlay(다른 앱 위에 표시). 프로필의 「켜기」가 부른다. */
     @PluginMethod
     public void openSettings(PluginCall call) {
         Context ctx = getContext();
         String kind = call.getString("kind", "notifications");
         Intent i;
-        if ("exactAlarm".equals(kind) && Build.VERSION.SDK_INT >= 31) {
+        if ("battery".equals(kind) && Build.VERSION.SDK_INT >= 23) {
+            // 배터리 최적화 제외를 바로 묻는 대화상자(REQUEST_IGNORE_BATTERY_OPTIMIZATIONS · 자체 배포) — 안 열리면 앱 정보로
+            i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:" + ctx.getPackageName()));
+        } else if ("overlay".equals(kind) && Build.VERSION.SDK_INT >= 23) {
+            // 「다른 앱 위에 표시」(SPEC-020) — Android 11+ 은 package: 를 무시하고 목록을 연다(웹이 「리프트그램을 찾아 켜기」 토스트) ·
+            // 안 열리면 아래 catch 가 앱 정보로 · 직접 받은 APK 는 「제한된 설정」으로 회색일 수 있다(앱 정보 ⋮ → 제한된 설정 허용)
+            i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + ctx.getPackageName()));
+        } else if ("exactAlarm".equals(kind) && Build.VERSION.SDK_INT >= 31) {
             i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:" + ctx.getPackageName()));
         } else if ("fullScreen".equals(kind) && Build.VERSION.SDK_INT >= 34 && NotificationManagerCompat.from(ctx).areNotificationsEnabled()
                 && !ctx.getSystemService(android.app.NotificationManager.class).canUseFullScreenIntent()) {
@@ -256,7 +277,14 @@ public class LiftgramLockPlugin extends Plugin {
             ctx.startActivity(i);
             call.resolve();
         } catch (Exception e) {
-            call.reject("설정을 열 수 없음", e);
+            // 기기에 그 설정 화면이 없다 — 앱 정보 화면으로(SPEC-020)
+            try {
+                ctx.startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + ctx.getPackageName()))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                call.resolve();
+            } catch (Exception e2) {
+                call.reject("설정을 열 수 없음", e2);
+            }
         }
     }
 

@@ -39,7 +39,9 @@ public final class RestAlarm {
         PendingIntent p = pi(ctx, LockActionReceiver.ACTION_REST_DONE, 10);
         if (!v.active || v.restEndsAt == null || v.paused) {
             am.cancel(p);
+            am.cancel(pi(ctx, LockActionReceiver.ACTION_REDRAW, 12));
             RestShortService.stop(ctx);
+            WorkoutService.cancelRest();
             return;
         }
         long endsAt = v.restEndsAt;
@@ -47,7 +49,9 @@ public final class RestAlarm {
         if (canExact(ctx)) {
             try {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endsAt, p);
+                am.cancel(pi(ctx, LockActionReceiver.ACTION_REDRAW, 12));
                 RestShortService.stop(ctx);
+                WorkoutService.cancelRest();
                 return;
             } catch (SecurityException e) {
                 // 권한이 막 회수됨 — 아래 느슨한 길로
@@ -55,12 +59,43 @@ public final class RestAlarm {
         }
         // 느슨한 알람은 늘 걸어 둔다(서비스가 거부·중단돼도 언젠가는 울린다)
         am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endsAt, p);
-        if (Build.VERSION.SDK_INT >= 34 && remain > 0 && remain < SHORT_SERVICE_MAX_MS && !LiftgramLockPlugin.isForeground()) {
+        // [원본] shortService 만 — 운동 서비스(SPEC-020)가 돌면 그쪽이 시각을 지킨다(같은 카드 id 를 두 서비스가 쥐지 않게)
+        // if (Build.VERSION.SDK_INT >= 34 && remain > 0 && remain < SHORT_SERVICE_MAX_MS && !LiftgramLockPlugin.isForeground()) {
+        //     RestShortService.start(ctx, endsAt);
+        // } else {
+        //     RestShortService.stop(ctx);
+        // }
+        // [개선]
+        boolean svc = WorkoutService.isRunningOrStarting();
+        Route r = route(false, svc, Build.VERSION.SDK_INT, remain, LiftgramLockPlugin.isForeground());
+        // 서비스가 도는데 15분보다 긴 휴식 — 「끝−15분」에 다시 맞춰 그때부터 서비스가 지킨다(REV-016 수명 L-12)
+        PendingIntent rearm = pi(ctx, LockActionReceiver.ACTION_REDRAW, 12);
+        if (svc && remain > WorkoutService.REST_MAX_MS) am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endsAt - WorkoutService.REST_MAX_MS + 1_000L, rearm);
+        else am.cancel(rearm);
+        if (r == Route.SERVICE) {
+            RestShortService.stop(ctx);
+            WorkoutService.scheduleRest(endsAt);
+        } else if (r == Route.SHORT) {
+            WorkoutService.cancelRest();
             RestShortService.start(ctx, endsAt);
         } else {
             // 늘어나 상한을 넘었거나 앱이 앞 — 돌던 서비스는 정리(옛 끝 시각에 울지 않게 · 플랫폼 H-2)
+            WorkoutService.cancelRest();
             RestShortService.stop(ctx);
         }
+    }
+
+    /** 휴식 끝 시각을 누가 지키나(SPEC-020 §2) */
+    enum Route { EXACT, SERVICE, SHORT, LOOSE }
+
+    /** 순수 판정(JUnit) — 정확 알람 우선 · 운동 서비스(15분 상한) · shortService(34+ · 뒤 · 170초 미만) · 느슨한 알람 */
+    static Route route(boolean canExact, boolean serviceRunning, int sdk, long remainMs, boolean foreground) {
+        if (canExact) return Route.EXACT;
+        if (remainMs <= 0) return Route.LOOSE;
+        // 앱이 앞이면 웹이 휴식을 맡는다 — 보는 동안 wake lock 을 쥐지 않는다(뒤로 가면 onStop 의 refresh 가 다시 고른다 · REV-017 서비스 L-8)
+        if (serviceRunning) return remainMs <= WorkoutService.REST_MAX_MS && !foreground ? Route.SERVICE : Route.LOOSE;
+        if (sdk >= 34 && remainMs < SHORT_SERVICE_MAX_MS && !foreground) return Route.SHORT;
+        return Route.LOOSE;
     }
 
     /**

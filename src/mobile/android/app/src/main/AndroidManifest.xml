@@ -75,6 +75,17 @@
             android:exported="false"
             android:foregroundServiceType="shortService" />
 
+        <!-- 운동 중에만 도는 포그라운드 서비스(SPEC-020 · ADR-049) — 프로세스가 얼지 않게 해 화면 꺼짐·켜짐 방송을 제때 받는다 ·
+             알림은 운동 카드 그대로 · 휴식 끝 시각도 지킨다. 자체 배포 — 플레이 빌드에서는 specialUse 용도를 다시 판단 -->
+        <service
+            android:name=".lock.WorkoutService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="workout_lock_screen: keeps the workout session alive so the lock-screen workout screen appears when the screen turns off" />
+        </service>
+
         <!-- 앱 설치 파일 업데이트(SPEC-018 §5 · ADR-047) — 세션 설치 결과(명시적 Intent 로만 · exported=false) · 업데이트 완료 알림 -->
         <receiver
             android:name=".update.InstallResultReceiver"
@@ -124,6 +135,11 @@
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <!-- 잠금화면 위 운동 화면(SPEC-019 · ADR-048) — 화면 꺼짐·휴식 끝에 띄운다. 자체 배포는 설치 때 허용 · 플레이 빌드에서는 다시 판단 -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- 운동 중 포그라운드 서비스(SPEC-020) · 「다른 앱 위에 표시」 — 앱이 뒤에 있어도 화면 꺼짐에 운동 화면을 직접 띄운다(특별 권한 · 프로필에서 설정을 연다) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 배터리 최적화 제외를 묻는 대화상자(SPEC-020 · 자체 배포 — 플레이 빌드에서는 다시 판단) -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- 앱 설치 파일 업데이트(SPEC-018) — 자체 배포 전용. **플레이 빌드에서는 빼야 한다**(플레이 정책 · ADR-047 결과) -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

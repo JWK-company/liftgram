@@ -13,6 +13,9 @@ type LockRowState = {
   exactAlarm: boolean | null;
   lockScreen: boolean | null;
   fullScreen: boolean | null;
+  overlay: boolean | null;
+  battery: boolean | null;
+  diag: string[];
 };
 
 const SWITCH_ROW =
@@ -38,6 +41,9 @@ export function LockScreenRow() {
             exactAlarm: r.exactAlarm,
             lockScreen: r.lockScreen,
             fullScreen: r.fullScreen,
+            overlay: r.overlay,
+            battery: r.battery,
+            diag: r.diag,
           });
       });
     };
@@ -119,13 +125,53 @@ export function LockScreenRow() {
           </span>
         </button>
       ) : null}
+      {/* 빠진 허용 진단(SPEC-020) — 효과가 큰 「다른 앱 위에 표시」를 위에 · 보조 글로 두 줄을 구별 */}
+      {state.notifications && state.lockScreen && state.overlay === false ? (
+        <ListRow
+          testId="row-lock-overlay"
+          title={t("profile.lockOverlay")}
+          subtitle={t("profile.lockOverlayHint")}
+          wrapSubtitle
+          // 값 칸 대신 꺾쇠 — 긴 제목(영어)이 좁은 폭에서 잘리지 않게(REV-017 웹 #4) · 할 일은 보조 글이 말한다
+          chevron
+          onPress={() => {
+            toast(t("profile.lockOverlayGuide"));
+            void lock.openSettings("overlay");
+          }}
+        />
+      ) : null}
       {state.notifications && state.lockScreen && state.fullScreen === false ? (
         <ListRow
           testId="row-lock-fullscreen"
           title={t("profile.lockScreenPermission")}
+          // [개선] SPEC-020 — 보조 글로 「다른 앱 위에 표시」 줄과 구별
+          subtitle={t("profile.lockScreenPermissionHint")}
+          wrapSubtitle
           value={t("profile.lockScreenNeedsPermission")}
           onPress={() => void lock.openSettings("fullScreen")}
         />
+      ) : null}
+      {state.notifications && state.lockScreen && state.battery === false ? (
+        <ListRow
+          testId="row-lock-battery"
+          title={t("profile.lockBattery")}
+          subtitle={t("profile.lockBatteryHint")}
+          wrapSubtitle
+          chevron
+          onPress={() => void lock.openSettings("battery")}
+        />
+      ) : null}
+      {/* 진단 기록(SPEC-020) — 실기기에서 왜 안 떴는지 보이게(화면 꺼짐·켜짐 · 고른 길 · 결과). 운동 이름·값은 없다.
+          알림이 꺼져 있어도 보인다(일부러 — 원인 확인용) · 기록 문구는 네이티브 한국어 고정(개발 진단용 · REV-017 웹 #5 보류) */}
+      {state.lockScreen && state.diag.length > 0 ? (
+        <details data-testid="row-lock-diag" className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
+          <summary className="min-h-[44px] cursor-pointer focus-visible:outline-2 focus-visible:outline-(--color-brand) py-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)]">
+            {t("profile.lockDiag")}
+          </summary>
+          <pre className="whitespace-pre-wrap break-words text-(--color-ink2) text-[length:var(--text-xs)]">
+            {state.diag.slice().reverse().join("\n")}
+          </pre>
+        </details>
       ) : null}
     </>
   );

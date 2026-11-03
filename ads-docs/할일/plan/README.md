@@ -8,3 +8,4 @@
 | [SRS-100](SRS-100.md) | SRS | 잠금화면 위 전용 운동 화면(안드로이드) — 화면을 켜면 갤럭시 잠금화면 대신 운동 화면 · 세트 완료·무게·횟수 조정·휴식 조작 · 휴식 끝에 화면 켜기 | derives_from → URS-031 |
 | [ADR-047](ADR-047.md) | ADR | 안드로이드 앱 = 새 출시 키 + 사이트 자체 배포(앱 안 업데이트) · PWA → 앱은 패키지 지정 intent 로 일회용 로그인 코드 넘기기 · iOS 는 스토어 출시 뒤 | informs → SRS-095, informs → SRS-099 |
 | [ADR-048](ADR-048.md) | ADR | 잠금화면 위 운동 화면 = showWhenLocked 전용 액티비티 + 화면 꺼짐·휴식 끝에 전체 화면 알림(FSI)으로 띄움 · 포그라운드 서비스 없음 | informs → SRS-096, informs → SRS-100 |
+| [ADR-049](ADR-049.md) | ADR | 잠금화면 운동 화면을 띄우는 길 = 운동 중 포그라운드 서비스(specialUse · 카드 알림) + 「다른 앱 위에 표시」 허용 시 화면 꺼짐에 직접 시작 · 휴식 끝 시각은 서비스가 | informs → SRS-096, informs → SRS-100, supersedes → ADR-048 |

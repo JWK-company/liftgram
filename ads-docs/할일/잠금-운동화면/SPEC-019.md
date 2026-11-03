@@ -81,7 +81,7 @@
 - **완료**:
 
   - 저장소 실행기에서 `s.pressComplete(now, token, true)` → `LockHub.refresh` → `LiftgramLockPlugin.fireAction()`. 카드 버튼과 같은 길이고, 연타는 토큰으로 막는다.
-  - 카드 버튼도 values를 싣는다. 단 초안(draft)은 없으므로 「낡은 처방값」 멤버의 보인 값만 싣는다.
+  - 카드 버튼은 초안을 싣지 않는다(카드에는 초안이 안 보인다 · REV-015). 「낡은 처방값」 멤버의 보인 무게만 싣는다.
 - **+30초·건너뛰기**: 리시버와 같은 `addRest`·`endRest`.
 - **잠금 해제(#26)**: `requestDismissKeyguard`가 성공하면 MainActivity로 `ACTION_VIEW liftgram://workout`(NEW_TASK)을 보내고 닫는다. 매니페스트 intent-filter에 host `workout`을 더한다.
 - **소리(#36)**: 화면은 소리를 내지 않는다. 휴식 끝 소리는 `RestAlarm`(`RestSound`)이 낸다.
@@ -96,10 +96,8 @@
   - 잠겨 있거나 화면이 꺼짐(`!isInteractive || isKeyguardLocked`)
   - 운동 화면이 아직 떠 있지 않음 — 떠 있으면 게시하지 않고 `onNewIntent`로 깨운다(#21)
 - **리시버 등록(#24)**: `LockScreenGate.ensureRegistered(appCtx)` — 정적으로 한 번, `ContextCompat.registerReceiver(…, RECEIVER_NOT_EXPORTED)`로 `ACTION_SCREEN_OFF`·`ACTION_USER_PRESENT`를 등록한다. 플러그인 load와 `sessionUpdate`에서 부른다.
-- **화면 꺼짐**:
-
-  - 앱이 앞이었으면 `startActivity`로 바로 띄운다(#2 — 이 순간에는 앞에서 시작하는 것이 허용된다).
-  - 아니면 FSI 알림(wake=false)을 게시한다.
+- **화면 꺼짐**: 앱이 앞이었으면(2초 안) `startActivity`로 바로 띄워 둔다(#2). 아니면 아무것도 하지 않는다 — 꺼진 기기에 FSI를 쏘면 SystemUI가 화면을 다시 켠다(REV-015).
+- **화면 켜짐**: 잠겨 있고 운동 화면이 없으면 FSI(wake=false)로 띄운다.
 - **휴식 끝**: `RestAlarm.onRestDone`이 실제로 울릴 때(`ring != null`) 켜기 조건을 보고 `show(ctx, true)`. 화면이 이미 떠 있으면 wake intent로 깨운다.
 - **`show` — FSI 알림(#23·#25)**:
 
@@ -135,7 +133,9 @@
 
 영어 문구도 함께 둔다.
 
-## 리뷰 반영(REV-014)
+## 리뷰 반영(REV-014 · REV-015)
+
+코드 리뷰 REV-015(전문가 3명 · 채택 31 · 보류 4)도 반영했다 — 화면 꺼짐은 직접 시작만·화면 켜짐에 FSI · 길게 누르기는 시계 기반 · 완료 버튼은 아래 고정 · 카드 버튼은 초안 없음 · refill 은 채우기 규칙과 같게.
 
 스펙 리뷰 REV-014(전문가 3명 · 49건 · 채택 47 · 보류 2)를 반영했다.
 
@@ -146,28 +146,28 @@
 
 ### Phase 1 — 완료 조작에 무게·횟수 싣기(도메인)
 
-- [ ] `LockAction.values` 타입(`unit` 포함) · `wellFormed` 검사
-- [ ] `applyLockAction`: 칸마다 표시 정밀도로 다를 때만 `writeSetValues(…, 'user')` · 쓴 칸만 「다름」 비교에서 뺌 · 범위 밖 값·시간 세트·setIds 밖 무시
-- [ ] 스냅샷: `caps: ["values"]` · 멤버 `weId`·`filled`
-- [ ] 단위 시험(`src/core/src/domain/__tests__/lockDrain.test.ts`에 더함): wellFormed(옛 조작 통과 · 깨진 values 거절) · 단위 변환(kg·lb · unit 우선) · 범위 · 섞인 멤버 · 같은 값이면 출처 유지 · 남은 칸 「다름」 · 멱등 재적용 · 이미 완료 · 슈퍼셋 한 멤버만
+- [x] `LockAction.values` 타입(`unit` 포함) · `wellFormed` 검사
+- [x] `applyLockAction`: 칸마다 표시 정밀도로 다를 때만 `writeSetValues(…, 'user')` · 쓴 칸만 「다름」 비교에서 뺌 · 범위 밖 값·시간 세트·setIds 밖 무시
+- [x] 스냅샷: `caps: ["values"]` · 멤버 `weId`·`filled`
+- [x] 단위 시험(`src/core/src/domain/__tests__/lockDrain.test.ts`에 더함): wellFormed(옛 조작 통과 · 깨진 values 거절) · 단위 변환(kg·lb · unit 우선) · 범위 · 섞인 멤버 · 같은 값이면 출처 유지 · 남은 칸 「다름」 · 멱등 재적용 · 이미 완료 · 슈퍼셋 한 멤버만
 - **완료 기준**: 단위 시험 · `make verify`
 
 ### Phase 2 — 안드로이드 잠금 운동 화면
 
-- [ ] `LockState`: draft(저장·버림·안내) · `pressComplete(now, token, withDraft)` — 초안 값 + 「낡은 처방값」 멤버의 보인 값을 values로 · caps 없으면 values 없음
-- [ ] `LockView.Member`: setId·weId·filled·조정 가능 여부
-- [ ] `LockWorkoutActivity`(2절) · `LockScreenGate`(3절) · `RestAlarm.onRestDone` 연결 · `ensureRegistered`
-- [ ] 매니페스트: 액티비티 · `USE_FULL_SCREEN_INTENT` · host `workout` · 문구(ko·en)
-- [ ] 플러그인 `info` 두 값 · `setLockScreen` · `openSettings('fullScreen')`
-- [ ] JUnit(순수 모델): draft(바꾼 칸만 · 원래 값이면 지움 · 토큰·표시값 바뀌면 버림+안내) · `pressComplete` values(낡은 처방값 · caps 없으면 없음 · 토큰 불일치 null) · 조정 단계(kg 2.5 · lb 5 · 최소 0 · 횟수 1~999) · 켜기 조건 표(`LockScreenGate.shouldShow`)
+- [x] `LockState`: draft(저장·버림·안내) · `pressComplete(now, token, withDraft)` — 초안 값 + 「낡은 처방값」 멤버의 보인 값을 values로 · caps 없으면 values 없음
+- [x] `LockView.Member`: setId·weId·filled·조정 가능 여부
+- [x] `LockWorkoutActivity`(2절) · `LockScreenGate`(3절) · `RestAlarm.onRestDone` 연결 · `ensureRegistered`
+- [x] 매니페스트: 액티비티 · `USE_FULL_SCREEN_INTENT` · host `workout` · 문구(ko·en)
+- [x] 플러그인 `info` 두 값 · `setLockScreen` · `openSettings('fullScreen')`
+- [x] JUnit(순수 모델): draft(바꾼 칸만 · 원래 값이면 지움 · 토큰·표시값 바뀌면 버림+안내) · `pressComplete` values(낡은 처방값 · caps 없으면 없음 · 토큰 불일치 null) · 조정 단계(kg 2.5 · lb 5 · 최소 0 · 횟수 1~999) · 켜기 조건 표(`LockScreenGate.shouldShow`)
 - **완료 기준**: `./gradlew testDebugUnitTest` · 릴리스 APK 빌드 성공
 
 ### Phase 3 — 프로필 설정 · 배포
 
-- [ ] `src/frontend/lib/native.ts` · `src/frontend/app/components/profile/LockScreenRow.tsx` · i18n
-- [ ] e2e `src/frontend/e2e/lock-bridge.spec.ts`: 가짜 플러그인으로 줄 보임·토글 호출 · 허용 필요 → 설정 열기 · 옛 껍데기(값 없음)면 줄 없음 · drain이 values 조작을 기록에 씀(무게·횟수·완료)
-- [ ] 버전: 앱 1.3.0(versionCode 4) · 웹 0.60.0
-- [ ] 독립 qa code → 커밋 → `src/scripts/deploy-h2500-3.sh`
+- [x] `src/frontend/lib/native.ts` · `src/frontend/app/components/profile/LockScreenRow.tsx` · i18n
+- [x] e2e `src/frontend/e2e/lock-bridge.spec.ts`: 가짜 플러그인으로 줄 보임·토글 호출 · 허용 필요 → 설정 열기 · 옛 껍데기(값 없음)면 줄 없음 · drain이 values 조작을 기록에 씀(무게·횟수·완료)
+- [x] 버전: 앱 1.3.0(versionCode 4) · 웹 0.60.0
+- [x] 독립 qa code → 커밋 → `src/scripts/deploy-h2500-3.sh`
 - **완료 기준**: e2e · `make verify` · 배포 확인(android.json versionCode 4) · 실기기는 사용자 피드백
 
 ## 수용 기준

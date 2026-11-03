@@ -51,6 +51,8 @@ public final class LockHub {
         try {
             LockView v = store(ctx).read(s -> LockView.of(s, System.currentTimeMillis()));
             WorkoutNotification.render(ctx, v);
+            // 운동 중 포그라운드 서비스(SPEC-020) — 휴식 경로(RestAlarm.route)가 「서비스가 도나」를 보므로 먼저 맞춘다
+            WorkoutService.sync(ctx, v);
             RestAlarm.schedule(ctx, v);
             // 운동이 끝났다 — 잠금 운동 화면·전체 화면 알림도 내린다(SPEC-019 · REV-014 #28)
             if (!v.active) {

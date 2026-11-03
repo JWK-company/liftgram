@@ -101,6 +101,18 @@ public class LockWorkoutActivity extends Activity {
         return a != null && !a.isFinishing() && !a.isDestroyed();
     }
 
+    private static volatile long createdAt;
+    private static volatile long newIntentAt;
+
+    /** at(elapsedRealtime) 뒤에 만들어졌나 — 직접 시작이 실제로 열렸는지(BAL 은 막혀도 예외가 없다 · REV-017 잠금 H-1) */
+    static boolean createdSince(long at) {
+        return createdAt >= at;
+    }
+
+    static boolean newIntentSince(long at) {
+        return newIntentAt >= at;
+    }
+
     /** 화면에 보이나(onResume~onPause) — 보이면 새로 띄우지 않고 틱이 다시 그린다 */
     static boolean isVisible() {
         return visible && isAlive();
@@ -111,7 +123,10 @@ public class LockWorkoutActivity extends Activity {
         LockWorkoutActivity a = current.get();
         if (a != null) a.main.post(() -> {
             // 「잠금 해제」 진행 중이면 그 콜백이 앱을 열고 닫는다(REV-015 플랫폼 M-4)
-            if (!a.isFinishing() && !a.dismissing) a.finish();
+            if (!a.isFinishing() && !a.dismissing) {
+                LockDiag.add(a, "운동 화면 닫음: 운동 끝·설정 끔·잠금 해제");
+                a.finish();
+            }
         });
     }
 
@@ -120,6 +135,7 @@ public class LockWorkoutActivity extends Activity {
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
+        createdAt = SystemClock.elapsedRealtime();
         current = new WeakReference<>(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         applyWake(getIntent());
@@ -130,6 +146,7 @@ public class LockWorkoutActivity extends Activity {
         }
         setContentView(build());
         LockScreenGate.cancel(this);
+        LockDiag.add(this, "운동 화면 열림(화면 " + (LockScreenGate.interactive(this) ? "켜짐" : "꺼짐") + " · " + (LockScreenGate.locked(this) ? "잠김" : "안 잠김") + ")");
         // [잠금 판정 통일 · #18] onCreate 에서는 닫지 않는다 — 화면이 꺼진 채 만들어질 수 있다. 판단은 onResume·틱에서.
     }
 
@@ -137,6 +154,8 @@ public class LockWorkoutActivity extends Activity {
     protected void onNewIntent(Intent i) {
         super.onNewIntent(i);
         setIntent(i);
+        newIntentAt = SystemClock.elapsedRealtime();
+        LockDiag.add(this, "운동 화면 다시 받음" + (i != null && i.getBooleanExtra(LockScreenGate.EXTRA_WAKE, false) ? "(화면 켜기)" : ""));
         applyWake(i); // 이미 떠 있는 화면 — 휴식 끝이면 다시 켠다(#20)
         LockScreenGate.cancel(this);
     }
@@ -291,6 +310,7 @@ public class LockWorkoutActivity extends Activity {
         Button close = button(getString(R.string.lock_screen_close), false);
         close.setOnClickListener(x -> {
             if (guarded()) return;
+            LockDiag.add(this, "운동 화면 닫음: 닫기 버튼");
             finish(); // 잠금화면으로(#6)
         });
         top.addView(close, lp(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0));
@@ -376,6 +396,8 @@ public class LockWorkoutActivity extends Activity {
     private void render(LockView v) {
         if (isFinishing() || isDestroyed()) return;
         if (shouldClose(v)) {
+            // 진단(SPEC-020) — 잠금이 아직 안 걸린 채 켜졌으면(삼성 「자동 잠금」 지연 등) 여기서 닫힌다
+            LockDiag.add(this, "운동 화면 닫음: " + (v.active ? "화면 켜짐 · 잠금 안 걸림" : "운동 없음"));
             finish();
             return;
         }
