@@ -6,17 +6,21 @@
 // 누른 순간 기기 DB 를 한 번 더 본다(lib/appUpdate startUpdate) — 셸 상태만 믿지 않는다.
 // 색: 부가 설정 줄이라 회색 상자 버튼(빨강 채움 아님 — 화면 정리 규칙) · 누르는 자리 44px.
 import { updateRowState } from "@app/core/domain/swUpdatePolicy";
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import { APP_VERSION, isMandatoryNow, startUpdate, useAppUpdate } from "@/lib/appUpdate";
 import { tw } from "@/lib/i18n";
 import { useSession } from "../SessionProvider";
 // 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh) — 옛 꼬리 「Liftgram vX (build)」 를 이 줄로 합쳤다(QA code L-5)
 import buildInfo from "../../build-info.json";
+import { appVersionOf } from "@/lib/platform";
 
 export function AppVersionRow() {
   const { activeWorkoutId, activeLoaded } = useSession();
   const upd = useAppUpdate();
   const descId = useId();
+  // @plm SRS-095  스토어 앱이면 껍데기 버전도(웹 번들과 따로 오른다) — 서버 렌더와 어긋나지 않게 마운트 뒤에 읽는다
+  const [shellVersion, setShellVersion] = useState<string | null>(null);
+  useEffect(() => setShellVersion(appVersionOf(navigator.userAgent)), []);
   const row = updateRowState({ available: upd.available, activeLoaded, activeWorkoutId });
   const mandatory = isMandatoryNow(upd);
 
@@ -47,6 +51,7 @@ export function AppVersionRow() {
         </span>
         <span className="text-(--color-ink3) text-[length:var(--text-xs)]" data-testid="app-version">
           build {buildInfo.build}
+          {shellVersion ? ` · 앱 ${shellVersion}` : null}
         </span>
         {subtitle ? (
           <span

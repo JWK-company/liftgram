@@ -15,6 +15,7 @@ import { Button } from "../ui/Button";
 import { TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
 import { useAuthOptions } from "./SocialButtons";
+import { appSignIn } from "@/lib/native";
 import { providerLabel, startUrl } from "./providers";
 
 function errText(e: unknown): string {
@@ -202,7 +203,10 @@ export function SecurityCard() {
                     void run(async () => {
                       // 전면 이동이라 Authorization 헤더를 실을 수 없다 — 2분짜리 표를 받아 들고 나간다.
                       const r = await authClient().createLinkTicket({});
-                      window.location.href = startUrl(p, { link: r.ticket, returnTo: "/account" });
+                      // [원본] window.location.href = startUrl(p, { link: r.ticket, returnTo: "/account" });
+                      // [개선] @plm SRS-095  앱이면 시스템 인증 창으로(연결 표가 URL 에 실려 있어 그 창에서도 누가 연결하는지 안다)
+                      const to = startUrl(p, { link: r.ticket, returnTo: "/account" });
+                      if (!(await appSignIn(to))) window.location.href = to;
                       return "";
                     })
                   }

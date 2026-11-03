@@ -394,3 +394,12 @@ func TestLoginCode_한번만_세션이_된다(t *testing.T) {
 		t.Fatal("같은 코드가 두 번 세션이 됐다")
 	}
 }
+
+// @plm SRS-095
+func (f *fakeAcct) DeleteUserAccount(_ context.Context, id string) (bool, error) {
+	if _, ok := f.base.users[id]; !ok {
+		return false, nil
+	}
+	delete(f.base.users, id)
+	return true, nil
+}

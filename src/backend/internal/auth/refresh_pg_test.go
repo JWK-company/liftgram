@@ -220,3 +220,76 @@ func TestPGReuseDetectionAndExpiry(t *testing.T) {
 		t.Fatal("만료된 토큰이 통했다")
 	}
 }
+
+// @plm SRS-095  계정 삭제 — users 를 참조하는 **모든** 표(information_schema 로 찾는다)에 그 사용자 행이 0개이고,
+// 다른 사용자 행은 그대로다. 표가 새로 생겨 cascade 를 빠뜨리면 여기서 걸린다(qa spec M-10).
+func TestPGDeleteAccountLeavesNoRows(t *testing.T) {
+	svc, pool := pgService(t)
+	svc.WithAccount(Account{Repo: NewRepo(pool).(AccountRepo)})
+	ctx := context.Background()
+	gone, _ := pgSignUp(t, svc)
+	keep, _ := pgSignUp(t, svc)
+	// 둘 사이 대화방 + 지울 사람만 있는 대화방 + 동기 행
+	for _, q := range []string{
+		`INSERT INTO conversations (id) VALUES ('c-both'), ('c-solo')`,
+		`INSERT INTO conversation_participants (conversation_id, user_id) VALUES ('c-both', '` + gone.ID + `'), ('c-both', '` + keep.ID + `'), ('c-solo', '` + gone.ID + `')`,
+		`INSERT INTO sync_records (id, user_id, collection, record_id, payload) VALUES ('s1', '` + gone.ID + `', 'workouts', 'w1', '{}'), ('s2', '` + keep.ID + `', 'workouts', 'w1', '{}')`,
+	} {
+		if _, err := pool.Exec(ctx, q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+	if err := svc.DeleteAccount(ctx, gone.ID, "wrong-pass", DeleteConfirmWord); err == nil {
+		t.Fatal("틀린 비밀번호로 지워졌다")
+	}
+	if err := svc.DeleteAccount(ctx, gone.ID, "password1", "지워"); err == nil {
+		t.Fatal("틀린 확인 문구로 지워졌다")
+	}
+	if err := svc.DeleteAccount(ctx, gone.ID, "password1", DeleteConfirmWord); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := pool.Query(ctx, `
+		SELECT kcu.table_name, kcu.column_name
+		  FROM information_schema.referential_constraints rc
+		  JOIN information_schema.key_column_usage kcu ON kcu.constraint_name = rc.constraint_name
+		  JOIN information_schema.constraint_column_usage ccu ON ccu.constraint_name = rc.unique_constraint_name
+		 WHERE ccu.table_name = 'users'`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	type ref struct{ table, col string }
+	var refs []ref
+	for rows.Next() {
+		var r ref
+		if err := rows.Scan(&r.table, &r.col); err != nil {
+			t.Fatal(err)
+		}
+		refs = append(refs, r)
+	}
+	rows.Close()
+	if len(refs) < 10 {
+		t.Fatalf("users 를 참조하는 표가 %d개뿐이다 — 조회가 틀렸다", len(refs))
+	}
+	for _, r := range refs {
+		var n int
+		if err := pool.QueryRow(ctx, `SELECT count(*) FROM `+r.table+` WHERE `+r.col+` = $1`, gone.ID).Scan(&n); err != nil {
+			t.Fatal(err)
+		}
+		if n != 0 {
+			t.Fatalf("%s.%s 에 지운 사용자 행 %d개", r.table, r.col, n)
+		}
+	}
+	var n int
+	_ = pool.QueryRow(ctx, `SELECT count(*) FROM users WHERE id = $1`, gone.ID).Scan(&n)
+	if n != 0 {
+		t.Fatal("users 행이 남았다")
+	}
+	_ = pool.QueryRow(ctx, `SELECT count(*) FROM sync_records WHERE user_id = $1`, keep.ID).Scan(&n)
+	if n != 1 {
+		t.Fatalf("다른 사용자 동기 행 %d개(1이어야)", n)
+	}
+	_ = pool.QueryRow(ctx, `SELECT count(*) FROM conversations WHERE id IN ('c-both','c-solo')`).Scan(&n)
+	if n != 1 {
+		t.Fatalf("대화방 %d개 — 혼자 남은 방만 지워져야 한다(1)", n)
+	}
+}

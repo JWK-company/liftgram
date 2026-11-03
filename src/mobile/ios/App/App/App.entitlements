@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- @plm SRS-095  앱 권한 — Apple 로그인(심사 4.8). 애플 개발자 계정의 App ID 에 같은 기능이 켜져 있어야 서명된다(K14). -->
+<plist version="1.0">
+<dict>
+	<!-- @plm SRS-095  유니버설 링크 — 웹 /.well-known/apple-app-site-association(IOS_APP_ID) 와 짝 -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:liftgram.tarae.org</string>
+		<string>webcredentials:liftgram.tarae.org</string>
+	</array>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+</dict>
+</plist>

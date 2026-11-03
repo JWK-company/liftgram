@@ -75,6 +75,11 @@ const schema = z.object({
    * 공개 GET /app-version 이 그대로 내보낸다 — 화면이 자기 버전과 비교해 낮으면 덮개로 업데이트한다. @plm SRS-085
    */
   MIN_CLIENT_VERSION: z.string().default(""),
+  // @plm SRS-095  스토어 앱 링크 검증 — 비면 /.well-known 이 404(앱 링크 꺼짐).
+  //   IOS_APP_ID = 「팀ID.번들ID」 · ANDROID_CERT_SHA256 = 플레이 콘솔 「앱 서명」 지문(여러 개면 쉼표)
+  IOS_APP_ID: z.string().default(""),
+  ANDROID_PACKAGE: z.string().default("org.tarae.liftgram"),
+  ANDROID_CERT_SHA256: z.string().default(""),
 });
 export type WebEnv = z.infer<typeof schema>;
 

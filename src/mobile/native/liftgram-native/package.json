@@ -1,0 +1,10 @@
+{
+  "name": "liftgram-native",
+  "version": "0.1.0",
+  "private": true,
+  "description": "리프트그램 앱 껍데기 전용 로컬 Capacitor 플러그인 — 시스템 인증 창(ASWebAuthenticationSession) · Apple 로그인(ASAuthorization). iOS 전용(안드로이드는 @capacitor/browser + 앱 스킴).",
+  "main": "index.js",
+  "files": ["ios/Sources", "Package.swift", "index.js"],
+  "capacitor": { "ios": { "src": "ios" } },
+  "peerDependencies": { "@capacitor/core": "^8.0.0" }
+}

@@ -141,3 +141,13 @@ DELETE FROM auth_identities WHERE user_id = $1 AND provider = $2;
 
 -- name: CountIdentities :one
 SELECT count(*) FROM auth_identities WHERE user_id = $1;
+
+-- @plm SRS-095  계정 삭제 — 사용자를 참조하는 행은 전부 ON DELETE CASCADE(0003~0020)라 users 한 줄로 끝난다.
+-- 손으로 표를 나열하지 않는 이유: 표가 늘 때마다 빠뜨린다(qa spec M-10). 남는 것만 아래에서 따로 지운다.
+-- name: DeleteUser :execrows
+DELETE FROM users WHERE id = $1;
+
+-- 참가자가 하나도 남지 않은 대화방 — conversations 는 사용자 FK 가 없어 cascade 로 안 지워진다.
+-- name: DeleteEmptyConversations :execrows
+DELETE FROM conversations c
+WHERE NOT EXISTS (SELECT 1 FROM conversation_participants p WHERE p.conversation_id = c.id);

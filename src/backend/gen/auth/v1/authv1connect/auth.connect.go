@@ -94,6 +94,9 @@ const (
 	// AuthServiceUnlinkIdentityProcedure is the fully-qualified name of the AuthService's
 	// UnlinkIdentity RPC.
 	AuthServiceUnlinkIdentityProcedure = "/auth.v1.AuthService/UnlinkIdentity"
+	// AuthServiceDeleteAccountProcedure is the fully-qualified name of the AuthService's DeleteAccount
+	// RPC.
+	AuthServiceDeleteAccountProcedure = "/auth.v1.AuthService/DeleteAccount"
 )
 
 // AuthServiceClient is a client for the auth.v1.AuthService service.
@@ -119,6 +122,7 @@ type AuthServiceClient interface {
 	CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error)
 	ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error)
 	UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error)
+	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 }
 
 // NewAuthServiceClient constructs a client for the auth.v1.AuthService service. By default, it uses
@@ -228,6 +232,12 @@ func NewAuthServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(authServiceMethods.ByName("UnlinkIdentity")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteAccount: connect.NewClient[v1.DeleteAccountRequest, v1.DeleteAccountResponse](
+			httpClient,
+			baseURL+AuthServiceDeleteAccountProcedure,
+			connect.WithSchema(authServiceMethods.ByName("DeleteAccount")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -249,6 +259,7 @@ type authServiceClient struct {
 	createLinkTicket      *connect.Client[v1.CreateLinkTicketRequest, v1.CreateLinkTicketResponse]
 	listIdentities        *connect.Client[v1.ListIdentitiesRequest, v1.ListIdentitiesResponse]
 	unlinkIdentity        *connect.Client[v1.UnlinkIdentityRequest, v1.UnlinkIdentityResponse]
+	deleteAccount         *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
 }
 
 // SignUp calls auth.v1.AuthService.SignUp.
@@ -331,6 +342,11 @@ func (c *authServiceClient) UnlinkIdentity(ctx context.Context, req *connect.Req
 	return c.unlinkIdentity.CallUnary(ctx, req)
 }
 
+// DeleteAccount calls auth.v1.AuthService.DeleteAccount.
+func (c *authServiceClient) DeleteAccount(ctx context.Context, req *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error) {
+	return c.deleteAccount.CallUnary(ctx, req)
+}
+
 // AuthServiceHandler is an implementation of the auth.v1.AuthService service.
 type AuthServiceHandler interface {
 	// 가입. 이미 있는 이메일이면 AlreadyExists다 — "로그인해 보세요"를 화면이 안내한다.
@@ -354,6 +370,7 @@ type AuthServiceHandler interface {
 	CreateLinkTicket(context.Context, *connect.Request[v1.CreateLinkTicketRequest]) (*connect.Response[v1.CreateLinkTicketResponse], error)
 	ListIdentities(context.Context, *connect.Request[v1.ListIdentitiesRequest]) (*connect.Response[v1.ListIdentitiesResponse], error)
 	UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error)
+	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
 }
 
 // NewAuthServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -459,6 +476,12 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(authServiceMethods.ByName("UnlinkIdentity")),
 		connect.WithHandlerOptions(opts...),
 	)
+	authServiceDeleteAccountHandler := connect.NewUnaryHandler(
+		AuthServiceDeleteAccountProcedure,
+		svc.DeleteAccount,
+		connect.WithSchema(authServiceMethods.ByName("DeleteAccount")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/auth.v1.AuthService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AuthServiceSignUpProcedure:
@@ -493,6 +516,8 @@ func NewAuthServiceHandler(svc AuthServiceHandler, opts ...connect.HandlerOption
 			authServiceListIdentitiesHandler.ServeHTTP(w, r)
 		case AuthServiceUnlinkIdentityProcedure:
 			authServiceUnlinkIdentityHandler.ServeHTTP(w, r)
+		case AuthServiceDeleteAccountProcedure:
+			authServiceDeleteAccountHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -564,4 +589,8 @@ func (UnimplementedAuthServiceHandler) ListIdentities(context.Context, *connect.
 
 func (UnimplementedAuthServiceHandler) UnlinkIdentity(context.Context, *connect.Request[v1.UnlinkIdentityRequest]) (*connect.Response[v1.UnlinkIdentityResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.UnlinkIdentity is not implemented"))
+}
+
+func (UnimplementedAuthServiceHandler) DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("auth.v1.AuthService.DeleteAccount is not implemented"))
 }

@@ -203,3 +203,18 @@ func (h *Handler) UnlinkIdentity(ctx context.Context, req *connect.Request[authv
 	}
 	return connect.NewResponse(&authv1.UnlinkIdentityResponse{}), nil
 }
+
+// @plm SRS-095  계정 삭제 — 다른 계정 RPC 와 같은 한도(guard)를 탄다(비밀번호 추측 방지).
+func (h *Handler) DeleteAccount(ctx context.Context, req *connect.Request[authv1.DeleteAccountRequest]) (*connect.Response[authv1.DeleteAccountResponse], error) {
+	id, ok := UserIDFrom(ctx)
+	if !ok {
+		return nil, errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	if err := h.guard("password", req.Header()); err != nil {
+		return nil, err
+	}
+	if err := h.svc.DeleteAccount(ctx, id, req.Msg.GetPassword(), req.Msg.GetConfirm()); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&authv1.DeleteAccountResponse{}), nil
+}

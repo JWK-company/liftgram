@@ -5,6 +5,8 @@
 //	프로덕션 빌드에는 그 파일이 컴파일되지 않아 훅이 nil 이다(fake_provider.go 서두 참조).
 package oauth
 
+import "log/slog"
+
 // ProviderConfig — 제공자 하나의 자격증명. 비어 있으면 그 제공자를 켜지 않는다.
 type ProviderConfig struct {
 	ClientID     string
@@ -23,6 +25,8 @@ type Registry struct {
 	Google ProviderConfig
 	Kakao  ProviderConfig
 	Naver  ProviderConfig
+	// @plm SRS-095  Apple(웹 form_post) — 넷이 다 있어야 켠다(apple.go AppleConfig.filled).
+	Apple AppleConfig
 	// KakaoLegacy — 앱 설정에서 OIDC 를 켤 수 없을 때만. 기본은 OIDC 다.
 	KakaoLegacy bool
 }
@@ -39,6 +43,13 @@ func NewRegistry(r Registry) map[string]Provider {
 	if r.Naver.filled() {
 		m["naver"] = NewNaver(r.Naver)
 	}
+	if r.Apple.filled() {
+		if p, err := NewApple(r.Apple); err == nil {
+			m["apple"] = p
+		} else {
+			slog.Error("[oauth] Apple 을 켜지 못했다", "err", err) // 키가 틀리면 조립 시점에 드러난다
+		}
+	}
 	if fakeHook != nil {
 		for _, p := range fakeHook() {
 			m[p.Name()] = p
@@ -49,7 +60,7 @@ func NewRegistry(r Registry) map[string]Provider {
 
 // Names — 화면에 내려보낼 활성 제공자 목록(버튼 순서 고정).
 func Names(m map[string]Provider) []string {
-	order := []string{"google", "kakao", "naver"}
+	order := []string{"google", "kakao", "naver", "apple"}
 	out := make([]string, 0, len(m))
 	for _, n := range order {
 		if _, ok := m[n]; ok {

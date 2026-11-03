@@ -10,6 +10,16 @@ export function BrandMark({ p }: { p: string }) {
     className: "shrink-0",
   } as const;
   switch (p) {
+    // @plm SRS-095  Apple — 흰 사과(검은 버튼 · Apple 휴먼 인터페이스 가이드의 「Sign in with Apple」 검정 스타일)
+    case "apple":
+      return (
+        <svg viewBox="0 0 17 20" aria-hidden="true" {...common}>
+          <path
+            fill="#FFFFFF"
+            d="M14.2 10.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.5 1.3-.1 1.8-.8 3.3-.8 1.5 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4zM11.7 3c.7-.8 1.2-2 1-3.1-1 0-2.2.7-2.9 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.2-.6 2.9-1.4z"
+          />
+        </svg>
+      );
     case "naver":
       return (
         <svg viewBox="0 0 20 20" aria-hidden="true" {...common}>

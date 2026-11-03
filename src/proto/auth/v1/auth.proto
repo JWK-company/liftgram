@@ -210,9 +210,17 @@ message ListIdentitiesResponse {
 
 // 마지막 로그인 수단은 해제할 수 없다(비밀번호도 소셜도 없으면 계정에 다시 들어올 수 없다).
 message UnlinkIdentityRequest {
-  string provider = 1 [(buf.validate.field).string = {in: ["google", "kakao", "naver"]}];
+  string provider = 1 [(buf.validate.field).string = {in: ["google", "kakao", "naver", "apple"]}];
 }
 message UnlinkIdentityResponse {}
+
+// @plm SRS-095  계정 삭제(스토어 필수 · 즉시 · 되돌릴 수 없다). 비밀번호가 있는 계정은 비밀번호로 다시 확인하고,
+// 소셜 전용 계정은 비운다. confirm 은 화면에서 사용자가 직접 친 확인 문구(「삭제」)다 — 실수 한 번으로 지워지지 않게.
+message DeleteAccountRequest {
+  string password = 1 [(buf.validate.field).string = {max_len: 72}];
+  string confirm = 2 [(buf.validate.field).string = {max_len: 16}];
+}
+message DeleteAccountResponse {}
 
 service AuthService {
   // 가입. 이미 있는 이메일이면 AlreadyExists다 — "로그인해 보세요"를 화면이 안내한다.
@@ -242,6 +250,7 @@ service AuthService {
   rpc CreateLinkTicket(CreateLinkTicketRequest) returns (CreateLinkTicketResponse) {}
   rpc ListIdentities(ListIdentitiesRequest) returns (ListIdentitiesResponse) {}
   rpc UnlinkIdentity(UnlinkIdentityRequest) returns (UnlinkIdentityResponse) {}
+  rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse) {}
 }
 
 message LogOutResponse {}

@@ -151,3 +151,36 @@ type LockAction =
 
 ## 11. 작업 순서 (execute)
 P0-1 `src/mobile` 골격(북타래에서 복사·이름 변경) → P0-2 안드로이드 빌드·실기기 설치 → P0-3 시범 ①~③ → P0-4 앱 로그인 교환·앱 링크 → P0-5 계정 삭제(서버+화면+e2e) → P0-6 Apple 로그인(서버·iOS 코드) → **v0.57.0 배포** → P1-1 core `lockScreen.ts`+테스트 → P1-2 `lib/native.ts`·SessionProvider 휴식 저장·대기열 적용+e2e → P1-3 안드로이드 알림·리시버·알람 → P1-4 iOS Live Activity(코드) → **v0.58.0** → P2 위젯(웹 summary · 안드로이드 · iOS 코드) → **v0.59.0** → P3 출시 준비 · 각 배포 전 독립 qa code.
+
+---
+
+## 12. rev2 — qa spec 반영 (`docs/qa/20261103_native-app-spec_qa.md` · 조건부 H6·M13·L11) · **앞 절과 어긋나면 이 절이 이긴다**
+
+### 12.1 P0 (껍데기) 쪽
+- **H-6 로그인 복귀 = 북타래 방식 그대로**: iOS `ASWebAuthenticationSession(callbackURLScheme:"liftgram")`(로컬 플러그인 `authSession`) · 안드로이드 Custom Tabs(`@capacitor/browser`) + `liftgram://auth` intent-filter. 서버 `start?app=1&ac=S256(v)` → 콜백은 **쿠키 없이 성공·오류 모두** `liftgram://auth?code=…|err=…` 로 302 → 웹뷰가 `v` 와 함께 `ExchangeLoginCode`(요청 필드 `verifier` 하나 추가 · 앱 코드에 결속된 `ac` 와 대조). https 앱 링크는 피드 공유 링크 용도만. 북타래 `src/backend/internal/oauth/handoff.go` 를 참고해 리프트그램 oauth 에 옮긴다(복사 원본 수정 금지).
+- **M-9 Apple 로그인은 웹·안드로이드에도 둔다**(Services ID · form_post — `oauth/state.go` 의 SameSite=None 자리). iOS 앱은 네이티브 `ASAuthorization` → 서버 `apple/native`(aud = 번들 ID · nonce 검증). 웹 aud = Services ID. 가입 때 Apple refresh token 을 보관(철회용 · 암호화 컬럼).
+- **M-10 계정 삭제**: 서버는 `DELETE FROM users`(cascade)에 맡기고 남는 것만 따로 — 빈 대화방 정리 · 미디어 파일 배치 삭제 · Apple `/auth/revoke`. 재인증: 비밀번호 사용자는 비밀번호, 소셜 전용은 같은 제공자 재로그인(일회용 코드 5분 안). 기기: 성공 시 로컬 DB·설정·네이티브 사본·위젯 지우고 `session.end()`. 테스트는 `information_schema` 로 users 를 참조하는 모든 테이블에 그 사용자 행 0 을 단언(스키마 기반).
+- **M-11 수용 기준 문구**: 「설치 뒤 한 번 온라인으로 연 다음부터, 비행기 모드로 처음부터 실행해 기록」으로 SRS-095·URS-032 를 고친다(방식 A 의 사실 · 사용자에게 보고). 비로그인 PWA 사용자에게는 「앱 설치 전에 로그인 후 동기」 안내. 시범 ②에 `navigator.storage.persist()` 결과 추가 · 시범 ①에 App-Bound 밖 링크 처리 추가.
+- **M-13 권한 목록**: iOS Info.plist `NSCameraUsageDescription` · `NSPhotoLibraryUsageDescription` · `NSLocationWhenInUseUsageDescription` · `NSSupportsLiveActivities` · (P1) time-sensitive entitlement · `NSAlarmKitUsageDescription`. 안드로이드 Manifest `INTERNET` · `ACCESS_COARSE/FINE_LOCATION`(웹뷰 위치 — Capacitor 가 웹뷰 geolocation 요청을 권한으로 이어 줌, P0 시범 확인) · (P1) `POST_NOTIFICATIONS` · `SCHEDULE_EXACT_ALARM` · `FOREGROUND_SERVICE` · `FOREGROUND_SERVICE_SHORT_SERVICE` · `WAKE_LOCK` · `POST_PROMOTED_NOTIFICATIONS`. 실기기 체크리스트에 사진 첨부·주변 헬스장.
+- **M-5 버전 어긋남**: 플러그인 `info() → {nativeVersion, bridge}` · `lib/native.ts` 는 기능 단위로 확인하고 모르면 아무것도 안 한다(예외 금지). §3 「서버 배포 = 즉시」 → 「다음 완전 재시작 또는 프로필 업데이트 때」.
+- **L-6** UA 의 버전은 `src/mobile/package.json` 하나에서 만든다(capacitor.config.ts 가 읽음). **L-5** Kotlin 쪽은 전부 새로 짠다(북타래는 Swift 만).
+
+### 12.2 P1 (잠금화면) 쪽 — **구현 전에 이 절만 다시 qa spec**
+- **H-5 「지금 세트」 순서 규칙(새로 정의)**: ① 블록 `sort_order` 순 ② 블록 안 첫 미완료 세트(워밍업 포함) ③ 슈퍼셋은 `roundKeyOf` 가 같은 세트를 한 단계로 묶고(`LockStep.setIds[]`), 짝 없는 세트(워밍업·드롭·실패)는 그 종목만 한 단계 ④ 앞 세트를 비워 두고 뒤를 완료한 경우에도 블록의 첫 미완료로 간다 ⑤ 슈퍼셋 묶음 안 블록 순서는 화면의 묶음 순서. 구현은 `pickRoundSets`/`roundKeyOf` 재사용 · 테스트는 규칙 표로 고정. (사용자 권장안 승인 범위 — 보고)
+- **H-1 조작에 값을 싣지 않는다**: `{id, seq, kind:"complete", sessionId, setIds, at}` · 적용은 저장된 값 그대로 완료. `LockStep` 은 `unit` 을 단계마다 갖고, 표시값은 저장 kg → 블록 단위(`blockUnit`)·플레이트 한쪽 배수 규칙으로 만든다(표시 전용).
+- **H-2 세대·순서**: 조작에 단조 `seq`(네이티브 발급) · 스냅샷에 `appliedThroughSeq` · 네이티브는 스냅샷을 받으면 `seq > appliedThroughSeq` 인 남은 조작을 그 위에 다시 적용(rebase)해 그린다. 웹 적용기는 **한 줄(mutex)** — 이벤트·resume·첫 로드는 같은 `drain()` 을 깨우기만 하고 seq 순서로 처리. **휴식 정본은 잠금 중 네이티브의 현재 `rest.endsAt` 하나** — 웹은 휴식 조작을 하나씩 재생하지 않고, drain 끝에 네이티브 현재값을 받아들인다(`rest_set` 조작 종류 삭제 → `queue.drain()` 이 `{actions, rest}` 를 준다).
+- **H-3 ack 조건**: 적용 뒤 `flushLocalDbResult() === "saved"` **그리고** 쓰기 주인 탭일 때만 `ack(ids)`. 아니면 ack 하지 않고 다음 drain 에서 재시도. 멱등은 **DB 상태로만**(이미 완료면 no-op) — prefs 적용 로그 없음. e2e 결함 주입(`lib/e2eFlags`)으로 「적용 직후 flush 전 kill」·「봉인 탭 drain」 고정.
+- **H-4 완료 흐름을 core 하나로**: `onToggleDone`(ExerciseBlock)·`roundToggle`(ActiveWorkout)의 저장소 쪽(① setSetDone/completeSupersetRound ② 세트 유형별 휴식 `restSecondsForSetType` ③ `planPrescribedLoadFills` 적용)을 core `completeSetsFlow(repo, {setIds, at, grouped})` 로 뽑아 화면과 잠금 경로가 함께 부른다(축하·제안은 화면 전용). 저장소 함수에 `completedAt = at` 을 넘길 수 있게. 스냅샷은 순수 `planPrescribedLoadFills` 로 **탑셋 뒤 단계의 채워질 무게를 미리 계산해** 표시값으로 싣는다(실제 저장은 drain 때 같은 흐름이 순서대로 한다 — 탑셋 완료 → 채우기 → 다음 완료는 채운 값).
+- **M-6 스냅샷은 셸(SessionProvider)에서 저장소로 직접** 만든다(세션 화면이 안 떠 있어도). 휴식 길이 = `we.restSeconds` 저장값(블록에서 바꾸면 즉시 저장되는지 확인하고 아니면 저장). Capacitor `pause`·`visibilitychange:hidden` 에서 ① 입력 중 값 커밋(SetDraftContext) ② 스냅샷 즉시 전송. 이름 = 사용자 표시 이름(`useExerciseName` 규칙).
+- **M-7 「앱 열기」 조건**: `userEdited=false` 이고 값의 출처가 지난 기록·처방·사용자 입력이 아닌 세트(=`addSet` 기본값 20kg×8 · 직전 세트 복제 아님) → 버튼 대신 「앱 열기」. 맨몸·유산소 등 무게 0 이 정상인 지표는 횟수/시간만 본다. (값 출처 표시가 저장소에 없으면 `set_logs` 에 출처 플래그를 더하는 것까지 P1 범위.)
+- **M-8 휴식 영속화**: `startRestUntil(endsAt)` 추가 · 키 `liftgram.restEndsAt = {workoutId, endsAt}` (**동기 안 함**) · 종료·버리기 때 삭제 · 복원 시 활성 운동 id 대조 · 지난 시각 복원/drain 은 소리 없이 지움.
+- **M-1 안드로이드 카드 = 포그라운드 서비스 없이 진행 중 알림**(밀어 지우면 다음 갱신에 다시) — ADR-046 문구를 이렇게 고친다.
+- **M-2 정확한 알람 대체**: 권한 있음 → `setExactAndAllowWhileIdle`. 없음 → 남은 시간 < 2분 50초일 때만 `shortService` + `PARTIAL_WAKE_LOCK`(+30초로 넘기면 즉시 서비스 멈추고 `setAndAllowWhileIdle` 로 전환 · `onTimeout` 에서 즉시 `stopSelf`) · 그 밖은 `setAndAllowWhileIdle` + 프로필 「정확한 알림 꺼짐」. 실기기 「권한 거부 + 3분 넘기기」 · Doze 연속 짧은 휴식 빈도 제한 실측.
+- **M-3 알림음**: 안드로이드 채널은 무음으로 두고 리시버가 `USAGE_ALARM` 으로 앱에 실린 프리셋 파일을 직접 재생(채널 소리 못 바꾸는 문제 회피) · 프리셋 4종×음량 3 을 `restSound` 합성과 같은 소리로 미리 렌더한 wav(≤30초)를 앱에 싣는다. iOS: **iOS 26+ 는 AlarmKit 카운트다운**(무음 스위치·집중 모드를 뚫음 · Live Activity 와 짝), 그 아래는 time-sensitive 로컬 알림. (헬스장에서 무음으로 두는 경우가 흔해 AlarmKit 을 기본으로 정함 — 사용자 보고)
+- **M-4 웹 소리 중복**: 앱 안에서는 `document.visibilityState === "visible"` 일 때만 웹 소리 · 네이티브는 발화 시 앱이 앞이면 소리 없이. SRS-096 문구 「앱에서는 휴식 끝 소리를 네이티브가 맡는다」로 고친다(「웹 소리 이어 붙이기」는 사실이 아니었음).
+- **L-1** Live Activity 16.1+ · 버튼 17+ · AlarmKit 26+ · 앱 최소 iOS 15(Capacitor 8) · 위젯 확장 최소 iOS 17. **L-2** 0 지난 뒤: 알람 리시버/의도가 카드를 「다음 세트」로 다시 그림 · iOS `staleDate=endsAt`. **L-3** iOS 는 알림 권한과 Live Activity 허용이 따로 — 안내 문구 분리. **L-4** 운동 중 위젯은 endsAt 카운트다운에 맡기고 세트 완료마다 다시 그리지 않음(iOS 예산). **L-8** 12단계 소진 시 「앱을 열어 다음 세트를 보세요」 · 웹 첫 로드에 활성 세션 없으면 `session.end()`(고아 카드 정리) · `paused` 운동은 버튼 숨김. **L-9** promoted 실패 시 일반 진행 중 알림(테스트). **L-10** 딥링크는 `appUrlOpen` 한 곳(`native.ts`)에서 처리.
+- **M-12 검증 추가**: (a) 슈퍼셋 멤버 무게 다름 (b) lb 블록·플레이트 한쪽 (c) 처방 탑셋→백오프 (d) 이벤트·drain 동시 + 낡은 스냅샷 rebase (e) 적용 뒤 flush 전 kill (f) 봉인 탭 drain (g) 대기 중 세션 버리기/종료 → 전부 discarded·카드 내림 (h) 잠금 중 완료 세트를 앱에서 해제 후 drain (i) 같은 픽스처로 화면 경로 vs 잠금 경로 DB 행 비교(completedAt 제외) · core 순서 규칙 표.
+- **L-11** iOS 가 방식 B 로 가더라도 다리·도메인 코드는 공통이고 셸만 다르다(위험 표).
+
+### 12.3 순서 변경
+P0 는 지금 시작한다. P1 은 §12.2 를 반영한 상태로 **qa spec 2차**를 거친 뒤 시작한다.

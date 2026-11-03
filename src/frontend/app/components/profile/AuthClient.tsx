@@ -20,6 +20,7 @@ import { SectionLabel } from "../ui/rows";
 import { Logo } from "../ui/Logo";
 import { HumanCheck } from "../auth/HumanCheck";
 import { SecurityCard, useIdentities } from "../auth/SecurityCard";
+import { DeleteAccountCard } from "../auth/DeleteAccountCard";
 import { providerLabel } from "../auth/providers";
 import type { LastLogin } from "@/lib/last-login";
 import { LastLoginBadge, SocialButtons, useAuthOptions } from "../auth/SocialButtons";
@@ -233,6 +234,8 @@ export default function AuthClient({
           <div id="import">
             <ImportCard />
           </div>
+          {/* 계정 삭제 — 맨 아래(스토어 필수 · 백업 내보내기를 먼저 지나치게) @plm SRS-095 */}
+          <DeleteAccountCard />
           {/* [원본] <OfflineNote /> — 로그인한 화면에도 「로그인하면 서버 백업…」 안내가 떴다(/qa P4 L-5 · 불필요 안내 생략) @plm SRS-072 */}
         </div>
       </div>

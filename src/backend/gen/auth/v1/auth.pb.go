@@ -1850,6 +1850,96 @@ func (*UnlinkIdentityResponse) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_proto_rawDescGZIP(), []int{33}
 }
 
+// @plm SRS-095  계정 삭제(스토어 필수 · 즉시 · 되돌릴 수 없다). 비밀번호가 있는 계정은 비밀번호로 다시 확인하고,
+// 소셜 전용 계정은 비운다. confirm 은 화면에서 사용자가 직접 친 확인 문구(「삭제」)다 — 실수 한 번으로 지워지지 않게.
+type DeleteAccountRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Password      string                 `protobuf:"bytes,1,opt,name=password,proto3" json:"password,omitempty"`
+	Confirm       string                 `protobuf:"bytes,2,opt,name=confirm,proto3" json:"confirm,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAccountRequest) Reset() {
+	*x = DeleteAccountRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAccountRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAccountRequest) ProtoMessage() {}
+
+func (x *DeleteAccountRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAccountRequest.ProtoReflect.Descriptor instead.
+func (*DeleteAccountRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *DeleteAccountRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+func (x *DeleteAccountRequest) GetConfirm() string {
+	if x != nil {
+		return x.Confirm
+	}
+	return ""
+}
+
+type DeleteAccountResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteAccountResponse) Reset() {
+	*x = DeleteAccountResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[35]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteAccountResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteAccountResponse) ProtoMessage() {}
+
+func (x *DeleteAccountResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[35]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteAccountResponse.ProtoReflect.Descriptor instead.
+func (*DeleteAccountResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{35}
+}
+
 type LogOutResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1858,7 +1948,7 @@ type LogOutResponse struct {
 
 func (x *LogOutResponse) Reset() {
 	*x = LogOutResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_auth_v1_auth_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1870,7 +1960,7 @@ func (x *LogOutResponse) String() string {
 func (*LogOutResponse) ProtoMessage() {}
 
 func (x *LogOutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_auth_v1_auth_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +1973,7 @@ func (x *LogOutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogOutResponse.ProtoReflect.Descriptor instead.
 func (*LogOutResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{34}
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{36}
 }
 
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
@@ -1993,10 +2083,14 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x16ListIdentitiesResponse\x121\n" +
 	"\n" +
 	"identities\x18\x01 \x03(\v2\x11.auth.v1.IdentityR\n" +
-	"identities\"P\n" +
-	"\x15UnlinkIdentityRequest\x127\n" +
-	"\bprovider\x18\x01 \x01(\tB\x1b\xbaH\x18r\x16R\x06googleR\x05kakaoR\x05naverR\bprovider\"\x18\n" +
-	"\x16UnlinkIdentityResponse\"\x10\n" +
+	"identities\"W\n" +
+	"\x15UnlinkIdentityRequest\x12>\n" +
+	"\bprovider\x18\x01 \x01(\tB\"\xbaH\x1fr\x1dR\x06googleR\x05kakaoR\x05naverR\x05appleR\bprovider\"\x18\n" +
+	"\x16UnlinkIdentityResponse\"^\n" +
+	"\x14DeleteAccountRequest\x12#\n" +
+	"\bpassword\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x18HR\bpassword\x12!\n" +
+	"\aconfirm\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x18\x10R\aconfirm\"\x17\n" +
+	"\x15DeleteAccountResponse\"\x10\n" +
 	"\x0eLogOutResponse*b\n" +
 	"\x04Role\x12\x14\n" +
 	"\x10ROLE_UNSPECIFIED\x10\x00\x12\r\n" +
@@ -2009,7 +2103,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x1cEXPERIENCE_LEVEL_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19EXPERIENCE_LEVEL_BEGINNER\x10\x01\x12!\n" +
 	"\x1dEXPERIENCE_LEVEL_INTERMEDIATE\x10\x02\x12\x1d\n" +
-	"\x19EXPERIENCE_LEVEL_ADVANCED\x10\x032\x80\n" +
+	"\x19EXPERIENCE_LEVEL_ADVANCED\x10\x032\xd2\n" +
 	"\n" +
 	"\vAuthService\x12;\n" +
 	"\x06SignUp\x12\x16.auth.v1.SignUpRequest\x1a\x17.auth.v1.SignUpResponse\"\x00\x128\n" +
@@ -2027,7 +2121,8 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x11ExchangeLoginCode\x12!.auth.v1.ExchangeLoginCodeRequest\x1a\".auth.v1.ExchangeLoginCodeResponse\"\x00\x12Y\n" +
 	"\x10CreateLinkTicket\x12 .auth.v1.CreateLinkTicketRequest\x1a!.auth.v1.CreateLinkTicketResponse\"\x00\x12S\n" +
 	"\x0eListIdentities\x12\x1e.auth.v1.ListIdentitiesRequest\x1a\x1f.auth.v1.ListIdentitiesResponse\"\x00\x12S\n" +
-	"\x0eUnlinkIdentity\x12\x1e.auth.v1.UnlinkIdentityRequest\x1a\x1f.auth.v1.UnlinkIdentityResponse\"\x00B\x95\x01\n" +
+	"\x0eUnlinkIdentity\x12\x1e.auth.v1.UnlinkIdentityRequest\x1a\x1f.auth.v1.UnlinkIdentityResponse\"\x00\x12P\n" +
+	"\rDeleteAccount\x12\x1d.auth.v1.DeleteAccountRequest\x1a\x1e.auth.v1.DeleteAccountResponse\"\x00B\x95\x01\n" +
 	"\vcom.auth.v1B\tAuthProtoP\x01Z>github.com/JWK-company/liftgram/src/backend/gen/auth/v1;authv1\xa2\x02\x03AXX\xaa\x02\aAuth.V1\xca\x02\aAuth\\V1\xe2\x02\x13Auth\\V1\\GPBMetadata\xea\x02\bAuth::V1b\x06proto3"
 
 var (
@@ -2043,7 +2138,7 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 }
 
 var file_auth_v1_auth_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_auth_v1_auth_proto_goTypes = []any{
 	(Role)(0),                             // 0: auth.v1.Role
 	(ExperienceLevel)(0),                  // 1: auth.v1.ExperienceLevel
@@ -2081,13 +2176,15 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*ListIdentitiesResponse)(nil),        // 33: auth.v1.ListIdentitiesResponse
 	(*UnlinkIdentityRequest)(nil),         // 34: auth.v1.UnlinkIdentityRequest
 	(*UnlinkIdentityResponse)(nil),        // 35: auth.v1.UnlinkIdentityResponse
-	(*LogOutResponse)(nil),                // 36: auth.v1.LogOutResponse
-	(*timestamppb.Timestamp)(nil),         // 37: google.protobuf.Timestamp
+	(*DeleteAccountRequest)(nil),          // 36: auth.v1.DeleteAccountRequest
+	(*DeleteAccountResponse)(nil),         // 37: auth.v1.DeleteAccountResponse
+	(*LogOutResponse)(nil),                // 38: auth.v1.LogOutResponse
+	(*timestamppb.Timestamp)(nil),         // 39: google.protobuf.Timestamp
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	0,  // 0: auth.v1.User.role:type_name -> auth.v1.Role
 	1,  // 1: auth.v1.User.experience_level:type_name -> auth.v1.ExperienceLevel
-	37, // 2: auth.v1.User.created_at:type_name -> google.protobuf.Timestamp
+	39, // 2: auth.v1.User.created_at:type_name -> google.protobuf.Timestamp
 	3,  // 3: auth.v1.SignUpResponse.tokens:type_name -> auth.v1.Tokens
 	2,  // 4: auth.v1.SignUpResponse.user:type_name -> auth.v1.User
 	3,  // 5: auth.v1.LogInResponse.tokens:type_name -> auth.v1.Tokens
@@ -2100,7 +2197,7 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	3,  // 12: auth.v1.ChangePasswordResponse.tokens:type_name -> auth.v1.Tokens
 	3,  // 13: auth.v1.ExchangeLoginCodeResponse.tokens:type_name -> auth.v1.Tokens
 	2,  // 14: auth.v1.ExchangeLoginCodeResponse.user:type_name -> auth.v1.User
-	37, // 15: auth.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
+	39, // 15: auth.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
 	31, // 16: auth.v1.ListIdentitiesResponse.identities:type_name -> auth.v1.Identity
 	4,  // 17: auth.v1.AuthService.SignUp:input_type -> auth.v1.SignUpRequest
 	5,  // 18: auth.v1.AuthService.LogIn:input_type -> auth.v1.LogInRequest
@@ -2118,24 +2215,26 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	29, // 30: auth.v1.AuthService.CreateLinkTicket:input_type -> auth.v1.CreateLinkTicketRequest
 	32, // 31: auth.v1.AuthService.ListIdentities:input_type -> auth.v1.ListIdentitiesRequest
 	34, // 32: auth.v1.AuthService.UnlinkIdentity:input_type -> auth.v1.UnlinkIdentityRequest
-	8,  // 33: auth.v1.AuthService.SignUp:output_type -> auth.v1.SignUpResponse
-	9,  // 34: auth.v1.AuthService.LogIn:output_type -> auth.v1.LogInResponse
-	10, // 35: auth.v1.AuthService.Refresh:output_type -> auth.v1.RefreshResponse
-	36, // 36: auth.v1.AuthService.LogOut:output_type -> auth.v1.LogOutResponse
-	12, // 37: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
-	14, // 38: auth.v1.AuthService.UpdateProfile:output_type -> auth.v1.UpdateProfileResponse
-	16, // 39: auth.v1.AuthService.GetAuthOptions:output_type -> auth.v1.GetAuthOptionsResponse
-	18, // 40: auth.v1.AuthService.SendEmailVerification:output_type -> auth.v1.SendEmailVerificationResponse
-	20, // 41: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
-	22, // 42: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.RequestPasswordResetResponse
-	24, // 43: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.ResetPasswordResponse
-	26, // 44: auth.v1.AuthService.ChangePassword:output_type -> auth.v1.ChangePasswordResponse
-	28, // 45: auth.v1.AuthService.ExchangeLoginCode:output_type -> auth.v1.ExchangeLoginCodeResponse
-	30, // 46: auth.v1.AuthService.CreateLinkTicket:output_type -> auth.v1.CreateLinkTicketResponse
-	33, // 47: auth.v1.AuthService.ListIdentities:output_type -> auth.v1.ListIdentitiesResponse
-	35, // 48: auth.v1.AuthService.UnlinkIdentity:output_type -> auth.v1.UnlinkIdentityResponse
-	33, // [33:49] is the sub-list for method output_type
-	17, // [17:33] is the sub-list for method input_type
+	36, // 33: auth.v1.AuthService.DeleteAccount:input_type -> auth.v1.DeleteAccountRequest
+	8,  // 34: auth.v1.AuthService.SignUp:output_type -> auth.v1.SignUpResponse
+	9,  // 35: auth.v1.AuthService.LogIn:output_type -> auth.v1.LogInResponse
+	10, // 36: auth.v1.AuthService.Refresh:output_type -> auth.v1.RefreshResponse
+	38, // 37: auth.v1.AuthService.LogOut:output_type -> auth.v1.LogOutResponse
+	12, // 38: auth.v1.AuthService.Me:output_type -> auth.v1.MeResponse
+	14, // 39: auth.v1.AuthService.UpdateProfile:output_type -> auth.v1.UpdateProfileResponse
+	16, // 40: auth.v1.AuthService.GetAuthOptions:output_type -> auth.v1.GetAuthOptionsResponse
+	18, // 41: auth.v1.AuthService.SendEmailVerification:output_type -> auth.v1.SendEmailVerificationResponse
+	20, // 42: auth.v1.AuthService.VerifyEmail:output_type -> auth.v1.VerifyEmailResponse
+	22, // 43: auth.v1.AuthService.RequestPasswordReset:output_type -> auth.v1.RequestPasswordResetResponse
+	24, // 44: auth.v1.AuthService.ResetPassword:output_type -> auth.v1.ResetPasswordResponse
+	26, // 45: auth.v1.AuthService.ChangePassword:output_type -> auth.v1.ChangePasswordResponse
+	28, // 46: auth.v1.AuthService.ExchangeLoginCode:output_type -> auth.v1.ExchangeLoginCodeResponse
+	30, // 47: auth.v1.AuthService.CreateLinkTicket:output_type -> auth.v1.CreateLinkTicketResponse
+	33, // 48: auth.v1.AuthService.ListIdentities:output_type -> auth.v1.ListIdentitiesResponse
+	35, // 49: auth.v1.AuthService.UnlinkIdentity:output_type -> auth.v1.UnlinkIdentityResponse
+	37, // 50: auth.v1.AuthService.DeleteAccount:output_type -> auth.v1.DeleteAccountResponse
+	34, // [34:51] is the sub-list for method output_type
+	17, // [17:34] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
 	17, // [17:17] is the sub-list for extension extendee
 	0,  // [0:17] is the sub-list for field type_name
@@ -2152,7 +2251,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   35,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

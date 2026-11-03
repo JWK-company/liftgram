@@ -309,12 +309,15 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `MAIL_FROM` | 선택 | `Liftgram <no-reply@localhost>` | 보내는 사람. 운영 `Liftgram <no-reply@tarae.org>` — 그 도메인에 SPF·DKIM이 있어야 받은편지함에 들어간다 |
 | `MAIL_REQUIRE_TLS` | 선택 | `true` | 운영 true. 로컬 Mailpit은 TLS가 없어 false |
 | `TURNSTILE_SITE_KEY` · `TURNSTILE_SECRET` | 선택 | 비어 있음(끔) | Cloudflare Turnstile(사람 확인) — 가입·비밀번호 찾기에 붙는다. **두 키를 짝으로** 켠다(비밀키만 있으면 위젯이 없어 가입이 전부 막힌다) |
+| `IOS_APP_ID` · `ANDROID_PACKAGE` · `ANDROID_CERT_SHA256` | 선택 | 비어 있음 · `org.tarae.liftgram` | 스토어 앱 링크 검증(`/.well-known/apple-app-site-association` · `assetlinks.json`). 비면 404 |
 | `AUTH_RATE_LIMIT` | 선택 | `10` | 가입·로그인·메일 요청의 IP당 분당 허용(0=끔 · e2e). IP는 web 가장자리가 정한 값만 쓴다 |
 | `TRUST_CF_CONNECTING_IP` | 선택 | `0` | `1`이면 Cloudflare가 붙인 CF-Connecting-IP를 클라이언트 주소로 믿는다 — **포트가 터널에만 열려 있을 때만**(운영). 꺼져 있으면 그 헤더는 버린다 |
 | `OAUTH_GOOGLE_CLIENT_ID` · `OAUTH_GOOGLE_CLIENT_SECRET` | 선택 | 비어 있음 | 구글 로그인. **둘 다** 채운 제공자만 켜지고 버튼이 뜬다. redirect URI = `{APP_URL}/api/auth/oauth/google/callback` |
 | `OAUTH_KAKAO_CLIENT_ID` · `OAUTH_KAKAO_CLIENT_SECRET` | 선택 | 비어 있음 | 카카오 로그인(OIDC). redirect URI = `…/oauth/kakao/callback` |
 | `OAUTH_KAKAO_LEGACY` | 선택 | 비어 있음 | 카카오 앱에서 OIDC를 켤 수 없을 때만 `true` — 자동 폴백이 아니다 |
 | `OAUTH_NAVER_CLIENT_ID` · `OAUTH_NAVER_CLIENT_SECRET` | 선택 | 비어 있음 | 네이버 로그인. 네이버는 이메일 소유를 보증하지 않아 그 주소를 계정 주소로 쓰지 않는다 |
+| `OAUTH_APPLE_SERVICES_ID` · `OAUTH_APPLE_TEAM_ID` · `OAUTH_APPLE_KEY_ID` · `OAUTH_APPLE_PRIVATE_KEY` | 선택 | 비어 있음 | Apple 로그인(웹 form_post · iOS 앱 네이티브). 넷이 다 있어야 켜진다. .p8 는 한 줄(`\n`) |
+| `IOS_BUNDLE_ID` | 선택 | `org.tarae.liftgram` | iOS 앱 번들 ID — Apple 네이티브 로그인의 client_id · 앱 링크 |
 | `OAUTH_PREVIEW_PROVIDERS` | 선택 | 비어 있음 | [임시] 키가 아직 없는 제공자를 "설정 필요" 버튼으로 미리 보여 준다(쉼표 구분). 키가 들어와 켜지면 자동으로 진짜 버튼이 된다 |
 | `MIN_CLIENT_VERSION` | 선택 | 비어 있음(필수 아님) | 필수 업데이트의 최소 화면 버전(SemVer · 예 `0.46.0`). 공개 `GET /app-version` 이 내보내고, 이보다 낮은 화면은 운동 화면 밖에서 덮개로 업데이트한다. 배포된 버전보다 높게 적으면 무시된다(업데이트해도 미만이라 루프가 되므로) — SRS-085 |
 | `PLM_PROJECT` | 선택 | `liftgram` | 보드에서 이 앱의 아이디어가 속하는 프로젝트 이름 |

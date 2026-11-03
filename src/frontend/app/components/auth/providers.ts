@@ -1,12 +1,13 @@
 // 소셜 제공자 이름·표시 — 화면 여러 곳이 같은 이름을 쓰게 한 자리에 둔다.
 import { t, type TransKey } from "@/lib/i18n";
 
-export type Provider = "google" | "kakao" | "naver";
+export type Provider = "google" | "kakao" | "naver" | "apple";
 
 const LABEL: Record<Provider, TransKey> = {
   google: "auth.providerGoogle",
   kakao: "auth.providerKakao",
   naver: "auth.providerNaver",
+  apple: "auth.providerApple", // @plm SRS-095
 };
 
 export function providerLabel(p: string): string {
@@ -21,6 +22,7 @@ export const PROVIDER_STYLE: Record<Provider, { bg: string; fg: string; border?:
   google: { bg: "#FFFFFF", fg: "#141619", border: "var(--color-line-strong)" },
   kakao: { bg: "#FEE500", fg: "#191600" },
   naver: { bg: "#03C75A", fg: "#FFFFFF" },
+  apple: { bg: "#000000", fg: "#FFFFFF", border: "#FFFFFF33" }, // @plm SRS-095  Apple 가이드 검정 버튼(다크에서도 그대로)
 };
 
 /** 소셜 로그인 시작 주소. 브라우저 전면 이동이라 RPC가 아니라 링크다(backend internal/oauth). */

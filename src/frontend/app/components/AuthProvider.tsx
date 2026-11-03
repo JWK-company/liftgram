@@ -20,6 +20,7 @@ import {
 } from "@/lib/session";
 import {
   discardAndAdopt,
+  onAccountDeleted,
   installSync,
   onLoggedIn,
   onLoggedOut,
@@ -46,6 +47,8 @@ interface AuthValue {
   refreshMe: () => Promise<void>;
   logIn: (email: string, password: string) => Promise<void>;
   logOut: () => Promise<void>;
+  /** @plm SRS-095  계정 삭제(즉시·되돌릴 수 없다) — 성공하면 이 기기 기록도 비우고 로그아웃한다. */
+  deleteAccount: (password: string, confirm: string) => Promise<void>;
   /**
    * 이 기기에 **다른 계정의 올라가지 않은 기록**이 있다 — 동기를 멈췄다(syncOwner).
    * AccountGuard가 이 값을 보고 사람에게 고르게 한다.
@@ -202,6 +205,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         setOwnerConflict(null);
         await onLoggedOut();
+      },
+      deleteAccount: async (password, confirm) => {
+        if (!user) return;
+        await authClient().deleteAccount({ password, confirm });
+        // 서버에서 지워진 뒤에만 기기를 비운다 — 실패(비밀번호 틀림)면 아무것도 잃지 않는다.
+        await onAccountDeleted(user.id);
+        // 앱 껍데기의 잠금화면 카드·위젯 사본도 비운다(P1·P2 다리 — 없으면 아무 일도 없다).
+        void import("@/lib/native").then((m) => m.clearNativeState?.());
+        clearTokens();
+        setUser(null);
+        setOwnerConflict(null);
       },
       ownerConflict,
       resolveConflictByDiscard: async () => {

@@ -19,7 +19,7 @@
   "owner": "Product",
   "product": "health-practice",
   "created": "2026-11-03T06:00:00Z",
-  "updated": "2026-11-03T06:00:00Z",
+  "updated": "2026-11-03T08:00:00Z",
   "sync": true,
   "doc": {
     "type": "doc",
@@ -100,7 +100,7 @@
                   },
                   {
                     "type": "text",
-                    "text": " — iOS: ActivityKit Live Activity + App Intents 버튼(iOS 17+) · WidgetKit · UNUserNotification · AdMob. 안드로이드: 운동 중 포그라운드 서비스의 진행 중 알림(버튼) · 앱 위젯 · AlarmManager/알림 · AdMob."
+                    "text": " — iOS: ActivityKit Live Activity + App Intents 버튼(iOS 17+) · WidgetKit · UNUserNotification · AdMob. 안드로이드: 포그라운드 서비스 없는 진행 중 알림(버튼 · 밀어 지우면 다음 갱신에 다시 냄 · 정확한 알람 권한이 없을 때만 휴식 동안 shortService) · 앱 위젯 · AlarmManager/알림 · AdMob."
                   }
                 ]
               }

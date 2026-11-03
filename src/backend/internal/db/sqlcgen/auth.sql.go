@@ -180,6 +180,20 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deleteEmptyConversations = `-- name: DeleteEmptyConversations :execrows
+DELETE FROM conversations c
+WHERE NOT EXISTS (SELECT 1 FROM conversation_participants p WHERE p.conversation_id = c.id)
+`
+
+// 참가자가 하나도 남지 않은 대화방 — conversations 는 사용자 FK 가 없어 cascade 로 안 지워진다.
+func (q *Queries) DeleteEmptyConversations(ctx context.Context) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteEmptyConversations)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const deleteExpiredAuthTokens = `-- name: DeleteExpiredAuthTokens :exec
 DELETE FROM auth_tokens WHERE expires_at < now() - interval '7 days'
 `
@@ -210,6 +224,20 @@ type DeleteIdentityParams struct {
 
 func (q *Queries) DeleteIdentity(ctx context.Context, arg DeleteIdentityParams) (int64, error) {
 	result, err := q.db.Exec(ctx, deleteIdentity, arg.UserID, arg.Provider)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const deleteUser = `-- name: DeleteUser :execrows
+DELETE FROM users WHERE id = $1
+`
+
+// @plm SRS-095  계정 삭제 — 사용자를 참조하는 행은 전부 ON DELETE CASCADE(0003~0020)라 users 한 줄로 끝난다.
+// 손으로 표를 나열하지 않는 이유: 표가 늘 때마다 빠뜨린다(qa spec M-10). 남는 것만 아래에서 따로 지운다.
+func (q *Queries) DeleteUser(ctx context.Context, id string) (int64, error) {
+	result, err := q.db.Exec(ctx, deleteUser, id)
 	if err != nil {
 		return 0, err
 	}

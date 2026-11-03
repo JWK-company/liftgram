@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- @plm SRS-095  앱 스킴 — 시스템 인증 창이 로그인 뒤 liftgram://auth?code= 로 앱에 돌아온다(서버 oauth/handoff.go) -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.tarae.liftgram</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>liftgram</string>
+			</array>
+		</dict>
+	</array>
+  <key>CAPACITOR_DEBUG</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+        <string>리프트그램</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!-- @plm SRS-095  App-Bound Domains — iOS 웹뷰에서 서비스 워커(오프라인 첫 실행 · ADR-032)가 돌려면 필요하다(스펙 §3).
+	     이 목록 밖 주소는 웹뷰 안에서 열리지 않는다 — 소셜 로그인은 시스템 인증 창, 외부 링크는 시스템 브라우저로 나간다. -->
+	<key>WKAppBoundDomains</key>
+	<array>
+		<string>liftgram.tarae.org</string>
+	</array>
+	<!-- @plm SRS-095  웹뷰가 쓰는 권한 문구(qa spec M-13) — 피드·프로필 사진 첨부 · 주변 헬스장 -->
+	<key>NSCameraUsageDescription</key>
+	<string>운동 사진을 찍어 피드와 프로필에 올릴 때 카메라를 씁니다.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>사진첩의 운동 사진을 피드와 프로필에 올릴 때 씁니다.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>주변 헬스장을 찾을 때만 현재 위치를 씁니다.</string>
+	<!-- @plm SRS-096  잠금화면 운동 카드(Live Activity) -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+    <false/>
+    <key>UISceneConfigurations</key>
+    <dict>
+      <key>UIWindowSceneSessionRoleApplication</key>
+      <array>
+        <dict>
+            <key>UISceneConfigurationName</key>
+            <string>Default Configuration</string>
+            <key>UISceneDelegateClassName</key>
+            <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+            <key>UISceneStoryboardFile</key>
+            <string>Main</string>
+        </dict>
+      </array>
+    </dict>
+	</dict>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
+</dict>
+</plist>

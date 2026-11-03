@@ -155,6 +155,11 @@ func main() {
 		Google:      oauth.ProviderConfig{ClientID: cfg.OAuthGoogleClientID, ClientSecret: cfg.OAuthGoogleClientSecret},
 		Kakao:       oauth.ProviderConfig{ClientID: cfg.OAuthKakaoClientID, ClientSecret: cfg.OAuthKakaoClientSecret},
 		Naver:       oauth.ProviderConfig{ClientID: cfg.OAuthNaverClientID, ClientSecret: cfg.OAuthNaverClientSecret},
+		// @plm SRS-095  Apple 웹(form_post) — 넷이 다 있어야 켜진다
+		Apple: oauth.AppleConfig{
+			ServicesID: cfg.OAuthAppleServicesID, TeamID: cfg.OAuthAppleTeamID,
+			KeyID: cfg.OAuthAppleKeyID, PrivateKeyPEM: cfg.OAuthApplePrivateKey,
+		},
 		KakaoLegacy: cfg.OAuthKakaoLegacy,
 	})
 	authSvc.WithAccount(auth.Account{
@@ -204,13 +209,20 @@ func main() {
 	mount(mux, authPath, authHTTP)
 
 	// 소셜 로그인 왕복 — 브라우저 전면 리다이렉트라 Connect 밖에서 받는다(/media/file 과 같은 선례).
-	mux.Handle("/api/auth/oauth/", oauth.NewHandler(oauthProviders, authSvc, oauth.Config{
+	oauthHandler := oauth.NewHandler(oauthProviders, authSvc, oauth.Config{
 		AppURL:       cfg.AppURL,
 		Secret:       []byte(cfg.JWTSecret),
 		CookieSecure: strings.HasPrefix(cfg.AppURL, "https://"),
 		SignInPath:   "/account",
 		CompletePath: "/auth/complete",
-	}, func(key string) bool { return authLimiter.Allow("oauth|" + key) }))
+	}, func(key string) bool { return authLimiter.Allow("oauth|" + key) })
+	// @plm SRS-095  iOS 앱 「Apple로 계속」 — 팀·키·.p8 가 있으면 번들 ID 로 교환하는 길을 연다(없으면 404)
+	if an, err := oauth.NewAppleNative(oauth.AppleConfig{
+		TeamID: cfg.OAuthAppleTeamID, KeyID: cfg.OAuthAppleKeyID, PrivateKeyPEM: cfg.OAuthApplePrivateKey,
+	}, cfg.IOSBundleID); err == nil {
+		oauthHandler.WithAppleNative(an)
+	}
+	mux.Handle("/api/auth/oauth/", oauthHandler)
 
 	// ── 미디어 ──
 	// 저장소는 **여기서 한 번** 정해진다. 도메인은 자기가 디스크를 쓰는지 R2를 쓰는지 모른다.

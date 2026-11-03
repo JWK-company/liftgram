@@ -124,7 +124,13 @@ proto: ## proto → Go(backend/gen) + TypeScript(contracts/gen) 동시 생성
 sqlc: ## database/queries/*.sql → 타입 안전한 Go 코드 (호스트 설치 불필요 · go run으로 실행)
 	@# 설정은 database/sqlc.yaml이고 그 안의 경로는 **설정 파일 기준**으로 풀린다.
 	@# go run은 Go 모듈 안에서 돌아야 해서 backend에서 실행하되, -f 로 설정을 가리킨다.
+	@# 카탈로그 판 마이그레이션(*_catalog_rev_*)은 뺀 사본을 스키마로 쓴다 — 판마다 같은 임시 표(catalog_new · ON COMMIT DROP)를
+	@# 만들어 sqlc 가 「이미 있다」로 막는다(실행 세션을 모르므로). 그 파일들은 열 추가가 0014 와 같은 IF NOT EXISTS 라 스키마는 같다.
+	@# 이미 적용된 마이그레이션은 고치지 않는다(catalog-check 가 막는다). @plm SRS-055
+	rm -rf database/.sqlc-schema && mkdir -p database/.sqlc-schema && \
+	  for f in database/migrations/*.sql; do case "$$f" in *_catalog_rev_*) ;; *) cp "$$f" database/.sqlc-schema/ ;; esac; done
 	cd backend && go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0 -f ../database/sqlc.yaml generate
+	rm -rf database/.sqlc-schema
 	@echo "생성물은 커밋한다"
 
 gen-migration: ## 새 마이그레이션 파일 만들기 — 사용: make gen-migration NAME=add_index

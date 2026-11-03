@@ -101,6 +101,12 @@ type Config struct {
 	OAuthKakaoLegacy        bool
 	OAuthNaverClientID      string
 	OAuthNaverClientSecret  string
+	// @plm SRS-095  Apple — 웹(Services ID · form_post)과 iOS 앱 네이티브(번들 ID) 둘 다 팀·키·.p8 를 쓴다.
+	OAuthAppleServicesID string
+	OAuthAppleTeamID     string
+	OAuthAppleKeyID      string
+	OAuthApplePrivateKey string
+	IOSBundleID          string
 
 	// 마이그레이션 SQL이 있는 디렉터리.
 	// 실행 위치가 두 가지라 기본값을 찾아서 정한다(아래 defaultMigrationsDir):
@@ -158,6 +164,11 @@ func Load() (*Config, error) {
 		OAuthKakaoLegacy:        os.Getenv("OAUTH_KAKAO_LEGACY") == "true",
 		OAuthNaverClientID:      os.Getenv("OAUTH_NAVER_CLIENT_ID"),
 		OAuthNaverClientSecret:  os.Getenv("OAUTH_NAVER_CLIENT_SECRET"),
+		OAuthAppleServicesID:    os.Getenv("OAUTH_APPLE_SERVICES_ID"),
+		OAuthAppleTeamID:        os.Getenv("OAUTH_APPLE_TEAM_ID"),
+		OAuthAppleKeyID:         os.Getenv("OAUTH_APPLE_KEY_ID"),
+		OAuthApplePrivateKey:    os.Getenv("OAUTH_APPLE_PRIVATE_KEY"),
+		IOSBundleID:             envStr("IOS_BUNDLE_ID", "org.tarae.liftgram"),
 	}
 	if c.MailTransport != "smtp" && c.MailTransport != "console" {
 		return nil, fmt.Errorf("[env] MAIL_TRANSPORT는 smtp 또는 console이어야 합니다 (받은 값: %q)", c.MailTransport)

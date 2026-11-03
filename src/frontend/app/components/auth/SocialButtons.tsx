@@ -10,6 +10,7 @@ import { AppText } from "../ui/primitives";
 import type { LastLogin } from "@/lib/last-login";
 import { BrandMark } from "./BrandMark";
 import { PROVIDER_STYLE, providerLabel, startUrl, type Provider } from "./providers";
+import { appleNativeSignIn, appSignIn, canAppleNative, canAppSignIn } from "@/lib/native";
 
 /** 서버가 켠 인증 기능 — 소셜 제공자 목록과 메일 발송 여부. 화면 여러 곳이 같은 응답을 쓴다(한 번만 묻는다). */
 let optionsOnce: Promise<{ providers: string[]; mailEnabled: boolean }> | null = null;
@@ -71,7 +72,10 @@ export function SocialButtons({
   /** 이 기기에서 마지막으로 로그인한 방법 — 그 버튼에 「최근」 배지(미리보기 버튼에는 달지 않는다). */
   last?: LastLogin | null;
 }) {
-  const { providers, loaded } = useAuthOptions();
+  const { providers: served, loaded } = useAuthOptions();
+  // @plm SRS-095  iOS 앱 — 소셜 로그인이 있으면 Apple 을 같이 둬야 한다(심사 4.8). 웹 Apple 이 꺼져 있어도 네이티브 길로 보인다.
+  const providers =
+    served.length && canAppleNative() && !served.includes("apple") ? [...served, "apple"] : served;
   const [notice, setNotice] = useState<string | null>(null);
   // 미리보기 = 키가 아직 없어 **눌러도 나가지 않는** 제공자(booktarae [임시-소셜설정전]과 같은 판단).
   // 키가 들어와 진짜로 켜지면 미리보기 목록에 남아 있어도 자동으로 진짜 버튼이 된다.
@@ -88,6 +92,18 @@ export function SocialButtons({
         <a
           key={p}
           href={startUrl(p, { returnTo })}
+          // @plm SRS-095  스토어 앱 — 앱 웹뷰 안 로그인은 구글이 막는다 → 시스템 인증 창 + 교환 코드(lib/native.ts)
+          onClick={(e) => {
+            // iOS 앱의 Apple 은 네이티브 시트(심사 4.8) — 웹 Apple(form_post)은 시스템 인증 창에서도 되지만 시트가 정석이다
+            if (p === "apple" && canAppleNative()) {
+              e.preventDefault();
+              void appleNativeSignIn({ returnTo });
+              return;
+            }
+            if (!canAppSignIn()) return;
+            e.preventDefault();
+            void appSignIn(startUrl(p, { returnTo }));
+          }}
           data-testid={`btn-oauth-${p}`}
           data-last={last === p ? "1" : undefined}
           style={{ background: style(p).bg, color: style(p).fg, borderColor: style(p).border ?? style(p).bg }}

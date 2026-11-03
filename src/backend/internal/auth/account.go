@@ -487,3 +487,37 @@ func LogMailMode(transport string) {
 		slog.Warn("[auth] 메일이 콘솔로만 나간다(MAIL_TRANSPORT=console) — 운영이면 가입 확인·비밀번호 재설정이 사용자에게 닿지 않는다")
 	}
 }
+
+// ── 계정 삭제 ──────────────────────────────────────────────────────────────────
+// @plm SRS-095  스토어 필수(구글 플레이·App Store 5.1.1(v)) · 즉시 · 되돌릴 수 없다.
+//
+// 다시 확인: 비밀번호가 있는 계정은 비밀번호. 소셜 전용 계정은 비밀번호가 없어 확인 문구만 본다 — 제공자 재로그인을
+// 요구하지 않는 이유는 앱의 시스템 인증 창 왕복을 한 번 더 태우면 실패 경로(취소·코드 만료)가 삭제를 막는 일이 더 잦아서다.
+// 확인 문구는 화면에서 사람이 직접 친 「삭제」 — 버튼 한 번 실수로 지워지지 않게(스펙 §12.1 M-10).
+// 사진 파일: 행이 지워지면 /media/file 이 즉시 404 를 낸다(media.Service.Serve 가 행을 본다). 바이트 청소는 별도 정리 작업.
+const DeleteConfirmWord = "삭제"
+
+func (s *Service) DeleteAccount(ctx context.Context, userID, password, confirm string) error {
+	a, err := s.account()
+	if err != nil {
+		return err
+	}
+	if strings.TrimSpace(confirm) != DeleteConfirmWord {
+		return errs.New(errs.Validation, "확인 문구가 맞지 않습니다")
+	}
+	u, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	if u.PasswordHash != "" && bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
+		return errs.New(errs.Validation, "비밀번호가 올바르지 않습니다")
+	}
+	ok, err := a.Repo.DeleteUserAccount(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	return nil
+}

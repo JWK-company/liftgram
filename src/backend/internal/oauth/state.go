@@ -50,7 +50,9 @@ type statePayload struct {
 	ReturnTo   string `json:"r,omitempty"`
 	Provider   string `json:"p"`
 	LinkUserID string `json:"l,omitempty"`
-	Exp        int64  `json:"e"`
+	// @plm SRS-095  앱 모드 — 착지를 앱 스킴 교환으로 돌린다(handoff.go). AC = S256(웹뷰의 v).
+	AppChallenge string `json:"a,omitempty"`
+	Exp          int64  `json:"e"`
 }
 
 // newState — 무작위 state 와 PKCE verifier 를 만든다.

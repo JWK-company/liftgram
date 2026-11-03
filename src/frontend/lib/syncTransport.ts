@@ -162,6 +162,16 @@ export async function discardAndAdopt(userId: string): Promise<void> {
   void import("./summaryOutbox").then((m) => m.startSummaryOutbox(userId, { wiped: true })); // 비운 기기 — 요약 대기열도 전부 버림 @plm SRS-080
 }
 
+/**
+ * @plm SRS-095  계정 삭제 뒤 — 이 기기의 기록·대기열을 전부 비운다. 지운 계정의 기록이 같은 기기의 다음 계정으로
+ * 올라가지 않게(qa spec M-10). 주인은 지운 계정 id 로 남지만 행이 0 이라 다음 로그인 대조가 「비움」으로 끝난다.
+ */
+export async function onAccountDeleted(deletedUserId: string): Promise<void> {
+  await discardLocalAndAdopt(deletedUserId);
+  (await import("./summaryOutbox")).stopSummaryOutbox();
+  await clearSyncBlock();
+}
+
 /** 로그아웃 — 멈춤을 푼다(이 기기 주인은 그대로라, 원래 계정으로 로그인하면 올라간다). */
 export async function onLoggedOut(): Promise<void> {
   (await import("./summaryOutbox")).stopSummaryOutbox(); // 요약 대기열 지움(S-4) @plm SRS-080

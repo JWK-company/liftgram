@@ -53,10 +53,13 @@ type Handler struct {
 	svc       Sessions
 	cfg       Config
 	limiter   func(key string) bool
+	handoff   *handoffStore // @plm SRS-095  앱 로그인 교환(메모리 2분)
+	// @plm SRS-095  iOS 앱 「Apple로 계속」 — client_id = 번들 ID 로 교환한다(apple_native.go). nil 이면 404.
+	appleNative codeExchanger
 }
 
 func NewHandler(providers map[string]Provider, svc Sessions, cfg Config, limiter func(string) bool) *Handler {
-	return &Handler{providers: providers, svc: svc, cfg: cfg, limiter: limiter}
+	return &Handler{providers: providers, svc: svc, cfg: cfg, limiter: limiter, handoff: newHandoffStore()}
 }
 
 // 오류 코드 화이트리스트 — 착지 화면이 이 값만 문구로 바꾼다(임의 문자열을 실으면 우리 화면에 공격자 문구가 뜬다).
@@ -82,6 +85,24 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name, action := parts[0], parts[1]
+	// @plm SRS-095  앱 로그인 교환 — 제공자가 아니라 앱 웹뷰가 여는 경로(handoff.go)
+	if name == "app" && action == "handoff" {
+		if h.limiter != nil && !h.limiter("handoff|"+clientIP(r)) {
+			h.fail(w, r, errCodeRate)
+			return
+		}
+		h.handoffServe(w, r)
+		return
+	}
+	if name == "apple" && action == "native" {
+		if h.limiter != nil && !h.limiter("apple-native|"+clientIP(r)) {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"to":"` + h.cfg.SignInPath + `?err=` + errCodeRate + `"}`))
+			return
+		}
+		h.appleNativeServe(w, r)
+		return
+	}
 	p, ok := h.providers[name]
 	if !ok {
 		http.NotFound(w, r)
@@ -120,6 +141,15 @@ func (h *Handler) start(w http.ResponseWriter, r *http.Request, p Provider) {
 		State: state, Provider: p.Name(), LinkUserID: linkUserID,
 		ReturnTo: safeReturnTo(r.URL.Query().Get("return_to"), ""),
 		Exp:      time.Now().Add(stateTTL).Unix(),
+	}
+	// @plm SRS-095  앱 모드 — 시스템 인증 창에서 시작했다. ac 가 없거나 모양이 틀리면 거절(묶음 없는 교환 코드 금지).
+	if r.URL.Query().Get("app") == "1" {
+		ac := r.URL.Query().Get("ac")
+		if !validChallenge(ac) {
+			h.fail(w, r, errCodeState)
+			return
+		}
+		payload.AppChallenge = ac
 	}
 	if p.SupportsPKCE() {
 		payload.Verifier = verifier
@@ -172,14 +202,25 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request, p Provider) {
 	// ④ 쿠키 삭제(설정과 같은 속성) — 재생 방지
 	http.SetCookie(w, clearStateCookie(h.cfg.CookieSecure, p.StateCookieSameSite()))
 
+	// @plm SRS-095  여기부터는 앱 모드면 성공·실패 모두 앱으로 돌려보낸다(시스템 인증 창에 갇히지 않게).
+	//   ①~③ 실패는 앱 모드인지조차 믿을 수 없어 웹 착지 그대로다.
+	land := func(target string) {
+		if payload.AppChallenge != "" {
+			h.appLand(w, r, payload.AppChallenge, target)
+			return
+		}
+		h.redirect(w, r, target)
+	}
+	failp := func(code string) { land(h.cfg.SignInPath + "?err=" + code) }
+
 	if e := getParam("error"); e != "" {
 		slog.Info("[oauth] 제공자가 거절", "provider", p.Name(), "error", e)
-		h.fail(w, r, errCodeProvider)
+		failp(errCodeProvider)
 		return
 	}
 	code := getParam("code")
 	if code == "" {
-		h.fail(w, r, errCodeState)
+		failp(errCodeState)
 		return
 	}
 
@@ -189,7 +230,7 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request, p Provider) {
 	prof, err := p.Exchange(ctx, code, payload.Verifier, h.redirectURI(p.Name()))
 	if err != nil {
 		slog.Warn("[oauth] 토큰 교환 실패", "provider", p.Name(), "err", err) // ⚠ code·state 는 남기지 않는다
-		h.fail(w, r, errCodeExchange)
+		failp(errCodeExchange)
 		return
 	}
 
@@ -199,20 +240,20 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request, p Provider) {
 	}, payload.LinkUserID)
 	switch {
 	case errors.Is(err, auth.ErrEmailTaken):
-		h.fail(w, r, errCodeEmailTaken)
+		failp(errCodeEmailTaken)
 		return
 	case errors.Is(err, auth.ErrIdentityTaken):
-		h.fail(w, r, errCodeLinked)
+		failp(errCodeLinked)
 		return
 	case err != nil:
 		slog.Error("[oauth] 로그인 판정 실패", "provider", p.Name(), "err", err)
-		h.fail(w, r, errCodeInternal)
+		failp(errCodeInternal)
 		return
 	}
 
 	loginCode, err := h.svc.IssueLoginCode(ctx, userID, created)
 	if err != nil {
-		h.fail(w, r, errCodeInternal)
+		failp(errCodeInternal)
 		return
 	}
 	target := h.cfg.CompletePath + "?code=" + urlQueryEscape(loginCode)
@@ -225,7 +266,7 @@ func (h *Handler) callback(w http.ResponseWriter, r *http.Request, p Provider) {
 	if back := safeReturnTo(payload.ReturnTo, ""); back != "" {
 		target += "&return_to=" + urlQueryEscape(back)
 	}
-	h.redirect(w, r, target)
+	land(target)
 }
 
 func (h *Handler) redirectURI(provider string) string {
