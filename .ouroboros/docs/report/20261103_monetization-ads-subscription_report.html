@@ -1,0 +1,449 @@
+<title>리프트그램 수익 모델</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 한 줄 기둥(72ch) 보고서 + 폰 목업은 넓게 터지는 갤러리 띠. 광고 자리는 남색 빗금, 광고 금지 구역은 붉은 테두리로 앱 화면과 구분한다. */
+:root {
+  --bg: #f6f6f5; --card: #ffffff; --ink: #141619; --muted: #575c62; --line: #dcdcda; --line-strong: #bdbdba;
+  --brand: #c8381c; --brand-ink: #a82e16; --brand-soft: #fff0eb;
+  --ad: #4338ca; --ad-ink: #3730a3; --ad-soft: #eef0fb; --ad-hatch: #dcdff6;
+  --ok: #047857; --ok-soft: #e9f4f0; --bad: #b91c1c; --bad-soft: #f9eded; --warn: #a16207; --warn-soft: #fbf4e2;
+  --phone: #1b1d21; --scr: #f7f7f7; --scr-card: #ffffff; --scr-ink: #141619; --scr-muted: #6b7076; --scr-line: #e2e2e2;
+  --f-display: "Barlow Condensed", "Noto Sans KR", system-ui, sans-serif;
+  --f-body: "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #151615; --card: #222322; --ink: #f4f5f6; --muted: #a7adb4; --line: #393a39; --line-strong: #5a5b5a;
+  --brand: #ff7a57; --brand-ink: #ff8f70; --brand-soft: #3d2a24;
+  --ad: #a5b4fc; --ad-ink: #a5b4fc; --ad-soft: #2a2c45; --ad-hatch: #363a5e;
+  --ok: #6ee7b7; --ok-soft: #22382f; --bad: #fca5a5; --bad-soft: #452f2f; --warn: #fcd34d; --warn-soft: #3d3420;
+  --phone: #000000; --scr: #161616; --scr-card: #2b2b2b; --scr-ink: #f5f7f9; --scr-muted: #a3a8ae; --scr-line: #3e3e3e; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #151615; --card: #222322; --ink: #f4f5f6; --muted: #a7adb4; --line: #393a39; --line-strong: #5a5b5a;
+  --brand: #ff7a57; --brand-ink: #ff8f70; --brand-soft: #3d2a24;
+  --ad: #a5b4fc; --ad-ink: #a5b4fc; --ad-soft: #2a2c45; --ad-hatch: #363a5e;
+  --ok: #6ee7b7; --ok-soft: #22382f; --bad: #fca5a5; --bad-soft: #452f2f; --warn: #fcd34d; --warn-soft: #3d3420;
+  --phone: #000000; --scr: #161616; --scr-card: #2b2b2b; --scr-ink: #f5f7f9; --scr-muted: #a3a8ae; --scr-line: #3e3e3e; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.7 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 72px }
+.wrap { max-width: 1080px; margin: 0 auto }
+.col { max-width: 72ch }
+h1, h2, h3 { text-wrap: balance; line-height: 1.3; margin: 0 }
+h1 { font-size: clamp(26px, 4.4vw, 38px); font-weight: 700; letter-spacing: -.01em }
+h2 { font-size: 22px; font-weight: 700; margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--line) }
+h3 { font-size: 16px; font-weight: 700; margin-top: 28px }
+p { margin: 10px 0 }
+ul, ol { padding-left: 20px; margin: 10px 0 } li { margin: 4px 0 }
+.eyebrow { font: 600 12px/1 var(--f-body); letter-spacing: .08em; color: var(--muted) }
+.lede { font-size: 17px; max-width: 64ch }
+.muted { color: var(--muted) } .small { font-size: 13px }
+.num { font-family: var(--f-display); font-variant-numeric: tabular-nums; letter-spacing: .01em }
+a { color: var(--brand-ink) }
+a:focus-visible, input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px }
+header.top { padding-block: 40px 8px; display: grid; gap: 14px }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted) }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 28px }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 4px; align-content: start }
+.kpi b { font: 700 34px/1.05 var(--f-display); font-variant-numeric: tabular-nums }
+.kpi span { font-size: 13px; color: var(--muted); line-height: 1.5 }
+
+.callout { border-left: 3px solid var(--brand); background: var(--brand-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 18px 0; max-width: 72ch }
+.callout.ad { border-color: var(--ad); background: var(--ad-soft) }
+.callout.warn { border-color: var(--warn); background: var(--warn-soft) }
+.callout b { color: var(--ink) }
+
+.tbl { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card) }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; line-height: 1.55 }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line) }
+th { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .03em; background: var(--bg); white-space: nowrap }
+tr:last-child td { border-bottom: 0 }
+td.app { font-weight: 700; white-space: nowrap }
+td .sub { display: block; font-weight: 400; font-size: 12px; color: var(--muted) }
+tr.us td { background: var(--brand-soft) }
+.pill { display: inline-block; font: 600 11px/1 var(--f-body); padding: 4px 7px; border-radius: 99px; white-space: nowrap }
+.pill.no { background: var(--ok-soft); color: var(--ok) }
+.pill.yes { background: var(--ad-soft); color: var(--ad-ink) }
+.pill.heavy { background: var(--bad-soft); color: var(--bad) }
+.pill.unk { background: var(--line); color: var(--muted) }
+
+.lessons { display: grid; gap: 10px; margin-top: 16px; max-width: 72ch; counter-reset: l }
+.lesson { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 12px 46px; position: relative }
+.lesson::before { counter-increment: l; content: counter(l); position: absolute; left: 14px; top: 11px; font: 700 20px/1 var(--f-display); color: var(--brand) }
+.lesson b { display: block }
+.lesson span { font-size: 13.5px; color: var(--muted) }
+
+/* 흐름 띠 */
+.flow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px }
+.step { flex: 1 1 140px; min-width: 0; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 12px; display: grid; gap: 4px; align-content: start }
+.step .k { font: 600 11px/1 var(--f-body); letter-spacing: .06em; color: var(--muted) }
+.step b { font-size: 14.5px } .step span { font-size: 12.5px; color: var(--muted); line-height: 1.5 }
+.step.ban { border: 2px solid var(--bad); background: var(--bad-soft) }
+.step.ban .k { color: var(--bad) }
+.step.rec { border: 2px solid var(--ad); background: var(--ad-soft) }
+.step.rec .k { color: var(--ad-ink) }
+.step.ok .k { color: var(--ok) }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); margin-top: 10px }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px }
+
+/* 폰 갤러리 */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 28px 20px; margin-top: 22px }
+figure { margin: 0; display: grid; gap: 10px; align-content: start; min-width: 0 }
+figcaption { font-size: 13px; line-height: 1.55; color: var(--muted) }
+figcaption b { display: block; color: var(--ink); font-size: 14px; margin-bottom: 3px }
+.tag { display: inline-block; font: 600 11px/1 var(--f-body); padding: 4px 7px; border-radius: 99px; margin-right: 4px; vertical-align: 1px }
+.tag.rec { background: var(--ad-soft); color: var(--ad-ink) }
+.tag.ok { background: var(--ok-soft); color: var(--ok) }
+.tag.ban { background: var(--bad-soft); color: var(--bad) }
+.phone { width: 100%; max-width: 220px; aspect-ratio: 220/450; border-radius: 26px; background: var(--phone); padding: 7px; justify-self: center; position: relative }
+.scr { position: absolute; inset: 7px; border-radius: 20px; overflow: hidden; background: var(--scr); color: var(--scr-ink); display: flex; flex-direction: column; font-size: 10px; line-height: 1.45 }
+.phone.banned .scr { box-shadow: inset 0 0 0 3px var(--bad) }
+.bar { padding: 14px 12px 8px; font-weight: 700; font-size: 12px; display: flex; justify-content: space-between; align-items: center }
+.bar small { font-weight: 500; color: var(--scr-muted); font-size: 9.5px }
+.body { flex: 1; padding: 0 10px; display: grid; gap: 6px; align-content: start; overflow: hidden }
+.c { background: var(--scr-card); border: 1px solid var(--scr-line); border-radius: 8px; padding: 7px 8px }
+.c .t { font-weight: 700 } .c .m { color: var(--scr-muted); font-size: 9px }
+.row { display: flex; justify-content: space-between; gap: 6px }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center }
+.stats b { display: block; font: 700 14px/1.1 var(--f-display) }
+.stats span { color: var(--scr-muted); font-size: 8.5px }
+.set { display: grid; grid-template-columns: 14px 1fr 1fr 18px; gap: 4px; align-items: center; font-size: 9.5px; padding: 3px 0; border-top: 1px solid var(--scr-line) }
+.chk { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--scr-line) }
+.chk.on { background: var(--ok); border-color: var(--ok) }
+.rest { margin-top: auto; background: var(--brand); color: #fff; padding: 9px 12px; display: flex; justify-content: space-between; font-weight: 700 }
+.btn { background: var(--brand); color: #fff; text-align: center; border-radius: 8px; padding: 7px; font-weight: 700 }
+.slot { border: 1.5px dashed var(--ad); border-radius: 8px; padding: 7px 8px; color: var(--ad-ink);
+  background: repeating-linear-gradient(135deg, var(--ad-soft) 0 6px, var(--ad-hatch) 6px 12px) }
+.slot b { display: block; font-size: 9.5px } .slot span { font-size: 8.5px; opacity: .85 }
+.noad { margin: auto 10px 8px; border: 1.5px solid var(--bad); color: var(--bad); background: var(--bad-soft); border-radius: 8px; padding: 6px 8px; font-weight: 700; text-align: center; font-size: 9.5px }
+.img { height: 54px; border-radius: 6px; background: var(--scr-line) }
+.nav { display: flex; justify-content: space-around; padding: 7px 0 9px; border-top: 1px solid var(--scr-line); color: var(--scr-muted); font-size: 9px; background: var(--scr-card) }
+.nav .on { color: var(--brand); font-weight: 700 }
+
+/* 등급 표 */
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 18px }
+.tier { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 8px; align-content: start }
+.tier.main { border: 2px solid var(--brand) }
+.tier h3 { margin: 0 } .tier .price { font: 700 26px/1.1 var(--f-display) } .tier .price small { font: 500 13px var(--f-body); color: var(--muted) }
+.tier ul { margin: 0; font-size: 13.5px }
+
+/* 계산기 */
+.calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px }
+@media (max-width: 720px) { .calc { grid-template-columns: minmax(0, 1fr) } }
+.field { display: grid; gap: 2px; margin-bottom: 12px }
+.field label { font-size: 13px; display: flex; justify-content: space-between; gap: 8px }
+.field label output { font-family: var(--f-display); font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums }
+.field input { width: 100%; accent-color: var(--brand) }
+.field .hint { font-size: 11.5px; color: var(--muted) }
+.res { display: grid; gap: 10px; align-content: start }
+.res .line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 8px }
+.res .line span { font-size: 13px; color: var(--muted) }
+.res .line b { font: 700 22px/1 var(--f-display); font-variant-numeric: tabular-nums }
+.res .line.total b { font-size: 30px; color: var(--brand-ink) }
+.barviz { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--line) }
+.barviz i { display: block; height: 100% }
+.barviz .a { background: var(--ad) } .barviz .s { background: var(--brand) }
+.res .note { font-size: 12.5px; color: var(--muted) }
+.src { font-size: 12.5px; color: var(--muted); max-width: 90ch }
+.src li { word-break: break-all }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap">
+<header class="top col">
+  <div class="eyebrow">LIFTGRAM · 수익 모델 분석 · 2026-11-03</div>
+  <h1>광고로 무료, 광고 없이 구독 — 어디에 붙이고 얼마에 팔까</h1>
+  <p class="lede">「모든 기능 무료 + 광고, 광고가 싫으면 월 구독」 안을 경쟁 앱 7곳과 견주고, 운동하는 사람이 광고를 만나는 지점을 화면 단위로 정했습니다. 수치는 북타래 광고 조사(2026-10-07 · 10-11)에서 쓴 웹 광고 단가를 운동 앱 사용 패턴에 맞게 다시 셈했습니다.</p>
+  <div class="meta"><span>기준: PRD · SRS-014 · BS-003(착용장비)</span><span>운영 현황: 가입 3명 · 최근 30일 운동 기록 168건</span><span>환율 1달러 = 1,400원 가정</span></div>
+</header>
+
+<div class="kpis">
+  <div class="kpi"><b class="num">0개</b><span>운동 시작부터 완료 요약을 볼 때까지 띄우는 광고. 쉬는 시간 타이머도 포함</span></div>
+  <div class="kpi"><b class="num">2곳</b><span>국내 1·2위 기록 앱(번핏·짐워크)이 이미 쓰는 모델이 「광고 + 광고 없는 PRO」</span></div>
+  <div class="kpi"><b class="num">약 50원</b><span>웹(PWA)에서 무료 사용자 1명이 한 달에 만드는 광고 수익(기준 추정)</span></div>
+  <div class="kpi"><b class="num">월 2,900원</b><span>제안 구독가. 번핏 PRO 월 5,900원의 절반, Hevy 월 $2.99와 비슷</span></div>
+</div>
+
+<section class="col">
+<h2>결론</h2>
+<p>방향은 맞습니다. 국내 경쟁 앱 번핏과 짐워크가 광고를 붙이고 PRO에서 광고를 뺍니다. 다만 그대로 하면 세 가지가 아쉽습니다.</p>
+<ol>
+  <li><b>웹 광고는 생각보다 적게 법니다.</b> 리프트그램은 지금 웹(PWA)만 있어서 앱 광고(AdMob)를 못 쓰고, 웹 광고는 배너를 바꿔 끼우지 못하고 전면 광고 시점도 고를 수 없습니다. 무료 1명이 월 50원 안팎이라 MAU 1만 명이어도 광고는 월 50만 원 정도입니다.</li>
+  <li><b>「광고 제거」 하나만 파는 구독은 약합니다.</b> 운동 중 광고를 안 띄우면 광고가 거슬리는 순간이 적어서, 돈 내고 뺄 이유도 그만큼 줄어듭니다. 기능은 잠그지 않되 <b>「서포터」</b> 혜택(광고 없음 + 배지·공유 카드 테마·새 기능 먼저)과 <b>평생 이용권</b>을 붙이는 편이 낫습니다.</li>
+  <li><b>큰돈은 광고망이 아니라 직접 파는 스폰서 자리에서 나옵니다.</b> 헬스장·보충제·장비 브랜드가 피드와 완료 요약 카드에 직접 돈을 내는 자리입니다. PRD의 헬스장 B2B, BS-003 착용장비와 같은 자리를 씁니다.</li>
+</ol>
+<div class="callout"><b>광고 원칙 한 줄:</b> 「운동하는 동안에는 광고가 절대 없다」를 약속 문구로 겁니다. Hevy가 「No ads」를 내세우듯, 우리는 「운동 중엔 광고 없음」을 내세웁니다. 광고는 운동이 끝나 결과를 다 본 뒤, 그리고 피드·기록·통계처럼 둘러보는 화면에만 둡니다.</div>
+<div class="callout warn"><b>지금 문서와 부딪힙니다.</b> PRD 비목표에 「광고 모델 전면 채택 안 함 · Hevy 무광고 강점 훼손」, 목표 G1에 「무료·무광고」, SRS-014에 「프리미엄은 AI 코치 심화·고급 분석 잠금 해제」가 적혀 있습니다. 이 안으로 가면 PRD·SRS-014를 고치고 BS·BIZ로 근거를 남겨야 합니다.</div>
+</section>
+
+<section>
+<div class="col">
+<h2>1. 경쟁 앱은 어떻게 버나</h2>
+<p>앱 스토어 상품 목록과 2026년 리뷰·가격 추적 사이트를 대조했습니다. 가격은 지역·프로모션마다 달라 여러 값이 있는 곳은 범위로 적었습니다.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>앱</th><th>무료로 되는 것</th><th>광고</th><th>유료 가격</th><th>본받을 점 · 피할 점</th></tr></thead>
+<tbody>
+<tr><td class="app">Hevy<span class="sub">글로벌 · 900만~1,500만 명(자체 표기)</span></td><td>기록 무제한. 루틴 4개 · 커스텀 종목 7개 · 그래프 3개월로 제한</td><td><span class="pill no">없음</span><br><span class="small muted">스토어 문구 「No ads and free」</span></td><td>$2.99/월 · $23.99/년 · 평생 $74.99</td><td>무광고를 마케팅 문구로 씁니다. 연간을 월 $2로 싸게, 평생 이용권도 팝니다. 개수 상한으로 유료 전환을 만듭니다.</td></tr>
+<tr><td class="app">Strong<span class="sub">글로벌</span></td><td>기록 무제한. 루틴 3개로 제한</td><td><span class="pill unk">확인된 광고 없음</span></td><td>$4.99/월 · $29.99/년 · 평생 $79.99~99.99</td><td>Hevy와 같은 「상한 + 평생」 구조. 측정·차트·플레이트 계산기를 PRO에 둡니다.</td></tr>
+<tr><td class="app">JEFIT<span class="sub">글로벌 · 오래된 앱</span></td><td>대부분 무료</td><td><span class="pill heavy">많음</span><br><span class="small muted">리뷰: 운동 중 광고가 방해된다</span></td><td>Elite $12.99/월 · $69.99/년</td><td><b>피할 점.</b> 운동 중 광고가 리뷰 불만 1순위가 됐습니다. 사용자 걱정과 정확히 같습니다.</td></tr>
+<tr><td class="app">번핏<span class="sub">국내 · 평가 7.1천 · 4.8</span></td><td>기록 · 루틴 · 기본 분석</td><td><span class="pill yes">있음</span><br><span class="small muted">스토어 연령 정보 「광고」 · 제3자 광고 데이터 수집</span></td><td>₩5,900/월(정가 ₩9,900) · ₩39,500~69,900/년 · 3개월 비갱신 ₩17,700</td><td>국내 가격 기준점입니다. 광고 제거를 고급 분석(근육 피로도 지도)과 묶어 팝니다. 비갱신 이용권도 있습니다.</td></tr>
+<tr><td class="app">짐워크<span class="sub">국내 · 평가 3.5천 · 4.7</span></td><td>루틴 무제한 무료</td><td><span class="pill heavy">있음</span><br><span class="small muted">리뷰 요약: 광고가 과하다</span></td><td>PRO 상품 10종 ₩12,800~138,000 · 「대상자 전용」 할인가 6종</td><td>「코치 센터」에서 코치가 루틴을 팔아 수익을 냅니다(마켓 수익). 대상자 전용 할인으로 이탈자를 다시 부릅니다.</td></tr>
+<tr><td class="app">플랜핏<span class="sub">국내 · AI 루틴</span></td><td>AI 플래너 핵심 · 영상 가이드</td><td><span class="pill unk">확인 못 함</span></td><td>₩10,900~11,900/월 · ₩64,900~69,900/년</td><td>AI처럼 원가가 드는 기능을 유료로 받습니다.</td></tr>
+<tr><td class="app">MyFitnessPal<span class="sub">글로벌 · 식단</span></td><td>기본 기록만, 무료를 많이 줄임</td><td><span class="pill heavy">많음</span></td><td>$19.99/월 · $79.99/년 · Premium+ $99.99/년</td><td><b>피할 점.</b> 광고 제거와 핵심 기능(바코드)을 함께 잠가 「무료가 너무 깎였다」는 반발이 큽니다.</td></tr>
+<tr class="us"><td class="app">리프트그램 안<span class="sub">웹(PWA)</span></td><td>전부 무료 · 상한 없음</td><td><span class="pill yes">운동 밖에서만</span></td><td>서포터 ₩2,900/월 · ₩24,000/년 · 평생 ₩59,000</td><td>운동 중 광고 0 · 기능 잠금 0 · 직접 파는 스폰서 자리</td></tr>
+</tbody></table></div>
+
+<div class="col">
+<h3>본받을 점 다섯</h3>
+<div class="lessons">
+  <div class="lesson"><b>국내 시장은 「광고 + 광고 없는 PRO」가 기본값이다</b><span>번핏·짐워크 모두 이 모델입니다. 사용자가 낯설어하지 않습니다. 대신 Hevy가 쓰는 「광고 없음」 문구는 잃으니, 「운동 중엔 광고 없음」으로 바꿔 겁니다.</span></div>
+  <div class="lesson"><b>광고 불만은 운동 중 광고에서 나온다</b><span>JEFIT·짐워크 리뷰의 광고 불만은 대부분 기록 도중 뜨는 광고입니다. 둘러보는 화면의 광고는 덜 문제됩니다.</span></div>
+  <div class="lesson"><b>연간을 싸게, 평생 이용권을 같이</b><span>Hevy·Strong 모두 연간 월 $2~2.5에 평생 $75~100을 둡니다. 기록 앱은 몇 년씩 쓰는 도구라 평생 이용권이 잘 팔리고, 초기 현금이 생깁니다.</span></div>
+  <div class="lesson"><b>원가가 드는 기능만 따로 받는다</b><span>플랜핏은 AI, 짐워크는 코치 루틴을 돈 받는 자리로 씁니다. 「모든 기능 무료」 원칙과도 맞습니다. 서버나 사람에게 돈이 드는 것만 유료로 받으면 됩니다.</span></div>
+  <div class="lesson"><b>파는 사람이 따로 있으면 사용자는 무료로 둘 수 있다</b><span>짐워크 코치 센터는 코치가 루틴으로 벌고, Strava는 브랜드가 챌린지 스폰서로 돈을 냅니다. 광고망보다 단가가 높고, 운동 맥락에 맞는 내용이라 덜 거슬립니다.</span></div>
+</div>
+</div>
+</section>
+
+<section class="col">
+<h2>2. 웹 앱이라서 생기는 제약</h2>
+<p>리프트그램은 지금 웹(PWA)만 있습니다. 북타래 조사에서 확인한 웹 광고 규칙이 운동 앱에서는 이렇게 작동합니다.</p>
+<div class="tbl"><table>
+<thead><tr><th>규칙</th><th>운동 앱에 뜻하는 것</th></tr></thead>
+<tbody>
+<tr><td>앱 광고(AdMob)는 스토어 앱만</td><td>웹에서는 AdSense · Ad Manager · 카카오 애드핏만 씁니다. 단가가 가장 높은 앱 전면·보상형은 스토어 앱을 낸 뒤의 이야기입니다.</td></tr>
+<tr><td>AdSense 배너 자동 새로고침 금지</td><td>운동 화면처럼 한 화면에 1시간 머물면 배너 노출은 1회입니다. 운동 중 배너는 <b>불쾌하기만 하고 돈도 안 됩니다.</b></td></tr>
+<tr><td>웹 전면(비넷)은 링크로 페이지를 옮길 때만</td><td>Next.js 화면 전환은 페이지를 새로 부르지 않아 거의 안 뜹니다. 「운동 끝나면 전면」을 우리가 정해서 띄울 수 없습니다.</td></tr>
+<tr><td>실수 클릭을 부르는 배치 금지(AdSense 정책)</td><td>세트 완료 버튼·휴식 타이머 옆 광고는 땀 젖은 손의 오터치를 부릅니다. 무효 클릭으로 계정이 정지될 위험이 있습니다.</td></tr>
+<tr><td>화면이 꺼지면 노출 0 · 국내 광고 차단 약 17%</td><td>운동 중에는 화면이 대부분 잠겨 있습니다. 실제 노출은 운동 앞뒤와 둘러보는 화면에서 생깁니다.</td></tr>
+</tbody></table></div>
+<div class="callout ad"><b>그래서</b> 운동 중 광고를 빼는 것은 체험만이 아니라 수익으로 봐도 손해가 거의 없습니다. 광고 수익은 운동이 끝난 뒤의 요약, 피드 스크롤, 기록·통계를 둘러볼 때 생깁니다.</div>
+</section>
+
+<section>
+<div class="col">
+<h2>3. 광고를 어디에 띄우나</h2>
+<p>사용자가 앱을 여는 순서대로 놓고, 화면마다 광고를 두는지 정했습니다.</p>
+</div>
+<div class="flow">
+  <div class="step ok"><span class="k">허용 · 아래쪽만</span><b>홈 · 루틴 고르기</b><span>시작 버튼보다 위에는 안 둡니다. 루틴 목록 맨 아래 배너 1개</span></div>
+  <div class="step ban"><span class="k">금지</span><b>운동 중</b><span>세트 입력 · 휴식 타이머 · 종목 추가 피커 · 다른 탭의 운동 바</span></div>
+  <div class="step ban"><span class="k">금지</span><b>PR 축하</b><span>축하 순간은 그대로 둡니다</span></div>
+  <div class="step rec"><span class="k">추천 1순위</span><b>완료 요약</b><span>결과를 다 보여 준 뒤, 종목별 기록 아래 카드 1개</span></div>
+  <div class="step rec"><span class="k">추천</span><b>피드</b><span>게시물 6개마다 「광고」 표시 카드 1개</span></div>
+  <div class="step ok"><span class="k">허용</span><b>기록 · 통계 · 종목 둘러보기</b><span>스크롤 끝 배너 1개</span></div>
+</div>
+<div class="legend"><span><i style="background:var(--bad)"></i>광고 금지</span><span><i style="background:var(--ad)"></i>추천 자리</span><span><i style="background:var(--ok)"></i>허용(조건부)</span></div>
+
+<div class="gallery">
+  <figure>
+    <div class="phone banned" role="img" aria-label="운동 중 화면 목업: 세트 표와 휴식 타이머, 광고 없음">
+      <div class="scr">
+        <div class="bar">하체 A <small>32:10</small></div>
+        <div class="body">
+          <div class="c"><div class="t">바벨 백 스쿼트</div>
+            <div class="set"><span>1</span><span>100kg</span><span>5회</span><span class="chk on"></span></div>
+            <div class="set"><span>2</span><span>100kg</span><span>5회</span><span class="chk on"></span></div>
+            <div class="set"><span>3</span><span>100kg</span><span>5회</span><span class="chk"></span></div>
+          </div>
+          <div class="c"><div class="t">루마니안 데드리프트</div><div class="m">지난번 80kg × 8 · 3세트</div></div>
+        </div>
+        <div class="noad">광고 없음 · 휴식 중에도</div>
+        <div class="rest"><span>휴식</span><span class="num">1:42</span></div>
+      </div>
+    </div>
+    <figcaption><b><span class="tag ban">금지</span>운동 중 · 휴식 타이머</b>쉬는 시간은 광고를 넣고 싶은 빈틈처럼 보이지만, 사람은 다음 세트 무게를 보고 타이머를 봅니다. 화면도 대개 꺼져 있고 오터치는 무효 클릭이 됩니다.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone" role="img" aria-label="완료 요약 목업: 볼륨·시간·세트 다음에 종목별 기록, 그 아래 광고 카드">
+      <div class="scr">
+        <div class="bar">운동 완료 <small>PR 2</small></div>
+        <div class="body">
+          <div class="c stats"><div><b>8,420</b><span>볼륨 kg</span></div><div><b>58분</b><span>시간</span></div><div><b>18</b><span>세트</span></div></div>
+          <div class="c"><div class="row"><span class="t">백 스쿼트</span><span>PR</span></div><div class="m">100kg × 5 · 추정 1RM 117</div></div>
+          <div class="c"><div class="row"><span class="t">루마니안 데드리프트</span></div><div class="m">85kg × 8</div></div>
+          <div class="slot"><b>광고 · 스폰서 카드</b><span>프로틴 · 근처 헬스장 · 장비 (네이티브 1개)</span></div>
+          <div class="btn">공유하기</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><b><span class="tag rec">추천 1순위</span>운동 완료 요약</b>하루 중 가장 기분 좋은 쉼표입니다. 결과(볼륨·PR)를 먼저 다 보여 주고, 아래에 카드 하나만 둡니다. 「완료」 버튼을 광고 뒤에 숨기지 않습니다. 운동 맥락이라 스폰서 단가가 가장 높은 자리입니다.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone" role="img" aria-label="피드 목업: 게시물 사이에 광고 표시 카드">
+      <div class="scr">
+        <div class="bar">피드</div>
+        <div class="body">
+          <div class="c"><div class="t">jh21 · 등 운동</div><div class="img"></div><div class="m">풀업 12 · 바벨 로우 70kg</div></div>
+          <div class="slot"><b>광고</b><span>인피드 네이티브 · 게시물 6개마다 1개</span></div>
+          <div class="c"><div class="t">woo · 하체 A</div><div class="m">스쿼트 PR 100kg × 5</div></div>
+        </div>
+        <div class="nav"><span>홈</span><span class="on">피드</span><span>기록</span><span>나</span></div>
+      </div>
+    </div>
+    <figcaption><b><span class="tag rec">추천</span>피드</b>둘러보는 화면이라 스크롤마다 새 노출이 생겨 웹에서 가장 많이 법니다. 「광고」 표시는 제목 앞에 둡니다(표시광고법 추천보증 지침).</figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone" role="img" aria-label="기록·통계 목업: 맨 아래 배너">
+      <div class="scr">
+        <div class="bar">통계 <small>11월</small></div>
+        <div class="body">
+          <div class="c"><div class="t">주간 볼륨</div><div class="img"></div></div>
+          <div class="c"><div class="row"><span class="t">이번 달 운동</span><span>9회</span></div></div>
+          <div class="c"><div class="row"><span class="t">부위 분포</span><span>하체 38%</span></div></div>
+          <div class="slot"><b>광고 · 배너</b><span>스크롤 끝 1개</span></div>
+        </div>
+        <div class="nav"><span>홈</span><span>피드</span><span class="on">기록</span><span>나</span></div>
+      </div>
+    </div>
+    <figcaption><b><span class="tag ok">허용</span>기록 · 통계 · 종목 둘러보기</b>그래프 사이에 끼우지 않고 맨 끝에만 둡니다. 종목 상세는 자세 그림 아래에 둡니다.</figcaption>
+  </figure>
+</div>
+
+<div class="col">
+<h3>광고를 두지 않는 곳</h3>
+<ul>
+  <li><b>운동 세션 전체:</b> 세트 표, 휴식 타이머, 운동 중 종목 추가·교체 피커, 다른 탭에 떠 있는 운동 바</li>
+  <li><b>PR 축하 · 공유 카드:</b> 공유 이미지에 광고를 넣으면 남의 피드에 우리 광고가 실려 거부감이 큽니다</li>
+  <li><b>가입 후 첫 7일(또는 첫 운동 5회):</b> 습관이 들기 전에는 광고를 안 봅니다. D30 리텐션이 3~10%인 업종이라 첫 주가 가장 비쌉니다</li>
+  <li><b>로그인 · 결제 · 설정 · DM · 코칭 · 신고 화면</b></li>
+</ul>
+<h3>빈도 규칙</h3>
+<ul>
+  <li>완료 요약 광고는 하루 첫 운동에만. 같은 날 두 번째 운동부터는 없습니다.</li>
+  <li>한 사람이 하루에 보는 광고 상한 8회(피드 포함). 넘으면 그날은 숨깁니다.</li>
+  <li>광고 자리는 공용 「광고 슬롯」 하나로 만들고, 운동 세션이 켜져 있으면 슬롯이 스스로 비도록 막습니다. 나중에 화면을 고치다 실수로 운동 중 광고가 생기지 않게, e2e로 운동 화면에 광고 요소가 0개인지 지킵니다.</li>
+</ul>
+</div>
+</section>
+
+<section>
+<div class="col">
+<h2>4. 더 좋은 방법 — 무료 전부 + 서포터 + 스폰서</h2>
+<p>사용자 원안(모든 기능 무료 + 광고 + 광고 제거 구독)을 뼈대로 두고, 구독이 「광고를 빼려고 내는 돈」에서 「응원하고 혜택을 받는 돈」이 되도록 넓혔습니다.</p>
+</div>
+<div class="tiers">
+  <div class="tier"><h3>무료</h3><div class="price">0원</div><ul><li>기록·루틴·분석·소셜 전부, 개수 상한 없음</li><li>광고는 운동 밖에서만</li><li>Hevy·Strong의 루틴 상한이 없는 것이 우리 차별점</li></ul></div>
+  <div class="tier main"><h3>서포터</h3><div class="price">₩2,900<small> /월</small></div><div class="small muted">연 ₩24,000(월 ₩2,000) · 평생 ₩59,000</div><ul><li>광고 없음</li><li>프로필 서포터 배지</li><li>공유 카드 테마 · 앱 색 테마</li><li>새 기능 먼저 써 보기</li><li>기능 잠금은 하나도 없음</li></ul></div>
+  <div class="tier"><h3>나중에 · 원가 드는 것만</h3><div class="price">건별·수수료</div><ul><li>AI 루틴 생성 심화(모델 호출비)</li><li>코치 피드백·루틴 판매 수수료(짐워크 코치 센터형)</li><li>헬스장 노출·스폰서 카드(B2B)</li><li>착용장비 제휴 링크(BS-003)</li></ul></div>
+</div>
+<div class="col">
+<h3>가격을 이렇게 잡은 이유</h3>
+<ul>
+  <li>번핏 PRO가 월 5,900원에 광고 제거와 고급 분석을 같이 줍니다. 우리는 기능을 안 잠그니 그보다 싸야 합니다.</li>
+  <li>헤비 유저 한 명이 만드는 광고 수익은 월 150원 안팎입니다. 월 2,000원(연간 환산)만 받아도 광고로 버는 돈의 10배가 넘어, 구독자가 늘수록 이득입니다.</li>
+  <li>평생 ₩59,000은 연간 2.5년치입니다. Hevy 평생 $74.99도 연간의 약 3년치입니다. 초기 현금이 필요한 지금 시기에 맞습니다.</li>
+</ul>
+<h3>검토하고 뺀 안</h3>
+<div class="tbl"><table>
+<thead><tr><th>안</th><th>뺀 이유</th></tr></thead>
+<tbody>
+<tr><td>Hevy식 루틴 개수 상한</td><td>「모든 기능 무료」 원칙과 어긋나고, Hevy와 같은 조건이 되어 차별점이 사라집니다.</td></tr>
+<tr><td>운동 끝 전면 광고</td><td>웹에서는 우리가 시점을 못 정합니다. 앱을 내도 결과를 가리는 전면은 완료의 기분을 깎습니다.</td></tr>
+<tr><td>보상형 광고(광고 보고 하루 광고 없음)</td><td>국내 웹 보상형 수요가 얇습니다. 스토어 앱을 낸 뒤 AI 생성 1회 같은 소모형 보상으로 다시 봅니다.</td></tr>
+<tr><td>휴식 타이머 아래 작은 배너</td><td>새로고침 금지라 1시간에 노출 1회이고, 오터치 무효 클릭 위험이 큽니다.</td></tr>
+</tbody></table></div>
+</div>
+</section>
+
+<section class="col">
+<h2>5. 얼마나 버나 — 직접 돌려 보기</h2>
+<p>기본값은 MAU 1만 명, 서포터 전환 3%, 웹 광고 기준 단가입니다. <b>지금 가입자는 3명이라 실제 수익은 0에 가깝습니다.</b> 이 표는 규모가 커졌을 때 어느 쪽이 얼마나 버는지 비교하는 용도입니다.</p>
+</section>
+<div class="calc">
+  <div>
+    <div class="field"><label for="mau">월 활성 사용자(MAU) <output id="o-mau"></output></label><input id="mau" type="range" min="1000" max="200000" step="1000" value="10000"></div>
+    <div class="field"><label for="conv">서포터 전환율 <output id="o-conv"></output></label><input id="conv" type="range" min="0.5" max="10" step="0.5" value="3"><span class="hint">광고+구독 혼합형 앱은 2~5%가 흔합니다(추정)</span></div>
+    <div class="field"><label for="price">서포터 월 환산 가격 <output id="o-price"></output></label><input id="price" type="range" min="1000" max="6000" step="100" value="2000"><span class="hint">연 24,000원 = 월 2,000원 · 월간 2,900원</span></div>
+    <div class="field"><label for="days">무료 사용자 월 사용일 <output id="o-days"></output></label><input id="days" type="range" min="4" max="20" step="1" value="10"></div>
+    <div class="field"><label for="imp">하루 광고 노출(운동 밖 화면) <output id="o-imp"></output></label><input id="imp" type="range" min="1" max="12" step="1" value="5"><span class="hint">완료 요약 1 + 피드 2~3 + 기록·통계 1</span></div>
+    <div class="field"><label for="ecpm">웹 광고 eCPM(1,000회당 달러) <output id="o-ecpm"></output></label><input id="ecpm" type="range" min="0.2" max="3" step="0.1" value="0.6"><span class="hint">한국어 웹 배너 $0.3~1.5(북타래 조사) · 스폰서 직판은 이보다 몇 배</span></div>
+  </div>
+  <div class="res" aria-live="polite">
+    <div class="line"><span>광고 수익 / 월</span><b id="r-ad"></b></div>
+    <div class="line"><span>서포터 수익 / 월 (결제 수수료 3.5% 뺀 값)</span><b id="r-sub"></b></div>
+    <div class="line total"><span>합계 / 월</span><b id="r-tot"></b></div>
+    <div class="barviz" aria-hidden="true"><i class="a" id="b-ad"></i><i class="s" id="b-sub"></i></div>
+    <div class="legend"><span><i style="background:var(--ad)"></i>광고</span><span><i style="background:var(--brand)"></i>서포터</span></div>
+    <p class="note" id="r-note"></p>
+    <p class="note">결제 수수료 3.5%는 국내 PG 정기결제 가정입니다(추정). 웹 결제라 스토어 수수료 15~30%는 없습니다. 스폰서 카드·헬스장 B2B는 이 계산에 넣지 않았습니다.</p>
+  </div>
+</div>
+
+<section class="col">
+<h2>6. 순서 제안</h2>
+<ol>
+  <li><b>지금 · 문서:</b> PRD 비목표 「광고 안 함」과 SRS-014 프리미엄 정의를 이 안으로 고칩니다(BS·BIZ 발급 → PRD·SRS 갱신).</li>
+  <li><b>지금 · 코드:</b> 공용 광고 슬롯과 「운동 중엔 비어 있음」 가드, e2e 감시를 먼저 만듭니다. 광고는 아직 안 켭니다.</li>
+  <li><b>지금 · 서포터:</b> 광고가 없어도 서포터는 팔 수 있습니다. 「광고 없는 앱을 지켜 주세요」가 초기 사용자에게 오히려 잘 통합니다. 평생 이용권으로 초기 현금을 만듭니다.</li>
+  <li><b>MAU 1,000 무렵:</b> AdSense·애드핏 심사(개인정보처리방침의 광고 쿠키 항목 · ads.txt)를 받고 피드·완료 요약부터 켭니다.</li>
+  <li><b>그 뒤:</b> 헬스장·브랜드 스폰서 카드를 직접 팔고, 스토어 앱을 내면 AdMob 단가로 다시 셈합니다.</li>
+</ol>
+<h3>오너가 정할 것</h3>
+<ul>
+  <li>서포터 가격(제안 월 2,900 · 연 24,000 · 평생 59,000)과 이름(서포터 / PRO / 멤버십)</li>
+  <li>첫 7일 무광고를 둘지, 피드 광고 간격(6개마다 제안)</li>
+  <li>광고를 켜는 시점(MAU 1,000 제안)과 광고망(AdSense 먼저, 국내 광고주는 애드핏 병행)</li>
+  <li>PRD의 「무광고」 방침을 바꾸는 데 동의하는지</li>
+</ul>
+</section>
+
+<section class="col">
+<h2>출처</h2>
+<ul class="src">
+  <li>Hevy 가격·무료 한도: <a href="https://www.sensai.fit/blog/hevy-review-2026" target="_blank" rel="noopener">sensai.fit Hevy review 2026</a> · <a href="https://recurdash.com/subscription-pricing/hevy" target="_blank" rel="noopener">recurdash Hevy pricing(2026-07-21 확인)</a> · <a href="https://apppricinglab.com/iap/apple/1458862350" target="_blank" rel="noopener">App Store IAP 목록</a> · 「No ads」 문구 <a href="https://www.similarweb.com/app/apple/1458862350" target="_blank" rel="noopener">similarweb 스토어 정보</a></li>
+  <li>Strong: <a href="https://www.sensai.fit/blog/strong-app-review-2026" target="_blank" rel="noopener">sensai.fit Strong review 2026</a> · <a href="https://apps.apple.com/app/id464254577" target="_blank" rel="noopener">App Store</a></li>
+  <li>JEFIT: <a href="https://subger.com/en/service/jefit-elite" target="_blank" rel="noopener">subger Jefit Elite</a> · <a href="https://www.garagegymreviews.com/equipment/jefit" target="_blank" rel="noopener">Garage Gym Reviews</a> · <a href="https://www.jefit.com/blog/six-unique-features-found-on-jefit-elite-app" target="_blank" rel="noopener">JEFIT 블로그(Elite 광고 제거)</a></li>
+  <li>번핏: <a href="https://apps.apple.com/kr/app/id1503464984" target="_blank" rel="noopener">App Store KR(상품·개인정보 라벨, 2026-11-03 확인)</a> · <a href="https://grading.kr/burnfit-free-fitness-app-cost-effective-workout-routine-tracker" target="_blank" rel="noopener">무료·PRO 범위 소개 글</a></li>
+  <li>짐워크: <a href="https://apps.apple.com/kr/app/id1563624436" target="_blank" rel="noopener">App Store KR(상품 10종·광고 표시, 2026-11-03 확인)</a> · <a href="https://www.gymwork.pro/" target="_blank" rel="noopener">gymwork.pro 코치 센터</a> · <a href="https://unstar.app/app/pro.godok.gymwork?country=jp&amp;platform=android" target="_blank" rel="noopener">Google Play 리뷰 요약(unstar)</a></li>
+  <li>플랜핏: <a href="https://apps.apple.com/kr/app/id1511876936" target="_blank" rel="noopener">App Store KR</a></li>
+  <li>MyFitnessPal: <a href="https://recurdash.com/subscription-pricing/myfitnesspal" target="_blank" rel="noopener">recurdash MyFitnessPal pricing</a> · <a href="https://www.fitbudd.com/post/myfitnesspal-app-cost" target="_blank" rel="noopener">fitbudd 가격 정리</a></li>
+  <li>Strava 스폰서 챌린지: <a href="https://business.strava.com/" target="_blank" rel="noopener">Strava for Business</a>(공식 소개 · 금액 미확인)</li>
+  <li>웹 광고 규칙·단가(AdSense 새로고침 금지·비넷 시점·eCPM·광고 차단률): 북타래 「광고 수익화 지도」(2026-10-11) 출처 재인용 — <a href="https://support.google.com/adsense/answer/1346295" target="_blank" rel="noopener">AdSense 정책</a> · <a href="https://support.google.com/admanager/answer/6286179" target="_blank" rel="noopener">Ad Manager 새로고침 신고</a> · <a href="https://adfit.kakao.com/info" target="_blank" rel="noopener">카카오 애드핏</a></li>
+  <li>운영 수치: 리프트그램 운영 DB 읽기 전용 조회(2026-11-03) — users 3 · 최근 30일 workouts 동기 168건</li>
+</ul>
+</section>
+</div>
+
+<script>
+(function () {
+  var KRW = 1400, FEE = 0.035;
+  var ids = ["mau", "conv", "price", "days", "imp", "ecpm"];
+  var el = {}; ids.forEach(function (k) { el[k] = document.getElementById(k); });
+  function won(n) {
+    if (n >= 1e8) return (n / 1e8).toFixed(2) + "억";
+    if (n >= 1e4) return Math.round(n / 1e4).toLocaleString("ko-KR") + "만 원";
+    return Math.round(n).toLocaleString("ko-KR") + "원";
+  }
+  function calc() {
+    var mau = +el.mau.value, conv = +el.conv.value / 100, price = +el.price.value,
+        days = +el.days.value, imp = +el.imp.value, ecpm = +el.ecpm.value;
+    document.getElementById("o-mau").textContent = mau.toLocaleString("ko-KR") + "명";
+    document.getElementById("o-conv").textContent = (conv * 100).toFixed(1) + "%";
+    document.getElementById("o-price").textContent = price.toLocaleString("ko-KR") + "원";
+    document.getElementById("o-days").textContent = days + "일";
+    document.getElementById("o-imp").textContent = imp + "회";
+    document.getElementById("o-ecpm").textContent = "$" + ecpm.toFixed(1);
+    var paid = mau * conv, free = mau - paid;
+    var perFree = days * imp / 1000 * ecpm * KRW;
+    var ad = free * perFree, sub = paid * price * (1 - FEE), tot = ad + sub;
+    document.getElementById("r-ad").textContent = won(ad);
+    document.getElementById("r-sub").textContent = won(sub);
+    document.getElementById("r-tot").textContent = won(tot);
+    var pa = tot > 0 ? ad / tot * 100 : 0;
+    document.getElementById("b-ad").style.width = pa + "%";
+    document.getElementById("b-sub").style.width = (100 - pa) + "%";
+    document.getElementById("r-note").textContent =
+      "무료 1명 월 광고 " + Math.round(perFree) + "원 · 서포터 " + Math.round(paid).toLocaleString("ko-KR") +
+      "명 · 연 환산 " + won(tot * 12) + " · 광고 비중 " + Math.round(pa) + "%";
+  }
+  ids.forEach(function (k) { el[k].addEventListener("input", calc); });
+  calc();
+})();
+</script>

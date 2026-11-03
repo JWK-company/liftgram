@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "id": "SRS-095",
+  "type": "SRS",
+  "kind": "FR",
+  "title": "스토어 앱 껍데기(Capacitor · 안드로이드·iOS) — 같은 화면·계정·로컬 기록 · 오프라인 첫 실행 · 앱 로그인(시스템 브라우저 · Apple 로그인) · 앱 링크 · 계정 삭제",
+  "tags": [
+    "native-app",
+    "store"
+  ],
+  "acceptance_criteria": "두 플랫폼 앱이 웹과 같은 계정·기록으로 동작하고, 비행기 모드 첫 실행에서 기록이 되며, 구글·카카오·네이버·Apple 로그인이 앱 안에서 끝난다",
+  "relations": {
+    "derives_from": [
+      "URS-032"
+    ]
+  },
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-11-03T06:00:00Z",
+  "updated": "2026-11-03T06:00:00Z",
+  "sync": true,
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "앱 ID org.tarae.liftgram 으로 안드로이드·iOS 앱을 만든다. 앱은 지금 웹 화면을 그대로 띄우는 껍데기에 웹이 못 하는 기능을 네이티브로 붙인 것이다. 화면과 도메인 코드는 웹과 하나이고, 네이티브 부분만 스토어 심사를 다시 받는다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "네트워크가 없어도 앱이 열리고 기록이 되어야 한다(ADR-032). 로그인은 앱 안 웹 화면이 아니라 시스템 브라우저 창이나 네이티브 SDK로 하고(구글은 웹뷰 로그인을 막는다), iOS 에는 소셜 로그인과 동급인 Apple 로그인을 함께 둔다(심사 4.8). 피드 공유 링크는 설치된 앱에서 열린다(App Links · Universal Links)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "안드로이드(API 36 대상)·iOS(Xcode 26·iOS 26 SDK) 빌드가 되고, 서명 키는 저장소 밖에 둔다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "비행기 모드에서 앱을 처음부터 열어 빠른 운동을 시작하고 세트를 저장할 수 있다. 네트워크가 돌아오면 서버에 동기된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "구글·카카오·네이버 로그인이 앱 안에서 끝나 같은 계정으로 들어온다. iOS 에서는 Apple 로그인도 된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "웹에서 쓰던 계정의 운동 기록 수가 앱 첫 동기 뒤 같다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "liftgram.tarae.org 링크가 설치된 앱에서 열린다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "앱 안에서 계정 삭제가 되고, 구글 플레이용 웹 삭제 요청 주소가 있다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "앱 버전과 웹 번들 버전이 프로필에 함께 보이고, 네이티브가 낡으면 업데이트를 안내한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "연결"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "도출 URS: URS-032"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "결정: ADR-046(방식) · ADR-032(오프라인 우선)"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "schemaVersion": 1,
+  "id": "URS-031",
+  "type": "URS",
+  "title": "운동 중 폰이 잠겨 있어도 지금 종목·세트·남은 휴식을 보고, 잠금을 풀지 않고 세트를 넘기거나 휴식을 조절하고 싶다 · 홈 화면 위젯에서도",
+  "tags": [
+    "native-app",
+    "lock-screen",
+    "widget"
+  ],
+  "stakeholder": "회원(헬스장에서 기록하는 사람)",
+  "priority": "High",
+  "relations": {
+    "relates_to": [
+      "BS-006"
+    ]
+  },
+  "status": "Draft",
+  "owner": "Product",
+  "product": "health-practice",
+  "created": "2026-11-03T06:00:00Z",
+  "updated": "2026-11-03T06:00:00Z",
+  "sync": true,
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "배경"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "헬스장에서 폰은 세트 사이 대부분 잠겨 있다. 지금 리프트그램은 웹 앱이라 잠금화면에 아무것도 보여 주지 못하고, 세트를 끝낼 때마다 잠금을 풀고 앱으로 돌아와야 한다. 화면이 잠기면 휴식 타이머 소리도 브라우저 제약 때문에 억지로 이어 붙이고 있다."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "이해관계자: 운동 중 기록하는 회원(손이 젖어 있고 집중 중이라 조작이 짧아야 한다), 운동 전 앱을 여는 회원(바로 시작하고 싶다)."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "요구 서술"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "운동 중에는 잠금화면에서 지금 종목, 몇 번째 세트인지, 이번 세트 무게·횟수, 휴식이 몇 초 남았는지를 볼 수 있어야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "잠금을 풀지 않고 이번 세트를 완료하고, 휴식을 늘리거나 끝낼 수 있어야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "휴식이 끝나면 화면이 꺼져 있어도 알려 줘야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "폰 홈 화면 위젯에서 진행 중인 운동을 보거나, 운동을 바로 시작할 수 있어야 한다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "잠금화면에서 한 조작은 앱을 열었을 때 기록에 그대로 있어야 한다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "수용 기준"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "안드로이드와 아이폰 모두 운동 중 잠금화면에 종목·세트·휴식 남은 시간이 보인다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "잠금화면 조작 3가지(세트 완료 · 휴식 +30초 · 휴식 끝내기)가 잠금 해제 없이 된다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "잠금 중 한 조작이 앱을 연 뒤 기록과 휴식 상태에 100% 반영되고, 같은 조작이 두 번 기록되지 않는다."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "휴식 종료 알림이 화면이 꺼진 상태에서도 정해진 시각 ±2초 안에 울린다."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
