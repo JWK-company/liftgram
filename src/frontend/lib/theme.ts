@@ -23,4 +23,6 @@ export function applyTheme(t: ThemeChoice = getTheme()): void {
 export function setTheme(t: ThemeChoice): void {
   setPref(THEME_KEY, t);
   applyTheme(t);
+  // 잠금 운동 화면도 같은 테마로(SPEC-021) — 저장한 뒤에 부른다 · 앱이 아니면 lockBridge 가 바로 끝낸다
+  void import("./lockBridge").then((m) => m.requestLockSnapshot()).catch(() => undefined);
 }

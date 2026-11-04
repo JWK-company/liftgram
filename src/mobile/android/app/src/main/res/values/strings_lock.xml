@@ -29,8 +29,12 @@
     <string name="lock_next_prefix">다음 · </string>
     <!-- 잠금화면 위 운동 화면(SPEC-019) -->
     <string name="lock_screen_unlock">잠금 해제</string>
-    <string name="lock_screen_close">닫기</string>
-    <string name="lock_screen_hold">길게 눌러 세트 완료</string>
+    <!-- [원본] <string name="lock_screen_close">닫기</string> — 닫기 버튼을 뺐다(SPEC-021) -->
+    <!-- [원본] <string name="lock_screen_hold">길게 눌러 세트 완료</string> -->
+    <string name="lock_screen_hold">꾹 눌러 세트 완료</string>
+    <string name="lock_screen_complete">세트 완료</string>
+    <string name="lock_screen_reps_unit">회</string>
+    <string name="lock_screen_elapsed">운동 시간 %1$d분 %2$d초</string>
     <string name="lock_screen_in_app">앱에서 하기</string>
     <string name="lock_screen_weight">무게</string>
     <string name="lock_screen_reps">횟수</string>

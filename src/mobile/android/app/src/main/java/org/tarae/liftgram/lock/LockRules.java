@@ -53,6 +53,35 @@ public final class LockRules {
         return out;
     }
 
+    /** 운동 시간(초) · null = 숨김 — core lockElapsedSec 와 같은 정답 파일로 시험한다(SPEC-021). */
+    public static Long elapsedSec(JSONObject clock, boolean paused, long now) {
+        if (clock == null) return null;
+        long started = clock.optLong("startedAt");
+        if (started <= 0) return null;
+        long pausedAt = clock.optLong("pausedAt");
+        long end = paused && pausedAt != 0 ? pausedAt : now;
+        return Math.max(0L, Math.round((end - started - clock.optLong("accumulatedPauseMs")) / 1000.0));
+    }
+
+    /** 앱과 같은 시계 형식 — 42:18 · 1:02:18 */
+    public static String clockText(long sec) {
+        long h = sec / 3600, m = sec % 3600 / 60, s = sec % 60;
+        return h > 0
+                ? String.format(java.util.Locale.ROOT, "%d:%02d:%02d", h, m, s)
+                : String.format(java.util.Locale.ROOT, "%d:%02d", m, s);
+    }
+
+    /** 휴식 링 비율 0~1 — 총량을 모르면 가득 · +30초로 총량을 넘어도 1 을 넘지 않는다. */
+    public static float restFraction(long remainSec, Long totalSec) {
+        if (totalSec == null || totalSec <= 0) return 1f;
+        return Math.max(0f, Math.min(1f, (float) remainSec / totalSec));
+    }
+
+    /** 모르는 값은 system — 기기 설정을 따른다. */
+    public static String normalizeTheme(String t) {
+        return "light".equals(t) || "dark".equals(t) ? t : "system";
+    }
+
     /** 새 스냅샷을 받을지 — 저장소·웹 DB·세션이 같을 때만 appliedThroughSeq 가 거꾸로 가는 것을 버린다. */
     public static boolean acceptSnapshot(JSONObject current, JSONObject next) {
         if (current == null) return true;

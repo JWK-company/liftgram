@@ -91,6 +91,17 @@ public class LockRulesFixtureTest {
     }
 
     @Test
+    public void elapsedSec() throws Exception {
+        JSONArray cases = fixtures().getJSONArray("elapsedSec");
+        for (int i = 0; i < cases.length(); i++) {
+            JSONObject c = cases.getJSONObject(i);
+            Long want = c.isNull("expect") ? null : c.getLong("expect");
+            assertEquals(c.getString("name"), want,
+                    LockRules.elapsedSec(c.optJSONObject("clock"), c.getBoolean("paused"), c.getLong("now")));
+        }
+    }
+
+    @Test
     public void restRemainingSec() throws Exception {
         JSONArray cases = fixtures().getJSONArray("restRemainingSec");
         for (int i = 0; i < cases.length(); i++) {

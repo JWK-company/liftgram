@@ -1122,6 +1122,8 @@ export async function refillLoadsAfter(setIds: string[]): Promise<string[]> {
 export async function loadLockSnapshotInput(workoutId: string): Promise<{
   title: string;
   startedAt: number;
+  accumulatedPauseMs: number;
+  pausedAt: number | null;
   paused: boolean;
   rows: LockRowInput<LockSnapshotSet>[];
   blocks: LockSnapshotBlock[];
@@ -1165,7 +1167,15 @@ export async function loadLockSnapshotInput(workoutId: string): Promise<{
     const members = row.members.map((m) => byWe.get(m.id)).filter((b): b is LockSnapshotBlock => !!b);
     return [{ kind: 'group', members: members.map((b) => ({ weId: b.weId, sets: b.sets })) }];
   });
-  return { title: w.name ?? '', startedAt: w.startedAt, paused: w.state === 'paused', rows, blocks };
+  return {
+    title: w.name ?? '',
+    startedAt: w.startedAt,
+    accumulatedPauseMs: w.accumulatedPauseMs ?? 0,
+    pausedAt: w.pausedAt ?? null,
+    paused: w.state === 'paused',
+    rows,
+    blocks,
+  };
 }
 
 /** 블록 휴식(초)을 이번 운동 행에 저장한다 — 휴식 시트를 **닫을 때 한 번**(SPEC-017 §7 · REV-003 저장소 M-5). 같으면 쓰지 않는다. */

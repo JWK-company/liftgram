@@ -7,6 +7,8 @@ import { expect, test } from "@playwright/test";
 
 type Page = import("@playwright/test").Page;
 type Snap = {
+  clock: { startedAt: number; accumulatedPauseMs: number; pausedAt: number | null };
+  theme: string;
   sessionId: string;
   dbEpoch: string;
   storeId: string;
@@ -413,6 +415,31 @@ test.describe("앱(가짜 플러그인) — 잠금 운동 화면(SPEC-019)", () 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(fakeScript(true));
   });
+  test("사본에 운동 시간 재료·테마 — 테마를 바꾸면 사본이 다시 간다(SPEC-021)", async ({ page }) => {
+    await 카탈로그_준비(page);
+    await 운동_시작(page, "바벨 스쿼트");
+    const snap = await 사본(page, (s) => !!s.clock);
+    expect(snap.clock.startedAt).toBeGreaterThan(0);
+    expect(snap.clock.accumulatedPauseMs).toBe(0);
+    expect(snap.clock.pausedAt).toBeNull();
+    expect(snap.theme).toBe("system");
+    // 다른 기기에서 내려온 값처럼 — localStorage 반영 뒤 PREFS_EVENT(REV-021 데이터 M-1)
+    await page.evaluate(() => localStorage.setItem("liftgram.theme", "dark"));
+    await page.evaluate((ev) => window.dispatchEvent(new Event(ev)), "liftgram-prefs");
+    await 사본(page, (s) => s.theme === "dark");
+    // 일시정지 → 재개 — 멈춘 시각이 갔다가 지워지고, 멈춘 길이가 쌓인다(REV-022 데이터)
+    await page.getByTestId("btn-pause").click();
+    await 사본(page, (s) => (s.clock.pausedAt ?? 0) > 0);
+    await page.waitForTimeout(300);
+    await page.getByTestId("btn-pause").click();
+    await 사본(page, (s) => s.clock.pausedAt === null && s.clock.accumulatedPauseMs > 0);
+    // 프로필에서 고른 길(setTheme) — 저장소 값만 바꾼 위 경로와 다르다
+    await page.goto("/profile");
+    await page.getByTestId("theme").click();
+    await page.getByTestId("theme-light").click();
+    await 사본(page, (s) => s.theme === "light");
+  });
+
   test("사본에 caps values · 멤버 weId — 잠금 화면에서 바꾼 무게·횟수로 완료하면 기록에 그 값(한 번만)", async ({
     page,
   }) => {

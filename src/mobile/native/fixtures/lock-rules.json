@@ -1,5 +1,113 @@
 {
   "v": 1,
+  "elapsedSec": [
+    {
+      "name": "진행 중",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": null
+      },
+      "paused": false,
+      "now": 61000,
+      "expect": 60
+    },
+    {
+      "name": "누적 정지를 뺀다",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 10000,
+        "pausedAt": null
+      },
+      "paused": false,
+      "now": 61000,
+      "expect": 50
+    },
+    {
+      "name": "정지 중이면 정지 시각에 멈춘다",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": 31000
+      },
+      "paused": true,
+      "now": 99000,
+      "expect": 30
+    },
+    {
+      "name": "정지 시각이 없으면 지금까지",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": null
+      },
+      "paused": true,
+      "now": 11000,
+      "expect": 10
+    },
+    {
+      "name": "재개 뒤 남은 정지 시각은 쓰지 않는다",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": 5000
+      },
+      "paused": false,
+      "now": 11000,
+      "expect": 10
+    },
+    {
+      "name": "반올림 — 올림",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": null
+      },
+      "paused": false,
+      "now": 2500,
+      "expect": 2
+    },
+    {
+      "name": "반올림 — 내림",
+      "clock": {
+        "startedAt": 1000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": null
+      },
+      "paused": false,
+      "now": 2499,
+      "expect": 1
+    },
+    {
+      "name": "기기 시계가 앞이면 0",
+      "clock": {
+        "startedAt": 10000,
+        "accumulatedPauseMs": 0,
+        "pausedAt": null
+      },
+      "paused": false,
+      "now": 1000,
+      "expect": 0
+    },
+    {
+      "name": "칸 없음 — 숨김",
+      "clock": null,
+      "paused": false,
+      "now": 1000,
+      "expect": null
+    },
+    {
+      "name": "startedAt 0 — 숨김",
+      "clock": {
+        "startedAt": 0,
+        "accumulatedPauseMs": 0,
+        "pausedAt": null
+      },
+      "paused": false,
+      "now": 1000,
+      "expect": null
+    }
+  ],
   "note": "core/src/domain/__tests__/lockFixtures.test.ts 가 만든다 — 손으로 고치지 않는다",
   "rebase": [
     {

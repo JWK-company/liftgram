@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { acceptSnapshot, canForgetAcked, mergeRest, queueStalled, rebaseLockQueue, restRemainingSec, type RestState } from '../lockScreen';
+import { acceptSnapshot, canForgetAcked, lockElapsedSec, mergeRest, queueStalled, rebaseLockQueue, restRemainingSec, type RestState } from '../lockScreen';
 
 const FILE = fileURLToPath(new URL('../../../../mobile/native/fixtures/lock-rules.json', import.meta.url));
 
@@ -73,7 +73,19 @@ function build() {
     { name: '끝내기(endsAt null)', rest: rest(null, 0, 'native'), now: 0 },
     { name: 'endsAt 0', rest: { endsAt: 0, totalSec: 0, setAt: 0, by: 'web' as const }, now: 0 },
   ].map((c) => ({ ...c, expect: restRemainingSec(c.rest, c.now) }));
-  return { v: 1, note: 'core/src/domain/__tests__/lockFixtures.test.ts 가 만든다 — 손으로 고치지 않는다', rebase: rebaseCases, acceptSnapshot: acceptCases, canForgetAcked: forgetCases, mergeRest: mergeCases, queueStalled: stallCases, restRemainingSec: remainCases };
+  const elapsedCases = [
+    { name: '진행 중', clock: { startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: null }, paused: false, now: 61_000 },
+    { name: '누적 정지를 뺀다', clock: { startedAt: 1_000, accumulatedPauseMs: 10_000, pausedAt: null }, paused: false, now: 61_000 },
+    { name: '정지 중이면 정지 시각에 멈춘다', clock: { startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: 31_000 }, paused: true, now: 99_000 },
+    { name: '정지 시각이 없으면 지금까지', clock: { startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: null }, paused: true, now: 11_000 },
+    { name: '재개 뒤 남은 정지 시각은 쓰지 않는다', clock: { startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: 5_000 }, paused: false, now: 11_000 },
+    { name: '반올림 — 올림', clock: { startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: null }, paused: false, now: 2_500 },
+    { name: '반올림 — 내림', clock: { startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: null }, paused: false, now: 2_499 },
+    { name: '기기 시계가 앞이면 0', clock: { startedAt: 10_000, accumulatedPauseMs: 0, pausedAt: null }, paused: false, now: 1_000 },
+    { name: '칸 없음 — 숨김', clock: null, paused: false, now: 1_000 },
+    { name: 'startedAt 0 — 숨김', clock: { startedAt: 0, accumulatedPauseMs: 0, pausedAt: null }, paused: false, now: 1_000 },
+  ].map((c) => ({ ...c, expect: lockElapsedSec(c.clock, c.paused, c.now) }));
+  return { v: 1, elapsedSec: elapsedCases, note: 'core/src/domain/__tests__/lockFixtures.test.ts 가 만든다 — 손으로 고치지 않는다', rebase: rebaseCases, acceptSnapshot: acceptCases, canForgetAcked: forgetCases, mergeRest: mergeCases, queueStalled: stallCases, restRemainingSec: remainCases };
 }
 
 test('네이티브 공용 픽스처 = core 규칙(드리프트 없음)', () => {

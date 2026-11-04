@@ -51,6 +51,11 @@ public final class LockView {
     public boolean canAdjust;
     /** 단계가 바뀌어 고른 값을 버렸다 — 화면이 한 번 알린다 */
     public boolean draftLost;
+    /** 운동 시간(초) · null = 숨김(SPEC-021) */
+    public Long elapsedSec;
+    /** 고른 테마 — system · light · dark(SPEC-021) */
+    public String theme = "system";
+    public Long restTotalSec;
 
     static Member member(JSONObject m) {
         Member x = new Member();
@@ -82,6 +87,8 @@ public final class LockView {
         v.title = snap.optString("title", "");
         v.paused = snap.optBoolean("paused");
         v.truncated = snap.optBoolean("truncated");
+        v.elapsedSec = LockRules.elapsedSec(snap.optJSONObject("clock"), v.paused, now);
+        v.theme = LockRules.normalizeTheme(snap.optString("theme", "system"));
         JSONObject sound = snap.optJSONObject("sound");
         if (sound != null) {
             v.soundEnabled = sound.optBoolean("enabled", true);
@@ -122,6 +129,8 @@ public final class LockView {
         if (LockRules.restRemainingSec(s.rest, now) > 0) {
             v.restEndsAt = s.rest.optLong("endsAt");
             v.restSetAt = s.rest.optLong("setAt");
+            long total = s.rest.optLong("totalSec");
+            v.restTotalSec = total > 0 ? total : null;
         }
         v.stalledAt = s.stallsAt();
         v.draftLost = s.draftLost;

@@ -6,6 +6,7 @@ import {
   acceptSnapshot,
   alreadyApplied,
   buildLockSnapshot,
+  lockElapsedSec,
   buildLockSteps,
   canForgetAcked,
   clampCompletedAt,
@@ -384,6 +385,9 @@ test('스냅샷 조립 — 표시는 시뮬레이션 값 · 블록 단위 · 워
     now: 123,
     restAfter: (s, b) => (s.setType === 'top' ? 180 : b.restSec),
   });
+  // 운동 시간·테마는 선택 칸 — 안 넘기면 키도 없다(옛 호출과 같은 사본 · SPEC-021)
+  assert.equal('clock' in snap, false);
+  assert.equal('theme' in snap, false);
   assert.equal(snap.steps.length, 3);
   assert.equal(snap.steps[0].restAfterSec, 180);
   assert.equal(snap.steps[0].members[0].label, 'T');
@@ -517,4 +521,12 @@ test('SPEC-019 스냅샷 — caps values · 멤버 weId · refill 은 채우기 
     [false, true, false, false, false, false],
     '탑셋 자신 ✗ · pctTop 백오프 ✓ · 고정 ✗ · 사람이 고친 백오프 ✗ · 1RM 있는 pct1rm ✗',
   );
+});
+
+// 정답 파일은 이 함수가 만든다 — 손으로 쓴 정답으로 따로 지킨다(REV-022 데이터)
+test('운동 시간 — 정지를 빼고 앱과 같게 반올림', () => {
+  assert.equal(lockElapsedSec({ startedAt: 1_000, accumulatedPauseMs: 10_000, pausedAt: null }, false, 61_000), 50);
+  assert.equal(lockElapsedSec({ startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: 31_000 }, true, 99_000), 30);
+  assert.equal(lockElapsedSec({ startedAt: 1_000, accumulatedPauseMs: 0, pausedAt: null }, false, 2_500), 2);
+  assert.equal(lockElapsedSec({ startedAt: 0, accumulatedPauseMs: 0, pausedAt: null }, false, 1_000), null);
 });

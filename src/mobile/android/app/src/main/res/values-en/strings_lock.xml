@@ -28,8 +28,11 @@
     <string name="lock_next_prefix">Next · </string>
     <!-- Lock-screen workout screen (SPEC-019) -->
     <string name="lock_screen_unlock">Unlock</string>
-    <string name="lock_screen_close">Close</string>
+    <!-- [원본] <string name="lock_screen_close">Close</string> — 닫기 버튼을 뺐다(SPEC-021) -->
     <string name="lock_screen_hold">Hold to complete set</string>
+    <string name="lock_screen_complete">Complete set</string>
+    <string name="lock_screen_reps_unit">reps</string>
+    <string name="lock_screen_elapsed">Workout time %1$d min %2$d sec</string>
     <string name="lock_screen_in_app">Open in app</string>
     <string name="lock_screen_weight">Weight</string>
     <string name="lock_screen_reps">Reps</string>

@@ -66,6 +66,28 @@ export interface LockSnapshot {
   updatedAt: number;
   /** 이 웹이 아는 조작 기능(SPEC-019 · REV-014 #40) — 'values' 가 있어야 네이티브가 무게·횟수 조정을 켠다(옛 웹은 values 를 버린다) */
   caps?: string[];
+  /** 운동 시간 재료(SPEC-021) — 시각이라 초마다 바뀌지 않는다 · 옛 웹이면 없고 네이티브는 시간을 숨긴다 */
+  clock?: LockClock;
+  /** 고른 테마(SPEC-021) — system 이면 네이티브가 기기 설정으로 정한다 */
+  theme?: LockTheme;
+}
+
+export interface LockClock {
+  startedAt: number;
+  accumulatedPauseMs: number;
+  pausedAt: number | null;
+}
+
+export type LockTheme = 'system' | 'light' | 'dark';
+
+/**
+ * 운동 시간(초) — 앱 화면(ActiveWorkout)과 같은 식 · 반올림까지 같아야 1초 어긋나지 않는다(REV-021 데이터 M-3).
+ * startedAt 이 없으면 null(숨김) — 0 이 56년으로 보이지 않게(REV-021 데이터 L-1).
+ */
+export function lockElapsedSec(clock: LockClock | null | undefined, paused: boolean, now: number): number | null {
+  if (!clock || !(clock.startedAt > 0)) return null;
+  const end = paused && clock.pausedAt ? clock.pausedAt : now;
+  return Math.max(0, Math.round((end - clock.startedAt - (clock.accumulatedPauseMs ?? 0)) / 1000));
 }
 
 export const LOCK_CAPS = ['values'];
@@ -629,6 +651,8 @@ export function buildLockSnapshot(input: {
   sound: LockSnapshot['sound'];
   now: number;
   restAfter: (set: LockSnapshotSet, block: LockSnapshotBlock) => number;
+  clock?: LockClock;
+  theme?: LockTheme;
 }): LockSnapshot {
   const all = buildLockStepsAll(input.rows);
   const plans = all.slice(0, LOCK_STEP_LIMIT);
@@ -702,5 +726,7 @@ export function buildLockSnapshot(input: {
     sound: input.sound,
     updatedAt: input.now,
     caps: [...LOCK_CAPS],
+    ...(input.clock ? { clock: input.clock } : {}),
+    ...(input.theme ? { theme: input.theme } : {}),
   };
 }

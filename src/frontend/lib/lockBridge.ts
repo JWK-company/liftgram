@@ -11,6 +11,8 @@ import type { RestState } from "@app/core/domain/lockScreen";
 import type { LockDrainMismatch, LockDrainFault } from "@app/core/domain/lockDrain";
 import { E2E_FAULTS } from "./e2eFlags";
 import { lock, lockAvailable, onAppState } from "./native";
+import { PREFS_EVENT } from "./prefs";
+import { getTheme } from "./theme"; // theme → lockBridge 는 동적이라 순환이 아니다 · 이 청크 실패로 스냅샷이 버려지지 않게(REV-022 데이터)
 
 export interface LockBridgeHooks {
   getRest: () => RestState | null;
@@ -308,6 +310,9 @@ async function snapshotOnce(): Promise<void> {
     now: Date.now(),
     restAfter: (s, b) =>
       restSecondsForSetType((s.setType ?? null) as Parameters<typeof restSecondsForSetType>[0], b.restSec),
+    // 잠금 운동 화면의 운동 시간·테마(SPEC-021)
+    clock: { startedAt: inp.startedAt, accumulatedPauseMs: inp.accumulatedPauseMs, pausedAt: inp.pausedAt },
+    theme: getTheme(),
   });
   // 같은 사본이면 보내지 않는다(updatedAt 만 다른 것 — 쓰기·동기 폭주 방지)
   const json = JSON.stringify({ ...snap, updatedAt: 0 });
@@ -361,6 +366,10 @@ export function startLockBridge(h: LockBridgeHooks): () => void {
     keep(() => sub.unsubscribe());
   });
   void lock.onAction(() => void requestLockDrain()).then((l) => l && keep(() => void l.remove()));
+  // 다른 기기에서 내려온 테마·소리 설정 — user_profiles 구독은 localStorage 반영보다 먼저 읽을 수 있어 같은 사본으로 끝난다(REV-021 데이터 M-1)
+  const onPrefs = () => void requestLockSnapshot();
+  window.addEventListener(PREFS_EVENT, onPrefs);
+  offs.push(() => window.removeEventListener(PREFS_EVENT, onPrefs));
   const toBack = () => {
     // 뒤로 갈 때 — ① 입력 중 값 커밋 → ② 스냅샷 즉시(§9)
     void import("@/app/components/session/setDrafts")
