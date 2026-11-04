@@ -7,3 +7,4 @@
 | [SPEC-023](SPEC-023.md) | Spec | 루틴 세트 표와 세트 타입 통일 |  |
 | [REV-027](REV-027.md) | Review | SPEC-023 스펙 리뷰 | reviews → SPEC-023 |
 | [REV-028](REV-028.md) | Review | SPEC-023 코드 리뷰 | reviews → SPEC-023 |
+| [EXE-014](EXE-014.md) | Execution | SPEC-023 구현 | executes → SPEC-023 |

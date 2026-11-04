@@ -14,3 +14,4 @@
 | [EXE-008](EXE-008.md) | Execution | SPEC-018 Phase 3 — 로그인 넘기기(앱이 시작) · 백엔드 구현 | executes → SPEC-018 |
 | [REV-013](REV-013.md) | Review | SPEC-018 Phase 4 코드 리뷰 — 업데이트·바꾸기 화면 (전문가 4명 · 72건) | reviews → SPEC-018 |
 | [EXE-009](EXE-009.md) | Execution | SPEC-018 Phase 4 — 판정 · 웹 화면 · e2e 구현 | executes → SPEC-018 |
+| [REV-018](REV-018.md) | Review | SPEC-018 후속 픽스 코드 리뷰 — 앱 안 업데이트 aborted 우회 길 | reviews → SPEC-018 |

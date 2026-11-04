@@ -1,13 +1,720 @@
 {
-  "schemaVersion": 1,
-  "id": "REV-030",
-  "type": "Review",
-  "title": "SPEC-024 코드 리뷰",
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "패널 구성",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "버그·데이터 정확성 검토자",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "프런트 접근성·시험 품질 검토자",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "두 검토자 모두 코드를 읽어 검토했다. 데이터 쪽은 타입 검사와 단위 시험도 돌렸다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "핵심 지적",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "치명 또는 중간 심각도의 동작 버그는 없었다. 체중 미입력 맨몸 종목의 변화율 왜곡, 시험 공백, 스크린리더 문제가 나왔다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "분류",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "지적",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "분류",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "반영",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "체중 미입력 맨몸 종목의 변화율이 부풀려짐",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/data/analyticsRepository.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "에서 어시스트와 함께 제외",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "대기열·처방 시험이 통째로 꺼짐",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/summary-card.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "에 대기열 1회 전송, 계정 전환, 처방 이동 추가",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "변화 방향이 스크린리더에서 사라짐",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기호를 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "aria-hidden",
+                        "type": "text"
+                      },
+                      {
+                        "text": "으로, 문장을 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "sr-only",
+                        "type": "text"
+                      },
+                      {
+                        "text": "로",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "쉬는 주 시험이 로딩 중에 통과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "카드가 보인 뒤 검사",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "표 폭 시험이 항상 통과, 「10/26」 넘침",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "칸마다 측정, 머리글을 월·일 두 줄로",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "빈 칸 읽기, 숫자 줄 읽기 순서, 0% 표시",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "sr-only",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 「0세트」, 라벨 먼저 읽기, 실제 같을 때만 「=」",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "경계 시험이 경계를 안 잼, ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "as never",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "28일 전 데이터로 수정, 타입 선언",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "30일 전 기록이 기간 경계에 걸림",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "29일 전으로",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "쓰이지 않게 된 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "outbox",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 판정·문구",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "보류",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "동작 영향 없음. 코칭 재설계 때 대기열과 함께 정리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기구 변형을 합쳐 계산",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기각",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "종목 상세와 같은 기준으로 스펙에서 정함",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "후속 조치",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "채택 8건을 코드에 반영하고 시험을 다시 돌렸다. 결과는 EXE-015에 있다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
   "group": "할일/심화-분석",
+  "id": "REV-030",
   "meta": {
-    "mode": "code",
     "adopted": "8",
     "held": "1",
+    "mode": "code",
     "rejected": "1"
   },
   "relations": {
@@ -15,714 +722,9 @@
       "SPEC-024"
     ]
   },
-  "doc": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "패널 구성"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "버그·데이터 정확성 검토자"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "프런트 접근성·시험 품질 검토자"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "두 검토자 모두 코드를 읽어 검토했다. 데이터 쪽은 타입 검사와 단위 시험도 돌렸다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "핵심 지적"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "치명 또는 중간 심각도의 동작 버그는 없었다. 체중 미입력 맨몸 종목의 변화율 왜곡, 시험 공백, 스크린리더 문제가 나왔다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "분류"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "지적"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "분류"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "반영"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "체중 미입력 맨몸 종목의 변화율이 부풀려짐"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/data/analyticsRepository.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "에서 어시스트와 함께 제외"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "대기열·처방 시험이 통째로 꺼짐"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/summary-card.spec.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "에 대기열 1회 전송, 계정 전환, 처방 이동 추가"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "변화 방향이 스크린리더에서 사라짐"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기호를 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "aria-hidden",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "으로, 문장을 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "sr-only",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "로"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "쉬는 주 시험이 로딩 중에 통과"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "카드가 보인 뒤 검사"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "표 폭 시험이 항상 통과, 「10/26」 넘침"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "칸마다 측정, 머리글을 월·일 두 줄로"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "빈 칸 읽기, 숫자 줄 읽기 순서, 0% 표시"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "sr-only",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 「0세트」, 라벨 먼저 읽기, 실제 같을 때만 「=」"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "경계 시험이 경계를 안 잼, "
-                      },
-                      {
-                        "type": "text",
-                        "text": "as never",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "28일 전 데이터로 수정, 타입 선언"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "30일 전 기록이 기간 경계에 걸림"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "29일 전으로"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "쓰이지 않게 된 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "outbox",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 판정·문구"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "보류"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "동작 영향 없음. 코칭 재설계 때 대기열과 함께 정리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기구 변형을 합쳐 계산"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기각"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "종목 상세와 같은 기준으로 스펙에서 정함"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "후속 조치"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "채택 8건을 코드에 반영하고 시험을 다시 돌렸다. 결과는 EXE-015에 있다."
-          }
-        ]
-      }
-    ]
-  }
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-024 코드 리뷰",
+  "type": "Review",
+  "updated": "2026-11-04T07:49:28Z"
 }

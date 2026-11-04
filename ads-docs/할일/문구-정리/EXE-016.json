@@ -1,9 +1,1502 @@
 {
-  "schemaVersion": 1,
-  "id": "EXE-016",
-  "type": "Execution",
-  "title": "SPEC-025 구현",
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "일반 사용자에게 보이던 개발자용 문구를 없앴습니다. 진단 줄, 내부 id, 서명 지문, 빌드 번호, 원인 코드를 지웠고, 서버의 영어 오류 원문은 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/lib/errorText.ts",
+            "type": "text"
+          },
+          {
+            "text": " 한 곳에서 한국어로 바꿉니다. 동작은 바꾸지 않았고 배포도 하지 않았습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/errorText.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 파일. 오류를 사용자 문구로 변환",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/feedClient.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 문구 함수 사용",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/CatalogClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "진단 줄과 갱신 토스트 삭제, 오프라인 안내로 교체",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/exercises/page.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "진단용 조회 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/exercise/[id]/page.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "내부 id 줄 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/appdist/AppUpdateCard.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "서명 지문 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/app/AppPageClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "서명 지문 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/appdist/AppUpdateSheet.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "원인 코드 글자 삭제, 시험용 숨은 표지만 유지",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/AppVersionRow.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "빌드 번호 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/LockScreenRow.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "진단 기록을 내부 사용자에게만 표시",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/summary/MemberReportDialog.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "단위 공지 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/diag/db/page.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운영 빌드에서 404, ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "E2E_DIAG",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 빌드에서만 열림",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/e2eFlags.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "E2E_DIAG",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 깃발 추가",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/error.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 화면 문구 고정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/layout.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/public/manifest.json",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "앱 설명에서 경쟁사 이름 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/i18n.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구 수정, 안 쓰는 키 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/data/workoutRepository.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/import/common.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "예외 문구 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 아래 나머지 화면",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 표시를 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "errorText",
+                        "type": "text"
+                      },
+                      {
+                        "text": "로 교체, 내부 용어 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 아래 시험 13개와 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/helpers/opengym.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "바뀐 문구에 맞춤",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "make verify",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "e2e 17개 파일: 1차에 103 통과, 5 실패, 3 건너뜀.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "실패 5건을 고친 뒤 재실행: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/opengym-import.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "와 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/opengym-qa1.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "에서 남은 2건을 고쳐 해당 시험 2개 통과. 나머지 16개는 그 전 실행에서 통과, 1개 건너뜀.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "17개 파일 전체를 수정 뒤 한 번에 다시 돌리지는 않았습니다. 1차 뒤에 고친 것은 시험 파일 2개와 빌드 깃발뿐이고 앱 코드는 바뀌지 않았습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "실패 원인은 모두 시험 쪽이었습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "원인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "조치",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-qa1.spec.ts:170",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "옛 문구(「예전 방식으로 적은」, 「실측값 아님」)를 기대",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 문구로 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-import.spec.ts:193",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": ":266",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": ":573",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "빌드에서 결함 주입 깃발이 빠짐",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "NEXT_PUBLIC_E2E_FAULTS=1",
+                        "type": "text"
+                      },
+                      {
+                        "text": "로 다시 빌드",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/opengym-import.spec.ts:62",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「이전 달」 두 번 고정이라 11월부터 8월에 닿지 못함",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오늘 날짜에서 2026년 8월까지 달 수를 계산",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준 확인",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "SPEC-025는 연결된 SRS가 없어 스펙의 수용 기준으로 확인했습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "조사 표의 문구가 일반 사용자 화면에 보이지 않음: 충족. 지문·진단 항목은 시험에서 개수 0으로 확인했습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "영어 오류 원문이 토스트와 오류 화면에 나오지 않음: 충족. 오류 표시를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "errorText",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 모았고 오류 화면은 고정 문구입니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버가 준 한국어 안내는 그대로 보임: 충족. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "errorText",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 한국어 메시지를 통과시킵니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "코드 리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-031: 채택 15, 보류 0, 기각 0. 모두 반영했습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "범위 밖 변경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/e2e/opengym-import.spec.ts:62",
+            "type": "text"
+          },
+          {
+            "text": "의 날짜 고정 문제는 이번 문구 변경과 무관하지만, 11월부터 항상 실패하므로 함께 고쳤습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "남은 일·다음 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "출시 전 점검으로 넘기는 것은 다음과 같습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/privacy/page.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "의 기술 문구와 동기화 표현 법무 확인",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 환경값 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "OAUTH_PREVIEW_PROVIDERS",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 비우기(소셜 로그인 「설정 필요」 문구)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
   "group": "할일/문구-정리",
+  "id": "EXE-016",
   "meta": {
     "phase": "1",
     "result": "done"
@@ -13,1500 +1506,9 @@
       "SPEC-025"
     ]
   },
-  "doc": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "요약"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "일반 사용자에게 보이던 개발자용 문구를 없앴습니다. 진단 줄, 내부 id, 서명 지문, 빌드 번호, 원인 코드를 지웠고, 서버의 영어 오류 원문은 "
-          },
-          {
-            "type": "text",
-            "text": "src/frontend/lib/errorText.ts",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "text": " 한 곳에서 한국어로 바꿉니다. 동작은 바꾸지 않았고 배포도 하지 않았습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "바꾼 파일"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "파일"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "무엇을"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/errorText.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "새 파일. 오류를 사용자 문구로 변환"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/feedClient.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오류 문구 함수 사용"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/CatalogClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "진단 줄과 갱신 토스트 삭제, 오프라인 안내로 교체"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/exercises/page.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "진단용 조회 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/exercise/[id]/page.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "내부 id 줄 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/appdist/AppUpdateCard.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "서명 지문 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/app/AppPageClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "서명 지문 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/appdist/AppUpdateSheet.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "원인 코드 글자 삭제, 시험용 숨은 표지만 유지"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/profile/AppVersionRow.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "빌드 번호 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/profile/LockScreenRow.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "진단 기록을 내부 사용자에게만 표시"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/summary/MemberReportDialog.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "단위 공지 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/diag/db/page.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운영 빌드에서 404, "
-                      },
-                      {
-                        "type": "text",
-                        "text": "E2E_DIAG",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 빌드에서만 열림"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/e2eFlags.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "E2E_DIAG",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 깃발 추가"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/error.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오류 화면 문구 고정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/layout.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/public/manifest.json",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "앱 설명에서 경쟁사 이름 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/ko.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/en.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/i18n.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "문구 수정, 안 쓰는 키 삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/data/workoutRepository.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/import/common.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "예외 문구 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 아래 나머지 화면"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오류 표시를 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "errorText",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "로 교체, 내부 용어 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 아래 시험 13개와 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/helpers/opengym.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "바뀐 문구에 맞춤"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "테스트 결과"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "make verify",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": ": 통과."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "e2e 17개 파일: 1차에 103 통과, 5 실패, 3 건너뜀."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "실패 5건을 고친 뒤 재실행: "
-                  },
-                  {
-                    "type": "text",
-                    "text": "src/frontend/e2e/opengym-import.spec.ts",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "와 "
-                  },
-                  {
-                    "type": "text",
-                    "text": "src/frontend/e2e/opengym-qa1.spec.ts",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "에서 남은 2건을 고쳐 해당 시험 2개 통과. 나머지 16개는 그 전 실행에서 통과, 1개 건너뜀."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "17개 파일 전체를 수정 뒤 한 번에 다시 돌리지는 않았습니다. 1차 뒤에 고친 것은 시험 파일 2개와 빌드 깃발뿐이고 앱 코드는 바뀌지 않았습니다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "실패 원인은 모두 시험 쪽이었습니다."
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "시험"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "원인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "조치"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/opengym-qa1.spec.ts:170",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "옛 문구(「예전 방식으로 적은」, 「실측값 아님」)를 기대"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "새 문구로 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/opengym-import.spec.ts:193",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": ":266",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": ":573",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "빌드에서 결함 주입 깃발이 빠짐"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "NEXT_PUBLIC_E2E_FAULTS=1",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "로 다시 빌드"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/opengym-import.spec.ts:62",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「이전 달」 두 번 고정이라 11월부터 8월에 닿지 못함"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오늘 날짜에서 2026년 8월까지 달 수를 계산"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "수용 기준 확인"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "SPEC-025는 연결된 SRS가 없어 스펙의 수용 기준으로 확인했습니다."
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "조사 표의 문구가 일반 사용자 화면에 보이지 않음: 충족. 지문·진단 항목은 시험에서 개수 0으로 확인했습니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "영어 오류 원문이 토스트와 오류 화면에 나오지 않음: 충족. 오류 표시를 "
-                  },
-                  {
-                    "type": "text",
-                    "text": "errorText",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "로 모았고 오류 화면은 고정 문구입니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "서버가 준 한국어 안내는 그대로 보임: 충족. "
-                  },
-                  {
-                    "type": "text",
-                    "text": "errorText",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "는 한국어 메시지를 통과시킵니다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "코드 리뷰"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "REV-031: 채택 15, 보류 0, 기각 0. 모두 반영했습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "범위 밖 변경"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "src/frontend/e2e/opengym-import.spec.ts:62",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "text": "의 날짜 고정 문제는 이번 문구 변경과 무관하지만, 11월부터 항상 실패하므로 함께 고쳤습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "남은 일·다음 단계"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "출시 전 점검으로 넘기는 것은 다음과 같습니다."
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "src/frontend/app/privacy/page.tsx",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "의 기술 문구와 동기화 표현 법무 확인"
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "운영 환경값 "
-                  },
-                  {
-                    "type": "text",
-                    "text": "OAUTH_PREVIEW_PROVIDERS",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": " 비우기(소셜 로그인 「설정 필요」 문구)"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-025 구현",
+  "type": "Execution",
+  "updated": "2026-11-04T08:22:31Z"
 }

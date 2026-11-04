@@ -1,9 +1,1413 @@
 {
-  "schemaVersion": 1,
-  "id": "EXE-014",
-  "type": "Execution",
-  "title": "SPEC-023 구현",
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "SPEC-023 구현",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "루틴 편집기에 운동 화면과 같은 세트 표를 넣고, 세트 타입을 일반·웜업·드롭·탑·백오프로 통일했습니다. 운동 하나에 강도 목표 하나(「여유 N회」)를 두고, 오늘 근육 버튼을 헤더로 옮겼으며, 가이드 버튼과 실패·플레이트 계산 메뉴를 뺐습니다. 새 루틴을 완료 없이 벗어나면 내용이 있을 때 묻고, 비어 있으면 묻지 않고 버립니다. 네 단계를 한 번에 구현했고 이 문서가 네 단계 모두의 기록입니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/routineSets.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 파일. 표와 루틴 줄 저장값 변환, 강도 목표",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/prescription.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "drop",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 타입, ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "start",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 기준, 소수 넷째 자리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/data/workoutRepository.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "세션 채우기 순서, 드롭 심기, 비운 줄 처리, 맨몸·어시스트 제외",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/data/routineRepository.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "setRoutineExerciseSets",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/lockScreen.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "B",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 라벨, 드롭 시뮬레이션",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/routineDiff.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/data/finishRoutine.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "웜업 보정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/db/hooks.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "칸 변경 관찰",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/coaching/v1/coaching.proto",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/gen/coaching/v1/coaching.pb.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/contracts/gen/coaching/v1/coaching_pb.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "SET_TYPE_DROP",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/prescription.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/handler.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/service.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "드롭 허용, 코치 저장에서 회원 시작 무게 유지",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/routines/PrescriptionRows.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "세트 표로 재작성",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/routines/RoutineEditor.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "표 연결, 새 루틴 벗어나기",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/coaching/PrescriptionEditor.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코칭 표, 단위",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/SetRowEdit.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/ExerciseBlock.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/ActiveWorkout.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/TodayMuscleSheet.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "메뉴 정리, 제안 조건, 헤더",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "봉 무게 줄 제거",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/ui/Dialog.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/ui/Icon.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/ui/RecordSlotSelector.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/localDb.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "맨 위 창 닫기, 아이콘, 칩 높이, 이력 바꿔치기",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/set-table.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 외 8개 시험 파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 시험과 기대값 갱신",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "테스트 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "명령",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "결과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "make verify",
+                        "type": "text"
+                      },
+                      {
+                        "text": " (",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "통과, 코어 단위 시험 659개 실패 0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "go test ./internal/coaching/...",
+                        "type": "text"
+                      },
+                      {
+                        "text": " (",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend",
+                        "type": "text"
+                      },
+                      {
+                        "text": ")",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "통과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "로컬 운영 빌드 e2e: 루틴·세션 관련 23개 파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "127개 통과, 7개 건너뜀, 실패 0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/set-table.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "의 한쪽 입력 머신 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "전체 실행 뒤 추가해 따로 실행, 통과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "content": [
+          {
+            "text": "한 번은 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/e2e/session-assist.spec.ts",
+            "type": "text"
+          },
+          {
+            "text": "의 처방 무게 시험이 실패했습니다(72.5 기대, 100 표시). 리뷰 반영 전 전체 실행 때였고, 이후 그 시험만 3회 반복과 전체 재실행에서 모두 통과했습니다. 원인은 찾지 못했습니다. 전체 e2e 묶음과 앱 안 확인은 하지 않았습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준 확인",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "표에서 설정한 타입·무게·횟수·강도 목표가 운동 화면에 그대로 나타납니다: e2e로 확인.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "지난 기록이 시작 값보다 먼저이고, 고정 줄은 표의 무게로 시작합니다: e2e로 확인.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "타입 메뉴에 실패·플레이트 계산이 없고 가이드 버튼이 없습니다: e2e로 확인.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "360px에서 표와 헤더가 넘치지 않습니다: e2e와 사진으로 확인.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "새 루틴 벗어나기의 경로별 동작: e2e로 확인. 잠금 딥링크 경로는 보류(REV-028).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "코드 리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-028, 채택 24·보류 6·기각 1. 채택 항목은 모두 반영하고 다시 시험했습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖 변경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "없습니다. 코치 저장의 시작 무게 유지(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/backend/internal/coaching/service.go",
+            "type": "text"
+          },
+          {
+            "text": ")는 스펙에 없었으나 리뷰에서 데이터 손실로 지적되어 넣었습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "남은 일·다음 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "배포하지 않았습니다. 웹 버전은 0.63.0에 함께 실립니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "강도 목표는 범위가 아닌 한 값이고, 탑·백오프에 다른 강도를 줄 수 없습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱을 강제 종료하거나 새로고침하면 만들던 새 루틴이 남을 수 있습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "처방이 있는 루틴은 운동을 끝낼 때 전체 반영이 막혀 있습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
   "group": "할일/루틴-세트표",
+  "id": "EXE-014",
   "meta": {
     "phase": "4",
     "result": "done"
@@ -13,1411 +1417,9 @@
       "SPEC-023"
     ]
   },
-  "doc": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "SPEC-023 구현"
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "요약"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "루틴 편집기에 운동 화면과 같은 세트 표를 넣고, 세트 타입을 일반·웜업·드롭·탑·백오프로 통일했습니다. 운동 하나에 강도 목표 하나(「여유 N회」)를 두고, 오늘 근육 버튼을 헤더로 옮겼으며, 가이드 버튼과 실패·플레이트 계산 메뉴를 뺐습니다. 새 루틴을 완료 없이 벗어나면 내용이 있을 때 묻고, 비어 있으면 묻지 않고 버립니다. 네 단계를 한 번에 구현했고 이 문서가 네 단계 모두의 기록입니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "바꾼 파일"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "파일"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "무엇을"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/routineSets.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "새 파일. 표와 루틴 줄 저장값 변환, 강도 목표"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/prescription.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "drop",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 타입, "
-                      },
-                      {
-                        "type": "text",
-                        "text": "start",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 기준, 소수 넷째 자리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/data/workoutRepository.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "세션 채우기 순서, 드롭 심기, 비운 줄 처리, 맨몸·어시스트 제외"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/data/routineRepository.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "setRoutineExerciseSets",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/lockScreen.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "B",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 라벨, 드롭 시뮬레이션"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/routineDiff.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/core/src/data/finishRoutine.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "웜업 보정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/db/hooks.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "칸 변경 관찰"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/ko.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/en.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "문구"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/proto/coaching/v1/coaching.proto",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/backend/gen/coaching/v1/coaching.pb.go",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/contracts/gen/coaching/v1/coaching_pb.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "SET_TYPE_DROP",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/backend/internal/coaching/prescription.go",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/backend/internal/coaching/handler.go",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/backend/internal/coaching/service.go",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "드롭 허용, 코치 저장에서 회원 시작 무게 유지"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/routines/PrescriptionRows.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "세트 표로 재작성"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/routines/RoutineEditor.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "표 연결, 새 루틴 벗어나기"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/coaching/PrescriptionEditor.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "코칭 표, 단위"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/session/SetRowEdit.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/session/ExerciseBlock.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/session/ActiveWorkout.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/session/TodayMuscleSheet.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "메뉴 정리, 제안 조건, 헤더"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/profile/ProfileClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "봉 무게 줄 제거"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/ui/Dialog.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/ui/Icon.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/ui/RecordSlotSelector.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/localDb.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "맨 위 창 닫기, 아이콘, 칩 높이, 이력 바꿔치기"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/set-table.spec.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 외 8개 시험 파일"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "새 시험과 기대값 갱신"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "테스트 결과"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "명령"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "결과"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "make verify",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " ("
-                      },
-                      {
-                        "type": "text",
-                        "text": "src",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ")"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "통과, 코어 단위 시험 659개 실패 0"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "go test ./internal/coaching/...",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " ("
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/backend",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ")"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "통과"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "로컬 운영 빌드 e2e: 루틴·세션 관련 23개 파일"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "127개 통과, 7개 건너뜀, 실패 0"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/set-table.spec.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "의 한쪽 입력 머신 시험"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "전체 실행 뒤 추가해 따로 실행, 통과"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "한 번은 "
-          },
-          {
-            "type": "text",
-            "text": "src/frontend/e2e/session-assist.spec.ts",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "text": "의 처방 무게 시험이 실패했습니다(72.5 기대, 100 표시). 리뷰 반영 전 전체 실행 때였고, 이후 그 시험만 3회 반복과 전체 재실행에서 모두 통과했습니다. 원인은 찾지 못했습니다. 전체 e2e 묶음과 앱 안 확인은 하지 않았습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "수용 기준 확인"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "표에서 설정한 타입·무게·횟수·강도 목표가 운동 화면에 그대로 나타납니다: e2e로 확인."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "지난 기록이 시작 값보다 먼저이고, 고정 줄은 표의 무게로 시작합니다: e2e로 확인."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "타입 메뉴에 실패·플레이트 계산이 없고 가이드 버튼이 없습니다: e2e로 확인."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "360px에서 표와 헤더가 넘치지 않습니다: e2e와 사진으로 확인."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "새 루틴 벗어나기의 경로별 동작: e2e로 확인. 잠금 딥링크 경로는 보류(REV-028)."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "코드 리뷰"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "REV-028, 채택 24·보류 6·기각 1. 채택 항목은 모두 반영하고 다시 시험했습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "범위 밖 변경"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "없습니다. 코치 저장의 시작 무게 유지("
-          },
-          {
-            "type": "text",
-            "text": "src/backend/internal/coaching/service.go",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "text": ")는 스펙에 없었으나 리뷰에서 데이터 손실로 지적되어 넣었습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 2
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "남은 일·다음 단계"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "배포하지 않았습니다. 웹 버전은 0.63.0에 함께 실립니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "강도 목표는 범위가 아닌 한 값이고, 탑·백오프에 다른 강도를 줄 수 없습니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "앱을 강제 종료하거나 새로고침하면 만들던 새 루틴이 남을 수 있습니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "처방이 있는 루틴은 운동을 끝낼 때 전체 반영이 막혀 있습니다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-023 구현",
+  "type": "Execution",
+  "updated": "2026-11-04T05:57:25Z"
 }

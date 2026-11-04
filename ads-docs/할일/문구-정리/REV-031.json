@@ -1,13 +1,995 @@
 {
-  "schemaVersion": 1,
-  "id": "REV-031",
-  "type": "Review",
-  "title": "SPEC-025 스펙·코드 리뷰",
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "패널 구성",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "버그 검토자: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/lib/errorText.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "와 오류 분기를 검토했습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "UX 라이터·누락 검토자: 문구 품질과 조사에서 빠진 곳을 검토했습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "스펙 리뷰는 코드 리뷰와 합쳐 이 문서 하나로 진행했습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "핵심 지적",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "영어 원문을 한 함수에서 걸러도, 재시도해도 소용없는 오류와 약속 코드가 같은 문구로 뭉치면 사용자가 무엇을 해야 할지 알 수 없습니다. 내부 용어도 조사 표 밖에 남아 있었습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "분류표",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "지적",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "분류",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "조치",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "재시도가 무의미한 오류에도 다시 시도하라는 문구가 나옴",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 분기 추가",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "숨은 요소를 기다리는 시험이 통과할 수 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "진단 화면을 열려고 결함 주입 깃발을 함께 켜야 함",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/e2eFlags.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "에 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "E2E_DIAG",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 추가",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "백업 파일 오류가 다른 오류와 구분되지 않음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/sync/BackupCard.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "약속 코드(",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ACTIVE_EXISTS",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 등)와 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "LOCAL_DB_SEALED",
+                        "type": "text"
+                      },
+                      {
+                        "text": "가 그대로 보임",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "errorText",
+                        "type": "text"
+                      },
+                      {
+                        "text": "에서 사용자 문구로 변환",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「지금 백업」 설명이 동작과 맞지 않음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "영어 문구 누락",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 보충",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "안 쓰는 문구 키가 남음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「약 2」 값의 머리글이 어색함",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「여유(개)」로 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "RPE 문구가 사용자 용어와 다름",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「여유로 바꿔 계산한 N세트 포함」으로 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오류 화면에 원문이 나옴",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/error.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": "를 고정 문구로 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「카탈로그」가 남음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「종목」으로 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "「기기와 서버」 표현이 기술적임",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코칭 화면에 「동기화」가 남음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "앱 버전 줄에 빌드 번호가 보임",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "채택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/profile/AppVersionRow.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 수정",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "content": [
+          {
+            "text": "채택 15, 보류 0, 기각 0입니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "후속 조치",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "채택 15건을 코드에 모두 반영했습니다. 반영 뒤 시험 결과는 EXE-016에 있습니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
   "group": "할일/문구-정리",
+  "id": "REV-031",
   "meta": {
-    "mode": "code",
     "adopted": "15",
     "held": "0",
+    "mode": "code",
     "rejected": "0"
   },
   "relations": {
@@ -15,989 +997,9 @@
       "SPEC-025"
     ]
   },
-  "doc": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "패널 구성"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "버그 검토자: "
-                  },
-                  {
-                    "type": "text",
-                    "text": "src/frontend/lib/errorText.ts",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "와 오류 분기를 검토했습니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "UX 라이터·누락 검토자: 문구 품질과 조사에서 빠진 곳을 검토했습니다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "스펙 리뷰는 코드 리뷰와 합쳐 이 문서 하나로 진행했습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "핵심 지적"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "영어 원문을 한 함수에서 걸러도, 재시도해도 소용없는 오류와 약속 코드가 같은 문구로 뭉치면 사용자가 무엇을 해야 할지 알 수 없습니다. 내부 용어도 조사 표 밖에 남아 있었습니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "분류표"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "지적"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "분류"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "조치"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "재시도가 무의미한 오류에도 다시 시도하라는 문구가 나옴"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오류 분기 추가"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "숨은 요소를 기다리는 시험이 통과할 수 없음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "시험 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "진단 화면을 열려고 결함 주입 깃발을 함께 켜야 함"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/e2eFlags.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "에 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "E2E_DIAG",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 추가"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "백업 파일 오류가 다른 오류와 구분되지 않음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/sync/BackupCard.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "약속 코드("
-                      },
-                      {
-                        "type": "text",
-                        "text": "ACTIVE_EXISTS",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 등)와 "
-                      },
-                      {
-                        "type": "text",
-                        "text": "LOCAL_DB_SEALED",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "가 그대로 보임"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "errorText",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "에서 사용자 문구로 변환"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「지금 백업」 설명이 동작과 맞지 않음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "문구 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "영어 문구 누락"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/en.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 보충"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "안 쓰는 문구 키가 남음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "삭제"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「약 2」 값의 머리글이 어색함"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「여유(개)」로 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "RPE 문구가 사용자 용어와 다름"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「여유로 바꿔 계산한 N세트 포함」으로 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오류 화면에 원문이 나옴"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/error.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "를 고정 문구로 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「카탈로그」가 남음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「종목」으로 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "「기기와 서버」 표현이 기술적임"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "문구 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "코칭 화면에 「동기화」가 남음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "문구 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "앱 버전 줄에 빌드 번호가 보임"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "채택"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/profile/AppVersionRow.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 수정"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "채택 15, 보류 0, 기각 0입니다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "후속 조치"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "채택 15건을 코드에 모두 반영했습니다. 반영 뒤 시험 결과는 EXE-016에 있습니다."
-          }
-        ]
-      }
-    ]
-  }
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-025 스펙·코드 리뷰",
+  "type": "Review",
+  "updated": "2026-11-04T08:22:25Z"
 }

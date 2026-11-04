@@ -1,9 +1,303 @@
 {
-  "schemaVersion": 1,
-  "id": "ADR-051",
-  "type": "ADR",
-  "title": "심화 분석은 분석 탭 한 페이지에 무료로 — 기간 성과 요약 페이지와 코치 보내기 입구 제거",
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "분석 탭에 있는 「기간 성과 요약」은 코치에게 보낼 리포트로 만든 별도 페이지이고, 숫자 대부분이 분석 탭과 겹친다. 사용자가 할 일 #T6에서 큰 강점을 모르겠다고 했다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "심화 분석은 전부 분석 탭 한 페이지에 둔다. 별도 페이지를 만들지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "심화 분석은 무료로 둔다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "회원이 코치에게 요약을 보내는 기능은 입구를 없앤다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/stats/summary",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/stats",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 넘긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앞으로 코칭 기능을 구현할 때는 코치가 회원의 분석 페이지를 그대로 보는 방식으로 간다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "판단용 별도 화면으로 교체:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 페이지가 둘로 나뉘어 사용자가 원하지 않았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "서포터 전용 잠금:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 사용자가 무료로 정했다. ADR-050의 「기능은 잠그지 않는다」와도 같다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "이름만 바꾸기:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 겹치는 페이지가 그대로 남는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "기간을 직접 지정하는 기능과 보낼 항목 고르기가 함께 사라진다. 분석 탭 기간은 주·월·3개월·전체다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버의 보내기 API와 DB 표, DM 요약 카드, 코치의 회원 리포트, 오프라인 대기열은 지우지 않는다. 이미 보낸 카드와 대기 중인 전송이 깨지지 않게 하기 위해서다. 정리는 코칭 재설계 때 사용자와 정한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "대기열이 남아 있어도 앱 교체를 막지 않는다. 볼 화면이 없어졌기 때문이다. 교체 점검 때 한 번 보내 보고, 그래도 남은 요약은 재설치와 함께 사라질 수 있다. 운동 기록이 아니라 기록에서 다시 계산되는 값이다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "숨은 코드 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/summary/ProgressSummaryClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "는 되돌릴 수 있게 남긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
   "group": "할일/plan",
+  "id": "ADR-051",
   "meta": {},
   "relations": {
     "informs": [
@@ -15,301 +309,9 @@
       "PLM:SRS-080"
     ]
   },
-  "doc": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "맥락"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "분석 탭에 있는 「기간 성과 요약」은 코치에게 보낼 리포트로 만든 별도 페이지이고, 숫자 대부분이 분석 탭과 겹친다. 사용자가 할 일 #T6에서 큰 강점을 모르겠다고 했다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "결정"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "심화 분석은 전부 분석 탭 한 페이지에 둔다. 별도 페이지를 만들지 않는다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "심화 분석은 무료로 둔다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "회원이 코치에게 요약을 보내는 기능은 입구를 없앤다. "
-                  },
-                  {
-                    "type": "text",
-                    "text": "/stats/summary",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "는 "
-                  },
-                  {
-                    "type": "text",
-                    "text": "/stats",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "로 넘긴다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "앞으로 코칭 기능을 구현할 때는 코치가 회원의 분석 페이지를 그대로 보는 방식으로 간다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "대안"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "판단용 별도 화면으로 교체:",
-                    "marks": [
-                      {
-                        "type": "strong"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": " 페이지가 둘로 나뉘어 사용자가 원하지 않았다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "서포터 전용 잠금:",
-                    "marks": [
-                      {
-                        "type": "strong"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": " 사용자가 무료로 정했다. ADR-050의 「기능은 잠그지 않는다」와도 같다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "이름만 바꾸기:",
-                    "marks": [
-                      {
-                        "type": "strong"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": " 겹치는 페이지가 그대로 남는다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "결과"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "기간을 직접 지정하는 기능과 보낼 항목 고르기가 함께 사라진다. 분석 탭 기간은 주·월·3개월·전체다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "서버의 보내기 API와 DB 표, DM 요약 카드, 코치의 회원 리포트, 오프라인 대기열은 지우지 않는다. 이미 보낸 카드와 대기 중인 전송이 깨지지 않게 하기 위해서다. 정리는 코칭 재설계 때 사용자와 정한다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "대기열이 남아 있어도 앱 교체를 막지 않는다. 볼 화면이 없어졌기 때문이다. 교체 점검 때 한 번 보내 보고, 그래도 남은 요약은 재설치와 함께 사라질 수 있다. 운동 기록이 아니라 기록에서 다시 계산되는 값이다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "숨은 코드 "
-                  },
-                  {
-                    "type": "text",
-                    "text": "src/frontend/app/components/summary/ProgressSummaryClient.tsx",
-                    "marks": [
-                      {
-                        "type": "code"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": "는 되돌릴 수 있게 남긴다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "심화 분석은 분석 탭 한 페이지에 무료로 — 기간 성과 요약 페이지와 코치 보내기 입구 제거",
+  "type": "ADR",
+  "updated": "2026-11-04T07:49:28Z"
 }

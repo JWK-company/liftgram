@@ -6,3 +6,5 @@
 | --- | --- | --- | --- |
 | [SPEC-022](SPEC-022.md) | Spec | 광고 자리와 운동 중 가드 — 공용 슬롯 · 판정 함수 · 관리자 미리 보기 · 실광고 없음 | implements → ADR-050, implements → SRS-098 |
 | [REV-024](REV-024.md) | Review | SPEC-022 스펙 리뷰 — 광고 자리와 운동 중 가드 | reviews → SPEC-022 |
+| [REV-025](REV-025.md) | Review | SPEC-022 코드 리뷰 — 광고 자리와 운동 중 가드 | reviews → SPEC-022 |
+| [EXE-013](EXE-013.md) | Execution | SPEC-022 구현 | executes → SPEC-022 |

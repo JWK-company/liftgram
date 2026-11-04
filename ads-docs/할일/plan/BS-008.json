@@ -1,4171 +1,4173 @@
 {
-  "schemaVersion": 1,
-  "id": "BS-008",
-  "type": "BS",
-  "title": "출시 전 체크리스트",
-  "group": "할일/plan",
-  "meta": {
-    "kind": "idea"
-  },
-  "relations": {},
   "doc": {
-    "type": "doc",
     "content": [
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "요약"
+            "text": "요약",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "할 일 #T9의 출시 전 체크리스트입니다. 구현은 하지 않았고, #T10의 글대로 여기서 멈추고 대기합니다."
+            "text": "할 일 #T9의 출시 전 체크리스트입니다. 구현은 하지 않았고, #T10의 글대로 여기서 멈추고 대기합니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "상태는 네 가지로 적습니다. "
+            "text": "상태는 네 가지로 적습니다. ",
+            "type": "text"
           },
           {
-            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
             "text": "됨",
+            "type": "text"
+          },
+          {
+            "text": "은 코드에서 확인한 것, ",
+            "type": "text"
+          },
+          {
             "marks": [
               {
                 "type": "strong"
               }
-            ]
-          },
-          {
-            "type": "text",
-            "text": "은 코드에서 확인한 것, "
-          },
-          {
-            "type": "text",
+            ],
             "text": "안 됨",
+            "type": "text"
+          },
+          {
+            "text": "은 없다고 확인한 것, ",
+            "type": "text"
+          },
+          {
             "marks": [
               {
                 "type": "strong"
               }
-            ]
-          },
-          {
-            "type": "text",
-            "text": "은 없다고 확인한 것, "
-          },
-          {
-            "type": "text",
+            ],
             "text": "미확인",
+            "type": "text"
+          },
+          {
+            "text": "은 실행이나 운영 서버 확인이 필요한 것, ",
+            "type": "text"
+          },
+          {
             "marks": [
               {
                 "type": "strong"
               }
-            ]
-          },
-          {
-            "type": "text",
-            "text": "은 실행이나 운영 서버 확인이 필요한 것, "
-          },
-          {
-            "type": "text",
+            ],
             "text": "결정",
-            "marks": [
-              {
-                "type": "strong"
-              }
-            ]
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": "은 사용자가 정할 것입니다."
+            "text": "은 사용자가 정할 것입니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "요청하신 질문의 답은 다음과 같습니다."
+            "text": "요청하신 질문의 답은 다음과 같습니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "bullet_list",
         "content": [
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
                     "text": "결제가 북타래와 같은가:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 같게 할 수 없습니다. 북타래는 구독으로 기능을 여는 모델이고, 리프트그램은 기능을 잠그지 않는 서포터 모델입니다(ADR-050). 북타래도 실제 결제 연동 코드는 찾지 못했습니다(표와 등급 판정만 확인). 가져다 쓸 구현이 없습니다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
                     "marks": [
                       {
                         "type": "strong"
                       }
-                    ]
-                  },
-                  {
-                    "type": "text",
-                    "text": " 같게 할 수 없습니다. 북타래는 구독으로 기능을 여는 모델이고, 리프트그램은 기능을 잠그지 않는 서포터 모델입니다(ADR-050). 북타래도 실제 결제 연동 코드는 찾지 못했습니다(표와 등급 판정만 확인). 가져다 쓸 구현이 없습니다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
+                    ],
                     "text": "광고가 북타래와 같은가:",
-                    "marks": [
-                      {
-                        "type": "strong"
-                      }
-                    ]
+                    "type": "text"
                   },
                   {
-                    "type": "text",
-                    "text": " 다릅니다. 북타래는 읽기 몰입을 해쳐 광고를 기각했고(북타래 ADR-008), 리프트그램은 앱에 광고를 넣기로 했습니다(ADR-050)."
+                    "text": " 다릅니다. 북타래는 읽기 몰입을 해쳐 광고를 기각했고(북타래 ADR-008), 리프트그램은 앱에 광고를 넣기로 했습니다(ADR-050).",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           }
-        ]
+        ],
+        "type": "bullet_list"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "1. 출시를 막는 것"
+            "text": "1. 출시를 막는 것",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "항목"
+                        "text": "항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "근거"
+                        "text": "근거",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "Play 자체 업데이트 권한"
+                        "text": "Play 자체 업데이트 권한",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스토어 빌드에서 "
+                        "text": "스토어 빌드에서 ",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "REQUEST_INSTALL_PACKAGES",
+                        "type": "text"
+                      },
+                      {
+                        "text": "와 앱 자체 업데이트를 뺍니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "와 앱 자체 업데이트를 뺍니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/mobile/android/app/src/main/AndroidManifest.xml:144",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", Google Play 정책",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "스토어 빌드 분리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "안 됨",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "flavor로 직접 배포판과 스토어판을 나눕니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", Google Play 정책"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "스토어 빌드 분리"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "안 됨"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "flavor로 직접 배포판과 스토어판을 나눕니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/mobile/android/app/build.gradle",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Play 비공개 테스트",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "개인 개발자 계정이면 테스터 12명이 14일 연속 참여해야 합니다. 계정 종류를 확인합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Google Play 도움말",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "가입 동의 기록, 만 14세 정책",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "안 됨",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "동의 체크와 기록을 만들고 법무 확인을 받습니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "Play 비공개 테스트"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "개인 개발자 계정이면 테스터 12명이 14일 연속 참여해야 합니다. 계정 종류를 확인합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "Google Play 도움말"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "가입 동의 기록, 만 14세 정책"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "안 됨"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "동의 체크와 기록을 만들고 법무 확인을 받습니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/components/profile/AuthClient.tsx:406",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코칭 동의 안내, 해지 확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "안 됨",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "BS-007 1번입니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "코칭 동의 안내, 해지 확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "안 됨"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "BS-007 1번입니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/backend/internal/coaching/records.go:27",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운영 환경값",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운영 환경값"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "OAUTH_PREVIEW_PROVIDERS",
+                        "type": "text"
+                      },
+                      {
+                        "text": "를 비우고, 앱 링크 값이 차 있는지 봅니다. 비면 「설정 필요」나 404가 나옵니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "를 비우고, 앱 링크 값이 차 있는지 봅니다. 비면 「설정 필요」나 404가 나옵니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/components/auth/SocialButtons.tsx:136",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/.well-known/assetlinks.json/route.ts:11",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "개인정보처리방침",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기술 문구와 동기화 표현을 법무 확인합니다. 광고를 붙이면 「제3자」 문구도 고칩니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "개인정보처리방침"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기술 문구와 동기화 표현을 법무 확인합니다. 광고를 붙이면 「제3자」 문구도 고칩니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/privacy/page.tsx:35",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "0.63.0 운영 배포",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "안 됨",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "쌓인 변경을 배포합니다. 푸시·배포는 요청하실 때 진행합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "0.63.0 운영 배포"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "안 됨"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "쌓인 변경을 배포합니다. 푸시·배포는 요청하실 때 진행합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/package.json:3",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "2. 애플 네이티브 앱"
+            "text": "2. 애플 네이티브 앱",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "항목"
+                        "text": "항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "근거"
+                        "text": "근거",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "잠금 카드 타깃 연결"
+                        "text": "잠금 카드 타깃 연결",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "LiftgramWidgets",
+                        "type": "text"
+                      },
+                      {
+                        "text": "가 Xcode 프로젝트에 연결되어 있지 않습니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "가 Xcode 프로젝트에 연결되어 있지 않습니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/mobile/ios/App/App.xcodeproj/project.pbxproj",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "실기기 빌드·시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "로그인, 운동 기록, 잠금 화면, 오프라인, 앱 재시작을 시험합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "EXE-005",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "Apple 로그인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코드는 있습니다. 실기기와 탈퇴 때 토큰 철회를 확인합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "실기기 빌드·시험"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "로그인, 운동 기록, 잠금 화면, 오프라인, 앱 재시작을 시험합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "EXE-005"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "Apple 로그인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "코드는 있습니다. 실기기와 탈퇴 때 토큰 철회를 확인합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/components/auth/SocialButtons.tsx:13",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "계정 삭제(5.1.1(v))",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "화면은 있습니다. 공유 콘텐츠까지 지우는지 확인합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "계정 삭제(5.1.1(v))"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "화면은 있습니다. 공유 콘텐츠까지 지우는지 확인합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/account/delete/page.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "신고·차단(1.2)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코드는 있습니다. 심사 기준 전체를 대조하고, 계정 제재를 정합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "신고·차단(1.2)"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "코드는 있습니다. 심사 기준 전체를 대조하고, 계정 제재를 정합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/app/components/moderation/BlockedUsersClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "웹뷰 앱 심사(4.2)"
+                        "text": "웹뷰 앱 심사(4.2)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "웹을 감싼 앱으로 보일 위험을 점검합니다. 잠금 화면 같은 네이티브 기능이 근거가 됩니다"
+                        "text": "웹을 감싼 앱으로 보일 위험을 점검합니다. 잠금 화면 같은 네이티브 기능이 근거가 됩니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "심사 지침 확인 필요"
+                        "text": "심사 지침 확인 필요",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "건강 기능 심사(1.4)"
+                        "text": "건강 기능 심사(1.4)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "지침을 아직 확인하지 못했습니다"
+                        "text": "지침을 아직 확인하지 못했습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "조사 필요"
+                        "text": "조사 필요",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "3. 결제"
+            "text": "3. 결제",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "항목"
+                        "text": "항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "근거"
+                        "text": "근거",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "서포터 가격"
+                        "text": "서포터 가격",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "잠정 월 2,900원의 Play 수령액은 약 2,240~2,465원입니다(추정). 다시 정합니다"
+                        "text": "잠정 월 2,900원의 Play 수령액은 약 2,240~2,465원입니다(추정). 다시 정합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050"
+                        "text": "ADR-050",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "평생 이용권"
+                        "text": "평생 이용권",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "판매 수 상한과 서비스 종료 조건을 정합니다"
+                        "text": "판매 수 상한과 서비스 종료 조건을 정합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050"
+                        "text": "ADR-050",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결제 방식"
+                        "text": "결제 방식",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스토어 인앱 결제를 씁니다. 광고 제거는 앱 안 디지털 혜택이라 웹 결제 유도에는 스토어 정책 확인이 필요합니다"
+                        "text": "스토어 인앱 결제를 씁니다. 광고 제거는 앱 안 디지털 혜택이라 웹 결제 유도에는 스토어 정책 확인이 필요합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050"
+                        "text": "ADR-050",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "서포터 판정"
+                        "text": "서포터 판정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "서버 값을 만듭니다"
+                        "text": "서버 값을 만듭니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "src/proto/auth/v1/auth.proto:48",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "출시 시점"
+                        "text": "출시 시점",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "무료로 먼저 내고 결제를 뒤에 붙이기를 권합니다. ADR-050 순서와 같습니다"
+                        "text": "무료로 먼저 내고 결제를 뒤에 붙이기를 권합니다. ADR-050 순서와 같습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050, RM-019"
+                        "text": "ADR-050, RM-019",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "4. 광고"
+            "text": "4. 광고",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "항목"
+                        "text": "항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "근거"
+                        "text": "근거",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "AdMob 방식 시범"
+                        "text": "AdMob 방식 시범",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "웹뷰 위 배너가 스크롤 안 자리에 들어가는지 시험합니다"
+                        "text": "웹뷰 위 배너가 스크롤 안 자리에 들어가는지 시험합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050"
+                        "text": "ADR-050",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "빈도 규칙"
+                        "text": "빈도 규칙",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "첫 7일 없음, 하루 8회 상한, 완료 요약은 하루 첫 운동만"
+                        "text": "첫 7일 없음, 하루 8회 상한, 완료 요약은 하루 첫 운동만",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "src/core/src/domain/adPolicy.ts:2",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스토어 신고와 동의"
+                        "text": "스토어 신고와 동의",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "Play 데이터 보안 신고, 광고 ID 권한, 동의 화면, iOS ATT"
+                        "text": "Play 데이터 보안 신고, 광고 ID 권한, 동의 화면, iOS ATT",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050"
+                        "text": "ADR-050",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "광고 업종 차단"
+                        "text": "광고 업종 차단",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "보충제 등 차단 목록을 정합니다"
+                        "text": "보충제 등 차단 목록을 정합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "ADR-050"
+                        "text": "ADR-050",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "광고는 스토어 출시 뒤에 붙이는 것으로 이미 정해져 있어, 첫 출시를 막지 않습니다."
+            "text": "광고는 스토어 출시 뒤에 붙이는 것으로 이미 정해져 있어, 첫 출시를 막지 않습니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "5. 보안"
+            "text": "5. 보안",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "보안 영상(기술노트with알렉, 「AI가 짠 코드, 이 5가지는 꼭 확인하세요」)의 자막을 읽어 다섯 관문으로 대조했습니다."
+            "text": "보안 영상(기술노트with알렉, 「AI가 짠 코드, 이 5가지는 꼭 확인하세요」)의 자막을 읽어 다섯 관문으로 대조했습니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "관문"
+                        "text": "관문",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "확인한 것"
+                        "text": "확인한 것",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "남은 일"
+                        "text": "남은 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "프런트 소스와 API 키"
+                        "text": "프런트 소스와 API 키",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "앱 코드의 "
+                        "text": "앱 코드의 ",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "NEXT_PUBLIC_",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 값은 시험 깃발 2개뿐이고, 저장소의 환경 파일은 ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 값은 시험 깃발 2개뿐이고, 저장소의 환경 파일은 "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": ".env.example",
+                        "type": "text"
+                      },
+                      {
+                        "text": "뿐입니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "git 이력 전체와 APK를 비밀값 도구로 검사합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "HTTPS",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운영은 Cloudflare 터널을 씁니다. HSTS는 ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "뿐입니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "git 이력 전체와 APK를 비밀값 도구로 검사합니다"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "HTTPS"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운영은 Cloudflare 터널을 씁니다. HSTS는 "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/frontend/next.config.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "와 ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "와 "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/backend/cmd/server/main.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "에 없습니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운영 응답과 Cloudflare 설정을 확인합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "방화벽과 포트",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "에 없습니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운영 응답과 Cloudflare 설정을 확인합니다"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "방화벽과 포트"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미확인"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
+                        ],
                         "text": "src/compose.prod.yaml:13",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": ":17",
+                        "type": "text"
+                      },
+                      {
+                        "text": "은 외부 포트를 비우고, 웹은 ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "은 외부 포트를 비우고, 웹은 "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "127.0.0.1",
+                        "type": "text"
+                      },
+                      {
+                        "text": "에만 엽니다(",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "에만 엽니다("
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": ":31",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": ")"
+                        "text": ")",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "h2500-3의 실제 열린 포트와 SSH 설정을 확인합니다"
+                        "text": "h2500-3의 실제 열린 포트와 SSH 설정을 확인합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "API 토큰과 인가"
+                        "text": "API 토큰과 인가",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "접근 토큰은 15분입니다("
+                        "text": "접근 토큰은 15분입니다(",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "src/backend/internal/auth/service.go:45",
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
+                        ],
+                        "text": "src/backend/internal/auth/service.go:45",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": ")"
+                        "text": ")",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "남의 데이터 접근(인가)을 API별로 전수 점검합니다.",
                         "marks": [
                           {
                             "type": "strong"
                           }
-                        ]
+                        ],
+                        "text": "남의 데이터 접근(인가)을 API별로 전수 점검합니다.",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": " 가장 중요합니다"
+                        "text": " 가장 중요합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "DB와 SQL 인젝션"
+                        "text": "DB와 SQL 인젝션",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "비밀번호는 bcrypt입니다("
+                        "text": "비밀번호는 bcrypt입니다(",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "src/backend/internal/auth/service.go:189",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "). 문자열 조립 SQL은 검색에서 나오지 않았습니다"
+                        "text": "). 문자열 조립 SQL은 검색에서 나오지 않았습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "govulncheck",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "semgrep",
+                        "type": "text"
+                      },
+                      {
+                        "text": ", ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": ", "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "gitleaks",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "가 설치되어 있지 않아 설치 후 실행합니다"
+                        "text": "가 설치되어 있지 않아 설치 후 실행합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "영상 밖에서 더 볼 것은 다음과 같습니다."
+            "text": "영상 밖에서 더 볼 것은 다음과 같습니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "bullet_list",
         "content": [
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "운영 DB 백업과 복구 리허설"
+                    "text": "운영 DB 백업과 복구 리허설",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           },
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "업로드 파일 검증과 요청 속도 제한("
+                    "text": "업로드 파일 검증과 요청 속도 제한(",
+                    "type": "text"
                   },
                   {
-                    "type": "text",
-                    "text": "src/backend/internal/middleware/ratelimit.go",
                     "marks": [
                       {
                         "type": "code"
                       }
-                    ]
+                    ],
+                    "text": "src/backend/internal/middleware/ratelimit.go",
+                    "type": "text"
                   },
                   {
-                    "type": "text",
-                    "text": ")"
+                    "text": ")",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           },
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "운영자 권한 경로와 의존성 취약점"
+                    "text": "운영자 권한 경로와 의존성 취약점",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           },
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "오류 보고와 외부 경보(BS-007 7번)"
+                    "text": "오류 보고와 외부 경보(BS-007 7번)",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           }
-        ]
+        ],
+        "type": "bullet_list"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "6. 해자"
+            "text": "6. 해자",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
             "text": "현재 판단:",
+            "type": "text"
+          },
+          {
+            "text": " 기능 자체로는 해자가 약합니다. 세트 표, 타이머, 분석은 경쟁 앱도 갖추고 있습니다. PRD가 말한 리텐션 해자(메이트·챌린지)는 아직 없습니다(BS-007).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "이 앱에서 쌓일 수 있는 후보입니다. 시장 근거로 검증한 것은 아니고, 코드에 있는 자산에서 뽑은 가설입니다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "후보",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "왜 쌓이는가",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "지금 상태",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "사람 코칭 관계",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "코치와 회원이 함께 옮겨야 해서 이탈 비용이 큽니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "처방은 작동, 알림·동의·열람 화면이 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운동 친구와 피드",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "사람이 있어야 가치가 생깁니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "피드는 있고 사람이 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "쌓인 기록",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "오래 쓸수록 옮기기 번거롭습니다. 다만 가져오기·내보내기가 있어 잠그는 힘은 약합니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "작동",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기구·브랜드별 기록과 한국어 종목",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "국내 헬스장 기구 데이터는 따라오기 어렵습니다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기록 작동, 분석 연결 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "content": [
+          {
             "marks": [
               {
                 "type": "strong"
               }
-            ]
-          },
-          {
-            "type": "text",
-            "text": " 기능 자체로는 해자가 약합니다. 세트 표, 타이머, 분석은 경쟁 앱도 갖추고 있습니다. PRD가 말한 리텐션 해자(메이트·챌린지)는 아직 없습니다(BS-007)."
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "이 앱에서 쌓일 수 있는 후보입니다. 시장 근거로 검증한 것은 아니고, 코드에 있는 자산에서 뽑은 가설입니다."
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "후보"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "왜 쌓이는가"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "지금 상태"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "사람 코칭 관계"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "코치와 회원이 함께 옮겨야 해서 이탈 비용이 큽니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "처방은 작동, 알림·동의·열람 화면이 없음"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운동 친구와 피드"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "사람이 있어야 가치가 생깁니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "피드는 있고 사람이 없음"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "쌓인 기록"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "오래 쓸수록 옮기기 번거롭습니다. 다만 가져오기·내보내기가 있어 잠그는 힘은 약합니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "작동"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기구·브랜드별 기록과 한국어 종목"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "국내 헬스장 기구 데이터는 따라오기 어렵습니다"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기록 작동, 분석 연결 없음"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
+            ],
             "text": "권장:",
-            "marks": [
-              {
-                "type": "strong"
-              }
-            ]
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": " 첫 출시의 해자는 코칭 관계로 잡고, 동의·알림과 코치 분석 화면을 먼저 끝냅니다. 정하실 일입니다."
+            "text": " 첫 출시의 해자는 코칭 관계로 잡고, 동의·알림과 코치 분석 화면을 먼저 끝냅니다. 정하실 일입니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 2
         },
         "content": [
           {
-            "type": "text",
-            "text": "쉽게 베끼지 못하게 하는 최소한의 방지책"
+            "text": "쉽게 베끼지 못하게 하는 최소한의 방지책",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "화면과 기능은 완전히 막을 수 없습니다. 웹 소스는 브라우저에서 보이고 앱은 디컴파일됩니다. 그래서 법적 권리를 먼저 잡고, 데이터 대량 수집만 막기를 권합니다. 위 후보처럼 사람과 관계가 쌓이는 쪽이 실제 방어입니다."
+            "text": "화면과 기능은 완전히 막을 수 없습니다. 웹 소스는 브라우저에서 보이고 앱은 디컴파일됩니다. 그래서 법적 권리를 먼저 잡고, 데이터 대량 수집만 막기를 권합니다. 위 후보처럼 사람과 관계가 쌓이는 쪽이 실제 방어입니다.",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "방지책"
+                        "text": "방지책",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상표 등록"
+                        "text": "상표 등록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "「liftgram」 이름과 로고의 국내 상표를 조회하고 출원합니다. 비슷한 이름의 충돌도 봅니다. 변리사 확인이 필요합니다"
+                        "text": "「liftgram」 이름과 로고의 국내 상표를 조회하고 출원합니다. 비슷한 이름의 충돌도 봅니다. 변리사 확인이 필요합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "약관의 금지 조항"
+                        "text": "약관의 금지 조항",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "src/frontend/app/terms/page.tsx",
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
+                        ],
+                        "text": "src/frontend/app/terms/page.tsx",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "에서 관련 표현을 찾지 못했습니다. 복제·자동 수집·역설계 금지를 넣습니다"
+                        "text": "에서 관련 표현을 찾지 못했습니다. 복제·자동 수집·역설계 금지를 넣습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "데이터 대량 수집 방지"
+                        "text": "데이터 대량 수집 방지",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "피드와 공개 API의 요청 제한을 점검합니다"
+                        "text": "피드와 공개 API의 요청 제한을 점검합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "앱 코드 난독화"
+                        "text": "앱 코드 난독화",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "src/mobile/android/app/build.gradle:69",
+                        "type": "text"
+                      },
+                      {
+                        "text": "가 ",
+                        "type": "text"
+                      },
+                      {
                         "marks": [
                           {
                             "type": "code"
                           }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "가 "
-                      },
-                      {
-                        "type": "text",
+                        ],
                         "text": "minifyEnabled false",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "입니다. 켜고 시험합니다. 시간을 벌 뿐 막지는 못합니다"
+                        "text": "입니다. 켜고 시험합니다. 시간을 벌 뿐 막지는 못합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "저작권 증거"
+                        "text": "저작권 증거",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "비공개 저장소를 유지하고, 직접 만든 종목 데이터와 픽토그램의 제작 기록을 남깁니다"
+                        "text": "비공개 저장소를 유지하고, 직접 만든 종목 데이터와 픽토그램의 제작 기록을 남깁니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "7. 피드 채우기"
+            "text": "7. 피드 채우기",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "항목"
+                        "text": "항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "운영진 계정으로 초기 글"
+                        "text": "운영진 계정으로 초기 글",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "운동 기록 공유, 대화, 가져올 루틴, 코칭을 받을 수 있는 계정까지 앱의 주요 흐름을 보여 주는 글을 준비합니다. 도구는 "
+                        "text": "운동 기록 공유, 대화, 가져올 루틴, 코칭을 받을 수 있는 계정까지 앱의 주요 흐름을 보여 주는 글을 준비합니다. 도구는 ",
+                        "type": "text"
                       },
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "src/scripts/",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "에서 찾지 못했습니다"
+                        "text": "에서 찾지 못했습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "더미 계정 표시 방식"
+                        "text": "더미 계정 표시 방식",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "더미 계정을 실제 사용자로 꾸미지 말고 운영 계정임을 표시하기를 권합니다. 코칭 계정은 실제로 응답할 사람이 있어야 합니다. 가짜 후기나 활동으로 보이면 신뢰 문제와 표시·광고 규제 위험이 있습니다. 법무 확인이 필요합니다"
+                        "text": "더미 계정을 실제 사용자로 꾸미지 말고 운영 계정임을 표시하기를 권합니다. 코칭 계정은 실제로 응답할 사람이 있어야 합니다. 가짜 후기나 활동으로 보이면 신뢰 문제와 표시·광고 규제 위험이 있습니다. 법무 확인이 필요합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "글 내용"
+                        "text": "글 내용",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "사진 라이선스를 확인합니다. Gym visual 운동 사진은 재사용할 수 없습니다"
+                        "text": "사진 라이선스를 확인합니다. Gym visual 운동 사진은 재사용할 수 없습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "지표에서 제외"
+                        "text": "지표에서 제외",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "운영 계정을 집계에서 뺍니다"
+                        "text": "운영 계정을 집계에서 뺍니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "8. 그 밖의 항목"
+            "text": "8. 그 밖의 항목",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "항목"
+                        "text": "항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "할 일"
+                        "text": "할 일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "운동 사진 교체"
+                        "text": "운동 사진 교체",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "유료 라이선스 사진을 어떻게 할지 정합니다"
+                        "text": "유료 라이선스 사진을 어떻게 할지 정합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스토어 자료"
+                        "text": "스토어 자료",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스크린샷, 설명, 등급 설문, 개인정보 라벨, 데이터 보안 신고"
+                        "text": "스크린샷, 설명, 등급 설문, 개인정보 라벨, 데이터 보안 신고",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "고객 문의 창구"
+                        "text": "고객 문의 창구",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스토어에 적을 연락처와 처리 절차"
+                        "text": "스토어에 적을 연락처와 처리 절차",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "오류 보고·경보"
+                        "text": "오류 보고·경보",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "BS-007 7번"
+                        "text": "BS-007 7번",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "푸시"
+                        "text": "푸시",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "결정"
+                        "text": "결정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "BS-007의 결정 항목"
+                        "text": "BS-007의 결정 항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "공유 링크"
+                        "text": "공유 링크",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 됨"
+                        "text": "안 됨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "BS-007 8번"
+                        "text": "BS-007 8번",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기존 사용자 이관"
+                        "text": "기존 사용자 이관",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "스토어 앱으로 넘어갈 때 기기 안 미동기 기록을 확인합니다. 서명이 달라지면 앱 교체 때 데이터가 지워질 수 있습니다"
+                        "text": "스토어 앱으로 넘어갈 때 기기 안 미동기 기록을 확인합니다. 서명이 달라지면 앱 교체 때 데이터가 지워질 수 있습니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "약관"
+                        "text": "약관",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
                         "text": "src/frontend/app/terms/page.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
+                        "type": "text"
                       },
                       {
-                        "type": "text",
-                        "text": "가 있습니다. 코칭·게시 기능과 맞는지 법무 확인합니다"
+                        "text": "가 있습니다. 코칭·게시 기능과 맞는지 법무 확인합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "건강 정보 분류"
+                        "text": "건강 정보 분류",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미확인"
+                        "text": "미확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "체중 등 민감 정보 처리 동의가 필요한지 법무 확인합니다"
+                        "text": "체중 등 민감 정보 처리 동의가 필요한지 법무 확인합니다",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 1
         },
         "content": [
           {
-            "type": "text",
-            "text": "출처"
+            "text": "출처",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "bullet_list",
         "content": [
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "Google Play: REQUEST_INSTALL_PACKAGES 정책: https://support.google.com/googleplay/android-developer/answer/12085295"
+                    "text": "Google Play: REQUEST_INSTALL_PACKAGES 정책: https://support.google.com/googleplay/android-developer/answer/12085295",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           },
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "Google Play: 개인 계정 테스트 요건: https://support.google.com/googleplay/android-developer/answer/14151465"
+                    "text": "Google Play: 개인 계정 테스트 요건: https://support.google.com/googleplay/android-developer/answer/14151465",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           },
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "Apple: 계정 삭제 안내: https://developer.apple.com/support/offering-account-deletion-in-your-app"
+                    "text": "Apple: 계정 삭제 안내: https://developer.apple.com/support/offering-account-deletion-in-your-app",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           },
           {
-            "type": "list_item",
             "content": [
               {
-                "type": "paragraph",
                 "content": [
                   {
-                    "type": "text",
-                    "text": "보안 영상: https://www.youtube.com/watch?v=hZcI0Tpfko4"
+                    "text": "보안 영상: https://www.youtube.com/watch?v=hZcI0Tpfko4",
+                    "type": "text"
                   }
-                ]
+                ],
+                "type": "paragraph"
               }
-            ]
+            ],
+            "type": "list_item"
           }
-        ]
+        ],
+        "type": "bullet_list"
       }
-    ]
-  }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "BS-008",
+  "meta": {
+    "kind": "idea"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "출시 전 체크리스트",
+  "type": "BS",
+  "updated": "2026-11-04T08:32:21Z"
 }

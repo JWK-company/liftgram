@@ -1,9 +1,1201 @@
 {
-  "schemaVersion": 1,
-  "id": "EXE-013",
-  "type": "Execution",
-  "title": "SPEC-022 구현",
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "실광고 없이 광고 자리를 확보했다. 공용 슬롯 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "AdSlot",
+            "type": "text"
+          },
+          {
+            "text": " 을 화면 6곳에 넣고, 운동 중이거나 운동 상태를 모르면 비우게 했다. 일반 사용자에게는 아무것도 보이지 않고, 관리자는 운영 탭에서 미리 보기로 자리를 확인한다. 서포터 가격과 광고 규칙은 ADR-050 에 잠정으로 정했다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/adPolicy.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "adGuard",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "feedAdAfter",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/ads/AdSlot.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "공용 슬롯",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/lib/adPreview.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미리 보기 값(이 기기만)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/SessionProvider.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "activeKnown",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/routines/RoutinesClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "홈 자리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/session/WorkoutSummary.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "완료 요약 자리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/feed/FeedClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "피드 자리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/analytics/HistoryClient.tsx",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/analytics/StatsClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기록·통계 자리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/exercise/[id]/page.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "종목 상세 자리",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/staff/StaffClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "미리 보기 줄",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "문구",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/__tests__/adPolicy.test.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/ad-slots.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ads-docs/liftgram/SRS-098.json",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ads-docs/liftgram/PRD.json",
+                        "type": "text"
+                      },
+                      {
+                        "text": " · ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ads-docs/할일/plan/ADR-050.json",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "자리 목록·가격·규칙",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "명령",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "결과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "make verify",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "통과(끝 코드 0)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "npx playwright test e2e/ad-slots.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(최종판)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "3 통과, 건너뜀 0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "npx playwright test e2e/ad-slots.spec.ts e2e/staff-tab.spec.ts",
+                        "type": "text"
+                      },
+                      {
+                        "text": "(보강 전)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "7 통과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "content": [
+          {
+            "text": "미리 보기 사진으로 완료 요약과 홈 자리가 내용을 가리지 않는 것을 확인했다. 사진은 데스크톱 폭이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "확인하지 못한 것:",
+            "type": "text"
+          },
+          {
+            "text": " 폰 폭 사진 · 안드로이드 앱 안 화면 · 가드를 빼 보는 변이 시험 · 저장소 읽기 실패의 화면 시험(단위 시험만 있음).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준 확인",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기준",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "결과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "기본 상태에서 광고 요소 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "충족 — e2e, 관리자·일반 사용자",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "AdSlot",
+                        "type": "text"
+                      },
+                      {
+                        "text": " 하나로만 그림",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "충족 — 소스 검색. 자동 시험은 없음",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운동 중 광고 요소 0개",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "충족 — 기록이 있는 두 번째 운동에서 다섯 화면 확인",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "운동 상태를 모르면 비움",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "충족 — 단위 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "AdMob 테스트 광고 · 첫 7일 · 하루 상한",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "범위 밖 — 실광고 스펙",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "코드 리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-025: 채택 5 · 보류 5 · 기각 0. 스펙 리뷰는 REV-024(채택 18 · 보류 4 · 기각 1).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "범위 밖 변경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "없음. 웹 버전은 올리지 않았다. 아직 배포하지 않은 0.63.0 에 함께 실린다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사용자에게 보이는 변화는 관리자 미리 보기뿐이며, 배포 전에는 보이지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "실광고 전 선행: 광고 방식 시범, ADR-050 의 착수 점검, REV-025 의 보류 A·B·6.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서포터 가격은 결제 방식을 정할 때 다시 정한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
   "group": "할일/광고-자리",
+  "id": "EXE-013",
   "meta": {
     "phase": "1",
     "result": "done"
@@ -13,1199 +1205,9 @@
       "SPEC-022"
     ]
   },
-  "doc": {
-    "type": "doc",
-    "content": [
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "요약"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "실광고 없이 광고 자리를 확보했다. 공용 슬롯 "
-          },
-          {
-            "type": "text",
-            "text": "AdSlot",
-            "marks": [
-              {
-                "type": "code"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "text": " 을 화면 6곳에 넣고, 운동 중이거나 운동 상태를 모르면 비우게 했다. 일반 사용자에게는 아무것도 보이지 않고, 관리자는 운영 탭에서 미리 보기로 자리를 확인한다. 서포터 가격과 광고 규칙은 ADR-050 에 잠정으로 정했다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "바꾼 파일"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "파일"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "무엇을"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/adPolicy.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "adGuard",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " · "
-                      },
-                      {
-                        "type": "text",
-                        "text": "feedAdAfter",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/ads/AdSlot.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "공용 슬롯"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/lib/adPreview.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미리 보기 값(이 기기만)"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/SessionProvider.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "activeKnown",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/routines/RoutinesClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "홈 자리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/session/WorkoutSummary.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "완료 요약 자리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/feed/FeedClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "피드 자리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/analytics/HistoryClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " · "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/analytics/StatsClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기록·통계 자리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/exercise/[id]/page.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "종목 상세 자리"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/frontend/app/components/staff/StaffClient.tsx",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "미리 보기 줄"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/ko.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " · "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/core/src/i18n/locales/en.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "문구"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "src/core/src/domain/__tests__/adPolicy.test.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " · "
-                      },
-                      {
-                        "type": "text",
-                        "text": "src/frontend/e2e/ad-slots.spec.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "시험"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "ads-docs/liftgram/SRS-098.json",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " · "
-                      },
-                      {
-                        "type": "text",
-                        "text": "ads-docs/liftgram/PRD.json",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " · "
-                      },
-                      {
-                        "type": "text",
-                        "text": "ads-docs/할일/plan/ADR-050.json",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "자리 목록·가격·규칙"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "테스트 결과"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "명령"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "결과"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "make verify",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "통과(끝 코드 0)"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "npx playwright test e2e/ad-slots.spec.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "(최종판)"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "3 통과, 건너뜀 0"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "npx playwright test e2e/ad-slots.spec.ts e2e/staff-tab.spec.ts",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": "(보강 전)"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "7 통과"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "미리 보기 사진으로 완료 요약과 홈 자리가 내용을 가리지 않는 것을 확인했다. 사진은 데스크톱 폭이다."
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "확인하지 못한 것:",
-            "marks": [
-              {
-                "type": "strong"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "text": " 폰 폭 사진 · 안드로이드 앱 안 화면 · 가드를 빼 보는 변이 시험 · 저장소 읽기 실패의 화면 시험(단위 시험만 있음)."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "수용 기준 확인"
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "content": [
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기준"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_header",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "결과"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "기본 상태에서 광고 요소 없음"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "충족 — e2e, 관리자·일반 사용자"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "AdSlot",
-                        "marks": [
-                          {
-                            "type": "code"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "text",
-                        "text": " 하나로만 그림"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "충족 — 소스 검색. 자동 시험은 없음"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운동 중 광고 요소 0개"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "충족 — 기록이 있는 두 번째 운동에서 다섯 화면 확인"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "운동 상태를 모르면 비움"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "충족 — 단위 시험"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "table_row",
-            "content": [
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "AdMob 테스트 광고 · 첫 7일 · 하루 상한"
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "type": "table_cell",
-                "content": [
-                  {
-                    "type": "paragraph",
-                    "content": [
-                      {
-                        "type": "text",
-                        "text": "범위 밖 — 실광고 스펙"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "코드 리뷰"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "REV-025: 채택 5 · 보류 5 · 기각 0. 스펙 리뷰는 REV-024(채택 18 · 보류 4 · 기각 1)."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "범위 밖 변경"
-          }
-        ]
-      },
-      {
-        "type": "paragraph",
-        "content": [
-          {
-            "type": "text",
-            "text": "없음. 웹 버전은 올리지 않았다. 아직 배포하지 않은 0.63.0 에 함께 실린다."
-          }
-        ]
-      },
-      {
-        "type": "heading",
-        "attrs": {
-          "level": 1
-        },
-        "content": [
-          {
-            "type": "text",
-            "text": "남은 일"
-          }
-        ]
-      },
-      {
-        "type": "bullet_list",
-        "content": [
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "사용자에게 보이는 변화는 관리자 미리 보기뿐이며, 배포 전에는 보이지 않는다."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "실광고 전 선행: 광고 방식 시범, ADR-050 의 착수 점검, REV-025 의 보류 A·B·6."
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "type": "list_item",
-            "content": [
-              {
-                "type": "paragraph",
-                "content": [
-                  {
-                    "type": "text",
-                    "text": "서포터 가격은 결제 방식을 정할 때 다시 정한다."
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-022 구현",
+  "type": "Execution",
+  "updated": "2026-11-04T04:33:51Z"
 }
