@@ -28,7 +28,7 @@ import {
 } from "@app/core";
 import { ExperienceLevel as ExperienceLevelPB, Role } from "@app/contracts";
 import { useUser } from "@app/core/state/userContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { lang, t, type TransKey } from "@/lib/i18n";
 import {
   REST_SOUND_KINDS,
@@ -87,6 +87,13 @@ const EXPERIENCE_PB: Record<string, ExperienceLevelPB> = {
   advanced: ExperienceLevelPB.ADVANCED,
 };
 
+/** 커스텀 기구 이름을 칸 수만큼(모자라면 빈 칸) */
+function padLabels(labels: readonly string[]): string[] {
+  const a = labels.slice(0, CUSTOM_VARIANT_COUNT);
+  while (a.length < CUSTOM_VARIANT_COUNT) a.push("");
+  return a;
+}
+
 export default function ProfileClient() {
   const {
     user,
@@ -104,11 +111,19 @@ export default function ProfileClient() {
   const { user: account } = useAuth();
   const opsAlert = useOpsAlert(); // admin 이 아니면 늘 꺼져 있다(lib/opsAlert 가 묻지 않는다) @plm SRS-088
   const [busy, setBusy] = useState(false);
-  const [customLabels, setCustomLabels] = useState<string[]>(() => {
-    const a = machineVariantLabels.slice(0, CUSTOM_VARIANT_COUNT);
-    while (a.length < CUSTOM_VARIANT_COUNT) a.push("");
-    return a;
-  });
+  // [원본] useState 초기값으로 한 번만 읽었다 — 첫 그림은 user 를 읽기 전(아래 if (!user) 보다 위)이라 늘 빈 칸으로 굳고,
+  //        그 빈 칸을 blur 가 그대로 저장해 실제로 지워졌다(2026-11-04 실기기 — 「커스텀 기구 이름이 업데이트·재시작마다 사라짐」).
+  // const [customLabels, setCustomLabels] = useState<string[]>(() => {
+  //   const a = machineVariantLabels.slice(0, CUSTOM_VARIANT_COUNT);
+  //   while (a.length < CUSTOM_VARIANT_COUNT) a.push("");
+  //   return a;
+  // });
+  // [개선] 저장값 → 칸은 시트를 열 때와 저장값이 바뀔 때(시트가 닫혀 있을 때) 다시 채운다 · 저장은 바뀐 것만
+  const [customLabels, setCustomLabels] = useState<string[]>(() => padLabels(machineVariantLabels));
+  const storedLabelsKey = padLabels(machineVariantLabels).join("\u0000");
+  /** 진행 중(또는 줄 선) 마지막 이름 저장의 열쇠 · 이름 저장 줄 */
+  const labelsPending = useRef<string | null>(null);
+  const labelsQueue = useRef<Promise<void>>(Promise.resolve());
   const [restSound, setRestSoundState] = useState<RestSoundKind>("ding");
   const [theme, setThemeState] = useState<ThemeChoice>("system");
   const [restVol, setRestVolState] = useState<RestVolumeLevel>("loud");
@@ -127,6 +142,14 @@ export default function ProfileClient() {
     window.addEventListener(PREFS_EVENT, read);
     return () => window.removeEventListener(PREFS_EVENT, read);
   }, []);
+
+  // 저장값이 늦게 오거나(첫 그림 뒤 user 읽기 · 동기) 바뀌면 칸을 맞춘다 — 편집 중(시트 열림)에는 덮지 않는다
+  // biome-ignore lint/correctness/useExhaustiveDependencies: 저장값의 내용(문자열 열쇠)이 바뀔 때만
+  useEffect(() => {
+    // 저장이 진행 중이면 덮지 않는다 — 칸에는 그 저장의 값(사용자 편집)이 이미 있다(REV-020 M-2)
+    if (sheet !== "machine" && labelsPending.current == null)
+      setCustomLabels(padLabels(machineVariantLabels));
+  }, [storedLabelsKey, sheet]);
 
   if (!user) {
     return (
@@ -161,6 +184,29 @@ export default function ProfileClient() {
       const userRepo = await import("@app/core/data/userRepository");
       await userRepo.updateUserSettings(userId, settings);
     });
+
+  /**
+   * 커스텀 기구 이름 — 저장값(또는 진행 중인 저장값)과 다를 때만 쓴다(빈 칸 blur 가 저장값을 지우지 않게).
+   * patch() 는 busy 면 조용히 버린다 → 이름 저장은 따로 줄을 세워 마지막 편집까지 반드시 쓴다(REV-020 H-1).
+   */
+  const saveLabels = () => {
+    const next = customLabels.map((s) => s.trim());
+    const key = next.join("\u0000");
+    if (key === (labelsPending.current ?? storedLabelsKey)) return;
+    labelsPending.current = key;
+    labelsQueue.current = labelsQueue.current
+      .then(async () => {
+        const userRepo = await import("@app/core/data/userRepository");
+        await userRepo.updateUserSettings(userId, { machineVariantLabels: next });
+        const { flushLocalDb } = await import("@/lib/localDb");
+        await flushLocalDb();
+        await refresh();
+      })
+      .catch((e) => toast(e instanceof Error ? e.message : String(e), "error"))
+      .finally(() => {
+        if (labelsPending.current === key) labelsPending.current = null;
+      });
+  };
 
   /**
    * 경력·코칭 의향은 **서버 프로필에도** 적는다.
@@ -540,7 +586,11 @@ export default function ProfileClient() {
       {sheet === "machine" ? (
         <SheetShell
           title={t("machineVariant.settingsTitle")}
-          onClose={() => setSheet(null)}
+          onClose={() => {
+            // 뒤로 가기·바깥 누름으로 닫혀 blur 가 안 와도 저장(바뀐 것만)
+            saveLabels();
+            setSheet(null);
+          }}
           testId="machine-sheet"
         >
           <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
@@ -555,7 +605,8 @@ export default function ProfileClient() {
               onChange={(e) =>
                 setCustomLabels((prev) => prev.map((v, idx) => (idx === i ? e.target.value : v)))
               }
-              onBlur={() => save({ machineVariantLabels: customLabels.map((s) => s.trim()) })}
+              // [원본] onBlur={() => save({ machineVariantLabels: customLabels.map((s) => s.trim()) })}
+              onBlur={saveLabels}
             />
           ))}
         </SheetShell>

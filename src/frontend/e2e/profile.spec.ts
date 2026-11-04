@@ -84,3 +84,50 @@ test("장비함에 담은 장비가 남는다 — 새로고침해도", async ({ 
   // 담은 것은 위쪽 "저장된" 목록에도 뜬다.
   await expect(page.locator("body")).toContainText(label);
 });
+
+// 2026-11-04 실기기 — 「커스텀 기구 이름이 업데이트·재시작마다 사라진다」
+// 원인: 입력칸이 user 를 읽기 전 첫 그림에서 한 번만 값을 잡아 빈 칸으로 굳고, 그 빈 칸을 blur 가 저장해 실제로 지웠다.
+test("커스텀 기구 이름이 남는다 — 새로고침해도 칸에 보이고, 빈 칸을 눌렀다 나와도 지워지지 않는다 · 연달아 고치고 바로 닫아도 둘 다 저장", async ({
+  page,
+}) => {
+  // 실행마다 다른 값 — 지난 실행이 남긴 값으로 거짓 통과하지 않게(REV-020 #4)
+  const tag = String(Date.now()).slice(-6);
+  const A = `포커스${tag}`;
+  const B = `해머${tag}`;
+  await page.goto("/profile");
+  await page.getByTestId("row-machine-labels").click({ timeout: 20_000 });
+  const f0 = page.getByTestId("machine-label-0");
+  await expect(f0).not.toHaveValue(A);
+  await f0.fill(A);
+  await f0.blur();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("machine-sheet")).toHaveCount(0);
+
+  // 새로고침(= 앱 재시작·업데이트) — 첫 그림이 user 읽기 전이어도 칸에 저장값이 보여야 한다
+  await page.reload();
+  await page.getByTestId("row-machine-labels").click({ timeout: 20_000 });
+  await expect(page.getByTestId("machine-label-0")).toHaveValue(A, { timeout: 10_000 });
+
+  // 다른 칸을 눌렀다 빠져나오기만 — 저장값이 지워지지 않는다
+  await page.getByTestId("machine-label-1").focus();
+  await page.getByTestId("machine-label-1").blur();
+  await page.reload();
+  await page.getByTestId("row-machine-labels").click({ timeout: 20_000 });
+  await expect(page.getByTestId("machine-label-0")).toHaveValue(A, { timeout: 10_000 });
+
+  // 경합 — 칸 0 을 고치고 칸 1 로 옮겨(blur 저장 시작) 칸 1 을 고친 뒤 곧바로 닫는다 → 둘 다 남는다(REV-020 H-1)
+  await page.getByTestId("machine-label-0").fill(`${A}x`);
+  await page.getByTestId("machine-label-1").fill(B);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("machine-sheet")).toHaveCount(0);
+  // 닫자마자 다시 열어도 편집이 보인다(옛 값으로 되돌리지 않음 · REV-020 M-2)
+  await page.getByTestId("row-machine-labels").click();
+  await expect(page.getByTestId("machine-label-1")).toHaveValue(B);
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("machine-sheet")).toHaveCount(0);
+  await page.waitForTimeout(800); // 줄 선 저장이 기기 DB 에 내려써질 시간
+  await page.reload();
+  await page.getByTestId("row-machine-labels").click({ timeout: 20_000 });
+  await expect(page.getByTestId("machine-label-0")).toHaveValue(`${A}x`, { timeout: 10_000 });
+  await expect(page.getByTestId("machine-label-1")).toHaveValue(B);
+});
