@@ -1648,6 +1648,7 @@ export const en: Record<TransKey, string> = {
   "coaching.action.records_view": "Viewed records",
   "notif.coaching_summary": "{name} sent you a progress summary",
   // 운영 상태(/ops · admin) @plm SRS-088
+  "staff.title": "Staff",
   "ops.entry": "Ops status",
   "ops.title": "Ops status",
   "ops.adminOnly": "Only operator accounts can view this",

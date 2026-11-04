@@ -15,7 +15,8 @@
 // 아이디어보드가 죽은 것은 우리 잘못이 아니다 — 그때는 **다시 시도**를 권한다.
 // (서버가 그 실패만 Unavailable로 따로 표시해 준다.)
 // ─────────────────────────────────────────────────────────────────────────────
-import { Role, type FeedbackItem } from "@app/contracts";
+import type { FeedbackItem } from "@app/contracts";
+import { isInsider } from "@/lib/staffRoles";
 import { FeedbackCategory, FeedbackState } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -27,12 +28,10 @@ import { TextArea, TextField } from "./ui/inputs";
 import { ListState } from "./ui/ListState";
 import { AppText, Card, EmptyState, Tag, type TagTone } from "./ui/primitives";
 import { ScreenHeader } from "./ui/ScreenHeader";
+import { Icon } from "./ui/Icon";
 import { LogoSpinner } from "./ui/LogoSpinner";
 
-/** 이 탭을 쓸 수 있는 역할. 서버의 판단과 **같은 목록**이어야 한다. */
-export function isInsider(role: Role | undefined): boolean {
-  return role === Role.COWORKER || role === Role.ADMIN;
-}
+// [원본] isInsider 는 여기 있었다 — 탭바가 이 화면 전체를 끌어오지 않게 lib/staffRoles.ts 로 옮겼다(REV-023 L5)
 
 /** 상태 배지 색 — 완료=초록·진행=앰버·반려=빨강. 분류 태그(파랑)와 확실히 갈린다. */
 function stateTone(state: FeedbackState): TagTone {
@@ -163,7 +162,14 @@ export default function FeedbackClient() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ScreenHeader title={t("feedback.title")} />
+      <ScreenHeader
+        title={t("feedback.title")}
+        back={
+          <a href="/staff" aria-label={t("staff.title")} data-testid="feedback-back">
+            <Icon name="chevron-back" size={24} color="var(--color-ink)" />
+          </a>
+        }
+      />
 
       <div className="flex-1 p-[var(--spacing-lg)]" data-testid="feedback-body">
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-lg)] block">

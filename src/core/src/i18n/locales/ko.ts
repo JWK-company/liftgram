@@ -1659,6 +1659,7 @@ export const ko = {
   "coaching.action.records_view": "기록 열람",
   "notif.coaching_summary": "{name}님이 성과 요약을 보냈어요",
   // 운영 상태(/ops · admin) @plm SRS-088
+  "staff.title": "운영",
   "ops.entry": "운영 상태",
   "ops.title": "운영 상태",
   "ops.adminOnly": "운영진 계정만 볼 수 있어요",

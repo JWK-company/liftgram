@@ -26,7 +26,8 @@ import {
   type ExperienceLevel,
   type WeightUnit,
 } from "@app/core";
-import { ExperienceLevel as ExperienceLevelPB, Role } from "@app/contracts";
+// [원본] import { ExperienceLevel as ExperienceLevelPB, Role } from "@app/contracts"; — 운영 줄을 운영 탭으로 옮겼다(#T2)
+import { ExperienceLevel as ExperienceLevelPB } from "@app/contracts";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useRef, useState } from "react";
 import { lang, t, type TransKey } from "@/lib/i18n";
@@ -47,7 +48,7 @@ import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { NumberStepper, TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
-import { Icon } from "../ui/Icon";
+// [원본] import { Icon } from "../ui/Icon"; — 운영 줄과 함께 쓰임이 없어졌다(#T2)
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
@@ -62,7 +63,6 @@ import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppVersionRow } from "./AppVersionRow"; // 앱 버전 줄 + 업데이트 버튼 @plm SRS-085
 import { AppUpdateCard } from "../appdist/AppUpdateCard"; // SPEC-018 앱 설치 파일(APK) 줄
-import { useOpsAlert } from "@/lib/opsAlert"; // 운영 경보 점(admin) @plm SRS-088
 
 type Language = "ko" | "en";
 
@@ -109,7 +109,6 @@ export default function ProfileClient() {
   } = useUser();
   const toast = useToast();
   const { user: account } = useAuth();
-  const opsAlert = useOpsAlert(); // admin 이 아니면 늘 꺼져 있다(lib/opsAlert 가 묻지 않는다) @plm SRS-088
   const [busy, setBusy] = useState(false);
   // [원본] useState 초기값으로 한 번만 읽었다 — 첫 그림은 user 를 읽기 전(아래 if (!user) 보다 위)이라 늘 빈 칸으로 굳고,
   //        그 빈 칸을 blur 가 그대로 저장해 실제로 지워졌다(2026-11-04 실기기 — 「커스텀 기구 이름이 업데이트·재시작마다 사라짐」).
@@ -399,8 +398,9 @@ export default function ProfileClient() {
                 title={t("block.entry")}
                 href="/blocked"
               />
+              {/* [원본] 모더레이션 큐·운영 상태 줄은 운영 탭(app/components/staff/StaffClient.tsx)으로 옮겼다(#T2):
               {/* 모더레이션 큐는 **역할이 있는 사람에게만** 보인다. 권한이 없으면 서버가 거절하지만,
-                누를 수 없는 문을 그려 두지 않는다. */}
+                누를 수 없는 문을 그려 두지 않는다. * /}
               {account.role === Role.MODERATOR || account.role === Role.ADMIN ? (
                 <ListRow
                   testId="btn-moderation"
@@ -409,7 +409,7 @@ export default function ProfileClient() {
                   href="/moderation"
                 />
               ) : null}
-              {/* 운영 상태(/ops)는 admin 에게만 — 경보면 줄 오른쪽 빨간 점. 판정은 서버가 DB 역할로 한다. @plm SRS-088 */}
+              {/* 운영 상태(/ops)는 admin 에게만 — 경보면 줄 오른쪽 빨간 점. 판정은 서버가 DB 역할로 한다. @plm SRS-088 * /}
               {account.role === Role.ADMIN ? (
                 <ListRow
                   testId="row-ops"
@@ -431,6 +431,7 @@ export default function ProfileClient() {
                   }
                 />
               ) : null}
+              */}
             </>
           ) : null}
         </ListGroup>

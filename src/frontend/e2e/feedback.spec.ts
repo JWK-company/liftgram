@@ -42,9 +42,9 @@ test("로그인하지 않았으면 로그인하라고 한다", async ({ page, co
 test("평범한 사용자에게는 권한이 없다고 하고 탭도 감춘다", async ({ page }) => {
   await 가입(page, freshEmail("plain"), "평범한사람");
 
-  // 탭 바에 피드백이 없다.
+  // 탭 바에 운영 탭이 없다.
   await page.goto("/");
-  await expect(page.getByTestId("nav-feedback")).toHaveCount(0);
+  await expect(page.getByTestId("nav-staff")).toHaveCount(0);
 
   // 주소를 직접 쳐도 들어가지 못한다.
   await page.goto("/feedback");
@@ -66,11 +66,14 @@ test("내부 사람은 적어 올리고 목록에서 확인한다", async ({ pag
 
   // 내부 사람에게는 탭이 보인다.
   await page.goto("/");
-  await expect(page.getByTestId("nav-feedback")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("nav-feedback").click();
+  await expect(page.getByTestId("nav-staff")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("nav-staff").click();
+  // 역할별 줄 구성은 e2e/staff-tab.spec.ts 가 본다
+  await expect(page.getByTestId("row-feedback")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("row-feedback").click();
   await expect(page.getByTestId("feedback-body")).toBeVisible({ timeout: 20_000 });
-  // 켜진 탭은 피드백 하나뿐 — `/feedback` 이 `/feed` 로 시작해 피드 탭도 켜지던 것(2026-10-27).
-  await expect(page.getByTestId("nav-feedback")).toHaveAttribute("aria-current", "page");
+  // 켜진 탭은 운영 하나뿐 — `/feedback` 이 `/feed` 로 시작해 피드 탭도 켜지던 것(2026-10-27).
+  await expect(page.getByTestId("nav-staff")).toHaveAttribute("aria-current", "page");
   await expect(page.getByTestId("nav-feed")).not.toHaveAttribute("aria-current", "page");
 
   // 제목이 짧으면 올릴 수 없다.

@@ -1,9 +1,9 @@
 // @plm SRS-088 SRS-087  운영 상태 e2e — 기기 보고가 운영진(admin) 화면에 닿는가 · 일반 계정은 막히는가
 //
 // 확인하는 것:
-//   · 일반 계정: 프로필에 「운영 상태」 줄이 없고, /ops 를 직접 열어도 「운영진 계정만 볼 수 있어요」(서버가 막는다)
+//   · 일반 계정: 운영 탭이 없고, /ops 를 직접 열어도 「운영진 계정만 볼 수 있어요」(서버가 막는다)
 //   · 다른 계정의 동기를 막아(Push·Pull 500) 3번 실패시키면 → 기기가 곧바로 보고한다(3회 문턱은 쓰로틀 없이 즉시)
-//     → admin 의 /ops 「동기가 멈춘 사용자」에 그 사람이 보인다 · 프로필 탭에 빨간 점 · 「운영 상태」 줄에 빨간 점
+//     → admin 의 /ops 「동기가 멈춘 사용자」에 그 사람이 보인다 · 운영 탭에 빨간 점 · 「운영 상태」 줄에 빨간 점
 //   · ops_backup_runs 에 40시간 전 daily 만 있으면 이유 「일일 백업이 36시간 넘게 성공하지 않았어요」
 //   · 그 보고를 4일 전으로 돌리면(앱을 다시 안 연 사용자) → 「멈춤」·경보 이유에서 빠지고 「연락 끊긴 기기」(회색)에만 (qa code H-1)
 //   · 일반 계정은 GetOpsAlert 를 부르지도 않는다(qa code L-7)
@@ -88,13 +88,14 @@ test.describe("운영 상태", () => {
     await page.goto("/profile");
     await expect(page.getByTestId("account-card")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("row-ops")).toHaveCount(0);
-    await expect(page.getByTestId("nav-profile-ops-dot")).toHaveCount(0);
+    await expect(page.getByTestId("nav-staff")).toHaveCount(0);
+    await expect(page.getByTestId("nav-staff-ops-dot")).toHaveCount(0);
     expect(alertAsks).toEqual([]);
     await page.goto("/ops");
     await expect(page.getByTestId("ops-error")).toHaveText("운영진 계정만 볼 수 있어요", { timeout: 20_000 });
   });
 
-  test("동기가 3번 실패한 사용자가 admin 운영 화면에 보이고 프로필 탭에 빨간 점이 뜬다", async ({
+  test("동기가 3번 실패한 사용자가 admin 운영 화면에 보이고 운영 탭에 빨간 점이 뜬다", async ({
     page,
     browser,
   }) => {
@@ -146,12 +147,13 @@ test.describe("운영 상태", () => {
     // 새로고침 → access 토큰 갱신 때 서버가 DB 역할을 다시 읽는다(claim = admin) · Me 도 새 역할
     await page.goto("/profile");
     await page.reload();
+    // 프로필에는 운영 줄이 없다 — 운영 탭으로 옮겼다(#T2)
+    await expect(page.getByTestId("nav-staff-ops-dot")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("row-ops")).toHaveCount(0);
+    await expect(page.getByTestId("nav-staff")).toContainText("운영 확인 필요");
+    await page.getByTestId("nav-staff").click();
     await expect(page.getByTestId("row-ops")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("row-ops-dot")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("nav-profile-ops-dot")).toBeVisible();
-    // 같이 뜨면 빨강만(회색 업데이트 점은 그리지 않는다)
-    await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
-    await expect(page.getByTestId("nav-profile")).toContainText("운영 확인 필요");
 
     await page.getByTestId("row-ops").click();
     await expect(page).toHaveURL(/\/ops$/);

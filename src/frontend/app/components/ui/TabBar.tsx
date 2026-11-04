@@ -11,7 +11,7 @@
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "../AuthProvider";
-import { isInsider } from "../FeedbackClient";
+import { canSeeStaffTab } from "@/lib/staffRoles";
 import { Role } from "@app/contracts";
 import { LogoSpinner } from "./LogoSpinner";
 import { useAppUpdate } from "@/lib/appUpdate";
@@ -21,7 +21,7 @@ import { useOpsAlert } from "@/lib/opsAlert";
 /** 탭바 없이 전체 화면으로 여는 인증 흐름(SRS-054 P3). /account 는 프로필의 하위 화면이라 탭바를 둔다. */
 const AUTH_ROUTES = ["/signin", "/signup", "/forgot", "/reset", "/verify-email", "/auth"];
 
-type TabKey = "workout" | "records" | "feed" | "stats" | "profile" | "feedback";
+type TabKey = "workout" | "records" | "feed" | "stats" | "profile" | "staff";
 type Tab = { key: TabKey; href: string; label: string; testId: string; match: (p: string) => boolean };
 
 /**
@@ -71,16 +71,20 @@ const TABS: Tab[] = [
     testId: "nav-profile",
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
     // [개선] 운영 상태(/ops)도 프로필의 하위 화면이다 @plm SRS-088
-    match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked", "/ops"),
+    // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked", "/ops"),
+    // [개선] 운영 상태는 운영 탭으로 옮겼다(#T2)
+    match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
   },
 ];
 
-const FEEDBACK: Tab = {
-  key: "feedback",
-  href: "/feedback",
-  label: "피드백",
-  testId: "nav-feedback",
-  match: (p) => under(p, "/feedback"),
+// [원본] FEEDBACK 탭 { key: "feedback", href: "/feedback", label: "피드백", testId: "nav-feedback", match: under("/feedback") }
+// [개선] 운영 탭 — 피드백은 이 탭 안의 한 줄이 됐다(#T2)
+const STAFF: Tab = {
+  key: "staff",
+  href: "/staff",
+  label: "운영",
+  testId: "nav-staff",
+  match: (p) => under(p, "/staff", "/feedback", "/moderation", "/ops"),
 };
 
 /** 라인 아이콘 — 24 격자 · 선 1.8 · 둥근 끝. 켜진 탭은 같은 선에 브랜드색만 입힌다. */
@@ -132,10 +136,11 @@ function TabGlyph({ k }: { k: TabKey }) {
           <path d="M4.5 20c1.2-3.6 4.1-5.5 7.5-5.5s6.3 1.9 7.5 5.5" />
         </svg>
       );
-    case "feedback":
+    case "staff":
       return (
         <svg aria-hidden="true" {...common}>
-          <path d="M20 11.5c0 4-3.6 7-8 7-1 0-2-.2-2.9-.5L4 19.5l1.3-3.6C4.5 14.6 4 13.1 4 11.5c0-4 3.6-7 8-7s8 3 8 7Z" />
+          {/* [원본] 피드백 말풍선 그림을 방패로 바꿨다(REV-023) */}
+          <path d="M12 3.5 5 6v5.5c0 4.4 2.9 7.6 7 9 4.1-1.4 7-4.6 7-9V6l-7-2.5Z" />
         </svg>
       );
   }
@@ -151,7 +156,7 @@ function TabIcon({ k }: { k: TabKey }) {
 }
 
 /**
- * 개발 피드백 탭은 **내부 사람에게만** 보인다(app의 TabNavigator와 같은 규칙).
+ * 운영 탭은 **운영진(내부 사람·모더레이터)에게만** 보인다.
  * 숨기는 것은 안내일 뿐 경계가 아니다 — 주소를 직접 쳐도 서버가 막는다.
  */
 export function TabBar() {
@@ -159,13 +164,15 @@ export function TabBar() {
   const { user } = useAuth();
   // 새 버전이 기다리면 프로필 탭에 조용한 점(빨강·금색 아님 — 화면 정리 규칙) @plm SRS-085
   const { available: updateAvailable } = useAppUpdate();
-  // admin 이고 운영 경보면 프로필 탭에 빨간 점 — 업데이트 회색 점보다 우선(같이면 빨강만) @plm SRS-088
+  // [원본] admin 이고 운영 경보면 프로필 탭에 빨간 점 — 업데이트 회색 점보다 우선(같이면 빨강만) @plm SRS-088
+  // [개선] 운영 경보 점은 운영 탭에 — 프로필의 업데이트 점과 자리가 달라 둘 다 보인다(#T2)
   const { alert: opsAlert } = useOpsAlert();
   const opsDot = opsAlert && user?.role === Role.ADMIN;
   if (pathname.startsWith("/workout")) return null;
   // 로그인·가입·비밀번호·확인 화면은 전체 화면이다(시안 10) — 탭바가 아래 내용을 가리던 자리.
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) return null;
-  const tabs = isInsider(user?.role) ? [...TABS, FEEDBACK] : TABS;
+  // [원본] const tabs = isInsider(user?.role) ? [...TABS, FEEDBACK] : TABS;
+  const tabs = canSeeStaffTab(user?.role) ? [...TABS, STAFF] : TABS;
 
   return (
     <nav
@@ -197,15 +204,15 @@ export function TabBar() {
             ) : null}
             <span className="relative inline-flex">
               <TabIcon k={t.key} />
-              {t.key === "profile" && opsDot ? (
+              {t.key === "staff" && opsDot ? (
                 <span
                   aria-hidden
-                  data-testid="nav-profile-ops-dot"
+                  data-testid="nav-staff-ops-dot"
                   className="absolute -top-[1px] -right-[3px] h-[7px] w-[7px] rounded-full bg-(--color-bad) ring-2 ring-(--color-surface)"
                 />
               ) : null}
-              {/* [원본] {t.key === "profile" && updateAvailable ? ( — [개선] 운영 점이 있으면 회색 점은 그리지 않는다 @plm SRS-088 */}
-              {t.key === "profile" && updateAvailable && !opsDot ? (
+              {/* [원본] {t.key === "profile" && updateAvailable && !opsDot ? ( — 운영 점이 운영 탭으로 옮겨 자리가 겹치지 않는다(#T2) */}
+              {t.key === "profile" && updateAvailable ? (
                 <span
                   aria-hidden
                   data-testid="nav-profile-update-dot"
@@ -215,7 +222,7 @@ export function TabBar() {
             </span>
             <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>
               {t.label}
-              {t.key === "profile" && opsDot ? (
+              {t.key === "staff" && opsDot ? (
                 <span className="sr-only">{` · ${tr("ops.needsCheck")}`}</span>
               ) : null}
               {t.key === "profile" && updateAvailable ? (
