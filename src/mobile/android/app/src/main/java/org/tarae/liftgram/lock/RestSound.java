@@ -2,7 +2,9 @@ package org.tarae.liftgram.lock;
 
 import android.content.Context;
 import android.media.AudioAttributes;
+import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.os.VibrationEffect;
@@ -12,7 +14,8 @@ import android.os.Vibrator;
  * 휴식 끝 소리 — 웹 `src/frontend/lib/restSound.ts` 의 프리셋 4종(ding·chime·triad·buzz) × 음량 3단계를 같은 음으로 합성한다
  * (웹 마스터 버스와 같은 소프트클립 tanh(2.5·x) — 입력은 [-1,1]로 자른 뒤 · 지수 여닫이). wav 12개를 싣는 대신 같은 식으로 만들어
  * 웹과 소리가 어긋나지 않게 했다(REV-007 표시 H-5 — 처음엔 곡선이 달라 mid 가 4.6dB 작았다). 사각파는 대역 제한이 없어 웹보다 조금 거칠다.
- * USAGE_ALARM 이라 무음 모드·미디어 음량과 무관하게 알람 음량으로 난다. 호출한 스레드에서 끝날 때까지 기다린다(리시버 goAsync 안).
+ * 이어폰이 없으면 USAGE_ALARM — 무음 모드·미디어 음량과 무관하게 알람 음량으로 난다. 이어폰이 있으면 USAGE_MEDIA — 알람은 이어폰이 있어도
+ * 스피커로 함께 나가므로(안드로이드 동시 출력) 미디어로 내 이어폰으로만 보낸다(음량은 미디어 음량). 호출한 스레드에서 끝날 때까지 기다린다(리시버 goAsync 안).
  */
 public final class RestSound {
     static final int RATE = 44_100;
@@ -85,13 +88,47 @@ public final class RestSound {
         return Math.tanh(2.5 * c);
     }
 
+    /** 출력 용도(순수 · JUnit) — 이어폰이 있으면 미디어(이어폰으로만) · 없으면 알람(무음 모드에서도 난다) */
+    static int usageFor(boolean personalOutput) {
+        return personalOutput ? AudioAttributes.USAGE_MEDIA : AudioAttributes.USAGE_ALARM;
+    }
+
+    /** 이어폰·블루투스 오디오 출력인가(순수 · JUnit) — 통화용 SCO 는 뺀다(음악 출력이 아니다) */
+    static boolean isPersonalOutput(int type) {
+        switch (type) {
+            case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+            case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
+            case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
+            case AudioDeviceInfo.TYPE_USB_HEADSET:
+            case AudioDeviceInfo.TYPE_USB_DEVICE: // USB-C DAC 가 이것으로 잡히는 기기가 있다
+            case AudioDeviceInfo.TYPE_LINE_ANALOG:
+            case AudioDeviceInfo.TYPE_HEARING_AID:
+            case AudioDeviceInfo.TYPE_BLE_HEADSET:
+            case AudioDeviceInfo.TYPE_BLE_SPEAKER:
+            case AudioDeviceInfo.TYPE_BLE_BROADCAST:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private static boolean hasPersonalOutput(Context ctx) {
+        AudioManager am = ctx.getSystemService(AudioManager.class);
+        if (am == null) return false;
+        for (AudioDeviceInfo d : am.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+            if (isPersonalOutput(d.getType())) return true;
+        }
+        return false;
+    }
+
     public static void play(Context ctx, String kind, int volume) {
         try {
             vibrate(ctx);
             short[] pcm = render(kind, volume);
             AudioTrack tr = new AudioTrack.Builder()
                     .setAudioAttributes(new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_ALARM)
+                            // [원본] .setUsage(AudioAttributes.USAGE_ALARM)
+                            .setUsage(usageFor(hasPersonalOutput(ctx)))
                             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                             .build())
                     .setAudioFormat(new AudioFormat.Builder()

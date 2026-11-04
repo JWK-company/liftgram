@@ -53,7 +53,7 @@ public class LockServiceRulesTest {
         assertTrue(LockScreenGate.directStart(false, true, false));
         assertTrue(LockScreenGate.directStart(true, false, false));
         assertFalse(LockScreenGate.directStart(false, false, false));
-        assertFalse("이미 떠 있음", LockScreenGate.directStart(true, true, true));
+        assertFalse("이미 보임", LockScreenGate.directStart(true, true, true));
         assertFalse(LockScreenGate.directStart(false, true, true));
         assertFalse(LockScreenGate.directStart(true, false, true));
         // 휴식 끝: interactive, fullScreen, overlay

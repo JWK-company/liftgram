@@ -1,5 +1,7 @@
 package org.tarae.liftgram.lock;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -10,6 +12,17 @@ public class RestSoundTest {
         double s = 0;
         for (short v : p) s += (double) v * v;
         return Math.sqrt(s / p.length);
+    }
+
+    @Test
+    public void 이어폰이면_미디어_없으면_알람() {
+        assertEquals(android.media.AudioAttributes.USAGE_MEDIA, RestSound.usageFor(true));
+        assertEquals(android.media.AudioAttributes.USAGE_ALARM, RestSound.usageFor(false));
+        assertTrue(RestSound.isPersonalOutput(android.media.AudioDeviceInfo.TYPE_WIRED_HEADPHONES));
+        assertTrue(RestSound.isPersonalOutput(android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP));
+        assertTrue(RestSound.isPersonalOutput(android.media.AudioDeviceInfo.TYPE_BLE_HEADSET));
+        assertFalse(RestSound.isPersonalOutput(android.media.AudioDeviceInfo.TYPE_BUILTIN_SPEAKER));
+        assertFalse(RestSound.isPersonalOutput(android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO));
     }
 
     @Test

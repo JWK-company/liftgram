@@ -41,6 +41,12 @@ public class LockActionReceiver extends BroadcastReceiver {
 
     /** withDraft — 잠금 운동 화면의 완료만 고른 값(초안)을 싣는다. 카드 버튼은 화면에 초안이 안 보이므로 싣지 않는다(REV-015 정합성 #3). */
     static void handle(Context ctx, String act, String token, boolean withDraft) throws Exception {
+        // 프로세스가 죽었다 이 방송(휴식 끝·카드 버튼)으로 되살아났으면 화면 방송 등록이 없다 — 다음 잠금부터 다시 뜨게 한다. 실패해도 본 처리는 계속.
+        try {
+            LockScreenGate.ensureRegistered(ctx);
+        } catch (Exception e) {
+            android.util.Log.w("LiftgramLock", "화면 방송 등록 실패", e);
+        }
         if (ACTION_REST_DONE.equals(act)) {
             RestAlarm.onRestDone(ctx);
             return;

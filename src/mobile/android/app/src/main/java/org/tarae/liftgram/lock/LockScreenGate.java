@@ -157,10 +157,14 @@ public final class LockScreenGate {
             // [개선] 「다른 앱 위에 표시」 허용이면 앱이 뒤에 있어도 직접 시작(BAL 예외 · SPEC-020 §3).
             //   허용 없이 앞이었던 길은 「시도는 하되 막힐 수 있다」(화면이 잠들면 TOP_SLEEPING · REV-016 플랫폼 H-2) — 막혀도 예외가 없어
             //   화면이 켜질 때 onScreenOn 의 FSI 가 대신한다.
-            if (directStart(wasForeground, ov, alive)) {
-                requestStart(ctx, false, "화면 꺼짐", false);
+            // [원본] if (directStart(wasForeground, ov, alive)) {
+            // [개선] 살아 있어도 다른 앱에 가려져 멈춘 화면이면 다시 앞으로 올린다(이미 있으면 singleTask 라 onNewIntent 만 온다).
+            if (alive && inCall(ctx)) {
+                LockDiag.add(ctx, "→ 통화 중 — 떠 있는 운동 화면을 올리지 않음"); // 통화 중 근접 센서로 화면이 꺼져도 통화를 덮지 않게
+            } else if (directStart(wasForeground, ov, LockWorkoutActivity.isVisible())) {
+                requestStart(ctx, false, "화면 꺼짐" + (alive ? "(떠 있는 화면 다시 올림)" : ""), false);
             } else {
-                LockDiag.add(ctx, "→ 직접 시작 안 함(" + (alive ? "이미 떠 있음" : "다른 앱 위 허용 없음 · 뒤에 있었음") + ") — 켤 때 전체 화면 알림");
+                LockDiag.add(ctx, "→ 직접 시작 안 함(다른 앱 위 허용 없음 · 뒤에 있었음) — 켤 때 전체 화면 알림");
             }
         } catch (Exception e) {
             android.util.Log.w("LiftgramLock", "화면 꺼짐 처리 실패", e);
@@ -169,6 +173,8 @@ public final class LockScreenGate {
 
     static final long LOCK_DELAY_RECHECK_MS = 6_000L;
     static final long START_CHECK_MS = 1_500L;
+    /** 화면이 켜진 뒤 운동 화면의 onResume 을 기다리는 시간 — 이 뒤에도 안 보이면 가려진 것으로 본다 */
+    static final long SCREEN_ON_RESUME_WAIT_MS = 800L;
     /** 직접 시작을 요청한 시각(elapsedRealtime) — onScreenOn 이 그 직후엔 FSI 를 서두르지 않는다(REV-017 잠금 L-12) */
     private static volatile long lastStartRequestAt;
 
@@ -205,15 +211,25 @@ public final class LockScreenGate {
         try {
             LockView v = view(app);
             if (!shouldShow(enabled(app), v.active, v.paused, interactive(app), locked(app), LockWorkoutActivity.isVisible())) return;
+            if (!wake && !interactive(app)) return; // 화면을 켜려는 요청이 아니면 꺼진 화면에 FSI 를 쏘지 않는다(REV-015 H-1)
             post(app, v, wake);
         } catch (Exception e) {
             android.util.Log.w("LiftgramLock", "대체 FSI 실패", e);
         }
     }
 
-    /** 직접 시작해도 되나(순수 · JUnit) — 아직 안 떠 있고, 앱을 보고 있었거나 「다른 앱 위에 표시」 허용(SPEC-020 §3) */
-    public static boolean directStart(boolean wasForeground, boolean overlay, boolean alive) {
-        return !alive && (wasForeground || overlay);
+    /**
+     * 직접 시작해도 되나(순수 · JUnit) — 지금 보이지 않고, 앱을 보고 있었거나 「다른 앱 위에 표시」 허용(SPEC-020 §3).
+     * [원본] 셋째 인자는 alive(isAlive)였다 — 다른 앱에 가려져 멈춘 화면도 alive 라, 그 뒤로 잠금화면에 다시 뜨지 않았다.
+     */
+    public static boolean directStart(boolean wasForeground, boolean overlay, boolean visible) {
+        return !visible && (wasForeground || overlay);
+    }
+
+    /** 통화 중인가 — 가려진 운동 화면을 통화 위로 올리지 않는다 */
+    private static boolean inCall(Context ctx) {
+        android.media.AudioManager am = ctx.getSystemService(android.media.AudioManager.class);
+        return am != null && am.getMode() != android.media.AudioManager.MODE_NORMAL;
     }
 
     /** 「다른 앱 위에 표시」 허용(SYSTEM_ALERT_WINDOW) — 백그라운드 액티비티 시작 예외 */
@@ -233,8 +249,26 @@ public final class LockScreenGate {
             // 방금 직접 시작을 요청했다 — 만들어지는 중일 수 있어 잠깐 기다린다(FSI 가 겹치지 않게 · L-12)
             long since = android.os.SystemClock.elapsedRealtime() - lastStartRequestAt;
             if (since < 3_000L && !LockWorkoutActivity.isAlive()) Thread.sleep(Math.max(0, 1_000L - since)); // BG 전용 스레드
+            // [원본] if (LockWorkoutActivity.isAlive()) { LockDiag.add(ctx, "화면 켜짐 · 운동 화면 떠 있음"); return; }
+            // [개선] 살아 있다고 보이는 것은 아니다 — onResume 이 올 시간을 준 뒤에도 안 보이면 가려진 것이니 다시 올린다.
             if (LockWorkoutActivity.isAlive()) {
-                LockDiag.add(ctx, "화면 켜짐 · 운동 화면 떠 있음");
+                if (!LockWorkoutActivity.isVisible()) Thread.sleep(SCREEN_ON_RESUME_WAIT_MS); // BG 전용 스레드
+                if (LockWorkoutActivity.isVisible()) {
+                    LockDiag.add(ctx, "화면 켜짐 · 운동 화면 보임");
+                    return;
+                }
+                // sleep 사이에 바뀌었을 수 있다 — 다시 읽는다. 그새 화면이 꺼졌으면 FSI 가 화면을 다시 켜므로 쏘지 않는다(REV-015 H-1). 통화는 덮지 않는다.
+                v = view(ctx);
+                if (!interactive(ctx) || inCall(ctx) || !locked(ctx) || !shouldShow(enabled(ctx), v.active, v.paused, true, true, false)) {
+                    LockDiag.add(ctx, "화면 켜짐 · 운동 화면 가려짐 · 띄우지 않음");
+                    return;
+                }
+                if (overlay(ctx)) {
+                    requestStart(ctx, false, "화면 켜짐(가려진 화면 올림)", true);
+                } else {
+                    LockDiag.add(ctx, "화면 켜짐 · 운동 화면 가려짐 → 전체 화면 알림" + (fullScreenAllowed(ctx) ? "" : "(허용 안 됨 — 못 띄움)"));
+                    post(ctx, v, false);
+                }
                 return;
             }
             if (!shouldShow(enabled(ctx), v.active, v.paused, interactive(ctx), true, false)) {
