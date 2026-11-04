@@ -8,15 +8,25 @@
 // 움직임 줄이기면 다 찬 정지 로고. 서버 컴포넌트에서도 쓴다(상태·효과 없음).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { LOGO_OUTLINE_PATH } from "./logoOutlinePath";
+
 function BrandGlyph({ outline, color }: { outline: boolean; color: string }) {
+  // [개선] 빈 로고는 막대를 합친 바깥 윤곽 하나 — 막대마다 그리면 겹친 곳의 선이 안쪽에 보인다.
+  // 선 굵기는 viewBox 비율로 커지는 지금 모습 그대로다(56에서 2.45px · 네이티브 시작 화면과 같다).
+  if (outline) {
+    return (
+      <svg viewBox="0 0 32 32" width="100%" height="100%" aria-hidden="true" className="block">
+        <path d={LOGO_OUTLINE_PATH} fill="none" stroke={color} strokeWidth={1.4} strokeLinejoin="round" />
+      </svg>
+    );
+  }
   return (
     <svg viewBox="0 0 32 32" width="100%" height="100%" aria-hidden="true" className="block">
       <g
         transform="translate(5.2 0) skewX(-14)"
-        fill={outline ? "none" : color}
-        stroke={outline ? color : undefined}
-        strokeWidth={outline ? 1.4 : undefined}
-        vectorEffect={outline ? "non-scaling-stroke" : undefined}
+        // [원본] 윤곽도 이 막대들로 그렸다 — fill={outline ? "none" : color} stroke={outline ? color : undefined}
+        //   strokeWidth={outline ? 1.4 : undefined} vectorEffect={outline ? "non-scaling-stroke" : undefined}
+        fill={color}
       >
         <rect x="3" y="3" width="5.4" height="24" rx="2.7" />
         <rect x="3" y="21.4" width="24" height="3.6" rx="1.8" />

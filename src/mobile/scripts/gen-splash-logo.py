@@ -10,6 +10,7 @@
 #     아이콘 그림을 288dp 칸에 맞춰 그린다(240dp 로 그리면 1.2배 = 로고 약 67dp 로 커진다 · REV-004 안드로이드 H-1)
 #   ios/App/App/Assets.xcassets/SplashLogo.imageset/splash-logo.svg   56pt
 #   www/offline.html   첫 실행 오프라인 화면의 같은 윤곽(<svg class="logo"> 한 줄을 바꿔 쓴다)
+#   ../frontend/app/components/ui/logoOutlinePath.ts   웹 LogoSpinner 의 빈 윤곽(같은 합친 윤곽)
 # 실행: python3 src/mobile/scripts/gen-splash-logo.py  (src/mobile 기준 상대 경로에 쓴다)
 #       --check  쓰지 않고 지금 파일들이 생성 결과와 같은지만 확인(다르면 끝 코드 1)
 import math
@@ -53,10 +54,75 @@ def capsule(x, y, w, h):
     return [glyph_point(px, py) for px, py in pts]
 
 
-def path_d(scale, off):
+def _inside(p, poly):
+    """볼록·비볼록 모두 — 짝홀 규칙."""
+    x, y = p
+    hit = False
+    for (x1, y1), (x2, y2) in zip(poly, poly[1:] + poly[:1]):
+        if (y1 > y) != (y2 > y) and x < x1 + (y - y1) * (x2 - x1) / (y2 - y1):
+            hit = not hit
+    return hit
+
+
+def _cuts(a, b, poly):
+    """선분 a-b 가 poly 의 변과 만나는 지점의 비율 t(0~1)."""
+    (ax, ay), (bx, by) = a, b
     out = []
-    for rect in RECTS:
-        pts = [(off + px * scale, off + py * scale) for px, py in capsule(*rect)]
+    for (cx, cy), (dx, dy) in zip(poly, poly[1:] + poly[:1]):
+        den = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx)
+        if abs(den) < 1e-12:
+            continue
+        t = ((cx - ax) * (dy - cy) - (cy - ay) * (dx - cx)) / den
+        u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / den
+        if 0 < t < 1 and 0 <= u <= 1:
+            out.append(t)
+    return out
+
+
+def union_loops():
+    """막대 4개를 합친 바깥 윤곽(viewBox 32 좌표) — 안쪽 겹친 선이 보이지 않게 한다.
+    각 변을 다른 막대와 만나는 곳에서 자르고, 다른 막대 밖에 있는 조각만 남겨 순서대로 잇는다."""
+    polys = [capsule(*r) for r in RECTS]
+    segs = []
+    for i, poly in enumerate(polys):
+        others = [q for j, q in enumerate(polys) if j != i]
+        for a, b in zip(poly, poly[1:] + poly[:1]):
+            ts = sorted({0.0, 1.0, *(t for q in others for t in _cuts(a, b, q))})
+            for t1, t2 in zip(ts, ts[1:]):
+                p1 = (a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1)
+                p2 = (a[0] + (b[0] - a[0]) * t2, a[1] + (b[1] - a[1]) * t2)
+                if math.dist(p1, p2) < 1e-9:  # 경계에 딱 닿아 생긴 길이 0 조각
+                    continue
+                mid = ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+                if not any(_inside(mid, q) for q in others):
+                    segs.append((p1, p2))
+    loops = []
+    while segs:
+        start, cur = segs.pop(0)
+        loop = [start]
+        while math.dist(cur, start) > 1e-6:
+            if not segs:
+                sys.exit("로고 윤곽이 닫히지 않는다")
+            k = min(range(len(segs)), key=lambda n: math.dist(segs[n][0], cur))
+            if math.dist(segs[k][0], cur) > 1e-6:
+                sys.exit("로고 윤곽이 닫히지 않는다")
+            loop.append(cur)
+            cur = segs.pop(k)[1]
+        loops.append(loop)
+    return loops
+
+
+def path_d(scale, off):
+    # [원본] 막대마다 따로 그린 윤곽 — 겹친 곳의 선이 로고 안쪽에 보였다
+    # out = []
+    # for rect in RECTS:
+    #     pts = [(off + px * scale, off + py * scale) for px, py in capsule(*rect)]
+    #     out.append("M" + " L".join(f"{px:.3f},{py:.3f}" for px, py in pts) + " Z")
+    # return " ".join(out)
+    # [개선] 합친 바깥 윤곽 하나
+    out = []
+    for loop in union_loops():
+        pts = [(off + px * scale, off + py * scale) for px, py in loop]
         out.append("M" + " L".join(f"{px:.3f},{py:.3f}" for px, py in pts) + " Z")
     return " ".join(out)
 
@@ -128,6 +194,14 @@ def main():
     if n != 1:
         sys.exit("offline.html 에서 <svg class=\"logo\"> 를 하나 찾지 못했다")
     emit(o, new)
+
+    # 웹 LogoSpinner 빈 윤곽 — 같은 윤곽을 viewBox 32 좌표로
+    web = (
+        "// 생성물(src/mobile/scripts/gen-splash-logo.py) · 손으로 고치지 않는다.\n"
+        "// 로고 막대 4개를 합친 바깥 윤곽 — viewBox 0 0 32 32, 기울기까지 좌표에 반영했다.\n"
+        f'export const LOGO_OUTLINE_PATH =\n  "{path_d(1.0, 0)}";\n'
+    )
+    emit(os.path.join(here, "../frontend/app/components/ui/logoOutlinePath.ts"), web)
 
     if CHECK:
         if DIFF:
