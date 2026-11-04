@@ -6,7 +6,7 @@
 //
 // 입력 (core/src/data/catalog/)
 //   catalog.master.csv       종목 마스터 — 열 의미는 spec `_context.md` §2 (+ name_rule)
-//   catalog.families.csv     동작 그룹 메타 — 허용 부착물·손 그립·적재 방식(ADR-034)·흔한 적재 방식 load_default(SRS-084)
+//   catalog.families.csv     동작 그룹 메타 — 허용 부착물·손 그립·적재 방식(ADR-034)·흔한 적재 방식 load_default(SRS-084)·머신 전용 손 그립 machine_grips
 //   migration-overrides.csv  같은 family 로 풀리지 않는 운영 칸의 명시 예외(QA H6)
 // 출력
 //   core/src/data/catalog/catalog.generated.ts       종목·family 표(시드 원천 — P2 에서 시드가 이것을 쓴다)
@@ -160,6 +160,8 @@ const fams = families.map((f) => {
     equipments: list(f.equipments),
     attachments: list(f.attachments),
     grips: list(f.grips),
+    // 머신 전용 손 그립(#T4) — 있는 family 만 싣는다(나머지 줄은 예전 모양 그대로).
+    ...(list(f.machine_grips).length ? { machineGrips: list(f.machine_grips) } : {}),
     load,
     ...(load ? { loadDefault: def } : {}),
   };

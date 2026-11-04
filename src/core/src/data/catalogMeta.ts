@@ -6,7 +6,7 @@ import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import type { Exercise } from '../db/models';
 import type { CatalogFamily } from './catalog/catalogTypes';
-import type { VariantAxesAllowed } from '../domain/variants';
+import { customExerciseGrips, gripsForEquipment, type VariantAxesAllowed } from '../domain/variants';
 
 let families: Map<string, CatalogFamily> | null = null;
 async function familyTable(): Promise<Map<string, CatalogFamily>> {
@@ -29,7 +29,9 @@ export async function variantAxesFor(exerciseId: string): Promise<VariantAxesAll
     return {
       baseEquipment: ex.equipment ?? null,
       attachments: meta?.attachments ?? [],
-      grips: meta?.grips ?? [],
+      // [원본] grips: meta?.grips ?? [],
+      // [개선] 머신은 family 의 machineGrips 를 쓴다(#T4)
+      grips: ex.isCustom && !meta ? customExerciseGrips(ex.equipment) : gripsForEquipment(meta, ex.equipment),
       load: meta?.load ?? false,
     };
   } catch {

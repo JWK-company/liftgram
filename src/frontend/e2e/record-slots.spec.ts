@@ -208,6 +208,66 @@ test("손 그립 — 와이드와 클로즈 기록이 섞이지 않고, 지난 �
   await expect(page.getByText("와이드그립")).toHaveCount(0);
 });
 
+test("머신 손 그립(#T4) — 체스트 프레스에서 언더·뉴트럴을 고르면 칸이 나뉘고, 같은 동작의 케이블에는 늘지 않는다", async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await 카탈로그_준비(page);
+
+  await 운동_시작(page, "머신 체스트 프레스");
+  await 칸_시트(page);
+  await expect(page.getByTestId("slot-grip-under")).toBeVisible();
+  await expect(page.getByTestId("slot-grip-neutral")).toBeVisible();
+  await page.getByTestId("slot-grip-under").click();
+  await 시트_닫기(page);
+  await 세트_기록(page, 40, 10);
+  await 마치기(page);
+
+  await 운동_시작(page, "머신 체스트 프레스");
+  await expect(page.getByTestId("variant-trigger").first()).toContainText("언더", { timeout: 15_000 });
+  await expect(첫세트(page).getByTestId("set-prev")).toContainText("40×10");
+  await 칸_시트(page);
+  await page.getByTestId("slot-grip-neutral").click();
+  await 시트_닫기(page);
+  await expect(첫세트(page).getByTestId("set-prev")).not.toContainText("40×10");
+  await 세트_기록(page, 45, 8);
+  await 마치기(page);
+
+  // 다시 열어도 고른 뉴트럴이 저장 값 그대로 남는다(쓰기 정규화가 지우지 않는다)
+  await 운동_시작(page, "머신 체스트 프레스");
+  await expect(page.getByTestId("variant-trigger").first()).toContainText("뉴트럴", { timeout: 15_000 });
+  await expect(첫세트(page).getByTestId("set-prev")).toContainText("45×8");
+  await 세트_기록(page, 45, 8);
+  await 마치기(page);
+
+  await 운동_시작(page, "케이블 체스트 프레스");
+  await 칸_시트(page);
+  await expect(page.getByTestId("slot-grip-under")).toHaveCount(0);
+});
+
+test("머신 손 그립(#T4) — 커스텀 머신 종목도 그립을 고를 수 있고, 다시 열어도 남는다", async ({ page }) => {
+  test.setTimeout(150_000);
+  const 이름 = `내머신${Date.now().toString(36)}`;
+  await 카탈로그_준비(page);
+  await page.getByTestId("btn-new-exercise").click();
+  await expect(page.getByTestId("exercise-form")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("form-name-ko").fill(이름);
+  await page.getByTestId("exercise-form").getByText("머신", { exact: true }).click();
+  await page.getByTestId("form-save").click();
+  await expect(page).toHaveURL(/\/exercises$/, { timeout: 20_000 });
+
+  await 운동_시작(page, 이름);
+  await 칸_시트(page);
+  await page.getByTestId("slot-grip-under").click();
+  await 시트_닫기(page);
+  await 세트_기록(page, 30, 10);
+  await 마치기(page);
+
+  await 운동_시작(page, 이름);
+  await expect(page.getByTestId("variant-trigger").first()).toContainText("언더", { timeout: 15_000 });
+  await expect(첫세트(page).getByTestId("set-prev")).toContainText("30×10");
+});
+
 test("루틴 편집 대체는 한 번에 바뀌고(#47), 운동 중 기구 바꾸기를 루틴에도 반영할 수 있다", async ({
   page,
 }) => {

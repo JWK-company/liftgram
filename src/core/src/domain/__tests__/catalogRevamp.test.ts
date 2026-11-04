@@ -11,6 +11,8 @@ import { MIGRATION_OVERRIDES } from '../../data/catalog/catalogMigration.data';
 import type { CatalogRow } from '../../data/catalog/catalogTypes';
 import { LEGACY_SEED_EXERCISES as SEED_EXERCISES } from '../../data/seed/legacySeed'; // 개편 전 시드(게이트가 막는지 확인용)
 import { CATALOG_EQUIPMENT, checkCatalogIntegrity } from '../catalogIntegrity';
+import { buildCatalogIndex, planBlockMigration } from '../catalogMigrationPlan';
+import { customExerciseGrips, GRIP_KEYS, gripsForEquipment, variantColumns } from '../variants';
 import { normalizeNameKey, seedIdOf } from '../nameKey';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -97,4 +99,63 @@ test('이름 키 정규화 — 띄어쓰기·하이픈·대소문자 무시', ()
   assert.equal(normalizeNameKey('랫 풀다운'), normalizeNameKey('랫풀다운'));
   assert.equal(normalizeNameKey('Lat Pull-Down'), normalizeNameKey('latpulldown'));
   assert.equal(normalizeNameKey('인클라인 프레스 (바벨)'), '인클라인프레스바벨');
+});
+
+test('머신 손 그립(#T4) — 머신만 늘고, 다른 기구·손이 무관한 머신은 그대로', () => {
+  const fam = (n: string) => CATALOG_FAMILIES.find((f) => f.family === n);
+  // 사용자 요구의 핵심 — 머신에서 언더·뉴트럴을 고를 수 있다
+  for (const n of ['chest_press', 'bench_press', 'seated_row', 'lat_pulldown', 'curl']) {
+    const grips = gripsForEquipment(fam(n), 'machine');
+    assert.ok(grips.includes('under') && grips.includes('neutral'), `${n}: ${grips}`);
+  }
+  // 같은 family 의 바벨·케이블은 늘지 않는다
+  assert.deepEqual(gripsForEquipment(fam('bench_press'), 'barbell'), ['wide', 'close']);
+  assert.deepEqual(gripsForEquipment(fam('chest_press'), 'cable'), []);
+  // 손으로 잡지 않는 머신은 그립 줄이 없다
+  for (const n of ['leg_press', 'leg_extension', 'lying_leg_curl', 'hip_abduction'])
+    assert.deepEqual(gripsForEquipment(fam(n), 'machine'), [], n);
+  // machine_grips 가 없는 family 는 기존 목록
+  assert.deepEqual(gripsForEquipment(fam('assisted_pull_up'), 'machine'), ['wide', 'close', 'neutral']);
+  assert.deepEqual(gripsForEquipment(null, 'machine'), []);
+  // 기본 칸이 곧 오버 바인 머신 랫풀다운은 오버를 따로 두지 않는다(옛 기록과 칸이 갈라진다)
+  assert.ok(!gripsForEquipment(fam('lat_pulldown'), 'machine').includes('over'));
+  // 커스텀 머신은 전부, 그 밖의 커스텀은 그립 없음
+  assert.deepEqual(customExerciseGrips('machine'), [...GRIP_KEYS]);
+  assert.deepEqual(customExerciseGrips('barbell'), []);
+});
+
+test('머신 손 그립(#T4) — 이관·부팅 정규화가 머신에서 고른 그립을 지우지 않는다', () => {
+  const m = CATALOG.find((r) => r.nameKo === '머신 체스트 프레스' && !r.isArchived);
+  assert.ok(m);
+  const c = variantColumns({ grip: 'under' });
+  const block = {
+    exerciseId: m.id,
+    variantKey: c.variantKey,
+    variantEquipment: null,
+    variantGrip: 'under',
+    variantArm: null,
+    variantLoad: null,
+    variantAttach: null,
+    machineVariant: null,
+  };
+  const idx = buildCatalogIndex(CATALOG, CATALOG_FAMILIES, MIGRATION_OVERRIDES);
+  assert.equal(planBlockMigration(block as never, idx).changed, false);
+});
+
+test('머신 손 그립(#T4) — 무결성 규칙이 기존 그립 누락·모르는 값·머신 없는 family 를 잡는다', () => {
+  const base = CATALOG_FAMILIES.map((f) => ({ ...f }));
+  const pick = (n: string) => {
+    const f = base.find((x) => x.family === n);
+    assert.ok(f);
+    return f;
+  };
+  pick('bench_press').machineGrips = ['under']; // 기존 wide·close 누락
+  pick('leg_press').machineGrips = ['nope']; // 모르는 값
+  const barbellOnly = CATALOG_FAMILIES.find((f) => !f.equipments.includes('machine'));
+  assert.ok(barbellOnly);
+  pick(barbellOnly.family).machineGrips = ['over'];
+  const v = checkCatalogIntegrity(CATALOG, base, { overrides: MIGRATION_OVERRIDES }).join('\n');
+  assert.match(v, /bench_press: machine_grips 에 기존 그립 wide 없음/);
+  assert.match(v, /leg_press: machine_grips 의 모르는 그립 nope/);
+  assert.ok(v.includes(`family ${barbellOnly.family}: 머신 종목 없이 machine_grips`));
 });

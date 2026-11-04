@@ -49,6 +49,8 @@ export interface CatalogFamily {
   equipments: string[];
   attachments: string[];
   grips: string[];
+  /** 이 family 의 머신 종목에만 쓰는 손 그립 — 있으면 머신은 grips 대신 이 목록(같은 family 의 다른 기구는 그대로). */
+  machineGrips?: string[];
   /** 머신 종목에 적재 방식(pin|plate) 축이 있는가 */
   load: boolean;
   /** 적재 축이 있을 때 흔한 적재 방식 — 빈 적재 칸의 기본(plate 면 한쪽 입력 기본 · 피드백 #63) @plm SRS-084 */

@@ -19,6 +19,7 @@ import { CUSTOM_VARIANT_KEYS, MACHINE_BRAND_KEYS } from './machineVariants';
 import {
   IMPLEMENT_KEYS,
   dimsFromColumns,
+  gripsForEquipment,
   normalizeVariantDimsV34,
   variantColumns,
   type AttachKey,
@@ -184,7 +185,9 @@ export function planBlockMigration(block: BlockColumns, idx: CatalogIndex): Bloc
       : normalizeVariantDimsV34(dims, {
           baseEquipment: final.equipment,
           attachments: fam?.attachments,
-          grips: fam?.grips,
+          // [원본] grips: fam?.grips,
+          // [개선] 선택 시트(variantAxesFor)와 같은 목록 — 머신에서 고른 그립을 이관이 지우지 않게(#T4)
+          grips: gripsForEquipment(fam, final.equipment),
           load: fam?.load,
         })
     : dims;

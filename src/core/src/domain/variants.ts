@@ -298,6 +298,25 @@ export function equipmentOptionsFor(
   return isMachineSel ? [...base, ...MACHINE_BRAND_KEYS, ...CUSTOM_VARIANT_KEYS] : base;
 }
 export const GRIP_OPTIONS: (GripKey | null)[] = [null, ...GRIP_KEYS];
+
+/**
+ * 커스텀 머신 종목의 손 그립 허용 목록 — family 가 없어 동작을 모르니 전부 고를 수 있게 둔다(#T4).
+ */
+export function customExerciseGrips(equipment: string | null | undefined): string[] {
+  return equipment === 'machine' ? [...GRIP_KEYS] : [];
+}
+
+/**
+ * 종목의 손 그립 허용 목록 — 머신은 family 의 machineGrips 가 있으면 그것을 쓴다(#T4).
+ * family 를 함께 쓰는 바벨·덤벨·케이블의 그립은 늘지 않는다.
+ */
+export function gripsForEquipment(
+  family: { grips?: readonly string[]; machineGrips?: readonly string[] } | null | undefined,
+  equipment: string | null | undefined,
+): string[] {
+  const list = equipment === 'machine' && family?.machineGrips?.length ? family.machineGrips : family?.grips;
+  return [...(list ?? [])];
+}
 export const ARM_OPTIONS: (ArmKey | null)[] = ['bi', 'uni'];
 
 // --- 2단계 기구 선택(SRS-028) — 베이스 기구 vs 머신 브랜드 하위 레벨 ---

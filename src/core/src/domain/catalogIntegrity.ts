@@ -5,6 +5,7 @@
 import type { CatalogFamily, CatalogRow, MigrationOverride } from '../data/catalog/catalogTypes';
 import { MACHINE_BRAND_KEYS } from './machineVariants';
 import { normalizeNameKey, seedIdOf } from './nameKey';
+import { GRIP_KEYS, gripsForEquipment } from './variants';
 
 /** 카탈로그가 쓸 수 있는 기구 값 — 도메인 EquipmentType + 개편에서 생긴 EZ바·트랩바(QA H8). */
 export const CATALOG_EQUIPMENT = [
@@ -110,7 +111,9 @@ export function checkCatalogIntegrity(
     const fam = famByName.get(t.family);
     const ax = r.impliedAxes;
     if (ax.attach && !fam?.attachments.includes(ax.attach)) v.push(`${r.id}: 함축 부착물 ${ax.attach} 가 ${t.family} 허용 목록 밖`);
-    if (ax.grip && !fam?.grips.includes(ax.grip)) v.push(`${r.id}: 함축 그립 ${ax.grip} 가 ${t.family} 허용 목록 밖`);
+    // [원본] if (ax.grip && !fam?.grips.includes(ax.grip)) v.push(`${r.id}: 함축 그립 ${ax.grip} 가 ${t.family} 허용 목록 밖`);
+    // [개선] 머신 대상은 머신 목록으로 본다(#T4)
+    if (ax.grip && !gripsForEquipment(fam, t.equipment).includes(ax.grip)) v.push(`${r.id}: 함축 그립 ${ax.grip} 가 ${t.family} 허용 목록 밖`);
     if (ax.brand && (t.equipment !== 'machine' || !(MACHINE_BRAND_KEYS as readonly string[]).includes(ax.brand)))
       v.push(`${r.id}: 함축 브랜드 ${ax.brand} 는 머신 대상에만`);
     if (ax.arm && ax.arm !== 'uni') v.push(`${r.id}: 함축 팔 값 ${ax.arm}`);
@@ -135,6 +138,13 @@ export function checkCatalogIntegrity(
     const eq = famEquip.get(f.family) ?? new Set<string>();
     if (f.attachments.length && !eq.has('cable')) v.push(`family ${f.family}: 케이블 종목 없이 부착물 축`);
     if (f.load && !eq.has('machine')) v.push(`family ${f.family}: 머신 종목 없이 적재 방식 축`);
+    // 머신 전용 그립(#T4) — 머신 종목이 있어야 하고, 이미 허용된 그립을 빼면 그 그립으로 쌓인 칸을 다시 못 고른다.
+    if (f.machineGrips?.length) {
+      if (!eq.has('machine')) v.push(`family ${f.family}: 머신 종목 없이 machine_grips`);
+      for (const g of f.machineGrips)
+        if (!(GRIP_KEYS as readonly string[]).includes(g)) v.push(`family ${f.family}: machine_grips 의 모르는 그립 ${g}`);
+      for (const g of f.grips) if (!f.machineGrips.includes(g)) v.push(`family ${f.family}: machine_grips 에 기존 그립 ${g} 없음`);
+    }
   }
 
   // ── 이름 규칙 ──
