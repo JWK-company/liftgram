@@ -469,15 +469,8 @@ export function AppUpdateSheet({
           </AppText>
         ) : null}
         {phase === "error" && error ? (
-          <AppText
-            variant="caption"
-            color="textMuted"
-            className="block"
-            data-testid="app-update-error-detail"
-            data-src={errSrc ?? ""}
-          >
-            {t("appDist.errDetail", { code: error, src: errSrc ?? "-" })}
-          </AppText>
+          // [원본] 「원인 코드: hash · call」을 글자로 보였다 — 위 줄에 사람용 문구가 있다(SPEC-025). 시험용 표지만 남긴다.
+          <span hidden data-testid="app-update-error-detail" data-src={errSrc ?? ""} />
         ) : null}
 
         {working ? (

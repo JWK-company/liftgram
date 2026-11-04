@@ -566,13 +566,8 @@ test.describe("앱(가짜 플러그인) — 잠금 운동 화면 진단(SPEC-020
     await expect(
       page.getByText("다음 화면에서 '리프트그램'을 찾아 켜 주세요", { exact: false }),
     ).toBeVisible();
-    // 진단 기록 — 최근 것이 위
-    const diag = page.getByTestId("row-lock-diag");
-    await diag.locator("summary").click();
-    await expect(diag.locator("pre")).toContainText("화면 켜짐");
-    const text = (await diag.locator("pre").textContent()) ?? "";
-    expect(text.indexOf("화면 켜짐")).toBeLessThan(text.indexOf("화면 꺼짐"));
-    expect(text.split("\n")).toHaveLength(2);
+    // 진단 기록은 협업자·관리자에게만 보인다(SPEC-025) — 일반 사용자에게는 없다
+    await expect(page.getByTestId("row-lock-diag")).toHaveCount(0);
 
     // 허용하고 돌아오면 사라진다
     await patchFake(page, {

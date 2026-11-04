@@ -8,10 +8,9 @@
 import { updateRowState } from "@app/core/domain/swUpdatePolicy";
 import { useEffect, useId, useState } from "react";
 import { APP_VERSION, isMandatoryNow, startUpdate, useAppUpdate } from "@/lib/appUpdate";
-import { tw } from "@/lib/i18n";
+import { t, tw } from "@/lib/i18n";
 import { useSession } from "../SessionProvider";
 // 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh) — 옛 꼬리 「Liftgram vX (build)」 를 이 줄로 합쳤다(QA code L-5)
-import buildInfo from "../../build-info.json";
 import { appVersionOf } from "@/lib/platform";
 
 export function AppVersionRow() {
@@ -49,10 +48,12 @@ export function AppVersionRow() {
         >
           {tw("web.sw.appVersion", { version: APP_VERSION })}
         </span>
-        <span className="text-(--color-ink3) text-[length:var(--text-xs)]" data-testid="app-version">
-          build {buildInfo.build}
-          {shellVersion ? ` · 앱 ${shellVersion}` : null}
-        </span>
+        {shellVersion ? (
+          <span className="text-(--color-ink3) text-[length:var(--text-xs)]" data-testid="app-version">
+            {/* [원본] build {buildInfo.build} — 커밋 수는 일반 사용자에게 뜻이 없다(SPEC-025) */}
+            {t("profile.appVersion", { version: shellVersion })}
+          </span>
+        ) : null}
         {subtitle ? (
           <span
             id={descId}

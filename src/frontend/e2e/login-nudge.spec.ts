@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 
 async function 준비(page: Page) {
   await page.goto("/exercises");
-  await expect(page.getByTestId("sync-state")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 30_000 });
 }
 
 /** 빠른 운동 하나를 마치고 요약까지. 루틴 저장 질문은 닫지 않고 돌려준다. */

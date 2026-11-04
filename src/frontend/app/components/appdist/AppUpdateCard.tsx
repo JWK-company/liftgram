@@ -4,7 +4,6 @@
 // 안드로이드 앱: 앱 버전 · 상태 배지(최신 · 업데이트 있음 · 다시 설치 필요 · 개발 빌드 · 플레이 스토어) · 서명 지문 앞 16자. 누르면 시트.
 // 안드로이드 웹(크롬·삼성 등): 「전용 앱으로 바꾸기」. iOS·데스크톱: 그리지 않는다.
 // 「나중에」와 상관없이 늘 보인다(배너만 숨김).
-import { normFp } from "@app/core/domain/appDistribution";
 import { useState } from "react";
 import { type TransKey, t } from "@/lib/i18n";
 import { type TagTone, Tag } from "../ui/primitives";
@@ -35,7 +34,6 @@ export function AppUpdateCard() {
   }
   const actionable =
     !!latest && (offer.kind === "update" || offer.kind === "reinstall" || offer.kind === "switch");
-  const fp = normFp(info?.certSha256).slice(0, 16);
 
   const title =
     shell.kind === "web"
@@ -62,12 +60,7 @@ export function AppUpdateCard() {
           <span className="text-(--color-ink3) text-[length:var(--text-xs)]">
             {/* [원본] 앱이면 늘 cardTitle — 제목과 같은 말을 되풀이했다(REV-013 화면 M-8 일부) */}
             {shell.kind === "web" ? t("appDist.bannerSwitchBody") : t("appDist.cardSub")}
-            {fp ? (
-              <>
-                {" · "}
-                <span data-testid="app-update-card-fp">{t("appDist.cardKey", { fp })}</span>
-              </>
-            ) : null}
+            {/* [원본] 서명 지문 — 일반 사용자에게 뜻이 없다(SPEC-025) */}
           </span>
         </span>
         {badge ? (

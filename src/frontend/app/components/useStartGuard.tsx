@@ -5,6 +5,7 @@
 // 「이어서 하기 / 폐기하고 새로 시작」을 고르게 한다. 시작에 성공하면 기기 DB 를 내려쓰고 운동 화면으로 간다.
 //
 // 운동 탭(RoutinesClient)은 같은 시트를 자기 바쁨 표시·목록 갱신과 묶어 쓰고 있어 그대로 둔다 — 문구·testid 는 같다.
+import { errorText } from "@/lib/errorText";
 import { type ReactNode, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { navigate } from "@/lib/nav";
@@ -62,7 +63,7 @@ export function useStartGuard(
         ACTIVE_EXISTS: t("replay.activeExists"),
         NOTHING_MATCHED: t("replay.nothingMatched"),
       };
-      toast(known[msg] ?? msg, "error");
+      toast(known[msg] ?? errorText(e), "error");
     } finally {
       busyRef.current = false;
       setBusy(false);

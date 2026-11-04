@@ -461,7 +461,7 @@ test("새 앱 — 업데이트 시트: 받기 진행 → 「업데이트」 → 
     "data-badge",
     "appDist.badgeUpdate",
   );
-  await expect(page.getByTestId("app-update-card-fp")).toContainText(CERT.slice(0, 16));
+  await expect(page.getByTestId("app-update-card-fp")).toHaveCount(0); // 서명 지문은 보이지 않는다(SPEC-025)
   await page.context().close();
 });
 
@@ -715,7 +715,7 @@ test("공개 /app — 버전·크기·지문 전체·받기 · 인앱이면 크�
   await p.goto("/app");
   await expect(p.getByTestId("app-page-version")).toContainText("1.2.1", { timeout: 20_000 });
   await expect(p.getByTestId("app-page-download")).toHaveAttribute("href", `${latestJson().url}?_rsc=apk`);
-  await expect(p.getByTestId("app-page-fp")).toHaveText((CERT.toUpperCase().match(/../g) ?? []).join(":"));
+  await expect(p.getByTestId("app-page-fp")).toHaveCount(0); // 서명 지문은 보이지 않는다(SPEC-025)
   await c.close();
 
   const k = await browser.newContext({ userAgent: UA_KAKAO });

@@ -78,7 +78,7 @@ async function 동기(page: Page) {
   await page.goto("/account");
   await expect(page.getByTestId("btn-sync-now")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-sync-now").click();
-  await expect(page.getByTestId("sync-status")).toHaveText("동기 완료", { timeout: 30_000 });
+  await expect(page.getByTestId("sync-status")).toHaveText("최신 상태예요", { timeout: 30_000 });
 }
 
 /**

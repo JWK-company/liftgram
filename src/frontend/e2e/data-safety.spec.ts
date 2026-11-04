@@ -95,7 +95,7 @@ test("올라가지 않은 기록이 있으면 다른 계정으로 로그인해�
   await 로그인(page, A);
   await expect(page.getByTestId("account-guard")).toHaveCount(0);
   await page.getByTestId("btn-sync-now").click();
-  await expect(page.getByTestId("sync-status")).toHaveText("동기 완료", { timeout: 30_000 });
+  await expect(page.getByTestId("sync-status")).toHaveText("최신 상태예요", { timeout: 30_000 });
   await expect(page.getByTestId("sync-pending")).toHaveText("모든 기록이 서버에 백업돼 있어요", {
     timeout: 20_000,
   });
@@ -122,7 +122,7 @@ test("백업이 계속 실패하면 화면 위에 경고가 뜬다", async ({ pa
   await page.unroute(SYNC_ROUTE);
   await page.goto("/account");
   await page.getByTestId("btn-sync-now").click();
-  await expect(page.getByTestId("sync-status")).toHaveText("동기 완료", { timeout: 30_000 });
+  await expect(page.getByTestId("sync-status")).toHaveText("최신 상태예요", { timeout: 30_000 });
   await page.goto("/");
   await expect(page.getByTestId("sync-stalled-banner")).toHaveCount(0);
 });
@@ -175,7 +175,7 @@ test("주간 목표가 계정을 따라 다른 기기로 간다", async ({ page,
 
   await page.goto("/account");
   await page.getByTestId("btn-sync-now").click();
-  await expect(page.getByTestId("sync-status")).toHaveText("동기 완료", { timeout: 30_000 });
+  await expect(page.getByTestId("sync-status")).toHaveText("최신 상태예요", { timeout: 30_000 });
 
   const ctx = await browser.newContext();
   const other = await ctx.newPage();
@@ -183,7 +183,7 @@ test("주간 목표가 계정을 따라 다른 기기로 간다", async ({ page,
   await 로그인(other, 메일);
   await expect(other.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await other.getByTestId("btn-sync-now").click();
-  await expect(other.getByTestId("sync-status")).toHaveText("동기 완료", { timeout: 30_000 });
+  await expect(other.getByTestId("sync-status")).toHaveText("최신 상태예요", { timeout: 30_000 });
   await other.goto("/calendar");
   await expect(other.getByTestId("weekly-goal")).toHaveText(after, { timeout: 20_000 });
   await ctx.close();

@@ -5,6 +5,7 @@
 // 볼륨·추정 1RM. 값은 전부 `getWorkoutDetail`이 준 것을 그대로 놓는다(집계는 저장소 몫).
 //
 // 하위 화면 앱바(← · 제목 · ⋯). 잘못 완료한 기록의 삭제는 ⋯ 안에 있다 — 목록의 휴지통을 여기로 옮겼다(시안 05).
+import { errorText } from "@/lib/errorText";
 import { displayWeight, formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
 import { effectiveRir, isRirConverted } from "@app/core"; // v26 힘든 정도 — rir 우선, 없고 rpe 만 있으면 환산(ADR-038) @plm SRS-073
 import { formatRir } from "../session/RirSheet";
@@ -299,7 +300,7 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                 await flushLocalDb();
                 router.replace("/history");
               } catch (e) {
-                toast(e instanceof Error ? e.message : String(e), "error");
+                toast(errorText(e), "error");
               }
             })();
           }}
@@ -535,7 +536,7 @@ function EditSetSheet({
         await flushLocalDb();
         onDone(msg);
       } catch (e) {
-        onError(e instanceof Error ? e.message : String(e));
+        onError(errorText(e));
       } finally {
         setBusy(false);
       }

@@ -657,7 +657,7 @@ export async function adoptSlotUnit(workoutExerciseId: string): Promise<'kg' | '
 export async function switchBlockWeightUnitV1(workoutExerciseId: string, to: 'kg' | 'lb'): Promise<void> {
   const we = await workoutExercises().find(workoutExerciseId);
   const w = await workouts().find(we.workoutId);
-  if (w.state === 'completed') throw new Error('완료한 운동의 단위는 바꾸지 않는다');
+  if (w.state === 'completed') throw new Error('완료한 운동의 단위는 바꿀 수 없어요');
   const from = blockWeightUnit(we);
   if (from === to && we.weightUnit === to) return;
   const sets = await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch();
@@ -697,7 +697,7 @@ export async function switchBlockWeightUnit(
   return database.write(async () => {
     const we = await workoutExercises().find(workoutExerciseId);
     const w = await workouts().find(we.workoutId);
-    if (w.state === 'completed') throw new Error('완료한 운동의 단위는 바꾸지 않는다');
+    if (w.state === 'completed') throw new Error('완료한 운동의 단위는 바꿀 수 없어요');
     const from = blockWeightUnit(we);
     if (expectedFrom && from !== expectedFrom) return from; // 화면이 옛 상태를 봤다 — 최신 단위로 맞춘다
     if (from === to && we.weightUnit === to && we.unitByUser === true) return to;

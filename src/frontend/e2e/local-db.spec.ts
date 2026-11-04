@@ -8,7 +8,8 @@
 import { expect, test } from "@playwright/test";
 
 test("로컬 DB가 열리고 쓰기·읽기가 왕복한다", async ({ page }) => {
-  await page.goto("/diag/db");
+  const res = await page.goto("/diag/db");
+  test.skip(res?.status() === 404, "운영 빌드는 NEXT_PUBLIC_E2E_DIAG=1 일 때만 연다(SPEC-025)");
 
   const verdict = page.getByTestId("db-verdict");
   await expect(verdict).not.toHaveText("검사 중…", { timeout: 15_000 });

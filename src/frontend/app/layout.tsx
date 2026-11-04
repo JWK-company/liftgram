@@ -44,7 +44,7 @@ import "./globals.css";
 // (app/opengraph-image.tsx)로 만들고 거기서 env.APP_URL을 읽는다 — 그건 요청 시점에 돈다.
 export const metadata: Metadata = {
   title: "Liftgram",
-  description: "운동 기록 + 소셜 — Hevy식 트래킹에 인스타식 피드·DM·스토리",
+  description: "운동을 기록하고 함께 나누는 앱",
   // 홈 화면에 추가하면 앱처럼 열린다(옛 Expo 웹과 같은 매니페스트·아이콘 — public/).
   manifest: "/manifest.json",
   appleWebApp: { capable: true, title: "Liftgram", statusBarStyle: "black-translucent" },

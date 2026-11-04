@@ -92,7 +92,7 @@ test("기록 상세 — 한쪽 입력은 머리에 한 번, 빈 RPE 열·반복 
   // RPE 를 하나도 적지 않았으니 RPE 열이 없다
   await expect(ex.getByText("RPE", { exact: true })).toHaveCount(0);
   // 추정 주석은 화면에 한 번(옛: 종목마다 3)
-  await expect(page.getByText("Epley 공식 기반 추정치 · 실측값 아님")).toHaveCount(1);
+  await expect(page.getByText("기록으로 계산한 추정치예요 · 실측값이 아니에요")).toHaveCount(1);
   // lb 종목 1RM 은 lb
   const flyCard = ex.locator("> *").filter({ hasText: "덤벨 플라이" });
   await expect(flyCard.getByTestId("detail-1rm")).toContainText("lb");

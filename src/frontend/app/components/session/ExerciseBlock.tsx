@@ -19,6 +19,7 @@
 // WatermelonDB의 관찰은 **행이 늘고 주는 것**은 알려 주지만 필드 수정은 알려 주지 않는다.
 // 그래서 볼륨처럼 값이 바뀌어야 다시 그려야 하는 것은 app과 같이 1.5초 폴링으로 따라간다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import {
   // blockLoadMultiplier, // [원본] V1 배수 — 플레이트 칸 + 「한쪽」 켬일 때만 2(피드백 #63 전)
   canonicalVariantKey,
@@ -291,7 +292,7 @@ export function ExerciseBlock({
         await onChanged();
         if (got === to) toast(t("session.unitSwitched", { unit: to }));
       } catch (e) {
-        toast(e instanceof Error ? e.message : String(e), "error");
+        toast(errorText(e), "error");
       } finally {
         setUnitBusy(false);
       }

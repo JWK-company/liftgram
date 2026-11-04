@@ -70,7 +70,7 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
             <span
               key={p.bucketMs}
               // [원본] title={`${p.label} · ${Math.round(p.value)}`}
-              title={`${p.label} · ${Math.round(p.value)}${rir != null ? ` · RIR ${Math.round(rir * 10) / 10}` : ""}`}
+              title={`${p.label} · ${Math.round(p.value)}${rir != null ? ` · ${t("effort.tooltip", { value: Math.round(rir * 10) / 10 })}` : ""}`}
               // [원본] 마지막이 아닌 막대 = brand 35% + 투명 — 다크에서 채움(bg-black/35)이 카드 바탕에 묻혔다(채움/바탕 1.16:1 · QA CU-2)
               // backgroundColor: i === recent.length - 1 ? "var(--color-brand)" : "color-mix(in srgb, var(--color-brand) 35%, transparent)",
               // [개선] 불투명 섞임(brand 75% + surface) — 막대/바탕 ≥3:1(토큰 계산: 바탕 surface 라이트 3.47 · 다크 3.72,

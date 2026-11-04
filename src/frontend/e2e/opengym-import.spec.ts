@@ -96,13 +96,16 @@ test.describe("로그아웃 기기 — Strong 표본", () => {
     await expect(items).toHaveCount(2, { timeout: 20_000 });
     await items.nth(1).click();
     await expect(page.getByTestId("detail-set").first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("detail-set-rir").filter({ hasText: "≈RIR 2" }).first()).toBeVisible();
-    await expect(page.getByTestId("detail-set-rir").filter({ hasText: "≈RIR 1.5" }).first()).toBeVisible();
+    await expect(page.getByTestId("detail-set-rir").filter({ hasText: "약 2" }).first()).toBeVisible();
+    await expect(page.getByTestId("detail-set-rir").filter({ hasText: "약 1.5" }).first()).toBeVisible();
 
     // 캘린더: 8월 25·27일
     await page.goto("/calendar");
     await expect(page.getByTestId("calendar-grid")).toBeVisible({ timeout: 20_000 });
-    for (let i = 0; i < 2; i++) await page.getByRole("button", { name: "이전 달" }).click();
+    // 표본은 2026년 8월 고정 — 오늘이 몇 월이든 그 달까지 돌아간다(두 번 고정이면 11월부터 어긋남)
+    const now = new Date();
+    const monthsBack = now.getFullYear() * 12 + now.getMonth() - (2026 * 12 + 7);
+    for (let i = 0; i < monthsBack; i++) await page.getByRole("button", { name: "이전 달" }).click();
     await expect(page.getByTestId("month-label")).toContainText("8월");
     await expect(page.getByTestId("day-25")).toHaveAttribute("data-worked", "1");
     await expect(page.getByTestId("day-27")).toHaveAttribute("data-worked", "1");
@@ -274,7 +277,7 @@ test.describe("진행 화면은 닫을 수 없다", () => {
     await page.getByTestId("import-unit-kg").click();
     await page.getByTestId("btn-import-to-match").click();
     await 가져오기_시작(page);
-    await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음 1/5", {
+    await expect(page.getByTestId("import-write-progress-label")).toContainText("20%", {
       timeout: 60_000,
     });
     await page.getByTestId("shell-nav").locator('a[href="/stats"]').click();
@@ -582,7 +585,7 @@ test.describe("다른 탭 가드(P5-1)", () => {
     await page.getByTestId("import-unit-kg").click();
     await page.getByTestId("btn-import-to-match").click();
     await 가져오기_시작(page);
-    await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음 1/5", {
+    await expect(page.getByTestId("import-write-progress-label")).toContainText("20%", {
       timeout: 60_000,
     });
     // 진행 중 앱바 뒤로 → 「나갈 수 없어요」(P5-9)

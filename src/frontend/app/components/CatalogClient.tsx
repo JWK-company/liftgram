@@ -14,6 +14,7 @@
 //     (모듈 최상단에 두면 SSR 시점에 실행돼 터진다)
 //   · 첫 페인트에는 목록이 없다 — 그 대가로 오프라인에서도 동작한다
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import { ExerciseService, WatchCatalogResponse_Kind, routes } from "@app/contracts";
 import { useQueryData } from "@app/core/db/hooks";
 import { ALL_EQUIPMENT, ALL_MUSCLE_GROUPS } from "@app/core/domain/types";
@@ -39,9 +40,9 @@ import { ErrorState } from "./States";
 import { useToast } from "./Toast";
 import { Chip } from "./ui/Chip";
 import { FilterRow } from "./ui/FilterRow";
-import { Icon, type IconName } from "./ui/Icon";
+import { Icon } from "./ui/Icon";
 import { TextField } from "./ui/inputs";
-import { AppText, type ColorKey, EmptyState, Tag } from "./ui/primitives";
+import { AppText, EmptyState, Tag } from "./ui/primitives";
 
 /** 저장소가 돌려주는 모델의 화면용 최소 모양 — 여기서 필요한 필드만 읽는다. */
 type Row = {
@@ -67,7 +68,7 @@ type Repo = typeof import("@app/core/data/exerciseRepository");
 /** 배포 상태 — 사용자가 "지금 서버와 맞춰져 있나"를 알 수 있게 한다. */
 type SyncState = "여는 중" | "받는 중" | "최신" | "오프라인" | "실패";
 
-export default function CatalogClient({ busKind, instance }: { busKind: string; instance: string }) {
+export default function CatalogClient() {
   const [repo, setRepo] = useState<Repo | null>(null);
   const [sync, setSync] = useState<SyncState>("여는 중");
   const [total, setTotal] = useState<number | null>(null);
@@ -109,7 +110,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
       } catch (e) {
         if (cancelled) return;
         setSync("실패");
-        setErr(e instanceof Error ? e.message : String(e));
+        setErr(errorText(e, t("common.loadErrorMessage")));
       }
     })();
     return () => {
@@ -178,8 +179,8 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
     const r = await syncCatalogToLocal();
     setTotal(r.count);
     setSync(r.status === "offline" ? "오프라인" : "최신");
-    if (mounted.current && r.status === "synced") toast("카탈로그가 갱신됐습니다");
-  }, [toast]);
+    // [원본] if (mounted.current && r.status === "synced") toast("카탈로그가 갱신됐습니다"); — 사용자가 할 일이 없는 알림
+  }, []);
 
   useEffect(() => {
     const api = createClient(ExerciseService, createConnectTransport({ baseUrl: routes.apiPrefix }));
@@ -210,13 +211,6 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
   }, []);
 
   // ── 화면 ── app의 ExerciseListScreen과 같은 뼈대다: 검색 → 부위/기구 칩 → 카드 목록.
-  const TONE: Record<SyncState, { color: ColorKey; icon: IconName }> = {
-    "여는 중": { color: "textFaint", icon: "hourglass-outline" },
-    "받는 중": { color: "warning", icon: "cloud-download-outline" },
-    최신: { color: "success", icon: "cloud-done-outline" },
-    오프라인: { color: "warning", icon: "cloud-offline-outline" },
-    실패: { color: "danger", icon: "alert-circle-outline" },
-  };
   const hasFilter = equipment !== "" || muscle !== "" || kind !== "" || names !== null;
   const clearFilters = () => {
     setEquipment("");
@@ -339,7 +333,7 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
       {rows.length === 0 ? (
         <EmptyState
           icon="search-outline"
-          title={repo ? t("exercises.emptyTitle") : "카탈로그를 여는 중입니다"}
+          title={repo ? t("exercises.emptyTitle") : "종목을 불러오는 중입니다"}
           message={repo ? t("exercises.emptyMessage") : "잠시만 기다려 주세요"}
         />
       ) : (
@@ -353,19 +347,17 @@ export default function CatalogClient({ busKind, instance }: { busKind: string; 
         </ul>
       )}
 
-      {/* 스택 진단용 각주 — 배포 상태·전파 방식·응답한 인스턴스. app에는 없는 줄이라
-          화면 흐름 밖(맨 아래)에 작게 둔다. 로컬 카탈로그가 서버와 맞는지 눈으로 확인하는 자리다. */}
-      <div className="mt-[var(--spacing-lg)] flex flex-wrap items-center gap-[var(--spacing-xs)]">
-        <Icon name={TONE[sync].icon} size={12} color={`var(--color-${sync === "최신" ? "ok" : "ink3"})`} />
-        <AppText variant="caption" color={TONE[sync].color} data-testid="sync-state">
-          {sync}
-        </AppText>
-        <AppText variant="caption" color="textFaint">
-          · 로컬 <span data-testid="catalog-count">{total ?? "—"}</span>종 · bus{" "}
-          <span data-testid="bus-kind">{busKind}</span> · instance{" "}
-          <span data-testid="instance-id">{instance}</span>
-        </AppText>
+      {/* [원본] 스택 진단 각주(최신 · 로컬 N종 · bus · instance)를 모두에게 보였다 — 지웠다(SPEC-025).
+          상태 값은 e2e 대기 신호로 쓰여 숨겨 둔다. 사용자에게는 오프라인일 때만 알린다. */}
+      <div hidden>
+        <span data-testid="sync-state">{sync}</span>
+        <span data-testid="catalog-count">{total ?? "—"}</span>
       </div>
+      {sync === "오프라인" ? (
+        <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-lg)] block">
+          {t("catalog.offlineNote")}
+        </AppText>
+      ) : null}
 
       <ExerciseFinderWizard visible={wizardOpen} onClose={() => setWizardOpen(false)} onDone={onWizardDone} />
     </div>

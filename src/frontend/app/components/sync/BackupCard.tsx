@@ -3,6 +3,7 @@
 //
 // 로그인 여부와 무관하게 늘 있다. 서버 동기가 실패해도 기록을 지킬 수 있는 마지막 길이다.
 // 옛 Liftgram 복구 페이지가 만든 파일도 그대로 가져올 수 있다(core/sync/backup.ts).
+import { errorText } from "@/lib/errorText";
 import { useRef, useState } from "react";
 import { downloadBackup, importBackupFile } from "@/lib/backupFile";
 import { t } from "@/lib/i18n";
@@ -19,8 +20,9 @@ export function BackupCard() {
     try {
       const n = await downloadBackup();
       setMsg({ text: t("backup.exported", { count: n }) });
-    } catch (e) {
-      setMsg({ text: t("backup.importFailed", { reason: String(e) }), bad: true });
+    } catch {
+      // [원본] backup.importFailed + String(e) — 내보내기 실패에 「가져오지 못했어요」와 원문이 떴다
+      setMsg({ text: t("backup.exportFailed"), bad: true });
     } finally {
       setBusy(false);
     }
@@ -38,7 +40,7 @@ export function BackupCard() {
       });
     } catch (e) {
       setMsg({
-        text: t("backup.importFailed", { reason: e instanceof Error ? e.message : String(e) }),
+        text: errorText(e, t("backup.importFailed")),
         bad: true,
       });
     } finally {

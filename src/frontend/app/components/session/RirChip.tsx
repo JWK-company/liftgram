@@ -13,6 +13,7 @@
 //   [개선] **이 저장 약속이 끝난 뒤**에만 다른 저장(다른 기기 동기 등)을 따른다. 약속이 실패하면 풀고 알린다. 약속을 주지 않는
 //   부르는 쪽은 저장값이 같아지거나 5초가 지나면 푼다.
 // 접근 이름(QA CU-5): 보이는 글자(「목표 2」·「2 · 목표 2」)로 시작하고 세트 번호·목표를 풀어 쓴다(WCAG 2.5.3 label-in-name).
+import { errorText } from "@/lib/errorText";
 import { normalizeRir } from "@app/core";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -125,7 +126,7 @@ export function RirChip({
                 () => setPending((cur) => (cur === mine ? { ...mine, done: Date.now() } : cur)),
                 (e: unknown) => {
                   setPending((cur) => (cur === mine ? null : cur));
-                  toast(e instanceof Error ? e.message : String(e), "error");
+                  toast(errorText(e), "error");
                 },
               );
           }}

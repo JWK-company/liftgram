@@ -12,6 +12,7 @@
 // 오타 방지(qa P3-6): 직접 입력은 20~300kg 밖이면 받지 않고 이유를 한 줄로 알린다. 지난 값과 ±30% 넘게 다르면 한 번 더 눌러야 저장.
 //
 // WeighInCheckin: ActiveWorkout 첫 진입에서 띄울지 판정하고(core shouldOfferWeighIn) 저장은 source='checkin'.
+import { errorText } from "@/lib/errorText";
 import {
   BODYWEIGHT_MAX_KG,
   BODYWEIGHT_STEPS,
@@ -537,7 +538,7 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
           toast(t("bodyweight.saved"));
           close();
         } catch (e) {
-          toast(e instanceof Error ? e.message : t("bodyweight.saveFailed"), "error");
+          toast(errorText(e, t("bodyweight.saveFailed")), "error");
           throw e;
         }
       }}

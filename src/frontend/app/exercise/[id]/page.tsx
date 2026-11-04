@@ -9,7 +9,6 @@
 import { cache } from "react";
 import { notFound } from "next/navigation";
 import { Code, ConnectError, type Client } from "@connectrpc/connect";
-import { timestampDate } from "@bufbuild/protobuf/wkt";
 import { ExerciseKind, type ExerciseService, LoadMode, routes } from "@app/contracts";
 import { EXERCISE_MEDIA_CREDIT, getExerciseMediaOwn, hasMediaImages } from "@app/core/data/exerciseMedia";
 import { hasPictogram } from "@app/core/data/exerciseVisual";
@@ -92,8 +91,6 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
       }),
     )
   ).filter((x): x is { id: string; nameKo: string; equipmentLabel: string } => x !== null);
-
-  const updated = exercise.updatedAt ? timestampDate(exercise.updatedAt) : null;
 
   // 이름 규칙은 도메인이 정한다 — 기구가 이름에 이미 들어 있으면 목록 이름에서 빼는 등(app과 같다).
   const named = {
@@ -278,11 +275,7 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
             그래서 고치기·보관 진입은 카탈로그 목록 쪽에 둔다. */}
         <ExerciseAdminBar exerciseId={exercise.id} isCustom={false} />
 
-        <AppText variant="caption" color="textFaint">
-          {exercise.id}
-          {exercise.isCustom ? " · 내가 만든 종목" : " · 기본 카탈로그"}
-          {updated ? ` · 갱신 ${updated.toLocaleDateString("ko-KR")}` : ""}
-        </AppText>
+        {/* [원본] 종목 id · 기본 카탈로그 · 갱신 날짜 줄을 모두에게 보였다 — 지웠다(SPEC-025) */}
         <AdSlot placement="exercise" />
       </div>
     </>

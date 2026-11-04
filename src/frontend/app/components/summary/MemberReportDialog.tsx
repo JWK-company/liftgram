@@ -131,14 +131,7 @@ export function MemberReportDialog({
       <AppText variant="caption" color="textMuted" className="block">
         {t("progressSummary.reportScope")}
       </AppText>
-      <AppText
-        variant="caption"
-        color="textMuted"
-        className="mb-[var(--spacing-sm)] block"
-        data-testid="report-unit-note"
-      >
-        {t("progressSummary.reportUnitNote")}
-      </AppText>
+      {/* [원본] 「부위별은 이제 볼륨(kg) 대신 세트 수로 보여요」 — 변경 공지 말투(SPEC-025) */}
       {state.kind === "loading" ? (
         <div data-testid="report-loading" role="status" aria-label={t("progressSummary.loading")}>
           <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">

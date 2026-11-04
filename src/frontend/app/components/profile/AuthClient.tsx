@@ -232,7 +232,7 @@ export default function AuthClient({
           ) : null}
           <ProfileEditCard />
           <SecurityCard />
-          <SectionLabel title="기기와 서버" className="mt-[var(--spacing-sm)]" />
+          <SectionLabel title={t("auth.recordsSection")} className="mt-[var(--spacing-sm)]" />
           <ServerSyncCard />
           <div id="backup">
             <BackupCard />

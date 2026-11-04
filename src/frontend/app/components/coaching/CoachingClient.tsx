@@ -15,6 +15,7 @@
 // ── 해지는 언제나 열려 있다 ─────────────────────────────────────────────────
 // 상태와 무관하게 해지 버튼을 둔다. 회원이 언제든 닫을 수 없으면 그건 동의가 아니다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import type { Grant, Peer, Routine, RoutineExercise, MemberReport } from "@app/contracts";
 import { GrantStatus, Side } from "@app/contracts";
 import { formatWeight, muscleLabel, type MuscleGroup, type WeightUnit } from "@app/core";
@@ -80,7 +81,7 @@ export default function CoachingClient() {
       await fn();
       await load();
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), "error");
+      toast(errorText(e), "error");
     } finally {
       setBusy(false);
     }

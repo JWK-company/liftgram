@@ -235,7 +235,8 @@ test("④ 혼자 쓰는 사용자 — 새로고침 ×5 · 업데이트 새로고
   await expect(page.getByTestId("btn-add-exercise")).toBeVisible({ timeout: 30_000 });
   await 주인(page);
   // /diag/db 왕복(전체 이동)
-  await page.goto("/diag/db");
+  const diagRes = await page.goto("/diag/db");
+  test.skip(diagRes?.status() === 404, "운영 빌드는 NEXT_PUBLIC_E2E_DIAG=1 일 때만 연다(SPEC-025)");
   await page.waitForTimeout(2_000);
   await expect(page.getByTestId("tab-elsewhere")).toHaveCount(0);
   await page.goto("/workout");
@@ -271,7 +272,7 @@ test("④-2 혼자 쓰는 사용자 — 계정 전환 리셋(다른 계정으로
   await 준비(page);
   await 가입(메일("one"));
   await page.getByTestId("btn-sync-now").click();
-  await expect(page.getByTestId("sync-status")).toHaveText("동기 완료", { timeout: 30_000 });
+  await expect(page.getByTestId("sync-status")).toHaveText("최신 상태예요", { timeout: 30_000 });
   await page.getByTestId("btn-logout").click();
   await expect(page.getByTestId("auth-email-input")).toBeVisible({ timeout: 20_000 });
   // 다른 계정 — 올라가지 않은 기록이 없으니 기기 DB 를 비우고(unsafeResetDatabase → 새 Loki) 새 주인으로
@@ -314,7 +315,7 @@ test("⑤ 가져오는 탭이 있으면 새 탭은 주인을 빼앗지 않고 �
   await page.getByTestId("btn-import-to-match").click();
   await 가져오기_시작(page);
   // 쓰는 중(묶음 진행)에 새 탭을 연다
-  await expect(page.getByTestId("import-write-progress-label")).toContainText("묶음", { timeout: 120_000 });
+  await expect(page.getByTestId("import-write-progress-label")).toContainText("%", { timeout: 120_000 });
 
   const other = await context.newPage();
   await other.goto("/");

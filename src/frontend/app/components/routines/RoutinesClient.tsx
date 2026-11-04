@@ -17,6 +17,7 @@
 // (getTodayRoutineRecommendation) · 콘셉트 루틴의 내용(CONCEPT_ROUTINES) — 전부 core다.
 // 여기서 다시 계산하면 app과 갈라진다(ADR-032).
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import { navigate } from "@/lib/nav";
 import {
   // [원본] CONCEPT_ROUTINES, — 옛 콘셉트 그리드 원복 시 살린다(SRS-091)
@@ -230,7 +231,7 @@ export default function RoutinesClient() {
         const { flushLocalDb } = await import("@/lib/localDb");
         await flushLocalDb();
       } catch (e) {
-        toast(e instanceof Error ? e.message : String(e), "error");
+        toast(errorText(e), "error");
       } finally {
         setBusy(false);
       }

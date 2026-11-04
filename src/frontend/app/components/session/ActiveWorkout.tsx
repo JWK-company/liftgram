@@ -18,6 +18,7 @@
 // 로컬 저장소의 관찰은 행의 증감만 알린다. 그래서 app과 같이 볼륨은 1.5초 폴링으로,
 // 순서·슈퍼셋 변경은 `version` 을 올려 다시 읽는다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import { formatWeight } from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
@@ -152,7 +153,7 @@ export default function ActiveWorkout() {
         setWorkout(row);
         setActive(row ? { id: row.id, startedAt: row.startedAt, name: row.name } : null);
       } catch (e) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : String(e));
+        if (!cancelled) setErr(errorText(e, t("common.loadErrorMessage")));
       }
     })();
     return () => {
@@ -242,7 +243,7 @@ export default function ActiveWorkout() {
       } catch (e) {
         // 봉인 탭의 쓰기 거부는 덮개가 안내한다 — 덮개 뒤 오류 토스트를 쌓지 않는다(/qa code P4 M-5) @plm SRS-089
         if ((e as { code?: unknown } | null)?.code === "LOCAL_DB_SEALED") return;
-        const detail = e instanceof Error ? e.message : String(e);
+        const detail = errorText(e);
         setErr(detail);
         toast(detail, "error");
       } finally {

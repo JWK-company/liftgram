@@ -13,6 +13,7 @@
 // 스트릭·주간 진행은 도메인이 계산한다(computeStreak·weeklyProgress). 주말 제외 여부는
 // 기기-로컬 설정이라 localStorage에 둔다(app과 같은 키).
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import { RecordsHeader } from "./RecordsHeader";
 import {
   WEEKLY_GOAL_DEFAULT,
@@ -160,7 +161,7 @@ export default function CalendarClient() {
       await flushLocalDb();
       await refresh();
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), "error");
+      toast(errorText(e), "error");
     }
   };
 

@@ -14,11 +14,21 @@
 //
 // 흔적을 남기지 않는다 — 만든 레코드는 확인 후 지운다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { notFound } from "next/navigation";
 import { useEffect, useState } from "react";
+import { E2E_DIAG } from "@/lib/e2eFlags";
 
 type Result = { ok: boolean; lines: string[] };
 
+// 개발·e2e 빌드에서만 연다 — 운영에서는 주소를 쳐도 없다(왕복이 기기 DB 에 시험 행을 쓰고 지운다 · SPEC-025)
+const DIAG_ENABLED = process.env.NODE_ENV !== "production" || E2E_DIAG;
+
 export default function LocalDbDiagnostics() {
+  if (!DIAG_ENABLED) notFound();
+  return <DiagBody />;
+}
+
+function DiagBody() {
   const [result, setResult] = useState<Result | null>(null);
 
   useEffect(() => {

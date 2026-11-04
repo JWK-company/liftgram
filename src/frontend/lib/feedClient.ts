@@ -6,6 +6,7 @@
 // ── 화면이 이 파일에서만 하는 판단 ──────────────────────────────────────────
 // "로그인이 필요하다"와 "네트워크가 죽었다"는 사용자에게 완전히 다른 말이다.
 // 서버는 Connect 코드로 구분해 주므로, 그 구분을 화면이 쓸 말로 옮기는 것도 여기서 한다.
+import { errorText } from "./errorText";
 import { FeedService } from "@app/contracts";
 import { Code, ConnectError, createClient, type Client } from "@connectrpc/connect";
 import { authedTransport } from "./session";
@@ -37,7 +38,8 @@ export function feedErrorMessage(e: unknown): string {
         return t("common.loadError");
       default:
         // 서버가 사람이 읽을 문구를 줬으면 그것을 쓴다(도메인 오류는 우리말로 온다).
-        return e.rawMessage || t("common.loadError");
+        // [원본] return e.rawMessage || t("common.loadError"); — 영어 원문(internal error 등)이 그대로 보였다
+        return errorText(e, t("common.loadError"));
     }
   }
   return t("common.loadError");

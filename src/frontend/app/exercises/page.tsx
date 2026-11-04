@@ -12,17 +12,14 @@
 // **예외는 종목 상세다**(app/exercise/[id]). 그건 밖으로 공유되는 URL이라 SEO와 즉시 열림이
 // 필요해서 서버 렌더를 유지한다. 목록=로컬, 상세=서버. 각자 이유가 있다.
 // ─────────────────────────────────────────────────────────────────────────────
-import { metaClient } from "@/lib/api";
 import CatalogClient from "../components/CatalogClient";
 import { Icon } from "../components/ui/Icon";
 import { ScreenHeader } from "../components/ui/ScreenHeader";
 
-// 운영 메타(어느 인스턴스가 답했나)는 요청마다 다르다 — 정적 생성 대상이 아니다.
+// [원본] 운영 메타(어느 인스턴스가 답했나)를 화면에 보이느라 요청마다 달랐다 — 지웠다(SPEC-025). 설정은 그대로 둔다.
 export const dynamic = "force-dynamic";
 
-export default async function Page() {
-  const meta = await metaClient().getMeta({});
-
+export default function Page() {
   return (
     <>
       {/* app의 종목 화면 머리와 같은 제목이다(i18n exercises.title).
@@ -42,11 +39,7 @@ export default async function Page() {
         }
       />
       <div className="flex-1 p-[var(--spacing-lg)]">
-        <CatalogClient
-          busKind={meta.bus}
-          // 어느 backend 인스턴스가 이 페이지를 줬는지 — 다중 인스턴스 propagation을 눈으로 확인하기 위한 표시.
-          instance={meta.instance}
-        />
+        <CatalogClient />
       </div>
     </>
   );

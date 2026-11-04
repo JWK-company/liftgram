@@ -9,6 +9,7 @@
 //
 // 세션 화면에서는 **숨긴다**: 거기엔 자체 헤더 타이머와 휴식 바가 이미 있다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -47,7 +48,7 @@ export function GlobalWorkoutBar() {
         setActive(null);
         clearRest();
       } catch (e) {
-        toast(e instanceof Error ? e.message : String(e), "error");
+        toast(errorText(e), "error");
       } finally {
         setDiscarding(false);
         setConfirmDiscard(false);
@@ -79,7 +80,7 @@ export function GlobalWorkoutBar() {
           setActive(null);
           clearRest();
         } else {
-          toast(e instanceof Error ? e.message : String(e), "error");
+          toast(errorText(e), "error");
         }
       } finally {
         discardingRef.current = false;

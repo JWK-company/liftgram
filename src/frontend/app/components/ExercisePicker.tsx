@@ -115,7 +115,7 @@ export default function ExercisePicker({
 
         {rows.length === 0 && similar.length === 0 ? (
           <AppText variant="caption" color="textFaint">
-            {repo ? "해당하는 종목이 없습니다." : "카탈로그를 여는 중입니다…"}
+            {repo ? "해당하는 종목이 없습니다." : "종목을 불러오는 중입니다…"}
           </AppText>
         ) : (
           <ul

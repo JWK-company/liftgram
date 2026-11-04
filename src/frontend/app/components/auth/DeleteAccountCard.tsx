@@ -6,6 +6,7 @@
 //   · 소셜 전용 계정은 10분 안에 다시 로그인했어야 한다 — 서버가 reauth_required 로 거절하면 연결된 제공자로 다시
 //     로그인하는 버튼을 띄우고, 로그인이 끝나면 이 카드로 돌아온다(qa code H-2).
 // 성공하면 AuthProvider.deleteAccount 가 이 기기 기록·대기열·네이티브 사본까지 비우고 로그아웃한다.
+import { errorText } from "@/lib/errorText";
 import { ConnectError } from "@connectrpc/connect";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
@@ -78,7 +79,7 @@ export function DeleteAccountCard() {
             .catch((e) => {
               const raw = e instanceof ConnectError ? e.rawMessage : String(e);
               if (raw === REAUTH) setNeedReauth(true);
-              else setMsg(raw);
+              else setMsg(errorText(e));
             })
             .finally(() => setBusy(false));
         }}

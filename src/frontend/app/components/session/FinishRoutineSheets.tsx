@@ -8,6 +8,7 @@
 //   요약·기록 상세의 버튼        이름 → 저장
 //
 // 무엇이 바뀌었는지·무엇을 반영하는지는 전부 core(domain/routineDiff · data/finishRoutine)가 정한다.
+import { errorText } from "@/lib/errorText";
 import type { FinishPlan, RoutineChange, SessionBlock } from "@app/core/domain/routineDiff";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -160,7 +161,7 @@ function PickChanges({
                 toast(t("finish.applied"));
                 onDone();
               } catch (e) {
-                toast(e instanceof Error ? e.message : String(e), "error");
+                toast(errorText(e), "error");
                 setBusy(false);
               }
             })();
@@ -273,7 +274,7 @@ export function NameRoutine({
                 if (r) toast(t("finish.saved", { name: (r as unknown as { name: string }).name }));
                 onDone(r != null);
               } catch (e) {
-                toast(e instanceof Error ? e.message : String(e), "error");
+                toast(errorText(e), "error");
                 setBusy(false);
               }
             })();

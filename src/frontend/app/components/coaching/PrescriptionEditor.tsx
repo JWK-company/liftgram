@@ -12,6 +12,7 @@
 // ── 저장은 회원의 데이터를 고치는 일이다 ────────────────────────────────────
 // 그래서 저장 버튼 옆에 "이력에 남는다"고 적어 둔다. 숨기고 고치는 것이 아니라는 표시다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import type { Peer, Routine, RoutineExercise } from "@app/contracts";
 import { LoadBasis as LoadBasisPB, LoadHint as LoadHintPB, SetType as SetTypePB } from "@app/contracts";
 import type { PrescribedSet } from "@app/core";
@@ -157,7 +158,7 @@ function PrescriptionEditorBody({ peer, routine, block, onClose, onSaved }: Pres
       });
       onSaved();
     } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), "error");
+      toast(errorText(e), "error");
     } finally {
       setSaving(false);
     }

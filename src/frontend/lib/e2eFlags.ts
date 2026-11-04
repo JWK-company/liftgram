@@ -4,3 +4,5 @@
 // **빌드 깃발**이다 — `NEXT_PUBLIC_E2E_FAULTS=1 bun run build` 로 만든 e2e 빌드에서만 "1" 이고, 운영 빌드에서는 빈 값으로 접혀
 // 시험용 실패 주입 코드(ImportFlow readFault)가 죽은 코드가 된다. scripts/check-docs.mjs ALLOW 에 이 파일을 넣었다.
 export const E2E_FAULTS = process.env.NEXT_PUBLIC_E2E_FAULTS === "1";
+/** 자가진단 페이지(/diag/db)를 운영 빌드 e2e 에서 열 때만 켠다 — 결함 주입과 따로(SPEC-025) */
+export const E2E_DIAG = process.env.NEXT_PUBLIC_E2E_DIAG === "1";

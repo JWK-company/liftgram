@@ -260,7 +260,7 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
     "exercises",
     async () => {
       await page.goto("/exercises");
-      await page.getByTestId("sync-state").waitFor();
+      await page.getByTestId("sync-state").waitFor({ state: "attached" });
     },
     { full: false },
   );

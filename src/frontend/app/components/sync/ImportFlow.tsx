@@ -254,7 +254,8 @@ function stageLabel(p: ImportTaskProgress | null): string {
 function writeLabel(p: ImportProgress | null): string {
   if (!p || p.phase === "sync") return t("import.progress.sync");
   if (p.phase === "finishing") return t("import.progress.finishing");
-  return t("import.progress.writing", { done: p.chunk, total: p.chunks });
+  // [원본] { done: p.chunk, total: p.chunks } — 내부 묶음 번호를 보였다
+  return t("import.progress.writing", { percent: Math.round((p.chunk / Math.max(1, p.chunks)) * 100) });
 }
 
 export default function ImportFlow() {

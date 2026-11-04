@@ -13,11 +13,6 @@ import { t } from "@/lib/i18n";
 import { LogoSpinner } from "../components/ui/LogoSpinner";
 import { AppText, Card } from "../components/ui/primitives";
 
-/** 지문 → 콜론으로 나눈 대문자(사람이 설정 화면의 값과 맞춰 보기 쉽게) */
-function fpLabel(hex: string): string {
-  return (hex.toUpperCase().match(/../g) ?? []).join(":");
-}
-
 export default function AppPageClient() {
   const [latest, setLatest] = useState<Latest | null | undefined>(undefined);
   const [env, setEnv] = useState<{ os: string; browser: string } | null>(null);
@@ -105,17 +100,7 @@ export default function AppPageClient() {
               <li>{t("appPage.s4")}</li>
             </ol>
           </Card>
-          <div>
-            <AppText variant="caption" color="textMuted" className="block">
-              {t("appPage.fingerprint")}
-            </AppText>
-            <code
-              className="block break-all text-(--color-ink2) text-[length:var(--text-xs)]"
-              data-testid="app-page-fp"
-            >
-              {fpLabel(latest.certSha256)}
-            </code>
-          </div>
+          {/* [원본] 서명 지문(SHA-256) 전체를 보였다 — 파일 확인은 앱이 자동으로 한다(SPEC-025) */}
         </>
       )}
       <a

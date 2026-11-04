@@ -5,6 +5,7 @@
 // 브랜드는 선택 입력이다 — 비우면 카테고리 이름으로 돌아간다.
 //
 // 저장 전 정규화(중복 제거·길이 제한)는 **저장소가 강제한다**. 화면에서 다시 하지 않는다.
+import { errorText } from "@/lib/errorText";
 import {
   GEAR_CATEGORIES,
   MAX_GEAR_BRAND_LEN,
@@ -40,7 +41,7 @@ export default function MyGearClient() {
         await flushLocalDb();
         await refresh();
       } catch (e) {
-        toast(e instanceof Error ? e.message : String(e), "error");
+        toast(errorText(e), "error");
       } finally {
         setSaving(false);
       }

@@ -9,6 +9,7 @@
 //     이력이 0 이고 프로필 값만 있는 기기(로그인 안 한 기기는 bw-init 을 심지 않는다 · CD-5)에서도 보인다(qa P3-8).
 // 표시 단위: kg 고정(SRS-067 · core bodyweightUnitOf) — 저장도 kg.
 // 고치기 날짜: 날짜만 바꾸고 시각은 두되 **지금보다 뒤면 지금으로 자른다**(미래 측정은 뒤에 적은 기록을 가린다 · qa P3-1 · core 도 거부).
+import { errorText } from "@/lib/errorText";
 import {
   isValidBodyweightLog,
   sortBodyweightLogs,
@@ -49,7 +50,7 @@ export function BodyweightRecordSheet({ onClose }: { onClose: () => void }) {
           toast(t("bodyweight.saved"));
           onClose();
         } catch (e) {
-          toast(e instanceof Error ? e.message : t("bodyweight.saveFailed"), "error");
+          toast(errorText(e, t("bodyweight.saveFailed")), "error");
           throw e;
         }
       }}
@@ -142,7 +143,7 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
       await afterBodyweightWrite(refresh);
       toast(done);
     } catch (e) {
-      toast(e instanceof Error ? e.message : t("bodyweight.saveFailed"), "error");
+      toast(errorText(e, t("bodyweight.saveFailed")), "error");
       throw e;
     }
   };

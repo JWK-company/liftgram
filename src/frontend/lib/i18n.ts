@@ -78,8 +78,8 @@ const WEB_ONLY: Record<string, Record<AppLanguage, string>> = {
   "web.sw.hasUpdate": { ko: "새 버전 있음", en: "New version available" },
   "web.offline.title": { ko: "오프라인이에요", en: "You're offline" },
   "web.offline.message": {
-    ko: "이 화면은 아직 기기에 없어요. 운동·기록·캘린더·분석 탭은 오프라인에서도 열려요.",
-    en: "This screen isn't on your device yet. Workout, history, calendar and stats work offline.",
+    ko: "이 화면은 인터넷 연결이 필요해요. 운동·기록·캘린더·분석 탭은 오프라인에서도 열려요.",
+    en: "This screen needs an internet connection. Workout, history, calendar and stats work offline.",
   },
   "web.offline.home": { ko: "운동 탭으로", en: "Go to workouts" },
 };

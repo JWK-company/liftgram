@@ -284,7 +284,6 @@ test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트�
     await pageT.getByTestId("coaching-report").click();
     const ready = pageT.getByTestId("report-ready");
     await expect(ready).toBeVisible({ timeout: 20_000 });
-    await expect(pageT.getByTestId("report-unit-note")).toContainText("세트 수");
     expect(await 숫자(ready)).toEqual(회원숫자);
     await pageT.getByTestId("coaching-report-view").getByRole("button", { name: "확인" }).click();
 

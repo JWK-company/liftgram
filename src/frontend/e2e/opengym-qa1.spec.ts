@@ -196,14 +196,14 @@ test.describe("rpe 만 있는 세트·분포 칸·진척 막대(CU-12 ③④) ·
     await 최근_기록_상세(page);
     const cells = page.getByTestId("detail-set-rir");
     await expect(cells).toHaveCount(3);
-    await expect(cells.nth(0)).toHaveText("≈RIR 2.5");
+    await expect(cells.nth(0)).toHaveText("약 2.5");
     await expect(cells.nth(1)).toHaveText("0.5");
     await expect(cells.nth(2)).toHaveText("3.5");
 
     await page.goto("/stats");
     await expect(page.getByTestId("effort-card")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("effort-coverage")).toContainText("기록한 세트 3/3");
-    await expect(page.getByTestId("effort-coverage")).toContainText("RPE 로 적은 1세트 포함");
+    await expect(page.getByTestId("effort-coverage")).toContainText("여유로 바꿔 계산한 1세트 포함");
     // 평균 (2.5 + 0.5 + 3.5) / 3 = 2.2 · 3개 이하 2/3 = 67%
     await expect(page.getByTestId("effort-head")).toHaveText("평균 여유 2.2개 · 여유 3개 이하 67%");
     const buckets = await page
@@ -225,7 +225,7 @@ test.describe("rpe 만 있는 세트·분포 칸·진척 막대(CU-12 ③④) ·
     const order = await page.evaluate(() => {
       const card = document.querySelector('[data-testid="effort-card"]');
       const cap = Array.from(document.querySelectorAll("span,p")).find((n) =>
-        n.textContent?.includes("실측값 아님"),
+        n.textContent?.includes("실측값이 아니에요"),
       );
       return card && cap ? card.compareDocumentPosition(cap) & Node.DOCUMENT_POSITION_PRECEDING : -1;
     });

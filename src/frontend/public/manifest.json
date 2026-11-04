@@ -1,7 +1,7 @@
 {
   "name": "Liftgram",
   "short_name": "Liftgram",
-  "description": "운동 기록 + 소셜 — Hevy식 트래킹에 인스타식 피드·DM·스토리",
+  "description": "운동을 기록하고 함께 나누는 앱",
   "lang": "ko",
   "start_url": "/",
   "scope": "/",

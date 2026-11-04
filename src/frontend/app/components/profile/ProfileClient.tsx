@@ -14,6 +14,7 @@
 // **아직 옮기지 않은 것**: 서버 동기·코칭·저장한 게시물·차단·모더레이션.
 // 전부 피드/서버 기능이 붙어야 뜻이 있는 화면이라, 누르면 아무것도 없는 버튼을 두지 않았다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import { AppBar } from "../ui/AppBar";
 import {
   ALL_EQUIPMENT,
@@ -170,7 +171,7 @@ export default function ProfileClient() {
         await flushLocalDb();
         await refresh();
       } catch (e) {
-        toast(e instanceof Error ? e.message : String(e), "error");
+        toast(errorText(e), "error");
       } finally {
         setBusy(false);
       }
@@ -199,7 +200,7 @@ export default function ProfileClient() {
         await flushLocalDb();
         await refresh();
       })
-      .catch((e) => toast(e instanceof Error ? e.message : String(e), "error"))
+      .catch((e) => toast(errorText(e), "error"))
       .finally(() => {
         if (labelsPending.current === key) labelsPending.current = null;
       });

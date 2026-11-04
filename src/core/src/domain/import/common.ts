@@ -163,7 +163,7 @@ export function normalizeLocalTime(raw: string): LocalTime | null {
 /** 정규화 현지 시각의 구성 요소 */
 export function localParts(local: string): [number, number, number, number, number, number] {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/.exec(local);
-  if (!m) throw new Error('정규화 현지 시각이 아님');
+  if (!m) throw new Error('기록의 날짜를 읽지 못했어요');
   return [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])];
 }
 

@@ -15,6 +15,7 @@
 // 웹에는 그 훅이 없다(주소창·뒤로가기·탭 닫기로도 나갈 수 있다). 그래서 **첫 변경이 생길 때까지
 // 만들지 않는다** — 결과는 같고(빈 초안이 쌓이지 않는다) 지우는 코드가 필요 없다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { errorText } from "@/lib/errorText";
 import {
   // blockLoadMultiplier, // [원본] V1 — 피드백 #63 뒤 usePlateOneSide(V2)
   canonicalVariantKey,
@@ -558,7 +559,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                 await flush();
                 setVersion((v) => v + 1);
               })()
-                .catch((e) => toast(e instanceof Error ? e.message : String(e), "error"))
+                .catch((e) => toast(errorText(e), "error"))
                 .finally(() => setAdding(false));
               trackWrite(addWork); // 추가 중에 나가도 끝난 뒤 판정한다(SPEC-023)
             }}
@@ -614,7 +615,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                     await leaveTo("/workout");
                   } catch (e) {
                     committingRef.current = false;
-                    toast(e instanceof Error ? e.message : String(e), "error");
+                    toast(errorText(e), "error");
                     setStarting(false);
                   }
                 })();
@@ -688,7 +689,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             void repo
               .removeRoutineExercise(target.id)
               .then(flush)
-              .catch((e) => toast(String(e), "error"));
+              .catch((e) => toast(errorText(e), "error"));
           }}
         />
       ) : null}
@@ -1119,7 +1120,7 @@ function RoutineSetTable({
     chain.current = chain.current
       .then(() => repo.setRoutineExerciseSets(re.id, patch))
       // [원본] .catch(() => {}) — 실패가 조용히 묻혀 표에만 값이 남았다
-      .catch((e) => toast(e instanceof Error ? e.message : String(e), "error"))
+      .catch((e) => toast(errorText(e), "error"))
       .finally(() => {
         writing.current -= 1;
         scheduleFlush();

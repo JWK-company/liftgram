@@ -2,6 +2,8 @@
 // 프로필 설정 줄 — 잠금화면 운동 카드(SPEC-017 §11 · SRS-096). 앱 껍데기(플러그인 있음)에서만 보인다 · 웹 브라우저에서는 아무것도 그리지 않는다.
 // 알림이 꺼져 있으면 카드 자체가 없으므로 「꺼짐 — 켜기」로 시스템 설정을 연다. 정확한 알람이 꺼져 있으면 휴식 끝 소리가 늦을 수 있다고 알린다.
 // ProfileClient 에는 이 줄을 끼우는 한 줄만 둔다(병렬 세션과 겹치는 파일 · 최소 diff).
+import { isInsider } from "@/lib/staffRoles";
+import { useAuth } from "../AuthProvider";
 import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { lock, lockAvailable, lockInfo, onAppState } from "@/lib/native";
@@ -22,6 +24,7 @@ const SWITCH_ROW =
   "flex min-h-[52px] w-full items-center gap-[var(--spacing-md)] px-[var(--spacing-lg)] py-[var(--spacing-md)] text-left active:bg-(--color-surface-alt) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
 
 export function LockScreenRow() {
+  const { user } = useAuth();
   // [원본] useState<{ notifications; exactAlarm } | null> — SPEC-019 에서 잠금 운동 화면 두 값을 더함
   const [state, setState] = useState<LockRowState | null>(null);
   const [busy, setBusy] = useState(false);
@@ -162,8 +165,8 @@ export function LockScreenRow() {
         />
       ) : null}
       {/* 진단 기록(SPEC-020) — 실기기에서 왜 안 떴는지 보이게(화면 꺼짐·켜짐 · 고른 길 · 결과). 운동 이름·값은 없다.
-          알림이 꺼져 있어도 보인다(일부러 — 원인 확인용) · 기록 문구는 네이티브 한국어 고정(개발 진단용 · REV-017 웹 #5 보류) */}
-      {state.lockScreen && state.diag.length > 0 ? (
+          협업자·관리자에게만 보인다(SPEC-025 — 일반 사용자에게는 뜻이 없는 기록이다). 알림이 꺼져 있어도 보인다(일부러 — 원인 확인용) · 기록 문구는 네이티브 한국어 고정(개발 진단용 · REV-017 웹 #5 보류) */}
+      {isInsider(user?.role) && state.lockScreen && state.diag.length > 0 ? (
         <details data-testid="row-lock-diag" className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
           <summary className="min-h-[44px] cursor-pointer focus-visible:outline-2 focus-visible:outline-(--color-brand) py-[var(--spacing-sm)] text-(--color-ink2) text-[length:var(--text-sm)]">
             {t("profile.lockDiag")}

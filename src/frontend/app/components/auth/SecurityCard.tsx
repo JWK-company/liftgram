@@ -5,6 +5,7 @@
 //   ① 이메일이 아직 확인 전이면 안내와 "확인 메일 다시 받기"(60초 간격 — 서버가 남은 초를 알려 준다)
 //   ② 비밀번호 바꾸기 — 소셜로만 가입했으면 "설정"(현재 비밀번호 칸이 없다). 저장하면 다른 기기는 로그아웃
 //   ③ 연결된 소셜 로그인 — 연결은 표(CreateLinkTicket)를 받아 제공자로 전면 이동, 해제는 마지막 수단이면 서버가 막는다
+import { errorText } from "@/lib/errorText";
 import type { Identity } from "@app/contracts";
 import { ConnectError } from "@connectrpc/connect";
 import { useCallback, useEffect, useState } from "react";
@@ -64,7 +65,7 @@ export function SecurityCard() {
       if (raw === "reauth_required") {
         setNeedReauth(true);
         setMsg({ text: t("security.reauth"), bad: true });
-      } else setMsg({ text: raw, bad: true });
+      } else setMsg({ text: errorText(e), bad: true });
     } finally {
       setBusy(false);
     }

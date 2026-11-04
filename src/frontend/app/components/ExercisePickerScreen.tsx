@@ -371,7 +371,7 @@ export default function ExercisePickerScreen({
             {rows.length === 0 && similar.length === 0 ? (
               <EmptyState
                 icon="search-outline"
-                title={repo ? t("exercises.emptyTitle") : "카탈로그를 여는 중입니다"}
+                title={repo ? t("exercises.emptyTitle") : "종목을 불러오는 중입니다"}
                 message={repo ? t("exercises.emptyMessage") : "잠시만 기다려 주세요"}
               />
             ) : (
