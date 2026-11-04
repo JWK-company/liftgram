@@ -22,6 +22,8 @@ import {
   type NativeInfo,
   UPDATE_STEP_KEY,
   UpdateError,
+  apkHref,
+  openInSystemBrowser,
   prepareForInstall,
   readStep,
   updateBridge,
@@ -52,6 +54,21 @@ const FINAL: ReadonlySet<string> = new Set([
   "conflict",
   "origin",
 ]);
+/**
+ * 앱 안 설치가 「취소·막힘·실패」로 끝났을 때 보일 우회 길(실기기: 갤럭시에서 aborted 가 거듭 나 1.2.0 에 머묾 — 2026-11-04).
+ * 대체 설치(시스템 설치기로 파일 열기) · 브라우저로 받기(시스템 설치기 + 브라우저 권한 — 앱 쪽이 막혀도 된다).
+ */
+const VIEW_FALLBACK: ReadonlySet<string> = new Set(["blocked", "aborted", "failure", "timeout"]);
+const BROWSER_FALLBACK: ReadonlySet<string> = new Set([
+  "blocked",
+  "aborted",
+  "failure",
+  "timeout",
+  "expired",
+]);
+/** 실패를 누가 판정했나 — 화면에 원인 코드와 함께 보여 진단한다(result 시스템 결과 · resume 돌아와 본 상태 · call 설치 요청 · restore 다시 열 때) */
+type ErrSrc = "result" | "resume" | "call" | "restore" | "view";
+
 /** 설치 단계 실패 중 「받은 파일 그대로 다시 설치」가 맞는 것 */
 const RETRY_INSTALL: ReadonlySet<string> = new Set([
   "aborted",
@@ -103,6 +120,7 @@ export function AppUpdateSheet({
   });
   const [error, setError] = useState<ErrCode | null>(null);
   const [canView, setCanView] = useState(false);
+  const [errSrc, setErrSrc] = useState<ErrSrc | null>(null);
   const idRef = useRef<string | null>(null);
   const phaseRef = useRef<Phase>("loading");
   const busyRef = useRef(false);
@@ -118,15 +136,17 @@ export function AppUpdateSheet({
   }, []);
 
   const fail = useCallback(
-    (code: ErrCode) => {
+    (code: ErrCode, src: ErrSrc = "call") => {
       if (code === "notAllowed") {
         setError(null);
         setPhase("allow");
         return;
       }
       setError(code);
+      setErrSrc(src);
       setPhase("error");
-      if (code === "blocked") {
+      // [원본] if (code === "blocked") { — 대체 설치를 blocked 에만 열었다(갤럭시의 aborted 반복에 길이 없었다)
+      if (VIEW_FALLBACK.has(code)) {
         let tried = false;
         try {
           tried = sessionStorage.getItem(VIEW_TRIED_KEY) === "1";
@@ -186,7 +206,7 @@ export function AppUpdateSheet({
         }
         if (s.lastResult && Date.now() - s.lastResult.at < STALE_MS && saved === "installing") {
           const st = s.lastResult.status;
-          if (st !== "success" && st !== "pending") return fail(updateErrorCode(st));
+          if (st !== "success" && st !== "pending") return fail(updateErrorCode(st), "restore");
         }
         if (saved === "ready" && idRef.current) setPhase("ready");
         else if (saved === "allow") setPhase("allow");
@@ -234,7 +254,7 @@ export function AppUpdateSheet({
         const st = String(d.status ?? "");
         if (st === "pending") return setPhase("installing");
         if (st === "success") return; // 곧 새 판으로 재시작된다
-        fail(updateErrorCode(st));
+        fail(updateErrorCode(st), "result");
       })
       .then((o) => (live ? offs.push(o) : o()));
     // 설정(설치 허용)·확인 화면·대체 설치 화면에서 돌아왔다
@@ -249,12 +269,12 @@ export function AppUpdateSheet({
               // 대체 설치는 결과 이벤트가 없다 — 아직 그 판이 아니면 취소로 본다(계약 §5)
               if ((i.versionCode ?? 0) < latest.versionCode) {
                 void updateBridge.cancelInstall();
-                fail("aborted");
+                fail("aborted", "view");
               }
               return;
             }
             const s = await updateState();
-            if (!s.confirmWaiting && !s.installing) fail("aborted");
+            if (!s.confirmWaiting && !s.installing) fail("aborted", "resume");
           })
           .catch(() => undefined);
       })
@@ -339,6 +359,23 @@ export function AppUpdateSheet({
   const working = !!activeWorkoutId;
   const finalErr = phase === "error" && !!error && FINAL.has(error);
   const retryInstall = phase === "error" && !!error && RETRY_INSTALL.has(error) && !!idRef.current;
+  // 운동 중에는 숨긴다 — 브라우저에서 설치하면 앱이 교체되며 죽는다(REV-018 M1)
+  const browserFallback = phase === "error" && !!error && BROWSER_FALLBACK.has(error) && !working;
+  const openBrowser = async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      // 설치와 같은 보호 — 운동 중이면 미루고 입력 중 값·기기 DB 를 먼저 저장(REV-018 M1)
+      const prep = await prepareForInstall();
+      if (!prep.ok) return fail(prep.why);
+      // 옛 서비스 워커를 비켜 가는 받기 주소 규칙(REV-018 M2)
+      await openInSystemBrowser(new URL(apkHref(latest.url), window.location.origin).href);
+    } catch {
+      // 주소를 만들지 못함·열지 못함 — 버튼만 효과 없음
+    } finally {
+      busyRef.current = false;
+    }
+  };
 
   return (
     <SheetShell title={t("appDist.updateTitle")} onClose={close} hideOk testId="app-update-sheet">
@@ -431,6 +468,17 @@ export function AppUpdateSheet({
             {errText(error)}
           </AppText>
         ) : null}
+        {phase === "error" && error ? (
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="block"
+            data-testid="app-update-error-detail"
+            data-src={errSrc ?? ""}
+          >
+            {t("appDist.errDetail", { code: error, src: errSrc ?? "-" })}
+          </AppText>
+        ) : null}
 
         {working ? (
           <AppText variant="caption" color="textMuted" className="block" data-testid="app-update-workout">
@@ -469,6 +517,25 @@ export function AppUpdateSheet({
               void install("view");
             }}
           />
+        ) : null}
+        {browserFallback ? (
+          <>
+            <AppText
+              variant="caption"
+              color="textMuted"
+              className="block"
+              data-testid="app-update-browser-hint"
+            >
+              {t("appDist.browserHint")}
+            </AppText>
+            <Button
+              title={t("appDist.browserDownload")}
+              variant="secondary"
+              testId="btn-app-update-browser"
+              icon="open-outline"
+              onPress={() => void openBrowser()}
+            />
+          </>
         ) : null}
         <Button title={t("appDist.close")} variant="quiet" testId="btn-app-update-close" onPress={close} />
       </div>

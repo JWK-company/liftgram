@@ -44,11 +44,14 @@ const WEB_ONLY: Record<string, Record<AppLanguage, string>> = {
   "web.sw.updateReady": { ko: "새 버전이 있어요", en: "A new version is ready" },
   "web.sw.updateApply": { ko: "새로고침", en: "Reload" },
   // 수동 업데이트(프로필 버튼 하나 · 덮개) — 위 두 키는 옛 띠의 것(보존 · 쓰지 않음) @plm SRS-085
-  "web.sw.appVersion": { ko: "앱 버전 v{version}", en: "App version v{version}" },
+  // [원본] "web.sw.appVersion": { ko: "앱 버전 v{version}", en: "App version v{version}" },
+  // [개선] 「앱 설치 파일」(안드로이드 앱) 줄과 헷갈리지 않게 — 이것은 화면(웹 번들) 버전이다(2026-11-04 실기기 피드백)
+  "web.sw.appVersion": { ko: "화면 버전 v{version}", en: "Web version v{version}" },
   "web.sw.newVersion": { ko: "새 버전 v{version}", en: "New version v{version}" },
   "web.sw.newVersionUnknown": { ko: "새 버전이 있어요", en: "A new version is available" },
   "web.sw.reloadToApply": { ko: "새로고침하면 새 버전이 적용돼요", en: "Reload to use the new version" },
-  "web.sw.update": { ko: "업데이트", en: "Update" },
+  // [원본] "web.sw.update": { ko: "업데이트", en: "Update" },
+  "web.sw.update": { ko: "화면 업데이트", en: "Update web" },
   "web.sw.blockedWorkout": {
     ko: "운동을 끝낸 뒤 업데이트할 수 있어요",
     en: "You can update after you finish your workout",

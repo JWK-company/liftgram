@@ -128,9 +128,9 @@ test("E8 /app-version — 버전·최소 버전(기본 빈 값) · 캐시 금지
   expect(await r.json()).toEqual({ version: CUR, minClientVersion: "" });
 });
 
-test("E1 대기 없음 — 프로필 「앱 버전 v현재」 · 버튼·탭 점 없음", async ({ page }) => {
+test("E1 대기 없음 — 프로필 「화면 버전 v현재」 · 버튼·탭 점 없음", async ({ page }) => {
   await 워커_제어(page, "/profile");
-  await expect(page.getByTestId("app-version-current")).toHaveText(`앱 버전 v${CUR}`);
+  await expect(page.getByTestId("app-version-current")).toHaveText(`화면 버전 v${CUR}`);
   await expect(page.getByTestId("app-update-btn")).toHaveCount(0);
   await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
 });
@@ -412,11 +412,11 @@ test("E10 대기 워커가 지금 문서와 같은 버전이면(새로고침으�
   await page.waitForTimeout(1_500);
   await expect(page.getByTestId("app-update-btn")).toHaveCount(0);
   await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
-  await expect(page.getByTestId("app-version-current")).toHaveText(`앱 버전 v${CUR}`);
+  await expect(page.getByTestId("app-version-current")).toHaveText(`화면 버전 v${CUR}`);
   expect(await pageId(page)).toBe(id0); // 새로고침하지 않았다
   // 새로고침한 뒤에도 점이 없다(피드백 재현 경로)
   await page.reload();
-  await expect(page.getByTestId("app-version-current")).toHaveText(`앱 버전 v${CUR}`, { timeout: 20_000 });
+  await expect(page.getByTestId("app-version-current")).toHaveText(`화면 버전 v${CUR}`, { timeout: 20_000 });
   await page.waitForTimeout(2_000);
   await expect(page.getByTestId("nav-profile-update-dot")).toHaveCount(0);
   await expect(page.getByTestId("app-update-btn")).toHaveCount(0);

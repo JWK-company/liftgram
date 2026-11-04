@@ -506,6 +506,17 @@ test("새 앱 — 실패 코드별 문구 · aborted 는 이어서 · downgrade 
     }),
   );
   await expect(c.getByTestId("app-update-error")).toHaveAttribute("data-code", "aborted");
+  // 실기기(갤럭시) aborted 반복 — 우회 길: 대체 설치 · 브라우저로 받기 · 원인 코드(누가 판정했나)
+  await expect(c.getByTestId("app-update-error-detail")).toHaveAttribute("data-src", "result");
+  await expect(c.getByTestId("btn-app-update-view")).toBeVisible();
+  await expect(c.getByTestId("btn-app-update-browser")).toBeVisible();
+  // 브라우저 길 — 같은 출처 절대 주소 + 옛 서비스 워커 비켜 가기(?_rsc=apk)
+  await c.getByTestId("btn-app-update-browser").click();
+  await expect
+    .poll(() =>
+      c.evaluate(() => (window as unknown as { __upd: { opened: string[] } }).__upd.opened.at(-1) ?? ""),
+    )
+    .toMatch(/^http:\/\/[^/]+\/downloads\/liftgram-[^?]+\.apk\?_rsc=apk$/);
   await c.getByTestId("btn-app-update-install").click();
   await expect(c.getByTestId("app-update-phase")).toHaveAttribute("data-phase", "installing");
   expect((await 호출(c)).filter((x) => x.startsWith("download:"))).toHaveLength(1);
@@ -529,6 +540,25 @@ test("새 앱 — 실패 코드별 문구 · aborted 는 이어서 · downgrade 
   );
   await expect(c.getByTestId("app-update-error")).toHaveAttribute("data-code", "blocked");
   await expect(c.getByTestId("btn-app-update-view")).toHaveCount(0);
+  await expect(c.getByTestId("btn-app-update-browser")).toBeVisible(); // 대체 설치를 써 본 뒤에도 브라우저 길은 남는다
+  // 경계 — expired 는 브라우저 길만 · 목록 밖 코드(conflict)는 둘 다 없음
+  for (const [status, browserN] of [
+    ["expired", 1],
+    ["conflict", 0],
+  ] as const) {
+    await c.evaluate(
+      (st) =>
+        (window as unknown as { __emit: (e: string, d: unknown) => void }).__emit("installResult", {
+          status: st,
+          sessionId: 1,
+          at: Date.now(),
+        }),
+      status,
+    );
+    await expect(c.getByTestId("app-update-error")).toHaveAttribute("data-code", status);
+    await expect(c.getByTestId("btn-app-update-view")).toHaveCount(0);
+    await expect(c.getByTestId("btn-app-update-browser")).toHaveCount(browserN);
+  }
   await c.context().close();
   await b.context().close();
 
