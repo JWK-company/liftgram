@@ -42,6 +42,7 @@ import { MoveButtons } from "./BlockTools";
 import { ExerciseName } from "./ExerciseName";
 import { RestBar, clock } from "./RestBar";
 import { LockNotices } from "./LockNotices";
+import { LockReadiness } from "./LockReadiness";
 import { SessionGuideButtons } from "./SessionGuides";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
@@ -342,6 +343,7 @@ export default function ActiveWorkout() {
       <div className="flex flex-1 flex-col">
         {/* 잠금화면 조작 확인 중 덮개 · 「잠금화면에서 본 값과 다름」 표식(SPEC-017 Phase 3 §5·§6) */}
         <LockNotices />
+        <LockReadiness />
         {/* ── 헤더 ── */}
         {/* [원본] 스크롤하면 위로 사라졌다 — 마지막 종목까지 내려간 뒤 완료하려면 맨 위로 올라가야 했고, 운동 시간도 안 보였다(피드백)
         <div className="flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b px-[var(--spacing-md)] py-[var(--spacing-sm)]"> */}

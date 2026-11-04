@@ -610,6 +610,121 @@ test.describe("앱(가짜 플러그인) — 잠금 운동 화면 진단(SPEC-020
   });
 });
 
+test.describe("앱(가짜 플러그인) — 운동 중 잠금화면 준비 안내(2026-11-04 실기기)", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(fakeScript(true));
+  });
+  test("운동 중 알림이 꺼져 있으면 알림만 · 켜면 다른 앱 위·전체 화면이 둘 다 없을 때만 · 하나만 있으면 없음 · 숨기기", async ({
+    page,
+  }) => {
+    await 카탈로그_준비(page);
+    // 알림 꺼짐 — 알림 하나만(전체 화면은 알림이 꺼지면 늘 false 라 거짓 양성 · REV-019 M-1)
+    await patchFake(page, {
+      perm: {
+        notifications: false,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+      },
+    });
+    await 운동_시작(page, "바벨 스쿼트");
+    const box = page.getByTestId("lock-readiness");
+    await expect(box).toBeVisible({ timeout: 15_000 });
+    await expect(box).toHaveAttribute("data-missing", "notifications");
+    await expect(box).toContainText("알림이 꺼져 있어");
+    await page.getByTestId("lock-readiness-notifications").click();
+    await expect
+      .poll(async () => (await calls(page, "openSettings")).map((c) => (c.arg as { kind: string }).kind))
+      .toEqual(["notifications"]);
+
+    // 알림을 켜고 돌아옴 — 다른 앱 위·전체 화면 둘 다 없으면 둘 다(서로의 대체 길 · REV-019 M-2) · 배터리는 조르지 않는다
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(box).toHaveAttribute("data-missing", "overlay,fullScreen");
+    await page.getByTestId("lock-readiness-overlay").click();
+    await expect(
+      page.getByText("다음 화면에서 '리프트그램'을 찾아 켜 주세요", { exact: false }),
+    ).toBeVisible();
+
+    // 하나만 허용해도 사라진다
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: true,
+        battery: false,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(box).toHaveCount(0);
+
+    // 다시 빠짐 → 이번 운동에서 숨기기 · 새로고침해도 숨김(읽기가 끝난 뒤 확인 — REV-019 M-4)
+    await patchFake(page, {
+      perm: {
+        notifications: false,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(box).toBeVisible();
+    await page.getByTestId("lock-readiness-hide").click();
+    await expect(box).toHaveCount(0);
+    const before = (await calls(page, "info")).length;
+    await page.reload();
+    await expect(page.getByTestId("workout-exercises")).toBeVisible({ timeout: 20_000 });
+    await expect.poll(async () => (await calls(page, "info")).length).toBeGreaterThan(before);
+    await page.waitForTimeout(500);
+    await expect(page.getByTestId("lock-readiness")).toHaveCount(0);
+  });
+
+  test("잠금 운동 화면을 끈 사용자 · 모두 허용된 사용자에게는 안내가 없다", async ({ page }) => {
+    await 카탈로그_준비(page);
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: false,
+        fullScreen: false,
+        overlay: false,
+        battery: false,
+      },
+    });
+    await 운동_시작(page, "바벨 스쿼트");
+    await expect(page.getByTestId("workout-exercises")).toBeVisible({ timeout: 20_000 });
+    await expect.poll(async () => (await calls(page, "info")).length).toBeGreaterThan(0);
+    await expect(page.getByTestId("lock-readiness")).toHaveCount(0);
+    await patchFake(page, {
+      perm: {
+        notifications: true,
+        exactAlarm: true,
+        lockScreen: true,
+        fullScreen: true,
+        overlay: true,
+        battery: true,
+      },
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await expect(page.getByTestId("lock-readiness")).toHaveCount(0);
+  });
+});
+
 test.describe("앱 — 결함 주입(e2e 빌드)", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(fakeScript(true));

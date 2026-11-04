@@ -499,6 +499,12 @@ export function AppUpdateSheet({
             {t("appDist.installHint")}
           </AppText>
         ) : null}
+        {/* 임시 APK 배포 동안 — 삼성 「자동 차단」이 앱 안 설치를 「취소」로 끝낸다(2026-11-04 실기기 확인) · 설치 전부터 알린다 */}
+        {phase === "ready" || (phase === "error" && error === "aborted") ? (
+          <AppText variant="caption" color="warning" className="block" data-testid="app-update-autoblocker">
+            {t("appDist.autoBlockerHint")}
+          </AppText>
+        ) : null}
         {phase === "ready" || retryInstall ? (
           <Button
             title={t("appDist.install")}
