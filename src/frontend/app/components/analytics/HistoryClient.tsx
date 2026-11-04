@@ -6,6 +6,7 @@
 //
 // 휴지통은 여기 두지 않는다. 한 번 잘못 누르면 기록이 사라지던 자리였다 — 삭제는 상세 화면의 ⋯ 안으로 옮겼다
 // (WorkoutDetailClient). 목록은 읽기 전용이다.
+import { AdSlot } from "../ads/AdSlot";
 import { RecordsHeader } from "./RecordsHeader";
 import { formatWeight } from "@app/core";
 import { useQueryData } from "@app/core/db/hooks";
@@ -96,6 +97,7 @@ export default function HistoryClient() {
                 </div>
               </section>
             ))}
+            <AdSlot placement="history" />
           </div>
         )}
       </div>

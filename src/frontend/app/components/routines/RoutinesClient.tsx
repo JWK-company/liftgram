@@ -47,6 +47,7 @@ import { CreatorTopicSheet } from "./CreatorRoutineSheet"; // 크리에이터 �
 import { AppBar, AppBarAction } from "../ui/AppBar";
 // [원본] import { MoreMenu } from "../ui/MoreMenu"; — 진행 카드의 ⋯ 메뉴(화면 정리 D8 로 렌더 중단)
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { AdSlot } from "../ads/AdSlot";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
 import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 오늘·추천 카드 근육 그림 @plm SRS-075
 
@@ -807,6 +808,8 @@ export default function RoutinesClient() {
             ]}
           />
         ) : null}
+        {/* 광고 자리 — 시작 버튼보다 아래, 맨 끝(SPEC-022) */}
+        {homeReady ? <AdSlot placement="home" /> : null}
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import { exerciseClient } from "@/lib/api";
 import { EQUIPMENT_KEY } from "@/lib/contractMap";
 import { t } from "@/lib/i18n";
 import { equipmentLabel, kindLabel, loadModeLabel, muscleLabel } from "@/lib/labels";
+import { AdSlot } from "../../components/ads/AdSlot";
 import ExerciseAnimation from "../../components/ExerciseAnimation";
 import { Pictogram } from "../../components/Pictogram";
 import ExerciseProgress from "../../components/analytics/ExerciseProgress";
@@ -282,6 +283,7 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
           {exercise.isCustom ? " · 내가 만든 종목" : " · 기본 카탈로그"}
           {updated ? ` · 갱신 ${updated.toLocaleDateString("ko-KR")}` : ""}
         </AppText>
+        <AdSlot placement="exercise" />
       </div>
     </>
   );

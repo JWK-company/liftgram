@@ -42,6 +42,8 @@ import { GearSource, GearCategory as GearCategoryEnum } from "@app/contracts";
 import { StoryTray } from "./StoryTray";
 import { StoryViewer } from "./StoryViewer";
 import { loadStorySeen, markSeen, type StorySeenMap } from "./storySeen";
+import { FEED_AD_EVERY, feedAdAfter } from "@app/core/domain/adPolicy";
+import { AdSlot } from "../ads/AdSlot";
 import { InfiniteSentinel } from "./InfiniteSentinel";
 import { PostCard } from "./PostCard";
 import { useWeightUnit } from "./useWeightUnit";
@@ -353,7 +355,8 @@ export default function FeedClient() {
               </>
             ) : (
               <>
-                {posts.map((p) => (
+                {/* [원본] posts.map — 광고 자리를 끼우려고 flatMap 으로. 슬롯 열쇠는 순번이라 새 글이 와도 다시 만들어지지 않는다(SPEC-022) */}
+                {posts.flatMap((p, i) => [
                   <PostCard
                     key={p.id}
                     post={p}
@@ -361,8 +364,12 @@ export default function FeedClient() {
                     unit={unit as WeightUnit}
                     onChanged={replace}
                     onDeleted={drop}
-                  />
-                ))}
+                  />,
+                  ...(feedAdAfter(i)
+                    ? // biome-ignore lint/suspicious/noArrayIndexKey: 광고 칸에는 고유 값이 없다 — 순번이 곧 정체다
+                      [<AdSlot key={`ad-${(i + 1) / FEED_AD_EVERY}`} placement="feed" />]
+                    : []),
+                ])}
                 <InfiniteSentinel onReach={loadMore} disabled={!cursor} />
               </>
             )}

@@ -3,6 +3,8 @@
 // 줄을 숨기는 것은 안내일 뿐 경계가 아니다 — 각 화면의 권한은 서버가 다시 판정한다.
 import { Role } from "@app/contracts";
 import { t } from "@/lib/i18n";
+import { useEffect, useState } from "react";
+import { adPreviewOn, setAdPreview } from "@/lib/adPreview";
 import { useOpsAlert } from "@/lib/opsAlert";
 import { canSeeStaffTab, isInsider } from "@/lib/staffRoles";
 import { useAuth } from "../AuthProvider";
@@ -16,6 +18,10 @@ export default function StaffClient() {
   const { user, loading } = useAuth();
   const opsAlert = useOpsAlert();
   const role = user?.role;
+  const [adPreview, setAdPreviewState] = useState(false);
+  useEffect(() => {
+    setAdPreviewState(adPreviewOn());
+  }, []);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -73,6 +79,18 @@ export default function StaffClient() {
                     <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
                   </span>
                 }
+              />
+            ) : null}
+            {role === Role.ADMIN ? (
+              <ListRow
+                testId="row-ad-preview"
+                icon="image-outline"
+                title={t("staff.adPreview")}
+                value={t(adPreview ? "staff.adPreviewOn" : "staff.adPreviewOff")}
+                onPress={() => {
+                  setAdPreview(!adPreview);
+                  setAdPreviewState(!adPreview);
+                }}
               />
             ) : null}
           </ListGroup>

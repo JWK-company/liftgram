@@ -75,6 +75,11 @@ interface SessionContextValue {
    * 그 전의 `activeWorkoutId=null` 은 「없음」이 아니라 「모름」이다(운동 홈의 주 행동 판단 · 화면 정리 M-2 /qa H-2). @plm SRS-072
    */
   activeLoaded: boolean;
+  /**
+   * 진행 중인 운동을 **읽어 냈는가**(또는 화면이 직접 정했는가). activeLoaded 는 읽기에 실패해도 켜지므로,
+   * 「운동 중이 아니다」를 믿어야 하는 판정(광고 가드)은 이 값을 쓴다(SPEC-022).
+   */
+  activeKnown: boolean;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -88,6 +93,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   } | null>(null);
 
   const [activeLoaded, setActiveLoaded] = useState(false);
+  const [activeKnown, setActiveKnown] = useState(false);
+  const setActive = useCallback((v: { id: string; startedAt: number; name: string | null } | null) => {
+    setActiveState(v);
+    setActiveKnown(true);
+  }, []);
 
   const endAtRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -113,6 +123,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         name: string | null;
       } | null;
       setActiveState(w ? { id: w.id, startedAt: w.startedAt, name: w.name } : null);
+      setActiveKnown(true);
     } catch {
       // 저장소를 못 열었다 — 바를 띄우지 않을 뿐 화면은 그대로 돈다.
     } finally {
@@ -346,11 +357,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       activeWorkoutId: active?.id ?? null,
       activeStartedAt: active?.startedAt ?? null,
       activeName: active?.name ?? null,
-      setActive: setActiveState,
+      // [원본] setActive: setActiveState,
+      setActive,
       refreshActive,
       activeLoaded,
+      activeKnown,
     }),
-    [restRemaining, startRest, clearRest, getRestState, mergeRemoteRest, active, refreshActive, activeLoaded],
+    [
+      restRemaining,
+      startRest,
+      clearRest,
+      getRestState,
+      mergeRemoteRest,
+      active,
+      refreshActive,
+      activeLoaded,
+      activeKnown,
+      setActive,
+    ],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -7,6 +7,7 @@
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
+import { AdSlot } from "../ads/AdSlot";
 import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
@@ -249,6 +250,9 @@ export function WorkoutSummary({
             {t("wellness.oneRepMaxCaption")}
           </AppText>
         ) : null}
+
+        {/* 광고 자리 — 결과를 다 보여 준 뒤, 세트가 있는 운동만(SPEC-022) */}
+        {summary.workingSets > 0 ? <AdSlot placement="summary" /> : null}
 
         {/* 부가 행동 한 줄 — 루틴 저장 · 다시 시작 · 공유(D5). 주 행동은 아래 「완료」 하나뿐.
             [원본] 루틴 만들기·다시 시작이 각각 전체 폭 버튼, 공유는 한마디 입력과 함께 화면 끝에 있었다(세로로 3화면). */}

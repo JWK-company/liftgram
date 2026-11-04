@@ -1649,6 +1649,11 @@ export const en: Record<TransKey, string> = {
   "notif.coaching_summary": "{name} sent you a progress summary",
   // 운영 상태(/ops · admin) @plm SRS-088
   "staff.title": "Staff",
+  "staff.adPreview": "Ad placement preview",
+  "staff.adPreviewOn": "On",
+  "staff.adPreviewOff": "Off",
+  "ads.label": "Ad",
+  "ads.previewHint": "Placement preview",
   "ops.entry": "Ops status",
   "ops.title": "Ops status",
   "ops.adminOnly": "Only operator accounts can view this",

@@ -1660,6 +1660,11 @@ export const ko = {
   "notif.coaching_summary": "{name}님이 성과 요약을 보냈어요",
   // 운영 상태(/ops · admin) @plm SRS-088
   "staff.title": "운영",
+  "staff.adPreview": "광고 자리 미리 보기",
+  "staff.adPreviewOn": "켜짐",
+  "staff.adPreviewOff": "꺼짐",
+  "ads.label": "광고",
+  "ads.previewHint": "자리 미리 보기",
   "ops.entry": "운영 상태",
   "ops.title": "운영 상태",
   "ops.adminOnly": "운영진 계정만 볼 수 있어요",

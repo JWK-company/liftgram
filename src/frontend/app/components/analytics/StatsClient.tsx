@@ -13,6 +13,7 @@
 // 지난 기간 대비는 같은 함수를 두 번(2배 구간 − 이번 구간) 불러 얻는다 — 새 집계를 만들지 않는다.
 //
 // 맨 아래 고지는 지우지 않는다: 이 앱은 웰니스 도구이지 의학적 판단을 하지 않는다(SRS-015).
+import { AdSlot } from "../ads/AdSlot";
 import { AppBar } from "../ui/AppBar";
 import { routes } from "@app/contracts";
 // [원본] import { formatWeight, muscleLabel, type MuscleGroup } from "@app/core"; — 근육군 분포 렌더를 막아 muscleLabel·MuscleGroup 를 안 쓴다(SRS-076)
@@ -312,6 +313,7 @@ export default function StatsClient() {
                 {t("wellness.oneRepMaxCaption")}
               </AppText>
             ) : null}
+            <AdSlot placement="stats" />
           </>
         )}
 
