@@ -232,10 +232,10 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
 
   // 운동 시작(오늘 카드) — 끈 상태 기준선 좌표
   await page.getByTestId("btn-start-today").click();
-  await expect(page.getByTestId("btn-guide-rir")).toBeVisible({ timeout: 20_000 });
+  // [원본] 가이드 줄 좌표를 기준으로 삼았다 — 가이드를 뺐고 버튼은 헤더로 옮겼다(SPEC-023)
+  await expect(page.getByTestId("session-header")).toBeVisible({ timeout: 20_000 });
   await 안내_띠_닫기(page);
   await expect(page.getByTestId("btn-today-muscles")).toHaveCount(0);
-  const baseRir = await 상자(page.getByTestId("btn-guide-rir"));
   const baseSet = await 상자(page.getByTestId("set-list").first());
 
   // 켜면 버튼이 생긴다(같은 운동 화면 · 다른 탭 변경도 따름 — 여기서는 프로필에서 켜고 돌아온다)
@@ -245,39 +245,28 @@ test("근육 지도 — 오늘 카드 · 설정 끄기 · 운동 중 시트 숫�
   await expect(btn).toBeVisible({ timeout: 20_000 });
   await 안내_띠_닫기(page);
   const bb = await 상자(btn);
-  // 보이는 높이 36 · 누르는 자리 44(위 8px 바깥도 이 버튼)
+  // 보이는 40 · 누르는 자리 44(바깥 2px 도 이 버튼)
   const hit = await page.evaluate(
     ({ x, top, bottom }) =>
       [top, bottom].map(
         (y) => document.elementFromPoint(x, y)?.closest('[data-testid="btn-today-muscles"]') !== null,
       ),
-    { x: bb.x + bb.width / 2, top: bb.y - 7.5, bottom: bb.y + bb.height - 1 },
+    { x: bb.x + bb.width / 2, top: bb.y - 1.5, bottom: bb.y + bb.height + 1.5 },
   );
-  expect(bb.height + 8).toBeGreaterThanOrEqual(44);
+  expect(bb.height + 4).toBeGreaterThanOrEqual(44);
   expect(hit).toEqual([true, true]);
-  const onRir = await 상자(page.getByTestId("btn-guide-rir"));
-  expect(Math.round(onRir.y)).toBe(Math.round(baseRir.y)); // 줄 시작은 그대로
-  expect(겹침(bb, onRir)).toBe(false);
   const onSet = await 상자(page.getByTestId("set-list").first());
-  // 켠 상태도 줄 높이는 그대로(누르는 자리만 ::before 로 넓힘) — 첫 세트 좌표가 끈 상태와 같다
+  // 켠 상태도 헤더 높이는 그대로 — 첫 세트 좌표가 끈 상태와 같다
   expect(Math.round(onSet.y)).toBe(Math.round(baseSet.y));
-  console.log(
-    `좌표(390) 끔 rir ${Math.round(baseRir.y)}/${Math.round(baseRir.height)} set ${Math.round(baseSet.y)} · 켬 rir ${Math.round(onRir.y)}/${Math.round(onRir.height)} set ${Math.round(onSet.y)}`,
-  );
 
   // 다시 끄면 기준선과 같은 좌표
   await 근육그림_설정(page, false);
   await page.goto("/workout");
-  await expect(page.getByTestId("btn-guide-rir")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("session-header")).toBeVisible({ timeout: 20_000 });
   await 안내_띠_닫기(page);
   await expect(page.getByTestId("btn-today-muscles")).toHaveCount(0);
-  const offRir = await 상자(page.getByTestId("btn-guide-rir"));
   const offSet = await 상자(page.getByTestId("set-list").first());
-  expect([Math.round(offRir.y), Math.round(offRir.height), Math.round(offSet.y)]).toEqual([
-    Math.round(baseRir.y),
-    Math.round(baseRir.height),
-    Math.round(baseSet.y),
-  ]);
+  expect(Math.round(offSet.y)).toBe(Math.round(baseSet.y));
   await 근육그림_설정(page, true);
   await page.goto("/workout");
 
@@ -435,13 +424,10 @@ test("근육 지도 — 360·390 겹침 · 다크 대비 · 캡처", async ({ pa
       // 운동 중 시트
       await page.getByTestId("btn-start-today").click();
       await expect(page.getByTestId("btn-today-muscles")).toBeVisible({ timeout: 20_000 });
-      const guideRow = [
-        await 상자(page.getByTestId("btn-guide-rir")),
-        await 상자(page.getByTestId("btn-guide-warmup")),
-        await 상자(page.getByTestId("btn-today-muscles")),
-      ];
-      expect(겹침(guideRow[0], guideRow[1]) || 겹침(guideRow[1], guideRow[2])).toBe(false);
-      expect(guideRow[2].x + guideRow[2].width).toBeLessThanOrEqual(w);
+      const headerBtn = await 상자(page.getByTestId("btn-today-muscles"));
+      expect(겹침(headerBtn, await 상자(page.getByTestId("btn-pause")))).toBe(false);
+      expect(겹침(headerBtn, await 상자(page.getByTestId("elapsed")))).toBe(false);
+      expect(headerBtn.x + headerBtn.width).toBeLessThanOrEqual(w);
       await 세트_기록(page, 0, 0, 60, 8);
       await page.getByTestId("btn-today-muscles").click();
       const sheet = page.getByTestId("muscle-sheet");
@@ -570,9 +556,9 @@ test("실패 표시 세트는 근육 집계에서 빠진다 · 운동 화면을 
   await page.getByTestId("btn-start-today").click();
   await expect(page.getByTestId("btn-today-muscles")).toBeVisible({ timeout: 20_000 });
   await 안내_띠_닫기(page);
-  // 첫 세트 = 실패 표시 후 완료 · 둘째 세트 = 일반 완료
+  // 첫 세트 = 웜업 표시 후 완료 · 둘째 세트 = 일반 완료 — 실패는 메뉴에서 뺐다(옛 F 규칙은 단위 시험 · SPEC-023)
   await 세트_줄(page, 0, 0).getByTestId("set-type").click();
-  await page.getByTestId("set-type-sheet").getByText("실패 (F)").click();
+  await page.getByTestId("set-type-sheet").getByText("워밍업 (W)").click();
   await 세트_기록(page, 0, 0, 60, 3);
   await 세트_기록(page, 0, 1, 60, 8);
   await page.getByTestId("btn-today-muscles").click();

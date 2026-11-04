@@ -716,6 +716,18 @@ func TestSanitize_무게_기준을_지키고_범위_밖은_버린다(t *testing.
 	if rows[3].LoadBasis != "fixed" || rows[3].LoadKg == nil || *rows[3].LoadKg != 62.5 {
 		t.Fatalf("직접 무게가 남아야 한다: %+v", rows[3])
 	}
+	// SPEC-023 — 드롭은 정리·계약 번역을 모두 지나 남는다 · 시작 무게(start)는 코칭 경로의 기준이 아니다
+	dropKg := 61.2349
+	dropped := SanitizePrescription([]PrescribedSet{{SetType: "drop", LoadBasis: "fixed", LoadKg: &dropKg}, {SetType: "normal", LoadBasis: "start", LoadKg: &dropKg}})
+	if dropped[0].SetType != "drop" || setTypeName[setTypePB[dropped[0].SetType]] != "drop" {
+		t.Fatalf("드롭이 남아야 한다: %+v", dropped[0])
+	}
+	if dropped[0].LoadKg == nil || *dropped[0].LoadKg != 61.2349 {
+		t.Fatalf("고정 무게는 넷째 자리까지: %+v", dropped[0])
+	}
+	if dropped[1].LoadBasis != "" {
+		t.Fatalf("start 는 코칭에서 버린다: %+v", dropped[1])
+	}
 	if rows[4].LoadBasis != "" {
 		t.Fatalf("모르는 기준은 버려야 한다: %+v", rows[4])
 	}
@@ -767,5 +779,31 @@ func TestParsePrescription_옛_PascalCase_키도_읽는다(t *testing.T) {
 	if len(got) != 1 || got[0].SetType != "top" || got[0].TargetRIR == nil || *got[0].TargetRIR != 2 ||
 		got[0].RepMin == nil || *got[0].RepMin != 5 || got[0].LoadHint != "heavy" {
 		t.Fatalf("옛 처방을 읽지 못했다: %+v", got)
+	}
+}
+
+func TestKeepMemberStart(t *testing.T) {
+	kg := func(v float64) *float64 { return &v }
+	stored := []PrescribedSet{
+		{SetType: "warmup", LoadBasis: "start", LoadKg: kg(40)},
+		{SetType: "normal", LoadBasis: "start", LoadKg: kg(0)},
+		{SetType: "top", LoadBasis: "start", LoadKg: kg(100)},
+	}
+	clean := []PrescribedSet{{SetType: "warmup"}, {SetType: "normal"}, {SetType: "top", LoadBasis: "fixed", LoadKg: kg(90)}}
+	got := KeepMemberStart(clean, stored)
+	if got[0].LoadBasis != "start" || *got[0].LoadKg != 40 {
+		t.Fatalf("줄 0 시작 무게가 사라졌다: %+v", got[0])
+	}
+	if got[1].LoadBasis != "start" || *got[1].LoadKg != 0 {
+		t.Fatalf("비운 줄 표식이 사라졌다: %+v", got[1])
+	}
+	if got[2].LoadBasis != "fixed" || *got[2].LoadKg != 90 {
+		t.Fatalf("코치 값이 이겨야 한다: %+v", got[2])
+	}
+	if clean[0].LoadBasis != "" {
+		t.Fatal("입력을 고치면 안 된다")
+	}
+	if len(KeepMemberStart(clean[:2], stored)) != 2 || KeepMemberStart(clean[:2], stored)[0].LoadBasis != "" {
+		t.Fatal("줄 수가 다르면 잇지 않는다")
 	}
 }

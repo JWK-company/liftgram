@@ -14,15 +14,10 @@
 //   · 타입칩(W/D/F)은 색으로 구분한다 — 워밍업 골드 · 드롭 파랑 · 실패 빨강.
 // ─────────────────────────────────────────────────────────────────────────────
 import {
-  DEFAULT_PLATES_KG,
   // [원본] GRIP_KEYS, — 세트별 그립 선택을 없앴다(ADR-034: 그립은 블록 칸)
   type GripKey,
-  calcPlates,
-  formatEnteredWeight,
-  lbPlateInventory,
   roundSuggestionKg,
   displayWeight, // 세트 무게 표시는 한 곳 — 100lb 왕복이 정확(/qa spec Q1) @plm SRS-067
-  formatWeight,
   gripLabel,
   gripShortLabel,
   repRangeLabel,
@@ -35,7 +30,7 @@ import { useSetDrafts } from "./setDrafts";
 import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) @plm SRS-073
 import { useEffortLogging } from "@/lib/effortPref";
 import { lang, t } from "@/lib/i18n";
-import { ActionSheet, InfoDialog, SheetShell } from "../ui/Dialog";
+import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
@@ -103,7 +98,7 @@ export function SetRowEdit({
   rx,
   suggestion,
   unit,
-  barWeightKg,
+  barWeightKg: _barWeightKg, // [원본] 플레이트 계산 — 메뉴에서 뺐다(SPEC-023)
   onUpdate,
   onToggleDone,
   onSetType,
@@ -131,7 +126,7 @@ export function SetRowEdit({
     rir?: number | null;
   }) => unknown;
   onToggleDone: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
-  onSetType: (type: "normal" | "warmup" | "drop" | "failed") => void;
+  onSetType: (type: "normal" | "warmup" | "drop" | "top" | "backoff") => void;
   onSetArm: (arm: "uni" | null) => void;
   onSetGrip: (grip: string | null) => void;
   onDelete: () => void;
@@ -151,7 +146,7 @@ export function SetRowEdit({
   const [expanded, setExpanded] = useState(false);
   const [typeMenu, setTypeMenu] = useState(false);
   const [varOpen, setVarOpen] = useState(false);
-  const [plates, setPlates] = useState<string | null>(null);
+  // const [plates, setPlates] = useState<string | null>(null); // [원본] SPEC-023
   const effortOn = useEffortLogging(); // 켰을 때만 처방 줄에 RIR 칩(끄면 DOM 0 · U-1) @plm SRS-073
   // 워밍업은 칩 없음(분석 대상 밖 · QA CU-8) — 처방 RIR 글자는 꺼짐일 때처럼 그대로 보인다
   const chipOn = effortOn && !set.isWarmup && set.setType !== "warmup";
@@ -242,32 +237,33 @@ export function SetRowEdit({
         .join("·")
     : t("session.variantSet");
 
-  // 플레이트 계산 — 목표 무게를 만들려면 한쪽에 무엇을 끼우는지. app과 같은 문구·같은 계산이다.
-  const showPlates = () => {
-    // [원본] kg 원판·프로필 봉만 썼다 — lb 블록에 「목표 103lb / 한쪽 20 + 1.25kg」가 섞여 보였다(/qa code M-2)
-    // const bd = calcPlates(set.weightKg, { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG });
-    // [개선] lb 블록은 45lb 봉·lb 원판으로 계산하고 lb 로 보인다. 목표는 적은 숫자 그대로 @plm SRS-067
-    const inv = unit === "lb" ? lbPlateInventory() : { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG };
-    const bd = calcPlates(set.weightKg, inv);
-    if (!bd.perSide.length) {
-      setPlates(t("session.plateBarOnly", { barWeight: formatEnteredWeight(inv.barKg, unit) }));
-      return;
-    }
-    const perSide = bd.perSide
-      .map((p) => `${displayWeight(p.plateKg, unit)}${p.count > 1 ? `×${p.count}` : ""}`)
-      .join(" + ");
-    const lines = [
-      t("session.plateTarget", { targetWeight: formatEnteredWeight(set.weightKg, unit) }),
-      t("session.platePerSide", { perSide }),
-      bd.leftoverKg > 0.01
-        ? t("session.plateLeftover", {
-            shortWeight: formatWeight(bd.leftoverKg, unit),
-            achievableWeight: formatWeight(bd.achievableKg, unit),
-          })
-        : null,
-    ].filter(Boolean);
-    setPlates(lines.join("\n"));
-  };
+  // [원본] 플레이트 계산 — 세트 메뉴에서 뺐다(SPEC-023)
+  // // 플레이트 계산 — 목표 무게를 만들려면 한쪽에 무엇을 끼우는지. app과 같은 문구·같은 계산이다.
+  // const showPlates = () => {
+  //   // [원본] kg 원판·프로필 봉만 썼다 — lb 블록에 「목표 103lb / 한쪽 20 + 1.25kg」가 섞여 보였다(/qa code M-2)
+  //   // const bd = calcPlates(set.weightKg, { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG });
+  //   // [개선] lb 블록은 45lb 봉·lb 원판으로 계산하고 lb 로 보인다. 목표는 적은 숫자 그대로 @plm SRS-067
+  //   const inv = unit === "lb" ? lbPlateInventory() : { barKg: barWeightKg, platesKg: DEFAULT_PLATES_KG };
+  //   const bd = calcPlates(set.weightKg, inv);
+  //   if (!bd.perSide.length) {
+  //     setPlates(t("session.plateBarOnly", { barWeight: formatEnteredWeight(inv.barKg, unit) }));
+  //     return;
+  //   }
+  //   const perSide = bd.perSide
+  //     .map((p) => `${displayWeight(p.plateKg, unit)}${p.count > 1 ? `×${p.count}` : ""}`)
+  //     .join(" + ");
+  //   const lines = [
+  //     t("session.plateTarget", { targetWeight: formatEnteredWeight(set.weightKg, unit) }),
+  //     t("session.platePerSide", { perSide }),
+  //     bd.leftoverKg > 0.01
+  //       ? t("session.plateLeftover", {
+  //           shortWeight: formatWeight(bd.leftoverKg, unit),
+  //           achievableWeight: formatWeight(bd.achievableKg, unit),
+  //         })
+  //       : null,
+  //   ].filter(Boolean);
+  //   setPlates(lines.join("\n"));
+  // };
 
   const hasDetail = !!set.partialReps || variantSet;
 
@@ -558,10 +554,16 @@ export function SetRowEdit({
           testId="set-type-sheet"
           title={t("session.setTypeTitle")}
           onClose={() => setTypeMenu(false)}
+          // [원본] 일반·워밍업·드롭·실패·플레이트 계산 — 실패·플레이트 계산은 뺐다(옛 F 기록은 표시만 남고, 다른 타입을 고르면 풀린다 · SPEC-023)
           options={[
             {
               label: t("session.setType.normal"),
-              selected: !set.isWarmup && set.isDrop !== true && !set.isFailed,
+              selected:
+                !set.isWarmup &&
+                set.isDrop !== true &&
+                !set.isFailed &&
+                set.setType !== "top" &&
+                set.setType !== "backoff",
               onPress: () => onSetType("normal"),
             },
             {
@@ -571,15 +573,19 @@ export function SetRowEdit({
             },
             {
               label: t("session.setType.drop"),
-              selected: set.isDrop === true,
+              selected: !set.isWarmup && set.isDrop === true,
               onPress: () => onSetType("drop"),
             },
             {
-              label: t("session.setType.failed"),
-              selected: set.isFailed,
-              onPress: () => onSetType("failed"),
+              label: t("session.setType.top"),
+              selected: !set.isWarmup && set.isDrop !== true && !set.isFailed && set.setType === "top",
+              onPress: () => onSetType("top"),
             },
-            { label: t("session.plateCalcTitle"), onPress: showPlates },
+            {
+              label: t("session.setType.backoff"),
+              selected: !set.isWarmup && set.isDrop !== true && !set.isFailed && set.setType === "backoff",
+              onPress: () => onSetType("backoff"),
+            },
           ]}
         />
       ) : null}
@@ -594,14 +600,7 @@ export function SetRowEdit({
         />
       ) : null}
 
-      {plates ? (
-        <InfoDialog
-          testId="plate-dialog"
-          title={t("session.plateCalcPerSideTitle")}
-          message={plates}
-          onClose={() => setPlates(null)}
-        />
-      ) : null}
+      {/* [원본] 플레이트 계산 결과 창 — SPEC-023 */}
     </div>
   );
 }

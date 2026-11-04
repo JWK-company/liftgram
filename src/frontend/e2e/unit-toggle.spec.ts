@@ -116,9 +116,9 @@ test("완료한 세트가 있어도 토글은 숫자 그대로·단위만 바꾼
 
 test("프로필에는 무게 단위 줄이 없다 — 단위는 운동 블록마다(Q3 A)", async ({ page }) => {
   await page.goto("/profile");
-  await expect(page.getByTestId("bar-weight")).toBeVisible({ timeout: 20_000 });
+  // [원본] bar-weight — 봉 무게 줄을 뺐다(SPEC-023)
+  await expect(page.getByTestId("theme")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("unit")).toHaveCount(0);
-  await expect(page.getByTestId("bar-weight")).toContainText("kg");
 });
 
 test("운동 중 막대의 취소 — 같은 확인창을 거치고, 확인하면 보던 화면에 머문 채 막대가 사라진다", async ({

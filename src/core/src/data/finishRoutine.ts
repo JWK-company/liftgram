@@ -103,6 +103,7 @@ export async function getFinishPrompt(workoutId: string): Promise<FinishPrompt> 
     sortOrder: re.sortOrder,
     supersetGroup: re.supersetGroup ?? null,
     hasPrescription: Array.isArray(re.prescription) && re.prescription.length > 0, // QA Q4 — 현재 루틴 기준
+    prescribedWarmups: Array.isArray(re.prescription) ? re.prescription.filter((r) => r.setType === 'warmup').length : 0,
   }));
   const plan = diffRoutine(routine.id, lines, blocks);
   if (plan.changes.length === 0) return { kind: 'none', routineName: routine.name, plan, blocks };

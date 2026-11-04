@@ -69,6 +69,7 @@ enum SetType {
   SET_TYPE_TOP = 2;
   SET_TYPE_BACKOFF = 3;
   SET_TYPE_NORMAL = 4;
+  SET_TYPE_DROP = 5;
 }
 enum LoadHint {
   LOAD_HINT_UNSPECIFIED = 0;

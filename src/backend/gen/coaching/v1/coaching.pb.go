@@ -154,6 +154,7 @@ const (
 	SetType_SET_TYPE_TOP         SetType = 2
 	SetType_SET_TYPE_BACKOFF     SetType = 3
 	SetType_SET_TYPE_NORMAL      SetType = 4
+	SetType_SET_TYPE_DROP        SetType = 5
 )
 
 // Enum value maps for SetType.
@@ -164,6 +165,7 @@ var (
 		2: "SET_TYPE_TOP",
 		3: "SET_TYPE_BACKOFF",
 		4: "SET_TYPE_NORMAL",
+		5: "SET_TYPE_DROP",
 	}
 	SetType_value = map[string]int32{
 		"SET_TYPE_UNSPECIFIED": 0,
@@ -171,6 +173,7 @@ var (
 		"SET_TYPE_TOP":         2,
 		"SET_TYPE_BACKOFF":     3,
 		"SET_TYPE_NORMAL":      4,
+		"SET_TYPE_DROP":        5,
 	}
 )
 
@@ -2662,13 +2665,14 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x04Side\x12\x14\n" +
 	"\x10SIDE_UNSPECIFIED\x10\x00\x12\x10\n" +
 	"\fSIDE_TRAINER\x10\x01\x12\x0f\n" +
-	"\vSIDE_MEMBER\x10\x02*u\n" +
+	"\vSIDE_MEMBER\x10\x02*\x88\x01\n" +
 	"\aSetType\x12\x18\n" +
 	"\x14SET_TYPE_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fSET_TYPE_WARMUP\x10\x01\x12\x10\n" +
 	"\fSET_TYPE_TOP\x10\x02\x12\x14\n" +
 	"\x10SET_TYPE_BACKOFF\x10\x03\x12\x13\n" +
-	"\x0fSET_TYPE_NORMAL\x10\x04*e\n" +
+	"\x0fSET_TYPE_NORMAL\x10\x04\x12\x11\n" +
+	"\rSET_TYPE_DROP\x10\x05*e\n" +
 	"\bLoadHint\x12\x19\n" +
 	"\x15LOAD_HINT_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fLOAD_HINT_LIGHT\x10\x01\x12\x14\n" +

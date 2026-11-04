@@ -56,7 +56,8 @@ test("어깨깡패 → 버전 하나 저장 — 출처 인용·제휴 아님 고
   await expect(page.getByTestId("routine-notes")).toHaveValue(
     new RegExp(channel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
   );
-  await expect(page.getByTestId("re-sets").first()).toContainText(String(firstSets));
+  // [원본] re-sets 스테퍼 — 세트 표의 줄 수로 본다(SPEC-023)
+  await expect(page.getByTestId("set-table").first().getByTestId("set-table-row")).toHaveCount(firstSets);
 });
 
 test("여러 날 버전(3대 5×5 A·B) — 날마다 루틴 · 다시 저장하면 중복 확인 · 확인 연타에도 한 벌만 더 (qa code M-2)", async ({

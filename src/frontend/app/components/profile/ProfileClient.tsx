@@ -20,9 +20,7 @@ import {
   CUSTOM_VARIANT_KEYS,
   CUSTOM_VARIANT_COUNT,
   equipmentLabel,
-  fromKg,
   machineVariantLabel,
-  toKg,
   type ExperienceLevel,
   type WeightUnit,
 } from "@app/core";
@@ -45,7 +43,7 @@ import {
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
-import { NumberStepper, TextField } from "../ui/inputs";
+import { TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 // [원본] import { Icon } from "../ui/Icon"; — 운영 줄과 함께 쓰임이 없어졌다(#T2)
@@ -238,8 +236,9 @@ export default function ProfileClient() {
         .catch(() => {});
     });
 
-  const weightStep = weightUnit === "kg" ? 2.5 : 5;
-  const barDisplay = Number(fromKg(barWeightKg, weightUnit).toFixed(1));
+  // const weightStep = weightUnit === "kg" ? 2.5 : 5; // [원본] 봉 무게 스테퍼(SPEC-023)
+  // [원본] 봉 무게 표시(SPEC-023)
+  // const barDisplay = Number(fromKg(barWeightKg, weightUnit).toFixed(1));
 
   const levelLabel = experienceLevel ? t(`experience.level.${experienceLevel}` as TransKey) : null;
   const themeLabel: Record<ThemeChoice, string> = {
@@ -302,20 +301,7 @@ export default function ProfileClient() {
             value={language === "en" ? t("profile.languageEnglish") : t("profile.languageKorean")}
             onPress={() => setSheet("language")}
           />
-          <ListRow
-            title={t("profile.barWeight")}
-            subtitle={t("profile.barWeightCaption")}
-            trailing={
-              <NumberStepper
-                testId="bar-weight"
-                value={barDisplay}
-                step={weightStep}
-                min={0}
-                suffix={weightUnit}
-                onChange={(v) => save({ barWeightKg: toKg(v, weightUnit) })}
-              />
-            }
-          />
+          {/* [원본] 봉 무게 — 플레이트 계산만 쓰던 값이라 계산과 함께 뺐다(SPEC-023). 저장 값은 그대로 둔다. */}
           {/* [원본] 체중 스테퍼 — onChange 마다 저장해 + 한 번에 이력 한 줄씩 쌓였다(U-9). 최신값 읽기 전용 + 「기록」 시트 + 「체중 기록 전체」로 바꾼다.
               (0 = 설정 안 함은 「체중 기록 전체 › 체중 미설정으로 두기」가 같은 core 경로 updateUserSettings({ bodyweightKg: null })로 잇는다) @plm SRS-077
           <ListRow

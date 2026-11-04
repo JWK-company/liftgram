@@ -169,7 +169,7 @@ test("끄면 세트 줄에 칩이 없고(DOM 0) · 켜면 생기고 · 다시 �
   await expect(page.locator('[data-testid^="set-rir-"]')).toHaveCount(0);
 });
 
-test("처방 RIR 이 있으면 칩 하나로 합친다 — 꺼짐 「RIR 2」 · 켜짐 「목표 2」 → 「1 · 목표 2」", async ({
+test("처방 RIR 이 있으면 칩 하나로 합친다 — 꺼짐 「여유 2회」 · 켜짐 「여유 2회」 칩 → 「1 · 목표 2」", async ({
   page,
 }) => {
   test.setTimeout(150_000);
@@ -187,11 +187,8 @@ test("처방 RIR 이 있으면 칩 하나로 합친다 — 꺼짐 「RIR 2」 ·
   await page.getByTestId("picker-list").locator("button").first().click();
   await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 10_000 });
-  await page.getByTestId("btn-rx").click();
-  const sheet = page.getByTestId("rx-sheet");
-  await expect(sheet).toBeVisible();
-  await sheet.getByTestId("rx-targetRir").nth(0).fill("2");
-  await page.getByTestId("btn-rx-save").click();
+  // [원본] 처방 시트의 RIR 칸 — 운동 하나의 강도 목표 칩으로(SPEC-023)
+  await page.getByTestId("effort-2").click();
   await page.getByTestId("btn-routine-done").click();
   await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 10_000 });
   const tid = await page
@@ -206,17 +203,17 @@ test("처방 RIR 이 있으면 칩 하나로 합친다 — 꺼짐 「RIR 2」 ·
     .click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
 
-  // 꺼짐 — 처방 줄은 예전 그대로(「RIR 2」 글자), 칩 없음
+  // 꺼짐 — 처방 줄은 「여유 2회」 글자(SPEC-023에서 RIR 글자를 바꿈), 칩 없음
   const row = 세트_줄(page, 0, 0);
-  await expect(row).toContainText("RIR 2", { timeout: 15_000 });
+  await expect(row).toContainText("여유 2회", { timeout: 15_000 });
   await expect(page.locator('[data-testid^="set-rir-"]')).toHaveCount(0);
 
   // 켜짐 — 처방 RIR 글자는 칩 하나로(「목표 2」), 고르면 「1 · 목표 2」
   await 힘든정도_설정(page, true);
   await page.goto("/workout");
   const chip = await 칩(page);
-  await expect(chip).toHaveText("목표 2", { timeout: 15_000 });
-  await expect(세트_줄(page, 0, 0)).not.toContainText("RIR 2");
+  await expect(chip).toHaveText("여유 2회", { timeout: 15_000 });
+  await expect(세트_줄(page, 0, 0).getByText("여유 2회")).toHaveCount(1); // 칩 하나뿐 — 처방 글자와 겹치지 않는다
   await 시트_열기(chip, page);
   await expect(page.getByTestId("rir-sheet-target")).toHaveText("목표 여유 2개");
   await page.getByTestId("rir-opt-1").click();

@@ -17,7 +17,9 @@ test("프로필에 단위가 없고, 세션의 무게 표기는 블록 토글을
   await 카탈로그_준비(page);
 
   await page.goto("/profile");
-  await expect(page.getByTestId("bar-weight")).toBeVisible({ timeout: 20_000 });
+  // [원본] bar-weight — 플레이트 계산과 함께 봉 무게 줄을 뺐다(SPEC-023)
+  await expect(page.getByTestId("theme")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("bar-weight")).toHaveCount(0);
   await expect(page.getByTestId("unit")).toHaveCount(0);
 
   // 세션을 열면 기본 kg — 블록의 lb 를 누르면 무게 컬럼이 lb 로 바뀐다(저장은 계속 kg — 표시만 바뀐다).

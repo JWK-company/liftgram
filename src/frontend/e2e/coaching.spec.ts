@@ -240,9 +240,14 @@ test("트레이너가 처방을 쓰면 회원 앱에 내려오고, 이력에 남
     await expect(pageT.getByTestId("member-routines")).toContainText(루틴, { timeout: 20_000 });
     await pageT.getByTestId("member-exercise").first().click();
     await expect(pageT.getByTestId("rx-editor")).toBeVisible({ timeout: 20_000 });
-    // 첫 줄을 '탑 세트'로 바꾼다(타입 버튼이 순환한다: normal → warmup → top).
+    // 첫 줄을 '탑 세트'로 바꾼다 · 드롭 줄도 서버를 왕복하는지 본다(SPEC-023)
     await pageT.getByTestId("rx-type").first().click();
-    await pageT.getByTestId("rx-type").first().click();
+    await pageT.getByTestId("rx-type-sheet").getByText("탑세트 (T)").click();
+    await pageT.getByTestId("rx-add-set").click();
+    await pageT.getByTestId("rx-type").last().click();
+    await pageT.getByTestId("rx-type-sheet").getByText("드롭세트 (D)").click();
+    await pageT.getByTestId("rx-weight").first().fill("100");
+    await pageT.getByTestId("rx-weight").first().blur();
     await pageT.getByTestId("rx-save").click();
 
     // 목록으로 돌아오면 처방 표시가 붙어 있다.

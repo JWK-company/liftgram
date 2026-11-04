@@ -369,16 +369,19 @@ function BrandRow({
   );
 }
 
-function SelectChip({
+export function SelectChip({
   label,
   active,
   onPress,
   testId,
+  tall,
 }: {
   label: string;
   active: boolean;
   onPress: () => void;
   testId?: string;
+  /** 누르는 자리 44px — 칩만 줄지어 있는 곳(세트 표 강도 목표). */
+  tall?: boolean;
 }) {
   return (
     <button
@@ -390,7 +393,7 @@ function SelectChip({
         backgroundColor: active ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
         borderColor: active ? "var(--color-brand)" : "var(--color-line)",
       }}
-      className="rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]"
+      className={`rounded-[var(--radius-pill)] border px-[var(--spacing-md)] py-[var(--spacing-xs)]${tall ? " min-h-[44px]" : ""}`}
     >
       <AppText variant="caption" color={active ? "primary" : "text"}>
         {label}

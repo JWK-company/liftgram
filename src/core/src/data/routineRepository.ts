@@ -184,6 +184,23 @@ export async function setRoutineExercisePrescription(
   });
 }
 
+// 세트 표 저장(SPEC-023) — 세트 수·시작 무게·횟수·처방을 한 번의 쓰기로. 값은 domain/routineSets.routineLinePatch 가 만든다.
+export async function setRoutineExerciseSets(
+  id: string,
+  patch: import('../domain/routineSets').RoutineLineSets,
+): Promise<void> {
+  await database.write(async () => {
+    const re = await routineExercises().find(id);
+    await re.update((rec) => {
+      rec.targetSets = patch.targetSets;
+      rec.targetWeightKg = patch.targetWeightKg;
+      rec.targetRepsMin = patch.targetRepsMin;
+      rec.targetRepsMax = patch.targetRepsMax;
+      rec.prescription = patch.prescription;
+    });
+  });
+}
+
 // 루틴 종목의 변형(기구·그립·팔) 저장 — variant_key 파생 + 개별 차원, 레거시 machine_variant 미러. @plm SRS-028
 // 고유 기구 선택은 기본 버킷(null)으로 정규화 — 같은 종목·같은 기구가 두 버킷으로 갈라지지 않게(데이터 계층 보장).
 export async function setRoutineExerciseVariant(id: string, dims: VariantDims): Promise<void> {

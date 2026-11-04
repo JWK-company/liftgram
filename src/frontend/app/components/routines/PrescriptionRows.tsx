@@ -3,11 +3,26 @@
 //
 // 루틴 편집기(로컬 저장)와 코칭 화면(원격 저장)이 **같이 쓰는** 표현 전용 컴포넌트다.
 // 저장은 부르는 쪽 책임이고, 여기서는 행을 보여 주고 고치는 것만 한다.
+//
+// [개선] 세트 표(SPEC-023) — 운동 화면처럼 줄마다 타입·무게·횟수를 넣는다. 표의 무게는 시작 값이고 지난 기록이 먼저다.
+// 숫자 칸은 초안을 두고 칸을 떠날 때 올린다(「8」→「80」 중간값이 저장되지 않게). 줄 key 는 자리가 아니라 줄의 정체성이다.
 import type { PrescribedSet, PrescribedSetType } from "@app/core";
-import { LOAD_KG_MAX, LOAD_PCT_RANGE, type LoadBasis } from "@app/core/domain/prescription";
+import { displayWeight } from "@app/core";
+import { enteredWeightToKg } from "@app/core/domain/blockUnit";
+import { LOAD_KG_MAX, LOAD_PCT_RANGE } from "@app/core/domain/prescription";
+import {
+  effortGoalOf,
+  emptySetRow,
+  rowHasMeaning,
+  ROUTINE_SETS_MAX,
+  withEffortGoal,
+} from "@app/core/domain/routineSets";
+import { useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
-import { IconButton } from "../ui/IconButton";
+import { ActionSheet } from "../ui/Dialog";
+import { Icon } from "../ui/Icon";
+import { SelectChip } from "../ui/RecordSlotSelector";
 import { AppText } from "../ui/primitives";
 
 /** 칩 요약에 쓰는 한 글자 — "W W T B" 식으로 이어 붙인다. */
@@ -16,10 +31,11 @@ export const RX_SUMMARY_CHAR: Record<PrescribedSetType, string> = {
   warmup: "W",
   top: "T",
   backoff: "B",
+  drop: "D",
 };
 
 export function emptyRxRow(): PrescribedSet {
-  return { setType: "normal", targetRir: null, repMin: null, repMax: null, loadHint: null };
+  return emptySetRow();
 }
 
 export function rxSummary(rx: PrescribedSet[] | null | undefined): string | null {
@@ -27,22 +43,80 @@ export function rxSummary(rx: PrescribedSet[] | null | undefined): string | null
   return rx.map((r) => RX_SUMMARY_CHAR[r.setType] ?? "·").join(" ");
 }
 
-/** 타입은 버튼을 누를 때마다 이 순서로 돈다. */
-const CYCLE: PrescribedSetType[] = ["normal", "warmup", "top", "backoff"];
-
-/** 무게 기준도 누를 때마다 돈다 — 없음 → 1RM % → 탑셋 % → 직접(kg). @plm SRS-063 */
-const LOAD_CYCLE: (LoadBasis | null)[] = [null, "pct1rm", "pctTop", "fixed"];
-const LOAD_DEFAULT: Record<LoadBasis, Partial<PrescribedSet>> = {
-  pct1rm: { loadPct: 80, loadKg: undefined },
-  pctTop: { loadPct: 90, loadKg: undefined },
-  fixed: { loadKg: 20, loadPct: undefined },
-};
-
-/** 한 행이라도 뜻이 있으면 처방이다 — 무게 기준도 뜻이다(편집기 두 곳이 같은 판정을 쓴다). */
+/** 한 행이라도 뜻이 있으면 처방이다(루틴·코칭이 같은 판정을 쓴다). */
 export function rxMeaningful(rows: PrescribedSet[]): boolean {
-  return rows.some(
-    (r) =>
-      r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null || !!r.loadBasis,
+  return rows.some(rowHasMeaning);
+}
+
+const SET_TYPES: PrescribedSetType[] = ["normal", "warmup", "drop", "top", "backoff"];
+const TYPE_LABEL = {
+  normal: "session.setType.normal",
+  warmup: "session.setType.warmup",
+  drop: "session.setType.drop",
+  top: "session.setType.top",
+  backoff: "session.setType.backoff",
+} as const;
+const EFFORT_VALUES = [0, 1, 2, 3, 4];
+const cellClass =
+  "h-[44px] w-full min-w-0 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface) px-[2px] text-center text-(--color-ink)";
+
+/** 숫자 칸 — 입력 중에는 초안만 바뀌고, 칸을 떠나거나 Enter 에 올린다. 포커스 중에는 밖의 값으로 덮지 않는다. */
+function NumCell({
+  value,
+  decimal,
+  onCommit,
+  testId,
+  label,
+}: {
+  value: string;
+  decimal?: boolean;
+  onCommit: (text: string) => void;
+  testId: string;
+  label: string;
+}) {
+  // [원본] 초안을 항상 두고 포커스가 아닐 때 value 로 맞췄다 — 저장값이 그대로면(잘못된 입력) 칸에 초안이 남고,
+  // 포커스만 둔 칸이 옛 값을 되덮었다. 입력 중에만 초안을 보이고, 고친 칸만 올린다(REV-028).
+  const [draft, setDraft] = useState(value);
+  const [editing, setEditing] = useState(false);
+  const dirty = useRef(false);
+  const latest = useRef({ draft, onCommit });
+  latest.current = { draft, onCommit };
+  // 칸을 떠나지 않은 채 화면이 사라져도(기기 뒤로) 입력을 잃지 않는다
+  useEffect(
+    () => () => {
+      if (!dirty.current) return;
+      dirty.current = false;
+      latest.current.onCommit(latest.current.draft);
+    },
+    [],
+  );
+  return (
+    <input
+      inputMode={decimal ? "decimal" : "numeric"}
+      placeholder="–"
+      aria-label={label}
+      data-testid={testId}
+      value={editing ? draft : value}
+      onFocus={() => {
+        setDraft(value);
+        setEditing(true);
+      }}
+      onChange={(e) => {
+        dirty.current = true;
+        setDraft(e.target.value);
+        setEditing(true);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      onBlur={() => {
+        setEditing(false);
+        if (!dirty.current) return;
+        dirty.current = false;
+        if (draft !== value) onCommit(draft);
+      }}
+      className={cellClass}
+    />
   );
 }
 
@@ -50,146 +124,586 @@ export function PrescriptionRows({
   rows,
   onChange,
   allowLoad = true,
+  unit = "kg",
+  weightLabel,
+  mode = "routine",
+  fixedMultiplier = 1,
 }: {
   rows: PrescribedSet[];
   onChange: (next: PrescribedSet[]) => void;
-  /** 무게 기준을 고를 수 있는가 — 맨몸·어시스트 종목은 % 기준이 뜻이 없다(SRS-063). */
+  /** 무게 칸을 둘 것인가 — 맨몸·어시스트는 스테퍼 하나로 받는다(SRS-063). */
   allowLoad?: boolean;
+  unit?: "kg" | "lb";
+  weightLabel?: string;
+  /** coach = 코칭 저장 — 계약에 시작 무게가 없어 무게 칸은 고정 무게다(SPEC-023). */
+  mode?: "routine" | "coach";
+  /** 한쪽 입력 배수 — 고정 무게는 저장이 합계라 칸에는 나눠 보인다(세션 채우기와 같은 뜻 · REV-028). 시작 값은 입력값 그대로다. */
+  fixedMultiplier?: number;
 }) {
-  const patch = (i: number, p: Partial<PrescribedSet>) =>
-    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
+  // 줄의 정체성 — 가운데 줄을 지워도 초안이 옆 줄로 옮겨 가지 않게.
+  const nextKey = useRef(0);
+  const keysRef = useRef<number[]>([]);
+  if (keysRef.current.length !== rows.length) {
+    keysRef.current = rows.map((_, i) => keysRef.current[i] ?? nextKey.current++);
+  }
+  const [typeRow, setTypeRow] = useState<number | null>(null);
+  const [menuRow, setMenuRow] = useState<number | null>(null);
+  const [offerKg, setOfferKg] = useState<number | null>(null);
 
-  /** 빈칸·음수·숫자가 아니면 null. RIR은 0~6이 의미 있는 범위라 위를 자른다. */
-  const setNum = (i: number, key: "targetRir" | "repMin" | "repMax", txt: string) => {
-    const n = Number.parseInt(txt, 10);
-    const v = Number.isNaN(n) || n < 0 ? null : key === "targetRir" ? Math.min(6, n) : n;
-    patch(i, { [key]: v } as Partial<PrescribedSet>);
+  const patch = (i: number, p: Partial<PrescribedSet>) => {
+    setOfferKg(null);
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
+  };
+  const directBasis = mode === "coach" ? "fixed" : "start";
+  const followsDirect = (r: PrescribedSet) =>
+    !r.loadBasis || r.loadBasis === "start" || (mode === "coach" && r.loadBasis === "fixed");
+
+  const commitWeight = (i: number, text: string) => {
+    const r = rows[i];
+    const n = Number.parseFloat(text.replace(",", "."));
+    if (r.loadBasis === "pct1rm" || r.loadBasis === "pctTop") {
+      if (Number.isNaN(n)) return;
+      const [lo, hi] = LOAD_PCT_RANGE[r.loadBasis];
+      patch(i, { loadPct: Math.min(hi, Math.max(lo, Math.round(n))) });
+      return;
+    }
+    if (Number.isNaN(n) || n <= 0) {
+      patch(i, { loadBasis: undefined, loadKg: undefined });
+      return;
+    }
+    const fixedRow = r.loadBasis === "fixed";
+    const scale = fixedRow ? fixedMultiplier : 1;
+    const kg = enteredWeightToKg(n, unit, r.loadKg != null ? r.loadKg / scale : Number.NaN);
+    if (kg == null) return;
+    // lb 왕복 꼬리를 저장 규칙(넷째 자리)과 맞춘다 — 저장 뒤 서명이 어긋나 표가 다시 그려지지 않게
+    const clamped = Math.round(Math.min(LOAD_KG_MAX / scale, kg) * 10000) / 10000;
+    patch(i, { loadBasis: fixedRow ? "fixed" : directBasis, loadKg: clamped * scale });
+    const others = rows.some(
+      (x, j) => j !== i && x.setType === "normal" && followsDirect(x) && x.loadKg !== clamped,
+    );
+    setOfferKg(r.setType === "normal" && others ? clamped : null);
   };
 
+  const commitRep = (i: number, key: "repMin" | "repMax", text: string) => {
+    const n = Number.parseInt(text, 10);
+    patch(i, { [key]: Number.isNaN(n) || n <= 0 ? null : n } as Partial<PrescribedSet>);
+  };
+
+  const remove = (i: number) => {
+    if (rows.length <= 1) return;
+    keysRef.current = keysRef.current.filter((_, idx) => idx !== i);
+    setOfferKg(null);
+    onChange(rows.filter((_, idx) => idx !== i));
+  };
+
+  const addSet = () => {
+    if (rows.length >= ROUTINE_SETS_MAX) return;
+    const last = rows[rows.length - 1];
+    const goal = effortGoalOf(rows);
+    const next: PrescribedSet = {
+      ...emptySetRow(),
+      targetRir: typeof goal === "number" ? goal : null,
+      repMin: last?.repMin ?? null,
+      repMax: last?.repMax ?? null,
+      ...(last?.loadBasis === "start" || last?.loadBasis === "fixed"
+        ? { loadBasis: last.loadBasis, loadKg: last.loadKg }
+        : {}),
+    };
+    keysRef.current = [...keysRef.current, nextKey.current++];
+    setOfferKg(null);
+    onChange([...rows, next]);
+  };
+
+  const addWarmup = () => {
+    if (rows.length >= ROUTINE_SETS_MAX) return;
+    keysRef.current = [nextKey.current++, ...keysRef.current];
+    setOfferKg(null);
+    onChange([{ ...emptySetRow(), setType: "warmup" }, ...rows]);
+  };
+
+  const applyOffer = () => {
+    if (offerKg == null) return;
+    const kg = offerKg;
+    setOfferKg(null);
+    onChange(
+      rows.map((x) =>
+        x.setType === "normal" && followsDirect(x) ? { ...x, loadBasis: directBasis, loadKg: kg } : x,
+      ),
+    );
+  };
+
+  const pickBasis = (i: number, basis: "start" | "fixed" | "pct1rm" | "pctTop") => {
+    const r = rows[i];
+    if (basis === "pct1rm" || basis === "pctTop") {
+      patch(i, { loadBasis: basis, loadPct: basis === "pct1rm" ? 80 : 90, loadKg: undefined });
+    } else if (basis === "fixed") {
+      // [원본] loadKg: r.loadKg ?? 20 — 한쪽 입력이면 칸의 값이 절반이 됐고, lb 칸에는 44.09 가 떴다
+      if (r.loadBasis === "fixed") return;
+      const entered =
+        r.loadKg != null && r.loadKg > 0
+          ? r.loadKg
+          : (enteredWeightToKg(unit === "lb" ? 45 : 20, unit, Number.NaN) ?? 20);
+      patch(i, {
+        loadBasis: "fixed",
+        loadKg: Math.min(LOAD_KG_MAX, entered * fixedMultiplier),
+        loadPct: undefined,
+      });
+    } else {
+      const entered = r.loadBasis === "fixed" && r.loadKg ? r.loadKg / fixedMultiplier : r.loadKg;
+      patch(i, {
+        loadBasis: entered ? "start" : undefined,
+        loadKg: entered || undefined,
+        loadPct: undefined,
+      });
+    }
+  };
+
+  /** 타입을 바꾸면 강도 목표도 맞춘다 — 웜업·드롭은 비우고, 작업 세트가 되면 나머지 줄의 목표를 따른다(REV-028). */
+  const pickType = (i: number, type: PrescribedSetType) => {
+    const r = rows[i];
+    const working = type !== "warmup" && type !== "drop";
+    const wasWorking = r.setType !== "warmup" && r.setType !== "drop";
+    const rest = rows.filter((_, j) => j !== i);
+    const others = rest.filter((x) => x.setType !== "warmup" && x.setType !== "drop");
+    const restGoal = effortGoalOf(rest);
+    const targetRir = !working
+      ? null
+      : others.length > 0 && typeof restGoal === "number"
+        ? restGoal
+        : others.length > 0 && restGoal === null
+          ? null
+          : wasWorking
+            ? r.targetRir
+            : null;
+    patch(i, { setType: type, targetRir });
+  };
+
+  const goal = effortGoalOf(rows);
+  const effortChips = [
+    ...EFFORT_VALUES,
+    ...(typeof goal === "number" && !EFFORT_VALUES.includes(goal) ? [goal] : []),
+  ];
+  let normal = 0;
+
   return (
-    <div>
+    <div data-testid="set-table">
       <div className="flex items-center gap-[4px] pb-[4px]">
-        <span className="w-[86px]">
-          <AppText variant="label" color="textFaint">
-            {t("routines.rxColType")}
-          </AppText>
-        </span>
-        {(["routines.rxColRir", "routines.rxColRepMin", "routines.rxColRepMax"] as const).map((k) => (
-          <span key={k} className="flex-1 text-center">
+        <span className="w-[34px] shrink-0" />
+        {allowLoad ? (
+          <span className="w-[78px] shrink-0 text-center">
             <AppText variant="label" color="textFaint">
-              {t(k)}
+              {weightLabel ?? t("routines.setColWeight")}
             </AppText>
           </span>
-        ))}
-        <span className="w-8" />
+        ) : null}
+        <span className="min-w-0 flex-1 text-center">
+          <AppText variant="label" color="textFaint">
+            {t("routines.setColReps")}
+          </AppText>
+        </span>
+        <span className="w-[44px] shrink-0" />
       </div>
 
-      <div className="max-h-[320px] overflow-y-auto">
-        {rows.map((r, i) => (
-          // 처방 행은 **자리 자체가 뜻**이다(1세트·2세트…). 순서를 바꾸는 조작이 없고 값도 전부
-          // props에서 오므로, 인덱스를 키로 써도 상태가 엉키지 않는다.
-          // biome-ignore lint/suspicious/noArrayIndexKey: 위치가 곧 정체성인 행이다
-          <div key={i} className="py-[3px]">
+      {rows.map((r, i) => {
+        const pct = r.loadBasis === "pct1rm" || r.loadBasis === "pctTop";
+        if (r.setType === "normal") normal += 1;
+        const glyph = r.setType === "normal" ? String(normal) : RX_SUMMARY_CHAR[r.setType];
+        return (
+          <div
+            key={keysRef.current[i]}
+            className="py-[2px]"
+            data-testid="set-table-row"
+            data-type={r.setType}
+          >
             <div className="flex items-center gap-[4px]">
-              <div className="w-[86px]">
-                <Button
-                  title={t(`routines.rxType.${r.setType}` as Parameters<typeof t>[0])}
-                  size="sm"
-                  variant={r.setType === "normal" ? "ghost" : "secondary"}
-                  fullWidth={false}
-                  testId="rx-type"
-                  onPress={() => patch(i, { setType: CYCLE[(CYCLE.indexOf(r.setType) + 1) % CYCLE.length] })}
+              <button
+                type="button"
+                data-testid="rx-type"
+                aria-label={`${t("session.setTypeTitle")}: ${t(`routines.rxType.${r.setType}` as Parameters<typeof t>[0])}`}
+                onClick={() => setTypeRow(i)}
+                className="flex h-[44px] w-[34px] shrink-0 items-center justify-center"
+              >
+                <span className="flex min-w-[28px] justify-center rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) px-[2px] py-[2px]">
+                  <AppText variant="caption" className="font-bold">
+                    {glyph}
+                  </AppText>
+                </span>
+              </button>
+              {allowLoad ? (
+                <div className="relative w-[78px] shrink-0">
+                  <NumCell
+                    decimal
+                    testId="rx-weight"
+                    label={weightLabel ?? t("routines.setColWeight")}
+                    value={
+                      pct
+                        ? String(r.loadPct ?? "")
+                        : r.loadKg != null && r.loadKg > 0
+                          ? String(
+                              displayWeight(
+                                r.loadBasis === "fixed" ? r.loadKg / fixedMultiplier : r.loadKg,
+                                unit,
+                              ),
+                            )
+                          : ""
+                    }
+                    onCommit={(text) => commitWeight(i, text)}
+                  />
+                  {pct ? (
+                    <span className="pointer-events-none absolute top-1/2 right-[4px] -translate-y-1/2">
+                      <AppText variant="caption" color="textMuted">
+                        %
+                      </AppText>
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+              <div className="flex min-w-0 flex-1 items-center gap-[2px]">
+                <NumCell
+                  testId="rx-rep-min"
+                  label={`${t("routines.setColReps")} ${t("routines.rxColRepMin")}`}
+                  value={r.repMin == null ? "" : String(r.repMin)}
+                  onCommit={(text) => commitRep(i, "repMin", text)}
+                />
+                <AppText variant="caption" color="textFaint">
+                  ~
+                </AppText>
+                <NumCell
+                  testId="rx-rep-max"
+                  label={`${t("routines.setColReps")} ${t("routines.rxColRepMax")}`}
+                  value={r.repMax == null ? "" : String(r.repMax)}
+                  onCommit={(text) => commitRep(i, "repMax", text)}
                 />
               </div>
-              {(["targetRir", "repMin", "repMax"] as const).map((key) => (
-                <input
-                  key={key}
-                  inputMode="numeric"
-                  placeholder="–"
-                  data-testid={`rx-${key}`}
-                  value={r[key] == null ? "" : String(r[key])}
-                  onChange={(e) => setNum(i, key, e.target.value)}
-                  className="h-[38px] min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
-                />
-              ))}
-              <IconButton
-                icon="close"
-                size={16}
-                label={t("common.delete")}
-                color="var(--color-ink3)"
-                className="h-8! w-8!"
-                // 행이 하나뿐이면 지우지 않는다 — 빈 표가 되면 무엇을 고쳐야 할지 알 수 없다.
-                onPress={() => rows.length > 1 && onChange(rows.filter((_, idx) => idx !== i))}
-              />
+              {allowLoad || rows.length > 1 ? (
+                <button
+                  type="button"
+                  data-testid="rx-more"
+                  aria-label={t("routines.setMenuTitle")}
+                  onClick={() => setMenuRow(i)}
+                  className="flex h-[44px] w-[44px] shrink-0 items-center justify-center"
+                >
+                  <Icon name="ellipsis-horizontal" size={18} color="var(--color-ink3)" />
+                </button>
+              ) : (
+                <span className="w-[44px] shrink-0" />
+              )}
             </div>
-            {/* 무게 기준(#56) — 그 세트의 무게를 어떻게 정하는지. 계산은 운동 시작·탑셋을 마칠 때 한다. @plm SRS-063 */}
-            {allowLoad ? (
-              <div className="flex items-center gap-[4px] pb-[4px] pl-[90px]">
-                <Button
-                  title={t(`routines.rxLoad.${r.loadBasis ?? "none"}` as Parameters<typeof t>[0])}
-                  size="sm"
-                  variant={r.loadBasis ? "secondary" : "ghost"}
-                  fullWidth={false}
-                  testId="rx-load-basis"
-                  onPress={() => {
-                    const next =
-                      LOAD_CYCLE[(LOAD_CYCLE.indexOf(r.loadBasis ?? null) + 1) % LOAD_CYCLE.length];
-                    patch(
-                      i,
-                      next
-                        ? { loadBasis: next, ...LOAD_DEFAULT[next] }
-                        : { loadBasis: undefined, loadPct: undefined, loadKg: undefined },
-                    );
-                  }}
-                />
-                {r.loadBasis ? (
-                  <>
-                    <input
-                      inputMode="decimal"
-                      data-testid="rx-load-value"
-                      value={String(r.loadBasis === "fixed" ? (r.loadKg ?? "") : (r.loadPct ?? ""))}
-                      onChange={(e) => {
-                        const n = Number.parseFloat(e.target.value.replace(",", "."));
-                        if (r.loadBasis === "fixed") {
-                          patch(i, {
-                            loadKg: Number.isNaN(n) ? undefined : Math.min(LOAD_KG_MAX, Math.max(0, n)),
-                          });
-                        } else {
-                          const [, hi] = LOAD_PCT_RANGE[r.loadBasis as "pct1rm" | "pctTop"];
-                          patch(i, {
-                            loadPct: Number.isNaN(n) ? undefined : Math.min(hi, Math.max(0, Math.round(n))),
-                          });
-                        }
-                      }}
-                      // 입력 중에는 하한을 강제하지 않고(「8」→「80」), 칸을 떠날 때 하한까지 올린다 — 범위 밖 % 는
-                      // 저장 때 기준째 조용히 사라졌다(/qa code L4) @plm SRS-063
-                      onBlur={() => {
-                        if (r.loadBasis === "fixed" || r.loadPct == null) return;
-                        const [lo] = LOAD_PCT_RANGE[r.loadBasis as "pct1rm" | "pctTop"];
-                        if (r.loadPct < lo) patch(i, { loadPct: lo });
-                      }}
-                      className="h-[34px] w-[64px] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center text-[length:var(--text-md)] text-(--color-ink)"
-                    />
-                    <AppText variant="caption" color="textMuted">
-                      {r.loadBasis === "fixed" ? "kg" : "%"}
-                    </AppText>
-                  </>
-                ) : null}
+            {r.loadBasis === "fixed" && mode === "routine" ? (
+              <div className="pl-[38px]" data-testid="rx-fixed-tag">
+                <AppText variant="label" color="textMuted">
+                  {t("routines.setFixedTag")}
+                </AppText>
+              </div>
+            ) : pct ? (
+              <div className="pl-[38px]">
+                <AppText variant="label" color="textMuted">
+                  {t(r.loadBasis === "pct1rm" ? "routines.setBasisPct1rm" : "routines.setBasisPctTop")}
+                </AppText>
               </div>
             ) : null}
           </div>
-        ))}
+        );
+      })}
+
+      {offerKg != null ? (
+        <div className="mt-[4px]">
+          <Button
+            title={t("routines.setApplyRest", { value: `${displayWeight(offerKg, unit)}${unit}` })}
+            size="sm"
+            variant="quiet"
+            fullWidth={false}
+            testId="rx-apply-rest"
+            onPress={applyOffer}
+          />
+        </div>
+      ) : null}
+
+      <div className="mt-[var(--spacing-xs)] flex gap-[var(--spacing-xs)]">
+        <div className="flex-1">
+          <Button
+            title={t("routines.rxAddSet")}
+            icon="add"
+            variant="secondary"
+            size="sm"
+            testId="rx-add-set"
+            onPress={addSet}
+          />
+        </div>
+        <div className="flex-1">
+          <Button
+            title={t("routines.setAddWarmup")}
+            variant="secondary"
+            size="sm"
+            testId="rx-add-warmup"
+            onPress={addWarmup}
+          />
+        </div>
       </div>
 
-      <div className="mt-[var(--spacing-sm)]">
-        <Button
-          title={t("routines.rxAddSet")}
-          icon="add"
-          variant="secondary"
-          size="sm"
-          onPress={() => onChange([...rows, emptyRxRow()])}
-        />
+      <div className="mt-[var(--spacing-md)]" data-testid="effort-goal" data-goal={String(goal)}>
+        <AppText variant="label" color="textMuted" className="block">
+          {t("routines.effortTitle")}
+          {goal === "mixed" ? ` · ${t("routines.effortMixed")}` : ""}
+        </AppText>
+        <div className="mt-[4px] flex flex-wrap gap-[6px]">
+          <SelectChip
+            label={t("routines.effortNone")}
+            active={goal === null}
+            tall
+            testId="effort-none"
+            onPress={() => onChange(withEffortGoal(rows, null))}
+          />
+          {effortChips.map((rir) => (
+            <SelectChip
+              key={rir}
+              label={t("routines.effortValue", { rir })}
+              active={goal === rir}
+              tall
+              testId={`effort-${rir}`}
+              onPress={() => onChange(withEffortGoal(rows, rir))}
+            />
+          ))}
+        </div>
       </div>
+
+      {typeRow != null && rows[typeRow] ? (
+        <ActionSheet
+          testId="rx-type-sheet"
+          title={t("session.setTypeTitle")}
+          onClose={() => setTypeRow(null)}
+          options={SET_TYPES.map((type) => ({
+            label: t(TYPE_LABEL[type]),
+            selected: rows[typeRow].setType === type,
+            onPress: () => pickType(typeRow, type),
+          }))}
+        />
+      ) : null}
+
+      {menuRow != null && rows[menuRow] ? (
+        <ActionSheet
+          testId="rx-menu-sheet"
+          title={t("routines.setMenuTitle")}
+          onClose={() => setMenuRow(null)}
+          options={[
+            ...(allowLoad
+              ? [
+                  ...(mode === "routine"
+                    ? [
+                        {
+                          label: t("routines.setBasisStart"),
+                          selected: !rows[menuRow].loadBasis || rows[menuRow].loadBasis === "start",
+                          onPress: () => pickBasis(menuRow, "start"),
+                        },
+                        {
+                          label: t("routines.setBasisFixed"),
+                          selected: rows[menuRow].loadBasis === "fixed",
+                          testId: "rx-basis-fixed",
+                          onPress: () => pickBasis(menuRow, "fixed"),
+                        },
+                      ]
+                    : [
+                        {
+                          label: t("routines.setColWeight"),
+                          selected: !rows[menuRow].loadBasis || rows[menuRow].loadBasis === "fixed",
+                          onPress: () => pickBasis(menuRow, "fixed"),
+                        },
+                      ]),
+                  {
+                    label: t("routines.setBasisPct1rm"),
+                    selected: rows[menuRow].loadBasis === "pct1rm",
+                    testId: "rx-basis-pct1rm",
+                    onPress: () => pickBasis(menuRow, "pct1rm"),
+                  },
+                  {
+                    label: t("routines.setBasisPctTop"),
+                    selected: rows[menuRow].loadBasis === "pctTop",
+                    testId: "rx-basis-pctTop",
+                    onPress: () => pickBasis(menuRow, "pctTop"),
+                  },
+                ]
+              : []),
+            ...(rows.length > 1
+              ? [
+                  {
+                    label: t("common.delete"),
+                    destructive: true,
+                    testId: "rx-delete",
+                    onPress: () => remove(menuRow),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      ) : null}
     </div>
   );
 }
+
+// [원본] 처방 시트의 행(SPEC-023 이전) — 타입 순환·RIR 칸·반복 칸·무게 기준 순환
+// /** 타입은 버튼을 누를 때마다 이 순서로 돈다. */
+// const CYCLE: PrescribedSetType[] = ["normal", "warmup", "top", "backoff"];
+//
+// /** 무게 기준도 누를 때마다 돈다 — 없음 → 1RM % → 탑셋 % → 직접(kg). @plm SRS-063 */
+// const LOAD_CYCLE: (LoadBasis | null)[] = [null, "pct1rm", "pctTop", "fixed"];
+// const LOAD_DEFAULT: Record<LoadBasis, Partial<PrescribedSet>> = {
+//   pct1rm: { loadPct: 80, loadKg: undefined },
+//   pctTop: { loadPct: 90, loadKg: undefined },
+//   fixed: { loadKg: 20, loadPct: undefined },
+// };
+//
+// /** 한 행이라도 뜻이 있으면 처방이다 — 무게 기준도 뜻이다(편집기 두 곳이 같은 판정을 쓴다). */
+// export function rxMeaningful(rows: PrescribedSet[]): boolean {
+//   return rows.some(
+//     (r) =>
+//       r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null || !!r.loadBasis,
+//   );
+// }
+//
+// export function PrescriptionRows({
+//   rows,
+//   onChange,
+//   allowLoad = true,
+// }: {
+//   rows: PrescribedSet[];
+//   onChange: (next: PrescribedSet[]) => void;
+//   /** 무게 기준을 고를 수 있는가 — 맨몸·어시스트 종목은 % 기준이 뜻이 없다(SRS-063). */
+//   allowLoad?: boolean;
+// }) {
+//   const patch = (i: number, p: Partial<PrescribedSet>) =>
+//     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
+//
+//   /** 빈칸·음수·숫자가 아니면 null. RIR은 0~6이 의미 있는 범위라 위를 자른다. */
+//   const setNum = (i: number, key: "targetRir" | "repMin" | "repMax", txt: string) => {
+//     const n = Number.parseInt(txt, 10);
+//     const v = Number.isNaN(n) || n < 0 ? null : key === "targetRir" ? Math.min(6, n) : n;
+//     patch(i, { [key]: v } as Partial<PrescribedSet>);
+//   };
+//
+//   return (
+//     <div>
+//       <div className="flex items-center gap-[4px] pb-[4px]">
+//         <span className="w-[86px]">
+//           <AppText variant="label" color="textFaint">
+//             {t("routines.rxColType")}
+//           </AppText>
+//         </span>
+//         {(["routines.rxColRir", "routines.rxColRepMin", "routines.rxColRepMax"] as const).map((k) => (
+//           <span key={k} className="flex-1 text-center">
+//             <AppText variant="label" color="textFaint">
+//               {t(k)}
+//             </AppText>
+//           </span>
+//         ))}
+//         <span className="w-8" />
+//       </div>
+//
+//       <div className="max-h-[320px] overflow-y-auto">
+//         {rows.map((r, i) => (
+//           // 처방 행은 **자리 자체가 뜻**이다(1세트·2세트…). 순서를 바꾸는 조작이 없고 값도 전부
+//           // props에서 오므로, 인덱스를 키로 써도 상태가 엉키지 않는다.
+//           // biome-ignore lint/suspicious/noArrayIndexKey: 위치가 곧 정체성인 행이다
+//           <div key={i} className="py-[3px]">
+//             <div className="flex items-center gap-[4px]">
+//               <div className="w-[86px]">
+//                 <Button
+//                   title={t(`routines.rxType.${r.setType}` as Parameters<typeof t>[0])}
+//                   size="sm"
+//                   variant={r.setType === "normal" ? "ghost" : "secondary"}
+//                   fullWidth={false}
+//                   testId="rx-type"
+//                   onPress={() => patch(i, { setType: CYCLE[(CYCLE.indexOf(r.setType) + 1) % CYCLE.length] })}
+//                 />
+//               </div>
+//               {(["targetRir", "repMin", "repMax"] as const).map((key) => (
+//                 <input
+//                   key={key}
+//                   inputMode="numeric"
+//                   placeholder="–"
+//                   data-testid={`rx-${key}`}
+//                   value={r[key] == null ? "" : String(r[key])}
+//                   onChange={(e) => setNum(i, key, e.target.value)}
+//                   className="h-[38px] min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center text-[length:var(--text-md)] text-(--color-ink) placeholder:text-(--color-ink3)"
+//                 />
+//               ))}
+//               <IconButton
+//                 icon="close"
+//                 size={16}
+//                 label={t("common.delete")}
+//                 color="var(--color-ink3)"
+//                 className="h-8! w-8!"
+//                 // 행이 하나뿐이면 지우지 않는다 — 빈 표가 되면 무엇을 고쳐야 할지 알 수 없다.
+//                 onPress={() => rows.length > 1 && onChange(rows.filter((_, idx) => idx !== i))}
+//               />
+//             </div>
+//             {/* 무게 기준(#56) — 그 세트의 무게를 어떻게 정하는지. 계산은 운동 시작·탑셋을 마칠 때 한다. @plm SRS-063 */}
+//             {allowLoad ? (
+//               <div className="flex items-center gap-[4px] pb-[4px] pl-[90px]">
+//                 <Button
+//                   title={t(`routines.rxLoad.${r.loadBasis ?? "none"}` as Parameters<typeof t>[0])}
+//                   size="sm"
+//                   variant={r.loadBasis ? "secondary" : "ghost"}
+//                   fullWidth={false}
+//                   testId="rx-load-basis"
+//                   onPress={() => {
+//                     const next =
+//                       LOAD_CYCLE[(LOAD_CYCLE.indexOf(r.loadBasis ?? null) + 1) % LOAD_CYCLE.length];
+//                     patch(
+//                       i,
+//                       next
+//                         ? { loadBasis: next, ...LOAD_DEFAULT[next] }
+//                         : { loadBasis: undefined, loadPct: undefined, loadKg: undefined },
+//                     );
+//                   }}
+//                 />
+//                 {r.loadBasis ? (
+//                   <>
+//                     <input
+//                       inputMode="decimal"
+//                       data-testid="rx-load-value"
+//                       value={String(r.loadBasis === "fixed" ? (r.loadKg ?? "") : (r.loadPct ?? ""))}
+//                       onChange={(e) => {
+//                         const n = Number.parseFloat(e.target.value.replace(",", "."));
+//                         if (r.loadBasis === "fixed") {
+//                           patch(i, {
+//                             loadKg: Number.isNaN(n) ? undefined : Math.min(LOAD_KG_MAX, Math.max(0, n)),
+//                           });
+//                         } else {
+//                           const [, hi] = LOAD_PCT_RANGE[r.loadBasis as "pct1rm" | "pctTop"];
+//                           patch(i, {
+//                             loadPct: Number.isNaN(n) ? undefined : Math.min(hi, Math.max(0, Math.round(n))),
+//                           });
+//                         }
+//                       }}
+//                       // 입력 중에는 하한을 강제하지 않고(「8」→「80」), 칸을 떠날 때 하한까지 올린다 — 범위 밖 % 는
+//                       // 저장 때 기준째 조용히 사라졌다(/qa code L4) @plm SRS-063
+//                       onBlur={() => {
+//                         if (r.loadBasis === "fixed" || r.loadPct == null) return;
+//                         const [lo] = LOAD_PCT_RANGE[r.loadBasis as "pct1rm" | "pctTop"];
+//                         if (r.loadPct < lo) patch(i, { loadPct: lo });
+//                       }}
+//                       className="h-[34px] w-[64px] rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center text-[length:var(--text-md)] text-(--color-ink)"
+//                     />
+//                     <AppText variant="caption" color="textMuted">
+//                       {r.loadBasis === "fixed" ? "kg" : "%"}
+//                     </AppText>
+//                   </>
+//                 ) : null}
+//               </div>
+//             ) : null}
+//           </div>
+//         ))}
+//       </div>
+//
+//       <div className="mt-[var(--spacing-sm)]">
+//         <Button
+//           title={t("routines.rxAddSet")}
+//           icon="add"
+//           variant="secondary"
+//           size="sm"
+//           onPress={() => onChange([...rows, emptyRxRow()])}
+//         />
+//       </div>
+//     </div>
+//   );
+// }

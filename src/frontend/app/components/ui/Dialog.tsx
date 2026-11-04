@@ -12,7 +12,7 @@
 //
 // 둘 다 #modal-root로 포털한다 — 부모의 overflow·z-index에 갇히지 않게.
 // ─────────────────────────────────────────────────────────────────────────────
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { t } from "@/lib/i18n";
@@ -20,6 +20,15 @@ import { Button } from "./Button";
 import { AppText } from "./primitives";
 
 // 시트 껍데기 자체도 내보낸다 — 자기 버튼을 갖는 편집 폼(캡션 수정)이 이것만 필요로 한다.
+const openOverlays: (() => void)[] = [];
+/** 열린 창이 있으면 맨 위 창을 닫고 true. */
+export function closeTopOverlay(): boolean {
+  const top = openOverlays[openOverlays.length - 1];
+  if (!top) return false;
+  top();
+  return true;
+}
+
 export function Overlay({
   onClose,
   children,
@@ -34,6 +43,18 @@ export function Overlay({
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
+
+  // 열린 창 목록 — 뒤로 가기를 받는 화면이 맨 위 창만 닫을 수 있게(SPEC-023). onClose 는 새 함수일 수 있어 ref 로 잡는다.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const entry = () => closeRef.current();
+    openOverlays.push(entry);
+    return () => {
+      const at = openOverlays.indexOf(entry);
+      if (at >= 0) openOverlays.splice(at, 1);
+    };
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -109,6 +130,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
+  cancelLabel,
   destructive,
   onConfirm,
   onCancel,
@@ -117,6 +139,7 @@ export function ConfirmDialog({
   title: string;
   message?: string;
   confirmLabel: string;
+  cancelLabel?: string;
   destructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
@@ -134,7 +157,12 @@ export function ConfirmDialog({
       ) : null}
       <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
         <div className="flex-1">
-          <Button title={t("common.cancel")} variant="secondary" onPress={onCancel} testId="dialog-cancel" />
+          <Button
+            title={cancelLabel ?? t("common.cancel")}
+            variant="secondary"
+            onPress={onCancel}
+            testId="dialog-cancel"
+          />
         </div>
         <div className="flex-1">
           <Button

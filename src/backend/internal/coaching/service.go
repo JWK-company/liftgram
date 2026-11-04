@@ -432,7 +432,13 @@ func (s *Service) SetMemberPrescription(
 	if len(clean) == 0 {
 		rec["prescription"] = json.RawMessage("null")
 	} else {
-		encoded, err := json.Marshal(clean)
+		// [원본] encoded, err := json.Marshal(clean) — 코치 저장이 회원의 시작 무게를 지웠다(REV-028)
+		var stored []PrescribedSet
+		var storedText string
+		if raw, ok := rec["prescription"]; ok && json.Unmarshal(raw, &storedText) == nil {
+			_ = json.Unmarshal([]byte(storedText), &stored)
+		}
+		encoded, err := json.Marshal(KeepMemberStart(clean, stored))
 		if err != nil {
 			return nil, err
 		}

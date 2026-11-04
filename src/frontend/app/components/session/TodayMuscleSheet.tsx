@@ -14,6 +14,7 @@ import { lang, t } from "@/lib/i18n";
 import { useMuscleMap } from "@/lib/muscleMapPref";
 import { BodyMapFull, formatMuscleSets, muscleMapAriaLabel } from "../ui/BodyMap";
 import { SheetShell } from "../ui/Dialog";
+import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
 export function TodayMuscleButton({ workoutId }: { workoutId: string }) {
@@ -48,11 +49,11 @@ export function TodayMuscleButton({ workoutId }: { workoutId: string }) {
         // [원본] min-h-[44px] — 가이드 줄 전체가 44 가 되어 켠 상태에서 첫 세트가 8px 내려가 화면 정리 예산(360 첫 세트 ≤320)을 넘었다.
         //   늘린 8px 는 이 줄의 위 여백(pt-sm = 8px) 자리라 다른 버튼과 겹치지 않는다. 아래로는 넓히지 않는다 — 바로 아래 블록 목록이
         //   그 위에 그려져(쌓임 순서) 넓힌 자리가 눌리지 않았다(e2e elementFromPoint 로 확인).
-        className="relative min-h-[36px] flex-1 rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-surface) py-[4px] text-center before:absolute before:inset-x-0 before:-top-[8px] before:bottom-0 before:content-['']"
+        // [원본] 가이드 줄의 글자 버튼 — 헤더로 옮겨 아이콘만 둔다. 보이는 40px, 누르는 자리는 ::before 로 44px(SPEC-023)
+        aria-label={t("muscleMap.todayButton")}
+        className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-(--color-surface-alt) before:absolute before:-inset-[2px] before:content-[''] active:opacity-70"
       >
-        <AppText variant="caption" className="font-semibold">
-          {t("muscleMap.todayButton")}
-        </AppText>
+        <Icon name="body-outline" size={20} color="var(--color-ink)" />
       </button>
       {open ? <TodayMuscleSheet data={data} onClose={close} /> : null}
     </>

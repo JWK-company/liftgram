@@ -89,8 +89,16 @@ export interface WorkoutExerciseRow {
   variant: VariantDims | null;
   /** v25 이 블록의 무게 단위(null = 아직 안 정함 → kg/칸 기억) @plm SRS-067 */
   weightUnit?: "kg" | "lb" | null;
+  /** 루틴 줄의 대표 무게(표의 값이 묶인 값) — 제안 판정에 쓴다(REV-028) */
+  targetWeightKg?: number | null;
   prescription:
-    | { repMin?: number | null; repMax?: number | null; loadBasis?: string; loadPct?: number }[]
+    | {
+        repMin?: number | null;
+        repMax?: number | null;
+        loadBasis?: string;
+        loadPct?: number;
+        loadKg?: number;
+      }[]
     | null;
 }
 
@@ -411,6 +419,7 @@ export function ExerciseBlock({
       if (s.isDrop === true) return { label: "D", color: "primary" as const };
       if (s.isFailed) return { label: "F", color: "danger" as const };
       if (s.setType === "top") return { label: "T", color: "textMuted" as const };
+      if (s.setType === "backoff") return { label: "B", color: "textMuted" as const }; // SPEC-023
       normal += 1;
       return { label: String(normal), color: "textMuted" as const };
     });
@@ -565,7 +574,15 @@ export function ExerciseBlock({
         if (kg > 0) {
           const idx = sets.findIndex((x) => x.id === s.id);
           const nextSet = sets.slice(idx + 1).find((x) => !x.done && x.setType != null);
-          if (nextSet && !filledIds.has(nextSet.id)) {
+          // 표에 무게를 넣은 줄에는 제안을 띄우지 않는다 — 탑 120 위에 「제안 81kg」이 뜬다(SPEC-023)
+          // [원본] !!rx?.loadBasis — 탑 100·백오프 100 은 기준이 블록 값으로 묶여 있어 제안이 떴다(REV-028)
+          const nextRx = nextSet ? we.prescription?.[nextSet.setNumber - 1] : null;
+          const nextHasLoad = nextRx
+            ? nextRx.loadBasis === "start"
+              ? (nextRx.loadKg ?? 0) > 0
+              : !!nextRx.loadBasis || (we.targetWeightKg ?? 0) > 0
+            : false;
+          if (nextSet && !nextHasLoad && !filledIds.has(nextSet.id)) {
             const sug = suggestNextSetWeightKg({
               prevWeightKg: kg,
               prevType: s.setType as Parameters<typeof suggestNextSetWeightKg>[0]["prevType"],
@@ -1195,6 +1212,7 @@ function HeadCell({ children, className = "" }: { children: React.ReactNode; cla
 /** 처방 세트의 무게 기준 한 줄(아직 계산 근거가 없을 때) — 「1RM의 80%」 · 「탑셋의 90%」 · 「처방 무게」 @plm SRS-063 */
 function rxLoadLabel(rx: { loadBasis?: string; loadPct?: number } | null): string | null {
   if (!rx?.loadBasis) return null;
+  if (rx.loadBasis === "start") return null; // 시작 값은 처방 근거가 아니다 — 지난 기록으로 채워졌을 수도 있다(REV-028)
   if (rx.loadBasis === "pct1rm") return t("prescription.load.labelPct1rm", { pct: rx.loadPct ?? 0 });
   if (rx.loadBasis === "pctTop") return t("prescription.load.labelPctTop", { pct: rx.loadPct ?? 0 });
   return t("prescription.load.reasonFixed");

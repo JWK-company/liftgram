@@ -17,6 +17,8 @@ export interface RoutineLine {
   supersetGroup: string | null;
   /** 세트별 처방이 있다(ADR-028 — 사람이 쓴 처방은 세트 수를 바꾸면 어긋난다 · D5). */
   hasPrescription: boolean;
+  /** 처방의 웜업 줄 수 — targetSets 는 웜업을 포함하고 세션 비교값은 작업 세트 수다(SPEC-023). */
+  prescribedWarmups?: number;
 }
 
 /** 오늘 운동의 한 블록(완료 직전 상태). */
@@ -147,14 +149,16 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
       changes.push({ kind: 'swap', id: `swap:${line.id}`, lineId: line.id, blockId: b.id, from: line.exerciseId, to: b.exerciseId, defaultOn: true });
     }
     // 유산소는 세트 수가 의미 없다(QA Q3).
-    if (!b.isCardio && b.doneWorkingSets > 0 && b.doneWorkingSets !== line.targetSets) {
+    // [원본] b.doneWorkingSets !== line.targetSets — 웜업 줄이 있으면 매번 달라 시트가 떴다
+    const plannedWorking = line.targetSets - (line.prescribedWarmups ?? 0);
+    if (!b.isCardio && b.doneWorkingSets > 0 && b.doneWorkingSets !== plannedWorking) {
       changes.push({
         kind: 'sets',
         id: `sets:${line.id}`,
         lineId: line.id,
         blockId: b.id,
         exerciseId: line.exerciseId, // 루틴 **줄** 기준 — 교체를 끄고 세트만 남기면 원래 종목 줄에 적용된다(QA M2)
-        from: line.targetSets,
+        from: plannedWorking,
         to: b.doneWorkingSets,
         defaultOn: true,
       });

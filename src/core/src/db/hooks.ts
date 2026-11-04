@@ -4,7 +4,8 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import type { Model, Query } from '@nozbe/watermelondb';
 
 // Query<T> 결과 배열을 반응형으로 구독.
-export function useQueryData<T extends Model>(factory: () => Query<T> | null, deps: unknown[]): T[] {
+// columns 를 주면 그 칸의 변경에도 다시 그린다(행 증감만 보면 동기로 온 값이 화면에 오지 않는다 · SPEC-023).
+export function useQueryData<T extends Model>(factory: () => Query<T> | null, deps: unknown[], columns?: string[]): T[] {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const query = useMemo(factory, deps);
   const [data, setData] = useState<T[]>([]);
@@ -13,8 +14,11 @@ export function useQueryData<T extends Model>(factory: () => Query<T> | null, de
       setData([]);
       return;
     }
-    const sub = query.observe().subscribe(setData);
+    // [원본] const sub = query.observe().subscribe(setData);
+    const source = columns ? query.observeWithColumns(columns) : query.observe();
+    const sub = source.subscribe((rows) => setData(columns ? [...rows] : rows));
     return () => sub.unsubscribe();
+    // biome-ignore lint/correctness/useExhaustiveDependencies: 칸 목록은 부르는 곳의 상수다
   }, [query]);
   return data;
 }

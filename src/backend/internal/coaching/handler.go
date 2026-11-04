@@ -198,12 +198,14 @@ var setTypePB = map[string]coachingv1.SetType{
 	"top":     coachingv1.SetType_SET_TYPE_TOP,
 	"backoff": coachingv1.SetType_SET_TYPE_BACKOFF,
 	"normal":  coachingv1.SetType_SET_TYPE_NORMAL,
+	"drop":    coachingv1.SetType_SET_TYPE_DROP,
 }
 var setTypeName = map[coachingv1.SetType]string{
 	coachingv1.SetType_SET_TYPE_WARMUP:  "warmup",
 	coachingv1.SetType_SET_TYPE_TOP:     "top",
 	coachingv1.SetType_SET_TYPE_BACKOFF: "backoff",
 	coachingv1.SetType_SET_TYPE_NORMAL:  "normal",
+	coachingv1.SetType_SET_TYPE_DROP:    "drop",
 }
 var loadHintPB = map[string]coachingv1.LoadHint{
 	"light":  coachingv1.LoadHint_LOAD_HINT_LIGHT,

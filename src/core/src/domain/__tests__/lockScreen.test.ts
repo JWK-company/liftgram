@@ -392,7 +392,7 @@ test('스냅샷 조립 — 표시는 시뮬레이션 값 · 블록 단위 · 워
   assert.equal(snap.steps[0].restAfterSec, 180);
   assert.equal(snap.steps[0].members[0].label, 'T');
   assert.equal(snap.steps[1].members[0].display.weight, 90);
-  assert.deepEqual([snap.steps[1].members[0].label, snap.steps[1].members[0].setNo, snap.steps[1].members[0].setTotal], ['1', 1, 1]);
+  assert.deepEqual([snap.steps[1].members[0].label, snap.steps[1].members[0].setNo, snap.steps[1].members[0].setTotal], ['B', 0, 0]);
   assert.equal(snap.steps[2].openApp, true);
   assert.equal(snap.steps[0].openApp, false);
   assert.equal(snap.appliedThroughSeq, 3);

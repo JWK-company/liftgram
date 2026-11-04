@@ -368,7 +368,7 @@ export function planRoundFills(
       rx: b.rx,
       sets: sets.map((s) => ({ id: s.id, done: s.done, touched: s.touched, loadMultiplier: s.loadMultiplier })),
       doneIdx,
-      done: { isWarmup: d.isWarmup ?? null, isFailed: d.isFailed ?? null, setType: d.setType ?? null },
+      done: { isWarmup: d.isWarmup ?? null, isDrop: d.isDrop ?? null, isFailed: d.isFailed ?? null, setType: d.setType ?? null },
       doneCalcKg: kg * mult,
       doneReps: reps,
       has1rm: b.has1rm,
@@ -622,6 +622,7 @@ function setLabelOf(s: LockSetInput): string | null {
   if (s.isDrop === true) return 'D';
   if (s.isFailed) return 'F';
   if (s.setType === 'top') return 'T';
+  if (s.setType === 'backoff') return 'B'; // 운동 화면과 같게(SPEC-023)
   return null;
 }
 // [원본] function workingNo — 워밍업만 빼고 드롭·실패·탑셋까지 번호로 셌다(카드 1/4 ~ 4/4 vs 화면 1·D·2·F)

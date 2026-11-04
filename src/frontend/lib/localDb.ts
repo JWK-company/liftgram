@@ -152,8 +152,8 @@ export function scheduleFlush(): void {
  * 웹에서 화면 전환은 자바스크립트 컨텍스트를 통째로 갈아치운다 — 아직 메모리에만 있던 변경은
  * 그 순간 사라진다(실측: 루틴을 만들고 목록으로 갔더니 없었다). 그래서 이동 직전에 내려쓴다.
  */
-export async function navigateAfterFlush(href: string): Promise<void> {
+export async function navigateAfterFlush(href: string, opts?: { replace?: boolean }): Promise<void> {
   await flushLocalDb();
   // 클라이언트 이동 — 로컬 DB·세션을 다시 열지 않는다(SRS-054). 내려쓰기는 위에서 끝났다.
-  navigate(href);
+  navigate(href, opts);
 }

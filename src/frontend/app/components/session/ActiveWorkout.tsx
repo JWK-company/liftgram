@@ -43,7 +43,8 @@ import { ExerciseName } from "./ExerciseName";
 import { RestBar, clock } from "./RestBar";
 import { LockNotices } from "./LockNotices";
 import { LockReadiness } from "./LockReadiness";
-import { SessionGuideButtons } from "./SessionGuides";
+// import { SessionGuideButtons } from "./SessionGuides"; // [원본] SPEC-023
+import { TodayMuscleButton } from "./TodayMuscleSheet";
 import { WorkoutSummary, type Summary } from "./WorkoutSummary";
 import { FinishRoutineSheets, type FinishPromptState } from "./FinishRoutineSheets";
 import { LoginNudgeSheet } from "./LoginNudgeSheet"; // 비로그인 완료 뒤 보관 권유 @plm SRS-086
@@ -351,7 +352,7 @@ export default function ActiveWorkout() {
         <div
           ref={headerRef}
           data-testid="session-header"
-          className="sticky top-0 z-30 flex items-start gap-[var(--spacing-sm)] border-(--color-line) border-b bg-(--color-surface)/95 px-[var(--spacing-md)] py-[var(--spacing-sm)] backdrop-blur"
+          className="sticky top-0 z-30 flex items-start gap-[4px] border-(--color-line) border-b bg-(--color-surface)/95 px-[var(--spacing-md)] py-[var(--spacing-sm)] backdrop-blur"
         >
           {/* 세션을 **끝내지 않고** 화면만 벗어난다 — 진행 중인 운동은 그대로 남는다(app과 같다). */}
           <a
@@ -374,17 +375,20 @@ export default function ActiveWorkout() {
                 setNameDraft(workout.name ?? "");
                 setRenaming(true);
               }}
-              className="flex items-center"
+              className="flex max-w-full min-w-0 items-center"
             >
-              <AppText variant="label" color={paused ? "warning" : "textMuted"} className="truncate">
+              <AppText variant="label" color={paused ? "warning" : "textMuted"} className="min-w-0 truncate">
                 {paused ? t("session.paused") : (workout.name ?? t("session.inProgress"))}
               </AppText>
               <Icon name="pencil" size={12} color="var(--color-ink3)" className="ml-[4px]" />
             </button>
-            <AppText variant="caption" color="pr" data-testid="live-volume" className="block">
+            <AppText variant="caption" color="pr" data-testid="live-volume" className="block truncate">
               {t("session.liveVolume", { volume: formatWeight(liveVolume, weightUnit) })}
             </AppText>
           </div>
+
+          {/* 「오늘 근육」 — 스크롤과 무관하게 헤더에서 연다(SPEC-023 · 설정 끄면 없음) @plm SRS-075 */}
+          <TodayMuscleButton workoutId={workout.id} />
 
           <IconButton
             icon={paused ? "play" : "pause"}
@@ -408,7 +412,7 @@ export default function ActiveWorkout() {
             fullWidth={false}
             loading={busy || adding}
             testId="btn-complete"
-            className="rounded-[var(--radius-pill)]!"
+            className="rounded-[var(--radius-pill)]! px-[var(--spacing-md)]!"
             onPress={() =>
               void (async () => {
                 const undone = await repo.getWorkoutUndoneSetCount(workout.id).catch(() => 0);
@@ -444,7 +448,7 @@ export default function ActiveWorkout() {
         </div>
 
         {/* [원본] <SessionGuideButtons /> — 「오늘 근육」 버튼에 운동 id 를 넘긴다 @plm SRS-075 */}
-        <SessionGuideButtons workoutId={workout.id} />
+        {/* [원본] <SessionGuideButtons workoutId={workout.id} /> — RIR·웜업 가이드는 뺐다(나중에 운동팁 탭 · SPEC-023) */}
 
         <div className="flex-1 p-[var(--spacing-lg)]">
           {exercises.length === 0 ? (

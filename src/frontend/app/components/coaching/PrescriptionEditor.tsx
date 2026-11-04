@@ -15,11 +15,13 @@
 import type { Peer, Routine, RoutineExercise } from "@app/contracts";
 import { LoadBasis as LoadBasisPB, LoadHint as LoadHintPB, SetType as SetTypePB } from "@app/contracts";
 import type { PrescribedSet } from "@app/core";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { t } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
 import { emptyRxRow, PrescriptionRows, rxMeaningful } from "../routines/PrescriptionRows";
+import { useUser } from "@app/core/state/userContext";
 import { useToast } from "../Toast";
+import { UserSettingsProvider } from "../UserSettingsProvider";
 import { Panel } from "./Panel";
 import { Button } from "../ui/Button";
 import { AppText } from "../ui/primitives";
@@ -33,12 +35,14 @@ const SET_TYPE_NAME: Record<SetTypePB, PrescribedSet["setType"]> = {
   [SetTypePB.TOP]: "top",
   [SetTypePB.BACKOFF]: "backoff",
   [SetTypePB.NORMAL]: "normal",
+  [SetTypePB.DROP]: "drop",
 };
 const SET_TYPE_PB: Record<string, SetTypePB> = {
   warmup: SetTypePB.WARMUP,
   top: SetTypePB.TOP,
   backoff: SetTypePB.BACKOFF,
   normal: SetTypePB.NORMAL,
+  drop: SetTypePB.DROP,
 };
 const LOAD_NAME: Record<LoadHintPB, PrescribedSet["loadHint"]> = {
   [LoadHintPB.UNSPECIFIED]: null,
@@ -98,19 +102,24 @@ function toContractRows(rows: PrescribedSet[]) {
   }));
 }
 
-export function PrescriptionEditor({
-  peer,
-  routine,
-  block,
-  onClose,
-  onSaved,
-}: {
+// 코칭 화면에는 사용자 설정 칸막이가 없어, 단위가 필요한 이 패널만 감싼다(서버 렌더가 필요 없는 패널 · REV-028).
+export function PrescriptionEditor(props: PrescriptionEditorProps) {
+  return (
+    <UserSettingsProvider>
+      <PrescriptionEditorBody {...props} />
+    </UserSettingsProvider>
+  );
+}
+
+type PrescriptionEditorProps = {
   peer: Peer;
   routine: Routine;
   block: RoutineExercise;
   onClose: () => void;
   onSaved: () => void;
-}) {
+};
+
+function PrescriptionEditorBody({ peer, routine, block, onClose, onSaved }: PrescriptionEditorProps) {
   const toast = useToast();
   const [rows, setRows] = useState<PrescribedSet[]>(() => {
     const existing = toDomainRows(block.prescription);
@@ -126,17 +135,25 @@ export function PrescriptionEditor({
   // const meaningful = rows.some(
   //   (r) => r.setType !== "normal" || r.targetRir != null || r.repMin != null || r.repMax != null,
   // );
-  const meaningful = rxMeaningful(rows); // @plm SRS-063
+  const { weightUnit } = useUser();
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
 
   async function save() {
     if (saving) return;
     setSaving(true);
     try {
+      // 포커스가 남은 칸을 올린 뒤 읽는다(버튼을 눌러도 blur 가 늦는 웹뷰 · REV-028)
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement) active.blur();
+      await new Promise((r) => setTimeout(r, 0));
+      const latest = rowsRef.current;
+      const meaningful = rxMeaningful(latest); // @plm SRS-063
       await coachingClient().setMemberPrescription({
         memberId: peer.id,
         routineId: routine.id,
         routineExerciseId: block.id,
-        prescription: meaningful ? toContractRows(rows) : [],
+        prescription: meaningful ? toContractRows(latest) : [],
       });
       onSaved();
     } catch (e) {
@@ -161,7 +178,14 @@ export function PrescriptionEditor({
       <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
         {t("coaching.rxEditorHint", { name: peer.displayName || "?" })}
       </AppText>
-      <PrescriptionRows rows={rows} onChange={setRows} />
+      {/* [원본] 단위 없이 그렸다 — lb 사용자의 135 가 135kg 으로 저장됐다(REV-028) */}
+      <PrescriptionRows
+        rows={rows}
+        onChange={setRows}
+        mode="coach"
+        unit={weightUnit}
+        weightLabel={t("routines.weightLabel", { weightUnit })}
+      />
     </Panel>
   );
 }

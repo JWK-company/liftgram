@@ -4,12 +4,14 @@
 // 모든 제안은 reasonKey(i18n)와 함께 표시되어 사용자가 근거를 보고 무시할 수 있다(SRS-015 웰니스).
 import { estimateOneRepMax } from './oneRepMax';
 
-export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal';
+// drop(SPEC-023): 운동 화면과 같은 다섯 타입 — 세션에서는 is_drop 으로 심는다
+export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal' | 'drop';
 export type LoadHint = 'light' | 'medium' | 'heavy';
 
 // v24(JSON 안 필드 — 스키마 변경 없음): 무게 기준. 없으면 기존과 같다(옛 처방 하위호환). @plm SRS-063
 //   pct1rm = 기록으로 추정한 1RM 의 N% · pctTop = 같은 블록 탑셋의 N%(백오프) · fixed = 무게 직접
-export type LoadBasis = 'pct1rm' | 'pctTop' | 'fixed';
+//   start(SPEC-023) = 루틴 표의 시작 무게 — 입력칸 값 그대로이고, 지난 기록이 있으면 지난 기록이 먼저다(fixed 는 지난 기록을 이긴다)
+export type LoadBasis = 'pct1rm' | 'pctTop' | 'fixed' | 'start';
 
 export interface PrescribedSet {
   setType: PrescribedSetType;
@@ -25,12 +27,12 @@ export interface PrescribedSet {
 // 무게 기준 값의 허용 범위 — 밖이면 기준째 버린다(엉뚱한 무게를 채우는 것보다 안 채우는 게 낫다). 서버와 같은 값.
 export const LOAD_PCT_RANGE: Record<'pct1rm' | 'pctTop', [number, number]> = { pct1rm: [30, 100], pctTop: [50, 100] };
 export const LOAD_KG_MAX = 500;
-const LOAD_BASES: LoadBasis[] = ['pct1rm', 'pctTop', 'fixed'];
+const LOAD_BASES: LoadBasis[] = ['pct1rm', 'pctTop', 'fixed', 'start'];
 
 export const RIR_MIN = 0;
 export const RIR_MAX = 6;
 
-const SET_TYPES: PrescribedSetType[] = ['warmup', 'top', 'backoff', 'normal'];
+const SET_TYPES: PrescribedSetType[] = ['warmup', 'top', 'backoff', 'normal', 'drop'];
 const LOAD_HINTS: LoadHint[] = ['light', 'medium', 'heavy'];
 
 // 옛 Go 마샬 키 → 새 키. 새 키가 이미 있으면 그대로 둔다.
@@ -115,7 +117,8 @@ export function suggestNextSetWeightKg(input: {
 }
 
 // 세트 타입별 권장 휴식(초) — 비처방(normal·null)은 종목 설정값 그대로.
-const REST_BY_TYPE: Record<Exclude<PrescribedSetType, 'normal'>, number> = {
+// 드롭은 값을 두지 않는다 — 블록 휴식을 쓴다(SPEC-023).
+const REST_BY_TYPE: Partial<Record<Exclude<PrescribedSetType, 'normal'>, number>> = {
   warmup: 45,
   top: 180,
   backoff: 120,
@@ -139,10 +142,12 @@ export function repRangeLabel(repMin: number | null, repMax: number | null): str
 function sanitizeLoadBasis(o: Record<string, unknown>): Pick<PrescribedSet, 'loadBasis' | 'loadPct' | 'loadKg'> {
   const basis = o.loadBasis as LoadBasis;
   if (!LOAD_BASES.includes(basis)) return {};
-  if (basis === 'fixed') {
+  // [원본] if (basis === 'fixed') { … return { loadBasis: 'fixed', loadKg: Math.round(kg * 100) / 100 }; }
+  // [개선] lb 왕복 꼬리(135lb → 61.23kg → 134.99lb)를 막으려 넷째 자리까지 · 시작 무게도 같은 범위(SPEC-023). 서버와 같은 값.
+  if (basis === 'fixed' || basis === 'start') {
     const kg = o.loadKg;
     if (typeof kg !== 'number' || !Number.isFinite(kg) || kg < 0 || kg > LOAD_KG_MAX) return {};
-    return { loadBasis: 'fixed', loadKg: Math.round(kg * 100) / 100 };
+    return { loadBasis: basis, loadKg: Math.round(kg * 10000) / 10000 };
   }
   const pct = o.loadPct;
   const [lo, hi] = LOAD_PCT_RANGE[basis];
@@ -170,7 +175,7 @@ export type ResolvedLoad =
 
 // 처방 무게 기준 → 이번 세트 무게(계산 무게 kg). 기록이 없으면 pending — 화면은 직접 입력·첫 세트를 기다린다.
 export function resolvePrescribedLoad(input: {
-  basis: LoadBasis;
+  basis: Exclude<LoadBasis, 'start'>; // 시작 무게는 계산이 아니라 세션 채우기 순서로 처리한다
   pct?: number | null;
   kg?: number | null;
   est1rmKg?: number | null;
@@ -220,7 +225,7 @@ export function planPrescribedLoadFills(input: {
   rx: PrescribedSet[] | null;
   sets: LoadFillSet[];
   doneIdx: number;
-  done: { isWarmup: boolean | null; isFailed: boolean | null; setType: string | null };
+  done: { isWarmup: boolean | null; isFailed: boolean | null; isDrop?: boolean | null; setType: string | null };
   doneCalcKg: number;
   doneReps: number;
   has1rm: boolean;
@@ -230,10 +235,13 @@ export function planPrescribedLoadFills(input: {
   const { rx, sets, doneIdx, done, doneCalcKg, doneReps, has1rm, equipment, unit } = input;
   if (!rx || doneIdx < 0 || doneIdx >= sets.length) return [];
   if (!Number.isFinite(doneCalcKg) || doneCalcKg <= 0) return [];
-  const rxType = rx[doneIdx]?.setType ?? null;
-  const warmOrFail = done.isWarmup === true || done.isFailed === true || done.setType === 'warmup' || rxType === 'warmup';
-  if (warmOrFail) return [];
-  const isTop = rxType === 'top' || done.setType === 'top';
+  // [원본] const rxType = rx[doneIdx]?.setType ?? null; — 처방 줄을 함께 봐서 세션에서 타입을 바꿔도 처방대로 채웠다
+  // const warmOrFail = done.isWarmup === true || done.isFailed === true || done.setType === 'warmup' || rxType === 'warmup';
+  // const isTop = rxType === 'top' || done.setType === 'top';
+  // [개선] 세트의 지금 타입만 본다(처방 타입은 세션 시작 때 세트에 심긴다) · 드롭으로도 1RM 을 추정하지 않는다(SPEC-023)
+  const notBasis = done.isWarmup === true || done.isFailed === true || done.isDrop === true || done.setType === 'warmup';
+  if (notBasis) return [];
+  const isTop = done.setType === 'top';
   const est = estimateOneRepMax(doneCalcKg, doneReps);
   const out: LoadFill[] = [];
   for (let i = doneIdx + 1; i < sets.length; i++) {

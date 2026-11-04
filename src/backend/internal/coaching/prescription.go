@@ -20,7 +20,7 @@ const (
 	maxPrescriptionRows = 20
 )
 
-var validSetTypes = map[string]bool{"warmup": true, "top": true, "backoff": true, "normal": true}
+var validSetTypes = map[string]bool{"warmup": true, "top": true, "backoff": true, "normal": true, "drop": true}
 var validLoadHints = map[string]bool{"light": true, "medium": true, "heavy": true}
 
 // 무게 기준(#56) 허용 범위 — 앱(core prescription.ts LOAD_PCT_RANGE·LOAD_KG_MAX)과 같은 값. @plm SRS-063
@@ -73,7 +73,8 @@ func sanitizeLoadBasis(r PrescribedSet) (string, *int, *float64) {
 		if r.LoadKg == nil || *r.LoadKg < 0 || *r.LoadKg > loadKgMax {
 			return "", nil, nil
 		}
-		kg := float64(int64(*r.LoadKg*100+0.5)) / 100
+		// [원본] 소수 둘째 자리 — lb 왕복에 꼬리가 생겼다(135lb → 134.99lb). 앱과 같은 넷째 자리로(SPEC-023)
+		kg := float64(int64(*r.LoadKg*10000+0.5)) / 10000
 		return "fixed", nil, &kg
 	case "pct1rm", "pctTop":
 		rng := loadPctRange[r.LoadBasis]
@@ -105,4 +106,23 @@ func nonNegative(v *int) *int {
 		return nil
 	}
 	return v
+}
+
+// KeepMemberStart 는 회원 줄의 시작 무게(start)를 코치 저장에서 지키지 않도록 되살린다(REV-028).
+// 코칭 계약에는 시작 무게가 없어 코치 화면에서는 안 보이는 값이다 — 횟수만 고쳐도 지워지면 회원의 W40 이 작업 무게로 시작한다.
+// 코치가 그 줄에 무게 기준을 정했으면 코치 값이 이긴다. 줄 수가 달라졌으면 자리를 믿을 수 없어 잇지 않는다.
+func KeepMemberStart(clean, stored []PrescribedSet) []PrescribedSet {
+	if len(clean) != len(stored) {
+		return clean
+	}
+	out := make([]PrescribedSet, len(clean))
+	copy(out, clean)
+	for i := range out {
+		if out[i].LoadBasis == "" && stored[i].LoadBasis == "start" && stored[i].LoadKg != nil {
+			kg := *stored[i].LoadKg
+			out[i].LoadBasis = "start"
+			out[i].LoadKg = &kg
+		}
+	}
+	return out
 }

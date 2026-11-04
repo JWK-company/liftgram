@@ -204,23 +204,25 @@ test("처방 무게 — 1RM의 80% 로 시작 · 탑셋을 마치면 탑셋의 9
   await page.getByTestId("picker-list").locator("button").first().click();
   await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 10_000 });
-  await page.getByTestId("btn-rx").click();
-  const sheet = page.getByTestId("rx-sheet");
-  await expect(sheet).toBeVisible();
+  // [원본] 처방 시트(타입 순환·기준 순환) — 세트 표의 타입 시트·줄 메뉴로(SPEC-023)
+  const table = page.getByTestId("set-table").first();
+  const rows = table.getByTestId("set-table-row");
+  // 기본 3줄 중 2줄만 남긴다
+  await rows.nth(2).getByTestId("rx-more").click();
+  await page.getByTestId("rx-delete").click();
+  await expect(rows).toHaveCount(2);
   // 행 1: 탑 · 1RM 80%
-  await sheet.getByTestId("rx-type").nth(0).click(); // normal → warmup
-  await sheet.getByTestId("rx-type").nth(0).click(); // → top
-  await sheet.getByTestId("rx-load-basis").nth(0).click(); // 없음 → 1RM%
-  await sheet.getByTestId("rx-load-value").nth(0).fill("80");
+  await rows.nth(0).getByTestId("rx-type").click();
+  await page.getByTestId("rx-type-sheet").getByText("탑세트 (T)").click();
+  await rows.nth(0).getByTestId("rx-more").click();
+  await page.getByTestId("rx-basis-pct1rm").click();
+  await expect(rows.nth(0).getByTestId("rx-weight")).toHaveValue("80");
   // 행 2: 백오프 · 탑셋 90%
-  await sheet.getByRole("button", { name: /세트 추가|Add set/ }).click();
-  await sheet.getByTestId("rx-type").nth(1).click();
-  await sheet.getByTestId("rx-type").nth(1).click();
-  await sheet.getByTestId("rx-type").nth(1).click(); // → backoff
-  await sheet.getByTestId("rx-load-basis").nth(1).click();
-  await sheet.getByTestId("rx-load-basis").nth(1).click(); // → 탑셋%
-  await sheet.getByTestId("rx-load-value").nth(1).fill("90");
-  await page.getByTestId("btn-rx-save").click();
+  await rows.nth(1).getByTestId("rx-type").click();
+  await page.getByTestId("rx-type-sheet").getByText("백오프 (B)").click();
+  await rows.nth(1).getByTestId("rx-more").click();
+  await page.getByTestId("rx-basis-pctTop").click();
+  await expect(rows.nth(1).getByTestId("rx-weight")).toHaveValue("90");
   await page.getByTestId("btn-routine-done").click();
   await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 10_000 });
 

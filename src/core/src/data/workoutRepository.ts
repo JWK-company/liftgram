@@ -839,7 +839,7 @@ export async function fillPrescribedLoadsAfter(
       loadMultiplier: x.loadMultiplier,
     })),
     doneIdx,
-    done: { isWarmup: done.isWarmup, isFailed: done.isFailed, setType: done.setType },
+    done: { isWarmup: done.isWarmup, isDrop: done.isDrop, isFailed: done.isFailed, setType: done.setType },
     doneCalcKg: doneWeightKg * mult, // 화면 입력 무게(blur 경합 대비) × 배수
     doneReps,
     has1rm: (await estimatedOneRmForSlot(we.exerciseId, effectiveVariantKey(we))) > 0,
@@ -1210,6 +1210,16 @@ async function isCardioExerciseId(exerciseId: string): Promise<boolean> {
 }
 
 // 맨몸 종목(equipment='bodyweight')인지 — 맨몸은 무게 기본 0으로 프리레이(20kg 오프리필 방지 → 볼륨 대신 총횟수 표시). @plm SRS-005
+/** 줄마다 무게를 재는 종목인가 — 시작 무게(start)는 이런 종목에만 쓴다(맨몸·어시스트 제외 · SPEC-023). */
+async function isExternalLoadExerciseId(exerciseId: string): Promise<boolean> {
+  try {
+    const e = await database.get<Exercise>('exercises').find(exerciseId);
+    return resolveLoadMode({ loadMode: e.loadMode ?? null, equipment: e.equipment }) === 'external';
+  } catch {
+    return true;
+  }
+}
+
 async function isBodyweightExerciseId(exerciseId: string): Promise<boolean> {
   try {
     const e = await database.get<Exercise>('exercises').find(exerciseId);
@@ -1233,6 +1243,7 @@ function prepareTemplateSets(
   loadMultiplier: number | null = null, // v22: 이 블록의 배수(플레이트 한쪽=2 · ADR-037) @plm SRS-058
   rxLoadKg: (number | null)[] = [], // 처방 무게 기준으로 계산한 세트별 무게(계산 kg · 없으면 null) @plm SRS-063
   warmupCount = 0, // 앞의 몇 세트를 워밍업으로(「그대로 다시 시작」 — 원본에서 한 워밍업 수 · 처방이 있으면 처방이 정한다) @plm SRS-065
+  allowStart = true, // 시작 무게(start)를 쓰는 종목인가(SPEC-023)
 ): SetLog[] {
   const recs: SetLog[] = [];
   for (let i = 0; i < count; i++) {
@@ -1251,12 +1262,20 @@ function prepareTemplateSets(
     // [개선] 사람이 쓴 처방 무게(1RM 의 N%·직접)가 있으면 그 무게가 먼저다 — 입력 칸은 한쪽 입력 배수로 나눈다 @plm SRS-063
     const rxKg = rxLoadKg[i];
     const rxInput = rxKg != null && rxKg > 0 ? rxKg / (loadMultiplier && loadMultiplier > 0 ? loadMultiplier : 1) : null;
-    const weight = isCardio ? 0 : rxInput ?? prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // [원본] const weight = isCardio ? 0 : rxInput ?? prevWeight ?? routineWeightKg ?? prevSnap?.weightKg ?? bwDefault;
+    // [개선] 루틴 표의 시작 무게(start)는 지난 기록 다음 — 입력칸 값 그대로다(SPEC-023). 맨몸은 쓰지 않는다.
+    // [원본] const rxStart = !isBodyweight && rx?.loadBasis === 'start' && … — 어시스트가 빠졌다(REV-028)
+    const rxStart = allowStart && rx?.loadBasis === 'start' && rx.loadKg && rx.loadKg > 0 ? rx.loadKg : null;
+    // 표에서 비운 줄(start·0)은 블록 값을 물려받지 않는다 — 웜업이 작업 무게로 시작하지 않게(REV-028)
+    const rxBlank = allowStart && rx?.loadBasis === 'start' && !(rx.loadKg && rx.loadKg > 0);
+    const blockWeight = rxBlank ? null : routineWeightKg;
+    const blockSnap = rxBlank ? null : prevSnap?.weightKg;
+    const weight = isCardio ? 0 : rxInput ?? prevWeight ?? rxStart ?? blockWeight ?? blockSnap ?? bwDefault;
     // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
     const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
     // v27: 칸마다 어디서 온 값인지 — 가장 약한 칸이 세트의 출처(REV-003 저장소 H-2 · 예: 무게=루틴 목표 · 횟수=기본 8 → default)
     const weightSource: ValueSource =
-      rxInput != null ? 'rx' : prevWeight != null ? 'prev' : routineWeightKg != null ? 'routine' : prevSnap?.weightKg != null ? 'prev_snap' : 'default';
+      rxInput != null ? 'rx' : prevWeight != null ? 'prev' : rxStart != null ? 'rx' : blockWeight != null ? 'routine' : blockSnap != null ? 'prev_snap' : 'default';
     const repsSource: ValueSource =
       prev?.reps != null ? 'prev' : rx?.repMin != null ? 'rx' : routineReps != null ? 'routine' : prevSnap?.reps != null ? 'prev_snap' : 'default';
     const cardioSource: ValueSource =
@@ -1294,9 +1313,12 @@ function prepareTemplateSets(
         s.valueSource = valueSource; // v27(SPEC-017 §8)
         // v16: 처방 세트 — 타입·목표 RIR 기입. warmup은 is_warmup 미러(기존 W 라벨·볼륨 제외 재사용). @plm SRS-043
         if (rx && rx.setType !== 'normal') {
-          s.setType = rx.setType;
+          // [원본] s.setType = rx.setType;
+          // [개선] 드롭은 is_drop 으로 심고 칸은 비운다(가져오기와 같은 방식 · SPEC-023)
+          s.setType = rx.setType === 'drop' ? null : rx.setType;
           s.targetRir = rx.targetRir;
           if (rx.setType === 'warmup') s.isWarmup = true;
+          if (rx.setType === 'drop') s.isDrop = true;
         } else {
           s.setType = null;
           s.targetRir = rx?.targetRir ?? null;
@@ -1350,6 +1372,7 @@ export async function startWorkoutFromRoutineV1(routineId: string): Promise<Work
   const prevSetsByKey = new Map<string, LogSetInput[]>();
   const cardioByExercise = new Map<string, boolean>(); // 종목별 유산소 여부(중복 조회 방지)
   const bwByExercise = new Map<string, boolean>(); // 종목별 맨몸 여부
+  const externalByExercise = new Map<string, boolean>(); // 종목별 시작 무게 사용 여부(SPEC-023)
   for (const re of res) {
     const k = vkey(re);
     if (!prevSnapByKey.has(k)) {
@@ -1359,6 +1382,7 @@ export async function startWorkoutFromRoutineV1(routineId: string): Promise<Work
     if (!cardioByExercise.has(re.exerciseId)) {
       cardioByExercise.set(re.exerciseId, await isCardioExerciseId(re.exerciseId));
       bwByExercise.set(re.exerciseId, await isBodyweightExerciseId(re.exerciseId));
+      externalByExercise.set(re.exerciseId, await isExternalLoadExerciseId(re.exerciseId));
     }
   }
   // 처방 무게 기준(1RM 의 N%·직접) — 쓰기 전에 계산해 둔다(탑셋 % 는 탑셋을 한 뒤에 채운다) @plm SRS-063
@@ -1457,6 +1481,8 @@ export async function startWorkoutFromRoutineV1(routineId: string): Promise<Work
           rx,
           multiplierOf(re),
           rxLoadByRe.get(re.id) ?? [],
+          0,
+          externalByExercise.get(re.exerciseId) ?? true,
         ),
       );
     });
@@ -1538,6 +1564,7 @@ async function startWorkoutFromRows(opts: {
   const prevSetsByKey = new Map<string, LogSetInput[]>();
   const cardioByExercise = new Map<string, boolean>();
   const bwByExercise = new Map<string, boolean>();
+  const externalByExercise = new Map<string, boolean>();
   for (let i = 0; i < rows.length; i++) {
     const k = vkey(i);
     if (!prevSnapByKey.has(k)) {
@@ -1548,6 +1575,7 @@ async function startWorkoutFromRows(opts: {
     if (!cardioByExercise.has(exId)) {
       cardioByExercise.set(exId, await isCardioExerciseId(exId));
       bwByExercise.set(exId, await isBodyweightExerciseId(exId));
+      externalByExercise.set(exId, await isExternalLoadExerciseId(exId));
     }
   }
   // 블록별 시작 단위 — 같은 종목·칸으로 마지막에 완료한 블록의 단위(Q1 A). 처방 원판 반올림도 이 단위로. @plm SRS-067
@@ -1659,6 +1687,7 @@ async function startWorkoutFromRows(opts: {
           multiplierAt(i),
           rxLoadAt.get(i) ?? [],
           isCardioEx ? 0 : r.warmupSets,
+          externalByExercise.get(r.exerciseId) ?? true,
         ),
       );
     });
@@ -2196,8 +2225,8 @@ export async function getSupersetRoundSetsFor(
   }));
 }
 
-// 세트 타입(일반/워밍업/드롭/실패) — 상호 배타. 표시 W/숫자/D/F.
-export type SetType = 'normal' | 'warmup' | 'drop' | 'failed';
+// 세트 타입(일반/워밍업/드롭/실패/탑/백오프) — 상호 배타. 표시 W/숫자/D/F/T/B. 실패는 메뉴에서 뺐고 옛 호출만 남았다(SPEC-023).
+export type SetType = 'normal' | 'warmup' | 'drop' | 'failed' | 'top' | 'backoff';
 export async function setSetType(id: string, type: SetType): Promise<void> {
   await database.write(async () => {
     const s = await setLogs().find(id);
@@ -2205,6 +2234,8 @@ export async function setSetType(id: string, type: SetType): Promise<void> {
       rec.isWarmup = type === 'warmup';
       rec.isDrop = type === 'drop';
       rec.isFailed = type === 'failed';
+      // setType 칸도 함께 맞춘다 — 처방 웜업을 일반으로 바꿔도 칸이 남으면 볼륨에는 들고 근육 부하에서는 빠졌다(SPEC-023)
+      rec.setType = type === 'top' || type === 'backoff' || type === 'warmup' ? type : null;
     });
   });
 }

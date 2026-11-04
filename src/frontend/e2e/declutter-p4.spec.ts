@@ -107,7 +107,8 @@ test("숫자 스테퍼 값에 점선 밑줄이 없다(루틴 편집·프로필)"
   await page.getByTestId("picker-list").locator("button").first().click();
   await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(2, { timeout: 20_000 });
-  const value = page.getByTestId("re-sets-value").first();
+  // [원본] re-sets-value — 세트 수 스테퍼는 세트 표로 바뀌었다(SPEC-023). 남은 휴식 스테퍼로 잰다.
+  const value = page.getByTestId("re-rest-value").first();
   await expect(value).toBeVisible();
   expect(await value.evaluate((el) => getComputedStyle(el).borderBottomStyle)).not.toBe("dashed");
 
