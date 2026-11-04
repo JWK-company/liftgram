@@ -2996,6 +2996,323 @@
       {
         "type": "heading",
         "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "쉽게 베끼지 못하게 하는 최소한의 방지책"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "화면과 기능은 완전히 막을 수 없습니다. 웹 소스는 브라우저에서 보이고 앱은 디컴파일됩니다. 그래서 법적 권리를 먼저 잡고, 데이터 대량 수집만 막기를 권합니다. 위 후보처럼 사람과 관계가 쌓이는 쪽이 실제 방어입니다."
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "방지책"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "상태"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_header",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "할 일"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "상표 등록"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "미확인"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "「liftgram」 이름과 로고의 국내 상표를 조회하고 출원합니다. 비슷한 이름의 충돌도 봅니다. 변리사 확인이 필요합니다"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "약관의 금지 조항"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "미확인"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "src/frontend/app/terms/page.tsx",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "에 복제·자동 수집·역설계 금지를 넣습니다"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "데이터 대량 수집 방지"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "미확인"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "피드와 공개 API의 요청 제한을 점검합니다"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "앱 코드 난독화"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "미확인"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "스토어 빌드의 축소·난독화 설정을 확인합니다. 시간을 벌 뿐 막지는 못합니다"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "table_row",
+            "content": [
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "저작권 증거"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "미확인"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "table_cell",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "비공개 저장소를 유지하고, 직접 만든 종목 데이터와 픽토그램의 제작 기록을 남깁니다"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
           "level": 1
         },
         "content": [
@@ -3094,7 +3411,7 @@
                     "content": [
                       {
                         "type": "text",
-                        "text": "계정과 글을 준비합니다. 도구는 "
+                        "text": "운동 기록 공유, 대화, 가져올 루틴, 코칭을 받을 수 있는 계정까지 앱의 주요 흐름을 보여 주는 글을 준비합니다. 도구는 "
                       },
                       {
                         "type": "text",
@@ -3126,7 +3443,7 @@
                     "content": [
                       {
                         "type": "text",
-                        "text": "계정 표시 방식"
+                        "text": "더미 계정 표시 방식"
                       }
                     ]
                   }
@@ -3154,7 +3471,7 @@
                     "content": [
                       {
                         "type": "text",
-                        "text": "실제 사용자로 꾸미지 말고 「운영팀」 표시를 권합니다. 가짜 후기나 활동으로 보이면 신뢰 문제와 표시·광고 규제 위험이 있습니다. 법무 확인이 필요합니다"
+                        "text": "더미 계정을 실제 사용자로 꾸미지 말고 운영 계정임을 표시하기를 권합니다. 코칭 계정은 실제로 응답할 사람이 있어야 합니다. 가짜 후기나 활동으로 보이면 신뢰 문제와 표시·광고 규제 위험이 있습니다. 법무 확인이 필요합니다"
                       }
                     ]
                   }
