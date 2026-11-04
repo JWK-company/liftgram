@@ -3136,7 +3136,7 @@
                     "content": [
                       {
                         "type": "text",
-                        "text": "미확인"
+                        "text": "안 됨"
                       }
                     ]
                   }
@@ -3159,7 +3159,7 @@
                       },
                       {
                         "type": "text",
-                        "text": "에 복제·자동 수집·역설계 금지를 넣습니다"
+                        "text": "에서 관련 표현을 찾지 못했습니다. 복제·자동 수집·역설계 금지를 넣습니다"
                       }
                     ]
                   }
@@ -3239,7 +3239,7 @@
                     "content": [
                       {
                         "type": "text",
-                        "text": "미확인"
+                        "text": "안 됨"
                       }
                     ]
                   }
@@ -3253,7 +3253,29 @@
                     "content": [
                       {
                         "type": "text",
-                        "text": "스토어 빌드의 축소·난독화 설정을 확인합니다. 시간을 벌 뿐 막지는 못합니다"
+                        "text": "src/mobile/android/app/build.gradle:69",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "가 "
+                      },
+                      {
+                        "type": "text",
+                        "text": "minifyEnabled false",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "text": "입니다. 켜고 시험합니다. 시간을 벌 뿐 막지는 못합니다"
                       }
                     ]
                   }
