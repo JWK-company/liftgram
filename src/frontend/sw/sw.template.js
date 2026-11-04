@@ -26,10 +26,9 @@ const PAGES = `liftgram-pages-${BUILD_ID}`;
 const MEDIA = "liftgram-media";
 const PRECACHE = __PRECACHE__;
 // 주요 탭 셸 — 설치 때 받아 두면 한 번도 안 연 탭도 오프라인에서 열린다.
-// /stats/summary(성과 요약)는 탭이 아니지만 계산이 전부 기기에서 되고 대기열이 있다 — 체육관(오프라인)에서 처음 열어
-// 「보내기 → 연결되면 감」이 되게 미리 받는다(P4 /qa code P4U-18 · @plm SRS-080). 탭 셸이 아니라 SWR_SHELLS 에는 넣지 않는다.
+// [원본] /stats/summary(성과 요약)도 미리 받았다(P4U-18) — 페이지를 없애고 분석 탭으로 넘긴다(ADR-051).
 // biome-ignore format: 셸 대조 테스트(shellCache.test.ts)가 이 줄을 한 줄 JSON 으로 읽는다
-const SHELLS = ["/", "/workout", "/history", "/calendar", "/stats", "/stats/summary", "/exercises", "/profile", "/offline"];
+const SHELLS = ["/", "/workout", "/history", "/calendar", "/stats", "/exercises", "/profile", "/offline"];
 // 곧바로 내줘도 되는 셸 — 쿠키를 읽지 않는 클라이언트 화면만(데이터는 기기 DB·API 에서 따로 온다).
 // signin·signup·account 는 서버가 쿠키(「최근」 배지)를 읽어 그린다 — 여기 넣지 않는다.
 // 캐시는 **이 빌드의 PAGES** 뿐이다: 셸 HTML 이 가리키는 정적 조각이 같은 워커의 STATIC 에 들어 있다(버전 어긋남 없음).
@@ -134,6 +133,9 @@ self.addEventListener("fetch", (event) => {
   // 활성화 찌르기용 빈 문서(lib/swActivate nudgeActivation 의 숨은 iframe)는 네트워크만 — 느린 망·오프라인에 앱 셸(/offline)을
   // 대신 주면 iframe 안에 앱 전체가 떠 본 탭의 쓰기 주인을 빼앗았다(/qa code P4 M-1). 실패하면 빈 문서로 끝낸다. @plm SRS-089
   if (url.pathname === "/sw-nudge.html") return event.respondWith(nudgeDoc(req));
+  // 옛 요약 주소 — 오프라인이면 앞 세대 캐시의 보내기 화면이 뜰 수 있어 워커가 먼저 넘긴다(ADR-051 · REV-029)
+  if (req.mode === "navigate" && url.pathname === "/stats/summary")
+    return event.respondWith(Response.redirect(new URL("/stats", url.origin).href, 302));
   if (req.mode === "navigate") return event.respondWith(page(req, event));
   if (PRECACHE.includes(url.pathname)) return event.respondWith(cacheFirst(req, STATIC));
 });

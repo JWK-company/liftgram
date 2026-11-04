@@ -28,9 +28,15 @@ import { LogoSpinner } from "../ui/LogoSpinner";
 import { EffortCard } from "./EffortCard"; // 세트 힘든 정도(SRS-074)
 import { MuscleBalanceCard } from "./MuscleBalanceCard"; // 근육 균형(SRS-076)
 import { BodyweightCard } from "./BodyweightCard"; // 체중 추세(SRS-078)
-import { SummaryEntry } from "../summary/SummaryEntry"; // 기간 성과 요약(SRS-079)
+// [원본] import { SummaryEntry } from "../summary/SummaryEntry"; // 기간 성과 요약(SRS-079) — 심화 분석을 이 화면으로 합쳤다(ADR-051)
+import { ExerciseChangeCard, PlateauCard } from "./ExerciseChangeCards"; // 종목 변화 · 그대로인 종목(SRS-101)
+import { WeeklyMuscleCard } from "./WeeklyMuscleCard"; // 근육별 주간 세트(SRS-101)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
+type E1rmSessions = Awaited<ReturnType<AnalyticsRepo["getExerciseE1rmSessions"]>>;
+type WeeklySets = Awaited<
+  ReturnType<typeof import("@app/core/data/muscleLoadRepository")["weeklyMuscleSetsRecent"]>
+>;
 type Overview = Awaited<ReturnType<AnalyticsRepo["getOverview"]>>;
 type TrendPoint = Awaited<ReturnType<AnalyticsRepo["getVolumeTrend"]>>[number];
 type RecentPR = Awaited<ReturnType<AnalyticsRepo["getRecentPRs"]>>[number];
@@ -84,6 +90,12 @@ export default function StatsClient() {
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   // [원본] const [dist, setDist] = useState<{ muscle: MuscleGroup; volumeKg: number }[]>([]); — 근육 균형 카드가 직접 읽는다(SRS-076)
   const [recentPRs, setRecentPRs] = useState<RecentPR[]>([]);
+  // 직전 같은 길이 기간의 세션·세트(볼륨은 prevVolume) — 「전체」면 null(SRS-101)
+  const [prevCounts, setPrevCounts] = useState<{ sessions: number; sets: number } | null>(null);
+  // 심화 분석 재료 — 숫자 줄과 같이 다시 읽어 카드끼리 숫자가 갈라지지 않게 한다. 실패하면 그 카드만 빠진다(SRS-101)
+  const [e1rm, setE1rm] = useState<E1rmSessions | null>(null);
+  const [weekly, setWeekly] = useState<WeeklySets | null>(null);
+  const [asOfMs, setAsOfMs] = useState(() => Date.now());
 
   useEffect(() => {
     let cancelled = false;
@@ -96,13 +108,16 @@ export default function StatsClient() {
       try {
         const repo = await import("@app/core/data/analyticsRepository");
         // [원본] const [o, o2, tr, d, prs] = await Promise.all([
-        const [o, o2, tr, prs] = await Promise.all([
+        const muscleRepo = await import("@app/core/data/muscleLoadRepository");
+        const [o, o2, tr, prs, e1, wk] = await Promise.all([
           repo.getOverview(sinceMs),
           prevSince ? repo.getOverview(prevSince) : Promise.resolve(null),
           // 추세는 기간과 상관없이 최근 몇 주를 본다 — 「이번 주」 를 골라도 막대가 하나만 남지 않게.
           repo.getVolumeTrend(now - MAX_BARS * 7 * DAY_MS),
           // [원본] repo.getMuscleDistribution(sinceMs), — 근육 균형 카드(MuscleBalanceCard)가 기간·주 이동에 맞춰 읽는다(U-5)
           repo.getRecentPRs(10),
+          repo.getExerciseE1rmSessions().catch(() => null),
+          muscleRepo.weeklyMuscleSetsRecent(now).catch(() => null),
         ]);
         if (cancelled) return;
         setOverview(o);
@@ -110,6 +125,12 @@ export default function StatsClient() {
         setTrend(tr);
         // [원본] setDist(d);
         setRecentPRs(prs);
+        setPrevCounts(
+          o2 ? { sessions: o2.sessionCount - o.sessionCount, sets: o2.workingSets - o.workingSets } : null,
+        );
+        setE1rm(e1);
+        setWeekly(wk);
+        setAsOfMs(now);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -138,7 +159,7 @@ export default function StatsClient() {
     <div className="flex flex-1 flex-col">
       <AppBar title={t("analytics.title")} />
       <div className="flex flex-1 flex-col px-[var(--spacing-lg)] pt-[var(--spacing-md)]">
-        <SummaryEntry /* 기간 성과 요약 입구(SRS-079) */ />
+        {/* [원본] <SummaryEntry /> — 기간 성과 요약 입구(SRS-079). 심화 분석은 이 화면 안에 둔다(ADR-051) */}
         <Segmented
           testId="stats-period"
           className="mb-[var(--spacing-lg)]"
@@ -184,17 +205,41 @@ export default function StatsClient() {
                     label: t("analytics.sessionCount"),
                     value: String(overview.sessionCount),
                     testId: "stat-sessions",
+                    sub: (
+                      <CountDelta
+                        now={overview.sessionCount}
+                        prev={prevCounts?.sessions ?? null}
+                        testId="stat-sessions-delta"
+                      />
+                    ),
                   },
                   {
                     label: t("analytics.workingSets"),
                     value: String(overview.workingSets),
                     testId: "stat-sets",
+                    sub: (
+                      <CountDelta
+                        now={overview.workingSets}
+                        prev={prevCounts?.sets ?? null}
+                        testId="stat-sets-delta"
+                      />
+                    ),
                   },
                   {
                     label: "세션당 볼륨",
                     value: formatWeight(
                       overview.totalVolumeKg / Math.max(1, overview.sessionCount),
                       weightUnit,
+                    ),
+                    sub: (
+                      <PercentDelta
+                        now={overview.totalVolumeKg / Math.max(1, overview.sessionCount)}
+                        prev={
+                          prevVolume != null && prevCounts && prevCounts.sessions > 0
+                            ? prevVolume / prevCounts.sessions
+                            : null
+                        }
+                      />
                     ),
                   },
                 ]}
@@ -254,6 +299,9 @@ export default function StatsClient() {
               </AppText>
             ) : null}
             <div className="mb-[var(--spacing-lg)]" />
+
+            {/* 추정 1RM 변화 — 위쪽 기간을 따른다 (SRS-101) */}
+            {e1rm ? <ExerciseChangeCard data={e1rm} days={SPAN[period]} asOfMs={asOfMs} /> : null}
 
             {/* [원본] 근육군 분포(주근육 볼륨 kg) — 근육 균형 카드(세트 수 · 볼륨 kg 은 줄마다 보조 숫자)가 대체한다(U-5 · 섹션 하나).
                 원복하려면 아래 주석을 풀고 <MuscleBalanceCard /> 를 주석 처리한다.
@@ -317,6 +365,10 @@ export default function StatsClient() {
           </>
         )}
 
+        {/* 기간과 무관한 두 카드 — 이번 주에 쉬었어도 보여야 하므로 위 분기 밖에 둔다(REV-029) */}
+        {e1rm ? <PlateauCard data={e1rm} asOfMs={asOfMs} /> : null}
+        {weekly ? <WeeklyMuscleCard data={weekly} /> : null}
+
         {/* 체중 — 운동 기록이 없어도 보인다(자기 기간 선택) @plm SRS-078 */}
         {!loading || overview ? <BodyweightCard /> : null}
 
@@ -347,6 +399,63 @@ function Delta({ now, prev, period }: { now: number; prev: number | null; period
     >
       {`${up ? "▲" : "▼"} ${Math.abs(pct)}% ${what}`}
     </span>
+  );
+}
+
+/** 숫자 줄 안 직전 기간 대비 — 기호와 숫자만 적고, 뜻은 스크린리더 글로. 대표 숫자의 Delta 와 같은 색 규칙. */
+function DeltaText({
+  dir,
+  text,
+  value,
+  testId,
+}: {
+  dir: number;
+  text: string;
+  value: string;
+  testId?: string;
+}) {
+  const label =
+    dir === 0
+      ? t("analytics.deltaSame")
+      : t(dir > 0 ? "analytics.deltaUp" : "analytics.deltaDown", { value });
+  return (
+    <span
+      data-testid={testId}
+      role="img"
+      aria-label={label}
+      className="text-[length:var(--text-xs)] tabular-nums"
+      style={{ color: dir > 0 ? "var(--color-ok)" : "var(--color-ink2)" }}
+    >
+      {text}
+    </span>
+  );
+}
+
+function CountDelta({ now, prev, testId }: { now: number; prev: number | null; testId: string }) {
+  if (prev == null || prev <= 0) return null;
+  const diff = now - prev;
+  const abs = String(Math.abs(diff));
+  return (
+    <DeltaText
+      dir={Math.sign(diff)}
+      text={diff === 0 ? "=" : `${diff > 0 ? "▲" : "▼"} ${abs}`}
+      value={abs}
+      testId={testId}
+    />
+  );
+}
+
+function PercentDelta({ now, prev }: { now: number; prev: number | null }) {
+  if (prev == null || prev <= 0) return null;
+  const dir = Math.sign(now - prev);
+  const abs = `${Math.abs(Math.round(((now - prev) / prev) * 100))}%`;
+  return (
+    <DeltaText
+      dir={dir}
+      text={dir === 0 ? "=" : `${dir > 0 ? "▲" : "▼"} ${abs}`}
+      value={abs}
+      testId="stat-avg-delta"
+    />
   );
 }
 

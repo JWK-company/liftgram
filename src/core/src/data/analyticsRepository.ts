@@ -20,6 +20,8 @@ import {
   type LoggedSet,
   type MuscleGroup,
 } from '../domain';
+import { isCardioKind } from '../domain/types';
+import type { E1rmPoint } from '../domain/exerciseProgress';
 import { getUserBodyweightKg } from './workoutRepository'; // v12: 어시스트/맨몸 유효무게 @plm SRS-033
 
 const workouts = () => database.get<Workout>('workouts');
@@ -215,6 +217,44 @@ export async function getExercise1RMTrend(exerciseId: string): Promise<TrendPoin
       const d = new Date(p.completedAt);
       return { bucketMs: p.completedAt, label: `${d.getMonth() + 1}/${d.getDate()}`, value: p.value };
     });
+}
+
+// ── 심화 분석 재료: 종목별 운동마다 최고 추정 1RM(SRS-101) ─────────────────
+export interface ExerciseE1rmSessions {
+  points: E1rmPoint[];
+  /** 종목 id → 표시 이름 */
+  names: Map<string, string>;
+}
+
+/**
+ * 종목 상세 추세(getExercise1RMTrend)와 같은 식으로 모든 종목을 한 번에 읽는다.
+ * 유산소는 뺀다. 체중을 모르는 어시스트·맨몸 세트도 뺀다 — 입력 무게가 그대로 유효 무게가 되어
+ * 보조를 줄인 향상이 「내린 종목」으로 뒤집히고, 맨몸 추가 무게의 변화율이 크게 부풀려진다(volume.effectiveWeightKg).
+ */
+export async function getExerciseE1rmSessions(): Promise<ExerciseE1rmSessions> {
+  const enriched = await getCompletedSets();
+  const exIds = [...new Set(enriched.map((e) => e.exerciseId))];
+  if (!exIds.length) return { points: [], names: new Map() };
+  const list = await exercises().query(Q.where('id', Q.oneOf(exIds))).fetch();
+  const cardio = new Set(list.filter((e) => isCardioKind(e.kind)).map((e) => e.id));
+  const byKey = new Map<string, { exerciseId: string; atMs: number; sets: LoggedSet[] }>();
+  for (const e of enriched) {
+    if (cardio.has(e.exerciseId)) continue;
+    const needsBodyweight = e.set.loadMode === 'assisted' || e.set.loadMode === 'bodyweight';
+    if (needsBodyweight && !(e.set.bodyweightKg != null && e.set.bodyweightKg > 0)) continue;
+    const key = `${e.workoutId}::${e.exerciseId}`;
+    const cur = byKey.get(key) ?? { exerciseId: e.exerciseId, atMs: e.completedAt, sets: [] };
+    cur.sets.push(e.set);
+    byKey.set(key, cur);
+  }
+  const points: E1rmPoint[] = [];
+  for (const w of byKey.values()) {
+    const value = bestEstimatedOneRepMax(w.sets);
+    if (value > 0) points.push({ exerciseId: w.exerciseId, atMs: w.atMs, value });
+  }
+  const meta = await exerciseMeta([...new Set(points.map((x) => x.exerciseId))]);
+  const names = new Map([...meta.entries()].map(([id, m]) => [id, m.nameKo]));
+  return { points, names };
 }
 
 // ── 최근 PR(추정1RM 갱신 시점) ─────────────────────────────────────

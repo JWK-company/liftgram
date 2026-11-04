@@ -408,8 +408,16 @@ export async function checkRecordsUploaded(o: {
   base.prefsPending = readPrefsPending(PENDING_KEY);
   base.pending = await sync.countPendingUserChanges().catch(() => -1);
   if (o.userId) {
-    const { readOutbox } = await import("./summaryOutbox");
-    base.outboxPending = readOutbox(o.userId).pending.length;
+    // [원본] const { readOutbox } = await import("./summaryOutbox");
+    // [원본] base.outboxPending = readOutbox(o.userId).pending.length;
+    // [개선] 대기열을 보거나 지울 화면이 없어졌다(ADR-051). 한 번 보내 보고, 남아도 설치를 막지 않는다 —
+    //        운동 기록이 아니라 기록에서 다시 계산되는 요약이고, 막으면 최대 7일 앱을 못 바꾼다(REV-029).
+    const { flushSummaryOutbox } = await import("./summaryOutbox");
+    await Promise.race([
+      flushSummaryOutbox(o.userId).catch(() => {}),
+      new Promise((r) => setTimeout(r, 5_000)),
+    ]);
+    base.outboxPending = 0;
   }
   const { countFinishedWorkouts } = await import("@app/core/data/workoutCount");
   base.uploaded = await countFinishedWorkouts().catch(() => 0);

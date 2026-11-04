@@ -1,0 +1,285 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "분석 탭 한 화면에서 기본 숫자와 심화 분석을 함께 본다. 심화 분석은 별도 페이지로 나누지 않고, 유료로 잠그지 않는다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "기능",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "직전 기간 대비:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 세션 수·작업 세트·세션당 볼륨 옆에 직전 같은 길이 기간과의 차이를 보여 준다. 「전체」이거나 직전 기간에 기록이 없으면 보여 주지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "오른 종목·내린 종목:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 고른 기간에 두 번 이상 한 종목의 추정 1RM을 그 기간 첫 운동과 마지막 운동으로 비교해 변화가 큰 순서로 각각 5개까지 보여 준다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "최고 기록이 그대로인 종목:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 전체 기록 기준으로 최고 추정 1RM을 세운 뒤 4주 이상 지났고, 그 뒤 3회 이상 했으며, 최근 28일 안에 한 종목을 오래된 순서로 5개까지 보여 준다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "근육별 주간 세트 추이:",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 이번 주를 포함한 최근 8주의 근육별 작업 세트를 표로 보여 준다. 세트 계산은 근육 균형 카드와 같다(주근육 1, 보조근 0.5).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "문구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사실 숫자만 적는다. 「정체」·「부족」·「늘리세요」 같은 평가와 권고는 쓰지 않는다. 1RM은 언제나 「추정」으로 표시한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "분석 탭 안에 네 기능이 모두 보이고, 분석 탭에서 다른 분석 페이지로 넘어가는 입구가 없다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/stats/summary",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 들어오면 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/stats",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 넘어간다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "분석 탭에 코치에게 보내기 기능이 없다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "이미 보낸 요약 카드는 DM에서 그대로 열리고, 코치의 회원 리포트도 그대로 열린다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "잠금·결제 안내가 없다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-101",
+  "meta": {
+    "acceptance_criteria": "분석 탭 안에 직전 대비·오른 종목과 내린 종목·최고 기록이 그대로인 종목·근육별 주간 세트가 있고, 다른 분석 페이지 입구·코치 보내기·잠금이 없다",
+    "kind": "FR"
+  },
+  "relations": {
+    "refs_legacy": [
+      "PLM:SRS-005",
+      "PLM:SRS-079",
+      "PLM:SRS-080"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "분석 탭 심화 분석 — 한 페이지에서 무료로",
+  "type": "SRS",
+  "updated": "2026-11-04T07:27:47Z"
+}

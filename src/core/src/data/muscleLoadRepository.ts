@@ -20,6 +20,7 @@ import {
   type MuscleLoad,
   type MuscleLoadItem,
 } from '../domain/muscleLoad';
+import { recentWeekStarts, weeklyMuscleSets, type WeeklyMuscleItem, type WeeklyMuscleSets } from '../domain/exerciseProgress';
 import { getCompletedSets } from './analyticsRepository';
 import { setVolumeKg } from '../domain/volume';
 
@@ -193,6 +194,27 @@ export async function periodMuscleBalance(startMs?: number, endMs?: number): Pro
     }
   }
   return { load: setsByMuscle(items), volumeKg };
+}
+
+/** 최근 8주(이번 주 포함) 근육별 주간 세트 — 제외 규칙은 periodMuscleBalance 와 같다(SRS-101). */
+export async function weeklyMuscleSetsRecent(nowMs: number = Date.now()): Promise<WeeklyMuscleSets> {
+  const enriched = await getCompletedSets(recentWeekStarts(nowMs)[0]);
+  const muscles = await getExerciseMuscles(enriched.map((e) => e.exerciseId));
+  const items: WeeklyMuscleItem[] = [];
+  for (const e of enriched) {
+    if (e.done === false) continue;
+    const m = muscles.get(e.exerciseId);
+    if (!m || m.cardio) continue;
+    items.push({
+      atMs: e.completedAt,
+      primaryMuscles: m.primaryMuscles,
+      secondaryMuscles: m.secondaryMuscles,
+      isWarmup: e.isWarmup,
+      setType: e.setType,
+      isFailed: e.set.isFailed,
+    });
+  }
+  return weeklyMuscleSets(items, nowMs);
 }
 
 /**

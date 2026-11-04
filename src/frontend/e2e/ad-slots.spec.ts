@@ -161,7 +161,7 @@ test("미리 보기 — 자리가 보이고, 운동을 시작하면 전부 사�
   await expect(page.getByTestId("global-workout-bar")).toBeVisible({ timeout: 20_000 });
   for (const [nav, content] of [
     ["nav-history", "history-list"],
-    ["nav-stats", "stats-summary-entry"],
+    ["nav-stats", "stats-period"],
     ["nav-feed", "feed-list"],
   ]) {
     await page.getByTestId(nav).click();

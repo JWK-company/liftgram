@@ -18,7 +18,7 @@ export const SW_SHELLS = [
   "/history",
   "/calendar",
   "/stats",
-  "/stats/summary", // 성과 요약 — 오프라인 첫 진입(P4U-18 · SRS-080)
+  // [원본] "/stats/summary", // 성과 요약 — 오프라인 첫 진입(P4U-18 · SRS-080) · 페이지를 없앴다(ADR-051)
   "/exercises",
   "/profile",
   "/offline",

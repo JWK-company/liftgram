@@ -185,6 +185,9 @@ async function 저장소_덤프(page: Page): Promise<string> {
 }
 
 test.describe.configure({ mode: "serial" });
+// 회원 보내기 화면을 없앴다(ADR-051) — 이 파일은 그 화면으로 시작하므로 건너뛴다.
+// 남은 DM 카드·처방·코치 리포트·해지 거부·대기열 1회 전송·계정 전환은 e2e/summary-card.spec.ts 가 지킨다.
+test.skip(true, "보내기 화면 제거(ADR-051)");
 
 test("요약 기본값 그대로 보냄 → 스냅샷에 체중 없음 → 트레이너 DM 카드·알림·루틴 처방 · 리포트 숫자 같음 · 저장소에 회원 id 없음 · 해지 후 거부", async ({
   page,

@@ -251,7 +251,7 @@ export function KpiRow({
   testId,
   className = "",
 }: {
-  items: { label: string; value: ReactNode; testId?: string }[];
+  items: { label: string; value: ReactNode; testId?: string; sub?: ReactNode }[];
   testId?: string;
   className?: string;
 }) {
@@ -259,13 +259,15 @@ export function KpiRow({
     <div data-testid={testId} className={`flex divide-x divide-(--color-line) ${className}`}>
       {items.map((k) => (
         <div key={k.label} className="flex min-w-0 flex-1 flex-col items-center px-[var(--spacing-xs)]">
+          {/* 읽는 순서는 라벨 → 값 → 변화(무엇이 늘었는지 먼저) · 화면 배치는 order 로 값 → 변화 → 라벨 */}
+          <span className="order-3 text-(--color-ink2) text-[length:var(--text-xs)]">{k.label}</span>
           <span
             data-testid={k.testId}
-            className="font-bold text-(--color-ink) text-[length:var(--text-lg)] tabular-nums"
+            className="order-1 font-bold text-(--color-ink) text-[length:var(--text-lg)] tabular-nums"
           >
             {k.value}
           </span>
-          <span className="text-(--color-ink2) text-[length:var(--text-xs)]">{k.label}</span>
+          {k.sub ? <span className="order-2 flex">{k.sub}</span> : null}
         </div>
       ))}
     </div>
