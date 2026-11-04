@@ -185,16 +185,15 @@ public final class LockState {
     }
 
     public boolean stalled(long now) {
-        return LockRules.queueStalled(unackedAts(), now);
+        // [원본] return LockRules.queueStalled(unackedAts(), now);
+        // [개선] 앱이 뒤에 있으면 웹이 조작을 못 받아 60초면 늘 「막힘」이 되어, 쉬는 시간 중 잠금 화면이 「앱에서 하기」로 바뀌었다. 개수만 본다.
+        return LockRules.queueFull(unackedAts());
     }
 
     /** 대기열이 「앱 열기」로 바뀌는 시각(가장 오래된 미확인 + 60초) — 그때 다시 그리도록 알람을 건다(계약 M-4). 없으면 null. */
     public Long stallsAt() {
-        long[] ats = unackedAts();
-        if (ats.length == 0) return null;
-        long min = Long.MAX_VALUE;
-        for (long t : ats) min = Math.min(min, t);
-        return min + 60_001L;
+        // [원본] 가장 오래된 미확인 + 60_001L — 시간으로는 더 이상 막히지 않으니 다시 그릴 시각이 없다
+        return null;
     }
 
     /** 단계 토큰 — 버튼에 실어 「누른 순간 보이던 단계」를 고정한다(계약 H-1). */

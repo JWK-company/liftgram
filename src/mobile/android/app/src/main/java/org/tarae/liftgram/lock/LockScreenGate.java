@@ -275,6 +275,16 @@ public final class LockScreenGate {
                 LockDiag.add(ctx, "화면 켜짐 · 띄우지 않음(" + (!enabled(ctx) ? "설정 꺼짐" : "일시정지") + ")");
                 return;
             }
+            // [개선] 운동 중엔 늘 잠금화면에 — 「다른 앱 위」 허용이면 전체 화면 알림 없이도 띄운다. 통화는 덮지 않는다.
+            // 위에서 잠깐 기다렸을 수 있다 — 그새 풀렸으면 떴다가 닫히며 깜빡이므로 띄우지 않는다
+            if (!locked(ctx) || inCall(ctx)) {
+                LockDiag.add(ctx, "화면 켜짐 · 잠금 풀림 또는 통화 중 — 띄우지 않음");
+                return;
+            }
+            if (overlay(ctx)) {
+                requestStart(ctx, false, "화면 켜짐", true);
+                return;
+            }
             LockDiag.add(ctx, "화면 켜짐 · 운동 화면 없음 → 전체 화면 알림" + (fullScreenAllowed(ctx) ? "" : "(허용 안 됨 — 못 띄움)"));
             post(ctx, v, false);
         } catch (Exception e) {

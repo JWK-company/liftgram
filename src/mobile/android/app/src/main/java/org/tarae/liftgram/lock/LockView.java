@@ -56,6 +56,8 @@ public final class LockView {
     /** 고른 테마 — system · light · dark(SPEC-021) */
     public String theme = "system";
     public Long restTotalSec;
+    /** 쉬는 시간이 안 돌 때 시계 자리에 보일 총시간(초) — 다음 휴식 길이, 없으면 지난 휴식 길이 */
+    public long restIdleSec;
 
     static Member member(JSONObject m) {
         Member x = new Member();
@@ -132,6 +134,9 @@ public final class LockView {
             long total = s.rest.optLong("totalSec");
             v.restTotalSec = total > 0 ? total : null;
         }
+        // 일시정지 중에도 쓰이므로 쉬는 시간이 도는 중에도 계산해 둔다
+        v.restIdleSec = st == null ? 0 : st.optLong("restAfterSec");
+        if (v.restIdleSec <= 0 && s.rest != null) v.restIdleSec = Math.max(0, s.rest.optLong("totalSec"));
         v.stalledAt = s.stallsAt();
         v.draftLost = s.draftLost;
         return v;

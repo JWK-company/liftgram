@@ -116,6 +116,11 @@ public final class LockRules {
         return now - min > 60_000L;
     }
 
+    /** 대기열이 가득 찼나 — 잠금 중 완료는 앱이 앞에 올 때까지 쌓이는 것이 정상이라 시간으로는 막지 않는다 */
+    public static boolean queueFull(long[] pendingAts) {
+        return pendingAts.length > 30;
+    }
+
     /** 남은 휴식(초) — 지난 것은 0(계산한 상태 · 쓰기 아님). */
     public static long restRemainingSec(JSONObject rest, long now) {
         if (rest == null || rest.isNull("endsAt")) return 0;

@@ -126,6 +126,8 @@ public class LockWorkoutActivity extends Activity {
     private final java.util.List<Runnable> repeats = new java.util.ArrayList<>();
     private long draftLostUntil;
     private LinearLayout restBtns;
+    private Button plusBtn;
+    private Button skipBtn;
 
     private static final class Row {
         LockView.Member m;
@@ -532,10 +534,12 @@ public class LockWorkoutActivity extends Activity {
         restBox.addView(ringBox);
         restBtns = new LinearLayout(this);
         Button plus = button(getString(R.string.lock_action_plus30), false);
+        plusBtn = plus;
         plus.setOnClickListener(x -> {
             if (!guarded()) act(LockActionReceiver.ACTION_PLUS30, null);
         });
         Button skip = button(getString(R.string.lock_action_end_rest), false);
+        skipBtn = skip;
         skip.setOnClickListener(x -> {
             if (!guarded()) act(LockActionReceiver.ACTION_END_REST, null);
         });
@@ -596,6 +600,11 @@ public class LockWorkoutActivity extends Activity {
         androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(t, minSp, maxSp, 1, TypedValue.COMPLEX_UNIT_SP);
     }
 
+    private void setRestButton(Button b, boolean on) {
+        b.setEnabled(on);
+        b.setAlpha(on ? 1f : 0.4f);
+    }
+
     private boolean guarded() {
         return SystemClock.uptimeMillis() < ignoreUntil;
     }
@@ -619,15 +628,24 @@ public class LockWorkoutActivity extends Activity {
             timePill.setContentDescription(v.paused ? timeDesc + ", " + getString(R.string.lock_paused) : timeDesc);
         }
         boolean resting = v.restEndsAt != null && !v.paused;
-        restBox.setVisibility(resting ? View.VISIBLE : View.GONE);
+        // [원본] restBox.setVisibility(resting ? View.VISIBLE : View.GONE); — 쉬는 시간이 끝나면 화면 구조가 바뀌었다
+        // [개선] 운동 중엔 늘 같은 구조 — 쉬는 시간이 안 돌면 시계만 총시간으로 멈춘다
+        restBox.setVisibility(View.VISIBLE);
         // 대기열이 막히면 휴식 버튼도 끈다(버튼 상태 표 · REV-015 화면 #6) · 슈퍼셋이면 시계를 줄인다(#3)
-        restBtns.setVisibility(v.openApp == LockView.OpenAppReason.STALLED ? View.GONE : View.VISIBLE);
+        // [원본] restBtns.setVisibility(v.openApp == LockView.OpenAppReason.STALLED ? View.GONE : View.VISIBLE);
+        boolean restBtnsOn = !v.paused && v.openApp != LockView.OpenAppReason.STALLED;
+        setRestButton(plusBtn, restBtnsOn); // 안 돌 때 +30초는 지금부터 30초를 시작한다(LockState.addRest)
+        setRestButton(skipBtn, restBtnsOn && resting);
         sizeRing(v.members.size() > 1);
         if (resting) {
             long remain = Math.max(0, (v.restEndsAt - System.currentTimeMillis() + 999) / 1000);
             restClock.setText(String.format(Locale.ROOT, "%d:%02d", remain / 60, remain % 60));
             restClock.setContentDescription(getString(R.string.lock_screen_rest) + " " + restClock.getText());
             ring.setFraction(LockRules.restFraction(remain, v.restTotalSec));
+        } else {
+            restClock.setText(String.format(Locale.ROOT, "%d:%02d", v.restIdleSec / 60, v.restIdleSec % 60));
+            restClock.setContentDescription(getString(R.string.lock_screen_rest) + " " + restClock.getText());
+            ring.setFraction(1f);
         }
         // 멤버 줄은 단계·조정 가능 여부가 바뀔 때만 다시 만든다 — 누르는 중인 ± 버튼이 사라지지 않게
         StringBuilder key = new StringBuilder(v.stepToken).append('|').append(v.canAdjust);
@@ -671,7 +689,9 @@ public class LockWorkoutActivity extends Activity {
             });
             holdBar.setVisibility(View.GONE);
         }
-        complete.setVisibility(v.hasStep || v.truncated ? View.VISIBLE : View.GONE);
+        // [원본] complete.setVisibility(v.hasStep || v.truncated ? View.VISIBLE : View.GONE);
+        // [개선] 「앱에서 하기」 버튼은 보이지 않게 — 자리는 지켜 화면이 움직이지 않는다. 앱으로 가는 길은 위 「잠금 해제」.
+        complete.setVisibility(canDo ? View.VISIBLE : v.hasStep || v.truncated ? View.INVISIBLE : View.GONE);
 
         String msg = null;
         if (v.paused) msg = getString(R.string.lock_paused);

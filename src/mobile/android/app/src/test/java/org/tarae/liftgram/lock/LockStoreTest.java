@@ -123,14 +123,15 @@ public class LockStoreTest {
         assertNull(s.pressComplete(2, null));
         s.update(snap(0, s.storeId, step(60, "a1")).put("paused", true), 3);
         assertNull(s.pressComplete(4, null));
-        // 60초 넘게 ack 가 없으면 막힘 → 앱 열기
+        // [원본] 60초 넘게 ack 가 없으면 막힘 → 앱 열기
+        // [개선] 앱이 뒤에 있으면 ack 가 올 수 없다 — 시간으로는 막지 않는다(개수 상한 queueFull 만)
         JSONObject[] steps = new JSONObject[5];
         for (int i = 0; i < 5; i++) steps[i] = step(60, "s" + i);
         s.update(snap(0, s.storeId, steps), 5);
         assertNotNull(s.pressComplete(10_000, null));
         assertTrue(s.canComplete(70_000));
-        assertFalse(s.canComplete(70_001));
-        assertNull(s.pressComplete(70_001, null));
+        assertTrue(s.canComplete(70_001));
+        assertNotNull(s.pressComplete(70_001, null));
     }
 
     @Test
@@ -376,12 +377,19 @@ public class LockStoreTest {
     }
 
     @Test
-    public void 막힘_시각은_가장_오래된_미확인_더하기_60초() throws Exception {
+    public void 앱이_뒤에_있어_오래_쌓여도_막히지_않고_쉬는시간_뒤_총시간을_보인다() throws Exception {
         LockState s = LockState.fresh();
-        s.update(snap(0, s.storeId, step(60, "a1"), step(60, "a2")), 1);
-        assertNull(s.stallsAt());
+        s.update(snap(0, s.storeId, step(60, "a1"), step(60, "a2").put("restAfterSec", 75)), 1);
         s.pressComplete(1000, "a1");
-        s.pressComplete(5000, "a2");
-        assertEquals(Long.valueOf(61_001), s.stallsAt());
+        assertNull(s.stallsAt());
+        long later = 1000 + 3_600_000L; // 쉬는 시간이 끝나고도 한참 뒤
+        assertFalse(s.stalled(later));
+        assertTrue(s.canComplete(later));
+        LockView v = LockView.of(s, later);
+        assertNull(v.restEndsAt);
+        assertEquals(75, v.restIdleSec); // 다음 휴식 길이
+        assertEquals(LockView.OpenAppReason.NONE, v.openApp);
+        assertFalse(LockRules.queueFull(new long[30]));
+        assertTrue(LockRules.queueFull(new long[31]));
     }
 }
