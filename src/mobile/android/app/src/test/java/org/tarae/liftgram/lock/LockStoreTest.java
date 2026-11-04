@@ -377,6 +377,31 @@ public class LockStoreTest {
     }
 
     @Test
+    public void 기본값_단계는_카드로는_못_누르고_잠금_화면에서는_누른다() throws Exception {
+        LockState s = LockState.fresh();
+        s.update(snap(0, s.storeId, step(60, "a1").put("openApp", true)), 1);
+        assertFalse(s.canComplete(2));
+        assertNull(s.pressComplete(2, "a1"));
+        assertTrue(s.canCompleteOnScreen(2));
+        assertTrue(s.canAdjust(2) == s.hasValuesCap());
+        assertNotNull(s.pressComplete(2, "a1", true));
+        // 횟수가 비었거나 시간 종목이면 잠금 화면에서도 앱으로
+        LockState b = LockState.fresh();
+        JSONObject noReps = step(60, "b1").put("openApp", true);
+        noReps.getJSONArray("members").getJSONObject(0).getJSONObject("display").put("reps", JSONObject.NULL);
+        b.update(snap(0, b.storeId, noReps), 1);
+        assertFalse(b.canCompleteOnScreen(2));
+        noReps.getJSONArray("members").getJSONObject(0).getJSONObject("display").put("reps", 0);
+        b.update(snap(0, b.storeId, noReps), 3);
+        assertFalse(b.canCompleteOnScreen(4));
+        LockState c = LockState.fresh();
+        JSONObject timed = step(60, "c1").put("openApp", true);
+        timed.getJSONArray("members").getJSONObject(0).getJSONObject("display").put("seconds", 30);
+        c.update(snap(0, c.storeId, timed), 1);
+        assertFalse(c.canCompleteOnScreen(2));
+    }
+
+    @Test
     public void 앱이_뒤에_있어_오래_쌓여도_막히지_않고_쉬는시간_뒤_총시간을_보인다() throws Exception {
         LockState s = LockState.fresh();
         s.update(snap(0, s.storeId, step(60, "a1"), step(60, "a2").put("restAfterSec", 75)), 1);

@@ -668,7 +668,7 @@ public class LockWorkoutActivity extends Activity {
             }
         }
         // 버튼 상태 표(#7)
-        boolean canDo = v.hasStep && v.canComplete;
+        boolean canDo = v.hasStep && v.screenCanComplete;
         if (canDo) {
             complete.setText("✓  " + getString(R.string.lock_screen_hold));
             // TalkBack 은 두 번 탭으로 바로 완료된다 — 「꾹 눌러」로 읽지 않는다(REV-021 화면 10)
@@ -677,7 +677,7 @@ public class LockWorkoutActivity extends Activity {
             complete.setOnClickListener(x -> {
                 LockView lv = last;
                 // [원본] talkBack() && … — 스위치 제어로는 완료할 수 없었다(REV-022 화면 8). 터치는 onHoldTouch 가 소비해 여기 오지 않는다
-                if (lv != null && lv.canComplete) act(LockActionReceiver.ACTION_COMPLETE, lv.stepToken);
+                if (lv != null && lv.screenCanComplete) act(LockActionReceiver.ACTION_COMPLETE, lv.stepToken);
             });
             holdBar.setVisibility(View.VISIBLE);
         } else {
@@ -695,7 +695,7 @@ public class LockWorkoutActivity extends Activity {
 
         String msg = null;
         if (v.paused) msg = getString(R.string.lock_paused);
-        else if (v.openApp == LockView.OpenAppReason.VALUES) msg = getString(R.string.lock_open_app_values);
+        else if (v.openApp == LockView.OpenAppReason.VALUES && !v.screenCanComplete) msg = getString(R.string.lock_open_app_values);
         else if (v.openApp == LockView.OpenAppReason.STALLED) msg = getString(R.string.lock_open_app_stalled);
         else if (v.openApp == LockView.OpenAppReason.TRUNCATED) msg = getString(R.string.lock_truncated);
         else if (!v.hasStep) msg = getString(R.string.lock_no_steps);
@@ -955,7 +955,7 @@ public class LockWorkoutActivity extends Activity {
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 // 제스처 시작 때 모드를 정한다 — 「앱에서 하기」면 평범한 클릭 · 완료면 UP 까지 이 리스너가 소비한다
-                holdGesture = last != null && last.hasStep && last.canComplete;
+                holdGesture = last != null && last.hasStep && last.screenCanComplete;
                 if (!holdGesture) return false;
                 if (guarded()) return true;
                 b.setPressed(true);
@@ -994,7 +994,7 @@ public class LockWorkoutActivity extends Activity {
             holdBar.setProgress(0);
             LockView v = last;
             // 누르던 세트가 그대로일 때만 — 그새 단계가 넘어갔으면 다른 세트를 완료하지 않는다(REV-022 안드로이드 M-2)
-            if (v != null && v.canComplete && v.stepToken.equals(holdToken)) {
+            if (v != null && v.screenCanComplete && v.stepToken.equals(holdToken)) {
                 complete.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
                 act(LockActionReceiver.ACTION_COMPLETE, v.stepToken);
             }

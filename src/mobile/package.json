@@ -1,6 +1,6 @@
 {
   "name": "liftgram-mobile",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "private": true,
   "description": "리프트그램 스토어 앱 껍데기 — 화면은 liftgram.tarae.org(웹앱)를 그대로 띄우고, 웹이 못 하는 기능(잠금화면 운동 카드·위젯·휴식 알림·앱 로그인)만 네이티브로 붙인다(ADR-046).",
   "scripts": {

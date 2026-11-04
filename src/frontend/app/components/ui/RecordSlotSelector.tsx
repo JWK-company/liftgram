@@ -129,20 +129,22 @@ export function RecordSlotSelector({
   }, [exerciseId]);
 
   const isMachine = baseEquipment === "machine";
-  const isCable = baseEquipment === "cable";
+  // [원본] const isCable = baseEquipment === "cable";
   const brand = value.equipment ?? null;
   const attach = (value.attach ?? null) as AttachKey | null;
   const grip = (value.grip ?? null) as GripKey | null;
   const load = (value.load ?? null) as LoadKey | null;
-  const hasLoad = isMachine && axes.load;
+  // [원본] const hasLoad = isMachine && axes.load;
+  const hasLoad = axes.load; // 기구로 구별하지 않는다(사용자 결정 2026-11-04)
   // [원본] const showOneSide = hasLoad && load === "plate" && !!onPlateOneSide;
   // [개선] 후보 머신은 적재 칸이 비어도 기본이 한쪽이라 토글을 보인다 — 핀 칸에만 없다(피드백 #63) @plm SRS-084
   const showOneSide =
     plateDefaultLoad === undefined
-      ? hasLoad && load === "plate" && !!onPlateOneSide
+      ? isMachine && hasLoad && load === "plate" && !!onPlateOneSide
       : plateDefaultLoad != null && (load ?? plateDefaultLoad) === "plate" && !!onPlateOneSide;
   const canSwap = !!onSwap && siblings.length > 1;
-  const hasAttach = isCable && axes.attachments.length > 0;
+  // [원본] const hasAttach = isCable && axes.attachments.length > 0;
+  const hasAttach = axes.attachments.length > 0;
   const hasGrip = axes.grips.length > 0;
   // 고를 것이 아무것도 없는 종목(맨몸 고유 동작 등)은 칩 자체를 두지 않는다.
   if (!canSwap && !isMachine && !hasAttach && !hasGrip) return null; // hasLoad ⊂ isMachine

@@ -221,6 +221,29 @@ public final class LockState {
         return st != null && !snapshot.optBoolean("paused") && !st.optBoolean("openApp") && !stalled(now);
     }
 
+    /**
+     * 잠금 운동 화면에서 완료할 수 있나 — 카드와 달리 값이 크게 보이고 ± 로 고칠 수 있으니, 기본값 단계(openApp)도 사람이 본 값으로 친다.
+     * 단 횟수가 없거나 시간·거리 종목이면 여기서 채울 수 없어 앱에서 한다.
+     */
+    public boolean canCompleteOnScreen(long now) {
+        JSONObject st = currentStep();
+        if (st == null || snapshot.optBoolean("paused") || stalled(now)) return false;
+        if (!st.optBoolean("openApp")) return true;
+        JSONArray ms = st.optJSONArray("members");
+        if (ms == null || ms.length() == 0) return false;
+        JSONObject dv = draftFor(stepToken(st));
+        for (int i = 0; i < ms.length(); i++) {
+            JSONObject m = ms.optJSONObject(i);
+            JSONObject d = m == null ? null : m.optJSONObject("display");
+            if (d == null || !d.isNull("seconds") || !d.isNull("distanceM")) return false;
+            JSONObject e = dv.optJSONObject(m.optString("setId"));
+            // [원본] if (d.isNull("reps") && (e == null || e.isNull("reps"))) return false; — 웹의 빈 횟수는 null 이 아니라 0 이다
+            int reps = e != null && !e.isNull("reps") ? e.optInt("reps") : d.optInt("reps");
+            if (reps <= 0) return false;
+        }
+        return true;
+    }
+
     /** 이 웹이 조작의 values 를 아나(스냅샷 caps · REV-014 #40) — 옛 웹은 values 를 조용히 버리므로 조정을 끈다. */
     public boolean hasValuesCap() {
         JSONArray caps = snapshot == null ? null : snapshot.optJSONArray("caps");
@@ -230,7 +253,8 @@ public final class LockState {
 
     /** 무게·횟수 ± 를 켤 수 있나 — 완료할 수 있고(막힘 아님) 웹이 values 를 안다(REV-014 #34·#40). */
     public boolean canAdjust(long now) {
-        return canComplete(now) && hasValuesCap();
+        // [원본] return canComplete(now) && hasValuesCap();
+        return canCompleteOnScreen(now) && hasValuesCap();
     }
 
     /**
@@ -247,7 +271,8 @@ public final class LockState {
      * 바꾸지 않은 필드는 null · 바꾼 것이 하나도 없는 멤버는 빼고, 하나도 없으면 values 키 자체를 넣지 않는다(옛 조작과 같은 모양).
      */
     public JSONObject pressComplete(long now, String token, boolean withDraft) throws JSONException {
-        if (!canComplete(now)) return null;
+        // [원본] if (!canComplete(now)) return null;
+        if (withDraft ? !canCompleteOnScreen(now) : !canComplete(now)) return null;
         JSONObject st = currentStep();
         // 버튼이 본 단계와 지금 단계가 다르면(연타 두 번째 · 낡은 카드) 아무것도 하지 않는다
         if (token != null && !token.equals(stepToken(st))) return null;

@@ -467,6 +467,21 @@ export function ExerciseBlock({
     [onChanged],
   );
 
+  // 기록 칸(그립·부착물·적재…)을 바꾼다 — 종목 칩과 세트 시트가 함께 쓴다
+  const changeVariant = (dims: VariantDims) => {
+    setVariant(dims);
+    // 아직 안 정한 종목에서 핀을 고르면 「양쪽 합·핀」으로 답한 것이다(저장소가 기록 · /qa code M-1) @plm SRS-084
+    if (plate.candidate && plate.choice == null && dims.load === "pin") plate.setChoiceLocal(false);
+    // [원본] void write(() => repo.setVariant(we.id, dims));
+    // [개선] 칸이 바뀌면 그 칸이 기억하는 단위로(완료 세트가 없을 때만 · 환산 없음) @plm SRS-067
+    void write(() => repo.setVariant(we.id, dims)).then(() =>
+      repo
+        .adoptSlotUnit(we.id)
+        .then(setBlockUnit)
+        .catch(() => {}),
+    );
+  };
+
   const addSet = () =>
     void (async () => {
       setBusy(true);
@@ -781,20 +796,7 @@ export function ExerciseBlock({
                 exerciseId={we.exerciseId}
                 baseEquipment={baseEquipment}
                 value={variant}
-                onChange={(dims) => {
-                  setVariant(dims);
-                  // 아직 안 정한 종목에서 핀을 고르면 「양쪽 합·핀」으로 답한 것이다(저장소가 기록 · /qa code M-1) @plm SRS-084
-                  if (plate.candidate && plate.choice == null && dims.load === "pin")
-                    plate.setChoiceLocal(false);
-                  // [원본] void write(() => repo.setVariant(we.id, dims));
-                  // [개선] 칸이 바뀌면 그 칸이 기억하는 단위로(완료 세트가 없을 때만 · 환산 없음) @plm SRS-067
-                  void write(() => repo.setVariant(we.id, dims)).then(() =>
-                    repo
-                      .adoptSlotUnit(we.id)
-                      .then(setBlockUnit)
-                      .catch(() => {}),
-                  );
-                }}
+                onChange={changeVariant}
                 onSwap={onSwapTo ? (exerciseId) => onSwapTo(we.id, exerciseId) : undefined}
                 plateOneSide={plateOneSide}
                 plateDefaultLoad={plate.defaultLoad}
@@ -991,6 +993,8 @@ export function ExerciseBlock({
                 onSetType={(type) => void write(() => repo.setSetType(s.id, type))}
                 onSetArm={(arm) => void write(() => repo.setSetArm(s.id, arm))}
                 onSetGrip={(grip) => void write(() => repo.setSetGrip(s.id, grip))}
+                blockVariant={isCardio ? undefined : variant}
+                onBlockVariant={isCardio ? undefined : changeVariant}
                 onDelete={() => void write(() => repo.deleteSetLog(s.id))}
                 onApplySuggestion={() => {
                   const sug = suggestions[s.id];

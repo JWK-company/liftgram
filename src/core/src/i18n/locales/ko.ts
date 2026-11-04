@@ -882,6 +882,7 @@ export const ko = {
   "session.useThisSlot": "이 조합으로",
   "session.currentSlot": "지금 조합",
   "session.setGripLegacy": "이 세트의 그립 · {grip}",
+  "session.setVariantBlockHint": "그립·부착물은 이 종목 전체에 적용돼요.",
   "session.swapScopeTitle": "「{routine}」 루틴도 바꿀까요?",
   "session.swapThisTime": "이번만",
   "session.swapAlsoRoutine": "루틴에도 바꾸기",

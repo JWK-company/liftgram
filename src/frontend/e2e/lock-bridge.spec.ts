@@ -76,12 +76,12 @@ function fakeScript(native: boolean) {
       queueClear: async () => { rec('queueClear'); const s = load(); s.queue = []; save(s); return {}; },
       addListener: async (ev, fn) => { (listeners[ev] = listeners[ev] || []).push(fn); return { remove: async () => {} }; },
     };
-    window.__fakeLockFire = (ev) => { for (const f of listeners[ev] || []) f({}); };
+    window.__fakeLockFire = (ev, d) => { for (const f of listeners[ev] || []) f(d || {}); };
     window.Capacitor = {
       isNativePlatform: () => ${native},
       getPlatform: () => ${native ? "'android'" : "'web'"},
-      isPluginAvailable: (n) => n === 'LiftgramLock',
-      Plugins: { LiftgramLock },
+      isPluginAvailable: (n) => n === 'LiftgramLock' || n === 'App',
+      Plugins: { LiftgramLock, App: { addListener: LiftgramLock.addListener, getLaunchUrl: async () => ({}) } },
     };
   })();`;
 }
@@ -255,6 +255,70 @@ test.describe("앱(가짜 플러그인)", () => {
     await 앱_복귀(page);
     await expect.poll(async () => (await fake(page)).queue.length, { timeout: 10_000 }).toBe(0);
     await expect(세트(page, 0, 0).getByTestId("set-done")).toHaveAttribute("aria-pressed", "false");
+  });
+
+  test("잠금화면에서 앱으로 돌아오면 지금 하는 종목이 보인다 · 「잠금 해제」 링크에도 맨 위로 가지 않는다", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 520 });
+    await 카탈로그_준비(page);
+    await 운동_시작(page, "바벨 벤치프레스");
+    await 종목_추가(page, "바벨 스쿼트");
+    await 종목_추가(page, "바벨 데드리프트");
+    let snap = await 사본(page, (s) => new Set(s.steps.map((x) => x.members[0].weId)).size >= 3, "세 종목");
+    const first = snap.steps[0].members[0].weId;
+    const 앱상태 = (isActive: boolean) =>
+      page.evaluate(
+        (v) =>
+          (window as unknown as { __fakeLockFire: (e: string, d: unknown) => void }).__fakeLockFire(
+            "appStateChange",
+            {
+              isActive: v,
+            },
+          ),
+        isActive,
+      );
+    await 앱상태(false); // 잠금화면이 앱을 가렸다
+    while (snap.steps[0].members[0].weId === first) {
+      await 잠금_완료(page);
+      snap = (await fake(page)).snapshot as Snap;
+    }
+    const target = snap.steps[0].members[0].weId;
+    const 위치 = () =>
+      page.evaluate((id) => {
+        const el = document.querySelector(`[data-testid="we-${id}"]`);
+        return { top: el ? Math.round(el.getBoundingClientRect().top) : -1, y: Math.round(window.scrollY) };
+      }, target);
+    const 보임 = async () =>
+      expect
+        .poll(
+          async () => {
+            const p = await 위치();
+            return p.y > 0 && p.top >= 0 && p.top < 220;
+          },
+          { timeout: 10_000 },
+        )
+        .toBe(true);
+    await 앱상태(true);
+    await 보임();
+    // 「잠금 해제」(liftgram://workout) — 이미 운동 화면이면 이동하지 않고(기록이 쌓이지 않고) 지금 종목으로
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const before = await page.evaluate(() => history.length);
+    await page.evaluate(() =>
+      (window as unknown as { __fakeLockFire: (e: string, d: unknown) => void }).__fakeLockFire(
+        "appUrlOpen",
+        {
+          url: "liftgram://workout",
+        },
+      ),
+    );
+    await 보임();
+    expect(await page.evaluate(() => history.length)).toBe(before);
+    // 그냥 앱을 오간 것이면(반영할 조작 없음) 보던 자리를 건드리지 않는다
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await 앱_복귀(page);
+    await page.waitForTimeout(1000);
+    expect((await 위치()).y).toBe(0);
   });
 
   test("카드에 본 값과 저장값이 다르면 완료하고 두 값을 보인다 · 「본 값으로 바꾸기」", async ({ page }) => {

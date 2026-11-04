@@ -880,6 +880,7 @@ export const en: Record<TransKey, string> = {
   "session.useThisSlot": "Use this",
   "session.currentSlot": "Current",
   "session.setGripLegacy": "Grip for this set · {grip}",
+  "session.setVariantBlockHint": "Grip and attachment apply to this whole exercise.",
   "session.swapScopeTitle": "Also change “{routine}”?",
   "session.swapThisTime": "This time only",
   "session.swapAlsoRoutine": "Also in routine",

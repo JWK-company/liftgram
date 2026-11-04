@@ -19,7 +19,12 @@ export function LockBridge() {
   useEffect(() => {
     let sub: { remove: () => unknown } | null = null;
     let alive = true;
-    void onWorkoutDeepLink(() => router.push("/workout")).then((l) => {
+    // [원본] void onWorkoutDeepLink(() => router.push("/workout")).then((l) => {
+    // [개선] 이미 운동 화면이어도 push 하면 스크롤이 맨 위로 갔다 — 그때는 이동하지 않고, 어느 쪽이든 지금 하는 종목을 보여 준다
+    void onWorkoutDeepLink(() => {
+      if (location.pathname.replace(/\/$/, "") !== "/workout") router.push("/workout");
+      void import("@/lib/lockBridge").then((m) => m.focusCurrentExercise());
+    }).then((l) => {
       if (alive) sub = l;
       else void l?.remove();
     });

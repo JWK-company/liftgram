@@ -201,11 +201,15 @@ test("손 그립 — 와이드와 클로즈 기록이 섞이지 않고, 지난 �
   await page.getByTestId("slot-grip-close").click();
   await 시트_닫기(page);
   await expect(첫세트(page).getByTestId("set-prev")).not.toContainText("50×10");
-  // 세트 옵션에는 더 이상 그립이 없다(그립은 블록 칸) — 원암만
+  // [원본] 세트 옵션에는 더 이상 그립이 없다(그립은 블록 칸) — 원암만
+  // [개선] 세트 옵션에서도 고를 수 있다 — 고르면 세트가 아니라 블록 칸이 바뀐다(사용자 결정 2026-11-04)
   await 첫세트(page).getByTestId("set-more").click();
   await 첫세트(page).getByTestId("set-variant").click();
   await expect(page.getByText("세트 옵션 (원암·원레그)")).toBeVisible();
-  await expect(page.getByText("와이드그립")).toHaveCount(0);
+  // [원본] await expect(page.getByText("와이드그립")).toHaveCount(0);
+  await page.getByText("와이드그립").click();
+  await expect(page.getByTestId("set-grip-legacy")).toHaveCount(0);
+  await expect(page.getByTestId("variant-trigger").first()).toContainText("와이드");
 });
 
 test("머신 손 그립(#T4) — 체스트 프레스에서 언더·뉴트럴을 고르면 칸이 나뉘고, 같은 동작의 케이블에는 늘지 않는다", async ({
@@ -242,7 +246,12 @@ test("머신 손 그립(#T4) — 체스트 프레스에서 언더·뉴트럴을 
 
   await 운동_시작(page, "케이블 체스트 프레스");
   await 칸_시트(page);
-  await expect(page.getByTestId("slot-grip-under")).toHaveCount(0);
+  // [원본] await expect(page.getByTestId("slot-grip-under")).toHaveCount(0); — 기구로 축을 막지 않는다(사용자 결정 2026-11-04)
+  await expect(page.getByTestId("slot-grip-under")).toBeVisible();
+  await expect(page.getByTestId("slot-attach-rope")).toBeVisible();
+  await page.getByTestId("slot-grip-under").click();
+  await 시트_닫기(page);
+  await expect(page.getByTestId("variant-trigger").first()).toContainText("언더", { timeout: 15_000 });
 });
 
 test("머신 손 그립(#T4) — 커스텀 머신 종목도 그립을 고를 수 있고, 다시 열어도 남는다", async ({ page }) => {

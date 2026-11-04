@@ -15,6 +15,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import {
   // [원본] GRIP_KEYS, — 세트별 그립 선택을 없앴다(ADR-034: 그립은 블록 칸)
+  // [개선] 세트 시트에서도 블록 칸의 그립·부착물을 고른다 — 여기서 찾는 사람이 많다(세트 값은 여전히 안 쓴다)
+  ATTACH_KEYS,
+  GRIP_KEYS,
+  attachLabel,
+  type AttachKey,
+  type VariantDims,
   type GripKey,
   roundSuggestionKg,
   displayWeight, // 세트 무게 표시는 한 곳 — 100lb 왕복이 정확(/qa spec Q1) @plm SRS-067
@@ -104,6 +110,8 @@ export function SetRowEdit({
   onSetType,
   onSetArm,
   onSetGrip,
+  blockVariant,
+  onBlockVariant,
   onDelete,
   onApplySuggestion,
   onToggleDoneSingle,
@@ -129,6 +137,9 @@ export function SetRowEdit({
   onSetType: (type: "normal" | "warmup" | "drop" | "top" | "backoff") => void;
   onSetArm: (arm: "uni" | null) => void;
   onSetGrip: (grip: string | null) => void;
+  /** 블록 칸(그립·부착물) — 유산소는 없다 */
+  blockVariant?: VariantDims;
+  onBlockVariant?: (dims: VariantDims) => void;
   onDelete: () => void;
   onApplySuggestion: () => void;
   /** 슈퍼셋 안에서 — 길게 누르거나 ⋯ 에서 「이 종목만」 완료(체크 한 번은 묶음 전체 · #48) @plm SRS-062 */
@@ -596,6 +607,8 @@ export function SetRowEdit({
           grip={set.grip}
           onArm={onSetArm}
           onGrip={onSetGrip}
+          blockVariant={blockVariant}
+          onBlockVariant={onBlockVariant}
           onClose={() => setVarOpen(false)}
         />
       ) : null}
@@ -620,12 +633,16 @@ function SetVariantSheet({
   grip,
   onArm,
   onGrip,
+  blockVariant,
+  onBlockVariant,
   onClose,
 }: {
   arm: string | null;
   grip: string | null;
   onArm: (v: "uni" | null) => void;
   onGrip: (v: string | null) => void;
+  blockVariant?: VariantDims;
+  onBlockVariant?: (dims: VariantDims) => void;
   onClose: () => void;
 }) {
   const isUni = arm === "uni";
@@ -642,6 +659,45 @@ function SetVariantSheet({
           <VarOpt key={g} label={gripLabel(g, lang)} active={grip === g} onPress={() => onGrip(g)} />
         ))}
       </SheetRow> */}
+      {blockVariant && onBlockVariant ? (
+        <>
+          <SheetRow label={t("variant.grip")}>
+            <VarOpt
+              label={t("variant.default")}
+              active={!blockVariant.grip}
+              onPress={() => onBlockVariant({ ...blockVariant, grip: null })}
+            />
+            {GRIP_KEYS.map((g) => (
+              <VarOpt
+                key={g}
+                label={gripLabel(g, lang)}
+                active={blockVariant.grip === g}
+                onPress={() => onBlockVariant({ ...blockVariant, grip: g })}
+              />
+            ))}
+          </SheetRow>
+          <SheetRow label={t("variant.attachment")}>
+            <VarOpt
+              label={t("variant.default")}
+              active={!blockVariant.attach}
+              onPress={() => onBlockVariant({ ...blockVariant, attach: null })}
+            />
+            {ATTACH_KEYS.map((a) => (
+              <VarOpt
+                key={a}
+                label={attachLabel(a as AttachKey, lang)}
+                active={blockVariant.attach === a}
+                onPress={() => onBlockVariant({ ...blockVariant, attach: a })}
+              />
+            ))}
+          </SheetRow>
+          <div className="mt-[var(--spacing-sm)]">
+            <AppText variant="caption" color="textMuted">
+              {t("session.setVariantBlockHint")}
+            </AppText>
+          </div>
+        </>
+      ) : null}
       {/* [개선] 예전에 세트에 적어 둔 그립은 보여 주기만 한다(지울 수는 있다) @plm SRS-058 */}
       {grip ? (
         <div

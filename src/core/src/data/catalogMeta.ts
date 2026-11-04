@@ -6,7 +6,7 @@ import { Q } from '@nozbe/watermelondb';
 import { database } from '../db/database';
 import type { Exercise } from '../db/models';
 import type { CatalogFamily } from './catalog/catalogTypes';
-import { customExerciseGrips, gripsForEquipment, type VariantAxesAllowed } from '../domain/variants';
+import { ALL_VARIANT_AXES, type VariantAxesAllowed } from '../domain/variants';
 
 let families: Map<string, CatalogFamily> | null = null;
 async function familyTable(): Promise<Map<string, CatalogFamily>> {
@@ -25,14 +25,14 @@ export async function getFamilyMeta(family: string | null | undefined): Promise<
 export async function variantAxesFor(exerciseId: string): Promise<VariantAxesAllowed> {
   try {
     const ex = await database.get<Exercise>('exercises').find(exerciseId);
-    const meta = await getFamilyMeta(ex.family);
     return {
       baseEquipment: ex.equipment ?? null,
-      attachments: meta?.attachments ?? [],
+      // [원본] attachments: meta?.attachments ?? [],
       // [원본] grips: meta?.grips ?? [],
-      // [개선] 머신은 family 의 machineGrips 를 쓴다(#T4)
-      grips: ex.isCustom && !meta ? customExerciseGrips(ex.equipment) : gripsForEquipment(meta, ex.equipment),
-      load: meta?.load ?? false,
+      // [원본] grips: ex.isCustom && !meta ? customExerciseGrips(ex.equipment) : gripsForEquipment(meta, ex.equipment), // 머신은 machineGrips(#T4)
+      // [원본] load: meta?.load ?? false,
+      // [개선] 기구·family 로 구별하지 않고 전부(사용자 결정 2026-11-04)
+      ...ALL_VARIANT_AXES,
     };
   } catch {
     return { baseEquipment: null, attachments: [], grips: [], load: false };

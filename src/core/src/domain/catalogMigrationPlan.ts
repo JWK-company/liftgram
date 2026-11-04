@@ -19,7 +19,7 @@ import { CUSTOM_VARIANT_KEYS, MACHINE_BRAND_KEYS } from './machineVariants';
 import {
   IMPLEMENT_KEYS,
   dimsFromColumns,
-  gripsForEquipment,
+  ALL_VARIANT_AXES,
   normalizeVariantDimsV34,
   variantColumns,
   type AttachKey,
@@ -177,18 +177,18 @@ export function planBlockMigration(block: BlockColumns, idx: CatalogIndex): Bloc
     };
   }
   const final = idx.byId.get(exerciseId);
-  const fam = final ? idx.family.get(final.family) : undefined;
+  // [원본] const fam = final ? idx.family.get(final.family) : undefined;
   // 남겨 둔 칸(kept)은 고칠 수 없으므로 정규화로 지우지 않는다 — 기록 칸이 사라지면 다른 칸과 섞인다.
   const norm = final
     ? kept.length
       ? dims
       : normalizeVariantDimsV34(dims, {
           baseEquipment: final.equipment,
-          attachments: fam?.attachments,
-          // [원본] grips: fam?.grips,
-          // [개선] 선택 시트(variantAxesFor)와 같은 목록 — 머신에서 고른 그립을 이관이 지우지 않게(#T4)
-          grips: gripsForEquipment(fam, final.equipment),
-          load: fam?.load,
+          // [원본] attachments: fam?.attachments,
+          // [원본] grips: gripsForEquipment(fam, final.equipment),
+          // [원본] load: fam?.load,
+          // [개선] 선택 시트(variantAxesFor)와 같은 목록 — 고른 축을 이관이 지우지 않게
+          ...ALL_VARIANT_AXES,
         })
     : dims;
   const columns = { ...variantColumns(norm), machineVariant: null as null };

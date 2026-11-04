@@ -126,6 +126,13 @@ export function dimsFromColumns(rec: {
   };
 }
 
+/** 모든 종목의 축 허용 목록 — 기구·family 와 무관하게 전부 고를 수 있다(사용자 결정 2026-11-04). */
+export const ALL_VARIANT_AXES = {
+  attachments: ATTACH_KEYS as readonly string[],
+  grips: GRIP_KEYS as readonly string[],
+  load: true,
+} as const;
+
 /** 축 허용 목록(family 메타) — 빈 목록이면 그 축은 없다. */
 export interface VariantAxesAllowed {
   baseEquipment: string | null | undefined;
@@ -141,8 +148,11 @@ export function normalizeVariantDimsV34(v: VariantDims, allowed: VariantAxesAllo
   const out: VariantDims = { ...normalizeVariantDims(v, base) };
   // 기구 바꾸기 = 종목 바꾸기(D2) — 기구 값(바벨·덤벨·케이블…)은 더 이상 칸이 아니다. 머신 브랜드·커스텀 슬롯만 남는다.
   if (out.equipment && (IMPLEMENT_KEYS as string[]).includes(out.equipment)) out.equipment = null;
-  if (!(base === 'machine' && allowed.load && out.load && (LOAD_KEYS as readonly string[]).includes(out.load))) out.load = null;
-  if (!(base === 'cable' && out.attach && allowed.attachments?.includes(out.attach))) out.attach = null;
+  // [원본] if (!(base === 'machine' && allowed.load && out.load && (LOAD_KEYS as readonly string[]).includes(out.load))) out.load = null;
+  // [원본] if (!(base === 'cable' && out.attach && allowed.attachments?.includes(out.attach))) out.attach = null;
+  // [개선] 기구로 축을 막지 않는다(사용자 결정 2026-11-04) — 고르는 사람만 고르면 되고, 없으면 기록을 나눌 수 없다
+  if (!(allowed.load && out.load && (LOAD_KEYS as readonly string[]).includes(out.load))) out.load = null;
+  if (!(out.attach && allowed.attachments?.includes(out.attach))) out.attach = null;
   if (out.grip && !allowed.grips?.includes(out.grip)) out.grip = null;
   return out;
 }

@@ -138,6 +138,41 @@ function scheduleRetry(): void {
   }, ms);
 }
 
+// 앱으로 돌아왔을 때 지금 하는 종목을 보여 준다 — 잠금화면에서 세트를 끝냈거나 · 앱이 새로 켜졌거나 · 「잠금 해제」로 왔을 때.
+// 그냥 앱을 오간 것이면 보던 자리를 건드리지 않는다.
+let pendingFocus = false;
+let firstDrainDone = false;
+/** 앱이 뒤로 갔다가 아직 복귀 drain 을 안 했다 */
+let wentBack = false;
+/** 마지막 스냅샷의 지금 단계 종목 */
+let currentWeId: string | null = null;
+
+function onWorkoutPath(): boolean {
+  return location.pathname.replace(/\/$/, "") === "/workout";
+}
+
+function scrollToCurrentExercise(): void {
+  const weId = currentWeId;
+  if (!weId) return;
+  // 입력 중이면 자리를 옮기지 않는다
+  if (document.activeElement instanceof HTMLInputElement) return;
+  let tries = 0;
+  const run = () => {
+    // 운동 화면으로 막 이동 중이면 블록이 아직 없다 — 잠깐 기다린다(3초)
+    const el = document.querySelector(`[data-testid="we-${CSS.escape(weId)}"]`);
+    if (el)
+      el.scrollIntoView({ block: "start" }); // 고정 헤더 높이는 ActiveWorkout 의 scrollPaddingTop 이 맡는다
+    else if (++tries < 30) setTimeout(run, 100);
+  };
+  run();
+}
+
+/** 「잠금 해제」(liftgram://workout)로 왔다 — 대기열을 반영한 뒤 지금 하는 종목으로. */
+export function focusCurrentExercise(): Promise<void> {
+  pendingFocus = true;
+  return requestLockDrain();
+}
+
 /** drain 을 깨운다 — resume·첫 로드·앞에 있을 때의 조작 이벤트가 모두 이것만 부른다(seq 순서 · 한 줄).
  *  실패해도 던지지 않는다 — 백오프로 다시 시도하고, 스냅샷은 늘 뒤따른다(REV-006 동시성 M-1). */
 export function requestLockDrain(): Promise<void> {
@@ -147,7 +182,12 @@ export function requestLockDrain(): Promise<void> {
       console.warn("[lock] drain 실패 — 다시 시도", e);
       scheduleRetry();
     })
-    .then(() => requestLockSnapshot(true));
+    .then(() => requestLockSnapshot(true))
+    .then(() => {
+      if (!pendingFocus) return;
+      pendingFocus = false;
+      scrollToCurrentExercise();
+    });
 }
 
 async function drainOnce(): Promise<void> {
@@ -216,6 +256,10 @@ async function drainOnce(): Promise<void> {
   for (const e of res.fillErrors) console.warn("[lock] 적용·채우기 오류", e);
   if (res.stalled) scheduleRetry(); // 남은 조작은 다음 drain 에서 — 처리한 것은 아래에서 ack 한다
   setReady(true); // 대기열을 기록에 반영했다 — 입력을 열어도 된다(ack 는 아래 · 이미 적용된 조작은 다시 오지 않는다)
+  // 뒤에 있는 동안 세트가 끝났을 때만 — 앱을 보며 알림의 완료를 눌렀거나 ack 재시도로 같은 조작이 다시 오면 보던 자리를 그대로 둔다
+  if ((res.changed.length && wentBack) || (!firstDrainDone && onWorkoutPath())) pendingFocus = true;
+  firstDrainDone = true;
+  wentBack = false;
   // ack — 워터마크까지 디스크에 내려썼고 이 탭이 여전히 주인일 때만(§6)
   if (res.handled.length) {
     const { flushLocalDbResult } = await import("./localDb");
@@ -314,6 +358,7 @@ async function snapshotOnce(): Promise<void> {
     clock: { startedAt: inp.startedAt, accumulatedPauseMs: inp.accumulatedPauseMs, pausedAt: inp.pausedAt },
     theme: getTheme(),
   });
+  currentWeId = snap.steps[0]?.members[0]?.weId ?? null;
   // 같은 사본이면 보내지 않는다(updatedAt 만 다른 것 — 쓰기·동기 폭주 방지)
   const json = JSON.stringify({ ...snap, updatedAt: 0 });
   if (json === lastSnapshotJson) return;
@@ -372,6 +417,7 @@ export function startLockBridge(h: LockBridgeHooks): () => void {
   offs.push(() => window.removeEventListener(PREFS_EVENT, onPrefs));
   const toBack = () => {
     // 뒤로 갈 때 — ① 입력 중 값 커밋 → ② 스냅샷 즉시(§9)
+    wentBack = true;
     void import("@/app/components/session/setDrafts")
       .then((m) => capped(m.commitAllDrafts(), "입력 중 값 저장", 3000))
       .catch(() => {})

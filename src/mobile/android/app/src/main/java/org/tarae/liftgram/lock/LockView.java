@@ -36,6 +36,8 @@ public final class LockView {
     public boolean hasStep;
     public boolean truncated; // 12단계 상한으로 잘렸나 — 비었어도 「끝」이 아니다(REV-007 표시 H-1)
     public boolean canComplete;
+    /** 잠금 운동 화면에서 완료할 수 있나(LockState.canCompleteOnScreen) */
+    public boolean screenCanComplete;
     public OpenAppReason openApp = OpenAppReason.NONE;
     public List<Member> members = new ArrayList<>();
     public Member next; // 다음 단계 첫 멤버(종목이 바뀔 때만 · 표시 M-6)
@@ -100,6 +102,7 @@ public final class LockView {
         JSONObject st = s.currentStep();
         v.hasStep = st != null;
         v.canComplete = s.canComplete(now);
+        v.screenCanComplete = s.canCompleteOnScreen(now);
         if (st != null) {
             v.stepToken = LockState.stepToken(st);
             JSONArray ms = st.optJSONArray("members");
