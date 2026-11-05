@@ -537,6 +537,17 @@ func (q *Queries) GetProfileCounts(ctx context.Context, userID string) (GetProfi
 	return i, err
 }
 
+const getRecommendOptOut = `-- name: GetRecommendOptOut :one
+SELECT recommend_opt_out FROM users WHERE id = $1::text
+`
+
+func (q *Queries) GetRecommendOptOut(ctx context.Context, userID string) (bool, error) {
+	row := q.db.QueryRow(ctx, getRecommendOptOut, userID)
+	var recommend_opt_out bool
+	err := row.Scan(&recommend_opt_out)
+	return recommend_opt_out, err
+}
+
 const isBlockedByMe = `-- name: IsBlockedByMe :one
 SELECT EXISTS (
   SELECT 1 FROM blocks WHERE blocker_id = $1 AND blocked_id = $2
@@ -992,7 +1003,8 @@ FROM posts p
 JOIN users u ON u.id = p.author_id
 LEFT JOIN post_likes l ON l.post_id = p.id AND l.user_id = $1::text
 LEFT JOIN post_bookmarks bm ON bm.post_id = p.id AND bm.user_id = $1::text
-WHERE p.moderation_status = 'approved'
+WHERE (p.moderation_status = 'approved'
+       OR (p.moderation_status = 'pending' AND p.author_id = $1::text))
   AND (
     p.author_id = $1::text
     OR (
@@ -1348,6 +1360,180 @@ func (q *Queries) ListHashtagPosts(ctx context.Context, arg ListHashtagPostsPara
 	return items, nil
 }
 
+const listRecommended = `-- name: ListRecommended :many
+WITH liked AS MATERIALIZED (
+  SELECT pl.post_id FROM post_likes pl
+  JOIN posts lp ON lp.id = pl.post_id AND lp.moderation_status = 'approved'
+  WHERE pl.user_id = $1::text
+  ORDER BY pl.created_at DESC LIMIT 100
+), mine AS MATERIALIZED (
+  SELECT id, exercises FROM posts
+  WHERE author_id = $1::text AND moderation_status = 'approved'
+  ORDER BY created_at DESC LIMIT 30
+), my_tags AS MATERIALIZED (
+  SELECT DISTINCT ph.tag FROM post_hashtags ph
+  WHERE ph.post_id IN (SELECT post_id FROM liked) OR ph.post_id IN (SELECT id FROM mine)
+), my_exercises AS MATERIALIZED (
+  SELECT DISTINCT COALESCE(e->>'ExerciseID', e->>'exerciseId') AS exercise_id
+  FROM mine m,
+       jsonb_array_elements(CASE WHEN jsonb_typeof(m.exercises) = 'array' THEN m.exercises ELSE '[]'::jsonb END) e
+  WHERE COALESCE(e->>'ExerciseID', e->>'exerciseId', '') <> ''
+), candidates AS (
+  SELECT p.id, p.author_id, p.like_count, p.created_at, p.exercises
+  FROM posts p
+  JOIN users au ON au.id = p.author_id AND NOT au.recommend_opt_out
+  WHERE p.visibility = 'public'
+    AND p.moderation_status = 'approved'
+    AND p.author_id <> $1::text
+    AND p.created_at >= $2::timestamptz
+    AND NOT EXISTS (
+      SELECT 1 FROM blocks b
+      WHERE (b.blocker_id = $1::text AND b.blocked_id = p.author_id)
+         OR (b.blocker_id = p.author_id AND b.blocked_id = $1::text)
+    )
+    AND NOT EXISTS (SELECT 1 FROM post_likes ml WHERE ml.post_id = p.id AND ml.user_id = $1::text)
+    AND NOT EXISTS (
+      SELECT 1 FROM reports r
+      WHERE r.reporter_id = $1::text AND r.target_type = 'post' AND r.target_id = p.id
+    )
+  ORDER BY p.created_at DESC, p.id DESC
+  LIMIT 2000
+), scored AS (
+  SELECT c.id, c.author_id, c.created_at,
+    (1 + c.like_count)::float8
+      * (1
+         + CASE WHEN EXISTS (
+             SELECT 1 FROM post_hashtags ph JOIN my_tags t ON t.tag = ph.tag WHERE ph.post_id = c.id
+           ) THEN 0.5 ELSE 0 END
+         + CASE WHEN EXISTS (
+             SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(c.exercises) = 'array' THEN c.exercises ELSE '[]'::jsonb END) e
+             JOIN my_exercises me ON me.exercise_id = COALESCE(e->>'ExerciseID', e->>'exerciseId')
+           ) THEN 0.5 ELSE 0 END)
+      / power(GREATEST(extract(epoch FROM now() - c.created_at)::float8 / 3600, 0) + 2, 1.2) AS base
+  FROM candidates c
+), ranked AS (
+  SELECT s.id, s.created_at,
+    s.base * power(0.7::float8, LEAST(row_number() OVER (
+      PARTITION BY s.author_id ORDER BY s.base DESC, s.created_at DESC, s.id DESC
+    ) - 1, 50)::float8) AS score
+  FROM scored s
+), picked AS (
+  SELECT r.id, r.score, r.created_at FROM ranked r
+  ORDER BY r.score DESC, r.created_at DESC, r.id DESC
+  LIMIT $4 OFFSET $3
+)
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+       false::boolean AS liked_by_me,
+       (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me,
+       EXISTS (
+         SELECT 1 FROM follows f WHERE f.follower_id = $1::text AND f.followee_id = p.author_id
+       )::boolean AS author_followed_by_me
+FROM picked k
+JOIN posts p ON p.id = k.id
+JOIN users u ON u.id = p.author_id
+LEFT JOIN post_bookmarks bm ON bm.post_id = p.id AND bm.user_id = $1::text
+ORDER BY k.score DESC, k.created_at DESC, k.id DESC
+`
+
+type ListRecommendedParams struct {
+	ViewerID string
+	Since    pgtype.Timestamptz
+	Off      int32
+	Lim      int32
+}
+
+type ListRecommendedRow struct {
+	ID                 string
+	AuthorID           string
+	Kind               string
+	Caption            *string
+	Visibility         string
+	ModerationStatus   string
+	WorkoutID          *string
+	WorkoutName        *string
+	TotalVolumeKg      *float64
+	WorkingSets        *int32
+	DurationSeconds    *int32
+	PrCount            *int32
+	MediaUrls          []string
+	IdempotencyKey     *string
+	LikeCount          int32
+	CommentCount       int32
+	CreatedAt          pgtype.Timestamptz
+	UpdatedAt          pgtype.Timestamptz
+	StreakDays         *int32
+	WeeklyReached      *bool
+	Exercises          []byte
+	RemovedAt          pgtype.Timestamptz
+	RemovedReason      *string
+	Gear               []byte
+	AuthorName         *string
+	AuthorAvatar       *string
+	LikedByMe          bool
+	BookmarkedByMe     bool
+	AuthorFollowedByMe bool
+}
+
+// ── 추천(SPEC-030) ──────────────────────────────────────────────────────────
+// 공개·승인 글을 규칙 점수로 고른다. 팔로우 여부는 거르지 않는다(사용자 결정).
+// 제외: 내 글 · 양방향 차단 · 내가 좋아요하거나 신고한 글 · 추천을 끈 작성자 · 시행 전 글(@since).
+// 점수: (1 + 좋아요) × 관심도 ÷ (경과 시간 + 2)^1.2, 같은 작성자는 두 번째 글부터 0.7을 거듭 곱한다.
+// posts.exercises 키는 새 글이 ExerciseID, 옛 글이 exerciseId 다. 배열이 아닌 행이 쿼리를 죽이지 않게 CASE 로 막는다.
+func (q *Queries) ListRecommended(ctx context.Context, arg ListRecommendedParams) ([]ListRecommendedRow, error) {
+	rows, err := q.db.Query(ctx, listRecommended,
+		arg.ViewerID,
+		arg.Since,
+		arg.Off,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecommendedRow
+	for rows.Next() {
+		var i ListRecommendedRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AuthorID,
+			&i.Kind,
+			&i.Caption,
+			&i.Visibility,
+			&i.ModerationStatus,
+			&i.WorkoutID,
+			&i.WorkoutName,
+			&i.TotalVolumeKg,
+			&i.WorkingSets,
+			&i.DurationSeconds,
+			&i.PrCount,
+			&i.MediaUrls,
+			&i.IdempotencyKey,
+			&i.LikeCount,
+			&i.CommentCount,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StreakDays,
+			&i.WeeklyReached,
+			&i.Exercises,
+			&i.RemovedAt,
+			&i.RemovedReason,
+			&i.Gear,
+			&i.AuthorName,
+			&i.AuthorAvatar,
+			&i.LikedByMe,
+			&i.BookmarkedByMe,
+			&i.AuthorFollowedByMe,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listReplies = `-- name: ListReplies :many
 SELECT c.id, c.post_id, c.author_id, c.body, c.moderation_status, c.created_at, c.parent_id, c.like_count, c.reply_count, c.removed_at, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (cl.user_id IS NOT NULL)::boolean AS liked_by_me
@@ -1426,7 +1612,8 @@ JOIN users u ON u.id = p.author_id
 LEFT JOIN post_likes l ON l.post_id = p.id AND l.user_id = $1::text
 LEFT JOIN post_bookmarks bm ON bm.post_id = p.id AND bm.user_id = $1::text
 WHERE p.author_id = $2::text
-  AND p.moderation_status = 'approved'
+  AND (p.moderation_status = 'approved'
+       OR (p.moderation_status = 'pending' AND p.author_id = $1::text))
   AND p.visibility = ANY ($3::text[])
   AND NOT EXISTS (
     SELECT 1 FROM blocks b
@@ -1756,6 +1943,20 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Sea
 		return nil, err
 	}
 	return items, nil
+}
+
+const setRecommendOptOut = `-- name: SetRecommendOptOut :exec
+UPDATE users SET recommend_opt_out = $1::boolean WHERE id = $2::text
+`
+
+type SetRecommendOptOutParams struct {
+	OptOut bool
+	UserID string
+}
+
+func (q *Queries) SetRecommendOptOut(ctx context.Context, arg SetRecommendOptOutParams) error {
+	_, err := q.db.Exec(ctx, setRecommendOptOut, arg.OptOut, arg.UserID)
+	return err
 }
 
 const suggestFriendsOfFriends = `-- name: SuggestFriendsOfFriends :many

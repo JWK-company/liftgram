@@ -32,6 +32,7 @@ for (const c of CASES) {
     await page.getByTestId("auth-email-input").fill(email);
     await page.getByTestId("auth-password-input").fill("hunter22!");
     await page.getByTestId("auth-name-input").fill(`운영시험${c.role}`);
+    await page.getByTestId("age-confirm").check();
     await page.getByTestId("btn-auth-submit").click();
     await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
     setRole(email, c.role);

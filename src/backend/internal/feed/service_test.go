@@ -17,8 +17,10 @@ import (
 // ── 가짜 저장소 ──────────────────────────────────────────────────────────────
 
 type fakeRepo struct {
-	posts    map[string]Post
-	comments map[string]Comment
+	recommended []Post
+	optOut      bool
+	posts       map[string]Post
+	comments    map[string]Comment
 	// commentID → (댓글쓴이, 글, 글주인)
 	owners    map[string][3]string
 	follows   map[string]bool     // "follower→followee"
@@ -40,6 +42,15 @@ func newFakeRepo() *fakeRepo {
 		bookmarks: map[string]bool{},
 		hashtags:  map[string][]string{},
 	}
+}
+
+func (f *fakeRepo) ListRecommended(context.Context, string, time.Time, int32, int32) ([]Post, error) {
+	return f.recommended, nil
+}
+func (f *fakeRepo) GetRecommendOptOut(context.Context, string) (bool, error) { return f.optOut, nil }
+func (f *fakeRepo) SetRecommendOptOut(_ context.Context, _ string, v bool) error {
+	f.optOut = v
+	return nil
 }
 
 func (f *fakeRepo) ListFeed(context.Context, string, *Cursor, int32) ([]Post, error) { return nil, nil }
@@ -1338,5 +1349,44 @@ func TestSuggestionsPreferFriendsOfFriends(t *testing.T) {
 		if u.Author.ID == "friend" || u.Author.ID == "me" {
 			t.Fatalf("이미 아는 사람이 추천됐다: %s", u.Author.ID)
 		}
+	}
+}
+
+func TestListRecommendedPaging(t *testing.T) {
+	repo := newFakeRepo()
+	svc := NewService(repo, nil, nil, func() string { return "x" })
+	if _, _, err := svc.ListRecommended(context.Background(), "", 0, 10); err == nil {
+		t.Fatal("로그인 없이 볼 수 없다")
+	}
+	repo.recommended = make([]Post, 3)
+	posts, next, err := svc.ListRecommended(context.Background(), "me", 20, 2)
+	if err != nil || len(posts) != 2 || next != 22 {
+		t.Fatalf("다음 쪽: %d %d %v", len(posts), next, err)
+	}
+	posts, next, _ = svc.ListRecommended(context.Background(), "me", 20, 3)
+	if len(posts) != 3 || next != 0 {
+		t.Fatalf("끝: %d %d", len(posts), next)
+	}
+	repo.recommended = make([]Post, 3)
+	if _, next, _ = svc.ListRecommended(context.Background(), "me", RecommendOffsetLimit-2, 2); next != 0 {
+		t.Fatalf("상한을 넘으면 끝: %d", next)
+	}
+	posts, next, err = svc.ListRecommended(context.Background(), "me", RecommendOffsetLimit, 2)
+	if err != nil || len(posts) != 0 || next != 0 {
+		t.Fatalf("상한 뒤는 오류 없이 끝: %d %d %v", len(posts), next, err)
+	}
+}
+
+func TestFeedPrefs(t *testing.T) {
+	repo := newFakeRepo()
+	svc := NewService(repo, nil, nil, func() string { return "x" })
+	if err := svc.SetShowInRecommended(context.Background(), "", false); err == nil {
+		t.Fatal("로그인 없이 바꿀 수 없다")
+	}
+	if err := svc.SetShowInRecommended(context.Background(), "me", false); err != nil {
+		t.Fatal(err)
+	}
+	if show, _ := svc.ShowInRecommended(context.Background(), "me"); show {
+		t.Fatal("꺼져야 한다")
 	}
 }

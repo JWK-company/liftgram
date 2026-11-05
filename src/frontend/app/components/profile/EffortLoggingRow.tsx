@@ -40,7 +40,7 @@ export function EffortLoggingRow() {
 }
 
 /** 스위치 모양 — 켠 상태만 브랜드색(선택 상태 · 화면 정리 공용 규칙). 누르는 자리는 줄 전체다. */
-function SwitchLook({ on }: { on: boolean }) {
+export function SwitchLook({ on }: { on: boolean }) {
   return (
     <span aria-hidden className="flex h-[44px] w-[56px] shrink-0 items-center justify-center">
       <span

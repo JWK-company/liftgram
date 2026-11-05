@@ -21,6 +21,7 @@ test("refresh 토큰은 스크립트에 보이지 않는다", async ({ page, con
   await page.getByTestId("auth-email-input").fill(메일);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill("쿠키사람");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 

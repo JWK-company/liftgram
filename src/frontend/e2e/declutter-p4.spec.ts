@@ -70,6 +70,7 @@ async function 가입(page: Page) {
   await page.getByTestId("auth-email-input").fill(`e2e-dcp4m-${Date.now()}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill("정리측정");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 }

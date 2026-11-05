@@ -226,6 +226,30 @@ func (h *Handler) ListExplore(ctx context.Context, req *connect.Request[feedv1.L
 	return connect.NewResponse(&feedv1.ListExploreResponse{Posts: toProtoPosts(posts)}), nil
 }
 
+func (h *Handler) ListRecommended(ctx context.Context, req *connect.Request[feedv1.ListRecommendedRequest]) (*connect.Response[feedv1.ListRecommendedResponse], error) {
+	posts, next, err := h.svc.ListRecommended(ctx, viewer(ctx), req.Msg.GetOffset(), req.Msg.GetLimit())
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&feedv1.ListRecommendedResponse{Posts: toProtoPosts(posts), NextOffset: next}), nil
+}
+
+func (h *Handler) GetFeedPrefs(ctx context.Context, _ *connect.Request[feedv1.GetFeedPrefsRequest]) (*connect.Response[feedv1.GetFeedPrefsResponse], error) {
+	show, err := h.svc.ShowInRecommended(ctx, viewer(ctx))
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&feedv1.GetFeedPrefsResponse{ShowInRecommended: show}), nil
+}
+
+func (h *Handler) SetFeedPrefs(ctx context.Context, req *connect.Request[feedv1.SetFeedPrefsRequest]) (*connect.Response[feedv1.SetFeedPrefsResponse], error) {
+	show := req.Msg.GetShowInRecommended()
+	if err := h.svc.SetShowInRecommended(ctx, viewer(ctx), show); err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&feedv1.SetFeedPrefsResponse{ShowInRecommended: show}), nil
+}
+
 func (h *Handler) SuggestedUsers(ctx context.Context, req *connect.Request[feedv1.SuggestedUsersRequest]) (*connect.Response[feedv1.SuggestedUsersResponse], error) {
 	users, err := h.svc.SuggestedUsers(ctx, viewer(ctx), req.Msg.GetLimit())
 	if err != nil {
@@ -334,18 +358,20 @@ func toProtoPosts(posts []Post) []*feedv1.Post {
 
 func toProtoPost(p Post) *feedv1.Post {
 	msg := &feedv1.Post{
-		Id:             p.ID,
-		Author:         toProtoAuthor(p.Author),
-		Kind:           toProtoKind(p.Kind),
-		Caption:        p.Caption,
-		Visibility:     toProtoVisibility(p.Visibility),
-		MediaUrls:      p.MediaURLs,
-		LikeCount:      p.LikeCount,
-		CommentCount:   p.CommentCount,
-		LikedByMe:      p.LikedByMe,
-		BookmarkedByMe: p.BookmarkedByMe,
-		Gear:           toProtoGear(p.Gear),
-		CreatedAt:      timestamppb.New(p.CreatedAt),
+		Id:                 p.ID,
+		Author:             toProtoAuthor(p.Author),
+		Kind:               toProtoKind(p.Kind),
+		Caption:            p.Caption,
+		Visibility:         toProtoVisibility(p.Visibility),
+		MediaUrls:          p.MediaURLs,
+		LikeCount:          p.LikeCount,
+		CommentCount:       p.CommentCount,
+		LikedByMe:          p.LikedByMe,
+		BookmarkedByMe:     p.BookmarkedByMe,
+		AuthorFollowedByMe: p.AuthorFollowedByMe,
+		UnderReview:        p.UnderReview,
+		Gear:               toProtoGear(p.Gear),
+		CreatedAt:          timestamppb.New(p.CreatedAt),
 	}
 	if p.Workout != nil {
 		msg.Workout = &feedv1.WorkoutSummary{

@@ -51,6 +51,7 @@ import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
+import { RecommendOptOutRow } from "./RecommendOptOutRow";
 import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
@@ -332,6 +333,7 @@ export default function ProfileClient() {
           />
           <LockScreenRow />
           <EffortLoggingRow />
+          {user ? <RecommendOptOutRow /> : null}
           <MuscleMapRow />
           <WeighInSettingRow />
           <ListRow

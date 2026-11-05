@@ -1,3 +1,6 @@
+-- name: SetAgeConfirmed :exec
+UPDATE users SET age_confirmed_at = now(), age_confirm_via = @via::text WHERE id = @id::text;
+
 -- @plm SRS-006  계정·인증 쿼리 — 여기 있는 것은 SQL뿐이다
 --
 -- 규칙(비밀번호를 어떻게 검사하는가·토큰을 언제 폐기하는가)은 internal/auth/service.go가 안다.

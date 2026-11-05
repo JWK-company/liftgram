@@ -1,0 +1,707 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-021",
+ "type": "Execution",
+ "title": "SPEC-030 피드 추천 탭 구현 기록",
+ "group": "할일/피드-추천-탭",
+ "meta": {
+  "phase": "1",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-030"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 것"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "추천 쿼리·API: "
+         },
+         {
+          "type": "text",
+          "text": "src/database/queries/feed.sql",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/proto/feed/v1/feed.proto",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/feed/service.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/feed/repo.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/feed/handler.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "화면: "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/feed/FeedClient.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/feed/RecommendedFeed.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/feed/VisibilityPicker.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/feed/PostCard.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/profile/RecommendOptOutRow.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "공개 범위 선택: 글쓰기, 글 수정, 운동 공유, 달력 자랑하기"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "자동 숨김: "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/moderation/service.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/database/queries/moderation.sql",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ". 가입 7일 이상·메일 확인 계정 3명이 신고하면 검토 대기로 돌리고, 작성자에게는 안내를 보여 준다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "14세 확인: "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/profile/AuthClient.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/auth/handler.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/database/migrations/0025_age_confirm.sql",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", 약관 "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/terms/page.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "마이그레이션: "
+         },
+         {
+          "type": "text",
+          "text": "src/database/migrations/0024_feed_recommended.sql",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/database/migrations/0025_age_confirm.sql",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "시험"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "make verify",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ": 통과"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "실 DB Go 시험("
+         },
+         {
+          "type": "text",
+          "text": "./internal/moderation",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "./internal/feed",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "./internal/auth",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "./internal/oauth",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "): 통과"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "전체 e2e(리뷰 반영 전 빌드): 363 통과, 5 실패, 39 건너뜀. 실패 가운데 "
+         },
+         {
+          "type": "text",
+          "text": "dm.spec.ts:158",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "과 "
+         },
+         {
+          "type": "text",
+          "text": "opengym-import.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 3건은 이 환경의 알려진 실패이고, "
+         },
+         {
+          "type": "text",
+          "text": "feed-recommended.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 1건은 리뷰가 지적한 선택자 문제였다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "리뷰 반영 뒤 e2e(피드·신고·인증·프로필·일정·요약): 46 통과, 1 실패, 2 건너뜀. 이 실패로 주소로 연 추천 탭이 떠날 때 지워지는 버그를 찾아 고쳤다. 고친 뒤 "
+         },
+         {
+          "type": "text",
+          "text": "feed-recommended.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 7건 통과."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "리뷰 반영 뒤 전체 e2e는 다시 돌리지 않았다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "시행일 전에는 발견 탭, 뒤에는 추천 탭이 보인다: e2e 확인"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "추천에는 공개 글만 나오고 차단·끈 작성자는 빠진다: 실 DB·e2e 확인"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "14세 확인 없이는 가입되지 않는다: 화면·서버 e2e 확인"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "새 계정 3개로는 글을 숨길 수 없다: 실 DB 시험 확인"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-040: 채택 17, 보류 10, 기각 1."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "운영 카카오맵 활성화 뒤 헬스장 재시험(EXE-020)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "사진 자동 검사 방식 결정"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "보류 항목은 REV-040 참고"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "법률 판단은 확인하지 않았다"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

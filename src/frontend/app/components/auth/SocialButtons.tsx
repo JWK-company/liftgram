@@ -160,6 +160,10 @@ export function SocialButtons({
           {notice}
         </AppText>
       ) : null}
+      {/* 소셜 가입에는 확인 칸이 없어 이 문구로 알린다 — 버튼이 있을 때만 보인다(SPEC-030) */}
+      <AppText variant="caption" color="textMuted" className="block" data-testid="social-age-note">
+        {t("auth.socialAgeNote")}
+      </AppText>
       <div className="my-[var(--spacing-xs)] flex items-center gap-[var(--spacing-sm)]">
         <span className="h-px flex-1 bg-(--color-line)" />
         <AppText variant="caption" color="textMuted">

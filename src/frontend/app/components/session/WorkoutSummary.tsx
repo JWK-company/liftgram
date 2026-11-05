@@ -7,6 +7,7 @@
 // (볼륨은 완료한 워킹 세트만, PR은 중량·볼륨 2종 — 전부 도메인 규칙이다).
 //
 // 아래에 **오운완 공유**가 붙는다 — 피드의 운동 카드를 만드는 유일한 자리다(ShareWorkout).
+import { Visibility } from "@app/contracts";
 import { AdSlot } from "../ads/AdSlot";
 import { formatEnteredWeight, formatWeight, type WeightUnit } from "@app/core";
 import { useEffect, useState } from "react";
@@ -80,6 +81,7 @@ export function WorkoutSummary({
   const [shared, setShared] = useState(false); // 한 번 올리면 시트를 다시 열어도 버튼이 잠긴 채
   const [shareBusy, setShareBusy] = useState(false); // 올리는 중 — 시트를 닫았다 열어 두 번 올리지 않게(M-1)
   const [caption, setCaption] = useState(""); // 공유 한마디 — 시트를 닫아도 남는다(L-1)
+  const [shareVisibility, setShareVisibility] = useState<Visibility>(Visibility.PUBLIC); // 공개 범위도 함께 남는다(SPEC-030)
   const done = routineMade || routineSaved;
   return (
     <div className="flex flex-1 flex-col">
@@ -325,6 +327,8 @@ export function WorkoutSummary({
             onBusyChange={setShareBusy}
             caption={caption}
             onCaptionChange={setCaption}
+            visibility={shareVisibility}
+            onVisibilityChange={setShareVisibility}
             onShared={() => {
               setShared(true);
               setSharing(false); // 올렸으면 시트를 닫는다 — 요약의 「공유」 가 「공유했어요」 로 잠긴다

@@ -143,7 +143,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (id, email, display_name, password_hash, auth_provider, role)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via
 `
 
 type CreateUserParams struct {
@@ -182,6 +182,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EmailVerifiedAt,
+		&i.RecommendOptOut,
+		&i.AgeConfirmedAt,
+		&i.AgeConfirmVia,
 	)
 	return i, err
 }
@@ -321,7 +324,7 @@ func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash string) (Refres
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at FROM users WHERE lower(email) = lower($1)
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via FROM users WHERE lower(email) = lower($1)
 `
 
 // 로그인이 쓴다. 이메일은 대소문자를 가리지 않는다 —
@@ -342,12 +345,15 @@ func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (User, error
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EmailVerifiedAt,
+		&i.RecommendOptOut,
+		&i.AgeConfirmedAt,
+		&i.AgeConfirmVia,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at FROM users WHERE id = $1
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -366,6 +372,9 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EmailVerifiedAt,
+		&i.RecommendOptOut,
+		&i.AgeConfirmedAt,
+		&i.AgeConfirmVia,
 	)
 	return i, err
 }
@@ -589,6 +598,20 @@ func (q *Queries) RotateRefreshToken(ctx context.Context, arg RotateRefreshToken
 	return result.RowsAffected(), nil
 }
 
+const setAgeConfirmed = `-- name: SetAgeConfirmed :exec
+UPDATE users SET age_confirmed_at = now(), age_confirm_via = $1::text WHERE id = $2::text
+`
+
+type SetAgeConfirmedParams struct {
+	Via string
+	ID  string
+}
+
+func (q *Queries) SetAgeConfirmed(ctx context.Context, arg SetAgeConfirmedParams) error {
+	_, err := q.db.Exec(ctx, setAgeConfirmed, arg.Via, arg.ID)
+	return err
+}
+
 const setEmailVerified = `-- name: SetEmailVerified :exec
 
 UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()), updated_at = now() WHERE id = $1
@@ -638,7 +661,7 @@ UPDATE users SET
   trainer_intent   = CASE WHEN $7::boolean   THEN $8::boolean ELSE trainer_intent END,
   updated_at       = now()
 WHERE id = $9::text
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via
 `
 
 type UpdateUserProfileParams struct {
@@ -681,6 +704,9 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.EmailVerifiedAt,
+		&i.RecommendOptOut,
+		&i.AgeConfirmedAt,
+		&i.AgeConfirmVia,
 	)
 	return i, err
 }

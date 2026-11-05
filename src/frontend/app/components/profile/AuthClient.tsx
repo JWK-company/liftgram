@@ -169,6 +169,7 @@ export default function AuthClient({
   const [error, setError] = useState<string | null>(null);
 
   const isSignup = mode === "signup";
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   // 로그아웃하면 로그인부터 다시 보인다 — 가입 화면에 남아 있으면 「로그인」 으로 돌아갈 탭이 이제 없다(시안 10).
   const [wasUser, setWasUser] = useState(!!user);
@@ -253,6 +254,10 @@ export default function AuthClient({
 
   const submit = () => {
     const trimmed = email.trim();
+    if (isSignup && !ageConfirmed) {
+      setError(t("auth.ageRequired"));
+      return;
+    }
     if (!EMAIL_RE.test(trimmed)) {
       setError(t("auth.invalidEmail"));
       return;
@@ -362,6 +367,21 @@ export default function AuthClient({
           </>
         ) : null}
 
+        {isSignup ? (
+          <label className="mb-[var(--spacing-sm)] flex min-h-11 items-center gap-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]">
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => {
+                setAgeConfirmed(e.target.checked);
+                if (e.target.checked) setError(null);
+              }}
+              data-testid="age-confirm"
+              className="h-5 w-5"
+            />
+            {t("auth.ageConfirm")}
+          </label>
+        ) : null}
         {/* 가입은 로그인 없이 메일을 내보내는 입구다 — 사람 확인(키가 없으면 그리지 않는다). */}
         {isSignup ? <HumanCheck siteKey={siteKey} onToken={setHuman} resetKey={humanReset} /> : null}
 

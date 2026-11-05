@@ -107,6 +107,10 @@ message Post {
   google.protobuf.Timestamp created_at = 11;
   // 나중에 보려고 저장해 뒀는가. 좋아요와 달리 **남에게 보이지 않는다**.
   bool bookmarked_by_me = 12;
+  // 추천 목록에서만 채운다 — 글 머리의 팔로우 버튼이 쓴다.
+  bool author_followed_by_me = 100;
+  // 검토 중인 내 글 — 작성자에게만 내려간다(SPEC-030).
+  bool under_review = 101;
   // 착용장비 태그(ADR-027). 사진 **바깥**에 그린다 — 사진을 가리는 광고는 제재 대상이다.
   repeated gear.v1.GearTag gear = 13 [(buf.validate.field).repeated = {max_items: 8}];
 }
@@ -431,6 +435,32 @@ message UnlikeCommentResponse {
   bool liked_by_me = 2;
 }
 
+message ListRecommendedRequest {
+  int32 offset = 1 [(buf.validate.field).int32 = {gte: 0, lte: 500}];
+  int32 limit = 2 [(buf.validate.field).int32 = {gte: 0, lte: 50}];
+}
+
+message ListRecommendedResponse {
+  repeated Post posts = 1;
+  // 0 이면 끝이다. 앱은 받은 개수가 아니라 이 값으로만 끝을 판단한다.
+  int32 next_offset = 2;
+}
+
+message GetFeedPrefsRequest {}
+
+message GetFeedPrefsResponse {
+  // 내 글을 다른 사람의 추천에 보여 줄지.
+  bool show_in_recommended = 1;
+}
+
+message SetFeedPrefsRequest {
+  bool show_in_recommended = 1;
+}
+
+message SetFeedPrefsResponse {
+  bool show_in_recommended = 1;
+}
+
 service FeedService {
   // 내 피드. 로그인이 필요하다 — "누구를 팔로우하는가"가 있어야 답이 정해진다.
   rpc ListFeed(ListFeedRequest) returns (ListFeedResponse) {}
@@ -470,6 +500,10 @@ service FeedService {
   // ── 발견(Explore) ──
   // 팔로우와 무관하게 **공개 글 중 반응이 많은 것**. 피드가 비어 있는 새 사용자의 첫 화면이다.
   rpc ListExplore(ListExploreRequest) returns (ListExploreResponse) {}
+  // 추천 — 공개 글을 규칙 점수로 고른다(SPEC-030). 끝은 next_offset 0 으로만 알린다.
+  rpc ListRecommended(ListRecommendedRequest) returns (ListRecommendedResponse) {}
+  rpc GetFeedPrefs(GetFeedPrefsRequest) returns (GetFeedPrefsResponse) {}
+  rpc SetFeedPrefs(SetFeedPrefsRequest) returns (SetFeedPrefsResponse) {}
   // 팔로우할 만한 사람 — 친구의 친구를 먼저, 모자라면 팔로워가 많은 사람으로 채운다.
   rpc SuggestedUsers(SuggestedUsersRequest) returns (SuggestedUsersResponse) {}
   // 사람·태그·글을 한 번에 찾는다.

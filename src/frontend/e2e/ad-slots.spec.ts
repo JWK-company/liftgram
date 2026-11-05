@@ -17,6 +17,7 @@ async function 가입(page: Page, tag: string, role: string) {
   await page.getByTestId("auth-email-input").fill(email);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill(`광고시험${tag}`);
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   execFileSync("psql", [

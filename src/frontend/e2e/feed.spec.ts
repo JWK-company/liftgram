@@ -22,6 +22,7 @@ async function 가입(page: Page, email: string, name: string) {
   await page.getByTestId("auth-email-input").fill(email);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill(name);
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 }
@@ -44,11 +45,9 @@ test("로그인하지 않으면 피드는 막지 않고 안내한다", async ({ 
 
 test("글을 올리면 목록에 뜨고, 고치고 지울 수 있다", async ({ page }) => {
   await 가입(page, freshEmail("own"), "글쓴이");
-  // 주변 헬스장 찾기 — 팔로잉·발견 두 탭 모두에서 보인다
+  // 주변 헬스장 찾기 — 피드 머리 아래에 항상 보인다
   await page.goto("/feed");
   await expect(page.getByTestId("btn-gyms")).toBeVisible({ timeout: 20_000 });
-  await page.getByTestId("feed-discover").click();
-  await expect(page.getByTestId("btn-gyms")).toBeVisible();
   await page.getByTestId("feed-following").click();
   await 글쓰기(page, "오늘도 한 세트 더");
 
@@ -108,7 +107,7 @@ test("팔로우하면 그 사람의 글이 내 피드에 들어온다", async ({
   await page.goto("/feed");
   await expect(page.getByTestId("feed-list")).not.toContainText("팔로워에게 보일 글");
 
-  await page.getByTestId("feed-discover").click();
+  await page.goto("/discover");
   await page.getByTestId("discover-query").fill(이름);
   await expect(page.getByTestId("discover-list")).toContainText(이름, { timeout: 20_000 });
   await page.getByTestId("discover-follow").first().click();
@@ -291,7 +290,7 @@ test("팔로우한 사람의 스토리가 내 트레이에 들어온다", async 
   await expect(page.getByTestId("story-tray")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("story-tile")).toHaveCount(0);
 
-  await page.getByTestId("feed-discover").click();
+  await page.goto("/discover");
   await page.getByTestId("discover-query").fill(이름);
   await expect(page.getByTestId("discover-list")).toContainText(이름, { timeout: 20_000 });
   await page.getByTestId("discover-follow").first().click();

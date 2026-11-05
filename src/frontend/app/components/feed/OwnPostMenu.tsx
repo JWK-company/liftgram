@@ -5,6 +5,7 @@
 // 삭제는 되돌릴 수 없으므로 확인창을 한 번 세운다 — 좋아요·댓글이 함께 사라진다고 적는다.
 import type { Post } from "@app/contracts";
 import { useState } from "react";
+import { VisibilityPicker } from "./VisibilityPicker";
 import { t } from "@/lib/i18n";
 import { feedClient, feedErrorMessage } from "@/lib/feedClient";
 import { Button } from "../ui/Button";
@@ -29,6 +30,7 @@ export function OwnPostMenu({
   const [menuOpen, setMenuOpen] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [caption, setCaption] = useState(post.caption);
+  const [visibility, setVisibility] = useState(post.visibility);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +39,7 @@ export function OwnPostMenu({
     setBusy(true);
     setError(null);
     try {
-      const res = await feedClient().updatePost({ postId: post.id, caption: caption.trim() });
+      const res = await feedClient().updatePost({ postId: post.id, caption: caption.trim(), visibility });
       if (res.post) onUpdated(res.post);
       setDialog(null);
     } catch (e) {
@@ -86,6 +88,7 @@ export function OwnPostMenu({
               testId: "post-edit",
               onPress: () => {
                 setCaption(post.caption);
+                setVisibility(post.visibility);
                 setDialog("edit");
               },
             },
@@ -109,6 +112,9 @@ export function OwnPostMenu({
               placeholder={t("feed.composePlaceholder")}
               testId="post-edit-caption"
             />
+            <div className="mt-[var(--spacing-sm)]">
+              <VisibilityPicker value={visibility} onChange={setVisibility} disabled={busy} />
+            </div>
           </div>
           {error ? (
             <AppText variant="caption" color="danger">

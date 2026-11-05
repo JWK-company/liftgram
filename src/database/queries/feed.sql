@@ -17,7 +17,8 @@ FROM posts p
 JOIN users u ON u.id = p.author_id
 LEFT JOIN post_likes l ON l.post_id = p.id AND l.user_id = @viewer_id::text
 LEFT JOIN post_bookmarks bm ON bm.post_id = p.id AND bm.user_id = @viewer_id::text
-WHERE p.moderation_status = 'approved'
+WHERE (p.moderation_status = 'approved'
+       OR (p.moderation_status = 'pending' AND p.author_id = @viewer_id::text))
   AND (
     p.author_id = @viewer_id::text
     OR (
@@ -53,7 +54,8 @@ JOIN users u ON u.id = p.author_id
 LEFT JOIN post_likes l ON l.post_id = p.id AND l.user_id = @viewer_id::text
 LEFT JOIN post_bookmarks bm ON bm.post_id = p.id AND bm.user_id = @viewer_id::text
 WHERE p.author_id = @author_id::text
-  AND p.moderation_status = 'approved'
+  AND (p.moderation_status = 'approved'
+       OR (p.moderation_status = 'pending' AND p.author_id = @viewer_id::text))
   AND p.visibility = ANY (@allowed_visibility::text[])
   AND NOT EXISTS (
     SELECT 1 FROM blocks b
@@ -474,3 +476,88 @@ WHERE u.id <> @viewer_id::text
   )
 ORDER BY followers DESC, u.id
 LIMIT @lim;
+
+-- ── 추천(SPEC-030) ──────────────────────────────────────────────────────────
+-- 공개·승인 글을 규칙 점수로 고른다. 팔로우 여부는 거르지 않는다(사용자 결정).
+-- 제외: 내 글 · 양방향 차단 · 내가 좋아요하거나 신고한 글 · 추천을 끈 작성자 · 시행 전 글(@since).
+-- 점수: (1 + 좋아요) × 관심도 ÷ (경과 시간 + 2)^1.2, 같은 작성자는 두 번째 글부터 0.7을 거듭 곱한다.
+-- posts.exercises 키는 새 글이 ExerciseID, 옛 글이 exerciseId 다. 배열이 아닌 행이 쿼리를 죽이지 않게 CASE 로 막는다.
+-- name: ListRecommended :many
+WITH liked AS MATERIALIZED (
+  SELECT pl.post_id FROM post_likes pl
+  JOIN posts lp ON lp.id = pl.post_id AND lp.moderation_status = 'approved'
+  WHERE pl.user_id = @viewer_id::text
+  ORDER BY pl.created_at DESC LIMIT 100
+), mine AS MATERIALIZED (
+  SELECT id, exercises FROM posts
+  WHERE author_id = @viewer_id::text AND moderation_status = 'approved'
+  ORDER BY created_at DESC LIMIT 30
+), my_tags AS MATERIALIZED (
+  SELECT DISTINCT ph.tag FROM post_hashtags ph
+  WHERE ph.post_id IN (SELECT post_id FROM liked) OR ph.post_id IN (SELECT id FROM mine)
+), my_exercises AS MATERIALIZED (
+  SELECT DISTINCT COALESCE(e->>'ExerciseID', e->>'exerciseId') AS exercise_id
+  FROM mine m,
+       jsonb_array_elements(CASE WHEN jsonb_typeof(m.exercises) = 'array' THEN m.exercises ELSE '[]'::jsonb END) e
+  WHERE COALESCE(e->>'ExerciseID', e->>'exerciseId', '') <> ''
+), candidates AS (
+  SELECT p.id, p.author_id, p.like_count, p.created_at, p.exercises
+  FROM posts p
+  JOIN users au ON au.id = p.author_id AND NOT au.recommend_opt_out
+  WHERE p.visibility = 'public'
+    AND p.moderation_status = 'approved'
+    AND p.author_id <> @viewer_id::text
+    AND p.created_at >= @since::timestamptz
+    AND NOT EXISTS (
+      SELECT 1 FROM blocks b
+      WHERE (b.blocker_id = @viewer_id::text AND b.blocked_id = p.author_id)
+         OR (b.blocker_id = p.author_id AND b.blocked_id = @viewer_id::text)
+    )
+    AND NOT EXISTS (SELECT 1 FROM post_likes ml WHERE ml.post_id = p.id AND ml.user_id = @viewer_id::text)
+    AND NOT EXISTS (
+      SELECT 1 FROM reports r
+      WHERE r.reporter_id = @viewer_id::text AND r.target_type = 'post' AND r.target_id = p.id
+    )
+  ORDER BY p.created_at DESC, p.id DESC
+  LIMIT 2000
+), scored AS (
+  SELECT c.id, c.author_id, c.created_at,
+    (1 + c.like_count)::float8
+      * (1
+         + CASE WHEN EXISTS (
+             SELECT 1 FROM post_hashtags ph JOIN my_tags t ON t.tag = ph.tag WHERE ph.post_id = c.id
+           ) THEN 0.5 ELSE 0 END
+         + CASE WHEN EXISTS (
+             SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(c.exercises) = 'array' THEN c.exercises ELSE '[]'::jsonb END) e
+             JOIN my_exercises me ON me.exercise_id = COALESCE(e->>'ExerciseID', e->>'exerciseId')
+           ) THEN 0.5 ELSE 0 END)
+      / power(GREATEST(extract(epoch FROM now() - c.created_at)::float8 / 3600, 0) + 2, 1.2) AS base
+  FROM candidates c
+), ranked AS (
+  SELECT s.id, s.created_at,
+    s.base * power(0.7::float8, LEAST(row_number() OVER (
+      PARTITION BY s.author_id ORDER BY s.base DESC, s.created_at DESC, s.id DESC
+    ) - 1, 50)::float8) AS score
+  FROM scored s
+), picked AS (
+  SELECT r.id, r.score, r.created_at FROM ranked r
+  ORDER BY r.score DESC, r.created_at DESC, r.id DESC
+  LIMIT @lim OFFSET @off
+)
+SELECT p.*, u.display_name AS author_name, u.avatar_url AS author_avatar,
+       false::boolean AS liked_by_me,
+       (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me,
+       EXISTS (
+         SELECT 1 FROM follows f WHERE f.follower_id = @viewer_id::text AND f.followee_id = p.author_id
+       )::boolean AS author_followed_by_me
+FROM picked k
+JOIN posts p ON p.id = k.id
+JOIN users u ON u.id = p.author_id
+LEFT JOIN post_bookmarks bm ON bm.post_id = p.id AND bm.user_id = @viewer_id::text
+ORDER BY k.score DESC, k.created_at DESC, k.id DESC;
+
+-- name: GetRecommendOptOut :one
+SELECT recommend_opt_out FROM users WHERE id = @user_id::text;
+
+-- name: SetRecommendOptOut :exec
+UPDATE users SET recommend_opt_out = @opt_out::boolean WHERE id = @user_id::text;

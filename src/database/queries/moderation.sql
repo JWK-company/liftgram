@@ -57,6 +57,14 @@ WHERE s.moderation_status = 'pending'
 ORDER BY s.created_at DESC
 LIMIT @lim;
 
+-- 신고 행이 사라져도(신고자 탈퇴·목록 상한) 숨긴 댓글이 검토 목록에서 빠지지 않게 한다.
+-- name: ListPendingComments :many
+SELECT c.id, c.author_id, c.body, c.created_at, u.display_name AS author_name
+FROM comments c JOIN users u ON u.id = c.author_id
+WHERE c.moderation_status = 'pending'
+ORDER BY c.created_at DESC
+LIMIT @lim;
+
 -- ── 처리 ────────────────────────────────────────────────────────────────────
 -- name: SetPostModeration :exec
 UPDATE posts SET moderation_status = @status::text,
@@ -85,3 +93,18 @@ SELECT author_id, visibility, moderation_status FROM posts WHERE id = $1;
 
 -- name: IsFollowingSimple :one
 SELECT EXISTS (SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2)::boolean;
+
+-- 자동 숨김에 셀 신고자 수. 신고자당 한 건이 유일 제약으로 보장된다.
+-- 새 계정 몇 개로 글을 내리지 못하게 가입 7일 이상·메일 확인 계정만 세고(메일 없는 소셜 계정은 쓰기 게이트와 같이 통과),
+-- 의견이 갈리기 쉬운 사유는 빼며, 검토자가 한 번 기각한 대상은 다시 자동으로 숨기지 않는다. 나머지 신고도 검토 목록에는 오른다.
+-- name: CountPendingReporters :one
+SELECT count(*)::int FROM reports r
+JOIN users u ON u.id = r.reporter_id
+WHERE r.target_type = @target_type::text AND r.target_id = @target_id::text AND r.status = 'pending'
+  AND r.reason NOT IN ('spam', 'other', 'misinformation')
+  AND u.created_at <= now() - interval '7 days'
+  AND (u.email IS NULL OR u.email_verified_at IS NOT NULL)
+  AND NOT EXISTS (
+    SELECT 1 FROM reports d
+    WHERE d.target_type = r.target_type AND d.target_id = r.target_id AND d.status = 'dismissed'
+  );

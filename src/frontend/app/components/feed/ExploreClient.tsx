@@ -146,6 +146,12 @@ export default function ExploreClient() {
       <div className="flex-1 px-[var(--spacing-lg)]" data-testid="explore-body">
         {inSearch ? (
           <SearchResults
+            onPostChanged={(next) =>
+              setResult((r) => (r ? { ...r, posts: r.posts.map((x) => (x.id === next.id ? next : x)) } : r))
+            }
+            onPostDeleted={(id) =>
+              setResult((r) => (r ? { ...r, posts: r.posts.filter((x) => x.id !== id) } : r))
+            }
             result={result}
             loading={searching}
             error={searchError}
@@ -221,6 +227,8 @@ function SearchResults({
   meId,
   unit,
   onFollow,
+  onPostChanged,
+  onPostDeleted,
 }: {
   result: { users: UserResult[]; tags: HashtagCount[]; posts: Post[] } | null;
   loading: boolean;
@@ -228,6 +236,8 @@ function SearchResults({
   meId: string | null;
   unit: WeightUnit;
   onFollow: (u: UserResult) => void;
+  onPostChanged: (p: Post) => void;
+  onPostDeleted: (id: string) => void;
 }) {
   const empty =
     !result || (result.users.length === 0 && result.tags.length === 0 && result.posts.length === 0);
@@ -279,7 +289,14 @@ function SearchResults({
         <>
           <SectionHeader title={t("feed.title")} />
           {result.posts.map((p) => (
-            <PostCard key={p.id} post={p} meId={meId} unit={unit} onChanged={() => {}} onDeleted={() => {}} />
+            <PostCard
+              key={p.id}
+              post={p}
+              meId={meId}
+              unit={unit}
+              onChanged={onPostChanged}
+              onDeleted={onPostDeleted}
+            />
           ))}
         </>
       ) : null}

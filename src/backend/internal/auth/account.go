@@ -307,6 +307,22 @@ var (
 	ErrIdentityTaken = errors.New("이미 다른 계정에 연결된 로그인 수단입니다")
 )
 
+// ageConfirmRecorder — 가짜 저장소를 건드리지 않게 따로 둔다(AccountRepo 와 같은 이유).
+type ageConfirmRecorder interface {
+	SetAgeConfirmed(ctx context.Context, userID, via string) error
+}
+
+// RecordAgeConfirm — 만 14세 확인을 남긴다. 기록 실패로 이미 끝난 가입을 되돌리지 않고 로그만 남긴다.
+func (s *Service) RecordAgeConfirm(ctx context.Context, userID, via string) {
+	rec, ok := s.repo.(ageConfirmRecorder)
+	if !ok {
+		return
+	}
+	if err := rec.SetAgeConfirmed(ctx, userID, via); err != nil {
+		slog.Error("[auth] 만 14세 확인 기록 실패", "user", userID, "via", via, "err", err)
+	}
+}
+
 // SocialSignIn — 소셜 로그인·가입·연결 판정. 로그인할 사용자 id와 새로 만들었는지를 돌려준다.
 //
 //	linkUserID 가 있으면 **연결**이다(로그인한 사람이 연결 표를 들고 나갔다).
@@ -371,6 +387,7 @@ func (s *Service) SocialSignIn(ctx context.Context, p SocialProfile, linkUserID 
 	if email != "" {
 		_ = a.Repo.SetEmailVerified(ctx, u.ID)
 	}
+	s.RecordAgeConfirm(ctx, u.ID, "social_notice")
 	return u.ID, true, nil
 }
 

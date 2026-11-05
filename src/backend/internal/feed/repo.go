@@ -79,10 +79,11 @@ func (r *pgRepo) GetPost(ctx context.Context, viewerID, postID string) (Post, er
 	if err != nil {
 		return Post{}, err
 	}
-	// 내려간(또는 검토 중인) 글은 **없는 것으로 친다.**
+	// 내려간(또는 검토 중인) 글은 **없는 것으로 친다.** 단 검토 중인 글은 작성자에게만 열린다 —
+	// 신고로 숨겨진 뒤 작성자가 글이 사라졌다고 여기지 않게(SPEC-030).
 	// 목록 쿼리는 이 조건을 갖고 있지만 단건 조회는 id를 알면 그냥 열린다 —
 	// 그러면 내려간 글에 좋아요·댓글이 계속 달린다(실측으로 잡은 결함).
-	if row.ModerationStatus != "approved" {
+	if row.ModerationStatus != "approved" && (row.ModerationStatus != "pending" || row.AuthorID != viewerID) {
 		return Post{}, errs.New(errs.NotFound, "게시물을 찾을 수 없습니다")
 	}
 
@@ -571,6 +572,42 @@ func (r *pgRepo) ListExplore(ctx context.Context, viewerID string, limit int32) 
 	return out, nil
 }
 
+// posts.exercises 를 SQL 로도 읽는다(추천 관심도 · SPEC-030). 옛 글은 키가 exerciseId 라 둘 다 본다.
+func (r *pgRepo) ListRecommended(ctx context.Context, viewerID string, since time.Time, offset, limit int32) ([]Post, error) {
+	rows, err := r.q.ListRecommended(ctx, sqlcgen.ListRecommendedParams{
+		ViewerID: viewerID,
+		Since:    pgtype.Timestamptz{Time: since, Valid: true},
+		Lim:      limit,
+		Off:      offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Post, 0, len(rows))
+	for _, row := range rows {
+		post := assemble(postFields{
+			id: row.ID, authorID: row.AuthorID, kind: row.Kind, visibility: row.Visibility,
+			caption: row.Caption, authorName: row.AuthorName, authorAvatar: row.AuthorAvatar,
+			workoutID: row.WorkoutID, workoutName: row.WorkoutName, totalVolumeKg: row.TotalVolumeKg,
+			workingSets: row.WorkingSets, durationSeconds: row.DurationSeconds, prCt: row.PrCount,
+			streakDays: row.StreakDays, weeklyReached: row.WeeklyReached, exercises: row.Exercises, gear: row.Gear,
+			mediaURLs: row.MediaUrls, likeCount: row.LikeCount, commentCount: row.CommentCount,
+			likedByMe: row.LikedByMe, bookmarkedByMe: row.BookmarkedByMe, createdAt: row.CreatedAt.Time,
+		})
+		post.AuthorFollowedByMe = row.AuthorFollowedByMe
+		out = append(out, post)
+	}
+	return out, nil
+}
+
+func (r *pgRepo) GetRecommendOptOut(ctx context.Context, userID string) (bool, error) {
+	return r.q.GetRecommendOptOut(ctx, userID)
+}
+
+func (r *pgRepo) SetRecommendOptOut(ctx context.Context, userID string, optOut bool) error {
+	return r.q.SetRecommendOptOut(ctx, sqlcgen.SetRecommendOptOutParams{OptOut: optOut, UserID: userID})
+}
+
 func (r *pgRepo) SearchPosts(ctx context.Context, viewerID, query string, limit int32) ([]Post, error) {
 	rows, err := r.q.SearchPosts(ctx, sqlcgen.SearchPostsParams{ViewerID: viewerID, Q: query, Lim: limit})
 	if err != nil {
@@ -730,6 +767,7 @@ func derefI(p *int32) int32 {
 // 세 쿼리가 같은 열을 돌려주지만 sqlc가 각각 다른 타입을 만든다 —
 // 공통 필드만 뽑아 한 곳에서 조립한다(변환 규칙이 세 벌로 갈라지지 않게).
 type postFields struct {
+	underReview                        bool
 	id, authorID, kind, visibility     string
 	caption, authorName, authorAvatar  *string
 	workoutID, workoutName             *string
@@ -747,6 +785,7 @@ type postFields struct {
 
 func assemble(f postFields) Post {
 	p := Post{
+		UnderReview:    f.underReview,
 		ID:             f.id,
 		Author:         Author{ID: f.authorID, DisplayName: deref(f.authorName), AvatarURL: deref(f.authorAvatar)},
 		Kind:           Kind(f.kind),
@@ -793,7 +832,8 @@ func assemble(f postFields) Post {
 
 func feedRowToPost(r sqlcgen.ListFeedRow) Post {
 	return assemble(postFields{
-		id: r.ID, authorID: r.AuthorID, kind: r.Kind, visibility: r.Visibility,
+		underReview: r.ModerationStatus == "pending",
+		id:          r.ID, authorID: r.AuthorID, kind: r.Kind, visibility: r.Visibility,
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
@@ -805,7 +845,8 @@ func feedRowToPost(r sqlcgen.ListFeedRow) Post {
 
 func userPostRowToPost(r sqlcgen.ListUserPostsRow) Post {
 	return assemble(postFields{
-		id: r.ID, authorID: r.AuthorID, kind: r.Kind, visibility: r.Visibility,
+		underReview: r.ModerationStatus == "pending",
+		id:          r.ID, authorID: r.AuthorID, kind: r.Kind, visibility: r.Visibility,
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
@@ -817,7 +858,8 @@ func userPostRowToPost(r sqlcgen.ListUserPostsRow) Post {
 
 func getRowToPost(r sqlcgen.GetPostRow) Post {
 	return assemble(postFields{
-		id: r.ID, authorID: r.AuthorID, kind: r.Kind, visibility: r.Visibility,
+		underReview: r.ModerationStatus == "pending",
+		id:          r.ID, authorID: r.AuthorID, kind: r.Kind, visibility: r.Visibility,
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,

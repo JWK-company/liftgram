@@ -5,3 +5,5 @@
 | 코드 | 타입 | 제목 | 관계 |
 | --- | --- | --- | --- |
 | [SPEC-030](SPEC-030.md) | Spec | 피드 발견 탭을 추천 탭으로 바꾼다 |  |
+| [REV-039](REV-039.md) | Review | SPEC-030 스펙 리뷰 | reviews → SPEC-030 |
+| [REV-040](REV-040.md) | Review | SPEC-030 코드 리뷰 | reviews → SPEC-030 |

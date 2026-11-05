@@ -323,4 +323,7 @@ type User struct {
 	CreatedAt       pgtype.Timestamptz
 	UpdatedAt       pgtype.Timestamptz
 	EmailVerifiedAt pgtype.Timestamptz
+	RecommendOptOut bool
+	AgeConfirmedAt  pgtype.Timestamptz
+	AgeConfirmVia   *string
 }

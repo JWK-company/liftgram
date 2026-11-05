@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       restoring,
       signUp: async (email, password, displayName, humanToken) => {
         const res = await authClient().signUp(
-          { email, password, displayName },
+          { email, password, displayName, ageConfirmed: true }, // 폼이 확인 칸을 통과시킨 뒤에만 부른다
           { headers: humanToken ? { [HUMAN_HEADER]: humanToken } : {} },
         );
         // 쿠키가 구워질 때까지 기다린다 — 곧바로 전체 이동하면 그 요청이 끊겨 쿠키가 없다(SRS-083 보조 경로).

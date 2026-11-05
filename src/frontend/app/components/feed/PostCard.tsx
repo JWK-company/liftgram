@@ -17,11 +17,12 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { WeightUnit } from "@app/core";
 import { requiresAffiliateDisclosure } from "@app/core";
-import { TargetType, routes, type Post } from "@app/contracts";
+import { TargetType, Visibility, routes, type Post } from "@app/contracts";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
-import { feedClient } from "@/lib/feedClient";
+import { feedClient, feedErrorMessage } from "@/lib/feedClient";
 import { mediaSrc } from "@/lib/mediaClient";
+import { useToast } from "../Toast";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 import { AppText, Card } from "../ui/primitives";
@@ -38,6 +39,8 @@ export function PostCard({
   unit,
   onChanged,
   onDeleted,
+  onReported,
+  onFollowChange,
 }: {
   post: Post;
   meId: string | null;
@@ -45,7 +48,13 @@ export function PostCard({
   /** 좋아요·저장·수정처럼 이 카드 안에서 끝나는 변화. 목록이 자기 상태를 맞춘다. */
   onChanged: (next: Post) => void;
   onDeleted: (id: string) => void;
+  /** 추천 목록처럼 신고한 글을 바로 치우는 곳에서만 준다. */
+  onReported?: (id: string) => void;
+  /** 주면 글 머리에 팔로우 버튼을 그린다(추천 탭). */
+  onFollowChange?: (authorId: string, followed: boolean) => void;
 }) {
+  const toast = useToast();
+  const [followBusy, setFollowBusy] = useState(false);
   const [pending, setPending] = useState(false);
   const [reporting, setReporting] = useState(false);
   // 카드가 직접 읽는다 — 화면마다 내려 주게 하면 한 군데를 빠뜨렸을 때 그 화면만 규칙이 달라진다.
@@ -61,6 +70,23 @@ export function PostCard({
   const when = post.createdAt
     ? new Date(Number(post.createdAt.seconds) * 1000).toLocaleDateString("ko-KR")
     : "";
+
+  async function toggleFollow() {
+    const authorId = post.author?.id;
+    if (followBusy || !authorId || !onFollowChange) return;
+    const was = post.authorFollowedByMe;
+    setFollowBusy(true);
+    onFollowChange(authorId, !was);
+    try {
+      if (was) await feedClient().unfollow({ userId: authorId });
+      else await feedClient().follow({ userId: authorId });
+    } catch (e) {
+      onFollowChange(authorId, was);
+      toast(feedErrorMessage(e), "error");
+    } finally {
+      setFollowBusy(false);
+    }
+  }
 
   async function toggleLike() {
     if (pending) return; // 같은 카드 연타 방지 — 두 요청이 엇갈리면 수가 어긋난다
@@ -93,7 +119,7 @@ export function PostCard({
   }
 
   return (
-    <Card className="mb-[var(--spacing-md)]">
+    <Card className="mb-[var(--spacing-md)]" data-testid="post-card">
       <div className="flex items-center gap-[var(--spacing-sm)]">
         <a
           href={routes.userProfile(post.author?.id ?? "")}
@@ -107,9 +133,26 @@ export function PostCard({
             </AppText>
             <AppText variant="caption" color="textFaint">
               {when}
+              {isOwn && post.visibility === Visibility.FOLLOWERS
+                ? ` · ${t("feed.visibilityFollowers")}`
+                : null}
+              {isOwn && post.visibility === Visibility.PRIVATE ? ` · ${t("feed.visibilityPrivate")}` : null}
             </AppText>
           </span>
         </a>
+        {onFollowChange && !isOwn ? (
+          <button
+            type="button"
+            onClick={toggleFollow}
+            disabled={followBusy}
+            data-testid="post-follow"
+            className={`min-h-[44px] shrink-0 px-[var(--spacing-sm)] font-semibold text-[length:var(--text-sm)] ${
+              post.authorFollowedByMe ? "text-(--color-ink2)" : "text-(--color-brand)"
+            }`}
+          >
+            {t(post.authorFollowedByMe ? "feed.following" : "feed.follow")}
+          </button>
+        ) : null}
         {/* [원본] 「운동」 배지 — 아래 운동 상자가 이미 운동 글임을 말한다(같은 말 두 번 · 화면 정리 D7) @plm SRS-071
         {post.workout ? <Tag label={t("feed.workoutBadge")} tone="primary" /> : null} */}
         {isOwn ? (
@@ -121,12 +164,23 @@ export function PostCard({
             onClick={() => setReporting(true)}
             aria-label={t("report.title")}
             data-testid="post-report"
-            className="pl-[var(--spacing-sm)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center"
           >
             <Icon name="ellipsis-horizontal" size={18} color="var(--color-ink3)" />
           </button>
         ) : null}
       </div>
+
+      {post.underReview ? (
+        <AppText
+          variant="caption"
+          color="textMuted"
+          className="mt-[var(--spacing-xs)] block"
+          data-testid="post-under-review"
+        >
+          {t("feed.underReview")}
+        </AppText>
+      ) : null}
 
       {/* 대가성 고지 — 게시물 **첫 부분**(작성자명 바로 아래). 끝부분 표기는 폐지됐다(ADR-027 D6). */}
       {showDisclosure ? <GearDisclosure /> : null}
@@ -203,7 +257,12 @@ export function PostCard({
       </div>
 
       {reporting ? (
-        <ReportSheet targetType={TargetType.POST} targetId={post.id} onClose={() => setReporting(false)} />
+        <ReportSheet
+          onReported={onReported ? () => onReported(post.id) : undefined}
+          targetType={TargetType.POST}
+          targetId={post.id}
+          onClose={() => setReporting(false)}
+        />
       ) : null}
     </Card>
   );

@@ -20,6 +20,8 @@
 import { formatWeight, type WeightUnit } from "@app/core";
 import { toCreatePostWorkout } from "@app/core/domain/sharePayload";
 import { useState } from "react";
+import { Visibility } from "@app/contracts";
+import { VisibilityPicker } from "../feed/VisibilityPicker";
 import { t } from "@/lib/i18n";
 import { feedClient } from "@/lib/feedClient";
 import { useAuth } from "../AuthProvider";
@@ -148,6 +150,8 @@ export function ShareWorkout({
   onBusyChange,
   caption: captionProp,
   onCaptionChange,
+  visibility: visibilityProp,
+  onVisibilityChange,
 }: {
   payload: ShareablePayload;
   unit: WeightUnit;
@@ -161,10 +165,17 @@ export function ShareWorkout({
   /** 한마디를 부르는 쪽이 들고 있다 — 시트를 닫아도 적던 글이 남는다(P2 /qa code L-1) */
   caption?: string;
   onCaptionChange?: (v: string) => void;
+  /** 공개 범위도 부르는 쪽이 들고 있다 — 시트를 닫았다 열어도 「나만 보기」가 전체 공개로 돌아가지 않게(SPEC-030) */
+  visibility?: Visibility;
+  onVisibilityChange?: (v: Visibility) => void;
 }) {
   const { user } = useAuth();
   const toast = useToast();
   const [captionLocal, setCaptionLocal] = useState("");
+  const [visibilityLocal, setVisibilityLocal] = useState<Visibility>(Visibility.PUBLIC);
+  const visibility = visibilityProp ?? visibilityLocal;
+  const setVisibility = (v: Visibility) =>
+    onVisibilityChange ? onVisibilityChange(v) : setVisibilityLocal(v);
   const caption = captionProp ?? captionLocal;
   const setCaption = (v: string) => (onCaptionChange ? onCaptionChange(v) : setCaptionLocal(v));
   const [sharing, setSharingState] = useState(false);
@@ -205,6 +216,7 @@ export function ShareWorkout({
         caption: caption.trim(),
         // 보내는 객체는 core 순수 함수 하나가 만든다 — 총평(notes)이 새지 않음을 테스트가 이 경로에서 지킨다(QA M-4)
         workout: toCreatePostWorkout(payload),
+        visibility,
       });
       // 한 번 올린 운동을 또 올리면 피드에 같은 카드가 둘 남는다.
       setShared(true);
@@ -236,6 +248,14 @@ export function ShareWorkout({
         disabled={shared}
         testId="share-caption"
       />
+      <div className="mb-[var(--spacing-md)]">
+        <VisibilityPicker value={visibility} onChange={setVisibility} disabled={sharing || shared} />
+        {visibility === Visibility.PUBLIC ? (
+          <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
+            {t("feed.visibilityPublicHint")}
+          </AppText>
+        ) : null}
+      </div>
       <Button
         title={shared ? t("session.sharedToFeed") : t("session.shareToFeed")}
         icon="share-social-outline"

@@ -35,6 +35,11 @@ func (r *pgRepo) CreateReport(ctx context.Context, id string, t TargetType, targ
 	})
 }
 
+func (r *pgRepo) CountPendingReporters(ctx context.Context, t TargetType, targetID string) (int, error) {
+	n, err := r.q.CountPendingReporters(ctx, sqlcgen.CountPendingReportersParams{TargetType: string(t), TargetID: targetID})
+	return int(n), err
+}
+
 func (r *pgRepo) ListPendingReports(ctx context.Context, limit int32) ([]Report, error) {
 	rows, err := r.q.ListPendingReports(ctx, limit)
 	if err != nil {
@@ -77,6 +82,7 @@ func (r *pgRepo) GetTarget(ctx context.Context, t TargetType, targetID string) (
 			ModerationStatus: row.ModerationStatus,
 			Author:           Author{ID: row.AuthorID, DisplayName: deref(row.AuthorName)},
 			Preview:          Preview{Kind: row.Kind, Text: deref(row.Caption), MediaURL: first(row.MediaUrls)},
+			MediaURLs:        row.MediaUrls,
 			CreatedAt:        row.CreatedAt.Time,
 		}, true, nil
 
@@ -135,6 +141,10 @@ func (r *pgRepo) IsFollowing(ctx context.Context, followerID, followeeID string)
 	})
 }
 
+func (r *pgRepo) IsBlockedEitherWay(ctx context.Context, a, b string) (bool, error) {
+	return r.q.IsBlockedEitherWay(ctx, sqlcgen.IsBlockedEitherWayParams{A: a, B: b})
+}
+
 func (r *pgRepo) ListAutoPending(ctx context.Context, limit int32) ([]QueueItem, error) {
 	posts, err := r.q.ListPendingPosts(ctx, limit)
 	if err != nil {
@@ -144,7 +154,22 @@ func (r *pgRepo) ListAutoPending(ctx context.Context, limit int32) ([]QueueItem,
 	if err != nil {
 		return nil, err
 	}
-	out := make([]QueueItem, 0, len(posts)+len(stories))
+	comments, err := r.q.ListPendingComments(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]QueueItem, 0, len(posts)+len(stories)+len(comments))
+	for _, c := range comments {
+		out = append(out, QueueItem{
+			TargetType: TargetComment,
+			TargetID:   c.ID,
+			Source:     "auto",
+			Reasons:    []string{"auto_scan"},
+			Author:     Author{ID: c.AuthorID, DisplayName: deref(c.AuthorName)},
+			Preview:    Preview{Kind: "comment", Text: c.Body},
+			CreatedAt:  c.CreatedAt.Time,
+		})
+	}
 	for _, p := range posts {
 		out = append(out, QueueItem{
 			TargetType: TargetPost,
@@ -170,7 +195,7 @@ func (r *pgRepo) ListAutoPending(ctx context.Context, limit int32) ([]QueueItem,
 	return out, nil
 }
 
-func (r *pgRepo) SetModeration(ctx context.Context, t TargetType, targetID, status, reason string, removed bool, mediaKey string) error {
+func (r *pgRepo) SetModeration(ctx context.Context, t TargetType, targetID, status, reason string, removed bool, mediaKeys []string) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
@@ -190,8 +215,8 @@ func (r *pgRepo) SetModeration(ctx context.Context, t TargetType, targetID, stat
 		return err
 	}
 	// 사진의 바이트까지 함께 막거나 푼다 — 같은 트랜잭션이어야 제거가 반쪽이 되지 않는다.
-	if mediaKey != "" {
-		if err := q.SetMediaFlagged(ctx, sqlcgen.SetMediaFlaggedParams{Flagged: removed, Key: mediaKey}); err != nil {
+	for _, key := range mediaKeys {
+		if err := q.SetMediaFlagged(ctx, sqlcgen.SetMediaFlaggedParams{Flagged: removed, Key: key}); err != nil {
 			return err
 		}
 	}

@@ -98,6 +98,15 @@ const (
 	FeedServiceListBlockedUsersProcedure = "/feed.v1.FeedService/ListBlockedUsers"
 	// FeedServiceListExploreProcedure is the fully-qualified name of the FeedService's ListExplore RPC.
 	FeedServiceListExploreProcedure = "/feed.v1.FeedService/ListExplore"
+	// FeedServiceListRecommendedProcedure is the fully-qualified name of the FeedService's
+	// ListRecommended RPC.
+	FeedServiceListRecommendedProcedure = "/feed.v1.FeedService/ListRecommended"
+	// FeedServiceGetFeedPrefsProcedure is the fully-qualified name of the FeedService's GetFeedPrefs
+	// RPC.
+	FeedServiceGetFeedPrefsProcedure = "/feed.v1.FeedService/GetFeedPrefs"
+	// FeedServiceSetFeedPrefsProcedure is the fully-qualified name of the FeedService's SetFeedPrefs
+	// RPC.
+	FeedServiceSetFeedPrefsProcedure = "/feed.v1.FeedService/SetFeedPrefs"
 	// FeedServiceSuggestedUsersProcedure is the fully-qualified name of the FeedService's
 	// SuggestedUsers RPC.
 	FeedServiceSuggestedUsersProcedure = "/feed.v1.FeedService/SuggestedUsers"
@@ -158,6 +167,10 @@ type FeedServiceClient interface {
 	// ── 발견(Explore) ──
 	// 팔로우와 무관하게 **공개 글 중 반응이 많은 것**. 피드가 비어 있는 새 사용자의 첫 화면이다.
 	ListExplore(context.Context, *connect.Request[v1.ListExploreRequest]) (*connect.Response[v1.ListExploreResponse], error)
+	// 추천 — 공개 글을 규칙 점수로 고른다(SPEC-030). 끝은 next_offset 0 으로만 알린다.
+	ListRecommended(context.Context, *connect.Request[v1.ListRecommendedRequest]) (*connect.Response[v1.ListRecommendedResponse], error)
+	GetFeedPrefs(context.Context, *connect.Request[v1.GetFeedPrefsRequest]) (*connect.Response[v1.GetFeedPrefsResponse], error)
+	SetFeedPrefs(context.Context, *connect.Request[v1.SetFeedPrefsRequest]) (*connect.Response[v1.SetFeedPrefsResponse], error)
 	// 팔로우할 만한 사람 — 친구의 친구를 먼저, 모자라면 팔로워가 많은 사람으로 채운다.
 	SuggestedUsers(context.Context, *connect.Request[v1.SuggestedUsersRequest]) (*connect.Response[v1.SuggestedUsersResponse], error)
 	// 사람·태그·글을 한 번에 찾는다.
@@ -295,6 +308,24 @@ func NewFeedServiceClient(httpClient connect.HTTPClient, baseURL string, opts ..
 			connect.WithSchema(feedServiceMethods.ByName("ListExplore")),
 			connect.WithClientOptions(opts...),
 		),
+		listRecommended: connect.NewClient[v1.ListRecommendedRequest, v1.ListRecommendedResponse](
+			httpClient,
+			baseURL+FeedServiceListRecommendedProcedure,
+			connect.WithSchema(feedServiceMethods.ByName("ListRecommended")),
+			connect.WithClientOptions(opts...),
+		),
+		getFeedPrefs: connect.NewClient[v1.GetFeedPrefsRequest, v1.GetFeedPrefsResponse](
+			httpClient,
+			baseURL+FeedServiceGetFeedPrefsProcedure,
+			connect.WithSchema(feedServiceMethods.ByName("GetFeedPrefs")),
+			connect.WithClientOptions(opts...),
+		),
+		setFeedPrefs: connect.NewClient[v1.SetFeedPrefsRequest, v1.SetFeedPrefsResponse](
+			httpClient,
+			baseURL+FeedServiceSetFeedPrefsProcedure,
+			connect.WithSchema(feedServiceMethods.ByName("SetFeedPrefs")),
+			connect.WithClientOptions(opts...),
+		),
 		suggestedUsers: connect.NewClient[v1.SuggestedUsersRequest, v1.SuggestedUsersResponse](
 			httpClient,
 			baseURL+FeedServiceSuggestedUsersProcedure,
@@ -384,6 +415,9 @@ type feedServiceClient struct {
 	listFollows      *connect.Client[v1.ListFollowsRequest, v1.ListFollowsResponse]
 	listBlockedUsers *connect.Client[v1.ListBlockedUsersRequest, v1.ListBlockedUsersResponse]
 	listExplore      *connect.Client[v1.ListExploreRequest, v1.ListExploreResponse]
+	listRecommended  *connect.Client[v1.ListRecommendedRequest, v1.ListRecommendedResponse]
+	getFeedPrefs     *connect.Client[v1.GetFeedPrefsRequest, v1.GetFeedPrefsResponse]
+	setFeedPrefs     *connect.Client[v1.SetFeedPrefsRequest, v1.SetFeedPrefsResponse]
 	suggestedUsers   *connect.Client[v1.SuggestedUsersRequest, v1.SuggestedUsersResponse]
 	search           *connect.Client[v1.SearchRequest, v1.SearchResponse]
 	listComments     *connect.Client[v1.ListCommentsRequest, v1.ListCommentsResponse]
@@ -487,6 +521,21 @@ func (c *feedServiceClient) ListExplore(ctx context.Context, req *connect.Reques
 	return c.listExplore.CallUnary(ctx, req)
 }
 
+// ListRecommended calls feed.v1.FeedService.ListRecommended.
+func (c *feedServiceClient) ListRecommended(ctx context.Context, req *connect.Request[v1.ListRecommendedRequest]) (*connect.Response[v1.ListRecommendedResponse], error) {
+	return c.listRecommended.CallUnary(ctx, req)
+}
+
+// GetFeedPrefs calls feed.v1.FeedService.GetFeedPrefs.
+func (c *feedServiceClient) GetFeedPrefs(ctx context.Context, req *connect.Request[v1.GetFeedPrefsRequest]) (*connect.Response[v1.GetFeedPrefsResponse], error) {
+	return c.getFeedPrefs.CallUnary(ctx, req)
+}
+
+// SetFeedPrefs calls feed.v1.FeedService.SetFeedPrefs.
+func (c *feedServiceClient) SetFeedPrefs(ctx context.Context, req *connect.Request[v1.SetFeedPrefsRequest]) (*connect.Response[v1.SetFeedPrefsResponse], error) {
+	return c.setFeedPrefs.CallUnary(ctx, req)
+}
+
 // SuggestedUsers calls feed.v1.FeedService.SuggestedUsers.
 func (c *feedServiceClient) SuggestedUsers(ctx context.Context, req *connect.Request[v1.SuggestedUsersRequest]) (*connect.Response[v1.SuggestedUsersResponse], error) {
 	return c.suggestedUsers.CallUnary(ctx, req)
@@ -573,6 +622,10 @@ type FeedServiceHandler interface {
 	// ── 발견(Explore) ──
 	// 팔로우와 무관하게 **공개 글 중 반응이 많은 것**. 피드가 비어 있는 새 사용자의 첫 화면이다.
 	ListExplore(context.Context, *connect.Request[v1.ListExploreRequest]) (*connect.Response[v1.ListExploreResponse], error)
+	// 추천 — 공개 글을 규칙 점수로 고른다(SPEC-030). 끝은 next_offset 0 으로만 알린다.
+	ListRecommended(context.Context, *connect.Request[v1.ListRecommendedRequest]) (*connect.Response[v1.ListRecommendedResponse], error)
+	GetFeedPrefs(context.Context, *connect.Request[v1.GetFeedPrefsRequest]) (*connect.Response[v1.GetFeedPrefsResponse], error)
+	SetFeedPrefs(context.Context, *connect.Request[v1.SetFeedPrefsRequest]) (*connect.Response[v1.SetFeedPrefsResponse], error)
 	// 팔로우할 만한 사람 — 친구의 친구를 먼저, 모자라면 팔로워가 많은 사람으로 채운다.
 	SuggestedUsers(context.Context, *connect.Request[v1.SuggestedUsersRequest]) (*connect.Response[v1.SuggestedUsersResponse], error)
 	// 사람·태그·글을 한 번에 찾는다.
@@ -706,6 +759,24 @@ func NewFeedServiceHandler(svc FeedServiceHandler, opts ...connect.HandlerOption
 		connect.WithSchema(feedServiceMethods.ByName("ListExplore")),
 		connect.WithHandlerOptions(opts...),
 	)
+	feedServiceListRecommendedHandler := connect.NewUnaryHandler(
+		FeedServiceListRecommendedProcedure,
+		svc.ListRecommended,
+		connect.WithSchema(feedServiceMethods.ByName("ListRecommended")),
+		connect.WithHandlerOptions(opts...),
+	)
+	feedServiceGetFeedPrefsHandler := connect.NewUnaryHandler(
+		FeedServiceGetFeedPrefsProcedure,
+		svc.GetFeedPrefs,
+		connect.WithSchema(feedServiceMethods.ByName("GetFeedPrefs")),
+		connect.WithHandlerOptions(opts...),
+	)
+	feedServiceSetFeedPrefsHandler := connect.NewUnaryHandler(
+		FeedServiceSetFeedPrefsProcedure,
+		svc.SetFeedPrefs,
+		connect.WithSchema(feedServiceMethods.ByName("SetFeedPrefs")),
+		connect.WithHandlerOptions(opts...),
+	)
 	feedServiceSuggestedUsersHandler := connect.NewUnaryHandler(
 		FeedServiceSuggestedUsersProcedure,
 		svc.SuggestedUsers,
@@ -810,6 +881,12 @@ func NewFeedServiceHandler(svc FeedServiceHandler, opts ...connect.HandlerOption
 			feedServiceListBlockedUsersHandler.ServeHTTP(w, r)
 		case FeedServiceListExploreProcedure:
 			feedServiceListExploreHandler.ServeHTTP(w, r)
+		case FeedServiceListRecommendedProcedure:
+			feedServiceListRecommendedHandler.ServeHTTP(w, r)
+		case FeedServiceGetFeedPrefsProcedure:
+			feedServiceGetFeedPrefsHandler.ServeHTTP(w, r)
+		case FeedServiceSetFeedPrefsProcedure:
+			feedServiceSetFeedPrefsHandler.ServeHTTP(w, r)
 		case FeedServiceSuggestedUsersProcedure:
 			feedServiceSuggestedUsersHandler.ServeHTTP(w, r)
 		case FeedServiceSearchProcedure:
@@ -911,6 +988,18 @@ func (UnimplementedFeedServiceHandler) ListBlockedUsers(context.Context, *connec
 
 func (UnimplementedFeedServiceHandler) ListExplore(context.Context, *connect.Request[v1.ListExploreRequest]) (*connect.Response[v1.ListExploreResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feed.v1.FeedService.ListExplore is not implemented"))
+}
+
+func (UnimplementedFeedServiceHandler) ListRecommended(context.Context, *connect.Request[v1.ListRecommendedRequest]) (*connect.Response[v1.ListRecommendedResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feed.v1.FeedService.ListRecommended is not implemented"))
+}
+
+func (UnimplementedFeedServiceHandler) GetFeedPrefs(context.Context, *connect.Request[v1.GetFeedPrefsRequest]) (*connect.Response[v1.GetFeedPrefsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feed.v1.FeedService.GetFeedPrefs is not implemented"))
+}
+
+func (UnimplementedFeedServiceHandler) SetFeedPrefs(context.Context, *connect.Request[v1.SetFeedPrefsRequest]) (*connect.Response[v1.SetFeedPrefsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feed.v1.FeedService.SetFeedPrefs is not implemented"))
 }
 
 func (UnimplementedFeedServiceHandler) SuggestedUsers(context.Context, *connect.Request[v1.SuggestedUsersRequest]) (*connect.Response[v1.SuggestedUsersResponse], error) {

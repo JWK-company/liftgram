@@ -78,6 +78,9 @@ message SignUpRequest {
   // 8자 미만은 거절한다. 상한(72바이트)은 bcrypt의 제약이다 — 넘으면 뒤가 조용히 잘린다.
   string password = 2 [(buf.validate.field).string = {min_len: 8, max_len: 72}];
   string display_name = 3 [(buf.validate.field).string = {max_len: 40}];
+  // 만 14세 이상임을 가입자가 확인했는가(SPEC-030). 거짓이면 가입을 받지 않는다.
+  // 옛 화면은 이 값을 보내지 않는다 — 없음과 거짓을 나눠 새로고침을 안내한다.
+  optional bool age_confirmed = 4;
 }
 
 message LogInRequest {

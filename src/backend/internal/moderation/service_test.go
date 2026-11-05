@@ -7,6 +7,8 @@ package moderation
 import (
 	"context"
 	"errors"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -33,8 +35,9 @@ type fakeRepo struct {
 	follows map[string]bool   // "follower→followee"
 	auto    []QueueItem
 	// 처리 결과 — 무엇이 어떻게 바뀌었는지 확인용.
-	set        []string // "type:id:status:removed:mediaKey"
-	resolvedAs []string // "type:id:status:action"
+	set        []string        // "type:id:status:removed:mediaKeys"
+	blocks     map[string]bool // "a>b"
+	resolvedAs []string        // "type:id:status:action"
 	now        time.Time
 	seq        int
 }
@@ -86,6 +89,16 @@ func (f *fakeRepo) ResolveReports(_ context.Context, t TargetType, targetID, _, 
 	return nil
 }
 
+func (f *fakeRepo) CountPendingReporters(_ context.Context, t TargetType, targetID string) (int, error) {
+	n := 0
+	for _, r := range f.reports {
+		if r.targetType == t && r.targetID == targetID {
+			n++
+		}
+	}
+	return n, nil
+}
+
 func (f *fakeRepo) GetTarget(_ context.Context, t TargetType, targetID string) (Target, bool, error) {
 	target, ok := f.targets[string(t)+":"+targetID]
 	return target, ok, nil
@@ -103,12 +116,16 @@ func (f *fakeRepo) IsFollowing(_ context.Context, a, b string) (bool, error) {
 	return f.follows[a+"→"+b], nil
 }
 
+func (f *fakeRepo) IsBlockedEitherWay(_ context.Context, a, b string) (bool, error) {
+	return f.blocks[a+">"+b] || f.blocks[b+">"+a], nil
+}
+
 func (f *fakeRepo) ListAutoPending(_ context.Context, _ int32) ([]QueueItem, error) {
 	return f.auto, nil
 }
 
-func (f *fakeRepo) SetModeration(_ context.Context, t TargetType, targetID, status, _ string, removed bool, mediaKey string) error {
-	f.set = append(f.set, string(t)+":"+targetID+":"+status+":"+boolStr(removed)+":"+mediaKey)
+func (f *fakeRepo) SetModeration(_ context.Context, t TargetType, targetID, status, _ string, removed bool, mediaKeys []string) error {
+	f.set = append(f.set, string(t)+":"+targetID+":"+status+":"+boolStr(removed)+":"+strings.Join(mediaKeys, ","))
 	if target, ok := f.targets[string(t)+":"+targetID]; ok {
 		target.ModerationStatus = status
 		f.targets[string(t)+":"+targetID] = target
@@ -402,5 +419,55 @@ func TestMediaKeyOnlyMatchesOurPath(t *testing.T) {
 		if k := MediaKey(url); k != "" {
 			t.Fatalf("엉뚱한 주소에서 키를 뽑았다: %q → %q", url, k)
 		}
+	}
+}
+
+func TestThreeReportersHoldTheTarget(t *testing.T) {
+	repo := newFakeRepo()
+	repo.posts["p1"] = postRow{authorID: "author", visibility: "public", status: "approved"}
+	repo.targets["post:p1"] = Target{AuthorID: "author", ModerationStatus: "approved"}
+	n := 0
+	svc := NewService(repo, func() string { n++; return "r" + strconv.Itoa(n) })
+	ctx := context.Background()
+	for _, who := range []string{"a", "a", "b"} { // 같은 사람이 두 번 눌러도 한 명이다
+		if err := svc.Report(ctx, who, TargetPost, "p1", "nudity", ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(repo.set) != 0 {
+		t.Fatalf("두 명으로는 숨기지 않는다: %v", repo.set)
+	}
+	if err := svc.Report(ctx, "c", TargetPost, "p1", "nudity", ""); err != nil {
+		t.Fatal(err)
+	}
+	if len(repo.set) != 1 || !strings.HasPrefix(repo.set[0], "post:p1:pending:") {
+		t.Fatalf("검토 대기로 숨긴다: %v", repo.set)
+	}
+}
+
+func TestBlockedReporterCannotReport(t *testing.T) {
+	repo := newFakeRepo()
+	repo.seedPost("p1", "author", "public")
+	repo.blocks = map[string]bool{"author>troll": true}
+	svc := NewService(repo, func() string { return "id" })
+	err := svc.Report(context.Background(), "troll", TargetPost, "p1", "nudity", "")
+	if domainCode(t, err) != errs.NotFound {
+		t.Fatalf("차단 관계면 없는 것으로 답한다: %v", err)
+	}
+}
+
+func TestRemoveBlocksEveryPhoto(t *testing.T) {
+	repo := newFakeRepo()
+	repo.targets["post:p1"] = Target{
+		AuthorID: "author", ModerationStatus: "approved",
+		MediaURLs: []string{"/media/file/a.jpg", "/media/file/b.jpg"},
+		Preview:   Preview{MediaURL: "/media/file/a.jpg"},
+	}
+	svc := NewService(repo, func() string { return "id" })
+	if err := svc.Resolve(context.Background(), "m", "admin", TargetPost, "p1", true, ""); err != nil {
+		t.Fatal(err)
+	}
+	if got := repo.set[len(repo.set)-1]; !strings.HasSuffix(got, ":a.jpg,b.jpg") {
+		t.Fatalf("모든 사진을 막아야 한다: %s", got)
 	}
 }

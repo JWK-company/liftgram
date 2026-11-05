@@ -116,7 +116,11 @@ type Post struct {
 	CreatedAt    time.Time
 	// 저장은 나만 본다 — 글쓴이에게 알려지지 않는다.
 	BookmarkedByMe bool
-	Gear           []GearTag
+	// 추천 목록에서만 채운다.
+	AuthorFollowedByMe bool
+	// 검토 중인 내 글 — 작성자에게만 내려간다.
+	UnderReview bool
+	Gear        []GearTag
 }
 
 type Comment struct {
@@ -214,6 +218,9 @@ type Repo interface {
 
 	// 발견 화면이 쓰는 것들.
 	ListExplore(ctx context.Context, viewerID string, limit int32) ([]Post, error)
+	ListRecommended(ctx context.Context, viewerID string, since time.Time, offset, limit int32) ([]Post, error)
+	GetRecommendOptOut(ctx context.Context, userID string) (bool, error)
+	SetRecommendOptOut(ctx context.Context, userID string, optOut bool) error
 	SearchPosts(ctx context.Context, viewerID, query string, limit int32) ([]Post, error)
 	SearchHashtags(ctx context.Context, viewerID, query string, limit int32) ([]HashtagCount, error)
 	SuggestFriendsOfFriends(ctx context.Context, viewerID string, limit int32) ([]UserResult, error)
@@ -254,6 +261,8 @@ type Service struct {
 	media  MediaChecker
 	notify Notifier
 	newID  func() string
+
+	recommendSince time.Time
 }
 
 func NewService(repo Repo, checker MediaChecker, notifier Notifier, newID func() string) *Service {
@@ -261,6 +270,57 @@ func NewService(repo Repo, checker MediaChecker, notifier Notifier, newID func()
 }
 
 // 알림은 있으면 보내고 없으면 만다 — 테스트는 대개 주입하지 않는다.
+// RecommendOffsetLimit — 이보다 뒤는 받지 않는다. 점수가 움직여 뒤로 갈수록 겹침·누락이 는다.
+const RecommendOffsetLimit = 500
+
+// WithRecommendSince — 이 시각 이전 글은 추천하지 않는다.
+func (s *Service) WithRecommendSince(t time.Time) *Service {
+	s.recommendSince = t
+	return s
+}
+
+// ListRecommended — 다음 offset 이 0 이면 끝이다. 쪽 사이에 팔로우·차단으로 글이 앞당겨져
+// 일부가 빠질 수 있지만 추천 목록이라 받아들인다(스냅샷을 두지 않는다).
+func (s *Service) ListRecommended(ctx context.Context, viewerID string, offset, limit int32) ([]Post, int32, error) {
+	if viewerID == "" {
+		return nil, 0, errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	if offset < 0 || offset >= RecommendOffsetLimit {
+		return nil, 0, nil
+	}
+	n := clampLimit(limit)
+	posts, err := s.repo.ListRecommended(ctx, viewerID, s.recommendSince, offset, n+1)
+	if err != nil {
+		return nil, 0, err
+	}
+	var next int32
+	if int32(len(posts)) > n {
+		posts = posts[:n]
+		next = offset + n
+		if next >= RecommendOffsetLimit {
+			next = 0
+		}
+	}
+	return posts, next, nil
+}
+
+// ShowInRecommended — 내 글을 추천에 보여 주는가.
+func (s *Service) ShowInRecommended(ctx context.Context, viewerID string) (bool, error) {
+	if viewerID == "" {
+		return false, errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	out, err := s.repo.GetRecommendOptOut(ctx, viewerID)
+	return !out, err
+}
+
+// SetShowInRecommended — 내 글을 추천에서 빼거나 다시 넣는다.
+func (s *Service) SetShowInRecommended(ctx context.Context, viewerID string, show bool) error {
+	if viewerID == "" {
+		return errs.New(errs.Unauthorized, "로그인이 필요합니다")
+	}
+	return s.repo.SetRecommendOptOut(ctx, viewerID, !show)
+}
+
 func (s *Service) notifyIf(ctx context.Context, userID, actorID, kind, postID string) {
 	if s.notify != nil {
 		s.notify.Notify(ctx, userID, actorID, kind, postID)

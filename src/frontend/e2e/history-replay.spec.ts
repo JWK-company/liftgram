@@ -157,6 +157,7 @@ test("피드의 남의 운동 「바로 시작」 — 루틴을 만들지 않고
   await page.getByTestId("auth-email-input").fill(`e2e-replay-a-${Date.now()}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill(이름);
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await 카탈로그_준비(page);
@@ -189,11 +190,12 @@ test("피드의 남의 운동 「바로 시작」 — 루틴을 만들지 않고
   await viewer.getByTestId("auth-email-input").fill(`e2e-replay-b-${Date.now()}@example.com`);
   await viewer.getByTestId("auth-password-input").fill("hunter22!");
   await viewer.getByTestId("auth-name-input").fill("따라하는사람");
+  await viewer.getByTestId("age-confirm").check();
   await viewer.getByTestId("btn-auth-submit").click();
   await expect(viewer.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await 카탈로그_준비(viewer);
   await viewer.goto("/feed");
-  await viewer.getByTestId("feed-discover").click();
+  await viewer.goto("/discover");
   await viewer.getByTestId("discover-query").fill(이름);
   await expect(viewer.getByTestId("discover-list")).toContainText(이름, { timeout: 20_000 });
   await viewer.getByTestId("discover-follow").first().click();

@@ -188,6 +188,7 @@ async function 가입(page: Page, tag: string) {
     .fill(`e2e-dist-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`);
   await page.getByTestId("auth-password-input").fill(PW);
   await page.getByTestId("auth-name-input").fill("배포");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 }

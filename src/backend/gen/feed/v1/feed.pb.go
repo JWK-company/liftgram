@@ -551,6 +551,10 @@ type Post struct {
 	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 나중에 보려고 저장해 뒀는가. 좋아요와 달리 **남에게 보이지 않는다**.
 	BookmarkedByMe bool `protobuf:"varint,12,opt,name=bookmarked_by_me,json=bookmarkedByMe,proto3" json:"bookmarked_by_me,omitempty"`
+	// 추천 목록에서만 채운다 — 글 머리의 팔로우 버튼이 쓴다.
+	AuthorFollowedByMe bool `protobuf:"varint,100,opt,name=author_followed_by_me,json=authorFollowedByMe,proto3" json:"author_followed_by_me,omitempty"`
+	// 검토 중인 내 글 — 작성자에게만 내려간다(SPEC-030).
+	UnderReview bool `protobuf:"varint,101,opt,name=under_review,json=underReview,proto3" json:"under_review,omitempty"`
 	// 착용장비 태그(ADR-027). 사진 **바깥**에 그린다 — 사진을 가리는 광고는 제재 대상이다.
 	Gear          []*v1.GearTag `protobuf:"bytes,13,rep,name=gear,proto3" json:"gear,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -667,6 +671,20 @@ func (x *Post) GetCreatedAt() *timestamppb.Timestamp {
 func (x *Post) GetBookmarkedByMe() bool {
 	if x != nil {
 		return x.BookmarkedByMe
+	}
+	return false
+}
+
+func (x *Post) GetAuthorFollowedByMe() bool {
+	if x != nil {
+		return x.AuthorFollowedByMe
+	}
+	return false
+}
+
+func (x *Post) GetUnderReview() bool {
+	if x != nil {
+		return x.UnderReview
 	}
 	return false
 }
@@ -3843,6 +3861,280 @@ func (x *UnlikeCommentResponse) GetLikedByMe() bool {
 	return false
 }
 
+type ListRecommendedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Offset        int32                  `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRecommendedRequest) Reset() {
+	*x = ListRecommendedRequest{}
+	mi := &file_feed_v1_feed_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRecommendedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRecommendedRequest) ProtoMessage() {}
+
+func (x *ListRecommendedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_feed_v1_feed_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRecommendedRequest.ProtoReflect.Descriptor instead.
+func (*ListRecommendedRequest) Descriptor() ([]byte, []int) {
+	return file_feed_v1_feed_proto_rawDescGZIP(), []int{68}
+}
+
+func (x *ListRecommendedRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *ListRecommendedRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListRecommendedResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Posts []*Post                `protobuf:"bytes,1,rep,name=posts,proto3" json:"posts,omitempty"`
+	// 0 이면 끝이다. 앱은 받은 개수가 아니라 이 값으로만 끝을 판단한다.
+	NextOffset    int32 `protobuf:"varint,2,opt,name=next_offset,json=nextOffset,proto3" json:"next_offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListRecommendedResponse) Reset() {
+	*x = ListRecommendedResponse{}
+	mi := &file_feed_v1_feed_proto_msgTypes[69]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListRecommendedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListRecommendedResponse) ProtoMessage() {}
+
+func (x *ListRecommendedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_feed_v1_feed_proto_msgTypes[69]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListRecommendedResponse.ProtoReflect.Descriptor instead.
+func (*ListRecommendedResponse) Descriptor() ([]byte, []int) {
+	return file_feed_v1_feed_proto_rawDescGZIP(), []int{69}
+}
+
+func (x *ListRecommendedResponse) GetPosts() []*Post {
+	if x != nil {
+		return x.Posts
+	}
+	return nil
+}
+
+func (x *ListRecommendedResponse) GetNextOffset() int32 {
+	if x != nil {
+		return x.NextOffset
+	}
+	return 0
+}
+
+type GetFeedPrefsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeedPrefsRequest) Reset() {
+	*x = GetFeedPrefsRequest{}
+	mi := &file_feed_v1_feed_proto_msgTypes[70]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeedPrefsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeedPrefsRequest) ProtoMessage() {}
+
+func (x *GetFeedPrefsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_feed_v1_feed_proto_msgTypes[70]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeedPrefsRequest.ProtoReflect.Descriptor instead.
+func (*GetFeedPrefsRequest) Descriptor() ([]byte, []int) {
+	return file_feed_v1_feed_proto_rawDescGZIP(), []int{70}
+}
+
+type GetFeedPrefsResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 내 글을 다른 사람의 추천에 보여 줄지.
+	ShowInRecommended bool `protobuf:"varint,1,opt,name=show_in_recommended,json=showInRecommended,proto3" json:"show_in_recommended,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *GetFeedPrefsResponse) Reset() {
+	*x = GetFeedPrefsResponse{}
+	mi := &file_feed_v1_feed_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeedPrefsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeedPrefsResponse) ProtoMessage() {}
+
+func (x *GetFeedPrefsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_feed_v1_feed_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeedPrefsResponse.ProtoReflect.Descriptor instead.
+func (*GetFeedPrefsResponse) Descriptor() ([]byte, []int) {
+	return file_feed_v1_feed_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *GetFeedPrefsResponse) GetShowInRecommended() bool {
+	if x != nil {
+		return x.ShowInRecommended
+	}
+	return false
+}
+
+type SetFeedPrefsRequest struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ShowInRecommended bool                   `protobuf:"varint,1,opt,name=show_in_recommended,json=showInRecommended,proto3" json:"show_in_recommended,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *SetFeedPrefsRequest) Reset() {
+	*x = SetFeedPrefsRequest{}
+	mi := &file_feed_v1_feed_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetFeedPrefsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFeedPrefsRequest) ProtoMessage() {}
+
+func (x *SetFeedPrefsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_feed_v1_feed_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFeedPrefsRequest.ProtoReflect.Descriptor instead.
+func (*SetFeedPrefsRequest) Descriptor() ([]byte, []int) {
+	return file_feed_v1_feed_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *SetFeedPrefsRequest) GetShowInRecommended() bool {
+	if x != nil {
+		return x.ShowInRecommended
+	}
+	return false
+}
+
+type SetFeedPrefsResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	ShowInRecommended bool                   `protobuf:"varint,1,opt,name=show_in_recommended,json=showInRecommended,proto3" json:"show_in_recommended,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *SetFeedPrefsResponse) Reset() {
+	*x = SetFeedPrefsResponse{}
+	mi := &file_feed_v1_feed_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetFeedPrefsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetFeedPrefsResponse) ProtoMessage() {}
+
+func (x *SetFeedPrefsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_feed_v1_feed_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetFeedPrefsResponse.ProtoReflect.Descriptor instead.
+func (*SetFeedPrefsResponse) Descriptor() ([]byte, []int) {
+	return file_feed_v1_feed_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *SetFeedPrefsResponse) GetShowInRecommended() bool {
+	if x != nil {
+		return x.ShowInRecommended
+	}
+	return false
+}
+
 var File_feed_v1_feed_proto protoreflect.FileDescriptor
 
 const file_feed_v1_feed_proto_rawDesc = "" +
@@ -3880,7 +4172,7 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"exerciseId\x120\n" +
 	"\vweight_unit\x18\x05 \x01(\tB\x0f\xbaH\fr\n" +
 	"R\x00R\x02kgR\x02lbR\n" +
-	"weightUnit\"\x80\x04\n" +
+	"weightUnit\"\xd6\x04\n" +
 	"\x04Post\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x06author\x18\x02 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12%\n" +
@@ -3899,7 +4191,9 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	" \x01(\bR\tlikedByMe\x129\n" +
 	"\n" +
 	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12(\n" +
-	"\x10bookmarked_by_me\x18\f \x01(\bR\x0ebookmarkedByMe\x12.\n" +
+	"\x10bookmarked_by_me\x18\f \x01(\bR\x0ebookmarkedByMe\x121\n" +
+	"\x15author_followed_by_me\x18d \x01(\bR\x12authorFollowedByMe\x12!\n" +
+	"\funder_review\x18e \x01(\bR\vunderReview\x12.\n" +
 	"\x04gear\x18\r \x03(\v2\x10.gear.v1.GearTagB\b\xbaH\x05\x92\x01\x02\x10\bR\x04gear\"\xa7\x02\n" +
 	"\aComment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
@@ -4104,7 +4398,22 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\x15UnlikeCommentResponse\x12\x1d\n" +
 	"\n" +
 	"like_count\x18\x01 \x01(\x05R\tlikeCount\x12\x1e\n" +
-	"\vliked_by_me\x18\x02 \x01(\bR\tlikedByMe*q\n" +
+	"\vliked_by_me\x18\x02 \x01(\bR\tlikedByMe\"]\n" +
+	"\x16ListRecommendedRequest\x12\"\n" +
+	"\x06offset\x18\x01 \x01(\x05B\n" +
+	"\xbaH\a\x1a\x05\x18\xf4\x03(\x00R\x06offset\x12\x1f\n" +
+	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x182(\x00R\x05limit\"_\n" +
+	"\x17ListRecommendedResponse\x12#\n" +
+	"\x05posts\x18\x01 \x03(\v2\r.feed.v1.PostR\x05posts\x12\x1f\n" +
+	"\vnext_offset\x18\x02 \x01(\x05R\n" +
+	"nextOffset\"\x15\n" +
+	"\x13GetFeedPrefsRequest\"F\n" +
+	"\x14GetFeedPrefsResponse\x12.\n" +
+	"\x13show_in_recommended\x18\x01 \x01(\bR\x11showInRecommended\"E\n" +
+	"\x13SetFeedPrefsRequest\x12.\n" +
+	"\x13show_in_recommended\x18\x01 \x01(\bR\x11showInRecommended\"F\n" +
+	"\x14SetFeedPrefsResponse\x12.\n" +
+	"\x13show_in_recommended\x18\x01 \x01(\bR\x11showInRecommended*q\n" +
 	"\n" +
 	"Visibility\x12\x1a\n" +
 	"\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\x15\n" +
@@ -4119,7 +4428,7 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\x0eFollowListMode\x12 \n" +
 	"\x1cFOLLOW_LIST_MODE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aFOLLOW_LIST_MODE_FOLLOWERS\x10\x01\x12\x1e\n" +
-	"\x1aFOLLOW_LIST_MODE_FOLLOWING\x10\x022\xbe\x11\n" +
+	"\x1aFOLLOW_LIST_MODE_FOLLOWING\x10\x022\xb4\x13\n" +
 	"\vFeedService\x12A\n" +
 	"\bListFeed\x12\x18.feed.v1.ListFeedRequest\x1a\x19.feed.v1.ListFeedResponse\"\x00\x12P\n" +
 	"\rListUserPosts\x12\x1d.feed.v1.ListUserPostsRequest\x1a\x1e.feed.v1.ListUserPostsResponse\"\x00\x12G\n" +
@@ -4143,7 +4452,10 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\vUnblockUser\x12\x1b.feed.v1.UnblockUserRequest\x1a\x1c.feed.v1.UnblockUserResponse\"\x00\x12J\n" +
 	"\vListFollows\x12\x1b.feed.v1.ListFollowsRequest\x1a\x1c.feed.v1.ListFollowsResponse\"\x00\x12Y\n" +
 	"\x10ListBlockedUsers\x12 .feed.v1.ListBlockedUsersRequest\x1a!.feed.v1.ListBlockedUsersResponse\"\x00\x12J\n" +
-	"\vListExplore\x12\x1b.feed.v1.ListExploreRequest\x1a\x1c.feed.v1.ListExploreResponse\"\x00\x12S\n" +
+	"\vListExplore\x12\x1b.feed.v1.ListExploreRequest\x1a\x1c.feed.v1.ListExploreResponse\"\x00\x12V\n" +
+	"\x0fListRecommended\x12\x1f.feed.v1.ListRecommendedRequest\x1a .feed.v1.ListRecommendedResponse\"\x00\x12M\n" +
+	"\fGetFeedPrefs\x12\x1c.feed.v1.GetFeedPrefsRequest\x1a\x1d.feed.v1.GetFeedPrefsResponse\"\x00\x12M\n" +
+	"\fSetFeedPrefs\x12\x1c.feed.v1.SetFeedPrefsRequest\x1a\x1d.feed.v1.SetFeedPrefsResponse\"\x00\x12S\n" +
 	"\x0eSuggestedUsers\x12\x1e.feed.v1.SuggestedUsersRequest\x1a\x1f.feed.v1.SuggestedUsersResponse\"\x00\x12;\n" +
 	"\x06Search\x12\x16.feed.v1.SearchRequest\x1a\x17.feed.v1.SearchResponse\"\x00\x12M\n" +
 	"\fListComments\x12\x1c.feed.v1.ListCommentsRequest\x1a\x1d.feed.v1.ListCommentsResponse\"\x00\x12J\n" +
@@ -4170,7 +4482,7 @@ func file_feed_v1_feed_proto_rawDescGZIP() []byte {
 }
 
 var file_feed_v1_feed_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_feed_v1_feed_proto_msgTypes = make([]protoimpl.MessageInfo, 68)
+var file_feed_v1_feed_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
 var file_feed_v1_feed_proto_goTypes = []any{
 	(Visibility)(0),                  // 0: feed.v1.Visibility
 	(PostKind)(0),                    // 1: feed.v1.PostKind
@@ -4243,8 +4555,14 @@ var file_feed_v1_feed_proto_goTypes = []any{
 	(*LikeCommentResponse)(nil),      // 68: feed.v1.LikeCommentResponse
 	(*UnlikeCommentRequest)(nil),     // 69: feed.v1.UnlikeCommentRequest
 	(*UnlikeCommentResponse)(nil),    // 70: feed.v1.UnlikeCommentResponse
-	(*timestamppb.Timestamp)(nil),    // 71: google.protobuf.Timestamp
-	(*v1.GearTag)(nil),               // 72: gear.v1.GearTag
+	(*ListRecommendedRequest)(nil),   // 71: feed.v1.ListRecommendedRequest
+	(*ListRecommendedResponse)(nil),  // 72: feed.v1.ListRecommendedResponse
+	(*GetFeedPrefsRequest)(nil),      // 73: feed.v1.GetFeedPrefsRequest
+	(*GetFeedPrefsResponse)(nil),     // 74: feed.v1.GetFeedPrefsResponse
+	(*SetFeedPrefsRequest)(nil),      // 75: feed.v1.SetFeedPrefsRequest
+	(*SetFeedPrefsResponse)(nil),     // 76: feed.v1.SetFeedPrefsResponse
+	(*timestamppb.Timestamp)(nil),    // 77: google.protobuf.Timestamp
+	(*v1.GearTag)(nil),               // 78: gear.v1.GearTag
 }
 var file_feed_v1_feed_proto_depIdxs = []int32{
 	6,  // 0: feed.v1.WorkoutSummary.exercises:type_name -> feed.v1.WorkoutExercise
@@ -4253,15 +4571,15 @@ var file_feed_v1_feed_proto_depIdxs = []int32{
 	1,  // 3: feed.v1.Post.kind:type_name -> feed.v1.PostKind
 	0,  // 4: feed.v1.Post.visibility:type_name -> feed.v1.Visibility
 	4,  // 5: feed.v1.Post.workout:type_name -> feed.v1.WorkoutSummary
-	71, // 6: feed.v1.Post.created_at:type_name -> google.protobuf.Timestamp
-	72, // 7: feed.v1.Post.gear:type_name -> gear.v1.GearTag
+	77, // 6: feed.v1.Post.created_at:type_name -> google.protobuf.Timestamp
+	78, // 7: feed.v1.Post.gear:type_name -> gear.v1.GearTag
 	3,  // 8: feed.v1.Comment.author:type_name -> feed.v1.Author
-	71, // 9: feed.v1.Comment.created_at:type_name -> google.protobuf.Timestamp
+	77, // 9: feed.v1.Comment.created_at:type_name -> google.protobuf.Timestamp
 	3,  // 10: feed.v1.SocialProfile.author:type_name -> feed.v1.Author
-	71, // 11: feed.v1.Cursor.created_at:type_name -> google.protobuf.Timestamp
+	77, // 11: feed.v1.Cursor.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 12: feed.v1.CreatePostRequest.visibility:type_name -> feed.v1.Visibility
 	4,  // 13: feed.v1.CreatePostRequest.workout:type_name -> feed.v1.WorkoutSummary
-	72, // 14: feed.v1.CreatePostRequest.gear:type_name -> gear.v1.GearTag
+	78, // 14: feed.v1.CreatePostRequest.gear:type_name -> gear.v1.GearTag
 	7,  // 15: feed.v1.CreatePostResponse.post:type_name -> feed.v1.Post
 	11, // 16: feed.v1.ListFeedRequest.cursor:type_name -> feed.v1.Cursor
 	7,  // 17: feed.v1.ListFeedResponse.posts:type_name -> feed.v1.Post
@@ -4294,69 +4612,76 @@ var file_feed_v1_feed_proto_depIdxs = []int32{
 	7,  // 44: feed.v1.SearchResponse.posts:type_name -> feed.v1.Post
 	3,  // 45: feed.v1.ListBlockedUsersResponse.users:type_name -> feed.v1.Author
 	8,  // 46: feed.v1.ListRepliesResponse.comments:type_name -> feed.v1.Comment
-	14, // 47: feed.v1.FeedService.ListFeed:input_type -> feed.v1.ListFeedRequest
-	16, // 48: feed.v1.FeedService.ListUserPosts:input_type -> feed.v1.ListUserPostsRequest
-	12, // 49: feed.v1.FeedService.CreatePost:input_type -> feed.v1.CreatePostRequest
-	37, // 50: feed.v1.FeedService.UpdatePost:input_type -> feed.v1.UpdatePostRequest
-	18, // 51: feed.v1.FeedService.DeletePost:input_type -> feed.v1.DeletePostRequest
-	20, // 52: feed.v1.FeedService.LikePost:input_type -> feed.v1.LikePostRequest
-	22, // 53: feed.v1.FeedService.UnlikePost:input_type -> feed.v1.UnlikePostRequest
-	39, // 54: feed.v1.FeedService.BookmarkPost:input_type -> feed.v1.BookmarkPostRequest
-	41, // 55: feed.v1.FeedService.UnbookmarkPost:input_type -> feed.v1.UnbookmarkPostRequest
-	43, // 56: feed.v1.FeedService.ListBookmarks:input_type -> feed.v1.ListBookmarksRequest
-	45, // 57: feed.v1.FeedService.ListHashtagPosts:input_type -> feed.v1.ListHashtagPostsRequest
-	47, // 58: feed.v1.FeedService.TrendingHashtags:input_type -> feed.v1.TrendingHashtagsRequest
-	49, // 59: feed.v1.FeedService.GetProfile:input_type -> feed.v1.GetProfileRequest
-	51, // 60: feed.v1.FeedService.BlockUser:input_type -> feed.v1.BlockUserRequest
-	53, // 61: feed.v1.FeedService.UnblockUser:input_type -> feed.v1.UnblockUserRequest
-	55, // 62: feed.v1.FeedService.ListFollows:input_type -> feed.v1.ListFollowsRequest
-	63, // 63: feed.v1.FeedService.ListBlockedUsers:input_type -> feed.v1.ListBlockedUsersRequest
-	57, // 64: feed.v1.FeedService.ListExplore:input_type -> feed.v1.ListExploreRequest
-	59, // 65: feed.v1.FeedService.SuggestedUsers:input_type -> feed.v1.SuggestedUsersRequest
-	61, // 66: feed.v1.FeedService.Search:input_type -> feed.v1.SearchRequest
-	24, // 67: feed.v1.FeedService.ListComments:input_type -> feed.v1.ListCommentsRequest
-	65, // 68: feed.v1.FeedService.ListReplies:input_type -> feed.v1.ListRepliesRequest
-	67, // 69: feed.v1.FeedService.LikeComment:input_type -> feed.v1.LikeCommentRequest
-	69, // 70: feed.v1.FeedService.UnlikeComment:input_type -> feed.v1.UnlikeCommentRequest
-	26, // 71: feed.v1.FeedService.CreateComment:input_type -> feed.v1.CreateCommentRequest
-	28, // 72: feed.v1.FeedService.DeleteComment:input_type -> feed.v1.DeleteCommentRequest
-	30, // 73: feed.v1.FeedService.Follow:input_type -> feed.v1.FollowRequest
-	32, // 74: feed.v1.FeedService.Unfollow:input_type -> feed.v1.UnfollowRequest
-	34, // 75: feed.v1.FeedService.SearchUsers:input_type -> feed.v1.SearchUsersRequest
-	15, // 76: feed.v1.FeedService.ListFeed:output_type -> feed.v1.ListFeedResponse
-	17, // 77: feed.v1.FeedService.ListUserPosts:output_type -> feed.v1.ListUserPostsResponse
-	13, // 78: feed.v1.FeedService.CreatePost:output_type -> feed.v1.CreatePostResponse
-	38, // 79: feed.v1.FeedService.UpdatePost:output_type -> feed.v1.UpdatePostResponse
-	19, // 80: feed.v1.FeedService.DeletePost:output_type -> feed.v1.DeletePostResponse
-	21, // 81: feed.v1.FeedService.LikePost:output_type -> feed.v1.LikePostResponse
-	23, // 82: feed.v1.FeedService.UnlikePost:output_type -> feed.v1.UnlikePostResponse
-	40, // 83: feed.v1.FeedService.BookmarkPost:output_type -> feed.v1.BookmarkPostResponse
-	42, // 84: feed.v1.FeedService.UnbookmarkPost:output_type -> feed.v1.UnbookmarkPostResponse
-	44, // 85: feed.v1.FeedService.ListBookmarks:output_type -> feed.v1.ListBookmarksResponse
-	46, // 86: feed.v1.FeedService.ListHashtagPosts:output_type -> feed.v1.ListHashtagPostsResponse
-	48, // 87: feed.v1.FeedService.TrendingHashtags:output_type -> feed.v1.TrendingHashtagsResponse
-	50, // 88: feed.v1.FeedService.GetProfile:output_type -> feed.v1.GetProfileResponse
-	52, // 89: feed.v1.FeedService.BlockUser:output_type -> feed.v1.BlockUserResponse
-	54, // 90: feed.v1.FeedService.UnblockUser:output_type -> feed.v1.UnblockUserResponse
-	56, // 91: feed.v1.FeedService.ListFollows:output_type -> feed.v1.ListFollowsResponse
-	64, // 92: feed.v1.FeedService.ListBlockedUsers:output_type -> feed.v1.ListBlockedUsersResponse
-	58, // 93: feed.v1.FeedService.ListExplore:output_type -> feed.v1.ListExploreResponse
-	60, // 94: feed.v1.FeedService.SuggestedUsers:output_type -> feed.v1.SuggestedUsersResponse
-	62, // 95: feed.v1.FeedService.Search:output_type -> feed.v1.SearchResponse
-	25, // 96: feed.v1.FeedService.ListComments:output_type -> feed.v1.ListCommentsResponse
-	66, // 97: feed.v1.FeedService.ListReplies:output_type -> feed.v1.ListRepliesResponse
-	68, // 98: feed.v1.FeedService.LikeComment:output_type -> feed.v1.LikeCommentResponse
-	70, // 99: feed.v1.FeedService.UnlikeComment:output_type -> feed.v1.UnlikeCommentResponse
-	27, // 100: feed.v1.FeedService.CreateComment:output_type -> feed.v1.CreateCommentResponse
-	29, // 101: feed.v1.FeedService.DeleteComment:output_type -> feed.v1.DeleteCommentResponse
-	31, // 102: feed.v1.FeedService.Follow:output_type -> feed.v1.FollowResponse
-	33, // 103: feed.v1.FeedService.Unfollow:output_type -> feed.v1.UnfollowResponse
-	36, // 104: feed.v1.FeedService.SearchUsers:output_type -> feed.v1.SearchUsersResponse
-	76, // [76:105] is the sub-list for method output_type
-	47, // [47:76] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	7,  // 47: feed.v1.ListRecommendedResponse.posts:type_name -> feed.v1.Post
+	14, // 48: feed.v1.FeedService.ListFeed:input_type -> feed.v1.ListFeedRequest
+	16, // 49: feed.v1.FeedService.ListUserPosts:input_type -> feed.v1.ListUserPostsRequest
+	12, // 50: feed.v1.FeedService.CreatePost:input_type -> feed.v1.CreatePostRequest
+	37, // 51: feed.v1.FeedService.UpdatePost:input_type -> feed.v1.UpdatePostRequest
+	18, // 52: feed.v1.FeedService.DeletePost:input_type -> feed.v1.DeletePostRequest
+	20, // 53: feed.v1.FeedService.LikePost:input_type -> feed.v1.LikePostRequest
+	22, // 54: feed.v1.FeedService.UnlikePost:input_type -> feed.v1.UnlikePostRequest
+	39, // 55: feed.v1.FeedService.BookmarkPost:input_type -> feed.v1.BookmarkPostRequest
+	41, // 56: feed.v1.FeedService.UnbookmarkPost:input_type -> feed.v1.UnbookmarkPostRequest
+	43, // 57: feed.v1.FeedService.ListBookmarks:input_type -> feed.v1.ListBookmarksRequest
+	45, // 58: feed.v1.FeedService.ListHashtagPosts:input_type -> feed.v1.ListHashtagPostsRequest
+	47, // 59: feed.v1.FeedService.TrendingHashtags:input_type -> feed.v1.TrendingHashtagsRequest
+	49, // 60: feed.v1.FeedService.GetProfile:input_type -> feed.v1.GetProfileRequest
+	51, // 61: feed.v1.FeedService.BlockUser:input_type -> feed.v1.BlockUserRequest
+	53, // 62: feed.v1.FeedService.UnblockUser:input_type -> feed.v1.UnblockUserRequest
+	55, // 63: feed.v1.FeedService.ListFollows:input_type -> feed.v1.ListFollowsRequest
+	63, // 64: feed.v1.FeedService.ListBlockedUsers:input_type -> feed.v1.ListBlockedUsersRequest
+	57, // 65: feed.v1.FeedService.ListExplore:input_type -> feed.v1.ListExploreRequest
+	71, // 66: feed.v1.FeedService.ListRecommended:input_type -> feed.v1.ListRecommendedRequest
+	73, // 67: feed.v1.FeedService.GetFeedPrefs:input_type -> feed.v1.GetFeedPrefsRequest
+	75, // 68: feed.v1.FeedService.SetFeedPrefs:input_type -> feed.v1.SetFeedPrefsRequest
+	59, // 69: feed.v1.FeedService.SuggestedUsers:input_type -> feed.v1.SuggestedUsersRequest
+	61, // 70: feed.v1.FeedService.Search:input_type -> feed.v1.SearchRequest
+	24, // 71: feed.v1.FeedService.ListComments:input_type -> feed.v1.ListCommentsRequest
+	65, // 72: feed.v1.FeedService.ListReplies:input_type -> feed.v1.ListRepliesRequest
+	67, // 73: feed.v1.FeedService.LikeComment:input_type -> feed.v1.LikeCommentRequest
+	69, // 74: feed.v1.FeedService.UnlikeComment:input_type -> feed.v1.UnlikeCommentRequest
+	26, // 75: feed.v1.FeedService.CreateComment:input_type -> feed.v1.CreateCommentRequest
+	28, // 76: feed.v1.FeedService.DeleteComment:input_type -> feed.v1.DeleteCommentRequest
+	30, // 77: feed.v1.FeedService.Follow:input_type -> feed.v1.FollowRequest
+	32, // 78: feed.v1.FeedService.Unfollow:input_type -> feed.v1.UnfollowRequest
+	34, // 79: feed.v1.FeedService.SearchUsers:input_type -> feed.v1.SearchUsersRequest
+	15, // 80: feed.v1.FeedService.ListFeed:output_type -> feed.v1.ListFeedResponse
+	17, // 81: feed.v1.FeedService.ListUserPosts:output_type -> feed.v1.ListUserPostsResponse
+	13, // 82: feed.v1.FeedService.CreatePost:output_type -> feed.v1.CreatePostResponse
+	38, // 83: feed.v1.FeedService.UpdatePost:output_type -> feed.v1.UpdatePostResponse
+	19, // 84: feed.v1.FeedService.DeletePost:output_type -> feed.v1.DeletePostResponse
+	21, // 85: feed.v1.FeedService.LikePost:output_type -> feed.v1.LikePostResponse
+	23, // 86: feed.v1.FeedService.UnlikePost:output_type -> feed.v1.UnlikePostResponse
+	40, // 87: feed.v1.FeedService.BookmarkPost:output_type -> feed.v1.BookmarkPostResponse
+	42, // 88: feed.v1.FeedService.UnbookmarkPost:output_type -> feed.v1.UnbookmarkPostResponse
+	44, // 89: feed.v1.FeedService.ListBookmarks:output_type -> feed.v1.ListBookmarksResponse
+	46, // 90: feed.v1.FeedService.ListHashtagPosts:output_type -> feed.v1.ListHashtagPostsResponse
+	48, // 91: feed.v1.FeedService.TrendingHashtags:output_type -> feed.v1.TrendingHashtagsResponse
+	50, // 92: feed.v1.FeedService.GetProfile:output_type -> feed.v1.GetProfileResponse
+	52, // 93: feed.v1.FeedService.BlockUser:output_type -> feed.v1.BlockUserResponse
+	54, // 94: feed.v1.FeedService.UnblockUser:output_type -> feed.v1.UnblockUserResponse
+	56, // 95: feed.v1.FeedService.ListFollows:output_type -> feed.v1.ListFollowsResponse
+	64, // 96: feed.v1.FeedService.ListBlockedUsers:output_type -> feed.v1.ListBlockedUsersResponse
+	58, // 97: feed.v1.FeedService.ListExplore:output_type -> feed.v1.ListExploreResponse
+	72, // 98: feed.v1.FeedService.ListRecommended:output_type -> feed.v1.ListRecommendedResponse
+	74, // 99: feed.v1.FeedService.GetFeedPrefs:output_type -> feed.v1.GetFeedPrefsResponse
+	76, // 100: feed.v1.FeedService.SetFeedPrefs:output_type -> feed.v1.SetFeedPrefsResponse
+	60, // 101: feed.v1.FeedService.SuggestedUsers:output_type -> feed.v1.SuggestedUsersResponse
+	62, // 102: feed.v1.FeedService.Search:output_type -> feed.v1.SearchResponse
+	25, // 103: feed.v1.FeedService.ListComments:output_type -> feed.v1.ListCommentsResponse
+	66, // 104: feed.v1.FeedService.ListReplies:output_type -> feed.v1.ListRepliesResponse
+	68, // 105: feed.v1.FeedService.LikeComment:output_type -> feed.v1.LikeCommentResponse
+	70, // 106: feed.v1.FeedService.UnlikeComment:output_type -> feed.v1.UnlikeCommentResponse
+	27, // 107: feed.v1.FeedService.CreateComment:output_type -> feed.v1.CreateCommentResponse
+	29, // 108: feed.v1.FeedService.DeleteComment:output_type -> feed.v1.DeleteCommentResponse
+	31, // 109: feed.v1.FeedService.Follow:output_type -> feed.v1.FollowResponse
+	33, // 110: feed.v1.FeedService.Unfollow:output_type -> feed.v1.UnfollowResponse
+	36, // 111: feed.v1.FeedService.SearchUsers:output_type -> feed.v1.SearchUsersResponse
+	80, // [80:112] is the sub-list for method output_type
+	48, // [48:80] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_feed_v1_feed_proto_init() }
@@ -4370,7 +4695,7 @@ func file_feed_v1_feed_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_feed_v1_feed_proto_rawDesc), len(file_feed_v1_feed_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   68,
+			NumMessages:   74,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -339,8 +339,11 @@ type SignUpRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Email string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
 	// 8자 미만은 거절한다. 상한(72바이트)은 bcrypt의 제약이다 — 넘으면 뒤가 조용히 잘린다.
-	Password      string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	DisplayName   string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	Password    string `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	DisplayName string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// 만 14세 이상임을 가입자가 확인했는가(SPEC-030). 거짓이면 가입을 받지 않는다.
+	// 옛 화면은 이 값을 보내지 않는다 — 없음과 거짓을 나눠 새로고침을 안내한다.
+	AgeConfirmed  *bool `protobuf:"varint,4,opt,name=age_confirmed,json=ageConfirmed,proto3,oneof" json:"age_confirmed,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -394,6 +397,13 @@ func (x *SignUpRequest) GetDisplayName() string {
 		return x.DisplayName
 	}
 	return ""
+}
+
+func (x *SignUpRequest) GetAgeConfirmed() bool {
+	if x != nil && x.AgeConfirmed != nil {
+		return *x.AgeConfirmed
+	}
+	return false
 }
 
 type LogInRequest struct {
@@ -2099,11 +2109,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
-	"expires_in\x18\x03 \x01(\x05R\texpiresIn\"\x86\x01\n" +
+	"expires_in\x18\x03 \x01(\x05R\texpiresIn\"\xc2\x01\n" +
 	"\rSignUpRequest\x12\"\n" +
 	"\x05email\x18\x01 \x01(\tB\f\xbaH\tr\a\x10\x03\x18\xfe\x01`\x01R\x05email\x12%\n" +
 	"\bpassword\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\b\x18HR\bpassword\x12*\n" +
-	"\fdisplay_name\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18(R\vdisplayName\"W\n" +
+	"\fdisplay_name\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18(R\vdisplayName\x12(\n" +
+	"\rage_confirmed\x18\x04 \x01(\bH\x00R\fageConfirmed\x88\x01\x01B\x10\n" +
+	"\x0e_age_confirmed\"W\n" +
 	"\fLogInRequest\x12 \n" +
 	"\x05email\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05\x10\x03\x18\xfe\x01R\x05email\x12%\n" +
@@ -2354,6 +2366,7 @@ func file_auth_v1_auth_proto_init() {
 	if File_auth_v1_auth_proto != nil {
 		return
 	}
+	file_auth_v1_auth_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -28,10 +28,13 @@ export function ReportSheet({
   targetType,
   targetId,
   onClose,
+  onReported,
 }: {
   targetType: TargetType;
   targetId: string;
   onClose: () => void;
+  /** 접수된 뒤 — 목록이 이 항목을 치우는 데 쓴다. */
+  onReported?: () => void;
 }) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -43,6 +46,7 @@ export function ReportSheet({
       await moderationClient().report({ targetType, targetId, reason });
       toast(t("report.submitted"));
       onClose();
+      onReported?.();
     } catch (e) {
       toast(feedErrorMessage(e), "error");
       onClose();

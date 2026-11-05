@@ -96,6 +96,8 @@ type Config struct {
 
 	// KakaoLocalRestKey — 헬스장 검색 전용 카카오 앱의 REST 키(SPEC-029). 비면 앱이 Overpass 로 찾는다.
 	KakaoLocalRestKey string
+	// FeedRecommendSince — 이 시각 이후의 글만 추천한다(옛 글을 소급해 내보내지 않는다 · SPEC-030).
+	FeedRecommendSince string
 
 	OAuthGoogleClientID     string
 	OAuthGoogleClientSecret string
@@ -161,6 +163,7 @@ func Load() (*Config, error) {
 		TurnstileSecret:         os.Getenv("TURNSTILE_SECRET"),
 		AuthRateLimit:           envInt("AUTH_RATE_LIMIT", 10),
 		KakaoLocalRestKey:       os.Getenv("KAKAO_LOCAL_REST_KEY"),
+		FeedRecommendSince:      envStr("FEED_RECOMMEND_SINCE", "2026-11-12T00:00:00+09:00"),
 		OAuthGoogleClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
 		OAuthGoogleClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
 		OAuthKakaoClientID:      os.Getenv("OAUTH_KAKAO_CLIENT_ID"),

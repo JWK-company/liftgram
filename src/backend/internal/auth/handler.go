@@ -35,6 +35,13 @@ func (h *Handler) SignUp(ctx context.Context, req *connect.Request[authv1.SignUp
 	if err := h.guard("signup", req.Header()); err != nil {
 		return nil, err
 	}
+	// 사람 확인 토큰을 쓰기 전에 본다 — 다시 시도할 때 토큰을 낭비하지 않게.
+	if req.Msg.AgeConfirmed == nil {
+		return nil, errs.New(errs.Validation, "앱을 새로고침한 뒤 다시 가입해 주세요")
+	}
+	if !req.Msg.GetAgeConfirmed() {
+		return nil, errs.New(errs.Validation, "만 14세 이상만 가입할 수 있어요")
+	}
 	if err := h.svc.CheckHuman(ctx, req.Header().Get(TurnstileHeader), clientIP(req.Header())); err != nil {
 		return nil, err
 	}
@@ -42,6 +49,7 @@ func (h *Handler) SignUp(ctx context.Context, req *connect.Request[authv1.SignUp
 	if err != nil {
 		return nil, err
 	}
+	h.svc.RecordAgeConfirm(ctx, u.ID, "email")
 	return connect.NewResponse(&authv1.SignUpResponse{Tokens: toProtoTokens(tokens), User: toProtoUser(u)}), nil
 }
 

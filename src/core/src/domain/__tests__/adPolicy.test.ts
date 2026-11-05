@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { adGuard, feedAdAfter } from '../adPolicy';
+import { adGuard, feedAdAfter, recommendedAdAfter } from '../adPolicy';
 
 test('운동이 없다고 읽어 냈을 때만 슬롯을 연다', () => {
   assert.equal(adGuard({ activeKnown: true, activeWorkoutId: null }), true);
@@ -18,4 +18,11 @@ test('피드 광고는 6개마다 — 0부터 세어 5, 11', () => {
   const hits = Array.from({ length: 13 }, (_, i) => i).filter(feedAdAfter);
   assert.deepEqual(hits, [5, 11]);
   assert.equal(feedAdAfter(-1), false);
+});
+
+test('추천 탭 광고: 6번째 글 뒤부터 3개마다, 팔로잉은 그대로 6개마다', () => {
+  const at = (fn: (i: number) => boolean) => Array.from({ length: 15 }, (_, i) => i).filter(fn);
+  assert.deepEqual(at(recommendedAdAfter), [5, 8, 11, 14]);
+  assert.deepEqual(at(feedAdAfter), [5, 11]);
+  assert.equal(recommendedAdAfter(-1), false);
 });

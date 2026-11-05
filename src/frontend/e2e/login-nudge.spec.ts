@@ -155,6 +155,7 @@ test("로그인한 기기에는 권유 시트도 로컬 띠도 없다", async ({
     .fill(`e2e-nudge-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill("권유테스트");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await page.goto("/exercises");

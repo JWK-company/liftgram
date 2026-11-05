@@ -266,6 +266,7 @@ test("④-2 혼자 쓰는 사용자 — 계정 전환 리셋(다른 계정으로
     await page.getByTestId("auth-email-input").fill(email);
     await page.getByTestId("auth-password-input").fill(pw);
     await page.getByTestId("auth-name-input").fill("탭테스트");
+    await page.getByTestId("age-confirm").check();
     await page.getByTestId("btn-auth-submit").click();
     await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   };
@@ -281,6 +282,7 @@ test("④-2 혼자 쓰는 사용자 — 계정 전환 리셋(다른 계정으로
   await page.getByTestId("auth-email-input").fill(second);
   await page.getByTestId("auth-password-input").fill(pw);
   await page.getByTestId("auth-name-input").fill("탭테스트2");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toHaveText("탭테스트2", { timeout: 30_000 });
   // 실제로 리셋이 일어났는가(Watermelon 로그) — 안 일어났다면 이 테스트는 리셋 경로를 재지 못한다

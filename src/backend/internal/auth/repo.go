@@ -98,6 +98,10 @@ func (r *pgRepo) GetUserByEmail(ctx context.Context, email string) (User, error)
 	return toDomain(row), nil
 }
 
+func (r *pgRepo) SetAgeConfirmed(ctx context.Context, userID, via string) error {
+	return r.q.SetAgeConfirmed(ctx, sqlcgen.SetAgeConfirmedParams{ID: userID, Via: via})
+}
+
 func (r *pgRepo) UpdateProfile(ctx context.Context, id string, p ProfilePatch) (User, error) {
 	row, err := r.q.UpdateUserProfile(ctx, sqlcgen.UpdateUserProfileParams{
 		ID:                 id,

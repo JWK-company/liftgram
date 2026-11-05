@@ -201,6 +201,7 @@ async function 가입(page: Page, 접두: string, 이름: string) {
   await page.getByTestId("auth-email-input").fill(`e2e-${접두}-${Date.now()}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill(이름);
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 }
@@ -244,7 +245,7 @@ test("D7·F1·F2 — 피드 운동 카드: 한 줄 메타·배지 없음·2칸 �
   await 가입(page, "dcp3-b", "보는사람");
   await 카탈로그_준비(page);
   await page.goto("/feed");
-  await page.getByTestId("feed-discover").click();
+  await page.goto("/discover");
   await page.getByTestId("discover-query").fill(이름);
   await expect(page.getByTestId("discover-list")).toContainText(이름, { timeout: 20_000 });
   await page.getByTestId("discover-follow").first().click();

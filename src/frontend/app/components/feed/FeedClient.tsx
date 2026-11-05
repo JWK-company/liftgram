@@ -19,7 +19,7 @@
 import { navigate } from "@/lib/nav";
 import type { GearTag, WeightUnit } from "@app/core";
 import type { Cursor, Post, StoryGroup } from "@app/contracts";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { t } from "@/lib/i18n";
 import { feedClient, feedErrorMessage, isUnauthenticated } from "@/lib/feedClient";
 import { uploadImage } from "@/lib/mediaClient";
@@ -38,14 +38,16 @@ import { ListGroup, ListRow, UnderlineTabs } from "../ui/rows";
 import DiscoverClient from "./DiscoverClient";
 import { GearTagPicker } from "./GearTagPicker";
 import { ImagePicker } from "./ImagePicker";
-import { GearSource, GearCategory as GearCategoryEnum } from "@app/contracts";
+import { GearSource, GearCategory as GearCategoryEnum, Visibility } from "@app/contracts";
 import { StoryTray } from "./StoryTray";
 import { StoryViewer } from "./StoryViewer";
 import { loadStorySeen, markSeen, type StorySeenMap } from "./storySeen";
-import { FEED_AD_EVERY, feedAdAfter } from "@app/core/domain/adPolicy";
+import { FEED_AD_EVERY, FEED_RECOMMENDED_START_MS, feedAdAfter } from "@app/core/domain/adPolicy";
 import { AdSlot } from "../ads/AdSlot";
 import { InfiniteSentinel } from "./InfiniteSentinel";
 import { PostCard } from "./PostCard";
+import { RecommendedFeed } from "./RecommendedFeed";
+import { VisibilityPicker } from "./VisibilityPicker";
 import { useWeightUnit } from "./useWeightUnit";
 
 /** 도메인 문자열 → 계약 enum. 글을 올릴 때만 쓴다. */
@@ -69,6 +71,19 @@ function gearCategoryEnum(c: GearTag["category"]): GearCategoryEnum {
       return GearCategoryEnum.ARM_SLEEVE;
   }
 }
+
+// 시행일 판정은 브라우저에서 처음 읽은 값으로 고정한다 — 서버 HTML·서비스워커 셸과 시각이 달라도 hydration 이 어긋나지 않고,
+// 화면을 켜 둔 채 시행 시각을 넘겨도 탭이 바뀌지 않는다.
+let recommendedOpenOnce: boolean | null = null;
+const subscribeNever = () => () => {};
+const readRecommendedOpen = () => {
+  recommendedOpenOnce ??= Date.now() >= FEED_RECOMMENDED_START_MS;
+  return recommendedOpenOnce;
+};
+const readNull = () => null;
+const readUrlWantsRecommended = () =>
+  new URLSearchParams(window.location.search).get("tab") === "recommended";
+const readFalse = () => false;
 
 export default function FeedClient() {
   const { user, loading: authLoading } = useAuth();
@@ -97,8 +112,21 @@ export default function FeedClient() {
   const [storyBusy, setStoryBusy] = useState(false);
   // 안 읽은 알림 수 — 머리의 배지.
   const [unread, setUnread] = useState(0);
-  const [tab, setTab] = useState<"following" | "discover">("following");
+  // [원본] useState<"following" | "discover">("following") — 발견은 돋보기와 겹쳐 시행일에 추천으로 바뀐다(SPEC-030)
+  // null = 아직 서버 HTML — 탭 본문을 그리지 않아, 추천으로 돌아올 때 팔로잉이 먼저 비치지 않는다.
+  const recommendedOpen = useSyncExternalStore(subscribeNever, readRecommendedOpen, readNull);
+  // 글 상세에서 돌아와도 보던 탭으로 — 탭은 주소에 있다.
+  const urlWantsRecommended = useSyncExternalStore(subscribeNever, readUrlWantsRecommended, readFalse);
+  const [tabChoice, setTabChoice] = useState<"following" | "discover" | "recommended" | null>(null);
+  const tab = tabChoice ?? (recommendedOpen && urlWantsRecommended ? "recommended" : "following");
+  // 한 번 연 추천은 숨겨 둘 뿐 지우지 않는다 — 돌아왔을 때 목록을 다시 받지 않게(스크롤은 문서 하나를 함께 쓴다).
+  const [recommendedOpened, setRecommendedOpened] = useState(false);
+  const recommendedMounted = recommendedOpened || tab === "recommended";
+  const followingDirty = useRef(false);
+  // 팔로잉에서 바뀐 글 — 추천에도 같은 글이 있으면 좋아요·저장을 맞춘다.
+  const [syncedPost, setSyncedPost] = useState<Post | null>(null);
   const [composing, setComposing] = useState(false);
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.PUBLIC);
 
   // 새로고침 세대 — 이 값이 바뀌면 진행 중이던 페이지 요청의 결과는 버린다.
   const gen = useRef(0);
@@ -145,6 +173,20 @@ export default function FeedClient() {
   useEffect(() => {
     if (!authLoading && !userId) setLoading(false);
   }, [authLoading, userId]);
+
+  const switchTab = (next: "following" | "discover" | "recommended") => {
+    // 추천에서 팔로우했으면 팔로잉을 다시 읽어야 그 사람 글이 보인다.
+    if (next === "following" && followingDirty.current) {
+      followingDirty.current = false;
+      void load();
+    }
+    setTabChoice(next);
+    // 주소로 추천을 바로 연 경우에도 떠날 때 지우지 않게 지금 탭까지 본다.
+    if (next === "recommended" || tab === "recommended") setRecommendedOpened(true);
+    if (recommendedOpen) {
+      window.history.replaceState(null, "", next === "recommended" ? "/feed?tab=recommended" : "/feed");
+    }
+  };
 
   // 열람 표시는 기기에 있다 — 화면이 뜰 때 한 번 읽는다.
   useEffect(() => setSeen(loadStorySeen()), []);
@@ -207,6 +249,7 @@ export default function FeedClient() {
       const res = await feedClient().createPost({
         caption: text,
         mediaUrls,
+        visibility,
         gear: gear.map((g) => ({
           category: gearCategoryEnum(g.category),
           source: GearSource.USER,
@@ -216,12 +259,14 @@ export default function FeedClient() {
       });
       if (res.post) setPosts((prev) => [res.post as Post, ...prev]);
       setCaption("");
+      setVisibility(Visibility.PUBLIC);
       setPicked(null);
       setGear([]);
       uploaded.current = null; // 글이 올라갔으니 캐시는 버린다
       // 작성기를 닫고 방금 쓴 글이 보이는 팔로잉 목록으로 돌아간다. 실패하면 작성기를 연 채로 오류를 보인다.
       setComposing(false);
-      setTab("following");
+      switchTab("following");
+      window.scrollTo(0, 0);
     } catch (e) {
       setError(feedErrorMessage(e));
     } finally {
@@ -229,9 +274,16 @@ export default function FeedClient() {
     }
   }
 
-  const replace = useCallback((next: Post) => {
+  const replaceInList = useCallback((next: Post) => {
     setPosts((prev) => prev.map((p) => (p.id === next.id ? next : p)));
   }, []);
+  const replace = useCallback(
+    (next: Post) => {
+      replaceInList(next);
+      setSyncedPost(next);
+    },
+    [replaceInList],
+  );
 
   const drop = useCallback((id: string) => {
     setPosts((prev) => prev.filter((p) => p.id !== id));
@@ -307,17 +359,47 @@ export default function FeedClient() {
       <UnderlineTabs
         testId="feed-tabs"
         value={tab}
-        onChange={setTab}
+        onChange={switchTab}
         items={[
           { value: "following", label: "팔로잉", testId: "feed-following" },
-          { value: "discover", label: "발견", testId: "feed-discover" },
+          // 판정 전에는 글자 없이 자리만 둔다 — 「발견」이 「추천」으로 바뀌어 보이지 않게.
+          recommendedOpen === null
+            ? { value: "recommended", label: "\u00a0" }
+            : recommendedOpen
+              ? { value: "recommended", label: t("feed.tabRecommended"), testId: "feed-recommended" }
+              : { value: "discover", label: "발견", testId: "feed-discover" },
         ]}
       />
 
       {/* 주변 헬스장 — 운동 탭에서 옮겨 왔다(2026-11-05 사용자 지시) */}
       <GymsEntry />
 
-      {tab === "discover" ? (
+      {recommendedMounted ? (
+        <div className={tab === "recommended" ? "flex flex-1 flex-col" : "hidden"}>
+          <RecommendedFeed
+            meId={user?.id ?? null}
+            unit={unit as WeightUnit}
+            onFollowChanged={() => {
+              followingDirty.current = true;
+            }}
+            synced={syncedPost}
+            onPostChanged={replaceInList}
+          />
+        </div>
+      ) : null}
+      {recommendedOpen === null ? (
+        <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-tab-pending">
+          <ListState
+            loading
+            error={false}
+            onRetry={load}
+            skeletonVariant="post"
+            emptyIcon="newspaper-outline"
+            emptyTitle="feed.emptyTitle"
+            emptyMessage="feed.emptyMessage"
+          />
+        </div>
+      ) : tab === "recommended" ? null : tab === "discover" ? (
         <DiscoverClient embedded />
       ) : (
         <>
@@ -436,6 +518,14 @@ export default function FeedClient() {
                 rows={6}
                 className="mb-[var(--spacing-sm)]!"
               />
+              <div className="mt-[var(--spacing-sm)]">
+                <VisibilityPicker value={visibility} onChange={setVisibility} disabled={posting} />
+                {visibility === Visibility.PUBLIC ? (
+                  <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
+                    {t("feed.visibilityPublicHint")}
+                  </AppText>
+                ) : null}
+              </div>
               {/* 착용장비 태그 — 선택 칩 미리보기 + 목록 시트 */}
               <GearTagPicker value={gear} onChange={setGear} disabled={posting} />
               <ImagePicker file={picked} onPick={setPicked} disabled={posting} />

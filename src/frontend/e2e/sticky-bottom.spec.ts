@@ -175,6 +175,7 @@ test.describe("360×560 · 탭바가 있는 화면의 입력창", () => {
       .fill(`e2e-sticky-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`);
     await page.getByTestId("auth-password-input").fill("hunter22!");
     await page.getByTestId("auth-name-input").fill("하단점검");
+    await page.getByTestId("age-confirm").check();
     await page.getByTestId("btn-auth-submit").click();
     await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
     await page.goto("/feed");

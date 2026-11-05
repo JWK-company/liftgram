@@ -30,6 +30,7 @@ export async function 가입(page: Page, email: string, name: string): Promise<v
   await page.getByTestId("auth-email-input").fill(email);
   await page.getByTestId("auth-password-input").fill(비밀번호);
   await page.getByTestId("auth-name-input").fill(name);
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 }

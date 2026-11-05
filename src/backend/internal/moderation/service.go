@@ -66,6 +66,8 @@ type Target struct {
 	Author           Author
 	Preview          Preview
 	CreatedAt        time.Time
+	// 글의 사진 전부 — 미리보기는 첫 장이지만 제거는 모든 장을 막아야 한다.
+	MediaURLs []string
 	// 스토리는 만료가 있다 — 이미 끝난 것은 신고 대상이 아니다.
 	ExpiresAt time.Time
 	// 댓글은 부모 글의 가시성을 따른다.
@@ -92,6 +94,7 @@ type QueueItem struct {
 
 type Repo interface {
 	CreateReport(ctx context.Context, id string, t TargetType, targetID, reporterID, reason, details string) error
+	CountPendingReporters(ctx context.Context, t TargetType, targetID string) (int, error)
 	ListPendingReports(ctx context.Context, limit int32) ([]Report, error)
 	ResolveReports(ctx context.Context, t TargetType, targetID, reviewerID, status, action string) error
 
@@ -100,10 +103,11 @@ type Repo interface {
 	// 글의 가시성 판정에 필요한 최소한.
 	PostVisibility(ctx context.Context, postID string) (authorID, visibility, status string, ok bool, err error)
 	IsFollowing(ctx context.Context, followerID, followeeID string) (bool, error)
+	IsBlockedEitherWay(ctx context.Context, a, b string) (bool, error)
 
 	ListAutoPending(ctx context.Context, limit int32) ([]QueueItem, error)
-	// 상태를 바꾸고, 사진이 딸려 있으면 그 바이트도 함께 막거나 푼다(한 트랜잭션).
-	SetModeration(ctx context.Context, t TargetType, targetID, status, reason string, removed bool, mediaKey string) error
+	// 상태를 바꾸고, 사진이 딸려 있으면 모든 장의 바이트를 함께 막거나 푼다(한 트랜잭션).
+	SetModeration(ctx context.Context, t TargetType, targetID, status, reason string, removed bool, mediaKeys []string) error
 }
 
 type Service struct {
@@ -142,7 +146,38 @@ func (s *Service) Report(ctx context.Context, reporterID string, t TargetType, t
 	if authorID == reporterID {
 		return errs.New(errs.Validation, "자기 콘텐츠는 신고할 수 없습니다")
 	}
-	return s.repo.CreateReport(ctx, s.newID(), t, targetID, reporterID, reason, strings.TrimSpace(details))
+	// 차단 관계면 볼 수 없는 것이다 — 차단당한 사람이 신고로 글을 숨기지 못하게 없는 것으로 답한다.
+	blocked, err := s.repo.IsBlockedEitherWay(ctx, reporterID, authorID)
+	if err != nil {
+		return err
+	}
+	if blocked {
+		return errs.New(errs.NotFound, "대상을 찾을 수 없습니다")
+	}
+	if err := s.repo.CreateReport(ctx, s.newID(), t, targetID, reporterID, reason, strings.TrimSpace(details)); err != nil {
+		return err
+	}
+	return s.holdIfReportedEnough(ctx, t, targetID)
+}
+
+// AutoHoldReporters — 서로 다른 이만큼이 신고하면 사람이 보기 전까지 숨긴다(SPEC-030).
+const AutoHoldReporters = 3
+
+// holdIfReportedEnough — 삭제가 아니라 검토 대기다. 검토자가 기각하면 approved 로 돌아오고,
+// 처리된 신고는 다시 세지 않는다. 사진 바이트는 막지 않는다(판단은 사람이 한다).
+func (s *Service) holdIfReportedEnough(ctx context.Context, t TargetType, targetID string) error {
+	n, err := s.repo.CountPendingReporters(ctx, t, targetID)
+	if err != nil {
+		return err
+	}
+	if n < AutoHoldReporters {
+		return nil
+	}
+	target, ok, err := s.repo.GetTarget(ctx, t, targetID)
+	if err != nil || !ok || target.ModerationStatus != "approved" {
+		return err
+	}
+	return s.repo.SetModeration(ctx, t, targetID, "pending", "", false, nil)
 }
 
 // canSee는 "이 사람이 지금 이것을 볼 수 있는가"다. 신고 가능 여부가 곧 이 값이다.
@@ -188,7 +223,15 @@ func (s *Service) canSeePost(ctx context.Context, viewerID, postID string) (stri
 	if err != nil || !ok || status != "approved" {
 		return "", false, err
 	}
-	if authorID == viewerID || visibility == "public" {
+	if authorID == viewerID {
+		return authorID, true, nil
+	}
+	// 댓글 신고도 이 판정을 거친다 — 부모 글 작성자와 차단 관계면 그 글을 볼 수 없다.
+	blocked, err := s.repo.IsBlockedEitherWay(ctx, viewerID, authorID)
+	if err != nil || blocked {
+		return "", false, err
+	}
+	if visibility == "public" {
 		return authorID, true, nil
 	}
 	if visibility == "followers" {
@@ -311,7 +354,8 @@ func (s *Service) Resolve(ctx context.Context, reviewerID, role string, t Target
 		reportStatus, action = "resolved", "removed"
 	}
 	// 사진이 딸려 있으면 바이트도 함께 막는다(승인이면 푼다).
-	if err := s.repo.SetModeration(ctx, t, targetID, status, strings.TrimSpace(reason), remove, MediaKey(target.Preview.MediaURL)); err != nil {
+	// [원본] MediaKey(target.Preview.MediaURL) — 첫 장만 막아 나머지 사진은 주소로 계속 열렸다
+	if err := s.repo.SetModeration(ctx, t, targetID, status, strings.TrimSpace(reason), remove, mediaKeys(target)); err != nil {
 		return err
 	}
 	return s.repo.ResolveReports(ctx, t, targetID, reviewerID, reportStatus, action)
@@ -348,6 +392,20 @@ func MediaKey(url string) string {
 		return ""
 	}
 	return m[1]
+}
+
+func mediaKeys(t Target) []string {
+	urls := t.MediaURLs
+	if len(urls) == 0 && t.Preview.MediaURL != "" {
+		urls = []string{t.Preview.MediaURL}
+	}
+	keys := make([]string, 0, len(urls))
+	for _, u := range urls {
+		if k := MediaKey(u); k != "" {
+			keys = append(keys, k)
+		}
+	}
+	return keys
 }
 
 func sortedKeys(m map[string]bool) []string {

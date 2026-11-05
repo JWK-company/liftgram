@@ -105,6 +105,7 @@ test("홈·피드·칸 시트 캡처 — 390 라이트·다크 · 360×640", asy
   await page.getByTestId("auth-email-input").fill(`e2e-dcshots-${Date.now()}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill("정리캡처");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await page.getByTestId("auth-email").waitFor({ timeout: 20_000 });
   await 카탈로그_준비(page);
@@ -228,6 +229,7 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
   await page.getByTestId("auth-email-input").fill(`e2e-dcp4-${Date.now()}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill("정리점검");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await page.getByTestId("auth-email").waitFor({ timeout: 20_000 });
   await 카탈로그_준비(page);
@@ -423,6 +425,7 @@ test("나머지 화면 캡처(로그인) — 390 라이트·다크 · 360×640",
   await page.getByTestId("auth-email-input").fill(`e2e-dcp4b-${Date.now()}@example.com`);
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("auth-name-input").fill("정리점검");
+  await page.getByTestId("age-confirm").check();
   await page.getByTestId("btn-auth-submit").click();
   await page.getByTestId("auth-email").waitFor({ timeout: 20_000 });
   await shot("account", async () => {

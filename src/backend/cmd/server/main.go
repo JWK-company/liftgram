@@ -296,6 +296,12 @@ func main() {
 
 	// ── 피드 ──
 	feedSvc := feed.NewService(feed.NewRepo(pool), ownership, notifyAdapter{notificationSvc}, uuid.NewString)
+	recommendSince, err := time.Parse(time.RFC3339, cfg.FeedRecommendSince)
+	if err != nil { // 잘못된 값으로 옛 글이 소급 노출되면 안 되므로 조용히 넘어가지 않는다
+		slog.Error("FEED_RECOMMEND_SINCE 형식 오류", "err", err)
+		os.Exit(1)
+	}
+	feedSvc.WithRecommendSince(recommendSince)
 	feedPath, feedHTTP := feedv1connect.NewFeedServiceHandler(feed.NewHandler(feedSvc), opts)
 	mount(mux, feedPath, feedHTTP)
 

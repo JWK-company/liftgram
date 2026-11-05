@@ -31,6 +31,8 @@ import { useEffect, useMemo, useState } from "react";
 import { t } from "@/lib/i18n";
 import { getPref, setPref, PREFS_EVENT } from "@/lib/prefs";
 import { feedClient } from "@/lib/feedClient";
+import { Visibility } from "@app/contracts";
+import { VisibilityPicker } from "../feed/VisibilityPicker";
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
@@ -69,6 +71,9 @@ export default function CalendarClient() {
   const toast = useToast();
   const { user: account } = useAuth();
   const [bragging, setBragging] = useState(false);
+  // 공개 글은 추천에 나간다 — 올리기 전에 범위를 고르게 한다(SPEC-030)
+  const [bragSheet, setBragSheet] = useState(false);
+  const [bragVisibility, setBragVisibility] = useState<Visibility>(Visibility.PUBLIC);
   const [repo, setRepo] = useState<AnalyticsRepo | null>(null);
 
   useEffect(() => {
@@ -224,7 +229,9 @@ export default function CalendarClient() {
           sessions: monthSessions,
           volume: formatWeight(monthVolume, weightUnit),
         }),
+        visibility: bragVisibility,
       });
+      setBragSheet(false);
       toast(t("calendar.bragDone"));
     } catch {
       toast(t("common.error"), "error");
@@ -232,6 +239,32 @@ export default function CalendarClient() {
       setBragging(false);
     }
   }
+
+  const bragSheetView = bragSheet ? (
+    <SheetShell
+      title={t("calendar.brag")}
+      onClose={() => {
+        if (!bragging) setBragSheet(false);
+      }}
+      hideOk
+      testId="brag-sheet"
+    >
+      <div className="my-[var(--spacing-md)]">
+        <VisibilityPicker value={bragVisibility} onChange={setBragVisibility} disabled={bragging} />
+        {bragVisibility === Visibility.PUBLIC ? (
+          <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-xs)] block">
+            {t("feed.visibilityPublicHint")}
+          </AppText>
+        ) : null}
+      </div>
+      <Button
+        title={t("feed.post")}
+        loading={bragging}
+        onPress={() => void shareMonth()}
+        testId="brag-post"
+      />
+    </SheetShell>
+  ) : null;
 
   const selectedWorkouts = byDay.get(selected) ?? [];
   const selectedLabel = selectedDate.toLocaleDateString("ko-KR", {
@@ -259,13 +292,17 @@ export default function CalendarClient() {
                 {
                   label: bragging ? "올리는 중…" : t("calendar.brag"),
                   testId: "btn-brag-month",
-                  onPress: () => void shareMonth(),
+                  onPress: () => {
+                    if (!account) toast(t("session.shareLoginRequired"), "error");
+                    else setBragSheet(true);
+                  },
                 },
               ]}
             />
           ) : null
         }
       />
+      {bragSheetView}
       <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
         {/* 이번 주 목표 · 연속 — 요약 한 줄. 누르면 목표·주말 설정 시트(시안 06). */}
         <button
