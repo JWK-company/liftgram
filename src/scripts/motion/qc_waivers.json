@@ -1,0 +1,68 @@
+{
+ "step_down__bodyweight__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 동작의 접촉. 시트로 확인"
+ },
+ "step_up__barbell__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 동작의 접촉. 시트로 확인"
+ },
+ "step_up__bodyweight__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 동작의 접촉. 시트로 확인"
+ },
+ "step_up__dumbbell__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 동작의 접촉. 시트로 확인"
+ },
+ "step_up__kettlebell__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 동작의 접촉. 시트로 확인"
+ },
+ "step_up__smith__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 동작의 접촉. 시트로 확인"
+ },
+ "knee_raise_lying__bodyweight__abs": {
+  "metrics": [
+   "elbow_min"
+  ],
+  "why": "팔을 머리 뒤로 받친 자세. 확대 시트로 확인"
+ },
+ "leg_raise_lying__bodyweight__abs": {
+  "metrics": [
+   "elbow_min"
+  ],
+  "why": "팔을 머리 뒤로 받친 자세. 확대 시트로 확인"
+ },
+ "side_bend__cable__abs": {
+  "metrics": [
+   "contact_slip_cm"
+  ],
+  "why": "옆으로 굽히며 손·무게가 이동. 발은 고정, 확대 시트로 확인"
+ },
+ "side_bend__dumbbell__abs": {
+  "metrics": [
+   "contact_slip_cm"
+  ],
+  "why": "옆으로 굽히며 손·무게가 이동. 발은 고정, 확대 시트로 확인"
+ },
+ "sphinx_push_up__bodyweight__triceps": {
+  "metrics": [
+   "contact_slip_cm"
+  ],
+  "why": "팔꿈치를 떼며 미는 동작. 시트로 확인"
+ }
+}

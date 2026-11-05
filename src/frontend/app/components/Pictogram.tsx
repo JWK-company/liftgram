@@ -10,6 +10,7 @@
 // 그림이 없는 종목(내가 만든 종목 등)은 fallback 을 그린다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { type ReactNode, useEffect, useState } from "react";
+import { motionThumbUrl } from "@/lib/motionCache";
 
 type Mod = typeof import("@app/core/data/pictograms/render");
 let modPromise: Promise<Mod> | null = null;
@@ -38,12 +39,15 @@ export function Pictogram({
   animate = false,
   className = "",
   fallback = null,
+  thumbnail = true,
   testId,
 }: {
   exerciseId: string;
   animate?: boolean;
   className?: string;
   fallback?: ReactNode;
+  /** 영상이 있는 종목은 정지 사진을 겹친다. 영상 아래 깔린 그림은 끈다. */
+  thumbnail?: boolean;
   testId?: string;
 }) {
   const key = exerciseId;
@@ -53,6 +57,22 @@ export function Pictogram({
   const [frames, setFrames] = useState<string[] | null | undefined>(() => framesCache.get(key));
   const [i, setI] = useState(0);
   const moving = animate && !reducedMotion();
+  // SPEC-034 목록 썸네일 — 영상이 있는 종목은 정지 사진. 못 받으면 픽토그램 그대로.
+  const [thumb, setThumb] = useState<string | null>(null);
+  const [thumbReady, setThumbReady] = useState(false);
+  useEffect(() => {
+    setThumb(null);
+    setThumbReady(false);
+    if (animate || !thumbnail) return;
+    let cancelled = false;
+    void import("@app/core/data/exerciseMotion.data").then((m) => {
+      const clip = m.EXERCISE_MOTION[key];
+      if (!cancelled && clip) setThumb(clip);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [key, animate, thumbnail]);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,11 +114,39 @@ export function Pictogram({
     return () => clearInterval(iv);
   }, [moving, frames]);
 
-  if (still === null) return <>{fallback}</>;
+  // 사진은 그림 위에 겹쳐, 다 받은 뒤에 보인다 — 느린 망·오프라인에서도 칸이 비지 않는다.
+  const photo = thumb ? (
+    // biome-ignore lint/performance/noImgElement: 해시 이름 정적 파일 — 이미지 최적화 서버를 거치지 않는다
+    <img
+      src={motionThumbUrl(thumb)}
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+      decoding="async"
+      className={`absolute inset-0 h-full w-full object-cover ${thumbReady ? "opacity-100" : "opacity-0"}`}
+      onLoad={() => setThumbReady(true)}
+      onError={() => setThumb(null)}
+    />
+  ) : null;
+  if (still === null && !photo) return <>{fallback}</>;
   const svg = moving && frames ? frames[i] : still;
   if (!svg) {
     // 불러오는 중 — 자리만 잡아 둔다(줄 높이가 흔들리지 않게)
     return <span className={className} data-testid={testId} aria-hidden="true" />;
+  }
+  if (photo) {
+    return (
+      <span
+        className={`relative block ${className}`}
+        data-testid={testId}
+        data-picto={key}
+        aria-hidden="true"
+      >
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: 자체 생성 SVG(외부 입력 없음) */}
+        {svg ? <span className="block h-full w-full" dangerouslySetInnerHTML={{ __html: svg }} /> : null}
+        {photo}
+      </span>
+    );
   }
   return (
     <span

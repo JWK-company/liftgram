@@ -1,1153 +1,1342 @@
 {
-"inverted_row": {
-"hand_anchor": true,
-"scene": [
-{
-"k": "barF",
-"y": 96
-}
-],
-"hold": "none",
-"closed_hands": true,
-"az": [
-60,
-90
-],
-"wr_x": 0.28
-},
-"dips": {
-"dipbars": true,
-"wr_x": 0.3,
-"palm_down": 1,
-"no_foot_floor": true,
-"scene": [],
-"start": {
-"at": [
-"wr",
-128,
-88
-]
-},
-"end": {
-"at": [
-"wr",
-128,
-88
-]
-}
-},
-"assisted_dip": {
-"dipbars": true,
-"wr_x": 0.3,
-"palm_down": 1,
-"no_foot_floor": true
-},
-"bench_dip": {
-"hand_anchor": true,
-"no_rotate": true,
-"palm_down": 1,
-"wr_x": 0.22,
-"bench_top": 0.47,
-"start": {
-"at": [
-"wr",
-86,
-146
-]
-},
-"end": {
-"at": [
-"wr",
-86,
-146
-]
-},
-"az": [
-60,
-90
-],
-"scene": [
-{
-"k": "bench",
-"a": [
-40,
-136
-],
-"b": [
-88,
-136
-]
-}
-],
-"feet_lock": true,
-"hands_lock": true
-},
-"front_squat": {
-"hold": "sh",
-"start": {
-"a": [
-0,
--140
-]
-},
-"end": {
-"a": [
-10,
--130
-]
-}
-},
-"goblet_squat": {
-"hold": "chest"
-},
-"t_bar_row": {
-"hold": "none",
-"wr_x": 0.09,
-"closed_hands": true,
-"scene": [
-{
-"k": "lever",
-"pivot": [
-214,
-186
-],
-"to": "wr",
-"mid": true
-},
-{
-"k": "plate",
-"at": "wr",
-"r": 14
-}
-],
-"az": [
-60,
-120
-]
-},
-"chest_press": {
-"machine": [
-{
-"k": "stack",
-"x": 48,
-"top": 60
-},
-{
-"k": "lever",
-"pivot": [
-84,
-44
-],
-"to": "wr"
-}
-],
-"az": [
-50,
-70,
-90
-]
-},
-"calf_raise__machine": {
-"machine": [
-{
-"k": "pad",
-"a": "sh",
-"b": "sh",
-"w": 8
-},
-{
-"k": "stack",
-"x": 200,
-"top": 60
-}
-],
-"floor_z": 0.09,
-"roller_off": [
-0,
-0.06
-],
-"hold": "none"
-},
-"crunch": {
-"start": {
-"a": [
--30,
-160
-]
-},
-"end": {
-"a": [
--4,
-186
-]
-},
-"wr_x": 0.07,
-"no_hand_floor": true,
-"az": [
-60,
-90
-]
-},
-"back_extension": {
-"start": {
-"a": [
-210,
-40
-]
-},
-"end": {
-"a": [
-140,
--30
-]
-},
-"wr_x": 0.07,
-"no_hand_floor": true,
-"no_foot_floor": true,
-"closed_hands": true,
-"az": [
-60,
-90
-]
-},
-"leg_extension": {
-"no_foot_floor": true,
-"az": [
-50,
-70,
-90
-]
-},
-"seated_leg_curl": {
-"no_foot_floor": true,
-"az": [
-50,
-70,
-90
-]
-},
-"preacher_curl": {
-"az": [
-35,
-50
-],
-"el": [
-20
-]
-},
-"hip_thrust": {
-"az": [
-60,
-90,
--60
-],
-"feet_lock": true
-},
-"glute_bridge": {
-"az": [
-60,
-90
-],
-"no_hand_floor": true
-},
-"leg_press": {
-"scene": [
-{
-"k": "pad",
-"a": [
-86,
-160
-],
-"b": [
-36,
-132
-],
-"w": 9
-},
-{
-"k": "box",
-"x": 44,
-"y": 158,
-"w": 44,
-"h": 30
-}
-],
-"az": [
-60,
-90,
-120
-]
-},
-"arm_extension_machine": {
-"az": [
-50,
-70,
-90
-]
-},
-"behind_back_wrist": {
-"az": [
-150,
-120,
--150
-]
-},
-"bulgarian__barbell": {
-"hold": "sh",
-"az": [
-140,
-150
-]
-},
-"step_up__barbell": {
-"hold": "sh"
-},
-"crunch__machine": {
-"machine": []
-},
-"frog_pump": {
-"az": [
-60,
-90
-]
-},
-"good_morning": {
-"az": [
-140,
-150
-],
-"end": {
-"t": -20,
-"l": [
-62,
-92,
-0
-]
-}
-},
-"knee_push_up": {
-"az": [
-70,
-90
-],
-"start": {
-"t": -30,
-"l": [
-150,
-178,
-180
-]
-},
-"end": {
-"t": -12,
-"l": [
-168,
-178,
-180
-]
-}
-},
-"pike_pushup": {
-"az": [
-90
-],
-"el": [
-9
-]
-},
-"sphinx_push_up": {
-"az": [
-60,
-90
-],
-"hands_lock": true
-},
-"leg_press_calf": {
-"scene": [
-{
-"k": "pad",
-"a": [
-86,
-160
-],
-"b": [
-36,
-132
-],
-"w": 9
-},
-{
-"k": "box",
-"x": 44,
-"y": 158,
-"w": 44,
-"h": 30
-}
-],
-"az": [
-60,
-90,
-120
-]
-},
-"plate_curl": {
-"wr_x": 0.13,
-"closed_hands": true,
-"plate_axis": "Y",
-"az": [
-30,
-50
-],
-"grip_w": 0.13,
-"start": {
-"a": [
-78,
-62
-]
-}
-},
-"push_up_decline": {
-"scene": [
-{
-"k": "box",
-"under": "an"
-}
-],
-"no_foot_floor": true,
-"az": [
-60,
-90
-],
-"under_gap": 0.13
-},
-"seal_row": {
-"bench_top": 0.74,
-"no_foot_floor": true,
-"az": [
-50,
-70
-]
-},
-"shoulder_press_machine": {
-"az": [
-60,
-90
-]
-},
-"spider_curl": {
-"az": [
-35,
-60
-]
-},
-"toes_to_bar": {
-"start": {
-"view": "side",
-"t": -90,
-"a": [
--90,
--90
-],
-"l": [
-90,
-90,
-0
-],
-"at": [
-"wr",
-120,
-20
-]
-},
-"end": {
-"view": "side",
-"t": -65,
-"a": [
--90,
--90
-],
-"l": [
--40,
--30,
-0
-],
-"at": [
-"wr",
-120,
-20
-]
-},
-"scene": [
-{
-"k": "barF",
-"y": 20
-}
-],
-"hold": "none",
-"closed_hands": true,
-"no_foot_floor": true,
-"az": [
-35,
-60
-]
-},
-"wall_sit": {
-"az": [
-60,
-90
-],
-"scene": [
-{
-"k": "pad",
-"a": [
-80,
-30
-],
-"b": [
-80,
-184
-],
-"w": 24
-}
-]
-},
-"hanging_leg_raise": {
-"no_foot_floor": true
-},
-"hanging_knee_raise": {
-"no_foot_floor": true
-},
-"hack_squat": {
-"end": {
-"l": [
-44,
-135,
-0
-]
-},
-"machine": [
-{
-"k": "pad",
-"a": "hip",
-"b": "sh",
-"w": 8,
-"off": 12
-},
-{
-"k": "line",
-"a": [
-146,
-186
-],
-"b": [
-84,
-30
-],
-"w": 4
-}
-]
-},
-"curl__cable": {
-"cable": {
-"from": [
-190,
-176
-],
-"col": 198
-}
-},
-"incline_curl__cable": {
-"az": [
-60,
-90
-],
-"cable": {
-"from": [
-190,
-176
-],
-"col": 198
-}
-},
-"incline_press": {
-"az": [
-50,
-70
-]
-},
-"kickback": {
-"az": [
-110,
-130,
-70
-]
-},
-"pullover": {
-"az": [
-60,
-75
-]
-},
-"bulgarian__smith": {
-"hold": "sh"
-},
-"step_up__smith": {
-"hold": "sh"
-},
-"landmine_press": {
-"closed_hands": true,
-"wr_x": 0.08,
-"scene": [
-{
-"k": "lever",
-"pivot": [
-24,
-186
-],
-"to": "wr",
-"mid": true
-},
-{
-"k": "plate",
-"at": "wr",
-"r": 14
-}
-]
-},
-"fly_lying": {
-"lie": -90,
-"no_foot_floor": true,
-"az": [
-35,
-60,
-90
-],
-"el": [
-20,
-9
-],
-"scene": [],
-"machine": []
-},
-"incline_fly": {
-"lie": -55,
-"no_foot_floor": true,
-"az": [
-35,
-60
-],
-"el": [
-9,
-20
-],
-"scene": [],
-"machine": [],
-"bench_top": 0.5
-},
-"rear_delt_fly__dumbbell": {
-"lie": 50,
-"no_foot_floor": true,
-"az": [
-120,
-150,
-90
-],
-"el": [
-20
-],
-"bench_top": 0.5,
-"scene": []
-},
-"rear_delt_fly": {
-"az": [
-150,
--150,
-180
-]
-},
-"reverse_pec_deck": {
-"az": [
-150,
--150,
-180
-]
-},
-"dead_hang": {
-"az": [
-140,
-150
-],
-"no_foot_floor": true
-},
-"kb_swing": {
-"wr_x": 0.06
-},
-"plate_raise": {
-"wr_x": 0.13,
-"closed_hands": true,
-"plate_axis": "Y",
-"az": [
-30,
-50
-],
-"grip_w": 0.13,
-"start": {
-"a": [
-78,
-62
-]
-}
-},
-"romanian_deadlift": {
-"end": {
-"t": -30,
-"l": [
-55,
-90,
-0
-]
-},
-"az": [
-120,
-140
-]
-},
-"stiff_leg": {
-"end": {
-"t": -24,
-"l": [
-72,
-72,
-0
-]
-},
-"az": [
-120,
-140
-]
-},
-"lunge": {
-"feet_lock": "end",
-"az": [
-60,
-90
-],
-"start": {
-"t": -90,
-"l": [
-50,
-68,
-0
-],
-"l2": [
-118,
-128,
-30
-],
-"at": [
-"an",
-150,
-181
-]
-}
-},
-"reverse_lunge": {
-"feet_lock": "end",
-"az": [
-60,
-90
-],
-"start": {
-"t": -90,
-"l": [
-50,
-68,
-0
-],
-"l2": [
-118,
-128,
-30
-],
-"at": [
-"an",
-150,
-181
-]
-}
-},
-"overhead_lunge": {
-"feet_lock": "end",
-"az": [
-60,
-90
-],
-"start": {
-"t": -90,
-"l": [
-50,
-68,
-0
-],
-"l2": [
-118,
-128,
-30
-],
-"at": [
-"an",
-150,
-181
-]
-}
-},
-"lunge_bar": {
-"feet_lock": "end",
-"az": [
-30,
-45
-],
-"start": {
-"t": -90,
-"l": [
-50,
-68,
-0
-],
-"l2": [
-118,
-128,
-30
-],
-"at": [
-"an",
-150,
-181
-]
-}
-},
-"bent_over_row": {
-"start": {
-"t": -35,
-"l": [
-50,
-88,
-0
-]
-},
-"end": {
-"t": -35,
-"l": [
-50,
-88,
-0
-]
-}
-},
-"pendlay_row": {
-"start": {
-"t": -6,
-"l": [
-45,
-85,
-0
-]
-},
-"end": {
-"t": -6,
-"l": [
-45,
-85,
-0
-]
-}
-},
-"overhead_press": {
-"wr_line": true
-},
-"side_bend": {
-"feet_lock": true
-},
-"deadlift__barbell__back": {
-"az": [
-140,
-150
-]
-},
-"seated_row__cable__back": {
-"az": [
-130,
-150
-]
-},
-"drag_curl": {
-"az": [
-35,
-60
-]
-},
-"toe_touch": {
-"az": [
-60,
-90
-]
-},
-"hip_thrust__machine": {
-"az": [
-90,
-120
-]
-},
-"glute_bridge__barbell__glutes": {
-"zlift": [
-0.021,
-0.019,
-0.052,
-0.09,
-0.106
-]
-},
-"kickback_glute__cable__glutes": {
-"zlift": [
-0,
-0.131,
-0.132,
-0.108,
-0.071
-]
-},
-"crunch__bodyweight__abs": {
-"zlift": [
-0.024,
-0.053,
-0.117,
-0,
-0
-]
-},
-"reverse_crunch__bodyweight__abs": {
-"zlift": [
-0.023,
-0.021,
-0.025,
-0.056,
-0.071
-]
-},
-"leg_raise_lying__bodyweight__abs": {
-"zlift": [
-0.028,
-0.027,
-0.023,
-0.018,
-0.018
-]
-},
-"crunch__machine__abs": {
-"zlift": [
-0.023,
-0.053,
-0.117,
-0,
-0
-]
-},
-"sit_up__bodyweight__abs": {
-"zlift": [
-0.023,
-0.147,
-0,
-0,
-0
-]
-},
-"floor_press__barbell__chest": {
-"zlift": [
-0.021,
-0.021,
-0.022,
-0.021,
-0.022
-]
-},
-"superman__bodyweight__back": {
-"zlift": [
-0.009,
-0.01,
-0,
-0,
-0
-]
-},
-"bird_dog__bodyweight__glutes": {
-"zlift": [
-0,
-0,
-0.051,
-0,
-0
-]
-},
-"kickback_glute__bodyweight__glutes": {
-"zlift": [
-0,
-0.131,
-0.132,
-0.108,
-0.071
-]
-},
-"dead_bug__bodyweight__abs": {
-"zlift": [
-0.021,
-0.021,
-0.022,
-0.026,
-0.028
-]
-},
-"toe_touch__bodyweight__abs": {
-"zlift": [
-0.021,
-0.059,
-0.155,
-0,
-0
-]
-},
-"knee_raise_lying__bodyweight__abs": {
-"zlift": [
-0.028,
-0.026,
-0.023,
-0.019,
-0.018
-]
-},
-"floor_press__dumbbell__chest": {
-"zlift": [
-0.021,
-0.022,
-0.024,
-0.023,
-0.024
-]
-},
-"glute_bridge__bodyweight__glutes": {
-"zlift": [
-0.17,
-0.175,
-0.18,
-0.168,
-0.154
-]
-},
-"glute_bridge__dumbbell__glutes": {
-"zlift": [
-0.17,
-0.175,
-0.18,
-0.168,
-0.154
-]
-},
-"kickback_glute__band__glutes": {
-"zlift": [
-0,
-0.131,
-0.132,
-0.108,
-0.071
-]
-},
-"floor_press__kettlebell__chest": {
-"zlift": [
-0.021,
-0.022,
-0.024,
-0.023,
-0.024
-]
-},
-"kneeling_hip_thrust__bodyweight__glutes": {
-"zlift": [
-0.013,
-0,
-0,
-0,
-0
-]
-},
-"kneeling_hip_thrust__band__glutes": {
-"zlift": [
-0.013,
-0,
-0,
-0,
-0
-]
-},
-"kneeling_hip_thrust__smith__glutes": {
-"zlift": [
-0.013,
-0,
-0,
-0,
-0
-]
-},
-"glute_bridge__band__glutes": {
-"zlift": [
-0.142,
-0.134,
-0.114,
-0.097,
-0.106
-]
-},
-"cable_lying_curl__cable__biceps": {
-"zlift": [
-0.028,
-0.028,
-0.028,
-0.028,
-0.028
-]
-},
-"bench_press-close_grip_bench_press__barbell__triceps": {
-"az": [
-35,
-60
-]
-},
-"bench_press-close_grip_bench_press__ezbar__triceps": {
-"az": [
-35,
-60
-]
-},
-"bench_press-close_grip_bench_press__smith__triceps": {
-"az": [
-35,
-60
-]
-},
-"bench_press__dumbbell__chest": {
-"az": [
-35,
-60
-]
-},
-"squeeze_press": {
-"az": [
-35,
-60
-]
-},
-"wrist_curl-reverse_wrist_curl__barbell__forearms": {
-"az": [
-35,
-60
-]
-}
+ "inverted_row": {
+  "hand_anchor": true,
+  "scene": [
+   {
+    "k": "barF",
+    "y": 114
+   }
+  ],
+  "hold": "none",
+  "closed_hands": true,
+  "az": [
+   60,
+   90
+  ],
+  "wr_x": 0.28,
+  "start": {
+   "at": [
+    "wr",
+    112,
+    114
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    112,
+    114
+   ]
+  },
+  "feet_lock": true
+ },
+ "dips": {
+  "dipbars": true,
+  "wr_x": 0.3,
+  "palm_down": 1,
+  "no_foot_floor": true,
+  "scene": [],
+  "start": {
+   "at": [
+    "wr",
+    128,
+    88
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    128,
+    88
+   ]
+  }
+ },
+ "assisted_dip": {
+  "dipbars": true,
+  "wr_x": 0.3,
+  "palm_down": 1,
+  "no_foot_floor": true
+ },
+ "bench_dip": {
+  "hand_anchor": true,
+  "no_rotate": true,
+  "palm_down": 1,
+  "wr_x": 0.22,
+  "bench_top": 0.47,
+  "start": {
+   "at": [
+    "wr",
+    86,
+    146
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    86,
+    146
+   ]
+  },
+  "az": [
+   60,
+   90
+  ],
+  "scene": [
+   {
+    "k": "bench",
+    "a": [
+     40,
+     136
+    ],
+    "b": [
+     88,
+     136
+    ]
+   }
+  ],
+  "feet_lock": true,
+  "hands_lock": true
+ },
+ "front_squat": {
+  "hold": "sh",
+  "start": {
+   "a": [
+    0,
+    -140
+   ]
+  },
+  "end": {
+   "a": [
+    10,
+    -130
+   ]
+  }
+ },
+ "goblet_squat": {
+  "hold": "chest"
+ },
+ "t_bar_row": {
+  "hold": "none",
+  "wr_x": 0.09,
+  "closed_hands": true,
+  "scene": [
+   {
+    "k": "lever",
+    "pivot": [
+     214,
+     186
+    ],
+    "to": "wr",
+    "mid": true
+   },
+   {
+    "k": "plate",
+    "at": "wr",
+    "r": 14
+   }
+  ],
+  "az": [
+   60,
+   120
+  ]
+ },
+ "chest_press": {
+  "machine": [
+   {
+    "k": "stack",
+    "x": 48,
+    "top": 60
+   },
+   {
+    "k": "lever",
+    "pivot": [
+     84,
+     44
+    ],
+    "to": "wr"
+   }
+  ],
+  "az": [
+   50,
+   70,
+   90
+  ]
+ },
+ "calf_raise__machine": {
+  "machine": [
+   {
+    "k": "pad",
+    "a": "sh",
+    "b": "sh",
+    "w": 8
+   },
+   {
+    "k": "stack",
+    "x": 200,
+    "top": 60
+   }
+  ],
+  "floor_z": 0.09,
+  "roller_off": [
+   0,
+   0.06
+  ],
+  "hold": "none"
+ },
+ "crunch": {
+  "start": {
+   "a": [
+    -30,
+    160
+   ]
+  },
+  "end": {
+   "a": [
+    -4,
+    186
+   ]
+  },
+  "wr_x": 0.07,
+  "no_hand_floor": true,
+  "az": [
+   60,
+   90
+  ]
+ },
+ "back_extension": {
+  "start": {
+   "a": [
+    210,
+    40
+   ]
+  },
+  "end": {
+   "a": [
+    140,
+    -30
+   ]
+  },
+  "wr_x": 0.07,
+  "no_hand_floor": true,
+  "no_foot_floor": true,
+  "closed_hands": true,
+  "az": [
+   60,
+   90
+  ]
+ },
+ "leg_extension": {
+  "no_foot_floor": true,
+  "az": [
+   50,
+   70,
+   90
+  ]
+ },
+ "seated_leg_curl": {
+  "no_foot_floor": true,
+  "az": [
+   50,
+   70,
+   90
+  ]
+ },
+ "preacher_curl": {
+  "az": [
+   35,
+   50
+  ],
+  "el": [
+   20
+  ]
+ },
+ "hip_thrust": {
+  "az": [
+   60,
+   90,
+   -60
+  ],
+  "feet_lock": true,
+  "hand_anchor": true
+ },
+ "glute_bridge": {
+  "az": [
+   60,
+   90
+  ],
+  "no_hand_floor": true
+ },
+ "leg_press": {
+  "scene": [
+   {
+    "k": "pad",
+    "a": [
+     86,
+     160
+    ],
+    "b": [
+     36,
+     132
+    ],
+    "w": 9
+   },
+   {
+    "k": "box",
+    "x": 44,
+    "y": 158,
+    "w": 44,
+    "h": 30
+   }
+  ],
+  "az": [
+   60,
+   90,
+   120
+  ]
+ },
+ "arm_extension_machine": {
+  "az": [
+   50,
+   70,
+   90
+  ]
+ },
+ "behind_back_wrist": {
+  "az": [
+   150,
+   120,
+   -150
+  ]
+ },
+ "bulgarian__barbell": {
+  "hold": "sh",
+  "az": [
+   35
+  ]
+ },
+ "step_up__barbell": {
+  "hold": "sh"
+ },
+ "crunch__machine": {
+  "machine": []
+ },
+ "frog_pump": {
+  "az": [
+   60,
+   90
+  ]
+ },
+ "good_morning": {
+  "az": [
+   140,
+   150
+  ],
+  "end": {
+   "t": -20,
+   "l": [
+    62,
+    92,
+    0
+   ]
+  }
+ },
+ "knee_push_up": {
+  "az": [
+   70,
+   90
+  ],
+  "start": {
+   "t": -30,
+   "l": [
+    150,
+    178,
+    180
+   ]
+  },
+  "end": {
+   "t": -12,
+   "l": [
+    168,
+    178,
+    180
+   ]
+  }
+ },
+ "pike_pushup": {
+  "az": [
+   90
+  ],
+  "el": [
+   9
+  ],
+  "start": {
+   "l": [
+    113,
+    113,
+    90
+   ]
+  },
+  "end": {
+   "l": [
+    113,
+    113,
+    90
+   ]
+  }
+ },
+ "sphinx_push_up": {
+  "az": [
+   60,
+   90
+  ],
+  "hands_lock": true
+ },
+ "leg_press_calf": {
+  "scene": [
+   {
+    "k": "pad",
+    "a": [
+     86,
+     160
+    ],
+    "b": [
+     36,
+     132
+    ],
+    "w": 9
+   },
+   {
+    "k": "box",
+    "x": 44,
+    "y": 158,
+    "w": 44,
+    "h": 30
+   }
+  ],
+  "az": [
+   60,
+   90,
+   120
+  ]
+ },
+ "plate_curl": {
+  "wr_x": 0.13,
+  "closed_hands": true,
+  "plate_axis": "Y",
+  "az": [
+   30,
+   50
+  ],
+  "grip_w": 0.13,
+  "start": {
+   "a": [
+    78,
+    62
+   ]
+  }
+ },
+ "push_up_decline": {
+  "scene": [
+   {
+    "k": "box",
+    "under": "an"
+   }
+  ],
+  "no_foot_floor": true,
+  "az": [
+   60,
+   90
+  ],
+  "under_gap": 0.13
+ },
+ "seal_row": {
+  "bench_top": 0.74,
+  "no_foot_floor": true,
+  "az": [
+   50,
+   70
+  ]
+ },
+ "shoulder_press_machine": {
+  "az": [
+   60,
+   90
+  ]
+ },
+ "spider_curl": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "toes_to_bar": {
+  "start": {
+   "view": "side",
+   "t": -90,
+   "a": [
+    -90,
+    -90
+   ],
+   "l": [
+    90,
+    90,
+    0
+   ],
+   "at": [
+    "wr",
+    120,
+    10
+   ]
+  },
+  "end": {
+   "view": "side",
+   "t": -65,
+   "a": [
+    -90,
+    -90
+   ],
+   "l": [
+    -40,
+    -30,
+    0
+   ],
+   "at": [
+    "wr",
+    120,
+    10
+   ]
+  },
+  "scene": [
+   {
+    "k": "barF",
+    "y": 10
+   }
+  ],
+  "hold": "none",
+  "closed_hands": true,
+  "no_foot_floor": true,
+  "az": [
+   35,
+   60
+  ]
+ },
+ "wall_sit": {
+  "az": [
+   60,
+   90
+  ],
+  "scene": [
+   {
+    "k": "pad",
+    "a": [
+     80,
+     30
+    ],
+    "b": [
+     80,
+     184
+    ],
+    "w": 24
+   }
+  ]
+ },
+ "hanging_leg_raise": {
+  "no_foot_floor": true,
+  "closed_hands": true,
+  "scene": [
+   {
+    "k": "barF",
+    "y": 6
+   }
+  ],
+  "hold": "none",
+  "start": {
+   "at": [
+    "wr",
+    124,
+    6
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    124,
+    6
+   ]
+  }
+ },
+ "hanging_knee_raise": {
+  "no_foot_floor": true,
+  "closed_hands": true,
+  "scene": [
+   {
+    "k": "barF",
+    "y": 6
+   }
+  ],
+  "hold": "none",
+  "start": {
+   "at": [
+    "wr",
+    124,
+    6
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    124,
+    6
+   ]
+  }
+ },
+ "hack_squat": {
+  "end": {
+   "l": [
+    44,
+    135,
+    0
+   ]
+  },
+  "machine": [
+   {
+    "k": "pad",
+    "a": "hip",
+    "b": "sh",
+    "w": 8,
+    "off": 12
+   },
+   {
+    "k": "line",
+    "a": [
+     146,
+     186
+    ],
+    "b": [
+     84,
+     30
+    ],
+    "w": 4
+   }
+  ]
+ },
+ "curl__cable": {
+  "cable": {
+   "from": [
+    190,
+    176
+   ],
+   "col": 198
+  }
+ },
+ "incline_curl__cable": {
+  "az": [
+   60,
+   90
+  ],
+  "cable": {
+   "from": [
+    190,
+    176
+   ],
+   "col": 198
+  }
+ },
+ "incline_press": {
+  "az": [
+   50,
+   70
+  ]
+ },
+ "kickback": {
+  "az": [
+   110,
+   130,
+   70
+  ]
+ },
+ "pullover": {
+  "az": [
+   60,
+   75
+  ]
+ },
+ "bulgarian__smith": {
+  "hold": "sh"
+ },
+ "step_up__smith": {
+  "hold": "sh"
+ },
+ "landmine_press": {
+  "closed_hands": true,
+  "wr_x": 0.08,
+  "scene": [
+   {
+    "k": "lever",
+    "pivot": [
+     24,
+     186
+    ],
+    "to": "wr",
+    "mid": true
+   },
+   {
+    "k": "plate",
+    "at": "wr",
+    "r": 14
+   }
+  ]
+ },
+ "fly_lying": {
+  "lie": -90,
+  "no_foot_floor": true,
+  "az": [
+   35,
+   60,
+   90
+  ],
+  "el": [
+   20,
+   9
+  ],
+  "scene": [],
+  "machine": []
+ },
+ "incline_fly": {
+  "lie": -55,
+  "no_foot_floor": true,
+  "az": [
+   35,
+   60
+  ],
+  "el": [
+   9,
+   20
+  ],
+  "scene": [],
+  "machine": [],
+  "bench_top": 0.5
+ },
+ "rear_delt_fly__dumbbell": {
+  "lie": 50,
+  "no_foot_floor": true,
+  "az": [
+   120,
+   150,
+   90
+  ],
+  "el": [
+   20
+  ],
+  "bench_top": 0.57,
+  "scene": []
+ },
+ "rear_delt_fly": {
+  "az": [
+   150,
+   -150,
+   180
+  ]
+ },
+ "reverse_pec_deck": {
+  "az": [
+   150,
+   -150,
+   180
+  ]
+ },
+ "dead_hang": {
+  "az": [
+   140,
+   150
+  ],
+  "no_foot_floor": true,
+  "closed_hands": true,
+  "scene": [
+   {
+    "k": "barF",
+    "y": 6
+   }
+  ],
+  "hold": "none",
+  "start": {
+   "at": [
+    "wr",
+    124,
+    6
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    124,
+    6
+   ]
+  }
+ },
+ "kb_swing": {
+  "wr_x": 0.06
+ },
+ "plate_raise": {
+  "wr_x": 0.13,
+  "closed_hands": true,
+  "plate_axis": "Y",
+  "az": [
+   30,
+   50
+  ],
+  "grip_w": 0.13,
+  "start": {
+   "a": [
+    78,
+    62
+   ]
+  }
+ },
+ "romanian_deadlift": {
+  "end": {
+   "t": -30,
+   "l": [
+    55,
+    90,
+    0
+   ]
+  },
+  "az": [
+   120,
+   140
+  ]
+ },
+ "stiff_leg": {
+  "end": {
+   "t": -24,
+   "l": [
+    72,
+    72,
+    0
+   ]
+  },
+  "az": [
+   120,
+   140
+  ]
+ },
+ "lunge": {
+  "feet_lock": "end",
+  "az": [
+   60,
+   90
+  ],
+  "start": {
+   "t": -90,
+   "l": [
+    50,
+    68,
+    0
+   ],
+   "l2": [
+    118,
+    128,
+    30
+   ],
+   "at": [
+    "an",
+    150,
+    181
+   ]
+  }
+ },
+ "reverse_lunge": {
+  "feet_lock": "end",
+  "az": [
+   60,
+   90
+  ],
+  "start": {
+   "t": -90,
+   "l": [
+    50,
+    68,
+    0
+   ],
+   "l2": [
+    118,
+    128,
+    30
+   ],
+   "at": [
+    "an",
+    150,
+    181
+   ]
+  }
+ },
+ "overhead_lunge": {
+  "feet_lock": "end",
+  "az": [
+   60,
+   90
+  ],
+  "start": {
+   "t": -90,
+   "l": [
+    50,
+    68,
+    0
+   ],
+   "l2": [
+    118,
+    128,
+    30
+   ],
+   "at": [
+    "an",
+    150,
+    181
+   ]
+  }
+ },
+ "lunge_bar": {
+  "feet_lock": "end",
+  "az": [
+   30,
+   45
+  ],
+  "start": {
+   "t": -90,
+   "l": [
+    50,
+    68,
+    0
+   ],
+   "l2": [
+    118,
+    128,
+    30
+   ],
+   "at": [
+    "an",
+    150,
+    181
+   ]
+  }
+ },
+ "bent_over_row": {
+  "start": {
+   "t": -35,
+   "l": [
+    50,
+    88,
+    0
+   ]
+  },
+  "end": {
+   "t": -35,
+   "l": [
+    50,
+    88,
+    0
+   ]
+  }
+ },
+ "pendlay_row": {
+  "start": {
+   "t": -6,
+   "l": [
+    45,
+    85,
+    0
+   ]
+  },
+  "end": {
+   "t": -6,
+   "l": [
+    45,
+    85,
+    0
+   ]
+  }
+ },
+ "overhead_press": {
+  "wr_line": true
+ },
+ "side_bend": {
+  "feet_lock": true
+ },
+ "deadlift__barbell__back": {
+  "az": [
+   140,
+   150
+  ]
+ },
+ "seated_row__cable__back": {
+  "az": [
+   130,
+   150
+  ]
+ },
+ "drag_curl": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "toe_touch": {
+  "az": [
+   60,
+   90
+  ]
+ },
+ "hip_thrust__machine": {
+  "az": [
+   90,
+   120
+  ]
+ },
+ "glute_bridge__barbell__glutes": {
+  "zlift": [
+   0.021,
+   0.019,
+   0.052,
+   0.09,
+   0.106
+  ]
+ },
+ "kickback_glute__cable__glutes": {
+  "zlift": [
+   0,
+   0.131,
+   0.132,
+   0.108,
+   0.071
+  ]
+ },
+ "crunch__bodyweight__abs": {
+  "zlift": [
+   0.024,
+   0.053,
+   0.117,
+   0,
+   0
+  ]
+ },
+ "reverse_crunch__bodyweight__abs": {
+  "zlift": [
+   0.023,
+   0.021,
+   0.025,
+   0.056,
+   0.071
+  ]
+ },
+ "leg_raise_lying__bodyweight__abs": {
+  "zlift": [
+   0.028,
+   0.027,
+   0.023,
+   0.018,
+   0.018
+  ]
+ },
+ "crunch__machine__abs": {
+  "zlift": [
+   0.023,
+   0.053,
+   0.117,
+   0,
+   0
+  ]
+ },
+ "sit_up__bodyweight__abs": {
+  "zlift": [
+   0.023,
+   0.147,
+   0,
+   0,
+   0
+  ]
+ },
+ "floor_press__barbell__chest": {
+  "zlift": [
+   0.021,
+   0.021,
+   0.022,
+   0.021,
+   0.022
+  ]
+ },
+ "superman__bodyweight__back": {
+  "zlift": [
+   0.009,
+   0.01,
+   0,
+   0,
+   0
+  ]
+ },
+ "bird_dog__bodyweight__glutes": {
+  "zlift": [
+   0,
+   0,
+   0.051,
+   0,
+   0
+  ]
+ },
+ "kickback_glute__bodyweight__glutes": {
+  "zlift": [
+   0,
+   0.131,
+   0.132,
+   0.108,
+   0.071
+  ]
+ },
+ "dead_bug__bodyweight__abs": {
+  "zlift": [
+   0.021,
+   0.021,
+   0.022,
+   0.026,
+   0.028
+  ]
+ },
+ "toe_touch__bodyweight__abs": {
+  "zlift": [
+   0.021,
+   0.059,
+   0.155,
+   0,
+   0
+  ]
+ },
+ "knee_raise_lying__bodyweight__abs": {
+  "zlift": [
+   0.028,
+   0.026,
+   0.023,
+   0.019,
+   0.018
+  ]
+ },
+ "floor_press__dumbbell__chest": {
+  "zlift": [
+   0.021,
+   0.022,
+   0.024,
+   0.023,
+   0.024
+  ]
+ },
+ "glute_bridge__bodyweight__glutes": {
+  "zlift": [
+   0.17,
+   0.175,
+   0.18,
+   0.168,
+   0.154
+  ]
+ },
+ "glute_bridge__dumbbell__glutes": {
+  "zlift": [
+   0.17,
+   0.175,
+   0.18,
+   0.168,
+   0.154
+  ]
+ },
+ "kickback_glute__band__glutes": {
+  "zlift": [
+   0,
+   0.131,
+   0.132,
+   0.108,
+   0.071
+  ]
+ },
+ "floor_press__kettlebell__chest": {
+  "zlift": [
+   0.021,
+   0.022,
+   0.024,
+   0.023,
+   0.024
+  ]
+ },
+ "kneeling_hip_thrust__bodyweight__glutes": {
+  "zlift": [
+   0.013,
+   0.045,
+   0.01,
+   0,
+   0
+  ]
+ },
+ "kneeling_hip_thrust__band__glutes": {
+  "zlift": [
+   0.013,
+   0.045,
+   0.01,
+   0,
+   0
+  ]
+ },
+ "kneeling_hip_thrust__smith__glutes": {
+  "zlift": [
+   0.013,
+   0.045,
+   0.01,
+   0,
+   0
+  ]
+ },
+ "glute_bridge__band__glutes": {
+  "zlift": [
+   0.142,
+   0.134,
+   0.114,
+   0.097,
+   0.106
+  ]
+ },
+ "cable_lying_curl__cable__biceps": {
+  "zlift": [
+   0.028,
+   0.028,
+   0.028,
+   0.028,
+   0.028
+  ]
+ },
+ "bench_press-close_grip_bench_press__barbell__triceps": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "bench_press-close_grip_bench_press__ezbar__triceps": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "bench_press-close_grip_bench_press__smith__triceps": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "bench_press__dumbbell__chest": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "squeeze_press": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "wrist_curl-reverse_wrist_curl__barbell__forearms": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "decline_press": {
+  "scene_add": [
+   {
+    "k": "box",
+    "under": "an"
+   }
+  ]
+ },
+ "pull_up": {
+  "no_foot_floor": true,
+  "closed_hands": true,
+  "hold": "none",
+  "az": [
+   150,
+   120,
+   -150
+  ],
+  "scene": [
+   {
+    "k": "barF",
+    "y": 10
+   }
+  ],
+  "start": {
+   "at": [
+    "wr",
+    156,
+    10
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    156,
+    10
+   ]
+  }
+ },
+ "assisted_pull": {
+  "no_foot_floor": true,
+  "closed_hands": true,
+  "hold": "none",
+  "az": [
+   150,
+   120,
+   -150
+  ],
+  "scene": [
+   {
+    "k": "barF",
+    "y": 10
+   }
+  ],
+  "start": {
+   "at": [
+    "wr",
+    156,
+    10
+   ]
+  },
+  "end": {
+   "at": [
+    "wr",
+    156,
+    10
+   ]
+  }
+ },
+ "overhead_ext": {
+  "az": [
+   120,
+   150,
+   -150
+  ]
+ },
+ "sit_up": {
+  "az": [
+   90,
+   60,
+   120
+  ],
+  "end": {
+   "t": -105
+  }
+ },
+ "overhead_press__dumbbell": {
+  "az": [
+   35,
+   60
+  ]
+ },
+ "concentration_curl": {
+  "bench_top": 0.36
+ }
 }

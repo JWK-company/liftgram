@@ -9,12 +9,12 @@
 //   ai:<key>    → (예약) AI 일러스트 + 픽토그램 — GPU 시간이 생기면 데이터만 바꿔 넣는다
 // 픽토그램은 모든 카탈로그 종목에 있으므로 출처 목록의 맨 앞은 늘 picto 다(커스텀 종목 제외).
 
-export type VisualSourceKind = 'picto' | 'fedb' | 'ai';
+export type VisualSourceKind = 'picto' | 'fedb' | 'ai' | 'motion3d';
 
 export interface VisualSource {
   kind: VisualSourceKind;
   /** 허용 목록 중 하나 */
-  license: 'self-made' | 'public-domain' | 'apache-2.0-model-output';
+  license: 'self-made' | 'public-domain' | 'apache-2.0-model-output' | 'self-rendered-ai-refined';
   author: string;
   url: string | null;
 }
@@ -30,10 +30,12 @@ export const VISUAL_SOURCES: Record<VisualSourceKind, VisualSource> = {
   },
   // 예약 — 아직 한 장도 없다. 들일 때 모델 라이선스를 확인하고(Z-Image Turbo·Qwen-Image = Apache-2.0) 허용 목록을 고친다.
   ai: { kind: 'ai', license: 'apache-2.0-model-output', author: 'Liftgram (AI 생성)', url: null },
+  // SPEC-034 운동 영상 — Blender + MPFB(CC0 자산) 렌더를 Wan 2.2(Apache-2.0)로 다듬은 자체 제작물. 고지는 화면·/licenses 에 있다.
+  motion3d: { kind: 'motion3d', license: 'self-rendered-ai-refined', author: 'Liftgram (3D 렌더 + AI 보정)', url: null },
 };
 
 /** 지금 화면에 낼 수 있는 라이선스 — 출처 표기 의무가 없는 것만. */
-export const VISUAL_LICENSE_ALLOWLIST: readonly VisualSource['license'][] = ['self-made', 'public-domain'];
+export const VISUAL_LICENSE_ALLOWLIST: readonly VisualSource['license'][] = ['self-made', 'public-domain', 'self-rendered-ai-refined'];
 
 /** media_ref → 출처 목록(앞이 우선). ai 는 허용 목록에 들기 전까지 건너뛴다. */
 export function visualSourcesFor(mediaRef: string | null | undefined, isCatalog = true): VisualSource[] {

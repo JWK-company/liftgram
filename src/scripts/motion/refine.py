@@ -30,6 +30,7 @@ while pending:
         if k in src_failed(): bad(k, "렌더 실패"); continue
         if a.follow: pending.append(k); time.sleep(4 if len(pending) < 3 else 0.3); continue
         bad(k, "렌더 없음"); continue
+    if json.loads(open(d_n+"/.done").read()).get("red"): bad(k, "검수용 빨강 렌더는 Wan 입력 금지"); continue
     j = JOBS[k]; act = f"performing {j.get('prompt') or j['exampleEn'] or j['arch'].replace('_', ' ')}"
     prompt = f"{PERSON}, {act}, {TAIL}"
     # 입력 지문: 렌더·프롬프트·설정이 같고 25장이 있을 때만 건너뛴다

@@ -41,7 +41,8 @@ L_UP, L_FO = (tail('upperarm_l')-head('upperarm_l')).length, (tail('lowerarm_l')
 
 # ── 정지 자세 좌표(근육·옷 칠하기용) ──
 rest = [v.co.copy() for v in h.data.vertices]
-PASS = os.environ.get("PASS", "beauty"); PRESET = "B"; RED = True
+PASS = os.environ.get("PASS", "beauty"); PRESET = "B"
+RED = os.environ.get("RED", "0") == "1"   # Wan 입력에는 빨강을 칠하지 않는다(칠하면 Wan 이 옷으로 그린다). 시트 검수용만 RED=1
 gn = {g.index: g.name for g in h.vertex_groups}
 w = [{gn[g.group]: g.weight for g in v.groups if g.group in gn} for v in h.data.vertices]
 wsum = lambda i, *names: sum(w[i].get(n, 0) for n in names)
@@ -647,7 +648,7 @@ def bench_supports(ps, j2):
         if x0 <= hx <= x1 and -6 < lerp(a[1], b[1], .5)-hy < 44: return it
     return None
 METRIC = {}
-def solve_frame(t, first):
+def solve_frame(t, first, force_d=None):
     p = pose_at(t); j2 = joints2d(p); J = fk(p); side = pose_view(p) == 'side'
     A = p['at']; wA = abs2w(A[1], A[2])
     an0 = fk(p)
@@ -686,6 +687,8 @@ def solve_frame(t, first):
             e = abs(res(q))
             if e < be: be, best = e, q
         d = best; J = fk(p, d)
+    if force_d is not None:
+        d = force_d; J = fk(p, d)
     # 골반 위치
     Pp = V((0, wA.y-J[A[0]].y if A[0] in J else wA.y, 0))
     if OV.get("hand_anchor"):
@@ -695,6 +698,8 @@ def solve_frame(t, first):
     elif shg:
         # 어깨로 받친 자세(브리지): 어깨가 바닥(또는 지정 높이)에 닿는다
         Pp.z = OV.get("sh_z", BACK_OFF)-J['sh'].z
+        # 골반도 바닥 근처면 파묻히지 않게 둘 중 높은 쪽(어깨 기준만 쓰면 상체를 들수록 골반이 가라앉다가, 판정이 풀리는 순간 13cm 튄다)
+        if hipg: Pp.z = max(Pp.z, BACK_OFF+.005)
     elif sup is not None:
         Pp.z = BENCH_TOP+(SEAT_OFF if not horiz else (BACK_OFF if math.cos(rad(p['t'])) < 0 else CHEST_OFF))
     elif hipg:
@@ -719,8 +724,40 @@ def solve_frame(t, first):
             lift = .065-(Pp.z+J['el'+sfx].z)
             if lift > 0:
                 J['el'+sfx] = J['el'+sfx]+V((0, 0, lift)); J['wr'+sfx] = J['wr'+sfx]+V((0, 0, lift))
-    return dict(p=p, j2=j2, J=J, P=Pp, sup=sup, fn=fn, ff=ff, hn=hn, hf=hf, side=side, horiz=horiz)
+    return dict(p=p, j2=j2, J=J, P=Pp, sup=sup, fn=fn, ff=ff, hn=hn, hf=hf, side=side, horiz=horiz, d=d)
+def spread_steps(v, thr, rel=0.0, W=5):
+    """접촉 판정이 바뀌어 한 프레임에 생긴 계단을 앞뒤 W 프레임에 나눠 없앤다. 계단이 없으면 값을 그대로 돌려준다."""
+    v = [float(x) for x in v]; n = len(v); hit = False
+    sm = lambda u: u*u*(3-2*u)
+    for _ in range(6):
+        df = [v[i+1]-v[i] for i in range(n-1)]; med = sorted(abs(x) for x in df)[(n-1)//2]
+        best, bi = 0.0, -1
+        for i in range(n-1):
+            nb = [df[j] for j in (i-1, i+1) if 0 <= j < n-1]
+            ex = df[i]-sum(nb)/len(nb)
+            if abs(ex) > abs(best): best, bi = ex, i
+        if bi < 0 or abs(best) < max(thr, rel*med): break
+        hit = True; i = bi; s_ = best
+        if i+W >= n-1:      # 끝 근처: 끝 자세(접촉)를 지키려고 전부 앞쪽에서 나눈다
+            for k in range(max(0, i-2*W+1), i+1): v[k] += s_*sm(1-(i-k)/(2*W))
+        elif i-W+1 <= 0:    # 시작 근처: 첫 자세를 지키려고 전부 뒤쪽에서 나눈다
+            for k in range(i+1, min(n, i+2*W+1)): v[k] -= s_*sm(1-(k-i-1)/(2*W))
+        else:
+            for k in range(i-W+1, i+1): v[k] += s_*.5*sm(1-(i-k)/W)
+            for k in range(i+1, i+W+1): v[k] -= s_*.5*sm(1-(k-i-1)/W)
+    return v, hit
+# [원본] 프레임마다 따로 푼 값을 그대로 쓴다(접촉 판정이 바뀌는 프레임에서 몸이 튄다)
+# FRM = [solve_frame(ease((k-1)/(NF-1)), k == 1) for k in range(1, NF+1)]
+# [개선] 몸 회전 → 골반 높이 순서로 계단을 없앤다
 FRM = [solve_frame(ease((k-1)/(NF-1)), k == 1) for k in range(1, NF+1)]
+ROOT_FIX = []
+_ds, _hit = spread_steps([_f['d'] for _f in FRM], 3.0)
+if _hit:
+    ROOT_FIX.append('d'); FRM = [solve_frame(ease((k-1)/(NF-1)), k == 1, force_d=_ds[k-1]) for k in range(1, NF+1)]
+_zs, _hit = spread_steps([_f['P'].z for _f in FRM], .025, 3.0)
+if _hit:
+    ROOT_FIX.append('z')
+    for _f, _z in zip(FRM, _zs): _f['P'].z = _z
 if OV.get("zlift"):
     # 사전 점검에서 잰 파묻힘만큼 몸 전체를 프레임별로 올린다(zlift.py 가 적는다: 첫·1/4·중간·3/4·끝)
     _zl = OV["zlift"]
@@ -777,6 +814,7 @@ def generic():
     mp = f0['mapd']
     # 정적 장면
     items = list(DATA.get('scene') or [])
+    items += OV.get('scene_add') or []
     if EQUIP == 'machine': items += DATA.get('machine') or []
     if EQUIP == 'other': items += DATA.get('other') or []
     dyn = []
@@ -1117,10 +1155,11 @@ SNAP = {}
 floor_min = 9; pen = {}
 HANDV = {i for i in range(len(rest)) if sum(x for n_, x in w[i].items() if n_.startswith(('hand', 'index', 'middle', 'ring', 'pinky', 'thumb'))) > .3}
 FOOTV = {i for i in range(len(rest)) if sum(x for n_, x in w[i].items() if n_.startswith(('foot', 'ball', 'toe'))) > .3}
-LOWV = [i for i in range(0, len(rest), 3) if i not in HANDV and i not in FOOTV]; SINK = {}
+LOWV = [i for i in range(0, len(rest), 3) if i not in HANDV and i not in FOOTV]; SINK = {}; FOOTZ = {}
 for f in SAMPLE_F+[(NF+3)//4, (3*NF+1)//4]:
     scn.frame_set(f); vs = eval_verts(); eq = equip_points(); SNAP[f] = (vs, eq)
     SINK[f] = min(vs[i].z for i in LOWV); floor_min = min(floor_min, SINK[f])
+    FOOTZ[f] = min(vs[i].z for i in FOOTV)
     for o in bpy.data.objects:
         if o.type != 'MESH' or o is h or o is fl or o.name.split('.')[0] in ('cable', 'band', 'shaft', 'lever', 'line', 'handle'): continue
         im = o.matrix_world.inverted(); bb = [V(c) for c in o.bound_box]; lo = V((min(c[i] for c in bb) for i in range(3))); hi = V((max(c[i] for c in bb) for i in range(3)))
@@ -1195,7 +1234,7 @@ else:
     camera_info = dict(az=az_, el=el_, top=sorted(rows_, reverse=True)[:3], motion=round(mp_, 3))
 ss.show_viewport = True
 # 지표
-m = dict(key=KEY, ex=EX, exposure=round(expo, 3), floor_min=round(floor_min, 3), sink_frames=[round(SINK[f_], 3) for f_ in sorted(SINK)], penetration=pen, camera=camera_info)
+m = dict(key=KEY, ex=EX, exposure=round(expo, 3), floor_min=round(floor_min, 3), sink_frames=[round(SINK[f_], 3) for f_ in sorted(SINK)], foot_z=[round(FOOTZ[f_], 3) for f_ in sorted(FOOTZ)], penetration=pen, camera=camera_info)
 if EX == 'generic':
     W_ = METRIC['wrists']; A_ = METRIC['ankles']; ik = []; PB2 = rig.pose.bones
     ROOTM = bpy.data.objects['W'].matrix_world.copy() if 'W' in bpy.data.objects else M.Identity(4)
@@ -1238,6 +1277,9 @@ for f_ in SAMPLE_F:
         _el.append(_ang(mw_@B_['upperarm_'+s_].head, mw_@B_['lowerarm_'+s_].head, mw_@B_['hand_'+s_].head))
         _kn.append(_ang(mw_@B_['thigh_'+s_].head, mw_@B_['calf_'+s_].head, mw_@B_['foot_'+s_].head))
 m['elbow_min'] = round(min(_el)); m['knee_min'] = round(min(_kn))
+m['root_z'] = [round(_f['P'].z, 4) for _f in FRM]; m['root_d'] = [round(float(_f['d']), 2) for _f in FRM]
+m['root_fix'] = ROOT_FIX
+m['root_flags'] = ["".join(c for c, b in zip("nfh", (_f['fn'], _f['ff'], _f['hn'])) if b) for _f in FRM]
 print("METRIC "+json.dumps(m, ensure_ascii=False), flush=True)
 json.dump(m, open(os.path.join(OUT, KEY+".json"), "w"), ensure_ascii=False)
 if PASS == "probe": sys.exit(0)

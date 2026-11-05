@@ -250,6 +250,7 @@ export const en: Record<TransKey, string> = {
   "exercises.caution.advancedStrength": "This takes a lot of strength and skill. Work up to it with easier progressions.",
   "exercises.formGuideTitle": "How to",
   "exercises.mediaCredit": "Image: {credit}",
+  "exercises.motionNotice": "Video rendered in 3D and refined with AI",
   "exercises.customTitle": "Custom Exercise",
   "exercises.editTitle": "Edit Exercise",
   "exercises.emptyMessage": "Try changing your search or filters, or add a custom exercise.",

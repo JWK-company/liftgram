@@ -123,6 +123,8 @@ self.addEventListener("fetch", (event) => {
   // SPEC-018 앱 설치 파일·버전 안내는 늘 네트워크 그대로 — navigate 여도 셸·오프라인 화면을 대신 주지 않고 캐시에도 담지 않는다
   // (운영 M-4 · 안드로이드 L-2 · 맨 위에서 통째로).
   if (url.pathname.startsWith("/downloads/")) return;
+  // SPEC-034 운동 영상은 ExerciseMotion 이 전용 저장소(liftgram-motion)로 직접 다룬다 — 셸·미디어 캐시에 섞지 않는다.
+  if (url.pathname.startsWith("/motion/")) return;
   // SPEC-018 공개 앱 안내(/app)·넘기기 확인(/app/continue)·로그인 착지(/auth/complete)는 셸 캐시에 담지 않는다 —
   // 느린 망에서 옛 화면(옛 ac·옛 코드)이 떠 원인 모를 실패가 나지 않게(REV-012 보안 L-2 · 화면 L-11)
   if (url.pathname === "/app" || url.pathname.startsWith("/app/") || url.pathname === "/auth/complete")

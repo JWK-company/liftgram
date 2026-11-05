@@ -131,6 +131,35 @@ export default function RoutinesClient() {
   );
   const routines: Routine[] = useMemo(() => models.map((m) => m as unknown as Routine), [models]);
 
+  // SPEC-034 내 루틴 종목의 운동 영상을 미리 받아 고정한다 — 운동 중에는 받지 않는다(체육관 망·데이터 절약).
+  useEffect(() => {
+    if (!routinesLoaded || !activeLoaded || activeWorkoutId) return;
+    let cancelled = false;
+    const stop = new AbortController();
+    const timer = setTimeout(() => {
+      void (async () => {
+        const [{ EXERCISE_MOTION }, { pinMotionClips }] = await Promise.all([
+          import("@app/core/data/exerciseMotion.data"),
+          import("@/lib/motionCache"),
+        ]);
+        const ids = new Set<string>();
+        for (const m of models as unknown as { routineExercises: { fetch(): Promise<{ exerciseId: string }[]> } }[]) {
+          for (const re of await m.routineExercises.fetch()) ids.add(re.exerciseId);
+        }
+        if (cancelled) return;
+        const clips = [...ids].map((id) => EXERCISE_MOTION[id]).filter((c): c is string => !!c);
+        await pinMotionClips([...new Set(clips)], stop.signal);
+      })().catch(() => {
+        /* 미리 받기는 덤이다 — 실패해도 화면에 영향 없음 */
+      });
+    }, 3000);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      stop.abort(); // 운동을 시작하거나 화면을 떠나면 받기를 멈춘다
+    };
+  }, [routinesLoaded, activeLoaded, models, activeWorkoutId]);
+
   // 추천은 완료 이력을 훑어야 나온다 — 목록·진행 상태가 바뀔 때만 다시 읽는다.
   const analytics = repos?.analytics ?? null;
   const routineCount = routines.length;

@@ -82,6 +82,11 @@ const config: NextConfig = {
           { key: "Service-Worker-Allowed", value: "/" },
         ],
       },
+      // SPEC-034 운동 영상·썸네일 — 파일 이름에 해시가 있어 같은 이름은 늘 같은 바이트다.
+      {
+        source: "/motion/:name([0-9A-Za-z_.-]+\\.(?:mp4|webp))",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
       // SPEC-018 안드로이드 APK 자체 배포 — 파일 이름에 버전·해시가 있어(liftgram-<이름>-<코드>-<sha8>.apk) 같은 이름은 늘 같은 바이트다
       // → 1년 immutable(운영 H-1). 브라우저가 화면으로 열지 않고 받게 attachment(운영 L-2).
       {

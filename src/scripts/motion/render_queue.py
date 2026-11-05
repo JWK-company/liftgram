@@ -5,7 +5,7 @@
 --loose-code: 코드 지문은 비교하지 않는다(코드를 고쳤지만 영향이 일부뿐이라 나머지를 다시 만들 필요가 없을 때만)."""
 import argparse, glob, hashlib, json, os, queue, shutil, subprocess, threading, time
 A = argparse.ArgumentParser(); A.add_argument("keys"); A.add_argument("out"); A.add_argument("nf", type=int); A.add_argument("spp", type=int); A.add_argument("res", type=int)
-A.add_argument("--t"); A.add_argument("--mask", action="store_true"); A.add_argument("--probe", action="store_true"); A.add_argument("--gpus", default="0,1,2"); A.add_argument("--timeout", type=int, default=1800); A.add_argument("--jobs", default="jobs.json"); A.add_argument("--loose-code", action="store_true"); a = A.parse_args()
+A.add_argument("--t"); A.add_argument("--mask", action="store_true"); A.add_argument("--probe", action="store_true"); A.add_argument("--gpus", default="0,1,2"); A.add_argument("--timeout", type=int, default=1800); A.add_argument("--jobs", default="jobs.json"); A.add_argument("--loose-code", action="store_true"); A.add_argument("--red", action="store_true", help="검수 시트용: 빨강을 칠해 렌더한다. Wan 입력으로 쓰면 안 된다"); a = A.parse_args()
 ROOT = os.path.dirname(os.path.abspath(__file__)); BL = f"{ROOT}/blender-4.5.15-linux-x64/blender"
 OUT, JOBS_P = os.path.abspath(a.out), os.path.abspath(a.jobs)
 JOBS = json.load(open(JOBS_P))["jobs"]; OV_ALL = json.load(open(os.path.join(os.path.dirname(JOBS_P), "overrides.json")))
@@ -14,7 +14,7 @@ CODE = sha(f"{ROOT}/motion3d.py")+sha(f"{ROOT}/base.blend")
 def manifest(k, mode):
     j = JOBS[k]; ov = {}
     for n in (j["arch"], j["arch"]+"__"+j["equip"], k): ov[n] = OV_ALL.get(n)
-    return dict(input=hashlib.sha256(json.dumps([j["data"], j["primary"], j.get("ov"), ov], sort_keys=True).encode()).hexdigest(), mode=mode, nf=a.nf, spp=a.spp if mode == "beauty" else 8, res=a.res, t=a.t, code=CODE)
+    return dict(input=hashlib.sha256(json.dumps([j["data"], j["primary"], j.get("ov"), ov], sort_keys=True).encode()).hexdigest(), mode=mode, nf=a.nf, spp=a.spp if mode == "beauty" else 8, res=a.res, t=a.t, red=a.red, code=CODE)
 def same(old, new):
     if a.loose_code: old, new = {**old, "code": 0}, {**new, "code": 0}
     return old == new
@@ -35,7 +35,7 @@ def run(gpu):
                     if same(json.load(open(mark)), man): continue
                 except ValueError: pass
             shutil.rmtree(d, ignore_errors=True); os.makedirs(d)
-            env = dict(os.environ, CUDA_VISIBLE_DEVICES=gpu, BLENDER_USER_RESOURCES=f"{ROOT}/bl_user", PASS=mode)
+            env = dict(os.environ, CUDA_VISIBLE_DEVICES=gpu, BLENDER_USER_RESOURCES=f"{ROOT}/bl_user", PASS=mode, RED="1" if a.red else "0")
             cmd = [BL, "-b", f"{ROOT}/base.blend", "--python", f"{ROOT}/motion3d.py", "--", JOBS_P, k, str(a.nf), str(a.spp if mode == "beauty" else 8), str(a.res), d]+([a.t] if a.t else [])
             log = "timeout"; ok = False
             for _try in range(2):

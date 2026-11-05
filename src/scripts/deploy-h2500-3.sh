@@ -238,6 +238,34 @@ rsync -a --delete \
   --exclude '/mobile/android/capacitor-cordova-android-plugins/build/' --exclude '/mobile/native/lock-core-check/.build/' \
   "$CLEAN/src/" "$HOST:$REMOTE/src/"
 
+# SPEC-034 운동 영상 — git 밖 파일(서버 release/). 매핑 표에 있는 이름이 전부 있어야 빌드한다.
+# 옛 빌드의 탭이 직전 파일을 찾을 수 있게 release/ 는 지우지 않고 그대로 싣는다(추가 전용).
+echo "── 운동 영상 복사·점검 ──"
+# 표가 없는 옛 커밋(DEPLOY_REF 되돌리기)은 건너뛴다. 표가 있는데 하나도 못 읽으면 형식이 바뀐 것이니 멈춘다.
+MOTION_MAP="$CLEAN/src/core/src/data/exerciseMotion.data.ts"
+MOTION_CLIPS=""
+if [ -f "$MOTION_MAP" ]; then
+  MOTION_CLIPS=$(sed -n 's/^  "[^"]*": "\([^"]*\)",$/\1/p' "$MOTION_MAP" | sort -u)
+  if [ -z "$MOTION_CLIPS" ] && grep -q '^  "' "$MOTION_MAP"; then echo "!! 운동 영상 표를 읽지 못했다"; exit 1; fi
+fi
+MOTION_N=$(printf '%s\n' "$MOTION_CLIPS" | grep -c . || true)
+printf '%s\n' "$MOTION_CLIPS" | $SSH "set -e
+  R=\$HOME/liftgram_motion/release; D=$REMOTE/src/frontend/public/motion; mkdir -p \$D
+  list=\$(cat); miss=0; while read -r c; do [ -z \"\$c\" ] && continue
+    for x in mp4 webp; do [ -f \"\$R/\$c.\$x\" ] || { echo \"  !! 없음: \$c.\$x\"; miss=1; }; done
+    # 파일 이름의 해시와 실제 내용이 같은지(mp4)
+    [ \"\$(sha256sum \"\$R/\$c.mp4\" 2>/dev/null | cut -c1-8)\" = \"\${c##*.}\" ] || { echo \"  !! 해시 불일치: \$c\"; miss=1; }
+  done <<<\"\$list\"
+  [ \$miss = 0 ] || exit 1
+  # 빈 release 면 복사할 것이 없다. 복사 실패(디스크 등)는 아래 대조에서 멈춘다.
+  if ls \$R/*.mp4 >/dev/null 2>&1; then cp -n \$R/*.mp4 \$R/*.webp \$D/; fi
+  while read -r c; do [ -z \"\$c\" ] && continue
+    [ -s \"\$D/\$c.webp\" ] && [ \"\$(sha256sum \"\$D/\$c.mp4\" 2>/dev/null | cut -c1-8)\" = \"\${c##*.}\" ] || { echo \"  !! 복사 안 됨: \$c\"; miss=1; }
+  done <<<\"\$list\"
+  [ \$miss = 0 ] || exit 1
+  chmod 644 \$D/* 2>/dev/null || true; echo \"  영상 \$(ls \$D/*.mp4 | wc -l)개 · \$(du -sh \$D | cut -f1)\""
+echo "  매핑 표의 영상 ${MOTION_N}개 확인"
+
 echo "── 빌드·기동 (migrate 가 먼저 돌고 끝나야 backend 가 뜬다) ──"
 $SSH "cd $REMOTE/src && $COMPOSE build backend frontend imagescan >/tmp/liftgram-deploy.log 2>&1 \
   || { tail -30 /tmp/liftgram-deploy.log; exit 1; }
@@ -293,6 +321,19 @@ $SSH "cd $REMOTE/src && port=\$(grep '^WEB_PORT=' .env | cut -d= -f2)
 # ── APK 끝 확인 — SPEC-018 (운영 M-3 · Phase 1 qa 운영 H-2·M-4 · 웹 L-5) ─────────────────
 # DEPLOYED_REF 를 적은 **뒤**에 본다(웹은 이미 바뀌었다 — 기록이 옛 값으로 남으면 다음 배포의 스키마 하강 검사가 틀린 기준을 쓴다).
 # 실패는 끝에서 0 아닌 코드로 알린다. 엣지 캐시를 피하려고 json 은 캐시 우회 질의로, Range 는 오리진(서버 안)에서 본다.
+# SPEC-034 운동 영상 표본: 200 · immutable · 오리진 Range 206
+MOTION_FAIL=""
+MOTION_ONE=$(printf '%s\n' "$MOTION_CLIPS" | head -1)
+if [ -n "$MOTION_ONE" ]; then
+  echo "── 운동 영상 표본 확인 ──"
+  h=$(curl -sI -m 20 "$SITE/motion/$MOTION_ONE.mp4" | tr -d '\r' || true)
+  grep -qi '^HTTP/.* 200' <<<"$h" || MOTION_FAIL="표본 영상이 200 이 아니다"
+  grep -qi '^cache-control:.*immutable' <<<"$h" || MOTION_FAIL="${MOTION_FAIL:-표본 영상에 immutable 이 없다}"
+  code=$($SSH "cd $REMOTE/src && port=\$(grep '^WEB_PORT=' .env | cut -d= -f2) && curl -s -o /dev/null -w '%{http_code}' -m 20 -r 0-0 http://127.0.0.1:\$port/motion/$MOTION_ONE.mp4" || echo 000)
+  [ "$code" = "206" ] || MOTION_FAIL="${MOTION_FAIL:-오리진 Range 가 206 이 아니다($code)}"
+  [ -z "$MOTION_FAIL" ] && echo "  $MOTION_ONE 200 · immutable · Range 206" || echo "  !! $MOTION_FAIL"
+fi
+
 APK_FAIL=""
 if [ "$APK_ON" = "1" ]; then
   echo "── 안드로이드 APK 확인 ──"
@@ -361,8 +402,11 @@ else
   echo "  성공 daily ${okd}줄 · 복원 시험 ${rst}줄"
 fi
 echo "── 끝: v${VERSION} (build ${BUILD}) · ${SHORT} ──"
+if [ -n "${MOTION_FAIL:-}" ]; then
+  echo "!! 웹은 배포됐지만 운동 영상 확인이 실패했다: ${MOTION_FAIL}"
+fi
 if [ -n "${APK_FAIL:-}" ]; then
   echo "!! 웹은 배포됐지만 안드로이드 APK 확인이 실패했다: ${APK_FAIL}"
   echo "   (앱 업데이트 안내가 틀린 파일을 가리킬 수 있다 — 위 「안드로이드 APK 확인」을 보고 고친 뒤 다시 배포)"
-  exit 1
 fi
+[ -z "${MOTION_FAIL:-}" ] && [ -z "${APK_FAIL:-}" ] || exit 1

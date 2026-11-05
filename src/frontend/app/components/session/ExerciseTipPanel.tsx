@@ -16,7 +16,9 @@ import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { lang, t } from "@/lib/i18n";
-import { Pictogram } from "../Pictogram";
+// [원본] import { Pictogram } from "../Pictogram";
+import { ExerciseMotion } from "../ExerciseMotion";
+import { MotionNotice } from "../MotionNotice";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
@@ -103,12 +105,14 @@ export function ExerciseTipPanel({
         >
           {/* [원본] <TwoFrameLoop start={media.start} end={media.end} gif={media.gif} /> */}
           {picto ? (
-            <span className="block h-[150px] w-full overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)">
-              <Pictogram exerciseId={exerciseId} animate className="h-full w-full" testId="tip-picto" />
+            <span className="mx-auto block aspect-square w-full max-w-[220px] overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+              {/* [원본] <Pictogram exerciseId={exerciseId} animate className="h-full w-full" testId="tip-picto" /> */}
+              <ExerciseMotion exerciseId={exerciseId} className="h-full w-full" testId="tip-motion" />
             </span>
           ) : media ? (
             <TwoFrameLoop start={media.start} end={media.end} gif={media.gif} />
           ) : null}
+          {picto ? <MotionNotice exerciseId={exerciseId} /> : null}
           {steps.length ? (
             <AppText variant="label" color="textFaint" center className="mt-[2px] block">
               {t("session.tipTapForSteps")}

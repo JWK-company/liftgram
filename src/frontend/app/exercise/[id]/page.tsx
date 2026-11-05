@@ -20,7 +20,9 @@ import { t } from "@/lib/i18n";
 import { equipmentLabel, kindLabel, loadModeLabel, muscleLabel } from "@/lib/labels";
 import { AdSlot } from "../../components/ads/AdSlot";
 import ExerciseAnimation from "../../components/ExerciseAnimation";
-import { Pictogram } from "../../components/Pictogram";
+// [원본] import { Pictogram } from "../../components/Pictogram";
+import { ExerciseMotion } from "../../components/ExerciseMotion";
+import { MotionNotice } from "../../components/MotionNotice";
 import ExerciseProgress from "../../components/analytics/ExerciseProgress";
 import { UserSettingsProvider } from "../../components/UserSettingsProvider";
 import { ScreenHeader } from "../../components/ui/ScreenHeader";
@@ -147,9 +149,14 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
 
         {/* P5 자세 그림 — 시작↔끝 움직임(동작 줄이기 설정이면 한 장). 자체 제작이라 출처 표기가 필요 없다. */}
         {picto ? (
-          <div className="h-[200px] w-full overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)">
-            <Pictogram exerciseId={exercise.id} animate className="h-full w-full" testId="exercise-picto" />
-          </div>
+          <>
+            {/* [원본] <div className="h-[200px] ..."><Pictogram exerciseId={exercise.id} animate className="h-full w-full" testId="exercise-picto" /></div> */}
+            {/* [개선] SPEC-034 영상이 있으면 영상, 아니면 픽토그램 */}
+            <div className="mx-auto aspect-square w-full max-w-[420px] overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)">
+              <ExerciseMotion exerciseId={exercise.id} className="h-full w-full" testId="exercise-motion" />
+            </div>
+            <MotionNotice exerciseId={exercise.id} />
+          </>
         ) : null}
 
         {/* 자세 시연 — 2컷 교차 또는 3D 움짤. 이미지가 없는 종목(설명만 있는 항목)은 건너뛴다. P5 부터는 실사 보조. */}

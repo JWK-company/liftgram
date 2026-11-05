@@ -31,7 +31,8 @@ test("종목 고르기·운동 블록에 그림이 있고, 팁을 펴면 움직�
   await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
   await page.getByTestId("btn-quick-start").click();
   await page.getByTestId("btn-add-exercise").click();
-  await page.getByTestId("picker-search").fill("바벨 벤치프레스");
+  // SPEC-034: 영상이 있는 종목은 정지 사진을 그리므로, 픽토그램만 있는 종목으로 본다
+  await page.getByTestId("picker-search").fill("노르딕 컬");
   // 고르기 목록 줄에도 그림
   await expect(page.getByTestId("picker-list").locator("button").first().locator("svg")).toBeVisible({
     timeout: 15_000,
@@ -42,7 +43,7 @@ test("종목 고르기·운동 블록에 그림이 있고, 팁을 펴면 움직�
 
   await 블록_더보기(page.getByTestId("workout-exercises").locator("> div").first()); // 운동 방법은 「더 보기」 안(SRS-069)
   await page.getByTestId("tip-toggle").first().click();
-  const tip = page.getByTestId("tip-picto");
+  const tip = page.getByTestId("tip-motion-picto"); // SPEC-034: 영상 틀 안의 픽토그램
   await expect(tip.locator("svg")).toBeVisible({ timeout: 15_000 });
   const a = await tip.innerHTML();
   await expect.poll(async () => (await tip.innerHTML()) !== a, { timeout: 5_000 }).toBe(true);
@@ -52,7 +53,7 @@ test("동작 줄이기 설정이면 상세의 그림이 멈춰 있다", async ({
   const context = await browser.newContext({ reducedMotion: "reduce" });
   const page = await context.newPage();
   await page.goto("/exercise/seed-barbell-bench-press");
-  const pic = page.getByTestId("exercise-picto");
+  const pic = page.getByTestId("exercise-motion-picto"); // SPEC-034: 영상 종목도 동작 줄이기면 픽토그램
   await expect(pic.locator("svg")).toBeVisible({ timeout: 20_000 });
   const a = await pic.innerHTML();
   await page.waitForTimeout(1500);
@@ -61,8 +62,8 @@ test("동작 줄이기 설정이면 상세의 그림이 멈춰 있다", async ({
 });
 
 test("상세 화면은 움직이는 그림을 보여 준다", async ({ page }) => {
-  await page.goto("/exercise/seed-barbell-squat");
-  const pic = page.getByTestId("exercise-picto");
+  await page.goto("/exercise/seed-nordic-curl"); // SPEC-034: 영상이 없는 종목은 움직이는 픽토그램
+  const pic = page.getByTestId("exercise-motion-picto");
   await expect(pic.locator("svg")).toBeVisible({ timeout: 20_000 });
   const a = await pic.innerHTML();
   await expect.poll(async () => (await pic.innerHTML()) !== a, { timeout: 5_000 }).toBe(true);

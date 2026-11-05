@@ -34,6 +34,13 @@ export default function LicensesPage() {
       <h2>사진 자동 검사 모델 — Falconsai/nsfw_image_detection</h2>
       <p>올린 사진의 자동 검사에 Apache License 2.0 으로 공개된 이 모델의 ONNX 변환본을 씁니다.</p>
 
+      <h2>운동 영상 — Blender · MPFB · Wan 2.2</h2>
+      <p data-testid="license-motion">
+        운동 영상은 3D 렌더링을 바탕으로 AI 보정을 거쳐 직접 제작했습니다. 렌더링에 Blender(GPL-3.0-or-later)와
+        MakeHuman 플러그인 MPFB(코드 GPL-3.0-or-later · 자산 CC0)를, 보정에 Wan 2.2 TI2V-5B 모델(Apache License 2.0)을
+        썼습니다. 영상 안의 사람은 실제 인물이 아닙니다.
+      </p>
+
       <h2>근육 지도 그림 — MuscleMap</h2>
       <p>
         통계·요약·루틴 카드의 근육 그림은{" "}

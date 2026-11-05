@@ -30,3 +30,6 @@ frontend/public/downloads/
 *.keystore
 # Swift 잠금 규칙 검사기 빌드 산출물(SPEC-017) — 미커밋으로 잡혀 APK 캐시를 막는다(SPEC-018 Phase 1 qa 안드로이드 L-5)
 mobile/native/lock-core-check/.build/
+
+# SPEC-034 운동 영상은 git 밖 — 배포 때 서버 release/ 에서 복사한다
+frontend/public/motion/

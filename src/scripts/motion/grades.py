@@ -25,7 +25,8 @@ PAIR = {"air_squat": ["squat"], "arm_extension_machine": ["machine_arm_extension
         "shoulder_press_machine": ["overhead_press"], "squat": ["pause_squat"], "squat_dumbbell": ["squat"], "stiff_leg": ["stiff_leg_deadlift"], "svend": ["svend_press"], "t_bar_row": ["landmine_row"]}
 # 자세는 같고 값만 다른 변형: 원형 + family 키로 새로 렌더
 VAR = {"hammer_curl": {"grip": "neutral"}, "reverse_curl": {"grip": "over"}, "chin_up": {"grip": "under"}, "close_grip_bench_press": {"grip_w": 0.18}, "reverse_wrist_curl": {"grip": "over"}}
-EXCL = {"skull_crusher__bodyweight__triceps": "개념 불일치", "hack_squat__barbell__quads": "개념 불일치", "hack_squat__smith__quads": "개념 불일치", "sumo_deadlift__dumbbell__glutes": "동작 안 보임",
+EXCL = {"decline_sit_up__bodyweight__abs": "디클라인 벤치 표현 안 됨(평벤치에 발이 뜸)", "crunch__machine__abs": "기구 표현 안 됨(바닥 크런치와 같음)", "hip_thrust__machine__glutes": "기구 표현 안 됨", "good_morning__smith__hamstrings": "스미스 궤도에서 발이 밀림", "reverse_hyper__machine__glutes": "Wan 결과 불량(몸통 변색)",
+        "skull_crusher__bodyweight__triceps": "개념 불일치", "hack_squat__barbell__quads": "개념 불일치", "hack_squat__smith__quads": "개념 불일치", "sumo_deadlift__dumbbell__glutes": "동작 안 보임",
         "woodchop__dumbbell__abs": "개념 불일치", "pec_deck__cable__chest": "개념 불일치", "incline_fly__machine__chest": "개념 불일치", "sit_up__machine__abs": "GHD 기구 없음(바닥 싯업과 다른 동작)",
         "pendulum_squat__machine__quads": "기구 표현 안 됨", "v_squat__machine__quads": "기구 표현 안 됨", "kickback_glute__machine__glutes": "기구 표현 안 됨", "goblet_squat__cable__quads": "기구 표현 안 됨", "frog_pump__dumbbell__glutes": "자세 표현 안 됨"}
 # 이름에 쓰는 쪽·그립·손잡이가 박힌 행: 전용 키 없이 기본 영상에 잇지 않는다(오안내)

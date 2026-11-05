@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CATALOG, CATALOG_FAMILIES } from '../../data/catalog/catalog.generated';
+import { EXERCISE_MOTION } from '../../data/exerciseMotion.data';
 import { MEDIA_KEY_BY_ID } from '../../data/exerciseMediaKeys.data';
 import { RAW_MEDIA } from '../../data/exerciseMedia.data';
 import { BORROWED_PHOTO_IDS } from '../../data/exerciseMediaOwn.data';
@@ -156,4 +157,21 @@ test('빌린 사진 목록이 규칙과 어긋나지 않는다(드리프트 방�
   assert.ok(m.instructionsKo.length > 0);
   // 자기 사진은 그대로
   assert.ok(getExerciseMediaOwn('seed-barbell-bench-press')?.start.includes('Barbell_Bench_Press'));
+});
+
+test('SPEC-034 운동 영상 표 — 카탈로그 시드 종목만 · 파일 이름 규칙 · 출처는 허용 목록', () => {
+  const ids = new Set((CATALOG as readonly { id: string }[]).map((r) => r.id));
+  for (const [id, clip] of Object.entries(EXERCISE_MOTION)) {
+    assert.ok(ids.has(id), `카탈로그에 없는 종목: ${id}`);
+    assert.match(clip, /^[0-9A-Za-z_-]+\.[0-9a-f]{8}$/, `파일 이름: ${clip}`);
+  }
+  assert.ok(VISUAL_LICENSE_ALLOWLIST.includes(VISUAL_SOURCES.motion3d.license));
+});
+
+test('SPEC-034 영상 저장소 — 상한을 넘으면 오래 안 본 것부터, 고정은 남긴다', async () => {
+  const { pickEvictions } = await import('../../../../frontend/lib/motionCache');
+  const ix = { a: { bytes: 40, used: 1 }, b: { bytes: 40, used: 2, pinned: true }, c: { bytes: 40, used: 3 } };
+  assert.deepEqual(pickEvictions(ix, 100), ['a']);
+  assert.deepEqual(pickEvictions(ix, 40), ['a', 'c']);
+  assert.deepEqual(pickEvictions(ix, 200), []);
 });
