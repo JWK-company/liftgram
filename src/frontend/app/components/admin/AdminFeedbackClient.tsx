@@ -95,6 +95,12 @@ export default function AdminFeedbackClient() {
           <div className="flex justify-center py-[var(--spacing-xl)]" role="status">
             <LogoSpinner size={32} label={t("admin.feedback.title")} />
           </div>
+        ) : !user ? (
+          <div className="py-[var(--spacing-xl)] text-center" data-testid="admin-feedback-signin">
+            <a href="/account" className="underline">
+              <AppText variant="body">{t("feed.loginRequiredTitle")}</AppText>
+            </a>
+          </div>
         ) : !allowed ? (
           <div className="py-[var(--spacing-xl)] text-center" data-testid="admin-feedback-denied">
             <AppText variant="body" color="danger">
@@ -169,7 +175,8 @@ function EntryCard({
     setBusy(true);
     try {
       const res = await feedbackClient().setStatus({ id: entry.id, status: to, note: note.trim() });
-      if (res.entry) onChange(res.entry);
+      // 응답에는 작성자 이름이 없다 — 보던 이름을 유지한다.
+      if (res.entry) onChange({ ...res.entry, authorName: entry.authorName });
       setNote("");
     } catch (err) {
       toast(feedErrorMessage(err), "error");

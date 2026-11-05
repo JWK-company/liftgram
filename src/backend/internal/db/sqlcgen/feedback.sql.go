@@ -137,7 +137,7 @@ SELECT f.id, f.kind, f.author_id, f.category, f.title, f.body, f.app_version, f.
 FROM feedback_items f
 LEFT JOIN users u ON u.id = f.author_id
 WHERE f.kind = $1
-ORDER BY f.id DESC
+ORDER BY (f.status IN ('new', 'approved', 'in_progress')) DESC, f.id DESC
 LIMIT $2
 `
 
@@ -161,7 +161,7 @@ type ListFeedbackItemsRow struct {
 	AuthorName *string
 }
 
-// 최신순. 이메일은 읽지 않는다.
+// 미처리를 먼저, 그 안에서 최신순(상한에 미처리가 밀려나지 않게). 이메일은 읽지 않는다.
 func (q *Queries) ListFeedbackItems(ctx context.Context, arg ListFeedbackItemsParams) ([]ListFeedbackItemsRow, error) {
 	rows, err := q.db.Query(ctx, listFeedbackItems, arg.Kind, arg.Lim)
 	if err != nil {
@@ -222,7 +222,7 @@ func (q *Queries) PurgeClosedUserFeedback(ctx context.Context, before pgtype.Tim
 const setFeedbackStatus = `-- name: SetFeedbackStatus :exec
 UPDATE feedback_items SET
   status = $1,
-  resolution = $2,
+  resolution = CASE WHEN $2::text = '' THEN resolution ELSE $2 END,
   approved_body_sha256 = COALESCE($3, approved_body_sha256),
   approved_instruction = COALESCE($4, approved_instruction),
   closed_at = CASE WHEN $1::text IN ('rejected', 'done') THEN now() ELSE NULL END

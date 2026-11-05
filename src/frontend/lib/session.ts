@@ -122,6 +122,12 @@ export function setTokens(
 
 export function clearTokens(): void {
   accessToken = null;
+  // 쓰다 만 의견은 그 사람 것이다 — 같은 기기의 다음 계정에게 보이지 않게 지운다(SPEC-032).
+  try {
+    localStorage.removeItem("liftgram.feedback.draft");
+  } catch {
+    // 저장소를 못 쓰면 지울 것도 없다
+  }
   setFlag(false);
   cacheMe(null);
   void fetch("/api/session", { method: "DELETE", headers: GUARD }).catch(() => {});

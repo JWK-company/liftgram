@@ -12,14 +12,14 @@ INSERT INTO feedback_items (kind, author_id, category, title, body, app_version,
 VALUES (@kind, @author_id, @category, @title, @body, @app_version, @platform)
 RETURNING id;
 
--- 최신순. 이메일은 읽지 않는다.
+-- 미처리를 먼저, 그 안에서 최신순(상한에 미처리가 밀려나지 않게). 이메일은 읽지 않는다.
 -- name: ListFeedbackItems :many
 SELECT f.id, f.kind, f.author_id, f.category, f.title, f.body, f.app_version, f.platform,
        f.status, f.resolution, f.created_at, u.display_name AS author_name
 FROM feedback_items f
 LEFT JOIN users u ON u.id = f.author_id
 WHERE f.kind = @kind
-ORDER BY f.id DESC
+ORDER BY (f.status IN ('new', 'approved', 'in_progress')) DESC, f.id DESC
 LIMIT @lim;
 
 -- name: GetFeedbackItemForUpdate :one
@@ -30,7 +30,7 @@ FROM feedback_items WHERE id = @id FOR UPDATE;
 -- name: SetFeedbackStatus :exec
 UPDATE feedback_items SET
   status = @status,
-  resolution = @resolution,
+  resolution = CASE WHEN @resolution::text = '' THEN resolution ELSE @resolution END,
   approved_body_sha256 = COALESCE(sqlc.narg('approved_body_sha256'), approved_body_sha256),
   approved_instruction = COALESCE(sqlc.narg('approved_instruction'), approved_instruction),
   closed_at = CASE WHEN @status::text IN ('rejected', 'done') THEN now() ELSE NULL END

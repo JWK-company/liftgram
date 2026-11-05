@@ -41,7 +41,9 @@ export default function AdminClient() {
           </div>
         ) : !user ? (
           <div className="py-[var(--spacing-xl)] text-center" data-testid="admin-signin">
-            <AppText variant="body">{t("feed.loginRequiredTitle")}</AppText>
+            <a href="/account" className="underline">
+              <AppText variant="body">{t("feed.loginRequiredTitle")}</AppText>
+            </a>
           </div>
         ) : !canSeeAdmin(role) ? (
           <div className="py-[var(--spacing-xl)] text-center" data-testid="admin-denied">

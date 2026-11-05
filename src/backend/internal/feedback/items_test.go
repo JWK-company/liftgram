@@ -257,7 +257,7 @@ func TestSetStatus_전이표(t *testing.T) {
 			s, r := newItems()
 			id, _ := s.SubmitUser(ctx, "u", "의견입니다", "", "")
 			r.entries[0].Status = from
-			_, err := s.SetStatus(ctx, "a", "admin", id, to, "")
+			_, err := s.SetStatus(ctx, "a", "admin", id, to, "메모")
 			if want := allowed[[2]string{from, to}]; (err == nil) != want {
 				t.Errorf("%s→%s: 허용=%v, %v", from, to, want, err)
 			}

@@ -321,7 +321,8 @@ export default function AuthClient({
       {/* SPEC-018 §7 — 안드로이드 앱이면 맨 위에 「웹에서 쓰던 계정으로 계속」(앱이 아니면 아무것도 그리지 않는다) */}
       {hideAppContinue ? null : <AppContinueEntry />}
       {/* [원본] <SocialButtons returnTo="/account" preview={preview} last={lastLogin} /> */}
-      <SocialButtons returnTo={returnTo} preview={preview} last={lastLogin} />
+      {/* [원본] returnTo={returnTo} — 의견 화면에서 온 사람이 소셜 로그인 뒤 /account 에 남았다(SPEC-032) */}
+      <SocialButtons returnTo={nextHref ?? returnTo} preview={preview} last={lastLogin} />
       {isSignup ? (
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
           {t("auth.signupEmailNote")}

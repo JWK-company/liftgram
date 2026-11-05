@@ -182,6 +182,10 @@ func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, []
 			return err
 		}
 		// 사용자 의견은 탈퇴와 함께 지운다(운영 피드백은 FK 가 작성자만 비운다 · SPEC-032).
+		// 보내는 쪽과 같은 잠금을 먼저 잡는다 — 삭제 도중 들어온 의견이 작성자 없이 남지 않게.
+		if err = q.LockUserFeedback(ctx, userID); err != nil {
+			return err
+		}
 		if err = q.DeleteUserFeedbackByAuthor(ctx, &userID); err != nil {
 			return err
 		}

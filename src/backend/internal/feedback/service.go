@@ -191,6 +191,10 @@ func (s *Service) SetStatus(ctx context.Context, viewerID, role string, id int64
 		}
 		c := Change{To: to, Note: note}
 		if to == StatusApproved {
+			// 나중의 자동 수정은 승인자의 지시만 입력으로 삼는다 — 지시 없는 승인은 받지 않는다.
+			if note == "" {
+				return Change{}, errs.New(errs.Validation, "승인할 때는 처리 내용을 적어 주세요")
+			}
 			sum := sha256.Sum256([]byte(cur.Body))
 			c.ApprovedBodySHA256 = hex.EncodeToString(sum[:])
 		}
