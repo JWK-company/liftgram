@@ -57,10 +57,11 @@ func (h *Handler) ListActiveStories(ctx context.Context, _ *connect.Request[stor
 
 func toProto(s Story) *storyv1.Story {
 	return &storyv1.Story{
-		Id:        s.ID,
-		MediaUrl:  s.MediaURL,
-		Caption:   s.Caption,
-		CreatedAt: timestamppb.New(s.CreatedAt),
-		ExpiresAt: timestamppb.New(s.ExpiresAt),
+		Id:          s.ID,
+		MediaUrl:    s.MediaURL,
+		Caption:     s.Caption,
+		CreatedAt:   timestamppb.New(s.CreatedAt),
+		ExpiresAt:   timestamppb.New(s.ExpiresAt),
+		UnderReview: s.UnderReview,
 	}
 }

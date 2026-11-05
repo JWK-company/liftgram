@@ -269,10 +269,12 @@ func (x *ContentAuthor) GetDisplayName() string {
 
 // 검토자가 판단할 최소한. 본문 전체를 싣지 않는다(큐는 훑는 화면이다).
 type Preview struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	Text          string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
-	MediaUrl      string                 `protobuf:"bytes,3,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Kind     string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Text     string                 `protobuf:"bytes,2,opt,name=text,proto3" json:"text,omitempty"`
+	MediaUrl string                 `protobuf:"bytes,3,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
+	// 글의 사진 전부 — 승인은 모든 장을 풀므로 검토자도 전부 봐야 한다(SPEC-031).
+	MediaUrls     []string `protobuf:"bytes,4,rep,name=media_urls,json=mediaUrls,proto3" json:"media_urls,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -326,6 +328,13 @@ func (x *Preview) GetMediaUrl() string {
 		return x.MediaUrl
 	}
 	return ""
+}
+
+func (x *Preview) GetMediaUrls() []string {
+	if x != nil {
+		return x.MediaUrls
+	}
+	return nil
 }
 
 type QueueItem struct {
@@ -727,6 +736,102 @@ func (*ResolveResponse) Descriptor() ([]byte, []int) {
 	return file_moderation_v1_moderation_proto_rawDescGZIP(), []int{8}
 }
 
+type GetReviewMediaRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MediaUrl      string                 `protobuf:"bytes,1,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReviewMediaRequest) Reset() {
+	*x = GetReviewMediaRequest{}
+	mi := &file_moderation_v1_moderation_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReviewMediaRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReviewMediaRequest) ProtoMessage() {}
+
+func (x *GetReviewMediaRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_moderation_v1_moderation_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReviewMediaRequest.ProtoReflect.Descriptor instead.
+func (*GetReviewMediaRequest) Descriptor() ([]byte, []int) {
+	return file_moderation_v1_moderation_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetReviewMediaRequest) GetMediaUrl() string {
+	if x != nil {
+		return x.MediaUrl
+	}
+	return ""
+}
+
+type GetReviewMediaResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContentType   string                 `protobuf:"bytes,1,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	Data          []byte                 `protobuf:"bytes,2,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetReviewMediaResponse) Reset() {
+	*x = GetReviewMediaResponse{}
+	mi := &file_moderation_v1_moderation_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetReviewMediaResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetReviewMediaResponse) ProtoMessage() {}
+
+func (x *GetReviewMediaResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_moderation_v1_moderation_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetReviewMediaResponse.ProtoReflect.Descriptor instead.
+func (*GetReviewMediaResponse) Descriptor() ([]byte, []int) {
+	return file_moderation_v1_moderation_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetReviewMediaResponse) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+func (x *GetReviewMediaResponse) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 var File_moderation_v1_moderation_proto protoreflect.FileDescriptor
 
 const file_moderation_v1_moderation_proto_rawDesc = "" +
@@ -734,11 +839,13 @@ const file_moderation_v1_moderation_proto_rawDesc = "" +
 	"\x1emoderation/v1/moderation.proto\x12\rmoderation.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"B\n" +
 	"\rContentAuthor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"N\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\"m\n" +
 	"\aPreview\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12\x1b\n" +
-	"\tmedia_url\x18\x03 \x01(\tR\bmediaUrl\"\xf3\x02\n" +
+	"\tmedia_url\x18\x03 \x01(\tR\bmediaUrl\x12\x1d\n" +
+	"\n" +
+	"media_urls\x18\x04 \x03(\tR\tmediaUrls\"\xf3\x02\n" +
 	"\tQueueItem\x12:\n" +
 	"\vtarget_type\x18\x01 \x01(\x0e2\x19.moderation.v1.TargetTypeR\n" +
 	"targetType\x12\x1b\n" +
@@ -768,7 +875,13 @@ const file_moderation_v1_moderation_proto_rawDesc = "" +
 	"\ttarget_id\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\btargetId\x12-\n" +
 	"\x06action\x18\x03 \x01(\x0e2\x15.moderation.v1.ActionR\x06action\x12 \n" +
 	"\x06reason\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01R\x06reason\"\x11\n" +
-	"\x0fResolveResponse*o\n" +
+	"\x0fResolveResponse\"@\n" +
+	"\x15GetReviewMediaRequest\x12'\n" +
+	"\tmedia_url\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x04R\bmediaUrl\"O\n" +
+	"\x16GetReviewMediaResponse\x12!\n" +
+	"\fcontent_type\x18\x01 \x01(\tR\vcontentType\x12\x12\n" +
+	"\x04data\x18\x02 \x01(\fR\x04data*o\n" +
 	"\n" +
 	"TargetType\x12\x1b\n" +
 	"\x17TARGET_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
@@ -788,11 +901,12 @@ const file_moderation_v1_moderation_proto_rawDesc = "" +
 	"\x06Action\x12\x16\n" +
 	"\x12ACTION_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rACTION_REMOVE\x10\x01\x12\x12\n" +
-	"\x0eACTION_APPROVE\x10\x022\xfa\x01\n" +
+	"\x0eACTION_APPROVE\x10\x022\xdb\x02\n" +
 	"\x11ModerationService\x12G\n" +
 	"\x06Report\x12\x1c.moderation.v1.ReportRequest\x1a\x1d.moderation.v1.ReportResponse\"\x00\x12P\n" +
 	"\tListQueue\x12\x1f.moderation.v1.ListQueueRequest\x1a .moderation.v1.ListQueueResponse\"\x00\x12J\n" +
-	"\aResolve\x12\x1d.moderation.v1.ResolveRequest\x1a\x1e.moderation.v1.ResolveResponse\"\x00B\xc5\x01\n" +
+	"\aResolve\x12\x1d.moderation.v1.ResolveRequest\x1a\x1e.moderation.v1.ResolveResponse\"\x00\x12_\n" +
+	"\x0eGetReviewMedia\x12$.moderation.v1.GetReviewMediaRequest\x1a%.moderation.v1.GetReviewMediaResponse\"\x00B\xc5\x01\n" +
 	"\x11com.moderation.v1B\x0fModerationProtoP\x01ZJgithub.com/JWK-company/liftgram/src/backend/gen/moderation/v1;moderationv1\xa2\x02\x03MXX\xaa\x02\rModeration.V1\xca\x02\rModeration\\V1\xe2\x02\x19Moderation\\V1\\GPBMetadata\xea\x02\x0eModeration::V1b\x06proto3"
 
 var (
@@ -808,28 +922,30 @@ func file_moderation_v1_moderation_proto_rawDescGZIP() []byte {
 }
 
 var file_moderation_v1_moderation_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_moderation_v1_moderation_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_moderation_v1_moderation_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_moderation_v1_moderation_proto_goTypes = []any{
-	(TargetType)(0),               // 0: moderation.v1.TargetType
-	(Reason)(0),                   // 1: moderation.v1.Reason
-	(Action)(0),                   // 2: moderation.v1.Action
-	(*ContentAuthor)(nil),         // 3: moderation.v1.ContentAuthor
-	(*Preview)(nil),               // 4: moderation.v1.Preview
-	(*QueueItem)(nil),             // 5: moderation.v1.QueueItem
-	(*ReportRequest)(nil),         // 6: moderation.v1.ReportRequest
-	(*ReportResponse)(nil),        // 7: moderation.v1.ReportResponse
-	(*ListQueueRequest)(nil),      // 8: moderation.v1.ListQueueRequest
-	(*ListQueueResponse)(nil),     // 9: moderation.v1.ListQueueResponse
-	(*ResolveRequest)(nil),        // 10: moderation.v1.ResolveRequest
-	(*ResolveResponse)(nil),       // 11: moderation.v1.ResolveResponse
-	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
+	(TargetType)(0),                // 0: moderation.v1.TargetType
+	(Reason)(0),                    // 1: moderation.v1.Reason
+	(Action)(0),                    // 2: moderation.v1.Action
+	(*ContentAuthor)(nil),          // 3: moderation.v1.ContentAuthor
+	(*Preview)(nil),                // 4: moderation.v1.Preview
+	(*QueueItem)(nil),              // 5: moderation.v1.QueueItem
+	(*ReportRequest)(nil),          // 6: moderation.v1.ReportRequest
+	(*ReportResponse)(nil),         // 7: moderation.v1.ReportResponse
+	(*ListQueueRequest)(nil),       // 8: moderation.v1.ListQueueRequest
+	(*ListQueueResponse)(nil),      // 9: moderation.v1.ListQueueResponse
+	(*ResolveRequest)(nil),         // 10: moderation.v1.ResolveRequest
+	(*ResolveResponse)(nil),        // 11: moderation.v1.ResolveResponse
+	(*GetReviewMediaRequest)(nil),  // 12: moderation.v1.GetReviewMediaRequest
+	(*GetReviewMediaResponse)(nil), // 13: moderation.v1.GetReviewMediaResponse
+	(*timestamppb.Timestamp)(nil),  // 14: google.protobuf.Timestamp
 }
 var file_moderation_v1_moderation_proto_depIdxs = []int32{
 	0,  // 0: moderation.v1.QueueItem.target_type:type_name -> moderation.v1.TargetType
 	1,  // 1: moderation.v1.QueueItem.reasons:type_name -> moderation.v1.Reason
 	3,  // 2: moderation.v1.QueueItem.author:type_name -> moderation.v1.ContentAuthor
 	4,  // 3: moderation.v1.QueueItem.preview:type_name -> moderation.v1.Preview
-	12, // 4: moderation.v1.QueueItem.created_at:type_name -> google.protobuf.Timestamp
+	14, // 4: moderation.v1.QueueItem.created_at:type_name -> google.protobuf.Timestamp
 	0,  // 5: moderation.v1.ReportRequest.target_type:type_name -> moderation.v1.TargetType
 	1,  // 6: moderation.v1.ReportRequest.reason:type_name -> moderation.v1.Reason
 	5,  // 7: moderation.v1.ListQueueResponse.items:type_name -> moderation.v1.QueueItem
@@ -838,11 +954,13 @@ var file_moderation_v1_moderation_proto_depIdxs = []int32{
 	6,  // 10: moderation.v1.ModerationService.Report:input_type -> moderation.v1.ReportRequest
 	8,  // 11: moderation.v1.ModerationService.ListQueue:input_type -> moderation.v1.ListQueueRequest
 	10, // 12: moderation.v1.ModerationService.Resolve:input_type -> moderation.v1.ResolveRequest
-	7,  // 13: moderation.v1.ModerationService.Report:output_type -> moderation.v1.ReportResponse
-	9,  // 14: moderation.v1.ModerationService.ListQueue:output_type -> moderation.v1.ListQueueResponse
-	11, // 15: moderation.v1.ModerationService.Resolve:output_type -> moderation.v1.ResolveResponse
-	13, // [13:16] is the sub-list for method output_type
-	10, // [10:13] is the sub-list for method input_type
+	12, // 13: moderation.v1.ModerationService.GetReviewMedia:input_type -> moderation.v1.GetReviewMediaRequest
+	7,  // 14: moderation.v1.ModerationService.Report:output_type -> moderation.v1.ReportResponse
+	9,  // 15: moderation.v1.ModerationService.ListQueue:output_type -> moderation.v1.ListQueueResponse
+	11, // 16: moderation.v1.ModerationService.Resolve:output_type -> moderation.v1.ResolveResponse
+	13, // 17: moderation.v1.ModerationService.GetReviewMedia:output_type -> moderation.v1.GetReviewMediaResponse
+	14, // [14:18] is the sub-list for method output_type
+	10, // [10:14] is the sub-list for method input_type
 	10, // [10:10] is the sub-list for extension type_name
 	10, // [10:10] is the sub-list for extension extendee
 	0,  // [0:10] is the sub-list for field type_name
@@ -859,7 +977,7 @@ func file_moderation_v1_moderation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_moderation_v1_moderation_proto_rawDesc), len(file_moderation_v1_moderation_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

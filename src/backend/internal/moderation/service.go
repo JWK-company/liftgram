@@ -18,6 +18,7 @@ package moderation
 
 import (
 	"context"
+	"log/slog"
 	"regexp"
 	"strings"
 	"time"
@@ -58,6 +59,8 @@ type Preview struct {
 	Kind     string
 	Text     string
 	MediaURL string
+	// MediaURLs — 글의 사진 전부. 검토자는 이것을 다 보고 판단한다.
+	MediaURLs []string
 }
 
 type Target struct {
@@ -106,13 +109,28 @@ type Repo interface {
 	IsBlockedEitherWay(ctx context.Context, a, b string) (bool, error)
 
 	ListAutoPending(ctx context.Context, limit int32) ([]QueueItem, error)
+	HasSensitivePendingReport(ctx context.Context, t TargetType, targetID string) (bool, error)
+	// 검토 대기로 돌리면서 사진 파일도 막는다(한 트랜잭션).
+	HoldWithMediaBlocked(ctx context.Context, t TargetType, targetID string, mediaKeys []string) error
 	// 상태를 바꾸고, 사진이 딸려 있으면 모든 장의 바이트를 함께 막거나 푼다(한 트랜잭션).
 	SetModeration(ctx context.Context, t TargetType, targetID, status, reason string, removed bool, mediaKeys []string) error
+}
+
+// ReviewMedia — 막힌 사진도 읽는 길. 검토자에게만 쓴다.
+type ReviewMedia interface {
+	ReadForReview(ctx context.Context, key string) (contentType string, data []byte, err error)
 }
 
 type Service struct {
 	repo  Repo
 	newID func() string
+	media ReviewMedia
+}
+
+// WithReviewMedia — 검토자 미리보기를 켠다. 없으면 GetReviewMedia 는 없는 파일로 답한다.
+func (s *Service) WithReviewMedia(m ReviewMedia) *Service {
+	s.media = m
+	return s
 }
 
 func NewService(repo Repo, newID func() string) *Service {
@@ -163,8 +181,9 @@ func (s *Service) Report(ctx context.Context, reporterID string, t TargetType, t
 // AutoHoldReporters — 서로 다른 이만큼이 신고하면 사람이 보기 전까지 숨긴다(SPEC-030).
 const AutoHoldReporters = 3
 
-// holdIfReportedEnough — 삭제가 아니라 검토 대기다. 검토자가 기각하면 approved 로 돌아오고,
-// 처리된 신고는 다시 세지 않는다. 사진 바이트는 막지 않는다(판단은 사람이 한다).
+// holdIfReportedEnough — 삭제가 아니라 검토 대기다. 검토자가 기각하면 approved 로 돌아오고 파일도 풀린다.
+// [원본] 사진 바이트는 막지 않았다.
+// [개선] 나체·미성년자 신고가 있으면 주소로도 열리지 않게 파일까지 막는다(SPEC-031).
 func (s *Service) holdIfReportedEnough(ctx context.Context, t TargetType, targetID string) error {
 	n, err := s.repo.CountPendingReporters(ctx, t, targetID)
 	if err != nil {
@@ -174,8 +193,19 @@ func (s *Service) holdIfReportedEnough(ctx context.Context, t TargetType, target
 		return nil
 	}
 	target, ok, err := s.repo.GetTarget(ctx, t, targetID)
-	if err != nil || !ok || target.ModerationStatus != "approved" {
+	// [원본] approved 가 아니면 돌아갔다 — 다른 사유로 숨겨진 글은 나체 신고가 와도 파일이 열렸다.
+	if err != nil || !ok || (target.ModerationStatus != "approved" && target.ModerationStatus != "pending") {
 		return err
+	}
+	sensitive, err := s.repo.HasSensitivePendingReport(ctx, t, targetID)
+	if err != nil {
+		return err
+	}
+	if sensitive {
+		return s.repo.HoldWithMediaBlocked(ctx, t, targetID, mediaKeys(target))
+	}
+	if target.ModerationStatus != "approved" {
+		return nil
 	}
 	return s.repo.SetModeration(ctx, t, targetID, "pending", "", false, nil)
 }
@@ -359,6 +389,19 @@ func (s *Service) Resolve(ctx context.Context, reviewerID, role string, t Target
 		return err
 	}
 	return s.repo.ResolveReports(ctx, t, targetID, reviewerID, reportStatus, action)
+}
+
+// GetReviewMedia — 검토자 미리보기. 누가 어떤 사진을 봤는지 남긴다.
+func (s *Service) GetReviewMedia(ctx context.Context, viewerID, role, url string) (string, []byte, error) {
+	if err := requireModerator(viewerID, role); err != nil {
+		return "", nil, err
+	}
+	key := MediaKey(url)
+	if key == "" || strings.HasPrefix(key, ".") || s.media == nil {
+		return "", nil, errs.New(errs.NotFound, "파일을 찾을 수 없습니다")
+	}
+	slog.Info("[moderation] 검토자 사진 열람", "viewer", viewerID, "key", key)
+	return s.media.ReadForReview(ctx, key)
 }
 
 // ── 내부 ─────────────────────────────────────────────────────────────────────

@@ -38,6 +38,8 @@ message Story {
   string caption = 3;
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp expires_at = 5;
+  // 검토 중이라 작성자에게만 보인다(SPEC-031).
+  bool under_review = 6;
 }
 
 // 한 사람의 살아 있는 스토리들. 오래된 것이 먼저다(넘겨 보는 순서).

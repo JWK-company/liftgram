@@ -33,6 +33,7 @@ export function StoryViewer({
   const [idx, setIdx] = useState(0);
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [reporting, setReporting] = useState(false);
+  const [brokenId, setBrokenId] = useState<string | null>(null);
 
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
 
@@ -116,14 +117,32 @@ export function StoryViewer({
         data-testid="story-advance"
         className="min-h-0 flex-1 cursor-default"
       >
-        {/* biome-ignore lint/performance/noImgElement: 스토리지에서 오는 사진 — 최적화 대상이 아니다 */}
-        <img
-          src={mediaSrc(story.mediaUrl)}
-          alt={story.caption || ""}
-          data-testid="story-image"
-          className="h-full w-full object-contain"
-        />
+        {story.underReview && brokenId === story.id ? (
+          <AppText variant="body" style={{ color: "var(--color-on-scrim)" }}>
+            {t("feed.imageHeld")}
+          </AppText>
+        ) : (
+          // biome-ignore lint/performance/noImgElement: 스토리지에서 오는 사진 — 최적화 대상이 아니다
+          <img
+            src={mediaSrc(story.mediaUrl)}
+            alt={story.caption || ""}
+            data-testid="story-image"
+            onError={() => setBrokenId(story.id)}
+            className="h-full w-full object-contain"
+          />
+        )}
       </button>
+
+      {story.underReview ? (
+        <div
+          className="px-[var(--spacing-lg)] pt-[var(--spacing-sm)] text-center"
+          data-testid="story-under-review"
+        >
+          <AppText variant="caption" style={{ color: "var(--color-on-scrim)" }}>
+            {t("feed.underReview")}
+          </AppText>
+        </div>
+      ) : null}
 
       {story.caption ? (
         <div className="px-[var(--spacing-lg)] py-[var(--spacing-xl)] text-center">

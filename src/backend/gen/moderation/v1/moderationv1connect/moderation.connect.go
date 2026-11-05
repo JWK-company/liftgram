@@ -60,6 +60,9 @@ const (
 	// ModerationServiceResolveProcedure is the fully-qualified name of the ModerationService's Resolve
 	// RPC.
 	ModerationServiceResolveProcedure = "/moderation.v1.ModerationService/Resolve"
+	// ModerationServiceGetReviewMediaProcedure is the fully-qualified name of the ModerationService's
+	// GetReviewMedia RPC.
+	ModerationServiceGetReviewMediaProcedure = "/moderation.v1.ModerationService/GetReviewMedia"
 )
 
 // ModerationServiceClient is a client for the moderation.v1.ModerationService service.
@@ -70,6 +73,8 @@ type ModerationServiceClient interface {
 	// 여기부터는 moderator·admin만.
 	ListQueue(context.Context, *connect.Request[v1.ListQueueRequest]) (*connect.Response[v1.ListQueueResponse], error)
 	Resolve(context.Context, *connect.Request[v1.ResolveRequest]) (*connect.Response[v1.ResolveResponse], error)
+	// 막힌 사진도 검토자는 봐야 판단할 수 있다.
+	GetReviewMedia(context.Context, *connect.Request[v1.GetReviewMediaRequest]) (*connect.Response[v1.GetReviewMediaResponse], error)
 }
 
 // NewModerationServiceClient constructs a client for the moderation.v1.ModerationService service.
@@ -101,14 +106,21 @@ func NewModerationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(moderationServiceMethods.ByName("Resolve")),
 			connect.WithClientOptions(opts...),
 		),
+		getReviewMedia: connect.NewClient[v1.GetReviewMediaRequest, v1.GetReviewMediaResponse](
+			httpClient,
+			baseURL+ModerationServiceGetReviewMediaProcedure,
+			connect.WithSchema(moderationServiceMethods.ByName("GetReviewMedia")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // moderationServiceClient implements ModerationServiceClient.
 type moderationServiceClient struct {
-	report    *connect.Client[v1.ReportRequest, v1.ReportResponse]
-	listQueue *connect.Client[v1.ListQueueRequest, v1.ListQueueResponse]
-	resolve   *connect.Client[v1.ResolveRequest, v1.ResolveResponse]
+	report         *connect.Client[v1.ReportRequest, v1.ReportResponse]
+	listQueue      *connect.Client[v1.ListQueueRequest, v1.ListQueueResponse]
+	resolve        *connect.Client[v1.ResolveRequest, v1.ResolveResponse]
+	getReviewMedia *connect.Client[v1.GetReviewMediaRequest, v1.GetReviewMediaResponse]
 }
 
 // Report calls moderation.v1.ModerationService.Report.
@@ -126,6 +138,11 @@ func (c *moderationServiceClient) Resolve(ctx context.Context, req *connect.Requ
 	return c.resolve.CallUnary(ctx, req)
 }
 
+// GetReviewMedia calls moderation.v1.ModerationService.GetReviewMedia.
+func (c *moderationServiceClient) GetReviewMedia(ctx context.Context, req *connect.Request[v1.GetReviewMediaRequest]) (*connect.Response[v1.GetReviewMediaResponse], error) {
+	return c.getReviewMedia.CallUnary(ctx, req)
+}
+
 // ModerationServiceHandler is an implementation of the moderation.v1.ModerationService service.
 type ModerationServiceHandler interface {
 	// 로그인한 사람이면 누구나. **볼 수 있는 것만** 신고할 수 있고, 내 것은 신고할 수 없다.
@@ -134,6 +151,8 @@ type ModerationServiceHandler interface {
 	// 여기부터는 moderator·admin만.
 	ListQueue(context.Context, *connect.Request[v1.ListQueueRequest]) (*connect.Response[v1.ListQueueResponse], error)
 	Resolve(context.Context, *connect.Request[v1.ResolveRequest]) (*connect.Response[v1.ResolveResponse], error)
+	// 막힌 사진도 검토자는 봐야 판단할 수 있다.
+	GetReviewMedia(context.Context, *connect.Request[v1.GetReviewMediaRequest]) (*connect.Response[v1.GetReviewMediaResponse], error)
 }
 
 // NewModerationServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -161,6 +180,12 @@ func NewModerationServiceHandler(svc ModerationServiceHandler, opts ...connect.H
 		connect.WithSchema(moderationServiceMethods.ByName("Resolve")),
 		connect.WithHandlerOptions(opts...),
 	)
+	moderationServiceGetReviewMediaHandler := connect.NewUnaryHandler(
+		ModerationServiceGetReviewMediaProcedure,
+		svc.GetReviewMedia,
+		connect.WithSchema(moderationServiceMethods.ByName("GetReviewMedia")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/moderation.v1.ModerationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ModerationServiceReportProcedure:
@@ -169,6 +194,8 @@ func NewModerationServiceHandler(svc ModerationServiceHandler, opts ...connect.H
 			moderationServiceListQueueHandler.ServeHTTP(w, r)
 		case ModerationServiceResolveProcedure:
 			moderationServiceResolveHandler.ServeHTTP(w, r)
+		case ModerationServiceGetReviewMediaProcedure:
+			moderationServiceGetReviewMediaHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -188,4 +215,8 @@ func (UnimplementedModerationServiceHandler) ListQueue(context.Context, *connect
 
 func (UnimplementedModerationServiceHandler) Resolve(context.Context, *connect.Request[v1.ResolveRequest]) (*connect.Response[v1.ResolveResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("moderation.v1.ModerationService.Resolve is not implemented"))
+}
+
+func (UnimplementedModerationServiceHandler) GetReviewMedia(context.Context, *connect.Request[v1.GetReviewMediaRequest]) (*connect.Response[v1.GetReviewMediaResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("moderation.v1.ModerationService.GetReviewMedia is not implemented"))
 }

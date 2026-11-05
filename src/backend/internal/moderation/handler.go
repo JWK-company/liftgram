@@ -60,7 +60,7 @@ func (h *Handler) ListQueue(ctx context.Context, req *connect.Request[moderation
 			Reasons:     reasons,
 			ReportCount: it.ReportCount,
 			Author:      &moderationv1.ContentAuthor{Id: it.Author.ID, DisplayName: it.Author.DisplayName},
-			Preview:     &moderationv1.Preview{Kind: it.Preview.Kind, Text: it.Preview.Text, MediaUrl: it.Preview.MediaURL},
+			Preview:     &moderationv1.Preview{Kind: it.Preview.Kind, Text: it.Preview.Text, MediaUrl: it.Preview.MediaURL, MediaUrls: it.Preview.MediaURLs},
 			CreatedAt:   timestamppb.New(it.CreatedAt),
 		})
 	}
@@ -74,6 +74,15 @@ func (h *Handler) Resolve(ctx context.Context, req *connect.Request[moderationv1
 		return nil, err
 	}
 	return connect.NewResponse(&moderationv1.ResolveResponse{}), nil
+}
+
+func (h *Handler) GetReviewMedia(ctx context.Context, req *connect.Request[moderationv1.GetReviewMediaRequest]) (*connect.Response[moderationv1.GetReviewMediaResponse], error) {
+	id, role := who(ctx)
+	contentType, data, err := h.svc.GetReviewMedia(ctx, id, role, req.Msg.GetMediaUrl())
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&moderationv1.GetReviewMediaResponse{ContentType: contentType, Data: data}), nil
 }
 
 // ── 변환 ─────────────────────────────────────────────────────────────────────

@@ -26,6 +26,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL이 필요하다}
     restart: unless-stopped
 
+  imagescan:
+    restart: unless-stopped
+
   frontend:
     restart: unless-stopped
     ports: !override ["127.0.0.1:${WEB_PORT:?WEB_PORT가 필요하다}:3000"]

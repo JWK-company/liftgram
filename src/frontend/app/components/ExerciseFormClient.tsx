@@ -22,8 +22,7 @@ import {
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { navigateAfterFlush } from "@/lib/localDb";
-import { uploadImage } from "@/lib/mediaClient";
-import { mediaSrc } from "@/lib/mediaClient";
+import { mediaSrc, uploadImageChecked } from "@/lib/mediaClient";
 import { useToast } from "./Toast";
 import { Button } from "./ui/Button";
 import { Chip } from "./ui/Chip";
@@ -83,7 +82,12 @@ export default function ExerciseFormClient({ exerciseId }: { exerciseId?: string
     if (uploading) return;
     setUploading(true);
     try {
-      setImageUrl(await uploadImage(file));
+      const { url, flagged } = await uploadImageChecked(file);
+      if (flagged) {
+        toast(t("exercises.imageRejected"), "error");
+        return;
+      }
+      setImageUrl(url);
     } catch {
       // 사진이 없어도 종목은 만들 수 있다 — 여기서 막지 않는다.
       toast(t("exercises.imageUploadFailed"), "error");

@@ -163,9 +163,10 @@ type Signer interface {
 }
 
 type Service struct {
-	repo   Repo
-	signer Signer
-	now    func() time.Time
+	avatarCheck func(ctx context.Context, url, ownerID string) (bool, error)
+	repo        Repo
+	signer      Signer
+	now         func() time.Time
 	// 정식 계정 기능(account.go) — WithAccount로 끼운다. nil 이면 메일 없는 옛 동작
 	acct *Account
 }
@@ -500,7 +501,21 @@ func (s *Service) UpdateProfile(ctx context.Context, userID string, p ProfilePat
 	if p.SetExperienceLevel && !validExperience(p.ExperienceLevel) {
 		return User{}, errs.New(errs.Validation, "알 수 없는 경력 값입니다: %s", p.ExperienceLevel)
 	}
+	if p.SetAvatarURL && p.AvatarURL != "" && s.avatarCheck != nil {
+		flagged, err := s.avatarCheck(ctx, p.AvatarURL, userID)
+		if err != nil {
+			return User{}, err
+		}
+		if flagged {
+			return User{}, errs.New(errs.Validation, "이 사진은 사용할 수 없어요")
+		}
+	}
 	return s.repo.UpdateProfile(ctx, userID, p)
+}
+
+// WithAvatarCheck — 프로필 사진 주소를 저장 전에 확인한다. 돌려주는 bool 은 자동 검사에 걸렸는지다.
+func (s *Service) WithAvatarCheck(check func(ctx context.Context, url, ownerID string) (bool, error)) {
+	s.avatarCheck = check
 }
 
 // VerifyAccess는 access 토큰에서 사용자 id를 꺼낸다. 미들웨어가 부른다.

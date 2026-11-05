@@ -84,12 +84,12 @@ INSERT INTO posts (
   id, author_id, kind, caption, visibility,
   workout_id, workout_name, total_volume_kg, working_sets, duration_seconds, pr_count,
   streak_days, weekly_reached, exercises, gear,
-  media_urls, idempotency_key
+  media_urls, idempotency_key, moderation_status
 ) VALUES (
   $1, $2, $3, $4, $5,
   $6, $7, $8, $9, $10, $11,
   $12, $13, $14, $15,
-  $16, $17
+  $16, $17, $18
 )
 RETURNING *;
 

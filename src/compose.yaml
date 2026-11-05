@@ -58,6 +58,7 @@ services:
   # 백엔드 — 도메인 규칙·DB·실시간의 종단. 브라우저가 직접 보지 않는다.
   backend:
     build: { context: ., target: backend }
+    networks: [default, scan]
     image: ${COMPOSE_PROJECT_NAME:-liftgram}-backend
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@db:5432/${POSTGRES_DB:-app}
@@ -98,6 +99,11 @@ services:
       AUTH_RATE_LIMIT: ${AUTH_RATE_LIMIT:-10}
       KAKAO_LOCAL_REST_KEY: ${KAKAO_LOCAL_REST_KEY:-}
       FEED_RECOMMEND_SINCE: ${FEED_RECOMMEND_SINCE:-2026-11-12T00:00:00+09:00}
+      KAKAO_LOCAL_SINCE: ${KAKAO_LOCAL_SINCE:-2026-11-12T00:00:00+09:00}
+      # 사진 자동 검사(SPEC-031) — 비우면 검사하지 않는다.
+      IMAGE_SCAN_URL: ${IMAGE_SCAN_URL-http://imagescan:8080}
+      IMAGE_SCAN_THRESHOLD: ${IMAGE_SCAN_THRESHOLD:-0.9}
+      IMAGE_SCAN_SINCE: ${IMAGE_SCAN_SINCE:-2026-11-12T00:00:00+09:00}
       OAUTH_GOOGLE_CLIENT_ID: ${OAUTH_GOOGLE_CLIENT_ID:-}
       OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET:-}
       OAUTH_KAKAO_CLIENT_ID: ${OAUTH_KAKAO_CLIENT_ID:-}
@@ -126,6 +132,25 @@ services:
       migrate: { condition: service_completed_successfully }
 
   # 화면 + 프록시 — 브라우저가 보는 유일한 주소.
+  # 사진 자동 검사 — backend 하고만 닿고 밖으로 나가는 길이 없다.
+  imagescan:
+    build: { context: ./imagescan }
+    image: ${COMPOSE_PROJECT_NAME:-liftgram}-imagescan
+    networks: [scan]
+    read_only: true
+    tmpfs: ["/tmp:size=16m"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 64
+    mem_limit: 1536m
+    cpus: "1.5"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8080/healthz', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      start_period: 20s
+      retries: 20
+
   frontend:
     build: { context: ., target: frontend }
     environment:
@@ -164,3 +189,7 @@ volumes:
   pgdata:
   # 올라간 사진 — 컨테이너를 다시 만들어도 남는다(무료 호스트의 디스크는 그렇지 않다).
   media:
+
+networks:
+  scan:
+    internal: true

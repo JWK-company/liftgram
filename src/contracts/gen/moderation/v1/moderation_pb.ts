@@ -31,7 +31,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file moderation/v1/moderation.proto.
  */
 export const file_moderation_v1_moderation: GenFile = /*@__PURE__*/
-  fileDesc("Ch5tb2RlcmF0aW9uL3YxL21vZGVyYXRpb24ucHJvdG8SDW1vZGVyYXRpb24udjEiMQoNQ29udGVudEF1dGhvchIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkiOAoHUHJldmlldxIMCgRraW5kGAEgASgJEgwKBHRleHQYAiABKAkSEQoJbWVkaWFfdXJsGAMgASgJIqMCCglRdWV1ZUl0ZW0SLgoLdGFyZ2V0X3R5cGUYASABKA4yGS5tb2RlcmF0aW9uLnYxLlRhcmdldFR5cGUSEQoJdGFyZ2V0X2lkGAIgASgJEg4KBnNvdXJjZRgDIAEoCRImCgdyZWFzb25zGAQgAygOMhUubW9kZXJhdGlvbi52MS5SZWFzb24SFAoMcmVwb3J0X2NvdW50GAUgASgFEiwKBmF1dGhvchgGIAEoCzIcLm1vZGVyYXRpb24udjEuQ29udGVudEF1dGhvchInCgdwcmV2aWV3GAcgASgLMhYubW9kZXJhdGlvbi52MS5QcmV2aWV3Ei4KCmNyZWF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIp8BCg1SZXBvcnRSZXF1ZXN0Ei4KC3RhcmdldF90eXBlGAEgASgOMhkubW9kZXJhdGlvbi52MS5UYXJnZXRUeXBlEhwKCXRhcmdldF9pZBgCIAEoCUIJukgGcgQQARhAEiUKBnJlYXNvbhgDIAEoDjIVLm1vZGVyYXRpb24udjEuUmVhc29uEhkKB2RldGFpbHMYBCABKAlCCLpIBXIDGOgHIhAKDlJlcG9ydFJlc3BvbnNlIi0KEExpc3RRdWV1ZVJlcXVlc3QSGQoFbGltaXQYASABKAVCCrpIBxoFGMgBKAAiPAoRTGlzdFF1ZXVlUmVzcG9uc2USJwoFaXRlbXMYASADKAsyGC5tb2RlcmF0aW9uLnYxLlF1ZXVlSXRlbSKfAQoOUmVzb2x2ZVJlcXVlc3QSLgoLdGFyZ2V0X3R5cGUYASABKA4yGS5tb2RlcmF0aW9uLnYxLlRhcmdldFR5cGUSHAoJdGFyZ2V0X2lkGAIgASgJQgm6SAZyBBABGEASJQoGYWN0aW9uGAMgASgOMhUubW9kZXJhdGlvbi52MS5BY3Rpb24SGAoGcmVhc29uGAQgASgJQgi6SAVyAxjIASIRCg9SZXNvbHZlUmVzcG9uc2UqbwoKVGFyZ2V0VHlwZRIbChdUQVJHRVRfVFlQRV9VTlNQRUNJRklFRBAAEhQKEFRBUkdFVF9UWVBFX1BPU1QQARIVChFUQVJHRVRfVFlQRV9TVE9SWRACEhcKE1RBUkdFVF9UWVBFX0NPTU1FTlQQAyrMAQoGUmVhc29uEhYKElJFQVNPTl9VTlNQRUNJRklFRBAAEg8KC1JFQVNPTl9TUEFNEAESEQoNUkVBU09OX05VRElUWRACEhUKEVJFQVNPTl9IQVJBU1NNRU5UEAMSEwoPUkVBU09OX1ZJT0xFTkNFEAQSFAoQUkVBU09OX1NFTEZfSEFSTRAFEhcKE1JFQVNPTl9NSU5PUl9TQUZFVFkQBhIZChVSRUFTT05fTUlTSU5GT1JNQVRJT04QBxIQCgxSRUFTT05fT1RIRVIQCCpHCgZBY3Rpb24SFgoSQUNUSU9OX1VOU1BFQ0lGSUVEEAASEQoNQUNUSU9OX1JFTU9WRRABEhIKDkFDVElPTl9BUFBST1ZFEAIy+gEKEU1vZGVyYXRpb25TZXJ2aWNlEkcKBlJlcG9ydBIcLm1vZGVyYXRpb24udjEuUmVwb3J0UmVxdWVzdBodLm1vZGVyYXRpb24udjEuUmVwb3J0UmVzcG9uc2UiABJQCglMaXN0UXVldWUSHy5tb2RlcmF0aW9uLnYxLkxpc3RRdWV1ZVJlcXVlc3QaIC5tb2RlcmF0aW9uLnYxLkxpc3RRdWV1ZVJlc3BvbnNlIgASSgoHUmVzb2x2ZRIdLm1vZGVyYXRpb24udjEuUmVzb2x2ZVJlcXVlc3QaHi5tb2RlcmF0aW9uLnYxLlJlc29sdmVSZXNwb25zZSIAQsUBChFjb20ubW9kZXJhdGlvbi52MUIPTW9kZXJhdGlvblByb3RvUAFaSmdpdGh1Yi5jb20vSldLLWNvbXBhbnkvbGlmdGdyYW0vc3JjL2JhY2tlbmQvZ2VuL21vZGVyYXRpb24vdjE7bW9kZXJhdGlvbnYxogIDTVhYqgINTW9kZXJhdGlvbi5WMcoCDU1vZGVyYXRpb25cVjHiAhlNb2RlcmF0aW9uXFYxXEdQQk1ldGFkYXRh6gIOTW9kZXJhdGlvbjo6VjFiBnByb3RvMw", [file_buf_validate_validate, file_google_protobuf_timestamp]);
+  fileDesc("Ch5tb2RlcmF0aW9uL3YxL21vZGVyYXRpb24ucHJvdG8SDW1vZGVyYXRpb24udjEiMQoNQ29udGVudEF1dGhvchIKCgJpZBgBIAEoCRIUCgxkaXNwbGF5X25hbWUYAiABKAkiTAoHUHJldmlldxIMCgRraW5kGAEgASgJEgwKBHRleHQYAiABKAkSEQoJbWVkaWFfdXJsGAMgASgJEhIKCm1lZGlhX3VybHMYBCADKAkiowIKCVF1ZXVlSXRlbRIuCgt0YXJnZXRfdHlwZRgBIAEoDjIZLm1vZGVyYXRpb24udjEuVGFyZ2V0VHlwZRIRCgl0YXJnZXRfaWQYAiABKAkSDgoGc291cmNlGAMgASgJEiYKB3JlYXNvbnMYBCADKA4yFS5tb2RlcmF0aW9uLnYxLlJlYXNvbhIUCgxyZXBvcnRfY291bnQYBSABKAUSLAoGYXV0aG9yGAYgASgLMhwubW9kZXJhdGlvbi52MS5Db250ZW50QXV0aG9yEicKB3ByZXZpZXcYByABKAsyFi5tb2RlcmF0aW9uLnYxLlByZXZpZXcSLgoKY3JlYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAinwEKDVJlcG9ydFJlcXVlc3QSLgoLdGFyZ2V0X3R5cGUYASABKA4yGS5tb2RlcmF0aW9uLnYxLlRhcmdldFR5cGUSHAoJdGFyZ2V0X2lkGAIgASgJQgm6SAZyBBABGEASJQoGcmVhc29uGAMgASgOMhUubW9kZXJhdGlvbi52MS5SZWFzb24SGQoHZGV0YWlscxgEIAEoCUIIukgFcgMY6AciEAoOUmVwb3J0UmVzcG9uc2UiLQoQTGlzdFF1ZXVlUmVxdWVzdBIZCgVsaW1pdBgBIAEoBUIKukgHGgUYyAEoACI8ChFMaXN0UXVldWVSZXNwb25zZRInCgVpdGVtcxgBIAMoCzIYLm1vZGVyYXRpb24udjEuUXVldWVJdGVtIp8BCg5SZXNvbHZlUmVxdWVzdBIuCgt0YXJnZXRfdHlwZRgBIAEoDjIZLm1vZGVyYXRpb24udjEuVGFyZ2V0VHlwZRIcCgl0YXJnZXRfaWQYAiABKAlCCbpIBnIEEAEYQBIlCgZhY3Rpb24YAyABKA4yFS5tb2RlcmF0aW9uLnYxLkFjdGlvbhIYCgZyZWFzb24YBCABKAlCCLpIBXIDGMgBIhEKD1Jlc29sdmVSZXNwb25zZSI2ChVHZXRSZXZpZXdNZWRpYVJlcXVlc3QSHQoJbWVkaWFfdXJsGAEgASgJQgq6SAdyBRABGIAEIjwKFkdldFJldmlld01lZGlhUmVzcG9uc2USFAoMY29udGVudF90eXBlGAEgASgJEgwKBGRhdGEYAiABKAwqbwoKVGFyZ2V0VHlwZRIbChdUQVJHRVRfVFlQRV9VTlNQRUNJRklFRBAAEhQKEFRBUkdFVF9UWVBFX1BPU1QQARIVChFUQVJHRVRfVFlQRV9TVE9SWRACEhcKE1RBUkdFVF9UWVBFX0NPTU1FTlQQAyrMAQoGUmVhc29uEhYKElJFQVNPTl9VTlNQRUNJRklFRBAAEg8KC1JFQVNPTl9TUEFNEAESEQoNUkVBU09OX05VRElUWRACEhUKEVJFQVNPTl9IQVJBU1NNRU5UEAMSEwoPUkVBU09OX1ZJT0xFTkNFEAQSFAoQUkVBU09OX1NFTEZfSEFSTRAFEhcKE1JFQVNPTl9NSU5PUl9TQUZFVFkQBhIZChVSRUFTT05fTUlTSU5GT1JNQVRJT04QBxIQCgxSRUFTT05fT1RIRVIQCCpHCgZBY3Rpb24SFgoSQUNUSU9OX1VOU1BFQ0lGSUVEEAASEQoNQUNUSU9OX1JFTU9WRRABEhIKDkFDVElPTl9BUFBST1ZFEAIy2wIKEU1vZGVyYXRpb25TZXJ2aWNlEkcKBlJlcG9ydBIcLm1vZGVyYXRpb24udjEuUmVwb3J0UmVxdWVzdBodLm1vZGVyYXRpb24udjEuUmVwb3J0UmVzcG9uc2UiABJQCglMaXN0UXVldWUSHy5tb2RlcmF0aW9uLnYxLkxpc3RRdWV1ZVJlcXVlc3QaIC5tb2RlcmF0aW9uLnYxLkxpc3RRdWV1ZVJlc3BvbnNlIgASSgoHUmVzb2x2ZRIdLm1vZGVyYXRpb24udjEuUmVzb2x2ZVJlcXVlc3QaHi5tb2RlcmF0aW9uLnYxLlJlc29sdmVSZXNwb25zZSIAEl8KDkdldFJldmlld01lZGlhEiQubW9kZXJhdGlvbi52MS5HZXRSZXZpZXdNZWRpYVJlcXVlc3QaJS5tb2RlcmF0aW9uLnYxLkdldFJldmlld01lZGlhUmVzcG9uc2UiAELFAQoRY29tLm1vZGVyYXRpb24udjFCD01vZGVyYXRpb25Qcm90b1ABWkpnaXRodWIuY29tL0pXSy1jb21wYW55L2xpZnRncmFtL3NyYy9iYWNrZW5kL2dlbi9tb2RlcmF0aW9uL3YxO21vZGVyYXRpb252MaICA01YWKoCDU1vZGVyYXRpb24uVjHKAg1Nb2RlcmF0aW9uXFYx4gIZTW9kZXJhdGlvblxWMVxHUEJNZXRhZGF0YeoCDk1vZGVyYXRpb246OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * 검토 대상의 글쓴이. `feed.v1.Author`와 이름을 겹치지 않게 둔다 —
@@ -78,6 +78,13 @@ export type Preview = Message<"moderation.v1.Preview"> & {
    * @generated from field: string media_url = 3;
    */
   mediaUrl: string;
+
+  /**
+   * 글의 사진 전부 — 승인은 모든 장을 풀므로 검토자도 전부 봐야 한다(SPEC-031).
+   *
+   * @generated from field: repeated string media_urls = 4;
+   */
+  mediaUrls: string[];
 };
 
 /**
@@ -270,6 +277,45 @@ export const ResolveResponseSchema: GenMessage<ResolveResponse> = /*@__PURE__*/
   messageDesc(file_moderation_v1_moderation, 8);
 
 /**
+ * @generated from message moderation.v1.GetReviewMediaRequest
+ */
+export type GetReviewMediaRequest = Message<"moderation.v1.GetReviewMediaRequest"> & {
+  /**
+   * @generated from field: string media_url = 1;
+   */
+  mediaUrl: string;
+};
+
+/**
+ * Describes the message moderation.v1.GetReviewMediaRequest.
+ * Use `create(GetReviewMediaRequestSchema)` to create a new message.
+ */
+export const GetReviewMediaRequestSchema: GenMessage<GetReviewMediaRequest> = /*@__PURE__*/
+  messageDesc(file_moderation_v1_moderation, 9);
+
+/**
+ * @generated from message moderation.v1.GetReviewMediaResponse
+ */
+export type GetReviewMediaResponse = Message<"moderation.v1.GetReviewMediaResponse"> & {
+  /**
+   * @generated from field: string content_type = 1;
+   */
+  contentType: string;
+
+  /**
+   * @generated from field: bytes data = 2;
+   */
+  data: Uint8Array;
+};
+
+/**
+ * Describes the message moderation.v1.GetReviewMediaResponse.
+ * Use `create(GetReviewMediaResponseSchema)` to create a new message.
+ */
+export const GetReviewMediaResponseSchema: GenMessage<GetReviewMediaResponse> = /*@__PURE__*/
+  messageDesc(file_moderation_v1_moderation, 10);
+
+/**
  * 신고 대상. 셋 다 작성자가 있고 감출 수 있다.
  *
  * @generated from enum moderation.v1.TargetType
@@ -422,6 +468,16 @@ export const ModerationService: GenService<{
     methodKind: "unary";
     input: typeof ResolveRequestSchema;
     output: typeof ResolveResponseSchema;
+  },
+  /**
+   * 막힌 사진도 검토자는 봐야 판단할 수 있다.
+   *
+   * @generated from rpc moderation.v1.ModerationService.GetReviewMedia
+   */
+  getReviewMedia: {
+    methodKind: "unary";
+    input: typeof GetReviewMediaRequestSchema;
+    output: typeof GetReviewMediaResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_moderation_v1_moderation, 0);

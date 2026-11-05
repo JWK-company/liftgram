@@ -390,3 +390,17 @@ func TestLogsHoldNoKeyOrCoordinates(t *testing.T) {
 		}
 	}
 }
+
+// 시행 전에는 키가 있어도 카카오를 부르지 않는다.
+func TestBeforeSinceDoesNotCallKakao(t *testing.T) {
+	h, calls := fake(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(200) })
+	now := time.Unix(1_800_000_000, 0)
+	h.now = func() time.Time { return now }
+	h.WithSince(now.Add(time.Hour))
+	if rec := post(h, seoul); rec.Code != 503 {
+		t.Fatalf("상태 %d", rec.Code)
+	}
+	if got := calls.Load(); got != 0 {
+		t.Fatalf("호출 %d", got)
+	}
+}

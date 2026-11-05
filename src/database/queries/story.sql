@@ -15,7 +15,9 @@ SELECT s.*, u.display_name AS author_name, u.avatar_url AS author_avatar
 FROM stories s
 JOIN users u ON u.id = s.author_id
 WHERE s.expires_at > now()
-  AND s.moderation_status = 'approved'
+  -- [원본] s.moderation_status = 'approved' — 검토 중인 자기 스토리가 작성자에게서도 사라졌다
+  -- [개선] 작성자에게는 검토 중인 것도 보인다(방침의 「작성자에게만 보임」 · SPEC-031)
+  AND (s.moderation_status = 'approved' OR (s.moderation_status = 'pending' AND s.author_id = @viewer_id::text))
   AND (
     s.author_id = @viewer_id::text
     OR EXISTS (

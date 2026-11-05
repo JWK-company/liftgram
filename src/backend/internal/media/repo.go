@@ -36,6 +36,7 @@ func (r *pgRepo) Create(ctx context.Context, a Asset) (Asset, error) {
 		Bytes:       a.Bytes,
 		Flagged:     a.Flagged,
 		FlagReason:  reason,
+		ScanPending: a.ScanPending,
 	})
 	if err != nil {
 		return Asset{}, err
@@ -54,6 +55,26 @@ func (r *pgRepo) GetByKey(ctx context.Context, key string) (Asset, error) {
 	return rowToAsset(row), nil
 }
 
+func (r *pgRepo) ListScanPending(ctx context.Context, limit int32) ([]Asset, error) {
+	rows, err := r.q.ListScanPending(ctx, limit)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Asset, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, rowToAsset(row))
+	}
+	return out, nil
+}
+
+func (r *pgRepo) BumpScanAttempts(ctx context.Context, id string) error {
+	return r.q.BumpScanAttempts(ctx, id)
+}
+
+func (r *pgRepo) ApplyRescan(ctx context.Context, a Asset, flagged bool) error {
+	return r.q.ApplyRescan(ctx, sqlcgen.ApplyRescanParams{Flagged: flagged, Url: a.URL, Key: a.Key})
+}
+
 func rowToAsset(m sqlcgen.MediaAsset) Asset {
 	return Asset{
 		ID:          m.ID,
@@ -64,6 +85,7 @@ func rowToAsset(m sqlcgen.MediaAsset) Asset {
 		Kind:        m.Kind,
 		Bytes:       m.Bytes,
 		Flagged:     m.Flagged,
+		ScanPending: m.ScanPending,
 		CreatedAt:   m.CreatedAt.Time,
 	}
 }

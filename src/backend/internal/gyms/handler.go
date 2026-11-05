@@ -64,6 +64,7 @@ type Response struct {
 // Handler — POST /api/gyms/nearby.
 type Handler struct {
 	key     string
+	since   time.Time
 	baseURL string
 	client  *http.Client
 	allow   func(string) bool
@@ -81,6 +82,12 @@ type Handler struct {
 
 // kst — 하루 예산의 날짜 경계. 컨테이너 시간대와 상관없이 한국 자정에 넘어간다.
 var kst = time.FixedZone("KST", 9*60*60)
+
+// WithSince — 이 시각 전에는 카카오를 부르지 않는다.
+func (h *Handler) WithSince(t time.Time) *Handler {
+	h.since = t
+	return h
+}
 
 // NewHandler — key 가 비면 언제나 503 이고 카카오를 부르지 않는다. allow 는 클라이언트 IP 제한(nil 이면 끔).
 func NewHandler(key string, allow func(string) bool) *Handler {
@@ -127,7 +134,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
 		return
 	}
-	if h.key == "" || h.paused() {
+	// 방침 시행 전에는 키가 있어도 좌표를 보내지 않는다(SPEC-031). 화면은 503 이면 대체 검색으로 간다.
+	if h.key == "" || h.now().Before(h.since) || h.paused() {
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	}

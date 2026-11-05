@@ -179,34 +179,35 @@ INSERT INTO posts (
   id, author_id, kind, caption, visibility,
   workout_id, workout_name, total_volume_kg, working_sets, duration_seconds, pr_count,
   streak_days, weekly_reached, exercises, gear,
-  media_urls, idempotency_key
+  media_urls, idempotency_key, moderation_status
 ) VALUES (
   $1, $2, $3, $4, $5,
   $6, $7, $8, $9, $10, $11,
   $12, $13, $14, $15,
-  $16, $17
+  $16, $17, $18
 )
 RETURNING id, author_id, kind, caption, visibility, moderation_status, workout_id, workout_name, total_volume_kg, working_sets, duration_seconds, pr_count, media_urls, idempotency_key, like_count, comment_count, created_at, updated_at, streak_days, weekly_reached, exercises, removed_at, removed_reason, gear
 `
 
 type CreatePostParams struct {
-	ID              string
-	AuthorID        string
-	Kind            string
-	Caption         *string
-	Visibility      string
-	WorkoutID       *string
-	WorkoutName     *string
-	TotalVolumeKg   *float64
-	WorkingSets     *int32
-	DurationSeconds *int32
-	PrCount         *int32
-	StreakDays      *int32
-	WeeklyReached   *bool
-	Exercises       []byte
-	Gear            []byte
-	MediaUrls       []string
-	IdempotencyKey  *string
+	ID               string
+	AuthorID         string
+	Kind             string
+	Caption          *string
+	Visibility       string
+	WorkoutID        *string
+	WorkoutName      *string
+	TotalVolumeKg    *float64
+	WorkingSets      *int32
+	DurationSeconds  *int32
+	PrCount          *int32
+	StreakDays       *int32
+	WeeklyReached    *bool
+	Exercises        []byte
+	Gear             []byte
+	MediaUrls        []string
+	IdempotencyKey   *string
+	ModerationStatus string
 }
 
 func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, error) {
@@ -228,6 +229,7 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		arg.Gear,
 		arg.MediaUrls,
 		arg.IdempotencyKey,
+		arg.ModerationStatus,
 	)
 	var i Post
 	err := row.Scan(

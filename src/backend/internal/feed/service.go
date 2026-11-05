@@ -160,6 +160,8 @@ type Cursor struct {
 func (c *Cursor) valid() bool { return c != nil && c.ID != "" && !c.CreatedAt.IsZero() }
 
 type NewPost struct {
+	// 자동 검사에 걸린 사진이 있어 검토 대기로 저장한다. 서비스가 정하고 요청에서 받지 않는다.
+	Held           bool
 	Caption        string
 	Visibility     Visibility
 	Workout        *WorkoutSummary
@@ -403,9 +405,13 @@ func (s *Service) CreatePost(ctx context.Context, authorID string, p NewPost) (P
 			return Post{}, errs.New(errs.Validation, "사진을 실을 수 없습니다")
 		}
 		for _, url := range p.MediaURLs {
-			if _, err := s.media.CheckOwned(ctx, url, authorID); err != nil {
+			// [원본] 결과를 버려 글은 공개되고 사진만 깨졌다
+			flagged, err := s.media.CheckOwned(ctx, url, authorID)
+			if err != nil {
 				return Post{}, err
 			}
+			// 자동 검사에 걸리면 거절하지 않고 사람이 볼 때까지 숨긴다(ADR-017, SPEC-031).
+			p.Held = p.Held || flagged
 		}
 	}
 
@@ -431,6 +437,7 @@ func (s *Service) CreatePost(ctx context.Context, authorID string, p NewPost) (P
 	if err != nil {
 		return Post{}, err
 	}
+	post.UnderReview = p.Held
 	// 태그 색인 실패가 글을 못 올리게 하지는 않는다 — 글은 이미 올라갔고, 태그는 부가 색인이다.
 	// (다음 수정 때 다시 뽑히므로 영영 어긋나지도 않는다.)
 	if tags := ExtractHashtags(post.Caption); len(tags) > 0 {

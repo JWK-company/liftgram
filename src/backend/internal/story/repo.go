@@ -50,12 +50,13 @@ func (r *pgRepo) ListActive(ctx context.Context, viewerID string) ([]Story, map[
 	authors := map[string]Author{}
 	for _, row := range rows {
 		out = append(out, Story{
-			ID:        row.ID,
-			AuthorID:  row.AuthorID,
-			MediaURL:  row.MediaUrl,
-			Caption:   deref(row.Caption),
-			CreatedAt: row.CreatedAt.Time,
-			ExpiresAt: row.ExpiresAt.Time,
+			ID:          row.ID,
+			AuthorID:    row.AuthorID,
+			MediaURL:    row.MediaUrl,
+			Caption:     deref(row.Caption),
+			CreatedAt:   row.CreatedAt.Time,
+			ExpiresAt:   row.ExpiresAt.Time,
+			UnderReview: row.ModerationStatus == "pending",
 		})
 		if _, ok := authors[row.AuthorID]; !ok {
 			authors[row.AuthorID] = Author{

@@ -312,8 +312,12 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `IOS_APP_ID` · `ANDROID_PACKAGE` · `ANDROID_CERT_SHA256` | 선택 | 비어 있음 · `org.tarae.liftgram` | 스토어 앱 링크 검증(`/.well-known/apple-app-site-association` · `assetlinks.json`). 비면 404 |
 | `AUTH_RATE_LIMIT` | 선택 | `10` | 가입·로그인·메일 요청의 IP당 분당 허용(0=끔 · e2e). IP는 web 가장자리가 정한 값만 쓴다 |
 | `TRUST_CF_CONNECTING_IP` | 선택 | `0` | `1`이면 Cloudflare가 붙인 CF-Connecting-IP를 클라이언트 주소로 믿는다 — **포트가 터널에만 열려 있을 때만**(운영). 꺼져 있으면 그 헤더는 버린다 |
-| `KAKAO_LOCAL_REST_KEY` | 선택 | 비어 있음 | 주변 헬스장 검색용 카카오 REST 키. 카카오맵을 켠 전용 앱의 키를 쓴다 — 로그인 앱과 나눠 한도·제재가 로그인에 번지지 않게 한다. 비면 앱이 Overpass로 찾는다 |
+| `KAKAO_LOCAL_REST_KEY` | 선택 | 비어 있음 | 주변 헬스장 검색용 카카오 REST 키. 카카오맵을 켠 앱의 키를 쓴다(운영은 로그인 앱 키를 함께 씀) — 로그인 앱과 나누면 한도·제재가 로그인에 번지지 않게 한다. 비면 앱이 Overpass로 찾는다 |
 | `FEED_RECOMMEND_SINCE` | 선택 | `2026-11-12T00:00:00+09:00` | 이 시각 이후의 글만 추천 탭에 나온다. 옛 글을 소급해 내보내지 않으려는 값이다 |
+| `KAKAO_LOCAL_SINCE` | 선택 | `2026-11-12T00:00:00+09:00` | 이 시각 전에는 키가 있어도 카카오 장소 검색을 부르지 않는다. |
+| `IMAGE_SCAN_URL` | 선택 | 비움 | 사진 자동 검사 컨테이너 주소. 비우면 검사하지 않는다. |
+| `IMAGE_SCAN_THRESHOLD` | 선택 | `0.9` | 이 점수 이상이면 사진을 막고 글을 검토 대기로 둔다. |
+| `IMAGE_SCAN_SINCE` | 선택 | `2026-11-12T00:00:00+09:00` | 이 시각부터 사진을 검사한다. |
 | `OAUTH_GOOGLE_CLIENT_ID` · `OAUTH_GOOGLE_CLIENT_SECRET` | 선택 | 비어 있음 | 구글 로그인. **둘 다** 채운 제공자만 켜지고 버튼이 뜬다. redirect URI = `{APP_URL}/api/auth/oauth/google/callback` |
 | `OAUTH_KAKAO_CLIENT_ID` · `OAUTH_KAKAO_CLIENT_SECRET` | 선택 | 비어 있음 | 카카오 로그인(OIDC). redirect URI = `…/oauth/kakao/callback` |
 | `OAUTH_KAKAO_LEGACY` | 선택 | 비어 있음 | 카카오 앱에서 OIDC를 켤 수 없을 때만 `true` — 자동 폴백이 아니다 |

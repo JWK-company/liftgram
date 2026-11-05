@@ -17,6 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { WeightUnit } from "@app/core";
 import { requiresAffiliateDisclosure } from "@app/core";
+import { CONTACT_EMAIL } from "../legal/LegalPage";
 import { TargetType, Visibility, routes, type Post } from "@app/contracts";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
@@ -57,6 +58,8 @@ export function PostCard({
   const [followBusy, setFollowBusy] = useState(false);
   const [pending, setPending] = useState(false);
   const [reporting, setReporting] = useState(false);
+  // 검토 중인 글의 막힌 사진 — 열쇠에 주소를 넣어 승인 뒤 다시 그리면 풀린다.
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
   // 카드가 직접 읽는다 — 화면마다 내려 주게 하면 한 군데를 빠뜨렸을 때 그 화면만 규칙이 달라진다.
   const gearConfig = useGearConfig();
 
@@ -178,7 +181,10 @@ export function PostCard({
           className="mt-[var(--spacing-xs)] block"
           data-testid="post-under-review"
         >
-          {t("feed.underReview")}
+          {t("feed.underReview")}{" "}
+          <a className="underline" href={`mailto:${CONTACT_EMAIL}`}>
+            {t("feed.underReviewContact")}
+          </a>
         </AppText>
       ) : null}
 
@@ -187,10 +193,23 @@ export function PostCard({
 
       {post.workout ? <WorkoutBox workout={post.workout} unit={unit} authorName={name} /> : null}
 
-      {post.mediaUrls.length > 0 ? (
+      {post.underReview && brokenSrc === post.mediaUrls[0] ? (
+        <div
+          data-testid="post-image-held"
+          className="mt-[var(--spacing-sm)] flex aspect-square w-full items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt)"
+        >
+          <AppText variant="caption" color="textMuted">
+            {t("feed.imageHeld")}
+          </AppText>
+        </div>
+      ) : post.mediaUrls.length > 0 ? (
         // 정사각형 자리를 미리 잡아 둔다 — 사진이 늦게 오면 글이 아래로 밀려 읽던 자리를 잃는다.
         // biome-ignore lint/performance/noImgElement: 임의 출처(스토리지·CDN)의 사진 — 최적화 대상이 아니다
         <img
+          // 검토 중인 글의 막힌 사진은 깨진 그림 대신 「검토 중」 자리를 둔다.
+          onError={() => {
+            if (post.underReview) setBrokenSrc(post.mediaUrls[0] ?? null);
+          }}
           src={mediaSrc(post.mediaUrls[0])}
           alt={post.caption || name}
           loading="lazy"

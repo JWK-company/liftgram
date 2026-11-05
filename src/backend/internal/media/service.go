@@ -15,8 +15,11 @@ package media
 
 import (
 	"context"
+	"errors"
 	"io"
+	"log/slog"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -39,12 +42,17 @@ type Asset struct {
 	Kind        string
 	Bytes       int64
 	Flagged     bool
+	// 검사기가 답하지 못해 나중에 다시 볼 사진.
+	ScanPending bool
 	CreatedAt   time.Time
 }
 
 type Repo interface {
 	Create(ctx context.Context, a Asset) (Asset, error)
 	GetByKey(ctx context.Context, key string) (Asset, error)
+	ListScanPending(ctx context.Context, limit int32) ([]Asset, error)
+	BumpScanAttempts(ctx context.Context, id string) error
+	ApplyRescan(ctx context.Context, a Asset, flagged bool) error
 }
 
 // ScanResult는 자동 스캔의 답이다. 기본 스캐너는 항상 통과시킨다.
@@ -108,8 +116,13 @@ func (s *Service) Upload(ctx context.Context, ownerID string, data []byte, conte
 	// 스캔이 실패해도 업로드는 성공시킨다 — 통과시키는 쪽이 아니라 **판단을 미루는** 쪽이다
 	// (모더레이션 큐가 나중에 본다). 스캐너 장애로 사진을 못 올리게 만들 이유는 없다.
 	scan, scanErr := s.scanner.Scan(ctx, data, contentType)
+	if errors.Is(scanErr, ErrUnscannable) {
+		// 다시 봐도 같다 — 공개하지 않고 사람에게 넘긴다.
+		scan, scanErr = ScanResult{Flagged: true, Reason: "unscannable"}, nil
+	}
 	if scanErr != nil {
 		scan = ScanResult{}
+		slog.Warn("[media] 사진 검사 실패 — 나중에 다시 본다", "err", scanErr)
 	}
 
 	asset := Asset{
@@ -121,6 +134,7 @@ func (s *Service) Upload(ctx context.Context, ownerID string, data []byte, conte
 		Kind:        "image",
 		Bytes:       stored.Bytes,
 		Flagged:     scan.Flagged,
+		ScanPending: scanErr != nil,
 	}
 	if scan.Flagged && scan.Reason == "" {
 		scan.Reason = "auto_scan"
@@ -130,6 +144,85 @@ func (s *Service) Upload(ctx context.Context, ownerID string, data []byte, conte
 		return Asset{}, err
 	}
 	return created, nil
+}
+
+// RescanPending은 검사하지 못한 사진을 다시 본다. 검사기가 또 실패하면 다음 회차로 미룬다.
+func (s *Service) RescanPending(ctx context.Context, limit int32) (int, error) {
+	assets, err := s.repo.ListScanPending(ctx, limit)
+	if err != nil {
+		return 0, err
+	}
+	done := 0
+	var firstErr error
+	for _, a := range assets {
+		data, err := s.readAll(ctx, a.Key)
+		if errors.Is(err, os.ErrNotExist) {
+			// 파일이 없으면 다시 볼 것도 없다.
+			if err := s.repo.ApplyRescan(ctx, a, false); err != nil {
+				return done, err
+			}
+			continue
+		}
+		var scan ScanResult
+		if err == nil {
+			scan, err = s.scanner.Scan(ctx, data, a.ContentType)
+			if errors.Is(err, ErrUnscannable) {
+				scan, err = ScanResult{Flagged: true, Reason: "unscannable"}, nil
+			}
+		}
+		if err != nil {
+			// [원본] return done, err — 실패하는 한 장이 뒤의 사진을 영영 막았다.
+			// [개선] 표시를 남기고 넘어간다. 실패가 많은 사진은 다음 회차에 뒤로 간다.
+			firstErr = errors.Join(firstErr, err)
+			if err := s.repo.BumpScanAttempts(ctx, a.ID); err != nil {
+				return done, err
+			}
+			continue
+		}
+		if err := s.repo.ApplyRescan(ctx, a, scan.Flagged); err != nil {
+			return done, err
+		}
+		done++
+	}
+	return done, firstErr
+}
+
+// RescanLoop는 ctx가 끝날 때까지 주기마다 RescanPending을 돈다.
+func (s *Service) RescanLoop(ctx context.Context, every time.Duration) {
+	tick := time.NewTicker(every)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+			if _, err := s.RescanPending(ctx, 50); err != nil {
+				slog.Warn("[media] 사진 재검사 실패", "err", err)
+			}
+		}
+	}
+}
+
+func (s *Service) readAll(ctx context.Context, key string) ([]byte, error) {
+	body, err := s.storage.Open(ctx, key)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = body.Close() }()
+	return io.ReadAll(body)
+}
+
+// ReadForReview는 검토자에게 줄 바이트다. 막힌 사진도 읽는다 — 권한은 부르는 쪽(moderation)이 본다.
+func (s *Service) ReadForReview(ctx context.Context, key string) (string, []byte, error) {
+	asset, err := s.repo.GetByKey(ctx, key)
+	if err != nil {
+		return "", nil, err
+	}
+	data, err := s.readAll(ctx, key)
+	if err != nil {
+		return "", nil, errs.New(errs.NotFound, "파일을 찾을 수 없습니다")
+	}
+	return asset.ContentType, data, nil
 }
 
 // Serve는 서브해도 되는지 판단하고, 되면 열어 준다. 호출부가 닫는다.

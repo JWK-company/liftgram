@@ -72,7 +72,7 @@ step "8/9 smoke test + e2e"
 # 브라우저 한 세션이 만드는 요청은 생각보다 많다(델타마다 목록을 다시 읽는다).
 # 기본 한도(120/분)로 e2e를 돌리면 **테스트가 자기 자신을 막아** 간헐 실패한다(실측: 429 54건).
 # 그래서 이 단계는 넉넉한 한도로 띄우고, 제한 자체의 검증은 9단계에서 낮은 한도로 따로 한다.
-RATE_LIMIT=2000 docker compose up -d --wait frontend backend
+RATE_LIMIT=2000 docker compose up -d --wait frontend backend imagescan
 BASE="$BASE" bash scripts/smoke.sh
 
 # 브라우저가 설치돼 있으면 e2e까지. 없으면 건너뛴다(러너에 브라우저를 강요하지 않는다).

@@ -18,11 +18,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type S3Config struct {
@@ -100,6 +103,11 @@ func (s *s3Storage) Exists(ctx context.Context, key string) (bool, error) {
 func (s *s3Storage) Open(ctx context.Context, key string) (io.ReadCloser, error) {
 	out, err := s.client.GetObject(ctx, &s3.GetObjectInput{Bucket: aws.String(s.bucket), Key: aws.String(key)})
 	if err != nil {
+		// 일시 장애와 구분한다 — 재검사는 「정말 없을」 때만 포기한다.
+		var missing *s3types.NoSuchKey
+		if errors.As(err, &missing) {
+			return nil, fmt.Errorf("%w: %s", os.ErrNotExist, key)
+		}
 		return nil, err
 	}
 	return out.Body, nil

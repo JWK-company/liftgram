@@ -188,6 +188,27 @@ func (q *Queries) GetStoryForModeration(ctx context.Context, id string) (GetStor
 	return i, err
 }
 
+const hasSensitivePendingReport = `-- name: HasSensitivePendingReport :one
+SELECT EXISTS (
+  SELECT 1 FROM reports
+  WHERE target_type = $1::text AND target_id = $2::text AND status = 'pending'
+    AND reason IN ('nudity', 'minor_safety')
+)::boolean
+`
+
+type HasSensitivePendingReportParams struct {
+	TargetType string
+	TargetID   string
+}
+
+// 나체·미성년자 신고가 대기 중인가 — 그러면 숨길 때 사진 파일도 막는다.
+func (q *Queries) HasSensitivePendingReport(ctx context.Context, arg HasSensitivePendingReportParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasSensitivePendingReport, arg.TargetType, arg.TargetID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const isFollowingSimple = `-- name: IsFollowingSimple :one
 SELECT EXISTS (SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2)::boolean
 `

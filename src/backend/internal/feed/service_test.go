@@ -1390,3 +1390,17 @@ func TestFeedPrefs(t *testing.T) {
 		t.Fatal("꺼져야 한다")
 	}
 }
+
+// 자동 검사에 걸린 사진의 글은 거절하지 않고 검토 대기로 저장한다.
+func TestCreatePostWithFlaggedPhotoIsHeld(t *testing.T) {
+	svc, _, m, _ := newTestServiceFull()
+	m.owner["/media/file/x.jpg"] = "u1"
+	m.flagged["/media/file/x.jpg"] = true
+	post, err := svc.CreatePost(context.Background(), "u1", NewPost{MediaURLs: []string{"/media/file/x.jpg"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !post.UnderReview {
+		t.Fatal("검토 대기여야 한다")
+	}
+}

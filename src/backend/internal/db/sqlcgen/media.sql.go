@@ -9,11 +9,47 @@ import (
 	"context"
 )
 
+const applyRescan = `-- name: ApplyRescan :exec
+WITH held_posts AS (
+  UPDATE posts SET moderation_status = 'pending'
+  WHERE $1::boolean AND moderation_status = 'approved' AND $3::text = ANY(media_urls)
+), held_stories AS (
+  UPDATE stories SET moderation_status = 'pending'
+  WHERE $1::boolean AND moderation_status = 'approved' AND media_url = $3::text
+)
+UPDATE media_assets
+SET scan_pending = false,
+    flagged = flagged OR $1::boolean,
+    flag_reason = CASE WHEN $1::boolean THEN 'auto_scan' ELSE flag_reason END
+WHERE key = $2::text
+`
+
+type ApplyRescanParams struct {
+	Flagged bool
+	Key     string
+	Url     string
+}
+
+// 다시 본 결과. 걸렸으면 이 사진을 쓴 글·스토리도 검토 대기로 돌린다.
+func (q *Queries) ApplyRescan(ctx context.Context, arg ApplyRescanParams) error {
+	_, err := q.db.Exec(ctx, applyRescan, arg.Flagged, arg.Key, arg.Url)
+	return err
+}
+
+const bumpScanAttempts = `-- name: BumpScanAttempts :exec
+UPDATE media_assets SET scan_attempts = scan_attempts + 1 WHERE id = $1
+`
+
+func (q *Queries) BumpScanAttempts(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, bumpScanAttempts, id)
+	return err
+}
+
 const createMediaAsset = `-- name: CreateMediaAsset :one
 
-INSERT INTO media_assets (id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason, created_at
+INSERT INTO media_assets (id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason, scan_pending)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason, created_at, scan_pending, scan_attempts
 `
 
 type CreateMediaAssetParams struct {
@@ -26,6 +62,7 @@ type CreateMediaAssetParams struct {
 	Bytes       int64
 	Flagged     bool
 	FlagReason  *string
+	ScanPending bool
 }
 
 // @plm SRS-019  미디어 쿼리 — 메타를 넣고, 키로 찾는다
@@ -42,6 +79,7 @@ func (q *Queries) CreateMediaAsset(ctx context.Context, arg CreateMediaAssetPara
 		arg.Bytes,
 		arg.Flagged,
 		arg.FlagReason,
+		arg.ScanPending,
 	)
 	var i MediaAsset
 	err := row.Scan(
@@ -55,12 +93,14 @@ func (q *Queries) CreateMediaAsset(ctx context.Context, arg CreateMediaAssetPara
 		&i.Flagged,
 		&i.FlagReason,
 		&i.CreatedAt,
+		&i.ScanPending,
+		&i.ScanAttempts,
 	)
 	return i, err
 }
 
 const getMediaAssetByKey = `-- name: GetMediaAssetByKey :one
-SELECT id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason, created_at FROM media_assets WHERE key = $1
+SELECT id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason, created_at, scan_pending, scan_attempts FROM media_assets WHERE key = $1
 `
 
 // 파일 서브가 매 요청 부른다 — 키에 유일 인덱스가 걸려 있다.
@@ -78,6 +118,46 @@ func (q *Queries) GetMediaAssetByKey(ctx context.Context, key string) (MediaAsse
 		&i.Flagged,
 		&i.FlagReason,
 		&i.CreatedAt,
+		&i.ScanPending,
+		&i.ScanAttempts,
 	)
 	return i, err
+}
+
+const listScanPending = `-- name: ListScanPending :many
+SELECT id, owner_id, key, url, content_type, kind, bytes, flagged, flag_reason, created_at, scan_pending, scan_attempts FROM media_assets WHERE scan_pending ORDER BY scan_attempts, created_at LIMIT $1
+`
+
+// 검사하지 못한 사진 — 오래된 것부터 다시 본다.
+func (q *Queries) ListScanPending(ctx context.Context, lim int32) ([]MediaAsset, error) {
+	rows, err := q.db.Query(ctx, listScanPending, lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MediaAsset
+	for rows.Next() {
+		var i MediaAsset
+		if err := rows.Scan(
+			&i.ID,
+			&i.OwnerID,
+			&i.Key,
+			&i.Url,
+			&i.ContentType,
+			&i.Kind,
+			&i.Bytes,
+			&i.Flagged,
+			&i.FlagReason,
+			&i.CreatedAt,
+			&i.ScanPending,
+			&i.ScanAttempts,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

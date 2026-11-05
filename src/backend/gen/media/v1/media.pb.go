@@ -94,11 +94,13 @@ type Media struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// 화면이 그대로 <img src>에 넣는 값. 상대경로다(`/media/file/<key>`).
-	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
-	Kind          MediaKind              `protobuf:"varint,3,opt,name=kind,proto3,enum=media.v1.MediaKind" json:"kind,omitempty"`
-	ContentType   string                 `protobuf:"bytes,4,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	Bytes         int64                  `protobuf:"varint,5,opt,name=bytes,proto3" json:"bytes,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Url         string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
+	Kind        MediaKind              `protobuf:"varint,3,opt,name=kind,proto3,enum=media.v1.MediaKind" json:"kind,omitempty"`
+	ContentType string                 `protobuf:"bytes,4,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	Bytes       int64                  `protobuf:"varint,5,opt,name=bytes,proto3" json:"bytes,omitempty"`
+	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 자동 검사에 걸렸다. 공개되지 않으며 작성자는 안내를 받아야 한다(SPEC-031).
+	Flagged       bool `protobuf:"varint,7,opt,name=flagged,proto3" json:"flagged,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -173,6 +175,13 @@ func (x *Media) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *Media) GetFlagged() bool {
+	if x != nil {
+		return x.Flagged
+	}
+	return false
 }
 
 type UploadImageRequest struct {
@@ -277,7 +286,7 @@ var File_media_v1_media_proto protoreflect.FileDescriptor
 
 const file_media_v1_media_proto_rawDesc = "" +
 	"\n" +
-	"\x14media/v1/media.proto\x12\bmedia.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc6\x01\n" +
+	"\x14media/v1/media.proto\x12\bmedia.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe0\x01\n" +
 	"\x05Media\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12'\n" +
@@ -285,7 +294,8 @@ const file_media_v1_media_proto_rawDesc = "" +
 	"\fcontent_type\x18\x04 \x01(\tR\vcontentType\x12\x14\n" +
 	"\x05bytes\x18\x05 \x01(\x03R\x05bytes\x129\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"d\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x18\n" +
+	"\aflagged\x18\a \x01(\bR\aflagged\"d\n" +
 	"\x12UploadImageRequest\x12 \n" +
 	"\x04data\x18\x01 \x01(\fB\f\xbaH\tz\a\x10\x01\x18\x80\x80\x80\x05R\x04data\x12,\n" +
 	"\fcontent_type\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\vcontentType\"<\n" +

@@ -106,10 +106,12 @@ type Story struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// `/media/file/<key>` — 화면이 그대로 쓴다.
-	MediaUrl      string                 `protobuf:"bytes,2,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
-	Caption       string                 `protobuf:"bytes,3,opt,name=caption,proto3" json:"caption,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	MediaUrl  string                 `protobuf:"bytes,2,opt,name=media_url,json=mediaUrl,proto3" json:"media_url,omitempty"`
+	Caption   string                 `protobuf:"bytes,3,opt,name=caption,proto3" json:"caption,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpiresAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	// 검토 중이라 작성자에게만 보인다(SPEC-031).
+	UnderReview   bool `protobuf:"varint,6,opt,name=under_review,json=underReview,proto3" json:"under_review,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -177,6 +179,13 @@ func (x *Story) GetExpiresAt() *timestamppb.Timestamp {
 		return x.ExpiresAt
 	}
 	return nil
+}
+
+func (x *Story) GetUnderReview() bool {
+	if x != nil {
+		return x.UnderReview
+	}
+	return false
 }
 
 // 한 사람의 살아 있는 스토리들. 오래된 것이 먼저다(넘겨 보는 순서).
@@ -428,7 +437,7 @@ const file_story_v1_story_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"\xc4\x01\n" +
+	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"\xe7\x01\n" +
 	"\x05Story\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tmedia_url\x18\x02 \x01(\tR\bmediaUrl\x12\x18\n" +
@@ -436,7 +445,8 @@ const file_story_v1_story_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"f\n" +
+	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12!\n" +
+	"\funder_review\x18\x06 \x01(\bR\vunderReview\"f\n" +
 	"\n" +
 	"StoryGroup\x12-\n" +
 	"\x06author\x18\x01 \x01(\v2\x15.story.v1.StoryAuthorR\x06author\x12)\n" +

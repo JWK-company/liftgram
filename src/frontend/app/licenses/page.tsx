@@ -28,8 +28,11 @@ SOFTWARE.`;
 
 export default function LicensesPage() {
   return (
-    <LegalPage title="오픈소스 고지" effective="2026년 10월 28일">
+    <LegalPage title="오픈소스 고지" effective="2026년 11월 5일">
       <p>Liftgram 은 아래 오픈소스 리소스를 써서 만들었습니다.</p>
+
+      <h2>사진 자동 검사 모델 — Falconsai/nsfw_image_detection</h2>
+      <p>올린 사진의 자동 검사에 Apache License 2.0 으로 공개된 이 모델의 ONNX 변환본을 씁니다.</p>
 
       <h2>근육 지도 그림 — MuscleMap</h2>
       <p>

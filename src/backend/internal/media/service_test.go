@@ -9,7 +9,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 )
@@ -61,6 +65,7 @@ func (f *fakeStorage) Open(_ context.Context, key string) (io.ReadCloser, error)
 }
 
 type fakeRepo struct {
+	bumps []string
 	byKey map[string]Asset
 }
 
@@ -280,5 +285,174 @@ func TestKeysAreUnique(t *testing.T) {
 			t.Fatalf("키가 겹쳤다: %s", k)
 		}
 		seen[k] = true
+	}
+}
+
+func (f *fakeRepo) ListScanPending(_ context.Context, _ int32) ([]Asset, error) {
+	out := []Asset{}
+	for _, a := range f.byKey {
+		if a.ScanPending {
+			out = append(out, a)
+		}
+	}
+	return out, nil
+}
+
+func (f *fakeRepo) BumpScanAttempts(_ context.Context, id string) error {
+	f.bumps = append(f.bumps, id)
+	return nil
+}
+
+func (f *fakeRepo) ApplyRescan(_ context.Context, a Asset, flagged bool) error {
+	cur := f.byKey[a.Key]
+	cur.ScanPending = false
+	cur.Flagged = cur.Flagged || flagged
+	f.byKey[a.Key] = cur
+	return nil
+}
+
+// 검사기가 멈춰도 올리기는 되고, 나중에 다시 봐서 걸러 낸다.
+func TestScanFailureIsRescannedLater(t *testing.T) {
+	svc, _, repo := newTestService(brokenScanner{})
+	a, err := svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !repo.byKey[a.Key].ScanPending {
+		t.Fatal("검사 못 한 사진은 표시해 둔다")
+	}
+	if _, err := svc.RescanPending(context.Background(), 10); err == nil {
+		t.Fatal("검사기가 아직 멈춰 있으면 다음 회차로 미룬다")
+	}
+	svc.scanner = flagAll{}
+	if _, err := svc.RescanPending(context.Background(), 10); err != nil {
+		t.Fatal(err)
+	}
+	got := repo.byKey[a.Key]
+	if got.ScanPending || !got.Flagged {
+		t.Fatalf("다시 본 결과가 반영되어야 한다: %+v", got)
+	}
+}
+
+// 판단할 수 없는 사진은 공개하지 않고 사람에게 넘긴다.
+func TestUnscannableGoesToReview(t *testing.T) {
+	svc, _, repo := newTestService(unscannable{})
+	a, err := svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := repo.byKey[a.Key]
+	if !got.Flagged || got.ScanPending {
+		t.Fatalf("걸린 것으로 처리한다: %+v", got)
+	}
+}
+
+// 실패하는 한 장이 뒤의 사진을 막지 않고, 판단 못 함은 걸림으로, 일시 실패는 대기로 남는다.
+func TestRescanContinuesPastFailures(t *testing.T) {
+	svc, _, repo := newTestService(brokenScanner{})
+	first, _ := svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	second, _ := svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	svc.scanner = unscannable{}
+	if _, err := svc.RescanPending(context.Background(), 10); err != nil {
+		t.Fatal(err)
+	}
+	for _, k := range []string{first.Key, second.Key} {
+		if got := repo.byKey[k]; got.ScanPending || !got.Flagged {
+			t.Fatalf("판단 못 한 사진은 사람에게: %+v", got)
+		}
+	}
+
+	third, _ := func() (Asset, error) {
+		svc.scanner = brokenScanner{}
+		return svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	}()
+	fourth, _ := svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	if _, err := svc.RescanPending(context.Background(), 10); err == nil {
+		t.Fatal("실패는 호출한 쪽에 알린다")
+	}
+	if len(repo.bumps) != 2 {
+		t.Fatalf("두 장 모두 시도해야 한다: %v", repo.bumps)
+	}
+	if !repo.byKey[third.Key].ScanPending || !repo.byKey[fourth.Key].ScanPending {
+		t.Fatal("일시 실패는 대기로 남는다")
+	}
+}
+
+// 저장소 일시 장애는 「파일 없음」이 아니다 — 검사 대기를 지우면 다시는 안 본다.
+func TestRescanKeepsPendingOnStorageOutage(t *testing.T) {
+	svc, storage, repo := newTestService(brokenScanner{})
+	a, _ := svc.Upload(context.Background(), "u1", pngBytes, "image/png")
+	svc.scanner = flagAll{}
+	svc.storage = outageStorage{Storage: storage}
+	if _, err := svc.RescanPending(context.Background(), 10); err == nil {
+		t.Fatal("장애는 알린다")
+	}
+	if !repo.byKey[a.Key].ScanPending {
+		t.Fatal("대기로 남아야 한다")
+	}
+	svc.storage = missingStorage{Storage: storage}
+	if _, err := svc.RescanPending(context.Background(), 10); err != nil {
+		t.Fatal(err)
+	}
+	if repo.byKey[a.Key].ScanPending {
+		t.Fatal("정말 없으면 끝낸다")
+	}
+}
+
+type unscannable struct{}
+
+func (unscannable) Scan(context.Context, []byte, string) (ScanResult, error) {
+	return ScanResult{}, ErrUnscannable
+}
+
+type outageStorage struct{ Storage }
+
+func (outageStorage) Open(context.Context, string) (io.ReadCloser, error) {
+	return nil, errors.New("저장소 503")
+}
+
+type missingStorage struct{ Storage }
+
+func (missingStorage) Open(context.Context, string) (io.ReadCloser, error) {
+	return nil, os.ErrNotExist
+}
+
+type flagAll struct{}
+
+func (flagAll) Scan(context.Context, []byte, string) (ScanResult, error) {
+	return ScanResult{Flagged: true}, nil
+}
+
+func TestScheduledScannerWaitsForPolicyDate(t *testing.T) {
+	since := time.Date(2026, 11, 12, 0, 0, 0, 0, time.UTC)
+	s := ScheduledScanner{Since: since, Inner: flagAll{}, Now: func() time.Time { return since.Add(-time.Second) }}
+	if r, _ := s.Scan(context.Background(), nil, ""); r.Flagged {
+		t.Fatal("시행 전에는 검사하지 않는다")
+	}
+	s.Now = func() time.Time { return since }
+	if r, _ := s.Scan(context.Background(), nil, ""); !r.Flagged {
+		t.Fatal("시행부터 검사한다")
+	}
+}
+
+func TestHTTPScannerThresholdAndFailure(t *testing.T) {
+	score := "0.95"
+	code := http.StatusOK
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(code)
+		_, _ = w.Write([]byte(`{"score":` + score + `}`))
+	}))
+	defer srv.Close()
+	s := NewHTTPScanner(srv.URL, 0.9)
+	if r, err := s.Scan(context.Background(), []byte("x"), ""); err != nil || !r.Flagged {
+		t.Fatalf("기준 이상이면 걸린다: %+v %v", r, err)
+	}
+	score = "0.2"
+	if r, err := s.Scan(context.Background(), []byte("x"), ""); err != nil || r.Flagged {
+		t.Fatalf("기준 미만이면 통과: %+v %v", r, err)
+	}
+	code = http.StatusServiceUnavailable
+	if _, err := s.Scan(context.Background(), []byte("x"), ""); err == nil {
+		t.Fatal("503 은 검사 실패다")
 	}
 }

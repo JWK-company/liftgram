@@ -13,6 +13,7 @@
 // 누를 수 있는데 아무 일도 없는 버튼은, 눌러 보고 나서야 그걸 알게 한다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useState } from "react";
+import { feedErrorMessage } from "@/lib/feedClient";
 import { t } from "@/lib/i18n";
 import { uploadImage } from "@/lib/mediaClient";
 import { useAuth } from "../AuthProvider";
@@ -38,8 +39,9 @@ export function ProfileEditCard() {
     try {
       await fn();
       setStatus(t("profileEdit.saved"));
-    } catch {
-      setStatus(t("profileEdit.saveFailed"));
+    } catch (e) {
+      // [원본] t("profileEdit.saveFailed") — 사진이 거절된 이유가 보이지 않았다(SPEC-031)
+      setStatus(feedErrorMessage(e));
       setFailed(true);
     } finally {
       setSaving(false);

@@ -40,6 +40,8 @@ message Media {
   string content_type = 4;
   int64 bytes = 5;
   google.protobuf.Timestamp created_at = 6;
+  // 자동 검사에 걸렸다. 공개되지 않으며 작성자는 안내를 받아야 한다(SPEC-031).
+  bool flagged = 7;
 }
 
 message UploadImageRequest {

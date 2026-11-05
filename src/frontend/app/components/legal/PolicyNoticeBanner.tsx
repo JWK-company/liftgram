@@ -7,7 +7,8 @@ import { t } from "@/lib/i18n";
 import { useSession } from "../SessionProvider";
 import { Icon } from "../ui/Icon";
 
-const DISMISS_KEY = "liftgram.policyNotice.20261112";
+// [원본] liftgram.policyNotice.20261112 — 사진 자동 검사가 공지에 더해져 닫은 사람에게도 다시 보인다(SPEC-031)
+const DISMISS_KEY = "liftgram.policyNotice.20261112b";
 /** 시행일(2026-11-12) 다음 날 0시(KST)까지 보인다. */
 const SHOW_UNTIL = Date.parse("2026-11-13T00:00:00+09:00");
 
@@ -44,6 +45,9 @@ export function PolicyNoticeBanner() {
     >
       <a href="/privacy" className="min-w-0 flex-1 underline" data-testid="policy-notice-link">
         {t("legal.policyNotice")}
+      </a>
+      <a href="/terms" className="shrink-0 underline" data-testid="policy-notice-terms">
+        {t("legal.policyNoticeTerms")}
       </a>
       <button
         type="button"

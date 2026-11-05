@@ -65,6 +65,8 @@ message Preview {
   string kind = 1;
   string text = 2;
   string media_url = 3;
+  // 글의 사진 전부 — 승인은 모든 장을 풀므로 검토자도 전부 봐야 한다(SPEC-031).
+  repeated string media_urls = 4;
 }
 
 message QueueItem {
@@ -107,6 +109,15 @@ message ResolveRequest {
 
 message ResolveResponse {}
 
+message GetReviewMediaRequest {
+  string media_url = 1 [(buf.validate.field).string = {min_len: 1, max_len: 512}];
+}
+
+message GetReviewMediaResponse {
+  string content_type = 1;
+  bytes data = 2;
+}
+
 service ModerationService {
   // 로그인한 사람이면 누구나. **볼 수 있는 것만** 신고할 수 있고, 내 것은 신고할 수 없다.
   // 같은 대상을 여러 번 신고해도 한 건이다(멱등).
@@ -115,4 +126,6 @@ service ModerationService {
   // 여기부터는 moderator·admin만.
   rpc ListQueue(ListQueueRequest) returns (ListQueueResponse) {}
   rpc Resolve(ResolveRequest) returns (ResolveResponse) {}
+  // 막힌 사진도 검토자는 봐야 판단할 수 있다.
+  rpc GetReviewMedia(GetReviewMediaRequest) returns (GetReviewMediaResponse) {}
 }

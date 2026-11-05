@@ -16,7 +16,6 @@ import { Action, Reason, TargetType } from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
 import { t, type TransKey } from "@/lib/i18n";
 import { feedErrorMessage } from "@/lib/feedClient";
-import { mediaSrc } from "@/lib/mediaClient";
 import { moderationClient } from "@/lib/moderationClient";
 import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
@@ -56,6 +55,7 @@ export default function ModerationQueueClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [unseen, setUnseen] = useState<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -134,7 +134,8 @@ export default function ModerationQueueClient() {
           items.map((item) => {
             const key = `${item.targetType}:${item.targetId}`;
             const text = item.preview?.text ?? "";
-            const media = item.preview?.mediaUrl ?? "";
+            // [원본] item.preview?.mediaUrl — 첫 장만 보고 승인하면 나머지 사진까지 풀렸다(SPEC-031)
+            const medias = item.preview?.mediaUrls ?? [];
             return (
               <Card key={key} className="mb-[var(--spacing-md)]" data-testid="mod-item">
                 <div className="flex items-center gap-[var(--spacing-sm)]">
@@ -145,14 +146,20 @@ export default function ModerationQueueClient() {
                   {item.source === "auto" ? <Tag label={t("moderation.autoFlagged")} tone="pr" /> : null}
                 </div>
 
-                {media ? (
-                  // biome-ignore lint/performance/noImgElement: 검토용 원본 미리보기 — 최적화 대상이 아니다
-                  <img
-                    src={mediaSrc(media)}
-                    alt=""
-                    className="mt-[var(--spacing-sm)] h-[180px] w-full rounded-[var(--radius-md)] bg-(--color-surface-alt) object-cover"
+                {medias.map((url) => (
+                  <ReviewImage
+                    key={url}
+                    url={url}
+                    onFailed={(bad) =>
+                      setUnseen((prev) => {
+                        const next = new Set(prev);
+                        if (bad) next.add(`${key}|${url}`);
+                        else next.delete(`${key}|${url}`);
+                        return next;
+                      })
+                    }
                   />
-                ) : null}
+                ))}
                 {text ? (
                   <AppText variant="body" className="mt-[var(--spacing-sm)] block line-clamp-3">
                     {text}
@@ -184,7 +191,8 @@ export default function ModerationQueueClient() {
                       variant="secondary"
                       size="sm"
                       loading={busy === key}
-                      disabled={!!busy}
+                      // 보지 못한 사진이 있으면 풀 수 없다.
+                      disabled={!!busy || medias.some((url) => unseen.has(`${key}|${url}`))}
                       onPress={() => act(item, false)}
                       testId="mod-approve"
                     />
@@ -207,5 +215,64 @@ export default function ModerationQueueClient() {
         )}
       </div>
     </div>
+  );
+}
+
+/** 막힌 사진은 주소로 열리지 않아 검토자 권한으로 바이트를 받아 그린다(SPEC-031). */
+function ReviewImage({ url, onFailed }: { url: string; onFailed: (failed: boolean) => void }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const fail = () => {
+    setFailed(true);
+    onFailed(true);
+  };
+  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt 는 다시 받기 방아쇠이고 fail 은 매번 새로 만들어진다
+  useEffect(() => {
+    let alive = true;
+    let objectUrl: string | null = null;
+    moderationClient()
+      .getReviewMedia({ mediaUrl: url })
+      .then((res) => {
+        if (!alive) return;
+        objectUrl = URL.createObjectURL(new Blob([new Uint8Array(res.data)], { type: res.contentType }));
+        setSrc(objectUrl);
+      })
+      .catch(() => {
+        if (alive) fail();
+      });
+    return () => {
+      alive = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [url, attempt]);
+  if (failed) {
+    return (
+      <button
+        type="button"
+        data-testid="mod-image-retry"
+        className="mt-[var(--spacing-sm)] block underline"
+        onClick={() => {
+          setFailed(false);
+          setSrc(null);
+          onFailed(false);
+          setAttempt((n) => n + 1);
+        }}
+      >
+        <AppText variant="caption" color="textMuted">
+          {t("moderation.imageFailed")}
+        </AppText>
+      </button>
+    );
+  }
+  return (
+    // biome-ignore lint/performance/noImgElement: 검토용 원본 미리보기 — 최적화 대상이 아니다
+    <img
+      src={src ?? undefined}
+      alt=""
+      data-testid="mod-image"
+      onError={fail}
+      className="mt-[var(--spacing-sm)] h-[180px] w-full rounded-[var(--radius-md)] bg-(--color-surface-alt) object-cover"
+    />
   );
 }

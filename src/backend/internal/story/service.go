@@ -36,6 +36,8 @@ type Story struct {
 	Caption   string
 	CreatedAt time.Time
 	ExpiresAt time.Time
+	// UnderReview — 검토 중이라 작성자에게만 보인다.
+	UnderReview bool
 }
 
 type Group struct {

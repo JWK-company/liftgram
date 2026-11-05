@@ -247,10 +247,11 @@ func main() {
 	gymPerMinute := auth.NewAuthLimiter(20, time.Minute)
 	gymPerDay := auth.NewAuthLimiter(200, 24*time.Hour)
 	gymWide := auth.NewAuthLimiter(100, time.Minute)
+	kakaoSince := mustTime("KAKAO_LOCAL_SINCE", cfg.KakaoLocalSince)
 	mux.Handle(gyms.Path, gyms.NewHandler(cfg.KakaoLocalRestKey, func(ip string) bool {
 		host, wide := gyms.LimitKeys(ip)
 		return gymWide.Allow(wide) && gymPerMinute.Allow(host) && gymPerDay.Allow(host)
-	}))
+	}).WithSince(kakaoSince))
 
 	// ── 미디어 ──
 	// 저장소는 **여기서 한 번** 정해진다. 도메인은 자기가 디스크를 쓰는지 R2를 쓰는지 모른다.
@@ -275,7 +276,25 @@ func main() {
 		}
 	}
 	mediaRepo := media.NewRepo(pool)
-	mediaSvc := media.NewService(mediaRepo, storage, media.NoopScanner{}, uuid.NewString)
+	// [원본] media.NoopScanner{}
+	var scanner media.Scanner = media.NoopScanner{}
+	if cfg.ImageScanURL != "" {
+		threshold, err := strconv.ParseFloat(cfg.ImageScanThreshold, 64)
+		if err != nil || threshold < 0 || threshold > 1 {
+			slog.Error("IMAGE_SCAN_THRESHOLD 형식 오류", "value", cfg.ImageScanThreshold)
+			os.Exit(1)
+		}
+		scanner = media.ScheduledScanner{
+			Since: mustTime("IMAGE_SCAN_SINCE", cfg.ImageScanSince),
+			Inner: media.NewHTTPScanner(cfg.ImageScanURL, threshold),
+			Now:   time.Now,
+		}
+	}
+	mediaSvc := media.NewService(mediaRepo, storage, scanner, uuid.NewString)
+	// 주소가 비면 검사기가 없다 — 돌리면 Noop 이 대기 중인 사진을 검사 없이 풀어 버린다.
+	if cfg.ImageScanURL != "" {
+		go mediaSvc.RescanLoop(context.Background(), 5*time.Minute)
+	}
 	mediaHandler := media.NewHandler(mediaSvc)
 	mediaPath, mediaHTTP := mediav1connect.NewMediaServiceHandler(mediaHandler, opts)
 	mount(mux, mediaPath, mediaHTTP)
@@ -293,6 +312,9 @@ func main() {
 	notificationSvc := notification.NewService(notification.NewRepo(pool), uuid.NewString)
 	notificationPath, notificationHTTP := notificationv1connect.NewNotificationServiceHandler(notification.NewHandler(notificationSvc), opts)
 	mount(mux, notificationPath, notificationHTTP)
+
+	// 프로필 사진도 내가 올린 사진만, 자동 검사에 걸리지 않은 것만 쓴다(SPEC-031).
+	authSvc.WithAvatarCheck(ownership.CheckOwned)
 
 	// ── 피드 ──
 	feedSvc := feed.NewService(feed.NewRepo(pool), ownership, notifyAdapter{notificationSvc}, uuid.NewString)
@@ -344,7 +366,7 @@ func main() {
 
 	// ── 신고·모더레이션 ──
 	// 신고는 누구나, 검토는 역할이 있는 사람만 — 그 판정은 service가 한다(handler는 신원만 넘긴다).
-	moderationSvc := moderation.NewService(moderation.NewRepo(pool), uuid.NewString)
+	moderationSvc := moderation.NewService(moderation.NewRepo(pool), uuid.NewString).WithReviewMedia(mediaSvc)
 	moderationPath, moderationHTTP := moderationv1connect.NewModerationServiceHandler(moderation.NewHandler(moderationSvc), opts)
 	mount(mux, moderationPath, moderationHTTP)
 
@@ -479,4 +501,14 @@ func newMailSender(cfg *config.Config) (mailer.Sender, error) {
 		})
 	}
 	return mailer.NewConsole(), nil
+}
+
+// mustTime — 시행일 값이 틀리면 조용히 켜지지 않게 부팅을 멈춘다.
+func mustTime(name, value string) time.Time {
+	t, err := time.Parse(time.RFC3339, value)
+	if err != nil {
+		slog.Error(name+" 형식 오류", "err", err)
+		os.Exit(1)
+	}
+	return t
 }

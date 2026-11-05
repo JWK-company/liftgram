@@ -44,6 +44,7 @@ func toProto(a Asset) *mediav1.Media {
 		ContentType: a.ContentType,
 		Bytes:       a.Bytes,
 		CreatedAt:   timestamppb.New(a.CreatedAt),
+		Flagged:     a.Flagged,
 	}
 }
 
@@ -82,7 +83,9 @@ func (h *Handler) FileHandler() http.Handler {
 		// w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 		// [개선] @plm SRS-095  계정 삭제(스토어 필수) 뒤 지운 사진이 엣지·브라우저 캐시에서 1년 남지 않게 7일로(qa code H-3).
 		//   내용은 여전히 바뀌지 않으므로 7일 안에는 다시 받지 않는다 — 처방침의 「캐시는 최대 7일 뒤 사라짐」과 짝.
-		w.Header().Set("Cache-Control", "public, max-age=604800")
+		// [원본] public, max-age=604800 — 막은 사진이 Cloudflare 엣지에 7일 남았다
+		// [개선] 막은 뒤 남는 시간을 1시간으로 줄인다(SPEC-031). 줄인 만큼 원본 요청은 늘지만 사진 수가 적다.
+		w.Header().Set("Cache-Control", "public, max-age=3600")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		if r.Method == http.MethodHead {
 			return

@@ -271,8 +271,13 @@ func (s *Service) Send(ctx context.Context, viewerID, conversationID string, m N
 		if m.MediaURL == "" {
 			return Message{}, errs.New(errs.Validation, "사진을 올려 주세요")
 		}
-		if _, err := s.media.CheckOwned(ctx, m.MediaURL, viewerID); err != nil {
+		// DM 은 검토 목록이 없어 자동 검사에 걸린 사진을 보내지 않는다(SPEC-031).
+		flagged, err := s.media.CheckOwned(ctx, m.MediaURL, viewerID)
+		if err != nil {
 			return Message{}, err
+		}
+		if flagged {
+			return Message{}, errs.New(errs.Validation, "이 사진은 사용할 수 없어요")
 		}
 	case KindSummary:
 		// 서버만 만든다 — 클라이언트가 보내면 요약 id 를 위조해 남의 카드처럼 보이게 할 수 있다(S-14).

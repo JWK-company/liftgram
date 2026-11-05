@@ -35,11 +35,13 @@ type fakeRepo struct {
 	follows map[string]bool   // "follower→followee"
 	auto    []QueueItem
 	// 처리 결과 — 무엇이 어떻게 바뀌었는지 확인용.
-	set        []string        // "type:id:status:removed:mediaKeys"
-	blocks     map[string]bool // "a>b"
-	resolvedAs []string        // "type:id:status:action"
-	now        time.Time
-	seq        int
+	set          []string        // "type:id:status:removed:mediaKeys"
+	blocks       map[string]bool // "a>b"
+	sensitive    bool
+	blockedMedia []string
+	resolvedAs   []string // "type:id:status:action"
+	now          time.Time
+	seq          int
 }
 
 func newFakeRepo() *fakeRepo {
@@ -118,6 +120,15 @@ func (f *fakeRepo) IsFollowing(_ context.Context, a, b string) (bool, error) {
 
 func (f *fakeRepo) IsBlockedEitherWay(_ context.Context, a, b string) (bool, error) {
 	return f.blocks[a+">"+b] || f.blocks[b+">"+a], nil
+}
+
+func (f *fakeRepo) HasSensitivePendingReport(_ context.Context, t TargetType, targetID string) (bool, error) {
+	return f.sensitive, nil
+}
+
+func (f *fakeRepo) HoldWithMediaBlocked(_ context.Context, t TargetType, targetID string, mediaKeys []string) error {
+	f.blockedMedia = append(f.blockedMedia, mediaKeys...)
+	return f.SetModeration(context.Background(), t, targetID, "pending", "", false, nil)
 }
 
 func (f *fakeRepo) ListAutoPending(_ context.Context, _ int32) ([]QueueItem, error) {
@@ -445,6 +456,24 @@ func TestThreeReportersHoldTheTarget(t *testing.T) {
 	}
 }
 
+// 이미 다른 사유로 숨겨진 글에 나체 신고가 쌓여도 파일은 막는다.
+func TestSensitiveReportBlocksAlreadyPendingTarget(t *testing.T) {
+	repo := newFakeRepo()
+	repo.posts["p1"] = postRow{authorID: "author", visibility: "public", status: "approved"}
+	repo.targets["post:p1"] = Target{AuthorID: "author", ModerationStatus: "pending", MediaURLs: []string{"/media/file/k1"}}
+	repo.sensitive = true
+	n := 0
+	svc := NewService(repo, func() string { n++; return "r" + strconv.Itoa(n) })
+	for _, who := range []string{"a", "b", "c"} {
+		if err := svc.Report(context.Background(), who, TargetPost, "p1", "nudity", ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(repo.blockedMedia) != 1 || repo.blockedMedia[0] != "k1" {
+		t.Fatalf("파일까지 막는다: %v", repo.blockedMedia)
+	}
+}
+
 func TestBlockedReporterCannotReport(t *testing.T) {
 	repo := newFakeRepo()
 	repo.seedPost("p1", "author", "public")
@@ -470,4 +499,26 @@ func TestRemoveBlocksEveryPhoto(t *testing.T) {
 	if got := repo.set[len(repo.set)-1]; !strings.HasSuffix(got, ":a.jpg,b.jpg") {
 		t.Fatalf("모든 사진을 막아야 한다: %s", got)
 	}
+}
+
+func TestGetReviewMediaIsForModeratorsOnly(t *testing.T) {
+	svc := NewService(newFakeRepo(), func() string { return "id" }).WithReviewMedia(fakeMedia{})
+	if _, _, err := svc.GetReviewMedia(context.Background(), "u", "user", "/media/file/a.jpg"); domainCode(t, err) != errs.Forbidden {
+		t.Fatalf("일반 사용자는 볼 수 없다: %v", err)
+	}
+	for _, bad := range []string{"https://evil/x.jpg", "/media/file/../x", "/media/file/.hidden"} {
+		if _, _, err := svc.GetReviewMedia(context.Background(), "m", "admin", bad); domainCode(t, err) != errs.NotFound {
+			t.Fatalf("%s: 우리 사진 주소만 받는다: %v", bad, err)
+		}
+	}
+	ct, data, err := svc.GetReviewMedia(context.Background(), "m", "moderator", "/media/file/a.jpg")
+	if err != nil || ct != "image/jpeg" || string(data) != "a.jpg" {
+		t.Fatalf("검토자는 볼 수 있다: %s %s %v", ct, data, err)
+	}
+}
+
+type fakeMedia struct{}
+
+func (fakeMedia) ReadForReview(_ context.Context, key string) (string, []byte, error) {
+	return "image/jpeg", []byte(key), nil
 }

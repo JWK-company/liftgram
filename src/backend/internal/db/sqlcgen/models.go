@@ -158,16 +158,18 @@ type GearClick struct {
 }
 
 type MediaAsset struct {
-	ID          string
-	OwnerID     string
-	Key         string
-	Url         string
-	ContentType string
-	Kind        string
-	Bytes       int64
-	Flagged     bool
-	FlagReason  *string
-	CreatedAt   pgtype.Timestamptz
+	ID           string
+	OwnerID      string
+	Key          string
+	Url          string
+	ContentType  string
+	Kind         string
+	Bytes        int64
+	Flagged      bool
+	FlagReason   *string
+	CreatedAt    pgtype.Timestamptz
+	ScanPending  bool
+	ScanAttempts int32
 }
 
 type Message struct {

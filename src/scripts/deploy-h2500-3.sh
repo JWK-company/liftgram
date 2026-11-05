@@ -214,10 +214,13 @@ rsync -a --delete \
   "$CLEAN/src/" "$HOST:$REMOTE/src/"
 
 echo "── 빌드·기동 (migrate 가 먼저 돌고 끝나야 backend 가 뜬다) ──"
-$SSH "cd $REMOTE/src && $COMPOSE build backend frontend >/tmp/liftgram-deploy.log 2>&1 \
+$SSH "cd $REMOTE/src && $COMPOSE build backend frontend imagescan >/tmp/liftgram-deploy.log 2>&1 \
   || { tail -30 /tmp/liftgram-deploy.log; exit 1; }
-  $COMPOSE up -d --wait --remove-orphans backend frontend 2>&1 | tail -5
-  $COMPOSE logs --no-log-prefix migrate 2>&1 | tail -3"
+  $COMPOSE up -d --wait --remove-orphans backend frontend imagescan 2>&1 | tail -5
+  $COMPOSE logs --no-log-prefix migrate 2>&1 | tail -3
+  # 위 tail 이 --wait 실패를 가린다. 검사기가 꺼져도 사이트는 정상으로 보이므로 여기서 멈춘다(SPEC-031).
+  [ \"\$(docker inspect -f '{{.State.Health.Status}}' \$($COMPOSE ps -q imagescan))\" = healthy ] \
+    || { echo '사진 검사 컨테이너가 준비되지 않았다'; exit 1; }"
 
 echo "── 빌드 찌꺼기 회수(우리 것만) ──"
 $SSH "docker builder prune -f --keep-storage ${CACHE_CAP_GB}GB 2>&1 | tail -1

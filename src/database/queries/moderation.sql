@@ -94,6 +94,14 @@ SELECT author_id, visibility, moderation_status FROM posts WHERE id = $1;
 -- name: IsFollowingSimple :one
 SELECT EXISTS (SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2)::boolean;
 
+-- 나체·미성년자 신고가 대기 중인가 — 그러면 숨길 때 사진 파일도 막는다.
+-- name: HasSensitivePendingReport :one
+SELECT EXISTS (
+  SELECT 1 FROM reports
+  WHERE target_type = @target_type::text AND target_id = @target_id::text AND status = 'pending'
+    AND reason IN ('nudity', 'minor_safety')
+)::boolean;
+
 -- 자동 숨김에 셀 신고자 수. 신고자당 한 건이 유일 제약으로 보장된다.
 -- 새 계정 몇 개로 글을 내리지 못하게 가입 7일 이상·메일 확인 계정만 세고(메일 없는 소셜 계정은 쓰기 게이트와 같이 통과),
 -- 의견이 갈리기 쉬운 사유는 빼며, 검토자가 한 번 기각한 대상은 다시 자동으로 숨기지 않는다. 나머지 신고도 검토 목록에는 오른다.

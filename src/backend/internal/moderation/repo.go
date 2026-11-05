@@ -81,7 +81,7 @@ func (r *pgRepo) GetTarget(ctx context.Context, t TargetType, targetID string) (
 			AuthorID:         row.AuthorID,
 			ModerationStatus: row.ModerationStatus,
 			Author:           Author{ID: row.AuthorID, DisplayName: deref(row.AuthorName)},
-			Preview:          Preview{Kind: row.Kind, Text: deref(row.Caption), MediaURL: first(row.MediaUrls)},
+			Preview:          Preview{Kind: row.Kind, Text: deref(row.Caption), MediaURL: first(row.MediaUrls), MediaURLs: row.MediaUrls},
 			MediaURLs:        row.MediaUrls,
 			CreatedAt:        row.CreatedAt.Time,
 		}, true, nil
@@ -98,7 +98,7 @@ func (r *pgRepo) GetTarget(ctx context.Context, t TargetType, targetID string) (
 			AuthorID:         row.AuthorID,
 			ModerationStatus: row.ModerationStatus,
 			Author:           Author{ID: row.AuthorID, DisplayName: deref(row.AuthorName)},
-			Preview:          Preview{Kind: "story", Text: deref(row.Caption), MediaURL: row.MediaUrl},
+			Preview:          Preview{Kind: "story", Text: deref(row.Caption), MediaURL: row.MediaUrl, MediaURLs: []string{row.MediaUrl}},
 			CreatedAt:        row.CreatedAt.Time,
 			ExpiresAt:        row.ExpiresAt.Time,
 		}, true, nil
@@ -177,7 +177,7 @@ func (r *pgRepo) ListAutoPending(ctx context.Context, limit int32) ([]QueueItem,
 			Source:     "auto",
 			Reasons:    []string{"auto_scan"},
 			Author:     Author{ID: p.AuthorID, DisplayName: deref(p.AuthorName)},
-			Preview:    Preview{Kind: p.Kind, Text: deref(p.Caption), MediaURL: first(p.MediaUrls)},
+			Preview:    Preview{Kind: p.Kind, Text: deref(p.Caption), MediaURL: first(p.MediaUrls), MediaURLs: p.MediaUrls},
 			CreatedAt:  p.CreatedAt.Time,
 		})
 	}
@@ -188,11 +188,41 @@ func (r *pgRepo) ListAutoPending(ctx context.Context, limit int32) ([]QueueItem,
 			Source:     "auto",
 			Reasons:    []string{"auto_scan"},
 			Author:     Author{ID: s.AuthorID, DisplayName: deref(s.AuthorName)},
-			Preview:    Preview{Kind: "story", Text: deref(s.Caption), MediaURL: s.MediaUrl},
+			Preview:    Preview{Kind: "story", Text: deref(s.Caption), MediaURL: s.MediaUrl, MediaURLs: []string{s.MediaUrl}},
 			CreatedAt:  s.CreatedAt.Time,
 		})
 	}
 	return out, nil
+}
+
+func (r *pgRepo) HasSensitivePendingReport(ctx context.Context, t TargetType, targetID string) (bool, error) {
+	return r.q.HasSensitivePendingReport(ctx, sqlcgen.HasSensitivePendingReportParams{TargetType: string(t), TargetID: targetID})
+}
+
+func (r *pgRepo) HoldWithMediaBlocked(ctx context.Context, t TargetType, targetID string, mediaKeys []string) error {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	q := r.q.WithTx(tx)
+	switch t {
+	case TargetPost:
+		err = q.SetPostModeration(ctx, sqlcgen.SetPostModerationParams{Status: "pending", ID: targetID})
+	case TargetStory:
+		err = q.SetStoryModeration(ctx, sqlcgen.SetStoryModerationParams{Status: "pending", ID: targetID})
+	case TargetComment:
+		err = q.SetCommentModeration(ctx, sqlcgen.SetCommentModerationParams{Status: "pending", ID: targetID})
+	}
+	if err != nil {
+		return err
+	}
+	for _, key := range mediaKeys {
+		if err := q.SetMediaFlagged(ctx, sqlcgen.SetMediaFlaggedParams{Flagged: true, Key: key}); err != nil {
+			return err
+		}
+	}
+	return tx.Commit(ctx)
 }
 
 func (r *pgRepo) SetModeration(ctx context.Context, t TargetType, targetID, status, reason string, removed bool, mediaKeys []string) error {

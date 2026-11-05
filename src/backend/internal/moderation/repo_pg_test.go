@@ -125,3 +125,60 @@ func TestReportsHoldAndDismissRestore(t *testing.T) {
 		t.Fatal("숨긴 댓글이 검토 목록에서 사라졌다")
 	}
 }
+
+// 나체 신고로 숨기면 파일도 막히고 승인하면 풀린다. 괴롭힘 신고는 파일을 막지 않는다.
+func TestHoldBlocksMediaOnlyForSensitiveReasons(t *testing.T) {
+	pool := testpg.Pool(t)
+	ctx := context.Background()
+	user := func() string {
+		id := "mod-" + uuid.NewString()
+		if _, err := pool.Exec(ctx, `INSERT INTO users (id, email, password_hash, display_name, email_verified_at, created_at)
+			VALUES ($1, $2, 'x', 'n', now(), now() - interval '8 days')`, id, id+"@x.test"); err != nil {
+			t.Fatal(err)
+		}
+		return id
+	}
+	svc := NewService(NewRepo(pool), uuid.NewString)
+	author := user()
+	setup := func() (string, string) {
+		postID, key := "mod-"+uuid.NewString(), "k"+uuid.NewString()+".jpg"
+		url := "/media/file/" + key
+		if _, err := pool.Exec(ctx, `INSERT INTO media_assets (id, owner_id, key, url, content_type, kind, bytes) VALUES ($1, $2, $3, $4, 'image/jpeg', 'image', 1)`, uuid.NewString(), author, key, url); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := pool.Exec(ctx, `INSERT INTO posts (id, author_id, kind, visibility, media_urls) VALUES ($1, $2, 'image', 'public', ARRAY[$3::text])`, postID, author, url); err != nil {
+			t.Fatal(err)
+		}
+		return postID, key
+	}
+	flagged := func(key string) bool {
+		var f bool
+		if err := pool.QueryRow(ctx, `SELECT flagged FROM media_assets WHERE key = $1`, key).Scan(&f); err != nil {
+			t.Fatal(err)
+		}
+		return f
+	}
+	report := func(postID, reason string) {
+		for i := 0; i < 3; i++ {
+			if err := svc.Report(ctx, user(), TargetPost, postID, reason, ""); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	nude, nudeKey := setup()
+	report(nude, "nudity")
+	if !flagged(nudeKey) {
+		t.Fatal("나체 신고로 숨기면 파일도 막혀야 한다")
+	}
+	if err := svc.Resolve(ctx, user(), "admin", TargetPost, nude, false, ""); err != nil {
+		t.Fatal(err)
+	}
+	if flagged(nudeKey) {
+		t.Fatal("승인하면 파일이 풀려야 한다")
+	}
+	rude, rudeKey := setup()
+	report(rude, "harassment")
+	if flagged(rudeKey) {
+		t.Fatal("괴롭힘 신고로는 파일을 막지 않는다")
+	}
+}

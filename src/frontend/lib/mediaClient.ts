@@ -43,11 +43,16 @@ function mediaClient(): Client<typeof MediaService> {
  * 최적화를 못 했다고 업로드 자체를 막을 이유는 없다. 크기 상한은 서버가 지킨다.
  */
 export async function uploadImage(file: File): Promise<string> {
+  return (await uploadImageChecked(file)).url;
+}
+
+/** 자동 검사 결과까지 돌려준다. 걸린 사진은 공개되지 않으므로, 글로 검토에 넘기지 않는 화면은 거절해야 한다. */
+export async function uploadImageChecked(file: File): Promise<{ url: string; flagged: boolean }> {
   const shrunk = await shrink(file).catch(() => null);
   const blob = shrunk ?? file;
   const data = new Uint8Array(await blob.arrayBuffer());
   const res = await mediaClient().uploadImage({ data, contentType: blob.type || file.type });
-  return res.media?.url ?? "";
+  return { url: res.media?.url ?? "", flagged: res.media?.flagged ?? false };
 }
 
 /** 서버가 준 상대경로를 `<img src>`가 쓸 주소로. 절대주소(CDN)면 그대로 둔다. */

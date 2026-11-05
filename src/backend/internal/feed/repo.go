@@ -131,15 +131,20 @@ func (r *pgRepo) CreatePost(ctx context.Context, authorID, id string, p NewPost,
 		}
 		gearBlob = blob
 	}
+	status := "approved"
+	if p.Held {
+		status = "pending"
+	}
 	arg := sqlcgen.CreatePostParams{
-		ID:             id,
-		AuthorID:       authorID,
-		Kind:           string(kind),
-		Caption:        ptr(p.Caption),
-		Visibility:     string(p.Visibility),
-		MediaUrls:      media,
-		Gear:           gearBlob,
-		IdempotencyKey: ptr(p.IdempotencyKey),
+		ModerationStatus: status,
+		ID:               id,
+		AuthorID:         authorID,
+		Kind:             string(kind),
+		Caption:          ptr(p.Caption),
+		Visibility:       string(p.Visibility),
+		MediaUrls:        media,
+		Gear:             gearBlob,
+		IdempotencyKey:   ptr(p.IdempotencyKey),
 	}
 	if p.Workout != nil {
 		arg.WorkoutID = ptr(p.Workout.WorkoutID)
