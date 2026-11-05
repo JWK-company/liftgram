@@ -89,8 +89,11 @@ test('통계(QA L1) — 활성 = 근력 + 유산소, 근력 ≥ 440', () => {
   // assert.equal(CATALOG.length, 480);
   // assert.equal(active.length, 469);
   // [개선] 오픈짐 대조 갭 보강 +106(SRS-094) — 근력만 늘었다
-  assert.equal(CATALOG.length, 587); // 새 106 + 통합(보관) 행 1(인클라인 클로즈그립 → 인클라인 프레스 + 그립 close)
-  assert.equal(active.length, 575);
+  // [개선] 특이 종목 보강 +46(SPEC-028) — 아래 두 줄
+  // assert.equal(CATALOG.length, 587); // 새 106 + 통합(보관) 행 1(인클라인 클로즈그립 → 인클라인 프레스 + 그립 close)
+  // assert.equal(active.length, 575);
+  assert.equal(CATALOG.length, 633);
+  assert.equal(active.length, 621);
   assert.equal(cardio, 26);
   assert.ok(active.length - cardio >= 440);
 });

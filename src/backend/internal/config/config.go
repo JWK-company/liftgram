@@ -94,6 +94,9 @@ type Config struct {
 	// 인증 입구(가입·로그인·메일 요청)의 IP당 분당 허용 — 0 이하면 끈다(e2e)
 	AuthRateLimit int
 
+	// KakaoLocalRestKey — 헬스장 검색 전용 카카오 앱의 REST 키(SPEC-029). 비면 앱이 Overpass 로 찾는다.
+	KakaoLocalRestKey string
+
 	OAuthGoogleClientID     string
 	OAuthGoogleClientSecret string
 	OAuthKakaoClientID      string
@@ -157,6 +160,7 @@ func Load() (*Config, error) {
 		MailRequireTLS:          envStr("MAIL_REQUIRE_TLS", "true") == "true",
 		TurnstileSecret:         os.Getenv("TURNSTILE_SECRET"),
 		AuthRateLimit:           envInt("AUTH_RATE_LIMIT", 10),
+		KakaoLocalRestKey:       os.Getenv("KAKAO_LOCAL_REST_KEY"),
 		OAuthGoogleClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
 		OAuthGoogleClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
 		OAuthKakaoClientID:      os.Getenv("OAUTH_KAKAO_CLIENT_ID"),

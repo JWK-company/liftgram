@@ -1068,6 +1068,8 @@ export const ARCH: Record<string, Arch> = {
   clean_jerk: { start: stand(frontRack), end: { t: -90, a: [-90, -90], l: [70, 104, 0], l2: [116, 96, 0], at: ['hip', X, 108] } },
   snatch: { start: DL_BOTTOM, end: { t: -66, a: [-110, -110], l: SQ_BOTTOM_LEGS, at: ['an', X, AY] }, thumb: 'end' },
   thruster: { start: { t: -72, a: frontRack, l: SQ_BOTTOM_LEGS, at: ['an', X, AY] }, end: stand([-88, -90]) },
+  // 클러스터: 바닥에서 받아 쓰러스터까지 잇는다
+  cluster: { start: DL_BOTTOM, end: stand([-88, -90]) },
   high_pull: { start: DL_BOTTOM, end: stand([186, -30]) },
   burpee: { start: pushTop(), end: { t: -90, a: [-90, -90], l: [92, 90, 40], at: ['an', X, 166] }, hold: 'none' },
   battle_rope: {
@@ -1145,6 +1147,127 @@ export const ARCH: Record<string, Arch> = {
     scene: [{ k: 'bar', at: [150, 26] }],
     hold: 'none',
   },
+  // ── 특이 종목 보강(SPEC-028 · REV-035) — 가까운 원형이 다른 동작을 그려서 새로 그렸다 ──
+  // 오버헤드 슈러그: 팔을 머리 위로 편 채 어깨만 으쓱한다
+  overhead_shrug: {
+    start: fstand([-88, -92]),
+    end: fstand([-88, -92], { shrug: 9 }),
+    thumb: 'end',
+  },
+  // 루 레이즈: 옆으로 들어 올려 머리 위까지 간다(레터럴은 수평에서 멈춘다)
+  lu_raise: { start: fstand([96, 94]), end: fstand([-80, -82]), thumb: 'end' }, // 96→-88 은 차이가 180° 를 넘어 보간이 몸 앞으로 돈다
+  // 리닝 레터럴: 기둥을 잡고 반대쪽으로 기울여 한 팔만 든다
+  leaning_lateral_raise: {
+    start: fstand([96, 94], { tilt: 12, al: [172, 174] }),
+    end: fstand([2, 4], { tilt: 12, al: [172, 174] }),
+    cable: { from: [28, 176], col: 40 },
+    scene: [{ k: 'column', x: 40 }], // 덤벨판도 잡을 기둥이 있어야 자세가 읽힌다
+  },
+  // W 레이즈: 팔꿈치를 굽혀 W 모양으로 조인다
+  w_raise: { start: fstand([70, 10]), end: fstand([30, -60]), thumb: 'end' },
+  // 스텝다운: 박스 위에서 천천히 내려온다(스텝업의 반대)
+  step_down: {
+    start: { t: -90, a: [90, 90], l: [90, 90, 0], l2: [85, 135, 0], at: ['an', 136, 135] },
+    end: { t: -86, a: [90, 90], l: [6, 92, 0], l2: [90, 90, 0], at: ['an2', 92, AY] },
+    scene: [{ k: 'box', x: 120, y: 140, w: 58, h: 48 }],
+    thumb: 'end',
+    hold: 'none',
+  },
+  // 머슬 스내치: 무릎을 다시 굽히지 않고 팔로 끝까지 올린다(스내치는 스쿼트로 받는다)
+  muscle_snatch: { start: DL_BOTTOM, end: stand([-90, -90]), thumb: 'end' },
+  // 소츠 프레스: 스쿼트 바닥에 앉은 채 팔로만 민다
+  sots_press: {
+    start: { t: -72, a: backBar, l: SQ_BOTTOM_LEGS, at: ['an', X, AY] },
+    end: { t: -72, a: [-100, -100], l: SQ_BOTTOM_LEGS, at: ['an', X, AY] },
+    thumb: 'end',
+  },
+  // 플란체: 손만 짚고 몸을 수평으로 띄운다 — 발이 바닥에 닿지 않는다
+  planche: {
+    start: { t: 0, a: [108, 108], l: [180, 180, 90], at: ['wr', 142, AY] },
+    end: { t: 0, a: [108, 108], l: [180, 180, 90], at: ['wr', 142, AY] },
+    hold: 'none',
+  },
+  planche_push_up: {
+    start: { t: 0, a: [108, 108], l: [180, 180, 90], at: ['wr', 142, AY] },
+    end: { t: 2, a: [170, 60], l: [180, 180, 90], at: ['wr', 142, AY] },
+    hold: 'none',
+    thumb: 'end',
+  },
+  // 휴먼 플래그: 세로 기둥을 양손으로 잡고 몸을 옆으로 눕힌다
+  human_flag: {
+    start: { t: 0, a: [-55, -55], a2: [55, 55], l: [180, 180, 0], at: ['wr', 172, 52] },
+    end: { t: 0, a: [-55, -55], a2: [55, 55], l: [180, 180, 0], at: ['wr', 172, 52] },
+    scene: [{ k: 'line', a: [172, 16], b: [172, 188], w: 5 }],
+    hold: 'none',
+  },
+  // 코리안 딥스: 몸 뒤의 바를 잡고 발을 띄운 채 내려간다
+  korean_dip: {
+    start: { t: -90, a: [112, 112], l: [100, 100, 20], at: ['wr', 100, 70] },
+    end: { t: -82, a: [176, -60], l: [100, 100, 20], at: ['wr', 100, 70] },
+    scene: [{ k: 'bar', at: [100, 70] }],
+    hold: 'none',
+    thumb: 'end',
+  },
+  // 스핑크스 푸시업: 팔꿈치를 바닥에 댄 자세에서 팔을 편다
+  sphinx_push_up: {
+    start: { t: -8, a: [92, 2], l: [174, 174, 90], at: ['wr', 168, 182] },
+    end: { t: -24, a: [62, 62], l: [166, 166, 90], at: ['wr', 168, 182] },
+    hold: 'none',
+    thumb: 'start',
+  },
+  // 케이블 라잉 컬: 바닥에 누워 발쪽 낮은 도르래를 당긴다
+  cable_lying_curl: {
+    start: { t: 180, a: [4, 4], l: [0, 0, -90], at: ['hip', 130, 178] },
+    end: { t: 180, a: [4, -140], l: [0, 0, -90], at: ['hip', 130, 178] },
+    cable: { from: [226, 172], col: 230 },
+    thumb: 'end',
+  },
+  // 제퍼슨 컬: 박스 위에서 등을 말아 머리부터 내려간다(등을 편 힌지와 다르다)
+  jefferson_curl: {
+    start: { t: -90, a: [90, 90], l: [90, 90, 0], at: ['an', X, 132] },
+    end: { t: 70, a: [90, 90], l: [90, 90, 0], at: ['an', X, 132] },
+    scene: [{ k: 'box', x: 92, y: 137, w: 56, h: 51 }],
+    thumb: 'end',
+  },
+  // 피겨 8: 숙인 자세로 다리 사이에 케틀벨을 8자로 넘긴다
+  figure_8: {
+    start: { t: -20, a: [84, 84], l: [74, 100, 0], at: ['an', X, AY] },
+    end: { t: -20, a: [122, 122], l: [74, 100, 0], at: ['an', X, AY] },
+  },
+  // 스패니시 스쿼트: 무릎 뒤에 밴드를 걸고 정강이를 세운 채 뒤로 앉는다
+  spanish_squat: {
+    start: stand([0, 0]),
+    end: { t: -76, a: [0, 0], l: [2, 90, 0], at: ['an', X, AY] },
+    band: { from: [226, 138], to: 'kn' },
+    hold: 'none',
+  },
+  // 햇필드 스쿼트: 세이프티바를 메고 손으로 앞 손잡이를 잡는다
+  hatfield_squat: {
+    start: stand([8, 8]),
+    end: { t: -68, a: [-8, -8], l: SQ_BOTTOM_LEGS, at: ['an', X, AY] },
+    other: [{ k: 'barbell', at: 'sh' }, { k: 'line', a: [196, 60], b: [196, 188], w: 5 }, { k: 'line', a: 'wr', b: [196, 110], w: 3 }],
+    hold: 'none',
+  },
+  // 요크 워크: 어깨에 틀을 메고 걷는다
+  yoke_walk: {
+    start: { t: -88, a: [100, 30], l: [70, 100, 0], l2: [112, 90, 0], at: ['hip', X, 106] },
+    end: { t: -88, a: [100, 30], l: [112, 90, 0], l2: [70, 100, 0], at: ['hip', X, 106] },
+    other: [
+      { k: 'line', a: [86, 44], b: [86, 188], w: 5 },
+      { k: 'line', a: [160, 44], b: [160, 188], w: 5 },
+      { k: 'line', a: [86, 50], b: [160, 50], w: 6 },
+    ],
+    hold: 'none',
+  },
+  // 맨 메이커: 푸시업 자세에서 일어나 머리 위로 든다
+  man_maker: { start: pushTop(), end: stand([-88, -90]), thumb: 'end' },
+  // 핸드 그리퍼: 팔을 앞으로 뻗어 악력기를 쥔다
+  hand_gripper: {
+    start: stand([60, 0]),
+    end: stand([60, 0]),
+    other: [{ k: 'ball', at: 'wr', r: 6 }],
+    hold: 'none',
+  },
   // 티비알리스 레이즈: 발뒤꿈치를 딛고 발끝을 든다(카프 레이즈의 반대)
   tibialis_raise: {
     start: stand([90, 90]),
@@ -1208,6 +1331,13 @@ export const ARCH: Record<string, Arch> = {
     start: stand([60, -110]),
     end: stand([0, 0]),
     other: [{ k: 'plate', at: 'wr', r: 13 }],
+    hold: 'none',
+  },
+  // 버스 드라이버: 팔을 앞으로 뻗은 채 원판을 핸들처럼 돌린다(회전은 그리지 않는다)
+  bus_driver: {
+    start: stand([0, 0]),
+    end: stand([0, 0]),
+    other: [{ k: 'plate', at: 'wr', r: 14 }],
     hold: 'none',
   },
   plate_raise: {

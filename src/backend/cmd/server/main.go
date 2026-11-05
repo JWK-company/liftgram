@@ -61,6 +61,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/feed"
 	"github.com/JWK-company/liftgram/src/backend/internal/feedback"
 	"github.com/JWK-company/liftgram/src/backend/internal/gear"
+	"github.com/JWK-company/liftgram/src/backend/internal/gyms"
 	"github.com/JWK-company/liftgram/src/backend/internal/idempotency"
 	"github.com/JWK-company/liftgram/src/backend/internal/mailer"
 	"github.com/JWK-company/liftgram/src/backend/internal/media"
@@ -240,6 +241,16 @@ func main() {
 
 	authPath, authHTTP := authv1connect.NewAuthServiceHandler(auth.NewHandler(authSvc).WithLimiter(authLimiter).WithAppHandoff(oauthHandler), opts)
 	mount(mux, authPath, authHTTP)
+
+	// ── 주변 헬스장 ── 키를 브라우저에 두지 않으려고 서버를 거친다(SPEC-029).
+	// 요청 하나가 카카오를 최대 3번 부르므로 하루 상한과 넓은 대역 상한을 함께 둔다.
+	gymPerMinute := auth.NewAuthLimiter(20, time.Minute)
+	gymPerDay := auth.NewAuthLimiter(200, 24*time.Hour)
+	gymWide := auth.NewAuthLimiter(100, time.Minute)
+	mux.Handle(gyms.Path, gyms.NewHandler(cfg.KakaoLocalRestKey, func(ip string) bool {
+		host, wide := gyms.LimitKeys(ip)
+		return gymWide.Allow(wide) && gymPerMinute.Allow(host) && gymPerDay.Allow(host)
+	}))
 
 	// ── 미디어 ──
 	// 저장소는 **여기서 한 번** 정해진다. 도메인은 자기가 디스크를 쓰는지 R2를 쓰는지 모른다.

@@ -278,7 +278,6 @@ const PATTERN_BY_ID: Record<string, MovementPattern> = {
   "seed-archer-pull-up": 'verticalPull', // 아처 풀업
   "seed-band-bent-over-row": 'horizontalPull', // 밴드 벤트오버 로우
   "seed-barbell-incline-bench-row": 'horizontalPull', // 바벨 인클라인 로우
-  "seed-cable-behind-the-neck-pulldown": 'verticalPull', // 케이블 비하인드 넥 랫풀다운
   "seed-cable-bent-over-row": 'horizontalPull', // 케이블 벤트오버 로우
   "seed-cable-standing-row": 'horizontalPull', // 케이블 스탠딩 로우
   "seed-ez-bar-pullover": 'verticalPull', // EZ바 풀오버
@@ -335,6 +334,25 @@ const PATTERN_BY_ID: Record<string, MovementPattern> = {
   "seed-double-crunch": 'core', // 더블 크런치
   "seed-inchworm": 'core', // 인치웜
   "seed-stomach-vacuum": 'core', // 복부 배큠
+  // 특이 종목 보강(SPEC-028) — 위험 종목은 대체 추천에 묶이지 않게 비운다
+  "seed-barbell-board-press": 'horizontalPress', // 바벨 보드 프레스
+  "seed-barbell-spoto-press": 'horizontalPress', // 바벨 스포토 프레스
+  "seed-commando-pull-up": 'verticalPull', // 커맨도 풀업
+  "seed-typewriter-pull-up": 'verticalPull', // 타이프라이터 풀업
+  "seed-dumbbell-lu-raise": 'lateralRaise', // 덤벨 루 레이즈
+  "seed-cable-leaning-lateral-raise": 'lateralRaise', // 케이블 리닝 레터럴 레이즈
+  "seed-dumbbell-leaning-lateral-raise": 'lateralRaise', // 덤벨 리닝 레터럴 레이즈
+  "seed-dumbbell-scaption": 'lateralRaise', // 덤벨 스캡션
+  "seed-viking-press": 'verticalPress', // 바이킹 프레스
+  "seed-kettlebell-bottoms-up-press": 'verticalPress', // 케틀벨 바텀업 프레스
+  "seed-cable-lying-curl": 'curl', // 케이블 라잉 컬
+  "seed-spanish-squat": 'squat', // 스패니시 스쿼트
+  "seed-barbell-anderson-squat": 'squat', // 바벨 앤더슨 스쿼트
+  "seed-hatfield-squat": 'squat', // 햇필드 스쿼트
+  "seed-step-down": 'lungeStep', // 스텝다운
+  "seed-poliquin-step-up": 'lungeStep', // 폴리퀸 스텝업
+  "seed-single-leg-hip-thrust": 'hinge', // 싱글 레그 힙 쓰러스트
+  "seed-dumbbell-single-leg-hip-thrust": 'hinge', // 덤벨 싱글 레그 힙 쓰러스트
 };
 
 export function movementPatternOf(exerciseId: string): MovementPattern | null {

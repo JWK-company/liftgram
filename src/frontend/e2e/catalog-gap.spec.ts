@@ -41,7 +41,7 @@ test("새 종목을 검색해 고르면 그림과 함께 운동에 들어가고 
   await expect(page.getByTestId("set-reps").first()).toHaveValue("12");
 });
 
-test("서버 카탈로그가 새 판(587행 · 보관 포함)이고 기기가 두 페이지를 받아 맞춘다(qa code L-5)", async ({
+test("서버 카탈로그가 새 판(633행 · 보관 포함)이고 기기가 두 페이지를 받아 맞춘다(qa code L-5)", async ({
   page,
 }) => {
   // 번들 top-up 이 새 종목을 먼저 만들어 화면만으로는 서버 경로를 증명하지 못한다 — 받은 판과 응답을 직접 본다
@@ -55,10 +55,11 @@ test("서버 카탈로그가 새 판(587행 · 보관 포함)이고 기기가 �
   });
   await 카탈로그_준비(page);
   const rev = await page.evaluate(() => localStorage.getItem("liftgram.catalog.revision"));
-  expect(rev?.startsWith("587:")).toBe(true);
+  expect(rev?.startsWith("633:")).toBe(true);
   // 첫 1건(판 확인) + 500 + 나머지 = 3번 이상
   expect(pulls.length).toBeGreaterThanOrEqual(3);
   expect(bodies.join("").includes("seed-stomach-vacuum")).toBe(true);
+  expect(bodies.join("").includes("seed-barbell-overhead-shrug")).toBe(true);
 });
 
 test("별칭으로도 찾는다 — 「Z 프레스」 · 같은 동작은 기존 종목으로(「SDHP」→ 데드리프트 하이 풀 · qa spec H-2)", async ({
@@ -100,4 +101,13 @@ test("스무고개: 햄스트링 → 엉덩이 접기에 싱글 레그 데드리
   ])
     await expect(page.getByTestId(`pick-${id}`)).toBeVisible({ timeout: 15_000 });
   await expect(list).toContainText("바벨 루마니안 데드리프트"); // 기존 종목도 그대로
+});
+
+test("주의 문구는 해당 종목 상세에만 보인다", async ({ page }) => {
+  await 카탈로그_준비(page);
+  await page.goto("/exercise/seed-barbell-jefferson-curl");
+  await expect(page.getByTestId("exercise-caution")).toContainText("척추를 말아", { timeout: 20_000 });
+  await page.goto("/exercise/seed-barbell-bench-press");
+  await expect(page.getByRole("heading").first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("exercise-caution")).toHaveCount(0);
 });

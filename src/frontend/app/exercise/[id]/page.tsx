@@ -12,6 +12,7 @@ import { Code, ConnectError, type Client } from "@connectrpc/connect";
 import { ExerciseKind, type ExerciseService, LoadMode, routes } from "@app/contracts";
 import { EXERCISE_MEDIA_CREDIT, getExerciseMediaOwn, hasMediaImages } from "@app/core/data/exerciseMedia";
 import { hasPictogram } from "@app/core/data/exerciseVisual";
+import { exerciseCautionOf } from "@app/core/domain/exerciseCautions";
 import { exerciseAltName, exerciseListName } from "@app/core/domain/exerciseName";
 import { exerciseClient } from "@/lib/api";
 import { EQUIPMENT_KEY } from "@/lib/contractMap";
@@ -70,6 +71,8 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
   // 링크가 낡았을 뿐 서비스는 멀쩡하다 — 오류 화면이 아니라 404다(위 generateMetadata가 상태를 붙인다).
   const exercise = await loadExercise(id);
   if (!exercise) notFound();
+
+  const caution = exerciseCautionOf(exercise.id);
 
   // 대체운동 이름 — 하나가 사라져도 나머지는 보여야 하므로 실패를 개별로 삼킨다.
   const substitutes = (
@@ -157,6 +160,13 @@ export default async function ExerciseDetailPage({ params }: { params: Promise<{
               {t("exercises.mediaCredit", { credit: EXERCISE_MEDIA_CREDIT })}
             </AppText>
           </>
+        ) : null}
+
+        {/* 동작 주의 한 줄(SPEC-028) */}
+        {caution ? (
+          <AppText variant="caption" color="textMuted" className="block" data-testid="exercise-caution">
+            {t(`exercises.caution.${caution}`)}
+          </AppText>
         ) : null}
 
         {instructions.length ? (

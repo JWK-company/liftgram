@@ -28,6 +28,7 @@ import { ImportElsewhereNotice } from "./components/sync/ImportElsewhereNotice";
 import { LegacyTabBand, TabElsewhereOverlay } from "./components/TabElsewhereOverlay";
 import { SyncHealthBanner } from "./components/sync/SyncHealthBanner";
 import { AppDistBanner } from "./components/appdist/AppDistBanner";
+import { PolicyNoticeBanner } from "./components/legal/PolicyNoticeBanner";
 import { TabBar } from "./components/ui/TabBar";
 import { LogoSpinner } from "./components/ui/LogoSpinner";
 import { AppBootRelease } from "./components/AppBootRelease";
@@ -108,6 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <SyncHealthBanner />
                 {/* SPEC-018 안드로이드 앱 업데이트 · 재설치 · PWA → 전용 앱 바꾸기(홈에서만 · 운동 중 없음) */}
                 <AppDistBanner />
+                <PolicyNoticeBanner />
                 {/* [원본] overflow-x-hidden — overflow-y 가 auto 로 바뀌어 main 이 스크롤 상자가 되고, 그 안의 sticky 하단
                     (휴식 막대·루틴 편집 하단·요약 하단·댓글/DM 입력)이 화면이 아니라 main 끝에 붙었다(#45·#43 · SRS-066).
                   <main className="flex min-w-0 flex-1 flex-col overflow-x-hidden">{children}</main> */}

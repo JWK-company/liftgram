@@ -13,9 +13,10 @@
 // ── 반경은 넓히기만 한다 ───────────────────────────────────────────────────
 // 2 → 5 → 10km. 좁히는 버튼은 두지 않는다(빈 화면을 다시 만드는 버튼이다).
 // ─────────────────────────────────────────────────────────────────────────────
-import { formatDistance, type RankedGym } from "@app/core";
-import { useCallback, useEffect, useState } from "react";
+import { formatDistance, type GeoPoint, type RankedGym } from "@app/core";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { t } from "@/lib/i18n";
+import { platformOf } from "@/lib/platform";
 import {
   getCurrentLocation,
   GymError,
@@ -41,6 +42,19 @@ const ERR_KEY: Record<GymErrorCode, Parameters<typeof t>[0]> = {
   "search-failed": "gyms.errSearch",
 };
 
+/** 이만큼 지나도 위치가 없으면 권한 창을 놓쳤을 수 있다고 알린다. */
+const SLOW_LOCATE_MS = 15_000;
+/** 이만큼 지나도 검색이 안 끝나면 서버가 느리다고 알린다(상한은 25초). */
+const SLOW_SEARCH_MS = 10_000;
+/** 이만큼 다른 화면에 있다 돌아와야 설정을 바꾸고 온 것으로 본다(권한 창이 잠깐 가린 경우를 뺀다). */
+const RETURN_MIN_HIDDEN_MS = 2_000;
+/** 재시도·반경 넓히기가 위치를 다시 묻지 않고 쓸 수 있는 시간. */
+const LOCATION_FRESH_MS = 5 * 60_000;
+
+function isLocationError(code: GymErrorCode | null): boolean {
+  return code === "geo-denied" || code === "geo-timeout" || code === "geo-unavailable";
+}
+
 type Phase = "locating" | "searching" | "done" | "error";
 
 export default function NearbyGymsClient() {
@@ -48,33 +62,161 @@ export default function NearbyGymsClient() {
   const [errCode, setErrCode] = useState<GymErrorCode | null>(null);
   const [gyms, setGyms] = useState<RankedGym[]>([]);
   const [radiusIdx, setRadiusIdx] = useState(0);
+  const [truncated, setTruncated] = useState(false);
+  const [slowLocate, setSlowLocate] = useState(false);
+  const [slowSearch, setSlowSearch] = useState(false);
+  const [expandFailed, setExpandFailed] = useState(false);
 
-  const run = useCallback(async (radiusM: number) => {
-    setPhase("locating");
+  // [원본] const run = useCallback(async (radiusM: number) => {
+  // [원본]   setPhase("locating");
+  // [원본]   setErrCode(null);
+  // [원본]   try {
+  // [원본]     const loc = await getCurrentLocation();
+  // [원본]     setPhase("searching");
+  // [원본]     setGyms(await searchNearbyGyms(loc, radiusM));
+  // [원본]     setPhase("done");
+  // [원본]   } catch (e) {
+  // [원본]     setErrCode(e instanceof GymError ? e.code : "search-failed");
+  // [원본]     setPhase("error");
+  // [원본]   }
+  // [원본] }, []);
+  //
+  // [원본] useEffect(() => {
+  // [원본]   void run(RADIUS_STEPS[0]);
+  // [원본] }, [run]);
+
+  // [개선] SPEC-029 — 뒤 실행이 앞 실행을 끊고, 받은 위치는 잠시 다시 쓴다.
+  const runGen = useRef(0);
+  const searchAbort = useRef<AbortController | null>(null);
+  const lastLoc = useRef<{ at: number; loc: GeoPoint } | null>(null);
+  const radiusIdxRef = useRef(0);
+
+  const run = useCallback(async (idx: number, expanding = false) => {
+    const radiusM = RADIUS_STEPS[idx];
+    const gen = ++runGen.current;
+    searchAbort.current?.abort();
+    const ctrl = new AbortController();
+    searchAbort.current = ctrl;
+    radiusIdxRef.current = idx;
     setErrCode(null);
+    setSlowLocate(false);
+    setSlowSearch(false);
+    setExpandFailed(false);
+    let slowTimer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const loc = await getCurrentLocation();
+      const kept = lastLoc.current;
+      let loc: GeoPoint;
+      if (kept && Date.now() - kept.at < LOCATION_FRESH_MS) {
+        loc = kept.loc;
+      } else {
+        setPhase("locating");
+        slowTimer = setTimeout(() => {
+          if (gen === runGen.current) setSlowLocate(true);
+        }, SLOW_LOCATE_MS);
+        loc = await getCurrentLocation(undefined, undefined, (late) => {
+          lastLoc.current = { at: Date.now(), loc: late };
+          if (gen === runGen.current) void run(idx, expanding);
+        });
+        clearTimeout(slowTimer);
+        if (gen !== runGen.current) return;
+        lastLoc.current = { at: Date.now(), loc };
+      }
+      setSlowLocate(false);
       setPhase("searching");
-      setGyms(await searchNearbyGyms(loc, radiusM));
+      slowTimer = setTimeout(() => {
+        if (gen === runGen.current) setSlowSearch(true);
+      }, SLOW_SEARCH_MS);
+      const result = await searchNearbyGyms(loc, radiusM, ctrl.signal);
+      clearTimeout(slowTimer);
+      if (gen !== runGen.current) return;
+      setSlowSearch(false);
+      setRadiusIdx(idx);
+      setGyms(result.gyms);
+      setTruncated(result.truncated);
       setPhase("done");
     } catch (e) {
+      clearTimeout(slowTimer);
+      if (gen !== runGen.current) return;
+      setSlowLocate(false);
+      setSlowSearch(false);
+      if (expanding) {
+        // 넓히기가 실패해도 받아 둔 목록과 반경은 그대로 둔다.
+        radiusIdxRef.current = idx - 1;
+        setExpandFailed(true);
+        setPhase("done");
+        return;
+      }
       setErrCode(e instanceof GymError ? e.code : "search-failed");
       setPhase("error");
     }
   }, []);
 
   useEffect(() => {
-    void run(RADIUS_STEPS[0]);
+    void run(0);
+    return () => {
+      runGen.current += 1;
+      searchAbort.current?.abort();
+    };
   }, [run]);
 
-  const canExpand = radiusIdx < RADIUS_STEPS.length - 1;
+  // 설정에서 위치를 켜고 돌아오면 다시 누르지 않아도 찾는다.
+  const awaitingPermission = phase === "error" && isLocationError(errCode);
+  useEffect(() => {
+    if (!awaitingPermission) return;
+    let status: PermissionStatus | null = null;
+    let closed = false;
+    let hiddenAt = 0;
+    const retry = () => void run(radiusIdxRef.current);
+    const isApp = platformOf(navigator.userAgent) === "app";
+    const query = (): Promise<PermissionStatus> =>
+      typeof navigator.permissions?.query === "function"
+        ? navigator.permissions.query({ name: "geolocation" })
+        : Promise.reject(new Error("no permissions api"));
+    query().then(
+      (s) => {
+        if (closed) return;
+        status = s;
+        s.onchange = () => {
+          if (s.state === "granted") retry();
+        };
+      },
+      () => {},
+    );
+    // iOS 는 onchange 가 믿을 수 없어 돌아올 때마다 다시 묻는다. 물을 수 없거나 앱 안이면 그냥 한 번 다시 찾는다.
+    const onVisible = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAt = Date.now();
+        return;
+      }
+      const away = hiddenAt ? Date.now() - hiddenAt : 0;
+      hiddenAt = 0;
+      if (away < RETURN_MIN_HIDDEN_MS) return;
+      query().then(
+        (s) => {
+          if (!closed && (isApp || s.state === "granted")) retry();
+        },
+        () => {
+          if (!closed) retry();
+        },
+      );
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      closed = true;
+      if (status) status.onchange = null;
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [awaitingPermission, run]);
+
+  // [원본] const canExpand = radiusIdx < RADIUS_STEPS.length - 1;
+  // [개선] 45곳에서 잘렸으면 넓혀도 먼 곳이 더 나오지 않는다.
+  const canExpand = radiusIdx < RADIUS_STEPS.length - 1 && !truncated;
   const km = RADIUS_STEPS[radiusIdx] / 1000;
   const nextKm = RADIUS_STEPS[Math.min(radiusIdx + 1, RADIUS_STEPS.length - 1)] / 1000;
 
+  // [원본] 반경을 먼저 바꾸고 다시 찾았다 — 실패하면 받아 둔 목록이 사라졌다.
   const expand = useCallback(() => {
-    const next = Math.min(radiusIdx + 1, RADIUS_STEPS.length - 1);
-    setRadiusIdx(next);
-    void run(RADIUS_STEPS[next]);
+    void run(Math.min(radiusIdx + 1, RADIUS_STEPS.length - 1), true);
   }, [radiusIdx, run]);
 
   return (
@@ -98,13 +240,42 @@ export default function NearbyGymsClient() {
             <AppText variant="body" color="textMuted" data-testid="gyms-phase">
               {t(phase === "locating" ? "gyms.locating" : "gyms.searching")}
             </AppText>
+            {phase === "locating" && slowLocate ? (
+              <div
+                className="flex flex-col items-center gap-[var(--spacing-md)]"
+                data-testid="gyms-slow-locate"
+              >
+                <AppText variant="caption" color="textMuted" className="text-center">
+                  {t("gyms.locatingSlow")}
+                </AppText>
+                <Button
+                  title={t("gyms.retry")}
+                  icon="refresh"
+                  variant="secondary"
+                  fullWidth={false}
+                  onPress={() => void run(radiusIdx)}
+                  testId="gyms-retry"
+                />
+              </div>
+            ) : null}
+            {phase === "searching" && slowSearch ? (
+              <AppText
+                variant="caption"
+                color="textMuted"
+                className="text-center"
+                data-testid="gyms-slow-search"
+              >
+                {t("gyms.searchingSlow")}
+              </AppText>
+            ) : null}
           </div>
         ) : phase === "error" ? (
           <div data-testid="gyms-error">
             <EmptyState
               tone="error"
-              icon="location-outline"
-              title={t("gyms.errTitle")}
+              // [원본] icon="location-outline" · title={t("gyms.errTitle")} — 검색 실패도 위치 실패로 보였다
+              icon={errCode === "search-failed" || !errCode ? "barbell-outline" : "location-outline"}
+              title={t(errCode === "search-failed" || !errCode ? "gyms.errSearchTitle" : "gyms.errTitle")}
               message={t(errCode ? ERR_KEY[errCode] : "gyms.errSearch")}
               action={
                 <Button
@@ -112,7 +283,7 @@ export default function NearbyGymsClient() {
                   icon="refresh"
                   variant="secondary"
                   fullWidth={false}
-                  onPress={() => void run(RADIUS_STEPS[radiusIdx])}
+                  onPress={() => void run(radiusIdx)}
                   testId="gyms-retry"
                 />
               }
@@ -120,6 +291,7 @@ export default function NearbyGymsClient() {
           </div>
         ) : gyms.length === 0 ? (
           <div data-testid="gyms-empty">
+            {expandFailed ? <ExpandFailedNote /> : null}
             <EmptyState
               icon="barbell-outline"
               title={t("gyms.emptyTitle")}
@@ -139,8 +311,9 @@ export default function NearbyGymsClient() {
           </div>
         ) : (
           <div data-testid="gyms-list">
+            {expandFailed ? <ExpandFailedNote /> : null}
             <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-sm)] block">
-              {t("gyms.foundCount", { count: gyms.length, radius: km })}
+              {t(truncated ? "gyms.foundCountCapped" : "gyms.foundCount", { count: gyms.length, radius: km })}
             </AppText>
 
             <GymCard gym={gyms[0]} recommended />
@@ -173,6 +346,16 @@ export default function NearbyGymsClient() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function ExpandFailedNote() {
+  return (
+    <div role="status" className="mb-[var(--spacing-sm)]" data-testid="gyms-expand-failed">
+      <AppText variant="caption" color="textMuted">
+        {t("gyms.expandFailed")}
+      </AppText>
     </div>
   );
 }

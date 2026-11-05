@@ -128,7 +128,9 @@ const ALIASES_ADDED: Record<string, string[]> = {
   'seed-pull-up': ["L-싯 풀업", "엘싯 풀업", "l-sit pull-up"],
   'seed-deadlift-high-pull': ["스모 데드리프트 하이 풀", "바벨 스모 데드리프트 하이 풀", "스모 하이 풀", "SDHP", "sumo deadlift high pull"],
   'seed-hanging-knee-raise': ["행잉 오블리크 니 레이즈", "행잉 트위스트 니 레이즈", "hanging oblique knee raise"],
-  'seed-chest-supported-row-dumbbell': ["인클라인 로우"],
+  // 특이 종목 보강에서 더한 별칭(SPEC-028)도 이 지문에서 뺀다
+  'seed-chest-supported-row-dumbbell': ["인클라인 로우", "헬름스 로우", "helms row"],
+  'seed-front-squat': ["좀비 스쿼트", "zombie squat"],
 };
 
 // 갭 보강 직전(v0.55.0) 카탈로그 480행의 지문(별칭 포함) — 위 별칭을 빼면 이것과 같아야 한다.
@@ -164,7 +166,8 @@ test('기존 480행은 별칭 추가 말고 바뀌지 않았다 — 새 행은 �
   });
   const sha = createHash('sha1').update(JSON.stringify(before)).digest('hex');
   assert.equal(sha, BEFORE_SHA1);
-  assert.deepEqual(CATALOG.slice(BEFORE_ROWS).map((r) => r.id), [...ADDED, MERGED]);
+  // [원본] CATALOG.slice(BEFORE_ROWS) — 특이 종목 보강(SPEC-028)이 587행 뒤에 덧붙인다
+  assert.deepEqual(CATALOG.slice(BEFORE_ROWS, 587).map((r) => r.id), [...ADDED, MERGED]);
 });
 
 test('「인클라인 클로즈그립 벤치프레스」 = 바벨 인클라인 프레스 + 그립 close(보관 행 · 함축 축)', () => {
