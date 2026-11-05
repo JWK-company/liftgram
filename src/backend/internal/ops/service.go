@@ -469,14 +469,23 @@ func (s *Service) GetOpsAlert(ctx context.Context, viewerID, role string) (bool,
 	if err := s.requireAdmin(ctx, viewerID, role); err != nil {
 		return false, 0, err
 	}
-	now := s.now()
-	health, err := s.repo.ListHealthSince(ctx, now.Add(-HealthWindow))
+	reasons, err := s.currentReasons(ctx)
 	if err != nil {
 		return false, 0, err
 	}
+	return len(reasons) > 0, len(reasons), nil
+}
+
+// currentReasons — 지금 경고 코드들. 탭 점과 경고 메일(SPEC-033)이 같은 답을 내게 한 곳에 둔다.
+func (s *Service) currentReasons(ctx context.Context) ([]string, error) {
+	now := s.now()
+	health, err := s.repo.ListHealthSince(ctx, now.Add(-HealthWindow))
+	if err != nil {
+		return nil, err
+	}
 	backup, err := s.backupFacts(ctx)
 	if err != nil {
-		return false, 0, err
+		return nil, err
 	}
 	// [원본] n := 0
 	// for _, h := range health {
@@ -487,12 +496,11 @@ func (s *Service) GetOpsAlert(ctx context.Context, viewerID, role string) (bool,
 	// [개선] GetOpsStatus 와 같은 거름망 — 탭 점과 /ops 화면이 같은 답을 낸다
 	lastSync, err := s.lastSyncFor(ctx, health, now)
 	if err != nil {
-		return false, 0, err
+		return nil, err
 	}
 	stalled, _ := Classify(health, lastSync, now)
 	n := len(stalled)
-	reasons := s.withUsageReason(ctx, AlertReasons(n, backup, now))
-	return len(reasons) > 0, len(reasons), nil
+	return s.withUsageReason(ctx, AlertReasons(n, backup, now)), nil
 }
 
 func (s *Service) backupFacts(ctx context.Context) (BackupFacts, error) {

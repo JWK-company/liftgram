@@ -57,6 +57,12 @@ console.log("\n  설정 키 — 스키마가 만든 것은 예시와 문서에�
     const block = src.slice(src.indexOf("z.object({"), src.indexOf("});"));
     for (const m of block.matchAll(/^\s{2}([A-Z0-9_]+):/gm)) if (!keys.includes(m[1])) keys.push(m[1]);
   }
+  // 운영 웹(TS) — 앱과 따로 도는 세 번째 실행 단위(SPEC-033)
+  {
+    const src = read("admin/lib/env.ts");
+    const block = src.slice(src.indexOf("z.object({"), src.indexOf("});"));
+    for (const m of block.matchAll(/^\s{2}([A-Z0-9_]+):/gm)) if (!keys.includes(m[1])) keys.push(m[1]);
+  }
   const example = read(".env.example");
   for (const k of keys) {
     const inExample = example.includes(k);
@@ -133,6 +139,10 @@ console.log("\n  설정 접근 — process.env를 직접 읽는 곳이 한 곳�
   const { execSync } = await import("node:child_process");
   const ALLOW = [
     "frontend/lib/env.ts", // web 스키마 자신
+    "admin/lib/env.ts", // 운영 웹 스키마 자신
+    "admin/e2e/",
+    "admin/lib/units.test.ts",
+    "admin/playwright.config.ts",
     "scripts/", // 검사·유틸 스크립트
     "frontend/next.config.ts",
     "frontend/e2e/",

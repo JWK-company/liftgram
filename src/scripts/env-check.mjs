@@ -79,6 +79,7 @@ function activeKeys(file) {
 const UNITS = [
   { unit: "backend", schema: "backend/internal/config/config.go", lang: "go" },
   { unit: "frontend", schema: "frontend/lib/env.ts", lang: "ts" },
+  { unit: "admin", schema: "admin/lib/env.ts", lang: "ts" },
 ];
 
 // 같은 키를 두 단위가 함께 쓰기도 한다(SHUTDOWN_TIMEOUT_MS) — 한 줄로 합쳐 보여준다.
@@ -119,6 +120,7 @@ const containerOnly = new Set([
   "DB_PORT",
   "BROKER_PORT",
   "WEB_PORT",
+  "ADMIN_PORT",
   // compose/Makefile이 컨테이너·볼륨 이름을 짓는 데만 쓴다(앱 코드는 읽지 않는다).
   "COMPOSE_PROJECT_NAME",
   // 컨테이너에서만 다른 값을 쓰는 항목(compose가 덮어쓴다)

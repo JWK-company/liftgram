@@ -1,0 +1,473 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "ADR-054 와 SPEC-032 는 운영 화면을 앱 안 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "/admin",
+            "type": "text"
+          },
+          {
+            "text": " 에 두고 프로필에서 들어가게 했다. 앱의 탭바와 좁은 폭이 그대로 남아 운영자가 쓰기 불편했고, 사용자는 앱과 독립된 웹을 요구했다. 데이터 수집·집계·권한 판정은 그대로 쓸 수 있다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "새 워크스페이스 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/admin",
+                    "type": "text"
+                  },
+                  {
+                    "text": " (Next 16)과 별도 컨테이너, 주소 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "liftgram-admin.tarae.org",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 로 만든다. 앱 코드와 화면 부품을 가져오지 않고 계약 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/contracts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 만 함께 쓴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "배포도 분리한다. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/scripts/deploy-admin-h2500-3.sh",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 로 운영 웹만 올리고 내릴 수 있고, 앱 배포는 운영 웹을 재시작하지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "같은 백엔드와 같은 계정·권한을 쓴다. 운영 웹의 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/api/*",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 자기 서버가 RPC 단위 허용 목록으로 백엔드에 넘겨 CORS 를 열지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱 프록시 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/api/[...path]/route.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 운영 RPC 를 막는다. 운영 데이터는 운영 웹 주소로만 닿는다. 신고, 사용자 의견, 기기 상태 보고 RPC 는 앱에 남긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱에서 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/admin",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/staff",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/feedback",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/moderation",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/ops",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 화면과 프로필 입구, 탭바의 운영 점을 없앤다. 옛 주소는 운영 웹으로 넘긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "주소는 Cloudflare 무료 인증서가 덮는 한 단계 하위 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "liftgram-admin.tarae.org",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 로 한다. 두 단계 하위인 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "admin.liftgram.tarae.org",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 는 쓰지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "같은 프로젝트에 앱 틀만 뺀 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/admin",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 코드와 배포가 묶여 기각(사용자 결정).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 웹에 Google 로그인 추가: 콜백 분기와 콘솔 등록이 늘어 지금은 하지 않는다. Google 전용 계정은 앱 계정 화면에서 비밀번호를 만든다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "같은 스크립트로 일괄 배포: 운영 웹 수정이 앱 재시작과 APK 검사, 스키마 하강 차단에 묶여 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 웹 장애와 배포가 앱 화면에 직접 묶이지 않는다. 백엔드는 공유하므로 백엔드 장애는 함께 겪는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "터널 공개 호스트명은 Cloudflare 대시보드에서 사람이 추가해야 한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱의 운영 경고 점이 사라지므로 경고를 전달할 다른 수단이 필요하다(SPEC-033 결정 대기).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "광고 자리 미리 보기는 앱 브라우저 저장값이라 운영 웹에서 상태를 읽을 수 없다. 운영 웹은 켜기와 끄기 링크만 준다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "ADR-057",
+  "meta": {},
+  "relations": {
+    "informs": [
+      "SRS-102",
+      "SRS-103"
+    ],
+    "supersedes": [
+      "ADR-054"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "운영 기능을 별도 웹 프로젝트와 별도 주소로 분리한다",
+  "type": "ADR",
+  "updated": "2026-11-05T11:35:06Z"
+}

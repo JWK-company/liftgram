@@ -459,7 +459,9 @@ function RoutineSection() {
               <Tile
                 label={t("admin.stats.weekly")}
                 // [원본] .../ 4 — 시행 후 4주가 안 되면 실제보다 낮게 나왔다(코드 리뷰 L-1)
-                value={(Number(data.workouts) / Math.max(1, Number(data.activeUsers)) / statsWeeks()).toFixed(1)}
+                value={(Number(data.workouts) / Math.max(1, Number(data.activeUsers)) / statsWeeks()).toFixed(
+                  1,
+                )}
                 caption={t("admin.stats.weeklyCaption", { n: num(data.activeUsers) })}
                 testId="stat-weekly"
               />

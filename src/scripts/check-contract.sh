@@ -12,7 +12,8 @@ IMG="${IMG:-${COMPOSE_PROJECT_NAME:-$(basename "$PWD")}-$UNIT}"
 case "$UNIT" in
   frontend) PORT=3000; ENTRY="server.mjs" ;;
   backend)  PORT=3001; ENTRY="/app/server" ;;
-  *) echo "UNIT은 frontend 또는 backend 여야 합니다 (받은 값: $UNIT)"; exit 2 ;;
+  admin) PORT=3000; ENTRY="server.js" ;;
+  *) echo "UNIT은 frontend, backend, admin 중 하나여야 합니다 (받은 값: $UNIT)"; exit 2 ;;
 esac
 fail=0
 ok(){ echo "  ✅ $1"; }; ng(){ echo "  ❌ $1"; fail=1; }
@@ -59,7 +60,7 @@ if [ "$UNIT" = "backend" ]; then
   fi
 else
   # frontend는 필수 설정이 없다(전부 기본값이 있다) — 그래도 이미지에 .env가 실려 있으면 안 된다.
-  if docker run --rm --entrypoint sh "$IMG" -c 'ls -a /app/frontend | grep -q "^\.env$"' 2>/dev/null; then
+  if docker run --rm --entrypoint sh "$IMG" -c 'ls -a /app/'"$UNIT"' | grep -q "^\.env$"' 2>/dev/null; then
     ng "이미지에 .env가 들어 있다 — 설정이 이미지에 박히면 같은 이미지를 재사용할 수 없다"
   else
     ok "이미지에 설정 파일이 없다(설정은 실행 시 환경변수로만)"

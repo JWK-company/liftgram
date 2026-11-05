@@ -1,0 +1,480 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-027",
+ "type": "Execution",
+ "title": "SPEC-033 Phase 2 구현 기록",
+ "group": "할일/운영-웹",
+ "meta": {
+  "phase": "2",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-033"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 파일"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/admin/app/(console)/page.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/app/(console)/HomeScreen.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/app/(console)/ops/",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/admin/app/components/ui.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/app/components/ConsoleShell.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/useResource.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/useQueryState.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/paging.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/opsAlert.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/opsReasons.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/database/migrations/0031_ops_alert_mail.sql",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/ops/alertmail.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/ops/alertmail_test.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/ops/service.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/ops/repo.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/config/config.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/cmd/server/main.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "make verify",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 통과용 포맷만 정리: "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/admin/StatsClient.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/session/SetRowEdit.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/privacy/page.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/record-slots.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/user-feedback.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "시험"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "src/admin/e2e/ops.spec.ts",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "와 "
+     },
+     {
+      "type": "text",
+      "text": "go test ./internal/ops",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "가 통과했다. 전체 결과는 "
+     },
+     {
+      "type": "text",
+      "text": "ads-docs/할일/운영-웹/EXE-029.json",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "에 적었다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "협업자와 모더레이터는 자기 메뉴만 보고 빈 화면이나 오류를 보지 않는다. 관리자는 경고 이유를 맨 위에서 본다. 위험 경고는 관리자에게 메일로도 간다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-050: 채택 17, 보류 4, 기각 0."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "보류: 일부 관리자 메일 실패 재시도(M-3), 메일 중복(L-5), sqlc 규칙(L-6, L-7)."
+     }
+    ]
+   }
+  ]
+ }
+}

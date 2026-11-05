@@ -87,10 +87,11 @@ make nuke          # 데이터 볼륨까지 삭제
 | 2.5 생성 | `make gen-page NAME=posts [MODULE=post]` | **새 화면 생성** — RSC·loading·error·클라이언트 4파일(`bun run gen:page`) |
 | | `make gen NAME=order` | **새 도메인 모듈 생성** — 스키마·repository·service·테스트·라우트·조립까지 |
 | 3 앱 | `make dev` / `make dev-container` / `make build` / `make start` | `make dev`는 **backend와 frontend를 함께** 띄운다. `make dev-container`는 컨테이너 안에서 핫리로드(오버레이 — base 이미지는 프로덕션 그대로) |
+| | `make dev-admin` / `make e2e-admin` | 운영 웹(`admin/` · SPEC-033) 개발 서버 / e2e(`E2E_PG=postgres://…` · 새 DB·서버까지 띄운다). 포트 3102, 시험은 3320~3326 |
 | | `make dev-backend` / `make dev-frontend` | 한쪽만 띄운다 — 백엔드만 만질 때 / 화면만 만질 때(backend는 떠 있어야 한다) |
 | | `make install` / `make hooks` | 의존 설치(+ **lefthook** git 훅) · `make hooks`로 훅만 재설치 |
 | 4 검증 | `make verify` (= `make lint` + `make typecheck` + `make test` + `make core-check` + `make catalog-check` + `make docs-check`) | 커밋 전에 도는 것 |
-| | `make test` (= Go 테스트 + `bun run test:core`) | `test:core`는 **이관해 온 도메인 단위테스트 154건**(core/src/domain/__tests__) — 규칙이 app과 같은지 기계가 증명한다 |
+| | `make test` (= Go 테스트 + `bun run test:core` + `bun run test:admin`) | `test:core`는 **이관해 온 도메인 단위테스트 154건**(core/src/domain/__tests__) — 규칙이 app과 같은지 기계가 증명한다 |
 | | `make go-vet` / `make proto-check` | Go 빌드·vet / **계약 생성물이 proto와 일치하는가**(커밋 누락 탐지) |
 | | `make docs-check` | **문서 drift 검사** — 설정 키·make 타깃·스크립트가 문서에 있는지 |
 | | `make ratelimit-check` | rate limit이 실제로 막는지(429·Retry-After·합산 한도) |
@@ -308,6 +309,10 @@ rate limit도 backend에서 건다 — frontend가 `x-forwarded-for`로 클라�
 | `MAIL_SMTP_USER` · `MAIL_SMTP_PASSWORD` | 선택 | 비어 있음 | SMTP 인증(운영 = 발신 토큰). 비면 AUTH를 건너뛴다(Mailpit) |
 | `MAIL_FROM` | 선택 | `Liftgram <no-reply@localhost>` | 보내는 사람. 운영 `Liftgram <no-reply@tarae.org>` — 그 도메인에 SPF·DKIM이 있어야 받은편지함에 들어간다 |
 | `MAIL_REQUIRE_TLS` | 선택 | `true` | 운영 true. 로컬 Mailpit은 TLS가 없어 false |
+| `ADMIN_URL` | 운영 웹 | `http://localhost:3102` | 운영 웹의 공개 주소. 세션 라우트가 Origin 을 이 값과 정확히 맞춘다 |
+| `CF_ACCESS_AUD` · `CF_ACCESS_TEAM_DOMAIN` | 운영 웹 운영 필수 | 비어 있음 | Cloudflare Access 검증 값. 운영 빌드에서 비면 모든 요청을 거절한다 |
+| `OPS_ALERT_MAIL_INTERVAL_SEC` | 선택 | `1800` | 운영 경고 메일 판정 주기(초). 새 경고가 생기거나 24시간이 지나면 관리자에게 보낸다. 0 이면 끈다 |
+| `CF_ACCESS_CERTS_URL` | 시험 전용 | 비어 있음 | Access 서명 키 주소를 시험 서버로 돌린다 |
 | `TURNSTILE_SITE_KEY` · `TURNSTILE_SECRET` | 선택 | 비어 있음(끔) | Cloudflare Turnstile(사람 확인) — 가입·비밀번호 찾기에 붙는다. **두 키를 짝으로** 켠다(비밀키만 있으면 위젯이 없어 가입이 전부 막힌다) |
 | `IOS_APP_ID` · `ANDROID_PACKAGE` · `ANDROID_CERT_SHA256` | 선택 | 비어 있음 · `org.tarae.liftgram` | 스토어 앱 링크 검증(`/.well-known/apple-app-site-association` · `assetlinks.json`). 비면 404 |
 | `AUTH_RATE_LIMIT` | 선택 | `10` | 가입·로그인·메일 요청의 IP당 분당 허용(0=끔 · e2e). IP는 web 가장자리가 정한 값만 쓴다 |

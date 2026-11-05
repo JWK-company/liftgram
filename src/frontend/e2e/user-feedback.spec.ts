@@ -102,7 +102,9 @@ test("하루 5건을 넘기면 안내하고 글을 지우지 않는다", async (
   await expect(page.getByTestId("user-feedback-body")).toHaveValue(글);
 });
 
-test("비로그인은 로그인 안내를 보고, 로그인하면 의견 화면으로 돌아오며 로그아웃 전 초안은 지워져 있다", async ({ page }) => {
+test("비로그인은 로그인 안내를 보고, 로그인하면 의견 화면으로 돌아오며 로그아웃 전 초안은 지워져 있다", async ({
+  page,
+}) => {
   const email = freshEmail("back");
   await 가입(page, email, "복귀시험");
   await page.goto("/profile/feedback");

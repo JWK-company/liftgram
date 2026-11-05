@@ -14,6 +14,7 @@ booktarae(`booktarae.org`)와 같은 방식이다. 도메인을 따로 사지 �
 | 사진 | 서버 디스크(named volume `liftgram_media`) — 재배포해도 남는다 |
 
 - **배포**: `bash scripts/deploy-h2500-3.sh` — 커밋된 것만 나간다(작업 트리 WIP 제외) · 빌드 전 디스크 확인 · 서버에 `~/liftgram/DEPLOYED_REF`로 배포 커밋을 기록 · 끝에 `readyz`(DB까지)를 본다.
+- **운영 웹 배포**: `bash scripts/deploy-admin-h2500-3.sh` — 앱을 재시작하지 않고 운영 웹만 올린다(SPEC-033). 소스 사본 `~/liftgram-admin/src` · 설정 `~/liftgram-admin/.env`(`ADMIN_PORT=3411`, `ADMIN_URL=https://liftgram-admin.tarae.org`, `CF_ACCESS_AUD`, `CF_ACCESS_TEAM_DOMAIN`) · 기록 `~/liftgram-admin/DEPLOYED_ADMIN_REF`. 공개 호스트명 `liftgram-admin.tarae.org` → `http://localhost:3411` 과 Access 애플리케이션은 Cloudflare 대시보드에서 사람이 단다. 앱 배포를 운영 웹이 없던 옛 커밋으로 되돌려도 운영 웹 컨테이너는 지우지 않는다.
 - **서버 설정**: `~/liftgram/src/.env`(권한 600 · 사람이 관리 · 스크립트는 읽기만 한다). 필수 = `DATABASE_URL`(`…@db:5432/liftgram`)·`POSTGRES_*`·`JWT_SECRET`·`APP_URL`·`WEB_PORT`.
 - **복원**: `docker exec -i liftgram-db-1 pg_restore -U liftgram -d liftgram --clean --if-exists < ~/liftgram/backups/daily/<파일>.dump`(앱을 먼저 멈춘다).
 - **응답 시간**: origin은 화면 ~15ms. 공개 주소가 ~0.6–0.9s인 것은 Cloudflare 무료 플랜이 한국 요청을 LAX 엣지로 받기 때문이다(booktarae.org도 같다) — 앱 문제가 아니다.

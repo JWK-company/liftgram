@@ -178,3 +178,32 @@ func deref(p *string) string {
 func (r *pgRepo) UsageTablesBytes(ctx context.Context) (int64, error) {
 	return r.q.UsageTablesBytes(ctx)
 }
+
+// ── 경고 메일 상태(SPEC-033) ──────────────────────────────────────────────────
+
+func (r *pgRepo) GetAlertMailState(ctx context.Context) (AlertMailState, error) {
+	var st AlertMailState
+	err := r.pool.QueryRow(ctx, `SELECT reasons, sent_at FROM ops_alert_mail_state WHERE id`).Scan(&st.Reasons, &st.SentAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return AlertMailState{}, nil
+	}
+	return st, err
+}
+
+func (r *pgRepo) SaveAlertMailState(ctx context.Context, st AlertMailState) error {
+	if st.Reasons == nil {
+		st.Reasons = []string{}
+	}
+	_, err := r.pool.Exec(ctx, `INSERT INTO ops_alert_mail_state (id, reasons, sent_at) VALUES (true, $1, $2)
+		ON CONFLICT (id) DO UPDATE SET reasons = EXCLUDED.reasons, sent_at = EXCLUDED.sent_at`, st.Reasons, st.SentAt)
+	return err
+}
+
+func (r *pgRepo) ListAdminEmails(ctx context.Context) ([]string, error) {
+	rows, err := r.pool.Query(ctx, `SELECT email FROM users WHERE role = 'admin' AND email IS NOT NULL AND email <> '' ORDER BY email`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return pgx.CollectRows(rows, pgx.RowTo[string])
+}

@@ -686,7 +686,11 @@ function SetVariantSheet({
           기본 = 세트에 따로 적지 않음(종목 칩에서 고른 그립을 따른다) */}
       <SheetRow label={t("variant.grip")}>
         <VarOpt
-          label={blockVariant?.grip ? `${t("variant.default")}(${gripLabel(blockVariant.grip, lang)})` : t("variant.default")}
+          label={
+            blockVariant?.grip
+              ? `${t("variant.default")}(${gripLabel(blockVariant.grip, lang)})`
+              : t("variant.default")
+          }
           active={!grip}
           onPress={() => onGrip(null)}
         />

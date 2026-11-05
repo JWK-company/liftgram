@@ -8,6 +8,7 @@
   },
   "workspaces": [
     "frontend",
+    "admin",
     "contracts",
     "core"
   ],
@@ -16,9 +17,10 @@
     "build": "cd backend && go build -o ../bin/server ./cmd/server && go build -o ../bin/migrate ./cmd/migrate && cd .. && bun run --cwd frontend build",
     "start:api": "./bin/server",
     "start:web": "bun run --cwd frontend start",
-    "typecheck": "tsc --noEmit -p frontend && tsc --noEmit -p contracts && tsc --noEmit -p core && cd backend && go build ./... && go vet ./...",
+    "typecheck": "tsc --noEmit -p frontend && tsc --noEmit -p admin && tsc --noEmit -p contracts && tsc --noEmit -p core && cd backend && go build ./... && go vet ./...",
     "lint": "biome check .",
-    "test": "cd backend && go test ./... && cd .. && bun run test:core",
+    "test": "cd backend && go test ./... && cd .. && bun run test:core && bun run test:admin",
+    "test:admin": "node --import tsx --test admin/lib/*.test.ts",
     "test:core": "node --import tsx --test core/src/domain/__tests__/*.test.ts",
     "e2e": "bunx playwright test -c frontend/playwright.config.ts",
     "db:generate": "echo \"스키마는 database/migrations/*.sql 이 원본입니다 — make gen-migration NAME=… 로 새 파일을 만드세요\"",

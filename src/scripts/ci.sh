@@ -54,9 +54,10 @@ docker compose -f compose.dev.yaml up -d --wait
 step "6/9 프로덕션 이미지 빌드 + runtime contract 검증 (frontend·backend 두 이미지)"
 # **전 서비스**를 빌드한다. migrate도 api와 같은 target을 쓰지만 compose는 별도 이미지로 관리하므로,
 # frontend·backend만 빌드하면 migrate가 옛 이미지로 남아 조용히 실패한다(실측).
-docker compose build
+docker compose --profile admin build
 IMG="$IMG_FRONTEND" UNIT=frontend bash scripts/check-contract.sh
 IMG="$IMG_BACKEND" UNIT=backend bash scripts/check-contract.sh
+IMG="${IMG_ADMIN:-$PROJECT-admin}" UNIT=admin bash scripts/check-contract.sh
 
 step "6.5/9 첫 복제 경험 — 문서의 퀵스타트가 처음 받는 사람에게 도는가"
 bash scripts/check-firstrun.sh
@@ -92,6 +93,12 @@ if bunx playwright --version >/dev/null 2>&1 && [ -d "${HOME}/.cache/ms-playwrig
   set -e
   make --no-print-directory unscale >/dev/null 2>&1 || true
   [ $e2e_rc -eq 0 ] || { docker compose down; exit $e2e_rc; }
+  # 운영 웹 e2e 는 로컬 PostgreSQL 주소를 받은 러너에서 돈다.
+  if [ -n "${E2E_PG:-}" ]; then
+    bash scripts/e2e-admin.sh || { docker compose down; exit 1; }
+  else
+    echo "  (운영 웹 e2e 건너뜀 — E2E_PG 를 주면 돈다)"
+  fi
 else
   echo "  (e2e 건너뜀 — bunx playwright install chromium 으로 활성화)"
 fi

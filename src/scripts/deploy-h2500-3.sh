@@ -205,6 +205,11 @@ sys.exit(0 if ok else 1)' "$DL/android.json" || { echo "!! 사이트 android.jso
   APK_VC=$(jf "$DL/android.json" versionCode)
 fi
 
+# 운영 웹은 따로 배포한다(SPEC-033). 운영 웹이 없던 옛 커밋으로 되돌릴 때 --remove-orphans 가 그 컨테이너를 지워
+# 공개 주소가 끊기지 않게, compose 에 admin 이 있을 때만 이 옵션을 쓴다.
+ORPHANS=""
+grep -q '^  admin:' "$CLEAN/src/compose.yaml" && ORPHANS="--remove-orphans"
+
 echo "── 소스 동기 ──"
 $SSH "mkdir -p $REMOTE/src"
 rsync -a --delete \
@@ -218,7 +223,7 @@ rsync -a --delete \
 echo "── 빌드·기동 (migrate 가 먼저 돌고 끝나야 backend 가 뜬다) ──"
 $SSH "cd $REMOTE/src && $COMPOSE build backend frontend imagescan >/tmp/liftgram-deploy.log 2>&1 \
   || { tail -30 /tmp/liftgram-deploy.log; exit 1; }
-  $COMPOSE up -d --wait --remove-orphans backend frontend imagescan 2>&1 | tail -5
+  $COMPOSE up -d --wait $ORPHANS backend frontend imagescan 2>&1 | tail -5
   $COMPOSE logs --no-log-prefix migrate 2>&1 | tail -3
   # 위 tail 이 --wait 실패를 가린다. 검사기가 꺼져도 사이트는 정상으로 보이므로 여기서 멈춘다(SPEC-031).
   [ \"\$(docker inspect -f '{{.State.Health.Status}}' \$($COMPOSE ps -q imagescan))\" = healthy ] \

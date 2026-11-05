@@ -196,7 +196,7 @@ gen: ## 새 도메인 모듈 생성 — 사용: make gen NAME=order SRS=SRS-014 
 	@node scripts/gen-module.mjs $(NAME) $(SRS)
 
 ## 3. 앱 — 개발 / 프로덕션 (backend + frontend)
-.PHONY: dev dev-backend dev-frontend dev-container start build install hooks
+.PHONY: dev dev-backend dev-frontend dev-admin dev-container start build install hooks
 install: ## 의존 설치 + git 훅 설치
 	bun install
 	@bunx lefthook install >/dev/null 2>&1 && echo "git 훅 설치됨(pre-commit: 포맷·타입·테스트)" || echo "lefthook 설치 건너뜀"
@@ -222,6 +222,9 @@ dev-backend: ## backend만 개발 서버로(백엔드만 만질 때)
 dev-frontend: ## frontend만 개발 서버로(backend가 이미 떠 있어야 함 — 아니면 화면이 502를 표시한다)
 	bun run --cwd frontend dev
 
+dev-admin: ## 운영 웹만 개발 서버로(:3102 · backend 가 떠 있어야 한다)
+	bun run --cwd admin dev
+
 build: ## 프로덕션 빌드(backend 정적 바이너리 + frontend standalone)
 	bun run build
 
@@ -230,7 +233,7 @@ start: ## 빌드 결과로 프로덕션 서버 기동(backend + frontend)
 	bun run start:api & bun run start:web
 
 ## 4. 검증 — 로컬에서 CI와 같은 것을 돌린다
-.PHONY: lint typecheck test verify docs-check go-vet proto-check smoke e2e e2e-install ratelimit-check contract ci
+.PHONY: lint typecheck test verify docs-check go-vet proto-check smoke e2e e2e-admin e2e-install ratelimit-check contract ci
 lint: ## Biome 검사
 	bun run lint
 
@@ -262,12 +265,16 @@ e2e: ## 브라우저 e2e — 화면·채널 전환·두 탭·두 인스턴스 pr
 e2e-install: ## e2e용 브라우저 설치(처음 한 번)
 	bunx playwright install chromium
 
+e2e-admin: ## 운영 웹 e2e(새 DB·서버까지 스크립트가 띄운다 · E2E_PG 필요)
+	bash scripts/e2e-admin.sh
+
 ratelimit-check: ## rate limit이 실제로 막는지 확인(서버가 떠 있어야 함 · scale-2면 합산까지)
 	@node scripts/check-ratelimit.mjs "$(BASE)" $(if $(wildcard /dev/null),,)
 
 contract: ## 컨테이너 runtime contract 검증(frontend·backend 두 이미지)
 	IMG="$(IMAGE_FRONTEND)" UNIT=frontend bash scripts/check-contract.sh
 	IMG="$(IMAGE_BACKEND)" UNIT=backend bash scripts/check-contract.sh
+	IMG="$(PROJECT)-admin" UNIT=admin bash scripts/check-contract.sh
 
 ci: ## CI 전 과정(플랫폼 중립 — 러너에서도 이 한 줄)
 	IMG_FRONTEND="$(IMAGE_FRONTEND)" IMG_BACKEND="$(IMAGE_BACKEND)" BASE="$(BASE)" DATABASE_URL="$(DB_URL)" bash scripts/ci.sh
@@ -278,8 +285,8 @@ image-free: ## 무료 호스트용 합본 이미지(화면+API 한 컨테이너)
 	docker build --target combined -t liftgram-combined:latest .
 
 .PHONY: image up down logs logs-backend logs-frontend backend-shell ps restart scale-2 unscale
-image: ## 프로덕션 이미지 빌드
-	docker compose -f $(COMPOSE) build
+image: ## 프로덕션 이미지 빌드(운영 웹 포함)
+	docker compose -f $(COMPOSE) --profile admin build
 
 up: ## 전체 스택 기동(frontend · backend · db · migrate one-shot · broker)
 	docker compose -f $(COMPOSE) up -d --wait

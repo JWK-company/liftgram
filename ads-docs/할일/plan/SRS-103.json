@@ -1,0 +1,113 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영자는 앱과 독립된 웹사이트에서 통계, 사용자 의견, 운영 피드백, 모더레이션, 운영 상태를 쓴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱에는 사용자를 위한 기능만 남긴다. 사용자 의견 보내기는 앱에 남는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운영 웹은 PC 사용을 기준으로 하고 휴대폰에서도 내용을 볼 수 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "권한은 서버가 매 요청 판정한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "출처",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "2026-11-05 사용자 요청: 「앱 형태 유지할 필요없이 운영자들이 사용하기 편한 웹페이지」, 「앱에는 사용자들을 위한 기능만 남기고 운영자를 위한 기능들은 다 따로」.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-103",
+  "meta": {
+    "acceptance_criteria": "운영 기능은 liftgram-admin.tarae.org 에서만 쓸 수 있고, 앱에는 운영 화면과 입구가 없다. 운영 웹은 PC 폭에서 왼쪽 메뉴와 넓은 표·차트로 보이며 운영 역할이 아니면 데이터를 볼 수 없다.",
+    "kind": "FR"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "앱과 분리된 운영 웹",
+  "type": "SRS",
+  "updated": "2026-11-05T11:26:13Z"
+}

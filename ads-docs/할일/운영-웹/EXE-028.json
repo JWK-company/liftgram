@@ -1,0 +1,275 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-028",
+ "type": "Execution",
+ "title": "SPEC-033 Phase 3 구현 기록",
+ "group": "할일/운영-웹",
+ "meta": {
+  "phase": "3",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-033"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 파일"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/admin/app/(console)/stats/page.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/app/(console)/stats/StatsScreen.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/admin/app/components/statsCharts.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/statsCalc.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/statsLabels.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/admin/lib/units.test.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/admin/e2e/stats.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "시험"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "옛 "
+     },
+     {
+      "type": "text",
+      "text": "admin-stats",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "의 표시 시험(42, 68, 133, 345줄)을 옮겼고, 고정 응답 값을 칸마다 정확히 비교한다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "지금 앱 화면의 통계 항목이 운영 웹에 모두 있다. 상위 8개 제한은 없애 전부 보인다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-051: 채택 12, 보류 3, 기각 0."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "스펙과 다른 점"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-102의 meta 수용 기준은 기능 사용·루틴까지 로그인·비로그인 분리라고 적혀 있으나 본문과 RPC는 사용자 수 지표만 분리한다. 코드는 본문을 따랐다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "SRS-102 수용 기준 문구 정리(사용자 확인)."
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -3,6 +3,7 @@
   "files": {
     "includes": [
       "frontend/**",
+      "admin/**",
       "contracts/src/**",
       "scripts/**",
       "*.ts",

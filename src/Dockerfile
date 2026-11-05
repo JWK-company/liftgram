@@ -5,6 +5,7 @@
 #
 #   --target frontend   브라우저가 보는 화면 + 프록시(Next 16 · 커스텀 서버)  :3000
 #   --target backend    화면이 부르는 API 서버(Go · Connect RPC)           :3001  내부 전용
+#   --target admin      운영 웹(Next 16 · SPEC-033)                        :3000
 #
 # 왜 한 파일인가: 두 이미지가 **같은 소스 트리**에서 나온다. 계약(proto 생성물)이 양쪽에
 # 걸쳐 있어서, 따로 빌드하면 두 이미지의 계약이 어긋난 채로 배포될 수 있다.
@@ -60,6 +61,7 @@ WORKDIR /app
 # "Workspace not found" 로 죽는다(로컬은 멀쩡한데 이미지 빌드만 깨진다).
 COPY package.json bun.lock* ./
 COPY frontend/package.json ./frontend/
+COPY admin/package.json ./admin/
 COPY contracts/package.json ./contracts/
 COPY core/package.json ./core/
 # lokijs 패치(다중 탭 덮어쓰기 거부 · SRS-089) — bun install 이 patchedDependencies 를 적용하려면 패치 파일이 먼저 있어야 한다.
@@ -114,6 +116,32 @@ USER app
 WORKDIR /app/frontend
 EXPOSE 3000
 CMD ["node", "server.mjs"]
+
+# ── 운영 웹 빌드(SPEC-033) ───────────────────────────────────────────────────
+# 앱 소스를 복사하지 않는다. 앱 배포는 매번 앱 빌드 파일을 바꾸므로, 문맥 전체를 복사하면 운영 웹도 매번 다시 빌드되고 재시작된다.
+FROM oven/bun:1 AS admin-build
+WORKDIR /app
+COPY --from=frontend-deps /app/node_modules ./node_modules
+COPY --from=frontend-deps /app/admin/node_modules ./admin/node_modules
+COPY --from=frontend-deps /app/contracts/node_modules ./contracts/node_modules
+COPY package.json tsconfig.json ./
+COPY contracts ./contracts
+COPY admin ./admin
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN bun run --cwd admin build
+
+# ── 운영 웹 이미지 ───────────────────────────────────────────────────────────
+FROM node:24-slim AS admin
+LABEL project=liftgram
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+RUN groupadd -r app && useradd -r -g app app
+COPY --from=admin-build /app/admin/.next/standalone ./
+COPY --from=admin-build /app/admin/.next/static ./admin/.next/static
+USER app
+WORKDIR /app/admin
+EXPOSE 3000
+CMD ["node", "server.js"]
 
 # ── 합본 이미지 — 무료 호스트용(웹 서비스 1개에 둘 다) ───────────────────────
 #

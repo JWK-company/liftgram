@@ -1,0 +1,16 @@
+# 운영 웹 운영 설정(SPEC-033) — scripts/deploy-admin-h2500-3.sh 만 쓴다.
+#
+# compose.prod.yaml 에 넣지 않는 까닭: `${ADMIN_PORT:?}` 는 파일 전체의 치환 조건이라, 앱 배포와 앱 운영 명령까지
+# 이 값을 요구하게 된다. 앱 배포가 운영 웹 설정에 묶이지 않도록 파일을 나눈다.
+services:
+  admin:
+    profiles: [admin]
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      TRUST_CF_CONNECTING_IP: "1"
+      ADMIN_URL: ${ADMIN_URL:?ADMIN_URL이 필요하다}
+      APP_URL: ${APP_URL:?APP_URL이 필요하다}
+      CF_ACCESS_AUD: ${CF_ACCESS_AUD:-}
+      CF_ACCESS_TEAM_DOMAIN: ${CF_ACCESS_TEAM_DOMAIN:-}
+    ports: !override ["127.0.0.1:${ADMIN_PORT:?ADMIN_PORT가 필요하다}:3000"]

@@ -106,6 +106,10 @@ type Config struct {
 	FeedRecommendSince string
 	// UsageSince — 이 시각부터 운동·루틴 기록을 집계하고 이용 기록을 받는다(SPEC-032).
 	UsageSince string
+	// AdminURL — 운영 웹 공개 주소. 경고 메일의 링크에 쓴다(SPEC-033).
+	AdminURL string
+	// OpsAlertMailIntervalSec — 운영 경고 메일 판정 주기(초). 0 이면 끈다.
+	OpsAlertMailIntervalSec int
 	// StatsCacheSec — 운영자 통계 캐시 시간(초). 0 이면 묶지 않는다(시험용).
 	StatsCacheSec int
 	// UsageEnabled — 이용 기록 수집의 차단 스위치. false 면 받지 않고 기기는 큐를 비운다.
@@ -183,6 +187,8 @@ func Load() (*Config, error) {
 		ImageScanSince:          envStr("IMAGE_SCAN_SINCE", "2026-11-05T00:00:00+09:00"),
 		FeedRecommendSince:      envStr("FEED_RECOMMEND_SINCE", "2026-11-05T00:00:00+09:00"),
 		UsageSince:              envStr("USAGE_SINCE", "2026-11-05T00:00:00+09:00"),
+		AdminURL:                envStr("ADMIN_URL", "https://liftgram-admin.tarae.org"),
+		OpsAlertMailIntervalSec: envInt("OPS_ALERT_MAIL_INTERVAL_SEC", 1800),
 		StatsCacheSec:           envInt("STATS_CACHE_SEC", 300),
 		UsageEnabled:            envStr("USAGE_ENABLED", "true") != "false",
 		UsageJobIntervalSec:     envInt("USAGE_JOB_INTERVAL_SEC", 3600),

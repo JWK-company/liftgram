@@ -383,6 +383,8 @@ func main() {
 	opsSvc := ops.NewService(ops.NewRepo(pool), time.Now)
 	opsPath, opsHTTP := opsv1connect.NewOpsServiceHandler(ops.NewHandler(opsSvc), opts)
 	mount(mux, opsPath, opsHTTP)
+	// 운영 경고 메일(SPEC-033) — 운영 웹을 열지 않아도 관리자가 경고를 알게 한다.
+	go opsSvc.AlertMailLoop(ctx, ops.NewAlertMailRepo(pool), mailSender, cfg.AdminURL, time.Duration(cfg.OpsAlertMailIntervalSec)*time.Second)
 
 	// ── 운영자 통계(SPEC-032) ── 관리자만 · 집계 숫자만 · 구역별 호출.
 	usageSince := mustTime("USAGE_SINCE", cfg.UsageSince)

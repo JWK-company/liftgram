@@ -88,6 +88,9 @@ services:
       PLM_PROJECT: ${PLM_PROJECT:-liftgram}
       # 정식 계정(SRS-052) — 메일 링크·OAuth redirect_uri 의 기준 주소는 APP_URL 하나다
       APP_URL: ${APP_URL:-http://localhost:3000}
+      # 운영 경고 메일(SPEC-033). ADMIN_URL 이 비면 운영 주소가 기본값이다.
+      ADMIN_URL: ${ADMIN_URL:-https://liftgram-admin.tarae.org}
+      OPS_ALERT_MAIL_INTERVAL_SEC: ${OPS_ALERT_MAIL_INTERVAL_SEC:-1800}
       MAIL_TRANSPORT: ${MAIL_TRANSPORT:-console}
       MAIL_SMTP_HOST: ${MAIL_SMTP_HOST:-}
       MAIL_SMTP_PORT: ${MAIL_SMTP_PORT:-587}
@@ -188,6 +191,32 @@ services:
       retries: 20
     depends_on:
       backend: { condition: service_healthy }
+
+  # 운영 웹(SPEC-033). 앱 화면에 묶이지 않게 depends_on 을 두지 않는다. 백엔드가 없으면 /readyz 가 실패할 뿐이다.
+  # 운영 배포는 compose.admin.prod.yaml 과 scripts/deploy-admin-h2500-3.sh 로 따로 한다.
+  # 프로필: 서비스 이름 없는 `up` 이 운영 웹을 앱 설정(모든 인터페이스·입구 설정 없음)으로 다시 만들지 않게 한다.
+  admin:
+    profiles: [admin]
+    build: { context: ., target: admin }
+    environment:
+      API_URL: http://backend:3001
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3102}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      TRUST_CF_CONNECTING_IP: ${TRUST_CF_CONNECTING_IP:-0}
+      CF_ACCESS_AUD: ${CF_ACCESS_AUD:-}
+      CF_ACCESS_TEAM_DOMAIN: ${CF_ACCESS_TEAM_DOMAIN:-}
+    ports: ["${ADMIN_PORT:-3102}:3000"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 20
 
 volumes:
   pgdata:

@@ -10,7 +10,7 @@
 
 | 경로 | 무엇 | 비고 |
 |------|------|------|
-| `src/` | **현행 앱 — 웹 스택**(Next 16 frontend · Go backend · PostgreSQL · Redis · Capacitor 앱 껍데기) | 구조·명령·경계는 [`src/CLAUDE.md`](src/CLAUDE.md) |
+| `src/` | **현행 앱 — 웹 스택**(Next 16 frontend · 운영 웹 `src/admin` · Go backend · PostgreSQL · Redis · Capacitor 앱 껍데기) | 구조·명령·경계는 [`src/CLAUDE.md`](src/CLAUDE.md) |
 | `app/` · `server/` | 옛 Expo 앱 · Nest 서버(2026-08 이후 손대지 않음) | 요청이 없으면 고치지 않는다 |
 | `plugin/` · `workflow/` · `reference/` · 루트 `Makefile`·`setup.*`·`README.md`·`INSTALL.md` | 옛 jwk-platform(PLM) 템플릿 잔재 | 고치지 않는다 |
 | `.ouroboros/docs/**` | 옛 PLM 기획 기록(URS·SRS·SAD·ADR…) | **읽기 전용 근거** — 새 문서가 근거로 쓰면 `relations.refs_legacy: ["PLM:SRS-001"]` |
@@ -20,6 +20,7 @@
 
 - **작업 브랜치 = `feat/web-stack-tarae`** (`main`은 옛것). 커밋·푸시는 사용자가 요청할 때만.
 - **배포마다 SemVer 올림** — 기능 = minor, 픽스 = patch. 현재 버전 원본은 `src/frontend/package.json`의 `version`.
+- **운영 웹 배포** = `src/scripts/deploy-admin-h2500-3.sh`(앱과 따로 · 버전 원본 `src/admin/package.json` · `liftgram-admin.tarae.org`).
 - **운영 배포** = `src/scripts/deploy-h2500-3.sh` → h2500-3 서버 docker + Cloudflare 터널(`liftgram.tarae.org`). DB는 같은 서버 compose의 db.
 - h2500-3의 **GPU는 동업자와 공유** — 비어 보여도 쓰기 전에 시간·분량을 먼저 묻는다.
 
@@ -30,6 +31,7 @@
 | 개발(`make dev`, `src/`) | frontend 3100 · backend 3101 · PostgreSQL 5434 · Redis 6381 |
 | 로컬 운영 빌드 e2e(새 DB) | 웹 3200 · API 3201 — dev 3100은 건드리지 않는다 |
 | 병렬 작업(worktree) | 3300 |
+| 운영 웹(`src/admin`) | 개발 3102 · e2e 웹 3320·API 3321·Access 시험 키 3322 · h2500-3 운영 3411 |
 
 포트가 점유돼 있으면 **프로세스를 죽이지 않는다** — `.env`의 포트를 바꾸거나 그 터미널에서 끈다.
 

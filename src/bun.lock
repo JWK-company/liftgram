@@ -19,6 +19,28 @@
         "ws": "^8.21.1",
       },
     },
+    "admin": {
+      "name": "@app/admin",
+      "version": "0.1.0",
+      "dependencies": {
+        "@app/contracts": "workspace:*",
+        "@bufbuild/protobuf": "^2.2.3",
+        "@connectrpc/connect": "^2.0.0",
+        "@connectrpc/connect-web": "^2.0.0",
+        "@tailwindcss/postcss": "^4.3.3",
+        "jose": "^6.1.0",
+        "next": "^16.2.12",
+        "postcss": "^8.5.23",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8",
+        "tailwindcss": "^4.3.3",
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "@types/react": "^19.2.17",
+        "@types/react-dom": "^19.2.3",
+      },
+    },
     "contracts": {
       "name": "@app/contracts",
       "version": "0.1.0",
@@ -44,7 +66,7 @@
     },
     "frontend": {
       "name": "@app/frontend",
-      "version": "0.49.0",
+      "version": "0.69.0",
       "dependencies": {
         "@app/contracts": "workspace:*",
         "@app/core": "workspace:*",
@@ -75,6 +97,8 @@
   },
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.2.0", "", {}, "sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw=="],
+
+    "@app/admin": ["@app/admin@workspace:admin"],
 
     "@app/contracts": ["@app/contracts@workspace:contracts"],
 
@@ -349,6 +373,8 @@
     "is-fullwidth-code-point": ["is-fullwidth-code-point@3.0.0", "", {}, "sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg=="],
 
     "jiti": ["jiti@2.7.0", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ=="],
+
+    "jose": ["jose@6.2.15", "", {}, "sha512-qdF6ewcZARtef63fJ9AKKZPgxw+t7USH6HLXYcD4CrdmSvDp79rpJSPFEKc90QBeGS63u1KQtN2MZQHC0yDIzA=="],
 
     "lefthook": ["lefthook@2.1.10", "", { "optionalDependencies": { "lefthook-darwin-arm64": "2.1.10", "lefthook-darwin-x64": "2.1.10", "lefthook-freebsd-arm64": "2.1.10", "lefthook-freebsd-x64": "2.1.10", "lefthook-linux-arm64": "2.1.10", "lefthook-linux-x64": "2.1.10", "lefthook-openbsd-arm64": "2.1.10", "lefthook-openbsd-x64": "2.1.10", "lefthook-windows-arm64": "2.1.10", "lefthook-windows-x64": "2.1.10" }, "bin": { "lefthook": "bin/index.js" } }, "sha512-K7mM4WoqMwqfXYK11EHy+lSH1uW8XHni3Yn/bSqyerPkUPygGdf3xn18JoV5HyA06xuQL3ofGAOjG01QX9oJ4w=="],
 

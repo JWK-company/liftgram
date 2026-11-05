@@ -1,0 +1,29 @@
+{
+  "name": "@app/admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p ${ADMIN_PORT:-3102}",
+    "build": "next build",
+    "start": "next start -p ${ADMIN_PORT:-3102}"
+  },
+  "dependencies": {
+    "@app/contracts": "workspace:*",
+    "@bufbuild/protobuf": "^2.2.3",
+    "@connectrpc/connect": "^2.0.0",
+    "@connectrpc/connect-web": "^2.0.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "jose": "^6.1.0",
+    "next": "^16.2.12",
+    "postcss": "^8.5.23",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3"
+  }
+}
