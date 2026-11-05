@@ -27,7 +27,7 @@ export default class SetLog extends Model {
   @field('level') declare level: number | null; // v13: 사이클·천국의 계단 등 단계. @plm SRS-030
   @field('speed_kmh') declare speedKmh: number | null; // v15: 러닝머신 속도(km/h). @plm SRS-030
   @field('arm') declare arm: string | null; // v8: 세트별 편측 — 'uni'(원암/원레그), null=투암/투레그(기본)
-  @field('grip') declare grip: string | null; // v11: 세트별 그립 — over/under/neutral/wide/close, null=기본(표시전용)
+  @field('grip') declare grip: string | null; // v11: 세트별 그립 — over/under/neutral/wide/close, null=종목 칸을 따름(ADR-055 · 볼륨·PR 키에는 안 들어간다)
   // v16: 처방 어휘 — 세트 타입·목표 RIR. null=비처방(기존 세트·기존 동작 불변). @plm SRS-043
   @field('set_type') declare setType: string | null; // 'warmup'|'top'|'backoff'
   @field('target_rir') declare targetRir: number | null; // 0~6

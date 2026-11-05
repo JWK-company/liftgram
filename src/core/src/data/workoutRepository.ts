@@ -1306,7 +1306,12 @@ function prepareTemplateSets(
         // 지난 세션 세트별 그립·팔을 새 세트에 미리 채움(꾸준한 진척 + 옵션 유지, 사용자가 변경 가능). @plm SRS-028
         s.arm = prev?.arm ?? null;
         // [원본] s.grip = prev?.grip ?? null;
-        // [개선] ADR-034: 손 그립은 블록 축(칸)이다 — 세트 그립은 옛 기록 표시용으로만 남기고 새로 채우지 않는다 @plm SRS-058
+        // [원본] ADR-034: 손 그립은 블록 축(칸)이다 — 세트 그립은 옛 기록 표시용으로만 남기고 새로 채우지 않는다 @plm SRS-058
+        // s.grip = null;
+        // [원본] 세트 그립을 세트마다 쓴다(ADR-055) — 팔처럼 지난번 그 세트의 값을 잇는다
+        // s.grip = prev?.grip ?? null;
+        // [개선] 새 운동에는 잇지 않는다 — ADR-034 전 옛 세트 그립이 되살아나 복사되고, 칸과 어긋난다(REV-045 H-1·M-2).
+        // 지난번 그립은 「이전」 칸에 함께 보인다.
         s.grip = null;
         s.loadMultiplier = isCardio ? null : loadMultiplier; // v22 @plm SRS-058
         s.userEdited = false; // v25: 자동 채움 — 사람이 고치면 true(/qa code H-3) @plm SRS-067
@@ -2018,6 +2023,11 @@ export async function swapWorkoutExercise(workoutExerciseId: string, newExercise
       rec.variantAttach = lastVariant?.variantAttach ?? null;
       rec.machineVariant = lastVariant?.machineVariant ?? null;
     });
+    // 세트 그립은 바꾸기 전 종목의 자세다 — 새 종목 기록에 남기지 않는다(REV-045 M-1)
+    const gripped = (await setLogs().query(Q.where('workout_exercise_id', workoutExerciseId)).fetch()).filter((s) => s.grip);
+    if (gripped.length > 0) {
+      await database.batch(...gripped.map((s) => s.prepareUpdate((rec) => { rec.grip = null; })));
+    }
   });
   // 입력한 세트는 이 블록에 그대로 남는다(새 종목 기록으로) — 새 칸의 입력 방식(한쪽/양쪽)에 배수를 맞춘다. @plm SRS-058
   await syncBlockLoadMultiplier(workoutExerciseId);
@@ -2078,8 +2088,10 @@ export async function addSet(
       // 마지막 세트의 그립·팔을 새 세트에 상속(같은 종목 이어서 하니 동일 옵션이 자연스러움). @plm SRS-028
       s.arm = cardio ? null : last?.arm ?? null;
       // [원본] s.grip = cardio ? null : last?.grip ?? null;
-      // [개선] ADR-034: 손 그립은 블록 칸 — 세트 그립은 옛 기록 표시용으로만 남는다 @plm SRS-058
-      s.grip = null;
+      // [원본] ADR-034: 손 그립은 블록 칸 — 세트 그립은 옛 기록 표시용으로만 남는다 @plm SRS-058
+      // s.grip = null;
+      // [개선] 세트 그립을 세트마다 쓴다(ADR-055) — 팔처럼 마지막 세트의 값을 잇는다
+      s.grip = cardio ? null : last?.grip ?? null;
       s.loadMultiplier = multiplier;
       // v25: 값을 넘겨받았으면 사람이 적은 것, 아니면 앞 세트를 복제한 자동 채움(/qa code H-3) @plm SRS-067
       s.userEdited = input.weightKg !== undefined || input.reps !== undefined || done;

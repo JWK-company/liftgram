@@ -15,7 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import {
   // [원본] GRIP_KEYS, — 세트별 그립 선택을 없앴다(ADR-034: 그립은 블록 칸)
-  // [개선] 세트 시트에서도 블록 칸의 그립·부착물을 고른다 — 여기서 찾는 사람이 많다(세트 값은 여전히 안 쓴다)
+  // [개선] 세트 시트에서도 블록 칸의 그립·부착물을 고른다 — 여기서 찾는 사람이 많다(부착물만 — 그립은 ADR-055부터 세트 값)
   ATTACH_KEYS,
   GRIP_KEYS,
   attachLabel,
@@ -135,8 +135,8 @@ export function SetRowEdit({
   }) => unknown;
   onToggleDone: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
   onSetType: (type: "normal" | "warmup" | "drop" | "top" | "backoff") => void;
-  onSetArm: (arm: "uni" | null) => void;
-  onSetGrip: (grip: string | null) => void;
+  onSetArm: (arm: "uni" | null) => unknown;
+  onSetGrip: (grip: string | null) => unknown;
   /** 블록 칸(그립·부착물) — 유산소는 없다 */
   blockVariant?: VariantDims;
   onBlockVariant?: (dims: VariantDims) => void;
@@ -238,6 +238,11 @@ export function SetRowEdit({
     });
   };
 
+  // 세트 값은 모델에서 바로 읽는다 — 관찰은 행 증감만 알려서, 저장이 끝나면 이 줄만 바로 다시 그린다(REV-045 L-3)
+  const [, bumpVariant] = useState(0);
+  const saveVariant = (run: () => unknown) => {
+    void Promise.resolve(run()).then(() => bumpVariant((n) => n + 1));
+  };
   const variantSet = set.arm === "uni" || !!set.grip;
   const variantChipLabel = variantSet
     ? [
@@ -429,6 +434,23 @@ export function SetRowEdit({
         </button>
       </div>
 
+      {/* 세트 변형 이름표 — 접혀 있어도 보이게 세트 줄 바로 아래 진한 알약으로. 빨강은 완료·주 행동 몫이라 잉크색(사용자 요청 2026-11-05) */}
+      {variantSet ? (
+        <div className="pb-[4px] pl-[42px]">
+          <button
+            type="button"
+            data-testid="set-variant-badge"
+            aria-label={`${t("session.setVariantTitle")}: ${variantChipLabel}`}
+            disabled={isDone} // 완료한 세트는 잠근다 — 접힌 줄에 늘 보여 손이 스치기 쉽다(REV-045 L-4)
+            onClick={() => setVarOpen(true)}
+            style={{ backgroundColor: "var(--color-ink)", color: "var(--color-surface)" }}
+            className="inline-flex h-[26px] max-w-full items-center truncate rounded-full px-[12px] font-bold text-[length:var(--text-sm)]"
+          >
+            {variantChipLabel}
+          </button>
+        </div>
+      ) : null}
+
       {/* 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 힘든 정도 기록을 켜면 처방이 없어도 이 줄에 칩(U-1) @plm SRS-073 */}
       {/* [원본] {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
       {/* 워밍업 세트에는 칩을 두지 않는다 — 분석(isEffortTarget)이 워밍업을 빼서 적어도 어디에도 안 나온다(QA CU-8) */}
@@ -514,19 +536,20 @@ export function SetRowEdit({
                 type="button"
                 data-testid="set-variant"
                 onClick={() => setVarOpen(true)}
+                // [원본] 변형이 있으면 빨간 테두리·빨간 글자 — 빨강은 완료·주 행동에만, 이름표와 같은 잉크색으로
+                // style={{
+                //   backgroundColor: variantSet ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
+                //   borderColor: variantSet ? "var(--color-brand)" : "var(--color-line)",
+                // }}
+                // <AppText variant="caption" color={variantSet ? "primary" : "text"} className={variantSet ? "font-bold" : ""}>
                 style={{
-                  backgroundColor: variantSet ? "var(--color-brand-muted)" : "var(--color-surface-alt)",
-                  borderColor: variantSet ? "var(--color-brand)" : "var(--color-line)",
+                  backgroundColor: variantSet ? "var(--color-ink)" : "var(--color-surface-alt)",
+                  borderColor: variantSet ? "var(--color-ink)" : "var(--color-line)",
+                  color: variantSet ? "var(--color-surface)" : "var(--color-ink)",
                 }}
-                className="h-[42px] w-full rounded-[var(--radius-sm)] border"
+                className={`h-[42px] w-full rounded-[var(--radius-sm)] border text-[length:var(--text-xs)] ${variantSet ? "font-bold" : ""}`}
               >
-                <AppText
-                  variant="caption"
-                  color={variantSet ? "primary" : "text"}
-                  className={variantSet ? "font-bold" : ""}
-                >
-                  {variantChipLabel}
-                </AppText>
+                {variantChipLabel}
               </button>
             </div>
           </div>
@@ -605,8 +628,8 @@ export function SetRowEdit({
         <SetVariantSheet
           arm={set.arm}
           grip={set.grip}
-          onArm={onSetArm}
-          onGrip={onSetGrip}
+          onArm={(v) => saveVariant(() => onSetArm(v))}
+          onGrip={(v) => saveVariant(() => onSetGrip(v))}
           blockVariant={blockVariant}
           onBlockVariant={onBlockVariant}
           onClose={() => setVarOpen(false)}
@@ -647,7 +670,7 @@ function SetVariantSheet({
 }) {
   const isUni = arm === "uni";
   return (
-    <SheetShell title={t("session.setVariantTitle")} onClose={onClose}>
+    <SheetShell title={t("session.setVariantTitle")} onClose={onClose} testId="set-variant-sheet">
       <SheetRow label={t("session.armColHeader")}>
         <VarOpt label={t("session.armBi")} active={!isUni} onPress={() => onArm(null)} />
         <VarOpt label={t("session.armUni")} active={isUni} onPress={() => onArm("uni")} />
@@ -659,8 +682,27 @@ function SetVariantSheet({
           <VarOpt key={g} label={gripLabel(g, lang)} active={grip === g} onPress={() => onGrip(g)} />
         ))}
       </SheetRow> */}
+      {/* [개선] 그립은 이 세트에만 저장한다 — 1세트 일반·2세트 뉴트럴처럼 세트마다 따로(사용자 요청 2026-11-05)
+          기본 = 세트에 따로 적지 않음(종목 칩에서 고른 그립을 따른다) */}
+      <SheetRow label={t("variant.grip")}>
+        <VarOpt
+          label={blockVariant?.grip ? `${t("variant.default")}(${gripLabel(blockVariant.grip, lang)})` : t("variant.default")}
+          active={!grip}
+          onPress={() => onGrip(null)}
+        />
+        {GRIP_KEYS.map((g) => (
+          <VarOpt
+            key={g}
+            label={gripLabel(g, lang)}
+            active={grip === g}
+            // 종목 칩의 그립과 같으면 따로 적을 것이 없다 — 이름표도 붙지 않는다(REV-045 L-1)
+            onPress={() => onGrip(g === blockVariant?.grip ? null : g)}
+          />
+        ))}
+      </SheetRow>
       {blockVariant && onBlockVariant ? (
         <>
+          {/* [원본] 세트 옵션의 그립이 블록 칸을 바꿨다(2026-11-04) — 세트를 따로 기록할 수 없었다
           <SheetRow label={t("variant.grip")}>
             <VarOpt
               label={t("variant.default")}
@@ -675,7 +717,7 @@ function SetVariantSheet({
                 onPress={() => onBlockVariant({ ...blockVariant, grip: g })}
               />
             ))}
-          </SheetRow>
+          </SheetRow> */}
           <SheetRow label={t("variant.attachment")}>
             <VarOpt
               label={t("variant.default")}
@@ -698,8 +740,8 @@ function SetVariantSheet({
           </div>
         </>
       ) : null}
-      {/* [개선] 예전에 세트에 적어 둔 그립은 보여 주기만 한다(지울 수는 있다) @plm SRS-058 */}
-      {grip ? (
+      {/* [원본] 예전에 세트에 적어 둔 그립은 보여 주기만 했다 — 이제 위 줄에서 고르고 지운다(2026-11-05)
+            {grip ? (
         <div
           className="mt-[var(--spacing-md)] flex items-center gap-[var(--spacing-sm)]"
           data-testid="set-grip-legacy"
@@ -709,7 +751,7 @@ function SetVariantSheet({
           </AppText>
           <VarOpt label={t("variant.default")} active={false} onPress={() => onGrip(null)} />
         </div>
-      ) : null}
+      ) : null} */}
     </SheetShell>
   );
 }

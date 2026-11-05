@@ -205,11 +205,24 @@ test("손 그립 — 와이드와 클로즈 기록이 섞이지 않고, 지난 �
   // [개선] 세트 옵션에서도 고를 수 있다 — 고르면 세트가 아니라 블록 칸이 바뀐다(사용자 결정 2026-11-04)
   await 첫세트(page).getByTestId("set-more").click();
   await 첫세트(page).getByTestId("set-variant").click();
-  await expect(page.getByText("세트 옵션 (원암·원레그)")).toBeVisible();
+  // [원본] await expect(page.getByText("세트 옵션 (원암·원레그)")).toBeVisible();
   // [원본] await expect(page.getByText("와이드그립")).toHaveCount(0);
+  // [원본] await page.getByText("와이드그립").click();
+  // [원본] await expect(page.getByTestId("set-grip-legacy")).toHaveCount(0);
+  // [원본] await expect(page.getByTestId("variant-trigger").first()).toContainText("와이드");
+  // [개선] 세트 그립은 그 세트에만 — 블록 칸은 그대로(사용자 요청 2026-11-05 · ADR-055)
+  await expect(page.getByText("세트 옵션 (이 세트만)")).toBeVisible();
   await page.getByText("와이드그립").click();
-  await expect(page.getByTestId("set-grip-legacy")).toHaveCount(0);
-  await expect(page.getByTestId("variant-trigger").first()).toContainText("와이드");
+  await page.getByTestId("set-variant-sheet").getByRole("button", { name: "확인" }).click();
+  await expect(첫세트(page).getByTestId("set-variant-badge")).toContainText("와이드");
+  await expect(page.getByTestId("variant-trigger").first()).not.toContainText("와이드");
+  // 칸이 클로즈일 때 — 기본 줄에 칸 그립이 보이고, 칸과 같은 그립을 고르면 이름표가 붙지 않는다
+  const 시트 = page.getByTestId("set-variant-sheet");
+  await 첫세트(page).getByTestId("set-variant-badge").click();
+  await 시트.getByText("클로즈그립", { exact: true }).click();
+  await expect(시트.getByText("기본(클로즈그립)", { exact: true })).toBeVisible();
+  await 시트.getByRole("button", { name: "확인" }).click();
+  await expect(첫세트(page).getByTestId("set-variant-badge")).toHaveCount(0);
 });
 
 test("머신 손 그립(#T4) — 체스트 프레스에서 언더·뉴트럴을 고르면 칸이 나뉘고, 같은 동작의 케이블에는 늘지 않는다", async ({
@@ -341,4 +354,94 @@ test("루틴 편집 대체는 한 번에 바뀌고(#47), 운동 중 기구 바�
 
   await page.goto(`/routines/${routineId}`);
   await expect(rows.first()).toContainText("바벨 벤치프레스", { timeout: 20_000 });
+});
+
+// 세트 변형은 세트마다 따로 — 1세트 일반·2세트 뉴트럴(사용자 요청 2026-11-05 · ADR-055)
+test("세트 그립 — 세트마다 따로 저장되고 이름표가 보이며, 칸은 그대로이고 다음 운동에 이어진다", async ({ page }) => {
+  test.setTimeout(150_000);
+  await 카탈로그_준비(page);
+  await 운동_시작(page, "덤벨 숄더 프레스");
+  const 세트 = (n: number) => page.getByTestId("set-list").first().locator("> div").nth(n);
+  const 그립_고르기 = async (n: number, 이름: string) => {
+    await 세트(n).getByTestId("set-more").click();
+    await 세트(n).getByTestId("set-variant").click();
+    const sheet = page.getByTestId("set-variant-sheet");
+    await sheet.getByText(이름, { exact: true }).first().click(); // 「기본」은 그립·부착물 두 줄에 있고 그립이 먼저
+    await sheet.getByRole("button", { name: "확인" }).click();
+    await expect(sheet).toHaveCount(0);
+    await 세트(n).getByTestId("set-more").click();
+  };
+
+  // 2세트가 없으면 만든다
+  if ((await page.getByTestId("set-list").first().locator("> div").count()) < 2) {
+    await page.getByTestId("btn-add-set").first().click();
+  }
+  await expect(세트(1).getByTestId("set-weight")).toBeVisible();
+  await expect(세트(0).getByTestId("set-variant-badge")).toHaveCount(0);
+
+  await 그립_고르기(1, "뉴트럴그립");
+  await expect(세트(1).getByTestId("set-variant-badge")).toHaveText("뉴트럴");
+  await expect(세트(0).getByTestId("set-variant-badge")).toHaveCount(0); // 1세트는 그대로
+  await expect(page.getByTestId("variant-trigger").first()).not.toContainText("뉴트럴"); // 칸도 그대로
+
+  // 이름표는 어두운 알약 — 브랜드 빨강이 아니고, 바탕과 글자가 뚜렷이 다르다
+  const 색 = await 세트(1)
+    .getByTestId("set-variant-badge")
+    .evaluate((el) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--color-brand)";
+      document.body.append(probe);
+      const brand = getComputedStyle(probe).color;
+      probe.remove();
+      const cs = getComputedStyle(el);
+      return { brand, bg: cs.backgroundColor, fg: cs.color, h: el.getBoundingClientRect().height };
+    });
+  expect(색.bg).not.toBe(색.brand);
+  expect(색.fg).not.toBe(색.brand);
+  expect(색.bg).not.toBe(색.fg);
+  expect(색.h).toBeGreaterThanOrEqual(24);
+
+  // 다른 세트에 다른 그립, 기본으로 되돌리기
+  await 그립_고르기(0, "언더그립");
+  await expect(세트(0).getByTestId("set-variant-badge")).toHaveText("언더");
+  await expect(세트(1).getByTestId("set-variant-badge")).toHaveText("뉴트럴");
+  await 그립_고르기(0, "기본");
+  await expect(세트(0).getByTestId("set-variant-badge")).toHaveCount(0);
+  await expect(세트(1).getByTestId("set-variant-badge")).toHaveText("뉴트럴");
+
+  // 끝내고 다시 — 그립은 새 운동에 잇지 않고, 「이전」 칸에 보인다(REV-045 H-1)
+  for (const n of [0, 1]) {
+    await 세트(n).getByTestId("set-weight").fill("20");
+    await 세트(n).getByTestId("set-reps").fill("10");
+    await 세트(n).getByTestId("set-reps").blur();
+    await 세트(n).getByTestId("set-done").click();
+    await expect(세트(n).getByTestId("set-done")).toHaveAttribute("aria-pressed", "true");
+  }
+  await 마치기(page);
+  await 운동_시작(page, "덤벨 숄더 프레스");
+  await expect(세트(1).getByTestId("set-prev")).toContainText("뉴트럴", { timeout: 15_000 });
+  await expect(세트(1).getByTestId("set-variant-badge")).toHaveCount(0);
+  await expect(세트(0).getByTestId("set-variant-badge")).toHaveCount(0);
+  await expect(page.getByTestId("variant-trigger").first()).not.toContainText("뉴트럴");
+
+  // 같은 운동 안에서 세트를 더하면 마지막 세트의 그립을 잇는다
+  const 수 = await page.getByTestId("set-list").first().locator("> div").count();
+  await 그립_고르기(수 - 1, "뉴트럴그립");
+  await page.getByTestId("btn-add-set").first().click();
+  await expect(세트(수).getByTestId("set-variant-badge")).toHaveText("뉴트럴");
+});
+
+test("세트 그립 — 기구를 바꾸면 바꾸기 전 세트 그립은 남지 않는다(REV-045 M-1)", async ({ page }) => {
+  await 카탈로그_준비(page);
+  await 운동_시작(page, "바벨 벤치프레스");
+  await 첫세트(page).getByTestId("set-more").click();
+  await 첫세트(page).getByTestId("set-variant").click();
+  const 시트 = page.getByTestId("set-variant-sheet");
+  await 시트.getByText("뉴트럴그립", { exact: true }).click();
+  await 시트.getByRole("button", { name: "확인" }).click();
+  await expect(첫세트(page).getByTestId("set-variant-badge")).toHaveText("뉴트럴");
+  await 칸_시트(page);
+  await page.getByTestId("swap-dumbbell").click();
+  await expect(page.getByTestId("we-name").first()).toHaveText("덤벨 벤치프레스", { timeout: 15_000 });
+  await expect(첫세트(page).getByTestId("set-variant-badge")).toHaveCount(0);
 });
