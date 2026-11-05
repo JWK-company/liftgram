@@ -17,7 +17,7 @@ Project: 탭바·프로필·피드백·백엔드 새 서비스·DB·개인정보
 - 화면: `src/frontend/app/components/ui/TabBar.tsx`, `src/frontend/app/components/staff/StaffClient.tsx`, `src/frontend/app/staff/page.tsx`, 새 `src/frontend/app/admin/page.tsx`, 새 `src/frontend/app/components/admin/`, `src/frontend/app/components/profile/ProfileClient.tsx`, `src/frontend/app/components/FeedbackClient.tsx`, `src/frontend/app/components/ops/OpsClient.tsx`, `src/frontend/app/components/moderation/ModerationQueueClient.tsx`
 - 피드백 서버: `src/proto/feedback/v1/feedback.proto`, `src/backend/internal/feedback/`
 - 통계 서버: 새 `src/proto/admin/v1/admin.proto`, 새 `src/proto/usage/v1/usage.proto`, 새 `src/backend/internal/admin/`, 새 `src/backend/internal/usage/`, `src/backend/cmd/server/main.go`, `src/backend/internal/config/config.go`
-- DB: 새 마이그레이션 `src/database/migrations/0027_feedback_items.sql`, `src/database/migrations/0028_usage.sql`, 새 쿼리 `src/database/queries/`
+- DB: 새 마이그레이션 `src/database/migrations/0027_feedback_items.sql`, `src/database/migrations/0029_usage.sql`, 새 쿼리 `src/database/queries/`
 - 수집: 새 `src/frontend/lib/usage.ts`, 각 기능의 호출 지점
 - 문서·배포: `src/frontend/app/privacy/page.tsx`, `src/frontend/app/components/legal/PolicyNoticeBanner.tsx`, `src/compose.yaml`, `src/.env.example`, 화면 지도 `ads-docs/liftgram/wireframe/.screen-map/data.py`
 - 바꾸지 않음: 결제, 자동 수정, 코칭, 특정 사용자의 운동 내용을 여는 화면
