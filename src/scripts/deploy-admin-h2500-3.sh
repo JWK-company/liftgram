@@ -62,7 +62,6 @@ PORT=$($SSH "
   [ \"\$free\" -ge ${MIN_FREE_GB} ] || { echo \"!! 여유 공간 \${free}G — 빌드하지 않는다\" >&2; exit 1; }
   f=$REMOTE/.env
   [ -f \$f ] || { echo \"!! \$f 가 없다 — deploy/README.md 의 운영 웹 절대로 먼저 만든다\" >&2; exit 1; }
-  docker buildx version >/dev/null 2>&1 || { echo \"!! buildx 가 없다 — 이 배포의 제외 문맥은 BuildKit 이 필요하다\" >&2; exit 1; }
   # compose 는 따옴표를 벗기지만 아래 검사는 원문을 읽는다. 어긋나면 입구 검사가 조용히 빗나간다.
   if grep -Eq \"^(ADMIN_PORT|ADMIN_URL|CF_ACCESS_AUD|CF_ACCESS_TEAM_DOMAIN)=[\\\"']\" \$f; then
     echo \"!! \$f 의 운영 웹 값에서 따옴표를 빼라\" >&2; exit 1

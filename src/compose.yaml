@@ -197,7 +197,7 @@ services:
   # 프로필: 서비스 이름 없는 `up` 이 운영 웹을 앱 설정(모든 인터페이스·입구 설정 없음)으로 다시 만들지 않게 한다.
   admin:
     profiles: [admin]
-    build: { context: ., target: admin }
+    build: { context: ., dockerfile: admin/Dockerfile }
     environment:
       API_URL: http://backend:3001
       ADMIN_URL: ${ADMIN_URL:-http://localhost:3102}
