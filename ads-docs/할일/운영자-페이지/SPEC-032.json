@@ -4434,6 +4434,273 @@
      }
     ],
     "type": "paragraph"
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "구현 중 달라진 점(Phase 2·3)"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "USAGE_SINCE",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 기본값은 배포일 + 7일이 아니라 "
+         },
+         {
+          "type": "text",
+          "text": "2026-11-05T00:00:00+09:00",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 이다. 운영 계정이 운영진뿐이어서 다른 시행일도 앞당긴 것과 같은 이유다. 값의 원본은 "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/config/config.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 이고 "
+         },
+         {
+          "type": "text",
+          "text": "src/compose.yaml",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/.env.example",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 에 같은 값을 적었다"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "방침 시행일은 11월 5일 그대로 두고, 사용자 의견·이용 기록·집계 이용을 방침에 추가하되 이미 있는 「정식 출시 전 변경」 예외 문장을 쓴다. 다시 알리는 배너의 닫기 키는 "
+         },
+         {
+          "type": "text",
+          "text": "liftgram.policyNotice.20261105b",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 이다"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "대시보드는 "
+         },
+         {
+          "type": "text",
+          "text": "/admin",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 의 탭이 아니라 별도 경로 "
+         },
+         {
+          "type": "text",
+          "text": "/admin/stats",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 다. "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/admin/stats/page.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "보고 RPC 이름은 "
+         },
+         {
+          "type": "text",
+          "text": "ReportUsage",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 다. moderation 의 "
+         },
+         {
+          "type": "text",
+          "text": "ReportRequest",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 와 이름이 겹쳐 바꿨다. "
+         },
+         {
+          "type": "text",
+          "text": "src/proto/usage/v1/usage.proto",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "IP 상한은 분당 600건, IP당 새 기기는 하루 200대로 스펙보다 넉넉히 잡았다. 통신사 NAT 뒤에는 한 IP 에 사람이 많기 때문이다. 표가 끝없이 커지는 것은 주체당 하루 2,000행과 전체 하루 500,000행으로 막는다. "
+         },
+         {
+          "type": "text",
+          "text": "src/backend/internal/usage/service.go",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "시험에서 시각이 필요한 곳은 "
+         },
+         {
+          "type": "text",
+          "text": "USAGE_SINCE",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 설정으로 주입한다. 대시보드의 시행 전 상태 코드는 남겨 둔다"
+         }
+        ]
+       }
+      ]
+     }
+    ]
    }
   ],
   "type": "doc"
@@ -4443,7 +4710,7 @@
  "meta": {
   "grade": "Project",
   "phases": "3",
-  "phases_done": "1"
+  "phases_done": "3"
  },
  "relations": {
   "implements": [

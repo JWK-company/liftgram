@@ -59,6 +59,7 @@ import { LogoSpinner } from "../ui/LogoSpinner";
 import { MoreMenu } from "../ui/MoreMenu";
 import { type RoutineLineSets, routineLinePatch, rowsFromRoutineLine } from "@app/core/domain/routineSets";
 import { PrescriptionRows } from "./PrescriptionRows";
+import { trackUsage } from "@/lib/usage";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 
@@ -169,6 +170,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
     if (routineId) return routineId;
     if (!repo) return null;
     if (!creatingRef.current) {
+      trackUsage("routine_create");
       creatingRef.current = repo
         .createRoutine({ name: name.trim() || t("routines.newRoutineName") })
         .then((r) => (r as unknown as { id: string }).id);
@@ -192,6 +194,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
       const id = await ensureId();
       if (!id) return;
       await repo.updateRoutine(id, patch).catch(() => {});
+      // 글자마다 세지 않는다 — 10분에 한 번.
+      trackUsage("routine_edit", { throttleMs: 600_000 });
       await flush();
     },
     [repo, ensureId, flush],
@@ -605,6 +609,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                     await settleWrites(); // 세트 표의 입력 칸을 올린 뒤 읽는다(SPEC-023)
                     if (name.trim()) await save({ name: name.trim() });
                     const workout = await import("@app/core/data/workoutRepository");
+                    trackUsage("workout_start_routine");
                     const w = (await workout.startWorkoutFromRoutine(routineId)) as unknown as {
                       id: string;
                       startedAt: number;

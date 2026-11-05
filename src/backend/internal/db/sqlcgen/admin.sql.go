@@ -285,6 +285,232 @@ func (q *Queries) AdminSignupTotals(ctx context.Context) (AdminSignupTotalsRow, 
 	return i, err
 }
 
+const adminUsageActive = `-- name: AdminUsageActive :many
+SELECT a.actor_kind,
+       count(DISTINCT a.actor_id) FILTER (WHERE a.day = $1::date)::bigint AS dau,
+       count(DISTINCT a.actor_id) FILTER (WHERE a.day >= $2::date)::bigint AS wau,
+       count(DISTINCT a.actor_id)::bigint AS mau
+FROM usage_active_days a
+WHERE a.day >= $3::date AND a.day <= $1::date
+  AND (a.actor_kind = 'guest' OR EXISTS (SELECT 1 FROM users u WHERE u.id = a.actor_id AND u.role = 'user' AND u.stats_excluded = false))
+GROUP BY a.actor_kind
+`
+
+type AdminUsageActiveParams struct {
+	Today pgtype.Date
+	D7    pgtype.Date
+	D30   pgtype.Date
+}
+
+type AdminUsageActiveRow struct {
+	ActorKind string
+	Dau       int64
+	Wau       int64
+	Mau       int64
+}
+
+func (q *Queries) AdminUsageActive(ctx context.Context, arg AdminUsageActiveParams) ([]AdminUsageActiveRow, error) {
+	rows, err := q.db.Query(ctx, adminUsageActive, arg.Today, arg.D7, arg.D30)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AdminUsageActiveRow
+	for rows.Next() {
+		var i AdminUsageActiveRow
+		if err := rows.Scan(
+			&i.ActorKind,
+			&i.Dau,
+			&i.Wau,
+			&i.Mau,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminUsageDaily = `-- name: AdminUsageDaily :many
+SELECT day::text AS day, actor_kind, actors::bigint AS actors
+FROM usage_daily
+WHERE metric = 'dau' AND day >= $1::date
+ORDER BY day
+`
+
+type AdminUsageDailyRow struct {
+	Day       string
+	ActorKind string
+	Actors    int64
+}
+
+func (q *Queries) AdminUsageDaily(ctx context.Context, fromDay pgtype.Date) ([]AdminUsageDailyRow, error) {
+	rows, err := q.db.Query(ctx, adminUsageDaily, fromDay)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AdminUsageDailyRow
+	for rows.Next() {
+		var i AdminUsageDailyRow
+		if err := rows.Scan(&i.Day, &i.ActorKind, &i.Actors); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminUsageFeatures = `-- name: AdminUsageFeatures :many
+SELECT metric,
+       coalesce(sum(events) FILTER (WHERE day >= $1::date), 0)::bigint AS last7d,
+       coalesce(sum(events), 0)::bigint AS last30d
+FROM usage_daily
+WHERE day >= $2::date AND (metric LIKE 'event:%' OR metric LIKE 'platform:%')
+GROUP BY metric
+ORDER BY last30d DESC, metric
+`
+
+type AdminUsageFeaturesParams struct {
+	D7  pgtype.Date
+	D30 pgtype.Date
+}
+
+type AdminUsageFeaturesRow struct {
+	Metric  string
+	Last7d  int64
+	Last30d int64
+}
+
+func (q *Queries) AdminUsageFeatures(ctx context.Context, arg AdminUsageFeaturesParams) ([]AdminUsageFeaturesRow, error) {
+	rows, err := q.db.Query(ctx, adminUsageFeatures, arg.D7, arg.D30)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AdminUsageFeaturesRow
+	for rows.Next() {
+		var i AdminUsageFeaturesRow
+		if err := rows.Scan(&i.Metric, &i.Last7d, &i.Last30d); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminUsageOnline = `-- name: AdminUsageOnline :many
+
+SELECT p.actor_kind, count(*)::bigint AS n
+FROM usage_presence p
+WHERE p.last_seen >= $1
+  AND (p.actor_kind = 'guest' OR EXISTS (SELECT 1 FROM users u WHERE u.id = p.actor_id AND u.role = 'user' AND u.stats_excluded = false))
+GROUP BY p.actor_kind
+`
+
+type AdminUsageOnlineRow struct {
+	ActorKind string
+	N         int64
+}
+
+// ── 이용 기록 읽기(Phase 3) ── 운영진·제외 계정은 뺀다. 비로그인은 기기 기준이다.
+func (q *Queries) AdminUsageOnline(ctx context.Context, sinceAt pgtype.Timestamptz) ([]AdminUsageOnlineRow, error) {
+	rows, err := q.db.Query(ctx, adminUsageOnline, sinceAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AdminUsageOnlineRow
+	for rows.Next() {
+		var i AdminUsageOnlineRow
+		if err := rows.Scan(&i.ActorKind, &i.N); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminUsageRetention = `-- name: AdminUsageRetention :many
+WITH c AS (
+  SELECT p.actor_kind, p.actor_id, (p.first_seen AT TIME ZONE 'Asia/Seoul')::date AS d0
+  FROM usage_presence p
+  WHERE p.first_seen >= $2 AND p.first_seen < $3
+    AND (p.actor_kind = 'guest' OR EXISTS (SELECT 1 FROM users u WHERE u.id = p.actor_id AND u.role = 'user' AND u.stats_excluded = false))
+)
+SELECT c.actor_kind,
+       count(*)::bigint AS cohort,
+       count(*) FILTER (WHERE EXISTS (
+         SELECT 1 FROM usage_active_days a
+         WHERE a.actor_kind = c.actor_kind AND a.actor_id = c.actor_id AND a.day = c.d0 + $1::int
+       ))::bigint AS returned
+FROM c
+GROUP BY c.actor_kind
+`
+
+type AdminUsageRetentionParams struct {
+	N      int32
+	FromAt pgtype.Timestamptz
+	ToAt   pgtype.Timestamptz
+}
+
+type AdminUsageRetentionRow struct {
+	ActorKind string
+	Cohort    int64
+	Returned  int64
+}
+
+// [from_at, to_at)에 처음 온 주체 중 첫날로부터 n 일째에 다시 온 수.
+func (q *Queries) AdminUsageRetention(ctx context.Context, arg AdminUsageRetentionParams) ([]AdminUsageRetentionRow, error) {
+	rows, err := q.db.Query(ctx, adminUsageRetention, arg.N, arg.FromAt, arg.ToAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AdminUsageRetentionRow
+	for rows.Next() {
+		var i AdminUsageRetentionRow
+		if err := rows.Scan(&i.ActorKind, &i.Cohort, &i.Returned); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const adminUsageTableStats = `-- name: AdminUsageTableStats :one
+SELECT (pg_total_relation_size('usage_events') + pg_total_relation_size('usage_presence')
+        + pg_total_relation_size('usage_active_days') + pg_total_relation_size('usage_daily'))::bigint AS bytes,
+       (SELECT count(*) FROM usage_events WHERE at >= $1)::bigint AS rows_24h
+`
+
+type AdminUsageTableStatsRow struct {
+	Bytes   int64
+	Rows24h int64
+}
+
+func (q *Queries) AdminUsageTableStats(ctx context.Context, sinceAt pgtype.Timestamptz) (AdminUsageTableStatsRow, error) {
+	row := q.db.QueryRow(ctx, adminUsageTableStats, sinceAt)
+	var i AdminUsageTableStatsRow
+	err := row.Scan(&i.Bytes, &i.Rows24h)
+	return i, err
+}
+
 const adminWorkoutStats = `-- name: AdminWorkoutStats :one
 WITH w AS (
   SELECT s.user_id,

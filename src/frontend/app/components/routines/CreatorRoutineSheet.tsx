@@ -16,6 +16,7 @@ import { lang, t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { AppText } from "../ui/primitives";
+import { trackUsage } from "@/lib/usage";
 
 /** 정정·삭제 요청 연락처(약관·개인정보처리방침과 같은 창구) */
 const CONTACT = "admin@tarae.org";
@@ -157,6 +158,7 @@ function CreatorVersionStep({
           }));
         if (!items.length) continue;
         await routineRepo.importRoutine(creatorRoutineName(routine, d.nameKo), items, { notes });
+        trackUsage("routine_import");
         made += 1;
       }
     } catch (e) {

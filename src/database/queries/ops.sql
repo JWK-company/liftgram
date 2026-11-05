@@ -70,3 +70,9 @@ FROM ops_backup_runs
 WHERE kind = @kind AND ok
 ORDER BY created_at DESC, id DESC
 LIMIT 1;
+
+-- 이용 기록 표 크기 — 경보용(SPEC-032).
+-- name: UsageTablesBytes :one
+SELECT (pg_total_relation_size('usage_events') + pg_total_relation_size('usage_presence')
+        + pg_total_relation_size('usage_active_days') + pg_total_relation_size('usage_daily'))::bigint;
+

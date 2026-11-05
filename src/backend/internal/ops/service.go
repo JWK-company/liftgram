@@ -128,6 +128,8 @@ type Repo interface {
 	LastBackupRun(ctx context.Context, kind string, okOnly bool) (BackupRun, bool, error)
 	// 사용자별 서버 마지막 동기 쓰기(max sync_records.updated_at) — 기록이 없는 사용자는 map 에 없다(qa code H-1 ②).
 	LastSyncByUser(ctx context.Context, userIDs []string) (map[string]time.Time, error)
+	// 이용 기록 표 크기(바이트).
+	UsageTablesBytes(ctx context.Context) (int64, error)
 }
 
 type Service struct {
@@ -335,6 +337,20 @@ type BackupFacts struct {
 	LastRestoreTest *BackupRun
 }
 
+// UsageTablesWarnBytes — 이용 기록 표가 이 크기를 넘으면 운영 경보(SPEC-032). 공용 디스크의 DB 를 지킨다.
+const UsageTablesWarnBytes = 2 << 30
+
+// ReasonUsageTable — 이용 기록 표가 경보 크기를 넘었다.
+const ReasonUsageTable = "usage_table"
+
+// withUsageReason 은 표 크기 경보를 맨 뒤에 붙인다. 크기를 못 읽어도 다른 경보를 막지 않는다.
+func (s *Service) withUsageReason(ctx context.Context, reasons []string) []string {
+	if n, err := s.repo.UsageTablesBytes(ctx); err == nil && n >= UsageTablesWarnBytes {
+		return append(reasons, ReasonUsageTable)
+	}
+	return reasons
+}
+
 // AlertReasons — 순서 고정(화면이 깜빡이지 않게): stalled · daily · restore · low_disk.
 func AlertReasons(stalledCount int, b BackupFacts, now time.Time) []string {
 	out := []string{}
@@ -443,7 +459,7 @@ func (s *Service) GetOpsStatus(ctx context.Context, viewerID, role string) (Stat
 	for _, h := range disconnected {
 		st.Disconnected = append(st.Disconnected, row(h))
 	}
-	st.Reasons = AlertReasons(len(st.Stalled), backup, now)
+	st.Reasons = s.withUsageReason(ctx, AlertReasons(len(st.Stalled), backup, now))
 	st.Alert = len(st.Reasons) > 0
 	return st, nil
 }
@@ -475,7 +491,7 @@ func (s *Service) GetOpsAlert(ctx context.Context, viewerID, role string) (bool,
 	}
 	stalled, _ := Classify(health, lastSync, now)
 	n := len(stalled)
-	reasons := AlertReasons(n, backup, now)
+	reasons := s.withUsageReason(ctx, AlertReasons(n, backup, now))
 	return len(reasons) > 0, len(reasons), nil
 }
 

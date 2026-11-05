@@ -19,13 +19,14 @@ import (
 var t0 = time.Date(2026, 10, 28, 12, 0, 0, 0, time.UTC)
 
 type fakeRepo struct {
-	roles    map[string]string
-	health   map[string]map[string]Health // user → device → row
-	users    []UserRow
-	backups  []BackupRun // 시간순
-	upserts  int
-	lastSync map[string]time.Time // 사용자 → 서버 마지막 동기 쓰기
-	syncAsks int                  // LastSyncByUser 호출 수
+	usageBytes int64
+	roles      map[string]string
+	health     map[string]map[string]Health // user → device → row
+	users      []UserRow
+	backups    []BackupRun // 시간순
+	upserts    int
+	lastSync   map[string]time.Time // 사용자 → 서버 마지막 동기 쓰기
+	syncAsks   int                  // LastSyncByUser 호출 수
 }
 
 func newFake() *fakeRepo {
@@ -545,5 +546,22 @@ func TestEmailHint(t *testing.T) {
 		if got := EmailHint(in); got != want {
 			t.Errorf("%q → %q (want %q)", in, got, want)
 		}
+	}
+}
+
+func (f *fakeRepo) UsageTablesBytes(context.Context) (int64, error) { return f.usageBytes, nil }
+
+func TestAlert_이용기록_표_크기(t *testing.T) {
+	f := newFake()
+	f.roles["a"] = "admin"
+	s := NewService(f, func() time.Time { return time.Date(2026, 11, 5, 0, 0, 0, 0, time.UTC) })
+	base := s.withUsageReason(context.Background(), nil)
+	if len(base) != 0 {
+		t.Fatalf("경보가 없어야 한다: %v", base)
+	}
+	f.usageBytes = UsageTablesWarnBytes
+	got := s.withUsageReason(context.Background(), []string{"x"})
+	if len(got) != 2 || got[1] != ReasonUsageTable {
+		t.Fatalf("표 크기 경보: %v", got)
 	}
 }

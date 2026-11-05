@@ -120,6 +120,11 @@ export function setTokens(
   return saved;
 }
 
+/** 지금 메모리에 있는 access 토큰 — 갱신하지 않는다(이용 기록이 refresh 회전을 건드리지 않게 · SPEC-032). */
+export function currentAccessToken(): string | null {
+  return accessToken;
+}
+
 export function clearTokens(): void {
   accessToken = null;
   // 쓰다 만 의견은 그 사람 것이다 — 같은 기기의 다음 계정에게 보이지 않게 지운다(SPEC-032).

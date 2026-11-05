@@ -50,6 +50,7 @@ import { AppText, Card, Tag } from "../ui/primitives";
 import { FoldToggle, MetaAction, MetaLine, QuietChip } from "../ui/quiet";
 import { Segmented } from "../ui/rows";
 import { importSourceLabel } from "./ImportCard";
+import { trackUsage } from "@/lib/usage";
 
 type Repo = typeof import("@app/core/data/importRepository");
 type Step = "file" | "summary" | "match" | "progress" | "done";
@@ -369,6 +370,7 @@ export default function ImportFlow() {
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
+    trackUsage("data_import");
     setTaskProgress({ stage: "hash", ratio: 0 });
     try {
       const text = await file.text();

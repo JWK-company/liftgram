@@ -85,9 +85,72 @@ message GetOperationsStatsResponse {
   // 미처리 사용자 의견·운영 피드백.
   int64 open_user_feedback = 3;
   int64 open_ops_feedback = 4;
+  // 이용 기록 표 크기(바이트)와 최근 24시간 행 수.
+  int64 usage_bytes = 5;
+  int64 usage_rows_24h = 6;
+  // 표가 경보 크기를 넘었거나 하루 행 수가 상한에 가깝다.
+  bool usage_warn = 7;
+}
+
+// 로그인·비로그인을 따로 세고, 합계는 단순 합이다(비로그인은 기기 기준이라 추세로만 본다).
+message ActorCount {
+  int64 user = 1;
+  int64 guest = 2;
+  int64 total = 3;
+}
+
+message Retention {
+  // 그날로부터 n 일 전 7일 동안 처음 온 주체 수(분모).
+  ActorCount cohort = 1;
+  // 그중 처음 온 날로부터 정확히 n 일째에 다시 온 주체 수.
+  ActorCount returned = 2;
+}
+
+message DailyActors {
+  string day = 1;
+  int64 user = 2;
+  int64 guest = 3;
+}
+
+message GetUsageStatsRequest {}
+
+message GetUsageStatsResponse {
+  google.protobuf.Timestamp generated_at = 1;
+  bool started = 2;
+  google.protobuf.Timestamp usage_since = 3;
+  // 최근 5분 접속.
+  ActorCount online = 4;
+  ActorCount dau = 5;
+  ActorCount wau = 6;
+  ActorCount mau = 7;
+  Retention d1 = 8;
+  Retention d7 = 9;
+  Retention d30 = 10;
+  // 최근 30일 일별 활성. 빈 날도 0.
+  repeated DailyActors daily = 11;
+}
+
+message GetFeatureStatsRequest {}
+
+message FeatureRow {
+  string name = 1;
+  int64 last7d = 2;
+  int64 last30d = 3;
+}
+
+message GetFeatureStatsResponse {
+  google.protobuf.Timestamp generated_at = 1;
+  bool started = 2;
+  google.protobuf.Timestamp usage_since = 3;
+  // 화면 순위(screen_ 이벤트) · 행동 순위(나머지) · 플랫폼. 많은 순.
+  repeated FeatureRow screens = 4;
+  repeated FeatureRow actions = 5;
+  repeated FeatureRow platforms = 6;
 }
 
 service AdminService {
+  rpc GetUsageStats(GetUsageStatsRequest) returns (GetUsageStatsResponse);
+  rpc GetFeatureStats(GetFeatureStatsRequest) returns (GetFeatureStatsResponse);
   rpc GetSignupStats(GetSignupStatsRequest) returns (GetSignupStatsResponse);
   rpc GetRoutineStats(GetRoutineStatsRequest) returns (GetRoutineStatsResponse);
   rpc GetContentStats(GetContentStatsRequest) returns (GetContentStatsResponse);

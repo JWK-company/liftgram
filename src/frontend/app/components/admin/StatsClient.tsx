@@ -15,15 +15,19 @@ import { ListGroup, ListRow } from "../ui/rows";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { BarList, DailyBars, Tile } from "./statsCharts";
 
-type Stamp = { toDate?: () => Date } | undefined;
-
 const num = (n: bigint | number) => Number(n).toLocaleString();
 const pct = (part: bigint | number, whole: bigint | number) =>
   Number(whole) > 0 ? `${Math.round((Number(part) / Number(whole)) * 100)}%` : "—";
 const clock = (ts: { seconds: bigint } | undefined) =>
-  ts ? new Date(Number(ts.seconds) * 1000).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" }) : "";
+  ts
+    ? new Date(Number(ts.seconds) * 1000).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })
+    : "";
 const dateOf = (ts: { seconds: bigint } | undefined) =>
   ts ? new Date(Number(ts.seconds) * 1000).toLocaleDateString("ko-KR") : "";
+const bytes = (n: bigint) => {
+  const v = Number(n);
+  return v >= 1 << 30 ? `${(v / (1 << 30)).toFixed(1)} GB` : `${Math.round(v / (1 << 20))} MB`;
+};
 const minutes = (sec: bigint | number) => `${Math.round(Number(sec) / 60)}${t("admin.stats.minuteUnit")}`;
 
 /** 구역 하나의 로드·실패 상태. 마지막 요청만 받는다. */
@@ -83,14 +87,27 @@ function Section({
         ) : null}
       </div>
       {failed ? (
-        <div className="flex items-center justify-between gap-[var(--spacing-sm)] py-[var(--spacing-sm)]" data-testid={`stats-${id}-error`}>
+        <div
+          className="flex items-center justify-between gap-[var(--spacing-sm)] py-[var(--spacing-sm)]"
+          data-testid={`stats-${id}-error`}
+        >
           <AppText variant="caption" color="danger">
             {t("ops.loadFailed")}
           </AppText>
-          <Button title={t("admin.stats.retry")} variant="secondary" size="sm" onPress={onRetry} testId={`stats-${id}-retry`} />
+          <Button
+            title={t("admin.stats.retry")}
+            variant="secondary"
+            size="sm"
+            onPress={onRetry}
+            testId={`stats-${id}-retry`}
+          />
         </div>
       ) : loading ? (
-        <div className="flex justify-center py-[var(--spacing-md)]" role="status" data-testid={`stats-${id}-loading`}>
+        <div
+          className="flex justify-center py-[var(--spacing-md)]"
+          role="status"
+          data-testid={`stats-${id}-loading`}
+        >
           <LogoSpinner size={24} label={t(title)} />
         </div>
       ) : (
@@ -120,10 +137,215 @@ function Empty({ text, testId }: { text: string; testId: string }) {
 
 const grid = "grid grid-cols-2 gap-[var(--spacing-sm)]";
 
+type Actor = { user: bigint; guest: bigint; total: bigint } | undefined;
+
+function ActorTile({
+  label,
+  a,
+  caption,
+  testId,
+}: {
+  label: string;
+  a: Actor;
+  caption?: string;
+  testId: string;
+}) {
+  return (
+    <Tile
+      label={label}
+      value={num(a?.total ?? 0n)}
+      caption={
+        caption ?? t("admin.stats.actorLine", { user: num(a?.user ?? 0n), guest: num(a?.guest ?? 0n) })
+      }
+      testId={testId}
+    />
+  );
+}
+
+function UsersSection() {
+  const { data, failed, reload } = useSection(() => adminClient().getUsageStats({}));
+  return (
+    <Section
+      id="users"
+      title="admin.stats.users"
+      at={data?.generatedAt}
+      failed={failed}
+      loading={!data && !failed}
+      onRetry={reload}
+    >
+      {data && !data.started ? (
+        <Empty
+          text={t("admin.stats.beforeStart", { date: dateOf(data.usageSince) })}
+          testId="stats-users-before"
+        />
+      ) : data ? (
+        <>
+          <div className={grid}>
+            <ActorTile label={t("admin.stats.online")} a={data.online} testId="stat-online" />
+            <ActorTile label={t("admin.stats.dau")} a={data.dau} testId="stat-dau" />
+            <ActorTile label={t("admin.stats.wau")} a={data.wau} testId="stat-wau" />
+            <ActorTile label={t("admin.stats.mau")} a={data.mau} testId="stat-mau" />
+          </div>
+          <div className="mt-[var(--spacing-md)]">
+            <AppText variant="label" color="textMuted">
+              {t("admin.stats.dailyActive")}
+            </AppText>
+            {data.daily.every((d) => d.user === 0n && d.guest === 0n) ? (
+              <Empty text={t("admin.stats.noUsage")} testId="stats-users-empty" />
+            ) : (
+              <DailyBars
+                testId="chart-active"
+                series={[
+                  { label: t("admin.stats.loginSeries"), color: "var(--stats-series-1)" },
+                  { label: t("admin.stats.guestSeries"), color: "var(--stats-series-2)" },
+                ]}
+                days={data.daily.map((d) => ({ day: d.day, values: [Number(d.user), Number(d.guest)] }))}
+              />
+            )}
+          </div>
+          <div className="mt-[var(--spacing-md)]" data-testid="stats-retention">
+            <AppText variant="label" color="textMuted">
+              {t("admin.stats.retention")}
+            </AppText>
+            <table className="mt-[var(--spacing-xs)] w-full text-xs text-(--color-ink)">
+              <thead>
+                <tr className="text-left text-(--color-ink3)">
+                  <th className="py-[4px] font-normal" />
+                  <th className="py-[4px] text-right font-normal">{t("admin.stats.loginSeries")}</th>
+                  <th className="py-[4px] text-right font-normal">{t("admin.stats.guestSeries")}</th>
+                  <th className="py-[4px] text-right font-normal">{t("admin.stats.total")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(
+                  [
+                    [1, data.d1],
+                    [7, data.d7],
+                    [30, data.d30],
+                  ] as const
+                ).map(([n, r]) => (
+                  <tr key={n} className="border-(--color-line) border-t" data-testid={`retention-${n}`}>
+                    <td className="py-[6px] text-(--color-ink2)">{t("admin.stats.retentionDay", { n })}</td>
+                    <td className="py-[6px] text-right tabular-nums">
+                      {pct(r?.returned?.user ?? 0n, r?.cohort?.user ?? 0n)}
+                    </td>
+                    <td className="py-[6px] text-right tabular-nums">
+                      {pct(r?.returned?.guest ?? 0n, r?.cohort?.guest ?? 0n)}
+                    </td>
+                    <td className="py-[6px] text-right tabular-nums">
+                      {pct(r?.returned?.total ?? 0n, r?.cohort?.total ?? 0n)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Note testId="stats-users-note">{t("admin.stats.usersNote")}</Note>
+        </>
+      ) : null}
+    </Section>
+  );
+}
+
+function FeaturesSection() {
+  const { data, failed, reload } = useSection(() => adminClient().getFeatureStats({}));
+  const [range, setRange] = useState<7 | 30>(7);
+  const rows = (list: { name: string; last7d: bigint; last30d: bigint }[], prefix: string) =>
+    list
+      .map((r) => ({
+        key: r.name,
+        label: labelOf(`${prefix}${r.name}`, r.name),
+        value: Number(range === 7 ? r.last7d : r.last30d),
+      }))
+      .filter((r) => r.value > 0)
+      .sort((a, b) => b.value - a.value);
+  const screens = data ? rows(data.screens, "admin.stats.event.").slice(0, 8) : [];
+  const actions = data ? rows(data.actions, "admin.stats.event.").slice(0, 8) : [];
+  const platforms = data ? rows(data.platforms, "admin.stats.platform.") : [];
+  const platformTotal = platforms.reduce((a, b) => a + b.value, 0);
+  return (
+    <Section
+      id="features"
+      title="admin.stats.features"
+      at={data?.generatedAt}
+      failed={failed}
+      loading={!data && !failed}
+      onRetry={reload}
+    >
+      {data && !data.started ? (
+        <Empty
+          text={t("admin.stats.beforeStart", { date: dateOf(data.usageSince) })}
+          testId="stats-features-before"
+        />
+      ) : data ? (
+        <>
+          <div className="mb-[var(--spacing-sm)] flex gap-[var(--spacing-xs)]" data-testid="stats-range">
+            {([7, 30] as const).map((r) => (
+              <Button
+                key={r}
+                title={t(r === 7 ? "admin.stats.range7" : "admin.stats.range30")}
+                variant={range === r ? "primary" : "secondary"}
+                size="sm"
+                onPress={() => setRange(r)}
+                testId={`stats-range-${r}`}
+              />
+            ))}
+          </div>
+          {screens.length + actions.length === 0 ? (
+            <Empty text={t("admin.stats.noUsage")} testId="stats-features-empty" />
+          ) : (
+            <>
+              <Group title={t("admin.stats.screens")}>
+                <BarList testId="chart-screens" rows={screens} />
+              </Group>
+              <Group title={t("admin.stats.actions")}>
+                <BarList testId="chart-actions" rows={actions} />
+              </Group>
+              <Group title={t("admin.stats.platforms")}>
+                <BarList
+                  testId="chart-platforms"
+                  rows={platforms.map((p) => ({ ...p, display: pct(p.value, platformTotal) }))}
+                />
+              </Group>
+            </>
+          )}
+          <Note>{t("admin.stats.featuresNote")}</Note>
+        </>
+      ) : null}
+    </Section>
+  );
+}
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="mb-[var(--spacing-md)]">
+      <div className="mb-[var(--spacing-xs)]">
+        <AppText variant="label" color="textMuted">
+          {title}
+        </AppText>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** 번역이 없으면 이름 그대로. */
+function labelOf(key: string, fallback: string): string {
+  const label = t(key as TransKey);
+  return label === key ? fallback : label;
+}
+
 function SignupSection() {
   const { data, failed, reload } = useSection(() => adminClient().getSignupStats({}));
   return (
-    <Section id="signup" title="admin.stats.signup" at={data?.generatedAt} failed={failed} loading={!data && !failed} onRetry={reload}>
+    <Section
+      id="signup"
+      title="admin.stats.signup"
+      at={data?.generatedAt}
+      failed={failed}
+      loading={!data && !failed}
+      onRetry={reload}
+    >
       {data ? (
         <>
           <div className={grid}>
@@ -168,7 +390,9 @@ function SignupSection() {
           ) : null}
           <div className="mt-[var(--spacing-md)]">
             {!data.started ? (
-              <Note testId="stats-first-workout-before">{t("admin.stats.beforeStart", { date: dateOf(data.usageSince) })}</Note>
+              <Note testId="stats-first-workout-before">
+                {t("admin.stats.beforeStart", { date: dateOf(data.usageSince) })}
+              </Note>
             ) : data.firstWorkoutCohort === 0n ? (
               <Note testId="stats-first-workout-empty">{t("admin.stats.firstWorkoutEmpty")}</Note>
             ) : (
@@ -188,17 +412,25 @@ function SignupSection() {
 }
 
 function providerLabel(name: string): string {
-  const key = `admin.stats.provider.${name}` as TransKey;
-  const label = t(key);
-  return label === key ? name : label;
+  return labelOf(`admin.stats.provider.${name}`, name);
 }
 
 function RoutineSection() {
   const { data, failed, reload } = useSection(() => adminClient().getRoutineStats({}));
   return (
-    <Section id="routine" title="admin.stats.routine" at={data?.generatedAt} failed={failed} loading={!data && !failed} onRetry={reload}>
+    <Section
+      id="routine"
+      title="admin.stats.routine"
+      at={data?.generatedAt}
+      failed={failed}
+      loading={!data && !failed}
+      onRetry={reload}
+    >
       {data && !data.started ? (
-        <Empty text={t("admin.stats.beforeStart", { date: dateOf(data.usageSince) })} testId="stats-routine-before" />
+        <Empty
+          text={t("admin.stats.beforeStart", { date: dateOf(data.usageSince) })}
+          testId="stats-routine-before"
+        />
       ) : data ? (
         <>
           <div className="mb-[var(--spacing-xs)]">
@@ -208,7 +440,11 @@ function RoutineSection() {
           </div>
           <BarList
             testId="chart-routines"
-            rows={data.routineBuckets.map((b) => ({ key: b.name, label: t("admin.stats.routineBucket", { n: b.name }), value: Number(b.count) }))}
+            rows={data.routineBuckets.map((b) => ({
+              key: b.name,
+              label: t("admin.stats.routineBucket", { n: b.name }),
+              value: Number(b.count),
+            }))}
           />
           {data.workouts === 0n ? (
             <Empty text={t("admin.stats.noWorkouts")} testId="stats-routine-empty" />
@@ -243,7 +479,14 @@ function RoutineSection() {
 function ContentSection() {
   const { data, failed, reload } = useSection(() => adminClient().getContentStats({}));
   return (
-    <Section id="content" title="admin.stats.content" at={data?.generatedAt} failed={failed} loading={!data && !failed} onRetry={reload}>
+    <Section
+      id="content"
+      title="admin.stats.content"
+      at={data?.generatedAt}
+      failed={failed}
+      loading={!data && !failed}
+      onRetry={reload}
+    >
       {data ? (
         <>
           <table className="w-full text-xs text-(--color-ink)" data-testid="stats-content-table">
@@ -258,7 +501,9 @@ function ContentSection() {
             <tbody>
               {data.rows.map((r) => (
                 <tr key={r.key} className="border-(--color-line) border-t" data-testid={`content-${r.key}`}>
-                  <td className="py-[6px] text-(--color-ink2)">{t(`admin.stats.contentKey.${r.key}` as TransKey)}</td>
+                  <td className="py-[6px] text-(--color-ink2)">
+                    {t(`admin.stats.contentKey.${r.key}` as TransKey)}
+                  </td>
                   <td className="py-[6px] text-right tabular-nums">{num(r.last7d)}</td>
                   <td className="py-[6px] text-right tabular-nums">{num(r.last30d)}</td>
                   <td className="py-[6px] text-right tabular-nums">{num(r.total)}</td>
@@ -277,13 +522,38 @@ function OperationsSection() {
   const { data, failed, reload } = useSection(() => adminClient().getOperationsStats({}));
   const ops = useOpsAlert();
   return (
-    <Section id="operations" title="admin.stats.operations" at={data?.generatedAt} failed={failed} loading={!data && !failed} onRetry={reload}>
+    <Section
+      id="operations"
+      title="admin.stats.operations"
+      at={data?.generatedAt}
+      failed={failed}
+      loading={!data && !failed}
+      onRetry={reload}
+    >
       {data ? (
         <>
           <ListGroup>
-            <ListRow testId="stat-pending-reports" icon="flag-outline" title={t("admin.stats.pendingReports")} value={num(data.pendingReports)} href="/moderation" />
-            <ListRow testId="stat-open-user-feedback" icon="chatbubbles-outline" title={t("admin.stats.openUserFeedback")} value={num(data.openUserFeedback)} href="/admin/feedback" />
-            <ListRow testId="stat-open-ops-feedback" icon="chatbubble-outline" title={t("admin.stats.openOpsFeedback")} value={num(data.openOpsFeedback)} href="/admin/feedback" />
+            <ListRow
+              testId="stat-pending-reports"
+              icon="flag-outline"
+              title={t("admin.stats.pendingReports")}
+              value={num(data.pendingReports)}
+              href="/moderation"
+            />
+            <ListRow
+              testId="stat-open-user-feedback"
+              icon="chatbubbles-outline"
+              title={t("admin.stats.openUserFeedback")}
+              value={num(data.openUserFeedback)}
+              href="/admin/feedback"
+            />
+            <ListRow
+              testId="stat-open-ops-feedback"
+              icon="chatbubble-outline"
+              title={t("admin.stats.openOpsFeedback")}
+              value={num(data.openOpsFeedback)}
+              href="/admin/feedback"
+            />
             <ListRow
               testId="stat-ops-status"
               icon="stats-chart"
@@ -291,7 +561,23 @@ function OperationsSection() {
               value={t(ops.alert ? "ops.needsCheck" : "admin.stats.opsFine")}
               href="/ops"
             />
+            <ListRow
+              testId="stat-usage-tables"
+              title={t("admin.stats.usageTables")}
+              subtitle={t("admin.stats.usageRows", { n: num(data.usageRows24h) })}
+              value={bytes(data.usageBytes)}
+            />
           </ListGroup>
+          {data.usageWarn ? (
+            <div
+              className="mt-[var(--spacing-xs)] flex items-center gap-[var(--spacing-xs)]"
+              data-testid="stat-usage-warn"
+              role="status"
+            >
+              <Icon name="alert-circle-outline" size={16} color="var(--color-warn)" />
+              <AppText variant="caption">{t("admin.stats.usageWarn")}</AppText>
+            </div>
+          ) : null}
         </>
       ) : null}
     </Section>
@@ -325,7 +611,9 @@ export default function StatsClient() {
           </div>
         ) : (
           <>
+            <UsersSection />
             <SignupSection />
+            <FeaturesSection />
             <RoutineSection />
             <ContentSection />
             <OperationsSection />

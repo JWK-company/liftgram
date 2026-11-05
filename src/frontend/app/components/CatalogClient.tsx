@@ -43,6 +43,7 @@ import { FilterRow } from "./ui/FilterRow";
 import { Icon } from "./ui/Icon";
 import { TextField } from "./ui/inputs";
 import { AppText, EmptyState, Tag } from "./ui/primitives";
+import { trackUsage } from "@/lib/usage";
 
 /** 저장소가 돌려주는 모델의 화면용 최소 모양 — 여기서 필요한 필드만 읽는다. */
 type Row = {
@@ -73,6 +74,10 @@ export default function CatalogClient() {
   const [sync, setSync] = useState<SyncState>("여는 중");
   const [total, setTotal] = useState<number | null>(null);
   const [query, setQuery] = useState("");
+  // 검색어는 싣지 않는다. 글자마다 세지 않게 1분에 한 번.
+  useEffect(() => {
+    if (query.trim()) trackUsage("exercise_search", { throttleMs: 60_000 });
+  }, [query]);
   const [equipment, setEquipment] = useState<EquipmentType | "">("");
   const [muscle, setMuscle] = useState<MuscleGroup | "">("");
   useMuscleQuerySync(muscle, setMuscle); // 통계 「안 한 근육」 칩에서 들어오면 그 부위로 연다(양방향) @plm SRS-076

@@ -108,6 +108,10 @@ type Config struct {
 	UsageSince string
 	// StatsCacheSec — 운영자 통계 캐시 시간(초). 0 이면 묶지 않는다(시험용).
 	StatsCacheSec int
+	// UsageEnabled — 이용 기록 수집의 차단 스위치. false 면 받지 않고 기기는 큐를 비운다.
+	UsageEnabled bool
+	// UsageJobIntervalSec — 이용 기록 집계 주기(초).
+	UsageJobIntervalSec int
 
 	OAuthGoogleClientID     string
 	OAuthGoogleClientSecret string
@@ -180,6 +184,8 @@ func Load() (*Config, error) {
 		FeedRecommendSince:      envStr("FEED_RECOMMEND_SINCE", "2026-11-05T00:00:00+09:00"),
 		UsageSince:              envStr("USAGE_SINCE", "2026-11-05T00:00:00+09:00"),
 		StatsCacheSec:           envInt("STATS_CACHE_SEC", 300),
+		UsageEnabled:            envStr("USAGE_ENABLED", "true") != "false",
+		UsageJobIntervalSec:     envInt("USAGE_JOB_INTERVAL_SEC", 3600),
 		OAuthGoogleClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
 		OAuthGoogleClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
 		OAuthKakaoClientID:      os.Getenv("OAUTH_KAKAO_CLIENT_ID"),

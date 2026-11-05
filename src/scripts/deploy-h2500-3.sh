@@ -115,6 +115,8 @@ $SSH "
   for k in DATABASE_URL JWT_SECRET APP_URL WEB_PORT; do
     grep -q \"^\$k=.\" \$f || { echo \"  !! .env 에 \$k 가 비었다\"; exit 1; }
   done
+  # 이용 기록 횟수 제한은 실제 IP 로 센다 — 꺼져 있으면 터널 뒤 전원이 한 키로 묶인다(SPEC-032).
+  grep -q \"^TRUST_CF_CONNECTING_IP=1\" \$f || { echo \"  !! .env 에 TRUST_CF_CONNECTING_IP=1 이 없다\"; exit 1; }
   echo '  .env 필수 키 OK'"
 
 # ── 안드로이드 APK — SPEC-018 (SRS-099 · ADR-047) ─────────────────────────────────

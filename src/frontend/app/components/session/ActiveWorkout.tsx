@@ -59,6 +59,7 @@ import { groupSessionRows } from "@app/core/domain/lockScreen"; // 화면 행 �
 import { completeSetsFlow } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
 
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
+import { trackUsage } from "@/lib/usage";
 type WorkoutRow = {
   id: string;
   routineId: string | null;
@@ -700,6 +701,7 @@ export default function ActiveWorkout() {
                   workout.id,
                   repo.completeWorkout,
                 );
+                trackUsage("workout_finish");
                 // 플레이트 질문에 답하지 않은 종목은 기본(한쪽)을 답으로 — 다음엔 묻지 않는다(피드백 #63 · 실패해도 완료는 그대로) @plm SRS-084
                 await repo.settleUndecidedPlateOneSide(workout.id).catch(() => []);
                 // [원본] const { flushLocalDb } = await import("@/lib/localDb");

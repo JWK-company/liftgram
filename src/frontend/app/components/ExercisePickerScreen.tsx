@@ -38,6 +38,7 @@ import { FilterRow } from "./ui/FilterRow";
 import { Icon } from "./ui/Icon";
 import { TextField } from "./ui/inputs";
 import { AppText, EmptyState } from "./ui/primitives";
+import { trackUsage } from "@/lib/usage";
 
 type Repo = typeof import("@app/core/data/exerciseRepository");
 type Row = SearchableExercise & {
@@ -64,6 +65,10 @@ export default function ExercisePickerScreen({
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [repo, setRepo] = useState<Repo | null>(null);
   const [query, setQuery] = useState("");
+  // 검색어는 싣지 않는다. 글자마다 세지 않게 1분에 한 번.
+  useEffect(() => {
+    if (query.trim()) trackUsage("exercise_search", { throttleMs: 60_000 });
+  }, [query]);
   const [equipment, setEquipment] = useState<EquipmentType | "">("");
   const [muscle, setMuscle] = useState<MuscleGroup | "">("");
   const [kind, setKind] = useState<"cardio" | "">("");

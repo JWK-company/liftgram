@@ -78,7 +78,12 @@ export default function AdminClient() {
               />
             ) : null}
             {role === Role.ADMIN ? (
-              <ListRow testId="row-stats" icon="stats-chart" title={t("admin.stats.title")} href="/admin/stats" />
+              <ListRow
+                testId="row-stats"
+                icon="stats-chart"
+                title={t("admin.stats.title")}
+                href="/admin/stats"
+              />
             ) : null}
             {role === Role.ADMIN ? (
               <ListRow

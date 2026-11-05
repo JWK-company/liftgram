@@ -54,6 +54,7 @@ import { RecentWorkouts, WeekSummary } from "./WeekSummary";
 import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 오늘·추천 카드 근육 그림 @plm SRS-075
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
+import { trackUsage } from "@/lib/usage";
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 
@@ -254,6 +255,7 @@ export default function RoutinesClient() {
 
   const startBlank = async () => {
     if (!repos) return;
+    trackUsage("workout_start");
     const w = (await repos.workout.startBlankWorkout()) as unknown as {
       id: string;
       startedAt: number;
@@ -266,6 +268,7 @@ export default function RoutinesClient() {
 
   const startFromRoutine = (routineId: string) => async () => {
     if (!repos) return;
+    trackUsage("workout_start_routine");
     const w = (await repos.workout.startWorkoutFromRoutine(routineId)) as unknown as {
       id: string;
       startedAt: number;
@@ -1313,6 +1316,7 @@ function ConceptDialog({
         const items = d.exercises.filter((id) => have.has(id)).map((exerciseId) => ({ exerciseId }));
         if (!items.length) continue;
         await routineRepo.importRoutine(routineName(lang === "ko" ? d.nameKo : d.nameEn), items);
+        trackUsage("routine_import");
         made += 1;
       }
       onSaved(made);

@@ -1,0 +1,45 @@
+// 이용 기록 계약(SPEC-032 Phase 3) — 기능 이름과 나이만 받는다. 내용·IP 는 받지도 저장하지도 않는다.
+//
+// 로그인 없이 부를 수 있다. 토큰이 있으면 계정으로, 없으면 device_id 로 센다. 토큰이 있는데 무효면 401 이다
+// (비로그인으로 조용히 바뀌면 한 사람이 두 주체로 잡힌다). 시각은 기기 시계를 믿지 않고 나이(ms)로 받아 서버가 계산한다.
+syntax = "proto3";
+
+package usage.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/usage/v1;usagev1";
+
+message UsageEvent {
+  // 기기가 만든 UUID — 재전송해도 한 번만 들어간다.
+  string client_event_id = 1 [(buf.validate.field).string = {max_len: 64}];
+  // 허용 목록(서버). 모르는 이름은 그 건만 건너뛴다.
+  string event = 2 [(buf.validate.field).string = {max_len: 64}];
+  // 기기 now − 일어난 시각(ms). 7일을 넘으면 버린다.
+  int64 age_ms = 3;
+}
+
+message ReportUsageRequest {
+  // 비로그인 기기의 무작위 ID(UUID). 로그인 중에는 보내지 않는다.
+  string device_id = 1 [(buf.validate.field).string = {max_len: 64}];
+  // web · android · ios. 그 밖은 unknown.
+  string platform = 2 [(buf.validate.field).string = {max_len: 16}];
+  // semver 가 아니면 비운다.
+  string app_version = 3 [(buf.validate.field).string = {max_len: 32}];
+  // 화면이 보이는 중인가 — 참일 때만 접속 신호로 친다.
+  bool presence = 4;
+  repeated UsageEvent events = 5 [(buf.validate.field).repeated = {max_items: 50}];
+}
+
+message ReportUsageResponse {
+  // 새로 저장한 건수.
+  int32 accepted = 1;
+  // 건너뛴 모르는 이름들(중복 없이).
+  repeated string unknown_events = 2;
+  // 수집이 꺼져 있으면 false — 기기는 큐를 비운다.
+  bool enabled = 3;
+}
+
+service UsageService {
+  rpc ReportUsage(ReportUsageRequest) returns (ReportUsageResponse);
+}

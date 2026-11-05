@@ -29,6 +29,7 @@ import { Icon } from "./ui/Icon";
 import { AppText, Card, EmptyState } from "./ui/primitives";
 import { ScreenHeader } from "./ui/ScreenHeader";
 import { LogoSpinner } from "./ui/LogoSpinner";
+import { trackUsage } from "@/lib/usage";
 
 /** 반경 확장 단계(m). */
 const RADIUS_STEPS = [2000, 5000, 10000];
@@ -126,6 +127,7 @@ export default function NearbyGymsClient() {
       slowTimer = setTimeout(() => {
         if (gen === runGen.current) setSlowSearch(true);
       }, SLOW_SEARCH_MS);
+      trackUsage("gym_search");
       const result = await searchNearbyGyms(loc, radiusM, ctrl.signal);
       clearTimeout(slowTimer);
       if (gen !== runGen.current) return;

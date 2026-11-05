@@ -25,6 +25,7 @@ import { AppText } from "../ui/primitives";
 import { MetaAction, MetaLine } from "../ui/quiet";
 import { useStartGuard } from "../useStartGuard";
 import { formatWorkoutDuration } from "@/lib/duration";
+import { trackUsage } from "@/lib/usage";
 
 // biome-ignore lint/correctness/noUnusedVariables: 원복용 보존(코드 변경 보존 규칙)
 function duration(seconds: number): string {
@@ -162,6 +163,7 @@ export function WorkoutBox({
       if (!resolved.length) throw new Error("NOTHING_MATCHED");
       const repo = await import("@app/core/data/workoutRepository");
       const name = workout.workoutName?.trim() || t("feed.startNowFallback", { author: authorName });
+      trackUsage("workout_start");
       const w = (await repo.startWorkoutFromSpec(
         name,
         resolved.map((r) => ({ exerciseId: r.exerciseId, sets: r.targetSets ?? 1 })),

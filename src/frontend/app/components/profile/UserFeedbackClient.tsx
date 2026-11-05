@@ -15,6 +15,7 @@ import { TextArea } from "../ui/inputs";
 import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppText, EmptyState } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
+import { trackUsage } from "@/lib/usage";
 
 const DRAFT_KEY = "liftgram.feedback.draft";
 const MAX_BODY = 2000;
@@ -60,6 +61,7 @@ export default function UserFeedbackClient() {
         appVersion: APP_VERSION,
         platform: nativeOS() ?? "web",
       });
+      trackUsage("feedback_send");
       writeDraft("");
       setBody("");
       setSent(true);

@@ -29,6 +29,7 @@ import { WorkoutNoteField } from "../session/WorkoutNoteField";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { useStartGuard } from "../useStartGuard";
 import { formatWorkoutDuration } from "@/lib/duration";
+import { trackUsage } from "@/lib/usage";
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -65,6 +66,7 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const startReplay = () =>
     replay.guard(async (replacing) => {
       const repo = await import("@app/core/data/workoutRepository");
+      trackUsage("workout_start");
       const w = (await repo.startWorkoutFromWorkout(workoutId, { replacing })) as unknown as {
         id: string;
         startedAt: number;

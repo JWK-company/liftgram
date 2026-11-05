@@ -400,7 +400,7 @@ export type GetOpsStatusResponse = Message<"ops.v1.GetOpsStatusResponse"> & {
   /**
    * 경보 이유 코드(화면이 문구로 바꾼다):
    *   stalled · daily_none · daily_stale(마지막 성공 daily 36시간 넘음) · restore_none · restore_old(40일 넘음)
-   *   · restore_failed · low_disk
+   *   · restore_failed · low_disk · usage_table
    *
    * @generated from field: repeated string alert_reasons = 5;
    */

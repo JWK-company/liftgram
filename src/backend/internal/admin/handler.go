@@ -102,5 +102,65 @@ func (h *Handler) GetOperationsStats(ctx context.Context, _ *connect.Request[adm
 		PendingReports:   s.PendingReports,
 		OpenUserFeedback: s.OpenUserFeedback,
 		OpenOpsFeedback:  s.OpenOpsFeedback,
+		UsageBytes:       s.UsageBytes,
+		UsageRows_24H:    s.UsageRows24h,
+		UsageWarn:        s.UsageWarn,
+	}), nil
+}
+
+func actorPB(a ActorCount) *adminv1.ActorCount {
+	return &adminv1.ActorCount{User: a.User, Guest: a.Guest, Total: a.Total()}
+}
+
+func retentionPB(r Retention) *adminv1.Retention {
+	return &adminv1.Retention{Cohort: actorPB(r.Cohort), Returned: actorPB(r.Returned)}
+}
+
+func (h *Handler) GetUsageStats(ctx context.Context, _ *connect.Request[adminv1.GetUsageStatsRequest]) (*connect.Response[adminv1.GetUsageStatsResponse], error) {
+	id, role := who(ctx)
+	s, err := h.svc.GetUsageStats(ctx, id, role)
+	if err != nil {
+		return nil, err
+	}
+	daily := make([]*adminv1.DailyActors, 0, len(s.Daily))
+	for _, d := range s.Daily {
+		daily = append(daily, &adminv1.DailyActors{Day: d.Day, User: d.User, Guest: d.Guest})
+	}
+	return connect.NewResponse(&adminv1.GetUsageStatsResponse{
+		GeneratedAt: timestamppb.New(s.GeneratedAt),
+		Started:     s.Started,
+		UsageSince:  timestamppb.New(s.UsageSince),
+		Online:      actorPB(s.Online),
+		Dau:         actorPB(s.DAU),
+		Wau:         actorPB(s.WAU),
+		Mau:         actorPB(s.MAU),
+		D1:          retentionPB(s.D1),
+		D7:          retentionPB(s.D7),
+		D30:         retentionPB(s.D30),
+		Daily:       daily,
+	}), nil
+}
+
+func featuresPB(in []FeatureRow) []*adminv1.FeatureRow {
+	out := make([]*adminv1.FeatureRow, 0, len(in))
+	for _, r := range in {
+		out = append(out, &adminv1.FeatureRow{Name: r.Name, Last7D: r.Last7d, Last30D: r.Last30d})
+	}
+	return out
+}
+
+func (h *Handler) GetFeatureStats(ctx context.Context, _ *connect.Request[adminv1.GetFeatureStatsRequest]) (*connect.Response[adminv1.GetFeatureStatsResponse], error) {
+	id, role := who(ctx)
+	s, err := h.svc.GetFeatureStats(ctx, id, role)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&adminv1.GetFeatureStatsResponse{
+		GeneratedAt: timestamppb.New(s.GeneratedAt),
+		Started:     s.Started,
+		UsageSince:  timestamppb.New(s.UsageSince),
+		Screens:     featuresPB(s.Screens),
+		Actions:     featuresPB(s.Actions),
+		Platforms:   featuresPB(s.Platforms),
 	}), nil
 }

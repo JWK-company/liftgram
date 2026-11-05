@@ -256,3 +256,16 @@ func (q *Queries) UpsertClientHealth(ctx context.Context, arg UpsertClientHealth
 	)
 	return err
 }
+
+const usageTablesBytes = `-- name: UsageTablesBytes :one
+SELECT (pg_total_relation_size('usage_events') + pg_total_relation_size('usage_presence')
+        + pg_total_relation_size('usage_active_days') + pg_total_relation_size('usage_daily'))::bigint
+`
+
+// 이용 기록 표 크기 — 경보용(SPEC-032).
+func (q *Queries) UsageTablesBytes(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, usageTablesBytes)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}

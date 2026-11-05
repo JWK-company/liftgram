@@ -22,6 +22,7 @@ import { t, lang } from "@/lib/i18n";
 import { equipmentLabelFromDomain, muscleLabelFromDomain } from "@/lib/labels";
 import { Icon, type IconName } from "./ui/Icon";
 import { AppText } from "./ui/primitives";
+import { trackUsage } from "@/lib/usage";
 
 export interface WizardResult {
   muscle: MuscleGroup | null;
@@ -48,7 +49,10 @@ export default function ExerciseFinderWizard({
   // 포털 대상은 브라우저에만 있다 — 서버 렌더에서는 아무것도 그리지 않는다.
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
   useEffect(() => {
-    if (visible) setMuscle(null); // 열릴 때마다 1단계로
+    if (visible) {
+      setMuscle(null); // 열릴 때마다 1단계로
+      trackUsage("exercise_finder");
+    }
   }, [visible]);
 
   // Esc로 닫기 — app은 안드로이드 뒤로가기(onRequestClose)가 그 역할을 한다.

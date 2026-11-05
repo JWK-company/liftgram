@@ -23,6 +23,7 @@ import { WorkoutNoteField } from "./WorkoutNoteField";
 import { useStartGuard } from "../useStartGuard";
 import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
 import { formatWorkoutDuration } from "@/lib/duration";
+import { trackUsage } from "@/lib/usage";
 
 export interface Summary {
   workoutId: string;
@@ -280,6 +281,7 @@ export function WorkoutSummary({
               onPress={() =>
                 replay.guard(async (replacing) => {
                   const repo = await import("@app/core/data/workoutRepository");
+                  trackUsage("workout_start");
                   return (await repo.startWorkoutFromWorkout(summary.workoutId, {
                     replacing,
                   })) as unknown as {

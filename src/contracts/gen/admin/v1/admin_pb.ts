@@ -17,7 +17,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file admin/v1/admin.proto.
  */
 export const file_admin_v1_admin: GenFile = /*@__PURE__*/
-  fileDesc("ChRhZG1pbi92MS9hZG1pbi5wcm90bxIIYWRtaW4udjEiKAoKRGFpbHlDb3VudBILCgNkYXkYASABKAkSDQoFY291bnQYAiABKAMiKQoKTmFtZWRDb3VudBIMCgRuYW1lGAEgASgJEg0KBWNvdW50GAIgASgDIhcKFUdldFNpZ251cFN0YXRzUmVxdWVzdCK7AgoWR2V0U2lnbnVwU3RhdHNSZXNwb25zZRIwCgxnZW5lcmF0ZWRfYXQYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBXRvdGFsGAIgASgDEiMKBWRhaWx5GAMgAygLMhQuYWRtaW4udjEuRGFpbHlDb3VudBInCglwcm92aWRlcnMYBCADKAsyFC5hZG1pbi52MS5OYW1lZENvdW50EhYKDmVtYWlsX3ZlcmlmaWVkGAUgASgDEhwKFGZpcnN0X3dvcmtvdXRfY29ob3J0GAYgASgDEhoKEmZpcnN0X3dvcmtvdXRfZG9uZRgHIAEoAxIPCgdzdGFydGVkGAggASgIEi8KC3VzYWdlX3NpbmNlGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIYChZHZXRSb3V0aW5lU3RhdHNSZXF1ZXN0IqQCChdHZXRSb3V0aW5lU3RhdHNSZXNwb25zZRIwCgxnZW5lcmF0ZWRfYXQYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg8KB3N0YXJ0ZWQYAiABKAgSLwoLdXNhZ2Vfc2luY2UYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KD3JvdXRpbmVfYnVja2V0cxgEIAMoCzIULmFkbWluLnYxLk5hbWVkQ291bnQSEAoId29ya291dHMYBSABKAMSHQoVd29ya291dHNfZnJvbV9yb3V0aW5lGAYgASgDEhQKDGFjdGl2ZV91c2VycxgHIAEoAxIfChdtZWRpYW5fZHVyYXRpb25fc2Vjb25kcxgIIAEoAyIYChZHZXRDb250ZW50U3RhdHNSZXF1ZXN0IkkKCkNvbnRlbnRSb3cSCwoDa2V5GAEgASgJEg4KBmxhc3Q3ZBgCIAEoAxIPCgdsYXN0MzBkGAMgASgDEg0KBXRvdGFsGAQgASgDIm8KF0dldENvbnRlbnRTdGF0c1Jlc3BvbnNlEjAKDGdlbmVyYXRlZF9hdBgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASIgoEcm93cxgCIAMoCzIULmFkbWluLnYxLkNvbnRlbnRSb3ciGwoZR2V0T3BlcmF0aW9uc1N0YXRzUmVxdWVzdCKeAQoaR2V0T3BlcmF0aW9uc1N0YXRzUmVzcG9uc2USMAoMZ2VuZXJhdGVkX2F0GAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIXCg9wZW5kaW5nX3JlcG9ydHMYAiABKAMSGgoSb3Blbl91c2VyX2ZlZWRiYWNrGAMgASgDEhkKEW9wZW5fb3BzX2ZlZWRiYWNrGAQgASgDMvQCCgxBZG1pblNlcnZpY2USUwoOR2V0U2lnbnVwU3RhdHMSHy5hZG1pbi52MS5HZXRTaWdudXBTdGF0c1JlcXVlc3QaIC5hZG1pbi52MS5HZXRTaWdudXBTdGF0c1Jlc3BvbnNlElYKD0dldFJvdXRpbmVTdGF0cxIgLmFkbWluLnYxLkdldFJvdXRpbmVTdGF0c1JlcXVlc3QaIS5hZG1pbi52MS5HZXRSb3V0aW5lU3RhdHNSZXNwb25zZRJWCg9HZXRDb250ZW50U3RhdHMSIC5hZG1pbi52MS5HZXRDb250ZW50U3RhdHNSZXF1ZXN0GiEuYWRtaW4udjEuR2V0Q29udGVudFN0YXRzUmVzcG9uc2USXwoSR2V0T3BlcmF0aW9uc1N0YXRzEiMuYWRtaW4udjEuR2V0T3BlcmF0aW9uc1N0YXRzUmVxdWVzdBokLmFkbWluLnYxLkdldE9wZXJhdGlvbnNTdGF0c1Jlc3BvbnNlQp0BCgxjb20uYWRtaW4udjFCCkFkbWluUHJvdG9QAVpAZ2l0aHViLmNvbS9KV0stY29tcGFueS9saWZ0Z3JhbS9zcmMvYmFja2VuZC9nZW4vYWRtaW4vdjE7YWRtaW52MaICA0FYWKoCCEFkbWluLlYxygIIQWRtaW5cVjHiAhRBZG1pblxWMVxHUEJNZXRhZGF0YeoCCUFkbWluOjpWMWIGcHJvdG8z", [file_google_protobuf_timestamp]);
+  fileDesc("ChRhZG1pbi92MS9hZG1pbi5wcm90bxIIYWRtaW4udjEiKAoKRGFpbHlDb3VudBILCgNkYXkYASABKAkSDQoFY291bnQYAiABKAMiKQoKTmFtZWRDb3VudBIMCgRuYW1lGAEgASgJEg0KBWNvdW50GAIgASgDIhcKFUdldFNpZ251cFN0YXRzUmVxdWVzdCK7AgoWR2V0U2lnbnVwU3RhdHNSZXNwb25zZRIwCgxnZW5lcmF0ZWRfYXQYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBXRvdGFsGAIgASgDEiMKBWRhaWx5GAMgAygLMhQuYWRtaW4udjEuRGFpbHlDb3VudBInCglwcm92aWRlcnMYBCADKAsyFC5hZG1pbi52MS5OYW1lZENvdW50EhYKDmVtYWlsX3ZlcmlmaWVkGAUgASgDEhwKFGZpcnN0X3dvcmtvdXRfY29ob3J0GAYgASgDEhoKEmZpcnN0X3dvcmtvdXRfZG9uZRgHIAEoAxIPCgdzdGFydGVkGAggASgIEi8KC3VzYWdlX3NpbmNlGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCIYChZHZXRSb3V0aW5lU3RhdHNSZXF1ZXN0IqQCChdHZXRSb3V0aW5lU3RhdHNSZXNwb25zZRIwCgxnZW5lcmF0ZWRfYXQYASABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg8KB3N0YXJ0ZWQYAiABKAgSLwoLdXNhZ2Vfc2luY2UYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi0KD3JvdXRpbmVfYnVja2V0cxgEIAMoCzIULmFkbWluLnYxLk5hbWVkQ291bnQSEAoId29ya291dHMYBSABKAMSHQoVd29ya291dHNfZnJvbV9yb3V0aW5lGAYgASgDEhQKDGFjdGl2ZV91c2VycxgHIAEoAxIfChdtZWRpYW5fZHVyYXRpb25fc2Vjb25kcxgIIAEoAyIYChZHZXRDb250ZW50U3RhdHNSZXF1ZXN0IkkKCkNvbnRlbnRSb3cSCwoDa2V5GAEgASgJEg4KBmxhc3Q3ZBgCIAEoAxIPCgdsYXN0MzBkGAMgASgDEg0KBXRvdGFsGAQgASgDIm8KF0dldENvbnRlbnRTdGF0c1Jlc3BvbnNlEjAKDGdlbmVyYXRlZF9hdBgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASIgoEcm93cxgCIAMoCzIULmFkbWluLnYxLkNvbnRlbnRSb3ciGwoZR2V0T3BlcmF0aW9uc1N0YXRzUmVxdWVzdCLfAQoaR2V0T3BlcmF0aW9uc1N0YXRzUmVzcG9uc2USMAoMZ2VuZXJhdGVkX2F0GAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIXCg9wZW5kaW5nX3JlcG9ydHMYAiABKAMSGgoSb3Blbl91c2VyX2ZlZWRiYWNrGAMgASgDEhkKEW9wZW5fb3BzX2ZlZWRiYWNrGAQgASgDEhMKC3VzYWdlX2J5dGVzGAUgASgDEhYKDnVzYWdlX3Jvd3NfMjRoGAYgASgDEhIKCnVzYWdlX3dhcm4YByABKAgiOAoKQWN0b3JDb3VudBIMCgR1c2VyGAEgASgDEg0KBWd1ZXN0GAIgASgDEg0KBXRvdGFsGAMgASgDIlkKCVJldGVudGlvbhIkCgZjb2hvcnQYASABKAsyFC5hZG1pbi52MS5BY3RvckNvdW50EiYKCHJldHVybmVkGAIgASgLMhQuYWRtaW4udjEuQWN0b3JDb3VudCI3CgtEYWlseUFjdG9ycxILCgNkYXkYASABKAkSDAoEdXNlchgCIAEoAxINCgVndWVzdBgDIAEoAyIWChRHZXRVc2FnZVN0YXRzUmVxdWVzdCKkAwoVR2V0VXNhZ2VTdGF0c1Jlc3BvbnNlEjAKDGdlbmVyYXRlZF9hdBgBIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASDwoHc3RhcnRlZBgCIAEoCBIvCgt1c2FnZV9zaW5jZRgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASJAoGb25saW5lGAQgASgLMhQuYWRtaW4udjEuQWN0b3JDb3VudBIhCgNkYXUYBSABKAsyFC5hZG1pbi52MS5BY3RvckNvdW50EiEKA3dhdRgGIAEoCzIULmFkbWluLnYxLkFjdG9yQ291bnQSIQoDbWF1GAcgASgLMhQuYWRtaW4udjEuQWN0b3JDb3VudBIfCgJkMRgIIAEoCzITLmFkbWluLnYxLlJldGVudGlvbhIfCgJkNxgJIAEoCzITLmFkbWluLnYxLlJldGVudGlvbhIgCgNkMzAYCiABKAsyEy5hZG1pbi52MS5SZXRlbnRpb24SJAoFZGFpbHkYCyADKAsyFS5hZG1pbi52MS5EYWlseUFjdG9ycyIYChZHZXRGZWF0dXJlU3RhdHNSZXF1ZXN0IjsKCkZlYXR1cmVSb3cSDAoEbmFtZRgBIAEoCRIOCgZsYXN0N2QYAiABKAMSDwoHbGFzdDMwZBgDIAEoAyKEAgoXR2V0RmVhdHVyZVN0YXRzUmVzcG9uc2USMAoMZ2VuZXJhdGVkX2F0GAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIPCgdzdGFydGVkGAIgASgIEi8KC3VzYWdlX3NpbmNlGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIlCgdzY3JlZW5zGAQgAygLMhQuYWRtaW4udjEuRmVhdHVyZVJvdxIlCgdhY3Rpb25zGAUgAygLMhQuYWRtaW4udjEuRmVhdHVyZVJvdxInCglwbGF0Zm9ybXMYBiADKAsyFC5hZG1pbi52MS5GZWF0dXJlUm93Mp4ECgxBZG1pblNlcnZpY2USUAoNR2V0VXNhZ2VTdGF0cxIeLmFkbWluLnYxLkdldFVzYWdlU3RhdHNSZXF1ZXN0Gh8uYWRtaW4udjEuR2V0VXNhZ2VTdGF0c1Jlc3BvbnNlElYKD0dldEZlYXR1cmVTdGF0cxIgLmFkbWluLnYxLkdldEZlYXR1cmVTdGF0c1JlcXVlc3QaIS5hZG1pbi52MS5HZXRGZWF0dXJlU3RhdHNSZXNwb25zZRJTCg5HZXRTaWdudXBTdGF0cxIfLmFkbWluLnYxLkdldFNpZ251cFN0YXRzUmVxdWVzdBogLmFkbWluLnYxLkdldFNpZ251cFN0YXRzUmVzcG9uc2USVgoPR2V0Um91dGluZVN0YXRzEiAuYWRtaW4udjEuR2V0Um91dGluZVN0YXRzUmVxdWVzdBohLmFkbWluLnYxLkdldFJvdXRpbmVTdGF0c1Jlc3BvbnNlElYKD0dldENvbnRlbnRTdGF0cxIgLmFkbWluLnYxLkdldENvbnRlbnRTdGF0c1JlcXVlc3QaIS5hZG1pbi52MS5HZXRDb250ZW50U3RhdHNSZXNwb25zZRJfChJHZXRPcGVyYXRpb25zU3RhdHMSIy5hZG1pbi52MS5HZXRPcGVyYXRpb25zU3RhdHNSZXF1ZXN0GiQuYWRtaW4udjEuR2V0T3BlcmF0aW9uc1N0YXRzUmVzcG9uc2VCnQEKDGNvbS5hZG1pbi52MUIKQWRtaW5Qcm90b1ABWkBnaXRodWIuY29tL0pXSy1jb21wYW55L2xpZnRncmFtL3NyYy9iYWNrZW5kL2dlbi9hZG1pbi92MTthZG1pbnYxogIDQVhYqgIIQWRtaW4uVjHKAghBZG1pblxWMeICFEFkbWluXFYxXEdQQk1ldGFkYXRh6gIJQWRtaW46OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * 일별 값 하나. day 는 Asia/Seoul 기준 YYYY-MM-DD.
@@ -335,6 +335,25 @@ export type GetOperationsStatsResponse = Message<"admin.v1.GetOperationsStatsRes
    * @generated from field: int64 open_ops_feedback = 4;
    */
   openOpsFeedback: bigint;
+
+  /**
+   * 이용 기록 표 크기(바이트)와 최근 24시간 행 수.
+   *
+   * @generated from field: int64 usage_bytes = 5;
+   */
+  usageBytes: bigint;
+
+  /**
+   * @generated from field: int64 usage_rows_24h = 6;
+   */
+  usageRows24h: bigint;
+
+  /**
+   * 표가 경보 크기를 넘었거나 하루 행 수가 상한에 가깝다.
+   *
+   * @generated from field: bool usage_warn = 7;
+   */
+  usageWarn: boolean;
 };
 
 /**
@@ -345,9 +364,275 @@ export const GetOperationsStatsResponseSchema: GenMessage<GetOperationsStatsResp
   messageDesc(file_admin_v1_admin, 10);
 
 /**
+ * 로그인·비로그인을 따로 세고, 합계는 단순 합이다(비로그인은 기기 기준이라 추세로만 본다).
+ *
+ * @generated from message admin.v1.ActorCount
+ */
+export type ActorCount = Message<"admin.v1.ActorCount"> & {
+  /**
+   * @generated from field: int64 user = 1;
+   */
+  user: bigint;
+
+  /**
+   * @generated from field: int64 guest = 2;
+   */
+  guest: bigint;
+
+  /**
+   * @generated from field: int64 total = 3;
+   */
+  total: bigint;
+};
+
+/**
+ * Describes the message admin.v1.ActorCount.
+ * Use `create(ActorCountSchema)` to create a new message.
+ */
+export const ActorCountSchema: GenMessage<ActorCount> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 11);
+
+/**
+ * @generated from message admin.v1.Retention
+ */
+export type Retention = Message<"admin.v1.Retention"> & {
+  /**
+   * 그날로부터 n 일 전 7일 동안 처음 온 주체 수(분모).
+   *
+   * @generated from field: admin.v1.ActorCount cohort = 1;
+   */
+  cohort?: ActorCount | undefined;
+
+  /**
+   * 그중 처음 온 날로부터 정확히 n 일째에 다시 온 주체 수.
+   *
+   * @generated from field: admin.v1.ActorCount returned = 2;
+   */
+  returned?: ActorCount | undefined;
+};
+
+/**
+ * Describes the message admin.v1.Retention.
+ * Use `create(RetentionSchema)` to create a new message.
+ */
+export const RetentionSchema: GenMessage<Retention> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 12);
+
+/**
+ * @generated from message admin.v1.DailyActors
+ */
+export type DailyActors = Message<"admin.v1.DailyActors"> & {
+  /**
+   * @generated from field: string day = 1;
+   */
+  day: string;
+
+  /**
+   * @generated from field: int64 user = 2;
+   */
+  user: bigint;
+
+  /**
+   * @generated from field: int64 guest = 3;
+   */
+  guest: bigint;
+};
+
+/**
+ * Describes the message admin.v1.DailyActors.
+ * Use `create(DailyActorsSchema)` to create a new message.
+ */
+export const DailyActorsSchema: GenMessage<DailyActors> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 13);
+
+/**
+ * @generated from message admin.v1.GetUsageStatsRequest
+ */
+export type GetUsageStatsRequest = Message<"admin.v1.GetUsageStatsRequest"> & {
+};
+
+/**
+ * Describes the message admin.v1.GetUsageStatsRequest.
+ * Use `create(GetUsageStatsRequestSchema)` to create a new message.
+ */
+export const GetUsageStatsRequestSchema: GenMessage<GetUsageStatsRequest> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 14);
+
+/**
+ * @generated from message admin.v1.GetUsageStatsResponse
+ */
+export type GetUsageStatsResponse = Message<"admin.v1.GetUsageStatsResponse"> & {
+  /**
+   * @generated from field: google.protobuf.Timestamp generated_at = 1;
+   */
+  generatedAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: bool started = 2;
+   */
+  started: boolean;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp usage_since = 3;
+   */
+  usageSince?: Timestamp | undefined;
+
+  /**
+   * 최근 5분 접속.
+   *
+   * @generated from field: admin.v1.ActorCount online = 4;
+   */
+  online?: ActorCount | undefined;
+
+  /**
+   * @generated from field: admin.v1.ActorCount dau = 5;
+   */
+  dau?: ActorCount | undefined;
+
+  /**
+   * @generated from field: admin.v1.ActorCount wau = 6;
+   */
+  wau?: ActorCount | undefined;
+
+  /**
+   * @generated from field: admin.v1.ActorCount mau = 7;
+   */
+  mau?: ActorCount | undefined;
+
+  /**
+   * @generated from field: admin.v1.Retention d1 = 8;
+   */
+  d1?: Retention | undefined;
+
+  /**
+   * @generated from field: admin.v1.Retention d7 = 9;
+   */
+  d7?: Retention | undefined;
+
+  /**
+   * @generated from field: admin.v1.Retention d30 = 10;
+   */
+  d30?: Retention | undefined;
+
+  /**
+   * 최근 30일 일별 활성. 빈 날도 0.
+   *
+   * @generated from field: repeated admin.v1.DailyActors daily = 11;
+   */
+  daily: DailyActors[];
+};
+
+/**
+ * Describes the message admin.v1.GetUsageStatsResponse.
+ * Use `create(GetUsageStatsResponseSchema)` to create a new message.
+ */
+export const GetUsageStatsResponseSchema: GenMessage<GetUsageStatsResponse> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 15);
+
+/**
+ * @generated from message admin.v1.GetFeatureStatsRequest
+ */
+export type GetFeatureStatsRequest = Message<"admin.v1.GetFeatureStatsRequest"> & {
+};
+
+/**
+ * Describes the message admin.v1.GetFeatureStatsRequest.
+ * Use `create(GetFeatureStatsRequestSchema)` to create a new message.
+ */
+export const GetFeatureStatsRequestSchema: GenMessage<GetFeatureStatsRequest> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 16);
+
+/**
+ * @generated from message admin.v1.FeatureRow
+ */
+export type FeatureRow = Message<"admin.v1.FeatureRow"> & {
+  /**
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * @generated from field: int64 last7d = 2;
+   */
+  last7d: bigint;
+
+  /**
+   * @generated from field: int64 last30d = 3;
+   */
+  last30d: bigint;
+};
+
+/**
+ * Describes the message admin.v1.FeatureRow.
+ * Use `create(FeatureRowSchema)` to create a new message.
+ */
+export const FeatureRowSchema: GenMessage<FeatureRow> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 17);
+
+/**
+ * @generated from message admin.v1.GetFeatureStatsResponse
+ */
+export type GetFeatureStatsResponse = Message<"admin.v1.GetFeatureStatsResponse"> & {
+  /**
+   * @generated from field: google.protobuf.Timestamp generated_at = 1;
+   */
+  generatedAt?: Timestamp | undefined;
+
+  /**
+   * @generated from field: bool started = 2;
+   */
+  started: boolean;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp usage_since = 3;
+   */
+  usageSince?: Timestamp | undefined;
+
+  /**
+   * 화면 순위(screen_ 이벤트) · 행동 순위(나머지) · 플랫폼. 많은 순.
+   *
+   * @generated from field: repeated admin.v1.FeatureRow screens = 4;
+   */
+  screens: FeatureRow[];
+
+  /**
+   * @generated from field: repeated admin.v1.FeatureRow actions = 5;
+   */
+  actions: FeatureRow[];
+
+  /**
+   * @generated from field: repeated admin.v1.FeatureRow platforms = 6;
+   */
+  platforms: FeatureRow[];
+};
+
+/**
+ * Describes the message admin.v1.GetFeatureStatsResponse.
+ * Use `create(GetFeatureStatsResponseSchema)` to create a new message.
+ */
+export const GetFeatureStatsResponseSchema: GenMessage<GetFeatureStatsResponse> = /*@__PURE__*/
+  messageDesc(file_admin_v1_admin, 18);
+
+/**
  * @generated from service admin.v1.AdminService
  */
 export const AdminService: GenService<{
+  /**
+   * @generated from rpc admin.v1.AdminService.GetUsageStats
+   */
+  getUsageStats: {
+    methodKind: "unary";
+    input: typeof GetUsageStatsRequestSchema;
+    output: typeof GetUsageStatsResponseSchema;
+  },
+  /**
+   * @generated from rpc admin.v1.AdminService.GetFeatureStats
+   */
+  getFeatureStats: {
+    methodKind: "unary";
+    input: typeof GetFeatureStatsRequestSchema;
+    output: typeof GetFeatureStatsResponseSchema;
+  },
   /**
    * @generated from rpc admin.v1.AdminService.GetSignupStats
    */

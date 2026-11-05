@@ -58,6 +58,7 @@ import { RecommendOptOutRow } from "./RecommendOptOutRow";
 import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 기록 스위치 @plm SRS-073
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
+import { UsageStatsRow } from "./UsageStatsRow";
 import { WeighInSettingRow } from "./WeighInSettingRow"; // 운동 전 체중 체크인 스위치 @plm SRS-077
 import { LockScreenRow } from "./LockScreenRow"; // 잠금화면 운동 카드 켜기(앱에서만 · SPEC-017)
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
@@ -371,6 +372,7 @@ export default function ProfileClient() {
           {user ? <RecommendOptOutRow /> : null}
           <MuscleMapRow />
           <WeighInSettingRow />
+          <UsageStatsRow />
           <ListRow
             testId="row-equipment"
             title={t("profile.availableEquipment")}

@@ -53,6 +53,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/gen/ops/v1/opsv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/story/v1/storyv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/sync/v1/syncv1connect"
+	"github.com/JWK-company/liftgram/src/backend/gen/usage/v1/usagev1connect"
 	"github.com/JWK-company/liftgram/src/backend/internal/admin"
 	"github.com/JWK-company/liftgram/src/backend/internal/auth"
 	"github.com/JWK-company/liftgram/src/backend/internal/coaching"
@@ -76,6 +77,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/realtime"
 	"github.com/JWK-company/liftgram/src/backend/internal/story"
 	syncdomain "github.com/JWK-company/liftgram/src/backend/internal/sync"
+	"github.com/JWK-company/liftgram/src/backend/internal/usage"
 )
 
 // 헬스체크 모드 — 컨테이너 이미지에 curl·wget을 넣지 않기 위해 **서버 자신이** 확인한다.
@@ -387,6 +389,12 @@ func main() {
 	adminSvc := admin.NewService(admin.NewRepo(pool), time.Now, usageSince, time.Duration(cfg.StatsCacheSec)*time.Second)
 	adminPath, adminHTTP := adminv1connect.NewAdminServiceHandler(admin.NewHandler(adminSvc), opts)
 	mount(mux, adminPath, adminHTTP)
+
+	// ── 이용 기록(SPEC-032) ── 로그인 없이 받는다 · 자기 횟수 제한 · 본문 64KB · 집계는 서버 안 반복.
+	usageSvc := usage.NewService(usage.NewRepo(pool), limiter, time.Now, usage.Config{Enabled: cfg.UsageEnabled, Since: usageSince})
+	go usageSvc.Loop(ctx, time.Duration(cfg.UsageJobIntervalSec)*time.Second)
+	usagePath, usageHTTP := usagev1connect.NewUsageServiceHandler(usage.NewHandler(usageSvc), opts, connect.WithReadMaxBytes(64*1024))
+	mount(mux, usagePath, usageHTTP)
 
 	// ── 스토리 ──
 	// 24시간 뒤 안 보인다. 시계는 주입한다(테스트가 시간을 움직일 수 있게).

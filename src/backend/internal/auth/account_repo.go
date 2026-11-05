@@ -189,6 +189,10 @@ func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, []
 		if err = q.DeleteUserFeedbackByAuthor(ctx, &userID); err != nil {
 			return err
 		}
+		// 이용 기록 원본도 함께 지운다(합계에는 사람이 없어 남는다 · SPEC-032).
+		if err = q.DeleteUsageByUser(ctx, userID); err != nil {
+			return err
+		}
 		if n, err = q.DeleteUser(ctx, userID); err != nil {
 			return err
 		}

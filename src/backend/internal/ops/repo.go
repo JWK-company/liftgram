@@ -174,3 +174,7 @@ func deref(p *string) string {
 	}
 	return *p
 }
+
+func (r *pgRepo) UsageTablesBytes(ctx context.Context) (int64, error) {
+	return r.q.UsageTablesBytes(ctx)
+}

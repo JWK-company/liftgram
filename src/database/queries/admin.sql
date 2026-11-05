@@ -132,3 +132,60 @@ WHERE u.role = 'user' AND u.stats_excluded = false;
 SELECT (SELECT count(*) FROM reports r WHERE r.status = 'pending')::bigint AS pending_reports,
        (SELECT count(*) FROM feedback_items f WHERE f.kind = 'user' AND f.closed_at IS NULL AND f.status NOT IN ('rejected', 'done'))::bigint AS open_user_feedback,
        (SELECT count(*) FROM feedback_items f WHERE f.kind = 'ops' AND f.closed_at IS NULL AND f.status NOT IN ('rejected', 'done'))::bigint AS open_ops_feedback;
+
+-- ── 이용 기록 읽기(Phase 3) ── 운영진·제외 계정은 뺀다. 비로그인은 기기 기준이다.
+
+-- name: AdminUsageOnline :many
+SELECT p.actor_kind, count(*)::bigint AS n
+FROM usage_presence p
+WHERE p.last_seen >= @since_at
+  AND (p.actor_kind = 'guest' OR EXISTS (SELECT 1 FROM users u WHERE u.id = p.actor_id AND u.role = 'user' AND u.stats_excluded = false))
+GROUP BY p.actor_kind;
+
+-- name: AdminUsageActive :many
+SELECT a.actor_kind,
+       count(DISTINCT a.actor_id) FILTER (WHERE a.day = @today::date)::bigint AS dau,
+       count(DISTINCT a.actor_id) FILTER (WHERE a.day >= @d7::date)::bigint AS wau,
+       count(DISTINCT a.actor_id)::bigint AS mau
+FROM usage_active_days a
+WHERE a.day >= @d30::date AND a.day <= @today::date
+  AND (a.actor_kind = 'guest' OR EXISTS (SELECT 1 FROM users u WHERE u.id = a.actor_id AND u.role = 'user' AND u.stats_excluded = false))
+GROUP BY a.actor_kind;
+
+-- name: AdminUsageDaily :many
+SELECT day::text AS day, actor_kind, actors::bigint AS actors
+FROM usage_daily
+WHERE metric = 'dau' AND day >= @from_day::date
+ORDER BY day;
+
+-- [from_at, to_at)에 처음 온 주체 중 첫날로부터 n 일째에 다시 온 수.
+-- name: AdminUsageRetention :many
+WITH c AS (
+  SELECT p.actor_kind, p.actor_id, (p.first_seen AT TIME ZONE 'Asia/Seoul')::date AS d0
+  FROM usage_presence p
+  WHERE p.first_seen >= @from_at AND p.first_seen < @to_at
+    AND (p.actor_kind = 'guest' OR EXISTS (SELECT 1 FROM users u WHERE u.id = p.actor_id AND u.role = 'user' AND u.stats_excluded = false))
+)
+SELECT c.actor_kind,
+       count(*)::bigint AS cohort,
+       count(*) FILTER (WHERE EXISTS (
+         SELECT 1 FROM usage_active_days a
+         WHERE a.actor_kind = c.actor_kind AND a.actor_id = c.actor_id AND a.day = c.d0 + @n::int
+       ))::bigint AS returned
+FROM c
+GROUP BY c.actor_kind;
+
+-- name: AdminUsageFeatures :many
+SELECT metric,
+       coalesce(sum(events) FILTER (WHERE day >= @d7::date), 0)::bigint AS last7d,
+       coalesce(sum(events), 0)::bigint AS last30d
+FROM usage_daily
+WHERE day >= @d30::date AND (metric LIKE 'event:%' OR metric LIKE 'platform:%')
+GROUP BY metric
+ORDER BY last30d DESC, metric;
+
+-- name: AdminUsageTableStats :one
+SELECT (pg_total_relation_size('usage_events') + pg_total_relation_size('usage_presence')
+        + pg_total_relation_size('usage_active_days') + pg_total_relation_size('usage_daily'))::bigint AS bytes,
+       (SELECT count(*) FROM usage_events WHERE at >= @since_at)::bigint AS rows_24h;
+

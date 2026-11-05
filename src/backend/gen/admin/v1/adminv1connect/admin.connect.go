@@ -38,6 +38,12 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// AdminServiceGetUsageStatsProcedure is the fully-qualified name of the AdminService's
+	// GetUsageStats RPC.
+	AdminServiceGetUsageStatsProcedure = "/admin.v1.AdminService/GetUsageStats"
+	// AdminServiceGetFeatureStatsProcedure is the fully-qualified name of the AdminService's
+	// GetFeatureStats RPC.
+	AdminServiceGetFeatureStatsProcedure = "/admin.v1.AdminService/GetFeatureStats"
 	// AdminServiceGetSignupStatsProcedure is the fully-qualified name of the AdminService's
 	// GetSignupStats RPC.
 	AdminServiceGetSignupStatsProcedure = "/admin.v1.AdminService/GetSignupStats"
@@ -54,6 +60,8 @@ const (
 
 // AdminServiceClient is a client for the admin.v1.AdminService service.
 type AdminServiceClient interface {
+	GetUsageStats(context.Context, *connect.Request[v1.GetUsageStatsRequest]) (*connect.Response[v1.GetUsageStatsResponse], error)
+	GetFeatureStats(context.Context, *connect.Request[v1.GetFeatureStatsRequest]) (*connect.Response[v1.GetFeatureStatsResponse], error)
 	GetSignupStats(context.Context, *connect.Request[v1.GetSignupStatsRequest]) (*connect.Response[v1.GetSignupStatsResponse], error)
 	GetRoutineStats(context.Context, *connect.Request[v1.GetRoutineStatsRequest]) (*connect.Response[v1.GetRoutineStatsResponse], error)
 	GetContentStats(context.Context, *connect.Request[v1.GetContentStatsRequest]) (*connect.Response[v1.GetContentStatsResponse], error)
@@ -71,6 +79,18 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 	baseURL = strings.TrimRight(baseURL, "/")
 	adminServiceMethods := v1.File_admin_v1_admin_proto.Services().ByName("AdminService").Methods()
 	return &adminServiceClient{
+		getUsageStats: connect.NewClient[v1.GetUsageStatsRequest, v1.GetUsageStatsResponse](
+			httpClient,
+			baseURL+AdminServiceGetUsageStatsProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("GetUsageStats")),
+			connect.WithClientOptions(opts...),
+		),
+		getFeatureStats: connect.NewClient[v1.GetFeatureStatsRequest, v1.GetFeatureStatsResponse](
+			httpClient,
+			baseURL+AdminServiceGetFeatureStatsProcedure,
+			connect.WithSchema(adminServiceMethods.ByName("GetFeatureStats")),
+			connect.WithClientOptions(opts...),
+		),
 		getSignupStats: connect.NewClient[v1.GetSignupStatsRequest, v1.GetSignupStatsResponse](
 			httpClient,
 			baseURL+AdminServiceGetSignupStatsProcedure,
@@ -100,10 +120,22 @@ func NewAdminServiceClient(httpClient connect.HTTPClient, baseURL string, opts .
 
 // adminServiceClient implements AdminServiceClient.
 type adminServiceClient struct {
+	getUsageStats      *connect.Client[v1.GetUsageStatsRequest, v1.GetUsageStatsResponse]
+	getFeatureStats    *connect.Client[v1.GetFeatureStatsRequest, v1.GetFeatureStatsResponse]
 	getSignupStats     *connect.Client[v1.GetSignupStatsRequest, v1.GetSignupStatsResponse]
 	getRoutineStats    *connect.Client[v1.GetRoutineStatsRequest, v1.GetRoutineStatsResponse]
 	getContentStats    *connect.Client[v1.GetContentStatsRequest, v1.GetContentStatsResponse]
 	getOperationsStats *connect.Client[v1.GetOperationsStatsRequest, v1.GetOperationsStatsResponse]
+}
+
+// GetUsageStats calls admin.v1.AdminService.GetUsageStats.
+func (c *adminServiceClient) GetUsageStats(ctx context.Context, req *connect.Request[v1.GetUsageStatsRequest]) (*connect.Response[v1.GetUsageStatsResponse], error) {
+	return c.getUsageStats.CallUnary(ctx, req)
+}
+
+// GetFeatureStats calls admin.v1.AdminService.GetFeatureStats.
+func (c *adminServiceClient) GetFeatureStats(ctx context.Context, req *connect.Request[v1.GetFeatureStatsRequest]) (*connect.Response[v1.GetFeatureStatsResponse], error) {
+	return c.getFeatureStats.CallUnary(ctx, req)
 }
 
 // GetSignupStats calls admin.v1.AdminService.GetSignupStats.
@@ -128,6 +160,8 @@ func (c *adminServiceClient) GetOperationsStats(ctx context.Context, req *connec
 
 // AdminServiceHandler is an implementation of the admin.v1.AdminService service.
 type AdminServiceHandler interface {
+	GetUsageStats(context.Context, *connect.Request[v1.GetUsageStatsRequest]) (*connect.Response[v1.GetUsageStatsResponse], error)
+	GetFeatureStats(context.Context, *connect.Request[v1.GetFeatureStatsRequest]) (*connect.Response[v1.GetFeatureStatsResponse], error)
 	GetSignupStats(context.Context, *connect.Request[v1.GetSignupStatsRequest]) (*connect.Response[v1.GetSignupStatsResponse], error)
 	GetRoutineStats(context.Context, *connect.Request[v1.GetRoutineStatsRequest]) (*connect.Response[v1.GetRoutineStatsResponse], error)
 	GetContentStats(context.Context, *connect.Request[v1.GetContentStatsRequest]) (*connect.Response[v1.GetContentStatsResponse], error)
@@ -141,6 +175,18 @@ type AdminServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	adminServiceMethods := v1.File_admin_v1_admin_proto.Services().ByName("AdminService").Methods()
+	adminServiceGetUsageStatsHandler := connect.NewUnaryHandler(
+		AdminServiceGetUsageStatsProcedure,
+		svc.GetUsageStats,
+		connect.WithSchema(adminServiceMethods.ByName("GetUsageStats")),
+		connect.WithHandlerOptions(opts...),
+	)
+	adminServiceGetFeatureStatsHandler := connect.NewUnaryHandler(
+		AdminServiceGetFeatureStatsProcedure,
+		svc.GetFeatureStats,
+		connect.WithSchema(adminServiceMethods.ByName("GetFeatureStats")),
+		connect.WithHandlerOptions(opts...),
+	)
 	adminServiceGetSignupStatsHandler := connect.NewUnaryHandler(
 		AdminServiceGetSignupStatsProcedure,
 		svc.GetSignupStats,
@@ -167,6 +213,10 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 	)
 	return "/admin.v1.AdminService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case AdminServiceGetUsageStatsProcedure:
+			adminServiceGetUsageStatsHandler.ServeHTTP(w, r)
+		case AdminServiceGetFeatureStatsProcedure:
+			adminServiceGetFeatureStatsHandler.ServeHTTP(w, r)
 		case AdminServiceGetSignupStatsProcedure:
 			adminServiceGetSignupStatsHandler.ServeHTTP(w, r)
 		case AdminServiceGetRoutineStatsProcedure:
@@ -183,6 +233,14 @@ func NewAdminServiceHandler(svc AdminServiceHandler, opts ...connect.HandlerOpti
 
 // UnimplementedAdminServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAdminServiceHandler struct{}
+
+func (UnimplementedAdminServiceHandler) GetUsageStats(context.Context, *connect.Request[v1.GetUsageStatsRequest]) (*connect.Response[v1.GetUsageStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("admin.v1.AdminService.GetUsageStats is not implemented"))
+}
+
+func (UnimplementedAdminServiceHandler) GetFeatureStats(context.Context, *connect.Request[v1.GetFeatureStatsRequest]) (*connect.Response[v1.GetFeatureStatsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("admin.v1.AdminService.GetFeatureStats is not implemented"))
+}
 
 func (UnimplementedAdminServiceHandler) GetSignupStats(context.Context, *connect.Request[v1.GetSignupStatsRequest]) (*connect.Response[v1.GetSignupStatsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("admin.v1.AdminService.GetSignupStats is not implemented"))

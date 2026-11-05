@@ -36,7 +36,10 @@ export function DailyBars({
   return (
     <div className="stats-viz" data-testid={testId}>
       {series.length > 1 ? (
-        <div className="mb-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-md)]" data-testid={`${testId}-legend`}>
+        <div
+          className="mb-[var(--spacing-xs)] flex flex-wrap gap-[var(--spacing-md)]"
+          data-testid={`${testId}-legend`}
+        >
           {series.map((s) => (
             <span key={s.label} className="flex items-center gap-[6px] text-xs text-(--color-ink2)">
               <span className="h-[10px] w-[10px] rounded-[3px]" style={{ background: s.color }} />
@@ -81,7 +84,11 @@ export function DailyBars({
               role="status"
               data-testid={`${testId}-tooltip`}
               className="pointer-events-none absolute top-0 z-10 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-card) px-[8px] py-[4px] text-xs text-(--color-ink) shadow-sm"
-              style={hover > days.length / 2 ? { right: `${100 - ((hover + 1) / days.length) * 100}%` } : { left: `${(hover / days.length) * 100}%` }}
+              style={
+                hover > days.length / 2
+                  ? { right: `${100 - ((hover + 1) / days.length) * 100}%` }
+                  : { left: `${(hover / days.length) * 100}%` }
+              }
             >
               <div className="text-(--color-ink3)">{hit.day}</div>
               {series.map((s, i) => (
@@ -91,7 +98,11 @@ export function DailyBars({
               ))}
             </div>
           ) : null}
-          <div className="flex items-end border-(--color-line) border-b" style={{ height: H }} onPointerLeave={() => setHover(null)}>
+          <div
+            className="flex items-end border-(--color-line) border-b"
+            style={{ height: H }}
+            onPointerLeave={() => setHover(null)}
+          >
             {days.map((d, i) => {
               const total = totals[i] ?? 0;
               return (
@@ -131,7 +142,8 @@ export function DailyBars({
             <span>{shortDay(days[mid]?.day ?? "")}</span>
             <span>{shortDay(days[days.length - 1]?.day ?? "")}</span>
           </div>
-          <div className={`absolute top-0 right-0 ${AXIS}`} data-testid={`${testId}-max`}>
+          {/* 왼쪽 위 — 최근 날의 막대는 오른쪽 끝에 서므로 겹치지 않게. */}
+          <div className={`pointer-events-none absolute top-0 left-0 ${AXIS}`} data-testid={`${testId}-max`}>
             {fmt(max)}
           </div>
         </div>
@@ -160,7 +172,12 @@ export function BarList({
   return (
     <ul className="stats-viz flex flex-col gap-[6px]" data-testid={testId}>
       {rows.map((r) => (
-        <li key={r.key} className="flex items-center gap-[var(--spacing-sm)]" data-testid={`${testId}-${r.key}`} title={`${r.label}: ${r.display ?? fmt(r.value)}`}>
+        <li
+          key={r.key}
+          className="flex items-center gap-[var(--spacing-sm)]"
+          data-testid={`${testId}-${r.key}`}
+          title={`${r.label}: ${r.display ?? fmt(r.value)}`}
+        >
           <span className="w-[38%] shrink-0 truncate text-xs text-(--color-ink2)">{r.label}</span>
           <span className="h-[10px] min-w-0 flex-1">
             <span
@@ -171,7 +188,9 @@ export function BarList({
               }}
             />
           </span>
-          <span className="w-[56px] shrink-0 text-right text-xs tabular-nums text-(--color-ink)">{r.display ?? fmt(r.value)}</span>
+          <span className="w-[56px] shrink-0 text-right text-xs tabular-nums text-(--color-ink)">
+            {r.display ?? fmt(r.value)}
+          </span>
         </li>
       ))}
     </ul>
@@ -179,7 +198,17 @@ export function BarList({
 }
 
 /** 작은 숫자 칸. 앱 칸(560px) 안에서 2열로 놓인다. */
-export function Tile({ label, value, caption, testId }: { label: string; value: string; caption?: string; testId?: string }) {
+export function Tile({
+  label,
+  value,
+  caption,
+  testId,
+}: {
+  label: string;
+  value: string;
+  caption?: string;
+  testId?: string;
+}) {
   return (
     <div className="min-w-0 rounded-[var(--radius-md)] border border-(--color-line) bg-(--color-card) p-[var(--spacing-md)]">
       <AppText variant="label" color="textMuted">

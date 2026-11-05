@@ -339,6 +339,38 @@ type SyncRecord struct {
 	UpdatedAt  pgtype.Timestamptz
 }
 
+type UsageActiveDay struct {
+	Day       pgtype.Date
+	ActorKind string
+	ActorID   string
+}
+
+type UsageDaily struct {
+	Day       pgtype.Date
+	ActorKind string
+	Metric    string
+	Actors    int32
+	Events    int64
+}
+
+type UsageEvent struct {
+	ID            int64
+	At            pgtype.Timestamptz
+	ActorKind     string
+	ActorID       string
+	ClientEventID pgtype.UUID
+	Event         string
+	Platform      string
+	AppVersion    string
+}
+
+type UsagePresence struct {
+	ActorKind string
+	ActorID   string
+	FirstSeen pgtype.Timestamptz
+	LastSeen  pgtype.Timestamptz
+}
+
 type User struct {
 	ID              string
 	Email           *string

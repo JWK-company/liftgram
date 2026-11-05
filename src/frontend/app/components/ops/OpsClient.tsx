@@ -27,6 +27,7 @@ const REASON_KEY: Record<string, TransKey> = {
   restore_old: "ops.reason.restore_old",
   restore_failed: "ops.reason.restore_failed",
   low_disk: "ops.reason.low_disk",
+  usage_table: "ops.reason.usage_table",
 };
 
 function reasonText(code: string, stalledCount: number): string {

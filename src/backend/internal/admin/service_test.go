@@ -11,12 +11,20 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 )
 
+type retentionCall struct {
+	from, to time.Time
+	n        int
+}
+
 type fakeRepo struct {
-	role    string
-	calls   atomic.Int64
-	workout atomic.Int64
-	block   chan struct{}
-	err     error
+	usageBytes, usageRows int64
+	usageCalls            atomic.Int64
+	retention             []retentionCall
+	role                  string
+	calls                 atomic.Int64
+	workout               atomic.Int64
+	block                 chan struct{}
+	err                   error
 }
 
 func (f *fakeRepo) UserRole(context.Context, string) (string, bool, error) {
@@ -193,5 +201,101 @@ func TestFillDays_한국_날짜_경계(t *testing.T) {
 		if out[i] != want[i] {
 			t.Fatalf("%d: %+v != %+v", i, out[i], want[i])
 		}
+	}
+}
+
+func (f *fakeRepo) UsageTableStats(context.Context, time.Time) (int64, int64, error) {
+	return f.usageBytes, f.usageRows, nil
+}
+func (f *fakeRepo) UsageOnline(context.Context, time.Time) (ActorCount, error) {
+	f.usageCalls.Add(1)
+	return ActorCount{User: 2, Guest: 3}, nil
+}
+func (f *fakeRepo) UsageActive(context.Context, string, string, string) (ActorCount, ActorCount, ActorCount, error) {
+	f.usageCalls.Add(1)
+	return ActorCount{User: 1, Guest: 1}, ActorCount{User: 2, Guest: 2}, ActorCount{User: 3, Guest: 3}, nil
+}
+func (f *fakeRepo) UsageDaily(context.Context, string) ([]UsageDailyRow, error) {
+	return []UsageDailyRow{{Day: "2026-11-19", Kind: "user", Actors: 7}, {Day: "2026-11-20", Kind: "guest", Actors: 99}}, nil
+}
+func (f *fakeRepo) UsageRetention(_ context.Context, from, to time.Time, n int) (Retention, error) {
+	f.retention = append(f.retention, retentionCall{from, to, n})
+	return Retention{Cohort: ActorCount{User: 4}, Returned: ActorCount{User: 1}}, nil
+}
+func (f *fakeRepo) UsageFeatures(context.Context, string, string) ([]FeatureRow, error) {
+	return []FeatureRow{
+		{Name: "event:screen_home", Last7d: 5, Last30d: 9},
+		{Name: "event:workout_finish", Last7d: 1, Last30d: 2},
+		{Name: "platform:web", Last7d: 3, Last30d: 4},
+	}, nil
+}
+
+func TestUsage_합계와_오늘은_살아_있는_값(t *testing.T) {
+	f := &fakeRepo{role: "admin"}
+	s := NewService(f, clock(now), since, 0)
+	u, err := s.GetUsageStats(context.Background(), "a", "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Online.Total() != 5 {
+		t.Fatalf("합계 = 로그인 + 비로그인이어야 한다: %+v", u.Online)
+	}
+	if len(u.Daily) != 30 || u.Daily[28].User != 7 {
+		t.Fatalf("일별: %+v", u.Daily[28])
+	}
+	last := u.Daily[29]
+	if last.Day != "2026-11-20" || last.Guest != 1 || last.User != 1 {
+		t.Fatalf("오늘은 살아 있는 값으로 덮어야 한다: %+v", last)
+	}
+	// 재방문 창: n=7 이면 첫날이 [오늘-14, 오늘-7).
+	if len(f.retention) != 3 {
+		t.Fatal(f.retention)
+	}
+	c := f.retention[1]
+	day0 := StartOfDayKST(now)
+	if c.n != 7 || !c.from.Equal(day0.AddDate(0, 0, -14)) || !c.to.Equal(day0.AddDate(0, 0, -7)) {
+		t.Fatalf("재방문 창: %+v", c)
+	}
+}
+
+func TestUsage_시행_전에는_읽지_않는다(t *testing.T) {
+	f := &fakeRepo{role: "admin"}
+	s := NewService(f, clock(since.Add(-time.Minute)), since, 0)
+	u, err := s.GetUsageStats(context.Background(), "a", "admin")
+	if err != nil || u.Started {
+		t.Fatalf("%+v %v", u, err)
+	}
+	fe, err := s.GetFeatureStats(context.Background(), "a", "admin")
+	if err != nil || fe.Started {
+		t.Fatalf("%+v %v", fe, err)
+	}
+	if f.usageCalls.Load() != 0 {
+		t.Fatal("시행 전에 이용 기록을 읽었다")
+	}
+}
+
+func TestFeature_화면과_행동이_갈린다(t *testing.T) {
+	f := &fakeRepo{role: "admin"}
+	s := NewService(f, clock(now), since, 0)
+	fe, err := s.GetFeatureStats(context.Background(), "a", "admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(fe.Screens) != 1 || fe.Screens[0].Name != "screen_home" || len(fe.Actions) != 1 || fe.Actions[0].Name != "workout_finish" || len(fe.Platforms) != 1 || fe.Platforms[0].Name != "web" {
+		t.Fatalf("%+v", fe)
+	}
+}
+
+func TestOperations_표_경보(t *testing.T) {
+	f := &fakeRepo{role: "admin", usageRows: usageWarnRows}
+	s := NewService(f, clock(now), since, 0)
+	o, err := s.GetOperationsStats(context.Background(), "a", "admin")
+	if err != nil || !o.UsageWarn {
+		t.Fatalf("%+v %v", o, err)
+	}
+	f.usageRows = 1
+	o, _ = s.GetOperationsStats(context.Background(), "a", "admin")
+	if o.UsageWarn {
+		t.Fatal("경보가 아니어야 한다")
 	}
 }

@@ -9,6 +9,7 @@ import { downloadBackup, importBackupFile } from "@/lib/backupFile";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { AppText, Card } from "../ui/primitives";
+import { trackUsage } from "@/lib/usage";
 
 export function BackupCard() {
   const input = useRef<HTMLInputElement>(null);
@@ -19,6 +20,7 @@ export function BackupCard() {
     setBusy(true);
     try {
       const n = await downloadBackup();
+      trackUsage("data_export");
       setMsg({ text: t("backup.exported", { count: n }) });
     } catch {
       // [원본] backup.importFailed + String(e) — 내보내기 실패에 「가져오지 못했어요」와 원문이 떴다
@@ -32,6 +34,7 @@ export function BackupCard() {
     setBusy(true);
     try {
       const r = await importBackupFile(file);
+      trackUsage("data_import");
       setMsg({
         text:
           r.created + r.updated === 0

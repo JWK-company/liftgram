@@ -626,8 +626,13 @@ type GetOperationsStatsResponse struct {
 	// 미처리 사용자 의견·운영 피드백.
 	OpenUserFeedback int64 `protobuf:"varint,3,opt,name=open_user_feedback,json=openUserFeedback,proto3" json:"open_user_feedback,omitempty"`
 	OpenOpsFeedback  int64 `protobuf:"varint,4,opt,name=open_ops_feedback,json=openOpsFeedback,proto3" json:"open_ops_feedback,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// 이용 기록 표 크기(바이트)와 최근 24시간 행 수.
+	UsageBytes    int64 `protobuf:"varint,5,opt,name=usage_bytes,json=usageBytes,proto3" json:"usage_bytes,omitempty"`
+	UsageRows_24H int64 `protobuf:"varint,6,opt,name=usage_rows_24h,json=usageRows24h,proto3" json:"usage_rows_24h,omitempty"`
+	// 표가 경보 크기를 넘었거나 하루 행 수가 상한에 가깝다.
+	UsageWarn     bool `protobuf:"varint,7,opt,name=usage_warn,json=usageWarn,proto3" json:"usage_warn,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetOperationsStatsResponse) Reset() {
@@ -688,6 +693,545 @@ func (x *GetOperationsStatsResponse) GetOpenOpsFeedback() int64 {
 	return 0
 }
 
+func (x *GetOperationsStatsResponse) GetUsageBytes() int64 {
+	if x != nil {
+		return x.UsageBytes
+	}
+	return 0
+}
+
+func (x *GetOperationsStatsResponse) GetUsageRows_24H() int64 {
+	if x != nil {
+		return x.UsageRows_24H
+	}
+	return 0
+}
+
+func (x *GetOperationsStatsResponse) GetUsageWarn() bool {
+	if x != nil {
+		return x.UsageWarn
+	}
+	return false
+}
+
+// 로그인·비로그인을 따로 세고, 합계는 단순 합이다(비로그인은 기기 기준이라 추세로만 본다).
+type ActorCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	User          int64                  `protobuf:"varint,1,opt,name=user,proto3" json:"user,omitempty"`
+	Guest         int64                  `protobuf:"varint,2,opt,name=guest,proto3" json:"guest,omitempty"`
+	Total         int64                  `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ActorCount) Reset() {
+	*x = ActorCount{}
+	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActorCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActorCount) ProtoMessage() {}
+
+func (x *ActorCount) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActorCount.ProtoReflect.Descriptor instead.
+func (*ActorCount) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ActorCount) GetUser() int64 {
+	if x != nil {
+		return x.User
+	}
+	return 0
+}
+
+func (x *ActorCount) GetGuest() int64 {
+	if x != nil {
+		return x.Guest
+	}
+	return 0
+}
+
+func (x *ActorCount) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type Retention struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 그날로부터 n 일 전 7일 동안 처음 온 주체 수(분모).
+	Cohort *ActorCount `protobuf:"bytes,1,opt,name=cohort,proto3" json:"cohort,omitempty"`
+	// 그중 처음 온 날로부터 정확히 n 일째에 다시 온 주체 수.
+	Returned      *ActorCount `protobuf:"bytes,2,opt,name=returned,proto3" json:"returned,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Retention) Reset() {
+	*x = Retention{}
+	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Retention) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Retention) ProtoMessage() {}
+
+func (x *Retention) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Retention.ProtoReflect.Descriptor instead.
+func (*Retention) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Retention) GetCohort() *ActorCount {
+	if x != nil {
+		return x.Cohort
+	}
+	return nil
+}
+
+func (x *Retention) GetReturned() *ActorCount {
+	if x != nil {
+		return x.Returned
+	}
+	return nil
+}
+
+type DailyActors struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Day           string                 `protobuf:"bytes,1,opt,name=day,proto3" json:"day,omitempty"`
+	User          int64                  `protobuf:"varint,2,opt,name=user,proto3" json:"user,omitempty"`
+	Guest         int64                  `protobuf:"varint,3,opt,name=guest,proto3" json:"guest,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DailyActors) Reset() {
+	*x = DailyActors{}
+	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DailyActors) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DailyActors) ProtoMessage() {}
+
+func (x *DailyActors) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DailyActors.ProtoReflect.Descriptor instead.
+func (*DailyActors) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *DailyActors) GetDay() string {
+	if x != nil {
+		return x.Day
+	}
+	return ""
+}
+
+func (x *DailyActors) GetUser() int64 {
+	if x != nil {
+		return x.User
+	}
+	return 0
+}
+
+func (x *DailyActors) GetGuest() int64 {
+	if x != nil {
+		return x.Guest
+	}
+	return 0
+}
+
+type GetUsageStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUsageStatsRequest) Reset() {
+	*x = GetUsageStatsRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUsageStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUsageStatsRequest) ProtoMessage() {}
+
+func (x *GetUsageStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUsageStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetUsageStatsRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{14}
+}
+
+type GetUsageStatsResponse struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	GeneratedAt *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=generated_at,json=generatedAt,proto3" json:"generated_at,omitempty"`
+	Started     bool                   `protobuf:"varint,2,opt,name=started,proto3" json:"started,omitempty"`
+	UsageSince  *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=usage_since,json=usageSince,proto3" json:"usage_since,omitempty"`
+	// 최근 5분 접속.
+	Online *ActorCount `protobuf:"bytes,4,opt,name=online,proto3" json:"online,omitempty"`
+	Dau    *ActorCount `protobuf:"bytes,5,opt,name=dau,proto3" json:"dau,omitempty"`
+	Wau    *ActorCount `protobuf:"bytes,6,opt,name=wau,proto3" json:"wau,omitempty"`
+	Mau    *ActorCount `protobuf:"bytes,7,opt,name=mau,proto3" json:"mau,omitempty"`
+	D1     *Retention  `protobuf:"bytes,8,opt,name=d1,proto3" json:"d1,omitempty"`
+	D7     *Retention  `protobuf:"bytes,9,opt,name=d7,proto3" json:"d7,omitempty"`
+	D30    *Retention  `protobuf:"bytes,10,opt,name=d30,proto3" json:"d30,omitempty"`
+	// 최근 30일 일별 활성. 빈 날도 0.
+	Daily         []*DailyActors `protobuf:"bytes,11,rep,name=daily,proto3" json:"daily,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUsageStatsResponse) Reset() {
+	*x = GetUsageStatsResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUsageStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUsageStatsResponse) ProtoMessage() {}
+
+func (x *GetUsageStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUsageStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetUsageStatsResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetUsageStatsResponse) GetGeneratedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.GeneratedAt
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetStarted() bool {
+	if x != nil {
+		return x.Started
+	}
+	return false
+}
+
+func (x *GetUsageStatsResponse) GetUsageSince() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UsageSince
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetOnline() *ActorCount {
+	if x != nil {
+		return x.Online
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetDau() *ActorCount {
+	if x != nil {
+		return x.Dau
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetWau() *ActorCount {
+	if x != nil {
+		return x.Wau
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetMau() *ActorCount {
+	if x != nil {
+		return x.Mau
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetD1() *Retention {
+	if x != nil {
+		return x.D1
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetD7() *Retention {
+	if x != nil {
+		return x.D7
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetD30() *Retention {
+	if x != nil {
+		return x.D30
+	}
+	return nil
+}
+
+func (x *GetUsageStatsResponse) GetDaily() []*DailyActors {
+	if x != nil {
+		return x.Daily
+	}
+	return nil
+}
+
+type GetFeatureStatsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeatureStatsRequest) Reset() {
+	*x = GetFeatureStatsRequest{}
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeatureStatsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeatureStatsRequest) ProtoMessage() {}
+
+func (x *GetFeatureStatsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeatureStatsRequest.ProtoReflect.Descriptor instead.
+func (*GetFeatureStatsRequest) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{16}
+}
+
+type FeatureRow struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Last7D        int64                  `protobuf:"varint,2,opt,name=last7d,proto3" json:"last7d,omitempty"`
+	Last30D       int64                  `protobuf:"varint,3,opt,name=last30d,proto3" json:"last30d,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FeatureRow) Reset() {
+	*x = FeatureRow{}
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FeatureRow) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FeatureRow) ProtoMessage() {}
+
+func (x *FeatureRow) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FeatureRow.ProtoReflect.Descriptor instead.
+func (*FeatureRow) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *FeatureRow) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *FeatureRow) GetLast7D() int64 {
+	if x != nil {
+		return x.Last7D
+	}
+	return 0
+}
+
+func (x *FeatureRow) GetLast30D() int64 {
+	if x != nil {
+		return x.Last30D
+	}
+	return 0
+}
+
+type GetFeatureStatsResponse struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	GeneratedAt *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=generated_at,json=generatedAt,proto3" json:"generated_at,omitempty"`
+	Started     bool                   `protobuf:"varint,2,opt,name=started,proto3" json:"started,omitempty"`
+	UsageSince  *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=usage_since,json=usageSince,proto3" json:"usage_since,omitempty"`
+	// 화면 순위(screen_ 이벤트) · 행동 순위(나머지) · 플랫폼. 많은 순.
+	Screens       []*FeatureRow `protobuf:"bytes,4,rep,name=screens,proto3" json:"screens,omitempty"`
+	Actions       []*FeatureRow `protobuf:"bytes,5,rep,name=actions,proto3" json:"actions,omitempty"`
+	Platforms     []*FeatureRow `protobuf:"bytes,6,rep,name=platforms,proto3" json:"platforms,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFeatureStatsResponse) Reset() {
+	*x = GetFeatureStatsResponse{}
+	mi := &file_admin_v1_admin_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFeatureStatsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFeatureStatsResponse) ProtoMessage() {}
+
+func (x *GetFeatureStatsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_admin_v1_admin_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFeatureStatsResponse.ProtoReflect.Descriptor instead.
+func (*GetFeatureStatsResponse) Descriptor() ([]byte, []int) {
+	return file_admin_v1_admin_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetFeatureStatsResponse) GetGeneratedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.GeneratedAt
+	}
+	return nil
+}
+
+func (x *GetFeatureStatsResponse) GetStarted() bool {
+	if x != nil {
+		return x.Started
+	}
+	return false
+}
+
+func (x *GetFeatureStatsResponse) GetUsageSince() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UsageSince
+	}
+	return nil
+}
+
+func (x *GetFeatureStatsResponse) GetScreens() []*FeatureRow {
+	if x != nil {
+		return x.Screens
+	}
+	return nil
+}
+
+func (x *GetFeatureStatsResponse) GetActions() []*FeatureRow {
+	if x != nil {
+		return x.Actions
+	}
+	return nil
+}
+
+func (x *GetFeatureStatsResponse) GetPlatforms() []*FeatureRow {
+	if x != nil {
+		return x.Platforms
+	}
+	return nil
+}
+
 var File_admin_v1_admin_proto protoreflect.FileDescriptor
 
 const file_admin_v1_admin_proto_rawDesc = "" +
@@ -734,13 +1278,61 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x17GetContentStatsResponse\x12=\n" +
 	"\fgenerated_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12(\n" +
 	"\x04rows\x18\x02 \x03(\v2\x14.admin.v1.ContentRowR\x04rows\"\x1b\n" +
-	"\x19GetOperationsStatsRequest\"\xde\x01\n" +
+	"\x19GetOperationsStatsRequest\"\xc4\x02\n" +
 	"\x1aGetOperationsStatsResponse\x12=\n" +
 	"\fgenerated_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12'\n" +
 	"\x0fpending_reports\x18\x02 \x01(\x03R\x0ependingReports\x12,\n" +
 	"\x12open_user_feedback\x18\x03 \x01(\x03R\x10openUserFeedback\x12*\n" +
-	"\x11open_ops_feedback\x18\x04 \x01(\x03R\x0fopenOpsFeedback2\xf4\x02\n" +
-	"\fAdminService\x12S\n" +
+	"\x11open_ops_feedback\x18\x04 \x01(\x03R\x0fopenOpsFeedback\x12\x1f\n" +
+	"\vusage_bytes\x18\x05 \x01(\x03R\n" +
+	"usageBytes\x12$\n" +
+	"\x0eusage_rows_24h\x18\x06 \x01(\x03R\fusageRows24h\x12\x1d\n" +
+	"\n" +
+	"usage_warn\x18\a \x01(\bR\tusageWarn\"L\n" +
+	"\n" +
+	"ActorCount\x12\x12\n" +
+	"\x04user\x18\x01 \x01(\x03R\x04user\x12\x14\n" +
+	"\x05guest\x18\x02 \x01(\x03R\x05guest\x12\x14\n" +
+	"\x05total\x18\x03 \x01(\x03R\x05total\"k\n" +
+	"\tRetention\x12,\n" +
+	"\x06cohort\x18\x01 \x01(\v2\x14.admin.v1.ActorCountR\x06cohort\x120\n" +
+	"\breturned\x18\x02 \x01(\v2\x14.admin.v1.ActorCountR\breturned\"I\n" +
+	"\vDailyActors\x12\x10\n" +
+	"\x03day\x18\x01 \x01(\tR\x03day\x12\x12\n" +
+	"\x04user\x18\x02 \x01(\x03R\x04user\x12\x14\n" +
+	"\x05guest\x18\x03 \x01(\x03R\x05guest\"\x16\n" +
+	"\x14GetUsageStatsRequest\"\xf1\x03\n" +
+	"\x15GetUsageStatsResponse\x12=\n" +
+	"\fgenerated_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12\x18\n" +
+	"\astarted\x18\x02 \x01(\bR\astarted\x12;\n" +
+	"\vusage_since\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"usageSince\x12,\n" +
+	"\x06online\x18\x04 \x01(\v2\x14.admin.v1.ActorCountR\x06online\x12&\n" +
+	"\x03dau\x18\x05 \x01(\v2\x14.admin.v1.ActorCountR\x03dau\x12&\n" +
+	"\x03wau\x18\x06 \x01(\v2\x14.admin.v1.ActorCountR\x03wau\x12&\n" +
+	"\x03mau\x18\a \x01(\v2\x14.admin.v1.ActorCountR\x03mau\x12#\n" +
+	"\x02d1\x18\b \x01(\v2\x13.admin.v1.RetentionR\x02d1\x12#\n" +
+	"\x02d7\x18\t \x01(\v2\x13.admin.v1.RetentionR\x02d7\x12%\n" +
+	"\x03d30\x18\n" +
+	" \x01(\v2\x13.admin.v1.RetentionR\x03d30\x12+\n" +
+	"\x05daily\x18\v \x03(\v2\x15.admin.v1.DailyActorsR\x05daily\"\x18\n" +
+	"\x16GetFeatureStatsRequest\"R\n" +
+	"\n" +
+	"FeatureRow\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
+	"\x06last7d\x18\x02 \x01(\x03R\x06last7d\x12\x18\n" +
+	"\alast30d\x18\x03 \x01(\x03R\alast30d\"\xc3\x02\n" +
+	"\x17GetFeatureStatsResponse\x12=\n" +
+	"\fgenerated_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12\x18\n" +
+	"\astarted\x18\x02 \x01(\bR\astarted\x12;\n" +
+	"\vusage_since\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"usageSince\x12.\n" +
+	"\ascreens\x18\x04 \x03(\v2\x14.admin.v1.FeatureRowR\ascreens\x12.\n" +
+	"\aactions\x18\x05 \x03(\v2\x14.admin.v1.FeatureRowR\aactions\x122\n" +
+	"\tplatforms\x18\x06 \x03(\v2\x14.admin.v1.FeatureRowR\tplatforms2\x9e\x04\n" +
+	"\fAdminService\x12P\n" +
+	"\rGetUsageStats\x12\x1e.admin.v1.GetUsageStatsRequest\x1a\x1f.admin.v1.GetUsageStatsResponse\x12V\n" +
+	"\x0fGetFeatureStats\x12 .admin.v1.GetFeatureStatsRequest\x1a!.admin.v1.GetFeatureStatsResponse\x12S\n" +
 	"\x0eGetSignupStats\x12\x1f.admin.v1.GetSignupStatsRequest\x1a .admin.v1.GetSignupStatsResponse\x12V\n" +
 	"\x0fGetRoutineStats\x12 .admin.v1.GetRoutineStatsRequest\x1a!.admin.v1.GetRoutineStatsResponse\x12V\n" +
 	"\x0fGetContentStats\x12 .admin.v1.GetContentStatsRequest\x1a!.admin.v1.GetContentStatsResponse\x12_\n" +
@@ -760,7 +1352,7 @@ func file_admin_v1_admin_proto_rawDescGZIP() []byte {
 	return file_admin_v1_admin_proto_rawDescData
 }
 
-var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_admin_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_admin_v1_admin_proto_goTypes = []any{
 	(*DailyCount)(nil),                 // 0: admin.v1.DailyCount
 	(*NamedCount)(nil),                 // 1: admin.v1.NamedCount
@@ -773,32 +1365,61 @@ var file_admin_v1_admin_proto_goTypes = []any{
 	(*GetContentStatsResponse)(nil),    // 8: admin.v1.GetContentStatsResponse
 	(*GetOperationsStatsRequest)(nil),  // 9: admin.v1.GetOperationsStatsRequest
 	(*GetOperationsStatsResponse)(nil), // 10: admin.v1.GetOperationsStatsResponse
-	(*timestamppb.Timestamp)(nil),      // 11: google.protobuf.Timestamp
+	(*ActorCount)(nil),                 // 11: admin.v1.ActorCount
+	(*Retention)(nil),                  // 12: admin.v1.Retention
+	(*DailyActors)(nil),                // 13: admin.v1.DailyActors
+	(*GetUsageStatsRequest)(nil),       // 14: admin.v1.GetUsageStatsRequest
+	(*GetUsageStatsResponse)(nil),      // 15: admin.v1.GetUsageStatsResponse
+	(*GetFeatureStatsRequest)(nil),     // 16: admin.v1.GetFeatureStatsRequest
+	(*FeatureRow)(nil),                 // 17: admin.v1.FeatureRow
+	(*GetFeatureStatsResponse)(nil),    // 18: admin.v1.GetFeatureStatsResponse
+	(*timestamppb.Timestamp)(nil),      // 19: google.protobuf.Timestamp
 }
 var file_admin_v1_admin_proto_depIdxs = []int32{
-	11, // 0: admin.v1.GetSignupStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
+	19, // 0: admin.v1.GetSignupStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
 	0,  // 1: admin.v1.GetSignupStatsResponse.daily:type_name -> admin.v1.DailyCount
 	1,  // 2: admin.v1.GetSignupStatsResponse.providers:type_name -> admin.v1.NamedCount
-	11, // 3: admin.v1.GetSignupStatsResponse.usage_since:type_name -> google.protobuf.Timestamp
-	11, // 4: admin.v1.GetRoutineStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
-	11, // 5: admin.v1.GetRoutineStatsResponse.usage_since:type_name -> google.protobuf.Timestamp
+	19, // 3: admin.v1.GetSignupStatsResponse.usage_since:type_name -> google.protobuf.Timestamp
+	19, // 4: admin.v1.GetRoutineStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
+	19, // 5: admin.v1.GetRoutineStatsResponse.usage_since:type_name -> google.protobuf.Timestamp
 	1,  // 6: admin.v1.GetRoutineStatsResponse.routine_buckets:type_name -> admin.v1.NamedCount
-	11, // 7: admin.v1.GetContentStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
+	19, // 7: admin.v1.GetContentStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
 	7,  // 8: admin.v1.GetContentStatsResponse.rows:type_name -> admin.v1.ContentRow
-	11, // 9: admin.v1.GetOperationsStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
-	2,  // 10: admin.v1.AdminService.GetSignupStats:input_type -> admin.v1.GetSignupStatsRequest
-	4,  // 11: admin.v1.AdminService.GetRoutineStats:input_type -> admin.v1.GetRoutineStatsRequest
-	6,  // 12: admin.v1.AdminService.GetContentStats:input_type -> admin.v1.GetContentStatsRequest
-	9,  // 13: admin.v1.AdminService.GetOperationsStats:input_type -> admin.v1.GetOperationsStatsRequest
-	3,  // 14: admin.v1.AdminService.GetSignupStats:output_type -> admin.v1.GetSignupStatsResponse
-	5,  // 15: admin.v1.AdminService.GetRoutineStats:output_type -> admin.v1.GetRoutineStatsResponse
-	8,  // 16: admin.v1.AdminService.GetContentStats:output_type -> admin.v1.GetContentStatsResponse
-	10, // 17: admin.v1.AdminService.GetOperationsStats:output_type -> admin.v1.GetOperationsStatsResponse
-	14, // [14:18] is the sub-list for method output_type
-	10, // [10:14] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	19, // 9: admin.v1.GetOperationsStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
+	11, // 10: admin.v1.Retention.cohort:type_name -> admin.v1.ActorCount
+	11, // 11: admin.v1.Retention.returned:type_name -> admin.v1.ActorCount
+	19, // 12: admin.v1.GetUsageStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
+	19, // 13: admin.v1.GetUsageStatsResponse.usage_since:type_name -> google.protobuf.Timestamp
+	11, // 14: admin.v1.GetUsageStatsResponse.online:type_name -> admin.v1.ActorCount
+	11, // 15: admin.v1.GetUsageStatsResponse.dau:type_name -> admin.v1.ActorCount
+	11, // 16: admin.v1.GetUsageStatsResponse.wau:type_name -> admin.v1.ActorCount
+	11, // 17: admin.v1.GetUsageStatsResponse.mau:type_name -> admin.v1.ActorCount
+	12, // 18: admin.v1.GetUsageStatsResponse.d1:type_name -> admin.v1.Retention
+	12, // 19: admin.v1.GetUsageStatsResponse.d7:type_name -> admin.v1.Retention
+	12, // 20: admin.v1.GetUsageStatsResponse.d30:type_name -> admin.v1.Retention
+	13, // 21: admin.v1.GetUsageStatsResponse.daily:type_name -> admin.v1.DailyActors
+	19, // 22: admin.v1.GetFeatureStatsResponse.generated_at:type_name -> google.protobuf.Timestamp
+	19, // 23: admin.v1.GetFeatureStatsResponse.usage_since:type_name -> google.protobuf.Timestamp
+	17, // 24: admin.v1.GetFeatureStatsResponse.screens:type_name -> admin.v1.FeatureRow
+	17, // 25: admin.v1.GetFeatureStatsResponse.actions:type_name -> admin.v1.FeatureRow
+	17, // 26: admin.v1.GetFeatureStatsResponse.platforms:type_name -> admin.v1.FeatureRow
+	14, // 27: admin.v1.AdminService.GetUsageStats:input_type -> admin.v1.GetUsageStatsRequest
+	16, // 28: admin.v1.AdminService.GetFeatureStats:input_type -> admin.v1.GetFeatureStatsRequest
+	2,  // 29: admin.v1.AdminService.GetSignupStats:input_type -> admin.v1.GetSignupStatsRequest
+	4,  // 30: admin.v1.AdminService.GetRoutineStats:input_type -> admin.v1.GetRoutineStatsRequest
+	6,  // 31: admin.v1.AdminService.GetContentStats:input_type -> admin.v1.GetContentStatsRequest
+	9,  // 32: admin.v1.AdminService.GetOperationsStats:input_type -> admin.v1.GetOperationsStatsRequest
+	15, // 33: admin.v1.AdminService.GetUsageStats:output_type -> admin.v1.GetUsageStatsResponse
+	18, // 34: admin.v1.AdminService.GetFeatureStats:output_type -> admin.v1.GetFeatureStatsResponse
+	3,  // 35: admin.v1.AdminService.GetSignupStats:output_type -> admin.v1.GetSignupStatsResponse
+	5,  // 36: admin.v1.AdminService.GetRoutineStats:output_type -> admin.v1.GetRoutineStatsResponse
+	8,  // 37: admin.v1.AdminService.GetContentStats:output_type -> admin.v1.GetContentStatsResponse
+	10, // 38: admin.v1.AdminService.GetOperationsStats:output_type -> admin.v1.GetOperationsStatsResponse
+	33, // [33:39] is the sub-list for method output_type
+	27, // [27:33] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_admin_v1_admin_proto_init() }
@@ -812,7 +1433,7 @@ func file_admin_v1_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_admin_v1_admin_proto_rawDesc), len(file_admin_v1_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

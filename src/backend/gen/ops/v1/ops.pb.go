@@ -682,7 +682,7 @@ type GetOpsStatusResponse struct {
 	// 경보 이유 코드(화면이 문구로 바꾼다):
 	//
 	//	stalled · daily_none · daily_stale(마지막 성공 daily 36시간 넘음) · restore_none · restore_old(40일 넘음)
-	//	· restore_failed · low_disk
+	//	· restore_failed · low_disk · usage_table
 	AlertReasons []string               `protobuf:"bytes,5,rep,name=alert_reasons,json=alertReasons,proto3" json:"alert_reasons,omitempty"`
 	ServerNow    *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=server_now,json=serverNow,proto3" json:"server_now,omitempty"`
 	// 연락 끊긴 기기 — 멈춤 식에 걸리지만 마지막 보고가 72시간 넘게 지났다(이탈·재설치·기기 id 바뀜).

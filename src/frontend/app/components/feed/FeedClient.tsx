@@ -49,6 +49,7 @@ import { PostCard } from "./PostCard";
 import { RecommendedFeed } from "./RecommendedFeed";
 import { VisibilityPicker } from "./VisibilityPicker";
 import { useWeightUnit } from "./useWeightUnit";
+import { trackUsage } from "@/lib/usage";
 
 /** 도메인 문자열 → 계약 enum. 글을 올릴 때만 쓴다. */
 function gearCategoryEnum(c: GearTag["category"]): GearCategoryEnum {
@@ -175,6 +176,8 @@ export default function FeedClient() {
   }, [authLoading, userId]);
 
   const switchTab = (next: "following" | "discover" | "recommended") => {
+    if (next === "following") trackUsage("feed_tab_following");
+    if (next === "recommended") trackUsage("feed_tab_recommended");
     // 추천에서 팔로우했으면 팔로잉을 다시 읽어야 그 사람 글이 보인다.
     if (next === "following" && followingDirty.current) {
       followingDirty.current = false;

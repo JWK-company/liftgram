@@ -17,6 +17,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from "react";
 import { mergeRest, type RestState } from "@app/core/domain/lockScreen";
 import { lockAvailable } from "@/lib/native";
+import { trackUsage } from "@/lib/usage";
 
 // ── 휴식 영속화·LWW(SPEC-017 Phase 3 §7) ─────────────────────────────────────
 // 휴식은 「사람이 정한 시각」(setAt)이 더 늦은 쪽이 이긴다 — 잠금화면 +30초·끝내기와 웹 시작·+15초·건너뛰기가 같은 규칙(mergeRest).
@@ -251,6 +252,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         setHumanRest(null, null);
         return;
       }
+      trackUsage("rest_timer", { throttleMs: 60_000 });
       setHumanRest(Date.now() + seconds * 1000, seconds);
     },
     [setHumanRest],

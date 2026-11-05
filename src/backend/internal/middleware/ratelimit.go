@@ -69,6 +69,10 @@ func (l *Limiter) Interceptor() connect.UnaryInterceptorFunc {
 			if l.limit <= 0 { // 0 이하 = 비활성(개발 편의)
 				return next(ctx, req)
 			}
+			// 이용 기록은 자기 횟수 제한을 쓴다 — 접속 신호가 공용 읽기 칸을 먹으면 화면 요청이 막힌다(SPEC-032).
+			if strings.HasPrefix(req.Spec().Procedure, "/usage.v1.UsageService/") {
+				return next(ctx, req)
+			}
 			bucket := "read"
 			if strings.Contains(req.Spec().Procedure, "Apply") {
 				bucket = "write"
@@ -106,6 +110,18 @@ func (l *Limiter) setHeaders(h http.Header, remaining int64) {
 	h.Set("RateLimit-Reset", strconv.Itoa(int(l.window.Seconds())))
 	h.Set("RateLimit-Policy", strconv.Itoa(l.limit)+";w="+strconv.Itoa(int(l.window.Seconds())))
 }
+
+// Allow 는 공용 칸과 따로 세는 횟수 제한이다(같은 저장소를 쓴다). 저장소가 흔들리면 통과시킨다.
+func (l *Limiter) Allow(ctx context.Context, key string, limit int, window time.Duration) bool {
+	n, err := l.counter.hit(ctx, key, window)
+	if err != nil {
+		return true
+	}
+	return n <= int64(limit)
+}
+
+// ClientIP 는 프록시가 붙인 클라이언트 주소다(저장하지 않는 쪽에서 횟수 제한 키로만 쓴다).
+func ClientIP(h http.Header) string { return clientIP(h) }
 
 func clientIP(h http.Header) string {
 	if fwd := h.Get("X-Forwarded-For"); fwd != "" {
