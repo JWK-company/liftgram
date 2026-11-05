@@ -7,11 +7,13 @@ async function 카탈로그_준비(page: Page) {
   await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 }
 
-test("어깨깡패 → 버전 하나 저장 — 출처 인용·제휴 아님 고지·원본 링크·루틴 메모·세트 수", async ({ page }) => {
+test("프로의 어깨 → 버전 하나 저장 — 출처 인용·제휴 아님 고지·원본 링크·루틴 메모·세트 수", async ({
+  page,
+}) => {
   await 카탈로그_준비(page);
   await page.goto("/");
 
-  const topic = page.getByTestId("concept-topic-boulder-shoulders");
+  const topic = page.getByTestId("concept-topic-pro-shoulders");
   await expect(topic).toBeVisible({ timeout: 20_000 });
   await expect(topic).toContainText("영상 루틴");
   await topic.click();
@@ -60,22 +62,22 @@ test("어깨깡패 → 버전 하나 저장 — 출처 인용·제휴 아님 고
   await expect(page.getByTestId("set-table").first().getByTestId("set-table-row")).toHaveCount(firstSets);
 });
 
-test("여러 날 버전(3대 5×5 A·B) — 날마다 루틴 · 다시 저장하면 중복 확인 · 확인 연타에도 한 벌만 더 (qa code M-2)", async ({
+test("여러 날 버전(입문자 무분할 Day 1·2) — 날마다 루틴 · 다시 저장하면 중복 확인 · 확인 연타에도 한 벌만 더 (qa code M-2)", async ({
   page,
 }) => {
   await 카탈로그_준비(page);
   await page.goto("/");
   const open = async () => {
-    await page.getByTestId("concept-topic-big3-500").click();
-    await page.getByTestId("creator-version-cr-big3-5x5").click();
+    await page.getByTestId("concept-topic-pro-full").click();
+    await page.getByTestId("creator-version-cr-pro-fb-2day").click();
     await expect(page.getByTestId("creator-sheet")).toBeVisible();
     await expect(page.getByTestId("creator-save")).toBeEnabled({ timeout: 10_000 });
   };
   await open();
   await page.getByTestId("creator-save").click();
   const list = page.getByTestId("routine-list");
-  await expect(list).toContainText("3대 5×5 — A", { timeout: 20_000 });
-  await expect(list).toContainText("3대 5×5 — B");
+  await expect(list).toContainText("입문자 무분할 2일 — Day 1", { timeout: 20_000 });
+  await expect(list).toContainText("입문자 무분할 2일 — Day 2");
   const rows = list.locator("[data-testid^=routine-]");
   await expect(rows).toHaveCount(2);
 
@@ -84,7 +86,13 @@ test("여러 날 버전(3대 5×5 A·B) — 날마다 루틴 · 다시 저장하
   const dupe = page.getByTestId("creator-dupe");
   await expect(dupe).toBeVisible();
   const confirm = dupe.getByRole("button", { name: "저장" });
-  await confirm.click({ clickCount: 3 });
+  // [원본] await confirm.click({ clickCount: 3 }); — 창이 닫힌 뒤 남은 클릭이 뒤쪽 화면을 눌러 이동해 버렸다
+  // [개선] 같은 버튼을 한 틱에 세 번 눌러 재진입 가드만 시험한다
+  await confirm.evaluate((b: HTMLElement) => {
+    b.click();
+    b.click();
+    b.click();
+  });
   await expect(rows).toHaveCount(4, { timeout: 20_000 });
   await page.waitForTimeout(1500);
   await expect(rows).toHaveCount(4);
@@ -93,7 +101,7 @@ test("여러 날 버전(3대 5×5 A·B) — 날마다 루틴 · 다시 저장하
 test("분석 자료 근거가 있는 버전(씨범) — 근거 링크·문구", async ({ page }) => {
   await 카탈로그_준비(page);
   await page.goto("/");
-  await page.getByTestId("concept-topic-boulder-shoulders").click();
+  await page.getByTestId("concept-topic-pro-shoulders").click();
   await page.getByTestId("creator-version-cr-shoulders-olympia").click();
   const basis = page.getByTestId("creator-basis");
   await expect(basis).toContainText("Fitness Volt");

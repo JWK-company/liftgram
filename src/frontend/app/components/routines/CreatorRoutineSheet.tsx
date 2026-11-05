@@ -212,7 +212,7 @@ function CreatorVersionStep({
           : t("creator.verified", { date: routine.source.verifiedAt })}
       </AppText>
       {routine.basis ? (
-        // 세트·횟수가 영상을 분석한 2차 자료 기준일 때 — 어디서 왔는지 밝힌다
+        // 루틴이 영상을 분석한 2차 자료 기준일 때 — 어디서 왔는지 밝힌다
         <a
           href={routine.basis.url}
           target="_blank"

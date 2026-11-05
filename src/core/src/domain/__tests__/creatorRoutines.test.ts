@@ -18,12 +18,20 @@ import { containsMedicalClaim } from '../wellness';
 const slugId = (en: string) => `seed-${en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`;
 const activeIds = new Set(SEED_EXERCISES.filter((e) => !e.isArchived).map((e) => slugId(e.nameEn)));
 
-test('주제 3개 · 주제마다 서로 다른 채널 버전 ≥2(draft 포함 전체 기준)', () => {
-  assert.equal(CREATOR_TOPICS.length, 3);
+// [원본] 주제 3개 · 주제마다 서로 다른 채널 버전 ≥2
+test('프로 주제 8개 · 주제마다 서로 다른 채널 버전 ≥2 · 이름이 모두 「프로의 …」', () => {
+  assert.equal(CREATOR_TOPICS.length, 8);
+  for (const t of CREATOR_TOPICS) assert.match(t.nameKo, /^프로의 /, t.id);
   for (const t of CREATOR_TOPICS) {
     const channels = new Set(CREATOR_ROUTINES.filter((r) => r.topicId === t.id && !r.hidden).map((r) => r.source.channel));
     assert.ok(channels.size >= 2, `${t.id}: 채널 ${channels.size}개`);
   }
+});
+
+test('영상 하나는 한 버전에만 · 저장 이름이 겹치지 않는다', () => {
+  const shown = CREATOR_ROUTINES.filter((r) => !r.hidden && !r.draft);
+  assert.equal(new Set(shown.map((r) => r.source.videoId)).size, shown.length);
+  assert.equal(new Set(shown.map((r) => r.labelKo)).size, shown.length);
 });
 
 test('버전 데이터: 종목 실존·처방 범위·하루 안 중복 없음·출처 필드', () => {

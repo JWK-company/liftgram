@@ -1,0 +1,198 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사용자가 어깨깡패·3대 500 같은 주제를 버리고 「프로의 어깨 루틴」 「프로의 푸시데이」처럼 바꾸고, 국내외 유명 선수의 영상 루틴을 최대한 많이 넣자고 지시했다(2026-11-05). ADR-045는 한국 채널, 시범 규모 10여 개를 전제했다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "주제는 프로의 어깨·가슴·등·하체·팔·푸시데이·풀데이·전신 8개로 한다. 3대 500·퇴근 후 영상은 데이터에 남기고 hidden 으로 숨긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "채널 범위를 국내외로 넓힌다. 유명 보디빌더는 프로 카드가 확인되지 않아도 넣는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "근거는 공식 설명란, 없으면 영상을 분석한 기사(basis)로 한다. 기사 근거는 화면에 링크로 밝힌다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "근거에 없는 세트·횟수는 기본값으로 표시한다. 저장 뒤에도 알 수 있게 루틴 메모에 적는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "ADR-045의 나머지 규칙은 유지한다. 실존 인물 이름은 주제·루틴 이름에 쓰지 않고 출처 줄에 채널명으로만 인용하며, 원본 링크와 제휴 아님 고지를 둔다. 자막·영상은 내려받지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "「○○의 어깨 루틴」처럼 선수 이름을 앞세우기: 유입에는 좋지만 ADR-045의 퍼블리시티 위험이 그대로라 기각했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "영상 자막을 읽어 세트 수를 채우기: 약관 위반이라 기각했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "데이터가 정적 파일에 74개로 늘었다. 약 40%는 종목 순서만 출처이고 세트·횟수는 기본값이다. 규모가 더 늘면 서버 데이터로 옮길지 다시 검토한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/잠금화면-시작화면",
+  "id": "ADR-052",
+  "meta": {},
+  "relations": {
+    "informs": [
+      "SRS-091",
+      "SRS-092"
+    ],
+    "supersedes": [
+      "ADR-045"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "프로 루틴 — 국내외 선수 영상으로 넓히고 분석 기사를 근거로 허용한다",
+  "type": "ADR",
+  "updated": "2026-11-05T02:30:32Z"
+}
