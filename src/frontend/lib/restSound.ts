@@ -11,9 +11,11 @@
 // 프리셋 4종(딩·차임·화음·부저)의 주파수·길이·비중은 app 값을 그대로 옮겼다. 설정은 기기-로컬이고
 // **키도 app과 같다**(`liftgram.restSound`·`liftgram.restVolume`) — 두 구현을 오가도 설정이 이어진다.
 //
-// app에만 있는 것(여기서 뺀 것): 잠금화면 MediaSession 카드 · keep-alive 오실레이터 · 네이티브 알람.
+// app에만 있는 것(여기서 뺀 것): 잠금화면 MediaSession 카드 · keep-alive 오실레이터.
+// 안드로이드 앱은 네이티브 소리를 먼저 쓰고, 낡은 껍데기·iOS 만 이 파일의 웹 소리로 낸다(ADR-056).
 // 그건 화면이 꺼진 폰에서 소리를 내기 위한 장치라 브라우저 탭에는 해당하지 않는다.
 // ─────────────────────────────────────────────────────────────────────────────
+import { lock, lockAvailable } from "./native";
 import { getPref, setPref } from "./prefs";
 
 export type RestSoundKind = "ding" | "chime" | "triad" | "buzz";
@@ -80,9 +82,29 @@ function audioContext(): AudioContext | null {
       ? undefined
       : (window.AudioContext ?? (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
   if (!Ctor) return null;
+  // 짧은 알림음이라고 알린다(iOS 16.4+ · 지원 브라우저) — 음악을 끊지 않고 위에 섞는다(ADR-056)
+  try {
+    const session = (navigator as { audioSession?: { type: string } }).audioSession;
+    if (session) session.type = "transient";
+  } catch {
+    // 지원하지 않음
+  }
   ctxRef = new Ctor();
   return ctxRef;
 }
+
+// 소리가 끝나면 문맥을 멈춘다 — 켜 둔 채면 기기의 오디오 세션을 계속 쥐어 다른 앱 소리를 막을 수 있다(ADR-056)
+let idleTimer: ReturnType<typeof setTimeout> | null = null;
+const IDLE_SUSPEND_MS = 2_000; // 가장 긴 프리셋(약 1초) + 여유
+function suspendWhenIdle(ctx: AudioContext): void {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    idleTimer = null;
+    void ctx.suspend().catch(() => {});
+  }, IDLE_SUSPEND_MS);
+}
+
+const NATIVE_VOLUME: Record<RestVolumeLevel, number> = { mid: 1, loud: 2, max: 3 };
 
 /** 소프트클립 버스 — 모든 소리가 여기를 지나간다. 한 번만 만든다. */
 function masterBus(ctx: AudioContext): GainNode {
@@ -131,10 +153,27 @@ function beep(
  */
 export function playRestSound(kind: RestSoundKind = getRestSoundKind()): void {
   if (silenced) return; // 다른 탭이 쓰기 주인이 됐다 — 그 탭이 휴식을 이어받는다 @plm SRS-089
+  // 앱에서는 네이티브가 낸다 — 음악을 잠깐 줄였다 돌려주는 요청을 직접 한다. 낡은 껍데기·실패면 웹으로(ADR-056)
+  if (lockAvailable()) {
+    void lock
+      .playRestSound(kind, NATIVE_VOLUME[getRestVolumeLevel()])
+      .then((r) => {
+        if (r?.played !== true) playWebSound(kind);
+      })
+      .catch(() => playWebSound(kind));
+    return;
+  }
+  playWebSound(kind);
+}
+
+function playWebSound(kind: RestSoundKind): void {
+  if (silenced) return; // 네이티브 답을 기다리는 사이 봉인됐을 수 있다
   try {
     const ctx = audioContext();
     if (!ctx) return;
-    if (ctx.state === "suspended") void ctx.resume();
+    // [원본] if (ctx.state === "suspended") void ctx.resume();
+    // [개선] 멈춤이 막 나간 직후에는 state 가 아직 running 이다 — 늘 깨운다(REV 낮음-3)
+    void ctx.resume();
     const t = ctx.currentTime;
 
     switch (kind) {
@@ -158,6 +197,7 @@ export function playRestSound(kind: RestSoundKind = getRestSoundKind()): void {
         beep(ctx, 196, t + 0.44, 0.2, { type: "square", peak: 0.5 });
         break;
     }
+    suspendWhenIdle(ctx);
   } catch {
     // 소리가 안 나는 것으로 끝낸다.
   }

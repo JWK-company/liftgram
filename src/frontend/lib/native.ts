@@ -480,6 +480,8 @@ async function call(name: string, arg?: Record<string, unknown>): Promise<Record
 }
 
 export const lock = {
+  /** 휴식 끝 소리를 네이티브로(앱 1.5.5+ · 음악을 잠깐 줄였다 돌려준다) — 낡은 껍데기면 null 또는 거절. */
+  playRestSound: (kind: string, volume: number) => call("playRestSound", { kind, volume }),
   /** 표시 사본을 바꾼다(스냅샷 통째). */
   sessionUpdate: (snapshot: unknown) => call("sessionUpdate", { snapshot }),
   /** 휴식만 즉시(§7) — 스냅샷과 따로. */

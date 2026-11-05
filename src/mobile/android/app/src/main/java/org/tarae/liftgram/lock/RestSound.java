@@ -3,6 +3,7 @@ package org.tarae.liftgram.lock;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
+import android.media.AudioFocusRequest;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -14,8 +15,8 @@ import android.os.Vibrator;
  * 휴식 끝 소리 — 웹 `src/frontend/lib/restSound.ts` 의 프리셋 4종(ding·chime·triad·buzz) × 음량 3단계를 같은 음으로 합성한다
  * (웹 마스터 버스와 같은 소프트클립 tanh(2.5·x) — 입력은 [-1,1]로 자른 뒤 · 지수 여닫이). wav 12개를 싣는 대신 같은 식으로 만들어
  * 웹과 소리가 어긋나지 않게 했다(REV-007 표시 H-5 — 처음엔 곡선이 달라 mid 가 4.6dB 작았다). 사각파는 대역 제한이 없어 웹보다 조금 거칠다.
- * 이어폰이 없으면 USAGE_ALARM — 무음 모드·미디어 음량과 무관하게 알람 음량으로 난다. 이어폰이 있으면 USAGE_MEDIA — 알람은 이어폰이 있어도
- * 스피커로 함께 나가므로(안드로이드 동시 출력) 미디어로 내 이어폰으로만 보낸다(음량은 미디어 음량). 호출한 스레드에서 끝날 때까지 기다린다(리시버 goAsync 안).
+ * 이어폰이 없고 음악도 없으면 USAGE_ALARM — 무음 모드·미디어 음량과 무관하게 알람 음량으로 난다. 이어폰이 있으면 USAGE_MEDIA — 알람은 이어폰이
+ * 있어도 스피커로 함께 나가므로(안드로이드 동시 출력) 미디어로 내 이어폰으로만 보낸다(음량은 미디어 음량). 음악이 들리는 중이거나 앱이 앞에 있어도 미디어다(ADR-056). 호출한 스레드에서 끝날 때까지 기다린다(리시버 goAsync 안).
  */
 public final class RestSound {
     static final int RATE = 44_100;
@@ -121,16 +122,50 @@ public final class RestSound {
         return false;
     }
 
+    private static boolean musicAudible(AudioManager am) {
+        return am != null && am.isMusicActive() && am.getStreamVolume(AudioManager.STREAM_MUSIC) > 0;
+    }
+
     public static void play(Context ctx, String kind, int volume) {
+        vibrate(ctx);
+        playTone(ctx, kind, volume, false);
+    }
+
+    /**
+     * 소리만(앱이 앞일 때 — 진동은 웹이 낸다). 호출한 스레드에서 끝날 때까지 기다린다.
+     * 음악을 끊으면 안 된다(사용자 보고 2026-11-05 · ADR-056) — 소리 동안만 GAIN_TRANSIENT_MAY_DUCK 을 잡고 돌려준다.
+     * 음악 앱은 LOSS_TRANSIENT_CAN_DUCK 를 받아 소리만 줄이고, 끝나면 GAIN 을 받는다. 포커스를 못 받아도 소리는 낸다.
+     */
+    public static void playTone(Context ctx, String kind, int volume, boolean foreground) {
+        AudioManager am = ctx.getSystemService(AudioManager.class);
+        AudioAttributes attrs = new AudioAttributes.Builder()
+                // [원본] .setUsage(AudioAttributes.USAGE_ALARM)
+                // 음악이 들리는 중이면 미디어로 — 알람 용도는 스피커까지 같이 울려 경로가 바뀌고, 음악 앱이 멈출 수 있다(ADR-056)
+                // 미디어 음량이 0이면 음악이 안 들리는 것이니 알람으로 둔다 · 앱이 앞이면 음량 키가 맞추는 미디어로(미리 듣기 포함)
+                .setUsage(usageFor(foreground || hasPersonalOutput(ctx) || musicAudible(am)))
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        AudioFocusRequest focus = null;
+        boolean legacyFocus = false;
+        AudioManager.OnAudioFocusChangeListener noop = c -> {};
+        AudioTrack tr = null;
         try {
-            vibrate(ctx);
+            if (am != null && Build.VERSION.SDK_INT >= 26) {
+                focus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+                        .setAudioAttributes(attrs)
+                        .setWillPauseWhenDucked(false)
+                        .setOnAudioFocusChangeListener(noop)
+                        .build();
+                int granted = am.requestAudioFocus(focus);
+                // 앱이 완전히 뒤에 있으면 거절될 수 있다 — 소리는 그대로 낸다(음악 위에 섞인다)
+                android.util.Log.i("LiftgramLock", "휴식 끝 소리 포커스=" + granted + " 음악=" + am.isMusicActive());
+            } else if (am != null) {
+                legacyFocus = true;
+                am.requestAudioFocus(noop, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+            }
             short[] pcm = render(kind, volume);
-            AudioTrack tr = new AudioTrack.Builder()
-                    .setAudioAttributes(new AudioAttributes.Builder()
-                            // [원본] .setUsage(AudioAttributes.USAGE_ALARM)
-                            .setUsage(usageFor(hasPersonalOutput(ctx)))
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build())
+            tr = new AudioTrack.Builder()
+                    .setAudioAttributes(attrs)
                     .setAudioFormat(new AudioFormat.Builder()
                             .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                             .setSampleRate(RATE)
@@ -142,9 +177,13 @@ public final class RestSound {
             tr.write(pcm, 0, pcm.length);
             tr.play();
             Thread.sleep((long) (pcm.length * 1000.0 / RATE) + 100);
-            tr.release();
         } catch (Exception e) {
             android.util.Log.w("LiftgramLock", "휴식 끝 소리 실패", e);
+        } finally {
+            if (tr != null) tr.release();
+            // 어떤 경로로 끝나도 돌려준다 — 안 돌려주면 음악이 줄어든 채로 남는다
+            if (am != null && focus != null) am.abandonAudioFocusRequest(focus);
+            else if (am != null && legacyFocus) am.abandonAudioFocus(noop);
         }
     }
 
