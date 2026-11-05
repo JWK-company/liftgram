@@ -17,9 +17,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // @plm SRS-042  낭독은 «듣는 앱」 의 소리다 — 무음 스위치에도 들리고, 화면을 끄거나 다른 앱으로 가도 이어진다
-        //   (Info.plist UIBackgroundModes audio 와 짝). spokenAudio: 내비 안내가 끼어들면 낭독이 멈췄다 이어진다.
-        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
+        // [원본] @plm SRS-042  낭독은 «듣는 앱」 의 소리다 — 템플릿 잔재(이 앱에는 낭독·백그라운드 오디오 설정이 없다)
+        // [원본] try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .spokenAudio)
+        // [개선] 음악 위에 섞는다 — 섞기 옵션이 없으면 알림음이 음악 앱을 끊고 돌려주지 않는다(사용자 보고 2026-11-05 · ADR-056)
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
         return true
     }
 

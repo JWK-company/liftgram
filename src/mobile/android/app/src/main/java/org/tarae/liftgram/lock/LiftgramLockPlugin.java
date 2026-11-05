@@ -97,6 +97,18 @@ public class LiftgramLockPlugin extends Plugin {
         return LockHub.store(getContext());
     }
 
+    /** 앱이 앞일 때의 휴식 끝 소리(ADR-056) — 소리가 끝나길 기다리지 않고 바로 답한다. 진동은 웹이 낸다. */
+    @PluginMethod
+    public void playRestSound(PluginCall call) {
+        String kind = call.getString("kind", "ding");
+        int volume = call.getInt("volume", 2);
+        android.content.Context ctx = getContext().getApplicationContext();
+        new Thread(() -> RestSound.playTone(ctx, kind, volume, true), "rest-sound").start();
+        JSObject r = new JSObject();
+        r.put("played", true);
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void info(PluginCall call) {
         JSObject r = new JSObject();
