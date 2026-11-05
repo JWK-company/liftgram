@@ -163,8 +163,13 @@ export async function pinMotionClips(clips: string[], signal?: AbortSignal): Pro
     for (const clip of want) {
       if (run.signal.aborted || !canPrefetch()) return;
       if (readIndex()[clip]) continue;
-      const res = await fetch(motionVideoUrl(clip), { signal: run.signal });
-      if (res.ok) await store(clip, res, true);
+      // 한 클립이 망가져도 뒤 종목은 받는다. 멈춤 신호면 위쪽 검사에서 끝난다.
+      try {
+        const res = await fetch(motionVideoUrl(clip), { signal: run.signal });
+        if (res.ok) await store(clip, res, true);
+      } catch {
+        /* 다음 클립으로 */
+      }
     }
   } catch {
     /* 망이 끊겼거나 멈췄다 — 다음 기회에 */

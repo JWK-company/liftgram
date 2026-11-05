@@ -12,6 +12,7 @@ for k in keys:
     if r["v"] == "fail" and (k not in w or not all(x.split("=")[0] in w[k]["metrics"] for x in r["fail"])): bad.append((k, r["fail"])); continue
     info = json.load(open(f"{comp}/{k}/info.json")); mp4 = f"{comp}/{k}/{k}.mp4"
     if hashlib.sha256(open(mp4, "rb").read()).hexdigest() != info["sha256"]: bad.append((k, "합성 해시 불일치")); continue
+    if r.get("sha256") != info["sha256"]: bad.append((k, "판정받은 영상과 다름")); continue  # 사전 점검 판정·판정 뒤 재합성을 막는다
     pub[k] = k.replace("+", "-")+"."+info["sha8"]
 stale = [k for k in w if k not in keys]
 if stale: bad.append(("waivers", stale))

@@ -64,7 +64,7 @@ if __name__ == "__main__":
         if not os.path.exists(p): res[k] = dict(v="fail", fail=["지표 없음"], warn=[]); cnt["fail"] += 1; continue
         r = rep.get(k) or {}
         if a.report and ("error" in r or not r): res[k] = dict(v="fail", fail=[r.get("error", "합성 없음")], warn=[]); cnt["fail"] += 1; continue
-        mj = json.load(open(p)); f = facts(k, mj, r); w, fl = judge(f); fl = fl+[f"{n} 없음" for n in missing(k, mj, f, not a.probe)]; v = "fail" if fl else "warn" if w else "ok"; cnt[v] += 1; res[k] = dict(v=v, warn=w, fail=fl, facts=f)
+        mj = json.load(open(p)); f = facts(k, mj, r); w, fl = judge(f); fl = fl+[f"{n} 없음" for n in missing(k, mj, f, not a.probe)]; v = "fail" if fl else "warn" if w else "ok"; cnt[v] += 1; res[k] = dict(v=v, sha256=r.get("sha256"), warn=w, fail=fl, facts=f)
     if a.out:
         with open(a.out+".tmp", "w") as of: json.dump(res, of, ensure_ascii=False, indent=0)
         os.replace(a.out+".tmp", a.out)

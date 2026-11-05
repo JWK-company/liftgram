@@ -130,10 +130,6 @@ export function Pictogram({
   ) : null;
   if (still === null && !photo) return <>{fallback}</>;
   const svg = moving && frames ? frames[i] : still;
-  if (!svg) {
-    // 불러오는 중 — 자리만 잡아 둔다(줄 높이가 흔들리지 않게)
-    return <span className={className} data-testid={testId} aria-hidden="true" />;
-  }
   if (photo) {
     return (
       <span
@@ -147,6 +143,10 @@ export function Pictogram({
         {photo}
       </span>
     );
+  }
+  if (!svg) {
+    // 불러오는 중 — 자리만 잡아 둔다(줄 높이가 흔들리지 않게)
+    return <span className={className} data-testid={testId} aria-hidden="true" />;
   }
   return (
     <span
