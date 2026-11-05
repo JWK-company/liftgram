@@ -207,10 +207,11 @@ func (q *Queries) LockUserFeedback(ctx context.Context, userID string) error {
 }
 
 const purgeClosedUserFeedback = `-- name: PurgeClosedUserFeedback :execrows
-DELETE FROM feedback_items WHERE kind = 'user' AND closed_at < $1
+DELETE FROM feedback_items
+WHERE kind = 'user' AND (closed_at < $1 OR (closed_at IS NULL AND created_at < $1))
 `
 
-// 처리 끝난 사용자 의견은 1년 뒤 지운다.
+// 처리 끝난 사용자 의견은 처리 후 1년, 처리되지 않은 의견은 접수 후 1년 뒤 지운다(방침 3절).
 func (q *Queries) PurgeClosedUserFeedback(ctx context.Context, before pgtype.Timestamptz) (int64, error) {
 	result, err := q.db.Exec(ctx, purgeClosedUserFeedback, before)
 	if err != nil {

@@ -13,10 +13,10 @@ ON CONFLICT (actor_kind, actor_id, client_event_id) DO NOTHING;
 
 -- name: UsageCountActorEvents :one
 SELECT count(*)::bigint FROM usage_events
-WHERE actor_kind = @actor_kind::text AND actor_id = @actor_id::text AND at >= @since_at;
+WHERE actor_kind = @actor_kind::text AND actor_id = @actor_id::text AND received_at >= @since_at;
 
 -- name: UsageCountEventsSince :one
-SELECT count(*)::bigint FROM usage_events WHERE at >= @since_at;
+SELECT count(*)::bigint FROM usage_events WHERE received_at >= @since_at;
 
 -- 2분 안의 신호는 쓰지 않는다 — 고쳐 쓴 행이 없으면 활성일도 쓰지 않아 쓰기가 사용자당 2분에 한 번으로 묶인다.
 -- name: UsageTouchPresence :execrows

@@ -102,7 +102,7 @@ test("하루 5건을 넘기면 안내하고 글을 지우지 않는다", async (
   await expect(page.getByTestId("user-feedback-body")).toHaveValue(글);
 });
 
-test("비로그인은 로그인 안내를 보고, 로그인하면 쓰던 초안으로 돌아온다", async ({ page }) => {
+test("비로그인은 로그인 안내를 보고, 로그인하면 의견 화면으로 돌아오며 로그아웃 전 초안은 지워져 있다", async ({ page }) => {
   const email = freshEmail("back");
   await 가입(page, email, "복귀시험");
   await page.goto("/profile/feedback");
@@ -123,9 +123,9 @@ test("비로그인은 로그인 안내를 보고, 로그인하면 쓰던 초안�
   await page.getByTestId("auth-password-input").fill("hunter22!");
   await page.getByTestId("btn-auth-submit").click();
   await expect(page).toHaveURL(/\/profile\/feedback$/, { timeout: 20_000 });
-  await expect(page.getByTestId("user-feedback-body")).toHaveValue("로그아웃 전에 쓴 글", {
-    timeout: 20_000,
-  });
+  // [원본] 로그아웃 전 글이 그대로 돌아왔다 — 같은 기기의 다른 계정에게 보여 로그아웃 때 지운다(REV-044)
+  await expect(page.getByTestId("user-feedback-body")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("user-feedback-body")).toHaveValue("");
 });
 
 test("외부 주소로는 돌아가지 않는다", async ({ page }) => {

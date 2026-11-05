@@ -496,7 +496,7 @@ func (q *Queries) AdminUsageRetention(ctx context.Context, arg AdminUsageRetenti
 const adminUsageTableStats = `-- name: AdminUsageTableStats :one
 SELECT (pg_total_relation_size('usage_events') + pg_total_relation_size('usage_presence')
         + pg_total_relation_size('usage_active_days') + pg_total_relation_size('usage_daily'))::bigint AS bytes,
-       (SELECT count(*) FROM usage_events WHERE at >= $1)::bigint AS rows_24h
+       (SELECT count(*) FROM usage_events WHERE received_at >= $1)::bigint AS rows_24h
 `
 
 type AdminUsageTableStatsRow struct {

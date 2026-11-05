@@ -187,5 +187,5 @@ ORDER BY last30d DESC, metric;
 -- name: AdminUsageTableStats :one
 SELECT (pg_total_relation_size('usage_events') + pg_total_relation_size('usage_presence')
         + pg_total_relation_size('usage_active_days') + pg_total_relation_size('usage_daily'))::bigint AS bytes,
-       (SELECT count(*) FROM usage_events WHERE at >= @since_at)::bigint AS rows_24h;
+       (SELECT count(*) FROM usage_events WHERE received_at >= @since_at)::bigint AS rows_24h;
 

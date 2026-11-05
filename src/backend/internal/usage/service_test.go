@@ -129,7 +129,8 @@ func TestRateKey_IPv6는_64로_묶는다(t *testing.T) {
 	if a != b || a == c {
 		t.Fatalf("%s %s %s", a, b, c)
 	}
-	if RateKey("1.2.3.4") != "1.2.3.4" || RateKey("쓰레기") != "unknown" {
+	// IP 원문이 제한 키에 남지 않는다
+	if RateKey("1.2.3.4") == "1.2.3.4" || RateKey("1.2.3.4") == RateKey("1.2.3.5") || RateKey("쓰레기") != "unknown" {
 		t.Fatal("IPv4·이상값")
 	}
 }
@@ -185,7 +186,7 @@ func TestReport_상한(t *testing.T) {
 	ctx := context.Background()
 	// IP 횟수 제한은 429 라 기기가 큐를 지키고 다음에 다시 보낸다.
 	f := newFake()
-	a := &allow{deny: map[string]bool{"usage:ip:1.2.3.4": true}}
+	a := &allow{deny: map[string]bool{"usage:ip:"+RateKey("1.2.3.4"): true}}
 	_, err := svc(f, a, now).Report(ctx, Input{IP: "1.2.3.4", DeviceID: dev, Events: one("app_open", 0)})
 	var de *errs.DomainError
 	if !errors.As(err, &de) || de.Code != errs.ResourceExhausted {
@@ -193,7 +194,7 @@ func TestReport_상한(t *testing.T) {
 	}
 	// 새 기기 상한 — 새 기기는 조용히 버리고, 이미 있는 기기는 영향 없다.
 	f = newFake()
-	a = &allow{deny: map[string]bool{"usage:newdev:1.2.3.4": true}}
+	a = &allow{deny: map[string]bool{"usage:newdev:"+RateKey("1.2.3.4"): true}}
 	r, err := svc(f, a, now).Report(ctx, Input{IP: "1.2.3.4", DeviceID: dev, Presence: true, Events: one("app_open", 0)})
 	if err != nil || r.Accepted != 0 || f.touches != 0 {
 		t.Fatalf("새 기기: %+v %v", r, err)
@@ -252,8 +253,8 @@ func TestRunJob_집계가_실패하면_지우지_않는다(t *testing.T) {
 
 func TestAggregateDays(t *testing.T) {
 	days := AggregateDays(now, "", "")
-	if len(days) != 7 || days[0] != "2026-11-14" || days[6] != "2026-11-20" {
-		t.Fatalf("기본 7일: %v", days)
+	if len(days) != 8 || days[0] != "2026-11-13" || days[7] != "2026-11-20" {
+		t.Fatalf("기본 8일(받는 나이 7일 + 오늘): %v", days)
 	}
 	// 서버가 꺼져 있던 날을 채운다.
 	days = AggregateDays(now, "2026-11-01", "")
@@ -271,7 +272,7 @@ func TestAggregateDays(t *testing.T) {
 		t.Fatalf("상한: %d", len(days))
 	}
 	// 한국 날짜 경계: UTC 15시 이후는 다음 날이다.
-	if d := AggregateDays(time.Date(2026, 11, 19, 15, 30, 0, 0, time.UTC), "", ""); d[6] != "2026-11-20" {
+	if d := AggregateDays(time.Date(2026, 11, 19, 15, 30, 0, 0, time.UTC), "", ""); d[len(d)-1] != "2026-11-20" {
 		t.Fatalf("경계: %v", d)
 	}
 }

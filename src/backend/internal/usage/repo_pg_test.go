@@ -72,10 +72,21 @@ func TestPgRepo_이용기록(t *testing.T) {
 	if n, err := r.InsertEvents(ctx, "guest", guest, "web", "1.0.0", row); err != nil || n != 0 {
 		t.Fatalf("재전송 %d %v", n, err)
 	}
-	if n, _ := r.CountActorEvents(ctx, "guest", guest, now.Add(-time.Hour)); n != 1 {
+	// 상한은 받은 시각으로 센다 — at 을 과거로 보내도 빠져나가지 못한다(코드 리뷰 H-1)
+	pastCid := uuid.NewString()
+	if n, err := r.InsertEvents(ctx, "guest", guest, "web", "1", []EventRow{{At: now.Add(-6 * 24 * time.Hour), ClientEventID: pastCid, Event: "app_open"}}); err != nil || n != 1 {
+		t.Fatalf("과거 시각 넣기: %d %v", n, err)
+	}
+	if n, _ := r.CountActorEvents(ctx, "guest", guest, time.Now().Add(-time.Hour)); n < 1 {
+		t.Fatalf("과거 시각 행이 상한에 안 잡힌다: %d", n)
+	}
+	if _, err := pool.Exec(ctx, `DELETE FROM usage_events WHERE client_event_id = $1`, pastCid); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := r.CountActorEvents(ctx, "guest", guest, time.Now().Add(-time.Hour)); n != 1 {
 		t.Fatalf("주체 건수 %d", n)
 	}
-	if n, _ := r.CountEventsSince(ctx, now.Add(-time.Hour)); n != 1 {
+	if n, _ := r.CountEventsSince(ctx, time.Now().Add(-time.Hour)); n != 1 {
 		t.Fatalf("전체 건수 %d", n)
 	}
 	// 같은 ID 라도 다른 주체면 다른 행이다.

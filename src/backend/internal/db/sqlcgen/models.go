@@ -362,6 +362,7 @@ type UsageEvent struct {
 	Event         string
 	Platform      string
 	AppVersion    string
+	ReceivedAt    pgtype.Timestamptz
 }
 
 type UsagePresence struct {

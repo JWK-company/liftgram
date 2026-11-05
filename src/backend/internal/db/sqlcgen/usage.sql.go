@@ -104,7 +104,7 @@ func (q *Queries) UsageAggregatePlatforms(ctx context.Context, arg UsageAggregat
 
 const usageCountActorEvents = `-- name: UsageCountActorEvents :one
 SELECT count(*)::bigint FROM usage_events
-WHERE actor_kind = $1::text AND actor_id = $2::text AND at >= $3
+WHERE actor_kind = $1::text AND actor_id = $2::text AND received_at >= $3
 `
 
 type UsageCountActorEventsParams struct {
@@ -121,7 +121,7 @@ func (q *Queries) UsageCountActorEvents(ctx context.Context, arg UsageCountActor
 }
 
 const usageCountEventsSince = `-- name: UsageCountEventsSince :one
-SELECT count(*)::bigint FROM usage_events WHERE at >= $1
+SELECT count(*)::bigint FROM usage_events WHERE received_at >= $1
 `
 
 func (q *Queries) UsageCountEventsSince(ctx context.Context, sinceAt pgtype.Timestamptz) (int64, error) {

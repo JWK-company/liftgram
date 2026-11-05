@@ -458,7 +458,8 @@ function RoutineSection() {
               />
               <Tile
                 label={t("admin.stats.weekly")}
-                value={(Number(data.workouts) / Math.max(1, Number(data.activeUsers)) / 4).toFixed(1)}
+                // [원본] .../ 4 — 시행 후 4주가 안 되면 실제보다 낮게 나왔다(코드 리뷰 L-1)
+                value={(Number(data.workouts) / Math.max(1, Number(data.activeUsers)) / statsWeeks()).toFixed(1)}
                 caption={t("admin.stats.weeklyCaption", { n: num(data.activeUsers) })}
                 testId="stat-weekly"
               />
@@ -582,6 +583,13 @@ function OperationsSection() {
       ) : null}
     </Section>
   );
+}
+
+/** 주당 횟수의 분모 — 최근 28일 집계지만 시행(2026-11-05) 후 4주가 안 됐으면 지난 주 수로 나눈다. */
+const STATS_SINCE_MS = Date.parse("2026-11-05T00:00:00+09:00");
+function statsWeeks(): number {
+  const weeks = (Date.now() - STATS_SINCE_MS) / (7 * 24 * 60 * 60 * 1000);
+  return Math.min(4, Math.max(1, weeks));
 }
 
 export default function StatsClient() {

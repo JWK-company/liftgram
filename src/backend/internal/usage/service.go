@@ -5,6 +5,8 @@ package usage
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"log/slog"
 	"net"
 	"regexp"
@@ -19,13 +21,16 @@ const (
 	// 원본 보관 기간. 합계는 지우지 않는다.
 	RetainDays = 90
 	// 최근 며칠을 다시 계산하는가(늦게 온 보고를 받아들인다).
-	RecomputeDays = 7
+	// [원본] RecomputeDays = 7 — 받는 나이(7일)보다 하루 짧아 D-7 늦은 기록이 집계에서 빠졌다(코드 리뷰 L-2)
+	RecomputeDays = 8
 
 	// 통신사 NAT 뒤에는 한 IP 에 사람이 많다 — 넉넉히 잡고, 표가 끝없이 커지는 것만 막는다.
 	RatePerIPPerMinute   = 600
 	NewDevicesPerIPDaily = 200
 	RowsPerActorDaily    = 2000
 	RowsGlobalDaily      = 500_000
+	// 한 IP 가 전체 상한을 혼자 채우지 못하게 한다 — 기록을 담은 요청 수로 센다(요청당 최대 50행 · 코드 리뷰 M-1).
+	EventBatchesPerIPDaily = 2000
 )
 
 // KST — 일 경계. 컨테이너에 tzdata 가 없어도 같게 고정 오프셋을 쓴다.
@@ -147,10 +152,13 @@ func RateKey(ip string) string {
 	if parsed == nil {
 		return "unknown"
 	}
+	// [원본] IP 를 그대로 돌려줬다 — 제한 키로 Redis 에 하루까지 남는다. 「IP 를 저장하지 않는다」에 맞게 해시한다(코드 리뷰 L-4)
+	key := parsed.Mask(net.CIDRMask(64, 128)).String()
 	if v4 := parsed.To4(); v4 != nil {
-		return v4.String()
+		key = v4.String()
 	}
-	return parsed.Mask(net.CIDRMask(64, 128)).String()
+	sum := sha256.Sum256([]byte("usage-rate:" + key))
+	return hex.EncodeToString(sum[:12])
 }
 
 // Filter 는 이벤트를 저장할 줄로 바꾼다. 허용 목록·형식·나이·시행일을 본다.
@@ -242,6 +250,9 @@ func (s *Service) Report(ctx context.Context, in Input) (Result, error) {
 		return res, nil
 	}
 
+	if !s.limiter.Allow(ctx, "usage:batch:"+ipKey, EventBatchesPerIPDaily, 24*time.Hour) {
+		return res, nil
+	}
 	since := now.Add(-24 * time.Hour)
 	used, err := s.repo.CountActorEvents(ctx, kind, id, since)
 	if err != nil {
@@ -259,7 +270,10 @@ func (s *Service) Report(ctx context.Context, in Input) (Result, error) {
 		return res, err
 	}
 	if global >= RowsGlobalDaily {
-		slog.Warn("이용 기록 전체 하루 상한에 닿았다", "rows", global)
+		// 요청마다 찍지 않는다 — 상한에 닿으면 로그가 넘친다
+		if s.limiter.Allow(ctx, "usage:globalwarn", 1, time.Hour) {
+			slog.Warn("이용 기록 전체 하루 상한에 닿았다", "rows", global)
+		}
 		return res, nil
 	}
 	n, err := s.repo.InsertEvents(ctx, kind, id, NormalizePlatform(in.Platform), NormalizeVersion(in.Version), rows)

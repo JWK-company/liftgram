@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "id": "REV-047",
+  "type": "Review",
+  "title": "SPEC-032 Phase 2·3 코드 리뷰",
+  "group": "할일/운영자-페이지",
+  "meta": {
+    "mode": "code",
+    "adopted": "10",
+    "held": "3",
+    "rejected": "0"
+  },
+  "relations": {
+    "reviews": [
+      "SPEC-032"
+    ]
+  },
+  "doc": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "패널 구성"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "독립 코드 리뷰어 1명. 권한·남용·개인정보·집계·운영·프런트 여섯 관점을 봤다."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "핵심 지적"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "H-1 이벤트 시각을 과거로 보내 저장 상한 회피"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M-1 한 IP가 전체 상한을 채움"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M-2 users 잠금과 인덱스 생성이 한 트랜잭션"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "M-3 미처리 의견 보관 기간 누락"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "L-1~L-8 주당 횟수 분모, 재계산 범위, 고아 정리, IP 키, 스위치, 탭 동기, 새 기기 소모, 정리"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "분류"
+          }
+        ]
+      },
+      {
+        "type": "bullet_list",
+        "content": [
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "채택: H-1(received_at 칸으로 계산), M-1(IP별 요청 상한, 경고 시간당 1회), M-2(0028·0029 분리, 이용 표는 0030), M-3(미처리 의견도 접수 후 1년 삭제와 방침 명시), L-1, L-2(재계산 8일), L-4(제한 키 해시), L-5, L-6, L-8의 인덱스 정리와 방침 문구."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "list_item",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "보류: L-3(평소 표가 작음), L-7(요청 상한 안에서 영향 작음), L-8의 재방문 첫 방문일."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "후속 조치"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "권한 우회는 없었다. 전체 브라우저 시험 386 통과, 실패 9건 중 환경 설정 4건과 낡은 시험 1건을 고쳐 관련 20건 재실행 통과, 나머지 4건은 기존 실패다(dm 알림 1, opengym-import 실패 주입 3)."
+          }
+        ]
+      }
+    ]
+  }
+}

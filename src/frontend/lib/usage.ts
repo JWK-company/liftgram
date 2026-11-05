@@ -71,8 +71,11 @@ function writeQueue(items: Item[]): void {
 
 // ── 끄기 ──
 const optListeners = new Set<() => void>();
+// 저장소가 막힌 환경에서도 이번 실행 동안은 끈 것이 지켜지게 메모리에도 둔다(코드 리뷰 L-5)
+let optOutMemory: boolean | null = null;
 
 export function usageOptedOut(): boolean {
+  if (optOutMemory !== null) return optOutMemory;
   try {
     return localStorage.getItem(OPT_OUT_KEY) === "1";
   } catch {
@@ -80,8 +83,19 @@ export function usageOptedOut(): boolean {
   }
 }
 
+// 다른 탭에서 끄면 이 탭의 메모리 항목도 버리고 스위치를 맞춘다(코드 리뷰 L-6)
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== OPT_OUT_KEY) return;
+    optOutMemory = null;
+    if (e.newValue === "1") pending = [];
+    for (const fn of optListeners) fn();
+  });
+}
+
 /** 끄면 쌓인 것도 지운다 — 전송과 접속 신호가 모두 멈춘다. */
 export function setUsageOptedOut(off: boolean): void {
+  optOutMemory = off;
   try {
     if (off) localStorage.setItem(OPT_OUT_KEY, "1");
     else localStorage.removeItem(OPT_OUT_KEY);
@@ -128,6 +142,10 @@ export function trackUsage(event: string, opts?: { throttleMs?: number }): void 
 /** 메모리의 것을 저장한다. 신원을 모르는 동안은 메모리에 둔다. */
 export function persistUsage(): void {
   if (actor === null || pending.length === 0) return;
+  if (usageOptedOut()) {
+    pending = [];
+    return;
+  }
   const a = actor;
   const merged = [...readQueue(), ...pending.map((p) => ({ ...p, a }))];
   pending = [];

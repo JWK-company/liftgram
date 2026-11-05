@@ -9,10 +9,13 @@ CREATE TABLE IF NOT EXISTS usage_events (
   event text NOT NULL,
   platform text NOT NULL DEFAULT 'unknown' CHECK (platform IN ('web', 'android', 'ios', 'unknown')),
   app_version text NOT NULL DEFAULT '',
+  -- 서버가 받은 시각. at 은 기기가 보낸 나이로 정해져 과거로 위조할 수 있다 — 저장 상한은 이 칸으로 센다(코드 리뷰 H-1)
+  received_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (actor_kind, actor_id, client_event_id)
 );
 CREATE INDEX IF NOT EXISTS usage_events_at_idx ON usage_events (at);
-CREATE INDEX IF NOT EXISTS usage_events_event_at_idx ON usage_events (event, at);
+CREATE INDEX IF NOT EXISTS usage_events_received_idx ON usage_events (received_at);
+CREATE INDEX IF NOT EXISTS usage_events_actor_received_idx ON usage_events (actor_kind, actor_id, received_at);
 
 CREATE TABLE IF NOT EXISTS usage_presence (
   actor_kind text NOT NULL,
