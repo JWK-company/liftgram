@@ -1,203 +1,237 @@
-// @plm SRS-049  개발 피드백 규칙 — 아이디어보드로 보내고, 우리 것만 골라 되읽는다
+// 피드백 규칙(SPEC-032) — 운영 피드백은 운영진만, 사용자 의견은 로그인한 앱 사용자가 쓴다. 둘은 섞이지 않는다.
 //
-// ─────────────────────────────────────────────────────────────────────────────
-// 이 파일이 아는 것 둘:
-//
-//	① **누가 쓸 수 있나** — coworker·admin뿐이다. 화면이 탭을 숨기는 것과 별개로 여기서 막는다.
-//	② **어느 아이디어가 우리 것인가** — 본문 최후미의 기계 마커로 알아본다.
-//
-// ── 왜 마커를 심나 ──────────────────────────────────────────────────────────
-// PLM 아이디어보드에는 "분류"도 "제출자 id"도 칸이 없다. 우리 DB에 따로 쌓으면 두 곳이
-// 어긋나므로, **본문 안에** 기계 판독용 한 줄을 심어 왕복시킨다. HTML 주석이라 대시보드에서는
-// 눈에 띄지 않는다.
-//
-// ── 마커는 신뢰 경계다 ─────────────────────────────────────────────────────
-// 사용자가 상세 본문에 마커처럼 생긴 문자열을 적어 넣을 수 있다. 그래서:
-//
-//	· **마지막** 마커만 믿는다(우리가 심은 것은 항상 최후미다)
-//	· 마커 **앞에 푸터가 있어야** 한다 — 대시보드에서 손으로 쓴 마커-only 본문을 배제한다
-//
-// 둘 중 하나라도 어긋나면 그 항목은 우리 것이 아니다(= 목록에서 빠진다). 이 검사가 없으면
-// 남의 uid를 적어 넣어 "내 피드백"으로 위장하거나, 분류를 조작할 수 있다.
-//
-// ── 상태는 읽기만 한다 ─────────────────────────────────────────────────────
-// 논의·투표·채택은 PLM에서 돌아간다. 모르는 상태 문자열이 와도 **원문을 함께** 실어
-// 화면이 빈칸을 보이지 않게 한다.
-// ─────────────────────────────────────────────────────────────────────────────
+// 본문은 신뢰할 수 없는 입력이다. 나중에 승인 뒤 자동 수정으로 이을 때도 입력은 승인자의 지시이고,
+// 원문은 데이터로만 다룬다. 그래서 승인은 그 순간의 본문 해시와 승인자의 메모를 함께 남긴다.
 package feedback
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"log/slog"
 	"regexp"
-	"sort"
 	"strings"
+	"time"
 
+	"github.com/JWK-company/liftgram/src/backend/internal/access"
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 )
 
-// 이 탭을 쓸 수 있는 역할. 사용자 기능이 아니다.
-var canUseFeedback = map[string]bool{"coworker": true, "admin": true}
-
-// 분류 → 제목 접두. 목록에서 눈으로 훑을 때 쓰는 표시일 뿐, 판독은 마커가 한다.
-var categoryPrefix = map[string]string{"bug": "버그", "improvement": "개선"}
-
 const (
-	// 제출자 줄과 본문을 가르는 구분자. **마커보다 앞에 있어야** 정상 구조다.
-	footerSep = "\n\n---\n"
-	// 상세·제목 길이는 계약(protovalidate)이 먼저 막지만, 서비스도 자기 몫을 검사한다 —
-	// 계약은 trim 이전 길이를 보므로 공백만 적은 입력이 통과할 수 있다.
-	minTitle  = 3
-	minDetail = 5
+	KindOps  = "ops"
+	KindUser = "user"
+
+	StatusNew        = "new"
+	StatusApproved   = "approved"
+	StatusRejected   = "rejected"
+	StatusInProgress = "in_progress"
+	StatusDone       = "done"
+
+	// 사용자 의견 상한. 계정당 하루 건수와 본문 길이.
+	userDailyLimit = 5
+	userMaxBody    = 2000
+	userMinBody    = 2
+	listLimit      = 200
+	// 처리 끝난 사용자 의견을 두는 기간.
+	closedRetention = 365 * 24 * time.Hour
 )
 
-// 우리가 심는 기계 판독 마커. 렌더될 때 눈에 띄지 않는 HTML 주석이다.
-var markerRe = regexp.MustCompile(`<!--\s*liftgram-feedback v=1 cat=([a-z]+) uid=(\S+)\s*-->`)
+var (
+	insiderRoles = []string{"coworker", "admin"}
+	adminRoles   = []string{"admin"}
+	platforms    = map[string]bool{"web": true, "android": true, "ios": true}
+	semverRe     = regexp.MustCompile(`^\d{1,4}\.\d{1,4}\.\d{1,6}$`)
 
-// Idea는 아이디어보드가 돌려주는 한 행이다. 이 도메인이 **바깥의 모양을 아는 유일한 곳**이라,
-// 보드가 바뀌면 여기와 어댑터만 고치면 된다.
-type Idea struct {
-	ID           int64
-	Title        string
-	Body         string
-	State        string
-	PromotedCode string
+	// 상태 전이표. 표에 없는 이동은 거절한다. 완료는 끝이다.
+	transitions = map[string][]string{
+		StatusNew:        {StatusApproved, StatusRejected, StatusInProgress, StatusDone},
+		StatusApproved:   {StatusRejected, StatusInProgress, StatusDone},
+		StatusInProgress: {StatusRejected, StatusDone},
+		StatusRejected:   {StatusNew},
+	}
+)
+
+// Entry 는 저장된 한 건이다.
+type Entry struct {
+	ID         int64
+	Kind       string
+	AuthorID   string
+	AuthorName string
+	Category   string
+	Title      string
+	Body       string
+	AppVersion string
+	Platform   string
+	Status     string
+	Resolution string
+	CreatedAt  time.Time
 }
 
-// Board는 아이디어보드에 말하는 방법이다. 규칙이 HTTP를 모르게 하려고 port로 둔다 —
-// 테스트는 가짜 보드로 돌고, 진짜 구현은 board_http.go에 있다.
-type Board interface {
-	Create(ctx context.Context, title, body string) (int64, error)
-	List(ctx context.Context) ([]Idea, error)
+// NewEntry 는 새로 쌓을 한 건이다.
+type NewEntry struct {
+	Kind       string
+	AuthorID   string
+	Category   string
+	Title      string
+	Body       string
+	AppVersion string
+	Platform   string
 }
 
-// Repo는 제출자 이름을 붙이는 데에만 쓴다. 피드백 자체는 우리 DB에 남지 않는다.
+// Change 는 상태 변경의 결과로 저장할 값이다. 승인이면 ApprovedBodySHA256 이 차 있다.
+type Change struct {
+	To                 string
+	Note               string
+	ApprovedBodySHA256 string
+}
+
+// Repo 는 저장소다.
 type Repo interface {
-	DisplayLabel(ctx context.Context, userID string) (string, error)
+	access.RoleReader
+	// 메일이 없는 소셜 계정은 확인된 것으로 친다(신고 자동 숨김과 같은 기준).
+	EmailConfirmed(ctx context.Context, userID string) (bool, error)
+	Create(ctx context.Context, e NewEntry) (int64, error)
+	// 사용자 잠금 안에서 세고 넣는다 — 동시 요청이 상한을 넘지 못한다. 넘으면 limited=true.
+	CreateUserLimited(ctx context.Context, e NewEntry, since time.Time, limit int) (id int64, limited bool, err error)
+	List(ctx context.Context, kind string, limit int32) ([]Entry, error)
+	// 행을 잠그고 decide 의 결과를 저장한 뒤 감사 기록을 남긴다. 없으면 errs.NotFound.
+	ApplyStatus(ctx context.Context, id int64, actorID string, decide func(Entry) (Change, error)) (Entry, error)
+	PurgeClosedUser(ctx context.Context, before time.Time) (int64, error)
 }
 
-// Item은 화면이 받는 한 줄이다.
-type Item struct {
-	ID           int64
-	Category     string
-	Title        string
-	Detail       string
-	State        string
-	Mine         bool
-	PromotedCode string
-}
-
+// Service 는 피드백 규칙이다.
 type Service struct {
-	board Board
-	repo  Repo
+	repo Repo
+	now  func() time.Time
 }
 
-func NewService(board Board, repo Repo) *Service { return &Service{board: board, repo: repo} }
+func NewService(repo Repo, now func() time.Time) *Service { return &Service{repo: repo, now: now} }
 
-// 역할 검사. 신원이 없으면 401(로그인해라), 있는데 역할이 아니면 403(너는 못 한다) —
-// 화면이 "로그인" 화면을 띄울지 "권한 없음"을 띄울지가 이 구분에 달렸다.
-func requireInsider(viewerID, role string) error {
-	if viewerID == "" {
-		return errs.New(errs.Unauthorized, "login required")
-	}
-	if !canUseFeedback[role] {
-		return errs.New(errs.Forbidden, "insider only")
-	}
-	return nil
-}
-
-// Submit은 아이디어보드에 한 건 등록한다. 우리 쪽에 남는 것은 없다 —
-// 성공은 "보드가 id를 줬다"는 뜻이고, 그 id로 되읽을 수 있다.
-func (s *Service) Submit(ctx context.Context, viewerID, role, category, title, detail string) (int64, error) {
-	if err := requireInsider(viewerID, role); err != nil {
+// SubmitOps 는 운영 피드백을 쌓는다. 옛 설치본의 Submit 도 여기로 온다.
+func (s *Service) SubmitOps(ctx context.Context, viewerID, role, category, title, detail string) (int64, error) {
+	if err := access.Require(ctx, s.repo, viewerID, role, insiderRoles...); err != nil {
 		return 0, err
 	}
-	title, detail = strings.TrimSpace(title), strings.TrimSpace(detail)
-	// 계약은 trim 이전 길이를 봤다 — 공백만 적힌 입력은 여기서 걸린다.
+	title, detail = clean(title), clean(detail)
+	// 계약은 trim 이전 길이를 본다 — 공백만 적힌 입력은 여기서 걸린다.
 	if len([]rune(title)) < minTitle || len([]rune(detail)) < minDetail {
-		return 0, errs.New(errs.Validation, "title/detail too short")
+		return 0, errs.New(errs.Validation, "제목이나 내용이 너무 짧습니다")
 	}
-	prefix, ok := categoryPrefix[category]
-	if !ok {
-		return 0, errs.New(errs.Validation, "unknown category")
+	if _, ok := categoryPrefix[category]; !ok {
+		return 0, errs.New(errs.Validation, "분류를 골라 주세요")
 	}
+	return s.repo.Create(ctx, NewEntry{Kind: KindOps, AuthorID: viewerID, Category: category, Title: title, Body: detail})
+}
 
-	// 제출자 이름을 못 읽어도 등록은 진행한다 — 이름은 편의고, 피드백을 잃는 쪽이 더 큰 손해다.
-	who, err := s.repo.DisplayLabel(ctx, viewerID)
-	if err != nil || strings.TrimSpace(who) == "" {
-		who = viewerID
+// SubmitUser 는 사용자 의견을 쌓는다. 역할과 무관하게 로그인만 보고, kind 는 언제나 user 다.
+func (s *Service) SubmitUser(ctx context.Context, viewerID, body, appVersion, platform string) (int64, error) {
+	if viewerID == "" {
+		return 0, errs.New(errs.Unauthorized, "로그인이 필요합니다")
 	}
-	// 줄바꿈을 지운다. 제출자 줄에 개행이 섞이면 되읽을 때 본문 자르는 위치가 어긋난다.
-	who = strings.TrimSpace(strings.NewReplacer("\r", " ", "\n", " ").Replace(who))
-
-	id, err := s.board.Create(ctx, "["+prefix+"] "+title, buildBody(detail, who, category, viewerID))
+	body = clean(body)
+	if n := len([]rune(body)); n < userMinBody || n > userMaxBody {
+		return 0, errs.New(errs.Validation, "의견은 %d자 이상 %d자 이내로 적어 주세요", userMinBody, userMaxBody)
+	}
+	confirmed, err := s.repo.EmailConfirmed(ctx, viewerID)
 	if err != nil {
 		return 0, err
+	}
+	if !confirmed {
+		return 0, errs.New(errs.Forbidden, "메일 확인을 마친 뒤 보낼 수 있어요")
+	}
+	// 자유 문자열이 쌓이지 않게 형식이 맞는 값만 남긴다.
+	if !semverRe.MatchString(appVersion) {
+		appVersion = ""
+	}
+	if !platforms[platform] {
+		platform = ""
+	}
+	id, limited, err := s.repo.CreateUserLimited(ctx, NewEntry{
+		Kind: KindUser, AuthorID: viewerID, Body: body, AppVersion: appVersion, Platform: platform,
+	}, s.now().Add(-24*time.Hour), userDailyLimit)
+	if err != nil {
+		return 0, err
+	}
+	if limited {
+		return 0, errs.New(errs.ResourceExhausted, "의견은 하루 %d건까지 보낼 수 있어요. 내일 다시 보내 주세요", userDailyLimit)
 	}
 	return id, nil
 }
 
-// buildBody는 되읽기까지 염두에 둔 본문을 만든다: 상세 → 푸터 → 마커(최후미).
-// 이 순서가 곧 parseItem의 검사 조건이다.
-func buildBody(detail, who, category, uid string) string {
-	return detail + footerSep +
-		"_제출: " + who + " · Liftgram 인앱 피드백_\n" +
-		"<!-- liftgram-feedback v=1 cat=" + category + " uid=" + uid + " -->"
-}
-
-// List는 이 프로젝트의 **인앱 피드백만** 돌려준다(대시보드 수기 아이디어는 섞이지 않는다).
-// 정렬은 최신순 — id가 곧 시간 순서다.
-func (s *Service) List(ctx context.Context, viewerID, role string) ([]Item, error) {
-	if err := requireInsider(viewerID, role); err != nil {
+// ListEntries 는 운영자 페이지 목록이다. 작성자 이름은 관리자에게만 준다.
+func (s *Service) ListEntries(ctx context.Context, viewerID, role, kind string) ([]Entry, error) {
+	if err := access.Require(ctx, s.repo, viewerID, role, insiderRoles...); err != nil {
 		return nil, err
 	}
-	rows, err := s.board.List(ctx)
+	if kind != KindOps && kind != KindUser {
+		return nil, errs.New(errs.Validation, "종류를 골라 주세요")
+	}
+	entries, err := s.repo.List(ctx, kind, listLimit)
 	if err != nil {
 		return nil, err
 	}
-	items := make([]Item, 0, len(rows))
-	for _, row := range rows {
-		if it, ok := parseItem(row, viewerID); ok {
-			items = append(items, it)
+	// 토큰이 아니라 DB 역할로 가른다 — 관리자에서 협업자로 내려간 사람의 옛 토큰에 이름이 나가지 않게.
+	if access.Require(ctx, s.repo, viewerID, role, adminRoles...) != nil {
+		for i := range entries {
+			entries[i].AuthorName = ""
 		}
 	}
-	// 최신이 위로. 보드가 어떤 순서로 주든 화면의 순서는 우리가 정한다.
-	sort.SliceStable(items, func(i, j int) bool { return items[i].ID > items[j].ID })
-	return items, nil
+	return entries, nil
 }
 
-// parseItem은 보드의 한 행이 **우리가 심은 것인지** 판정하고, 사람이 읽을 모양으로 되돌린다.
-// 우리 것이 아니면 (Item{}, false).
-func parseItem(row Idea, viewerID string) (Item, bool) {
-	// 마지막 마커만 믿는다 — 우리가 심은 것은 항상 최후미다.
-	all := markerRe.FindAllStringSubmatchIndex(row.Body, -1)
-	if len(all) == 0 {
-		return Item{}, false
+// SetStatus 는 처리 상태를 바꾼다. 관리자만. 승인은 아무것도 실행하지 않는다.
+func (s *Service) SetStatus(ctx context.Context, viewerID, role string, id int64, to, note string) (Entry, error) {
+	if err := access.Require(ctx, s.repo, viewerID, role, adminRoles...); err != nil {
+		return Entry{}, err
 	}
-	last := all[len(all)-1]
-	markerStart := last[0]
-	category := row.Body[last[2]:last[3]]
-	uid := row.Body[last[4]:last[5]]
-
-	// 푸터가 마커보다 앞에 있어야 한다. 이 검사가 없으면 대시보드에서 마커만 적어
-	// 남의 uid로 위장하거나 분류를 조작할 수 있다.
-	sep := strings.LastIndex(row.Body, footerSep)
-	if sep < 0 || sep > markerStart {
-		return Item{}, false
-	}
-
-	return Item{
-		ID:       row.ID,
-		Category: category,
-		// 우리가 붙인 접두를 뗀다. 사용자가 제목에 적은 대괄호는 접두 자리에만 걸린다.
-		Title: stripPrefix(row.Title),
-		// 보이는 본문 = 마지막 푸터 앞까지. 사용자가 적은 `---`는 그대로 남는다.
-		Detail:       strings.TrimSpace(row.Body[:sep]),
-		State:        row.State,
-		Mine:         uid == viewerID,
-		PromotedCode: row.PromotedCode,
-	}, true
+	note = clean(note)
+	return s.repo.ApplyStatus(ctx, id, viewerID, func(cur Entry) (Change, error) {
+		if !canMove(cur.Status, to) {
+			return Change{}, errs.New(errs.Conflict, "이 상태로는 바꿀 수 없습니다")
+		}
+		c := Change{To: to, Note: note}
+		if to == StatusApproved {
+			sum := sha256.Sum256([]byte(cur.Body))
+			c.ApprovedBodySHA256 = hex.EncodeToString(sum[:])
+		}
+		return c, nil
+	})
 }
 
-var prefixRe = regexp.MustCompile(`^\[[^\]]*\]\s*`)
+// clean 은 앞뒤 공백과 NUL 을 없앤다. PostgreSQL text 는 NUL 을 받지 않아 그대로 두면 사람이 읽을 수 없는 오류가 된다.
+func clean(s string) string {
+	return strings.TrimSpace(strings.ReplaceAll(s, "\x00", ""))
+}
 
-func stripPrefix(title string) string { return strings.TrimSpace(prefixRe.ReplaceAllString(title, "")) }
+func canMove(from, to string) bool {
+	for _, next := range transitions[from] {
+		if next == to {
+			return true
+		}
+	}
+	return false
+}
+
+// PurgeLoop 는 시작할 때와 주기마다 처리 끝난 지 1년 지난 사용자 의견을 지운다.
+// 시작 때도 도는 까닭: 배포가 주기보다 잦으면 타이머만으로는 한 번도 돌지 않는다.
+func (s *Service) PurgeLoop(ctx context.Context, every time.Duration) {
+	s.purgeOnce(ctx)
+	tick := time.NewTicker(every)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+			s.purgeOnce(ctx)
+		}
+	}
+}
+
+func (s *Service) purgeOnce(ctx context.Context) {
+	if n, err := s.repo.PurgeClosedUser(ctx, s.now().Add(-closedRetention)); err != nil {
+		slog.Warn("[feedback] 오래된 의견 삭제 실패", "err", err)
+	} else if n > 0 {
+		slog.Info("[feedback] 오래된 의견 삭제", "count", n)
+	}
+}

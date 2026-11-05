@@ -28,7 +28,15 @@ type postRow struct {
 	authorID, visibility, status string
 }
 
+func (f *fakeRepo) UserRole(_ context.Context, userID string) (string, bool, error) {
+	if r, ok := f.dbRoles[userID]; ok {
+		return r, true, nil
+	}
+	return "admin", true, nil
+}
+
 type fakeRepo struct {
+	dbRoles map[string]string // 비어 있으면 누구나 admin — 역할 인자 시험을 그대로 둔다
 	reports []reportRow
 	posts   map[string]postRow
 	targets map[string]Target // "type:id"
@@ -180,6 +188,17 @@ func (f *fakeRepo) seedPost(id, author, visibility string) {
 }
 
 // ── 신고 ─────────────────────────────────────────────────────────────────────
+
+// 역할을 회수하면 토큰이 살아 있어도 바로 막힌다(SPEC-032).
+func TestRevokedModeratorIsBlockedImmediately(t *testing.T) {
+	repo := newFakeRepo()
+	repo.dbRoles = map[string]string{"m": "user"}
+	svc := NewService(repo, func() string { return "id" })
+	_, err := svc.ListQueue(context.Background(), "m", "moderator", 0)
+	if domainCode(t, err) != errs.Forbidden {
+		t.Fatalf("막혀야 한다: %v", err)
+	}
+}
 
 func TestReportRequiresLogin(t *testing.T) {
 	svc, repo := newTestService()

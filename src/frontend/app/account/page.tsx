@@ -11,8 +11,12 @@ import { previewProviders } from "@/lib/oauthPreview";
 export const dynamic = "force-dynamic";
 
 // 사람 확인 사이트 키는 **실행 시점** 설정이다(이미지에 굽지 않는다) — 서버 컴포넌트가 읽어 넘긴다.
-export default async function AccountPage({ searchParams }: { searchParams: Promise<{ err?: string }> }) {
-  const { err } = await searchParams;
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ err?: string; next?: string }>;
+}) {
+  const { err, next } = await searchParams;
   // 「최근」 배지 — HttpOnly 라 화면 JS 는 못 읽는다. 서버에서 읽어 넘긴다.
   const lastLogin = parseLastLogin((await cookies()).get(LAST_LOGIN_COOKIE)?.value);
   return (
@@ -22,6 +26,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       preview={previewProviders()}
       lastLogin={lastLogin}
       deviceData
+      next={next}
     />
   );
 }

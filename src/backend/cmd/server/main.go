@@ -356,11 +356,14 @@ func main() {
 	syncPath, syncHTTP := syncv1connect.NewSyncServiceHandler(syncdomain.NewHandler(syncSvc), opts)
 	mount(mux, syncPath, syncHTTP)
 
-	// 개발 피드백(SRS-006) — 내부 사람 전용. 저장소를 새로 만들지 않고 PLM 아이디어보드에 얹는다.
+	// [원본] 개발 피드백(SRS-006) — 내부 사람 전용. 저장소를 새로 만들지 않고 PLM 아이디어보드에 얹는다.
+	// [원본] feedback.NewBoardService(feedback.NewHTTPBoard(cfg.PLMAPIURL, cfg.PLMAPIToken, cfg.PLMProject), feedback.NewRepo(pool))
+	// [개선] PLM 대신 우리 DB에 쌓는다. 운영 피드백과 사용자 의견은 kind 로 나뉜다(SPEC-032).
 	feedbackSvc := feedback.NewService(
-		feedback.NewHTTPBoard(cfg.PLMAPIURL, cfg.PLMAPIToken, cfg.PLMProject),
 		feedback.NewRepo(pool),
+		time.Now,
 	)
+	go feedbackSvc.PurgeLoop(ctx, 24*time.Hour)
 	feedbackPath, feedbackHTTP := feedbackv1connect.NewFeedbackServiceHandler(feedback.NewHandler(feedbackSvc), opts)
 	mount(mux, feedbackPath, feedbackHTTP)
 

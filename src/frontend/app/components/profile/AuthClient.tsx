@@ -9,7 +9,8 @@
 // (`auth.errInvalid` 등) — 사용자가 읽을 말과 서버가 남길 말은 다르다.
 // ─────────────────────────────────────────────────────────────────────────────
 import { Code, ConnectError } from "@connectrpc/connect";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
 import { BackupCard } from "../sync/BackupCard";
@@ -139,6 +140,7 @@ export default function AuthClient({
   deviceData = false,
   returnTo = "/account",
   hideAppContinue = false,
+  next,
 }: {
   siteKey?: string;
   oauthError?: string;
@@ -154,8 +156,15 @@ export default function AuthClient({
   returnTo?: string;
   /** SPEC-018 §7 — 넘기기 확인 화면(크롬 탭) 안에서는 「웹에서 쓰던 계정으로 계속」을 그리지 않는다 */
   hideAppContinue?: boolean;
+  /** 로그인 뒤 돌아갈 곳(SPEC-032). 아래 표에 있는 주소만 따른다 — 외부로 튕기는 길을 만들지 않는다. */
+  next?: string;
 }) {
   const { user, restoring, signUp, logIn, logOut } = useAuth();
+  const router = useRouter();
+  const nextHref = next === "/profile/feedback" ? next : null;
+  useEffect(() => {
+    if (user && nextHref) router.replace(nextHref);
+  }, [user, nextHref, router]);
   const [human, setHuman] = useState<string | null>(null);
   const [humanReset, setHumanReset] = useState(0);
   const { mailEnabled } = useAuthOptions();

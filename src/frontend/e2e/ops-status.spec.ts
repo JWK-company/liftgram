@@ -89,14 +89,14 @@ test.describe("운영 상태", () => {
     await page.goto("/profile");
     await expect(page.getByTestId("account-card")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("row-ops")).toHaveCount(0);
-    await expect(page.getByTestId("nav-staff")).toHaveCount(0);
-    await expect(page.getByTestId("nav-staff-ops-dot")).toHaveCount(0);
+    await expect(page.getByTestId("row-admin")).toHaveCount(0);
+    await expect(page.getByTestId("nav-profile-ops-dot")).toHaveCount(0);
     expect(alertAsks).toEqual([]);
     await page.goto("/ops");
     await expect(page.getByTestId("ops-error")).toHaveText("운영진 계정만 볼 수 있어요", { timeout: 20_000 });
   });
 
-  test("동기가 3번 실패한 사용자가 admin 운영 화면에 보이고 운영 탭에 빨간 점이 뜬다", async ({
+  test("동기가 3번 실패한 사용자가 admin 운영 화면에 보이고 프로필 탭에 빨간 점이 뜬다", async ({
     page,
     browser,
   }) => {
@@ -148,11 +148,12 @@ test.describe("운영 상태", () => {
     // 새로고침 → access 토큰 갱신 때 서버가 DB 역할을 다시 읽는다(claim = admin) · Me 도 새 역할
     await page.goto("/profile");
     await page.reload();
-    // 프로필에는 운영 줄이 없다 — 운영 탭으로 옮겼다(#T2)
-    await expect(page.getByTestId("nav-staff-ops-dot")).toBeVisible({ timeout: 20_000 });
+    // 운영 탭을 없앴다 — 점은 프로필 탭과 운영자 페이지 줄에 뜬다(SPEC-032)
+    await expect(page.getByTestId("nav-profile-ops-dot")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("row-ops")).toHaveCount(0);
-    await expect(page.getByTestId("nav-staff")).toContainText("운영 확인 필요");
-    await page.getByTestId("nav-staff").click();
+    await expect(page.getByTestId("nav-profile")).toContainText("운영 확인 필요");
+    await expect(page.getByTestId("row-admin-dot")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("row-admin").click();
     await expect(page.getByTestId("row-ops")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("row-ops-dot")).toBeVisible({ timeout: 20_000 });
 

@@ -1,4 +1,10 @@
-// @plm SRS-049  개발 피드백 계약 — 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
+// @plm SRS-049  개발 피드백 계약
+//
+// [개선] SPEC-032: PLM 아이디어보드로 보내지 않고 우리 DB에 쌓는다. 운영 피드백(운영진)과 사용자 의견(앱 사용자)은
+// 한 표에 kind 로 나뉘어 섞이지 않는다. 아래 설명은 옛 판의 기록이다. Submit·List 는 옛 설치본이 그대로 부르므로
+// 모양을 지키고, 사용자 의견은 새 RPC 로만 받는다.
+//
+// [원본] 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // ── 이건 사용자 기능이 아니다 ───────────────────────────────────────────────
@@ -19,6 +25,7 @@ syntax = "proto3";
 package feedback.v1;
 
 import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/JWK-company/liftgram/src/backend/gen/feedback/v1;feedbackv1";
 
@@ -41,6 +48,22 @@ enum FeedbackState {
   FEEDBACK_STATE_HOLD = 6;
 }
 
+enum FeedbackKind {
+  FEEDBACK_KIND_UNSPECIFIED = 0;
+  FEEDBACK_KIND_OPS = 1;
+  FEEDBACK_KIND_USER = 2;
+}
+
+// 우리 DB의 처리 상태(SPEC-032). `approved` 는 지금은 표시일 뿐 아무것도 실행하지 않는다.
+enum FeedbackStatus {
+  FEEDBACK_STATUS_UNSPECIFIED = 0;
+  FEEDBACK_STATUS_NEW = 1;
+  FEEDBACK_STATUS_APPROVED = 2;
+  FEEDBACK_STATUS_REJECTED = 3;
+  FEEDBACK_STATUS_IN_PROGRESS = 4;
+  FEEDBACK_STATUS_DONE = 5;
+}
+
 message FeedbackItem {
   int64 id = 1;
   FeedbackCategory category = 2;
@@ -57,6 +80,23 @@ message FeedbackItem {
   string promoted_code = 8;
 }
 
+// 운영자 페이지의 한 줄(SPEC-032). 본문은 사람이 쓴 일반 텍스트다 — 화면은 그대로 글자로만 그린다.
+message FeedbackEntry {
+  int64 id = 1;
+  FeedbackKind kind = 2;
+  FeedbackCategory category = 3;
+  string title = 4;
+  string body = 5;
+  FeedbackStatus status = 6;
+  // 처리 메모.
+  string resolution = 7;
+  // 관리자에게만 채워진다. 이메일은 싣지 않는다.
+  string author_name = 8;
+  string app_version = 9;
+  string platform = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
 message SubmitRequest {
   FeedbackCategory category = 1 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
   string title = 2 [(buf.validate.field).string = {min_len: 3, max_len: 120}];
@@ -71,9 +111,44 @@ message ListResponse {
   repeated FeedbackItem items = 1;
 }
 
+message SubmitUserFeedbackRequest {
+  string body = 1 [(buf.validate.field).string = {min_len: 1, max_len: 2000}];
+  // 어느 판에서 적었는지. 형식이 맞지 않으면 서버가 비워 저장한다.
+  string app_version = 2 [(buf.validate.field).string = {max_len: 32}];
+  string platform = 3 [(buf.validate.field).string = {max_len: 16}];
+}
+message SubmitUserFeedbackResponse {
+  int64 id = 1;
+}
+
+message ListEntriesRequest {
+  FeedbackKind kind = 1 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
+}
+message ListEntriesResponse {
+  repeated FeedbackEntry entries = 1;
+}
+
+message SetStatusRequest {
+  int64 id = 1 [(buf.validate.field).int64 = {gt: 0}];
+  FeedbackStatus status = 2 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
+  // 처리 메모. 승인일 때는 승인자의 지시로도 저장된다(나중의 자동 수정은 원문이 아니라 이것을 입력으로 삼는다).
+  string note = 3 [(buf.validate.field).string = {max_len: 2000}];
+}
+message SetStatusResponse {
+  FeedbackEntry entry = 1;
+}
+
 service FeedbackService {
-  // 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+  // [원본] 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+  // [개선] 운영 피드백 등록. 운영진 전용(SPEC-032).
   rpc Submit(SubmitRequest) returns (SubmitResponse) {}
-  // 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+  // [원본] 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+  // [개선] 운영 피드백 목록. 운영진 전용(SPEC-032). 사용자 의견은 여기 나오지 않는다.
   rpc List(ListRequest) returns (ListResponse) {}
+  // 사용자 의견 보내기. 로그인한 앱 사용자 누구나. 운영 피드백을 쓰는 길이 아니다.
+  rpc SubmitUserFeedback(SubmitUserFeedbackRequest) returns (SubmitUserFeedbackResponse) {}
+  // 운영자 페이지 목록. 운영진 전용.
+  rpc ListEntries(ListEntriesRequest) returns (ListEntriesResponse) {}
+  // 처리 상태 바꾸기. 관리자 전용.
+  rpc SetStatus(SetStatusRequest) returns (SetStatusResponse) {}
 }

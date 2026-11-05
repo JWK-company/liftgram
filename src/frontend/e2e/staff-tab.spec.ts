@@ -1,4 +1,4 @@
-// 운영 탭 e2e(#T2) — 역할마다 탭과 줄이 맞게 보이는가 · 프로필에서 운영 줄이 빠졌는가
+// 운영자 페이지 입구 e2e(SPEC-032) — 역할마다 줄이 맞게 보이는가 · 운영 탭이 없어졌는가
 //
 // 역할은 화면으로 줄 수 없어 테스트 DB 를 직접 고친다. E2E_PSQL_URL 이 없으면 건너뛴다.
 //   E2E_PSQL_URL=postgres://app@127.0.0.1:55470/app BASE=http://127.0.0.1:3220 bunx playwright test e2e/staff-tab.spec.ts
@@ -25,7 +25,7 @@ const CASES = [
 ] as const;
 
 for (const c of CASES) {
-  test(`${c.role} — 운영 탭 ${c.tab ? "보임" : "없음"}`, async ({ page }) => {
+  test(`${c.role} — 운영자 페이지 ${c.tab ? "보임" : "없음"}`, async ({ page }) => {
     const email = `e2e-staff-${c.role}-${Date.now()}@example.com`;
     await page.goto("/account");
     await page.getByTestId("mode-signup").click();
@@ -42,38 +42,50 @@ for (const c of CASES) {
     await page.reload();
     await expect(page.getByTestId("btn-blocked")).toBeVisible({ timeout: 20_000 });
 
+    // 탭은 누구에게나 다섯 칸이고 운영 탭은 없다. 의견 보내기는 모두에게 있다.
+    await expect(page.getByTestId("nav-staff")).toHaveCount(0);
+    await expect(page.getByTestId("nav-feedback")).toHaveCount(0);
+    await expect(page.getByTestId("row-user-feedback")).toBeVisible({ timeout: 20_000 });
+
     if (!c.tab) {
-      await expect(page.getByTestId("nav-staff")).toHaveCount(0);
+      await expect(page.getByTestId("row-admin")).toHaveCount(0);
+      // 옛 주소는 새 주소로 간다 — 역할이 없으면 막힌다.
       await page.goto("/staff");
-      await expect(page.getByTestId("staff-denied")).toBeVisible({ timeout: 20_000 });
+      await expect(page).toHaveURL(/\/admin$/);
+      await expect(page.getByTestId("admin-denied")).toBeVisible({ timeout: 20_000 });
       return;
     }
-    await expect(page.getByTestId("nav-staff")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("nav-feedback")).toHaveCount(0);
-    // 프로필에는 운영 줄이 없다 — 탭이 뜬 뒤(역할을 받은 뒤)에 본다
+    await expect(page.getByTestId("row-admin")).toBeVisible({ timeout: 20_000 });
+    // 프로필에는 운영자 페이지 줄 하나만 있다
     await expect(page.getByTestId("row-ops")).toHaveCount(0);
     await expect(page.getByTestId("btn-moderation")).toHaveCount(0);
-    await page.getByTestId("nav-staff").click();
-    await expect(page.getByTestId("staff-screen")).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId("nav-staff")).toHaveAttribute("aria-current", "page");
-    await expect(page.getByTestId("nav-profile")).not.toHaveAttribute("aria-current", "page");
+    await page.getByTestId("row-admin").click();
+    await expect(page.getByTestId("admin-screen")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("nav-profile")).toHaveAttribute("aria-current", "page");
     await expect(page.getByTestId("row-feedback")).toHaveCount(c.feedback ? 1 : 0);
+    await expect(page.getByTestId("row-feedback-inbox")).toHaveCount(c.feedback ? 1 : 0);
     await expect(page.getByTestId("btn-moderation")).toHaveCount(c.moderation ? 1 : 0);
     await expect(page.getByTestId("row-ops")).toHaveCount(c.ops ? 1 : 0);
 
-    // 각 화면에서도 운영 탭이 켜져 있고, 뒤로 가면 운영 탭 첫 화면이다
+    // 각 화면에서도 프로필 탭이 켜져 있고, 뒤로 가면 운영자 페이지다
     const rows = [
-      ...(c.feedback ? [["row-feedback", "feedback-back"]] : []),
+      ...(c.feedback
+        ? [
+            ["row-feedback", "feedback-back"],
+            ["row-feedback-inbox", "admin-feedback-back"],
+          ]
+        : []),
       ...(c.moderation ? [["btn-moderation", "mod-back"]] : []),
       ...(c.ops ? [["row-ops", "ops-back"]] : []),
     ];
     for (const [row, back] of rows) {
       await page.getByTestId(row).click();
       await expect(page.getByTestId(back)).toBeVisible({ timeout: 20_000 });
-      await expect(page.getByTestId("nav-staff")).toHaveAttribute("aria-current", "page");
-      await expect(page.getByTestId("nav-profile")).not.toHaveAttribute("aria-current", "page");
+      await expect(page.getByTestId("nav-profile")).toHaveAttribute("aria-current", "page");
       await page.getByTestId(back).click();
-      await expect(page.getByTestId("staff-screen")).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId("admin-screen")).toBeVisible({ timeout: 20_000 });
     }
+    await page.getByTestId("admin-back").click();
+    await expect(page.getByTestId("row-admin")).toBeVisible({ timeout: 20_000 });
   });
 }

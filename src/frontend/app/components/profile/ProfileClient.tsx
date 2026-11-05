@@ -26,10 +26,13 @@ import {
   type WeightUnit,
 } from "@app/core";
 // [원본] import { ExperienceLevel as ExperienceLevelPB, Role } from "@app/contracts"; — 운영 줄을 운영 탭으로 옮겼다(#T2)
-import { ExperienceLevel as ExperienceLevelPB } from "@app/contracts";
+// [개선] 운영자 페이지 줄의 경고 점은 관리자에게만(SPEC-032)
+import { ExperienceLevel as ExperienceLevelPB, Role } from "@app/contracts";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useRef, useState } from "react";
 import { lang, t, type TransKey } from "@/lib/i18n";
+import { useOpsAlert } from "@/lib/opsAlert";
+import { canSeeAdmin } from "@/lib/staffRoles";
 import {
   REST_SOUND_KINDS,
   REST_VOLUME_LEVELS,
@@ -46,8 +49,8 @@ import { useToast } from "../Toast";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { TextField } from "../ui/inputs";
 import { AppText, Card } from "../ui/primitives";
+import { Icon } from "../ui/Icon";
 import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
-// [원본] import { Icon } from "../ui/Icon"; — 운영 줄과 함께 쓰임이 없어졌다(#T2)
 // 버전 = package.json(SemVer) · 빌드 번호·커밋 = 배포 스크립트가 찍는다(deploy-h2500-3.sh). 개발 중엔 "dev".
 import { PREFS_EVENT } from "@/lib/prefs";
 import { BusinessInfo } from "../BusinessInfo";
@@ -109,6 +112,7 @@ export default function ProfileClient() {
   } = useUser();
   const toast = useToast();
   const { user: account } = useAuth();
+  const opsAlert = useOpsAlert();
   const [busy, setBusy] = useState(false);
   // [원본] useState 초기값으로 한 번만 읽었다 — 첫 그림은 user 를 읽기 전(아래 if (!user) 보다 위)이라 늘 빈 칸으로 굳고,
   //        그 빈 칸을 blur 가 그대로 저장해 실제로 지워졌다(2026-11-04 실기기 — 「커스텀 기구 이름이 업데이트·재시작마다 사라짐」).
@@ -280,6 +284,37 @@ export default function ProfileClient() {
             </button>
           </div>
         </Card>
+
+        {/* 눈에 잘 띄게 맨 위에 — 운영자 페이지는 운영진에게만, 의견 보내기는 모두에게(SPEC-032). 줄을 숨기는 것은 안내이고 경계는 서버다. */}
+        <ListGroup className="mb-[var(--spacing-xl)]">
+          {canSeeAdmin(account?.role) ? (
+            <ListRow
+              testId="row-admin"
+              icon="shield-checkmark-outline"
+              title={t("staff.title")}
+              href="/admin"
+              trailing={
+                <span className="flex items-center gap-[var(--spacing-sm)]">
+                  {account?.role === Role.ADMIN && opsAlert.alert ? (
+                    <span
+                      data-testid="row-admin-dot"
+                      className="h-[8px] w-[8px] rounded-full bg-(--color-bad)"
+                      role="img"
+                      aria-label={t("ops.needsCheck")}
+                    />
+                  ) : null}
+                  <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+                </span>
+              }
+            />
+          ) : null}
+          <ListRow
+            testId="row-user-feedback"
+            icon="chatbubble-outline"
+            title={t("userFeedback.entry")}
+            href="/profile/feedback"
+          />
+        </ListGroup>
 
         {/* ── 설정: 줄 + 현재값. 누르면 선택 시트(시안 09) — 토글이 한 화면에 줄지어 있던 것을 줄 하나씩으로. */}
         <SectionLabel title={t("profile.settings")} />

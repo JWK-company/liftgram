@@ -48,11 +48,11 @@ func (f *fakeRepo) DisplayLabel(_ context.Context, _ string) (string, error) {
 	return f.label, f.err
 }
 
-func newSvc(b *fakeBoard, r *fakeRepo) *Service {
+func newSvc(b *fakeBoard, r *fakeRepo) *BoardService {
 	if r == nil {
 		r = &fakeRepo{label: "홍길동"}
 	}
-	return NewService(b, r)
+	return NewBoardService(b, r)
 }
 
 func codeOf(t *testing.T, err error) errs.Code {

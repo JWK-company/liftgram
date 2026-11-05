@@ -106,7 +106,7 @@ export default function ModerationQueueClient() {
       <ScreenHeader
         title={t("moderation.title")}
         back={
-          <a href="/staff" aria-label={t("staff.title")} data-testid="mod-back">
+          <a href="/admin" aria-label={t("staff.title")} data-testid="mod-back">
             <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }

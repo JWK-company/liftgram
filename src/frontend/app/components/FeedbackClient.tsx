@@ -12,8 +12,9 @@
 // 셋을 뭉뚱그려 "권한 없음"으로 보이면, 로그인만 하면 되는 사람이 포기한다.
 //
 // ── 목록 실패와 권한 실패를 구분한다 ────────────────────────────────────────
-// 아이디어보드가 죽은 것은 우리 잘못이 아니다 — 그때는 **다시 시도**를 권한다.
+// [원본] 아이디어보드가 죽은 것은 우리 잘못이 아니다 — 그때는 **다시 시도**를 권한다.
 // (서버가 그 실패만 Unavailable로 따로 표시해 준다.)
+// [개선] SPEC-032 부터 우리 DB에 쌓는다. 다시 시도 안내는 그대로 쓴다.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { FeedbackItem } from "@app/contracts";
 import { isInsider } from "@/lib/staffRoles";
@@ -50,6 +51,9 @@ function stateTone(state: FeedbackState): TagTone {
 
 /** 아는 상태는 우리 문구로, 모르는 상태는 **보드가 준 원문 그대로** 보여 준다(빈칸 방지). */
 function stateLabel(item: FeedbackItem): string {
+  // [개선] 우리 DB의 새 상태는 원문으로 정확히 말한다 — 옛 enum 은 승인과 완료를 한 칸으로 합친다(SPEC-032)
+  if (item.stateRaw === "approved") return t("admin.feedback.status.approved");
+  if (item.stateRaw === "in_progress") return t("admin.feedback.status.inProgress");
   switch (item.state) {
     case FeedbackState.SUBMITTED:
       return t("feedback.state.submitted");
@@ -165,7 +169,7 @@ export default function FeedbackClient() {
       <ScreenHeader
         title={t("feedback.title")}
         back={
-          <a href="/staff" aria-label={t("staff.title")} data-testid="feedback-back">
+          <a href="/admin" aria-label={t("staff.title")} data-testid="feedback-back">
             <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }

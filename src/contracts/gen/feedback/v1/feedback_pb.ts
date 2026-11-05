@@ -1,4 +1,10 @@
-// @plm SRS-049  개발 피드백 계약 — 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
+// @plm SRS-049  개발 피드백 계약
+//
+// [개선] SPEC-032: PLM 아이디어보드로 보내지 않고 우리 DB에 쌓는다. 운영 피드백(운영진)과 사용자 의견(앱 사용자)은
+// 한 표에 kind 로 나뉘어 섞이지 않는다. 아래 설명은 옛 판의 기록이다. Submit·List 는 옛 설치본이 그대로 부르므로
+// 모양을 지키고, 사용자 의견은 새 RPC 로만 받는다.
+//
+// [원본] 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // ── 이건 사용자 기능이 아니다 ───────────────────────────────────────────────
@@ -22,13 +28,15 @@
 import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_buf_validate_validate } from "../../buf/validate/validate_pb";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file feedback/v1/feedback.proto.
  */
 export const file_feedback_v1_feedback: GenFile = /*@__PURE__*/
-  fileDesc("ChpmZWVkYmFjay92MS9mZWVkYmFjay5wcm90bxILZmVlZGJhY2sudjEizQEKDEZlZWRiYWNrSXRlbRIKCgJpZBgBIAEoAxIvCghjYXRlZ29yeRgCIAEoDjIdLmZlZWRiYWNrLnYxLkZlZWRiYWNrQ2F0ZWdvcnkSDQoFdGl0bGUYAyABKAkSDgoGZGV0YWlsGAQgASgJEikKBXN0YXRlGAUgASgOMhouZmVlZGJhY2sudjEuRmVlZGJhY2tTdGF0ZRIRCglzdGF0ZV9yYXcYBiABKAkSDAoEbWluZRgHIAEoCBIVCg1wcm9tb3RlZF9jb2RlGAggASgJIoIBCg1TdWJtaXRSZXF1ZXN0EjsKCGNhdGVnb3J5GAEgASgOMh0uZmVlZGJhY2sudjEuRmVlZGJhY2tDYXRlZ29yeUIKukgHggEEEAEgABIYCgV0aXRsZRgCIAEoCUIJukgGcgQQAxh4EhoKBmRldGFpbBgDIAEoCUIKukgHcgUQBRigHyIcCg5TdWJtaXRSZXNwb25zZRIKCgJpZBgBIAEoAyINCgtMaXN0UmVxdWVzdCI4CgxMaXN0UmVzcG9uc2USKAoFaXRlbXMYASADKAsyGS5mZWVkYmFjay52MS5GZWVkYmFja0l0ZW0qcwoQRmVlZGJhY2tDYXRlZ29yeRIhCh1GRUVEQkFDS19DQVRFR09SWV9VTlNQRUNJRklFRBAAEhkKFUZFRURCQUNLX0NBVEVHT1JZX0JVRxABEiEKHUZFRURCQUNLX0NBVEVHT1JZX0lNUFJPVkVNRU5UEAIq2QEKDUZlZWRiYWNrU3RhdGUSHgoaRkVFREJBQ0tfU1RBVEVfVU5TUEVDSUZJRUQQABIcChhGRUVEQkFDS19TVEFURV9TVUJNSVRURUQQARIdChlGRUVEQkFDS19TVEFURV9ESVNDVVNTSU9OEAISGQoVRkVFREJBQ0tfU1RBVEVfVk9USU5HEAMSGgoWRkVFREJBQ0tfU1RBVEVfQURPUFRFRBAEEhsKF0ZFRURCQUNLX1NUQVRFX1JFSkVDVEVEEAUSFwoTRkVFREJBQ0tfU1RBVEVfSE9MRBAGMpUBCg9GZWVkYmFja1NlcnZpY2USQwoGU3VibWl0EhouZmVlZGJhY2sudjEuU3VibWl0UmVxdWVzdBobLmZlZWRiYWNrLnYxLlN1Ym1pdFJlc3BvbnNlIgASPQoETGlzdBIYLmZlZWRiYWNrLnYxLkxpc3RSZXF1ZXN0GhkuZmVlZGJhY2sudjEuTGlzdFJlc3BvbnNlIgBCtQEKD2NvbS5mZWVkYmFjay52MUINRmVlZGJhY2tQcm90b1ABWkZnaXRodWIuY29tL0pXSy1jb21wYW55L2xpZnRncmFtL3NyYy9iYWNrZW5kL2dlbi9mZWVkYmFjay92MTtmZWVkYmFja3YxogIDRlhYqgILRmVlZGJhY2suVjHKAgtGZWVkYmFja1xWMeICF0ZlZWRiYWNrXFYxXEdQQk1ldGFkYXRh6gIMRmVlZGJhY2s6OlYxYgZwcm90bzM", [file_buf_validate_validate]);
+  fileDesc("ChpmZWVkYmFjay92MS9mZWVkYmFjay5wcm90bxILZmVlZGJhY2sudjEizQEKDEZlZWRiYWNrSXRlbRIKCgJpZBgBIAEoAxIvCghjYXRlZ29yeRgCIAEoDjIdLmZlZWRiYWNrLnYxLkZlZWRiYWNrQ2F0ZWdvcnkSDQoFdGl0bGUYAyABKAkSDgoGZGV0YWlsGAQgASgJEikKBXN0YXRlGAUgASgOMhouZmVlZGJhY2sudjEuRmVlZGJhY2tTdGF0ZRIRCglzdGF0ZV9yYXcYBiABKAkSDAoEbWluZRgHIAEoCBIVCg1wcm9tb3RlZF9jb2RlGAggASgJIr8CCg1GZWVkYmFja0VudHJ5EgoKAmlkGAEgASgDEicKBGtpbmQYAiABKA4yGS5mZWVkYmFjay52MS5GZWVkYmFja0tpbmQSLwoIY2F0ZWdvcnkYAyABKA4yHS5mZWVkYmFjay52MS5GZWVkYmFja0NhdGVnb3J5Eg0KBXRpdGxlGAQgASgJEgwKBGJvZHkYBSABKAkSKwoGc3RhdHVzGAYgASgOMhsuZmVlZGJhY2sudjEuRmVlZGJhY2tTdGF0dXMSEgoKcmVzb2x1dGlvbhgHIAEoCRITCgthdXRob3JfbmFtZRgIIAEoCRITCgthcHBfdmVyc2lvbhgJIAEoCRIQCghwbGF0Zm9ybRgKIAEoCRIuCgpjcmVhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKCAQoNU3VibWl0UmVxdWVzdBI7CghjYXRlZ29yeRgBIAEoDjIdLmZlZWRiYWNrLnYxLkZlZWRiYWNrQ2F0ZWdvcnlCCrpIB4IBBBABIAASGAoFdGl0bGUYAiABKAlCCbpIBnIEEAMYeBIaCgZkZXRhaWwYAyABKAlCCrpIB3IFEAUYoB8iHAoOU3VibWl0UmVzcG9uc2USCgoCaWQYASABKAMiDQoLTGlzdFJlcXVlc3QiOAoMTGlzdFJlc3BvbnNlEigKBWl0ZW1zGAEgAygLMhkuZmVlZGJhY2sudjEuRmVlZGJhY2tJdGVtIm4KGVN1Ym1pdFVzZXJGZWVkYmFja1JlcXVlc3QSGAoEYm9keRgBIAEoCUIKukgHcgUQARjQDxIcCgthcHBfdmVyc2lvbhgCIAEoCUIHukgEcgIYIBIZCghwbGF0Zm9ybRgDIAEoCUIHukgEcgIYECIoChpTdWJtaXRVc2VyRmVlZGJhY2tSZXNwb25zZRIKCgJpZBgBIAEoAyJJChJMaXN0RW50cmllc1JlcXVlc3QSMwoEa2luZBgBIAEoDjIZLmZlZWRiYWNrLnYxLkZlZWRiYWNrS2luZEIKukgHggEEEAEgACJCChNMaXN0RW50cmllc1Jlc3BvbnNlEisKB2VudHJpZXMYASADKAsyGi5mZWVkYmFjay52MS5GZWVkYmFja0VudHJ5IngKEFNldFN0YXR1c1JlcXVlc3QSEwoCaWQYASABKANCB7pIBCICIAASNwoGc3RhdHVzGAIgASgOMhsuZmVlZGJhY2sudjEuRmVlZGJhY2tTdGF0dXNCCrpIB4IBBBABIAASFgoEbm90ZRgDIAEoCUIIukgFcgMY0A8iPgoRU2V0U3RhdHVzUmVzcG9uc2USKQoFZW50cnkYASABKAsyGi5mZWVkYmFjay52MS5GZWVkYmFja0VudHJ5KnMKEEZlZWRiYWNrQ2F0ZWdvcnkSIQodRkVFREJBQ0tfQ0FURUdPUllfVU5TUEVDSUZJRUQQABIZChVGRUVEQkFDS19DQVRFR09SWV9CVUcQARIhCh1GRUVEQkFDS19DQVRFR09SWV9JTVBST1ZFTUVOVBACKtkBCg1GZWVkYmFja1N0YXRlEh4KGkZFRURCQUNLX1NUQVRFX1VOU1BFQ0lGSUVEEAASHAoYRkVFREJBQ0tfU1RBVEVfU1VCTUlUVEVEEAESHQoZRkVFREJBQ0tfU1RBVEVfRElTQ1VTU0lPThACEhkKFUZFRURCQUNLX1NUQVRFX1ZPVElORxADEhoKFkZFRURCQUNLX1NUQVRFX0FET1BURUQQBBIbChdGRUVEQkFDS19TVEFURV9SRUpFQ1RFRBAFEhcKE0ZFRURCQUNLX1NUQVRFX0hPTEQQBipcCgxGZWVkYmFja0tpbmQSHQoZRkVFREJBQ0tfS0lORF9VTlNQRUNJRklFRBAAEhUKEUZFRURCQUNLX0tJTkRfT1BTEAESFgoSRkVFREJBQ0tfS0lORF9VU0VSEAIqwQEKDkZlZWRiYWNrU3RhdHVzEh8KG0ZFRURCQUNLX1NUQVRVU19VTlNQRUNJRklFRBAAEhcKE0ZFRURCQUNLX1NUQVRVU19ORVcQARIcChhGRUVEQkFDS19TVEFUVVNfQVBQUk9WRUQQAhIcChhGRUVEQkFDS19TVEFUVVNfUkVKRUNURUQQAxIfChtGRUVEQkFDS19TVEFUVVNfSU5fUFJPR1JFU1MQBBIYChRGRUVEQkFDS19TVEFUVVNfRE9ORRAFMqADCg9GZWVkYmFja1NlcnZpY2USQwoGU3VibWl0EhouZmVlZGJhY2sudjEuU3VibWl0UmVxdWVzdBobLmZlZWRiYWNrLnYxLlN1Ym1pdFJlc3BvbnNlIgASPQoETGlzdBIYLmZlZWRiYWNrLnYxLkxpc3RSZXF1ZXN0GhkuZmVlZGJhY2sudjEuTGlzdFJlc3BvbnNlIgASZwoSU3VibWl0VXNlckZlZWRiYWNrEiYuZmVlZGJhY2sudjEuU3VibWl0VXNlckZlZWRiYWNrUmVxdWVzdBonLmZlZWRiYWNrLnYxLlN1Ym1pdFVzZXJGZWVkYmFja1Jlc3BvbnNlIgASUgoLTGlzdEVudHJpZXMSHy5mZWVkYmFjay52MS5MaXN0RW50cmllc1JlcXVlc3QaIC5mZWVkYmFjay52MS5MaXN0RW50cmllc1Jlc3BvbnNlIgASTAoJU2V0U3RhdHVzEh0uZmVlZGJhY2sudjEuU2V0U3RhdHVzUmVxdWVzdBoeLmZlZWRiYWNrLnYxLlNldFN0YXR1c1Jlc3BvbnNlIgBCtQEKD2NvbS5mZWVkYmFjay52MUINRmVlZGJhY2tQcm90b1ABWkZnaXRodWIuY29tL0pXSy1jb21wYW55L2xpZnRncmFtL3NyYy9iYWNrZW5kL2dlbi9mZWVkYmFjay92MTtmZWVkYmFja3YxogIDRlhYqgILRmVlZGJhY2suVjHKAgtGZWVkYmFja1xWMeICF0ZlZWRiYWNrXFYxXEdQQk1ldGFkYXRh6gIMRmVlZGJhY2s6OlYxYgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_timestamp]);
 
 /**
  * @generated from message feedback.v1.FeedbackItem
@@ -93,6 +101,79 @@ export const FeedbackItemSchema: GenMessage<FeedbackItem> = /*@__PURE__*/
   messageDesc(file_feedback_v1_feedback, 0);
 
 /**
+ * 운영자 페이지의 한 줄(SPEC-032). 본문은 사람이 쓴 일반 텍스트다 — 화면은 그대로 글자로만 그린다.
+ *
+ * @generated from message feedback.v1.FeedbackEntry
+ */
+export type FeedbackEntry = Message<"feedback.v1.FeedbackEntry"> & {
+  /**
+   * @generated from field: int64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: feedback.v1.FeedbackKind kind = 2;
+   */
+  kind: FeedbackKind;
+
+  /**
+   * @generated from field: feedback.v1.FeedbackCategory category = 3;
+   */
+  category: FeedbackCategory;
+
+  /**
+   * @generated from field: string title = 4;
+   */
+  title: string;
+
+  /**
+   * @generated from field: string body = 5;
+   */
+  body: string;
+
+  /**
+   * @generated from field: feedback.v1.FeedbackStatus status = 6;
+   */
+  status: FeedbackStatus;
+
+  /**
+   * 처리 메모.
+   *
+   * @generated from field: string resolution = 7;
+   */
+  resolution: string;
+
+  /**
+   * 관리자에게만 채워진다. 이메일은 싣지 않는다.
+   *
+   * @generated from field: string author_name = 8;
+   */
+  authorName: string;
+
+  /**
+   * @generated from field: string app_version = 9;
+   */
+  appVersion: string;
+
+  /**
+   * @generated from field: string platform = 10;
+   */
+  platform: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp created_at = 11;
+   */
+  createdAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message feedback.v1.FeedbackEntry.
+ * Use `create(FeedbackEntrySchema)` to create a new message.
+ */
+export const FeedbackEntrySchema: GenMessage<FeedbackEntry> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 1);
+
+/**
  * @generated from message feedback.v1.SubmitRequest
  */
 export type SubmitRequest = Message<"feedback.v1.SubmitRequest"> & {
@@ -117,7 +198,7 @@ export type SubmitRequest = Message<"feedback.v1.SubmitRequest"> & {
  * Use `create(SubmitRequestSchema)` to create a new message.
  */
 export const SubmitRequestSchema: GenMessage<SubmitRequest> = /*@__PURE__*/
-  messageDesc(file_feedback_v1_feedback, 1);
+  messageDesc(file_feedback_v1_feedback, 2);
 
 /**
  * @generated from message feedback.v1.SubmitResponse
@@ -134,7 +215,7 @@ export type SubmitResponse = Message<"feedback.v1.SubmitResponse"> & {
  * Use `create(SubmitResponseSchema)` to create a new message.
  */
 export const SubmitResponseSchema: GenMessage<SubmitResponse> = /*@__PURE__*/
-  messageDesc(file_feedback_v1_feedback, 2);
+  messageDesc(file_feedback_v1_feedback, 3);
 
 /**
  * @generated from message feedback.v1.ListRequest
@@ -147,7 +228,7 @@ export type ListRequest = Message<"feedback.v1.ListRequest"> & {
  * Use `create(ListRequestSchema)` to create a new message.
  */
 export const ListRequestSchema: GenMessage<ListRequest> = /*@__PURE__*/
-  messageDesc(file_feedback_v1_feedback, 3);
+  messageDesc(file_feedback_v1_feedback, 4);
 
 /**
  * @generated from message feedback.v1.ListResponse
@@ -164,7 +245,133 @@ export type ListResponse = Message<"feedback.v1.ListResponse"> & {
  * Use `create(ListResponseSchema)` to create a new message.
  */
 export const ListResponseSchema: GenMessage<ListResponse> = /*@__PURE__*/
-  messageDesc(file_feedback_v1_feedback, 4);
+  messageDesc(file_feedback_v1_feedback, 5);
+
+/**
+ * @generated from message feedback.v1.SubmitUserFeedbackRequest
+ */
+export type SubmitUserFeedbackRequest = Message<"feedback.v1.SubmitUserFeedbackRequest"> & {
+  /**
+   * @generated from field: string body = 1;
+   */
+  body: string;
+
+  /**
+   * 어느 판에서 적었는지. 형식이 맞지 않으면 서버가 비워 저장한다.
+   *
+   * @generated from field: string app_version = 2;
+   */
+  appVersion: string;
+
+  /**
+   * @generated from field: string platform = 3;
+   */
+  platform: string;
+};
+
+/**
+ * Describes the message feedback.v1.SubmitUserFeedbackRequest.
+ * Use `create(SubmitUserFeedbackRequestSchema)` to create a new message.
+ */
+export const SubmitUserFeedbackRequestSchema: GenMessage<SubmitUserFeedbackRequest> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 6);
+
+/**
+ * @generated from message feedback.v1.SubmitUserFeedbackResponse
+ */
+export type SubmitUserFeedbackResponse = Message<"feedback.v1.SubmitUserFeedbackResponse"> & {
+  /**
+   * @generated from field: int64 id = 1;
+   */
+  id: bigint;
+};
+
+/**
+ * Describes the message feedback.v1.SubmitUserFeedbackResponse.
+ * Use `create(SubmitUserFeedbackResponseSchema)` to create a new message.
+ */
+export const SubmitUserFeedbackResponseSchema: GenMessage<SubmitUserFeedbackResponse> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 7);
+
+/**
+ * @generated from message feedback.v1.ListEntriesRequest
+ */
+export type ListEntriesRequest = Message<"feedback.v1.ListEntriesRequest"> & {
+  /**
+   * @generated from field: feedback.v1.FeedbackKind kind = 1;
+   */
+  kind: FeedbackKind;
+};
+
+/**
+ * Describes the message feedback.v1.ListEntriesRequest.
+ * Use `create(ListEntriesRequestSchema)` to create a new message.
+ */
+export const ListEntriesRequestSchema: GenMessage<ListEntriesRequest> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 8);
+
+/**
+ * @generated from message feedback.v1.ListEntriesResponse
+ */
+export type ListEntriesResponse = Message<"feedback.v1.ListEntriesResponse"> & {
+  /**
+   * @generated from field: repeated feedback.v1.FeedbackEntry entries = 1;
+   */
+  entries: FeedbackEntry[];
+};
+
+/**
+ * Describes the message feedback.v1.ListEntriesResponse.
+ * Use `create(ListEntriesResponseSchema)` to create a new message.
+ */
+export const ListEntriesResponseSchema: GenMessage<ListEntriesResponse> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 9);
+
+/**
+ * @generated from message feedback.v1.SetStatusRequest
+ */
+export type SetStatusRequest = Message<"feedback.v1.SetStatusRequest"> & {
+  /**
+   * @generated from field: int64 id = 1;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: feedback.v1.FeedbackStatus status = 2;
+   */
+  status: FeedbackStatus;
+
+  /**
+   * 처리 메모. 승인일 때는 승인자의 지시로도 저장된다(나중의 자동 수정은 원문이 아니라 이것을 입력으로 삼는다).
+   *
+   * @generated from field: string note = 3;
+   */
+  note: string;
+};
+
+/**
+ * Describes the message feedback.v1.SetStatusRequest.
+ * Use `create(SetStatusRequestSchema)` to create a new message.
+ */
+export const SetStatusRequestSchema: GenMessage<SetStatusRequest> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 10);
+
+/**
+ * @generated from message feedback.v1.SetStatusResponse
+ */
+export type SetStatusResponse = Message<"feedback.v1.SetStatusResponse"> & {
+  /**
+   * @generated from field: feedback.v1.FeedbackEntry entry = 1;
+   */
+  entry?: FeedbackEntry | undefined;
+};
+
+/**
+ * Describes the message feedback.v1.SetStatusResponse.
+ * Use `create(SetStatusResponseSchema)` to create a new message.
+ */
+export const SetStatusResponseSchema: GenMessage<SetStatusResponse> = /*@__PURE__*/
+  messageDesc(file_feedback_v1_feedback, 11);
 
 /**
  * 분류. 되읽을 때는 우리가 심은 마커에서 복원한다 — PLM에는 분류 칸이 없다.
@@ -244,11 +451,81 @@ export const FeedbackStateSchema: GenEnum<FeedbackState> = /*@__PURE__*/
   enumDesc(file_feedback_v1_feedback, 1);
 
 /**
+ * @generated from enum feedback.v1.FeedbackKind
+ */
+export enum FeedbackKind {
+  /**
+   * @generated from enum value: FEEDBACK_KIND_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: FEEDBACK_KIND_OPS = 1;
+   */
+  OPS = 1,
+
+  /**
+   * @generated from enum value: FEEDBACK_KIND_USER = 2;
+   */
+  USER = 2,
+}
+
+/**
+ * Describes the enum feedback.v1.FeedbackKind.
+ */
+export const FeedbackKindSchema: GenEnum<FeedbackKind> = /*@__PURE__*/
+  enumDesc(file_feedback_v1_feedback, 2);
+
+/**
+ * 우리 DB의 처리 상태(SPEC-032). `approved` 는 지금은 표시일 뿐 아무것도 실행하지 않는다.
+ *
+ * @generated from enum feedback.v1.FeedbackStatus
+ */
+export enum FeedbackStatus {
+  /**
+   * @generated from enum value: FEEDBACK_STATUS_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: FEEDBACK_STATUS_NEW = 1;
+   */
+  NEW = 1,
+
+  /**
+   * @generated from enum value: FEEDBACK_STATUS_APPROVED = 2;
+   */
+  APPROVED = 2,
+
+  /**
+   * @generated from enum value: FEEDBACK_STATUS_REJECTED = 3;
+   */
+  REJECTED = 3,
+
+  /**
+   * @generated from enum value: FEEDBACK_STATUS_IN_PROGRESS = 4;
+   */
+  IN_PROGRESS = 4,
+
+  /**
+   * @generated from enum value: FEEDBACK_STATUS_DONE = 5;
+   */
+  DONE = 5,
+}
+
+/**
+ * Describes the enum feedback.v1.FeedbackStatus.
+ */
+export const FeedbackStatusSchema: GenEnum<FeedbackStatus> = /*@__PURE__*/
+  enumDesc(file_feedback_v1_feedback, 3);
+
+/**
  * @generated from service feedback.v1.FeedbackService
  */
 export const FeedbackService: GenService<{
   /**
-   * 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+   * [원본] 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+   * [개선] 운영 피드백 등록. 운영진 전용(SPEC-032).
    *
    * @generated from rpc feedback.v1.FeedbackService.Submit
    */
@@ -258,7 +535,8 @@ export const FeedbackService: GenService<{
     output: typeof SubmitResponseSchema;
   },
   /**
-   * 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+   * [원본] 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+   * [개선] 운영 피드백 목록. 운영진 전용(SPEC-032). 사용자 의견은 여기 나오지 않는다.
    *
    * @generated from rpc feedback.v1.FeedbackService.List
    */
@@ -266,6 +544,36 @@ export const FeedbackService: GenService<{
     methodKind: "unary";
     input: typeof ListRequestSchema;
     output: typeof ListResponseSchema;
+  },
+  /**
+   * 사용자 의견 보내기. 로그인한 앱 사용자 누구나. 운영 피드백을 쓰는 길이 아니다.
+   *
+   * @generated from rpc feedback.v1.FeedbackService.SubmitUserFeedback
+   */
+  submitUserFeedback: {
+    methodKind: "unary";
+    input: typeof SubmitUserFeedbackRequestSchema;
+    output: typeof SubmitUserFeedbackResponseSchema;
+  },
+  /**
+   * 운영자 페이지 목록. 운영진 전용.
+   *
+   * @generated from rpc feedback.v1.FeedbackService.ListEntries
+   */
+  listEntries: {
+    methodKind: "unary";
+    input: typeof ListEntriesRequestSchema;
+    output: typeof ListEntriesResponseSchema;
+  },
+  /**
+   * 처리 상태 바꾸기. 관리자 전용.
+   *
+   * @generated from rpc feedback.v1.FeedbackService.SetStatus
+   */
+  setStatus: {
+    methodKind: "unary";
+    input: typeof SetStatusRequestSchema;
+    output: typeof SetStatusResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_feedback_v1_feedback, 0);

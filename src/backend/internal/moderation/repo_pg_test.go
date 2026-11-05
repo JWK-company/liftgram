@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/JWK-company/liftgram/src/backend/internal/testpg"
 )
@@ -68,7 +69,7 @@ func TestReportsHoldAndDismissRestore(t *testing.T) {
 	if got := status(); got != "pending" {
 		t.Fatalf("세 명이면 검토 대기: %s", got)
 	}
-	if err := svc.Resolve(ctx, user(), "admin", TargetPost, postID, false, ""); err != nil {
+	if err := svc.Resolve(ctx, adminUser(t, pool), "admin", TargetPost, postID, false, ""); err != nil {
 		t.Fatal(err)
 	}
 	if got := status(); got != "approved" {
@@ -83,7 +84,7 @@ func TestReportsHoldAndDismissRestore(t *testing.T) {
 	if got := status(); got != "approved" {
 		t.Fatalf("기각 뒤에는 다시 숨기지 않는다: %s", got)
 	}
-	queue, err := svc.ListQueue(ctx, user(), "admin", 200)
+	queue, err := svc.ListQueue(ctx, adminUser(t, pool), "admin", 200)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +114,7 @@ func TestReportsHoldAndDismissRestore(t *testing.T) {
 	if _, err := pool.Exec(ctx, `DELETE FROM users WHERE id = ANY($1)`, reporters); err != nil {
 		t.Fatal(err)
 	}
-	queue, err = svc.ListQueue(ctx, user(), "admin", 200)
+	queue, err = svc.ListQueue(ctx, adminUser(t, pool), "admin", 200)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +171,7 @@ func TestHoldBlocksMediaOnlyForSensitiveReasons(t *testing.T) {
 	if !flagged(nudeKey) {
 		t.Fatal("나체 신고로 숨기면 파일도 막혀야 한다")
 	}
-	if err := svc.Resolve(ctx, user(), "admin", TargetPost, nude, false, ""); err != nil {
+	if err := svc.Resolve(ctx, adminUser(t, pool), "admin", TargetPost, nude, false, ""); err != nil {
 		t.Fatal(err)
 	}
 	if flagged(nudeKey) {
@@ -181,4 +182,14 @@ func TestHoldBlocksMediaOnlyForSensitiveReasons(t *testing.T) {
 	if flagged(rudeKey) {
 		t.Fatal("괴롭힘 신고로는 파일을 막지 않는다")
 	}
+}
+
+// adminUser 는 DB 역할까지 관리자인 계정이다 — 검토 권한은 토큰이 아니라 DB 역할로 판정한다(SPEC-032).
+func adminUser(t *testing.T, pool *pgxpool.Pool) string {
+	t.Helper()
+	id := "mod-" + uuid.NewString()
+	if _, err := pool.Exec(context.Background(), `INSERT INTO users (id, email, password_hash, display_name, role) VALUES ($1, $2, 'x', 'n', 'admin')`, id, id+"@x.test"); err != nil {
+		t.Fatal(err)
+	}
+	return id
 }

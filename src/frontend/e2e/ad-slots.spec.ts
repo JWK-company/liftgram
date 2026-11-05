@@ -80,7 +80,7 @@ test("미리 보기 — 자리가 보이고, 운동을 시작하면 전부 사�
 }) => {
   test.setTimeout(180_000);
   await 가입(page, "admin", "admin");
-  await page.getByTestId("nav-staff").click();
+  await page.goto("/admin");
   await expect(page.getByTestId("row-ad-preview")).toContainText("꺼짐", { timeout: 20_000 });
   await page.getByTestId("row-ad-preview").click();
   await expect(page.getByTestId("row-ad-preview")).toContainText("켜짐");
@@ -186,7 +186,7 @@ test("미리 보기 — 자리가 보이고, 운동을 시작하면 전부 사�
   await expect(page.getByTestId("global-workout-bar")).toHaveCount(0, { timeout: 20_000 });
 
   // 미리 보기를 끄면 다시 0개
-  await page.goto("/staff");
+  await page.goto("/admin");
   await page.getByTestId("row-ad-preview").click();
   await expect(page.getByTestId("row-ad-preview")).toContainText("꺼짐");
   await page.goto("/");

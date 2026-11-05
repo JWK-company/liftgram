@@ -157,7 +157,7 @@ export default function OpsClient() {
       <ScreenHeader
         title={t("ops.title")}
         back={
-          <a href="/staff" aria-label={t("staff.title")} data-testid="ops-back">
+          <a href="/admin" aria-label={t("staff.title")} data-testid="ops-back">
             <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }

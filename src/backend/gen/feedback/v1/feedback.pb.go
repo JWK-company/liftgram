@@ -1,4 +1,10 @@
-// @plm SRS-049  개발 피드백 계약 — 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
+// @plm SRS-049  개발 피드백 계약
+//
+// [개선] SPEC-032: PLM 아이디어보드로 보내지 않고 우리 DB에 쌓는다. 운영 피드백(운영진)과 사용자 의견(앱 사용자)은
+// 한 표에 kind 로 나뉘어 섞이지 않는다. 아래 설명은 옛 판의 기록이다. Submit·List 는 옛 설치본이 그대로 부르므로
+// 모양을 지키고, 사용자 의견은 새 RPC 로만 받는다.
+//
+// [원본] 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // ── 이건 사용자 기능이 아니다 ───────────────────────────────────────────────
@@ -27,6 +33,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -152,6 +159,114 @@ func (FeedbackState) EnumDescriptor() ([]byte, []int) {
 	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{1}
 }
 
+type FeedbackKind int32
+
+const (
+	FeedbackKind_FEEDBACK_KIND_UNSPECIFIED FeedbackKind = 0
+	FeedbackKind_FEEDBACK_KIND_OPS         FeedbackKind = 1
+	FeedbackKind_FEEDBACK_KIND_USER        FeedbackKind = 2
+)
+
+// Enum value maps for FeedbackKind.
+var (
+	FeedbackKind_name = map[int32]string{
+		0: "FEEDBACK_KIND_UNSPECIFIED",
+		1: "FEEDBACK_KIND_OPS",
+		2: "FEEDBACK_KIND_USER",
+	}
+	FeedbackKind_value = map[string]int32{
+		"FEEDBACK_KIND_UNSPECIFIED": 0,
+		"FEEDBACK_KIND_OPS":         1,
+		"FEEDBACK_KIND_USER":        2,
+	}
+)
+
+func (x FeedbackKind) Enum() *FeedbackKind {
+	p := new(FeedbackKind)
+	*p = x
+	return p
+}
+
+func (x FeedbackKind) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FeedbackKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_feedback_v1_feedback_proto_enumTypes[2].Descriptor()
+}
+
+func (FeedbackKind) Type() protoreflect.EnumType {
+	return &file_feedback_v1_feedback_proto_enumTypes[2]
+}
+
+func (x FeedbackKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FeedbackKind.Descriptor instead.
+func (FeedbackKind) EnumDescriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{2}
+}
+
+// 우리 DB의 처리 상태(SPEC-032). `approved` 는 지금은 표시일 뿐 아무것도 실행하지 않는다.
+type FeedbackStatus int32
+
+const (
+	FeedbackStatus_FEEDBACK_STATUS_UNSPECIFIED FeedbackStatus = 0
+	FeedbackStatus_FEEDBACK_STATUS_NEW         FeedbackStatus = 1
+	FeedbackStatus_FEEDBACK_STATUS_APPROVED    FeedbackStatus = 2
+	FeedbackStatus_FEEDBACK_STATUS_REJECTED    FeedbackStatus = 3
+	FeedbackStatus_FEEDBACK_STATUS_IN_PROGRESS FeedbackStatus = 4
+	FeedbackStatus_FEEDBACK_STATUS_DONE        FeedbackStatus = 5
+)
+
+// Enum value maps for FeedbackStatus.
+var (
+	FeedbackStatus_name = map[int32]string{
+		0: "FEEDBACK_STATUS_UNSPECIFIED",
+		1: "FEEDBACK_STATUS_NEW",
+		2: "FEEDBACK_STATUS_APPROVED",
+		3: "FEEDBACK_STATUS_REJECTED",
+		4: "FEEDBACK_STATUS_IN_PROGRESS",
+		5: "FEEDBACK_STATUS_DONE",
+	}
+	FeedbackStatus_value = map[string]int32{
+		"FEEDBACK_STATUS_UNSPECIFIED": 0,
+		"FEEDBACK_STATUS_NEW":         1,
+		"FEEDBACK_STATUS_APPROVED":    2,
+		"FEEDBACK_STATUS_REJECTED":    3,
+		"FEEDBACK_STATUS_IN_PROGRESS": 4,
+		"FEEDBACK_STATUS_DONE":        5,
+	}
+)
+
+func (x FeedbackStatus) Enum() *FeedbackStatus {
+	p := new(FeedbackStatus)
+	*p = x
+	return p
+}
+
+func (x FeedbackStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FeedbackStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_feedback_v1_feedback_proto_enumTypes[3].Descriptor()
+}
+
+func (FeedbackStatus) Type() protoreflect.EnumType {
+	return &file_feedback_v1_feedback_proto_enumTypes[3]
+}
+
+func (x FeedbackStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FeedbackStatus.Descriptor instead.
+func (FeedbackStatus) EnumDescriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{3}
+}
+
 type FeedbackItem struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Id       int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -257,6 +372,133 @@ func (x *FeedbackItem) GetPromotedCode() string {
 	return ""
 }
 
+// 운영자 페이지의 한 줄(SPEC-032). 본문은 사람이 쓴 일반 텍스트다 — 화면은 그대로 글자로만 그린다.
+type FeedbackEntry struct {
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Id       int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Kind     FeedbackKind           `protobuf:"varint,2,opt,name=kind,proto3,enum=feedback.v1.FeedbackKind" json:"kind,omitempty"`
+	Category FeedbackCategory       `protobuf:"varint,3,opt,name=category,proto3,enum=feedback.v1.FeedbackCategory" json:"category,omitempty"`
+	Title    string                 `protobuf:"bytes,4,opt,name=title,proto3" json:"title,omitempty"`
+	Body     string                 `protobuf:"bytes,5,opt,name=body,proto3" json:"body,omitempty"`
+	Status   FeedbackStatus         `protobuf:"varint,6,opt,name=status,proto3,enum=feedback.v1.FeedbackStatus" json:"status,omitempty"`
+	// 처리 메모.
+	Resolution string `protobuf:"bytes,7,opt,name=resolution,proto3" json:"resolution,omitempty"`
+	// 관리자에게만 채워진다. 이메일은 싣지 않는다.
+	AuthorName    string                 `protobuf:"bytes,8,opt,name=author_name,json=authorName,proto3" json:"author_name,omitempty"`
+	AppVersion    string                 `protobuf:"bytes,9,opt,name=app_version,json=appVersion,proto3" json:"app_version,omitempty"`
+	Platform      string                 `protobuf:"bytes,10,opt,name=platform,proto3" json:"platform,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FeedbackEntry) Reset() {
+	*x = FeedbackEntry{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FeedbackEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FeedbackEntry) ProtoMessage() {}
+
+func (x *FeedbackEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FeedbackEntry.ProtoReflect.Descriptor instead.
+func (*FeedbackEntry) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *FeedbackEntry) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *FeedbackEntry) GetKind() FeedbackKind {
+	if x != nil {
+		return x.Kind
+	}
+	return FeedbackKind_FEEDBACK_KIND_UNSPECIFIED
+}
+
+func (x *FeedbackEntry) GetCategory() FeedbackCategory {
+	if x != nil {
+		return x.Category
+	}
+	return FeedbackCategory_FEEDBACK_CATEGORY_UNSPECIFIED
+}
+
+func (x *FeedbackEntry) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *FeedbackEntry) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
+func (x *FeedbackEntry) GetStatus() FeedbackStatus {
+	if x != nil {
+		return x.Status
+	}
+	return FeedbackStatus_FEEDBACK_STATUS_UNSPECIFIED
+}
+
+func (x *FeedbackEntry) GetResolution() string {
+	if x != nil {
+		return x.Resolution
+	}
+	return ""
+}
+
+func (x *FeedbackEntry) GetAuthorName() string {
+	if x != nil {
+		return x.AuthorName
+	}
+	return ""
+}
+
+func (x *FeedbackEntry) GetAppVersion() string {
+	if x != nil {
+		return x.AppVersion
+	}
+	return ""
+}
+
+func (x *FeedbackEntry) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+func (x *FeedbackEntry) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
 type SubmitRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Category      FeedbackCategory       `protobuf:"varint,1,opt,name=category,proto3,enum=feedback.v1.FeedbackCategory" json:"category,omitempty"`
@@ -268,7 +510,7 @@ type SubmitRequest struct {
 
 func (x *SubmitRequest) Reset() {
 	*x = SubmitRequest{}
-	mi := &file_feedback_v1_feedback_proto_msgTypes[1]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -280,7 +522,7 @@ func (x *SubmitRequest) String() string {
 func (*SubmitRequest) ProtoMessage() {}
 
 func (x *SubmitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_feedback_v1_feedback_proto_msgTypes[1]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -293,7 +535,7 @@ func (x *SubmitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitRequest.ProtoReflect.Descriptor instead.
 func (*SubmitRequest) Descriptor() ([]byte, []int) {
-	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{1}
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SubmitRequest) GetCategory() FeedbackCategory {
@@ -326,7 +568,7 @@ type SubmitResponse struct {
 
 func (x *SubmitResponse) Reset() {
 	*x = SubmitResponse{}
-	mi := &file_feedback_v1_feedback_proto_msgTypes[2]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -338,7 +580,7 @@ func (x *SubmitResponse) String() string {
 func (*SubmitResponse) ProtoMessage() {}
 
 func (x *SubmitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_feedback_v1_feedback_proto_msgTypes[2]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -351,7 +593,7 @@ func (x *SubmitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitResponse.ProtoReflect.Descriptor instead.
 func (*SubmitResponse) Descriptor() ([]byte, []int) {
-	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{2}
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SubmitResponse) GetId() int64 {
@@ -369,7 +611,7 @@ type ListRequest struct {
 
 func (x *ListRequest) Reset() {
 	*x = ListRequest{}
-	mi := &file_feedback_v1_feedback_proto_msgTypes[3]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -381,7 +623,7 @@ func (x *ListRequest) String() string {
 func (*ListRequest) ProtoMessage() {}
 
 func (x *ListRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_feedback_v1_feedback_proto_msgTypes[3]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -394,7 +636,7 @@ func (x *ListRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListRequest.ProtoReflect.Descriptor instead.
 func (*ListRequest) Descriptor() ([]byte, []int) {
-	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{3}
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{4}
 }
 
 type ListResponse struct {
@@ -406,7 +648,7 @@ type ListResponse struct {
 
 func (x *ListResponse) Reset() {
 	*x = ListResponse{}
-	mi := &file_feedback_v1_feedback_proto_msgTypes[4]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -418,7 +660,7 @@ func (x *ListResponse) String() string {
 func (*ListResponse) ProtoMessage() {}
 
 func (x *ListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_feedback_v1_feedback_proto_msgTypes[4]
+	mi := &file_feedback_v1_feedback_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -431,7 +673,7 @@ func (x *ListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResponse.ProtoReflect.Descriptor instead.
 func (*ListResponse) Descriptor() ([]byte, []int) {
-	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{4}
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListResponse) GetItems() []*FeedbackItem {
@@ -441,11 +683,309 @@ func (x *ListResponse) GetItems() []*FeedbackItem {
 	return nil
 }
 
+type SubmitUserFeedbackRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Body  string                 `protobuf:"bytes,1,opt,name=body,proto3" json:"body,omitempty"`
+	// 어느 판에서 적었는지. 형식이 맞지 않으면 서버가 비워 저장한다.
+	AppVersion    string `protobuf:"bytes,2,opt,name=app_version,json=appVersion,proto3" json:"app_version,omitempty"`
+	Platform      string `protobuf:"bytes,3,opt,name=platform,proto3" json:"platform,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitUserFeedbackRequest) Reset() {
+	*x = SubmitUserFeedbackRequest{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitUserFeedbackRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitUserFeedbackRequest) ProtoMessage() {}
+
+func (x *SubmitUserFeedbackRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitUserFeedbackRequest.ProtoReflect.Descriptor instead.
+func (*SubmitUserFeedbackRequest) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SubmitUserFeedbackRequest) GetBody() string {
+	if x != nil {
+		return x.Body
+	}
+	return ""
+}
+
+func (x *SubmitUserFeedbackRequest) GetAppVersion() string {
+	if x != nil {
+		return x.AppVersion
+	}
+	return ""
+}
+
+func (x *SubmitUserFeedbackRequest) GetPlatform() string {
+	if x != nil {
+		return x.Platform
+	}
+	return ""
+}
+
+type SubmitUserFeedbackResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitUserFeedbackResponse) Reset() {
+	*x = SubmitUserFeedbackResponse{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitUserFeedbackResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitUserFeedbackResponse) ProtoMessage() {}
+
+func (x *SubmitUserFeedbackResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitUserFeedbackResponse.ProtoReflect.Descriptor instead.
+func (*SubmitUserFeedbackResponse) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SubmitUserFeedbackResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type ListEntriesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          FeedbackKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=feedback.v1.FeedbackKind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEntriesRequest) Reset() {
+	*x = ListEntriesRequest{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEntriesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEntriesRequest) ProtoMessage() {}
+
+func (x *ListEntriesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEntriesRequest.ProtoReflect.Descriptor instead.
+func (*ListEntriesRequest) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ListEntriesRequest) GetKind() FeedbackKind {
+	if x != nil {
+		return x.Kind
+	}
+	return FeedbackKind_FEEDBACK_KIND_UNSPECIFIED
+}
+
+type ListEntriesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entries       []*FeedbackEntry       `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListEntriesResponse) Reset() {
+	*x = ListEntriesResponse{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListEntriesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListEntriesResponse) ProtoMessage() {}
+
+func (x *ListEntriesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListEntriesResponse.ProtoReflect.Descriptor instead.
+func (*ListEntriesResponse) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ListEntriesResponse) GetEntries() []*FeedbackEntry {
+	if x != nil {
+		return x.Entries
+	}
+	return nil
+}
+
+type SetStatusRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Id     int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Status FeedbackStatus         `protobuf:"varint,2,opt,name=status,proto3,enum=feedback.v1.FeedbackStatus" json:"status,omitempty"`
+	// 처리 메모. 승인일 때는 승인자의 지시로도 저장된다(나중의 자동 수정은 원문이 아니라 이것을 입력으로 삼는다).
+	Note          string `protobuf:"bytes,3,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetStatusRequest) Reset() {
+	*x = SetStatusRequest{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetStatusRequest) ProtoMessage() {}
+
+func (x *SetStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetStatusRequest.ProtoReflect.Descriptor instead.
+func (*SetStatusRequest) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *SetStatusRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SetStatusRequest) GetStatus() FeedbackStatus {
+	if x != nil {
+		return x.Status
+	}
+	return FeedbackStatus_FEEDBACK_STATUS_UNSPECIFIED
+}
+
+func (x *SetStatusRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type SetStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Entry         *FeedbackEntry         `protobuf:"bytes,1,opt,name=entry,proto3" json:"entry,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetStatusResponse) Reset() {
+	*x = SetStatusResponse{}
+	mi := &file_feedback_v1_feedback_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetStatusResponse) ProtoMessage() {}
+
+func (x *SetStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_feedback_v1_feedback_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetStatusResponse.ProtoReflect.Descriptor instead.
+func (*SetStatusResponse) Descriptor() ([]byte, []int) {
+	return file_feedback_v1_feedback_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *SetStatusResponse) GetEntry() *FeedbackEntry {
+	if x != nil {
+		return x.Entry
+	}
+	return nil
+}
+
 var File_feedback_v1_feedback_proto protoreflect.FileDescriptor
 
 const file_feedback_v1_feedback_proto_rawDesc = "" +
 	"\n" +
-	"\x1afeedback/v1/feedback.proto\x12\vfeedback.v1\x1a\x1bbuf/validate/validate.proto\"\x8f\x02\n" +
+	"\x1afeedback/v1/feedback.proto\x12\vfeedback.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8f\x02\n" +
 	"\fFeedbackItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x129\n" +
 	"\bcategory\x18\x02 \x01(\x0e2\x1d.feedback.v1.FeedbackCategoryR\bcategory\x12\x14\n" +
@@ -454,7 +994,25 @@ const file_feedback_v1_feedback_proto_rawDesc = "" +
 	"\x05state\x18\x05 \x01(\x0e2\x1a.feedback.v1.FeedbackStateR\x05state\x12\x1b\n" +
 	"\tstate_raw\x18\x06 \x01(\tR\bstateRaw\x12\x12\n" +
 	"\x04mine\x18\a \x01(\bR\x04mine\x12#\n" +
-	"\rpromoted_code\x18\b \x01(\tR\fpromotedCode\"\x9b\x01\n" +
+	"\rpromoted_code\x18\b \x01(\tR\fpromotedCode\"\xa1\x03\n" +
+	"\rFeedbackEntry\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12-\n" +
+	"\x04kind\x18\x02 \x01(\x0e2\x19.feedback.v1.FeedbackKindR\x04kind\x129\n" +
+	"\bcategory\x18\x03 \x01(\x0e2\x1d.feedback.v1.FeedbackCategoryR\bcategory\x12\x14\n" +
+	"\x05title\x18\x04 \x01(\tR\x05title\x12\x12\n" +
+	"\x04body\x18\x05 \x01(\tR\x04body\x123\n" +
+	"\x06status\x18\x06 \x01(\x0e2\x1b.feedback.v1.FeedbackStatusR\x06status\x12\x1e\n" +
+	"\n" +
+	"resolution\x18\a \x01(\tR\n" +
+	"resolution\x12\x1f\n" +
+	"\vauthor_name\x18\b \x01(\tR\n" +
+	"authorName\x12\x1f\n" +
+	"\vapp_version\x18\t \x01(\tR\n" +
+	"appVersion\x12\x1a\n" +
+	"\bplatform\x18\n" +
+	" \x01(\tR\bplatform\x129\n" +
+	"\n" +
+	"created_at\x18\v \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\"\x9b\x01\n" +
 	"\rSubmitRequest\x12E\n" +
 	"\bcategory\x18\x01 \x01(\x0e2\x1d.feedback.v1.FeedbackCategoryB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\bcategory\x12\x1f\n" +
@@ -465,7 +1023,27 @@ const file_feedback_v1_feedback_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\"\r\n" +
 	"\vListRequest\"?\n" +
 	"\fListResponse\x12/\n" +
-	"\x05items\x18\x01 \x03(\v2\x19.feedback.v1.FeedbackItemR\x05items*s\n" +
+	"\x05items\x18\x01 \x03(\v2\x19.feedback.v1.FeedbackItemR\x05items\"\x8a\x01\n" +
+	"\x19SubmitUserFeedbackRequest\x12\x1e\n" +
+	"\x04body\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\xd0\x0fR\x04body\x12(\n" +
+	"\vapp_version\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x18 R\n" +
+	"appVersion\x12#\n" +
+	"\bplatform\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x18\x10R\bplatform\",\n" +
+	"\x1aSubmitUserFeedbackResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\"O\n" +
+	"\x12ListEntriesRequest\x129\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x19.feedback.v1.FeedbackKindB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04kind\"K\n" +
+	"\x13ListEntriesResponse\x124\n" +
+	"\aentries\x18\x01 \x03(\v2\x1a.feedback.v1.FeedbackEntryR\aentries\"\x8a\x01\n" +
+	"\x10SetStatusRequest\x12\x17\n" +
+	"\x02id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12?\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1b.feedback.v1.FeedbackStatusB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x06status\x12\x1c\n" +
+	"\x04note\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\xd0\x0fR\x04note\"E\n" +
+	"\x11SetStatusResponse\x120\n" +
+	"\x05entry\x18\x01 \x01(\v2\x1a.feedback.v1.FeedbackEntryR\x05entry*s\n" +
 	"\x10FeedbackCategory\x12!\n" +
 	"\x1dFEEDBACK_CATEGORY_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15FEEDBACK_CATEGORY_BUG\x10\x01\x12!\n" +
@@ -477,10 +1055,24 @@ const file_feedback_v1_feedback_proto_rawDesc = "" +
 	"\x15FEEDBACK_STATE_VOTING\x10\x03\x12\x1a\n" +
 	"\x16FEEDBACK_STATE_ADOPTED\x10\x04\x12\x1b\n" +
 	"\x17FEEDBACK_STATE_REJECTED\x10\x05\x12\x17\n" +
-	"\x13FEEDBACK_STATE_HOLD\x10\x062\x95\x01\n" +
+	"\x13FEEDBACK_STATE_HOLD\x10\x06*\\\n" +
+	"\fFeedbackKind\x12\x1d\n" +
+	"\x19FEEDBACK_KIND_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11FEEDBACK_KIND_OPS\x10\x01\x12\x16\n" +
+	"\x12FEEDBACK_KIND_USER\x10\x02*\xc1\x01\n" +
+	"\x0eFeedbackStatus\x12\x1f\n" +
+	"\x1bFEEDBACK_STATUS_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13FEEDBACK_STATUS_NEW\x10\x01\x12\x1c\n" +
+	"\x18FEEDBACK_STATUS_APPROVED\x10\x02\x12\x1c\n" +
+	"\x18FEEDBACK_STATUS_REJECTED\x10\x03\x12\x1f\n" +
+	"\x1bFEEDBACK_STATUS_IN_PROGRESS\x10\x04\x12\x18\n" +
+	"\x14FEEDBACK_STATUS_DONE\x10\x052\xa0\x03\n" +
 	"\x0fFeedbackService\x12C\n" +
 	"\x06Submit\x12\x1a.feedback.v1.SubmitRequest\x1a\x1b.feedback.v1.SubmitResponse\"\x00\x12=\n" +
-	"\x04List\x12\x18.feedback.v1.ListRequest\x1a\x19.feedback.v1.ListResponse\"\x00B\xb5\x01\n" +
+	"\x04List\x12\x18.feedback.v1.ListRequest\x1a\x19.feedback.v1.ListResponse\"\x00\x12g\n" +
+	"\x12SubmitUserFeedback\x12&.feedback.v1.SubmitUserFeedbackRequest\x1a'.feedback.v1.SubmitUserFeedbackResponse\"\x00\x12R\n" +
+	"\vListEntries\x12\x1f.feedback.v1.ListEntriesRequest\x1a .feedback.v1.ListEntriesResponse\"\x00\x12L\n" +
+	"\tSetStatus\x12\x1d.feedback.v1.SetStatusRequest\x1a\x1e.feedback.v1.SetStatusResponse\"\x00B\xb5\x01\n" +
 	"\x0fcom.feedback.v1B\rFeedbackProtoP\x01ZFgithub.com/JWK-company/liftgram/src/backend/gen/feedback/v1;feedbackv1\xa2\x02\x03FXX\xaa\x02\vFeedback.V1\xca\x02\vFeedback\\V1\xe2\x02\x17Feedback\\V1\\GPBMetadata\xea\x02\fFeedback::V1b\x06proto3"
 
 var (
@@ -495,31 +1087,55 @@ func file_feedback_v1_feedback_proto_rawDescGZIP() []byte {
 	return file_feedback_v1_feedback_proto_rawDescData
 }
 
-var file_feedback_v1_feedback_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_feedback_v1_feedback_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_feedback_v1_feedback_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_feedback_v1_feedback_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_feedback_v1_feedback_proto_goTypes = []any{
-	(FeedbackCategory)(0),  // 0: feedback.v1.FeedbackCategory
-	(FeedbackState)(0),     // 1: feedback.v1.FeedbackState
-	(*FeedbackItem)(nil),   // 2: feedback.v1.FeedbackItem
-	(*SubmitRequest)(nil),  // 3: feedback.v1.SubmitRequest
-	(*SubmitResponse)(nil), // 4: feedback.v1.SubmitResponse
-	(*ListRequest)(nil),    // 5: feedback.v1.ListRequest
-	(*ListResponse)(nil),   // 6: feedback.v1.ListResponse
+	(FeedbackCategory)(0),              // 0: feedback.v1.FeedbackCategory
+	(FeedbackState)(0),                 // 1: feedback.v1.FeedbackState
+	(FeedbackKind)(0),                  // 2: feedback.v1.FeedbackKind
+	(FeedbackStatus)(0),                // 3: feedback.v1.FeedbackStatus
+	(*FeedbackItem)(nil),               // 4: feedback.v1.FeedbackItem
+	(*FeedbackEntry)(nil),              // 5: feedback.v1.FeedbackEntry
+	(*SubmitRequest)(nil),              // 6: feedback.v1.SubmitRequest
+	(*SubmitResponse)(nil),             // 7: feedback.v1.SubmitResponse
+	(*ListRequest)(nil),                // 8: feedback.v1.ListRequest
+	(*ListResponse)(nil),               // 9: feedback.v1.ListResponse
+	(*SubmitUserFeedbackRequest)(nil),  // 10: feedback.v1.SubmitUserFeedbackRequest
+	(*SubmitUserFeedbackResponse)(nil), // 11: feedback.v1.SubmitUserFeedbackResponse
+	(*ListEntriesRequest)(nil),         // 12: feedback.v1.ListEntriesRequest
+	(*ListEntriesResponse)(nil),        // 13: feedback.v1.ListEntriesResponse
+	(*SetStatusRequest)(nil),           // 14: feedback.v1.SetStatusRequest
+	(*SetStatusResponse)(nil),          // 15: feedback.v1.SetStatusResponse
+	(*timestamppb.Timestamp)(nil),      // 16: google.protobuf.Timestamp
 }
 var file_feedback_v1_feedback_proto_depIdxs = []int32{
-	0, // 0: feedback.v1.FeedbackItem.category:type_name -> feedback.v1.FeedbackCategory
-	1, // 1: feedback.v1.FeedbackItem.state:type_name -> feedback.v1.FeedbackState
-	0, // 2: feedback.v1.SubmitRequest.category:type_name -> feedback.v1.FeedbackCategory
-	2, // 3: feedback.v1.ListResponse.items:type_name -> feedback.v1.FeedbackItem
-	3, // 4: feedback.v1.FeedbackService.Submit:input_type -> feedback.v1.SubmitRequest
-	5, // 5: feedback.v1.FeedbackService.List:input_type -> feedback.v1.ListRequest
-	4, // 6: feedback.v1.FeedbackService.Submit:output_type -> feedback.v1.SubmitResponse
-	6, // 7: feedback.v1.FeedbackService.List:output_type -> feedback.v1.ListResponse
-	6, // [6:8] is the sub-list for method output_type
-	4, // [4:6] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0,  // 0: feedback.v1.FeedbackItem.category:type_name -> feedback.v1.FeedbackCategory
+	1,  // 1: feedback.v1.FeedbackItem.state:type_name -> feedback.v1.FeedbackState
+	2,  // 2: feedback.v1.FeedbackEntry.kind:type_name -> feedback.v1.FeedbackKind
+	0,  // 3: feedback.v1.FeedbackEntry.category:type_name -> feedback.v1.FeedbackCategory
+	3,  // 4: feedback.v1.FeedbackEntry.status:type_name -> feedback.v1.FeedbackStatus
+	16, // 5: feedback.v1.FeedbackEntry.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 6: feedback.v1.SubmitRequest.category:type_name -> feedback.v1.FeedbackCategory
+	4,  // 7: feedback.v1.ListResponse.items:type_name -> feedback.v1.FeedbackItem
+	2,  // 8: feedback.v1.ListEntriesRequest.kind:type_name -> feedback.v1.FeedbackKind
+	5,  // 9: feedback.v1.ListEntriesResponse.entries:type_name -> feedback.v1.FeedbackEntry
+	3,  // 10: feedback.v1.SetStatusRequest.status:type_name -> feedback.v1.FeedbackStatus
+	5,  // 11: feedback.v1.SetStatusResponse.entry:type_name -> feedback.v1.FeedbackEntry
+	6,  // 12: feedback.v1.FeedbackService.Submit:input_type -> feedback.v1.SubmitRequest
+	8,  // 13: feedback.v1.FeedbackService.List:input_type -> feedback.v1.ListRequest
+	10, // 14: feedback.v1.FeedbackService.SubmitUserFeedback:input_type -> feedback.v1.SubmitUserFeedbackRequest
+	12, // 15: feedback.v1.FeedbackService.ListEntries:input_type -> feedback.v1.ListEntriesRequest
+	14, // 16: feedback.v1.FeedbackService.SetStatus:input_type -> feedback.v1.SetStatusRequest
+	7,  // 17: feedback.v1.FeedbackService.Submit:output_type -> feedback.v1.SubmitResponse
+	9,  // 18: feedback.v1.FeedbackService.List:output_type -> feedback.v1.ListResponse
+	11, // 19: feedback.v1.FeedbackService.SubmitUserFeedback:output_type -> feedback.v1.SubmitUserFeedbackResponse
+	13, // 20: feedback.v1.FeedbackService.ListEntries:output_type -> feedback.v1.ListEntriesResponse
+	15, // 21: feedback.v1.FeedbackService.SetStatus:output_type -> feedback.v1.SetStatusResponse
+	17, // [17:22] is the sub-list for method output_type
+	12, // [12:17] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_feedback_v1_feedback_proto_init() }
@@ -532,8 +1148,8 @@ func file_feedback_v1_feedback_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_feedback_v1_feedback_proto_rawDesc), len(file_feedback_v1_feedback_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   5,
+			NumEnums:      4,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

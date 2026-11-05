@@ -1,4 +1,10 @@
-// @plm SRS-049  개발 피드백 계약 — 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
+// @plm SRS-049  개발 피드백 계약
+//
+// [개선] SPEC-032: PLM 아이디어보드로 보내지 않고 우리 DB에 쌓는다. 운영 피드백(운영진)과 사용자 의견(앱 사용자)은
+// 한 표에 kind 로 나뉘어 섞이지 않는다. 아래 설명은 옛 판의 기록이다. Submit·List 는 옛 설치본이 그대로 부르므로
+// 모양을 지키고, 사용자 의견은 새 RPC 로만 받는다.
+//
+// [원본] 앱에서 적은 문제·개선을 PLM 아이디어보드로 보낸다
 //
 // ─────────────────────────────────────────────────────────────────────────────
 // ── 이건 사용자 기능이 아니다 ───────────────────────────────────────────────
@@ -54,14 +60,31 @@ const (
 	FeedbackServiceSubmitProcedure = "/feedback.v1.FeedbackService/Submit"
 	// FeedbackServiceListProcedure is the fully-qualified name of the FeedbackService's List RPC.
 	FeedbackServiceListProcedure = "/feedback.v1.FeedbackService/List"
+	// FeedbackServiceSubmitUserFeedbackProcedure is the fully-qualified name of the FeedbackService's
+	// SubmitUserFeedback RPC.
+	FeedbackServiceSubmitUserFeedbackProcedure = "/feedback.v1.FeedbackService/SubmitUserFeedback"
+	// FeedbackServiceListEntriesProcedure is the fully-qualified name of the FeedbackService's
+	// ListEntries RPC.
+	FeedbackServiceListEntriesProcedure = "/feedback.v1.FeedbackService/ListEntries"
+	// FeedbackServiceSetStatusProcedure is the fully-qualified name of the FeedbackService's SetStatus
+	// RPC.
+	FeedbackServiceSetStatusProcedure = "/feedback.v1.FeedbackService/SetStatus"
 )
 
 // FeedbackServiceClient is a client for the feedback.v1.FeedbackService service.
 type FeedbackServiceClient interface {
-	// 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+	// [원본] 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+	// [개선] 운영 피드백 등록. 운영진 전용(SPEC-032).
 	Submit(context.Context, *connect.Request[v1.SubmitRequest]) (*connect.Response[v1.SubmitResponse], error)
-	// 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+	// [원본] 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+	// [개선] 운영 피드백 목록. 운영진 전용(SPEC-032). 사용자 의견은 여기 나오지 않는다.
 	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
+	// 사용자 의견 보내기. 로그인한 앱 사용자 누구나. 운영 피드백을 쓰는 길이 아니다.
+	SubmitUserFeedback(context.Context, *connect.Request[v1.SubmitUserFeedbackRequest]) (*connect.Response[v1.SubmitUserFeedbackResponse], error)
+	// 운영자 페이지 목록. 운영진 전용.
+	ListEntries(context.Context, *connect.Request[v1.ListEntriesRequest]) (*connect.Response[v1.ListEntriesResponse], error)
+	// 처리 상태 바꾸기. 관리자 전용.
+	SetStatus(context.Context, *connect.Request[v1.SetStatusRequest]) (*connect.Response[v1.SetStatusResponse], error)
 }
 
 // NewFeedbackServiceClient constructs a client for the feedback.v1.FeedbackService service. By
@@ -87,13 +110,34 @@ func NewFeedbackServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(feedbackServiceMethods.ByName("List")),
 			connect.WithClientOptions(opts...),
 		),
+		submitUserFeedback: connect.NewClient[v1.SubmitUserFeedbackRequest, v1.SubmitUserFeedbackResponse](
+			httpClient,
+			baseURL+FeedbackServiceSubmitUserFeedbackProcedure,
+			connect.WithSchema(feedbackServiceMethods.ByName("SubmitUserFeedback")),
+			connect.WithClientOptions(opts...),
+		),
+		listEntries: connect.NewClient[v1.ListEntriesRequest, v1.ListEntriesResponse](
+			httpClient,
+			baseURL+FeedbackServiceListEntriesProcedure,
+			connect.WithSchema(feedbackServiceMethods.ByName("ListEntries")),
+			connect.WithClientOptions(opts...),
+		),
+		setStatus: connect.NewClient[v1.SetStatusRequest, v1.SetStatusResponse](
+			httpClient,
+			baseURL+FeedbackServiceSetStatusProcedure,
+			connect.WithSchema(feedbackServiceMethods.ByName("SetStatus")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // feedbackServiceClient implements FeedbackServiceClient.
 type feedbackServiceClient struct {
-	submit *connect.Client[v1.SubmitRequest, v1.SubmitResponse]
-	list   *connect.Client[v1.ListRequest, v1.ListResponse]
+	submit             *connect.Client[v1.SubmitRequest, v1.SubmitResponse]
+	list               *connect.Client[v1.ListRequest, v1.ListResponse]
+	submitUserFeedback *connect.Client[v1.SubmitUserFeedbackRequest, v1.SubmitUserFeedbackResponse]
+	listEntries        *connect.Client[v1.ListEntriesRequest, v1.ListEntriesResponse]
+	setStatus          *connect.Client[v1.SetStatusRequest, v1.SetStatusResponse]
 }
 
 // Submit calls feedback.v1.FeedbackService.Submit.
@@ -106,12 +150,35 @@ func (c *feedbackServiceClient) List(ctx context.Context, req *connect.Request[v
 	return c.list.CallUnary(ctx, req)
 }
 
+// SubmitUserFeedback calls feedback.v1.FeedbackService.SubmitUserFeedback.
+func (c *feedbackServiceClient) SubmitUserFeedback(ctx context.Context, req *connect.Request[v1.SubmitUserFeedbackRequest]) (*connect.Response[v1.SubmitUserFeedbackResponse], error) {
+	return c.submitUserFeedback.CallUnary(ctx, req)
+}
+
+// ListEntries calls feedback.v1.FeedbackService.ListEntries.
+func (c *feedbackServiceClient) ListEntries(ctx context.Context, req *connect.Request[v1.ListEntriesRequest]) (*connect.Response[v1.ListEntriesResponse], error) {
+	return c.listEntries.CallUnary(ctx, req)
+}
+
+// SetStatus calls feedback.v1.FeedbackService.SetStatus.
+func (c *feedbackServiceClient) SetStatus(ctx context.Context, req *connect.Request[v1.SetStatusRequest]) (*connect.Response[v1.SetStatusResponse], error) {
+	return c.setStatus.CallUnary(ctx, req)
+}
+
 // FeedbackServiceHandler is an implementation of the feedback.v1.FeedbackService service.
 type FeedbackServiceHandler interface {
-	// 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+	// [원본] 등록. 성공은 **PLM이 id를 줬다**는 뜻이다 — 우리 쪽에 남는 것은 없다.
+	// [개선] 운영 피드백 등록. 운영진 전용(SPEC-032).
 	Submit(context.Context, *connect.Request[v1.SubmitRequest]) (*connect.Response[v1.SubmitResponse], error)
-	// 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+	// [원본] 이 프로젝트의 인앱 피드백 목록. 대시보드에서 손으로 적은 아이디어는 섞이지 않는다.
+	// [개선] 운영 피드백 목록. 운영진 전용(SPEC-032). 사용자 의견은 여기 나오지 않는다.
 	List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error)
+	// 사용자 의견 보내기. 로그인한 앱 사용자 누구나. 운영 피드백을 쓰는 길이 아니다.
+	SubmitUserFeedback(context.Context, *connect.Request[v1.SubmitUserFeedbackRequest]) (*connect.Response[v1.SubmitUserFeedbackResponse], error)
+	// 운영자 페이지 목록. 운영진 전용.
+	ListEntries(context.Context, *connect.Request[v1.ListEntriesRequest]) (*connect.Response[v1.ListEntriesResponse], error)
+	// 처리 상태 바꾸기. 관리자 전용.
+	SetStatus(context.Context, *connect.Request[v1.SetStatusRequest]) (*connect.Response[v1.SetStatusResponse], error)
 }
 
 // NewFeedbackServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -133,12 +200,36 @@ func NewFeedbackServiceHandler(svc FeedbackServiceHandler, opts ...connect.Handl
 		connect.WithSchema(feedbackServiceMethods.ByName("List")),
 		connect.WithHandlerOptions(opts...),
 	)
+	feedbackServiceSubmitUserFeedbackHandler := connect.NewUnaryHandler(
+		FeedbackServiceSubmitUserFeedbackProcedure,
+		svc.SubmitUserFeedback,
+		connect.WithSchema(feedbackServiceMethods.ByName("SubmitUserFeedback")),
+		connect.WithHandlerOptions(opts...),
+	)
+	feedbackServiceListEntriesHandler := connect.NewUnaryHandler(
+		FeedbackServiceListEntriesProcedure,
+		svc.ListEntries,
+		connect.WithSchema(feedbackServiceMethods.ByName("ListEntries")),
+		connect.WithHandlerOptions(opts...),
+	)
+	feedbackServiceSetStatusHandler := connect.NewUnaryHandler(
+		FeedbackServiceSetStatusProcedure,
+		svc.SetStatus,
+		connect.WithSchema(feedbackServiceMethods.ByName("SetStatus")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/feedback.v1.FeedbackService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case FeedbackServiceSubmitProcedure:
 			feedbackServiceSubmitHandler.ServeHTTP(w, r)
 		case FeedbackServiceListProcedure:
 			feedbackServiceListHandler.ServeHTTP(w, r)
+		case FeedbackServiceSubmitUserFeedbackProcedure:
+			feedbackServiceSubmitUserFeedbackHandler.ServeHTTP(w, r)
+		case FeedbackServiceListEntriesProcedure:
+			feedbackServiceListEntriesHandler.ServeHTTP(w, r)
+		case FeedbackServiceSetStatusProcedure:
+			feedbackServiceSetStatusHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -154,4 +245,16 @@ func (UnimplementedFeedbackServiceHandler) Submit(context.Context, *connect.Requ
 
 func (UnimplementedFeedbackServiceHandler) List(context.Context, *connect.Request[v1.ListRequest]) (*connect.Response[v1.ListResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feedback.v1.FeedbackService.List is not implemented"))
+}
+
+func (UnimplementedFeedbackServiceHandler) SubmitUserFeedback(context.Context, *connect.Request[v1.SubmitUserFeedbackRequest]) (*connect.Response[v1.SubmitUserFeedbackResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feedback.v1.FeedbackService.SubmitUserFeedback is not implemented"))
+}
+
+func (UnimplementedFeedbackServiceHandler) ListEntries(context.Context, *connect.Request[v1.ListEntriesRequest]) (*connect.Response[v1.ListEntriesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feedback.v1.FeedbackService.ListEntries is not implemented"))
+}
+
+func (UnimplementedFeedbackServiceHandler) SetStatus(context.Context, *connect.Request[v1.SetStatusRequest]) (*connect.Response[v1.SetStatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("feedback.v1.FeedbackService.SetStatus is not implemented"))
 }

@@ -181,6 +181,10 @@ func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, []
 		if keys, err = q.ListMediaKeysByOwner(ctx, userID); err != nil {
 			return err
 		}
+		// 사용자 의견은 탈퇴와 함께 지운다(운영 피드백은 FK 가 작성자만 비운다 · SPEC-032).
+		if err = q.DeleteUserFeedbackByAuthor(ctx, &userID); err != nil {
+			return err
+		}
 		if n, err = q.DeleteUser(ctx, userID); err != nil {
 			return err
 		}

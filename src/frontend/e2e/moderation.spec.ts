@@ -98,10 +98,10 @@ test("댓글도 신고할 수 있다 — 내 댓글은 삭제, 남의 댓글은 
 test("권한이 없으면 모더레이션 큐를 볼 수 없다", async ({ page }) => {
   await 가입(page, freshEmail("plain"), "일반");
 
-  // 큐로 가는 운영 탭 자체가 없다(누를 수 없는 문은 그리지 않는다).
+  // 큐로 가는 운영자 페이지 줄 자체가 없다(누를 수 없는 문은 그리지 않는다).
   await page.goto("/profile");
   await expect(page.getByTestId("btn-blocked")).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTestId("nav-staff")).toHaveCount(0);
+  await expect(page.getByTestId("row-admin")).toHaveCount(0);
   await expect(page.getByTestId("btn-moderation")).toHaveCount(0);
 
   // 주소를 직접 쳐도 서버가 거절하고, 화면은 그 이유를 보여 준다.
@@ -179,8 +179,8 @@ test("검토자는 큐에서 글을 내릴 수 있다", async ({ page, context }
   await page.getByTestId("btn-auth-submit").click();
   await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
 
-  // 운영 탭에 큐 링크가 뜬다(역할이 있는 사람에게만).
-  await page.goto("/staff");
+  // 운영자 페이지에 큐 링크가 뜬다(역할이 있는 사람에게만).
+  await page.goto("/admin");
   await expect(page.getByTestId("btn-moderation")).toBeVisible({ timeout: 20_000 });
   // 앞 계정의 기록이 이 기기에 남아 안내 창이 뜰 수 있다 — 기록은 건드리지 않고 닫는다
   await page.waitForTimeout(1_000);

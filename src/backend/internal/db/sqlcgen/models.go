@@ -141,6 +141,33 @@ type Exercise struct {
 	MediaRef         *string
 }
 
+type FeedbackEvent struct {
+	ID         int64
+	ItemID     int64
+	ActorID    string
+	FromStatus string
+	ToStatus   string
+	Note       string
+	At         pgtype.Timestamptz
+}
+
+type FeedbackItem struct {
+	ID                  int64
+	Kind                string
+	AuthorID            *string
+	Category            *string
+	Title               string
+	Body                string
+	AppVersion          string
+	Platform            string
+	Status              string
+	Resolution          string
+	ApprovedBodySha256  *string
+	ApprovedInstruction string
+	ClosedAt            pgtype.Timestamptz
+	CreatedAt           pgtype.Timestamptz
+}
+
 type Follow struct {
 	FollowerID string
 	FolloweeID string

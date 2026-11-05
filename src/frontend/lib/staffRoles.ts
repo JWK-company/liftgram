@@ -7,7 +7,8 @@ export function isInsider(role: Role | undefined): boolean {
   return role === Role.COWORKER || role === Role.ADMIN;
 }
 
-/** 운영 탭을 볼 역할 — 피드백(내부 사람)과 모더레이션(모더레이터·관리자) 중 하나라도 쓸 수 있는 사람. */
-export function canSeeStaffTab(role: Role | undefined): boolean {
+/** 운영자 페이지에 들어갈 역할 — 피드백(내부 사람)과 모더레이션(모더레이터·관리자) 중 하나라도 쓸 수 있는 사람. */
+// [원본] export function canSeeStaffTab — 운영 탭을 없애고 프로필 줄로 옮기며 이름을 바꿨다(SPEC-032)
+export function canSeeAdmin(role: Role | undefined): boolean {
   return isInsider(role) || role === Role.MODERATOR;
 }

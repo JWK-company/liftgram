@@ -82,7 +82,7 @@ services:
       S3_REGION: ${S3_REGION:-auto}
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
-      # 개발 피드백 → PLM 아이디어보드(SRS-049). 토큰이 비면 그 탭만 "지금 안 된다"고 답한다.
+      # 개발 피드백 → PLM 아이디어보드(SRS-049). SPEC-032 부터 쓰지 않는다(되돌리기용으로 남긴다. 안정되면 토큰 폐기).
       PLM_API_URL: ${PLM_API_URL:-https://jwk-plm.shoi.ch}
       PLM_API_TOKEN: ${PLM_API_TOKEN:-}
       PLM_PROJECT: ${PLM_PROJECT:-liftgram}

@@ -23,6 +23,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/JWK-company/liftgram/src/backend/internal/access"
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
 )
 
@@ -48,7 +49,8 @@ var validReasons = map[string]bool{
 }
 
 // 검토할 수 있는 역할. 일반 사용자는 큐 자체를 볼 수 없다.
-var canModerate = map[string]bool{"moderator": true, "admin": true}
+// [원본] var canModerate = map[string]bool{"moderator": true, "admin": true}
+var moderatorRoles = []string{"moderator", "admin"}
 
 type Author struct {
 	ID          string
@@ -96,6 +98,7 @@ type QueueItem struct {
 }
 
 type Repo interface {
+	UserRole(ctx context.Context, userID string) (string, bool, error)
 	CreateReport(ctx context.Context, id string, t TargetType, targetID, reporterID, reason, details string) error
 	CountPendingReporters(ctx context.Context, t TargetType, targetID string) (int, error)
 	ListPendingReports(ctx context.Context, limit int32) ([]Report, error)
@@ -278,7 +281,7 @@ func (s *Service) canSeePost(ctx context.Context, viewerID, postID string) (stri
 
 // ListQueue는 신고 묶음과 자동 보류를 한 목록으로 준다. **최신 순**이다.
 func (s *Service) ListQueue(ctx context.Context, viewerID, role string, limit int32) ([]QueueItem, error) {
-	if err := requireModerator(viewerID, role); err != nil {
+	if err := s.requireModerator(ctx, viewerID, role); err != nil {
 		return nil, err
 	}
 	if limit <= 0 {
@@ -363,7 +366,7 @@ func (s *Service) ListQueue(ctx context.Context, viewerID, role string, limit in
 
 // Resolve는 감추거나(remove) 되살린다(approve). 어느 쪽이든 그 대상의 신고는 함께 종결된다.
 func (s *Service) Resolve(ctx context.Context, reviewerID, role string, t TargetType, targetID string, remove bool, reason string) error {
-	if err := requireModerator(reviewerID, role); err != nil {
+	if err := s.requireModerator(ctx, reviewerID, role); err != nil {
 		return err
 	}
 	if !validTarget(t) {
@@ -393,7 +396,7 @@ func (s *Service) Resolve(ctx context.Context, reviewerID, role string, t Target
 
 // GetReviewMedia — 검토자 미리보기. 누가 어떤 사진을 봤는지 남긴다.
 func (s *Service) GetReviewMedia(ctx context.Context, viewerID, role, url string) (string, []byte, error) {
-	if err := requireModerator(viewerID, role); err != nil {
+	if err := s.requireModerator(ctx, viewerID, role); err != nil {
 		return "", nil, err
 	}
 	key := MediaKey(url)
@@ -411,15 +414,23 @@ func (s *Service) GetReviewMedia(ctx context.Context, viewerID, role, url string
 // 둘 다 403으로 답하면 화면이 토큰을 갱신해 다시 시도할 기회를 잃는다 — 새로고침 직후에는
 // access 토큰이 아직 메모리에 없어서 신원 없이 첫 요청이 나가는데, 그것이 403이면
 // **정당한 모더레이터에게도 "권한 없음"이 뜬다**(실측으로 잡은 결함).
-func requireModerator(viewerID, role string) error {
-	if viewerID == "" {
-		return errs.New(errs.Unauthorized, "로그인이 필요합니다")
-	}
-	if !canModerate[role] {
-		// 권한이 없다는 사실 자체는 숨기지 않는다 — 검토 화면은 존재가 비밀이 아니다.
-		return errs.New(errs.Forbidden, "권한이 없습니다")
-	}
-	return nil
+//
+// [원본] 토큰 역할만 봐서 회수된 모더레이터가 최대 15분 더 처리할 수 있었다.
+//
+//	func requireModerator(viewerID, role string) error {
+//		if viewerID == "" {
+//			return errs.New(errs.Unauthorized, "로그인이 필요합니다")
+//		}
+//		if !canModerate[role] {
+//			// 권한이 없다는 사실 자체는 숨기지 않는다 — 검토 화면은 존재가 비밀이 아니다.
+//			return errs.New(errs.Forbidden, "권한이 없습니다")
+//		}
+//		return nil
+//	}
+//
+// [개선] DB 역할까지 다시 읽는다(SPEC-032).
+func (s *Service) requireModerator(ctx context.Context, viewerID, role string) error {
+	return access.Require(ctx, s.repo, viewerID, role, moderatorRoles...)
 }
 
 func validTarget(t TargetType) bool {
