@@ -42,6 +42,7 @@ type SignupStats struct {
 	Daily              []DailyCount
 	Providers          []NamedCount
 	EmailVerified      int64
+	StaffCount         int64
 	FirstWorkoutCohort int64
 	FirstWorkoutDone   int64
 	Started            bool
@@ -146,6 +147,7 @@ const (
 type Repo interface {
 	access.RoleReader
 	SignupTotals(ctx context.Context) (total, emailVerified int64, err error)
+	StaffCount(ctx context.Context) (int64, error)
 	SignupDaily(ctx context.Context, from time.Time) ([]DailyCount, error)
 	SignupProviders(ctx context.Context) ([]NamedCount, error)
 	FirstWorkout(ctx context.Context, since, cutoff time.Time) (cohort, done int64, err error)
@@ -246,6 +248,9 @@ func (s *Service) GetSignupStats(ctx context.Context, viewerID, claim string) (S
 		out := SignupStats{GeneratedAt: now, UsageSince: s.since, Started: !now.Before(s.since)}
 		var err error
 		if out.Total, out.EmailVerified, err = s.repo.SignupTotals(ctx); err != nil {
+			return out, err
+		}
+		if out.StaffCount, err = s.repo.StaffCount(ctx); err != nil {
 			return out, err
 		}
 		rows, err := s.repo.SignupDaily(ctx, StartOfDayKST(now).AddDate(0, 0, -29))

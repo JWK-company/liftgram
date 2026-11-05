@@ -37,10 +37,9 @@ const (
 )
 
 var (
-	insiderRoles = []string{"coworker", "admin"}
-	adminRoles   = []string{"admin"}
-	platforms    = map[string]bool{"web": true, "android": true, "ios": true}
-	semverRe     = regexp.MustCompile(`^\d{1,4}\.\d{1,4}\.\d{1,6}$`)
+	adminRoles = []string{"admin"}
+	platforms  = map[string]bool{"web": true, "android": true, "ios": true}
+	semverRe   = regexp.MustCompile(`^\d{1,4}\.\d{1,4}\.\d{1,6}$`)
 
 	// 상태 전이표. 표에 없는 이동은 거절한다. 완료는 끝이다.
 	transitions = map[string][]string{
@@ -109,7 +108,7 @@ func NewService(repo Repo, now func() time.Time) *Service { return &Service{repo
 
 // SubmitOps 는 운영 피드백을 쌓는다. 옛 설치본의 Submit 도 여기로 온다.
 func (s *Service) SubmitOps(ctx context.Context, viewerID, role, category, title, detail string) (int64, error) {
-	if err := access.Require(ctx, s.repo, viewerID, role, insiderRoles...); err != nil {
+	if err := access.Require(ctx, s.repo, viewerID, role, adminRoles...); err != nil {
 		return 0, err
 	}
 	title, detail = clean(title), clean(detail)
@@ -160,7 +159,7 @@ func (s *Service) SubmitUser(ctx context.Context, viewerID, body, appVersion, pl
 
 // ListEntries 는 운영자 페이지 목록이다. 작성자 이름은 관리자에게만 준다.
 func (s *Service) ListEntries(ctx context.Context, viewerID, role, kind string) ([]Entry, error) {
-	if err := access.Require(ctx, s.repo, viewerID, role, insiderRoles...); err != nil {
+	if err := access.Require(ctx, s.repo, viewerID, role, adminRoles...); err != nil {
 		return nil, err
 	}
 	if kind != KindOps && kind != KindUser {

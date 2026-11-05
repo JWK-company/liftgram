@@ -75,8 +75,8 @@ func TestSubmit_내부_사람만(t *testing.T) {
 	if _, err := svc.Submit(context.Background(), "u1", "user", "bug", "제목입니다", "내용입니다"); codeOf(t, err) != errs.Forbidden {
 		t.Fatalf("역할 없음은 403이어야 한다")
 	}
-	if _, err := svc.Submit(context.Background(), "u1", "coworker", "bug", "제목입니다", "내용입니다"); err != nil {
-		t.Fatalf("coworker는 쓸 수 있어야 한다: %v", err)
+	if _, err := svc.Submit(context.Background(), "u1", "coworker", "bug", "제목입니다", "내용입니다"); err == nil {
+		t.Fatalf("협업자 역할은 막혀야 한다")
 	}
 	if _, err := svc.Submit(context.Background(), "u1", "admin", "bug", "제목입니다", "내용입니다"); err != nil {
 		t.Fatalf("admin은 쓸 수 있어야 한다: %v", err)
@@ -221,7 +221,7 @@ func TestList_내_것_판정(t *testing.T) {
 		made(1, "u1", "bug", "내 것", "submitted"),
 		made(2, "u2", "bug", "남의 것", "submitted"),
 	}}
-	items, err := newSvc(b, nil).List(context.Background(), "u1", "coworker")
+	items, err := newSvc(b, nil).List(context.Background(), "u1", "admin")
 	if err != nil {
 		t.Fatal(err)
 	}

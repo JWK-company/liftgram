@@ -3,7 +3,7 @@
 //
 // 셸에 한 번 올려 두고, 새로고침하면 저장된 refresh로 조용히 세션을 되살린다.
 // **로그인하지 않은 상태가 정상**이다 — user가 null이어도 화면 대부분은 그대로 동작한다.
-import { Role, type User, UserSchema } from "@app/contracts";
+import { type User, UserSchema } from "@app/contracts";
 import { fromJson, toJson } from "@bufbuild/protobuf";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -30,7 +30,6 @@ import { parseLastLogin } from "@/lib/last-login";
 import { isFramedDocument } from "@app/core/db/writeGate"; // @plm SRS-089
 import { startTabGuard } from "@/lib/tabGuard";
 import { installClientHealthReport, setClientHealthUser } from "@/lib/clientHealth"; // @plm SRS-088
-import { setOpsAlertViewer } from "@/lib/opsAlert"; // @plm SRS-088
 
 interface AuthValue {
   /** 로그인하지 않았으면 null. 아직 확인 중이어도 null이다(loading으로 구분한다). */
@@ -154,11 +153,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [load, setUser]);
 
-  // 신원이 바뀔 때마다 — 건강 보고의 주인 · admin 이면 운영 경보 점을 묻기 시작(로그인 직후) @plm SRS-088
+  // 신원이 바뀔 때마다 건강 보고의 주인을 맞춘다 @plm SRS-088
   useEffect(() => {
     setClientHealthUser(user?.id ?? null);
-    setOpsAlertViewer(user?.id ?? null, user?.role === Role.ADMIN);
-  }, [user?.id, user?.role]);
+  }, [user?.id]);
 
   const value = useMemo<AuthValue>(
     () => ({

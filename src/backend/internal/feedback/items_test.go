@@ -172,7 +172,7 @@ func TestOps_권한표(t *testing.T) {
 		{"", "", errs.Unauthorized},
 		{"u", "user", errs.Forbidden},
 		{"m", "moderator", errs.Forbidden},
-		{"c", "coworker", ""},
+		{"c", "coworker", errs.Forbidden},
 		{"a", "admin", ""},
 		{"gone", "admin", errs.Forbidden}, // 토큰은 관리자, DB 는 회수됨
 		{"nobody", "admin", errs.Forbidden},
@@ -190,10 +190,10 @@ func TestOps_권한표(t *testing.T) {
 func TestOps_입력_검증(t *testing.T) {
 	s, _ := newItems()
 	ctx := context.Background()
-	if _, err := s.SubmitOps(ctx, "c", "coworker", "bug", "  a  ", "내용 다섯자 이상"); code(err) != errs.Validation {
+	if _, err := s.SubmitOps(ctx, "a", "admin", "bug", "  a  ", "내용 다섯자 이상"); code(err) != errs.Validation {
 		t.Fatalf("짧은 제목: %v", err)
 	}
-	if _, err := s.SubmitOps(ctx, "c", "coworker", "", "제목입니다", "내용 다섯자 이상"); code(err) != errs.Validation {
+	if _, err := s.SubmitOps(ctx, "a", "admin", "", "제목입니다", "내용 다섯자 이상"); code(err) != errs.Validation {
 		t.Fatalf("분류 없음: %v", err)
 	}
 }
@@ -201,28 +201,23 @@ func TestOps_입력_검증(t *testing.T) {
 func TestList_종류가_섞이지_않고_작성자는_관리자에게만(t *testing.T) {
 	s, _ := newItems()
 	ctx := context.Background()
-	if _, err := s.SubmitOps(ctx, "c", "coworker", "bug", "운영 제목", "운영 내용입니다"); err != nil {
+	if _, err := s.SubmitOps(ctx, "a", "admin", "bug", "운영 제목", "운영 내용입니다"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := s.SubmitUser(ctx, "u", "사용자 의견", "", ""); err != nil {
 		t.Fatal(err)
 	}
-	ops, _ := s.ListEntries(ctx, "c", "coworker", KindOps)
-	users, _ := s.ListEntries(ctx, "c", "coworker", KindUser)
+	ops, _ := s.ListEntries(ctx, "a", "admin", KindOps)
+	users, _ := s.ListEntries(ctx, "a", "admin", KindUser)
 	if len(ops) != 1 || ops[0].Title != "운영 제목" || len(users) != 1 || users[0].Body != "사용자 의견" {
 		t.Fatalf("섞임: %+v / %+v", ops, users)
 	}
-	if users[0].AuthorName != "" {
-		t.Fatalf("협업자에게 작성자 이름이 나갔다: %+v", users[0])
-	}
-	asAdmin, _ := s.ListEntries(ctx, "a", "admin", KindUser)
-	if asAdmin[0].AuthorName == "" {
+	if users[0].AuthorName == "" {
 		t.Fatal("관리자는 작성자 이름을 본다")
 	}
-	// 토큰만 관리자인 협업자에게는 나가지 않는다.
-	stale, _ := s.ListEntries(ctx, "c", "admin", KindUser)
-	if stale[0].AuthorName != "" {
-		t.Fatal("옛 관리자 토큰에 이름이 나갔다")
+	// 토큰만 관리자이고 DB 역할이 협업자면 막힌다.
+	if _, err := s.ListEntries(ctx, "c", "admin", KindUser); code(err) != errs.Forbidden {
+		t.Fatalf("옛 관리자 토큰: %v", err)
 	}
 	if _, err := s.ListEntries(ctx, "a", "admin", ""); code(err) != errs.Validation {
 		t.Fatalf("종류 없음: %v", err)

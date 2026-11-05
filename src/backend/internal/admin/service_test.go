@@ -30,6 +30,8 @@ type fakeRepo struct {
 func (f *fakeRepo) UserRole(context.Context, string) (string, bool, error) {
 	return f.role, f.role != "", nil
 }
+func (f *fakeRepo) StaffCount(context.Context) (int64, error) { return 3, nil }
+
 func (f *fakeRepo) SignupTotals(context.Context) (int64, int64, error) {
 	f.calls.Add(1)
 	if f.block != nil {

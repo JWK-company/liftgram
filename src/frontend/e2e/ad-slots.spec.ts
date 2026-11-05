@@ -80,14 +80,10 @@ test("미리 보기 — 자리가 보이고, 운동을 시작하면 전부 사�
 }) => {
   test.setTimeout(180_000);
   await 가입(page, "admin", "admin");
-  await page.goto("/admin");
-  await expect(page.getByTestId("row-ad-preview")).toContainText("꺼짐", { timeout: 20_000 });
-  await page.getByTestId("row-ad-preview").click();
-  await expect(page.getByTestId("row-ad-preview")).toContainText("켜짐");
-
-  // 먼저 보이는 것을 확인한다
-  await page.goto("/");
+  // 운영 웹 설정의 링크로 켠다. 값을 저장한 뒤 주소에서 지운다.
+  await page.goto("/?adPreview=on");
   await expect(page.getByTestId("ad-slot-home")).toBeVisible({ timeout: 20_000 });
+  await expect(page).not.toHaveURL(/adPreview/);
   await expect(page.getByTestId("ad-slot-home")).toContainText("광고");
   await page.getByTestId("ad-slot-home").scrollIntoViewIfNeeded();
   await page.screenshot({ path: test.info().outputPath("ad-home.png") });
@@ -186,10 +182,7 @@ test("미리 보기 — 자리가 보이고, 운동을 시작하면 전부 사�
   await expect(page.getByTestId("global-workout-bar")).toHaveCount(0, { timeout: 20_000 });
 
   // 미리 보기를 끄면 다시 0개
-  await page.goto("/admin");
-  await page.getByTestId("row-ad-preview").click();
-  await expect(page.getByTestId("row-ad-preview")).toContainText("꺼짐");
-  await page.goto("/");
+  await page.goto("/?adPreview=off");
   await expect(page.getByTestId("home-ready")).toBeAttached({ timeout: 20_000 });
   await page.waitForTimeout(500);
   await expect(page.locator("[data-ad-slot]")).toHaveCount(0);

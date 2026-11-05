@@ -28,6 +28,10 @@ func NewRepo(pool *pgxpool.Pool) Repo {
 
 // read 는 읽기 전용 트랜잭션 안에서 fn 을 돌린다.
 func (r *pgRepo) read(ctx context.Context, fn func(q *sqlcgen.Queries) error) error {
+	return r.readTx(ctx, func(tx pgx.Tx) error { return fn(r.q.WithTx(tx)) })
+}
+
+func (r *pgRepo) readTx(ctx context.Context, fn func(tx pgx.Tx) error) error {
 	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadOnly})
 	if err != nil {
 		return err
@@ -36,7 +40,7 @@ func (r *pgRepo) read(ctx context.Context, fn func(q *sqlcgen.Queries) error) er
 	if _, err := tx.Exec(ctx, statementTimeoutSQL); err != nil {
 		return err
 	}
-	if err := fn(r.q.WithTx(tx)); err != nil {
+	if err := fn(tx); err != nil {
 		return err
 	}
 	return tx.Commit(ctx)
@@ -66,6 +70,15 @@ func (r *pgRepo) SignupTotals(ctx context.Context) (int64, int64, error) {
 		return err
 	})
 	return total, verified, err
+}
+
+// StaffCount — 통계에서 뺀 운영진 수. 화면이 「0명」을 고장으로 오해하지 않게 함께 알린다(SPEC-033).
+func (r *pgRepo) StaffCount(ctx context.Context) (int64, error) {
+	var n int64
+	err := r.readTx(ctx, func(tx pgx.Tx) error {
+		return tx.QueryRow(ctx, `SELECT count(*) FROM users WHERE role <> 'user'`).Scan(&n)
+	})
+	return n, err
 }
 
 func (r *pgRepo) SignupDaily(ctx context.Context, from time.Time) ([]DailyCount, error) {

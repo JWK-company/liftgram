@@ -359,7 +359,7 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
     ["gear", "/gear"],
     ["gyms", "/gyms"],
     ["coaching", "/coaching"],
-    ["feedback", "/feedback"],
+    ["feedback", "/profile/feedback"],
     ["discover", "/discover"],
     ["bookmarks", "/bookmarks"],
   ] as const) {
@@ -473,7 +473,7 @@ test("나머지 화면 캡처(로그인) — 390 라이트·다크 · 360×640",
     ["gyms", "/gyms"],
     ["bookmarks", "/bookmarks"],
     ["discover", "/discover"],
-    ["feedback", "/feedback"],
+    ["feedback", "/profile/feedback"],
   ] as const) {
     await shot(name, async () => {
       await page.goto(path);

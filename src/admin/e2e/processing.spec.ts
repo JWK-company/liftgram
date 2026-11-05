@@ -84,7 +84,7 @@ async function userFeedback(text: string): Promise<void> {
   });
 }
 
-async function goto(page: Page, role: "admin" | "coworker" | "moderator", path: string): Promise<string> {
+async function goto(page: Page, role: "admin" | "moderator", path: string): Promise<string> {
   const email = await makeAccount(role);
   await logIn(page, email);
   await page.goto(path);
@@ -204,7 +204,7 @@ test("위조 토큰과 grpc 형식으로는 남의 이름이 감사 줄에 찍�
   expect(entries.at(-1)).toMatchObject({ rpc: "Resolve", status: "401", userId: "" });
 });
 
-test("역할마다 서버가 운영 프록시에서 거절하고, 협업자 응답에는 작성자가 없다", async () => {
+test("역할마다 서버가 운영 프록시에서 거절하고, 옛 협업자 토큰도 막힌다", async () => {
   const access = await accessToken();
   const t = tag();
   await userFeedback(`원문 시험 ${t}`);
@@ -233,12 +233,12 @@ test("역할마다 서버가 운영 프록시에서 거절하고, 협업자 응�
     admin: await tokenOf(await makeAccount("admin")),
   };
   const table: [string, number[]][] = [
-    // 순서: 비로그인, 일반, 협업자, 모더레이터, 관리자
+    // 순서: 비로그인, 일반, 옛 협업자, 모더레이터, 관리자
     ["admin.v1.AdminService/GetSignupStats", [401, 403, 403, 403, 200]],
     ["ops.v1.OpsService/GetOpsStatus", [401, 403, 403, 403, 200]],
     ["moderation.v1.ModerationService/ListQueue", [401, 403, 403, 200, 200]],
-    ["feedback.v1.FeedbackService/ListEntries", [401, 403, 200, 403, 200]],
-    ["feedback.v1.FeedbackService/List", [401, 403, 200, 403, 200]],
+    ["feedback.v1.FeedbackService/ListEntries", [401, 403, 403, 403, 200]],
+    ["feedback.v1.FeedbackService/List", [401, 403, 403, 403, 200]],
     ["feedback.v1.FeedbackService/SetStatus", [401, 403, 403, 403, 404]],
     ["moderation.v1.ModerationService/Resolve", [401, 403, 403, 404, 404]],
     ["moderation.v1.ModerationService/GetReviewMedia", [401, 403, 403, 404, 404]],
@@ -253,10 +253,8 @@ test("역할마다 서버가 운영 프록시에서 거절하고, 협업자 응�
     ];
     expect(got, path).toEqual(want);
   }
-  const coworker = await call(tokens.coworker, "feedback.v1.FeedbackService/ListEntries");
-  expect(coworker.body).toContain(`원문 시험 ${t}`);
-  expect(coworker.body).not.toContain("authorName");
   const admin = await call(tokens.admin, "feedback.v1.FeedbackService/ListEntries");
+  expect(admin.body).toContain(`원문 시험 ${t}`);
   expect(admin.body).toContain("authorName");
 });
 
@@ -321,20 +319,7 @@ test("이미지가 아닌 형식은 그리지 않고 승인도 막는다", async
   await expect(item.getByTestId("mod-approve")).toBeDisabled();
 });
 
-test("협업자는 신고 검토 메뉴도 호출도 없다 · 거르기는 주소에 남는다", async ({ page }) => {
-  const calls: string[] = [];
-  page.on("request", (r) => {
-    if (r.url().includes("ListQueue") && !page.url().endsWith("/")) calls.push(r.url());
-  });
-  await goto(page, "coworker", "/");
-  await expect(page.getByTestId("menu-moderation")).toHaveCount(0);
-  await page.goto("/moderation");
-  await expect(page.getByTestId("role-denied")).toBeVisible();
-  await page.waitForLoadState("networkidle");
-  expect(calls).toEqual([]);
-
-  await page.context().clearCookies();
-  await page.evaluate(() => localStorage.clear());
+test("거르기는 주소에 남는다", async ({ page }) => {
   const t = tag();
   await reportedPost(`거르기 글 ${t}`);
   await goto(page, "moderator", "/moderation");
@@ -421,16 +406,11 @@ test("다른 운영자가 먼저 처리해 충돌하면 안내하고 표를 다�
   await expect(item.getByRole("button")).toHaveCount(0);
 });
 
-test("협업자는 작성자 없이 읽기만 하고, 역할을 회수하면 다음 호출부터 막힌다", async ({ page }) => {
+test("관리자의 역할을 회수하면 다음 호출부터 막힌다", async ({ page }) => {
   const t = tag();
-  await userFeedback(`협업자 시험 ${t}`);
-  const email = await goto(page, "coworker", "/user-feedback");
-  const item = row(page, `협업자 시험 ${t}`);
-  await expect(item).toBeVisible();
-  await expect(item).not.toContainText("운영시험 user");
-  await expect(page.getByRole("columnheader", { name: "작성자" })).toHaveCount(0);
-  await expect(page.getByRole("columnheader", { name: "동작" })).toHaveCount(0);
-  await expect(item.getByRole("button")).toHaveCount(0);
+  await userFeedback(`회수 시험 ${t}`);
+  const email = await goto(page, "admin", "/user-feedback");
+  await expect(row(page, `회수 시험 ${t}`)).toBeVisible();
 
   sql(`update users set role = 'user' where email = '${email}'`);
   await page.getByTestId("refresh").click();
@@ -475,10 +455,10 @@ test("페이지는 50줄씩이고 처리해도 페이지가 유지된다", async
 
 // ── 운영 피드백 ─────────────────────────────────────────────────────────────
 
-test("협업자는 적어 올리고 내가 쓴 글을 보며, 관리자가 처리한다", async ({ page, context }) => {
+test("관리자가 적어 올리고 내가 쓴 글을 보며, 다른 관리자가 처리한다", async ({ page, context }) => {
   const t = tag();
   const title = `버튼이 안 눌려요 ${t}`;
-  await goto(page, "coworker", "/ops-feedback");
+  await goto(page, "admin", "/ops-feedback");
   await page.getByTestId("ops-fb-title").fill("가");
   await page.getByTestId("ops-fb-detail").fill("자세한 내용을 적었습니다.");
   await expect(page.getByTestId("ops-fb-submit")).toBeDisabled();
@@ -491,7 +471,6 @@ test("협업자는 적어 올리고 내가 쓴 글을 보며, 관리자가 처�
   await expect(item).toContainText("버그·문제");
   await expect(item).toContainText("내가 쓴 글");
   await expect(page.getByTestId("ops-fb-title")).toHaveValue("");
-  await expect(item.getByRole("button")).toHaveCount(0);
 
   const second = `이런 기능 ${t}`;
   await page.getByTestId("ops-fb-cat-improvement").click();

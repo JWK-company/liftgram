@@ -156,6 +156,9 @@ catalog: ## 종목 카탈로그 생성 — 정본 core/src/data/catalog/*.csv �
 records-migrate: ## 운영 기록 이관(카탈로그 개편) — PSQL="<psql 명령>" MODE=--dry-run|--apply REPORT=<파일>
 	node --import tsx scripts/migrate-records.ts --psql "$(PSQL)" $(or $(MODE),--dry-run) $(if $(REPORT),--report $(REPORT),)
 
+bundle-check: ## 앱 번들에 운영 화면·RPC 가 없는가(빌드 뒤에)
+	node scripts/check-app-bundle.mjs
+
 catalog-check: ## 카탈로그 생성물이 정본 CSV와 일치하는가 — make verify가 부른다
 	node scripts/gen-catalog.mjs --check
 

@@ -113,8 +113,9 @@ test("세션 라우트 빗장: 세 조건이 모두 맞아야 한다", () => {
 });
 
 test("운영진 역할: 정확한 문자열만", () => {
-  for (const r of ["ROLE_COWORKER", "ROLE_MODERATOR", "ROLE_ADMIN"]) assert.equal(isStaffRole(r), true);
-  for (const r of ["ROLE_USER", "", undefined, 4, "role_admin"]) assert.equal(isStaffRole(r), false);
+  for (const r of ["ROLE_MODERATOR", "ROLE_ADMIN"]) assert.equal(isStaffRole(r), true);
+  for (const r of ["ROLE_USER", "ROLE_COWORKER", "", undefined, 4, "role_admin"])
+    assert.equal(isStaffRole(r), false);
 });
 
 test("운영 웹 소스는 앱과 core 를 가져오지 않고 위험한 HTML 을 쓰지 않는다", () => {

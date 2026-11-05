@@ -176,7 +176,7 @@ export function HomeScreen() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {admin && <AlertCard />}
           {(admin || role === Role.MODERATOR) && <QueueCard />}
-          {(admin || role === Role.COWORKER) && <FeedbackCard />}
+          {admin && <FeedbackCard />}
           {admin && <UsageCard />}
         </div>
       </RefreshSignal.Provider>

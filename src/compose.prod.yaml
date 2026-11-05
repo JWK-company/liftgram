@@ -30,5 +30,8 @@ services:
     restart: unless-stopped
 
   frontend:
+    build:
+      args:
+        ADMIN_URL: ${ADMIN_URL:-https://liftgram-admin.tarae.org}
     restart: unless-stopped
     ports: !override ["127.0.0.1:${WEB_PORT:?WEB_PORT가 필요하다}:3000"]

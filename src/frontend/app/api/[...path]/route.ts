@@ -50,8 +50,37 @@ function forwardHeaders(src: Headers, requestId: string): Headers {
   return out;
 }
 
+// 운영 RPC 는 앱 주소로 받지 않는다(SPEC-033). 운영 웹은 내부망으로 백엔드를 직접 부른다.
+// 역할 검사는 백엔드가 하고, 이 차단은 앱 주소에 운영 표면을 두지 않기 위한 두 번째 겹이다.
+// 서비스별로 사용자용 RPC 만 허용한다. 새 운영 RPC 를 더해도 기본이 차단이다.
+const OPS_SERVICES = new Map<string, Set<string>>([
+  ["admin.v1.adminservice", new Set()],
+  ["ops.v1.opsservice", new Set(["reportclienthealth"])],
+  ["moderation.v1.moderationservice", new Set(["report"])],
+  ["feedback.v1.feedbackservice", new Set(["submituserfeedback"])],
+]);
+
+/** 경로를 백엔드가 해석할 모양으로 풀어 판정한다. 인코딩·대소문자·겹슬래시로 비껴가지 못하게 한다. */
+function blockedOpsRpc(pathname: string): boolean {
+  let path: string;
+  try {
+    path = decodeURIComponent(pathname);
+  } catch {
+    return true;
+  }
+  const parts = path.toLowerCase().split("/").filter(Boolean);
+  return parts.some((part, i) => {
+    const allowed = OPS_SERVICES.get(part);
+    return allowed !== undefined && !allowed.has(parts[i + 1] ?? "");
+  });
+}
+
 async function proxy(req: Request): Promise<Response> {
   const url = new URL(req.url);
+  // 옛 앱 번들의 운영 호출도 여기서 끝난다. Connect 형식이라 옛 화면은 일반 실패로 처리한다.
+  if (blockedOpsRpc(url.pathname)) {
+    return Response.json({ code: "unimplemented", message: "not found" }, { status: 404 });
+  }
   const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID();
   // 브라우저가 부른 경로를 **그대로** 넘긴다. `/api/exercise.v1.ExerciseService/…` 는
   // api에서도 같은 경로다(main.go가 /api 접두사로 마운트한다) — 프록시가 경로를 알 필요가 없다.

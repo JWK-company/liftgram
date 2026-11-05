@@ -58,6 +58,10 @@ func TestPgRepo_통계(t *testing.T) {
 		return total, b, [4]int64{w, fr, au, med}
 	}
 	t0, b0, w0 := before()
+	staff0, err := r.StaffCount(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	u1, u2, staff, excl := base+"-u1", base+"-u2", base+"-staff", base+"-excl"
 	mkUser(t, pool, u1, "user", false)
@@ -130,6 +134,9 @@ func TestPgRepo_통계(t *testing.T) {
 	}
 	if _, _, _, err := r.Operations(ctx); err != nil {
 		t.Fatal(err)
+	}
+	if n, err := r.StaffCount(ctx); err != nil || n != staff0+1 {
+		t.Fatalf("운영진 수 %d, 처음 %d: %v", n, staff0, err)
 	}
 	role, found, err := r.UserRole(ctx, staff)
 	if err != nil || !found || role != "coworker" {

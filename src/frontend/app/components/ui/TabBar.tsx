@@ -10,12 +10,9 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "../AuthProvider";
-import { Role } from "@app/contracts";
 import { LogoSpinner } from "./LogoSpinner";
 import { useAppUpdate } from "@/lib/appUpdate";
-import { t as tr, tw } from "@/lib/i18n";
-import { useOpsAlert } from "@/lib/opsAlert";
+import { tw } from "@/lib/i18n";
 
 /** 탭바 없이 전체 화면으로 여는 인증 흐름(SRS-054 P3). /account 는 프로필의 하위 화면이라 탭바를 둔다. */
 const AUTH_ROUTES = ["/signin", "/signup", "/forgot", "/reset", "/verify-email", "/auth"];
@@ -74,37 +71,16 @@ const TABS: Tab[] = [
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
     // [개선] 운영 상태(/ops)도 프로필의 하위 화면이다 @plm SRS-088
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked", "/ops"),
-    // [개선] 운영 상태는 운영 탭으로 옮겼다(#T2)
+    // [개선] 운영 화면은 운영 웹으로 옮겼다(SPEC-033)
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
     // [개선] 주변 헬스장은 피드 탭의 하위 화면이다(2026-11-05)
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked"),
     // [개선] 운영 탭을 없애고 운영자 페이지를 프로필의 하위 화면으로 옮겼다(SPEC-032)
-    match: (p) =>
-      under(
-        p,
-        "/profile",
-        "/account",
-        "/gear",
-        "/coaching",
-        "/blocked",
-        "/admin",
-        "/staff",
-        "/feedback",
-        "/moderation",
-        "/ops",
-      ),
+    match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked"),
   },
 ];
 
 // [원본] FEEDBACK 탭 { key: "feedback", href: "/feedback", label: "피드백", testId: "nav-feedback", match: under("/feedback") }
-// [원본] 운영 탭(#T2) — 프로필 안의 「운영자 페이지」 줄로 옮겼다(SPEC-032)
-// const STAFF: Tab = {
-//   key: "staff",
-//   href: "/staff",
-//   label: "운영",
-//   testId: "nav-staff",
-//   match: (p) => under(p, "/staff", "/feedback", "/moderation", "/ops"),
-// };
 
 /** 라인 아이콘 — 24 격자 · 선 1.8 · 둥근 끝. 켜진 탭은 같은 선에 브랜드색만 입힌다. */
 function TabGlyph({ k }: { k: TabKey }) {
@@ -167,22 +143,14 @@ function TabIcon({ k }: { k: TabKey }) {
   return pending ? <LogoSpinner size={24} /> : <TabGlyph k={k} />;
 }
 
-/** 탭은 누구에게나 같은 다섯 칸이다. 운영자 페이지는 프로필 탭 안의 줄로 들어간다(SPEC-032). */
+/** 탭은 누구에게나 같은 다섯 칸이다. 운영 화면은 앱에 없다(SPEC-033). */
 export function TabBar() {
   const pathname = usePathname();
-  const { user } = useAuth();
   // 새 버전이 기다리면 프로필 탭에 조용한 점(빨강·금색 아님 — 화면 정리 규칙) @plm SRS-085
   const { available: updateAvailable } = useAppUpdate();
-  // [원본] admin 이고 운영 경보면 프로필 탭에 빨간 점 — 업데이트 회색 점보다 우선(같이면 빨강만) @plm SRS-088
-  // [원본] 운영 경보 점은 운영 탭에 — 프로필의 업데이트 점과 자리가 달라 둘 다 보인다(#T2)
-  // [개선] 운영 탭이 없어져 다시 프로필 탭에 — 업데이트 회색 점보다 우선(같이면 빨강만 · SPEC-032)
-  const { alert: opsAlert } = useOpsAlert();
-  const opsDot = opsAlert && user?.role === Role.ADMIN;
   if (pathname.startsWith("/workout")) return null;
   // 로그인·가입·비밀번호·확인 화면은 전체 화면이다(시안 10) — 탭바가 아래 내용을 가리던 자리.
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(`${r}/`))) return null;
-  // [원본] const tabs = isInsider(user?.role) ? [...TABS, FEEDBACK] : TABS;
-  // [원본] const tabs = canSeeStaffTab(user?.role) ? [...TABS, STAFF] : TABS;
   const tabs = TABS;
 
   return (
@@ -215,15 +183,7 @@ export function TabBar() {
             ) : null}
             <span className="relative inline-flex">
               <TabIcon k={t.key} />
-              {t.key === "profile" && opsDot ? (
-                <span
-                  aria-hidden
-                  data-testid="nav-profile-ops-dot"
-                  className="absolute -top-[1px] -right-[3px] h-[7px] w-[7px] rounded-full bg-(--color-bad) ring-2 ring-(--color-surface)"
-                />
-              ) : null}
-              {/* [원본] {t.key === "profile" && updateAvailable && !opsDot ? ( — 운영 점이 운영 탭으로 옮겨 자리가 겹치지 않는다(#T2) */}
-              {t.key === "profile" && updateAvailable && !opsDot ? (
+              {t.key === "profile" && updateAvailable ? (
                 <span
                   aria-hidden
                   data-testid="nav-profile-update-dot"
@@ -233,9 +193,6 @@ export function TabBar() {
             </span>
             <span className={`text-[11px] leading-none ${active ? "font-semibold" : "font-medium"}`}>
               {t.label}
-              {t.key === "profile" && opsDot ? (
-                <span className="sr-only">{` · ${tr("ops.needsCheck")}`}</span>
-              ) : null}
               {t.key === "profile" && updateAvailable ? (
                 <span className="sr-only">{` · ${tw("web.sw.hasUpdate")}`}</span>
               ) : null}

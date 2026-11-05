@@ -63,7 +63,7 @@ export function withCookies(body: BodyInit | null, status: number, cookies: stri
   return new Response(body, { status, headers });
 }
 
-const STAFF = new Set(["ROLE_COWORKER", "ROLE_MODERATOR", "ROLE_ADMIN"]);
+const STAFF = new Set(["ROLE_MODERATOR", "ROLE_ADMIN"]);
 
 /** 백엔드 JSON 응답의 역할이 운영진인가. 숫자 표기나 빈 값은 거절 쪽으로 떨어진다. */
 export function isStaffRole(role: unknown): boolean {

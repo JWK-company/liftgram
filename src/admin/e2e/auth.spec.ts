@@ -3,7 +3,6 @@ import { expect, logIn, makeAccount, PASSWORD, sql, test } from "./helpers/base"
 
 for (const [role, label] of [
   ["admin", "관리자"],
-  ["coworker", "협업자"],
   ["moderator", "모더레이터"],
 ] as const) {
   test(`${role} 은 로그인해 운영 화면을 본다`, async ({ page }) => {
@@ -22,6 +21,14 @@ test("일반 사용자는 거절되고 쿠키가 남지 않는다", async ({ pag
   const res = await answer;
   expect(res.status()).toBe(403);
   expect((await res.allHeaders())["set-cookie"]).toBeUndefined();
+  await expect(page.getByTestId("login-error")).toContainText("운영 권한");
+  expect(await context.cookies()).toEqual([]);
+});
+
+test("옛 협업자 역할은 운영 웹에 들어오지 못한다", async ({ page, context }) => {
+  const answer = page.waitForResponse("**/api/session/login");
+  await logIn(page, await makeAccount("coworker"));
+  expect((await answer).status()).toBe(403);
   await expect(page.getByTestId("login-error")).toContainText("운영 권한");
   expect(await context.cookies()).toEqual([]);
 });

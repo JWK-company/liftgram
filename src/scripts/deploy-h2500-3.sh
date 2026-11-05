@@ -105,6 +105,7 @@ fi
 # 프로필 하단에 보이는 빌드 번호·커밋 — 커밋된 것은 "dev" 자리표시자이고, 배포 사본에만 찍는다.
 printf '{ "build": "%s", "commit": "%s" }\n' "$BUILD" "$SHORT" > "$CLEAN/src/frontend/app/build-info.json"
 
+HOME_ADMIN_ENV='~/liftgram-admin/.env'
 echo "── 여유 공간·설정 확인(서버를 건드리기 전에) ──"
 $SSH "
   free=\$(df -BG --output=avail / | tail -1 | tr -dc '0-9')
@@ -118,6 +119,21 @@ $SSH "
   # 이용 기록 횟수 제한은 실제 IP 로 센다 — 꺼져 있으면 터널 뒤 전원이 한 키로 묶인다(SPEC-032).
   grep -q \"^TRUST_CF_CONNECTING_IP=1\" \$f || { echo \"  !! .env 에 TRUST_CF_CONNECTING_IP=1 이 없다\"; exit 1; }
   echo '  .env 필수 키 OK'"
+
+# 앱에서 운영 화면을 뺀 뒤에는 운영 웹이 유일한 입구다(SPEC-033). 운영 웹 로그인을 실제로 확인한 서버에만 내보낸다.
+# 옛 커밋(앱에 운영 화면이 있음)으로 되돌릴 때는 입구가 앱에 있으므로 묻지 않는다.
+if [ ! -f "$CLEAN/src/frontend/app/moderation/page.tsx" ]; then
+  $SSH "grep -q '^ADMIN_LOGIN_CONFIRMED=1\$' $HOME_ADMIN_ENV 2>/dev/null" || {
+    echo "!! 운영 웹 로그인 확인 표식을 읽지 못했습니다(ssh 실패 포함). 운영 웹에 로그인해 본 뒤 서버 $HOME_ADMIN_ENV 에 ADMIN_LOGIN_CONFIRMED=1 을 적으세요."
+    exit 1
+  }
+  # 옛 주소 넘김은 빌드 때 굳는다. 두 설정의 운영 웹 주소가 다르면 앱이 틀린 곳으로 보낸다.
+  $SSH "
+    a=\$(grep '^ADMIN_URL=' $REMOTE/src/.env | cut -d= -f2-)
+    b=\$(grep '^ADMIN_URL=' $HOME_ADMIN_ENV | cut -d= -f2-)
+    [ -z \"\$a\" ] && a=https://liftgram-admin.tarae.org
+    [ \"\$a\" = \"\$b\" ] || { echo \"  !! 운영 웹 주소가 다르다: 앱 \$a · 운영 웹 \$b\"; exit 1; }"
+fi
 
 # ── 안드로이드 APK — SPEC-018 (SRS-099 · ADR-047) ─────────────────────────────────
 # 커밋된 사본($CLEAN)에서 서명 APK + android.json 을 만들어 웹 이미지의 public/downloads 에 싣는다

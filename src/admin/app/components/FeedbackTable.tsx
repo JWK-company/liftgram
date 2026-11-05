@@ -1,7 +1,7 @@
 "use client";
 
 // 의견 표(SPEC-033). 사용자 의견과 운영 피드백이 같은 규칙으로 처리된다.
-// 본문은 신뢰할 수 없는 입력이라 글자로만 그린다. 버튼은 관리자에게만 보이지만 경계는 서버다.
+// 본문은 신뢰할 수 없는 입력이라 글자로만 그린다. 화면은 관리자 전용이고 경계는 서버다.
 // 승인은 지금 아무것도 실행하지 않고, 승인 당시의 본문 해시와 메모만 남는다.
 import { FeedbackCategory, type FeedbackEntry, FeedbackStatus } from "@app/contracts";
 import { useMemo, useState } from "react";
@@ -75,8 +75,6 @@ function when(e: FeedbackEntry): number {
 export function FeedbackTable({
   entries,
   limit,
-  canAct,
-  showAuthor,
   showCategory,
   mine,
   emptyText,
@@ -85,8 +83,6 @@ export function FeedbackTable({
 }: {
   entries: FeedbackEntry[];
   limit: number;
-  canAct: boolean;
-  showAuthor: boolean;
   /** 사용자 의견에는 분류가 없다(앱 입력칸이 본문뿐). 빈 열과 결과 없는 거르기를 보이지 않는다. */
   showCategory: boolean;
   mine?: Set<string>;
@@ -202,16 +198,12 @@ export function FeedbackTable({
         </>
       ),
     },
-    ...(showAuthor
-      ? [
-          {
-            key: "author",
-            header: "작성자",
-            className: "whitespace-nowrap",
-            cell: (e: FeedbackEntry) => e.authorName || "—",
-          },
-        ]
-      : []),
+    {
+      key: "author",
+      header: "작성자",
+      className: "whitespace-nowrap",
+      cell: (e) => e.authorName || "—",
+    },
     {
       key: "client",
       header: "플랫폼·버전",
@@ -225,24 +217,20 @@ export function FeedbackTable({
       className: "min-w-40 max-w-xs whitespace-pre-wrap break-words text-muted",
       cell: (e) => e.resolution || "—",
     },
-    ...(canAct
-      ? [
-          {
-            key: "actions",
-            header: "동작",
-            sticky: true,
-            cell: (e: FeedbackEntry) => (
-              <div className="flex flex-col items-stretch gap-1 lg:flex-row">
-                {(MOVES[e.status] ?? []).map((m) => (
-                  <Button key={m.id} data-testid={`fb-${m.id}`} onClick={() => open(e, m)}>
-                    {m.label}
-                  </Button>
-                ))}
-              </div>
-            ),
-          },
-        ]
-      : []),
+    {
+      key: "actions",
+      header: "동작",
+      sticky: true,
+      cell: (e) => (
+        <div className="flex flex-col items-stretch gap-1 lg:flex-row">
+          {(MOVES[e.status] ?? []).map((m) => (
+            <Button key={m.id} data-testid={`fb-${m.id}`} onClick={() => open(e, m)}>
+              {m.label}
+            </Button>
+          ))}
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -348,7 +336,9 @@ export function FeedbackTable({
           onConfirm={() => void apply()}
         >
           <label className="block space-y-1">
-            <span className="text-muted text-xs">처리 메모(협업자도 봅니다. 개인정보를 적지 마세요)</span>
+            <span className="text-muted text-xs">
+              처리 메모(다른 운영자도 봅니다. 개인정보를 적지 마세요)
+            </span>
             <textarea
               data-testid="fb-note"
               rows={3}

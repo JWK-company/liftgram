@@ -30,6 +30,23 @@ const config: NextConfig = {
   // 프로덕션에는 영향이 없다.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
 
+  // 옛 운영 주소는 운영 웹으로 넘긴다(SPEC-033). 목적지는 빌드 값이다. 값이 없으면 넘기지 않고 404 로 둔다.
+  async redirects() {
+    const admin = (process.env.ADMIN_URL ?? "").replace(/\/$/, "");
+    if (!admin) return [];
+    return (
+      [
+        ["/admin/stats", "/stats"],
+        ["/admin/feedback", "/user-feedback"],
+        ["/admin", "/"],
+        ["/staff", "/"],
+        ["/feedback", "/ops-feedback"],
+        ["/moderation", "/moderation"],
+        ["/ops", "/ops"],
+      ] as const
+    ).map(([source, to]) => ({ source, destination: `${admin}${to}`, permanent: false }));
+  },
+
   // 모든 응답에 붙는 최소 보안 헤더.
   // 프로젝트에 맞춰 CSP·HSTS를 여기서 더하면 된다 — HSTS는 HTTPS로 서비스할 때만 켠다.
   async headers() {

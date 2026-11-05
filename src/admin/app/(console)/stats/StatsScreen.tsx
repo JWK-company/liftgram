@@ -204,7 +204,12 @@ function SignupBlock() {
       {(d) => (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <Tile testid="stat-signup-total" label="누적 가입" value={num(d.total)} />
+            <Tile
+              testid="stat-signup-total"
+              label="누적 가입"
+              value={num(d.total)}
+              caption={`운영진 ${num(d.staffCount)}명 제외`}
+            />
             <Tile
               testid="stat-email-verified"
               label="메일 확인"
@@ -485,6 +490,15 @@ function OperationsBlock() {
   );
 }
 
+function RevenueBlock() {
+  return (
+    <section data-testid="stats-revenue" className="rounded-lg border border-line bg-surface p-4">
+      <h2 className="mb-3 font-semibold">수입</h2>
+      <Note testid="stats-revenue-pending">광고와 멤버십 결제를 연동하면 여기에 수입을 표시합니다.</Note>
+    </section>
+  );
+}
+
 function Screen() {
   const [signal, setSignal] = useState(0);
   return (
@@ -502,6 +516,7 @@ function Screen() {
           <RoutineBlock />
           <ContentBlock />
           <OperationsBlock />
+          <RevenueBlock />
         </div>
       </RefreshSignal.Provider>
     </div>

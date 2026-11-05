@@ -35,37 +35,19 @@ test("관리자 요약은 네 칸을 보고, 경고 이유와 메뉴 점이 보�
   await expect(page.getByTestId("home-usage")).toBeVisible();
 });
 
-test("협업자는 의견 칸만, 모더레이터는 신고 칸만 본다. 금지 RPC 를 부르지 않는다", async ({
-  page,
-  browser,
-  extraHTTPHeaders,
-}) => {
+test("모더레이터는 신고 칸만 본다. 금지 RPC 를 부르지 않는다", async ({ page }) => {
   const asks: string[] = [];
-  const watch = (u: string) => {
-    if (/AdminService|OpsService|ListQueue/.test(u)) asks.push(u);
-  };
-  page.on("request", (r) => watch(r.url()));
-  await logIn(page, await makeAccount("coworker"));
-  await expect(page.getByTestId("home-feedback-count")).toBeVisible();
-  await expect(page.getByTestId("home-queue")).toHaveCount(0);
+  page.on("request", (r) => {
+    if (/AdminService|OpsService|ListEntries/.test(r.url())) asks.push(r.url());
+  });
+  await logIn(page, await makeAccount("moderator"));
+  await expect(page.getByTestId("home-queue-count")).toBeVisible();
+  await expect(page.getByTestId("home-feedback")).toHaveCount(0);
   await expect(page.getByTestId("home-alert")).toHaveCount(0);
   await expect(page.getByTestId("home-usage")).toHaveCount(0);
   await expect(page.getByTestId("menu-ops")).toHaveCount(0);
-  await expect(page.getByTestId("home-feedback-error")).toHaveCount(0);
+  await expect(page.getByTestId("home-queue-error")).toHaveCount(0);
   expect(asks).toEqual([]);
-
-  const ctx = await browser.newContext({ extraHTTPHeaders });
-  const mod = await ctx.newPage();
-  const modAsks: string[] = [];
-  mod.on("request", (r) => {
-    if (/AdminService|OpsService|ListEntries/.test(r.url())) modAsks.push(r.url());
-  });
-  await logIn(mod, await makeAccount("moderator"));
-  await expect(mod.getByTestId("home-queue-count")).toBeVisible();
-  await expect(mod.getByTestId("home-feedback")).toHaveCount(0);
-  await expect(mod.getByTestId("home-queue-error")).toHaveCount(0);
-  expect(modAsks).toEqual([]);
-  await ctx.close();
 });
 
 test("신고 대기는 큐 줄 수다: 같은 글의 신고 여러 건도 한 줄", async ({ page }) => {
@@ -268,4 +250,27 @@ test("요약 칸의 재로드 실패는 원인과 다시 시도를 보여 주고
   fail = false;
   await stale.getByRole("button").click();
   await expect(stale).toHaveCount(0);
+});
+
+test("설정은 관리자만 보고, 미리 보기 링크는 앱 주소로 간다", async ({ page, browser, extraHTTPHeaders }) => {
+  await logIn(page, await makeAccount("admin"));
+  await page.getByTestId("menu-settings").click();
+  await expect(page.getByTestId("settings-screen")).toBeVisible();
+  await expect(page.getByTestId("ad-preview-on")).toHaveAttribute(
+    "href",
+    "http://127.0.0.1:3320/?adPreview=on",
+  );
+  await expect(page.getByTestId("ad-preview-off")).toHaveAttribute(
+    "href",
+    "http://127.0.0.1:3320/?adPreview=off",
+  );
+
+  const ctx = await browser.newContext({ extraHTTPHeaders });
+  const mod = await ctx.newPage();
+  await logIn(mod, await makeAccount("moderator"));
+  await expect(mod.getByTestId("menu-settings")).toHaveCount(0);
+  await mod.goto("/settings");
+  await expect(mod.getByTestId("role-denied")).toBeVisible();
+  await expect(mod.getByTestId("ad-preview-on")).toHaveCount(0);
+  await ctx.close();
 });

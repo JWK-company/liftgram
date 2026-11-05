@@ -89,7 +89,12 @@ COPY --from=frontend-deps /app/core/node_modules ./core/node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # 계약은 **빌드하지 않는다**(ADR-011) — proto에서 생성된 TS를 Next가 직접 트랜스파일한다.
+# 옛 운영 주소가 넘어갈 곳(SPEC-033). next.config 의 redirects 는 빌드 때 굳는다. 비면 넘기지 않는다.
+ARG ADMIN_URL=""
+ENV ADMIN_URL=$ADMIN_URL
 RUN bun run --cwd frontend build
+# 운영 화면이 앱 번들에 돌아오면 이미지를 만들지 않는다(SPEC-033).
+RUN node scripts/check-app-bundle.mjs
 
 # ── frontend 이미지 ──────────────────────────────────────────────────────────
 FROM node:24-slim AS frontend

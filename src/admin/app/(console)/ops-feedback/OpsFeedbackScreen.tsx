@@ -5,12 +5,11 @@ import { FeedbackCategory, FeedbackKind, Role } from "@app/contracts";
 import { useState } from "react";
 import { FeedbackTable } from "@/app/components/FeedbackTable";
 import { RoleGate } from "@/app/components/RoleGate";
-import { useSession } from "@/app/components/SessionProvider";
 import { Button, Loaded, PageHeader, RefreshBar, Section } from "@/app/components/ui";
 import { actionErrorText, feedbackApi } from "@/lib/rpc";
 import { useResource } from "@/lib/useResource";
 
-const ROLES = [Role.ADMIN, Role.COWORKER] as const;
+const ROLES = [Role.ADMIN] as const;
 const LIMIT = 200;
 const REFRESH_MS = 5 * 60_000;
 const TITLE_MIN = 3;
@@ -107,7 +106,6 @@ function Compose({ onSent }: { onSent: () => void }) {
 }
 
 function Screen() {
-  const { role } = useSession();
   const res = useResource(async () => {
     // 표식 목록이 실패해도 표는 보여 준다. 없는 표식이 잘못된 정보는 아니다.
     const [entries, mine] = await Promise.all([
@@ -119,7 +117,6 @@ function Screen() {
       mine: new Set(mine.items.filter((i) => i.mine).map((i) => String(i.id))),
     };
   }, REFRESH_MS);
-  const isAdmin = role === Role.ADMIN;
   return (
     <div data-testid="ops-feedback-screen">
       <PageHeader title="운영 피드백">
@@ -134,8 +131,6 @@ function Screen() {
             <FeedbackTable
               entries={d.entries}
               limit={LIMIT}
-              canAct={isAdmin}
-              showAuthor={isAdmin}
               showCategory
               mine={d.mine}
               emptyText="아직 올라온 글이 없습니다."

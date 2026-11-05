@@ -3,25 +3,17 @@ import { Role } from "@app/contracts";
 
 export type MenuItem = { href: string; label: string; testid: string; roles: readonly Role[] };
 
-const ALL_STAFF = [Role.ADMIN, Role.COWORKER, Role.MODERATOR] as const;
+// 협업자 역할은 쓰지 않는다. 운영 웹에는 관리자와 모더레이터만 들어온다(2026-11-05 결정).
+const ALL_STAFF = [Role.ADMIN, Role.MODERATOR] as const;
 
 export const MENU: readonly MenuItem[] = [
   { href: "/", label: "요약", testid: "menu-home", roles: ALL_STAFF },
   { href: "/moderation", label: "신고 검토", testid: "menu-moderation", roles: [Role.ADMIN, Role.MODERATOR] },
-  {
-    href: "/user-feedback",
-    label: "사용자 의견",
-    testid: "menu-user-feedback",
-    roles: [Role.ADMIN, Role.COWORKER],
-  },
-  {
-    href: "/ops-feedback",
-    label: "운영 피드백",
-    testid: "menu-ops-feedback",
-    roles: [Role.ADMIN, Role.COWORKER],
-  },
+  { href: "/user-feedback", label: "사용자 의견", testid: "menu-user-feedback", roles: [Role.ADMIN] },
+  { href: "/ops-feedback", label: "운영 피드백", testid: "menu-ops-feedback", roles: [Role.ADMIN] },
   { href: "/stats", label: "통계", testid: "menu-stats", roles: [Role.ADMIN] },
   { href: "/ops", label: "운영 상태", testid: "menu-ops", roles: [Role.ADMIN] },
+  { href: "/settings", label: "설정", testid: "menu-settings", roles: [Role.ADMIN] },
 ];
 
 export function isStaff(role: Role): boolean {
@@ -31,7 +23,6 @@ export function isStaff(role: Role): boolean {
 export function roleLabel(role: Role): string {
   if (role === Role.ADMIN) return "관리자";
   if (role === Role.MODERATOR) return "모더레이터";
-  if (role === Role.COWORKER) return "협업자";
   return "일반 사용자";
 }
 

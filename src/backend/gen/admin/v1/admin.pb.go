@@ -185,8 +185,10 @@ type GetSignupStatsResponse struct {
 	// 그중 가입 7일 안에 운동을 완료한 계정 수.
 	FirstWorkoutDone int64 `protobuf:"varint,7,opt,name=first_workout_done,json=firstWorkoutDone,proto3" json:"first_workout_done,omitempty"`
 	// 운동 기록 집계가 시작됐는가(USAGE_SINCE 가 지났는가). false 면 첫 운동 칸은 시행 전 상태다.
-	Started       bool                   `protobuf:"varint,8,opt,name=started,proto3" json:"started,omitempty"`
-	UsageSince    *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=usage_since,json=usageSince,proto3" json:"usage_since,omitempty"`
+	Started    bool                   `protobuf:"varint,8,opt,name=started,proto3" json:"started,omitempty"`
+	UsageSince *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=usage_since,json=usageSince,proto3" json:"usage_since,omitempty"`
+	// 통계에서 뺀 운영진 계정 수(역할이 user 가 아닌 계정).
+	StaffCount    int64 `protobuf:"varint,10,opt,name=staff_count,json=staffCount,proto3" json:"staff_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -282,6 +284,13 @@ func (x *GetSignupStatsResponse) GetUsageSince() *timestamppb.Timestamp {
 		return x.UsageSince
 	}
 	return nil
+}
+
+func (x *GetSignupStatsResponse) GetStaffCount() int64 {
+	if x != nil {
+		return x.StaffCount
+	}
+	return 0
 }
 
 type GetRoutineStatsRequest struct {
@@ -1245,7 +1254,7 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"NamedCount\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x03R\x05count\"\x17\n" +
-	"\x15GetSignupStatsRequest\"\xab\x03\n" +
+	"\x15GetSignupStatsRequest\"\xcc\x03\n" +
 	"\x16GetSignupStatsResponse\x12=\n" +
 	"\fgenerated_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x03R\x05total\x12*\n" +
@@ -1256,7 +1265,10 @@ const file_admin_v1_admin_proto_rawDesc = "" +
 	"\x12first_workout_done\x18\a \x01(\x03R\x10firstWorkoutDone\x12\x18\n" +
 	"\astarted\x18\b \x01(\bR\astarted\x12;\n" +
 	"\vusage_since\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"usageSince\"\x18\n" +
+	"usageSince\x12\x1f\n" +
+	"\vstaff_count\x18\n" +
+	" \x01(\x03R\n" +
+	"staffCount\"\x18\n" +
 	"\x16GetRoutineStatsRequest\"\x99\x03\n" +
 	"\x17GetRoutineStatsResponse\x12=\n" +
 	"\fgenerated_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vgeneratedAt\x12\x18\n" +

@@ -8,7 +8,7 @@ test("관리자가 아니면 통계를 부르지도 못하고 메뉴도 없다",
   page.on("request", (r) => {
     if (r.url().includes("AdminService")) calls.push(r.url());
   });
-  await logIn(page, await makeAccount("coworker"));
+  await logIn(page, await makeAccount("moderator"));
   await expect(page.getByTestId("home")).toBeVisible();
   await expect(page.getByTestId("menu-stats")).toHaveCount(0);
   await page.goto("/stats");
@@ -65,6 +65,7 @@ test("고정 응답의 값이 칸마다 정확히 그려진다", async ({ page }
         usageSince: "2026-10-01T00:00:00Z",
         total: 8,
         emailVerified: 2,
+        staffCount: 3,
         daily: [{ day: "2026-11-05", count: 8 }],
         providers: [{ name: "kakao", count: 8 }],
         firstWorkoutCohort: 4,
@@ -107,6 +108,8 @@ test("고정 응답의 값이 칸마다 정확히 그려진다", async ({ page }
   await expect(page.getByTestId("retention-7").locator("td")).toHaveText(["20%", "0%", "10%"]);
   await expect(page.getByTestId("retention-30").locator("td")).toHaveText(["—", "—", "—"]);
   await expect(page.getByTestId("stat-signup-total")).toHaveText("8");
+  await expect(page.getByTestId("stats-signup")).toContainText("운영진 3명 제외");
+  await expect(page.getByTestId("stats-revenue-pending")).toContainText("광고와 멤버십");
   await expect(page.getByTestId("stat-email-verified")).toHaveText("25%");
   await expect(page.getByTestId("stat-first-workout")).toHaveText("75%");
   await expect(page.getByTestId("chart-providers-kakao")).toContainText("카카오");

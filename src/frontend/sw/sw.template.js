@@ -43,6 +43,8 @@ const SWR_SHELLS = new Set([
   "/profile",
   "/feed",
 ]);
+const OLD_OPS_PATHS = ["/admin", "/staff", "/feedback", "/moderation", "/ops"];
+const isOldOpsPath = (pathname) => OLD_OPS_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 const NAV_TIMEOUT_MS = 3000;
 const MEDIA_MAX = 200;
 const MEDIA_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -79,7 +81,9 @@ self.addEventListener("activate", (event) => {
           if (!k.startsWith("liftgram-pages-")) continue;
           const c = await caches.open(k);
           for (const r of await c.keys())
-            if (new URL(r.url).pathname.startsWith("/downloads/")) await c.delete(r);
+            if (new URL(r.url).pathname.startsWith("/downloads/") || isOldOpsPath(new URL(r.url).pathname)) {
+              await c.delete(r);
+            }
         }
       } catch {
         // 청소는 덤이다 — 다음 활성화가 다시 한다
@@ -123,6 +127,9 @@ self.addEventListener("fetch", (event) => {
   // 느린 망에서 옛 화면(옛 ac·옛 코드)이 떠 원인 모를 실패가 나지 않게(REV-012 보안 L-2 · 화면 L-11)
   if (url.pathname === "/app" || url.pathname.startsWith("/app/") || url.pathname === "/auth/complete")
     return;
+
+  // 옛 운영 주소는 운영 웹으로 넘어간다(SPEC-033). 캐시에 담거나 옛 캐시로 답하지 않고 네트워크에 맡긴다.
+  if (isOldOpsPath(url.pathname)) return;
 
   if (url.pathname.startsWith("/api/") || url.pathname === "/sw.js") return;
   if (url.pathname.startsWith("/_next/static/")) return event.respondWith(cacheFirst(req, STATIC));

@@ -53,6 +53,7 @@ func (h *Handler) GetSignupStats(ctx context.Context, _ *connect.Request[adminv1
 		Daily:              dailyPB(s.Daily),
 		Providers:          namedPB(s.Providers),
 		EmailVerified:      s.EmailVerified,
+		StaffCount:         s.StaffCount,
 		FirstWorkoutCohort: s.FirstWorkoutCohort,
 		FirstWorkoutDone:   s.FirstWorkoutDone,
 		Started:            s.Started,
