@@ -158,6 +158,8 @@ if [ "$APK_ON" = "1" ]; then
     [ -n "$APK_LIVE_VC" ] || { echo "!! SKIP_APK=1 인데 사이트의 android.json 이 없다 — 싣지 않으면 앱 업데이트 안내가 사라진다"; exit 1; }
     mkdir -p "$DL"
     cp "$live_tmp" "$DL/android.json"
+    # mktemp 파일은 600 이고 cp 가 그 권한을 물려준다. 그대로 실으면 웹 서버 계정이 못 읽어 500 이 된다(v0.70.0 실측).
+    chmod 644 "$DL/android.json"
     url=$(jf "$DL/android.json" url); want=$(jf "$DL/android.json" sha256); size=$(jf "$DL/android.json" size)
     vn=$(jf "$DL/android.json" versionName); vc=$(jf "$DL/android.json" versionCode)
     python3 -c 'import json,sys,re
