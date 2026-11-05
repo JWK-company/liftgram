@@ -991,8 +991,8 @@ export function ExerciseBlock({
                 onToggleDoneSingle={onRoundToggle ? onToggleDone(s, true) : undefined}
                 loadNote={loadNotes[s.id] ?? rxLoadLabel(we.prescription?.[s.setNumber - 1] ?? null)}
                 onSetType={(type) => void write(() => repo.setSetType(s.id, type))}
-                onSetArm={(arm) => void write(() => repo.setSetArm(s.id, arm))}
-                onSetGrip={(grip) => void write(() => repo.setSetGrip(s.id, grip))}
+                onSetArm={(arm) => write(() => repo.setSetArm(s.id, arm))}
+                onSetGrip={(grip) => write(() => repo.setSetGrip(s.id, grip))}
                 blockVariant={isCardio ? undefined : variant}
                 onBlockVariant={isCardio ? undefined : changeVariant}
                 onDelete={() => void write(() => repo.deleteSetLog(s.id))}

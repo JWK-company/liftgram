@@ -1,0 +1,232 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "맥락",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "2026-11-05 운동 중 보고: 덤벨 숄더 프레스를 1세트는 일반, 2세트는 뉴트럴로 했는데 세트 옵션에서 그립을 고르면 종목 블록 전체 칸이 바뀌어 세트를 따로 기록할 수 없었다. ADR-034(옛 PLM)로 손 그립을 블록 칸으로 옮겼고, 2026-11-04에는 세트 옵션 시트에서도 그 블록 칸을 고르게 했다. 또한 변형이 들어간 세트는 접힌 줄의 꺾쇠 버튼 색만 바뀌어 눈에 띄지 않았다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결정",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트 옵션 시트의 손 그립은 그 세트의 set_logs.grip 에만 저장한다. 기본은 세트에 따로 적지 않음이며, 종목 칩에서 고른 블록 그립을 따른다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "블록 칸(variant_grip)과 이전 기록·PR 버킷 키는 그대로 둔다. 종목 칩에서 고르는 손 그립은 지금처럼 칸을 나눈다. 세트 그립은 팔(원암)과 같이 세트 속성이라 키에 넣지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "같은 운동 안에서 세트를 더하면 마지막 세트의 그립을 잇는다. 새 운동에는 잇지 않고 지난번 그립은 이전 칸에 보여 준다. 잇게 하면 ADR-034 전의 옛 세트 그립이 되살아나 계속 복사되고, 칸을 바꿨을 때 어긋난다. 기구를 바꾸면 세트 그립은 지운다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "변형이 있는 세트는 세트 줄 바로 아래에 진한 잉크색 알약 이름표를 항상 보이고, 누르면 시트가 열린다. 빨강은 완료·주 행동 몫이라 쓰지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "부착물은 세트 컬럼이 없어 이번에는 블록 전체 적용으로 두고, 시트에 그렇게 안내한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "대안",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트 그립을 PR·이전 기록 키에 넣기: 칸을 세트 단위로 쪼개야 해 ADR-034 구조 전체를 고친다. 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "부착물까지 세트 컬럼 추가: 스키마 판 올림과 동기 영향이 있어 운동 중 긴급 수정에 넣지 않았다. 요청이 있으면 따로 진행한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "꺾쇠 색만 더 진하게: 접힌 상태에서 무엇이 바뀌었는지 알 수 없어 기각.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "한 칸 안에 그립이 섞인 세트가 들어간다. 그 칸의 PR·이전 기록은 그립을 가리지 않으며, 원암과 같은 동작이다. 이전 칸에는 어떤 그립이었는지 함께 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "수정 위치: src/frontend/app/components/session/SetRowEdit.tsx , src/core/src/data/workoutRepository.ts . 시험: src/frontend/e2e/record-slots.spec.ts .",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "ADR-055",
+  "meta": {},
+  "relations": {
+    "refs_legacy": [
+      "PLM:ADR-034"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "손 그립을 세트마다 따로 기록한다",
+  "type": "ADR",
+  "updated": "2026-11-05T09:40:16Z"
+}

@@ -375,7 +375,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
         arm: s.arm ?? null,
         partialReps: s.partialReps ?? null,
         loadMultiplier: s.loadMultiplier ?? null, // 공유·가져오기가 계산 무게를 알게(/qa code L-5) @plm SRS-058
-        grip: s.grip ?? null, // 옛 세트 손 그립(ADR-034 전) — 기록 상세에 보인다 @plm SRS-065
+        grip: s.grip ?? null, // 세트 손 그립(ADR-055) — 기록 상세에 보인다 @plm SRS-065
       })),
       volumeKg,
       bestEstimated1RM: bestEstimatedOneRepMax(logged),
