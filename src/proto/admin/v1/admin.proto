@@ -1,0 +1,95 @@
+// 운영자 통계 계약(SPEC-032) — 관리자만 읽는다. 집계 숫자만 싣는다(이메일·이름·운동 내용 없음).
+//
+// 구역마다 RPC 를 따로 둔다 — 한 구역의 실패·느림이 나머지를 막지 않고, 화면은 구역별로 로드·실패·빈 상태를 그린다.
+// 판정은 서버가 한다(토큰 claim + DB 역할). 줄을 숨기는 것은 안내일 뿐이다.
+syntax = "proto3";
+
+package admin.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/JWK-company/liftgram/src/backend/gen/admin/v1;adminv1";
+
+// 일별 값 하나. day 는 Asia/Seoul 기준 YYYY-MM-DD.
+message DailyCount {
+  string day = 1;
+  int64 count = 2;
+}
+
+// 이름이 붙은 건수(가입 경로 등).
+message NamedCount {
+  string name = 1;
+  int64 count = 2;
+}
+
+message GetSignupStatsRequest {}
+
+message GetSignupStatsResponse {
+  google.protobuf.Timestamp generated_at = 1;
+  // 누적 가입(운영진·제외 계정 빼고).
+  int64 total = 2;
+  // 최근 30일 일별 신규. 빈 날도 0 으로 채운다.
+  repeated DailyCount daily = 3;
+  // 가입 경로. 여러 경로를 연결한 계정은 각각 센다.
+  repeated NamedCount providers = 4;
+  // 메일 확인을 마친 계정 수.
+  int64 email_verified = 5;
+  // 시행일 뒤 가입해 7일이 지난 계정 수(분모).
+  int64 first_workout_cohort = 6;
+  // 그중 가입 7일 안에 운동을 완료한 계정 수.
+  int64 first_workout_done = 7;
+  // 운동 기록 집계가 시작됐는가(USAGE_SINCE 가 지났는가). false 면 첫 운동 칸은 시행 전 상태다.
+  bool started = 8;
+  google.protobuf.Timestamp usage_since = 9;
+}
+
+message GetRoutineStatsRequest {}
+
+message GetRoutineStatsResponse {
+  google.protobuf.Timestamp generated_at = 1;
+  bool started = 2;
+  google.protobuf.Timestamp usage_since = 3;
+  // 사용자당 루틴 수 분포 — 이름은 0 · 1 · 2-3 · 4-6 · 7+ 순서 고정.
+  repeated NamedCount routine_buckets = 4;
+  // 최근 28일 완료 운동(분모).
+  int64 workouts = 5;
+  // 그중 루틴으로 시작한 운동.
+  int64 workouts_from_routine = 6;
+  // 최근 28일 운동한 사람 수.
+  int64 active_users = 7;
+  // 운동 시간 중앙값(초). 표본이 없으면 0.
+  int64 median_duration_seconds = 8;
+}
+
+message GetContentStatsRequest {}
+
+// 콘텐츠 한 줄 — key: post · comment · like · follow · story · message · gear_click.
+message ContentRow {
+  string key = 1;
+  int64 last7d = 2;
+  int64 last30d = 3;
+  int64 total = 4;
+}
+
+message GetContentStatsResponse {
+  google.protobuf.Timestamp generated_at = 1;
+  repeated ContentRow rows = 2;
+}
+
+message GetOperationsStatsRequest {}
+
+message GetOperationsStatsResponse {
+  google.protobuf.Timestamp generated_at = 1;
+  // 검토 대기 신고.
+  int64 pending_reports = 2;
+  // 미처리 사용자 의견·운영 피드백.
+  int64 open_user_feedback = 3;
+  int64 open_ops_feedback = 4;
+}
+
+service AdminService {
+  rpc GetSignupStats(GetSignupStatsRequest) returns (GetSignupStatsResponse);
+  rpc GetRoutineStats(GetRoutineStatsRequest) returns (GetRoutineStatsResponse);
+  rpc GetContentStats(GetContentStatsRequest) returns (GetContentStatsResponse);
+  rpc GetOperationsStats(GetOperationsStatsRequest) returns (GetOperationsStatsResponse);
+}

@@ -214,3 +214,20 @@ html[data-updating] #update-boot-cover {
   background: var(--color-bg);
   color: var(--color-ink);
 }
+
+/* 운영자 통계 차트 색(SPEC-032) — 계열 색은 순서 고정. 라이트·다크를 따로 골라 각 바탕에서 검증했다
+   (validate_palette: #2a78d6,#eb6834 on #FFFFFF · #3987e5,#d95926 on #2B2B2B). */
+.stats-viz {
+  --stats-series-1: #2a78d6;
+  --stats-series-2: #eb6834;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) .stats-viz {
+    --stats-series-1: #3987e5;
+    --stats-series-2: #d95926;
+  }
+}
+:root[data-theme="dark"] .stats-viz {
+  --stats-series-1: #3987e5;
+  --stats-series-2: #d95926;
+}

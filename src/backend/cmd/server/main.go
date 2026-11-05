@@ -39,6 +39,7 @@ import (
 	"connectrpc.com/validate"
 	"github.com/google/uuid"
 
+	"github.com/JWK-company/liftgram/src/backend/gen/admin/v1/adminv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/auth/v1/authv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/dm/v1/dmv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/exercise/v1/exercisev1connect"
@@ -52,6 +53,7 @@ import (
 	"github.com/JWK-company/liftgram/src/backend/gen/ops/v1/opsv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/story/v1/storyv1connect"
 	"github.com/JWK-company/liftgram/src/backend/gen/sync/v1/syncv1connect"
+	"github.com/JWK-company/liftgram/src/backend/internal/admin"
 	"github.com/JWK-company/liftgram/src/backend/internal/auth"
 	"github.com/JWK-company/liftgram/src/backend/internal/coaching"
 	"github.com/JWK-company/liftgram/src/backend/internal/config"
@@ -379,6 +381,12 @@ func main() {
 	opsSvc := ops.NewService(ops.NewRepo(pool), time.Now)
 	opsPath, opsHTTP := opsv1connect.NewOpsServiceHandler(ops.NewHandler(opsSvc), opts)
 	mount(mux, opsPath, opsHTTP)
+
+	// ── 운영자 통계(SPEC-032) ── 관리자만 · 집계 숫자만 · 구역별 호출.
+	usageSince := mustTime("USAGE_SINCE", cfg.UsageSince)
+	adminSvc := admin.NewService(admin.NewRepo(pool), time.Now, usageSince, time.Duration(cfg.StatsCacheSec)*time.Second)
+	adminPath, adminHTTP := adminv1connect.NewAdminServiceHandler(admin.NewHandler(adminSvc), opts)
+	mount(mux, adminPath, adminHTTP)
 
 	// ── 스토리 ──
 	// 24시간 뒤 안 보인다. 시계는 주입한다(테스트가 시간을 움직일 수 있게).

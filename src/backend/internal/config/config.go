@@ -104,6 +104,10 @@ type Config struct {
 	ImageScanSince     string
 	// FeedRecommendSince — 이 시각 이후의 글만 추천한다(옛 글을 소급해 내보내지 않는다 · SPEC-030).
 	FeedRecommendSince string
+	// UsageSince — 이 시각부터 운동·루틴 기록을 집계하고 이용 기록을 받는다(SPEC-032).
+	UsageSince string
+	// StatsCacheSec — 운영자 통계 캐시 시간(초). 0 이면 묶지 않는다(시험용).
+	StatsCacheSec int
 
 	OAuthGoogleClientID     string
 	OAuthGoogleClientSecret string
@@ -174,6 +178,8 @@ func Load() (*Config, error) {
 		ImageScanThreshold:      envStr("IMAGE_SCAN_THRESHOLD", "0.9"),
 		ImageScanSince:          envStr("IMAGE_SCAN_SINCE", "2026-11-05T00:00:00+09:00"),
 		FeedRecommendSince:      envStr("FEED_RECOMMEND_SINCE", "2026-11-05T00:00:00+09:00"),
+		UsageSince:              envStr("USAGE_SINCE", "2026-11-05T00:00:00+09:00"),
+		StatsCacheSec:           envInt("STATS_CACHE_SEC", 300),
 		OAuthGoogleClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
 		OAuthGoogleClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
 		OAuthKakaoClientID:      os.Getenv("OAUTH_KAKAO_CLIENT_ID"),

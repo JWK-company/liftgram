@@ -355,4 +355,5 @@ type User struct {
 	RecommendOptOut bool
 	AgeConfirmedAt  pgtype.Timestamptz
 	AgeConfirmVia   *string
+	StatsExcluded   bool
 }

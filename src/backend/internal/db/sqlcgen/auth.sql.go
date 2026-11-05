@@ -143,7 +143,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (id, email, display_name, password_hash, auth_provider, role)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded
 `
 
 type CreateUserParams struct {
@@ -185,6 +185,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.RecommendOptOut,
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
+		&i.StatsExcluded,
 	)
 	return i, err
 }
@@ -324,7 +325,7 @@ func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash string) (Refres
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via FROM users WHERE lower(email) = lower($1)
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded FROM users WHERE lower(email) = lower($1)
 `
 
 // 로그인이 쓴다. 이메일은 대소문자를 가리지 않는다 —
@@ -348,12 +349,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (User, error
 		&i.RecommendOptOut,
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
+		&i.StatsExcluded,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via FROM users WHERE id = $1
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -375,6 +377,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.RecommendOptOut,
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
+		&i.StatsExcluded,
 	)
 	return i, err
 }
@@ -661,7 +664,7 @@ UPDATE users SET
   trainer_intent   = CASE WHEN $7::boolean   THEN $8::boolean ELSE trainer_intent END,
   updated_at       = now()
 WHERE id = $9::text
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded
 `
 
 type UpdateUserProfileParams struct {
@@ -707,6 +710,7 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.RecommendOptOut,
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
+		&i.StatsExcluded,
 	)
 	return i, err
 }
