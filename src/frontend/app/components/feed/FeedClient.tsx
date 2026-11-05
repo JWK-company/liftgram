@@ -34,7 +34,7 @@ import { ListState } from "../ui/ListState";
 import { AppText, EmptyState } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { AppBar } from "../ui/AppBar";
-import { UnderlineTabs } from "../ui/rows";
+import { ListGroup, ListRow, UnderlineTabs } from "../ui/rows";
 import DiscoverClient from "./DiscoverClient";
 import { GearTagPicker } from "./GearTagPicker";
 import { ImagePicker } from "./ImagePicker";
@@ -242,6 +242,8 @@ export default function FeedClient() {
     return (
       <div className="flex flex-1 flex-col">
         <ScreenHeader title={t("feed.title")} />
+        {/* 헬스장 찾기는 로그인 없이도 쓴다 */}
+        <GymsEntry />
         <div className="flex flex-1 flex-col p-[var(--spacing-lg)]">
           <EmptyState
             icon="person-circle-outline"
@@ -311,6 +313,9 @@ export default function FeedClient() {
           { value: "discover", label: "발견", testId: "feed-discover" },
         ]}
       />
+
+      {/* 주변 헬스장 — 운동 탭에서 옮겨 왔다(2026-11-05 사용자 지시) */}
+      <GymsEntry />
 
       {tab === "discover" ? (
         <DiscoverClient embedded />
@@ -447,6 +452,16 @@ export default function FeedClient() {
       ) : null}
 
       <StoryViewer group={viewing} meId={user?.id ?? null} onClose={() => setViewing(null)} />
+    </div>
+  );
+}
+
+function GymsEntry() {
+  return (
+    <div className="px-[var(--spacing-lg)] pt-[var(--spacing-sm)]">
+      <ListGroup>
+        <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} />
+      </ListGroup>
     </div>
   );
 }

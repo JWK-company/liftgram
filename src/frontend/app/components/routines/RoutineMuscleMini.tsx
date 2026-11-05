@@ -103,7 +103,16 @@ export function RoutineMuscleMini({ routineId }: { routineId: string }) {
 export function RoutineMuscleFocus({ routineId }: { routineId: string }) {
   const on = useMuscleMap();
   const s = useRoutineMuscleSummary(routineId, on);
-  if (!on || !s) return null;
+  // [원본] if (!on || !s) return null;
+  // [개선] 읽는 동안 같은 높이의 빈 줄로 자리를 잡는다 — 뒤늦게 줄이 생기면 아래 「빠른 운동」 버튼이 눌릴 수 있는 채로 22px 밀렸다
+  if (!on || s === null) return null;
+  if (s === undefined) {
+    return (
+      <AppText variant="caption" color="textMuted" className="invisible mt-[2px] block" aria-hidden>
+        {"\u00A0"}
+      </AppText>
+    );
+  }
   const label = topMusclesLabel(s.load, lang);
   if (!label) return null;
   return (

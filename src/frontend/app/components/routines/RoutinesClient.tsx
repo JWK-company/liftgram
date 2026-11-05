@@ -8,9 +8,10 @@
 //   진행 중 카드    폐기
 //   주간 스케줄     없으면 만들기 엔트리, 있으면 요일 칩
 //   오늘의 안내     스케줄이 있으면 오늘 배정 · 없으면 추천 루틴
-//   3버튼          새 루틴 · 빠른 운동 시작 · 프로그램 생성
-//   콘셉트 루틴     4종(도메인 상수) → 미리보기 → 내 루틴에 저장
+//   시작 버튼      새 루틴 · 빠른 운동 시작
 //   내 루틴        폴더 그룹 + 낱개 루틴 + 빈 상태
+//   프로 루틴      주제 → 버전 → 내 루틴에 저장
+//   최근 운동      맨 아래
 //
 // ── 판단은 전부 도메인·저장소가 한다 ────────────────────────────────────────
 // 오늘 무엇을 할지(todayPlan) · 무엇을 놓쳤는지(missedCatchUp) · 무엇을 추천할지
@@ -47,7 +48,7 @@ import { ScheduleEditor } from "./ScheduleEditor";
 import { CreatorTopicSheet } from "./CreatorRoutineSheet"; // 크리에이터 루틴 @plm SRS-091
 import { AppBar, AppBarAction } from "../ui/AppBar";
 // [원본] import { MoreMenu } from "../ui/MoreMenu"; — 진행 카드의 ⋯ 메뉴(화면 정리 D8 로 렌더 중단)
-import { ListGroup, ListRow, SectionLabel } from "../ui/rows";
+import { ListGroup, SectionLabel } from "../ui/rows";
 import { AdSlot } from "../ads/AdSlot";
 import { RecentWorkouts, WeekSummary } from "./WeekSummary";
 import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 오늘·추천 카드 근육 그림 @plm SRS-075
@@ -418,6 +419,59 @@ export default function RoutinesClient() {
           </div>
         ) : null} */}
 
+        {/* ── 주간 스케줄 — 맨 위(2026-11-05 사용자 지시) · 사용자 기록을 읽기 전에는 자리만 잡는다(만들기 줄이 카드로 바뀌며 깜빡이지 않게) ── */}
+        {userLoading ? (
+          <div aria-hidden className="mb-[var(--spacing-sm)] min-h-[50px]" data-testid="schedule-skeleton" />
+        ) : weeklySchedule ? (
+          <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
+            <div className="flex items-center gap-[var(--spacing-sm)]">
+              <AppText variant="label" color="primary">
+                {t("schedule.title")}
+              </AppText>
+              {block ? (
+                <span
+                  style={{
+                    backgroundColor: block.isDeload ? "var(--color-surface-alt)" : "var(--color-brand-muted)",
+                  }}
+                  className="rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px]"
+                >
+                  <AppText
+                    variant="label"
+                    color={block.isDeload ? "warning" : "primary"}
+                    className="font-bold"
+                  >
+                    {block.isDeload ? t("schedule.deloadWeek") : t("schedule.weekN", { week: block.week })}
+                  </AppText>
+                </span>
+              ) : null}
+              {assignedCount > 0 ? (
+                <AppText variant="caption" color="textMuted">
+                  {t("schedule.timesPerWeek", { count: assignedCount })}
+                </AppText>
+              ) : null}
+            </div>
+            <WeekStrip schedule={weeklySchedule} routines={routines} dotColor={dotColor} />
+            <div className="mt-[var(--spacing-sm)]">
+              <Button
+                title={t("schedule.editTitle")}
+                icon="calendar-outline"
+                variant="secondary"
+                size="sm"
+                fullWidth={false}
+                onPress={() => setEditingSchedule(true)}
+                testId="btn-edit-schedule"
+              />
+            </div>
+          </Card>
+        ) : (
+          <EntryRow
+            icon="calendar-outline"
+            label={t("schedule.createEntry")}
+            testId="entry-schedule"
+            onPress={() => setEditingSchedule(true)}
+          />
+        )}
+
         {/* ── 이번 주 — 목표·연속일·볼륨 한 장(시안 01 · 결정 D3) ── */}
         <WeekSummary />
 
@@ -511,7 +565,8 @@ export default function RoutinesClient() {
             members={members}
             open={openFolders[name] ?? false}
             repo={repos?.routine ?? null}
-            busy={busy}
+            // 판단 전에는 막는다 — 위 스케줄 카드가 나타나며 줄이 밀려 다른 루틴이 눌릴 수 있다
+            busy={busy || !homeReady}
             onToggle={() => setOpenFolders((m) => ({ ...m, [name]: !m[name] }))}
             onStart={(id) => guardActive(startFromRoutine(id))}
             onActions={setActionsFor}
@@ -534,7 +589,8 @@ export default function RoutinesClient() {
                 key={r.id}
                 routine={r}
                 repo={repos?.routine ?? null}
-                busy={busy}
+                // 판단 전에는 막는다 — 위 스케줄 카드가 나타나며 줄이 밀려 다른 루틴이 눌릴 수 있다
+                busy={busy || !homeReady}
                 today={r.id === primaryRoutineId}
                 onStart={() => guardActive(startFromRoutine(r.id))}
                 onActions={() => setActionsFor(r)}
@@ -543,65 +599,10 @@ export default function RoutinesClient() {
           </ListGroup>
         )}
 
-        <RecentWorkouts />
-
-        {/* ── 더 해 보기 — 자주 쓰지 않는 진입은 아래로 모은다 ── */}
-        <SectionLabel className="mt-[var(--spacing-xl)]" title="더 해 보기" />
-        {/* ── 주간 스케줄 ── */}
-        {weeklySchedule ? (
-          <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
-            <div className="flex items-center gap-[var(--spacing-sm)]">
-              <AppText variant="label" color="primary">
-                {t("schedule.title")}
-              </AppText>
-              {block ? (
-                <span
-                  style={{
-                    backgroundColor: block.isDeload ? "var(--color-surface-alt)" : "var(--color-brand-muted)",
-                  }}
-                  className="rounded-[var(--radius-pill)] px-[var(--spacing-sm)] py-[2px]"
-                >
-                  <AppText
-                    variant="label"
-                    color={block.isDeload ? "warning" : "primary"}
-                    className="font-bold"
-                  >
-                    {block.isDeload ? t("schedule.deloadWeek") : t("schedule.weekN", { week: block.week })}
-                  </AppText>
-                </span>
-              ) : null}
-              {assignedCount > 0 ? (
-                <AppText variant="caption" color="textMuted">
-                  {t("schedule.timesPerWeek", { count: assignedCount })}
-                </AppText>
-              ) : null}
-            </div>
-            <WeekStrip schedule={weeklySchedule} routines={routines} dotColor={dotColor} />
-            <div className="mt-[var(--spacing-sm)]">
-              <Button
-                title={t("schedule.editTitle")}
-                icon="calendar-outline"
-                variant="secondary"
-                size="sm"
-                fullWidth={false}
-                onPress={() => setEditingSchedule(true)}
-                testId="btn-edit-schedule"
-              />
-            </div>
-          </Card>
-        ) : (
-          <EntryRow
-            icon="calendar-outline"
-            label={t("schedule.createEntry")}
-            testId="entry-schedule"
-            onPress={() => setEditingSchedule(true)}
-          />
-        )}
-
-        <ListGroup className="mb-[var(--spacing-md)]">
-          <ListRow href="/program" testId="btn-program" icon="sparkles" title={t("program.title")} />
-          <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} />
-        </ListGroup>
+        {/* 2026-11-05 사용자 지시 — 내 루틴 → 프로 루틴 → 최근 운동 기록 순서.
+            [원본] <RecentWorkouts /> 다음에 <SectionLabel title="더 해 보기" /> · 주간 스케줄 · 프로그램 생성·주변 헬스장 줄 · 프로 루틴 순서였다.
+            [원본] <ListRow href="/program" testId="btn-program" icon="sparkles" title={t("program.title")} /> — 프로그램 생성 기능 삭제
+            [원본] <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} /> — 피드 탭으로 옮김 */}
         {/* [원본] 옛 AI 콘셉트 루틴 4개 그리드 — 사용자 결정(2026-10-28)으로 크리에이터 루틴으로 교체. 원복 시 아래 주석을 풀고 새 섹션을 주석 처리
         // {/ * ── 콘셉트 루틴 ── * /}
         // <div className="mb-[var(--spacing-sm)]">
@@ -632,9 +633,8 @@ export default function RoutinesClient() {
         {/* [개선] 콘셉트 루틴 = 크리에이터 루틴 주제(버전 0개 주제는 숨김) @plm SRS-091 */}
         {creatorTopics.length ? (
           <div className="mb-[var(--spacing-sm)]">
-            <AppText variant="label" color="textMuted" className="mb-[4px] block">
-              {t("concept.sectionTitle")}
-            </AppText>
+            {/* [원본] 「더 해 보기」 아래의 작은 글자(AppText label) — 내 루틴 바로 아래로 오며 같은 급의 섹션 머리로 */}
+            <SectionLabel className="mt-[var(--spacing-xl)]" title={t("concept.sectionTitle")} />
             <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
               {creatorTopics.map((c) => (
                 <button
@@ -656,6 +656,8 @@ export default function RoutinesClient() {
             </div>
           </div>
         ) : null}
+
+        <RecentWorkouts />
 
         {/* ── 대화상자들 ── */}
         {concept ? (

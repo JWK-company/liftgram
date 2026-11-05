@@ -66,6 +66,15 @@ test("F7 — 빠른 운동은 마치면 부위·종목 수로 이름이 붙는�
   // 홈 최근 운동 — 「빠른 운동」 대신 「가슴·삼두 · 2종목」
   const recent = page.getByTestId("recent-workouts");
   await expect(recent).toBeVisible({ timeout: 20_000 });
+  // 최근 운동은 운동 탭 맨 아래 — 프로 루틴보다 아래(2026-11-05 사용자 지시)
+  // 주간 스케줄은 이번 주 목표보다 위
+  const scheduleBox = await page.getByTestId("entry-schedule").boundingBox();
+  const weekBox = await page.getByTestId("week-summary").boundingBox();
+  expect(scheduleBox && weekBox && scheduleBox.y < weekBox.y).toBe(true);
+  const proBox = await page.getByTestId("concept-topic-pro-shoulders").boundingBox();
+  const recentBox = await recent.boundingBox();
+  expect(proBox && recentBox && recentBox.y > proBox.y).toBe(true);
+  await expect(recent).toBeVisible({ timeout: 20_000 });
   await expect(recent).toContainText("가슴·삼두 · 2종목");
   await expect(recent).not.toContainText("빠른 운동");
 });

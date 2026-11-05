@@ -64,6 +64,11 @@ test("주간 스케줄을 만들고 지운다", async ({ page }) => {
   await page.reload();
   await expect(page.locator("main")).toContainText("1주차", { timeout: 20_000 });
 
+  // 스케줄 카드도 맨 위 — 이번 주 목표보다 위(2026-11-05 사용자 지시)
+  const editBox = await page.getByTestId("btn-edit-schedule").boundingBox();
+  const weekBox = await page.getByTestId("week-summary").boundingBox();
+  expect(editBox && weekBox && editBox.y < weekBox.y).toBe(true);
+
   // 지우면 만들기 입구로 돌아간다.
   await page.getByTestId("btn-edit-schedule").click();
   await page.getByTestId("schedule-delete").click();

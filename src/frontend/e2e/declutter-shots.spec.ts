@@ -281,12 +281,6 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
     await page.waitForTimeout(1200);
   });
 
-  // 프로그램 생성
-  await shot("program", async () => {
-    await page.goto("/program");
-    await page.waitForTimeout(1500);
-  });
-
   // 기록·캘린더·분석
   await shot("history", async () => {
     await page.goto("/history");

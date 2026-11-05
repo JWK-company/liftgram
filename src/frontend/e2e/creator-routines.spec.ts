@@ -47,7 +47,9 @@ test("프로의 어깨 → 버전 하나 저장 — 출처 인용·제휴 아님
 
   const list = page.getByTestId("routine-list");
   await expect(list).toContainText(label, { timeout: 20_000 });
-  await expect(list).not.toContainText(channel);
+  // 「이름(채널명)」을 나눠 둘 다 저장 이름에 없는지 본다(전체 문자열만 보면 한쪽만 붙은 회귀를 놓친다)
+  const nameParts = channel.match(/^(.+)\((.+)\)$/)?.slice(1) ?? [channel];
+  for (const part of nameParts) await expect(list).not.toContainText(part);
 
   // 루틴 편집기: 메모에 출처 · 첫 종목 세트 수(세션 프리필이 아니라 편집기 기준 — qa L-1)
   // 새로 불러오기 전에 LokiJS 가 디스크에 내려쓸 시간을 준다(메모리 「LokiJS 비동기 flush」)
@@ -102,12 +104,16 @@ test("분석 자료 근거가 있는 버전(씨범) — 근거 링크·문구", 
   await 카탈로그_준비(page);
   await page.goto("/");
   await page.getByTestId("concept-topic-pro-shoulders").click();
+  // 목록 줄도 「한국 이름(채널명)」
+  await expect(page.getByTestId("creator-version-cr-shoulders-olympia")).toContainText(
+    "크리스 범스테드(Chris Bumstead)",
+  );
   await page.getByTestId("creator-version-cr-shoulders-olympia").click();
   const basis = page.getByTestId("creator-basis");
   await expect(basis).toContainText("Fitness Volt");
   await expect(basis).toHaveAttribute("href", /^https:\/\/fitnessvolt\.com\//);
   await expect(basis).toHaveAttribute("target", "_blank");
-  await expect(page.getByTestId("creator-source")).toContainText("Chris Bumstead");
+  await expect(page.getByTestId("creator-source")).toContainText("크리스 범스테드(Chris Bumstead)");
   await expect(page.getByTestId("creator-open-video")).toHaveAttribute(
     "href",
     "https://www.youtube.com/watch?v=hpvAcZtNcPY",

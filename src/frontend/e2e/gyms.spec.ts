@@ -129,13 +129,16 @@ test("제공자가 죽으면 검색 실패로 말하고 다시 시도할 수 있
   await expect(page.getByTestId("gym-recommended")).toContainText("복구된 헬스장", { timeout: 20_000 });
 });
 
-test("운동 탭에서 주변 헬스장으로 들어간다", async ({ page, context }) => {
+test("피드 탭에서 주변 헬스장으로 들어가고 돌아온다", async ({ page, context }) => {
   await context.grantPermissions(["geolocation"], { origin: ORIGIN });
   await context.setGeolocation({ latitude: ME.lat, longitude: ME.lon });
   await stubProvider(page, [element(40, "진입 확인 헬스장", ME.lat + 0.001, ME.lon)]);
 
-  await page.goto("/");
+  await page.goto("/feed");
   await page.getByTestId("btn-gyms").click();
   await expect(page).toHaveURL(/\/gyms$/, { timeout: 20_000 });
   await expect(page.getByTestId("gym-recommended")).toContainText("진입 확인 헬스장", { timeout: 20_000 });
+  await expect(page.getByTestId("nav-feed")).toHaveAttribute("aria-current", "page");
+  await page.getByTestId("gyms-back").click();
+  await expect(page).toHaveURL(/\/feed$/, { timeout: 20_000 });
 });

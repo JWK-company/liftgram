@@ -36,7 +36,8 @@ const TABS: Tab[] = [
     href: "/",
     label: "운동",
     testId: "nav-workout",
-    match: (p) => p === "/" || under(p, "/exercise", "/exercises", "/routines", "/program"),
+    // [원본] under(p, "/exercise", "/exercises", "/routines", "/program") — 프로그램 생성 삭제(2026-11-05)
+    match: (p) => p === "/" || under(p, "/exercise", "/exercises", "/routines"),
   },
   {
     key: "records",
@@ -54,6 +55,7 @@ const TABS: Tab[] = [
       under(
         p,
         "/feed",
+        "/gyms",
         "/discover",
         "/explore",
         "/hashtag",
@@ -73,7 +75,9 @@ const TABS: Tab[] = [
     // [개선] 운영 상태(/ops)도 프로필의 하위 화면이다 @plm SRS-088
     // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked", "/ops"),
     // [개선] 운영 상태는 운영 탭으로 옮겼다(#T2)
-    match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
+    // [원본] match: (p) => under(p, "/profile", "/account", "/gear", "/gyms", "/coaching", "/blocked"),
+    // [개선] 주변 헬스장은 피드 탭의 하위 화면이다(2026-11-05)
+    match: (p) => under(p, "/profile", "/account", "/gear", "/coaching", "/blocked"),
   },
 ];
 

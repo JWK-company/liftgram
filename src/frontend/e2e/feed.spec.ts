@@ -44,6 +44,12 @@ test("로그인하지 않으면 피드는 막지 않고 안내한다", async ({ 
 
 test("글을 올리면 목록에 뜨고, 고치고 지울 수 있다", async ({ page }) => {
   await 가입(page, freshEmail("own"), "글쓴이");
+  // 주변 헬스장 찾기 — 팔로잉·발견 두 탭 모두에서 보인다
+  await page.goto("/feed");
+  await expect(page.getByTestId("btn-gyms")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("feed-discover").click();
+  await expect(page.getByTestId("btn-gyms")).toBeVisible();
+  await page.getByTestId("feed-following").click();
   await 글쓰기(page, "오늘도 한 세트 더");
 
   // 내 글에는 점 세 개 메뉴가 붙는다.

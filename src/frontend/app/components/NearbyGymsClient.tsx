@@ -82,7 +82,8 @@ export default function NearbyGymsClient() {
       <ScreenHeader
         title={t("gyms.title")}
         back={
-          <a href="/profile" aria-label={t("nav.profile")} data-testid="gyms-back">
+          // [원본] <a href="/profile" aria-label={t("nav.profile")} data-testid="gyms-back"> — 진입이 피드 탭으로 옮겨 갔다(2026-11-05)
+          <a href="/feed" aria-label={t("feed.title")} data-testid="gyms-back">
             <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }

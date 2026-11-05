@@ -6,8 +6,10 @@ import { join } from 'node:path';
 import { SEED_EXERCISES } from '../../data/seed/exercises.seed';
 import {
   CREATOR_ROUTINES,
+  CHANNEL_NAMES_KO,
   CREATOR_TOPICS,
   EXCLUDED_CHANNELS,
+  creatorChannelLabel,
   creatorRoutineNotes,
   creatorRoutinesFor,
   visibleCreatorTopics,
@@ -75,6 +77,25 @@ test('이름·요약에 채널명(실명)이 없다 · 의료 단정 없음 · �
   }
   for (const t of CREATOR_TOPICS) {
     assert.equal(containsMedicalClaim(t.blurbKo), false, `${t.id} blurb 의료 단정`);
+  }
+});
+
+test('출처 이름: 화면에 나오는 채널 모두 한국 이름이 있고 「이름(채널명)」 형태 · 루틴 이름에는 쓰지 않는다', () => {
+  assert.equal(creatorChannelLabel('Chris Bumstead'), '크리스 범스테드(Chris Bumstead)');
+  assert.equal(creatorChannelLabel('Allright24_박재훈'), '박재훈(Allright24_박재훈)');
+  assert.equal(creatorChannelLabel('강경원'), '강경원');
+  assert.equal(creatorChannelLabel('없는 채널 '), '없는 채널');
+  // 저장 메모는 「이름(채널명)」으로 시작한다 — 채널 원문의 앞뒤 공백은 뺀다
+  const padded = CREATOR_ROUTINES.find((x) => x.source.channel === ' Allright24_박재훈');
+  assert.ok(padded, '앞 공백이 있는 채널 행이 있어야 한다');
+  assert.ok(creatorRoutineNotes(padded).startsWith('출처: 박재훈(Allright24_박재훈) 「'));
+  // 이름 조각(성만·이름만)도 루틴 이름·요약에 쓰지 않는다
+  const names = Object.values(CHANNEL_NAMES_KO).flatMap((n) => [n, ...n.split(' ').filter((p) => p.length >= 2)]);
+  for (const r of CREATOR_ROUTINES.filter((x) => !x.hidden && !x.draft)) {
+    assert.ok(CHANNEL_NAMES_KO[r.source.channel.trim()], `${r.id}: 한국 이름 없음 ${r.source.channel}`);
+    for (const text of [r.labelKo, r.summaryKo, ...r.days.map((d) => d.nameKo), ...r.days.flatMap((d) => d.items.map((i) => i.noteKo ?? ''))]) {
+      for (const n of names) assert.ok(!text.includes(n), `${r.id}: 「${text}」 에 이름 ${n}`);
+    }
   }
 });
 

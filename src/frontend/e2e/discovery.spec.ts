@@ -1,9 +1,9 @@
-// 발견 · 커스텀 종목 · 프로그램 생성 e2e
+// 발견 · 커스텀 종목 e2e
 //
 // 확인하는 것:
 //   · 발견은 **팔로우와 무관하게** 공개 글을 보여 주고, 검색은 사람·태그·글을 한 번에 찾는다
 //   · 커스텀 종목은 **이름만으로** 만들 수 있고, 만들면 카탈로그와 피커에 바로 나온다
-//   · 프로그램 생성은 미리보기를 주고, 채택해야 내 루틴이 된다(교체·제외가 결과에 반영된다)
+//   · 삭제한 프로그램 생성 주소는 운동 탭으로 간다
 import { expect, test } from "@playwright/test";
 
 type Page = import("@playwright/test").Page;
@@ -103,7 +103,14 @@ test("커스텀 종목은 이름만으로 만들 수 있고 바로 쓸 수 있�
   await expect(page.getByTestId("picker-list")).toContainText(이름, { timeout: 20_000 });
 });
 
-test("프로그램은 미리보기를 거쳐 루틴이 된다", async ({ page }) => {
+test("삭제한 프로그램 생성 주소는 운동 탭으로 간다", async ({ page }) => {
+  await page.goto("/program");
+  await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
+  await expect(page.getByTestId("program-form")).toHaveCount(0);
+});
+
+// [원본] 2026-11-05 프로그램 생성 기능 삭제로 건너뛴다. 복구하면 skip 을 뺀다.
+test.skip("프로그램은 미리보기를 거쳐 루틴이 된다", async ({ page }) => {
   await page.goto("/exercises");
   await expect(page.getByTestId("sync-state")).toHaveText("최신", { timeout: 20_000 });
 

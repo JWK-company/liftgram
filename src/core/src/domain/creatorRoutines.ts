@@ -2249,6 +2249,45 @@ export const CREATOR_ROUTINES: CreatorRoutine[] = [
 /** 논란 보도 등으로 싣지 않는 채널(spec rev1 M-5) — 테스트가 데이터에 없음을 확인한다. */
 export const EXCLUDED_CHANNELS: readonly string[] = ['황철순', 'JINGMAN'];
 
+/**
+ * 한국에서 흔히 부르는 이름 — 채널명(oEmbed 원문)을 열쇠로 둔다. 출처 표기·저장 메모에만 쓰고 루틴 이름에는 넣지 않는다.
+ * 2026-11-05 사용자 지시: 「박재훈(Allright24_박재훈)」 「크리스 범스테드(Chris Bumstead)」 형태.
+ */
+export const CHANNEL_NAMES_KO: Readonly<Record<string, string>> = {
+  'Chris Bumstead': '크리스 범스테드',
+  'Nick Walker': '닉 워커',
+  'Derek Lunsford': '데릭 런스포드',
+  'SAMSON DAUDA': '삼손 다우다',
+  'Hadi Choopan': '하디 초판',
+  'Wesley Vissers': '웨슬리 비서스',
+  'Ruff Diesel': '테런스 러핀',
+  JayCutlerTV: '제이 커틀러',
+  'Sadik Hadzovic': '사딕 하조비치',
+  'Sam Sulek': '샘 술렉',
+  'Phil Heath': '필 히스',
+  'Regan Grimes': '리건 그라임스',
+  'Urs Kalecinski': '우르스 칼레신스키',
+  'Dorian Yates Nutrition': '도리안 예이츠',
+  'Shaun Clarida': '숀 클라리다',
+  'Steve Cook': '스티브 쿡',
+  'Jeff Nippard': '제프 니파드',
+  'Hunter Labrada': '헌터 라브라다',
+  'Beastmode Jones': '크리스 존스',
+  Bodybuilder이장민: '이장민',
+  Allright24_박재훈: '박재훈',
+  강경원: '강경원',
+  설기관: '설기관',
+  킹유진: '킹유진',
+};
+
+/** 「흔히 부르는 이름(채널명)」 — 두 이름이 같으면 하나만, 표에 없으면 채널명 그대로 */
+export function creatorChannelLabel(channel: string): string {
+  const raw = channel.trim();
+  const ko = CHANNEL_NAMES_KO[raw];
+  if (!ko || ko === raw) return raw;
+  return `${ko}(${raw})`;
+}
+
 /** 화면에 낼 버전 — draft·hidden 제외 */
 export function creatorRoutinesFor(topicId: CreatorTopicId): CreatorRoutine[] {
   return CREATOR_ROUTINES.filter((r) => r.topicId === topicId && !r.draft && !r.hidden);
@@ -2267,7 +2306,7 @@ export function youtubeWatchUrl(videoId: string): string {
 export function creatorRoutineNotes(r: CreatorRoutine): string {
   // [원본] return `출처: ${r.source.channel} 「${r.source.title}」 ${youtubeWatchUrl(r.source.videoId)}`;
   // [개선] 저장하면 「기본값」 표시가 사라지므로, 우리가 채운 값이 있으면 메모에 남긴다
-  const base = `출처: ${r.source.channel} 「${r.source.title}」 ${youtubeWatchUrl(r.source.videoId)}`;
+  const base = `출처: ${creatorChannelLabel(r.source.channel)} 「${r.source.title}」 ${youtubeWatchUrl(r.source.videoId)}`;
   const filled = r.days.some((d) => d.items.some((i) => i.src.sets === 'default' || i.src.reps === 'default'));
   return filled ? `${base}
 세트·횟수 일부는 출처에 없어 앱 기본값으로 채웠어요.` : base;

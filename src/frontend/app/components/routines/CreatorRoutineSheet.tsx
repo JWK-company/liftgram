@@ -4,6 +4,7 @@
 // 규칙(ADR-045): 출처는 「출처: 채널 · 「제목」」 인용으로만 · 원본은 유튜브 링크(새 창) · 제휴·보증 아님 고지 ·
 // 저장 루틴 이름에는 채널명을 넣지 않고(공유 시 이름만 퍼짐 · qa H-2) 출처는 루틴 메모에 둔다.
 import {
+  creatorChannelLabel,
   creatorRoutineNotes,
   creatorRoutinesFor,
   type CreatorRoutine,
@@ -69,7 +70,8 @@ export function CreatorTopicSheet({
               {r.labelKo}
             </AppText>
             <AppText variant="caption" color="textMuted" className="block truncate">
-              {r.source.channel}
+              {/* [원본] {r.source.channel} — [개선] 영어 화면은 채널명 그대로 */}
+              {lang === "ko" ? creatorChannelLabel(r.source.channel) : r.source.channel}
             </AppText>
             <AppText variant="caption" color="textMuted" className="line-clamp-2 block">
               {r.source.title}
@@ -203,7 +205,10 @@ function CreatorVersionStep({
         </button>
       </div>
       <AppText variant="caption" color="textMuted" className="block" data-testid="creator-source">
-        {t("creator.source", { channel: routine.source.channel, title: routine.source.title })}
+        {t("creator.source", {
+          channel: lang === "ko" ? creatorChannelLabel(routine.source.channel) : routine.source.channel,
+          title: routine.source.title,
+        })}
       </AppText>
       <AppText variant="label" color="textMuted" className="mt-[2px] block">
         {/* 근거 문구는 실제 근거대로(qa code M-3): 분석 자료가 있으면 그 줄이 대신한다 */}
