@@ -8,8 +8,9 @@ import { useSession } from "../SessionProvider";
 import { Icon } from "../ui/Icon";
 
 // [원본] liftgram.policyNotice.20261112 — 사진 자동 검사가 공지에 더해져 닫은 사람에게도 다시 보인다(SPEC-031)
-const DISMISS_KEY = "liftgram.policyNotice.20261112b";
-/** 시행일(2026-11-12) 다음 날 0시(KST)까지 보인다. */
+// [원본] liftgram.policyNotice.20261112b — 시행일을 11월 5일로 앞당겨 문구가 바뀌었다
+const DISMISS_KEY = "liftgram.policyNotice.20261105";
+/** 시행일이 11월 5일로 앞당겨졌다. 시행 뒤 안내로 원래 끝나던 날까지 보인다. */
 const SHOW_UNTIL = Date.parse("2026-11-13T00:00:00+09:00");
 
 export function PolicyNoticeBanner() {

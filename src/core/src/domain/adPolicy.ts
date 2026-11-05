@@ -9,8 +9,9 @@ export const FEED_AD_EVERY = 6;
 /** 추천 탭의 광고 간격(ADR-053) — 첫 칸은 팔로잉과 같은 6번째 글 뒤, 그다음부터 글 3개마다. */
 export const RECOMMENDED_AD_EVERY = 3;
 
-/** 추천 탭을 여는 시각 — 개인정보처리방침 시행일(2026-11-12 KST). */
-export const FEED_RECOMMENDED_START_MS = Date.parse("2026-11-12T00:00:00+09:00");
+/** 추천 탭을 여는 시각 — 개인정보처리방침 시행일(2026-11-05 KST). */
+// [원본] 2026-11-12 — 운영 계정이 운영진뿐이라 사용자 결정으로 앞당겼다(2026-11-05)
+export const FEED_RECOMMENDED_START_MS = Date.parse("2026-11-05T00:00:00+09:00");
 
 export type AdGuardInput = {
   /** 진행 중 운동을 저장소에서 **읽어 냈는가**. 읽기 실패·읽기 전이면 false 다. */

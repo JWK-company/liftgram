@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "이용약관 · Liftgram" };
 
 export default function TermsPage() {
   return (
-    <LegalPage title="이용약관" effective="2026년 11월 12일">
+    <LegalPage title="이용약관" effective="2026년 11월 5일">
       <h2>1. 서비스</h2>
       <p>
         Liftgram은 근력 운동 기록, 기록 분석, 운동 소셜 기능(피드·댓글·DM·스토리)을 제공하는 웹 서비스입니다.

@@ -168,7 +168,7 @@ test("내 글을 추천에서 끄면 다른 사람에게 나오지 않는다", a
 });
 
 test("시행일 전에는 발견 탭이 그대로다", async ({ page }) => {
-  await page.clock.setFixedTime(new Date("2026-11-11T12:00:00+09:00"));
+  await page.clock.setFixedTime(new Date("2026-11-04T12:00:00+09:00"));
   await page.goto("/account");
   await page.getByTestId("mode-signup").click();
   await page.getByTestId("auth-email-input").fill(`rec-${uid()}@example.com`);

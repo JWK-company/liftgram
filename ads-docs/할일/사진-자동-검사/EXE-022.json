@@ -845,6 +845,27 @@
           }
         ],
         "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "시행일 변경(v0.68.1)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사용자 결정으로 시행일을 2026-11-12 에서 2026-11-05 로 앞당겼다. 운영 계정이 운영진 3개뿐이라 알릴 외부 사용자가 없었고, 방침에 이번 개정의 예외를 적었다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
       }
     ],
     "type": "doc"
@@ -864,5 +885,5 @@
   "tags": [],
   "title": "SPEC-031 사진 자동 검사 구현",
   "type": "Execution",
-  "updated": "2026-11-05T08:03:01Z"
+  "updated": "2026-11-05T08:33:19Z"
 }

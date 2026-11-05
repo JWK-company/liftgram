@@ -368,7 +368,7 @@ export const en: Record<TransKey, string> = {
   "group.noFollowees": "No one to add yet — follow people to add them to a group",
   "group.title": "New group",
   "group.titlePlaceholder": "Group name (optional)",
-  "legal.policyNotice": "Our privacy policy and terms change on November 12. See policy",
+  "legal.policyNotice": "Our privacy policy and terms changed on November 5. See policy",
   "legal.policyNoticeTerms": "See terms",
   "legal.policyNoticeClose": "Close notice",
   "gyms.title": "Nearby Gyms",

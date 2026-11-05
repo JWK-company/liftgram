@@ -367,7 +367,7 @@ export const ko = {
   "group.noFollowees": "팔로우한 사람이 없어요 — 먼저 팔로우하면 그룹에 추가할 수 있어요",
   "group.title": "새 그룹",
   "group.titlePlaceholder": "그룹 이름 (선택)",
-  "legal.policyNotice": "개인정보처리방침과 이용약관이 11월 12일부터 바뀌어요. 방침 보기",
+  "legal.policyNotice": "개인정보처리방침과 이용약관이 11월 5일부터 바뀌었어요. 방침 보기",
   "legal.policyNoticeTerms": "약관 보기",
   "legal.policyNoticeClose": "공지 닫기",
   "gyms.title": "주변 헬스장",

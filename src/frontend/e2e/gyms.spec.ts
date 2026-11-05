@@ -462,11 +462,11 @@ test("피드 탭에서 주변 헬스장으로 들어가고 돌아온다", async 
   await expect(page).toHaveURL(/\/feed$/, { timeout: 20_000 });
 });
 
-test("방침 변경 공지는 시행일까지 피드에 뜨고 닫으면 다시 뜨지 않는다", async ({ page }) => {
+test("방침 변경 공지는 정해진 날까지 피드에 뜨고 닫으면 다시 뜨지 않는다", async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-06T12:00:00+09:00"));
   await page.goto("/feed");
   const notice = page.getByTestId("policy-notice");
-  await expect(notice).toContainText("11월 12일", { timeout: 20_000 });
+  await expect(notice).toContainText("11월 5일", { timeout: 20_000 });
   await expect(page.getByTestId("policy-notice-link")).toHaveAttribute("href", "/privacy");
   await page.getByTestId("policy-notice-close").click();
   await expect(notice).toHaveCount(0);
@@ -475,7 +475,7 @@ test("방침 변경 공지는 시행일까지 피드에 뜨고 닫으면 다시 
   await expect(notice).toHaveCount(0);
 });
 
-test("시행일이 지나면 방침 공지가 뜨지 않는다", async ({ page }) => {
+test("정해진 날이 지나면 방침 공지가 뜨지 않는다", async ({ page }) => {
   await page.clock.setFixedTime(new Date("2026-11-13T00:00:01+09:00"));
   await page.goto("/feed");
   await expect(page.getByRole("heading", { name: "피드" })).toBeVisible({ timeout: 20_000 });

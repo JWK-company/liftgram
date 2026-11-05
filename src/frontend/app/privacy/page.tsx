@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "개인정보처리방침 · Liftgram
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="개인정보처리방침" effective="2026년 11월 12일">
+    <LegalPage title="개인정보처리방침" effective="2026년 11월 5일">
       <p>
         Liftgram(이하 “서비스”)은 운동 기록과 운동 소셜 기능을 제공하며, 이용자의 개인정보를 아래와 같이
         처리합니다.
@@ -97,7 +97,10 @@ export default function PrivacyPage() {
           {CONTACT_EMAIL}
         </a>
       </p>
-      <p>이 방침이 바뀌면 시행 7일 전에 서비스 안에서 알립니다.</p>
+      <p>
+        이 방침이 바뀌면 시행 7일 전에 서비스 안에서 알립니다. 다만 2026년 11월 5일 개정은 정식 출시 전
+        변경이어서 공지한 날부터 바로 시행합니다.
+      </p>
     </LegalPage>
   );
 }
