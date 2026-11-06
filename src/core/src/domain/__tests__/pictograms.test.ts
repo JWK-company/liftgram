@@ -155,8 +155,15 @@ test('빌린 사진 목록이 규칙과 어긋나지 않는다(드리프트 방�
   assert.ok(m);
   assert.equal(m.start, '');
   assert.ok(m.instructionsKo.length > 0);
-  // 자기 사진은 그대로
-  assert.ok(getExerciseMediaOwn('seed-barbell-bench-press')?.start.includes('Barbell_Bench_Press'));
+  // [원본] 자기 사진은 그대로 — SPEC-036 에서 모든 사진을 내렸다
+  for (const r of CATALOG as readonly { id: string }[]) {
+    const own = getExerciseMediaOwn(r.id);
+    if (!own) continue;
+    assert.equal(own.start, '', `사진이 남음: ${r.id}`);
+    assert.equal(own.end, '', `사진이 남음: ${r.id}`);
+    assert.equal(own.gif, null, `움짤이 남음: ${r.id}`);
+  }
+  assert.ok((getExerciseMediaOwn('seed-barbell-bench-press')?.instructionsKo.length ?? 0) > 0);
 });
 
 test('SPEC-034 운동 영상 표 — 카탈로그 시드 종목만 · 파일 이름 규칙 · 출처는 허용 목록', () => {

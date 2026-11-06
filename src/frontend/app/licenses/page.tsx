@@ -57,9 +57,9 @@ export default function LicensesPage() {
         {MUSCLEMAP_MIT}
       </pre>
 
-      <h2>종목 사진 — free-exercise-db</h2>
+      <h2>운동 설명 — free-exercise-db</h2>
       <p>
-        일부 종목 상세의 사진은{" "}
+        일부 종목의 운동 방법 설명은{" "}
         <a className="underline" href="https://github.com/yuhonas/free-exercise-db" rel="noopener noreferrer">
           free-exercise-db
         </a>{" "}

@@ -25,7 +25,21 @@ test("종목 목록 썸네일은 픽토그램 SVG 다 — 사진 CDN 을 부르�
   expect(cdn).toEqual([]);
 });
 
+test("운동 상세에 사진이 없다 — 사진 CDN 을 부르지 않고 설명은 남는다", async ({ page }) => {
+  const cdn: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("free-exercise-db") || r.url().includes("jsdelivr")) cdn.push(r.url());
+  });
+  await page.goto("/exercise/seed-barbell-bench-press");
+  await expect(page.getByTestId("exercise-name")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("자세 설명").first()).toBeVisible();
+  await page.waitForTimeout(1_000);
+  expect(cdn).toEqual([]);
+});
+
 test("종목 고르기·운동 블록에 그림이 있고, 팁을 펴면 움직인다", async ({ page }) => {
+  // SPEC-036: 영상이 있는 종목도 있으니 영상을 막아 픽토그램 경로만 본다
+  await page.route("**/motion/**", (r) => r.abort());
   await 카탈로그_준비(page);
   await page.goto("/");
   await expect(page.getByTestId("btn-quick-start")).toBeEnabled({ timeout: 20_000 });
