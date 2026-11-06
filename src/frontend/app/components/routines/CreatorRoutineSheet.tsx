@@ -309,7 +309,7 @@ function CreatorVersionStep({
         className="mt-[var(--spacing-md)] block"
         data-testid="creator-disclaimer"
       >
-        {t("creator.disclaimer", { email: CONTACT })}
+        {t(routine.basis ? "creator.disclaimerSecondary" : "creator.disclaimer", { email: CONTACT })}
       </AppText>
     </SheetShell>
   );

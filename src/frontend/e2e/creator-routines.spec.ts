@@ -100,6 +100,29 @@ test("여러 날 버전(입문자 무분할 Day 1·2) — 날마다 루틴 · �
   await expect(rows).toHaveCount(4);
 });
 
+test("초보자 부위별 → 황철순 가슴 — 출처·댓글 근거·기본값 표시 · 저장 이름에 실명 없음", async ({ page }) => {
+  await 카탈로그_준비(page);
+  await page.goto("/");
+  await page.getByTestId("concept-topic-beginner-part").click();
+  await expect(page.getByTestId("creator-version-cr-bg-pt-chest-hcs")).toContainText(
+    "황철순(CHUL SOON HWANG)",
+  );
+  await page.getByTestId("creator-version-cr-bg-pt-chest-hcs").click();
+  await expect(page.getByTestId("creator-source")).toContainText("황철순(CHUL SOON HWANG)");
+  await expect(page.getByTestId("creator-basis")).toContainText("시청자");
+  await expect(page.getByTestId("creator-disclaimer")).toContainText("대조하지 않았어요");
+  await expect(page.getByTestId("creator-sheet")).toContainText("기본값");
+  await expect(page.getByTestId("creator-open-video")).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=UqlUZFZgczk",
+  );
+  await expect(page.getByTestId("creator-save")).toBeEnabled({ timeout: 10_000 });
+  await page.getByTestId("creator-save").click();
+  const list = page.getByTestId("routine-list");
+  await expect(list).toContainText("초보 가슴 6종", { timeout: 20_000 });
+  await expect(list).not.toContainText("황철순");
+});
+
 test("분석 자료 근거가 있는 버전(씨범) — 근거 링크·문구", async ({ page }) => {
   await 카탈로그_준비(page);
   await page.goto("/");

@@ -1,0 +1,218 @@
+{
+ "doc": {
+  "content": [
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "맥락",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "프로 루틴은 대부분 선수 본인의 운동이라 초보자가 따라 하기 어렵다. 사용자가 초보자용 영상도 찾아 넣고, 이미지 위험을 감수할 테니 황철순도 찾으라고 지시했다(2026-11-06, 메시지 794). 황철순은 2026-10-28 결정으로 제외돼 있었고 SRS-092에는 논란 인물 제외 문장이 있었다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "결정",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "주제 3개를 더한다: 초보자 전신·분할·부위별. 운동 탭에서 「프로 루틴」과 다른 구역 「초보자 루틴」으로 묶는다(사용자 지시, 2026-11-06, 메시지 818). 순서는 내 루틴, 프로 루틴, 초보자 루틴, 최근 운동이다."
+         }
+        ]
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "EXCLUDED_CHANNELS",
+          "type": "text"
+         },
+         {
+          "text": "를 비운다. JINGMAN(징맨)은 같은 인물의 별칭이라 함께 뺀다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "논란 인물을 일괄 제외하지 않고 사용자가 사례별로 정한다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "설명란에 구성이 없으면 공개 댓글의 시청자 정리를 근거로 허용한다. 화면 근거 줄, 저장 메모, 고지문에 밝힌다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "자막·영상은 계속 내려받지 않는다. 그래서 본편과 대조하지 않은 루틴이 남는다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "대안",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "자막을 읽어 세트 수를 채우기: 약관 위반이라 기각했다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "설명란 근거만 싣기: 황철순·강경원 영상이 빠져 지시를 못 지켜 기각했다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "한 구역 「프로 루틴」에 함께 두기: 처음 안이었으나 사용자가 별도 분류를 지시해 기각했다."
+         }
+        ]
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "결과",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "영상 루틴은 데이터 기준 101개가 됐다. 초보자 23개 중 13개가 댓글 근거다. 황철순 영상 4개는 세트·횟수가 모두 기본값이다. 사건 이력에 따른 평판 위험은 사용자가 감수하기로 했다. 정정·삭제 요청 창구는 고지문에 그대로 둔다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   }
+  ],
+  "type": "doc"
+ },
+ "group": "할일/잠금화면-시작화면",
+ "id": "ADR-059",
+ "meta": {},
+ "relations": {
+  "informs": [
+   "SRS-091",
+   "SRS-092"
+  ]
+ },
+ "schemaVersion": 1,
+ "tags": [],
+ "title": "초보자 루틴을 넣고 황철순 영상 제외를 푼다",
+ "type": "ADR",
+ "updated": "2026-11-06T03:31:56Z"
+}

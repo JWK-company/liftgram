@@ -1,9 +1,9 @@
-// 크리에이터 루틴 — 주제(프로의 어깨·가슴·등·하체·팔·푸시·풀·전신)별로 국내외 프로 선수·유명 보디빌더의 영상 루틴을 정리한 정적 데이터. @plm SRS-091 SRS-092
+// 크리에이터 루틴 — 주제(프로의 어깨·가슴·등·하체·팔·푸시·풀·전신 · 초보자 전신·분할·부위별)별로 국내외 프로 선수·유명 보디빌더·운동 유튜버의 영상 루틴을 정리한 정적 데이터. @plm SRS-091 SRS-092
 // [원본] 주제: 어깨깡패·3대 500·퇴근 후(2026-10-28) → 2026-11-05 사용자 지시로 교체. 옛 영상은 hidden 으로 데이터에 남긴다(3대 500·퇴근 후) · 어깨 3개는 새 주제로 옮겼다.
 //
 // 규칙(ADR-045 · spec 20261028_creator-routines rev1):
 //   · 출처(source)의 title·channel 은 공식 oEmbed 값 그대로 — 점검: node scripts/check-creator-routines.mjs
-//   · 루틴(종목·세트·횟수)은 사실 정보만 · src 'video' = 출처(영상 설명란, 또는 basis 로 밝힌 영상 분석 자료)에 적힌 값 · 'default' = 출처에 없어 우리가 채운 값(화면에 「기본값」)
+//   · 루틴(종목·세트·횟수)은 사실 정보만 · src 'video' = 출처(영상 설명란, 또는 basis 로 밝힌 영상 분석 자료·시청자 정리 댓글)에 적힌 값 · 'default' = 출처에 없어 우리가 채운 값(화면에 「기본값」)
 //   · 대본·설명란 원문·썸네일은 넣지 않는다. summaryKo·labelKo 는 우리 말로 — 채널명(실명)을 넣지 않는다(공유 시 이름만 퍼짐 · qa H-2)
 //   · 균일하지 않은 처방(피라미드·탑셋)은 근삿값 + reps 'default' + noteKo 로 원래 방식을 적는다 · 하루 안 같은 종목 두 번 금지
 //   · draft: true = 아직 사람 검수 전 — 화면에 내지 않는다(check 스크립트는 경고로 알린다)
@@ -11,7 +11,7 @@
 // 옛 AI 콘셉트 루틴(conceptRoutines.ts)은 사용자 결정(2026-10-28)으로 화면에서 뺐다 — 데이터는 원복용 보존.
 
 // [원본] export type CreatorTopicId = 'boulder-shoulders' | 'big3-500' | 'after-work';
-// [개선] 새 주제 8개 + 숨긴 옛 영상이 쓰는 주제 2개(화면 목록 CREATOR_TOPICS 에는 없다)
+// [개선] 프로 주제 8개 + 초보자 주제 3개(2026-11-06) + 숨긴 옛 영상이 쓰는 주제 2개(화면 목록 CREATOR_TOPICS 에는 없다)
 export type CreatorTopicId =
   | 'pro-shoulders'
   | 'pro-chest'
@@ -21,6 +21,9 @@ export type CreatorTopicId =
   | 'pro-push'
   | 'pro-pull'
   | 'pro-full'
+  | 'beginner-full'
+  | 'beginner-split'
+  | 'beginner-part'
   | 'big3-500'
   | 'after-work';
 
@@ -99,6 +102,7 @@ export const CREATOR_TOPICS: CreatorTopic[] = [
 */
 // [개선] 실존 인물 이름은 주제·루틴 이름에 넣지 않는다(ADR-045) — 출처 줄에만 채널명을 인용한다
 const PRO_BLURB_EN = 'Routines from pro and well-known bodybuilders, summarized from their videos (routine names in Korean).';
+const BEGINNER_BLURB_EN = 'Beginner routines recommended by pros and fitness creators, summarized from their videos (routine names in Korean).';
 export const CREATOR_TOPICS: CreatorTopic[] = [
   { id: 'pro-shoulders', nameKo: '프로의 어깨 루틴', nameEn: 'Pro shoulders', blurbKo: '국내외 프로 선수와 유명 보디빌더가 영상에서 보여 준 어깨 운동을 모았어요.', blurbEn: PRO_BLURB_EN },
   { id: 'pro-chest', nameKo: '프로의 가슴 루틴', nameEn: 'Pro chest', blurbKo: '국내외 프로 선수와 유명 보디빌더가 영상에서 보여 준 가슴 운동을 모았어요.', blurbEn: PRO_BLURB_EN },
@@ -108,6 +112,9 @@ export const CREATOR_TOPICS: CreatorTopic[] = [
   { id: 'pro-push', nameKo: '프로의 푸시데이', nameEn: 'Pro push day', blurbKo: '가슴·어깨·삼두를 하루에 묶은 푸시 운동을 프로 선수와 유명 보디빌더의 영상에서 모았어요.', blurbEn: PRO_BLURB_EN },
   { id: 'pro-pull', nameKo: '프로의 풀데이', nameEn: 'Pro pull day', blurbKo: '등·이두를 하루에 묶은 풀 운동을 프로 선수와 유명 보디빌더의 영상에서 모았어요.', blurbEn: PRO_BLURB_EN },
   { id: 'pro-full', nameKo: '프로의 전신 루틴', nameEn: 'Pro full body', blurbKo: '하루에 온몸을 도는 전신 운동을 프로 선수와 유명 보디빌더의 영상에서 모았어요.', blurbEn: PRO_BLURB_EN },
+  { id: 'beginner-full', nameKo: '초보자 전신 루틴', nameEn: 'Beginner full body', blurbKo: '프로 선수와 운동 유튜버가 초보자에게 권한 전신 운동을 영상에서 모았어요.', blurbEn: BEGINNER_BLURB_EN },
+  { id: 'beginner-split', nameKo: '초보자 분할 루틴', nameEn: 'Beginner splits', blurbKo: '운동을 나눠서 시작하려는 초보자를 위한 분할 운동을 영상에서 모았어요. 분할의 하루만 있는 영상도 있어요.', blurbEn: BEGINNER_BLURB_EN },
+  { id: 'beginner-part', nameKo: '초보자 부위별 루틴', nameEn: 'Beginner by body part', blurbKo: '프로 선수와 운동 유튜버가 초보자에게 권한 부위별 기본 운동을 영상에서 모았어요.', blurbEn: BEGINNER_BLURB_EN },
 ];
 
 // biome-ignore lint/correctness/noUnusedVariables: 자리 잡기 도우미(새 버전 초안용)
@@ -2244,10 +2251,688 @@ export const CREATOR_ROUTINES: CreatorRoutine[] = [
       },
     ],
   },
+  // ─── 초보자 루틴(2026-11-06 사용자 지시 · ADR-059) — 근거 = 설명란, 없으면 영상 댓글의 시청자 정리(basis 로 밝힘). 영상 본편과 대조하지 않았다.
+  {
+    id: 'cr-bg-fb-six',
+    topicId: 'beginner-full',
+    labelKo: '전신 6종',
+    source: {
+      videoId: 'O8D81rCN0XY',
+      title: '무분할 전신루틴, 헬스장 주 1~2회만 간다면 이 6가지 순서로 하세요',
+      channel: '핏블리 FITVELY',
+      channelUrl: 'https://www.youtube.com/@fitvely',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '가슴과 등을 번갈아 하고 하체로 마무리하는 전신 6종이에요. 헬스장에 주 1~2회만 갈 때 쓰는 구성이고, 가볍게 15회씩 해요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-barbell-bench-press', sets: 5, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '20kg 바가 힘들면 덤벨 프레스로 대신해요' },
+          { exerciseId: 'seed-assisted-pull-up', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-chest-press-machine', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-leg-press', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 파워 레그프레스' },
+          { exerciseId: 'seed-lying-leg-curl', sets: 4, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-twice',
+    topicId: 'beginner-full',
+    labelKo: '주 2회 전신',
+    source: {
+      videoId: '_GPYjWqGoOE',
+      title: '【전신루틴】 바쁜 사람을 위한 ‘주2회 헬스장 루틴’ 이대로만 하세요🔥 (운동순서,횟수,자세설명)',
+      channel: '핏블리 FITVELY',
+      channelUrl: 'https://www.youtube.com/@fitvely',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=_GPYjWqGoOE' },
+    summaryKo: '바빠서 주 2회만 갈 때 쓰는 기구 위주 전신 6종이에요. 20회씩 3세트로 하고 끝에 유산소 30분을 더해요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-chest-press-machine', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-leg-extension', sets: 3, repsMin: 20, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-3month',
+    topicId: 'beginner-full',
+    labelKo: '첫 달 3일 구성',
+    source: {
+      videoId: 'ixkQaZXVQjs',
+      title: 'The PERFECT Beginner Workout (Sets and Reps Included)',
+      channel: 'ATHLEAN-X™',
+      channelUrl: 'https://www.youtube.com/@athleanx',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '3개월 초보 프로그램의 첫 달이에요. 월·수·금에 전신 A와 B를 번갈아 하고, 화·목에 복근과 들고 걷기를 해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '전신 A',
+        items: [
+          { exerciseId: 'seed-dumbbell-squat', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 한 팔씩 하는 덤벨 프레스' },
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-bodyweight-split-squat', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '영상은 다리마다 지칠 때까지' },
+        ],
+      },
+      {
+        nameKo: '전신 B',
+        items: [
+          { exerciseId: 'seed-cable-pull-through', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-reverse-lunge', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '다리마다' },
+          { exerciseId: 'seed-push-up', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '영상은 지칠 때까지' },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '복근·들고 걷기',
+        items: [
+          { exerciseId: 'seed-crunch', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '영상은 롤업 — 앱에 없어 크런치로 옮겼어요' },
+          { exerciseId: 'seed-suitcase-carry', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'default' }, noteKo: '영상은 팔마다 지칠 때까지 걷기' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-six-plus',
+    topicId: 'beginner-full',
+    labelKo: '주 3회 전신 입문',
+    source: {
+      videoId: 'n_YW24F5HGc',
+      title: 'The ONLY Workout You Need For 2027 (Do This 3x/Week)',
+      channel: 'Jeremy Ethier',
+      channelUrl: 'https://www.youtube.com/@JeremyEthier',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '설명란에 입문자용으로 따로 적힌 전신 구성이에요. 주 2~3회 하고, 측면·후면 어깨는 이어서 해요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-goblet-squat', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pull-up', sets: 3, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 뉴트럴 그립 · 못 하면 인버티드 로우부터' },
+          { exerciseId: 'seed-romanian-deadlift-dumbbell', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 10, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '다음 종목과 이어서' },
+          { exerciseId: 'seed-dumbbell-incline-rear-delt-fly', sets: 3, repsMin: 10, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-firstyear',
+    topicId: 'beginner-full',
+    labelKo: '첫해 전신 3일',
+    source: {
+      videoId: 'jJxWjUZWc3E',
+      title: 'Following My First Year Diet & Training | 4,000 CALORIES + FREE Beginners Full Body Program',
+      channel: 'Will Tennyson',
+      channelUrl: 'https://www.youtube.com/@WillTennyson',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '처음 시작한 때로 돌아간다면 하겠다는 주 3일 전신 프로그램이에요. 하루씩 쉬며 돌리고 무게를 조금씩 올려요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '1일',
+        items: [
+          { exerciseId: 'seed-barbell-squat', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-bench-press', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pendlay-row', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-barbell-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '다음 종목과 슈퍼세트' },
+          { exerciseId: 'seed-skull-crusher', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '2일',
+        items: [
+          { exerciseId: 'seed-deadlift', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 데드리프트 변형 중 선택' },
+          { exerciseId: 'seed-overhead-press', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-chest-supported-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-dumbbell-shrug', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-triceps-pushdown', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+      {
+        nameKo: '3일',
+        items: [
+          { exerciseId: 'seed-barbell-squat', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-close-grip-bench-press', sets: 3, repsMin: 8, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-pendlay-row', sets: 4, repsMin: 5, repsMax: 8, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-reverse-pec-deck', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 뉴트럴 그립' },
+          { exerciseId: 'seed-incline-dumbbell-curl', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-novice',
+    topicId: 'beginner-full',
+    labelKo: '입문 근비대 3일',
+    source: {
+      videoId: '_4wWgin1dVY',
+      title: 'Free novice program for hypertrophy',
+      channel: 'Natural Hypertrophy',
+      channelUrl: 'https://www.youtube.com/@NaturalHypertrophy',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '스쿼트·벤치·데드리프트를 하루에 하나씩 무겁게 하고 보조 운동을 더하는 월·수·금 프로그램이에요. 영어 영상이에요.',
+    days: [
+      {
+        nameKo: '월',
+        items: [
+          { exerciseId: 'seed-barbell-squat', sets: 3, repsMin: 4, repsMax: 8, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 무거운 1~3세트' },
+          { exerciseId: 'seed-romanian-deadlift', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 데드리프트 변형' },
+          { exerciseId: 'seed-pull-up', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'default' }, noteKo: '가능한 만큼' },
+          { exerciseId: 'seed-skull-crusher', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-hammer-curl', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-push-up', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 가능한 만큼, 복근 추가' },
+        ],
+      },
+      {
+        nameKo: '수',
+        items: [
+          { exerciseId: 'seed-barbell-bench-press', sets: 6, repsMin: 4, repsMax: 10, src: { sets: 'video', reps: 'default' }, noteKo: '영상은 무거운 1~3세트(4~8회) 뒤 3세트 이상(6~10회)' },
+          { exerciseId: 'seed-overhead-press', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-chin-up', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'default' }, noteKo: '가능한 만큼' },
+          { exerciseId: 'seed-hyperextension', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-cable-row', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-crunch', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 복근 운동을 가능한 만큼' },
+        ],
+      },
+      {
+        nameKo: '금',
+        items: [
+          { exerciseId: 'seed-deadlift', sets: 3, repsMin: 2, repsMax: 5, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 무거운 1~3세트' },
+          { exerciseId: 'seed-front-squat', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 스쿼트 변형' },
+          { exerciseId: 'seed-pull-up', sets: 4, repsMin: 6, repsMax: 10, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-ez-bar-curl', sets: 4, repsMin: 8, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-push-up', sets: 3, repsMin: 10, repsMax: 15, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 가능한 만큼, 복근 추가' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-afterwork',
+    topicId: 'beginner-full',
+    labelKo: '퇴근 후 전신 7종',
+    source: {
+      videoId: '92SXBcTzoco',
+      title: '퇴근 후 헬스장 가면 이 전신루틴 6가지만 하세요｜직장인 초보 운동',
+      channel: '제로범TV _김영범',
+      channelUrl: 'https://www.youtube.com/@boom__star',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=92SXBcTzoco' },
+    summaryKo: '직장인 초보를 위한 전신 구성이에요. 프레스로 시작해 등과 하체를 거쳐 측면·후면 어깨 슈퍼세트로 마무리해요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-incline-press', sets: 3, repsMin: 15, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '시청자 정리는 바벨 프레스 15회씩 3세트 이상 · 정리마다 바벨·덤벨이 달라요' },
+          { exerciseId: 'seed-assisted-pull-up', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '정리에 따라 턱걸이' },
+          { exerciseId: 'seed-goblet-squat', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '일자 바 추천' },
+          { exerciseId: 'seed-romanian-deadlift-dumbbell', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '다음 종목과 슈퍼세트' },
+          { exerciseId: 'seed-dumbbell-incline-rear-delt-fly', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-onehour',
+    topicId: 'beginner-full',
+    labelKo: '1시간 기구 전신',
+    source: {
+      videoId: 'o82RrvHYkJQ',
+      title: '\'두쫀쿠\' 먹고 살 쪄서 헬스장 등록하는 사람들을 위한 1시간 \'전신 무분할 루틴\'',
+      channel: '마선호',
+      channelUrl: 'https://www.youtube.com/@Masunho',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=o82RrvHYkJQ' },
+    summaryKo: '헬스장을 막 등록한 사람을 위한 1시간 기구 전신이에요. 근력 뒤에 유산소 30분을 더해요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-chest-press-machine', sets: 4, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-seated-cable-row', sets: 4, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 4, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '정리에는 풀업도 있어요' },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 4, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-smith-machine-squat', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-five',
+    topicId: 'beginner-full',
+    labelKo: '처음 5가지 전신',
+    source: {
+      videoId: 'pXzEw2D8bds',
+      title: '헬스장 처음이라면 이렇게 운동 해보세요ㅣ헬스(헬린이) 초보자를 위한 5가지 전신운동루틴(가슴/등/하체/어깨)',
+      channel: 'MSG훈',
+      channelUrl: 'https://www.youtube.com/@msg2304',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=pXzEw2D8bds' },
+    summaryKo: '헬스장이 처음일 때 가슴·등·어깨·하체를 기구 위주로 도는 5종이에요. 15~20회씩 3~4세트로 해요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-chest-press-machine', sets: 3, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 3, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트' },
+          { exerciseId: 'seed-barbell-squat', sets: 3, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '3~4세트 · 기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 롱풀 머신 · 3~4세트' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-fb-escape',
+    topicId: 'beginner-full',
+    labelKo: '초보 탈출 1시간',
+    source: {
+      videoId: 'E-DCLPwZwUI',
+      title: '헬스 초보 탈출 루틴!! 헬스장 1시간 완전 공략(스트레칭,근력,유산소)',
+      channel: '웨이트연구소 I 덕코치',
+      channelUrl: 'https://www.youtube.com/@%EC%9B%A8%EC%9D%B4%ED%8A%B8%EC%97%B0%EA%B5%AC%EC%86%8C%EB%8D%95%EC%BD%94%EC%B9%98',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '유산소와 스트레칭으로 시작해 등·가슴·하체·어깨 순서로 하고 인터벌로 끝내는 1시간 구성이에요.',
+    days: [
+      {
+        nameKo: '전신',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-smith-machine-bench-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-leg-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-three',
+    topicId: 'beginner-split',
+    labelKo: '기본 3분할',
+    source: {
+      videoId: 'GTGhXj6uEok',
+      title: '무슨 운동을 언제, 어떻게 해야 할지 모르는 당신에게 (feat. 3분할)',
+      channel: '마선호',
+      channelUrl: 'https://www.youtube.com/@Masunho',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '무엇을 할지 모를 때 쓰는 3분할이에요. 밀기, 당기기, 하체와 복근 순서로 나눠요. 날 구분은 설명란의 종목 순서를 보고 우리가 묶었어요.',
+    days: [
+      {
+        nameKo: '밀기',
+        items: [
+          { exerciseId: 'seed-pec-deck-fly', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-incline-press-machine', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-shoulder-press-machine', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-side-lateral-raise', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-triceps-pushdown', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+      {
+        nameKo: '당기기',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-low-row', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-row', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-incline-rear-delt-fly', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-curl', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+      {
+        nameKo: '하체·복근',
+        items: [
+          { exerciseId: 'seed-barbell-squat', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-leg-press', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-leg-extension', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-crunch', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-reverse-crunch', sets: 4, repsMin: 12, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-backarm',
+    topicId: 'beginner-split',
+    labelKo: '3분할 중 등·팔',
+    source: {
+      videoId: 'CbWXVgw-Q9k',
+      title: '초중급자 3분할 루틴 ② 등·팔 편 (성장 보장 루틴)',
+      channel: '제로범TV _김영범',
+      channelUrl: 'https://www.youtube.com/@boom__star',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=CbWXVgw-Q9k' },
+    summaryKo: '초중급자용 3분할의 둘째 날이에요. 등 세 가지 뒤에 이두와 삼두를 케이블로 해요. 다른 두 날은 종목을 확인하지 못해 넣지 않았어요.',
+    days: [
+      {
+        nameKo: '등·팔',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+          { exerciseId: 'seed-machine-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' }, noteKo: '영상은 언더그립 · 일자 바' },
+          { exerciseId: 'seed-behind-the-back-cable-curl', sets: 3, repsMin: 12, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '영상은 한 팔씩' },
+          { exerciseId: 'seed-cable-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+          { exerciseId: 'seed-triceps-pushdown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+          { exerciseId: 'seed-cable-overhead-extension', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'video', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-upper',
+    topicId: 'beginner-split',
+    labelKo: '2분할 중 상체',
+    source: {
+      videoId: 'kjNQbNyc8ow',
+      title: '2분할 루틴 상체편 이렇게만 하면 충분합니다',
+      channel: '제로범TV _김영범',
+      channelUrl: 'https://www.youtube.com/@boom__star',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=kjNQbNyc8ow' },
+    summaryKo: '초중급자용 2분할의 상체 날이에요. 가슴·등·어깨를 두 종목씩 해요. 하체 날은 이 영상에 없어요.',
+    days: [
+      {
+        nameKo: '상체',
+        items: [
+          { exerciseId: 'seed-incline-press-dumbbell', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '스미스 인클라인으로 해도 돼요' },
+          { exerciseId: 'seed-dumbbell-fly', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-chest-supported-row-dumbbell', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 인클라인 덤벨 로우' },
+          { exerciseId: 'seed-dumbbell-incline-rear-delt-fly', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' }, noteKo: '앞 종목 뒤에 바로' },
+          { exerciseId: 'seed-cable-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-upper3',
+    topicId: 'beginner-split',
+    labelKo: '첫 상체 3종',
+    source: {
+      videoId: 'trQHr9Ft2cg',
+      title: '헬린이 상체루틴, 헬스장 처음이면 이 순서대로만 하세요',
+      channel: '핏블리 FITVELY',
+      channelUrl: 'https://www.youtube.com/@fitvely',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '당기고, 밀고, 머리 위로 미는 순서로 하는 상체 3종이에요. 안 쓰던 근육에 익숙해지도록 높은 횟수로 해요.',
+    days: [
+      {
+        nameKo: '상체',
+        items: [
+          { exerciseId: 'seed-machine-row', sets: 4, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' }, noteKo: '없으면 케이블로 해요' },
+          { exerciseId: 'seed-chest-press-machine', sets: 4, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 4, repsMin: 15, repsMax: 20, src: { sets: 'video', reps: 'video' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-sp-chestsh',
+    topicId: 'beginner-split',
+    labelKo: '첫 가슴·어깨',
+    source: {
+      videoId: 'Cb0yy0yHRUg',
+      title: '헬스장이 처음이라면 이대로만 따라하세요! 헬스 초보자용 가슴+어깨 상체운동 루틴',
+      channel: '핏블리 FITVELY',
+      channelUrl: 'https://www.youtube.com/@fitvely',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=Cb0yy0yHRUg' },
+    summaryKo: '가슴 다음 어깨 순서로 두 종목만 해요. 15회로 몸을 풀고 12회를 네 번 해요.',
+    days: [
+      {
+        nameKo: '가슴·어깨',
+        items: [
+          { exerciseId: 'seed-chest-press-machine', sets: 5, repsMin: 12, repsMax: 15, restSec: 40, src: { sets: 'video', reps: 'video' }, noteKo: '첫 세트 15회, 이후 12회 4세트 · 쉬는 시간 30~50초' },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 5, repsMin: 12, repsMax: 15, restSec: 40, src: { sets: 'video', reps: 'video' }, noteKo: '첫 세트 15회, 이후 12회 4세트 · 쉬는 시간 30~50초' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-chest-hcs',
+    topicId: 'beginner-part',
+    labelKo: '초보 가슴 6종',
+    source: {
+      videoId: 'UqlUZFZgczk',
+      title: '초보자를 위한 황철순의 가슴운동 루틴',
+      channel: 'CHUL SOON HWANG',
+      channelUrl: 'https://www.youtube.com/@chulsoonofficial',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=UqlUZFZgczk' },
+    summaryKo: '초보자에게 바벨·머신·덤벨로 가슴 쓰는 느낌을 잡아 주는 영상이에요. 다룬 종목을 순서대로 옮겼고, 전부 하라는 처방은 아니에요. 세트·횟수는 확인하지 못해 기본값으로 뒀어요.',
+    days: [
+      {
+        nameKo: '가슴',
+        items: [
+          { exerciseId: 'seed-barbell-bench-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-incline-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-incline-press-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-chest-press-machine', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '영상은 플랫·와이드 머신을 모두 다뤄요' },
+          { exerciseId: 'seed-dumbbell-bench-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-pec-deck-fly', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-back-hcs',
+    topicId: 'beginner-part',
+    labelKo: '등 기초 4종',
+    source: {
+      videoId: 'hHcdb6q9aaE',
+      title: '[핏플렉스 X 프로팁] EP.02 등의 정석 기초편!ㅣ게스트 황철순 프로',
+      channel: '핏플렉스(FITFLEX)',
+      channelUrl: 'https://www.youtube.com/@fitflex.official',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=hHcdb6q9aaE' },
+    summaryKo: '프로 선수가 등 운동의 기본을 설명하는 기초편의 종목들이에요. 세트·횟수는 확인하지 못해 기본값으로 뒀어요.',
+    days: [
+      {
+        nameKo: '등',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-seated-cable-row', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-sh-hcs',
+    topicId: 'beginner-part',
+    labelKo: '어깨 기초 4종',
+    source: {
+      videoId: '3OFjsL-YZvs',
+      title: '[핏플렉스 X 프로팁] EP.03 어깨의 정석 기초+심화편!ㅣ게스트 황철순 프로',
+      channel: '핏플렉스(FITFLEX)',
+      channelUrl: 'https://www.youtube.com/@fitflex.official',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=3OFjsL-YZvs' },
+    summaryKo: '프레스 두 가지 뒤에 후면과 측면 레이즈로 마무리하는 기초·심화편의 종목들이에요. 세트·횟수는 확인하지 못해 기본값으로 뒀어요.',
+    days: [
+      {
+        nameKo: '어깨',
+        items: [
+          { exerciseId: 'seed-overhead-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-dumbbell-shoulder-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-rear-delt-fly', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-side-lateral-raise', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-arm-hcs',
+    topicId: 'beginner-part',
+    labelKo: '팔 기본 6종',
+    source: {
+      videoId: 'vlDbSMToyeo',
+      title: '[핏플렉스 X 프로팁] EP.04 팔의 기본 루틴 핵심만 빠르게!ㅣ게스트 황철순 프로',
+      channel: '핏플렉스(FITFLEX)',
+      channelUrl: 'https://www.youtube.com/@fitflex.official',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=vlDbSMToyeo' },
+    summaryKo: '이두 세 가지와 삼두 세 가지로 구성한 기본 팔 운동이에요. 세트·횟수는 확인하지 못해 기본값으로 뒀어요.',
+    days: [
+      {
+        nameKo: '팔',
+        items: [
+          { exerciseId: 'seed-barbell-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-preacher-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-hammer-curl', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-triceps-pushdown', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-overhead-triceps-extension', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-skull-crusher', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-main-a',
+    topicId: 'beginner-part',
+    labelKo: '메인 깊게 가슴·등',
+    source: {
+      videoId: 'iv8reqGucYE',
+      title: '제가 추천하는 부위별 운동 - 가슴, 등, 복근',
+      channel: '강경원',
+      channelUrl: 'https://www.youtube.com/@kangkyungwon',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=iv8reqGucYE' },
+    summaryKo: '종목을 늘리기보다 메인 운동의 세트를 늘리라는 조언에 맞춰, 초보자 추천 종목만 담았어요.',
+    days: [
+      {
+        nameKo: '가슴·등·복근',
+        items: [
+          { exerciseId: 'seed-chest-press-machine', sets: 5, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '댓글에 5세트·10세트가 함께 언급돼요' },
+          { exerciseId: 'seed-lat-pulldown', sets: 5, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '댓글에 5세트·10세트가 함께 언급돼요' },
+          { exerciseId: 'seed-lying-leg-raise', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-main-b',
+    topicId: 'beginner-part',
+    labelKo: '메인 깊게 어깨·팔·하체',
+    source: {
+      videoId: 'D7iZMIy0C5E',
+      title: '제가 추천하는 부위별 운동 - 어깨, 팔, 하체 (초, 중급자 이 영상으로 끝내세요, 강경원 추천 루틴 완결편)',
+      channel: '강경원',
+      channelUrl: 'https://www.youtube.com/@kangkyungwon',
+      verifiedAt: '2026-11-06',
+    },
+    basis: { labelKo: '시청자가 댓글에 정리한 내용', url: 'https://www.youtube.com/watch?v=D7iZMIy0C5E' },
+    summaryKo: '어깨는 프레스 위주로, 팔과 하체는 기본 종목만 담았어요. 부위별 추천을 우리가 두 날로 묶었어요.',
+    days: [
+      {
+        nameKo: '어깨·팔',
+        items: [
+          { exerciseId: 'seed-overhead-press', sets: 5, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '댓글에 프레스 위주로 세트를 늘리라는 언급이 있어요' },
+          { exerciseId: 'seed-barbell-curl', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-triceps-pushdown', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+      {
+        nameKo: '하체',
+        items: [
+          { exerciseId: 'seed-leg-extension', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-lying-leg-curl', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-barbell-squat', sets: 4, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-back-10',
+    topicId: 'beginner-part',
+    labelKo: '등 10세트',
+    source: {
+      videoId: '5jZ940J6w6Y',
+      title: '등운동 루틴 초보, 이대로 10세트만 따라하세요',
+      channel: '핏블리 FITVELY',
+      channelUrl: 'https://www.youtube.com/@fitvely',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '위에서 당기는 운동과 앞에서 당기는 운동을 5세트씩 해요. 12회를 못 채우면 무게를 낮춰요.',
+    days: [
+      {
+        nameKo: '등',
+        items: [
+          { exerciseId: 'seed-lat-pulldown', sets: 5, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '첫 세트 15회, 이후 12회 4세트 · 와이드 그립' },
+          { exerciseId: 'seed-seated-cable-row', sets: 5, repsMin: 12, repsMax: 15, src: { sets: 'video', reps: 'video' }, noteKo: '첫 세트 15회, 이후 12회 4세트 · 영상은 수평 당기기' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'cr-bg-pt-legs-5',
+    topicId: 'beginner-part',
+    labelKo: '하체 5종 순서',
+    source: {
+      videoId: 'Tr9lfMZlFDA',
+      title: '【하체루틴】 헬스 초보자는 하체운동 \'이 순서\' 그대로 하세요!',
+      channel: '핏블리 FITVELY',
+      channelUrl: 'https://www.youtube.com/@fitvely',
+      verifiedAt: '2026-11-06',
+    },
+    summaryKo: '운동을 많이 안 해 본 사람도 할 수 있게 고른 하체 순서예요. 스미스 스쿼트로 시작해 머신으로 마무리해요.',
+    days: [
+      {
+        nameKo: '하체',
+        items: [
+          { exerciseId: 'seed-smith-machine-squat', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-leg-press', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-hip-thrust', sets: 3, repsMin: 10, repsMax: 12, src: { sets: 'default', reps: 'default' }, noteKo: '기구는 근거에 없어 우리가 정했어요' },
+          { exerciseId: 'seed-lying-leg-curl', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+          { exerciseId: 'seed-leg-extension', sets: 3, repsMin: 12, repsMax: 15, src: { sets: 'default', reps: 'default' } },
+        ],
+      },
+    ],
+  },
 ];
 
 /** 논란 보도 등으로 싣지 않는 채널(spec rev1 M-5) — 테스트가 데이터에 없음을 확인한다. */
-export const EXCLUDED_CHANNELS: readonly string[] = ['황철순', 'JINGMAN'];
+// [원본] export const EXCLUDED_CHANNELS: readonly string[] = ['황철순', 'JINGMAN'];
+// [개선] 2026-11-06 사용자 지시(이미지 위험을 감수하고 포함 · ADR-059) — JINGMAN(징맨)도 같은 인물이라 함께 뺐다. 지금 제외 채널은 없다
+export const EXCLUDED_CHANNELS: readonly string[] = [];
 
 /**
  * 한국에서 흔히 부르는 이름 — 채널명(oEmbed 원문)을 열쇠로 둔다. 출처 표기·저장 메모에만 쓰고 루틴 이름에는 넣지 않는다.
@@ -2278,6 +2963,18 @@ export const CHANNEL_NAMES_KO: Readonly<Record<string, string>> = {
   강경원: '강경원',
   설기관: '설기관',
   킹유진: '킹유진',
+  'CHUL SOON HWANG': '황철순',
+  // 황철순이 게스트로 나온 회사 채널 — 인물 이름은 영상 제목에 있다
+  '핏플렉스(FITFLEX)': '핏플렉스(FITFLEX)',
+  마선호: '마선호',
+  '제로범TV _김영범': '김영범',
+  '핏블리 FITVELY': '핏블리',
+  MSG훈: 'MSG훈',
+  '웨이트연구소 I 덕코치': '덕코치',
+  'ATHLEAN-X™': '제프 카발리에리',
+  'Jeremy Ethier': '제러미 에시어',
+  'Will Tennyson': '윌 테니슨',
+  'Natural Hypertrophy': 'Natural Hypertrophy',
 };
 
 /** 「흔히 부르는 이름(채널명)」 — 두 이름이 같으면 하나만, 표에 없으면 채널명 그대로 */
@@ -2298,6 +2995,21 @@ export function visibleCreatorTopics(): CreatorTopic[] {
   return CREATOR_TOPICS.filter((t) => creatorRoutinesFor(t.id).length > 0);
 }
 
+/** 운동 탭의 분류 — 초보자 주제는 프로 루틴과 따로 묶는다(사용자 지시 2026-11-06) */
+export type CreatorTopicSection = 'pro' | 'beginner';
+
+export function creatorTopicSection(topicId: CreatorTopicId): CreatorTopicSection {
+  return topicId.startsWith('beginner-') ? 'beginner' : 'pro';
+}
+
+/** 화면 순서대로의 분류 — 보일 주제가 없는 분류는 뺀다 */
+export function visibleCreatorSections(): { section: CreatorTopicSection; topics: CreatorTopic[] }[] {
+  const topics = visibleCreatorTopics();
+  return (['pro', 'beginner'] as const)
+    .map((section) => ({ section, topics: topics.filter((t) => creatorTopicSection(t.id) === section) }))
+    .filter((s) => s.topics.length > 0);
+}
+
 export function youtubeWatchUrl(videoId: string): string {
   return `https://www.youtube.com/watch?v=${videoId}`;
 }
@@ -2308,6 +3020,10 @@ export function creatorRoutineNotes(r: CreatorRoutine): string {
   // [개선] 저장하면 「기본값」 표시가 사라지므로, 우리가 채운 값이 있으면 메모에 남긴다
   const base = `출처: ${creatorChannelLabel(r.source.channel)} 「${r.source.title}」 ${youtubeWatchUrl(r.source.videoId)}`;
   const filled = r.days.some((d) => d.items.some((i) => i.src.sets === 'default' || i.src.reps === 'default'));
-  return filled ? `${base}
-세트·횟수 일부는 출처에 없어 앱 기본값으로 채웠어요.` : base;
+  // [원본] return filled ? `${base}\n세트·횟수 일부는 출처에 없어 앱 기본값으로 채웠어요.` : base;
+  // [개선] 설명란이 아닌 근거(기사·시청자 댓글)도 저장 뒤에 알 수 있게 남긴다
+  const lines = [base];
+  if (r.basis) lines.push(`루틴 근거: ${r.basis.labelKo}`);
+  if (filled) lines.push('세트·횟수 일부는 출처에 없어 앱 기본값으로 채웠어요.');
+  return lines.join('\n');
 }

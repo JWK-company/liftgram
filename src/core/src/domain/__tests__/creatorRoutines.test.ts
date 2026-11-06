@@ -12,6 +12,7 @@ import {
   creatorChannelLabel,
   creatorRoutineNotes,
   creatorRoutinesFor,
+  visibleCreatorSections,
   visibleCreatorTopics,
   youtubeWatchUrl,
 } from '../creatorRoutines';
@@ -21,9 +22,12 @@ const slugId = (en: string) => `seed-${en.toLowerCase().replace(/[^a-z0-9]+/g, '
 const activeIds = new Set(SEED_EXERCISES.filter((e) => !e.isArchived).map((e) => slugId(e.nameEn)));
 
 // [원본] 주제 3개 · 주제마다 서로 다른 채널 버전 ≥2
-test('프로 주제 8개 · 주제마다 서로 다른 채널 버전 ≥2 · 이름이 모두 「프로의 …」', () => {
-  assert.equal(CREATOR_TOPICS.length, 8);
-  for (const t of CREATOR_TOPICS) assert.match(t.nameKo, /^프로의 /, t.id);
+// [원본] 프로 주제 8개 · 이름이 모두 「프로의 …」
+test('프로 주제 8개 + 초보자 주제 3개 · 주제마다 서로 다른 채널 버전 ≥2 · 이름이 「프로의 …」 또는 「초보자 …」', () => {
+  assert.equal(CREATOR_TOPICS.length, 11);
+  assert.equal(CREATOR_TOPICS.filter((t) => t.nameKo.startsWith('프로의 ')).length, 8);
+  assert.equal(CREATOR_TOPICS.filter((t) => t.nameKo.startsWith('초보자 ')).length, 3);
+  for (const t of CREATOR_TOPICS) assert.match(t.nameKo, /^(프로의|초보자) /, t.id);
   for (const t of CREATOR_TOPICS) {
     const channels = new Set(CREATOR_ROUTINES.filter((r) => r.topicId === t.id && !r.hidden).map((r) => r.source.channel));
     assert.ok(channels.size >= 2, `${t.id}: 채널 ${channels.size}개`);
@@ -80,6 +84,12 @@ test('이름·요약에 채널명(실명)이 없다 · 의료 단정 없음 · �
   }
 });
 
+test('초보자 주제에 황철순 영상이 있다 — 사용자 지시(2026-11-06)', () => {
+  const part = creatorRoutinesFor('beginner-part');
+  assert.ok(part.some((r) => r.source.channel === 'CHUL SOON HWANG'));
+  assert.equal(creatorChannelLabel('CHUL SOON HWANG'), '황철순(CHUL SOON HWANG)');
+});
+
 test('출처 이름: 화면에 나오는 채널 모두 한국 이름이 있고 「이름(채널명)」 형태 · 루틴 이름에는 쓰지 않는다', () => {
   assert.equal(creatorChannelLabel('Chris Bumstead'), '크리스 범스테드(Chris Bumstead)');
   assert.equal(creatorChannelLabel('Allright24_박재훈'), '박재훈(Allright24_박재훈)');
@@ -105,6 +115,28 @@ test('화면 노출: draft·hidden 은 빠지고, 버전 없는 주제는 숨는
   }
   const visible = new Set(visibleCreatorTopics().map((t) => t.id));
   for (const t of CREATOR_TOPICS) assert.equal(visible.has(t.id), creatorRoutinesFor(t.id).length > 0);
+});
+
+test('운동 탭 분류: 프로 다음에 초보자, 주제가 빠짐없이 한 분류에만 들어간다', () => {
+  const sections = visibleCreatorSections();
+  assert.deepEqual(sections.map((s) => s.section), ['pro', 'beginner']);
+  for (const t of sections[0]!.topics) assert.match(t.nameKo, /^프로의 /, t.id);
+  for (const t of sections[1]!.topics) assert.match(t.nameKo, /^초보자 /, t.id);
+  assert.deepEqual(
+    sections.flatMap((s) => s.topics.map((t) => t.id)).sort(),
+    visibleCreatorTopics().map((t) => t.id).sort(),
+  );
+});
+
+test('저장 메모는 설명란이 아닌 근거와 기본값을 밝힌다', () => {
+  const byComment = CREATOR_ROUTINES.find((x) => x.id === 'cr-bg-pt-chest-hcs');
+  assert.ok(byComment);
+  const n = creatorRoutineNotes(byComment);
+  assert.match(n, /루틴 근거: 시청자가 댓글에 정리한 내용/);
+  assert.match(n, /앱 기본값/);
+  const byDescription = CREATOR_ROUTINES.find((x) => x.id === 'cr-bg-sp-upper3');
+  assert.ok(byDescription);
+  assert.ok(!creatorRoutineNotes(byDescription).includes('루틴 근거'));
 });
 
 test('원본 주소·메모 형식', () => {

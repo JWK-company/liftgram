@@ -1,0 +1,504 @@
+{
+ "doc": {
+  "content": [
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "목표",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "프로가 초보자에게 권하는 영상 루틴을 국내외에서 찾아 앱에 넣는다. 황철순을 찾는 범위에 포함한다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "범위",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/creatorRoutines.ts",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/__tests__/creatorRoutines.test.ts",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/i18n/locales/ko.ts",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/i18n/locales/en.ts",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/app/components/routines/CreatorRoutineSheet.tsx",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/e2e/creator-routines.spec.ts",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/routines/RoutinesClient.tsx"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/home-order.spec.ts"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/declutter-p3.spec.ts"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "src/frontend/package.json"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "설계",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "서버·스키마 변경 없이 정적 데이터만 늘린다. 후보는 공식 Data API 검색·설명란·댓글로 찾고, 제목·채널은 oEmbed 값을 그대로 쓴다. 저장 메모에 ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "code"
+       }
+      ],
+      "text": "basis",
+      "type": "text"
+     },
+     {
+      "text": " 근거를 남기고, 근거가 설명란이 아닌 루틴은 고지문을 따로 쓴다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "작업 단계",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] 후보 탐색과 근거 수집",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] 앱 종목으로 옮기고 주제 3개 추가",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] 제외 목록 해제와 시험 수정",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] 근거 대조·코드 리뷰와 반영",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "[x] 운동 탭에 「초보자 루틴」 구역을 따로 만들기"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "수용 기준",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "SRS-091: 새 주제마다 서로 다른 채널 2개 이상, 원본 링크와 출처가 있고 저장된다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "SRS-092: 제목·채널이 oEmbed와 같고 내려받기 경로가 없으며, 확인 못 한 값은 기본값으로 표시한다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-091: 초보자 주제 3개는 「초보자 루틴」 구역에만, 프로 주제는 「프로 루틴」 구역에만 나온다."
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "테스트 계획",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "marks": [
+       {
+        "type": "code"
+       }
+      ],
+      "text": "src/core/src/domain/__tests__/creatorRoutines.test.ts",
+      "type": "text"
+     },
+     {
+      "text": ", ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "code"
+       }
+      ],
+      "text": "src/frontend/e2e/creator-routines.spec.ts",
+      "type": "text"
+     },
+     {
+      "text": ", ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "code"
+       }
+      ],
+      "text": "src/scripts/check-creator-routines.mjs",
+      "type": "text"
+     },
+     {
+      "text": ", ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "code"
+       }
+      ],
+      "text": "make verify",
+      "type": "text"
+     },
+     {
+      "text": ".",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "위험·주의",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "댓글 근거는 시청자가 쓴 것이라 틀릴 수 있다. 기구가 근거에 없으면 우리가 정하고 메모로 밝혔다. 사람 검수 전에는 배포하지 않는다(ADR-045 흐름).",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   }
+  ],
+  "type": "doc"
+ },
+ "group": "할일/잠금화면-시작화면",
+ "id": "SPEC-037",
+ "meta": {
+  "grade": "Task",
+  "phases": "1",
+  "phases_done": "1"
+ },
+ "relations": {
+  "implements": [
+   "ADR-059",
+   "SRS-091",
+   "SRS-092"
+  ]
+ },
+ "schemaVersion": 1,
+ "tags": [],
+ "title": "초보자 영상 루틴 추가와 황철순 제외 해제",
+ "type": "Spec",
+ "updated": "2026-11-06T03:31:56Z"
+}

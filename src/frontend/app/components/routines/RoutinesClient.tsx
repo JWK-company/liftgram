@@ -11,6 +11,7 @@
 //   시작 버튼      새 루틴 · 빠른 운동 시작
 //   내 루틴        폴더 그룹 + 낱개 루틴 + 빈 상태
 //   프로 루틴      주제 → 버전 → 내 루틴에 저장
+//   초보자 루틴    프로 루틴과 같은 흐름 · 구역만 따로
 //   최근 운동      맨 아래
 //
 // ── 판단은 전부 도메인·저장소가 한다 ────────────────────────────────────────
@@ -24,7 +25,8 @@ import {
   // [원본] CONCEPT_ROUTINES, — 옛 콘셉트 그리드 원복 시 살린다(SRS-091)
   type CreatorTopic,
   creatorRoutinesFor,
-  visibleCreatorTopics,
+  // [원본] visibleCreatorTopics,
+  visibleCreatorSections,
   currentBlockWeek,
   missedCatchUp,
   muscleLabel,
@@ -96,7 +98,9 @@ export default function RoutinesClient() {
   const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({});
   const [concept, setConcept] = useState<ConceptRoutine | null>(null);
   const [creatorTopic, setCreatorTopic] = useState<CreatorTopic | null>(null); // @plm SRS-091
-  const creatorTopics = useMemo(() => visibleCreatorTopics(), []);
+  // [원본] const creatorTopics = useMemo(() => visibleCreatorTopics(), []);
+  // [개선] 초보자 주제를 프로 루틴과 따로 묶는다(사용자 지시 2026-11-06)
+  const creatorSections = useMemo(() => visibleCreatorSections(), []);
   const [actionsFor, setActionsFor] = useState<Routine | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Routine | null>(null);
   // [원본] const [confirmDiscard, setConfirmDiscard] = useState(false); — 진행 카드 ⋯(D8 로 제거)만 열던 상태(P3 QA L1)
@@ -631,7 +635,7 @@ export default function RoutinesClient() {
           </ListGroup>
         )}
 
-        {/* 2026-11-05 사용자 지시 — 내 루틴 → 프로 루틴 → 최근 운동 기록 순서.
+        {/* 2026-11-05 사용자 지시 — 내 루틴 → 프로 루틴 → 최근 운동 기록 순서(2026-11-06 프로 루틴 다음에 초보자 루틴).
             [원본] <RecentWorkouts /> 다음에 <SectionLabel title="더 해 보기" /> · 주간 스케줄 · 프로그램 생성·주변 헬스장 줄 · 프로 루틴 순서였다.
             [원본] <ListRow href="/program" testId="btn-program" icon="sparkles" title={t("program.title")} /> — 프로그램 생성 기능 삭제
             [원본] <ListRow href="/gyms" testId="btn-gyms" icon="location" title={t("gyms.entry")} /> — 피드 탭으로 옮김 */}
@@ -663,12 +667,20 @@ export default function RoutinesClient() {
         // </div>
         */}
         {/* [개선] 콘셉트 루틴 = 크리에이터 루틴 주제(버전 0개 주제는 숨김) @plm SRS-091 */}
-        {creatorTopics.length ? (
-          <div className="mb-[var(--spacing-sm)]">
+        {/* [원본] 분류 없이 주제 전체를 「프로 루틴」 한 구역에 — 프로·초보자 두 구역으로 나눴다(사용자 지시 2026-11-06)
+            {creatorTopics.length ? (
+                <SectionLabel className="mt-[var(--spacing-xl)]" title={t("concept.sectionTitle")} />
+                  {creatorTopics.map((c) => (
+        */}
+        {creatorSections.map(({ section, topics }) => (
+          <div key={section} data-testid={`creator-section-${section}`} className="mb-[var(--spacing-sm)]">
             {/* [원본] 「더 해 보기」 아래의 작은 글자(AppText label) — 내 루틴 바로 아래로 오며 같은 급의 섹션 머리로 */}
-            <SectionLabel className="mt-[var(--spacing-xl)]" title={t("concept.sectionTitle")} />
+            <SectionLabel
+              className="mt-[var(--spacing-xl)]"
+              title={t(section === "beginner" ? "concept.sectionBeginner" : "concept.sectionTitle")}
+            />
             <div className="grid grid-cols-2 gap-[var(--spacing-sm)]">
-              {creatorTopics.map((c) => (
+              {topics.map((c) => (
                 <button
                   key={c.id}
                   type="button"
@@ -687,7 +699,7 @@ export default function RoutinesClient() {
               ))}
             </div>
           </div>
-        ) : null}
+        ))}
 
         <RecentWorkouts />
 
