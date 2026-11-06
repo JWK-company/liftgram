@@ -35,7 +35,7 @@ remote_sum=$(ssh "$HOST" "cd $REMOTE/scripts/feed-seed/images && sha256sum * | s
 [ "$local_sum" = "$remote_sum" ] || { echo "서버의 사진이 저장소와 다르다 — 먼저 커밋·배포한다"; exit 1; }
 
 echo "── 사진 복사 ──"
-ssh "$HOST" "cd $REMOTE/scripts/feed-seed/images && docker run --rm -v liftgram_media:/m -v \"\$PWD\":/s:ro alpine sh -c 'for f in /s/*; do t=/m/seed-official-\$(basename \$f); cp \$f \$t; chown \$(stat -c %u:%g /m) \$t; chmod 644 \$t; done; ls /m/seed-official-* | wc -l'"
+ssh "$HOST" "cd $REMOTE/scripts/feed-seed/images && docker run --rm -v liftgram_media:/m -v \"\$PWD\":/s:ro alpine sh -ec 'for f in /s/*; do t=/m/seed-official-\$(basename \$f); cp \$f \$t; chown \$(stat -c %u:%g /m) \$t; chmod 644 \$t; cmp \$f \$t; done; ls /m/seed-official-* | wc -l'"
 
 echo "── 글 넣기 ──"
 node scripts/seed-official-feed.mjs | ssh "$HOST" "cd $REMOTE; $PSQL"
@@ -45,3 +45,7 @@ want=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("scripts/feed-
 got=$(echo "select count(*) from posts where id like 'seed-official-%' and official_meta is not null and moderation_status='approved' and visibility='public';" | ssh "$HOST" "cd $REMOTE; $PSQL")
 [ "$got" = "$want" ] || { echo "글 수가 다르다: $got / $want"; exit 1; }
 echo "공식 글 $got 개"
+
+echo "── 안 쓰는 옛 사진 파일 지우기 ──"
+keep=$(cd scripts/feed-seed/images && ls | sed 's/^/seed-official-/' | tr '\n' ' ')
+ssh "$HOST" "docker run --rm -v liftgram_media:/m alpine sh -ec 'cd /m; for f in seed-official-*; do case \" $keep \" in *\" \$f \"*) ;; *) rm -f \"\$f\"; echo \"지움 \$f\";; esac; done; ls seed-official-* | wc -l'"

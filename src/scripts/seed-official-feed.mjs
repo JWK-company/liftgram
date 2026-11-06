@@ -64,5 +64,10 @@ ON CONFLICT (id) DO UPDATE SET caption = EXCLUDED.caption, media_urls = EXCLUDED
     }
   });
 }
+if (!process.argv.includes("--remove")) {
+  // 교체한 옛 사진의 기록을 지운다. 파일은 호출하는 쪽이 지운다.
+  const keepKeys = ["avatar.png", ...posts.map((p) => p.image)].map((f) => q(`${ID_PREFIX}${f}`));
+  out.push(`DELETE FROM media_assets WHERE owner_id = ${q(AUTHOR)} AND key NOT IN (${keepKeys.join(", ")});`);
+}
 out.push("COMMIT;");
 console.log(out.join("\n"));
