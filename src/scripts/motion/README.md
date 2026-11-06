@@ -5,7 +5,7 @@
 
 순서: `export-specs.ts`(카탈로그 → 자세) → `grades.py`(제작 목록·제외 사유) → `build_base.py`(사람 모델) →
 `render_queue.py` + `motion3d.py`(Blender N·마스크) → `refine.py`(Wan 2.2) → `composite.py`(합성·인코딩·지표) →
-`qc.py`(판정) · `make_sheet.py`(눈 검수) → `gen-map.py`(앱 표 `src/core/src/data/exerciseMotion.data.ts`).
+`qc.py`(판정) · `make_sheet.py`(눈 검수) → `gen-map.py`(앱 표 `src/core/src/data/exerciseMotion.data.ts`, 네 번째 인자 `src/scripts/motion/motion_hold.json` = 뼈대 검수로 보류한 영상, 필수).
 
 - 원형별 값 조정: `overrides.json`(키 = 원형, 원형__기구, 전체 키).
 - 재시작: 단계마다 입력 지문(`.done`·`info.json`)이 같고 파일 수가 맞을 때만 건너뛴다. 조정값·프롬프트가 바뀐 클립은 자동으로 다시 만든다. 코드를 고쳤는데 일부 클립만 영향이면 `render_queue.py` `--loose-code`. 실패는 `failed.txt`, 종료 코드 1.
