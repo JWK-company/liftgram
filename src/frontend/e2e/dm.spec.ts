@@ -159,7 +159,7 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   const 주인이름 = `주인${Date.now().toString(36)}`;
   const 주인메일 = freshEmail("owner");
   await 가입(page, 주인메일, 주인이름);
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill("알림 실험용 글");
@@ -186,7 +186,7 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   await 로그인(page, 주인메일);
 
   // 피드 머리에 안 읽은 배지가 서 있다(팔로우·좋아요·댓글 = 3건).
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("feed-unread-badge")).toHaveText("3", { timeout: 20_000 });
 
   // 알림 화면에는 세 줄이 있고, 문장은 화면이 만든다.
@@ -197,7 +197,7 @@ test("팔로우·좋아요·댓글이 알림으로 쌓이고, 열면 배지가 �
   await expect(page.getByTestId("notif-list")).toContainText("댓글을 남겼어요");
 
   // 열었으니 읽음 — 돌아가면 배지가 없다.
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("feed-unread-badge")).toHaveCount(0, { timeout: 20_000 });
 });
 

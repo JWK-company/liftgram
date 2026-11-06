@@ -186,7 +186,7 @@ INSERT INTO posts (
   $12, $13, $14, $15,
   $16, $17, $18
 )
-RETURNING id, author_id, kind, caption, visibility, moderation_status, workout_id, workout_name, total_volume_kg, working_sets, duration_seconds, pr_count, media_urls, idempotency_key, like_count, comment_count, created_at, updated_at, streak_days, weekly_reached, exercises, removed_at, removed_reason, gear
+RETURNING id, author_id, kind, caption, visibility, moderation_status, workout_id, workout_name, total_volume_kg, working_sets, duration_seconds, pr_count, media_urls, idempotency_key, like_count, comment_count, created_at, updated_at, streak_days, weekly_reached, exercises, removed_at, removed_reason, gear, official_meta
 `
 
 type CreatePostParams struct {
@@ -257,6 +257,7 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 		&i.RemovedAt,
 		&i.RemovedReason,
 		&i.Gear,
+		&i.OfficialMeta,
 	)
 	return i, err
 }
@@ -341,7 +342,7 @@ func (q *Queries) GetComment(ctx context.Context, id string) (Comment, error) {
 }
 
 const getPost = `-- name: GetPost :one
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me
 FROM posts p
@@ -381,6 +382,7 @@ type GetPostRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -415,6 +417,7 @@ func (q *Queries) GetPost(ctx context.Context, arg GetPostParams) (GetPostRow, e
 		&i.RemovedAt,
 		&i.RemovedReason,
 		&i.Gear,
+		&i.OfficialMeta,
 		&i.AuthorName,
 		&i.AuthorAvatar,
 		&i.LikedByMe,
@@ -436,7 +439,7 @@ func (q *Queries) GetPostAuthor(ctx context.Context, id string) (string, error) 
 }
 
 const getPostByIdempotencyKey = `-- name: GetPostByIdempotencyKey :one
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        false::boolean AS liked_by_me,
        false::boolean AS bookmarked_by_me
 FROM posts p
@@ -474,6 +477,7 @@ type GetPostByIdempotencyKeyRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -509,6 +513,7 @@ func (q *Queries) GetPostByIdempotencyKey(ctx context.Context, arg GetPostByIdem
 		&i.RemovedAt,
 		&i.RemovedReason,
 		&i.Gear,
+		&i.OfficialMeta,
 		&i.AuthorName,
 		&i.AuthorAvatar,
 		&i.LikedByMe,
@@ -678,7 +683,7 @@ func (q *Queries) ListBlockedUsers(ctx context.Context, viewerID string) ([]List
 }
 
 const listBookmarks = `-- name: ListBookmarks :many
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        true::boolean AS bookmarked_by_me
 FROM post_bookmarks bm
@@ -744,6 +749,7 @@ type ListBookmarksRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -791,6 +797,7 @@ func (q *Queries) ListBookmarks(ctx context.Context, arg ListBookmarksParams) ([
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,
@@ -890,7 +897,7 @@ func (q *Queries) ListComments(ctx context.Context, arg ListCommentsParams) ([]L
 }
 
 const listExplore = `-- name: ListExplore :many
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me
 FROM posts p
@@ -938,6 +945,7 @@ type ListExploreRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -981,6 +989,7 @@ func (q *Queries) ListExplore(ctx context.Context, arg ListExploreParams) ([]Lis
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,
@@ -998,7 +1007,7 @@ func (q *Queries) ListExplore(ctx context.Context, arg ListExploreParams) ([]Lis
 
 const listFeed = `-- name: ListFeed :many
 
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me
 FROM posts p
@@ -1063,6 +1072,7 @@ type ListFeedRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -1119,6 +1129,7 @@ func (q *Queries) ListFeed(ctx context.Context, arg ListFeedParams) ([]ListFeedR
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,
@@ -1241,7 +1252,7 @@ func (q *Queries) ListFollowing(ctx context.Context, arg ListFollowingParams) ([
 }
 
 const listHashtagPosts = `-- name: ListHashtagPosts :many
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me
 FROM post_hashtags h
@@ -1299,6 +1310,7 @@ type ListHashtagPostsRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -1347,6 +1359,7 @@ func (q *Queries) ListHashtagPosts(ctx context.Context, arg ListHashtagPostsPara
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,
@@ -1424,7 +1437,7 @@ WITH liked AS MATERIALIZED (
   ORDER BY r.score DESC, r.created_at DESC, r.id DESC
   LIMIT $4 OFFSET $3
 )
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        false::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me,
        EXISTS (
@@ -1469,6 +1482,7 @@ type ListRecommendedRow struct {
 	RemovedAt          pgtype.Timestamptz
 	RemovedReason      *string
 	Gear               []byte
+	OfficialMeta       []byte
 	AuthorName         *string
 	AuthorAvatar       *string
 	LikedByMe          bool
@@ -1520,6 +1534,7 @@ func (q *Queries) ListRecommended(ctx context.Context, arg ListRecommendedParams
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,
@@ -1606,7 +1621,7 @@ func (q *Queries) ListReplies(ctx context.Context, arg ListRepliesParams) ([]Lis
 }
 
 const listUserPosts = `-- name: ListUserPosts :many
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me
 FROM posts p
@@ -1665,6 +1680,7 @@ type ListUserPostsRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -1718,6 +1734,7 @@ func (q *Queries) ListUserPosts(ctx context.Context, arg ListUserPostsParams) ([
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,
@@ -1783,7 +1800,7 @@ func (q *Queries) SearchHashtags(ctx context.Context, arg SearchHashtagsParams) 
 }
 
 const searchPosts = `-- name: SearchPosts :many
-SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, u.display_name AS author_name, u.avatar_url AS author_avatar,
+SELECT p.id, p.author_id, p.kind, p.caption, p.visibility, p.moderation_status, p.workout_id, p.workout_name, p.total_volume_kg, p.working_sets, p.duration_seconds, p.pr_count, p.media_urls, p.idempotency_key, p.like_count, p.comment_count, p.created_at, p.updated_at, p.streak_days, p.weekly_reached, p.exercises, p.removed_at, p.removed_reason, p.gear, p.official_meta, u.display_name AS author_name, u.avatar_url AS author_avatar,
        (l.user_id IS NOT NULL)::boolean AS liked_by_me,
        (bm.user_id IS NOT NULL)::boolean AS bookmarked_by_me
 FROM posts p
@@ -1833,6 +1850,7 @@ type SearchPostsRow struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 	AuthorName       *string
 	AuthorAvatar     *string
 	LikedByMe        bool
@@ -1874,6 +1892,7 @@ func (q *Queries) SearchPosts(ctx context.Context, arg SearchPostsParams) ([]Sea
 			&i.RemovedAt,
 			&i.RemovedReason,
 			&i.Gear,
+			&i.OfficialMeta,
 			&i.AuthorName,
 			&i.AuthorAvatar,
 			&i.LikedByMe,

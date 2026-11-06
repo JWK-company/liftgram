@@ -356,7 +356,7 @@ test.describe("로그인 기기", () => {
     await 동기(page);
 
     // 피드·스토리: 화면과 서버 둘 다 0
-    await page.goto("/feed");
+    await page.goto("/feed?tab=following");
     await expect(page.getByTestId("feed-list")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-author")).toHaveCount(0);
     const safe = email.replace(/'/g, "''");

@@ -178,7 +178,7 @@ test.describe("360×560 · 탭바가 있는 화면의 입력창", () => {
     await page.getByTestId("age-confirm").check();
     await page.getByTestId("btn-auth-submit").click();
     await expect(page.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
-    await page.goto("/feed");
+    await page.goto("/feed?tab=following");
     await page.getByTestId("feed-compose").click();
     await page.getByTestId("feed-caption").fill("하단 점검 글");
     await page.getByTestId("feed-post").click();

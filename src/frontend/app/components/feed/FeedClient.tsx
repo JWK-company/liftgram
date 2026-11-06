@@ -82,8 +82,20 @@ const readRecommendedOpen = () => {
   return recommendedOpenOnce;
 };
 const readNull = () => null;
-const readUrlWantsRecommended = () =>
-  new URLSearchParams(window.location.search).get("tab") === "recommended";
+// [원본] const readUrlWantsRecommended = () =>
+//   new URLSearchParams(window.location.search).get("tab") === "recommended";
+// [개선] 추천 탭이 앞이라 팔로잉으로 돌아올 때만 주소에 남긴다(사용자 지시 2026-11-06)
+// 앱 안의 ‹ 링크는 주소가 /feed 뿐이라, 이 탭에서 고른 값을 함께 본다(qa code).
+const TAB_KEY = "liftgram.feed.tab";
+const readUrlWantsFollowing = () => {
+  const tab = new URLSearchParams(window.location.search).get("tab");
+  if (tab) return tab === "following";
+  try {
+    return window.sessionStorage.getItem(TAB_KEY) === "following";
+  } catch {
+    return false;
+  }
+};
 const readFalse = () => false;
 
 export default function FeedClient() {
@@ -117,9 +129,12 @@ export default function FeedClient() {
   // null = 아직 서버 HTML — 탭 본문을 그리지 않아, 추천으로 돌아올 때 팔로잉이 먼저 비치지 않는다.
   const recommendedOpen = useSyncExternalStore(subscribeNever, readRecommendedOpen, readNull);
   // 글 상세에서 돌아와도 보던 탭으로 — 탭은 주소에 있다.
-  const urlWantsRecommended = useSyncExternalStore(subscribeNever, readUrlWantsRecommended, readFalse);
+  // [원본] const urlWantsRecommended = useSyncExternalStore(subscribeNever, readUrlWantsRecommended, readFalse);
   const [tabChoice, setTabChoice] = useState<"following" | "discover" | "recommended" | null>(null);
-  const tab = tabChoice ?? (recommendedOpen && urlWantsRecommended ? "recommended" : "following");
+  const urlWantsFollowing = useSyncExternalStore(subscribeNever, readUrlWantsFollowing, readFalse);
+  // [원본] const tab = tabChoice ?? (recommendedOpen && urlWantsRecommended ? "recommended" : "following");
+  // [개선] 추천이 열려 있으면 추천을 먼저 보여 준다(사용자 지시 2026-11-06)
+  const tab = tabChoice ?? (recommendedOpen && !urlWantsFollowing ? "recommended" : "following");
   // 한 번 연 추천은 숨겨 둘 뿐 지우지 않는다 — 돌아왔을 때 목록을 다시 받지 않게(스크롤은 문서 하나를 함께 쓴다).
   const [recommendedOpened, setRecommendedOpened] = useState(false);
   const recommendedMounted = recommendedOpened || tab === "recommended";
@@ -187,7 +202,13 @@ export default function FeedClient() {
     // 주소로 추천을 바로 연 경우에도 떠날 때 지우지 않게 지금 탭까지 본다.
     if (next === "recommended" || tab === "recommended") setRecommendedOpened(true);
     if (recommendedOpen) {
-      window.history.replaceState(null, "", next === "recommended" ? "/feed?tab=recommended" : "/feed");
+      try {
+        window.sessionStorage.setItem(TAB_KEY, next);
+      } catch {
+        // 저장이 막힌 브라우저에서는 주소만으로 동작한다.
+      }
+      // [원본] window.history.replaceState(null, "", next === "recommended" ? "/feed?tab=recommended" : "/feed");
+      window.history.replaceState(null, "", next === "following" ? "/feed?tab=following" : "/feed");
     }
   };
 
@@ -361,23 +382,41 @@ export default function FeedClient() {
 
       <UnderlineTabs
         testId="feed-tabs"
-        value={tab}
+        // 판정 전에는 어느 칸에도 밑줄을 긋지 않는다 — 첫 그림에서 밑줄이 옮겨 가 보이지 않게.
+        value={recommendedOpen === null ? null : tab}
         onChange={switchTab}
-        items={[
-          { value: "following", label: "팔로잉", testId: "feed-following" },
-          // 판정 전에는 글자 없이 자리만 둔다 — 「발견」이 「추천」으로 바뀌어 보이지 않게.
-          recommendedOpen === null
-            ? { value: "recommended", label: "\u00a0" }
-            : recommendedOpen
-              ? { value: "recommended", label: t("feed.tabRecommended"), testId: "feed-recommended" }
-              : { value: "discover", label: "발견", testId: "feed-discover" },
-        ]}
+        // [원본] 팔로잉 → 추천 순서 — 추천을 앞으로 옮겼다(사용자 지시 2026-11-06). 시행일 전의 발견은 그대로 뒤다.
+        items={
+          recommendedOpen === false
+            ? [
+                { value: "following", label: "팔로잉", testId: "feed-following" },
+                { value: "discover", label: "발견", testId: "feed-discover" },
+              ]
+            : [
+                // 판정 전에는 글자 없이 자리만 둔다 — 「발견」이 「추천」으로 바뀌어 보이지 않게.
+                recommendedOpen === null
+                  ? { value: "recommended", label: "\u00a0" }
+                  : { value: "recommended", label: t("feed.tabRecommended"), testId: "feed-recommended" },
+                { value: "following", label: "팔로잉", testId: "feed-following" },
+              ]
+        }
       />
 
       {/* 주변 헬스장 — 운동 탭에서 옮겨 왔다(2026-11-05 사용자 지시) */}
       <GymsEntry />
 
-      {recommendedMounted ? (
+      {recommendedOpen !== null && tab !== "discover" ? (
+        <StoryTray
+          groups={groups}
+          meId={user?.id ?? null}
+          seen={seen}
+          busy={storyBusy}
+          onOpen={openStory}
+          onAdd={addStory}
+        />
+      ) : null}
+
+      {recommendedMounted && !(authLoading && !user) ? (
         <div className={tab === "recommended" ? "flex flex-1 flex-col" : "hidden"}>
           <RecommendedFeed
             meId={user?.id ?? null}
@@ -406,15 +445,7 @@ export default function FeedClient() {
         <DiscoverClient embedded />
       ) : (
         <>
-          <StoryTray
-            groups={groups}
-            meId={user?.id ?? null}
-            seen={seen}
-            busy={storyBusy}
-            onOpen={openStory}
-            onAdd={addStory}
-          />
-
+          {/* [원본] StoryTray 는 팔로잉 탭 안에 있었다 — 두 탭 모두에 보이게 탭 위로 옮겼다(사용자 지시 2026-11-06) */}
           {/* [원본] p-lg — 마지막 글의 발(좋아요 줄)이 + 버튼(FAB) 밑에 깔렸다(F2)
           <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-list"> */}
           {/* [개선] 목록 끝 여백 = FAB 높이(56) + 탭바 위 띄움(20) + 여유(20). 진행 막대 높이는 FAB 와 목록이 같이 받는다. @plm SRS-071 */}

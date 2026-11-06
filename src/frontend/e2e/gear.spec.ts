@@ -27,7 +27,7 @@ async function 가입(page: Page, email: string, name: string) {
 
 test("장비를 골라 글에 달면 카드에 칩으로 남는다", async ({ page }) => {
   await 가입(page, freshEmail("tag"), "장비쓴이");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
 
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
@@ -92,7 +92,7 @@ async function 열린주소(context: import("@playwright/test").BrowserContext, 
 test("제휴가 꺼져 있으면 고지 라벨이 없고, 칩은 검색으로 열린다", async ({ page, context }) => {
   test.skip(!!process.env.GEAR_ON, "제휴를 켠 서버에서는 이 검사가 성립하지 않는다");
   await 가입(page, freshEmail("off"), "고지확인");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("gear-open").click();
@@ -122,7 +122,7 @@ test("제휴가 켜져 있으면 고지가 서고 딥링크로 열린다", async
   test.skip(!process.env.GEAR_ON, "제휴를 켠 서버가 필요하다 — GEAR_ON=1");
 
   await 가입(page, freshEmail("on"), "제휴켜짐");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("gear-open").click();

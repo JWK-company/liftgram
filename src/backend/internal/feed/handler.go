@@ -373,6 +373,12 @@ func toProtoPost(p Post) *feedv1.Post {
 		Gear:               toProtoGear(p.Gear),
 		CreatedAt:          timestamppb.New(p.CreatedAt),
 	}
+	if p.Official != nil {
+		msg.Official = &feedv1.OfficialPostMeta{
+			AiNotice:         p.Official.AINotice,
+			CreatorRoutineId: p.Official.CreatorRoutineID,
+		}
+	}
 	if p.Workout != nil {
 		msg.Workout = &feedv1.WorkoutSummary{
 			WorkoutId:       p.Workout.WorkoutID,

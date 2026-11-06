@@ -61,8 +61,9 @@ test("추천에 공개 글만 나오고, 팔로우하면 팔로잉에 보인다"
   const 독자 = await 가입(browser, `독자${표식}`);
   await 독자.goto("/feed");
   await expect(독자.getByTestId("feed-discover")).toHaveCount(0);
-  await 독자.getByTestId("feed-recommended").click();
-  await expect(독자).toHaveURL(/tab=recommended/);
+  // 추천이 앞 탭이고 처음 열면 추천이 보인다(사용자 지시 2026-11-06)
+  await expect(독자.getByTestId("feed-tabs").getByRole("tab").first()).toContainText("추천");
+  await expect(독자.getByTestId("feed-recommended-list")).toBeVisible({ timeout: 20_000 });
   const 목록 = 독자.getByTestId("feed-recommended-list");
   await expect(목록).toContainText(`공개글 ${표식}`, { timeout: 20_000 });
   await expect(목록).not.toContainText(`팔로워글 ${표식}`);
@@ -233,6 +234,31 @@ test("달력 자랑하기는 공개 범위를 고른 뒤 올라간다", async ({
   await page.getByTestId("brag-post").click();
   await expect(page.getByTestId("brag-sheet")).toHaveCount(0, { timeout: 20_000 });
 
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("post-card").first()).toContainText("나만 보기", { timeout: 20_000 });
+});
+
+test("추천이 앞 탭 · 스토리는 두 탭 모두 · 고른 탭은 앱 안에서 돌아와도 유지된다", async ({ browser }) => {
+  const page = await 가입(browser, `탭${uid()}`);
+  await page.goto("/feed");
+  const tabs = page.getByTestId("feed-tabs").getByRole("tab");
+  await expect(tabs.first()).toContainText("추천");
+  await expect(tabs.nth(1)).toHaveText("팔로잉");
+  await expect(tabs.first()).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId("story-tray")).toBeVisible();
+
+  await tabs.nth(1).click();
+  await expect(page).toHaveURL(/tab=following/);
+  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByTestId("story-tray")).toBeVisible();
+
+  // 댓글·프로필의 ‹ 링크처럼 주소가 /feed 뿐이어도 팔로잉이 유지된다
+  await page.goto("/feed");
+  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
+  await tabs.first().click();
+  await page.goto("/feed");
+  await expect(tabs.first()).toHaveAttribute("aria-selected", "true");
+  // 주소가 정하면 주소가 이긴다
+  await page.goto("/feed?tab=following");
+  await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
 });

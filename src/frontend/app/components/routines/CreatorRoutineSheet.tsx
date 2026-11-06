@@ -90,6 +90,30 @@ export function CreatorTopicSheet({
   );
 }
 
+/** 피드의 공식 글에서 바로 여는 상세 — 목록 단계 없이 같은 출처·고지·저장 흐름을 쓴다(ADR-060). */
+export function CreatorRoutineDetailSheet({
+  routine,
+  existingNames,
+  onClose,
+  onSaved,
+}: {
+  routine: CreatorRoutine;
+  existingNames: string[];
+  onClose: () => void;
+  onSaved: (made: number, total: number) => void;
+}) {
+  return (
+    <CreatorVersionStep
+      topicTitle={t("feed.title")}
+      routine={routine}
+      existingNames={existingNames}
+      onBack={onClose}
+      onClose={onClose}
+      onSaved={onSaved}
+    />
+  );
+}
+
 function CreatorVersionStep({
   topicTitle,
   routine,
@@ -120,13 +144,20 @@ function CreatorVersionStep({
         import("@app/core/data/exerciseNames"),
         import("@app/core/data/exerciseRepository"),
       ]);
-      const [m, have] = await Promise.all([
-        namesMod.getExerciseDisplayNameMap(ids),
-        exerciseRepo.getActiveExerciseIds(ids),
-      ]);
-      if (alive) {
+      // 피드에서 바로 열면 첫 동기 전일 수 있다 — 종목이 빠진 채 저장되지 않게 잠시 기다린다.
+      // 그래도 없으면(사용자가 보관한 종목 등) 기존 규칙대로 그 종목만 빼고 저장한다.
+      for (let attempt = 0; alive; attempt++) {
+        const [m, have] = await Promise.all([
+          namesMod.getExerciseDisplayNameMap(ids),
+          exerciseRepo.getActiveExerciseIds(ids),
+        ]);
+        if (!alive) return;
         setNames(m);
-        setActive(have);
+        if (have.size >= ids.length || attempt >= 10) {
+          setActive(have);
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
     })();
     return () => {

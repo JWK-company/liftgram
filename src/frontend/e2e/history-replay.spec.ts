@@ -194,7 +194,7 @@ test("피드의 남의 운동 「바로 시작」 — 루틴을 만들지 않고
   await viewer.getByTestId("btn-auth-submit").click();
   await expect(viewer.getByTestId("auth-email")).toBeVisible({ timeout: 20_000 });
   await 카탈로그_준비(viewer);
-  await viewer.goto("/feed");
+  await viewer.goto("/feed?tab=following");
   await viewer.goto("/discover");
   await viewer.getByTestId("discover-query").fill(이름);
   await expect(viewer.getByTestId("discover-list")).toContainText(이름, { timeout: 20_000 });
@@ -202,7 +202,7 @@ test("피드의 남의 운동 「바로 시작」 — 루틴을 만들지 않고
   await expect(viewer.getByTestId("discover-follow").first()).toHaveText("팔로잉", { timeout: 20_000 });
   page = viewer;
 
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("post-workout").first()).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("post-start-now").first().click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });

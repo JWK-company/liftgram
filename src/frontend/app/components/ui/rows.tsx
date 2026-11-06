@@ -203,7 +203,7 @@ export function UnderlineTabs<V extends string>({
   testId,
 }: {
   items: SegmentItem<V>[];
-  value: V;
+  value: V | null;
   onChange?: (v: V) => void;
   testId?: string;
 }) {

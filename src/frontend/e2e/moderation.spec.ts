@@ -35,7 +35,7 @@ async function 프로필로(page: Page, 이름: string) {
 test("남의 글은 신고할 수 있고, 내 글에는 신고 버튼이 없다", async ({ page, context }) => {
   const 주인이름 = `주인${Date.now().toString(36)}`;
   await 가입(page, freshEmail("owner"), 주인이름);
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill("신고 실험용 글");
@@ -66,7 +66,7 @@ test("남의 글은 신고할 수 있고, 내 글에는 신고 버튼이 없다"
 test("댓글도 신고할 수 있다 — 내 댓글은 삭제, 남의 댓글은 신고", async ({ page, context }) => {
   const 주인이름 = `댓글주인${Date.now().toString(36)}`;
   await 가입(page, freshEmail("cowner"), 주인이름);
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill("댓글 신고 실험");

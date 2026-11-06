@@ -45,7 +45,7 @@ test("표시 이름을 바꾸면 다른 화면에도 그 이름으로 나온다"
   await expect(page.getByTestId("auth-email")).toHaveText(바꾼이름, { timeout: 20_000 });
 
   // 남이 보는 곳에서도 새 이름이다 — 글을 쓰면 작성자가 그 이름으로 나온다.
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(`이름 확인 ${Date.now()}`);
@@ -144,7 +144,7 @@ test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({
   await expect(page.getByTestId("btn-summary-share")).toBeDisabled({ timeout: 20_000 });
 
   // 피드에 **오운완 카드**로 뜬다 — 숫자가 실리고, 펼치면 종목·세트까지 있다.
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("feed-list")).toContainText("560kg", { timeout: 20_000 });
   // 카드 숫자는 한 줄 메타(화면 정리 D7) — PR 은 금색 「PR n」, 「종목 n개 보기」 로 펼친다
   await expect(page.getByTestId("post-workout-meta").first()).toContainText("PR 2");

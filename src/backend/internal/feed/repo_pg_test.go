@@ -234,3 +234,49 @@ func TestPendingPostVisibleOnlyToAuthor(t *testing.T) {
 		t.Fatal("제3자에게는 없는 글이어야 한다")
 	}
 }
+
+// 공식 글의 표시(ADR-060)는 official_meta 열 하나로 오고, 일반 글에는 없다.
+func TestOfficialMetaRoundTrip(t *testing.T) {
+	f := newRecFixture(t)
+	author := f.user("공식")
+	official := f.post(author, postOpt{ageHours: 1})
+	plain := f.post(author, postOpt{ageHours: 1})
+	f.exec(`UPDATE posts SET official_meta = $2::jsonb WHERE id = $1`, official,
+		`{"aiNotice":"virtual_person","creatorRoutineId":"cr-bg-fb-six"}`)
+
+	ctx := context.Background()
+	p, err := f.repo.GetPost(ctx, author, official)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Official == nil || p.Official.AINotice != "virtual_person" || p.Official.CreatorRoutineID != "cr-bg-fb-six" {
+		t.Fatalf("공식 표시가 그대로 와야 한다: %+v", p.Official)
+	}
+	q, err := f.repo.GetPost(ctx, author, plain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q.Official != nil {
+		t.Fatalf("일반 글에는 공식 표시가 없어야 한다: %+v", q.Official)
+	}
+	noNotice := f.post(author, postOpt{ageHours: 1})
+	f.exec(`UPDATE posts SET official_meta = '{"creatorRoutineId":"cr-bg-fb-six"}'::jsonb WHERE id = $1`, noNotice)
+	if n, err := f.repo.GetPost(ctx, author, noNotice); err != nil || n.Official != nil {
+		t.Fatalf("AI 고지가 없으면 공식 표시를 하지 않는다: %+v %v", n, err)
+	}
+	rows, err := f.repo.ListRecommended(ctx, f.user("보는 이"), f.base, 0, 2000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 시험 글을 남기면 같은 DB 의 다른 시험·화면 시험에 공식 글로 섞인다.
+	t.Cleanup(func() { f.exec(`DELETE FROM posts WHERE id = ANY($1)`, []string{official, plain, noNotice}) })
+	found := false
+	for _, r := range rows {
+		if r.ID == official {
+			found = r.Official != nil && r.Official.CreatorRoutineID == "cr-bg-fb-six"
+		}
+	}
+	if !found {
+		t.Fatal("추천 목록에서도 공식 표시가 와야 한다")
+	}
+}

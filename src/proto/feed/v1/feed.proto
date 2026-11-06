@@ -113,6 +113,16 @@ message Post {
   bool under_review = 101;
   // 착용장비 태그(ADR-027). 사진 **바깥**에 그린다 — 사진을 가리는 광고는 제재 대상이다.
   repeated gear.v1.GearTag gear = 13 [(buf.validate.field).repeated = {max_items: 8}];
+  // 공식 계정 글일 때만 채운다(ADR-060).
+  OfficialPostMeta official = 102;
+}
+
+// 공식 계정 글의 표시 정보. 사용자가 보낼 수 없다.
+message OfficialPostMeta {
+  // virtual_person | ai_photo
+  string ai_notice = 1;
+  // 앱 안의 크리에이터 루틴 id. 없으면 루틴 칸을 그리지 않는다.
+  string creator_routine_id = 2;
 }
 
 message Comment {

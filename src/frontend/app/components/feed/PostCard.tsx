@@ -19,6 +19,7 @@ import type { WeightUnit } from "@app/core";
 import { requiresAffiliateDisclosure } from "@app/core";
 import { CONTACT_EMAIL } from "../legal/LegalPage";
 import { TargetType, Visibility, routes, type Post } from "@app/contracts";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { t } from "@/lib/i18n";
 import { feedClient, feedErrorMessage } from "@/lib/feedClient";
@@ -33,6 +34,14 @@ import { HashtagText } from "./HashtagText";
 import { ReportSheet } from "../moderation/ReportSheet";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { WorkoutBox } from "./WorkoutBox";
+
+// 루틴 데이터가 커서 공식 글이 있을 때만 불러온다.
+const OfficialRoutineCard = dynamic(
+  () => import("./OfficialRoutineCard").then((m) => m.OfficialRoutineCard),
+  {
+    ssr: false,
+  },
+);
 
 export function PostCard({
   post,
@@ -133,6 +142,14 @@ export function PostCard({
           <span className="min-w-0 flex-1">
             <AppText variant="body" className="block truncate font-medium!">
               {name}
+              {post.official ? (
+                <span
+                  data-testid="post-official"
+                  className="ml-[6px] rounded-[var(--radius-sm)] border border-(--color-line) px-[6px] py-[1px] align-[1px] text-(--color-ink2) text-[11px]"
+                >
+                  {t("feed.officialBadge")}
+                </span>
+              ) : null}
             </AppText>
             <AppText variant="caption" color="textFaint">
               {when}
@@ -218,10 +235,21 @@ export function PostCard({
         />
       ) : null}
 
+      {/* 가상인물 표시는 사진 바로 옆에 둔다(ADR-060). */}
+      {post.official?.aiNotice ? (
+        <AppText variant="caption" color="textMuted" className="mt-[6px] block" data-testid="post-ai-notice">
+          {t(post.official.aiNotice === "virtual_person" ? "feed.aiNoticeVirtual" : "feed.aiNoticePhoto")}
+        </AppText>
+      ) : null}
+
       {post.caption ? (
         <div className="mt-[var(--spacing-sm)]">
           <HashtagText text={post.caption} />
         </div>
+      ) : null}
+
+      {post.official?.creatorRoutineId ? (
+        <OfficialRoutineCard routineId={post.official.creatorRoutineId} />
       ) : null}
 
       {/* 장비 칩은 반드시 사진 **바깥** 아래다 — 사진을 가리는 클릭 유도는 제재 대상이다(ADR-027 D4). */}

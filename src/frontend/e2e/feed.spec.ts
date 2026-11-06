@@ -28,7 +28,7 @@ async function 가입(page: Page, email: string, name: string) {
 }
 
 async function 글쓰기(page: Page, caption: string) {
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
   await page.getByTestId("feed-compose").click();
   await page.getByTestId("feed-caption").fill(caption);
@@ -37,7 +37,7 @@ async function 글쓰기(page: Page, caption: string) {
 }
 
 test("로그인하지 않으면 피드는 막지 않고 안내한다", async ({ page }) => {
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   // 탭 자체는 열린다 — 로그인하라는 말과 갈 곳을 준다.
   await expect(page.getByTestId("feed-go-profile")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("screen-title")).toHaveText("피드");
@@ -46,7 +46,7 @@ test("로그인하지 않으면 피드는 막지 않고 안내한다", async ({ 
 test("글을 올리면 목록에 뜨고, 고치고 지울 수 있다", async ({ page }) => {
   await 가입(page, freshEmail("own"), "글쓴이");
   // 주변 헬스장 찾기 — 피드 머리 아래에 항상 보인다
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("btn-gyms")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("feed-following").click();
   await 글쓰기(page, "오늘도 한 세트 더");
@@ -104,7 +104,7 @@ test("팔로우하면 그 사람의 글이 내 피드에 들어온다", async ({
   await 가입(page, freshEmail("fan"), "팬");
 
   // 팔로우 전에는 남의 글이 안 보인다.
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("feed-list")).not.toContainText("팔로워에게 보일 글");
 
   await page.goto("/discover");
@@ -113,7 +113,7 @@ test("팔로우하면 그 사람의 글이 내 피드에 들어온다", async ({
   await page.getByTestId("discover-follow").first().click();
   await expect(page.getByTestId("discover-follow").first()).toHaveText("팔로잉", { timeout: 20_000 });
 
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("feed-list")).toContainText("팔로워에게 보일 글", { timeout: 20_000 });
 
   // 프로필로 들어가면 카운트와 관계가 맞는다.
@@ -155,7 +155,7 @@ test("댓글과 답글 — 답글은 펼쳐야 보인다", async ({ page }) => {
 
 test("사진을 올리면 글에 붙고, 새로고침해도 그 자리에 있다", async ({ page }) => {
   await 가입(page, freshEmail("photo"), "사진쓴이");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
 
   // 진짜 PNG 한 장을 만들어 고른다(입력은 숨겨져 있으므로 직접 채운다).
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
@@ -189,7 +189,7 @@ test("사진을 올리면 글에 붙고, 새로고침해도 그 자리에 있다
 
 test("사진만 있고 글이 없어도 올릴 수 있다", async ({ page }) => {
   await 가입(page, freshEmail("photoonly"), "사진만");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
 
   // 아무것도 없으면 게시 버튼은 눌리지 않는다.
   // 글쓰기는 + 버튼 → 전체 화면 작성기(SRS-054 시안 08 · 결정 D5).
@@ -217,7 +217,7 @@ const PNG = Buffer.from(
 
 test("스토리를 올리면 트레이에 뜨고, 열면 안 본 표시가 풀린다", async ({ page }) => {
   await 가입(page, freshEmail("story"), "스토리쓴이");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
 
   // 스토리가 없으면 첫 칸은 '+'다 — 눌러서 고르는 대신 숨은 입력을 직접 채운다.
   await expect(page.getByTestId("story-tray")).toBeVisible({ timeout: 20_000 });
@@ -247,7 +247,7 @@ test("스토리를 올리면 트레이에 뜨고, 열면 안 본 표시가 풀�
 
 test("스토리는 두 컷을 넘겨 보고 마지막에서 닫힌다", async ({ page }) => {
   await 가입(page, freshEmail("story2"), "두컷");
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
 
   await page.getByTestId("story-file").setInputFiles({ name: "a.png", mimeType: "image/png", buffer: PNG });
   await expect(page.getByTestId("story-mine").locator("img")).toBeVisible({ timeout: 20_000 });
@@ -277,7 +277,7 @@ test("스토리는 두 컷을 넘겨 보고 마지막에서 닫힌다", async ({
 test("팔로우한 사람의 스토리가 내 트레이에 들어온다", async ({ page, context }) => {
   const 이름 = `스타${Date.now().toString(36)}`;
   await 가입(page, freshEmail("storystar"), 이름);
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await page.getByTestId("story-file").setInputFiles({ name: "s.png", mimeType: "image/png", buffer: PNG });
   await expect(page.getByTestId("story-mine").locator("img")).toBeVisible({ timeout: 20_000 });
 
@@ -286,7 +286,7 @@ test("팔로우한 사람의 스토리가 내 트레이에 들어온다", async 
   await 가입(page, freshEmail("storyfan"), "팬");
 
   // 팔로우 전에는 남의 스토리가 없다(내 타일 하나뿐).
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("story-tray")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId("story-tile")).toHaveCount(0);
 
@@ -296,7 +296,7 @@ test("팔로우한 사람의 스토리가 내 트레이에 들어온다", async 
   await page.getByTestId("discover-follow").first().click();
   await expect(page.getByTestId("discover-follow").first()).toHaveText("팔로잉", { timeout: 20_000 });
 
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await expect(page.getByTestId("story-tile")).toHaveCount(1, { timeout: 20_000 });
   await expect(page.getByTestId("story-tile")).toContainText(이름);
 });

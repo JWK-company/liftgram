@@ -220,6 +220,12 @@ type Notification struct {
 	CreatedAt pgtype.Timestamptz
 }
 
+type OpsAlertMailState struct {
+	ID      bool
+	Reasons []string
+	SentAt  pgtype.Timestamptz
+}
+
 type OpsBackupRun struct {
 	ID            int64
 	Kind          string
@@ -257,6 +263,7 @@ type Post struct {
 	RemovedAt        pgtype.Timestamptz
 	RemovedReason    *string
 	Gear             []byte
+	OfficialMeta     []byte
 }
 
 type PostBookmark struct {

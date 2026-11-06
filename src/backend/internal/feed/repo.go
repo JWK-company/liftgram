@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -595,7 +596,7 @@ func (r *pgRepo) ListRecommended(ctx context.Context, viewerID string, since tim
 			caption: row.Caption, authorName: row.AuthorName, authorAvatar: row.AuthorAvatar,
 			workoutID: row.WorkoutID, workoutName: row.WorkoutName, totalVolumeKg: row.TotalVolumeKg,
 			workingSets: row.WorkingSets, durationSeconds: row.DurationSeconds, prCt: row.PrCount,
-			streakDays: row.StreakDays, weeklyReached: row.WeeklyReached, exercises: row.Exercises, gear: row.Gear,
+			streakDays: row.StreakDays, weeklyReached: row.WeeklyReached, exercises: row.Exercises, gear: row.Gear, official: row.OfficialMeta,
 			mediaURLs: row.MediaUrls, likeCount: row.LikeCount, commentCount: row.CommentCount,
 			likedByMe: row.LikedByMe, bookmarkedByMe: row.BookmarkedByMe, createdAt: row.CreatedAt.Time,
 		})
@@ -786,6 +787,7 @@ type postFields struct {
 	likeCount, commentCount            int32
 	likedByMe, bookmarkedByMe          bool
 	createdAt                          time.Time
+	official                           []byte
 }
 
 func assemble(f postFields) Post {
@@ -808,6 +810,16 @@ func assemble(f postFields) Post {
 		var tags []GearTag
 		if err := json.Unmarshal(f.gear, &tags); err == nil {
 			p.Gear = tags
+		}
+	}
+
+	// 표시 정보가 깨졌거나 AI 고지가 없으면 공식 표시를 하지 않는다 — 배지만 있고 고지가 빠지면 안 된다.
+	if len(f.official) > 0 {
+		var m OfficialMeta
+		if err := json.Unmarshal(f.official, &m); err == nil && m.AINotice != "" {
+			p.Official = &m
+		} else {
+			slog.Warn("공식 글 표시 정보가 올바르지 않음", "post", p.ID)
 		}
 	}
 
@@ -842,7 +854,7 @@ func feedRowToPost(r sqlcgen.ListFeedRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -855,7 +867,7 @@ func userPostRowToPost(r sqlcgen.ListUserPostsRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -868,7 +880,7 @@ func getRowToPost(r sqlcgen.GetPostRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -880,7 +892,7 @@ func idemRowToPost(r sqlcgen.GetPostByIdempotencyKeyRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -892,7 +904,7 @@ func bookmarkRowToPost(r sqlcgen.ListBookmarksRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -904,7 +916,7 @@ func hashtagRowToPost(r sqlcgen.ListHashtagPostsRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -916,7 +928,7 @@ func exploreRowToPost(r sqlcgen.ListExploreRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})
@@ -928,7 +940,7 @@ func searchRowToPost(r sqlcgen.SearchPostsRow) Post {
 		caption: r.Caption, authorName: r.AuthorName, authorAvatar: r.AuthorAvatar,
 		workoutID: r.WorkoutID, workoutName: r.WorkoutName, totalVolumeKg: r.TotalVolumeKg,
 		workingSets: r.WorkingSets, durationSeconds: r.DurationSeconds, prCt: r.PrCount,
-		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear,
+		streakDays: r.StreakDays, weeklyReached: r.WeeklyReached, exercises: r.Exercises, gear: r.Gear, official: r.OfficialMeta,
 		mediaURLs: r.MediaUrls, likeCount: r.LikeCount, commentCount: r.CommentCount,
 		likedByMe: r.LikedByMe, bookmarkedByMe: r.BookmarkedByMe, createdAt: r.CreatedAt.Time,
 	})

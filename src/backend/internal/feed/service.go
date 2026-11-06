@@ -121,6 +121,14 @@ type Post struct {
 	// 검토 중인 내 글 — 작성자에게만 내려간다.
 	UnderReview bool
 	Gear        []GearTag
+	// 공식 계정 글의 표시 정보(ADR-060). 일반 글은 nil 이다.
+	Official *OfficialMeta
+}
+
+// OfficialMeta 는 시드 스크립트만 쓴다. 사용자 요청으로 바꿀 수 없다.
+type OfficialMeta struct {
+	AINotice         string `json:"aiNotice"`
+	CreatorRoutineID string `json:"creatorRoutineId"`
 }
 
 type Comment struct {

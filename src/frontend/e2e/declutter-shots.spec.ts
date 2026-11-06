@@ -146,7 +146,7 @@ test("홈·피드·칸 시트 캡처 — 390 라이트·다크 · 360×640", asy
   await page.getByTestId("btn-share-workout").click();
   await page.waitForTimeout(1500);
   await page.getByTestId("btn-summary-close").click();
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await page.getByTestId("post-workout").first().waitFor({ timeout: 20_000 });
   await snap("feed");
   // 홈 — 진행 중 운동이 있는 상태
@@ -326,15 +326,15 @@ test("나머지 화면 캡처 — 390 라이트·다크 · 360×640", async ({ p
   await shot(
     "composer",
     async () => {
-      await page.goto("/feed");
+      await page.goto("/feed?tab=following");
       await page.getByTestId("feed-compose").click();
       await page.getByTestId("feed-composer").waitFor({ timeout: 10_000 });
     },
     { full: false },
   );
-  await page.goto("/feed");
+  await page.goto("/feed?tab=following");
   await shot("post-detail", async () => {
-    await page.goto("/feed");
+    await page.goto("/feed?tab=following");
     await page.getByTestId("post-comments").first().click({ timeout: 20_000 });
     await page.waitForURL(/\/feed\/.+/, { timeout: 20_000 });
     await page.getByTestId("comment-input").fill("자세 좋네요");
@@ -459,7 +459,7 @@ test("나머지 화면 캡처(로그인) — 390 라이트·다크 · 360×640",
   await page.waitForTimeout(1500);
   await page.getByTestId("btn-summary-close").click();
   await shot("post-detail", async () => {
-    await page.goto("/feed");
+    await page.goto("/feed?tab=following");
     await page.getByTestId("post-comments").first().click({ timeout: 20_000 });
     await page.waitForURL(/\/feed\/.+/, { timeout: 20_000 });
     await page.getByTestId("comment-input").fill("자세 좋네요");
@@ -481,7 +481,7 @@ test("나머지 화면 캡처(로그인) — 390 라이트·다크 · 360×640",
     });
   }
   await shot("other-profile", async () => {
-    await page.goto("/feed");
+    await page.goto("/feed?tab=following");
     await page.getByTestId("post-author").first().click({ timeout: 20_000 });
     await page.waitForURL(/\/u\//, { timeout: 20_000 });
     await page.waitForTimeout(1500);

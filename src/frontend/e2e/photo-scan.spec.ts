@@ -32,7 +32,7 @@ test("걸린 사진의 글은 작성자에게만 보인다", async ({ browser })
   test.setTimeout(120_000);
   const 표식 = uid();
   const { page: 작성자 } = await 가입(browser, `작성${표식}`);
-  await 작성자.goto("/feed");
+  await 작성자.goto("/feed?tab=following");
   await 작성자.getByTestId("feed-compose").click();
   await 작성자.getByTestId("feed-caption").fill(`사진글 ${표식}`);
   await 작성자
