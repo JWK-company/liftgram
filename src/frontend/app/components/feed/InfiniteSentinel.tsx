@@ -10,6 +10,9 @@
 // **더 가져올 게 없으면 아무것도 그리지 않는다** — 표식이 남아 있으면 빈 응답을 계속 조른다.
 import { useEffect, useRef } from "react";
 
+// 피드 탭(추천·팔로잉)이 한 번에 받는 글 수(사용자 지시 2026-11-06).
+export const FEED_PAGE_SIZE = 10;
+
 export function InfiniteSentinel({ onReach, disabled }: { onReach: () => void; disabled?: boolean }) {
   const ref = useRef<HTMLDivElement | null>(null);
   // 콜백이 매 렌더 새로 만들어져도 관찰자를 다시 만들지 않는다.

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { feedClient } from "@/lib/feedClient";
 import { AdSlot } from "../ads/AdSlot";
 import { ListState } from "../ui/ListState";
-import { InfiniteSentinel } from "./InfiniteSentinel";
+import { FEED_PAGE_SIZE, InfiniteSentinel } from "./InfiniteSentinel";
 import { PostCard } from "./PostCard";
 
 export function RecommendedFeed({
@@ -40,7 +40,7 @@ export function RecommendedFeed({
     setLoading(true);
     setError(false);
     try {
-      const res = await feedClient().listRecommended({});
+      const res = await feedClient().listRecommended({ limit: FEED_PAGE_SIZE });
       if (mine !== gen.current) return;
       setPosts(res.posts);
       setNext(res.nextOffset);
@@ -66,7 +66,7 @@ export function RecommendedFeed({
     const mine = gen.current;
     busy.current = true;
     try {
-      const res = await feedClient().listRecommended({ offset: next });
+      const res = await feedClient().listRecommended({ offset: next, limit: FEED_PAGE_SIZE });
       if (mine !== gen.current) return;
       setPosts((prev) => {
         const seen = new Set(prev.map((p) => p.id));
@@ -112,7 +112,8 @@ export function RecommendedFeed({
 
   return (
     <div
-      className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[96px]"
+      // [원본] pb-[96px] — FAB 자리 여백. 없앴다(사용자 지시 2026-11-06)
+      className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-0"
       data-testid="feed-recommended-list"
     >
       {posts.length === 0 ? (

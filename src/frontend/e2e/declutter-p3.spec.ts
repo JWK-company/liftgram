@@ -10,6 +10,7 @@
 //   · D7·F1·F2  피드 운동 카드: 숫자 한 줄 메타 · 「운동」 배지 없음 · 버튼 2칸 한 줄 글자 · 자동 문구 없음 ·
 //              + 버튼(FAB)이 마지막 카드를 가리지 않음 · 남의 운동 「바로 시작」 (두 계정)
 import { expect, test } from "@playwright/test";
+import { 내려쓰기_대기 } from "./helpers/opengym";
 import {
   블록,
   빠른_운동_시작,
@@ -271,23 +272,34 @@ test("D7·F1·F2 — 피드 운동 카드: 한 줄 메타·배지 없음·2칸 �
   expect(sb && ib).toBeTruthy();
   if (sb && ib) expect(Math.abs(sb.y - ib.y)).toBeLessThan(2);
   for (const b of [start, imp]) expect(await 글자_줄수(b)).toBe(1);
-  // FAB 가 마지막 카드의 발(좋아요 줄)을 가리지 않는다 — 맨 아래까지 내린 상태
+  // FAB 가 마지막 카드의 발(좋아요·저장 줄)을 가리지 않는다 — 맨 아래까지 내린 상태
+  // [원본] 목록 아래 여백으로 비켰다 — 여백을 없애(사용자 지시 2026-11-06) 겹치면 FAB 를 감춘다
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(300);
-  const fab = await page.getByTestId("feed-compose").boundingBox();
-  const like = await page.getByTestId("post-like").last().boundingBox();
-  expect(fab && like).toBeTruthy();
-  if (fab && like) {
-    const overlap = !(
-      like.y + like.height <= fab.y ||
-      fab.y + fab.height <= like.y ||
-      like.x + like.width <= fab.x ||
-      fab.x + fab.width <= like.x
-    );
-    const footerBottom = like.y + like.height;
-    expect(overlap, "FAB 가 좋아요 줄과 겹침").toBe(false);
-    expect(footerBottom).toBeLessThanOrEqual(fab.y);
+  const fabEl = page.getByTestId("feed-compose");
+  const hidden = (await fabEl.evaluate((e) => getComputedStyle(e).opacity)) === "0";
+  if (!hidden) {
+    const fab = await fabEl.boundingBox();
+    const like = await page.getByTestId("post-like").last().boundingBox();
+    expect(fab && like).toBeTruthy();
+    if (fab && like) expect(like.y + like.height, "FAB 가 좋아요 줄과 겹침").toBeLessThanOrEqual(fab.y);
   }
+  // 다른 사람의 글에서 루틴 가져오기 — 확인 → 내 루틴에 두 종목이 들어간다
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await imp.click();
+  await page.getByTestId("import-routine-confirm").getByTestId("dialog-confirm").click();
+  await expect(page.getByText("2개 추가 · 0개 건너뜀")).toBeVisible({ timeout: 20_000 });
+  await 내려쓰기_대기(page);
+  await page.goto("/");
+  const 루틴 = page.getByTestId("routine-list").locator("[data-testid^=routine-]").first();
+  await expect(루틴).toBeVisible({ timeout: 20_000 });
+  const tid = await 루틴.getAttribute("data-testid");
+  await page.goto(`/routines/${(tid ?? "").replace("routine-", "")}`);
+  await expect(page.getByTestId("set-table")).toHaveCount(2, { timeout: 20_000 });
+  await expect(page.getByText("바벨 데드리프트").first()).toBeVisible();
+  await expect(page.getByText("덤벨 컬").first()).toBeVisible();
+  await page.goto("/feed?tab=following");
+  await expect(card).toBeVisible({ timeout: 20_000 });
   // 바로 시작 — 그 구성으로 운동이 시작된다
   await page.evaluate(() => window.scrollTo(0, 0));
   await start.click();

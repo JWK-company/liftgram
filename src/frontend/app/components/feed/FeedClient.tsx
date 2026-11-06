@@ -44,7 +44,7 @@ import { StoryViewer } from "./StoryViewer";
 import { loadStorySeen, markSeen, type StorySeenMap } from "./storySeen";
 import { FEED_AD_EVERY, FEED_RECOMMENDED_START_MS, feedAdAfter } from "@app/core/domain/adPolicy";
 import { AdSlot } from "../ads/AdSlot";
-import { InfiniteSentinel } from "./InfiniteSentinel";
+import { FEED_PAGE_SIZE, InfiniteSentinel } from "./InfiniteSentinel";
 import { PostCard } from "./PostCard";
 import { RecommendedFeed } from "./RecommendedFeed";
 import { VisibilityPicker } from "./VisibilityPicker";
@@ -98,6 +98,52 @@ const readUrlWantsFollowing = () => {
 };
 const readFalse = () => false;
 
+// 목록 아래 여백을 없앴으니(사용자 지시 2026-11-06) 마지막 글이 + 버튼 자리에 오면 버튼을 잠시 감춘다 —
+// 안 그러면 더 내릴 곳이 없어 그 글의 저장 버튼을 누를 수 없다.
+// 위로 올려 벗어날 수 없는 짧은 목록(qa code)은 버튼을 감추면 글을 쓸 수 없으니, 버튼을 두고 그때만 아래 자리를 준다.
+const LIST_END_ITEMS = '[data-testid="post-card"], [data-testid^="ad-slot-"]';
+function useComposeClearance(button: React.RefObject<HTMLButtonElement | null>, remeasure: unknown) {
+  const [state, setState] = useState({ hidden: false, room: false });
+  const room = useRef(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: remeasure 는 탭·글 수가 바뀔 때 다시 재기 위한 값이다
+  useEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const el = button.current;
+      if (!el) return;
+      const items = [...document.querySelectorAll<HTMLElement>(LIST_END_ITEMS)].filter(
+        (c) => c.offsetParent !== null,
+      );
+      const last = items[items.length - 1]?.getBoundingClientRect();
+      // 화면 밖으로 조금 나간 동안(40px)도 끝 근처로 본다 — 끝에서 깜빡이지 않게.
+      const nearEnd = !!last && last.bottom < window.innerHeight + 40;
+      const overlap = last ? last.bottom - el.getBoundingClientRect().top : 0;
+      if (!nearEnd) room.current = false;
+      else if (overlap > 0 && window.scrollY < overlap) room.current = true;
+      const next = { hidden: !room.current && nearEnd && overlap > 0, room: room.current };
+      setState((prev) => (prev.hidden === next.hidden && prev.room === next.room ? prev : next));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    // 글이 더 불러와지거나 지워져도 다시 잰다.
+    const observer = new ResizeObserver(schedule);
+    observer.observe(document.body);
+    if (button.current?.parentElement) observer.observe(button.current.parentElement);
+    schedule();
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      observer.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [button, remeasure]);
+  return state;
+}
+
 export default function FeedClient() {
   const { user, loading: authLoading } = useAuth();
   const unit = useWeightUnit();
@@ -138,6 +184,9 @@ export default function FeedClient() {
   // 한 번 연 추천은 숨겨 둘 뿐 지우지 않는다 — 돌아왔을 때 목록을 다시 받지 않게(스크롤은 문서 하나를 함께 쓴다).
   const [recommendedOpened, setRecommendedOpened] = useState(false);
   const recommendedMounted = recommendedOpened || tab === "recommended";
+  const composeRef = useRef<HTMLButtonElement | null>(null);
+  const composeClearance = useComposeClearance(composeRef, `${tab}:${posts.length}`);
+  const composeHidden = composeClearance.hidden;
   const followingDirty = useRef(false);
   // 팔로잉에서 바뀐 글 — 추천에도 같은 글이 있으면 좋아요·저장을 맞춘다.
   const [syncedPost, setSyncedPost] = useState<Post | null>(null);
@@ -167,7 +216,7 @@ export default function FeedClient() {
         })
         .catch(() => {});
 
-      const res = await feedClient().listFeed({});
+      const res = await feedClient().listFeed({ limit: FEED_PAGE_SIZE });
       if (mine !== gen.current) return;
       setPosts(res.posts);
       setCursor(res.nextCursor);
@@ -243,7 +292,7 @@ export default function FeedClient() {
     const mine = gen.current;
     setLoadingMore(true);
     try {
-      const res = await feedClient().listFeed({ cursor });
+      const res = await feedClient().listFeed({ cursor, limit: FEED_PAGE_SIZE });
       if (mine !== gen.current) return; // 그사이 새로고침됨 → 옛 페이지는 버린다
       setPosts((prev) => {
         const seen = new Set(prev.map((p) => p.id));
@@ -448,11 +497,9 @@ export default function FeedClient() {
           {/* [원본] StoryTray 는 팔로잉 탭 안에 있었다 — 두 탭 모두에 보이게 탭 위로 옮겼다(사용자 지시 2026-11-06) */}
           {/* [원본] p-lg — 마지막 글의 발(좋아요 줄)이 + 버튼(FAB) 밑에 깔렸다(F2)
           <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)]" data-testid="feed-list"> */}
-          {/* [개선] 목록 끝 여백 = FAB 높이(56) + 탭바 위 띄움(20) + 여유(20). 진행 막대 높이는 FAB 와 목록이 같이 받는다. @plm SRS-071 */}
-          <div
-            className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-[96px]"
-            data-testid="feed-list"
-          >
+          {/* [원본] 목록 끝 여백 96px = FAB 높이(56) + 탭바 위 띄움(20) + 여유(20) @plm SRS-071 */}
+          {/* [개선] 여백 없음(사용자 지시 2026-11-06) — FAB 는 useComposeClearance 가 비킨다 */}
+          <div className="flex-1 p-[var(--spacing-lg)] pt-[var(--spacing-md)] pb-0" data-testid="feed-list">
             {posts.length === 0 ? (
               <>
                 <ListState
@@ -491,21 +538,25 @@ export default function FeedClient() {
                       [<AdSlot key={`ad-${(i + 1) / FEED_AD_EVERY}`} placement="feed" />]
                     : []),
                 ])}
-                <InfiniteSentinel onReach={loadMore} disabled={!cursor} />
+                <InfiniteSentinel key={posts.length} onReach={loadMore} disabled={!cursor} />
               </>
             )}
           </div>
         </>
       )}
 
+      {composeClearance.room ? <div className="h-[96px] shrink-0" data-testid="feed-compose-room" /> : null}
+
       {/* + 버튼 — 탭바 위 오른쪽. 넓은 화면에서도 앱 폭(560) 안쪽에 붙는다. */}
       <button
         type="button"
         aria-label={t("feed.post")}
         data-testid="feed-compose"
+        ref={composeRef}
+        inert={composeHidden}
         onClick={() => setComposing(true)}
         // 운동 중 막대가 떠 있으면 그 높이만큼 위로 — 막대 밑에 깔려 눌리지 않던 것 @plm SRS-066
-        className="fixed right-[max(16px,calc(50vw-264px))] bottom-[calc(76px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 lg:bottom-[calc(24px+var(--shell-workout-bar,0px))] items-center justify-center rounded-full bg-(--color-brand) shadow-lg active:opacity-80"
+        className={`fixed right-[max(16px,calc(50vw-264px))] bottom-[calc(76px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 lg:bottom-[calc(24px+var(--shell-workout-bar,0px))] items-center justify-center rounded-full bg-(--color-brand) shadow-lg active:opacity-80 transition-opacity ${composeHidden ? "pointer-events-none opacity-0" : ""}`}
       >
         <Icon name="add" size={28} color="var(--color-on-brand)" />
       </button>

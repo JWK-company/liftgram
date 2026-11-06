@@ -113,3 +113,38 @@ test("글에 붙은 루틴은 전부 시트가 열리고 저장할 수 있는 �
     await expect(page.getByTestId("creator-sheet")).toBeHidden();
   }
 });
+
+test("피드 끝에 빈 여백이 없고, 마지막 글을 가리지 않게 + 버튼이 비켰다가 돌아온다", async ({ page }) => {
+  await page.setViewportSize({ width: 412, height: 915 });
+  await 가입(page);
+  await page.goto("/feed");
+  await 전부_불러오기(page);
+  const fab = page.getByTestId("feed-compose");
+  await expect(fab).toHaveCSS("opacity", "1");
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(fab).toHaveCSS("opacity", "0");
+  const gap = await page.evaluate(() => {
+    const cards = document.querySelectorAll('[data-testid="post-card"]');
+    const card = cards[cards.length - 1].getBoundingClientRect();
+    const bar = document.querySelector('[data-testid="shell-nav"]')?.getBoundingClientRect();
+    return (bar?.top ?? 0) - card.bottom;
+  });
+  expect(gap).toBeLessThanOrEqual(24);
+  // 마지막 글의 저장 버튼을 누를 수 있다
+  await page.getByTestId("post-card").last().getByTestId("post-bookmark").click({ trial: true });
+  await page.evaluate(() => window.scrollBy(0, -400));
+  await expect(fab).toHaveCSS("opacity", "1");
+  await fab.click();
+  await expect(page.getByTestId("feed-composer")).toBeVisible();
+});
+
+test("처음에는 10개만 그리고, 끝으로 내리면 10개씩 더 그린다", async ({ page }) => {
+  await 가입(page);
+  await page.goto("/feed");
+  const cards = page.getByTestId("post-card");
+  await expect(cards).toHaveCount(10, { timeout: 20_000 });
+  await page.waitForTimeout(800);
+  await expect(cards).toHaveCount(10);
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await expect(cards).toHaveCount(20, { timeout: 10_000 });
+});

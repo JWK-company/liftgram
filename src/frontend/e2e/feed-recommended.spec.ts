@@ -262,3 +262,23 @@ test("추천이 앞 탭 · 스토리는 두 탭 모두 · 고른 탭은 앱 안�
   await page.goto("/feed?tab=following");
   await expect(tabs.nth(1)).toHaveAttribute("aria-selected", "true");
 });
+
+test("짧은 목록에서는 + 버튼이 사라지지 않고, 내려서 마지막 글을 비킬 수 있다", async ({ browser }) => {
+  const page = await 가입(browser, `짧은${uid()}`);
+  await page.setViewportSize({ width: 412, height: 915 });
+  await 글쓰기(page, `짧은 글 ${uid()}`);
+  await page.goto("/feed?tab=following");
+  const card = page.getByTestId("post-card").last();
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  const box = await card.boundingBox();
+  // 카드 끝이 + 버튼 자리에 오도록 화면 높이를 맞춘다(스크롤로 벗어날 수 없는 상태)
+  await page.setViewportSize({ width: 412, height: Math.round((box?.y ?? 0) + (box?.height ?? 0) + 100) });
+  const fab = page.getByTestId("feed-compose");
+  await expect(page.getByTestId("feed-compose-room")).toHaveCount(1);
+  await expect(fab).toHaveCSS("opacity", "1");
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  const [f, c] = [await fab.boundingBox(), await card.boundingBox()];
+  expect((c?.y ?? 0) + (c?.height ?? 0)).toBeLessThanOrEqual(f?.y ?? 0);
+  await fab.click();
+  await expect(page.getByTestId("feed-composer")).toBeVisible();
+});
