@@ -8,7 +8,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 HOST=${HOST:-h2500-3}
-REMOTE=${REMOTE:-'~/liftgram'}
+REMOTE=${REMOTE:-'~/liftgram/src'}
 MODE=${1:-}
 
 # 서버 .env 를 읽어 DB 이름·역할을 쓴다(값은 출력하지 않는다).
