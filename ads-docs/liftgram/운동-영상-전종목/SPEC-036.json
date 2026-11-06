@@ -1,0 +1,1327 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "목표",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "운동 상세·운동 중 팁의 기존 운동 사진을 내리고, 영상이 없는 327행(전체 633행 중)도 3D 운동 영상으로 만들어 전 종목을 영상으로 바꾼다. 사용자 지시(2026-11-06): 「기존 사진 내리고 만든걸로 대체해. gpu 계속 써도되니까 모든 운동 바꾸고.」 SPEC-034의 제외 판단(고위험·다단계·유산소 등)은 이 지시로 해제한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "범위",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "앱: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/core/src/data/exerciseMedia.ts",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/core/src/data/exerciseVisual.ts",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/app/exercise/[id]/page.tsx",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/app/components/session/ExerciseTipPanel.tsx",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/app/licenses/page.tsx",
+            "type": "text"
+          },
+          {
+            "text": ", 관련 시험, ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/package.json",
+            "type": "text"
+          },
+          {
+            "text": ", 생성 표 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/core/src/data/exerciseMotion.data.ts",
+            "type": "text"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "제작 도구: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/motion3d.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/grades.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/overrides.json",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/composite.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/refine.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/render_queue.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/qc.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/qc_waivers.json",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/README.md",
+            "type": "text"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "범위 밖: 픽토그램 코드, 운동 설명 글(사진과 같은 표에 있어도 유지), 사용자 직접 등록 종목의 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "imageUrl",
+            "type": "text"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "설계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사진: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "getExerciseMediaOwn",
+            "type": "text"
+          },
+          {
+            "text": "이 이미지 칸을 항상 비운다. 그러면 사진 UI와 외부 CDN 요청이 함께 사라지고 설명 글은 남는다. 영상이 없는 종목은 픽토그램이다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "엔진 확장(기존 289개 결과가 바뀌지 않게 새 값이 있을 때만 작동):",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "keys",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 시작·끝 2자세 대신 N개 자세를 보간한다. 다단계·순환 동작용.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "loop",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "pingpong",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(기본) 또는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "cycle",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(앞으로만 재생, 첫 프레임=끝 프레임). 긴 동작은 작업별 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "nf",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(25 또는 49).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ankle_free",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 발목 좌우 위치를 자세 그대로 쓴다(레터럴 런지·어브덕션·점핑잭).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "twist",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "side",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 척추 회전·옆굽힘(러시안 트위스트·윈드밀 등). ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "neck",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 목 굽힘. ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "world_rot",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 몸 전체 회전(옆으로 눕기).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "소품: 링, 짐볼, 메디신볼, 앱휠, 러닝머신, 실내 자전거, 로잉, 일립티컬, 스키에르그, 계단, 줄넘기, 배틀로프, 썰매, 요크, 로프, 판(보드·핀·데피싯), 벽.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "제작 목록: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/grades.py",
+            "type": "text"
+          },
+          {
+            "text": "의 제외 규칙을 지우고, 행마다 전용 조정값(같은 동작이면 기존 영상 연결, 다르면 새 키)을 준다. 동작이 다른 종목에 다른 영상을 잇지 않는다는 SPEC-034 원칙은 유지한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "공개 게이트: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/qc.py",
+            "type": "text"
+          },
+          {
+            "text": " → ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/publish.py",
+            "type": "text"
+          },
+          {
+            "text": " → ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/gen-map.py",
+            "type": "text"
+          },
+          {
+            "text": "를 그대로 쓴다. 검수는 프레임 튐을 볼 수 있게 동작마다 연속 프레임 시트로 한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "작업 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 1 — 사진 내리기",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "바꿀 파일: 위 앱 파일. 설명 글은 유지하고 라이선스 화면 문구를 고친다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 사진 UI·CDN 요청 제거, 시험 갱신",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 독립 코드 리뷰와 v0.72.1 배포",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 운영 상세에서 free-exercise-db 요청 0건, 설명 글 표시, 영상 재생.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 2 — 엔진 확장",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "바꿀 파일: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/motion3d.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/composite.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/refine.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/render_queue.py",
+            "type": "text"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] keys·loop·ankle_free·twist·neck·world_rot·소품",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 기존 클립 표본의 지표가 그대로임을 사전 점검으로 확인",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 새 기능 표본(런닝·클린·러시안 트위스트·레터럴 런지·링 딥스)을 연속 프레임으로 눈 확인, 기존 표본 지표 불변.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 3 — 327행 제작과 검수",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "바꿀 파일: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/grades.py",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/overrides.json",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/scripts/motion/qc_waivers.json",
+            "type": "text"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 행별 조정값, 저해상도 사전 렌더와 눈 검수",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] GPU 4장으로 렌더·Wan·합성·판정",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 끝내 통과 못 한 영상 목록과 사유 확정(픽토그램 유지, 사용자에게 보고)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 327행 전부가 영상 또는 사유 있는 미통과로 분류된다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "Phase 4 — 연결·리뷰·배포",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "바꿀 파일: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/core/src/data/exerciseMotion.data.ts",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/package.json",
+            "type": "text"
+          },
+          {
+            "text": ".",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 표 재생성, 시험, 독립 코드 리뷰",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 배포(v0.75.0), 운영 확인, GPU 해제 확인",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "완료 기준: 운영에서 신규 표본이 재생되고 시험이 통과한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "SRS-055: 모든 카탈로그 종목에 그림이 있다. 사진은 어느 화면에도 나오지 않고 외부 사진 요청이 없다. 영상은 끊김 없이 반복되고, 동작 이름과 실제 동작이 일치한다. 미통과 영상은 공개되지 않고 목록으로 보고된다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "테스트 계획",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "bun run test:core",
+            "type": "text"
+          },
+          {
+            "text": ", ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "npx tsc --noEmit -p frontend",
+            "type": "text"
+          },
+          {
+            "text": ", 로컬 운영 빌드 e2e(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "RATE_LIMIT",
+            "type": "text"
+          },
+          {
+            "text": "·",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "API_PORT",
+            "type": "text"
+          },
+          {
+            "text": " 필수), ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "qc.py --selftest",
+            "type": "text"
+          },
+          {
+            "text": ", 연속 프레임 시트 눈 검수, 운영 표본 재생 확인.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "위험·주의",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "다단계·탄도 동작은 2D 자세 보간이라 실제 궤적과 다를 수 있다. 동작이 틀리면 공개하지 않는다. 고위험 동작은 기존 주의 문구를 유지한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앱 전체 용량이 약 21MB에서 약 45MB로 는다(내려받은 만큼만 저장).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "메인 작업 폴더는 다른 세션이 쓰고 있다. 작업은 worktree ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "../liftgram-wt-motion",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", 합치기는 ff-only, 커밋은 내 경로만 지정한다. 문서 번호는 쓰기 직전 다시 확인한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "GPU는 사용자가 승인했고, 끝나면 해제를 확인한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "지표 공백 대응: 순환 영상은 첫 프레임과 중간 프레임으로 움직임을 재고, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "loop_seam",
+                    "type": "text"
+                  },
+                  {
+                    "text": "을 추가한다. 빨강이 없는 전신·유산소 영상은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "muscles",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 부위를 지정해 노출을 잰다. 줄 단위 미통과는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "publish.py",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 멈추지 않게 제작 목록에서 빼고 사유를 남긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "기존 289개는 동결한다: 새 키만 렌더·합성하고 기존 키의 프롬프트·입력은 바꾸지 않는다. 사전 점검으로 289개 전부의 지표 불변을 확인한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "포괄 종목(HIIT·요가·필라테스·에어로빅·복싱 등)은 「대표 동작 예시」 문구를 영상 옆에 낸다. 고위험 종목은 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "exerciseCautions",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 목록을 넓혀 주의 문구를 낸다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "역재생이 잘못된 안내가 되는 올림픽 리프트·점프류는 내려놓는 구간을 넣은 순환(49프레임)으로 만든다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "합친 뒤 그 커밋으로 배포하고, 배포 표본은 신규 영상을 지정한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "앞선 보고에서 이 사진을 유료 라이선스로 잘못 설명했다. 실제로는 free-exercise-db(Unlicense)이며, 내리는 이유는 사용자 결정이다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "liftgram/운동-영상-전종목",
+  "id": "SPEC-036",
+  "meta": {
+    "grade": "Feature",
+    "phases": "4",
+    "phases_done": "4"
+  },
+  "relations": {
+    "implements": [
+      "SRS-055"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "운동 사진 제거와 전 종목 영상 제작",
+  "type": "Spec",
+  "updated": "2026-11-06T01:32:58Z"
+}

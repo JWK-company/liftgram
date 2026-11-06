@@ -1,0 +1,1201 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-042",
+ "type": "Execution",
+ "title": "SPEC-036 Phase 2~4 — 엔진 확장·327행 제작·연결과 배포 구현",
+ "group": "liftgram/운동-영상-전종목",
+ "meta": {
+  "phase": "4",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-036"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "요약"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "Phase 2~4를 이어서 끝냈다. 영상이 없던 327행에 새 영상 325개를 만들어 전 종목 633행을 영상 614개에 연결했고, v0.75.0으로 운영에 배포했다. 기존 영상 289개는 입력을 동결해 그대로 두었다. 스펙의 v0.73.0은 옆 세션이 먼저 v0.74.2까지 배포해 v0.75.0으로 바꿨다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 파일"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "파일"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "무엇을"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/scripts/motion/motion3d.py",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "keys·loop·발 지정·세계 좌표 소품 등 엔진 확장"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/scripts/motion/extra_motions.py",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "327행의 동작 정의(새 파일)"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/scripts/motion/grades_extra.py",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "기존 289개를 건드리지 않고 행을 더하는 제작 목록 생성(새 파일)"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/scripts/motion/composite.py",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "cycle 인코딩, "
+           },
+           {
+            "type": "text",
+            "text": "loop_seam",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": " 단위 오류 수정, "
+           },
+           {
+            "type": "text",
+            "text": "--jobs",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": " 오류 시 중단"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/scripts/motion/qc.py",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "--jobs",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": ", "
+           },
+           {
+            "type": "text",
+            "text": "loop_seam",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": " 판정"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/scripts/motion/qc_waivers.json",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "예외 24개 추가(총 35개), 지표와 사유 기록"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/core/src/data/exerciseMotion.data.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "633행으로 재생성"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/core/src/domain/exerciseCautions.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "고난도·목 운동 주의, 대표 동작 목록"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/core/src/i18n/locales/ko.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": ", "
+           },
+           {
+            "type": "text",
+            "text": "src/core/src/i18n/locales/en.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "주의·대표 동작 문구"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/MotionNotice.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "포괄 종목에 대표 동작 안내"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/session/ExerciseTipPanel.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "운동 중 팁에 주의 문구"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/core/src/domain/__tests__/catalogRareMoves.test.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "대표 동작·클린 스내치 주의 시험"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/package.json",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "0.75.0"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "테스트 결과"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "npm run test:core",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ": 687개 통과, 실패 0."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "타입 검사("
+         },
+         {
+          "type": "text",
+          "text": "npx tsc --noEmit",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "): 오류 0."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "로컬 운영 빌드 e2e "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/motion-video.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/e2e/pictogram.spec.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ": 12개 통과."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "판정: 합격 206, 경고 95, 불량 24. 불량 24개는 예외 승인. "
+         },
+         {
+          "type": "text",
+          "text": "src/scripts/motion/publish.py",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 해시 대조 통과."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "기존 289개: 최종 엔진 시험 렌더와 지표 비교 차이 0. 내보내기 목록 불변 확인."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "프레임 튐: 합성 프레임 전체를 수치로 훑어 재제작 대상 확정, 재제작 뒤 이음새 수치 재확인."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "운영: 배포 스크립트 표본 영상 200·immutable·Range 206, readyz 200. 새 영상 표본 4개의 mp4·webp 200 확인."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준 확인"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "기준"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "결과"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "SRS-055 633행 전부 영상 연결"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "충족. 표 633행, 영상 614개"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "살색 피부·검은 반바지·흰 배경·704px·유료 에셋 없음"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "충족"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "기존 289개 불변"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "충족"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "끝내 통과 못 한 영상의 픽토그램 유지"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "해당 없음. 빠진 영상 없이 예외 24개로 승인, 사유는 "
+           },
+           {
+            "type": "text",
+            "text": "src/scripts/motion/qc_waivers.json",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "코드 위치 등록은 main 합친 뒤로 미룬다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "코드 리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-066. 채택 8, 보류 4, 기각 1. 채택은 모두 반영했다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "범위 밖 변경"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "src/frontend/app/components/session/ExerciseTipPanel.tsx",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "의 주의 문구는 스펙에 없었지만, 고위험 영상을 운동 중에도 보여 주므로 코드 리뷰 지적에 따라 더했다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 1
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "iOS·Android 실기기 재생 미확인. 운영 브라우저 재생도 Turnstile 때문에 직접 못 봤고 로컬 운영 빌드로 확인했다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "자격 있는 지도자의 동작 검수 없음. 2D 자세 보간이라 실제 궤적과 다를 수 있다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "눈 검수는 키마다 5프레임 축소 시트 중심이고, 불량·재제작 영상만 더 촘촘히 봤다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "남은 약점: 래터럴 박스 점프와 포리퀸 스텝업의 상자 겹침, 와이드 푸시업 손 미끄러짐 4.4cm, 클램셸·힙 어브덕션·넥 컬의 빨강 미표시."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "유산소 운동 중 팁은 보류 상태 그대로다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "커밋·main 합친 뒤 코드 위치 등록: SRS-055 "
+         },
+         {
+          "type": "text",
+          "text": "src/core/src/domain/exerciseCautions.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": ", "
+         },
+         {
+          "type": "text",
+          "text": "src/frontend/app/components/MotionNotice.tsx",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}
