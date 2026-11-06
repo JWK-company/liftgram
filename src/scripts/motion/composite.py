@@ -6,7 +6,10 @@ import argparse, glob, hashlib, json, os, shutil, subprocess, traceback
 from concurrent.futures import ProcessPoolExecutor
 import numpy as np
 from PIL import Image, ImageFilter
-A = argparse.ArgumentParser(); A.add_argument("keys"); A.add_argument("src"); A.add_argument("wan"); A.add_argument("out"); A.add_argument("--ffmpeg", default=os.environ.get("MOTION_FFMPEG", "ffmpeg")); A.add_argument("--workers", type=int, default=8); A.add_argument("--force", action="store_true"); a = A.parse_args()
+A = argparse.ArgumentParser(); A.add_argument("keys"); A.add_argument("src"); A.add_argument("wan"); A.add_argument("out"); A.add_argument("--ffmpeg", default=os.environ.get("MOTION_FFMPEG", "ffmpeg")); A.add_argument("--workers", type=int, default=8); A.add_argument("--force", action="store_true"); A.add_argument("--jobs", default="jobs.json"); a = A.parse_args()
+# [원본] JOBS = json.load(open(a.jobs))["jobs"] if os.path.exists(a.jobs) else {}
+# [개선] 경로가 틀리면 cycle 영상이 조용히 왕복으로 인코딩되므로 멈춘다
+JOBS = json.load(open(a.jobs))["jobs"]
 BG = (248, 248, 246); BGF = np.array(BG, dtype=np.float32)/255
 CODE = hashlib.sha256(open(__file__, "rb").read()).hexdigest()
 arr = lambda im: np.asarray(im, dtype=np.float32)/255
@@ -62,14 +65,24 @@ def one(k):
                 if both.sum() > 50: flick.append(float(np.percentile(np.abs((lw-pv[0])-(lb-pv[1]))[both], 95)))
                 jumps.append(float(np.abs(c-pv[3]).mean()))
             pv = (lw, lb, on, c)
-        fs = sorted(glob.glob(fr+"/*.png")); seq = fs+fs[-2:0:-1]; t = out+"/seq"; shutil.rmtree(t, ignore_errors=True); os.makedirs(t)
+        fs = sorted(glob.glob(fr+"/*.png")); loop = (JOBS.get(k) or {}).get("loop") or "pingpong"
+        # [원본] seq = fs+fs[-2:0:-1]  왕복만. [개선] cycle 은 앞으로만(끝 자세 = 첫 자세라 마지막 장은 뺀다)
+        seq = fs[:-1] if loop == "cycle" else fs+fs[-2:0:-1]; t = out+"/seq"; shutil.rmtree(t, ignore_errors=True); os.makedirs(t)
         for i, f in enumerate(seq): os.link(f, f"{t}/{i:03d}.png")
         mp4 = f"{out}/{k}.mp4"; tmp = mp4+".tmp.mp4"
         subprocess.run([a.ffmpeg, "-y", "-loglevel", "error", "-framerate", "20", "-i", f"{t}/%03d.png", "-vf", "scale=704:704:flags=lanczos:out_color_matrix=bt709:out_range=tv", "-c:v", "libx264", "-crf", "24", "-preset", "slow", "-pix_fmt", "yuv420p", "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv", "-bsf:v", "h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1", "-movflags", "+faststart", "-an", tmp], check=True)
         os.replace(tmp, mp4); shutil.rmtree(t)
         sha = hashlib.sha256(open(mp4, "rb").read()).hexdigest()
-        Image.open(fs[-1]).resize((192, 192), Image.LANCZOS).save(f"{out}/thumb.webp", quality=78, method=6)
+        Image.open(fs[round((JOBS.get(k) or {}).get("thumb", 1)*(len(fs)-1))]).resize((192, 192), Image.LANCZOS).save(f"{out}/thumb.webp", quality=78, method=6)
         d = dict(key=k, manifest=man, bytes=os.path.getsize(mp4), sha8=sha[:8], sha256=sha, iou_min=round(min(ious), 3), hole_max=round(max(holes), 4), fallback_max=round(max(backs), 4), chroma_p95=round(max(chroma, default=0), 4), fallback_jump=round(max(jumps, default=0), 4), flicker_p95=round(max(flick), 4) if flick else 0)
+        if loop == "cycle":
+            # SPEC-036 이음새: 끝→처음 변화량이 평소 프레임 변화량의 몇 배인가(1 근처면 이음새가 안 보인다)
+            _im = lambda f_: np.asarray(Image.open(f_).convert("RGB"), dtype=np.float32)
+            # [원본] d["loop_seam"] = round(float(np.abs(_im(fs[-2])-_im(fs[0])).mean())/max(float(np.median(jumps)), 1e-3), 2)
+            # [개선] 분자는 화소(0~255), jumps 는 마스크(0~1)라 단위가 달라 수백 배로 나왔다. 분모도 완성 프레임 사이 변화량으로 잰다
+            _ims = [_im(f_) for f_ in fs[:-1]]; _steps = [float(np.abs(y-x).mean()) for x, y in zip(_ims, _ims[1:])]
+            # 정지 구간이 많은 동작은 중앙값이 0 에 가까워 부풀므로 이음새 양옆 변화량과 눈에 안 띄는 하한(.25)도 함께 본다
+            d["loop_seam"] = round(float(np.abs(_ims[-1]-_ims[0]).mean())/max(float(np.median(_steps)), _steps[0], _steps[-1], .25), 2)
         with open(info+".tmp", "w") as f: json.dump(d, f)
         os.replace(info+".tmp", info); return d
     except Exception as e:

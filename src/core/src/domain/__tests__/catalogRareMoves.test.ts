@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { CATALOG } from '../../data/catalog/catalog.generated';
 import { FAMILY_ARCH, specFor } from '../../data/pictograms/render';
-import { EXERCISE_CAUTION_IDS, exerciseCautionOf } from '../exerciseCautions';
+import { EXERCISE_CAUTION_IDS, REPRESENTATIVE_MOTION_ID_LIST, exerciseCautionOf, isRepresentativeMotion } from '../exerciseCautions';
 import { buildExerciseSearchIndex, searchExercises } from '../exerciseSearch';
 import { movementPatternOf } from '../movementPatterns';
 
@@ -73,8 +73,25 @@ test('주의 문구 대상은 실재하고, 대체 패턴에 묶이지 않은 �
   for (const id of EXERCISE_CAUTION_IDS) assert.ok(byId.get(id), id);
   assert.equal(exerciseCautionOf('seed-barbell-bench-press'), null);
   // [원본] 네 종목만 확인 — 플란체 푸시업·코리안 딥스가 패턴에 남은 것을 놓쳤다(qa code)
-  for (const id of EXERCISE_CAUTION_IDS) {
-    assert.equal(movementPatternOf(id), null, id);
-    assert.ok(exerciseCautionOf(id), id);
-  }
+  for (const id of EXERCISE_CAUTION_IDS) assert.ok(exerciseCautionOf(id), id);
+  // SPEC-028 희귀 종목만 대체 패턴에서 뺀다. SPEC-036 에서 주의 문구를 넓힌 클린·머슬업 등은 원래 패턴이 있는 일반 종목이다.
+  const rare = [
+    'seed-barbell-guillotine-press', 'seed-behind-the-neck-pull-up', 'seed-barbell-bradford-press', 'seed-barbell-sots-press',
+    'seed-korean-dip', 'seed-barbell-behind-the-neck-press', 'seed-cable-behind-the-neck-pulldown', 'seed-smith-behind-the-neck-press',
+    'seed-barbell-jefferson-curl', 'seed-dumbbell-jefferson-curl', 'seed-planche', 'seed-planche-push-up', 'seed-human-flag', 'seed-kettlebell-bent-press',
+  ];
+  for (const id of rare) assert.equal(movementPatternOf(id), null, id);
+});
+
+test('SPEC-036 대표 동작 예시 대상은 실재하고, 일반 종목에는 붙지 않는다', () => {
+  for (const id of REPRESENTATIVE_MOTION_ID_LIST) assert.ok(byId.get(id), id);
+  assert.equal(isRepresentativeMotion('seed-hiit'), true);
+  assert.equal(isRepresentativeMotion('seed-barbell-bench-press'), false);
+});
+
+test('SPEC-036 클린·스내치 계열은 영상이 있는 만큼 주의 문구도 빠짐없이 붙는다', () => {
+  const missing = CATALOG.filter((e) => /(^|-)(clean|snatch)(-|$)/.test(e.id.replace(/^seed-/, '')))
+    .filter((e) => exerciseCautionOf(e.id) === null)
+    .map((e) => e.id);
+  assert.deepEqual(missing, []);
 });

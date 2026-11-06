@@ -64,5 +64,153 @@
    "contact_slip_cm"
   ],
   "why": "팔꿈치를 떼며 미는 동작. 시트로 확인"
+ },
+ "hip_abduction__machine__glutes": {
+  "metrics": [
+   "expo_mean",
+   "exposure_min"
+  ],
+  "why": "앉아서 앞을 보는 구도라 둔근이 보이지 않음. 동작은 보임"
+ },
+ "push_up-wide__bodyweight__chest": {
+  "metrics": [
+   "contact_slip_cm"
+  ],
+  "why": "넓은 손 간격에서 손이 바닥을 4.4cm 이동. 폭을 줄여 6.9cm 에서 낮춤. 시트로 확인"
+ },
+ "neck_curl__bodyweight__other": {
+  "metrics": [
+   "expo_mean",
+   "exposure_min"
+  ],
+  "why": "목 앞쪽 근육은 근육 지도에 없고 승모근은 누운 자세에서 가려짐. 동작은 보임"
+ },
+ "broad_jump-frog__bodyweight__quads": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "clamshell__bodyweight__glutes": {
+  "metrics": [
+   "expo_mean",
+   "exposure_min"
+  ],
+  "why": "자극 부위(둔근)가 옆으로 누운 구도에서 가려짐. 동작은 보임"
+ },
+ "crunch-heeltap__bodyweight__abs": {
+  "metrics": [
+   "expo_mean"
+  ],
+  "why": "옆으로 비틀어 복근 노출이 작음. 동작은 시트로 확인"
+ },
+ "stretch__bodyweight__cardio": {
+  "metrics": [
+   "exposure_min"
+  ],
+  "why": "앞으로 숙인 순간 자극 부위 노출이 작음. 시트로 확인"
+ },
+ "jump_squat-tuck__bodyweight__quads": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "rope_climb__other__back": {
+  "metrics": [
+   "fallback_max"
+  ],
+  "why": "밧줄 위 손의 Wan 값을 Blender 로 되돌리는 비율이 큼. 12프레임 시트로 이상 없음 확인"
+ },
+ "romanian_deadlift-bstance__barbell__hamstrings": {
+  "metrics": [
+   "load_off_cm"
+  ],
+  "why": "뒷발을 받친 자세라 두 발목 평균을 기준으로 재는 지표가 크게 나옴. 시트로 확인"
+ },
+ "neck_curl-side__bodyweight__other": {
+  "metrics": [
+   "expo_mean",
+   "exposure_min"
+  ],
+  "why": "목 옆 근육은 근육 지도에 없고 승모근은 누운 자세에서 가려짐. 동작은 보임"
+ },
+ "step_up-poliquin__bodyweight__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "발을 상자에 올리는 접촉(기존 step_up 도 6.1cm 로 같은 예외). 시트로 확인"
+ },
+ "jefferson_curl__barbell__back": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "jefferson_curl__dumbbell__back": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "box_jump-lateral__bodyweight__quads": {
+  "metrics": [
+   "pen_max"
+  ],
+  "why": "상자에 발이 닿는 접촉. 올라선 자세 8.6cm 는 시트에서 눈에 띄지 않음(두 번 수정 뒤에도 수치 동일)"
+ },
+ "turkish__kettlebell__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "broad_jump-broad__bodyweight__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "burpee-bar__bodyweight__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "yoga__bodyweight__cardio": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "burpee-devil__dumbbell__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "burpee-box__bodyweight__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "overhead_press-bradford__barbell__shoulders": {
+  "metrics": [
+   "load_off_cm"
+  ],
+  "why": "바를 머리 앞뒤로 옮기는 동작이라 발 중앙에서 벗어나는 것이 정상"
+ },
+ "cluster__barbell__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
+ },
+ "man_maker__dumbbell__fullBody": {
+  "metrics": [
+   "iou_min"
+  ],
+  "why": "Wan 다듬기가 Blender 윤곽과 달라진 프레임이 있으나 합성에서 Blender 로 되돌림. 빠른 전신 동작. 12프레임 시트로 유령 팔다리 없음 확인"
  }
 }

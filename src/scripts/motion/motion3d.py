@@ -18,6 +18,14 @@ for _f in ("start", "end"):
     if _f in OV: DATA[_f] = {**DATA[_f], **OV[_f]}
 for _f in ("scene", "machine", "other", "hold", "cable", "band"):
     if _f in OV: DATA[_f] = OV[_f]
+# SPEC-035 N자세: keys 는 앞 키를 물려받는다. u = 위치(0~1, 없으면 고르게). 이 값이 없는 영상은 지금까지와 똑같이 푼다.
+KEYS = None; KEY_U = None
+if OV.get("keys"):
+    KEYS = []; KEY_U = []; _pv = dict(DATA['start'])
+    for _ki, _k in enumerate(OV["keys"]):
+        _k = dict(_k); KEY_U.append(_k.pop("u", _ki/(len(OV["keys"])-1))); _pv = {**_pv, **_k}; KEYS.append(_pv)
+    DATA['start'], DATA['end'] = KEYS[0], KEYS[-1]
+CYCLE = OV.get("loop") == "cycle"
 # 시험에서 손으로 짠 10종목
 HAND = {"bench_press__barbell__chest": "bench", "squat__barbell__quads": "squat", "pushdown__cable__triceps": "pushdown", "deadlift__barbell__back": "deadlift",
         "lat_pulldown__cable__back": "pulldown", "lat_pulldown__machine__back": "pulldown", "curl__dumbbell__biceps": "curl", "overhead_press__dumbbell__shoulders": "press",
@@ -156,7 +164,7 @@ AM = {'bench_press': 'chest triceps front_delt', 'incline_press': 'chest front_d
       'crunch': 'abs_', 'crunch_kneeling': 'abs_', 'sit_up': 'abs_', 'decline_sit_up': 'abs_', 'reverse_crunch': 'abs_', 'leg_raise_lying': 'abs_', 'knee_raise_lying': 'abs_', 'hanging_knee_raise': 'abs_', 'hanging_leg_raise': 'abs_', 'toes_to_bar': 'abs_', 'plank': 'abs_', 'dead_bug': 'abs_', 'toe_touch': 'abs_',
       'wrist_curl': 'forearms', 'behind_back_wrist': 'forearms', 'plate_curl': 'biceps', 'thruster': 'quads G front_delt side_delt', 'kb_swing': 'G hams', 'rear_delt_fly': 'rear_delt midback', 'reverse_pec_deck': 'rear_delt midback', 'sumo_deadlift': 'G hams erector', 'push_press': 'front_delt side_delt triceps', 'mountain_climber': 'abs_', 'fly_lying': 'chest', 'incline_fly': 'chest', 'pec_deck': 'chest', 'cable_crossover': 'chest', 'low_to_high_fly': 'chest', 'side_bend': 'obliques', 'woodchop': 'obliques', 'pallof': 'obliques abs_', 'plate_raise': 'front_delt', 'overhead_shrug': 'traps', 'farmers_walk': 'forearms traps', 'overhead_carry': 'side_delt front_delt'}
 HAND_M = {'bench': 'bench_press', 'squat': 'squat', 'pushdown': '', 'deadlift': 'deadlift', 'pulldown': 'lat_pulldown', 'curl': '', 'press': 'overhead_press', 'pushup': 'push_up', 'lunge': 'lunge', 'row': 'seated_row'}
-_names = AM.get(ARCH) or None
+_names = OV.get("muscles") or AM.get(ARCH) or None
 if _names: TN = _names.split()
 else:
     TN = None
@@ -589,8 +597,25 @@ def joints2d(p):
         J['toe'] = (J['an'][0]+5, J['an'][1]+3); J['toe2'] = (J['an2'][0]-5, J['an2'][1]+3); J['chest'] = add(hip, up, 58*.72); J['mid'] = add(hip, up, 58*.45)
     at = p['at']; dx, dy = at[1]-J[at[0]][0], at[2]-J[at[0]][1]
     return {k: (v[0]+dx, v[1]+dy) for k, v in J.items()}
+POSE_NUM = ('twist', 'sbend', 'flex', 'nk', 'nkz', 'nky', 'dx', 'dy', 'dz', 'ax', 'ax2')
+POSE_VEC = ('wrw', 'wrw2', 'ank', 'ank2', 'bp', 'kp', 'kp2')
 def pose_at(t):
-    a, b = DATA['start'], DATA['end']; bref = (b['at'][1], b['at'][2]) if a['at'][0] == b['at'][0] else joints2d(b)[a['at'][0]]
+    # [원본] 시작·끝 두 자세만 보간했다. [개선] keys 가 있으면 그 구간의 두 키를 보간한다
+    if not KEYS:
+        o = pose_pair(DATA['start'], DATA['end'], t); o['u'] = t; return o
+    i = 0
+    while i < len(KEYS)-2 and t > KEY_U[i+1]: i += 1
+    u = max(0, min(1, (t-KEY_U[i])/max(KEY_U[i+1]-KEY_U[i], 1e-6)))
+    if not CYCLE: u = lerp(u, ease(u), OV.get("key_ease", .7))
+    a, b = KEYS[i], KEYS[i+1]; o = pose_pair(a, b, u); o['u'] = t
+    for n in POSE_NUM:
+        if n in a or n in b: o[n] = lerp(a.get(n, 0), b.get(n, 0), u)
+    if 'pz' in a and 'pz' in b: o['pz'] = lerp(a['pz'], b['pz'], u)
+    for n in POSE_VEC:
+        if a.get(n) and b.get(n): o[n] = [lerp(x, y, u) for x, y in zip(a[n], b[n])]
+    return o
+def pose_pair(a, b, t):
+    bref = (b['at'][1], b['at'][2]) if a['at'][0] == b['at'][0] else joints2d(b)[a['at'][0]]
     at = [a['at'][0], lerp(a['at'][1], bref[0], t), lerp(a['at'][2], bref[1], t)]
     if pose_view(a) == 'side':
         def l3(u, v):
@@ -629,7 +654,23 @@ def fk(p, d_ang=0.0):
         J['R'] = R; J['Fw'] = R@V((0, -1, 0))
     R = J['R']; J['hip'] = (J['hp']+J['hp2'])/2; J['neck'] = R@(head('neck_01')-p0g); J['head'] = R@(head('head')-p0g+V((0, 0, .1)))
     J['chest'] = R@(head('spine_03')-p0g+V((0, -0.06, 0.05))); J['mid'] = R@(head('spine_02')-p0g); J['toe'] = J['an']+V((0, -.14, -.05)); J['toe2'] = J['an2']+V((0, -.14, -.05))
+    if p.get('twist') or p.get('sbend') or p.get('flex'):
+        # SPEC-035 척추 회전·옆굽힘·앞굽힘: 몸통 위쪽 관절(팔 포함)을 허리 기준으로 돌린다. 양수 = 자기 왼쪽으로 돌기·왼쪽으로 굽기·앞으로 굽기
+        R3 = R.to_3x3(); S_ = R3@spine_mat(p)@R3.inverted(); piv = R@(head('spine_01')-p0g)
+        for n_ in ('sh', 'sh2', 'el', 'el2', 'wr', 'wr2', 'neck', 'head', 'chest'): J[n_] = piv+S_@(J[n_]-piv)
     return J
+def spine_mat(p): return M.Rotation(rad(p.get('twist', 0)), 3, 'Z')@M.Rotation(rad(p.get('sbend', 0)), 3, 'Y')@M.Rotation(rad(p.get('flex', 0)), 3, 'X')
+SPINE_ANY = any(k_.get(n_) for k_ in (KEYS or [DATA['start'], DATA['end']]) for n_ in ('twist', 'sbend', 'flex'))
+NECK_ANY = any(k_.get(n_) is not None for k_ in (KEYS or [DATA['start'], DATA['end']]) for n_ in ('nk', 'nkz', 'nky'))
+def rest_q(bone, axis, ang): return Q(rot3(bone).transposed()@V(axis), ang)
+def spine_pose(p, k):
+    for b_ in ('spine_01', 'spine_02', 'spine_03'):
+        PB[b_].rotation_quaternion = rest_q(b_, (0, 0, 1), rad(p.get('twist', 0))/3)@rest_q(b_, (0, 1, 0), rad(p.get('sbend', 0))/3)@rest_q(b_, (1, 0, 0), rad(p.get('flex', 0))/3)
+        PB[b_].keyframe_insert('rotation_quaternion', frame=k)
+def neck_pose(p, k):
+    for b_, w_ in (('neck_01', .55), ('head', .45)):
+        PB[b_].rotation_quaternion = rest_q(b_, (0, 0, 1), rad(p.get('nkz', 0))*w_)@rest_q(b_, (0, 1, 0), rad(p.get('nky', 0))*w_)@rest_q(b_, (1, 0, 0), rad(p.get('nk', 0))*w_)
+        PB[b_].keyframe_insert('rotation_quaternion', frame=k)
 def foot_quat(s, a): return (M.Rotation(rad(a), 3, 'X')@rot3('foot_'+s)).to_quaternion()
 BALL = head('ball_l')-head('foot_l')
 def ankle_floor(a):
@@ -724,7 +765,24 @@ def solve_frame(t, first, force_d=None):
             lift = .065-(Pp.z+J['el'+sfx].z)
             if lift > 0:
                 J['el'+sfx] = J['el'+sfx]+V((0, 0, lift)); J['wr'+sfx] = J['wr'+sfx]+V((0, 0, lift))
+    # SPEC-035 골반을 값으로 지정·이동. dz 가 양수면 공중이다(발 접촉을 푼다)
+    if 'pz' in p: Pp.z = p['pz']
+    if p.get('dx') or p.get('dy') or p.get('dz'): Pp = Pp+V((p.get('dx', 0), p.get('dy', 0), p.get('dz', 0)))
+    if p.get('dz', 0) > .008: fn = ff = False
+    if KEYS or OV.get("floor_clamp"):
+        # SPEC-036 자세 사이를 보간하다 몸이 바닥 아래로 가지 않게 한다(공중·접촉은 그대로)
+        _lo = min(Pp.z+J[n_].z-m_ for n_, m_ in (('an', ankle_z-.005), ('an2', ankle_z-.005), ('kn', .05), ('kn2', .05), ('hip', .1), ('sh', .05), ('sh2', .05), ('head', .1), ('el', .03), ('el2', .03)))
+        if not side or not (hn or hf): _lo = min(_lo, Pp.z+J['wr'].z-.03, Pp.z+J['wr2'].z-.03)
+        if _lo < 0: Pp.z -= _lo
     return dict(p=p, j2=j2, J=J, P=Pp, sup=sup, fn=fn, ff=ff, hn=hn, hf=hf, side=side, horiz=horiz, d=d)
+def foot_target(p, s, sg):
+    # SPEC-035 발 목표: 자세의 ank/ank2, 또는 crank(페달·일립티컬·계단) 궤적
+    v = p.get('ank' if s == 'l' else 'ank2')
+    if v: return v
+    c_ = OV.get("crank")
+    if not c_: return None
+    a_ = 2*math.pi*(p['u']*c_.get("turns", 1)+c_.get("ph", 0)+(0 if s == 'l' else .5))
+    return [sg*c_.get("x", .12), c_["c"][0]+c_.get("ry", c_.get("r", .17))*math.cos(a_), c_["c"][1]+c_.get("rz", c_.get("r", .17))*math.sin(a_)]
 def spread_steps(v, thr, rel=0.0, W=5):
     """접촉 판정이 바뀌어 한 프레임에 생긴 계단을 앞뒤 W 프레임에 나눠 없앤다. 계단이 없으면 값을 그대로 돌려준다."""
     v = [float(x) for x in v]; n = len(v); hit = False
@@ -749,13 +807,15 @@ def spread_steps(v, thr, rel=0.0, W=5):
 # [원본] 프레임마다 따로 푼 값을 그대로 쓴다(접촉 판정이 바뀌는 프레임에서 몸이 튄다)
 # FRM = [solve_frame(ease((k-1)/(NF-1)), k == 1) for k in range(1, NF+1)]
 # [개선] 몸 회전 → 골반 높이 순서로 계단을 없앤다
-FRM = [solve_frame(ease((k-1)/(NF-1)), k == 1) for k in range(1, NF+1)]
+TF = (lambda u: u) if KEYS else ease   # keys 는 구간마다 따로 부드럽게 한다
+FRM = [solve_frame(TF((k-1)/(NF-1)), k == 1) for k in range(1, NF+1)]
 ROOT_FIX = []
 _ds, _hit = spread_steps([_f['d'] for _f in FRM], 3.0)
-if _hit:
-    ROOT_FIX.append('d'); FRM = [solve_frame(ease((k-1)/(NF-1)), k == 1, force_d=_ds[k-1]) for k in range(1, NF+1)]
+NO_SPREAD = OV.get("no_spread", CYCLE)   # 순환 영상은 첫 프레임 = 끝 프레임이라 계단 나누기가 이음새를 벌린다
+if _hit and not NO_SPREAD:
+    ROOT_FIX.append('d'); FRM = [solve_frame(TF((k-1)/(NF-1)), k == 1, force_d=_ds[k-1]) for k in range(1, NF+1)]
 _zs, _hit = spread_steps([_f['P'].z for _f in FRM], .025, 3.0)
-if _hit:
+if _hit and not NO_SPREAD:
     ROOT_FIX.append('z')
     for _f, _z in zip(FRM, _zs): _f['P'].z = _z
 if OV.get("zlift"):
@@ -783,7 +843,7 @@ def px_world(pt, f0):
 def jw(fr, name):
     J, P = fr['J'], fr['P']
     return P+J[name]
-ST = STANCE.get(ARCH, .16)
+ST = OV.get("stance", STANCE.get(ARCH, .16))
 OBJ = {}
 def along_y(d):
     # 국소 Y 를 d 로, 폭(국소 X)은 가능한 한 세계 X 로. rotation_difference 는 정반대(-Y)에서 축이 임의로 잡혀 패드가 칼날로 선다
@@ -805,6 +865,76 @@ def bench3d(it, f0, y_top):
     if it.get('legs') is not False:
         for q in (a, b):
             box("post", (.07, .07, max(q.z-.05, .02)), (0, q.y, max(q.z-.05, .02)/2+.02), FRAME); box("foot", (.5, .08, .04), (0, q.y, .02), FRAME)
+PMAT = lambda n: globals().get(n, PAD)
+def prop_res(a, P, J, grips, p):
+    if isinstance(a, (list, tuple)): return V(a)
+    if isinstance(a, dict):
+        # SPEC-036 눕힌 동작에서 세계 좌표 지점을 눕힌 좌표로 바꾼다(lie_down 과 같은 식)
+        ang_ = OV["lie"]; RX_ = M.Rotation(rad(ang_), 3, 'X'); pz_ = OV.get("lie_z", OV.get("bench_top", BENCH_TOP)+(BACK_OFF if ang_ < 0 else CHEST_OFF))
+        return RX_.inverted()@(V(a['w'])-(V((0, 0, pz_))-RX_@FRM[0]['P']))
+    if a == 'gl': return grips['l']
+    if a == 'gr': return grips['r']
+    if a == 'gm': return (grips['l']+grips['r'])/2
+    if a == 'bp': return V(p['bp'])
+    return P+J[a]
+def expand_props(items):
+    out = []
+    for it in items:
+        f_ = PRESET_PROPS.get(it.get('k'))
+        out += f_(it) if f_ else [it]
+    return out
+def props_setup(f0):
+    made = []
+    for it in expand_props(OV.get("props") or []):
+        k_ = it['k']; m_ = PMAT(it.get('m', 'PAD')); o = None
+        if k_ == 'box':
+            o = box("prop", tuple(it['s']), tuple(it.get('p', (0, 0, 0))), m_, it.get('bevel', .012))
+            if it.get('world'): o["world"] = 1   # SPEC-036 눕히기(lie)에 함께 돌지 않는다
+        elif k_ == 'cyl': o = cyl("prop", it['r'], it['l'], m_, tuple(it.get('p', (0, 0, 0))), it.get('axis', 'Z'))
+        elif k_ == 'sph':
+            bpy.ops.mesh.primitive_uv_sphere_add(radius=it['r'], segments=48, ring_count=24, location=tuple(it.get('p', (0, 0, 0)))); o = bpy.context.object; o.name = "prop"; o.data.materials.append(m_); smooth(o)
+        elif k_ == 'tor':
+            bpy.ops.mesh.primitive_torus_add(major_radius=it['r'], minor_radius=it.get('t', .012), location=tuple(it.get('p', (0, 0, 0)))); o = bpy.context.object; o.name = "prop"; o.data.materials.append(m_); smooth(o); o.rotation_euler = tuple(rad(x) for x in it.get('rot', (90, 0, 0)))
+        elif k_ == 'link': o = link_cyl("prop", it.get('r', .01), m_)
+        elif k_ == 'wave': made.append((it, [link_cyl("prop", it.get('r', .016), m_) for _ in range(it.get('n', 14))])); continue
+        made.append((it, o))
+    return made
+def props_key(made, k, fr, P, J, grips, p):
+    for it, o in made:
+        ctx = lambda a: prop_res(a, P, J, grips, p); k_ = it['k']
+        if k_ == 'link': set_link(o, ctx(it['a']), ctx(it['b'])+V((1e-4, 0, 0)), k)
+        elif k_ == 'wave':
+            # 줄: 끝 a·b 사이를 잇고, 처짐 + 진행하는 물결(줄넘기는 arc)
+            a_, b_ = ctx(it['a']), ctx(it['b']); n_ = len(o); pts = []; u_ = p['u']
+            for i in range(n_+1):
+                e_ = i/n_; q = a_.lerp(b_, e_); env = math.sin(math.pi*e_)
+                if it.get('arc'):
+                    th_ = 2*math.pi*(u_+it.get('ph', 0)); q = q+V((0, it['arc']*math.cos(th_)*env, it['arc']*math.sin(th_)*env))
+                else:
+                    q = q+V((0, 0, -it.get('sag', 0)*env+it.get('amp', .1)*(1-e_*.6)*math.sin(2*math.pi*(it.get('waves', 2)*e_-u_*it.get('turns', 2))+it.get('ph', 0))*min(1, e_*5)))
+                pts.append(q)
+            for i, s_ in enumerate(o): set_link(s_, pts[i], pts[i+1]+V((1e-4, 0, 0)), k)
+        elif it.get('at'):
+            q = ctx(it['at'])+V(it.get('off', (0, 0, 0)))
+            if 'z' in it: q.z = it['z']   # SPEC-036 바닥에 놓인 공처럼 높이를 고정
+            o.location = q; o.keyframe_insert('location', frame=k)
+# 기구 묶음(원점 = 사람이 서는 자리, 앞 = -Y)
+def _treadmill(it):
+    return [dict(k='box', s=(.74, 1.7, .1), p=(0, -.05, .05), m='DARK'), dict(k='box', s=(.56, 1.6, .012), p=(0, -.05, .106), m='RUBBER'), dict(k='box', s=(.07, .07, 1.05), p=(.36, -.82, .55), m='FRAME'), dict(k='box', s=(.07, .07, 1.05), p=(-.36, -.82, .55), m='FRAME'), dict(k='box', s=(.72, .16, .1), p=(0, -.86, 1.1), m='DARK'), dict(k='cyl', r=.016, l=.5, p=(.36, -.6, .95), axis='Y', m='FRAME'), dict(k='cyl', r=.016, l=.5, p=(-.36, -.6, .95), axis='Y', m='FRAME')]
+def _bike(it):
+    c, s_, h_ = it['crank'], it['seat'], it['bar']
+    return [dict(k='cyl', r=.2 if it.get('fly', True) else .01, l=.05, p=(0, c[0]-.5, .22), axis='X', m='DARK'), dict(k='box', s=(.06, 1.0, .05), p=(0, c[0]-.1, .08), m='FRAME'), dict(k='box', s=(.5, .08, .04), p=(0, c[0]+.4, .02), m='FRAME'), dict(k='box', s=(.5, .08, .04), p=(0, c[0]-.6, .02), m='FRAME'), dict(k='link', a=(0, c[0], c[1]), b=(0, s_[0], s_[1]-.05), r=.022, m='FRAME'), dict(k='link', a=(0, c[0], c[1]), b=(0, c[0]-.5, .22), r=.022, m='FRAME'), dict(k='link', a=(0, c[0]-.5, .22), b=(0, h_[0], h_[1]), r=.022, m='FRAME'), dict(k='box', s=(.22, .28, .07), p=(0, s_[0], s_[1]), m='PAD', bevel=.025), dict(k='cyl', r=.016, l=.56, p=(0, h_[0], h_[1]), axis='X', m='RUBBER'), dict(k='cyl', r=.04, l=.03, p=(.03, c[0], c[1]), axis='X', m='DARK'), dict(k='link', a='an', b=(.03, c[0], c[1]), r=.012, m='STEEL'), dict(k='link', a='an2', b=(-.03, c[0], c[1]), r=.012, m='STEEL')]
+def _rower(it):
+    return [dict(k='box', s=(.1, 2.3, .05), p=(0, .2, .24), m='FRAME'), dict(k='box', s=(.5, .08, .05), p=(0, 1.3, .03), m='FRAME'), dict(k='box', s=(.5, .08, .05), p=(0, -.9, .03), m='FRAME'), dict(k='link', a=(0, 1.3, .03), b=(0, 1.3, .24), r=.02, m='FRAME'), dict(k='link', a=(0, -.9, .03), b=(0, -.9, .34), r=.02, m='FRAME'), dict(k='cyl', r=.24, l=.12, p=(0, -1.05, .5), axis='X', m='DARK'), dict(k='box', s=(.34, .08, .22), p=(0, -.62, .32), m='PAD'), dict(k='box', s=(.26, .3, .06), at='hip', off=(0, 0, -.14), m='PAD'), dict(k='link', a='gm', b=(0, -1.0, .6), r=.005, m='CABLE'), dict(k='link', a='gl', b='gr', r=.014, m='RUBBER')]
+def _stairs(it):
+    o = []
+    for i in range(5): o.append(dict(k='box', s=(.7, .34, .2+.2*i), p=(0, -.1-.3*i+.3, .1+.1*i), m='DARK'))
+    o += [dict(k='box', s=(.06, .06, 1.25), p=(.42, -.3, .62), m='FRAME'), dict(k='box', s=(.06, .06, 1.25), p=(-.42, -.3, .62), m='FRAME'), dict(k='cyl', r=.018, l=.8, p=(.42, -.1, 1.22), axis='Y', m='FRAME'), dict(k='cyl', r=.018, l=.8, p=(-.42, -.1, 1.22), axis='Y', m='FRAME')]
+    return o
+def _rings(it):
+    t_ = it.get('top', 2.6)
+    return [dict(k='cyl', r=.03, l=1.3, p=(0, it.get('y', 0), t_), axis='X', m='FRAME'), dict(k='tor', r=.09, t=.013, at='gl', off=(0, 0, .0), m='DARK', rot=(90, 0, 90)), dict(k='tor', r=.09, t=.013, at='gr', off=(0, 0, .0), m='DARK', rot=(90, 0, 90)), dict(k='link', a='gl', b=(.3, it.get('y', 0), t_), r=.008, m='ACC'), dict(k='link', a='gr', b=(-.3, it.get('y', 0), t_), r=.008, m='ACC')]
+PRESET_PROPS = {'treadmill': _treadmill, 'bike': _bike, 'rower': _rower, 'stairs': _stairs, 'rings': _rings}
 def generic():
     f0 = FRM[0]; J0, P0 = f0['J'], f0['P']
     hip2 = f0['j2']['hip']; wh = P0+J0['hip']
@@ -853,7 +983,7 @@ def generic():
         elif k_ == 'barF':
             OBJ['barF'] = it
     free = EQUIP in FREE and HOLD != 'none'
-    one = ARCH in ONE_ARM
+    one = ARCH in ONE_ARM or bool(OV.get("one_hand"))
     # 기구
     bar = None; dbs = []; handle = None
     if free and EQUIP in ('barbell', 'smith', 'trapbar', 'ezbar'):
@@ -885,7 +1015,7 @@ def generic():
     lines_ = {id(i): link_cyl("line", (i.get('w', 4))*K*.6, FRAME) for i in dyn if i['k'] == 'line'}
     # 케이블
     cb = None; c_spec = None; pul = None; cables = []; bands = []
-    if EQUIP == 'cable':
+    if EQUIP == 'cable' and not OV.get("no_cable"):
         c_spec = DATA.get('cable') or {"from": [206, 60], "col": 212}
         pul = px_world(c_spec['from'], f0); colx = c_spec.get('col', c_spec['from'][0]+6)
         cq = px_world((colx, 40), f0); colh = max(pul.z+.25, 1.15)
@@ -907,7 +1037,7 @@ def generic():
         c_spec = {"from": [209, 62], "col": 210}; pul = px_world(c_spec['from'], f0); cq = pul
         box("column", (.09, .09, 2.2), (0, cq.y, 1.1), FRAME); box("base", (.56, .44, .04), (0, cq.y, .02), FRAME); cyl("pulley", .045, .03, DARK, (0, pul.y, pul.z), 'X')
         cables.append((0, link_cyl("cable", .0035, CABLE))); OBJ['stack'] = box("stack", (.26, .12, .42), (0, cq.y-.11, .3), DARK); OBJ['stack_z'] = .3; handle = link_cyl("handle", .014, STEEL)
-    if EQUIP == 'band':
+    if EQUIP == 'band' and not OV.get("no_cable"):   # SPEC-036 props 로 직접 그린 밴드는 기본 밴드를 안 그린다
         bm = pbr("band", srgb("2F6E86"), .55)
         bands = [link_cyl("band", .009, bm), link_cyl("band", .009, bm)]
         _bf = (DATA.get('band') or {}).get('from')
@@ -921,6 +1051,7 @@ def generic():
             for dy in (-.42, .42): box("post", (.05, .05, bz), (sg*(OV["wr_x"]+.02), yy+dy, bz/2), FRAME)
     if 'barF' in OBJ:
         y_ = OBJ['barF']['y']; OBJ['barF_y'] = y_
+    PROPS = props_setup(f0)
     fingers_open = [(HOLD == 'none' and (f0['hn'] or f0['hf'] or not free)) and not OV.get("closed_hands")]
     zb0 = None; WRP = {'l': [], 'r': []}; ANP = {'l': [], 'r': []}; HOLDP = []; CONTACT = []; LOADOFF = []
     an_fix = {}; wr_fix = {}
@@ -932,6 +1063,7 @@ def generic():
             if 'smith_y' not in OBJ: OBJ['smith_y'] = _y
             P = P.copy(); P.y -= _y-OBJ['smith_y']
         body(R, P, k)
+        if SPINE_ANY: spine_pose(p, k)
         # 머리
         if side:
             t = p['t']; lean = (t+90+180) % 360-180  # 0=곧게 서서, +앞으로
@@ -941,10 +1073,11 @@ def generic():
                 bend('neck_01', (1, 0, 0), 0, k); bend('head', (1, 0, 0), 0, k)
             if p.get('hd') is not None:
                 pass
+        if NECK_ANY: neck_pose(p, k)
         wrs = {}; grips = {}; Fs = {}; ns = {}
         for s, sfx, sg in (('l', '', 1), ('r', '2', -1)):
             sh = P+J['sh'+sfx]; wr = P+J['wr'+sfx]; el = P+J['el'+sfx]
-            if OV.get("wr_line") or (EQUIP == 'smith' and HOLD == 'wr'):
+            if (OV.get("wr_line") and not KEYS) or (EQUIP == 'smith' and HOLD == 'wr'):
                 # 바벨 경로는 곧게(팔 각도 보간의 호를 따라 앞으로 나가지 않게). 스미스는 앞뒤로 움직이지 않는다
                 _w0, _w1 = FRM[0]['P']+FRM[0]['J']['wr'+sfx], FRM[-1]['P']+FRM[-1]['J']['wr'+sfx]; _e = ease(ki/(NF-1))
                 wr.z = lerp(_w0.z, _w1.z, _e); wr.y = (_w0.y+_w1.y)/2 if EQUIP == 'smith' else lerp(_w0.y, _w1.y, _e)
@@ -955,7 +1088,7 @@ def generic():
             elif side:
                 wr.x = sg*max(abs(sh.x)*(1.15 if HOLD == 'wr' else 1), .03)
                 if OV.get("wr_x") is not None: wr.x = sg*OV["wr_x"]
-                if EQUIP == 'bodyweight' and (fr['hn'] or fr['hf']): wr.x = sg*.30
+                if EQUIP == 'bodyweight' and (fr['hn'] or fr['hf']): wr.x = sg*(OV["wr_x"] if OV.get("floor_wr_x") else .30)
             gr = GRIP if not (one and s == 'r') else 'neutral'
             on_floor = (fr['hn'] if s == 'l' else fr['hf'])
             if OV.get("palm_down"):
@@ -965,6 +1098,12 @@ def generic():
                 F = V((sg*-.06, -1, 0)).normalized(); n = V((0, 0, -1)); wr.z = .05
             else:
                 n = grip_n(F, sg, gr, side)
+            _wv = p.get('wrw' if s == 'l' else 'wrw2')
+            if _wv:
+                # SPEC-035 손목을 세계 좌표로 지정(몸 앞을 가로지르는 동작). 바닥이면 손바닥을 댄다
+                wr = V(_wv); F = (wr-sh).normalized() if (wr-sh).length > .05 else F
+                if wr.z < .09: F = V((sg*-.06, -1, 0)).normalized(); n = V((0, 0, -1))
+                else: n = grip_n(F, sg, gr, side)
             wr = clamp_reach(sh, wr, REACH)
             if OV.get("hands_lock"):
                 if s in wr_fix: wr = wr_fix[s].copy()
@@ -1059,6 +1198,7 @@ def generic():
                     a = a+V((0, d.z, -d.y))*(i['off']*K); b = b+V((0, d.z, -d.y))*(i['off']*K)
                 o.location = (a+b)/2; o.scale = (1, L, 1); o.rotation_quaternion = along_y(d)
                 for path in ('location', 'scale', 'rotation_quaternion'): o.keyframe_insert(path, frame=k)
+        props_key(PROPS, k, fr, P, J, grips, p)
         # 팔·다리 적용
         for s, sfx, sg in (('l', '', 1), ('r', '2', -1)):
             sh = P+J['sh'+sfx]; wr = wrs[s]; el = P+J['el'+sfx]
@@ -1068,8 +1208,13 @@ def generic():
             arm(s, wr, Fs[s], ns[s], mid+pdir.normalized()*1.0, k)
             WRP[s].append(wr.copy())
             ank = P+J['an'+sfx]; kn = P+J['kn'+sfx]; hp = P+J['hp'+sfx]
+            _fkx = ank.x
             ank.x = sg*ST if side or True else ank.x
+            if OV.get("ankle_free"): ank.x = _fkx
+            ank.x += sg*p.get('ax' if s == 'l' else 'ax2', 0)   # SPEC-036 발 옆 이동(바깥 = 양수)
             contact = (fr['fn'] if s == 'l' else fr['ff']); fa = J['fa'+sfx]; lock_ = OV.get("feet_lock")
+            _av = foot_target(p, s, sg)
+            if _av is not None: ank = V(_av); contact = False
             if lock_: contact = True
             if contact:
                 ank.z = ankle_floor(fa)
@@ -1078,6 +1223,9 @@ def generic():
             if pose_view(p) == 'front' and p.get('seated'): ank.z = ankle_z
             ank = clamp_reach(hp, ank, L_TH+L_SH, .995)
             m2 = (hp+ank)/2; pd = kn-m2; pd = pd+J['Fw']*.03+V((sg*.12*max(pd.length, .05), 0, 0))
+            if _av is not None: pd = V((0, -1, .25))+V((sg*.1, 0, 0))   # 지정한 발 목표: 무릎은 앞으로
+            _kp = p.get('kp' if s == 'l' else 'kp2')
+            if _kp: pd = V((sg*_kp[0], _kp[1], _kp[2]))   # SPEC-036 무릎 방향(x 는 바깥이 양수)
             leg(s, ank, m2+pd.normalized()*1.0, 0, k, foot_quat(s, fa))
             ANP[s].append(ank.copy())
             if contact: CONTACT.append(('foot'+s, ank.copy()))
@@ -1098,6 +1246,7 @@ def generic():
     # barF: 손 높이에 고정
     if 'barF' in OBJ:
         g = (FRM[0]['P']+FRM[0]['J']['wr']+FRM[0]['P']+FRM[0]['J']['wr2'])/2
+        if OV.get("one_hand"): g = max(FRM[0]['P']+FRM[0]['J']['wr'], FRM[0]['P']+FRM[0]['J']['wr2'], key=lambda q: q.z)   # SPEC-036 잡은 손 높이
         z = g.z+.09; y = g.y
         cyl("pullbar", .016, 1.5, STEEL, V((0, y, z)), 'X')
         for sg in (-1, 1):
@@ -1113,7 +1262,7 @@ def lie_down():
     # 앞모습으로 푼 동작을 통째로 눕히거나 기울인다(플라이류). ang: -90=누움, -55=경사 벤치, +50=가슴 받침
     ang = OV["lie"]; root = bpy.data.objects.new("W", None); col.objects.link(root)
     for o in bpy.data.objects:
-        if o is root or o is h or o.parent is not None or o.type in ('CAMERA', 'LIGHT'): continue
+        if o is root or o is h or o.parent is not None or o.type in ('CAMERA', 'LIGHT') or o.get("world"): continue
         o.parent = root
     P_ = FRM[0]['P']; RX = M.Rotation(rad(ang), 3, 'X'); top = OV.get("bench_top", BENCH_TOP); off = BACK_OFF if ang < 0 else CHEST_OFF
     n_ = RX@V((0, 1 if ang < 0 else -1, 0))   # 몸에서 벤치 쪽(국소 등/가슴) 방향
@@ -1148,9 +1297,20 @@ def equip_points():
         if o.type != 'MESH' or o is h or o is fl: continue
         ev = o.evaluated_get(dg); out[o.name] = [ev.matrix_world@V(c) for c in o.bound_box]
     return out
+if OV.get("world_rot"):
+    # SPEC-035 몸 전체를 돌린 뒤(옆으로 눕기 등) 가장 낮은 점을 바닥에 맞춘다
+    _root = bpy.data.objects.new("W", None); col.objects.link(_root)
+    for o in bpy.data.objects:
+        if o is _root or o is h or o is fl or o.parent is not None or o.type in ('CAMERA', 'LIGHT'): continue
+        o.parent = _root
+    _root.rotation_euler = tuple(rad(x) for x in OV["world_rot"]); bpy.context.view_layer.update()
+    _zm = 9
+    for f in (1, (NF+1)//2, NF):
+        scn.frame_set(f); bpy.context.view_layer.update(); _zm = min(_zm, min(v_.z for v_ in eval_verts()[::3]))
+    _root.location = V((0, 0, -_zm+OV.get("floor_gap", .004))); bpy.context.view_layer.update()
 idx = [i for i in range(len(rest)) if ca.data[i].color[0] > .5]
 step_ = max(1, len(idx)//240); idx = idx[::step_]
-SAMPLE_F = [1, (NF+1)//2, NF]
+SAMPLE_F = [1, (NF+3)//4, (NF+1)//2, (3*NF+1)//4, NF] if CYCLE else [1, (NF+1)//2, NF]
 SNAP = {}
 floor_min = 9; pen = {}
 HANDV = {i for i in range(len(rest)) if sum(x for n_, x in w[i].items() if n_.startswith(('hand', 'index', 'middle', 'ring', 'pinky', 'thumb'))) > .3}
@@ -1200,8 +1360,10 @@ def exposure(c, frames=SAMPLE_F):
             tot += 1
             if hit and ob.name == h.name and (loc-v).length < .03: vis += 1
     return vis/max(tot, 1)
+# [원본] 순환 영상은 중간 프레임과 비교했다. [개선] 첫 프레임에서 가장 멀어진 프레임과 비교한다(왼쪽→가운데→오른쪽 동작은 중간이 첫 자세와 같다)
+MOTION_F = max((f_ for f_ in SNAP if f_ != 1), key=lambda f_: sum((SNAP[f_][0][i]-SNAP[1][0][i]).length for i in range(0, len(SNAP[1][0]), 40))) if CYCLE else NF
 def motion_proj(vd):
-    a, b = SNAP[1][0], SNAP[NF][0]; tot = pr = 0
+    a, b = SNAP[1][0], SNAP[MOTION_F][0]; tot = pr = 0
     for i in range(0, len(a), 40):
         m = b[i]-a[i]; L = m.length; tot += L; pr += (m-vd*m.dot(vd)).length
     return pr/max(tot, 1e-6)
@@ -1263,7 +1425,7 @@ for f_ in SNAP:
 m['screen_max'] = round(max(max(map(abs, _bx)), max(map(abs, _by))), 3)
 _mid = [ndc(v_) for v_ in SNAP[(NF+1)//2][0][::25]]
 m['body_frac'] = round(max(max(a_ for a_, _ in _mid)-min(a_ for a_, _ in _mid), max(b_ for _, b_ in _mid)-min(b_ for _, b_ in _mid))/2, 3)
-_a, _b = SNAP[1][0], SNAP[NF][0]
+_a, _b = SNAP[1][0], SNAP[MOTION_F][0]
 m['motion_frac'] = round(max(math.hypot(ndc(_a[i])[0]-ndc(_b[i])[0], ndc(_a[i])[1]-ndc(_b[i])[1]) for i in range(0, len(_a), 25))/2, 3)
 m['motion_proj'] = round(motion_proj(_vd), 3)
 m['exposure_min'] = round(min(exposure(cam, [f_]) for f_ in SAMPLE_F), 3)
@@ -1279,6 +1441,8 @@ for f_ in SAMPLE_F:
 m['elbow_min'] = round(min(_el)); m['knee_min'] = round(min(_kn))
 m['root_z'] = [round(_f['P'].z, 4) for _f in FRM]; m['root_d'] = [round(float(_f['d']), 2) for _f in FRM]
 m['root_fix'] = ROOT_FIX
+if KEYS or OV.get("crank") or OV.get("free_contact"): m['free_contact'] = True
+if OV.get("still"): m['still'] = True
 m['root_flags'] = ["".join(c for c, b in zip("nfh", (_f['fn'], _f['ff'], _f['hn'])) if b) for _f in FRM]
 print("METRIC "+json.dumps(m, ensure_ascii=False), flush=True)
 json.dump(m, open(os.path.join(OUT, KEY+".json"), "w"), ensure_ascii=False)

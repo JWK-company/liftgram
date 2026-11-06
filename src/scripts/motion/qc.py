@@ -8,9 +8,9 @@ HOLD = {"plank", "plank_high", "dead_hang", "wall_sit", "hollow", "v_sit", "capt
 LOAD = {"deadlift", "rack_pull", "romanian_deadlift", "stiff_leg", "shrug", "overhead_press", "bent_over_row", "pendlay_row"}
 SMALL = {"shrug", "overhead_shrug", "behind_back_wrist", "wrist_curl", "calf_raise", "calf_raise_bar", "seated_calf", "donkey_calf", "leg_press_calf", "scapular", "dead_hang"}   # 원래 움직임이 작은 동작
 SLIP_OK = {"bird_dog", "kickback_glute", "reverse_hyper", "standing_leg_curl", "step_up", "step_down", "dead_bug"}   # 다리·팔을 떼는 동작: 접촉 이동이 아니다
-NOPEN = {"column", "post", "foot", "base", "Sphere", "Torus", "gr", "dbl", "dbr", "db", "kb", "plate", "piv", "pulley", "roller", "stack", "guide", "rail", "sfoot", "lat", "hndl", "pullbar", "dipbar", "tb", "wheel", "barbell", "shaft", "collar", "Cylinder"}  # 손에 쥐거나 몸에 닿게 만든 것, 눈으로 본다
+NOPEN = {"column", "post", "foot", "base", "Sphere", "Torus", "gr", "dbl", "dbr", "db", "kb", "plate", "piv", "pulley", "roller", "stack", "guide", "rail", "sfoot", "lat", "hndl", "pullbar", "dipbar", "tb", "wheel", "barbell", "shaft", "collar", "Cylinder", "prop"}  # 손에 쥐거나 몸에 닿게 만든 것, 눈으로 본다
 # (지표, 방향, 경고, 불량) 방향 hi=클수록 나쁨, lo=작을수록 나쁨
-RULES = [("pen_max", "hi", 3.5, 6), ("sink", "hi", 1, 2), ("contact_slip_cm", "hi", 2, 4), ("elbow_min", "lo", 15, 5), ("knee_min", "lo", 20, 10), ("screen_max", "hi", .97, 1.0), ("body_frac", "lo", .45, .35),
+RULES = [("loop_seam", "hi", 2.5, 4), ("pen_max", "hi", 3.5, 6), ("sink", "hi", 1, 2), ("contact_slip_cm", "hi", 2, 4), ("elbow_min", "lo", 15, 5), ("knee_min", "lo", 20, 10), ("screen_max", "hi", .97, 1.0), ("body_frac", "lo", .45, .35),
          ("expo_mean", "lo", .25, .12), ("exposure_min", "lo", .12, .05), ("motion_proj", "lo", .5, .35), ("motion_frac", "lo", .10, .05), ("ik_err", "hi", .05, .12), ("load_off_cm", "hi", 12, 20), ("iou_min", "lo", .84, .78), ("fallback_max", "hi", .24, .35), ("flicker_p95", "hi", .45, .70), ("chroma_p95", "hi", .30, .50), ("fallback_jump", "hi", .05, .12), ("foot_sink", "hi", 8, 20)]   # 합성 지표는 294클립 분포로 보정(iou 1%=.816, 99%=flicker .49): 불량은 분포 밖 이상치만 잡고 나머지는 눈 검수
 def facts(k, m, rep):
     arch = k.split("__")[0].split("-")[0]; f = {x: m.get(x) for x in ("contact_slip_cm", "elbow_min", "knee_min", "screen_max", "body_frac", "exposure_min", "motion_proj", "motion_frac", "ik_err")}
@@ -19,8 +19,9 @@ def facts(k, m, rep):
     if arch in LOAD and k.split("__")[1] in ("barbell", "trapbar", "smith", "ezbar"): f["load_off_cm"] = m.get("load_off_cm")
     if arch in HOLD: f["motion_proj"] = f["motion_frac"] = None
     if arch in SMALL: f["motion_frac"] = None
-    if arch in SLIP_OK: f["contact_slip_cm"] = None
-    for x in ("iou_min", "fallback_max", "flicker_p95", "chroma_p95", "fallback_jump"): f[x] = (rep or {}).get(x)
+    if arch in SLIP_OK or m.get("free_contact"): f["contact_slip_cm"] = None
+    if m.get("still"): f["motion_proj"] = f["motion_frac"] = None
+    for x in ("loop_seam", "iou_min", "fallback_max", "flicker_p95", "chroma_p95", "fallback_jump"): f[x] = (rep or {}).get(x)
     fz = m.get("foot_z"); f["foot_sink"] = max(0, -min(fz)*100) if fz else None
     return f
 # 빠지면 불량: 지표가 없다고 합격이 되지 않게. 손으로 짠 구도(ex != generic)는 IK·접촉 지표가 없다
@@ -30,7 +31,7 @@ REQ_COMP = ("iou_min", "fallback_max", "flicker_p95", "chroma_p95", "fallback_ju
 def missing(k, m, f, comp):
     arch = k.split("__")[0].split("-")[0]
     need = list(REQ_RENDER)+(list(REQ_COMP) if comp else [])+(list(REQ_GENERIC) if m.get("ex") == "generic" else [])
-    return [n for n in need if f.get(n) is None and not (n == "contact_slip_cm" and arch in SLIP_OK)]
+    return [n for n in need if f.get(n) is None and not (n == "contact_slip_cm" and (arch in SLIP_OK or m.get("free_contact")))]
 def judge(f):
     warn, fail = [], []
     for n, d, w, b in RULES:

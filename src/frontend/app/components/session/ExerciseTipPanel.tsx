@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // import { getExerciseMedia } from "@app/core/data/exerciseMedia"; // [원본] P5 에서 getExerciseMediaOwn 으로
 import type { ExerciseMedia } from "@app/core/data/exerciseMedia";
+import { exerciseCautionOf } from "@app/core/domain/exerciseCautions";
 import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -60,6 +61,7 @@ export function ExerciseTipPanel({
   // 사진·설명 표(672KB)는 처음 펼칠 때 불러온다 — 운동 화면 첫 로드에 싣지 않는다.
   const media = loadedMedia?.id === exerciseId ? loadedMedia.media : null;
   const picto = hasPictogram(exerciseId);
+  const caution = exerciseCautionOf(exerciseId);
   const steps = media
     ? lang === "ko" && media.instructionsKo.length
       ? media.instructionsKo
@@ -113,6 +115,11 @@ export function ExerciseTipPanel({
             <TwoFrameLoop start={media.start} end={media.end} gif={media.gif} />
           ) : null}
           {picto ? <MotionNotice exerciseId={exerciseId} /> : null}
+          {caution ? (
+            <AppText variant="caption" color="textMuted" className="mt-[2px] block" data-testid="tip-caution">
+              {t(`exercises.caution.${caution}`)}
+            </AppText>
+          ) : null}
           {steps.length ? (
             <AppText variant="label" color="textFaint" center className="mt-[2px] block">
               {t("session.tipTapForSteps")}
