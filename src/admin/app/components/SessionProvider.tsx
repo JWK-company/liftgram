@@ -5,6 +5,7 @@ import { AuthService, type Role, type User } from "@app/contracts";
 import { Code, ConnectError, createClient } from "@connectrpc/connect";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { isStaff } from "@/lib/roles";
+import { clearResourceCache } from "@/lib/useResource";
 import {
   hasSession,
   logOut,
@@ -12,6 +13,7 @@ import {
   onSessionEnd,
   rememberUser,
   restoreSession,
+  takeRefreshedUser,
   transport,
 } from "@/lib/session";
 
@@ -47,14 +49,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (restored === "denied") return setState({ status: "denied" });
     if (restored === "unavailable") return setState({ status: "unavailable" });
     try {
-      const me = await createClient(AuthService, transport).me({});
-      if (!me.user) return goLogin();
-      if (!isStaff(me.user.role)) {
+      // 갱신 응답에 내 정보가 왔으면 그대로 쓴다. 방금 서버가 읽어 준 값이라 Me 를 또 부를 까닭이 없다.
+      const user = takeRefreshedUser() ?? (await createClient(AuthService, transport).me({})).user;
+      if (!user) return goLogin();
+      if (!isStaff(user.role)) {
+        clearResourceCache();
         await logOut();
         return setState({ status: "denied" });
       }
-      rememberUser(me.user.id);
-      setState({ status: "in", user: me.user });
+      rememberUser(user.id);
+      setState({ status: "in", user });
     } catch (e) {
       // 깃발이 살아 있는 401 은 갱신이 503 으로 실패한 것이다. 503 은 로그아웃이 아니다.
       if (e instanceof ConnectError && e.code === Code.Unauthenticated && !hasSession()) return goLogin();
@@ -65,34 +69,53 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // 역할은 열린 탭에서도 바뀐다. 토큰 갱신·권한 거절·탭 복귀 때 다시 읽어 메뉴와 화면을 맞춘다.
   const checking = useRef(false);
   const lastCheck = useRef(0);
+  const applyUser = useCallback(async (user: User) => {
+    if (!isStaff(user.role)) {
+      clearResourceCache();
+      await logOut();
+      setState({ status: "denied" });
+      return;
+    }
+    setState((prev) => {
+      if (prev.status !== "in") return prev;
+      // 역할이 바뀌면 이전 역할로 읽은 값을 남기지 않는다.
+      if (prev.user.role !== user.role) clearResourceCache();
+      return { status: "in", user };
+    });
+  }, []);
+
   const revalidate = useCallback(async () => {
     if (checking.current) return;
     checking.current = true;
     lastCheck.current = Date.now();
     try {
       const me = await createClient(AuthService, transport).me({});
-      if (!me.user) return;
-      if (!isStaff(me.user.role)) {
-        await logOut();
-        setState({ status: "denied" });
-        return;
-      }
-      const user = me.user;
-      setState((prev) => (prev.status === "in" ? { status: "in", user } : prev));
+      if (me.user) await applyUser(me.user);
     } catch {
       // 다음 기회에 다시 본다. 세션이 끝났다면 onSessionEnd 가 이미 화면을 옮겼다.
     } finally {
       checking.current = false;
     }
-  }, []);
+  }, [applyUser]);
 
   useEffect(() => {
     void load();
     const offEnd = onSessionEnd((r) => {
+      clearResourceCache();
       if (r === "denied") setState({ status: "denied" });
+      else if (r === "unavailable") setState({ status: "unavailable" });
       else goLogin();
     });
-    const offChange = onSessionChange(() => void revalidate());
+    const offChange = onSessionChange((user) => {
+      if (user) {
+        lastCheck.current = Date.now();
+        void applyUser(user);
+      } else {
+        // 서버가 권한을 거절했다. 내 정보를 다시 읽지 못해도 이전 권한으로 읽은 값을 남기지 않는다.
+        clearResourceCache();
+        void revalidate();
+      }
+    });
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
       if (Date.now() - lastCheck.current >= REVALIDATE_ON_FOCUS_MS) void revalidate();
@@ -103,9 +126,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       offChange();
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [load, revalidate]);
+  }, [load, revalidate, applyUser]);
 
   const signOut = useCallback(() => {
+    clearResourceCache();
     void logOut().then(() => location.replace("/login"));
   }, []);
 

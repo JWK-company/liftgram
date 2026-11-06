@@ -54,7 +54,8 @@ export async function POST(req: Request): Promise<Response> {
 
   const started = Number(readCookie(req, STARTED_COOKIE));
   return withCookies(
-    JSON.stringify({ accessToken: access, userId: body.user?.id ?? "" }),
+    // 내 정보도 함께 준다. 브라우저가 Me 를 따로 부르는 왕복을 줄인다(SPEC-035).
+    JSON.stringify({ accessToken: access, userId: body.user?.id ?? "", user: body.user ?? null }),
     200,
     sessionCookies(rotated, started, remaining),
   );

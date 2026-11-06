@@ -4,7 +4,8 @@
 //   · 탭 사이 Web Locks 로 갱신을 줄 세운다(없으면 저장소 대체 잠금).
 //   · 401 은 한 번 600ms 뒤 다시 시도한다. 그사이 다른 탭이 새 쿠키를 구웠을 수 있다.
 //   · 401 은 로그아웃이지만 503 은 아니다. 백엔드 장애가 로그아웃이 되면 안 된다.
-import { routes } from "@app/contracts";
+import { routes, type User, UserSchema } from "@app/contracts";
+import { fromJson, type JsonValue } from "@bufbuild/protobuf";
 import { Code, ConnectError, type Interceptor } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
 
@@ -28,6 +29,26 @@ let accessToken: string | null = null;
 let refreshing: Promise<RefreshResult> | null = null;
 /** 이 탭이 그리고 있는 계정. 다른 탭에서 다른 계정으로 로그인하면 쿠키는 그 계정 것이 된다. */
 let tabUser: string | null = null;
+/** 방금 갱신 응답에 함께 온 내 정보. 첫 화면이 Me 왕복 없이 쓴다(SPEC-035). */
+let refreshedUser: User | null = null;
+let refreshedAt = 0;
+
+/** 방금 받은 갱신 응답의 내 정보를 한 번만 꺼낸다. 없거나 오래됐으면 부르는 쪽이 Me 로 묻는다. */
+export function takeRefreshedUser(): User | null {
+  const user = Date.now() - refreshedAt < RECENT_OK_MS ? refreshedUser : null;
+  refreshedUser = null;
+  return user;
+}
+
+/** 형식이 어긋나도 세션을 끊지 않는다. 내 정보만 Me 로 다시 묻게 된다. */
+function parseUser(raw: unknown): User | null {
+  if (!raw) return null;
+  try {
+    return fromJson(UserSchema, raw as JsonValue, { ignoreUnknownFields: true });
+  } catch {
+    return null;
+  }
+}
 
 const listeners = new Set<(r: RefreshResult) => void>();
 /** 세션이 끝났거나 권한이 회수됐을 때 화면이 따라오게 한다. */
@@ -36,9 +57,9 @@ export function onSessionEnd(fn: (r: RefreshResult) => void): () => void {
   return () => listeners.delete(fn);
 }
 
-const changeListeners = new Set<() => void>();
-/** 토큰을 갱신했거나 서버가 권한을 거절했다. 화면이 내 정보(역할)를 다시 읽을 때다. */
-export function onSessionChange(fn: () => void): () => void {
+const changeListeners = new Set<(user: User | null) => void>();
+/** 토큰을 갱신했거나 서버가 권한을 거절했다. 갱신 응답에 내 정보가 있으면 함께 주고, 없으면 화면이 다시 읽는다. */
+export function onSessionChange(fn: (user: User | null) => void): () => void {
   changeListeners.add(fn);
   return () => changeListeners.delete(fn);
 }
@@ -187,7 +208,7 @@ function refreshOnce(): Promise<RefreshResult> {
         return endSession("out");
       }
       if (!res?.ok) return "unavailable";
-      const body = (await res.json()) as { accessToken?: string; userId?: string };
+      const body = (await res.json()) as { accessToken?: string; userId?: string; user?: unknown };
       if (!body.accessToken) return "unavailable";
       // 다른 탭이 다른 계정으로 로그인했다. 이 탭의 화면으로 그 계정의 요청을 보내지 않는다.
       if (tabUser && body.userId && body.userId !== tabUser) {
@@ -199,7 +220,9 @@ function refreshOnce(): Promise<RefreshResult> {
       try {
         store()?.setItem(OK_AT, String(Date.now()));
       } catch {}
-      for (const fn of changeListeners) fn();
+      refreshedUser = parseUser(body.user);
+      refreshedAt = Date.now();
+      for (const fn of changeListeners) fn(refreshedUser);
       return "ok";
     } catch {
       return "unavailable";
@@ -255,7 +278,7 @@ export function authInterceptor(): Interceptor {
       return await next(req);
     } catch (e) {
       if (!(e instanceof ConnectError)) throw e;
-      if (e.code === Code.PermissionDenied) for (const fn of changeListeners) fn();
+      if (e.code === Code.PermissionDenied) for (const fn of changeListeners) fn(null);
       if (e.code !== Code.Unauthenticated) throw e;
       // 깃발이 내려간 뒤의 401: 다른 탭이 세션을 끝냈다. 화면도 끝낸다.
       if (!hasSession()) {
@@ -269,8 +292,38 @@ export function authInterceptor(): Interceptor {
   };
 }
 
+let probingEntrance = false;
+
+/**
+ * 요청이 응답 없이 실패하면 입구(Access) 세션이 끝난 것인지 확인한다.
+ * 메뉴 화면을 미리 받아 두므로 메뉴를 눌러도 문서 이동이 일어나지 않아 저절로 다시 인증되지 않는다(SPEC-035).
+ * 끝났으면 「서버에 연결할 수 없습니다」 화면으로 옮긴다. 그 화면의 다시 시도가 전체 이동이라 다시 인증한다.
+ */
+async function probeEntrance(): Promise<void> {
+  if (probingEntrance) return;
+  probingEntrance = true;
+  try {
+    const res = await fetch("/login", { method: "HEAD", redirect: "manual", cache: "no-store" });
+    if (res.type === "opaqueredirect") for (const fn of listeners) fn("unavailable");
+  } catch {
+    // 망이 끊긴 것이다. 입구와 상관없으므로 화면을 그대로 둔다.
+  } finally {
+    probingEntrance = false;
+  }
+}
+
+const watchedFetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  try {
+    return await fetch(input, init);
+  } catch (e) {
+    if (!init?.signal?.aborted) void probeEntrance();
+    throw e;
+  }
+}) as typeof fetch;
+
 export const transport = createConnectTransport({
   baseUrl: routes.apiPrefix,
+  fetch: watchedFetch,
   interceptors: [authInterceptor()],
 });
 
@@ -278,5 +331,6 @@ export const transport = createConnectTransport({
 export const binaryTransport = createConnectTransport({
   baseUrl: routes.apiPrefix,
   useBinaryFormat: true,
+  fetch: watchedFetch,
   interceptors: [authInterceptor()],
 });

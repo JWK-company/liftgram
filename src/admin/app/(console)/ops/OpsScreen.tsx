@@ -3,7 +3,7 @@
 // 운영 상태(관리자). 맨 위 한 줄이 판단이고, 그 아래 표에서 근거를 본다.
 // 이메일은 서버가 앞부분만 준다. 연락 끊긴 기기는 경고가 아니라 회색으로만 보인다.
 import { type BackupRun, type DeviceHealth, type OpsUser, Role, type StalledDevice } from "@app/contracts";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   type Column,
@@ -77,7 +77,7 @@ function BackupRow({
 }
 
 function Screen() {
-  const res = useResource(() => opsApi.getOpsStatus({}), 5 * 60_000);
+  const res = useResource(() => opsApi.getOpsStatus({}), 5 * 60_000, "ops-status");
   const { setAlert: setDot } = useOpsAlert();
   const [q, setQ] = useQueryState();
   const search = q.get("user") ?? "";
@@ -85,9 +85,12 @@ function Screen() {
 
   // 화면이 새 상태를 읽으면 메뉴 점도 같은 값으로 맞춘다.
   const statusAlert = res.data?.alert;
+  // 저장해 둔 이전 값으로는 맞추지 않는다. 이 화면에 들어온 뒤 시작한 읽기만 믿는다(SPEC-035).
+  const [enteredAt] = useState(() => Date.now());
+  const dataStartedAt = res.dataStartedAt ?? 0;
   useEffect(() => {
-    if (statusAlert !== undefined) setDot(statusAlert);
-  }, [statusAlert, setDot]);
+    if (statusAlert !== undefined && dataStartedAt >= enteredAt) setDot(statusAlert);
+  }, [statusAlert, dataStartedAt, enteredAt, setDot]);
 
   const stalledColumns: Column<StalledDevice>[] = [
     { key: "who", header: "사용자", cell: (s) => <span data-testid="stalled-who">{who(s)}</span> },

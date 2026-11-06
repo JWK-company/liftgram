@@ -81,7 +81,7 @@ const Big = ({ testid, children }: { testid: string; children: ReactNode }) => (
 );
 
 function AlertCard() {
-  const res = useResource(() => opsApi.getOpsStatus({}), REFRESH_MS);
+  const res = useResource(() => opsApi.getOpsStatus({}), REFRESH_MS, "ops-status");
   return (
     <Card title="운영 경고" href="/ops" resource={res} testid="home-alert">
       {(d) =>
@@ -104,7 +104,7 @@ function AlertCard() {
 }
 
 function QueueCard() {
-  const res = useResource(() => moderationApi.listQueue({ limit: QUEUE_LIMIT }), REFRESH_MS);
+  const res = useResource(() => moderationApi.listQueue({ limit: QUEUE_LIMIT }), REFRESH_MS, "home-queue");
   return (
     <Card title="신고 대기" href="/moderation" resource={res} testid="home-queue">
       {(d) => (
@@ -117,7 +117,11 @@ function QueueCard() {
 }
 
 function FeedbackCard() {
-  const res = useResource(() => feedbackApi.listEntries({ kind: FeedbackKind.USER }), REFRESH_MS);
+  const res = useResource(
+    () => feedbackApi.listEntries({ kind: FeedbackKind.USER }),
+    REFRESH_MS,
+    "home-feedback",
+  );
   return (
     <Card title="미처리 사용자 의견" href="/user-feedback" resource={res} testid="home-feedback">
       {(d) => {
@@ -135,7 +139,7 @@ function FeedbackCard() {
 }
 
 function UsageCard() {
-  const res = useResource(() => adminApi.getUsageStats({}), REFRESH_MS);
+  const res = useResource(() => adminApi.getUsageStats({}), REFRESH_MS, "usage-stats");
   return (
     <Card title="접속과 활성" href="/stats" resource={res} testid="home-usage">
       {(d) =>

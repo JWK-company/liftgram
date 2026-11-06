@@ -192,7 +192,8 @@ test("access 만료(401)는 갱신하고 같은 요청을 다시 보낸다", asy
   await page.getByTestId("menu-ops").click();
   await expect(page.getByTestId("ops-summary")).toBeVisible();
   expect(failed).toBe(true);
-  expect(refreshes).toBe(1);
+  // 요약에서 읽은 값이 먼저 보이므로, 갱신과 재요청은 화면이 그려진 뒤에 끝날 수 있다.
+  await expect.poll(() => refreshes).toBe(1);
 });
 
 test("다른 탭 로그아웃을 따라가고, 그 뒤 요청도 보내지 않는다", async ({ page, context }) => {

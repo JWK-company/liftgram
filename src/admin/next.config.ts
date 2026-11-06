@@ -10,6 +10,10 @@ const config: NextConfig = {
   outputFileTracingRoot: path.join(import.meta.dirname, "../"),
   poweredByHeader: false,
   images: { unoptimized: true },
+  // 콘솔의 RSC 응답은 화면 껍데기뿐이다(운영 데이터는 RPC 로 따로 읽는다).
+  // 먼 경로에서 메뉴를 누를 때마다 왕복하지 않게 브라우저 라우터가 잠시 들고 있는다(SPEC-035).
+  // Link 에 prefetch={true} 를 주지 않는다. 진행 중인 미리 받기가 실패하면 본문이 빈 채로 이 수명만큼 남는다(시험으로 재현).
+  experimental: { staleTimes: { dynamic: 300 } },
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   async headers() {
     return [

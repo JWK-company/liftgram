@@ -102,7 +102,7 @@ function actorLine(a?: { user: bigint; guest: bigint }) {
 }
 
 function UsersBlock() {
-  const r = useResource(() => adminApi.getUsageStats({}), REFRESH_MS);
+  const r = useResource(() => adminApi.getUsageStats({}), REFRESH_MS, "usage-stats");
   return (
     <Block id="users" title="사용자" resource={r} span>
       {(d) =>
@@ -198,7 +198,7 @@ function UsersBlock() {
 }
 
 function SignupBlock() {
-  const r = useResource(() => adminApi.getSignupStats({}), REFRESH_MS);
+  const r = useResource(() => adminApi.getSignupStats({}), REFRESH_MS, "signup-stats");
   return (
     <Block id="signup" title="가입" resource={r}>
       {(d) => (
@@ -265,7 +265,7 @@ function SignupBlock() {
 }
 
 function FeaturesBlock() {
-  const r = useResource(() => adminApi.getFeatureStats({}), REFRESH_MS);
+  const r = useResource(() => adminApi.getFeatureStats({}), REFRESH_MS, "feature-stats");
   const [query, setQuery] = useQueryState();
   const range = query.get("range") === "30" ? 30 : 7;
   const rows = (list: { name: string; last7d: bigint; last30d: bigint }[], labels: Record<string, string>) =>
@@ -327,7 +327,7 @@ function FeaturesBlock() {
 }
 
 function RoutineBlock() {
-  const r = useResource(() => adminApi.getRoutineStats({}), REFRESH_MS);
+  const r = useResource(() => adminApi.getRoutineStats({}), REFRESH_MS, "routine-stats");
   return (
     <Block id="routine" title="루틴·운동" resource={r}>
       {(d) =>
@@ -389,7 +389,7 @@ function RoutineBlock() {
 }
 
 function ContentBlock() {
-  const r = useResource(() => adminApi.getContentStats({}), REFRESH_MS);
+  const r = useResource(() => adminApi.getContentStats({}), REFRESH_MS, "content-stats");
   return (
     <Block id="content" title="콘텐츠" resource={r}>
       {(d) => (
@@ -426,7 +426,7 @@ function ContentBlock() {
 }
 
 function OperationsBlock() {
-  const r = useResource(() => adminApi.getOperationsStats({}), REFRESH_MS);
+  const r = useResource(() => adminApi.getOperationsStats({}), REFRESH_MS, "operations-stats");
   const ops = useOpsAlert();
   // 답을 받기 전이나 한 번도 못 받았을 때 「정상」이라고 말하지 않는다.
   return (
