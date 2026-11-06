@@ -51,7 +51,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: { capable: true, title: "Liftgram", statusBarStyle: "black-translucent" },
   // 아이콘 주소에 버전을 붙인다 — 주소가 같으면 설치된 홈 화면 앱이 새 아이콘을 받지 않는다(v0.23 로고 교체 때 실측).
-  icons: { apple: "/apple-touch-icon.png?v=2" },
+  // [원본] icons: { apple: "/apple-touch-icon.png?v=2" }, — icon 줄이 없어 브라우저 탭에 지구 모양이 나왔다
+  // [개선] 탭 아이콘을 직접 적는다(metadata.icons 가 있으면 Next 가 app/icon.png 의 link 태그를 붙이지 않는다)
+  icons: {
+    icon: [
+      { url: "/icon.png?v=2", type: "image/png", sizes: "64x64" },
+      { url: "/icon-192.png?v=2", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/apple-touch-icon.png?v=2",
+  },
 };
 
 // 브라우저 상단 띠 색 — 라이트·다크 바탕(#F7F7F7 · #161616)과 같게. 토큰을 쓸 수 없는 자리라 값을 적는다.

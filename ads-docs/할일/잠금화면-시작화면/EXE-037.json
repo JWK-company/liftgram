@@ -1,946 +1,974 @@
 {
- "doc": {
-  "content": [
-   {
-    "attrs": {
-     "level": 2
-    },
+  "doc": {
     "content": [
-     {
-      "text": "요약",
-      "type": "text"
-     }
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "초보자 주제 3개와 영상 루틴 23개를 넣고 황철순 제외를 풀었다. 황철순 영상은 4개다. 사용자 검수에서 초보자 루틴을 별도 분류로 묶으라는 지시를 받아 운동 탭 구역을 나눴다(메시지 818). 커밋 ac2c9ee를 v0.73.0(build 489)으로 운영에 배포했다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇을",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/creatorRoutines.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "주제 3개, 루틴 23개, 이름 표, 제외 목록 해제, 저장 메모의 근거 줄",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/domain/__tests__/creatorRoutines.test.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "주제 수, 황철순 포함, 메모 근거 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/ko.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "근거가 설명란이 아닐 때의 고지문",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "같은 고지문",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/app/components/routines/CreatorRoutineSheet.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "근거에 따라 고지문 선택",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/frontend/e2e/creator-routines.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "황철순 가슴 저장 흐름 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "ads-docs/liftgram/SRS-092.json",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "논란 인물 문장을 ADR-059에 맞춤",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "src/frontend/app/components/routines/RoutinesClient.tsx",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "분류별 구역으로 그리기",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "src/core/src/domain/creatorRoutines.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "creatorTopicSection, visibleCreatorSections 추가",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "src/core/src/i18n/locales/ko.ts, src/core/src/i18n/locales/en.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "구역 제목 concept.sectionBeginner",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "src/frontend/e2e/home-order.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "구역 소속과 순서 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "src/frontend/e2e/declutter-p3.spec.ts",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "최근 운동이 초보자 루틴보다 아래인지 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "src/frontend/package.json",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "0.73.0",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "테스트 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "명령",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "결과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "make -k verify의 유닛 시험",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "685 통과·0 실패, 10 통과·0 실패",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "make -k verify의 lint",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "실패. 이번 변경 밖의 기존 오류가 남아 있어 고치지 않았다. 이번에 고친 시험 파일의 형식 오류는 고쳤다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "npx playwright test creator-routines, home-order, declutter-p3(로컬 운영 빌드, 리뷰 반영 뒤)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "13 통과",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "npx playwright test creator-routines, routines, home-order(구역 분리 직후)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "8 통과, 1 건너뜀(이전부터 건너뛰는 시험). 이후 routines.spec.ts는 재실행하지 않았다",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "node scripts/check-creator-routines.mjs",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "101개 중 실패 0, 경고 1(기존 초안)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준 확인",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SRS-091: 새 주제 3개 모두 서로 다른 채널 2개 이상, 원본 링크·출처·저장을 시험으로 확인했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SRS-092: 제목·채널이 oEmbed와 같고 내려받기 경로가 없다. 근거에 없는 값은 기본값으로 표시한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "SRS-091(구역): 초보자 주제는 초보자 구역에만, 프로 주제는 프로 구역에만 나오는 것을 시험으로 확인했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "코드 리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-059: 채택 12, 보류 3, 기각 2. REV-060(구역 분리): 채택 3, 보류 0, 기각 0. 내역은 각 리뷰 문서에 있다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖 변경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "없다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "영상 본편과 대조하지 않았다. 댓글 근거 13개는 시청자 정리가 틀렸을 수 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "근거 링크를 해당 댓글로 고정하는 일과 이름 조각 시험 보강은 뒤로 미뤘다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "커밋·main 합친 뒤 코드 위치 등록: SRS-091 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/domain/creatorRoutines.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ".",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "penpot 와이어프레임은 다시 그리지 않았다. 보고서와 ads-docs/liftgram/wireframe/WF-WKT.json·.sae/WF-WKT.json의 카드 이름만 고쳤다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "ads-docs/liftgram/wireframe/.screen-map/gen_sae.py를 돌리면 이번 변경과 무관한 명세가 함께 바뀌고 WF-FBK·WF-MODR 등이 지워져, 백업으로 되돌렸다. 운영 웹 분리 뒤 data.py와 .sae가 어긋나 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
     ],
-    "type": "heading"
-   },
-   {
-    "type": "paragraph",
-    "content": [
-     {
-      "type": "text",
-      "text": "초보자 주제 3개와 영상 루틴 23개를 넣고 황철순 제외를 풀었다. 황철순 영상은 4개다. 사용자 검수에서 초보자 루틴을 별도 분류로 묶으라는 지시를 받아 운동 탭 구역을 나눴다(메시지 818)."
-     }
+    "type": "doc"
+  },
+  "group": "할일/잠금화면-시작화면",
+  "id": "EXE-037",
+  "meta": {
+    "phase": "1",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-037"
     ]
-   },
-   {
-    "attrs": {
-     "level": 2
-    },
-    "content": [
-     {
-      "text": "바꾼 파일",
-      "type": "text"
-     }
-    ],
-    "type": "heading"
-   },
-   {
-    "content": [
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "파일",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_header"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "무엇을",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_header"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "src/core/src/domain/creatorRoutines.ts",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "주제 3개, 루틴 23개, 이름 표, 제외 목록 해제, 저장 메모의 근거 줄",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "src/core/src/domain/__tests__/creatorRoutines.test.ts",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "주제 수, 황철순 포함, 메모 근거 시험",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "src/core/src/i18n/locales/ko.ts",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "근거가 설명란이 아닐 때의 고지문",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "src/core/src/i18n/locales/en.ts",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "같은 고지문",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "src/frontend/app/components/routines/CreatorRoutineSheet.tsx",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "근거에 따라 고지문 선택",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "src/frontend/e2e/creator-routines.spec.ts",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "황철순 가슴 저장 흐름 시험",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "marks": [
-             {
-              "type": "code"
-             }
-            ],
-            "text": "ads-docs/liftgram/SRS-092.json",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       },
-       {
-        "content": [
-         {
-          "content": [
-           {
-            "text": "논란 인물 문장을 ADR-059에 맞춤",
-            "type": "text"
-           }
-          ],
-          "type": "paragraph"
-         }
-        ],
-        "type": "table_cell"
-       }
-      ],
-      "type": "table_row"
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "src/frontend/app/components/routines/RoutinesClient.tsx"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "분류별 구역으로 그리기"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "src/core/src/domain/creatorRoutines.ts"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "creatorTopicSection, visibleCreatorSections 추가"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "src/core/src/i18n/locales/ko.ts, src/core/src/i18n/locales/en.ts"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "구역 제목 concept.sectionBeginner"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "src/frontend/e2e/home-order.spec.ts"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "구역 소속과 순서 시험"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "src/frontend/e2e/declutter-p3.spec.ts"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "최근 운동이 초보자 루틴보다 아래인지 시험"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "src/frontend/package.json"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "0.73.0"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     }
-    ],
-    "type": "table"
-   },
-   {
-    "attrs": {
-     "level": 2
-    },
-    "content": [
-     {
-      "text": "테스트 결과",
-      "type": "text"
-     }
-    ],
-    "type": "heading"
-   },
-   {
-    "type": "table",
-    "content": [
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_header",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "명령"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_header",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "결과"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "make -k verify의 유닛 시험"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "685 통과·0 실패, 10 통과·0 실패"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "make -k verify의 lint"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "실패. 이번 변경 밖의 기존 오류가 남아 있어 고치지 않았다. 이번에 고친 시험 파일의 형식 오류는 고쳤다"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "npx playwright test creator-routines, home-order, declutter-p3(로컬 운영 빌드, 리뷰 반영 뒤)"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "13 통과"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "npx playwright test creator-routines, routines, home-order(구역 분리 직후)"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "8 통과, 1 건너뜀(이전부터 건너뛰는 시험). 이후 routines.spec.ts는 재실행하지 않았다"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     },
-     {
-      "type": "table_row",
-      "content": [
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "node scripts/check-creator-routines.mjs"
-           }
-          ]
-         }
-        ]
-       },
-       {
-        "type": "table_cell",
-        "content": [
-         {
-          "type": "paragraph",
-          "content": [
-           {
-            "type": "text",
-            "text": "101개 중 실패 0, 경고 1(기존 초안)"
-           }
-          ]
-         }
-        ]
-       }
-      ]
-     }
-    ]
-   },
-   {
-    "attrs": {
-     "level": 2
-    },
-    "content": [
-     {
-      "text": "수용 기준 확인",
-      "type": "text"
-     }
-    ],
-    "type": "heading"
-   },
-   {
-    "content": [
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "text": "SRS-091: 새 주제 3개 모두 서로 다른 채널 2개 이상, 원본 링크·출처·저장을 시험으로 확인했다.",
-          "type": "text"
-         }
-        ],
-        "type": "paragraph"
-       }
-      ],
-      "type": "list_item"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "text": "SRS-092: 제목·채널이 oEmbed와 같고 내려받기 경로가 없다. 근거에 없는 값은 기본값으로 표시한다.",
-          "type": "text"
-         }
-        ],
-        "type": "paragraph"
-       }
-      ],
-      "type": "list_item"
-     },
-     {
-      "type": "list_item",
-      "content": [
-       {
-        "type": "paragraph",
-        "content": [
-         {
-          "type": "text",
-          "text": "SRS-091(구역): 초보자 주제는 초보자 구역에만, 프로 주제는 프로 구역에만 나오는 것을 시험으로 확인했다."
-         }
-        ]
-       }
-      ]
-     }
-    ],
-    "type": "bullet_list"
-   },
-   {
-    "attrs": {
-     "level": 2
-    },
-    "content": [
-     {
-      "text": "코드 리뷰",
-      "type": "text"
-     }
-    ],
-    "type": "heading"
-   },
-   {
-    "type": "paragraph",
-    "content": [
-     {
-      "type": "text",
-      "text": "REV-059: 채택 12, 보류 3, 기각 2. REV-060(구역 분리): 채택 3, 보류 0, 기각 0. 내역은 각 리뷰 문서에 있다."
-     }
-    ]
-   },
-   {
-    "attrs": {
-     "level": 2
-    },
-    "content": [
-     {
-      "text": "범위 밖 변경",
-      "type": "text"
-     }
-    ],
-    "type": "heading"
-   },
-   {
-    "content": [
-     {
-      "text": "없다.",
-      "type": "text"
-     }
-    ],
-    "type": "paragraph"
-   },
-   {
-    "attrs": {
-     "level": 2
-    },
-    "content": [
-     {
-      "text": "남은 일",
-      "type": "text"
-     }
-    ],
-    "type": "heading"
-   },
-   {
-    "content": [
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "text": "영상 본편과 대조하지 않았다. 댓글 근거 13개는 시청자 정리가 틀렸을 수 있다.",
-          "type": "text"
-         }
-        ],
-        "type": "paragraph"
-       }
-      ],
-      "type": "list_item"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "text": "근거 링크를 해당 댓글로 고정하는 일과 이름 조각 시험 보강은 뒤로 미뤘다.",
-          "type": "text"
-         }
-        ],
-        "type": "paragraph"
-       }
-      ],
-      "type": "list_item"
-     },
-     {
-      "content": [
-       {
-        "content": [
-         {
-          "text": "커밋·main 합친 뒤 코드 위치 등록: SRS-091 ",
-          "type": "text"
-         },
-         {
-          "marks": [
-           {
-            "type": "code"
-           }
-          ],
-          "text": "src/core/src/domain/creatorRoutines.ts",
-          "type": "text"
-         },
-         {
-          "text": ".",
-          "type": "text"
-         }
-        ],
-        "type": "paragraph"
-       }
-      ],
-      "type": "list_item"
-     }
-    ],
-    "type": "bullet_list"
-   }
-  ],
-  "type": "doc"
- },
- "group": "할일/잠금화면-시작화면",
- "id": "EXE-037",
- "meta": {
-  "phase": "1",
-  "result": "done"
- },
- "relations": {
-  "executes": [
-   "SPEC-037"
-  ]
- },
- "schemaVersion": 1,
- "tags": [],
- "title": "SPEC-037 구현",
- "type": "Execution",
- "updated": "2026-11-06T03:33:03Z"
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-037 구현",
+  "type": "Execution",
+  "updated": "2026-11-06T04:43:47Z"
 }

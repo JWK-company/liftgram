@@ -1,0 +1,244 @@
+{
+ "schemaVersion": 1,
+ "id": "REV-061",
+ "type": "Review",
+ "title": "SPEC-038 코드 리뷰",
+ "group": "할일/잠금화면-시작화면",
+ "meta": {
+  "mode": "code",
+  "adopted": "1",
+  "held": "0",
+  "rejected": "1"
+ },
+ "relations": {
+  "reviews": [
+   "SPEC-038"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "패널 구성"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "프런트엔드 코드 리뷰어 1명이 독립으로 검토했다. 시험은 돌리지 않고 코드와 빌드 결과로 확인했다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "핵심 지적"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "배포를 막을 문제는 없었다. 전달 경로, CSP, Access 면제, ICO 구조, 운영 경계를 확인했다. 낮은 심각도 지적이 2건 있었다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "분류"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "지적"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "분류"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "이유·반영"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/layout.tsx 주석이 원인을 정확히 적지 않았다"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "채택"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "metadata.icons가 있으면 파일 아이콘의 link를 붙이지 않는다고 고쳤다"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "시험이 아이콘 바이트를 비교하지 않는다"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "기각"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "그림을 바꿀 때마다 기대값을 고쳐야 한다. 탭에 아이콘이 나오는 조건은 지금 시험으로 확인된다"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "후속 조치"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "주석만 고쳤으므로 시험은 다시 돌리지 않았다."
+     }
+    ]
+   }
+  ]
+ }
+}

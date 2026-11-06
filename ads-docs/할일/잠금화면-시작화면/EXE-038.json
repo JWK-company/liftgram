@@ -1,0 +1,547 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-038",
+ "type": "Execution",
+ "title": "SPEC-038 구현",
+ "group": "할일/잠금화면-시작화면",
+ "meta": {
+  "phase": "1",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-038"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "요약"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "앱 탭 아이콘을 지정하고 운영 웹 전용 아이콘을 만들었다. 앱 v0.73.1, 운영 웹 v0.3.1로 배포한다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 파일"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "파일"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "무엇을"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/layout.tsx"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "metadata.icons에 탭 아이콘 지정"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/e2e/favicon.spec.ts"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "link와 PNG 응답 시험"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/admin/app/favicon.ico"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "16~64px 운영 웹 아이콘"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/admin/brand/favicon.svg"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "운영 웹 아이콘 원본"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/admin/e2e/security.spec.ts"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "link와 Access 면제 시험"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/package.json"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "0.73.1"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/admin/package.json"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "0.3.1"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "테스트 결과"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "명령"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "결과"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "npx playwright test favicon, home-order(앱 로컬 운영 빌드)"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "2 통과"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "scripts/e2e-admin.sh e2e/security.spec.ts"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "13 통과"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준 확인"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "link와 아이콘 응답을 두 시험으로 확인했다."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "운영 웹 아이콘의 Access 면제를 시험으로 확인했다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "코드 리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-061: 채택 1, 보류 0, 기각 1."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "범위 밖 변경"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "없다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "이 스펙이 구현하는 SRS가 없어 코드 위치 등록은 하지 않는다."
+     }
+    ]
+   }
+  ]
+ }
+}

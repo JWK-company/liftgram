@@ -261,3 +261,9 @@ test("응답에 보안 헤더가 있고 페이지마다 nonce 가 다르다", as
   expect(api.headers()["cache-control"]).toContain("no-store");
   expect(api.headers()["x-robots-tag"]).toContain("noindex");
 });
+
+test("탭 아이콘 — 페이지가 가리키고 Access 토큰 없이도 받는다", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.locator('link[rel="icon"][href*="favicon.ico"]')).toHaveCount(1);
+  expect(await statusWith(null, "/favicon.ico")).toBe(200);
+});
