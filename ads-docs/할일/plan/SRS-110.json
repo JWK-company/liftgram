@@ -1,0 +1,157 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "배경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "사용자 요청(2026-11-08 채팅 1240 · 2번): 루틴 목록 줄은 이름과 「종목 n개」만 보여, 어떤 루틴인지 알려면 편집 화면에 들어가야 한다. 웹 보고서의 제안 2-A(종목 한 줄) + 2-C(미리보기 시트)를 사용자가 「추천대로 진행」(1252)으로 승인했다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R1 종목 한 줄",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 루틴 목록 줄(폴더 밖·폴더 안)에서 「종목 n개」 자리에 종목 이름을 루틴 순서대로 「 · 」로 이어 한 줄로 보인다. 앞 세 개까지 적고 나머지는 「외 N」(줄이 좁아 이름이 잘려도 「외 N」은 보인다). 이름은 다른 화면과 같은 표시 이름. 종목이 없으면 「종목 없음」.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R2 미리보기 시트",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 줄의 이름·종목 부분을 누르면 시트가 열린다 — 루틴 이름, 종목마다 이름과 「3세트 · 8~12회」(처방이 있으면 처방 세트 수, 유산소는 「유산소」), 슈퍼셋 묶음 표시. 아래에 「시작」(그 루틴으로 운동 시작 · 진행 중 운동이 있으면 기존 확인 흐름)과 「편집」(루틴 편집 화면).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R3 기존 동작 유지",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 줄 오른쪽 「시작」 버튼과 ⋯ 메뉴는 그대로. 시트가 열려도 목록 순서·폴더 펼침은 바뀌지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "루틴 카드 디자인 전면 개편 · 근육 그림(오늘 카드에만).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-110",
+  "meta": {
+    "acceptance_criteria": "루틴 목록 줄에 종목 이름이 앞에서부터 한 줄로 보이고 넘치면 「외 N」 · 줄을 누르면 종목마다 세트 수·횟수 범위가 보이는 시트가 열리고 시트의 「시작」은 그 루틴으로 운동을 시작하고 「편집」은 루틴 편집 화면으로 간다",
+    "kind": "FR"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "루틴 한눈에 — 종목 한 줄과 미리보기 시트",
+  "type": "SRS",
+  "updated": "2026-11-08T14:07:56Z"
+}

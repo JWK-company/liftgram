@@ -32,7 +32,8 @@ import {
 } from "./helpers/opengym";
 
 // 이 번들의 로컬 스키마 버전(core/src/db/schema.ts SCHEMA_VERSION) — v27 부터 상수 하나로(SPEC-017 Phase 2)
-const BUNDLE_SCHEMA = "27";
+// [원본] const BUNDLE_SCHEMA = "27"; — v28(SPEC-044 · set_logs.check_state)에서 올리지 않아 v0.80.0 부터 실패했다
+const BUNDLE_SCHEMA = "28";
 const HIGHER_SCHEMA = String(Number(BUNDLE_SCHEMA) + 1);
 
 type Page = import("@playwright/test").Page;

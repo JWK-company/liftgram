@@ -34,7 +34,7 @@ import {
   type ConceptRoutine,
   type MissedPlan,
 } from "@app/core";
-import { useQueryData, useQueryDataStatus } from "@app/core/db/hooks";
+import { useQueryDataStatus } from "@app/core/db/hooks";
 import { type HomePrimary, pickHomePrimary } from "@app/core/domain/homePrimary";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -57,6 +57,7 @@ import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 import { trackUsage } from "@/lib/usage";
+import { ExerciseLine, RoutinePreviewSheet } from "./RoutinePreviewSheet"; // 루틴 한눈에(SPEC-045)
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 
@@ -1197,8 +1198,28 @@ function FolderGroup({
   /** 오늘 할 루틴 id — 그 줄에 「오늘」 칩. */
   todayId?: string | null;
 }) {
+  const [preview, setPreview] = useState<Routine | null>(null); // 루틴 미리보기(SPEC-045)
   return (
     <Card className="mb-[var(--spacing-md)]">
+      {preview ? (
+        <RoutinePreviewSheet
+          repo={repo}
+          routineId={preview.id}
+          name={preview.name}
+          busy={busy}
+          onClose={() => setPreview(null)}
+          onStart={() => {
+            const id = preview.id;
+            setPreview(null);
+            onStart(id);
+          }}
+          onEdit={() => {
+            const id = preview.id;
+            setPreview(null);
+            navigate(`/routines/${id}`);
+          }}
+        />
+      ) : null}
       <button
         type="button"
         onClick={onToggle}
@@ -1223,15 +1244,24 @@ function FolderGroup({
               key={r.id}
               className="mt-[var(--spacing-sm)] flex items-center border-(--color-line) border-t pt-[var(--spacing-sm)] pl-[var(--spacing-md)]"
             >
-              <span className="mr-[var(--spacing-sm)] min-w-0 flex-1">
+              {/* [개선] 폴더 안 줄도 종목 한 줄 · 누르면 미리보기(SPEC-045) */}
+              <button
+                type="button"
+                data-testid="open-routine-preview"
+                aria-haspopup="dialog"
+                onClick={() => setPreview(r)}
+                className="mr-[var(--spacing-sm)] min-h-[44px] min-w-0 flex-1 rounded-[var(--radius-sm)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand) active:opacity-70"
+              >
                 <span className="flex min-w-0 items-center">
                   <AppText variant="body" className="block truncate font-bold">
                     {r.name}
                   </AppText>
                   {r.id === todayId ? <TodayChip /> : null}
                 </span>
-                <ExerciseCount repo={repo} routineId={r.id} />
-              </span>
+                <ExerciseLine repo={repo} routineId={r.id} />
+                {/* aria-label 은 안의 글(오늘 칩·종목 한 줄)을 덮어 화면 읽기에서 빠졌다 → 보이는 글 + 숨긴 안내(UX 1) */}
+                <span className="sr-only">{t("routines.previewHint")}</span>
+              </button>
               {/* 화면 정리 P4 /qa M-1 — 폴더 밖 루틴 줄과 같은 회색 상자 @plm SRS-072 */}
               <Button
                 title={t("routines.start")}
@@ -1272,18 +1302,46 @@ function RoutineRow({
   onStart: () => void;
   onActions: () => void;
 }) {
+  const [preview, setPreview] = useState(false);
   return (
     <div className="px-[var(--spacing-lg)] py-[var(--spacing-md)]">
+      {preview ? (
+        <RoutinePreviewSheet
+          repo={repo}
+          routineId={routine.id}
+          name={routine.name}
+          busy={busy}
+          onClose={() => setPreview(false)}
+          onStart={() => {
+            setPreview(false);
+            onStart();
+          }}
+          onEdit={() => {
+            setPreview(false);
+            navigate(`/routines/${routine.id}`);
+          }}
+        />
+      ) : null}
       <div className="flex items-center justify-between" data-testid={`routine-${routine.id}`}>
-        <div className="mr-[var(--spacing-md)] min-w-0 flex-1">
+        {/* [원본] 이름 + 「종목 n개」(ExerciseCount) — 누를 수 없었다
+            [개선] 이름 + 종목 한 줄(외 N) · 누르면 미리보기 시트(SPEC-045 · SRS-110) */}
+        <button
+          type="button"
+          data-testid="open-routine-preview"
+          aria-haspopup="dialog"
+          onClick={() => setPreview(true)}
+          className="mr-[var(--spacing-md)] min-h-[44px] min-w-0 flex-1 rounded-[var(--radius-sm)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand) active:opacity-70"
+        >
           <span className="flex min-w-0 items-center">
             <AppText variant="heading" className="block truncate">
               {routine.name}
             </AppText>
             {today ? <TodayChip /> : null}
           </span>
-          <ExerciseCount repo={repo} routineId={routine.id} />
-        </div>
+          <ExerciseLine repo={repo} routineId={routine.id} />
+          {/* aria-label 은 안의 글(오늘 칩·종목 한 줄)을 덮어 화면 읽기에서 빠졌다 → 보이는 글 + 숨긴 안내(UX 1) */}
+          <span className="sr-only">{t("routines.previewHint")}</span>
+        </button>
         <div className="flex items-center gap-[var(--spacing-xs)]">
           {/* [원본] 루틴마다 빨강 채움 「시작」 — 위 「빠른 운동 시작」과 주 행동이 둘(셋, 넷…)이 됐다(화면 정리 P4)
           <Button title={t("routines.start")} size="sm" fullWidth={false} disabled={busy} testId="btn-start-routine" onPress={onStart} /> */}
@@ -1310,15 +1368,15 @@ function RoutineRow({
   );
 }
 
-/** 루틴에 든 종목 수 — 반응형 쿼리라 편집하면 곧바로 따라온다. */
-function ExerciseCount({ repo, routineId }: { repo: RoutineRepo | null; routineId: string }) {
-  const rows = useQueryData(() => (repo ? repo.queryRoutineExercises(routineId) : null), [repo, routineId]);
-  return (
-    <AppText variant="caption" color="textMuted" className="mt-[2px] block">
-      {t("routines.exerciseCount", { count: rows.length })}
-    </AppText>
-  );
-}
+// [원본] 루틴에 든 종목 수(「종목 3개」) — SPEC-045 에서 종목 이름 한 줄(ExerciseLine · RoutinePreviewSheet.tsx)로 바꿨다
+// function ExerciseCount({ repo, routineId }: { repo: RoutineRepo | null; routineId: string }) {
+//   const rows = useQueryData(() => (repo ? repo.queryRoutineExercises(routineId) : null), [repo, routineId]);
+//   return (
+//     <AppText variant="caption" color="textMuted" className="mt-[2px] block">
+//       {t("routines.exerciseCount", { count: rows.length })}
+//     </AppText>
+//   );
+// }
 
 /** 콘셉트 루틴 미리보기 — 스토리와 Day 구성을 보여 주고, 저장하면 Day마다 루틴이 하나씩 생긴다. */
 function ConceptDialog({

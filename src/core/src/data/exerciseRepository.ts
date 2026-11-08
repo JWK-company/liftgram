@@ -26,6 +26,13 @@ export async function getActiveExerciseIds(ids: string[]): Promise<Set<string>> 
   return new Set(rows.map((e) => e.id));
 }
 
+// 종목 id → 종류(근력·유산소…) — 루틴 미리보기의 「유산소」 표시(SPEC-045)
+export async function getExerciseKinds(ids: string[]): Promise<Map<string, ExerciseKind>> {
+  if (ids.length === 0) return new Map();
+  const rows = await exercises().query(Q.where('id', Q.oneOf([...new Set(ids)]))).fetch();
+  return new Map(rows.map((e) => [e.id, e.kind as ExerciseKind]));
+}
+
 export interface ExerciseFilter {
   search?: string;
   muscle?: MuscleGroup | null;

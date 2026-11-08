@@ -29,6 +29,8 @@ export function useQueryData<T extends Model>(factory: () => Query<T> | null, de
 export function useQueryDataStatus<T extends Model>(
   factory: () => Query<T> | null,
   deps: unknown[],
+  /** 지켜볼 칸 — 주면 행 증감뿐 아니라 그 칸이 바뀔 때도 다시 낸다(SPEC-045) */
+  columns?: string[],
 ): { data: T[]; loaded: boolean } {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const query = useMemo(factory, deps);
@@ -39,8 +41,11 @@ export function useQueryDataStatus<T extends Model>(
   });
   useEffect(() => {
     if (!query) return;
-    const sub = query.observe().subscribe((data) => setState({ data, loaded: true, query }));
+    // [원본] const sub = query.observe().subscribe((data) => setState({ data, loaded: true, query }));
+    const source = columns ? query.observeWithColumns(columns) : query.observe();
+    const sub = source.subscribe((data) => setState({ data: columns ? [...data] : data, loaded: true, query }));
     return () => sub.unsubscribe();
+    // biome-ignore lint/correctness/useExhaustiveDependencies: 칸 목록은 부르는 곳의 상수다
   }, [query]);
   // 쿼리가 바뀌었으면 이전 쿼리의 결과는 「아직 안 읽음」으로 본다
   return state.query === query && query ? { data: state.data, loaded: state.loaded } : { data: [], loaded: false };

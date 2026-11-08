@@ -74,6 +74,42 @@ export function useExerciseName(id: string | null | undefined): string | null {
 }
 
 /**
+ * 종목 id 여러 개 → 화면 이름 지도(SPEC-045 코드 리뷰 정확성 1·2). 모듈 캐시를 거치고, 이름이 바뀌면(invalidate) 다시 읽는다.
+ * 지금 ids 로 읽은 값만 돌려준다 — 구성이 바뀌면 새 이름을 받을 때까지 null(옛 지도로 그리지 않는다 · 열쇠 붙은 비동기 값).
+ * 이 기기에 없는 종목은 지도에 없다.
+ */
+export function useExerciseNames(ids: string[]): Map<string, string> | null {
+  const key = ids.join(",");
+  const [state, setState] = useState<{ key: string; map: Map<string, string> } | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const l = () => setTick((n) => n + 1);
+    listeners.add(l);
+    return () => {
+      listeners.delete(l);
+    };
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    void tick;
+    const list = key ? key.split(",") : [];
+    void Promise.all(list.map((id) => load(id).then((n) => [id, n] as const))).then((pairs) => {
+      if (!alive) return;
+      const map = new Map<string, string>();
+      for (const [id, n] of pairs) if (n != null) map.set(id, n);
+      setState({ key, map });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [key, tick]);
+
+  return state && state.key === key ? state.map : null;
+}
+
+/**
  * 피커에서 고른 직후 — 표시 이름(정확히 친 이름이면 그 이름으로)과 별칭이 함축하는 기록 칸(D7: 「로프 푸시다운」 → 부착물 로프)을
  * 방금 만든(또는 바꾼) 블록에 적용한다. 목록에서 그냥 골랐으면(info 없음) 아무것도 하지 않는다.
  */
