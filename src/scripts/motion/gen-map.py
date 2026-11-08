@@ -4,6 +4,8 @@
 사용: gen-map.py <jobs.json> <publish.json> <출력.ts> <motion_hold.json>  publish.json = {"key": "파일 이름(확장자 제외)"}
 motion_hold.json 의 keys 는 검수에서 보류한 영상이다. 표에 넣지 않아 그 종목은 픽토그램으로 돌아간다. 빠뜨리면 보류가 조용히 되살아나므로 필수다."""
 import json, sys
+# SPEC-040: 새 모션을 합친 뒤에는 이 도구가 표 전체를 다시 만들어 컨펌본을 덮는다. 표는 src/scripts/motion2/publish.py 로만 고친다
+raise SystemExit("gen-map.py 는 막혀 있습니다. 표는 src/scripts/motion2/publish.py merge 로 고칩니다(SPEC-040)")
 if len(sys.argv) != 5: raise SystemExit(__doc__)
 jobs = json.load(open(sys.argv[1])); pub = json.load(open(sys.argv[2])); out = sys.argv[3]
 unknown = [k for k in pub if k not in jobs["jobs"]]

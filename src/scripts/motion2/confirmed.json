@@ -1,0 +1,3392 @@
+{
+ "abduction_standing__band__glutes": {
+  "sha8": "58188773",
+  "webp_sha8": "e1d11023",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "abduction_standing__cable__glutes": {
+  "sha8": "c8e81e87",
+  "webp_sha8": "952eaf51",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "adduction_standing__cable__glutes": {
+  "sha8": "22f1a655",
+  "webp_sha8": "c9e2809f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "aerobic__bodyweight__cardio": {
+  "sha8": "a5a2a903",
+  "webp_sha8": "cc88b9d7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "air_squat-safety__other__quads": {
+  "sha8": "c1b4529d",
+  "webp_sha8": "e758fe8a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "air_squat__bodyweight__quads": {
+  "sha8": "76ffc5c2",
+  "webp_sha8": "e84944dc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "arm_extension_machine__machine__triceps": {
+  "sha8": "e2a854b1",
+  "webp_sha8": "d3636bca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "around_world-arc__dumbbell__chest": {
+  "sha8": "9d043977",
+  "webp_sha8": "94f143a4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "assisted_dip-x__machine__triceps": {
+  "sha8": "1873f3ee",
+  "webp_sha8": "14ac0d35",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "assisted_dip__band__triceps": {
+  "sha8": "3f9d2cec",
+  "webp_sha8": "f9b6e82c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "assisted_dip__machine__triceps": {
+  "sha8": "bce31278",
+  "webp_sha8": "d0d7c414",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "assisted_pull-chinup__machine__biceps": {
+  "sha8": "02a39612",
+  "webp_sha8": "61484ca9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "assisted_pull__band__back": {
+  "sha8": "2b31002c",
+  "webp_sha8": "27807258",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "assisted_pull__machine__back": {
+  "sha8": "46817650",
+  "webp_sha8": "aa685809",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "back_extension__bodyweight__back": {
+  "sha8": "af1c837f",
+  "webp_sha8": "c96ffac1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "back_extension__machine__back": {
+  "sha8": "1d30ee35",
+  "webp_sha8": "b88db2df",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "band_walk-walk__band__glutes": {
+  "sha8": "68b0d028",
+  "webp_sha8": "61812f51",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "battle_rope-wave__other__fullBody": {
+  "sha8": "5c2c2a53",
+  "webp_sha8": "b20aa9ee",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bear_crawl-crawl__bodyweight__fullBody": {
+  "sha8": "26af9eb2",
+  "webp_sha8": "b3f99c9b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bear_crawl-plank__bodyweight__abs": {
+  "sha8": "6fa1a2fb",
+  "webp_sha8": "8f568f3f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "behind_back_wrist__barbell__forearms": {
+  "sha8": "84f85eb9",
+  "webp_sha8": "9794f408",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "behind_neck_press__barbell__shoulders": {
+  "sha8": "d7e585ac",
+  "webp_sha8": "be7653ca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "behind_neck_press__smith__shoulders": {
+  "sha8": "cad6c5ce",
+  "webp_sha8": "6c7a1fe5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "belt_squat__machine__quads": {
+  "sha8": "49f45387",
+  "webp_sha8": "e41b83ca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-board__barbell__chest": {
+  "sha8": "bb2646ef",
+  "webp_sha8": "2af0b846",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-close__dumbbell__triceps": {
+  "sha8": "d9c436fa",
+  "webp_sha8": "14a07d19",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-close_grip_bench_press__barbell__triceps": {
+  "sha8": "bf3e434c",
+  "webp_sha8": "f9107ebc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-close_grip_bench_press__ezbar__triceps": {
+  "sha8": "96a9fda6",
+  "webp_sha8": "4df540af",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-close_grip_bench_press__smith__triceps": {
+  "sha8": "55342c60",
+  "webp_sha8": "153df6cb",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-feetup__barbell__chest": {
+  "sha8": "8e9229f6",
+  "webp_sha8": "616e9e65",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-guillotine__barbell__chest": {
+  "sha8": "182bf691",
+  "webp_sha8": "6b796b49",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-larsen__barbell__chest": {
+  "sha8": "fafba0d6",
+  "webp_sha8": "a6981020",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press-pin__barbell__chest": {
+  "sha8": "b3b236de",
+  "webp_sha8": "d84d642e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press__barbell__chest": {
+  "sha8": "edabf713",
+  "webp_sha8": "f8da13da",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press__cable__chest": {
+  "sha8": "64b113b4",
+  "webp_sha8": "e047df85",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press__dumbbell__chest": {
+  "sha8": "88ffda74",
+  "webp_sha8": "ec5df7a2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bench_press__smith__chest": {
+  "sha8": "a05e7628",
+  "webp_sha8": "8334374e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bent_over_row__band__back": {
+  "sha8": "8c0282e9",
+  "webp_sha8": "50085760",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bent_over_row__barbell__back": {
+  "sha8": "e649053d",
+  "webp_sha8": "9baa40ff",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bent_over_row__cable__back": {
+  "sha8": "cea17466",
+  "webp_sha8": "0f202c74",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bent_over_row__dumbbell__back": {
+  "sha8": "e28466b6",
+  "webp_sha8": "6d8d1964",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bent_over_row__kettlebell__back": {
+  "sha8": "7a018412",
+  "webp_sha8": "25c7a367",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bent_over_row__smith__back": {
+  "sha8": "ad5fb962",
+  "webp_sha8": "7e9692cf",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bicycle-cycle__bodyweight__abs": {
+  "sha8": "9e7ca976",
+  "webp_sha8": "39fac32d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bird_dog__bodyweight__glutes": {
+  "sha8": "c914e600",
+  "webp_sha8": "2db3a98f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "box_jump-lateral__bodyweight__quads": {
+  "sha8": "2fe01825",
+  "webp_sha8": "7d5a8495",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "box_squat__barbell__quads": {
+  "sha8": "b416c9c9",
+  "webp_sha8": "6b14c7e6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "boxing__bodyweight__cardio": {
+  "sha8": "8eba9fef",
+  "webp_sha8": "3140d05a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "broad_jump-broad__bodyweight__quads": {
+  "sha8": "b7246b67",
+  "webp_sha8": "3e1850cf",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bulgarian__barbell__quads": {
+  "sha8": "30bc87e9",
+  "webp_sha8": "96d97ba9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bulgarian__dumbbell__quads": {
+  "sha8": "981a31a2",
+  "webp_sha8": "f77155c2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bulgarian__smith__quads": {
+  "sha8": "4df2c119",
+  "webp_sha8": "f16c53bc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "bus_driver-turn__other__shoulders": {
+  "sha8": "66ac8a25",
+  "webp_sha8": "092ebd8d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "butt_kick-kick__bodyweight__fullBody": {
+  "sha8": "7fa1fb0f",
+  "webp_sha8": "bea3f164",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "cable_crossover-incline__cable__chest": {
+  "sha8": "2b4b8966",
+  "webp_sha8": "5c9ac46d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "cable_crossover-lying__cable__chest": {
+  "sha8": "901976b4",
+  "webp_sha8": "4960357a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "cable_crossover__cable__chest": {
+  "sha8": "daf8ba0a",
+  "webp_sha8": "b8a9e2be",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "cable_lying_curl__cable__biceps": {
+  "sha8": "f8c3a0f2",
+  "webp_sha8": "ed2aa241",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "calf_raise__band__calves": {
+  "sha8": "7fcf85d3",
+  "webp_sha8": "d9873525",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "calf_raise__bodyweight__calves": {
+  "sha8": "21770825",
+  "webp_sha8": "3153b07a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "calf_raise__dumbbell__calves": {
+  "sha8": "fed7a774",
+  "webp_sha8": "d87f4d0a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "calf_raise__machine__calves": {
+  "sha8": "ca3f6fe6",
+  "webp_sha8": "9427e744",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "calf_raise_bar__barbell__calves": {
+  "sha8": "20f3d111",
+  "webp_sha8": "06867d36",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "calf_raise_bar__smith__calves": {
+  "sha8": "809b4d62",
+  "webp_sha8": "3b6dc228",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "captain_chair-knee__other__abs": {
+  "sha8": "94788715",
+  "webp_sha8": "359c99da",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "captain_chair-leg__other__abs": {
+  "sha8": "637a73c7",
+  "webp_sha8": "b71d251d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press-decline__machine__chest": {
+  "sha8": "ee6874ad",
+  "webp_sha8": "858511e5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press-lying__machine__chest": {
+  "sha8": "aa52769a",
+  "webp_sha8": "dc5daa0f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press-onearm__machine__chest": {
+  "sha8": "3e6d925a",
+  "webp_sha8": "64d94c37",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press-stand__cable__chest": {
+  "sha8": "7109c4d9",
+  "webp_sha8": "e94d8c94",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press__band__chest": {
+  "sha8": "96a94003",
+  "webp_sha8": "4d6b3bd2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press__cable__chest": {
+  "sha8": "ed2bc803",
+  "webp_sha8": "b2daff77",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_press__machine__chest": {
+  "sha8": "a3faa95a",
+  "webp_sha8": "e143327d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_supported_row__machine__back": {
+  "sha8": "7b4242e0",
+  "webp_sha8": "fa6fbf41",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "chest_supported_t_bar__barbell__back": {
+  "sha8": "15cfe7a3",
+  "webp_sha8": "137629d2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clamshell__bodyweight__glutes": {
+  "sha8": "b809c8fd",
+  "webp_sha8": "db57084c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean-block__barbell__fullBody": {
+  "sha8": "c1fdefb4",
+  "webp_sha8": "993e777b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean-full__dumbbell__fullBody": {
+  "sha8": "62f39a54",
+  "webp_sha8": "2ccd604c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean-full__kettlebell__fullBody": {
+  "sha8": "15cc2ad6",
+  "webp_sha8": "2639b4a7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean-hang__barbell__fullBody": {
+  "sha8": "0a124e24",
+  "webp_sha8": "33b76e52",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean-muscle__barbell__fullBody": {
+  "sha8": "5821be54",
+  "webp_sha8": "312c08e8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean-power__barbell__fullBody": {
+  "sha8": "7109c006",
+  "webp_sha8": "9a67934a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean_jerk-full__barbell__fullBody": {
+  "sha8": "6dc0555d",
+  "webp_sha8": "9ab478a7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean_jerk-power__barbell__fullBody": {
+  "sha8": "bc1275cc",
+  "webp_sha8": "98eade1a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean_jerk-press__barbell__fullBody": {
+  "sha8": "82811a07",
+  "webp_sha8": "a19b9175",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean_jerk-press__dumbbell__fullBody": {
+  "sha8": "aa8ae3ac",
+  "webp_sha8": "47e6dcbc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean_jerk-press__kettlebell__fullBody": {
+  "sha8": "08c55b4f",
+  "webp_sha8": "b0b2c18c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "clean_jerk-split__barbell__fullBody": {
+  "sha8": "abd9fefb",
+  "webp_sha8": "eec6b85a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "cluster__barbell__fullBody": {
+  "sha8": "f4b9aa58",
+  "webp_sha8": "b5b1840f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "concentration_curl__cable__biceps": {
+  "sha8": "e3a05b26",
+  "webp_sha8": "b40e3635",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "concentration_curl__dumbbell__biceps": {
+  "sha8": "2ce155b1",
+  "webp_sha8": "d94536c8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "copenhagen__bodyweight__glutes": {
+  "sha8": "6427b9ed",
+  "webp_sha8": "24fd04e8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-ball__other__abs": {
+  "sha8": "b406b92e",
+  "webp_sha8": "70a8e673",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-coaster__machine__abs": {
+  "sha8": "f9cb8607",
+  "webp_sha8": "cd4c0dbe",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-double__bodyweight__abs": {
+  "sha8": "e41aeeda",
+  "webp_sha8": "7791d342",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-heeltap__bodyweight__abs": {
+  "sha8": "e9fbbad1",
+  "webp_sha8": "09e32e55",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-seat__machine__abs": {
+  "sha8": "8f1b1573",
+  "webp_sha8": "6f9bba59",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-side__bodyweight__abs": {
+  "sha8": "e8ddcaed",
+  "webp_sha8": "5bd18940",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch-side__cable__abs": {
+  "sha8": "8704c82f",
+  "webp_sha8": "2347d61a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch__bodyweight__abs": {
+  "sha8": "bf7fc2e7",
+  "webp_sha8": "74c6e3c7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "crunch_kneeling__cable__abs": {
+  "sha8": "bc93bc8a",
+  "webp_sha8": "a88d7be2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-behindback__cable__biceps": {
+  "sha8": "6f8bd3a0",
+  "webp_sha8": "f2b14c82",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-c21__barbell__biceps": {
+  "sha8": "4a7ea8da",
+  "webp_sha8": "5dd4c221",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-crossbody__dumbbell__biceps": {
+  "sha8": "953b2cbc",
+  "webp_sha8": "9dd87099",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-curlpress__dumbbell__biceps": {
+  "sha8": "e347fbdb",
+  "webp_sha8": "75bbc036",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-hammer_curl__cable__biceps": {
+  "sha8": "7b890520",
+  "webp_sha8": "823dbc7e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-hammer_curl__dumbbell__biceps": {
+  "sha8": "684b96a2",
+  "webp_sha8": "31a90fbe",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-reverse_curl__barbell__forearms": {
+  "sha8": "a6956845",
+  "webp_sha8": "58617115",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-reverse_curl__cable__forearms": {
+  "sha8": "34948d25",
+  "webp_sha8": "b6d4b01a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-reverse_curl__dumbbell__forearms": {
+  "sha8": "0eb51053",
+  "webp_sha8": "a3ea87ee",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-reverse_curl__ezbar__forearms": {
+  "sha8": "b8f5e4e4",
+  "webp_sha8": "d405362f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-waiter__dumbbell__biceps": {
+  "sha8": "a4169926",
+  "webp_sha8": "1e712dda",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl-zottman__dumbbell__biceps": {
+  "sha8": "212982be",
+  "webp_sha8": "e38cc033",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl__band__biceps": {
+  "sha8": "b4a28072",
+  "webp_sha8": "b5a380ca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl__barbell__biceps": {
+  "sha8": "71c0b839",
+  "webp_sha8": "1628ad8e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl__cable__biceps": {
+  "sha8": "45705bca",
+  "webp_sha8": "28d20a1f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl__dumbbell__biceps": {
+  "sha8": "a2136ce1",
+  "webp_sha8": "0194574e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "curl__ezbar__biceps": {
+  "sha8": "26167e0c",
+  "webp_sha8": "ee15b7a3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "cycle__other__cardio": {
+  "sha8": "6f671ebb",
+  "webp_sha8": "7da44bd0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "dead_bug__bodyweight__abs": {
+  "sha8": "738b2c70",
+  "webp_sha8": "dda55dc4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "dead_hang-scap__bodyweight__back": {
+  "sha8": "9c822897",
+  "webp_sha8": "30f3bb4c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "dead_hang__bodyweight__back": {
+  "sha8": "23493302",
+  "webp_sha8": "51f10e9d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift-deficit__barbell__back": {
+  "sha8": "1419d8d8",
+  "webp_sha8": "a8e93670",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift__band__back": {
+  "sha8": "251ed94a",
+  "webp_sha8": "36ae57d3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift__barbell__back": {
+  "sha8": "0b88074d",
+  "webp_sha8": "bb866faf",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift__dumbbell__back": {
+  "sha8": "5ab5bfa8",
+  "webp_sha8": "117e9cc7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift__kettlebell__back": {
+  "sha8": "f76ce2dc",
+  "webp_sha8": "cc8ce0d5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift__smith__back": {
+  "sha8": "e6940a84",
+  "webp_sha8": "f756764b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "deadlift__trapbar__back": {
+  "sha8": "3e08087c",
+  "webp_sha8": "4923b83f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "decline_press__barbell__chest": {
+  "sha8": "66babd06",
+  "webp_sha8": "6dfde446",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "decline_press__dumbbell__chest": {
+  "sha8": "e570285e",
+  "webp_sha8": "3b1d8a83",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "decline_press__smith__chest": {
+  "sha8": "1ceb3c8d",
+  "webp_sha8": "e5b8f684",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "decline_sit_up-bench__bodyweight__abs": {
+  "sha8": "7222db55",
+  "webp_sha8": "d228f6e0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "decline_sit_up-crunch__bodyweight__abs": {
+  "sha8": "660361ff",
+  "webp_sha8": "ed293a6b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "dips-bar__bodyweight__chest": {
+  "sha8": "ef7e2c82",
+  "webp_sha8": "d6d8c6bd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "dips-ring__other__chest": {
+  "sha8": "84981207",
+  "webp_sha8": "d4856f6e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "dips__bodyweight__chest": {
+  "sha8": "6998f90a",
+  "webp_sha8": "aabacf15",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "donkey_calf__machine__calves": {
+  "sha8": "2f386fa5",
+  "webp_sha8": "f12f6c95",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "drag_curl__barbell__biceps": {
+  "sha8": "fdfcb5f9",
+  "webp_sha8": "02005052",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "drag_curl__dumbbell__biceps": {
+  "sha8": "25841a82",
+  "webp_sha8": "d7aae964",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "elliptical__machine__cardio": {
+  "sha8": "e2646d89",
+  "webp_sha8": "b6cf934c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "external_rotation__band__shoulders": {
+  "sha8": "45b30746",
+  "webp_sha8": "d1da8c47",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "external_rotation__cable__shoulders": {
+  "sha8": "ba0179bb",
+  "webp_sha8": "2aa61ff6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "external_rotation__dumbbell__shoulders": {
+  "sha8": "f59ce3e8",
+  "webp_sha8": "78b444c2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "face_pull-rear__cable__shoulders": {
+  "sha8": "b1f267cf",
+  "webp_sha8": "1efbe8b8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "face_pull-rear__dumbbell__shoulders": {
+  "sha8": "51117cc5",
+  "webp_sha8": "3cffc200",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "face_pull__band__shoulders": {
+  "sha8": "b8fc75a4",
+  "webp_sha8": "31acdcee",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "face_pull__cable__shoulders": {
+  "sha8": "e8627b7f",
+  "webp_sha8": "1c2234ef",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "farmers_walk-suitcase__dumbbell__fullBody": {
+  "sha8": "a520ccc9",
+  "webp_sha8": "a16977b8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "farmers_walk-walk__dumbbell__forearms": {
+  "sha8": "e1d5d8fe",
+  "webp_sha8": "9a60d9ff",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "farmers_walk-walk__kettlebell__forearms": {
+  "sha8": "44a7ccca",
+  "webp_sha8": "580db515",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "farmers_walk-walk__trapbar__forearms": {
+  "sha8": "f01f54f0",
+  "webp_sha8": "ea5064fe",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "fire_hydrant__bodyweight__glutes": {
+  "sha8": "79e59e52",
+  "webp_sha8": "8c42a864",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "floor_press__barbell__chest": {
+  "sha8": "6095cb46",
+  "webp_sha8": "3e6c03aa",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "floor_press__dumbbell__chest": {
+  "sha8": "bab02fdc",
+  "webp_sha8": "0f4c534d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "floor_press__kettlebell__chest": {
+  "sha8": "eba0a653",
+  "webp_sha8": "165af526",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "flutter-kick__bodyweight__abs": {
+  "sha8": "25554b95",
+  "webp_sha8": "4a7398c9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "flutter-scissor__bodyweight__abs": {
+  "sha8": "cab7be94",
+  "webp_sha8": "dd765b42",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "fly_lying-decline__dumbbell__chest": {
+  "sha8": "da6cee00",
+  "webp_sha8": "0911dfd1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "fly_lying-floor__dumbbell__chest": {
+  "sha8": "694bd406",
+  "webp_sha8": "014a870c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "fly_lying-lying__band__chest": {
+  "sha8": "98323e06",
+  "webp_sha8": "3a00833a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "fly_lying__dumbbell__chest": {
+  "sha8": "f0b97c03",
+  "webp_sha8": "c3b6c01e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "frog_pump__dumbbell__glutes": {
+  "sha8": "674a510a",
+  "webp_sha8": "dee25efd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_raise-scaption__dumbbell__shoulders": {
+  "sha8": "40e8c0ab",
+  "webp_sha8": "3584fdc2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_raise__band__shoulders": {
+  "sha8": "afdf010c",
+  "webp_sha8": "1603f9a7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_raise__barbell__shoulders": {
+  "sha8": "af8a9dee",
+  "webp_sha8": "35127d5a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_raise__cable__shoulders": {
+  "sha8": "ebc7fad8",
+  "webp_sha8": "a3ba475f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_raise__dumbbell__shoulders": {
+  "sha8": "7c5effd9",
+  "webp_sha8": "9aef29a0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_squat__barbell__quads": {
+  "sha8": "4e1fc193",
+  "webp_sha8": "f5ac6938",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "front_squat__smith__quads": {
+  "sha8": "19bb086c",
+  "webp_sha8": "9dc97061",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "ghr__machine__hamstrings": {
+  "sha8": "3a125642",
+  "webp_sha8": "e8cb6be1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge-ball__other__hamstrings": {
+  "sha8": "cf3c1e2e",
+  "webp_sha8": "9bfd2d36",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge-ham__bodyweight__hamstrings": {
+  "sha8": "ff1c8e84",
+  "webp_sha8": "0d09f5e5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge-slide__bodyweight__hamstrings": {
+  "sha8": "637ba0cf",
+  "webp_sha8": "bbaacee8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge__band__glutes": {
+  "sha8": "ef02538c",
+  "webp_sha8": "8041e8d7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge__barbell__glutes": {
+  "sha8": "530f2c7e",
+  "webp_sha8": "ece2100f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge__bodyweight__glutes": {
+  "sha8": "efbd6c19",
+  "webp_sha8": "a9b33988",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "glute_bridge__dumbbell__glutes": {
+  "sha8": "9bf1cba6",
+  "webp_sha8": "cf70a808",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat-cable__cable__quads": {
+  "sha8": "9de9cd2b",
+  "webp_sha8": "f5eb1b31",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat-front__dumbbell__quads": {
+  "sha8": "6930fd1f",
+  "webp_sha8": "9b5a5f38",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat-front__kettlebell__quads": {
+  "sha8": "f8e011d1",
+  "webp_sha8": "ba86cd0c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat-landmine__barbell__quads": {
+  "sha8": "0a09cbc7",
+  "webp_sha8": "91017612",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat-zercher__barbell__quads": {
+  "sha8": "1c0ce217",
+  "webp_sha8": "e3d7970c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat__dumbbell__quads": {
+  "sha8": "835f417f",
+  "webp_sha8": "0997735e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "goblet_squat__kettlebell__quads": {
+  "sha8": "44dd2543",
+  "webp_sha8": "957f4c11",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "good_morning__band__hamstrings": {
+  "sha8": "8ec4341c",
+  "webp_sha8": "7ff6f648",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "good_morning__barbell__back": {
+  "sha8": "daee3253",
+  "webp_sha8": "48654023",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hack_squat-bar__barbell__quads": {
+  "sha8": "6c6431e7",
+  "webp_sha8": "4212042a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hack_squat-reverse__machine__quads": {
+  "sha8": "1fd3b097",
+  "webp_sha8": "e6361fe3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hack_squat-smith__smith__quads": {
+  "sha8": "000235fa",
+  "webp_sha8": "e5311053",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hack_squat__machine__quads": {
+  "sha8": "9fce872d",
+  "webp_sha8": "bce5c20c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "halo-around__kettlebell__fullBody": {
+  "sha8": "7cd6dc0a",
+  "webp_sha8": "09ea8f5d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hand_gripper__other__forearms": {
+  "sha8": "f6f661c9",
+  "webp_sha8": "43d59a68",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "handstand-hold__bodyweight__shoulders": {
+  "sha8": "c44809f0",
+  "webp_sha8": "8c6cadca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "handstand_pushup__bodyweight__shoulders": {
+  "sha8": "79eb2499",
+  "webp_sha8": "c2ae05a3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hanging_knee_raise__bodyweight__abs": {
+  "sha8": "70736f8a",
+  "webp_sha8": "643a0727",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hanging_leg_raise__bodyweight__abs": {
+  "sha8": "35e67fc2",
+  "webp_sha8": "448faf1e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hatfield_squat__other__quads": {
+  "sha8": "116bb1fc",
+  "webp_sha8": "21159df2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "high_knees__bodyweight__fullBody": {
+  "sha8": "3327d386",
+  "webp_sha8": "495c4854",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "high_pull-clean__barbell__fullBody": {
+  "sha8": "e0b31ce0",
+  "webp_sha8": "2919105a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "high_pull-dl__barbell__fullBody": {
+  "sha8": "1ecd42b8",
+  "webp_sha8": "ef9c79be",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "high_pull-snatch__barbell__back": {
+  "sha8": "c8e68fe8",
+  "webp_sha8": "d2c76cd4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "high_row__cable__back": {
+  "sha8": "d9a55928",
+  "webp_sha8": "e129aef4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "high_row__machine__back": {
+  "sha8": "fef7260f",
+  "webp_sha8": "2f61ccc5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hike__bodyweight__cardio": {
+  "sha8": "4dd9dd48",
+  "webp_sha8": "6a7740ab",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_abduction__machine__glutes": {
+  "sha8": "ebe84be3",
+  "webp_sha8": "0dfeedbb",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_adduction__machine__glutes": {
+  "sha8": "e4dfe0d3",
+  "webp_sha8": "5c32c296",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust-pad__machine__glutes": {
+  "sha8": "daaa802e",
+  "webp_sha8": "5a472f06",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust-single__bodyweight__glutes": {
+  "sha8": "e8de8308",
+  "webp_sha8": "8e5dbc12",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust-single__dumbbell__glutes": {
+  "sha8": "1fbcd201",
+  "webp_sha8": "9bf7d15d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust__band__glutes": {
+  "sha8": "024b60d5",
+  "webp_sha8": "818c2b0a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust__barbell__glutes": {
+  "sha8": "b1f17b77",
+  "webp_sha8": "d9f576bc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust__bodyweight__glutes": {
+  "sha8": "8915f196",
+  "webp_sha8": "2f0e0e77",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust__dumbbell__glutes": {
+  "sha8": "04ef9e70",
+  "webp_sha8": "c76ff998",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hip_thrust__smith__glutes": {
+  "sha8": "9a20cf3c",
+  "webp_sha8": "34e49738",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hollow-hold__bodyweight__abs": {
+  "sha8": "9075dbcd",
+  "webp_sha8": "7267c18c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "hollow-rock__bodyweight__abs": {
+  "sha8": "f3d273a0",
+  "webp_sha8": "cbd1e8f0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_chest_press__machine__chest": {
+  "sha8": "116a36c1",
+  "webp_sha8": "680bdec7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_curl__cable__biceps": {
+  "sha8": "57450eac",
+  "webp_sha8": "bfa34712",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_curl__dumbbell__biceps": {
+  "sha8": "77007db1",
+  "webp_sha8": "b0490b1f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_fly-fly__machine__chest": {
+  "sha8": "0136c227",
+  "webp_sha8": "d586bae7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_fly__dumbbell__chest": {
+  "sha8": "636e2084",
+  "webp_sha8": "f27e005e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_press-close__barbell__chest": {
+  "sha8": "56f117a9",
+  "webp_sha8": "2ba7a591",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_press__barbell__chest": {
+  "sha8": "601a1ab6",
+  "webp_sha8": "ba7e3308",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_press__cable__chest": {
+  "sha8": "a6568081",
+  "webp_sha8": "9570599d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_press__dumbbell__chest": {
+  "sha8": "7453ffd2",
+  "webp_sha8": "42c12b7f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "incline_press__smith__chest": {
+  "sha8": "a6770d48",
+  "webp_sha8": "42ac8029",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "internal_rotation__cable__shoulders": {
+  "sha8": "1977474d",
+  "webp_sha8": "0ba98e73",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "inverted_row-ring__other__back": {
+  "sha8": "7d5b8d61",
+  "webp_sha8": "beeaa0d6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "inverted_row__bodyweight__back": {
+  "sha8": "4e8c62b5",
+  "webp_sha8": "8f13a92e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "inverted_row__smith__back": {
+  "sha8": "f4d44ee3",
+  "webp_sha8": "10fe9cf8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jefferson_curl__barbell__back": {
+  "sha8": "d2a5b3b3",
+  "webp_sha8": "7633a45d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jefferson_curl__dumbbell__back": {
+  "sha8": "966b1399",
+  "webp_sha8": "61ad2fc5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jump_rope__other__cardio": {
+  "sha8": "245ba478",
+  "webp_sha8": "5c019abe",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jump_squat-bar__barbell__quads": {
+  "sha8": "22e828e8",
+  "webp_sha8": "93a53301",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jump_squat-full__bodyweight__quads": {
+  "sha8": "42420608",
+  "webp_sha8": "8f8a0cde",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jump_squat-pogo__bodyweight__calves": {
+  "sha8": "cdb417cd",
+  "webp_sha8": "b6235488",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jump_squat-tuck__bodyweight__quads": {
+  "sha8": "8a337855",
+  "webp_sha8": "c8ae3b80",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "jumping_jack__bodyweight__fullBody": {
+  "sha8": "688dbe3b",
+  "webp_sha8": "5db6c422",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kb_swing__dumbbell__glutes": {
+  "sha8": "9694a018",
+  "webp_sha8": "6baf92d6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kb_swing__kettlebell__glutes": {
+  "sha8": "e8e6f5b0",
+  "webp_sha8": "66e57e13",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback__band__triceps": {
+  "sha8": "75a8ff9e",
+  "webp_sha8": "0dea6607",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback__cable__triceps": {
+  "sha8": "ffbeea52",
+  "webp_sha8": "bbd6da05",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback__dumbbell__triceps": {
+  "sha8": "2e8cfa2e",
+  "webp_sha8": "09e8f7a7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback_glute-pad__machine__glutes": {
+  "sha8": "0dfac294",
+  "webp_sha8": "3e57a163",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback_glute__band__glutes": {
+  "sha8": "1791be71",
+  "webp_sha8": "60880aba",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback_glute__bodyweight__glutes": {
+  "sha8": "9b22681f",
+  "webp_sha8": "8aac245f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kickback_glute__cable__glutes": {
+  "sha8": "d3f0187d",
+  "webp_sha8": "d78943f5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "knee_push_up__bodyweight__chest": {
+  "sha8": "f3b116a4",
+  "webp_sha8": "587f998b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "knee_raise_lying__bodyweight__abs": {
+  "sha8": "3ccc1ff7",
+  "webp_sha8": "9afffe79",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kneeling_hip_thrust__band__glutes": {
+  "sha8": "dd67cc12",
+  "webp_sha8": "ad11b098",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "kneeling_hip_thrust__bodyweight__glutes": {
+  "sha8": "0c8065a9",
+  "webp_sha8": "560905be",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "korean_dip__bodyweight__chest": {
+  "sha8": "158dd547",
+  "webp_sha8": "2a74a961",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "l_sit__bodyweight__abs": {
+  "sha8": "dd5413ad",
+  "webp_sha8": "b3ba55cd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "landmine_180__barbell__abs": {
+  "sha8": "4e09a417",
+  "webp_sha8": "0bbcddb8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "landmine_press-squatpress__barbell__fullBody": {
+  "sha8": "6de1783e",
+  "webp_sha8": "96818735",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "landmine_press-squeeze__barbell__chest": {
+  "sha8": "91c329a2",
+  "webp_sha8": "b8622a76",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "landmine_press-viking__barbell__shoulders": {
+  "sha8": "4152ba89",
+  "webp_sha8": "040c5282",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "landmine_press__barbell__shoulders": {
+  "sha8": "484d82a8",
+  "webp_sha8": "49c1e604",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lat_pulldown-close__cable__back": {
+  "sha8": "2f4527c7",
+  "webp_sha8": "2f14b0c9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lat_pulldown-neck__cable__back": {
+  "sha8": "0f6ceeac",
+  "webp_sha8": "695dff01",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lat_pulldown-onearm__cable__back": {
+  "sha8": "fb822590",
+  "webp_sha8": "09d7a42f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lat_pulldown__band__back": {
+  "sha8": "8c0b9a70",
+  "webp_sha8": "3d271d5f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lat_pulldown__cable__back": {
+  "sha8": "de2ec86b",
+  "webp_sha8": "6f6779ab",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lat_pulldown__machine__back": {
+  "sha8": "65d1a457",
+  "webp_sha8": "b01b37ea",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_lunge-bw__bodyweight__quads": {
+  "sha8": "3541d772",
+  "webp_sha8": "1be0b92c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_lunge-db__dumbbell__quads": {
+  "sha8": "10ce7ba9",
+  "webp_sha8": "734f1fea",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_lunge-squat__bodyweight__quads": {
+  "sha8": "2f61a34c",
+  "webp_sha8": "6517343c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_raise-sidelying__dumbbell__shoulders": {
+  "sha8": "5023e0e1",
+  "webp_sha8": "8b80c51d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_raise__band__shoulders": {
+  "sha8": "71efb3de",
+  "webp_sha8": "95e87f09",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_raise__cable__shoulders": {
+  "sha8": "b6d8b71b",
+  "webp_sha8": "00c0a21b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_raise__dumbbell__shoulders": {
+  "sha8": "3a6b4ee6",
+  "webp_sha8": "666accdc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lateral_raise_machine__machine__shoulders": {
+  "sha8": "0b854e97",
+  "webp_sha8": "920f9e07",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leaning_lateral_raise__cable__shoulders": {
+  "sha8": "78c5284a",
+  "webp_sha8": "25751555",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leaning_lateral_raise__dumbbell__shoulders": {
+  "sha8": "35952e22",
+  "webp_sha8": "dfbc9a0a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leg_extension__machine__quads": {
+  "sha8": "d98e7d38",
+  "webp_sha8": "53c1302f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leg_press__machine__quads": {
+  "sha8": "19c5b80c",
+  "webp_sha8": "670c689c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leg_press_calf__machine__calves": {
+  "sha8": "a6f11b37",
+  "webp_sha8": "2aa36511",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leg_raise_lying-decline__bodyweight__abs": {
+  "sha8": "a18f69b5",
+  "webp_sha8": "6c5d5619",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leg_raise_lying-wiper__bodyweight__abs": {
+  "sha8": "a13a9844",
+  "webp_sha8": "9c0987a9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "leg_raise_lying__bodyweight__abs": {
+  "sha8": "78df4ae3",
+  "webp_sha8": "a36edefa",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "low_row__machine__back": {
+  "sha8": "335765cd",
+  "webp_sha8": "f082ddeb",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "low_to_high_fly__cable__chest": {
+  "sha8": "78a39ffe",
+  "webp_sha8": "3c53358d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lu_raise__dumbbell__shoulders": {
+  "sha8": "6f0023da",
+  "webp_sha8": "e3430a47",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge-jump__bodyweight__quads": {
+  "sha8": "6be093ea",
+  "webp_sha8": "8e1eba33",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge__bodyweight__quads": {
+  "sha8": "671ed39f",
+  "webp_sha8": "23e2f589",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge__dumbbell__quads": {
+  "sha8": "f31c7add",
+  "webp_sha8": "daf77735",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge__kettlebell__quads": {
+  "sha8": "426092f8",
+  "webp_sha8": "800f5bb2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge_bar-reverse__barbell__quads": {
+  "sha8": "644bb939",
+  "webp_sha8": "8864eb13",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge_bar-reverse__smith__quads": {
+  "sha8": "6d696df3",
+  "webp_sha8": "927363c6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge_bar__barbell__quads": {
+  "sha8": "9beb627e",
+  "webp_sha8": "f9f600bd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lunge_bar__smith__quads": {
+  "sha8": "f8ac0ed9",
+  "webp_sha8": "430d8bd2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lying_leg_curl__dumbbell__hamstrings": {
+  "sha8": "982a666a",
+  "webp_sha8": "5aa257be",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "lying_leg_curl__machine__hamstrings": {
+  "sha8": "2e2a0945",
+  "webp_sha8": "6cc23f6d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "mountain_climber-spider__bodyweight__abs": {
+  "sha8": "fc57cfa1",
+  "webp_sha8": "9c1b8218",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "mountain_climber__bodyweight__abs": {
+  "sha8": "9e974fd6",
+  "webp_sha8": "4d4f537a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "muscle_snatch__barbell__fullBody": {
+  "sha8": "e7572760",
+  "webp_sha8": "21ad20ca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "neck_curl-side__bodyweight__other": {
+  "sha8": "080821ff",
+  "webp_sha8": "21c1caa6",
+  "판": "전 종목 검수 페이지 v17",
+  "답": "1130"
+ },
+ "neck_curl__bodyweight__other": {
+  "sha8": "bdbdf6b7",
+  "webp_sha8": "9bc1ae3c",
+  "판": "전 종목 검수 페이지 v17",
+  "답": "1130"
+ },
+ "neck_ext__bodyweight__other": {
+  "sha8": "b79ada78",
+  "webp_sha8": "2eb06ec4",
+  "판": "전 종목 검수 페이지 v17",
+  "답": "1130"
+ },
+ "neck_ext__machine__other": {
+  "sha8": "106832f9",
+  "webp_sha8": "ddcfb026",
+  "판": "전 종목 검수 페이지 v17",
+  "답": "1130"
+ },
+ "neck_ext__other__other": {
+  "sha8": "76b7d0d3",
+  "webp_sha8": "939b0a99",
+  "판": "전 종목 검수 페이지 v17",
+  "답": "1130"
+ },
+ "nordic__bodyweight__hamstrings": {
+  "sha8": "4224f8c0",
+  "webp_sha8": "7e936337",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "nordic__bodyweight__quads": {
+  "sha8": "82112390",
+  "webp_sha8": "4f12bf44",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "one_arm_row__dumbbell__back": {
+  "sha8": "14503c9e",
+  "webp_sha8": "3a73148f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "one_arm_row__kettlebell__back": {
+  "sha8": "47829d6f",
+  "webp_sha8": "58c7a02f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_cable_curl__cable__biceps": {
+  "sha8": "806f9abb",
+  "webp_sha8": "5bf53166",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_carry__dumbbell__shoulders": {
+  "sha8": "b89fc7c6",
+  "webp_sha8": "945b6f8f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext__band__triceps": {
+  "sha8": "81d67434",
+  "webp_sha8": "68a2c20a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext__barbell__triceps": {
+  "sha8": "cd0f14d4",
+  "webp_sha8": "bb0fbc90",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext__cable__triceps": {
+  "sha8": "16d48f82",
+  "webp_sha8": "d8113f22",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext__dumbbell__triceps": {
+  "sha8": "f8b44f98",
+  "webp_sha8": "5db9e259",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext__ezbar__triceps": {
+  "sha8": "a1005d66",
+  "webp_sha8": "bf342eb0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext__kettlebell__triceps": {
+  "sha8": "ad3d7488",
+  "webp_sha8": "dd074de2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_ext_machine__machine__triceps": {
+  "sha8": "a9e3f10d",
+  "webp_sha8": "d6a97d46",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_lunge__dumbbell__quads": {
+  "sha8": "58998f25",
+  "webp_sha8": "f9715959",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press-bottomsup__kettlebell__shoulders": {
+  "sha8": "23c2edf4",
+  "webp_sha8": "8d06dbbe",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press-bradford__barbell__shoulders": {
+  "sha8": "df6694d8",
+  "webp_sha8": "fbb95749",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press__band__shoulders": {
+  "sha8": "2a94d6af",
+  "webp_sha8": "2b97c63e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press__barbell__shoulders": {
+  "sha8": "01a1df2c",
+  "webp_sha8": "6475c70a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press__cable__shoulders": {
+  "sha8": "3fbc879d",
+  "webp_sha8": "15b9f4cc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press__dumbbell__shoulders": {
+  "sha8": "7721095b",
+  "webp_sha8": "93624f7c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press__kettlebell__shoulders": {
+  "sha8": "88c0b727",
+  "webp_sha8": "00764238",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_press__smith__shoulders": {
+  "sha8": "366f2ce1",
+  "webp_sha8": "da4684cc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_shrug__barbell__traps": {
+  "sha8": "55ddb4db",
+  "webp_sha8": "1b3a59aa",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_shrug__dumbbell__traps": {
+  "sha8": "710085c1",
+  "webp_sha8": "9175a48f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_squat-balance__barbell__fullBody": {
+  "sha8": "dc0c3c63",
+  "webp_sha8": "becd9c71",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_squat-pressunder__barbell__fullBody": {
+  "sha8": "87c434fa",
+  "webp_sha8": "a9cc54d9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "overhead_squat__barbell__quads": {
+  "sha8": "b0f7a964",
+  "webp_sha8": "44575836",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pallof__band__abs": {
+  "sha8": "cd91ec09",
+  "webp_sha8": "81ce47a0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pallof__cable__abs": {
+  "sha8": "7db80f77",
+  "webp_sha8": "a2ab4cd6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pec_deck-seated__cable__chest": {
+  "sha8": "43926398",
+  "webp_sha8": "f872ee1b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pec_deck__machine__chest": {
+  "sha8": "cdc9980a",
+  "webp_sha8": "fb0e51d1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pendlay_row__barbell__back": {
+  "sha8": "693c6b17",
+  "webp_sha8": "3ceb4544",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pendulum_squat-frame__machine__quads": {
+  "sha8": "e58962dd",
+  "webp_sha8": "9afd399f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pike_pushup__bodyweight__shoulders": {
+  "sha8": "8d768a31",
+  "webp_sha8": "ca7a39d4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pilates__bodyweight__cardio": {
+  "sha8": "479f0e75",
+  "webp_sha8": "ab14ab11",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pistol-shrimp__bodyweight__quads": {
+  "sha8": "d949f983",
+  "webp_sha8": "fb44e75d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pistol-skater__bodyweight__quads": {
+  "sha8": "2a4b8b97",
+  "webp_sha8": "7bc3e33b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pistol__bodyweight__quads": {
+  "sha8": "1c55b6b2",
+  "webp_sha8": "2adf8882",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank-hipdip__bodyweight__abs": {
+  "sha8": "65bdfa12",
+  "webp_sha8": "18f64348",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank-pullthrough__kettlebell__abs": {
+  "sha8": "0ef325d1",
+  "webp_sha8": "750a7b3a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank-reverse__bodyweight__abs": {
+  "sha8": "45bfbf9a",
+  "webp_sha8": "48336559",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank__bodyweight__abs": {
+  "sha8": "c584ce5e",
+  "webp_sha8": "0251e3ac",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank_high-inch__bodyweight__abs": {
+  "sha8": "b00a0a17",
+  "webp_sha8": "bc900d5a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank_high-jack__bodyweight__abs": {
+  "sha8": "567e535c",
+  "webp_sha8": "ad00c912",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank_high-push__bodyweight__chest": {
+  "sha8": "c931d609",
+  "webp_sha8": "e61e1149",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank_high-scap__bodyweight__chest": {
+  "sha8": "1bae2b9b",
+  "webp_sha8": "da4dbfa3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plank_high-tap__bodyweight__abs": {
+  "sha8": "0c78cfd0",
+  "webp_sha8": "b9e520e1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plate_curl__other__biceps": {
+  "sha8": "574be82f",
+  "webp_sha8": "d9bffba3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plate_pinch__other__forearms": {
+  "sha8": "7c0726b5",
+  "webp_sha8": "07094204",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plate_raise-overhead__other__shoulders": {
+  "sha8": "8da925f2",
+  "webp_sha8": "6399293c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "plate_raise__other__shoulders": {
+  "sha8": "508b0aa1",
+  "webp_sha8": "40646f54",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "preacher_curl__barbell__biceps": {
+  "sha8": "e00be0d7",
+  "webp_sha8": "39571267",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "preacher_curl__cable__biceps": {
+  "sha8": "dba2f6c1",
+  "webp_sha8": "0d4b3646",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "preacher_curl__dumbbell__biceps": {
+  "sha8": "ac815309",
+  "webp_sha8": "7751b8c5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "preacher_curl__ezbar__biceps": {
+  "sha8": "9a0b7917",
+  "webp_sha8": "d5dec306",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "preacher_curl__machine__biceps": {
+  "sha8": "2365fad0",
+  "webp_sha8": "4d2cc559",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_apart__band__shoulders": {
+  "sha8": "5f0adaa6",
+  "webp_sha8": "3b6db410",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_through__band__glutes": {
+  "sha8": "b86c5fba",
+  "webp_sha8": "f683ef4b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_through__cable__glutes": {
+  "sha8": "ee52bd86",
+  "webp_sha8": "1241cdcf",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-archer__bodyweight__back": {
+  "sha8": "56b458fb",
+  "webp_sha8": "c2a06d00",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-chin_up__bodyweight__back": {
+  "sha8": "31de594e",
+  "webp_sha8": "d48288a2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-kip__bodyweight__back": {
+  "sha8": "cca2012b",
+  "webp_sha8": "d673bbea",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-neck__bodyweight__back": {
+  "sha8": "02904815",
+  "webp_sha8": "ede84cd7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-onearm__bodyweight__back": {
+  "sha8": "bd629f84",
+  "webp_sha8": "4e851b0d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-ring__other__back": {
+  "sha8": "cbf9b620",
+  "webp_sha8": "35baa285",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-sternum__bodyweight__back": {
+  "sha8": "eec6a14c",
+  "webp_sha8": "cba32101",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up-typewriter__bodyweight__back": {
+  "sha8": "b9e6b2be",
+  "webp_sha8": "74f3b89a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pull_up__bodyweight__back": {
+  "sha8": "247580fb",
+  "webp_sha8": "ddd9ed9c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pullover__barbell__back": {
+  "sha8": "e6f43aeb",
+  "webp_sha8": "d3b7fe6f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pullover__dumbbell__back": {
+  "sha8": "305060fa",
+  "webp_sha8": "f8259670",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pullover__ezbar__back": {
+  "sha8": "93293625",
+  "webp_sha8": "749b6ecf",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_press__barbell__shoulders": {
+  "sha8": "8655305f",
+  "webp_sha8": "b5834d91",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_press__dumbbell__shoulders": {
+  "sha8": "67104f2a",
+  "webp_sha8": "82d51667",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_press__kettlebell__shoulders": {
+  "sha8": "010b1193",
+  "webp_sha8": "36654243",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-clap__bodyweight__chest": {
+  "sha8": "c2eee461",
+  "webp_sha8": "97c3ee4f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-deficit__bodyweight__chest": {
+  "sha8": "e1ff45fc",
+  "webp_sha8": "3669708d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-diamond__bodyweight__triceps": {
+  "sha8": "077cd121",
+  "webp_sha8": "fc7cfca3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-onearm__bodyweight__chest": {
+  "sha8": "aa98d04e",
+  "webp_sha8": "501a36b1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-pseudo__bodyweight__chest": {
+  "sha8": "60dfe6bb",
+  "webp_sha8": "6d612f11",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-ring__other__chest": {
+  "sha8": "a619bd73",
+  "webp_sha8": "0d917382",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up-wide__bodyweight__chest": {
+  "sha8": "fc6d6941",
+  "webp_sha8": "f4248eb0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up__bodyweight__chest": {
+  "sha8": "e7535428",
+  "webp_sha8": "d7204be7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "push_up_decline__bodyweight__chest": {
+  "sha8": "5bac4105",
+  "webp_sha8": "7cf721e2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pushdown-cross__cable__triceps": {
+  "sha8": "f05afcb6",
+  "webp_sha8": "f2e35d66",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pushdown-reverse__cable__triceps": {
+  "sha8": "6bd0bbed",
+  "webp_sha8": "9895fb8f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pushdown-rope__cable__triceps": {
+  "sha8": "f62b75d1",
+  "webp_sha8": "ce0b5a77",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pushdown__band__triceps": {
+  "sha8": "3c0cede2",
+  "webp_sha8": "de279916",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "pushdown__cable__triceps": {
+  "sha8": "88cad165",
+  "webp_sha8": "b220d968",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rack_pull__barbell__back": {
+  "sha8": "60a8ca19",
+  "webp_sha8": "2522d5e5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rear_delt_fly-sidelying__dumbbell__shoulders": {
+  "sha8": "d647c2c9",
+  "webp_sha8": "f58c2e71",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rear_delt_fly__band__shoulders": {
+  "sha8": "3909781b",
+  "webp_sha8": "1141ad40",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rear_delt_fly__cable__shoulders": {
+  "sha8": "0d95068e",
+  "webp_sha8": "b092febb",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rear_delt_fly__dumbbell__shoulders": {
+  "sha8": "3bba5c4b",
+  "webp_sha8": "374c206d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "recumbent__machine__cardio": {
+  "sha8": "19e7398e",
+  "webp_sha8": "86b85f61",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "renegade__dumbbell__back": {
+  "sha8": "1b8f056c",
+  "webp_sha8": "aee8d1a8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "renegade__kettlebell__back": {
+  "sha8": "ed0112f7",
+  "webp_sha8": "6a98eb6a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_crunch__bodyweight__abs": {
+  "sha8": "20d749de",
+  "webp_sha8": "909354f8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_hyper__bodyweight__glutes": {
+  "sha8": "adf6e877",
+  "webp_sha8": "f9e63152",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_hyper__machine__glutes": {
+  "sha8": "e3664238",
+  "webp_sha8": "d5328dda",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge-curtsy__bodyweight__quads": {
+  "sha8": "f0e5285e",
+  "webp_sha8": "173dc74e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge-curtsy__dumbbell__quads": {
+  "sha8": "f0d0e449",
+  "webp_sha8": "414224f3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge-curtsy__smith__quads": {
+  "sha8": "bb97dd52",
+  "webp_sha8": "7c286ecd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge-landmine__barbell__quads": {
+  "sha8": "39f78524",
+  "webp_sha8": "f384482b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge__bodyweight__quads": {
+  "sha8": "05114098",
+  "webp_sha8": "9d6f8c8e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge__dumbbell__quads": {
+  "sha8": "62bdad6a",
+  "webp_sha8": "08e81525",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_lunge__kettlebell__quads": {
+  "sha8": "6194067c",
+  "webp_sha8": "d9613d3f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "reverse_pec_deck__machine__shoulders": {
+  "sha8": "71dd0f24",
+  "webp_sha8": "081f9b8f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rollout__barbell__abs": {
+  "sha8": "5bf6778a",
+  "webp_sha8": "a683c0b0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "rollout__other__abs": {
+  "sha8": "8798dd28",
+  "webp_sha8": "ee38dc44",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-bstance__barbell__hamstrings": {
+  "sha8": "39eb8a0a",
+  "webp_sha8": "ea341eaa",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-bstance__dumbbell__hamstrings": {
+  "sha8": "31c7f69c",
+  "webp_sha8": "63890ee9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-landmine1__barbell__hamstrings": {
+  "sha8": "2cfe9316",
+  "webp_sha8": "d1e0f148",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-landmine__barbell__hamstrings": {
+  "sha8": "80fa4338",
+  "webp_sha8": "a9895f9e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-single__bodyweight__hamstrings": {
+  "sha8": "89a5844e",
+  "webp_sha8": "0ae13936",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-single__dumbbell__hamstrings": {
+  "sha8": "06a00324",
+  "webp_sha8": "35334dfb",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-single__kettlebell__hamstrings": {
+  "sha8": "96346e5f",
+  "webp_sha8": "722d1049",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift-sumo__barbell__hamstrings": {
+  "sha8": "274d87f2",
+  "webp_sha8": "5032df4b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift__barbell__hamstrings": {
+  "sha8": "bf39db8a",
+  "webp_sha8": "7243a778",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift__cable__hamstrings": {
+  "sha8": "04cb8b9d",
+  "webp_sha8": "fe45311c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift__dumbbell__hamstrings": {
+  "sha8": "622ab1f0",
+  "webp_sha8": "767dec4c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift__kettlebell__hamstrings": {
+  "sha8": "e680f98d",
+  "webp_sha8": "3b8dbc33",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "romanian_deadlift__smith__hamstrings": {
+  "sha8": "c3020731",
+  "webp_sha8": "d62df294",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "row__machine__cardio": {
+  "sha8": "2e033cae",
+  "webp_sha8": "9e3197bc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "run__bodyweight__cardio": {
+  "sha8": "d93c6efb",
+  "webp_sha8": "9a7eb6ed",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "russian_twist__bodyweight__abs": {
+  "sha8": "c14db8d5",
+  "webp_sha8": "0cc673f9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seal_row__barbell__back": {
+  "sha8": "6a46cbdd",
+  "webp_sha8": "ba2d5997",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seal_row__dumbbell__back": {
+  "sha8": "aba449f0",
+  "webp_sha8": "91a8126a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_calf__barbell__calves": {
+  "sha8": "8bc8467d",
+  "webp_sha8": "88dc5ff2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_calf__dumbbell__calves": {
+  "sha8": "e6a3bfcf",
+  "webp_sha8": "a32c896b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_calf__machine__calves": {
+  "sha8": "b129aacf",
+  "webp_sha8": "6ec33e88",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_calf__smith__calves": {
+  "sha8": "b79f108d",
+  "webp_sha8": "bc8a3eb6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_leg_curl__band__hamstrings": {
+  "sha8": "618742ea",
+  "webp_sha8": "363e29e6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_leg_curl__machine__hamstrings": {
+  "sha8": "7a844566",
+  "webp_sha8": "645a8389",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_leg_press__machine__quads": {
+  "sha8": "1eae9028",
+  "webp_sha8": "54e1b645",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_press-arnold__dumbbell__shoulders": {
+  "sha8": "2db0df4c",
+  "webp_sha8": "e1da858c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_press-z__barbell__shoulders": {
+  "sha8": "3a1839dc",
+  "webp_sha8": "a8cb86d0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_press-z__dumbbell__shoulders": {
+  "sha8": "b9e82731",
+  "webp_sha8": "9ce4e33d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_row-standing__cable__back": {
+  "sha8": "97720c32",
+  "webp_sha8": "3d7f7aa6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_row__band__back": {
+  "sha8": "28a44275",
+  "webp_sha8": "a987d0c8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_row__cable__back": {
+  "sha8": "a11ba440",
+  "webp_sha8": "ffd90509",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "seated_row__machine__back": {
+  "sha8": "45e1ca1d",
+  "webp_sha8": "b5d554e0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shoulder_press_machine__machine__shoulders": {
+  "sha8": "40da1e94",
+  "webp_sha8": "b22b350c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug-incline__dumbbell__traps": {
+  "sha8": "aa14b529",
+  "webp_sha8": "4a903bab",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug-jump__barbell__traps": {
+  "sha8": "9c66bcd4",
+  "webp_sha8": "e623323d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug__barbell__traps": {
+  "sha8": "81c42d1d",
+  "webp_sha8": "2c27be39",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug__cable__traps": {
+  "sha8": "a68d3cbf",
+  "webp_sha8": "82ee373c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug__dumbbell__traps": {
+  "sha8": "3ab2d929",
+  "webp_sha8": "dd78a582",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug__machine__traps": {
+  "sha8": "b502f01b",
+  "webp_sha8": "4f7f8486",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug__smith__traps": {
+  "sha8": "9043deca",
+  "webp_sha8": "6970e422",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "shrug__trapbar__traps": {
+  "sha8": "b38a41c7",
+  "webp_sha8": "14f267b7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_bend-roman__bodyweight__abs": {
+  "sha8": "c66b3dbf",
+  "webp_sha8": "56e4c214",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_bend__cable__abs": {
+  "sha8": "171c7b57",
+  "webp_sha8": "93741083",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_bend__dumbbell__abs": {
+  "sha8": "8d884e21",
+  "webp_sha8": "d7e77f78",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_leg_raise__bodyweight__glutes": {
+  "sha8": "2a1aee65",
+  "webp_sha8": "07c170fc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_plank-crunch__bodyweight__abs": {
+  "sha8": "3138bf1b",
+  "webp_sha8": "33f51116",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_plank-rot__bodyweight__abs": {
+  "sha8": "2517c129",
+  "webp_sha8": "e3426ebd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "side_plank__bodyweight__abs": {
+  "sha8": "c8e2bed8",
+  "webp_sha8": "200cf49d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sit_up-ghd__machine__abs": {
+  "sha8": "632b43ff",
+  "webp_sha8": "4264ac32",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sit_up__bodyweight__abs": {
+  "sha8": "214da1bb",
+  "webp_sha8": "9ffbfa34",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skate__bodyweight__glutes": {
+  "sha8": "785f2332",
+  "webp_sha8": "e4f67e95",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skierg__machine__cardio": {
+  "sha8": "552089c7",
+  "webp_sha8": "e1a61a79",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-decline__ezbar__triceps": {
+  "sha8": "226d5b27",
+  "webp_sha8": "3525bbe0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-floor__bodyweight__triceps": {
+  "sha8": "d9d72794",
+  "webp_sha8": "4beead98",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-incline__barbell__triceps": {
+  "sha8": "fb1bdef0",
+  "webp_sha8": "89913018",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-incline__dumbbell__triceps": {
+  "sha8": "09d0ed04",
+  "webp_sha8": "f27266ca",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-incline__ezbar__triceps": {
+  "sha8": "f90eecde",
+  "webp_sha8": "8b188c5c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-jm__barbell__triceps": {
+  "sha8": "6f4fc53c",
+  "webp_sha8": "a290c945",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-jm__smith__triceps": {
+  "sha8": "323478a3",
+  "webp_sha8": "8e4960af",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher-wide__dumbbell__triceps": {
+  "sha8": "b51beef4",
+  "webp_sha8": "762cec8a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher__barbell__triceps": {
+  "sha8": "3ba79613",
+  "webp_sha8": "95d39a36",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher__cable__triceps": {
+  "sha8": "de3324ea",
+  "webp_sha8": "fa279adf",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher__dumbbell__triceps": {
+  "sha8": "234a74b3",
+  "webp_sha8": "7fd78251",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "skull_crusher__ezbar__triceps": {
+  "sha8": "92e15a8a",
+  "webp_sha8": "2acede4b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sled_pull__other__fullBody": {
+  "sha8": "d9834d06",
+  "webp_sha8": "4c65aaa3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sled_push__other__fullBody": {
+  "sha8": "44575388",
+  "webp_sha8": "4bf5719b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "snatch-block__barbell__fullBody": {
+  "sha8": "80dd7ec1",
+  "webp_sha8": "05bdae9e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "snatch-full__barbell__fullBody": {
+  "sha8": "2d840fea",
+  "webp_sha8": "de9c52af",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "snatch-hang__barbell__fullBody": {
+  "sha8": "20b3e383",
+  "webp_sha8": "7166ec4a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "snatch-power__barbell__fullBody": {
+  "sha8": "d25bc117",
+  "webp_sha8": "bedb17fc",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sots_press__barbell__shoulders": {
+  "sha8": "bf24e382",
+  "webp_sha8": "34ee2c64",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "spanish_squat__band__quads": {
+  "sha8": "ecd13901",
+  "webp_sha8": "2497f1d5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sphinx_push_up__bodyweight__triceps": {
+  "sha8": "dec8461b",
+  "webp_sha8": "80f1e8c7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "spider_curl__barbell__biceps": {
+  "sha8": "e25f20e1",
+  "webp_sha8": "ed7b5b47",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "spider_curl__dumbbell__biceps": {
+  "sha8": "94076cdb",
+  "webp_sha8": "0fc93a63",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "spider_curl__ezbar__biceps": {
+  "sha8": "f4bc1cd6",
+  "webp_sha8": "8bce9585",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sprint__bodyweight__cardio": {
+  "sha8": "be92f8d1",
+  "webp_sha8": "183346d9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squat-anderson__barbell__quads": {
+  "sha8": "b23f9bcc",
+  "webp_sha8": "23ee7643",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squat__band__quads": {
+  "sha8": "a9093061",
+  "webp_sha8": "cbbc60c5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squat__barbell__quads": {
+  "sha8": "1a193ec0",
+  "webp_sha8": "2a95aff4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squat__smith__quads": {
+  "sha8": "8c4d574d",
+  "webp_sha8": "c8d3d8c6",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squat_dumbbell__dumbbell__quads": {
+  "sha8": "26f37f3c",
+  "webp_sha8": "9c2b8fa2",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squeeze_press-incline__dumbbell__chest": {
+  "sha8": "6722093b",
+  "webp_sha8": "5fa2bd81",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "squeeze_press__dumbbell__chest": {
+  "sha8": "7bed6639",
+  "webp_sha8": "9959e59d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stairs-stepper__machine__cardio": {
+  "sha8": "ce231e40",
+  "webp_sha8": "3dbc2662",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stairs__machine__cardio": {
+  "sha8": "0913d9eb",
+  "webp_sha8": "80e66049",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "standing_knee_to_elbow__bodyweight__abs": {
+  "sha8": "cefc07df",
+  "webp_sha8": "f5c604b1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "standing_leg_curl-kneeling__machine__hamstrings": {
+  "sha8": "6b98fb0e",
+  "webp_sha8": "2eba996c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "standing_leg_curl__cable__hamstrings": {
+  "sha8": "b0e4ee66",
+  "webp_sha8": "3d588732",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "standing_leg_curl__machine__hamstrings": {
+  "sha8": "31384327",
+  "webp_sha8": "fd1aa4e4",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stationary_bike-assault__machine__cardio": {
+  "sha8": "77eb8938",
+  "webp_sha8": "62515b0b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stationary_bike__machine__cardio": {
+  "sha8": "70b53a9e",
+  "webp_sha8": "6ada255c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_down__bodyweight__quads": {
+  "sha8": "315d8c21",
+  "webp_sha8": "83ed7af0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up-lateral__bodyweight__quads": {
+  "sha8": "fe963f0f",
+  "webp_sha8": "0d97071c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up-poliquin__bodyweight__quads": {
+  "sha8": "209a6c2c",
+  "webp_sha8": "f5e38fce",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up__barbell__quads": {
+  "sha8": "48c21901",
+  "webp_sha8": "b9a60ffd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up__bodyweight__quads": {
+  "sha8": "d2af4024",
+  "webp_sha8": "bbb691ec",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up__dumbbell__quads": {
+  "sha8": "56d637eb",
+  "webp_sha8": "4c3fb0a1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up__kettlebell__quads": {
+  "sha8": "5f4e89dc",
+  "webp_sha8": "8ccbfcac",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "step_up__smith__quads": {
+  "sha8": "ef84efa5",
+  "webp_sha8": "9951db35",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stiff_leg__barbell__hamstrings": {
+  "sha8": "424838ae",
+  "webp_sha8": "b7f863df",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stiff_leg__dumbbell__hamstrings": {
+  "sha8": "b49a7e87",
+  "webp_sha8": "7d08fe22",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "stiff_leg__smith__hamstrings": {
+  "sha8": "4d0fca36",
+  "webp_sha8": "89189fa5",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "straight_arm_pulldown__band__back": {
+  "sha8": "1a6538d8",
+  "webp_sha8": "812e10dd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "straight_arm_pulldown__cable__back": {
+  "sha8": "b3f14b63",
+  "webp_sha8": "a4750600",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_deadlift__barbell__back": {
+  "sha8": "bddcb02f",
+  "webp_sha8": "5a62fbfe",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_deadlift__dumbbell__glutes": {
+  "sha8": "7c66bb45",
+  "webp_sha8": "e0f34b67",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_deadlift__kettlebell__glutes": {
+  "sha8": "7e747270",
+  "webp_sha8": "8660a80f",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_squat__barbell__quads": {
+  "sha8": "288435d4",
+  "webp_sha8": "f3f6bef9",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_squat__dumbbell__quads": {
+  "sha8": "f6205fcc",
+  "webp_sha8": "dd29a3b8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_squat__kettlebell__quads": {
+  "sha8": "05a2ad51",
+  "webp_sha8": "da3daca1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "sumo_squat__smith__quads": {
+  "sha8": "555a7627",
+  "webp_sha8": "7fe80907",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "superman__bodyweight__back": {
+  "sha8": "ed4d3dbf",
+  "webp_sha8": "d06b6756",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "svend__other__chest": {
+  "sha8": "1c6dcec3",
+  "webp_sha8": "f0d30166",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "t_bar_row-meadows__barbell__back": {
+  "sha8": "bd5a3f71",
+  "webp_sha8": "1e7b4562",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "t_bar_row__barbell__back": {
+  "sha8": "8ca61ca3",
+  "webp_sha8": "a6feda7e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "thruster__barbell__fullBody": {
+  "sha8": "98afe213",
+  "webp_sha8": "796b7c86",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "thruster__dumbbell__fullBody": {
+  "sha8": "a53c9e54",
+  "webp_sha8": "2bab8db0",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "thruster__kettlebell__fullBody": {
+  "sha8": "db42cc41",
+  "webp_sha8": "9faf4f51",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "tibialis_raise__bodyweight__calves": {
+  "sha8": "874af262",
+  "webp_sha8": "39e64ee7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "toe_touch__bodyweight__abs": {
+  "sha8": "b37c56bd",
+  "webp_sha8": "526ea439",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "toes_to_bar-knees__bodyweight__abs": {
+  "sha8": "1a194983",
+  "webp_sha8": "530bec71",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "torso_rotation__machine__abs": {
+  "sha8": "0e73d333",
+  "webp_sha8": "61b84269",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "treadmill__machine__cardio": {
+  "sha8": "b45893dd",
+  "webp_sha8": "953153dd",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row-cuban__dumbbell__shoulders": {
+  "sha8": "8160a649",
+  "webp_sha8": "5f5e1f85",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row__band__shoulders": {
+  "sha8": "7c57d806",
+  "webp_sha8": "416c4d3b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row__barbell__shoulders": {
+  "sha8": "acdd8d15",
+  "webp_sha8": "fb0dd49a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row__cable__shoulders": {
+  "sha8": "79f56a90",
+  "webp_sha8": "8f930c04",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row__dumbbell__shoulders": {
+  "sha8": "c9dbac39",
+  "webp_sha8": "7e06e7d7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row__ezbar__shoulders": {
+  "sha8": "e0dab927",
+  "webp_sha8": "b854be2a",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "upright_row__smith__shoulders": {
+  "sha8": "d42520c8",
+  "webp_sha8": "16d6937e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "v_sit-tuck__bodyweight__abs": {
+  "sha8": "473b19aa",
+  "webp_sha8": "fea765af",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "v_sit-up__bodyweight__abs": {
+  "sha8": "2aa2aef5",
+  "webp_sha8": "7a1aa724",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "v_squat-frame__machine__quads": {
+  "sha8": "50f2e629",
+  "webp_sha8": "579c433e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "vacuum__bodyweight__abs": {
+  "sha8": "1079f514",
+  "webp_sha8": "57df7919",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "w_raise__dumbbell__shoulders": {
+  "sha8": "bce1d57d",
+  "webp_sha8": "65ad289b",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "walk__bodyweight__cardio": {
+  "sha8": "0f8c0833",
+  "webp_sha8": "e1d8ed05",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wall_ball__other__fullBody": {
+  "sha8": "90ac9840",
+  "webp_sha8": "533cda36",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wall_sit__bodyweight__quads": {
+  "sha8": "cac08780",
+  "webp_sha8": "8879129d",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "windmill__dumbbell__abs": {
+  "sha8": "f38a6c06",
+  "webp_sha8": "8c5469d7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "windmill__kettlebell__abs": {
+  "sha8": "db5b2d9b",
+  "webp_sha8": "29f2b9df",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "windmill__kettlebell__shoulders": {
+  "sha8": "88fb259e",
+  "webp_sha8": "d1330eaa",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "woodchop-db__dumbbell__abs": {
+  "sha8": "c51985e0",
+  "webp_sha8": "6a2e76ed",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "woodchop__band__abs": {
+  "sha8": "161dc9a9",
+  "webp_sha8": "702089d8",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "woodchop__cable__abs": {
+  "sha8": "4862aa92",
+  "webp_sha8": "f8d228c3",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wrist_curl-reverse_wrist_curl__barbell__forearms": {
+  "sha8": "6edbe3e8",
+  "webp_sha8": "e446cec7",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wrist_curl-reverse_wrist_curl__dumbbell__forearms": {
+  "sha8": "61bd5590",
+  "webp_sha8": "ba29fa12",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wrist_curl__barbell__forearms": {
+  "sha8": "dceff85b",
+  "webp_sha8": "2461619e",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wrist_curl__cable__forearms": {
+  "sha8": "a6021d4d",
+  "webp_sha8": "3e2e7cfb",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wrist_curl__dumbbell__forearms": {
+  "sha8": "c36dfbf5",
+  "webp_sha8": "b3f1a40c",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "wrist_roller__other__forearms": {
+  "sha8": "bf53f1fe",
+  "webp_sha8": "5b08aea1",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "y_raise__cable__shoulders": {
+  "sha8": "8aacac5c",
+  "webp_sha8": "e1b50a10",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "y_raise__dumbbell__shoulders": {
+  "sha8": "a9fa27b8",
+  "webp_sha8": "b3853826",
+  "판": "자극부위",
+  "답": "1142"
+ },
+ "yoke_walk__other__fullBody": {
+  "sha8": "944dbd20",
+  "webp_sha8": "675e6813",
+  "판": "자극부위",
+  "답": "1142"
+ }
+}

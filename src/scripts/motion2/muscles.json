@@ -1,0 +1,4785 @@
+{
+"abduction_standing__band__glutes": [
+[
+"glutes"
+],
+[]
+],
+"abduction_standing__cable__glutes": [
+[
+"glutes"
+],
+[]
+],
+"adduction_standing__cable__glutes": [
+[
+"adductors"
+],
+[]
+],
+"aerobic__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"air_squat-safety__other__quads": [
+[
+"quads"
+],
+[
+"glutes",
+"lats"
+]
+],
+"air_squat__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"arm_extension_machine__machine__triceps": [
+[
+"triceps"
+],
+[]
+],
+"around_world-arc__dumbbell__chest": [
+[
+"chest"
+],
+[
+"front_delts"
+]
+],
+"assisted_dip-x__machine__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"assisted_dip__band__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"assisted_dip__machine__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"assisted_pull-chinup__machine__biceps": [
+[
+"biceps"
+],
+[
+"lats"
+]
+],
+"assisted_pull__band__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"assisted_pull__machine__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"back_extension__bodyweight__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"back_extension__machine__back": [
+[
+"lower_back"
+],
+[
+"glutes"
+]
+],
+"back_lever__bodyweight__back": [
+[
+"lats"
+],
+[
+"abs",
+"front_delts",
+"side_delts"
+]
+],
+"ball_slam-slam__other__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"abs"
+]
+],
+"band_walk-walk__band__glutes": [
+[
+"glutes"
+],
+[]
+],
+"battle_rope-wave__other__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"bear_crawl-crawl__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"abs",
+"front_delts",
+"side_delts"
+]
+],
+"bear_crawl-plank__bodyweight__abs": [
+[
+"abs"
+],
+[
+"front_delts",
+"quads",
+"side_delts"
+]
+],
+"behind_back_wrist__barbell__forearms": [
+[
+"forearms"
+],
+[]
+],
+"behind_neck_press__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"behind_neck_press__smith__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"traps",
+"triceps"
+]
+],
+"belt_squat__machine__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"bench_dip__bodyweight__triceps": [
+[
+"triceps"
+],
+[]
+],
+"bench_press-board__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"bench_press-close__dumbbell__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"bench_press-close_grip_bench_press__barbell__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"bench_press-close_grip_bench_press__ezbar__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"bench_press-close_grip_bench_press__smith__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"bench_press-feetup__barbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"bench_press-guillotine__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"bench_press-larsen__barbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"bench_press-pin__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"bench_press__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"bench_press__cable__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"bench_press__dumbbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"bench_press__smith__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"bent_over_row-gorilla__kettlebell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bent_over_row__band__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bent_over_row__barbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bent_over_row__cable__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bent_over_row__dumbbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bent_over_row__kettlebell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bent_over_row__smith__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"bicycle-cycle__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"bird_dog__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"abs",
+"lats"
+]
+],
+"box_jump-jump__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"box_jump-lateral__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"box_squat__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"boxing__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"abs",
+"front_delts",
+"side_delts"
+]
+],
+"broad_jump-broad__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"broad_jump-broad__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"broad_jump-frog__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"bulgarian__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"bulgarian__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"bulgarian__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"burpee-bar__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"burpee-box__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"burpee-devil__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"burpee-full__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"burpee-hiit__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"bus_driver-turn__other__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"forearms"
+]
+],
+"butt_kick-kick__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"calves",
+"hamstrings"
+]
+],
+"cable_crossover-incline__cable__chest": [
+[
+"chest"
+],
+[
+"front_delts"
+]
+],
+"cable_crossover-lying__cable__chest": [
+[
+"chest"
+],
+[]
+],
+"cable_crossover__cable__chest": [
+[
+"chest"
+],
+[]
+],
+"cable_lying_curl__cable__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"calf_raise__band__calves": [
+[
+"calves"
+],
+[]
+],
+"calf_raise__bodyweight__calves": [
+[
+"calves"
+],
+[]
+],
+"calf_raise__dumbbell__calves": [
+[
+"calves"
+],
+[]
+],
+"calf_raise__machine__calves": [
+[
+"calves"
+],
+[]
+],
+"calf_raise_bar__barbell__calves": [
+[
+"calves"
+],
+[]
+],
+"calf_raise_bar__smith__calves": [
+[
+"calves"
+],
+[]
+],
+"captain_chair-knee__other__abs": [
+[
+"abs"
+],
+[]
+],
+"captain_chair-leg__other__abs": [
+[
+"abs"
+],
+[]
+],
+"chest_press-decline__machine__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_press-lying__machine__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_press-onearm__machine__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_press-stand__cable__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_press__band__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_press__cable__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_press__machine__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"chest_supported_row__dumbbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"chest_supported_row__machine__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"chest_supported_t_bar__barbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"clamshell__bodyweight__glutes": [
+[
+"glutes"
+],
+[]
+],
+"clean-block__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"clean-full__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats"
+]
+],
+"clean-full__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats"
+]
+],
+"clean-hang__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats"
+]
+],
+"clean-muscle__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts",
+"traps"
+]
+],
+"clean-power__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats"
+]
+],
+"clean_jerk-full__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"clean_jerk-power__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"clean_jerk-press__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"clean_jerk-press__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"clean_jerk-press__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"clean_jerk-split__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"climb__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"forearms",
+"lats"
+]
+],
+"cluster__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"concentration_curl__cable__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"concentration_curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"copenhagen__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"abs"
+]
+],
+"crab_walk-walk__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts",
+"triceps"
+]
+],
+"crunch-ball__other__abs": [
+[
+"abs"
+],
+[]
+],
+"crunch-coaster__machine__abs": [
+[
+"abs"
+],
+[]
+],
+"crunch-double__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"crunch-heeltap__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"crunch-seat__machine__abs": [
+[
+"abs"
+],
+[]
+],
+"crunch-side__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"crunch-side__cable__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"crunch__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"crunch_kneeling__cable__abs": [
+[
+"abs"
+],
+[]
+],
+"curl-behindback__cable__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl-c21__barbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl-crossbody__dumbbell__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"curl-curlpress__dumbbell__biceps": [
+[
+"biceps"
+],
+[
+"front_delts",
+"side_delts",
+"triceps"
+]
+],
+"curl-hammer_curl__cable__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"curl-hammer_curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"curl-reverse_curl__barbell__forearms": [
+[
+"forearms"
+],
+[
+"biceps"
+]
+],
+"curl-reverse_curl__cable__forearms": [
+[
+"forearms"
+],
+[
+"biceps"
+]
+],
+"curl-reverse_curl__dumbbell__forearms": [
+[
+"forearms"
+],
+[
+"biceps"
+]
+],
+"curl-reverse_curl__ezbar__forearms": [
+[
+"forearms"
+],
+[
+"biceps"
+]
+],
+"curl-waiter__dumbbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl-zottman__dumbbell__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"curl__band__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl__barbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl__cable__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"curl__ezbar__biceps": [
+[
+"biceps"
+],
+[]
+],
+"cycle__other__cardio": [
+[
+"quads"
+],
+[
+"calves"
+]
+],
+"dead_bug__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"dead_hang-scap__bodyweight__back": [
+[
+"lats"
+],
+[
+"traps"
+]
+],
+"dead_hang__bodyweight__back": [
+[
+"lats"
+],
+[
+"forearms"
+]
+],
+"deadlift-deficit__barbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"deadlift__band__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"deadlift__barbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"deadlift__dumbbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"deadlift__kettlebell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"deadlift__smith__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"deadlift__trapbar__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings",
+"quads"
+]
+],
+"decline_press__barbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"decline_press__dumbbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"decline_press__smith__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"decline_sit_up-bench__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"decline_sit_up-crunch__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"dips-bar__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"dips-ring__other__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"dips__bodyweight__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"donkey_calf__machine__calves": [
+[
+"calves"
+],
+[]
+],
+"drag_curl__barbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"drag_curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"dragon_flag__bodyweight__abs": [
+[
+"abs"
+],
+[
+"glutes",
+"quads"
+]
+],
+"elliptical__machine__cardio": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"external_rotation__band__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[]
+],
+"external_rotation__cable__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[]
+],
+"external_rotation__dumbbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[]
+],
+"face_pull-rear__cable__shoulders": [
+[
+"rear_delts"
+],
+[
+"lats",
+"traps"
+]
+],
+"face_pull-rear__dumbbell__shoulders": [
+[
+"rear_delts"
+],
+[
+"lats"
+]
+],
+"face_pull__band__shoulders": [
+[
+"rear_delts"
+],
+[
+"traps"
+]
+],
+"face_pull__cable__shoulders": [
+[
+"rear_delts"
+],
+[
+"traps"
+]
+],
+"farmers_walk-suitcase__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"abs",
+"forearms"
+]
+],
+"farmers_walk-walk__dumbbell__forearms": [
+[
+"forearms"
+],
+[
+"traps"
+]
+],
+"farmers_walk-walk__kettlebell__forearms": [
+[
+"forearms"
+],
+[
+"traps"
+]
+],
+"farmers_walk-walk__trapbar__forearms": [
+[
+"forearms"
+],
+[
+"traps"
+]
+],
+"figure_8-eight__kettlebell__abs": [
+[
+"abs"
+],
+[
+"forearms"
+]
+],
+"fire_hydrant__bodyweight__glutes": [
+[
+"glutes"
+],
+[]
+],
+"floor_press__barbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"floor_press__dumbbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"floor_press__kettlebell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"flutter-kick__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"flutter-scissor__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"fly_lying-decline__dumbbell__chest": [
+[
+"chest"
+],
+[]
+],
+"fly_lying-floor__dumbbell__chest": [
+[
+"chest"
+],
+[
+"front_delts"
+]
+],
+"fly_lying-lying__band__chest": [
+[
+"chest"
+],
+[]
+],
+"fly_lying__dumbbell__chest": [
+[
+"chest"
+],
+[]
+],
+"frog_pump__dumbbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"front_lever-raise__bodyweight__back": [
+[
+"lats"
+],
+[
+"abs"
+]
+],
+"front_lever__bodyweight__back": [
+[
+"lats"
+],
+[
+"abs"
+]
+],
+"front_raise-scaption__dumbbell__shoulders": [
+[
+"front_delts"
+],
+[
+"traps"
+]
+],
+"front_raise__band__shoulders": [
+[
+"front_delts"
+],
+[]
+],
+"front_raise__barbell__shoulders": [
+[
+"front_delts"
+],
+[]
+],
+"front_raise__cable__shoulders": [
+[
+"front_delts"
+],
+[]
+],
+"front_raise__dumbbell__shoulders": [
+[
+"front_delts"
+],
+[]
+],
+"front_squat__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"front_squat__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"ghr__machine__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"glute_bridge-ball__other__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"glute_bridge-ham__bodyweight__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"glute_bridge-slide__bodyweight__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"glute_bridge__band__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"glute_bridge__barbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"glute_bridge__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"glute_bridge__dumbbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"goblet_squat-cable__cable__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"goblet_squat-front__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"goblet_squat-front__kettlebell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"goblet_squat-landmine__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"goblet_squat-zercher__barbell__quads": [
+[
+"quads"
+],
+[
+"abs",
+"glutes"
+]
+],
+"goblet_squat__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"goblet_squat__kettlebell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"good_morning-fixed__smith__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"good_morning__band__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"good_morning__barbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"hack_squat-bar__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"hack_squat-reverse__machine__quads": [
+[
+"quads"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"hack_squat-smith__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"hack_squat__machine__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"halo-around__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"abs"
+]
+],
+"halo__kettlebell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs"
+]
+],
+"hand_gripper__other__forearms": [
+[
+"forearms"
+],
+[]
+],
+"handstand-hold__bodyweight__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs"
+]
+],
+"handstand-walk__bodyweight__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs",
+"triceps"
+]
+],
+"handstand-wall__bodyweight__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs",
+"triceps"
+]
+],
+"handstand_pushup__bodyweight__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"hanging_knee_raise__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"hanging_leg_raise__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"hatfield_squat__other__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"high_knees__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"calves"
+]
+],
+"high_pull-clean__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats",
+"traps"
+]
+],
+"high_pull-dl__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats",
+"traps"
+]
+],
+"high_pull-kb__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts",
+"traps"
+]
+],
+"high_pull-snatch__barbell__back": [
+[
+"lats"
+],
+[
+"glutes",
+"hamstrings",
+"traps"
+]
+],
+"high_row__cable__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"high_row__machine__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"hike__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"calves"
+]
+],
+"hip_abduction__machine__glutes": [
+[
+"glutes"
+],
+[]
+],
+"hip_adduction__machine__glutes": [
+[
+"adductors"
+],
+[]
+],
+"hip_thrust-pad__machine__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust-single__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust-single__dumbbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust__band__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust__barbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust__dumbbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hip_thrust__smith__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"hollow-hold__bodyweight__abs": [
+[
+"abs"
+],
+[
+"quads"
+]
+],
+"hollow-rock__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"human_flag__bodyweight__abs": [
+[
+"abs"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"incline_chest_press__machine__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"incline_curl__cable__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"incline_curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"incline_fly-fly__machine__chest": [
+[
+"chest"
+],
+[
+"front_delts"
+]
+],
+"incline_fly__dumbbell__chest": [
+[
+"chest"
+],
+[]
+],
+"incline_press-close__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"incline_press__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"incline_press__cable__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"incline_press__dumbbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"incline_press__smith__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"internal_rotation__cable__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[]
+],
+"inverted_row-ring__other__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"inverted_row__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"inverted_row__smith__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"jefferson_curl__barbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"jefferson_curl__dumbbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"jump_rope__other__cardio": [
+[
+"calves"
+],
+[
+"glutes",
+"quads"
+]
+],
+"jump_squat-bar__barbell__quads": [
+[
+"quads"
+],
+[
+"calves",
+"glutes"
+]
+],
+"jump_squat-full__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"jump_squat-pogo__bodyweight__calves": [
+[
+"calves"
+],
+[
+"quads"
+]
+],
+"jump_squat-tuck__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"jumping_jack__bodyweight__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"calves"
+]
+],
+"kb_swing__dumbbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings",
+"lower_back"
+]
+],
+"kb_swing__kettlebell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings",
+"lower_back"
+]
+],
+"kickback__band__triceps": [
+[
+"triceps"
+],
+[]
+],
+"kickback__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"kickback__dumbbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"kickback_glute-pad__machine__glutes": [
+[
+"glutes"
+],
+[]
+],
+"kickback_glute__band__glutes": [
+[
+"glutes"
+],
+[]
+],
+"kickback_glute__bodyweight__glutes": [
+[
+"glutes"
+],
+[]
+],
+"kickback_glute__cable__glutes": [
+[
+"glutes"
+],
+[]
+],
+"knee_push_up__bodyweight__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"knee_raise_lying__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"kneeling_hip_thrust__band__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"kneeling_hip_thrust__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"kneeling_hip_thrust__smith__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"korean_dip__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"l_sit__bodyweight__abs": [
+[
+"abs"
+],
+[
+"triceps"
+]
+],
+"landmine_180__barbell__abs": [
+[
+"abs",
+"obliques"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"landmine_press-squatpress__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"landmine_press-squeeze__barbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"landmine_press-viking__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"traps",
+"triceps"
+]
+],
+"landmine_press__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"chest",
+"triceps"
+]
+],
+"lat_pulldown-close__cable__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"lat_pulldown-neck__cable__back": [
+[
+"lats"
+],
+[
+"biceps",
+"front_delts",
+"side_delts"
+]
+],
+"lat_pulldown-onearm__cable__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"lat_pulldown__band__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"lat_pulldown__cable__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"lat_pulldown__machine__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"lateral_lunge-bw__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lateral_lunge-db__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lateral_lunge-squat__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lateral_raise-landmine__barbell__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"lateral_raise-sidelying__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"lateral_raise__band__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"lateral_raise__cable__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"lateral_raise__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"lateral_raise_machine__machine__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"leaning_lateral_raise__cable__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"leaning_lateral_raise__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"leg_extension__machine__quads": [
+[
+"quads"
+],
+[]
+],
+"leg_press__machine__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"leg_press_calf__machine__calves": [
+[
+"calves"
+],
+[]
+],
+"leg_raise_lying-decline__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"leg_raise_lying-wiper__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"leg_raise_lying__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"low_row__machine__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"low_to_high_fly__cable__chest": [
+[
+"chest"
+],
+[]
+],
+"lu_raise__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"lunge-jump__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge__kettlebell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge_bar-reverse__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge_bar-reverse__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge_bar__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lunge_bar__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"lying_leg_curl__dumbbell__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"lying_leg_curl__machine__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"man_maker__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"chest",
+"front_delts",
+"side_delts"
+]
+],
+"mountain_climber-spider__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"mountain_climber__bodyweight__abs": [
+[
+"abs"
+],
+[
+"glutes",
+"quads"
+]
+],
+"muscle_snatch__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts",
+"traps"
+]
+],
+"muscle_up__bodyweight__back": [
+[
+"lats"
+],
+[
+"glutes",
+"quads"
+]
+],
+"nordic__bodyweight__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"nordic__bodyweight__quads": [
+[
+"quads"
+],
+[]
+],
+"one_arm_row__dumbbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"one_arm_row__kettlebell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"overhead_cable_curl__cable__biceps": [
+[
+"biceps"
+],
+[]
+],
+"overhead_carry__dumbbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs"
+]
+],
+"overhead_ext__band__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_ext__barbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_ext__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_ext__dumbbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_ext__ezbar__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_ext__kettlebell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_ext_machine__machine__triceps": [
+[
+"triceps"
+],
+[]
+],
+"overhead_lunge__dumbbell__quads": [
+[
+"quads"
+],
+[
+"front_delts",
+"glutes",
+"side_delts"
+]
+],
+"overhead_press-bottomsup__kettlebell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"forearms",
+"triceps"
+]
+],
+"overhead_press-bradford__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"traps",
+"triceps"
+]
+],
+"overhead_press__band__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"overhead_press__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"overhead_press__cable__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"overhead_press__dumbbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"overhead_press__kettlebell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"overhead_press__smith__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"overhead_shrug__barbell__traps": [
+[
+"traps"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"overhead_shrug__dumbbell__traps": [
+[
+"traps"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"overhead_squat-balance__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"overhead_squat-pressunder__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"overhead_squat__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"pallof__band__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"pallof__cable__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"pec_deck-seated__cable__chest": [
+[
+"chest"
+],
+[]
+],
+"pec_deck__machine__chest": [
+[
+"chest"
+],
+[]
+],
+"pendlay_row__barbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pendulum_squat-frame__machine__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"pike_pushup-hindu__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"pike_pushup__bodyweight__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"pilates__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"abs"
+]
+],
+"pistol-shrimp__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"pistol-skater__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"pistol__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"planche__bodyweight__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs",
+"chest"
+]
+],
+"planche_push_up__bodyweight__chest": [
+[
+"chest"
+],
+[
+"abs",
+"front_delts",
+"triceps"
+]
+],
+"plank-hipdip__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"plank-pullthrough__kettlebell__abs": [
+[
+"abs"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"plank-reverse__bodyweight__abs": [
+[
+"abs"
+],
+[
+"glutes",
+"lats"
+]
+],
+"plank__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"plank_high-inch__bodyweight__abs": [
+[
+"abs"
+],
+[
+"front_delts",
+"hamstrings",
+"side_delts"
+]
+],
+"plank_high-jack__bodyweight__abs": [
+[
+"abs"
+],
+[
+"front_delts",
+"glutes",
+"quads",
+"side_delts"
+]
+],
+"plank_high-push__bodyweight__chest": [
+[
+"chest"
+],
+[
+"abs"
+]
+],
+"plank_high-scap__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts"
+]
+],
+"plank_high-tap__bodyweight__abs": [
+[
+"abs"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"plate_curl__other__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"plate_pinch__other__forearms": [
+[
+"forearms"
+],
+[]
+],
+"plate_raise-overhead__other__shoulders": [
+[
+"front_delts"
+],
+[]
+],
+"plate_raise__other__shoulders": [
+[
+"front_delts"
+],
+[]
+],
+"preacher_curl__barbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"preacher_curl__cable__biceps": [
+[
+"biceps"
+],
+[]
+],
+"preacher_curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"preacher_curl__ezbar__biceps": [
+[
+"biceps"
+],
+[]
+],
+"preacher_curl__machine__biceps": [
+[
+"biceps"
+],
+[]
+],
+"pull_apart__band__shoulders": [
+[
+"rear_delts"
+],
+[
+"traps"
+]
+],
+"pull_through__band__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"pull_through__cable__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings"
+]
+],
+"pull_up-archer__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pull_up-chin_up__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pull_up-commando__bodyweight__back": [
+[
+"lats"
+],
+[
+"abs",
+"biceps"
+]
+],
+"pull_up-kip__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps",
+"glutes",
+"quads"
+]
+],
+"pull_up-neck__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pull_up-onearm__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps",
+"forearms"
+]
+],
+"pull_up-ring__other__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pull_up-sternum__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pull_up-typewriter__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps",
+"front_delts",
+"side_delts"
+]
+],
+"pull_up__bodyweight__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"pullover__barbell__back": [
+[
+"lats"
+],
+[
+"chest"
+]
+],
+"pullover__dumbbell__back": [
+[
+"lats"
+],
+[
+"chest"
+]
+],
+"pullover__ezbar__back": [
+[
+"lats"
+],
+[
+"chest",
+"triceps"
+]
+],
+"pullover__machine__back": [
+[
+"lats"
+],
+[
+"chest"
+]
+],
+"push_press__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"quads",
+"triceps"
+]
+],
+"push_press__dumbbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"quads",
+"triceps"
+]
+],
+"push_press__kettlebell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"quads",
+"triceps"
+]
+],
+"push_up-archer__bodyweight__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"push_up-clap__bodyweight__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"push_up-deficit__bodyweight__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"push_up-diamond__bodyweight__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"push_up-onearm__bodyweight__chest": [
+[
+"chest"
+],
+[
+"abs",
+"triceps"
+]
+],
+"push_up-pseudo__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"push_up-ring__other__chest": [
+[
+"chest"
+],
+[
+"abs",
+"triceps"
+]
+],
+"push_up-wide__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts"
+]
+],
+"push_up__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"push_up_decline__bodyweight__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"push_up_incline__bodyweight__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"pushdown-cross__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"pushdown-reverse__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"pushdown-rope__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"pushdown__band__triceps": [
+[
+"triceps"
+],
+[]
+],
+"pushdown__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"rack_pull__barbell__back": [
+[
+"lower_back"
+],
+[
+"traps"
+]
+],
+"rear_delt_fly-sidelying__dumbbell__shoulders": [
+[
+"rear_delts"
+],
+[
+"lats"
+]
+],
+"rear_delt_fly__band__shoulders": [
+[
+"rear_delts"
+],
+[
+"traps"
+]
+],
+"rear_delt_fly__cable__shoulders": [
+[
+"rear_delts"
+],
+[]
+],
+"rear_delt_fly__dumbbell__shoulders": [
+[
+"rear_delts"
+],
+[
+"lats",
+"traps"
+]
+],
+"recumbent__machine__cardio": [
+[
+"quads"
+],
+[
+"calves"
+]
+],
+"renegade__dumbbell__back": [
+[
+"lats"
+],
+[
+"abs",
+"biceps"
+]
+],
+"renegade__kettlebell__back": [
+[
+"lats"
+],
+[
+"abs",
+"biceps"
+]
+],
+"reverse_crunch__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"reverse_hyper__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings",
+"lower_back"
+]
+],
+"reverse_hyper__machine__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings",
+"lower_back"
+]
+],
+"reverse_lunge-curtsy__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_lunge-curtsy__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_lunge-curtsy__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_lunge-landmine__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_lunge__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_lunge__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_lunge__kettlebell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"reverse_pec_deck__machine__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[]
+],
+"rollout__barbell__abs": [
+[
+"abs"
+],
+[]
+],
+"rollout__other__abs": [
+[
+"abs"
+],
+[]
+],
+"romanian_deadlift-bstance__barbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift-bstance__dumbbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift-landmine1__barbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift-landmine__barbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"romanian_deadlift-single__bodyweight__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift-single__dumbbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift-single__kettlebell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift-sumo__barbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"romanian_deadlift__barbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"romanian_deadlift__cable__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"romanian_deadlift__dumbbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"romanian_deadlift__kettlebell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"romanian_deadlift__smith__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes",
+"lower_back"
+]
+],
+"rope_climb__other__back": [
+[
+"lats"
+],
+[
+"biceps",
+"forearms"
+]
+],
+"row__machine__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"lats"
+]
+],
+"run__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"calves"
+]
+],
+"russian_twist__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"seal_row-incline__barbell__back": [
+[
+"lats"
+],
+[
+"biceps",
+"front_delts",
+"side_delts"
+]
+],
+"seal_row__barbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"seal_row__dumbbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"seated_calf__barbell__calves": [
+[
+"calves"
+],
+[]
+],
+"seated_calf__dumbbell__calves": [
+[
+"calves"
+],
+[]
+],
+"seated_calf__machine__calves": [
+[
+"calves"
+],
+[]
+],
+"seated_calf__smith__calves": [
+[
+"calves"
+],
+[]
+],
+"seated_leg_curl__band__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"seated_leg_curl__machine__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"seated_leg_press__machine__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"seated_press-arnold__dumbbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"seated_press-z__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs",
+"triceps"
+]
+],
+"seated_press-z__dumbbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs",
+"triceps"
+]
+],
+"seated_row-standing__cable__back": [
+[
+"lats"
+],
+[
+"abs",
+"biceps"
+]
+],
+"seated_row__band__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"seated_row__cable__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"seated_row__machine__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"shoulder_press_machine__machine__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"triceps"
+]
+],
+"shrug-incline__dumbbell__traps": [
+[
+"traps"
+],
+[
+"lats"
+]
+],
+"shrug-jump__barbell__traps": [
+[
+"traps"
+],
+[
+"glutes",
+"quads"
+]
+],
+"shrug__barbell__traps": [
+[
+"traps"
+],
+[]
+],
+"shrug__cable__traps": [
+[
+"traps"
+],
+[]
+],
+"shrug__dumbbell__traps": [
+[
+"traps"
+],
+[]
+],
+"shrug__machine__traps": [
+[
+"traps"
+],
+[]
+],
+"shrug__smith__traps": [
+[
+"traps"
+],
+[]
+],
+"shrug__trapbar__traps": [
+[
+"traps"
+],
+[]
+],
+"side_bend-roman__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"side_bend__cable__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"side_bend__dumbbell__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"side_leg_raise__bodyweight__glutes": [
+[
+"glutes"
+],
+[]
+],
+"side_plank-crunch__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"side_plank-rot__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"side_plank__bodyweight__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"sissy__bodyweight__quads": [
+[
+"quads"
+],
+[]
+],
+"sit_up-ghd__machine__abs": [
+[
+"abs"
+],
+[
+"quads"
+]
+],
+"sit_up__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"skate__bodyweight__glutes": [
+[
+"glutes"
+],
+[
+"quads"
+]
+],
+"skate__other__cardio": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"ski__other__cardio": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"skierg__machine__cardio": [
+[
+"lats"
+],
+[
+"glutes",
+"quads",
+"triceps"
+]
+],
+"skull_crusher-decline__ezbar__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher-floor__bodyweight__triceps": [
+[
+"triceps"
+],
+[
+"abs",
+"chest"
+]
+],
+"skull_crusher-incline__barbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher-incline__dumbbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher-incline__ezbar__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher-jm__barbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher-jm__smith__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"skull_crusher-wide__dumbbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher__barbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher__cable__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher__dumbbell__triceps": [
+[
+"triceps"
+],
+[]
+],
+"skull_crusher__ezbar__triceps": [
+[
+"triceps"
+],
+[]
+],
+"sled_pull__other__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"lats"
+]
+],
+"sled_push__other__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"snatch-block__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"snatch-full__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"snatch-hang__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"snatch-one__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"snatch-one__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"snatch-power__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"snowboard__other__cardio": [
+[
+"quads"
+],
+[
+"abs",
+"glutes"
+]
+],
+"sots_press__barbell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"quads",
+"traps",
+"triceps"
+]
+],
+"spanish_squat__band__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"sphinx_push_up__bodyweight__triceps": [
+[
+"triceps"
+],
+[
+"chest"
+]
+],
+"spider_curl__barbell__biceps": [
+[
+"biceps"
+],
+[
+"forearms"
+]
+],
+"spider_curl__dumbbell__biceps": [
+[
+"biceps"
+],
+[]
+],
+"spider_curl__ezbar__biceps": [
+[
+"biceps"
+],
+[]
+],
+"sprint__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"hamstrings"
+]
+],
+"squat-anderson__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"squat__band__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"squat__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"squat__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"squat_dumbbell__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"squeeze_press-incline__dumbbell__chest": [
+[
+"chest"
+],
+[
+"front_delts",
+"triceps"
+]
+],
+"squeeze_press__dumbbell__chest": [
+[
+"chest"
+],
+[
+"triceps"
+]
+],
+"stairs-stepper__machine__cardio": [
+[
+"quads"
+],
+[
+"calves",
+"glutes"
+]
+],
+"stairs__machine__cardio": [
+[
+"quads"
+],
+[
+"calves",
+"glutes"
+]
+],
+"standing_knee_to_elbow__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"standing_leg_curl-kneeling__machine__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"standing_leg_curl__cable__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"standing_leg_curl__machine__hamstrings": [
+[
+"hamstrings"
+],
+[]
+],
+"stationary_bike-assault__machine__cardio": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"stationary_bike__machine__cardio": [
+[
+"quads"
+],
+[
+"calves"
+]
+],
+"step_down__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"step_up-lateral__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"step_up-poliquin__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"step_up__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"step_up__bodyweight__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"step_up__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"step_up__kettlebell__quads": [
+[
+"quads"
+],
+[
+"glutes",
+"hamstrings"
+]
+],
+"step_up__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"stiff_leg__barbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"stiff_leg__dumbbell__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"stiff_leg__smith__hamstrings": [
+[
+"hamstrings"
+],
+[
+"glutes"
+]
+],
+"straight_arm_pulldown__band__back": [
+[
+"lats"
+],
+[]
+],
+"straight_arm_pulldown__cable__back": [
+[
+"lats"
+],
+[]
+],
+"stretch__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"sumo_deadlift__barbell__back": [
+[
+"lower_back"
+],
+[
+"glutes",
+"quads"
+]
+],
+"sumo_deadlift__dumbbell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings",
+"quads"
+]
+],
+"sumo_deadlift__kettlebell__glutes": [
+[
+"glutes"
+],
+[
+"hamstrings",
+"quads"
+]
+],
+"sumo_squat__barbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"sumo_squat__dumbbell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"sumo_squat__kettlebell__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"sumo_squat__smith__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"superman__bodyweight__back": [
+[
+"lower_back"
+],
+[
+"glutes"
+]
+],
+"svend__other__chest": [
+[
+"chest"
+],
+[]
+],
+"swim__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"lats",
+"side_delts"
+]
+],
+"t_bar_row-meadows__barbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"t_bar_row__barbell__back": [
+[
+"lats"
+],
+[
+"biceps"
+]
+],
+"thruster__barbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"thruster__dumbbell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"thruster__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"tibialis_raise__bodyweight__calves": [
+[
+"calves"
+],
+[]
+],
+"toe_touch__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"toes_to_bar-knees__bodyweight__abs": [
+[
+"abs"
+],
+[
+"lats"
+]
+],
+"toes_to_bar__bodyweight__abs": [
+[
+"abs"
+],
+[
+"forearms"
+]
+],
+"torso_rotation__machine__abs": [
+[
+"abs"
+],
+[]
+],
+"treadmill__machine__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"calves"
+]
+],
+"turkish__kettlebell__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"abs",
+"front_delts",
+"side_delts"
+]
+],
+"upright_row-cuban__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"upright_row__band__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"upright_row__barbell__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"upright_row__cable__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"upright_row__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"upright_row__ezbar__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"upright_row__smith__shoulders": [
+[
+"side_delts"
+],
+[
+"traps"
+]
+],
+"v_sit-tuck__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"v_sit-up__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"v_squat-frame__machine__quads": [
+[
+"quads"
+],
+[
+"glutes"
+]
+],
+"vacuum__bodyweight__abs": [
+[
+"abs"
+],
+[]
+],
+"w_raise__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[
+"lats",
+"traps"
+]
+],
+"walk__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[
+"calves"
+]
+],
+"wall_ball__other__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"wall_sit__bodyweight__quads": [
+[
+"quads"
+],
+[]
+],
+"windmill__dumbbell__abs": [
+[
+"abs",
+"obliques"
+],
+[
+"front_delts",
+"hamstrings",
+"side_delts"
+]
+],
+"windmill__kettlebell__abs": [
+[
+"abs",
+"obliques"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"windmill__kettlebell__shoulders": [
+[
+"front_delts",
+"side_delts"
+],
+[
+"abs",
+"obliques",
+"triceps"
+]
+],
+"woodchop-db__dumbbell__abs": [
+[
+"abs",
+"obliques"
+],
+[
+"front_delts",
+"side_delts"
+]
+],
+"woodchop__band__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"woodchop__cable__abs": [
+[
+"abs",
+"obliques"
+],
+[]
+],
+"wrist_curl-reverse_wrist_curl__barbell__forearms": [
+[
+"forearms"
+],
+[]
+],
+"wrist_curl-reverse_wrist_curl__dumbbell__forearms": [
+[
+"forearms"
+],
+[]
+],
+"wrist_curl__barbell__forearms": [
+[
+"forearms"
+],
+[]
+],
+"wrist_curl__cable__forearms": [
+[
+"forearms"
+],
+[]
+],
+"wrist_curl__dumbbell__forearms": [
+[
+"forearms"
+],
+[]
+],
+"wrist_roller__other__forearms": [
+[
+"forearms"
+],
+[]
+],
+"y_raise__cable__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"y_raise__dumbbell__shoulders": [
+[
+"side_delts"
+],
+[]
+],
+"yoga__bodyweight__cardio": [
+[
+"glutes",
+"quads"
+],
+[]
+],
+"yoke_walk__other__fullBody": [
+[
+"glutes",
+"quads"
+],
+[
+"abs",
+"traps"
+]
+]
+}

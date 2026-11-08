@@ -3,6 +3,7 @@
 """합격 영상만 release/ 로 내보내고 publish.json 을 쓴다. 조건: jobs 의 키 · qc 합격(불량은 waivers 에 사유가 있을 때만) · 합성 해시 일치.
 사용: publish.py <jobs.json> <qc.json> <합성폴더> <waivers.json> <release폴더> <publish.json>
 하나라도 조건을 못 맞추면 아무것도 쓰지 않고 멈춘다. release 는 추가 전용이다."""
+raise SystemExit("옛 publish.py 는 막혀 있습니다. 컨펌된 영상만 src/scripts/motion2/publish.py 로 내보냅니다(SPEC-040)")
 import hashlib, json, os, shutil, sys
 jobs, qc, comp, waivers, rel, out = sys.argv[1:7]
 keys = list(json.load(open(jobs))["jobs"]); q = json.load(open(qc)); w = json.load(open(waivers)); pub = {}; bad = []

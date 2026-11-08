@@ -1,0 +1,17 @@
+__pycache__/
+*.mp4
+*.webp
+*.png
+*.blend
+*.safetensors
+joints.json
+state.json
+info.json
+last_run*.json
+model_hash.json
+references.json
+out/
+x/
+y/
+catalog_*.json
+paths.local.json

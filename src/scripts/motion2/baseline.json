@@ -1,0 +1,32 @@
+{
+ "_comment": "동결 기준본. 묶음을 시작할 때마다 다시 만들어 같은 지문인지 비교한다(SPEC-040). 값은 2026-11-07 Phase 1 실행 결과.",
+ "render": {
+  "nf": 41,
+  "samples": 48,
+  "res": 704
+ },
+ "comfyui": "7fe8a61",
+ "keys": {
+  "squat__barbell__quads": {
+   "sha8": "4b31b051",
+   "iou_min": 0.9545,
+   "hole_max": 0.0027,
+   "lum_mean": 0.697,
+   "lum_std": 0.02
+  },
+  "deadlift__barbell__back": {
+   "sha8": "32e593c4",
+   "iou_min": 0.9451,
+   "hole_max": 0.0077,
+   "lum_mean": 0.693,
+   "lum_std": 0.018
+  },
+  "bench_press__barbell__chest": {
+   "sha8": "4f114f3c",
+   "iou_min": 0.9563,
+   "hole_max": 0.0001,
+   "lum_mean": 0.72,
+   "lum_std": 0.004
+  }
+ }
+}

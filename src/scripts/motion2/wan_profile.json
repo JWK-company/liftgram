@@ -1,0 +1,6 @@
+{
+ "unet": "wan2.2_ti2v_5B_fp16.safetensors", "clip": "umt5_xxl_fp8_e4m3fn_scaled.safetensors", "vae": "wan2.2_vae.safetensors",
+ "shift": 8.0, "seed": 11, "steps": 20, "cfg": 5.0, "sampler": "uni_pc", "scheduler": "simple", "denoise": 0.35,
+ "prompt": "a smooth matte light gray sculpted anatomical mannequin figure with defined muscles, monochrome, no skin color, plain dark gray shorts and dark shoes, performing {motion}, clean 3D render, soft studio light, plain white background, steady camera",
+ "negative": "skin, flesh tones, tan, color, hair, beard, text, watermark, logo, blurry, deformed, extra limbs, extra fingers, flicker, low quality"
+}
