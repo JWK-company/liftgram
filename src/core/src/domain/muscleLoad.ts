@@ -54,7 +54,9 @@ function isMapMuscle(m: unknown): m is MapMuscle {
 
 /** 워밍업인가(is_warmup 또는 처방 warmup). 집계에서 뺀다. */
 export function isWarmupItem(i: Pick<MuscleLoadItem, 'isWarmup' | 'setType'>): boolean {
-  return i.isWarmup === true || i.setType === 'warmup';
+  // [원본] return i.isWarmup === true || i.setType === 'warmup';
+  // [개선] 피더도 준비 세트 — 웜업 표시를 꺼도 P 로 남은 세트가 집계에 들지 않게(REV-076 데이터 5)
+  return i.isWarmup === true || i.setType === 'warmup' || i.setType === 'feeder';
 }
 
 /** 근육 집계에서 빼는 세트인가 — 워밍업 또는 실패 표시. 판정은 여기 한 곳(ADR-039). */
@@ -95,7 +97,9 @@ export function plannedWorkingSets(re: {
   prescription?: readonly Pick<PrescribedSet, 'setType'>[] | null;
 }): number {
   const rx = re.prescription;
-  if (rx && rx.length > 0) return rx.filter((s) => s.setType !== 'warmup').length;
+  // [원본] if (rx && rx.length > 0) return rx.filter((s) => s.setType !== 'warmup').length;
+  // [개선] 피더도 준비 세트다(SPEC-041)
+  if (rx && rx.length > 0) return rx.filter((s) => s.setType !== 'warmup' && s.setType !== 'feeder').length;
   const n = re.targetSets;
   return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : 0;
 }

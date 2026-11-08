@@ -57,7 +57,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { lang, t } from "@/lib/i18n";
 import { firePrCelebration } from "../PrCelebration";
 import { Button } from "../ui/Button";
-import { ConfirmDialog, SheetShell } from "../ui/Dialog";
+import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog";
+import { remainingSchemeRows, schemeAllowed, schemeOf, SCHEMES, type DoneSetKind } from "@app/core/domain/setSchemes"; // 세트 방식(SPEC-041)
+import { restSecondsForRx, type PrescribedSet, type PrescribedSetType, type SchemeId } from "@app/core/domain/prescription";
 import { MoreMenu } from "../ui/MoreMenu";
 import { navigate } from "@/lib/nav";
 // import { IconButton } from "../ui/IconButton"; // 머리 순서 화살표 원복 시(/qa code M-5)
@@ -94,6 +96,10 @@ export interface WorkoutExerciseRow {
   targetWeightKg?: number | null;
   prescription:
     | {
+        /** 세트 방식 표시·「최대」·타입(SPEC-041) */
+        setType?: string;
+        scheme?: string;
+        amrap?: boolean;
         repMin?: number | null;
         repMax?: number | null;
         loadBasis?: string;
@@ -177,6 +183,9 @@ export function ExerciseBlock({
   const [prevNote, setPrevNote] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, Suggestion>>({});
   const [confirmRemove, setConfirmRemove] = useState(false);
+  // 세트 방식 바꾸기(SPEC-041) — 시트에 띄울 정보 · 고른 방식(직접 적은 값이 있으면 먼저 묻는다)
+  const [schemeInfo, setSchemeInfo] = useState<Awaited<ReturnType<WorkoutRepo["getSchemeChangeInfo"]>> | null>(null);
+  const [schemeAsk, setSchemeAsk] = useState<SchemeId | null>(null);
   // 메모·휴식 시간은 종목 ⋯ 안의 설정이다(SRS-054) — 입력칸이 늘 펼쳐져 세트 표를 밀어내지 않게.
   // 메모는 써 둔 것이 있으면 처음부터 보인다.
   // [원본] const [noteOpen, setNoteOpen] = useState(() => !!we.note?.trim());
@@ -412,10 +421,45 @@ export function ExerciseBlock({
     return { volume, reps };
   }, [sets, loadMode, bodyweightKg]);
 
+  // 세트 방식(SPEC-041) — 표의 방식 · 끝낸 세트의 종류(남은 줄 계산용)
+  const blockScheme = schemeOf((we.prescription ?? null) as PrescribedSet[] | null);
+  const doneKinds: DoneSetKind[] = sets
+    .filter((x) => x.done)
+    .map((x) => ({
+      setType: ((x.setType as PrescribedSetType | null) ?? (x.isDrop ? "drop" : x.isWarmup ? "warmup" : "normal")) as PrescribedSetType,
+      isWarmup: !!x.isWarmup,
+    }));
+  // [개선] 앞선 쓰기(칸을 떠날 때 저장·완료)를 기다린 뒤 읽는다 — 옛 값으로 「고친 값 없음」이라 보고 확인 없이 지우지 않게(REV-076 화면 M-2)
+  const openSchemeSheet = async () => {
+    try {
+      await writeChain.current.catch(() => {});
+      setSchemeInfo(await repo.getSchemeChangeInfo(we.id));
+    } catch (e) {
+      toast(errorText(e));
+    }
+  };
+  /** asked=true 면 사람이 확인창에서 「다시 짜기」를 눌렀다 — 고친 값이 있어도 진행 */
+  const applySessionScheme = async (id: SchemeId, asked = false) => {
+    setSchemeInfo(null);
+    let res: Awaited<ReturnType<WorkoutRepo["changeWorkoutScheme"]>> | null = null;
+    try {
+      await write(async () => {
+        res = await repo.changeWorkoutScheme(we.id, id, asked ? {} : { expectEditedPending: false });
+      });
+    } catch (e) {
+      toast(errorText(e));
+      return;
+    }
+    // 그 사이 직접 고친 값이 생겼다 — 확인창으로 다시 묻는다
+    if (res === "stale") setSchemeAsk(id);
+    else if (res === "done") toast(t("scheme.switched"));
+  };
+
   /** 표시 순번 — 일반 세트만 번호가 오르고, 나머지는 W/D/F/T. app의 규칙 그대로다. */
   const labels = useMemo(() => {
     let normal = 0;
     return sets.map((s) => {
+      if (s.setType === "feeder") return { label: "P", color: "pr" as const }; // 피더 — 웜업 표시도 켜져 있어 먼저(SPEC-041)
       if (s.isWarmup) return { label: "W", color: "pr" as const };
       if (s.isDrop === true) return { label: "D", color: "primary" as const };
       if (s.isFailed) return { label: "F", color: "danger" as const };
@@ -519,8 +563,17 @@ export function ExerciseBlock({
         const startRestOnce = () => {
           if (restStarted) return;
           restStarted = true;
+          // 다음 세트가 처방 드롭이면 쉬지 않는다 — 무게만 내려 바로 잇는다(SPEC-041 · 잠금화면 흐름과 같다 · REV-076 M-6)
+          const after = [...sets].sort((a, b) => a.setNumber - b.setNumber).find((x) => x.setNumber > s.setNumber && !x.done);
+          const afterRx = after ? we.prescription?.[after.setNumber - 1] : null;
+          if (after?.isDrop === true && afterRx?.setType === "drop" && !s.isWarmup) return;
+          // [원본] onStartRest(restSecondsForSetType(s.setType …, restSeconds)); — 세트 방식 근력 줄은 최소 180초(REV-076 코치 7)
           onStartRest(
-            restSecondsForSetType(s.setType as Parameters<typeof restSecondsForSetType>[0], restSeconds),
+            restSecondsForRx(
+              s.setType as Parameters<typeof restSecondsForRx>[0],
+              restSeconds,
+              (we.prescription?.[s.setNumber - 1] ?? null) as Parameters<typeof restSecondsForRx>[2],
+            ),
           );
         };
         if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
@@ -766,6 +819,10 @@ export function ExerciseBlock({
               ...(onSwap
                 ? [{ label: t("routines.swap"), testId: "btn-swap", onPress: () => onSwap(we.id) }]
                 : []),
+              // 세트 방식 바꾸기 — 남은 세트를 다시 짠다(SPEC-041 · 유산소는 없다)
+              ...(!isCardio
+                ? [{ label: t("scheme.change"), testId: "btn-change-scheme", onPress: () => void openSchemeSheet() }]
+                : []),
               // [원본] 휴식 시간·메모 열기도 메뉴 안이었다 → 블록 도구 줄로(피드백 #62) @plm SRS-084
               // {
               //   label: `${t("session.restTime")} · ${restSeconds}${t("session.secondsSuffix")}`,
@@ -784,6 +841,19 @@ export function ExerciseBlock({
             ]}
           />
         </div>
+
+        {/* 세트 방식 — 이름과 한 줄 안내(SPEC-041). 일반·직접 구성은 표시하지 않는다 */}
+        {blockScheme ? (
+          <div data-testid="we-scheme" data-scheme={blockScheme} className="mt-[2px] flex flex-col">
+            <AppText variant="label" color="primary" className="font-bold">
+              {t(`scheme.name.${blockScheme}` as Parameters<typeof t>[0])}
+            </AppText>
+            <AppText variant="caption" color="textMuted" data-testid="we-scheme-guide">
+              {t(`scheme.guide.${blockScheme}` as Parameters<typeof t>[0])}
+              {(we.prescription ?? []).some((r) => r.setType === "feeder") ? ` · ${t("scheme.legendFeeder")}` : ""}
+            </AppText>
+          </div>
+        ) : null}
 
         {/* 메타 줄 — 조합 · 슈퍼셋 · PR · 경고 (회색, PR 만 금색) + 오른쪽 「더 보기」 */}
         <div className="mt-[2px] flex items-start gap-[var(--spacing-sm)]">
@@ -1184,6 +1254,55 @@ export function ExerciseBlock({
             {t("session.restSavedHint")}
           </AppText>
         </SheetShell>
+      ) : null}
+
+      {schemeInfo ? (
+        <ActionSheet
+          testId="we-scheme-sheet"
+          title={t("scheme.change")}
+          onClose={() => setSchemeInfo(null)}
+          options={[
+            ...(schemeInfo.routineScheme && schemeInfo.routineScheme !== schemeInfo.current
+              ? [{ id: schemeInfo.routineScheme, routine: true }]
+              : []),
+            ...SCHEMES.map((d) => ({ id: d.id, routine: false })),
+          ].map(({ id, routine }) => {
+            const allowed = schemeAllowed(id, schemeInfo.equipment);
+            const left = remainingSchemeRows(id, doneKinds, { allowLoad: schemeInfo.allowLoad }).length;
+            const name = t(`scheme.name.${id}` as Parameters<typeof t>[0]);
+            return {
+              label: routine ? `${t("scheme.routineDefault")} · ${name}` : name,
+              // [원본] 늘 「끝낸 N세트는 그대로 · …」 — 아직 아무것도 안 했으면 방식 설명과 세트 수(REV-076 L-4)
+              description: !allowed
+                ? t("scheme.blocked")
+                : doneKinds.length > 0
+                  ? t("scheme.preview", { done: doneKinds.length, left })
+                  : `${t(`scheme.desc.${id}` as Parameters<typeof t>[0])} · ${t("scheme.previewFresh", { left })}`,
+              selected: !routine && schemeInfo.current === id,
+              disabled: !allowed,
+              testId: routine ? "we-scheme-routine" : `we-scheme-${id}`,
+              onPress: () => {
+                if (schemeInfo.editedPending) setSchemeAsk(id);
+                else void applySessionScheme(id);
+              },
+            };
+          })}
+        />
+      ) : null}
+
+      {schemeAsk ? (
+        <ConfirmDialog
+          testId="confirm-change-scheme"
+          title={t("scheme.confirmTitle")}
+          message={t("scheme.confirmMessage")}
+          confirmLabel={t("scheme.confirmOk")}
+          onCancel={() => setSchemeAsk(null)}
+          onConfirm={() => {
+            const id = schemeAsk;
+            setSchemeAsk(null);
+            void applySessionScheme(id, true);
+          }}
+        />
       ) : null}
 
       {confirmRemove ? (

@@ -20,7 +20,12 @@ const (
 	maxPrescriptionRows = 20
 )
 
-var validSetTypes = map[string]bool{"warmup": true, "top": true, "backoff": true, "normal": true, "drop": true}
+// [원본] var validSetTypes = map[string]bool{"warmup": true, "top": true, "backoff": true, "normal": true, "drop": true}
+// [개선] feeder(SPEC-041 — 탑 앞 준비 세트). 앱 core prescription.ts SET_TYPES 와 같다.
+var validSetTypes = map[string]bool{"warmup": true, "top": true, "backoff": true, "normal": true, "drop": true, "feeder": true}
+
+// 세트 방식(SPEC-041) — 앱 core prescription.ts SCHEME_IDS 와 같다.
+var validSchemes = map[string]bool{"straight": true, "topBackoff": true, "fiveByFive": true, "pyramid": true, "reversePyramid": true, "dropSet": true}
 var validLoadHints = map[string]bool{"light": true, "medium": true, "heavy": true}
 
 // 무게 기준(#56) 허용 범위 — 앱(core prescription.ts LOAD_PCT_RANGE·LOAD_KG_MAX)과 같은 값. @plm SRS-063
@@ -61,6 +66,14 @@ func SanitizePrescription(rows []PrescribedSet) []PrescribedSet {
 			LoadHint:  loadHint,
 		}
 		row.LoadBasis, row.LoadPct, row.LoadKg = sanitizeLoadBasis(r)
+		// 「최대」 줄은 횟수가 없다 — 앱(setSchemes toRow)과 같은 모양
+		if r.Amrap {
+			row.Amrap = true
+			row.RepMin, row.RepMax = nil, nil
+		}
+		if validSchemes[r.Scheme] {
+			row.Scheme = r.Scheme
+		}
 		out = append(out, row)
 	}
 	return out
@@ -122,6 +135,19 @@ func KeepMemberStart(clean, stored []PrescribedSet) []PrescribedSet {
 			kg := *stored[i].LoadKg
 			out[i].LoadBasis = "start"
 			out[i].LoadKg = &kg
+		}
+		// SPEC-041 세트 방식 값도 코치 화면에 없다 — 피더는 코칭 계약에서 일반으로 읽히고, 「최대」·방식 이름은 빠진다.
+		// 코치가 그 줄을 다른 타입·횟수로 고쳤으면 코치 값이 이긴다.
+		// 코치 앱은 모르는 타입(UNSPECIFIED)을 일반으로 보내 「일부러 일반」과 구별할 수 없다 — 회원 값을 지킨다(REV 보류: proto 에 FEEDER).
+		if stored[i].SetType == "feeder" && out[i].SetType == "normal" {
+			out[i].SetType = "feeder"
+		}
+		sameType := out[i].SetType == stored[i].SetType
+		if sameType && stored[i].Amrap && out[i].RepMin == nil && out[i].RepMax == nil {
+			out[i].Amrap = true
+		}
+		if sameType && out[i].Scheme == "" && validSchemes[stored[i].Scheme] {
+			out[i].Scheme = stored[i].Scheme
 		}
 	}
 	return out

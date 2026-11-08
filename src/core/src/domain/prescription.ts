@@ -5,13 +5,19 @@
 import { estimateOneRepMax } from './oneRepMax';
 
 // drop(SPEC-023): 운동 화면과 같은 다섯 타입 — 세션에서는 is_drop 으로 심는다
-export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal' | 'drop';
+// [원본] export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal' | 'drop';
+// [개선] feeder(SPEC-041) — 탑세트 앞에 탑 무게에 몸을 맞추는 1~3회 준비 세트. 표시 글자 P(F 는 실패 세트).
+export type PrescribedSetType = 'warmup' | 'top' | 'backoff' | 'normal' | 'drop' | 'feeder';
 export type LoadHint = 'light' | 'medium' | 'heavy';
 
 // v24(JSON 안 필드 — 스키마 변경 없음): 무게 기준. 없으면 기존과 같다(옛 처방 하위호환). @plm SRS-063
 //   pct1rm = 기록으로 추정한 1RM 의 N% · pctTop = 같은 블록 탑셋의 N%(백오프) · fixed = 무게 직접
 //   start(SPEC-023) = 루틴 표의 시작 무게 — 입력칸 값 그대로이고, 지난 기록이 있으면 지난 기록이 먼저다(fixed 는 지난 기록을 이긴다)
 export type LoadBasis = 'pct1rm' | 'pctTop' | 'fixed' | 'start';
+
+/** 세트 방식(SPEC-041) — 그 줄을 만든 틀. 정의는 setSchemes.ts. */
+export type SchemeId = 'straight' | 'topBackoff' | 'fiveByFive' | 'pyramid' | 'reversePyramid' | 'dropSet';
+export const SCHEME_IDS: SchemeId[] = ['straight', 'topBackoff', 'fiveByFive', 'pyramid', 'reversePyramid', 'dropSet'];
 
 export interface PrescribedSet {
   setType: PrescribedSetType;
@@ -22,6 +28,8 @@ export interface PrescribedSet {
   loadBasis?: LoadBasis; // 없으면 무게 기준 없음(기존 처방)
   loadPct?: number; // pct1rm 30~100 · pctTop 50~100
   loadKg?: number; // fixed 0~500(정규 kg)
+  amrap?: boolean; // SPEC-041: 횟수 「최대」(할 수 있는 만큼) — 있으면 repMin·repMax 는 쓰지 않는다
+  scheme?: SchemeId; // SPEC-041: 이 줄을 만든 세트 방식
 }
 
 // 무게 기준 값의 허용 범위 — 밖이면 기준째 버린다(엉뚱한 무게를 채우는 것보다 안 채우는 게 낫다). 서버와 같은 값.
@@ -32,7 +40,7 @@ const LOAD_BASES: LoadBasis[] = ['pct1rm', 'pctTop', 'fixed', 'start'];
 export const RIR_MIN = 0;
 export const RIR_MAX = 6;
 
-const SET_TYPES: PrescribedSetType[] = ['warmup', 'top', 'backoff', 'normal', 'drop'];
+const SET_TYPES: PrescribedSetType[] = ['warmup', 'top', 'backoff', 'normal', 'drop', 'feeder'];
 const LOAD_HINTS: LoadHint[] = ['light', 'medium', 'heavy'];
 
 // 옛 Go 마샬 키 → 새 키. 새 키가 이미 있으면 그대로 둔다.
@@ -45,6 +53,8 @@ const LEGACY_PRESCRIPTION_KEYS: [string, string[]][] = [
   ['loadBasis', ['LoadBasis']],
   ['loadPct', ['LoadPct']],
   ['loadKg', ['LoadKg', 'LoadKG']],
+  ['amrap', ['Amrap', 'AMRAP']],
+  ['scheme', ['Scheme']],
 ];
 function withLegacyPrescriptionKeys(o: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...o };
@@ -80,6 +90,8 @@ export function sanitizePrescriptionValue(raw: unknown): PrescribedSet[] | null 
       repMax: num(o.repMax),
       loadHint: LOAD_HINTS.includes(o.loadHint as LoadHint) ? (o.loadHint as LoadHint) : null,
       ...sanitizeLoadBasis(o),
+      ...(o.amrap === true ? { amrap: true } : {}),
+      ...(SCHEME_IDS.includes(o.scheme as SchemeId) ? { scheme: o.scheme as SchemeId } : {}),
     });
   }
   return out.length > 0 ? out : null;
@@ -122,11 +134,29 @@ const REST_BY_TYPE: Partial<Record<Exclude<PrescribedSetType, 'normal'>, number>
   warmup: 45,
   top: 180,
   backoff: 120,
+  feeder: 90, // SPEC-041 — 탑 앞 준비 세트
 };
 
 export function restSecondsForSetType(setType: PrescribedSetType | null | undefined, fallback: number): number {
   if (!setType || setType === 'normal') return fallback;
   return REST_BY_TYPE[setType] ?? fallback;
+}
+
+/**
+ * 세트 방식 줄의 휴식(SPEC-041 · REV-076 코치 7) — 5×5 와 1RM 78% 이상 일반 줄은 근력 세트라 최소 180초.
+ * 그 밖은 restSecondsForSetType 그대로.
+ */
+export function restSecondsForRx(
+  setType: PrescribedSetType | null | undefined,
+  fallback: number,
+  rx: Pick<PrescribedSet, 'scheme' | 'loadBasis' | 'loadPct'> | null | undefined,
+): number {
+  const base = restSecondsForSetType(setType, fallback);
+  const normal = !setType || setType === 'normal';
+  if (normal && rx?.scheme && (rx.scheme === 'fiveByFive' || (rx.loadBasis === 'pct1rm' && (rx.loadPct ?? 0) >= 78))) {
+    return Math.max(base, 180);
+  }
+  return base;
 }
 
 // 반복범위 라벨 — '4-7' / 단일 '8' / 없음 ''.
@@ -239,10 +269,20 @@ export function planPrescribedLoadFills(input: {
   // const warmOrFail = done.isWarmup === true || done.isFailed === true || done.setType === 'warmup' || rxType === 'warmup';
   // const isTop = rxType === 'top' || done.setType === 'top';
   // [개선] 세트의 지금 타입만 본다(처방 타입은 세션 시작 때 세트에 심긴다) · 드롭으로도 1RM 을 추정하지 않는다(SPEC-023)
-  const notBasis = done.isWarmup === true || done.isFailed === true || done.isDrop === true || done.setType === 'warmup';
+  // [원본] const notBasis = done.isWarmup === true || done.isFailed === true || done.isDrop === true || done.setType === 'warmup';
+  // [개선] 피더(준비 1~3회)로도 추정하지 않는다 — 가벼운 무게를 적게 든 세트라 1RM 이 낮게 나온다(SPEC-041)
+  const notBasis =
+    done.isWarmup === true || done.isFailed === true || done.isDrop === true || done.setType === 'warmup' || done.setType === 'feeder';
   if (notBasis) return [];
   const isTop = done.setType === 'top';
-  const est = estimateOneRepMax(doneCalcKg, doneReps);
+  // [원본] const est = estimateOneRepMax(doneCalcKg, doneReps);
+  // [개선] 세트 방식 줄을 끝냈으면 그 줄의 % 로 거꾸로 1RM 을 잡는다 — Epley 로 잡으면 같은 % 인 다음 세트가 방금 세트보다
+  //   7% 가볍게 채워졌다(5×5 80%×5 → 0.933배 · REV-076 코치 2). 피라미드 다음 줄은 % 비율대로 오른다.
+  const doneRx = rx[doneIdx];
+  const est =
+    doneRx?.scheme && doneRx.loadBasis === 'pct1rm' && doneRx.loadPct && doneRx.loadPct > 0
+      ? (doneCalcKg * 100) / doneRx.loadPct
+      : estimateOneRepMax(doneCalcKg, doneReps);
   const out: LoadFill[] = [];
   for (let i = doneIdx + 1; i < sets.length; i++) {
     const s = sets[i];

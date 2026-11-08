@@ -166,14 +166,37 @@ test('같은 종목이 두 줄 — 연결 id 로 구분, 연결 없는 옛 운�
   assert.equal(legacy.changes.length, 0);
 });
 
-test('유산소는 세트 수 변경이 아니다 · 처방 루틴은 바꾸기 불가', () => {
+// [원본] 「처방 루틴은 바꾸기 불가」(canApply=false) — SPEC-041 에서 처방 루틴도 반영한다(처방 줄은 세트 수 항목 없음)
+test('유산소는 세트 수 변경이 아니다 · 처방 루틴도 반영할 수 있고 처방 줄은 세트 수 항목이 없다', () => {
   const cardio = diffRoutine('R', [line('r1', 'run', 0, { targetSets: 1 })], [
     block('w1', 'run', 0, { routineExerciseId: 'r1', isCardio: true, doneSets: 2, doneWorkingSets: 2 }),
   ]);
   assert.equal(cardio.changes.length, 0);
-  const rx = diffRoutine('R', [line('r1', 'a', 0, { hasPrescription: true })], [block('w1', 'b', 0, { routineExerciseId: 'r1' })]);
-  assert.equal(rx.canApply, false);
-  assert.ok(rx.changes.length > 0);
+  const rx = diffRoutine('R', [line('r1', 'a', 0, { hasPrescription: true, targetSets: 5 })], [block('w1', 'b', 0, { routineExerciseId: 'r1' })]);
+  assert.equal(rx.canApply, true);
+  assert.deepEqual(rx.changes.map((c) => c.kind), ['swap']);
+});
+
+test('세트 방식 — 운동 중 바꾸면 항목이 생기고, 반영하면 새 틀 전체 · 끄면 그대로', () => {
+  const lines = [line('r1', 'a', 0, { hasPrescription: true, targetSets: 5, scheme: 'pyramid' })];
+  const blocks = [block('w1', 'a', 0, { routineExerciseId: 'r1', scheme: 'dropSet', schemeAllowLoad: true, equipment: 'cable' })];
+  const plan = diffRoutine('R', lines, blocks);
+  const c = plan.changes.find((x) => x.kind === 'scheme');
+  assert.ok(c && c.kind === 'scheme' && c.from === 'pyramid' && c.to === 'dropSet' && c.defaultOn);
+  const on = planRoutineApply(plan, new Set([c.id]));
+  const u = on.updates.find((x) => x.lineId === 'r1');
+  assert.equal(u?.prescription?.length, 5);
+  assert.equal(u?.targetSets, 5);
+  assert.ok(u?.prescription?.every((r) => r.scheme === 'dropSet'));
+  const off = planRoutineApply(plan, new Set());
+  assert.equal(off.updates.find((x) => x.lineId === 'r1')?.prescription, undefined);
+  // 오늘이 일반(표시 없음)이면 항목이 없다 · 같은 방식이면 없다 · 바벨에 드롭세트는 없다
+  assert.equal(diffRoutine('R', lines, [{ ...blocks[0], scheme: null }]).changes.length, 0);
+  assert.equal(diffRoutine('R', lines, [{ ...blocks[0], scheme: 'pyramid' }]).changes.length, 0);
+  assert.equal(diffRoutine('R', lines, [{ ...blocks[0], equipment: 'barbell' }]).changes.length, 0);
+  // 맨몸 종목은 무게 기준 없이
+  const bw = planRoutineApply(diffRoutine('R', lines, [{ ...blocks[0], scheme: 'fiveByFive', schemeAllowLoad: false }]), new Set(['scheme:r1']));
+  assert.ok(bw.updates[0].prescription?.every((r) => !r.loadBasis));
 });
 
 test('루틴으로 저장 — 완료 세트 있는 종목만·묶음·세트 수·횟수 범위(빠른 운동=그날 횟수)', () => {

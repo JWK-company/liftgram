@@ -361,6 +361,11 @@ function ExerciseCard({
       </div>
       {/* 메타 한 줄 — 조합 · 한쪽 입력 · 볼륨(상자·배지 없이 · D6) */}
       <MetaLine className="mt-[2px]">
+        {ex.scheme ? (
+          <span key="scheme" data-testid="detail-scheme" data-scheme={ex.scheme} className="font-bold text-(--color-primary)">
+            {t(`scheme.name.${ex.scheme}` as Parameters<typeof t>[0])}
+          </span>
+        ) : null}
         {slot ? (
           <span key="slot" data-testid="detail-slot">
             {slot}

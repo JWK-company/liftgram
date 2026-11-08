@@ -26,10 +26,12 @@ import {
 } from '../domain';
 import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
 import { resolvePrescribedLoad, planPrescribedLoadFills, roundLoadKg } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
+import type { PrescribedSetType, SchemeId } from '../domain/prescription';
+import { remainingSchemeRows, schemeAllowed, schemeOf, type DoneSetKind } from '../domain/setSchemes'; // 세트 방식(SPEC-041)
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
 import { cardioMetricsFor } from '../domain/cardio'; // 잠금 카드 — 유산소 지표(SPEC-017)
 import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
-import { bestEstimatedOneRepMax } from '../domain/oneRepMax';
+import { bestEstimatedOneRepMax, estimateOneRepMax } from '../domain/oneRepMax';
 import { autoWorkoutName, inheritedWorkoutName, isDefaultWorkoutName } from '../domain/workoutAutoName'; // 빠른 운동 자동 이름 @plm SRS-071
 import { pickStartUnit, planUnitSwitch, planUnitSwitchV2, isUserTouched } from '../domain/blockUnit'; // 블록별 kg/lb @plm SRS-067
 import {
@@ -1270,14 +1272,25 @@ function prepareTemplateSets(
     const rxBlank = allowStart && rx?.loadBasis === 'start' && !(rx.loadKg && rx.loadKg > 0);
     const blockWeight = rxBlank ? null : routineWeightKg;
     const blockSnap = rxBlank ? null : prevSnap?.weightKg;
-    const weight = isCardio ? 0 : rxInput ?? prevWeight ?? rxStart ?? blockWeight ?? blockSnap ?? bwDefault;
+    // [개선] 세트 방식 작업 줄은 지난번 같은 자리 작업 세트가 더 무거웠으면 그 무게 — 1RM % 는 「역대 최고 추정」이라
+    //   5×5 를 다 성공해 무게를 올려도 다음 운동에 옛 % 무게로 돌아갔다(REV-076 코치 1 · 선형 증량)
+    const schemeWork = !!rx?.scheme && (rx.setType === 'normal' || rx.setType === 'top' || rx.setType === 'backoff');
+    const prevHeavier =
+      schemeWork && rxInput != null && prevWeight != null && prev && !prev.isWarmup && !prev.isFailed && prevWeight > rxInput
+        ? prevWeight
+        : null;
+    // [원본] const weight = isCardio ? 0 : rxInput ?? prevWeight ?? rxStart ?? blockWeight ?? blockSnap ?? bwDefault;
+    const weight = isCardio ? 0 : prevHeavier ?? rxInput ?? prevWeight ?? rxStart ?? blockWeight ?? blockSnap ?? bwDefault;
     // v16: 처방 세트는 반복 프리필 폴백에 처방 하한(repMin)을 우선 반영(이전 실측이 최우선은 유지). @plm SRS-043
-    const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
+    // [원본] const reps = isCardio ? 0 : prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
+    // [개선] 세트 방식 줄은 그 줄의 목표 횟수가 먼저다 — 지난번 같은 자리가 웜업 10회였어도 탑세트 3~5회로 시작한다(SPEC-041)
+    const schemeReps = rx?.scheme && rx.repMin != null ? rx.repMin : null;
+    const reps = isCardio ? 0 : schemeReps ?? prev?.reps ?? rx?.repMin ?? routineReps ?? prevSnap?.reps ?? 8;
     // v27: 칸마다 어디서 온 값인지 — 가장 약한 칸이 세트의 출처(REV-003 저장소 H-2 · 예: 무게=루틴 목표 · 횟수=기본 8 → default)
     const weightSource: ValueSource =
-      rxInput != null ? 'rx' : prevWeight != null ? 'prev' : rxStart != null ? 'rx' : blockWeight != null ? 'routine' : blockSnap != null ? 'prev_snap' : 'default';
+      prevHeavier != null ? 'prev' : rxInput != null ? 'rx' : prevWeight != null ? 'prev' : rxStart != null ? 'rx' : blockWeight != null ? 'routine' : blockSnap != null ? 'prev_snap' : 'default';
     const repsSource: ValueSource =
-      prev?.reps != null ? 'prev' : rx?.repMin != null ? 'rx' : routineReps != null ? 'routine' : prevSnap?.reps != null ? 'prev_snap' : 'default';
+      schemeReps != null ? 'rx' : prev?.reps != null ? 'prev' : rx?.repMin != null ? 'rx' : routineReps != null ? 'routine' : prevSnap?.reps != null ? 'prev_snap' : 'default';
     const cardioSource: ValueSource =
       prev?.durationSec != null || prev?.distanceM != null
         ? 'prev'
@@ -1322,7 +1335,8 @@ function prepareTemplateSets(
           // [개선] 드롭은 is_drop 으로 심고 칸은 비운다(가져오기와 같은 방식 · SPEC-023)
           s.setType = rx.setType === 'drop' ? null : rx.setType;
           s.targetRir = rx.targetRir;
-          if (rx.setType === 'warmup') s.isWarmup = true;
+          // [원본] if (rx.setType === 'warmup') s.isWarmup = true;
+          if (rx.setType === 'warmup' || rx.setType === 'feeder') s.isWarmup = true; // 피더도 준비 세트(SPEC-041)
           if (rx.setType === 'drop') s.isDrop = true;
         } else {
           s.setType = null;
@@ -2238,17 +2252,164 @@ export async function getSupersetRoundSetsFor(
 }
 
 // 세트 타입(일반/워밍업/드롭/실패/탑/백오프) — 상호 배타. 표시 W/숫자/D/F/T/B. 실패는 메뉴에서 뺐고 옛 호출만 남았다(SPEC-023).
-export type SetType = 'normal' | 'warmup' | 'drop' | 'failed' | 'top' | 'backoff';
+// [원본] export type SetType = 'normal' | 'warmup' | 'drop' | 'failed' | 'top' | 'backoff';
+// [개선] 피더(P) — 탑세트 앞 가벼운 준비 세트. 웜업 표시도 켜서 볼륨·PR·1RM·근육 부하·세트 수에서 빠진다(SPEC-041)
+export type SetType = 'normal' | 'warmup' | 'drop' | 'failed' | 'top' | 'backoff' | 'feeder';
 export async function setSetType(id: string, type: SetType): Promise<void> {
   await database.write(async () => {
     const s = await setLogs().find(id);
     await s.update((rec) => {
-      rec.isWarmup = type === 'warmup';
+      // [원본] rec.isWarmup = type === 'warmup';
+      rec.isWarmup = type === 'warmup' || type === 'feeder';
       rec.isDrop = type === 'drop';
       rec.isFailed = type === 'failed';
       // setType 칸도 함께 맞춘다 — 처방 웜업을 일반으로 바꿔도 칸이 남으면 볼륨에는 들고 근육 부하에서는 빠졌다(SPEC-023)
-      rec.setType = type === 'top' || type === 'backoff' || type === 'warmup' ? type : null;
+      // [원본] rec.setType = type === 'top' || type === 'backoff' || type === 'warmup' ? type : null;
+      rec.setType = type === 'top' || type === 'backoff' || type === 'warmup' || type === 'feeder' ? type : null;
     });
+  });
+}
+
+// ── 운동 중 세트 방식 바꾸기(SPEC-041 · SRS-105) ──
+// 끝낸 세트는 그대로 두고, 남은(안 한) 세트를 새 방식의 남은 줄로 바꾼다. 한 번의 쓰기 — 지우기·만들기·번호 다시 매기기·처방 다시 쓰기.
+// 무게는 「추정 1RM 의 %」(그날 칸 기준) · 탑을 이미 했으면 「탑의 %」도 바로 채운다. 기록이 없으면 지금 무게를 둔다(첫 작업 세트 뒤 기존 흐름이 채운다).
+export interface SchemeChangeInfo {
+  /** 루틴 줄에 정한 세트 방식(없으면 null) */
+  routineScheme: SchemeId | null;
+  /** 지금 표의 세트 방식 */
+  current: SchemeId | null;
+  equipment: string | null;
+  /** 무게 기준을 쓰는 종목인가(맨몸·어시스트·유산소는 false) */
+  allowLoad: boolean;
+  /** 안 한 세트 중 사람이 값을 고친 세트가 있나 — 있으면 화면이 먼저 묻는다 */
+  editedPending: boolean;
+}
+
+export async function getSchemeChangeInfo(weId: string): Promise<SchemeChangeInfo> {
+  const we = await workoutExercises().find(weId);
+  const ex = await database.get<Exercise>('exercises').find(we.exerciseId).catch(() => null);
+  const allowLoad = !!ex && resolveLoadMode(ex) === 'external' && !(await isCardioExerciseId(we.exerciseId));
+  let routineScheme: SchemeId | null = null;
+  if (we.routineExerciseId) {
+    const re = await database.get<RoutineExercise>('routine_exercises').find(we.routineExerciseId).catch(() => null);
+    routineScheme = schemeOf(re?.prescription ?? null);
+  }
+  const sets = await setLogs().query(Q.where('workout_exercise_id', weId)).fetch();
+  return {
+    routineScheme,
+    current: schemeOf(we.prescription),
+    equipment: ex?.equipment ?? null,
+    allowLoad,
+    editedPending: sets.some((x) => !x.done && touchedByUser(x)),
+  };
+}
+
+export async function changeWorkoutScheme(
+  weId: string,
+  scheme: SchemeId,
+  opts: { expectEditedPending?: boolean } = {},
+): Promise<'done' | 'blocked' | 'stale'> {
+  // [원본] 세트를 쓰기 잠금 밖에서 읽고 그 스냅샷으로 지웠다 — 그 사이 끝낸 세트가 지워지거나, 겹친 호출이 세트를
+  //   한 벌 더 만들었다(REV-076 데이터 1). 읽기·계획·쓰기를 한 database.write 안에서 한다.
+  const info0 = await getSchemeChangeInfo(weId);
+  if (!schemeAllowed(scheme, info0.equipment)) return 'blocked'; // 기구 제한은 저장소에서도(REV-076 코치 8)
+  const we0 = await workoutExercises().find(weId);
+  if (await isCardioExerciseId(we0.exerciseId)) return 'blocked'; // 유산소는 세트 방식이 없다(REV-076 데이터 12)
+  const unit = we0.weightUnit ? blockWeightUnit(we0) : await getUserWeightUnit(); // 블록 단위로 반올림(데이터 3)
+  const blockMult = await blockMultiplierOfV2(weId);
+  const est1rm = info0.allowLoad
+    ? await estimatedOneRmForSlotV2(we0.exerciseId, effectiveVariantKey(we0), blockMult ?? 1) // 데이터 10
+    : 0;
+  return database.write(async () => {
+    const we = await workoutExercises().find(weId);
+    const sets = (await setLogs().query(Q.where('workout_exercise_id', weId)).fetch()).sort(
+      (a, b) => a.setNumber - b.setNumber || a.id.localeCompare(b.id),
+    );
+    // 화면이 물은 뒤 상태가 바뀌었으면(직접 고친 값이 새로 생김) 멈춘다 — 화면이 다시 묻는다
+    const editedNow = sets.some((x) => !x.done && touchedByUser(x));
+    if (opts.expectEditedPending === false && editedNow) return 'stale';
+    const doneSets = sets.filter((x) => x.done);
+    const pending = sets.filter((x) => !x.done);
+    const doneKinds: DoneSetKind[] = doneSets.map((x) => ({
+      setType: (x.setType as PrescribedSetType | null) ?? (x.isDrop ? 'drop' : x.isWarmup ? 'warmup' : 'normal'),
+      isWarmup: x.isWarmup,
+    }));
+    const left = remainingSchemeRows(scheme, doneKinds, { allowLoad: info0.allowLoad });
+    // 끝낸 자리의 처방 — 그 세트의 타입만 남기고 새 방식 표시를 단다(표 전체가 한 방식으로 읽히게)
+    const doneRx: PrescribedSet[] = doneKinds.map((d) => ({
+      setType: d.setType,
+      targetRir: null,
+      repMin: null,
+      repMax: null,
+      loadHint: null,
+      ...(scheme !== 'straight' ? { scheme } : {}),
+    }));
+    const nextRx = [...doneRx, ...left];
+    // [원본] 무게는 sets[0] 배수로 나누고 저장은 fallback 배수로 — 세트 0개·옛 null 행이면 계산 무게가 절반이 됐다(데이터 2)
+    // [개선] 배수 하나(m)로 나누고 같은 값을 저장한다
+    const m = sets.find((x) => x.loadMultiplier != null)?.loadMultiplier ?? blockMult ?? null;
+    const div = m && m > 0 ? m : 1;
+    // 1RM — 기록, 없으면 오늘 끝낸 작업 세트(준비·드롭·실패 제외)로(REV-076 코치 3)
+    let est = est1rm;
+    if (info0.allowLoad && !(est > 0)) {
+      for (const x of doneSets) {
+        if (x.isWarmup || x.isDrop || x.isFailed || !(x.reps > 0)) continue;
+        est = Math.max(est, estimateOneRepMax(x.weightKg * (x.loadMultiplier ?? 1), x.reps));
+      }
+    }
+    const top = [...doneSets].reverse().find((x) => x.setType === 'top');
+    const topKg = top ? top.weightKg * (top.loadMultiplier ?? 1) : 0;
+    const fallback = pending[0] ?? doneSets[doneSets.length - 1] ?? null;
+    const tplTopPct = left.find((r) => r.setType === 'top')?.loadPct ?? null;
+    /** 무게와 계산 성공 여부 — 근거가 없으면 준비·드롭 줄은 비우고(작업 무게로 웜업하지 않게) 작업 줄은 지금 무게 */
+    const weightFor = (r: PrescribedSet): { kg: number; rx: boolean } => {
+      if (info0.allowLoad && (r.loadBasis === 'pct1rm' || r.loadBasis === 'pctTop')) {
+        // 탑이 아직 남았으면 「탑의 %」 줄은 틀의 탑 % × 백오프 % 로 임시(탑을 하면 다시 채운다)
+        const got =
+          r.loadBasis === 'pctTop' && !(topKg > 0) && tplTopPct != null
+            ? resolvePrescribedLoad({ basis: 'pct1rm', pct: (tplTopPct * (r.loadPct ?? 0)) / 100, est1rmKg: est, equipment: info0.equipment, unit })
+            : resolvePrescribedLoad({ basis: r.loadBasis, pct: r.loadPct, est1rmKg: est, topKg, equipment: info0.equipment, unit });
+        if ('weightKg' in got && got.weightKg > 0) return { kg: got.weightKg / div, rx: true };
+      }
+      if (r.setType === 'warmup' || r.setType === 'feeder' || r.setType === 'drop') return { kg: 0, rx: false };
+      return { kg: fallback?.weightKg ?? 0, rx: false };
+    };
+    // 「최대」 줄의 시작 횟수 — 바로 앞 작업 줄의 하한(피더 2회 같은 값을 물려받지 않게 · 데이터 11)
+    const repsFor = (r: PrescribedSet, i: number): number => {
+      if (r.repMin != null) return r.repMin;
+      for (let j = i - 1; j >= 0; j--) if (left[j].repMin != null && !left[j].amrap) return left[j].repMin as number;
+      return fallback?.reps ?? 8;
+    };
+    const ops = [
+      ...pending.map((x) => x.prepareMarkAsDeleted()),
+      // 번호가 바뀐 세트만 쓴다(데이터 12)
+      ...doneSets.flatMap((x, i) => (x.setNumber === i + 1 ? [] : [x.prepareUpdate((rec) => { rec.setNumber = i + 1; })])),
+      ...left.map((r, i) => {
+        const w = weightFor(r);
+        return setLogs().prepareCreate((n) => {
+          n.workoutExerciseId = weId;
+          n.setNumber = doneSets.length + i + 1;
+          n.weightKg = w.kg;
+          n.reps = repsFor(r, i);
+          n.rpe = null;
+          n.isWarmup = r.setType === 'warmup' || r.setType === 'feeder';
+          n.isDrop = r.setType === 'drop';
+          n.isFailed = false;
+          n.setType = r.setType === 'normal' || r.setType === 'drop' ? null : r.setType;
+          n.targetRir = null;
+          n.arm = fallback?.arm ?? null;
+          n.grip = fallback?.grip ?? null;
+          n.loadMultiplier = m;
+          n.userEdited = false;
+          n.valueSource = encodeValueSource(w.rx ? 'rx' : 'copied_default', r.repMin != null ? 'rx' : 'copied_default');
+          n.done = false;
+          n.completedAt = null;
+        });
+      }),
+      we.prepareUpdate((rec) => { rec.prescription = nextRx; }),
+    ];
+    await database.batch(...ops);
+    return 'done' as const;
   });
 }
 
@@ -2633,11 +2794,21 @@ export async function deleteSetLog(id: string): Promise<void> {
   await database.write(async () => {
     const target = await setLogs().find(id);
     const weId = target.workoutExerciseId;
+    const before = await setLogs()
+      .query(Q.where('workout_exercise_id', weId), Q.sortBy('set_number', Q.asc))
+      .fetch();
+    const at = before.findIndex((x) => x.id === id);
     await target.markAsDeleted();
     const remaining = await setLogs()
       .query(Q.where('workout_exercise_id', weId), Q.sortBy('set_number', Q.asc))
       .fetch();
     await database.batch(...remaining.map((s, i) => s.prepareUpdate((rec) => { rec.setNumber = i + 1; })));
+    // 처방도 같은 자리를 뺀다 — 처방은 세트 번호 자리로 읽어서, 안 빼면 뒤 세트들이 한 칸씩 남의 처방을 읽는다(SPEC-041)
+    const we = await workoutExercises().find(weId).catch(() => null);
+    const rx = we?.prescription;
+    if (we && Array.isArray(rx) && at >= 0 && at < rx.length) {
+      await we.update((rec) => { rec.prescription = rx.filter((_, i) => i !== at); });
+    }
   });
 }
 

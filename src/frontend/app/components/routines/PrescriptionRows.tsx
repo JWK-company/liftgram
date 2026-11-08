@@ -7,6 +7,9 @@
 // [개선] 세트 표(SPEC-023) — 운동 화면처럼 줄마다 타입·무게·횟수를 넣는다. 표의 무게는 시작 값이고 지난 기록이 먼저다.
 // 숫자 칸은 초안을 두고 칸을 떠날 때 올린다(「8」→「80」 중간값이 저장되지 않게). 줄 key 는 자리가 아니라 줄의 정체성이다.
 import type { PrescribedSet, PrescribedSetType } from "@app/core";
+import type { SchemeId } from "@app/core/domain/prescription";
+import { roundLoadKg } from "@app/core/domain/prescription";
+import { isSchemeEdited, SCHEMES, schemeAllowed, schemeOf, schemeRows } from "@app/core/domain/setSchemes";
 import { displayWeight } from "@app/core";
 import { enteredWeightToKg } from "@app/core/domain/blockUnit";
 import { LOAD_KG_MAX, LOAD_PCT_RANGE } from "@app/core/domain/prescription";
@@ -32,6 +35,7 @@ export const RX_SUMMARY_CHAR: Record<PrescribedSetType, string> = {
   top: "T",
   backoff: "B",
   drop: "D",
+  feeder: "P", // SPEC-041 — F 는 운동 화면의 실패 세트
 };
 
 export function emptyRxRow(): PrescribedSet {
@@ -48,14 +52,31 @@ export function rxMeaningful(rows: PrescribedSet[]): boolean {
   return rows.some(rowHasMeaning);
 }
 
-const SET_TYPES: PrescribedSetType[] = ["normal", "warmup", "drop", "top", "backoff"];
+// [원본] const SET_TYPES: PrescribedSetType[] = ["normal", "warmup", "drop", "top", "backoff"];
+// [개선] 루틴은 피더까지 여섯(SPEC-041) · 코칭 계약에는 피더가 없어 코치 화면은 다섯 그대로
+const SET_TYPES: PrescribedSetType[] = ["normal", "warmup", "feeder", "top", "backoff", "drop"];
+const COACH_SET_TYPES: PrescribedSetType[] = ["normal", "warmup", "drop", "top", "backoff"];
 const TYPE_LABEL = {
   normal: "session.setType.normal",
   warmup: "session.setType.warmup",
   drop: "session.setType.drop",
   top: "session.setType.top",
   backoff: "session.setType.backoff",
+  feeder: "session.setType.feeder",
 } as const;
+
+/** 표 이름 — 세트 방식이 붙어 있으면 그 이름, 아니면 일반 모양이면 「일반」, 그 밖은 「직접 구성」(SPEC-041). */
+function schemeChipName(rows: PrescribedSet[], allowLoad: boolean): string {
+  const id = schemeOf(rows);
+  if (id) {
+    const name = t(`scheme.name.${id}` as Parameters<typeof t>[0]);
+    return isSchemeEdited(rows, { allowLoad }) ? `${name} · ${t("scheme.edited")}` : name;
+  }
+  const plain = rows.every(
+    (r) => r.setType === "normal" && !r.amrap && (!r.loadBasis || r.loadBasis === "start"),
+  );
+  return plain ? t("scheme.name.straight") : t("scheme.custom");
+}
 const EFFORT_VALUES = [0, 1, 2, 3, 4];
 const cellClass =
   "h-[44px] w-full min-w-0 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface) px-[2px] text-center text-(--color-ink)";
@@ -67,12 +88,15 @@ function NumCell({
   onCommit,
   testId,
   label,
+  placeholder = "–",
 }: {
   value: string;
   decimal?: boolean;
   onCommit: (text: string) => void;
   testId: string;
   label: string;
+  /** 빈칸에 보일 글자 — 「최대」 줄·계산 무게(SPEC-041) */
+  placeholder?: string;
 }) {
   // [원본] 초안을 항상 두고 포커스가 아닐 때 value 로 맞췄다 — 저장값이 그대로면(잘못된 입력) 칸에 초안이 남고,
   // 포커스만 둔 칸이 옛 값을 되덮었다. 입력 중에만 초안을 보이고, 고친 칸만 올린다(REV-028).
@@ -93,7 +117,7 @@ function NumCell({
   return (
     <input
       inputMode={decimal ? "decimal" : "numeric"}
-      placeholder="–"
+      placeholder={placeholder}
       aria-label={label}
       data-testid={testId}
       value={editing ? draft : value}
@@ -128,6 +152,8 @@ export function PrescriptionRows({
   weightLabel,
   mode = "routine",
   fixedMultiplier = 1,
+  equipment = null,
+  est1rmKg = 0,
 }: {
   rows: PrescribedSet[];
   onChange: (next: PrescribedSet[]) => void;
@@ -139,6 +165,10 @@ export function PrescriptionRows({
   mode?: "routine" | "coach";
   /** 한쪽 입력 배수 — 고정 무게는 저장이 합계라 칸에는 나눠 보인다(세션 채우기와 같은 뜻 · REV-028). 시작 값은 입력값 그대로다. */
   fixedMultiplier?: number;
+  /** 종목 기구 — 세트 방식 제한(바벨류 드롭세트 등 · SPEC-041) */
+  equipment?: string | null;
+  /** 추정 1RM(계산 kg · 없으면 0) — 「1RM 의 %」 줄에 계산 무게를 보인다 */
+  est1rmKg?: number;
 }) {
   // 줄의 정체성 — 가운데 줄을 지워도 초안이 옆 줄로 옮겨 가지 않게.
   const nextKey = useRef(0);
@@ -149,10 +179,42 @@ export function PrescriptionRows({
   const [typeRow, setTypeRow] = useState<number | null>(null);
   const [menuRow, setMenuRow] = useState<number | null>(null);
   const [offerKg, setOfferKg] = useState<number | null>(null);
+  // 세트 방식(SPEC-041) — 루틴 편집에서만. 고르기 직전 표를 한 번 되돌릴 수 있다.
+  const [schemeOpen, setSchemeOpen] = useState(false);
+  const [undoRows, setUndoRows] = useState<PrescribedSet[] | null>(null);
+  const routine = mode === "routine";
+  const emit = (next: PrescribedSet[]) => {
+    setUndoRows(null);
+    onChange(next);
+  };
+  const resetKeys = (n: number) => {
+    keysRef.current = Array.from({ length: n }, () => nextKey.current++);
+  };
+  const applyScheme = (id: SchemeId) => {
+    const next = schemeRows(id, { allowLoad });
+    if (next.length === 0) return;
+    setOfferKg(null);
+    resetKeys(next.length);
+    setUndoRows(rows);
+    onChange(next);
+  };
+  const undoScheme = () => {
+    if (!undoRows) return;
+    const prev = undoRows;
+    setUndoRows(null);
+    resetKeys(prev.length);
+    onChange(prev);
+  };
+  /** 「1RM 의 %」 줄의 계산 무게(표시 단위 · 한쪽 입력이면 나눈다) — 추정 1RM 이 없으면 null */
+  const pctKgShown = (r: PrescribedSet): string | null => {
+    if (r.loadBasis !== "pct1rm" || !est1rmKg || est1rmKg <= 0 || r.loadPct == null) return null;
+    const kg = roundLoadKg((est1rmKg * r.loadPct) / 100, equipment, unit);
+    return kg > 0 ? String(displayWeight(kg / (fixedMultiplier || 1), unit)) : null;
+  };
 
   const patch = (i: number, p: Partial<PrescribedSet>) => {
     setOfferKg(null);
-    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
+    emit(rows.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
   };
   const directBasis = mode === "coach" ? "fixed" : "start";
   const followsDirect = (r: PrescribedSet) =>
@@ -161,6 +223,14 @@ export function PrescriptionRows({
   const commitWeight = (i: number, text: string) => {
     const r = rows[i];
     const n = Number.parseFloat(text.replace(",", "."));
+    // [개선] 루틴 편집의 % 줄은 칸에 계산 무게를 보인다 — 숫자를 넣으면 그 줄은 시작 무게가 된다(수정함 · SPEC-041)
+    if (routine && (r.loadBasis === "pct1rm" || r.loadBasis === "pctTop")) {
+      if (Number.isNaN(n) || n <= 0) return;
+      const kg = enteredWeightToKg(n, unit, Number.NaN);
+      if (kg == null) return;
+      patch(i, { loadBasis: "start", loadKg: Math.round(Math.min(LOAD_KG_MAX, kg) * 10000) / 10000, loadPct: undefined });
+      return;
+    }
     if (r.loadBasis === "pct1rm" || r.loadBasis === "pctTop") {
       if (Number.isNaN(n)) return;
       const [lo, hi] = LOAD_PCT_RANGE[r.loadBasis];
@@ -188,21 +258,31 @@ export function PrescriptionRows({
     const n = Number.parseInt(text, 10);
     patch(i, { [key]: Number.isNaN(n) || n <= 0 ? null : n } as Partial<PrescribedSet>);
   };
+  /** 「최대」 줄 — 숫자를 실제로 넣어야 풀린다(비운 채 나오면 그대로 · REV-074). */
+  const commitAmrap = (i: number, text: string) => {
+    const n = Number.parseInt(text, 10);
+    if (Number.isNaN(n) || n <= 0) return;
+    patch(i, { amrap: undefined, repMin: n, repMax: n });
+  };
 
   const remove = (i: number) => {
     if (rows.length <= 1) return;
     keysRef.current = keysRef.current.filter((_, idx) => idx !== i);
     setOfferKg(null);
-    onChange(rows.filter((_, idx) => idx !== i));
+    emit(rows.filter((_, idx) => idx !== i));
   };
 
   const addSet = () => {
     if (rows.length >= ROUTINE_SETS_MAX) return;
     const last = rows[rows.length - 1];
     const goal = effortGoalOf(rows);
+    const tableScheme = schemeOf(rows);
     const next: PrescribedSet = {
       ...emptySetRow(),
-      targetRir: typeof goal === "number" ? goal : null,
+      // [원본] targetRir: typeof goal === "number" ? goal : null, — 루틴 편집은 강도 목표를 안 보이니 물려주지 않는다(REV-076 M-5)
+      targetRir: !routine && typeof goal === "number" ? goal : null,
+      // 표에 세트 방식이 있으면 새 줄에도 — 한 줄 더해도 「<방식> · 수정함」으로 남는다(REV-076 M-3)
+      ...(tableScheme ? { scheme: tableScheme } : {}),
       repMin: last?.repMin ?? null,
       repMax: last?.repMax ?? null,
       ...(last?.loadBasis === "start" || last?.loadBasis === "fixed"
@@ -211,21 +291,23 @@ export function PrescriptionRows({
     };
     keysRef.current = [...keysRef.current, nextKey.current++];
     setOfferKg(null);
-    onChange([...rows, next]);
+    emit([...rows, next]);
   };
 
   const addWarmup = () => {
     if (rows.length >= ROUTINE_SETS_MAX) return;
     keysRef.current = [nextKey.current++, ...keysRef.current];
     setOfferKg(null);
-    onChange([{ ...emptySetRow(), setType: "warmup" }, ...rows]);
+    // [원본] emit([{ ...emptySetRow(), setType: "warmup" }, ...rows]);
+    const tableScheme = schemeOf(rows);
+    emit([{ ...emptySetRow(), setType: "warmup", ...(tableScheme ? { scheme: tableScheme } : {}) }, ...rows]);
   };
 
   const applyOffer = () => {
     if (offerKg == null) return;
     const kg = offerKg;
     setOfferKg(null);
-    onChange(
+    emit(
       rows.map((x) =>
         x.setType === "normal" && followsDirect(x) ? { ...x, loadBasis: directBasis, loadKg: kg } : x,
       ),
@@ -261,10 +343,12 @@ export function PrescriptionRows({
   /** 타입을 바꾸면 강도 목표도 맞춘다 — 웜업·드롭은 비우고, 작업 세트가 되면 나머지 줄의 목표를 따른다(REV-028). */
   const pickType = (i: number, type: PrescribedSetType) => {
     const r = rows[i];
-    const working = type !== "warmup" && type !== "drop";
-    const wasWorking = r.setType !== "warmup" && r.setType !== "drop";
+    // [개선] 피더도 준비 세트 — 강도 목표를 두지 않는다(SPEC-041)
+    const working = type !== "warmup" && type !== "drop" && type !== "feeder";
+    const wasWorking = r.setType !== "warmup" && r.setType !== "drop" && r.setType !== "feeder";
     const rest = rows.filter((_, j) => j !== i);
-    const others = rest.filter((x) => x.setType !== "warmup" && x.setType !== "drop");
+    // [원본] const others = rest.filter((x) => x.setType !== "warmup" && x.setType !== "drop");
+    const others = rest.filter((x) => x.setType !== "warmup" && x.setType !== "drop" && x.setType !== "feeder"); // REV-076 L-3
     const restGoal = effortGoalOf(rest);
     const targetRir = !working
       ? null
@@ -275,7 +359,8 @@ export function PrescriptionRows({
           : wasWorking
             ? r.targetRir
             : null;
-    patch(i, { setType: type, targetRir });
+    // [원본] patch(i, { setType: type, targetRir }); — 루틴 편집은 강도 목표를 다루지 않는다(타입만 · REV-076 M-5)
+    patch(i, routine ? { setType: type } : { setType: type, targetRir });
   };
 
   const goal = effortGoalOf(rows);
@@ -287,8 +372,48 @@ export function PrescriptionRows({
 
   return (
     <div data-testid="set-table">
+      {/* 세트 방식(SPEC-041) — 루틴 편집에서만. 코칭은 지금 처방 화면 그대로다. */}
+      {routine ? (
+        <div className="flex flex-col gap-[4px] pb-[var(--spacing-xs)]">
+          <button
+            type="button"
+            data-testid="scheme-chip"
+            data-scheme={schemeOf(rows) ?? ""}
+            onClick={() => setSchemeOpen(true)}
+            className="flex min-h-[44px] items-center self-start rounded-full border border-(--color-line) bg-(--color-surface-alt) px-[14px]"
+          >
+            <AppText variant="label" color="text">
+              {t("scheme.chip", { name: schemeChipName(rows, allowLoad) })} ▾
+            </AppText>
+          </button>
+          {schemeOf(rows) ? (
+            <AppText variant="caption" color="textMuted" data-testid="scheme-guide">
+              {t(`scheme.guide.${schemeOf(rows)}` as Parameters<typeof t>[0])}
+              {rows.some((r) => r.setType === "feeder") ? ` · ${t("scheme.legendFeeder")}` : ""}
+            </AppText>
+          ) : null}
+          {undoRows ? (
+            <div className="flex items-center gap-[var(--spacing-sm)]" data-testid="scheme-undo-bar">
+              <AppText variant="caption" color="textMuted">
+                {t("scheme.changed")}
+              </AppText>
+              <button
+                type="button"
+                data-testid="scheme-undo"
+                onClick={undoScheme}
+                className="min-h-[44px] px-[var(--spacing-sm)]"
+              >
+                <AppText variant="label" color="primary" className="font-bold">
+                  {t("scheme.undo")}
+                </AppText>
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       <div className="flex items-center gap-[4px] pb-[4px]">
-        <span className="w-[34px] shrink-0" />
+        {/* [원본] <span className="w-[34px] shrink-0" /> — 번호 버튼을 44px 로(REV-074) */}
+        <span className={`${routine ? "w-[44px]" : "w-[34px]"} shrink-0`} />
         {allowLoad ? (
           <span className="w-[78px] shrink-0 text-center">
             <AppText variant="label" color="textFaint">
@@ -301,7 +426,7 @@ export function PrescriptionRows({
             {t("routines.setColReps")}
           </AppText>
         </span>
-        <span className="w-[44px] shrink-0" />
+        {routine ? null : <span className="w-[44px] shrink-0" />}
       </div>
 
       {rows.map((r, i) => {
@@ -321,7 +446,7 @@ export function PrescriptionRows({
                 data-testid="rx-type"
                 aria-label={`${t("session.setTypeTitle")}: ${t(`routines.rxType.${r.setType}` as Parameters<typeof t>[0])}`}
                 onClick={() => setTypeRow(i)}
-                className="flex h-[44px] w-[34px] shrink-0 items-center justify-center"
+                className={`flex h-[44px] ${routine ? "w-[44px]" : "w-[34px]"} shrink-0 items-center justify-center`}
               >
                 <span className="flex min-w-[28px] justify-center rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) px-[2px] py-[2px]">
                   <AppText variant="caption" className="font-bold">
@@ -335,8 +460,11 @@ export function PrescriptionRows({
                     decimal
                     testId="rx-weight"
                     label={weightLabel ?? t("routines.setColWeight")}
+                    // [개선] 루틴 편집의 % 줄은 칸에 계산 무게(없으면 빈칸) — % 는 줄 밑 글씨로(SPEC-041)
                     value={
-                      pct
+                      routine && pct
+                        ? (pctKgShown(r) ?? "")
+                        : pct
                         ? String(r.loadPct ?? "")
                         : r.loadKg != null && r.loadKg > 0
                           ? String(
@@ -349,7 +477,7 @@ export function PrescriptionRows({
                     }
                     onCommit={(text) => commitWeight(i, text)}
                   />
-                  {pct ? (
+                  {pct && !routine ? (
                     <span className="pointer-events-none absolute top-1/2 right-[4px] -translate-y-1/2">
                       <AppText variant="caption" color="textMuted">
                         %
@@ -358,6 +486,17 @@ export function PrescriptionRows({
                   ) : null}
                 </div>
               ) : null}
+              {r.amrap ? (
+                <div className="flex min-w-0 flex-1 items-center">
+                  <NumCell
+                    testId="rx-rep-amrap"
+                    label={`${t("routines.setColReps")} ${t("scheme.amrap")}`}
+                    value=""
+                    placeholder={t("scheme.amrap")}
+                    onCommit={(text) => commitAmrap(i, text)}
+                  />
+                </div>
+              ) : (
               <div className="flex min-w-0 flex-1 items-center gap-[2px]">
                 <NumCell
                   testId="rx-rep-min"
@@ -375,7 +514,9 @@ export function PrescriptionRows({
                   onCommit={(text) => commitRep(i, "repMax", text)}
                 />
               </div>
-              {allowLoad || rows.length > 1 ? (
+              )}
+              {/* [원본] 루틴 편집에도 줄마다 … (무게 기준·삭제) — 세트 방식이 무게 기준을 정하고 삭제는 번호 시트로(SPEC-041) */}
+              {routine ? null : allowLoad || rows.length > 1 ? (
                 <button
                   type="button"
                   data-testid="rx-more"
@@ -390,9 +531,23 @@ export function PrescriptionRows({
               )}
             </div>
             {r.loadBasis === "fixed" && mode === "routine" ? (
-              <div className="pl-[38px]" data-testid="rx-fixed-tag">
+              <div className="pl-[48px]" data-testid="rx-fixed-tag">
                 <AppText variant="label" color="textMuted">
                   {t("routines.setFixedTag")}
+                </AppText>
+              </div>
+            ) : routine && pct ? (
+              // 세트 방식 무게의 근거 — 「1RM 추정 Nkg의 75%」·「1RM의 75% · 첫 기록 뒤 계산」·「탑×85%」(SPEC-041)
+              <div className="pl-[48px]" data-testid="rx-pct-note">
+                <AppText variant="label" color="textMuted">
+                  {r.loadBasis === "pctTop"
+                    ? t("scheme.topNote", { pct: r.loadPct ?? 0 })
+                    : est1rmKg > 0
+                      ? t("scheme.pctNote", {
+                          base: `${displayWeight(roundLoadKg(est1rmKg, equipment, unit), unit)}${unit}`,
+                          pct: r.loadPct ?? 0,
+                        })
+                      : t("scheme.pctNoteNone", { pct: r.loadPct ?? 0 })}
                 </AppText>
               </div>
             ) : pct ? (
@@ -441,6 +596,8 @@ export function PrescriptionRows({
         </div>
       </div>
 
+      {/* [원본] 강도 목표는 루틴 편집에도 있었다 — 세트 방식 안내가 맡는다(SPEC-041). 코칭 화면에는 남긴다. */}
+      {routine ? null : (
       <div className="mt-[var(--spacing-md)]" data-testid="effort-goal" data-goal={String(goal)}>
         <AppText variant="label" color="textMuted" className="block">
           {t("routines.effortTitle")}
@@ -452,7 +609,7 @@ export function PrescriptionRows({
             active={goal === null}
             tall
             testId="effort-none"
-            onPress={() => onChange(withEffortGoal(rows, null))}
+            onPress={() => emit(withEffortGoal(rows, null))}
           />
           {effortChips.map((rir) => (
             <SelectChip
@@ -461,22 +618,59 @@ export function PrescriptionRows({
               active={goal === rir}
               tall
               testId={`effort-${rir}`}
-              onPress={() => onChange(withEffortGoal(rows, rir))}
+              onPress={() => emit(withEffortGoal(rows, rir))}
             />
           ))}
         </div>
       </div>
+      )}
 
       {typeRow != null && rows[typeRow] ? (
         <ActionSheet
           testId="rx-type-sheet"
           title={t("session.setTypeTitle")}
           onClose={() => setTypeRow(null)}
-          options={SET_TYPES.map((type) => ({
-            label: t(TYPE_LABEL[type]),
-            selected: rows[typeRow].setType === type,
-            onPress: () => pickType(typeRow, type),
-          }))}
+          // [원본] options={SET_TYPES.map(…)} — 루틴 편집은 피더 · 맨 아래 세트 삭제(… 메뉴에서 옮김 · SPEC-041)
+          options={[
+            ...(routine ? SET_TYPES : COACH_SET_TYPES).map((type) => ({
+              label: t(TYPE_LABEL[type]),
+              selected: rows[typeRow].setType === type,
+              testId: `rx-type-${type}`,
+              onPress: () => pickType(typeRow, type),
+            })),
+            ...(routine && rows.length > 1
+              ? [
+                  {
+                    label: t("common.delete"),
+                    destructive: true,
+                    testId: "rx-delete",
+                    onPress: () => remove(typeRow),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      ) : null}
+
+      {schemeOpen ? (
+        <ActionSheet
+          testId="scheme-sheet"
+          title={t("scheme.title")}
+          onClose={() => setSchemeOpen(false)}
+          options={SCHEMES.map((def) => {
+            const allowed = schemeAllowed(def.id, equipment);
+            const current = schemeOf(rows);
+            return {
+              label: t(`scheme.name.${def.id}` as Parameters<typeof t>[0]),
+              description: allowed
+                ? t(`scheme.desc.${def.id}` as Parameters<typeof t>[0])
+                : t("scheme.blocked"),
+              selected: current ? current === def.id : def.id === "straight" && schemeChipName(rows, allowLoad) === t("scheme.name.straight"),
+              disabled: !allowed,
+              testId: `scheme-${def.id}`,
+              onPress: () => applyScheme(def.id),
+            };
+          })}
         />
       ) : null}
 

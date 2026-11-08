@@ -186,6 +186,11 @@ function ChangeLabel({ change }: { change: RoutineChange }) {
       return <>{t("finish.change.swap", { from: a ?? "", to: b ?? "" })}</>;
     case "sets":
       return <>{t("finish.change.sets", { name: a ?? "", from: change.from, to: change.to })}</>;
+    case "scheme": {
+      // 세트 방식(SPEC-041) — 루틴에 방식이 없었으면 「일반」으로 적는다
+      const nm = (id: string | null) => t(`scheme.name.${id ?? "straight"}` as Parameters<typeof t>[0]);
+      return <>{t("finish.change.scheme", { name: a ?? "", from: nm(change.from), to: nm(change.to) })}</>;
+    }
     case "add":
       return <>{t("finish.change.add", { name: a ?? "" })}</>;
     case "remove":

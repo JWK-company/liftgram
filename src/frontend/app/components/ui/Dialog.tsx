@@ -184,6 +184,10 @@ export interface SheetOption {
   selected?: boolean;
   destructive?: boolean;
   testId?: string;
+  /** 이름 아래 한 줄 설명(세트 방식의 고르는 기준 등 · SPEC-041). */
+  description?: string;
+  /** 고를 수 없는 항목 — 흐리게 보이고 눌리지 않는다(기구 제한 등). */
+  disabled?: boolean;
 }
 
 /** 선택지 목록 — app의 다중 버튼 Alert 자리. */
@@ -207,20 +211,31 @@ export function ActionSheet({
             <button
               type="button"
               data-testid={o.testId}
+              disabled={o.disabled}
+              aria-disabled={o.disabled || undefined}
               onClick={() => {
+                if (o.disabled) return;
                 o.onPress();
                 onClose();
               }}
               style={{ borderTopWidth: i === 0 ? 0 : 1, borderColor: "var(--color-line)" }}
-              className="flex w-full items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)] text-left"
+              className={`flex min-h-[44px] w-full items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)] text-left ${o.disabled ? "opacity-40" : ""}`}
             >
               <span
                 style={{ backgroundColor: o.selected ? "var(--color-brand)" : "transparent" }}
                 className="h-2 w-2 shrink-0 rounded-full"
               />
-              <AppText variant="body" color={o.destructive ? "danger" : "text"}>
-                {o.label}
-              </AppText>
+              {/* [원본] 이름 한 줄 — 설명 줄을 붙일 수 있게 묶었다(SPEC-041) */}
+              <span className="flex min-w-0 flex-col">
+                <AppText variant="body" color={o.destructive ? "danger" : "text"}>
+                  {o.label}
+                </AppText>
+                {o.description ? (
+                  <AppText variant="caption" color="textMuted">
+                    {o.description}
+                  </AppText>
+                ) : null}
+              </span>
             </button>
           </li>
         ))}

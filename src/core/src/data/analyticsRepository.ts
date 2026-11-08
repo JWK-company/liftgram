@@ -1,5 +1,7 @@
 // 분석 집계 (SRS-005). 완료 세션 로그 → 볼륨·추정1RM·PR·근육군 분포·추세.
 // 모든 수치는 사실 집계만 표시(웰니스 가드레일 — 1RM은 항상 "추정치"로 라벨). @plm SRS-005
+import { schemeOf } from '../domain/setSchemes'; // 세트 방식 태그(SPEC-041)
+import type { SchemeId } from '../domain/prescription';
 import { Q } from '@nozbe/watermelondb';
 import type { Query } from '@nozbe/watermelondb';
 import { database } from '../db/database';
@@ -306,6 +308,8 @@ export function queryWorkoutHistory(): Query<Workout> {
 }
 
 export interface WorkoutExerciseDetail {
+  /** 그날 표의 세트 방식(SPEC-041 · 일반·직접 구성이면 null) */
+  scheme?: SchemeId | null;
   workoutExerciseId: string;
   exerciseId: string;
   exerciseName: string;
@@ -361,6 +365,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       machineVariant: we.machineVariant,
       variantKey: we.variantKey ?? legacyMachineVariantToV6(we.machineVariant).key, // 레거시 행 즉석 승계
       note: we.note ?? null,
+      scheme: schemeOf(we.prescription ?? null), // 세트 방식 태그(SPEC-041)
       weightUnit: we.weightUnit === 'lb' ? 'lb' : 'kg', // null = kg(운영 기존 기록) @plm SRS-067
       isCardio: exList.find((e) => e.id === we.exerciseId)?.kind === 'cardio',
       sets: sets.map((s) => ({

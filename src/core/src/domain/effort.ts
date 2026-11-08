@@ -106,6 +106,7 @@ export function isEffortTarget(s: EffortInputSet): boolean {
   if (s.done === false) return false;
   if (s.isWarmup) return false;
   if (s.setType === 'warmup') return false;
+  if (s.setType === 'feeder') return false; // 피더도 준비 세트(SPEC-041 · REV-076 데이터 5)
   return true;
 }
 

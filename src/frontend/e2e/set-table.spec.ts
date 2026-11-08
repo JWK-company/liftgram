@@ -37,7 +37,7 @@ async function 루틴_목록(page: Page) {
   await expect(page.getByTestId("btn-new-routine")).toBeVisible({ timeout: 20_000 });
 }
 
-test("세트 표 → 운동 화면 — 타입·무게·횟수·강도 목표가 그대로 · 메뉴는 다섯 타입 · 가이드 없음", async ({
+test("세트 표 → 운동 화면 — 타입·무게·횟수가 그대로 · 메뉴는 여섯 타입 · 가이드 없음", async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -52,8 +52,13 @@ test("세트 표 → 운동 화면 — 타입·무게·횟수·강도 목표가 
   await page.getByTestId("rx-add-set").click();
   await page.getByTestId("rx-add-warmup").click();
   await expect(줄(page)).toHaveCount(6);
-  await 줄(page).nth(5).getByTestId("rx-more").click();
+  // [원본] 줄 메뉴(…)에서 지우기 — SPEC-041 에서 번호 시트로 옮겼다
+  // await 줄(page).nth(5).getByTestId("rx-more").click();
+  // await page.getByTestId("rx-delete").click();
+  // [개선]
+  await 줄(page).nth(5).getByTestId("rx-type").click();
   await page.getByTestId("rx-delete").click();
+  await expect(줄(page)).toHaveCount(5);
   await 타입(page, 1, "탑세트 (T)");
   await 타입(page, 2, "백오프 (B)");
   await 타입(page, 4, "드롭세트 (D)");
@@ -65,8 +70,10 @@ test("세트 표 → 운동 화면 — 타입·무게·횟수·강도 목표가 
   await 줄(page).nth(1).getByTestId("rx-rep-min").fill("5");
   await 줄(page).nth(1).getByTestId("rx-rep-max").fill("5");
   await 줄(page).nth(1).getByTestId("rx-rep-max").blur();
-  await page.getByTestId("effort-2").click();
-  await expect(page.getByTestId("effort-goal")).toHaveAttribute("data-goal", "2");
+  // [원본] 강도 목표 — SPEC-041 에서 루틴 편집기에서 뺐다
+  // await page.getByTestId("effort-2").click();
+  // await expect(page.getByTestId("effort-goal")).toHaveAttribute("data-goal", "2");
+  await expect(page.getByTestId("effort-goal")).toHaveCount(0);
   // 포커스를 둔 채 시작해도 입력값이 반영된다
   await 줄(page).nth(3).getByTestId("rx-weight").fill("75");
   await page.getByTestId("btn-routine-start").click();
@@ -81,16 +88,13 @@ test("세트 표 → 운동 화면 — 타입·무게·횟수·강도 목표가 
     .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
   expect(값).toEqual(["40", "100", "80", "75", "50"]);
   await expect(sets.nth(1).getByTestId("set-reps")).toHaveValue("5");
-  // 강도 목표는 웜업·드롭을 뺀 세트에
-  await expect(sets.nth(1)).toContainText("여유 2회");
-  await expect(sets.nth(3)).toContainText("여유 2회");
-  await expect(sets.nth(0)).not.toContainText("여유 2회");
-  await expect(sets.nth(4)).not.toContainText("여유 2회");
+  // [원본] 강도 목표는 웜업·드롭을 뺀 세트에 — 강도 목표는 SPEC-041 에서 뺐다
+  // await expect(sets.nth(1)).toContainText("여유 2회");
 
   // 메뉴 — 실패·플레이트 계산 없음
   await sets.nth(3).getByTestId("set-type").click();
   const sheet = page.getByTestId("set-type-sheet");
-  for (const 있음 of ["일반 세트", "워밍업 (W)", "드롭세트 (D)", "탑세트 (T)", "백오프 (B)"]) {
+  for (const 있음 of ["일반 세트", "워밍업 (W)", "피더 (P)", "드롭세트 (D)", "탑세트 (T)", "백오프 (B)"]) {
     await expect(sheet.getByText(있음)).toBeVisible();
   }
   await expect(sheet.getByText("실패 (F)")).toHaveCount(0);
@@ -105,7 +109,7 @@ test("세트 표 → 운동 화면 — 타입·무게·횟수·강도 목표가 
   await expect(page.getByTestId("btn-guide-warmup")).toHaveCount(0);
 });
 
-test("지난 기록 먼저 — 같은 무게 세트는 지난 기록, 고정 줄은 표의 무게", async ({ page }) => {
+test("지난 기록 먼저 — 같은 무게 세트는 지난 기록으로 시작한다", async ({ page }) => {
   test.setTimeout(180_000);
   await 카탈로그_준비(page);
   const 이름 = `기록${Date.now().toString(36)}`;
@@ -116,9 +120,9 @@ test("지난 기록 먼저 — 같은 무게 세트는 지난 기록, 고정 줄
   await 무게(page, 0, 60);
   await 무게(page, 1, 60);
   await 무게(page, 2, 60);
-  await 줄(page).nth(2).getByTestId("rx-more").click();
-  await page.getByTestId("rx-basis-fixed").click();
-  await expect(줄(page).nth(2).getByTestId("rx-fixed-tag")).toBeVisible();
+  // [원본] 고정 줄 — 줄 메뉴(…)는 SPEC-041 에서 뺐다(옛 루틴의 고정 줄은 그대로 계산한다)
+  // await 줄(page).nth(2).getByTestId("rx-more").click();
+  // await page.getByTestId("rx-basis-fixed").click();
   await expect(page.getByTestId("set-table-hint")).toBeVisible();
   await page.getByTestId("btn-routine-start").click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
@@ -150,10 +154,12 @@ test("지난 기록 먼저 — 같은 무게 세트는 지난 기록, 고정 줄
   const next = page.getByTestId("set-list").first().locator("> div");
   await expect(next.nth(0).getByTestId("set-weight")).toHaveValue("70", { timeout: 15_000 });
   await expect(next.nth(1).getByTestId("set-weight")).toHaveValue("70");
-  await expect(next.nth(2).getByTestId("set-weight")).toHaveValue("60");
+  // [원본] 고정 줄은 표의 무게
+  // await expect(next.nth(2).getByTestId("set-weight")).toHaveValue("60");
+  await expect(next.nth(2).getByTestId("set-weight")).toHaveValue("70");
 });
 
-test("타입을 바꾸면 강도 목표가 맞춰진다 · 비운 칸은 다시 들어와도 빈칸 · Enter 로도 올라간다", async ({
+test("타입을 바꿨다 되돌려도 표가 그대로 · 비운 칸은 다시 들어와도 빈칸 · Enter 로도 올라간다", async ({
   page,
 }) => {
   test.setTimeout(150_000);
@@ -162,12 +168,10 @@ test("타입을 바꾸면 강도 목표가 맞춰진다 · 비운 칸은 다시 
   await page.getByTestId("routine-name").fill(`비움${Date.now().toString(36)}`);
   await page.getByTestId("routine-name").blur();
   await 종목_추가(page);
-  // 강도 먼저 → 일반을 드롭으로 → 다시 일반으로
-  await page.getByTestId("effort-2").click();
+  // 일반을 드롭으로 → 다시 일반으로(강도 목표는 SPEC-041 에서 뺐다)
   await 타입(page, 2, "드롭세트 (D)");
-  await expect(page.getByTestId("effort-goal")).toHaveAttribute("data-goal", "2");
   await 타입(page, 2, "일반 세트");
-  await expect(page.getByTestId("effort-goal")).toHaveAttribute("data-goal", "2");
+  await expect(줄(page).nth(2).getByTestId("rx-type")).toHaveText("3");
   // 맨 앞 웜업은 비우고 작업 줄만 채운다 — Enter 로 올린다
   await page.getByTestId("rx-add-warmup").click();
   await 줄(page).nth(1).getByTestId("rx-weight").fill("100");
@@ -194,7 +198,7 @@ test("타입을 바꾸면 강도 목표가 맞춰진다 · 비운 칸은 다시 
   await expect(줄(page).nth(1).getByTestId("rx-rep-min")).toHaveValue("");
 });
 
-test("한쪽 입력 머신 — 고정해도 칸의 값 그대로 시작한다(절반이 되지 않는다)", async ({ page }) => {
+test("한쪽 입력 머신 — 칸의 값 그대로 시작한다(절반이 되지 않는다)", async ({ page }) => {
   test.setTimeout(120_000);
   await 카탈로그_준비(page);
   await 새_루틴(page);
@@ -203,9 +207,9 @@ test("한쪽 입력 머신 — 고정해도 칸의 값 그대로 시작한다(�
   await 종목_추가(page, "머신 하이 로우");
   await expect(page.getByTestId("set-table").first()).toContainText("한쪽");
   await 무게(page, 0, 50);
-  await 줄(page).nth(0).getByTestId("rx-more").click();
-  await page.getByTestId("rx-basis-fixed").click();
-  await expect(줄(page).nth(0).getByTestId("rx-fixed-tag")).toBeVisible();
+  // [원본] 고정 — 줄 메뉴(…)는 SPEC-041 에서 뺐다
+  // await 줄(page).nth(0).getByTestId("rx-more").click();
+  // await page.getByTestId("rx-basis-fixed").click();
   await expect(줄(page).nth(0).getByTestId("rx-weight")).toHaveValue("50");
   await 무게(page, 1, 30);
   await page.getByTestId("btn-routine-start").click();
@@ -254,7 +258,8 @@ test("360px — 세트 표·운동 헤더가 넘치지 않고 누르는 자리 4
   await 종목_추가(page);
   await 무게(page, 0, 102.5);
   const row = 줄(page).first();
-  for (const id of ["rx-type", "rx-weight", "rx-rep-min", "rx-rep-max", "rx-more"]) {
+  // [원본] rx-more — 줄 메뉴는 SPEC-041 에서 뺐다 · 세트 방식 칩을 함께 잰다
+  for (const id of ["rx-type", "rx-weight", "rx-rep-min", "rx-rep-max"]) {
     const b = await row.getByTestId(id).boundingBox();
     expect(b?.height, id).toBeGreaterThanOrEqual(44);
   }

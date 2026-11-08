@@ -66,6 +66,9 @@ type PrescribedSet struct {
 	LoadBasis string   `json:"loadBasis,omitempty"` // @plm SRS-063 pct1rm·pctTop·fixed · 빈 값 = 무게 기준 없음
 	LoadPct   *int     `json:"loadPct,omitempty"`
 	LoadKg    *float64 `json:"loadKg,omitempty"`
+	// SPEC-041 세트 방식 — 코칭 계약(proto)에는 없다. 회원 줄의 값을 코치 저장에서 지키려고 읽어 둔다.
+	Amrap  bool   `json:"amrap,omitempty"`  // 횟수 「최대」
+	Scheme string `json:"scheme,omitempty"` // 이 줄을 만든 세트 방식
 }
 
 type RoutineExercise struct {

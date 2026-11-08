@@ -94,6 +94,8 @@ export interface Suggestion {
 export interface Prescription {
   repMin?: number | null;
   repMax?: number | null;
+  /** 「최대」 — 할 수 있는 만큼(드롭세트 줄 · SPEC-041) */
+  amrap?: boolean;
 }
 
 export function SetRowEdit({
@@ -134,7 +136,8 @@ export function SetRowEdit({
     rir?: number | null;
   }) => unknown;
   onToggleDone: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
-  onSetType: (type: "normal" | "warmup" | "drop" | "top" | "backoff") => void;
+  // [원본] onSetType: (type: "normal" | "warmup" | "drop" | "top" | "backoff") => void;
+  onSetType: (type: "normal" | "warmup" | "drop" | "top" | "backoff" | "feeder") => void; // 피더(SPEC-041)
   onSetArm: (arm: "uni" | null) => unknown;
   onSetGrip: (grip: string | null) => unknown;
   /** 블록 칸(그립·부착물) — 유산소는 없다 */
@@ -455,9 +458,14 @@ export function SetRowEdit({
       {/* [원본] {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
       {/* 워밍업 세트에는 칩을 두지 않는다 — 분석(isEffortTarget)이 워밍업을 빼서 적어도 어디에도 안 나온다(QA CU-8) */}
       {/* [원본] {effortOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
-      {chipOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? (
+      {chipOn || set.targetRir != null || rx?.repMin != null || rx?.repMax != null || rx?.amrap ? (
         <div className="flex items-center gap-[var(--spacing-sm)] pb-[2px] pl-[42px]">
-          {rx?.repMin != null || rx?.repMax != null ? (
+          {rx?.amrap ? (
+            <AppText variant="label" color="textMuted" data-testid="set-rx-amrap">
+              {t("session.rxRepRange", { range: t("scheme.amrap") })}
+            </AppText>
+          ) : null}
+          {!rx?.amrap && (rx?.repMin != null || rx?.repMax != null) ? (
             <AppText variant="label" color="textMuted">
               {t("session.rxRepRange", { range: repRangeLabel(rx.repMin ?? null, rx.repMax ?? null) })}
             </AppText>
@@ -602,8 +610,15 @@ export function SetRowEdit({
             },
             {
               label: t("session.setType.warmup"),
-              selected: set.isWarmup,
+              // [원본] selected: set.isWarmup, — 피더도 웜업 표시가 켜진다(SPEC-041)
+              selected: set.isWarmup && set.setType !== "feeder",
               onPress: () => onSetType("warmup"),
+            },
+            {
+              label: t("session.setType.feeder"),
+              selected: set.setType === "feeder",
+              testId: "set-type-feeder",
+              onPress: () => onSetType("feeder"),
             },
             {
               label: t("session.setType.drop"),

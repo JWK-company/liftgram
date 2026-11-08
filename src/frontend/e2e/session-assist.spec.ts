@@ -184,7 +184,9 @@ test("슈퍼셋 — 한쪽에만 워밍업이 있어도 화면 번호끼리 짝�
   }
 });
 
-test("처방 무게 — 1RM의 80% 로 시작 · 탑셋을 마치면 탑셋의 90% 백오프", async ({ page }) => {
+// [원본] 처방 무게 — 줄 메뉴(…)로 1RM 80% 탑 · 탑셋 90% 백오프를 만들던 시험(SPEC-023). 줄 메뉴는 SPEC-041 에서 뺐다 —
+// 같은 흐름(1RM % 로 시작 · 탑을 마치면 탑의 % 백오프)을 세트 방식 「탑세트+백오프」로 만든다.
+test("처방 무게 — 세트 방식 탑세트+백오프 · 1RM % 로 시작 · 탑을 마치면 탑의 85% 백오프", async ({ page }) => {
   test.setTimeout(240_000);
   await 카탈로그_준비(page);
 
@@ -193,7 +195,7 @@ test("처방 무게 — 1RM의 80% 로 시작 · 탑셋을 마치면 탑셋의 9
   await 기록(세트(블록(page, 0), 0), 100, 1);
   await 완료(page);
 
-  // ② 루틴: 1세트 탑 1RM 80% · 2세트 백오프 탑셋 90%
+  // ② 루틴: 세트 방식 탑세트+백오프(W40·W60·P75·T82·B 탑의 85%)
   const 이름 = `처방 무게 ${Date.now().toString(36)}`;
   await page.getByTestId("btn-new-routine").click();
   await expect(page.getByTestId("routine-name")).toBeVisible({ timeout: 20_000 });
@@ -202,31 +204,19 @@ test("처방 무게 — 1RM의 80% 로 시작 · 탑셋을 마치면 탑셋의 9
   await page.getByTestId("btn-add-routine-exercise").click();
   await page.getByTestId("picker-search").fill("바벨 벤치프레스");
   await page.getByTestId("picker-list").locator("button").first().click();
-  await page.getByTestId("picker-confirm").click(); // 전체 화면 피커 — 골라서 「N개 추가」(SRS-093)
+  await page.getByTestId("picker-confirm").click();
   await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 10_000 });
-  // [원본] 처방 시트(타입 순환·기준 순환) — 세트 표의 타입 시트·줄 메뉴로(SPEC-023)
   const table = page.getByTestId("set-table").first();
   const rows = table.getByTestId("set-table-row");
-  // 기본 3줄 중 2줄만 남긴다
-  await rows.nth(2).getByTestId("rx-more").click();
-  await page.getByTestId("rx-delete").click();
-  await expect(rows).toHaveCount(2);
-  // 행 1: 탑 · 1RM 80%
-  await rows.nth(0).getByTestId("rx-type").click();
-  await page.getByTestId("rx-type-sheet").getByText("탑세트 (T)").click();
-  await rows.nth(0).getByTestId("rx-more").click();
-  await page.getByTestId("rx-basis-pct1rm").click();
-  await expect(rows.nth(0).getByTestId("rx-weight")).toHaveValue("80");
-  // 행 2: 백오프 · 탑셋 90%
-  await rows.nth(1).getByTestId("rx-type").click();
-  await page.getByTestId("rx-type-sheet").getByText("백오프 (B)").click();
-  await rows.nth(1).getByTestId("rx-more").click();
-  await page.getByTestId("rx-basis-pctTop").click();
-  await expect(rows.nth(1).getByTestId("rx-weight")).toHaveValue("90");
+  await table.getByTestId("scheme-chip").click();
+  await page.getByTestId("scheme-topBackoff").click();
+  await expect(rows).toHaveCount(5);
+  await expect(table.getByTestId("scheme-chip")).toHaveAttribute("data-scheme", "topBackoff");
+  await expect(rows.nth(3).getByTestId("rx-pct-note")).toContainText("82%");
   await page.getByTestId("btn-routine-done").click();
   await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 10_000 });
 
-  // ③ 시작 → 1세트 80kg + 근거
+  // ③ 시작 → 웜업 40kg · 탑 근거 82% · 백오프 근거 85%
   const tid = await page
     .getByTestId("routine-list")
     .locator("[data-testid^=routine-]")
@@ -239,14 +229,15 @@ test("처방 무게 — 1RM의 80% 로 시작 · 탑셋을 마치면 탑셋의 9
     .click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 20_000 });
   const b = 블록(page, 0);
-  await expect(세트(b, 0).getByTestId("set-weight")).toHaveValue("80", { timeout: 15_000 });
-  await expect(세트(b, 0).getByTestId("set-load-note")).toContainText("80%");
-  await expect(세트(b, 1).getByTestId("set-load-note")).toContainText("90%");
+  await expect(세트(b, 0).getByTestId("set-weight")).toHaveValue("40", { timeout: 15_000 });
+  await expect(세트(b, 3).getByTestId("set-load-note")).toContainText("82%");
+  await expect(세트(b, 4).getByTestId("set-load-note")).toContainText("85%");
 
-  // ④ 탑셋 80×3 완료 → 백오프 72.5(80×0.9=72 → 바벨 2.5kg 단위)
-  await 세트(b, 0).getByTestId("set-reps").fill("3");
-  await 세트(b, 0).getByTestId("set-reps").blur();
-  await 세트(b, 0).getByTestId("set-done").click();
-  await expect(세트(b, 1).getByTestId("set-weight")).toHaveValue("72.5", { timeout: 15_000 });
-  await expect(세트(b, 1).getByTestId("set-load-note")).toContainText("90%");
+  // ④ 탑 80×3 완료 → 백오프 67.5(80×0.85=68 → 바벨 2.5kg 단위)
+  await 세트(b, 3).getByTestId("set-weight").fill("80");
+  await 세트(b, 3).getByTestId("set-weight").blur();
+  await 세트(b, 3).getByTestId("set-reps").fill("3");
+  await 세트(b, 3).getByTestId("set-reps").blur();
+  await 세트(b, 3).getByTestId("set-done").click();
+  await expect(세트(b, 4).getByTestId("set-weight")).toHaveValue("67.5", { timeout: 15_000 });
 });

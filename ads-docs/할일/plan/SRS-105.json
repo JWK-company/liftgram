@@ -1,0 +1,290 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "루틴 종목의 세트를 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "세트 방식",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 하나를 골라 짠다. 1차 세트 방식은 일반 · 탑세트+백오프 · 스트렝스 5×5 · 피라미드 · 역피라미드 · 드롭세트다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트 방식을 고르면 세트 타입(웜업·피더·탑·백오프·드롭·일반), 횟수(「최대」 포함), 무게 기준이 한 번에 채워진다. 무게는 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "작업 무게의 N%",
+                    "type": "text"
+                  },
+                  {
+                    "text": "로 정하고, 운동을 시작할 때 지난 기록의 가장 무거운 작업 세트를 기준으로 계산한다. 백오프는 그날 탑세트의 N%다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트 줄의 … 메뉴(무게 기준 고르기·삭제)와 「강도 목표」 칩을 루틴 편집에서 없앤다. 세트 번호를 누르면 뜨는 타입 시트에 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "피더",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 타입과 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "세트 삭제",
+                    "type": "text"
+                  },
+                  {
+                    "text": "를 둔다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트 방식마다 안내 한 줄(예 「탑세트는 한두 개 남기고 멈추기 · 백오프는 탑의 85%」)을 루틴 편집과 운동 화면에 보인다. 효과를 약속하지 않고 고르는 기준을 적는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 중에도 종목 메뉴의 「세트 방식 바꾸기」로 바꿀 수 있다. 끝낸 세트는 그대로 두고 남은 세트만 다시 짠다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동을 마치면 루틴과 세트 방식이 달라진 종목을 「루틴과 달라졌어요」 목록에 한 줄로 보이고, 체크하면 루틴에 반영하고 빼면 오늘만 한 것으로 둔다. 세트별 처방이 있는 루틴도 반영할 수 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 기록에는 그날 종목에 쓴 세트 방식이 남고, 기록 화면에 태그로 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "코칭(트레이너 처방) 화면은 지금 메뉴(무게 기준·강도 목표)를 그대로 쓴다. 회원 루틴의 세트 방식 정보는 코치가 저장해도 지워지지 않게 지킨다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "레스트-포즈·클러스터·저먼 볼륨은 2차 후보다. 5×5 의 자동 증량 제안도 2차다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "세트를 기록할 때 여유 횟수(RIR)를 적는 칸은 그대로 둔다(목표 칩만 없앤다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "근거",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사용자 지시(id=1163·1167·1171)와 검토 보고서(https://claude.ai/artifact/Sy2MZCSFzd4rDKJgdrLJQW). 결정: 코칭 화면 유지 · 1차 6개 · 웜업 기본 10·5회 · 옛 루틴의 1RM %·고정 무게는 계산 유지·화면에서 숨김.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "연구 요약: 세트 방식끼리 결과 차이는 작고, 힘을 쓴 세트 수와 한계 근접도가 결과를 가른다(드롭세트 메타분석 Coleman 2022, 피라미드 고찰, Refalo 2023, Pelland 2024).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-105",
+  "meta": {
+    "acceptance_criteria": "루틴 편집에서 종목의 세트 방식을 고르면 세트 타입·횟수·무게 기준이 그 방식대로 한 번에 바뀌고 되돌릴 수 있다. 세트 줄의 … 메뉴와 강도 목표 칩이 없고, 세트 번호 시트에서 피더 타입과 세트 삭제를 고른다. 운동 중 종목 메뉴에서 세트 방식을 바꾸면 끝낸 세트는 그대로이고 남은 세트만 바뀐다. 운동을 마치면 루틴과 다른 세트 방식이 「루틴과 달라졌어요」 목록에 한 줄로 나오고, 체크하면 루틴에 반영되고 빼면 오늘 기록에만 남는다. 세트별 처방이 있는 루틴도 반영할 수 있다. 기록에는 그날 쓴 세트 방식이 남는다.",
+    "kind": "FR"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "세트 방식(탑세트·5×5·피라미드·드롭세트)으로 종목 세트 짜기",
+  "type": "SRS",
+  "updated": "2026-11-08T06:14:27Z"
+}

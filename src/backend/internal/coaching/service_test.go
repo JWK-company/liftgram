@@ -807,3 +807,37 @@ func TestKeepMemberStart(t *testing.T) {
 		t.Fatal("줄 수가 다르면 잇지 않는다")
 	}
 }
+
+// SPEC-041 — 코치 저장이 회원 루틴의 세트 방식 값(피더·최대·방식 이름)을 지우지 않는다.
+func TestKeepMemberScheme(t *testing.T) {
+	five := 5
+	stored := []PrescribedSet{
+		{SetType: "feeder", Scheme: "topBackoff"},
+		{SetType: "drop", Amrap: true, Scheme: "topBackoff"},
+		{SetType: "feeder", Scheme: "topBackoff"},
+	}
+	clean := SanitizePrescription([]PrescribedSet{{SetType: "normal"}, {SetType: "drop"}, {SetType: "top", RepMin: &five}})
+	got := KeepMemberStart(clean, stored)
+	if got[0].SetType != "feeder" || got[0].Scheme != "topBackoff" {
+		t.Fatalf("피더·방식이 사라졌다: %+v", got[0])
+	}
+	if !got[1].Amrap {
+		t.Fatalf("최대가 사라졌다: %+v", got[1])
+	}
+	if got[2].SetType != "top" {
+		t.Fatalf("코치가 고친 타입이 이겨야 한다: %+v", got[2])
+	}
+	// 코치가 「최대」 줄에 횟수를 넣거나 타입을 바꾸면 코치 값이 이긴다 · 모르는 방식 이름은 잇지 않는다
+	eight := 8
+	again := KeepMemberStart([]PrescribedSet{{SetType: "drop", RepMin: &eight}, {SetType: "top"}, {SetType: "normal"}},
+		[]PrescribedSet{{SetType: "drop", Amrap: true}, {SetType: "drop", Amrap: true, Scheme: "dropSet"}, {SetType: "normal", Scheme: "bogus"}})
+	if again[0].Amrap || again[1].Amrap || again[1].Scheme != "" || again[2].Scheme != "" {
+		t.Fatalf("코치 값·모르는 값: %+v", again)
+	}
+	if s := SanitizePrescription([]PrescribedSet{{SetType: "drop", Amrap: true, RepMin: &eight}}); s[0].RepMin != nil {
+		t.Fatalf("최대 줄은 횟수가 없다: %+v", s[0])
+	}
+	if s := SanitizePrescription([]PrescribedSet{{SetType: "feeder", Scheme: "bogus", Amrap: true}}); s[0].SetType != "feeder" || s[0].Scheme != "" || !s[0].Amrap {
+		t.Fatalf("정리 규칙: %+v", s[0])
+	}
+}

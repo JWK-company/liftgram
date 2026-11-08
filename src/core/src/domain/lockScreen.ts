@@ -618,6 +618,7 @@ function refillable(b: { sets: LockSetInput[]; rx: PrescribedSet[] | null; has1r
 
 /** 화면과 같은 라벨 — 워밍업 W · 드롭 D · 실패 F · 탑셋 T · 그 밖(일반·백오프)은 1·2·3(ExerciseBlock 표시 규칙 · REV-005 도메인 M-2). */
 function setLabelOf(s: LockSetInput): string | null {
+  if (s.setType === 'feeder') return 'P'; // 피더 — 웜업 표시도 켜져 있어 W 보다 먼저(SPEC-041)
   if (s.isWarmup) return 'W';
   if (s.isDrop === true) return 'D';
   if (s.isFailed) return 'F';

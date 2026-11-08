@@ -6,6 +6,8 @@
 // 변경으로 치는 것(D1): 종목 교체 · 추가 · 삭제 · 세트 수(완료 워킹 세트 — D2) · 순서 · 슈퍼셋 묶음.
 // 무게·횟수·휴식·기록 칸 변형(그립·적재·브랜드·부착물)은 변경이 아니다 — 다음 시작 때 지난 기록·지난 조합이 뜬다.
 import { muscleLabel } from './labels';
+import type { PrescribedSet, SchemeId } from './prescription';
+import { schemeAllowed, schemeRows } from './setSchemes';
 import type { AppLanguage, MuscleGroup } from './types';
 
 /** 루틴의 한 줄(현재 루틴 상태). */
@@ -19,6 +21,8 @@ export interface RoutineLine {
   hasPrescription: boolean;
   /** 처방의 웜업 줄 수 — targetSets 는 웜업을 포함하고 세션 비교값은 작업 세트 수다(SPEC-023). */
   prescribedWarmups?: number;
+  /** 루틴 줄의 세트 방식(SPEC-041 · 없으면 일반·직접 구성) */
+  scheme?: SchemeId | null;
 }
 
 /** 오늘 운동의 한 블록(완료 직전 상태). */
@@ -40,12 +44,20 @@ export interface SessionBlock {
   targetRepsMax: number | null;
   restSeconds: number | null;
   primaryMuscle?: MuscleGroup | null;
+  /** 오늘 표의 세트 방식(SPEC-041 · 운동 중 바꿨으면 바꾼 방식) */
+  scheme?: SchemeId | null;
+  /** 이 종목이 무게 기준을 쓰나(맨몸·어시스트·유산소는 false) — 반영할 새 틀을 만들 때 */
+  schemeAllowLoad?: boolean;
+  /** 이 종목의 기구 — 세트 방식 제한(드롭세트는 바벨류·맨몸 X) */
+  equipment?: string | null;
 }
 
 export type RoutineChange =
   | { kind: 'swap'; id: string; lineId: string; blockId: string; from: string; to: string; defaultOn: true }
   | { kind: 'sets'; id: string; lineId: string; blockId: string; exerciseId: string; from: number; to: number; defaultOn: true }
   | { kind: 'add'; id: string; blockId: string; exerciseId: string; defaultOn: true }
+  // 세트 방식 — 운동 중 바꿨다(SPEC-041). 반영하면 루틴 줄의 처방을 새 틀 전체로 쓴다. 끄면 오늘만.
+  | { kind: 'scheme'; id: string; lineId: string; blockId: string; exerciseId: string; from: SchemeId | null; to: SchemeId; defaultOn: true }
   | {
       kind: 'remove';
       id: string;
@@ -151,7 +163,22 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
     // 유산소는 세트 수가 의미 없다(QA Q3).
     // [원본] b.doneWorkingSets !== line.targetSets — 웜업 줄이 있으면 매번 달라 시트가 떴다
     const plannedWorking = line.targetSets - (line.prescribedWarmups ?? 0);
-    if (!b.isCardio && b.doneWorkingSets > 0 && b.doneWorkingSets !== plannedWorking) {
+    // 세트 방식(SPEC-041) — 오늘 방식이 있고 루틴과 다르면. 오늘이 일반·직접 구성이면 항목을 만들지 않는다(처방을 지우지 않는다).
+    if (!b.isCardio && b.scheme && b.scheme !== (line.scheme ?? null) && schemeAllowed(b.scheme, b.equipment ?? null)) {
+      changes.push({
+        kind: 'scheme',
+        id: `scheme:${line.id}`,
+        lineId: line.id,
+        blockId: b.id,
+        exerciseId: line.exerciseId,
+        from: line.scheme ?? null,
+        to: b.scheme,
+        defaultOn: true,
+      });
+    }
+    // [원본] if (!b.isCardio && b.doneWorkingSets > 0 && b.doneWorkingSets !== plannedWorking) {
+    // [개선] 처방이 있는 줄은 세트 수 항목을 만들지 않는다 — 세트 수는 처방(세트 방식)이 정한다(D5 의 이유 · SPEC-041)
+    if (!line.hasPrescription && !b.isCardio && b.doneWorkingSets > 0 && b.doneWorkingSets !== plannedWorking) {
       changes.push({
         kind: 'sets',
         id: `sets:${line.id}`,
@@ -195,7 +222,9 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
   ]);
   if (partitionKey(routineGroups) !== partitionKey(todayGroups)) changes.push({ kind: 'superset', id: 'superset', defaultOn: true });
 
-  return { routineId, lines, blocks, changes, canApply: !lines.some((l) => l.hasPrescription) };
+  // [원본] return { routineId, lines, blocks, changes, canApply: !lines.some((l) => l.hasPrescription) };
+  // [개선] 처방 루틴도 반영한다 — 처방 줄은 세트 수 항목을 만들지 않고, 세트 방식은 새 틀 전체로 쓴다(SPEC-041)
+  return { routineId, lines, blocks, changes, canApply: true };
 }
 
 /** 처음에 체크된 항목들. */
@@ -216,11 +245,22 @@ export interface NewLine {
   group: string | null;
   /** 이 블록에서 왔다 — 저장소가 유산소 목표 등을 블록에서 복사할 때 쓴다. */
   fromBlockId: string;
+  /** 오늘 블록의 세트 방식 새 틀(SPEC-041 · REV-076 데이터 6) — 있으면 targetSets 는 그 줄 수 */
+  prescription?: PrescribedSet[];
 }
 
 export interface ApplyPlan {
   /** 바꿀 루틴 줄 — 적힌 필드만 바꾼다. group: undefined=그대로 · string=묶음 표식 · null=풀기. */
-  updates: { lineId: string; exerciseId?: string; targetSets?: number; sortOrder: number; group?: string | null }[];
+  // [원본] updates: { lineId: string; exerciseId?: string; targetSets?: number; sortOrder: number; group?: string | null }[];
+  /** prescription: 세트 방식을 반영할 때 새 틀 전체(SPEC-041) — targetSets 는 그 줄 수 */
+  updates: {
+    lineId: string;
+    exerciseId?: string;
+    targetSets?: number;
+    sortOrder: number;
+    group?: string | null;
+    prescription?: PrescribedSet[];
+  }[];
   creates: NewLine[];
   deletes: string[];
 }
@@ -266,6 +306,14 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
   const deletes = new Set(pick.filter((c) => c.kind === 'remove').map((c) => (c as { lineId: string }).lineId));
   const swapTo = new Map(pick.filter((c) => c.kind === 'swap').map((c) => [(c as { lineId: string }).lineId, (c as { to: string }).to]));
   const setsTo = new Map(pick.filter((c) => c.kind === 'sets').map((c) => [(c as { lineId: string }).lineId, (c as { to: number }).to]));
+  // 세트 방식 → 새 틀 전체(오늘 블록의 무게 기준 사용 여부로)
+  const schemeTo = new Map<string, PrescribedSet[]>();
+  for (const c of pick) {
+    if (c.kind !== 'scheme') continue;
+    const b = blockById.get(c.blockId);
+    const rows = schemeRows(c.to, { allowLoad: b?.schemeAllowLoad ?? true });
+    if (rows.length > 0) schemeTo.set(c.lineId, rows);
+  }
   const adds = pick.filter((c) => c.kind === 'add').map((c) => blockById.get((c as { blockId: string }).blockId) as SessionBlock);
   const reorder = has('order');
   const regroup = has('superset');
@@ -333,14 +381,37 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
       if (to) u.exerciseId = to;
       const sets = setsTo.get(it.lineId);
       if (sets !== undefined) u.targetSets = sets;
+      // 처방 줄을 다른 종목으로 바꿔 반영하면 그 종목 기준으로 처방을 다시 맞춘다 — 바벨로 바꿨는데 드롭세트 처방이
+      //   남거나 맨몸에 1RM % 가 남지 않게(REV-076 데이터 7). 방식이 맞지 않으면 처방을 비운다(세트 수는 그대로).
+      if (to && !schemeTo.has(it.lineId) && lineById.get(it.lineId)?.hasPrescription && it.block) {
+        const b = it.block;
+        if (b.scheme && schemeAllowed(b.scheme, b.equipment ?? null)) {
+          const rows = schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true });
+          u.prescription = rows;
+          u.targetSets = rows.length;
+        } else {
+          u.prescription = [];
+        }
+      }
+      const rx = schemeTo.get(it.lineId);
+      if (rx) {
+        u.prescription = rx;
+        u.targetSets = rx.length; // 세트 수는 새 틀의 줄 수(웜업 포함 — 루틴 줄의 targetSets 규칙)
+      }
       const old = lineById.get(it.lineId)?.supersetGroup ?? null;
       if (regroup && it.block && !(old && keptGroups.has(old))) u.group = tokens.get(it.key) ?? null;
       updates.push(u);
     } else if (it.block) {
       const b = it.block;
+      // 추가한 종목도 오늘 세트 방식이 있으면 그 틀로(REV-076 데이터 6)
+      const rx =
+        b.scheme && !b.isCardio && schemeAllowed(b.scheme, b.equipment ?? null)
+          ? schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true })
+          : [];
       creates.push({
         exerciseId: b.exerciseId,
         ...lineValuesFromBlock(b, false),
+        ...(rx.length > 0 ? { prescription: rx, targetSets: rx.length } : {}),
         sortOrder: i,
         group: regroup ? tokens.get(it.key) ?? null : null,
         fromBlockId: b.id,

@@ -942,6 +942,8 @@ function ExerciseEditRow({
                 repo={repo}
                 allowLoad={allowLoad}
                 fixedMultiplier={plate.multiplier(variant) ?? 1}
+                equipment={baseEquipment ?? null}
+                variantKey={canonicalVariantKey(variant)}
                 trackWrite={trackWrite}
                 weightLabel={
                   oneSide
@@ -1083,6 +1085,8 @@ function RoutineSetTable({
   fixedMultiplier,
   weightLabel,
   trackWrite,
+  equipment,
+  variantKey,
 }: {
   re: RoutineExerciseRow;
   repo: RoutineRepo;
@@ -1090,9 +1094,32 @@ function RoutineSetTable({
   fixedMultiplier: number;
   weightLabel: string;
   trackWrite: (p: Promise<unknown>) => void;
+  /** 종목 기구 — 세트 방식 제한(SPEC-041) */
+  equipment: string | null;
+  /** 이 줄의 조합 키 — 추정 1RM 을 운동 시작 때와 같은 칸에서 읽는다(REV-076 화면 M-1) */
+  variantKey: string | null;
 }) {
   const { weightUnit } = useUser();
   const toast = useToast();
+  // 세트 방식의 「1RM 의 %」 줄에 계산 무게를 보이려고 추정 1RM 을 읽는다(전 조합 기준 — 운동 시작 때는 그날 칸 기준으로 다시 계산한다)
+  const [est1rmKg, setEst1rmKg] = useState(0);
+  useEffect(() => {
+    if (!allowLoad) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const w = await import("@app/core/data/workoutRepository");
+        // [원본] const v = await w.estimatedOneRmForSlot(re.exerciseId); — 전 조합 기준이라 운동 화면 무게와 달랐다(REV-076 M-1)
+        const v = await w.estimatedOneRmForSlotV2(re.exerciseId, variantKey, fixedMultiplier || 1);
+        if (alive) setEst1rmKg(v > 0 ? v : 0);
+      } catch {
+        // 기록을 못 읽으면 % 만 보인다
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [re.exerciseId, allowLoad, variantKey, fixedMultiplier]);
   const lineOf = useCallback(
     (): RoutineLineSets => ({
       targetSets: re.targetSets,
@@ -1147,6 +1174,8 @@ function RoutineSetTable({
         fixedMultiplier={fixedMultiplier}
         unit={weightUnit}
         weightLabel={weightLabel}
+        equipment={equipment}
+        est1rmKg={est1rmKg}
       />
     </div>
   );

@@ -30,7 +30,8 @@ export function rowsFromRoutineLine(line: RoutineLineSets, opts: { allowLoad: bo
     : Array.from({ length: Math.max(1, line.targetSets || 1) }, emptySetRow);
   return base.map((r) => {
     // [원본] repMin: r.repMin ?? line.targetRepsMin, repMax: r.repMax ?? line.targetRepsMax — 한 칸만 비워도 되돌아왔다
-    const inheritReps = r.repMin == null && r.repMax == null;
+    // [개선] 「최대」 줄은 횟수를 물려받지 않는다 — 블록 횟수 8 이 붙으면 수정함으로 보이고 세션이 8 로 채운다(REV-074)
+    const inheritReps = r.repMin == null && r.repMax == null && r.amrap !== true;
     const out: PrescribedSet = {
       ...r,
       repMin: inheritReps ? line.targetRepsMin : r.repMin,
@@ -76,7 +77,8 @@ export function routineLinePatch(
   const targetWeightKg =
     baseKg ?? (!opts.allowLoad || (hasOtherBasis && !rows.some(isBlank)) ? line.targetWeightKg : null);
 
-  const hasReps = (r: PrescribedSet) => r.repMin != null || r.repMax != null;
+  // [원본] const hasReps = (r: PrescribedSet) => r.repMin != null || r.repMax != null;
+  const hasReps = (r: PrescribedSet) => r.amrap !== true && (r.repMin != null || r.repMax != null);
   const baseReps = representative(rows, (r) => (hasReps(r) ? { min: r.repMin, max: r.repMax } : null));
 
   const cleaned = rows.map((r) => {
@@ -97,7 +99,12 @@ export function routineLinePatch(
         out.loadKg = 0;
       } else dropStart();
     }
-    if (baseReps && r.repMin === baseReps.min && r.repMax === baseReps.max) {
+    // [개선] 대표가 될 수 있는 줄(탑·일반·백오프)만 블록 횟수로 묶는다 — 웜업·피더·드롭이 블록 횟수에 끌려가지 않게(REV-075)
+    const repsFollowBlock = r.setType === 'top' || r.setType === 'normal' || r.setType === 'backoff';
+    if (r.amrap === true) {
+      out.repMin = null;
+      out.repMax = null;
+    } else if (baseReps && repsFollowBlock && r.repMin === baseReps.min && r.repMax === baseReps.max) {
       out.repMin = null;
       out.repMax = null;
     }
@@ -120,7 +127,9 @@ export function rowHasMeaning(r: PrescribedSet): boolean {
     r.repMin != null ||
     r.repMax != null ||
     r.loadHint != null ||
-    !!r.loadBasis
+    !!r.loadBasis ||
+    r.amrap === true || // SPEC-041
+    !!r.scheme
   );
 }
 

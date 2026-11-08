@@ -21,6 +21,8 @@ import {
 } from '../domain/routineDiff';
 import type { AppLanguage, MuscleGroup } from '../domain/types';
 import { scheduleSync } from '../sync/syncEngine';
+import { schemeOf } from '../domain/setSchemes'; // 세트 방식(SPEC-041)
+import { resolveLoadMode } from '../domain/volume';
 import { randomId } from '../utils/id';
 
 const workouts = () => database.get<Workout>('workouts');
@@ -62,6 +64,9 @@ export async function getSessionBlocks(workoutId: string): Promise<SessionBlock[
       targetRepsMax: we.targetRepsMax ?? null,
       restSeconds: we.restSeconds ?? null,
       primaryMuscle: (ex?.primaryMuscles?.[0] as MuscleGroup | undefined) ?? null,
+      scheme: schemeOf(we.prescription ?? null),
+      schemeAllowLoad: !!ex && ex.kind !== 'cardio' && resolveLoadMode(ex) === 'external',
+      equipment: ex?.equipment ?? null,
     };
   });
 }
@@ -103,7 +108,11 @@ export async function getFinishPrompt(workoutId: string): Promise<FinishPrompt> 
     sortOrder: re.sortOrder,
     supersetGroup: re.supersetGroup ?? null,
     hasPrescription: Array.isArray(re.prescription) && re.prescription.length > 0, // QA Q4 — 현재 루틴 기준
-    prescribedWarmups: Array.isArray(re.prescription) ? re.prescription.filter((r) => r.setType === 'warmup').length : 0,
+    // [원본] prescribedWarmups: … filter((r) => r.setType === 'warmup').length — 피더도 준비 세트(SPEC-041)
+    prescribedWarmups: Array.isArray(re.prescription)
+      ? re.prescription.filter((r) => r.setType === 'warmup' || r.setType === 'feeder').length
+      : 0,
+    scheme: schemeOf(re.prescription ?? null),
   }));
   const plan = diffRoutine(routine.id, lines, blocks);
   if (plan.changes.length === 0) return { kind: 'none', routineName: routine.name, plan, blocks };
@@ -158,6 +167,7 @@ function prepareLine(routineId: string, l: NewLine, group: string | null, cardio
     re.sortOrder = l.sortOrder;
     re.note = null;
     re.cardioTarget = cardioFrom.get(l.fromBlockId)?.cardioTarget ?? null;
+    if (l.prescription && l.prescription.length > 0) re.prescription = l.prescription; // 세트 방식(REV-076 데이터 6)
   });
 }
 
@@ -169,7 +179,8 @@ async function blockRecords(lines: NewLine[]): Promise<Map<string, WorkoutExerci
 }
 
 /**
- * 고른 변경만 루틴에 반영한다 — 한 번의 쓰기(원자적). 처방 루틴이면 아무것도 하지 않는다(D5).
+ * 고른 변경만 루틴에 반영한다 — 한 번의 쓰기(원자적).
+ * [원본] 처방 루틴이면 아무것도 하지 않는다(D5) — SPEC-041 부터 처방 루틴도 반영한다(처방 줄은 세트 수 항목 없음).
  * 계획은 완료 전에 뜬 스냅샷이라, 완료가 지운 블록이 있어도 그대로 반영된다.
  */
 export async function applyRoutineChanges(plan: FinishPlan, selectedIds: string[]): Promise<number> {
@@ -195,6 +206,7 @@ export async function applyRoutineChanges(plan: FinishPlan, selectedIds: string[
           r.sortOrder === u.sortOrder &&
           (u.exerciseId === undefined || u.exerciseId === r.exerciseId) &&
           (u.targetSets === undefined || u.targetSets === r.targetSets) &&
+          u.prescription === undefined && // 세트 방식 반영은 늘 쓴다(SPEC-041)
           (nextGroup === r.supersetGroup || (nextGroup === null && !r.supersetGroup));
         if (same) return [];
         return [
@@ -212,6 +224,8 @@ export async function applyRoutineChanges(plan: FinishPlan, selectedIds: string[
               rec.machineVariant = null;
             }
             if (u.targetSets !== undefined) rec.targetSets = u.targetSets;
+            // 세트 방식 새 틀 전체(SPEC-041) · 빈 배열 = 처방 비우기(종목 교체로 맞지 않게 된 방식 · REV-076 데이터 7)
+            if (u.prescription !== undefined) rec.prescription = u.prescription.length > 0 ? u.prescription : null;
             if (u.group !== undefined) rec.supersetGroup = toGroup(u.group);
           }),
         ];
