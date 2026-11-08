@@ -27,6 +27,8 @@ import { ActionSheet } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { SelectChip } from "../ui/RecordSlotSelector";
 import { AppText } from "../ui/primitives";
+import { keepSelectAllOnMouseUp, selectAllOnFocus } from "../ui/selectAllOnFocus";
+import { copyTargetIndexes, isPrepSetType } from "@app/core/domain/copySetValues";
 
 /** 칩 요약에 쓰는 한 글자 — "W W T B" 식으로 이어 붙인다. */
 export const RX_SUMMARY_CHAR: Record<PrescribedSetType, string> = {
@@ -121,10 +123,14 @@ function NumCell({
       aria-label={label}
       data-testid={testId}
       value={editing ? draft : value}
-      onFocus={() => {
+      // [원본] onFocus={() => { setDraft(value); setEditing(true); }} — 누른 자리에 커서만 놓였다
+      // [개선] 숫자 전체를 선택해 바로 새로 친다(SPEC-042)
+      onFocus={(e) => {
         setDraft(value);
         setEditing(true);
+        selectAllOnFocus(e);
       }}
+      onMouseUp={keepSelectAllOnMouseUp}
       onChange={(e) => {
         dirty.current = true;
         setDraft(e.target.value);
@@ -178,7 +184,9 @@ export function PrescriptionRows({
   }
   const [typeRow, setTypeRow] = useState<number | null>(null);
   const [menuRow, setMenuRow] = useState<number | null>(null);
-  const [offerKg, setOfferKg] = useState<number | null>(null);
+  // [원본] const [offerKg, setOfferKg] = useState<number | null>(null); — 「나머지 일반 세트도 Nkg」(무게만)
+  // [개선] 「다른 세트도 똑같이」 — 방금 고친 줄의 무게·횟수를 같은 갈래(준비/작업) 다른 줄에(SPEC-042 · SRS-106)
+  const [offerRow, setOfferRow] = useState<number | null>(null);
   // 세트 방식(SPEC-041) — 루틴 편집에서만. 고르기 직전 표를 한 번 되돌릴 수 있다.
   const [schemeOpen, setSchemeOpen] = useState(false);
   const [undoRows, setUndoRows] = useState<PrescribedSet[] | null>(null);
@@ -193,7 +201,7 @@ export function PrescriptionRows({
   const applyScheme = (id: SchemeId) => {
     const next = schemeRows(id, { allowLoad });
     if (next.length === 0) return;
-    setOfferKg(null);
+    setOfferRow(null);
     resetKeys(next.length);
     setUndoRows(rows);
     onChange(next);
@@ -213,7 +221,7 @@ export function PrescriptionRows({
   };
 
   const patch = (i: number, p: Partial<PrescribedSet>) => {
-    setOfferKg(null);
+    setOfferRow(null);
     emit(rows.map((r, idx) => (idx === i ? { ...r, ...p } : r)));
   };
   const directBasis = mode === "coach" ? "fixed" : "start";
@@ -229,12 +237,14 @@ export function PrescriptionRows({
       const kg = enteredWeightToKg(n, unit, Number.NaN);
       if (kg == null) return;
       patch(i, { loadBasis: "start", loadKg: Math.round(Math.min(LOAD_KG_MAX, kg) * 10000) / 10000, loadPct: undefined });
+      setOfferRow(i);
       return;
     }
     if (r.loadBasis === "pct1rm" || r.loadBasis === "pctTop") {
       if (Number.isNaN(n)) return;
       const [lo, hi] = LOAD_PCT_RANGE[r.loadBasis];
       patch(i, { loadPct: Math.min(hi, Math.max(lo, Math.round(n))) });
+      setOfferRow(i);
       return;
     }
     if (Number.isNaN(n) || n <= 0) {
@@ -248,27 +258,84 @@ export function PrescriptionRows({
     // lb 왕복 꼬리를 저장 규칙(넷째 자리)과 맞춘다 — 저장 뒤 서명이 어긋나 표가 다시 그려지지 않게
     const clamped = Math.round(Math.min(LOAD_KG_MAX / scale, kg) * 10000) / 10000;
     patch(i, { loadBasis: fixedRow ? "fixed" : directBasis, loadKg: clamped * scale });
-    const others = rows.some(
-      (x, j) => j !== i && x.setType === "normal" && followsDirect(x) && x.loadKg !== clamped,
-    );
-    setOfferKg(r.setType === "normal" && others ? clamped : null);
+    // [원본] const others = rows.some((x, j) => j !== i && x.setType === "normal" && followsDirect(x) && x.loadKg !== clamped);
+    // [원본] setOfferKg(r.setType === "normal" && others ? clamped : null);
+    setOfferRow(i);
   };
 
   const commitRep = (i: number, key: "repMin" | "repMax", text: string) => {
     const n = Number.parseInt(text, 10);
     patch(i, { [key]: Number.isNaN(n) || n <= 0 ? null : n } as Partial<PrescribedSet>);
+    setOfferRow(i);
   };
   /** 「최대」 줄 — 숫자를 실제로 넣어야 풀린다(비운 채 나오면 그대로 · REV-074). */
   const commitAmrap = (i: number, text: string) => {
     const n = Number.parseInt(text, 10);
     if (Number.isNaN(n) || n <= 0) return;
     patch(i, { amrap: undefined, repMin: n, repMax: n });
+    setOfferRow(i);
+  };
+
+  // ── 다른 세트도 똑같이(SPEC-042) — 무게(기준·값·%)와 횟수(최소·최대·최대 반복)를 그대로 ──
+  const copyValueOf = (r: PrescribedSet) => ({
+    loadBasis: allowLoad ? (r.loadBasis ?? null) : null,
+    loadKg: allowLoad ? (r.loadKg ?? null) : null,
+    loadPct: allowLoad ? (r.loadPct ?? null) : null,
+    repMin: r.repMin ?? null,
+    repMax: r.repMax ?? null,
+    amrap: r.amrap === true,
+  });
+  type CopyValue = ReturnType<typeof copyValueOf>;
+  // 빈 칸은 복사하지 않는다 — 무게만 적고 누르면 다른 줄의 횟수는 그대로(REV-077 C-1)
+  const hasLoad = (v: CopyValue) => v.loadBasis != null;
+  const hasReps = (v: CopyValue) => v.amrap || v.repMin != null || v.repMax != null;
+  const sameLoad = (a: CopyValue, b: CopyValue) =>
+    a.loadBasis === b.loadBasis && a.loadKg === b.loadKg && a.loadPct === b.loadPct;
+  const sameReps = (a: CopyValue, b: CopyValue) =>
+    a.repMin === b.repMin && a.repMax === b.repMax && a.amrap === b.amrap;
+  const copyTargets = (i: number): number[] => {
+    const src = rows[i];
+    if (!src) return [];
+    const v = copyValueOf(src);
+    if (!hasLoad(v) && !hasReps(v)) return [];
+    return copyTargetIndexes(
+      rows.map((r) => ({ prep: isPrepSetType(r.setType), open: true, value: copyValueOf(r) })),
+      i,
+      (a, b) => (!hasLoad(b) || sameLoad(a, b)) && (!hasReps(b) || sameReps(a, b)),
+    );
+  };
+  const copyFrom = (i: number) => {
+    const targets = new Set(copyTargets(i));
+    if (!targets.size) return;
+    const v = copyValueOf(rows[i]);
+    setOfferRow(null);
+    emit(
+      rows.map((x, j) => {
+        if (!targets.has(j)) return x;
+        const next: PrescribedSet = { ...x };
+        if (hasReps(v)) {
+          next.repMin = v.repMin;
+          next.repMax = v.repMax;
+          if (v.amrap) next.amrap = true;
+          else delete next.amrap;
+        }
+        if (allowLoad && hasLoad(v)) {
+          if (v.loadBasis) next.loadBasis = v.loadBasis;
+          else delete next.loadBasis;
+          if (v.loadKg != null) next.loadKg = v.loadKg;
+          else delete next.loadKg;
+          if (v.loadPct != null) next.loadPct = v.loadPct;
+          else delete next.loadPct;
+        }
+        return next;
+      }),
+    );
   };
 
   const remove = (i: number) => {
     if (rows.length <= 1) return;
     keysRef.current = keysRef.current.filter((_, idx) => idx !== i);
-    setOfferKg(null);
+    setOfferRow(null);
     emit(rows.filter((_, idx) => idx !== i));
   };
 
@@ -290,29 +357,29 @@ export function PrescriptionRows({
         : {}),
     };
     keysRef.current = [...keysRef.current, nextKey.current++];
-    setOfferKg(null);
+    setOfferRow(null);
     emit([...rows, next]);
   };
 
   const addWarmup = () => {
     if (rows.length >= ROUTINE_SETS_MAX) return;
     keysRef.current = [nextKey.current++, ...keysRef.current];
-    setOfferKg(null);
+    setOfferRow(null);
     // [원본] emit([{ ...emptySetRow(), setType: "warmup" }, ...rows]);
     const tableScheme = schemeOf(rows);
     emit([{ ...emptySetRow(), setType: "warmup", ...(tableScheme ? { scheme: tableScheme } : {}) }, ...rows]);
   };
 
-  const applyOffer = () => {
-    if (offerKg == null) return;
-    const kg = offerKg;
-    setOfferKg(null);
-    emit(
-      rows.map((x) =>
-        x.setType === "normal" && followsDirect(x) ? { ...x, loadBasis: directBasis, loadKg: kg } : x,
-      ),
-    );
-  };
+  // [원본] const applyOffer = () => {
+  // [원본]   if (offerKg == null) return;
+  // [원본]   const kg = offerKg;
+  // [원본]   setOfferRow(null);
+  // [원본]   emit(
+  // [원본]     rows.map((x) =>
+  // [원본]       x.setType === "normal" && followsDirect(x) ? { ...x, loadBasis: directBasis, loadKg: kg } : x,
+  // [원본]     ),
+  // [원본]   );
+  // [원본] };
 
   const pickBasis = (i: number, basis: "start" | "fixed" | "pct1rm" | "pctTop") => {
     const r = rows[i];
@@ -561,15 +628,16 @@ export function PrescriptionRows({
         );
       })}
 
-      {offerKg != null ? (
+      {/* [원본] offerKg != null ? <Button title={t("routines.setApplyRest", …)} testId="rx-apply-rest" onPress={applyOffer} /> — 무게만 · 일반 세트만 */}
+      {offerRow != null && copyTargets(offerRow).length > 0 ? (
         <div className="mt-[4px]">
           <Button
-            title={t("routines.setApplyRest", { value: `${displayWeight(offerKg, unit)}${unit}` })}
+            title={t("routines.copyToOthers", { n: copyTargets(offerRow).length })}
             size="sm"
             variant="quiet"
             fullWidth={false}
-            testId="rx-apply-rest"
-            onPress={applyOffer}
+            testId="rx-copy-rest"
+            onPress={() => copyFrom(offerRow)}
           />
         </div>
       ) : null}
@@ -638,6 +706,16 @@ export function PrescriptionRows({
               testId: `rx-type-${type}`,
               onPress: () => pickType(typeRow, type),
             })),
+            // 다른 세트도 똑같이(SPEC-042) — 이 줄의 무게·횟수를 같은 갈래 다른 줄에
+            ...(copyTargets(typeRow).length > 0
+              ? [
+                  {
+                    label: t("routines.copyToOthers", { n: copyTargets(typeRow).length }),
+                    testId: "rx-copy",
+                    onPress: () => copyFrom(typeRow),
+                  },
+                ]
+              : []),
             ...(routine && rows.length > 1
               ? [
                   {

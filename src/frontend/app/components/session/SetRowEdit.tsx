@@ -37,6 +37,7 @@ import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) 
 import { useEffortLogging } from "@/lib/effortPref";
 import { lang, t } from "@/lib/i18n";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
+import { keepSelectAllOnMouseUp, selectAllOnFocus } from "../ui/selectAllOnFocus";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
@@ -118,6 +119,8 @@ export function SetRowEdit({
   onApplySuggestion,
   onToggleDoneSingle,
   loadNote,
+  copyCount = 0,
+  onCopyToOthers,
 }: {
   set: SetRow;
   /** 표시 순번 — 일반 세트만 번호가 오르고 나머지는 W/D/F/T. */
@@ -147,6 +150,9 @@ export function SetRowEdit({
   onApplySuggestion: () => void;
   /** 슈퍼셋 안에서 — 길게 누르거나 ⋯ 에서 「이 종목만」 완료(체크 한 번은 묶음 전체 · #48) @plm SRS-062 */
   onToggleDoneSingle?: (next: boolean, weightKg: number | undefined, reps: number | undefined) => void;
+  /** 「다른 세트도 똑같이」로 바뀔 세트 수(0 이면 항목 없음 · SPEC-042) */
+  copyCount?: number;
+  onCopyToOthers?: () => void;
   /** 처방 무게의 근거(「추정 1RM 100kg의 80%」) — 계산된 무게가 어디서 왔는지(ADR-028) @plm SRS-063 */
   loadNote?: string | null;
 }) {
@@ -363,7 +369,9 @@ export function SetRowEdit({
           }}
           onBlur={commitWeight}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-          onFocus={(e) => e.currentTarget.select()}
+          // [원본] onFocus={(e) => e.currentTarget.select()} — 휴대폰은 탭이 끝날 때 선택이 풀려 커서만 남았다
+          onFocus={selectAllOnFocus}
+          onMouseUp={keepSelectAllOnMouseUp}
           className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
         <input
@@ -379,7 +387,9 @@ export function SetRowEdit({
           }}
           onBlur={commitReps}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-          onFocus={(e) => e.currentTarget.select()}
+          // [원본] onFocus={(e) => e.currentTarget.select()} — 휴대폰은 탭이 끝날 때 선택이 풀려 커서만 남았다
+          onFocus={selectAllOnFocus}
+          onMouseUp={keepSelectAllOnMouseUp}
           className="h-10 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink) disabled:border-transparent disabled:bg-transparent disabled:text-(--color-ink2)"
         />
 
@@ -533,6 +543,8 @@ export function SetRowEdit({
                 placeholder="0"
                 onChange={(e) => setPt(e.target.value)}
                 onBlur={commitPartial}
+                onFocus={selectAllOnFocus}
+                onMouseUp={keepSelectAllOnMouseUp}
                 className="h-[42px] w-full rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) text-center font-semibold text-[length:var(--text-md)] text-(--color-ink)"
               />
             </div>
@@ -635,6 +647,16 @@ export function SetRowEdit({
               selected: !set.isWarmup && set.isDrop !== true && !set.isFailed && set.setType === "backoff",
               onPress: () => onSetType("backoff"),
             },
+            // 다른 세트도 똑같이(SPEC-042) — 이 세트의 무게·횟수를 안 한 세트에
+            ...(onCopyToOthers && copyCount > 0
+              ? [
+                  {
+                    label: t("routines.copyToOthers", { n: copyCount }),
+                    testId: "set-copy",
+                    onPress: onCopyToOthers,
+                  },
+                ]
+              : []),
           ]}
         />
       ) : null}

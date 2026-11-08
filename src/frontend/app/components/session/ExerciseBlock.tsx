@@ -76,6 +76,7 @@ import { ExerciseTipPanel } from "./ExerciseTipPanel";
 import { NoteHistoryPanel } from "./NoteHistoryPanel";
 import { CARDIO_COL_LABEL, SetRowCardio } from "./SetRowCardio";
 import { SetRowEdit, type PrevSet, type SetRow, type Suggestion } from "./SetRowEdit";
+import { copyTargetIndexes } from "@app/core/domain/copySetValues"; // 다른 세트도 똑같이(SPEC-042)
 
 import { completeSetsFlow, type CompleteSetsResult } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -182,6 +183,8 @@ export function ExerciseBlock({
   const [note, setNote] = useState(we.note ?? "");
   const [prevNote, setPrevNote] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, Suggestion>>({});
+  // 「다른 세트도 똑같이」(SPEC-042) — 방금 무게·횟수를 고친 세트
+  const [copyOffer, setCopyOffer] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   // 세트 방식 바꾸기(SPEC-041) — 시트에 띄울 정보 · 고른 방식(직접 적은 값이 있으면 먼저 묻는다)
   const [schemeInfo, setSchemeInfo] = useState<Awaited<ReturnType<WorkoutRepo["getSchemeChangeInfo"]>> | null>(null);
@@ -524,6 +527,23 @@ export function ExerciseBlock({
         .then(setBlockUnit)
         .catch(() => {}),
     );
+  };
+
+  // 다른 세트도 똑같이(SPEC-042) — 체크 안 한 세트 중 같은 갈래(웜업·피더 / 작업)만 · 이미 같은 세트는 빼고 센다
+  const copyCountOf = (id: string): number => {
+    const at = sets.findIndex((x) => x.id === id);
+    const src = sets[at];
+    if (!src || !((src.weightKg ?? 0) > 0 || (src.reps ?? 0) > 0)) return 0;
+    return copyTargetIndexes(
+      sets.map((x) => ({ prep: x.isWarmup === true, open: x.done === false, value: { w: x.weightKg ?? 0, r: x.reps ?? 0 } })),
+      at,
+      // 빈 칸(0)은 복사하지 않는다 — 저장소와 같은 비교(REV-077 C-1)
+      (a, b) => (!(b.w > 0) || Math.abs(a.w - b.w) < 1e-9) && (!(b.r > 0) || a.r === b.r),
+    ).length;
+  };
+  const copyToOthers = (id: string) => {
+    setCopyOffer(null);
+    void write(() => repo.copySetValuesToOpenSets(id));
   };
 
   const addSet = () =>
@@ -1056,7 +1076,16 @@ export function ExerciseBlock({
                 barWeightKg={barWeightKg}
                 // [원본] onUpdate={(patch) => void write(() => repo.updateSetLog(s.id, patch))}
                 // [개선] 저장 약속을 돌려준다 — RIR 칩 낙관 표시가 이 쓰기가 끝난 뒤에만 다른 저장을 따른다(QA CU-7)
-                onUpdate={(patch) => write(() => repo.updateSetLog(s.id, patch))}
+                // [원본] onUpdate={(patch) => write(() => repo.updateSetLog(s.id, patch))}
+                onUpdate={(patch) => {
+                  const saving = write(() => repo.updateSetLog(s.id, patch));
+                  // 저장이 끝난 값으로 센다 — 저장 전 그림으로 세면 버튼 숫자가 잠깐 틀렸다(REV-077 C-2)
+                  if (patch.weightKg !== undefined || patch.reps !== undefined)
+                    void Promise.resolve(saving).then(() => setCopyOffer(s.id));
+                  return saving;
+                }}
+                copyCount={copyCountOf(s.id)}
+                onCopyToOthers={() => copyToOthers(s.id)}
                 onToggleDone={onToggleDone(s)}
                 onToggleDoneSingle={onRoundToggle ? onToggleDone(s, true) : undefined}
                 loadNote={loadNotes[s.id] ?? rxLoadLabel(we.prescription?.[s.setNumber - 1] ?? null)}
@@ -1083,6 +1112,20 @@ export function ExerciseBlock({
             ),
           )}
         </div>
+
+        {/* 다른 세트도 똑같이(SPEC-042) — 무게·횟수를 적은 직후, 바뀔 세트가 있을 때만 */}
+        {!isCardio && copyOffer && copyCountOf(copyOffer) > 0 ? (
+          <div className="mt-[4px]">
+            <Button
+              title={t("routines.copyToOthers", { n: copyCountOf(copyOffer) })}
+              size="sm"
+              variant="quiet"
+              fullWidth={false}
+              testId="set-copy-rest"
+              onPress={() => copyToOthers(copyOffer)}
+            />
+          </div>
+        ) : null}
 
         {/* 「원판 한쪽 무게로 적나요?」 — 플레이트 후보 머신에서 입력 방식을 아직 안 정했을 때 한 번(피드백 #63) @plm SRS-084 */}
         {askPlate ? (

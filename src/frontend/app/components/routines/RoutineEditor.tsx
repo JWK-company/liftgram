@@ -60,6 +60,7 @@ import { MoreMenu } from "../ui/MoreMenu";
 import { type RoutineLineSets, routineLinePatch, rowsFromRoutineLine } from "@app/core/domain/routineSets";
 import { PrescriptionRows } from "./PrescriptionRows";
 import { trackUsage } from "@/lib/usage";
+import { runAfterOverlays } from "@/lib/useBackToClose"; // 창 칸 정리 뒤에(REV-077)
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 
@@ -216,6 +217,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
 
   /** 가드 칸을 걷는다 — 이동 뒤 칸이 남으면 뒤로 가기가 이 화면에 갇힌다. */
   const dropGuard = useCallback(async () => {
+    // [개선] 막 닫힌 확인창이 자기 칸을 걷는 중이면 끝난 뒤에 본다 — 맨 위가 확인창 칸이라 가드를 못 걷던 것(REV-077 M-5)
+    await new Promise<void>((r) => runAfterOverlays(r));
     const token = guardTokenRef.current;
     guardTokenRef.current = null;
     if (!token || history.state?.liftgramTop !== token) return;

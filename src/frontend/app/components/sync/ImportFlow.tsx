@@ -188,6 +188,8 @@ function useLeaveGuard(mode: GuardMode, ask: (proceed: () => void) => void): { d
       history.pushState({ ...(history.state ?? {}), [GUARD_FLAG]: true }, "", location.href);
     const onPop = () => {
       if (disarmed.current) return;
+      // [개선] 위에 뜬 창(시트)의 칸이 빠져 보초로 돌아왔다 — 창만 닫힌 것이라 묻지 않는다(SPEC-042 · REV-077 H-3)
+      if ((history.state as Record<string, unknown> | null)?.[GUARD_FLAG]) return;
       pushSentinel(); // 뒤로 가기를 되돌린다 — 화면은 그대로
       if (modeRef.current !== "confirm") return;
       askRef.current(() => {

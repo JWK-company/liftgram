@@ -2,6 +2,8 @@
 //
 // 셸의 LinkInterceptor 가 Next 라우터를 여기 꽂아 둔다. 꽂히기 전(아주 이른 순간)이나 라우터가 없는 곳에서는
 // 예전처럼 문서 이동으로 떨어진다 — 이동 자체가 막히는 일은 없다.
+import { runAfterOverlays } from "./useBackToClose";
+
 type Router = { push: (href: string) => void; replace: (href: string) => void };
 let router: Router | null = null;
 
@@ -10,6 +12,11 @@ export function setNavRouter(r: Router | null): void {
 }
 
 export function navigate(href: string, opts?: { replace?: boolean }): void {
+  // [개선] 창(시트·확인창)이 닫히며 기록 칸을 걷는 중이면 그 뒤에 이동한다 — 걷기가 진행 중 이동을 버리지 않게(SPEC-042 · REV-077)
+  runAfterOverlays(() => navigateNow(href, opts));
+}
+
+function navigateNow(href: string, opts?: { replace?: boolean }): void {
   if (router) {
     if (opts?.replace) router.replace(href);
     else router.push(href);

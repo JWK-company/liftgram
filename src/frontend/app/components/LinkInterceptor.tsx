@@ -13,6 +13,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { setNavRouter } from "@/lib/nav";
+import { runAfterOverlays } from "@/lib/useBackToClose";
 
 export function LinkInterceptor() {
   const router = useRouter();
@@ -34,7 +35,9 @@ export function LinkInterceptor() {
         return;
       if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
       e.preventDefault();
-      router.push(url.pathname + url.search + url.hash);
+      // [원본] router.push(url.pathname + url.search + url.hash);
+      // [개선] 창 안의 링크 — 창이 닫히고 기록 칸을 걷은 뒤에 이동(SPEC-042 · REV-077)
+      runAfterOverlays(() => router.push(url.pathname + url.search + url.hash));
     };
     document.addEventListener("click", onClick);
     return () => {

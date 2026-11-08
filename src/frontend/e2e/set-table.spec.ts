@@ -176,7 +176,8 @@ test("타입을 바꿨다 되돌려도 표가 그대로 · 비운 칸은 다시 
   await page.getByTestId("rx-add-warmup").click();
   await 줄(page).nth(1).getByTestId("rx-weight").fill("100");
   await 줄(page).nth(1).getByTestId("rx-weight").press("Enter");
-  await expect(page.getByTestId("rx-apply-rest")).toBeVisible();
+  // [원본] await expect(page.getByTestId("rx-apply-rest")).toBeVisible(); — 「다른 세트도 똑같이」로 넓혔다(SPEC-042)
+  await expect(page.getByTestId("rx-copy-rest")).toBeVisible();
   // 완료 뒤 저장된 루틴을 다시 연다
   await page.getByTestId("btn-routine-done").click();
   const 행 = page
@@ -237,15 +238,35 @@ test("시작한 뒤 뒤로 가도 편집기에 갇히지 않고 루틴이 남는
   await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 20_000 });
 });
 
-test("「나머지 일반 세트도」 — 한 번에 맞춘다", async ({ page }) => {
+// [원본] test("「나머지 일반 세트도」 — 한 번에 맞춘다") — rx-apply-rest(무게만) → rx-copy-rest(무게·횟수 · SPEC-042)
+test("「다른 세트도 똑같이」 — 무게·횟수를 한 번에 맞추고 웜업은 건드리지 않는다", async ({ page }) => {
   test.setTimeout(120_000);
   await 카탈로그_준비(page);
   await 새_루틴(page);
   await 종목_추가(page);
-  await 무게(page, 0, 100);
-  await page.getByTestId("rx-apply-rest").click();
-  await expect(줄(page).nth(2).getByTestId("rx-weight")).toHaveValue("100");
-  await expect(page.getByTestId("rx-apply-rest")).toHaveCount(0);
+  await page.getByTestId("rx-add-warmup").click();
+  await 무게(page, 1, 100);
+  await 줄(page).nth(1).getByTestId("rx-rep-min").fill("5");
+  await 줄(page).nth(1).getByTestId("rx-rep-min").blur();
+  await 줄(page).nth(1).getByTestId("rx-rep-max").fill("5");
+  await 줄(page).nth(1).getByTestId("rx-rep-max").blur();
+  await expect(page.getByTestId("rx-copy-rest")).toContainText("2세트");
+  await page.getByTestId("rx-copy-rest").click();
+  for (const k of [2, 3]) {
+    await expect(줄(page).nth(k).getByTestId("rx-weight")).toHaveValue("100");
+    await expect(줄(page).nth(k).getByTestId("rx-rep-min")).toHaveValue("5");
+    await expect(줄(page).nth(k).getByTestId("rx-rep-max")).toHaveValue("5");
+  }
+  await expect(줄(page).nth(0).getByTestId("rx-weight")).toHaveValue("");
+  await expect(page.getByTestId("rx-copy-rest")).toHaveCount(0);
+  // 번호 시트에서도 — 다 같으면 항목이 없다
+  await 줄(page).nth(1).getByTestId("rx-type").click();
+  await expect(page.getByTestId("rx-copy")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  // 칸을 누르면 숫자 전체가 선택된다 — 바로 치면 바뀐다
+  await 줄(page).nth(2).getByTestId("rx-rep-min").click();
+  await page.keyboard.type("8");
+  await expect(줄(page).nth(2).getByTestId("rx-rep-min")).toHaveValue("8");
 });
 
 test("360px — 세트 표·운동 헤더가 넘치지 않고 누르는 자리 44px", async ({ page }) => {

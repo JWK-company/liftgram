@@ -142,6 +142,9 @@ test("마친 운동을 피드에 올리면 오운완 카드가 된다", async ({
   await expect(page.getByTestId("share-workout")).toBeVisible({ timeout: 20_000 });
   await page.getByTestId("btn-share-workout").click();
   await expect(page.getByTestId("btn-summary-share")).toBeDisabled({ timeout: 20_000 });
+  // 시트가 닫히며 자기 기록 칸을 걷는다(뒤로 가기 = 창만 닫기 · SPEC-042) — 걷기가 끝난 뒤 주소를 바꾼다(곧바로 goto 하면 걷기가 이동을 끊는다)
+  await expect(page.getByTestId("share-workout")).toHaveCount(0);
+  await page.waitForTimeout(300);
 
   // 피드에 **오운완 카드**로 뜬다 — 숫자가 실리고, 펼치면 종목·세트까지 있다.
   await page.goto("/feed?tab=following");

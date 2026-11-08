@@ -706,6 +706,7 @@ export const ko = {
   "routines.setTableHint": "지난 기록이 있으면 지난 기록부터 시작해요",
   "routines.setAddWarmup": "웜업 추가",
   "routines.setApplyRest": "나머지 일반 세트도 {value}",
+  "routines.copyToOthers": "다른 세트도 똑같이 ({n}세트)",
   "routines.setFixedTag": "고정",
   "routines.setMenuTitle": "세트 설정",
   "routines.setBasisStart": "시작 무게(지난 기록 먼저)",

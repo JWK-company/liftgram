@@ -22,6 +22,7 @@ import {
 } from "@app/core";
 import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
+import { useBackToClose } from "@/lib/useBackToClose";
 import { createPortal } from "react-dom";
 import { lang, t } from "@/lib/i18n";
 import { Icon } from "./Icon";
@@ -38,6 +39,7 @@ export function VariantSelector({
 }) {
   const { machineVariantLabels } = useUser();
   const [open, setOpen] = useState(false);
+  useBackToClose(() => setOpen(false), open); // 뒤로 = 이 창만 닫기(SPEC-042)
   const [root, setRoot] = useState<HTMLElement | null>(null);
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
 

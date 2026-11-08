@@ -706,6 +706,7 @@ export const en: Record<TransKey, string> = {
   "routines.setTableHint": "Starts from your last session when there is one",
   "routines.setAddWarmup": "Add warm-up",
   "routines.setApplyRest": "Apply {value} to other normal sets",
+  "routines.copyToOthers": "Same for other sets ({n})",
   "routines.setFixedTag": "Fixed",
   "routines.setMenuTitle": "Set options",
   "routines.setBasisStart": "Starting weight (last session first)",

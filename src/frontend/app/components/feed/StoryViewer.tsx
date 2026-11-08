@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { TargetType, type StoryGroup } from "@app/contracts";
 import { useEffect, useState } from "react";
+import { useBackToClose } from "@/lib/useBackToClose";
 import { createPortal } from "react-dom";
 import { t } from "@/lib/i18n";
 import { mediaSrc } from "@/lib/mediaClient";
@@ -34,6 +35,7 @@ export function StoryViewer({
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [reporting, setReporting] = useState(false);
   const [brokenId, setBrokenId] = useState<string | null>(null);
+  useBackToClose(onClose, group != null); // 뒤로 = 스토리만 닫기(SPEC-042)
 
   useEffect(() => setRoot(document.getElementById("modal-root")), []);
 

@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { t } from "@/lib/i18n";
+import { useBackToClose } from "@/lib/useBackToClose";
 import { Button } from "./Button";
 import { AppText } from "./primitives";
 
@@ -55,6 +56,9 @@ export function Overlay({
       if (at >= 0) openOverlays.splice(at, 1);
     };
   }, []);
+
+  // 기기·브라우저 뒤로 = 이 창만 닫기 — 밑 화면은 그대로(SPEC-042 · SRS-107)
+  useBackToClose(() => closeRef.current());
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();

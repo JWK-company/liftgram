@@ -28,6 +28,7 @@ import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '.
 import { resolvePrescribedLoad, planPrescribedLoadFills, roundLoadKg } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
 import type { PrescribedSetType, SchemeId } from '../domain/prescription';
 import { remainingSchemeRows, schemeAllowed, schemeOf, type DoneSetKind } from '../domain/setSchemes'; // 세트 방식(SPEC-041)
+import { copyTargetIndexes } from '../domain/copySetValues'; // 다른 세트도 똑같이(SRS-106)
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
 import { cardioMetricsFor } from '../domain/cardio'; // 잠금 카드 — 유산소 지표(SPEC-017)
 import { planReplay, planFromSpec, routineLinesToStartRows, type ReplaySourceBlock, type StartRow } from '../domain/replay'; // 그대로 다시 시작·피드 바로 시작 @plm SRS-065
@@ -2786,6 +2787,49 @@ export async function updateSetLog(
       if (patch.level !== undefined) rec.level = patch.level;
       if (patch.speedKmh !== undefined) rec.speedKmh = patch.speedKmh;
     });
+  });
+}
+
+// 「다른 세트도 똑같이」(SRS-106 · SPEC-042) — 이 세트의 무게·횟수를 같은 블록의 **안 한** 세트에 복사한다.
+// 준비 세트(웜업·피더)는 준비 세트끼리, 작업 세트는 작업 세트끼리. 한 번의 쓰기 · 바뀐 세트 수를 돌려준다.
+// 무게는 정규 kg(합계) 그대로 — 사람이 적은 값으로 표시해 자동 채움이 다시 덮지 않는다.
+export async function copySetValuesToOpenSets(sourceId: string): Promise<number> {
+  return database.write(async () => {
+    const src = await setLogs().find(sourceId);
+    const sets = await setLogs()
+      .query(Q.where('workout_exercise_id', src.workoutExerciseId), Q.sortBy('set_number', Q.asc))
+      .fetch();
+    const at = sets.findIndex((x) => x.id === sourceId);
+    // 빈 칸(0)은 복사하지 않는다 — 횟수를 안 적었으면 다른 세트의 횟수는 그대로(REV-077 C-1)
+    const w = src.weightKg ?? 0;
+    const r = src.reps ?? 0;
+    if (at < 0 || !(w > 0 || r > 0)) return 0;
+    const targets = copyTargetIndexes(
+      sets.map((x) => ({
+        prep: x.isWarmup === true,
+        open: x.done === false,
+        value: { w: x.weightKg ?? 0, r: x.reps ?? 0 },
+      })),
+      at,
+      (a, b) => (!(b.w > 0) || Math.abs(a.w - b.w) < 1e-9) && (!(b.r > 0) || a.r === b.r),
+    );
+    if (!targets.length) return 0;
+    await database.batch(
+      ...targets.map((k) =>
+        sets[k].prepareUpdate((rec) => {
+          if (w > 0) {
+            rec.weightKg = w;
+            rec.valueSource = withFieldSource(rec.valueSource, 'weight', 'user');
+          }
+          if (r > 0) {
+            rec.reps = r;
+            rec.valueSource = withFieldSource(rec.valueSource, 'reps', 'user');
+          }
+          rec.userEdited = true;
+        }),
+      ),
+    );
+    return targets.length;
   });
 }
 

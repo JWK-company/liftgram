@@ -20,6 +20,7 @@ import { navigate } from "@/lib/nav";
 import type { GearTag, WeightUnit } from "@app/core";
 import type { Cursor, Post, StoryGroup } from "@app/contracts";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useBackToClose } from "@/lib/useBackToClose";
 import { t } from "@/lib/i18n";
 import { feedClient, feedErrorMessage, isUnauthenticated } from "@/lib/feedClient";
 import { uploadImage } from "@/lib/mediaClient";
@@ -191,6 +192,7 @@ export default function FeedClient() {
   // 팔로잉에서 바뀐 글 — 추천에도 같은 글이 있으면 좋아요·저장을 맞춘다.
   const [syncedPost, setSyncedPost] = useState<Post | null>(null);
   const [composing, setComposing] = useState(false);
+  useBackToClose(() => setComposing(false), composing); // 뒤로 = 작성기만 닫기(SPEC-042)
   const [visibility, setVisibility] = useState<Visibility>(Visibility.PUBLIC);
 
   // 새로고침 세대 — 이 값이 바뀌면 진행 중이던 페이지 요청의 결과는 버린다.
