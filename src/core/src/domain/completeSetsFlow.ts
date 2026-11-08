@@ -17,6 +17,8 @@ export interface CompleteSetsRepo {
   loadSimBlocks(workoutExerciseIds: string[]): Promise<(SimBlock & { restSec: number })[]>;
   /** 실제로 쓴 세트 id 를 돌려준다(그 사이 사람이 고친 세트는 건너뛴다). */
   applyLoadFills(fills: { setLogId: string; weightKg: number }[]): Promise<string[]>;
+  /** 튀는 기록 판정(SPEC-044) — 있으면 완료 직후·채우기 전에 부른다(확인 필요 세트는 채우기 근거가 되지 않는다 · 잠금 drain 도 같은 길) */
+  judgeSetSuspect?(setId: string, opts?: { values?: { weightKg?: number; reps?: number } }): Promise<unknown>;
 }
 
 export interface CompleteSetsInput {
@@ -57,6 +59,16 @@ export async function completeSetsFlow(repo: CompleteSetsRepo, input: CompleteSe
     input.onCompleted?.(changed);
   } catch {
     // 화면 콜백 실패는 흐름과 무관
+  }
+  // 튀는 기록 판정 — 완료한 세트만 · 화면값으로 · 실패해도 흐름은 그대로(SPEC-044 · REV-079 C-4·D-8)
+  if (repo.judgeSetSuspect) {
+    for (const id of changed) {
+      try {
+        await repo.judgeSetSuspect(id, { values: values.get(id) });
+      } catch {
+        // 판정 실패는 완료·채우기와 무관
+      }
+    }
   }
   // 완료 뒤 상태로 다시 읽는다 — 시뮬레이션도 「완료 표시 → 채우기」 순서다.
   // 채우기 실패는 완료를 깨지 않는다(옛 화면이 try/catch 로 삼키던 것 · REV-005 화면 H-1) — 완료 실패만 던진다.

@@ -447,5 +447,16 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // v28(SPEC-044 · SRS-109): 기록 확인 상태 — 튀는 세트를 「확인 필요」로 두고 확인 전까지 PR·1RM 계산에서 뺀다.
+      // optional string — 옛 행은 null(보통). 서버는 jsonb 얕은 병합이라 바꾸지 않는다(v27 과 같다).
+      toVersion: 28,
+      steps: [
+        addColumns({
+          table: 'set_logs',
+          columns: [{ name: 'check_state', type: 'string', isOptional: true }],
+        }),
+      ],
+    },
   ],
 });

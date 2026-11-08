@@ -37,6 +37,8 @@ export default class SetLog extends Model {
   @field('rir') declare rir: number | null;
   // v27: 값 출처(domain/lockScreen ValueSource) — 표시 칸 중 가장 약한 것. null = 옛 세트(SPEC-017 · SRS-096)
   @field('value_source') declare valueSource: string | null;
+  // v28: 기록 확인 상태 — null 보통 · 'suspect' 확인 필요 · 'confirmed:<효과 무게>x<횟수>' 사람이 「제대로 적었어요」(그때 값 지문)(SPEC-044 · SRS-109)
+  @field('check_state') declare checkState: string | null;
   @field('done') declare done: boolean | null; // v3: 수행 완료 체크. null(레거시)=수행됨
   @field('completed_at') declare completedAt: number | null;
   @readonly @date('created_at') declare createdAt: Date;

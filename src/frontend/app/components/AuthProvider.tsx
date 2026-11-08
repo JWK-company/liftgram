@@ -142,6 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 동기를 시도한 뒤 이 기기 상태를 운영진에게 보고한다(동기와 다른 길 · 로그인일 때만) @plm SRS-088
     const stopHealth = installClientHealthReport();
     void load();
+    // 옛 기록 「확인 필요」 백필 — 기기마다 한 번 · 첫 동기 뒤 · 운동 중이 아닐 때(SPEC-044)
+    let stopBackfill = () => {};
+    void import("@/lib/suspectBackfill").then((m) => {
+      stopBackfill = m.scheduleSuspectBackfill();
+    });
     // 다른 탭에서 로그아웃하면 여기도 따라간다.
     const stopSession = onSessionChange(() => {
       if (!hasSession()) setUser(null);
@@ -150,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       stopTriggers();
       stopSession();
       stopHealth();
+      stopBackfill();
     };
   }, [load, setUser]);
 

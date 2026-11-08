@@ -7,7 +7,8 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
 // v27(잠금화면 카드 · SPEC-017 Phase 2): set_logs.value_source — 표시 칸 중 가장 약한 값 출처(「앱 열기」 판정 · SRS-096).
 // ⚠ v27 도 같은 규칙 — 배포 뒤 SCHEMA_VERSION<27 번들을 내보내지 않는다(Phase 2·3 을 v0.58.0 한 릴리스로).
 // [원본] export const SCHEMA_VERSION = 26;
-export const SCHEMA_VERSION = 27;
+// [원본] export const SCHEMA_VERSION = 27;
+export const SCHEMA_VERSION = 28; // v28: set_logs.check_state(SPEC-044)
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -203,6 +204,8 @@ export const mySchema = appSchema({
         { name: 'rir', type: 'number', isOptional: true },
         // v27: 값 출처 default|copied_default|prev_snap|prev|routine|rx|user — 칸마다 다르면 가장 약한 것. null = 옛 세트(앱 열기 아님)
         { name: 'value_source', type: 'string', isOptional: true },
+        // v28: 기록 확인 상태 — null 보통 · 'suspect' 확인 필요(PR·1RM·세트 방식 계산에서 빠진다) · 'confirmed:<효과 무게>x<횟수>' 사람이 「제대로 적었어요」(그때 값 지문)(SPEC-044 · SRS-109)
+        { name: 'check_state', type: 'string', isOptional: true },
         { name: 'done', type: 'boolean', isOptional: true }, // v3: 수행 완료 체크. null(레거시)=수행됨으로 취급
         { name: 'completed_at', type: 'number', isOptional: true },
         { name: 'created_at', type: 'number' },

@@ -92,6 +92,7 @@ export async function getCompletedSets(sinceMs?: number, endMs?: number): Promis
         loadMode: modeByEx.get(we.exerciseId) ?? null,
         bodyweightKg: bw,
         loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
+        suspect: s.checkState === 'suspect', // v28 「확인 필요」 — 1RM·PR 계산에서 빠진다(SPEC-044)
         // v26 rir 는 set 에 넣지 않는다 — 기존 호출자가 받는 set 값을 바꾸지 않기 위해(아래 rir 칸으로 읽는다).
       },
       // v26 덧붙임 @plm SRS-074
@@ -136,7 +137,7 @@ export async function getOverview(sinceMs?: number): Promise<AnalyticsOverview> 
     totalVolume += setVolumeKg(e.set);
     if (!e.set.isWarmup && !e.set.isFailed) {
       workingSets += 1;
-      const oneRM = estimateOneRepMax(effectiveWeightKg(e.set), e.set.reps); // v12: 유효무게 기준 @plm SRS-033
+      const oneRM = e.set.suspect ? 0 : estimateOneRepMax(effectiveWeightKg(e.set), e.set.reps); // v12: 유효무게 기준 @plm SRS-033 · 「확인 필요」는 0(SPEC-044)
       best1RM.set(e.exerciseId, Math.max(best1RM.get(e.exerciseId) ?? 0, oneRM));
     }
   }
@@ -272,7 +273,8 @@ export async function getRecentPRs(limit = 10): Promise<RecentPR[]> {
   // 종목 → 세션별 최고 1RM (시간순)
   const byExercise = new Map<string, Map<string, { completedAt: number; best: number }>>();
   for (const e of enriched) {
-    if (e.set.isWarmup || e.set.isFailed) continue;
+    // [원본] if (e.set.isWarmup || e.set.isFailed) continue;
+    if (e.set.isWarmup || e.set.isFailed || e.set.suspect) continue; // 「확인 필요」 제외(SPEC-044)
     // v12: 유효무게 기준 — raw 무게로 계산하면 어시스트 종목이 보조무게가 클수록 1RM이 커진다. @plm SRS-033
     // [원본] 원복 시 아래를 주석 해제하고 새 호출을 주석 처리
     // const oneRM = estimateOneRepMax(e.set.weightKg, e.set.reps);
@@ -317,7 +319,7 @@ export interface WorkoutExerciseDetail {
   variantKey: string | null; // v6 변형 버킷 키(기구·그립·팔). @plm SRS-028
   note: string | null; // 세션 종목 메모(그날 느낌·포인트). @plm SRS-004
   weightUnit: 'kg' | 'lb'; // v25 이 블록에 적은 단위 — 세트 무게는 이 단위로 보인다(합계는 kg) @plm SRS-067
-  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; rir?: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; grip?: string | null; id?: string }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
+  sets: { setNumber: number; weightKg: number; reps: number; rpe: number | null; rir?: number | null; isWarmup: boolean; isFailed: boolean; arm: string | null; partialReps: number | null; loadMultiplier: number | null; grip?: string | null; id?: string; checkState?: 'suspect' | 'confirmed' | null }[]; // id: 기록 상세에서 세트 고치기·지우기(#51) @plm SRS-061
   isCardio?: boolean; // 유산소는 고치기 없이 지우기만(QA Q7) @plm SRS-061
   volumeKg: number;
   bestEstimated1RM: number;
@@ -355,6 +357,7 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
       loadMode,
       bodyweightKg: bw,
       loadMultiplier: s.loadMultiplier, // v22: 플레이트 한쪽 입력 배수(null=1) @plm SRS-058
+      suspect: s.checkState === 'suspect', // v28 「확인 필요」 — 기록 상세 1RM 에서 빠진다(SPEC-044)
     }));
     const volumeKg = logged.reduce((sum, s) => sum + setVolumeKg(s), 0);
     total += volumeKg;
@@ -381,6 +384,8 @@ export async function getWorkoutDetail(workoutId: string): Promise<WorkoutDetail
         partialReps: s.partialReps ?? null,
         loadMultiplier: s.loadMultiplier ?? null, // 공유·가져오기가 계산 무게를 알게(/qa code L-5) @plm SRS-058
         grip: s.grip ?? null, // 세트 손 그립(ADR-055) — 기록 상세에 보인다 @plm SRS-065
+        // [원본] checkState: s.checkState === 'suspect' || s.checkState === 'confirmed' ? s.checkState : null — 저장값은 'confirmed:<지문>' 이라 확인함이 늘 null(코드 리뷰)
+        checkState: s.checkState === 'suspect' ? 'suspect' : s.checkState?.startsWith('confirmed:') ? 'confirmed' : null, // v28(SPEC-044)
       })),
       volumeKg,
       bestEstimated1RM: bestEstimatedOneRepMax(logged),

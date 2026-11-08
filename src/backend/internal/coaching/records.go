@@ -82,6 +82,7 @@ var memberRecordFields = map[string][]string{
 		"id", "workout_exercise_id", "set_number", "weight_kg", "reps", "rpe", "rir", "is_warmup", "is_failed",
 		"is_drop", "set_type", "done", "load_multiplier", "load_adjust_kg", "strict_reps", "partial_reps",
 		"duration_sec", "distance_m",
+		"check_state", // v28 기록 확인 상태 — 트레이너 리포트도 「확인 필요」 세트를 PR·1RM 에서 뺀다(SPEC-044)
 	},
 	// 커스텀 종목만(시드 종목은 서버 카탈로그·기기 카탈로그에 있다). image_url 은 업로드 주소라 뺀다.
 	"exercises": {

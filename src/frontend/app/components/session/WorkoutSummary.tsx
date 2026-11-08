@@ -23,6 +23,9 @@ import { WorkoutNoteField } from "./WorkoutNoteField";
 import { useStartGuard } from "../useStartGuard";
 import { loadSummaryExtras, ShareWorkout, type BreakdownRow, type ShareablePayload } from "./ShareWorkout";
 import { formatWorkoutDuration } from "@/lib/duration";
+import { SuspectList } from "./SuspectList"; // 확인이 필요한 기록(SPEC-044)
+import { useToast } from "../Toast";
+import { errorText } from "@/lib/errorText";
 import { trackUsage } from "@/lib/usage";
 
 export interface Summary {
@@ -46,8 +49,11 @@ export function WorkoutSummary({
   onClose,
   routineSaved = false,
   onReplayStarted,
+  onSummaryChange,
 }: {
   summary: Summary;
+  /** 「확인 필요」를 처리해 PR·수치가 다시 계산됐다 — 부르는 쪽이 요약을 바꿔 끼운다(SPEC-044) */
+  onSummaryChange?: (s: Summary) => void;
   unit: WeightUnit;
   onClose: () => void;
   /** 「그대로 다시 시작」으로 새 운동이 시작됐다 — 운동 화면이 요약을 닫고 그 운동을 띄운다. @plm SRS-065 */
@@ -60,6 +66,7 @@ export function WorkoutSummary({
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   const [routineMade, setRoutineMade] = useState(false); // 여기서 저장했다(QA L5)
   const replay = useStartGuard({ onStarted: onReplayStarted }); // @plm SRS-065
+  const toast = useToast();
   useEffect(() => {
     let alive = true;
     void loadSummaryExtras(summary).then((x) => alive && setExtras(x));
@@ -137,6 +144,18 @@ export function WorkoutSummary({
             ]}
           />
         </div>
+        {/* 확인이 필요한 기록 — 처리하면 PR 을 다시 받는다(SPEC-044 · SRS-109 R3) */}
+        <SuspectList
+          className="mt-[var(--spacing-lg)]"
+          workoutId={summary.workoutId}
+          onChanged={() =>
+            void (async () => {
+              const repo = await import("@app/core/data/workoutRepository");
+              const next: Summary = await repo.rebuildWorkoutSummary(summary.workoutId);
+              onSummaryChange?.(next);
+            })().catch((e) => toast(errorText(e), "error"))
+          }
+        />
         <span className="hidden" data-testid="summary-prs">
           {summary.prCount}
         </span>

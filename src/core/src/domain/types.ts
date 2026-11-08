@@ -69,6 +69,8 @@ export interface LoggedSet {
   loadMode?: LoadMode | null; // v12: 하중모드(어시스트/맨몸) — 유효무게 계산. @plm SRS-033
   bodyweightKg?: number | null; // v12: 계산 시점 사용자 체중(assisted/bodyweight일 때만 사용). @plm SRS-033
   loadMultiplier?: number | null; // v22: 무게 배수(플레이트 한쪽 입력=2). null·미지정=1(QA B1). @plm SRS-058
+  /** v28 「확인 필요」 세트 — 확인 전까지 PR·추정 1RM·처방 무게 계산에서 빠진다(볼륨은 센다 · SPEC-044) */
+  suspect?: boolean;
   strictReps?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
   loadAdjustKg?: number | null; // (레거시 v6) 폐기 — 하위호환 읽기용
 }

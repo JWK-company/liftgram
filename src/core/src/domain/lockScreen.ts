@@ -329,6 +329,8 @@ export interface SimSet extends LockSetInput {
   loadMultiplier: number | null;
   /** v27 값 출처(칸별 인코딩 — encodeValueSource) — 시뮬레이션이 채우기를 따라 무게 칸을 rx 로 올린다 */
   valueSource?: string | null;
+  /** v28 「확인 필요」 — 처방 채우기의 근거가 되지 않는다(SPEC-044) */
+  suspect?: boolean | null;
 }
 export interface SimBlock {
   weId: string;
@@ -368,7 +370,7 @@ export function planRoundFills(
       rx: b.rx,
       sets: sets.map((s) => ({ id: s.id, done: s.done, touched: s.touched, loadMultiplier: s.loadMultiplier })),
       doneIdx,
-      done: { isWarmup: d.isWarmup ?? null, isDrop: d.isDrop ?? null, isFailed: d.isFailed ?? null, setType: d.setType ?? null },
+      done: { isWarmup: d.isWarmup ?? null, isDrop: d.isDrop ?? null, isFailed: d.isFailed ?? null, setType: d.setType ?? null, suspect: d.suspect ?? null },
       doneCalcKg: kg * mult,
       doneReps: reps,
       has1rm: b.has1rm,

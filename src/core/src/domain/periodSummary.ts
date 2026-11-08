@@ -178,6 +178,8 @@ export interface SummarySetRec {
   /** null(옛 세트) = 수행함. false 만 뺀다 */
   done?: boolean | null;
   loadMultiplier?: number | null;
+  /** v28 기록 확인 상태(SPEC-044) — 'suspect' 는 PR·1RM 에서 빠진다 */
+  checkState?: string | null;
 }
 
 export interface SummaryExerciseRec {
@@ -338,6 +340,7 @@ function toLogged(s: SummarySetRec, ex: SummaryExerciseRec | undefined, bodyweig
     loadMode: ex ? resolveLoadMode({ loadMode: ex.loadMode ?? null, equipment: ex.equipment }) : null,
     bodyweightKg,
     loadMultiplier: s.loadMultiplier ?? null,
+    suspect: s.checkState === 'suspect', // v28(SPEC-044)
   };
 }
 

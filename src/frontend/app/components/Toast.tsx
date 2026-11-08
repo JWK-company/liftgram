@@ -22,12 +22,16 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { createPortal } from "react-dom";
 
 type Tone = "info" | "error";
-type Item = { id: number; text: string; tone: Tone };
+// 동작 하나(「되돌리기」 등)를 붙일 수 있다 — 누르면 실행하고 바로 닫는다(SPEC-044 · REV-079 UX-8)
+export type ToastAction = { label: string; onPress: () => void; testId?: string };
+type Item = { id: number; text: string; tone: Tone; action?: ToastAction };
 
-const ToastContext = createContext<((text: string, tone?: Tone) => void) | null>(null);
+const ToastContext = createContext<((text: string, tone?: Tone, action?: ToastAction) => void) | null>(null);
 
 /** 자동으로 사라지는 시간. 오류는 읽을 시간이 더 필요하다. */
 const TTL = { info: 2600, error: 5000 } as const;
+/** 동작이 붙은 알림은 누를 시간을 더 준다 */
+const TTL_ACTION = 9_000; // [원본] 5_000 — 스크린리더로 되돌리기에 닿기엔 짧다(WCAG 2.2.1 · UX 리뷰 5)
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<Item[]>([]);
@@ -37,10 +41,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   // 포털 대상은 클라이언트에만 존재한다(서버 렌더 시점엔 document가 없다).
   useEffect(() => setRoot(document.getElementById("toast-root")), []);
 
-  const push = useCallback((text: string, tone: Tone = "info") => {
+  const push = useCallback((text: string, tone: Tone = "info", action?: ToastAction) => {
     const id = ++seq.current;
-    setItems((prev) => [...prev, { id, text, tone }]);
-    setTimeout(() => setItems((prev) => prev.filter((i) => i.id !== id)), TTL[tone]);
+    setItems((prev) => [...prev, { id, text, tone, action }]);
+    setTimeout(() => setItems((prev) => prev.filter((i) => i.id !== id)), action ? TTL_ACTION : TTL[tone]);
   }, []);
 
   const value = useMemo(() => push, [push]);
@@ -62,7 +66,25 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                       : "border-(--color-line) bg-(--color-card) text-(--color-ink)"
                   }`}
                 >
-                  {i.text}
+                  {i.action ? (
+                    <span className="flex items-center justify-between gap-3">
+                      <span>{i.text}</span>
+                      <button
+                        type="button"
+                        data-testid={i.action.testId ?? "toast-action"}
+                        className="min-h-[44px] shrink-0 px-2 font-semibold text-(--color-ink) underline underline-offset-2" // [원본] text-(--color-primary) — 없는 토큰 · 강조색은 정해진 곳만(UX 리뷰 6)
+                        onClick={() => {
+                          const run = i.action?.onPress;
+                          setItems((prev) => prev.filter((x) => x.id !== i.id));
+                          run?.();
+                        }}
+                      >
+                        {i.action.label}
+                      </button>
+                    </span>
+                  ) : (
+                    i.text
+                  )}
                 </div>
               ))}
             </div>,

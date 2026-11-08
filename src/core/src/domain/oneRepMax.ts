@@ -16,7 +16,9 @@ export function estimateOneRepMax(weightKg: number, reps: number): number {
 // "보조무게를 키울수록 1RM이 커지는" 역설이 종목 상세 추세 차트에 그대로 노출된다. @plm SRS-033
 export function bestEstimatedOneRepMax(sets: LoggedSet[]): number {
   return sets
-    .filter((s) => !s.isWarmup && !s.isFailed)
+    // [원본] .filter((s) => !s.isWarmup && !s.isFailed)
+    // [개선] 「확인 필요」 세트도 뺀다(SPEC-044)
+    .filter((s) => !s.isWarmup && !s.isFailed && !s.suspect)
     // [원본] 원복 시 아래를 주석 해제하고 새 호출을 주석 처리
     // .reduce((max, s) => Math.max(max, estimateOneRepMax(s.weightKg, s.reps)), 0);
     // [개선] 유효무게 기준

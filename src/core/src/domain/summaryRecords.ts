@@ -97,6 +97,7 @@ export function setFromRaw(r: Raw): SummarySetRec | null {
     setType: strOrNull(r.set_type),
     done: boolOrNull(r.done),
     loadMultiplier: numOrNull(r.load_multiplier),
+    checkState: strOrNull(r.check_state), // v28(SPEC-044)
   };
 }
 

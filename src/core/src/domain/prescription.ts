@@ -255,7 +255,7 @@ export function planPrescribedLoadFills(input: {
   rx: PrescribedSet[] | null;
   sets: LoadFillSet[];
   doneIdx: number;
-  done: { isWarmup: boolean | null; isFailed: boolean | null; isDrop?: boolean | null; setType: string | null };
+  done: { isWarmup: boolean | null; isFailed: boolean | null; isDrop?: boolean | null; setType: string | null; suspect?: boolean | null };
   doneCalcKg: number;
   doneReps: number;
   has1rm: boolean;
@@ -271,8 +271,15 @@ export function planPrescribedLoadFills(input: {
   // [개선] 세트의 지금 타입만 본다(처방 타입은 세션 시작 때 세트에 심긴다) · 드롭으로도 1RM 을 추정하지 않는다(SPEC-023)
   // [원본] const notBasis = done.isWarmup === true || done.isFailed === true || done.isDrop === true || done.setType === 'warmup';
   // [개선] 피더(준비 1~3회)로도 추정하지 않는다 — 가벼운 무게를 적게 든 세트라 1RM 이 낮게 나온다(SPEC-041)
+  // [원본] const notBasis = … || done.setType === 'feeder';
+  // [개선] 「확인 필요」 세트(튀는 기록)도 근거로 쓰지 않는다 — lb 로 든 132 를 kg 로 적으면 백오프가 132 의 %로 채워졌다(SPEC-044 · REV-079 C-4)
   const notBasis =
-    done.isWarmup === true || done.isFailed === true || done.isDrop === true || done.setType === 'warmup' || done.setType === 'feeder';
+    done.isWarmup === true ||
+    done.isFailed === true ||
+    done.isDrop === true ||
+    done.setType === 'warmup' ||
+    done.setType === 'feeder' ||
+    done.suspect === true;
   if (notBasis) return [];
   const isTop = done.setType === 'top';
   // [원본] const est = estimateOneRepMax(doneCalcKg, doneReps);

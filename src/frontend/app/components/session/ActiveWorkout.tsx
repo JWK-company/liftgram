@@ -299,6 +299,10 @@ export default function ActiveWorkout() {
           unit={weightUnit}
           onClose={leaveSession}
           routineSaved={routineSaved}
+          // 같은 운동의 요약일 때만 — 요약을 떠난 뒤(다시 시작 등) 늦게 온 재계산이 옛 요약을 다시 띄우지 않게(화면 리뷰 3)
+          onSummaryChange={(next) =>
+            setSummary((prev) => (prev && prev.workoutId === next.workoutId ? next : prev))
+          }
           // 「그대로 다시 시작」 — 같은 운동 화면에서 요약을 닫고 새 운동을 띄운다(주소가 같아 이동으로는 안 바뀐다) @plm SRS-065
           onReplayStarted={(w) => {
             setFinishPrompt(null);

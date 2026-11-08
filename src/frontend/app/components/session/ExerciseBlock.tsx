@@ -60,8 +60,19 @@ import { lang, t } from "@/lib/i18n";
 import { firePrCelebration } from "../PrCelebration";
 import { Button } from "../ui/Button";
 import { ActionSheet, ConfirmDialog, SheetShell } from "../ui/Dialog";
-import { remainingSchemeRows, schemeAllowed, schemeOf, SCHEMES, type DoneSetKind } from "@app/core/domain/setSchemes"; // 세트 방식(SPEC-041)
-import { restSecondsForRx, type PrescribedSet, type PrescribedSetType, type SchemeId } from "@app/core/domain/prescription";
+import {
+  remainingSchemeRows,
+  schemeAllowed,
+  schemeOf,
+  SCHEMES,
+  type DoneSetKind,
+} from "@app/core/domain/setSchemes"; // 세트 방식(SPEC-041)
+import {
+  restSecondsForRx,
+  type PrescribedSet,
+  type PrescribedSetType,
+  type SchemeId,
+} from "@app/core/domain/prescription";
 import { MoreMenu } from "../ui/MoreMenu";
 import { navigate } from "@/lib/nav";
 // import { IconButton } from "../ui/IconButton"; // 머리 순서 화살표 원복 시(/qa code M-5)
@@ -78,12 +89,23 @@ import { ExerciseTipPanel } from "./ExerciseTipPanel";
 import { NoteHistoryPanel } from "./NoteHistoryPanel";
 import { CARDIO_COL_LABEL, SetRowCardio } from "./SetRowCardio";
 import { SetRowEdit, type PrevSet, type SetRow, type Suggestion } from "./SetRowEdit";
+import { SuspectSetSheet, type SuspectInfo } from "./SuspectSetSheet"; // 튀는 기록 확인(SPEC-044)
 import { copyTargetIndexes } from "@app/core/domain/copySetValues"; // 다른 세트도 똑같이(SPEC-042)
 import { planDoubleProgression, progressionIncrementKg } from "@app/core/domain/progression"; // 다음 무게(SPEC-043)
 
 /** 범위 목표를 다는 작업 세트 — 웜업·피더·드롭·백오프 제외(REV-078 D-8 · 저장소 isRangeWorkSet 과 같은 기준) */
-function isRangeWork(x: { isWarmup?: boolean | null; isDrop?: boolean | null; setType?: string | null }): boolean {
-  return x.isWarmup !== true && x.isDrop !== true && x.setType !== "backoff" && x.setType !== "drop" && x.setType !== "feeder";
+function isRangeWork(x: {
+  isWarmup?: boolean | null;
+  isDrop?: boolean | null;
+  setType?: string | null;
+}): boolean {
+  return (
+    x.isWarmup !== true &&
+    x.isDrop !== true &&
+    x.setType !== "backoff" &&
+    x.setType !== "drop" &&
+    x.setType !== "feeder"
+  );
 }
 
 import { completeSetsFlow, type CompleteSetsResult } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
@@ -193,16 +215,23 @@ export function ExerciseBlock({
   const [note, setNote] = useState(we.note ?? "");
   const [prevNote, setPrevNote] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Record<string, Suggestion>>({});
+  // 「확인 필요」 칩을 눌러 연 시트(SPEC-044) — 운동 중에는 스스로 띄우지 않는다
+  const [checking, setChecking] = useState<SuspectInfo | null>(null);
+  const checkingRow = useRef<SetRow | null>(null);
   // 「다른 세트도 똑같이」(SPEC-042) — 방금 무게·횟수를 고친 세트
   const [copyOffer, setCopyOffer] = useState<string | null>(null);
   // 루틴 줄의 횟수 범위(SPEC-043 · SRS-108) — 세트 방식 처방이 없는 일반 줄에서 세트마다 「목표 8~12회」 · 다음 무게 제안
   const hasRx = Array.isArray(we.prescription) && we.prescription.length > 0;
   const [lineRange, setLineRange] = useState<{ repMin: number | null; repMax: number | null } | null>(null);
   // 같은 루틴 줄의 지난번 작업 세트(REV-078 D-4) — 다른 루틴·빠른 운동의 기록으로 제안하지 않는다
-  const [lineLast, setLineLast] = useState<{ weightKg: number; reps: number; failed: boolean; loadMultiplier: number | null }[]>([]);
+  const [lineLast, setLineLast] = useState<
+    { weightKg: number; reps: number; failed: boolean; loadMultiplier: number | null }[]
+  >([]);
   const [confirmRemove, setConfirmRemove] = useState(false);
   // 세트 방식 바꾸기(SPEC-041) — 시트에 띄울 정보 · 고른 방식(직접 적은 값이 있으면 먼저 묻는다)
-  const [schemeInfo, setSchemeInfo] = useState<Awaited<ReturnType<WorkoutRepo["getSchemeChangeInfo"]>> | null>(null);
+  const [schemeInfo, setSchemeInfo] = useState<Awaited<
+    ReturnType<WorkoutRepo["getSchemeChangeInfo"]>
+  > | null>(null);
   const [schemeAsk, setSchemeAsk] = useState<SchemeId | null>(null);
   // 메모·휴식 시간은 종목 ⋯ 안의 설정이다(SRS-054) — 입력칸이 늘 펼쳐져 세트 표를 밀어내지 않게.
   // 메모는 써 둔 것이 있으면 처음부터 보인다.
@@ -466,7 +495,8 @@ export function ExerciseBlock({
   const doneKinds: DoneSetKind[] = sets
     .filter((x) => x.done)
     .map((x) => ({
-      setType: ((x.setType as PrescribedSetType | null) ?? (x.isDrop ? "drop" : x.isWarmup ? "warmup" : "normal")) as PrescribedSetType,
+      setType: ((x.setType as PrescribedSetType | null) ??
+        (x.isDrop ? "drop" : x.isWarmup ? "warmup" : "normal")) as PrescribedSetType,
       isWarmup: !!x.isWarmup,
     }));
   // [개선] 앞선 쓰기(칸을 떠날 때 저장·완료)를 기다린 뒤 읽는다 — 옛 값으로 「고친 값 없음」이라 보고 확인 없이 지우지 않게(REV-076 화면 M-2)
@@ -572,7 +602,11 @@ export function ExerciseBlock({
     const src = sets[at];
     if (!src || !((src.weightKg ?? 0) > 0 || (src.reps ?? 0) > 0)) return 0;
     return copyTargetIndexes(
-      sets.map((x) => ({ prep: x.isWarmup === true, open: x.done === false, value: { w: x.weightKg ?? 0, r: x.reps ?? 0 } })),
+      sets.map((x) => ({
+        prep: x.isWarmup === true,
+        open: x.done === false,
+        value: { w: x.weightKg ?? 0, r: x.reps ?? 0 },
+      })),
       at,
       // 빈 칸(0)은 복사하지 않는다 — 저장소와 같은 비교(REV-077 C-1)
       (a, b) => (!(b.w > 0) || Math.abs(a.w - b.w) < 1e-9) && (!(b.r > 0) || a.r === b.r),
@@ -588,22 +622,56 @@ export function ExerciseBlock({
     if (isCardio || hasRx || !lineRange || loadMode !== "external" || prevCleared) return null;
     // 한쪽 입력 배수를 맞춘다 — 지난번 합계를 이번 칸의 입력값으로(REV-078 D-2)
     const m = blockMultiplier || 1;
-    const lastWork = lineLast.map((p) => ({ weightKg: (p.weightKg * (p.loadMultiplier ?? 1)) / m, reps: p.reps, failed: p.failed }));
+    const lastWork = lineLast.map((p) => ({
+      weightKg: (p.weightKg * (p.loadMultiplier ?? 1)) / m,
+      reps: p.reps,
+      failed: p.failed,
+    }));
     const inc = progressionIncrementKg(baseEquipment, blockUnit) / m;
-    const plan = planDoubleProgression({ lastWork, repMin: lineRange.repMin, repMax: lineRange.repMax, incrementKg: inc });
+    const plan = planDoubleProgression({
+      lastWork,
+      repMin: lineRange.repMin,
+      repMax: lineRange.repMax,
+      incrementKg: inc,
+    });
     if (!plan) return null;
     return { ...plan, weightKg: roundSuggestionKg(plan.weightKg, blockUnit) };
   })();
   // 작업 세트를 하나라도 끝냈으면 접는다(REV-078 D-9) · 사람이 고친 세트는 채우지 않는다(D-1)
   const workSets = sets.filter(isRangeWork);
   const progStarted = workSets.some((x) => x.done === true);
-  const progOpen = progPlan && !progStarted
-    ? workSets.filter((x, k) => {
-        if (x.done !== false || (x as SetRow & { userEdited?: boolean | null }).userEdited === true) return false;
-        const reps = progPlan.repsBySet[k] ?? progPlan.repsBySet[progPlan.repsBySet.length - 1];
-        return Math.abs(x.weightKg - progPlan.weightKg) > 1e-6 || x.reps !== reps;
-      }).length
-    : 0;
+  const progOpen =
+    progPlan && !progStarted
+      ? workSets.filter((x, k) => {
+          if (x.done !== false || (x as SetRow & { userEdited?: boolean | null }).userEdited === true)
+            return false;
+          const reps = progPlan.repsBySet[k] ?? progPlan.repsBySet[progPlan.repsBySet.length - 1];
+          return Math.abs(x.weightKg - progPlan.weightKg) > 1e-6 || x.reps !== reps;
+        }).length
+      : 0;
+
+  /** 「확인 필요」 칩 — 판정 근거(평소 범위·lb 권유)를 읽어 시트를 연다(SPEC-044) */
+  const openCheck = (s: SetRow) =>
+    void (async () => {
+      let r: Awaited<ReturnType<typeof repo.listSuspectSets>>[number] | undefined;
+      try {
+        r = (await repo.listSuspectSets({ workoutId: we.workoutId })).find((x) => x.setId === s.id);
+      } catch {
+        // 근거를 못 읽어도 기본 문구로 연다(누르고 아무 반응 없지 않게 · UX 리뷰 7)
+      }
+      checkingRow.current = s;
+      setChecking({
+        setId: s.id,
+        setNumber: r?.setNumber ?? s.setNumber,
+        exerciseName: exName ?? "",
+        weightKg: r?.weightKg ?? s.weightKg,
+        reps: r?.reps ?? s.reps,
+        unit: blockUnit,
+        usualKg: r?.usualKg ?? null,
+        lbPlausible: r?.lbPlausible ?? false,
+        reason: r?.reason ?? null,
+      });
+    })();
 
   const addSet = () =>
     void (async () => {
@@ -643,7 +711,9 @@ export function ExerciseBlock({
           if (restStarted) return;
           restStarted = true;
           // 다음 세트가 처방 드롭이면 쉬지 않는다 — 무게만 내려 바로 잇는다(SPEC-041 · 잠금화면 흐름과 같다 · REV-076 M-6)
-          const after = [...sets].sort((a, b) => a.setNumber - b.setNumber).find((x) => x.setNumber > s.setNumber && !x.done);
+          const after = [...sets]
+            .sort((a, b) => a.setNumber - b.setNumber)
+            .find((x) => x.setNumber > s.setNumber && !x.done);
           const afterRx = after ? we.prescription?.[after.setNumber - 1] : null;
           if (after?.isDrop === true && afterRx?.setType === "drop" && !s.isWarmup) return;
           // [원본] onStartRest(restSecondsForSetType(s.setType …, restSeconds)); — 세트 방식 근력 줄은 최소 180초(REV-076 코치 7)
@@ -719,7 +789,14 @@ export function ExerciseBlock({
         }
 
         // 다음 처방 세트가 있으면 무게를 권한다(웜업 사다리·탑→백오프 비율은 도메인이 안다).
-        if (kg > 0) {
+        // 튀는 기록(확인 필요)이면 그 무게로 권하지 않는다(SPEC-044 · REV-079 UX-3)
+        let suspectNow = false;
+        try {
+          suspectNow = (await repo.getSetCheckState(s.id)) === "suspect";
+        } catch {
+          // 읽지 못하면 예전처럼
+        }
+        if (kg > 0 && !suspectNow) {
           const idx = sets.findIndex((x) => x.id === s.id);
           const nextSet = sets.slice(idx + 1).find((x) => !x.done && x.setType != null);
           // 표에 무게를 넣은 줄에는 제안을 띄우지 않는다 — 탑 120 위에 「제안 81kg」이 뜬다(SPEC-023)
@@ -900,7 +977,13 @@ export function ExerciseBlock({
                 : []),
               // 세트 방식 바꾸기 — 남은 세트를 다시 짠다(SPEC-041 · 유산소는 없다)
               ...(!isCardio
-                ? [{ label: t("scheme.change"), testId: "btn-change-scheme", onPress: () => void openSchemeSheet() }]
+                ? [
+                    {
+                      label: t("scheme.change"),
+                      testId: "btn-change-scheme",
+                      onPress: () => void openSchemeSheet(),
+                    },
+                  ]
                 : []),
               // [원본] 휴식 시간·메모 열기도 메뉴 안이었다 → 블록 도구 줄로(피드백 #62) @plm SRS-084
               // {
@@ -929,7 +1012,9 @@ export function ExerciseBlock({
             </AppText>
             <AppText variant="caption" color="textMuted" data-testid="we-scheme-guide">
               {t(`scheme.guide.${blockScheme}` as Parameters<typeof t>[0])}
-              {(we.prescription ?? []).some((r) => r.setType === "feeder") ? ` · ${t("scheme.legendFeeder")}` : ""}
+              {(we.prescription ?? []).some((r) => r.setType === "feeder")
+                ? ` · ${t("scheme.legendFeeder")}`
+                : ""}
             </AppText>
           </div>
         ) : null}
@@ -1112,9 +1197,16 @@ export function ExerciseBlock({
             data-testid="prog-plan"
             data-action={progPlan.action}
             className="mb-[var(--spacing-xs)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-sm)] py-[6px]"
-            style={{ backgroundColor: progPlan.action === "increaseWeight" ? "var(--color-ok-soft)" : "var(--color-surface-alt)" }}
+            style={{
+              backgroundColor:
+                progPlan.action === "increaseWeight" ? "var(--color-ok-soft)" : "var(--color-surface-alt)",
+            }}
           >
-            <AppText variant="label" color={progPlan.action === "increaseWeight" ? "success" : "textMuted"} className="min-w-0 flex-1">
+            <AppText
+              variant="label"
+              color={progPlan.action === "increaseWeight" ? "success" : "textMuted"}
+              className="min-w-0 flex-1"
+            >
               {t(`session.prog.${progPlan.action}` as Parameters<typeof t>[0], {
                 reps: progPlan.lastReps.join("·"),
                 range: repRangeLabel(lineRange?.repMin ?? null, lineRange?.repMax ?? null),
@@ -1128,7 +1220,9 @@ export function ExerciseBlock({
               variant="quiet"
               fullWidth={false}
               testId="prog-apply"
-              onPress={() => void write(() => repo.fillOpenWorkSets(we.id, progPlan.weightKg, progPlan.repsBySet))}
+              onPress={() =>
+                void write(() => repo.fillOpenWorkSets(we.id, progPlan.weightKg, progPlan.repsBySet))
+              }
             />
           </div>
         ) : null}
@@ -1174,6 +1268,7 @@ export function ExerciseBlock({
                 }}
                 copyCount={copyCountOf(s.id)}
                 onCopyToOthers={() => copyToOthers(s.id)}
+                onCheck={() => openCheck(s)}
                 onToggleDone={onToggleDone(s)}
                 onToggleDoneSingle={onRoundToggle ? onToggleDone(s, true) : undefined}
                 loadNote={loadNotes[s.id] ?? rxLoadLabel(we.prescription?.[s.setNumber - 1] ?? null)}
@@ -1447,6 +1542,27 @@ export function ExerciseBlock({
           onConfirm={() => {
             setConfirmRemove(false);
             void write(() => repo.removeWorkoutExercise(we.id));
+          }}
+        />
+      ) : null}
+      {checking ? (
+        <SuspectSetSheet
+          info={checking}
+          onClose={() => setChecking(null)}
+          onDone={() => void onChanged()}
+          onRefresh={() => void onChanged()}
+          onEdit={() => {
+            // 직접 고치기 — 완료 세트 칸은 잠겨 있어 체크를 풀고(확인 필요도 풀린다) 그 세트의 무게 칸으로
+            const row = checkingRow.current;
+            const id = checking.setId;
+            // single=true — 슈퍼셋 짝 세트까지 풀지 않는다(화면 리뷰 1)
+            if (row) onToggleDone(row, true)(false, undefined, undefined);
+            toast(t("check.editHint")); // 체크가 풀린 것을 알린다(UX 리뷰 3)
+            window.setTimeout(() => {
+              document
+                .querySelector<HTMLInputElement>(`[data-testid="set-${id}"] [data-testid="set-weight"]`)
+                ?.focus();
+            }, 250);
           }}
         />
       ) : null}

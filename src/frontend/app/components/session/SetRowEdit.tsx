@@ -70,6 +70,8 @@ export interface SetRow {
   speedKmh?: number | null;
   /** v22: 무게 배수(플레이트 한쪽 입력=2) — null=1. 볼륨 계산만 쓴다. @plm SRS-058 */
   loadMultiplier?: number | null;
+  /** v28 기록 확인 상태 — 'suspect' 면 「확인 필요」 칩(SPEC-044) */
+  checkState?: string | null;
 }
 
 /** 직전 세션의 같은 자리 세트 — "이전" 칩이 보여 준다. */
@@ -122,6 +124,7 @@ export function SetRowEdit({
   loadNote,
   copyCount = 0,
   onCopyToOthers,
+  onCheck,
 }: {
   set: SetRow;
   /** 표시 순번 — 일반 세트만 번호가 오르고 나머지는 W/D/F/T. */
@@ -154,12 +157,17 @@ export function SetRowEdit({
   /** 「다른 세트도 똑같이」로 바뀔 세트 수(0 이면 항목 없음 · SPEC-042) */
   copyCount?: number;
   onCopyToOthers?: () => void;
+  /** 「확인 필요」 칩을 눌렀을 때 — 확인 시트(SPEC-044 · 운동 중에는 스스로 띄우지 않는다) */
+  onCheck?: () => void;
   /** 처방 무게의 근거(「추정 1RM 100kg의 80%」) — 계산된 무게가 어디서 왔는지(ADR-028) @plm SRS-063 */
   loadNote?: string | null;
 }) {
   const isDone = set.done;
   // 결과(SPEC-043) — 끝낸 세트의 횟수를 목표 범위와 견준다
-  const repOutcome = isDone ? repResult(set.reps, rx?.repMin, rx?.repMax) : null;
+  // 「확인 필요」 세트는 결과를 보이지 않는다 — 칩과 부딪히고, 확인 전까지는 맞는 기록인지 모른다(REV-079 UX-10)
+  const suspect = isDone && set.checkState === "suspect";
+  // [원본] const repOutcome = isDone ? repResult(set.reps, rx?.repMin, rx?.repMax) : null;
+  const repOutcome = isDone && !suspect ? repResult(set.reps, rx?.repMin, rx?.repMax) : null;
   const drafts = useSetDrafts();
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longFired = useRef(false);
@@ -467,6 +475,24 @@ export function SetRowEdit({
         </div>
       ) : null}
 
+      {/* 튀는 기록 — 옅은 칩(누름 넓이 44px · 금색·빨강 아님 · SPEC-044 · REV-079 UX-10) */}
+      {suspect ? (
+        <div className="flex items-center pb-[2px] pl-[42px]">
+          <button
+            type="button"
+            data-testid="set-check-chip"
+            data-check-state="suspect"
+            aria-label={t("check.chipAria", { n: set.setNumber })}
+            onClick={onCheck}
+            className="-my-[9px] inline-flex min-h-[44px] items-center"
+          >
+            <span className="inline-flex h-[26px] items-center gap-[4px] rounded-full bg-(--color-surface-alt) px-[10px] text-[length:var(--text-xs)] font-semibold text-(--color-ink)">
+              <span aria-hidden="true">?</span>
+              {t("check.chip")}
+            </span>
+          </button>
+        </div>
+      ) : null}
       {/* 처방(목표 반복·RIR) — 루틴이 지시한 값이 있을 때만. 힘든 정도 기록을 켜면 처방이 없어도 이 줄에 칩(U-1) @plm SRS-073 */}
       {/* [원본] {set.targetRir != null || rx?.repMin != null || rx?.repMax != null ? ( */}
       {/* 워밍업 세트에는 칩을 두지 않는다 — 분석(isEffortTarget)이 워밍업을 빼서 적어도 어디에도 안 나온다(QA CU-8) */}

@@ -30,6 +30,11 @@ async function load(id: string): Promise<string | null> {
   return p;
 }
 
+/** 종목 id → 화면 이름(훅 밖에서 · 확인창 문구 등). 없으면 null. */
+export function getExerciseDisplayName(id: string): Promise<string | null> {
+  return load(id);
+}
+
 /** 이름이 바뀌었다 — 캐시를 비우고 그려진 곳에 알린다(id 없으면 전부). */
 export function invalidateExerciseNames(id?: string): void {
   if (id) cache.delete(id);

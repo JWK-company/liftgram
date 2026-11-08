@@ -19,7 +19,9 @@ export const EMPTY_PR: PRSnapshot = {
 
 // 한 종목의 세트 목록에서 PR 스냅샷 추출(워밍업·실패 제외).
 export function snapshotFromSets(sets: LoggedSet[]): PRSnapshot {
-  const working = sets.filter((s) => !s.isWarmup && !s.isFailed);
+  // [원본] const working = sets.filter((s) => !s.isWarmup && !s.isFailed);
+  // [개선] 「확인 필요」 세트는 확인 전까지 PR 이 아니다(SPEC-044)
+  const working = sets.filter((s) => !s.isWarmup && !s.isFailed && !s.suspect);
   return {
     maxWeightKg: working.reduce((m, s) => Math.max(m, effectiveWeightKg(s)), 0),
     maxReps: working.reduce((m, s) => Math.max(m, effectiveReps(s)), 0),
@@ -74,7 +76,8 @@ export function pickPrSets<T extends LoggedSet>(sets: T[]): { weight: T | null; 
   let weight: T | null = null;
   let volume: T | null = null;
   for (const s of sets) {
-    if (s.isWarmup || s.isFailed) continue;
+    // [원본] if (s.isWarmup || s.isFailed) continue;
+    if (s.isWarmup || s.isFailed || s.suspect) continue; // 「확인 필요」 제외(SPEC-044)
     const w = effectiveWeightKg(s);
     const r = effectiveReps(s);
     if (w <= 0 && r <= 0) continue;

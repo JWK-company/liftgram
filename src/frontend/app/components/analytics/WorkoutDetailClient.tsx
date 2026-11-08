@@ -30,6 +30,9 @@ import { useExerciseName } from "@/lib/exerciseNames";
 import { useStartGuard } from "../useStartGuard";
 import { formatWorkoutDuration } from "@/lib/duration";
 import { trackUsage } from "@/lib/usage";
+import { Icon } from "../ui/Icon";
+import ExercisePickerScreen from "../ExercisePickerScreen";
+import { SuspectPanel, type SuspectInfo } from "../session/SuspectSetSheet"; // 튀는 기록 확인(SPEC-044)
 
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 type Detail = Awaited<ReturnType<AnalyticsRepo["getWorkoutDetail"]>>;
@@ -47,9 +50,24 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [makeRoutine, setMakeRoutine] = useState(false); // 「이 운동으로 루틴 만들기」 @plm SRS-060
   // 세트 고치기·지우기(#51 A — PR 칩 「이 기록 보기」로 와서 잘못 남은 기록을 바로잡는다) @plm SRS-061
-  const [editing, setEditing] = useState<null | { set: DetailSet; isCardio: boolean; unit: WeightUnit }>(
-    null,
-  );
+  // [원본] useState<null | { set: DetailSet; isCardio: boolean; unit: WeightUnit }>(null)
+  // [개선] 확인 필요 세트면 확인 패널을 시트 위에(suspect) · ⋯「세트 추가」는 새 세트로(addTo = 그 블록 · SPEC-044 UX-5·UX-6)
+  const [editing, setEditing] = useState<null | {
+    set: DetailSet;
+    isCardio: boolean;
+    unit: WeightUnit;
+    suspect?: SuspectInfo | null;
+    addTo?: string;
+  }>(null);
+  // 종목 ⋯ — 단위 바꾸기 확인창 · 종목 바꾸기 피커/확인창(SPEC-044 SRS-109 R4)
+  const [unitAsk, setUnitAsk] = useState<null | { ex: ExerciseDetail; to: WeightUnit }>(null);
+  const [swapPick, setSwapPick] = useState<null | ExerciseDetail>(null);
+  const [swapAsk, setSwapAsk] = useState<null | {
+    ex: ExerciseDetail;
+    toId: string;
+    toName: string;
+    pick: import("../ExercisePickerScreen").Pick;
+  }>(null);
   const [reloadTick, setReloadTick] = useState(0);
   // ?set=<id> 로 오면 그 세트를 강조한다(PR 칩에서 온 경우)
   const [focusSet, setFocusSet] = useState<string | null>(null);
@@ -231,9 +249,58 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
                     // [원본] unit={unit}
                     unit={ex.weightUnit ?? "kg"} // 이 블록에 적은 단위 @plm SRS-067
                     focusSet={focusSet}
-                    onEditSet={(set) =>
-                      setEditing({ set, isCardio: !!ex.isCardio, unit: ex.weightUnit ?? "kg" })
-                    }
+                    onEditSet={(set) => {
+                      const unit = ex.weightUnit ?? "kg";
+                      if (set.checkState !== "suspect" || !set.id) {
+                        setEditing({ set, isCardio: !!ex.isCardio, unit });
+                        return;
+                      }
+                      // 확인 필요 세트 — 판정 근거(평소 범위·lb 권유)를 읽어 고치기 시트 위에 확인 패널을
+                      void (async () => {
+                        let suspect: SuspectInfo | null = null;
+                        try {
+                          const repo = await import("@app/core/data/workoutRepository");
+                          const r = (await repo.listSuspectSets({ workoutId })).find(
+                            (x) => x.setId === set.id,
+                          );
+                          if (r)
+                            suspect = {
+                              setId: r.setId,
+                              setNumber: r.setNumber,
+                              exerciseName: ex.exerciseName,
+                              weightKg: r.weightKg,
+                              reps: r.reps,
+                              unit,
+                              usualKg: r.usualKg,
+                              lbPlausible: r.lbPlausible,
+                              reason: r.reason,
+                            };
+                        } catch {
+                          // 근거를 못 읽어도 고치기는 연다
+                        }
+                        setEditing({ set, isCardio: !!ex.isCardio, unit, suspect });
+                      })();
+                    }}
+                    onMenu={{
+                      unit: (to) => setUnitAsk({ ex, to }),
+                      swap: () => setSwapPick(ex),
+                      addSet: () => {
+                        const last = ex.sets[ex.sets.length - 1];
+                        // 값은 마지막 정상 세트에서 — 확인 필요(튀는 값)를 그대로 채우지 않는다(화면 리뷰)
+                        const basis = [...ex.sets].reverse().find((x) => x.checkState !== "suspect") ?? last;
+                        setEditing({
+                          set: {
+                            ...(basis ?? { weightKg: 0, reps: 0 }),
+                            id: undefined,
+                            setNumber: (last?.setNumber ?? 0) + 1,
+                            checkState: null,
+                          } as DetailSet,
+                          isCardio: !!ex.isCardio,
+                          unit: ex.weightUnit ?? "kg",
+                          addTo: ex.workoutExerciseId,
+                        });
+                      },
+                    }}
                     lang={lang}
                     slotLabels={slotLabels}
                   />
@@ -263,6 +330,13 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
           isCardio={editing.isCardio}
           // [원본] unit={unit}
           unit={editing.unit} // 고치는 세트는 그 블록 단위로 @plm SRS-067
+          suspect={editing.suspect ?? null}
+          addTo={editing.addTo}
+          onFixed={() => {
+            setEditing(null);
+            setReloadTick((n) => n + 1);
+          }}
+          onRefresh={() => setReloadTick((n) => n + 1)}
           onClose={() => setEditing(null)}
           onDone={(msg) => {
             setEditing(null);
@@ -275,6 +349,90 @@ export default function WorkoutDetailClient({ workoutId }: { workoutId: string }
       ) : null}
 
       {replay.sheet}
+
+      {unitAsk ? (
+        <UnitConfirm
+          ex={unitAsk.ex}
+          to={unitAsk.to}
+          onCancel={() => setUnitAsk(null)}
+          onConfirm={() => {
+            const { ex, to } = unitAsk;
+            setUnitAsk(null);
+            void (async () => {
+              try {
+                const repo = await import("@app/core/data/workoutRepository");
+                const { flushLocalDb } = await import("@/lib/localDb");
+                await repo.reinterpretBlockUnit(ex.workoutExerciseId, to);
+                await flushLocalDb();
+                setReloadTick((n) => n + 1);
+                const from: WeightUnit = to === "lb" ? "kg" : "lb";
+                toast(t("history.unitChanged"), "info", {
+                  label: t("check.undo"),
+                  testId: "unit-undo",
+                  onPress: () =>
+                    void (async () => {
+                      await repo.reinterpretBlockUnit(ex.workoutExerciseId, from);
+                      await flushLocalDb();
+                      setReloadTick((n) => n + 1);
+                      toast(t("check.undone"));
+                    })().catch((e) => toast(errorText(e), "error")),
+                });
+              } catch (e) {
+                toast(errorText(e), "error");
+              }
+            })();
+          }}
+        />
+      ) : null}
+
+      {swapPick ? (
+        <ExercisePickerScreen
+          mode="single"
+          title={t("routines.pickerSwapTitle")}
+          onClose={() => setSwapPick(null)}
+          onDone={(picks) => {
+            const ex = swapPick;
+            setSwapPick(null);
+            const first = picks[0];
+            if (!first || first.exerciseId === ex.exerciseId) return;
+            void (async () => {
+              const { getExerciseDisplayName } = await import("@/lib/exerciseNames");
+              const name = (await getExerciseDisplayName(first.exerciseId).catch(() => null)) ?? "";
+              setSwapAsk({ ex, toId: first.exerciseId, toName: name, pick: first });
+            })();
+          }}
+        />
+      ) : null}
+
+      {swapAsk ? (
+        <ConfirmDialog
+          testId="confirm-swap-exercise"
+          title={t("history.swapConfirmTitle")}
+          message={t("history.swapConfirmMessage", { name: swapAsk.toName })}
+          confirmLabel={t("history.swapConfirmOk")}
+          onCancel={() => setSwapAsk(null)}
+          onConfirm={() => {
+            const { ex, toId, pick } = swapAsk;
+            setSwapAsk(null);
+            void (async () => {
+              try {
+                const repo = await import("@app/core/data/workoutRepository");
+                await repo.swapPastWorkoutExercise(ex.workoutExerciseId, toId);
+                // 고른 이름(별칭)이 함축하는 칸 — 운동 중 교체와 같게(lib/exerciseNames.applyPick)
+                const { applyPick } = await import("@/lib/exerciseNames");
+                await applyPick(toId, pick.info, { workoutExerciseId: ex.workoutExerciseId }).catch(() => {});
+                if (pick.info) await repo.recomputeWorkoutTotals(workoutId); // 칸이 바뀌었을 수 있어 다시 센다
+                const { flushLocalDb } = await import("@/lib/localDb");
+                await flushLocalDb();
+                setReloadTick((n) => n + 1);
+                toast(t("history.swapped"));
+              } catch (e) {
+                toast(errorText(e), "error");
+              }
+            })();
+          }}
+        />
+      ) : null}
 
       {makeRoutine ? (
         <NameRoutine
@@ -317,6 +475,7 @@ function ExerciseCard({
   unit,
   focusSet,
   onEditSet,
+  onMenu,
   lang = "ko",
   slotLabels = [],
 }: {
@@ -324,6 +483,8 @@ function ExerciseCard({
   unit: WeightUnit;
   focusSet?: string | null;
   onEditSet?: (set: DetailSet) => void;
+  /** 종목 ⋯ — 단위 바꾸기·종목 바꾸기·세트 추가(SPEC-044) */
+  onMenu?: { unit: (to: WeightUnit) => void; swap: () => void; addSet: () => void };
   lang?: AppLanguage;
   slotLabels?: string[];
 }) {
@@ -349,20 +510,54 @@ function ExerciseCard({
         <AppText variant="heading" className="block min-w-0 truncate">
           {shown ?? ex.exerciseName}
         </AppText>
-        {ex.bestEstimated1RM > 0 ? (
-          <span
-            data-testid="detail-1rm"
-            className="shrink-0 text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums"
-          >
-            {/* [원본] formatWeight(ex.bestEstimated1RM, "kg") — 카드 맨 아래 따로 한 줄, lb 블록도 kg(F5) */}
-            {t("summary.oneRm", { value: formatWeight(ex.bestEstimated1RM, unit) })}
-          </span>
-        ) : null}
+        <span className="flex shrink-0 items-center gap-[var(--spacing-xs)]">
+          {ex.bestEstimated1RM > 0 ? (
+            <span
+              data-testid="detail-1rm"
+              className="shrink-0 text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums"
+            >
+              {/* [원본] formatWeight(ex.bestEstimated1RM, "kg") — 카드 맨 아래 따로 한 줄, lb 블록도 kg(F5) */}
+              {t("summary.oneRm", { value: formatWeight(ex.bestEstimated1RM, unit) })}
+            </span>
+          ) : null}
+          {onMenu ? (
+            <span className="-my-[10px] -mr-[10px]">
+              <MoreMenu
+                testId="detail-ex-menu"
+                sheetTestId="detail-ex-menu-sheet"
+                label={t("history.exerciseMenuAria", { name: shown ?? ex.exerciseName })}
+                title={shown ?? ex.exerciseName}
+                size={20}
+                options={[
+                  ...(!ex.isCardio
+                    ? [
+                        {
+                          label: unit === "lb" ? t("history.unitAsKg") : t("history.unitAsLb"),
+                          description: t("history.unitSub"),
+                          testId: "detail-ex-unit",
+                          onPress: () => onMenu.unit(unit === "lb" ? "kg" : "lb"),
+                        },
+                      ]
+                    : []),
+                  { label: t("history.swapExercise"), testId: "detail-ex-swap", onPress: onMenu.swap },
+                  ...(!ex.isCardio
+                    ? [{ label: t("history.addSet"), testId: "detail-ex-add-set", onPress: onMenu.addSet }]
+                    : []),
+                ]}
+              />
+            </span>
+          ) : null}
+        </span>
       </div>
       {/* 메타 한 줄 — 조합 · 한쪽 입력 · 볼륨(상자·배지 없이 · D6) */}
       <MetaLine className="mt-[2px]">
         {ex.scheme ? (
-          <span key="scheme" data-testid="detail-scheme" data-scheme={ex.scheme} className="font-bold text-(--color-primary)">
+          <span
+            key="scheme"
+            data-testid="detail-scheme"
+            data-scheme={ex.scheme}
+            className="font-bold text-(--color-primary)"
+          >
             {t(`scheme.name.${ex.scheme}` as Parameters<typeof t>[0])}
           </span>
         ) : null}
@@ -419,6 +614,14 @@ function ExerciseCard({
           data-set-id={s.id}
           disabled={!s.id || !onEditSet}
           onClick={() => onEditSet?.(s)}
+          aria-label={
+            s.id && onEditSet
+              ? `${t("history.rowEditAria", { n: s.setNumber, weight: formatEnteredWeight(s.weightKg, unit), reps: s.reps })}${
+                  s.checkState === "suspect" ? ` · ${t("check.chip")}` : ""
+                }`
+              : undefined
+          }
+          data-check-state={s.checkState ?? undefined}
           style={{ backgroundColor: focusSet && s.id === focusSet ? "var(--color-brand-muted)" : undefined }}
           className="flex w-full items-center rounded-[var(--radius-sm)] py-[var(--spacing-xs)] text-left"
         >
@@ -437,6 +640,13 @@ function ExerciseCard({
             {/* 세트 표시 — 태그 상자 대신 회색 한 줄(워밍업·실패·원암·옛 손 그립) · 한쪽 입력은 머리에 한 번(D6)
                 [원본] Tag(muted·danger·primary) 여러 개 + 세트마다 「한쪽 40kg ×2」 빨간 배지 */}
             <MetaLine className="text-[length:var(--text-xs)]">
+              {s.checkState === "suspect" ? (
+                // 확인 필요 — 계산에서 빠진 세트(SPEC-044 · 눌러서 고치기 시트 위 확인 패널)
+                <span key="c" data-testid="detail-set-check" className="font-semibold text-(--color-ink)">
+                  <span aria-hidden="true">? </span>
+                  {t("check.chip")}
+                </span>
+              ) : null}
               {s.isWarmup ? <span key="w">{t("analytics.warmupTag")}</span> : null}
               {/* [원본] text-(--color-warn) — 다크에서 PR 금색과 거의 같았다(금색 = PR 만 · P2 /qa code M-4).
                   「실패」는 오류가 아니라 기록 속성이라 진한 회색 + 굵게 */}
@@ -462,6 +672,12 @@ function ExerciseCard({
             <span className="w-16 text-right" data-testid="detail-set-rir">
               {/* [원본] {s.rpe != null ? String(s.rpe) : "-"} */}
               <DetailRir set={s} />
+            </span>
+          ) : null}
+          {/* 고칠 수 있는 줄이라는 표시(누르는 곳은 줄 전체 · SPEC-044) */}
+          {s.id && onEditSet ? (
+            <span aria-hidden="true" className="ml-[var(--spacing-xs)] inline-flex w-5 justify-end">
+              <Icon name="create-outline" size={14} color="var(--color-ink3)" />
             </span>
           ) : null}
         </button>
@@ -502,6 +718,42 @@ function DetailRir({ set }: { set: DetailSet }) {
   );
 }
 
+/** 단위 바꾸기 확인창 — 첫 세트·볼륨 예시로 무엇이 바뀌는지 보인다(REV-079 UX-7) */
+function UnitConfirm({
+  ex,
+  to,
+  onCancel,
+  onConfirm,
+}: {
+  ex: ExerciseDetail;
+  to: WeightUnit;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const K = 0.45359237;
+  const from: WeightUnit = to === "lb" ? "kg" : "lb";
+  const first = ex.sets.find((s) => !s.isWarmup) ?? ex.sets[0];
+  const conv = (kg: number) => (to === "lb" ? kg * K : kg / K); // 적은 숫자 그대로 · 단위만
+  const fromText = first ? formatEnteredWeight(first.weightKg, from) : "-";
+  const toText = first ? formatEnteredWeight(conv(first.weightKg), to) : "-";
+  const message = t("history.unitConfirmMessage", {
+    from: fromText,
+    to: toText,
+    volFrom: formatWeight(ex.volumeKg, "kg"),
+    volTo: formatWeight(conv(ex.volumeKg), "kg"),
+  });
+  return (
+    <ConfirmDialog
+      testId="confirm-unit"
+      title={t("history.unitConfirmTitle", { unit: to })}
+      message={message}
+      confirmLabel={t("history.unitConfirmOk", { unit: to })}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />
+  );
+}
+
 /**
  * 지난 세트 고치기·지우기(#51 A) — 저장 뒤 그 운동의 볼륨과, 그 운동·이후 운동의 PR 수를 다시 센다
  * (`recomputeWorkoutTotals` · QA Q2). 유산소는 지우기만(QA Q7). @plm SRS-061
@@ -511,6 +763,10 @@ function EditSetSheet({
   isCardio,
   unit,
   workoutId,
+  suspect = null,
+  addTo,
+  onFixed,
+  onRefresh,
   onClose,
   onDone,
   onError,
@@ -519,6 +775,14 @@ function EditSetSheet({
   isCardio: boolean;
   unit: WeightUnit;
   workoutId: string;
+  /** 확인 필요 세트 — 시트 위에 확인 패널(SPEC-044 UX-5) */
+  suspect?: SuspectInfo | null;
+  /** 세트 추가 — 그 블록에 저장할 때 만든다(UX-6) */
+  addTo?: string;
+  /** 확인 패널에서 처리했다 */
+  onFixed?: () => void;
+  /** 확인 패널 되돌리기 뒤 — 다시 읽기만 */
+  onRefresh?: () => void;
   onClose: () => void;
   onDone: (message: string) => void;
   onError: (message: string) => void;
@@ -532,7 +796,7 @@ function EditSetSheet({
     fn: (repo: typeof import("@app/core/data/workoutRepository")) => Promise<void>,
     msg: string,
   ) => {
-    if (busy || !set.id) return;
+    if (busy || (!set.id && !addTo)) return;
     setBusy(true);
     void (async () => {
       try {
@@ -560,11 +824,16 @@ function EditSetSheet({
 
   return (
     <SheetShell
-      title={t("history.editSetTitle", { n: set.setNumber })}
+      title={addTo ? t("history.addSetTitle") : t("history.editSetTitle", { n: set.setNumber })}
       onClose={onClose}
       hideOk
       testId="edit-set-sheet"
     >
+      {suspect ? (
+        <div className="mb-[var(--spacing-lg)] rounded-[var(--radius-md)] bg-(--color-surface-alt) p-[var(--spacing-md)]">
+          <SuspectPanel info={suspect} onDone={() => onFixed?.()} onRefresh={onRefresh} />
+        </div>
+      ) : null}
       {isCardio ? (
         <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
           {t("history.cardioDeleteOnly")}
@@ -598,14 +867,16 @@ function EditSetSheet({
         </div>
       )}
       <div className="flex gap-[var(--spacing-sm)]">
-        <div className="flex-1">
-          <Button
-            title={t("history.deleteSet")}
-            variant="secondary"
-            testId="edit-set-delete"
-            onPress={() => setConfirmDel(true)}
-          />
-        </div>
+        {!addTo ? (
+          <div className="flex-1">
+            <Button
+              title={t("history.deleteSet")}
+              variant="secondary"
+              testId="edit-set-delete"
+              onPress={() => setConfirmDel(true)}
+            />
+          </div>
+        ) : null}
         {!isCardio ? (
           <div className="flex-1">
             <Button
@@ -614,10 +885,14 @@ function EditSetSheet({
               loading={busy}
               disabled={!valid}
               onPress={() =>
-                run(
-                  (repo) => repo.updateSetLog(set.id as string, { weightKg: kg, reps }),
-                  t("history.editSetSaved"),
-                )
+                addTo
+                  ? run(async (repo) => {
+                      await repo.addPastSet(addTo, kg, reps);
+                    }, t("history.setAdded"))
+                  : run(
+                      (repo) => repo.updateSetLog(set.id as string, { weightKg: kg, reps }),
+                      t("history.editSetSaved"),
+                    )
               }
             />
           </div>

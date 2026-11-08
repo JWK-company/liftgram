@@ -21,9 +21,10 @@ type Col = { name: string; type: string; isOptional?: boolean };
 type Step = { type: string; table?: string; columns?: Col[] };
 const mig = migrations as unknown as { maxVersion: number; sortedMigrations: { toVersion: number; steps: Step[] }[] };
 
-test('v27: 스키마 버전 = 마지막 마이그레이션 = 27 · value_source 는 optional string', () => {
-  assert.equal(SCHEMA_VERSION, 27);
-  assert.equal(mig.maxVersion, 27);
+test('v27: 스키마 버전 = 마지막 마이그레이션(27 이상) · value_source 는 optional string', () => {
+  // [원본] assert.equal(SCHEMA_VERSION, 27); assert.equal(mig.maxVersion, 27); — v28(SPEC-044)부터 「27 이상 · 둘이 같다」
+  assert.ok(SCHEMA_VERSION >= 27);
+  assert.equal(mig.maxVersion, SCHEMA_VERSION);
   const steps = mig.sortedMigrations.find((m) => m.toVersion === 27)?.steps ?? [];
   const add = steps.find((s) => s.type === 'add_columns' && s.table === 'set_logs');
   assert.deepEqual(add?.columns?.map((c) => [c.name, c.type, !!c.isOptional]), [['value_source', 'string', true]]);
@@ -37,7 +38,7 @@ class SetLogRaw extends Model {
 
 function v26Schema() {
   const tables = Object.values(mySchema.tables).map((t) => {
-    const columns = Object.values(t.columns).filter((c) => !(t.name === 'set_logs' && c.name === 'value_source'));
+    const columns = Object.values(t.columns).filter((c) => !(t.name === 'set_logs' && (c.name === 'value_source' || c.name === 'check_state')));
     return tableSchema({ name: t.name, columns });
   });
   return appSchema({ version: 26, tables });
@@ -84,7 +85,7 @@ test('v26 → v27 이관: 옛 세트는 그대로 · value_source 는 null · �
   const doc = drv.loki.getCollection('set_logs').data[0];
   assert.ok(Object.hasOwn(doc, 'value_source'), 'addColumns 가 value_source 키를 만들었다');
   assert.equal(doc.value_source, null);
-  assert.equal(drv._databaseVersion, 27);
+  assert.equal(drv._databaseVersion, SCHEMA_VERSION); // [원본] 27
   assert.equal(rows.length, 1);
   const raw = rows[0]._raw as unknown as Record<string, unknown>;
   assert.equal(raw.weight_kg, 60);

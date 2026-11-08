@@ -9,6 +9,7 @@ import { useUser } from "@app/core/state/userContext";
 import { useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { AppText, Card } from "../ui/primitives";
+import { SuspectList } from "../session/SuspectList"; // 확인이 필요한 기록(SPEC-044)
 import { effortFill, useExerciseEffortByWorkout } from "./exerciseEffort"; // 막대 채움 = 그날 평균 RIR @plm SRS-074
 
 type Point = { bucketMs: number; label: string; value: number };
@@ -19,7 +20,9 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
   const { weightUnit } = useUser();
   const [points, setPoints] = useState<Point[] | null>(null);
   const effort = useExerciseEffortByWorkout(exerciseId);
+  const [tick, setTick] = useState(0); // 확인 필요를 처리하면 추세를 다시 읽는다
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: tick — 처리 뒤 다시 읽기
   useEffect(() => {
     let cancelled = false;
     void import("@app/core/data/analyticsRepository")
@@ -29,9 +32,25 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
     return () => {
       cancelled = true;
     };
-  }, [exerciseId]);
+  }, [exerciseId, tick]);
 
-  if (!points || points.length === 0) return null;
+  // 이 종목의 「확인이 필요한 기록」(SPEC-044 · SRS-109 R3) — 추세가 없어도 보인다
+  const suspects = (
+    <SuspectList
+      className="mt-[var(--spacing-lg)]"
+      exerciseId={exerciseId}
+      onChanged={() => setTick((n) => n + 1)}
+    />
+  );
+  // [원본] if (!points || points.length === 0) return null;
+  // 목록은 두 경우 모두 같은 자리(Fragment 의 두 번째)에 — 점이 생겨도 다시 마운트되지 않게(화면 리뷰 5)
+  if (!points || points.length === 0)
+    return (
+      <>
+        {null}
+        {suspects}
+      </>
+    );
   const recent = points.slice(-MAX);
   const best = Math.max(...points.map((p) => p.value));
   const last = recent[recent.length - 1];
@@ -41,82 +60,85 @@ export default function ExerciseProgress({ exerciseId }: { exerciseId: string })
   const hasEffort = recent.some((p) => effort.has(p.bucketMs));
 
   return (
-    <Card>
-      <div className="flex items-start justify-between" data-testid="exercise-progress">
-        <div>
-          <AppText variant="caption" color="textMuted" className="block">
-            내 추정 1RM · 최근
-          </AppText>
-          <span className="font-bold text-(--color-ink) text-[length:var(--text-xl)] tabular-nums">
-            {formatWeight(last.value, weightUnit)}
-          </span>
+    <>
+      <Card>
+        <div className="flex items-start justify-between" data-testid="exercise-progress">
+          <div>
+            <AppText variant="caption" color="textMuted" className="block">
+              내 추정 1RM · 최근
+            </AppText>
+            <span className="font-bold text-(--color-ink) text-[length:var(--text-xl)] tabular-nums">
+              {formatWeight(last.value, weightUnit)}
+            </span>
+          </div>
+          <div className="text-right">
+            <AppText variant="caption" color="textMuted" className="block">
+              최고
+            </AppText>
+            <span className="font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums">
+              {formatWeight(best, weightUnit)}
+            </span>
+          </div>
         </div>
-        <div className="text-right">
-          <AppText variant="caption" color="textMuted" className="block">
-            최고
-          </AppText>
-          <span className="font-semibold text-(--color-ink) text-[length:var(--text-md)] tabular-nums">
-            {formatWeight(best, weightUnit)}
-          </span>
-        </div>
-      </div>
-      {/* 막대 바닥을 최솟값 조금 아래에 둔다 — 1RM 은 몇 kg 씩 변해 0부터 그리면 차이가 안 보인다. */}
-      <div style={{ height: H }} className="mt-[var(--spacing-md)] flex items-end gap-[6px]">
-        {recent.map((p, i) => {
-          const floor = min * 0.85;
-          const h = Math.max(4, ((p.value - floor) / Math.max(1, max - floor)) * H);
-          const rir = effort.get(p.bucketMs);
-          return (
-            <span
-              key={p.bucketMs}
-              // [원본] title={`${p.label} · ${Math.round(p.value)}`}
-              title={`${p.label} · ${Math.round(p.value)}${rir != null ? ` · ${t("effort.tooltip", { value: Math.round(rir * 10) / 10 })}` : ""}`}
-              // [원본] 마지막이 아닌 막대 = brand 35% + 투명 — 다크에서 채움(bg-black/35)이 카드 바탕에 묻혔다(채움/바탕 1.16:1 · QA CU-2)
-              // backgroundColor: i === recent.length - 1 ? "var(--color-brand)" : "color-mix(in srgb, var(--color-brand) 35%, transparent)",
-              // [개선] 불투명 섞임(brand 75% + surface) — 막대/바탕 ≥3:1(토큰 계산: 바탕 surface 라이트 3.47 · 다크 3.72,
-              //        바탕 bg 라이트 3.24 · 다크 4.75 — .ouroboros-work/qa1-client-fix.md)
-              style={{
-                height: h,
-                backgroundColor:
-                  i === recent.length - 1
-                    ? "var(--color-brand)"
-                    : "color-mix(in srgb, var(--color-brand) 75%, var(--color-surface))",
-              }}
-              // [원본] className="max-w-6 flex-1 rounded-[4px]" />
-              className="relative max-w-6 flex-1 overflow-hidden rounded-[4px]"
-            >
-              {/* [원본] 진한 채움(막대 폭 전체 · bg-black/35) — 다크에서 채운 부분이 「막대가 없는 자리」로 보여 1RM 높이를 잘못 읽었다(QA CU-2)
+        {/* 막대 바닥을 최솟값 조금 아래에 둔다 — 1RM 은 몇 kg 씩 변해 0부터 그리면 차이가 안 보인다. */}
+        <div style={{ height: H }} className="mt-[var(--spacing-md)] flex items-end gap-[6px]">
+          {recent.map((p, i) => {
+            const floor = min * 0.85;
+            const h = Math.max(4, ((p.value - floor) / Math.max(1, max - floor)) * H);
+            const rir = effort.get(p.bucketMs);
+            return (
+              <span
+                key={p.bucketMs}
+                // [원본] title={`${p.label} · ${Math.round(p.value)}`}
+                title={`${p.label} · ${Math.round(p.value)}${rir != null ? ` · ${t("effort.tooltip", { value: Math.round(rir * 10) / 10 })}` : ""}`}
+                // [원본] 마지막이 아닌 막대 = brand 35% + 투명 — 다크에서 채움(bg-black/35)이 카드 바탕에 묻혔다(채움/바탕 1.16:1 · QA CU-2)
+                // backgroundColor: i === recent.length - 1 ? "var(--color-brand)" : "color-mix(in srgb, var(--color-brand) 35%, transparent)",
+                // [개선] 불투명 섞임(brand 75% + surface) — 막대/바탕 ≥3:1(토큰 계산: 바탕 surface 라이트 3.47 · 다크 3.72,
+                //        바탕 bg 라이트 3.24 · 다크 4.75 — .ouroboros-work/qa1-client-fix.md)
+                style={{
+                  height: h,
+                  backgroundColor:
+                    i === recent.length - 1
+                      ? "var(--color-brand)"
+                      : "color-mix(in srgb, var(--color-brand) 75%, var(--color-surface))",
+                }}
+                // [원본] className="max-w-6 flex-1 rounded-[4px]" />
+                className="relative max-w-6 flex-1 overflow-hidden rounded-[4px]"
+              >
+                {/* [원본] 진한 채움(막대 폭 전체 · bg-black/35) — 다크에서 채운 부분이 「막대가 없는 자리」로 보여 1RM 높이를 잘못 읽었다(QA CU-2)
                 <span data-testid="progress-effort-fill" style={{ height: `${effortFill(rir) * 100}%` }}
                   className="absolute inset-x-0 bottom-0 block bg-black/35" /> */}
-              {/* [개선] 막대 가운데 세로 줄(3px · on-brand) — 막대 윤곽은 그대로라 1RM 높이가 흐려지지 않는다. 줄 길이 = 그날 작업 세트의
+                {/* [개선] 막대 가운데 세로 줄(3px · on-brand) — 막대 윤곽은 그대로라 1RM 높이가 흐려지지 않는다. 줄 길이 = 그날 작업 세트의
                   평균 여유가 적을수록 길다(범례 아래 한 줄). 대비: 줄/막대 라이트 3.47·5.20 · 다크 4.75·7.04 (:1) @plm SRS-074 */}
-              {rir != null ? (
-                <span
-                  data-testid="progress-effort-fill"
-                  data-fill={effortFill(rir)}
-                  style={{ height: `${effortFill(rir) * 100}%` }}
-                  className="absolute bottom-0 left-1/2 block w-[3px] -translate-x-1/2 rounded-t-full bg-(--color-on-brand)"
-                />
-              ) : null}
-            </span>
-          );
-        })}
-      </div>
-      <div className="mt-[var(--spacing-xs)] flex justify-between text-(--color-ink3) text-[length:var(--text-xs)] tabular-nums">
-        <span>{recent[0].label}</span>
-        <span>{`${points.length}회 기록`}</span>
-        <span>{last.label}</span>
-      </div>
-      {hasEffort ? (
-        <AppText
-          variant="caption"
-          color="textMuted"
-          className="mt-[2px] block"
-          data-testid="progress-effort-legend"
-        >
-          {t("effort.progressLegend")}
-        </AppText>
-      ) : null}
-    </Card>
+                {rir != null ? (
+                  <span
+                    data-testid="progress-effort-fill"
+                    data-fill={effortFill(rir)}
+                    style={{ height: `${effortFill(rir) * 100}%` }}
+                    className="absolute bottom-0 left-1/2 block w-[3px] -translate-x-1/2 rounded-t-full bg-(--color-on-brand)"
+                  />
+                ) : null}
+              </span>
+            );
+          })}
+        </div>
+        <div className="mt-[var(--spacing-xs)] flex justify-between text-(--color-ink3) text-[length:var(--text-xs)] tabular-nums">
+          <span>{recent[0].label}</span>
+          <span>{`${points.length}회 기록`}</span>
+          <span>{last.label}</span>
+        </div>
+        {hasEffort ? (
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="mt-[2px] block"
+            data-testid="progress-effort-legend"
+          >
+            {t("effort.progressLegend")}
+          </AppText>
+        ) : null}
+      </Card>
+      {suspects}
+    </>
   );
 }

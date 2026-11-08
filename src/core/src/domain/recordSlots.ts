@@ -181,7 +181,8 @@ export function summarizeSlots(sessions: SlotSession[]): SlotSummary[] {
     list.sort((a, b) => b.completedAt - a.completedAt);
     const latest = list[0];
     const all = list.flatMap((s) => s.sets);
-    const working = all.filter((s) => !s.isWarmup && !s.isFailed);
+    // [원본] const working = all.filter((s) => !s.isWarmup && !s.isFailed);
+    const working = all.filter((s) => !s.isWarmup && !s.isFailed && !s.suspect); // 「확인 필요」는 최고 기록이 아니다(SPEC-044)
     let best: { weightKg: number; reps: number } | null = null;
     for (const s of working) {
       const w = Math.max(0, s.weightKg) * effectiveMultiplier(s);
