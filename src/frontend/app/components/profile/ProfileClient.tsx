@@ -55,6 +55,7 @@ import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
 import { UsageStatsRow } from "./UsageStatsRow";
 import { WeighInSettingRow } from "./WeighInSettingRow"; // 운동 전 체중 체크인 스위치 @plm SRS-077
+import { HintsResetRow } from "./HintsResetRow"; // 첫 안내 다시 보기(SPEC-046 · SRS-111 R5)
 import { LockScreenRow } from "./LockScreenRow"; // 잠금화면 운동 카드 켜기(앱에서만 · SPEC-017)
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 // import { version as APP_VERSION } from "../../../package.json"; — [원본] 버전 꼬리(아래 주석) · 지금은 AppVersionRow 가 보인다
@@ -357,6 +358,8 @@ export default function ProfileClient() {
             title={t("machineVariant.settingsTitle")}
             onPress={() => setSheet("machine")}
           />
+          {/* 한 번 누르면 끝나는 동작이라 설정 맨 끝에(SPEC-046 P3 리뷰) */}
+          <HintsResetRow />
         </ListGroup>
 
         {/* ── 계정과 데이터: 로그인·보안과 백업은 하위 화면(/account)으로 모은다. */}

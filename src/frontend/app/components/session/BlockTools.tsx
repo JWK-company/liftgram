@@ -10,6 +10,7 @@
 // 순서 버튼은 위아래로 붙어 있던 22×28px 두 개가 잘못 눌리던 것(/qa code M-5)을 좌우로 떼고 누르는 자리를 키운 것이다.
 // testid 는 메뉴 시절 그대로(btn-move-up·btn-move-down·btn-rest-setting·btn-note-open).
 import { t } from "@/lib/i18n";
+import { chipFaceClass } from "../ui/ValueChip";
 import { Icon } from "../ui/Icon";
 
 /** 「2:00」 — 분은 앞 0 없이(휴식 시간은 10분을 넘지 않는다). */
@@ -105,10 +106,17 @@ export function BlockTools({
         data-testid="btn-rest-setting"
         onClick={onRest}
         aria-label={`${t("session.restTime")} — ${formatRestShort(restSeconds)}`}
-        className="inline-flex min-h-[44px] shrink-0 items-center gap-[4px] tabular-nums"
+        // [원본] 바탕 없는 회색 아이콘 + 글자 — 「휴식 시간을 바꾸는 곳」인지 몰랐다(사용성 1)
+        // [개선] 값 칩 — 바깥 44px 누르는 자리는 그대로(feedback-62-64), 바탕은 안쪽(SPEC-046)
+        className="inline-flex min-h-[44px] shrink-0 items-center rounded-[var(--radius-sm)] tabular-nums focus-visible:outline-2 focus-visible:outline-(--color-brand)"
       >
-        <Icon name="timer-outline" size={14} color="var(--color-ink3)" />
-        {t("session.restShort", { time: formatRestShort(restSeconds) })}
+        <span
+          data-chip-face=""
+          className={`inline-flex items-center gap-[4px] rounded-[10px] px-[6px] py-[2px] ${chipFaceClass("default", false)}`}
+        >
+          <Icon name="timer-outline" size={14} color="var(--color-ink3)" />
+          {t("session.restShort", { time: formatRestShort(restSeconds) })}
+        </span>
       </button>
       <span aria-hidden className="text-(--color-ink3)">
         ·
@@ -119,10 +127,17 @@ export function BlockTools({
         data-has-note={preview ? "1" : "0"}
         onClick={onNote}
         aria-label={preview ? t("session.noteEditAria", { note: preview }) : t("session.notePlaceholder")}
-        className="inline-flex min-h-[44px] min-w-0 flex-1 items-center gap-[4px] text-left"
+        // [원본] 바탕 없는 연필 + 글자(flex-1) · [개선] 값 칩 — 바탕은 글자 길이만큼(max-w · 줄 전체 회색 막대 금지 · REV-084 9)
+        // 누르는 자리도 칩만큼(flex-1 이면 칩 오른쪽 빈 곳도 눌렸다 · P1 코드 리뷰 시각 6)
+        className="inline-flex min-h-[44px] min-w-0 shrink items-center rounded-[var(--radius-sm)] text-left focus-visible:outline-2 focus-visible:outline-(--color-brand)"
       >
-        <Icon name="create-outline" size={14} color="var(--color-ink3)" />
-        <span className="min-w-0 truncate">{preview || t("session.noteShort")}</span>
+        <span
+          data-chip-face=""
+          className={`inline-flex min-w-0 max-w-full items-center gap-[4px] rounded-[10px] px-[6px] py-[2px] ${chipFaceClass("default", false)}`}
+        >
+          <Icon name="create-outline" size={14} color="var(--color-ink3)" />
+          <span className="min-w-0 truncate">{preview || t("session.noteShort")}</span>
+        </span>
       </button>
       {/* [원본] 오른쪽 끝 — ⌄ 가 메모 펼치기로 읽혔다
       <MoveButtons onMoveUp={onMoveUp} onMoveDown={onMoveDown} /> */}

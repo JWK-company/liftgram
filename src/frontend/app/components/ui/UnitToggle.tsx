@@ -30,7 +30,9 @@ export function UnitToggle({
       <fieldset
         aria-label={t("session.unitToggleLabel")}
         data-testid="unit-toggle"
-        className="m-0 inline-flex min-w-0 shrink-0 items-center border-0 p-0"
+        // [원본] className="m-0 inline-flex min-w-0 shrink-0 items-center border-0 p-0" — 글자 둘(굵기만 다름)이라 「바꾸는 곳」인지 몰랐다(사용성 1)
+        // [개선] 둘로 나뉜 토글 — 옅은 트랙 + 고른 쪽 알약(surface + 그림자 + 굵게 · 다크에서도 토큰 · SPEC-046 · REV-084 15). 높이 h-7 그대로
+        className="m-0 inline-flex h-7 min-w-0 shrink-0 items-center rounded-full border-0 bg-(--color-surface-alt) p-[2px]"
       >
         {/* 읽어 주는 legend — legend 없는 fieldset 의 그룹을 건너뛰는 스크린리더가 있다(/qa code L-6) */}
         <legend className="sr-only">{t("session.unitToggleLabel")}</legend>
@@ -40,12 +42,8 @@ export function UnitToggle({
             <span key={u} className="inline-flex items-center">
               {/* 두 버튼 사이 간격 — 누르는 자리(아래 after:)가 서로 닿지 않게(/qa code H-1) */}
               {i > 0 ? (
-                <span
-                  aria-hidden
-                  className="px-[3px] text-(--color-line-strong) text-[length:var(--text-xs)]"
-                >
-                  │
-                </span>
+                // 두 버튼 사이 틈 — 글자 「│」 대신 빈 틈(누르는 자리가 닿지 않게는 그대로 · /qa code H-1)
+                <span aria-hidden className="w-[6px]" />
               ) : null}
               <button
                 type="button"
@@ -55,8 +53,11 @@ export function UnitToggle({
                 onClick={() => onChange(u)}
                 // [원본] h-7 min-w-[24px] — 누르는 자리 28×24px(잘못 누르면 숫자 그대로 단위만 바뀐다 · /qa code H-1)
                 // [개선] 보이는 글자는 그대로, 누르는 자리만 위(12px)·아래(4px)로 넓힌다(after: 44px 높이) — 표 머리 높이는 그대로, 아래 무게 칸은 침범하지 않는다
-                className={`relative inline-flex h-7 min-w-[22px] items-center justify-center px-[2px] text-[length:var(--text-xs)] after:absolute after:inset-x-[-2px] after:top-[-12px] after:bottom-[-4px] after:content-[''] disabled:opacity-60 ${
-                  on ? "font-bold text-(--color-ink)" : "font-medium text-(--color-ink3)"
+                className={`relative inline-flex h-6 min-w-[24px] items-center justify-center rounded-full px-[4px] text-[length:var(--text-xs)] after:absolute after:inset-x-[-2px] after:top-[-14px] after:bottom-[-6px] after:content-[''] disabled:opacity-60 ${
+                  on
+                    ? // [원본] bg-(--color-surface) — 다크에서 트랙보다 어두워 「눌린 구멍」처럼 보였다(P2 리뷰) → 구간 선택기와 같은 --seg-on
+                      "bg-(--seg-on) font-bold text-(--color-ink) shadow-[0_1px_2px_rgba(0,0,0,0.18)]"
+                    : "font-medium text-(--color-ink3)"
                 }`}
               >
                 {u}

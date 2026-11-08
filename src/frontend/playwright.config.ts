@@ -31,6 +31,8 @@ export default defineConfig({
           localStorage: [
             { name: "onboarding_seen_v1", value: "yes" },
             { name: "liftgram.nudge.suppressed", value: "e2e" },
+            // 첫 안내 말풍선(SPEC-046)도 — `coach-marks.spec.ts`가 지우고 확인한다
+            { name: "liftgram.hint.suppressed", value: "e2e" },
           ],
         },
       ],

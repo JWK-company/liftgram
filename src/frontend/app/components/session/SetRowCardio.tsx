@@ -27,8 +27,10 @@ import {
   type CardioMetric,
 } from "@app/core";
 import { useEffect, useState } from "react";
+import { markCoachMarkSeen } from "@/lib/coachMarks";
 import { t, type TransKey } from "@/lib/i18n";
 import { Icon } from "../ui/Icon";
+import { ValueChip } from "../ui/ValueChip";
 import { AppText } from "../ui/primitives";
 
 /** 이전 기록에서 이 줄로 옮겨 올 수 있는 값들. */
@@ -102,6 +104,7 @@ export function SetRowCardio({
   /** 이전 기록을 통째로 옮겨 온다 — 같은 코스를 반복할 때가 대부분이다. */
   function applyPrev() {
     if (!prev) return;
+    markCoachMarkSeen("prev"); // 첫 안내는 본 것(SPEC-046)
     onUpdate({
       durationSec: prev.durationSec ?? null,
       distanceM: prev.distanceM ?? null,
@@ -158,25 +161,40 @@ export function SetRowCardio({
           </span>
         </span>
 
-        <button
-          type="button"
-          onClick={applyPrev}
-          disabled={!hasPrev}
-          data-testid="cardio-prev"
-          className="w-[66px] shrink-0"
+        {/* [원본] 이전 — <button data-testid="cardio-prev" className="w-[66px] shrink-0"> 안에 분홍 상자(bg-(--color-brand-muted)) + 빨강 글자.
+            근력 「이전」과 모양이 달랐다(사용성 1 · SPEC-046) */}
+        {/* [개선] 근력과 같은 값 칩 — 칸 전체 옅은 바탕 · 기록 없음은 바탕 없음 */}
+        <ValueChip
+          testId="cardio-prev"
+          stretch
+          // 마친 세트는 바탕 없음 · 못 누름(근력과 같은 규칙 · P1 코드 리뷰)
+          disabled={!hasPrev || isDone}
+          onPress={applyPrev}
+          className="w-[66px] shrink-0 justify-center"
+          ariaLabel={
+            !hasPrev
+              ? t("chip.prevNone")
+              : formatCardioSet(prev?.durationSec, prev?.distanceM) === "–"
+                ? t(isDone ? "chip.prevDoneGeneric" : "chip.prevFillGeneric") // 경사·단계만 있는 기록
+                : t(isDone ? "chip.prevDoneCardio" : "chip.prevFillCardio", {
+                    value: formatCardioSet(prev?.durationSec, prev?.distanceM).replaceAll(" · ", ", "),
+                  })
+          }
         >
           {hasPrev ? (
-            <span className="block rounded-[var(--radius-sm)] bg-(--color-brand-muted) px-[4px] py-[3px]">
-              <AppText variant="caption" color="primary" className="block truncate text-center">
-                {formatCardioSet(prev?.durationSec, prev?.distanceM)}
-              </AppText>
-            </span>
+            <AppText
+              variant="caption"
+              color={isDone ? "textFaint" : "textMuted"}
+              className="block truncate text-center tabular-nums"
+            >
+              {formatCardioSet(prev?.durationSec, prev?.distanceM)}
+            </AppText>
           ) : (
             <AppText variant="caption" color="textFaint" className="block text-center">
               –
             </AppText>
           )}
-        </button>
+        </ValueChip>
 
         {metrics.map((m) => {
           const cell = CELL[m];

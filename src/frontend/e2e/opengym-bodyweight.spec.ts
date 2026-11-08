@@ -353,10 +353,18 @@ test("통계 체중 카드 — 하나면 안내 · 불규칙 간격 3점 곡선 
     "aria-label",
     "체중 곡선 · 최근 72.4kg · 기간 변화 −1.6kg",
   );
+  // 고르기 전에는 안내(읽지 않음 · 값 줄 밖) — 누르면 사라진다(SPEC-046)
+  const hint = page.getByTestId("bodyweight-chart-hint");
+  await expect(hint).toBeVisible();
+  await expect(hint).toHaveAttribute("aria-hidden", "true");
+  await expect(page.getByTestId("bodyweight-chart-readout").getByTestId("bodyweight-chart-hint")).toHaveCount(
+    0,
+  );
   // 누르면 그 점 값
   const svgBox = await page.getByTestId("bodyweight-chart-svg").boundingBox();
   if (svgBox) await page.mouse.click(svgBox.x + xs[0], svgBox.y + 40);
   await expect(page.getByTestId("bodyweight-chart-readout")).toContainText("74.0kg");
+  await expect(hint).toHaveCount(0);
 
   // 목표 70 → 목표선 · 남은 차이
   await page.getByTestId("btn-bodyweight-goal").click();
@@ -616,7 +624,10 @@ test("백업 내보내기 → 새 계정 기기에서 가져오기 — 체중 �
       origins: [
         {
           origin: process.env.BASE ?? "http://127.0.0.1:3100",
-          localStorage: [{ name: "onboarding_seen_v1", value: "yes" }],
+          localStorage: [
+            { name: "onboarding_seen_v1", value: "yes" },
+            { name: "liftgram.hint.suppressed", value: "e2e" },
+          ],
         },
       ],
     },

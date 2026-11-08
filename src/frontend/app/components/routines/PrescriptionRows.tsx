@@ -21,6 +21,7 @@ import {
   withEffortGoal,
 } from "@app/core/domain/routineSets";
 import { useEffect, useRef, useState } from "react";
+import { markCoachMarkSeen } from "@/lib/coachMarks";
 import { t } from "@/lib/i18n";
 import { Button } from "../ui/Button";
 import { ActionSheet } from "../ui/Dialog";
@@ -512,13 +513,20 @@ export function PrescriptionRows({
                 type="button"
                 data-testid="rx-type"
                 aria-label={`${t("session.setTypeTitle")}: ${t(`routines.rxType.${r.setType}` as Parameters<typeof t>[0])}`}
-                onClick={() => setTypeRow(i)}
+                aria-haspopup="dialog"
+                onClick={() => {
+                  markCoachMarkSeen("rxType"); // 첫 안내는 본 것(SPEC-046)
+                  setTypeRow(i);
+                }}
                 className={`flex h-[44px] ${routine ? "w-[44px]" : "w-[34px]"} shrink-0 items-center justify-center`}
               >
-                <span className="flex min-w-[28px] justify-center rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) px-[2px] py-[2px]">
+                {/* [원본] 테두리 상자(border-line + surface-alt) — 입력칸과 같은 모양이라 고르는 곳인지 몰랐다(사용성 1)
+                    [개선] ② 메타 꺾쇠 — 번호 + 작은 ▾(SVG · 글자는 그대로 · 운동 중 세트 번호와 같게 · SPEC-046) */}
+                <span className="flex min-w-[28px] items-center justify-center gap-[1px] py-[2px]">
                   <AppText variant="caption" className="font-bold">
                     {glyph}
                   </AppText>
+                  <Icon name="chevron-down" size={12} color="var(--color-ink3)" className="shrink-0" />
                 </span>
               </button>
               {allowLoad ? (

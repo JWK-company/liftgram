@@ -42,6 +42,7 @@ import { ExerciseBlock, type WorkoutExerciseRow } from "./ExerciseBlock";
 import { MoveButtons } from "./BlockTools";
 import { ExerciseName } from "./ExerciseName";
 import { RestBar, clock } from "./RestBar";
+import { LongDoneHint, PrevHint } from "../CoachHints";
 import { LockNotices } from "./LockNotices";
 import { LockReadiness } from "./LockReadiness";
 // import { SessionGuideButtons } from "./SessionGuides"; // [원본] SPEC-023
@@ -507,10 +508,14 @@ export default function ActiveWorkout() {
             />
           </div>
           {/* 「운동 취소(삭제)」는 머리의 ⋯ 안에 있다 — 세트 추가보다 크고 붉게 늘 떠 있던 자리(SRS-054). */}
-          <div className="h-[var(--spacing-xxl)]" />
+          {/* [원본] <div className="h-[var(--spacing-xxl)]" /> — 첫 안내가 떠 있으면 그 높이만큼 더 비운다(SPEC-046 P3 리뷰) */}
+          <div style={{ height: "calc(var(--spacing-xxl) + var(--coach-h, 0px))" }} />
         </div>
 
         <RestBar />
+        {/* 숨은 동작 첫 안내 — 한 번에 하나 · 창이 열렸거나 입력 중이면 숨는다(SPEC-046 · SRS-111 R4) */}
+        <PrevHint />
+        <LongDoneHint />
         <PrCelebrationHost />
         {/* 운동 전 체중 체크인 — 설정을 켠 사람에게만, 이 운동 첫 진입에서 한 번(U-7) @plm SRS-077 */}
         <WeighInCheckin workoutId={workout.id} startedAt={workout.startedAt} />
@@ -947,7 +952,8 @@ function SupersetContainer({
     // <div className="… border-[1.5px] border-(--color-brand) …"><div className="… bg-(--color-brand-muted) …">
     <div className="mb-[var(--spacing-lg)] overflow-hidden rounded-[var(--radius-lg)] border-[1.5px] border-(--color-line-strong) bg-(--color-surface)">
       {/* [원본] py-[var(--spacing-xs)] — compact 순서 버튼의 넓힌 누르는 자리(44px)가 overflow-hidden 에 위아래로 잘렸다(/qa code L-1) */}
-      <div className="flex items-center bg-(--color-surface-alt) px-[var(--spacing-md)] py-[8px]">
+      {/* 머리 줄 높이 44px(py-0) — 「해제」 누르는 자리를 음수 마진 없이 44px로(P1 코드 리뷰 정확성 7) · [원본] py-[8px] */}
+      <div className="flex min-h-[44px] items-center bg-(--color-surface-alt) px-[var(--spacing-md)]">
         {/* [원본] 20×20 위아래가 세로로 붙어 있었다 — 블록과 같은 이유(잘못 눌림 · /qa code M-5)로 좌우·누르는 자리 44px(피드백 #62) @plm SRS-084
         {onMoveUp || onMoveDown ? (
           <div className="mr-[6px] flex flex-col gap-[2px]">
@@ -969,7 +975,9 @@ function SupersetContainer({
           type="button"
           data-testid="btn-unlink-superset"
           onClick={onUnlink}
-          className="px-[var(--spacing-sm)] py-[2px]"
+          // [원본] className="px-[var(--spacing-sm)] py-[2px]" — 누르는 높이가 작았다
+          // [개선] ② 메타 글자 그대로(파괴 동작이라 값 칩 모양 아님 · REV-084 9) · 누르는 높이만 44px(위아래로)
+          className="inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand)"
         >
           <AppText variant="label" color="textMuted">
             {t("session.supersetUnlink")}

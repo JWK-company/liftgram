@@ -338,10 +338,15 @@ export default function StatsClient() {
                     {otherPRs.map((pr) => (
                       <ListRow
                         key={`${pr.exerciseId}-${pr.completedAt}`}
+                        // [원본] 링크 없음 — 목록 줄인데 안 눌렸다(사용성 1 반대 사례) · [개선] › 와 함께 그 운동 기록으로(SPEC-046 · SRS-111 R3)
+                        href={`/history/${pr.workoutId}`}
+                        testId={`recent-pr-${pr.exerciseId}`}
                         title={pr.exerciseName}
                         subtitle={new Date(pr.completedAt).toLocaleDateString("ko-KR")}
                         value={
                           <span className="font-bold text-(--color-ink) text-[length:var(--text-md)]">
+                            {/* 링크 이름에 값이 무엇인지 — 「추정 1RM」(P2 리뷰) */}
+                            <span className="sr-only">{t("wellness.oneRepMaxLabel")} </span>
                             {formatWeight(pr.estimated1RM, weightUnit)}
                           </span>
                         }

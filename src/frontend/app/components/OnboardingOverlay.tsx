@@ -20,6 +20,7 @@ import { ExperienceLevel as ExperienceLevelPB } from "@app/contracts";
 import type { ExperienceLevel } from "@app/core";
 import { useEffect, useState } from "react";
 import { t, type TransKey } from "@/lib/i18n";
+import { notifyCoachMarks } from "@/lib/coachMarks";
 import { getPref, setPref } from "@/lib/prefs";
 import { useAuth } from "./AuthProvider";
 import { Button } from "./ui/Button";
@@ -55,6 +56,7 @@ export function OnboardingOverlay() {
   function finish() {
     setVisible(false);
     setPref(SEEN_KEY, "yes");
+    notifyCoachMarks(); // 첫 안내 말풍선이 이 뒤에야 뜰 수 있다 — 같은 탭에서 바로 다시 보게(SPEC-046 P3 리뷰)
   }
 
   /**
@@ -105,6 +107,7 @@ export function OnboardingOverlay() {
     // 포털을 쓰지 않는다 — 셸 최상단에 뜨고, 이 판이 떠 있는 동안은 뒤를 만질 일이 없다.
     <div
       data-testid="onboarding"
+      data-overlay=""
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-[var(--spacing-xl)]"
     >
       <div className="w-full max-w-[380px] rounded-[var(--radius-lg)] bg-(--color-surface) p-[var(--spacing-lg)]">

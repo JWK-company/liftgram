@@ -123,8 +123,21 @@ export function LockScreenRow() {
               {t("profile.lockScreenHint")}
             </span>
           </span>
-          <span aria-hidden="true" className="shrink-0 text-(--color-ink2) text-[length:var(--text-sm)]">
-            {state.lockScreen ? t("profile.lockOn") : t("profile.lockOff")}
+          {/* [원본] 「켜짐/꺼짐」 글자 — 다른 설정 줄(스위치)과 달라 눌러 바꾸는 줄인지 몰랐다(사용성 1)
+              <span aria-hidden className="shrink-0 text-ink2 text-sm">{state.lockScreen ? lockOn : lockOff}</span>
+              [개선] 다른 줄과 같은 스위치 모양(MuscleMapRow) — 이 줄은 알림 권한이 있을 때만 그려진다(SPEC-046 · REV-084 16) */}
+          <span aria-hidden="true" data-testid="row-lock-screen-switch" className="shrink-0">
+            <span
+              style={{
+                backgroundColor: state.lockScreen ? "var(--color-brand)" : "var(--color-line-strong)",
+              }}
+              className="relative block h-[28px] w-[48px] rounded-[var(--radius-pill)] transition-colors"
+            >
+              <span
+                style={{ transform: state.lockScreen ? "translateX(20px)" : "translateX(0)" }}
+                className="absolute top-[2px] left-[2px] block h-[24px] w-[24px] rounded-full bg-(--color-on-brand) shadow transition-transform"
+              />
+            </span>
           </span>
         </button>
       ) : null}

@@ -85,6 +85,7 @@ export function LockNotices() {
       {!ready && lockAvailable() ? (
         <div
           data-testid="lock-draining"
+          data-overlay=""
           aria-busy="true"
           role="status"
           aria-live="polite"

@@ -266,12 +266,14 @@ export interface RecentPR {
   exerciseName: string;
   completedAt: number;
   estimated1RM: number;
+  /** 그 PR 을 낸 운동 — 줄을 누르면 그 기록으로(SPEC-046 · SRS-111 R3) */
+  workoutId: string;
 }
 
 export async function getRecentPRs(limit = 10): Promise<RecentPR[]> {
   const enriched = await getCompletedSets();
   // 종목 → 세션별 최고 1RM (시간순)
-  const byExercise = new Map<string, Map<string, { completedAt: number; best: number }>>();
+  const byExercise = new Map<string, Map<string, { workoutId: string; completedAt: number; best: number }>>();
   for (const e of enriched) {
     // [원본] if (e.set.isWarmup || e.set.isFailed) continue;
     if (e.set.isWarmup || e.set.isFailed || e.set.suspect) continue; // 「확인 필요」 제외(SPEC-044)
@@ -281,7 +283,8 @@ export async function getRecentPRs(limit = 10): Promise<RecentPR[]> {
     // [개선] 유효무게 기준
     const oneRM = estimateOneRepMax(effectiveWeightKg(e.set), e.set.reps);
     const sessions = byExercise.get(e.exerciseId) ?? new Map();
-    const cur = sessions.get(e.workoutId) ?? { completedAt: e.completedAt, best: 0 };
+    // [원본] { completedAt, best } — workoutId 는 Map 키로만 쓰고 버렸다 · [개선] 값에도 담아 돌려준다(SPEC-046)
+    const cur = sessions.get(e.workoutId) ?? { workoutId: e.workoutId, completedAt: e.completedAt, best: 0 };
     cur.best = Math.max(cur.best, oneRM);
     sessions.set(e.workoutId, cur);
     byExercise.set(e.exerciseId, sessions);
@@ -293,7 +296,7 @@ export async function getRecentPRs(limit = 10): Promise<RecentPR[]> {
     for (const s of ordered) {
       if (s.best > runningMax + 1e-6) {
         runningMax = s.best;
-        prs.push({ exerciseId, exerciseName: '', completedAt: s.completedAt, estimated1RM: s.best });
+        prs.push({ exerciseId, exerciseName: '', completedAt: s.completedAt, estimated1RM: s.best, workoutId: s.workoutId });
       }
     }
   }

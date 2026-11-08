@@ -30,7 +30,8 @@ import { useExerciseName } from "@/lib/exerciseNames";
 import { useStartGuard } from "../useStartGuard";
 import { formatWorkoutDuration } from "@/lib/duration";
 import { trackUsage } from "@/lib/usage";
-import { Icon } from "../ui/Icon";
+import { ValueChip } from "../ui/ValueChip";
+// [원본] import { Icon } from "../ui/Icon"; — 연필을 ✎ 칩으로 바꿔 쓰지 않는다(SPEC-046)
 import ExercisePickerScreen from "../ExercisePickerScreen";
 import { SuspectPanel, type SuspectInfo } from "../session/SuspectSetSheet"; // 튀는 기록 확인(SPEC-044)
 
@@ -676,9 +677,17 @@ function ExerciseCard({
           ) : null}
           {/* 고칠 수 있는 줄이라는 표시(누르는 곳은 줄 전체 · SPEC-044) */}
           {s.id && onEditSet ? (
-            <span aria-hidden="true" className="ml-[var(--spacing-xs)] inline-flex w-5 justify-end">
-              <Icon name="create-outline" size={14} color="var(--color-ink3)" />
-            </span>
+            // [원본] 맨 연필 아이콘 <span className="ml-[xs] inline-flex w-5 justify-end"><Icon create-outline 14 /></span>
+            // [개선] 고치기 칩(장식형 · 바탕 + 연필) — 줄 전체가 버튼이라 버튼 안 버튼을 만들지 않는다(SPEC-046 · REV-084 10)
+            <ValueChip
+              as="span"
+              icon="edit"
+              testId="detail-set-edit-chip"
+              className="ml-[var(--spacing-xs)]"
+              faceClassName="py-[4px]!"
+            >
+              {null}
+            </ValueChip>
           ) : null}
         </button>
       ))}

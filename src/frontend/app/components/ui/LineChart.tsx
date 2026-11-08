@@ -66,6 +66,7 @@ export function LineChart({
   ariaLabel,
   height = 168,
   testId,
+  hint,
 }: {
   /** 가로 값 오름차순 */
   points: LinePoint[];
@@ -79,6 +80,8 @@ export function LineChart({
   ariaLabel: string;
   height?: number;
   testId?: string;
+  /** 아직 점을 고르지 않았을 때 값 줄 자리에 보일 안내(「눌러서 값 보기」 · aria-live 밖 · SPEC-046) */
+  hint?: string;
 }) {
   const box = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
@@ -127,13 +130,25 @@ export function LineChart({
   return (
     <div data-testid={testId}>
       {/* 누른 점 한 줄 — 자리를 늘 잡아 두어 그래프가 흔들리지 않는다 */}
-      <p
-        aria-live="polite"
-        data-testid={testId ? `${testId}-readout` : undefined}
-        className="h-[20px] text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums"
-      >
-        {pick ? formatPoint(pick) : ""}
-      </p>
+      <div className="relative h-[20px]">
+        <p
+          aria-live="polite"
+          data-testid={testId ? `${testId}-readout` : undefined}
+          className="h-[20px] text-(--color-ink2) text-[length:var(--text-sm)] tabular-nums"
+        >
+          {pick ? formatPoint(pick) : ""}
+        </p>
+        {/* 그래프가 눌리는 줄 몰랐다(사용성 1) — 고르기 전에만 안내 · 읽어 주는 영역 밖(값을 지울 때마다 다시 읽지 않게) */}
+        {!pick && hint ? (
+          <span
+            aria-hidden
+            data-testid={testId ? `${testId}-hint` : undefined}
+            className="absolute inset-0 text-(--color-ink3) text-[length:var(--text-xs)] leading-[20px]"
+          >
+            {hint}
+          </span>
+        ) : null}
+      </div>
       <div
         ref={box}
         className="relative w-full touch-pan-y"

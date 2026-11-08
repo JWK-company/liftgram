@@ -56,6 +56,7 @@ import { hasPictogram } from "@app/core/data/exerciseVisual";
 import { useQueryData } from "@app/core/db/hooks";
 import { useUser } from "@app/core/state/userContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { dismissIfShown, markCoachMarkSeen, triggerCoachMark } from "@/lib/coachMarks";
 import { lang, t } from "@/lib/i18n";
 import { firePrCelebration } from "../PrCelebration";
 import { Button } from "../ui/Button";
@@ -81,6 +82,7 @@ import { AppText, Card, Tag } from "../ui/primitives";
 // [원본] import { VariantSelector } from "../ui/VariantSelector";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { UnitToggle } from "../ui/UnitToggle";
+import { Icon } from "../ui/Icon";
 import { FoldToggle, MetaAction, MetaLine, PrText, useFold } from "../ui/quiet";
 import { useExerciseName } from "@/lib/exerciseNames";
 import { ExerciseName } from "./ExerciseName";
@@ -728,6 +730,10 @@ export function ExerciseBlock({
         if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
         else if (!next) await write(() => repo.setSetDone(s.id, false));
         if (!next) return;
+        // 첫 안내(SPEC-046 (c)) — 묶음 완료로 휴식이 걸리면 「길게 누르면 이 종목만」 · 이 종목만 완료했으면 이미 아는 것
+        if (grouped) triggerCoachMark("longDone");
+        else if (single) markCoachMarkSeen("longDone");
+        dismissIfShown("prev"); // 「이전」 안내가 뜬 채로 세트를 마쳤으면 본 것
         if (grouped) startRestOnce();
         if (kg > 0 || !grouped) {
           try {
@@ -833,6 +839,7 @@ export function ExerciseBlock({
     if (v) out.push({ kind: "volume", label: t("session.prVolumeChip", fmt(v)), ref: v });
     return out;
   }
+  const prFillTarget = firstOpenWorkingSet(sets); // PR 칩을 누를 수 있나(채울 세트) — SPEC-046
   /** PR 칩을 누르면 — 아직 안 한 첫 세트 하나에 그 무게·횟수(#50 A). 한쪽 입력 블록이면 입력 방식대로 환산. */
   function fillFromPr(ref: PrRef) {
     // [원본] const target = sets.find((x) => x.done !== true);
@@ -1007,9 +1014,26 @@ export function ExerciseBlock({
         {/* 세트 방식 — 이름과 한 줄 안내(SPEC-041). 일반·직접 구성은 표시하지 않는다 */}
         {blockScheme ? (
           <div data-testid="we-scheme" data-scheme={blockScheme} className="mt-[2px] flex flex-col">
-            <AppText variant="label" color="primary" className="font-bold">
-              {t(`scheme.name.${blockScheme}` as Parameters<typeof t>[0])}
-            </AppText>
+            {/* [원본] 빨간 굵은 이름(AppText) — 눌릴 것처럼 보이는데 안 눌렸다(⋯ 메뉴에만 · 사용성 1 반대 사례)
+                <AppText variant="label" color="primary" className="font-bold">{t(`scheme.name.${blockScheme}`)}</AppText> */}
+            {/* [개선] ② 메타 꺾쇠 — 이름 + ▾ · 누르면 ⋯ 메뉴와 같은 세트 방식 시트(SRS-111 R3 · 빨강은 색 가드 허용 예외) */}
+            <button
+              type="button"
+              data-testid="btn-scheme-name"
+              aria-haspopup="dialog"
+              aria-label={t("chip.schemeAria", {
+                name: t(`scheme.name.${blockScheme}` as Parameters<typeof t>[0]),
+              })}
+              onClick={() => void openSchemeSheet()}
+              // 메타 줄 높이 그대로(32px · 위로 넘치지 않게 아래만 당김 · P1 코드 리뷰 정확성 8)
+              className="-mb-[6px] inline-flex min-h-[32px] items-center gap-[2px] self-start rounded-[var(--radius-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) active:opacity-70"
+            >
+              <AppText variant="label" color="primary" className="font-bold">
+                {t(`scheme.name.${blockScheme}` as Parameters<typeof t>[0])}
+              </AppText>
+              {/* 꺾쇠는 다른 ②(일자바▾ · 1▾)와 같은 회색 — 빨강은 이름 글자만(P1 코드 리뷰 시각 5) */}
+              <Icon name="chevron-down" size={12} color="var(--color-ink3)" className="shrink-0" />
+            </button>
             <AppText variant="caption" color="textMuted" data-testid="we-scheme-guide">
               {t(`scheme.guide.${blockScheme}` as Parameters<typeof t>[0])}
               {(we.prescription ?? []).some((r) => r.setType === "feeder")
@@ -1056,12 +1080,13 @@ export function ExerciseBlock({
                     key={`pr-${c.kind}`}
                     label={c.label}
                     // 중량·볼륨이 같은 세트면 그렇다고 읽어 준다 — 화면 글자는 「PR …」 하나(/qa code L-2)
-                    ariaLabel={`${c.kind === "both" ? t("session.prBothAria", { label: c.label }) : c.label} — ${t("session.prChipFill")}`}
+                    ariaLabel={`${c.kind === "both" ? t("session.prBothAria", { label: c.label }) : c.label} — ${prFillTarget ? t("session.prChipFill") : t("session.prNoOpenSet")}`}
                     testId={`pr-chip-${c.kind}`}
                     onPress={() => fillFromPr(c.ref)}
                     historyLabel={t("session.prChipHistory")}
                     historyTestId={`pr-chip-${c.kind}-history`}
                     onHistory={() => navigate(`/history/${c.ref.workoutId}?set=${c.ref.setLogId}`)}
+                    disabled={!prFillTarget} // 채울 세트가 없으면 바탕 없는 맨 글자(SPEC-046)
                   />
                 ))
               : null}
@@ -1096,12 +1121,13 @@ export function ExerciseBlock({
                 key={`pr-${c.kind}`}
                 label={c.label}
                 // 중량·볼륨이 같은 세트면 그렇다고 읽어 준다 — 화면 글자는 「PR …」 하나(/qa code L-2)
-                ariaLabel={`${c.kind === "both" ? t("session.prBothAria", { label: c.label }) : c.label} — ${t("session.prChipFill")}`}
+                ariaLabel={`${c.kind === "both" ? t("session.prBothAria", { label: c.label }) : c.label} — ${prFillTarget ? t("session.prChipFill") : t("session.prNoOpenSet")}`}
                 testId={`pr-chip-${c.kind}`}
                 onPress={() => fillFromPr(c.ref)}
                 historyLabel={t("session.prChipHistory")}
                 historyTestId={`pr-chip-${c.kind}-history`}
                 onHistory={() => navigate(`/history/${c.ref.workoutId}?set=${c.ref.setLogId}`)}
+                disabled={!prFillTarget} // 채울 세트가 없으면 바탕 없는 맨 글자(SPEC-046)
               />
             ))}
           </MetaLine>

@@ -241,7 +241,15 @@ test("D7·F1·F2 — 피드 운동 카드: 한 줄 메타·배지 없음·2칸 �
     viewport: { width: 360, height: 640 },
     storageState: {
       cookies: [],
-      origins: [{ origin: base, localStorage: [{ name: "onboarding_seen_v1", value: "yes" }] }],
+      origins: [
+        {
+          origin: base,
+          localStorage: [
+            { name: "onboarding_seen_v1", value: "yes" },
+            { name: "liftgram.hint.suppressed", value: "e2e" },
+          ],
+        },
+      ],
     },
   });
   const page = await other.newPage();

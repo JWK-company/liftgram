@@ -76,6 +76,7 @@ export function StoryViewer({
 
   return createPortal(
     <div
+      data-overlay=""
       className="fixed inset-0 z-50 flex flex-col bg-black/95 pt-[var(--spacing-xl)]"
       data-testid="story-viewer"
     >

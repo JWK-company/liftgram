@@ -37,6 +37,7 @@ import { useAuth } from "../AuthProvider";
 import { useToast } from "../Toast";
 import { Button } from "../ui/Button";
 import { SheetShell } from "../ui/Dialog";
+import { ValueChip } from "../ui/ValueChip";
 import { Icon } from "../ui/Icon";
 import { MoreMenu } from "../ui/MoreMenu";
 import { Segmented } from "../ui/rows";
@@ -423,20 +424,41 @@ export default function CalendarClient() {
           >
             <Icon name="chevron-back" size={20} color="var(--color-ink)" />
           </button>
-          <button
-            type="button"
-            data-testid="month-label"
-            onClick={() => {
-              setView({ y: now.getFullYear(), m: now.getMonth() });
-              setSelected(todayKey);
-            }}
-            className="flex flex-col items-center"
-          >
-            <AppText variant="heading">{monthLabel}</AppText>
-            <AppText variant="caption" color="textMuted">
-              {t("calendar.monthSummary", { days: monthDaysTotal, sessions: monthSessions })}
-            </AppText>
-          </button>
+          <div className="flex flex-col items-center">
+            <button
+              type="button"
+              data-testid="month-label"
+              onClick={() => {
+                setView({ y: now.getFullYear(), m: now.getMonth() });
+                setSelected(todayKey);
+              }}
+              className="flex flex-col items-center"
+            >
+              <AppText variant="heading">{monthLabel}</AppText>
+              <AppText variant="caption" color="textMuted">
+                {t("calendar.monthSummary", { days: monthDaysTotal, sessions: monthSessions })}
+              </AppText>
+            </button>
+            {/* 제목을 누르면 오늘로 — 숨은 동작이라 이번 달이 아니면 「오늘」 칩을 따로(SPEC-046 · 사용성 1) */}
+            {/* 칩 자리는 늘 잡아 둔다 — 달을 옮길 때 아래 달력이 들썩이지 않게(P2 리뷰) */}
+            <div className="mt-[8px] flex h-[32px] items-center justify-center">
+              {view.y !== now.getFullYear() || view.m !== now.getMonth() ? (
+                <ValueChip
+                  compact
+                  testId="btn-calendar-today"
+                  ariaLabel={t("chip.todayAria")}
+                  onPress={() => {
+                    setView({ y: now.getFullYear(), m: now.getMonth() });
+                    setSelected(todayKey);
+                  }}
+                >
+                  <AppText variant="label" color="textMuted">
+                    {t("chip.today")}
+                  </AppText>
+                </ValueChip>
+              ) : null}
+            </div>
+          </div>
           <button
             type="button"
             aria-label="다음 달"

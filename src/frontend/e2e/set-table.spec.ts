@@ -172,6 +172,9 @@ test("타입을 바꿨다 되돌려도 표가 그대로 · 비운 칸은 다시 
   await 타입(page, 2, "드롭세트 (D)");
   await 타입(page, 2, "일반 세트");
   await expect(줄(page).nth(2).getByTestId("rx-type")).toHaveText("3");
+  // 번호는 테두리 없는 ▾ 하나 · 시트를 연다고 알린다(SPEC-046)
+  await expect(줄(page).nth(2).getByTestId("rx-type").locator("svg")).toHaveCount(1);
+  await expect(줄(page).nth(2).getByTestId("rx-type")).toHaveAttribute("aria-haspopup", "dialog");
   // 맨 앞 웜업은 비우고 작업 줄만 채운다 — Enter 로 올린다
   await page.getByTestId("rx-add-warmup").click();
   await 줄(page).nth(1).getByTestId("rx-weight").fill("100");

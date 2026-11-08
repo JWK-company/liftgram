@@ -54,7 +54,9 @@ async function 빨강(page: Page, n: number): Promise<{ head: string[]; table: s
     const setList = card.querySelector('[data-testid="set-list"]');
     const allowed = (el: Element) =>
       !!el.closest('[data-testid="set-done"][aria-pressed="true"]') ||
-      !!el.closest('[data-testid="btn-add-set"]');
+      !!el.closest('[data-testid="btn-add-set"]') ||
+      // 세트 방식 이름(빨강 글자)은 누르는 ② 메타가 됐다 — 허용 예외(SPEC-046 · 꺾쇠는 회색)
+      !!el.closest('[data-testid="btn-scheme-name"]');
     const head: string[] = [];
     const table: string[] = [];
     const name = (el: Element) => (el as HTMLElement).dataset?.testid ?? el.tagName.toLowerCase();

@@ -61,6 +61,9 @@ test("종목 고르기·운동 블록에 그림이 있고, 팁을 펴면 움직�
   await expect(tip.locator("svg")).toBeVisible({ timeout: 15_000 });
   const a = await tip.innerHTML();
   await expect.poll(async () => (await tip.innerHTML()) !== a, { timeout: 5_000 }).toBe(true);
+  // 「단계 보기」 칩(장식) — 그림 버튼 이름은 칩 글자를 잃지 않는다(SPEC-046 P2 리뷰)
+  await expect(page.getByTestId("tip-steps-chip")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.getByTestId("tip-media")).toHaveAccessibleName("단계 보기");
 });
 
 test("동작 줄이기 설정이면 상세의 그림이 멈춰 있다", async ({ browser }) => {

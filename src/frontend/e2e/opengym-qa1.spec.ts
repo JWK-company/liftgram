@@ -248,7 +248,8 @@ test.describe("rpe 만 있는 세트·분포 칸·진척 막대(CU-12 ③④) ·
     test.setTimeout(90_000);
     await 준비(page);
     // [원본] localStorage.setItem("liftgram.maxSchemaSeen", "27") — 지금 스키마(27)보다 높아야 가드가 뜬다(v27 SPEC-017)
-    await page.evaluate(() => localStorage.setItem("liftgram.maxSchemaSeen", "28"));
+    // [원본] "28" — v28(SPEC-044 확인 필요 칸)로 지금 스키마와 같아져 가드가 안 떴다
+    await page.evaluate(() => localStorage.setItem("liftgram.maxSchemaSeen", "29"));
     await page.goto("/");
     const guard = page.getByTestId("schema-guard");
     await expect(guard).toBeVisible({ timeout: 20_000 });
@@ -338,7 +339,7 @@ test.describe("오프라인 셸 보존(CD-3)", () => {
       .poll(() => page.evaluate(() => localStorage.getItem("liftgram.pagesCacheCleanedFor")), {
         timeout: 20_000,
       })
-      .toBe("27"); // [원본] "26" — 표식 값 = 로컬 스키마 버전(SCHEMA_VERSION · v27 SPEC-017)
+      .toBe("28"); // [원본] "26"→"27" (v28 SPEC-044) — 표식 값 = 로컬 스키마 버전(SCHEMA_VERSION · v27 SPEC-017)
     await 옛_세대_심기(page);
 
     // 오프라인으로 다시 연다 — 정리는 아무것도 하지 않는다(표시도 남기지 않는다)
@@ -358,7 +359,7 @@ test.describe("오프라인 셸 보존(CD-3)", () => {
       .poll(() => page.evaluate(() => localStorage.getItem("liftgram.pagesCacheCleanedFor")), {
         timeout: 30_000,
       })
-      .toBe("27"); // [원본] "26" — 표식 값 = 로컬 스키마 버전(SCHEMA_VERSION · v27 SPEC-017)
+      .toBe("28"); // [원본] "26"→"27" (v28 SPEC-044) — 표식 값 = 로컬 스키마 버전(SCHEMA_VERSION · v27 SPEC-017)
     const on = await 캐시_상태(page);
     test.info().annotations.push({ type: "온라인 부팅 뒤", description: JSON.stringify(on) });
     expect(Object.keys(on.out).length).toBeGreaterThanOrEqual(2); // 지금 세대 + OLDGEN — 지우지 않았다

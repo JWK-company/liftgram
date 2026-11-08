@@ -17,6 +17,7 @@
 //   PrText     금색 PR 조각 — 금색 한 가지가 「누를 수 있음」 신호. 누르면 콜백, 옆 ⓘ 는 기록으로(길게 누르기 안 씀 · Q7)
 // ─────────────────────────────────────────────────────────────────────────────
 import { Children, Fragment, type ReactNode, isValidElement, useSyncExternalStore } from "react";
+import { ValueChip } from "./ValueChip";
 import { Icon, type IconName } from "./Icon";
 
 /** 「 · 」 로 잇는 회색 한 줄. 빈 조각(null·false)은 건너뛴다. 넘치면 다음 줄로 흐른다. */
@@ -237,6 +238,7 @@ export function PrText({
   historyLabel,
   testId,
   historyTestId,
+  disabled,
 }: {
   label: string;
   ariaLabel?: string;
@@ -245,19 +247,29 @@ export function PrText({
   historyLabel?: string;
   testId?: string;
   historyTestId?: string;
+  /** 채울 세트가 없다 — 바탕 없이 맨 글자(눌리지 않음 · SPEC-046) */
+  disabled?: boolean;
 }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-[2px]">
-      <button
-        type="button"
-        data-testid={testId}
-        aria-label={ariaLabel}
-        onClick={onPress}
-        className="inline-flex min-h-[32px] min-w-0 items-center font-semibold text-(--color-pr) text-[length:var(--text-sm)]"
+      {/* [원본] 바탕 없는 금색 글자 button(min-h-[32px] · font-semibold text-(--color-pr)) — 「눌린다」는 신호가 금색 하나뿐이었다(사용성 1)
+          <button type="button" data-testid={testId} aria-label={ariaLabel} onClick={onPress}
+            className="inline-flex min-h-[32px] min-w-0 items-center font-semibold text-(--color-pr) text-[length:var(--text-sm)]">
+            <span className="min-w-0 truncate">{label}</span></button> */}
+      {/* [개선] 값 칩(pr 톤) — 옅은 금색 바탕만(메타 줄은 아이콘 없음 · 머리 높이) · 글자는 ink(대비 · REV-084 7)
+          채울 세트가 없으면 바탕을 빼되 누르면 「세트를 추가하세요」 안내는 그대로(P1 코드 리뷰) */}
+      <ValueChip
+        tone="pr"
+        testId={testId}
+        ariaLabel={ariaLabel}
+        onPress={onPress}
+        softDisabled={disabled}
+        compact
       >
-        {/* [원본] 점선 밑줄 — 금색 한 가지로 「누를 수 있음」을 말한다(/qa code L-1) */}
-        <span className="min-w-0 truncate">{label}</span>
-      </button>
+        <span className="min-w-0 truncate font-semibold text-(--color-ink) text-[length:var(--text-sm)]">
+          {label}
+        </span>
+      </ValueChip>
       {onHistory ? (
         <button
           type="button"

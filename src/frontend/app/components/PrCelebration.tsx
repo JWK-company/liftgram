@@ -82,6 +82,7 @@ export function PrCelebrationHost() {
   return (
     <div
       data-testid="pr-celebration"
+      data-overlay="" // 첫 안내가 이 위로 뜨지 않게(lib/overlayPresence.ts)
       className="pointer-events-none fixed inset-0 z-[999] flex justify-center pt-[calc(env(safe-area-inset-top)+64px)]"
     >
       <div

@@ -547,6 +547,8 @@ test.describe("앱(가짜 플러그인) — 잠금 운동 화면(SPEC-019)", () 
     const sw = page.getByTestId("row-lock-screen");
     await expect(sw).toHaveAttribute("role", "switch");
     await expect(sw).toHaveAttribute("aria-checked", "true");
+    // 「켜짐」 글자 대신 다른 줄과 같은 스위치 모양(SPEC-046)
+    await expect(sw.getByTestId("row-lock-screen-switch")).toBeVisible();
     await page.getByTestId("row-lock-fullscreen").click();
     await expect
       .poll(async () => (await calls(page, "openSettings")).map((c) => (c.arg as { kind: string }).kind))

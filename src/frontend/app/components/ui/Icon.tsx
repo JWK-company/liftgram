@@ -29,6 +29,7 @@ import {
   IoCheckmarkCircleOutline,
   IoChevronBack,
   IoChevronDown,
+  IoReturnDownForward,
   IoChevronForward,
   IoChevronUp,
   IoClipboardOutline,
@@ -121,6 +122,7 @@ const GLYPHS = {
   "checkmark-circle-outline": IoCheckmarkCircleOutline,
   "chevron-back": IoChevronBack,
   "chevron-down": IoChevronDown,
+  "return-down-forward": IoReturnDownForward, // 값 채우기(ValueChip · SPEC-046)
   "chevron-forward": IoChevronForward,
   "chevron-up": IoChevronUp,
   "clipboard-outline": IoClipboardOutline,

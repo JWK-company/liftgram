@@ -184,6 +184,7 @@ export function BodyweightCard() {
             <div className="mt-[var(--spacing-sm)]">
               {inRange.length >= 2 ? (
                 <LineChart
+                  hint={t("chip.chartHint")}
                   testId="bodyweight-chart"
                   points={inRange.map((l) => ({ x: l.measuredAt, y: shownBodyweight(l.weightKg, unit) }))}
                   xDomain={[from, Math.max(nowMs, end?.measuredAt ?? nowMs)]}

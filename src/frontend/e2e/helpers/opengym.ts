@@ -59,7 +59,10 @@ export async function 새_기기(browser: Browser): Promise<[BrowserContext, Pag
       origins: [
         {
           origin: process.env.BASE ?? "http://127.0.0.1:3100",
-          localStorage: [{ name: "onboarding_seen_v1", value: "yes" }],
+          localStorage: [
+            { name: "onboarding_seen_v1", value: "yes" },
+            { name: "liftgram.hint.suppressed", value: "e2e" },
+          ],
         },
       ],
     },

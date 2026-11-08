@@ -228,6 +228,11 @@ test("분석 — 상위 1RM 밖 종목은 「최근 PR」 에 종목당 한 줄 
     await 세트_기록(page, 0, 0, kg, 10);
     await 마치기(page);
   }
+  // PR 이 아닌 운동을 하나 더 — 링크가 「가장 최근 운동」이 아니라 PR 운동으로 가는지 가른다(P2 리뷰)
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, "덤벨 레터럴 레이즈");
+  await 세트_기록(page, 0, 0, 3, 10);
+  await 마치기(page);
   await page.goto("/stats");
   await expect(page.getByTestId("stat-volume")).toBeVisible({ timeout: 20_000 });
   const recent = page.getByTestId("stats-recent-prs");
@@ -237,4 +242,13 @@ test("분석 — 상위 1RM 밖 종목은 「최근 PR」 에 종목당 한 줄 
     await expect(recent.getByText(n)).toHaveCount(0);
     await expect(page.getByTestId("stats-1rm").getByText(n)).toHaveCount(1);
   }
+  // 최근 PR 줄은 › 와 함께 그 운동 기록으로 간다(SPEC-046 · SRS-111 R3 — 예전엔 안 눌렸다)
+  const row = recent.locator('[data-testid^="recent-pr-"]').first();
+  await expect(row.locator("svg")).toHaveCount(1);
+  await row.click();
+  await expect(page).toHaveURL(/\/history\/[^/?]+/, { timeout: 15_000 });
+  await expect(page.getByTestId("detail-set").first()).toBeVisible({ timeout: 15_000 });
+  // PR 운동(6kg) — 마지막 운동(3kg)이 아니다
+  await expect(page.getByTestId("detail-set").first()).toContainText("6");
+  await expect(page.getByTestId("detail-set").first()).not.toContainText("3kg");
 });

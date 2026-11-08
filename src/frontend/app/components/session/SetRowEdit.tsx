@@ -35,11 +35,13 @@ import { useEffect, useRef, useState } from "react";
 import { useSetDrafts } from "./setDrafts";
 import { RirChip } from "./RirChip"; // 세트 힘든 정도 칩(켰을 때만) @plm SRS-073
 import { useEffortLogging } from "@/lib/effortPref";
+import { markCoachMarkSeen } from "@/lib/coachMarks";
 import { lang, t } from "@/lib/i18n";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { keepSelectAllOnMouseUp, selectAllOnFocus } from "../ui/selectAllOnFocus";
 import { repResult } from "@app/core/domain/progression";
 import { Icon } from "../ui/Icon";
+import { ValueChip } from "../ui/ValueChip";
 import { AppText } from "../ui/primitives";
 
 /** 저장소 모델에서 이 줄이 읽는 필드만. */
@@ -251,6 +253,7 @@ export function SetRowEdit({
 
   const applyPrev = () => {
     if (!prev || isDone) return;
+    markCoachMarkSeen("prev"); // 그 동작을 했으니 첫 안내는 본 것(SPEC-046)
     onUpdate({
       weightKg: prev.weightKg,
       reps: prev.reps,
@@ -303,6 +306,21 @@ export function SetRowEdit({
 
   const hasDetail = !!set.partialReps || variantSet;
 
+  /** 「이전」 칩 이름 — 기호 대신 말 · 조합(둘째 줄)까지 · 마친 세트는 「채우기」 없이(P1 코드 리뷰 접근성 4 · 정확성 1) */
+  function prevAria(): string {
+    if (!prev) return t("chip.prevNone");
+    const reps = prev.partialReps
+      ? t("chip.repsPartial", { reps: prev.reps, partial: prev.partialReps })
+      : t("chip.reps", { reps: prev.reps });
+    const opt = prevOptionLabel(prev);
+    const base = t(isDone ? "chip.prevDone" : "chip.prevFill", {
+      weight: displayWeight(prev.weightKg, unit),
+      unit,
+      reps,
+    });
+    return opt ? `${base} · ${opt}` : base;
+  }
+
   return (
     <div
       data-testid={`set-${set.id}`}
@@ -316,30 +334,45 @@ export function SetRowEdit({
           type="button"
           data-testid="set-type"
           onClick={() => setTypeMenu(true)}
-          className="flex w-[34px] shrink-0 justify-center"
+          aria-label={
+            /^\d+$/.test(label)
+              ? t("chip.setTypeAria", { label })
+              : t("chip.setTypeAriaNamed", {
+                  name: t(
+                    `session.setType.${set.setType === "feeder" ? "feeder" : (set.setType ?? (set.isWarmup ? "warmup" : "normal"))}` as Parameters<
+                      typeof t
+                    >[0],
+                  ),
+                })
+          }
+          aria-haspopup="dialog"
+          // [원본] className="flex w-[34px] shrink-0 justify-center" · 안쪽 상자 border border-(--color-line) bg-(--color-surface-alt) px-[4px] py-[4px]
+          //   — 무게·횟수 입력칸과 같은 모양(테두리 상자)이라 「고르는 곳」인지 몰랐다(SPEC-046 · REV-084 8)
+          // [개선] ② 메타 꺾쇠 — 테두리 없이 번호 + 작은 ▾(SVG · 글자는 그대로) · 누르는 높이 44px
+          className="flex min-h-[44px] w-[34px] shrink-0 items-center justify-center rounded-[var(--radius-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand)"
         >
-          <span className="flex min-w-[28px] justify-center rounded-[var(--radius-sm)] border border-(--color-line) bg-(--color-surface-alt) px-[4px] py-[4px]">
+          <span className="flex min-w-[28px] items-center justify-center gap-[1px] py-[4px]">
             <AppText variant="caption" color={labelColor} className="font-bold">
               {label}
             </AppText>
+            <Icon name="chevron-down" size={12} color="var(--color-ink3)" className="shrink-0" />
           </span>
         </button>
 
-        {/* 이전 기록 — 누르면 그대로 채운다. */}
-        <button
-          type="button"
-          data-testid="set-prev"
+        {/* [원본] 이전 기록 — <button data-testid="set-prev" className="w-[66px] shrink-0"> 안에 테두리·바탕 없는 회색 숫자
+            (<span className="block px-[2px] py-[3px]"> + caption textMuted · 화면 정리 D4 @plm SRS-069 · 점선 밑줄은 /qa code L-1 에서 뺌).
+            「눌린다」는 신호가 없어 몰랐다(사용성 1 · SPEC-046) */}
+        {/* [개선] 값 칩 — 칸 전체가 옅은 바탕(아이콘 없음 · 뜻은 첫 안내) · 기록 없음·마친 세트는 바탕 없음(SRS-111 R1·R2) */}
+        <ValueChip
+          testId="set-prev"
+          stretch
           disabled={!prev || isDone}
-          onClick={applyPrev}
-          className="w-[66px] shrink-0"
+          onPress={applyPrev}
+          className="w-[66px] shrink-0 justify-center"
+          ariaLabel={prevAria()}
         >
-          {/* [원본] 빨간 테두리 상자 + 빨간 숫자(세트마다 — 블록에서 빨강이 가장 많던 곳)
-            <span className="block rounded-[var(--radius-sm)] border border-(--color-brand) bg-(--color-surface-alt) px-[5px] py-[3px]">
-              <AppText variant="caption" color="primary" …> */}
-          {/* [개선] 테두리 없는 회색 숫자 — 누르면 채우기는 그대로(화면 정리 D4) @plm SRS-069
-              점선 밑줄은 세트마다 반복되는 새 소음이라 뺐다(/qa code L-1) — 「이전」 칸은 회색 숫자만 */}
           {prev ? (
-            <span className="block px-[2px] py-[3px]">
+            <>
               <AppText
                 variant="caption"
                 color={isDone ? "textFaint" : "textMuted"}
@@ -353,13 +386,13 @@ export function SetRowEdit({
                   {prevOptionLabel(prev)}
                 </AppText>
               ) : null}
-            </span>
+            </>
           ) : (
             <AppText variant="caption" color="textFaint" center className="block">
               –
             </AppText>
           )}
-        </button>
+        </ValueChip>
 
         <input
           ref={weightRef}

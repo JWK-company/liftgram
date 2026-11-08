@@ -59,6 +59,7 @@ import { LogoSpinner } from "../ui/LogoSpinner";
 import { MoreMenu } from "../ui/MoreMenu";
 import { type RoutineLineSets, routineLinePatch, rowsFromRoutineLine } from "@app/core/domain/routineSets";
 import { PrescriptionRows } from "./PrescriptionRows";
+import { RxTypeHint } from "../CoachHints";
 import { trackUsage } from "@/lib/usage";
 import { runAfterOverlays } from "@/lib/useBackToClose"; // 창 칸 정리 뒤에(REV-077)
 
@@ -574,8 +575,13 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         ) : null}
       </div>
 
+      {/* 첫 안내가 떠 있는 동안 그 높이만큼 아래를 비운다 — 마지막 줄이 말풍선 밑에 갇히지 않게(SPEC-046 P3 리뷰) */}
+      <div aria-hidden style={{ height: "var(--coach-h, 0px)" }} />
       {/* 하단 고정 — 루틴 화면에서 할 일 1순위는 「시작」(시안 12). 완료는 저장하고 나가기. */}
-      <div className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]">
+      <div
+        data-coach-anchor=""
+        className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]"
+      >
         <div className={canStart ? "w-[38%]" : "flex-1"}>
           <Button
             title={t("common.done")}
@@ -738,6 +744,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           }}
         />
       ) : null}
+
+      {/* 첫 안내(SPEC-046 (b)) — 세트 번호를 누르면 종류 바꾸기·복사·삭제 · 키보드 순서가 화면과 같게 맨 끝에(P3 리뷰) */}
+      <RxTypeHint />
     </div>
   );
 }

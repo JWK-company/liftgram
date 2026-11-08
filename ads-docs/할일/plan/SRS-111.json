@@ -1,0 +1,513 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "배경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사용자 요청: 2026-11-08 채팅 1240의 1번 「눌리는 줄 모르는 버튼」.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹 보고서 「사용성 세 가지 안」은 앱 코드를 훑어, 누르면 동작하는데 겉모습이 버튼이 아닌 곳 22곳을 찾았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "그 보고서의 추천 1-A(앱 전체 「누를 수 있는 값 = 옅은 칩」 규칙)와 1-B(숨은 동작 세 가지 첫 안내)를 사용자가 「추천대로 진행」(1252)으로 승인했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R1 칩 규칙",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 값을 채우거나 바꾸는 요소는 공용 칩 하나로 그린다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 모양: 옅은 바탕의 둥근 칩에 작은 동작 아이콘을 붙인다. 아이콘은 채우기(↵ 모양), 고르기(▾), 고치기(연필), 보기(›)다. 세트마다 반복되는 좁은 칸(「이전」)은 아이콘 없이 바탕만 두고, 뜻은 R4 안내 (a)가 알린다(REV-084).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 보여 주기만 하는 숫자는 맨 글자로 둔다. 「바탕이 있으면 눌린다」 한 가지만 익히면 된다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 누르는 영역은 44px 이상이다(보이는 칩이 작으면 눌리는 범위만 넓힌다).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R2 적용 15곳",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(보고서의 상·중 등급):",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 운동 중:",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - 「이전」 칸 — 근력과 유산소를 같은 칩으로(↙)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - 금색 PR(↙)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - 세트 번호 상자(▾)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - 휴식 · 메모(칩)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - kg│lb(둘로 나뉜 토글 모양)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - 슈퍼셋 「해제」(칩)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "    - 운동 팁 그림(「단계 보기」)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 루틴 편집: 세트 번호 상자(▾)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 기록 상세: 세트 줄 끝 ✎",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 달력: 「오늘」 칩을 따로 둔다",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 체중 그래프: 「눌러서 값 보기」 안내 글",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 종목 상세: 시연 그림 모서리 ⏸/▶ 늘 표시",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 설정: 잠금화면 줄을 다른 줄처럼 스위치로",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 체크 길게 누르기: R4 첫 안내. 다른 경로는 세트 상세의 「이 종목만 완료」(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "set-done-single",
+            "type": "text"
+          },
+          {
+            "text": ")가 이미 맡는다. ⋯는 종목 단위 메뉴라 세트 단위 동작을 넣지 않는다(REV-084)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 종목 이름 잘림: 보조 기능이라 그대로(보고서 「그대로」)",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R3 반대 사례",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 운동 중 빨간 세트 방식 이름은 눌릴 것처럼 보이는데 안 눌린다. 누르면 세트 방식 시트(⋯ 메뉴와 같은 시트)가 열리게 한다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 분석 「최근 PR」 줄에 ›를 붙이고, 누르면 그 기록의 운동 상세로 간다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R4 숨은 동작 첫 안내",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 겉모습만으로 알리기 어려운 세 가지는 처음 그 화면에서 말풍선을 하나 띄운다. 「알겠어요」를 누르면 다시 뜨지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - (a) 운동 중 첫 화면: 「이전」을 누르면 지난 무게·횟수가 들어간다",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - (b) 루틴 편집 첫 화면: 번호를 누르면 세트 종류·복사·삭제",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - (c) 슈퍼셋 첫 체크: 체크를 길게 누르면 이 종목만 완료",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 본 안내는 기기에 기록한다. 입력 중이거나 창(시트)이 열린 동안에는 띄우지 않는다. (c)는 휴식 막대 위에 뜬다 — 슈퍼셋 체크는 곧바로 휴식을 시작하기 때문이다(REV-084).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R5 안내 다시 보기",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 설정에 「안내 다시 보기」를 둔다. 누르면 본 안내 기록을 지워 세 안내가 다시 뜬다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "보고서의 하 등급(+15초·건너뛰기, 운동 완료 「PR 2 ▾」, 피드 관습 동작, 잠금 안내 닫기) — 그대로 둔다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "1-C(숨은 동작을 버튼으로 바꾸기) — 채택하지 않았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-111",
+  "meta": {
+    "acceptance_criteria": "값을 채우거나 바꾸는 요소 15곳이 같은 옅은 칩(바탕 + 동작 아이콘)으로 보이고, 보여 주기만 하는 숫자는 맨 글자로 남는다 · 빨간 세트 방식 이름을 누르면 세트 방식 시트가 열리고 분석 최근 PR 줄은 › 와 함께 그 운동 기록으로 간다 · 숨은 동작 세 가지는 처음 그 화면에서 말풍선을 한 번 띄우고 닫으면 다시 뜨지 않으며 설정 「안내 다시 보기」로 다시 볼 수 있다",
+    "kind": "FR"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "누를 수 있는 값은 옅은 칩 — 앱 전체 규칙과 숨은 동작 첫 안내",
+  "type": "SRS",
+  "updated": "2026-11-08T14:42:50Z"
+}

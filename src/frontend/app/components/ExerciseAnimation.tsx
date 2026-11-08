@@ -7,6 +7,7 @@
 //
 // 탭하면 정지/재생한다(자세를 오래 들여다볼 때).
 import { useEffect, useState } from "react";
+import { t } from "@/lib/i18n";
 import { Icon } from "./ui/Icon";
 
 export default function ExerciseAnimation({
@@ -42,7 +43,8 @@ export default function ExerciseAnimation({
     <button
       type="button"
       data-testid="exercise-animation"
-      aria-label={paused ? "시연 재생" : "시연 정지"}
+      // [원본] aria-label={paused ? "시연 재생" : "시연 정지"} — 영어 화면에서도 한국어로 읽혔다(P2 리뷰)
+      aria-label={paused ? t("chip.animPlay") : t("chip.animPause")}
       onClick={() => setPaused((p) => !p)}
       className="relative flex h-[220px] w-full items-center justify-center overflow-hidden rounded-[var(--radius-md)] bg-(--color-surface-alt)"
     >
@@ -60,11 +62,15 @@ export default function ExerciseAnimation({
         style={{ opacity: frame === 1 ? 1 : 0 }}
         className="absolute inset-0 h-full w-full object-contain transition-opacity duration-200"
       />
-      {paused ? (
-        <span className="absolute right-[var(--spacing-sm)] bottom-[var(--spacing-sm)] rounded-[var(--radius-pill)] bg-black/60 p-[var(--spacing-xs)]">
-          <Icon name="play" size={16} color="var(--color-ink)" />
-        </span>
-      ) : null}
+      {/* [원본] 정지 중에만 ▶ — 재생 중에는 그림이 눌리는 줄 몰랐다(사용성 1)
+          [개선] 늘 모서리에 ⏸(재생 중) / ▶(정지 중) — SPEC-046 */}
+      <span
+        aria-hidden
+        data-testid="exercise-animation-state"
+        className="absolute right-[var(--spacing-sm)] bottom-[var(--spacing-sm)] rounded-[var(--radius-pill)] bg-black/60 p-[var(--spacing-xs)]"
+      >
+        <Icon name={paused ? "play" : "pause"} size={16} color="var(--color-on-scrim)" />
+      </span>
     </button>
   );
 }

@@ -21,6 +21,7 @@ import { lang, t } from "@/lib/i18n";
 import { ExerciseMotion } from "../ExerciseMotion";
 import { MotionNotice } from "../MotionNotice";
 import { Icon } from "../ui/Icon";
+import { ValueChip } from "../ui/ValueChip";
 import { AppText } from "../ui/primitives";
 
 /** 종목 id → 펼침 여부. 컴포넌트 밖에 두어 블록이 다시 마운트돼도 남는다(app과 같다). */
@@ -102,6 +103,8 @@ export function ExerciseTipPanel({
         <button
           type="button"
           data-testid="tip-media"
+          // 안내 글을 장식 칩으로 바꿔 버튼 이름이 비었다 — 단계가 있으면 이름을 직접(SPEC-046 P2 리뷰)
+          aria-label={steps.length ? t("chip.tipSteps") : undefined}
           onClick={() => steps.length && setMode("steps")}
           className="mt-[var(--spacing-xs)] block w-full"
         >
@@ -120,10 +123,17 @@ export function ExerciseTipPanel({
               {t(`exercises.caution.${caution}`)}
             </AppText>
           ) : null}
+          {/* [원본] 흐린 안내 글 <AppText variant="label" color="textFaint" center>{t("session.tipTapForSteps")}</AppText>
+              — 그림이 눌리는 줄 몰랐다(사용성 1) → [개선] 「단계 보기」 칩(장식형 · 그림 전체가 버튼 · SPEC-046) */}
           {steps.length ? (
-            <AppText variant="label" color="textFaint" center className="mt-[2px] block">
-              {t("session.tipTapForSteps")}
-            </AppText>
+            // 아래 세트 표와 떼어 둔다 · 제자리 펼침이라 › 가 아닌 ⌄(P2 리뷰)
+            <span className="mt-[4px] mb-[var(--spacing-sm)] flex justify-center">
+              <ValueChip as="span" icon="pick" testId="tip-steps-chip">
+                <AppText variant="label" color="textMuted">
+                  {t("chip.tipSteps")}
+                </AppText>
+              </ValueChip>
+            </span>
           ) : null}
         </button>
       ) : expanded ? (

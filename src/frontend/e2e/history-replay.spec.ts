@@ -181,7 +181,15 @@ test("피드의 남의 운동 「바로 시작」 — 루틴을 만들지 않고
     baseURL: base,
     storageState: {
       cookies: [],
-      origins: [{ origin: base, localStorage: [{ name: "onboarding_seen_v1", value: "yes" }] }],
+      origins: [
+        {
+          origin: base,
+          localStorage: [
+            { name: "onboarding_seen_v1", value: "yes" },
+            { name: "liftgram.hint.suppressed", value: "e2e" },
+          ],
+        },
+      ],
     },
   });
   const viewer = await other.newPage();
