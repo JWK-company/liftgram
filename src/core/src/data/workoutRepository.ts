@@ -2833,6 +2833,82 @@ export async function copySetValuesToOpenSets(sourceId: string): Promise<number>
   });
 }
 
+// ── 루틴 횟수 범위 → 다음 무게(SPEC-043 · SRS-108) ──
+/** 루틴 줄의 횟수 범위 — 세트 방식 처방이 없는 일반 줄의 목표. 없으면 null */
+export async function getRoutineLineRepRange(
+  routineExerciseId: string | null | undefined,
+): Promise<{ repMin: number | null; repMax: number | null } | null> {
+  if (!routineExerciseId) return null;
+  const re = await routineExercises().find(routineExerciseId).catch(() => null);
+  if (!re) return null;
+  const min = re.targetRepsMin ?? null;
+  const max = re.targetRepsMax ?? null;
+  if (min == null && max == null) return null;
+  return { repMin: min, repMax: max };
+}
+
+/** 작업 세트인가 — 웜업·피더·드롭·백오프는 범위 목표·제안에서 뺀다(REV-078 D-8) */
+function isRangeWorkSet(x: { isWarmup?: boolean | null; isDrop?: boolean | null; setType?: string | null }): boolean {
+  return x.isWarmup !== true && x.isDrop !== true && x.setType !== 'backoff' && x.setType !== 'drop' && x.setType !== 'feeder';
+}
+
+/**
+ * 같은 루틴 줄의 직전 기록(REV-078 D-4) — 다른 루틴·빠른 운동의 같은 종목 기록이 아니라 이 줄로 한 지난번.
+ * 같은 조합(variantKey)만 · 작업 세트만 · 순서대로. 없으면 빈 배열.
+ */
+export async function getPreviousLineWorkSets(
+  routineExerciseId: string,
+  variant: string | null,
+): Promise<{ weightKg: number; reps: number; failed: boolean; loadMultiplier: number | null }[]> {
+  const wes = await workoutExercises().query(Q.where('routine_exercise_id', routineExerciseId)).fetch();
+  if (!wes.length) return [];
+  const ws = await workouts()
+    .query(Q.where('id', Q.oneOf([...new Set(wes.map((x) => x.workoutId))])), Q.where('state', 'completed'))
+    .fetch();
+  ws.sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0));
+  for (const w of ws) {
+    const we = wes.find((x) => x.workoutId === w.id && (effectiveVariantKey(x) ?? null) === (variant ?? null));
+    if (!we) continue;
+    const sets = (
+      await setLogs().query(Q.where('workout_exercise_id', we.id), Q.sortBy('set_number', Q.asc)).fetch()
+    ).filter((x) => isPerformed(x) && isRangeWorkSet(x));
+    if (sets.length)
+      return sets.map((x) => ({ weightKg: x.weightKg, reps: x.reps, failed: x.isFailed === true, loadMultiplier: x.loadMultiplier ?? null }));
+  }
+  return [];
+}
+
+/**
+ * 「다음 무게 채우기」 — 안 한 작업 세트에 같은 무게 · 세트 순서대로 횟수(repsBySet).
+ * 사람이 이미 고친 세트(userEdited)는 건너뛴다(REV-078 D-1). 바뀐 세트 수.
+ */
+export async function fillOpenWorkSets(weId: string, weightKg: number, repsBySet: number[]): Promise<number> {
+  return database.write(async () => {
+    const sets = (await setLogs().query(Q.where('workout_exercise_id', weId), Q.sortBy('set_number', Q.asc)).fetch()).filter(isRangeWorkSet);
+    const ups: SetLog[] = [];
+    sets.forEach((x, k) => {
+      if (x.done !== false || x.userEdited === true) return;
+      const reps = repsBySet[k] ?? repsBySet[repsBySet.length - 1] ?? 0;
+      if (x.weightKg === weightKg && x.reps === reps) return;
+      ups.push(
+        x.prepareUpdate((rec) => {
+          if (weightKg > 0) {
+            rec.weightKg = weightKg;
+            rec.valueSource = withFieldSource(rec.valueSource, 'weight', 'user');
+          }
+          if (reps > 0) {
+            rec.reps = reps;
+            rec.valueSource = withFieldSource(rec.valueSource, 'reps', 'user');
+          }
+          rec.userEdited = true;
+        }),
+      );
+    });
+    if (ups.length) await database.batch(...ups);
+    return ups.length;
+  });
+}
+
 // 세트 삭제 후 남은 세트 번호 재정렬.
 export async function deleteSetLog(id: string): Promise<void> {
   await database.write(async () => {

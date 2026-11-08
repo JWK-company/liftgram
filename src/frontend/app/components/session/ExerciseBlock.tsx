@@ -29,6 +29,8 @@ import {
   effectiveWeightKg,
   formatEnteredWeight,
   roundSuggestionKg,
+  displayWeight,
+  repRangeLabel,
   formatWeight,
   resolveLoadMode,
   restSecondsForSetType,
@@ -77,6 +79,12 @@ import { NoteHistoryPanel } from "./NoteHistoryPanel";
 import { CARDIO_COL_LABEL, SetRowCardio } from "./SetRowCardio";
 import { SetRowEdit, type PrevSet, type SetRow, type Suggestion } from "./SetRowEdit";
 import { copyTargetIndexes } from "@app/core/domain/copySetValues"; // 다른 세트도 똑같이(SPEC-042)
+import { planDoubleProgression, progressionIncrementKg } from "@app/core/domain/progression"; // 다음 무게(SPEC-043)
+
+/** 범위 목표를 다는 작업 세트 — 웜업·피더·드롭·백오프 제외(REV-078 D-8 · 저장소 isRangeWorkSet 과 같은 기준) */
+function isRangeWork(x: { isWarmup?: boolean | null; isDrop?: boolean | null; setType?: string | null }): boolean {
+  return x.isWarmup !== true && x.isDrop !== true && x.setType !== "backoff" && x.setType !== "drop" && x.setType !== "feeder";
+}
 
 import { completeSetsFlow, type CompleteSetsResult } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
@@ -95,6 +103,8 @@ export interface WorkoutExerciseRow {
   weightUnit?: "kg" | "lb" | null;
   /** 루틴 줄의 대표 무게(표의 값이 묶인 값) — 제안 판정에 쓴다(REV-028) */
   targetWeightKg?: number | null;
+  /** v24 루틴의 어느 줄에서 왔나 — 줄의 횟수 범위를 읽는다(SPEC-043) */
+  routineExerciseId?: string | null;
   prescription:
     | {
         /** 세트 방식 표시·「최대」·타입(SPEC-041) */
@@ -185,6 +195,11 @@ export function ExerciseBlock({
   const [suggestions, setSuggestions] = useState<Record<string, Suggestion>>({});
   // 「다른 세트도 똑같이」(SPEC-042) — 방금 무게·횟수를 고친 세트
   const [copyOffer, setCopyOffer] = useState<string | null>(null);
+  // 루틴 줄의 횟수 범위(SPEC-043 · SRS-108) — 세트 방식 처방이 없는 일반 줄에서 세트마다 「목표 8~12회」 · 다음 무게 제안
+  const hasRx = Array.isArray(we.prescription) && we.prescription.length > 0;
+  const [lineRange, setLineRange] = useState<{ repMin: number | null; repMax: number | null } | null>(null);
+  // 같은 루틴 줄의 지난번 작업 세트(REV-078 D-4) — 다른 루틴·빠른 운동의 기록으로 제안하지 않는다
+  const [lineLast, setLineLast] = useState<{ weightKg: number; reps: number; failed: boolean; loadMultiplier: number | null }[]>([]);
   const [confirmRemove, setConfirmRemove] = useState(false);
   // 세트 방식 바꾸기(SPEC-041) — 시트에 띄울 정보 · 고른 방식(직접 적은 값이 있으면 먼저 묻는다)
   const [schemeInfo, setSchemeInfo] = useState<Awaited<ReturnType<WorkoutRepo["getSchemeChangeInfo"]>> | null>(null);
@@ -267,6 +282,28 @@ export function ExerciseBlock({
   useEffect(() => setVariant(we.variant ?? {}), [we.exerciseId, storedVariantKey]);
 
   const variantKey = useMemo(() => canonicalVariantKey(variant), [variant]);
+  // 줄 범위·지난 기록 읽기(SPEC-043) — 조합 키가 정해진 뒤
+  useEffect(() => {
+    let alive = true;
+    if (hasRx || !we.routineExerciseId) {
+      setLineRange(null);
+      setLineLast([]);
+      return;
+    }
+    const reId = we.routineExerciseId;
+    void (async () => {
+      const [r, last] = await Promise.all([
+        repo.getRoutineLineRepRange(reId).catch(() => null),
+        repo.getPreviousLineWorkSets(reId, variantKey ?? null).catch(() => []),
+      ]);
+      if (!alive) return;
+      setLineRange(r);
+      setLineLast(last);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [repo, we.routineExerciseId, hasRx, variantKey]);
 
   // 종목이 바뀌면(기구 바꾸기·대체) 완료 세트가 없을 때 새 종목·칸이 기억하는 단위로(환산 없음) @plm SRS-067
   const firstExercise = useRef(we.exerciseId);
@@ -545,6 +582,28 @@ export function ExerciseBlock({
     setCopyOffer(null);
     void write(() => repo.copySetValuesToOpenSets(id));
   };
+
+  // 다음 무게 제안(더블 프로그레션 · SPEC-043) — 일반 줄 · 외부 무게 종목 · 같은 루틴 줄의 지난 기록이 있을 때
+  const progPlan = (() => {
+    if (isCardio || hasRx || !lineRange || loadMode !== "external" || prevCleared) return null;
+    // 한쪽 입력 배수를 맞춘다 — 지난번 합계를 이번 칸의 입력값으로(REV-078 D-2)
+    const m = blockMultiplier || 1;
+    const lastWork = lineLast.map((p) => ({ weightKg: (p.weightKg * (p.loadMultiplier ?? 1)) / m, reps: p.reps, failed: p.failed }));
+    const inc = progressionIncrementKg(baseEquipment, blockUnit) / m;
+    const plan = planDoubleProgression({ lastWork, repMin: lineRange.repMin, repMax: lineRange.repMax, incrementKg: inc });
+    if (!plan) return null;
+    return { ...plan, weightKg: roundSuggestionKg(plan.weightKg, blockUnit) };
+  })();
+  // 작업 세트를 하나라도 끝냈으면 접는다(REV-078 D-9) · 사람이 고친 세트는 채우지 않는다(D-1)
+  const workSets = sets.filter(isRangeWork);
+  const progStarted = workSets.some((x) => x.done === true);
+  const progOpen = progPlan && !progStarted
+    ? workSets.filter((x, k) => {
+        if (x.done !== false || (x as SetRow & { userEdited?: boolean | null }).userEdited === true) return false;
+        const reps = progPlan.repsBySet[k] ?? progPlan.repsBySet[progPlan.repsBySet.length - 1];
+        return Math.abs(x.weightKg - progPlan.weightKg) > 1e-6 || x.reps !== reps;
+      }).length
+    : 0;
 
   const addSet = () =>
     void (async () => {
@@ -1047,6 +1106,33 @@ export function ExerciseBlock({
           <span className="w-[34px] shrink-0" />
         </div>
 
+        {/* 다음 무게 제안(SPEC-043) — 근거(지난번 횟수)와 함께 · 누르면 안 한 작업 세트를 채운다 */}
+        {progPlan && progOpen > 0 ? (
+          <div
+            data-testid="prog-plan"
+            data-action={progPlan.action}
+            className="mb-[var(--spacing-xs)] flex items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-sm)] py-[6px]"
+            style={{ backgroundColor: progPlan.action === "increaseWeight" ? "var(--color-ok-soft)" : "var(--color-surface-alt)" }}
+          >
+            <AppText variant="label" color={progPlan.action === "increaseWeight" ? "success" : "textMuted"} className="min-w-0 flex-1">
+              {t(`session.prog.${progPlan.action}` as Parameters<typeof t>[0], {
+                reps: progPlan.lastReps.join("·"),
+                range: repRangeLabel(lineRange?.repMin ?? null, lineRange?.repMax ?? null),
+                weight: `${displayWeight(progPlan.weightKg, blockUnit)}${blockUnit}`,
+                next: progPlan.reps,
+              })}
+            </AppText>
+            <Button
+              title={t("session.prog.apply")}
+              size="sm"
+              variant="quiet"
+              fullWidth={false}
+              testId="prog-apply"
+              onPress={() => void write(() => repo.fillOpenWorkSets(we.id, progPlan.weightKg, progPlan.repsBySet))}
+            />
+          </div>
+        ) : null}
+
         <div data-testid="set-list">
           {sets.map((s, i) =>
             isCardio ? (
@@ -1070,7 +1156,9 @@ export function ExerciseBlock({
                 label={labels[i].label}
                 labelColor={labels[i].color}
                 prev={shownPrev[i] ?? null}
-                rx={we.prescription?.[s.setNumber - 1] ?? null}
+                // [원본] rx={we.prescription?.[s.setNumber - 1] ?? null}
+                // [개선] 처방이 없으면 루틴 줄의 횟수 범위를 작업 세트의 목표로(SPEC-043)
+                rx={we.prescription?.[s.setNumber - 1] ?? (lineRange && isRangeWork(s) ? lineRange : null)}
                 suggestion={suggestions[s.id] ?? null}
                 unit={blockUnit}
                 barWeightKg={barWeightKg}

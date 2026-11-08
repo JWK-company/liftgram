@@ -38,6 +38,7 @@ import { useEffortLogging } from "@/lib/effortPref";
 import { lang, t } from "@/lib/i18n";
 import { ActionSheet, SheetShell } from "../ui/Dialog";
 import { keepSelectAllOnMouseUp, selectAllOnFocus } from "../ui/selectAllOnFocus";
+import { repResult } from "@app/core/domain/progression";
 import { Icon } from "../ui/Icon";
 import { AppText } from "../ui/primitives";
 
@@ -157,6 +158,8 @@ export function SetRowEdit({
   loadNote?: string | null;
 }) {
   const isDone = set.done;
+  // 결과(SPEC-043) — 끝낸 세트의 횟수를 목표 범위와 견준다
+  const repOutcome = isDone ? repResult(set.reps, rx?.repMin, rx?.repMax) : null;
   const drafts = useSetDrafts();
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longFired = useRef(false);
@@ -478,6 +481,18 @@ export function SetRowEdit({
           {!rx?.amrap && (rx?.repMin != null || rx?.repMax != null) ? (
             <AppText variant="label" color="textMuted">
               {t("session.rxRepRange", { range: repRangeLabel(rx.repMin ?? null, rx.repMax ?? null) })}
+            </AppText>
+          ) : null}
+          {/* 끝낸 세트의 결과 — 범위 = 목표, 칸 = 실제(SPEC-043 · SRS-108) */}
+          {isDone && !rx?.amrap && !set.isWarmup && repOutcome ? (
+            <AppText
+              variant="label"
+              data-testid="set-rep-result"
+              data-result={repOutcome}
+              color={repOutcome === "top" ? "success" : repOutcome === "below" ? "textFaint" : "textMuted"}
+              className={repOutcome === "top" ? "font-bold" : undefined}
+            >
+              {t(`session.repResult.${repOutcome}` as Parameters<typeof t>[0])}
             </AppText>
           ) : null}
           {/* [원본] {set.targetRir != null ? ( — 켜면 처방 RIR 글자는 칩 하나로 합친다(「목표 2」·「2 · 목표 2」 · U-10) */}

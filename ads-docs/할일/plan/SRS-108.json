@@ -1,0 +1,150 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "배경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "사용자 지적(2026-11-08): 루틴 편집에서는 횟수 범위를 정하는데 운동 중에는 실제 횟수 칸 하나뿐이라 범위를 정하는 의미가 없다. 제안 A(범위 = 목표, 칸 = 실제 결과, 범위로 다음 무게 결정)를 승인했다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "지금 범위는 첫 횟수 채우기(아래쪽 값)와 세트 방식 표의 「목표」 글자에만 쓰였다. 더블 프로그레션 계산(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/domain/progression.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " suggestNextSet)은 있었지만 화면에 연결돼 있지 않았다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 1
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "일반 루틴 줄의 횟수 범위를 작업 세트마다 목표로 보인다(웜업 제외). 세트 방식 표는 지금처럼 줄의 처방을 쓴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "체크한 세트의 결과를 목표 미달 · 범위 안 · 다음엔 무게 ↑ 세 가지로 보인다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "같은 종목·같은 조합의 직전 기록과 범위로 다음 값을 제안한다. 근거(지난번 횟수)를 함께 보이고, 누르면 안 한 작업 세트를 채운다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "외부 무게 종목만 무게를 제안한다(맨몸·어시스트·유산소 제외). 증분은 kg 2.5 · lb 5.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-108",
+  "meta": {
+    "acceptance_criteria": "일반 루틴(세트 방식 처방 없음)으로 운동하면 작업 세트마다 루틴 줄의 횟수 범위가 「목표 8-12회」로 보인다. 세트를 체크하면 아래쪽 값 미만은 「목표 미달」, 범위 안은 「범위 안」, 위쪽 값 이상은 「다음엔 무게 ↑」로 보인다. 같은 루틴을 다시 시작하면 지난번 주 세트 횟수를 근거로 다음 값(모두 위쪽 값 → 무게 한 단계 ↑·아래쪽 값, 미달 있음 → 같은 무게·아래쪽 값, 범위 안 → 같은 무게·한 회 더)을 보이고, 「채우기」로 안 한 작업 세트에 넣는다.",
+    "kind": "FR"
+  },
+  "relations": {},
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "루틴 횟수 범위로 목표·결과·다음 무게 제안",
+  "type": "SRS",
+  "updated": "2026-11-08T13:11:32Z"
+}
