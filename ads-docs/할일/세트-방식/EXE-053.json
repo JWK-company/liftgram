@@ -1,0 +1,443 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-053",
+ "type": "Execution",
+ "title": "SPEC-041 Phase 5 — 회귀 확인과 배포",
+ "group": "할일/세트-방식",
+ "meta": {
+  "phase": "5",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-041"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "요약"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "세트 방식 전체(Phase 1~4)를 회귀 시험한 뒤 v0.77.0 으로 올려 커밋(7c636b6)하고 h2500-3 운영에 배포했다. 운영 readyz 200 · 서비스 워커 v0.77.0 을 확인했다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 파일"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "파일"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "무엇을"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/package.json",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "버전 0.76.0 → 0.77.0(기능 = minor)"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "테스트 결과"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "bun run test:core",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 703 통과 · 0 실패"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "go test ./internal/coaching/",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 통과"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "로컬 운영 빌드 e2e 47 통과(세트 방식 · 세트 표 · 처방 무게 · 완료 반영 · 코칭 · 잠금화면)"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "배포: "
+         },
+         {
+          "type": "text",
+          "text": "src/scripts/deploy-h2500-3.sh",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " — 끝: v0.77.0 (build 501) · 7c636b6 · "
+         },
+         {
+          "type": "text",
+          "text": "https://liftgram.tarae.org",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " readyz 200 · 백업 기록 확인 OK"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준 확인"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "SRS-105 전 항목 — EXE-050~052 의 e2e 로 확인한 동작이 운영 빌드에 실렸다."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "코드 리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-075(Phase 1) · REV-076(Phase 2~4) — 배포 전 독립 리뷰 완료."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "범위 밖 변경"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "없음. 작업 폴더의 다른 작업 변경(다른 그룹 문서 등)은 커밋하지 않았다."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일·다음 단계"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "REV-076 보류: 서버 동기의 삭제 세트 부활 · 운동 중 「일반」 반영 · 1RM 기간 정책 · 기구별 반올림 · 무게 기준 직접 바꾸기 · 접근성 정리."
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "커밋·main 합친 뒤 코드 위치 등록: SRS-105 "
+         },
+         {
+          "type": "text",
+          "text": "src/core/src/domain/setSchemes.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " "
+         },
+         {
+          "type": "text",
+          "text": "schemeRows",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " · "
+         },
+         {
+          "type": "text",
+          "text": "src/core/src/data/workoutRepository.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " "
+         },
+         {
+          "type": "text",
+          "text": "changeWorkoutScheme",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " · "
+         },
+         {
+          "type": "text",
+          "text": "src/core/src/domain/routineDiff.ts",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " "
+         },
+         {
+          "type": "text",
+          "text": "diffRoutine",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": "."
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}
