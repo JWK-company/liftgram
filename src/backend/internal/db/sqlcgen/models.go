@@ -117,6 +117,7 @@ type CoachingRoutine struct {
 	Status          string
 	SentAt          pgtype.Timestamptz
 	UpdatedAt       pgtype.Timestamptz
+	Name            string
 }
 
 type Comment struct {

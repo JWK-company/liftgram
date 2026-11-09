@@ -15,6 +15,7 @@ import { navigate } from "@/lib/nav";
 import { Avatar } from "../ui/Avatar";
 import { Icon } from "../ui/Icon";
 import { ListState } from "../ui/ListState";
+import { LogoSpinner } from "../ui/LogoSpinner";
 import { AppText } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 
@@ -80,6 +81,21 @@ export function coachingTarget(n: Pick<Notification, "kind" | "refId">): string 
   }
 }
 
+function isRoutineNotif(n: Pick<Notification, "kind">): boolean {
+  return n.kind === NotificationKind.COACHING_ROUTINE || n.kind === NotificationKind.COACHING_ROUTINE_UPDATE;
+}
+
+/** 코치 루틴 알림 — 동기(최대 5초 · 실패해도 간다 · 다음 동기가 채운다) 뒤 홈으로. */
+async function openRoutineNotif(n: Notification): Promise<void> {
+  try {
+    const { syncNow } = await import("@/lib/syncTransport");
+    await Promise.race([syncNow(), new Promise((r) => setTimeout(r, 5000))]);
+  } catch {
+    /* 오프라인 — 홈에서 다음 동기를 기다린다 */
+  }
+  navigate(coachingTarget(n) ?? "/");
+}
+
 /** 성과 요약 알림 — 보낸 회원(actor)과의 1:1 대화로 가서 그 카드를 강조한다(postId 는 비어 있다 · S-16·U-17). @plm SRS-080 */
 async function openSummary(n: Notification): Promise<void> {
   const memberId = n.actor?.id;
@@ -114,6 +130,8 @@ export function notifWhen(ms: number, now = Date.now()): string {
 
 export default function NotificationsClient() {
   const [items, setItems] = useState<Notification[]>([]);
+  // 코치 루틴 알림을 여는 중(동기 기다림 · 최대 5초) — 그 사이 다시 눌러도 무시하고 줄에 스피너(리뷰 L-3)
+  const [opening, setOpening] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -182,16 +200,26 @@ export default function NotificationsClient() {
                       <a
                         key={n.id}
                         href={target(n)}
+                        // [원본] COACHING_SUMMARY 만 가로챘다
+                        // [개선] 코치 루틴 알림 — 먼저 동기해 받은 루틴이 홈에 있게 한 뒤 간다(SPEC-050 P3b)
                         onClick={
                           n.kind === NotificationKind.COACHING_SUMMARY
                             ? (e) => {
                                 e.preventDefault();
                                 void openSummary(n);
                               }
-                            : undefined
+                            : isRoutineNotif(n)
+                              ? (e) => {
+                                  e.preventDefault();
+                                  if (opening) return; // 여는 중 — 겹쳐 누름 무시
+                                  setOpening(n.id);
+                                  void openRoutineNotif(n).finally(() => setOpening(null));
+                                }
+                              : undefined
                         }
                         data-testid="notif-row"
                         data-read={n.read ? "1" : "0"}
+                        aria-busy={opening === n.id || undefined}
                         className={`block px-[var(--spacing-md)] py-[var(--spacing-md)] active:bg-(--color-surface-alt) ${
                           n.read ? "" : "bg-(--color-brand-muted)"
                         }`}
@@ -217,7 +245,11 @@ export default function NotificationsClient() {
                               </AppText>
                             ) : null}
                           </div>
-                          {n.read ? null : (
+                          {opening === n.id ? (
+                            <span role="status" data-testid="notif-opening" className="inline-flex shrink-0">
+                              <LogoSpinner size={18} label={t("common.loading")} />
+                            </span>
+                          ) : n.read ? null : (
                             <span
                               className="h-2 w-2 shrink-0 rounded-full bg-(--color-brand)"
                               aria-hidden="true"

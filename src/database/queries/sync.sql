@@ -52,3 +52,10 @@ SELECT
 ON CONFLICT (user_id, collection, record_id) DO UPDATE
   SET deleted    = true,
       updated_at = now();
+
+-- 코치 루틴 보호(SPEC-050 · REV-102 H-1) — Push 가 올린 루틴·줄의 저장된 값을 같은 트랜잭션에서 잠그고 읽는다.
+-- name: LockSyncRecords :many
+SELECT collection, record_id, payload, deleted FROM sync_records
+WHERE user_id = @user_id::text AND collection = ANY(@collections::text[]) AND record_id = ANY(@record_ids::text[])
+ORDER BY collection, record_id
+FOR UPDATE;

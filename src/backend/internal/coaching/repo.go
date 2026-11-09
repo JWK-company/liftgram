@@ -206,8 +206,8 @@ func (r *pgRepo) UpdateScope(ctx context.Context, grantID string, scope []byte) 
 	return grantFrom(row), nil
 }
 
-// RevokeGrantAndEndRoutines — grant FOR UPDATE → revoked → 그 관계의 활성 코치 루틴 ended(한 트랜잭션).
-// 회원 sync 행에 origin coach_ended 를 붙이는 일은 SendRoutine 과 함께 P3b 가 이 트랜잭션에 더한다.
+// RevokeGrantAndEndRoutines — grant FOR UPDATE → revoked → 회원 sync 루틴 origin coach_ended → 그 관계의 활성 코치 루틴 ended
+// (한 트랜잭션 · SendRoutineTx 와 같은 grant 잠금으로 줄을 선다).
 func (r *pgRepo) RevokeGrantAndEndRoutines(ctx context.Context, grantID string) (Grant, error) {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
@@ -224,6 +224,13 @@ func (r *pgRepo) RevokeGrantAndEndRoutines(ctx context.Context, grantID string) 
 	row, err := q.RevokeLiveGrant(ctx, grantID)
 	if err != nil {
 		return Grant{}, stateErr(err)
+	}
+	// [개선] P3b — 회원 기기의 코치 루틴을 「코칭 끝남」으로(한 칸 패치 · 이름·처방·폴더는 그대로 · 회원 것이 된다).
+	//   coaching_routines 를 끝내기 **전에** — 패치가 활성 행으로 회원 루틴을 찾는다.
+	if _, err := q.MarkCoachRoutinesEnded(ctx, sqlcgen.MarkCoachRoutinesEndedParams{
+		GrantID: grantID, NowMs: time.Now().UnixMilli(),
+	}); err != nil {
+		return Grant{}, err
 	}
 	if _, err := q.EndActiveCoachingRoutines(ctx, grantID); err != nil {
 		return Grant{}, err

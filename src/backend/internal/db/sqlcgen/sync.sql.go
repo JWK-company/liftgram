@@ -63,6 +63,52 @@ func (q *Queries) ListSyncChanges(ctx context.Context, arg ListSyncChangesParams
 	return items, nil
 }
 
+const lockSyncRecords = `-- name: LockSyncRecords :many
+SELECT collection, record_id, payload, deleted FROM sync_records
+WHERE user_id = $1::text AND collection = ANY($2::text[]) AND record_id = ANY($3::text[])
+ORDER BY collection, record_id
+FOR UPDATE
+`
+
+type LockSyncRecordsParams struct {
+	UserID      string
+	Collections []string
+	RecordIds   []string
+}
+
+type LockSyncRecordsRow struct {
+	Collection string
+	RecordID   string
+	Payload    []byte
+	Deleted    bool
+}
+
+// 코치 루틴 보호(SPEC-050 · REV-102 H-1) — Push 가 올린 루틴·줄의 저장된 값을 같은 트랜잭션에서 잠그고 읽는다.
+func (q *Queries) LockSyncRecords(ctx context.Context, arg LockSyncRecordsParams) ([]LockSyncRecordsRow, error) {
+	rows, err := q.db.Query(ctx, lockSyncRecords, arg.UserID, arg.Collections, arg.RecordIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LockSyncRecordsRow
+	for rows.Next() {
+		var i LockSyncRecordsRow
+		if err := rows.Scan(
+			&i.Collection,
+			&i.RecordID,
+			&i.Payload,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markSyncDeleted = `-- name: MarkSyncDeleted :exec
 INSERT INTO sync_records (id, user_id, collection, record_id, payload, deleted, updated_at)
 SELECT

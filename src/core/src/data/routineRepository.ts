@@ -17,7 +17,9 @@ const routineExercises = () => database.get<RoutineExercise>('routine_exercises'
 export async function getFolderNames(): Promise<string[]> {
   const rs = await routines().query().fetch();
   const set = new Set<string>();
-  for (const r of rs) if (r.folder) set.add(r.folder);
+  // [원본] for (const r of rs) if (r.folder) set.add(r.folder);
+  // [개선] 코치 초안(coach_for 있음·is_archived)의 폴더는 내 폴더가 아니다 — 픽커에 섞지 않는다(SPEC-050 P3b 리뷰 L-4)
+  for (const r of rs) if (r.folder && !(r.isArchived && r.coachFor)) set.add(r.folder);
   return [...set].sort((a, b) => a.localeCompare(b, 'ko'));
 }
 

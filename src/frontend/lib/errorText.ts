@@ -14,6 +14,7 @@ const LOCAL_CODES: Record<string, TransKey> = {
   ACTIVE_EXISTS: "replay.activeExists",
   NOTHING_MATCHED: "replay.nothingMatched",
   COACH_LOCKED: "routines.coachLockedError", // 코치 루틴 잠금(SPEC-050 P3a · routineRepository)
+  COACH_DRAFT_CUSTOM: "coaching.draft.customExercise", // 직접 만든 종목이 든 초안(SPEC-050 P3b · CoachDraft — params.name)
 };
 
 export function errorText(e: unknown, fallback: string = t("common.error")): string {
@@ -42,7 +43,9 @@ export function errorText(e: unknown, fallback: string = t("common.error")): str
   if ((e as { code?: unknown } | null)?.code === "LOCAL_DB_SEALED") return t("common.errSealed");
   if (e instanceof Error) {
     const known = LOCAL_CODES[e.message];
-    if (known) return t(known);
+    // [원본] if (known) return t(known);
+    // [개선] 코드에 끼울 값(params)이 있으면 함께 — 예: 「{name}」은 직접 만든 종목이라…(SPEC-050 P3b 리뷰 L-1)
+    if (known) return t(known, (e as { params?: Record<string, string | number> }).params);
     if (HANGUL.test(e.message)) return e.message;
     if (NETWORK.test(e.message)) return t("common.loadErrorMessage");
   }

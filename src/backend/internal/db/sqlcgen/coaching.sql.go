@@ -134,6 +134,24 @@ func (q *Queries) CountProgressSummariesByMemberSince(ctx context.Context, arg C
 	return column_1, err
 }
 
+const countRoutineSendsSince = `-- name: CountRoutineSendsSince :one
+SELECT count(*) FROM coaching_audits
+WHERE actor_id = $1::text AND action IN ('routine_send', 'routine_update') AND created_at >= $2::timestamptz
+`
+
+type CountRoutineSendsSinceParams struct {
+	ActorID string
+	Since   pgtype.Timestamptz
+}
+
+// 코치당 시간당 보내기 수(감사 기록으로 센다).
+func (q *Queries) CountRoutineSendsSince(ctx context.Context, arg CountRoutineSendsSinceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countRoutineSendsSince, arg.ActorID, arg.Since)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAudit = `-- name: CreateAudit :exec
 INSERT INTO coaching_audits (id, grant_id, actor_id, action, detail)
 VALUES ($1, $2, $3, $4, $5)
@@ -304,6 +322,48 @@ func (q *Queries) EndActiveCoachingRoutines(ctx context.Context, grantID string)
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const endCoachingRoutine = `-- name: EndCoachingRoutine :exec
+UPDATE coaching_routines SET status = 'ended', updated_at = now() WHERE id = $1
+`
+
+// 회원이 지운 루틴이면 그 행을 끝내고 새로 보낸다.
+func (q *Queries) EndCoachingRoutine(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, endCoachingRoutine, id)
+	return err
+}
+
+const getActiveCoachingRoutine = `-- name: GetActiveCoachingRoutine :one
+SELECT id, grant_id, trainer_id, member_id, source_routine_id, member_routine_id, line_ids, status, sent_at, updated_at, name FROM coaching_routines
+WHERE trainer_id = $1::text AND member_id = $2::text
+  AND source_routine_id = $3::text AND status = 'active'
+`
+
+type GetActiveCoachingRoutineParams struct {
+	TrainerID       string
+	MemberID        string
+	SourceRoutineID string
+}
+
+// 같은 초안의 활성 행(하나뿐 — coaching_routines_active_source).
+func (q *Queries) GetActiveCoachingRoutine(ctx context.Context, arg GetActiveCoachingRoutineParams) (CoachingRoutine, error) {
+	row := q.db.QueryRow(ctx, getActiveCoachingRoutine, arg.TrainerID, arg.MemberID, arg.SourceRoutineID)
+	var i CoachingRoutine
+	err := row.Scan(
+		&i.ID,
+		&i.GrantID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.SourceRoutineID,
+		&i.MemberRoutineID,
+		&i.LineIds,
+		&i.Status,
+		&i.SentAt,
+		&i.UpdatedAt,
+		&i.Name,
+	)
+	return i, err
 }
 
 const getCoachPeer = `-- name: GetCoachPeer :one
@@ -518,6 +578,24 @@ func (q *Queries) GetProgressSummaryByMemberClient(ctx context.Context, arg GetP
 	return i, err
 }
 
+const getUserCustomExerciseName = `-- name: GetUserCustomExerciseName :one
+SELECT COALESCE(payload->>'name_ko', '')::text AS name FROM sync_records
+WHERE user_id = $1::text AND collection = 'exercises' AND record_id = $2::text
+`
+
+type GetUserCustomExerciseNameParams struct {
+	UserID   string
+	RecordID string
+}
+
+// 코치 기기의 직접 만든 종목 이름(오류 문구용).
+func (q *Queries) GetUserCustomExerciseName(ctx context.Context, arg GetUserCustomExerciseNameParams) (string, error) {
+	row := q.db.QueryRow(ctx, getUserCustomExerciseName, arg.UserID, arg.RecordID)
+	var name string
+	err := row.Scan(&name)
+	return name, err
+}
+
 const hasOtherActiveCoach = `-- name: HasOtherActiveCoach :one
 SELECT EXISTS (
   SELECT 1 FROM coaching_grants
@@ -536,6 +614,75 @@ func (q *Queries) HasOtherActiveCoach(ctx context.Context, arg HasOtherActiveCoa
 	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const hasRecentRoutineUpdate = `-- name: HasRecentRoutineUpdate :one
+SELECT EXISTS (
+  SELECT 1 FROM coaching_audits
+  WHERE grant_id = $1::text AND action = 'routine_update'
+    AND detail->>'coachingRoutineId' = $2::text AND created_at >= $3::timestamptz
+)::boolean
+`
+
+type HasRecentRoutineUpdateParams struct {
+	GrantID           string
+	CoachingRoutineID string
+	Since             pgtype.Timestamptz
+}
+
+// 같은 루틴의 「바꿨어요」 알림 10분 묶음 — 그 사이 같은 루틴을 바꾼 기록이 있으면 알림을 다시 보내지 않는다.
+func (q *Queries) HasRecentRoutineUpdate(ctx context.Context, arg HasRecentRoutineUpdateParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasRecentRoutineUpdate, arg.GrantID, arg.CoachingRoutineID, arg.Since)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const insertCoachingRoutine = `-- name: InsertCoachingRoutine :one
+INSERT INTO coaching_routines (id, grant_id, trainer_id, member_id, source_routine_id, member_routine_id, line_ids, name)
+VALUES ($1::text, $2::text, $3::text, $4::text, $5::text,
+        $6::text, $7::text[], $8::text)
+RETURNING id, grant_id, trainer_id, member_id, source_routine_id, member_routine_id, line_ids, status, sent_at, updated_at, name
+`
+
+type InsertCoachingRoutineParams struct {
+	ID              string
+	GrantID         string
+	TrainerID       string
+	MemberID        string
+	SourceRoutineID string
+	MemberRoutineID string
+	LineIds         []string
+	Name            string
+}
+
+// line_ids 는 빈 배열로라도 넘긴다(nil 이면 NULL 이 되어 NOT NULL 에 걸린다). name = 보낸 때의 이름(0034).
+func (q *Queries) InsertCoachingRoutine(ctx context.Context, arg InsertCoachingRoutineParams) (CoachingRoutine, error) {
+	row := q.db.QueryRow(ctx, insertCoachingRoutine,
+		arg.ID,
+		arg.GrantID,
+		arg.TrainerID,
+		arg.MemberID,
+		arg.SourceRoutineID,
+		arg.MemberRoutineID,
+		arg.LineIds,
+		arg.Name,
+	)
+	var i CoachingRoutine
+	err := row.Scan(
+		&i.ID,
+		&i.GrantID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.SourceRoutineID,
+		&i.MemberRoutineID,
+		&i.LineIds,
+		&i.Status,
+		&i.SentAt,
+		&i.UpdatedAt,
+		&i.Name,
+	)
+	return i, err
 }
 
 const insertInvite = `-- name: InsertInvite :one
@@ -683,6 +830,43 @@ func (q *Queries) ListCatalogExerciseMeta(ctx context.Context) ([]ListCatalogExe
 	for rows.Next() {
 		var i ListCatalogExerciseMetaRow
 		if err := rows.Scan(&i.ID, &i.NameKo, &i.PrimaryMuscles); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listExercisesByIDs = `-- name: ListExercisesByIDs :many
+SELECT id, name_ko, is_custom, is_archived FROM exercises WHERE id = ANY($1::text[])
+`
+
+type ListExercisesByIDsRow struct {
+	ID         string
+	NameKo     string
+	IsCustom   bool
+	IsArchived bool
+}
+
+// 보낼 종목 — 서버 카탈로그에 있는 것만(직접 만든 종목·내린 종목은 회원 기기에 없다).
+func (q *Queries) ListExercisesByIDs(ctx context.Context, ids []string) ([]ListExercisesByIDsRow, error) {
+	rows, err := q.db.Query(ctx, listExercisesByIDs, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListExercisesByIDsRow
+	for rows.Next() {
+		var i ListExercisesByIDsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.NameKo,
+			&i.IsCustom,
+			&i.IsArchived,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1116,6 +1300,59 @@ func (q *Queries) ListProgressSummariesByMember(ctx context.Context, arg ListPro
 	return items, nil
 }
 
+const listSentRoutines = `-- name: ListSentRoutines :many
+SELECT cr.id, cr.source_routine_id, cr.member_routine_id, cr.member_id, cr.status, cr.sent_at, cr.name
+FROM coaching_routines cr
+WHERE cr.trainer_id = $1::text AND cr.member_id = $2::text
+ORDER BY cr.sent_at DESC, cr.id
+LIMIT 200
+`
+
+type ListSentRoutinesParams struct {
+	TrainerID string
+	MemberID  string
+}
+
+type ListSentRoutinesRow struct {
+	ID              string
+	SourceRoutineID string
+	MemberRoutineID string
+	MemberID        string
+	Status          string
+	SentAt          pgtype.Timestamptz
+	Name            string
+}
+
+// 보낸 루틴 목록(코치 본인 · 끝난 것 포함). 이름은 보낸 때의 이름(coaching_routines.name · 0034) —
+// 회원 레코드를 읽지 않는다(코칭이 끝나 회원이 이름을 바꿔도 코치에게 보이지 않게 · 리뷰 L-1).
+func (q *Queries) ListSentRoutines(ctx context.Context, arg ListSentRoutinesParams) ([]ListSentRoutinesRow, error) {
+	rows, err := q.db.Query(ctx, listSentRoutines, arg.TrainerID, arg.MemberID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSentRoutinesRow
+	for rows.Next() {
+		var i ListSentRoutinesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.SourceRoutineID,
+			&i.MemberRoutineID,
+			&i.MemberID,
+			&i.Status,
+			&i.SentAt,
+			&i.Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockGrant = `-- name: LockGrant :one
 SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note FROM coaching_grants WHERE id = $1 FOR UPDATE
 `
@@ -1140,6 +1377,90 @@ func (q *Queries) LockGrant(ctx context.Context, id string) (CoachingGrant, erro
 	return i, err
 }
 
+const lockGrantByPair = `-- name: LockGrantByPair :one
+SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note FROM coaching_grants
+WHERE trainer_id = $1::text AND member_id = $2::text
+FOR UPDATE
+`
+
+type LockGrantByPairParams struct {
+	TrainerID string
+	MemberID  string
+}
+
+// ── 코치가 짠 루틴 보내기(SPEC-050 P3b) ─────────────────────────────────────
+// 보내기 트랜잭션의 첫 줄 — 같은 관계의 해지와 줄을 세운다(LockGrant 와 같은 행 잠금).
+func (q *Queries) LockGrantByPair(ctx context.Context, arg LockGrantByPairParams) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, lockGrantByPair, arg.TrainerID, arg.MemberID)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const lockMemberRoutineRows = `-- name: LockMemberRoutineRows :many
+SELECT collection, record_id, payload, deleted FROM sync_records
+WHERE user_id = $1::text AND (
+  (collection = 'routines' AND record_id = ANY($2::text[]))
+  OR (collection = 'routine_exercises'
+      AND (record_id = ANY($3::text[]) OR payload->>'routine_id' = ANY($2::text[])))
+)
+ORDER BY collection, record_id
+FOR UPDATE
+`
+
+type LockMemberRoutineRowsParams struct {
+	UserID     string
+	RoutineIds []string
+	LineIds    []string
+}
+
+type LockMemberRoutineRowsRow struct {
+	Collection string
+	RecordID   string
+	Payload    []byte
+	Deleted    bool
+}
+
+// 보내기가 쓸 회원 행을 한 번에 잠근다(리뷰 M-2·M-3) — 루틴 행 + 그 루틴의 자식 줄(지운 것도) + 새로 쓸 줄 id.
+// 순서는 sync Push 의 LockSyncRecords 와 같다(ORDER BY collection, record_id) — 둘이 엇갈려 잠가 교착되지 않게.
+// 잠근 뒤 살아 있나·자식 줄을 이 결과로 판단한다(회원이 방금 지운 루틴을 되살리지 않는다).
+func (q *Queries) LockMemberRoutineRows(ctx context.Context, arg LockMemberRoutineRowsParams) ([]LockMemberRoutineRowsRow, error) {
+	rows, err := q.db.Query(ctx, lockMemberRoutineRows, arg.UserID, arg.RoutineIds, arg.LineIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []LockMemberRoutineRowsRow
+	for rows.Next() {
+		var i LockMemberRoutineRowsRow
+		if err := rows.Scan(
+			&i.Collection,
+			&i.RecordID,
+			&i.Payload,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const lockMemberSummaries = `-- name: LockMemberSummaries :exec
 SELECT pg_advisory_xact_lock(hashtextextended($1::text, 80))
 `
@@ -1149,6 +1470,87 @@ SELECT pg_advisory_xact_lock(hashtextextended($1::text, 80))
 func (q *Queries) LockMemberSummaries(ctx context.Context, memberID string) error {
 	_, err := q.db.Exec(ctx, lockMemberSummaries, memberID)
 	return err
+}
+
+const lockUserGrants = `-- name: LockUserGrants :many
+SELECT id FROM coaching_grants WHERE trainer_id = $1 OR member_id = $1 ORDER BY id FOR UPDATE
+`
+
+// 탈퇴 — 그 사람이 낀 관계를 모두 잠근다(보내기와 줄을 세운다).
+func (q *Queries) LockUserGrants(ctx context.Context, trainerID string) ([]string, error) {
+	rows, err := q.db.Query(ctx, lockUserGrants, trainerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markCoachRoutinesEnded = `-- name: MarkCoachRoutinesEnded :execrows
+UPDATE sync_records sr
+SET payload = sr.payload || jsonb_build_object('origin', 'coach_ended', 'updated_at', $1::bigint),
+    updated_at = now()
+FROM coaching_routines cr
+WHERE cr.grant_id = $2::text AND cr.status = 'active'
+  AND sr.user_id = cr.member_id AND sr.collection = 'routines' AND sr.record_id = cr.member_routine_id
+  AND sr.deleted = false
+`
+
+type MarkCoachRoutinesEndedParams struct {
+	NowMs   int64
+	GrantID string
+}
+
+// 해지·탈퇴 — 그 관계의 활성 코치 루틴을 회원 기기에서 「코칭 끝남」으로(한 칸 패치 · EndActiveCoachingRoutines 보다 먼저).
+func (q *Queries) MarkCoachRoutinesEnded(ctx context.Context, arg MarkCoachRoutinesEndedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markCoachRoutinesEnded, arg.NowMs, arg.GrantID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const markMemberSyncDeleted = `-- name: MarkMemberSyncDeleted :exec
+UPDATE sync_records SET deleted = true, updated_at = now()
+WHERE user_id = $1::text AND collection = $2::text AND record_id = ANY($3::text[])
+  AND deleted = false
+`
+
+type MarkMemberSyncDeletedParams struct {
+	UserID     string
+	Collection string
+	RecordIds  []string
+}
+
+func (q *Queries) MarkMemberSyncDeleted(ctx context.Context, arg MarkMemberSyncDeletedParams) error {
+	_, err := q.db.Exec(ctx, markMemberSyncDeleted, arg.UserID, arg.Collection, arg.RecordIds)
+	return err
+}
+
+const maxMemberRoutineSortOrder = `-- name: MaxMemberRoutineSortOrder :one
+SELECT COALESCE(MAX(CASE WHEN jsonb_typeof(payload->'sort_order') = 'number'
+                         THEN (payload->'sort_order')::numeric END), -1)::bigint AS max_sort
+FROM sync_records
+WHERE user_id = $1::text AND collection = 'routines' AND deleted = false
+`
+
+// 회원 루틴 순서의 최댓값(없으면 -1) — 처음 보낸 루틴은 맨 끝에 붙는다.
+func (q *Queries) MaxMemberRoutineSortOrder(ctx context.Context, userID string) (int64, error) {
+	row := q.db.QueryRow(ctx, maxMemberRoutineSortOrder, userID)
+	var max_sort int64
+	err := row.Scan(&max_sort)
+	return max_sort, err
 }
 
 const reopenGrant = `-- name: ReopenGrant :one
@@ -1409,6 +1811,37 @@ func (q *Queries) UpdateActiveGrantScope(ctx context.Context, arg UpdateActiveGr
 	return i, err
 }
 
+const updateCoachingRoutineSent = `-- name: UpdateCoachingRoutineSent :one
+UPDATE coaching_routines SET line_ids = $1::text[], name = $2::text, sent_at = now(), updated_at = now()
+WHERE id = $3::text
+RETURNING id, grant_id, trainer_id, member_id, source_routine_id, member_routine_id, line_ids, status, sent_at, updated_at, name
+`
+
+type UpdateCoachingRoutineSentParams struct {
+	LineIds []string
+	Name    string
+	ID      string
+}
+
+func (q *Queries) UpdateCoachingRoutineSent(ctx context.Context, arg UpdateCoachingRoutineSentParams) (CoachingRoutine, error) {
+	row := q.db.QueryRow(ctx, updateCoachingRoutineSent, arg.LineIds, arg.Name, arg.ID)
+	var i CoachingRoutine
+	err := row.Scan(
+		&i.ID,
+		&i.GrantID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.SourceRoutineID,
+		&i.MemberRoutineID,
+		&i.LineIds,
+		&i.Status,
+		&i.SentAt,
+		&i.UpdatedAt,
+		&i.Name,
+	)
+	return i, err
+}
+
 const updateMemberRecord = `-- name: UpdateMemberRecord :exec
 UPDATE sync_records
 SET payload = $2, updated_at = now()
@@ -1423,5 +1856,33 @@ type UpdateMemberRecordParams struct {
 // 처방을 회원의 레코드에 써 넣는다. `updated_at`이 움직여야 회원 기기가 다음 pull에서 받는다.
 func (q *Queries) UpdateMemberRecord(ctx context.Context, arg UpdateMemberRecordParams) error {
 	_, err := q.db.Exec(ctx, updateMemberRecord, arg.ID, arg.Payload)
+	return err
+}
+
+const upsertMemberSyncRecords = `-- name: UpsertMemberSyncRecords :exec
+INSERT INTO sync_records (id, user_id, collection, record_id, payload, deleted, updated_at)
+SELECT unnest($1::text[]), $2::text, unnest($3::text[]), unnest($4::text[]),
+       unnest($5::jsonb[]), false, now()
+ON CONFLICT (user_id, collection, record_id) DO UPDATE
+  SET payload = sync_records.payload || EXCLUDED.payload, deleted = false, updated_at = now()
+`
+
+type UpsertMemberSyncRecordsParams struct {
+	Ids         []string
+	UserID      string
+	Collections []string
+	RecordIds   []string
+	Payloads    [][]byte
+}
+
+// 회원 sync 행 쓰기(서버가 쓰는 코치 루틴) — 얕은 병합이라 넘기지 않은 칸(폴더·순서·변형)은 남는다.
+func (q *Queries) UpsertMemberSyncRecords(ctx context.Context, arg UpsertMemberSyncRecordsParams) error {
+	_, err := q.db.Exec(ctx, upsertMemberSyncRecords,
+		arg.Ids,
+		arg.UserID,
+		arg.Collections,
+		arg.RecordIds,
+		arg.Payloads,
+	)
 	return err
 }

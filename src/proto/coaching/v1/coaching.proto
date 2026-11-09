@@ -382,6 +382,74 @@ message GetMemberRecordsResponse {
   repeated string bodyweight_logs = 7;
 }
 
+// ── 코치가 짠 루틴 보내기(SPEC-050 P3b) ─────────────────────────────────────
+// 코치 기기의 초안(source_routine_id)을 회원 sync 레코드에 쓴다 — 루틴 id `coach-<crid>` · 줄 id `coach-<crid>-<초안 줄 id>`.
+// 같은 초안을 다시 보내면 같은 회원 루틴이 바뀐다(id 그대로 · 빠진 줄은 지운다 · 회원의 폴더·순서·보관·변형 칸은 덮지 않는다).
+// 연결이 끝나면(해지·탈퇴) 회원 루틴은 origin coach_ended — 회원 것이 된다.
+
+// 초안 한 줄. 변형(기구·그립…) 칸은 보내지 않는다 — 회원이 고른다.
+message SentRoutineLine {
+  // 초안(코치 기기) 줄 id — 회원 줄 id 는 coach-<crid>-<이 값>.
+  string id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string exercise_id = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  int32 target_sets = 3;
+  // 0 = 없음.
+  int32 target_reps_min = 4;
+  int32 target_reps_max = 5;
+  // 0 = 없음(정규 kg).
+  double target_weight_kg = 6;
+  int32 rest_seconds = 7;
+  string superset_group = 8 [(buf.validate.field).string.max_len = 64];
+  string note = 9 [(buf.validate.field).string.max_len = 500];
+  int32 sort_order = 10;
+  // 유산소 목표 JSON {durationSec,distanceM,incline,level,speed}. 비우면 없음.
+  string cardio_target_json = 11 [(buf.validate.field).string.max_len = 2000];
+  // 세트별 처방 JSON(core PrescribedSet[] 그대로) — 서버가 같은 규칙으로 정리한다(scheme·feeder·amrap·rest 보존). 비우면 없음.
+  string prescription_json = 12 [(buf.validate.field).string.max_len = 20000];
+}
+
+enum SentRoutineStatus {
+  SENT_ROUTINE_STATUS_UNSPECIFIED = 0;
+  SENT_ROUTINE_STATUS_ACTIVE = 1;
+  // 연결이 끝나 회원 것이 됐다(다시 보내면 새 루틴).
+  SENT_ROUTINE_STATUS_ENDED = 2;
+}
+
+message SentRoutine {
+  // coaching_routines 행 id(crid).
+  string id = 1;
+  string source_routine_id = 2;
+  string member_routine_id = 3;
+  // 마지막으로 보낸 이름(회원 기기 레코드의 이름).
+  string name = 4;
+  SentRoutineStatus status = 5;
+  // 마지막으로 보낸 시각(epoch ms).
+  int64 sent_at = 6;
+  string member_id = 7;
+}
+
+message SendRoutineRequest {
+  string member_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  string source_routine_id = 2 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+  // 60자(룬)·메모 500자 · 줄 30개 · 줄마다 처방 20줄 — 상한 검사는 서버 몫(한국어 문구).
+  string name = 3 [(buf.validate.field).string.max_len = 400];
+  string notes = 4 [(buf.validate.field).string.max_len = 4000];
+  repeated SentRoutineLine lines = 5;
+}
+message SendRoutineResponse {
+  SentRoutine routine = 1;
+  // 처음 보냈나(false 면 같은 회원 루틴을 바꿨다).
+  bool created = 2;
+}
+
+message ListSentRoutinesRequest {
+  string member_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
+}
+message ListSentRoutinesResponse {
+  // 최근에 보낸 것부터.
+  repeated SentRoutine routines = 1;
+}
+
 service CoachingService {
   // 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
   rpc SearchTrainers(SearchTrainersRequest) returns (SearchTrainersResponse) {}
@@ -417,4 +485,9 @@ service CoachingService {
   rpc ListSentSummaries(ListSentSummariesRequest) returns (ListSentSummariesResponse) {}
   // 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
   rpc GetMemberRecords(GetMemberRecordsRequest) returns (GetMemberRecordsResponse) {}
+
+  // ── 코치 루틴(SPEC-050 P3b) ── 코치만 · 활성 ∧ routineEdit ∧ 차단 아님. 보내기는 코치당 시간당 60번.
+  rpc SendRoutine(SendRoutineRequest) returns (SendRoutineResponse) {}
+  // 이 회원에게 보낸 루틴(끝난 것 포함 · 코치 본인 것만).
+  rpc ListSentRoutines(ListSentRoutinesRequest) returns (ListSentRoutinesResponse) {}
 }

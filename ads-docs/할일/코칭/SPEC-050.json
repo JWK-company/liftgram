@@ -2169,7 +2169,7 @@
        {
         "content": [
          {
-          "text": "[ ] SendRoutine·ListSentRoutines·해지/탈퇴 coach_ended·SetMemberPrescription 거절 · Go 테스트",
+          "text": "[x] SendRoutine·ListSentRoutines·해지/탈퇴 coach_ended·SetMemberPrescription 거절 · Go 테스트",
           "type": "text"
          }
         ],
@@ -2183,7 +2183,7 @@
        {
         "content": [
          {
-          "text": "[ ] 초안 모드 편집기·회원 화면 루틴 탭·알림 누르면 동기",
+          "text": "[x] 초안 모드 편집기·회원 화면 루틴 탭·알림 누르면 동기",
           "type": "text"
          }
         ],
@@ -2193,18 +2193,18 @@
       "type": "list_item"
      },
      {
-      "type": "list_item",
       "content": [
        {
-        "type": "paragraph",
         "content": [
          {
-          "type": "text",
-          "text": "[ ] 서버 sync 보호(REV-102 H-1): 저장된 행이 coach·coach_ended 이거나 id 가 coach- 로 시작하면 origin·coach_*·name·notes·코치 줄 처방은 저장값 유지, 회원 push 는 folder·sort_order·is_archived·삭제·변형만 · 출처 없는 행에 coach 계열 origin 을 올리면 버림 · 「보낸 루틴」은 coaching_routines 표에서 읽음 · Go 시험"
+          "text": "[x] 서버 sync 보호(REV-102 H-1): 저장된 행이 coach·coach_ended 이거나 id 가 coach- 로 시작하면 origin·coach_*·name·notes·코치 줄 처방은 저장값 유지, 회원 push 는 folder·sort_order·is_archived·삭제·변형만 · 출처 없는 행에 coach 계열 origin 을 올리면 버림 · 「보낸 루틴」은 coaching_routines 표에서 읽음 · Go 시험",
+          "type": "text"
          }
-        ]
+        ],
+        "type": "paragraph"
        }
-      ]
+      ],
+      "type": "list_item"
      },
      {
       "content": [
@@ -2492,7 +2492,7 @@
  "meta": {
   "grade": "Project",
   "phases": "6",
-  "phases_done": "4"
+  "phases_done": "5"
  },
  "relations": {
   "implements": [
@@ -2507,5 +2507,5 @@
  "tags": [],
  "title": "코칭 v2 — 연결·범위·회원 화면·루틴 보내기·코멘트",
  "type": "Spec",
- "updated": "2026-11-09T12:53:12Z"
+ "updated": "2026-11-09T13:38:29Z"
 }

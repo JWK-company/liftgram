@@ -50,6 +50,9 @@ type fakeRepo struct {
 	codeTaken     map[string]bool // CreateInvite 가 ErrInviteCodeTaken 을 낼 코드
 	endedRoutines []string        // RevokeGrantAndEndRoutines 가 끝낸 관계
 	auditGrants   []string        // 감사마다 grant id(빈 문자열 = 관계 없음)
+
+	// 코치 루틴(SPEC-050 P3b) — routines_test.go 가 쓴다.
+	rt fakeRoutines
 }
 
 func newRepo() *fakeRepo {

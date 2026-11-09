@@ -53,6 +53,7 @@ export function Button({
   className = "",
   testId,
   adornment,
+  truncate = false,
 }: {
   title: string;
   onPress?: () => void;
@@ -66,6 +67,8 @@ export function Button({
   testId?: string;
   /** 버튼 안에 덧붙이는 것(예: 「최근」 배지 — 버튼이 relative 라 absolute 로 걸칠 수 있다). */
   adornment?: ReactNode;
+  /** 긴 글자(사람 이름이 든 버튼 등)를 한 줄로 자르고 … — 기본은 그대로 */
+  truncate?: boolean;
 }) {
   const p = palette(variant);
   const isDisabled = disabled || loading;
@@ -101,7 +104,9 @@ export function Button({
       ) : (
         <>
           {icon ? <Icon name={icon} size={size === "sm" ? 16 : 18} color={p.fg} /> : null}
-          {title}
+          {/* [원본] {title} */}
+          {/* [개선] truncate 면 글자 칸이 줄어들 수 있게(min-w-0) 자른다 — 「○○님께 보내기」의 긴 이름(SPEC-050 P3b 리뷰 L-4) */}
+          {truncate ? <span className="min-w-0 truncate">{title}</span> : title}
         </>
       )}
       {adornment}

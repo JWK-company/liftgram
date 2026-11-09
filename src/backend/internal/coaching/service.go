@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/JWK-company/liftgram/src/backend/internal/errs"
@@ -121,7 +122,7 @@ type Repo interface {
 	// [원본] 해지 — 서비스는 이제 RevokeGrantAndEndRoutines 를 쓴다(구현은 남겨 둔다).
 	RevokeGrant(ctx context.Context, grantID string) (Grant, error)
 	// RevokeGrantAndEndRoutines는 한 트랜잭션: grant FOR UPDATE → revoked(이미 revoked 면 Conflict) →
-	// 그 관계의 활성 coaching_routines → ended. 회원 sync 행의 origin 패치는 P3b 가 채운다.
+	// 회원 sync 루틴에 origin coach_ended 패치(P3b) → 그 관계의 활성 coaching_routines → ended.
 	RevokeGrantAndEndRoutines(ctx context.Context, grantID string) (Grant, error)
 	// UpdateScope는 active 일 때만(0행이면 Conflict).
 	UpdateScope(ctx context.Context, grantID string, scope []byte) (Grant, error)
@@ -158,6 +159,8 @@ type Repo interface {
 
 	// 기간 성과 요약(progress_summaries · 0017). @plm SRS-080
 	SummaryRepo
+	// 코치 루틴 보내기(coaching_routines · SPEC-050 P3b) — routines.go.
+	RoutineRepo
 }
 
 type Service struct {
@@ -520,6 +523,20 @@ func (s *Service) SetMemberPrescription(
 	}
 	if gotRoutine != routineID {
 		return nil, errs.New(errs.Validation, "routine mismatch")
+	}
+	// [개선] SPEC-050 P3b — 코치가 보낸 루틴(coach)은 초안을 고쳐 다시 보내고, 코칭이 끝난 루틴(coach_ended)은 회원 것이다.
+	//   여기서 고치면 회원 잠금·출처가 어긋난다(sync/coach_guard.go 와 같은 판단 — id 가 coach- 면 코치 루틴).
+	if _, rp, err := s.repo.GetMemberRecord(ctx, memberID, "routines", routineID); err == nil {
+		switch coachOriginOf(routineID, rp) {
+		case originCoach:
+			return nil, errs.New(errs.Validation, msgCoachRoutineRx)
+		case originCoachEnded:
+			return nil, errs.New(errs.Validation, msgEndedRoutineRx)
+		}
+	} else if !isNotFound(err) {
+		return nil, err
+	} else if strings.HasPrefix(routineID, coachIDPrefix) {
+		return nil, errs.New(errs.Validation, msgCoachRoutineRx)
 	}
 
 	// WatermelonDB 규약: `@json` 컬럼은 **직렬화된 문자열**로 들어간다.

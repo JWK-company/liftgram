@@ -310,6 +310,11 @@ func buildRoutinesWith(recs []MemberRecord, catalog map[string]CatalogExercise) 
 		if archived, present := r.boolAt("is_archived"); present && archived {
 			continue
 		}
+		// SPEC-050 P3b — 코치가 보낸 루틴·코칭이 끝난 루틴은 이 처방 편집기 대상이 아니다(회원이 만든 루틴만).
+		//   코치 루틴은 초안을 고쳐 다시 보내고, 끝난 루틴은 회원 것이다(SetMemberPrescription 도 거절한다).
+		if originKind(r.str("id"), r.str("origin")) != "" {
+			continue
+		}
 		blocks := blocksOfRoutine[r.str("id")]
 		sort.SliceStable(blocks, func(i, j int) bool {
 			return blocks[i].num("sort_order") < blocks[j].num("sort_order")

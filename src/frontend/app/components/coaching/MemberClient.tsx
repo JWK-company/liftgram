@@ -34,10 +34,11 @@ import { useAuth } from "../AuthProvider";
 import { useWeightUnit } from "../feed/useWeightUnit";
 import { MemberReportBody } from "../summary/MemberReportDialog";
 import { MemberRoutinesBody } from "./CoachingClient";
+import { SentRoutinesSection } from "./SentRoutines"; // 보낸 루틴(SPEC-050 P3b)
 import { Button } from "../ui/Button";
 import { Icon } from "../ui/Icon";
 import { LogoSpinner } from "../ui/LogoSpinner";
-import { AppText, EmptyState } from "../ui/primitives";
+import { AppText, EmptyState, SectionHeader } from "../ui/primitives";
 import { Skeleton } from "../ui/Skeleton";
 
 export type MemberTab = "records" | "stats" | "routines";
@@ -212,9 +213,20 @@ export default function MemberClient({ memberId, initialTab }: { memberId: strin
         {tab === "routines" ? (
           scope.routineEdit ? (
             // [원본] <MemberRoutinesBody peer={state.peer} /> — 막히면 빈 목록으로 덮였다(코드 리뷰 M-1)
-            <MemberRoutinesBody peer={state.peer} onEnded={ended} />
+            // [원본] <MemberRoutinesBody peer={state.peer} onEnded={ended} />
+            // [개선] 위에 「보낸 루틴」(코치가 짠 것) · 아래 「회원이 만든 루틴」(처방 고치기 · SPEC-050 P3b)
+            <>
+              <SentRoutinesSection memberId={memberId} onEnded={ended} />
+              <SectionHeader title={t("coaching.member.memberRoutinesTitle")} />
+              <MemberRoutinesBody peer={state.peer} onEnded={ended} />
+            </>
           ) : (
-            <Off testId="member-routine-off" text={t("coaching.member.routineOff")} />
+            // [원본] <Off testId="member-routine-off" text={t("coaching.member.routineOff")} />
+            // [개선] 꺼져 있어도 이 기기 초안은 보인다 — 열어서 지울 수 있게(보내기는 막힘 · SPEC-050 P3b 리뷰 M-4)
+            <>
+              <Off testId="member-routine-off" text={t("coaching.member.routineOff")} />
+              <SentRoutinesSection memberId={memberId} localOnly />
+            </>
           )
         ) : !scope.logView ? (
           <Off testId="member-log-off" text={t("coaching.member.logOff")} />

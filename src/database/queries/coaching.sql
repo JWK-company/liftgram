@@ -329,3 +329,110 @@ LIMIT @lim::int;
 -- 탈퇴할 때 관계 없이 남긴 감사(invite_create 등 grant_id NULL)도 지운다 — 관계에 붙은 감사는 CASCADE 로 사라진다(P1a 리뷰).
 -- name: DeleteOrphanCoachingAudits :exec
 DELETE FROM coaching_audits WHERE grant_id IS NULL AND actor_id = $1;
+
+-- ── 코치가 짠 루틴 보내기(SPEC-050 P3b) ─────────────────────────────────────
+-- 보내기 트랜잭션의 첫 줄 — 같은 관계의 해지와 줄을 세운다(LockGrant 와 같은 행 잠금).
+-- name: LockGrantByPair :one
+SELECT * FROM coaching_grants
+WHERE trainer_id = @trainer_id::text AND member_id = @member_id::text
+FOR UPDATE;
+
+-- 같은 초안의 활성 행(하나뿐 — coaching_routines_active_source).
+-- name: GetActiveCoachingRoutine :one
+SELECT * FROM coaching_routines
+WHERE trainer_id = @trainer_id::text AND member_id = @member_id::text
+  AND source_routine_id = @source_routine_id::text AND status = 'active';
+
+-- 회원이 지운 루틴이면 그 행을 끝내고 새로 보낸다.
+-- name: EndCoachingRoutine :exec
+UPDATE coaching_routines SET status = 'ended', updated_at = now() WHERE id = $1;
+
+-- line_ids 는 빈 배열로라도 넘긴다(nil 이면 NULL 이 되어 NOT NULL 에 걸린다). name = 보낸 때의 이름(0034).
+-- name: InsertCoachingRoutine :one
+INSERT INTO coaching_routines (id, grant_id, trainer_id, member_id, source_routine_id, member_routine_id, line_ids, name)
+VALUES (@id::text, @grant_id::text, @trainer_id::text, @member_id::text, @source_routine_id::text,
+        @member_routine_id::text, @line_ids::text[], @name::text)
+RETURNING *;
+
+-- name: UpdateCoachingRoutineSent :one
+UPDATE coaching_routines SET line_ids = @line_ids::text[], name = @name::text, sent_at = now(), updated_at = now()
+WHERE id = @id::text
+RETURNING *;
+
+-- 보내기가 쓸 회원 행을 한 번에 잠근다(리뷰 M-2·M-3) — 루틴 행 + 그 루틴의 자식 줄(지운 것도) + 새로 쓸 줄 id.
+-- 순서는 sync Push 의 LockSyncRecords 와 같다(ORDER BY collection, record_id) — 둘이 엇갈려 잠가 교착되지 않게.
+-- 잠근 뒤 살아 있나·자식 줄을 이 결과로 판단한다(회원이 방금 지운 루틴을 되살리지 않는다).
+-- name: LockMemberRoutineRows :many
+SELECT collection, record_id, payload, deleted FROM sync_records
+WHERE user_id = @user_id::text AND (
+  (collection = 'routines' AND record_id = ANY(@routine_ids::text[]))
+  OR (collection = 'routine_exercises'
+      AND (record_id = ANY(@line_ids::text[]) OR payload->>'routine_id' = ANY(@routine_ids::text[])))
+)
+ORDER BY collection, record_id
+FOR UPDATE;
+
+-- 회원 루틴 순서의 최댓값(없으면 -1) — 처음 보낸 루틴은 맨 끝에 붙는다.
+-- name: MaxMemberRoutineSortOrder :one
+SELECT COALESCE(MAX(CASE WHEN jsonb_typeof(payload->'sort_order') = 'number'
+                         THEN (payload->'sort_order')::numeric END), -1)::bigint AS max_sort
+FROM sync_records
+WHERE user_id = @user_id::text AND collection = 'routines' AND deleted = false;
+
+-- 회원 sync 행 쓰기(서버가 쓰는 코치 루틴) — 얕은 병합이라 넘기지 않은 칸(폴더·순서·변형)은 남는다.
+-- name: UpsertMemberSyncRecords :exec
+INSERT INTO sync_records (id, user_id, collection, record_id, payload, deleted, updated_at)
+SELECT unnest(@ids::text[]), @user_id::text, unnest(@collections::text[]), unnest(@record_ids::text[]),
+       unnest(@payloads::jsonb[]), false, now()
+ON CONFLICT (user_id, collection, record_id) DO UPDATE
+  SET payload = sync_records.payload || EXCLUDED.payload, deleted = false, updated_at = now();
+
+-- name: MarkMemberSyncDeleted :exec
+UPDATE sync_records SET deleted = true, updated_at = now()
+WHERE user_id = @user_id::text AND collection = @collection::text AND record_id = ANY(@record_ids::text[])
+  AND deleted = false;
+
+-- 해지·탈퇴 — 그 관계의 활성 코치 루틴을 회원 기기에서 「코칭 끝남」으로(한 칸 패치 · EndActiveCoachingRoutines 보다 먼저).
+-- name: MarkCoachRoutinesEnded :execrows
+UPDATE sync_records sr
+SET payload = sr.payload || jsonb_build_object('origin', 'coach_ended', 'updated_at', @now_ms::bigint),
+    updated_at = now()
+FROM coaching_routines cr
+WHERE cr.grant_id = @grant_id::text AND cr.status = 'active'
+  AND sr.user_id = cr.member_id AND sr.collection = 'routines' AND sr.record_id = cr.member_routine_id
+  AND sr.deleted = false;
+
+-- 탈퇴 — 그 사람이 낀 관계를 모두 잠근다(보내기와 줄을 세운다).
+-- name: LockUserGrants :many
+SELECT id FROM coaching_grants WHERE trainer_id = $1 OR member_id = $1 ORDER BY id FOR UPDATE;
+
+-- 보낸 루틴 목록(코치 본인 · 끝난 것 포함). 이름은 보낸 때의 이름(coaching_routines.name · 0034) —
+-- 회원 레코드를 읽지 않는다(코칭이 끝나 회원이 이름을 바꿔도 코치에게 보이지 않게 · 리뷰 L-1).
+-- name: ListSentRoutines :many
+SELECT cr.id, cr.source_routine_id, cr.member_routine_id, cr.member_id, cr.status, cr.sent_at, cr.name
+FROM coaching_routines cr
+WHERE cr.trainer_id = @trainer_id::text AND cr.member_id = @member_id::text
+ORDER BY cr.sent_at DESC, cr.id
+LIMIT 200;
+
+-- 보낼 종목 — 서버 카탈로그에 있는 것만(직접 만든 종목·내린 종목은 회원 기기에 없다).
+-- name: ListExercisesByIDs :many
+SELECT id, name_ko, is_custom, is_archived FROM exercises WHERE id = ANY(@ids::text[]);
+
+-- 코치 기기의 직접 만든 종목 이름(오류 문구용).
+-- name: GetUserCustomExerciseName :one
+SELECT COALESCE(payload->>'name_ko', '')::text AS name FROM sync_records
+WHERE user_id = @user_id::text AND collection = 'exercises' AND record_id = @record_id::text;
+
+-- 코치당 시간당 보내기 수(감사 기록으로 센다).
+-- name: CountRoutineSendsSince :one
+SELECT count(*) FROM coaching_audits
+WHERE actor_id = @actor_id::text AND action IN ('routine_send', 'routine_update') AND created_at >= @since::timestamptz;
+
+-- 같은 루틴의 「바꿨어요」 알림 10분 묶음 — 그 사이 같은 루틴을 바꾼 기록이 있으면 알림을 다시 보내지 않는다.
+-- name: HasRecentRoutineUpdate :one
+SELECT EXISTS (
+  SELECT 1 FROM coaching_audits
+  WHERE grant_id = @grant_id::text AND action = 'routine_update'
+    AND detail->>'coachingRoutineId' = @coaching_routine_id::text AND created_at >= @since::timestamptz
+)::boolean;

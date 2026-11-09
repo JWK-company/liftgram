@@ -57,13 +57,43 @@ func (r *pgRepo) List(ctx context.Context, userID string, since, until time.Time
 
 // Apply는 올리기와 지우기를 **한 트랜잭션**으로 반영한다.
 // 절반만 남으면 클라이언트는 무엇을 다시 보내야 하는지 알 방법이 없다.
-func (r *pgRepo) Apply(ctx context.Context, userID string, upserts, deletes []Record) error {
+// guard 가 있으면 같은 트랜잭션에서 저장된 행을 잠그고(FOR UPDATE) 읽어 넘긴다 — 코치 루틴 보내기(코칭 SendRoutine)와
+// 줄을 세워, 읽은 뒤 서버가 쓴 값을 옛 값으로 덮지 않게 한다(SPEC-050 P3b).
+func (r *pgRepo) Apply(ctx context.Context, userID string, upserts, deletes []Record, guard Guard) error {
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	q := r.q.WithTx(tx)
+
+	if guard != nil && len(upserts) > 0 {
+		lookup := func(keys []RecordKey) (map[RecordKey]StoredRow, error) {
+			cols, ids := keyColumns(keys)
+			rows, err := q.LockSyncRecords(ctx, sqlcgen.LockSyncRecordsParams{UserID: userID, Collections: cols, RecordIds: ids})
+			if err != nil {
+				return nil, err
+			}
+			want := make(map[RecordKey]bool, len(keys))
+			for _, k := range keys {
+				want[k] = true
+			}
+			out := make(map[RecordKey]StoredRow, len(rows))
+			for _, row := range rows {
+				k := RecordKey{row.Collection, row.RecordID}
+				if want[k] { // 컬렉션 × id 곱으로 읽었다 — 묻지 않은 짝은 버린다
+					out[k] = StoredRow{Payload: row.Payload, Deleted: row.Deleted}
+				}
+			}
+			return out, nil
+		}
+		kept, dropped, err := guard(upserts, lookup)
+		if err != nil {
+			return err
+		}
+		upserts = kept
+		deletes = append(append([]Record{}, deletes...), dropped...)
+	}
 
 	if len(upserts) > 0 {
 		ids, cols, recIDs, payloads := r.columns(upserts)
@@ -82,6 +112,28 @@ func (r *pgRepo) Apply(ctx context.Context, userID string, upserts, deletes []Re
 		}
 	}
 	return tx.Commit(ctx)
+}
+
+// keyColumns는 묻는 열쇠를 (컬렉션 목록, id 목록)으로 편다 — 중복은 한 번만.
+func keyColumns(keys []RecordKey) (cols, ids []string) {
+	seenC, seenI := map[string]bool{}, map[string]bool{}
+	for _, k := range keys {
+		if !seenC[k.Collection] {
+			seenC[k.Collection] = true
+			cols = append(cols, k.Collection)
+		}
+		if !seenI[k.RecordID] {
+			seenI[k.RecordID] = true
+			ids = append(ids, k.RecordID)
+		}
+	}
+	if cols == nil {
+		cols = []string{}
+	}
+	if ids == nil {
+		ids = []string{}
+	}
+	return cols, ids
 }
 
 // columns는 레코드 묶음을 배열 넷으로 편다 — 한 문장으로 보내기 위해서다.

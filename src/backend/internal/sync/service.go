@@ -77,7 +77,10 @@ type Repo interface {
 	Now(ctx context.Context) (time.Time, error)
 	List(ctx context.Context, userID string, since, until time.Time) ([]Record, error)
 	// Apply는 한 트랜잭션이다 — 절반만 반영되면 클라이언트가 무엇을 다시 보내야 할지 알 수 없다.
-	Apply(ctx context.Context, userID string, upserts []Record, deletes []Record) error
+	// [원본] Apply(ctx context.Context, userID string, upserts []Record, deletes []Record) error
+	// [개선] guard 가 있으면 같은 트랜잭션에서 저장된 값을 잠그고 읽어(Lookup) 올림을 고친 뒤 반영한다 —
+	//   코치 루틴 보호(coach_guard.go · SPEC-050 P3b). guard 가 버린 올림은 삭제 표시로 바뀐다. nil 이면 그대로.
+	Apply(ctx context.Context, userID string, upserts []Record, deletes []Record, guard Guard) error
 }
 
 type Service struct {
@@ -184,7 +187,9 @@ func (s *Service) Push(ctx context.Context, userID string, changes map[string]Ta
 	if len(upserts) == 0 && len(deletes) == 0 {
 		return nil
 	}
-	return s.repo.Apply(ctx, userID, upserts, deletes)
+	// [원본] return s.repo.Apply(ctx, userID, upserts, deletes)
+	// [개선] 코치 루틴(서버가 회원 레코드에 쓴 것)은 저장된 값을 지킨다(coach_guard.go · REV-102 H-1)
+	return s.repo.Apply(ctx, userID, upserts, deletes, guardCoachRoutines)
 }
 
 // NewID는 저장소가 새 행의 기본키를 만들 때 쓴다.

@@ -55,12 +55,15 @@ export default function ExercisePickerScreen({
   title,
   onDone,
   onClose,
+  catalogOnly = false,
 }: {
   mode: "multi" | "single";
   title: string;
   /** 고른 종목들 — multi 는 고른 순서, single 은 한 개. */
   onDone: (picks: Pick[]) => void;
   onClose: () => void;
+  /** 카탈로그 종목만(직접 만든 종목 빼기) — 코치 초안은 회원 기기에 없는 종목을 보낼 수 없다(SPEC-050 P3b). */
+  catalogOnly?: boolean;
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const [repo, setRepo] = useState<Repo | null>(null);
@@ -179,11 +182,14 @@ export default function ExercisePickerScreen({
   );
 
   const list = useMemo(() => {
-    const all = models.map((m) => m as unknown as Row);
+    // [원본] const all = models.map((m) => m as unknown as Row);
+    const all = models
+      .map((m) => m as unknown as Row & { isCustom?: boolean })
+      .filter((e) => !catalogOnly || !e.isCustom);
     if (!names) return all;
     const keep = new Set(names);
     return all.filter((e) => keep.has(e.id));
-  }, [models, names]);
+  }, [models, names, catalogOnly]);
   const byId = useMemo(() => new Map(list.map((e) => [e.id, e])), [list]);
   const index = useMemo(() => buildExerciseSearchIndex(list), [list]);
   const searching = query.trim().length > 0;

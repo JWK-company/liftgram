@@ -309,6 +309,56 @@ func (LoadBasis) EnumDescriptor() ([]byte, []int) {
 	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{4}
 }
 
+type SentRoutineStatus int32
+
+const (
+	SentRoutineStatus_SENT_ROUTINE_STATUS_UNSPECIFIED SentRoutineStatus = 0
+	SentRoutineStatus_SENT_ROUTINE_STATUS_ACTIVE      SentRoutineStatus = 1
+	// 연결이 끝나 회원 것이 됐다(다시 보내면 새 루틴).
+	SentRoutineStatus_SENT_ROUTINE_STATUS_ENDED SentRoutineStatus = 2
+)
+
+// Enum value maps for SentRoutineStatus.
+var (
+	SentRoutineStatus_name = map[int32]string{
+		0: "SENT_ROUTINE_STATUS_UNSPECIFIED",
+		1: "SENT_ROUTINE_STATUS_ACTIVE",
+		2: "SENT_ROUTINE_STATUS_ENDED",
+	}
+	SentRoutineStatus_value = map[string]int32{
+		"SENT_ROUTINE_STATUS_UNSPECIFIED": 0,
+		"SENT_ROUTINE_STATUS_ACTIVE":      1,
+		"SENT_ROUTINE_STATUS_ENDED":       2,
+	}
+)
+
+func (x SentRoutineStatus) Enum() *SentRoutineStatus {
+	p := new(SentRoutineStatus)
+	*p = x
+	return p
+}
+
+func (x SentRoutineStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SentRoutineStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_coaching_v1_coaching_proto_enumTypes[5].Descriptor()
+}
+
+func (SentRoutineStatus) Type() protoreflect.EnumType {
+	return &file_coaching_v1_coaching_proto_enumTypes[5]
+}
+
+func (x SentRoutineStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SentRoutineStatus.Descriptor instead.
+func (SentRoutineStatus) EnumDescriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{5}
+}
+
 // 상대방. 트레이너가 보면 회원, 회원이 보면 트레이너다.
 type Peer struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
@@ -3152,6 +3202,458 @@ func (x *GetMemberRecordsResponse) GetBodyweightLogs() []string {
 	return nil
 }
 
+// 초안 한 줄. 변형(기구·그립…) 칸은 보내지 않는다 — 회원이 고른다.
+type SentRoutineLine struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 초안(코치 기기) 줄 id — 회원 줄 id 는 coach-<crid>-<이 값>.
+	Id         string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	ExerciseId string `protobuf:"bytes,2,opt,name=exercise_id,json=exerciseId,proto3" json:"exercise_id,omitempty"`
+	TargetSets int32  `protobuf:"varint,3,opt,name=target_sets,json=targetSets,proto3" json:"target_sets,omitempty"`
+	// 0 = 없음.
+	TargetRepsMin int32 `protobuf:"varint,4,opt,name=target_reps_min,json=targetRepsMin,proto3" json:"target_reps_min,omitempty"`
+	TargetRepsMax int32 `protobuf:"varint,5,opt,name=target_reps_max,json=targetRepsMax,proto3" json:"target_reps_max,omitempty"`
+	// 0 = 없음(정규 kg).
+	TargetWeightKg float64 `protobuf:"fixed64,6,opt,name=target_weight_kg,json=targetWeightKg,proto3" json:"target_weight_kg,omitempty"`
+	RestSeconds    int32   `protobuf:"varint,7,opt,name=rest_seconds,json=restSeconds,proto3" json:"rest_seconds,omitempty"`
+	SupersetGroup  string  `protobuf:"bytes,8,opt,name=superset_group,json=supersetGroup,proto3" json:"superset_group,omitempty"`
+	Note           string  `protobuf:"bytes,9,opt,name=note,proto3" json:"note,omitempty"`
+	SortOrder      int32   `protobuf:"varint,10,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
+	// 유산소 목표 JSON {durationSec,distanceM,incline,level,speed}. 비우면 없음.
+	CardioTargetJson string `protobuf:"bytes,11,opt,name=cardio_target_json,json=cardioTargetJson,proto3" json:"cardio_target_json,omitempty"`
+	// 세트별 처방 JSON(core PrescribedSet[] 그대로) — 서버가 같은 규칙으로 정리한다(scheme·feeder·amrap·rest 보존). 비우면 없음.
+	PrescriptionJson string `protobuf:"bytes,12,opt,name=prescription_json,json=prescriptionJson,proto3" json:"prescription_json,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SentRoutineLine) Reset() {
+	*x = SentRoutineLine{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SentRoutineLine) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SentRoutineLine) ProtoMessage() {}
+
+func (x *SentRoutineLine) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SentRoutineLine.ProtoReflect.Descriptor instead.
+func (*SentRoutineLine) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *SentRoutineLine) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SentRoutineLine) GetExerciseId() string {
+	if x != nil {
+		return x.ExerciseId
+	}
+	return ""
+}
+
+func (x *SentRoutineLine) GetTargetSets() int32 {
+	if x != nil {
+		return x.TargetSets
+	}
+	return 0
+}
+
+func (x *SentRoutineLine) GetTargetRepsMin() int32 {
+	if x != nil {
+		return x.TargetRepsMin
+	}
+	return 0
+}
+
+func (x *SentRoutineLine) GetTargetRepsMax() int32 {
+	if x != nil {
+		return x.TargetRepsMax
+	}
+	return 0
+}
+
+func (x *SentRoutineLine) GetTargetWeightKg() float64 {
+	if x != nil {
+		return x.TargetWeightKg
+	}
+	return 0
+}
+
+func (x *SentRoutineLine) GetRestSeconds() int32 {
+	if x != nil {
+		return x.RestSeconds
+	}
+	return 0
+}
+
+func (x *SentRoutineLine) GetSupersetGroup() string {
+	if x != nil {
+		return x.SupersetGroup
+	}
+	return ""
+}
+
+func (x *SentRoutineLine) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *SentRoutineLine) GetSortOrder() int32 {
+	if x != nil {
+		return x.SortOrder
+	}
+	return 0
+}
+
+func (x *SentRoutineLine) GetCardioTargetJson() string {
+	if x != nil {
+		return x.CardioTargetJson
+	}
+	return ""
+}
+
+func (x *SentRoutineLine) GetPrescriptionJson() string {
+	if x != nil {
+		return x.PrescriptionJson
+	}
+	return ""
+}
+
+type SentRoutine struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// coaching_routines 행 id(crid).
+	Id              string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	SourceRoutineId string `protobuf:"bytes,2,opt,name=source_routine_id,json=sourceRoutineId,proto3" json:"source_routine_id,omitempty"`
+	MemberRoutineId string `protobuf:"bytes,3,opt,name=member_routine_id,json=memberRoutineId,proto3" json:"member_routine_id,omitempty"`
+	// 마지막으로 보낸 이름(회원 기기 레코드의 이름).
+	Name   string            `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	Status SentRoutineStatus `protobuf:"varint,5,opt,name=status,proto3,enum=coaching.v1.SentRoutineStatus" json:"status,omitempty"`
+	// 마지막으로 보낸 시각(epoch ms).
+	SentAt        int64  `protobuf:"varint,6,opt,name=sent_at,json=sentAt,proto3" json:"sent_at,omitempty"`
+	MemberId      string `protobuf:"bytes,7,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SentRoutine) Reset() {
+	*x = SentRoutine{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SentRoutine) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SentRoutine) ProtoMessage() {}
+
+func (x *SentRoutine) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SentRoutine.ProtoReflect.Descriptor instead.
+func (*SentRoutine) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *SentRoutine) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SentRoutine) GetSourceRoutineId() string {
+	if x != nil {
+		return x.SourceRoutineId
+	}
+	return ""
+}
+
+func (x *SentRoutine) GetMemberRoutineId() string {
+	if x != nil {
+		return x.MemberRoutineId
+	}
+	return ""
+}
+
+func (x *SentRoutine) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SentRoutine) GetStatus() SentRoutineStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SentRoutineStatus_SENT_ROUTINE_STATUS_UNSPECIFIED
+}
+
+func (x *SentRoutine) GetSentAt() int64 {
+	if x != nil {
+		return x.SentAt
+	}
+	return 0
+}
+
+func (x *SentRoutine) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+type SendRoutineRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	MemberId        string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	SourceRoutineId string                 `protobuf:"bytes,2,opt,name=source_routine_id,json=sourceRoutineId,proto3" json:"source_routine_id,omitempty"`
+	// 60자(룬)·메모 500자 · 줄 30개 · 줄마다 처방 20줄 — 상한 검사는 서버 몫(한국어 문구).
+	Name          string             `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Notes         string             `protobuf:"bytes,4,opt,name=notes,proto3" json:"notes,omitempty"`
+	Lines         []*SentRoutineLine `protobuf:"bytes,5,rep,name=lines,proto3" json:"lines,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendRoutineRequest) Reset() {
+	*x = SendRoutineRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendRoutineRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendRoutineRequest) ProtoMessage() {}
+
+func (x *SendRoutineRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendRoutineRequest.ProtoReflect.Descriptor instead.
+func (*SendRoutineRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *SendRoutineRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+func (x *SendRoutineRequest) GetSourceRoutineId() string {
+	if x != nil {
+		return x.SourceRoutineId
+	}
+	return ""
+}
+
+func (x *SendRoutineRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SendRoutineRequest) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+func (x *SendRoutineRequest) GetLines() []*SentRoutineLine {
+	if x != nil {
+		return x.Lines
+	}
+	return nil
+}
+
+type SendRoutineResponse struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Routine *SentRoutine           `protobuf:"bytes,1,opt,name=routine,proto3" json:"routine,omitempty"`
+	// 처음 보냈나(false 면 같은 회원 루틴을 바꿨다).
+	Created       bool `protobuf:"varint,2,opt,name=created,proto3" json:"created,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendRoutineResponse) Reset() {
+	*x = SendRoutineResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendRoutineResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendRoutineResponse) ProtoMessage() {}
+
+func (x *SendRoutineResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendRoutineResponse.ProtoReflect.Descriptor instead.
+func (*SendRoutineResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *SendRoutineResponse) GetRoutine() *SentRoutine {
+	if x != nil {
+		return x.Routine
+	}
+	return nil
+}
+
+func (x *SendRoutineResponse) GetCreated() bool {
+	if x != nil {
+		return x.Created
+	}
+	return false
+}
+
+type ListSentRoutinesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSentRoutinesRequest) Reset() {
+	*x = ListSentRoutinesRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSentRoutinesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSentRoutinesRequest) ProtoMessage() {}
+
+func (x *ListSentRoutinesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSentRoutinesRequest.ProtoReflect.Descriptor instead.
+func (*ListSentRoutinesRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *ListSentRoutinesRequest) GetMemberId() string {
+	if x != nil {
+		return x.MemberId
+	}
+	return ""
+}
+
+type ListSentRoutinesResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// 최근에 보낸 것부터.
+	Routines      []*SentRoutine `protobuf:"bytes,1,rep,name=routines,proto3" json:"routines,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSentRoutinesResponse) Reset() {
+	*x = ListSentRoutinesResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSentRoutinesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSentRoutinesResponse) ProtoMessage() {}
+
+func (x *ListSentRoutinesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSentRoutinesResponse.ProtoReflect.Descriptor instead.
+func (*ListSentRoutinesResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *ListSentRoutinesResponse) GetRoutines() []*SentRoutine {
+	if x != nil {
+		return x.Routines
+	}
+	return nil
+}
+
 var File_coaching_v1_coaching_proto protoreflect.FileDescriptor
 
 const file_coaching_v1_coaching_proto_rawDesc = "" +
@@ -3362,7 +3864,45 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\fserved_start\x18\x05 \x01(\x03R\vservedStart\x12\x1d\n" +
 	"\n" +
 	"served_end\x18\x06 \x01(\x03R\tservedEnd\x12'\n" +
-	"\x0fbodyweight_logs\x18\a \x03(\tR\x0ebodyweightLogs*x\n" +
+	"\x0fbodyweight_logs\x18\a \x03(\tR\x0ebodyweightLogs\"\xf3\x03\n" +
+	"\x0fSentRoutineLine\x12\x19\n" +
+	"\x02id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x02id\x12*\n" +
+	"\vexercise_id\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\n" +
+	"exerciseId\x12\x1f\n" +
+	"\vtarget_sets\x18\x03 \x01(\x05R\n" +
+	"targetSets\x12&\n" +
+	"\x0ftarget_reps_min\x18\x04 \x01(\x05R\rtargetRepsMin\x12&\n" +
+	"\x0ftarget_reps_max\x18\x05 \x01(\x05R\rtargetRepsMax\x12(\n" +
+	"\x10target_weight_kg\x18\x06 \x01(\x01R\x0etargetWeightKg\x12!\n" +
+	"\frest_seconds\x18\a \x01(\x05R\vrestSeconds\x12.\n" +
+	"\x0esuperset_group\x18\b \x01(\tB\a\xbaH\x04r\x02\x18@R\rsupersetGroup\x12\x1c\n" +
+	"\x04note\x18\t \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03R\x04note\x12\x1d\n" +
+	"\n" +
+	"sort_order\x18\n" +
+	" \x01(\x05R\tsortOrder\x126\n" +
+	"\x12cardio_target_json\x18\v \x01(\tB\b\xbaH\x05r\x03\x18\xd0\x0fR\x10cardioTargetJson\x126\n" +
+	"\x11prescription_json\x18\f \x01(\tB\t\xbaH\x06r\x04\x18\xa0\x9c\x01R\x10prescriptionJson\"\xf7\x01\n" +
+	"\vSentRoutine\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12*\n" +
+	"\x11source_routine_id\x18\x02 \x01(\tR\x0fsourceRoutineId\x12*\n" +
+	"\x11member_routine_id\x18\x03 \x01(\tR\x0fmemberRoutineId\x12\x12\n" +
+	"\x04name\x18\x04 \x01(\tR\x04name\x126\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x1e.coaching.v1.SentRoutineStatusR\x06status\x12\x17\n" +
+	"\asent_at\x18\x06 \x01(\x03R\x06sentAt\x12\x1b\n" +
+	"\tmember_id\x18\a \x01(\tR\bmemberId\"\xe5\x01\n" +
+	"\x12SendRoutineRequest\x12&\n" +
+	"\tmember_id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\bmemberId\x125\n" +
+	"\x11source_routine_id\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\x0fsourceRoutineId\x12\x1c\n" +
+	"\x04name\x18\x03 \x01(\tB\b\xbaH\x05r\x03\x18\x90\x03R\x04name\x12\x1e\n" +
+	"\x05notes\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x18\xa0\x1fR\x05notes\x122\n" +
+	"\x05lines\x18\x05 \x03(\v2\x1c.coaching.v1.SentRoutineLineR\x05lines\"c\n" +
+	"\x13SendRoutineResponse\x122\n" +
+	"\aroutine\x18\x01 \x01(\v2\x18.coaching.v1.SentRoutineR\aroutine\x12\x18\n" +
+	"\acreated\x18\x02 \x01(\bR\acreated\"A\n" +
+	"\x17ListSentRoutinesRequest\x12&\n" +
+	"\tmember_id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\bmemberId\"P\n" +
+	"\x18ListSentRoutinesResponse\x124\n" +
+	"\broutines\x18\x01 \x03(\v2\x18.coaching.v1.SentRoutineR\broutines*x\n" +
 	"\vGrantStatus\x12\x1c\n" +
 	"\x18GRANT_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14GRANT_STATUS_PENDING\x10\x01\x12\x17\n" +
@@ -3388,7 +3928,11 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x16LOAD_BASIS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12LOAD_BASIS_PCT_1RM\x10\x01\x12\x16\n" +
 	"\x12LOAD_BASIS_PCT_TOP\x10\x02\x12\x14\n" +
-	"\x10LOAD_BASIS_FIXED\x10\x032\x92\r\n" +
+	"\x10LOAD_BASIS_FIXED\x10\x03*w\n" +
+	"\x11SentRoutineStatus\x12#\n" +
+	"\x1fSENT_ROUTINE_STATUS_UNSPECIFIED\x10\x00\x12\x1e\n" +
+	"\x1aSENT_ROUTINE_STATUS_ACTIVE\x10\x01\x12\x1d\n" +
+	"\x19SENT_ROUTINE_STATUS_ENDED\x10\x022\xc9\x0e\n" +
 	"\x0fCoachingService\x12[\n" +
 	"\x0eSearchTrainers\x12\".coaching.v1.SearchTrainersRequest\x1a#.coaching.v1.SearchTrainersResponse\"\x00\x12^\n" +
 	"\x0fRequestCoaching\x12#.coaching.v1.RequestCoachingRequest\x1a$.coaching.v1.RequestCoachingResponse\"\x00\x12O\n" +
@@ -3408,7 +3952,9 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x13SendProgressSummary\x12'.coaching.v1.SendProgressSummaryRequest\x1a(.coaching.v1.SendProgressSummaryResponse\"\x00\x12g\n" +
 	"\x12GetProgressSummary\x12&.coaching.v1.GetProgressSummaryRequest\x1a'.coaching.v1.GetProgressSummaryResponse\"\x00\x12d\n" +
 	"\x11ListSentSummaries\x12%.coaching.v1.ListSentSummariesRequest\x1a&.coaching.v1.ListSentSummariesResponse\"\x00\x12a\n" +
-	"\x10GetMemberRecords\x12$.coaching.v1.GetMemberRecordsRequest\x1a%.coaching.v1.GetMemberRecordsResponse\"\x00B\xb5\x01\n" +
+	"\x10GetMemberRecords\x12$.coaching.v1.GetMemberRecordsRequest\x1a%.coaching.v1.GetMemberRecordsResponse\"\x00\x12R\n" +
+	"\vSendRoutine\x12\x1f.coaching.v1.SendRoutineRequest\x1a .coaching.v1.SendRoutineResponse\"\x00\x12a\n" +
+	"\x10ListSentRoutines\x12$.coaching.v1.ListSentRoutinesRequest\x1a%.coaching.v1.ListSentRoutinesResponse\"\x00B\xb5\x01\n" +
 	"\x0fcom.coaching.v1B\rCoachingProtoP\x01ZFgithub.com/JWK-company/liftgram/src/backend/gen/coaching/v1;coachingv1\xa2\x02\x03CXX\xaa\x02\vCoaching.V1\xca\x02\vCoaching\\V1\xe2\x02\x17Coaching\\V1\\GPBMetadata\xea\x02\fCoaching::V1b\x06proto3"
 
 var (
@@ -3423,139 +3969,154 @@ func file_coaching_v1_coaching_proto_rawDescGZIP() []byte {
 	return file_coaching_v1_coaching_proto_rawDescData
 }
 
-var file_coaching_v1_coaching_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
+var file_coaching_v1_coaching_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
 var file_coaching_v1_coaching_proto_goTypes = []any{
 	(GrantStatus)(0),                      // 0: coaching.v1.GrantStatus
 	(Side)(0),                             // 1: coaching.v1.Side
 	(SetType)(0),                          // 2: coaching.v1.SetType
 	(LoadHint)(0),                         // 3: coaching.v1.LoadHint
 	(LoadBasis)(0),                        // 4: coaching.v1.LoadBasis
-	(*Peer)(nil),                          // 5: coaching.v1.Peer
-	(*CoachingScope)(nil),                 // 6: coaching.v1.CoachingScope
-	(*Grant)(nil),                         // 7: coaching.v1.Grant
-	(*Invite)(nil),                        // 8: coaching.v1.Invite
-	(*PrescribedSet)(nil),                 // 9: coaching.v1.PrescribedSet
-	(*RoutineExercise)(nil),               // 10: coaching.v1.RoutineExercise
-	(*Routine)(nil),                       // 11: coaching.v1.Routine
-	(*MuscleVolume)(nil),                  // 12: coaching.v1.MuscleVolume
-	(*SessionSummary)(nil),                // 13: coaching.v1.SessionSummary
-	(*MemberReport)(nil),                  // 14: coaching.v1.MemberReport
-	(*AuditEntry)(nil),                    // 15: coaching.v1.AuditEntry
-	(*SearchTrainersRequest)(nil),         // 16: coaching.v1.SearchTrainersRequest
-	(*SearchTrainersResponse)(nil),        // 17: coaching.v1.SearchTrainersResponse
-	(*RequestCoachingRequest)(nil),        // 18: coaching.v1.RequestCoachingRequest
-	(*RequestCoachingResponse)(nil),       // 19: coaching.v1.RequestCoachingResponse
-	(*ListGrantsRequest)(nil),             // 20: coaching.v1.ListGrantsRequest
-	(*ListGrantsResponse)(nil),            // 21: coaching.v1.ListGrantsResponse
-	(*AcceptGrantRequest)(nil),            // 22: coaching.v1.AcceptGrantRequest
-	(*AcceptGrantResponse)(nil),           // 23: coaching.v1.AcceptGrantResponse
-	(*RevokeGrantRequest)(nil),            // 24: coaching.v1.RevokeGrantRequest
-	(*RevokeGrantResponse)(nil),           // 25: coaching.v1.RevokeGrantResponse
-	(*UpdateScopeRequest)(nil),            // 26: coaching.v1.UpdateScopeRequest
-	(*UpdateScopeResponse)(nil),           // 27: coaching.v1.UpdateScopeResponse
-	(*CreateInviteRequest)(nil),           // 28: coaching.v1.CreateInviteRequest
-	(*CreateInviteResponse)(nil),          // 29: coaching.v1.CreateInviteResponse
-	(*GetMyInviteRequest)(nil),            // 30: coaching.v1.GetMyInviteRequest
-	(*GetMyInviteResponse)(nil),           // 31: coaching.v1.GetMyInviteResponse
-	(*GetInviteRequest)(nil),              // 32: coaching.v1.GetInviteRequest
-	(*GetInviteResponse)(nil),             // 33: coaching.v1.GetInviteResponse
-	(*AcceptInviteRequest)(nil),           // 34: coaching.v1.AcceptInviteRequest
-	(*AcceptInviteResponse)(nil),          // 35: coaching.v1.AcceptInviteResponse
-	(*GetMemberReportRequest)(nil),        // 36: coaching.v1.GetMemberReportRequest
-	(*GetMemberReportResponse)(nil),       // 37: coaching.v1.GetMemberReportResponse
-	(*ListMemberRoutinesRequest)(nil),     // 38: coaching.v1.ListMemberRoutinesRequest
-	(*ListMemberRoutinesResponse)(nil),    // 39: coaching.v1.ListMemberRoutinesResponse
-	(*SetMemberPrescriptionRequest)(nil),  // 40: coaching.v1.SetMemberPrescriptionRequest
-	(*SetMemberPrescriptionResponse)(nil), // 41: coaching.v1.SetMemberPrescriptionResponse
-	(*ListAuditRequest)(nil),              // 42: coaching.v1.ListAuditRequest
-	(*ListAuditResponse)(nil),             // 43: coaching.v1.ListAuditResponse
-	(*SendProgressSummaryRequest)(nil),    // 44: coaching.v1.SendProgressSummaryRequest
-	(*SendProgressSummaryResponse)(nil),   // 45: coaching.v1.SendProgressSummaryResponse
-	(*ProgressSummary)(nil),               // 46: coaching.v1.ProgressSummary
-	(*GetProgressSummaryRequest)(nil),     // 47: coaching.v1.GetProgressSummaryRequest
-	(*GetProgressSummaryResponse)(nil),    // 48: coaching.v1.GetProgressSummaryResponse
-	(*SentSummary)(nil),                   // 49: coaching.v1.SentSummary
-	(*ListSentSummariesRequest)(nil),      // 50: coaching.v1.ListSentSummariesRequest
-	(*ListSentSummariesResponse)(nil),     // 51: coaching.v1.ListSentSummariesResponse
-	(*GetMemberRecordsRequest)(nil),       // 52: coaching.v1.GetMemberRecordsRequest
-	(*GetMemberRecordsResponse)(nil),      // 53: coaching.v1.GetMemberRecordsResponse
+	(SentRoutineStatus)(0),                // 5: coaching.v1.SentRoutineStatus
+	(*Peer)(nil),                          // 6: coaching.v1.Peer
+	(*CoachingScope)(nil),                 // 7: coaching.v1.CoachingScope
+	(*Grant)(nil),                         // 8: coaching.v1.Grant
+	(*Invite)(nil),                        // 9: coaching.v1.Invite
+	(*PrescribedSet)(nil),                 // 10: coaching.v1.PrescribedSet
+	(*RoutineExercise)(nil),               // 11: coaching.v1.RoutineExercise
+	(*Routine)(nil),                       // 12: coaching.v1.Routine
+	(*MuscleVolume)(nil),                  // 13: coaching.v1.MuscleVolume
+	(*SessionSummary)(nil),                // 14: coaching.v1.SessionSummary
+	(*MemberReport)(nil),                  // 15: coaching.v1.MemberReport
+	(*AuditEntry)(nil),                    // 16: coaching.v1.AuditEntry
+	(*SearchTrainersRequest)(nil),         // 17: coaching.v1.SearchTrainersRequest
+	(*SearchTrainersResponse)(nil),        // 18: coaching.v1.SearchTrainersResponse
+	(*RequestCoachingRequest)(nil),        // 19: coaching.v1.RequestCoachingRequest
+	(*RequestCoachingResponse)(nil),       // 20: coaching.v1.RequestCoachingResponse
+	(*ListGrantsRequest)(nil),             // 21: coaching.v1.ListGrantsRequest
+	(*ListGrantsResponse)(nil),            // 22: coaching.v1.ListGrantsResponse
+	(*AcceptGrantRequest)(nil),            // 23: coaching.v1.AcceptGrantRequest
+	(*AcceptGrantResponse)(nil),           // 24: coaching.v1.AcceptGrantResponse
+	(*RevokeGrantRequest)(nil),            // 25: coaching.v1.RevokeGrantRequest
+	(*RevokeGrantResponse)(nil),           // 26: coaching.v1.RevokeGrantResponse
+	(*UpdateScopeRequest)(nil),            // 27: coaching.v1.UpdateScopeRequest
+	(*UpdateScopeResponse)(nil),           // 28: coaching.v1.UpdateScopeResponse
+	(*CreateInviteRequest)(nil),           // 29: coaching.v1.CreateInviteRequest
+	(*CreateInviteResponse)(nil),          // 30: coaching.v1.CreateInviteResponse
+	(*GetMyInviteRequest)(nil),            // 31: coaching.v1.GetMyInviteRequest
+	(*GetMyInviteResponse)(nil),           // 32: coaching.v1.GetMyInviteResponse
+	(*GetInviteRequest)(nil),              // 33: coaching.v1.GetInviteRequest
+	(*GetInviteResponse)(nil),             // 34: coaching.v1.GetInviteResponse
+	(*AcceptInviteRequest)(nil),           // 35: coaching.v1.AcceptInviteRequest
+	(*AcceptInviteResponse)(nil),          // 36: coaching.v1.AcceptInviteResponse
+	(*GetMemberReportRequest)(nil),        // 37: coaching.v1.GetMemberReportRequest
+	(*GetMemberReportResponse)(nil),       // 38: coaching.v1.GetMemberReportResponse
+	(*ListMemberRoutinesRequest)(nil),     // 39: coaching.v1.ListMemberRoutinesRequest
+	(*ListMemberRoutinesResponse)(nil),    // 40: coaching.v1.ListMemberRoutinesResponse
+	(*SetMemberPrescriptionRequest)(nil),  // 41: coaching.v1.SetMemberPrescriptionRequest
+	(*SetMemberPrescriptionResponse)(nil), // 42: coaching.v1.SetMemberPrescriptionResponse
+	(*ListAuditRequest)(nil),              // 43: coaching.v1.ListAuditRequest
+	(*ListAuditResponse)(nil),             // 44: coaching.v1.ListAuditResponse
+	(*SendProgressSummaryRequest)(nil),    // 45: coaching.v1.SendProgressSummaryRequest
+	(*SendProgressSummaryResponse)(nil),   // 46: coaching.v1.SendProgressSummaryResponse
+	(*ProgressSummary)(nil),               // 47: coaching.v1.ProgressSummary
+	(*GetProgressSummaryRequest)(nil),     // 48: coaching.v1.GetProgressSummaryRequest
+	(*GetProgressSummaryResponse)(nil),    // 49: coaching.v1.GetProgressSummaryResponse
+	(*SentSummary)(nil),                   // 50: coaching.v1.SentSummary
+	(*ListSentSummariesRequest)(nil),      // 51: coaching.v1.ListSentSummariesRequest
+	(*ListSentSummariesResponse)(nil),     // 52: coaching.v1.ListSentSummariesResponse
+	(*GetMemberRecordsRequest)(nil),       // 53: coaching.v1.GetMemberRecordsRequest
+	(*GetMemberRecordsResponse)(nil),      // 54: coaching.v1.GetMemberRecordsResponse
+	(*SentRoutineLine)(nil),               // 55: coaching.v1.SentRoutineLine
+	(*SentRoutine)(nil),                   // 56: coaching.v1.SentRoutine
+	(*SendRoutineRequest)(nil),            // 57: coaching.v1.SendRoutineRequest
+	(*SendRoutineResponse)(nil),           // 58: coaching.v1.SendRoutineResponse
+	(*ListSentRoutinesRequest)(nil),       // 59: coaching.v1.ListSentRoutinesRequest
+	(*ListSentRoutinesResponse)(nil),      // 60: coaching.v1.ListSentRoutinesResponse
 }
 var file_coaching_v1_coaching_proto_depIdxs = []int32{
 	0,  // 0: coaching.v1.Grant.status:type_name -> coaching.v1.GrantStatus
 	1,  // 1: coaching.v1.Grant.requested_by:type_name -> coaching.v1.Side
 	1,  // 2: coaching.v1.Grant.role_of_me:type_name -> coaching.v1.Side
-	5,  // 3: coaching.v1.Grant.peer:type_name -> coaching.v1.Peer
-	6,  // 4: coaching.v1.Grant.scope:type_name -> coaching.v1.CoachingScope
+	6,  // 3: coaching.v1.Grant.peer:type_name -> coaching.v1.Peer
+	7,  // 4: coaching.v1.Grant.scope:type_name -> coaching.v1.CoachingScope
 	2,  // 5: coaching.v1.PrescribedSet.set_type:type_name -> coaching.v1.SetType
 	3,  // 6: coaching.v1.PrescribedSet.load_hint:type_name -> coaching.v1.LoadHint
 	4,  // 7: coaching.v1.PrescribedSet.load_basis:type_name -> coaching.v1.LoadBasis
-	9,  // 8: coaching.v1.RoutineExercise.prescription:type_name -> coaching.v1.PrescribedSet
-	10, // 9: coaching.v1.Routine.exercises:type_name -> coaching.v1.RoutineExercise
-	12, // 10: coaching.v1.MemberReport.muscle_volume:type_name -> coaching.v1.MuscleVolume
-	13, // 11: coaching.v1.MemberReport.recent_sessions:type_name -> coaching.v1.SessionSummary
-	5,  // 12: coaching.v1.SearchTrainersResponse.peers:type_name -> coaching.v1.Peer
-	6,  // 13: coaching.v1.RequestCoachingRequest.scope:type_name -> coaching.v1.CoachingScope
-	7,  // 14: coaching.v1.RequestCoachingResponse.grant:type_name -> coaching.v1.Grant
-	7,  // 15: coaching.v1.ListGrantsResponse.grants:type_name -> coaching.v1.Grant
-	6,  // 16: coaching.v1.AcceptGrantRequest.scope:type_name -> coaching.v1.CoachingScope
-	7,  // 17: coaching.v1.AcceptGrantResponse.grant:type_name -> coaching.v1.Grant
-	7,  // 18: coaching.v1.RevokeGrantResponse.grant:type_name -> coaching.v1.Grant
-	6,  // 19: coaching.v1.UpdateScopeRequest.scope:type_name -> coaching.v1.CoachingScope
-	7,  // 20: coaching.v1.UpdateScopeResponse.grant:type_name -> coaching.v1.Grant
-	8,  // 21: coaching.v1.CreateInviteResponse.invite:type_name -> coaching.v1.Invite
-	8,  // 22: coaching.v1.GetMyInviteResponse.invite:type_name -> coaching.v1.Invite
-	5,  // 23: coaching.v1.GetInviteResponse.trainer:type_name -> coaching.v1.Peer
-	6,  // 24: coaching.v1.AcceptInviteRequest.scope:type_name -> coaching.v1.CoachingScope
-	7,  // 25: coaching.v1.AcceptInviteResponse.grant:type_name -> coaching.v1.Grant
-	14, // 26: coaching.v1.GetMemberReportResponse.report:type_name -> coaching.v1.MemberReport
-	11, // 27: coaching.v1.ListMemberRoutinesResponse.routines:type_name -> coaching.v1.Routine
-	9,  // 28: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
-	9,  // 29: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
-	15, // 30: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
-	46, // 31: coaching.v1.GetProgressSummaryResponse.summary:type_name -> coaching.v1.ProgressSummary
-	49, // 32: coaching.v1.ListSentSummariesResponse.summaries:type_name -> coaching.v1.SentSummary
-	16, // 33: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
-	18, // 34: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
-	20, // 35: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
-	22, // 36: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
-	24, // 37: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
-	26, // 38: coaching.v1.CoachingService.UpdateScope:input_type -> coaching.v1.UpdateScopeRequest
-	28, // 39: coaching.v1.CoachingService.CreateInvite:input_type -> coaching.v1.CreateInviteRequest
-	30, // 40: coaching.v1.CoachingService.GetMyInvite:input_type -> coaching.v1.GetMyInviteRequest
-	32, // 41: coaching.v1.CoachingService.GetInvite:input_type -> coaching.v1.GetInviteRequest
-	34, // 42: coaching.v1.CoachingService.AcceptInvite:input_type -> coaching.v1.AcceptInviteRequest
-	36, // 43: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
-	38, // 44: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
-	40, // 45: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
-	42, // 46: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
-	44, // 47: coaching.v1.CoachingService.SendProgressSummary:input_type -> coaching.v1.SendProgressSummaryRequest
-	47, // 48: coaching.v1.CoachingService.GetProgressSummary:input_type -> coaching.v1.GetProgressSummaryRequest
-	50, // 49: coaching.v1.CoachingService.ListSentSummaries:input_type -> coaching.v1.ListSentSummariesRequest
-	52, // 50: coaching.v1.CoachingService.GetMemberRecords:input_type -> coaching.v1.GetMemberRecordsRequest
-	17, // 51: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
-	19, // 52: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
-	21, // 53: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
-	23, // 54: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
-	25, // 55: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
-	27, // 56: coaching.v1.CoachingService.UpdateScope:output_type -> coaching.v1.UpdateScopeResponse
-	29, // 57: coaching.v1.CoachingService.CreateInvite:output_type -> coaching.v1.CreateInviteResponse
-	31, // 58: coaching.v1.CoachingService.GetMyInvite:output_type -> coaching.v1.GetMyInviteResponse
-	33, // 59: coaching.v1.CoachingService.GetInvite:output_type -> coaching.v1.GetInviteResponse
-	35, // 60: coaching.v1.CoachingService.AcceptInvite:output_type -> coaching.v1.AcceptInviteResponse
-	37, // 61: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
-	39, // 62: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
-	41, // 63: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
-	43, // 64: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
-	45, // 65: coaching.v1.CoachingService.SendProgressSummary:output_type -> coaching.v1.SendProgressSummaryResponse
-	48, // 66: coaching.v1.CoachingService.GetProgressSummary:output_type -> coaching.v1.GetProgressSummaryResponse
-	51, // 67: coaching.v1.CoachingService.ListSentSummaries:output_type -> coaching.v1.ListSentSummariesResponse
-	53, // 68: coaching.v1.CoachingService.GetMemberRecords:output_type -> coaching.v1.GetMemberRecordsResponse
-	51, // [51:69] is the sub-list for method output_type
-	33, // [33:51] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	10, // 8: coaching.v1.RoutineExercise.prescription:type_name -> coaching.v1.PrescribedSet
+	11, // 9: coaching.v1.Routine.exercises:type_name -> coaching.v1.RoutineExercise
+	13, // 10: coaching.v1.MemberReport.muscle_volume:type_name -> coaching.v1.MuscleVolume
+	14, // 11: coaching.v1.MemberReport.recent_sessions:type_name -> coaching.v1.SessionSummary
+	6,  // 12: coaching.v1.SearchTrainersResponse.peers:type_name -> coaching.v1.Peer
+	7,  // 13: coaching.v1.RequestCoachingRequest.scope:type_name -> coaching.v1.CoachingScope
+	8,  // 14: coaching.v1.RequestCoachingResponse.grant:type_name -> coaching.v1.Grant
+	8,  // 15: coaching.v1.ListGrantsResponse.grants:type_name -> coaching.v1.Grant
+	7,  // 16: coaching.v1.AcceptGrantRequest.scope:type_name -> coaching.v1.CoachingScope
+	8,  // 17: coaching.v1.AcceptGrantResponse.grant:type_name -> coaching.v1.Grant
+	8,  // 18: coaching.v1.RevokeGrantResponse.grant:type_name -> coaching.v1.Grant
+	7,  // 19: coaching.v1.UpdateScopeRequest.scope:type_name -> coaching.v1.CoachingScope
+	8,  // 20: coaching.v1.UpdateScopeResponse.grant:type_name -> coaching.v1.Grant
+	9,  // 21: coaching.v1.CreateInviteResponse.invite:type_name -> coaching.v1.Invite
+	9,  // 22: coaching.v1.GetMyInviteResponse.invite:type_name -> coaching.v1.Invite
+	6,  // 23: coaching.v1.GetInviteResponse.trainer:type_name -> coaching.v1.Peer
+	7,  // 24: coaching.v1.AcceptInviteRequest.scope:type_name -> coaching.v1.CoachingScope
+	8,  // 25: coaching.v1.AcceptInviteResponse.grant:type_name -> coaching.v1.Grant
+	15, // 26: coaching.v1.GetMemberReportResponse.report:type_name -> coaching.v1.MemberReport
+	12, // 27: coaching.v1.ListMemberRoutinesResponse.routines:type_name -> coaching.v1.Routine
+	10, // 28: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
+	10, // 29: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
+	16, // 30: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
+	47, // 31: coaching.v1.GetProgressSummaryResponse.summary:type_name -> coaching.v1.ProgressSummary
+	50, // 32: coaching.v1.ListSentSummariesResponse.summaries:type_name -> coaching.v1.SentSummary
+	5,  // 33: coaching.v1.SentRoutine.status:type_name -> coaching.v1.SentRoutineStatus
+	55, // 34: coaching.v1.SendRoutineRequest.lines:type_name -> coaching.v1.SentRoutineLine
+	56, // 35: coaching.v1.SendRoutineResponse.routine:type_name -> coaching.v1.SentRoutine
+	56, // 36: coaching.v1.ListSentRoutinesResponse.routines:type_name -> coaching.v1.SentRoutine
+	17, // 37: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
+	19, // 38: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
+	21, // 39: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
+	23, // 40: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
+	25, // 41: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
+	27, // 42: coaching.v1.CoachingService.UpdateScope:input_type -> coaching.v1.UpdateScopeRequest
+	29, // 43: coaching.v1.CoachingService.CreateInvite:input_type -> coaching.v1.CreateInviteRequest
+	31, // 44: coaching.v1.CoachingService.GetMyInvite:input_type -> coaching.v1.GetMyInviteRequest
+	33, // 45: coaching.v1.CoachingService.GetInvite:input_type -> coaching.v1.GetInviteRequest
+	35, // 46: coaching.v1.CoachingService.AcceptInvite:input_type -> coaching.v1.AcceptInviteRequest
+	37, // 47: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
+	39, // 48: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
+	41, // 49: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
+	43, // 50: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
+	45, // 51: coaching.v1.CoachingService.SendProgressSummary:input_type -> coaching.v1.SendProgressSummaryRequest
+	48, // 52: coaching.v1.CoachingService.GetProgressSummary:input_type -> coaching.v1.GetProgressSummaryRequest
+	51, // 53: coaching.v1.CoachingService.ListSentSummaries:input_type -> coaching.v1.ListSentSummariesRequest
+	53, // 54: coaching.v1.CoachingService.GetMemberRecords:input_type -> coaching.v1.GetMemberRecordsRequest
+	57, // 55: coaching.v1.CoachingService.SendRoutine:input_type -> coaching.v1.SendRoutineRequest
+	59, // 56: coaching.v1.CoachingService.ListSentRoutines:input_type -> coaching.v1.ListSentRoutinesRequest
+	18, // 57: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
+	20, // 58: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
+	22, // 59: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
+	24, // 60: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
+	26, // 61: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
+	28, // 62: coaching.v1.CoachingService.UpdateScope:output_type -> coaching.v1.UpdateScopeResponse
+	30, // 63: coaching.v1.CoachingService.CreateInvite:output_type -> coaching.v1.CreateInviteResponse
+	32, // 64: coaching.v1.CoachingService.GetMyInvite:output_type -> coaching.v1.GetMyInviteResponse
+	34, // 65: coaching.v1.CoachingService.GetInvite:output_type -> coaching.v1.GetInviteResponse
+	36, // 66: coaching.v1.CoachingService.AcceptInvite:output_type -> coaching.v1.AcceptInviteResponse
+	38, // 67: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
+	40, // 68: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
+	42, // 69: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
+	44, // 70: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
+	46, // 71: coaching.v1.CoachingService.SendProgressSummary:output_type -> coaching.v1.SendProgressSummaryResponse
+	49, // 72: coaching.v1.CoachingService.GetProgressSummary:output_type -> coaching.v1.GetProgressSummaryResponse
+	52, // 73: coaching.v1.CoachingService.ListSentSummaries:output_type -> coaching.v1.ListSentSummariesResponse
+	54, // 74: coaching.v1.CoachingService.GetMemberRecords:output_type -> coaching.v1.GetMemberRecordsResponse
+	58, // 75: coaching.v1.CoachingService.SendRoutine:output_type -> coaching.v1.SendRoutineResponse
+	60, // 76: coaching.v1.CoachingService.ListSentRoutines:output_type -> coaching.v1.ListSentRoutinesResponse
+	57, // [57:77] is the sub-list for method output_type
+	37, // [37:57] is the sub-list for method input_type
+	37, // [37:37] is the sub-list for extension type_name
+	37, // [37:37] is the sub-list for extension extendee
+	0,  // [0:37] is the sub-list for field type_name
 }
 
 func init() { file_coaching_v1_coaching_proto_init() }
@@ -3568,8 +4129,8 @@ func file_coaching_v1_coaching_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_coaching_v1_coaching_proto_rawDesc), len(file_coaching_v1_coaching_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   49,
+			NumEnums:      6,
+			NumMessages:   55,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -47,7 +47,7 @@ func (f *fakeRepo) List(_ context.Context, _ string, since, until time.Time) ([]
 	return out, nil
 }
 
-func (f *fakeRepo) Apply(_ context.Context, _ string, upserts, deletes []Record) error {
+func (f *fakeRepo) Apply(_ context.Context, _ string, upserts, deletes []Record, _ Guard) error {
 	if f.failWith != nil {
 		return f.failWith
 	}

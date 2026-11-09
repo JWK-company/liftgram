@@ -197,6 +197,18 @@ func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, []
 		if err = q.DeleteOrphanCoachingAudits(ctx, userID); err != nil {
 			return err
 		}
+		// 코치가 탈퇴하면 회원 기기의 코치 루틴은 「코칭 끝남」(회원 것)으로 — 해지와 같은 한 칸 패치(SPEC-050 P3b).
+		// 관계를 먼저 잠근다(루틴 보내기와 줄을 선다). 관계·coaching_routines 는 DeleteUser 의 CASCADE 로 사라진다.
+		grants, err := q.LockUserGrants(ctx, userID)
+		if err != nil {
+			return err
+		}
+		nowMs := time.Now().UnixMilli()
+		for _, gid := range grants {
+			if _, err = q.MarkCoachRoutinesEnded(ctx, sqlcgen.MarkCoachRoutinesEndedParams{GrantID: gid, NowMs: nowMs}); err != nil {
+				return err
+			}
+		}
 		if n, err = q.DeleteUser(ctx, userID); err != nil {
 			return err
 		}

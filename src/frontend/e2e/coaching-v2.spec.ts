@@ -104,6 +104,78 @@ async function 줄_메뉴(page: Page, section: "coaching-coaches" | "coaching-me
   await expect(page.getByTestId("coaching-grant-sheet")).toBeVisible();
 }
 
+/** 코치(pageT · 이미 코치)가 코드를 만들고 회원(pageM)이 기본 범위(루틴 받기 켬)로 연결한다. */
+async function 코드로_연결(pageT: Page, pageM: Page, 코치: string) {
+  // 이미 만든 코드가 있으면(다시 연결) 그 코드를 쓴다 — 「코드 만들기」 버튼은 코드가 없을 때만 있다
+  await pageT.goto("/coaching");
+  await expect(pageT.getByTestId("invite-card")).toBeVisible({ timeout: 20_000 });
+  await expect(pageT.getByTestId("invite-create").or(pageT.getByTestId("invite-code"))).toBeVisible({
+    timeout: 20_000,
+  });
+  const code = (await pageT.getByTestId("invite-code").count())
+    ? ((await pageT.getByTestId("invite-code").getAttribute("data-code")) ?? "")
+    : await 코드_만들기(pageT);
+  await pageM.goto("/coaching");
+  await pageM.getByTestId("coaching-code-input").fill(code);
+  await pageM.getByTestId("coaching-code-check").click();
+  await expect(pageM.getByTestId("scope-coach-card")).toContainText(코치, { timeout: 20_000 });
+  await pageM.getByTestId("scope-confirm").click();
+  await expect(
+    pageM.getByTestId("coaching-coaches").getByTestId("coaching-grant").filter({ hasText: "코칭 중" }),
+  ).toHaveCount(1, { timeout: 20_000 });
+}
+
+/** 회원이 코치와의 연결을 끊는다(/coaching ⋯ → 끊기 → 확인). */
+async function 해지(pageM: Page, 코치: string) {
+  await pageM.goto("/coaching");
+  await 줄_메뉴(pageM, "coaching-coaches", 코치);
+  await pageM.getByTestId("coaching-revoke").click();
+  await pageM.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+  await expect(
+    pageM.getByTestId("coaching-coaches").getByTestId("coaching-grant").filter({ hasText: "코칭 중" }),
+  ).toHaveCount(0, { timeout: 20_000 });
+}
+
+/** 코치 — 회원 화면 루틴 탭에서 「새 루틴 짜 주기」 → 초안 편집기에서 이름·메모·종목을 넣는다. 초안 id 를 돌려준다. */
+async function 초안_짜기(
+  pageT: Page,
+  memberId: string,
+  이름: string,
+  종목들: string[],
+  메모?: string,
+): Promise<string> {
+  await pageT.goto(`/coaching/m/${memberId}?tab=routines`);
+  await expect(pageT.getByTestId("sent-routines")).toBeVisible({ timeout: 20_000 });
+  await pageT.getByTestId("btn-new-coach-routine").click();
+  await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+  const draftId = decodeURIComponent(pageT.url().split("/routines/")[1] ?? "");
+  expect(draftId).not.toBe("");
+  await pageT.getByTestId("routine-name").fill(이름);
+  await pageT.getByTestId("routine-name").blur();
+  if (메모) {
+    await pageT.getByTestId("routine-notes").fill(메모);
+    await pageT.getByTestId("routine-notes").blur();
+  }
+  const rows = pageT.getByTestId("routine-exercises").locator("> div");
+  for (const [i, 종목] of 종목들.entries()) {
+    await pageT.getByTestId("btn-add-routine-exercise").click();
+    await pageT.getByTestId("picker-search").fill(종목);
+    await pageT.getByTestId("picker-list").locator("button").first().click();
+    await pageT.getByTestId("picker-confirm").click();
+    await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
+  }
+  return draftId;
+}
+
+/** 초안 편집기에서 「○○님께 보내기」 → 서버 OK → 회원 화면 루틴 탭으로 돌아온다. */
+async function 초안_보내기(pageT: Page, memberId: string) {
+  const sent = pageT.waitForResponse(`**${RPC}/SendRoutine`);
+  await pageT.getByTestId("btn-draft-send").click();
+  expect((await sent).ok()).toBe(true);
+  await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}\\?tab=routines$`), { timeout: 20_000 });
+  await expect(pageT.getByTestId("sent-routines")).toBeVisible({ timeout: 20_000 });
+}
+
 test("코치가 코드를 만들고 회원이 코드로 연결한다 — 범위 기본값·범위 바꾸기·이력·새 코드", async ({
   page,
   browser,
@@ -1078,41 +1150,8 @@ test.describe("P2 회원 화면", () => {
 // 서버에 코치 루틴을 심는 길: 회원 기기에서 만든 루틴 행을 P3b SendRoutine 이 쓸 모양(origin coach·coach_id·coach_name)으로 고쳐
 // 올린다(서버는 jsonb 를 해석하지 않는다). 그 뒤 **새 기기**로 로그인해 동기로 받은 행을 본다 — 표시·잠금은 받은 칸만 보고 정해진다.
 test.describe("P3a 출처 표시·회원 잠금", () => {
-  async function 루틴_만들기(page: Page, 이름: string, 종목들: string[]): Promise<string> {
-    await page.goto("/");
-    await page.getByTestId("btn-new-routine").click();
-    await expect(page.getByTestId("routine-name")).toBeVisible({ timeout: 20_000 });
-    await page.getByTestId("routine-name").fill(이름);
-    await page.getByTestId("routine-name").blur();
-    await page.getByTestId("routine-notes").fill("코치 메모 — 천천히 내리기");
-    await page.getByTestId("routine-notes").blur();
-    const rows = page.getByTestId("routine-exercises").locator("> div");
-    for (const [i, 종목] of 종목들.entries()) {
-      await page.getByTestId("btn-add-routine-exercise").click();
-      await page.getByTestId("picker-search").fill(종목);
-      await page.getByTestId("picker-list").locator("button").first().click();
-      await page.getByTestId("picker-confirm").click();
-      await expect(rows).toHaveCount(i + 1, { timeout: 10_000 });
-    }
-    await page.getByTestId("btn-routine-done").click();
-    await expect(page.getByTestId("routine-list")).toContainText(이름, { timeout: 10_000 });
-    const tid = await page
-      .getByTestId("routine-list")
-      .locator("[data-testid^=routine-]")
-      .filter({ hasText: 이름 })
-      .first()
-      .getAttribute("data-testid");
-    return (tid ?? "").replace("routine-", "");
-  }
-
-  /** 이 기기 행을 출처 칸으로 고쳐 다음 동기에 올라가게 한다(앱 밖 빈 문서에서) */
-  async function 출처_심기(page: Page, id: string, set: Record<string, unknown>) {
-    await 빈_문서(page);
-    const n = await idb_행_고치기(page, "routines", [
-      { id, set: { ...set, _status: "updated", _changed: Object.keys(set).join(",") }, shiftUpdatedAt: 1000 },
-    ]);
-    expect(n).toBe(1);
-  }
+  // [원본] 루틴_만들기·출처_심기 — 회원 기기에서 출처 칸을 심었다. P3b 서버 보호(H-1)로 막혀 진짜 코치 보내기로 바꿨다
+  //   (심기 자체가 막히는지는 「P3b 초안·보내기」의 H-1 시험이 본다).
 
   async function 넘침_없음(page: Page) {
     const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -1123,25 +1162,40 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
     page,
     browser,
   }) => {
-    test.setTimeout(300_000);
+    test.setTimeout(360_000);
     const tag = Date.now().toString(36);
     const email = 새_메일("cv2-p3a");
     const 이름 = `코치 상체 ${tag}`;
+    const 코치 = `김코치${tag}`;
     await 가입(page, email, `회원p3a${tag}`);
     await 준비(page);
-    const id = await 루틴_만들기(page, 이름, ["바벨 벤치프레스"]);
-    await 동기(page);
-    await 출처_심기(page, id, { origin: "coach", coach_id: "u-coach-e2e", coach_name: "김코치" });
-    await page.goto("/");
-    await 동기(page); // 고친 행이 서버로 — 서버에 코치 루틴이 있다
+    const memberId = await 내_id(page);
 
-    // 새 기기 — 동기로 받은 코치 루틴
+    // [원본] 회원 기기에서 출처 칸(origin coach)을 심어 올렸다 — P3b 서버 보호(REV-102 H-1)가 그런 쓰기를 지운다.
+    // [개선] 진짜 코치가 연결해 보낸다(SPEC-050 P3b 보내기).
+    const [ctxT, pageT] = await 새_기기(browser);
     const [ctxB, pageB] = await 새_기기(browser);
     try {
+      await 가입(pageT, 새_메일("cv2-p3a-t"), 코치);
+      await 코치되기(pageT);
+      await 준비(pageT);
+      await 코드로_연결(pageT, page, 코치);
+      await 초안_짜기(pageT, memberId, 이름, ["바벨 벤치프레스"], "코치 메모 — 천천히 내리기");
+      await 초안_보내기(pageT, memberId);
+
+      // 새 기기 — 동기로 받은 코치 루틴
       await 로그인(pageB, email);
       await 준비(pageB);
       await 동기(pageB);
       await pageB.goto("/");
+      const tid = await pageB
+        .getByTestId("routine-list")
+        .locator("[data-testid^=routine-]")
+        .filter({ hasText: 이름 })
+        .first()
+        .getAttribute("data-testid", { timeout: 20_000 });
+      const id = (tid ?? "").replace("routine-", "");
+      expect(id).toMatch(/^coach-/);
       const row = pageB.getByTestId(`routine-${id}`);
       await expect(row).toBeVisible({ timeout: 20_000 });
       const chip = row.getByTestId("origin-chip");
@@ -1164,7 +1218,7 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
       await row.getByTestId("open-routine-preview").click();
       const preview = pageB.getByTestId("routine-preview");
       await expect(preview.getByTestId("coach-routine-banner")).toContainText(
-        "코치 김코치님이 짠 루틴이에요",
+        `코치 ${코치}님이 짠 루틴이에요`,
       );
       await expect(preview.getByTestId("routine-preview-edit")).toHaveCount(0);
       await expect(preview.getByTestId("routine-preview-copy")).toHaveText("내 루틴으로 복사");
@@ -1187,7 +1241,7 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
       await expect(pageB).toHaveURL(new RegExp(`/routines/${id}$`), { timeout: 20_000 });
       const view = pageB.getByTestId("coach-routine-view");
       await expect(view).toBeVisible({ timeout: 20_000 });
-      await expect(view.getByTestId("coach-routine-banner")).toContainText("코치 김코치님이 짠 루틴이에요");
+      await expect(view.getByTestId("coach-routine-banner")).toContainText(`코치 ${코치}님이 짠 루틴이에요`);
       await expect(view.getByTestId("coach-routine-name")).toHaveText(이름);
       await expect(view.getByTestId("coach-routine-notes")).toHaveText("코치 메모 — 천천히 내리기");
       await expect(view.getByTestId("coach-routine-line")).toHaveCount(1);
@@ -1259,7 +1313,9 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
       await expect(pageB.getByTestId("coach-routine-line")).toContainText("3세트", { timeout: 20_000 });
 
       // 코칭 끝남(coach_ended) — 회색 「코칭 끝남」 · 다시 편집기·복제
-      await 출처_심기(pageB, id, { origin: "coach_ended" });
+      // [원본] await 출처_심기(pageB, id, { origin: "coach_ended" }); — 회원 기기가 올린 출처는 서버가 지운다(H-1) → 진짜 해지
+      await 해지(pageB, 코치);
+      await 동기(pageB);
       await pageB.goto("/");
       await pageB.getByTestId("folder-toggle").filter({ hasText: "받은 루틴" }).click();
       const ended = pageB
@@ -1273,6 +1329,7 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
       await expect(pageB.getByTestId("coach-routine-view")).toHaveCount(0);
     } finally {
       await ctxB.close();
+      await ctxT.close();
     }
   });
 
@@ -1298,5 +1355,384 @@ test.describe("P3a 출처 표시·회원 잠금", () => {
     expect(labels).toContain("편집");
     expect(labels).toContain("복제");
     expect(labels).not.toContain("내 루틴으로 복사");
+  });
+});
+
+test.describe("P3b 초안·보내기", () => {
+  /** 회원 홈의 그 이름 루틴 줄 id 들 */
+  async function 홈_루틴_id(page: Page, 이름: string): Promise<string[]> {
+    await page.goto("/");
+    await expect(page.getByTestId("routine-list")).toBeVisible({ timeout: 20_000 });
+    const tids = await page
+      .getByTestId("routine-list")
+      .locator("[data-testid^=routine-]")
+      .filter({ hasText: 이름 })
+      .evaluateAll((els) => els.map((e) => e.getAttribute("data-testid") ?? ""));
+    return tids.filter((x) => /^routine-coach-/.test(x)).map((x) => x.replace("routine-", ""));
+  }
+
+  test("초안 모드 → 보내기 → 회원 홈 「코치 ○○」 · 알림 누르면 동기 · 다시 보내면 같은 id·빠진 종목 사라짐 · 해지 → 「코칭 끝남」·고칠 수 있음 · 다시 연결해 보내면 새 루틴 · 회원이 심은 출처는 서버가 지움", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(420_000);
+    const tag = Date.now().toString(36);
+    const 코치 = `박코치${tag}`;
+    const 회원 = `회원p3b${tag}`;
+    const 이름 = `하체 A ${tag}`;
+    const 이름2 = `하체 B ${tag}`;
+    const emailM = 새_메일("cv2-p3b-m");
+    await 가입(page, emailM, 회원);
+    await 준비(page);
+    const memberId = await 내_id(page);
+
+    const [ctxT, pageT] = await 새_기기(browser);
+    try {
+      await 가입(pageT, 새_메일("cv2-p3b-t"), 코치);
+      await 코치되기(pageT);
+      await 준비(pageT);
+      await 코드로_연결(pageT, page, 코치);
+
+      // ── 회원 화면 루틴 탭 — 「보낸 루틴」 비어 있음 · 「회원이 만든 루틴」 ──
+      await pageT.goto(`/coaching/m/${memberId}?tab=routines`);
+      await expect(pageT.getByTestId("sent-empty")).toBeVisible({ timeout: 20_000 });
+      await expect(pageT.getByTestId("member-panel-routines")).toContainText("회원이 만든 루틴");
+
+      // 빈 초안은 나가면 지워진다(목록에 안 남는다)
+      await pageT.getByTestId("btn-new-coach-routine").click();
+      await expect(pageT.getByTestId("coach-draft-band")).toContainText(`${회원}님께 보낼 루틴`, {
+        timeout: 20_000,
+      });
+      await expect(pageT.getByTestId("btn-draft-send")).toBeDisabled();
+      await pageT.getByTestId("btn-draft-later").click();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}\\?tab=routines$`), {
+        timeout: 20_000,
+      });
+      await expect(pageT.getByTestId("sent-empty")).toBeVisible({ timeout: 20_000 });
+      await expect(pageT.getByTestId("sent-row")).toHaveCount(0);
+
+      // ── 초안 모드 — 띠 · 폴더·시작·완료·변형 없음 · 내 루틴 목록에 안 보임 ──
+      const draftId = await 초안_짜기(
+        pageT,
+        memberId,
+        이름,
+        ["바벨 벤치프레스", "케이블 푸시다운"],
+        "코치 메모",
+      );
+      for (const id of ["routine-folder", "routine-folder-new", "btn-routine-start", "btn-routine-done"])
+        await expect(pageT.getByTestId(id)).toHaveCount(0);
+      await expect(pageT.locator('[data-testid="variant-trigger"]:visible')).toHaveCount(0);
+      await expect(pageT.getByTestId("btn-draft-send")).toHaveText(new RegExp(`${회원}님께 보내기`));
+      await expect(pageT.getByTestId("btn-draft-send")).toBeEnabled();
+      await 초안_보내기(pageT, memberId);
+      const sentRow = pageT.getByTestId("sent-row").filter({ hasText: 이름 });
+      await expect(sentRow.getByTestId("sent-status")).toHaveAttribute("data-status", "sent", {
+        timeout: 20_000,
+      });
+      await expect(sentRow.getByTestId("sent-status")).toContainText("보냄");
+      await pageT.goto("/");
+      await expect(pageT.getByTestId("routine-list").filter({ hasText: 이름 })).toHaveCount(0); // 코치 자기 목록엔 없다
+
+      // ── 회원 — 알림을 누르면 동기한 뒤 홈 · 청록 「코치 ○○」 · 종목 2 ──
+      await page.goto("/notifications");
+      const notif = page.getByTestId("notif-row").filter({ hasText: `${코치} 코치님이 루틴을 보냈어요` });
+      await expect(notif).toHaveCount(1, { timeout: 20_000 });
+      await notif.click();
+      await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
+      await expect.poll(async () => (await 홈_루틴_id(page, 이름)).length, { timeout: 20_000 }).toBe(1);
+      const [rid] = await 홈_루틴_id(page, 이름);
+      const row = page.getByTestId(`routine-${rid}`);
+      await expect(row.getByTestId("origin-chip")).toHaveText(new RegExp(`코치 ${코치}`));
+      await page.goto(`/routines/${rid}`);
+      await expect(page.getByTestId("coach-routine-name")).toHaveText(이름, { timeout: 20_000 });
+      await expect(page.getByTestId("coach-routine-line")).toHaveCount(2);
+
+      // ── 코치가 고친다(종목 하나 빼고 이름 바꿈) → 「보내지 않은 변경 있음」 → 다시 보내기 ──
+      await pageT.goto(`/coaching/m/${memberId}?tab=routines`);
+      await pageT.getByTestId("sent-row").filter({ hasText: 이름 }).click();
+      await expect(pageT).toHaveURL(new RegExp(`/routines/${draftId}$`), { timeout: 20_000 });
+      await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+      const rows = pageT.getByTestId("routine-exercises").locator("> div");
+      await expect(rows).toHaveCount(2, { timeout: 20_000 });
+      await rows.nth(1).getByTestId("btn-re-remove").click();
+      await pageT.getByTestId("confirm-remove-routine-exercise").getByTestId("dialog-confirm").click();
+      await expect(rows).toHaveCount(1, { timeout: 10_000 });
+      await pageT.getByTestId("routine-name").fill(이름2);
+      await pageT.getByTestId("routine-name").blur();
+      await pageT.getByTestId("btn-draft-later").click();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}\\?tab=routines$`), {
+        timeout: 20_000,
+      });
+      const row2 = pageT.getByTestId("sent-row").filter({ hasText: 이름2 });
+      await expect(row2.getByTestId("sent-status")).toHaveAttribute("data-status", "unsent", {
+        timeout: 20_000,
+      });
+      await expect(row2.getByTestId("sent-status")).toHaveText("보내지 않은 변경 있음");
+      await row2.click();
+      await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+      await 초안_보내기(pageT, memberId);
+      await expect(
+        pageT.getByTestId("sent-row").filter({ hasText: 이름2 }).getByTestId("sent-status"),
+      ).toHaveAttribute("data-status", "sent", { timeout: 20_000 });
+
+      // 회원 — 같은 id · 이름 바뀜 · 빠진 종목 사라짐
+      await 동기(page);
+      await page.goto(`/routines/${rid}`);
+      await expect(page.getByTestId("coach-routine-name")).toHaveText(이름2, { timeout: 20_000 });
+      await expect(page.getByTestId("coach-routine-line")).toHaveCount(1);
+      await expect(page.getByTestId("coach-routine-line")).toContainText("벤치프레스");
+      await expect.poll(async () => 홈_루틴_id(page, 이름2), { timeout: 20_000 }).toEqual([rid]);
+
+      // ── 해지 → 회원 「코칭 끝남」 · 고칠 수 있음 ──
+      await 해지(page, 코치);
+      await 동기(page);
+      await page.goto("/");
+      const ended = page.getByTestId(`routine-${rid}`).getByTestId("origin-chip");
+      await expect(ended).toHaveText("코칭 끝남", { timeout: 20_000 });
+      await expect(ended).toHaveAttribute("data-origin", "coach_ended");
+      await page.goto(`/routines/${rid}`);
+      await expect(page.getByTestId("routine-name")).toHaveValue(이름2, { timeout: 20_000 });
+      await expect(page.getByTestId("coach-routine-view")).toHaveCount(0);
+      await page.getByTestId("routine-name").fill(`${이름2} 내꺼`);
+      await page.getByTestId("routine-name").blur();
+      await page.getByTestId("btn-routine-done").click();
+      await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+      await 동기(page);
+      await page.goto("/");
+      await expect(page.getByTestId(`routine-${rid}`)).toContainText(`${이름2} 내꺼`, { timeout: 20_000 });
+
+      // ── 다시 연결해 같은 초안을 보내면 새 루틴(옛 루틴은 끝남 그대로) ──
+      await 코드로_연결(pageT, page, 코치);
+      await pageT.goto(`/coaching/m/${memberId}?tab=routines`);
+      const again = pageT.getByTestId("sent-row").filter({ hasText: 이름2 });
+      await expect(again.getByTestId("sent-status")).toHaveAttribute("data-status", "ended", {
+        timeout: 20_000,
+      });
+      await again.click();
+      await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+      await 초안_보내기(pageT, memberId);
+      await 동기(page);
+      await expect
+        .poll(async () => (await 홈_루틴_id(page, 이름2)).filter((x) => x !== rid).length, {
+          timeout: 20_000,
+        })
+        .toBe(1);
+      const fresh = (await 홈_루틴_id(page, 이름2)).find((x) => x !== rid) ?? "";
+      await expect(page.getByTestId(`routine-${fresh}`).getByTestId("origin-chip")).toHaveAttribute(
+        "data-origin",
+        "coach",
+      );
+      await expect(page.getByTestId(`routine-${rid}`).getByTestId("origin-chip")).toHaveAttribute(
+        "data-origin",
+        "coach_ended",
+      );
+    } finally {
+      await ctxT.close();
+    }
+  });
+
+  test("회원 기기가 출처 칸을 심어 올려도 서버가 지운다(REV-102 H-1) — 새 기기에 칩 없음", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(240_000);
+    const tag = Date.now().toString(36);
+    const email = 새_메일("cv2-p3b-h1");
+    const 이름 = `가짜 코치 ${tag}`;
+    await 가입(page, email, `회원h1${tag}`);
+    await 준비(page);
+    await page.goto("/");
+    await page.getByTestId("btn-new-routine").click();
+    await expect(page.getByTestId("routine-name")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("routine-name").fill(이름);
+    await page.getByTestId("routine-name").blur();
+    await page.getByTestId("btn-add-routine-exercise").click();
+    await page.getByTestId("picker-search").fill("바벨 벤치프레스");
+    await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click();
+    await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 10_000 });
+    await page.getByTestId("btn-routine-done").click();
+    const tid = await page
+      .getByTestId("routine-list")
+      .locator("[data-testid^=routine-]")
+      .filter({ hasText: 이름 })
+      .first()
+      .getAttribute("data-testid", { timeout: 20_000 });
+    const id = (tid ?? "").replace("routine-", "");
+    await 동기(page);
+    await 빈_문서(page);
+    const n = await idb_행_고치기(page, "routines", [
+      {
+        id,
+        set: {
+          origin: "coach",
+          coach_id: "u-fake",
+          coach_name: "가짜",
+          _status: "updated",
+          _changed: "origin,coach_id,coach_name",
+        },
+        shiftUpdatedAt: 1000,
+      },
+    ]);
+    expect(n).toBe(1);
+    await page.goto("/");
+    await 동기(page);
+
+    const [ctxB, pageB] = await 새_기기(browser);
+    try {
+      await 로그인(pageB, email);
+      await 준비(pageB);
+      await 동기(pageB);
+      await pageB.goto("/");
+      const row = pageB.getByTestId(`routine-${id}`);
+      await expect(row).toBeVisible({ timeout: 20_000 });
+      await expect(row.getByTestId("origin-chip")).toHaveCount(0);
+      await pageB.goto(`/routines/${id}`);
+      await expect(pageB.getByTestId("routine-name")).toHaveValue(이름, { timeout: 20_000 });
+    } finally {
+      await ctxB.close();
+    }
+  });
+  /** 이 기기 로컬 DB 에 그 초안 행이 살아 있나(빈 문서에서 읽고 돌아온다). */
+  async function 초안_남음(page: Page, draftId: string, back: string): Promise<number> {
+    await 내려쓰기_대기(page);
+    await 빈_문서(page);
+    const n = (await idb_행_수(page, ["routines"], draftId)).routines;
+    await page.goto(back);
+    return n;
+  }
+
+  test("보낸 뒤 보기만 하고 나가면 「보냄」 그대로 · 빈 초안은 브라우저 뒤로·탭 막대로 나가도 치운다(리뷰 H-1·M-1)", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(300_000);
+    const tag = Date.now().toString(36);
+    const 코치 = `뒤로코치${tag}`;
+    const 회원 = `회원bk${tag}`;
+    const 이름 = `보기만 ${tag}`;
+    await 가입(page, 새_메일("cv2-p3b-bk-m"), 회원);
+    await 준비(page);
+    const memberId = await 내_id(page);
+    const [ctxT, pageT] = await 새_기기(browser);
+    const back = `/coaching/m/${memberId}?tab=routines`;
+    try {
+      await 가입(pageT, 새_메일("cv2-p3b-bk-t"), 코치);
+      await 코치되기(pageT);
+      await 준비(pageT);
+      await 코드로_연결(pageT, page, 코치);
+
+      // ── 빈 초안 + 브라우저 뒤로 → 회원 화면 · 초안 행 없음 ──
+      await pageT.goto(back);
+      await expect(pageT.getByTestId("sent-routines")).toBeVisible({ timeout: 20_000 });
+      await pageT.getByTestId("btn-new-coach-routine").click();
+      await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+      const empty1 = decodeURIComponent(pageT.url().split("/routines/")[1] ?? "");
+      expect(empty1).not.toBe("");
+      await pageT.goBack();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}\\?tab=routines$`), {
+        timeout: 20_000,
+      });
+      expect(await 초안_남음(pageT, empty1, back)).toBe(0);
+
+      // ── 빈 초안 + 탭 막대 → 그 탭으로 · 초안 행 없음 ──
+      await expect(pageT.getByTestId("sent-routines")).toBeVisible({ timeout: 20_000 });
+      await pageT.getByTestId("btn-new-coach-routine").click();
+      await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+      const empty2 = decodeURIComponent(pageT.url().split("/routines/")[1] ?? "");
+      await pageT.locator('[data-testid="nav-history"]:visible').first().click();
+      await expect(pageT).toHaveURL(/\/history/, { timeout: 20_000 });
+      expect(await 초안_남음(pageT, empty2, back)).toBe(0);
+
+      // ── 보낸 뒤 열어서 이름 칸만 건드리고(같은 값) 나간다 → 「보냄」 그대로 ──
+      await 초안_짜기(pageT, memberId, 이름, ["바벨 벤치프레스"]);
+      await 초안_보내기(pageT, memberId);
+      const row = pageT.getByTestId("sent-row").filter({ hasText: 이름 });
+      await expect(row.getByTestId("sent-status")).toHaveAttribute("data-status", "sent", {
+        timeout: 20_000,
+      });
+      for (const leave of ["later", "browser-back"] as const) {
+        await row.click();
+        await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+        await pageT.getByTestId("routine-name").click();
+        await pageT.getByTestId("routine-name").blur();
+        if (leave === "later") await pageT.getByTestId("btn-draft-later").click();
+        else await pageT.goBack();
+        await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}\\?tab=routines$`), {
+          timeout: 20_000,
+        });
+        await expect(row.getByTestId("sent-status")).toHaveAttribute("data-status", "sent", {
+          timeout: 20_000,
+        });
+      }
+      // 보낸 초안은 비워도 남는다(회원 화면 줄이 가리킨다) — 서버 목록으로 판단
+      await row.click();
+      await expect(pageT.getByTestId("coach-draft-band")).toBeVisible({ timeout: 20_000 });
+      const rows = pageT.getByTestId("routine-exercises").locator("> div");
+      await rows.nth(0).getByTestId("btn-re-remove").click();
+      await pageT.getByTestId("confirm-remove-routine-exercise").getByTestId("dialog-confirm").click();
+      await expect(rows).toHaveCount(0, { timeout: 10_000 });
+      await pageT.getByTestId("btn-draft-later").click();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}\\?tab=routines$`), {
+        timeout: 20_000,
+      });
+      await expect(row.getByTestId("sent-status")).toHaveAttribute("data-status", "unsent", {
+        timeout: 20_000,
+      });
+    } finally {
+      await ctxT.close();
+    }
+  });
+
+  test("360px·다크 초안 화면 — 넘침 없음·긴 이름 보내기 버튼 한 줄 · 해지 뒤 띠 「코칭이 끝났어요」·보내기 막힘·지우기는 남음(리뷰 M-4·L-4)", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(300_000);
+    const tag = Date.now().toString(36);
+    const 코치 = `다크코치${tag}`;
+    const 회원 = `이름이아주아주긴회원님${tag}`;
+    await 가입(page, 새_메일("cv2-p3b-dk-m"), 회원);
+    await 준비(page);
+    const memberId = await 내_id(page);
+    const [ctxT, pageT] = await 새_기기(browser);
+    try {
+      await 가입(pageT, 새_메일("cv2-p3b-dk-t"), 코치);
+      await 코치되기(pageT);
+      await 준비(pageT);
+      await 코드로_연결(pageT, page, 코치);
+
+      await pageT.setViewportSize({ width: 360, height: 780 });
+      await pageT.emulateMedia({ colorScheme: "dark" });
+      const draftId = await 초안_짜기(pageT, memberId, `다크 ${tag}`, ["바벨 벤치프레스"]);
+      const band = pageT.getByTestId("coach-draft-band");
+      await expect(band).toHaveAttribute("data-blocked", "");
+      await 넘침_없음(pageT);
+      const send = pageT.getByTestId("btn-draft-send");
+      await expect(send).toBeEnabled();
+      const box = await send.boundingBox();
+      expect(box?.height ?? 0).toBeLessThanOrEqual(56); // 한 줄(긴 이름은 …)
+      expect(box?.width ?? 999).toBeLessThanOrEqual(360);
+      const ellipsis = await send.locator("span.truncate").evaluate((el) => el.scrollWidth > el.clientWidth);
+      expect(ellipsis).toBe(true);
+      const bg = await band.evaluate((el) => getComputedStyle(el).backgroundColor);
+      expect(bg).toBe("rgb(23, 51, 53)"); // 다크 coaching-soft
+      expect(await 빨강_채움(pageT, "[data-coach-anchor]")).toBeLessThanOrEqual(1);
+
+      // ── 회원이 끊는다 → 초안 화면: 띠 「코칭이 끝났어요」 · 보내기 막힘 · 지우기는 남음 ──
+      await 해지(page, 코치);
+      await pageT.goto(`/routines/${draftId}`);
+      await expect(band).toHaveAttribute("data-blocked", "ended", { timeout: 20_000 });
+      await expect(pageT.getByTestId("coach-draft-band-hint")).toContainText("코칭이 끝났어요");
+      await expect(send).toBeDisabled();
+      await 넘침_없음(pageT);
+      await expect(pageT.getByTestId("btn-delete-routine")).toBeVisible();
+      await pageT.getByTestId("btn-delete-routine").click();
+      await pageT.getByTestId("confirm-delete-routine").getByTestId("dialog-confirm").click();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${memberId}`), { timeout: 20_000 });
+      expect(await 초안_남음(pageT, draftId, "/")).toBe(0);
+    } finally {
+      await ctxT.close();
+    }
   });
 });

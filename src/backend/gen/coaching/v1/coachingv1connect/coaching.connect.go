@@ -108,6 +108,12 @@ const (
 	// CoachingServiceGetMemberRecordsProcedure is the fully-qualified name of the CoachingService's
 	// GetMemberRecords RPC.
 	CoachingServiceGetMemberRecordsProcedure = "/coaching.v1.CoachingService/GetMemberRecords"
+	// CoachingServiceSendRoutineProcedure is the fully-qualified name of the CoachingService's
+	// SendRoutine RPC.
+	CoachingServiceSendRoutineProcedure = "/coaching.v1.CoachingService/SendRoutine"
+	// CoachingServiceListSentRoutinesProcedure is the fully-qualified name of the CoachingService's
+	// ListSentRoutines RPC.
+	CoachingServiceListSentRoutinesProcedure = "/coaching.v1.CoachingService/ListSentRoutines"
 )
 
 // CoachingServiceClient is a client for the coaching.v1.CoachingService service.
@@ -143,6 +149,10 @@ type CoachingServiceClient interface {
 	ListSentSummaries(context.Context, *connect.Request[v1.ListSentSummariesRequest]) (*connect.Response[v1.ListSentSummariesResponse], error)
 	// 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
 	GetMemberRecords(context.Context, *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error)
+	// ── 코치 루틴(SPEC-050 P3b) ── 코치만 · 활성 ∧ routineEdit ∧ 차단 아님. 보내기는 코치당 시간당 60번.
+	SendRoutine(context.Context, *connect.Request[v1.SendRoutineRequest]) (*connect.Response[v1.SendRoutineResponse], error)
+	// 이 회원에게 보낸 루틴(끝난 것 포함 · 코치 본인 것만).
+	ListSentRoutines(context.Context, *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error)
 }
 
 // NewCoachingServiceClient constructs a client for the coaching.v1.CoachingService service. By
@@ -264,6 +274,18 @@ func NewCoachingServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			connect.WithSchema(coachingServiceMethods.ByName("GetMemberRecords")),
 			connect.WithClientOptions(opts...),
 		),
+		sendRoutine: connect.NewClient[v1.SendRoutineRequest, v1.SendRoutineResponse](
+			httpClient,
+			baseURL+CoachingServiceSendRoutineProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("SendRoutine")),
+			connect.WithClientOptions(opts...),
+		),
+		listSentRoutines: connect.NewClient[v1.ListSentRoutinesRequest, v1.ListSentRoutinesResponse](
+			httpClient,
+			baseURL+CoachingServiceListSentRoutinesProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("ListSentRoutines")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -287,6 +309,8 @@ type coachingServiceClient struct {
 	getProgressSummary    *connect.Client[v1.GetProgressSummaryRequest, v1.GetProgressSummaryResponse]
 	listSentSummaries     *connect.Client[v1.ListSentSummariesRequest, v1.ListSentSummariesResponse]
 	getMemberRecords      *connect.Client[v1.GetMemberRecordsRequest, v1.GetMemberRecordsResponse]
+	sendRoutine           *connect.Client[v1.SendRoutineRequest, v1.SendRoutineResponse]
+	listSentRoutines      *connect.Client[v1.ListSentRoutinesRequest, v1.ListSentRoutinesResponse]
 }
 
 // SearchTrainers calls coaching.v1.CoachingService.SearchTrainers.
@@ -379,6 +403,16 @@ func (c *coachingServiceClient) GetMemberRecords(ctx context.Context, req *conne
 	return c.getMemberRecords.CallUnary(ctx, req)
 }
 
+// SendRoutine calls coaching.v1.CoachingService.SendRoutine.
+func (c *coachingServiceClient) SendRoutine(ctx context.Context, req *connect.Request[v1.SendRoutineRequest]) (*connect.Response[v1.SendRoutineResponse], error) {
+	return c.sendRoutine.CallUnary(ctx, req)
+}
+
+// ListSentRoutines calls coaching.v1.CoachingService.ListSentRoutines.
+func (c *coachingServiceClient) ListSentRoutines(ctx context.Context, req *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error) {
+	return c.listSentRoutines.CallUnary(ctx, req)
+}
+
 // CoachingServiceHandler is an implementation of the coaching.v1.CoachingService service.
 type CoachingServiceHandler interface {
 	// 코칭 의향을 밝힌 사람을 찾는다. 차단한(또는 나를 차단한) 사람은 보이지 않는다.
@@ -412,6 +446,10 @@ type CoachingServiceHandler interface {
 	ListSentSummaries(context.Context, *connect.Request[v1.ListSentSummariesRequest]) (*connect.Response[v1.ListSentSummariesResponse], error)
 	// 트레이너 리포트용 원본 레코드(허용 컬렉션·칸·기간만 · 2MB 상한).
 	GetMemberRecords(context.Context, *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error)
+	// ── 코치 루틴(SPEC-050 P3b) ── 코치만 · 활성 ∧ routineEdit ∧ 차단 아님. 보내기는 코치당 시간당 60번.
+	SendRoutine(context.Context, *connect.Request[v1.SendRoutineRequest]) (*connect.Response[v1.SendRoutineResponse], error)
+	// 이 회원에게 보낸 루틴(끝난 것 포함 · 코치 본인 것만).
+	ListSentRoutines(context.Context, *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error)
 }
 
 // NewCoachingServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -529,6 +567,18 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 		connect.WithSchema(coachingServiceMethods.ByName("GetMemberRecords")),
 		connect.WithHandlerOptions(opts...),
 	)
+	coachingServiceSendRoutineHandler := connect.NewUnaryHandler(
+		CoachingServiceSendRoutineProcedure,
+		svc.SendRoutine,
+		connect.WithSchema(coachingServiceMethods.ByName("SendRoutine")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceListSentRoutinesHandler := connect.NewUnaryHandler(
+		CoachingServiceListSentRoutinesProcedure,
+		svc.ListSentRoutines,
+		connect.WithSchema(coachingServiceMethods.ByName("ListSentRoutines")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/coaching.v1.CoachingService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CoachingServiceSearchTrainersProcedure:
@@ -567,6 +617,10 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 			coachingServiceListSentSummariesHandler.ServeHTTP(w, r)
 		case CoachingServiceGetMemberRecordsProcedure:
 			coachingServiceGetMemberRecordsHandler.ServeHTTP(w, r)
+		case CoachingServiceSendRoutineProcedure:
+			coachingServiceSendRoutineHandler.ServeHTTP(w, r)
+		case CoachingServiceListSentRoutinesProcedure:
+			coachingServiceListSentRoutinesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -646,4 +700,12 @@ func (UnimplementedCoachingServiceHandler) ListSentSummaries(context.Context, *c
 
 func (UnimplementedCoachingServiceHandler) GetMemberRecords(context.Context, *connect.Request[v1.GetMemberRecordsRequest]) (*connect.Response[v1.GetMemberRecordsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.GetMemberRecords is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) SendRoutine(context.Context, *connect.Request[v1.SendRoutineRequest]) (*connect.Response[v1.SendRoutineResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.SendRoutine is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) ListSentRoutines(context.Context, *connect.Request[v1.ListSentRoutinesRequest]) (*connect.Response[v1.ListSentRoutinesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.ListSentRoutines is not implemented"))
 }

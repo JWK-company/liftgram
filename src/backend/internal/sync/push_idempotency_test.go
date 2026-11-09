@@ -90,6 +90,20 @@ func (m *memRepo) apply(user string, upserts, deletes []Record) error {
 	return nil
 }
 
+// lookup 은 pgRepo 의 LockSyncRecords 와 같은 답(지운 행 포함)을 준다.
+func (m *memRepo) lookup(user string) Lookup {
+	return func(keys []RecordKey) (map[RecordKey]StoredRow, error) {
+		out := map[RecordKey]StoredRow{}
+		for _, k := range keys {
+			if row, ok := m.rows[memKey(user, k.Collection, k.RecordID)]; ok {
+				b, _ := json.Marshal(row.payload)
+				out[k] = StoredRow{Payload: b, Deleted: row.deleted}
+			}
+		}
+		return out, nil
+	}
+}
+
 func (m *memRepo) snapshot(user string) []string {
 	var out []string
 	prefix := user + "\x1f"
@@ -124,7 +138,14 @@ func (r memUserRepo) List(_ context.Context, userID string, _, _ time.Time) ([]R
 	}
 	return out, nil
 }
-func (r memUserRepo) Apply(_ context.Context, userID string, upserts, deletes []Record) error {
+func (r memUserRepo) Apply(_ context.Context, userID string, upserts, deletes []Record, guard Guard) error {
+	if guard != nil && len(upserts) > 0 {
+		kept, dropped, err := guard(upserts, r.m.lookup(userID))
+		if err != nil {
+			return err
+		}
+		upserts, deletes = kept, append(append([]Record{}, deletes...), dropped...)
+	}
 	return r.m.apply(userID, upserts, deletes)
 }
 
@@ -148,13 +169,13 @@ type faultRepo struct {
 
 var errInjected = errors.New("주입한 실패")
 
-func (f *faultRepo) Apply(ctx context.Context, userID string, upserts, deletes []Record) error {
+func (f *faultRepo) Apply(ctx context.Context, userID string, upserts, deletes []Record, guard Guard) error {
 	f.calls++
 	if f.calls != f.failAt {
-		return f.Repo.Apply(ctx, userID, upserts, deletes)
+		return f.Repo.Apply(ctx, userID, upserts, deletes, guard)
 	}
 	poisoned := append(append([]Record{}, deletes...), Record{Collection: "workouts", RecordID: "poison\x00", Deleted: true})
-	if err := f.Repo.Apply(ctx, userID, upserts, poisoned); err != nil {
+	if err := f.Repo.Apply(ctx, userID, upserts, poisoned, guard); err != nil {
 		return errors.Join(errInjected, err)
 	}
 	return errors.New("독이 든 묶음이 반영됐다 — 실패를 주입하지 못했다")

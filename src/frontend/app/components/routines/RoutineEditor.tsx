@@ -64,6 +64,8 @@ import { runAfterOverlays } from "@/lib/useBackToClose"; // 창 칸 정리 뒤�
 import { markCoachRoutineSeen } from "@/lib/coachRoutineSeen"; // 새로 받은 코치 루틴 점(SPEC-050 P3a)
 import { RoutineLinesList } from "./RoutinePreviewSheet"; // 코치 루틴 읽기 보기(SPEC-050 P3a)
 import { CoachRoutineBanner } from "./RoutineOrigin";
+import { CoachDraftBand, useDraftMember, sendCoachDraft, draftBlocked, draftEverSent } from "./CoachDraft"; // 코치 초안 모드(SPEC-050 P3b)
+import { forgetCoachDraftSent } from "@/lib/coachDraftSent";
 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 
@@ -118,6 +120,14 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   const [confirmRemove, setConfirmRemove] = useState<RoutineExerciseRow | null>(null);
   // 코치가 보낸 루틴이면 읽기 보기(SPEC-050 P3a) — 회원은 이름·메모·종목·세트를 못 고친다(저장소도 막는다)
   const [coachView, setCoachView] = useState<{ coachName: string | null } | null>(null);
+  // 코치 초안(SPEC-050 P3b) — 보낼 회원 id. 있으면 초안 모드: 청록 띠 · 폴더·시작·변형 숨김 · 카탈로그 종목만 · 「○○님께 보내기」
+  const [draftFor, setDraftFor] = useState<string | null>(null);
+  const draftMember = useDraftMember(draftFor);
+  const [sending, setSending] = useState(false);
+  // 마지막으로 저장한 이름 — 초안은 바뀐 때만 쓴다(같은 값을 다시 써도 행이 움직이지 않게 · 리뷰 H-1)
+  const savedNameRef = useRef("");
+  // 초안에서 나가기(뒤로·탭 막대 포함) — 함수는 아래(로드 뒤)에서 정해진다(리뷰 M-1)
+  const leaveDraftRef = useRef<((href?: string) => Promise<void>) | null>(null);
 
   // 만들기가 두 번 겹치지 않게 하는 자물쇠(빠르게 두 번 누르거나 개발 모드의 이중 실행 대비).
   const creatingRef = useRef<Promise<string> | null>(null);
@@ -153,12 +163,15 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           notes: string | null;
           origin: string | null;
           coachName: string | null;
+          coachFor: string | null;
         };
         if (cancelled) return;
         setName(routine.name ?? "");
+        savedNameRef.current = (routine.name ?? "").trim();
         setFolder(routine.folder ?? "");
         setNotes(routine.notes ?? "");
         setCoachView(r.isCoachLocked(routine) ? { coachName: routine.coachName ?? null } : null);
+        setDraftFor(routine.coachFor || null);
       }
       setLoaded(true);
     })();
@@ -286,14 +299,16 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   const leaveTo = useCallback(
     async (href: string) => {
       const { navigateAfterFlush } = await import("@/lib/localDb");
-      if (!isNewRoutine) {
+      // [원본] if (!isNewRoutine) {
+      // [개선] 코치 초안도 가드 칸을 쓴다(뒤로·탭 막대도 leaveDraft 를 거치게 · SPEC-050 P3b 리뷰 M-1) — 떠날 때 칸을 걷는다
+      if (!isNewRoutine && !draftFor) {
         await navigateAfterFlush(href);
         return;
       }
       await dropGuard();
       await navigateAfterFlush(href, { replace: true });
     },
-    [isNewRoutine, dropGuard],
+    [isNewRoutine, draftFor, dropGuard],
   );
 
   /** 만들던 새 루틴을 버리고 떠난다 — 이미 올라갔을 수 있어 삭제 표식이 전파되도록 동기화를 부른다. */
@@ -332,8 +347,14 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
   // 기기·브라우저 뒤로와 화면 안 링크(탭 막대 등)를 받는다. 칸 규약은 ExercisePickerScreen 과 같다.
   const requestExitRef = useRef(requestExit);
   requestExitRef.current = requestExit;
+  // [원본] if (!isNewRoutine || !loaded) return; — 새 루틴만 받았다
+  // [개선] 코치 초안도 받는다 — 뒤로·탭 막대로 나가도 빈 초안을 치우는 leaveDraft 를 거친다(SPEC-050 P3b 리뷰 M-1)
   useEffect(() => {
-    if (!isNewRoutine || !loaded) return;
+    if (!(isNewRoutine || draftFor) || !loaded) return;
+    const exit = (href: string) => {
+      if (draftFor) void leaveDraftRef.current?.(href);
+      else requestExitRef.current(href);
+    };
     const token = `routine-${Math.random().toString(36).slice(2)}`;
     const pushGuard = () => {
       history.pushState({ ...(history.state ?? {}), liftgramTop: token }, "");
@@ -344,7 +365,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
       if (exitingRef.current || guardTokenRef.current !== token) return;
       if (history.state?.liftgramTop === token) return; // 위 칸(피커)이 닫혀 우리 칸으로 돌아왔다
       pushGuard();
-      if (!closeTopOverlay()) requestExitRef.current("/");
+      // [원본] if (!closeTopOverlay()) requestExitRef.current("/");
+      if (!closeTopOverlay()) exit(draftFor ? "" : "/"); // 초안의 뒤로 = 회원 화면 루틴 탭
     };
     const onClick = (e: MouseEvent) => {
       if (exitingRef.current || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
@@ -354,7 +376,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
       if (href === location.pathname) return;
       e.preventDefault();
       e.stopPropagation();
-      requestExitRef.current(href);
+      // [원본] requestExitRef.current(href);
+      exit(href);
     };
     window.addEventListener("popstate", onPop);
     document.addEventListener("click", onClick, true);
@@ -362,7 +385,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
       window.removeEventListener("popstate", onPop);
       document.removeEventListener("click", onClick, true);
     };
-  }, [isNewRoutine, loaded]);
+  }, [isNewRoutine, draftFor, loaded]);
 
   if (!loaded || !repo) {
     return (
@@ -391,7 +414,60 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
 
   // 저장된 루틴이고 종목이 있고, 이미 진행 중인 운동이 없을 때만 바로 시작할 수 있다
   // (진행 중이면 홈의 「이어 하기」 가 먼저다 — 두 운동이 겹치지 않게).
-  const canStart = !!routineId && exercises.length > 0 && !activeWorkoutId;
+  // [원본] const canStart = !!routineId && exercises.length > 0 && !activeWorkoutId;
+  // [개선] 코치 초안은 내 운동이 아니다 — 시작 없음(SPEC-050 P3b)
+  const canStart = !draftFor && !!routineId && exercises.length > 0 && !activeWorkoutId;
+  const draftHref = draftFor ? `/coaching/m/${encodeURIComponent(draftFor)}?tab=routines` : "/";
+
+  /** 이름이 바뀌었을 때만 쓴다(초안) — 같은 값을 다시 쓰면 행이 움직인다. */
+  async function saveDraftName() {
+    const n = name.trim();
+    if (!n || n === savedNameRef.current) return;
+    savedNameRef.current = n;
+    await save({ name: n });
+  }
+
+  /**
+   * 초안에서 나간다 — 종목이 없고 보낸 적도 없으면 지우고(빈 초안이 쌓이지 않게) 회원 화면 루틴 탭으로(href 가 있으면 그리로).
+   * 머리 ←·「나중에 보내기」·브라우저 뒤로·탭 막대가 모두 여기로 온다(리뷰 M-1).
+   */
+  async function leaveDraft(href?: string) {
+    if (exitingRef.current || committingRef.current || !repo) return;
+    exitingRef.current = true;
+    await settleWrites();
+    const n = routineId ? await repo.queryRoutineExercises(routineId).fetchCount() : 0;
+    // 보낸 적 있나는 서버(ListSentRoutines)로 — 못 물으면(오프라인·실패) 지우지 않는다(리뷰 M-3 · 다른 기기에서 보낸 초안 보호)
+    if (routineId && n === 0 && draftFor && (await draftEverSent(draftFor, routineId)) === false) {
+      await repo.deleteRoutine(routineId).catch(() => {});
+      forgetCoachDraftSent(routineId);
+      void import("@/lib/syncTransport").then((m) => m.syncNow()).catch(() => {});
+    } else if (routineId) {
+      exitingRef.current = false; // save 는 나가는 중이면 쓰지 않는다 — 이름만 올리고 다시 잠근다
+      await saveDraftName();
+      exitingRef.current = true;
+    }
+    await leaveTo(href || draftHref);
+  }
+  leaveDraftRef.current = leaveDraft;
+
+  /** 「○○님께 보내기」 — 쓰던 칸을 올리고 서버로 보낸 뒤 회원 화면으로. 실패는 토스트(서버 문구 그대로). */
+  async function sendDraft() {
+    if (!draftFor || !routineId || sending || adding || draftBlocked(draftMember)) return;
+    setSending(true);
+    committingRef.current = true;
+    try {
+      await settleWrites();
+      await saveDraftName(); // 바뀐 때만(리뷰 H-1)
+      const res = await sendCoachDraft(draftFor, routineId);
+      toast(t(res.created ? "coaching.draft.sent" : "coaching.draft.updated", { name: draftMember.name }));
+      exitingRef.current = true;
+      await leaveTo(draftHref);
+    } catch (e) {
+      committingRef.current = false;
+      toast(errorText(e), "error");
+      setSending(false);
+    }
+  }
 
   const pickFolder = (next: string) => {
     setFolder(next);
@@ -410,6 +486,11 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             requestExit("/");
             return;
           }
+          // [개선] 코치 초안은 회원 화면 루틴 탭으로(비었으면 지우고) — SPEC-050 P3b
+          if (draftFor) {
+            void leaveDraft();
+            return;
+          }
           void (async () => {
             await settleWrites(); // 포커스가 남은 세트 칸도 올린다(REV-028)
             if (name.trim()) await save({ name: name.trim() });
@@ -422,6 +503,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         // [개선] ⋯ 없이 편집 화면 맨 아래 「루틴 삭제」 버튼(아래) → 바로 삭제 확인(S-107)
       />
 
+      {draftFor ? <CoachDraftBand member={draftMember} /> : null}
+
       <div className="flex-1 p-[var(--spacing-lg)]">
         <TextField
           testId="routine-name"
@@ -429,11 +512,13 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           placeholder={t("routines.namePlaceholder")}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onBlur={() => name.trim() && save({ name: name.trim() })}
+          // [원본] onBlur={() => name.trim() && save({ name: name.trim() })}
+          // [개선] 코치 초안은 바뀐 때만 쓴다(리뷰 H-1)
+          onBlur={() => (draftFor ? void saveDraftName() : name.trim() && save({ name: name.trim() }))}
         />
 
-        {/* 폴더 — 이미 만든 폴더가 있으면 칩으로 고르고, 없으면 그냥 입력한다. */}
-        {folderOptions.length === 0 && !newFolderMode ? (
+        {/* 폴더 — 이미 만든 폴더가 있으면 칩으로 고르고, 없으면 그냥 입력한다. 코치 초안엔 없다(폴더는 회원 것 · SPEC-050 P3b). */}
+        {draftFor ? null : folderOptions.length === 0 && !newFolderMode ? (
           <TextField
             testId="routine-folder"
             label={t("routines.folderLabel")}
@@ -543,6 +628,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
                 trackWrite={trackWrite}
                 onRemove={() => setConfirmRemove(re)}
                 onSuperset={() => setSupersetTarget(re)}
+                hideVariant={!!draftFor}
                 onUnsuperset={() => {
                   const members = exercises.filter((x) => x.supersetGroup === re.supersetGroup);
                   const ids = members.length <= 2 ? members.map((m) => m.id) : [re.id];
@@ -576,7 +662,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         {routineId ? (
           <div className="mt-[var(--spacing-xl)] flex justify-center border-(--color-line) border-t pt-[var(--spacing-lg)]">
             <Button
-              title={t("routines.deleteRoutineTitle")}
+              // [원본] title={t("routines.deleteRoutineTitle")}
+              title={draftFor ? t("coaching.draft.delete") : t("routines.deleteRoutineTitle")}
               icon="trash-outline"
               variant="danger"
               size="sm"
@@ -619,6 +706,7 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         {/* [개선] 전체 화면 피커 — 검색·부위·기구·도우미, 추가는 여러 개를 고른 순서대로 한 번에 · 교체는 한 개 즉시 @plm SRS-093 */}
         {picking ? (
           <ExercisePickerScreen
+            catalogOnly={!!draftFor}
             mode={picking.mode === "add" ? "multi" : "single"}
             title={t(picking.mode === "add" ? "routines.pickerTitle" : "routines.pickerSwapTitle")}
             onClose={() => setPicking(null)}
@@ -667,27 +755,57 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         data-coach-anchor=""
         className="sticky bottom-[calc(56px+var(--shell-workout-bar,0px)+env(safe-area-inset-bottom))] z-20 flex gap-[var(--spacing-sm)] border-(--color-line) border-t bg-(--color-surface) px-[var(--spacing-lg)] py-[var(--spacing-md)] lg:bottom-[var(--shell-workout-bar,0px)]"
       >
-        <div className={canStart ? "w-[38%]" : "flex-1"}>
-          <Button
-            title={t("common.done")}
-            icon="checkmark"
-            // [원본] variant={canStart ? "secondary" : "primary"} — 빈 루틴에서 빨간 완료가 「운동 추가」보다 먼저 눈에 띄었다
-            variant={canStart || exercises.length === 0 ? "secondary" : "primary"}
-            testId="btn-routine-done"
-            loading={adding}
-            onPress={() => {
-              if (adding) return;
-              committingRef.current = true;
-              void (async () => {
-                // 타이핑 중이던 이름을 확정하고(포커스가 아직 입력에 있을 수 있다) 내려쓴 뒤 나간다.
-                await settleWrites(); // 세트 표의 입력 칸도 올린다(SPEC-023)
-                if (name.trim()) await save({ name: name.trim() });
-                exitingRef.current = true;
-                await leaveTo("/");
-              })();
-            }}
-          />
-        </div>
+        {draftFor ? (
+          <>
+            <div className="w-[38%]">
+              <Button
+                title={t("coaching.draft.later")}
+                variant="secondary"
+                testId="btn-draft-later"
+                loading={adding}
+                onPress={() => {
+                  if (!adding && !sending) void leaveDraft();
+                }}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <Button
+                title={t("coaching.draft.send", { name: draftMember.name })}
+                icon="send-outline"
+                truncate // 긴 회원 이름(리뷰 L-4)
+                // 종목이 생기기 전엔 「운동 추가」가 주 버튼이다(빨강은 하나)
+                // 코칭이 끝났거나 회원이 루틴 받기를 껐으면 막는다(리뷰 M-4 · 띠에 이유)
+                variant={exercises.length > 0 && !draftBlocked(draftMember) ? "primary" : "secondary"}
+                disabled={exercises.length === 0 || !!draftBlocked(draftMember)}
+                testId="btn-draft-send"
+                loading={sending || adding}
+                onPress={() => void sendDraft()}
+              />
+            </div>
+          </>
+        ) : (
+          <div className={canStart ? "w-[38%]" : "flex-1"}>
+            <Button
+              title={t("common.done")}
+              icon="checkmark"
+              // [원본] variant={canStart ? "secondary" : "primary"} — 빈 루틴에서 빨간 완료가 「운동 추가」보다 먼저 눈에 띄었다
+              variant={canStart || exercises.length === 0 ? "secondary" : "primary"}
+              testId="btn-routine-done"
+              loading={adding}
+              onPress={() => {
+                if (adding) return;
+                committingRef.current = true;
+                void (async () => {
+                  // 타이핑 중이던 이름을 확정하고(포커스가 아직 입력에 있을 수 있다) 내려쓴 뒤 나간다.
+                  await settleWrites(); // 세트 표의 입력 칸도 올린다(SPEC-023)
+                  if (name.trim()) await save({ name: name.trim() });
+                  exitingRef.current = true;
+                  await leaveTo("/");
+                })();
+              }}
+            />
+          </div>
+        )}
         {canStart ? (
           <div className="flex-1">
             <Button
@@ -793,6 +911,13 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
             setConfirmRemove(null);
             void repo
               .removeRoutineExercise(target.id)
+              // 코치 초안 — 줄이 사라지면 루틴 행을 움직여 「보내지 않은 변경 있음」이 보이게(SPEC-050 P3b)
+              .then(async () => {
+                if (draftFor && routineId) {
+                  const d = await import("@app/core/data/coachDraft");
+                  await d.touchCoachDraft(routineId);
+                }
+              })
               .then(flush)
               .catch((e) => toast(errorText(e), "error"));
           }}
@@ -802,8 +927,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
       {confirmDeleteRoutine ? (
         <ConfirmDialog
           testId="confirm-delete-routine"
-          title={t("routines.deleteRoutineTitle")}
-          message={t("routines.deleteRoutineMessage")}
+          // [원본] title={t("routines.deleteRoutineTitle")} message={t("routines.deleteRoutineMessage")}
+          title={draftFor ? t("coaching.draft.deleteTitle") : t("routines.deleteRoutineTitle")}
+          message={draftFor ? t("coaching.draft.deleteMessage") : t("routines.deleteRoutineMessage")}
           confirmLabel={t("common.delete")}
           destructive
           onCancel={() => setConfirmDeleteRoutine(false)}
@@ -813,7 +939,9 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
               // 아직 만들어지지 않은 새 루틴이면 지울 것이 없다.
               exitingRef.current = true;
               if (routineId) await repo.deleteRoutine(routineId).catch(() => {});
-              await leaveTo("/");
+              if (routineId && draftFor) forgetCoachDraftSent(routineId); // 초안의 보낸 기록도 걷는다
+              // [원본] await leaveTo("/");
+              await leaveTo(draftHref);
             })();
           }}
         />
@@ -1102,6 +1230,7 @@ function ExerciseEditRow({
   onSuperset,
   onUnsuperset,
   trackWrite,
+  hideVariant = false,
 }: {
   re: RoutineExerciseRow;
   index: number;
@@ -1114,6 +1243,8 @@ function ExerciseEditRow({
   onSuperset: () => void;
   onUnsuperset: () => void;
   trackWrite: (p: Promise<unknown>) => void;
+  /** 변형(기구·그립…) 고르기 숨김 — 코치 초안은 변형을 보내지 않는다(회원 것 · SPEC-050 P3b) */
+  hideVariant?: boolean;
 }) {
   const toast = useToast();
   const { weightUnit } = useUser();
@@ -1201,7 +1332,9 @@ function ExerciseEditRow({
         {!isCardio ? (
           <div className="flex flex-wrap items-end gap-x-[var(--spacing-md)] gap-y-[var(--spacing-sm)]">
             {/* 변형 칩 — 고를 것이 없는 종목은 아무것도 그리지 않으므로 칸도 숨긴다(빈 칸이 간격만 차지해 휴식이 밀렸다 · 리뷰 L-5) */}
-            <div className="flex min-h-[40px] flex-wrap items-center gap-[6px] empty:hidden">
+            <div
+              className={`flex min-h-[40px] flex-wrap items-center gap-[6px] empty:hidden ${hideVariant ? "hidden" : ""}`}
+            >
               <RecordSlotSelector
                 exerciseId={re.exerciseId}
                 baseEquipment={baseEquipment}

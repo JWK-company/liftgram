@@ -2,6 +2,7 @@
 // v30 기기가 null 을 올리면 지워진다 — SPEC-050 Phase 4(P3a)
 //
 // 서버는 레코드를 해석하지 않는 jsonb 얕은 병합이라 바꾸지 않는다. merge_v29_test.go 와 같은 전제를 v30 칸에 고정한다.
+// (P3b 부터 Push 는 저장된 코치 루틴의 출처·이름·처방을 지킨다 — coach_guard.go·coach_guard_test.go. 여기는 병합 자체만 본다.)
 // 코칭이 끝날 때 서버가 쓰는 한 칸 패치(`payload || {"origin":"coach_ended",...}` · P3b)도 같은 병합이라 나머지 칸이 남는다.
 package sync
 
