@@ -6,7 +6,7 @@
 
 ### 휴식 막대
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:ebda75c4-d9d0-4029-bfc9-0bf206363cd8`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:9fc5fdf3-ef8d-4896-ab7e-0e507bf9f023`
 
 screen_code: SREST · route: /workout 위
 

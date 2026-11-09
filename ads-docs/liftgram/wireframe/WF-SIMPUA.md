@@ -6,7 +6,7 @@
 
 ### 이 가져오기를 되돌릴까요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b114fb97-2374-40d8-a22f-788fdc1932f3`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c1587cdb-63a8-4130-90c0-a32169f15e41`
 
 screen_code: SIMPUA · route: /account 위
 

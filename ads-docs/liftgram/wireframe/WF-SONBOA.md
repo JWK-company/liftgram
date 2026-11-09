@@ -6,7 +6,7 @@
 
 ### 온보딩
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1069b005-e5e6-4069-8889-91578071bb90`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:765d5072-b4f6-402c-b6e8-1aaef937ad8b`
 
 screen_code: SONBOA
 

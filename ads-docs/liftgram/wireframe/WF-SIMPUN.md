@@ -6,7 +6,7 @@
 
 ### 확인 안 한 종목이 있어요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:81e1757c-db0b-42ac-9a8e-42b2a527ff66`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:76263635-a55a-432c-b687-7062ebae9a59`
 
 screen_code: SIMPUN · route: /account/import 위
 

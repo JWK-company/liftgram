@@ -6,7 +6,7 @@
 
 ### 게시물을 삭제할까요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:d067a619-d698-4c5a-ad4a-910c7ba63c42`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:76d6d32a-9ec4-4bba-98cd-39c0550e7d95`
 
 screen_code: SRMPOS · route: /feed 위
 

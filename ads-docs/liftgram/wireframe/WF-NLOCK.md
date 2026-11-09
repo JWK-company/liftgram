@@ -6,7 +6,7 @@
 
 ### 잠금 운동 화면
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:ed2ee281-c2c8-4c2f-9ef3-94b60f774992`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:3ba97176-32b2-43ee-ab4f-a4b0cb205d15`
 
 screen_code: NLOCK
 

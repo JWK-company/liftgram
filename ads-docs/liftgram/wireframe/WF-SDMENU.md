@@ -6,7 +6,7 @@
 
 ### 기록 상세 ⋯ 메뉴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:99b8dd55-1103-4f19-8de3-697da3d8ab04`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:6bd31ba7-2464-4de3-8fd4-30009cd2d6cf`
 
 screen_code: SDMENU · route: /history/[id] 위
 

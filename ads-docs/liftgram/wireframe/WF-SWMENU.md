@@ -6,7 +6,7 @@
 
 ### 세션 ⋯ 메뉴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:221b3c89-ff24-45e6-8fd5-ef2b3da1c5ca`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:8d2ca7c2-b122-4fa3-a7c1-c0c2aafa8011`
 
 screen_code: SWMENU · route: /workout 위
 

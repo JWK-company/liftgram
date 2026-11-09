@@ -6,7 +6,7 @@
 
 ### 코칭 이력
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:faa8b363-0210-42eb-951b-c5b07008c6ca`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:f3db4066-ef12-4e47-a795-a3557e3d0b9e`
 
 screen_code: SCHIST · route: /coaching 위
 

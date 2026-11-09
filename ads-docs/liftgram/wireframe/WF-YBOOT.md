@@ -6,7 +6,7 @@
 
 ### 부팅 덮개
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:89ad5773-2f97-47cc-add1-c50d2c96bec3`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:946c7348-c829-4964-90a6-78716483131f`
 
 screen_code: YBOOT
 

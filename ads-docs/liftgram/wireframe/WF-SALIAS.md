@@ -6,7 +6,7 @@
 
 ### 이 종목을 무엇이라 부를까요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:60ec3163-56e7-47a2-913f-846e24cadacf`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:8e7c7379-483e-494a-aab0-98caf24f4855`
 
 screen_code: SALIAS · route: /exercise/[id] 위
 

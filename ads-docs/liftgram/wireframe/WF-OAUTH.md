@@ -6,7 +6,7 @@
 
 ### 로그인 완료
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:7f38cb13-e1ae-4375-966e-36fb1099fb42`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:adef64b2-ab59-487a-a8f5-344621514c43`
 
 screen_code: OAUTH · route: /auth/complete
 

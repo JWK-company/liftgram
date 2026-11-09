@@ -6,7 +6,7 @@
 
 ### 앱 오프라인: 인터넷에 연결되어 있지 않아요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:c1bef908-ee4b-477a-b370-475ca7388085`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:467a2dc1-cc58-4fa2-a7c1-81481fcfcbbf`
 
 screen_code: YAPPOF
 

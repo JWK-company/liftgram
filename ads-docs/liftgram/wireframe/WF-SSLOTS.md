@@ -6,7 +6,7 @@
 
 ### 조합별 기록
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:56c6473d-45cd-4694-93c3-92b812308081`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:bb23f256-a84c-4229-901b-d9f1c5828df9`
 
 screen_code: SSLOTS · route: /workout 위
 

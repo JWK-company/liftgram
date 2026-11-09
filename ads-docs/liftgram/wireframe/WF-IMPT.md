@@ -6,7 +6,7 @@
 
 ### 다른 앱 기록 가져오기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:68742068-0123-4155-a09c-1040457e6322`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7ae8b6cf-2680-4c00-976d-3bb9210bf784`
 
 screen_code: IMPT · route: /account/import
 

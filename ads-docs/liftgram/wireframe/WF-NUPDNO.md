@@ -6,7 +6,7 @@
 
 ### 업데이트 완료 알림
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:417cd879-9194-458b-b22d-f8e18236c8d1`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:e39a73cf-d449-4b7b-ac70-dbce2778254c`
 
 screen_code: NUPDNO
 

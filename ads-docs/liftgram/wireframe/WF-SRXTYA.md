@@ -6,7 +6,7 @@
 
 ### 첫 안내: 세트 번호 누르기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:366a1525-29f2-4bb8-9b97-6f635d0db8db`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:fc92cf2d-cdd5-49a5-bb0e-65ae45254ed5`
 
 screen_code: SRXTYA · route: /routines/[id] 위
 

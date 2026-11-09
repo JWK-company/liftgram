@@ -6,7 +6,7 @@
 
 ### 몇 개 더 할 수 있었나요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:dd0f2633-fddc-4a58-929f-91dc7f419590`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:1b10aff2-5772-4449-b30b-883f4fbe5228`
 
 screen_code: SRIR · route: /workout 위
 

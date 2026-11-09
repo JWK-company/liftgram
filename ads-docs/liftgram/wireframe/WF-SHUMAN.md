@@ -6,7 +6,7 @@
 
 ### 사람 확인(Turnstile)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:67e44268-6951-479b-b7e9-f8f262590416`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:2ee675fb-f5fe-480d-b912-919c985c1876`
 
 screen_code: SHUMAN · route: /account 위
 

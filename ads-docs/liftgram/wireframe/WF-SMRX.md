@@ -6,7 +6,7 @@
 
 ### 회원 루틴 처방
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b4af5f3f-a152-48c3-8260-819db6c9c81f`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7f832620-640d-479f-b722-9807140980d3`
 
 screen_code: SMRX · route: /coaching 위
 

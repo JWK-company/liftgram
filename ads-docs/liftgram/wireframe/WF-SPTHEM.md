@@ -6,7 +6,7 @@
 
 ### 화면 테마
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:6d272eb3-1100-4223-8b76-829cb0e58057`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:9ea799dc-706c-4aab-b8b1-18b28e8396d7`
 
 screen_code: SPTHEM · route: /profile 위
 

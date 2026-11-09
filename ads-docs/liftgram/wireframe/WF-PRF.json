@@ -1,2959 +1,2959 @@
 {
   "doc": {
-    "type": "doc",
     "content": [
       {
-        "type": "heading",
         "attrs": {
           "level": 2
         },
         "content": [
           {
-            "type": "text",
-            "text": "프로필"
+            "text": "프로필",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "loc: "
+            "text": "loc: ",
+            "type": "text"
           },
           {
-            "type": "text",
             "marks": [
               {
                 "type": "code"
               }
             ],
-            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7fb853dc-6f5e-4bdf-afd3-68c04642a469"
+            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7fb853dc-6f5e-4bdf-afd3-68c04642a469",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "screen_code: PRF · route: /profile"
+            "text": "screen_code: PRF · route: /profile",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "노트: ",
             "marks": [
               {
                 "type": "strong"
               }
-            ]
+            ],
+            "text": "노트: ",
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": "S-05 · 단위 등 설정(맨 끝 「안내 다시 보기」), 계정·데이터 줄, 약관 링크 · 조건: 누구나"
+            "text": "S-05 · 단위 등 설정(맨 끝 「안내 다시 보기」), 계정·데이터 줄, 약관 링크 · 조건: 누구나",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 3
         },
         "content": [
           {
-            "type": "text",
-            "text": "화면 요소 (상태·액션·이펙트)"
+            "text": "화면 요소 (상태·액션·이펙트)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "요소코드"
+                        "text": "요소코드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "유형"
+                        "text": "유형",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "라벨"
+                        "text": "라벨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "액션"
+                        "text": "액션",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "이펙트"
+                        "text": "이펙트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.01"
+                        "text": "PRF.01",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "프로필"
+                        "text": "프로필",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본 / 누구나"
+                        "text": "기본 / 누구나",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "단위 등 설정(맨 끝 「안내 다시 보기」), 계정·데이터 줄, 약관 링크"
+                        "text": "단위 등 설정(맨 끝 「안내 다시 보기」), 계정·데이터 줄, 약관 링크",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.02"
+                        "text": "PRF.02",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.1 앱바"
+                        "text": "S-05.1 앱바",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "「프로필」"
+                        "text": "「프로필」",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.03"
+                        "text": "PRF.03",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.2 나 카드"
+                        "text": "S-05.2 나 카드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "아바타 · 이름 · 경력 · 편집"
+                        "text": "아바타 · 이름 · 경력 · 편집",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.04"
+                        "text": "PRF.04",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.3 의견 보내기"
+                        "text": "S-05.3 의견 보내기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.05"
+                        "text": "PRF.05",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.4 설정 묶음"
+                        "text": "S-05.4 설정 묶음",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "단위 · 테마 · 언어 · 체중 · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표"
+                        "text": "단위 · 테마 · 언어 · 체중 · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.06"
+                        "text": "PRF.06",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.5 계정과 데이터"
+                        "text": "S-05.5 계정과 데이터",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "로그인·보안 · 백업 · 장비함 · 코칭 · 저장한 글 · 차단 목록"
+                        "text": "로그인·보안 · 백업 · 장비함 · 코칭 · 저장한 글 · 차단 목록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.07"
+                        "text": "PRF.07",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.6 앱 버전·업데이트"
+                        "text": "S-05.6 앱 버전·업데이트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.08"
+                        "text": "PRF.08",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-05.7 바닥 고지"
+                        "text": "S-05.7 바닥 고지",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "의료 아님 · 약관 · 개인정보 · 오픈소스 · 사업자"
+                        "text": "의료 아님 · 약관 · 개인정보 · 오픈소스 · 사업자",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.09"
+                        "text": "PRF.09",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "계정 줄·백업 파일"
+                        "text": "계정 줄·백업 파일",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→AUTH 계정·로그인"
+                        "text": "→AUTH 계정·로그인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.10"
+                        "text": "PRF.10",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "내 장비함 줄"
+                        "text": "내 장비함 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→GEAR 내 장비함"
+                        "text": "→GEAR 내 장비함",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.11"
+                        "text": "PRF.11",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "코칭 줄(로그인 시)"
+                        "text": "코칭 줄(로그인 시)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→COACH 코칭"
+                        "text": "→COACH 코칭",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.12"
+                        "text": "PRF.12",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "저장한 게시물 줄(로그인 시)"
+                        "text": "저장한 게시물 줄(로그인 시)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→BMK 저장한 게시물"
+                        "text": "→BMK 저장한 게시물",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.13"
+                        "text": "PRF.13",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "차단 목록 줄(로그인 시)"
+                        "text": "차단 목록 줄(로그인 시)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→BLOCK 차단 목록"
+                        "text": "→BLOCK 차단 목록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.14"
+                        "text": "PRF.14",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "맨 아래 약관"
+                        "text": "맨 아래 약관",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→TERMS 이용약관"
+                        "text": "→TERMS 이용약관",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.15"
+                        "text": "PRF.15",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "맨 아래 처리방침"
+                        "text": "맨 아래 처리방침",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→PRIV 개인정보처리방침"
+                        "text": "→PRIV 개인정보처리방침",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.16"
+                        "text": "PRF.16",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "맨 아래 오픈소스"
+                        "text": "맨 아래 오픈소스",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→LIC 오픈소스 고지"
+                        "text": "→LIC 오픈소스 고지",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.17"
+                        "text": "PRF.17",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "의견 보내기 줄"
+                        "text": "의견 보내기 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→PPROFI 의견 보내기"
+                        "text": "→PPROFI 의견 보내기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.18"
+                        "text": "PRF.18",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "앱 버전 줄 「업데이트」"
+                        "text": "앱 버전 줄 「업데이트」",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SUPDAT 업데이트하는 중이에요"
+                        "text": "→SUPDAT 업데이트하는 중이에요",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.19"
+                        "text": "PRF.19",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "체중 줄"
+                        "text": "체중 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SBW 체중 기록"
+                        "text": "→SBW 체중 기록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.20"
+                        "text": "PRF.20",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "경력 줄"
+                        "text": "경력 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPEXP 운동 경력·코칭 의향"
+                        "text": "→SPEXP 운동 경력·코칭 의향",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.21"
+                        "text": "PRF.21",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "단위 줄"
+                        "text": "단위 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPUNIT 단위"
+                        "text": "→SPUNIT 단위",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.22"
+                        "text": "PRF.22",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "테마 줄"
+                        "text": "테마 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPTHEM 화면 테마"
+                        "text": "→SPTHEM 화면 테마",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.23"
+                        "text": "PRF.23",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "언어 줄"
+                        "text": "언어 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPLANG 언어"
+                        "text": "→SPLANG 언어",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.24"
+                        "text": "PRF.24",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "알림음 줄"
+                        "text": "알림음 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPSOUN 휴식 알림음"
+                        "text": "→SPSOUN 휴식 알림음",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.25"
+                        "text": "PRF.25",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기구 줄"
+                        "text": "기구 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPEQUI 내 가용 기구"
+                        "text": "→SPEQUI 내 가용 기구",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.26"
+                        "text": "PRF.26",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기구 이름 줄"
+                        "text": "기구 이름 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPCUST 커스텀 기구 이름"
+                        "text": "→SPCUST 커스텀 기구 이름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.27"
+                        "text": "PRF.27",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "전체 기록"
+                        "text": "전체 기록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPBWAL 체중 기록 전체"
+                        "text": "→SPBWAL 체중 기록 전체",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.28"
+                        "text": "PRF.28",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기록 항목"
+                        "text": "기록 항목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPBWED 기록 고치기"
+                        "text": "→SPBWED 기록 고치기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.29"
+                        "text": "PRF.29",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "삭제 탭"
+                        "text": "삭제 탭",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPBWRM 이 기록을 지울까요?"
+                        "text": "→SPBWRM 이 기록을 지울까요?",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.30"
+                        "text": "PRF.30",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미설정"
+                        "text": "미설정",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPBWNO 체중 미설정으로 두기"
+                        "text": "→SPBWNO 체중 미설정으로 두기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.31"
+                        "text": "PRF.31",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "앱 업데이트 카드"
+                        "text": "앱 업데이트 카드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SUPDAA 프로필 앱 업데이트 카드"
+                        "text": "→SUPDAA 프로필 앱 업데이트 카드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "PRF.32"
+                        "text": "PRF.32",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "「안내 다시 보기」(세 안내를 다시)"
+                        "text": "「안내 다시 보기」(세 안내를 다시)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SPREV 첫 안내: 「이전」 누르기"
+                        "text": "→SPREV 첫 안내: 「이전」 누르기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       }
-    ]
+    ],
+    "type": "doc"
   },
   "group": "liftgram/wireframe",
   "id": "WF-PRF",
@@ -2968,16 +2968,16 @@
       "SRS-028",
       "SRS-033",
       "SRS-042",
+      "SRS-067",
+      "SRS-073",
       "SRS-077",
       "SRS-085",
-      "SRS-067",
-      "SRS-111",
-      "SRS-073"
+      "SRS-111"
     ]
   },
   "schemaVersion": 1,
   "tags": [],
   "title": "S-05 PRF 프로필",
   "type": "Wireframe",
-  "updated": "2026-11-09T00:49:32Z"
+  "updated": "2026-11-09T00:50:22Z"
 }

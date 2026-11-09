@@ -6,7 +6,7 @@
 
 ### 기록 삭제
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8319e0e2-b92d-44ec-8ef9-a0ef315a10b8`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:cd038992-c289-4776-a22d-e85f38f14cbf`
 
 screen_code: SRMWOR · route: /history/[id] 위
 

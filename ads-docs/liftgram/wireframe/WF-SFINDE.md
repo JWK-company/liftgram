@@ -1,4 +1,4 @@
-# WF-SFINDE — SFINDE 스무고개 찾기
+# WF-SFINDE — S-64 SFINDE 스무고개 찾기
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SFINDE.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 스무고개 찾기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:71ed2af7-6e39-49c5-82a9-d23177e8eb09`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:e62689da-20df-4a2e-a2e4-39935d97dfde`
 
 screen_code: SFINDE · route: /exercises 위
 

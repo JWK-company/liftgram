@@ -1,1890 +1,1890 @@
 {
   "doc": {
-    "type": "doc",
     "content": [
       {
-        "type": "heading",
         "attrs": {
           "level": 2
         },
         "content": [
           {
-            "type": "text",
-            "text": "분석"
+            "text": "분석",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "loc: "
+            "text": "loc: ",
+            "type": "text"
           },
           {
-            "type": "text",
             "marks": [
               {
                 "type": "code"
               }
             ],
-            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c31e5a09-f99a-4b46-955a-fd6e2978d3cb"
+            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c31e5a09-f99a-4b46-955a-fd6e2978d3cb",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "screen_code: STAT · route: /stats"
+            "text": "screen_code: STAT · route: /stats",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "노트: ",
             "marks": [
               {
                 "type": "strong"
               }
-            ]
+            ],
+            "text": "노트: ",
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": "S-04 · 기간별 집계, 1RM, 근육 분포, 최근 PR(› 누르면 그 운동 기록), 체중 그래프(「그래프를 눌러 값 보기」) · 조건: 누구나"
+            "text": "S-04 · 기간별 집계, 1RM, 근육 분포, 최근 PR(› 누르면 그 운동 기록), 체중 그래프(「그래프를 눌러 값 보기」) · 조건: 누구나",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 3
         },
         "content": [
           {
-            "type": "text",
-            "text": "화면 요소 (상태·액션·이펙트)"
+            "text": "화면 요소 (상태·액션·이펙트)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "요소코드"
+                        "text": "요소코드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "유형"
+                        "text": "유형",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "라벨"
+                        "text": "라벨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "액션"
+                        "text": "액션",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "이펙트"
+                        "text": "이펙트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.01"
+                        "text": "STAT.01",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "분석"
+                        "text": "분석",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본 / 누구나"
+                        "text": "기본 / 누구나",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기간별 집계, 1RM, 근육 분포, 최근 PR(› 누르면 그 운동 기록), 체중 그래프"
+                        "text": "기간별 집계, 1RM, 근육 분포, 최근 PR(› 누르면 그 운동 기록), 체중 그래프",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.02"
+                        "text": "STAT.02",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.1 앱바"
+                        "text": "S-04.1 앱바",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "「분석」"
+                        "text": "「분석」",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.03"
+                        "text": "STAT.03",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.2 기간 선택"
+                        "text": "S-04.2 기간 선택",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.04"
+                        "text": "STAT.04",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.3 대표 카드"
+                        "text": "S-04.3 대표 카드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "볼륨 · 증감 · 주별 막대"
+                        "text": "볼륨 · 증감 · 주별 막대",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.05"
+                        "text": "STAT.05",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.4 숫자 줄"
+                        "text": "S-04.4 숫자 줄",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "세션 · 세트 · 평균 + 증감"
+                        "text": "세션 · 세트 · 평균 + 증감",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.06"
+                        "text": "STAT.06",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.5 추정 1RM 목록"
+                        "text": "S-04.5 추정 1RM 목록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.07"
+                        "text": "STAT.07",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.6 1RM 변화"
+                        "text": "S-04.6 1RM 변화",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.08"
+                        "text": "STAT.08",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.7 근육 균형"
+                        "text": "S-04.7 근육 균형",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.09"
+                        "text": "STAT.09",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.8 세트 힘든 정도"
+                        "text": "S-04.8 세트 힘든 정도",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.10"
+                        "text": "STAT.10",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.9 최근 PR"
+                        "text": "S-04.9 최근 PR",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "1RM 목록에 없는 PR · 줄을 누르면 그 기록"
+                        "text": "1RM 목록에 없는 PR · 줄을 누르면 그 기록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.11"
+                        "text": "STAT.11",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.10 광고 자리"
+                        "text": "S-04.10 광고 자리",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.12"
+                        "text": "STAT.12",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.11 그대로인 종목"
+                        "text": "S-04.11 그대로인 종목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.13"
+                        "text": "STAT.13",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.12 근육별 주간 세트"
+                        "text": "S-04.12 근육별 주간 세트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.14"
+                        "text": "STAT.14",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.13 체중"
+                        "text": "S-04.13 체중",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.15"
+                        "text": "STAT.15",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-04.14 의료 아님 고지"
+                        "text": "S-04.14 의료 아님 고지",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.16"
+                        "text": "STAT.16",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "안 한 근육 칩"
+                        "text": "안 한 근육 칩",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→EXL 종목 목록"
+                        "text": "→EXL 종목 목록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.17"
+                        "text": "STAT.17",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "1RM 줄, 변화 카드"
+                        "text": "1RM 줄, 변화 카드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→EXD 운동 상세"
+                        "text": "→EXD 운동 상세",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.18"
+                        "text": "STAT.18",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기록 버튼"
+                        "text": "기록 버튼",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SBW 체중 기록"
+                        "text": "→SBW 체중 기록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.19"
+                        "text": "STAT.19",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "목표 탭"
+                        "text": "목표 탭",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SBWGOA 목표 체중"
+                        "text": "→SBWGOA 목표 체중",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.20"
+                        "text": "STAT.20",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "미리 보기"
+                        "text": "미리 보기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SAD 광고 자리"
+                        "text": "→SAD 광고 자리",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "STAT.21"
+                        "text": "STAT.21",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "최근 PR 줄 ›"
+                        "text": "최근 PR 줄 ›",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→WDT 기록 상세"
+                        "text": "→WDT 기록 상세",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       }
-    ]
+    ],
+    "type": "doc"
   },
   "group": "liftgram/wireframe",
   "id": "WF-STAT",
@@ -1897,18 +1897,18 @@
   "relations": {
     "covers": [
       "SRS-033",
+      "SRS-054",
       "SRS-074",
-      "SRS-090",
-      "SRS-101",
       "SRS-076",
       "SRS-078",
-      "SRS-054",
-      "SRS-079"
+      "SRS-079",
+      "SRS-090",
+      "SRS-101"
     ]
   },
   "schemaVersion": 1,
   "tags": [],
   "title": "S-04 STAT 분석",
   "type": "Wireframe",
-  "updated": "2026-11-09T00:49:42Z"
+  "updated": "2026-11-09T00:50:34Z"
 }

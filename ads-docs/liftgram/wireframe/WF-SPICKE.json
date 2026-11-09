@@ -1,1066 +1,1066 @@
 {
   "doc": {
-    "type": "doc",
     "content": [
       {
-        "type": "heading",
         "attrs": {
           "level": 2
         },
         "content": [
           {
-            "type": "text",
-            "text": "운동 추가·바꾸기(종목 피커)"
+            "text": "운동 추가·바꾸기(종목 피커)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "loc: "
+            "text": "loc: ",
+            "type": "text"
           },
           {
-            "type": "text",
             "marks": [
               {
                 "type": "code"
               }
             ],
-            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7a139ad2-285f-4e7e-8e03-69d818107657"
+            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7a139ad2-285f-4e7e-8e03-69d818107657",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "screen_code: SPICKE · route: /workout 위"
+            "text": "screen_code: SPICKE · route: /workout 위",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "노트: ",
             "marks": [
               {
                 "type": "strong"
               }
-            ]
+            ],
+            "text": "노트: ",
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": "S-63 · 전체 화면 종목 선택"
+            "text": "S-63 · 전체 화면 종목 선택",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 3
         },
         "content": [
           {
-            "type": "text",
-            "text": "화면 요소 (상태·액션·이펙트)"
+            "text": "화면 요소 (상태·액션·이펙트)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "요소코드"
+                        "text": "요소코드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "유형"
+                        "text": "유형",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "라벨"
+                        "text": "라벨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "액션"
+                        "text": "액션",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "이펙트"
+                        "text": "이펙트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.01"
+                        "text": "SPICKE.01",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "운동 추가·바꾸기(종목 피커)"
+                        "text": "운동 추가·바꾸기(종목 피커)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "전체 화면 종목 선택"
+                        "text": "전체 화면 종목 선택",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.02"
+                        "text": "SPICKE.02",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "overlay"
+                        "text": "overlay",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "패널"
+                        "text": "패널",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "열림 / 닫힘"
+                        "text": "열림 / 닫힘",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "바깥 누름"
+                        "text": "바깥 누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "⊕닫힘"
+                        "text": "⊕닫힘",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.03"
+                        "text": "SPICKE.03",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.1 머리"
+                        "text": "S-63.1 머리",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "✕ · 제목"
+                        "text": "✕ · 제목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.04"
+                        "text": "SPICKE.04",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.2 검색칸"
+                        "text": "S-63.2 검색칸",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.05"
+                        "text": "SPICKE.05",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.3 스무고개·초기화"
+                        "text": "S-63.3 스무고개·초기화",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.06"
+                        "text": "SPICKE.06",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.4 근육군 칩"
+                        "text": "S-63.4 근육군 칩",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.07"
+                        "text": "SPICKE.07",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.5 기구 칩"
+                        "text": "S-63.5 기구 칩",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.08"
+                        "text": "SPICKE.08",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.6 종목 목록"
+                        "text": "S-63.6 종목 목록",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "이름 · 별칭 · 고른 순서"
+                        "text": "이름 · 별칭 · 고른 순서",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.09"
+                        "text": "SPICKE.09",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.7 비슷한 종목"
+                        "text": "S-63.7 비슷한 종목",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "검색 중"
+                        "text": "검색 중",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.10"
+                        "text": "SPICKE.10",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "S-63.8 하단 「n개 추가」"
+                        "text": "S-63.8 하단 「n개 추가」",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SPICKE.11"
+                        "text": "SPICKE.11",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "button"
+                        "text": "button",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "찾기 버튼"
+                        "text": "찾기 버튼",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "누름"
+                        "text": "누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "→SFINDE 스무고개 찾기"
+                        "text": "→SFINDE 스무고개 찾기",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       }
-    ]
+    ],
+    "type": "doc"
   },
   "group": "liftgram/wireframe",
   "id": "WF-SPICKE",
@@ -1073,15 +1073,15 @@
   "relations": {
     "covers": [
       "SRS-056",
-      "SRS-093",
+      "SRS-057",
       "SRS-063",
       "SRS-072",
-      "SRS-057"
+      "SRS-093"
     ]
   },
   "schemaVersion": 1,
   "tags": [],
   "title": "S-63 SPICKE 운동 추가·바꾸기(종목 피커)",
   "type": "Wireframe",
-  "updated": "2026-11-09T00:49:38Z"
+  "updated": "2026-11-09T00:50:29Z"
 }

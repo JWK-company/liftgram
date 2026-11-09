@@ -1,4 +1,4 @@
-# WF-SRSS — SRSS 루틴 슈퍼셋 짝
+# WF-SRSS — S-105 SRSS 루틴 슈퍼셋 짝
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SRSS.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 루틴 슈퍼셋 짝
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:88b54d65-3995-45a6-bbfb-c33c168f33f4`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:386976fd-6b9c-4d43-bbdb-c207f73fa432`
 
 screen_code: SRSS · route: /routines/[id] 위
 

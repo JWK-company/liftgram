@@ -6,7 +6,7 @@
 
 ### N세트 고치기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:eaeb2818-57eb-4e74-a850-d6cca8f38997`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4820a98c-2905-45e9-8944-59ea680be003`
 
 screen_code: SEDITS · route: /history/[id] 위
 

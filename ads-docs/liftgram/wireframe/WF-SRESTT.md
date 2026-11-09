@@ -6,7 +6,7 @@
 
 ### 휴식 시간
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:866eb29c-8bd2-4be0-ba0c-8c00ade2f36e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:32fc252d-43bb-4f1f-a446-5e6a48accdb8`
 
 screen_code: SRESTT · route: /workout 위
 

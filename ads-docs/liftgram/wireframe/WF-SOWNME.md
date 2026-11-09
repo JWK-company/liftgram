@@ -6,7 +6,7 @@
 
 ### 게시물 수정(메뉴)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:76dfec98-7bff-4729-8e3f-e51c20f0a1d9`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:f5b0969b-f3f3-4391-a430-37a574f709e8`
 
 screen_code: SOWNME · route: /feed 위
 

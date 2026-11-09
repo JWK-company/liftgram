@@ -6,9 +6,9 @@
 
 ### 루틴으로 저장할까요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1461b2b1-aaa0-4509-912a-2967865a78cb`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:23bb86e9-a11b-4091-a19a-15b97e50416f`
 
-screen_code: SFINNA
+screen_code: SFINNA · route: /workout 위
 
 **노트: **S-89 · 이름 입력 후 저장
 

@@ -6,7 +6,7 @@
 
 ### 슈퍼셋으로 묶을 종목 선택
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:4e755d50-22b0-4f5d-b107-e08e24ef8e74`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:3ecd19c5-f99f-49b5-82e9-34e8492e4c8e`
 
 screen_code: SSUPER · route: /workout 위
 

@@ -6,7 +6,7 @@
 
 ### 시스템 설치 화면
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:f54b6edf-a2a8-4dbd-94cd-5fac95c86235`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:a07a2d76-d880-4614-abdf-df0ac2681c7e`
 
 screen_code: NINSTA
 

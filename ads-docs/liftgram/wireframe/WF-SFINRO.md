@@ -6,9 +6,9 @@
 
 ### 루틴과 달라졌어요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:e903d915-3b70-447d-b5e0-635702b8b5aa`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:506ed9d4-e191-4627-9a31-e24592a2b4ab`
 
-screen_code: SFINRO
+screen_code: SFINRO · route: /workout 위
 
 **노트: **S-87 · 루틴 반영 질문 · 조건: 변경이 있을 때
 

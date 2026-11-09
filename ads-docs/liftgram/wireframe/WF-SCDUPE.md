@@ -1,4 +1,4 @@
-# WF-SCDUPE — SCDUPE 이미 있는 루틴
+# WF-SCDUPE — S-95 SCDUPE 이미 있는 루틴
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SCDUPE.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 이미 있는 루틴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1e348c19-ff1e-4edc-bb60-fe7e25024716`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:860afb2a-9b11-410c-833c-e3a1d60efce6`
 
 screen_code: SCDUPE · route: / 위
 

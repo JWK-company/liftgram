@@ -6,7 +6,7 @@
 
 ### 새 글
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8ce46d89-ad7f-41b8-ab95-3abf3258e8f6`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c5f43090-2dfe-422c-8ef3-19b3f783265b`
 
 screen_code: SCOMPO · route: /feed 위
 

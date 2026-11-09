@@ -6,7 +6,7 @@
 
 ### 체중 미설정으로 두기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:e2eac39d-535f-456f-8a5c-b00078f8f15a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:41b73c8c-23df-444d-8440-90b979e61c31`
 
 screen_code: SPBWNO · route: /profile 위
 

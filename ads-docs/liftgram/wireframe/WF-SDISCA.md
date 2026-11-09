@@ -6,7 +6,7 @@
 
 ### 운동 취소
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:d09d1c69-60fb-49f4-b067-0fe12eb6d317`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:d46979fb-11ab-4892-ada3-a44a5a9d1dc7`
 
 screen_code: SDISCA · route: /workout 위
 

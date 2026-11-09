@@ -6,7 +6,7 @@
 
 ### 이 기기에 다른 계정의 기록이 있어요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:15597e8f-d513-4a50-9d10-d4ed614181f5`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:f16fb8f5-a10d-4eaa-b391-6dae9f915694`
 
 screen_code: SOWNER · route: /account 위
 

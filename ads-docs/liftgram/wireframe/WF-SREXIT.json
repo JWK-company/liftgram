@@ -1,343 +1,343 @@
 {
   "doc": {
-    "type": "doc",
     "content": [
       {
-        "type": "heading",
         "attrs": {
           "level": 2
         },
         "content": [
           {
-            "type": "text",
-            "text": "저장하지 않고 나갈까요?"
+            "text": "저장하지 않고 나갈까요?",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "loc: "
+            "text": "loc: ",
+            "type": "text"
           },
           {
-            "type": "text",
             "marks": [
               {
                 "type": "code"
               }
             ],
-            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7ab74132-2d22-4b8c-a56e-6c8dec68fd56"
+            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7ab74132-2d22-4b8c-a56e-6c8dec68fd56",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "screen_code: SREXIT · route: /routines/[id] 위"
+            "text": "screen_code: SREXIT · route: /routines/[id] 위",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "노트: ",
             "marks": [
               {
                 "type": "strong"
               }
-            ]
+            ],
+            "text": "노트: ",
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": "S-108 · 나가기 확인"
+            "text": "S-108 · 나가기 확인",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 3
         },
         "content": [
           {
-            "type": "text",
-            "text": "화면 요소 (상태·액션·이펙트)"
+            "text": "화면 요소 (상태·액션·이펙트)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "요소코드"
+                        "text": "요소코드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "유형"
+                        "text": "유형",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "라벨"
+                        "text": "라벨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "액션"
+                        "text": "액션",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "이펙트"
+                        "text": "이펙트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SREXIT.01"
+                        "text": "SREXIT.01",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "저장하지 않고 나갈까요?"
+                        "text": "저장하지 않고 나갈까요?",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본"
+                        "text": "기본",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "나가기 확인"
+                        "text": "나가기 확인",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "SREXIT.02"
+                        "text": "SREXIT.02",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "overlay"
+                        "text": "overlay",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "패널"
+                        "text": "패널",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "열림 / 닫힘"
+                        "text": "열림 / 닫힘",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "바깥 누름"
+                        "text": "바깥 누름",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "⊕닫힘"
+                        "text": "⊕닫힘",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       }
-    ]
+    ],
+    "type": "doc"
   },
   "group": "liftgram/wireframe",
   "id": "WF-SREXIT",
@@ -349,16 +349,16 @@
   },
   "relations": {
     "covers": [
+      "SRS-056",
+      "SRS-057",
       "SRS-063",
       "SRS-072",
-      "SRS-093",
-      "SRS-056",
-      "SRS-057"
+      "SRS-093"
     ]
   },
   "schemaVersion": 1,
   "tags": [],
   "title": "S-108 SREXIT 저장하지 않고 나갈까요?",
   "type": "Wireframe",
-  "updated": "2026-11-09T00:49:20Z"
+  "updated": "2026-11-09T00:50:30Z"
 }

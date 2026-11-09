@@ -6,7 +6,7 @@
 
 ### 체중 기록 전체
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:33bb3dcb-a79e-4c1f-bede-c442a2f22433`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:1e16b08a-f15e-4af0-94ba-30ffe03715e6`
 
 screen_code: SPBWAL · route: /profile 위
 

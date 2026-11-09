@@ -1,4 +1,4 @@
-# WF-SRXTYP — SRXTYP 세트 타입(처방)
+# WF-SRXTYP — S-102 SRXTYP 세트 타입(처방)
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SRXTYP.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 세트 타입(처방)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:41287b72-4a1f-4aff-a4e2-2b68277f778d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:f5ebbbca-0813-4912-bce9-09cd99528c25`
 
 screen_code: SRXTYP · route: /routines/[id] 위
 

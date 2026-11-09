@@ -6,7 +6,7 @@
 
 ### 이 세트 지우기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:12726c97-841a-48dc-af52-3a14e50e6c8c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:5ccc695e-f144-4841-b235-73c1a3ec9a1c`
 
 screen_code: SRMSET · route: /history/[id] 위
 

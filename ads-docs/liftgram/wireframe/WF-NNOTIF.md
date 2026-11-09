@@ -6,7 +6,7 @@
 
 ### iOS 휴식 끝 알림
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:74e88726-7054-48f0-9438-49107e4e2784`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:652572ec-c2c7-4e5e-b505-74bd7368e346`
 
 screen_code: NNOTIF
 

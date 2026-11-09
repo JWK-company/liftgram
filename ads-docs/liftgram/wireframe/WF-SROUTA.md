@@ -6,7 +6,7 @@
 
 ### 루틴 미리보기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:63b25d7d-2351-44cd-bb46-493bd349bfed`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:e87a739d-462c-43d1-80bb-670e0c95e1f0`
 
 screen_code: SROUTA · route: / 위
 

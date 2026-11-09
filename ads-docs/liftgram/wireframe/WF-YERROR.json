@@ -1,254 +1,254 @@
 {
   "doc": {
-    "type": "doc",
     "content": [
       {
-        "type": "heading",
         "attrs": {
           "level": 2
         },
         "content": [
           {
-            "type": "text",
-            "text": "오류 화면(문제가 발생했습니다)"
+            "text": "오류 화면(문제가 발생했습니다)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "loc: "
+            "text": "loc: ",
+            "type": "text"
           },
           {
-            "type": "text",
             "marks": [
               {
                 "type": "code"
               }
             ],
-            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7bb2868a-6e85-440b-ab05-621aebc43a96"
+            "text": "penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7bb2868a-6e85-440b-ab05-621aebc43a96",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "screen_code: YERROR"
+            "text": "screen_code: YERROR",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "paragraph",
         "content": [
           {
-            "type": "text",
-            "text": "노트: ",
             "marks": [
               {
                 "type": "strong"
               }
-            ]
+            ],
+            "text": "노트: ",
+            "type": "text"
           },
           {
-            "type": "text",
-            "text": "S-162 · 「다시 시도」 · 조건: 렌더 오류"
+            "text": "S-162 · 「다시 시도」 · 조건: 렌더 오류",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "paragraph"
       },
       {
-        "type": "heading",
         "attrs": {
           "level": 3
         },
         "content": [
           {
-            "type": "text",
-            "text": "화면 요소 (상태·액션·이펙트)"
+            "text": "화면 요소 (상태·액션·이펙트)",
+            "type": "text"
           }
-        ]
+        ],
+        "type": "heading"
       },
       {
-        "type": "table",
         "content": [
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "요소코드"
+                        "text": "요소코드",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "유형"
+                        "text": "유형",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "라벨"
+                        "text": "라벨",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "상태"
+                        "text": "상태",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "액션"
+                        "text": "액션",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               },
               {
-                "type": "table_header",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "이펙트"
+                        "text": "이펙트",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_header"
               }
-            ]
+            ],
+            "type": "table_row"
           },
           {
-            "type": "table_row",
             "content": [
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "YERROR.01"
+                        "text": "YERROR.01",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "display"
+                        "text": "display",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "오류 화면(문제가 발생했습니다)"
+                        "text": "오류 화면(문제가 발생했습니다)",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "기본 / 렌더 오류"
+                        "text": "기본 / 렌더 오류",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
                     "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               },
               {
-                "type": "table_cell",
                 "content": [
                   {
-                    "type": "paragraph",
                     "content": [
                       {
-                        "type": "text",
-                        "text": "「다시 시도」"
+                        "text": "「다시 시도」",
+                        "type": "text"
                       }
-                    ]
+                    ],
+                    "type": "paragraph"
                   }
-                ]
+                ],
+                "type": "table_cell"
               }
-            ]
+            ],
+            "type": "table_row"
           }
-        ]
+        ],
+        "type": "table"
       }
-    ]
+    ],
+    "type": "doc"
   },
   "group": "liftgram/wireframe",
   "id": "WF-YERROR",
@@ -259,16 +259,16 @@
   },
   "relations": {
     "covers": [
-      "SRS-085",
-      "SRS-089",
       "SRS-054",
       "SRS-066",
-      "SRS-073"
+      "SRS-073",
+      "SRS-085",
+      "SRS-089"
     ]
   },
   "schemaVersion": 1,
   "tags": [],
   "title": "S-162 YERROR 오류 화면(문제가 발생했습니다)",
   "type": "Wireframe",
-  "updated": "2026-11-09T00:49:44Z"
+  "updated": "2026-11-09T00:50:36Z"
 }

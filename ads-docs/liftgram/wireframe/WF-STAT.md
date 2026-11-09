@@ -6,7 +6,7 @@
 
 ### 분석
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:69418340-0858-481e-82d5-ad629a5962b2`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c31e5a09-f99a-4b46-955a-fd6e2978d3cb`
 
 screen_code: STAT · route: /stats
 

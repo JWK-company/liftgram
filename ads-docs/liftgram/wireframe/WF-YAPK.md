@@ -6,7 +6,7 @@
 
 ### APK 404(글자 not found)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:64e9f014-3639-4a07-afb9-bd574f4bebc0`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:04e9b4ab-fc0c-455b-973e-d615dc99f16a`
 
 screen_code: YAPK
 

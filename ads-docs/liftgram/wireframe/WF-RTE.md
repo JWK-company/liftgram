@@ -1,4 +1,4 @@
-# WF-RTE — RTE 루틴 편집
+# WF-RTE — S-14 RTE 루틴 편집
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-RTE.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 루틴 편집
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:535b82a9-b09a-4fcf-815c-5b515ff51b87`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:dbc19892-d03f-4616-bf41-98b787d2e09a`
 
 screen_code: RTE · route: /routines/[id]
 

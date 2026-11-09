@@ -6,7 +6,7 @@
 
 ### 포그라운드 서비스 2종
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:cff6721f-1bc4-4d8a-93e9-a0b7c94a6951`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:f3c70143-07c2-45b8-b826-db2742ce60f4`
 
 screen_code: NFGS
 

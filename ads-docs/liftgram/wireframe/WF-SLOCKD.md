@@ -6,7 +6,7 @@
 
 ### 잠금화면 값 불일치 안내
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b8f33429-7743-4f01-b9e8-4096a1501b58`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:936ba763-f9d1-47f7-9c5d-2c3c489664e7`
 
 screen_code: SLOCKD · route: /workout 위
 

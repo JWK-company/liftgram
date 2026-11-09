@@ -6,7 +6,7 @@
 
 ### 운동 종료
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:a46d1654-d237-46ef-815f-6310fe5c64c8`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:da8a99d4-0a77-4f8b-8797-303b2f2ae1f1`
 
 screen_code: SFINIS · route: /workout 위
 

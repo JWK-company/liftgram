@@ -1,4 +1,4 @@
-# WF-RTN — RTN 새 루틴
+# WF-RTN — S-13 RTN 새 루틴
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-RTN.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 새 루틴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:a8796f41-88a1-4aa0-af64-6b51055fcb14`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:603aee6f-e6b6-499e-8eac-74d44063cdb6`
 
 screen_code: RTN · route: /routines/new
 

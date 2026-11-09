@@ -6,7 +6,7 @@
 
 ### 옛 버전 탭 띠
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8dae4c26-997a-49bb-805a-d2aaa908c385`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:5eb74904-728f-437d-8f51-7e59fbffe1d2`
 
 screen_code: STABOL
 

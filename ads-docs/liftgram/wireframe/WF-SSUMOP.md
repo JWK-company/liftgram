@@ -6,7 +6,7 @@
 
 ### 성과 요약
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8c0ea315-9c38-4907-92ee-17d8953be6cb`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:729ee7b9-40cd-491a-9a14-659231185e8e`
 
 screen_code: SSUMOP · route: /messages/[id] 위
 

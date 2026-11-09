@@ -6,7 +6,7 @@
 
 ### 세트 방식 바꾸기(운동 중)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:f420cb0f-ab24-43c1-9143-6d29aed09aa7`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:a024b795-75b5-4f2a-b715-dd956789eb53`
 
 screen_code: SWESCH · route: /workout 위
 

@@ -1,4 +1,4 @@
-# WF-SACTIV — SACTIV 진행 중인 운동이 있어요
+# WF-SACTIV — S-101 SACTIV 진행 중인 운동이 있어요
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SACTIV.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 진행 중인 운동이 있어요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:799e3e73-0ba5-4134-ae6e-4b3cc8256913`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:d2fd7819-cc54-4ca8-8ec9-04abda41a870`
 
 screen_code: SACTIV · route: / 위
 

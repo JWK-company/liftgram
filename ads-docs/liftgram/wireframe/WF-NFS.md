@@ -6,7 +6,7 @@
 
 ### 전체 화면 알림
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:0334d2bb-70f6-4495-aec4-f1f6136655b2`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:5810d92a-6d73-4cd8-b895-931a6fb9a46a`
 
 screen_code: NFS
 

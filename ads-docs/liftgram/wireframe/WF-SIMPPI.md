@@ -6,7 +6,7 @@
 
 ### 가져오기 종목 피커
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:3d86fb10-4b40-484b-a015-003ecffa9f82`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:212f10ec-a63c-4f47-b996-ce80d2ec16e0`
 
 screen_code: SIMPPI · route: /account/import 위
 

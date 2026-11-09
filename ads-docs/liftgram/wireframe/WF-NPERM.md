@@ -6,7 +6,7 @@
 
 ### 시스템 권한·설정 창
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1aaa62ac-4120-4c87-b88a-298bd578a6f6`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b3e0e6e0-2be9-4e3c-b7f1-1fb256220566`
 
 screen_code: NPERM
 

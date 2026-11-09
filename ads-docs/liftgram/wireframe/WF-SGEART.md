@@ -6,9 +6,9 @@
 
 ### 오늘의 착용장비
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:464464e6-cca8-4f12-a5fd-7c26678b2106`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:3b1fa308-dd4c-4d32-a762-2bb8a2cbf8a1`
 
-screen_code: SGEART
+screen_code: SGEART · route: /feed 위
 
 **노트: **S-135 · 장비 태그 고르기
 

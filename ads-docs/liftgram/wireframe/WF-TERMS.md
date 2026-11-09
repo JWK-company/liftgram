@@ -6,7 +6,7 @@
 
 ### 이용약관
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:06307712-dc72-4b56-89ca-e5330b9faf5c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:cb1b924a-171b-4235-99ce-ff4597508645`
 
 screen_code: TERMS · route: /terms
 

@@ -6,7 +6,7 @@
 
 ### 종목 ⋯ 메뉴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8693211e-9785-4e3d-966a-176da1700b54`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:1f86d767-ecfe-4585-9aa8-69b7145b407f`
 
 screen_code: SEMENU · route: /workout 위
 

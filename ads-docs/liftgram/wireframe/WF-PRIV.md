@@ -6,7 +6,7 @@
 
 ### 개인정보처리방침
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:151862a0-845f-473f-a6c0-288d05746b84`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:6e80d474-a4d2-46d4-a101-0f0439b9534d`
 
 screen_code: PRIV · route: /privacy
 

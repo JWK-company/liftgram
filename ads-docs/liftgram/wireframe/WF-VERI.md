@@ -6,7 +6,7 @@
 
 ### 이메일 확인
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b867e8df-6599-4931-8894-105235e7602a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:bfd03113-1b12-4161-8c02-92f590d71cf0`
 
 screen_code: VERI · route: /verify-email
 

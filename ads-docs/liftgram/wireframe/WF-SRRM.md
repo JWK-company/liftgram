@@ -1,4 +1,4 @@
-# WF-SRRM — SRRM 루틴 삭제(편집기)
+# WF-SRRM — S-107 SRRM 루틴 삭제(편집기)
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SRRM.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 루틴 삭제(편집기)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:88500b0f-4fa2-4cf6-9778-7937b13dad31`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:62ae14ea-c67d-4edc-9e9a-85ad6f70c90e`
 
 screen_code: SRRM · route: /routines/[id] 위
 

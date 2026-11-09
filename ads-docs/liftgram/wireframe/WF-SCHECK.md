@@ -6,7 +6,7 @@
 
 ### 이 기록이 맞나요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:edfe01e2-3d38-4519-9506-4c8f14ca63d3`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:83d38c98-b94a-49b5-be6a-21db09c6f0a6`
 
 screen_code: SCHECK · route: /workout 위
 

@@ -6,7 +6,7 @@
 
 ### 신고
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:867ae95d-9266-4787-b3b3-6c5620d8f431`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c840e42a-1920-4d3e-a67e-fe8d5c77f582`
 
 screen_code: SREPOR · route: /feed 위
 

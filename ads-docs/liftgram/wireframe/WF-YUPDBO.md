@@ -6,7 +6,7 @@
 
 ### 업데이트 직후 덮개
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:6120486f-1b58-4bf4-bd1a-685a5d8b153c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:2d2217af-9a12-4ffe-b202-7ba325968882`
 
 screen_code: YUPDBO
 

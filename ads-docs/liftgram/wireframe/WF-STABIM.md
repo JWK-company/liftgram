@@ -6,7 +6,7 @@
 
 ### 다른 탭에서 기록을 가져오는 중이에요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:5fbd2a77-e494-4c0e-9bab-e53e839e8750`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:746fc1c3-0ef9-458e-a52d-acbf52e636ca`
 
 screen_code: STABIM
 

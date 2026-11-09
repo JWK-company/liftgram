@@ -6,7 +6,7 @@
 
 ### 루틴 가져오기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:add0703b-70f6-48de-ac89-00437720f878`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:ee586e34-c618-41b1-a4fe-78c9484d825d`
 
 screen_code: SIMPOR · route: /feed 위
 

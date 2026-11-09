@@ -6,7 +6,7 @@
 
 ### 로그인
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:f2e943b0-62b3-452e-b4f4-4cef125bdb1c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:54439441-167d-48ab-a292-ad516657c12e`
 
 screen_code: SIGN · route: /signin
 

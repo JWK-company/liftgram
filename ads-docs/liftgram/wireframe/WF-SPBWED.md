@@ -6,7 +6,7 @@
 
 ### 기록 고치기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:e4fa3c02-c11f-4a3e-9435-45c3400914a1`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:6ae4a8ec-f9c3-4848-bab8-0d986ead83bb`
 
 screen_code: SPBWED · route: /profile 위
 

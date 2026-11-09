@@ -6,7 +6,7 @@
 
 ### 오픈소스 고지
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:5a2c9c79-e53b-4634-9fee-15c85f0db52e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:362fbca0-5237-4ff4-9d66-7c7346ee8022`
 
 screen_code: LIC · route: /licenses
 

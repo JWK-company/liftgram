@@ -6,7 +6,7 @@
 
 ### 커스텀 기구 이름
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:5e769c3e-d5ea-4abc-871f-027c1525628a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:e260f687-a26e-48b1-b761-e92052f220af`
 
 screen_code: SPCUST · route: /profile 위
 

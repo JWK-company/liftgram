@@ -6,7 +6,7 @@
 
 ### 새 버전으로 새로고침해 주세요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:496f2836-c911-4c47-a917-5b1a10f39490`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:21dafd33-4f07-4c3a-a6a2-35840f492476`
 
 screen_code: SSCHEM
 

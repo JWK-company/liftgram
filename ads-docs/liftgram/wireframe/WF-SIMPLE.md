@@ -6,7 +6,7 @@
 
 ### 고른 내용이 사라져요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:93bcdfd1-53bb-4fde-ba9c-f79fc7894ad3`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:fab7b319-a3ca-4167-8027-5c2ec7310cd2`
 
 screen_code: SIMPLE · route: /account/import 위
 

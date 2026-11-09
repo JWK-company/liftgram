@@ -6,7 +6,7 @@
 
 ### 단위
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:2d6f510e-4971-4a6d-8212-2a211b0e1c09`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:04b5235b-cd8d-4822-a0fd-3b208333e793`
 
 screen_code: SPUNIT · route: /profile 위
 

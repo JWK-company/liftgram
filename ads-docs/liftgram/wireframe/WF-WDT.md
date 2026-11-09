@@ -6,7 +6,7 @@
 
 ### 기록 상세
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:71f7b1d8-4ada-4bd3-a26f-964f6bd097ac`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:088ee626-971c-43a9-b7b8-1fcaf1ee1cdd`
 
 screen_code: WDT · route: /history/[id]
 

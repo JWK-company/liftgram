@@ -6,7 +6,7 @@
 
 ### 화면별 로딩·오류 상태
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:16059dc7-5ed1-4d8f-babb-6783c744717e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b6aec49b-0142-4c7a-91fb-70eb28fe958f`
 
 screen_code: YSTATE
 

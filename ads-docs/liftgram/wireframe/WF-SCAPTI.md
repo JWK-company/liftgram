@@ -6,7 +6,7 @@
 
 ### 캡션 수정
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:c5325e58-e93e-4d65-be46-2d89f0a59bbb`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:24561656-57d7-4850-bdfb-04f336298de5`
 
 screen_code: SCAPTI · route: /feed 위
 

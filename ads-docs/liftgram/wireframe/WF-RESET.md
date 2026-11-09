@@ -6,7 +6,7 @@
 
 ### 새 비밀번호
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:4f78dd1e-7cec-45e2-aeb8-6a680cf71719`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:9c4e36aa-52e7-4f6a-bcbd-000e257fc206`
 
 screen_code: RESET · route: /reset
 

@@ -6,7 +6,7 @@
 
 ### 그룹 나가기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:3f441e76-201b-43f2-9caa-3f9bb40f7c77`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:6fa8c845-e712-41cf-b0c1-0ad83fae47b0`
 
 screen_code: SLEAVE · route: /messages/[id] 위
 

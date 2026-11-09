@@ -6,7 +6,7 @@
 
 ### 공식 글의 루틴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:aecce81b-25f4-494d-a809-f3e161db10df`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4228cfce-fc37-467f-a72b-9c9c85f46d65`
 
 screen_code: SOFFIC · route: /feed 위
 

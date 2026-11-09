@@ -6,7 +6,7 @@
 
 ### 가입
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:f0434f38-cd7f-44bd-8b7b-cc4491017f95`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b8fe9764-be94-45a0-9b6f-a7d5c05bf428`
 
 screen_code: JOIN · route: /signup
 

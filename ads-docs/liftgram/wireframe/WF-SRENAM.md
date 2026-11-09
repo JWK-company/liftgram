@@ -6,7 +6,7 @@
 
 ### 운동 이름 변경
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1784719c-6f21-4bbd-b5e5-5ccfc0d3b29c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:948ba32e-c83b-4e41-8f65-498c21d1cd9b`
 
 screen_code: SRENAM · route: /workout 위
 

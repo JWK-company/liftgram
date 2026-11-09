@@ -6,7 +6,7 @@
 
 ### 브라우저 위치 권한 창
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:eec8103a-34ca-4980-a1df-27bbe55fe4f7`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b19ba037-da76-4dfb-92d6-ec013ff8d8d3`
 
 screen_code: SGEO · route: /gyms 위
 

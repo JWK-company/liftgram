@@ -6,7 +6,7 @@
 
 ### 세트 방식(루틴 편집)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:f05b9aca-d394-4d12-8aa7-813c9bab14e0`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:01515d6c-ca27-4934-b3ec-a77816092bd4`
 
 screen_code: SRXSCH · route: /routines/[id] 위
 

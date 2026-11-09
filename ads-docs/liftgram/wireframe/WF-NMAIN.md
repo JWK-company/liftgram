@@ -6,7 +6,7 @@
 
 ### MainActivity(웹뷰 껍데기)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:df1bf5bf-b67a-4747-892b-eeb6df4318df`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:0a15d2f8-b46a-445c-bafd-33fefe1ffe92`
 
 screen_code: NMAIN
 

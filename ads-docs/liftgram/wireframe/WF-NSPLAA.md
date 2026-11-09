@@ -6,7 +6,7 @@
 
 ### iOS 시작 화면
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:238b6a06-d9a2-4591-bbf9-e0821c0025b9`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4edc14b2-f925-4c42-95d0-51311916dd0e`
 
 screen_code: NSPLAA
 

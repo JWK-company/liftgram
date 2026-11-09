@@ -6,7 +6,7 @@
 
 ### 공개 프로필
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:d1b5da81-8347-46fe-b910-034822ff9b6d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:d448787e-7c52-44c4-a631-7b0f19c90723`
 
 screen_code: UPRF · route: /u/[userId]
 

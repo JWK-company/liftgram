@@ -6,7 +6,7 @@
 
 ### 피드에 공유
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1cafc4ed-3717-42e7-98de-4a22428f3b1f`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4984b50d-9b61-436c-80aa-2abadd6e54cf`
 
 screen_code: SSHARE · route: /calendar 위
 

@@ -6,7 +6,7 @@
 
 ### 프로필 앱 업데이트 카드
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:6f32d056-453d-4de6-b0b6-e92809258725`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:0f741d3a-20fc-4724-9623-388277c9b4c7`
 
 screen_code: SUPDAA · route: /profile 위
 

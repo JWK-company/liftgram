@@ -6,7 +6,7 @@
 
 ### 발견
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b84facb4-9874-421b-9353-a88355c61f62`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:728a59fd-7d86-4f7a-92a3-8de38544ee1d`
 
 screen_code: XPL · route: /explore
 

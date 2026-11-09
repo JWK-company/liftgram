@@ -6,7 +6,7 @@
 
 ### 오늘 근육
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:7b715b9b-8e0f-4027-bb34-fc1f56277e81`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:3f98dab5-1b5d-4e28-93f0-bc73e3116f8d`
 
 screen_code: SMUSCL · route: /workout 위
 

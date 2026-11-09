@@ -6,7 +6,7 @@
 
 ### 업데이트하는 중이에요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8b963855-4d02-4cf0-931c-0cc201b576aa`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:14fa31eb-5c2a-4bf9-93e0-2f0a2195c5ba`
 
 screen_code: SUPDAT · route: /profile 위
 

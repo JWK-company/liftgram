@@ -6,7 +6,7 @@
 
 ### 언어
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:dd152877-f845-4556-a69a-f7399fa835c2`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4649c7f2-5e4d-4779-877b-351431a92751`
 
 screen_code: SPLANG · route: /profile 위
 

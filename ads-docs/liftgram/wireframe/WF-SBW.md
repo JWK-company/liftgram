@@ -6,7 +6,7 @@
 
 ### 체중 기록
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:572b9518-1ee2-440a-a9c0-41271896515b`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7148dab3-72a1-433c-9e57-0a1faa314e77`
 
 screen_code: SBW · route: /stats 위
 

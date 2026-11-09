@@ -6,7 +6,7 @@
 
 ### 운동 카드 알림
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:bfbdcbea-0fa8-47ff-99a3-94c6702facc9`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c973c961-2b5d-40eb-bc67-51c521ca0bc5`
 
 screen_code: NCARD
 

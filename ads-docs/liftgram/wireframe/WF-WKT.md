@@ -1,4 +1,4 @@
-# WF-WKT — WKT 운동
+# WF-WKT — S-01 WKT 운동
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-WKT.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 운동
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:5f2bb65e-16a7-4fff-a9a7-cc19cd0d7896`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:931b0fd8-abf6-4e22-bb5f-9b6fd29878e1`
 
 screen_code: WKT · route: /
 

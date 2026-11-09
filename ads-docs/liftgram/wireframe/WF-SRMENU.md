@@ -1,4 +1,4 @@
-# WF-SRMENU — SRMENU 루틴 ⋯ 메뉴
+# WF-SRMENU — S-104 SRMENU 루틴 ⋯ 메뉴
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SRMENU.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 루틴 ⋯ 메뉴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:798f1bbb-5ea7-446a-b47e-6df2859aa866`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:359244e0-58a5-4c1a-b670-e9a54c391e26`
 
 screen_code: SRMENU · route: /routines/[id] 위
 

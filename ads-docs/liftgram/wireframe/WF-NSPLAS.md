@@ -6,7 +6,7 @@
 
 ### Android 시작 화면
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:d079a6d7-b4e3-4622-8385-2b56bf8a119a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:da2cd0eb-2c45-4ef9-94a4-1566e11a1b61`
 
 screen_code: NSPLAS
 

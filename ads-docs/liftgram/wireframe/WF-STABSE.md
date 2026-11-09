@@ -6,7 +6,7 @@
 
 ### 다른 탭에서 열려 있어요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:6bd2ad90-cfc0-4d9b-a931-33805902f54b`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4c4ec7e1-ba51-4e9d-a2ce-4aac5b991260`
 
 screen_code: STABSE
 

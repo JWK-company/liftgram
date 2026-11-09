@@ -6,7 +6,7 @@
 
 ### 목표 체중
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:afb7c42e-1e9e-4344-80f4-3e57e13bdcb6`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:57c88e5b-02f5-4a8b-b2d3-644f19d43e3a`
 
 screen_code: SBWGOA · route: /stats 위
 

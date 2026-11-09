@@ -6,9 +6,9 @@
 
 ### 루틴에 남길 변경
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:5161358b-8c43-4bc1-868b-b05b8607b46a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:d32b8795-da3e-4322-b959-581923e1f629`
 
-screen_code: SFINPI
+screen_code: SFINPI · route: /workout 위
 
 **노트: **S-88 · 반영할 변경 고르기
 

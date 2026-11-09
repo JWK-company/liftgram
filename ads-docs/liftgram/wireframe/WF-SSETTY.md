@@ -6,7 +6,7 @@
 
 ### 세트 타입
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:c97a5522-31a0-4722-afc7-0ea06801980d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:5ba66ea7-fee0-4c86-938e-9f965bfc880c`
 
 screen_code: SSETTY · route: /workout 위
 

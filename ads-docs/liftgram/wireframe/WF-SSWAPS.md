@@ -6,7 +6,7 @@
 
 ### 루틴도 바꿀까요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8c30148a-4951-49b1-9fe7-d24dd4a2f9b9`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:9088387d-731a-4e58-9834-72f162bb8446`
 
 screen_code: SSWAPS · route: /workout 위
 

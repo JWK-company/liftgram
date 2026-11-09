@@ -6,7 +6,7 @@
 
 ### 알림
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:eab24ded-b476-4e60-8afd-8373f513f35d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:820b738d-6dfc-4dd7-96e9-e564d489edc8`
 
 screen_code: NTF · route: /notifications
 

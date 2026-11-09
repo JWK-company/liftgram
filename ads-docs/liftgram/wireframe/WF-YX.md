@@ -6,7 +6,7 @@
 
 ### 404(Next 기본)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1483519a-4e2a-48be-9b85-4003ed4ba086`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:646f8671-438b-455d-af44-eae33be1eb91`
 
 screen_code: YX
 

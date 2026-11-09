@@ -6,7 +6,7 @@
 
 ### 의견 보내기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:a9f35892-3c02-4fd4-bf6e-22adeebd2f65`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:6686570d-d753-48dc-9d07-fe5aa43eac6b`
 
 screen_code: PPROFI · route: /profile/feedback
 

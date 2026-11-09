@@ -1,4 +1,4 @@
-# WF-SSCHEA — SSCHEA 요일 배정 시트
+# WF-SSCHEA — S-97 SSCHEA 요일 배정 시트
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SSCHEA.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 요일 배정 시트
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b5263983-69f4-45ba-89fa-f1c193d735c6`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:bff1f514-bc8e-4fce-b698-63d3964a485d`
 
 screen_code: SSCHEA · route: / 위
 

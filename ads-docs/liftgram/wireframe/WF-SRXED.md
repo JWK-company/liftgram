@@ -6,9 +6,9 @@
 
 ### 처방 편집기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:c7365e99-77ba-4a5a-a770-86b640e87c0a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:9d69d1f6-1b83-406d-b11f-b0aeebd3a1d7`
 
-screen_code: SRXED
+screen_code: SRXED · route: /coaching 위
 
 **노트: **S-144 · 세트 처방 편집
 

@@ -6,7 +6,7 @@
 
 ### 오늘 체중
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:84f4cc2f-10d7-4164-ab14-7c99914b1a7f`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b86aca27-71c7-4e8d-a887-8c9998729af3`
 
 screen_code: SWEIGH · route: /workout 위
 

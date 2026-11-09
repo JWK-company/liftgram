@@ -6,7 +6,7 @@
 
 ### 운동 삭제
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:137d111b-c87f-46e6-8e84-11d0ab8a8e34`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:f713c77a-aae4-4375-a939-34c062e252c6`
 
 screen_code: SRMEX · route: /workout 위
 

@@ -6,7 +6,7 @@
 
 ### 세트 옵션(원암·원레그)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:edf212b3-d4ad-47b3-839f-cfa12a3f64c7`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:6c842d4d-cae4-4c2e-a9a9-5a12d2d9830c`
 
 screen_code: SSETVA · route: /workout 위
 

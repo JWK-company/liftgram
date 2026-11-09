@@ -6,7 +6,7 @@
 
 ### 첫 안내: 길게 눌러 이 종목만
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:a473bf3e-fb6b-479b-abf8-216d0c0eed14`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:9673ff32-24a1-45c8-9496-63c748c73bd9`
 
 screen_code: SLONGD · route: /workout 위
 

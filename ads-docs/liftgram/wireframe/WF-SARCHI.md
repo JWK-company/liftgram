@@ -6,7 +6,7 @@
 
 ### 운동 보관
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:9ebb71ed-87e2-43e9-b543-6550443d6a62`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:636d5381-13aa-4839-9ac6-20f8a93bd5d8`
 
 screen_code: SARCHI · route: /exercise/[id] 위
 

@@ -1,4 +1,4 @@
-# WF-SCVER — SCVER 크리에이터 루틴 시트
+# WF-SCVER — S-94 SCVER 크리에이터 루틴 시트
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SCVER.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 크리에이터 루틴 시트
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:61fdb1b2-cb79-4df1-b2b1-67a176a7c4a1`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b721e460-b974-45e9-abbb-37ecac3f510d`
 
 screen_code: SCVER · route: / 위
 

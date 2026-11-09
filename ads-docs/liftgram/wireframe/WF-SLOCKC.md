@@ -6,7 +6,7 @@
 
 ### 잠금화면 기록 확인 중
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1baa73cb-f95e-489e-9cc6-66de01178c5e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b74cb872-3396-417c-a0e8-495b5cae90fb`
 
 screen_code: SLOCKC · route: /workout 위
 

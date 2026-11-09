@@ -6,7 +6,7 @@
 
 ### 스토리 뷰어
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:412bc797-1e0a-4f3d-9cfa-5585ec15b92c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7190a7a0-dc1a-4836-be09-f9cf7651554a`
 
 screen_code: SSTORY · route: /feed 위
 

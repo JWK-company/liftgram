@@ -6,7 +6,7 @@
 
 ### 오프라인이에요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:20b8b6a1-efae-4f0a-9e50-2e832be6975e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4ca3fdf0-c7ff-468f-8113-cdaebb72f729`
 
 screen_code: OFFL · route: /offline
 

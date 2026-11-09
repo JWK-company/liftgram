@@ -6,7 +6,7 @@
 
 ### 첫 안내: 「이전」 누르기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:32f99b90-3f23-4e57-8bbe-e378b97e9c64`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:5c1674b4-2508-4b7b-9d97-4c5a180b4319`
 
 screen_code: SPREV · route: /workout 위
 

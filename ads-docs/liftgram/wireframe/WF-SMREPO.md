@@ -6,7 +6,7 @@
 
 ### 회원 리포트
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:dcb07be6-c6eb-4228-8181-5b5f57a04382`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:be7d3f6d-0da5-48bb-94d7-f10f3b1da540`
 
 screen_code: SMREPO · route: /coaching 위
 

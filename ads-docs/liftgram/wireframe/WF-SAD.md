@@ -6,7 +6,7 @@
 
 ### 광고 자리
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:6b01aa13-6420-454c-bcd1-f693119e353e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:53778141-568e-46dc-82df-a094a357311d`
 
 screen_code: SAD · route: /stats 위
 

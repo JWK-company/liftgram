@@ -6,7 +6,7 @@
 
 ### PR 축하
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:65a914b5-f413-4aa3-9519-93bd48a9f31b`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:371be573-e1d6-41c3-9179-b12ead615c86`
 
 screen_code: SPR · route: /workout 위
 

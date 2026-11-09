@@ -6,7 +6,7 @@
 
 ### 시스템 파일 선택창
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:5f69246d-fb58-49d2-83d1-3d486cd4a60d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:e128058c-b809-4dd5-a7a7-79e133b579f8`
 
 screen_code: SFILES · route: /account 위
 

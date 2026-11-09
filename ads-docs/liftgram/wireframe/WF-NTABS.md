@@ -6,7 +6,7 @@
 
 ### 로그인 Custom Tabs
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:1d097e98-5b24-479e-8b64-b352883c4f8c`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7f97a23c-36d3-4c38-85b5-5ce27fd864f0`
 
 screen_code: NTABS
 

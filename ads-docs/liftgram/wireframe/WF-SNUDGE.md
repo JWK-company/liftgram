@@ -6,9 +6,9 @@
 
 ### 이 기록은 이 폰에만 있어요
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:f455cd1f-2710-4312-8db4-c45b4b4235d1`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:abf0bd5b-5437-4f14-ab69-10fce6c7622c`
 
-screen_code: SNUDGE
+screen_code: SNUDGE · route: /workout 위
 
 **노트: **S-90 · 로그인 권유 · 조건: 비로그인, 1·3회째 뒤 7일마다
 

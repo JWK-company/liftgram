@@ -1,4 +1,4 @@
-# WF-SRMROU — SRMROU 루틴 삭제
+# WF-SRMROU — S-100 SRMROU 루틴 삭제
 
 > 타입 Wireframe · 그룹 liftgram/wireframe · ADStudio가 `WF-SRMROU.json`에서 자동으로 만든 읽기용 파일(고치려면 .json 또는 ADStudio에서)
 
@@ -6,7 +6,7 @@
 
 ### 루틴 삭제
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:4f39566a-df4b-4b5a-a786-680840780aae`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:c3d0f59c-b22e-4122-b148-b53da2310782`
 
 screen_code: SRMROU · route: / 위
 

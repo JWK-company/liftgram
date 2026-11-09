@@ -6,9 +6,9 @@
 
 ### 세트 설정
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:29b15122-8e28-4777-98d6-aedb82dc2d9e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:a4f8f7f8-8b7c-4f22-ab32-bde06f94567f`
 
-screen_code: SRXMEN
+screen_code: SRXMEN · route: /coaching 위
 
 **노트: **S-103 · 처방 세트 메뉴(무게 기준 · 삭제). 코칭 처방 편집에서만
 

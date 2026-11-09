@@ -6,7 +6,7 @@
 
 ### 운동 추가·바꾸기(종목 피커)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:c4b704b7-c12a-436a-9096-102ff0da537a`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7a139ad2-285f-4e7e-8e03-69d818107657`
 
 screen_code: SPICKE · route: /workout 위
 

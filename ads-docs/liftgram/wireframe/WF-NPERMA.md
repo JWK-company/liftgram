@@ -6,7 +6,7 @@
 
 ### iOS 권한·인증 창
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:47e79aa1-e779-4046-807e-197664972ea8`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:8c89b332-c3b0-47f5-83ab-3790c7e2c56a`
 
 screen_code: NPERMA
 

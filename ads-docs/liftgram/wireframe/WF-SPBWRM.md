@@ -6,7 +6,7 @@
 
 ### 이 기록을 지울까요?
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:d761eca9-c0e8-426e-a80e-c10362433e33`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:3df707d8-6a11-4e1d-b9fc-85307f95de73`
 
 screen_code: SPBWRM · route: /profile 위
 

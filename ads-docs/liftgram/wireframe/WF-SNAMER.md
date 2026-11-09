@@ -6,7 +6,7 @@
 
 ### 이 운동으로 루틴 만들기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:fd2b25a6-9b8a-4891-bd68-51de000d0499`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:fed36e20-17b9-4307-a505-9ef16493ecc0`
 
 screen_code: SNAMER · route: /history/[id] 위
 

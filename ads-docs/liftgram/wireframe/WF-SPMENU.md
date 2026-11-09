@@ -6,7 +6,7 @@
 
 ### 프로필 메뉴(차단)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:a183920e-01e4-4334-af1b-06b8b669158e`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:d92e3102-72c6-4614-b4f0-4af228062812`
 
 screen_code: SPMENU · route: /u/[userId] 위
 

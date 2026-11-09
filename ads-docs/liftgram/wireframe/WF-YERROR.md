@@ -6,7 +6,7 @@
 
 ### 오류 화면(문제가 발생했습니다)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:01886c14-45ac-4bcd-9e4d-9e1f79f7da58`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7bb2868a-6e85-440b-ab05-621aebc43a96`
 
 screen_code: YERROR
 

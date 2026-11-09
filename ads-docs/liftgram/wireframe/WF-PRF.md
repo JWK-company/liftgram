@@ -6,7 +6,7 @@
 
 ### 프로필
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:b7b681dd-4cc0-4fd5-b411-d4391b74018f`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:7fb853dc-6f5e-4bdf-afd3-68c04642a469`
 
 screen_code: PRF · route: /profile
 

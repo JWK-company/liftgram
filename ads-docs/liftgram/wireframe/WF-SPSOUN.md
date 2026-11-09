@@ -6,7 +6,7 @@
 
 ### 휴식 알림음
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:e5b44f51-3bc6-4a91-83b7-8249a5b68369`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:a39b0ed0-2e91-469a-bcc1-5b36af4dc104`
 
 screen_code: SPSOUN · route: /profile 위
 

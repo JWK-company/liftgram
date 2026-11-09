@@ -6,9 +6,9 @@
 
 ### 전용 앱으로 바꾸기
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:61a10ce3-27d0-424c-baa6-2cabe874bcd0`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:d7c7d644-810a-4b27-ba3c-2c60c3e9ae59`
 
-screen_code: SSWITC
+screen_code: SSWITC · route: /profile 위
 
 **노트: **S-130 · 확인, 내려받기, 열기, 완료
 

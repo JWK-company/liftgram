@@ -6,7 +6,7 @@
 
 ### 서비스 워커 최후 대체(글자 offline)
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:53e6231d-74a6-4479-a64b-55ccd596e362`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:a8490f48-5859-4381-9a58-10a12cb64b7f`
 
 screen_code: YSW
 

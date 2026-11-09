@@ -6,7 +6,7 @@
 
 ### 변형 선택
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:9c99cd4a-384b-4a97-94f9-536cd325f3d2`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:ec0be439-80fc-4517-8346-b2bad27c8d59`
 
 screen_code: SVARIA · route: /workout 위
 

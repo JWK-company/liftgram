@@ -6,7 +6,7 @@
 
 ### 이번 주 목표
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:ef931fe3-f12a-49fe-8cb7-124d371b2307`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:a843f3db-ff00-4571-a6fe-3d0cfa705669`
 
 screen_code: SGOAL · route: /calendar 위
 

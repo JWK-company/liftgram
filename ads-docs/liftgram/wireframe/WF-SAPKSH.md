@@ -6,9 +6,9 @@
 
 ### 앱 설치 파일 업데이트
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:8ed0523a-ab63-43ee-ba22-b7b010b8d90d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:28bf9517-7a0e-448d-bc26-94dda20d2712`
 
-screen_code: SAPKSH
+screen_code: SAPKSH · route: /profile 위
 
 **노트: **S-129 · 다운로드, 설치 단계
 

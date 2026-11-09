@@ -6,7 +6,7 @@
 
 ### 운동 요약
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:4cff8d4a-e35a-42e6-aceb-865940fbaafb`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:159e7298-d31d-4d81-8ac4-837a113b3c13`
 
 screen_code: SSUMMA · route: /workout 위
 

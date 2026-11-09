@@ -6,7 +6,7 @@
 
 ### 잠금화면 운동 화면 준비 카드
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:76a7a6f9-76d1-4302-a933-71404603e45b`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:cb8d45fb-7f3b-4b3e-b599-72a466cdc5ad`
 
 screen_code: SLOCKR · route: /workout 위
 

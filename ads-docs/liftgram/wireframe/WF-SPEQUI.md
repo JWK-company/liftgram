@@ -6,7 +6,7 @@
 
 ### 내 가용 기구
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:14339b1f-39e6-42b4-80cd-3de924390d32`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:4145defe-7f78-4e3d-a3e1-7924f8b74f94`
 
 screen_code: SPEQUI · route: /profile 위
 

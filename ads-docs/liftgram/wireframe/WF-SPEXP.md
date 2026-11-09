@@ -6,7 +6,7 @@
 
 ### 운동 경력·코칭 의향
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:603501a5-6df5-4838-89a4-082d0782fe5d`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:933f5fa0-93c2-4343-8626-7e84a790f24a`
 
 screen_code: SPEXP · route: /profile 위
 

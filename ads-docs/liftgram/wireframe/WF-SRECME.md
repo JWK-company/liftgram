@@ -6,7 +6,7 @@
 
 ### 기록 ⋯ 메뉴
 
-loc: `penpot:db87d5a1-69f7-81b3-8008-eab602483349:a0c15bac-e2d8-4b2f-b285-b22d040c7e69`
+loc: `penpot:db87d5a1-69f7-81b3-8008-eab63c19b554:b0b0a9c8-b179-4ea0-9b37-224a765f9e09`
 
 screen_code: SRECME · route: /calendar 위
 
