@@ -428,7 +428,8 @@ export default function RoutinesClient() {
           <div aria-hidden className="mb-[var(--spacing-sm)] min-h-[50px]" data-testid="schedule-skeleton" />
         ) : weeklySchedule ? (
           <Card className={`mb-[var(--spacing-sm)] ${block?.isDeload ? "border-(--color-pr)!" : ""}`}>
-            <div className="flex items-center gap-[var(--spacing-sm)]">
+            {/* 첫 줄은 꺾이지 않게 — 좁거나 글자를 키우면 편집 단추가 오른쪽 위에 남고 나머지가 다음 줄로(REV S-96 3) */}
+            <div className="flex flex-wrap items-center gap-x-[var(--spacing-sm)] gap-y-[2px] whitespace-nowrap">
               <AppText variant="label" color="primary">
                 {t("schedule.title")}
               </AppText>
@@ -453,19 +454,28 @@ export default function RoutinesClient() {
                   {t("schedule.timesPerWeek", { count: assignedCount })}
                 </AppText>
               ) : null}
+              {/* [개선 2026-11-09 · S-96] 편집은 첫 줄 오른쪽 끝에 「📅 편집」 — 아래 따로 빠진 버튼 줄을 없앴다 */}
+              <button
+                type="button"
+                onClick={() => setEditingSchedule(true)}
+                data-testid="btn-edit-schedule"
+                className="-my-[8px] -mr-[var(--spacing-xs)] ml-auto flex min-h-[44px] shrink-0 items-center gap-[4px] rounded-[var(--radius-pill)] px-[var(--spacing-sm)] focus-visible:outline-2 focus-visible:outline-(--color-brand) focus-visible:outline-offset-2"
+              >
+                {/* 누를 수 있는 값은 옅은 칩(v0.82.0 규칙) — 제목·배지와 같은 글자로만 두면 단추로 안 보인다 */}
+                <span className="flex items-center gap-[4px] rounded-[var(--radius-pill)] border border-(--color-line) bg-(--color-surface-alt) px-[10px] py-[4px]">
+                  <Icon name="calendar-outline" size={16} color="var(--color-brand)" />
+                  <AppText variant="label" color="primary">
+                    <span className="sr-only">{t("schedule.title")} </span>
+                    {t("schedule.editShort")}
+                  </AppText>
+                </span>
+              </button>
             </div>
             <WeekStrip schedule={weeklySchedule} routines={routines} dotColor={dotColor} />
+            {/* [원본] 주간 스케줄 카드 아래 따로 「주간 스케줄 편집」 버튼 줄(secondary · sm) — 첫 줄 옆으로 옮겼다(S-96)
             <div className="mt-[var(--spacing-sm)]">
-              <Button
-                title={t("schedule.editTitle")}
-                icon="calendar-outline"
-                variant="secondary"
-                size="sm"
-                fullWidth={false}
-                onPress={() => setEditingSchedule(true)}
-                testId="btn-edit-schedule"
-              />
-            </div>
+              <Button title={t("schedule.editTitle")} icon="calendar-outline" variant="secondary" size="sm" fullWidth={false} onPress={() => setEditingSchedule(true)} testId="btn-edit-schedule" />
+            </div> */}
           </Card>
         ) : (
           <EntryRow

@@ -681,6 +681,7 @@ export const en: Record<TransKey, string> = {
   "schedule.title": "Weekly schedule",
   "schedule.createEntry": "Create weekly schedule (routines per day, deload)",
   "schedule.editTitle": "Edit weekly schedule",
+  "schedule.editShort": "Edit",
   "schedule.pickPrompt": "Choose what to assign to this day",
   "schedule.rest": "Rest",
   "schedule.restShort": "Rest",

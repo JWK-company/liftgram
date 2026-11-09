@@ -199,7 +199,7 @@ for id,name,label,ev,desc,cond in [
  ('s.lockcheck','잠금화면 기록 확인 중','앱 열기','C/session/LockNotices.tsx:85','잠금 화면 기록을 합치는 동안 막음','앱 안, 첫 합치기 전'),
  ('s.summary','운동 요약','운동 종료 확인 후','C/session/ActiveWorkout.tsx:293','주소는 그대로 두고 내용만 교체',''),
  ('s.finish','운동 종료','완료 버튼','C/session/ActiveWorkout.tsx:685','종료 확인창',''),
- ('s.discard','운동 취소','⋯ 메뉴','C/session/ActiveWorkout.tsx:737','기록 폐기 확인창',''),
+ ('s.discard','운동 취소','⋯ 메뉴','C/session/ActiveWorkout.tsx:737','기록을 지울지 묻는 확인창',''),
  ('s.wmenu','세션 ⋯ 메뉴','⋯ 탭','C/session/ActiveWorkout.tsx:430','이름 변경, 취소',''),
  ('s.rename','운동 이름 변경','이름 탭','C/session/ActiveWorkout.tsx:582','이름 입력',''),
  ('s.superset','슈퍼셋으로 묶을 종목 선택','종목 메뉴','C/session/ActiveWorkout.tsx:622','짝 고르기',''),
@@ -236,12 +236,12 @@ for id,name,label,ev,desc in [
  ('s.ctopic','크리에이터 주제 시트','프로 루틴·초보자 루틴 카드','C/routines/CreatorRoutineSheet.tsx:55','주제 안내'),
  ('s.cver','크리에이터 루틴 시트','버전 카드','C/routines/CreatorRoutineSheet.tsx:194','버전 상세와 저장'),
  ('s.cdupe','이미 있는 루틴','저장 이름 중복','C/routines/CreatorRoutineSheet.tsx:181','중복 안내'),
- ('s.sched','주간 스케줄 편집','스케줄 편집','C/routines/ScheduleEditor.tsx:134','요일별 배정'),
+ ('s.sched','주간 스케줄 편집','주간 스케줄 첫 줄 「📅 편집」','C/routines/ScheduleEditor.tsx:134','요일별 배정'),
  ('s.schedday','요일 배정 시트','요일 탭','C/routines/ScheduleEditor.tsx:95','요일에 배정'),
  ('s.schedrm','주간 스케줄 삭제','삭제 탭','C/routines/ScheduleEditor.tsx:121','삭제 확인'),
  ('s.routine-actions','루틴 동작 시트','루틴 메뉴','C/routines/RoutinesClient.tsx:714','루틴 메뉴'),
  ('s.rmroutine','루틴 삭제','동작 시트 삭제','C/routines/RoutinesClient.tsx:747','삭제 확인'),
- ('s.active','진행 중인 운동이 있어요','새로 시작','C/routines/RoutinesClient.tsx:784','이어서 하기, 폐기하고 새로 시작'),
+ ('s.active','진행 중인 운동이 있어요','새로 시작','C/routines/RoutinesClient.tsx:784','이어서 하기, 그만두고 새로 시작'),
 ]:
     sh(id,name,H,label,ev,desc)
 e('/feed','s.active','새로 시작','C/feed/WorkoutBox.tsx:373','open'); e('s.summary','s.active','다시 시작','C/session/WorkoutSummary.tsx:336','open'); e('/history/[id]','s.active','다시 하기','C/analytics/WorkoutDetailClient.tsx:275','open')
@@ -377,7 +377,7 @@ RE='C/routines/RoutineEditor.tsx'; PR='C/routines/PrescriptionRows.tsx'; CA='C/a
 SU='C/session/WorkoutSummary.tsx'; ST='C/analytics/StatsClient.tsx'; PC='C/profile/ProfileClient.tsx'; CC='C/CatalogClient.tsx'; EX='F/app/exercise/[id]/page.tsx'
 FC='C/feed/FeedClient.tsx'; AC='C/profile/AuthClient.tsx'; PK='C/ExercisePickerScreen.tsx'
 AREAS={
-'/':[('앱바','로고 · 「운동」 · 🔍 종목 목록',RC+':419'),('주간 스케줄 카드','주차·디로딩 · 요일 줄 · 「주간 스케줄 편집」(없으면 「주간 스케줄 만들기」 줄)',RC+':460'),
+'/':[('앱바','로고 · 「운동」 · 🔍 종목 목록',RC+':419'),('주간 스케줄 카드','주차·디로딩 · 요일 줄 · 첫 줄 오른쪽 「📅 편집」(없으면 「주간 스케줄 만들기」 줄)',RC+':460'),
  ('이번 주 목표 카드','연속일 · n/목표 · 진행 막대 · 볼륨·세션·PR',WS+':110'),('오늘의 안내 카드','다음 운동 / 오늘 할 루틴 / 추천 중 하나',RC+':519'),
  ('놓친 루틴 카드','놓친 루틴이 있고 오늘 운동 전일 때',RC+':526'),('버튼 줄','「새 루틴 만들기」 · 「빠른 운동 시작」',RC+':547'),
  ('「내 루틴」 머리 · 폴더','폴더 묶음 접기·펼치기',RC+':591'),('내 루틴 목록','줄마다 이름 · 종목 이름 한 줄 · 「오늘」 칩 · ▶ 시작 · ⋯. 줄을 누르면 루틴 미리보기',RC+':614'),

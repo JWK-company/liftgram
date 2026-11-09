@@ -49,7 +49,7 @@ import { closeTopOverlay, ConfirmDialog, SheetShell } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { IconButton } from "../ui/IconButton";
 import { NumberStepper, TextField } from "../ui/inputs";
-import { AppText, Card, Divider, EmptyState, SectionHeader, Tag } from "../ui/primitives";
+import { AppText, Card, Divider, SectionHeader, Tag } from "../ui/primitives";
 import { RecordSlotSelector } from "../ui/RecordSlotSelector";
 import { ExerciseName } from "../session/ExerciseName";
 import { useSession } from "../SessionProvider";
@@ -452,13 +452,13 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
         <Divider />
         <SectionHeader title={t("routines.exercisesSection")} />
 
+        {/* [원본] 종목이 없으면 큰 빈 상태(아이콘·「종목이 없습니다」·「아래 버튼으로…」)를 그렸다 — 휴대폰에서 「운동 추가」가
+            하단 「완료」 밑으로 밀려 완료를 잘못 누르게 했다(피드백 2026-11-09 · S-13)
         {exercises.length === 0 ? (
-          <EmptyState
-            icon="add-circle"
-            title={t("routines.editorEmptyTitle")}
-            message={t("routines.editorEmptyMessage")}
-          />
-        ) : (
+          <EmptyState icon="add-circle" title={t("routines.editorEmptyTitle")} message={t("routines.editorEmptyMessage")} />
+        ) : ( */}
+        {/* [개선] 비어 있으면 빈 상태 없이 「운동 추가」 하나를 주 버튼으로 바로 아래에 — 하단 「완료」는 보조로 낮춘다 */}
+        {exercises.length === 0 ? null : (
           <div data-testid="routine-exercises">
             {exercises.map((re, i) => (
               <ExerciseEditRow
@@ -495,7 +495,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           <Button
             title={t("routines.addExercise")}
             icon="add"
-            variant="secondary"
+            // [원본] variant="secondary"
+            variant={exercises.length === 0 ? "primary" : "secondary"}
             testId="btn-add-routine-exercise"
             onPress={() => setPicking({ mode: "add" })}
           />
@@ -585,7 +586,8 @@ export default function RoutineEditor({ routineId: paramId }: { routineId: strin
           <Button
             title={t("common.done")}
             icon="checkmark"
-            variant={canStart ? "secondary" : "primary"}
+            // [원본] variant={canStart ? "secondary" : "primary"} — 빈 루틴에서 빨간 완료가 「운동 추가」보다 먼저 눈에 띄었다
+            variant={canStart || exercises.length === 0 ? "secondary" : "primary"}
             testId="btn-routine-done"
             loading={adding}
             onPress={() => {

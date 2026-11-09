@@ -647,10 +647,10 @@ export const ko = {
   "routines.activeExistsTitle": "진행 중인 운동이 있어요",
   "routines.activeExistsMessage": "하던 운동을 그만두고 새로 시작할까요?",
   "routines.resumeInstead": "이어서 하기",
-  "routines.discardAndStart": "폐기하고 새로 시작",
-  "routines.discardWorkoutTitle": "진행 중 운동 폐기",
+  "routines.discardAndStart": "그만두고 새로 시작", // [원본] 폐기하고 새로 시작 — 「폐기」가 딱딱하다(S-101 · 2026-11-09). 「취소」는 같은 시트의 닫기 단추와 겹쳐 위 물음(「그만두고 새로 시작할까요?」)과 맞췄다
+  "routines.discardWorkoutTitle": "하던 운동 그만두기", // [원본] 진행 중 운동 폐기
   "routines.discardWorkoutMessage": "하던 운동 기록을 버릴까요? 되돌릴 수 없어요.",
-  "routines.discardWorkoutButton": "폐기",
+  "routines.discardWorkoutButton": "그만두기", // [원본] 폐기
   "routines.setsLabel": "세트",
   "experience.title": "운동 경력·코칭 의향",
   "experience.levelLabel": "운동 경력",
@@ -681,6 +681,7 @@ export const ko = {
   "schedule.title": "주간 스케줄",
   "schedule.createEntry": "주간 스케줄 만들기 (요일별 루틴·디로딩)",
   "schedule.editTitle": "주간 스케줄 편집",
+  "schedule.editShort": "편집",
   "schedule.pickPrompt": "이 요일에 배정할 항목을 선택하세요",
   "schedule.rest": "휴식",
   "schedule.restShort": "휴식",
@@ -1409,7 +1410,7 @@ export const ko = {
   // 기록 돌아보기·다시 하기(SRS-064·065)
   "replay.start": "이 운동 그대로 다시 시작", // @plm SRS-065
   "replay.nothing": "다시 시작할 세트가 없어요", // @plm SRS-065
-  "replay.activeExists": "진행 중인 운동이 있어요 — 먼저 마치거나 폐기해 주세요", // @plm SRS-065
+  "replay.activeExists": "진행 중인 운동이 있어요 — 먼저 마치거나 그만둔 뒤 다시 시작해 주세요", // @plm SRS-065 · [원본] …먼저 마치거나 폐기해 주세요
   "replay.nothingMatched": "이 운동의 종목을 내 종목에서 찾지 못했어요", // @plm SRS-065
   "feed.startNowUnmatched": "내 종목에서 찾지 못한 {count}개는 빼고 시작했어요", // @plm SRS-065
   "feed.startNow": "바로 시작", // @plm SRS-065

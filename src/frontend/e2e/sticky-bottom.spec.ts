@@ -83,8 +83,84 @@ test.describe("390×844 · 종목 4개", () => {
   });
 });
 
-test.describe("360×560 · 짧은 화면", () => {
+test.describe("360×560 · 짧은 화면(일부 시험은 화면 크기를 바꿔 잰다)", () => {
   test.use({ viewport: { width: 360, height: 560 } });
+
+  test("새 루틴 첫 화면 — 「운동 추가」가 하단 「완료」 위에 다 보이고 주 버튼 · 빈 안내 없음(S-13 · 2026-11-09)", async ({
+    page,
+  }) => {
+    for (const vp of [
+      // 작은 안드로이드(360×640) · 브라우저 주소창이 있는 아이폰(390×664) — 360×560 은 이름·폴더·메모만으로 꽉 차 잴 수 없다
+      { width: 360, height: 640 },
+      { width: 390, height: 664 },
+    ]) {
+      await page.setViewportSize(vp);
+      await page.goto("/");
+      await page.getByTestId("btn-new-routine").click();
+      await expect(page.getByTestId("btn-add-routine-exercise")).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator("body")).not.toContainText("종목이 없습니다");
+      await 화면_안(page, "btn-add-routine-exercise");
+      await 위에(page, "btn-add-routine-exercise", "btn-routine-done");
+      // 비어 있으면 주 버튼은 「운동 추가」 — 완료는 보조(색이 다르다)
+      const bg = (id: string) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).backgroundColor);
+      const brand = await page.evaluate(() => {
+        const d = document.createElement("div");
+        d.style.backgroundColor = "var(--color-brand)";
+        document.body.appendChild(d);
+        const c = getComputedStyle(d).backgroundColor;
+        d.remove();
+        return c;
+      });
+      expect(await bg("btn-add-routine-exercise")).toBe(brand); // 비어 있으면 주 버튼
+      expect(await bg("btn-routine-done")).not.toBe(brand); // 완료는 보조
+    }
+    // 종목이 생기면 원래대로 — 운동 추가는 보조, 빈 루틴 하나는 남기지 않는다(벗어나기 규칙)
+    await page.getByTestId("btn-add-routine-exercise").click();
+    await page.getByTestId("picker-search").fill("바벨 벤치프레스");
+    await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click();
+    await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
+    const bg2 = (id: string) => page.getByTestId(id).evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(await bg2("btn-add-routine-exercise")).toBe(await bg2("btn-routine-done"));
+  });
+
+  test("주간 스케줄 첫 줄 — 「편집」이 제목과 한 줄 · 44px · 글자가 꺾이지 않는다(S-96)", async ({
+    page,
+  }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 360, height: 640 });
+    await 카탈로그_준비(page);
+    await page.goto("/");
+    await page.getByTestId("btn-new-routine").click();
+    await page.getByTestId("routine-name").fill("스케줄줄");
+    await page.getByTestId("routine-name").blur();
+    await page.getByTestId("btn-add-routine-exercise").click();
+    await page.getByTestId("picker-search").fill("바벨 벤치프레스");
+    await page.getByTestId("picker-list").locator("button").first().click();
+    await page.getByTestId("picker-confirm").click();
+    await expect(page.getByTestId("routine-exercises").locator("> div")).toHaveCount(1, { timeout: 20_000 });
+    await page.getByTestId("btn-routine-done").click();
+    await page.getByTestId("entry-schedule").click();
+    for (const d of ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]) {
+      await page.getByTestId(`schedule-day-${d}`).click();
+      await page.getByTestId("schedule-day-picker").getByText("스케줄줄").click();
+    }
+    await page.getByTestId("schedule-block-4").click();
+    await page.getByTestId("schedule-save").click();
+    const edit = page.getByTestId("btn-edit-schedule");
+    await expect(edit).toBeVisible({ timeout: 20_000 });
+    const eb = await edit.boundingBox();
+    expect(eb && eb.height >= 44 && eb.width >= 44).toBe(true);
+    // 첫 줄의 글자는 모두 한 줄 높이(「주 7회 / 운동」처럼 꺾이지 않는다)
+    const 꺾임 = await edit.evaluate((btn) => {
+      const row = btn.parentElement as HTMLElement;
+      return [...row.querySelectorAll("span,p")].some((el) => {
+        const rs = (el as HTMLElement).getClientRects();
+        return rs.length > 1 && new Set([...rs].map((r) => Math.round(r.top))).size > 1;
+      });
+    });
+    expect(꺾임).toBe(false);
+  });
 
   test("휴식 막대 아래가 잘리지 않는다", async ({ page }) => {
     test.setTimeout(180_000);

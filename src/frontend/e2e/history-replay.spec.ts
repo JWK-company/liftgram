@@ -134,11 +134,11 @@ test("그대로 다시 시작 — 요약·기록 상세에서 같은 종목·순
     블록(page, 1).getByTestId("set-list").locator("> div").first().getByTestId("set-weight"),
   ).toHaveValue("14");
 
-  // ② 진행 중인 운동이 있는데 기록 상세에서 다시 시작하면 묻는다 → 폐기하고 새로 시작
+  // ② 진행 중인 운동이 있는데 기록 상세에서 다시 시작하면 묻는다 → 그만두고 새로 시작
   await 최근_기록_열기(page);
   await page.getByTestId("btn-replay").click();
   await expect(page.getByTestId("active-exists")).toBeVisible();
-  await page.getByTestId("active-exists").getByText("폐기하고 새로 시작").click();
+  await page.getByTestId("active-exists").getByText("그만두고 새로 시작").click();
   await expect(page).toHaveURL(/\/workout/, { timeout: 15_000 });
   await expect(page.getByTestId("workout-exercises").locator("> div")).toHaveCount(2, { timeout: 15_000 });
   await expect(블록(page, 1).getByTestId("set-list").locator("> div")).toHaveCount(4);

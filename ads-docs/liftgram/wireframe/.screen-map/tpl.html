@@ -55,6 +55,8 @@ path.e.back{stroke-dasharray:3 4}path.e.redir{stroke-dasharray:6 3}path.e.open{s
 .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);max-height:calc(100vh - 24px);overflow:auto;min-width:0}
 @media(max-width:1020px){.panel{position:static;max-height:none}}
 .panel .url{font:500 13px var(--mono);color:var(--ink2);overflow-wrap:anywhere}
+.okc{display:inline-flex;align-items:center;gap:6px;font:500 12.5px/1.2 var(--sans);color:var(--ink3);cursor:pointer;min-height:36px;padding:0 8px;border-radius:8px;user-select:none}.okc input{width:18px;height:18px;margin:0;accent-color:var(--in);cursor:pointer}.okc.on{color:var(--in);background:var(--inbg)}.okc:has(input:disabled){cursor:default;opacity:.55}.okc:has(input:focus-visible){outline:2px solid var(--in);outline-offset:1px}
+.gc.done{box-shadow:0 0 0 2px var(--in)}tr.done td:first-child{box-shadow:inset 3px 0 0 var(--in)}.okn{font-size:12.5px;color:var(--ink3)}.okn b{color:var(--in)}
 .pill{display:inline-block;font-size:12px;font-weight:500;padding:2px 8px;border-radius:99px;background:var(--alt);color:var(--ink2)}.pill.w{background:var(--warnbg);color:var(--warn)}
 .kv{font-size:13.5px;color:var(--ink2)}
 .path{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
@@ -69,7 +71,7 @@ tr.r{cursor:pointer}tr.r:hover td{background:var(--brandbg)}td.m{font:400 12px v
 input[type=search]{font:400 14px var(--sans);padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);min-height:36px;width:min(260px,100%)}
 .foot{font-size:13px;color:var(--ink3)}
 .gal{display:flex;flex-direction:column;gap:18px}.gal h3{color:var(--ink2)}.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;margin-top:8px}
-.gc{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}.gc:hover{border-color:var(--brand)}.gz,.gm{all:unset;box-sizing:border-box;cursor:pointer;display:block;position:relative}.gz{cursor:zoom-in}.gz:focus-visible,.gm:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}.gz i{position:absolute;right:6px;bottom:6px;font-style:normal;font-size:12px;line-height:1;padding:5px 7px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;opacity:.85}.gz:hover i{opacity:1}.gm{border-top:1px solid var(--line)}.gm:hover{background:var(--alt)}.gm .go{display:block;color:var(--brand);font-size:11.5px;margin-top:2px}
+.gc{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}.gc:hover{border-color:var(--brand)}.gz,.gm{all:unset;box-sizing:border-box;cursor:pointer;display:block;position:relative}.gz{cursor:zoom-in}.gz:focus-visible,.gm:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}.gz i{position:absolute;right:6px;bottom:6px;font-style:normal;font-size:12px;line-height:1;padding:5px 7px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;opacity:.85}.gz:hover i{opacity:1}.gm{border-top:1px solid var(--line)}.gm:hover{background:var(--alt)}.gm .go{display:block;color:var(--brand);font-size:11.5px;margin-top:2px}.gc .okc{margin:0 4px 4px;align-self:flex-start}
 .gc img{display:block;width:100%;aspect-ratio:390/700;object-fit:cover;object-position:top;background:var(--alt)}.gc span{font-size:12.5px;line-height:1.35;padding:6px 8px;overflow-wrap:anywhere}
 .shotb{all:unset;display:block;flex:none;cursor:zoom-in;border:1px solid var(--line);border-radius:10px;overflow:hidden;max-height:560px}.shotb:focus-visible{outline:2px solid var(--brand)}.shotb img{display:block;width:100%}.noshot{font-size:13px;color:var(--warn);background:var(--warnbg);padding:8px 10px;border-radius:8px}
 dialog#lb{padding:0;border:0;background:transparent;color:#fff;width:100vw;height:100vh;max-width:100vw;max-height:100vh;overflow:hidden}dialog#lb::backdrop{background:rgba(0,0,0,.86)}.lbw{display:flex;flex-direction:column;height:100%}.lbh{display:flex;align-items:center;gap:8px;padding:10px 16px;flex:none}.lbh .tt{flex:1;min-width:0;font-size:14px;line-height:1.35;overflow-wrap:anywhere}.lbh .tt b{font-weight:600}.lbh .tt .u{opacity:.7;font-size:12.5px;display:block}.lbh .tt .tg{background:rgba(255,255,255,.18);color:#fff}.lbb{all:unset;box-sizing:border-box;cursor:pointer;min-height:40px;min-width:40px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}.lbb:hover{background:rgba(255,255,255,.26)}.lbb:focus-visible{outline:2px solid #fff}.lbb[disabled]{opacity:.3;cursor:default}.lbs{flex:1;min-height:0;overflow:auto;display:flex;align-items:flex-start;justify-content:center;gap:12px;padding:0 16px 16px}.lbs .nav{position:sticky;top:45%;flex:none}.lbs img{display:block;flex:0 0 auto;height:100%;width:auto;aspect-ratio:585/1266;max-width:calc(100vw - 140px);object-fit:contain;cursor:zoom-in;border-radius:10px;background:#fff}.lbs.full img{height:auto;width:585px;max-width:none;cursor:zoom-out}.lbs.full{align-items:flex-start}.lbn{font-size:12px;opacity:.7;padding:0 16px 10px;text-align:center;flex:none}@media (max-width:560px){.lbs{padding:0 8px 8px;gap:4px}.lbs img{max-width:calc(100vw - 104px)}.lbh .go2 span{display:none}}
@@ -107,8 +109,8 @@ td img.th{cursor:zoom-in;display:block;width:44px;height:78px;object-fit:cover;o
 </div></section>
 <section><h2>전체 화면 목록</h2>
 <div class="ctrl" id="fk"></div>
-<div class="ctrl"><input type="search" id="q" placeholder="번호·이름·주소·설명 검색" aria-label="목록 검색"><span id="cnt" class="foot"></span></div>
-<div class="tw"><table><thead><tr><th>번호</th><th>캡처</th><th>화면</th><th>주소</th><th>종류</th><th>설명</th><th>접근 조건</th><th>들어옴</th><th>나감</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="ctrl"><input type="search" id="q" placeholder="번호·이름·주소·설명 검색" aria-label="목록 검색"><span id="cnt" class="foot"></span><button class="chip okh" aria-pressed="false">남은 화면만</button><span class="okn"></span></div>
+<div class="tw"><table><thead><tr><th>번호</th><th>확인</th><th>캡처</th><th>화면</th><th>주소</th><th>종류</th><th>설명</th><th>접근 조건</th><th>들어옴</th><th>나감</th></tr></thead><tbody id="tb"></tbody></table></div>
 </section>
 <dialog id="lb" aria-label="화면 크게 보기"><div class="lbw"><div class="lbh"><div class="tt" id="lbt"></div><button class="lbb go2" id="lbg" type="button">🗺<span>&nbsp;연결 지도에서 보기</span></button><button class="lbb" id="lbx" type="button" aria-label="닫기">✕</button></div><div class="lbs" id="lbs"><button class="lbb nav" id="lbp" type="button" aria-label="이전 화면">‹</button><img id="lbi" alt="" title="누르면 실제 크기 / 화면 맞춤"><button class="lbb nav" id="lbn" type="button" aria-label="다음 화면">›</button></div><p class="lbn" id="lbc"></p></div></dialog>
 <p class="foot" id="foot"></p>
@@ -188,17 +190,36 @@ function draw(){
  gw.querySelectorAll('.nd').forEach(g=>{g.addEventListener('click',ev=>{ev.stopPropagation();pick(g.dataset.id,false)});g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();pick(g.dataset.id)}})});
  const svg=gw.querySelector('svg');svg.addEventListener('click',()=>{if(sel){sel=null;draw()}});
  panel()}
+// ── 「고칠 것 없음」 확인 표시(2026-11-09) — 보고서 저장소 checks/<화면 번호>에 남아 새로고침·다른 기기에서도 그대로다
+const OK=new Set();let okCol=null,okState='wait',okHide=false;
+function okBox(n){if(!n.tag)return'';const on=OK.has(n.tag);return`<label class="okc${on?' on':''}" title="이 화면은 고칠 게 없다"><input type="checkbox" data-ok="${esc(n.tag)}"${on?' checked':''}${okCol?'':' disabled'}><span>고칠 것 없음</span></label>`}
+function okSync(){document.querySelectorAll('input[data-ok]').forEach(i=>{const on=OK.has(i.dataset.ok);i.checked=on;i.disabled=!okCol;i.closest('.okc').classList.toggle('on',on);const c=i.closest('.gc,tr');if(c)c.classList.toggle('done',on)});
+ const tot=N.filter(n=>n.tag).length,k=N.filter(n=>n.tag&&OK.has(n.tag)).length;
+ const msg=okState==='on'?`확인 <b>${k}</b> / ${tot}`:okState==='wait'?'확인 표시 불러오는 중…':okState==='err'?'확인 표시를 저장하지 못했어요 — 다시 눌러 주세요':'이 보기에서는 확인 표시를 저장할 수 없어요';
+ document.querySelectorAll('.okn').forEach(e=>e.innerHTML=msg)}
+function okRefresh(){table();panel();if(window.__gal)window.__gal();okSync()}
+document.addEventListener('click',e=>{if(e.target.closest('.okc'))e.stopPropagation()},true); // 표 줄·카드를 눌러 지도로 가지 않게
+document.addEventListener('change',async e=>{const i=e.target.closest('input[data-ok]');if(!i)return;const tag=i.dataset.ok,on=i.checked;
+ if(!okCol){i.checked=!on;return}
+ on?OK.add(tag):OK.delete(tag);if(okHide)okRefresh();else okSync();
+ try{const d=okCol.doc(tag);if(on)await d.set({ok:true,at:Date.now(),name:(N.find(n=>n.tag===tag)||{}).name||''});else await d.delete()}
+ catch(err){on?OK.delete(tag):OK.add(tag);okState='err';okSync();setTimeout(()=>{if(okState==='err'){okState='on';okSync()}},4000)}});
+(async()=>{let db=null;try{db=window.claude&&window.claude.use?await window.claude.use('db'):null}catch{}
+ if(!db){okState='off';okSync();return}
+ const col=db.collection('checks');const t=setTimeout(()=>{if(okState==='wait'){okState='off';okSync()}},10000);
+ col.onSnapshot(sn=>{clearTimeout(t);okCol=col;if(okState!=='err')okState='on';OK.clear();sn.docs.forEach(d=>{if(d.data()&&d.data().ok)OK.add(d.id)});if(okHide)okRefresh();else okSync()},
+  ()=>{clearTimeout(t);okCol=null;okState='off';okSync()})})();
 function row(e,dir){const o=dir==='in'?byId[e.a]:byId[e.b];return`<li><button data-go="${esc(o.id)}"><span class="a">${o.tag?`<span class="tg">${esc(o.tag)}</span> `:''}${esc(o.name)} ${o.url?`<b>${esc(o.url)}</b>`:''}</span><span class="why">${esc(TL[e.t])}: ${esc(e.label)}</span>${e.ev?`<span class="ev">${esc(D.exp(e.ev))}</span>`:''}</button></li>`}
 function panel(){if(!sel){document.getElementById('panel').innerHTML=`<h2>화면을 눌러 보세요</h2><p class="kv">지도의 화면을 누르면 어떤 버튼으로 들어오고 나가는지 여기에 나옵니다. 지도에서는 파란 선이 들어오는 길, 빨간 선이 나가는 길입니다.</p><p class="kv">왼쪽 노란 줄이 들어오는 길이 없는 화면입니다. 빈 곳을 누르면 선택이 풀립니다.</p>`;return}const n=byId[sel];const ins=IN[sel].filter(e=>e.t!=='back'),outs=OUT[sel].filter(e=>e.t!=='back'),bk=OUT[sel].filter(e=>e.t==='back');
  const sheet=outs.filter(e=>e.t==='open'),go=outs.filter(e=>e.t!=='open');
- document.getElementById('panel').innerHTML=`<div>${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}<span class="pill">${KL[n.kind]}</span>${orphan.has(n.id)?' <span class="pill w">들어오는 길 없음</span>':''}<h2 style="margin-top:8px">${esc(n.name)}</h2>${n.url?`<div class="url">${esc(n.url)}</div>`:''}</div>
+ document.getElementById('panel').innerHTML=`<div>${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}<span class="pill">${KL[n.kind]}</span>${orphan.has(n.id)?' <span class="pill w">들어오는 길 없음</span>':''}<h2 style="margin-top:8px">${esc(n.name)}</h2>${n.url?`<div class="url">${esc(n.url)}</div>`:''}${n.tag?`<div style="margin-top:6px">${okBox(n)}</div>`:''}</div>
  ${n.shot?`<button class="shotb" data-shot="${esc(n.shot)}" aria-label="${esc(n.name)} 크게 보기"><img src="${esc(n.shot)}" alt="${esc(n.name)} 화면 캡처"></button>`:n.noshot?`<p class="noshot">캡처 없음: ${esc(n.noshot)}</p>`:''}${n.note?`<p class="kv">${esc(n.note)}</p>`:''}${n.desc?`<p class="kv">${esc(n.desc)}</p>`:''}${n.cond?`<p class="kv"><b>조건</b> ${esc(n.cond)}</p>`:''}${n.ev?`<p class="kv" style="font:400 11px var(--mono);overflow-wrap:anywhere">${esc(D.exp(n.ev))}</p>`:''}
  ${n.areas?`<h3>화면 안 구역 ${n.areas.length}</h3><ol class="areas">${n.areas.map(a=>`<li><span class="tg">${esc(a.tag)}</span>${esc(a.name)}${a.desc?`<span class="d">${esc(a.desc)}</span>`:''}${a.ev?`<span class="ev">${esc(a.ev)}</span>`:''}</li>`).join('')}</ol>`:''}
  <h3 class="in">들어오는 길 ${ins.length}</h3>${ins.length?`<ul class="path">${ins.map(e=>row(e,'in')).join('')}</ul>`:`<p class="empty">${n.url?'앱 안에도 앱 밖에도 입구가 없습니다. 주소 입력으로만 열립니다.':'연결된 입구가 없습니다.'}</p>`}
  <h3 class="out">나가는 길 ${go.length}</h3>${go.length?`<ul class="path">${go.map(e=>row(e,'out')).join('')}</ul>`:`<p class="empty">이 화면에서 다른 화면으로 가는 버튼이 없습니다${n.kind==='page'?'. 하단 탭바로만 나갑니다':''}.</p>`}
  ${sheet.length?`<h3 class="out">이 화면에서 뜨는 시트 ${sheet.length}</h3><ul class="path">${sheet.map(e=>row(e,'out')).join('')}</ul>`:''}
  ${bk.length?`<h3>뒤로 가기</h3><ul class="path">${bk.map(e=>row(e,'out')).join('')}</ul>`:''}`;
- document.querySelectorAll('#panel [data-go]').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.go)))}
+ document.querySelectorAll('#panel [data-go]').forEach(b=>b.addEventListener('click',()=>pick(b.dataset.go)));okSync()}
 function pick(id,scroll){sel=id;const n=byId[id];
  if(n.kind==='sheet'||n.kind==='system'){if(mode==='pages'){mode='sheets'}}
  if(n.kind==='native'||n.kind==='dead')mode='all';
@@ -214,20 +235,21 @@ document.addEventListener('click',e=>{const t=e.target.closest('.tag[data-go]');
 let fk='전체';const FK=[['전체',null],['주소 있는 화면',['tab','page','redirect']],['시트·대화상자',['sheet']],['시스템 상태',['system']],['앱 전용',['native']],['앱 밖 입구',['entry','global']],['화면 아닌 응답',['raw']],['도달 불가',['dead']]];
 document.getElementById('fk').innerHTML=FK.map(([l])=>`<button class="chip" data-k="${l}" aria-pressed="${l==='전체'}">${l}</button>`).join('');
 function table(){const q=document.getElementById('q').value.trim().toLowerCase(),ks=FK.find(x=>x[0]===fk)[1];
- const l=N.filter(n=>(!ks||ks.includes(n.kind))&&(!q||((n.tag||'')+' '+(n.areas||[]).map(a=>a.tag+' '+a.name).join(' ')+' '+n.name+' '+(n.url||'')+' '+n.desc+' '+n.group).toLowerCase().includes(q)));
+ const l=N.filter(n=>(!ks||ks.includes(n.kind))&&!(okHide&&n.tag&&OK.has(n.tag))&&(!q||((n.tag||'')+' '+(n.areas||[]).map(a=>a.tag+' '+a.name).join(' ')+' '+n.name+' '+(n.url||'')+' '+n.desc+' '+n.group).toLowerCase().includes(q)));
  document.getElementById('cnt').textContent=`${l.length}개`;
- document.getElementById('tb').innerHTML=l.map(n=>`<tr class="r" data-id="${esc(n.id)}" tabindex="0"><td>${n.tag?`<span class="tg">${esc(n.tag)}</span>`:'—'}</td><td>${n.shot?`<img class="th" loading="lazy" src="${esc(n.shot)}" alt="">`:''}</td><td>${esc(n.name)}${orphan.has(n.id)?' <span class="pill w">고아</span>':''}</td><td class="m">${esc(n.url||'—')}</td><td>${KL[n.kind]}</td><td>${esc(n.desc||'—')}</td><td>${esc(n.cond||'—')}</td><td class="n">${IN[n.id].filter(real).length}</td><td class="n">${OUT[n.id].filter(real).length}</td></tr>`).join('');
- document.querySelectorAll('#tb tr').forEach(r=>{const go=()=>{if(byId[r.dataset.id].kind==='raw')return;pick(r.dataset.id);document.getElementById('gw').scrollIntoView({block:'center'})};r.addEventListener('click',go);r.addEventListener('keydown',e=>{if(e.key==='Enter')go()})})}
+ document.getElementById('tb').innerHTML=l.map(n=>`<tr class="r" data-id="${esc(n.id)}" tabindex="0"><td>${n.tag?`<span class="tg">${esc(n.tag)}</span>`:'—'}</td><td>${okBox(n)}</td><td>${n.shot?`<img class="th" loading="lazy" src="${esc(n.shot)}" alt="">`:''}</td><td>${esc(n.name)}${orphan.has(n.id)?' <span class="pill w">고아</span>':''}</td><td class="m">${esc(n.url||'—')}</td><td>${KL[n.kind]}</td><td>${esc(n.desc||'—')}</td><td>${esc(n.cond||'—')}</td><td class="n">${IN[n.id].filter(real).length}</td><td class="n">${OUT[n.id].filter(real).length}</td></tr>`).join('');
+ document.querySelectorAll('#tb tr').forEach(r=>{const go=()=>{if(byId[r.dataset.id].kind==='raw')return;pick(r.dataset.id);document.getElementById('gw').scrollIntoView({block:'center'})};r.addEventListener('click',go);r.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('.okc'))go()})});okSync()}
 document.getElementById('fk').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;fk=b.dataset.k;document.querySelectorAll('[data-k]').forEach(x=>x.setAttribute('aria-pressed',x===b));table()});
 document.getElementById('q').addEventListener('input',table);
 table();draw();
 
 // ── 캡처 모음
 {const V=N.filter(n=>n.shot),Z=N.filter(n=>n.noshot);let gk='전체';const GK=[['전체',null],['주소 있는 화면',['tab','page','redirect']],['시트·대화상자',['sheet']],['시스템·전역',['system','global']]];
- document.getElementById('galn').textContent=`화면 ${V.length+Z.length}개 중 ${V.length}개를 찍었습니다. 캡처를 누르면 크게 보고(← → 로 넘기기), 이름을 누르면 연결 지도에서 그 화면의 들어오는 길과 나가는 길을 봅니다.`;
- document.getElementById('gk').innerHTML=GK.map(([l])=>`<button class="chip" data-g="${l}" aria-pressed="${l==='전체'}">${l}</button>`).join('');
- let GL=V;const gal=()=>{const ks=GK.find(x=>x[0]===gk)[1],gs=new Map();GL=[];V.filter(n=>!ks||ks.includes(n.kind)).forEach(n=>{if(!gs.has(n.group))gs.set(n.group,[]);gs.get(n.group).push(n)});gs.forEach(l=>GL.push(...l));
-  document.getElementById('gal').innerHTML=[...gs].map(([g,l])=>`<div><h3>${esc(g)} ${l.length}</h3><div class="gg">${l.map(n=>`<div class="gc"><button class="gz" data-zoom="${esc(n.id)}" aria-label="${esc((n.tag?n.tag+' ':'')+n.name)} 크게 보기"><img loading="lazy" src="${esc(n.shot)}" alt=""><i aria-hidden="true">🔍 확대</i></button><button class="gm" data-pick="${esc(n.id)}"><span>${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}${esc(n.name)}<span class="go">연결 지도 →</span></span></button></div>`).join('')}</div></div>`).join('')};
+ document.getElementById('galn').textContent=`화면 ${V.length+Z.length}개 중 ${V.length}개를 찍었습니다. 캡처를 누르면 크게 보고(← → 로 넘기기), 이름을 누르면 연결 지도에서 그 화면의 들어오는 길과 나가는 길을 봅니다. 고칠 게 없는 화면은 「고칠 것 없음」에 체크해 두세요 — 보고서에 저장돼 새로고침해도 남습니다.`;
+ document.getElementById('gk').innerHTML=GK.map(([l])=>`<button class="chip" data-g="${l}" aria-pressed="${l==='전체'}">${l}</button>`).join('')+'<button class="chip okh" aria-pressed="false">남은 화면만</button><span class="okn"></span>';
+ document.addEventListener('click',e=>{const b=e.target.closest('.okh');if(!b)return;okHide=!okHide;document.querySelectorAll('.okh').forEach(x=>x.setAttribute('aria-pressed',okHide));okRefresh()});
+ let GL=V;const gal=()=>{const ks=GK.find(x=>x[0]===gk)[1],gs=new Map();GL=[];V.filter(n=>(!ks||ks.includes(n.kind))&&!(okHide&&n.tag&&OK.has(n.tag))).forEach(n=>{if(!gs.has(n.group))gs.set(n.group,[]);gs.get(n.group).push(n)});gs.forEach(l=>GL.push(...l));
+  document.getElementById('gal').innerHTML=[...gs].map(([g,l])=>`<div><h3>${esc(g)} ${l.length}</h3><div class="gg">${l.map(n=>`<div class="gc"><button class="gz" data-zoom="${esc(n.id)}" aria-label="${esc((n.tag?n.tag+' ':'')+n.name)} 크게 보기"><img loading="lazy" src="${esc(n.shot)}" alt=""><i aria-hidden="true">🔍 확대</i></button><button class="gm" data-pick="${esc(n.id)}"><span>${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}${esc(n.name)}<span class="go">연결 지도 →</span></span></button>${okBox(n)}</div>`).join('')}</div></div>`).join('');okSync()};window.__gal=gal;
  gal();document.getElementById('gk').addEventListener('click',e=>{const b=e.target.closest('[data-g]');if(!b)return;gk=b.dataset.g;document.querySelectorAll('[data-g]').forEach(x=>x.setAttribute('aria-pressed',x===b));gal()});
  document.getElementById('gal').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;pick(b.dataset.pick);document.querySelector('.main').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
  document.querySelector('#nos summary').textContent=`캡처가 없는 화면 ${Z.length}개와 이유`;
@@ -235,7 +257,7 @@ table();draw();
  // 크게 보기 — 캡처 모음 · 화면 정보 · 목록 썸네일에서 연다. ← → 로 같은 목록 안에서 넘기고, 이미지를 누르면 실제 크기 ↔ 화면 맞춤
  const lb=document.getElementById('lb'),lbs=document.getElementById('lbs'),lbi=document.getElementById('lbi');let LL=V,li=0;
  const show=()=>{const n=LL[li];lbi.src=n.shot;lbi.alt=`${n.name} 화면 캡처`;
-  document.getElementById('lbt').innerHTML=`${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}<b>${esc(n.name)}</b><span class="u">${esc(n.url||KL[n.kind]||'')}${n.group?` · ${esc(n.group)}`:''}</span>`;
+  document.getElementById('lbt').innerHTML=`${n.tag?`<span class="tg">${esc(n.tag)}</span> `:''}<b>${esc(n.name)}</b><span class="u">${esc(n.url||KL[n.kind]||'')}${n.group?` · ${esc(n.group)}`:''}</span>${okBox(n)}`;okSync();
   document.getElementById('lbp').disabled=li<=0;document.getElementById('lbn').disabled=li>=LL.length-1;
   document.getElementById('lbc').textContent=LL.length>1?`${li+1} / ${LL.length} · ← → 넘기기 · 이미지를 누르면 실제 크기 · Esc 닫기`:'이미지를 누르면 실제 크기 · Esc 닫기';lbs.scrollTop=0};
  const openLb=(id,list)=>{LL=list&&list.some(n=>n.id===id)?list:V;li=Math.max(0,LL.findIndex(n=>n.id===id));lbs.classList.remove('full');show();if(!lb.open)lb.showModal()};
