@@ -26,6 +26,15 @@ const (
 	// 회원이 트레이너에게 성과 요약을 보냈다(SRS-080). post_id 는 비운다 — 옛 앱이 글 화면으로 가지 않게(S-16).
 	// 요약의 **첫 실제 전달**에서만 부른다(재전송마다 쌓이지 않게). @plm SRS-080
 	KindCoachingSummary Kind = "coaching_summary"
+
+	// 코칭 v2(SPEC-050) — 받는 쪽 = 반대편. post_id 는 비우고 대상은 RefID 에 싣는다.
+	// 요청·수락·해지 = 관계(grant) id · 루틴 = 회원 쪽 루틴 id · 코멘트 = 운동 id.
+	KindCoachingRequest       Kind = "coaching_request"
+	KindCoachingAccept        Kind = "coaching_accept"
+	KindCoachingRevoke        Kind = "coaching_revoke"
+	KindCoachingRoutine       Kind = "coaching_routine"
+	KindCoachingRoutineUpdate Kind = "coaching_routine_update" // 10분 묶음(P3b)
+	KindCoachingComment       Kind = "coaching_comment"
 )
 
 type Actor struct {
@@ -35,16 +44,20 @@ type Actor struct {
 }
 
 type Notification struct {
-	ID        string
-	Kind      Kind
-	Actor     Actor
-	PostID    string
+	ID     string
+	Kind   Kind
+	Actor  Actor
+	PostID string
+	// 코칭 알림의 대상(SPEC-050). 다른 종류는 빈 문자열.
+	RefID     string
 	Read      bool
 	CreatedAt time.Time
 }
 
 type Repo interface {
-	Create(ctx context.Context, id, userID string, kind Kind, actorID, postID string) error
+	// [원본] Create(ctx context.Context, id, userID string, kind Kind, actorID, postID string) error
+	// [개선] SPEC-050 — 코칭 알림의 대상(refID)을 함께 저장한다(빈 문자열이면 NULL).
+	Create(ctx context.Context, id, userID string, kind Kind, actorID, postID, refID string) error
 	List(ctx context.Context, viewerID string, limit int32) ([]Notification, error)
 	CountUnread(ctx context.Context, viewerID string) (int32, error)
 	MarkAllRead(ctx context.Context, viewerID string) error
@@ -64,8 +77,20 @@ func (s *Service) Notify(ctx context.Context, userID, actorID string, kind Kind,
 	if userID == "" || actorID == "" || userID == actorID {
 		return // 자기 자신에게는 알리지 않는다
 	}
-	if err := s.repo.Create(ctx, s.newID(), userID, kind, actorID, postID); err != nil {
+	// [원본] if err := s.repo.Create(ctx, s.newID(), userID, kind, actorID, postID); err != nil {
+	if err := s.repo.Create(ctx, s.newID(), userID, kind, actorID, postID, ""); err != nil {
 		// 조용히 삼키지 않는다 — 사라진 알림이 있었다는 것은 로그에 남는다.
+		slog.Warn("알림 저장 실패", "err", err, "kind", string(kind))
+	}
+}
+
+// NotifyRef는 코칭 알림이다(SPEC-050) — post_id 는 비우고 대상 id 를 ref_id 에 싣는다.
+// Notify 와 같이 **오류를 돌려주지 않는다**(연결·해지의 성공을 알림이 좌우하지 않는다).
+func (s *Service) NotifyRef(ctx context.Context, userID, actorID string, kind Kind, refID string) {
+	if userID == "" || actorID == "" || userID == actorID {
+		return
+	}
+	if err := s.repo.Create(ctx, s.newID(), userID, kind, actorID, "", refID); err != nil {
 		slog.Warn("알림 저장 실패", "err", err, "kind", string(kind))
 	}
 }

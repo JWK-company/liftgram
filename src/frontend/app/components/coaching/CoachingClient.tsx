@@ -14,6 +14,13 @@
 //
 // ── 해지는 언제나 열려 있다 ─────────────────────────────────────────────────
 // 상태와 무관하게 해지 버튼을 둔다. 회원이 언제든 닫을 수 없으면 그건 동의가 아니다.
+//
+// ── 코칭 v2 연결(SPEC-050 P1b) ──────────────────────────────────────────────
+//   코치면 맨 위 「초대 코드」 카드(InviteCard) · 누구나 「코드로 연결」(GetInvite → 코치 카드 + 범위 시트 → AcceptInvite)
+//   회원 쪽 요청·수락은 범위 시트(CoachingScopeSheet) — 코치가 수락할 때는 범위를 묻지 않는다(서버도 무시)
+//   GrantRow: 줄 버튼은 상대가 요청했을 때 「수락」만 · 나머지(기록 요약·루틴·범위 바꾸기·이력·연결 끊기)는 ⋯ 시트
+//   연결 끊기는 확인창을 거친다. 서버의 한국어 거절 문구(「이미 코치가 있어요…」 등)는 errorText 로 그대로.
+//   옛 판(줄마다 루틴·리포트·해지 버튼 · 상태 글자를 누르면 이력)은 git 3b561a2 의 이 파일.
 // ─────────────────────────────────────────────────────────────────────────────
 import { errorText } from "@/lib/errorText";
 import type { Grant, Peer, Routine, RoutineExercise } from "@app/contracts";
@@ -22,15 +29,21 @@ import type { WeightUnit } from "@app/core";
 import { useCallback, useEffect, useState } from "react";
 import { t, type TransKey } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
+import { scopeOf, type ScopeValue } from "@/lib/coaching";
 import { useAuth } from "../AuthProvider";
 import { useWeightUnit } from "../feed/useWeightUnit";
 import { rxSummary } from "../routines/PrescriptionRows";
 import { Panel } from "./Panel";
 import { PrescriptionEditor, toDomainRows } from "./PrescriptionEditor";
+import { CoachBadge, CoachCard } from "./CoachBits";
+import { CoachingScopeSheet, type ScopeSheetMode } from "./CoachingScopeSheet";
+import { InviteCard } from "./InviteCard";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
+import { ConfirmDialog, type SheetOption } from "../ui/Dialog";
 import { Icon } from "../ui/Icon";
 import { TextField } from "../ui/inputs";
+import { MoreMenu } from "../ui/MoreMenu";
 import { AppText, Card, EmptyState, SectionHeader } from "../ui/primitives";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { useToast } from "../Toast";
@@ -44,12 +57,21 @@ const STATUS_KEY: Record<GrantStatus, TransKey> = {
   [GrantStatus.REVOKED]: "coaching.status.revoked",
 };
 
+/** 범위 시트 한 번 — 무엇을 하려고 열었는가(요청·수락·코드 연결·범위 바꾸기). */
+type ScopeTask =
+  | { mode: "request"; trainer: Peer }
+  | { mode: "accept"; grant: Grant }
+  | { mode: "join"; trainer: Peer; code: string }
+  | { mode: "change"; grant: Grant };
+
 export default function CoachingClient() {
   const { user, loading: authLoading } = useAuth();
   const unit = useWeightUnit() as WeightUnit;
   const toast = useToast();
 
-  const [grants, setGrants] = useState<Grant[]>([]);
+  // [원본] const [grants, setGrants] = useState<Grant[]>([]);
+  // [개선] null = 아직 읽는 중 — 빈 목록 문구가 잠깐 비쳤다 바뀌지 않게(로드 뒤 판단)
+  const [grants, setGrants] = useState<Grant[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Peer[] | null>(null);
@@ -59,11 +81,21 @@ export default function CoachingClient() {
   const [routinesFor, setRoutinesFor] = useState<Peer | null>(null);
   const [history, setHistory] = useState<{ grant: Grant; lines: string[] } | null>(null);
 
+  // 코칭 v2(SPEC-050) — 범위 시트 · 연결 끊기 확인 · 코드로 연결
+  const [task, setTask] = useState<ScopeTask | null>(null);
+  const [taskBusy, setTaskBusy] = useState(false);
+  const [taskError, setTaskError] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<Grant | null>(null);
+  const [code, setCode] = useState("");
+  const [codeBusy, setCodeBusy] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     if (!user) return;
     try {
       setGrants((await coachingClient().listGrants({})).grants);
     } catch {
+      setGrants((prev) => prev ?? []);
       toast(t("common.error"), "error");
     }
   }, [user, toast]);
@@ -113,6 +145,63 @@ export default function CoachingClient() {
     }
   }
 
+  function openTask(next: ScopeTask) {
+    setTaskError(null);
+    setTask(next);
+  }
+
+  /** 범위 시트의 주 버튼 — 성공하면 닫고 목록을 다시 읽는다. 거절 문구는 시트 안에 남긴다. */
+  async function confirmTask(scope: ScopeValue, note: string) {
+    if (!task || taskBusy) return;
+    setTaskBusy(true);
+    setTaskError(null);
+    try {
+      const c = coachingClient();
+      switch (task.mode) {
+        case "request":
+          await c.requestCoaching({ trainerId: task.trainer.id, scope, note });
+          toast(t("coaching.requestSent"));
+          break;
+        case "accept":
+          await c.acceptGrant({ grantId: task.grant.id, scope });
+          toast(t("coaching.connected"));
+          break;
+        case "join":
+          await c.acceptInvite({ code: task.code, scope });
+          setCode("");
+          toast(t("coaching.connected"));
+          break;
+        case "change":
+          await c.updateScope({ grantId: task.grant.id, scope });
+          toast(t("coaching.scopeSaved"));
+          break;
+      }
+      setTask(null);
+      await load();
+    } catch (e) {
+      setTaskError(errorText(e));
+    } finally {
+      setTaskBusy(false);
+    }
+  }
+
+  /** 코드로 연결 — 코치 카드부터 본다. 이미 코치가 있으면 서버가 범위 시트 전에 거절한다. */
+  async function checkCode() {
+    const raw = code.trim();
+    if (!raw || codeBusy) return;
+    setCodeBusy(true);
+    setCodeError(null);
+    try {
+      const res = await coachingClient().getInvite({ code: raw });
+      if (!res.trainer) throw new Error(t("common.errNotFound"));
+      openTask({ mode: "join", trainer: res.trainer, code: raw });
+    } catch (e) {
+      setCodeError(errorText(e));
+    } finally {
+      setCodeBusy(false);
+    }
+  }
+
   if (authLoading) {
     return (
       <Shell>
@@ -146,10 +235,58 @@ export default function CoachingClient() {
   }
 
   // 해지된 관계는 목록에서 내린다 — 다시 요청하면 되살아난다.
-  const live = grants.filter((g) => g.status !== GrantStatus.REVOKED);
+  const live = (grants ?? []).filter((g) => g.status !== GrantStatus.REVOKED);
   const asMember = live.filter((g) => g.roleOfMe === Side.MEMBER);
   const asTrainer = live.filter((g) => g.roleOfMe === Side.TRAINER);
   const alreadyLinked = new Set(live.map((g) => g.peer?.id).filter(Boolean));
+
+  /** ⋯ 시트 선택지 — 역할·상태마다 다르다. 서버가 막을 일은 아예 넣지 않는다. */
+  function menuFor(g: Grant): SheetOption[] {
+    const active = g.status === GrantStatus.ACTIVE;
+    const opts: SheetOption[] = [];
+    if (g.roleOfMe === Side.TRAINER && active && g.peer) {
+      // 리포트·루틴은 **연결된 뒤에만** 열린다. 서버도 같은 판단을 한다.
+      // (다음 단계 P2 에서 줄 누름 → 회원 화면 /coaching/m/[memberId] 로 옮긴다)
+      const peer = g.peer;
+      opts.push({
+        label: t("coaching.reportMenu"),
+        testId: "coaching-report",
+        onPress: () => void openReport(g),
+      });
+      opts.push({
+        label: t("coaching.routinesMenu"),
+        testId: "coaching-routines",
+        onPress: () => setRoutinesFor(peer),
+      });
+    }
+    if (g.roleOfMe === Side.MEMBER && active) {
+      opts.push({
+        label: t("coaching.scopeMenu"),
+        testId: "coaching-scope",
+        onPress: () => openTask({ mode: "change", grant: g }),
+      });
+    }
+    opts.push({
+      label: t("coaching.historyMenu"),
+      testId: "coaching-history-link",
+      onPress: () => void openHistory(g),
+    });
+    opts.push({
+      label: active ? t("coaching.revokeMenu") : t("coaching.cancelRequestMenu"),
+      testId: "coaching-revoke",
+      destructive: true,
+      onPress: () => setRevoking(g),
+    });
+    return opts;
+  }
+
+  function accept(g: Grant) {
+    // 회원이 수락할 때만 범위를 고른다 — 코치가 수락하면 회원이 요청 때 고른 범위 그대로다.
+    if (g.roleOfMe === Side.MEMBER) openTask({ mode: "accept", grant: g });
+    else void act(() => coachingClient().acceptGrant({ grantId: g.id }));
+  }
+
+  const loadingGrants = grants === null;
 
   return (
     <Shell>
@@ -159,54 +296,82 @@ export default function CoachingClient() {
           {t("experience.trainerDisclaimer")}
         </AppText>
 
+        {/* 코치(코칭 의향을 켠 사람)만 — 회원이 코드·링크로 바로 연결한다(SPEC-050) */}
+        {user.trainerIntent ? <InviteCard /> : null}
+
         <SectionHeader title={t("coaching.myCoaches")} />
-        {asMember.length === 0 ? (
+        {loadingGrants ? (
+          <GrantsLoading />
+        ) : asMember.length === 0 ? (
           <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
             {t("coaching.myCoachesEmpty")}
           </AppText>
         ) : (
           <div data-testid="coaching-coaches">
             {asMember.map((g) => (
-              <GrantRow
-                key={g.id}
-                grant={g}
-                busy={busy}
-                onAccept={() => act(() => coachingClient().acceptGrant({ grantId: g.id }))}
-                onRevoke={() => act(() => coachingClient().revokeGrant({ grantId: g.id }))}
-                onHistory={() => openHistory(g)}
-              />
+              <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => accept(g)} options={menuFor(g)} />
             ))}
           </div>
         )}
 
+        {/* 코드로 연결 — 코치에게 받은 8자 코드(4-4 · 하이픈·공백·소문자는 서버가 정리) */}
+        <SectionHeader title={t("coaching.join.section")} />
+        <div className="flex items-start gap-[var(--spacing-sm)]">
+          <div className="min-w-0 flex-1">
+            <TextField
+              value={code}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setCodeError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && void checkCode()}
+              placeholder={t("coaching.join.placeholder")}
+              autoCapitalize="characters"
+              autoComplete="off"
+              maxLength={20}
+              testId="coaching-code-input"
+            />
+          </div>
+          <Button
+            title={t("coaching.join.check")}
+            variant="secondary"
+            fullWidth={false}
+            loading={codeBusy}
+            disabled={!code.trim()}
+            onPress={() => void checkCode()}
+            testId="coaching-code-check"
+            className="shrink-0"
+          />
+        </div>
+        {codeError ? (
+          <AppText
+            variant="caption"
+            color="danger"
+            className="-mt-[var(--spacing-xs)] mb-[var(--spacing-md)] block"
+            data-testid="coaching-code-error"
+          >
+            {codeError}
+          </AppText>
+        ) : null}
+
         <SectionHeader title={t("coaching.myMembers")} />
-        {asTrainer.length === 0 ? (
+        {loadingGrants ? (
+          <GrantsLoading />
+        ) : asTrainer.length === 0 ? (
           <AppText variant="caption" color="textMuted" className="mb-[var(--spacing-md)] block">
             {t("coaching.myMembersEmpty")}
           </AppText>
         ) : (
           <div data-testid="coaching-members">
             {asTrainer.map((g) => (
-              <GrantRow
-                key={g.id}
-                grant={g}
-                busy={busy}
-                onAccept={() => act(() => coachingClient().acceptGrant({ grantId: g.id }))}
-                onRevoke={() => act(() => coachingClient().revokeGrant({ grantId: g.id }))}
-                onHistory={() => openHistory(g)}
-                // 리포트·루틴은 **연결된 뒤에만** 열린다. 서버도 같은 판단을 한다.
-                onReport={g.status === GrantStatus.ACTIVE ? () => openReport(g) : undefined}
-                onRoutines={
-                  g.status === GrantStatus.ACTIVE && g.peer ? () => setRoutinesFor(g.peer ?? null) : undefined
-                }
-              />
+              <GrantRow key={g.id} grant={g} busy={busy} onAccept={() => accept(g)} options={menuFor(g)} />
             ))}
           </div>
         )}
 
         <SectionHeader title={t("coaching.findTrainer")} />
         <div className="mb-[var(--spacing-sm)] flex items-start gap-[var(--spacing-sm)]">
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <TextField
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -215,12 +380,14 @@ export default function CoachingClient() {
               testId="coaching-query"
             />
           </div>
+          {/* [원본] size="sm" · 빨강 채움 — 이 화면의 빨강은 「코드 만들기」·시트의 주 버튼 몫(SPEC-050) · 36px 은 44px 미달 */}
           <Button
             title={t("coaching.searchButton")}
-            size="sm"
+            variant="secondary"
             fullWidth={false}
             onPress={search}
             testId="coaching-search"
+            className="shrink-0"
           />
         </div>
 
@@ -244,13 +411,17 @@ export default function CoachingClient() {
                     </AppText>
                   ) : null}
                 </div>
+                {/* [원본] onPress={() => act(() => coachingClient().requestCoaching({ trainerId: p.id }))} · size="sm"
+                    [개선] 범위 시트(+한 줄 메시지)를 거쳐 요청한다(SPEC-050) */}
                 <Button
                   title={alreadyLinked.has(p.id) ? t("coaching.requested") : t("coaching.requestButton")}
                   size="sm"
+                  variant="secondary"
                   fullWidth={false}
                   disabled={busy || alreadyLinked.has(p.id)}
-                  onPress={() => act(() => coachingClient().requestCoaching({ trainerId: p.id }))}
+                  onPress={() => openTask({ mode: "request", trainer: p })}
                   testId="coaching-request"
+                  className="min-h-11 shrink-0"
                 />
               </Card>
             ))}
@@ -284,7 +455,64 @@ export default function CoachingClient() {
           )}
         </Panel>
       ) : null}
+
+      {task ? (
+        <CoachingScopeSheet
+          mode={task.mode as ScopeSheetMode}
+          initial={task.mode === "accept" || task.mode === "change" ? scopeOf(task.grant.scope) : undefined}
+          header={<TaskHeader task={task} />}
+          busy={taskBusy}
+          error={taskError}
+          onConfirm={(scope, note) => void confirmTask(scope, note)}
+          onClose={() => setTask(null)}
+        />
+      ) : null}
+
+      {revoking ? (
+        <ConfirmDialog
+          testId="coaching-revoke-confirm"
+          title={t("coaching.revokeTitle")}
+          message={
+            revoking.roleOfMe === Side.MEMBER
+              ? t("coaching.revokeMessageMember")
+              : t("coaching.revokeMessageTrainer")
+          }
+          confirmLabel={t("coaching.revokeConfirm")}
+          destructive
+          onCancel={() => setRevoking(null)}
+          onConfirm={() => {
+            const g = revoking;
+            setRevoking(null);
+            void act(() => coachingClient().revokeGrant({ grantId: g.id }));
+          }}
+        />
+      ) : null}
     </Shell>
+  );
+}
+
+/** 범위 시트 머리 — 코치 카드(요청·코드 연결) 또는 상대 이름(수락·바꾸기). */
+function TaskHeader({ task }: { task: ScopeTask }) {
+  const peer = task.mode === "request" || task.mode === "join" ? task.trainer : task.grant.peer;
+  if (!peer) return null;
+  return (
+    <CoachCard
+      name={peer.displayName}
+      avatarUrl={peer.avatarUrl}
+      bio={peer.coachBio}
+      tags={peer.coachTags}
+      testId="scope-coach-card"
+    />
+  );
+}
+
+function GrantsLoading() {
+  return (
+    <div className="flex justify-center py-[var(--spacing-md)]">
+      <span role="status" className="inline-flex">
+        <LogoSpinner size={24} label={t("common.loading")} />
+      </span>
+    </div>
   );
 }
 
@@ -304,80 +532,80 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** 관계 한 줄. 수락은 **반대편에게만** 보인다 — 눌러도 서버가 막을 버튼은 그리지 않는다. */
+/**
+ * 관계 한 줄. 수락은 **반대편에게만** 보인다 — 눌러도 서버가 막을 버튼은 그리지 않는다.
+ * [원본] 줄 끝에 루틴·리포트·수락·해지 버튼이 나란히(360px 에서 이름이 밀렸다) · 상태 글자를 누르면 이력 — git 3b561a2
+ * [개선] 줄 버튼은 「수락」 하나 · 나머지는 ⋯ 시트 · 활성 상태 글자 청록 · 상대가 남긴 한 줄 메시지(SPEC-050)
+ */
 function GrantRow({
   grant,
   busy,
   onAccept,
-  onRevoke,
-  onReport,
-  onRoutines,
-  onHistory,
+  options,
 }: {
   grant: Grant;
   busy: boolean;
   onAccept: () => void;
-  onRevoke: () => void;
-  onReport?: () => void;
-  onRoutines?: () => void;
-  onHistory: () => void;
+  options: SheetOption[];
 }) {
   const canAccept = grant.status === GrantStatus.PENDING && grant.requestedBy !== grant.roleOfMe;
+  const active = grant.status === GrantStatus.ACTIVE;
+  const name = grant.peer?.displayName || "?";
+  // 상대가 코치(내 코치 칸)면 이름 옆에 「코치」 배지
+  const peerIsCoach = grant.roleOfMe === Side.MEMBER && !!grant.peer?.trainerIntent;
+  const note = canAccept ? grant.requestNote.trim() : "";
   return (
     <Card
-      className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-xs)]"
+      className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]! pr-[var(--spacing-xs)]!"
       data-testid="coaching-grant"
+      data-status={active ? "active" : grant.status === GrantStatus.PENDING ? "pending" : "revoked"}
     >
       <Avatar name={grant.peer?.displayName} url={grant.peer?.avatarUrl} size={36} />
       <div className="min-w-0 flex-1">
-        <AppText variant="body" className="block truncate font-medium!">
-          {grant.peer?.displayName || "?"}
-        </AppText>
-        {/* 상태를 누르면 이력이 열린다 — 양쪽 다 읽을 수 있다. */}
-        <button type="button" onClick={onHistory} data-testid="coaching-history-link">
-          <AppText variant="caption" color={grant.status === GrantStatus.ACTIVE ? "primary" : "textMuted"}>
-            {`${t(STATUS_KEY[grant.status])} · ${t("coaching.historyLink")}`}
+        <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
+          <AppText variant="body" className="min-w-0 truncate font-medium!">
+            {name}
           </AppText>
-        </button>
+          {peerIsCoach ? <CoachBadge testId="coaching-coach-badge" /> : null}
+        </div>
+        <AppText
+          variant="caption"
+          color="textMuted"
+          className={`block truncate ${active ? "font-semibold" : ""}`}
+          style={active ? { color: "var(--color-coaching-ink)" } : undefined}
+          data-testid="coaching-status"
+        >
+          {t(STATUS_KEY[grant.status])}
+        </AppText>
+        {note ? (
+          <AppText
+            variant="caption"
+            color="textMuted"
+            className="block break-words"
+            data-testid="coaching-note"
+          >
+            {t("coaching.requestNote", { note })}
+          </AppText>
+        ) : null}
       </div>
-      {onRoutines ? (
-        <Button
-          title={t("coaching.routinesButton")}
-          size="sm"
-          variant="secondary"
-          fullWidth={false}
-          onPress={onRoutines}
-          testId="coaching-routines"
-        />
-      ) : null}
-      {onReport ? (
-        <Button
-          title={t("coaching.reportButton")}
-          size="sm"
-          variant="secondary"
-          fullWidth={false}
-          onPress={onReport}
-          testId="coaching-report"
-        />
-      ) : null}
       {canAccept ? (
         <Button
           title={t("coaching.acceptButton")}
           size="sm"
+          variant="tonal"
           fullWidth={false}
           disabled={busy}
           onPress={onAccept}
           testId="coaching-accept"
+          className="min-h-11 shrink-0 px-[var(--spacing-md)]!"
         />
       ) : null}
-      <Button
-        title={t("coaching.revokeButton")}
-        size="sm"
-        variant="ghost"
-        fullWidth={false}
-        disabled={busy}
-        onPress={onRevoke}
-        testId="coaching-revoke"
+      <MoreMenu
+        options={options}
+        title={name}
+        label={t("coaching.more", { name })}
+        testId="coaching-grant-more"
+        sheetTestId="coaching-grant-sheet"
       />
     </Card>
   );

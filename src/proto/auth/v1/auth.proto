@@ -59,6 +59,9 @@ message User {
   bool email_verified = 9;
   // 비밀번호로 로그인할 수 있는가 — 소셜로만 가입한 계정은 false(비밀번호 "설정"이 가능하다).
   bool has_password = 10;
+  // 코치 소개(80자)·태그(정해진 6개 중 3개까지) — SPEC-050. 코치 여부는 trainer_intent.
+  string coach_bio = 11;
+  repeated string coach_tags = 12;
 }
 
 // 세션 한 벌. 클라이언트는 access를 메모리에, refresh를 오래 가는 저장소에 둔다.
@@ -130,6 +133,11 @@ message UpdateProfileRequest {
   bool set_experience_level = 6;
   bool trainer_intent = 7;
   bool set_trainer_intent = 8;
+  // 코치 소개·태그(SPEC-050). 소개 80자(룬) · 태그는 hypertrophy·strength·diet·rehab·beginner·powerlifting 중 3개까지.
+  string coach_bio = 9 [(buf.validate.field).string = {max_len: 80}];
+  bool set_coach_bio = 10;
+  repeated string coach_tags = 11 [(buf.validate.field).repeated = {max_items: 3}];
+  bool set_coach_tags = 12;
 }
 
 message UpdateProfileResponse {

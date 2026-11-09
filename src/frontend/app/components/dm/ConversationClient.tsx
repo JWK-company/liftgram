@@ -33,6 +33,9 @@ import { ConfirmDialog } from "../ui/Dialog";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { conversationTitle } from "./ConversationsClient";
 import { SummaryBubble } from "../summary/SummaryBubble"; // 성과 요약 카드(SRS-080)
+import { GrantStatus } from "@app/contracts";
+import { coachingClient } from "@/lib/coachingClient";
+import { CoachingActiveBadge } from "../coaching/CoachBits"; // 「코칭 중」 배지(SPEC-050)
 
 /** 입력 중 표시를 이 시간 동안 유지한다(app과 같은 3초). */
 const TYPING_HOLD_MS = 3000;
@@ -46,6 +49,9 @@ export default function ConversationClient({ conversationId }: { conversationId:
   const [messages, setMessages] = useState<Message[]>([]);
   const [title, setTitle] = useState("");
   const [isGroup, setIsGroup] = useState(false);
+  // 1:1 상대 id — 활성 코칭이면 머리에 「코칭 중」(SPEC-050 P1b)
+  const [peerId, setPeerId] = useState<string | null>(null);
+  const [coaching, setCoaching] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -86,6 +92,9 @@ export default function ConversationClient({ conversationId }: { conversationId:
         if (conv) {
           setTitle(conversationTitle(conv, user?.id ?? null));
           setIsGroup(conv.isGroup);
+          setPeerId(
+            conv.isGroup ? null : (conv.participants.find((p) => p.id !== (user?.id ?? null))?.id ?? null),
+          );
         }
         setLoadError(false);
         // 열어 두는 동안은 계속 읽은 것으로 친다.
@@ -98,6 +107,24 @@ export default function ConversationClient({ conversationId }: { conversationId:
     },
     [conversationId, user?.id],
   );
+
+  // 상대와 활성 코칭인가 — 1:1 에서만 한 번 읽는다(실패하면 배지 없음 · 대화는 그대로)
+  useEffect(() => {
+    // 상대가 바뀌면(다른 대화로 이동) 앞 대화의 배지를 먼저 지운다(코드 리뷰 지적 12)
+    setCoaching(false);
+    if (!peerId || !user) return;
+    let closed = false;
+    coachingClient()
+      .listGrants({})
+      .then((r) => {
+        if (!closed)
+          setCoaching(r.grants.some((g) => g.peer?.id === peerId && g.status === GrantStatus.ACTIVE));
+      })
+      .catch(() => {});
+    return () => {
+      closed = true;
+    };
+  }, [peerId, user]);
 
   useEffect(() => {
     void load();
@@ -258,6 +285,9 @@ export default function ConversationClient({ conversationId }: { conversationId:
             >
               <Icon name="exit-outline" size={22} color="var(--color-bad)" />
             </button>
+          ) : coaching ? (
+            // [원본] 1:1 은 오른쪽 자리를 비웠다 — 활성 코칭이면 「코칭 중」 배지(SPEC-050 · 회원 화면 바로가기는 P2)
+            <CoachingActiveBadge testId="conv-coaching-badge" />
           ) : undefined
         }
       />

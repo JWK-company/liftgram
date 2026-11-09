@@ -199,6 +199,9 @@ func (h *Handler) GetProfile(ctx context.Context, req *connect.Request[feedv1.Ge
 		IsSelf:         p.IsSelf,
 		IsFollowing:    p.IsFollowing,
 		IsBlocked:      p.IsBlocked,
+		TrainerIntent:  p.Coach.TrainerIntent,
+		CoachBio:       p.Coach.Bio,
+		CoachTags:      p.Coach.Tags,
 	}}), nil
 }
 
@@ -352,7 +355,7 @@ func (h *Handler) SearchUsers(ctx context.Context, req *connect.Request[feedv1.S
 func toProtoUsers(users []UserResult) []*feedv1.UserResult {
 	out := make([]*feedv1.UserResult, 0, len(users))
 	for _, u := range users {
-		out = append(out, &feedv1.UserResult{Author: toProtoAuthor(u.Author), Following: u.Following})
+		out = append(out, &feedv1.UserResult{Author: toProtoAuthor(u.Author), Following: u.Following, TrainerIntent: u.Coach})
 	}
 	return out
 }

@@ -27,6 +27,7 @@ const reportWeeks = 8
 
 // reportCollections는 옛 GetMemberReport(서버 집계 — ADR-040 개정으로 그대로 둔다)가 읽는 컬렉션이다.
 // **v26 의 새 로컬 테이블(bodyweight_logs·import_batches·import_aliases)과 user_profiles 를 넣지 않는다** —
+// (SPEC-050: 체중은 bodyView 를 연 GetMemberRecords 에서만 bodyRecordFields 칸으로 나간다 — 옛 리포트는 그대로 없다)
 // 체중은 신체정보라 코칭 범위 밖이고(SRS-048 기본 제외), 가져오기 표는 회원 기기 살림이다.
 // 서버 동기는 컬렉션 허용 목록이 없어 이 표들도 sync_records 에 올라오므로, 이 목록이 마지막 관문이다
 // (TestCollections_신체정보와_가져오기_표는_코칭에_없다가 고정 · D-17 · S-2). @plm SRS-080
@@ -141,8 +142,19 @@ func buildReport(recs []MemberRecord, now time.Time) Report {
 // buildReportWith는 종목을 **서버 카탈로그 먼저**, 없으면 회원이 올린 커스텀 종목으로 해석한다(QA H4).
 // 볼륨은 무게 × 횟수 × 배수(load_multiplier — 플레이트 한쪽 입력, 없으면 1 · ADR-037).
 func buildReportWith(recs []MemberRecord, catalog map[string]CatalogExercise, now time.Time) Report {
+	return buildReportSince(recs, catalog, now, time.Time{})
+}
+
+// buildReportSince는 buildReportWith 에 **보이는 시작**(visibleFrom — SPEC-050)을 더한다.
+// 8주 창의 시작과 visibleFrom 중 늦은 쪽부터 센다. 제로 시각이면 제한 없음(지난 기록 열람).
+func buildReportSince(recs []MemberRecord, catalog map[string]CatalogExercise, now, visible time.Time) Report {
 	cols := byCollection(recs)
+	// [원본] since := now.Add(-time.Duration(reportWeeks) * 7 * 24 * time.Hour).UnixMilli()
+	// [개선] 동의 앞 기록은 pastRecords 없이 세지 않는다.
 	since := now.Add(-time.Duration(reportWeeks) * 7 * 24 * time.Hour).UnixMilli()
+	if !visible.IsZero() && visible.UnixMilli() > since {
+		since = visible.UnixMilli()
+	}
 
 	// ① 기간 안에 **끝난** 세션만. 하는 중인 운동은 아직 사실이 아니다.
 	var sessions []raw

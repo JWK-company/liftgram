@@ -113,6 +113,10 @@ func (r *pgRepo) UpdateProfile(ctx context.Context, id string, p ProfilePatch) (
 		ExperienceLevel:    p.ExperienceLevel,
 		SetTrainerIntent:   p.SetTrainerIntent,
 		TrainerIntent:      p.TrainerIntent,
+		SetCoachBio:        p.SetCoachBio,
+		CoachBio:           p.CoachBio,
+		SetCoachTags:       p.SetCoachTags,
+		CoachTags:          nonNilTags(p.CoachTags),
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		return User{}, errs.New(errs.NotFound, "사용자 없음")
@@ -238,7 +242,17 @@ func toDomain(row sqlcgen.User) User {
 		TrainerIntent:   row.TrainerIntent,
 		CreatedAt:       row.CreatedAt.Time,
 		EmailVerified:   row.EmailVerifiedAt.Valid,
+		CoachBio:        row.CoachBio,
+		CoachTags:       nonNilTags(row.CoachTags),
 	}
+}
+
+// nonNilTags — pgx 는 nil 슬라이스를 SQL NULL 로 보낸다(NOT NULL DEFAULT 가 무력화된다) · proto 에도 빈 목록으로.
+func nonNilTags(t []string) []string {
+	if t == nil {
+		return []string{}
+	}
+	return t
 }
 
 // 빈 문자열은 null로 저장한다 — "값이 없다"를 한 가지 방식으로만 표현하기 위해서다.

@@ -2,7 +2,7 @@
 
 -- 코칭 의향을 밝힌 사람 찾기. **차단한/차단당한 사람과 나 자신은 빼고**.
 -- name: SearchTrainers :many
-SELECT id, display_name, avatar_url, experience_level, trainer_intent
+SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
 FROM users u
 WHERE u.trainer_intent = true
   AND u.id <> @viewer_id::text
@@ -29,40 +29,49 @@ SELECT
   t.avatar_url       AS trainer_avatar,
   t.experience_level AS trainer_level,
   t.trainer_intent   AS trainer_intent_flag,
+  t.coach_bio        AS trainer_bio,
+  t.coach_tags       AS trainer_tags,
   m.display_name     AS member_name,
   m.avatar_url       AS member_avatar,
   m.experience_level AS member_level,
-  m.trainer_intent   AS member_intent_flag
+  m.trainer_intent   AS member_intent_flag,
+  m.coach_bio        AS member_bio,
+  m.coach_tags       AS member_tags
 FROM coaching_grants g
 JOIN users t ON t.id = g.trainer_id
 JOIN users m ON m.id = g.member_id
 WHERE g.trainer_id = @viewer_id::text OR g.member_id = @viewer_id::text
 ORDER BY g.updated_at DESC;
 
+-- [원본] v1 — 범위·메시지 없이 만든다(SPEC-050 부터 CreateGrantWithScope).
 -- name: CreateGrant :one
 INSERT INTO coaching_grants (id, trainer_id, member_id, status, requested_by)
 VALUES ($1, $2, $3, 'pending', $4)
 RETURNING *;
 
 -- 해지된 관계에 다시 요청 — 새 행을 만들지 않고 **같은 행을** 되살린다(감사 기록이 이력을 보존한다).
+-- [원본] v1 — 옛 범위가 되살아났다(REV-097 · SPEC-050 부터 ReopenGrantWithScope).
 -- name: ReopenGrant :one
 UPDATE coaching_grants
 SET status = 'pending', requested_by = $2, consent_at = NULL, revoked_at = NULL, updated_at = now()
 WHERE id = $1
 RETURNING *;
 
+-- [원본] v1 — 상태 조건이 없어 동시 수락에 깨졌다(SPEC-050 부터 AcceptPendingGrant).
 -- name: AcceptGrant :one
 UPDATE coaching_grants
 SET status = 'active', consent_at = now(), updated_at = now()
 WHERE id = $1
 RETURNING *;
 
+-- [원본] v1 — 상태 조건 없음(SPEC-050 부터 RevokeLiveGrant · 트랜잭션 RevokeGrantAndEndRoutines).
 -- name: RevokeGrant :one
 UPDATE coaching_grants
 SET status = 'revoked', revoked_at = now(), updated_at = now()
 WHERE id = $1
 RETURNING *;
 
+-- grant_id 는 비어 있을 수 있다(0033 — 초대 코드 만들기처럼 관계가 없는 행동).
 -- name: CreateAudit :exec
 INSERT INTO coaching_audits (id, grant_id, actor_id, action, detail)
 VALUES ($1, $2, $3, $4, $5);
@@ -210,3 +219,113 @@ LIMIT @lim::int;
 -- name: CountProgressSummariesByMemberSince :one
 SELECT count(*)::int FROM progress_summaries
 WHERE member_id = @member_id::text AND created_at >= @since::timestamptz;
+
+-- ── 코칭 v2(SPEC-050 · 0033) ─────────────────────────────────────────────────
+-- 상태 조건은 **쿼리에** 둔다 — 앱 검사만으로는 동시 요청에 깨진다(REV-097). 0행이면 부르는 쪽이 Conflict.
+
+-- 새 요청 — 범위·한 줄 메시지와 함께.
+-- name: CreateGrantWithScope :one
+INSERT INTO coaching_grants (id, trainer_id, member_id, status, requested_by, scope, request_note)
+VALUES (@id::text, @trainer_id::text, @member_id::text, 'pending', @requested_by::text, @scope::jsonb, @request_note::text)
+RETURNING *;
+
+-- 해지된 관계에 다시 요청 — 같은 행을 되살리되 **범위는 이번 요청값(없으면 기본값)으로 덮는다**(옛 범위가 되살아나지 않게).
+-- name: ReopenGrantWithScope :one
+UPDATE coaching_grants
+SET status = 'pending', requested_by = @requested_by::text, scope = @scope::jsonb, request_note = @request_note::text,
+    consent_at = NULL, revoked_at = NULL, updated_at = now()
+WHERE id = @id::text AND status = 'revoked'
+RETURNING *;
+
+-- 수락 — pending 일 때만. 회원이 수락하면 그때 고른 범위를 저장한다(set_scope).
+-- 같은 회원에게 활성 관계가 이미 있으면 coaching_grants_one_coach 가 23505 로 막는다.
+-- name: AcceptPendingGrant :one
+UPDATE coaching_grants
+SET status = 'active', consent_at = now(), updated_at = now(),
+    scope = CASE WHEN @set_scope::boolean THEN @scope::jsonb ELSE scope END
+WHERE id = @id::text AND status = 'pending'
+RETURNING *;
+
+-- 범위 바꾸기 — 활성일 때만.
+-- name: UpdateActiveGrantScope :one
+UPDATE coaching_grants SET scope = @scope::jsonb, updated_at = now()
+WHERE id = @id::text AND status = 'active'
+RETURNING *;
+
+-- 해지 트랜잭션의 첫 줄 — 같은 관계의 루틴 보내기(P3b)와 줄을 세운다.
+-- name: LockGrant :one
+SELECT * FROM coaching_grants WHERE id = $1 FOR UPDATE;
+
+-- name: RevokeLiveGrant :one
+UPDATE coaching_grants
+SET status = 'revoked', revoked_at = now(), updated_at = now()
+WHERE id = $1 AND status <> 'revoked'
+RETURNING *;
+
+-- 해지·탈퇴 때 그 관계의 활성 코치 루틴을 끝낸다(회원 sync 행 패치는 P3b).
+-- name: EndActiveCoachingRoutines :execrows
+UPDATE coaching_routines SET status = 'ended', updated_at = now()
+WHERE grant_id = $1 AND status = 'active';
+
+-- 이 회원에게 (except_trainer_id 가 아닌) 활성 코치가 있는가 — 화면에 먼저 알리려는 확인(정본은 one_coach 인덱스).
+-- name: HasOtherActiveCoach :one
+SELECT EXISTS (
+  SELECT 1 FROM coaching_grants
+  WHERE member_id = @member_id::text AND status = 'active' AND trainer_id <> @except_trainer_id::text
+)::boolean;
+
+-- 초대 코드로 연결 — 회원이 범위를 골라 바로 활성. 같은 쌍의 기존 행(pending·revoked)은 되살린다.
+-- 이미 활성이면 0행(부르는 쪽이 Conflict). 다른 코치와 활성이면 one_coach 가 23505.
+-- name: ActivateGrantFromInvite :one
+INSERT INTO coaching_grants (id, trainer_id, member_id, status, scope, requested_by, consent_at)
+VALUES (@id::text, @trainer_id::text, @member_id::text, 'active', @scope::jsonb, 'trainer', now())
+ON CONFLICT (trainer_id, member_id) DO UPDATE
+SET status = 'active', scope = EXCLUDED.scope, requested_by = 'trainer', consent_at = now(),
+    revoked_at = NULL, request_note = '', updated_at = now()
+WHERE coaching_grants.status <> 'active'
+RETURNING *;
+
+-- 코치 한 사람의 공개 카드(초대 코드 화면).
+-- name: GetCoachPeer :one
+SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
+FROM users WHERE id = $1;
+
+-- ── 초대 코드 ──
+-- 코치마다 살아 있는 코드는 하나 — 새로 만들기 전에 옛것을 회수한다(같은 트랜잭션).
+-- name: RevokeTrainerInvites :exec
+UPDATE coaching_invites SET revoked_at = now() WHERE trainer_id = $1 AND revoked_at IS NULL;
+
+-- name: InsertInvite :one
+INSERT INTO coaching_invites (id, code, trainer_id, expires_at)
+VALUES (@id::text, @code::text, @trainer_id::text, @expires_at::timestamptz)
+RETURNING *;
+
+-- name: GetLiveInviteByCode :one
+SELECT * FROM coaching_invites WHERE code = $1 AND revoked_at IS NULL;
+
+-- name: GetLiveInviteByTrainer :one
+SELECT * FROM coaching_invites WHERE trainer_id = $1 AND revoked_at IS NULL;
+
+-- 만료된 코드는 조회할 때 회수한다.
+-- name: RevokeInvite :exec
+UPDATE coaching_invites SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL;
+
+-- ── 체중·인바디(bodyView 일 때만 · 허용 칸은 서버 상수) ──
+-- [from_ms, to_ms)에 잰 체중 기록. measured_at 이 숫자가 아니면 뺀다(CASE 로 캐스트 순서를 지킨다).
+-- name: ListMemberBodyweightIn :many
+SELECT record_id, payload
+FROM sync_records
+WHERE user_id = @member_id::text
+  AND collection = 'bodyweight_logs'
+  AND deleted = false
+  AND record_id > @after_id::text
+  AND CASE WHEN jsonb_typeof(payload->'measured_at') = 'number'
+           THEN (payload->'measured_at')::numeric >= @from_ms::bigint
+                AND (payload->'measured_at')::numeric < @to_ms::bigint
+           ELSE false END
+ORDER BY record_id
+LIMIT @lim::int;
+
+-- 탈퇴할 때 관계 없이 남긴 감사(invite_create 등 grant_id NULL)도 지운다 — 관계에 붙은 감사는 CASCADE 로 사라진다(P1a 리뷰).
+-- name: DeleteOrphanCoachingAudits :exec
+DELETE FROM coaching_audits WHERE grant_id IS NULL AND actor_id = $1;

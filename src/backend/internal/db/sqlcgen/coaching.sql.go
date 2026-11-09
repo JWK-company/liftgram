@@ -15,9 +15,10 @@ const acceptGrant = `-- name: AcceptGrant :one
 UPDATE coaching_grants
 SET status = 'active', consent_at = now(), updated_at = now()
 WHERE id = $1
-RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
 `
 
+// [원본] v1 — 상태 조건이 없어 동시 수락에 깨졌다(SPEC-050 부터 AcceptPendingGrant).
 func (q *Queries) AcceptGrant(ctx context.Context, id string) (CoachingGrant, error) {
 	row := q.db.QueryRow(ctx, acceptGrant, id)
 	var i CoachingGrant
@@ -32,6 +33,85 @@ func (q *Queries) AcceptGrant(ctx context.Context, id string) (CoachingGrant, er
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const acceptPendingGrant = `-- name: AcceptPendingGrant :one
+UPDATE coaching_grants
+SET status = 'active', consent_at = now(), updated_at = now(),
+    scope = CASE WHEN $1::boolean THEN $2::jsonb ELSE scope END
+WHERE id = $3::text AND status = 'pending'
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
+`
+
+type AcceptPendingGrantParams struct {
+	SetScope bool
+	Scope    []byte
+	ID       string
+}
+
+// 수락 — pending 일 때만. 회원이 수락하면 그때 고른 범위를 저장한다(set_scope).
+// 같은 회원에게 활성 관계가 이미 있으면 coaching_grants_one_coach 가 23505 로 막는다.
+func (q *Queries) AcceptPendingGrant(ctx context.Context, arg AcceptPendingGrantParams) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, acceptPendingGrant, arg.SetScope, arg.Scope, arg.ID)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const activateGrantFromInvite = `-- name: ActivateGrantFromInvite :one
+INSERT INTO coaching_grants (id, trainer_id, member_id, status, scope, requested_by, consent_at)
+VALUES ($1::text, $2::text, $3::text, 'active', $4::jsonb, 'trainer', now())
+ON CONFLICT (trainer_id, member_id) DO UPDATE
+SET status = 'active', scope = EXCLUDED.scope, requested_by = 'trainer', consent_at = now(),
+    revoked_at = NULL, request_note = '', updated_at = now()
+WHERE coaching_grants.status <> 'active'
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
+`
+
+type ActivateGrantFromInviteParams struct {
+	ID        string
+	TrainerID string
+	MemberID  string
+	Scope     []byte
+}
+
+// 초대 코드로 연결 — 회원이 범위를 골라 바로 활성. 같은 쌍의 기존 행(pending·revoked)은 되살린다.
+// 이미 활성이면 0행(부르는 쪽이 Conflict). 다른 코치와 활성이면 one_coach 가 23505.
+func (q *Queries) ActivateGrantFromInvite(ctx context.Context, arg ActivateGrantFromInviteParams) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, activateGrantFromInvite,
+		arg.ID,
+		arg.TrainerID,
+		arg.MemberID,
+		arg.Scope,
+	)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
 	)
 	return i, err
 }
@@ -61,12 +141,13 @@ VALUES ($1, $2, $3, $4, $5)
 
 type CreateAuditParams struct {
 	ID      string
-	GrantID string
+	GrantID *string
 	ActorID string
 	Action  string
 	Detail  []byte
 }
 
+// grant_id 는 비어 있을 수 있다(0033 — 초대 코드 만들기처럼 관계가 없는 행동).
 func (q *Queries) CreateAudit(ctx context.Context, arg CreateAuditParams) error {
 	_, err := q.db.Exec(ctx, createAudit,
 		arg.ID,
@@ -121,7 +202,7 @@ func (q *Queries) CreateAuditOnce(ctx context.Context, arg CreateAuditOnceParams
 const createGrant = `-- name: CreateGrant :one
 INSERT INTO coaching_grants (id, trainer_id, member_id, status, requested_by)
 VALUES ($1, $2, $3, 'pending', $4)
-RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
 `
 
 type CreateGrantParams struct {
@@ -131,6 +212,7 @@ type CreateGrantParams struct {
 	RequestedBy string
 }
 
+// [원본] v1 — 범위·메시지 없이 만든다(SPEC-050 부터 CreateGrantWithScope).
 func (q *Queries) CreateGrant(ctx context.Context, arg CreateGrantParams) (CoachingGrant, error) {
 	row := q.db.QueryRow(ctx, createGrant,
 		arg.ID,
@@ -150,12 +232,113 @@ func (q *Queries) CreateGrant(ctx context.Context, arg CreateGrantParams) (Coach
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const createGrantWithScope = `-- name: CreateGrantWithScope :one
+
+INSERT INTO coaching_grants (id, trainer_id, member_id, status, requested_by, scope, request_note)
+VALUES ($1::text, $2::text, $3::text, 'pending', $4::text, $5::jsonb, $6::text)
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
+`
+
+type CreateGrantWithScopeParams struct {
+	ID          string
+	TrainerID   string
+	MemberID    string
+	RequestedBy string
+	Scope       []byte
+	RequestNote string
+}
+
+// ── 코칭 v2(SPEC-050 · 0033) ─────────────────────────────────────────────────
+// 상태 조건은 **쿼리에** 둔다 — 앱 검사만으로는 동시 요청에 깨진다(REV-097). 0행이면 부르는 쪽이 Conflict.
+// 새 요청 — 범위·한 줄 메시지와 함께.
+func (q *Queries) CreateGrantWithScope(ctx context.Context, arg CreateGrantWithScopeParams) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, createGrantWithScope,
+		arg.ID,
+		arg.TrainerID,
+		arg.MemberID,
+		arg.RequestedBy,
+		arg.Scope,
+		arg.RequestNote,
+	)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const deleteOrphanCoachingAudits = `-- name: DeleteOrphanCoachingAudits :exec
+DELETE FROM coaching_audits WHERE grant_id IS NULL AND actor_id = $1
+`
+
+// 탈퇴할 때 관계 없이 남긴 감사(invite_create 등 grant_id NULL)도 지운다 — 관계에 붙은 감사는 CASCADE 로 사라진다(P1a 리뷰).
+func (q *Queries) DeleteOrphanCoachingAudits(ctx context.Context, actorID string) error {
+	_, err := q.db.Exec(ctx, deleteOrphanCoachingAudits, actorID)
+	return err
+}
+
+const endActiveCoachingRoutines = `-- name: EndActiveCoachingRoutines :execrows
+UPDATE coaching_routines SET status = 'ended', updated_at = now()
+WHERE grant_id = $1 AND status = 'active'
+`
+
+// 해지·탈퇴 때 그 관계의 활성 코치 루틴을 끝낸다(회원 sync 행 패치는 P3b).
+func (q *Queries) EndActiveCoachingRoutines(ctx context.Context, grantID string) (int64, error) {
+	result, err := q.db.Exec(ctx, endActiveCoachingRoutines, grantID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const getCoachPeer = `-- name: GetCoachPeer :one
+SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
+FROM users WHERE id = $1
+`
+
+type GetCoachPeerRow struct {
+	ID              string
+	DisplayName     *string
+	AvatarUrl       *string
+	ExperienceLevel *string
+	TrainerIntent   bool
+	CoachBio        string
+	CoachTags       []string
+}
+
+// 코치 한 사람의 공개 카드(초대 코드 화면).
+func (q *Queries) GetCoachPeer(ctx context.Context, id string) (GetCoachPeerRow, error) {
+	row := q.db.QueryRow(ctx, getCoachPeer, id)
+	var i GetCoachPeerRow
+	err := row.Scan(
+		&i.ID,
+		&i.DisplayName,
+		&i.AvatarUrl,
+		&i.ExperienceLevel,
+		&i.TrainerIntent,
+		&i.CoachBio,
+		&i.CoachTags,
 	)
 	return i, err
 }
 
 const getGrantByID = `-- name: GetGrantByID :one
-SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at FROM coaching_grants WHERE id = $1
+SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note FROM coaching_grants WHERE id = $1
 `
 
 func (q *Queries) GetGrantByID(ctx context.Context, id string) (CoachingGrant, error) {
@@ -172,12 +355,13 @@ func (q *Queries) GetGrantByID(ctx context.Context, id string) (CoachingGrant, e
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RequestNote,
 	)
 	return i, err
 }
 
 const getGrantByPair = `-- name: GetGrantByPair :one
-SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at FROM coaching_grants WHERE trainer_id = $1 AND member_id = $2
+SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note FROM coaching_grants WHERE trainer_id = $1 AND member_id = $2
 `
 
 type GetGrantByPairParams struct {
@@ -199,6 +383,43 @@ func (q *Queries) GetGrantByPair(ctx context.Context, arg GetGrantByPairParams) 
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const getLiveInviteByCode = `-- name: GetLiveInviteByCode :one
+SELECT id, code, trainer_id, created_at, expires_at, revoked_at FROM coaching_invites WHERE code = $1 AND revoked_at IS NULL
+`
+
+func (q *Queries) GetLiveInviteByCode(ctx context.Context, code string) (CoachingInvite, error) {
+	row := q.db.QueryRow(ctx, getLiveInviteByCode, code)
+	var i CoachingInvite
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.TrainerID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
+const getLiveInviteByTrainer = `-- name: GetLiveInviteByTrainer :one
+SELECT id, code, trainer_id, created_at, expires_at, revoked_at FROM coaching_invites WHERE trainer_id = $1 AND revoked_at IS NULL
+`
+
+func (q *Queries) GetLiveInviteByTrainer(ctx context.Context, trainerID string) (CoachingInvite, error) {
+	row := q.db.QueryRow(ctx, getLiveInviteByTrainer, trainerID)
+	var i CoachingInvite
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.TrainerID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.RevokedAt,
 	)
 	return i, err
 }
@@ -297,6 +518,58 @@ func (q *Queries) GetProgressSummaryByMemberClient(ctx context.Context, arg GetP
 	return i, err
 }
 
+const hasOtherActiveCoach = `-- name: HasOtherActiveCoach :one
+SELECT EXISTS (
+  SELECT 1 FROM coaching_grants
+  WHERE member_id = $1::text AND status = 'active' AND trainer_id <> $2::text
+)::boolean
+`
+
+type HasOtherActiveCoachParams struct {
+	MemberID        string
+	ExceptTrainerID string
+}
+
+// 이 회원에게 (except_trainer_id 가 아닌) 활성 코치가 있는가 — 화면에 먼저 알리려는 확인(정본은 one_coach 인덱스).
+func (q *Queries) HasOtherActiveCoach(ctx context.Context, arg HasOtherActiveCoachParams) (bool, error) {
+	row := q.db.QueryRow(ctx, hasOtherActiveCoach, arg.MemberID, arg.ExceptTrainerID)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const insertInvite = `-- name: InsertInvite :one
+INSERT INTO coaching_invites (id, code, trainer_id, expires_at)
+VALUES ($1::text, $2::text, $3::text, $4::timestamptz)
+RETURNING id, code, trainer_id, created_at, expires_at, revoked_at
+`
+
+type InsertInviteParams struct {
+	ID        string
+	Code      string
+	TrainerID string
+	ExpiresAt pgtype.Timestamptz
+}
+
+func (q *Queries) InsertInvite(ctx context.Context, arg InsertInviteParams) (CoachingInvite, error) {
+	row := q.db.QueryRow(ctx, insertInvite,
+		arg.ID,
+		arg.Code,
+		arg.TrainerID,
+		arg.ExpiresAt,
+	)
+	var i CoachingInvite
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.TrainerID,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+		&i.RevokedAt,
+	)
+	return i, err
+}
+
 const insertProgressSummary = `-- name: InsertProgressSummary :one
 
 INSERT INTO progress_summaries (
@@ -363,7 +636,7 @@ type ListAuditRow struct {
 	CreatedAt pgtype.Timestamptz
 }
 
-func (q *Queries) ListAudit(ctx context.Context, grantID string) ([]ListAuditRow, error) {
+func (q *Queries) ListAudit(ctx context.Context, grantID *string) ([]ListAuditRow, error) {
 	rows, err := q.db.Query(ctx, listAudit, grantID)
 	if err != nil {
 		return nil, err
@@ -422,15 +695,19 @@ func (q *Queries) ListCatalogExerciseMeta(ctx context.Context) ([]ListCatalogExe
 
 const listGrantsForUser = `-- name: ListGrantsForUser :many
 SELECT
-  g.id, g.trainer_id, g.member_id, g.status, g.scope, g.requested_by, g.consent_at, g.revoked_at, g.created_at, g.updated_at,
+  g.id, g.trainer_id, g.member_id, g.status, g.scope, g.requested_by, g.consent_at, g.revoked_at, g.created_at, g.updated_at, g.request_note,
   t.display_name     AS trainer_name,
   t.avatar_url       AS trainer_avatar,
   t.experience_level AS trainer_level,
   t.trainer_intent   AS trainer_intent_flag,
+  t.coach_bio        AS trainer_bio,
+  t.coach_tags       AS trainer_tags,
   m.display_name     AS member_name,
   m.avatar_url       AS member_avatar,
   m.experience_level AS member_level,
-  m.trainer_intent   AS member_intent_flag
+  m.trainer_intent   AS member_intent_flag,
+  m.coach_bio        AS member_bio,
+  m.coach_tags       AS member_tags
 FROM coaching_grants g
 JOIN users t ON t.id = g.trainer_id
 JOIN users m ON m.id = g.member_id
@@ -449,14 +726,19 @@ type ListGrantsForUserRow struct {
 	RevokedAt         pgtype.Timestamptz
 	CreatedAt         pgtype.Timestamptz
 	UpdatedAt         pgtype.Timestamptz
+	RequestNote       string
 	TrainerName       *string
 	TrainerAvatar     *string
 	TrainerLevel      *string
 	TrainerIntentFlag bool
+	TrainerBio        string
+	TrainerTags       []string
 	MemberName        *string
 	MemberAvatar      *string
 	MemberLevel       *string
 	MemberIntentFlag  bool
+	MemberBio         string
+	MemberTags        []string
 }
 
 // 내가 낀 모든 관계. 최근 것부터 — 방금 요청한 것이 위에 있어야 한다.
@@ -480,15 +762,76 @@ func (q *Queries) ListGrantsForUser(ctx context.Context, viewerID string) ([]Lis
 			&i.RevokedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.RequestNote,
 			&i.TrainerName,
 			&i.TrainerAvatar,
 			&i.TrainerLevel,
 			&i.TrainerIntentFlag,
+			&i.TrainerBio,
+			&i.TrainerTags,
 			&i.MemberName,
 			&i.MemberAvatar,
 			&i.MemberLevel,
 			&i.MemberIntentFlag,
+			&i.MemberBio,
+			&i.MemberTags,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listMemberBodyweightIn = `-- name: ListMemberBodyweightIn :many
+SELECT record_id, payload
+FROM sync_records
+WHERE user_id = $1::text
+  AND collection = 'bodyweight_logs'
+  AND deleted = false
+  AND record_id > $2::text
+  AND CASE WHEN jsonb_typeof(payload->'measured_at') = 'number'
+           THEN (payload->'measured_at')::numeric >= $3::bigint
+                AND (payload->'measured_at')::numeric < $4::bigint
+           ELSE false END
+ORDER BY record_id
+LIMIT $5::int
+`
+
+type ListMemberBodyweightInParams struct {
+	MemberID string
+	AfterID  string
+	FromMs   int64
+	ToMs     int64
+	Lim      int32
+}
+
+type ListMemberBodyweightInRow struct {
+	RecordID string
+	Payload  []byte
+}
+
+// ── 체중·인바디(bodyView 일 때만 · 허용 칸은 서버 상수) ──
+// [from_ms, to_ms)에 잰 체중 기록. measured_at 이 숫자가 아니면 뺀다(CASE 로 캐스트 순서를 지킨다).
+func (q *Queries) ListMemberBodyweightIn(ctx context.Context, arg ListMemberBodyweightInParams) ([]ListMemberBodyweightInRow, error) {
+	rows, err := q.db.Query(ctx, listMemberBodyweightIn,
+		arg.MemberID,
+		arg.AfterID,
+		arg.FromMs,
+		arg.ToMs,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListMemberBodyweightInRow
+	for rows.Next() {
+		var i ListMemberBodyweightInRow
+		if err := rows.Scan(&i.RecordID, &i.Payload); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -773,6 +1116,30 @@ func (q *Queries) ListProgressSummariesByMember(ctx context.Context, arg ListPro
 	return items, nil
 }
 
+const lockGrant = `-- name: LockGrant :one
+SELECT id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note FROM coaching_grants WHERE id = $1 FOR UPDATE
+`
+
+// 해지 트랜잭션의 첫 줄 — 같은 관계의 루틴 보내기(P3b)와 줄을 세운다.
+func (q *Queries) LockGrant(ctx context.Context, id string) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, lockGrant, id)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
 const lockMemberSummaries = `-- name: LockMemberSummaries :exec
 SELECT pg_advisory_xact_lock(hashtextextended($1::text, 80))
 `
@@ -788,7 +1155,7 @@ const reopenGrant = `-- name: ReopenGrant :one
 UPDATE coaching_grants
 SET status = 'pending', requested_by = $2, consent_at = NULL, revoked_at = NULL, updated_at = now()
 WHERE id = $1
-RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
 `
 
 type ReopenGrantParams struct {
@@ -797,6 +1164,7 @@ type ReopenGrantParams struct {
 }
 
 // 해지된 관계에 다시 요청 — 새 행을 만들지 않고 **같은 행을** 되살린다(감사 기록이 이력을 보존한다).
+// [원본] v1 — 옛 범위가 되살아났다(REV-097 · SPEC-050 부터 ReopenGrantWithScope).
 func (q *Queries) ReopenGrant(ctx context.Context, arg ReopenGrantParams) (CoachingGrant, error) {
 	row := q.db.QueryRow(ctx, reopenGrant, arg.ID, arg.RequestedBy)
 	var i CoachingGrant
@@ -811,6 +1179,47 @@ func (q *Queries) ReopenGrant(ctx context.Context, arg ReopenGrantParams) (Coach
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const reopenGrantWithScope = `-- name: ReopenGrantWithScope :one
+UPDATE coaching_grants
+SET status = 'pending', requested_by = $1::text, scope = $2::jsonb, request_note = $3::text,
+    consent_at = NULL, revoked_at = NULL, updated_at = now()
+WHERE id = $4::text AND status = 'revoked'
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
+`
+
+type ReopenGrantWithScopeParams struct {
+	RequestedBy string
+	Scope       []byte
+	RequestNote string
+	ID          string
+}
+
+// 해지된 관계에 다시 요청 — 같은 행을 되살리되 **범위는 이번 요청값(없으면 기본값)으로 덮는다**(옛 범위가 되살아나지 않게).
+func (q *Queries) ReopenGrantWithScope(ctx context.Context, arg ReopenGrantWithScopeParams) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, reopenGrantWithScope,
+		arg.RequestedBy,
+		arg.Scope,
+		arg.RequestNote,
+		arg.ID,
+	)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
 	)
 	return i, err
 }
@@ -819,9 +1228,10 @@ const revokeGrant = `-- name: RevokeGrant :one
 UPDATE coaching_grants
 SET status = 'revoked', revoked_at = now(), updated_at = now()
 WHERE id = $1
-RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
 `
 
+// [원본] v1 — 상태 조건 없음(SPEC-050 부터 RevokeLiveGrant · 트랜잭션 RevokeGrantAndEndRoutines).
 func (q *Queries) RevokeGrant(ctx context.Context, id string) (CoachingGrant, error) {
 	row := q.db.QueryRow(ctx, revokeGrant, id)
 	var i CoachingGrant
@@ -836,13 +1246,61 @@ func (q *Queries) RevokeGrant(ctx context.Context, id string) (CoachingGrant, er
 		&i.RevokedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.RequestNote,
 	)
 	return i, err
 }
 
+const revokeInvite = `-- name: RevokeInvite :exec
+UPDATE coaching_invites SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL
+`
+
+// 만료된 코드는 조회할 때 회수한다.
+func (q *Queries) RevokeInvite(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, revokeInvite, id)
+	return err
+}
+
+const revokeLiveGrant = `-- name: RevokeLiveGrant :one
+UPDATE coaching_grants
+SET status = 'revoked', revoked_at = now(), updated_at = now()
+WHERE id = $1 AND status <> 'revoked'
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
+`
+
+func (q *Queries) RevokeLiveGrant(ctx context.Context, id string) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, revokeLiveGrant, id)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
+}
+
+const revokeTrainerInvites = `-- name: RevokeTrainerInvites :exec
+UPDATE coaching_invites SET revoked_at = now() WHERE trainer_id = $1 AND revoked_at IS NULL
+`
+
+// ── 초대 코드 ──
+// 코치마다 살아 있는 코드는 하나 — 새로 만들기 전에 옛것을 회수한다(같은 트랜잭션).
+func (q *Queries) RevokeTrainerInvites(ctx context.Context, trainerID string) error {
+	_, err := q.db.Exec(ctx, revokeTrainerInvites, trainerID)
+	return err
+}
+
 const searchTrainers = `-- name: SearchTrainers :many
 
-SELECT id, display_name, avatar_url, experience_level, trainer_intent
+SELECT id, display_name, avatar_url, experience_level, trainer_intent, coach_bio, coach_tags
 FROM users u
 WHERE u.trainer_intent = true
   AND u.id <> $1::text
@@ -867,6 +1325,8 @@ type SearchTrainersRow struct {
 	AvatarUrl       *string
 	ExperienceLevel *string
 	TrainerIntent   bool
+	CoachBio        string
+	CoachTags       []string
 }
 
 // @plm SRS-048  코칭
@@ -886,6 +1346,8 @@ func (q *Queries) SearchTrainers(ctx context.Context, arg SearchTrainersParams) 
 			&i.AvatarUrl,
 			&i.ExperienceLevel,
 			&i.TrainerIntent,
+			&i.CoachBio,
+			&i.CoachTags,
 		); err != nil {
 			return nil, err
 		}
@@ -914,6 +1376,37 @@ func (q *Queries) SetProgressSummaryMessageID(ctx context.Context, arg SetProgre
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const updateActiveGrantScope = `-- name: UpdateActiveGrantScope :one
+UPDATE coaching_grants SET scope = $1::jsonb, updated_at = now()
+WHERE id = $2::text AND status = 'active'
+RETURNING id, trainer_id, member_id, status, scope, requested_by, consent_at, revoked_at, created_at, updated_at, request_note
+`
+
+type UpdateActiveGrantScopeParams struct {
+	Scope []byte
+	ID    string
+}
+
+// 범위 바꾸기 — 활성일 때만.
+func (q *Queries) UpdateActiveGrantScope(ctx context.Context, arg UpdateActiveGrantScopeParams) (CoachingGrant, error) {
+	row := q.db.QueryRow(ctx, updateActiveGrantScope, arg.Scope, arg.ID)
+	var i CoachingGrant
+	err := row.Scan(
+		&i.ID,
+		&i.TrainerID,
+		&i.MemberID,
+		&i.Status,
+		&i.Scope,
+		&i.RequestedBy,
+		&i.ConsentAt,
+		&i.RevokedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.RequestNote,
+	)
+	return i, err
 }
 
 const updateMemberRecord = `-- name: UpdateMemberRecord :exec

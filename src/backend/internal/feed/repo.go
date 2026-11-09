@@ -566,6 +566,22 @@ func (r *pgRepo) GetAuthor(ctx context.Context, userID string) (Author, error) {
 	return Author{ID: u.ID, DisplayName: deref(u.DisplayName), AvatarURL: deref(u.AvatarUrl)}, nil
 }
 
+// GetCoachCard — 코치 여부·소개·태그(SPEC-050). 태그는 nil 대신 빈 슬라이스.
+func (r *pgRepo) GetCoachCard(ctx context.Context, userID string) (CoachCard, error) {
+	u, err := r.q.GetUserByID(ctx, userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return CoachCard{}, errs.New(errs.NotFound, "사용자를 찾을 수 없습니다")
+	}
+	if err != nil {
+		return CoachCard{}, err
+	}
+	tags := u.CoachTags
+	if tags == nil {
+		tags = []string{}
+	}
+	return CoachCard{TrainerIntent: u.TrainerIntent, Bio: u.CoachBio, Tags: tags}, nil
+}
+
 func (r *pgRepo) ListExplore(ctx context.Context, viewerID string, limit int32) ([]Post, error) {
 	rows, err := r.q.ListExplore(ctx, sqlcgen.ListExploreParams{ViewerID: viewerID, Lim: limit})
 	if err != nil {
@@ -701,6 +717,7 @@ func (r *pgRepo) ListFollows(ctx context.Context, viewerID, userID string, follo
 			out = append(out, UserResult{
 				Author:    Author{ID: row.ID, DisplayName: deref(row.DisplayName), AvatarURL: deref(row.AvatarUrl)},
 				Following: row.Following,
+				Coach:     row.TrainerIntent,
 			})
 		}
 		return out, nil
@@ -713,6 +730,7 @@ func (r *pgRepo) ListFollows(ctx context.Context, viewerID, userID string, follo
 		out = append(out, UserResult{
 			Author:    Author{ID: row.ID, DisplayName: deref(row.DisplayName), AvatarURL: deref(row.AvatarUrl)},
 			Following: row.Following,
+			Coach:     row.TrainerIntent,
 		})
 	}
 	return out, nil
@@ -728,6 +746,7 @@ func (r *pgRepo) SearchUsers(ctx context.Context, viewerID, query string, limit 
 		out = append(out, UserResult{
 			Author:    Author{ID: row.ID, DisplayName: deref(row.DisplayName), AvatarURL: deref(row.AvatarUrl)},
 			Following: row.Following,
+			Coach:     row.TrainerIntent,
 		})
 	}
 	return out, nil

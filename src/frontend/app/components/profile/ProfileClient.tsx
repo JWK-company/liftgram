@@ -56,6 +56,7 @@ import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기�
 import { UsageStatsRow } from "./UsageStatsRow";
 // import { WeighInSettingRow } from "./WeighInSettingRow"; // [원본] 운동 전 체중 체크인 스위치 @plm SRS-077
 import { HintsResetRow } from "./HintsResetRow"; // 첫 안내 다시 보기(SPEC-046 · SRS-111 R5)
+import { CoachProfileFields } from "./CoachProfileFields"; // 코치 소개·태그(SPEC-050)
 import { LockScreenRow } from "./LockScreenRow"; // 잠금화면 운동 카드 켜기(앱에서만 · SPEC-017)
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
 // import { version as APP_VERSION } from "../../../package.json"; — [원본] 버전 꼬리(아래 주석) · 지금은 AppVersionRow 가 보인다
@@ -108,7 +109,9 @@ export default function ProfileClient() {
     refresh,
   } = useUser();
   const toast = useToast();
-  const { user: account } = useAuth();
+  // [원본] const { user: account } = useAuth();
+  // [개선] 의향 저장도 AuthProvider 의 updateProfile 로 — 계정 사본(trainerIntent)이 바로 맞아 /coaching 초대 카드가 따라온다(SPEC-050)
+  const { user: account, updateProfile: updateAccountProfile } = useAuth();
   const [busy, setBusy] = useState(false);
   // [원본] useState 초기값으로 한 번만 읽었다 — 첫 그림은 user 를 읽기 전(아래 if (!user) 보다 위)이라 늘 빈 칸으로 굳고,
   //        그 빈 칸을 blur 가 그대로 저장해 실제로 지워졌다(2026-11-04 실기기 — 「커스텀 기구 이름이 업데이트·재시작마다 사라짐」).
@@ -222,20 +225,20 @@ export default function ProfileClient() {
       const userRepo = await import("@app/core/data/userRepository");
       await userRepo.updateUserSettings(userId, settings);
       if (!account) return;
-      const { authClient } = await import("@/lib/session");
-      await authClient()
-        .updateProfile({
-          ...(server.experienceLevel !== undefined
-            ? {
-                experienceLevel: EXPERIENCE_PB[server.experienceLevel ?? ""] ?? ExperienceLevelPB.UNSPECIFIED,
-                setExperienceLevel: true,
-              }
-            : {}),
-          ...(server.trainerIntent !== undefined
-            ? { trainerIntent: server.trainerIntent, setTrainerIntent: true }
-            : {}),
-        })
-        .catch(() => {});
+      // [원본] const { authClient } = await import("@/lib/session");
+      //        await authClient().updateProfile({ … }).catch(() => {});
+      await updateAccountProfile({
+        ...(server.experienceLevel !== undefined
+          ? {
+              experienceLevel: EXPERIENCE_PB[server.experienceLevel ?? ""] ?? ExperienceLevelPB.UNSPECIFIED,
+              setExperienceLevel: true,
+            }
+          : {}),
+        ...(server.trainerIntent !== undefined
+          ? { trainerIntent: server.trainerIntent, setTrainerIntent: true }
+          : {}),
+        // [원본] }).catch(() => {}); — 실패를 삼켜 의향이 켜진 줄 알았다(코드 리뷰 지적 7)
+      }).catch((e) => toast(errorText(e), "error"));
     });
 
   // const weightStep = weightUnit === "kg" ? 2.5 : 5; // [원본] 봉 무게 스테퍼(SPEC-023)
@@ -623,6 +626,9 @@ export default function ProfileClient() {
               {t("experience.trainerDisclaimer")}
             </AppText>
           ) : null}
+          {/* 의향을 켜면 코치 소개(80자)·태그(6개 중 3개) — 서버 프로필에만 저장(SPEC-050) */}
+          {/* 기준은 서버 계정 값 — 로컬만 켜지고 서버 저장이 실패하면 칸을 보이지 않는다(코드 리뷰 지적 7) */}
+          {account?.trainerIntent ? <CoachProfileFields /> : null}
         </SheetShell>
       ) : null}
     </div>

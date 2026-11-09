@@ -27,6 +27,8 @@
 // 요청 길이 ≤ 400일이고, 내주는 기간은 직전 같은 길이까지라 **최대 800일**이다(core periodSummary 의 직전 대비가
 // 같은 길이를 요구한다). 동의 시각(consent_at)보다 앞선 기록도 포함된다 — 회원이 logView 를 켠 것이 "기록 열람" 동의이고,
 // 옛 GetMemberReport 도 동의 이전 기록을 집계했다. 이 상한·정책은 ADR-040 개정에 적어 둔다(서버 상수 = maxPeriod).
+// [개선] SPEC-050 — 이제 동의 이전 기록은 회원이 pastRecords(지난 기록도)를 켰을 때만 나간다(visibleFrom).
+// 체중·인바디는 bodyView 를 켰을 때만 bodyRecordFields 칸으로 나간다.
 // ─────────────────────────────────────────────────────────────────────────────
 package coaching
 
@@ -90,14 +92,23 @@ var memberRecordFields = map[string][]string{
 	},
 }
 
+// bodyRecordCollection·bodyRecordFields — 체중·인바디(SPEC-050). **bodyView 를 연 관계에서만** 읽고,
+// 칸은 이 다섯뿐이다(note·source·created_at 같은 칸은 나가지 않는다 — 테스트가 고정한다).
+// memberRecordCollections 와 따로 둔다: bodyView 없이는 읽는 길 자체가 없다.
+const bodyRecordCollection = "bodyweight_logs"
+
+var bodyRecordFields = []string{"id", "measured_at", "weight_kg", "skeletal_muscle_kg", "body_fat_pct"}
+
 // MemberRecords는 GetMemberRecords 의 결과다. 각 원소 = 허용 칸만 남긴 JSON 객체.
 type MemberRecords struct {
 	Workouts         []string
 	WorkoutExercises []string
 	SetLogs          []string
 	Exercises        []string
-	ServedStart      time.Time
-	ServedEnd        time.Time
+	// bodyView 일 때만 채운다(아니면 언제나 비어 있다).
+	BodyweightLogs []string
+	ServedStart    time.Time
+	ServedEnd      time.Time
 }
 
 // GetMemberRecords는 트레이너(viewer)에게 회원의 원본 레코드를 허용 목록만큼 내준다(scope=logView).
@@ -117,6 +128,14 @@ func (s *Service) GetMemberRecords(ctx context.Context, viewerID, memberID strin
 
 	// 직전 같은 길이까지 — delta 계산용(ADR-040 개정 · S-3).
 	servedStart := start.Add(-end.Sub(start))
+	// [개선] SPEC-050 — 지난 기록을 열지 않았으면 동의 시각보다 앞서 내주지 않는다(visibleFrom).
+	// 동의가 기간 끝보다 늦으면(그럴 일은 드물다) 빈 기간 [end, end)이 된다.
+	if vf := visibleFrom(g); !vf.IsZero() && vf.After(servedStart) {
+		servedStart = vf
+		if servedStart.After(end) {
+			servedStart = end
+		}
+	}
 	recs, err := s.loadMemberRecords(ctx, memberID, servedStart, end)
 	if err != nil {
 		return MemberRecords{}, err
@@ -124,6 +143,17 @@ func (s *Service) GetMemberRecords(ctx context.Context, viewerID, memberID strin
 	out, err := selectMemberRecords(recs, servedStart, end)
 	if err != nil {
 		return MemberRecords{}, err
+	}
+	// 체중·인바디 — bodyView 일 때만, 같은 기간·같은 컷으로.
+	if g.Scope[ScopeBodyView] {
+		body, err := s.repo.ListMemberBodyweightIn(ctx, memberID, servedStart.UnixMilli(), end.UnixMilli(),
+			newReadBudget(maxMemberRecordsReadBytes))
+		if err != nil {
+			return MemberRecords{}, err
+		}
+		if out.BodyweightLogs, err = selectBodyRecords(body, servedStart, end); err != nil {
+			return MemberRecords{}, err
+		}
 	}
 
 	detail, _ := json.Marshal(map[string]any{
@@ -133,6 +163,7 @@ func (s *Service) GetMemberRecords(ctx context.Context, viewerID, memberID strin
 		"workoutExercises": len(out.WorkoutExercises),
 		"setLogs":          len(out.SetLogs),
 		"exercises":        len(out.Exercises),
+		"bodyweightLogs":   len(out.BodyweightLogs),
 	})
 	s.auditOnce(ctx, g.ID, viewerID, ActionRecordsView, detail, recordsViewAuditWindow, false)
 	return out, nil
@@ -340,4 +371,49 @@ func rawBool(obj map[string]json.RawMessage, key string) (value, present bool) {
 		return b, true
 	}
 	return false, false
+}
+
+// selectBodyRecords는 [from, to)에 잰 체중 기록을 bodyRecordFields 칸만 남겨 돌려준다(SQL 이 거른 것을 한 번 더).
+func selectBodyRecords(recs []MemberRecord, from, to time.Time) ([]string, error) {
+	fromMs, toMs := float64(from.UnixMilli()), float64(to.UnixMilli())
+	type row struct {
+		id  string
+		obj map[string]json.RawMessage
+	}
+	var rows []row
+	for _, rec := range recs {
+		if rec.Collection != "" && rec.Collection != bodyRecordCollection {
+			continue
+		}
+		var obj map[string]json.RawMessage
+		if json.Unmarshal(rec.Payload, &obj) != nil {
+			continue
+		}
+		at, ok := rawNum(obj, "measured_at")
+		if !ok || at < fromMs || at >= toMs {
+			continue
+		}
+		rows = append(rows, row{id: rec.RecordID, obj: obj})
+	}
+	sort.Slice(rows, func(i, j int) bool { return rows[i].id < rows[j].id })
+	out := make([]string, 0, len(rows))
+	size := 0
+	for _, r := range rows {
+		kept := make(map[string]json.RawMessage, len(bodyRecordFields))
+		for _, f := range bodyRecordFields {
+			if v, ok := r.obj[f]; ok {
+				kept[f] = v
+			}
+		}
+		b, err := json.Marshal(kept)
+		if err != nil {
+			continue
+		}
+		size += len(b)
+		if size > maxMemberRecordsBytes {
+			return nil, errs.New(errs.ResourceExhausted, "too many records for this period — choose a shorter period")
+		}
+		out = append(out, string(b))
+	}
+	return out, nil
 }

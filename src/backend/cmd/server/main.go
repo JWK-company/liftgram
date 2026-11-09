@@ -348,11 +348,19 @@ func main() {
 	// 성과 요약(SRS-080)은 DM 의 좁은 포트(SendSummaryNotice 하나 — coaching.SummaryMessenger)와 알림만 받는다.
 	// @plm SRS-080
 	coachingSvc := coaching.NewService(coaching.NewRepo(pool), uuid.NewString, time.Now).
-		WithSummaryDelivery(dmSvc, notifyAdapter{notificationSvc})
+		WithSummaryDelivery(dmSvc, notifyAdapter{notificationSvc}).
+		// 코칭 v2(SPEC-050) — 연결 알림(ref_id)·수락 뒤 1:1 대화방(실패해도 연결은 성공).
+		WithConnectPorts(notifyAdapter{notificationSvc}, dmOpener{dmSvc})
 	// 요청 본문 상한 256KB — 코칭 서비스에만 건다. 스냅샷 64KB 검사 전에 큰 본문을 메모리에 다 올리지 않게(S-6).
 	// 전역으로 걸지 않는 이유: sync push(최대 5000 레코드)가 이 상한을 정상적으로 넘는다.
 	// NewConnectHandler 가 상한을 안에서 붙인다(CS-8) — 여기서 빠뜨릴 수 없다.
-	coachingPath, coachingHTTP := coaching.NewConnectHandler(coachingSvc, opts)
+	// [원본] coachingPath, coachingHTTP := coaching.NewConnectHandler(coachingSvc, opts)
+	// [개선] 초대 코드 요청 제한(사용자·IP 분당 10 · 하루 실패 50) — 인증 제한을 끈 개발·e2e(AUTH_RATE_LIMIT<=0)는 함께 끈다.
+	inviteLimits := coaching.DefaultInviteLimits
+	if cfg.AuthRateLimit <= 0 {
+		inviteLimits = coaching.InviteLimits{}
+	}
+	coachingPath, coachingHTTP := coaching.NewConnectHandlerLimited(coachingSvc, inviteLimits, opts)
 	mount(mux, coachingPath, coachingHTTP)
 
 	// 오프라인 동기(SRS-006) — 기기의 로컬 DB와 서버를 맞춘다. 레코드의 속은 해석하지 않는다.
@@ -463,6 +471,19 @@ type notifyAdapter struct{ svc *notification.Service }
 
 func (a notifyAdapter) Notify(ctx context.Context, userID, actorID, kind, postID string) {
 	a.svc.Notify(ctx, userID, actorID, notification.Kind(kind), postID)
+}
+
+// NotifyRef — 코칭 알림(SPEC-050 · coaching.RefNotifier). 대상은 ref_id, post_id 는 비운다.
+func (a notifyAdapter) NotifyRef(ctx context.Context, userID, actorID, kind, refID string) {
+	a.svc.NotifyRef(ctx, userID, actorID, notification.Kind(kind), refID)
+}
+
+// dmOpener는 dm.Service 를 코칭이 아는 좁은 포트(coaching.DirectOpener)에 맞춘다 — 대화방을 만들어 두기만 한다.
+type dmOpener struct{ svc *dm.Service }
+
+func (d dmOpener) OpenDirect(ctx context.Context, a, b string) error {
+	_, err := d.svc.GetOrCreateDirect(ctx, a, b)
+	return err
 }
 
 // newStorage는 설정이 고른 저장소를 만든다.

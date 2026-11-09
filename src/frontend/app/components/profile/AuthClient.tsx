@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { Code, ConnectError } from "@connectrpc/connect";
 import { useRouter } from "next/navigation";
+import { JOIN_NEXT_RE } from "@/lib/coaching";
 import { useEffect, useState } from "react";
 import { syncNow } from "@/lib/syncTransport";
 import { ProfileEditCard } from "./ProfileEditCard";
@@ -163,9 +164,11 @@ export default function AuthClient({
   const router = useRouter();
   // [원본] const nextHref = next === "/profile/feedback" ? next : null;
   // [개선 2026-11-09] 공유 링크로 온 사람은 로그인 뒤 그 글로 — 글 보기 주소(/feed/<id>)만 더 받는다(외부 주소·다른 경로는 그대로 막힘)
+  // [개선 SPEC-050] 코칭 초대 링크(/coaching/join?code=…)로 온 사람도 로그인 뒤 그 화면으로 — 코드 칸은 영숫자·하이픈 20자까지
   const nextHref =
     next === "/profile/feedback" ||
-    (next != null && /^\/feed\/[A-Za-z0-9_-]{1,64}(\?comments=1)?$/.test(next))
+    (next != null && /^\/feed\/[A-Za-z0-9_-]{1,64}(\?comments=1)?$/.test(next)) ||
+    (next != null && JOIN_NEXT_RE.test(next))
       ? next
       : null;
   useEffect(() => {

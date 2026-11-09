@@ -67,6 +67,9 @@ test("보낸 요약 카드는 DM·알림에서 열리고, 코치 리포트도 �
     await page.getByTestId("coaching-search").click();
     await expect(page.getByTestId("coaching-results")).toContainText(트레이너, { timeout: 20_000 });
     await page.getByTestId("coaching-request").first().click();
+    // [개선 SPEC-050] 요청은 범위 시트를 거친다 — 연결 전에 한 운동을 코치가 보려면 「지난 기록도 보여 주기」를 켠다(기본은 끔)
+    await page.getByTestId("scope-pastRecords").click();
+    await page.getByTestId("scope-confirm").click();
     await expect(page.getByTestId("coaching-coaches")).toContainText("수락 대기", { timeout: 20_000 });
     const grantsReqT = pageT.waitForRequest(`**${RPC}/ListGrants`);
     await pageT.goto("/coaching");
@@ -161,6 +164,8 @@ test("보낸 요약 카드는 DM·알림에서 열리고, 코치 리포트도 �
 
     // 코치 리포트
     await pageT.goto("/coaching");
+    // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
+    await pageT.getByTestId("coaching-grant-more").first().click();
     await pageT.getByTestId("coaching-report").click();
     const ready = pageT.getByTestId("report-ready");
     await expect(ready).toBeVisible({ timeout: 20_000 });
@@ -169,7 +174,10 @@ test("보낸 요약 카드는 DM·알림에서 열리고, 코치 리포트도 �
 
     // 해지 → 거부
     await page.goto("/coaching");
-    await page.getByTestId("coaching-revoke").first().click();
+    // [개선 SPEC-050] 연결 끊기는 ⋯ 시트 → 확인창
+    await page.getByTestId("coaching-grant-more").first().click();
+    await page.getByTestId("coaching-revoke").click();
+    await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
     await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
     await pageT.goto("/messages");
     await pageT.getByTestId("dm-row").filter({ hasText: 회원 }).click();

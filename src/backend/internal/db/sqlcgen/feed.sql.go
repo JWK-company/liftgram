@@ -1146,7 +1146,7 @@ func (q *Queries) ListFeed(ctx context.Context, arg ListFeedParams) ([]ListFeedR
 }
 
 const listFollowers = `-- name: ListFollowers :many
-SELECT u.id, u.display_name, u.avatar_url,
+SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
        EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = $1::text AND f2.followee_id = u.id)::boolean AS following
 FROM follows f
 JOIN users u ON u.id = f.follower_id
@@ -1167,10 +1167,11 @@ type ListFollowersParams struct {
 }
 
 type ListFollowersRow struct {
-	ID          string
-	DisplayName *string
-	AvatarUrl   *string
-	Following   bool
+	ID            string
+	DisplayName   *string
+	AvatarUrl     *string
+	TrainerIntent bool
+	Following     bool
 }
 
 func (q *Queries) ListFollowers(ctx context.Context, arg ListFollowersParams) ([]ListFollowersRow, error) {
@@ -1186,6 +1187,7 @@ func (q *Queries) ListFollowers(ctx context.Context, arg ListFollowersParams) ([
 			&i.ID,
 			&i.DisplayName,
 			&i.AvatarUrl,
+			&i.TrainerIntent,
 			&i.Following,
 		); err != nil {
 			return nil, err
@@ -1199,7 +1201,7 @@ func (q *Queries) ListFollowers(ctx context.Context, arg ListFollowersParams) ([
 }
 
 const listFollowing = `-- name: ListFollowing :many
-SELECT u.id, u.display_name, u.avatar_url,
+SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
        EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = $1::text AND f2.followee_id = u.id)::boolean AS following
 FROM follows f
 JOIN users u ON u.id = f.followee_id
@@ -1220,10 +1222,11 @@ type ListFollowingParams struct {
 }
 
 type ListFollowingRow struct {
-	ID          string
-	DisplayName *string
-	AvatarUrl   *string
-	Following   bool
+	ID            string
+	DisplayName   *string
+	AvatarUrl     *string
+	TrainerIntent bool
+	Following     bool
 }
 
 func (q *Queries) ListFollowing(ctx context.Context, arg ListFollowingParams) ([]ListFollowingRow, error) {
@@ -1239,6 +1242,7 @@ func (q *Queries) ListFollowing(ctx context.Context, arg ListFollowingParams) ([
 			&i.ID,
 			&i.DisplayName,
 			&i.AvatarUrl,
+			&i.TrainerIntent,
 			&i.Following,
 		); err != nil {
 			return nil, err
@@ -1909,7 +1913,7 @@ func (q *Queries) SearchPosts(ctx context.Context, arg SearchPostsParams) ([]Sea
 }
 
 const searchUsers = `-- name: SearchUsers :many
-SELECT u.id, u.display_name, u.avatar_url,
+SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
        EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = $1::text AND f.followee_id = u.id) ::boolean AS following
 FROM users u
 WHERE u.id <> $1::text
@@ -1933,10 +1937,11 @@ type SearchUsersParams struct {
 }
 
 type SearchUsersRow struct {
-	ID          string
-	DisplayName *string
-	AvatarUrl   *string
-	Following   bool
+	ID            string
+	DisplayName   *string
+	AvatarUrl     *string
+	TrainerIntent bool
+	Following     bool
 }
 
 // 사람 찾기 — 표시 이름·이메일 부분일치. 자기 자신과 차단 관계는 뺀다.
@@ -1954,6 +1959,7 @@ func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]Sea
 			&i.ID,
 			&i.DisplayName,
 			&i.AvatarUrl,
+			&i.TrainerIntent,
 			&i.Following,
 		); err != nil {
 			return nil, err

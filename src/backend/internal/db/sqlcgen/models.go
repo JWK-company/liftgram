@@ -65,11 +65,22 @@ type ClientHealth struct {
 
 type CoachingAudit struct {
 	ID        string
-	GrantID   string
+	GrantID   *string
 	ActorID   string
 	Action    string
 	Detail    []byte
 	CreatedAt pgtype.Timestamptz
+}
+
+type CoachingComment struct {
+	ID        string
+	GrantID   string
+	TrainerID string
+	MemberID  string
+	WorkoutID string
+	Body      string
+	CreatedAt pgtype.Timestamptz
+	HiddenAt  pgtype.Timestamptz
 }
 
 type CoachingGrant struct {
@@ -83,6 +94,29 @@ type CoachingGrant struct {
 	RevokedAt   pgtype.Timestamptz
 	CreatedAt   pgtype.Timestamptz
 	UpdatedAt   pgtype.Timestamptz
+	RequestNote string
+}
+
+type CoachingInvite struct {
+	ID        string
+	Code      string
+	TrainerID string
+	CreatedAt pgtype.Timestamptz
+	ExpiresAt pgtype.Timestamptz
+	RevokedAt pgtype.Timestamptz
+}
+
+type CoachingRoutine struct {
+	ID              string
+	GrantID         string
+	TrainerID       string
+	MemberID        string
+	SourceRoutineID string
+	MemberRoutineID string
+	LineIds         []string
+	Status          string
+	SentAt          pgtype.Timestamptz
+	UpdatedAt       pgtype.Timestamptz
 }
 
 type Comment struct {
@@ -218,6 +252,7 @@ type Notification struct {
 	PostID    *string
 	ReadAt    pgtype.Timestamptz
 	CreatedAt pgtype.Timestamptz
+	RefID     *string
 }
 
 type OpsAlertMailState struct {
@@ -396,4 +431,6 @@ type User struct {
 	AgeConfirmedAt  pgtype.Timestamptz
 	AgeConfirmVia   *string
 	StatsExcluded   bool
+	CoachBio        string
+	CoachTags       []string
 }

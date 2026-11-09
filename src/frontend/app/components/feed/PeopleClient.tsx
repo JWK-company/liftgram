@@ -13,6 +13,7 @@ import { feedClient, feedErrorMessage } from "@/lib/feedClient";
 import { t } from "@/lib/i18n";
 import { navigate } from "@/lib/nav";
 import { useAuth } from "../AuthProvider";
+import { CoachBadge } from "../coaching/CoachBits";
 import { useToast } from "../Toast";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
@@ -215,6 +216,8 @@ export default function PeopleClient() {
                       <AppText variant="body" className="block min-w-0 flex-1 truncate font-medium!">
                         {u.author?.displayName || t("discover.unnamed")}
                       </AppText>
+                      {/* 코치 배지(SPEC-050) — 이름 옆, 이름이 길면 이름이 줄어든다 */}
+                      {u.trainerIntent ? <CoachBadge testId="people-coach-badge" /> : null}
                     </a>
                     {/* 팔로우하지 않은 사람만 「팔로우」(팔로워 탭에서는 맞팔) — 팔로잉 해제는 프로필에서 */}
                     {u.following ? null : (

@@ -31,8 +31,10 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -68,6 +70,9 @@ type User struct {
 	CreatedAt       time.Time
 	// 이메일 소유가 확인됐는가(SRS-052 · 0013의 email_verified_at)
 	EmailVerified bool
+	// 코치 소개(80룬)·태그(CoachTagValues 중 3개까지) — SPEC-050 · 0033. 태그는 nil 대신 빈 슬라이스.
+	CoachBio  string
+	CoachTags []string
 }
 
 // RefreshToken은 살아 있는 세션 하나다.
@@ -114,6 +119,41 @@ type ProfilePatch struct {
 	SetExperienceLevel bool
 	TrainerIntent      bool
 	SetTrainerIntent   bool
+	// 코치 소개·태그(SPEC-050).
+	CoachBio     string
+	SetCoachBio  bool
+	CoachTags    []string
+	SetCoachTags bool
+}
+
+// 코치 소개·태그 상한(SPEC-050).
+const (
+	maxCoachBioRunes = 80
+	maxCoachTags     = 3
+)
+
+// CoachTagValues — 고를 수 있는 코치 태그(화면 문구는 화면이 만든다).
+var CoachTagValues = []string{"hypertrophy", "strength", "diet", "rehab", "beginner", "powerlifting"}
+
+// cleanCoachTags — 허용값만 · 중복 제거 · 3개까지. 틀리면 Validation. **nil 대신 빈 슬라이스**(NULL 방지).
+func cleanCoachTags(in []string) ([]string, error) {
+	out := make([]string, 0, len(in))
+	seen := map[string]bool{}
+	for _, t := range in {
+		t = strings.TrimSpace(t)
+		if !slices.Contains(CoachTagValues, t) {
+			return nil, errs.New(errs.Validation, "알 수 없는 코치 태그예요: %s", t)
+		}
+		if seen[t] {
+			continue
+		}
+		seen[t] = true
+		out = append(out, t)
+	}
+	if len(out) > maxCoachTags {
+		return nil, errs.New(errs.Validation, "코치 태그는 %d개까지 고를 수 있어요", maxCoachTags)
+	}
+	return out, nil
 }
 
 // Repo는 이 도메인이 저장소에 바라는 전부다. 구현은 repo.go(pgx)에 있고, 테스트는 가짜를 끼운다.
@@ -500,6 +540,21 @@ func (s *Service) UpdateProfile(ctx context.Context, userID string, p ProfilePat
 	}
 	if p.SetExperienceLevel && !validExperience(p.ExperienceLevel) {
 		return User{}, errs.New(errs.Validation, "알 수 없는 경력 값입니다: %s", p.ExperienceLevel)
+	}
+	if p.SetCoachBio {
+		p.CoachBio = strings.TrimSpace(p.CoachBio)
+		if utf8.RuneCountInString(p.CoachBio) > maxCoachBioRunes {
+			return User{}, errs.New(errs.Validation, "코치 소개는 %d자까지 쓸 수 있어요", maxCoachBioRunes)
+		}
+	}
+	if p.SetCoachTags {
+		tags, err := cleanCoachTags(p.CoachTags)
+		if err != nil {
+			return User{}, err
+		}
+		p.CoachTags = tags
+	} else {
+		p.CoachTags = []string{} // 안 보낸 칸도 NULL 을 넘기지 않는다
 	}
 	if p.SetAvatarURL && p.AvatarURL != "" && s.avatarCheck != nil {
 		flagged, err := s.avatarCheck(ctx, p.AvatarURL, userID)

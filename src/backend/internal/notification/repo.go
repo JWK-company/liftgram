@@ -17,10 +17,13 @@ func NewRepo(pool *pgxpool.Pool) Repo {
 	return &pgRepo{q: sqlcgen.New(pool)}
 }
 
-func (r *pgRepo) Create(ctx context.Context, id, userID string, kind Kind, actorID, postID string) error {
-	var post *string
+func (r *pgRepo) Create(ctx context.Context, id, userID string, kind Kind, actorID, postID, refID string) error {
+	var post, ref *string
 	if postID != "" {
 		post = &postID
+	}
+	if refID != "" {
+		ref = &refID
 	}
 	return r.q.CreateNotification(ctx, sqlcgen.CreateNotificationParams{
 		ID:      id,
@@ -28,6 +31,7 @@ func (r *pgRepo) Create(ctx context.Context, id, userID string, kind Kind, actor
 		Kind:    string(kind),
 		ActorID: actorID,
 		PostID:  post,
+		RefID:   ref,
 	})
 }
 
@@ -43,6 +47,7 @@ func (r *pgRepo) List(ctx context.Context, viewerID string, limit int32) ([]Noti
 			Kind:      Kind(n.Kind),
 			Actor:     Actor{ID: n.ActorID, DisplayName: deref(n.ActorName), AvatarURL: deref(n.ActorAvatar)},
 			PostID:    deref(n.PostID),
+			RefID:     deref(n.RefID),
 			Read:      n.ReadAt.Valid,
 			CreatedAt: n.CreatedAt.Time,
 		})

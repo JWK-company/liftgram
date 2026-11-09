@@ -2,9 +2,10 @@
 --
 -- 차단한 사람이 일으킨 알림은 보이지 않는다 — 차단은 **양방향**이라 어느 쪽이 걸었든 가린다.
 
+-- ref_id(0033) = 코칭 알림의 대상(관계 id·운동 id). 코칭 kind 는 post_id 를 비운다.
 -- name: CreateNotification :exec
-INSERT INTO notifications (id, user_id, kind, actor_id, post_id)
-VALUES ($1, $2, $3, $4, $5);
+INSERT INTO notifications (id, user_id, kind, actor_id, post_id, ref_id)
+VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: ListNotifications :many
 SELECT n.*, u.display_name AS actor_name, u.avatar_url AS actor_avatar

@@ -36,6 +36,7 @@ func (h *Handler) ListNotifications(ctx context.Context, req *connect.Request[no
 			Kind:      toProtoKind(n.Kind),
 			Actor:     &notificationv1.Actor{Id: n.Actor.ID, DisplayName: n.Actor.DisplayName, AvatarUrl: n.Actor.AvatarURL},
 			PostId:    n.PostID,
+			RefId:     n.RefID,
 			Read:      n.Read,
 			CreatedAt: timestamppb.New(n.CreatedAt),
 		})
@@ -68,6 +69,19 @@ func toProtoKind(k Kind) notificationv1.NotificationKind {
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_COMMENT
 	case KindCoachingSummary: // @plm SRS-080
 		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_SUMMARY
+	// 코칭 v2(SPEC-050)
+	case KindCoachingRequest:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_REQUEST
+	case KindCoachingAccept:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_ACCEPT
+	case KindCoachingRevoke:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_REVOKE
+	case KindCoachingRoutine:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_ROUTINE
+	case KindCoachingRoutineUpdate:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE
+	case KindCoachingComment:
+		return notificationv1.NotificationKind_NOTIFICATION_KIND_COACHING_COMMENT
 	}
 	return notificationv1.NotificationKind_NOTIFICATION_KIND_UNSPECIFIED
 }

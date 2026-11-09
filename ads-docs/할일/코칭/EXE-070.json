@@ -1,0 +1,926 @@
+{
+ "schemaVersion": 1,
+ "id": "EXE-070",
+ "type": "Execution",
+ "title": "SPEC-050 Phase 2 — P1b 연결 화면 구현",
+ "group": "할일/코칭",
+ "meta": {
+  "phase": "2",
+  "result": "done"
+ },
+ "relations": {
+  "executes": [
+   "SPEC-050"
+  ]
+ },
+ "doc": {
+  "type": "doc",
+  "content": [
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "요약"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "연결 화면을 만들었다. 범위 시트(스위치 4개·요청 메시지), 코치 초대 코드 카드(4-4·링크 복사·공유·새로 만들기), 「코드로 연결」·"
+     },
+     {
+      "type": "text",
+      "text": "/coaching/join",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": " 링크 화면(로그인 전 이어받기), 연결 줄 ⋯ 시트(끊기 확인·범위 바꾸기·이력·기록 요약·루틴), 프로필 코치 배지·소개·태그·「코칭 요청」·「코칭 초대」, 사람 화면 코치 배지, 대화방 「코칭 중」, 새 알림 문구, 청록 토큰."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "바꾼 파일"
+     }
+    ]
+   },
+   {
+    "type": "table",
+    "content": [
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "파일"
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_header",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "무엇"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/core/src/theme/tokens.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/scripts/sync-core.mjs",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/frontend/app/theme.generated.css",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "--color-coaching*",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": " 라이트·다크"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/lib/coaching.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "코드 4-4·정규화·링크·기본 범위·태그·보관 코드"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/coaching/CoachingScopeSheet.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "InviteCard.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "CoachBits.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "JoinClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/frontend/app/coaching/join/page.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "새 부품·화면"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/coaching/CoachingClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "초대 카드·코드 연결·범위 시트·GrantRow ⋯·끊기 확인"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/feed/UserProfileClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/feed/PeopleClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/profile/CoachProfileFields.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "코치 배지·소개·태그·요청/초대"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/profile/AuthClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "next 허용 목록에 join 주소"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/dm/ConversationClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/dm/NotificationsClient.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "「코칭 중」·새 알림"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/app/components/ui/Dialog.tsx",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "포커스 이동·복원"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/backend/internal/feed/",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/proto/feed/v1/feed.proto",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "src/database/queries/feed.sql",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "사람 목록 "
+           },
+           {
+            "type": "text",
+            "text": "trainer_intent",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "(코치 배지)"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/core/src/i18n/locales/ko.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "en.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "새 키 89개"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "table_row",
+      "content": [
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "src/frontend/e2e/coaching-v2.spec.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "(새)·"
+           },
+           {
+            "type": "text",
+            "text": "coaching.spec.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "summary-card.spec.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           },
+           {
+            "type": "text",
+            "text": "·"
+           },
+           {
+            "type": "text",
+            "text": "opengym-summary.spec.ts",
+            "marks": [
+             {
+              "type": "code"
+             }
+            ]
+           }
+          ]
+         }
+        ]
+       },
+       {
+        "type": "table_cell",
+        "content": [
+         {
+          "type": "paragraph",
+          "content": [
+           {
+            "type": "text",
+            "text": "새 흐름 · 범위 시트·⋯ 시트에 맞춤"
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "테스트 결과"
+     }
+    ]
+   },
+   {
+    "type": "bullet_list",
+    "content": [
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "e2e(로컬 운영 빌드·새 DB) coaching-v2·coaching·summary-card·dm·opengym-summary·people·profile-edit·profile·auth + session·routine-preview·set-scheme·creator-routines: 49 통과·0 실패·6 건너뜀 · coaching-v2 반복 3회 통과"
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "list_item",
+      "content": [
+       {
+        "type": "paragraph",
+        "content": [
+         {
+          "type": "text",
+          "text": "npx tsc --noEmit",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 통과 · biome(고친 파일) 오류 0 · core "
+         },
+         {
+          "type": "text",
+          "text": "bun test",
+          "marks": [
+           {
+            "type": "code"
+           }
+          ]
+         },
+         {
+          "type": "text",
+          "text": " 실패 8 은 본 트리와 같은 Watermelon 데코레이터 건(무관)"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "수용 기준 확인"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "SRS-115 1(요청·초대 화면)·2(범위 선택·바꾸기)·3(둘째 코치 문구)·10(알림·「코칭 중」)·12(해지 확인) 충족."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "코드 리뷰"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "REV-099 — 채택 11 · 보류 1."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "범위 밖 변경"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "src/frontend/app/components/ui/Dialog.tsx",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": " 공용 창 포커스(리뷰 접근성 지적) — 시트 쓰는 spec 4개로 영향 확인."
+     }
+    ]
+   },
+   {
+    "type": "heading",
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "type": "text",
+      "text": "남은 일"
+     }
+    ]
+   },
+   {
+    "type": "paragraph",
+    "content": [
+     {
+      "type": "text",
+      "text": "대화방 → 회원 화면 바로가기·회원 줄 링크(P2). 코멘트 알림 → "
+     },
+     {
+      "type": "text",
+      "text": "/history/[ref_id]",
+      "marks": [
+       {
+        "type": "code"
+       }
+      ]
+     },
+     {
+      "type": "text",
+      "text": "(P4)."
+     }
+    ]
+   }
+  ]
+ }
+}

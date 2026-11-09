@@ -63,6 +63,29 @@ export function Overlay({
   // 기기·브라우저 뒤로 = 이 창만 닫기 — 밑 화면은 그대로(SPEC-042 · SRS-107)
   useBackToClose(() => closeRef.current());
 
+  // 포커스(코드 리뷰 지적 3) — 열 때 창 안으로, 닫을 때 연 요소로 되돌린다(화면 읽기·키보드가 밑 화면에 남지 않게).
+  //   · 창 안 칸이 이미 포커스를 가졌으면(autoFocus 입력칸) 그대로 둔다 — 키보드가 다시 뜨거나 커서가 튀지 않게.
+  //   · 아니면 창 자체(role=dialog · 이름 = 제목/ariaLabel)에 — 첫 버튼에 주면 엔터 한 번에 눌려 버릴 수 있다.
+  //   · 닫을 때 연 요소가 아직 화면에 있을 때만 되돌린다(메뉴 항목처럼 사라졌으면 그대로).
+  //   · 배경 inert 는 넣지 않는다 — 토스트·겹친 창(시트 위 확인창)이 같은 modal-root·앱 셸에 섞여 있어
+  //     밑을 통째로 inert 로 막으면 다른 화면의 겹친 창·토스트 버튼이 같이 죽는다. 모달 표시는 aria-modal 이 맡는다.
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const active = document.activeElement;
+    openerRef.current = active instanceof HTMLElement && active !== document.body ? active : null;
+    return () => {
+      const opener = openerRef.current;
+      if (opener?.isConnected && !opener.closest("[aria-hidden=true]")) opener.focus({ preventScroll: true });
+    };
+  }, []);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: root 가 생긴 뒤(포털이 그려진 뒤) 한 번 더 돌아야 창이 있다
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (!el || el.contains(document.activeElement)) return;
+    el.focus({ preventScroll: true });
+  }, [root]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
@@ -80,14 +103,17 @@ export function Overlay({
     >
       <button type="button" aria-label="닫기" onClick={onClose} className="absolute inset-0 bg-black/50" />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={ariaLabel}
+        tabIndex={-1}
         className={
           bottom
             ? "relative max-h-[88dvh] w-full max-w-[560px] overflow-y-auto rounded-t-[var(--radius-lg)] bg-(--color-surface) px-[var(--spacing-lg)] pt-[var(--spacing-sm)] pb-[calc(var(--spacing-lg)+env(safe-area-inset-bottom))]"
             : "relative w-full max-w-[380px] rounded-[var(--radius-lg)] bg-(--color-surface) p-[var(--spacing-lg)]"
         }
+        style={{ outline: "none" }}
       >
         {bottom ? (
           <div
@@ -162,7 +188,8 @@ export function ConfirmDialog({
   testId?: string;
 }) {
   return (
-    <Overlay onClose={onCancel} testId={testId}>
+    // [원본] <Overlay onClose={onCancel} testId={testId}> — 창에 이름이 없었다(열 때 창에 포커스가 가면 제목을 읽게)
+    <Overlay onClose={onCancel} testId={testId} ariaLabel={title || undefined}>
       <AppText variant="heading">{title}</AppText>
       {message ? (
         <div className="mt-[var(--spacing-sm)]">
@@ -219,7 +246,8 @@ export function ActionSheet({
   testId?: string;
 }) {
   return (
-    <Overlay onClose={onClose} testId={testId} placement="bottom">
+    // [원본] <Overlay onClose={onClose} testId={testId} placement="bottom"> — 창 이름 없음
+    <Overlay onClose={onClose} testId={testId} placement="bottom" ariaLabel={title || undefined}>
       {title ? <AppText variant="heading">{title}</AppText> : null}
       <ul className="mt-[var(--spacing-md)] flex flex-col">
         {options.map((o, i) => (

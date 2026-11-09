@@ -79,6 +79,12 @@ func (f *fakeRepo) UpdateProfile(_ context.Context, id string, p ProfilePatch) (
 	if p.SetTrainerIntent {
 		u.TrainerIntent = p.TrainerIntent
 	}
+	if p.SetCoachBio {
+		u.CoachBio = p.CoachBio
+	}
+	if p.SetCoachTags {
+		u.CoachTags = p.CoachTags
+	}
 	f.users[id] = u
 	return u, nil
 }

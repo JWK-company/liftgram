@@ -63,6 +63,9 @@ type Peer struct {
 	AvatarURL       string
 	ExperienceLevel string
 	TrainerIntent   bool
+	// 코치 소개·태그(SPEC-050). 태그는 nil 대신 빈 슬라이스.
+	CoachBio  string
+	CoachTags []string
 }
 
 type Grant struct {
@@ -74,6 +77,8 @@ type Grant struct {
 	RequestedBy string
 	ConsentAt   time.Time
 	CreatedAt   time.Time
+	// 요청할 때 남긴 한 줄(SPEC-050).
+	RequestNote string
 	// 보는 사람 기준으로 채운다 — 같은 행을 양쪽이 보기 때문이다.
 	RoleOfMe string
 	Peer     Peer
@@ -104,10 +109,37 @@ type Repo interface {
 	GetGrant(ctx context.Context, grantID string) (Grant, error)
 	GetGrantByPair(ctx context.Context, trainerID, memberID string) (Grant, error)
 	ListGrants(ctx context.Context, viewerID string) ([]Grant, error)
-	CreateGrant(ctx context.Context, id, trainerID, memberID, requestedBy string) (Grant, error)
-	ReopenGrant(ctx context.Context, grantID, requestedBy string) (Grant, error)
-	AcceptGrant(ctx context.Context, grantID string) (Grant, error)
+	// [원본] CreateGrant(ctx, id, trainerID, memberID, requestedBy string) (Grant, error)
+	// [원본] ReopenGrant(ctx, grantID, requestedBy string) (Grant, error)
+	// [원본] AcceptGrant(ctx, grantID string) (Grant, error)
+	// [개선] SPEC-050 — 범위·한 줄 메시지를 함께 쓰고, 상태 조건은 쿼리에 둔다(0행이면 Conflict).
+	CreateGrant(ctx context.Context, id, trainerID, memberID, requestedBy string, scope []byte, note string) (Grant, error)
+	// ReopenGrant는 revoked 행만 되살린다. 범위는 넘긴 값으로 덮는다(옛 범위가 되살아나지 않게).
+	ReopenGrant(ctx context.Context, grantID, requestedBy string, scope []byte, note string) (Grant, error)
+	// AcceptGrant는 pending 일 때만. scope 가 nil 이면 저장된 값을 둔다. 다른 코치와 활성이면 Conflict(one_coach).
+	AcceptGrant(ctx context.Context, grantID string, scope []byte) (Grant, error)
+	// [원본] 해지 — 서비스는 이제 RevokeGrantAndEndRoutines 를 쓴다(구현은 남겨 둔다).
 	RevokeGrant(ctx context.Context, grantID string) (Grant, error)
+	// RevokeGrantAndEndRoutines는 한 트랜잭션: grant FOR UPDATE → revoked(이미 revoked 면 Conflict) →
+	// 그 관계의 활성 coaching_routines → ended. 회원 sync 행의 origin 패치는 P3b 가 채운다.
+	RevokeGrantAndEndRoutines(ctx context.Context, grantID string) (Grant, error)
+	// UpdateScope는 active 일 때만(0행이면 Conflict).
+	UpdateScope(ctx context.Context, grantID string, scope []byte) (Grant, error)
+	// HasOtherActiveCoach — 이 회원에게 exceptTrainerID 가 아닌 활성 코치가 있는가.
+	HasOtherActiveCoach(ctx context.Context, memberID, exceptTrainerID string) (bool, error)
+	// ActivateGrantFromInvite — 초대 코드 연결(같은 쌍은 되살림 · 이미 활성이면 Conflict · 다른 코치면 Conflict).
+	ActivateGrantFromInvite(ctx context.Context, id, trainerID, memberID string, scope []byte) (Grant, error)
+	// GetPeer — 한 사람의 공개 카드(없으면 NotFound).
+	GetPeer(ctx context.Context, userID string) (Peer, error)
+
+	// 초대 코드(SPEC-050). CreateInvite는 한 트랜잭션: 그 코치의 옛 코드 회수 → 넣기.
+	// 다른 코치의 살아 있는 코드와 겹치면 ErrInviteCodeTaken.
+	CreateInvite(ctx context.Context, id, trainerID, code string, expiresAt time.Time) (Invite, error)
+	GetLiveInviteByCode(ctx context.Context, code string) (Invite, error)
+	GetLiveInviteByTrainer(ctx context.Context, trainerID string) (Invite, error)
+	RevokeInvite(ctx context.Context, id string) error
+	// 체중·인바디(bodyView 일 때만) — [from, to)에 잰 기록. 읽은 바이트는 budget 에서 뺀다.
+	ListMemberBodyweightIn(ctx context.Context, memberID string, fromMs, toMs int64, b *ReadBudget) ([]MemberRecord, error)
 
 	Audit(ctx context.Context, id, grantID, actorID, action string, detail []byte) error
 	// AuditOnce는 since 뒤에 같은 (grant, actor, action[, detail])이 있으면 쓰지 않는다(열람 반복 · CS-7).
@@ -135,10 +167,15 @@ type Service struct {
 	// 요약 전달(SRS-080) — WithSummaryDelivery 로 끼운다. dm 의 좁은 포트·알림 포트만 안다.
 	messenger SummaryMessenger
 	notifier  Notifier
+	// 연결 알림(ref_id)·대화방(SPEC-050) — WithConnectPorts 로 끼운다.
+	refNotifier RefNotifier
+	direct      DirectOpener
+	// 초대 코드 생성기 — 기본은 crypto/rand(WithInviteCode 로 바꾼다).
+	newCode func() string
 }
 
 func NewService(repo Repo, newID func() string, now func() time.Time) *Service {
-	return &Service{repo: repo, newID: newID, now: now}
+	return &Service{repo: repo, newID: newID, now: now, newCode: randomInviteCode}
 }
 
 func requireIdentity(viewerID string) error {
@@ -158,8 +195,20 @@ func (s *Service) SearchTrainers(ctx context.Context, viewerID, query string) ([
 
 // Request는 코칭 관계를 건다. **정확히 한쪽만** 지정해야 한다 —
 // 둘 다 비거나 둘 다 채우면 누가 가르치는지 알 수 없다.
+// [개선] SPEC-050 — 범위·메시지 없는 옛 모양은 RequestCoaching(기본 범위)으로 넘긴다.
 func (s *Service) Request(ctx context.Context, viewerID, trainerID, memberID string) (Grant, error) {
+	return s.RequestCoaching(ctx, viewerID, RequestInput{TrainerID: trainerID, MemberID: memberID})
+}
+
+// RequestCoaching은 범위·한 줄 메시지와 함께 관계를 건다(SPEC-050).
+// 회원이 요청하면 그 범위(없으면 기본값)를 저장하고, 코치가 요청하면 기본값 — 회원이 수락할 때 고친다.
+func (s *Service) RequestCoaching(ctx context.Context, viewerID string, in RequestInput) (Grant, error) {
 	if err := requireIdentity(viewerID); err != nil {
+		return Grant{}, err
+	}
+	trainerID, memberID := in.TrainerID, in.MemberID
+	note, err := cleanNote(in.Note)
+	if err != nil {
 		return Grant{}, err
 	}
 	asMember := trainerID != ""
@@ -195,8 +244,20 @@ func (s *Service) Request(ctx context.Context, viewerID, trainerID, memberID str
 	}
 
 	requestedBy := SideTrainer
+	scope := DefaultScope()
 	if asMember {
 		requestedBy = SideMember
+		if in.Scope != nil {
+			scope = *in.Scope
+		}
+		// 코치는 한 명(앞선 확인 — 정본은 수락 때의 one_coach 인덱스).
+		other, err := s.repo.HasOtherActiveCoach(ctx, memberID, trainerID)
+		if err != nil {
+			return Grant{}, err
+		}
+		if other {
+			return Grant{}, errs.New(errs.Conflict, msgOneCoach)
+		}
 	}
 
 	existing, err := s.repo.GetGrantByPair(ctx, trainerID, memberID)
@@ -206,13 +267,16 @@ func (s *Service) Request(ctx context.Context, viewerID, trainerID, memberID str
 		return Grant{}, errs.New(errs.Conflict, "request already exists")
 	case err == nil:
 		// 해지된 관계 — **같은 행을 되살린다**(이력은 감사 기록이 보존한다).
-		g, err := s.repo.ReopenGrant(ctx, existing.ID, requestedBy)
+		// [원본] g, err := s.repo.ReopenGrant(ctx, existing.ID, requestedBy) — 옛 범위가 되살아났다(REV-097)
+		// [개선] 범위는 이번 요청값(없으면 기본값)으로 덮는다.
+		g, err := s.repo.ReopenGrant(ctx, existing.ID, requestedBy, scope.encode(), note)
 		if err != nil {
 			return Grant{}, err
 		}
 		return s.finishRequest(ctx, g, viewerID)
 	case isNotFound(err):
-		g, err := s.repo.CreateGrant(ctx, s.newID(), trainerID, memberID, requestedBy)
+		// [원본] g, err := s.repo.CreateGrant(ctx, s.newID(), trainerID, memberID, requestedBy)
+		g, err := s.repo.CreateGrant(ctx, s.newID(), trainerID, memberID, requestedBy, scope.encode(), note)
 		if err != nil {
 			return Grant{}, err
 		}
@@ -224,11 +288,20 @@ func (s *Service) Request(ctx context.Context, viewerID, trainerID, memberID str
 
 func (s *Service) finishRequest(ctx context.Context, g Grant, viewerID string) (Grant, error) {
 	s.audit(ctx, g.ID, viewerID, ActionRequest, nil)
+	// 받는 쪽 = 반대편(SPEC-050) — 커밋 뒤, 차단이면 보내지 않는다.
+	s.notifyAfter(ctx, otherSide(g, viewerID), viewerID, notifyKindCoachingRequest, g.ID)
 	return s.viewFor(ctx, g.ID, viewerID)
 }
 
 // Accept는 동의다. **요청한 쪽은 부를 수 없다** — 그러면 동의가 아니라 통보다.
+// [개선] SPEC-050 — 범위 없는 옛 모양은 AcceptWith(저장된 범위)로 넘긴다.
 func (s *Service) Accept(ctx context.Context, viewerID, grantID string) (Grant, error) {
+	return s.AcceptWith(ctx, viewerID, grantID, nil)
+}
+
+// AcceptWith는 수락하면서 범위를 받는다 — **회원이 수락할 때만** 저장하고(nil 이면 저장된 값),
+// 코치가 수락하면 무시한다(범위는 회원의 동의다).
+func (s *Service) AcceptWith(ctx context.Context, viewerID, grantID string, scope *Scope) (Grant, error) {
 	if err := requireIdentity(viewerID); err != nil {
 		return Grant{}, err
 	}
@@ -250,11 +323,27 @@ func (s *Service) Accept(ctx context.Context, viewerID, grantID string) (Grant, 
 	if err := s.assertTrainerEligible(ctx, g.TrainerID); err != nil {
 		return Grant{}, err
 	}
+	// 차단 재확인(SPEC-050) — 요청한 뒤 차단했을 수 있다.
+	if err := s.assertNotBlocked(ctx, g.TrainerID, g.MemberID); err != nil {
+		return Grant{}, err
+	}
+	var scopeJSON []byte
+	if side == SideMember && scope != nil {
+		scopeJSON = scope.encode()
+	}
 
-	if _, err := s.repo.AcceptGrant(ctx, grantID); err != nil {
+	// [원본] if _, err := s.repo.AcceptGrant(ctx, grantID); err != nil {
+	// [개선] 쿼리가 pending 을 다시 보고(0행 → Conflict), one_coach 인덱스가 둘째 코치를 막는다(23505 → Conflict).
+	if _, err := s.repo.AcceptGrant(ctx, grantID, scopeJSON); err != nil {
+		var de *errs.DomainError
+		if side == SideTrainer && errors.As(err, &de) && de.Message == msgOneCoach {
+			return Grant{}, errs.New(errs.Conflict, msgMemberHasCoach)
+		}
 		return Grant{}, err
 	}
 	s.audit(ctx, grantID, viewerID, ActionAccept, nil)
+	s.notifyAfter(ctx, otherSide(g, viewerID), viewerID, notifyKindCoachingAccept, grantID)
+	s.openDirect(ctx, g.TrainerID, g.MemberID)
 	return s.viewFor(ctx, grantID, viewerID)
 }
 
@@ -273,10 +362,13 @@ func (s *Service) Revoke(ctx context.Context, viewerID, grantID string) (Grant, 
 	if g.Status == StatusRevoked {
 		return Grant{}, errs.New(errs.Validation, "already revoked")
 	}
-	if _, err := s.repo.RevokeGrant(ctx, grantID); err != nil {
+	// [원본] if _, err := s.repo.RevokeGrant(ctx, grantID); err != nil {
+	// [개선] SPEC-050 — grant 를 잠그고 해지 + 그 관계의 코치 루틴을 끝낸다(한 트랜잭션 · 루틴 보내기와 경합 방지).
+	if _, err := s.repo.RevokeGrantAndEndRoutines(ctx, grantID); err != nil {
 		return Grant{}, err
 	}
 	s.audit(ctx, grantID, viewerID, ActionRevoke, nil)
+	s.notifyAfter(ctx, otherSide(g, viewerID), viewerID, notifyKindCoachingRevoke, grantID)
 	return s.viewFor(ctx, grantID, viewerID)
 }
 
@@ -363,7 +455,9 @@ func (s *Service) GetMemberReport(ctx context.Context, viewerID, memberID string
 	if err != nil {
 		return Report{}, err
 	}
-	return buildReportWith(recs, catalog, s.now()), nil
+	// [원본] return buildReportWith(recs, catalog, s.now()), nil
+	// [개선] SPEC-050 — 지난 기록을 열지 않았으면 동의 시각 앞의 운동은 세지 않는다(visibleFrom).
+	return buildReportSince(recs, catalog, s.now(), visibleFrom(g)), nil
 }
 
 // ListMemberRoutines는 회원의 루틴과 현재 처방을 돌려준다.

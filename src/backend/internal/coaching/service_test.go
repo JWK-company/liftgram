@@ -41,13 +41,23 @@ type fakeRepo struct {
 	periodReads  []string         // GetMemberRecords 의 기간·부모 조회가 물은 컬렉션(순서대로)
 	auditAt      []time.Time      // 감사마다 clock — AuditOnce 의 창(window) 판정용
 	clock        time.Time        // 가짜 DB 시각(기본 = 테스트 now)
+
+	// 코칭 v2(SPEC-050) — connect_v2_test.go 가 쓴다.
+	invites       map[string]Invite // id → 초대
+	revokedInvite map[string]bool
+	peers         map[string]Peer
+	codeTaken     map[string]bool // CreateInvite 가 ErrInviteCodeTaken 을 낼 코드
+	endedRoutines []string        // RevokeGrantAndEndRoutines 가 끝낸 관계
+	auditGrants   []string        // 감사마다 grant id(빈 문자열 = 관계 없음)
 }
 
 func newRepo() *fakeRepo {
 	return &fakeRepo{
 		eligible: map[string]bool{}, users: map[string]bool{},
 		grants: map[string]Grant{}, updated: map[string][]byte{},
-		clock: time.UnixMilli(1_700_000_000_000),
+		clock:   time.UnixMilli(1_700_000_000_000),
+		invites: map[string]Invite{}, revokedInvite: map[string]bool{}, peers: map[string]Peer{},
+		codeTaken: map[string]bool{},
 	}
 }
 
@@ -95,27 +105,145 @@ func (f *fakeRepo) ListGrants(_ context.Context, viewerID string) ([]Grant, erro
 	}
 	return out, nil
 }
-func (f *fakeRepo) CreateGrant(_ context.Context, id, trainerID, memberID, requestedBy string) (Grant, error) {
+
+// [원본] CreateGrant 는 범위 없이 fullScope 를 넣었다 — SPEC-050 부터 받은 범위(실제 쿼리와 같은 모양)를 넣는다.
+func (f *fakeRepo) CreateGrant(_ context.Context, id, trainerID, memberID, requestedBy string, scope []byte, note string) (Grant, error) {
 	g := Grant{
 		ID: id, TrainerID: trainerID, MemberID: memberID, Status: StatusPending,
-		RequestedBy: requestedBy, Scope: fullScope(),
+		RequestedBy: requestedBy, Scope: parseScope(scope), RequestNote: note,
 	}
 	f.grants[id] = g
 	return g, nil
 }
-func (f *fakeRepo) ReopenGrant(_ context.Context, id, requestedBy string) (Grant, error) {
+func (f *fakeRepo) ReopenGrant(_ context.Context, id, requestedBy string, scope []byte, note string) (Grant, error) {
 	g := f.grants[id]
+	if g.Status != StatusRevoked {
+		return Grant{}, errs.New(errs.Conflict, msgStateChanged)
+	}
 	g.Status, g.RequestedBy, g.ConsentAt = StatusPending, requestedBy, time.Time{}
+	g.Scope, g.RequestNote = parseScope(scope), note
 	f.grants[id] = g
 	return g, nil
 }
-func (f *fakeRepo) AcceptGrant(_ context.Context, id string) (Grant, error) {
-	g := f.grants[id]
+
+// otherActive — 실제 coaching_grants_one_coach 인덱스와 같은 판정.
+func (f *fakeRepo) otherActive(memberID, exceptID string) bool {
+	for _, o := range f.grants {
+		if o.ID != exceptID && o.MemberID == memberID && o.Status == StatusActive {
+			return true
+		}
+	}
+	return false
+}
+func (f *fakeRepo) AcceptGrant(_ context.Context, id string, scope []byte) (Grant, error) {
+	g, ok := f.grants[id]
+	if !ok || g.Status != StatusPending {
+		return Grant{}, errs.New(errs.Conflict, msgStateChanged) // AND status='pending' 0행
+	}
+	if f.otherActive(g.MemberID, id) {
+		return Grant{}, errs.New(errs.Conflict, msgOneCoach) // one_coach 23505
+	}
 	// 수락할 때마다 새 동의 시각 — 재계약이면 consent_at 이 바뀐다(실제 AcceptGrant 의 now()).
 	f.accepts++
 	g.Status, g.ConsentAt = StatusActive, time.Unix(int64(f.accepts), 0)
+	if scope != nil {
+		g.Scope = parseScope(scope)
+	}
 	f.grants[id] = g
 	return g, nil
+}
+func (f *fakeRepo) RevokeGrantAndEndRoutines(ctx context.Context, id string) (Grant, error) {
+	g, ok := f.grants[id]
+	if !ok {
+		return Grant{}, errs.New(errs.NotFound, "grant not found")
+	}
+	if g.Status == StatusRevoked {
+		return Grant{}, errs.New(errs.Conflict, msgStateChanged)
+	}
+	f.endedRoutines = append(f.endedRoutines, id)
+	return f.RevokeGrant(ctx, id)
+}
+func (f *fakeRepo) UpdateScope(_ context.Context, id string, scope []byte) (Grant, error) {
+	g, ok := f.grants[id]
+	if !ok || g.Status != StatusActive {
+		return Grant{}, errs.New(errs.Conflict, msgStateChanged)
+	}
+	g.Scope = parseScope(scope)
+	f.grants[id] = g
+	return g, nil
+}
+func (f *fakeRepo) HasOtherActiveCoach(_ context.Context, memberID, exceptTrainerID string) (bool, error) {
+	for _, o := range f.grants {
+		if o.MemberID == memberID && o.Status == StatusActive && o.TrainerID != exceptTrainerID {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+func (f *fakeRepo) ActivateGrantFromInvite(_ context.Context, id, trainerID, memberID string, scope []byte) (Grant, error) {
+	var g Grant
+	found := false
+	for _, o := range f.grants {
+		if o.TrainerID == trainerID && o.MemberID == memberID {
+			g, found = o, true
+		}
+	}
+	if found && g.Status == StatusActive {
+		return Grant{}, errs.New(errs.Conflict, msgAlreadyConnected)
+	}
+	if !found {
+		g = Grant{ID: id, TrainerID: trainerID, MemberID: memberID}
+	}
+	if f.otherActive(memberID, g.ID) {
+		return Grant{}, errs.New(errs.Conflict, msgOneCoach)
+	}
+	f.accepts++
+	g.Status, g.Scope, g.RequestedBy, g.ConsentAt, g.RequestNote = StatusActive, parseScope(scope), SideTrainer, time.Unix(int64(f.accepts), 0), ""
+	f.grants[g.ID] = g
+	return g, nil
+}
+func (f *fakeRepo) GetPeer(_ context.Context, userID string) (Peer, error) {
+	p, ok := f.peers[userID]
+	if !ok {
+		return Peer{}, errs.New(errs.NotFound, "user not found")
+	}
+	return p, nil
+}
+func (f *fakeRepo) CreateInvite(_ context.Context, id, trainerID, code string, expiresAt time.Time) (Invite, error) {
+	if f.codeTaken[code] {
+		return Invite{}, ErrInviteCodeTaken
+	}
+	for k, inv := range f.invites {
+		if inv.TrainerID == trainerID && !f.revokedInvite[k] {
+			f.revokedInvite[k] = true // 옛 코드 회수
+		}
+	}
+	inv := Invite{ID: id, Code: code, TrainerID: trainerID, CreatedAt: f.clock, ExpiresAt: expiresAt}
+	f.invites[inv.ID] = inv
+	return inv, nil
+}
+func (f *fakeRepo) GetLiveInviteByCode(_ context.Context, code string) (Invite, error) {
+	for k, inv := range f.invites {
+		if inv.Code == code && !f.revokedInvite[k] {
+			return inv, nil
+		}
+	}
+	return Invite{}, errs.New(errs.NotFound, msgInviteNotFound)
+}
+func (f *fakeRepo) GetLiveInviteByTrainer(_ context.Context, trainerID string) (Invite, error) {
+	for k, inv := range f.invites {
+		if inv.TrainerID == trainerID && !f.revokedInvite[k] {
+			return inv, nil
+		}
+	}
+	return Invite{}, errs.New(errs.NotFound, msgInviteNotFound)
+}
+func (f *fakeRepo) RevokeInvite(_ context.Context, id string) error {
+	f.revokedInvite[id] = true
+	return nil
+}
+func (f *fakeRepo) ListMemberBodyweightIn(_ context.Context, _ string, _, _ int64, b *ReadBudget) ([]MemberRecord, error) {
+	return f.periodRead(bodyRecordCollection, b)
 }
 func (f *fakeRepo) RevokeGrant(_ context.Context, id string) (Grant, error) {
 	g := f.grants[id]
@@ -128,6 +256,7 @@ func (f *fakeRepo) Audit(_ context.Context, id, grantID, actorID, action string,
 		return errors.New("감사 기록 실패")
 	}
 	f.audits = append(f.audits, AuditEntry{ID: id, ActorID: actorID, Action: action})
+	f.auditGrants = append(f.auditGrants, grantID)
 	f.auditDetails = append(f.auditDetails, detail)
 	f.auditAt = append(f.auditAt, f.clock)
 	return nil
@@ -371,6 +500,8 @@ func activeGrant(repo *fakeRepo, scope map[string]bool) {
 	repo.grants["g1"] = Grant{
 		ID: "g1", TrainerID: "t1", MemberID: "m1", Status: StatusActive,
 		RequestedBy: SideMember, Scope: scope,
+		// 동의 시각이 비면 「지금부터」로 자른다(P1a 리뷰) — 기록 시험은 아주 옛날에 동의한 관계로
+		ConsentAt: time.UnixMilli(1),
 	}
 }
 

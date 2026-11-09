@@ -7,10 +7,22 @@
 //
 // 차단은 되돌릴 수 있지만 관계를 끊는다(팔로우가 양쪽 다 사라진다). 그래서 확인창을 세운다.
 // 내가 차단한 사람의 프로필은 **보인다** — 해제 버튼이 여기 있어야 하기 때문이다.
+//
+// 코칭 v2(SPEC-050 P1b): 상대가 코치(trainer_intent)면 이름 옆 「코치」 배지 · 소개 · 태그.
+// 버튼 줄 아래 한 줄 — 「코칭 요청」(상대가 코치 · 범위 시트) / 「코칭 초대」(내가 코치 · 상대는 코치 아님) /
+// 이미 연결돼 있으면 「코칭 중」. 판단은 관계 목록(ListGrants)을 다 읽은 뒤에만 그린다(깜빡임 금지).
 // ─────────────────────────────────────────────────────────────────────────────
 import { navigate } from "@/lib/nav";
 import type { WeightUnit } from "@app/core";
-import { routes, type Cursor, type Post, type SocialProfile } from "@app/contracts";
+import {
+  GrantStatus,
+  Side,
+  routes,
+  type Cursor,
+  type Grant,
+  type Post,
+  type SocialProfile,
+} from "@app/contracts";
 import { useCallback, useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { dmClient } from "@/lib/dmClient";
@@ -26,6 +38,13 @@ import { MoreMenu } from "../ui/MoreMenu";
 import { InfiniteSentinel } from "./InfiniteSentinel";
 import { PostCard } from "./PostCard";
 import { useWeightUnit } from "./useWeightUnit";
+import { coachingClient } from "@/lib/coachingClient";
+import type { ScopeValue } from "@/lib/coaching";
+import { errorText } from "@/lib/errorText";
+import { useToast } from "../Toast";
+import { CoachBadge, CoachCard, CoachingActiveBadge, CoachTags } from "../coaching/CoachBits";
+import { CoachingScopeSheet } from "../coaching/CoachingScopeSheet";
+import { ConfirmDialog } from "../ui/Dialog";
 
 export default function UserProfileClient({ userId }: { userId: string }) {
   const { user } = useAuth();
@@ -37,6 +56,61 @@ export default function UserProfileClient({ userId }: { userId: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  // 코칭(SPEC-050) — 이 사람과의 관계(undefined = 아직 읽는 중 · null = 없음) · 범위 시트
+  const [grant, setGrant] = useState<Grant | null | undefined>(undefined);
+  const [scopeOpen, setScopeOpen] = useState(false);
+  const [coachBusy, setCoachBusy] = useState(false);
+  const [coachError, setCoachError] = useState<string | null>(null);
+  // 관계 목록 읽기 실패면 코칭 줄을 그리지 않는다(없는 줄 알고 요청·초대를 띄우지 않게 · 코드 리뷰 지적 8)
+  const [grantsError, setGrantsError] = useState(false);
+  // 내가 회원으로 이미 다른 코치와 연결돼 있나 — 그러면 「코칭 요청」 대신 안내(서버가 거절하기 전에, 시트를 열기 전에)
+  const [hasCoach, setHasCoach] = useState(false);
+  const [confirmInvite, setConfirmInvite] = useState(false);
+  const meId = user?.id ?? null;
+
+  const loadGrant = useCallback(async () => {
+    if (!meId) {
+      setGrant(null);
+      return;
+    }
+    try {
+      const res = await coachingClient().listGrants({});
+      setGrantsError(false);
+      setHasCoach(
+        res.grants.some(
+          (g) => g.roleOfMe === Side.MEMBER && g.status === GrantStatus.ACTIVE && g.peer?.id !== userId,
+        ),
+      );
+      setGrant(res.grants.find((g) => g.peer?.id === userId && g.status !== GrantStatus.REVOKED) ?? null);
+    } catch {
+      setGrantsError(true);
+      setGrant(null);
+    }
+  }, [meId, userId]);
+
+  useEffect(() => {
+    void loadGrant();
+  }, [loadGrant]);
+
+  /** 회원이 코치에게(범위·한 줄) · 코치가 회원에게(범위는 회원이 수락할 때 고른다). */
+  async function requestCoaching(as: "member" | "trainer", scope?: ScopeValue, note = "") {
+    if (coachBusy) return;
+    setCoachBusy(true);
+    setCoachError(null);
+    try {
+      if (as === "member") await coachingClient().requestCoaching({ trainerId: userId, scope, note });
+      else await coachingClient().requestCoaching({ memberId: userId });
+      toast(as === "member" ? t("coaching.requestSent") : t("coaching.inviteSent"));
+      setScopeOpen(false);
+      await loadGrant();
+    } catch (e) {
+      if (as === "member") setCoachError(errorText(e));
+      else toast(errorText(e), "error");
+    } finally {
+      setCoachBusy(false);
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -169,9 +243,13 @@ export default function UserProfileClient({ userId }: { userId: string }) {
             <div className="flex items-center gap-[var(--spacing-lg)]">
               <Avatar name={name} url={profile.author?.avatarUrl} size={72} />
               <div className="min-w-0 flex-1">
-                <AppText variant="heading" data-testid="profile-name" className="block truncate">
-                  {name}
-                </AppText>
+                {/* [원본] 이름 한 줄 — 코치면 옆에 「코치」 배지(SPEC-050) */}
+                <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
+                  <AppText variant="heading" data-testid="profile-name" className="block min-w-0 truncate">
+                    {name}
+                  </AppText>
+                  {profile.trainerIntent ? <CoachBadge testId="profile-coach-badge" /> : null}
+                </div>
                 <div className="mt-[var(--spacing-sm)] flex gap-[var(--spacing-xl)]">
                   <Stat value={profile.postCount} label={t("profile.postsLabel")} />
                   <Stat
@@ -189,6 +267,23 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 </div>
               </div>
             </div>
+
+            {/* 코치 소개·태그(SPEC-050) */}
+            {profile.trainerIntent && (profile.coachBio || profile.coachTags.length > 0) ? (
+              <div className="mt-[var(--spacing-md)] flex flex-col gap-[var(--spacing-xs)]">
+                {profile.coachBio ? (
+                  <AppText
+                    variant="body"
+                    color="textMuted"
+                    className="block break-words"
+                    data-testid="profile-coach-bio"
+                  >
+                    {profile.coachBio}
+                  </AppText>
+                ) : null}
+                <CoachTags tags={profile.coachTags} testId="profile-coach-tags" />
+              </div>
+            ) : null}
 
             {profile.isSelf ? null : profile.isBlocked ? (
               <div className="mt-[var(--spacing-lg)] flex w-full gap-[var(--spacing-sm)]">
@@ -224,6 +319,20 @@ export default function UserProfileClient({ userId }: { userId: string }) {
                 </div>
               </div>
             )}
+            {profile.isSelf || profile.isBlocked || !user || grantsError ? null : (
+              <CoachingLine
+                grant={grant}
+                hasCoach={hasCoach}
+                peerIsCoach={profile.trainerIntent}
+                meIsCoach={!!user.trainerIntent}
+                busy={coachBusy}
+                onRequest={() => {
+                  setCoachError(null);
+                  setScopeOpen(true);
+                }}
+                onInvite={() => setConfirmInvite(true)}
+              />
+            )}
           </div>
         ) : null}
 
@@ -251,6 +360,117 @@ export default function UserProfileClient({ userId }: { userId: string }) {
           </>
         )}
       </div>
+      {scopeOpen && profile ? (
+        <CoachingScopeSheet
+          mode="request"
+          header={
+            <CoachCard
+              name={name}
+              avatarUrl={profile.author?.avatarUrl}
+              bio={profile.coachBio}
+              tags={profile.coachTags}
+              testId="scope-coach-card"
+            />
+          }
+          busy={coachBusy}
+          error={coachError}
+          onConfirm={(scope, note) => void requestCoaching("member", scope, note)}
+          onClose={() => setScopeOpen(false)}
+        />
+      ) : null}
+      {confirmInvite && profile ? (
+        <ConfirmDialog
+          testId="profile-invite-confirm"
+          title={t("coaching.profile.inviteTitle")}
+          message={t("coaching.profile.inviteMessage", { name })}
+          confirmLabel={t("coaching.profile.invite")}
+          onCancel={() => setConfirmInvite(false)}
+          onConfirm={() => {
+            setConfirmInvite(false);
+            void requestCoaching("trainer");
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * 버튼 줄 아래 코칭 한 줄 — 보조 버튼(빨강 채움 아님). 관계를 읽는 동안은 자리만(44px) 잡아 두고 그리지 않는다.
+ *   연결돼 있음 → 「코칭 중」 · 대기 → 「코칭 수락 대기」 · 상대가 코치 → 「코칭 요청」 · 내가 코치 → 「코칭 초대」
+ */
+function CoachingLine({
+  grant,
+  hasCoach,
+  peerIsCoach,
+  meIsCoach,
+  busy,
+  onRequest,
+  onInvite,
+}: {
+  grant: Grant | null | undefined;
+  hasCoach: boolean;
+  peerIsCoach: boolean;
+  meIsCoach: boolean;
+  busy: boolean;
+  onRequest: () => void;
+  onInvite: () => void;
+}) {
+  if (!peerIsCoach && !meIsCoach) return null;
+  if (grant === undefined) return <div className="mt-[var(--spacing-sm)] h-11" aria-hidden />;
+  if (grant) {
+    const active = grant.status === GrantStatus.ACTIVE;
+    return (
+      <a
+        href="/coaching"
+        data-testid="profile-coaching-state"
+        className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center gap-[var(--spacing-xs)] rounded-[var(--radius-sm)] bg-(--color-surface-alt)"
+      >
+        {active ? (
+          <CoachingActiveBadge testId="profile-coaching-active" />
+        ) : (
+          <AppText variant="caption" color="textMuted" className="font-semibold">
+            {t("coaching.profile.pending")}
+          </AppText>
+        )}
+      </a>
+    );
+  }
+  if (peerIsCoach && hasCoach) {
+    // 이미 코치가 있으면 요청을 막는다 — 버튼 대신 안내 한 줄(누르면 코칭 화면)
+    return (
+      <a
+        href="/coaching"
+        data-testid="profile-coaching-has-coach"
+        className="mt-[var(--spacing-sm)] flex min-h-11 items-center justify-center rounded-[var(--radius-sm)] bg-(--color-surface-alt) px-[var(--spacing-md)] py-[var(--spacing-xs)] text-center"
+      >
+        <AppText variant="caption" color="textMuted">
+          {t("coaching.profile.hasCoach")}
+        </AppText>
+      </a>
+    );
+  }
+  return (
+    <div className="mt-[var(--spacing-sm)]">
+      {peerIsCoach ? (
+        <Button
+          title={t("coaching.profile.request")}
+          icon="people-outline"
+          variant="secondary"
+          disabled={busy}
+          onPress={onRequest}
+          testId="profile-coaching-request"
+        />
+      ) : (
+        <Button
+          title={t("coaching.profile.invite")}
+          icon="people-outline"
+          variant="secondary"
+          loading={busy}
+          onPress={onInvite}
+          testId="profile-coaching-invite"
+        />
+      )}
     </div>
   );
 }

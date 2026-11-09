@@ -106,6 +106,10 @@ func (h *Handler) UpdateProfile(ctx context.Context, req *connect.Request[authv1
 		SetExperienceLevel: req.Msg.GetSetExperienceLevel(),
 		TrainerIntent:      req.Msg.GetTrainerIntent(),
 		SetTrainerIntent:   req.Msg.GetSetTrainerIntent(),
+		CoachBio:           req.Msg.GetCoachBio(),
+		SetCoachBio:        req.Msg.GetSetCoachBio(),
+		CoachTags:          req.Msg.GetCoachTags(),
+		SetCoachTags:       req.Msg.GetSetCoachTags(),
 	})
 	if err != nil {
 		return nil, err
@@ -136,6 +140,8 @@ func toProtoUser(u User) *authv1.User {
 		EmailVerified:   u.EmailVerified,
 		// 비밀번호 유무는 해시가 아니라 있다/없다만 내보낸다.
 		HasPassword: u.PasswordHash != "",
+		CoachBio:    u.CoachBio,
+		CoachTags:   u.CoachTags,
 	}
 }
 

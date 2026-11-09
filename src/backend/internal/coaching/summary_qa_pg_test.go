@@ -30,7 +30,11 @@ type pgPair struct {
 	grantID         string
 }
 
-func newPGPair(t *testing.T) pgPair {
+// pgPastAll — 이 파일의 옛 시험은 동의 이전 기록(3일·40일 전)을 읽는다 — SPEC-050 부터는 pastRecords 를 켜야 보인다(REV-097 H6).
+var pgPastAll = Scope{LogView: true, RoutineEdit: true, PastRecords: true}
+
+// newPGPair — 회원이 scope 로 요청하고 트레이너가 수락한 활성 짝(SPEC-050: scope 인자).
+func newPGPair(t *testing.T, scope Scope) pgPair {
 	t.Helper()
 	pool := testpg.Pool(t)
 	ctx := context.Background()
@@ -46,7 +50,8 @@ func newPGPair(t *testing.T) pgPair {
 	dmSvc := dm.NewService(dm.NewRepo(pool), nil, nil, uuid.NewString)
 	notifSvc := notification.NewService(notification.NewRepo(pool), uuid.NewString)
 	svc := NewService(NewRepo(pool), uuid.NewString, time.Now).WithSummaryDelivery(dmSvc, pgNotify{notifSvc})
-	g, err := svc.Request(ctx, member, trainer, "")
+	// [원본] g, err := svc.Request(ctx, member, trainer, "")
+	g, err := svc.RequestCoaching(ctx, member, RequestInput{TrainerID: trainer, Scope: &scope})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +80,7 @@ func pgInput(p pgPair, snap string) SendSummaryInput {
 
 // CS-1·CS-2 — 왜 막는지(PG 가 숫자를 펼친다)를 가볍게 재현하고, 서비스는 저장 전에 Validation 으로 끊는다.
 func TestQA_Postgres_큰_숫자_펼침과_서로게이트(t *testing.T) {
-	p := newPGPair(t)
+	p := newPGPair(t, pgPastAll)
 	ctx := context.Background()
 
 	// 재현(가벼운 판): 15바이트 입력이 jsonb → 글에서 10만 자가 된다. 64KB 에 7천 개면 ~910MB(보고서 실측).
@@ -123,7 +128,7 @@ func TestQA_Postgres_큰_숫자_펼침과_서로게이트(t *testing.T) {
 
 // CS-5 — client_id 만 다른 동시 25건 → 정확히 20건만 들어가고 나머지는 ResourceExhausted.
 func TestQA_Postgres_하루_상한_동시_요청(t *testing.T) {
-	p := newPGPair(t)
+	p := newPGPair(t, pgPastAll)
 	ctx := context.Background()
 	const n = 25
 	var wg gosync.WaitGroup
@@ -156,7 +161,7 @@ func TestQA_Postgres_하루_상한_동시_요청(t *testing.T) {
 
 // CS-4·CS-3·CS-7 — 기간·부모 SQL 필터, 차단 회수, 감사 합치기.
 func TestQA_Postgres_원본_레코드_SQL_필터_차단_감사(t *testing.T) {
-	p := newPGPair(t)
+	p := newPGPair(t, pgPastAll)
 	ctx := context.Background()
 	now := time.Now()
 	in, prev, old := now.Add(-3*day).UnixMilli(), now.Add(-40*day).UnixMilli(), now.Add(-90*day).UnixMilli()

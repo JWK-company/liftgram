@@ -232,6 +232,10 @@ const THEME_CSS = join(HERE, "..", "frontend", "app", "theme.generated.css");
     ["bad-soft", "dangerSoft"],
     ["pr", "pr"],
     ["pr-soft", "prSoft"],
+    // 코칭 청록(SPEC-050) — CoachMark(--color-coach*)와 겹치지 않는 이름
+    ["coaching", "coaching"],
+    ["coaching-soft", "coachingSoft"],
+    ["coaching-ink", "coachingInk"],
   ];
   const prim = (c) => MAP.map(([n, k]) => `  --p-${n}: ${c[k]};`);
   const lines = [

@@ -143,7 +143,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users (id, email, display_name, password_hash, auth_provider, role)
 VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded, coach_bio, coach_tags
 `
 
 type CreateUserParams struct {
@@ -186,6 +186,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
 		&i.StatsExcluded,
+		&i.CoachBio,
+		&i.CoachTags,
 	)
 	return i, err
 }
@@ -325,7 +327,7 @@ func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash string) (Refres
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded FROM users WHERE lower(email) = lower($1)
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded, coach_bio, coach_tags FROM users WHERE lower(email) = lower($1)
 `
 
 // 로그인이 쓴다. 이메일은 대소문자를 가리지 않는다 —
@@ -350,12 +352,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, lower string) (User, error
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
 		&i.StatsExcluded,
+		&i.CoachBio,
+		&i.CoachTags,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded FROM users WHERE id = $1
+SELECT id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded, coach_bio, coach_tags FROM users WHERE id = $1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
@@ -378,6 +382,8 @@ func (q *Queries) GetUserByID(ctx context.Context, id string) (User, error) {
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
 		&i.StatsExcluded,
+		&i.CoachBio,
+		&i.CoachTags,
 	)
 	return i, err
 }
@@ -662,9 +668,12 @@ UPDATE users SET
   avatar_url       = CASE WHEN $3::boolean       THEN $4::text       ELSE avatar_url END,
   experience_level = CASE WHEN $5::boolean THEN $6::text ELSE experience_level END,
   trainer_intent   = CASE WHEN $7::boolean   THEN $8::boolean ELSE trainer_intent END,
+  -- 코치 소개·태그(0033 · SPEC-050). 태그는 빈 배열로라도 넘긴다(nil 이면 NULL → NOT NULL 위반).
+  coach_bio        = CASE WHEN $9::boolean        THEN $10::text        ELSE coach_bio END,
+  coach_tags       = CASE WHEN $11::boolean       THEN $12::text[]     ELSE coach_tags END,
   updated_at       = now()
-WHERE id = $9::text
-RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded
+WHERE id = $13::text
+RETURNING id, email, display_name, avatar_url, password_hash, auth_provider, role, experience_level, trainer_intent, created_at, updated_at, email_verified_at, recommend_opt_out, age_confirmed_at, age_confirm_via, stats_excluded, coach_bio, coach_tags
 `
 
 type UpdateUserProfileParams struct {
@@ -676,6 +685,10 @@ type UpdateUserProfileParams struct {
 	ExperienceLevel    string
 	SetTrainerIntent   bool
 	TrainerIntent      bool
+	SetCoachBio        bool
+	CoachBio           string
+	SetCoachTags       bool
+	CoachTags          []string
 	ID                 string
 }
 
@@ -691,6 +704,10 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		arg.ExperienceLevel,
 		arg.SetTrainerIntent,
 		arg.TrainerIntent,
+		arg.SetCoachBio,
+		arg.CoachBio,
+		arg.SetCoachTags,
+		arg.CoachTags,
 		arg.ID,
 	)
 	var i User
@@ -711,6 +728,8 @@ func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfilePa
 		&i.AgeConfirmedAt,
 		&i.AgeConfirmVia,
 		&i.StatsExcluded,
+		&i.CoachBio,
+		&i.CoachTags,
 	)
 	return i, err
 }

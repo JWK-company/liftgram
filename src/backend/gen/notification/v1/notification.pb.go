@@ -44,23 +44,45 @@ const (
 	// 화면은 그 회원과의 대화로 간다. 옛 앱은 모르는 종류라 generic 문구로 보인다(S-16).
 	// @plm SRS-080
 	NotificationKind_NOTIFICATION_KIND_COACHING_SUMMARY NotificationKind = 4
+	// 코칭 v2(SPEC-050) — 받는 쪽 = 반대편. post_id 는 비우고 대상은 ref_id 에 싣는다.
+	// 요청·수락·해지 = ref_id 는 관계(grant) id → 화면은 /coaching.
+	NotificationKind_NOTIFICATION_KIND_COACHING_REQUEST NotificationKind = 5
+	NotificationKind_NOTIFICATION_KIND_COACHING_ACCEPT  NotificationKind = 6
+	NotificationKind_NOTIFICATION_KIND_COACHING_REVOKE  NotificationKind = 7
+	// 코치가 루틴을 보냈다 / 고쳐 보냈다(10분 묶음) — ref_id 는 회원 쪽 루틴 id.
+	NotificationKind_NOTIFICATION_KIND_COACHING_ROUTINE        NotificationKind = 8
+	NotificationKind_NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE NotificationKind = 9
+	// 코치가 운동에 코멘트를 남겼다 — ref_id 는 운동 id(/history/[ref_id]).
+	NotificationKind_NOTIFICATION_KIND_COACHING_COMMENT NotificationKind = 10
 )
 
 // Enum value maps for NotificationKind.
 var (
 	NotificationKind_name = map[int32]string{
-		0: "NOTIFICATION_KIND_UNSPECIFIED",
-		1: "NOTIFICATION_KIND_FOLLOW",
-		2: "NOTIFICATION_KIND_LIKE",
-		3: "NOTIFICATION_KIND_COMMENT",
-		4: "NOTIFICATION_KIND_COACHING_SUMMARY",
+		0:  "NOTIFICATION_KIND_UNSPECIFIED",
+		1:  "NOTIFICATION_KIND_FOLLOW",
+		2:  "NOTIFICATION_KIND_LIKE",
+		3:  "NOTIFICATION_KIND_COMMENT",
+		4:  "NOTIFICATION_KIND_COACHING_SUMMARY",
+		5:  "NOTIFICATION_KIND_COACHING_REQUEST",
+		6:  "NOTIFICATION_KIND_COACHING_ACCEPT",
+		7:  "NOTIFICATION_KIND_COACHING_REVOKE",
+		8:  "NOTIFICATION_KIND_COACHING_ROUTINE",
+		9:  "NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE",
+		10: "NOTIFICATION_KIND_COACHING_COMMENT",
 	}
 	NotificationKind_value = map[string]int32{
-		"NOTIFICATION_KIND_UNSPECIFIED":      0,
-		"NOTIFICATION_KIND_FOLLOW":           1,
-		"NOTIFICATION_KIND_LIKE":             2,
-		"NOTIFICATION_KIND_COMMENT":          3,
-		"NOTIFICATION_KIND_COACHING_SUMMARY": 4,
+		"NOTIFICATION_KIND_UNSPECIFIED":             0,
+		"NOTIFICATION_KIND_FOLLOW":                  1,
+		"NOTIFICATION_KIND_LIKE":                    2,
+		"NOTIFICATION_KIND_COMMENT":                 3,
+		"NOTIFICATION_KIND_COACHING_SUMMARY":        4,
+		"NOTIFICATION_KIND_COACHING_REQUEST":        5,
+		"NOTIFICATION_KIND_COACHING_ACCEPT":         6,
+		"NOTIFICATION_KIND_COACHING_REVOKE":         7,
+		"NOTIFICATION_KIND_COACHING_ROUTINE":        8,
+		"NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE": 9,
+		"NOTIFICATION_KIND_COACHING_COMMENT":        10,
 	}
 )
 
@@ -157,9 +179,11 @@ type Notification struct {
 	Kind  NotificationKind       `protobuf:"varint,2,opt,name=kind,proto3,enum=notification.v1.NotificationKind" json:"kind,omitempty"`
 	Actor *Actor                 `protobuf:"bytes,3,opt,name=actor,proto3" json:"actor,omitempty"`
 	// like·comment일 때 그 글. 눌러서 찾아가는 자리다.
-	PostId        string                 `protobuf:"bytes,4,opt,name=post_id,json=postId,proto3" json:"post_id,omitempty"`
-	Read          bool                   `protobuf:"varint,5,opt,name=read,proto3" json:"read,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	PostId    string                 `protobuf:"bytes,4,opt,name=post_id,json=postId,proto3" json:"post_id,omitempty"`
+	Read      bool                   `protobuf:"varint,5,opt,name=read,proto3" json:"read,omitempty"`
+	CreatedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// 코칭 알림의 대상(SPEC-050) — 관계 id·루틴 id·운동 id. 다른 종류는 빈 문자열.
+	RefId         string `protobuf:"bytes,7,opt,name=ref_id,json=refId,proto3" json:"ref_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -234,6 +258,13 @@ func (x *Notification) GetCreatedAt() *timestamppb.Timestamp {
 		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *Notification) GetRefId() string {
+	if x != nil {
+		return x.RefId
+	}
+	return ""
 }
 
 type ListNotificationsRequest struct {
@@ -485,7 +516,7 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"\xeb\x01\n" +
+	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\"\x82\x02\n" +
 	"\fNotification\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x125\n" +
 	"\x04kind\x18\x02 \x01(\x0e2!.notification.v1.NotificationKindR\x04kind\x12,\n" +
@@ -493,7 +524,8 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\apost_id\x18\x04 \x01(\tR\x06postId\x12\x12\n" +
 	"\x04read\x18\x05 \x01(\bR\x04read\x129\n" +
 	"\n" +
-	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\";\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x15\n" +
+	"\x06ref_id\x18\a \x01(\tR\x05refId\";\n" +
 	"\x18ListNotificationsRequest\x12\x1f\n" +
 	"\x05limit\x18\x01 \x01(\x05B\t\xbaH\x06\x1a\x04\x18d(\x00R\x05limit\"`\n" +
 	"\x19ListNotificationsResponse\x12C\n" +
@@ -502,13 +534,20 @@ const file_notification_v1_notification_proto_rawDesc = "" +
 	"\x13UnreadCountResponse\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\"\x14\n" +
 	"\x12MarkAllReadRequest\"\x15\n" +
-	"\x13MarkAllReadResponse*\xb6\x01\n" +
+	"\x13MarkAllReadResponse*\xab\x03\n" +
 	"\x10NotificationKind\x12!\n" +
 	"\x1dNOTIFICATION_KIND_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18NOTIFICATION_KIND_FOLLOW\x10\x01\x12\x1a\n" +
 	"\x16NOTIFICATION_KIND_LIKE\x10\x02\x12\x1d\n" +
 	"\x19NOTIFICATION_KIND_COMMENT\x10\x03\x12&\n" +
-	"\"NOTIFICATION_KIND_COACHING_SUMMARY\x10\x042\xbb\x02\n" +
+	"\"NOTIFICATION_KIND_COACHING_SUMMARY\x10\x04\x12&\n" +
+	"\"NOTIFICATION_KIND_COACHING_REQUEST\x10\x05\x12%\n" +
+	"!NOTIFICATION_KIND_COACHING_ACCEPT\x10\x06\x12%\n" +
+	"!NOTIFICATION_KIND_COACHING_REVOKE\x10\a\x12&\n" +
+	"\"NOTIFICATION_KIND_COACHING_ROUTINE\x10\b\x12-\n" +
+	")NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE\x10\t\x12&\n" +
+	"\"NOTIFICATION_KIND_COACHING_COMMENT\x10\n" +
+	"2\xbb\x02\n" +
 	"\x13NotificationService\x12l\n" +
 	"\x11ListNotifications\x12).notification.v1.ListNotificationsRequest\x1a*.notification.v1.ListNotificationsResponse\"\x00\x12Z\n" +
 	"\vUnreadCount\x12#.notification.v1.UnreadCountRequest\x1a$.notification.v1.UnreadCountResponse\"\x00\x12Z\n" +

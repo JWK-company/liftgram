@@ -401,6 +401,10 @@ func (f *fakeRepo) GetAuthor(_ context.Context, userID string) (Author, error) {
 	return Author{ID: userID, DisplayName: userID}, nil
 }
 
+func (f *fakeRepo) GetCoachCard(_ context.Context, userID string) (CoachCard, error) {
+	return CoachCard{Tags: []string{}}, nil
+}
+
 func (f *fakeRepo) GetProfileCounts(_ context.Context, userID string) (int32, int32, int32, error) {
 	var posts, followers, following int32
 	for _, p := range f.posts {

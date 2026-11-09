@@ -152,6 +152,15 @@ type Profile struct {
 	IsSelf         bool
 	IsFollowing    bool
 	IsBlocked      bool
+	// 코치 카드(SPEC-050) — 코치 여부는 trainer_intent. 태그는 nil 대신 빈 슬라이스.
+	Coach CoachCard
+}
+
+// CoachCard는 프로필에 붙는 코치 정보다(SPEC-050).
+type CoachCard struct {
+	TrainerIntent bool
+	Bio           string
+	Tags          []string
 }
 
 type HashtagCount struct {
@@ -188,6 +197,8 @@ type PostEdit struct {
 type UserResult struct {
 	Author    Author
 	Following bool
+	// 코치 배지(trainer_intent) — SPEC-050
+	Coach bool
 }
 
 // Repo는 이 도메인이 저장소에 바라는 전부다.
@@ -237,6 +248,8 @@ type Repo interface {
 	SuggestPopular(ctx context.Context, viewerID string, exclude []string, limit int32) ([]UserResult, error)
 
 	GetAuthor(ctx context.Context, userID string) (Author, error)
+	// 코치 카드(SPEC-050) — trainer_intent·소개·태그.
+	GetCoachCard(ctx context.Context, userID string) (CoachCard, error)
 	ListBlockedUsers(ctx context.Context, viewerID string) ([]Author, error)
 	GetProfileCounts(ctx context.Context, userID string) (posts, followers, following int32, err error)
 	ListFollows(ctx context.Context, viewerID, userID string, followers bool, limit int32) ([]UserResult, error)
@@ -773,12 +786,17 @@ func (s *Service) GetProfile(ctx context.Context, viewerID, userID string) (Prof
 	if err != nil {
 		return Profile{}, err
 	}
+	coach, err := s.repo.GetCoachCard(ctx, userID)
+	if err != nil {
+		return Profile{}, err
+	}
 	p := Profile{
 		Author:         author,
 		PostCount:      posts,
 		FollowerCount:  followers,
 		FollowingCount: following,
 		IsSelf:         viewerID == userID,
+		Coach:          coach,
 	}
 	if p.IsSelf {
 		return p, nil

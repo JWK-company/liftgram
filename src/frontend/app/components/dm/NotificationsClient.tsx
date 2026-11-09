@@ -29,6 +29,19 @@ function sentence(n: Notification): string {
       return t("notif.comment", { name });
     case NotificationKind.COACHING_SUMMARY: // 숫자 없음(S-7) @plm SRS-080
       return t("notif.coaching_summary", { name });
+    // 코칭 v2(SPEC-050) — 받는 쪽은 반대편 · 대상은 ref_id(post_id 는 비어 있다)
+    case NotificationKind.COACHING_REQUEST:
+      return t("notif.coaching_request", { name });
+    case NotificationKind.COACHING_ACCEPT:
+      return t("notif.coaching_accept", { name });
+    case NotificationKind.COACHING_REVOKE:
+      return t("notif.coaching_revoke", { name });
+    case NotificationKind.COACHING_ROUTINE:
+      return t("notif.coaching_routine", { name });
+    case NotificationKind.COACHING_ROUTINE_UPDATE:
+      return t("notif.coaching_routine_update", { name });
+    case NotificationKind.COACHING_COMMENT:
+      return t("notif.coaching_comment", { name });
     default:
       return t("notif.generic", { name });
   }
@@ -38,12 +51,33 @@ function sentence(n: Notification): string {
 function target(n: Notification): string {
   if (n.kind === NotificationKind.FOLLOW) return routes.userProfile(n.actor?.id ?? "");
   if (n.kind === NotificationKind.COACHING_SUMMARY) return "/messages"; // 실제 이동은 openSummary(그 회원과의 대화) @plm SRS-080
+  // 코칭 v2(SPEC-050) — post_id 가 비어 있어 아래 글 화면 길로 떨어지지 않게 먼저 고른다
+  //   요청·수락·해지 → /coaching · 루틴 → 운동 홈(받은 루틴) · 코멘트 → 지금은 /coaching(P4 에서 ref_id = 운동 id → /history/[ref_id])
+  const coaching = coachingTarget(n);
+  if (coaching) return coaching;
   // [원본] return n.postId ? routes.postComments(n.postId) : "/feed";
   // [개선 2026-11-09] 댓글 알림은 글 보기 + 댓글 시트를 바로 연다(?comments=1) · 좋아요는 글만
   if (!n.postId) return "/feed";
   return n.kind === NotificationKind.COMMENT
     ? `${routes.postComments(n.postId)}?comments=1`
     : routes.postComments(n.postId);
+}
+
+/** 코칭 알림의 갈 곳 — 코칭 종류가 아니면 null. */
+export function coachingTarget(n: Pick<Notification, "kind" | "refId">): string | null {
+  switch (n.kind) {
+    case NotificationKind.COACHING_REQUEST:
+    case NotificationKind.COACHING_ACCEPT:
+    case NotificationKind.COACHING_REVOKE:
+      return "/coaching";
+    case NotificationKind.COACHING_ROUTINE:
+    case NotificationKind.COACHING_ROUTINE_UPDATE:
+      return "/";
+    case NotificationKind.COACHING_COMMENT:
+      return "/coaching";
+    default:
+      return null;
+  }
 }
 
 /** 성과 요약 알림 — 보낸 회원(actor)과의 1:1 대화로 가서 그 카드를 강조한다(postId 는 비어 있다 · S-16·U-17). @plm SRS-080 */

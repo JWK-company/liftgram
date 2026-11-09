@@ -64,6 +64,9 @@ async function 코칭요청(page: Page, 트레이너이름: string) {
   await page.getByTestId("coaching-search").click();
   await expect(page.getByTestId("coaching-results")).toContainText(트레이너이름, { timeout: 20_000 });
   await page.getByTestId("coaching-request").first().click();
+  // [개선 SPEC-050] 요청은 범위 시트를 거친다 — 연결 전에 한 운동을 코치가 보려면 「지난 기록도 보여 주기」를 켠다(기본은 끔)
+  await page.getByTestId("scope-pastRecords").click();
+  await page.getByTestId("scope-confirm").click();
   await expect(page.getByTestId("coaching-coaches")).toContainText("수락 대기", { timeout: 20_000 });
 }
 
@@ -176,6 +179,8 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
     // 트레이너가 수락하면 열린다.
     await pageT.getByTestId("coaching-accept").click();
     await expect(pageT.getByTestId("coaching-members")).toContainText("코칭 중", { timeout: 20_000 });
+    // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
+    await pageT.getByTestId("coaching-grant-more").first().click();
     await pageT.getByTestId("coaching-report").click();
 
     // **사실만** 보인다 — 세션 1회, 총 볼륨 600kg, 가슴 1세트(SRS-079: 원본 레코드 → 이 기기 core 계산 · 부위별은 세트 단위).
@@ -194,7 +199,10 @@ test("수락해야 리포트가 열리고, 해지하면 그 순간 닫힌다", a
 
     // 회원이 해지하면 트레이너 쪽에서 즉시 닫힌다.
     await page.goto("/coaching");
-    await page.getByTestId("coaching-revoke").first().click();
+    // [개선 SPEC-050] 연결 끊기는 ⋯ 시트 → 확인창
+    await page.getByTestId("coaching-grant-more").first().click();
+    await page.getByTestId("coaching-revoke").click();
+    await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
     await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
 
     await pageT.reload();
@@ -237,6 +245,8 @@ test("트레이너가 처방을 쓰면 회원 앱에 내려오고, 이력에 남
     await expect(pageT.getByTestId("coaching-members")).toContainText("코칭 중", { timeout: 20_000 });
 
     // 회원의 루틴을 열어 처방을 쓴다.
+    // [개선 SPEC-050] 기록 요약·루틴은 회원 줄 ⋯ 시트 안
+    await pageT.getByTestId("coaching-grant-more").first().click();
     await pageT.getByTestId("coaching-routines").click();
     await expect(pageT.getByTestId("member-routines")).toContainText(루틴, { timeout: 20_000 });
     await pageT.getByTestId("member-exercise").first().click();
@@ -259,7 +269,9 @@ test("트레이너가 처방을 쓰면 회원 앱에 내려오고, 이력에 남
 
     // 이력 — **회원도 읽는다**. 트레이너가 무엇을 했는지 보인다.
     await page.goto("/coaching");
-    await page.getByTestId("coaching-history-link").first().click();
+    // [개선 SPEC-050] 이력은 ⋯ 시트 안
+    await page.getByTestId("coaching-grant-more").first().click();
+    await page.getByTestId("coaching-history-link").click();
     const 이력 = page.getByTestId("coaching-history");
     await expect(이력).toBeVisible({ timeout: 20_000 });
     await expect(이력).toContainText("처방 수정");

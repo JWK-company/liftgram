@@ -34,6 +34,22 @@ message Peer {
   // 스스로 밝힌 운동 경력. **자격 보증이 아니다**(화면이 그 고지를 함께 띄운다).
   string experience_level = 4;
   bool trainer_intent = 5;
+  // 코치 소개(80자)·태그(hypertrophy·strength·diet·rehab·beginner·powerlifting 중 3개까지) — SPEC-050.
+  string coach_bio = 6;
+  repeated string coach_tags = 7;
+}
+
+// 회원이 여는 범위(SPEC-050). 키는 이 넷뿐 — 서버는 이 넷만 저장하고, 옛 행에 없는 키는 false 로 읽는다.
+//   log_view     운동 기록·분석
+//   routine_edit 코치가 짠 루틴 받기 · 내 루틴 처방 고치기
+//   body_view    체중·인바디(bodyweight_logs 의 정해진 칸만)
+//   past_records 연결 전 기록도(끄면 동의 시각 뒤 기록만 — 모든 코칭 RPC 에 같은 컷)
+// 기본값 = log_view·routine_edit 켬, body_view·past_records 끔.
+message CoachingScope {
+  bool log_view = 1;
+  bool routine_edit = 2;
+  bool body_view = 3;
+  bool past_records = 4;
 }
 
 enum GrantStatus {
@@ -60,6 +76,17 @@ message Grant {
   int64 created_at = 6;
   // 수락(동의) 시각. 아직이면 0.
   int64 consent_at = 7;
+  // 지금 열린(수락 전이면 요청된) 범위.
+  CoachingScope scope = 8;
+  // 요청할 때 남긴 한 줄(100자). 없으면 빈 문자열.
+  string request_note = 9;
+}
+
+// 코치의 초대 코드(SPEC-050). code = Crockford base32 8자 — 화면은 4-4 로 끊어 보인다(하이픈은 화면 몫).
+message Invite {
+  string code = 1;
+  int64 created_at = 2;
+  int64 expires_at = 3;
 }
 
 // 세트 처방 — 앱의 어휘(SRS-043)를 그대로 쓴다.
@@ -157,6 +184,10 @@ message SearchTrainersResponse {
 message RequestCoachingRequest {
   string trainer_id = 1;
   string member_id = 2;
+  // 회원이 요청할 때 여는 범위. 비우면 기본값. 코치가 요청하면 무시한다(범위는 회원이 수락할 때 고른다).
+  CoachingScope scope = 3;
+  // 한 줄 메시지(100자).
+  string note = 4 [(buf.validate.field).string.max_len = 100];
 }
 message RequestCoachingResponse {
   Grant grant = 1;
@@ -169,6 +200,8 @@ message ListGrantsResponse {
 
 message AcceptGrantRequest {
   string grant_id = 1 [(buf.validate.field).string.min_len = 1];
+  // 회원이 수락할 때 여는 범위. 비우면 요청 때 저장된 값. 코치가 수락하면 무시한다.
+  CoachingScope scope = 2;
 }
 message AcceptGrantResponse {
   Grant grant = 1;
@@ -178,6 +211,48 @@ message RevokeGrantRequest {
   string grant_id = 1 [(buf.validate.field).string.min_len = 1];
 }
 message RevokeGrantResponse {
+  Grant grant = 1;
+}
+
+// 범위 바꾸기 — 회원만, 활성 관계만.
+message UpdateScopeRequest {
+  string grant_id = 1 [(buf.validate.field).string.min_len = 1];
+  CoachingScope scope = 2 [(buf.validate.field).required = true];
+}
+message UpdateScopeResponse {
+  Grant grant = 1;
+}
+
+// ── 초대 코드(SPEC-050) ── 셋 다 로그인 필수 · 코칭 전용 요청 제한(사용자·IP 분당 10 · 하루 실패 50).
+// 만료·회수·없음은 같은 NotFound 「초대 코드를 찾을 수 없어요. 코치에게 새 코드를 받아 주세요」.
+
+// 코치가 새 코드를 만든다(옛 코드는 그 자리에서 회수 · 14일 유효).
+message CreateInviteRequest {}
+message CreateInviteResponse {
+  Invite invite = 1;
+}
+
+// 코치가 지금 살아 있는 내 코드를 본다(없으면 invite 비어 있음 — 화면이 「새로 만들기」를 보인다).
+message GetMyInviteRequest {}
+message GetMyInviteResponse {
+  Invite invite = 1;
+}
+
+// 회원이 코드로 코치 카드를 본다(연결 전). 하이픈·공백·소문자는 서버가 정리한다.
+message GetInviteRequest {
+  string code = 1 [(buf.validate.field).string = {min_len: 1, max_len: 20}];
+}
+message GetInviteResponse {
+  Peer trainer = 1;
+  int64 expires_at = 2;
+}
+
+// 회원이 범위를 골라 바로 연결한다(동의 = 이 호출). 같은 쌍의 옛 관계는 되살린다.
+message AcceptInviteRequest {
+  string code = 1 [(buf.validate.field).string = {min_len: 1, max_len: 20}];
+  CoachingScope scope = 2;
+}
+message AcceptInviteResponse {
   Grant grant = 1;
 }
 
@@ -284,7 +359,8 @@ message ListSentSummariesResponse {
 // 트레이너 리포트용 원본 레코드(scope=logView · ADR-040 개정).
 // 서버가 내주는 기간 = [period_start − (period_end − period_start), period_end) — 직전 기간 비교용.
 // 길이 ≤ 400일 · start < end · end ≤ now+1일. 컬렉션·칸은 **서버 상수 허용 목록**만이다
-// (notes·note·image_url·prescription·prev_* 없음 · user_profiles·bodyweight_logs·import_* 는 영원히 없다).
+// (notes·note·image_url·prescription·prev_* 없음 · user_profiles·import_* 는 영원히 없다 ·
+// bodyweight_logs 는 body_view 를 열었을 때만 정해진 칸으로 — SPEC-050).
 message GetMemberRecordsRequest {
   string member_id = 1 [(buf.validate.field).string = {min_len: 1, max_len: 64}];
   int64 period_start = 2 [(buf.validate.field).int64.gt = 0];
@@ -297,9 +373,13 @@ message GetMemberRecordsResponse {
   repeated string workout_exercises = 2;
   repeated string set_logs = 3;
   repeated string exercises = 4;
-  // 실제로 내준 기간(epoch ms) [served_start, served_end).
+  // 실제로 내준 기간(epoch ms) [served_start, served_end). 지난 기록(past_records)을 열지 않았으면
+  // served_start 는 동의 시각보다 앞서지 않는다(SPEC-050 visibleFrom).
   int64 served_start = 5;
   int64 served_end = 6;
+  // body_view 를 열었을 때만 — 체중·인바디(id·measured_at·weight_kg·skeletal_muscle_kg·body_fat_pct 만).
+  // 닫혀 있으면 언제나 0건이다.
+  repeated string bodyweight_logs = 7;
 }
 
 service CoachingService {
@@ -311,6 +391,13 @@ service CoachingService {
   rpc AcceptGrant(AcceptGrantRequest) returns (AcceptGrantResponse) {}
   // 해지는 양쪽 다 할 수 있고, 그 순간 모든 접근이 닫힌다.
   rpc RevokeGrant(RevokeGrantRequest) returns (RevokeGrantResponse) {}
+  // 범위 바꾸기 — 회원만, 활성 관계만(SPEC-050).
+  rpc UpdateScope(UpdateScopeRequest) returns (UpdateScopeResponse) {}
+  // 초대 코드(SPEC-050).
+  rpc CreateInvite(CreateInviteRequest) returns (CreateInviteResponse) {}
+  rpc GetMyInvite(GetMyInviteRequest) returns (GetMyInviteResponse) {}
+  rpc GetInvite(GetInviteRequest) returns (GetInviteResponse) {}
+  rpc AcceptInvite(AcceptInviteRequest) returns (AcceptInviteResponse) {}
 
   // 회원 기록 열람(scope=logView). 사실 집계만 돌려준다.
   rpc GetMemberReport(GetMemberReportRequest) returns (GetMemberReportResponse) {}

@@ -1,0 +1,784 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요약",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "코칭 v2 연결 서버를 만들었다. 마이그레이션 0033(코치 소개·태그, 범위 기본값·요청 메시지·코치 한 명 인덱스, 초대·코치 루틴·코멘트 표, 알림 ref_id), 범위 요청·수락·변경과 다시 연결 시 초기화, 초대 코드 3종(+GetMyInvite), 동의 전 기록 컷, 체중 공개, 차단 재확인, 알림·대화방 포트, 한국어 오류 문구.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "바꾼 파일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "파일",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "무엇",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_header"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/migrations/0033_coaching_v2.sql",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 표·칸·인덱스(중복 활성 grant 면 알아볼 말로 멈춤)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/queries/coaching.sql",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/queries/auth.sql",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/database/queries/notification.sql",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "상태 조건 쿼리·초대·체중 기간 조회·프로필 칸·ref_id·고아 감사 삭제",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/coaching/v1/coaching.proto",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/notification/v1/notification.proto",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/auth/v1/auth.proto",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/proto/feed/v1/feed.proto",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "CoachingScope·Grant.scope/request_note·UpdateScope·초대 RPC·알림 kind 6개·ref_id·코치 칸(번호 추가만)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/connect_v2.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/invite_limit.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "범위·visibleFrom·초대·알림·대화방·문구 · 초대 제한(사용자 분당 10·하루 실패 50, IP 실패 ×4)",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/service.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/repo.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/handler.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/records.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/report.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "범위 요청·수락, 차단, 23505/0행 → Conflict, RevokeGrantAndEndRoutines, 컷·체중",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/notification/",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/auth/",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/feed/",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/cmd/server/main.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 kind·NotifyRef, 코치 소개·태그, 탈퇴 시 고아 감사 삭제, 연결",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "테스트 ",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "src/backend/internal/coaching/connect_v2_test.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "connect_v2_pg_test.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "connect_v2_review_test.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "service_test.go",
+                        "type": "text"
+                      },
+                      {
+                        "text": "·",
+                        "type": "text"
+                      },
+                      {
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "summary_test.go",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              },
+              {
+                "content": [
+                  {
+                    "content": [
+                      {
+                        "text": "새 흐름·실 PG(동시 수락·초대·컷·체중·태그)·깨진 시험 고침",
+                        "type": "text"
+                      }
+                    ],
+                    "type": "paragraph"
+                  }
+                ],
+                "type": "table_cell"
+              }
+            ],
+            "type": "table_row"
+          }
+        ],
+        "type": "table"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "테스트 결과",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "실 PG ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "go test ./internal/coaching/... ./internal/notification/... ./internal/auth/... ./internal/feed/... ./internal/sync/...",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 통과(최상위 218 + 리뷰 시험 2)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "go test ./...",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "go vet ./...",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · 프론트 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "npx tsc --noEmit",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 통과",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준 확인",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "SRS-115 1(요청·초대 서버) · 2(범위 4키·회원만 변경·다시 연결 초기화) · 3(코치 한 명 DB 강제) · 10(알림 kind·대화방 포트) · 12(해지 트랜잭션) — 서버 쪽 충족. 화면은 Phase 2.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "코드 리뷰",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "REV-098 — 채택 6(중간 1·낮음 5) 전부 반영.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖 변경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/backend/internal/auth/account_repo.go",
+            "type": "text"
+          },
+          {
+            "text": "(탈퇴 시 고아 감사 삭제 — 리뷰 중간). ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "coaching_audits.grant_id",
+            "type": "text"
+          },
+          {
+            "text": " NOT NULL 해제(관계 없는 invite_create 기록).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "남은 일",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "P3b: SendRoutine·해지/탈퇴 시 회원 sync 행 coach_ended·coaching_routine_update·SetMemberPrescription 거절. P4: 코멘트·Digest 컷. 커밋·main 합친 뒤 코드 위치 등록.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/코칭",
+  "id": "EXE-069",
+  "meta": {
+    "phase": "1",
+    "result": "done"
+  },
+  "relations": {
+    "executes": [
+      "SPEC-050"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "SPEC-050 Phase 1 — P1a 연결 서버 구현",
+  "type": "Execution",
+  "updated": "2026-11-09T11:23:52Z"
+}

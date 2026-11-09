@@ -23,9 +23,13 @@ const rirUnset int32 = -1
 type Handler struct {
 	coachingv1connect.UnimplementedCoachingServiceHandler
 	svc *Service
+	// 초대 코드 요청 제한(SPEC-050) — 사용자·IP 분당 · 하루 실패.
+	invite *inviteGuard
 }
 
-func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
+func NewHandler(svc *Service) *Handler {
+	return &Handler{svc: svc, invite: newInviteGuard(DefaultInviteLimits)}
+}
 
 func viewer(ctx context.Context) string {
 	id, _ := auth.UserIDFrom(ctx)
@@ -45,7 +49,11 @@ func (h *Handler) SearchTrainers(ctx context.Context, req *connect.Request[coach
 }
 
 func (h *Handler) RequestCoaching(ctx context.Context, req *connect.Request[coachingv1.RequestCoachingRequest]) (*connect.Response[coachingv1.RequestCoachingResponse], error) {
-	g, err := h.svc.Request(ctx, viewer(ctx), req.Msg.GetTrainerId(), req.Msg.GetMemberId())
+	// [원본] g, err := h.svc.Request(ctx, viewer(ctx), req.Msg.GetTrainerId(), req.Msg.GetMemberId())
+	g, err := h.svc.RequestCoaching(ctx, viewer(ctx), RequestInput{
+		TrainerID: req.Msg.GetTrainerId(), MemberID: req.Msg.GetMemberId(),
+		Scope: scopeDomain(req.Msg.GetScope()), Note: req.Msg.GetNote(),
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +73,8 @@ func (h *Handler) ListGrants(ctx context.Context, _ *connect.Request[coachingv1.
 }
 
 func (h *Handler) AcceptGrant(ctx context.Context, req *connect.Request[coachingv1.AcceptGrantRequest]) (*connect.Response[coachingv1.AcceptGrantResponse], error) {
-	g, err := h.svc.Accept(ctx, viewer(ctx), req.Msg.GetGrantId())
+	// [원본] g, err := h.svc.Accept(ctx, viewer(ctx), req.Msg.GetGrantId())
+	g, err := h.svc.AcceptWith(ctx, viewer(ctx), req.Msg.GetGrantId(), scopeDomain(req.Msg.GetScope()))
 	if err != nil {
 		return nil, err
 	}
@@ -155,6 +164,7 @@ func peerPB(p Peer) *coachingv1.Peer {
 	return &coachingv1.Peer{
 		Id: p.ID, DisplayName: p.DisplayName, AvatarUrl: p.AvatarURL,
 		ExperienceLevel: p.ExperienceLevel, TrainerIntent: p.TrainerIntent,
+		CoachBio: p.CoachBio, CoachTags: p.CoachTags,
 	}
 }
 
@@ -163,6 +173,7 @@ func grantPB(g Grant) *coachingv1.Grant {
 		Id: g.ID, Status: statusPB(g.Status), RequestedBy: sidePB(g.RequestedBy),
 		RoleOfMe: sidePB(g.RoleOfMe), Peer: peerPB(g.Peer),
 		CreatedAt: g.CreatedAt.UnixMilli(),
+		Scope:     scopePB(ScopeOf(g.Scope)), RequestNote: g.RequestNote,
 	}
 	// 아직 동의하지 않았으면 0 — "언제 동의했나"에 거짓 시각을 넣지 않는다.
 	if !g.ConsentAt.IsZero() {
@@ -303,7 +314,14 @@ const ReadMaxBytes = 256 << 10
 // NewConnectHandler는 코칭 Connect 핸들러를 **본문 상한을 붙여** 만든다(CS-8). main.go 와 테스트가 같이 쓴다 —
 // 조립하는 쪽이 상한을 빠뜨릴 수 없게(상한은 opts 뒤에 붙어 같은 옵션을 덮어쓰지 못하게 한다).
 func NewConnectHandler(svc *Service, opts ...connect.HandlerOption) (string, http.Handler) {
-	return coachingv1connect.NewCoachingServiceHandler(NewHandler(svc),
+	return NewConnectHandlerLimited(svc, DefaultInviteLimits, opts...)
+}
+
+// NewConnectHandlerLimited는 초대 코드 요청 제한을 정해 만든다(main.go — 인증 제한을 끈 개발·e2e 는 끈다).
+func NewConnectHandlerLimited(svc *Service, lim InviteLimits, opts ...connect.HandlerOption) (string, http.Handler) {
+	h := NewHandler(svc)
+	h.invite = newInviteGuard(lim)
+	return coachingv1connect.NewCoachingServiceHandler(h,
 		append(append([]connect.HandlerOption{}, opts...), connect.WithReadMaxBytes(ReadMaxBytes))...)
 }
 
@@ -362,5 +380,88 @@ func (h *Handler) GetMemberRecords(ctx context.Context, req *connect.Request[coa
 	return noStore(connect.NewResponse(&coachingv1.GetMemberRecordsResponse{
 		Workouts: r.Workouts, WorkoutExercises: r.WorkoutExercises, SetLogs: r.SetLogs, Exercises: r.Exercises,
 		ServedStart: r.ServedStart.UnixMilli(), ServedEnd: r.ServedEnd.UnixMilli(),
+		BodyweightLogs: r.BodyweightLogs,
 	})), nil
+}
+
+// ── 코칭 v2 — 범위·초대 코드(SPEC-050) ─────────────────────────────────────
+
+func scopePB(s Scope) *coachingv1.CoachingScope {
+	return &coachingv1.CoachingScope{
+		LogView: s.LogView, RoutineEdit: s.RoutineEdit, BodyView: s.BodyView, PastRecords: s.PastRecords,
+	}
+}
+
+// scopeDomain — 비어 있으면 nil(=「보내지 않음」 · 서비스가 기본값/저장값을 쓴다).
+func scopeDomain(s *coachingv1.CoachingScope) *Scope {
+	if s == nil {
+		return nil
+	}
+	return &Scope{LogView: s.GetLogView(), RoutineEdit: s.GetRoutineEdit(), BodyView: s.GetBodyView(), PastRecords: s.GetPastRecords()}
+}
+
+func invitePB(inv Invite) *coachingv1.Invite {
+	return &coachingv1.Invite{Code: inv.Code, CreatedAt: inv.CreatedAt.UnixMilli(), ExpiresAt: inv.ExpiresAt.UnixMilli()}
+}
+
+func (h *Handler) UpdateScope(ctx context.Context, req *connect.Request[coachingv1.UpdateScopeRequest]) (*connect.Response[coachingv1.UpdateScopeResponse], error) {
+	sc := scopeDomain(req.Msg.GetScope())
+	if sc == nil {
+		sc = &Scope{}
+	}
+	g, err := h.svc.UpdateScope(ctx, viewer(ctx), req.Msg.GetGrantId(), *sc)
+	if err != nil {
+		return nil, err
+	}
+	return connect.NewResponse(&coachingv1.UpdateScopeResponse{Grant: grantPB(g)}), nil
+}
+
+func (h *Handler) CreateInvite(ctx context.Context, req *connect.Request[coachingv1.CreateInviteRequest]) (*connect.Response[coachingv1.CreateInviteResponse], error) {
+	id := viewer(ctx)
+	if err := h.invite.allow(id, req.Header()); err != nil {
+		return nil, err
+	}
+	inv, err := h.svc.CreateInvite(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return noStore(connect.NewResponse(&coachingv1.CreateInviteResponse{Invite: invitePB(inv)})), nil
+}
+
+func (h *Handler) GetMyInvite(ctx context.Context, _ *connect.Request[coachingv1.GetMyInviteRequest]) (*connect.Response[coachingv1.GetMyInviteResponse], error) {
+	inv, ok, err := h.svc.GetMyInvite(ctx, viewer(ctx))
+	if err != nil {
+		return nil, err
+	}
+	out := &coachingv1.GetMyInviteResponse{}
+	if ok {
+		out.Invite = invitePB(inv)
+	}
+	return noStore(connect.NewResponse(out)), nil
+}
+
+func (h *Handler) GetInvite(ctx context.Context, req *connect.Request[coachingv1.GetInviteRequest]) (*connect.Response[coachingv1.GetInviteResponse], error) {
+	id := viewer(ctx)
+	if err := h.invite.allow(id, req.Header()); err != nil {
+		return nil, err
+	}
+	peer, inv, err := h.svc.GetInvite(ctx, id, req.Msg.GetCode())
+	if err != nil {
+		h.invite.recordFailure(id, req.Header(), err)
+		return nil, err
+	}
+	return noStore(connect.NewResponse(&coachingv1.GetInviteResponse{Trainer: peerPB(peer), ExpiresAt: inv.ExpiresAt.UnixMilli()})), nil
+}
+
+func (h *Handler) AcceptInvite(ctx context.Context, req *connect.Request[coachingv1.AcceptInviteRequest]) (*connect.Response[coachingv1.AcceptInviteResponse], error) {
+	id := viewer(ctx)
+	if err := h.invite.allow(id, req.Header()); err != nil {
+		return nil, err
+	}
+	g, err := h.svc.AcceptInvite(ctx, id, req.Msg.GetCode(), scopeDomain(req.Msg.GetScope()))
+	if err != nil {
+		h.invite.recordFailure(id, req.Header(), err)
+		return nil, err
+	}
+	return connect.NewResponse(&coachingv1.AcceptInviteResponse{Grant: grantPB(g)}), nil
 }

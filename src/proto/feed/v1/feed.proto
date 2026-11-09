@@ -150,6 +150,10 @@ message SocialProfile {
   bool is_following = 6;
   // 내가 차단했는가(상대가 나를 차단한 경우는 애초에 조회가 막힌다).
   bool is_blocked = 7;
+  // 코치 카드(SPEC-050) — 코치 여부(trainer_intent)·소개·태그.
+  bool trainer_intent = 8;
+  string coach_bio = 9;
+  repeated string coach_tags = 10;
 }
 
 message HashtagCount {
@@ -286,6 +290,8 @@ message SearchUsersRequest {
 message UserResult {
   Author author = 1;
   bool following = 2;
+  // 코칭 의향(코치 배지 — SPEC-050). 사람 찾기·팔로워·팔로잉만 채운다(추천은 비움).
+  bool trainer_intent = 3;
 }
 
 message SearchUsersResponse {

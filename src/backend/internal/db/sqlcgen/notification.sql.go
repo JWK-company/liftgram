@@ -32,8 +32,8 @@ func (q *Queries) CountUnreadNotifications(ctx context.Context, viewerID string)
 
 const createNotification = `-- name: CreateNotification :exec
 
-INSERT INTO notifications (id, user_id, kind, actor_id, post_id)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO notifications (id, user_id, kind, actor_id, post_id, ref_id)
+VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateNotificationParams struct {
@@ -42,11 +42,13 @@ type CreateNotificationParams struct {
 	Kind    string
 	ActorID string
 	PostID  *string
+	RefID   *string
 }
 
 // @plm SRS-020  알림 쿼리
 //
 // 차단한 사람이 일으킨 알림은 보이지 않는다 — 차단은 **양방향**이라 어느 쪽이 걸었든 가린다.
+// ref_id(0033) = 코칭 알림의 대상(관계 id·운동 id). 코칭 kind 는 post_id 를 비운다.
 func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotificationParams) error {
 	_, err := q.db.Exec(ctx, createNotification,
 		arg.ID,
@@ -54,12 +56,13 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 		arg.Kind,
 		arg.ActorID,
 		arg.PostID,
+		arg.RefID,
 	)
 	return err
 }
 
 const listNotifications = `-- name: ListNotifications :many
-SELECT n.id, n.user_id, n.kind, n.actor_id, n.post_id, n.read_at, n.created_at, u.display_name AS actor_name, u.avatar_url AS actor_avatar
+SELECT n.id, n.user_id, n.kind, n.actor_id, n.post_id, n.read_at, n.created_at, n.ref_id, u.display_name AS actor_name, u.avatar_url AS actor_avatar
 FROM notifications n
 JOIN users u ON u.id = n.actor_id
 WHERE n.user_id = $1::text
@@ -85,6 +88,7 @@ type ListNotificationsRow struct {
 	PostID      *string
 	ReadAt      pgtype.Timestamptz
 	CreatedAt   pgtype.Timestamptz
+	RefID       *string
 	ActorName   *string
 	ActorAvatar *string
 }
@@ -106,6 +110,7 @@ func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsPa
 			&i.PostID,
 			&i.ReadAt,
 			&i.CreatedAt,
+			&i.RefID,
 			&i.ActorName,
 			&i.ActorAvatar,
 		); err != nil {

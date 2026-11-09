@@ -30,6 +30,12 @@ export const colors = {
   dangerSoft: '#F9EDED',
   pr: '#A16207', // PR 골드 — 라이트에서는 글자로 읽히게 진하게(흰 바탕 4.92:1)
   prSoft: '#FEF3C7',
+  // 코칭 청록(SPEC-050) — 코치·코칭 표시 전용(배지·활성 글자·띠). 빨강(주 버튼)과 겹치지 않는 둘째 색.
+  //   coaching     면·스위치·띠(흰 바탕 4.95:1) · coachingSoft 배지 판 · coachingInk 글자(흰 바탕 6.23 · soft 위 5.50 · 다크 soft 위 8.26)
+  // 이름이 --color-coach* 가 아니라 --color-coaching* 인 것은 첫 안내 말풍선(CoachMark)과 헷갈리지 않게.
+  coaching: '#0E7C86',
+  coachingSoft: '#E3F4F5',
+  coachingInk: '#0B6B74',
 } as const;
 
 export const darkColors: Record<keyof typeof colors, string> = {
@@ -53,6 +59,9 @@ export const darkColors: Record<keyof typeof colors, string> = {
   dangerSoft: '#483C3C',
   pr: '#FFD23F', // 카드 대비 9.81:1
   prSoft: '#4A3F12',
+  coaching: '#4CC3CC',
+  coachingSoft: '#173335',
+  coachingInk: '#7FD9DF',
 };
 
 export const spacing = {

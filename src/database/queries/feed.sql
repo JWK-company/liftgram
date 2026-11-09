@@ -160,7 +160,7 @@ SELECT EXISTS (SELECT 1 FROM follows WHERE follower_id = $1 AND followee_id = $2
 -- 사람 찾기 — 표시 이름·이메일 부분일치. 자기 자신과 차단 관계는 뺀다.
 -- LIKE 대신 position()을 쓴다: 사용자가 친 '%'가 와일드카드로 해석되면 전부 일치가 된다.
 -- name: SearchUsers :many
-SELECT u.id, u.display_name, u.avatar_url,
+SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
        EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = @viewer_id::text AND f.followee_id = u.id) ::boolean AS following
 FROM users u
 WHERE u.id <> @viewer_id::text
@@ -343,7 +343,7 @@ SELECT
   (SELECT count(*) FROM follows WHERE follower_id = @user_id::text)::int AS following_count;
 
 -- name: ListFollowers :many
-SELECT u.id, u.display_name, u.avatar_url,
+SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
        EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = @viewer_id::text AND f2.followee_id = u.id)::boolean AS following
 FROM follows f
 JOIN users u ON u.id = f.follower_id
@@ -357,7 +357,7 @@ ORDER BY f.created_at DESC
 LIMIT @lim;
 
 -- name: ListFollowing :many
-SELECT u.id, u.display_name, u.avatar_url,
+SELECT u.id, u.display_name, u.avatar_url, u.trainer_intent,
        EXISTS (SELECT 1 FROM follows f2 WHERE f2.follower_id = @viewer_id::text AND f2.followee_id = u.id)::boolean AS following
 FROM follows f
 JOIN users u ON u.id = f.followee_id

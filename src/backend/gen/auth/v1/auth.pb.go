@@ -168,7 +168,10 @@ type User struct {
 	// 이메일 소유가 확인됐는가(SRS-052). 확인 전에도 기록은 쓰지만, 화면이 안내를 띄운다.
 	EmailVerified bool `protobuf:"varint,9,opt,name=email_verified,json=emailVerified,proto3" json:"email_verified,omitempty"`
 	// 비밀번호로 로그인할 수 있는가 — 소셜로만 가입한 계정은 false(비밀번호 "설정"이 가능하다).
-	HasPassword   bool `protobuf:"varint,10,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
+	HasPassword bool `protobuf:"varint,10,opt,name=has_password,json=hasPassword,proto3" json:"has_password,omitempty"`
+	// 코치 소개(80자)·태그(정해진 6개 중 3개까지) — SPEC-050. 코치 여부는 trainer_intent.
+	CoachBio      string   `protobuf:"bytes,11,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
+	CoachTags     []string `protobuf:"bytes,12,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -271,6 +274,20 @@ func (x *User) GetHasPassword() bool {
 		return x.HasPassword
 	}
 	return false
+}
+
+func (x *User) GetCoachBio() string {
+	if x != nil {
+		return x.CoachBio
+	}
+	return ""
+}
+
+func (x *User) GetCoachTags() []string {
+	if x != nil {
+		return x.CoachTags
+	}
+	return nil
 }
 
 // 세션 한 벌. 클라이언트는 access를 메모리에, refresh를 오래 가는 저장소에 둔다.
@@ -796,8 +813,13 @@ type UpdateProfileRequest struct {
 	SetExperienceLevel bool                   `protobuf:"varint,6,opt,name=set_experience_level,json=setExperienceLevel,proto3" json:"set_experience_level,omitempty"`
 	TrainerIntent      bool                   `protobuf:"varint,7,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
 	SetTrainerIntent   bool                   `protobuf:"varint,8,opt,name=set_trainer_intent,json=setTrainerIntent,proto3" json:"set_trainer_intent,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// 코치 소개·태그(SPEC-050). 소개 80자(룬) · 태그는 hypertrophy·strength·diet·rehab·beginner·powerlifting 중 3개까지.
+	CoachBio      string   `protobuf:"bytes,9,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
+	SetCoachBio   bool     `protobuf:"varint,10,opt,name=set_coach_bio,json=setCoachBio,proto3" json:"set_coach_bio,omitempty"`
+	CoachTags     []string `protobuf:"bytes,11,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	SetCoachTags  bool     `protobuf:"varint,12,opt,name=set_coach_tags,json=setCoachTags,proto3" json:"set_coach_tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpdateProfileRequest) Reset() {
@@ -882,6 +904,34 @@ func (x *UpdateProfileRequest) GetTrainerIntent() bool {
 func (x *UpdateProfileRequest) GetSetTrainerIntent() bool {
 	if x != nil {
 		return x.SetTrainerIntent
+	}
+	return false
+}
+
+func (x *UpdateProfileRequest) GetCoachBio() string {
+	if x != nil {
+		return x.CoachBio
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetSetCoachBio() bool {
+	if x != nil {
+		return x.SetCoachBio
+	}
+	return false
+}
+
+func (x *UpdateProfileRequest) GetCoachTags() []string {
+	if x != nil {
+		return x.CoachTags
+	}
+	return nil
+}
+
+func (x *UpdateProfileRequest) GetSetCoachTags() bool {
+	if x != nil {
+		return x.SetCoachTags
 	}
 	return false
 }
@@ -2090,7 +2140,7 @@ var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x82\x03\n" +
+	"\x12auth/v1/auth.proto\x12\aauth.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbe\x03\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12!\n" +
@@ -2104,7 +2154,10 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"created_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12%\n" +
 	"\x0eemail_verified\x18\t \x01(\bR\remailVerified\x12!\n" +
 	"\fhas_password\x18\n" +
-	" \x01(\bR\vhasPassword\"o\n" +
+	" \x01(\bR\vhasPassword\x12\x1b\n" +
+	"\tcoach_bio\x18\v \x01(\tR\bcoachBio\x12\x1d\n" +
+	"\n" +
+	"coach_tags\x18\f \x03(\tR\tcoachTags\"o\n" +
 	"\x06Tokens\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12\x1d\n" +
@@ -2138,7 +2191,7 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\tMeRequest\"/\n" +
 	"\n" +
 	"MeResponse\x12!\n" +
-	"\x04user\x18\x01 \x01(\v2\r.auth.v1.UserR\x04user\"\x87\x03\n" +
+	"\x04user\x18\x01 \x01(\v2\r.auth.v1.UserR\x04user\"\xa0\x04\n" +
 	"\x14UpdateProfileRequest\x12*\n" +
 	"\fdisplay_name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x18(R\vdisplayName\x12(\n" +
 	"\x10set_display_name\x18\x02 \x01(\bR\x0esetDisplayName\x12'\n" +
@@ -2148,7 +2201,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x10experience_level\x18\x05 \x01(\x0e2\x18.auth.v1.ExperienceLevelR\x0fexperienceLevel\x120\n" +
 	"\x14set_experience_level\x18\x06 \x01(\bR\x12setExperienceLevel\x12%\n" +
 	"\x0etrainer_intent\x18\a \x01(\bR\rtrainerIntent\x12,\n" +
-	"\x12set_trainer_intent\x18\b \x01(\bR\x10setTrainerIntent\":\n" +
+	"\x12set_trainer_intent\x18\b \x01(\bR\x10setTrainerIntent\x12$\n" +
+	"\tcoach_bio\x18\t \x01(\tB\a\xbaH\x04r\x02\x18PR\bcoachBio\x12\"\n" +
+	"\rset_coach_bio\x18\n" +
+	" \x01(\bR\vsetCoachBio\x12'\n" +
+	"\n" +
+	"coach_tags\x18\v \x03(\tB\b\xbaH\x05\x92\x01\x02\x10\x03R\tcoachTags\x12$\n" +
+	"\x0eset_coach_tags\x18\f \x01(\bR\fsetCoachTags\":\n" +
 	"\x15UpdateProfileResponse\x12!\n" +
 	"\x04user\x18\x01 \x01(\v2\r.auth.v1.UserR\x04user\"\x17\n" +
 	"\x15GetAuthOptionsRequest\"|\n" +

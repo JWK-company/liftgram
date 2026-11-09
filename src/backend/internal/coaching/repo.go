@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -51,6 +52,7 @@ func (r *pgRepo) SearchTrainers(ctx context.Context, viewerID, query string) ([]
 		out = append(out, Peer{
 			ID: u.ID, DisplayName: text(u.DisplayName), AvatarURL: text(u.AvatarUrl),
 			ExperienceLevel: text(u.ExperienceLevel), TrainerIntent: u.TrainerIntent,
+			CoachBio: u.CoachBio, CoachTags: tags(u.CoachTags),
 		})
 	}
 	return out, nil
@@ -87,7 +89,7 @@ func grantFrom(row sqlcgen.CoachingGrant) Grant {
 	return Grant{
 		ID: row.ID, TrainerID: row.TrainerID, MemberID: row.MemberID,
 		Status: row.Status, Scope: parseScope(row.Scope), RequestedBy: row.RequestedBy,
-		ConsentAt: tsOf(row.ConsentAt), CreatedAt: tsOf(row.CreatedAt),
+		ConsentAt: tsOf(row.ConsentAt), CreatedAt: tsOf(row.CreatedAt), RequestNote: row.RequestNote,
 	}
 }
 
@@ -125,19 +127,21 @@ func (r *pgRepo) ListGrants(ctx context.Context, viewerID string) ([]Grant, erro
 		g := Grant{
 			ID: row.ID, TrainerID: row.TrainerID, MemberID: row.MemberID,
 			Status: row.Status, Scope: parseScope(row.Scope), RequestedBy: row.RequestedBy,
-			ConsentAt: tsOf(row.ConsentAt), CreatedAt: tsOf(row.CreatedAt),
+			ConsentAt: tsOf(row.ConsentAt), CreatedAt: tsOf(row.CreatedAt), RequestNote: row.RequestNote,
 		}
 		if row.TrainerID == viewerID {
 			g.RoleOfMe = SideTrainer
 			g.Peer = Peer{
 				ID: row.MemberID, DisplayName: text(row.MemberName), AvatarURL: text(row.MemberAvatar),
 				ExperienceLevel: text(row.MemberLevel), TrainerIntent: row.MemberIntentFlag,
+				CoachBio: row.MemberBio, CoachTags: tags(row.MemberTags),
 			}
 		} else {
 			g.RoleOfMe = SideMember
 			g.Peer = Peer{
 				ID: row.TrainerID, DisplayName: text(row.TrainerName), AvatarURL: text(row.TrainerAvatar),
 				ExperienceLevel: text(row.TrainerLevel), TrainerIntent: row.TrainerIntentFlag,
+				CoachBio: row.TrainerBio, CoachTags: tags(row.TrainerTags),
 			}
 		}
 		out = append(out, g)
@@ -145,30 +149,235 @@ func (r *pgRepo) ListGrants(ctx context.Context, viewerID string) ([]Grant, erro
 	return out, nil
 }
 
-func (r *pgRepo) CreateGrant(ctx context.Context, id, trainerID, memberID, requestedBy string) (Grant, error) {
-	row, err := r.q.CreateGrant(ctx, sqlcgen.CreateGrantParams{
+// [원본] v1 — 범위·메시지 없이 만들었다(SPEC-050 부터 CreateGrantWithScope).
+//
+//	func (r *pgRepo) CreateGrant(ctx context.Context, id, trainerID, memberID, requestedBy string) (Grant, error) {
+//		row, err := r.q.CreateGrant(ctx, sqlcgen.CreateGrantParams{
+//			ID: id, TrainerID: trainerID, MemberID: memberID, RequestedBy: requestedBy,
+//		})
+//		...
+//	}
+//
+// [개선]
+func (r *pgRepo) CreateGrant(ctx context.Context, id, trainerID, memberID, requestedBy string, scope []byte, note string) (Grant, error) {
+	row, err := r.q.CreateGrantWithScope(ctx, sqlcgen.CreateGrantWithScopeParams{
 		ID: id, TrainerID: trainerID, MemberID: memberID, RequestedBy: requestedBy,
+		Scope: jsonOr(scope, DefaultScope().encode()), RequestNote: note,
 	})
 	if err != nil {
+		// 같은 쌍이 동시에 두 번 만들어졌다(UNIQUE(trainer_id, member_id)) — 둘째는 「이미 있다」.
+		if isUnique(err, "") {
+			return Grant{}, errs.New(errs.Conflict, msgRequestExists)
+		}
 		return Grant{}, err
 	}
 	return grantFrom(row), nil
 }
 
-func (r *pgRepo) ReopenGrant(ctx context.Context, grantID, requestedBy string) (Grant, error) {
-	row, err := r.q.ReopenGrant(ctx, sqlcgen.ReopenGrantParams{ID: grantID, RequestedBy: requestedBy})
+// [원본] v1 — 옛 범위가 되살아났다(ReopenGrant 쿼리).
+// [개선] revoked 행만, 범위·메시지를 덮어 되살린다. 그 사이 상태가 바뀌었으면 0행 → Conflict.
+func (r *pgRepo) ReopenGrant(ctx context.Context, grantID, requestedBy string, scope []byte, note string) (Grant, error) {
+	row, err := r.q.ReopenGrantWithScope(ctx, sqlcgen.ReopenGrantWithScopeParams{
+		ID: grantID, RequestedBy: requestedBy, Scope: jsonOr(scope, DefaultScope().encode()), RequestNote: note,
+	})
 	if err != nil {
+		return Grant{}, stateErr(err)
+	}
+	return grantFrom(row), nil
+}
+
+// [원본] v1 — 상태 조건 없이 active 로 바꿨다(AcceptGrant 쿼리).
+// [개선] pending 일 때만 · 회원 범위 저장 · 둘째 코치는 one_coach 인덱스가 막는다.
+func (r *pgRepo) AcceptGrant(ctx context.Context, grantID string, scope []byte) (Grant, error) {
+	row, err := r.q.AcceptPendingGrant(ctx, sqlcgen.AcceptPendingGrantParams{
+		ID: grantID, SetScope: scope != nil, Scope: jsonOr(scope, []byte("{}")),
+	})
+	if err != nil {
+		return Grant{}, stateErr(err)
+	}
+	return grantFrom(row), nil
+}
+
+func (r *pgRepo) UpdateScope(ctx context.Context, grantID string, scope []byte) (Grant, error) {
+	row, err := r.q.UpdateActiveGrantScope(ctx, sqlcgen.UpdateActiveGrantScopeParams{ID: grantID, Scope: scope})
+	if err != nil {
+		return Grant{}, stateErr(err)
+	}
+	return grantFrom(row), nil
+}
+
+// RevokeGrantAndEndRoutines — grant FOR UPDATE → revoked → 그 관계의 활성 코치 루틴 ended(한 트랜잭션).
+// 회원 sync 행에 origin coach_ended 를 붙이는 일은 SendRoutine 과 함께 P3b 가 이 트랜잭션에 더한다.
+func (r *pgRepo) RevokeGrantAndEndRoutines(ctx context.Context, grantID string) (Grant, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return Grant{}, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	q := r.q.WithTx(tx)
+	if _, err := q.LockGrant(ctx, grantID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Grant{}, errs.New(errs.NotFound, "grant not found")
+		}
+		return Grant{}, err
+	}
+	row, err := q.RevokeLiveGrant(ctx, grantID)
+	if err != nil {
+		return Grant{}, stateErr(err)
+	}
+	if _, err := q.EndActiveCoachingRoutines(ctx, grantID); err != nil {
+		return Grant{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
 		return Grant{}, err
 	}
 	return grantFrom(row), nil
 }
 
-func (r *pgRepo) AcceptGrant(ctx context.Context, grantID string) (Grant, error) {
-	row, err := r.q.AcceptGrant(ctx, grantID)
+func (r *pgRepo) HasOtherActiveCoach(ctx context.Context, memberID, exceptTrainerID string) (bool, error) {
+	return r.q.HasOtherActiveCoach(ctx, sqlcgen.HasOtherActiveCoachParams{MemberID: memberID, ExceptTrainerID: exceptTrainerID})
+}
+
+func (r *pgRepo) ActivateGrantFromInvite(ctx context.Context, id, trainerID, memberID string, scope []byte) (Grant, error) {
+	row, err := r.q.ActivateGrantFromInvite(ctx, sqlcgen.ActivateGrantFromInviteParams{
+		ID: id, TrainerID: trainerID, MemberID: memberID, Scope: jsonOr(scope, DefaultScope().encode()),
+	})
 	if err != nil {
-		return Grant{}, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Grant{}, errs.New(errs.Conflict, msgAlreadyConnected) // 같은 쌍이 이미 활성
+		}
+		return Grant{}, stateErr(err)
 	}
 	return grantFrom(row), nil
+}
+
+func (r *pgRepo) GetPeer(ctx context.Context, userID string) (Peer, error) {
+	u, err := r.q.GetCoachPeer(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Peer{}, errs.New(errs.NotFound, "user not found")
+		}
+		return Peer{}, err
+	}
+	return Peer{
+		ID: u.ID, DisplayName: text(u.DisplayName), AvatarURL: text(u.AvatarUrl),
+		ExperienceLevel: text(u.ExperienceLevel), TrainerIntent: u.TrainerIntent,
+		CoachBio: u.CoachBio, CoachTags: tags(u.CoachTags),
+	}, nil
+}
+
+// ── 초대 코드 ──
+
+func inviteFrom(row sqlcgen.CoachingInvite) Invite {
+	return Invite{
+		ID: row.ID, Code: row.Code, TrainerID: row.TrainerID,
+		CreatedAt: tsOf(row.CreatedAt), ExpiresAt: tsOf(row.ExpiresAt),
+	}
+}
+
+// CreateInvite — 한 트랜잭션: 그 코치의 옛 코드 회수 → 넣기. 다른 코치 코드와 겹치면 ErrInviteCodeTaken.
+func (r *pgRepo) CreateInvite(ctx context.Context, id, trainerID, code string, expiresAt time.Time) (Invite, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return Invite{}, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	q := r.q.WithTx(tx)
+	if err := q.RevokeTrainerInvites(ctx, trainerID); err != nil {
+		return Invite{}, err
+	}
+	row, err := q.InsertInvite(ctx, sqlcgen.InsertInviteParams{
+		ID: id, Code: code, TrainerID: trainerID, ExpiresAt: tsAt(expiresAt),
+	})
+	if err != nil {
+		if isUnique(err, "coaching_invites_code_live") {
+			return Invite{}, ErrInviteCodeTaken
+		}
+		if isUnique(err, "coaching_invites_trainer_live") {
+			// 같은 코치가 동시에 두 번 만들었다 — 먼저 들어간 쪽이 산다(화면은 다시 읽으면 된다).
+			return Invite{}, errs.New(errs.Conflict, msgTryLater)
+		}
+		return Invite{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return Invite{}, err
+	}
+	return inviteFrom(row), nil
+}
+
+func (r *pgRepo) GetLiveInviteByCode(ctx context.Context, code string) (Invite, error) {
+	row, err := r.q.GetLiveInviteByCode(ctx, code)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Invite{}, errs.New(errs.NotFound, msgInviteNotFound)
+		}
+		return Invite{}, err
+	}
+	return inviteFrom(row), nil
+}
+
+func (r *pgRepo) GetLiveInviteByTrainer(ctx context.Context, trainerID string) (Invite, error) {
+	row, err := r.q.GetLiveInviteByTrainer(ctx, trainerID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Invite{}, errs.New(errs.NotFound, msgInviteNotFound)
+		}
+		return Invite{}, err
+	}
+	return inviteFrom(row), nil
+}
+
+func (r *pgRepo) RevokeInvite(ctx context.Context, id string) error {
+	return r.q.RevokeInvite(ctx, id)
+}
+
+func (r *pgRepo) ListMemberBodyweightIn(ctx context.Context, memberID string, fromMs, toMs int64, b *ReadBudget) ([]MemberRecord, error) {
+	return pageRecords(bodyRecordCollection, b, func(after string) ([]MemberRecord, error) {
+		rows, err := r.q.ListMemberBodyweightIn(ctx, sqlcgen.ListMemberBodyweightInParams{
+			MemberID: memberID, AfterID: after, FromMs: fromMs, ToMs: toMs, Lim: memberRecordsPage,
+		})
+		out := make([]MemberRecord, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, MemberRecord{RecordID: row.RecordID, Payload: row.Payload})
+		}
+		return out, err
+	})
+}
+
+// isUnique — 23505 이고 (constraint 가 비어 있지 않으면) 그 제약 이름일 때.
+func isUnique(err error, constraint string) bool {
+	var pe *pgconn.PgError
+	if !errors.As(err, &pe) || pe.Code != "23505" {
+		return false
+	}
+	return constraint == "" || pe.ConstraintName == constraint
+}
+
+// stateErr — 상태 조건 쿼리의 0행·코치 한 명 위반을 Conflict 로 옮긴다(문구는 화면에 그대로 보인다).
+func stateErr(err error) error {
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return errs.New(errs.Conflict, msgStateChanged)
+	case isUnique(err, "coaching_grants_one_coach"):
+		return errs.New(errs.Conflict, msgOneCoach)
+	}
+	return err
+}
+
+// jsonOr — 비었으면 기본값(jsonb 칸에 NULL 을 넘기지 않는다).
+func jsonOr(b, fallback []byte) []byte {
+	if len(b) == 0 {
+		return fallback
+	}
+	return b
+}
+
+// tags — nil 대신 빈 슬라이스(proto·JSON 이 null 을 보지 않게).
+func tags(t []string) []string {
+	if t == nil {
+		return []string{}
+	}
+	return t
 }
 
 func (r *pgRepo) RevokeGrant(ctx context.Context, grantID string) (Grant, error) {
@@ -179,9 +388,14 @@ func (r *pgRepo) RevokeGrant(ctx context.Context, grantID string) (Grant, error)
 	return grantFrom(row), nil
 }
 
+// grantID 가 비면 관계 없는 행동(invite_create · 0033)이라 NULL 로 남긴다.
 func (r *pgRepo) Audit(ctx context.Context, id, grantID, actorID, action string, detail []byte) error {
+	var gid *string
+	if grantID != "" {
+		gid = &grantID
+	}
 	return r.q.CreateAudit(ctx, sqlcgen.CreateAuditParams{
-		ID: id, GrantID: grantID, ActorID: actorID, Action: action, Detail: detail,
+		ID: id, GrantID: gid, ActorID: actorID, Action: action, Detail: detail,
 	})
 }
 
@@ -194,7 +408,7 @@ func (r *pgRepo) AuditOnce(ctx context.Context, id, grantID, actorID, action str
 }
 
 func (r *pgRepo) ListAudit(ctx context.Context, grantID string) ([]AuditEntry, error) {
-	rows, err := r.q.ListAudit(ctx, grantID)
+	rows, err := r.q.ListAudit(ctx, &grantID)
 	if err != nil {
 		return nil, err
 	}

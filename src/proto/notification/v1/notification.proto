@@ -25,6 +25,16 @@ enum NotificationKind {
   // 화면은 그 회원과의 대화로 간다. 옛 앱은 모르는 종류라 generic 문구로 보인다(S-16).
   // @plm SRS-080
   NOTIFICATION_KIND_COACHING_SUMMARY = 4;
+  // 코칭 v2(SPEC-050) — 받는 쪽 = 반대편. post_id 는 비우고 대상은 ref_id 에 싣는다.
+  // 요청·수락·해지 = ref_id 는 관계(grant) id → 화면은 /coaching.
+  NOTIFICATION_KIND_COACHING_REQUEST = 5;
+  NOTIFICATION_KIND_COACHING_ACCEPT = 6;
+  NOTIFICATION_KIND_COACHING_REVOKE = 7;
+  // 코치가 루틴을 보냈다 / 고쳐 보냈다(10분 묶음) — ref_id 는 회원 쪽 루틴 id.
+  NOTIFICATION_KIND_COACHING_ROUTINE = 8;
+  NOTIFICATION_KIND_COACHING_ROUTINE_UPDATE = 9;
+  // 코치가 운동에 코멘트를 남겼다 — ref_id 는 운동 id(/history/[ref_id]).
+  NOTIFICATION_KIND_COACHING_COMMENT = 10;
 }
 
 message Actor {
@@ -41,6 +51,8 @@ message Notification {
   string post_id = 4;
   bool read = 5;
   google.protobuf.Timestamp created_at = 6;
+  // 코칭 알림의 대상(SPEC-050) — 관계 id·루틴 id·운동 id. 다른 종류는 빈 문자열.
+  string ref_id = 7;
 }
 
 message ListNotificationsRequest {

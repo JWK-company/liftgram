@@ -69,6 +69,21 @@ const (
 	// CoachingServiceRevokeGrantProcedure is the fully-qualified name of the CoachingService's
 	// RevokeGrant RPC.
 	CoachingServiceRevokeGrantProcedure = "/coaching.v1.CoachingService/RevokeGrant"
+	// CoachingServiceUpdateScopeProcedure is the fully-qualified name of the CoachingService's
+	// UpdateScope RPC.
+	CoachingServiceUpdateScopeProcedure = "/coaching.v1.CoachingService/UpdateScope"
+	// CoachingServiceCreateInviteProcedure is the fully-qualified name of the CoachingService's
+	// CreateInvite RPC.
+	CoachingServiceCreateInviteProcedure = "/coaching.v1.CoachingService/CreateInvite"
+	// CoachingServiceGetMyInviteProcedure is the fully-qualified name of the CoachingService's
+	// GetMyInvite RPC.
+	CoachingServiceGetMyInviteProcedure = "/coaching.v1.CoachingService/GetMyInvite"
+	// CoachingServiceGetInviteProcedure is the fully-qualified name of the CoachingService's GetInvite
+	// RPC.
+	CoachingServiceGetInviteProcedure = "/coaching.v1.CoachingService/GetInvite"
+	// CoachingServiceAcceptInviteProcedure is the fully-qualified name of the CoachingService's
+	// AcceptInvite RPC.
+	CoachingServiceAcceptInviteProcedure = "/coaching.v1.CoachingService/AcceptInvite"
 	// CoachingServiceGetMemberReportProcedure is the fully-qualified name of the CoachingService's
 	// GetMemberReport RPC.
 	CoachingServiceGetMemberReportProcedure = "/coaching.v1.CoachingService/GetMemberReport"
@@ -105,6 +120,13 @@ type CoachingServiceClient interface {
 	AcceptGrant(context.Context, *connect.Request[v1.AcceptGrantRequest]) (*connect.Response[v1.AcceptGrantResponse], error)
 	// 해지는 양쪽 다 할 수 있고, 그 순간 모든 접근이 닫힌다.
 	RevokeGrant(context.Context, *connect.Request[v1.RevokeGrantRequest]) (*connect.Response[v1.RevokeGrantResponse], error)
+	// 범위 바꾸기 — 회원만, 활성 관계만(SPEC-050).
+	UpdateScope(context.Context, *connect.Request[v1.UpdateScopeRequest]) (*connect.Response[v1.UpdateScopeResponse], error)
+	// 초대 코드(SPEC-050).
+	CreateInvite(context.Context, *connect.Request[v1.CreateInviteRequest]) (*connect.Response[v1.CreateInviteResponse], error)
+	GetMyInvite(context.Context, *connect.Request[v1.GetMyInviteRequest]) (*connect.Response[v1.GetMyInviteResponse], error)
+	GetInvite(context.Context, *connect.Request[v1.GetInviteRequest]) (*connect.Response[v1.GetInviteResponse], error)
+	AcceptInvite(context.Context, *connect.Request[v1.AcceptInviteRequest]) (*connect.Response[v1.AcceptInviteResponse], error)
 	// 회원 기록 열람(scope=logView). 사실 집계만 돌려준다.
 	GetMemberReport(context.Context, *connect.Request[v1.GetMemberReportRequest]) (*connect.Response[v1.GetMemberReportResponse], error)
 	// 회원 루틴 열람·처방(scope=routineEdit).
@@ -162,6 +184,36 @@ func NewCoachingServiceClient(httpClient connect.HTTPClient, baseURL string, opt
 			httpClient,
 			baseURL+CoachingServiceRevokeGrantProcedure,
 			connect.WithSchema(coachingServiceMethods.ByName("RevokeGrant")),
+			connect.WithClientOptions(opts...),
+		),
+		updateScope: connect.NewClient[v1.UpdateScopeRequest, v1.UpdateScopeResponse](
+			httpClient,
+			baseURL+CoachingServiceUpdateScopeProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("UpdateScope")),
+			connect.WithClientOptions(opts...),
+		),
+		createInvite: connect.NewClient[v1.CreateInviteRequest, v1.CreateInviteResponse](
+			httpClient,
+			baseURL+CoachingServiceCreateInviteProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("CreateInvite")),
+			connect.WithClientOptions(opts...),
+		),
+		getMyInvite: connect.NewClient[v1.GetMyInviteRequest, v1.GetMyInviteResponse](
+			httpClient,
+			baseURL+CoachingServiceGetMyInviteProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("GetMyInvite")),
+			connect.WithClientOptions(opts...),
+		),
+		getInvite: connect.NewClient[v1.GetInviteRequest, v1.GetInviteResponse](
+			httpClient,
+			baseURL+CoachingServiceGetInviteProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("GetInvite")),
+			connect.WithClientOptions(opts...),
+		),
+		acceptInvite: connect.NewClient[v1.AcceptInviteRequest, v1.AcceptInviteResponse](
+			httpClient,
+			baseURL+CoachingServiceAcceptInviteProcedure,
+			connect.WithSchema(coachingServiceMethods.ByName("AcceptInvite")),
 			connect.WithClientOptions(opts...),
 		),
 		getMemberReport: connect.NewClient[v1.GetMemberReportRequest, v1.GetMemberReportResponse](
@@ -222,6 +274,11 @@ type coachingServiceClient struct {
 	listGrants            *connect.Client[v1.ListGrantsRequest, v1.ListGrantsResponse]
 	acceptGrant           *connect.Client[v1.AcceptGrantRequest, v1.AcceptGrantResponse]
 	revokeGrant           *connect.Client[v1.RevokeGrantRequest, v1.RevokeGrantResponse]
+	updateScope           *connect.Client[v1.UpdateScopeRequest, v1.UpdateScopeResponse]
+	createInvite          *connect.Client[v1.CreateInviteRequest, v1.CreateInviteResponse]
+	getMyInvite           *connect.Client[v1.GetMyInviteRequest, v1.GetMyInviteResponse]
+	getInvite             *connect.Client[v1.GetInviteRequest, v1.GetInviteResponse]
+	acceptInvite          *connect.Client[v1.AcceptInviteRequest, v1.AcceptInviteResponse]
 	getMemberReport       *connect.Client[v1.GetMemberReportRequest, v1.GetMemberReportResponse]
 	listMemberRoutines    *connect.Client[v1.ListMemberRoutinesRequest, v1.ListMemberRoutinesResponse]
 	setMemberPrescription *connect.Client[v1.SetMemberPrescriptionRequest, v1.SetMemberPrescriptionResponse]
@@ -255,6 +312,31 @@ func (c *coachingServiceClient) AcceptGrant(ctx context.Context, req *connect.Re
 // RevokeGrant calls coaching.v1.CoachingService.RevokeGrant.
 func (c *coachingServiceClient) RevokeGrant(ctx context.Context, req *connect.Request[v1.RevokeGrantRequest]) (*connect.Response[v1.RevokeGrantResponse], error) {
 	return c.revokeGrant.CallUnary(ctx, req)
+}
+
+// UpdateScope calls coaching.v1.CoachingService.UpdateScope.
+func (c *coachingServiceClient) UpdateScope(ctx context.Context, req *connect.Request[v1.UpdateScopeRequest]) (*connect.Response[v1.UpdateScopeResponse], error) {
+	return c.updateScope.CallUnary(ctx, req)
+}
+
+// CreateInvite calls coaching.v1.CoachingService.CreateInvite.
+func (c *coachingServiceClient) CreateInvite(ctx context.Context, req *connect.Request[v1.CreateInviteRequest]) (*connect.Response[v1.CreateInviteResponse], error) {
+	return c.createInvite.CallUnary(ctx, req)
+}
+
+// GetMyInvite calls coaching.v1.CoachingService.GetMyInvite.
+func (c *coachingServiceClient) GetMyInvite(ctx context.Context, req *connect.Request[v1.GetMyInviteRequest]) (*connect.Response[v1.GetMyInviteResponse], error) {
+	return c.getMyInvite.CallUnary(ctx, req)
+}
+
+// GetInvite calls coaching.v1.CoachingService.GetInvite.
+func (c *coachingServiceClient) GetInvite(ctx context.Context, req *connect.Request[v1.GetInviteRequest]) (*connect.Response[v1.GetInviteResponse], error) {
+	return c.getInvite.CallUnary(ctx, req)
+}
+
+// AcceptInvite calls coaching.v1.CoachingService.AcceptInvite.
+func (c *coachingServiceClient) AcceptInvite(ctx context.Context, req *connect.Request[v1.AcceptInviteRequest]) (*connect.Response[v1.AcceptInviteResponse], error) {
+	return c.acceptInvite.CallUnary(ctx, req)
 }
 
 // GetMemberReport calls coaching.v1.CoachingService.GetMemberReport.
@@ -307,6 +389,13 @@ type CoachingServiceHandler interface {
 	AcceptGrant(context.Context, *connect.Request[v1.AcceptGrantRequest]) (*connect.Response[v1.AcceptGrantResponse], error)
 	// 해지는 양쪽 다 할 수 있고, 그 순간 모든 접근이 닫힌다.
 	RevokeGrant(context.Context, *connect.Request[v1.RevokeGrantRequest]) (*connect.Response[v1.RevokeGrantResponse], error)
+	// 범위 바꾸기 — 회원만, 활성 관계만(SPEC-050).
+	UpdateScope(context.Context, *connect.Request[v1.UpdateScopeRequest]) (*connect.Response[v1.UpdateScopeResponse], error)
+	// 초대 코드(SPEC-050).
+	CreateInvite(context.Context, *connect.Request[v1.CreateInviteRequest]) (*connect.Response[v1.CreateInviteResponse], error)
+	GetMyInvite(context.Context, *connect.Request[v1.GetMyInviteRequest]) (*connect.Response[v1.GetMyInviteResponse], error)
+	GetInvite(context.Context, *connect.Request[v1.GetInviteRequest]) (*connect.Response[v1.GetInviteResponse], error)
+	AcceptInvite(context.Context, *connect.Request[v1.AcceptInviteRequest]) (*connect.Response[v1.AcceptInviteResponse], error)
 	// 회원 기록 열람(scope=logView). 사실 집계만 돌려준다.
 	GetMemberReport(context.Context, *connect.Request[v1.GetMemberReportRequest]) (*connect.Response[v1.GetMemberReportResponse], error)
 	// 회원 루틴 열람·처방(scope=routineEdit).
@@ -360,6 +449,36 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 		CoachingServiceRevokeGrantProcedure,
 		svc.RevokeGrant,
 		connect.WithSchema(coachingServiceMethods.ByName("RevokeGrant")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceUpdateScopeHandler := connect.NewUnaryHandler(
+		CoachingServiceUpdateScopeProcedure,
+		svc.UpdateScope,
+		connect.WithSchema(coachingServiceMethods.ByName("UpdateScope")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceCreateInviteHandler := connect.NewUnaryHandler(
+		CoachingServiceCreateInviteProcedure,
+		svc.CreateInvite,
+		connect.WithSchema(coachingServiceMethods.ByName("CreateInvite")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceGetMyInviteHandler := connect.NewUnaryHandler(
+		CoachingServiceGetMyInviteProcedure,
+		svc.GetMyInvite,
+		connect.WithSchema(coachingServiceMethods.ByName("GetMyInvite")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceGetInviteHandler := connect.NewUnaryHandler(
+		CoachingServiceGetInviteProcedure,
+		svc.GetInvite,
+		connect.WithSchema(coachingServiceMethods.ByName("GetInvite")),
+		connect.WithHandlerOptions(opts...),
+	)
+	coachingServiceAcceptInviteHandler := connect.NewUnaryHandler(
+		CoachingServiceAcceptInviteProcedure,
+		svc.AcceptInvite,
+		connect.WithSchema(coachingServiceMethods.ByName("AcceptInvite")),
 		connect.WithHandlerOptions(opts...),
 	)
 	coachingServiceGetMemberReportHandler := connect.NewUnaryHandler(
@@ -422,6 +541,16 @@ func NewCoachingServiceHandler(svc CoachingServiceHandler, opts ...connect.Handl
 			coachingServiceAcceptGrantHandler.ServeHTTP(w, r)
 		case CoachingServiceRevokeGrantProcedure:
 			coachingServiceRevokeGrantHandler.ServeHTTP(w, r)
+		case CoachingServiceUpdateScopeProcedure:
+			coachingServiceUpdateScopeHandler.ServeHTTP(w, r)
+		case CoachingServiceCreateInviteProcedure:
+			coachingServiceCreateInviteHandler.ServeHTTP(w, r)
+		case CoachingServiceGetMyInviteProcedure:
+			coachingServiceGetMyInviteHandler.ServeHTTP(w, r)
+		case CoachingServiceGetInviteProcedure:
+			coachingServiceGetInviteHandler.ServeHTTP(w, r)
+		case CoachingServiceAcceptInviteProcedure:
+			coachingServiceAcceptInviteHandler.ServeHTTP(w, r)
 		case CoachingServiceGetMemberReportProcedure:
 			coachingServiceGetMemberReportHandler.ServeHTTP(w, r)
 		case CoachingServiceListMemberRoutinesProcedure:
@@ -465,6 +594,26 @@ func (UnimplementedCoachingServiceHandler) AcceptGrant(context.Context, *connect
 
 func (UnimplementedCoachingServiceHandler) RevokeGrant(context.Context, *connect.Request[v1.RevokeGrantRequest]) (*connect.Response[v1.RevokeGrantResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.RevokeGrant is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) UpdateScope(context.Context, *connect.Request[v1.UpdateScopeRequest]) (*connect.Response[v1.UpdateScopeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.UpdateScope is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) CreateInvite(context.Context, *connect.Request[v1.CreateInviteRequest]) (*connect.Response[v1.CreateInviteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.CreateInvite is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) GetMyInvite(context.Context, *connect.Request[v1.GetMyInviteRequest]) (*connect.Response[v1.GetMyInviteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.GetMyInvite is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) GetInvite(context.Context, *connect.Request[v1.GetInviteRequest]) (*connect.Response[v1.GetInviteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.GetInvite is not implemented"))
+}
+
+func (UnimplementedCoachingServiceHandler) AcceptInvite(context.Context, *connect.Request[v1.AcceptInviteRequest]) (*connect.Response[v1.AcceptInviteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("coaching.v1.CoachingService.AcceptInvite is not implemented"))
 }
 
 func (UnimplementedCoachingServiceHandler) GetMemberReport(context.Context, *connect.Request[v1.GetMemberReportRequest]) (*connect.Response[v1.GetMemberReportResponse], error) {

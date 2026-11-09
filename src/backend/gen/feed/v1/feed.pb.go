@@ -881,7 +881,11 @@ type SocialProfile struct {
 	IsSelf      bool `protobuf:"varint,5,opt,name=is_self,json=isSelf,proto3" json:"is_self,omitempty"`
 	IsFollowing bool `protobuf:"varint,6,opt,name=is_following,json=isFollowing,proto3" json:"is_following,omitempty"`
 	// 내가 차단했는가(상대가 나를 차단한 경우는 애초에 조회가 막힌다).
-	IsBlocked     bool `protobuf:"varint,7,opt,name=is_blocked,json=isBlocked,proto3" json:"is_blocked,omitempty"`
+	IsBlocked bool `protobuf:"varint,7,opt,name=is_blocked,json=isBlocked,proto3" json:"is_blocked,omitempty"`
+	// 코치 카드(SPEC-050) — 코치 여부(trainer_intent)·소개·태그.
+	TrainerIntent bool     `protobuf:"varint,8,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
+	CoachBio      string   `protobuf:"bytes,9,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
+	CoachTags     []string `protobuf:"bytes,10,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -963,6 +967,27 @@ func (x *SocialProfile) GetIsBlocked() bool {
 		return x.IsBlocked
 	}
 	return false
+}
+
+func (x *SocialProfile) GetTrainerIntent() bool {
+	if x != nil {
+		return x.TrainerIntent
+	}
+	return false
+}
+
+func (x *SocialProfile) GetCoachBio() string {
+	if x != nil {
+		return x.CoachBio
+	}
+	return ""
+}
+
+func (x *SocialProfile) GetCoachTags() []string {
+	if x != nil {
+		return x.CoachTags
+	}
+	return nil
 }
 
 type HashtagCount struct {
@@ -2305,9 +2330,11 @@ func (x *SearchUsersRequest) GetLimit() int32 {
 }
 
 type UserResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Author        *Author                `protobuf:"bytes,1,opt,name=author,proto3" json:"author,omitempty"`
-	Following     bool                   `protobuf:"varint,2,opt,name=following,proto3" json:"following,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Author    *Author                `protobuf:"bytes,1,opt,name=author,proto3" json:"author,omitempty"`
+	Following bool                   `protobuf:"varint,2,opt,name=following,proto3" json:"following,omitempty"`
+	// 코칭 의향(코치 배지 — SPEC-050). 사람 찾기·팔로워·팔로잉만 채운다(추천은 비움).
+	TrainerIntent bool `protobuf:"varint,3,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2352,6 +2379,13 @@ func (x *UserResult) GetAuthor() *Author {
 func (x *UserResult) GetFollowing() bool {
 	if x != nil {
 		return x.Following
+	}
+	return false
+}
+
+func (x *UserResult) GetTrainerIntent() bool {
+	if x != nil {
+		return x.TrainerIntent
 	}
 	return false
 }
@@ -4364,7 +4398,7 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"like_count\x18\a \x01(\x05R\tlikeCount\x12\x1e\n" +
 	"\vliked_by_me\x18\b \x01(\bR\tlikedByMe\x12\x1f\n" +
 	"\vreply_count\x18\t \x01(\x05R\n" +
-	"replyCount\"\x82\x02\n" +
+	"replyCount\"\xe5\x02\n" +
 	"\rSocialProfile\x12'\n" +
 	"\x06author\x18\x01 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12\x1d\n" +
 	"\n" +
@@ -4374,7 +4408,12 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\ais_self\x18\x05 \x01(\bR\x06isSelf\x12!\n" +
 	"\fis_following\x18\x06 \x01(\bR\visFollowing\x12\x1d\n" +
 	"\n" +
-	"is_blocked\x18\a \x01(\bR\tisBlocked\"6\n" +
+	"is_blocked\x18\a \x01(\bR\tisBlocked\x12%\n" +
+	"\x0etrainer_intent\x18\b \x01(\bR\rtrainerIntent\x12\x1b\n" +
+	"\tcoach_bio\x18\t \x01(\tR\bcoachBio\x12\x1d\n" +
+	"\n" +
+	"coach_tags\x18\n" +
+	" \x03(\tR\tcoachTags\"6\n" +
 	"\fHashtagCount\x12\x10\n" +
 	"\x03tag\x18\x01 \x01(\tR\x03tag\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x05R\x05count\"S\n" +
@@ -4458,11 +4497,12 @@ const file_feed_v1_feed_proto_rawDesc = "" +
 	"\tfollowing\x18\x01 \x01(\bR\tfollowing\"V\n" +
 	"\x12SearchUsersRequest\x12\x1f\n" +
 	"\x05query\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18PR\x05query\x12\x1f\n" +
-	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x182(\x00R\x05limit\"S\n" +
+	"\x05limit\x18\x02 \x01(\x05B\t\xbaH\x06\x1a\x04\x182(\x00R\x05limit\"z\n" +
 	"\n" +
 	"UserResult\x12'\n" +
 	"\x06author\x18\x01 \x01(\v2\x0f.feed.v1.AuthorR\x06author\x12\x1c\n" +
-	"\tfollowing\x18\x02 \x01(\bR\tfollowing\"@\n" +
+	"\tfollowing\x18\x02 \x01(\bR\tfollowing\x12%\n" +
+	"\x0etrainer_intent\x18\x03 \x01(\bR\rtrainerIntent\"@\n" +
 	"\x13SearchUsersResponse\x12)\n" +
 	"\x05users\x18\x01 \x03(\v2\x13.feed.v1.UserResultR\x05users\"\x90\x01\n" +
 	"\x11UpdatePostRequest\x12\"\n" +

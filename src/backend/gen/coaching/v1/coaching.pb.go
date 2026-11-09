@@ -318,8 +318,11 @@ type Peer struct {
 	// 스스로 밝힌 운동 경력. **자격 보증이 아니다**(화면이 그 고지를 함께 띄운다).
 	ExperienceLevel string `protobuf:"bytes,4,opt,name=experience_level,json=experienceLevel,proto3" json:"experience_level,omitempty"`
 	TrainerIntent   bool   `protobuf:"varint,5,opt,name=trainer_intent,json=trainerIntent,proto3" json:"trainer_intent,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// 코치 소개(80자)·태그(hypertrophy·strength·diet·rehab·beginner·powerlifting 중 3개까지) — SPEC-050.
+	CoachBio      string   `protobuf:"bytes,6,opt,name=coach_bio,json=coachBio,proto3" json:"coach_bio,omitempty"`
+	CoachTags     []string `protobuf:"bytes,7,rep,name=coach_tags,json=coachTags,proto3" json:"coach_tags,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Peer) Reset() {
@@ -387,6 +390,96 @@ func (x *Peer) GetTrainerIntent() bool {
 	return false
 }
 
+func (x *Peer) GetCoachBio() string {
+	if x != nil {
+		return x.CoachBio
+	}
+	return ""
+}
+
+func (x *Peer) GetCoachTags() []string {
+	if x != nil {
+		return x.CoachTags
+	}
+	return nil
+}
+
+// 회원이 여는 범위(SPEC-050). 키는 이 넷뿐 — 서버는 이 넷만 저장하고, 옛 행에 없는 키는 false 로 읽는다.
+//
+//	log_view     운동 기록·분석
+//	routine_edit 코치가 짠 루틴 받기 · 내 루틴 처방 고치기
+//	body_view    체중·인바디(bodyweight_logs 의 정해진 칸만)
+//	past_records 연결 전 기록도(끄면 동의 시각 뒤 기록만 — 모든 코칭 RPC 에 같은 컷)
+//
+// 기본값 = log_view·routine_edit 켬, body_view·past_records 끔.
+type CoachingScope struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	LogView       bool                   `protobuf:"varint,1,opt,name=log_view,json=logView,proto3" json:"log_view,omitempty"`
+	RoutineEdit   bool                   `protobuf:"varint,2,opt,name=routine_edit,json=routineEdit,proto3" json:"routine_edit,omitempty"`
+	BodyView      bool                   `protobuf:"varint,3,opt,name=body_view,json=bodyView,proto3" json:"body_view,omitempty"`
+	PastRecords   bool                   `protobuf:"varint,4,opt,name=past_records,json=pastRecords,proto3" json:"past_records,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CoachingScope) Reset() {
+	*x = CoachingScope{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CoachingScope) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CoachingScope) ProtoMessage() {}
+
+func (x *CoachingScope) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CoachingScope.ProtoReflect.Descriptor instead.
+func (*CoachingScope) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CoachingScope) GetLogView() bool {
+	if x != nil {
+		return x.LogView
+	}
+	return false
+}
+
+func (x *CoachingScope) GetRoutineEdit() bool {
+	if x != nil {
+		return x.RoutineEdit
+	}
+	return false
+}
+
+func (x *CoachingScope) GetBodyView() bool {
+	if x != nil {
+		return x.BodyView
+	}
+	return false
+}
+
+func (x *CoachingScope) GetPastRecords() bool {
+	if x != nil {
+		return x.PastRecords
+	}
+	return false
+}
+
 type Grant struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Id     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -397,14 +490,18 @@ type Grant struct {
 	Peer        *Peer `protobuf:"bytes,5,opt,name=peer,proto3" json:"peer,omitempty"`
 	CreatedAt   int64 `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	// 수락(동의) 시각. 아직이면 0.
-	ConsentAt     int64 `protobuf:"varint,7,opt,name=consent_at,json=consentAt,proto3" json:"consent_at,omitempty"`
+	ConsentAt int64 `protobuf:"varint,7,opt,name=consent_at,json=consentAt,proto3" json:"consent_at,omitempty"`
+	// 지금 열린(수락 전이면 요청된) 범위.
+	Scope *CoachingScope `protobuf:"bytes,8,opt,name=scope,proto3" json:"scope,omitempty"`
+	// 요청할 때 남긴 한 줄(100자). 없으면 빈 문자열.
+	RequestNote   string `protobuf:"bytes,9,opt,name=request_note,json=requestNote,proto3" json:"request_note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Grant) Reset() {
 	*x = Grant{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[1]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -416,7 +513,7 @@ func (x *Grant) String() string {
 func (*Grant) ProtoMessage() {}
 
 func (x *Grant) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[1]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -429,7 +526,7 @@ func (x *Grant) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Grant.ProtoReflect.Descriptor instead.
 func (*Grant) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{1}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Grant) GetId() string {
@@ -481,6 +578,81 @@ func (x *Grant) GetConsentAt() int64 {
 	return 0
 }
 
+func (x *Grant) GetScope() *CoachingScope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *Grant) GetRequestNote() string {
+	if x != nil {
+		return x.RequestNote
+	}
+	return ""
+}
+
+// 코치의 초대 코드(SPEC-050). code = Crockford base32 8자 — 화면은 4-4 로 끊어 보인다(하이픈은 화면 몫).
+type Invite struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	ExpiresAt     int64                  `protobuf:"varint,3,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Invite) Reset() {
+	*x = Invite{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Invite) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Invite) ProtoMessage() {}
+
+func (x *Invite) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Invite.ProtoReflect.Descriptor instead.
+func (*Invite) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Invite) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Invite) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Invite) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
 type PrescribedSet struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	SetType SetType                `protobuf:"varint,1,opt,name=set_type,json=setType,proto3,enum=coaching.v1.SetType" json:"set_type,omitempty"`
@@ -501,7 +673,7 @@ type PrescribedSet struct {
 
 func (x *PrescribedSet) Reset() {
 	*x = PrescribedSet{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[2]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -513,7 +685,7 @@ func (x *PrescribedSet) String() string {
 func (*PrescribedSet) ProtoMessage() {}
 
 func (x *PrescribedSet) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[2]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -526,7 +698,7 @@ func (x *PrescribedSet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrescribedSet.ProtoReflect.Descriptor instead.
 func (*PrescribedSet) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{2}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PrescribedSet) GetSetType() SetType {
@@ -599,7 +771,7 @@ type RoutineExercise struct {
 
 func (x *RoutineExercise) Reset() {
 	*x = RoutineExercise{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[3]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -611,7 +783,7 @@ func (x *RoutineExercise) String() string {
 func (*RoutineExercise) ProtoMessage() {}
 
 func (x *RoutineExercise) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[3]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -624,7 +796,7 @@ func (x *RoutineExercise) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoutineExercise.ProtoReflect.Descriptor instead.
 func (*RoutineExercise) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{3}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RoutineExercise) GetId() string {
@@ -673,7 +845,7 @@ type Routine struct {
 
 func (x *Routine) Reset() {
 	*x = Routine{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[4]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -685,7 +857,7 @@ func (x *Routine) String() string {
 func (*Routine) ProtoMessage() {}
 
 func (x *Routine) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[4]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -698,7 +870,7 @@ func (x *Routine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Routine.ProtoReflect.Descriptor instead.
 func (*Routine) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{4}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Routine) GetId() string {
@@ -733,7 +905,7 @@ type MuscleVolume struct {
 
 func (x *MuscleVolume) Reset() {
 	*x = MuscleVolume{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[5]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -745,7 +917,7 @@ func (x *MuscleVolume) String() string {
 func (*MuscleVolume) ProtoMessage() {}
 
 func (x *MuscleVolume) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[5]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -758,7 +930,7 @@ func (x *MuscleVolume) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MuscleVolume.ProtoReflect.Descriptor instead.
 func (*MuscleVolume) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{5}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *MuscleVolume) GetMuscle() string {
@@ -788,7 +960,7 @@ type SessionSummary struct {
 
 func (x *SessionSummary) Reset() {
 	*x = SessionSummary{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[6]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -800,7 +972,7 @@ func (x *SessionSummary) String() string {
 func (*SessionSummary) ProtoMessage() {}
 
 func (x *SessionSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[6]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -813,7 +985,7 @@ func (x *SessionSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionSummary.ProtoReflect.Descriptor instead.
 func (*SessionSummary) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{6}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SessionSummary) GetName() string {
@@ -865,7 +1037,7 @@ type MemberReport struct {
 
 func (x *MemberReport) Reset() {
 	*x = MemberReport{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[7]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +1049,7 @@ func (x *MemberReport) String() string {
 func (*MemberReport) ProtoMessage() {}
 
 func (x *MemberReport) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[7]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -890,7 +1062,7 @@ func (x *MemberReport) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemberReport.ProtoReflect.Descriptor instead.
 func (*MemberReport) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{7}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *MemberReport) GetWeeks() int32 {
@@ -949,7 +1121,7 @@ type AuditEntry struct {
 
 func (x *AuditEntry) Reset() {
 	*x = AuditEntry{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[8]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1133,7 @@ func (x *AuditEntry) String() string {
 func (*AuditEntry) ProtoMessage() {}
 
 func (x *AuditEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[8]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1146,7 @@ func (x *AuditEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuditEntry.ProtoReflect.Descriptor instead.
 func (*AuditEntry) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{8}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AuditEntry) GetId() string {
@@ -1014,7 +1186,7 @@ type SearchTrainersRequest struct {
 
 func (x *SearchTrainersRequest) Reset() {
 	*x = SearchTrainersRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[9]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1026,7 +1198,7 @@ func (x *SearchTrainersRequest) String() string {
 func (*SearchTrainersRequest) ProtoMessage() {}
 
 func (x *SearchTrainersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[9]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1039,7 +1211,7 @@ func (x *SearchTrainersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchTrainersRequest.ProtoReflect.Descriptor instead.
 func (*SearchTrainersRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{9}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SearchTrainersRequest) GetQuery() string {
@@ -1058,7 +1230,7 @@ type SearchTrainersResponse struct {
 
 func (x *SearchTrainersResponse) Reset() {
 	*x = SearchTrainersResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[10]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1070,7 +1242,7 @@ func (x *SearchTrainersResponse) String() string {
 func (*SearchTrainersResponse) ProtoMessage() {}
 
 func (x *SearchTrainersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[10]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1083,7 +1255,7 @@ func (x *SearchTrainersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchTrainersResponse.ProtoReflect.Descriptor instead.
 func (*SearchTrainersResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{10}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SearchTrainersResponse) GetPeers() []*Peer {
@@ -1095,16 +1267,20 @@ func (x *SearchTrainersResponse) GetPeers() []*Peer {
 
 // 요청은 **정확히 한쪽만** 지정한다. 둘 다 비거나 둘 다 채우면 누가 가르치는지 알 수 없다.
 type RequestCoachingRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TrainerId     string                 `protobuf:"bytes,1,opt,name=trainer_id,json=trainerId,proto3" json:"trainer_id,omitempty"`
-	MemberId      string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	TrainerId string                 `protobuf:"bytes,1,opt,name=trainer_id,json=trainerId,proto3" json:"trainer_id,omitempty"`
+	MemberId  string                 `protobuf:"bytes,2,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
+	// 회원이 요청할 때 여는 범위. 비우면 기본값. 코치가 요청하면 무시한다(범위는 회원이 수락할 때 고른다).
+	Scope *CoachingScope `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	// 한 줄 메시지(100자).
+	Note          string `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RequestCoachingRequest) Reset() {
 	*x = RequestCoachingRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[11]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1116,7 +1292,7 @@ func (x *RequestCoachingRequest) String() string {
 func (*RequestCoachingRequest) ProtoMessage() {}
 
 func (x *RequestCoachingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[11]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1129,7 +1305,7 @@ func (x *RequestCoachingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestCoachingRequest.ProtoReflect.Descriptor instead.
 func (*RequestCoachingRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{11}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RequestCoachingRequest) GetTrainerId() string {
@@ -1146,6 +1322,20 @@ func (x *RequestCoachingRequest) GetMemberId() string {
 	return ""
 }
 
+func (x *RequestCoachingRequest) GetScope() *CoachingScope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *RequestCoachingRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
 type RequestCoachingResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Grant         *Grant                 `protobuf:"bytes,1,opt,name=grant,proto3" json:"grant,omitempty"`
@@ -1155,7 +1345,7 @@ type RequestCoachingResponse struct {
 
 func (x *RequestCoachingResponse) Reset() {
 	*x = RequestCoachingResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[12]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1167,7 +1357,7 @@ func (x *RequestCoachingResponse) String() string {
 func (*RequestCoachingResponse) ProtoMessage() {}
 
 func (x *RequestCoachingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[12]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1180,7 +1370,7 @@ func (x *RequestCoachingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestCoachingResponse.ProtoReflect.Descriptor instead.
 func (*RequestCoachingResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{12}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *RequestCoachingResponse) GetGrant() *Grant {
@@ -1198,7 +1388,7 @@ type ListGrantsRequest struct {
 
 func (x *ListGrantsRequest) Reset() {
 	*x = ListGrantsRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[13]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1400,7 @@ func (x *ListGrantsRequest) String() string {
 func (*ListGrantsRequest) ProtoMessage() {}
 
 func (x *ListGrantsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[13]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1413,7 @@ func (x *ListGrantsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGrantsRequest.ProtoReflect.Descriptor instead.
 func (*ListGrantsRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{13}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{15}
 }
 
 type ListGrantsResponse struct {
@@ -1235,7 +1425,7 @@ type ListGrantsResponse struct {
 
 func (x *ListGrantsResponse) Reset() {
 	*x = ListGrantsResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[14]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1247,7 +1437,7 @@ func (x *ListGrantsResponse) String() string {
 func (*ListGrantsResponse) ProtoMessage() {}
 
 func (x *ListGrantsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[14]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1260,7 +1450,7 @@ func (x *ListGrantsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGrantsResponse.ProtoReflect.Descriptor instead.
 func (*ListGrantsResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{14}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListGrantsResponse) GetGrants() []*Grant {
@@ -1271,15 +1461,17 @@ func (x *ListGrantsResponse) GetGrants() []*Grant {
 }
 
 type AcceptGrantRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	GrantId       string                 `protobuf:"bytes,1,opt,name=grant_id,json=grantId,proto3" json:"grant_id,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	GrantId string                 `protobuf:"bytes,1,opt,name=grant_id,json=grantId,proto3" json:"grant_id,omitempty"`
+	// 회원이 수락할 때 여는 범위. 비우면 요청 때 저장된 값. 코치가 수락하면 무시한다.
+	Scope         *CoachingScope `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AcceptGrantRequest) Reset() {
 	*x = AcceptGrantRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[15]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1291,7 +1483,7 @@ func (x *AcceptGrantRequest) String() string {
 func (*AcceptGrantRequest) ProtoMessage() {}
 
 func (x *AcceptGrantRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[15]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1304,7 +1496,7 @@ func (x *AcceptGrantRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptGrantRequest.ProtoReflect.Descriptor instead.
 func (*AcceptGrantRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{15}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AcceptGrantRequest) GetGrantId() string {
@@ -1312,6 +1504,13 @@ func (x *AcceptGrantRequest) GetGrantId() string {
 		return x.GrantId
 	}
 	return ""
+}
+
+func (x *AcceptGrantRequest) GetScope() *CoachingScope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
 }
 
 type AcceptGrantResponse struct {
@@ -1323,7 +1522,7 @@ type AcceptGrantResponse struct {
 
 func (x *AcceptGrantResponse) Reset() {
 	*x = AcceptGrantResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[16]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1335,7 +1534,7 @@ func (x *AcceptGrantResponse) String() string {
 func (*AcceptGrantResponse) ProtoMessage() {}
 
 func (x *AcceptGrantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[16]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1348,7 +1547,7 @@ func (x *AcceptGrantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptGrantResponse.ProtoReflect.Descriptor instead.
 func (*AcceptGrantResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{16}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AcceptGrantResponse) GetGrant() *Grant {
@@ -1367,7 +1566,7 @@ type RevokeGrantRequest struct {
 
 func (x *RevokeGrantRequest) Reset() {
 	*x = RevokeGrantRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[17]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1379,7 +1578,7 @@ func (x *RevokeGrantRequest) String() string {
 func (*RevokeGrantRequest) ProtoMessage() {}
 
 func (x *RevokeGrantRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[17]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1392,7 +1591,7 @@ func (x *RevokeGrantRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeGrantRequest.ProtoReflect.Descriptor instead.
 func (*RevokeGrantRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{17}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RevokeGrantRequest) GetGrantId() string {
@@ -1411,7 +1610,7 @@ type RevokeGrantResponse struct {
 
 func (x *RevokeGrantResponse) Reset() {
 	*x = RevokeGrantResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[18]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1423,7 +1622,7 @@ func (x *RevokeGrantResponse) String() string {
 func (*RevokeGrantResponse) ProtoMessage() {}
 
 func (x *RevokeGrantResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[18]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1436,10 +1635,463 @@ func (x *RevokeGrantResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeGrantResponse.ProtoReflect.Descriptor instead.
 func (*RevokeGrantResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{18}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *RevokeGrantResponse) GetGrant() *Grant {
+	if x != nil {
+		return x.Grant
+	}
+	return nil
+}
+
+// 범위 바꾸기 — 회원만, 활성 관계만.
+type UpdateScopeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	GrantId       string                 `protobuf:"bytes,1,opt,name=grant_id,json=grantId,proto3" json:"grant_id,omitempty"`
+	Scope         *CoachingScope         `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateScopeRequest) Reset() {
+	*x = UpdateScopeRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateScopeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateScopeRequest) ProtoMessage() {}
+
+func (x *UpdateScopeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateScopeRequest.ProtoReflect.Descriptor instead.
+func (*UpdateScopeRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *UpdateScopeRequest) GetGrantId() string {
+	if x != nil {
+		return x.GrantId
+	}
+	return ""
+}
+
+func (x *UpdateScopeRequest) GetScope() *CoachingScope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+type UpdateScopeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Grant         *Grant                 `protobuf:"bytes,1,opt,name=grant,proto3" json:"grant,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateScopeResponse) Reset() {
+	*x = UpdateScopeResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateScopeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateScopeResponse) ProtoMessage() {}
+
+func (x *UpdateScopeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateScopeResponse.ProtoReflect.Descriptor instead.
+func (*UpdateScopeResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *UpdateScopeResponse) GetGrant() *Grant {
+	if x != nil {
+		return x.Grant
+	}
+	return nil
+}
+
+// 코치가 새 코드를 만든다(옛 코드는 그 자리에서 회수 · 14일 유효).
+type CreateInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInviteRequest) Reset() {
+	*x = CreateInviteRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInviteRequest) ProtoMessage() {}
+
+func (x *CreateInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInviteRequest.ProtoReflect.Descriptor instead.
+func (*CreateInviteRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{23}
+}
+
+type CreateInviteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invite        *Invite                `protobuf:"bytes,1,opt,name=invite,proto3" json:"invite,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateInviteResponse) Reset() {
+	*x = CreateInviteResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateInviteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateInviteResponse) ProtoMessage() {}
+
+func (x *CreateInviteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateInviteResponse.ProtoReflect.Descriptor instead.
+func (*CreateInviteResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *CreateInviteResponse) GetInvite() *Invite {
+	if x != nil {
+		return x.Invite
+	}
+	return nil
+}
+
+// 코치가 지금 살아 있는 내 코드를 본다(없으면 invite 비어 있음 — 화면이 「새로 만들기」를 보인다).
+type GetMyInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyInviteRequest) Reset() {
+	*x = GetMyInviteRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyInviteRequest) ProtoMessage() {}
+
+func (x *GetMyInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyInviteRequest.ProtoReflect.Descriptor instead.
+func (*GetMyInviteRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{25}
+}
+
+type GetMyInviteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invite        *Invite                `protobuf:"bytes,1,opt,name=invite,proto3" json:"invite,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyInviteResponse) Reset() {
+	*x = GetMyInviteResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyInviteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyInviteResponse) ProtoMessage() {}
+
+func (x *GetMyInviteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyInviteResponse.ProtoReflect.Descriptor instead.
+func (*GetMyInviteResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *GetMyInviteResponse) GetInvite() *Invite {
+	if x != nil {
+		return x.Invite
+	}
+	return nil
+}
+
+// 회원이 코드로 코치 카드를 본다(연결 전). 하이픈·공백·소문자는 서버가 정리한다.
+type GetInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInviteRequest) Reset() {
+	*x = GetInviteRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInviteRequest) ProtoMessage() {}
+
+func (x *GetInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInviteRequest.ProtoReflect.Descriptor instead.
+func (*GetInviteRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetInviteRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+type GetInviteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Trainer       *Peer                  `protobuf:"bytes,1,opt,name=trainer,proto3" json:"trainer,omitempty"`
+	ExpiresAt     int64                  `protobuf:"varint,2,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetInviteResponse) Reset() {
+	*x = GetInviteResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetInviteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetInviteResponse) ProtoMessage() {}
+
+func (x *GetInviteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetInviteResponse.ProtoReflect.Descriptor instead.
+func (*GetInviteResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetInviteResponse) GetTrainer() *Peer {
+	if x != nil {
+		return x.Trainer
+	}
+	return nil
+}
+
+func (x *GetInviteResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+// 회원이 범위를 골라 바로 연결한다(동의 = 이 호출). 같은 쌍의 옛 관계는 되살린다.
+type AcceptInviteRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Scope         *CoachingScope         `protobuf:"bytes,2,opt,name=scope,proto3" json:"scope,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AcceptInviteRequest) Reset() {
+	*x = AcceptInviteRequest{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AcceptInviteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcceptInviteRequest) ProtoMessage() {}
+
+func (x *AcceptInviteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcceptInviteRequest.ProtoReflect.Descriptor instead.
+func (*AcceptInviteRequest) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *AcceptInviteRequest) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *AcceptInviteRequest) GetScope() *CoachingScope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+type AcceptInviteResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Grant         *Grant                 `protobuf:"bytes,1,opt,name=grant,proto3" json:"grant,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AcceptInviteResponse) Reset() {
+	*x = AcceptInviteResponse{}
+	mi := &file_coaching_v1_coaching_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AcceptInviteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AcceptInviteResponse) ProtoMessage() {}
+
+func (x *AcceptInviteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_coaching_v1_coaching_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AcceptInviteResponse.ProtoReflect.Descriptor instead.
+func (*AcceptInviteResponse) Descriptor() ([]byte, []int) {
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *AcceptInviteResponse) GetGrant() *Grant {
 	if x != nil {
 		return x.Grant
 	}
@@ -1455,7 +2107,7 @@ type GetMemberReportRequest struct {
 
 func (x *GetMemberReportRequest) Reset() {
 	*x = GetMemberReportRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[19]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1467,7 +2119,7 @@ func (x *GetMemberReportRequest) String() string {
 func (*GetMemberReportRequest) ProtoMessage() {}
 
 func (x *GetMemberReportRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[19]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1480,7 +2132,7 @@ func (x *GetMemberReportRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberReportRequest.ProtoReflect.Descriptor instead.
 func (*GetMemberReportRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{19}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetMemberReportRequest) GetMemberId() string {
@@ -1499,7 +2151,7 @@ type GetMemberReportResponse struct {
 
 func (x *GetMemberReportResponse) Reset() {
 	*x = GetMemberReportResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[20]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1511,7 +2163,7 @@ func (x *GetMemberReportResponse) String() string {
 func (*GetMemberReportResponse) ProtoMessage() {}
 
 func (x *GetMemberReportResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[20]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1524,7 +2176,7 @@ func (x *GetMemberReportResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberReportResponse.ProtoReflect.Descriptor instead.
 func (*GetMemberReportResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{20}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetMemberReportResponse) GetReport() *MemberReport {
@@ -1543,7 +2195,7 @@ type ListMemberRoutinesRequest struct {
 
 func (x *ListMemberRoutinesRequest) Reset() {
 	*x = ListMemberRoutinesRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[21]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1555,7 +2207,7 @@ func (x *ListMemberRoutinesRequest) String() string {
 func (*ListMemberRoutinesRequest) ProtoMessage() {}
 
 func (x *ListMemberRoutinesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[21]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1568,7 +2220,7 @@ func (x *ListMemberRoutinesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemberRoutinesRequest.ProtoReflect.Descriptor instead.
 func (*ListMemberRoutinesRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{21}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListMemberRoutinesRequest) GetMemberId() string {
@@ -1587,7 +2239,7 @@ type ListMemberRoutinesResponse struct {
 
 func (x *ListMemberRoutinesResponse) Reset() {
 	*x = ListMemberRoutinesResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[22]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1599,7 +2251,7 @@ func (x *ListMemberRoutinesResponse) String() string {
 func (*ListMemberRoutinesResponse) ProtoMessage() {}
 
 func (x *ListMemberRoutinesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[22]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1612,7 +2264,7 @@ func (x *ListMemberRoutinesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMemberRoutinesResponse.ProtoReflect.Descriptor instead.
 func (*ListMemberRoutinesResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{22}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListMemberRoutinesResponse) GetRoutines() []*Routine {
@@ -1635,7 +2287,7 @@ type SetMemberPrescriptionRequest struct {
 
 func (x *SetMemberPrescriptionRequest) Reset() {
 	*x = SetMemberPrescriptionRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[23]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1647,7 +2299,7 @@ func (x *SetMemberPrescriptionRequest) String() string {
 func (*SetMemberPrescriptionRequest) ProtoMessage() {}
 
 func (x *SetMemberPrescriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[23]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1660,7 +2312,7 @@ func (x *SetMemberPrescriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMemberPrescriptionRequest.ProtoReflect.Descriptor instead.
 func (*SetMemberPrescriptionRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{23}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *SetMemberPrescriptionRequest) GetMemberId() string {
@@ -1700,7 +2352,7 @@ type SetMemberPrescriptionResponse struct {
 
 func (x *SetMemberPrescriptionResponse) Reset() {
 	*x = SetMemberPrescriptionResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[24]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1712,7 +2364,7 @@ func (x *SetMemberPrescriptionResponse) String() string {
 func (*SetMemberPrescriptionResponse) ProtoMessage() {}
 
 func (x *SetMemberPrescriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[24]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1725,7 +2377,7 @@ func (x *SetMemberPrescriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMemberPrescriptionResponse.ProtoReflect.Descriptor instead.
 func (*SetMemberPrescriptionResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{24}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SetMemberPrescriptionResponse) GetPrescription() []*PrescribedSet {
@@ -1744,7 +2396,7 @@ type ListAuditRequest struct {
 
 func (x *ListAuditRequest) Reset() {
 	*x = ListAuditRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[25]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1756,7 +2408,7 @@ func (x *ListAuditRequest) String() string {
 func (*ListAuditRequest) ProtoMessage() {}
 
 func (x *ListAuditRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[25]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1769,7 +2421,7 @@ func (x *ListAuditRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditRequest.ProtoReflect.Descriptor instead.
 func (*ListAuditRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{25}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ListAuditRequest) GetGrantId() string {
@@ -1788,7 +2440,7 @@ type ListAuditResponse struct {
 
 func (x *ListAuditResponse) Reset() {
 	*x = ListAuditResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[26]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1800,7 +2452,7 @@ func (x *ListAuditResponse) String() string {
 func (*ListAuditResponse) ProtoMessage() {}
 
 func (x *ListAuditResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[26]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1813,7 +2465,7 @@ func (x *ListAuditResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAuditResponse.ProtoReflect.Descriptor instead.
 func (*ListAuditResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{26}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListAuditResponse) GetEntries() []*AuditEntry {
@@ -1841,7 +2493,7 @@ type SendProgressSummaryRequest struct {
 
 func (x *SendProgressSummaryRequest) Reset() {
 	*x = SendProgressSummaryRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[27]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1853,7 +2505,7 @@ func (x *SendProgressSummaryRequest) String() string {
 func (*SendProgressSummaryRequest) ProtoMessage() {}
 
 func (x *SendProgressSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[27]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1866,7 +2518,7 @@ func (x *SendProgressSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendProgressSummaryRequest.ProtoReflect.Descriptor instead.
 func (*SendProgressSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{27}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SendProgressSummaryRequest) GetTrainerId() string {
@@ -1920,7 +2572,7 @@ type SendProgressSummaryResponse struct {
 
 func (x *SendProgressSummaryResponse) Reset() {
 	*x = SendProgressSummaryResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[28]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1932,7 +2584,7 @@ func (x *SendProgressSummaryResponse) String() string {
 func (*SendProgressSummaryResponse) ProtoMessage() {}
 
 func (x *SendProgressSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[28]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1945,7 +2597,7 @@ func (x *SendProgressSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SendProgressSummaryResponse.ProtoReflect.Descriptor instead.
 func (*SendProgressSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{28}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SendProgressSummaryResponse) GetSummaryId() string {
@@ -1972,7 +2624,7 @@ type ProgressSummary struct {
 
 func (x *ProgressSummary) Reset() {
 	*x = ProgressSummary{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[29]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1984,7 +2636,7 @@ func (x *ProgressSummary) String() string {
 func (*ProgressSummary) ProtoMessage() {}
 
 func (x *ProgressSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[29]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1997,7 +2649,7 @@ func (x *ProgressSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProgressSummary.ProtoReflect.Descriptor instead.
 func (*ProgressSummary) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{29}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *ProgressSummary) GetId() string {
@@ -2065,7 +2717,7 @@ type GetProgressSummaryRequest struct {
 
 func (x *GetProgressSummaryRequest) Reset() {
 	*x = GetProgressSummaryRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[30]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2077,7 +2729,7 @@ func (x *GetProgressSummaryRequest) String() string {
 func (*GetProgressSummaryRequest) ProtoMessage() {}
 
 func (x *GetProgressSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[30]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2090,7 +2742,7 @@ func (x *GetProgressSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProgressSummaryRequest.ProtoReflect.Descriptor instead.
 func (*GetProgressSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{30}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GetProgressSummaryRequest) GetId() string {
@@ -2109,7 +2761,7 @@ type GetProgressSummaryResponse struct {
 
 func (x *GetProgressSummaryResponse) Reset() {
 	*x = GetProgressSummaryResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[31]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2121,7 +2773,7 @@ func (x *GetProgressSummaryResponse) String() string {
 func (*GetProgressSummaryResponse) ProtoMessage() {}
 
 func (x *GetProgressSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[31]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2134,7 +2786,7 @@ func (x *GetProgressSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProgressSummaryResponse.ProtoReflect.Descriptor instead.
 func (*GetProgressSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{31}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetProgressSummaryResponse) GetSummary() *ProgressSummary {
@@ -2161,7 +2813,7 @@ type SentSummary struct {
 
 func (x *SentSummary) Reset() {
 	*x = SentSummary{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[32]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2173,7 +2825,7 @@ func (x *SentSummary) String() string {
 func (*SentSummary) ProtoMessage() {}
 
 func (x *SentSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[32]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2186,7 +2838,7 @@ func (x *SentSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SentSummary.ProtoReflect.Descriptor instead.
 func (*SentSummary) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{32}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *SentSummary) GetId() string {
@@ -2248,7 +2900,7 @@ type ListSentSummariesRequest struct {
 
 func (x *ListSentSummariesRequest) Reset() {
 	*x = ListSentSummariesRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[33]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2260,7 +2912,7 @@ func (x *ListSentSummariesRequest) String() string {
 func (*ListSentSummariesRequest) ProtoMessage() {}
 
 func (x *ListSentSummariesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[33]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2273,7 +2925,7 @@ func (x *ListSentSummariesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSentSummariesRequest.ProtoReflect.Descriptor instead.
 func (*ListSentSummariesRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{33}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ListSentSummariesRequest) GetCursor() string {
@@ -2295,7 +2947,7 @@ type ListSentSummariesResponse struct {
 
 func (x *ListSentSummariesResponse) Reset() {
 	*x = ListSentSummariesResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[34]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2307,7 +2959,7 @@ func (x *ListSentSummariesResponse) String() string {
 func (*ListSentSummariesResponse) ProtoMessage() {}
 
 func (x *ListSentSummariesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[34]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2320,7 +2972,7 @@ func (x *ListSentSummariesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSentSummariesResponse.ProtoReflect.Descriptor instead.
 func (*ListSentSummariesResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{34}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ListSentSummariesResponse) GetSummaries() []*SentSummary {
@@ -2340,7 +2992,8 @@ func (x *ListSentSummariesResponse) GetNextCursor() string {
 // 트레이너 리포트용 원본 레코드(scope=logView · ADR-040 개정).
 // 서버가 내주는 기간 = [period_start − (period_end − period_start), period_end) — 직전 기간 비교용.
 // 길이 ≤ 400일 · start < end · end ≤ now+1일. 컬렉션·칸은 **서버 상수 허용 목록**만이다
-// (notes·note·image_url·prescription·prev_* 없음 · user_profiles·bodyweight_logs·import_* 는 영원히 없다).
+// (notes·note·image_url·prescription·prev_* 없음 · user_profiles·import_* 는 영원히 없다 ·
+// bodyweight_logs 는 body_view 를 열었을 때만 정해진 칸으로 — SPEC-050).
 type GetMemberRecordsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	MemberId      string                 `protobuf:"bytes,1,opt,name=member_id,json=memberId,proto3" json:"member_id,omitempty"`
@@ -2352,7 +3005,7 @@ type GetMemberRecordsRequest struct {
 
 func (x *GetMemberRecordsRequest) Reset() {
 	*x = GetMemberRecordsRequest{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[35]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2364,7 +3017,7 @@ func (x *GetMemberRecordsRequest) String() string {
 func (*GetMemberRecordsRequest) ProtoMessage() {}
 
 func (x *GetMemberRecordsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[35]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2377,7 +3030,7 @@ func (x *GetMemberRecordsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberRecordsRequest.ProtoReflect.Descriptor instead.
 func (*GetMemberRecordsRequest) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{35}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetMemberRecordsRequest) GetMemberId() string {
@@ -2409,16 +3062,20 @@ type GetMemberRecordsResponse struct {
 	WorkoutExercises []string `protobuf:"bytes,2,rep,name=workout_exercises,json=workoutExercises,proto3" json:"workout_exercises,omitempty"`
 	SetLogs          []string `protobuf:"bytes,3,rep,name=set_logs,json=setLogs,proto3" json:"set_logs,omitempty"`
 	Exercises        []string `protobuf:"bytes,4,rep,name=exercises,proto3" json:"exercises,omitempty"`
-	// 실제로 내준 기간(epoch ms) [served_start, served_end).
-	ServedStart   int64 `protobuf:"varint,5,opt,name=served_start,json=servedStart,proto3" json:"served_start,omitempty"`
-	ServedEnd     int64 `protobuf:"varint,6,opt,name=served_end,json=servedEnd,proto3" json:"served_end,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// 실제로 내준 기간(epoch ms) [served_start, served_end). 지난 기록(past_records)을 열지 않았으면
+	// served_start 는 동의 시각보다 앞서지 않는다(SPEC-050 visibleFrom).
+	ServedStart int64 `protobuf:"varint,5,opt,name=served_start,json=servedStart,proto3" json:"served_start,omitempty"`
+	ServedEnd   int64 `protobuf:"varint,6,opt,name=served_end,json=servedEnd,proto3" json:"served_end,omitempty"`
+	// body_view 를 열었을 때만 — 체중·인바디(id·measured_at·weight_kg·skeletal_muscle_kg·body_fat_pct 만).
+	// 닫혀 있으면 언제나 0건이다.
+	BodyweightLogs []string `protobuf:"bytes,7,rep,name=bodyweight_logs,json=bodyweightLogs,proto3" json:"bodyweight_logs,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetMemberRecordsResponse) Reset() {
 	*x = GetMemberRecordsResponse{}
-	mi := &file_coaching_v1_coaching_proto_msgTypes[36]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2430,7 +3087,7 @@ func (x *GetMemberRecordsResponse) String() string {
 func (*GetMemberRecordsResponse) ProtoMessage() {}
 
 func (x *GetMemberRecordsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_coaching_v1_coaching_proto_msgTypes[36]
+	mi := &file_coaching_v1_coaching_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2443,7 +3100,7 @@ func (x *GetMemberRecordsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMemberRecordsResponse.ProtoReflect.Descriptor instead.
 func (*GetMemberRecordsResponse) Descriptor() ([]byte, []int) {
-	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{36}
+	return file_coaching_v1_coaching_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetMemberRecordsResponse) GetWorkouts() []string {
@@ -2488,18 +3145,33 @@ func (x *GetMemberRecordsResponse) GetServedEnd() int64 {
 	return 0
 }
 
+func (x *GetMemberRecordsResponse) GetBodyweightLogs() []string {
+	if x != nil {
+		return x.BodyweightLogs
+	}
+	return nil
+}
+
 var File_coaching_v1_coaching_proto protoreflect.FileDescriptor
 
 const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\n" +
-	"\x1acoaching/v1/coaching.proto\x12\vcoaching.v1\x1a\x1bbuf/validate/validate.proto\"\xaa\x01\n" +
+	"\x1acoaching/v1/coaching.proto\x12\vcoaching.v1\x1a\x1bbuf/validate/validate.proto\"\xe6\x01\n" +
 	"\x04Peer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
 	"avatar_url\x18\x03 \x01(\tR\tavatarUrl\x12)\n" +
 	"\x10experience_level\x18\x04 \x01(\tR\x0fexperienceLevel\x12%\n" +
-	"\x0etrainer_intent\x18\x05 \x01(\bR\rtrainerIntent\"\x95\x02\n" +
+	"\x0etrainer_intent\x18\x05 \x01(\bR\rtrainerIntent\x12\x1b\n" +
+	"\tcoach_bio\x18\x06 \x01(\tR\bcoachBio\x12\x1d\n" +
+	"\n" +
+	"coach_tags\x18\a \x03(\tR\tcoachTags\"\x8d\x01\n" +
+	"\rCoachingScope\x12\x19\n" +
+	"\blog_view\x18\x01 \x01(\bR\alogView\x12!\n" +
+	"\froutine_edit\x18\x02 \x01(\bR\vroutineEdit\x12\x1b\n" +
+	"\tbody_view\x18\x03 \x01(\bR\bbodyView\x12!\n" +
+	"\fpast_records\x18\x04 \x01(\bR\vpastRecords\"\xea\x02\n" +
 	"\x05Grant\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x120\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x18.coaching.v1.GrantStatusR\x06status\x124\n" +
@@ -2510,7 +3182,15 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"consent_at\x18\a \x01(\x03R\tconsentAt\"\xb0\x02\n" +
+	"consent_at\x18\a \x01(\x03R\tconsentAt\x120\n" +
+	"\x05scope\x18\b \x01(\v2\x1a.coaching.v1.CoachingScopeR\x05scope\x12!\n" +
+	"\frequest_note\x18\t \x01(\tR\vrequestNote\"Z\n" +
+	"\x06Invite\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x02 \x01(\x03R\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\x03R\texpiresAt\"\xb0\x02\n" +
 	"\rPrescribedSet\x12/\n" +
 	"\bset_type\x18\x01 \x01(\x0e2\x14.coaching.v1.SetTypeR\asetType\x12\x1d\n" +
 	"\n" +
@@ -2561,23 +3241,48 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x15SearchTrainersRequest\x12\x1d\n" +
 	"\x05query\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x18dR\x05query\"A\n" +
 	"\x16SearchTrainersResponse\x12'\n" +
-	"\x05peers\x18\x01 \x03(\v2\x11.coaching.v1.PeerR\x05peers\"T\n" +
+	"\x05peers\x18\x01 \x03(\v2\x11.coaching.v1.PeerR\x05peers\"\xa3\x01\n" +
 	"\x16RequestCoachingRequest\x12\x1d\n" +
 	"\n" +
 	"trainer_id\x18\x01 \x01(\tR\ttrainerId\x12\x1b\n" +
-	"\tmember_id\x18\x02 \x01(\tR\bmemberId\"C\n" +
+	"\tmember_id\x18\x02 \x01(\tR\bmemberId\x120\n" +
+	"\x05scope\x18\x03 \x01(\v2\x1a.coaching.v1.CoachingScopeR\x05scope\x12\x1b\n" +
+	"\x04note\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x18dR\x04note\"C\n" +
 	"\x17RequestCoachingResponse\x12(\n" +
 	"\x05grant\x18\x01 \x01(\v2\x12.coaching.v1.GrantR\x05grant\"\x13\n" +
 	"\x11ListGrantsRequest\"@\n" +
 	"\x12ListGrantsResponse\x12*\n" +
-	"\x06grants\x18\x01 \x03(\v2\x12.coaching.v1.GrantR\x06grants\"8\n" +
+	"\x06grants\x18\x01 \x03(\v2\x12.coaching.v1.GrantR\x06grants\"j\n" +
 	"\x12AcceptGrantRequest\x12\"\n" +
-	"\bgrant_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\agrantId\"?\n" +
+	"\bgrant_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\agrantId\x120\n" +
+	"\x05scope\x18\x02 \x01(\v2\x1a.coaching.v1.CoachingScopeR\x05scope\"?\n" +
 	"\x13AcceptGrantResponse\x12(\n" +
 	"\x05grant\x18\x01 \x01(\v2\x12.coaching.v1.GrantR\x05grant\"8\n" +
 	"\x12RevokeGrantRequest\x12\"\n" +
 	"\bgrant_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\agrantId\"?\n" +
 	"\x13RevokeGrantResponse\x12(\n" +
+	"\x05grant\x18\x01 \x01(\v2\x12.coaching.v1.GrantR\x05grant\"r\n" +
+	"\x12UpdateScopeRequest\x12\"\n" +
+	"\bgrant_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\agrantId\x128\n" +
+	"\x05scope\x18\x02 \x01(\v2\x1a.coaching.v1.CoachingScopeB\x06\xbaH\x03\xc8\x01\x01R\x05scope\"?\n" +
+	"\x13UpdateScopeResponse\x12(\n" +
+	"\x05grant\x18\x01 \x01(\v2\x12.coaching.v1.GrantR\x05grant\"\x15\n" +
+	"\x13CreateInviteRequest\"C\n" +
+	"\x14CreateInviteResponse\x12+\n" +
+	"\x06invite\x18\x01 \x01(\v2\x13.coaching.v1.InviteR\x06invite\"\x14\n" +
+	"\x12GetMyInviteRequest\"B\n" +
+	"\x13GetMyInviteResponse\x12+\n" +
+	"\x06invite\x18\x01 \x01(\v2\x13.coaching.v1.InviteR\x06invite\"1\n" +
+	"\x10GetInviteRequest\x12\x1d\n" +
+	"\x04code\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x14R\x04code\"_\n" +
+	"\x11GetInviteResponse\x12+\n" +
+	"\atrainer\x18\x01 \x01(\v2\x11.coaching.v1.PeerR\atrainer\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x02 \x01(\x03R\texpiresAt\"f\n" +
+	"\x13AcceptInviteRequest\x12\x1d\n" +
+	"\x04code\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18\x14R\x04code\x120\n" +
+	"\x05scope\x18\x02 \x01(\v2\x1a.coaching.v1.CoachingScopeR\x05scope\"@\n" +
+	"\x14AcceptInviteResponse\x12(\n" +
 	"\x05grant\x18\x01 \x01(\v2\x12.coaching.v1.GrantR\x05grant\">\n" +
 	"\x16GetMemberReportRequest\x12$\n" +
 	"\tmember_id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bmemberId\"L\n" +
@@ -2648,7 +3353,7 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\tmember_id\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\bmemberId\x12*\n" +
 	"\fperiod_start\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\vperiodStart\x12&\n" +
 	"\n" +
-	"period_end\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\tperiodEnd\"\xde\x01\n" +
+	"period_end\x18\x03 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\tperiodEnd\"\x87\x02\n" +
 	"\x18GetMemberRecordsResponse\x12\x1a\n" +
 	"\bworkouts\x18\x01 \x03(\tR\bworkouts\x12+\n" +
 	"\x11workout_exercises\x18\x02 \x03(\tR\x10workoutExercises\x12\x19\n" +
@@ -2656,7 +3361,8 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\texercises\x18\x04 \x03(\tR\texercises\x12!\n" +
 	"\fserved_start\x18\x05 \x01(\x03R\vservedStart\x12\x1d\n" +
 	"\n" +
-	"served_end\x18\x06 \x01(\x03R\tservedEnd*x\n" +
+	"served_end\x18\x06 \x01(\x03R\tservedEnd\x12'\n" +
+	"\x0fbodyweight_logs\x18\a \x03(\tR\x0ebodyweightLogs*x\n" +
 	"\vGrantStatus\x12\x1c\n" +
 	"\x18GRANT_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14GRANT_STATUS_PENDING\x10\x01\x12\x17\n" +
@@ -2682,14 +3388,19 @@ const file_coaching_v1_coaching_proto_rawDesc = "" +
 	"\x16LOAD_BASIS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12LOAD_BASIS_PCT_1RM\x10\x01\x12\x16\n" +
 	"\x12LOAD_BASIS_PCT_TOP\x10\x02\x12\x14\n" +
-	"\x10LOAD_BASIS_FIXED\x10\x032\xee\t\n" +
+	"\x10LOAD_BASIS_FIXED\x10\x032\x92\r\n" +
 	"\x0fCoachingService\x12[\n" +
 	"\x0eSearchTrainers\x12\".coaching.v1.SearchTrainersRequest\x1a#.coaching.v1.SearchTrainersResponse\"\x00\x12^\n" +
 	"\x0fRequestCoaching\x12#.coaching.v1.RequestCoachingRequest\x1a$.coaching.v1.RequestCoachingResponse\"\x00\x12O\n" +
 	"\n" +
 	"ListGrants\x12\x1e.coaching.v1.ListGrantsRequest\x1a\x1f.coaching.v1.ListGrantsResponse\"\x00\x12R\n" +
 	"\vAcceptGrant\x12\x1f.coaching.v1.AcceptGrantRequest\x1a .coaching.v1.AcceptGrantResponse\"\x00\x12R\n" +
-	"\vRevokeGrant\x12\x1f.coaching.v1.RevokeGrantRequest\x1a .coaching.v1.RevokeGrantResponse\"\x00\x12^\n" +
+	"\vRevokeGrant\x12\x1f.coaching.v1.RevokeGrantRequest\x1a .coaching.v1.RevokeGrantResponse\"\x00\x12R\n" +
+	"\vUpdateScope\x12\x1f.coaching.v1.UpdateScopeRequest\x1a .coaching.v1.UpdateScopeResponse\"\x00\x12U\n" +
+	"\fCreateInvite\x12 .coaching.v1.CreateInviteRequest\x1a!.coaching.v1.CreateInviteResponse\"\x00\x12R\n" +
+	"\vGetMyInvite\x12\x1f.coaching.v1.GetMyInviteRequest\x1a .coaching.v1.GetMyInviteResponse\"\x00\x12L\n" +
+	"\tGetInvite\x12\x1d.coaching.v1.GetInviteRequest\x1a\x1e.coaching.v1.GetInviteResponse\"\x00\x12U\n" +
+	"\fAcceptInvite\x12 .coaching.v1.AcceptInviteRequest\x1a!.coaching.v1.AcceptInviteResponse\"\x00\x12^\n" +
 	"\x0fGetMemberReport\x12#.coaching.v1.GetMemberReportRequest\x1a$.coaching.v1.GetMemberReportResponse\"\x00\x12g\n" +
 	"\x12ListMemberRoutines\x12&.coaching.v1.ListMemberRoutinesRequest\x1a'.coaching.v1.ListMemberRoutinesResponse\"\x00\x12p\n" +
 	"\x15SetMemberPrescription\x12).coaching.v1.SetMemberPrescriptionRequest\x1a*.coaching.v1.SetMemberPrescriptionResponse\"\x00\x12L\n" +
@@ -2713,7 +3424,7 @@ func file_coaching_v1_coaching_proto_rawDescGZIP() []byte {
 }
 
 var file_coaching_v1_coaching_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_coaching_v1_coaching_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
 var file_coaching_v1_coaching_proto_goTypes = []any{
 	(GrantStatus)(0),                      // 0: coaching.v1.GrantStatus
 	(Side)(0),                             // 1: coaching.v1.Side
@@ -2721,98 +3432,130 @@ var file_coaching_v1_coaching_proto_goTypes = []any{
 	(LoadHint)(0),                         // 3: coaching.v1.LoadHint
 	(LoadBasis)(0),                        // 4: coaching.v1.LoadBasis
 	(*Peer)(nil),                          // 5: coaching.v1.Peer
-	(*Grant)(nil),                         // 6: coaching.v1.Grant
-	(*PrescribedSet)(nil),                 // 7: coaching.v1.PrescribedSet
-	(*RoutineExercise)(nil),               // 8: coaching.v1.RoutineExercise
-	(*Routine)(nil),                       // 9: coaching.v1.Routine
-	(*MuscleVolume)(nil),                  // 10: coaching.v1.MuscleVolume
-	(*SessionSummary)(nil),                // 11: coaching.v1.SessionSummary
-	(*MemberReport)(nil),                  // 12: coaching.v1.MemberReport
-	(*AuditEntry)(nil),                    // 13: coaching.v1.AuditEntry
-	(*SearchTrainersRequest)(nil),         // 14: coaching.v1.SearchTrainersRequest
-	(*SearchTrainersResponse)(nil),        // 15: coaching.v1.SearchTrainersResponse
-	(*RequestCoachingRequest)(nil),        // 16: coaching.v1.RequestCoachingRequest
-	(*RequestCoachingResponse)(nil),       // 17: coaching.v1.RequestCoachingResponse
-	(*ListGrantsRequest)(nil),             // 18: coaching.v1.ListGrantsRequest
-	(*ListGrantsResponse)(nil),            // 19: coaching.v1.ListGrantsResponse
-	(*AcceptGrantRequest)(nil),            // 20: coaching.v1.AcceptGrantRequest
-	(*AcceptGrantResponse)(nil),           // 21: coaching.v1.AcceptGrantResponse
-	(*RevokeGrantRequest)(nil),            // 22: coaching.v1.RevokeGrantRequest
-	(*RevokeGrantResponse)(nil),           // 23: coaching.v1.RevokeGrantResponse
-	(*GetMemberReportRequest)(nil),        // 24: coaching.v1.GetMemberReportRequest
-	(*GetMemberReportResponse)(nil),       // 25: coaching.v1.GetMemberReportResponse
-	(*ListMemberRoutinesRequest)(nil),     // 26: coaching.v1.ListMemberRoutinesRequest
-	(*ListMemberRoutinesResponse)(nil),    // 27: coaching.v1.ListMemberRoutinesResponse
-	(*SetMemberPrescriptionRequest)(nil),  // 28: coaching.v1.SetMemberPrescriptionRequest
-	(*SetMemberPrescriptionResponse)(nil), // 29: coaching.v1.SetMemberPrescriptionResponse
-	(*ListAuditRequest)(nil),              // 30: coaching.v1.ListAuditRequest
-	(*ListAuditResponse)(nil),             // 31: coaching.v1.ListAuditResponse
-	(*SendProgressSummaryRequest)(nil),    // 32: coaching.v1.SendProgressSummaryRequest
-	(*SendProgressSummaryResponse)(nil),   // 33: coaching.v1.SendProgressSummaryResponse
-	(*ProgressSummary)(nil),               // 34: coaching.v1.ProgressSummary
-	(*GetProgressSummaryRequest)(nil),     // 35: coaching.v1.GetProgressSummaryRequest
-	(*GetProgressSummaryResponse)(nil),    // 36: coaching.v1.GetProgressSummaryResponse
-	(*SentSummary)(nil),                   // 37: coaching.v1.SentSummary
-	(*ListSentSummariesRequest)(nil),      // 38: coaching.v1.ListSentSummariesRequest
-	(*ListSentSummariesResponse)(nil),     // 39: coaching.v1.ListSentSummariesResponse
-	(*GetMemberRecordsRequest)(nil),       // 40: coaching.v1.GetMemberRecordsRequest
-	(*GetMemberRecordsResponse)(nil),      // 41: coaching.v1.GetMemberRecordsResponse
+	(*CoachingScope)(nil),                 // 6: coaching.v1.CoachingScope
+	(*Grant)(nil),                         // 7: coaching.v1.Grant
+	(*Invite)(nil),                        // 8: coaching.v1.Invite
+	(*PrescribedSet)(nil),                 // 9: coaching.v1.PrescribedSet
+	(*RoutineExercise)(nil),               // 10: coaching.v1.RoutineExercise
+	(*Routine)(nil),                       // 11: coaching.v1.Routine
+	(*MuscleVolume)(nil),                  // 12: coaching.v1.MuscleVolume
+	(*SessionSummary)(nil),                // 13: coaching.v1.SessionSummary
+	(*MemberReport)(nil),                  // 14: coaching.v1.MemberReport
+	(*AuditEntry)(nil),                    // 15: coaching.v1.AuditEntry
+	(*SearchTrainersRequest)(nil),         // 16: coaching.v1.SearchTrainersRequest
+	(*SearchTrainersResponse)(nil),        // 17: coaching.v1.SearchTrainersResponse
+	(*RequestCoachingRequest)(nil),        // 18: coaching.v1.RequestCoachingRequest
+	(*RequestCoachingResponse)(nil),       // 19: coaching.v1.RequestCoachingResponse
+	(*ListGrantsRequest)(nil),             // 20: coaching.v1.ListGrantsRequest
+	(*ListGrantsResponse)(nil),            // 21: coaching.v1.ListGrantsResponse
+	(*AcceptGrantRequest)(nil),            // 22: coaching.v1.AcceptGrantRequest
+	(*AcceptGrantResponse)(nil),           // 23: coaching.v1.AcceptGrantResponse
+	(*RevokeGrantRequest)(nil),            // 24: coaching.v1.RevokeGrantRequest
+	(*RevokeGrantResponse)(nil),           // 25: coaching.v1.RevokeGrantResponse
+	(*UpdateScopeRequest)(nil),            // 26: coaching.v1.UpdateScopeRequest
+	(*UpdateScopeResponse)(nil),           // 27: coaching.v1.UpdateScopeResponse
+	(*CreateInviteRequest)(nil),           // 28: coaching.v1.CreateInviteRequest
+	(*CreateInviteResponse)(nil),          // 29: coaching.v1.CreateInviteResponse
+	(*GetMyInviteRequest)(nil),            // 30: coaching.v1.GetMyInviteRequest
+	(*GetMyInviteResponse)(nil),           // 31: coaching.v1.GetMyInviteResponse
+	(*GetInviteRequest)(nil),              // 32: coaching.v1.GetInviteRequest
+	(*GetInviteResponse)(nil),             // 33: coaching.v1.GetInviteResponse
+	(*AcceptInviteRequest)(nil),           // 34: coaching.v1.AcceptInviteRequest
+	(*AcceptInviteResponse)(nil),          // 35: coaching.v1.AcceptInviteResponse
+	(*GetMemberReportRequest)(nil),        // 36: coaching.v1.GetMemberReportRequest
+	(*GetMemberReportResponse)(nil),       // 37: coaching.v1.GetMemberReportResponse
+	(*ListMemberRoutinesRequest)(nil),     // 38: coaching.v1.ListMemberRoutinesRequest
+	(*ListMemberRoutinesResponse)(nil),    // 39: coaching.v1.ListMemberRoutinesResponse
+	(*SetMemberPrescriptionRequest)(nil),  // 40: coaching.v1.SetMemberPrescriptionRequest
+	(*SetMemberPrescriptionResponse)(nil), // 41: coaching.v1.SetMemberPrescriptionResponse
+	(*ListAuditRequest)(nil),              // 42: coaching.v1.ListAuditRequest
+	(*ListAuditResponse)(nil),             // 43: coaching.v1.ListAuditResponse
+	(*SendProgressSummaryRequest)(nil),    // 44: coaching.v1.SendProgressSummaryRequest
+	(*SendProgressSummaryResponse)(nil),   // 45: coaching.v1.SendProgressSummaryResponse
+	(*ProgressSummary)(nil),               // 46: coaching.v1.ProgressSummary
+	(*GetProgressSummaryRequest)(nil),     // 47: coaching.v1.GetProgressSummaryRequest
+	(*GetProgressSummaryResponse)(nil),    // 48: coaching.v1.GetProgressSummaryResponse
+	(*SentSummary)(nil),                   // 49: coaching.v1.SentSummary
+	(*ListSentSummariesRequest)(nil),      // 50: coaching.v1.ListSentSummariesRequest
+	(*ListSentSummariesResponse)(nil),     // 51: coaching.v1.ListSentSummariesResponse
+	(*GetMemberRecordsRequest)(nil),       // 52: coaching.v1.GetMemberRecordsRequest
+	(*GetMemberRecordsResponse)(nil),      // 53: coaching.v1.GetMemberRecordsResponse
 }
 var file_coaching_v1_coaching_proto_depIdxs = []int32{
 	0,  // 0: coaching.v1.Grant.status:type_name -> coaching.v1.GrantStatus
 	1,  // 1: coaching.v1.Grant.requested_by:type_name -> coaching.v1.Side
 	1,  // 2: coaching.v1.Grant.role_of_me:type_name -> coaching.v1.Side
 	5,  // 3: coaching.v1.Grant.peer:type_name -> coaching.v1.Peer
-	2,  // 4: coaching.v1.PrescribedSet.set_type:type_name -> coaching.v1.SetType
-	3,  // 5: coaching.v1.PrescribedSet.load_hint:type_name -> coaching.v1.LoadHint
-	4,  // 6: coaching.v1.PrescribedSet.load_basis:type_name -> coaching.v1.LoadBasis
-	7,  // 7: coaching.v1.RoutineExercise.prescription:type_name -> coaching.v1.PrescribedSet
-	8,  // 8: coaching.v1.Routine.exercises:type_name -> coaching.v1.RoutineExercise
-	10, // 9: coaching.v1.MemberReport.muscle_volume:type_name -> coaching.v1.MuscleVolume
-	11, // 10: coaching.v1.MemberReport.recent_sessions:type_name -> coaching.v1.SessionSummary
-	5,  // 11: coaching.v1.SearchTrainersResponse.peers:type_name -> coaching.v1.Peer
-	6,  // 12: coaching.v1.RequestCoachingResponse.grant:type_name -> coaching.v1.Grant
-	6,  // 13: coaching.v1.ListGrantsResponse.grants:type_name -> coaching.v1.Grant
-	6,  // 14: coaching.v1.AcceptGrantResponse.grant:type_name -> coaching.v1.Grant
-	6,  // 15: coaching.v1.RevokeGrantResponse.grant:type_name -> coaching.v1.Grant
-	12, // 16: coaching.v1.GetMemberReportResponse.report:type_name -> coaching.v1.MemberReport
-	9,  // 17: coaching.v1.ListMemberRoutinesResponse.routines:type_name -> coaching.v1.Routine
-	7,  // 18: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
-	7,  // 19: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
-	13, // 20: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
-	34, // 21: coaching.v1.GetProgressSummaryResponse.summary:type_name -> coaching.v1.ProgressSummary
-	37, // 22: coaching.v1.ListSentSummariesResponse.summaries:type_name -> coaching.v1.SentSummary
-	14, // 23: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
-	16, // 24: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
-	18, // 25: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
-	20, // 26: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
-	22, // 27: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
-	24, // 28: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
-	26, // 29: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
-	28, // 30: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
-	30, // 31: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
-	32, // 32: coaching.v1.CoachingService.SendProgressSummary:input_type -> coaching.v1.SendProgressSummaryRequest
-	35, // 33: coaching.v1.CoachingService.GetProgressSummary:input_type -> coaching.v1.GetProgressSummaryRequest
-	38, // 34: coaching.v1.CoachingService.ListSentSummaries:input_type -> coaching.v1.ListSentSummariesRequest
-	40, // 35: coaching.v1.CoachingService.GetMemberRecords:input_type -> coaching.v1.GetMemberRecordsRequest
-	15, // 36: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
-	17, // 37: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
-	19, // 38: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
-	21, // 39: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
-	23, // 40: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
-	25, // 41: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
-	27, // 42: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
-	29, // 43: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
-	31, // 44: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
-	33, // 45: coaching.v1.CoachingService.SendProgressSummary:output_type -> coaching.v1.SendProgressSummaryResponse
-	36, // 46: coaching.v1.CoachingService.GetProgressSummary:output_type -> coaching.v1.GetProgressSummaryResponse
-	39, // 47: coaching.v1.CoachingService.ListSentSummaries:output_type -> coaching.v1.ListSentSummariesResponse
-	41, // 48: coaching.v1.CoachingService.GetMemberRecords:output_type -> coaching.v1.GetMemberRecordsResponse
-	36, // [36:49] is the sub-list for method output_type
-	23, // [23:36] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	6,  // 4: coaching.v1.Grant.scope:type_name -> coaching.v1.CoachingScope
+	2,  // 5: coaching.v1.PrescribedSet.set_type:type_name -> coaching.v1.SetType
+	3,  // 6: coaching.v1.PrescribedSet.load_hint:type_name -> coaching.v1.LoadHint
+	4,  // 7: coaching.v1.PrescribedSet.load_basis:type_name -> coaching.v1.LoadBasis
+	9,  // 8: coaching.v1.RoutineExercise.prescription:type_name -> coaching.v1.PrescribedSet
+	10, // 9: coaching.v1.Routine.exercises:type_name -> coaching.v1.RoutineExercise
+	12, // 10: coaching.v1.MemberReport.muscle_volume:type_name -> coaching.v1.MuscleVolume
+	13, // 11: coaching.v1.MemberReport.recent_sessions:type_name -> coaching.v1.SessionSummary
+	5,  // 12: coaching.v1.SearchTrainersResponse.peers:type_name -> coaching.v1.Peer
+	6,  // 13: coaching.v1.RequestCoachingRequest.scope:type_name -> coaching.v1.CoachingScope
+	7,  // 14: coaching.v1.RequestCoachingResponse.grant:type_name -> coaching.v1.Grant
+	7,  // 15: coaching.v1.ListGrantsResponse.grants:type_name -> coaching.v1.Grant
+	6,  // 16: coaching.v1.AcceptGrantRequest.scope:type_name -> coaching.v1.CoachingScope
+	7,  // 17: coaching.v1.AcceptGrantResponse.grant:type_name -> coaching.v1.Grant
+	7,  // 18: coaching.v1.RevokeGrantResponse.grant:type_name -> coaching.v1.Grant
+	6,  // 19: coaching.v1.UpdateScopeRequest.scope:type_name -> coaching.v1.CoachingScope
+	7,  // 20: coaching.v1.UpdateScopeResponse.grant:type_name -> coaching.v1.Grant
+	8,  // 21: coaching.v1.CreateInviteResponse.invite:type_name -> coaching.v1.Invite
+	8,  // 22: coaching.v1.GetMyInviteResponse.invite:type_name -> coaching.v1.Invite
+	5,  // 23: coaching.v1.GetInviteResponse.trainer:type_name -> coaching.v1.Peer
+	6,  // 24: coaching.v1.AcceptInviteRequest.scope:type_name -> coaching.v1.CoachingScope
+	7,  // 25: coaching.v1.AcceptInviteResponse.grant:type_name -> coaching.v1.Grant
+	14, // 26: coaching.v1.GetMemberReportResponse.report:type_name -> coaching.v1.MemberReport
+	11, // 27: coaching.v1.ListMemberRoutinesResponse.routines:type_name -> coaching.v1.Routine
+	9,  // 28: coaching.v1.SetMemberPrescriptionRequest.prescription:type_name -> coaching.v1.PrescribedSet
+	9,  // 29: coaching.v1.SetMemberPrescriptionResponse.prescription:type_name -> coaching.v1.PrescribedSet
+	15, // 30: coaching.v1.ListAuditResponse.entries:type_name -> coaching.v1.AuditEntry
+	46, // 31: coaching.v1.GetProgressSummaryResponse.summary:type_name -> coaching.v1.ProgressSummary
+	49, // 32: coaching.v1.ListSentSummariesResponse.summaries:type_name -> coaching.v1.SentSummary
+	16, // 33: coaching.v1.CoachingService.SearchTrainers:input_type -> coaching.v1.SearchTrainersRequest
+	18, // 34: coaching.v1.CoachingService.RequestCoaching:input_type -> coaching.v1.RequestCoachingRequest
+	20, // 35: coaching.v1.CoachingService.ListGrants:input_type -> coaching.v1.ListGrantsRequest
+	22, // 36: coaching.v1.CoachingService.AcceptGrant:input_type -> coaching.v1.AcceptGrantRequest
+	24, // 37: coaching.v1.CoachingService.RevokeGrant:input_type -> coaching.v1.RevokeGrantRequest
+	26, // 38: coaching.v1.CoachingService.UpdateScope:input_type -> coaching.v1.UpdateScopeRequest
+	28, // 39: coaching.v1.CoachingService.CreateInvite:input_type -> coaching.v1.CreateInviteRequest
+	30, // 40: coaching.v1.CoachingService.GetMyInvite:input_type -> coaching.v1.GetMyInviteRequest
+	32, // 41: coaching.v1.CoachingService.GetInvite:input_type -> coaching.v1.GetInviteRequest
+	34, // 42: coaching.v1.CoachingService.AcceptInvite:input_type -> coaching.v1.AcceptInviteRequest
+	36, // 43: coaching.v1.CoachingService.GetMemberReport:input_type -> coaching.v1.GetMemberReportRequest
+	38, // 44: coaching.v1.CoachingService.ListMemberRoutines:input_type -> coaching.v1.ListMemberRoutinesRequest
+	40, // 45: coaching.v1.CoachingService.SetMemberPrescription:input_type -> coaching.v1.SetMemberPrescriptionRequest
+	42, // 46: coaching.v1.CoachingService.ListAudit:input_type -> coaching.v1.ListAuditRequest
+	44, // 47: coaching.v1.CoachingService.SendProgressSummary:input_type -> coaching.v1.SendProgressSummaryRequest
+	47, // 48: coaching.v1.CoachingService.GetProgressSummary:input_type -> coaching.v1.GetProgressSummaryRequest
+	50, // 49: coaching.v1.CoachingService.ListSentSummaries:input_type -> coaching.v1.ListSentSummariesRequest
+	52, // 50: coaching.v1.CoachingService.GetMemberRecords:input_type -> coaching.v1.GetMemberRecordsRequest
+	17, // 51: coaching.v1.CoachingService.SearchTrainers:output_type -> coaching.v1.SearchTrainersResponse
+	19, // 52: coaching.v1.CoachingService.RequestCoaching:output_type -> coaching.v1.RequestCoachingResponse
+	21, // 53: coaching.v1.CoachingService.ListGrants:output_type -> coaching.v1.ListGrantsResponse
+	23, // 54: coaching.v1.CoachingService.AcceptGrant:output_type -> coaching.v1.AcceptGrantResponse
+	25, // 55: coaching.v1.CoachingService.RevokeGrant:output_type -> coaching.v1.RevokeGrantResponse
+	27, // 56: coaching.v1.CoachingService.UpdateScope:output_type -> coaching.v1.UpdateScopeResponse
+	29, // 57: coaching.v1.CoachingService.CreateInvite:output_type -> coaching.v1.CreateInviteResponse
+	31, // 58: coaching.v1.CoachingService.GetMyInvite:output_type -> coaching.v1.GetMyInviteResponse
+	33, // 59: coaching.v1.CoachingService.GetInvite:output_type -> coaching.v1.GetInviteResponse
+	35, // 60: coaching.v1.CoachingService.AcceptInvite:output_type -> coaching.v1.AcceptInviteResponse
+	37, // 61: coaching.v1.CoachingService.GetMemberReport:output_type -> coaching.v1.GetMemberReportResponse
+	39, // 62: coaching.v1.CoachingService.ListMemberRoutines:output_type -> coaching.v1.ListMemberRoutinesResponse
+	41, // 63: coaching.v1.CoachingService.SetMemberPrescription:output_type -> coaching.v1.SetMemberPrescriptionResponse
+	43, // 64: coaching.v1.CoachingService.ListAudit:output_type -> coaching.v1.ListAuditResponse
+	45, // 65: coaching.v1.CoachingService.SendProgressSummary:output_type -> coaching.v1.SendProgressSummaryResponse
+	48, // 66: coaching.v1.CoachingService.GetProgressSummary:output_type -> coaching.v1.GetProgressSummaryResponse
+	51, // 67: coaching.v1.CoachingService.ListSentSummaries:output_type -> coaching.v1.ListSentSummariesResponse
+	53, // 68: coaching.v1.CoachingService.GetMemberRecords:output_type -> coaching.v1.GetMemberRecordsResponse
+	51, // [51:69] is the sub-list for method output_type
+	33, // [33:51] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_coaching_v1_coaching_proto_init() }
@@ -2826,7 +3569,7 @@ func file_coaching_v1_coaching_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_coaching_v1_coaching_proto_rawDesc), len(file_coaching_v1_coaching_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   37,
+			NumMessages:   49,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

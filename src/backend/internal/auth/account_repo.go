@@ -193,6 +193,10 @@ func (r *pgRepo) DeleteUserAccount(ctx context.Context, userID string) (bool, []
 		if err = q.DeleteUsageByUser(ctx, userID); err != nil {
 			return err
 		}
+		// 관계 없이 남긴 코칭 감사(초대 코드 만들기 등)도 함께 — actor_id 에는 FK 가 없다(SPEC-050 P1a 리뷰)
+		if err = q.DeleteOrphanCoachingAudits(ctx, userID); err != nil {
+			return err
+		}
 		if n, err = q.DeleteUser(ctx, userID); err != nil {
 			return err
 		}

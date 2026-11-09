@@ -794,8 +794,19 @@ func TestMemberRecords_가드_기간_크기(t *testing.T) {
 
 // 신체정보(user_profiles·bodyweight_logs)와 가져오기 살림(import_batches·import_aliases)은
 // 어떤 코칭 경로로도 나가지 않는다 — 옛 리포트·루틴·새 원본 레코드 모두.
+// [개선] SPEC-050 — bodyweight_logs 는 「bodyView 없이는 금지」: 기본 목록(아래)에는 여전히 없고,
+// bodyView 를 연 GetMemberRecords 만 따로 둔 bodyRecordCollection·bodyRecordFields(다섯 칸)로 읽는다.
+// user_profiles·import_* 는 그대로 영원히 금지.
 func TestCollections_신체정보와_가져오기_표는_코칭에_없다(t *testing.T) {
 	banned := []string{"user_profiles", "bodyweight_logs", "import_batches", "import_aliases"}
+	if slices.Contains(banned[:1], bodyRecordCollection) || bodyRecordCollection != "bodyweight_logs" {
+		t.Fatalf("bodyView 길은 bodyweight_logs 하나뿐: %s", bodyRecordCollection)
+	}
+	for _, f := range bodyRecordFields {
+		if f == "note" || f == "source" || f == "user_id" || strings.HasPrefix(f, "created") {
+			t.Errorf("체중 허용 칸에 %s", f)
+		}
+	}
 	for name, list := range map[string][]string{
 		"reportCollections":       reportCollections,
 		"routineCollections":      routineCollections,

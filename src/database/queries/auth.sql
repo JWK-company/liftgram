@@ -27,6 +27,9 @@ UPDATE users SET
   avatar_url       = CASE WHEN @set_avatar_url::boolean       THEN @avatar_url::text       ELSE avatar_url END,
   experience_level = CASE WHEN @set_experience_level::boolean THEN @experience_level::text ELSE experience_level END,
   trainer_intent   = CASE WHEN @set_trainer_intent::boolean   THEN @trainer_intent::boolean ELSE trainer_intent END,
+  -- 코치 소개·태그(0033 · SPEC-050). 태그는 빈 배열로라도 넘긴다(nil 이면 NULL → NOT NULL 위반).
+  coach_bio        = CASE WHEN @set_coach_bio::boolean        THEN @coach_bio::text        ELSE coach_bio END,
+  coach_tags       = CASE WHEN @set_coach_tags::boolean       THEN @coach_tags::text[]     ELSE coach_tags END,
   updated_at       = now()
 WHERE id = @id::text
 RETURNING *;
