@@ -59,6 +59,7 @@ import { RoutineMuscleFocus, RoutineMuscleMini } from "./RoutineMuscleMini"; // 
 type RoutineRepo = typeof import("@app/core/data/routineRepository");
 import { trackUsage } from "@/lib/usage";
 import { ExerciseLine, RoutinePreviewSheet } from "./RoutinePreviewSheet"; // 루틴 한눈에(SPEC-045)
+import { HomeMembersCard } from "../coaching/HomeMembersCard"; // 홈 「담당 회원 N명」(SPEC-050 P2)
 type WorkoutRepo = typeof import("@app/core/data/workoutRepository");
 type AnalyticsRepo = typeof import("@app/core/data/analyticsRepository");
 
@@ -697,6 +698,9 @@ export default function RoutinesClient() {
         ) : null}
 
         <RecentWorkouts />
+
+        {/* 담당 회원 카드(SPEC-050 P2) — 활성 회원이 있는 코치만 · 맨 아래라 늦게 떠도 위 줄이 밀리지 않는다 */}
+        <HomeMembersCard />
 
         {/* ── 대화상자들 ── */}
         {tipTopic ? <CreatorTipTopicSheet topic={tipTopic} onClose={() => setTipTopic(null)} /> : null}

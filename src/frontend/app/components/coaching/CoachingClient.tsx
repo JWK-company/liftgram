@@ -26,7 +26,8 @@ import { errorText } from "@/lib/errorText";
 import type { Grant, Peer, Routine, RoutineExercise } from "@app/contracts";
 import { GrantStatus, Side } from "@app/contracts";
 import type { WeightUnit } from "@app/core";
-import { useCallback, useEffect, useState } from "react";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { useCallback, useEffect, useId, useState } from "react";
 import { t, type TransKey } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
 import { scopeOf, type ScopeValue } from "@/lib/coaching";
@@ -246,7 +247,8 @@ export default function CoachingClient() {
     const opts: SheetOption[] = [];
     if (g.roleOfMe === Side.TRAINER && active && g.peer) {
       // 리포트·루틴은 **연결된 뒤에만** 열린다. 서버도 같은 판단을 한다.
-      // (다음 단계 P2 에서 줄 누름 → 회원 화면 /coaching/m/[memberId] 로 옮긴다)
+      // [원본] (다음 단계 P2 에서 줄 누름 → 회원 화면 /coaching/m/[memberId] 로 옮긴다)
+      // [개선] P2 — 줄(아바타·이름)을 누르면 회원 화면. 이 두 판은 빠른 보기로 남긴다(같은 부품 MemberReportBody·MemberRoutinesBody)
       const peer = g.peer;
       opts.push({
         label: t("coaching.reportMenu"),
@@ -516,6 +518,34 @@ function GrantsLoading() {
   );
 }
 
+/** 줄의 아바타·글자 칸 — 갈 곳이 있으면 링크(44px 이상), 없으면 그냥 칸. */
+function RowMain({
+  href,
+  label,
+  describedBy,
+  children,
+}: {
+  href: string | null;
+  label: string;
+  /** 이름 대신 읽힐 label 이 상태(「코칭 중」 등)를 덮지 않게 — 상태 글자의 id(코드 리뷰 L-5) */
+  describedBy?: string;
+  children: React.ReactNode;
+}) {
+  const cls = "flex min-w-0 flex-1 items-center gap-[var(--spacing-sm)]";
+  if (!href) return <div className={cls}>{children}</div>;
+  return (
+    <a
+      href={href}
+      aria-label={label}
+      aria-describedby={describedBy}
+      data-testid="coaching-member-open"
+      className={`${cls} min-h-11`}
+    >
+      {children}
+    </a>
+  );
+}
+
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-1 flex-col">
@@ -554,40 +584,50 @@ function GrantRow({
   // 상대가 코치(내 코치 칸)면 이름 옆에 「코치」 배지
   const peerIsCoach = grant.roleOfMe === Side.MEMBER && !!grant.peer?.trainerIntent;
   const note = canAccept ? grant.requestNote.trim() : "";
+  const memberHref =
+    active && grant.roleOfMe === Side.TRAINER && grant.peer?.id
+      ? `/coaching/m/${encodeURIComponent(grant.peer.id)}`
+      : null;
+  const statusId = useId();
   return (
     <Card
       className="mb-[var(--spacing-sm)] flex items-center gap-[var(--spacing-sm)] py-[var(--spacing-md)]! pr-[var(--spacing-xs)]!"
       data-testid="coaching-grant"
       data-status={active ? "active" : grant.status === GrantStatus.PENDING ? "pending" : "revoked"}
     >
-      <Avatar name={grant.peer?.displayName} url={grant.peer?.avatarUrl} size={36} />
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
-          <AppText variant="body" className="min-w-0 truncate font-medium!">
-            {name}
-          </AppText>
-          {peerIsCoach ? <CoachBadge testId="coaching-coach-badge" /> : null}
-        </div>
-        <AppText
-          variant="caption"
-          color="textMuted"
-          className={`block truncate ${active ? "font-semibold" : ""}`}
-          style={active ? { color: "var(--color-coaching-ink)" } : undefined}
-          data-testid="coaching-status"
-        >
-          {t(STATUS_KEY[grant.status])}
-        </AppText>
-        {note ? (
+      {/* [원본] 아바타·이름 칸은 누를 수 없었다(P1b 보류) — 코치 쪽 활성 회원이면 회원 화면으로(SPEC-050 P2).
+          줄 전체를 링크로 감싸면 수락·⋯ 버튼이 링크 안에 들어가 그 둘은 밖에 둔다(REV-099 「링크 안의 버튼」). */}
+      <RowMain href={memberHref} label={t("coaching.member.open", { name })} describedBy={statusId}>
+        <Avatar name={grant.peer?.displayName} url={grant.peer?.avatarUrl} size={36} />
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-[var(--spacing-xs)]">
+            <AppText variant="body" className="min-w-0 truncate font-medium!">
+              {name}
+            </AppText>
+            {peerIsCoach ? <CoachBadge testId="coaching-coach-badge" /> : null}
+          </div>
           <AppText
             variant="caption"
             color="textMuted"
-            className="block break-words"
-            data-testid="coaching-note"
+            className={`block truncate ${active ? "font-semibold" : ""}`}
+            style={active ? { color: "var(--color-coaching-ink)" } : undefined}
+            data-testid="coaching-status"
+            id={statusId}
           >
-            {t("coaching.requestNote", { note })}
+            {t(STATUS_KEY[grant.status])}
           </AppText>
-        ) : null}
-      </div>
+          {note ? (
+            <AppText
+              variant="caption"
+              color="textMuted"
+              className="block break-words"
+              data-testid="coaching-note"
+            >
+              {t("coaching.requestNote", { note })}
+            </AppText>
+          ) : null}
+        </div>
+      </RowMain>
       {canAccept ? (
         <Button
           title={t("coaching.acceptButton")}
@@ -611,8 +651,39 @@ function GrantRow({
   );
 }
 
-/** 회원 루틴 처방 — 종목을 누르면 편집기가 열린다. DM 요약 카드의 「루틴 처방」도 이 판을 연다(SRS-080). */
+/** 회원 루틴 처방 — 종목을 누르면 편집기가 열린다. DM 요약 카드의 「루틴 처방」도 이 판을 연다(SRS-080).
+ * [원본] 목록 읽기·편집기 열기가 이 함수 안에 있었다 — 회원 화면 루틴 탭(SPEC-050 P2)과 같이 쓰려고 MemberRoutinesBody 로 옮겼다. */
 export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: () => void }) {
+  return (
+    <MemberRoutinesBody peer={peer}>
+      {(content) => (
+        <Panel
+          testId="coaching-routines-view"
+          title={t("coaching.routinesTitle", { name: peer.displayName || "?" })}
+          onClose={onClose}
+          actions={<Button title={t("common.ok")} variant="secondary" onPress={onClose} />}
+        >
+          {content}
+        </Panel>
+      )}
+    </MemberRoutinesBody>
+  );
+}
+
+/**
+ * 회원 루틴 목록 + 처방 편집기. 편집기가 열려 있으면 편집기만 그린다(판 위에 판을 겹치지 않는다).
+ * children = 목록을 감쌀 틀(판 또는 탭) — 없으면 그대로 그린다.
+ */
+export function MemberRoutinesBody({
+  peer,
+  children,
+  onEnded,
+}: {
+  peer: Peer;
+  children?: (content: React.ReactNode) => React.ReactNode;
+  /** 서버가 PermissionDenied(해지·범위 끔)로 답했을 때 — 회원 화면이 연결을 다시 읽어 판단한다(코드 리뷰 M-1) */
+  onEnded?: () => void;
+}) {
   const toast = useToast();
   const [routines, setRoutines] = useState<Routine[] | null>(null);
   const [editing, setEditing] = useState<{ routine: Routine; block: RoutineExercise } | null>(null);
@@ -620,11 +691,21 @@ export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: (
   const load = useCallback(async () => {
     try {
       setRoutines((await coachingClient().listMemberRoutines({ memberId: peer.id })).routines);
-    } catch {
+      // [원본] } catch {
+      //   toast(t("common.error"), "error");
+      //   setRoutines([]);
+      // }
+      // [개선] 회원 화면(onEnded 있음)에서 PermissionDenied 면 「빈 목록」으로 덮지 않고 화면에 맡긴다 —
+      //   해지·루틴 처방 끔을 「루틴이 없어요」로 오해하지 않게(코드 리뷰 M-1). 판(다이얼로그)은 그대로 알림 + 빈 목록.
+    } catch (e) {
+      if (onEnded && ConnectError.from(e).code === Code.PermissionDenied) {
+        onEnded();
+        return;
+      }
       toast(t("common.error"), "error");
       setRoutines([]);
     }
-  }, [peer.id, toast]);
+  }, [peer.id, toast, onEnded]);
 
   useEffect(() => {
     void load();
@@ -645,13 +726,8 @@ export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: (
     );
   }
 
-  return (
-    <Panel
-      testId="coaching-routines-view"
-      title={t("coaching.routinesTitle", { name: peer.displayName || "?" })}
-      onClose={onClose}
-      actions={<Button title={t("common.ok")} variant="secondary" onPress={onClose} />}
-    >
+  const content = (
+    <>
       <AppText variant="caption" color="textMuted" className="block">
         {t("coaching.routinesHint")}
       </AppText>
@@ -659,11 +735,16 @@ export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: (
       {routines === null ? (
         <div className="flex justify-center py-[var(--spacing-lg)]">
           <span role="status" className="inline-flex">
-            <LogoSpinner size={32} label="불러오는 중" />
+            <LogoSpinner size={32} label={t("common.loading")} />
           </span>
         </div>
       ) : routines.length === 0 ? (
-        <AppText variant="caption" color="textMuted" className="mt-[var(--spacing-md)] block">
+        <AppText
+          variant="caption"
+          color="textMuted"
+          className="mt-[var(--spacing-md)] block"
+          data-testid="member-routines-empty"
+        >
           {t("coaching.routinesEmpty")}
         </AppText>
       ) : (
@@ -679,7 +760,8 @@ export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: (
                   type="button"
                   data-testid="member-exercise"
                   onClick={() => setEditing({ routine: r, block: b })}
-                  className="mt-[var(--spacing-xs)] flex w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-sm)] text-left"
+                  // [원본] py-[var(--spacing-sm)] — 줄 높이가 44px 에 못 미쳤다(회원 화면 탭 · SPEC-050 P2)
+                  className="mt-[var(--spacing-xs)] flex min-h-11 w-full min-w-0 items-center gap-[var(--spacing-sm)] rounded-[var(--radius-md)] bg-(--color-surface-alt) px-[var(--spacing-sm)] py-[var(--spacing-sm)] text-left"
                 >
                   <AppText variant="caption" className="min-w-0 flex-1 truncate">
                     {b.exerciseName || b.exerciseId}
@@ -695,6 +777,7 @@ export function MemberRoutinesDialog({ peer, onClose }: { peer: Peer; onClose: (
           ))}
         </div>
       )}
-    </Panel>
+    </>
   );
+  return <>{children ? children(content) : content}</>;
 }

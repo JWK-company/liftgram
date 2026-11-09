@@ -33,7 +33,7 @@ import { ConfirmDialog } from "../ui/Dialog";
 import { ScreenHeader } from "../ui/ScreenHeader";
 import { conversationTitle } from "./ConversationsClient";
 import { SummaryBubble } from "../summary/SummaryBubble"; // 성과 요약 카드(SRS-080)
-import { GrantStatus } from "@app/contracts";
+import { GrantStatus, Side } from "@app/contracts";
 import { coachingClient } from "@/lib/coachingClient";
 import { CoachingActiveBadge } from "../coaching/CoachBits"; // 「코칭 중」 배지(SPEC-050)
 
@@ -52,6 +52,8 @@ export default function ConversationClient({ conversationId }: { conversationId:
   // 1:1 상대 id — 활성 코칭이면 머리에 「코칭 중」(SPEC-050 P1b)
   const [peerId, setPeerId] = useState<string | null>(null);
   const [coaching, setCoaching] = useState(false);
+  // 내가 코치이고 상대가 활성 회원이면 배지를 누르면 회원 화면(SPEC-050 P2)
+  const [coachOf, setCoachOf] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -112,13 +114,16 @@ export default function ConversationClient({ conversationId }: { conversationId:
   useEffect(() => {
     // 상대가 바뀌면(다른 대화로 이동) 앞 대화의 배지를 먼저 지운다(코드 리뷰 지적 12)
     setCoaching(false);
+    setCoachOf(false);
     if (!peerId || !user) return;
     let closed = false;
     coachingClient()
       .listGrants({})
       .then((r) => {
-        if (!closed)
-          setCoaching(r.grants.some((g) => g.peer?.id === peerId && g.status === GrantStatus.ACTIVE));
+        if (closed) return;
+        const live = r.grants.filter((g) => g.peer?.id === peerId && g.status === GrantStatus.ACTIVE);
+        setCoaching(live.length > 0);
+        setCoachOf(live.some((g) => g.roleOfMe === Side.TRAINER));
       })
       .catch(() => {});
     return () => {
@@ -287,7 +292,20 @@ export default function ConversationClient({ conversationId }: { conversationId:
             </button>
           ) : coaching ? (
             // [원본] 1:1 은 오른쪽 자리를 비웠다 — 활성 코칭이면 「코칭 중」 배지(SPEC-050 · 회원 화면 바로가기는 P2)
-            <CoachingActiveBadge testId="conv-coaching-badge" />
+            // [개선] 내가 코치면 배지 자체가 회원 화면 링크(44px 칸 · SPEC-050 P2) — 회원 쪽은 그대로 표시만
+            coachOf && peerId ? (
+              <a
+                href={`/coaching/m/${encodeURIComponent(peerId)}`}
+                data-testid="conv-member-link"
+                aria-label={t("coaching.member.open", { name: title || "?" })}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center gap-[2px]"
+              >
+                <CoachingActiveBadge testId="conv-coaching-badge" />
+                <Icon name="chevron-forward" size={14} color="var(--color-coaching-ink)" />
+              </a>
+            ) : (
+              <CoachingActiveBadge testId="conv-coaching-badge" />
+            )
           ) : undefined
         }
       />

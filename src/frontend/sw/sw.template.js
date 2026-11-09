@@ -145,6 +145,10 @@ self.addEventListener("fetch", (event) => {
   // 옛 요약 주소 — 오프라인이면 앞 세대 캐시의 보내기 화면이 뜰 수 있어 워커가 먼저 넘긴다(ADR-051 · REV-029)
   if (req.mode === "navigate" && url.pathname === "/stats/summary")
     return event.respondWith(Response.redirect(new URL("/stats", url.origin).href, 302));
+  // SPEC-050 P2 코칭 회원 화면(/coaching/m/<회원 id>)은 셸 캐시에 담지 않는다 — 남의 기록 화면 주소가 기기 캐시에 쌓이지 않게
+  // (코드 리뷰 L-1). 네트워크만 · 오프라인이면 /offline.
+  if (req.mode === "navigate" && url.pathname.startsWith("/coaching/m/"))
+    return event.respondWith(pageNoStore(req));
   if (req.mode === "navigate") return event.respondWith(page(req, event));
   if (PRECACHE.includes(url.pathname)) return event.respondWith(cacheFirst(req, STATIC));
 });
@@ -193,6 +197,17 @@ async function page(req, event) {
     return (
       (await cache.match(stripQuery(req))) ??
       (await caches.match(stripQuery(req))) ?? // 앞 세대 셸이라도 없는 것보단 낫다
+      (await caches.match("/offline")) ??
+      new Response("offline", { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } })
+    );
+  }
+}
+
+async function pageNoStore(req) {
+  try {
+    return await withTimeout(fetch(req), NAV_TIMEOUT_MS);
+  } catch {
+    return (
       (await caches.match("/offline")) ??
       new Response("offline", { status: 503, headers: { "content-type": "text/plain; charset=utf-8" } })
     );

@@ -5,10 +5,26 @@
 //   · 회원 요청 + 한 줄 메시지 → 코치 수락 · 알림 문구·갈 곳 · 대화방 「코칭 중」 · 둘째 코치 거절 문구 · 해지 확인창
 //   · 프로필 코치 배지·소개·태그 · 「코칭 요청」/「코칭 초대」 · 「코칭 중」 · 로그인 전 초대 링크 → 로그인 뒤 이어서
 //   · 360px 에서 초대 카드·GrantRow 넘침 없음 · 누르는 자리 44px · 빨강 채움은 상황별 하나
+//   · (P2) 회원 화면 /coaching/m/[id] — 띠·탭·기록 펼침·분석 기간·연결 전 기록 컷 안내·체중 카드는 bodyView 때만 ·
+//     코치 로컬 DB 행 수 그대로 · 홈 「담당 회원」 카드 · 대화방 배지 → 회원 화면 · 기록 꺼짐 · 해지 뒤 · 360px·44px·다크
 //
 // 시작 값은 기본값과 다르게 둔다(범위 바꾸기는 꺼진 칸을 켠 뒤 다시 열어 본다) — 같은 값이면 저장이 안 돼도 통과한다.
 import { expect, test } from "@playwright/test";
-import { 가입, 새_기기, 새_메일 } from "./helpers/opengym";
+import {
+  가입,
+  내려쓰기_대기,
+  동기,
+  마치기,
+  빈_문서,
+  빠른_운동_시작,
+  새_기기,
+  새_메일,
+  세트_기록,
+  준비,
+  종목_추가,
+  idb_행_수,
+  로그인,
+} from "./helpers/opengym";
 
 type Page = import("@playwright/test").Page;
 
@@ -711,3 +727,345 @@ async function 빨강_채움_목록(page: Page, within: string): Promise<string[
     return out;
   }, within);
 }
+
+// ── P2 회원 화면(SPEC-050 Phase 3) ─────────────────────────────────────────
+
+/** 빠른 운동 하나 — 종목 하나·세트 하나를 끝내고 홈으로 */
+async function 운동_하나(page: Page, 종목: string, kg: number, reps: number) {
+  await 빠른_운동_시작(page);
+  await 종목_추가(page, 종목);
+  await 세트_기록(page, 0, 0, kg, reps);
+  await 마치기(page);
+}
+
+/** 프로필 「기록」 → 직접 입력 → 저장(체중) */
+async function 체중_입력(page: Page, value: string) {
+  await page.goto("/profile");
+  await page.getByTestId("btn-bodyweight-record").click({ timeout: 20_000 });
+  const sheet = page.getByTestId("bodyweight-record-sheet");
+  await sheet.getByTestId("weighin-type").click();
+  await sheet.getByTestId("weighin-input").fill(value);
+  await sheet.getByTestId("weighin-input").press("Enter");
+  await sheet.getByTestId("weighin-save").click();
+  await expect(sheet).toHaveCount(0);
+}
+
+/** 회원이 범위 스위치 하나를 뒤집고 저장 */
+async function 범위_뒤집기(page: Page, 코치: string, key: string) {
+  await page.goto("/coaching");
+  await 줄_메뉴(page, "coaching-coaches", 코치);
+  await page.getByTestId("coaching-scope").click();
+  await page.getByTestId(`scope-${key}`).click();
+  const upd = page.waitForResponse(`**${RPC}/UpdateScope`);
+  await page.getByTestId("scope-confirm").click();
+  expect((await upd).ok()).toBe(true);
+  await expect(page.getByTestId("coaching-scope-sheet")).toHaveCount(0);
+}
+
+const 로컬_표 = ["workouts", "workout_exercises", "set_logs", "bodyweight_logs"];
+
+async function 로컬_행(page: Page): Promise<Record<string, number>> {
+  await 내려쓰기_대기(page);
+  await 빈_문서(page);
+  return idb_행_수(page, 로컬_표);
+}
+
+test.describe("P2 회원 화면", () => {
+  test("띠·탭·기록 펼침·분석 기간·연결 전 기록 컷 · 체중은 bodyView 때만 · 로컬 DB 그대로 · 홈 카드 · 대화방 배지 · 기록 꺼짐 · 해지 뒤", async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(600_000);
+    const tag = Date.now().toString(36);
+    const 코치 = `코치m${tag}`;
+    const 회원 = `회원m${tag}`;
+    const [ctxT, pageT] = await 새_기기(browser);
+    try {
+      // 회원 — 연결 **전** 운동(벤치) · 서버에 올린다
+      await 준비(page);
+      await 가입(page, 새_메일("cv2-p2m"), 회원);
+      await 운동_하나(page, "바벨 벤치프레스", 60, 10);
+      await 동기(page);
+      const 회원id = await 내_id(page);
+
+      // 코치 — 카탈로그·코드 · 코치 자신의 운동 하나(로컬 행 수가 0 에서 시작하지 않게)
+      await 준비(pageT);
+      const 코치메일 = 새_메일("cv2-p2t");
+      await 가입(pageT, 코치메일, 코치);
+      await 코치되기(pageT);
+      const code = await 코드_만들기(pageT);
+      await 운동_하나(pageT, "바벨 데드리프트", 100, 3);
+
+      // 연결(기본 범위 — 체중·지난 기록 꺼짐)
+      await page.goto("/coaching");
+      await page.getByTestId("coaching-code-input").fill(code);
+      await page.getByTestId("coaching-code-check").click();
+      await page.getByTestId("scope-confirm").click({ timeout: 20_000 });
+      await expect(page.getByTestId("coaching-coaches")).toContainText("코칭 중", { timeout: 20_000 });
+
+      // 연결 **뒤** 운동(스쿼트) + 체중 · 올린다
+      await 운동_하나(page, "바벨 스쿼트", 80, 5);
+      await 체중_입력(page, "72.4");
+      await 동기(page);
+
+      // 코치 로컬 DB — 회원 화면 전
+      const before = await 로컬_행(pageT);
+      expect(before.workouts).toBeGreaterThanOrEqual(1);
+
+      // 담당 회원 줄 → 회원 화면
+      await pageT.setViewportSize({ width: 360, height: 780 });
+      await pageT.goto("/coaching");
+      const mrow = pageT
+        .getByTestId("coaching-members")
+        .getByTestId("coaching-grant")
+        .filter({ hasText: 회원 });
+      await expect(mrow).toContainText("코칭 중", { timeout: 20_000 });
+      await 크기_44(mrow.getByTestId("coaching-member-open"));
+      await mrow.getByTestId("coaching-member-open").click();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${회원id}$`), { timeout: 20_000 });
+      await expect(pageT.getByTestId("member-band-title")).toHaveText(`${회원}님 기록 · 코칭 중`, {
+        timeout: 20_000,
+      });
+      expect(
+        await pageT.getByTestId("member-band").evaluate((el) => getComputedStyle(el).backgroundColor),
+      ).toBe("rgb(227, 244, 245)"); // --color-coaching-soft(라이트)
+      await expect(pageT.getByTestId("member-tab-records")).toHaveAttribute("aria-selected", "true");
+
+      // 기록 탭 — 연결 뒤 스쿼트만 · 벤치는 컷 · 안내 문구 · 더 보기 없음
+      const rows = pageT.getByTestId("member-workout");
+      await expect(rows).toHaveCount(1, { timeout: 20_000 });
+      await expect(rows.first().getByTestId("member-workout-title")).toContainText("스쿼트");
+      await expect(pageT.getByTestId("member-records")).not.toContainText("벤치");
+      await expect(rows.first().getByTestId("member-workout-meta")).toContainText("1세트");
+      await expect(pageT.getByTestId("member-since")).toHaveText(
+        /^연결한 날\(\d+월 \d+일\) 뒤 기록만 보여요$/,
+      );
+      await expect(pageT.getByTestId("member-more")).toHaveCount(0);
+      const toggle = rows.first().getByTestId("member-workout-toggle");
+      await expect(toggle).toHaveAttribute("aria-expanded", "false");
+      await toggle.click();
+      await expect(toggle).toHaveAttribute("aria-expanded", "true");
+      await expect(rows.first().getByTestId("member-set")).toHaveText(["1. 80kg × 5"]);
+      await 넘침_없음(pageT);
+      for (const id of ["member-exit", "member-tab-records", "member-tab-stats", "member-tab-routines"])
+        await 크기_44(pageT.getByTestId(id));
+      await 크기_44(toggle);
+      expect(await 빨강_채움(pageT)).toBeLessThanOrEqual(1);
+
+      // 탭 목록 — 고른 탭만 Tab 순서(roving) · ←/→ 로 옮긴다 · 패널은 고른 탭이 이름표(L-5)
+      const tabRec = pageT.getByTestId("member-tab-records");
+      const tabStats = pageT.getByTestId("member-tab-stats");
+      await expect(tabRec).toHaveAttribute("tabindex", "0");
+      await expect(tabStats).toHaveAttribute("tabindex", "-1");
+      const panelId = await tabRec.getAttribute("aria-controls");
+      expect(panelId).toBeTruthy();
+      await expect(pageT.getByRole("tabpanel")).toHaveAttribute("id", panelId as string);
+      await expect(pageT.getByRole("tabpanel")).toHaveAttribute(
+        "aria-labelledby",
+        (await tabRec.getAttribute("id")) as string,
+      );
+      await tabRec.focus();
+      await pageT.keyboard.press("ArrowRight");
+      await expect(tabStats).toHaveAttribute("aria-selected", "true");
+      await expect(tabStats).toBeFocused();
+      await pageT.keyboard.press("ArrowLeft");
+      await expect(tabRec).toHaveAttribute("aria-selected", "true");
+      await expect(tabRec).toBeFocused();
+      await expect(rows).toHaveCount(1, { timeout: 20_000 });
+
+      // 분석 탭 — 기본 4주 → 7일로 바꿈(다시 읽는다) · 체중 카드 없음(bodyView 꺼짐)
+      await pageT.getByTestId("member-tab-stats").click();
+      await expect(pageT).toHaveURL(/\?tab=stats$/);
+      await expect(pageT.getByTestId("report-ready")).toBeVisible({ timeout: 20_000 });
+      await expect(pageT.getByTestId("report-period-4w")).toHaveAttribute("aria-selected", "true");
+      await expect(pageT.getByTestId("ps-workouts")).toHaveText("1회"); // 벤치(연결 전)는 세지 않는다
+      const again = pageT.waitForResponse(`**${RPC}/GetMemberRecords`);
+      await pageT.getByTestId("report-period-7d").click();
+      expect((await again).ok()).toBe(true);
+      await expect(pageT.getByTestId("report-period-7d")).toHaveAttribute("aria-selected", "true");
+      await expect(pageT.getByTestId("report-ready")).toBeVisible({ timeout: 20_000 });
+      await expect(pageT.getByTestId("ps-workouts")).toHaveText("1회");
+      await expect(pageT.getByTestId("member-body-card")).toHaveCount(0);
+      await 크기_44(pageT.getByTestId("report-period-3m"));
+      await 넘침_없음(pageT);
+
+      // 루틴 탭 — 회원 루틴 처방(빠른 운동만 했으니 빈 목록)
+      await pageT.getByTestId("member-tab-routines").click();
+      await expect(pageT).toHaveURL(/\?tab=routines$/);
+      await expect(pageT.getByTestId("member-routines-empty")).toBeVisible({ timeout: 20_000 });
+      await 넘침_없음(pageT);
+
+      // 코치 로컬 DB — 회원 화면을 다녀와도 그대로
+      expect(await 로컬_행(pageT)).toEqual(before);
+
+      // 회원이 체중·인바디를 켠다 → 분석 탭에 체중 카드(주소 ?tab=stats 로 바로)
+      await 범위_뒤집기(page, 코치, "bodyView");
+      // 연결을 읽는 동안 판단 문구가 비치지 않는다(rAF 로 상태를 적는다 · 늦은 ListGrants)
+      await pageT.addInitScript(() => {
+        const w = window as unknown as { __member: string[] };
+        w.__member = [];
+        const loop = () => {
+          const el = document.querySelector('[data-testid="member-screen"]');
+          const st = el?.getAttribute("data-state");
+          if (st && w.__member[w.__member.length - 1] !== st) w.__member.push(st);
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      });
+      await pageT.route(`**${RPC}/ListGrants`, async (r) => {
+        await new Promise((res) => setTimeout(res, 800));
+        await r.continue();
+      });
+      await pageT.goto(`/coaching/m/${회원id}?tab=stats`);
+      await expect(pageT.getByTestId("member-tab-stats")).toHaveAttribute("aria-selected", "true", {
+        timeout: 20_000,
+      });
+      await expect(pageT.getByTestId("member-body-card")).toBeVisible({ timeout: 20_000 });
+      await expect(pageT.getByTestId("member-body-latest")).toHaveText("72.4kg");
+      await expect(pageT.getByTestId("member-body-row")).toHaveCount(1);
+      const seen = await pageT.evaluate(() => (window as unknown as { __member: string[] }).__member);
+      expect(seen).toEqual(["loading", "ok"]);
+      await pageT.unroute(`**${RPC}/ListGrants`);
+      await 넘침_없음(pageT);
+
+      // E-3 — 체중 카드를 본 뒤에도 코치 로컬 DB 그대로 · localStorage 에 회원 id 없음(메모리만 · S-20)
+      const 저장소 = await pageT.evaluate(() => {
+        const out: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i) ?? "";
+          out.push(k, localStorage.getItem(k) ?? "");
+        }
+        return out.join("\n");
+      });
+      expect(저장소).not.toContain(회원id);
+      expect(await 로컬_행(pageT)).toEqual(before);
+
+      // 홈 「담당 회원 1명」 카드 → /coaching
+      await pageT.goto("/");
+      const card = pageT.getByTestId("home-members-card");
+      await expect(card.getByTestId("home-members-count")).toHaveText("담당 회원 1명", { timeout: 20_000 });
+      await 크기_44(card);
+      const cardBar = await card.evaluate((el) => getComputedStyle(el).borderLeftColor);
+      expect(cardBar).toBe("rgb(14, 124, 134)"); // --color-coaching(라이트)
+      await 넘침_없음(pageT);
+      await card.click();
+      await expect(pageT).toHaveURL(/\/coaching$/, { timeout: 20_000 });
+      // 회원(코치 아님)에게는 카드가 없다
+      await page.goto("/");
+      await expect(page.getByTestId("btn-quick-start")).toBeVisible({ timeout: 20_000 });
+      await page.waitForTimeout(1500);
+      await expect(page.getByTestId("home-members-card")).toHaveCount(0);
+
+      // 대화방 — 코치 쪽 「코칭 중」 배지를 누르면 회원 화면 · 회원 쪽 배지는 표시만
+      await pageT.goto("/messages");
+      await pageT.getByTestId("dm-row").filter({ hasText: 회원 }).click({ timeout: 20_000 });
+      const link = pageT.getByTestId("conv-member-link");
+      await expect(link.getByTestId("conv-coaching-badge")).toHaveText("코칭 중", { timeout: 20_000 });
+      await 크기_44(link);
+      await link.click();
+      await expect(pageT).toHaveURL(new RegExp(`/coaching/m/${회원id}$`), { timeout: 20_000 });
+      await expect(pageT.getByTestId("member-band-title")).toContainText(회원, { timeout: 20_000 });
+      await page.goto("/messages");
+      await page.getByTestId("dm-row").filter({ hasText: 코치 }).click({ timeout: 20_000 });
+      await expect(page.getByTestId("conv-coaching-badge")).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId("conv-member-link")).toHaveCount(0);
+
+      // 다크 — 띠가 다크 청록 토큰
+      await pageT.emulateMedia({ colorScheme: "dark" });
+      await pageT.goto(`/coaching/m/${회원id}`);
+      await expect(pageT.getByTestId("member-workout")).toHaveCount(1, { timeout: 20_000 });
+      const dark = await pageT.evaluate(() => {
+        const band = document.querySelector('[data-testid="member-band"]') as HTMLElement;
+        const title = document.querySelector('[data-testid="member-band-title"]') as HTMLElement;
+        return {
+          bg: getComputedStyle(band).backgroundColor,
+          bar: getComputedStyle(band).borderLeftColor,
+          ink: getComputedStyle(title).color,
+        };
+      });
+      expect(dark).toEqual({ bg: "rgb(23, 51, 53)", bar: "rgb(76, 195, 204)", ink: "rgb(127, 217, 223)" });
+      await pageT.emulateMedia({ colorScheme: "light" });
+
+      // E-1 — 화면을 연 채 회원이 기록 보기**만** 끈다 → 다음 읽기가 막혀도 「코칭이 끝났어요」가 아니라 범위 꺼짐 문구(M-2)
+      //   pageT: 기록 탭 → 분석 탭(MemberReportBody 막힘) · pageT2: 루틴 탭 → 기록 탭(RecordsTab 막힘)
+      // 같은 기기의 두 번째 탭은 「다른 탭에서 열려 있어요」로 막힌다 → 코치가 **다른 기기**에서도 로그인해 둔다
+      const [ctxT2, pageT2] = await 새_기기(browser);
+      await 준비(pageT2);
+      await 로그인(pageT2, 코치메일);
+      await pageT.goto(`/coaching/m/${회원id}`);
+      await expect(pageT.getByTestId("member-workout")).toHaveCount(1, { timeout: 20_000 });
+      await pageT2.goto(`/coaching/m/${회원id}?tab=routines`);
+      await expect(pageT2.getByTestId("member-routines-empty")).toBeVisible({ timeout: 20_000 });
+      await 범위_뒤집기(page, 코치, "logView");
+      await pageT.getByTestId("member-tab-stats").click();
+      await expect(pageT.getByTestId("member-log-off")).toHaveText("회원이 기록 보기를 꺼 두었어요", {
+        timeout: 20_000,
+      });
+      await expect(pageT.getByTestId("member-ended")).toHaveCount(0);
+      await expect(pageT.getByTestId("member-tabs")).toBeVisible();
+      await pageT2.getByTestId("member-tab-records").click();
+      await expect(pageT2.getByTestId("member-log-off")).toHaveText("회원이 기록 보기를 꺼 두었어요", {
+        timeout: 20_000,
+      });
+      await expect(pageT2.getByTestId("member-ended")).toHaveCount(0);
+      await expect(pageT2.getByTestId("member-workout")).toHaveCount(0);
+
+      // 새로 열어도 기록·분석 탭은 안내 문구
+      await pageT.goto(`/coaching/m/${회원id}`);
+      await expect(pageT.getByTestId("member-log-off")).toHaveText("회원이 기록 보기를 꺼 두었어요", {
+        timeout: 20_000,
+      });
+      await expect(pageT.getByTestId("member-workout")).toHaveCount(0);
+      await pageT.getByTestId("member-tab-stats").click();
+      await expect(pageT.getByTestId("member-log-off")).toBeVisible();
+
+      // E-1 — 기록 보기를 다시 켠 뒤 화면을 연 채 회원이 해지 → 루틴 탭·기록 탭이 「코칭이 끝났어요」(빈 목록으로 덮지 않는다 · M-1)
+      await 범위_뒤집기(page, 코치, "logView");
+      await pageT.goto(`/coaching/m/${회원id}?tab=stats`);
+      await expect(pageT.getByTestId("report-ready")).toBeVisible({ timeout: 20_000 });
+      await pageT2.goto(`/coaching/m/${회원id}?tab=stats`);
+      await expect(pageT2.getByTestId("report-ready")).toBeVisible({ timeout: 20_000 });
+
+      // 해지 → 「코칭이 끝났어요」 · 홈 카드 사라짐
+      await page.goto("/coaching");
+      await 줄_메뉴(page, "coaching-coaches", 코치);
+      await page.getByTestId("coaching-revoke").click();
+      await page.getByTestId("coaching-revoke-confirm").getByTestId("dialog-confirm").click();
+      await expect(page.getByTestId("coaching-coaches")).toHaveCount(0, { timeout: 20_000 });
+      await pageT.getByTestId("member-tab-routines").click();
+      await expect(pageT.getByTestId("member-ended")).toContainText("코칭이 끝났어요", { timeout: 20_000 });
+      await expect(pageT.getByTestId("member-routines-empty")).toHaveCount(0);
+      await pageT2.getByTestId("member-tab-records").click();
+      await expect(pageT2.getByTestId("member-ended")).toContainText("코칭이 끝났어요", { timeout: 20_000 });
+      await ctxT2.close();
+      await pageT.goto(`/coaching/m/${회원id}`);
+      await expect(pageT.getByTestId("member-ended")).toContainText("코칭이 끝났어요", { timeout: 20_000 });
+      await expect(pageT.getByTestId("member-tabs")).toHaveCount(0);
+      await 크기_44(pageT.getByTestId("member-to-coaching"));
+      await 넘침_없음(pageT);
+      await pageT.goto("/");
+      await expect(pageT.getByTestId("btn-quick-start")).toBeVisible({ timeout: 20_000 });
+      await pageT.waitForTimeout(1500);
+      await expect(pageT.getByTestId("home-members-card")).toHaveCount(0);
+    } finally {
+      await ctxT.close();
+    }
+  });
+
+  test("연결 읽기 실패 — 오류 + 다시 시도 · 연결 없는 사람은 「코칭이 끝났어요」", async ({ page }) => {
+    test.setTimeout(120_000);
+    await 가입(page, 새_메일("cv2-p2e"), `오류${Date.now().toString(36)}`);
+    let fail = true;
+    await page.route(`**${RPC}/ListGrants`, (r) =>
+      fail ? r.fulfill({ status: 503, body: "" }) : r.continue(),
+    );
+    await page.goto("/coaching/m/nobody");
+    await expect(page.getByTestId("member-error")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("member-ended")).toHaveCount(0);
+    fail = false;
+    await page.getByTestId("member-error-retry").click();
+    // 연결이 없는 사람 — 「코칭이 끝났어요」
+    await expect(page.getByTestId("member-ended")).toContainText("코칭이 끝났어요", { timeout: 20_000 });
+    await page.unroute(`**${RPC}/ListGrants`);
+  });
+});

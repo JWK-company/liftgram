@@ -6,7 +6,9 @@
 // 시드 종목은 응답에 없다 → 이 기기 카탈로그를 catalog 로 넘긴다(읽기만).
 // 원본 응답과 계산 결과는 **이 컴포넌트 상태에만** 둔다 — Watermelon·localStorage·IndexedDB 어디에도 쓰지 않는다(S-20).
 // 기간 기본값 4주(360 기기에서 1년 표본 계산 시간 — p4-ui-report.md).
-import type { Peer } from "@app/contracts";
+// SPEC-050 P2 — 내용을 MemberReportBody 로 떼어 회원 화면(/coaching/m/[memberId]) 분석 탭도 같은 부품을 쓴다.
+//   요약 계산은 그대로 체중 없이 — 체중 카드는 bodyView 일 때 응답의 bodyweight_logs 로 회원 화면이 따로 그린다(bodyCard).
+import { GrantStatus, type Peer, Side } from "@app/contracts";
 import { Code, ConnectError } from "@connectrpc/connect";
 import type { WeightUnit } from "@app/core";
 import {
@@ -17,9 +19,10 @@ import {
 } from "@app/core/domain/periodSummary";
 import { memberReportFromRecords } from "@app/core/domain/summaryRecords";
 import { parseSummaryV1 } from "@app/core/domain/summarySchema";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { t } from "@/lib/i18n";
 import { coachingClient } from "@/lib/coachingClient";
+import { scopeOf } from "@/lib/coaching";
 import { Panel } from "../coaching/Panel";
 import { Button } from "../ui/Button";
 import { Skeleton } from "../ui/Skeleton";
@@ -29,9 +32,21 @@ import { SummaryView } from "./SummaryView";
 
 type ReportState =
   | { kind: "loading" }
-  | { kind: "ok"; summary: SummaryV1; names: Map<string, string>; computeMs: number; rows: number }
+  // [원본] | { kind: "ok"; summary: SummaryV1; names: Map<string, string>; computeMs: number; rows: number }
+  // [개선] 회원 화면 분석 탭(SPEC-050 P2) — bodyView 면 같은 응답의 체중·인바디 원본과 요청 기간도 함께 둔다(메모리만)
+  | {
+      kind: "ok";
+      summary: SummaryV1;
+      names: Map<string, string>;
+      computeMs: number;
+      rows: number;
+      body: readonly string[];
+      range: { startMs: number; endMs: number };
+    }
   | { kind: "tooLarge" }
   | { kind: "ended" }
+  // 연결은 살아 있는데 회원이 기록 보기를 꺼 두었다(PermissionDenied 뒤 ListGrants 로 가른다 · 코드 리뷰 M-2)
+  | { kind: "logOff" }
   | { kind: "error" };
 
 const PRESETS: { value: SummaryPreset; label: string }[] = [
@@ -40,6 +55,10 @@ const PRESETS: { value: SummaryPreset; label: string }[] = [
   { value: "3m", label: t("progressSummary.preset3m") },
 ];
 
+/**
+ * 회원 리포트 판(⋯ 시트 「기록 요약」) — 내용은 MemberReportBody 하나(회원 화면 분석 탭과 같은 부품 · SPEC-050 P2).
+ * [원본] 이 함수 안에 기간 고르기·읽기·계산·그리기가 모두 있었다 — 아래 MemberReportBody 로 옮겼다(내용은 그대로).
+ */
 export function MemberReportDialog({
   peer,
   unit,
@@ -49,7 +68,45 @@ export function MemberReportDialog({
   unit: WeightUnit;
   onClose: () => void;
 }) {
-  const [preset, setPreset] = useState<SummaryPreset>("4w");
+  return (
+    <Panel
+      testId="coaching-report-view"
+      title={t("progressSummary.reportTitle", { name: peer.displayName || "?" })}
+      onClose={onClose}
+      actions={<Button title={t("common.ok")} variant="secondary" onPress={onClose} />}
+    >
+      <MemberReportBody peer={peer} unit={unit} />
+    </Panel>
+  );
+}
+
+/**
+ * 기간 고르기 + 원본 읽기 + core 계산 + 요약 카드. 판(다이얼로그)·탭 어디에나 그린다.
+ *   periodPicker  기간 고르기를 바꿔 그릴 때(회원 화면은 44px 탭) — 없으면 판의 Segmented
+ *   bodyCard      응답의 bodyweight_logs 로 그릴 카드(bodyView 일 때만 넘긴다) — 없으면 체중 카드 없음
+ */
+export function MemberReportBody({
+  peer,
+  unit,
+  defaultPreset = "4w",
+  periodPicker,
+  bodyCard,
+  onEnded,
+}: {
+  peer: Pick<Peer, "id">;
+  unit: WeightUnit;
+  defaultPreset?: SummaryPreset;
+  periodPicker?: (p: {
+    value: SummaryPreset;
+    onChange: (v: SummaryPreset) => void;
+    items: { value: SummaryPreset; label: string; testId: string }[];
+  }) => ReactNode;
+  bodyCard?: (body: readonly string[], range: { startMs: number; endMs: number }) => ReactNode;
+  /** 서버가 PermissionDenied(해지·범위 끔)로 답했을 때 — 회원 화면이 연결을 다시 읽어 끝남·범위 꺼짐을 가른다.
+   *  없으면(판) 이 부품이 직접 ListGrants 를 다시 읽어 가른다(코드 리뷰 M-2). */
+  onEnded?: () => void;
+}) {
+  const [preset, setPreset] = useState<SummaryPreset>(defaultPreset);
   const [state, setState] = useState<ReportState>({ kind: "loading" });
   const [attempt, setAttempt] = useState(0);
 
@@ -99,14 +156,26 @@ export function MemberReportDialog({
           names,
           computeMs,
           rows: res.workouts.length + res.workoutExercises.length + res.setLogs.length + res.exercises.length,
+          body: res.bodyweightLogs,
+          range: { startMs: range.startMs, endMs: range.endMs },
         });
       } catch (e) {
         if (cancelled) return;
         const code = ConnectError.from(e).code;
-        setState({
-          kind:
-            code === Code.ResourceExhausted ? "tooLarge" : code === Code.PermissionDenied ? "ended" : "error",
-        });
+        // [원본] if (code === Code.PermissionDenied) onEnded?.();
+        //   setState({ kind: … PermissionDenied ? "ended" … }) — 범위 끔도 「코칭이 끝났어요」로 확정했다
+        // [개선] PermissionDenied 는 곧바로 끝남으로 확정하지 않는다(코드 리뷰 M-2):
+        //   회원 화면(onEnded) → 화면이 연결을 다시 읽어 가른다(그동안 읽는 중 그대로) · 판 → 여기서 ListGrants 를 다시 읽는다
+        if (code === Code.PermissionDenied) {
+          if (onEnded) {
+            onEnded();
+            return;
+          }
+          const kind = await deniedKind(peer.id);
+          if (!cancelled) setState({ kind });
+          return;
+        }
+        setState({ kind: code === Code.ResourceExhausted ? "tooLarge" : "error" });
       }
     })();
     return () => {
@@ -114,20 +183,20 @@ export function MemberReportDialog({
     };
   }, [peer.id, preset, attempt]);
 
+  const items = PRESETS.map((p) => ({ value: p.value, label: p.label, testId: `report-period-${p.value}` }));
   return (
-    <Panel
-      testId="coaching-report-view"
-      title={t("progressSummary.reportTitle", { name: peer.displayName || "?" })}
-      onClose={onClose}
-      actions={<Button title={t("common.ok")} variant="secondary" onPress={onClose} />}
-    >
-      <Segmented
-        testId="report-period"
-        className="mb-[var(--spacing-sm)]"
-        value={preset}
-        onChange={setPreset}
-        items={PRESETS.map((p) => ({ value: p.value, label: p.label, testId: `report-period-${p.value}` }))}
-      />
+    <>
+      {periodPicker ? (
+        periodPicker({ value: preset, onChange: setPreset, items })
+      ) : (
+        <Segmented
+          testId="report-period"
+          className="mb-[var(--spacing-sm)]"
+          value={preset}
+          onChange={setPreset}
+          items={items}
+        />
+      )}
       <AppText variant="caption" color="textMuted" className="block">
         {t("progressSummary.reportScope")}
       </AppText>
@@ -149,6 +218,7 @@ export function MemberReportDialog({
             viewer="trainerReport"
             nameOf={(id) => state.names.get(id)}
           />
+          {bodyCard ? bodyCard(state.body, state.range) : null}
         </div>
       ) : (
         <div className="py-[var(--spacing-md)]" data-testid={`report-${state.kind}`}>
@@ -158,7 +228,9 @@ export function MemberReportDialog({
                 ? "progressSummary.reportTooLarge"
                 : state.kind === "ended"
                   ? "progressSummary.ended"
-                  : "progressSummary.reportFailed",
+                  : state.kind === "logOff"
+                    ? "coaching.member.logOff"
+                    : "progressSummary.reportFailed",
             )}
           </AppText>
           {/* 읽기 실패는 다시 시도(P4U-14) — 너무 큼은 기간을 줄이는 것이 답이고, 끝난 코칭은 다시 해도 같다 */}
@@ -176,6 +248,20 @@ export function MemberReportDialog({
           ) : null}
         </div>
       )}
-    </Panel>
+    </>
   );
+}
+
+/** PermissionDenied 뒤 — 활성 연결이 없으면 끝남, 있는데 기록 보기가 꺼졌으면 범위 꺼짐, 그 밖(읽기 실패 포함)은 오류(다시 시도). */
+async function deniedKind(memberId: string): Promise<"ended" | "logOff" | "error"> {
+  try {
+    const r = await coachingClient().listGrants({});
+    const g = r.grants.find(
+      (x) => x.peer?.id === memberId && x.roleOfMe === Side.TRAINER && x.status === GrantStatus.ACTIVE,
+    );
+    if (!g) return "ended";
+    return scopeOf(g.scope).logView ? "error" : "logOff";
+  } catch {
+    return "error";
+  }
 }

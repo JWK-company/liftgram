@@ -2038,7 +2038,7 @@
        {
         "content": [
          {
-          "text": "[ ] ",
+          "text": "[x] ",
           "type": "text"
          },
          {
@@ -2478,7 +2478,7 @@
  "meta": {
   "grade": "Project",
   "phases": "6",
-  "phases_done": "2"
+  "phases_done": "3"
  },
  "relations": {
   "implements": [
@@ -2493,5 +2493,5 @@
  "tags": [],
  "title": "코칭 v2 — 연결·범위·회원 화면·루틴 보내기·코멘트",
  "type": "Spec",
- "updated": "2026-11-09T10:52:42Z"
+ "updated": "2026-11-09T11:53:22Z"
 }
