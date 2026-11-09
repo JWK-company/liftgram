@@ -458,5 +458,19 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      // v29(SPEC-049 · SRS-114 R5): 인바디 1단계 — 체중 기록 한 줄에 골격근량(kg)·체지방률(%)을 함께(선택).
+      // optional number — 옛 행은 null(안 적음). 서버는 jsonb 얕은 병합이라 바꾸지 않는다(v27·v28 과 같다).
+      toVersion: 29,
+      steps: [
+        addColumns({
+          table: 'bodyweight_logs',
+          columns: [
+            { name: 'skeletal_muscle_kg', type: 'number', isOptional: true },
+            { name: 'body_fat_pct', type: 'number', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

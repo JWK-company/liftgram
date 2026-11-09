@@ -460,3 +460,15 @@ test('로그인 안 한 기기(allowInit=false) — 첫 줄을 심지 않는다 
   });
   assert.equal(planBodyweightMirror(P(77.5, at(1)), [log(at(5), 80, at(5))], new Set(), true, false).create?.reason, 'legacy');
 });
+
+test('인바디 범위(SPEC-049) — 골격근량 5~100kg · 체지방률 2~70%', async () => {
+  const { isValidSkeletalMuscleKg, isValidBodyFatPct } = await import('../bodyweight');
+  assert.equal(isValidSkeletalMuscleKg(33.1), true);
+  assert.equal(isValidSkeletalMuscleKg(4.9), false);
+  assert.equal(isValidSkeletalMuscleKg(100.1), false);
+  assert.equal(isValidSkeletalMuscleKg(null), false);
+  assert.equal(isValidBodyFatPct(18.5), true);
+  assert.equal(isValidBodyFatPct(1.9), false);
+  assert.equal(isValidBodyFatPct(70.1), false);
+  assert.equal(isValidBodyFatPct(Number.NaN), false);
+});

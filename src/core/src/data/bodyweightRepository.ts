@@ -14,7 +14,9 @@ import type { BodyweightSource } from '../db/models/BodyweightLog';
 import {
   BODYWEIGHT_PROFILE_LOG_PREFIX,
   isFutureMeasuredAt,
+  isValidBodyFatPct,
   isValidBodyweightKg,
+  isValidSkeletalMuscleKg,
   mirrorAfterLogWrite,
   planBodyweightMirror,
   planProfileBodyweightWrite,
@@ -39,6 +41,8 @@ export function toBodyweightLogLike(l: BodyweightLog): BodyweightLogLike {
     weightKg: (raw.weight_kg as number | null | undefined) ?? null,
     updatedAt: Number(raw.updated_at ?? raw.created_at ?? 0) || 0,
     source: (raw.source as BodyweightSource | null | undefined) ?? null,
+    skeletalMuscleKg: (raw.skeletal_muscle_kg as number | null | undefined) ?? null, // v29(SPEC-049)
+    bodyFatPct: (raw.body_fat_pct as number | null | undefined) ?? null,
   };
 }
 
@@ -105,6 +109,16 @@ export interface AddBodyweightInput {
   measuredAt?: number;
   source?: BodyweightSource;
   note?: string | null;
+  /** v29 인바디(SPEC-049) — null·없음 = 안 적음. 범위 밖이면 오류(조용히 버리지 않는다) */
+  skeletalMuscleKg?: number | null;
+  bodyFatPct?: number | null;
+}
+
+/** 인바디 두 값 확인 — undefined 는 「안 바꿈」, null 은 「비움」 */
+function checkInbody(i: { skeletalMuscleKg?: number | null; bodyFatPct?: number | null }): void {
+  if (i.skeletalMuscleKg != null && !isValidSkeletalMuscleKg(i.skeletalMuscleKg))
+    throw new Error('골격근량 값이 범위를 벗어났어요');
+  if (i.bodyFatPct != null && !isValidBodyFatPct(i.bodyFatPct)) throw new Error('체지방률 값이 범위를 벗어났어요');
 }
 
 /** 미래 측정 시각 거부 문구 — 화면은 날짜를 지금으로 잘라서 보내므로 여기까지 오는 일은 없어야 한다(qa P3-1 · 마지막 방어선). */
@@ -115,6 +129,7 @@ export async function addBodyweightLog(input: AddBodyweightInput): Promise<Bodyw
   const kg = toKg(input.weight, input.unit);
   if (!isValidBodyweightKg(kg)) throw new Error('체중 값이 범위를 벗어났어요');
   if (input.measuredAt !== undefined && isFutureMeasuredAt(input.measuredAt)) throw new Error(FUTURE_ERROR);
+  checkInbody(input);
   // write 밖에서 프로필을 먼저 확보한다 — getOrCreateLocalUser 는 없으면 자기 write 를 연다(교착 방지).
   await getOrCreateLocalUser();
   const created = await database.write(async () => {
@@ -123,6 +138,8 @@ export async function addBodyweightLog(input: AddBodyweightInput): Promise<Bodyw
       l.weightKg = kg;
       l.source = input.source ?? 'manual';
       l.note = input.note?.trim() || null;
+      l.skeletalMuscleKg = input.skeletalMuscleKg ?? null;
+      l.bodyFatPct = input.bodyFatPct ?? null;
     });
     await applyMirrorInWrite(await oldestProfile());
     return rec;
@@ -137,6 +154,9 @@ export interface UpdateBodyweightPatch {
   unit?: WeightUnit;
   measuredAt?: number;
   note?: string | null;
+  /** v29 인바디 — undefined 안 바꿈 · null 비움 */
+  skeletalMuscleKg?: number | null;
+  bodyFatPct?: number | null;
 }
 
 /** 한 줄을 고치고 미러를 맞춘다. 미래 측정 시각(1분 넘게)은 오류 — 그 줄이 「가장 최근」이 되어 뒤에 적은 기록을 가린다(qa P3-1). */
@@ -149,12 +169,15 @@ export async function updateBodyweightLog(id: string, patch: UpdateBodyweightPat
   }
   if (patch.measuredAt !== undefined && (!Number.isFinite(patch.measuredAt) || isFutureMeasuredAt(patch.measuredAt)))
     throw new Error(FUTURE_ERROR);
+  checkInbody(patch);
   await database.write(async () => {
     const rec = await logs().find(id);
     await rec.update((l) => {
       if (kg !== undefined) l.weightKg = kg;
       if (patch.measuredAt !== undefined) l.measuredAt = patch.measuredAt;
       if (patch.note !== undefined) l.note = patch.note?.trim() || null;
+      if (patch.skeletalMuscleKg !== undefined) l.skeletalMuscleKg = patch.skeletalMuscleKg;
+      if (patch.bodyFatPct !== undefined) l.bodyFatPct = patch.bodyFatPct;
     });
     await applyMirrorInWrite(await oldestProfile());
   });

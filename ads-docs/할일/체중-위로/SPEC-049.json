@@ -1,0 +1,1508 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "목표",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "text": "SRS-114: 체중을 분석 맨 위로 올리고 카드 버튼을 앱 규칙대로 정리한다(A). 운동 화면 맨 위 「오늘 체중」 한 줄로 기록하게 하고 옛 자동 체크인·프로필 스위치를 없앤다(B). 체중 시트에 골격근량·체지방률을 더 받아 분석에서 추세를 본다(C 1단계).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "A: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/analytics/StatsClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(카드 위치) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/analytics/BodyweightCard.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(머리·⋯ 메뉴)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "B: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/session/WeighInSheet.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(WeighInCheckin → [원본], 새 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "WeighInRow",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/session/ActiveWorkout.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(맨 위 줄) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/profile/ProfileClient.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(스위치 줄 [원본]) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/domain/weighIn.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "latestOnLocalDay",
+                    "type": "text"
+                  },
+                  {
+                    "text": ")",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "C: ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/db/schema.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(v29 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "bodyweight_logs.skeletal_muscle_kg",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "body_fat_pct",
+                    "type": "text"
+                  },
+                  {
+                    "text": ") · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/db/migrations.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/db/models/BodyweightLog.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/data/bodyweightRepository.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(add·update·toBodyweightLogLike) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/domain/bodyweight.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(유효 범위) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/lib/bodyweightLogs.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(지켜보는 칸) · WeighInSheet(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "inbody",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 속성) · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/app/components/profile/BodyweightRow.tsx",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(이력 줄 값·고치기) · BodyweightCard(지표 고르기)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "문구 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/core/src/i18n/locales/ko.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "·",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "en.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": ", e2e ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "src/frontend/e2e/opengym-bodyweight.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(체크인 3시험·목표 시험 다시 씀)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "등급 Project: 화면 3곳 + 로컬 DB 스키마(v29) + 동기 칸 — 여러 영역.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "설계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "A 카드 위치·머리",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - StatsClient 요약 카드(볼륨·횟수 KpiRow) 바로 아래로 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "<BodyweightCard />",
+            "type": "text"
+          },
+          {
+            "text": " 를 옮긴다(옛 자리 [원본]). 요약은 그 기간에 운동이 있을 때만 그려지므로, 운동이 없는 분기(EmptyState) 바로 아래에도 카드를 그린다 — 「운동 기록이 없어도 체중은 보인다」를 지킨다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 머리 SectionLabel 오른쪽 = 최근 유효 측정 「72.5kg · 어제」(오늘·어제·N일 전·날짜 — 알림과 같은 상대 날짜 규칙, 없으면 비움) + 테두리 「기록」 버튼(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "btn-bodyweight-card-record",
+            "type": "text"
+          },
+          {
+            "text": " 유지, outline · 지금처럼 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "-my",
+            "type": "text"
+          },
+          {
+            "text": " 로 누르는 자리 44px) + ⋯ ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "MoreMenu",
+            "type": "text"
+          },
+          {
+            "text": "(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "bodyweight-more",
+            "type": "text"
+          },
+          {
+            "text": ": 목표 정하기/바꾸기 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "btn-bodyweight-goal",
+            "type": "text"
+          },
+          {
+            "text": " · 목표 지우기 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "btn-bodyweight-goal-clear",
+            "type": "text"
+          },
+          {
+            "text": "). 카드 바닥의 밑줄 글자 버튼 둘은 [원본]. 목표는 지금처럼 그래프 점선. 360px 에서 머리가 한 줄인지 e2e 로 잰다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "B 오늘 체중 줄",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "WeighInRow({ now })",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": ActiveWorkout 머리 바로 아래, ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "workout-exercises",
+                    "type": "text"
+                  },
+                  {
+                    "text": " ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "밖",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(첫 종목 칸을 집는 기존 시험이 깨지지 않게).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - SPEC-046 기준 「다른 창을 여는 줄」 = 바탕 없는 줄 + ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "Icon",
+            "type": "text"
+          },
+          {
+            "text": "(scale-outline) + 글 + ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "›",
+            "type": "text"
+          },
+          {
+            "text": ", 누르는 자리 44px(칩 아님 · 글자 이모지 아님).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 오늘 기록 없음: 「오늘 체중 기록 · 지난 72.5kg」(지난 값 없으면 「오늘 체중 기록」). 누르면 WeighInSheet(source='checkin').",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 오늘 기록 있음: 「오늘 체중 72.6kg ✓」 — 누르면 같은 시트로 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "그날 가장 최근 기록",
+            "type": "text"
+          },
+          {
+            "text": "을 고친다(core ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "latestOnLocalDay(logs, now)",
+            "type": "text"
+          },
+          {
+            "text": " 가 그 줄을 준다 · 같은 날 여러 줄이면 가장 최근). ±30% 확인 기준은 그 줄이 아니라 그 전 기록.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 날짜 판정은 ActiveWorkout 이 매초 갱신하는 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "now",
+            "type": "text"
+          },
+          {
+            "text": " 로 — 자정을 넘기면 다시 「오늘 체중 기록」.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - WeighInCheckin 호출과 프로필 WeighInSettingRow 는 [원본] 주석. ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "readWeighInEnabled",
+            "type": "text"
+          },
+          {
+            "text": "·표시 함수는 남긴다(되돌릴 수 있게). 운동 종료 때 남은 표시를 지우는 코드(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "ActiveWorkout.tsx",
+            "type": "text"
+          },
+          {
+            "text": " 종료 경로)는 그대로.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "C 인바디 두 칸",
+                    "type": "text"
+                  },
+                  {
+                    "text": ":",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 스키마 v29: ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "bodyweight_logs",
+            "type": "text"
+          },
+          {
+            "text": " 에 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "skeletal_muscle_kg",
+            "type": "text"
+          },
+          {
+            "text": "(number, optional) · ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "body_fat_pct",
+            "type": "text"
+          },
+          {
+            "text": "(number, optional). ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "migrations.ts",
+            "type": "text"
+          },
+          {
+            "text": " 에 addColumns(toVersion 29). 배포 스크립트가 스키마를 낮추는 배포를 막는다 — v29 배포 뒤 v28 번들은 내보내지 않는다(옛 번들이 새 DB 를 열면 LokiJS 가 DB 를 지우는 것을 schemaGuard 가 막는다).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 유효 범위(core): 골격근량 5~100kg, 체지방률 2~70%. 범위 밖이면 ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "strong"
+              }
+            ],
+            "text": "저장을 막고",
+            "type": "text"
+          },
+          {
+            "text": " 그 칸 아래에 이유 한 줄(조용히 잃지 않게).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - WeighInSheet ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "inbody",
+            "type": "text"
+          },
+          {
+            "text": " 속성: 켜는 곳(운동 화면 줄 · 프로필/카드 「기록」 · 이력 고치기)만 「인바디 값도 적기」(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "weighin-inbody-toggle",
+            "type": "text"
+          },
+          {
+            "text": ") → 두 숫자 칸(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "weighin-smm",
+            "type": "text"
+          },
+          {
+            "text": "·",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "weighin-pbf",
+            "type": "text"
+          },
+          {
+            "text": "). 목표 시트에는 없다. ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "onSave(kg, extras)",
+            "type": "text"
+          },
+          {
+            "text": " 로 넘긴다. 비우면 null.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 이력(BodyweightRow 전체 기록) 줄에 인바디 값을 작게 보이고, 고치기에서 함께 고치거나 지운다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 체중 이력 구독(",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "src/frontend/lib/bodyweightLogs.ts",
+            "type": "text"
+          },
+          {
+            "text": " observeWithColumns)에 두 칸을 더한다 — 인바디만 고쳐도 화면이 바뀐다.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - BodyweightCard: Segmented ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "bodyweight-metric",
+            "type": "text"
+          },
+          {
+            "text": "(체중 · 골격근량 · 체지방률) — 인바디 값이 하나라도 있을 때만. 체중이 아닌 지표는 그 지표의 최근 값·기간 변화와 곡선만(주간 변화·목표 차이·목표선은 숨김).",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "content": [
+          {
+            "text": "  - 동기·백업·요약: 서버는 jsonb 얕은 병합(새 칸 그대로) · 스키마가 오르면 처음부터 다시 받음 · 백업은 날것 전체 · 코칭·기간 요약은 체중 값만 — 바꾸지 않는다. Go ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "merge_v29_test.go",
+            "type": "text"
+          },
+          {
+            "text": "(옛 기기가 올려도 새 칸 유지)와 core ",
+            "type": "text"
+          },
+          {
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "schemaV29.test",
+            "type": "text"
+          },
+          {
+            "text": "·요약 스냅샷에 인바디 키 없음 단언으로 고정.",
+            "type": "text"
+          }
+        ],
+        "type": "paragraph"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "작업 단계",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 1 — 분석 맨 위 체중 카드(A)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 카드 위치(요약 아래 · 운동 없는 분기에도) · 머리(값·상대 날짜 · 테두리 「기록」 44px · ⋯ 목표 메뉴)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "opengym-bodyweight.spec.ts",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 목표 시험을 메뉴로 · 360px 머리 한 줄",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 기준: opengym-bodyweight·stats 관련 시험 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 2 — 운동 화면 「오늘 체중」 줄(B)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] core ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "latestOnLocalDay",
+                    "type": "text"
+                  },
+                  {
+                    "text": " + 단위 시험(같은 날 둘 · 자정)",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] WeighInRow · ActiveWorkout 맨 위(workout-exercises 밖) · 오늘 값 고치기 · 자정 재판정",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] WeighInCheckin·프로필 스위치 [원본]",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] e2e: 체크인 3시험을 줄 흐름으로 다시 씀 · 시작해도 시트가 뜨지 않음 · 줄 → 저장 → ✓ · 다시 누르면 같은 줄 고침 · 분석 카드 반영",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 기준: opengym-bodyweight·session-assist·coach-marks·multi-tab·finish-routine 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "text": "Phase 3 — 인바디 두 칸(C)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 스키마 v29·마이그레이션·모델·저장소·범위 · schemaV29.test",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] 시트 inbody 속성 · 이력 줄·고치기 · 구독 칸 · 카드 지표 고르기",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] Go merge_v29_test · 요약에 인바디 없음 단언",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "[x] e2e: 인바디 적기 → 카드 골격근량 곡선 · 범위 밖이면 저장 막힘 · 목표 시트엔 토글 없음 · 새로고침 뒤에도 남음",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "완료 기준: e2e·Go·core 시험 통과.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "수용 기준",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "R1·R2: 체중 카드가 요약 바로 아래(운동 없어도 보임) · 머리에 값·날짜·테두리 「기록」 · 목표 버튼은 ⋯ 안(Phase 1 e2e).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "R3·R4: 운동 시작 때 시트가 뜨지 않고 맨 위 줄로 기록·고침 · 프로필 스위치 없음(Phase 2 e2e).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "R5: 골격근량·체지방률을 적고 카드에서 추세를 본다(Phase 3 e2e).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "테스트 계획",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "작업 트리(worktree) 운영 빌드(웹 3210·API 3211 — 다른 세션의 3200·3201 과 겹치지 않게)에 기존 e2e 묶음 + opengym-bodyweight · session-assist · coach-marks · multi-tab · finish-routine · profile.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "core 단위 시험(bun test) · Go ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "go test ./internal/sync/...",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · tsc · biome(바꾼 파일만).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "위험·주의",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "스키마 v29: 배포 뒤 v28 번들 금지 · 마이그레이션은 칸 추가만.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "운동 화면 맨 위 줄이 세트 표를 아래로 민다 — 한 줄(44px)로 둔다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "옛 체크인을 켜 둔 사용자도 이제 시트가 뜨지 않는다 — 줄이 대신한다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "스펙 리뷰 반영(REV-094)",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "채택 11 · 보류 1 · 기각 0 — 자세한 것은 REV-094.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/체중-위로",
+  "id": "SPEC-049",
+  "meta": {
+    "grade": "Project",
+    "phases": "3",
+    "phases_done": "3"
+  },
+  "relations": {
+    "implements": [
+      "SRS-114"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "체중은 위로 — 분석 맨 위 체중 카드 · 운동 화면 오늘 체중 줄 · 인바디 두 칸",
+  "type": "Spec",
+  "updated": "2026-11-09T08:41:35Z"
+}

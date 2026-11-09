@@ -518,3 +518,15 @@ test('체중 섹션 꺼짐 — 맨몸 풀업·보조 딥스가 있어도 직렬�
   assert.deepEqual(trainer.topExercises, full.topExercises);
   assert.equal(trainer.counts.volumeKg, full.counts.volumeKg);
 });
+
+test('인바디(SPEC-049 · v29) — 체중 기록에 골격근량·체지방률이 있어도 요약 체중 섹션·직렬화에 실리지 않는다', () => {
+  const logs = [
+    { id: 'b1', measuredAt: R4.startMs + DAY, weightKg: 72.5, updatedAt: 1, skeletalMuscleKg: 33.7, bodyFatPct: 18.9 },
+    { id: 'b2', measuredAt: R4.startMs + 3 * DAY, weightKg: 72.1, updatedAt: 2, skeletalMuscleKg: 33.9, bodyFatPct: 18.4 },
+  ];
+  const raw = buildRaw([{ at: R4.startMs + DAY, blocks: [{ ex: EX.bench, sets: [{ w: 60, r: 10 }] }] }], 0);
+  const full = buildPeriodSummary(summaryInputFromRaw(raw, { range: R4, bodyweightLogs: logs, prList: true }));
+  assert.deepEqual(Object.keys(full.bodyweight ?? {}).sort(), ['changeKg', 'count', 'endKg', 'endMs', 'startKg', 'startMs']);
+  const all = serializeSummaryV1(full);
+  for (const bad of ['33.7', '33.9', '18.9', '18.4', 'skeletal', 'bodyFat', 'body_fat']) assert.equal(all.includes(bad), false, bad);
+});

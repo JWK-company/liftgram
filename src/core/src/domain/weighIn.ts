@@ -5,7 +5,14 @@
 //     「설정 안 함」 표식(무게 0)은 측정이 아니라서 「오늘 기록」으로 세지 않는다.
 //   · 숫자(U-8): 시트는 소수 첫째 자리까지 보인다. 보이던 숫자를 그대로 두고 저장하면 **저장 kg 원값**을 그대로 쓴다
 //     (blockUnit.enteredWeightToKg 와 같은 생각 — 75kg 를 lb 로 보여 165.3 → 다시 kg 로 74.98 이 되는 왕복 오차를 막는다).
-import { BODYWEIGHT_MAX_KG, isValidBodyweightLog, type BodyweightLogLike } from './bodyweight';
+import {
+  BODYWEIGHT_MAX_KG,
+  isBodyweightClearMarker,
+  isValidBodyweightLog,
+  latestEntry,
+  type BodyweightLogLike,
+  type ValidBodyweightLog,
+} from './bodyweight';
 import { fromKg, toKg } from './units';
 import type { WeightUnit } from './types';
 
@@ -32,6 +39,33 @@ export function localDayRange(ms: number): { startMs: number; endMs: number } {
 export function hasLogOnLocalDay(logs: readonly BodyweightLogLike[], now: number): boolean {
   const { startMs, endMs } = localDayRange(now);
   return logs.some((l) => isValidBodyweightLog(l) && l.measuredAt >= startMs && l.measuredAt < endMs);
+}
+
+/**
+ * 이 시각이 속한 로컬 날짜의 **가장 최근** 유효 측정(SPEC-049 운동 화면 「오늘 체중」 줄이 고칠 줄).
+ * 같은 날 여럿이면 측정 시각이 늦은 것, 같으면 늦게 고친 것. 없으면 null.
+ */
+export function latestOnLocalDay(logs: readonly BodyweightLogLike[], now: number): ValidBodyweightLog | null {
+  const { startMs, endMs } = localDayRange(now);
+  let best: ValidBodyweightLog | null = null;
+  for (const l of logs) {
+    if (!isValidBodyweightLog(l) || l.measuredAt < startMs || l.measuredAt >= endMs) continue;
+    const v = l as ValidBodyweightLog;
+    if (!best || v.measuredAt > best.measuredAt || (v.measuredAt === best.measuredAt && v.updatedAt > best.updatedAt))
+      best = v;
+  }
+  return best;
+}
+
+/**
+ * 운동 화면 「오늘 체중」 줄이 고칠 줄(SPEC-049 · P1-2 리뷰) — latestOnLocalDay 와 같되, 가장 최근 줄이 「설정 안 함」 표식이면 null.
+ * 표식이 측정보다 뒤면 지금 「내 체중」은 미설정이다 — 오늘 측정을 고쳐도 표식이 최신으로 남아 반영되지 않으므로 새 줄을 쓴다.
+ */
+export function weighInRowTarget(logs: readonly BodyweightLogLike[], now: number): ValidBodyweightLog | null {
+  const today = latestOnLocalDay(logs, now);
+  if (!today) return null;
+  const head = latestEntry(logs);
+  return head && isBodyweightClearMarker(head) ? null : today;
 }
 
 export interface WeighInGateInput {

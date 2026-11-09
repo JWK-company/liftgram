@@ -19,6 +19,10 @@ export interface BodyweightLogLike {
   /** 마지막으로 고친 시각(ms) — 동률 판정·옛 경로 흡수 판정 */
   updatedAt: number;
   source?: BodyweightLogSource | null;
+  /** v29 인바디 골격근량(kg) · null = 안 적음(SPEC-049) */
+  skeletalMuscleKg?: number | null;
+  /** v29 인바디 체지방률(%) · null = 안 적음 */
+  bodyFatPct?: number | null;
 }
 
 /** 유효한 이력(측정 시각·무게가 있는 것)만 담은 모양 */
@@ -55,6 +59,21 @@ export const BODYWEIGHT_FUTURE_TOLERANCE_MS = 60_000;
 /** 이 측정 시각은 미래인가(지금 + 허용 오차보다 뒤) @plm SRS-077 */
 export function isFutureMeasuredAt(measuredAt: number, now = Date.now()): boolean {
   return Number.isFinite(measuredAt) && measuredAt > now + BODYWEIGHT_FUTURE_TOLERANCE_MS;
+}
+
+// ── 인바디 1단계(SPEC-049 · SRS-114 R5) — 체중 기록 한 줄에 함께 적는 두 값(선택) ──
+/** 골격근량 kg 받는 범위 — 밖이면 저장을 막는다(조용히 버리지 않는다) */
+export const SMM_MIN_KG = 5;
+export const SMM_MAX_KG = 100;
+/** 체지방률 % 받는 범위 */
+export const PBF_MIN = 2;
+export const PBF_MAX = 70;
+
+export function isValidSkeletalMuscleKg(v: number | null | undefined): v is number {
+  return typeof v === 'number' && Number.isFinite(v) && v >= SMM_MIN_KG && v <= SMM_MAX_KG;
+}
+export function isValidBodyFatPct(v: number | null | undefined): v is number {
+  return typeof v === 'number' && Number.isFinite(v) && v >= PBF_MIN && v <= PBF_MAX;
 }
 
 export function isValidBodyweightKg(kg: number | null | undefined): kg is number {

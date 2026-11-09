@@ -54,7 +54,7 @@ import { EffortLoggingRow } from "./EffortLoggingRow"; // 세트 힘든 정도 �
 import { MuscleMapRow } from "./MuscleMapRow"; // 근육 그림 보기 스위치 @plm SRS-075
 import { BodyweightRow } from "./BodyweightRow"; // 체중 칸(최신값 + 기록 + 전체 기록) @plm SRS-077
 import { UsageStatsRow } from "./UsageStatsRow";
-import { WeighInSettingRow } from "./WeighInSettingRow"; // 운동 전 체중 체크인 스위치 @plm SRS-077
+// import { WeighInSettingRow } from "./WeighInSettingRow"; // [원본] 운동 전 체중 체크인 스위치 @plm SRS-077
 import { HintsResetRow } from "./HintsResetRow"; // 첫 안내 다시 보기(SPEC-046 · SRS-111 R5)
 import { LockScreenRow } from "./LockScreenRow"; // 잠금화면 운동 카드 켜기(앱에서만 · SPEC-017)
 import { getTheme, setTheme, type ThemeChoice } from "@/lib/theme";
@@ -345,7 +345,7 @@ export default function ProfileClient() {
           <EffortLoggingRow />
           {user ? <RecommendOptOutRow /> : null}
           <MuscleMapRow />
-          <WeighInSettingRow />
+          {/* [원본] <WeighInSettingRow /> — 운동 전 체중 체크인 스위치. 체크인 시트를 운동 화면 맨 위 줄로 바꿔 없앴다(SPEC-049) */}
           <UsageStatsRow />
           <ListRow
             testId="row-equipment"

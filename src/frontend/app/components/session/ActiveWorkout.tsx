@@ -53,7 +53,8 @@ import { noteAnonCompletion } from "@/lib/loginNudge";
 import { useAuth } from "../AuthProvider";
 import { SetDraftContext, createSetDraftRegistry, registerDraftCommitter } from "./setDrafts";
 import { firePrCelebration } from "../PrCelebration";
-import { WeighInCheckin } from "./WeighInSheet"; // 운동 전 체중 체크인 @plm SRS-077
+// import { WeighInCheckin } from "./WeighInSheet"; // [원본] 운동 전 체중 체크인 @plm SRS-077
+import { WeighInRow } from "./WeighInSheet"; // 맨 위 「오늘 체중」 줄(SPEC-049)
 import { clearWeighInMarks } from "@/lib/bodyweightPref";
 import { groupSessionRows } from "@app/core/domain/lockScreen"; // 화면 행 순서 = 잠금 카드 단계 순서(SPEC-017 §4-1)
 import { completeSetsFlow } from "@app/core/domain/completeSetsFlow"; // 완료 흐름 하나로(SPEC-017 §10)
@@ -454,6 +455,8 @@ export default function ActiveWorkout() {
         </div>
 
         <div className="flex-1 p-[var(--spacing-lg)]">
+          {/* 오늘 체중 — 맨 위 한 줄 · 안 써도 그만(SPEC-049 · S-4). workout-exercises 밖(첫 종목 칸을 집는 시험이 그대로) */}
+          {now != null ? <WeighInRow now={now} /> : null}
           {exercises.length === 0 ? (
             <EmptyState
               icon="add-circle"
@@ -513,8 +516,9 @@ export default function ActiveWorkout() {
         <PrevHint />
         <LongDoneHint />
         <PrCelebrationHost />
-        {/* 운동 전 체중 체크인 — 설정을 켠 사람에게만, 이 운동 첫 진입에서 한 번(U-7) @plm SRS-077 */}
-        <WeighInCheckin workoutId={workout.id} startedAt={workout.startedAt} />
+        {/* [원본] 운동 전 체중 체크인 — 설정을 켠 사람에게만, 이 운동 첫 진입에서 한 번(U-7) @plm SRS-077
+            시작하자마자 시트가 떴다. 맨 위 「오늘 체중」 줄로 바꿨다(SPEC-049 · S-4).
+        <WeighInCheckin workoutId={workout.id} startedAt={workout.startedAt} /> */}
 
         {/* [개선] 루틴 편집과 같은 전체 화면 피커 — 추가는 여러 개를 고른 순서대로 · 교체는 한 개 즉시 @plm SRS-093 */}
         {picking ? (

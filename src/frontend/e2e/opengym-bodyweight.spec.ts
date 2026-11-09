@@ -33,13 +33,7 @@ type Page = import("@playwright/test").Page;
 
 test.use({ serviceWorkers: "block" });
 
-async function 체크인_설정(page: Page, on: boolean): Promise<void> {
-  await page.goto("/profile");
-  const sw = page.getByTestId("switch-weighin");
-  await expect(sw).toBeVisible({ timeout: 20_000 });
-  if ((await sw.getAttribute("aria-checked")) !== String(on)) await sw.click();
-  await expect(sw).toHaveAttribute("aria-checked", String(on));
-}
+// [원본] async function 체크인_설정(page, on) — 프로필 「운동 전 체중 체크인」 스위치를 켜고 껐다(SPEC-049 에서 스위치를 없앴다)
 
 async function 운동_취소(page: Page): Promise<void> {
   await page.getByTestId("btn-session-menu").click();
@@ -101,25 +95,36 @@ function ymd(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-test("체크인 — 켜고 시작하면 시트 · ± 로 맞춰 저장 · 이력·프로필 반영 · 같은 날 두 번째 운동은 시트 없음", async ({
+// [원본] 체크인 세 시험(켜고 시작하면 시트 · 닫는 네 가지 · 뜨지 않는 경우) — 시작하자마자 뜨던 체크인 시트를
+//   운동 화면 맨 위 「오늘 체중」 줄로 바꿔(SPEC-049 · S-4) 줄 흐름으로 다시 썼다. 옛 판은 git 47f940c 의 이 파일.
+test("오늘 체중 줄 — 시작해도 시트 없음 · 줄 → 시트 ± 저장 · ✓ 로 접힘 · 같은 날 다음 운동은 그 값 · 누르면 그 줄을 고친다", async ({
   page,
 }) => {
   test.setTimeout(150_000);
   await page.setViewportSize({ width: 360, height: 640 });
   await 준비(page);
-  await 체크인_설정(page, true);
   await 빠른_운동_시작(page);
+  await 시트_없음(page);
 
+  const row = page.getByTestId("weighin-row");
+  await expect(row).toHaveText(/오늘 체중 기록/, { timeout: 20_000 });
+  await expect(row).toHaveAttribute("data-done", "0");
+  // 맨 위 한 줄 · 44px · 「운동 추가」보다 위
+  const rb = await row.boundingBox();
+  const add = await page.getByTestId("btn-add-exercise").boundingBox();
+  expect(rb && Math.round(rb.height) >= 44).toBe(true);
+  expect(rb && add && rb.y < add.y).toBe(true);
+
+  await row.click();
   const sheet = page.getByTestId("weighin-sheet");
   await expect(sheet).toBeVisible({ timeout: 10_000 });
   await expect(sheet.getByTestId("weighin-last")).toHaveText("지난 기록이 없어요 — 값을 맞춰 주세요");
   await expect(sheet.getByTestId("weighin-value")).toContainText("70.0");
-  // 자동 포커스는 입력칸이 아니라 제목(키보드가 뜨지 않는다 · U-7 ③) — 입력칸은 아직 없다
+  // 자동 포커스는 입력칸이 아니라 제목(키보드가 뜨지 않는다 · U-7 ③)
   await expect(sheet.getByTestId("weighin-input")).toHaveCount(0);
   expect(await page.evaluate(() => document.activeElement?.tagName)).toBe("H2");
   // 스크림은 포커스·낭독 대상이 아니고, Tab 은 패널 안에서 돈다(qa P3-5)
   await expect(sheet.getByTestId("weighin-scrim")).toHaveAttribute("aria-hidden", "true");
-  await expect(sheet.getByTestId("weighin-scrim")).toHaveAttribute("tabindex", "-1");
   for (let i = 0; i < 14; i += 1) {
     await page.keyboard.press(i % 5 === 4 ? "Shift+Tab" : "Tab");
     expect(
@@ -128,136 +133,87 @@ test("체크인 — 켜고 시작하면 시트 · ± 로 맞춰 저장 · 이력
       ),
     ).toBe(true);
   }
-  // 높이 ≤ 50dvh · 헤더 타이머가 시트 위로 보인다
+  // 높이 ≤ 50dvh · 헤더 타이머가 시트 위로 보인다 · 버튼 6개 ≥ 44
   const panel = await sheet.getByTestId("weighin-panel").boundingBox();
   const timer = await page.getByTestId("elapsed").boundingBox();
   expect(panel?.height ?? 999).toBeLessThanOrEqual(320 + 1);
   expect(timer && panel && timer.y + timer.height).toBeLessThanOrEqual((panel?.y ?? 0) + 0.5);
-  // 버튼 6개 ≥ 44×44 · 두 줄(−1 −0.5 −0.1 / +0.1 +0.5 +1)
-  const ids = ["m1", "m0_5", "m0_1", "p0_1", "p0_5", "p1"];
-  for (const id of ids) {
+  for (const id of ["m1", "m0_5", "m0_1", "p0_1", "p0_5", "p1"]) {
     const b = await sheet.getByTestId(`weighin-step-${id}`).boundingBox();
     expect(b && b.width >= 44 && b.height >= 44, id).toBe(true);
   }
-  const rowY = async (id: string) => (await sheet.getByTestId(`weighin-step-${id}`).boundingBox())?.y ?? -1;
-  expect(await rowY("m1")).toBe(await rowY("m0_1"));
-  expect(await rowY("p0_1")).toBeGreaterThan(await rowY("m1"));
-
   for (const id of ["p1", "p1", "p0_5", "m0_1"]) await sheet.getByTestId(`weighin-step-${id}`).click();
   await expect(sheet.getByTestId("weighin-value")).toContainText("72.4");
   await sheet.getByTestId("weighin-save").click();
   await expect(sheet).toHaveCount(0);
-  // 운동 화면 그대로 — 운동이 막히지 않는다
+  await expect(row).toHaveText(/오늘 체중 72\.4kg/);
+  await expect(row).toHaveAttribute("data-done", "1");
   await expect(page).toHaveURL(/\/workout/);
-  await expect(page.getByTestId("btn-add-exercise")).toBeVisible();
 
-  expect(await 프로필_체중(page)).toBe("72.4kg");
+  // 같은 날 다음 운동 — 시트 없음 · 접힌 값 · 누르면 그 줄을 고친다(새 줄 아님)
+  await 운동_취소(page);
+  await 빠른_운동_시작(page);
+  await 시트_없음(page);
+  await expect(row).toHaveText(/오늘 체중 72\.4kg/, { timeout: 20_000 });
+  await row.click();
+  await expect(sheet.getByTestId("weighin-value")).toContainText("72.4");
+  await sheet.getByTestId("weighin-step-p0_1").click();
+  await sheet.getByTestId("weighin-save").click();
+  await expect(sheet).toHaveCount(0);
+  await expect(row).toHaveText(/오늘 체중 72\.5kg/);
+
+  expect(await 프로필_체중(page)).toBe("72.5kg");
   await 기록_전체(page);
   await expect(page.getByTestId("bodyweight-history-row")).toHaveCount(1);
   await expect(page.getByTestId("bodyweight-history-row").first()).toContainText("운동 전");
   const rows = await 이력_행(page);
-  expect(rows.map((r) => [r.weight_kg, r.source])).toEqual([[72.4, "checkin"]]);
-
-  // 같은 날 두 번째 운동 — 시트 없음
-  await page.goto("/workout");
-  await 운동_취소(page);
-  expect(
-    await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("weighin:"))),
-  ).toEqual([]);
-  await 빠른_운동_시작(page);
-  await 시트_없음(page);
+  expect(rows.map((r) => [r.weight_kg, r.source])).toEqual([[72.5, "checkin"]]);
+  // 분석 카드 머리에 바로 보인다
+  await page.goto("/stats");
+  await expect(page.getByTestId("bodyweight-head-latest")).toHaveText("72.5kg · 오늘", { timeout: 20_000 });
 });
 
-test("「체중 없이 계속」·스크림·Esc·뒤로 가기 = 이력 불변 · 같은 운동에서 다시 열어도 안 뜸 · 끝나면 표시 지움", async ({
+test("오늘 체중 시트 닫기(취소·스크림·Esc·뒤로) = 이력 불변 · 운동 화면 그대로 · 프로필에 체크인 스위치 없음", async ({
   page,
 }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(150_000);
   await 준비(page);
-  await 체크인_설정(page, true);
-  const sheet = page.getByTestId("weighin-sheet");
+  await page.goto("/profile");
+  await expect(page.getByTestId("bodyweight-value")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("switch-weighin")).toHaveCount(0);
 
-  // ① 「체중 없이 계속」 — 새로고침·다시 들어와도 같은 운동에서는 안 뜬다(localStorage 표시)
   await 빠른_운동_시작(page);
-  await expect(sheet).toBeVisible({ timeout: 10_000 });
+  const row = page.getByTestId("weighin-row");
+  const sheet = page.getByTestId("weighin-sheet");
+  await expect(row).toBeVisible({ timeout: 20_000 });
+  // ① 취소
+  await row.click();
+  await expect(sheet).toBeVisible();
   await sheet.getByTestId("weighin-secondary").click();
   await expect(sheet).toHaveCount(0);
-  await expect(page.getByTestId("btn-add-exercise")).toBeVisible();
-  await page.reload();
-  await expect(page.getByTestId("btn-add-exercise")).toBeVisible({ timeout: 20_000 });
-  await 시트_없음(page);
-  expect(
-    await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("weighin:")).length),
-  ).toBe(1);
-  await 운동_취소(page);
-  expect(
-    await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("weighin:")).length),
-  ).toBe(0);
-
   // ② 스크림
-  await 빠른_운동_시작(page);
-  await expect(sheet).toBeVisible({ timeout: 10_000 });
+  await row.click();
+  await expect(sheet).toBeVisible();
   await page.mouse.click(20, 20);
   await expect(sheet).toHaveCount(0);
-  await 운동_취소(page);
-
   // ③ Esc
-  await 빠른_운동_시작(page);
-  await expect(sheet).toBeVisible({ timeout: 10_000 });
+  await row.click();
+  await expect(sheet).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(sheet).toHaveCount(0);
-  await 운동_취소(page);
-
-  // ④ 브라우저 뒤로 가기 — 시트만 닫히고 운동 화면에 남는다
-  await 빠른_운동_시작(page);
-  await expect(sheet).toBeVisible({ timeout: 10_000 });
+  // ④ 뒤로 가기 = 시트만 닫는다(운동 화면을 떠나지 않는다 · P1-2 리뷰 trapBack)
+  await row.click();
+  await expect(sheet).toBeVisible();
   await page.goBack();
   await expect(sheet).toHaveCount(0);
   await expect(page).toHaveURL(/\/workout/);
-  await expect(page.getByTestId("btn-add-exercise")).toBeVisible();
-  // 저장으로 닫을 때 쌓은 칸을 걷는다 — 뒤로 한 번이면 운동 화면을 떠난다(빈 칸이 남지 않음)는 ① 이후에도 같다
+  // 닫아도 운동 화면 그대로 · 기록 없음
+  await expect(page).toHaveURL(/\/workout/);
+  await expect(row).toHaveAttribute("data-done", "0");
   await 운동_취소(page);
 
   expect(await 프로필_체중(page)).toBe("미설정");
   expect(await 이력_행(page)).toEqual([]);
-});
-
-test("시트가 뜨지 않는 경우 — 꺼짐(기본) · 완료 세트 있음 · 시작 10분 지남", async ({ page }) => {
-  test.setTimeout(150_000);
-  await 준비(page);
-  // 기본은 꺼짐
-  await page.goto("/profile");
-  await expect(page.getByTestId("switch-weighin")).toHaveAttribute("aria-checked", "false", {
-    timeout: 20_000,
-  });
-  await 빠른_운동_시작(page);
-  await 시트_없음(page);
-
-  // 완료 세트가 있는 운동에 켜고 다시 들어오면 — 안 뜬다
-  await 종목_추가(page, "바벨 벤치프레스");
-  await 안내_띠_닫기(page);
-  await 세트_기록(page, 0, 0, 60, 5);
-  await 체크인_설정(page, true);
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-add-exercise")).toBeVisible({ timeout: 20_000 });
-  await 시트_없음(page);
-  await 운동_취소(page);
-
-  // 시작 11분 전으로 되감은 운동(세트 없음) — 안 뜬다
-  await 체크인_설정(page, false);
-  await 빠른_운동_시작(page);
-  await 시트_없음(page);
-  await 내려쓰기_대기(page);
-  await 빈_문서(page);
-  const ws = await idb_행(page, "workouts");
-  const active = ws.find((w) => w.state === "active" && w._status !== "deleted"); // 앞에서 취소한 운동은 삭제 표시만 남아 있다
-  expect(active).toBeTruthy();
-  await idb_행_고치기(page, "workouts", [
-    { id: String(active?.id), set: { started_at: Number(active?.started_at) - 11 * 60_000 } },
-  ]);
-  await 체크인_설정(page, true);
-  await page.goto("/workout");
-  await expect(page.getByTestId("btn-add-exercise")).toBeVisible({ timeout: 20_000 });
-  await 시트_없음(page);
 });
 
 test("통계 체중 카드 — 하나면 안내 · 불규칙 간격 3점 곡선 · 목표선·남은 차이 · 주간 변화 · 축 라벨 ≤4 · 목표 지우기", async ({
@@ -366,7 +322,26 @@ test("통계 체중 카드 — 하나면 안내 · 불규칙 간격 3점 곡선 
   await expect(page.getByTestId("bodyweight-chart-readout")).toContainText("74.0kg");
   await expect(hint).toHaveCount(0);
 
+  // 카드 머리(SPEC-049) — 최근 값·날짜 + 테두리 「기록」 + ⋯ 가 제목과 한 줄 · 360px 안 · 「기록」 44px
+  await expect(page.getByTestId("bodyweight-head-latest")).toHaveText("72.4kg · 오늘");
+  {
+    const [title, rec, more] = await Promise.all(
+      ["bodyweight-card-title", "btn-bodyweight-card-record", "bodyweight-more"].map((id) =>
+        page.getByTestId(id).boundingBox(),
+      ),
+    );
+    expect(title && rec && more).toBeTruthy();
+    if (title && rec && more) {
+      expect(Math.abs(rec.y + rec.height / 2 - (title.y + title.height / 2))).toBeLessThanOrEqual(8);
+      expect(Math.round(rec.height)).toBeGreaterThanOrEqual(44);
+      expect(more.x + more.width).toBeLessThanOrEqual(360);
+    }
+  }
+  // 바닥의 밑줄 글자 버튼은 없다 — 목표는 ⋯ 안
+  await expect(page.getByTestId("btn-bodyweight-goal")).toHaveCount(0);
+
   // 목표 70 → 목표선 · 남은 차이
+  await page.getByTestId("bodyweight-more").click();
   await page.getByTestId("btn-bodyweight-goal").click();
   const goal = page.getByTestId("bodyweight-goal-sheet");
   await goal.getByTestId("weighin-type").click();
@@ -384,6 +359,7 @@ test("통계 체중 카드 — 하나면 안내 · 불규칙 간격 3점 곡선 
   // 목표는 계정 설정 — 새로고침해도 남는다
   await page.reload();
   await expect(page.getByTestId("bodyweight-goal-gap")).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("bodyweight-more").click();
   await page.getByTestId("btn-bodyweight-goal-clear").click();
   await expect(page.getByTestId("bodyweight-chart-goal")).toHaveCount(0);
   await expect(page.getByTestId("bodyweight-goal-gap")).toHaveCount(0);
@@ -644,4 +620,169 @@ test("백업 내보내기 → 새 계정 기기에서 가져오기 — 체중 �
   await other.reload();
   expect(await 프로필_체중(other)).toBe("75.8kg");
   await ctx.close();
+});
+
+// SPEC-049 Phase 3 — 인바디(골격근량·체지방률) · 로컬 v29
+test("인바디 — 기록 시트에서 골격근량·체지방률 · 범위 밖은 저장 막음 · 이력 줄 · 카드 수치 고르기·곡선 · 목표 시트엔 없음 · 새로고침 유지", async ({
+  page,
+}) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 360, height: 740 });
+  await 준비(page);
+
+  // ① 범위 밖 — 이유 한 줄 · 시트 남음 · 기록 없음
+  await page.goto("/profile");
+  await page.getByTestId("btn-bodyweight-record").click();
+  const rec = page.getByTestId("bodyweight-record-sheet");
+  await expect(rec.getByTestId("weighin-smm")).toHaveCount(0); // 접혀서 시작
+  await rec.getByTestId("weighin-inbody-toggle").click();
+  await rec.getByTestId("weighin-smm").fill("120");
+  await rec.getByTestId("weighin-pbf").fill("1");
+  await rec.getByTestId("weighin-save").click();
+  await expect(rec.getByTestId("weighin-smm-error")).toHaveText("골격근량은 5~100kg 로 적어 주세요");
+  await expect(rec.getByTestId("weighin-pbf-error")).toHaveText("체지방률은 2~70% 로 적어 주세요");
+  await expect(rec).toBeVisible();
+  // (이력_행 은 빈 문서로 옮겨 시트를 닫는다 — 기록 없음은 끝의 「두 줄뿐」으로 확인)
+
+  // ② 고쳐서 저장 → 이력 행에 두 칸
+  await rec.getByTestId("weighin-smm").fill("33.1");
+  await rec.getByTestId("weighin-pbf").fill("18.5");
+  await rec.getByTestId("weighin-save").click();
+  await expect(rec).toHaveCount(0);
+  let rows = await 이력_행(page);
+  expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg, r.body_fat_pct])).toEqual([[70, 33.1, 18.5]]);
+
+  // ③ 둘째 기록(체지방률만) → 첫 기록을 10일 전으로
+  await page.goto("/profile");
+  await page.getByTestId("btn-bodyweight-record").click();
+  await rec.getByTestId("weighin-step-p1").click();
+  await rec.getByTestId("weighin-inbody-toggle").click();
+  await rec.getByTestId("weighin-smm").fill("33.8");
+  await rec.getByTestId("weighin-pbf").fill("17.9");
+  await rec.getByTestId("weighin-save").click();
+  await expect(rec).toHaveCount(0);
+  await 기록_전체(page);
+  const first = page.getByTestId("bodyweight-history-row").filter({ hasText: "70.0kg" });
+  await expect(first.getByTestId("bodyweight-history-inbody")).toHaveText("골격근량 33.1kg · 체지방률 18.5%");
+  await first.getByTestId("bodyweight-history-edit").click();
+  const ed = page.getByTestId("bodyweight-edit-sheet");
+  // 고치기 시트는 적어 둔 값으로 펼쳐 열린다
+  await expect(ed.getByTestId("weighin-smm")).toHaveValue("33.1");
+  await ed.getByTestId("bodyweight-edit-date").fill(ymd(new Date(Date.now() - 10 * 86_400_000)));
+  await ed.getByTestId("weighin-save").click();
+  await expect(ed).toHaveCount(0);
+  await page.getByTestId("bodyweight-history-close").click();
+
+  // ④ 카드 — 수치 고르기 → 골격근량 최근·변화·곡선 · 체중 전용(목표·주간) 숨김
+  await page.goto("/stats");
+  const metric = page.getByTestId("bodyweight-metric");
+  await expect(metric).toBeVisible({ timeout: 20_000 });
+  await page.getByTestId("bodyweight-metric-smm").click();
+  await expect(page.getByTestId("bodyweight-metric-latest")).toHaveText("최근 33.8kg");
+  await expect(page.getByTestId("bodyweight-metric-change")).toContainText("+0.7kg");
+  await expect(page.getByTestId("bodyweight-metric-chart")).toBeVisible();
+  await expect(page.getByTestId("bodyweight-weekly")).toHaveCount(0);
+  await expect(page.getByTestId("bodyweight-goal-gap")).toHaveCount(0);
+  await expect(page.getByTestId("bodyweight-latest")).toHaveCount(0);
+  await page.getByTestId("bodyweight-metric-pbf").click();
+  await expect(page.getByTestId("bodyweight-metric-latest")).toHaveText("최근 17.9%");
+  await expect(page.getByTestId("bodyweight-metric-change")).toContainText("−0.6%p");
+  await page.getByTestId("bodyweight-metric-weight").click();
+  await expect(page.getByTestId("bodyweight-latest")).toHaveText("최근 71.0kg");
+
+  // ⑤ 목표 시트엔 인바디 칸이 없다
+  await page.getByTestId("bodyweight-more").click();
+  await page.getByTestId("btn-bodyweight-goal").click();
+  const goal = page.getByTestId("bodyweight-goal-sheet");
+  await expect(goal).toBeVisible();
+  await expect(goal.getByTestId("weighin-inbody-toggle")).toHaveCount(0);
+  await goal.getByTestId("weighin-secondary").click();
+
+  // ⑥ 새로고침 유지
+  await page.reload();
+  await expect(page.getByTestId("bodyweight-metric")).toBeVisible({ timeout: 20_000 });
+  rows = await 이력_행(page);
+  expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg, r.body_fat_pct]).sort()).toEqual([
+    [70, 33.1, 18.5],
+    [71, 33.8, 17.9],
+  ]);
+});
+
+test("오늘 체중 줄 — 「체중 미설정으로 두기」 뒤에는 ✓ 가 아니라 새로 기록 · 저장하면 다시 내 체중(P1-2 리뷰)", async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await 준비(page);
+  await 프로필_입력(page, "72");
+  await 기록_전체(page);
+  await page.getByTestId("btn-bodyweight-unset").click();
+  await page.getByTestId("dialog-confirm").click();
+  await expect(page.getByTestId("btn-bodyweight-unset")).toHaveCount(0);
+  await page.getByTestId("bodyweight-history-close").click();
+
+  await 빠른_운동_시작(page);
+  const row = page.getByTestId("weighin-row");
+  await expect(row).toHaveAttribute("data-done", "0", { timeout: 20_000 });
+  await row.click();
+  const sheet = page.getByTestId("weighin-sheet");
+  await expect(sheet.locator("h2")).toHaveText("오늘 체중");
+  await sheet.getByTestId("weighin-save").click();
+  await expect(sheet).toHaveCount(0);
+  await expect(row).toHaveAttribute("data-done", "1");
+  await 운동_취소(page);
+  expect(await 프로필_체중(page)).toBe("72.0kg");
+  // 측정 줄 둘(처음 + 새로) · 표식 하나
+  const rows = await 이력_행(page);
+  expect(rows.map((r) => r.weight_kg).sort()).toEqual([0, 72, 72]);
+});
+
+test("인바디 — 한 수치만 · 접고 고치면 값 유지 · 비우면 지움 · 360×640 에서 펼쳐도 저장 버튼이 화면 안(REV-096)", async ({
+  page,
+}) => {
+  test.setTimeout(150_000);
+  await page.setViewportSize({ width: 360, height: 640 });
+  await 준비(page);
+
+  // 체지방률만 적는다
+  await page.goto("/profile");
+  await page.getByTestId("btn-bodyweight-record").click();
+  const rec = page.getByTestId("bodyweight-record-sheet");
+  await rec.getByTestId("weighin-inbody-toggle").click();
+  await rec.getByTestId("weighin-pbf").fill("20");
+  const save = await rec.getByTestId("weighin-save").boundingBox();
+  expect(save && save.y + save.height <= 640, "펼쳐도 저장 버튼이 보인다").toBe(true);
+  await rec.getByTestId("weighin-save").click();
+  await expect(rec).toHaveCount(0);
+
+  // 카드 — 체지방률 탭만 생긴다 · 하나뿐이면 곡선 안내
+  await page.goto("/stats");
+  await expect(page.getByTestId("bodyweight-metric-pbf")).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByTestId("bodyweight-metric-smm")).toHaveCount(0);
+  await page.getByTestId("bodyweight-metric-pbf").click();
+  await expect(page.getByTestId("bodyweight-metric-empty")).toHaveText("한 번 더 적으면 곡선이 보여요");
+
+  // 고치기 — 펼친 채 열림 → 접고 체중만 바꿔 저장 → 체지방률 유지
+  await 기록_전체(page);
+  const row = page.getByTestId("bodyweight-history-row").first();
+  await expect(row.getByTestId("bodyweight-history-inbody")).toHaveText("체지방률 20.0%");
+  await row.getByTestId("bodyweight-history-edit").click();
+  const ed = page.getByTestId("bodyweight-edit-sheet");
+  await expect(ed.getByTestId("weighin-pbf")).toHaveValue("20");
+  await ed.getByTestId("weighin-inbody-toggle").click();
+  await ed.getByTestId("weighin-step-p1").click();
+  await ed.getByTestId("weighin-save").click();
+  await expect(ed).toHaveCount(0);
+  await expect(page.getByTestId("bodyweight-history-row").first()).toContainText("71.0kg");
+  await expect(page.getByTestId("bodyweight-history-inbody")).toHaveText("체지방률 20.0%");
+
+  // 비우고 저장 → 지움
+  await page.getByTestId("bodyweight-history-edit").first().click();
+  await ed.getByTestId("weighin-pbf").fill("");
+  await ed.getByTestId("weighin-save").click();
+  await expect(ed).toHaveCount(0);
+  await expect(page.getByTestId("bodyweight-history-inbody")).toHaveCount(0);
+  const rows = await 이력_행(page);
+  expect(rows.map((r) => [r.weight_kg, r.skeletal_muscle_kg ?? null, r.body_fat_pct ?? null])).toEqual([
+    [71, null, null],
+  ]);
 });

@@ -8,7 +8,9 @@ import { appSchema, tableSchema } from '@nozbe/watermelondb';
 // ⚠ v27 도 같은 규칙 — 배포 뒤 SCHEMA_VERSION<27 번들을 내보내지 않는다(Phase 2·3 을 v0.58.0 한 릴리스로).
 // [원본] export const SCHEMA_VERSION = 26;
 // [원본] export const SCHEMA_VERSION = 27;
-export const SCHEMA_VERSION = 28; // v28: set_logs.check_state(SPEC-044)
+// [원본] export const SCHEMA_VERSION = 28; // v28: set_logs.check_state(SPEC-044)
+// ⚠ v29 도 같은 규칙 — 배포 뒤 SCHEMA_VERSION<29 번들을 내보내지 않는다(배포 스크립트가 낮추는 배포를 막는다).
+export const SCHEMA_VERSION = 29; // v29: bodyweight_logs.skeletal_muscle_kg · body_fat_pct(SPEC-049 인바디)
 
 export const mySchema = appSchema({
   version: SCHEMA_VERSION,
@@ -234,6 +236,8 @@ export const mySchema = appSchema({
         { name: 'weight_kg', type: 'number', isOptional: true }, // 정규 kg
         { name: 'source', type: 'string', isOptional: true }, // 'checkin'|'manual'|'legacy' · null = manual
         { name: 'note', type: 'string', isOptional: true },
+        { name: 'skeletal_muscle_kg', type: 'number', isOptional: true }, // v29 인바디 골격근량(kg) · null = 안 적음
+        { name: 'body_fat_pct', type: 'number', isOptional: true }, // v29 인바디 체지방률(%) · null = 안 적음
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ],

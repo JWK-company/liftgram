@@ -1,0 +1,246 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "배경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "할 일 문서 S-4 항목(2026-11-09): 분석 맨 아래 체중 카드의 기록·목표 바꾸기·목표 지우기 버튼이 앱의 다른 화면과 모양이 다르고 흩어져 있다. 체중은 중요한 수치라 위로 올려야 하고, 매일 헬스장에서 체중계에 오르는 사람이 운동 시작 때 S-06(운동 화면) 맨 위에서 선택적으로 적게 하자. 인바디도 구상.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹 보고서 「화면 지도 제안」 S-04·S-06 절의 권장안 A·B와 C 1단계를 사용자가 「좋아 전부 권장안대로」(1463)로 승인했다. 옛 체크인 시트와 프로필 스위치는 B로 바꾼다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R1 분석 맨 위",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 체중 카드는 분석 화면 요약(볼륨·횟수 줄) 바로 아래.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R2 카드 머리 정리",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 머리 = 「체중」 + 최근 값·날짜(예 72.5kg · 어제) + 오른쪽 테두리 「기록」 버튼 하나. 목표는 그래프 점선으로 보이고 목표 정하기·바꾸기·지우기는 카드 ⋯ 메뉴 안에.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R3 운동 화면 「오늘 체중」 줄",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 운동 화면 맨 위에 「⚖️ 오늘 체중 기록 · 지난 72.5kg」 한 줄. 누르면 지금의 체중 시트(± 버튼), 저장하면 「⚖️ 72.6kg ✓」로 접힌다. 그날 이미 적었으면 접힌 채(값)로 보인다. 팝업이 아니고 안 써도 운동이 막히지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R4 옛 체크인 정리",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 운동 시작 직후 저절로 뜨던 체중 시트(체크인)와 프로필의 「운동 전 체중 체크인」 스위치를 없앤다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R5 인바디 1단계",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 체중 시트에 「인바디 값도 적기」를 펼치면 골격근량(kg)·체지방률(%) 두 칸을 더 받는다(선택). 분석 체중 카드에서 체중·골격근량·체지방률을 골라 추세를 본다. 인바디 결과지 QR·사진 읽기는 이번 범위 밖(조사 뒤 따로 제안).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버 동기는 레코드를 해석하지 않는 jsonb 병합이라 새 칸이 그대로 오간다 — 서버 표·API는 바꾸지 않는다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "트레이너 기간 요약에 인바디 값을 싣는 것은 하지 않는다(나만 본다).",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-114",
+  "meta": {
+    "acceptance_criteria": "분석 화면에서 체중 카드가 요약 바로 아래에 있고 머리에 최근 값·날짜와 테두리 「기록」 하나, 목표 바꾸기·지우기는 카드 ⋯ 안에 있다 · 운동을 시작하면 운동 화면 맨 위에 「⚖️ 오늘 체중」 줄이 보이고 누르면 체중 시트, 저장하면 값 ✓ 로 접히며 안 써도 운동이 막히지 않는다 · 시작하자마자 뜨던 체중 시트와 프로필 스위치는 없다 · 체중 시트에서 골격근량·체지방률을 함께 적으면 분석 체중 카드에서 그 추세를 볼 수 있다",
+    "kind": "FR"
+  },
+  "relations": {
+    "refs_legacy": [
+      "PLM:SRS-077",
+      "PLM:SRS-078"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "체중은 위로 — 분석 맨 위 체중 카드 · 운동 화면 「오늘 체중」 한 줄 · 인바디 두 칸",
+  "type": "SRS",
+  "updated": "2026-11-09T07:56:50Z"
+}

@@ -27,6 +27,15 @@ test('v26: 스키마 버전 = 마지막 마이그레이션', () => {
   assert.ok(v26(), 'toVersion 26 마이그레이션이 있어야 한다');
 });
 
+function laterAdded(table: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of mig.sortedMigrations) {
+    if (m.toVersion <= 26) continue;
+    for (const st of m.steps) if (st.type === 'add_columns' && st.table === table) for (const c of st.columns ?? []) out.add(c.name);
+  }
+  return out;
+}
+
 test('v26: 새 표 3개가 스키마에 있고, 마이그레이션 createTable 칸과 같다', () => {
   const steps = v26()?.steps ?? [];
   for (const name of NEW_TABLES) {
@@ -36,7 +45,11 @@ test('v26: 새 표 3개가 스키마에 있고, 마이그레이션 createTable �
     assert.ok(created, `마이그레이션에 createTable ${name}`);
     assert.deepEqual(
       Object.values(created?.schema?.columns ?? {}).map((c) => [c.name, c.type, !!c.isOptional, !!c.isIndexed]),
-      Object.values(table.columns).map((c) => [c.name, c.type, !!c.isOptional, !!c.isIndexed]),
+      // [원본] Object.values(table.columns).map((c) => [c.name, c.type, !!c.isOptional, !!c.isIndexed]),
+      // [개선] v29(SPEC-049)부터 bodyweight_logs 에 칸이 더 붙는다 — 뒤 마이그레이션의 addColumns 칸은 빼고 견준다
+      Object.values(table.columns)
+        .filter((c) => !laterAdded(name).has(c.name))
+        .map((c) => [c.name, c.type, !!c.isOptional, !!c.isIndexed]),
       `${name} 칸이 스키마와 마이그레이션에서 다르다`,
     );
   }

@@ -11,6 +11,8 @@ import {
   formatBodyweight,
   isLargeBodyweightJump,
   hasLogOnLocalDay,
+  latestOnLocalDay,
+  weighInRowTarget,
   localDayRange,
   shouldOfferWeighIn,
   shownBodyweight,
@@ -119,4 +121,30 @@ test('주간 변화까지 남은 날 수 — 최근 28일 안의 서로 다른 �
   assert.equal(weeklyRateDaysNeeded([log('a', NOW - 1000), log('b', NOW)], NOW), 2); // 같은 날 두 번 = 하루
   assert.equal(weeklyRateDaysNeeded([log('a', NOW - 9 * D), log('b', NOW - 5 * D), log('c', NOW)], NOW), 0);
   assert.equal(weeklyRateDaysNeeded([log('a', NOW - 5 * D, 0), log('b', NOW)], NOW), 2); // 표식(0)은 안 셈
+});
+
+test('latestOnLocalDay — 같은 날 둘이면 늦은 측정 · 어제·표식 제외 · 자정 넘으면 없음(SPEC-049)', () => {
+  const noon = new Date(2026, 10, 9, 12, 0).getTime();
+  const logs = [
+    { id: 'y', measuredAt: noon - 86_400_000, weightKg: 70, updatedAt: 1 },
+    { id: 'a', measuredAt: noon - 3_600_000, weightKg: 71, updatedAt: 5 },
+    { id: 'b', measuredAt: noon - 600_000, weightKg: 72, updatedAt: 2 },
+    { id: 'z', measuredAt: noon, weightKg: 0, updatedAt: 9 }, // 「설정 안 함」 표식
+  ];
+  assert.equal(latestOnLocalDay(logs, noon)?.id, 'b');
+  // 같은 시각이면 늦게 고친 것
+  assert.equal(latestOnLocalDay([...logs, { id: 'c', measuredAt: noon - 600_000, weightKg: 73, updatedAt: 3 }], noon)?.id, 'c');
+  // 다음 날 0시 1분 — 오늘 기록 없음
+  const nextDay = new Date(2026, 10, 10, 0, 1).getTime();
+  assert.equal(latestOnLocalDay(logs, nextDay), null);
+  assert.equal(latestOnLocalDay([], noon), null);
+});
+
+test('weighInRowTarget — 오늘 측정 뒤에 「설정 안 함」 표식이 있으면 고칠 줄 없음(새로 기록) · 표식이 앞이면 오늘 측정(P1-2 리뷰)', () => {
+  const noon = new Date(2026, 10, 9, 12, 0).getTime();
+  const meas = { id: 'b', measuredAt: noon - 600_000, weightKg: 72, updatedAt: 2 };
+  assert.equal(weighInRowTarget([meas], noon)?.id, 'b');
+  assert.equal(weighInRowTarget([meas, { id: 'z', measuredAt: noon - 60_000, weightKg: 0, updatedAt: 9 }], noon), null);
+  assert.equal(weighInRowTarget([{ id: 'z', measuredAt: noon - 3_600_000, weightKg: 0, updatedAt: 1 }, meas], noon)?.id, 'b');
+  assert.equal(weighInRowTarget([], noon), null);
 });

@@ -21,7 +21,9 @@ export function useBodyweightLogs(): BodyweightLogsState {
         if (cancelled) return;
         sub = repo
           .queryBodyweightLogs()
-          .observeWithColumns(["weight_kg", "measured_at"])
+          // [원본] .observeWithColumns(["weight_kg", "measured_at"])
+          // [개선] 인바디 두 칸(v29 · SPEC-049)을 고쳐도 카드·이력이 따라오게(REV-094)
+          .observeWithColumns(["weight_kg", "measured_at", "skeletal_muscle_kg", "body_fat_pct"])
           .subscribe((rows) => setState({ logs: rows.map(repo.toBodyweightLogLike), loaded: true }));
       })
       .catch(() => !cancelled && setState({ logs: [], loaded: true }));

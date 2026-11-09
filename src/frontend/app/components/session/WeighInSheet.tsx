@@ -16,6 +16,12 @@ import { errorText } from "@/lib/errorText";
 import {
   BODYWEIGHT_MAX_KG,
   BODYWEIGHT_STEPS,
+  PBF_MAX,
+  PBF_MIN,
+  SMM_MAX_KG,
+  SMM_MIN_KG,
+  isValidBodyFatPct,
+  isValidSkeletalMuscleKg,
   latest,
   stepBodyweightKg,
   type BodyweightLogLike,
@@ -27,8 +33,10 @@ import {
   formatBodyweight,
   hasLogOnLocalDay,
   isLargeBodyweightJump,
+  // [원본] latestOnLocalDay, — 줄 판정은 표식까지 보는 weighInRowTarget 으로(P1-2 리뷰)
   localDayRange,
   shouldOfferWeighIn,
+  weighInRowTarget,
   weighInStartKg,
 } from "@app/core/domain/weighIn";
 import { fromKg, type WeightUnit } from "@app/core";
@@ -36,9 +44,28 @@ import { useUser } from "@app/core/state/userContext";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { clearWeighInMarks, hasWeighInMark, readWeighInEnabled, setWeighInMark } from "@/lib/bodyweightPref";
-import { afterBodyweightWrite } from "@/lib/bodyweightLogs";
+import { afterBodyweightWrite, useBodyweightLogs } from "@/lib/bodyweightLogs";
 import { lang, t } from "@/lib/i18n";
 import { useToast } from "../Toast";
+import { Icon } from "../ui/Icon";
+
+/** 인바디 두 칸(SPEC-049 Phase 3) — null = 안 적음 */
+export interface InbodyValues {
+  skeletalMuscleKg: number | null;
+  bodyFatPct: number | null;
+}
+
+/** 칸 글자 → 값. 빈칸 = null(안 적음) · 숫자가 아니거나 범위 밖 = undefined(저장 막음) */
+function parseInbody(text: string, valid: (v: number) => boolean): number | null | undefined {
+  const tx = text.trim().replace(",", ".");
+  if (tx === "") return null;
+  // [원본] const v = Number(tx); … valid(v) 뒤 반올림 — 「0x21」·「1e1」을 받고, 4.96 은 막혔다(REV-096 L-2)
+  if (!/^\d+(\.\d+)?$/.test(tx)) return undefined;
+  const v = Math.round(Number(tx) * 10) / 10;
+  return Number.isFinite(v) && valid(v) ? v : undefined;
+}
+
+const numText = (v: number | null | undefined) => (v == null ? "" : String(v));
 
 /** 「10/27」·「Oct 27」 */
 export function formatBodyweightDate(ms: number, withYear = false): string {
@@ -62,6 +89,7 @@ export function WeighInSheet({
   trapBack = false,
   extra,
   compareKg,
+  inbody,
   testId = "weighin-sheet",
 }: {
   title: string;
@@ -72,8 +100,11 @@ export function WeighInSheet({
   last?: { kg: number; measuredAt: number } | null;
   primaryLabel: string;
   secondaryLabel: string;
-  /** 저장(kg). 실패하면 throw — 시트는 열린 채로 남는다 */
-  onSave: (kg: number) => Promise<void> | void;
+  /**
+   * 저장(kg). 실패하면 throw — 시트는 열린 채로 남는다.
+   * extras = 인바디 칸을 펼쳤을 때만(빈칸은 null) — inbody 를 안 넘긴 시트(목표 체중)·접어 둔 채 저장하면 undefined(그대로 둔다).
+   */
+  onSave: (kg: number, extras?: InbodyValues) => Promise<void> | void;
   /** 둘째 버튼 — 없으면 onDismiss */
   onSecondary?: () => void;
   /** 스크림·Esc·뒤로(trapBack) */
@@ -84,6 +115,8 @@ export function WeighInSheet({
   extra?: ReactNode;
   /** ±30% 확인의 기준값(kg) — 없으면 last 의 값. 목표 시트처럼 last 가 없으면 확인하지 않는다 */
   compareKg?: number | null;
+  /** 인바디 두 칸의 출발값(SPEC-049 Phase 3) — 넘기면 「인바디 수치도 적기」 펼침이 생긴다. 목표 시트는 넘기지 않는다 */
+  inbody?: InbodyValues;
   testId?: string;
 }) {
   const [root, setRoot] = useState<HTMLElement | null>(null);
@@ -95,6 +128,14 @@ export function WeighInSheet({
   const [entryError, setEntryError] = useState(false);
   /** ±30% 확인을 띄운 kg — 같은 값으로 한 번 더 누르면 저장 */
   const [jumpAsk, setJumpAsk] = useState<number | null>(null);
+  // 인바디 — 출발값이 있으면 펼친 채로 연다
+  const [inbodyOpen, setInbodyOpen] = useState(
+    () => inbody != null && (inbody.skeletalMuscleKg != null || inbody.bodyFatPct != null),
+  );
+  const [smmText, setSmmText] = useState(() => numText(inbody?.skeletalMuscleKg));
+  const [pbfText, setPbfText] = useState(() => numText(inbody?.bodyFatPct));
+  const [smmError, setSmmError] = useState(false);
+  const [pbfError, setPbfError] = useState(false);
   const closed = useRef(false);
   const focused = useRef(false);
   const dismissRef = useRef(onDismiss);
@@ -202,6 +243,16 @@ export function WeighInSheet({
     if (busy || closed.current) return;
     const { kg: value, ok } = commitTyped();
     if (!ok || entryError) return; // 받지 않은 입력 — 이유 줄을 본 뒤 다시 고치거나 ± 로 맞춘다
+    // 인바디 — 펼쳤을 때만 읽는다. 범위 밖이면 칸 아래 이유를 보이고 저장하지 않는다(REV-094)
+    let extras: InbodyValues | undefined;
+    if (inbody && inbodyOpen) {
+      const smm = parseInbody(smmText, isValidSkeletalMuscleKg);
+      const pbf = parseInbody(pbfText, isValidBodyFatPct);
+      setSmmError(smm === undefined);
+      setPbfError(pbf === undefined);
+      if (smm === undefined || pbf === undefined) return;
+      extras = { skeletalMuscleKg: smm, bodyFatPct: pbf };
+    }
     // 지난 값과 ±30% 넘게 다르면 한 번 더 누르게 한다(같은 값일 때만 통과 · qa P3-6)
     if (isLargeBodyweightJump(value, refKg) && jumpAsk !== value) {
       setJumpAsk(value);
@@ -210,7 +261,7 @@ export function WeighInSheet({
     setBusy(true);
     void (async () => {
       try {
-        await onSave(value);
+        await onSave(value, extras);
         closed.current = true;
       } catch {
         setBusy(false);
@@ -400,6 +451,94 @@ export function WeighInSheet({
           <div className="flex gap-[6px]">{[steps[0], steps[1], steps[2]].map(stepBtn)}</div>
         </div>
 
+        {inbody ? (
+          <div className="mt-[var(--spacing-sm)]" data-testid="weighin-inbody">
+            <button
+              type="button"
+              data-testid="weighin-inbody-toggle"
+              aria-expanded={inbodyOpen}
+              onClick={() => setInbodyOpen((o) => !o)}
+              className="flex min-h-11 w-full items-center gap-[var(--spacing-xs)] text-left text-(--color-ink) text-[length:var(--text-sm)]"
+            >
+              <Icon
+                name={inbodyOpen ? "chevron-down" : "chevron-forward"}
+                size={16}
+                color="var(--color-ink2)"
+              />
+              <span className="font-medium">
+                {t(inbodyOpen ? "bodyweight.inbodyHide" : "bodyweight.inbodyToggle")}
+              </span>
+            </button>
+            {inbodyOpen ? (
+              <div className="flex flex-col gap-[6px]">
+                <p className="text-(--color-ink2) text-[length:var(--text-xs)]">
+                  {t("bodyweight.inbodyOptional")}
+                </p>
+                {(
+                  [
+                    [
+                      "smm",
+                      "bodyweight.smmLabel",
+                      "kg",
+                      smmText,
+                      setSmmText,
+                      smmError,
+                      setSmmError,
+                      "bodyweight.smmRange",
+                      SMM_MIN_KG,
+                      SMM_MAX_KG,
+                    ],
+                    [
+                      "pbf",
+                      "bodyweight.pbfLabel",
+                      "%",
+                      pbfText,
+                      setPbfText,
+                      pbfError,
+                      setPbfError,
+                      "bodyweight.pbfRange",
+                      PBF_MIN,
+                      PBF_MAX,
+                    ],
+                  ] as const
+                ).map(([key, label, suffix, text, setText, err, setErr, rangeKey, min, max]) => (
+                  <div key={key}>
+                    <label className="flex min-h-11 items-center justify-between gap-[var(--spacing-sm)] text-(--color-ink) text-[length:var(--text-sm)]">
+                      <span>{t(label)}</span>
+                      <span className="flex items-baseline gap-[4px]">
+                        <input
+                          data-testid={`weighin-${key}`}
+                          inputMode="decimal"
+                          enterKeyHint="done"
+                          value={text}
+                          aria-invalid={err || undefined}
+                          aria-describedby={err ? `weighin-${key}-error` : undefined}
+                          onChange={(e) => {
+                            setText(e.target.value);
+                            setErr(false);
+                          }}
+                          className={`h-11 w-[96px] rounded-[var(--radius-md)] border bg-(--color-surface) px-[var(--spacing-sm)] text-right text-(--color-ink) text-[length:var(--text-md)] tabular-nums ${err ? "border-(--color-bad)" : "border-(--color-line-strong)"}`}
+                        />
+                        <span className="w-[20px] text-(--color-ink2)">{suffix}</span>
+                      </span>
+                    </label>
+                    {err ? (
+                      <p
+                        id={`weighin-${key}-error`}
+                        role="alert"
+                        data-testid={`weighin-${key}-error`}
+                        className="text-right text-(--color-bad) text-[length:var(--text-xs)]"
+                      >
+                        {t(rangeKey, { min, max })}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {extra ? <div className="mt-[var(--spacing-sm)]">{extra}</div> : null}
 
         {jumpAsk != null && jumpAsk === kg && refKg != null ? (
@@ -412,7 +551,8 @@ export function WeighInSheet({
           </p>
         ) : null}
 
-        <div className="mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)]">
+        {/* [원본] mt-md flex gap-sm — 인바디 칸이 붙어 50dvh 를 넘으면 저장 줄이 아래로 숨었다 → 시트 바닥에 붙인다(REV-096 M-1) */}
+        <div className="sticky bottom-0 mt-[var(--spacing-md)] flex gap-[var(--spacing-sm)] bg-(--color-surface) pt-[var(--spacing-xs)]">
           <button
             type="button"
             data-testid="weighin-secondary"
@@ -543,5 +683,98 @@ export function WeighInCheckin({ workoutId, startedAt }: { workoutId: string; st
         }
       }}
     />
+  );
+}
+
+/**
+ * 운동 화면 맨 위 「오늘 체중」 한 줄(SPEC-049 Phase 2 · S-4) — 시작하자마자 뜨던 체크인 시트(WeighInCheckin) 대신.
+ * 팝업이 아니고 안 써도 운동이 막히지 않는다. 오늘(로컬 날짜) 기록이 없으면 「오늘 체중 기록 · 지난 72.5kg」,
+ * 있으면 「오늘 체중 72.6kg ✓」 — 누르면 같은 시트로 그날 가장 최근 줄을 고친다(latestOnLocalDay).
+ * 날짜는 ActiveWorkout 이 매초 넘기는 now 로 판정한다 — 자정을 넘기면 다시 「오늘 체중 기록」.
+ * 모양은 SPEC-046 「다른 창을 여는 줄」 — 바탕 없는 줄 + 아이콘 + › · 누르는 자리 44px.
+ */
+export function WeighInRow({ now }: { now: number }) {
+  const { user, bodyweightKg, refresh } = useUser();
+  const { logs, loaded } = useBodyweightLogs();
+  const toast = useToast();
+  // [원본] const [open, setOpen] = useState(false); — 고칠 줄을 매초 다시 판정해 연 사이 생긴 남의 줄을 덮었다(P1-2 리뷰)
+  // [개선] 열 때 고칠 줄 id 를 고정한다(null = 새 줄). 저장 때 그 줄이 사라졌으면 새로 쓴다
+  const [target, setTarget] = useState<{ id: string | null } | null>(null);
+  const unit = bodyweightUnitOf(user?.weightUnit);
+  // 옛 체크인이 남긴 `weighin:<운동>` 표시를 한 번 걷는다(체크인을 막아 더는 지우는 곳이 없다 · P1-2 리뷰)
+  useEffect(() => {
+    clearWeighInMarks({});
+  }, []);
+  // 읽기 전에는 자리만(줄이 나타나며 세트 표가 밀리지 않게)
+  if (!loaded)
+    return <div className="mb-[var(--spacing-sm)] h-11" aria-hidden data-testid="weighin-row-pending" />;
+  // [원본] const today = latestOnLocalDay(logs, now); — 오늘 측정 뒤 「설정 안 함」 표식이 있어도 ✓ 로 보였다(P1-2 리뷰)
+  const today = weighInRowTarget(logs, now);
+  const editing = target?.id ? (logs.find((l) => l.id === target.id) ?? null) : null;
+  const sheetRow = target ? editing : today;
+  // 「지난 기록」·±30% 기준 = 오늘 고칠 줄을 뺀 가장 최근 기록
+  const before = lastEntryOf(sheetRow ? logs.filter((l) => l.id !== sheetRow.id) : logs);
+  const fmt = (kg: number) => `${formatBodyweight(kg, unit)}${unit}`;
+  const label = today
+    ? t("bodyweight.rowDone", { value: fmt(today.weightKg) })
+    : before
+      ? t("bodyweight.rowLogLast", { value: fmt(before.kg) })
+      : t("bodyweight.rowLog");
+  return (
+    <>
+      <button
+        type="button"
+        data-testid="weighin-row"
+        data-done={today ? "1" : "0"}
+        aria-label={today ? t("bodyweight.rowDoneAria", { value: fmt(today.weightKg) }) : undefined}
+        onClick={() => setTarget({ id: today?.id ?? null })}
+        className="mb-[var(--spacing-sm)] flex min-h-11 w-full items-center gap-[var(--spacing-sm)] rounded-[var(--radius-sm)] px-[var(--spacing-xs)] text-left active:bg-(--color-surface-alt)"
+      >
+        <Icon name="body-outline" size={20} color={today ? "var(--color-brand)" : "var(--color-ink2)"} />
+        <span
+          className={`min-w-0 flex-1 truncate text-[length:var(--text-sm)] ${today ? "font-semibold text-(--color-ink)" : "text-(--color-ink2)"}`}
+        >
+          {label}
+        </span>
+        {today ? <Icon name="checkmark" size={18} color="var(--color-brand)" /> : null}
+        <Icon name="chevron-forward" size={18} color="var(--color-ink3)" />
+      </button>
+      {target ? (
+        <WeighInSheet
+          testId="weighin-sheet"
+          title={target.id ? t("bodyweight.sheetTodayEditTitle") : t("bodyweight.sheetCheckinTitle")}
+          unit={unit}
+          initialKg={editing?.weightKg ?? bodyweightKg ?? before?.kg ?? null}
+          last={before}
+          compareKg={before?.kg ?? null}
+          inbody={{
+            skeletalMuscleKg: editing?.skeletalMuscleKg ?? null,
+            bodyFatPct: editing?.bodyFatPct ?? null,
+          }}
+          primaryLabel={t("bodyweight.save")}
+          secondaryLabel={t("common.cancel")}
+          // 열린 채 뒤로 가기 = 시트만 닫기(운동 화면을 떠나지 않게 · P1-2 리뷰)
+          trapBack
+          onDismiss={() => setTarget(null)}
+          onSave={async (kg, extras) => {
+            try {
+              const repo = await import("@app/core/data/bodyweightRepository");
+              const id = target.id;
+              const still = id ? (await repo.listBodyweightLogs()).some((l) => l.id === id) : false;
+              if (id && still)
+                await repo.updateBodyweightLog(id, { weight: kg, unit: "kg", ...(extras ?? {}) });
+              else
+                await repo.addBodyweightLog({ weight: kg, unit: "kg", source: "checkin", ...(extras ?? {}) });
+              await afterBodyweightWrite(refresh);
+              toast(t("bodyweight.saved"));
+              setTarget(null);
+            } catch (e) {
+              toast(errorText(e, t("bodyweight.saveFailed")), "error");
+              throw e;
+            }
+          }}
+        />
+      ) : null}
+    </>
   );
 }

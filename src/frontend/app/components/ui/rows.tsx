@@ -25,7 +25,8 @@ export function SectionLabel({
       <h2 data-testid={testId} className="font-bold text-(--color-ink) text-[length:var(--text-md)]">
         {title}
       </h2>
-      {right ? <div className="text-(--color-ink2) text-[length:var(--text-sm)]">{right}</div> : null}
+      {/* [원본] <div className="text-(--color-ink2) …"> — min-w-0 이 없어 안쪽 truncate 가 줄지 못했다(SPEC-049 REV-096 L-1) */}
+      {right ? <div className="min-w-0 text-(--color-ink2) text-[length:var(--text-sm)]">{right}</div> : null}
     </div>
   );
 }

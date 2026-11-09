@@ -42,10 +42,13 @@ export function BodyweightRecordSheet({ onClose }: { onClose: () => void }) {
       primaryLabel={t("bodyweight.save")}
       secondaryLabel={t("common.cancel")}
       onDismiss={onClose}
-      onSave={async (kg) => {
+      // 인바디 두 칸(SPEC-049 Phase 3) — 새 줄이라 빈 칸에서 시작
+      inbody={{ skeletalMuscleKg: null, bodyFatPct: null }}
+      onSave={async (kg, extras) => {
         try {
           const repo = await import("@app/core/data/bodyweightRepository");
-          await repo.addBodyweightLog({ weight: kg, unit: "kg", source: "manual" });
+          // [원본] await repo.addBodyweightLog({ weight: kg, unit: "kg", source: "manual" });
+          await repo.addBodyweightLog({ weight: kg, unit: "kg", source: "manual", ...(extras ?? {}) });
           await afterBodyweightWrite(refresh);
           toast(t("bodyweight.saved"));
           onClose();
@@ -173,7 +176,11 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
           </label>
         }
         compareKg={editing.weightKg}
-        onSave={async (kg) => {
+        inbody={{
+          skeletalMuscleKg: editing.skeletalMuscleKg ?? null,
+          bodyFatPct: editing.bodyFatPct ?? null,
+        }}
+        onSave={async (kg, extras) => {
           const e = editing;
           // [원본] const measuredAt = withDate(e.measuredAt, editDate) ?? e.measuredAt;
           // [개선] 오늘로 옮기면서 시각이 지금보다 뒤면 지금으로(qa P3-1)
@@ -181,12 +188,18 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
           const measuredAt = picked === e.measuredAt ? picked : Math.min(picked, Date.now());
           const changedKg = kg !== e.weightKg;
           const changedAt = measuredAt !== e.measuredAt;
-          if (changedKg || changedAt)
+          // 인바디 — 펼쳐 저장했고 값이 달라졌을 때만(SPEC-049 Phase 3)
+          const changedSmm = extras != null && extras.skeletalMuscleKg !== (e.skeletalMuscleKg ?? null);
+          const changedPbf = extras != null && extras.bodyFatPct !== (e.bodyFatPct ?? null);
+          // [원본] if (changedKg || changedAt)
+          if (changedKg || changedAt || changedSmm || changedPbf)
             await run(async () => {
               const repo = await import("@app/core/data/bodyweightRepository");
               await repo.updateBodyweightLog(e.id, {
                 ...(changedKg ? { weight: kg, unit: "kg" as const } : {}),
                 ...(changedAt ? { measuredAt } : {}),
+                ...(changedSmm ? { skeletalMuscleKg: extras?.skeletalMuscleKg ?? null } : {}),
+                ...(changedPbf ? { bodyFatPct: extras?.bodyFatPct ?? null } : {}),
               });
             }, t("bodyweight.saved"));
           setEditing(null);
@@ -227,6 +240,24 @@ export function BodyweightHistorySheet({ onClose }: { onClose: () => void }) {
                     >
                       {formatBodyweight(l.weightKg, unit)}
                       {unit}
+                      {/* 인바디(SPEC-049 Phase 3) — 적은 줄만 · 보통 글자로 */}
+                      {l.skeletalMuscleKg != null || l.bodyFatPct != null ? (
+                        <span
+                          data-testid="bodyweight-history-inbody"
+                          className="ml-[6px] font-normal text-(--color-ink2) text-[length:var(--text-sm)]"
+                        >
+                          {[
+                            l.skeletalMuscleKg != null
+                              ? `${t("bodyweight.smmLabel")} ${l.skeletalMuscleKg.toFixed(1)}kg`
+                              : null,
+                            l.bodyFatPct != null
+                              ? `${t("bodyweight.pbfLabel")} ${l.bodyFatPct.toFixed(1)}%`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="truncate text-(--color-ink2) text-[length:var(--text-sm)]">
                       {formatBodyweightDate(l.measuredAt, true)}

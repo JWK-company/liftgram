@@ -178,7 +178,14 @@ export default function StatsClient() {
             title={t("analytics.emptyTitle")}
             message={t("analytics.emptyMessage")}
           />
-        ) : (
+        ) : null}
+        {/* [원본] 운동이 없는 기간에도 체중은 맨 위에 — 분기마다 따로 그려 기간을 바꾸면 카드가 다시 붙었다(P1-2 리뷰 · 고른 범위·시트 초기화)
+        {!loading && (!hasData || !overview) ? (
+          <div className="mt-[var(--spacing-lg)]">
+            <BodyweightCard />
+          </div>
+        ) : null} */}
+        {loading && !overview ? null : !hasData || !overview ? null : (
           <>
             <Card className="mb-[var(--spacing-md)]">
               <AppText variant="caption" color="textMuted" className="block">
@@ -244,6 +251,17 @@ export default function StatsClient() {
               />
             </Card>
 
+            {/* 체중 — 요약 바로 아래(SPEC-049 · S-4) — [개선] 카드는 분기 밖 한 자리(아래)에서 그린다 */}
+          </>
+        )}
+        {/* 체중 카드 한 자리 — 기간을 바꾸는 동안(옛 overview 가 남은 loading)에도 떼지 않는다(P1-2 리뷰) @plm SRS-078 */}
+        {!loading || overview ? (
+          <div className={hasData && overview ? "" : "mt-[var(--spacing-lg)]"}>
+            <BodyweightCard />
+          </div>
+        ) : null}
+        {loading && !overview ? null : !hasData || !overview ? null : (
+          <>
             <SectionLabel title={t("wellness.oneRepMaxLabel")} />
             {overview.topOneRM.length === 0 ? (
               <AppText
@@ -372,8 +390,8 @@ export default function StatsClient() {
         {e1rm ? <PlateauCard data={e1rm} asOfMs={asOfMs} /> : null}
         {weekly ? <WeeklyMuscleCard data={weekly} /> : null}
 
-        {/* 체중 — 운동 기록이 없어도 보인다(자기 기간 선택) @plm SRS-078 */}
-        {!loading || overview ? <BodyweightCard /> : null}
+        {/* [원본] 체중 — 운동 기록이 없어도 보인다(자기 기간 선택) @plm SRS-078 — 맨 아래였다. 위로 옮겼다(SPEC-049)
+        {!loading || overview ? <BodyweightCard /> : null} */}
 
         <AppText
           variant="caption"

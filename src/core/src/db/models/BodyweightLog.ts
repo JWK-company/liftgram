@@ -14,6 +14,8 @@ export default class BodyweightLog extends Model {
   @field('weight_kg') declare weightKg: number | null; // 정규 kg
   @field('source') declare source: BodyweightSource | null; // null = manual
   @text('note') declare note: string | null;
+  @field('skeletal_muscle_kg') declare skeletalMuscleKg: number | null; // v29 인바디(SPEC-049)
+  @field('body_fat_pct') declare bodyFatPct: number | null; // v29 인바디(SPEC-049)
   @readonly @date('created_at') declare createdAt: Date;
   @readonly @date('updated_at') declare updatedAt: Date;
 }
