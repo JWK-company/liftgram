@@ -236,7 +236,7 @@ for id,name,label,ev,desc in [
  ('s.ctopic','크리에이터 주제 시트','프로 루틴·초보자 루틴 카드','C/routines/CreatorRoutineSheet.tsx:55','주제 안내'),
  ('s.cver','크리에이터 루틴 시트','버전 카드','C/routines/CreatorRoutineSheet.tsx:194','버전 상세와 저장'),
  ('s.cdupe','이미 있는 루틴','저장 이름 중복','C/routines/CreatorRoutineSheet.tsx:181','중복 안내'),
- ('s.sched','주간 스케줄 편집','주간 스케줄 첫 줄 「📅 편집」','C/routines/ScheduleEditor.tsx:134','요일별 배정'),
+ ('s.sched','주간 스케줄 편집','운동 홈(S-01) 주간 스케줄 카드 첫 줄 오른쪽 「📅 편집」으로 연다 — 버튼 모습은 S-01 사진','C/routines/ScheduleEditor.tsx:134','요일별 배정'),
  ('s.schedday','요일 배정 시트','요일 탭','C/routines/ScheduleEditor.tsx:95','요일에 배정'),
  ('s.schedrm','주간 스케줄 삭제','삭제 탭','C/routines/ScheduleEditor.tsx:121','삭제 확인'),
  ('s.routine-actions','루틴 동작 시트','루틴 메뉴','C/routines/RoutinesClient.tsx:714','루틴 메뉴'),
