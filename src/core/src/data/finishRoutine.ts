@@ -22,6 +22,9 @@ import {
 import type { AppLanguage, MuscleGroup } from '../domain/types';
 import { scheduleSync } from '../sync/syncEngine';
 import { schemeOf } from '../domain/setSchemes'; // 세트 방식(SPEC-041)
+// [원본] import { restOverridesOf } from '../domain/restPlan'; // 세트별 휴식(SPEC-051)
+import { restOverridesOf, rxScheme, type RestOverrides } from '../domain/restPlan'; // 세트별 휴식(SPEC-051)
+import { rememberedRestOverrides } from './workoutRepository'; // 시작 때 실린 휴식 기억(SPEC-051 리뷰)
 import { resolveLoadMode } from '../domain/volume';
 import { randomId } from '../utils/id';
 
@@ -46,6 +49,18 @@ export async function getSessionBlocks(workoutId: string): Promise<SessionBlock[
     (a, b) => a.sortOrder - b.sortOrder || (a.createdAt?.getTime?.() ?? 0) - (b.createdAt?.getTime?.() ?? 0),
   );
   const rank = new Map(ordered.map((we, i) => [we.id, i]));
+  // 세트별 휴식 기억(SPEC-051 리뷰) — 시작 때 실렸을 지난 칸 값. 루틴 줄에 값이 없고 오늘 값이 이것과 같으면 「루틴에 반영」을 띄우지 않는다
+  const remembered = new Map<string, RestOverrides>();
+  for (const we of ordered) {
+    if (!we.routineExerciseId || !rxScheme(we.prescription ?? null)) continue;
+    remembered.set(
+      we.id,
+      await rememberedRestOverrides(we.exerciseId, we.id, {
+        exceptWorkoutId: workoutId,
+        beforeMs: we.createdAt?.getTime?.() ?? undefined,
+      }),
+    );
+  }
   return ordered.map((we) => {
     const mine = sets.filter((s) => s.workoutExerciseId === we.id && s.done !== false);
     const working = mine.filter((s) => !s.isWarmup);
@@ -67,6 +82,8 @@ export async function getSessionBlocks(workoutId: string): Promise<SessionBlock[
       scheme: schemeOf(we.prescription ?? null),
       schemeAllowLoad: !!ex && ex.kind !== 'cardio' && resolveLoadMode(ex) === 'external',
       equipment: ex?.equipment ?? null,
+      restOverrides: restOverridesOf(we.prescription ?? null), // 세트별 휴식(SPEC-051)
+      restRemembered: remembered.get(we.id) ?? null, // 시작 때 실린 기억(SPEC-051 리뷰)
     };
   });
 }
@@ -113,6 +130,7 @@ export async function getFinishPrompt(workoutId: string): Promise<FinishPrompt> 
       ? re.prescription.filter((r) => r.setType === 'warmup' || r.setType === 'feeder').length
       : 0,
     scheme: schemeOf(re.prescription ?? null),
+    prescription: re.prescription ?? null, // 세트별 휴식 반영(SPEC-051)
   }));
   const plan = diffRoutine(routine.id, lines, blocks);
   if (plan.changes.length === 0) return { kind: 'none', routineName: routine.name, plan, blocks };

@@ -335,7 +335,8 @@ async function snapshotOnce(): Promise<void> {
   const inp = await repo.loadLockSnapshotInput(active.id);
   if (!inp) return;
   const { buildLockSnapshot } = await import("@app/core/domain/lockScreen");
-  const { restSecondsForSetType } = await import("@app/core/domain/prescription");
+  // [원본] const { restSecondsForSetType } = await import("@app/core/domain/prescription");
+  const { restAfterInBlock } = await import("@app/core/domain/restPlan"); // SPEC-051
   const { getRestSoundKind, getRestVolumeLevel } = await import("./restSound");
   const { t } = await import("./i18n");
   const vol = getRestVolumeLevel();
@@ -352,8 +353,11 @@ async function snapshotOnce(): Promise<void> {
     paused: inp.paused,
     sound: { enabled: true, preset: getRestSoundKind(), volume: vol === "mid" ? 1 : vol === "loud" ? 2 : 3 },
     now: Date.now(),
-    restAfter: (s, b) =>
-      restSecondsForSetType((s.setType ?? null) as Parameters<typeof restSecondsForSetType>[0], b.restSec),
+    // [원본] restAfter: (s, b) =>
+    //   restSecondsForSetType((s.setType ?? null) as Parameters<typeof restSecondsForSetType>[0], b.restSec),
+    // [개선] 화면·완료 흐름과 같은 「다음 세트」 기준(SPEC-051) — 이 세트를 마쳤다고 보고 다음 안 한 세트로
+    // (계산은 core restAfterInBlock 하나 — 단위 시험으로 고정 · SPEC-051 리뷰)
+    restAfter: (s, b) => restAfterInBlock(b, s.id),
     // 잠금 운동 화면의 운동 시간·테마(SPEC-021)
     clock: { startedAt: inp.startedAt, accumulatedPauseMs: inp.accumulatedPauseMs, pausedAt: inp.pausedAt },
     theme: getTheme(),

@@ -70,6 +70,7 @@ export function MoveButtons({
 
 export function BlockTools({
   restSeconds,
+  restKindChanged = false,
   onRest,
   note,
   onNote,
@@ -77,6 +78,8 @@ export function BlockTools({
   onMoveDown,
 }: {
   restSeconds: number;
+  /** 세트 종류별 휴식을 바꾼 값이 있다(SPEC-051) — 칩 끝에 작은 점 */
+  restKindChanged?: boolean;
   onRest: () => void;
   /** 저장된(또는 쓰는 중인) 메모 — 있으면 첫 줄을 미리 보인다 */
   note: string;
@@ -105,7 +108,9 @@ export function BlockTools({
         type="button"
         data-testid="btn-rest-setting"
         onClick={onRest}
-        aria-label={`${t("session.restTime")} — ${formatRestShort(restSeconds)}`}
+        // [원본] aria-label={`${t("session.restTime")} — ${formatRestShort(restSeconds)}`}
+        aria-label={`${t("session.restTime")} — ${formatRestShort(restSeconds)}${restKindChanged ? ` · ${t("session.restKindDot")}` : ""}`}
+        data-rest-kind-changed={restKindChanged ? "1" : "0"}
         // [원본] 바탕 없는 회색 아이콘 + 글자 — 「휴식 시간을 바꾸는 곳」인지 몰랐다(사용성 1)
         // [개선] 값 칩 — 바깥 44px 누르는 자리는 그대로(feedback-62-64), 바탕은 안쪽(SPEC-046)
         className="inline-flex min-h-[44px] shrink-0 items-center rounded-[var(--radius-sm)] tabular-nums focus-visible:outline-2 focus-visible:outline-(--color-brand)"
@@ -116,6 +121,14 @@ export function BlockTools({
         >
           <Icon name="timer-outline" size={14} color="var(--color-ink3)" />
           {t("session.restShort", { time: formatRestShort(restSeconds) })}
+          {/* 종류별로 바꾼 값이 있으면 작은 점(SPEC-051) — 회색(빨강은 완료 전용) */}
+          {restKindChanged ? (
+            <span
+              aria-hidden
+              data-testid="rest-kind-dot"
+              className="inline-block h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-ink2)"
+            />
+          ) : null}
         </span>
       </button>
       <span aria-hidden className="text-(--color-ink3)">

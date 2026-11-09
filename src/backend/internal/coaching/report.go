@@ -70,6 +70,8 @@ type PrescribedSet struct {
 	// SPEC-041 세트 방식 — 코칭 계약(proto)에는 없다. 회원 줄의 값을 코치 저장에서 지키려고 읽어 둔다.
 	Amrap  bool   `json:"amrap,omitempty"`  // 횟수 「최대」
 	Scheme string `json:"scheme,omitempty"` // 이 줄을 만든 세트 방식
+	// SPEC-051 세트별 휴식 — 이 줄 직전 휴식을 사람이 정한 값(초 · 0~900). 코칭 계약에는 없어 회원 값을 코치 저장에서 지킨다.
+	Rest *int `json:"rest,omitempty"`
 }
 
 type RoutineExercise struct {

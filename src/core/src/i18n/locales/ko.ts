@@ -1153,6 +1153,23 @@ export const ko = {
   "session.lockTitleFallback": "운동 중",
   "session.restTime": "휴식 시간",
   "session.restShort": "휴식 {time}", // @plm SRS-084
+  "session.restKind.base": "기본 세트", // SPEC-051
+  "session.restKind.warmup": "웜업 사이", // SPEC-051
+  "session.restKind.feeder": "피더 전", // SPEC-051
+  "session.restKind.beforeTop": "탑 직전", // SPEC-051
+  "session.restKind.afterTop": "탑 뒤", // SPEC-051
+  "session.restKind.backoff": "백오프 사이", // SPEC-051
+  "session.restKind.beforeWork": "첫 본세트 직전", // SPEC-051
+  "session.restKind.work": "본세트 사이", // SPEC-051
+  "session.restKind.ramp": "세트 사이(점점 늘림)", // SPEC-051
+  "session.restKindReset": "권장값으로", // SPEC-051
+  "session.restKindChanged": "바꿈", // SPEC-051
+  "session.restKindHint": "종류별 값은 이 종목에 계속 쓰여요", // SPEC-051
+  "session.restKindDot": "종류별 휴식을 바꿨어요", // SPEC-051
+  "session.restKindAria": "{kind} 휴식 {time}", // SPEC-051
+  "session.restKindMinus": "{kind} 휴식 {time} · 15초 줄이기", // SPEC-051 리뷰 — [−] 버튼(지금 값 포함)
+  "session.restKindPlus": "{kind} 휴식 {time} · 15초 늘리기", // SPEC-051 리뷰 — [+] 버튼(지금 값 포함)
+  "finish.change.rest": "{name} 세트별 휴식", // SPEC-051
   "session.noteShort": "메모", // @plm SRS-084
   "session.noteEditAria": "메모 쓰기 — {note}", // @plm SRS-084
   "session.plateAsk": "원판 한쪽 무게로 적나요?", // @plm SRS-084

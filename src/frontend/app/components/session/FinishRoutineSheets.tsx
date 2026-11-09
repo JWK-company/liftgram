@@ -191,6 +191,9 @@ function ChangeLabel({ change }: { change: RoutineChange }) {
       const nm = (id: string | null) => t(`scheme.name.${id ?? "straight"}` as Parameters<typeof t>[0]);
       return <>{t("finish.change.scheme", { name: a ?? "", from: nm(change.from), to: nm(change.to) })}</>;
     }
+    case "rest":
+      // 세트별 휴식(SPEC-051) — 이 종목에서 종류별로 정한 휴식을 루틴 줄에
+      return <>{t("finish.change.rest", { name: a ?? "" })}</>;
     case "add":
       return <>{t("finish.change.add", { name: a ?? "" })}</>;
     case "remove":

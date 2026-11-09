@@ -6,7 +6,8 @@
 // 축하(PR)·제안 칩은 화면 전용이라 이 흐름 밖에 둔다. 저장소는 주입한다(DB 없는 단위 테스트 · node 메모리 DB 테스트).
 import { planRoundFills, type SimBlock } from './lockScreen';
 import type { LoadFill } from './prescription';
-import { restSecondsForSetType, restSecondsForRx, type PrescribedSetType } from './prescription';
+// [원본] import { restSecondsForSetType, restSecondsForRx, type PrescribedSetType } from './prescription';
+import { restBeforeNextSet } from './restPlan'; // 다음 세트 기준 휴식(SPEC-051)
 
 export interface CompleteSetsRepo {
   completeSupersetRound(
@@ -92,14 +93,23 @@ export async function completeSetsFlow(repo: CompleteSetsRepo, input: CompleteSe
   // [개선] 처방이 드롭인 줄로 좁힌다 — 손으로 드롭을 표시해 쓰던 루틴의 휴식은 그대로(REV-076 화면 M-6)
   const sorted = block ? [...block.sets].sort((a, b) => a.setNumber - b.setNumber) : [];
   const setIdx = set ? sorted.findIndex((x) => x.id === set.id) : -1;
-  const nextIdx = setIdx >= 0 ? sorted.findIndex((x, i) => i > setIdx && x.done !== true) : -1;
-  const nextRxDrop = nextIdx >= 0 && block?.rx?.[nextIdx]?.setType === 'drop' && sorted[nextIdx].isDrop === true;
+  // [원본] 마친 세트 타입 기준
+  // const nextIdx = setIdx >= 0 ? sorted.findIndex((x, i) => i > setIdx && x.done !== true) : -1;
+  // const nextRxDrop = nextIdx >= 0 && block?.rx?.[nextIdx]?.setType === 'drop' && sorted[nextIdx].isDrop === true;
+  // const restSec =
+  //   block && set
+  //     ? nextRxDrop && set.isWarmup !== true
+  //       ? 0
+  //       : restSecondsForRx((set.setType ?? null) as PrescribedSetType | null, block.restSec, block.rx?.[setIdx] ?? null)
+  //     : 0;
+  // [개선] 세트 방식 블록은 「다음 세트」 기준(SPEC-051) — 방식 없는 블록은 restPlan 안에서 위 규칙 그대로
+  // [원본] block && set && setIdx >= 0 ? restBeforeNextSet(…) : 0 — 세트를 블록에서 못 찾으면 휴식이 0(타이머 없음)이 됐다
+  // [개선] 못 찾으면 종목 휴식(SPEC-051 리뷰)
   const restSec =
     block && set
-      ? nextRxDrop && set.isWarmup !== true
-        ? 0
-        : // [원본] restSecondsForSetType(…) — 세트 방식 근력 줄은 최소 180초(REV-076 코치 7)
-          restSecondsForRx((set.setType ?? null) as PrescribedSetType | null, block.restSec, block.rx?.[setIdx] ?? null)
+      ? setIdx >= 0
+        ? restBeforeNextSet({ sets: sorted, doneIdx: setIdx, rx: block.rx, fallback: block.restSec })
+        : block.restSec
       : 0;
   return { changed, restSec, fills, fillError };
 }

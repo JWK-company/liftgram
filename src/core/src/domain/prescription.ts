@@ -30,6 +30,7 @@ export interface PrescribedSet {
   loadKg?: number; // fixed 0~500(정규 kg)
   amrap?: boolean; // SPEC-041: 횟수 「최대」(할 수 있는 만큼) — 있으면 repMin·repMax 는 쓰지 않는다
   scheme?: SchemeId; // SPEC-041: 이 줄을 만든 세트 방식
+  rest?: number; // SPEC-051: 이 줄 **직전** 휴식을 사람이 정한 값(초 · 0~900) — 칸(restPlan)마다 같은 값. 없으면 권장값
 }
 
 // 무게 기준 값의 허용 범위 — 밖이면 기준째 버린다(엉뚱한 무게를 채우는 것보다 안 채우는 게 낫다). 서버와 같은 값.
@@ -55,6 +56,7 @@ const LEGACY_PRESCRIPTION_KEYS: [string, string[]][] = [
   ['loadKg', ['LoadKg', 'LoadKG']],
   ['amrap', ['Amrap', 'AMRAP']],
   ['scheme', ['Scheme']],
+  ['rest', ['Rest']],
 ];
 function withLegacyPrescriptionKeys(o: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = { ...o };
@@ -92,6 +94,10 @@ export function sanitizePrescriptionValue(raw: unknown): PrescribedSet[] | null 
       ...sanitizeLoadBasis(o),
       ...(o.amrap === true ? { amrap: true } : {}),
       ...(SCHEME_IDS.includes(o.scheme as SchemeId) ? { scheme: o.scheme as SchemeId } : {}),
+      // SPEC-051 사람이 정한 직전 휴식 — 범위 밖이면 버린다(권장값으로)
+      ...(typeof o.rest === 'number' && Number.isFinite(o.rest) && o.rest >= 0 && o.rest <= 900
+        ? { rest: Math.round(o.rest) }
+        : {}),
     });
   }
   return out.length > 0 ? out : null;

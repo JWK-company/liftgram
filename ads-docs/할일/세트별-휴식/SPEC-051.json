@@ -1,0 +1,1623 @@
+{
+ "doc": {
+  "content": [
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "목표",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "세트 방식(SPEC-041)으로 짠 종목의 휴식을 ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ],
+      "text": "「다음 세트」 기준",
+      "type": "text"
+     },
+     {
+      "text": "으로 다시 정하고, ⏱ 휴식 시트에서 ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ],
+      "text": "종류별 휴식을 직접 정해",
+      "type": "text"
+     },
+     {
+      "text": " 그 종목에 계속 쓰게 한다. 사용자 승인 표 그대로 구현한다(2026-11-09).",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "text": "등급 Feature — 공유 core 도메인 한 파일 추가·저장소 몇 함수·운동 화면 휴식 시트. ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ],
+      "text": "로컬 스키마(v29)는 바꾸지 않는다",
+      "type": "text"
+     },
+     {
+      "text": "(같은 시기 코칭이 v30 을 쓴다).",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "범위(바꿀 파일)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/restPlan.ts",
+          "type": "text"
+         },
+         {
+          "text": "(새) — 다음 세트 기준 휴식·종류(칸) 판정·사용자 값 읽기/쓰기·기억 덧씌우기(순수)",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/prescription.ts",
+          "type": "text"
+         },
+         {
+          "text": " — ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "PrescribedSet.rest",
+          "type": "text"
+         },
+         {
+          "text": "(선택 필드) 정리 함수에 추가",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/completeSetsFlow.ts",
+          "type": "text"
+         },
+         {
+          "text": " — 휴식 계산을 restPlan 으로",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/routineDiff.ts",
+          "type": "text"
+         },
+         {
+          "text": " — 「세트별 휴식」 변경 항목·반영 계획에 사용자 값 싣기",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/data/workoutRepository.ts",
+          "type": "text"
+         },
+         {
+          "text": " — 사용자 값 저장·지난 기억 읽기·루틴 시작/다시 하기/세트 방식 바꾸기 때 덧씌우기",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/data/finishRoutine.ts",
+          "type": "text"
+         },
+         {
+          "text": " — 블록·루틴 줄에 처방/사용자 값 싣기",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/i18n/locales/ko.ts",
+          "type": "text"
+         },
+         {
+          "text": "·",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "en.ts",
+          "type": "text"
+         },
+         {
+          "text": " — 칸 이름·시트 문구·변경 항목",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/core/src/domain/__tests__/restPlan.test.ts",
+          "type": "text"
+         },
+         {
+          "text": "(새) — 단위 시험",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/app/components/session/ExerciseBlock.tsx",
+          "type": "text"
+         },
+         {
+          "text": " — 세트 완료 휴식·휴식 시트(종류별 줄)",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/app/components/session/BlockTools.tsx",
+          "type": "text"
+         },
+         {
+          "text": " — 「휴식 2:00」 칩에 바꾼 값 점",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/app/components/session/FinishRoutineSheets.tsx",
+          "type": "text"
+         },
+         {
+          "text": " — 변경 항목 글자",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/lib/lockBridge.ts",
+          "type": "text"
+         },
+         {
+          "text": " — 잠금 화면 휴식도 같은 규칙",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "src/frontend/e2e/rest-by-kind.spec.ts",
+          "type": "text"
+         },
+         {
+          "text": "(새) · 기존 휴식·세트 방식 e2e 기대값",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "설계 — 규칙(다음 세트 기준)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "text": "방금 마친 세트 다음의 ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ],
+      "text": "아직 안 한 첫 세트",
+      "type": "text"
+     },
+     {
+      "text": "와 그 앞 세트의 종류로 「칸」을 정한다. 칸이 정한 값이 그 사이 휴식이다. 처방에 세트 방식(scheme) 표시가 없는 블록(일반·직접 구성)은 ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ],
+      "text": "지금 규칙 그대로",
+      "type": "text"
+     },
+     {
+      "text": "(restSecondsForRx · 드롭 처방 줄 앞 0초).",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "칸",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_header"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "언제(앞 → 다음)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_header"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "기본값",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_header"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "warmup 「웜업 사이」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "→ 웜업",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "45",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "feeder 「피더 전」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "→ 피더(웜업·피더 뒤)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "90",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "beforeTop 「탑 직전」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "→ 탑",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "240(역피라미드 180)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "afterTop 「탑 뒤」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "탑 → 백오프",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "180",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "backoff 「백오프 사이」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "→ 백오프(탑 뒤 아님)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "150, 그 백오프가 1RM 78% 이상이면 180",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "beforeWork 「첫 본세트 직전」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "웜업·피더 → 일반·드롭",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "max(120, 본세트 사이 값)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "work 「본세트 사이」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "5×5 일반 → 일반",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "max(종목 휴식, 180)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "ramp 「세트 사이(점점 늘림)」",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "피라미드 일반 → 일반",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "시작 120, +30초씩, 마지막 직전 = 시작+60",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "(드롭)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "→ 드롭",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "0 — 타이머를 걸지 않는다",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "(기본)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "그 밖(드롭 세트 방식의 같은 무게 N세트·드롭 묶음 뒤)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       },
+       {
+        "content": [
+         {
+          "content": [
+           {
+            "text": "종목 휴식(1RM 78% 이상 줄은 최소 180 — 지금 규칙)",
+            "type": "text"
+           }
+          ],
+          "type": "paragraph"
+         }
+        ],
+        "type": "table_cell"
+       }
+      ],
+      "type": "table_row"
+     }
+    ],
+    "type": "table"
+   },
+   {
+    "content": [
+     {
+      "text": "다음 세트가 없으면(마지막 세트) 종목 휴식. 사용자가 정한 칸 값은 최소값 규칙보다 ",
+      "type": "text"
+     },
+     {
+      "marks": [
+       {
+        "type": "strong"
+       }
+      ],
+      "text": "우선",
+      "type": "text"
+     },
+     {
+      "text": "한다. 웜업 → 피더는 표에 없어 피더 칸(90)으로 정했다.",
+      "type": "text"
+     }
+    ],
+    "type": "paragraph"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "설계 — 저장(어디에 왜)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ],
+          "text": "처방 JSON 줄의 선택 필드 `rest`(초)",
+          "type": "text"
+         },
+         {
+          "text": " = 「이 줄 직전 휴식을 사람이 정한 값」. 같은 칸인 줄 전부에 같은 값을 적고, 읽을 때는 줄들에서 칸 → 값 맵을 만든다. workout_exercises·routine_exercises 의 prescription 은 이미 계정과 함께 동기되므로 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ],
+          "text": "스키마 변경 없이 기기 사이로 간다",
+          "type": "text"
+         },
+         {
+          "text": ". 「권장값으로」는 줄에서 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " 를 지운다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "exercise_user_prefs 는 JSON 칸이 없고(칸 추가 = 스키마 변경), app_prefs 는 키 50개·값 200자 상한이라 종목별 맵을 담을 수 없어 쓰지 않았다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ],
+          "text": "다음 운동에도",
+          "type": "text"
+         },
+         {
+          "text": ": 세트 방식이 있는 블록이 만들어질 때(루틴 시작·다시 하기·운동 중 세트 방식 바꾸기) 그 처방에 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " 가 하나도 없으면, 같은 종목의 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ],
+          "text": "가장 최근 세트 방식 블록",
+          "type": "text"
+         },
+         {
+          "text": "의 칸 값을 덧씌운다(지난 기록 기억 — 동기되는 행이라 다른 기기에서도 같다). 운동 중 바꾸기는 지금 블록에 값이 있으면 그것을 새 틀로 옮긴다. 가장 최근 블록에서 권장값으로 되돌렸으면 기억도 비어 있다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "marks": [
+           {
+            "type": "strong"
+           }
+          ],
+          "text": "루틴에 반영",
+          "type": "text"
+         },
+         {
+          "text": ": 루틴 줄과 방식이 같고 칸 값이 다르면 끝낼 때 「{종목} 세트별 휴식」 항목(기본 체크)이 뜨고, 반영하면 루틴 줄 처방에 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " 를 쓴다. 세트 방식 바꾸기·추가 종목 반영 때도 새 틀에 칸 값을 싣는다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "설계 — 화면",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "⏱ 휴식 시트: 맨 위 「기본 세트」(지금 스테퍼 그대로) + 그 블록 처방에 나오는 칸만 순서대로 한 줄씩([−] m:ss [+] · 15초 · 0~15:00 · 누르는 자리 44px). 바꾼 줄은 이름 옆 점, 바꾼 줄이 있으면 「권장값으로」. 칸이 없으면(일반 세트) 지금과 같은 한 줄. 닫을 때 한 번 저장.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "블록 도구 칩 글자는 「휴식 2:00」 그대로 + 바꾼 칸이 있으면 작은 점(강조색 아님·ink3).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "잠금 화면 스냅샷의 restAfter 도 같은 함수(restBeforeNextSet).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "작업 단계",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] P1 core: restPlan.ts · prescription ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " · completeSetsFlow · 단위 시험",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] P1 저장소: 칸 값 저장·기억 읽기·루틴 시작/다시 하기/세트 방식 바꾸기 덧씌우기 · 끝낼 때 반영 항목",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] P1 화면: 세트 완료 휴식 · 휴식 시트 종류별 줄 · 칩 점 · 잠금 다리 · i18n",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "[x] P1 시험: tsc · core bun test · 기존 휴식/세트 방식 e2e · 새 e2e",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "수용 기준",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "탑·백오프 종목: 피더 완료 → 휴식 4:00, 탑 완료 → 3:00, 백오프 사이 2:30 · 5×5 웜업 → 첫 본세트 3:00 · 피라미드 2:00 → 2:30 → 3:00 · 드롭 앞은 타이머 없음.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "시트에서 「탑 직전」 4:30 → 피더 완료 시 4:30 · 새로고침 뒤에도 · 다음 운동에서 같은 방식을 고르면 4:30.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "일반 종목은 시트 한 줄·휴식 동작 그대로. 360px 넘침 없음 · 다크에서 토큰 색.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "테스트 계획",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "core 단위: 방식별·위치별 표 전부, 드롭 0초, 78% 백오프, 마지막 세트, 사용자 값 우선(최소값보다), 칸 값 읽기/쓰기 왕복, 기억 덧씌우기(자기 값 있으면 안 덮음), 처방 정리 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " 범위, routineDiff 「세트별 휴식」 항목·반영.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "e2e: set-scheme · session · value-chips · feedback-62-64 · session-header-tools · lock-bridge 회귀 + 새 rest-by-kind(탑·백오프 흐름·시트·새로고침·다음 운동·일반 한 줄·360px·다크).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "위험",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "코치가 코칭 화면에서 회원 루틴 처방을 고치면 서버 KeepMemberStart 가 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " 를 잇지 않아 루틴 줄의 칸 값이 빠질 수 있다(지난 기록 기억은 남는다) — 서버 코칭은 다른 작업이 고치는 중이라 이번에 손대지 않음.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "옛 앱 버전은 처방 정리에서 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "rest",
+          "type": "text"
+         },
+         {
+          "text": " 를 버린다 — 옛 기기에서 그 처방을 다시 쓰면 값이 사라진다(읽기 하위호환은 문제없음).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "세트를 추가·삭제해 처방 줄과 세트가 어긋나도 칸은 세트 종류로 정하고 값은 칸 맵에서 읽으므로 안전하다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   },
+   {
+    "attrs": {
+     "level": 2
+    },
+    "content": [
+     {
+      "text": "실행 결과(2026-11-09)",
+      "type": "text"
+     }
+    ],
+    "type": "heading"
+   },
+   {
+    "content": [
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "core 단위 시험 ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "restPlan.test.ts",
+          "type": "text"
+         },
+         {
+          "text": " 16건 통과 · ",
+          "type": "text"
+         },
+         {
+          "marks": [
+           {
+            "type": "code"
+           }
+          ],
+          "text": "bun test",
+          "type": "text"
+         },
+         {
+          "text": " 전체 726 통과 / 8 실패(본 트리에서도 실패하는 Watermelon 데코레이터 — 무관) · tsc(frontend·core) 통과.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "e2e(운영 빌드 3220/3221 · 새 DB): rest-by-kind 2건 + set-scheme·session·value-chips·feedback-62-64·session-header-tools·set-table·lock-bridge·session-assist → 62 통과 · 2 건너뜀(결함 주입 빌드 전용) · 실패 0. 기존 기대값 수정은 필요 없었다.",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     },
+     {
+      "content": [
+       {
+        "content": [
+         {
+          "text": "「루틴에 반영」은 단위 시험으로만 확인(e2e 없음).",
+          "type": "text"
+         }
+        ],
+        "type": "paragraph"
+       }
+      ],
+      "type": "list_item"
+     }
+    ],
+    "type": "bullet_list"
+   }
+  ],
+  "type": "doc"
+ },
+ "group": "할일/세트별-휴식",
+ "id": "SPEC-051",
+ "meta": {
+  "grade": "Feature",
+  "phases": "1",
+  "phases_done": "1"
+ },
+ "relations": {
+  "implements": [
+   "SRS-105"
+  ]
+ },
+ "schemaVersion": 1,
+ "tags": [],
+ "title": "세트 방식별 휴식 — 다음 세트 기준 · 종류별 휴식 직접 정하기",
+ "type": "Spec",
+ "updated": "2026-11-09T12:27:56Z"
+}

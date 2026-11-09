@@ -1149,6 +1149,23 @@ export const en: Record<TransKey, string> = {
   "session.lockTitleFallback": "Workout",
   "session.restTime": "Rest Time",
   "session.restShort": "Rest {time}", // @plm SRS-084
+  "session.restKind.base": "Regular sets", // SPEC-051
+  "session.restKind.warmup": "Between warm-ups", // SPEC-051
+  "session.restKind.feeder": "Before feeder", // SPEC-051
+  "session.restKind.beforeTop": "Before top set", // SPEC-051
+  "session.restKind.afterTop": "After top set", // SPEC-051
+  "session.restKind.backoff": "Between back-offs", // SPEC-051
+  "session.restKind.beforeWork": "Before first work set", // SPEC-051
+  "session.restKind.work": "Between work sets", // SPEC-051
+  "session.restKind.ramp": "Between sets (ramps up)", // SPEC-051
+  "session.restKindReset": "Use recommended", // SPEC-051
+  "session.restKindChanged": "changed", // SPEC-051
+  "session.restKindHint": "Per-type values stay with this exercise", // SPEC-051
+  "session.restKindDot": "Rest by set type changed", // SPEC-051
+  "session.restKindAria": "{kind} rest {time}", // SPEC-051
+  "session.restKindMinus": "{kind} rest {time} · 15 s less", // SPEC-051 리뷰 — [−] 버튼(지금 값 포함)
+  "session.restKindPlus": "{kind} rest {time} · 15 s more", // SPEC-051 리뷰 — [+] 버튼(지금 값 포함)
+  "finish.change.rest": "{name} rest by set type", // SPEC-051
   "session.noteShort": "Note", // @plm SRS-084
   "session.noteEditAria": "Edit note — {note}", // @plm SRS-084
   "session.plateAsk": "Logging one side of the plates?", // @plm SRS-084

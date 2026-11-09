@@ -13,6 +13,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -970,5 +971,48 @@ func TestKeepMemberScheme(t *testing.T) {
 	}
 	if s := SanitizePrescription([]PrescribedSet{{SetType: "feeder", Scheme: "bogus", Amrap: true}}); s[0].SetType != "feeder" || s[0].Scheme != "" || !s[0].Amrap {
 		t.Fatalf("정리 규칙: %+v", s[0])
+	}
+}
+
+// SPEC-051 — 코치 저장이 회원 루틴의 세트별 휴식(rest)을 지우지 않는다 · 정리는 0~900 정수만.
+func TestKeepMemberRest(t *testing.T) {
+	sec := func(v int) *int { return &v }
+	stored := []PrescribedSet{
+		{SetType: "warmup", Scheme: "topBackoff"},
+		{SetType: "top", Scheme: "topBackoff", Rest: sec(300)},
+		{SetType: "backoff", Scheme: "topBackoff", Rest: sec(200)},
+	}
+	clean := SanitizePrescription([]PrescribedSet{{SetType: "warmup"}, {SetType: "top"}, {SetType: "normal"}})
+	got := KeepMemberStart(clean, stored)
+	if got[1].Rest == nil || *got[1].Rest != 300 {
+		t.Fatalf("휴식이 사라졌다: %+v", got[1])
+	}
+	if got[2].Rest != nil {
+		t.Fatalf("코치가 타입을 바꾼 줄엔 잇지 않는다: %+v", got[2])
+	}
+	if got[0].Rest != nil {
+		t.Fatalf("없는 값을 만들면 안 된다: %+v", got[0])
+	}
+	// 줄 수가 다르면 잇지 않는다
+	if r := KeepMemberStart(clean[:2], stored); r[1].Rest != nil {
+		t.Fatalf("줄 수가 다르면 잇지 않는다: %+v", r[1])
+	}
+	// 정리 — 범위 밖은 버린다
+	s := SanitizePrescription([]PrescribedSet{{SetType: "normal", Rest: sec(0)}, {SetType: "normal", Rest: sec(900)}, {SetType: "normal", Rest: sec(901)}, {SetType: "normal", Rest: sec(-1)}})
+	if s[0].Rest == nil || *s[0].Rest != 0 || s[1].Rest == nil || *s[1].Rest != 900 || s[2].Rest != nil || s[3].Rest != nil {
+		t.Fatalf("정리 규칙: %+v", s)
+	}
+	// 저장 JSON 은 앱이 읽는 키(rest) · 없으면 키가 없다
+	b, _ := json.Marshal(got)
+	if !strings.Contains(string(b), `"rest":300`) || strings.Count(string(b), `"rest"`) != 1 {
+		t.Fatalf("직렬화: %s", b)
+	}
+	// 저장된 문자열에서 읽어도 이어진다(SetMemberPrescription 경로)
+	var back []PrescribedSet
+	if err := json.Unmarshal([]byte(`[{"setType":"warmup"},{"setType":"top","rest":240},{"setType":"backoff"}]`), &back); err != nil {
+		t.Fatal(err)
+	}
+	if r := KeepMemberStart(clean, back); r[1].Rest == nil || *r[1].Rest != 240 {
+		t.Fatalf("저장 문자열에서 잇기: %+v", r[1])
 	}
 }

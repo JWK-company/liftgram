@@ -41,6 +41,7 @@ import {
 import { pickPrSets, countMajorPrs, sweepPrCounts, type PrSweepWorkout } from '../domain/personalRecords'; // PR 2종 칩 · PR 수 재계산 @plm SRS-061
 import { resolvePrescribedLoad, planPrescribedLoadFills, roundLoadKg } from '../domain/prescription'; // 처방 무게 기준 @plm SRS-063
 import type { PrescribedSetType, SchemeId } from '../domain/prescription';
+import { applyRememberedRest, restOverridesOf, rxScheme, sameRestOverrides, withRestOverrides, type RestOverrides } from '../domain/restPlan'; // 세트별 휴식(SPEC-051)
 import { remainingSchemeRows, schemeAllowed, schemeOf, type DoneSetKind } from '../domain/setSchemes'; // 세트 방식(SPEC-041)
 import { copyTargetIndexes } from '../domain/copySetValues'; // 다른 세트도 똑같이(SRS-106)
 import { roundKeyOf, pickRoundSets } from '../domain/supersetRound'; // 슈퍼셋 화면 번호 짝 @plm SRS-062
@@ -1233,6 +1234,50 @@ export async function setWorkoutExerciseRestSeconds(workoutExerciseId: string, s
   });
 }
 
+/**
+ * 세트별 휴식(SPEC-051) — 사람이 정한 칸 값을 이번 운동 행의 처방 줄(`rest`)에 쓴다. 시트를 닫을 때 한 번. 같으면 쓰지 않는다.
+ * 처방 JSON 은 계정과 함께 동기된다(스키마 변경 없음). 빈 맵 = 권장값으로.
+ */
+export async function setWorkoutExerciseRestOverrides(workoutExerciseId: string, ov: RestOverrides): Promise<boolean> {
+  const changed = await database.write(async () => {
+    const we = await workoutExercises().find(workoutExerciseId);
+    const rx = we.prescription;
+    if (!rx || !rxScheme(rx)) return false;
+    if (sameRestOverrides(restOverridesOf(rx), ov)) return false;
+    const next = withRestOverrides(rx, ov);
+    await we.update((r) => {
+      r.prescription = next;
+    });
+    return true;
+  });
+  if (changed) scheduleSync();
+  return changed;
+}
+
+/**
+ * 이 종목에서 마지막으로 정한 세트별 휴식 — 같은 종목의 **가장 최근 세트 방식 블록**의 칸 값(그 블록에서 권장값으로 되돌렸으면 빈 맵).
+ * 지난 기록(workout_exercises)은 동기되는 행이라 다른 기기에서도 같다. exceptWeId = 지금 블록은 빼고.
+ */
+export async function rememberedRestOverrides(
+  exerciseId: string,
+  exceptWeId?: string,
+  // 완료 판정(루틴에 반영)용 — 그 운동의 행은 빼고, 그 블록을 만들기 전 행만(시작 때 실린 기억과 같은 행을 고른다 · SPEC-051 리뷰)
+  opts?: { exceptWorkoutId?: string; beforeMs?: number },
+): Promise<RestOverrides> {
+  const rows = await workoutExercises().query(Q.where('exercise_id', exerciseId)).fetch();
+  const latest = rows
+    // [원본] .filter((r) => r.id !== exceptWeId && rxScheme(r.prescription))
+    .filter(
+      (r) =>
+        r.id !== exceptWeId &&
+        (opts?.exceptWorkoutId === undefined || r.workoutId !== opts.exceptWorkoutId) &&
+        (opts?.beforeMs === undefined || (r.createdAt?.getTime?.() ?? 0) < opts.beforeMs) &&
+        rxScheme(r.prescription),
+    )
+    .sort((a, b) => (b.createdAt?.getTime?.() ?? 0) - (a.createdAt?.getTime?.() ?? 0))[0];
+  return latest ? restOverridesOf(latest.prescription) : {};
+}
+
 function estimateFromSet(kg: number, reps: number): number {
   return bestEstimatedOneRepMax([{ weightKg: kg, reps, isWarmup: false, isFailed: false }]);
 }
@@ -1601,8 +1646,14 @@ async function startWorkoutFromRows(opts: {
   name: string;
   rows: StartRow[];
   replacing?: string | null;
+  /** 다시 시작·피드(그룹 id 를 새로 만드는 시작) — 원본 처방의 세트별 휴식(rest)을 지우고 내 기억을 싣는다(SPEC-051 리뷰) */
+  freshRest?: boolean;
 }): Promise<Workout> {
-  const rows = opts.rows; // 빈 루틴은 예전처럼 빈 운동으로 시작한다(다시 시작·피드는 부르기 전에 막는다)
+  // [원본] const rows = opts.rows; // 빈 루틴은 예전처럼 빈 운동으로 시작한다(다시 시작·피드는 부르기 전에 막는다)
+  // [개선] 원본 세션·남의 글의 휴식 값은 새 운동으로 새지 않게 — 그룹 id 를 새로 만드는 것과 같은 이유(SPEC-051 리뷰)
+  const rows = opts.freshRest
+    ? opts.rows.map((r) => (r.prescription ? { ...r, prescription: withRestOverrides(r.prescription, {}) } : r))
+    : opts.rows;
   await assertCanStart(opts.replacing);
   // 칸 결정 — 다시 시작은 원본 칸 그대로(variantExact), 루틴·피드는 미지정이면 지난 조합 승계(resolveStartVariant).
   const variants: VariantColumns[] = [];
@@ -1672,6 +1723,13 @@ async function startWorkoutFromRows(opts: {
       );
     }
   }
+  // 세트별 휴식 기억(SPEC-051) — 세트 방식 줄인데 사람이 정한 값이 없으면 이 종목의 지난 칸 값을 싣는다
+  const restMem = new Map<number, RestOverrides>();
+  for (let i = 0; i < rows.length; i++) {
+    const rx = rows[i].prescription;
+    if (!rx || !rxScheme(rx) || rx.some((r) => r.rest !== undefined)) continue;
+    restMem.set(i, await rememberedRestOverrides(rows[i].exerciseId));
+  }
   // 묶음 표식(g:…)은 새 그룹 id 로 — 원본 세션·남의 글의 그룹 id 가 새 운동으로 새지 않게. 루틴의 그룹 id 는 그대로(기존 동작).
   const groupIds = new Map<string, string>();
   const groupOf = (g: string | null): string | null => {
@@ -1722,7 +1780,8 @@ async function startWorkoutFromRows(opts: {
         we.weightUnit = unitAt[i]; // v25 블록 단위 @plm SRS-067
         we.note = r.note?.trim() || null;
         we.cardioTarget = (r.cardioTarget as CardioTargetJson | null) ?? null;
-        we.prescription = r.prescription ?? null;
+        // [원본] we.prescription = r.prescription ?? null;
+        we.prescription = applyRememberedRest(r.prescription ?? null, restMem.get(i)); // SPEC-051 세트별 휴식 기억
       }),
     );
     const setRecords: SetLog[] = [];
@@ -1852,7 +1911,8 @@ export async function startWorkoutFromWorkout(sourceWorkoutId: string, startOpts
   // [원본] name: source.name?.trim() || '빠른 운동' — 자동 이름(「가슴·삼두 · 2종목」)까지 복사돼 종목이 바뀌어도 낡은 채 남았다(P3 QA M3)
   // [개선] 루틴 운동은 루틴 이름 그대로, 빠른 운동의 자동 이름은 기본 이름으로 — 완료 때 다시 짓는다 @plm SRS-071
   const name = routineId ? source.name?.trim() || '빠른 운동' : inheritedWorkoutName(source.name);
-  return startWorkoutFromRows({ routineId, name, rows, replacing: startOpts.replacing });
+  // [원본] return startWorkoutFromRows({ routineId, name, rows, replacing: startOpts.replacing });
+  return startWorkoutFromRows({ routineId, name, rows, replacing: startOpts.replacing, freshRest: true }); // SPEC-051 리뷰
 }
 
 /** 피드의 남의 운동으로 바로 시작 — 종목은 이미 내 기기 종목으로 해석된 뒤다. 루틴을 만들지 않는다. @plm SRS-065 */
@@ -1864,7 +1924,14 @@ export async function startWorkoutFromSpec(
   const rows = planFromSpec(items);
   if (!rows.length) throw new Error('NOTHING_TO_REPLAY');
   // [원본] name: name.trim() || '빠른 운동' — 남의 자동 이름을 그대로 받아 종목 수가 틀렸다(P3 QA M3) @plm SRS-071
-  return startWorkoutFromRows({ routineId: null, name: inheritedWorkoutName(name), rows, replacing: startOpts.replacing });
+  // [원본] return startWorkoutFromRows({ routineId: null, name: inheritedWorkoutName(name), rows, replacing: startOpts.replacing });
+  return startWorkoutFromRows({
+    routineId: null,
+    name: inheritedWorkoutName(name),
+    rows,
+    replacing: startOpts.replacing,
+    freshRest: true, // 남의 글의 휴식 값은 싣지 않는다(SPEC-051 리뷰)
+  });
 }
 
 /** 운동 총평(나만 보는 운동 한 줄 평 · 피드 글과 별개) — 2,000자 · 공백만이면 지운다. @plm SRS-064 */
@@ -2363,6 +2430,10 @@ export async function changeWorkoutScheme(
   const est1rm = info0.allowLoad
     ? await estimatedOneRmForSlotV2(we0.exerciseId, effectiveVariantKey(we0), blockMult ?? 1) // 데이터 10
     : 0;
+  // 세트별 휴식(SPEC-051) — 지금 블록에 방식이 있으면 그 칸 값을, 없으면 이 종목의 지난 칸 값을 새 틀로 옮긴다
+  const restCarry = rxScheme(we0.prescription)
+    ? restOverridesOf(we0.prescription)
+    : await rememberedRestOverrides(we0.exerciseId, weId);
   return database.write(async () => {
     const we = await workoutExercises().find(weId);
     const sets = (await setLogs().query(Q.where('workout_exercise_id', weId)).fetch()).sort(
@@ -2387,7 +2458,8 @@ export async function changeWorkoutScheme(
       loadHint: null,
       ...(scheme !== 'straight' ? { scheme } : {}),
     }));
-    const nextRx = [...doneRx, ...left];
+    // [원본] const nextRx = [...doneRx, ...left];
+    const nextRx = withRestOverrides([...doneRx, ...left], restCarry); // SPEC-051
     // [원본] 무게는 sets[0] 배수로 나누고 저장은 fallback 배수로 — 세트 0개·옛 null 행이면 계산 무게가 절반이 됐다(데이터 2)
     // [개선] 배수 하나(m)로 나누고 같은 값을 저장한다
     const m = sets.find((x) => x.loadMultiplier != null)?.loadMultiplier ?? blockMult ?? null;

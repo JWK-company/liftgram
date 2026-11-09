@@ -68,12 +68,16 @@ import {
   SCHEMES,
   type DoneSetKind,
 } from "@app/core/domain/setSchemes"; // 세트 방식(SPEC-041)
+// [원본] import { restSecondsForRx, type PrescribedSet, … } — 세트 완료 휴식은 restPlan.restBeforeNextSet 안으로(SPEC-051)
+import type { PrescribedSet, PrescribedSetType, SchemeId } from "@app/core/domain/prescription";
 import {
-  restSecondsForRx,
-  type PrescribedSet,
-  type PrescribedSetType,
-  type SchemeId,
-} from "@app/core/domain/prescription";
+  restBeforeNextSet,
+  restOverridesOf,
+  restSlotsOf,
+  sameRestOverrides,
+  type RestOverrides,
+  type RestSlot,
+} from "@app/core/domain/restPlan"; // 다음 세트 기준 휴식 · 종류별 휴식(SPEC-051)
 import { MoreMenu } from "../ui/MoreMenu";
 import { navigate } from "@/lib/nav";
 // import { IconButton } from "../ui/IconButton"; // 머리 순서 화살표 원복 시(/qa code M-5)
@@ -139,6 +143,8 @@ export interface WorkoutExerciseRow {
         loadBasis?: string;
         loadPct?: number;
         loadKg?: number;
+        /** SPEC-051 이 줄 직전 휴식을 사람이 정한 값(초) */
+        rest?: number;
       }[]
     | null;
 }
@@ -256,10 +262,41 @@ export function ExerciseBlock({
     });
     return () => sub.unsubscribe();
   }, [we]);
+  // 세트 종류별 휴식(SPEC-051) — 처방 줄의 칸 값. 시트가 열려 있는 동안의 고친 값은 restKindDraft, 닫을 때 한 번 쓴다.
+  const rxForRest = (we.prescription ?? null) as PrescribedSet[] | null;
+  const restKindSaved = restOverridesOf(rxForRest);
+  const [restKindDraft, setRestKindDraft] = useState<RestOverrides | null>(null);
+  const restKindNow = restKindDraft ?? restKindSaved;
+  const restKindRows = restSlotsOf(rxForRest, restSeconds, restKindNow);
+  const openRestSheet = () => {
+    setRestKindDraft(restOverridesOf((we.prescription ?? null) as PrescribedSet[] | null));
+    setRestSheet(true);
+  };
+  const setRestKind = (slot: RestSlot, sec: number, def: number) => {
+    setRestKindDraft((cur) => {
+      const next: RestOverrides = { ...(cur ?? {}) };
+      // 권장값과 같아지면 「바꾼 값」을 지운다(점이 남지 않게)
+      if (sec === def) delete next[slot];
+      else next[slot] = sec;
+      return next;
+    });
+  };
+  // [원본] const closeRestSheet = () => {
+  //   setRestSheet(false);
+  //   if (restSeconds !== (we.restSeconds ?? 120))
+  //     void write(() => repo.setWorkoutExerciseRestSeconds(we.id, restSeconds));
+  // };
   const closeRestSheet = () => {
     setRestSheet(false);
     if (restSeconds !== (we.restSeconds ?? 120))
       void write(() => repo.setWorkoutExerciseRestSeconds(we.id, restSeconds));
+    const draft = restKindDraft;
+    setRestKindDraft(null);
+    if (
+      draft &&
+      !sameRestOverrides(draft, restOverridesOf((we.prescription ?? null) as PrescribedSet[] | null))
+    )
+      void write(() => repo.setWorkoutExerciseRestOverrides(we.id, draft));
   };
   const [volTick, setVolTick] = useState(0);
   // ── 기록 칸(조합) — 플레이트 한쪽 입력 · 다른 조합 기록(ADR-034 · ADR-037) @plm SRS-058 ──
@@ -711,20 +748,39 @@ export function ExerciseBlock({
         const startRestOnce = () => {
           if (restStarted) return;
           restStarted = true;
-          // 다음 세트가 처방 드롭이면 쉬지 않는다 — 무게만 내려 바로 잇는다(SPEC-041 · 잠금화면 흐름과 같다 · REV-076 M-6)
-          const after = [...sets]
+          // [원본] 마친 세트 타입 기준 —
+          // // 다음 세트가 처방 드롭이면 쉬지 않는다 — 무게만 내려 바로 잇는다(SPEC-041 · 잠금화면 흐름과 같다 · REV-076 M-6)
+          // const after = [...sets]
+          // .sort((a, b) => a.setNumber - b.setNumber)
+          // .find((x) => x.setNumber > s.setNumber && !x.done);
+          // const afterRx = after ? we.prescription?.[after.setNumber - 1] : null;
+          // if (after?.isDrop === true && afterRx?.setType === "drop" && !s.isWarmup) return;
+          // // [원본] onStartRest(restSecondsForSetType(s.setType …, restSeconds)); — 세트 방식 근력 줄은 최소 180초(REV-076 코치 7)
+          // onStartRest(
+          // restSecondsForRx(
+          // s.setType as Parameters<typeof restSecondsForRx>[0],
+          // restSeconds,
+          // (we.prescription?.[s.setNumber - 1] ?? null) as Parameters<typeof restSecondsForRx>[2],
+          // ),
+          // );
+          // [개선] 세트 방식 블록은 「다음 세트」 기준(SPEC-051 · 화면·잠금 drain·잠금 카드가 같은 함수) — 0 이면 타이머를 걸지 않는다
+          // 세트는 모델이라 펼치면(…x) 타입 칸(게터)이 빠진다 — 필요한 칸만 꺼내 쓴다 · 처방은 누른 순간의 값(방식 바꾸기 직후에도)
+          const ordered = [...sets]
             .sort((a, b) => a.setNumber - b.setNumber)
-            .find((x) => x.setNumber > s.setNumber && !x.done);
-          const afterRx = after ? we.prescription?.[after.setNumber - 1] : null;
-          if (after?.isDrop === true && afterRx?.setType === "drop" && !s.isWarmup) return;
-          // [원본] onStartRest(restSecondsForSetType(s.setType …, restSeconds)); — 세트 방식 근력 줄은 최소 180초(REV-076 코치 7)
-          onStartRest(
-            restSecondsForRx(
-              s.setType as Parameters<typeof restSecondsForRx>[0],
-              restSeconds,
-              (we.prescription?.[s.setNumber - 1] ?? null) as Parameters<typeof restSecondsForRx>[2],
-            ),
-          );
+            .map((x) => ({
+              id: x.id,
+              setType: x.setType ?? null,
+              isWarmup: x.isWarmup ?? null,
+              isDrop: x.isDrop ?? null,
+              done: x.id === s.id ? true : x.done,
+            }));
+          const sec = restBeforeNextSet({
+            sets: ordered,
+            doneIdx: ordered.findIndex((x) => x.id === s.id),
+            rx: (we.prescription ?? null) as PrescribedSet[] | null,
+            fallback: restSeconds,
+          });
+          if (sec > 0) onStartRest(sec);
         };
         if (grouped) await write(() => onRoundToggle(s.setNumber, next, s.id, uiKg, uiReps));
         else if (!next) await write(() => repo.setSetDone(s.id, false));
@@ -1357,7 +1413,9 @@ export function ExerciseBlock({
         {/* 블록 도구 한 줄 — 휴식 · 메모 · 순서(⋯ 메뉴에서 꺼냄 · 피드백 #62) @plm SRS-084 */}
         <BlockTools
           restSeconds={restSeconds}
-          onRest={() => setRestSheet(true)}
+          // [원본] onRest={() => setRestSheet(true)}
+          onRest={openRestSheet}
+          restKindChanged={restKindRows.some((r) => r.changed)}
           note={note}
           onNote={() => setNoteOpen(true)}
           onMoveUp={onMoveUp}
@@ -1479,19 +1537,60 @@ export function ExerciseBlock({
           onClose={closeRestSheet}
           testId="rest-sheet"
         >
-          <div className="mt-[var(--spacing-md)] flex justify-center">
-            <NumberStepper
-              testId="rest-seconds"
-              value={restSeconds}
-              step={15}
-              min={0}
-              max={600}
-              suffix={t("session.secondsSuffix")}
-              // [원본] app과 같이 **이 세션 동안의 설정**이다 — 저장소에 쓰지 않는다.
-              // [개선] 이번 운동 행에 저장된다(시트를 닫을 때) — 잠금 카드 휴식과 같은 값 · 루틴으로 저장·다시 하기에도 이어진다(SPEC-017 §7)
-              onChange={setRestSeconds}
-            />
-          </div>
+          {/* [개선] 세트 방식 블록은 맨 위 「기본 세트」 + 그 블록에 나오는 종류만 한 줄씩(SPEC-051) · 일반 세트는 지금 한 줄 그대로 */}
+          {restKindRows.length === 0 ? (
+            <div className="mt-[var(--spacing-md)] flex justify-center">
+              <NumberStepper
+                testId="rest-seconds"
+                value={restSeconds}
+                step={15}
+                min={0}
+                max={600}
+                suffix={t("session.secondsSuffix")}
+                // [원본] app과 같이 **이 세션 동안의 설정**이다 — 저장소에 쓰지 않는다.
+                // [개선] 이번 운동 행에 저장된다(시트를 닫을 때) — 잠금 카드 휴식과 같은 값 · 루틴으로 저장·다시 하기에도 이어진다(SPEC-017 §7)
+                onChange={setRestSeconds}
+              />
+            </div>
+          ) : (
+            <div className="mt-[var(--spacing-md)] flex flex-col" data-testid="rest-kinds">
+              <RestKindRow
+                slot="base"
+                label={t("session.restKind.base")}
+                value={restSeconds}
+                changed={false}
+                onChange={(v) => setRestSeconds(v)}
+              />
+              {restKindRows.map((r) => (
+                <RestKindRow
+                  key={r.slot}
+                  slot={r.slot}
+                  label={t(`session.restKind.${r.slot}` as Parameters<typeof t>[0])}
+                  value={r.value}
+                  changed={r.changed}
+                  onChange={(v) => setRestKind(r.slot, v, r.def)}
+                />
+              ))}
+              {restKindRows.some((r) => r.changed) ? (
+                <button
+                  type="button"
+                  data-testid="rest-kind-reset"
+                  onClick={() => setRestKindDraft({})}
+                  className="mt-[4px] inline-flex min-h-[44px] items-center self-start rounded-[var(--radius-sm)] px-[4px] text-[length:var(--text-sm)] text-(--color-ink2) underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-(--color-brand)"
+                >
+                  {t("session.restKindReset")}
+                </button>
+              ) : null}
+              <AppText
+                variant="caption"
+                color="textMuted"
+                className="mt-[4px] block"
+                data-testid="rest-kind-hint"
+              >
+                {t("session.restKindHint")}
+              </AppText>
+            </div>
+          )}
           {/* 바뀐 동작을 알린다 — 이번 운동에 저장되고 루틴으로 저장·다시 하기에 이어진다(REV-005 화면 M-2) */}
           <AppText
             variant="caption"
@@ -1610,4 +1709,79 @@ function rxLoadLabel(rx: { loadBasis?: string; loadPct?: number } | null): strin
   if (rx.loadBasis === "pct1rm") return t("prescription.load.labelPct1rm", { pct: rx.loadPct ?? 0 });
   if (rx.loadBasis === "pctTop") return t("prescription.load.labelPctTop", { pct: rx.loadPct ?? 0 });
   return t("prescription.load.reasonFixed");
+}
+
+/** 휴식 시트 stepper 상한(초) — 일반 휴식 NumberStepper max 와 같다. */
+const REST_SHEET_MAX = 600;
+
+/** 휴식 시트의 한 줄(SPEC-051) — 이름(바꾼 줄은 점) · [−] m:ss [+] · 15초씩 · 누르는 자리 44px. */
+function RestKindRow({
+  slot,
+  label,
+  value,
+  changed,
+  onChange,
+}: {
+  slot: RestSlot | "base";
+  label: string;
+  value: number;
+  changed: boolean;
+  onChange: (next: number) => void;
+}) {
+  // [원본] const clamp = (n: number) => Math.min(REST_OVERRIDE_MAX, Math.max(0, n));
+  // [개선] 일반 휴식 stepper 와 같은 상한 600초(처방 정리 상한 REST_OVERRIDE_MAX 900 은 저장 값 검사용 · SPEC-051 리뷰)
+  const clamp = (n: number) => Math.min(REST_SHEET_MAX, Math.max(0, n));
+  const time = `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
+  const btn =
+    "flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-(--color-surface-alt) text-(--color-ink) focus-visible:outline-2 focus-visible:outline-(--color-brand)";
+  return (
+    <div
+      data-testid={`rest-kind-${slot}`}
+      data-changed={changed ? "1" : "0"}
+      className="flex min-h-[52px] items-center gap-[var(--spacing-sm)] border-(--color-line) border-b py-[4px] last:border-b-0"
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-[6px]">
+        <AppText variant="body" className="min-w-0 break-keep">
+          {label}
+        </AppText>
+        {changed ? (
+          <span
+            data-testid={`rest-kind-${slot}-dot`}
+            role="img"
+            aria-label={t("session.restKindChanged")}
+            className="inline-block h-[6px] w-[6px] shrink-0 rounded-full bg-(--color-ink2)"
+          />
+        ) : null}
+      </div>
+      <button
+        type="button"
+        data-testid={`rest-kind-${slot}-minus`}
+        // [원본] aria-label={`${label} −15${t("session.secondsSuffix")}`}
+        // [개선] 지금 값을 버튼 이름에 — 값 글자에 aria-label 을 달면 읽히지 않는 곳이 있다(SPEC-051 리뷰)
+        aria-label={t("session.restKindMinus", { kind: label, time })}
+        onClick={() => onChange(clamp(value - 15))}
+        className={btn}
+      >
+        <Icon name="remove" size={18} />
+      </button>
+      <AppText
+        variant="heading"
+        className="min-w-[52px] text-center tabular-nums"
+        data-testid={`rest-kind-${slot}-value`}
+        // [원본] aria-label={t("session.restKindAria", { kind: label, time })} — 값은 [−][+] 버튼 이름에 싣는다(SPEC-051 리뷰)
+      >
+        {time}
+      </AppText>
+      <button
+        type="button"
+        data-testid={`rest-kind-${slot}-plus`}
+        // [원본] aria-label={`${label} +15${t("session.secondsSuffix")}`}
+        aria-label={t("session.restKindPlus", { kind: label, time })}
+        onClick={() => onChange(clamp(value + 15))}
+        className={btn}
+      >
+        <Icon name="add" size={18} />
+      </button>
+    </div>
+  );
 }

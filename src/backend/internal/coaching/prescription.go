@@ -33,6 +33,9 @@ var loadPctRange = map[string][2]int{"pct1rm": {30, 100}, "pctTop": {50, 100}}
 
 const loadKgMax = 500.0
 
+// 세트별 휴식(SPEC-051) 상한(초) — 앱 core restPlan REST_OVERRIDE_MAX 와 같은 값. 15분 넘는 휴식은 실수다.
+const restMax = 900
+
 // SanitizePrescription은 들어온 처방을 저장해도 되는 모양으로 만든다.
 //
 //	· 모르는 세트 타입 → `normal`(빼 버리면 줄 수가 어긋나 세트 수가 달라진다)
@@ -73,6 +76,11 @@ func SanitizePrescription(rows []PrescribedSet) []PrescribedSet {
 		}
 		if validSchemes[r.Scheme] {
 			row.Scheme = r.Scheme
+		}
+		// SPEC-051 사람이 정한 직전 휴식 — 범위 밖이면 버린다(앱 sanitizePrescriptionValue 와 같은 규칙)
+		if r.Rest != nil && *r.Rest >= 0 && *r.Rest <= restMax {
+			v := *r.Rest
+			row.Rest = &v
 		}
 		out = append(out, row)
 	}
@@ -148,6 +156,11 @@ func KeepMemberStart(clean, stored []PrescribedSet) []PrescribedSet {
 		}
 		if sameType && out[i].Scheme == "" && validSchemes[stored[i].Scheme] {
 			out[i].Scheme = stored[i].Scheme
+		}
+		// SPEC-051 세트별 휴식도 코치 화면에 없다 — 코치가 보낸 값이 없고 타입이 같으면 회원 값을 잇는다(범위 밖은 잇지 않는다)
+		if sameType && out[i].Rest == nil && stored[i].Rest != nil && *stored[i].Rest >= 0 && *stored[i].Rest <= restMax {
+			v := *stored[i].Rest
+			out[i].Rest = &v
 		}
 	}
 	return out

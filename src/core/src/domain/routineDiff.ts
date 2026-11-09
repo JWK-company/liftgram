@@ -8,6 +8,7 @@
 import { muscleLabel } from './labels';
 import type { PrescribedSet, SchemeId } from './prescription';
 import { schemeAllowed, schemeRows } from './setSchemes';
+import { restOverridesOf, sameRestOverrides, withRestOverrides, type RestOverrides } from './restPlan'; // SPEC-051
 import type { AppLanguage, MuscleGroup } from './types';
 
 /** 루틴의 한 줄(현재 루틴 상태). */
@@ -23,6 +24,8 @@ export interface RoutineLine {
   prescribedWarmups?: number;
   /** 루틴 줄의 세트 방식(SPEC-041 · 없으면 일반·직접 구성) */
   scheme?: SchemeId | null;
+  /** 루틴 줄의 처방(SPEC-051 — 세트별 휴식만 반영할 때 이 줄들에 칸 값을 적는다) */
+  prescription?: PrescribedSet[] | null;
 }
 
 /** 오늘 운동의 한 블록(완료 직전 상태). */
@@ -50,6 +53,10 @@ export interface SessionBlock {
   schemeAllowLoad?: boolean;
   /** 이 종목의 기구 — 세트 방식 제한(드롭세트는 바벨류·맨몸 X) */
   equipment?: string | null;
+  /** 오늘 블록에서 사람이 정한 세트별 휴식(SPEC-051 · 칸 → 초) */
+  restOverrides?: RestOverrides;
+  /** 시작 때 이 블록에 실렸을 지난 칸 값(기억 · SPEC-051 리뷰) — 루틴 줄에 값이 없고 오늘 값이 이것과 같으면 바꾼 게 아니다 */
+  restRemembered?: RestOverrides | null;
 }
 
 export type RoutineChange =
@@ -58,6 +65,8 @@ export type RoutineChange =
   | { kind: 'add'; id: string; blockId: string; exerciseId: string; defaultOn: true }
   // 세트 방식 — 운동 중 바꿨다(SPEC-041). 반영하면 루틴 줄의 처방을 새 틀 전체로 쓴다. 끄면 오늘만.
   | { kind: 'scheme'; id: string; lineId: string; blockId: string; exerciseId: string; from: SchemeId | null; to: SchemeId; defaultOn: true }
+  // 세트별 휴식(SPEC-051) — 루틴 줄과 방식이 같고 사람이 정한 칸 값이 다르다. 반영하면 루틴 줄 처방에 칸 값을 쓴다.
+  | { kind: 'rest'; id: string; lineId: string; blockId: string; exerciseId: string; defaultOn: true }
   | {
       kind: 'remove';
       id: string;
@@ -175,6 +184,26 @@ export function diffRoutine(routineId: string, lines: RoutineLine[], blocks: Ses
         to: b.scheme,
         defaultOn: true,
       });
+    }
+    // 세트별 휴식(SPEC-051) — 방식이 같을 때만(방식을 바꾸면 새 틀에 칸 값이 함께 실린다)
+    // [원본] if (!b.isCardio && b.scheme && b.scheme === (line.scheme ?? null) && line.prescription &&
+    //   !sameRestOverrides(b.restOverrides ?? {}, restOverridesOf(line.prescription))) {
+    // [개선] 기억으로 실린 값(루틴 줄엔 값이 없고 오늘 값 = 기억값)은 오늘 바꾼 게 아니다 — 띄우지 않는다(SPEC-051 리뷰)
+    const lineRest = line.prescription ? restOverridesOf(line.prescription) : {};
+    const fromMemory =
+      Object.keys(lineRest).length === 0 &&
+      !!b.restRemembered &&
+      Object.keys(b.restRemembered).length > 0 &&
+      sameRestOverrides(b.restOverrides ?? {}, b.restRemembered);
+    if (
+      !b.isCardio &&
+      b.scheme &&
+      b.scheme === (line.scheme ?? null) &&
+      line.prescription &&
+      !fromMemory &&
+      !sameRestOverrides(b.restOverrides ?? {}, lineRest)
+    ) {
+      changes.push({ kind: 'rest', id: `rest:${line.id}`, lineId: line.id, blockId: b.id, exerciseId: line.exerciseId, defaultOn: true });
     }
     // [원본] if (!b.isCardio && b.doneWorkingSets > 0 && b.doneWorkingSets !== plannedWorking) {
     // [개선] 처방이 있는 줄은 세트 수 항목을 만들지 않는다 — 세트 수는 처방(세트 방식)이 정한다(D5 의 이유 · SPEC-041)
@@ -311,8 +340,18 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
   for (const c of pick) {
     if (c.kind !== 'scheme') continue;
     const b = blockById.get(c.blockId);
-    const rows = schemeRows(c.to, { allowLoad: b?.schemeAllowLoad ?? true });
+    // [원본] const rows = schemeRows(c.to, { allowLoad: b?.schemeAllowLoad ?? true });
+    // [개선] 오늘 정한 세트별 휴식을 새 틀에 싣는다(SPEC-051)
+    const rows = withRestOverrides(schemeRows(c.to, { allowLoad: b?.schemeAllowLoad ?? true }), b?.restOverrides ?? {});
     if (rows.length > 0) schemeTo.set(c.lineId, rows);
+  }
+  // 세트별 휴식만(SPEC-051) — 루틴 줄 처방에 오늘 칸 값
+  const restTo = new Map<string, PrescribedSet[]>();
+  for (const c of pick) {
+    if (c.kind !== 'rest') continue;
+    const b = blockById.get(c.blockId);
+    const rx = plan.lines.find((l) => l.id === c.lineId)?.prescription;
+    if (b && rx && rx.length > 0) restTo.set(c.lineId, withRestOverrides(rx, b.restOverrides ?? {}));
   }
   const adds = pick.filter((c) => c.kind === 'add').map((c) => blockById.get((c as { blockId: string }).blockId) as SessionBlock);
   const reorder = has('order');
@@ -386,13 +425,16 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
       if (to && !schemeTo.has(it.lineId) && lineById.get(it.lineId)?.hasPrescription && it.block) {
         const b = it.block;
         if (b.scheme && schemeAllowed(b.scheme, b.equipment ?? null)) {
-          const rows = schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true });
+          // [원본] const rows = schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true });
+          const rows = withRestOverrides(schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true }), b.restOverrides ?? {}); // SPEC-051
           u.prescription = rows;
           u.targetSets = rows.length;
         } else {
           u.prescription = [];
         }
       }
+      const rest = restTo.get(it.lineId);
+      if (rest && !to) u.prescription = rest; // 종목을 바꾸면 위 규칙(새 틀 또는 비우기)이 먼저다
       const rx = schemeTo.get(it.lineId);
       if (rx) {
         u.prescription = rx;
@@ -406,7 +448,8 @@ export function planRoutineApply(plan: FinishPlan, selected: Set<string>): Apply
       // 추가한 종목도 오늘 세트 방식이 있으면 그 틀로(REV-076 데이터 6)
       const rx =
         b.scheme && !b.isCardio && schemeAllowed(b.scheme, b.equipment ?? null)
-          ? schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true })
+          ? // [원본] schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true })
+            withRestOverrides(schemeRows(b.scheme, { allowLoad: b.schemeAllowLoad ?? true }), b.restOverrides ?? {}) // SPEC-051
           : [];
       creates.push({
         exerciseId: b.exerciseId,
