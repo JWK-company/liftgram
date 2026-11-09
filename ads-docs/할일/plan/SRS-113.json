@@ -1,0 +1,363 @@
+{
+  "doc": {
+    "content": [
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "배경",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "할 일 문서 S-18 항목(2026-11-09): 사람 찾기가 메시지 화면의 사람 모양 아이콘 뒤에 숨어 있어 찾기 어렵고, 그 아이콘은 사실 「단체 대화방 만들기」(S-24)라 헷갈린다. 「그룹」이 사용자 분류처럼 읽힌다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "웹 보고서 「화면 지도 제안」 S-18 절의 권장안 1(피드 머리 🔍 · 👤 · 💬 · 🔔 / 사람 화면 = 찾기 + 팔로잉·팔로워 / 메시지에는 「✎ 새 메시지」)을 사용자가 「좋아 전부 권장안대로」(1463)로 승인했다. 사람 화면에는 팔로워 탭도 둔다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "요구",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R1 피드 머리 👤",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 피드 머리 아이콘은 🔍 발견 · 👤 사람 · 💬 메시지 · 🔔 알림 순서. 360px 폭에서 제목과 한 줄에 들어가고 누르는 자리는 44px.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R2 사람 화면",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/people",
+                    "type": "text"
+                  },
+                  {
+                    "text": "): 맨 위 이름 검색칸(지금의 사람 찾기와 같은 검색), 검색어가 없으면 「팔로잉」·「팔로워」 두 탭으로 내 목록을 보여 준다. 줄은 아바타·이름(누르면 프로필) · 「메시지」(1:1 대화 열기) · 팔로우하지 않은 사람이면 「팔로우」.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R3 메시지 목록",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 대화한 방만 보여 준다(지금과 같음). 오른쪽 위 사람 아이콘을 없애고 ✎ 「새 메시지」를 둔다. 대화가 없을 때의 「사람 찾기」 버튼은 사람 화면으로 간다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R4 새 메시지",
+                    "type": "text"
+                  },
+                  {
+                    "text": "(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/messages/new",
+                    "type": "text"
+                  },
+                  {
+                    "text": "): 내가 팔로우하는 사람 목록이 먼저 보이고 검색으로 좁힌다. 한 명을 고르면 「대화 시작」으로 1:1, 두 명 이상이면 대화 이름 칸이 나타나고 「단체 대화 만들기(N명)」로 단체 대화를 만든다. 따로 있던 단체 대화방 만들기 화면(S-24)은 이 화면으로 합쳐진다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "marks": [
+                      {
+                        "type": "strong"
+                      }
+                    ],
+                    "text": "R5 말 바꾸기",
+                    "type": "text"
+                  },
+                  {
+                    "text": ": 화면 글의 「그룹」을 「단체 대화」로 바꾼다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      },
+      {
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "text": "범위 밖",
+            "type": "text"
+          }
+        ],
+        "type": "heading"
+      },
+      {
+        "content": [
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "서버 API는 그대로 쓴다(",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "SearchUsers",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "ListFollows",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Follow",
+                    "type": "text"
+                  },
+                  {
+                    "text": "/",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "Unfollow",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "GetOrCreateDirect",
+                    "type": "text"
+                  },
+                  {
+                    "text": " · ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "CreateGroup",
+                    "type": "text"
+                  },
+                  {
+                    "text": "). 단체 대화는 지금처럼 내가 팔로우하는 사람만 넣을 수 있다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          },
+          {
+            "content": [
+              {
+                "content": [
+                  {
+                    "text": "피드 「발견」 탭 안의 사람 찾기와 ",
+                    "type": "text"
+                  },
+                  {
+                    "marks": [
+                      {
+                        "type": "code"
+                      }
+                    ],
+                    "text": "/discover",
+                    "type": "text"
+                  },
+                  {
+                    "text": " 주소는 남긴다.",
+                    "type": "text"
+                  }
+                ],
+                "type": "paragraph"
+              }
+            ],
+            "type": "list_item"
+          }
+        ],
+        "type": "bullet_list"
+      }
+    ],
+    "type": "doc"
+  },
+  "group": "할일/plan",
+  "id": "SRS-113",
+  "meta": {
+    "acceptance_criteria": "피드 머리에 🔍·👤·💬·🔔 네 아이콘이 360px에서도 제목과 한 줄에 들어간다 · 👤 사람 화면은 이름 검색과 팔로잉·팔로워 두 탭이고 줄마다 「메시지」를 누르면 그 사람과의 1:1 대화가 열린다 · 메시지 목록 오른쪽 위는 사람 아이콘 대신 「새 메시지」이고, 한 명을 고르면 1:1, 두 명 이상이면 단체 대화가 만들어진다 · 화면 글에 「그룹」 대신 「단체 대화」를 쓴다",
+    "kind": "FR"
+  },
+  "relations": {
+    "refs_legacy": [
+      "PLM:SRS-017",
+      "PLM:SRS-018"
+    ]
+  },
+  "schemaVersion": 1,
+  "tags": [],
+  "title": "사람 화면과 새 메시지 — 피드 머리 👤 · 메시지는 ✎ 새 메시지 하나로",
+  "type": "SRS",
+  "updated": "2026-11-09T07:41:22Z"
+}

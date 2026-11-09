@@ -74,9 +74,16 @@ export default function ConversationsClient() {
             <Icon name="chevron-back" size={24} color="var(--color-ink)" />
           </a>
         }
+        // [원본] 사람 아이콘 → 「새 그룹」(dm-new-group) — 사람 찾기로 오해됐다(S-18). 사람 찾기는 피드 머리 👤 로 옮겼다.
+        // [개선] ✎ 새 메시지 — 한 명이면 1:1, 여럿이면 단체 대화(SPEC-048)
         right={
-          <a href="/messages/new" aria-label={t("group.title")} data-testid="dm-new-group">
-            <Icon name="people-outline" size={23} color="var(--color-ink)" />
+          <a
+            href="/messages/new"
+            aria-label={t("dm.newMessage")}
+            data-testid="dm-new"
+            className="flex h-11 w-11 items-center justify-center"
+          >
+            <Icon name="create-outline" size={23} color="var(--color-ink)" />
           </a>
         }
       />
@@ -98,7 +105,8 @@ export default function ConversationsClient() {
                 variant="secondary"
                 fullWidth={false}
                 onPress={() => {
-                  navigate("/discover");
+                  // [원본] navigate("/discover");
+                  navigate("/people");
                 }}
                 testId="dm-empty-discover"
               />

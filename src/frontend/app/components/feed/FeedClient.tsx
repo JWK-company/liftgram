@@ -430,6 +430,8 @@ export default function FeedClient() {
               icon="search-outline"
               testId="feed-explore"
             />
+            {/* 👤 사람 — 이름 찾기 + 팔로잉·팔로워 · 줄마다 「메시지」(SPEC-048 · S-18) */}
+            <HeadIcon href="/people" label={t("people.title")} icon="people-outline" testId="feed-people" />
             <HeadIcon
               href="/messages"
               label={t("dm.title")}

@@ -4,7 +4,7 @@
 //   · 프로필의 '메시지'로 대화가 열리고, 같은 상대는 **언제나 같은 방**이다
 //   · 보낸 말이 목록에 남고, 상대에게는 **실시간으로** 들어온다(스트림 — 새로고침 없이)
 //   · 안 읽은 수 배지가 서고, 방에 들어가면 사라진다
-//   · 그룹은 **팔로우한 사람만** 고를 수 있고, 나가면 목록에서 빠진다
+//   · 새 메시지: 단체 대화는 **팔로우한 사람만** · 한 명이면 1:1(SPEC-048)
 //   · 팔로우·좋아요·댓글이 상대의 알림으로 쌓이고, 알림 화면을 열면 배지가 사라진다
 import { expect, test } from "@playwright/test";
 
@@ -145,35 +145,76 @@ test("상대가 보낸 말이 새로고침 없이 들어온다 — 실시간 스
   }
 });
 
-test("그룹은 팔로우한 사람만 고를 수 있고, 나가면 목록에서 빠진다", async ({ page, context }) => {
-  const 친구이름 = `친구${Date.now().toString(36)}`;
-  await 가입(page, freshEmail("gfriend"), 친구이름);
-
+// [원본] 「그룹은 팔로우한 사람만 고를 수 있고, 나가면 목록에서 빠진다」 — 한 명을 골라 이름을 적고 「만들기」였다.
+// [개선] SPEC-048: 메시지 ✎ 「새 메시지」 — 팔로잉 목록이 먼저 · 한 명 = 1:1 · 두 명 이상 = 이름 칸 + 단체 대화
+test("✎ 새 메시지 — 팔로우한 사람만 · 한 명이면 1:1 · 두 명이면 단체 대화(SPEC-048)", async ({
+  page,
+  context,
+}) => {
+  test.setTimeout(120_000);
+  const 친구1 = `친구${Date.now().toString(36)}`;
+  const 친구2 = `벗${Date.now().toString(36)}`;
+  await 가입(page, freshEmail("gfriend"), 친구1);
+  await context.clearCookies();
+  await page.evaluate(() => localStorage.removeItem("liftgram.session"));
+  await 가입(page, freshEmail("gfriend2"), 친구2);
   await context.clearCookies();
   await page.evaluate(() => localStorage.removeItem("liftgram.session"));
   await 가입(page, freshEmail("gme"), "방장");
 
+  // 메시지 오른쪽 위는 ✎ 하나(옛 사람 아이콘 없음)
+  await page.goto("/messages");
+  await expect(page.getByTestId("dm-new-group")).toHaveCount(0);
+  await page.getByTestId("dm-new").click();
+  await expect(page).toHaveURL(/\/messages\/new$/);
+
   // 팔로우하기 전에는 후보에 뜨지 않는다.
-  await page.goto("/messages/new");
-  await page.getByTestId("group-search").fill(친구이름);
-  await expect(page.getByTestId("group-list")).not.toContainText(친구이름, { timeout: 20_000 });
+  await page.getByTestId("group-search").fill(친구1);
+  await expect(page.getByTestId("group-list")).not.toContainText(친구1, { timeout: 20_000 });
 
-  // 팔로우하고 나면 고를 수 있다.
-  await 프로필로(page, 친구이름);
-  await page.getByTestId("profile-follow").click();
-  await expect(page.getByTestId("profile-follow")).toHaveText("팔로잉", { timeout: 20_000 });
+  for (const n of [친구1, 친구2]) {
+    await 프로필로(page, n);
+    await page.getByTestId("profile-follow").click();
+    await expect(page.getByTestId("profile-follow")).toHaveText("팔로잉", { timeout: 20_000 });
+  }
 
+  // 검색 없이 팔로잉 목록이 먼저 보인다
   await page.goto("/messages/new");
+  await expect(page.getByTestId("group-list")).toContainText(친구1, { timeout: 20_000 });
+  await expect(page.getByTestId("group-list")).toContainText(친구2);
+  await expect(page.getByTestId("dm-start")).toBeDisabled();
+
+  // 두 명 → 이름 칸 + 「단체 대화 만들기 (2명)」, 칩을 빼 한 명이 되면 「대화 시작」
+  await page.getByTestId("group-user").filter({ hasText: 친구1 }).click();
+  await page.getByTestId("group-user").filter({ hasText: 친구2 }).click();
+  await expect(page.getByTestId("group-title")).toBeVisible();
+  await expect(page.getByTestId("group-create")).toHaveText(/단체 대화 만들기 \(2명\)/);
   await page.getByTestId("group-title").fill("운동 모임");
-  await page.getByTestId("group-search").fill(친구이름);
-  await expect(page.getByTestId("group-list")).toContainText(친구이름, { timeout: 20_000 });
-  await page.getByTestId("group-user").first().click();
+  await page.getByTestId("new-msg-chip").filter({ hasText: 친구2 }).click();
+  await expect(page.getByTestId("group-title")).toBeHidden();
+  await expect(page.getByTestId("dm-start")).toHaveText("대화 시작");
+  // 다시 둘이면 적어 둔 이름이 그대로
+  await page.getByTestId("group-search").fill(친구2);
+  await page.getByTestId("group-user").filter({ hasText: 친구2 }).click();
+  await expect(page.getByTestId("new-msg-chip")).toHaveCount(2);
+  await expect(page.getByTestId("group-title")).toHaveValue("운동 모임");
   await page.getByTestId("group-create").click();
 
-  // 그룹 방이 열리고 목록에도 뜬다.
+  // 단체 대화 방이 열리고 목록에도 뜬다.
   await expect(page.getByTestId("conv-input")).toBeVisible({ timeout: 20_000 });
   await page.goto("/messages");
   await expect(page.getByTestId("dm-list")).toContainText("운동 모임", { timeout: 20_000 });
+
+  // 한 명 → 1:1 — 프로필 「메시지」와 같은 방
+  await page.goto("/messages/new");
+  await page.getByTestId("group-user").filter({ hasText: 친구1 }).click();
+  await page.getByTestId("dm-start").click();
+  await expect(page.getByTestId("conv-input")).toBeVisible({ timeout: 20_000 });
+  const 방 = page.url();
+  await 프로필로(page, 친구1);
+  await page.getByTestId("profile-message").click();
+  await expect(page.getByTestId("conv-input")).toBeVisible({ timeout: 20_000 });
+  expect(page.url()).toBe(방);
 });
 
 async function 로그인(page: Page, email: string) {

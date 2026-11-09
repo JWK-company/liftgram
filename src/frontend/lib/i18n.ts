@@ -35,10 +35,10 @@ const WEB_ONLY: Record<string, Record<AppLanguage, string>> = {
   "web.routines.moveDown": { ko: "아래로 이동", en: "Move down" },
   // 앱은 헤더 아이콘 하나로 곧바로 나가지만, 웹에서는 되돌릴 수 없는 조작 앞에 한 번 묻는다
   // (마우스는 오조작이 잦고, 나간 그룹은 초대받기 전엔 돌아갈 수 없다). 그 확인창의 문구다.
-  "web.dm.leaveGroup": { ko: "그룹 나가기", en: "Leave group" },
+  "web.dm.leaveGroup": { ko: "단체 대화 나가기", en: "Leave group chat" },
   "web.dm.leaveConfirm": {
-    ko: "이 그룹에서 나갈까요? 다시 들어오려면 초대를 받아야 해요.",
-    en: "Leave this group? You will need an invite to come back.",
+    ko: "이 단체 대화에서 나갈까요? 다시 들어오려면 초대를 받아야 해요.",
+    en: "Leave this group chat? You will need an invite to come back.",
   },
   // 서비스워커(오프라인 셸·새 버전) — 앱은 스토어가 업데이트를 맡아 이 문구가 없다.
   "web.sw.updateReady": { ko: "새 버전이 있어요", en: "A new version is ready" },

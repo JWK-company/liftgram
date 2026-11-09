@@ -22,7 +22,7 @@ export function AppBar({
   title?: string;
   /** 운동 홈 — 제목 대신 로고. */
   logo?: boolean;
-  /** 오른쪽 아이콘 — 최대 2개(AppBarAction). */
+  /** 오른쪽 아이콘 — 최대 2개(AppBarAction). 예외: 피드 머리는 🔍·👤·💬·🔔 4개(SPEC-048 · 360px 에서 제목과 한 줄을 e2e 가 잰다). */
   actions?: ReactNode;
   testId?: string;
 }) {
@@ -40,12 +40,12 @@ export function AppBar({
       ) : (
         <h1
           data-testid="screen-title"
-          className="truncate font-bold text-[length:var(--text-xl)] tracking-tight"
+          className="min-w-0 truncate font-bold text-[length:var(--text-xl)] tracking-tight"
         >
           {title}
         </h1>
       )}
-      {actions ? <div className="ml-auto flex items-center gap-[2px]">{actions}</div> : null}
+      {actions ? <div className="ml-auto flex shrink-0 items-center gap-[2px]">{actions}</div> : null}
     </header>
   );
 }
