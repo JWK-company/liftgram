@@ -171,8 +171,10 @@ test('종목 상세 관련 팁: 지목 먼저 → 겹친 부위 수 → 데이�
   assert.deepEqual(tipsForExercise('seed-없는-종목', ['chest'], 0), []);
   // fullBody 만으로는 붙지 않는다(러닝머신 같은 전신 종목)
   assert.deepEqual(tipsForExercise('seed-treadmill-running', ['fullBody'], 3), []);
-  // draft 팁은 지목·부위가 맞아도 나오지 않는다
-  assert.ok(!tipsForExercise('seed-없는-종목', ['abs', 'back'], 10).some((t) => t.id === 'tip-bracing-breath'));
+  // [원본] draft 팁은 지목·부위가 맞아도 나오지 않는다
+  // [원본] assert.ok(!tipsForExercise('seed-없는-종목', ['abs', 'back'], 10).some((t) => t.id === 'tip-bracing-breath'));
+  // [개선 2026-11-09] 복압 호흡 팁은 사용자 검수로 공개 — 부위(복근·등)가 맞으면 붙는다
+  assert.ok(tipsForExercise('seed-없는-종목', ['abs', 'back'], 10).some((t) => t.id === 'tip-bracing-breath'));
 });
 
 test('시작 전 팁: 지목×2+부위가 이기고 · 동점은 dayNum 으로 · 겹침이 없으면 fullBody 일반 팁 · 빈 루틴 null', () => {
