@@ -182,5 +182,6 @@
  "i.notif": "S-181",
  "i.perm": "S-182",
  "s.comments": "S-183",
- "s.exdel": "S-184"
+ "s.exdel": "S-184",
+ "/people": "S-185"
 }

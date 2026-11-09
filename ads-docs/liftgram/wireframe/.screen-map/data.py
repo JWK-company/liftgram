@@ -30,7 +30,8 @@ pg('/u/[userId]','공개 프로필','page','소셜','다른 사람의 프로필'
 pg('/u/[userId]/follows','팔로워·팔로잉','page','소셜','팔로우 목록','로그인 필요')
 pg('/messages','메시지','page','소셜','대화 목록','로그인 필요')
 pg('/messages/[id]','대화방','page','소셜','대화, 요약 카드','로그인·참여자')
-pg('/messages/new','새 그룹','page','소셜','팔로우한 사람으로 그룹 만들기','로그인 필요')
+pg('/messages/new','새 메시지','page','소셜','사람 고르기 — 한 명이면 1:1 대화, 여럿이면 단체 대화(이름 칸)','로그인 필요')
+pg('/people','사람','page','소셜','이름 찾기 · 팔로잉/팔로워 탭 · 줄마다 팔로우·메시지','로그인 필요')
 pg('/notifications','알림','page','소셜','알림 목록, 열면 모두 읽음','로그인 필요')
 pg('/bookmarks','저장한 게시물','page','소셜','저장한 글 목록','로그인 필요')
 pg('/coaching','코칭','page','코칭','코치·회원 관계와 요청','로그인 필요')
@@ -107,6 +108,10 @@ e('/exercises/[id]/edit','/exercises','저장 후','C/ExerciseFormClient.tsx:120
 e('/offline','/','운동 탭으로','F/app/offline/page.tsx:17')
 e('/app','/','홈 링크','F/app/app/AppPageClient.tsx:107')
 # 소셜
+e('/feed','/people','머리 👤 사람','C/feed/FeedClient.tsx:434')
+e('/people','/u/[userId]','사람 줄','C/feed/PeopleClient.tsx:210')
+e('/people','/messages/[id]','줄의 「메시지」','C/feed/PeopleClient.tsx:115','redir')
+e('/people','/feed','뒤로','C/feed/PeopleClient.tsx:129','back')
 e('/feed','/explore','머리 돋보기','C/feed/FeedClient.tsx:276')
 e('/feed','/messages','머리 메시지','C/feed/FeedClient.tsx:282')
 e('/feed','/notifications','머리 종','C/feed/FeedClient.tsx:288')
@@ -114,14 +119,14 @@ e('/feed','/u/[userId]','글 작성자','C/feed/PostCard.tsx:99')
 e('/feed','/hashtag/[tag]','본문 #태그','C/feed/HashtagText.tsx:23')
 e('/explore','/hashtag/[tag]','태그','C/feed/ExploreClient.tsx:165')
 e('/explore','/u/[userId]','추천·검색 결과','C/feed/ExploreClient.tsx:295')
-e('/messages','/discover','빈 목록 버튼','C/dm/ConversationsClient.tsx:101')
+e('/messages','/people','빈 목록 버튼','C/dm/ConversationsClient.tsx:109')
 e('/discover','/u/[userId]','사람 줄','C/feed/DiscoverClient.tsx:112')
 e('/u/[userId]','/u/[userId]/follows','팔로워·팔로잉 숫자','C/feed/UserProfileClient.tsx:180')
 e('/u/[userId]/follows','/u/[userId]','사람 줄','C/feed/FollowListClient.tsx:90')
 e('/u/[userId]','/messages/[id]','메시지 버튼','C/feed/UserProfileClient.tsx:218')
 e('/messages','/messages/[id]','대화 줄','C/dm/ConversationsClient.tsx:122')
-e('/messages','/messages/new','머리 버튼','C/dm/ConversationsClient.tsx:78')
-e('/messages/new','/messages/[id]','그룹 생성 후','C/dm/NewGroupClient.tsx:67','redir')
+e('/messages','/messages/new','머리 ✎ 새 메시지','C/dm/ConversationsClient.tsx:81')
+e('/messages/new','/messages/[id]','대화 시작·단체 대화 만들기 후','C/dm/NewGroupClient.tsx:94','redir')
 e('/messages/[id]','/messages','방 나간 후','C/dm/ConversationClient.tsx:176','redir')
 e('/notifications','/u/[userId]','팔로우 알림','C/dm/NotificationsClient.tsx:39')
 e('/notifications','/feed/[postId]','좋아요 알림 · 댓글 알림(시트까지 바로)','C/dm/NotificationsClient.tsx:45')
@@ -169,7 +174,7 @@ e('x.nat','/workout','잠금 화면 「앱에서 하기」','src/mobile/android/
 n('x.admin','운영 웹(별도 사이트)','entry','앱 밖','요약·통계·신고 검토·사용자 의견·운영 피드백·운영 상태·설정. 앱에서 들어가는 입구는 없다','운영진만(Cloudflare Access + 비밀번호)','https://liftgram-admin.tarae.org')
 e('/profile','/profile/feedback','의견 보내기 줄','C/profile/ProfileClient.tsx:316')
 # 뒤로 가기
-for a,b,ev in [('/feed/[postId]','/feed','C/feed/CommentsClient.tsx:73'),('/explore','/feed','C/feed/ExploreClient.tsx:131'),('/discover','/feed','C/feed/DiscoverClient.tsx:78'),('/hashtag/[tag]','/feed','C/feed/PostListScreen.tsx:80'),('/bookmarks','/profile','C/feed/BookmarksClient.tsx:25'),('/u/[userId]','/feed','C/feed/UserProfileClient.tsx:260'),('/messages','/feed','C/dm/ConversationsClient.tsx:73'),('/notifications','/feed','C/dm/NotificationsClient.tsx:86'),('/messages/[id]','/messages','C/dm/ConversationClient.tsx:239'),('/messages/new','/messages','C/dm/NewGroupClient.tsx:80'),('/terms','/profile','C/legal/LegalPage.tsx:20'),('/privacy','/profile','C/legal/LegalPage.tsx:20'),('/licenses','/profile','C/legal/LegalPage.tsx:20'),('/coaching','/profile','C/coaching/CoachingClient.tsx:308'),('/gear','/profile','C/profile/MyGearClient.tsx:62'),('/blocked','/profile','C/moderation/BlockedUsersClient.tsx:58'),('/account','/profile','C/profile/AuthClient.tsx:190'),('/account/import','/account','C/sync/ImportFlow.tsx:652'),('/exercises','/','F/app/exercises/page.tsx:31'),('/program','/','C/routines/ProgramGeneratorClient.tsx:251'),('/exercise/[id]','/exercises','F/app/exercise/[id]/page.tsx:119'),('/exercises/new','/exercises','C/ExerciseFormClient.tsx:133'),('/exercises/[id]/edit','/exercises','C/ExerciseFormClient.tsx:133'),('/history/[id]','/history','C/analytics/WorkoutDetailClient.tsx:122')]:
+for a,b,ev in [('/feed/[postId]','/feed','C/feed/CommentsClient.tsx:73'),('/explore','/feed','C/feed/ExploreClient.tsx:131'),('/discover','/feed','C/feed/DiscoverClient.tsx:78'),('/hashtag/[tag]','/feed','C/feed/PostListScreen.tsx:80'),('/bookmarks','/profile','C/feed/BookmarksClient.tsx:25'),('/u/[userId]','/feed','C/feed/UserProfileClient.tsx:260'),('/messages','/feed','C/dm/ConversationsClient.tsx:73'),('/notifications','/feed','C/dm/NotificationsClient.tsx:86'),('/messages/[id]','/messages','C/dm/ConversationClient.tsx:239'),('/messages/new','/messages','C/dm/NewGroupClient.tsx:107'),('/terms','/profile','C/legal/LegalPage.tsx:20'),('/privacy','/profile','C/legal/LegalPage.tsx:20'),('/licenses','/profile','C/legal/LegalPage.tsx:20'),('/coaching','/profile','C/coaching/CoachingClient.tsx:308'),('/gear','/profile','C/profile/MyGearClient.tsx:62'),('/blocked','/profile','C/moderation/BlockedUsersClient.tsx:58'),('/account','/profile','C/profile/AuthClient.tsx:190'),('/account/import','/account','C/sync/ImportFlow.tsx:652'),('/exercises','/','F/app/exercises/page.tsx:31'),('/program','/','C/routines/ProgramGeneratorClient.tsx:251'),('/exercise/[id]','/exercises','F/app/exercise/[id]/page.tsx:119'),('/exercises/new','/exercises','C/ExerciseFormClient.tsx:133'),('/exercises/[id]/edit','/exercises','C/ExerciseFormClient.tsx:133'),('/history/[id]','/history','C/analytics/WorkoutDetailClient.tsx:122')]:
     e(a,b,'뒤로',ev,'back')
 # ── 시트 도우미: 표 그대로
 def sh(id,name,parent,label,ev,desc='',cond='',group=None,kind='sheet'):
@@ -204,7 +209,7 @@ for id,name,label,ev,desc,cond in [
  ('s.rename','운동 이름 변경','이름 탭','C/session/ActiveWorkout.tsx:582','이름 입력',''),
  ('s.superset','슈퍼셋으로 묶을 종목 선택','종목 메뉴','C/session/ActiveWorkout.tsx:622','짝 고르기',''),
  ('s.swapscope','루틴도 바꿀까요?','종목 교체','C/session/ActiveWorkout.tsx:662','교체 범위 선택','루틴 운동에서 교체'),
- ('s.weighin','오늘 체중','운동 시작 직후','C/session/WeighInSheet.tsx:522','체중 입력','설정 켬, 오늘 기록 없음'),
+ ('s.weighin','오늘 체중','맨 위 「오늘 체중」 줄','C/session/WeighInSheet.tsx:696','체중 ± · 인바디(골격근량·체지방률) 펼쳐 적기 · 오늘 기록이 있으면 그 줄 고치기',''),
  ('s.muscle','오늘 근육','헤더 버튼','C/session/TodayMuscleSheet.tsx:82','오늘 자극 부위','근육 그림 설정 켬'),
  ('s.lockready','잠금화면 운동 화면 준비 카드','운동 중 자동','C/session/LockReadiness.tsx:107','허용 항목 안내','앱 안, 허용 항목 빠짐'),
  ('s.lockdiff','잠금화면 값 불일치 안내','운동 중 자동','C/session/LockNotices.tsx:98','인라인 알림','값이 다를 때'),
@@ -263,8 +268,8 @@ for id,name,par,label,ev,desc in [
  ('s.rmworkout','기록 삭제','/history/[id]','메뉴 삭제','C/analytics/WorkoutDetailClient.tsx:286','삭제 확인'),
  ('s.editset','N세트 고치기','/history/[id]','세트 줄','C/analytics/WorkoutDetailClient.tsx:555','끝난 세트 수정'),
  ('s.rmset','이 세트 지우기','/history/[id]','수정 시트','C/analytics/WorkoutDetailClient.tsx:620','삭제 확인'),
- ('s.bw','체중 기록','/stats','기록 버튼','C/analytics/BodyweightCard.tsx:238','체중 입력'),
- ('s.bwgoal','목표 체중','/stats','목표 탭','C/analytics/BodyweightCard.tsx:240','목표 입력'),
+ ('s.bw','체중 기록','/stats','머리 「기록」','C/analytics/BodyweightCard.tsx:167','체중 입력 · 인바디 펼쳐 적기'),
+ ('s.bwgoal','목표 체중','/stats','머리 ⋯ 목표','C/analytics/BodyweightCard.tsx:178','목표 입력(인바디 칸 없음)'),
 ]:
     sh(id,name,par,label,ev,desc,'','기록·분석')
 e('/profile','s.bw','체중 줄','C/profile/BodyweightRow.tsx:91','open')
@@ -385,7 +390,7 @@ AREAS={
  ('프로·초보자 루틴','2열 카드',RC+':676'),('최근 운동','3줄 · 전체 ›',WS+':195')],
 '/workout':[('고정 머리','⌄ 닫기 · 경과 시간 · 운동 이름✎ · 실시간 볼륨 · 오늘 근육 · 일시정지 · 「완료」 · ⋯',AW+':361'),('운동 블록 목록','종목마다 블록(아래 「블록 ·」 구역). 비면 빈 안내',AW+':460'),
  ('슈퍼셋 묶음 틀','묶음 머리 ⌃⌄ · 묶음 풀기',AW+':471'),('「운동 추가」 버튼','종목 피커를 연다',AW+':500'),('휴식 막대','남은 시간 · +15초 · 건너뛰기','C/session/RestBar.tsx:16'),
- ('덮개','첫 안내 말풍선 · PR 축하 · 체중 체크인',AW+':517'),('종목 피커','추가·교체 중 전체 화면',AW+':555'),
+ ('덮개','첫 안내 말풍선 · PR 축하',AW+':517'),('종목 피커','추가·교체 중 전체 화면',AW+':555'),
  ('블록 · 머리','그림 · 종목 이름 · 종목 볼륨 · ⋮ 메뉴',EB+':908'),('블록 · 세트 방식','방식 이름▾ + 한 줄 안내(일반이 아닐 때)',EB+':1015'),
  ('블록 · 메타 줄','기구 조합 · 슈퍼셋 · PR 금색 칩 · 체중 경고 · 오른쪽 「더 보기」',EB+':1047'),('블록 · PR 한 줄','중량 PR과 볼륨 PR이 다를 때',EB+':1117'),
  ('블록 · 더 보기 펼침','운동 방법 보기 · 다른 조합 · 이전 기록 지우기',EB+':1140'),('블록 · 세트 표 머리','세트 · 이전 · kg│lb · 회',EB+':1165'),
@@ -393,7 +398,7 @@ AREAS={
  ('블록 · 「다른 세트도 똑같이」','방금 고친 값을 남은 세트에',EB+':1326'),('블록 · 원판 한쪽 질문','플레이트 머신에서 아직 안 정했을 때',EB+':1340'),
  ('블록 · 「세트 추가」','',EB+':1349'),('블록 · 도구 줄','⌃⌄ 순서 · 휴식 n초 칩 · 메모 칩','C/session/BlockTools.tsx:88'),('블록 · 메모','메모 입력 · 지난 메모',EB+':1371'),
  ('세트 줄 · 본 줄','세트 번호 · 「이전」 칩 · 무게 · 횟수 · ✓ · ⋯',SR+':324'),('세트 줄 · 변형 이름표','변형이 있을 때',SR+':494'),('세트 줄 · 확인 필요 칩','튀는 기록일 때 → 「이 기록이 맞나요?」',SR+':511'),
- ('세트 줄 · 목표 줄','목표 횟수·RIR·결과',SR+':529'),('세트 줄 · 무게 근거·제안','',SR+':576'),('세트 줄 · ⋯ 펼침','부분 반복 · 변형 · 이 종목만 완료 · 삭제',SR+':606')],
+ ('세트 줄 · 목표 줄','목표 횟수·RIR·결과',SR+':529'),('세트 줄 · 무게 근거·제안','',SR+':576'),('세트 줄 · ⋯ 펼침','부분 반복 · 변형 · 이 종목만 완료 · 삭제',SR+':606'),('오늘 체중 줄','블록 목록 맨 위 한 줄 · 기록 전 「오늘 체중 기록 · 지난 72.5kg」 · 뒤 「오늘 체중 72.6kg ✓」 · 누르면 체중 시트',AW+':459')],
 '/routines/[id]':[('하위 앱바','← · 루틴 이름 · ⋯ 삭제',RE+':342'),('루틴 이름','',RE+':373'),('폴더','입력칸 또는 폴더 칩 + 새 폴더',RE+':382'),('메모','',RE+':442'),
  ('종목 카드 목록','카드 머리 · 휴식·무게 · 세트 표 · 슈퍼셋·교체·🗑',RE+':451'),('「운동 추가」','',RE+':494'),('하단 고정','「완료」 · 「이 루틴으로 시작」',RE+':549'),
  ('세트 표 · 세트 방식','「세트 방식: ○○ ▾」 + 안내 + 되돌리기',PR+':444'),('세트 표 · 머리','세트 · 무게 · 횟수',PR+':481'),
@@ -409,15 +414,15 @@ AREAS={
  ('종목별 기록','칸 이름 · 1RM · PR',SU+':167'),('광고 자리','',SU+':277'),('부가 행동','루틴 만들기 · 다시 시작 · 공유',SU+':282'),('운동 총평','',SU+':329'),('하단 「완료」','',SU+':376')],
 '/stats':[('앱바','「분석」',ST+':160'),('기간 선택','',ST+':163'),('대표 카드','볼륨 · 증감 · 주별 막대',ST+':185'),('숫자 줄','세션 · 세트 · 평균 + 증감',ST+':201'),
  ('추정 1RM 목록','',ST+':249'),('1RM 변화','','C/analytics/ExerciseChangeCards.tsx:113'),('근육 균형','',ST+':317'),('세트 힘든 정도','',ST+':319'),('최근 PR','1RM 목록에 없는 PR · 줄을 누르면 그 기록',ST+':325'),
- ('광고 자리','',ST+':369'),('그대로인 종목','','C/analytics/ExerciseChangeCards.tsx:146'),('근육별 주간 세트','',ST+':375'),('체중','',ST+':378'),('의료 아님 고지','',ST+':380')],
+ ('광고 자리','',ST+':369'),('그대로인 종목','','C/analytics/ExerciseChangeCards.tsx:146'),('근육별 주간 세트','',ST+':375'),('체중','숫자 줄 바로 아래로 옮김 · 머리 최근 값·날짜 · 「기록」 · ⋯ 목표 · 체중/골격근량/체지방률 고르기 · 곡선',ST+':260'),('의료 아님 고지','',ST+':380')],
 '/profile':[('앱바','「프로필」',PC+':255'),('나 카드','아바타 · 이름 · 경력 · 편집',PC+':258'),('의견 보내기','',PC+':285'),
- ('설정 묶음','단위 · 테마 · 언어 · 체중 · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표시 · 근육 그림 · 체중 체크인 · 사용 통계 · 가용 기구 · 기구 이름 · 안내 다시 보기',PC+':295'),
+ ('설정 묶음','단위 · 테마 · 언어 · 체중 · 알림음 · 잠금화면 카드 · 힘든 정도 · 추천 표시 · 근육 그림 · 사용 통계 · 가용 기구 · 기구 이름 · 안내 다시 보기',PC+':295'),
  ('계정과 데이터','로그인·보안 · 백업 · 장비함 · 코칭 · 저장한 글 · 차단 목록',PC+':366'),('앱 버전·업데이트','',PC+':408'),('바닥 고지','의료 아님 · 약관 · 개인정보 · 오픈소스 · 사업자',PC+':417')],
 '/exercises':[('머리','← · 「운동」 · + 커스텀 운동','F/app/exercises/page.tsx:29'),('검색칸','',CC+':241'),('스무고개·초기화 줄','',CC+':249'),('스무고개 경로','',CC+':282'),
  ('근육군 칩','',CC+':291'),('기구 칩','',CC+':320'),('종목 목록','그림 · 이름 · 부위·기구',CC+':336'),('오프라인 안내','',CC+':361')],
 '/exercise/[id]':[('머리','← · 「운동 상세」',EX+':121'),('이름','✎ 그 자리에서 이름 바꾸기 · 별칭 칩 · 원래 이름으로',EX+':140'),('내 기록','추정 1RM 추세',EX+':145'),('자세 그림·영상','',EX+':151'),
  ('시연 사진','',EX+':163'),('동작 주의','',EX+':173'),('자세 설명','',EX+':179'),('분류','주동근 · 보조근 · 기구 · 하중',EX+':199'),('대체 운동','',EX+':258')],
-'/feed':[('앱바','탐색 · 메시지 · 알림',FC+':398'),('탭','추천 · 팔로잉 · 발견',FC+':434'),('주변 헬스장 줄','',FC+':457'),('스토리 줄','',FC+':459'),
+'/feed':[('앱바','사람 · 탐색 · 메시지 · 알림',FC+':434'),('탭','추천 · 팔로잉 · 발견',FC+':434'),('주변 헬스장 줄','',FC+':457'),('스토리 줄','',FC+':459'),
  ('추천 목록','',FC+':470'),('발견 탭','',FC+':495'),('팔로잉 글 목록','글 카드 · 광고 · 끝없이 불러오기','C/feed/PostCard.tsx:134'),('+ 글쓰기','',FC+':552')],
 '/account':[('하위 앱바','「계정」',AC+':200'),('계정 카드','이름 · 주소 · 로그아웃',AC+':202'),('프로필 편집','',AC+':243'),('로그인·보안','',AC+':244'),
  ('서버 동기','',AC+':245'),('백업 파일','',AC+':248'),('다른 앱 기록 가져오기','',AC+':252'),('계정 삭제','',AC+':255'),
